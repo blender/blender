@@ -402,27 +402,22 @@ static void rna_userdef_autosave_update(Main *bmain, Scene *scene, PointerRNA *p
 static bAddon *rna_userdef_addon_new(void)
 {
 	ListBase *addons_list = &U.addons;
-	bAddon *bext = MEM_callocN(sizeof(bAddon), "bAddon");
-	BLI_addtail(addons_list, bext);
-	return bext;
+	bAddon *addon = BKE_addon_new();
+	BLI_addtail(addons_list, addon);
+	return addon;
 }
 
-static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *bext_ptr)
+static void rna_userdef_addon_remove(ReportList *reports, PointerRNA *addon_ptr)
 {
 	ListBase *addons_list = &U.addons;
-	bAddon *bext = bext_ptr->data;
-	if (BLI_findindex(addons_list, bext) == -1) {
+	bAddon *addon = addon_ptr->data;
+	if (BLI_findindex(addons_list, addon) == -1) {
 		BKE_report(reports, RPT_ERROR, "Add-on is no longer valid");
 		return;
 	}
-
-	if (bext->prop) {
-		IDP_FreeProperty(bext->prop);
-		MEM_freeN(bext->prop);
-	}
-
-	BLI_freelinkN(addons_list, bext);
-	RNA_POINTER_INVALIDATE(bext_ptr);
+	BLI_remlink(addons_list, addon);
+	BKE_addon_free(addon);
+	RNA_POINTER_INVALIDATE(addon_ptr);
 }
 
 static bPathCompare *rna_userdef_pathcompare_new(void)

@@ -45,6 +45,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
+#include "BKE_addon.h"
 #include "BKE_appdir.h"
 #include "BKE_colorband.h"
 #include "BKE_DerivedMesh.h"
@@ -2148,11 +2149,7 @@ void init_userdef_do_versions(void)
 		}
 		
 		/* enable (Cycles) addon by default */
-		if (!BLI_findstring(&U.addons, "cycles", offsetof(bAddon, module))) {
-			bAddon *baddon = MEM_callocN(sizeof(bAddon), "bAddon");
-			BLI_strncpy(baddon->module, "cycles", sizeof(baddon->module));
-			BLI_addtail(&U.addons, baddon);
-		}
+		BKE_addon_ensure(&U.addons, "cycles");
 	}
 	
 	if (!USER_VERSION_ATLEAST(260, 5)) {

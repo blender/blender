@@ -45,6 +45,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
 
+#include "BKE_addon.h"
 #include "BKE_blender.h"  /* own include */
 #include "BKE_blender_version.h"  /* own include */
 #include "BKE_blendfile.h"
@@ -198,11 +199,7 @@ static void userdef_free_addons(UserDef *userdef)
 {
 	for (bAddon *addon = userdef->addons.first, *addon_next; addon; addon = addon_next) {
 		addon_next = addon->next;
-		if (addon->prop) {
-			IDP_FreeProperty(addon->prop);
-			MEM_freeN(addon->prop);
-		}
-		MEM_freeN(addon);
+		BKE_addon_free(addon);
 	}
 	BLI_listbase_clear(&userdef->addons);
 }

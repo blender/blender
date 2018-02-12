@@ -27,12 +27,58 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include "RNA_types.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_addon.h"  /* own include */
+#include "BKE_idprop.h"
+
+#include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
+
 
 #include "MEM_guardedalloc.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Add-on New/Free
+ * \{ */
+
+bAddon *BKE_addon_new(void)
+{
+	bAddon *addon = MEM_callocN(sizeof(bAddon), "bAddon");
+	return addon;
+}
+
+bAddon *BKE_addon_ensure(ListBase *addon_list, const char *module)
+{
+	bAddon *addon = BLI_findstring(addon_list, module, offsetof(bAddon, module));
+	if (addon == NULL) {
+		addon = BKE_addon_new();
+		BLI_strncpy(addon->module, module, sizeof(addon->module));
+		BLI_addtail(addon_list, addon);
+	}
+	return addon;
+}
+
+void BKE_addon_free(bAddon *addon)
+{
+	if (addon->prop) {
+		IDP_FreeProperty(addon->prop);
+		MEM_freeN(addon->prop);
+	}
+	MEM_freeN(addon);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Add-on Preference API
+ * \{ */
 
 static GHash *global_addonpreftype_hash = NULL;
 
@@ -81,3 +127,5 @@ void BKE_addon_pref_type_free(void)
 	BLI_ghash_free(global_addonpreftype_hash, NULL, MEM_freeN);
 	global_addonpreftype_hash = NULL;
 }
+
+/** \} */
