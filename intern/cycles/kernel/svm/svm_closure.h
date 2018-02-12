@@ -187,7 +187,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 
 					if(bssrdf) {
 						bssrdf->radius = subsurface_radius * subsurface;
-						bssrdf->albedo = subsurface_color;
+						bssrdf->albedo = (subsurface_method == CLOSURE_BSSRDF_PRINCIPLED_ID)? subsurface_color:  mixed_ss_base_color;
 						bssrdf->texture_blur = 0.0f;
 						bssrdf->sharpness = 0.0f;
 						bssrdf->N = N;
