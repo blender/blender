@@ -705,7 +705,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 
 	/* need scissor test, histogram can draw outside of boundary */
 	GLint scissor[4];
-	glGetIntegerv(GL_VIEWPORT, scissor);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin - 1),
 	          ar->winrct.ymin + (rect.ymin - 1),
 	          (rect.xmax + 1) - (rect.xmin - 1),
@@ -825,7 +825,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 	UI_draw_roundbox_4fv(true, rect.xmin - 1, rect.ymin - 1, rect.xmax + 1, rect.ymax + 1, 3.0f, color);
 
 	/* need scissor test, waveform can draw outside of boundary */
-	glGetIntegerv(GL_VIEWPORT, scissor);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin - 1),
 	          ar->winrct.ymin + (rect.ymin - 1),
 	          (rect.xmax + 1) - (rect.xmin - 1),
@@ -1094,7 +1094,7 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 
 	/* need scissor test, hvectorscope can draw outside of boundary */
 	GLint scissor[4];
-	glGetIntegerv(GL_VIEWPORT, scissor);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin - 1),
 	          ar->winrct.ymin + (rect.ymin - 1),
 	          (rect.xmax + 1) - (rect.xmin - 1),
@@ -1520,7 +1520,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, const rcti
 
 	/* need scissor test, curve can draw outside of boundary */
 	GLint scissor[4];
-	glGetIntegerv(GL_VIEWPORT, scissor);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	rcti scissor_new = {
 		.xmin = ar->winrct.xmin + rect->xmin,
 		.ymin = ar->winrct.ymin + rect->ymin,
@@ -1742,7 +1742,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 	/* need scissor test, preview image can draw outside of boundary */
 	GLint scissor[4];
-	glGetIntegerv(GL_VIEWPORT, scissor);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	glScissor(ar->winrct.xmin + (rect.xmin - 1),
 	          ar->winrct.ymin + (rect.ymin - 1),
 	          (rect.xmax + 1) - (rect.xmin - 1),
@@ -1874,7 +1874,7 @@ void ui_draw_but_NODESOCKET(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol
 	GLint scissor[4];
 	
 	/* need scissor test, can draw outside of boundary */
-	glGetIntegerv(GL_VIEWPORT, scissor);
+	glGetIntegerv(GL_SCISSOR_BOX, scissor);
 	
 	rcti scissor_new = {
 		.xmin = ar->winrct.xmin + recti->xmin,
