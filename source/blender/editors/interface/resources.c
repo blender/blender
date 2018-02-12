@@ -2147,9 +2147,19 @@ void init_userdef_do_versions(void)
 			if (btheme->tipo.handle_sel_auto_clamped[3] == 0)
 				rgba_char_args_set(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
 		}
-		
+
+#ifdef WITH_CYCLES
 		/* enable (Cycles) addon by default */
 		BKE_addon_ensure(&U.addons, "cycles");
+#else
+		{
+			bAddon *addon = BLI_findstring(&U.addons, "cycles", offsetof(bAddon, module));
+			if (addon) {
+				BKE_addon_free(addon);
+				BLI_remlink(&U.addons, addon);
+			}
+		}
+#endif
 	}
 	
 	if (!USER_VERSION_ATLEAST(260, 5)) {

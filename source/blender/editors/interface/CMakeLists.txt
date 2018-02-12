@@ -82,6 +82,10 @@ if(WITH_HEADLESS)
 	add_definitions(-DWITH_HEADLESS)
 endif()
 
+if(WITH_CYCLES)
+	add_definitions(-DWITH_CYCLES)
+endif()
+
 if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
