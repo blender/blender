@@ -35,6 +35,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -109,7 +110,6 @@ void ED_editors_init(bContext *C)
 void ED_editors_exit(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *sce;
 
 	if (!bmain)
 		return;
@@ -117,23 +117,20 @@ void ED_editors_exit(bContext *C)
 	/* frees all editmode undos */
 	undo_editmode_clear();
 	ED_undo_paint_free();
-	
-	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
-		if (sce->obedit) {
-			Object *ob = sce->obedit;
-		
-			if (ob) {
-				if (ob->type == OB_MESH) {
-					Mesh *me = ob->data;
-					if (me->edit_btmesh) {
-						EDBM_mesh_free(me->edit_btmesh);
-						MEM_freeN(me->edit_btmesh);
-						me->edit_btmesh = NULL;
-					}
-				}
-				else if (ob->type == OB_ARMATURE) {
-					ED_armature_edit_free(ob->data);
-				}
+
+	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
+			if (me->edit_btmesh) {
+				EDBM_mesh_free(me->edit_btmesh);
+				MEM_freeN(me->edit_btmesh);
+				me->edit_btmesh = NULL;
+			}
+		}
+		else if (ob->type == OB_ARMATURE) {
+			bArmature *arm = ob->data;
+			if (arm->edbo) {
+				ED_armature_edit_free(ob->data);
 			}
 		}
 	}
