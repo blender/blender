@@ -200,7 +200,7 @@ static void PARTICLE_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	UNUSED_VARS(fbl, dfbl, dtxl);
+	UNUSED_VARS(fbl, dfbl, dtxl, psl);
 
 	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
 	/*
@@ -212,7 +212,7 @@ static void PARTICLE_draw_scene(void *vedata)
 	 */
 
 	/* ... or just render passes on default framebuffer. */
-	DRW_draw_pass(psl->pass);
+	//DRW_draw_pass(psl->pass);
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */
