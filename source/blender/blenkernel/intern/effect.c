@@ -221,7 +221,8 @@ ListBase *pdInitEffectors(
 	if (weights->group) {
 		view_layer = weights->group->view_layer;
 	}
-	else if (eval_ctx) {
+	/* TODO(mai): the check for view_layer shouldnt be needed, remove when render engine api is updated for this */
+	else if (eval_ctx && eval_ctx->view_layer) {
 		view_layer = eval_ctx->view_layer;
 	}
 	else {

@@ -290,9 +290,10 @@ void psys_enable_all(Object *ob)
 
 bool psys_in_edit_mode(const EvaluationContext *eval_ctx, ViewLayer *view_layer, ParticleSystem *psys)
 {
-	return (view_layer->basact &&
+	/* TODO(mai): the check for view_layer shouldnt be needed, remove when render engine api is updated for this */
+	return (view_layer && view_layer->basact &&
 	        (eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT) &&
-	        psys == psys_get_current((view_layer->basact)->object) &&
+	        psys == psys_get_current(view_layer->basact->object) &&
 	        (psys->edit || psys->pointcache->edit) &&
 	        !psys->renderdata);
 }
