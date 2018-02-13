@@ -3572,6 +3572,7 @@ NODE_DEFINE(HairInfoNode)
 #if 0 /*output for minimum hair width transparency - deactivated */
 	SOCKET_OUT_FLOAT(fade, "Fade");
 #endif
+	SOCKET_OUT_FLOAT(index, "Index");
 
 	return type;
 }
@@ -3588,6 +3589,9 @@ void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 
 		if(!intercept_out->links.empty())
 			attributes->add(ATTR_STD_CURVE_INTERCEPT);
+
+		if(!output("Index")->links.empty())
+			attributes->add(ATTR_STD_CURVE_INDEX);
 	}
 
 	ShaderNode::attributes(shader, attributes);
@@ -3623,6 +3627,11 @@ void HairInfoNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_FADE, compiler.stack_assign(out));
 	}*/
 
+	out = output("Index");
+	if(!out->links.empty()) {
+		int attr = compiler.attribute(ATTR_STD_CURVE_INDEX);
+		compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_FLOAT);
+	}
 }
 
 void HairInfoNode::compile(OSLCompiler& compiler)

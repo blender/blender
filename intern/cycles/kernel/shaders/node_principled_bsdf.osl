@@ -63,7 +63,7 @@ shader node_principled_bsdf(
 				BSDF = mixed_ss_base_color * bssrdf("principled", Normal, Subsurface * SubsurfaceRadius, SubsurfaceColor, "roughness", Roughness);
 			}
 			else {
-				BSDF = mixed_ss_base_color * bssrdf("principled_random_walk", Normal, Subsurface * SubsurfaceRadius, SubsurfaceColor, "roughness", Roughness);
+				BSDF = mixed_ss_base_color * bssrdf("principled_random_walk", Normal, Subsurface * SubsurfaceRadius, mixed_ss_base_color, "roughness", Roughness);
 			}
 		}
 		else {

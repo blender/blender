@@ -180,6 +180,8 @@ ccl_device void svm_node_hair_info(KernelGlobals *kg,
 		}
 		case NODE_INFO_CURVE_INTERCEPT:
 			break; /* handled as attribute */
+		case NODE_INFO_CURVE_INDEX:
+			break; /* handled as attribute */
 		case NODE_INFO_CURVE_THICKNESS: {
 			data = curve_thickness(kg, sd);
 			stack_store_float(stack, out_offset, data);

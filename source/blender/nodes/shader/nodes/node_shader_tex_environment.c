@@ -102,6 +102,7 @@ void register_node_type_sh_tex_environment(void)
 	node_type_init(&ntype, node_shader_init_tex_environment);
 	node_type_storage(&ntype, "NodeTexEnvironment", node_free_standard_storage, node_copy_standard_storage);
 	node_type_gpu(&ntype, node_shader_gpu_tex_environment);
+	node_type_label(&ntype, node_image_label);
 
 	nodeRegisterType(&ntype);
 }

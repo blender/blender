@@ -176,7 +176,8 @@ typedef enum NodeHairInfo {
 	NODE_INFO_CURVE_THICKNESS,
 	/*fade for minimum hair width transpency*/
 	/*NODE_INFO_CURVE_FADE,*/
-	NODE_INFO_CURVE_TANGENT_NORMAL
+	NODE_INFO_CURVE_TANGENT_NORMAL,
+	NODE_INFO_CURVE_INDEX,
 } NodeHairInfo;
 
 typedef enum NodeLightPath {
