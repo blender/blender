@@ -1623,7 +1623,7 @@ typedef struct Scene {
 	
 	ListBase base DNA_DEPRECATED;
 	struct Base  *basact DNA_DEPRECATED; /* active base */
-	struct Object *obedit;		/* name replaces old G.obedit */
+	void *_pad1;
 	
 	float cursor[3];			/* 3d cursor location */
 	char _pad[4];

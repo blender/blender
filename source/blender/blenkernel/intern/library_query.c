@@ -421,10 +421,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
 					library_foreach_ID_as_subdata_link((ID **)&scene->nodetree, callback, user_data, flag, &data);
 				}
-				/* DO NOT handle scene->basact here, it's doubling with the loop over whole scene->base later,
-				 * since basact is just a pointer to one of those items. */
-				CALLBACK_INVOKE(scene->obedit, IDWALK_CB_NOP);
-
 				if (scene->ed) {
 					Sequence *seq;
 					SEQP_BEGIN(scene->ed, seq)

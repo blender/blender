@@ -461,18 +461,6 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			}
 			break;
 		}
-		case ID_SCE:
-		{
-			const Scene *scene_orig = (const Scene *)id_orig;
-			Scene *scene_cow = (Scene *)id_cow;
-			if (scene_orig->obedit != NULL) {
-				scene_cow->obedit = (Object *)depsgraph->get_cow_id(&scene_orig->obedit->id);
-			}
-			else {
-				scene_cow->obedit = NULL;
-			}
-			break;
-		}
 		default:
 			break;
 	}
@@ -622,13 +610,6 @@ void update_copy_on_write_scene(const Depsgraph *depsgraph,
 	update_copy_on_write_view_layers(depsgraph, scene_cow, scene_orig);
 	update_copy_on_write_scene_collection(scene_cow->collection,
 	                                      scene_orig->collection);
-	// Update edit object pointer.
-	if (scene_orig->obedit != NULL) {
-		scene_cow->obedit = (Object *)depsgraph->get_cow_id(&scene_orig->obedit->id);
-	}
-	else {
-		scene_cow->obedit = NULL;
-	}
 	/* Synchronize active render engine. */
 	BLI_strncpy(scene_cow->view_render.engine_id,
 	            scene_orig->view_render.engine_id,

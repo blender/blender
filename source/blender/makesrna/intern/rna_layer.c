@@ -73,6 +73,7 @@ const EnumPropertyItem rna_enum_collection_type_items[] = {
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph_build.h"
@@ -845,11 +846,25 @@ static void rna_LayerObjects_active_object_update(struct bContext *C, PointerRNA
 	if (scene != ptr->id.data) {
 		return;
 	}
-
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	if (scene->obedit) {
-		ED_object_editmode_exit(C, EM_FREEDATA);
+
+	/* We don't know the previous active object in update.
+	 *
+	 * Not correct because it's possible other work-spaces use these.
+	 * although that's a corner case. */
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	if (workspace->object_mode & OB_MODE_EDIT) {
+		Object *obact = OBACT(view_layer);
+		FOREACH_OBJECT(view_layer, ob) {
+			if (ob != obact) {
+				if (BKE_object_is_in_editmode(ob)) {
+					ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
+				}
+			}
+		}
+		FOREACH_OBJECT_END;
 	}
+
 	ED_object_base_activate(C, view_layer->basact);
 }
 
