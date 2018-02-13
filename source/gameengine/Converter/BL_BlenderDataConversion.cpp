@@ -1688,6 +1688,7 @@ struct parentChildLink {
 	SG_Node* m_gamechildnode;
 };
 
+#if 0
 static bPoseChannel *get_active_posechannel2(Object *ob)
 {
 	bArmature *arm= (bArmature*)ob->data;
@@ -1701,6 +1702,7 @@ static bPoseChannel *get_active_posechannel2(Object *ob)
 	
 	return NULL;
 }
+#endif
 
 static ListBase *get_active_constraints2(Object *ob)
 {

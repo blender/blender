@@ -785,9 +785,10 @@ static void rna_Window_view_layer_update(struct bContext *C, PointerRNA *ptr)
 	Scene *scene = WM_window_get_active_scene(win);
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	Object *obedit = CTX_data_edit_object(C);
 
 	eObjectMode object_mode = workspace->object_mode;
-	if (scene->obedit) {
+	if (obedit) {
 		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 	workspace->object_mode = object_mode;

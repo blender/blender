@@ -857,9 +857,10 @@ static int rna_SpaceImageEditor_show_uvedit_get(PointerRNA *ptr)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
-	Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
+	wmWindow *win = ED_screen_window_find(sc, G.main->wm.first);
+	Object *obedit = OBEDIT_FROM_WINDOW(win);
 
-	return ED_space_image_show_uvedit(sima, scene->obedit);
+	return ED_space_image_show_uvedit(sima, obedit);
 }
 
 static int rna_SpaceImageEditor_show_maskedit_get(PointerRNA *ptr)
@@ -877,9 +878,10 @@ static void rna_SpaceImageEditor_image_set(PointerRNA *ptr, PointerRNA value)
 {
 	SpaceImage *sima = (SpaceImage *)(ptr->data);
 	bScreen *sc = (bScreen *)ptr->id.data;
-	Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
-
-	ED_space_image_set(sima, scene, scene->obedit, (Image *)value.data);
+	wmWindow *win;
+	Scene *scene = ED_screen_scene_find_with_window(sc, G.main->wm.first, &win);
+	Object *obedit = OBEDIT_FROM_WINDOW(win);
+	ED_space_image_set(sima, scene, obedit, (Image *)value.data);
 }
 
 static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr, PointerRNA value)
