@@ -565,9 +565,12 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 		return;
 
 	Attribute *attr_intercept = NULL;
+	Attribute *attr_index = NULL;
 
 	if(mesh->need_attribute(scene, ATTR_STD_CURVE_INTERCEPT))
 		attr_intercept = mesh->curve_attributes.add(ATTR_STD_CURVE_INTERCEPT);
+	if(mesh->need_attribute(scene, ATTR_STD_CURVE_INDEX))
+		attr_index = mesh->curve_attributes.add(ATTR_STD_CURVE_INDEX);
 
 	/* compute and reserve size of arrays */
 	for(int sys = 0; sys < CData->psys_firstcurve.size(); sys++) {
@@ -612,9 +615,22 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 				num_curve_keys++;
 			}
 
+			if(attr_index != NULL) {
+				attr_index->add(num_curves);
+			}
+
 			mesh->add_curve(num_keys, CData->psys_shader[sys]);
 			num_keys += num_curve_keys;
 			num_curves++;
+		}
+	}
+
+	if(attr_index != NULL) {
+		/* Normalize index to 0..1 range. */
+		float *curve_index = attr_index->data_float();
+		const float norm_factor = 1.0f / (float)num_curves;
+		for(int i = 0; i < num_curves; ++i) {
+			curve_index[i] *= norm_factor;
 		}
 	}
 
