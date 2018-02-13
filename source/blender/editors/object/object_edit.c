@@ -441,17 +441,20 @@ bool ED_object_editmode_load(Object *obedit)
 	return ED_object_editmode_load_ex(G.main, obedit, false);
 }
 
-void ED_object_editmode_exit(bContext *C, int flag)
+/**
+ * \param C: Can be NULL, only if #EM_DO_UNDO isn't set.
+ * \param flag:
+ * - Only in exceptional cases should #EM_DO_UNDO NOT be in the flag.
+ * - If #EM_FREEDATA isn't in the flag, use ED_object_editmode_load directly.
+ */
+void ED_object_editmode_exit_ex(bContext *C, Scene *scene, Object *obedit, int flag)
 {
-	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
-	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
+	BLI_assert(C || !(flag & EM_DO_UNDO));
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
-	if (ED_object_editmode_load_ex(CTX_data_main(C), obedit, freedata) == false) {
+	if (ED_object_editmode_load_ex(G.main, obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
 		if (UNLIKELY(scene->basact && (scene->basact->object->mode & OB_MODE_EDIT))) {
@@ -485,7 +488,12 @@ void ED_object_editmode_exit(bContext *C, int flag)
 		if (flag & EM_DO_UNDO)
 			ED_undo_push(C, "Editmode");
 
-		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
+		if (C != NULL) {
+			WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
+		}
+		else {
+			WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
+		}
 
 		obedit->mode &= ~OB_MODE_EDIT;
 	}
@@ -493,6 +501,12 @@ void ED_object_editmode_exit(bContext *C, int flag)
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 }
 
+void ED_object_editmode_exit(bContext *C, int flag)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *obedit = CTX_data_edit_object(C);
+	ED_object_editmode_exit_ex(C, scene, obedit, flag);
+}
 
 void ED_object_editmode_enter(bContext *C, int flag)
 {

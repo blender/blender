@@ -120,6 +120,7 @@ void ED_object_toggle_modes(struct bContext *C, eObjectMode mode);
 #define EM_WAITCURSOR   4
 #define EM_DO_UNDO      8
 #define EM_IGNORE_LAYER 16
+void ED_object_editmode_exit_ex(struct bContext *C, struct Scene *scene, struct Object *obedit, int flag);
 void ED_object_editmode_exit(struct bContext *C, int flag);
 void ED_object_editmode_enter(struct bContext *C, int flag);
 bool ED_object_editmode_load(struct Object *obedit);
