@@ -7423,12 +7423,20 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 				
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
-				
-				
+
+				/* Now, since Blender always expect **latest** Main pointer from fd->mainlist to be the active library
+				 * Main pointer, where to add all non-library data-blocks found in file next, we have to switch that
+				 * 'dupli' found Main to latest position in the list!
+				 * Otherwise, you get weird disappearing linked data on a rather unconsistant basis.
+				 * See also T53977 for reproducible case. */
+				BLI_remlink(fd->mainlist, newmain);
+				BLI_addtail(fd->mainlist, newmain);
+
 				return;
 			}
 		}
 	}
+
 	/* make sure we have full path in lib->filepath */
 	BLI_strncpy(lib->filepath, lib->name, sizeof(lib->name));
 	BLI_cleanup_path(fd->relabase, lib->filepath);
