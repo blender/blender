@@ -6515,7 +6515,6 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->modalcursor  = 0;
 		win->grabcursor   = 0;
 		win->addmousemove = true;
-		win->multisamples = 0;
 		win->stereo3d_format = newdataadr(fd, win->stereo3d_format);
 
 		/* multiview always fallback to anaglyph at file opening

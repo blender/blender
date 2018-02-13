@@ -2095,7 +2095,7 @@ int GPU_scene_object_lights(ViewLayer *view_layer, float viewmat[4][4], int orth
 	return count;
 }
 
-static void gpu_multisample(bool enable)
+static void gpu_disable_multisample()
 {
 #ifdef __linux__
 	/* changing multisample from the default (enabled) causes problems on some
@@ -2111,16 +2111,10 @@ static void gpu_multisample(bool enable)
 	}
 
 	if (toggle_ok) {
-		if (enable)
-			glEnable(GL_MULTISAMPLE);
-		else
-			glDisable(GL_MULTISAMPLE);
+		glDisable(GL_MULTISAMPLE);
 	}
 #else
-	if (enable)
-		glEnable(GL_MULTISAMPLE);
-	else
-		glDisable(GL_MULTISAMPLE);
+	glDisable(GL_MULTISAMPLE);
 #endif
 }
 
@@ -2152,7 +2146,7 @@ void GPU_state_init(void)
 	glCullFace(GL_BACK);
 	glDisable(GL_CULL_FACE);
 
-	gpu_multisample(false);
+	gpu_disable_multisample();
 }
 
 void GPU_enable_program_point_size(void)

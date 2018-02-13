@@ -1393,7 +1393,6 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	ARegion *ar;
 	uiBut *but;
 	rcti rect;
-	int multisample_enabled;
 	
 	/* get menu region or area region */
 	ar = CTX_wm_menu(C);
@@ -1402,11 +1401,6 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 
 	if (!block->endblock)
 		UI_block_end(C, block);
-
-	/* disable AA, makes widgets too blurry */
-	multisample_enabled = glIsEnabled(GL_MULTISAMPLE);
-	if (multisample_enabled)
-		glDisable(GL_MULTISAMPLE);
 
 	/* we set this only once */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1451,9 +1445,6 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	gpuPopProjectionMatrix();
 	gpuPopMatrix();
 
-	if (multisample_enabled)
-		glEnable(GL_MULTISAMPLE);
-	
 	ui_draw_links(block);
 }
 

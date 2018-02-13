@@ -390,15 +390,8 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 		return;
 	}
 
-	const bool draw_multisample = (U.ogl_multisamples != USER_MULTISAMPLE_NONE);
-
 	/* TODO this will need it own shader probably? don't think it can be handled from that point though. */
 /*	const bool use_lighting = (U.manipulator_flag & V3D_MANIPULATOR_SHADED) != 0; */
-
-	/* enable multisampling */
-	if (draw_multisample) {
-		glEnable(GL_MULTISAMPLE);
-	}
 
 	bool is_depth_prev = false;
 
@@ -434,10 +427,6 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 
 	if (is_depth_prev) {
 		glDisable(GL_DEPTH_TEST);
-	}
-
-	if (draw_multisample) {
-		glDisable(GL_MULTISAMPLE);
 	}
 }
 
