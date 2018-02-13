@@ -1404,7 +1404,6 @@ void drawnodespace(const bContext *C, ARegion *ar)
 				gpuPushMatrix();
 				gpuLoadIdentity();
 
-				glaDefine2DArea(&ar->winrct);
 				wmOrtho2_pixelspace(ar->winx, ar->winy);
 
 				WM_manipulatormap_draw(ar->manipulator_map, C, WM_MANIPULATORMAP_DRAWSTEP_2D);

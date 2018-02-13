@@ -482,8 +482,6 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 {
 	int x, y;
 
-	glaDefine2DArea(&ar->winrct);
-	
 	/* find window pixel coordinates of origin */
 	UI_view2d_view_to_region(&ar->v2d, fx, fy, &x, &y);
 

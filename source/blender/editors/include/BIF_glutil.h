@@ -107,38 +107,6 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
                                      float x, float y, int img_w, int img_h, int format, int type, int zoomfilter, void *rect, float scaleX, float scaleY,
                                      float clip_min_x, float clip_min_y, float clip_max_x, float clip_max_y,
                                      float xzoom, float yzoom, float color[4]);
-/* 2D Drawing Assistance */
-
-/** Define a 2D area (viewport, scissor, matrices) for OpenGL rendering.
- *
- * glaDefine2DArea and glaBegin2DDraw set up an OpenGL state appropriate
- * for drawing using both vertex (Vertex, etc) and raster (RasterPos, Rect)
- * commands. All coordinates should be at integer positions. There is little
- * to no reason to use glVertex2f etc. functions during 2D rendering, and
- * thus no reason to +-0.5 the coordinates or perform other silly
- * tricks.
- *
- * \param screen_rect The screen rectangle to be defined for 2D drawing.
- */
-void glaDefine2DArea(struct rcti *screen_rect);
-
-/* TODO(merwin): put the following 2D code to use, or build new 2D code inspired & informd by it */
-
-#if 0  /* UNUSED */
-
-typedef struct gla2DDrawInfo gla2DDrawInfo;
-
-gla2DDrawInfo *glaBegin2DDraw(struct rcti *screen_rect, struct rctf *world_rect);
-void gla2DDrawTranslatePt(gla2DDrawInfo *di, float wo_x, float wo_y, int *r_sc_x, int *r_sc_y);
-void gla2DDrawTranslatePtv(gla2DDrawInfo *di, float world[2], int r_screen[2]);
-
-void glaEnd2DDraw(gla2DDrawInfo *di);
-
-/** Adjust the transformation mapping of a 2d area */
-void gla2DGetMap(gla2DDrawInfo *di, struct rctf *rect);
-void gla2DSetMap(gla2DDrawInfo *di, struct rctf *rect);
-
-#endif /* UNUSED */
 
 void set_inverted_drawing(int enable);
 void setlinestyle(int nr);

@@ -3222,8 +3222,6 @@ void draw_nodespace_back_pix(const bContext *C, ARegion *ar, SpaceNode *snode, b
 		gpuPushMatrix();
 
 		/* somehow the offset has to be calculated inverse */
-		
-		glaDefine2DArea(&ar->winrct);
 		wmOrtho2_region_pixelspace(ar);
 		
 		x = (ar->winx - snode->zoom * ibuf->x) / 2 + snode->xof;
