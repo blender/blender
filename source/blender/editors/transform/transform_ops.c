@@ -316,7 +316,8 @@ static void transformops_loopsel_hack(bContext *C, wmOperator *op)
 
 				/* still switch if we were originally in face select mode */
 				if ((ts->selectmode != selectmode_orig) && (selectmode_orig != SCE_SELECT_FACE)) {
-					BMEditMesh *em = BKE_editmesh_from_object(scene->obedit);
+					Object *obedit = CTX_data_edit_object(C);
+					BMEditMesh *em = BKE_editmesh_from_object(obedit);
 					em->selectmode = ts->selectmode = selectmode_orig;
 					EDBM_selectmode_set(em);
 				}

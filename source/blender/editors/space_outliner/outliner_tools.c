@@ -419,9 +419,9 @@ static void object_delete_cb(
 		}
 
 		// check also library later
-		if (scene->obedit == ob)
+		if (ob == CTX_data_edit_object(C)) {
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
-		
+		}
 		ED_object_base_free_and_unlink(CTX_data_main(C), scene, ob);
 		/* leave for ED_outliner_id_unref to handle */
 #if 0
@@ -980,7 +980,7 @@ static void object_delete_hierarchy_cb(
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Base *base = (Base *)te->directdata;
-	Object *obedit = scene->obedit;
+	Object *obedit = CTX_data_edit_object(C);
 
 	if (!base) {
 		base = BKE_view_layer_base_find(view_layer, (Object *)tselem->id);
