@@ -1549,7 +1549,7 @@ static bool ed_object_select_pick(
 					}
 				}
 				else if (ED_do_pose_selectbuffer(
-				                 &eval_ctx, scene, view_layer,
+				                 &eval_ctx, view_layer,
 				                 basact, buffer, hits, extend, deselect, toggle, do_nearest))
 				{
 					/* then bone is found */

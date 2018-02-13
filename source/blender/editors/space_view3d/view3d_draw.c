@@ -99,15 +99,15 @@
 
 /* ******************** general functions ***************** */
 
-static bool use_depth_doit(Scene *scene, View3D *v3d)
+static bool use_depth_doit(View3D *v3d, Object *obedit)
 {
 	if (v3d->drawtype > OB_WIRE)
 		return true;
 
 	/* special case (depth for wire color) */
 	if (v3d->drawtype <= OB_WIRE) {
-		if (scene->obedit && scene->obedit->type == OB_MESH) {
-			Mesh *me = scene->obedit->data;
+		if (obedit && obedit->type == OB_MESH) {
+			Mesh *me = obedit->data;
 			if (me->drawflag & ME_DRAWEIGHT) {
 				return true;
 			}
@@ -2406,9 +2406,9 @@ void VP_legacy_view3d_stereo3d_setup(const EvaluationContext *eval_ctx, Scene *s
 	view3d_stereo3d_setup(eval_ctx, scene, v3d, ar, NULL);
 }
 
-bool VP_legacy_use_depth(Scene *scene, View3D *v3d)
+bool VP_legacy_use_depth(View3D *v3d, Object *obedit)
 {
-	return use_depth_doit(scene, v3d);
+	return use_depth_doit(v3d, obedit);
 }
 
 void VP_drawviewborder(Scene *scene, const struct Depsgraph *depsgraph, ARegion *ar, View3D *v3d)

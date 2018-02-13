@@ -1132,9 +1132,8 @@ static void view3d_main_region_message_subscribe(
 /* concept is to retrieve cursor type context-less */
 static void view3d_main_region_cursor(wmWindow *win, ScrArea *UNUSED(sa), ARegion *UNUSED(ar))
 {
-	const Scene *scene = WM_window_get_active_scene(win);
-
-	if (scene->obedit) {
+	WorkSpace *workspace = WM_window_get_active_workspace(win);
+	if (workspace->object_mode & OB_MODE_EDIT) {
 		WM_cursor_set(win, CURSOR_EDIT);
 	}
 	else {

@@ -144,7 +144,7 @@ void ED_armature_deselect_all_visible(struct Object *obedit);
 
 bool ED_do_pose_selectbuffer(
         const struct EvaluationContext *eval_ctx,
-        struct Scene *scene, struct ViewLayer *view_layer, struct Base *base, const unsigned int *buffer, short hits,
+        struct ViewLayer *view_layer, struct Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest);
 bool ED_armature_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
@@ -169,7 +169,7 @@ void ED_armature_ebone_from_mat3(EditBone *ebone, float mat[3][3]);
 void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]);
 
 void transform_armature_mirror_update(struct Object *obedit);
-void ED_armature_origin_set(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
+void ED_armature_origin_set(struct Object *ob, float cursor[3], int centermode, int around);
 
 void ED_armature_transform_bones(struct bArmature *arm, float mat[4][4], const bool do_props);
 void ED_armature_apply_transform(struct Object *ob, float mat[4][4], const bool do_props);

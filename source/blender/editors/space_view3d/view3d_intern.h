@@ -166,7 +166,7 @@ void draw_object_instance(const struct EvaluationContext *eval_ctx, Scene *scene
 void draw_object_backbufsel(const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 
 void draw_object_wire_color(
-        const struct EvaluationContext *eval_ctx, Scene *scene, struct ViewLayer *,
+        const struct EvaluationContext *eval_ctx, struct ViewLayer *,
         Base *base, unsigned char r_ob_wire_col[4]);
 void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const unsigned char color[4]);
 void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
@@ -388,7 +388,7 @@ void VP_legacy_view3d_main_region_setup_view(const struct EvaluationContext *eva
 bool VP_legacy_view3d_stereo3d_active(struct wmWindow *win, Scene *scene, View3D *v3d, RegionView3D *rv3d);
 void VP_legacy_view3d_stereo3d_setup(const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, ARegion *ar);
 void draw_dupli_objects(const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, Base *base);
-bool VP_legacy_use_depth(Scene *scene, View3D *v3d);
+bool VP_legacy_use_depth(View3D *v3d, struct Object *obedit);
 void VP_drawviewborder(Scene *scene, const struct Depsgraph *depsgraph, ARegion *ar, View3D *v3d);
 void VP_drawrenderborder(ARegion *ar, View3D *v3d);
 void VP_view3d_draw_background_none(void);

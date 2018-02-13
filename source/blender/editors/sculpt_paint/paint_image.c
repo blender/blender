@@ -1429,8 +1429,10 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 						if (sl->spacetype == SPACE_IMAGE) {
 							SpaceImage *sima = (SpaceImage *)sl;
 							
-							if (!sima->pin)
-								ED_space_image_set(sima, scene, scene->obedit, ima);
+							if (!sima->pin) {
+								Object *obedit = CTX_data_edit_object(C);
+								ED_space_image_set(sima, scene, obedit, ima);
+							}
 						}
 					}
 				}

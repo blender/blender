@@ -4579,7 +4579,7 @@ static bool draw_mesh_object(
         const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
-	Object *obedit = scene->obedit;
+	Object *obedit = OBEDIT_FROM_EVAL_CTX(eval_ctx);
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
 	bool do_alpha_after = false, drawlinked = false, retval = false;
@@ -4720,8 +4720,10 @@ static void make_color_variations(const unsigned char base_ubyte[4], float low[4
 	high[3] = base[3];
 }
 
-static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                                const char dt, const unsigned char ob_wire_col[4], const short dflag, const bool other_obedit)
+static void draw_mesh_fancy_new(
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
+        const char dt, const unsigned char ob_wire_col[4], const short dflag, const bool other_obedit)
 {
 	if (dflag & (DRAW_PICKING | DRAW_CONSTCOLOR)) {
 		/* too complicated! use existing methods */
@@ -5042,22 +5044,20 @@ static void draw_mesh_fancy_new(EvaluationContext *eval_ctx, Scene *scene, ViewL
 	dm->release(dm);
 }
 
-static bool UNUSED_FUNCTION(draw_mesh_object_new)(const bContext *C, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
-                                 const char dt, const unsigned char ob_wire_col[4], const short dflag)
+static bool UNUSED_FUNCTION(draw_mesh_object_new)(
+        const EvaluationContext *eval_ctx, Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
+        const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
-	EvaluationContext eval_ctx;
 	Object *ob = base->object;
-	Object *obedit = scene->obedit;
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
 	bool do_alpha_after = false, drawlinked = false, retval = false;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (v3d->flag2 & V3D_RENDER_SHADOW) {
 		/* TODO: handle shadow pass separately */
 		return true;
 	}
+	Object *obedit = OBEDIT_FROM_EVAL_CTX(eval_ctx);
 	
 	if (obedit && ob != obedit && ob->data == obedit->data) {
 		if (BKE_key_from_object(ob) || BKE_key_from_object(obedit)) {}
@@ -5083,7 +5083,7 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(const bContext *C, Scene *scen
 		}
 		else {
 			cageDM = editbmesh_get_derived_cage_and_final(
-			        &eval_ctx, scene, ob, em, scene->customdata_mask,
+			        eval_ctx, scene, ob, em, scene->customdata_mask,
 			        &finalDM);
 		}
 
@@ -5102,9 +5102,9 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(const bContext *C, Scene *scen
 				DM_update_materials(cageDM, ob);
 			}
 
-			const bool glsl = draw_glsl_material(&eval_ctx, scene, view_layer, ob, v3d, dt);
+			const bool glsl = draw_glsl_material(eval_ctx, scene, eval_ctx->view_layer, ob, v3d, dt);
 
-			GPU_begin_object_materials(v3d, rv3d, scene, view_layer, ob, glsl, eval_ctx.object_mode, NULL);
+			GPU_begin_object_materials(v3d, rv3d, scene, eval_ctx->view_layer, ob, glsl, eval_ctx->object_mode, NULL);
 		}
 
 		draw_em_fancy_new(scene, ar, v3d, ob, me, em, cageDM, finalDM, dt);
@@ -5120,19 +5120,19 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(const bContext *C, Scene *scen
 		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
 		if (me->totpoly <= 4 || (!ob->bb || ED_view3d_boundbox_clip(rv3d, ob->bb))) {
 			if (solid) {
-				const bool glsl = draw_glsl_material(&eval_ctx, scene, view_layer, ob, v3d, dt);
+				const bool glsl = draw_glsl_material(eval_ctx, scene, eval_ctx->view_layer, ob, v3d, dt);
 
 				if (dt == OB_SOLID || glsl) {
-					const bool check_alpha = check_alpha_pass(&eval_ctx, base);
+					const bool check_alpha = check_alpha_pass(eval_ctx, base);
 					GPU_begin_object_materials(
-					        v3d, rv3d, scene, view_layer, ob,
-					        eval_ctx.object_mode, glsl, (check_alpha) ? &do_alpha_after : NULL);
+					        v3d, rv3d, scene, eval_ctx->view_layer, ob,
+					        eval_ctx->object_mode, glsl, (check_alpha) ? &do_alpha_after : NULL);
 				}
 			}
 
 			const bool other_obedit = obedit && (obedit != ob);
 
-			draw_mesh_fancy_new(&eval_ctx, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
+			draw_mesh_fancy_new(eval_ctx, scene, eval_ctx->view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
 
 			GPU_end_object_materials();
 
@@ -8345,7 +8345,8 @@ static void draw_object_selected_outline(
 	glDepthMask(GL_TRUE);
 }
 
-static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const unsigned char ob_wire_col[4])
+static void draw_wire_extra(
+        RegionView3D *rv3d, Object *ob, const bool is_obedit, const unsigned char ob_wire_col[4])
 {
 	if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF, OB_MBALL)) {
 		unsigned char wire_edit_col[4];
@@ -8362,13 +8363,13 @@ static void draw_wire_extra(Scene *scene, RegionView3D *rv3d, Object *ob, const 
 					drawCurveDMWired(ob);
 				}
 				else {
-					drawDispListwire(&ob->curve_cache->disp, ob->type, (scene->obedit == ob) ? wire_edit_col : ob_wire_col);
+					drawDispListwire(&ob->curve_cache->disp, ob->type, is_obedit ? wire_edit_col : ob_wire_col);
 				}
 			}
 		}
 		else if (ob->type == OB_MBALL) {
 			if (BKE_mball_is_basis(ob)) {
-				drawDispListwire(&ob->curve_cache->disp, ob->type, (scene->obedit == ob) ? wire_edit_col : ob_wire_col);
+				drawDispListwire(&ob->curve_cache->disp, ob->type, is_obedit ? wire_edit_col : ob_wire_col);
 			}
 		}
 
@@ -8447,7 +8448,7 @@ static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
 }
 
 void draw_object_wire_color(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        const EvaluationContext *eval_ctx, ViewLayer *view_layer,
         Base *base, unsigned char r_ob_wire_col[4])
 {
 	Object *ob = base->object;
@@ -8460,7 +8461,7 @@ void draw_object_wire_color(
 	int theme_id = is_edit ? TH_WIRE_EDIT : TH_WIRE;
 	int theme_shade = 0;
 
-	if ((scene->obedit == NULL) &&
+	if (((eval_ctx->object_mode & OB_MODE_EDIT) == 0) &&
 	    (G.moving & G_TRANSFORM_OBJ) &&
 	    ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL)))
 	{
@@ -8606,13 +8607,15 @@ void draw_object(
 	const unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	bool zbufoff = false, is_paint = false, empty_object = false;
 	const bool is_obact = (ob == OBACT(view_layer));
+	/* this could be moved to a 'dflag'. */
+	const bool is_obedit = (is_obact && (ob == OBEDIT_FROM_EVAL_CTX(eval_ctx)));
 	const bool render_override = (v3d->flag2 & V3D_RENDER_OVERRIDE) != 0;
 	const bool is_picking = (G.f & G_PICKSEL) != 0;
 	const bool has_particles = (ob->particlesystem.first != NULL);
 	bool skip_object = false;  /* Draw particles but not their emitter object. */
 	SmokeModifierData *smd = NULL;
 
-	if (ob != scene->obedit) {
+	if (is_obedit == false) {
 		if (ob->restrictflag & OB_RESTRICT_VIEW)
 			return;
 		
@@ -8722,7 +8725,7 @@ void draw_object(
 
 		ED_view3d_project_base(ar, base);
 
-		draw_object_wire_color(eval_ctx, scene, view_layer, base, _ob_wire_col);
+		draw_object_wire_color(eval_ctx, view_layer, base, _ob_wire_col);
 		ob_wire_col = _ob_wire_col;
 
 		//glColor3ubv(ob_wire_col);
@@ -8956,7 +8959,7 @@ afterdraw:
 
 	/* code for new particle system */
 	if ((ob->particlesystem.first) &&
-	    (ob != scene->obedit))
+	    (is_obedit == false))
 	{
 		ParticleSystem *psys;
 
@@ -8986,7 +8989,7 @@ afterdraw:
 
 	/* draw edit particles last so that they can draw over child particles */
 	if ((dflag & DRAW_PICKING) == 0 &&
-	    (!scene->obedit))
+	    (is_obedit == false))
 	{
 
 		if (eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT && is_obact) {
@@ -9135,7 +9138,7 @@ afterdraw:
 			}
 			if ((dtx & OB_DRAWWIRE) && dt >= OB_SOLID) {
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
-					draw_wire_extra(scene, rv3d, ob, ob_wire_col);
+					draw_wire_extra(rv3d, ob, is_obedit, ob_wire_col);
 				}
 			}
 		}
@@ -9239,11 +9242,11 @@ afterdraw:
 		immUniformColor3ubv(ob_wire_col);
 
 		/* draw hook center and offset line */
-		if (ob != scene->obedit)
+		if (is_obedit == false)
 			draw_hooks(ob, pos);
 
 		/* help lines and so */
-		if (ob != scene->obedit && ob->parent) {
+		if ((is_obedit == false) && ob->parent) {
 			const eObjectVisibilityCheck mode = eval_ctx->mode != DAG_EVAL_VIEWPORT ?
 			                                                 OB_VISIBILITY_CHECK_FOR_RENDER :
 			                                                 OB_VISIBILITY_CHECK_FOR_VIEWPORT;

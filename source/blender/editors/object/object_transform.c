@@ -983,7 +983,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 					/* Function to recenter armatures in editarmature.c
 					 * Bone + object locations are handled there.
 					 */
-					ED_armature_origin_set(scene, ob, cursor, centermode, around);
+					ED_armature_origin_set(ob, cursor, centermode, around);
 
 					tot_change++;
 					arm->id.tag |= LIB_TAG_DOIT;

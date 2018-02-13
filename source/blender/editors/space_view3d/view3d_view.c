@@ -879,7 +879,7 @@ int view3d_opengl_select(
 	ARegion *ar = vc->ar;
 	rcti rect;
 	int hits;
-	const bool use_obedit_skip = (scene->obedit != NULL) && (vc->obedit == NULL);
+	const bool use_obedit_skip = (OBEDIT_FROM_EVAL_CTX(eval_ctx) != NULL) && (vc->obedit == NULL);
 	const bool is_pick_select = (U.gpu_select_pick_deph != 0);
 	const bool do_passes = (
 	        (is_pick_select == false) &&

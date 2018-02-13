@@ -50,6 +50,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_object.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -138,17 +139,16 @@ void ED_armature_transform(struct bArmature *arm, float mat[4][4], const bool do
 
 /* exported for use in editors/object/ */
 /* 0 == do center, 1 == center new, 2 == center cursor */
-void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int centermode, int around)
+void ED_armature_origin_set(Object *ob, float cursor[3], int centermode, int around)
 {
-	Object *obedit = scene->obedit; // XXX get from context
+	const bool is_editmode = BKE_object_is_in_editmode(ob);
 	EditBone *ebone;
 	bArmature *arm = ob->data;
 	float cent[3];
 
 	/* Put the armature into editmode */
-	if (ob != obedit) {
+	if (is_editmode == false) {
 		ED_armature_to_edit(arm);
-		obedit = NULL; /* we cant use this so behave as if there is no obedit */
 	}
 
 	/* Find the centerpoint */
@@ -188,13 +188,13 @@ void ED_armature_origin_set(Scene *scene, Object *ob, float cursor[3], int cente
 	}
 	
 	/* Turn the list into an armature */
-	if (obedit == NULL) {
+	if (is_editmode == false) {
 		ED_armature_from_edit(arm);
 		ED_armature_edit_free(arm);
 	}
 
 	/* Adjust object location for new centerpoint */
-	if (centermode && obedit == NULL) {
+	if (centermode && (is_editmode == false)) {
 		mul_mat3_m4_v3(ob->obmat, cent); /* omit translation part */
 		add_v3_v3(ob->loc, cent);
 	}

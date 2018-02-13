@@ -275,12 +275,14 @@ int space_image_main_region_poll(bContext *C)
 /* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
 static int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *toolsettings = scene->toolsettings;
 
-	if (sima && !toolsettings->uvsculpt && !scene->obedit)
+	if (sima && !toolsettings->uvsculpt && ((workspace->object_mode & OB_MODE_EDIT) == 0)) {
 		return 1;
+	}
 
 	return 0;
 }
@@ -2459,7 +2461,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 						SpaceImage *sima_other = (SpaceImage *)sl;
 						
 						if (!sima_other->pin) {
-							ED_space_image_set(sima_other, scene, scene->obedit, ima);
+							ED_space_image_set(sima_other, scene, obedit, ima);
 						}
 					}
 				}

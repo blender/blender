@@ -95,14 +95,14 @@ static void handle_view3d_lock(bContext *C)
  * - uiTemplateLayers in interface/ code for buttons
  * - ED_view3d_view_layer_set for RNA
  */
-static void view3d_layers_editmode_ensure(Scene *scene, View3D *v3d)
+static void view3d_layers_editmode_ensure(View3D *v3d, Object *obedit)
 {
 	/* sanity check - when in editmode disallow switching the editmode layer off since its confusing
 	 * an alternative would be to always draw the editmode object. */
-	if (scene->obedit && (scene->obedit->lay & v3d->lay) == 0) {
+	if (obedit && (obedit->lay & v3d->lay) == 0) {
 		int bit;
 		for (bit = 0; bit < 32; bit++) {
-			if (scene->obedit->lay & (1u << bit)) {
+			if (obedit->lay & (1u << bit)) {
 				v3d->lay |= (1u << bit);
 				break;
 			}
@@ -112,9 +112,9 @@ static void view3d_layers_editmode_ensure(Scene *scene, View3D *v3d)
 
 static int view3d_layers_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
+	Object *obedit = CTX_data_edit_object(C);
 	int nr = RNA_int_get(op->ptr, "nr");
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	
@@ -130,7 +130,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 			/* return to active layer only */
 			v3d->lay = v3d->lay_prev;
 
-			view3d_layers_editmode_ensure(scene, v3d);
+			view3d_layers_editmode_ensure(v3d, obedit);
 		}
 		else {
 			v3d->lay_prev = v3d->lay;
@@ -151,7 +151,7 @@ static int view3d_layers_exec(bContext *C, wmOperator *op)
 			v3d->lay = (1 << nr);
 		}
 
-		view3d_layers_editmode_ensure(scene, v3d);
+		view3d_layers_editmode_ensure(v3d, obedit);
 
 		/* set active layer, ensure to always have one */
 		if (v3d->lay & (1 << nr))

@@ -237,7 +237,7 @@ static void backdrawview3d(
 	{
 		/* do nothing */
 	}
-	else if (scene->obedit &&
+	else if ((eval_ctx->object_mode & OB_MODE_EDIT) &&
 	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
@@ -1304,7 +1304,7 @@ void ED_view3d_draw_select_loop(
 		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if ((base->flag & BASE_VISIBLED) != 0) {
 				if (((base->flag & BASE_SELECTABLED) == 0) ||
-				    (use_obedit_skip && (scene->obedit->data == base->object->data)))
+				    (use_obedit_skip && (vc->obedit->data == base->object->data)))
 				{
 					base->object->select_color = 0;
 				}
@@ -1508,6 +1508,7 @@ static void view3d_draw_objects(
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
+	Object *obedit = OBEDIT_FROM_EVAL_CTX(eval_ctx);
 	const bool do_camera_frame = !draw_offscreen;
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
@@ -1524,7 +1525,7 @@ static void view3d_draw_objects(
 		view3d_draw_clipping(rv3d);
 
 	/* set zbuffer after we draw clipping region */
-	v3d->zbuf = VP_legacy_use_depth(scene, v3d);
+	v3d->zbuf = VP_legacy_use_depth(v3d, obedit);
 
 	if (v3d->zbuf) {
 		glEnable(GL_DEPTH_TEST);
@@ -1601,7 +1602,7 @@ static void view3d_draw_objects(
 					draw_dupli_objects(eval_ctx, scene, view_layer, ar, v3d, base);
 				}
 				if ((base->flag & BASE_SELECTED) == 0) {
-					if (base->object != scene->obedit)
+					if (base->object != obedit)
 						draw_object(eval_ctx, scene, view_layer, ar, v3d, base, 0);
 				}
 			}
@@ -1613,7 +1614,7 @@ static void view3d_draw_objects(
 		/* draw selected and editmode */
 		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if ((base->flag & BASE_VISIBLED) != 0) {
-				if (base->object == scene->obedit || (base->flag & BASE_SELECTED)) {
+				if ((base->object == scene->obedit) || (base->flag & BASE_SELECTED)) {
 					draw_object(eval_ctx, scene, view_layer, ar, v3d, base, 0);
 				}
 			}
