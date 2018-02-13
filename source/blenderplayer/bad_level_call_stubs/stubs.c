@@ -554,6 +554,7 @@ void ED_screen_animation_timer_update(struct bScreen *screen, int redraws, int r
 struct bScreen *ED_screen_animation_playing(const struct wmWindowManager *wm) RET_NULL
 struct Scene *ED_screen_scene_find(const struct bScreen *screen, const struct wmWindowManager *wm) RET_NULL
 struct Scene *ED_screen_scene_find_with_window(const struct bScreen *screen, const struct wmWindowManager *wm, struct wmWindow **r_window) RET_NULL
+struct wmWindow *ED_screen_window_find(const struct bScreen *screen, const struct wmWindowManager *wm) RET_NULL;
 bool ED_scene_view_layer_delete(struct Main *bmain, Scene *scene, ViewLayer *layer, ReportList *reports) RET_ZERO
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode) RET_NONE
 void ED_object_base_activate(struct bContext *C, struct Base *base) RET_NONE
