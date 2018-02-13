@@ -98,6 +98,7 @@ typedef struct ViewportEngineData_Info {
 GPUViewport *GPU_viewport_create(void);
 void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect);
 void GPU_viewport_unbind(GPUViewport *viewport);
+void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect);
 void GPU_viewport_free(GPUViewport *viewport);
 
 GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs);

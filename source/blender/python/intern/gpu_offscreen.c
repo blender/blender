@@ -39,6 +39,7 @@
 
 #include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
+#include "GPU_texture.h"
 
 #include "../mathutils/mathutils.h"
 
@@ -89,7 +90,8 @@ PyDoc_STRVAR(pygpu_offscreen_color_texture_doc, "Color texture.\n\n:type: int");
 static PyObject *pygpu_offscreen_color_texture_get(BPy_GPUOffScreen *self, void *UNUSED(type))
 {
 	BPY_GPU_OFFSCREEN_CHECK_OBJ(self);
-	return PyLong_FromLong(GPU_offscreen_color_texture(self->ofs));
+	GPUTexture *texture = GPU_offscreen_color_texture(self->ofs);
+	return PyLong_FromLong(GPU_texture_opengl_bindcode(texture));
 }
 
 PyDoc_STRVAR(pygpu_offscreen_bind_doc,
@@ -354,7 +356,7 @@ static PyObject *pygpu_offscreen_new(PyObject *UNUSED(self), PyObject *args, PyO
 		return NULL;
 	}
 
-	ofs = GPU_offscreen_create(width, height, samples, false, err_out);
+	ofs = GPU_offscreen_create(width, height, samples, true, false, err_out);
 
 	if (ofs == NULL) {
 		PyErr_Format(PyExc_RuntimeError,

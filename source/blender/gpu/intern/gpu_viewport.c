@@ -474,7 +474,7 @@ cleanup:
 	GPU_framebuffer_slots_bind(dfbl->default_fb, 0);
 }
 
-static void draw_ofs_to_screen(GPUViewport *viewport)
+static void draw_ofs_to_screen(GPUViewport *viewport, const rcti *rect)
 {
 	DefaultTextureList *dtxl = viewport->txl;
 
@@ -482,6 +482,9 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 
 	const float w = (float)GPU_texture_width(color);
 	const float h = (float)GPU_texture_height(color);
+
+	BLI_assert(w == BLI_rcti_size_x(rect) + 1);
+	BLI_assert(h == BLI_rcti_size_y(rect) + 1);
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -495,16 +498,16 @@ static void draw_ofs_to_screen(GPUViewport *viewport)
 	immBegin(GWN_PRIM_TRI_STRIP, 4);
 
 	immAttrib2f(texcoord, 0.0f, 0.0f);
-	immVertex2f(pos, 0.0f, 0.0f);
+	immVertex2f(pos, rect->xmin, rect->ymin);
 
 	immAttrib2f(texcoord, 1.0f, 0.0f);
-	immVertex2f(pos, w, 0.0f);
+	immVertex2f(pos, rect->xmin + w, rect->ymin);
 
 	immAttrib2f(texcoord, 0.0f, 1.0f);
-	immVertex2f(pos, 0.0f, h);
+	immVertex2f(pos, rect->xmin, rect->ymin + h);
 
 	immAttrib2f(texcoord, 1.0f, 1.0f);
-	immVertex2f(pos, w, h);
+	immVertex2f(pos, rect->xmin + w, rect->ymin + h);
 
 	immEnd();
 
@@ -523,9 +526,16 @@ void GPU_viewport_unbind(GPUViewport *viewport)
 
 		glEnable(GL_SCISSOR_TEST);
 		glDisable(GL_DEPTH_TEST);
+	}
+}
 
+void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
+{
+	DefaultFramebufferList *dfbl = viewport->fbl;
+
+	if (dfbl->default_fb) {
 		/* This might be bandwidth limiting */
-		draw_ofs_to_screen(viewport);
+		draw_ofs_to_screen(viewport, rect);
 	}
 }
 
