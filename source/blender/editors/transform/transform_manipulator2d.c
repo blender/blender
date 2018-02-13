@@ -368,7 +368,7 @@ bool ED_widgetgroup_manipulator2d_poll(const bContext *C, wmManipulatorGroupType
 
 		/* check if there's a selected poly */
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, ima, efa))
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
 				continue;
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {

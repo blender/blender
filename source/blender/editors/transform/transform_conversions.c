@@ -2969,7 +2969,7 @@ static void createTransUVs(bContext *C, TransInfo *t)
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		BMLoop *l;
 
-		if (!uvedit_face_visible_test(scene, ima, efa)) {
+		if (!uvedit_face_visible_test(scene, t->obedit, ima, efa)) {
 			BM_elem_flag_disable(efa, BM_ELEM_TAG);
 			continue;
 		}

@@ -179,7 +179,7 @@ static void draw_uvs_shadow(Object *obedit)
 	immUnbindProgram();
 }
 
-static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, const BMFace *efa_act)
+static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, Object *obedit, BMEditMesh *em, const BMFace *efa_act)
 {
 	BMesh *bm = em->bm;
 	BMFace *efa;
@@ -217,7 +217,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, con
 				totarea += BM_face_calc_area(efa);
 				totuvarea += area_poly_v2(tf_uv, efa->len);
 				
-				if (uvedit_face_visible_test(scene, ima, efa)) {
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
 					BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				}
 				else {
@@ -314,7 +314,7 @@ static void draw_uvs_stretch(SpaceImage *sima, Scene *scene, BMEditMesh *em, con
 			immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
 
 			BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-				if (uvedit_face_visible_test(scene, ima, efa)) {
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
 					const int efa_len = efa->len;
 					float (*tf_uv)[2]     = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf,     vec2f, efa_len);
 					float (*tf_uvorig)[2] = (float (*)[2])BLI_buffer_reinit_data(&tf_uvorig_buf, vec2f, efa_len);
@@ -669,12 +669,12 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	/* 2. draw colored faces */
 	
 	if (sima->flag & SI_DRAW_STRETCH) {
-		draw_uvs_stretch(sima, scene, em, efa_act);
+		draw_uvs_stretch(sima, scene, obedit, em, efa_act);
 	}
 	else {
 		unsigned int tri_count = 0;
 		BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
-			if (uvedit_face_visible_test(scene, ima, efa)) {
+			if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
 				BM_elem_flag_enable(efa, BM_ELEM_TAG);
 				tri_count += efa->len - 2;
 			}
@@ -722,7 +722,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			glDisable(GL_BLEND);
 		}
 		else {
-			if (efa_act && !uvedit_face_visible_test(scene, ima, efa_act)) {
+			if (efa_act && !uvedit_face_visible_test(scene, obedit, ima, efa_act)) {
 				efa_act = NULL;
 			}
 		}

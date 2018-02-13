@@ -57,10 +57,12 @@ typedef struct NearestHit {
 	int lindex;  /* index of loop within face */
 } NearestHit;
 
-void uv_find_nearest_vert(struct Scene *scene, struct Image *ima, struct BMEditMesh *em,
-                          const float co[2], const float penalty[2], struct NearestHit *hit);
-void uv_find_nearest_edge(struct Scene *scene, struct Image *ima, struct BMEditMesh *em,
-                          const float co[2], struct NearestHit *hit);
+void uv_find_nearest_vert(
+        struct Scene *scene, struct Image *ima, struct Object *obedit, struct BMEditMesh *em,
+        const float co[2], const float penalty[2], struct NearestHit *hit);
+void uv_find_nearest_edge(
+        struct Scene *scene, struct Image *ima, struct Object *obedit, struct BMEditMesh *em,
+        const float co[2], struct NearestHit *hit);
 
 /* utility tool functions */
 

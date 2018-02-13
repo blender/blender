@@ -157,6 +157,8 @@ typedef struct StitchState {
 	bool snap_islands;
 	/* stitch at midpoints or at islands */
 	bool midpoints;
+	/* object for editmesh */
+	Object *obedit;
 	/* editmesh, cached for use in modal handler */
 	BMEditMesh *em;
 	/* clear seams of stitched edges after stitch */
@@ -1719,6 +1721,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 	/* initialize state */
 	state->use_limit = RNA_boolean_get(op->ptr, "use_limit");
 	state->limit_dist = RNA_float_get(op->ptr, "limit");
+	state->obedit = obedit;
 	state->em = em;
 	state->snap_islands = RNA_boolean_get(op->ptr, "snap_islands");
 	state->static_island = RNA_int_get(op->ptr, "static_island");
@@ -2131,7 +2134,7 @@ static void stitch_select(bContext *C, Scene *scene, const wmEvent *event, Stitc
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &co[0], &co[1]);
 
 	if (state->mode == STITCH_VERT) {
-		uv_find_nearest_vert(scene, ima, state->em, co, NULL, &hit);
+		uv_find_nearest_vert(scene, ima, state->obedit, state->em, co, NULL, &hit);
 
 		if (hit.efa) {
 			/* Add vertex to selection, deselect all common uv's of vert other
@@ -2145,7 +2148,7 @@ static void stitch_select(bContext *C, Scene *scene, const wmEvent *event, Stitc
 		}
 	}
 	else {
-		uv_find_nearest_edge(scene, ima, state->em, co, &hit);
+		uv_find_nearest_edge(scene, ima, state->obedit, state->em, co, &hit);
 
 		if (hit.efa) {
 			UvEdge *edge = uv_edge_get(hit.l, state);

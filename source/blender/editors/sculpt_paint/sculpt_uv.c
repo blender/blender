@@ -652,7 +652,7 @@ static UvSculptData *uv_sculpt_stroke_init(bContext *C, wmOperator *op, const wm
 			UvElement *element;
 			NearestHit hit;
 			Image *ima = CTX_data_edit_image(C);
-			uv_find_nearest_vert(scene, ima, em, co, NULL, &hit);
+			uv_find_nearest_vert(scene, ima, obedit, em, co, NULL, &hit);
 
 			element = BM_uv_element_get(data->elementMap, hit.efa, hit.l);
 			island_index = element->island;

@@ -62,7 +62,7 @@ void ED_object_assign_active_image(struct Main *bmain, struct Object *ob, int ma
 bool ED_uvedit_test(struct Object *obedit);
 
 /* visibility and selection */
-bool uvedit_face_visible_test(struct Scene *scene, struct Image *ima, struct BMFace *efa);
+bool uvedit_face_visible_test(struct Scene *scene, struct Object *obedit, struct Image *ima, struct BMFace *efa);
 bool uvedit_face_select_test(struct Scene *scene, struct BMFace *efa,
                              const int cd_loop_uv_offset);
 bool uvedit_edge_select_test(struct Scene *scene, struct BMLoop *l,
