@@ -443,11 +443,10 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
-	Object *obedit = scene->obedit;
 	struct Gwn_Batch *geom;
 
 	if (ob->type == OB_MESH) {
-		if (ob == obedit) {
+		if (ob == draw_ctx->object_edit) {
 			const Mesh *me = ob->data;
 			IDProperty *ces_mode_ed = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");

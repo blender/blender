@@ -1790,7 +1790,6 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	Scene *scene = draw_ctx->scene;
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	View3D *v3d = draw_ctx->v3d;
 	int theme_id = TH_UNDEFINED;
@@ -1810,8 +1809,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
 
 	if (do_outlines) {
-		Object *obedit = scene->obedit;
-		if (ob != obedit && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
+		if ((ob != draw_ctx->object_edit) && !((ob == draw_ctx->obact) && (draw_ctx->object_mode & OB_MODE_ALL_PAINT))) {
 			struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 			if (geom) {
 				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
@@ -1828,8 +1826,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		{
 			Mesh *me = ob->data;
 			if (me->totpoly == 0) {
-				Object *obedit = scene->obedit;
-				if (ob != obedit) {
+				if (ob != draw_ctx->object_edit) {
 					struct Gwn_Batch *geom = DRW_cache_mesh_edges_get(ob);
 					if (geom) {
 						if (theme_id == TH_UNDEFINED) {
@@ -1847,8 +1844,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			break;
 		case OB_LATTICE:
 		{
-			Object *obedit = scene->obedit;
-			if (ob != obedit) {
+			if (ob != draw_ctx->object_edit) {
 				struct Gwn_Batch *geom = DRW_cache_lattice_wire_get(ob, false);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
@@ -1862,8 +1858,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 
 		case OB_CURVE:
 		{
-			Object *obedit = scene->obedit;
-			if (ob != obedit) {
+			if (ob != draw_ctx->object_edit) {
 				struct Gwn_Batch *geom = DRW_cache_curve_edge_wire_get(ob);
 				if (theme_id == TH_UNDEFINED) {
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
@@ -1875,8 +1870,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		}
 		case OB_MBALL:
 		{
-			Object *obedit = scene->obedit;
-			if (ob != obedit) {
+			if (ob != draw_ctx->object_edit) {
 				DRW_shgroup_mball_helpers(stl, ob, view_layer);
 			}
 			break;

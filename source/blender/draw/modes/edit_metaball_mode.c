@@ -169,11 +169,9 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MBALL) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		Scene *scene = draw_ctx->scene;
-		Object *obedit = scene->obedit;
 		DRWShadingGroup *group = stl->g_data->group;
 
-		if (ob == obedit) {
+		if (ob == draw_ctx->object_edit) {
 			MetaBall *mb = ob->data;
 
 			const bool is_select = DRW_state_is_select();

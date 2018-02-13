@@ -770,11 +770,7 @@ static void clay_cache_populate_particles(void *vedata, Object *ob)
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-
-	Scene *scene = draw_ctx->scene;
-	Object *obedit = scene->obedit;
-
-	if (ob != obedit) {
+	if (ob != draw_ctx->object_edit) {
 		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
 			if (psys_check_enabled(ob, psys, false)) {
 				ParticleSettings *part = psys->part;
