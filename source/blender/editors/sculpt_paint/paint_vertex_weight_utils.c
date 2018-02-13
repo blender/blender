@@ -43,6 +43,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object_deform.h"
 #include "BKE_report.h"
+#include "BKE_object.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -58,7 +59,6 @@ bool ED_wpaint_ensure_data(
         bContext *C, struct ReportList *reports,
         enum eWPaintFlag flag, struct WPaintVGroupIndex *vgroup_index)
 {
-	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me = BKE_mesh_from_object(ob);
 
@@ -67,7 +67,7 @@ bool ED_wpaint_ensure_data(
 		vgroup_index->mirror = -1;
 	}
 
-	if (scene->obedit) {
+	if (BKE_object_is_in_editmode(ob)) {
 		return false;
 	}
 

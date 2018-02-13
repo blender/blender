@@ -822,7 +822,7 @@ static bool raycastObjects(
         Object **r_ob, float r_obmat[4][4],
         ListBase *r_hit_list)
 {
-	Object *obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
+	Object *obedit = use_object_edit_cage ? OBEDIT_FROM_EVAL_CTX(&sctx->eval_ctx) : NULL;
 
 	struct RaycastObjUserData data = {
 		.ray_start = ray_start,
@@ -2060,7 +2060,7 @@ static bool snapObjectsRay(
         float r_loc[3], float r_no[3],
         Object **r_ob, float r_obmat[4][4])
 {
-	Object *obedit = use_object_edit_cage ? sctx->scene->obedit : NULL;
+	Object *obedit = use_object_edit_cage ? OBEDIT_FROM_EVAL_CTX(&sctx->eval_ctx) : NULL;
 
 	struct SnapObjUserData data = {
 		.snapdata = snapdata,

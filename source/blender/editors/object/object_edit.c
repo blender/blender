@@ -84,6 +84,7 @@
 #include "BKE_modifier.h"
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
+#include "BKE_object.h"
 #include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
@@ -703,7 +704,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 
 	if (!(ob = OBACT(view_layer))) return;
 	
-	if (scene->obedit) { // XXX get from context
+	if (BKE_object_is_in_editmode(ob)) {
 		/* obedit_copymenu(); */
 		return;
 	}
@@ -942,7 +943,7 @@ static void copy_attr(Main *bmain, Scene *scene, ViewLayer *view_layer, short ev
 		DEG_relations_tag_update(bmain);
 }
 
-static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *view_layer)
+static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLayer *view_layer, Object *obedit)
 {
 	Object *ob;
 	short event;
@@ -950,7 +951,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLaye
 	
 	if (!(ob = OBACT(view_layer))) return;
 	
-	if (scene->obedit) { /* XXX get from context */
+	if (obedit) {
 /*		if (ob->type == OB_MESH) */
 /* XXX			mesh_copy_menu(); */
 		return;
@@ -1367,7 +1368,7 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *view_layer)
+static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *view_layer, Object *obedit)
 {
 	/* all selected objects with an image map: scale in image aspect */
 	Base *base;
@@ -1377,7 +1378,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *view_layer)
 	float x, y, space;
 	int a, b, done;
 	
-	if (scene->obedit) return;  // XXX get from context
+	if (obedit) return;
 	if (ID_IS_LINKED(scene)) return;
 	
 	for (base = FIRSTBASE(view_layer); base; base = base->next) {

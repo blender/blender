@@ -42,6 +42,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -275,6 +276,7 @@ static void join_mesh_single(
 
 int join_mesh_exec(bContext *C, wmOperator *op)
 {
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -294,7 +296,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	bDeformGroup *dg, *odg;
 	CustomData vdata, edata, fdata, ldata, pdata;
 
-	if (scene->obedit) {
+	if (workspace->object_mode & OB_MODE_EDIT) {
 		BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
 		return OPERATOR_CANCELLED;
 	}

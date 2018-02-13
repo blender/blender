@@ -38,6 +38,7 @@
 #include "BKE_main.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_object.h"
 #include "BKE_workspace.h"
 
 #include "DNA_object_types.h"
@@ -518,3 +519,19 @@ void BKE_workspace_update_object_mode(
 
 	eval_ctx->object_mode = workspace->object_mode;
 }
+
+Object *BKE_workspace_edit_object(WorkSpace *workspace, Scene *scene)
+{
+	if (workspace->object_mode & OB_MODE_EDIT) {
+		ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+		if (view_layer) {
+			Object *obedit = OBACT(view_layer);
+			if (obedit) {
+				BLI_assert(BKE_object_is_in_editmode(obedit));
+				return obedit;
+			}
+		}
+	}
+	return NULL;
+}
+

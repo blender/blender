@@ -54,6 +54,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_editmesh.h"
+#include "BKE_object.h"
 
 #include "ED_info.h"
 #include "ED_armature.h"
@@ -374,15 +375,15 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob, const eObjectMod
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(Scene *scene, ViewLayer *view_layer, const eObjectMode object_mode)
+static void stats_update(ViewLayer *view_layer, Object *obedit, const eObjectMode object_mode)
 {
 	SceneStats stats = {0};
 	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
 	Base *base;
-	
-	if (scene->obedit) {
+
+	if (obedit) {
 		/* Edit Mode */
-		stats_object_edit(scene->obedit, &stats);
+		stats_object_edit(ob, &stats);
 	}
 	else if (ob && (object_mode & OB_MODE_POSE)) {
 		/* Pose Mode */
@@ -407,7 +408,7 @@ static void stats_update(Scene *scene, ViewLayer *view_layer, const eObjectMode 
 	*(view_layer->stats) = stats;
 }
 
-static void stats_string(Scene *scene, ViewLayer *view_layer, const eObjectMode object_mode)
+static void stats_string(ViewLayer *view_layer, Object *obedit, const eObjectMode object_mode)
 {
 #define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = view_layer->stats;
@@ -473,17 +474,17 @@ static void stats_string(Scene *scene, ViewLayer *view_layer, const eObjectMode 
 
 	ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, "%s | ", versionstr);
 
-	if (scene->obedit) {
-		if (BKE_keyblock_from_object(scene->obedit))
+	if (obedit) {
+		if (BKE_keyblock_from_object(obedit))
 			ofs += BLI_strncpy_rlen(s + ofs, IFACE_("(Key) "), MAX_INFO_LEN - ofs);
 
-		if (scene->obedit->type == OB_MESH) {
+		if (obedit->type == OB_MESH) {
 			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs,
 			                    IFACE_("Verts:%s/%s | Edges:%s/%s | Faces:%s/%s | Tris:%s"),
 			                    stats_fmt.totvertsel, stats_fmt.totvert, stats_fmt.totedgesel, stats_fmt.totedge,
 			                    stats_fmt.totfacesel, stats_fmt.totface, stats_fmt.tottri);
 		}
-		else if (scene->obedit->type == OB_ARMATURE) {
+		else if (obedit->type == OB_ARMATURE) {
 			ofs += BLI_snprintf(s + ofs, MAX_INFO_LEN - ofs, IFACE_("Verts:%s/%s | Bones:%s/%s"), stats_fmt.totvertsel,
 			                    stats_fmt.totvert, stats_fmt.totbonesel, stats_fmt.totbone);
 		}
@@ -527,12 +528,16 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 	}
 }
 
-const char *ED_info_stats_string(Scene *scene, WorkSpace *workspace, ViewLayer *view_layer)
+const char *ED_info_stats_string(Scene *UNUSED(scene), WorkSpace *workspace, ViewLayer *view_layer)
 {
+	Object *obact = (view_layer->basact) ? view_layer->basact->object : NULL;
+	Object *obedit = (obact && (workspace->object_mode & OB_MODE_EDIT) &&
+	                  BKE_object_is_in_editmode(obact)) ? obact : NULL;
+
 	if (!view_layer->stats) {
-		stats_update(scene, view_layer, workspace->object_mode);
+		stats_update(view_layer, obedit, workspace->object_mode);
 	}
-	stats_string(scene, view_layer, workspace->object_mode);
+	stats_string(view_layer, obedit, workspace->object_mode);
 
 	return view_layer->stats->infostr;
 }

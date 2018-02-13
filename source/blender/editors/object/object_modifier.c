@@ -693,7 +693,7 @@ int ED_object_modifier_apply(ReportList *reports, const bContext *C, Scene *scen
 	const WorkSpace *workspace = CTX_wm_workspace(C);
 	int prev_mode;
 
-	if (scene->obedit) {
+	if (BKE_object_is_in_editmode(ob)) {
 		BKE_report(reports, RPT_ERROR, "Modifiers cannot be applied in edit mode");
 		return 0;
 	}

@@ -1673,7 +1673,7 @@ static int convert_poll(bContext *C)
 	Base *base_act = CTX_data_active_base(C);
 	Object *obact = base_act ? base_act->object : NULL;
 
-	return (!ID_IS_LINKED(scene) && obact && scene->obedit != obact &&
+	return (!ID_IS_LINKED(scene) && obact && (BKE_object_is_in_editmode(obact) == false) &&
 	        (base_act->flag & BASE_SELECTED) && !ID_IS_LINKED(obact));
 }
 
@@ -2529,10 +2529,10 @@ static int join_poll(bContext *C)
 
 static int join_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 
-	if (scene->obedit) {
+	if (workspace->object_mode & OB_MODE_EDIT) {
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -2583,10 +2583,10 @@ static int join_shapes_poll(bContext *C)
 
 static int join_shapes_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 
-	if (scene->obedit) {
+	if (workspace->object_mode & OB_MODE_EDIT) {
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
 		return OPERATOR_CANCELLED;
 	}

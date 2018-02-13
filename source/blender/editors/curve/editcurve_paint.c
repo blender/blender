@@ -788,7 +788,7 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 	struct CurveDrawData *cdd = op->customdata;
 
 	const CurvePaintSettings *cps = &cdd->vc.scene->toolsettings->curve_paint_settings;
-	Object *obedit = cdd->vc.scene->obedit;
+	Object *obedit = cdd->vc.obedit;
 	Curve *cu = obedit->data;
 	ListBase *nurblist = object_editcurve_get(obedit);
 

@@ -121,10 +121,9 @@ static void verttag_set_cb(BMVert *v, bool val, void *user_data_v)
 }
 
 static void mouse_mesh_shortest_path_vert(
-        Scene *scene, const struct PathSelectParams *op_params,
+        Scene *UNUSED(scene), Object *obedit, const struct PathSelectParams *op_params,
         BMVert *v_act, BMVert *v_dst)
 {
-	Object *obedit = scene->obedit;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 
@@ -280,11 +279,11 @@ static void edgetag_set_cb(BMEdge *e, bool val, void *user_data_v)
 	}
 }
 
-static void edgetag_ensure_cd_flag(Scene *scene, Mesh *me)
+static void edgetag_ensure_cd_flag(Mesh *me, const char edge_mode)
 {
 	BMesh *bm = me->edit_btmesh->bm;
 
-	switch (scene->toolsettings->edge_mode) {
+	switch (edge_mode) {
 		case EDGE_MODE_TAG_CREASE:
 			BM_mesh_cd_flag_ensure(bm, me, ME_CDFLAG_EDGE_CREASE);
 			break;
@@ -307,10 +306,9 @@ static void edgetag_ensure_cd_flag(Scene *scene, Mesh *me)
 
 /* since you want to create paths with multiple selects, it doesn't have extend option */
 static void mouse_mesh_shortest_path_edge(
-        Scene *scene, const struct PathSelectParams *op_params,
+        Scene *scene, Object *obedit, const struct PathSelectParams *op_params,
         BMEdge *e_act, BMEdge *e_dst)
 {
-	Object *obedit = scene->obedit;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 
@@ -319,7 +317,7 @@ static void mouse_mesh_shortest_path_edge(
 	Mesh *me = obedit->data;
 	bool is_path_ordered = false;
 
-	edgetag_ensure_cd_flag(scene, obedit->data);
+	edgetag_ensure_cd_flag(obedit->data, op_params->edge_mode);
 
 	if (e_act && (e_act != e_dst)) {
 		if (op_params->use_fill) {
@@ -377,7 +375,7 @@ static void mouse_mesh_shortest_path_edge(
 	}
 	else {
 		const bool is_act = !edgetag_test_cb(e_dst, &user_data);
-		edgetag_ensure_cd_flag(scene, obedit->data);
+		edgetag_ensure_cd_flag(obedit->data, op_params->edge_mode);
 		edgetag_set_cb(e_dst, is_act, &user_data); /* switch the edge option */
 	}
 
@@ -452,10 +450,9 @@ static void facetag_set_cb(BMFace *f, bool val, void *user_data_v)
 }
 
 static void mouse_mesh_shortest_path_face(
-        Scene *scene, const struct PathSelectParams *op_params,
+        Scene *UNUSED(scene), Object *obedit, const struct PathSelectParams *op_params,
         BMFace *f_act, BMFace *f_dst)
 {
-	Object *obedit = scene->obedit;
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 
@@ -547,7 +544,7 @@ static void mouse_mesh_shortest_path_face(
 /* Main Operator for vert/edge/face tag */
 
 static bool edbm_shortest_path_pick_ex(
-        Scene *scene, const struct PathSelectParams *op_params,
+        Scene *scene, Object *obedit, const struct PathSelectParams *op_params,
         BMElem *ele_src, BMElem *ele_dst)
 {
 
@@ -555,15 +552,15 @@ static bool edbm_shortest_path_pick_ex(
 		/* pass */
 	}
 	else if (ele_src->head.htype == BM_VERT) {
-		mouse_mesh_shortest_path_vert(scene, op_params, (BMVert *)ele_src, (BMVert *)ele_dst);
+		mouse_mesh_shortest_path_vert(scene, obedit, op_params, (BMVert *)ele_src, (BMVert *)ele_dst);
 		return true;
 	}
 	else if (ele_src->head.htype == BM_EDGE) {
-		mouse_mesh_shortest_path_edge(scene, op_params, (BMEdge *)ele_src, (BMEdge *)ele_dst);
+		mouse_mesh_shortest_path_edge(scene, obedit, op_params, (BMEdge *)ele_src, (BMEdge *)ele_dst);
 		return true;
 	}
 	else if (ele_src->head.htype == BM_FACE) {
-		mouse_mesh_shortest_path_face(scene, op_params, (BMFace *)ele_src, (BMFace *)ele_dst);
+		mouse_mesh_shortest_path_face(scene, obedit, op_params, (BMFace *)ele_src, (BMFace *)ele_dst);
 		return true;
 	}
 
@@ -644,7 +641,7 @@ static int edbm_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 	op_params.track_active = track_active;
 	op_params.edge_mode = vc.scene->toolsettings->edge_mode;
 
-	if (!edbm_shortest_path_pick_ex(vc.scene, &op_params, ele_src, ele_dst)) {
+	if (!edbm_shortest_path_pick_ex(vc.scene, vc.obedit, &op_params, ele_src, ele_dst)) {
 		return OPERATOR_PASS_THROUGH;
 	}
 
@@ -681,7 +678,7 @@ static int edbm_shortest_path_pick_exec(bContext *C, wmOperator *op)
 	op_params.track_active = true;
 	op_params.edge_mode = scene->toolsettings->edge_mode;
 
-	if (!edbm_shortest_path_pick_ex(scene, &op_params, ele_src, ele_dst)) {
+	if (!edbm_shortest_path_pick_ex(scene, obedit, &op_params, ele_src, ele_dst)) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -720,8 +717,8 @@ void MESH_OT_shortest_path_pick(wmOperatorType *ot)
 static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMEditSelection *ese_src, *ese_dst;
@@ -773,7 +770,7 @@ static int edbm_shortest_path_select_exec(bContext *C, wmOperator *op)
 		struct PathSelectParams op_params;
 		path_select_params_from_op(op, &op_params);
 
-		edbm_shortest_path_pick_ex(scene, &op_params, ele_src, ele_dst);
+		edbm_shortest_path_pick_ex(scene, obedit, &op_params, ele_src, ele_dst);
 
 		return OPERATOR_FINISHED;
 	}

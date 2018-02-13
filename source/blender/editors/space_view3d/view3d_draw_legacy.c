@@ -1614,7 +1614,7 @@ static void view3d_draw_objects(
 		/* draw selected and editmode */
 		for (base = view_layer->object_bases.first; base; base = base->next) {
 			if ((base->flag & BASE_VISIBLED) != 0) {
-				if ((base->object == scene->obedit) || (base->flag & BASE_SELECTED)) {
+				if (base->object == obedit || (base->flag & BASE_SELECTED)) {
 					draw_object(eval_ctx, scene, view_layer, ar, v3d, base, 0);
 				}
 			}

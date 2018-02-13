@@ -49,6 +49,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DEG_depsgraph.h"
+
 #include "MOD_util.h"
 
 #ifdef __SSE2__
@@ -300,7 +302,7 @@ static void meshdeformModifier_do(
 	 *
 	 * We'll support this case once granular dependency graph is landed.
 	 */
-	if (mmd->object == md->scene->obedit) {
+	if (mmd->object == OBEDIT_FROM_EVAL_CTX(eval_ctx)) {
 		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
 		tmpdm = editbmesh_get_derived_cage_and_final(eval_ctx, md->scene, mmd->object, em, 0, &cagedm);
 		if (tmpdm)

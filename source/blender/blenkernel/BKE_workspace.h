@@ -133,6 +133,9 @@ void BKE_workspace_update_object_mode(
         struct EvaluationContext *eval_ctx,
         struct WorkSpace *workspace);
 
+struct Object *BKE_workspace_edit_object(
+        struct WorkSpace *workspace, struct Scene *scene);
+
 #undef GETTER_ATTRS
 #undef SETTER_ATTRS
 

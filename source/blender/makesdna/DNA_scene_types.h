@@ -1944,8 +1944,13 @@ extern const char *RE_engine_id_CYCLES;
 #define BASACT(_view_layer)     ((_view_layer)->basact)
 #define OBACT(_view_layer)      (BASACT(_view_layer) ? BASACT(_view_layer)->object: NULL)
 
+#define OBEDIT_FROM_WORKSPACE(workspace, _view_layer) \
+	(((workspace)->object_mode & OD_MODE_EDIT) ? OBACT(_view_layer) : NULL)
 #define OBEDIT_FROM_EVAL_CTX(eval_ctx) \
 	(((eval_ctx)->object_mode & OB_MODE_EDIT) ? OBACT((eval_ctx)->view_layer) : NULL)
+
+#define OBEDIT_FROM_WINDOW(window) \
+	BKE_workspace_edit_object(WM_window_get_active_workspace(window), WM_window_get_active_scene(window))
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)

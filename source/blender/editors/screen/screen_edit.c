@@ -1871,3 +1871,14 @@ Scene *ED_screen_scene_find(const bScreen *screen, const wmWindowManager *wm)
 {
 	return ED_screen_scene_find_with_window(screen, wm, NULL);
 }
+
+
+wmWindow *ED_screen_window_find(const bScreen *screen, const wmWindowManager *wm)
+{
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		if (WM_window_get_active_screen(win) == screen) {
+			return win;
+		}
+	}
+	return NULL;
+}

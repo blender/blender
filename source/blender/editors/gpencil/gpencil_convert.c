@@ -55,6 +55,7 @@
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_workspace_types.h"
 
 #include "BKE_collection.h"
 #include "BKE_context.h"
@@ -1293,6 +1294,7 @@ static int gp_convert_poll(bContext *C)
 	bGPDframe *gpf = NULL;
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	
 	/* only if the current view is 3D View, if there's valid data (i.e. at least one stroke!),
 	 * and if we are not in edit mode!
@@ -1301,7 +1303,7 @@ static int gp_convert_poll(bContext *C)
 	        (gpl = BKE_gpencil_layer_getactive(gpd)) &&
 	        (gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0)) &&
 	        (gpf->strokes.first) &&
-	        (scene->obedit == NULL));
+	        ((workspace->object_mode & OB_MODE_EDIT) == 0));
 }
 
 static int gp_convert_layer_exec(bContext *C, wmOperator *op)

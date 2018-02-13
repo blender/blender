@@ -1069,7 +1069,7 @@ static void manipulator_prepare_mat(
 			bGPdata *gpd = CTX_data_gpencil_data(C);
 			Object *ob = OBACT(view_layer);
 
-			if (((v3d->around == V3D_AROUND_ACTIVE) && (scene->obedit == NULL)) &&
+			if (((v3d->around == V3D_AROUND_ACTIVE) && ((workspace->object_mode & OB_MODE_EDIT) == 0)) &&
 			    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
 			    (!(workspace->object_mode & OB_MODE_POSE)))
 			{

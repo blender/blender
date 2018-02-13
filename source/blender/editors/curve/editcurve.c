@@ -5027,7 +5027,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			        snap_context,
 			        SCE_SELECT_FACE,
 			        &(const struct SnapObjectParams){
-			            .snap_select = (vc.scene->obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,
+			            .snap_select = (vc.obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,
 			            .use_object_edit_cage = false,
 			        },
 			        mval, NULL, true,

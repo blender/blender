@@ -11,6 +11,8 @@
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
+#include "DEG_depsgraph.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "MOD_util.h"
@@ -1097,7 +1099,9 @@ static void deformVert(
 	}
 }
 
-static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], unsigned int numverts, Object *ob)
+static void surfacedeformModifier_do(
+        ModifierData *md, const EvaluationContext *eval_ctx,
+        float (*vertexCos)[3], unsigned int numverts, Object *ob)
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
 	DerivedMesh *tdm;
@@ -1110,7 +1114,7 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 	}
 
 	/* Handle target mesh both in and out of edit mode */
-	if (smd->target == md->scene->obedit) {
+	if (smd->target == OBEDIT_FROM_EVAL_CTX(eval_ctx)) {
 		BMEditMesh *em = BKE_editmesh_from_object(smd->target);
 		tdm = em->derivedFinal;
 	}
@@ -1180,20 +1184,22 @@ static void surfacedeformModifier_do(ModifierData *md, float (*vertexCos)[3], un
 	}
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
-                        Object *ob, DerivedMesh *UNUSED(derivedData),
-                        float (*vertexCos)[3], int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+static void deformVerts(
+        ModifierData *md, const struct EvaluationContext *eval_ctx,
+        Object *ob, DerivedMesh *UNUSED(derivedData),
+        float (*vertexCos)[3], int numVerts,
+        ModifierApplyFlag UNUSED(flag))
 {
-	surfacedeformModifier_do(md, vertexCos, numVerts, ob);
+	surfacedeformModifier_do(md, eval_ctx, vertexCos, numVerts, ob);
 }
 
-static void deformVertsEM(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
-                          Object *ob, struct BMEditMesh *UNUSED(editData),
-                          DerivedMesh *UNUSED(derivedData),
-                          float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(
+        ModifierData *md, const struct EvaluationContext *eval_ctx,
+        Object *ob, struct BMEditMesh *UNUSED(editData),
+        DerivedMesh *UNUSED(derivedData),
+        float (*vertexCos)[3], int numVerts)
 {
-	surfacedeformModifier_do(md, vertexCos, numVerts, ob);
+	surfacedeformModifier_do(md, eval_ctx, vertexCos, numVerts, ob);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
