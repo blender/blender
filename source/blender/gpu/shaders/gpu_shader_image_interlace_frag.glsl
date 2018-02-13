@@ -8,8 +8,8 @@ in vec2 texCoord_interp;
 out vec4 fragColor;
 
 uniform int interlace_id;
-uniform sampler2DRect image_a;
-uniform sampler2DRect image_b;
+uniform sampler2D image_a;
+uniform sampler2D image_b;
 
 bool interlace()
 {

@@ -110,10 +110,10 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 	const int sizey = WM_window_pixels_y(win);
 
 	/* wmOrtho for the screen has this same offset */
-	float ratiox = sizex;
-	float ratioy = sizey;
-	float halfx = GLA_PIXEL_OFS;
-	float halfy = GLA_PIXEL_OFS;
+	float ratiox = 1.0f;
+	float ratioy = 1.0f;
+	float halfx = GLA_PIXEL_OFS / sizex;
+	float halfy = GLA_PIXEL_OFS / sizex;
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -124,7 +124,7 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 	/* leave GL_TEXTURE0 as the latest bind texture */
 	for (int eye = 1; eye >= 0; eye--) {
 		glActiveTexture(GL_TEXTURE0 + eye);
-		glBindTexture(drawdata[eye]->triple->target, drawdata[eye]->triple->bind);
+		glBindTexture(GL_TEXTURE_2D, drawdata[eye]->triple->bind);
 	}
 
 	immUniform1i("image_a", 0);
@@ -149,8 +149,9 @@ static void wm_method_draw_stereo3d_interlace(wmWindow *win)
 	immEnd();
 	immUnbindProgram();
 
-	for (int eye = 0; eye < 2; eye++) {
-		glBindTexture(drawdata[eye]->triple->target, 0);
+	for (int eye = 1; eye >= 0; eye--) {
+		glActiveTexture(GL_TEXTURE0 + eye);
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
@@ -194,7 +195,6 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 {
 	wmDrawData *drawdata;
 	wmDrawTriple *triple;
-	float halfx, halfy, ratiox, ratioy;
 	int view;
 	int soffx;
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
@@ -202,6 +202,8 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -217,27 +219,16 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 				soffx = 0;
 		}
 
-		const int sizex = triple->x;
-		const int sizey = triple->y;
+		const int sizex = WM_window_pixels_x(win);
+		const int sizey = WM_window_pixels_y(win);
 
 		/* wmOrtho for the screen has this same offset */
-		ratiox = sizex;
-		ratioy = sizey;
-		halfx = GLA_PIXEL_OFS;
-		halfy = GLA_PIXEL_OFS;
+		const float ratiox = 1.0f;
+		const float ratioy = 1.0f;
+		const float halfx = GLA_PIXEL_OFS / sizex;
+		const float halfy = GLA_PIXEL_OFS / sizey;
 
-		/* texture rectangle has unnormalized coordinates */
-		if (triple->target == GL_TEXTURE_2D) {
-			ratiox /= triple->x;
-			ratioy /= triple->y;
-			halfx /= triple->x;
-			halfy /= triple->y;
-		}
-
-		/* TODO: if target is always same for both eyes, bind program & set uniform before loop */
-		immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_3D_IMAGE_MODULATE_ALPHA : GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
-
-		glBindTexture(triple->target, triple->bind);
+		glBindTexture(GL_TEXTURE_2D, triple->bind);
 
 		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
@@ -257,24 +248,24 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 		immVertex2f(pos, soffx, sizey);
 
 		immEnd();
-
-		/* TODO: if target is always same for both eyes, unbind program & texture target after loop */
-		glBindTexture(triple->target, 0);
-		immUnbindProgram();
 	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	immUnbindProgram();
 }
 
 static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 {
 	wmDrawData *drawdata;
 	wmDrawTriple *triple;
-	float halfx, halfy, ratiox, ratioy;
 	int view;
 	int soffy;
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -287,27 +278,16 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 			soffy = 0;
 		}
 
-		const int sizex = triple->x;
-		const int sizey = triple->y;
+		const int sizex = WM_window_pixels_x(win);
+		const int sizey = WM_window_pixels_y(win);
 
 		/* wmOrtho for the screen has this same offset */
-		ratiox = sizex;
-		ratioy = sizey;
-		halfx = GLA_PIXEL_OFS;
-		halfy = GLA_PIXEL_OFS;
+		const float ratiox = 1.0f;
+		const float ratioy = 1.0f;
+		const float halfx = GLA_PIXEL_OFS / sizex;
+		const float halfy = GLA_PIXEL_OFS / sizey;
 
-		/* texture rectangle has unnormalized coordinates */
-		if (triple->target == GL_TEXTURE_2D) {
-			ratiox /= triple->x;
-			ratioy /= triple->y;
-			halfx /= triple->x;
-			halfy /= triple->y;
-		}
-
-		/* TODO: if target is always same for both eyes, bind program & set uniforms before loop */
-		immBindBuiltinProgram((triple->target == GL_TEXTURE_2D) ? GPU_SHADER_3D_IMAGE_MODULATE_ALPHA : GPU_SHADER_3D_IMAGE_RECT_MODULATE_ALPHA);
-
-		glBindTexture(triple->target, triple->bind);
+		glBindTexture(GL_TEXTURE_2D, triple->bind);
 
 		immUniform1f("alpha", 1.0f);
 		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
@@ -327,11 +307,10 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 		immVertex2f(pos, 0.0f, soffy + (sizey * 0.5f));
 
 		immEnd();
-
-		/* TODO: if target is always same for both eyes, unbind program & texture target after loop */
-		immUnbindProgram();
-		glBindTexture(triple->target, 0);
 	}
+
+	immUnbindProgram();
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void wm_method_draw_stereo3d(const bContext *UNUSED(C), wmWindow *win)

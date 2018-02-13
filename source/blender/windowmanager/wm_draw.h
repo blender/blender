@@ -34,12 +34,8 @@
 
 #include "GPU_glew.h"
 
-#define USE_TEXTURE_RECTANGLE 1
-
 typedef struct wmDrawTriple {
 	GLuint bind;
-	int x, y;
-	GLenum target;
 } wmDrawTriple;
 
 typedef struct wmDrawData {
