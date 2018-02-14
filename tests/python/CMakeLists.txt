@@ -116,21 +116,21 @@ add_test(
 # ------------------------------------------------------------------------------
 # MODELING TESTS
 add_test(
-	NAME bevel
+	NAME bmesh_bevel
 	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modeling/bevel_regression.blend
 	--python-text run_tests
 )
 
 add_test(
-	NAME boolean
+	NAME bmesh_boolean
 	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modeling/bool_regression.blend
 	--python-text run_tests
 )
 
 add_test(
-	NAME split_faces
+	NAME bmesh_split_faces
 	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modeling/split_faces_test.blend
 	--python-text run_tests
@@ -139,7 +139,7 @@ add_test(
 # ------------------------------------------------------------------------------
 # MODIFIERS TESTS
 add_test(
-	NAME modifier_array
+	NAME object_modifier_array
 	COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS}
 	${TEST_SRC_DIR}/modifier_stack/array_test.blend
 	--python-text run_tests

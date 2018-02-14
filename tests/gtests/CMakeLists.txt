@@ -2,7 +2,7 @@
 # GTest
 if(WITH_GTESTS)
 
-	Include(GTestTesting)
+	include(GTestTesting)
 
 	add_definitions(${GFLAGS_DEFINES})
 	add_definitions(${GLOG_DEFINES})
