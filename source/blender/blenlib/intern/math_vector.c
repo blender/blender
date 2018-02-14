@@ -890,6 +890,8 @@ void rotate_normalized_v3_v3v3fl(float out[3], const float p[3], const float axi
 
 void rotate_v3_v3v3fl(float r[3], const float p[3], const float axis[3], const float angle)
 {
+	BLI_assert(r != p);
+
 	float axis_n[3];
 
 	normalize_v3_v3(axis_n, axis);
