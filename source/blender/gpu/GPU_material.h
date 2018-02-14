@@ -344,10 +344,9 @@ void GPU_zenith_update_color(float color[3]);
 struct GPUParticleInfo
 {
 	float scalprops[4];
-	float location[3];
+	float location[4];
 	float velocity[3];
 	float angular_velocity[3];
-	int random_id;
 };
 
 #ifdef WITH_OPENSUBDIV

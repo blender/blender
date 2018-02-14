@@ -3463,6 +3463,7 @@ NODE_DEFINE(ParticleInfoNode)
 {
 	NodeType* type = NodeType::add("particle_info", create, NodeType::SHADER);
 
+	SOCKET_OUT_FLOAT(random, "Index");
 	SOCKET_OUT_FLOAT(random, "Random");
 	SOCKET_OUT_FLOAT(age, "Age");
 	SOCKET_OUT_FLOAT(lifetime, "Lifetime");
@@ -3484,6 +3485,8 @@ ParticleInfoNode::ParticleInfoNode()
 
 void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
+	if(!output("Index")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Random")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Age")->links.empty())
@@ -3510,6 +3513,11 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
 	
+	out = output("Index");
+	if(!out->links.empty()) {
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_INDEX, compiler.stack_assign(out));
+	}
+
 	out = output("Random");
 	if(!out->links.empty()) {
 		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_RANDOM, compiler.stack_assign(out));
