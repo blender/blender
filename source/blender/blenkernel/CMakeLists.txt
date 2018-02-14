@@ -301,6 +301,7 @@ set(SRC
 	depsgraph_private.h
 	nla_private.h
 	tracking_private.h
+	particle_private.h
 	intern/CCGSubSurf.h
 	intern/CCGSubSurf_inline.h
 	intern/CCGSubSurf_intern.h

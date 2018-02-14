@@ -37,15 +37,9 @@
 #include "BKE_colortools.h"
 #include "BKE_particle.h"
 
-struct Material;
+#include "particle_private.h"
 
-void do_kink(ParticleKey *state, const float par_co[3], const float par_vel[3], const float par_rot[4], float time, float freq, float shape, float amplitude, float flat,
-             short type, short axis, float obmat[4][4], int smooth_start);
-float do_clump(ParticleKey *state, const float par_co[3], float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
-               bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
-void do_child_modifiers(ParticleThreadContext *ctx, ParticleSimulationData *sim,
-                        ParticleTexture *ptex, const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
-                        ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
+struct Material;
 
 static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
 {

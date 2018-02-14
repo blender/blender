@@ -88,6 +88,8 @@
 
 #include "RE_render_ext.h"
 
+#include "particle_private.h"
+
 unsigned int PSYS_FRAND_SEED_OFFSET[PSYS_FRAND_COUNT];
 unsigned int PSYS_FRAND_SEED_MULTIPLIER[PSYS_FRAND_COUNT];
 float PSYS_FRAND_BASE[PSYS_FRAND_COUNT];
@@ -107,9 +109,6 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
 static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par,
 							int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra);
-extern void do_child_modifiers(ParticleThreadContext *ctx, ParticleSimulationData *sim,
-                               ParticleTexture *ptex, const float par_co[3], const float par_vel[3], const float par_rot[4], const float par_orco[3],
-                               ChildParticle *cpa, const float orco[3], float mat[4][4], ParticleKey *state, float t);
 
 /* few helpers for countall etc. */
 int count_particles(ParticleSystem *psys)
@@ -1796,11 +1795,6 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 /************************************************/
 /*			Path Cache							*/
 /************************************************/
-
-extern void do_kink(ParticleKey *state, const float par_co[3], const float par_vel[3], const float par_rot[4], float time, float freq, float shape, float amplitude, float flat,
-                    short type, short axis, float obmat[4][4], int smooth_start);
-extern float do_clump(ParticleKey *state, const float par_co[3], float time, const float orco_offset[3], float clumpfac, float clumppow, float pa_clump,
-                      bool use_clump_noise, float clump_noise_size, CurveMapping *clumpcurve);
 
 void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 {
