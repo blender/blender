@@ -744,6 +744,15 @@ if(WITH_AUDASPACE)
 	endif()
 endif()
 
+# Auto-enable CUDA dynload if toolkit is not found.
+if(NOT WITH_CUDA_DYNLOAD)
+	find_package(CUDA)
+	if (NOT CUDA_FOUND)
+		message("CUDA toolkit not found, using dynamic runtime loading of libraries instead")
+		set(WITH_CUDA_DYNLOAD ON)
+	endif()
+endif()
+
 #-----------------------------------------------------------------------------
 # Check for valid directories
 # ... a partial checkout may cause this.
