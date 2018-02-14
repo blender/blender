@@ -13,6 +13,7 @@
 
 #include "gwn_vertex_format.h"
 
+#define VRAM_USAGE 1
 // How to create a Gwn_VertBuf:
 // 1) verts = GWN_vertbuf_create() or GWN_vertbuf_init(verts)
 // 2) GWN_vertformat_attr_add(verts->format, ...)
@@ -24,15 +25,22 @@
 typedef struct Gwn_VertBuf {
 	Gwn_VertFormat format;
 	unsigned vertex_ct;
-	bool own_data; // does gawain own the data an is able to free it
+	unsigned alloc_ct; // size in vertex of alloced data
+#if VRAM_USAGE
+	unsigned vram_size; // size in byte of data present in the VRAM
+#endif
+	unsigned data_dirty : 1; // does the data has been touched since last transfert
+	unsigned data_dynamic : 1; // do we keep the RAM allocation for further updates?
+	unsigned data_resized : 1; // does the data has been resized since last transfert
 	GLubyte* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
 } Gwn_VertBuf;
 
 Gwn_VertBuf* GWN_vertbuf_create(void);
 Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat*);
+Gwn_VertBuf* GWN_vertbuf_create_dynamic_with_format(const Gwn_VertFormat*);
 
-void GWN_vertbuf_clear(Gwn_VertBuf* verts);
+void GWN_vertbuf_clear(Gwn_VertBuf*);
 void GWN_vertbuf_discard(Gwn_VertBuf*);
 
 void GWN_vertbuf_init(Gwn_VertBuf*);
@@ -40,7 +48,6 @@ void GWN_vertbuf_init_with_format(Gwn_VertBuf*, const Gwn_VertFormat*);
 
 unsigned GWN_vertbuf_size_get(const Gwn_VertBuf*);
 void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_ct);
-void GWN_vertbuf_data_set(Gwn_VertBuf*, unsigned v_ct, void* data, bool pass_ownership);
 void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_ct);
 
 // The most important set_attrib variant is the untyped one. Get it right first.
