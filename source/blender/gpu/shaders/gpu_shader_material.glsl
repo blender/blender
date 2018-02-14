@@ -239,10 +239,10 @@ void geom(
 
 void particle_info(
         vec4 sprops, vec3 loc, vec3 vel, vec3 avel,
-        out float index, out float age, out float life_time, out vec3 location,
+        out float random, out float age, out float life_time, out vec3 location,
         out float size, out vec3 velocity, out vec3 angular_velocity)
 {
-	index = sprops.x;
+	random = sprops.x;
 	age = sprops.y;
 	life_time = sprops.z;
 	size = sprops.w;

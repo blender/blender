@@ -167,8 +167,13 @@ if(WITH_CYCLES_OPENSUBDIV)
 	)
 endif()
 
-set(WITH_CYCLES_DEVICE_OPENCL TRUE)
-set(WITH_CYCLES_DEVICE_CUDA TRUE)
+if(WITH_CYCLES_STANDALONE)
+	set(WITH_CYCLES_DEVICE_OPENCL TRUE)
+	set(WITH_CYCLES_DEVICE_CUDA TRUE)
+	# Experimental and unfinished.
+	set(WITH_CYCLES_NETWORK FALSE)
+endif()
+# TODO(sergey): Consider removing it, only causes confusion in interface.
 set(WITH_CYCLES_DEVICE_MULTI TRUE)
 
 if(CYCLES_STANDALONE_REPOSITORY)

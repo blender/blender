@@ -39,11 +39,11 @@
 #include <string.h>
 
 #include "BLI_blenlib.h"
+#include "BLI_hash.h"
 #include "BLI_linklist.h"
 #include "BLI_math.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
-#include "BLI_hash.h"
 
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
@@ -1730,7 +1730,7 @@ static int gpu_get_particle_info(GPUParticleInfo *pi)
 		if (ind >= 0) {
 			ParticleData *p = &dob->particle_system->particles[ind];
 
-			pi->scalprops[0] = ind;
+			pi->scalprops[0] = BLI_hash_int_01(ind);
 			pi->scalprops[1] = GMS.gscene->r.cfra - p->time;
 			pi->scalprops[2] = p->lifetime;
 			pi->scalprops[3] = p->size;

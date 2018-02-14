@@ -267,8 +267,8 @@ const char *Attribute::standard_name(AttributeStandard std)
 			return "particle";
 		case ATTR_STD_CURVE_INTERCEPT:
 			return "curve_intercept";
-		case ATTR_STD_CURVE_INDEX:
-			return "curve_index";
+		case ATTR_STD_CURVE_RANDOM:
+			return "curve_random";
 		case ATTR_STD_PTEX_FACE_ID:
 			return "ptex_face_id";
 		case ATTR_STD_PTEX_UV:
@@ -453,7 +453,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 			case ATTR_STD_CURVE_INTERCEPT:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE_KEY);
 				break;
-			case ATTR_STD_CURVE_INDEX:
+			case ATTR_STD_CURVE_RANDOM:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_CURVE);
 				break;
 			case ATTR_STD_GENERATED_TRANSFORM:

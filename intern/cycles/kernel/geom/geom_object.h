@@ -352,7 +352,7 @@ ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)
 
 /* Particle data from which object was instanced */
 
-ccl_device_inline float particle_index(KernelGlobals *kg, int particle)
+ccl_device_inline float particle_random(KernelGlobals *kg, int particle)
 {
 	int offset = particle*PARTICLE_SIZE;
 	float4 f = kernel_tex_fetch(__particles, offset + 0);
