@@ -952,7 +952,7 @@ static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 
 static char *rna_ViewRenderSettings_path(PointerRNA *UNUSED(ptr))
 {
-	return BLI_sprintfN("viewport_render");
+	return BLI_sprintfN("view_render");
 }
 
 static void rna_ViewRenderSettings_engine_set(PointerRNA *ptr, int value)
