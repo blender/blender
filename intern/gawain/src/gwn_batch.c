@@ -202,7 +202,8 @@ static void Batch_update_program_bindings_instancing(Gwn_Batch* batch, Gwn_Batch
 		glDisableVertexAttribArray(a_idx);
 
 	create_bindings(batch, batch->interface, 0, false);
-	create_bindings(batch_instancing, batch->interface, instance_first, true);
+	if (batch_instancing)
+		create_bindings(batch_instancing, batch->interface, instance_first, true);
 
 	batch->program_dirty = false;
 	}
@@ -386,6 +387,10 @@ void GWN_batch_draw_stupid(Gwn_Batch* batch, int v_first, int v_count)
 
 void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch_instanced, Gwn_Batch* batch_instancing, int instance_first, int instance_count)
 	{
+#if TRUST_NO_ONE
+	// batch_instancing can be null if the number of instances is specified.
+	assert(batch_instancing != NULL || instance_count != 0);
+#endif
 	if (batch_instanced->vao_id)
 		glBindVertexArray(batch_instanced->vao_id);
 	else
@@ -394,10 +399,8 @@ void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch_instanced, Gwn_Batch* batc
 	if (batch_instanced->program_dirty)
 		Batch_update_program_bindings_instancing(batch_instanced, batch_instancing, instance_first);
 
-	Gwn_VertBuf* verts = batch_instancing->verts[0];
-
 	if (instance_count == 0)
-		instance_count = verts->vertex_ct;
+		instance_count = batch_instancing->verts[0]->vertex_ct;
 
 	if (batch_instanced->elem)
 		{
