@@ -1198,6 +1198,12 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         col.label(text="Effects:")
 
         sub = col.column(align=True)
+        if part.child_type == 'SIMPLE':
+            sub.prop(part, "twist")
+            sub.prop(part, "use_twist_curve")
+            if part.use_twist_curve:
+                sub.template_curve_mapping(part, "twist_curve")
+
         sub.prop(part, "use_clump_curve")
         if part.use_clump_curve:
             sub.template_curve_mapping(part, "clump_curve")

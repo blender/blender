@@ -261,6 +261,10 @@ typedef struct ParticleSettings {
 	short use_modifier_stack;
 	short pad5[3];
 
+	float twist;
+	float pad6;
+	struct CurveMapping *twistcurve;
+	void *pad7;
 } ParticleSettings;
 
 typedef struct ParticleSystem {
@@ -435,6 +439,7 @@ typedef enum eParticleChildFlag {
 	PART_CHILD_USE_CLUMP_NOISE  = (1<<0),
 	PART_CHILD_USE_CLUMP_CURVE  = (1<<1),
 	PART_CHILD_USE_ROUGH_CURVE  = (1<<2),
+	PART_CHILD_USE_TWIST_CURVE  = (1<<3),
 } eParticleChildFlag;
 
 /* part->draw_col */

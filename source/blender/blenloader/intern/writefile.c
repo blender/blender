@@ -1304,6 +1304,9 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part)
 		if (part->roughcurve) {
 			write_curvemapping(wd, part->roughcurve);
 		}
+		if (part->twistcurve) {
+			write_curvemapping(wd, part->twistcurve);
+		}
 
 		for (ParticleDupliWeight *dw = part->dupliweights.first; dw; dw = dw->next) {
 			/* update indices, but only if dw->ob is set (can be NULL after loading e.g.) */

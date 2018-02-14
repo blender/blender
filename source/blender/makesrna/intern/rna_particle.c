@@ -944,6 +944,19 @@ static void rna_ParticleSettings_use_roughness_curve_update(Main *bmain, Scene *
 	rna_Particle_redo_child(bmain, scene, ptr);
 }
 
+static void rna_ParticleSettings_use_twist_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ParticleSettings *part = ptr->data;
+
+	if (part->child_flag & PART_CHILD_USE_TWIST_CURVE) {
+		if (!part->twistcurve) {
+			BKE_particlesettings_twist_curve_init(part);
+		}
+	}
+
+	rna_Particle_redo_child(bmain, scene, ptr);
+}
+
 static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
@@ -3170,6 +3183,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "FieldSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Particle_field2_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Force Field 2", "");
+
+	/* twist */
+	prop = RNA_def_property(srna, "twist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -100000.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Twist", "Number of turns around parent allong the strand");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "use_twist_curve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "child_flag", PART_CHILD_USE_TWIST_CURVE);
+	RNA_def_property_ui_text(prop, "Use Twist Curve", "Use a curve to define twist");
+	RNA_def_property_update(prop, 0, "rna_ParticleSettings_use_twist_curve_update");
+
+	prop = RNA_def_property(srna, "twist_curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "twistcurve");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Twist Curve", "Curve defining twist");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 }
 
 static void rna_def_particle_target(BlenderRNA *brna)

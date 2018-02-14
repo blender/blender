@@ -5044,6 +5044,8 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 		curvemapping_changed_all(psys->part->clumpcurve);
 	if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve)
 		curvemapping_changed_all(psys->part->roughcurve);
+	if ((psys->part->child_flag & PART_CHILD_USE_TWIST_CURVE) && psys->part->twistcurve)
+		curvemapping_changed_all(psys->part->twistcurve);
 
 /* 2. */
 	sim.scene = scene;

@@ -41,6 +41,7 @@ typedef struct ParticleChildModifierContext {
 	const float *par_rot;   /* float4 */
 	const float *par_orco;  /* float3 */
 	const float *orco;      /* float3 */
+	ParticleCacheKey *parent_keys;
 } ParticleChildModifierContext;
 
 void do_kink(ParticleKey *state, const float par_co[3], const float par_vel[3], const float par_rot[4], float time, float freq, float shape, float amplitude, float flat,

@@ -242,6 +242,7 @@ static void do_kink_spiral(ParticleThreadContext *ctx, ParticleTexture *ptex, co
 	modifier_ctx.ptex = ptex;
 	modifier_ctx.cpa = cpa;
 	modifier_ctx.orco = orco;
+	modifier_ctx.parent_keys = parent_keys;
 
 	for (k = 0, key = keys; k < end_index; k++, key++) {
 		float par_time;
@@ -352,6 +353,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 		modifier_ctx.ptex = ptex;
 		modifier_ctx.cpa = cpa;
 		modifier_ctx.orco = orco;
+		modifier_ctx.parent_keys = parent_keys;
 
 		totkeys = ctx->segments + 1;
 		max_length = ptex->length;
@@ -688,6 +690,89 @@ static void do_rough_curve(const float loc[3], float mat[4][4], float time, floa
 	madd_v3_v3fl(state->co, mat[2], fac * rough[2]);
 }
 
+static int twist_num_segments(const ParticleChildModifierContext *modifier_ctx)
+{
+	ParticleThreadContext *thread_ctx = modifier_ctx->thread_ctx;
+	return (thread_ctx != NULL) ? thread_ctx->segments
+	                            : modifier_ctx->sim->psys->part->draw_step;
+}
+
+static void twist_get_axis(const ParticleChildModifierContext *modifier_ctx,
+                           const float time, float r_axis[3])
+{
+	const int num_segments = twist_num_segments(modifier_ctx);
+	const int index = clamp_i(time * num_segments, 0, num_segments);
+	if (index > 0) {
+		sub_v3_v3v3(r_axis,
+		            modifier_ctx->parent_keys[index].co,
+		            modifier_ctx->parent_keys[index - 1].co);
+	}
+	else {
+		sub_v3_v3v3(r_axis,
+		            modifier_ctx->parent_keys[index + 1].co,
+		            modifier_ctx->parent_keys[index].co);
+	}
+}
+
+static float curvemapping_integrate_clamped(CurveMapping *curve,
+                                            float start, float end, float step)
+{
+	float integral = 0.0f;
+	float x = start;
+	while (x < end) {
+		float y = curvemapping_evaluateF(curve, 0, x);
+		y = clamp_f(y, 0.0f, 1.0f);
+		/* TODO(sergey): Clamp last step to end. */
+		integral += y * step;
+		x += step;
+	}
+	return integral;
+}
+
+static void do_twist(const ParticleChildModifierContext *modifier_ctx,
+                     ParticleKey *state, const float time)
+{
+	ParticleThreadContext *thread_ctx = modifier_ctx->thread_ctx;
+	ParticleSimulationData *sim = modifier_ctx->sim;
+	ParticleSettings *part = sim->psys->part;
+	/* Early output checks. */
+	if (part->childtype != PART_CHILD_PARTICLES) {
+		/* Interpolated children behave weird with twist. */
+		return;
+	}
+	if (part->twist == 0.0f) {
+		/* No twist along the strand.  */
+		return;
+	}
+	/* Dependent on whether it's threaded update or not, curve comes
+	 * from different places.
+	 */
+	CurveMapping *twist_curve = NULL;
+	if (part->child_flag & PART_CHILD_USE_TWIST_CURVE) {
+		twist_curve = (thread_ctx != NULL) ? thread_ctx->twistcurve
+		                                   : part->twistcurve;
+	}
+	/* Axis of rotation. */
+	float axis[3];
+	twist_get_axis(modifier_ctx, time, axis);
+	/* Angle of rotation. */
+	float angle = part->twist;
+	if (twist_curve != NULL) {
+		const int num_segments = twist_num_segments(modifier_ctx);
+		angle *= curvemapping_integrate_clamped(twist_curve,
+		                                        0.0f, time,
+		                                        1.0f / num_segments);
+	}
+	else {
+		angle *= time;
+	}
+	/* Perform rotation around parent curve. */
+	float vec[3];
+	sub_v3_v3v3(vec, state->co, modifier_ctx->par_co);
+	rotate_v3_v3v3fl(state->co, vec, axis, angle * 2.0f * M_PI);
+	add_v3_v3(state->co, modifier_ctx->par_co);
+}
+
 void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
                         float mat[4][4], ParticleKey *state, float t)
 {
@@ -722,6 +807,8 @@ void do_child_modifiers(const ParticleChildModifierContext *modifier_ctx,
 		rough2 *= ptex->rough2;
 		rough_end *= ptex->roughe;
 	}
+
+	do_twist(modifier_ctx, state, t);
 
 	if (part->flag & PART_CHILD_EFFECT)
 		/* state is safe to cast, since only co and vel are used */

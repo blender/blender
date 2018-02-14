@@ -519,6 +519,9 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
 	if (ctx->roughcurve != NULL) {
 		curvemapping_free(ctx->roughcurve);
 	}
+	if (ctx->twistcurve != NULL) {
+		curvemapping_free(ctx->twistcurve);
+	}
 }
 
 static void initialize_particle_texture(ParticleSimulationData *sim, ParticleData *pa, int p)

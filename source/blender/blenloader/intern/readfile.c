@@ -4253,6 +4253,9 @@ static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
 	part->roughcurve = newdataadr(fd, part->roughcurve);
 	if (part->roughcurve)
 		direct_link_curvemapping(fd, part->roughcurve);
+	part->twistcurve = newdataadr(fd, part->twistcurve);
+	if (part->twistcurve)
+		direct_link_curvemapping(fd, part->twistcurve);
 
 	part->effector_weights = newdataadr(fd, part->effector_weights);
 	if (!part->effector_weights)

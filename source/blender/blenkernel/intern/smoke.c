@@ -1285,6 +1285,8 @@ static void emit_from_particles(
 			curvemapping_changed_all(psys->part->clumpcurve);
 		if ((psys->part->child_flag & PART_CHILD_USE_ROUGH_CURVE) && psys->part->roughcurve)
 			curvemapping_changed_all(psys->part->roughcurve);
+		if ((psys->part->child_flag & PART_CHILD_USE_TWIST_CURVE) && psys->part->twistcurve)
+			curvemapping_changed_all(psys->part->twistcurve);
 
 		/* initialize particle cache */
 		if (psys->part->type == PART_HAIR) {

@@ -405,6 +405,8 @@ void BKE_particlesettings_free(ParticleSettings *part)
 		curvemapping_free(part->clumpcurve);
 	if (part->roughcurve)
 		curvemapping_free(part->roughcurve);
+	if (part->twistcurve)
+		curvemapping_free(part->twistcurve);
 	
 	free_partdeflect(part->pd);
 	free_partdeflect(part->pd2);
@@ -2152,6 +2154,13 @@ static bool psys_thread_context_init_path(
 	else {
 		ctx->roughcurve = NULL;
 	}
+	if ((part->child_flag & PART_CHILD_USE_TWIST_CURVE) && part->twistcurve) {
+		ctx->twistcurve = curvemapping_copy(part->twistcurve);
+		curvemapping_changed_all(ctx->twistcurve);
+	}
+	else {
+		ctx->twistcurve = NULL;
+	}
 
 	return true;
 }
@@ -3337,6 +3346,18 @@ void BKE_particlesettings_rough_curve_init(ParticleSettings *part)
 	part->roughcurve = cumap;
 }
 
+void BKE_particlesettings_twist_curve_init(ParticleSettings *part)
+{
+	CurveMapping *cumap = curvemapping_add(1, 0.0f, 0.0f, 1.0f, 1.0f);
+
+	cumap->cm[0].curve[0].x = 0.0f;
+	cumap->cm[0].curve[0].y = 1.0f;
+	cumap->cm[0].curve[1].x = 1.0f;
+	cumap->cm[0].curve[1].y = 1.0f;
+
+	part->twistcurve = cumap;
+}
+
 /**
  * Only copy internal data of ParticleSettings ID from source to already allocated/initialized destination.
  * You probably nerver want to use that directly, use id_copy or BKE_id_copy_ex for typical needs.
@@ -3358,6 +3379,9 @@ void BKE_particlesettings_copy_data(
 	}
 	if (part_src->roughcurve) {
 		part_dst->roughcurve = curvemapping_copy(part_src->roughcurve);
+	}
+	if (part_src->twistcurve) {
+		part_dst->twistcurve = curvemapping_copy(part_src->twistcurve);
 	}
 
 	part_dst->boids = boid_copy_settings(part_src->boids);
@@ -3935,6 +3959,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			modifier_ctx.par_vel = par->vel;
 			modifier_ctx.par_rot = par->rot;
 			modifier_ctx.par_orco = par_orco;
+			modifier_ctx.parent_keys = psys->childcache ? psys->childcache[p - totpart] : NULL;
 			do_child_modifiers(&modifier_ctx, hairmat, state, t);
 
 			/* try to estimate correct velocity */
@@ -4048,6 +4073,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			modifier_ctx.par_vel = key1->vel;
 			modifier_ctx.par_rot = key1->rot;
 			modifier_ctx.par_orco = par_orco;
+			modifier_ctx.parent_keys = psys->childcache ? psys->childcache[p - totpart] : NULL;
 
 			do_child_modifiers(&modifier_ctx, mat, state, t);
 
