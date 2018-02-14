@@ -616,7 +616,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 					CTX_wm_region_set(C, ar);
 
 					/* make region ready for draw, scissor, pixelspace */
-					ED_region_set(C, ar);
+					wmSubWindowScissorSet(win, ar->swinid, &ar->winrct, true);
 					wm_paintcursor_draw(C, ar);
 
 					CTX_wm_region_set(C, NULL);
@@ -791,7 +791,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 					CTX_wm_region_set(C, ar);
 
 					/* make region ready for draw, scissor, pixelspace */
-					ED_region_set(C, ar);
+					wmSubWindowScissorSet(win, ar->swinid, &ar->winrct, true);
 					wm_paintcursor_draw(C, ar);
 
 					CTX_wm_region_set(C, NULL);

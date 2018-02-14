@@ -91,13 +91,6 @@ void wm_subwindows_free(wmWindow *win)
 }
 
 
-int wm_subwindow_get_id(wmWindow *win)
-{
-	if (win->curswin)
-		return win->curswin->swinid;
-	return 0;
-}
-
 static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
 {
 	wmSubWindow *swin;
@@ -204,7 +197,7 @@ int wm_subwindow_open(wmWindow *win, const rcti *winrct, bool activate)
 		if (freewinid <= swin->swinid)
 			freewinid = swin->swinid + 1;
 
-	win->curswin = swin = MEM_callocN(sizeof(wmSubWindow), "swinopen");
+	swin = MEM_callocN(sizeof(wmSubWindow), "swinopen");
 	BLI_addtail(&win->subwindows, swin);
 	
 	swin->swinid = freewinid;
@@ -228,8 +221,6 @@ void wm_subwindow_close(wmWindow *win, int swinid)
 	wmSubWindow *swin = swin_from_swinid(win, swinid);
 
 	if (swin) {
-		if (swin == win->curswin)
-			win->curswin = NULL;
 		wm_subwindow_free(swin);
 		BLI_remlink(&win->subwindows, swin);
 		MEM_freeN(swin);
@@ -285,26 +276,19 @@ void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct, bool a
 /* ---------------- WM versions of OpenGL style API calls ------------------------ */
 /* ----------------- exported in WM_api.h ------------------------------------------------------ */
 
-/* internal state, no threaded opengl! XXX */
-static wmWindow *_curwindow = NULL;
-static wmSubWindow *_curswin = NULL;
-
 void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool srct_pad)
 {
 	int width, height;
-	_curswin = swin_from_swinid(win, swinid);
+	wmSubWindow *swin = swin_from_swinid(win, swinid);
 	
-	if (_curswin == NULL) {
+	if (swin == NULL) {
 		printf("%s %d: doesn't exist\n", __func__, swinid);
 		return;
 	}
 	
-	win->curswin = _curswin;
-	_curwindow = win;
-	
-	width  = BLI_rcti_size_x(&_curswin->winrct) + 1;
-	height = BLI_rcti_size_y(&_curswin->winrct) + 1;
-	glViewport(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+	width  = BLI_rcti_size_x(&swin->winrct) + 1;
+	height = BLI_rcti_size_y(&swin->winrct) + 1;
+	glViewport(swin->winrct.xmin, swin->winrct.ymin, width, height);
 	
 	if (srct) {
 		int scissor_width  = BLI_rcti_size_x(srct);
@@ -320,12 +304,10 @@ void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool src
 		glScissor(srct->xmin, srct->ymin, scissor_width, scissor_height);
 	}
 	else
-		glScissor(_curswin->winrct.xmin, _curswin->winrct.ymin, width, height);
+		glScissor(swin->winrct.xmin, swin->winrct.ymin, width, height);
 	
 	wmOrtho2_pixelspace(width, height);
 	gpuLoadIdentity();
-	
-	glFlush();
 }
 
 /* enable the WM versions of opengl calls */

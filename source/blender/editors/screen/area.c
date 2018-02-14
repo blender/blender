@@ -495,23 +495,6 @@ static void region_draw_azones(ScrArea *sa, ARegion *ar)
 	glDisable(GL_BLEND);
 }
 
-/* only exported for WM */
-/* makes region ready for drawing, sets pixelspace */
-void ED_region_set(const bContext *C, ARegion *ar)
-{
-	wmWindow *win = CTX_wm_window(C);
-	ScrArea *sa = CTX_wm_area(C);
-	
-	ar->drawrct = ar->winrct;
-	
-	/* note; this sets state, so we can use wmOrtho and friends */
-	wmSubWindowScissorSet(win, ar->swinid, &ar->drawrct, true);
-	
-	UI_SetTheme(sa ? sa->spacetype : 0, ar->type ? ar->type->regionid : 0);
-	
-	ED_region_pixelspace(ar);
-}
-
 /* Follow wmMsgNotifyFn spec */
 void ED_region_do_msg_notify_tag_redraw(
         bContext *UNUSED(C), wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)

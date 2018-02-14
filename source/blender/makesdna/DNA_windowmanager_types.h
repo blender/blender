@@ -208,8 +208,6 @@ typedef struct wmWindow {
 
 	struct wmEvent *eventstate;   /* storage for event system */
 
-	struct wmSubWindow *curswin;  /* internal for wm_subwindow.c only */
-
 	struct wmGesture *tweak;      /* internal for wm_operators.c */
 
 	/* Input Method Editor data - complex character input (esp. for asian character input)
