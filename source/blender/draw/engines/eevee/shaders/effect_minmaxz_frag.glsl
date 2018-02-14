@@ -70,7 +70,6 @@ void main()
 #if defined(GPU_INTEL) || defined(GPU_ATI)
 	/* Use color format instead of 24bit depth texture */
 	fragColor = vec4(val);
-#else
-	gl_FragDepth = val;
 #endif
+	gl_FragDepth = val;
 }
