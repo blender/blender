@@ -565,7 +565,7 @@ static float do_clump_level(float result[3], const float co[3], const float par_
 	float clump = 0.0f;
 	
 	if (clumpcurve) {
-		clump = pa_clump * (1.0f - CLAMPIS(curvemapping_evaluateF(clumpcurve, 0, time), 0.0f, 1.0f));
+		clump = pa_clump * (1.0f - clamp_f(curvemapping_evaluateF(clumpcurve, 0, time), 0.0f, 1.0f));
 		
 		interp_v3_v3v3(result, co, par_co, clump);
 	}
@@ -655,7 +655,7 @@ static void do_rough_curve(const float loc[3], float mat[4][4], float time, floa
 	if (!roughcurve)
 		return;
 	
-	fac *= CLAMPIS(curvemapping_evaluateF(roughcurve, 0, time), 0.0f, 1.0f);
+	fac *= clamp_f(curvemapping_evaluateF(roughcurve, 0, time), 0.0f, 1.0f);
 	
 	copy_v3_v3(rco, loc);
 	mul_v3_fl(rco, time);
