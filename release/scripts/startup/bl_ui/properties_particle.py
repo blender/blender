@@ -1391,6 +1391,10 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
         row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
         row.prop(psys, "invert_vertex_group_roughness_end", text="", toggle=True, icon='ARROW_LEFTRIGHT')
 
+        row = col.row(align=True)
+        row.prop_search(psys, "vertex_group_twist", ob, "vertex_groups", text="Twist")
+        row.prop(psys, "invert_vertex_group_twist", text="", toggle=True, icon='ARROW_LEFTRIGHT')
+
         # Commented out vertex groups don't work and are still waiting for better implementation
         # row = layout.row()
         # row.prop_search(psys, "vertex_group_velocity", ob, "vertex_groups", text="Velocity")

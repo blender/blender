@@ -307,7 +307,8 @@ typedef struct ParticleSystem {
 	char bb_uvname[3][64];					/* billboard uv name, MAX_CUSTOMDATA_LAYER_NAME */
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
-	short vgroup[12], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */
+	short vgroup[13], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */
+	char pad[6];
 
 	/* temporary storage during render */
 	struct ParticleRenderData *renderdata;
@@ -567,7 +568,7 @@ typedef enum eParticleChildFlag {
 #define PART_DUPLIW_CURRENT	1
 
 /* psys->vg */
-#define PSYS_TOT_VG			12
+#define PSYS_TOT_VG			13
 
 #define PSYS_VG_DENSITY		0
 #define PSYS_VG_VEL			1
@@ -581,6 +582,7 @@ typedef enum eParticleChildFlag {
 #define PSYS_VG_TAN			9
 #define PSYS_VG_ROT			10
 #define PSYS_VG_EFFECTOR	11
+#define PSYS_VG_TWIST	12
 
 /* ParticleTarget->flag */
 #define PTARGET_CURRENT		1

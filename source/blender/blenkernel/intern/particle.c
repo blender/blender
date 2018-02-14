@@ -2136,6 +2136,7 @@ static bool psys_thread_context_init_path(
 	ctx->vg_rough1 = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGH1);
 	ctx->vg_rough2 = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGH2);
 	ctx->vg_roughe = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGHE);
+	ctx->vg_twist = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_TWIST);
 	if (psys->part->flag & PART_CHILD_EFFECT)
 		ctx->vg_effector = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_EFFECTOR);
 
@@ -3502,6 +3503,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
 	ptex->gravity = ptex->field = ptex->time = ptex->clump = ptex->kink_freq = ptex->kink_amp =
 	ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.0f;
+	ptex->twist = 1.0f;
 
 	ptex->length = 1.0f - part->randlength * psys_frand(psys, child_index + 26);
 	ptex->length *= part->clength_thres < psys_frand(psys, child_index + 27) ? part->clength : 1.0f;
@@ -3579,6 +3581,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 	ptex->ivel = ptex->life = ptex->exist = ptex->size = ptex->damp =
 	ptex->gravity = ptex->field = ptex->length = ptex->clump = ptex->kink_freq = ptex->kink_amp =
 	ptex->effector = ptex->rough1 = ptex->rough2 = ptex->roughe = 1.0f;
+	ptex->twist = 1.0f;
 
 	ptex->time = (float)(pa - sim->psys->particles) / (float)sim->psys->totpart;
 
@@ -3744,6 +3747,8 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
 		ptex->roughe *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_roughe);
 	if (ctx->vg_effector)
 		ptex->effector *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_effector);
+	if (ctx->vg_twist)
+		ptex->twist *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_twist);
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
 void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, const bool vel)

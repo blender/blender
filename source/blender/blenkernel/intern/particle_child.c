@@ -734,6 +734,7 @@ static void do_twist(const ParticleChildModifierContext *modifier_ctx,
 {
 	ParticleThreadContext *thread_ctx = modifier_ctx->thread_ctx;
 	ParticleSimulationData *sim = modifier_ctx->sim;
+	ParticleTexture *ptex = modifier_ctx->ptex;
 	ParticleSettings *part = sim->psys->part;
 	/* Early output checks. */
 	if (part->childtype != PART_CHILD_PARTICLES) {
@@ -757,6 +758,9 @@ static void do_twist(const ParticleChildModifierContext *modifier_ctx,
 	twist_get_axis(modifier_ctx, time, axis);
 	/* Angle of rotation. */
 	float angle = part->twist;
+	if (ptex != NULL) {
+		angle *= (ptex->twist - 0.5f) * 2.0f;
+	}
 	if (twist_curve != NULL) {
 		const int num_segments = twist_num_segments(modifier_ctx);
 		angle *= curvemapping_integrate_clamped(twist_curve,

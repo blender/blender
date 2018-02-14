@@ -1313,6 +1313,7 @@ static void rna_ParticleVGroup_name_get_8(PointerRNA *ptr, char *value) { psys_v
 static void rna_ParticleVGroup_name_get_9(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 9); }
 static void rna_ParticleVGroup_name_get_10(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 10); }
 static void rna_ParticleVGroup_name_get_11(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 11); }
+static void rna_ParticleVGroup_name_get_12(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 12); }
 
 static int rna_ParticleVGroup_name_len_0(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 0); }
 static int rna_ParticleVGroup_name_len_1(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 1); }
@@ -1326,6 +1327,7 @@ static int rna_ParticleVGroup_name_len_8(PointerRNA *ptr) { return psys_vg_name_
 static int rna_ParticleVGroup_name_len_9(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 9); }
 static int rna_ParticleVGroup_name_len_10(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 10); }
 static int rna_ParticleVGroup_name_len_11(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 11); }
+static int rna_ParticleVGroup_name_len_12(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 12); }
 
 static void rna_ParticleVGroup_name_set_0(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 0); }
 static void rna_ParticleVGroup_name_set_1(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 1); }
@@ -1339,6 +1341,7 @@ static void rna_ParticleVGroup_name_set_8(PointerRNA *ptr, const char *value) { 
 static void rna_ParticleVGroup_name_set_9(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 9); }
 static void rna_ParticleVGroup_name_set_10(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 10); }
 static void rna_ParticleVGroup_name_set_11(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 11); }
+static void rna_ParticleVGroup_name_set_12(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 12); }
 
 
 #else
@@ -3534,6 +3537,18 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_EFFECTOR));
 	RNA_def_property_ui_text(prop, "Vertex Group Field Negate", "Negate the effect of the field vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop = RNA_def_property(srna, "vertex_group_twist", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_12", "rna_ParticleVGroup_name_len_12",
+	                              "rna_ParticleVGroup_name_set_12");
+	RNA_def_property_ui_text(prop, "Vertex Group Twist", "Vertex group to control twist");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "invert_vertex_group_twist", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_TWIST));
+	RNA_def_property_ui_text(prop, "Vertex Group Twist Negate",
+	                         "Negate the effect of the twist vertex group");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* pointcache */
 	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);

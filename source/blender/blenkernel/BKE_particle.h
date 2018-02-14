@@ -112,6 +112,7 @@ typedef struct ParticleTexture {
 	float damp, gravity, field;           /* used in physics */
 	float length, clump, kink_freq, kink_amp, effector;  /* used in path caching */
 	float rough1, rough2, roughe;         /* used in path caching */
+	float twist;  /* used in path caching */
 } ParticleTexture;
 
 typedef struct ParticleSeam {
@@ -159,6 +160,7 @@ typedef struct ParticleThreadContext {
 	float *vg_length, *vg_clump, *vg_kink;
 	float *vg_rough1, *vg_rough2, *vg_roughe;
 	float *vg_effector;
+	float *vg_twist;
 
 	struct CurveMapping *clumpcurve;
 	struct CurveMapping *roughcurve;
