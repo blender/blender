@@ -26,15 +26,29 @@
 #ifndef __DRAW_INSTANCE_DATA_H__
 #define __DRAW_INSTANCE_DATA_H__
 
+#include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
+
+#include "GPU_batch.h"
+
 #define MAX_INSTANCE_DATA_SIZE 42 /* Can be adjusted for more */
 
 typedef struct DRWInstanceData DRWInstanceData;
 typedef struct DRWInstanceDataList DRWInstanceDataList;
 
+struct DRWShadingGroup;
+
 void *DRW_instance_data_next(DRWInstanceData *idata);
 void *DRW_instance_data_get(DRWInstanceData *idata);
 DRWInstanceData *DRW_instance_data_request(
         DRWInstanceDataList *idatalist, unsigned int attrib_size, unsigned int instance_group);
+
+void DRW_instance_buffer_request(
+        DRWInstanceDataList *idatalist, Gwn_VertFormat *format, struct DRWShadingGroup *shgroup,
+        Gwn_Batch **r_batch, Gwn_VertBuf **r_vert, Gwn_PrimType type);
+
+/* Upload all instance data to the GPU as soon as possible. */
+void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist);
 
 void DRW_instance_data_list_reset(DRWInstanceDataList *idatalist);
 void DRW_instance_data_list_free_unused(DRWInstanceDataList *idatalist);

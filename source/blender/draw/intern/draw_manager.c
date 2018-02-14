@@ -1074,6 +1074,11 @@ void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count)
 	interface->instance_count = count;
 }
 
+unsigned int DRW_shgroup_get_instance_count(const DRWShadingGroup *shgroup)
+{
+	return shgroup->interface.instance_count;
+}
+
 /**
  * State is added to #Pass.state while drawing.
  * Use to temporarily enable draw options.

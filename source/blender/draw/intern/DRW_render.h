@@ -336,6 +336,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 } while (0)
 /* Use this to set a high number of instances. */
 void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, int count);
+unsigned int DRW_shgroup_get_instance_count(const DRWShadingGroup *shgroup);
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);
 void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state);
