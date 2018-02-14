@@ -19,7 +19,8 @@
 
 CCL_NAMESPACE_BEGIN
 
-#ifdef __KERNEL_AVX__
+struct avxb;
+
 struct avxf
 {
 	typedef avxf Float;
@@ -53,6 +54,9 @@ struct avxf
 	__forceinline avxf(float a7, float a6, float a5, float a4, float a3, float a2, float a1, float a0) :
 		m256(_mm256_set_ps(a7, a6, a5, a4, a3, a2, a1, a0)) {}
 
+	__forceinline avxf(float3 a) :
+		m256(_mm256_set_ps(a.w, a.z, a.y, a.x, a.w, a.z, a.y, a.x)) {}
+
 
 	__forceinline avxf(int a3, int a2, int a1, int a0)
 	{
@@ -73,7 +77,23 @@ struct avxf
 		m256 = _mm256_insertf128_ps(foo, b, 1);
 	}
 
+	__forceinline const float& operator [](const size_t i) const { assert(i < 8); return f[i]; }
+	__forceinline       float& operator [](const size_t i) { assert(i < 8); return f[i]; }
 };
+
+__forceinline avxf cross(const avxf& a, const avxf& b)
+{
+	avxf r(0.0, a[4]*b[5] - a[5]*b[4], a[6]*b[4] - a[4]*b[6], a[5]*b[6] - a[6]*b[5],
+		   0.0, a[0]*b[1] - a[1]*b[0], a[2]*b[0] - a[0]*b[2], a[1]*b[2] - a[2]*b[1]);
+	return r;
+}
+
+__forceinline void dot3(const avxf& a, const avxf& b, float &den, float &den2)
+{
+	const avxf t = _mm256_mul_ps(a.m256, b.m256);
+	den = ((float*)&t)[0] + ((float*)&t)[1] + ((float*)&t)[2];
+	den2 = ((float*)&t)[4] + ((float*)&t)[5] + ((float*)&t)[6];
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Unary Operators
@@ -106,6 +126,9 @@ __forceinline const avxf operator|(const avxf& a, const avxf& b) { return _mm256
 __forceinline const avxf operator^(const avxf& a, const avxf& b) { return _mm256_xor_ps(a.m256,b.m256); }
 
 __forceinline const avxf operator&(const avxf& a, const avxf& b) { return _mm256_and_ps(a.m256,b.m256); }
+
+__forceinline const avxf max(const avxf& a, const avxf& b) { return _mm256_max_ps(a.m256, b.m256); }
+__forceinline const avxf min(const avxf& a, const avxf& b) { return _mm256_min_ps(a.m256, b.m256); }
 
 ////////////////////////////////////////////////////////////////////////////////
 /// Movement/Shifting/Shuffling Functions
@@ -160,6 +183,18 @@ ccl_device_inline const avxf blend(const avxf &a, const avxf &b)
 	return blend<S0,S1,S2,S3,S0,S1,S2,S3>(a,b);
 }
 
+//#if defined(__KERNEL_SSE41__)
+__forceinline avxf maxi(const avxf& a, const avxf& b) {
+	const avxf ci = _mm256_max_ps(a, b);
+	return ci;
+}
+
+__forceinline avxf mini(const avxf& a, const avxf& b) {
+	const avxf ci = _mm256_min_ps(a, b);
+	return ci;
+}
+//#endif
+
 ////////////////////////////////////////////////////////////////////////////////
 /// Ternary Operators
 ////////////////////////////////////////////////////////////////////////////////
@@ -178,6 +213,19 @@ __forceinline const avxf nmadd(const avxf& a, const avxf& b, const avxf& c) {
 	return c-(a*b);
 #endif
 }
+__forceinline const avxf msub(const avxf& a, const avxf& b, const avxf& c) {
+	return _mm256_fmsub_ps(a, b, c);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+/// Comparison Operators
+////////////////////////////////////////////////////////////////////////////////
+#ifdef __KERNEL_AVX2__
+__forceinline const avxb operator <=(const avxf& a, const avxf& b) {
+	return _mm256_cmp_ps(a.m256, b.m256, _CMP_LE_OS);
+}
+#endif
+
 #endif
 
 #ifndef _mm256_set_m128
@@ -190,4 +238,3 @@ __forceinline const avxf nmadd(const avxf& a, const avxf& b, const avxf& c) {
 
 CCL_NAMESPACE_END
 
-#endif

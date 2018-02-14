@@ -76,6 +76,12 @@ set(SRC_BVH_HEADERS
 	bvh/qbvh_traversal.h
 	bvh/qbvh_volume.h
 	bvh/qbvh_volume_all.h
+	bvh/obvh_nodes.h
+	bvh/obvh_shadow_all.h
+	bvh/obvh_local.h
+	bvh/obvh_traversal.h
+	bvh/obvh_volume.h
+	bvh/obvh_volume_all.h
 )
 
 set(SRC_HEADERS
@@ -270,6 +276,8 @@ set(SRC_UTIL_HEADERS
 	../util/util_types_float3_impl.h
 	../util/util_types_float4.h
 	../util/util_types_float4_impl.h
+	../util/util_types_float8.h
+	../util/util_types_float8_impl.h
 	../util/util_types_int2.h
 	../util/util_types_int2_impl.h
 	../util/util_types_int3.h

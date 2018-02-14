@@ -679,7 +679,15 @@ SceneParams BlenderSync::get_scene_params(BL::Scene& b_scene,
 		params.texture_limit = 0;
 	}
 
-	params.bvh_layout = DebugFlags().cpu.bvh_layout;
+	/* TODO(sergey): Once OSL supports per-microarchitecture optimization get
+	 * rid of this.
+	 */
+	if (params.shadingsystem == SHADINGSYSTEM_OSL) {
+		params.bvh_layout = BVH_LAYOUT_BVH4;
+	}
+	else {
+		params.bvh_layout = DebugFlags().cpu.bvh_layout;
+	}
 
 	return params;
 }

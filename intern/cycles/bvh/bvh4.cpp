@@ -30,27 +30,6 @@ CCL_NAMESPACE_BEGIN
  * Perhaps we can merge nodes in actual tree and make our
  * life easier all over the place.
  */
-static bool node_qbvh_is_unaligned(const BVHNode *node)
-{
-	const BVHNode *node0 = node->get_child(0),
-	              *node1 = node->get_child(1);
-	bool has_unaligned = false;
-	if(node0->is_leaf()) {
-		has_unaligned |= node0->is_unaligned;
-	}
-	else {
-		has_unaligned |= node0->get_child(0)->is_unaligned;
-		has_unaligned |= node0->get_child(1)->is_unaligned;
-	}
-	if(node1->is_leaf()) {
-		has_unaligned |= node1->is_unaligned;
-	}
-	else {
-		has_unaligned |= node1->get_child(0)->is_unaligned;
-		has_unaligned |= node1->get_child(1)->is_unaligned;
-	}
-	return has_unaligned;
-}
 
 BVH4::BVH4(const BVHParams& params_, const vector<Object*>& objects_)
 : BVH(params_, objects_)
@@ -304,7 +283,7 @@ void BVH4::pack_nodes(const BVHNode *root)
 	}
 	else {
 		stack.push_back(BVHStackEntry(root, nextNodeIdx));
-		nextNodeIdx += node_qbvh_is_unaligned(root)
+		nextNodeIdx += node_is_unaligned(root, bvh4)
 		                       ? BVH_UNALIGNED_QNODE_SIZE
 		                       : BVH_QNODE_SIZE;
 	}
@@ -348,7 +327,7 @@ void BVH4::pack_nodes(const BVHNode *root)
 				}
 				else {
 					idx = nextNodeIdx;
-					nextNodeIdx += node_qbvh_is_unaligned(nodes[i])
+					nextNodeIdx += node_is_unaligned(nodes[i], bvh4)
 					                       ? BVH_UNALIGNED_QNODE_SIZE
 					                       : BVH_QNODE_SIZE;
 				}
@@ -438,7 +417,7 @@ void BVH4::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			                    visibility,
 			                    0.0f,
 			                    1.0f,
-			                    4);
+			                    num_nodes);
 		}
 		else {
 			pack_aligned_node(idx,
@@ -447,7 +426,7 @@ void BVH4::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility)
 			                  visibility,
 			                  0.0f,
 			                  1.0f,
-			                  4);
+			                  num_nodes);
 		}
 	}
 }

@@ -19,6 +19,9 @@
 
 #ifdef __QBVH__
 #  include "kernel/bvh/qbvh_shadow_all.h"
+#ifdef __KERNEL_AVX2__
+#  include "kernel/bvh/obvh_shadow_all.h"
+#endif
 #endif
 
 #if BVH_FEATURE(BVH_HAIR)
@@ -396,6 +399,15 @@ ccl_device_inline bool BVH_FUNCTION_NAME(KernelGlobals *kg,
                                          uint *num_hits)
 {
 	switch(kernel_data.bvh.bvh_layout) {
+#ifdef __KERNEL_AVX2__
+		case BVH_LAYOUT_BVH8:
+			return BVH_FUNCTION_FULL_NAME(OBVH)(kg,
+			                                    ray,
+			                                    isect_array,
+			                                    visibility,
+			                                    max_hits,
+			                                    num_hits);
+#endif
 #ifdef __QBVH__
 		case BVH_LAYOUT_BVH4:
 			return BVH_FUNCTION_FULL_NAME(QBVH)(kg,

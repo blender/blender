@@ -78,6 +78,7 @@ set(SRC_HEADERS
 	util_sky_model.h
 	util_sky_model_data.h
 	util_avxf.h
+	util_avxb.h
 	util_sseb.h
 	util_ssef.h
 	util_ssei.h
@@ -98,7 +99,9 @@ set(SRC_HEADERS
 	util_types_float3_impl.h
 	util_types_float4.h
 	util_types_float4_impl.h
-	util_types_int2.h
+	util_types_float8.h
+	util_types_float8_impl.h
+		util_types_int2.h
 	util_types_int2_impl.h
 	util_types_int3.h
 	util_types_int3_impl.h
