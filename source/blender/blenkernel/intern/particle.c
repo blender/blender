@@ -3925,7 +3925,17 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				copy_particle_key(&tstate, state, 1);
 
 			/* apply different deformations to the child path */
-			do_child_modifiers(NULL, sim, &ptex, par->co, par->vel, par->rot, par_orco, cpa, orco, hairmat, state, t);
+			ParticleChildModifierContext modifier_ctx = {NULL};
+			modifier_ctx.thread_ctx = NULL;
+			modifier_ctx.sim = sim;
+			modifier_ctx.ptex = &ptex;
+			modifier_ctx.cpa = cpa;
+			modifier_ctx.orco = orco;
+			modifier_ctx.par_co = par->co;
+			modifier_ctx.par_vel = par->vel;
+			modifier_ctx.par_rot = par->rot;
+			modifier_ctx.par_orco = par_orco;
+			do_child_modifiers(&modifier_ctx, hairmat, state, t);
 
 			/* try to estimate correct velocity */
 			if (vel) {
@@ -4028,7 +4038,18 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 			CLAMP(t, 0.0f, 1.0f);
 
 			unit_m4(mat);
-			do_child_modifiers(NULL, sim, NULL, key1->co, key1->vel, key1->rot, par_orco, cpa, cpa->fuv, mat, state, t);
+			ParticleChildModifierContext modifier_ctx = {NULL};
+			modifier_ctx.thread_ctx = NULL;
+			modifier_ctx.sim = sim;
+			modifier_ctx.ptex = NULL;
+			modifier_ctx.cpa = cpa;
+			modifier_ctx.orco = cpa->fuv;
+			modifier_ctx.par_co = key1->co;
+			modifier_ctx.par_vel = key1->vel;
+			modifier_ctx.par_rot = key1->rot;
+			modifier_ctx.par_orco = par_orco;
+
+			do_child_modifiers(&modifier_ctx, mat, state, t);
 
 			if (psys->lattice_deform_data)
 				calc_latt_deform(psys->lattice_deform_data, state->co, psys->lattice_strength);
