@@ -1479,7 +1479,7 @@ static void gp_draw_status_text(const bGPdata *gpd, ARegion *ar)
 
 		/* grease pencil icon... */
 		// XXX: is this too intrusive?
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 
 		xco -= U.widget_unit;

@@ -213,7 +213,7 @@ static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
  */
 static void scrarea_draw_shape_dark(ScrArea *sa, char dir, unsigned int pos)
 {
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	immUniformColor4ub(0, 0, 0, 50);
 
 	draw_join_shape(sa, dir, pos);

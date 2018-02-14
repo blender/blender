@@ -2163,7 +2163,7 @@ void DRW_state_reset_ex(DRWState state)
 void DRW_state_reset(void)
 {
 	/* Reset blending function */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	DRW_state_reset_ex(DRW_STATE_DEFAULT);
 }

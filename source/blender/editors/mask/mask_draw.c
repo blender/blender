@@ -555,7 +555,7 @@ static void draw_masklays(const bContext *C, Mask *mask, const char draw_flag, c
                           const int width, const int height)
 {
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	GPU_enable_program_point_size();
 
 	MaskLayer *masklay;

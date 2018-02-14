@@ -82,7 +82,7 @@ static void console_draw_sel(const char *str, const int sel[2], const int xy[2],
 		const int end = txt_utf8_offset_to_column(str, min_ii(sel[1], str_len_draw));
 
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 		Gwn_VertFormat *format = immVertexFormat();
 		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);

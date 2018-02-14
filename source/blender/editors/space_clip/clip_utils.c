@@ -302,7 +302,7 @@ void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 	UI_view2d_view_ortho(v2d);
 
 	/* currently clip editor supposes that editing clip length is equal to scene frame range */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);

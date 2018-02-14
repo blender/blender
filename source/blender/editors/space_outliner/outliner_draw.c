@@ -1788,7 +1788,7 @@ static void outliner_draw_tree(
 	TreeElement *te_floating = NULL;
 	int starty, startx;
 
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); // only once
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // only once
 
 	if (soops->outlinevis == SO_DATABLOCKS) {
 		/* struct marks */

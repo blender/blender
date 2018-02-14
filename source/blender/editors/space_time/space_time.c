@@ -83,7 +83,7 @@ static void time_draw_sfra_efra(Scene *scene, View2D *v2d)
 	/* draw darkened area outside of active timeline 
 	 * frame range used is preview range or scene range 
 	 */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 
 	Gwn_VertFormat *format = immVertexFormat();

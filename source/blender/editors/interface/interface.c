@@ -1403,7 +1403,7 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 		UI_block_end(C, block);
 
 	/* we set this only once */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* scale fonts */
 	ui_fontscale(&style.paneltitle.points, block->aspect);

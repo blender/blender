@@ -1027,7 +1027,7 @@ bool GPU_fx_do_composite_pass(
 				GWN_batch_program_use_end(fx->point_batch);
 
 				/* disable bindings */
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 				glDisable(GL_BLEND);
 
 				GPU_framebuffer_texture_detach(fx->dof_near_blur);

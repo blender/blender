@@ -202,7 +202,7 @@ static void draw_view_icon(RegionView3D *rv3d, rcti *rect)
 	else return;
 	
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA); 
 	
 	UI_icon_draw(5.0 + rect->xmin, 5.0 + rect->ymin, icon);
 	
@@ -732,7 +732,7 @@ static void view3d_draw_bgpic(Scene *scene, const Depsgraph *depsgraph,
 			glDepthMask(GL_FALSE);
 
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 			gpuPushProjectionMatrix();
 			gpuPushMatrix();

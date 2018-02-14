@@ -730,7 +730,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 		if (use_blend) {
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
 		Gwn_VertFormat *format = immVertexFormat();
@@ -780,7 +780,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 
 		if (!use_blend) {
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
 		imm_draw_box_wire_2d(pos, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
@@ -1187,7 +1187,7 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z, unsigned pos)
 	draw_spot_cone(la, x, z, pos);
 
 	/* restore state */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
@@ -1231,7 +1231,7 @@ static void draw_transp_sun_volume(Lamp *la, unsigned pos)
 	imm_draw_box(box, true, pos);
 
 	/* restore state */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_BLEND);
 	glDepthMask(GL_TRUE);
 	glDisable(GL_CULL_FACE);
@@ -1327,7 +1327,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 
 			GPU_enable_program_point_size();
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 			immBindBuiltinProgram(GPU_SHADER_3D_POINT_UNIFORM_SIZE_UNIFORM_COLOR_OUTLINE_AA);
 			immUniform1f("size", lampdot_size);
@@ -8696,7 +8696,7 @@ void draw_object(
 	/* no return after this point, otherwise leaks */
 
 	/* only once set now, will be removed too, should become a global standard */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	/* reset here to avoid having to call all over */
 	glLineWidth(1.0f);
 
@@ -9990,7 +9990,7 @@ void ED_draw_object_facemap(
 		immUniformColor4fv(col);
 
 		/* XXX, alpha isn't working yet, not sure why. */
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 
 		MVert *mvert;

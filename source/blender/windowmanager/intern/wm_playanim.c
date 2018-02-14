@@ -317,7 +317,7 @@ static void playanim_toscreen(PlayState *ps, PlayAnimPict *picture, struct ImBuf
 	/* checkerboard for case alpha */
 	if (ibuf->planes == 32) {
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 		imm_draw_box_checker_2d(offs_x, offs_y, offs_x + span_x, offs_y + span_y);
 	}

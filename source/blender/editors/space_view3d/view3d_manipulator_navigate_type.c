@@ -131,7 +131,7 @@ static void axis_geom_draw(
 				glDepthMask(GL_TRUE);
 				glDepthFunc(GL_LEQUAL);
 				glBlendFunc(GL_ONE, GL_ZERO);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 				glEnable(GL_LINE_SMOOTH);
 				glEnable(GL_BLEND);

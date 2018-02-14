@@ -256,7 +256,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	clear_matcopybuf();
 	ED_render_clear_mtex_copybuf();
 
-	// glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	// glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	wm_history_file_read();
 
