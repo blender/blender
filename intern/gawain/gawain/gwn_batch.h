@@ -85,11 +85,9 @@ void GWN_batch_uniform_4fv(Gwn_Batch*, const char* name, const float data[4]);
 void GWN_batch_draw(Gwn_Batch*);
 
 
-// clement : temp stuff
 void GWN_batch_draw_stupid(Gwn_Batch*, int v_first, int v_count);
 void GWN_batch_draw_stupid_instanced(Gwn_Batch*, Gwn_Batch*, int instance_first, int instance_count);
-
-
+void GWN_batch_draw_procedural(Gwn_Batch*, Gwn_PrimType, int v_count);
 
 
 #if 0 // future plans

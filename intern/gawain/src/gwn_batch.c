@@ -417,3 +417,18 @@ void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch_instanced, Gwn_Batch* batc
 
 	glBindVertexArray(0);
 	}
+
+// just draw some vertices and let shader place them where we want.
+void GWN_batch_draw_procedural(Gwn_Batch* batch, Gwn_PrimType prim_type, int v_count)
+	{
+	// we cannot draw without vao ... annoying ...
+	if (batch->vao_id)
+		glBindVertexArray(batch->vao_id);
+	else
+		Batch_prime(batch);
+
+	GLenum type = convert_prim_type_to_gl(prim_type);
+	glDrawArrays(type, 0, v_count);
+
+	glBindVertexArray(0);
+	}
