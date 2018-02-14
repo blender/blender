@@ -380,12 +380,12 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 void EEVEE_lights_cache_shcaster_add(
         EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct Gwn_Batch *geom, float (*obmat)[4])
 {
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom);
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom, NULL);
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 	DRW_shgroup_set_instance_count(grp, 6);
 
-	grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom);
+	grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom, NULL);
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 	DRW_shgroup_set_instance_count(grp, MAX_CASCADE_NUM);
@@ -395,7 +395,7 @@ void EEVEE_lights_cache_shcaster_material_add(
 	EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct GPUMaterial *gpumat,
 	struct Gwn_Batch *geom, struct Object *ob, float (*obmat)[4], float *alpha_threshold)
 {
-	DRWShadingGroup *grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cube_pass, geom, ob);
+	DRWShadingGroup *grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cube_pass, geom, ob, NULL);
 
 	if (grp == NULL) return;
 
@@ -407,7 +407,7 @@ void EEVEE_lights_cache_shcaster_material_add(
 
 	DRW_shgroup_set_instance_count(grp, 6);
 
-	grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cascade_pass, geom, ob);
+	grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cascade_pass, geom, ob, NULL);
 	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
 

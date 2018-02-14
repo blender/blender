@@ -394,6 +394,9 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	/* Sort transparents before the loop. */
 	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
+	/* Push instances attribs to the GPU. */
+	DRW_render_instance_buffer_finish();
+
 	if ((view_layer->passflag & (SCE_PASS_SUBSURFACE_COLOR |
 	                             SCE_PASS_SUBSURFACE_DIRECT |
 	                             SCE_PASS_SUBSURFACE_INDIRECT)) != 0)

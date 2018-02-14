@@ -36,6 +36,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_object.h"
+#include "MEM_guardedalloc.h"
 
 #include "GPU_material.h"
 #include "GPU_texture.h"
@@ -81,6 +82,9 @@ static struct {
 	struct GPUTexture *depth_placeholder;
 	struct GPUTexture *depth_array_placeholder;
 	struct GPUTexture *cube_face_minmaxz;
+
+	struct Gwn_VertFormat *format_probe_display_cube;
+	struct Gwn_VertFormat *format_probe_display_planar;
 
 	int update_world;
 } e_data = {NULL}; /* Engine data */
@@ -433,9 +437,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 	{
 		psl->probe_glossy_compute = DRW_pass_create("LightProbe Glossy Compute", DRW_STATE_WRITE_COLOR);
 
-		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
-
-		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_filter_glossy_sh, psl->probe_glossy_compute, geom);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_filter_glossy_sh, psl->probe_glossy_compute);
 		DRW_shgroup_uniform_float(grp, "intensityFac", &pinfo->intensity_fac, 1);
 		DRW_shgroup_uniform_float(grp, "sampleCount", &pinfo->samples_ct, 1);
 		DRW_shgroup_uniform_float(grp, "invSampleCount", &pinfo->invsamples_ct, 1);
@@ -448,8 +450,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		DRW_shgroup_uniform_texture(grp, "texHammersley", e_data.hammersley);
 		// DRW_shgroup_uniform_texture(grp, "texJitter", e_data.jitter);
 		DRW_shgroup_uniform_texture(grp, "probeHdr", sldata->probe_rt);
-
-		DRW_shgroup_set_instance_count(grp, 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 
 	{
@@ -505,18 +506,30 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
 		psl->probe_display = DRW_pass_create("LightProbe Display", state);
 
-		struct Gwn_Batch *geom = DRW_cache_sphere_get();
-		DRWShadingGroup *grp = stl->g_data->cube_display_shgrp = DRW_shgroup_instance_create(e_data.probe_cube_display_sh, psl->probe_display, geom);
-		DRW_shgroup_attrib_float(grp, "probe_id", 1); /* XXX this works because we are still uploading 4bytes and using the right stride */
-		DRW_shgroup_attrib_float(grp, "probe_location", 3);
-		DRW_shgroup_attrib_float(grp, "sphere_size", 1);
+		DRW_shgroup_instance_format(e_data.format_probe_display_cube, {
+		    {"probe_id"      , DRW_ATTRIB_INT, 1},
+		    {"probe_location", DRW_ATTRIB_FLOAT, 3},
+		    {"sphere_size"   , DRW_ATTRIB_FLOAT, 1},
+		});
+
+		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_cube_display_sh,
+		                                                   psl->probe_display,
+		                                                   DRW_cache_sphere_get(),
+		                                                   e_data.format_probe_display_cube);
+		stl->g_data->cube_display_shgrp = grp;
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
-		geom = DRW_cache_quad_get();
-		grp = stl->g_data->planar_display_shgrp = DRW_shgroup_instance_create(e_data.probe_planar_display_sh, psl->probe_display, geom);
-		DRW_shgroup_attrib_float(grp, "probe_id", 1); /* XXX this works because we are still uploading 4bytes and using the right stride */
-		DRW_shgroup_attrib_float(grp, "probe_mat", 16);
+		DRW_shgroup_instance_format(e_data.format_probe_display_planar, {
+		    {"probe_id" , DRW_ATTRIB_INT, 1},
+		    {"probe_mat", DRW_ATTRIB_FLOAT, 16},
+		});
+
+		grp = DRW_shgroup_instance_create(e_data.probe_planar_display_sh,
+		                                  psl->probe_display,
+		                                  DRW_cache_quad_get(),
+		                                  e_data.format_probe_display_planar);
+		stl->g_data->planar_display_shgrp = grp;
 		DRW_shgroup_uniform_buffer(grp, "probePlanars", &txl->planar_pool);
 	}
 
@@ -524,7 +537,10 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample", DRW_STATE_WRITE_COLOR);
 
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRWShadingGroup *grp = stl->g_data->planar_downsample = DRW_shgroup_instance_create(e_data.probe_planar_downsample_sh, psl->probe_planar_downsample_ps, geom);
+		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_planar_downsample_sh,
+		                                                   psl->probe_planar_downsample_ps,
+		                                                   geom, NULL);
+		stl->g_data->planar_downsample = grp;
 		DRW_shgroup_uniform_buffer(grp, "source", &txl->planar_pool);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
 	}
@@ -827,7 +843,9 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
 			struct Gwn_Batch *geom = DRW_cache_sphere_get();
-			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh, psl->probe_display, geom);
+			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh,
+			                                                   psl->probe_display,
+			                                                   geom, NULL);
 			DRW_shgroup_set_instance_count(grp, ped->num_cell);
 			DRW_shgroup_uniform_int(grp, "offset", &egrid->offset, 1);
 			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", egrid->resolution, 1);
@@ -1695,6 +1713,8 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 void EEVEE_lightprobes_free(void)
 {
+	MEM_SAFE_FREE(e_data.format_probe_display_cube);
+	MEM_SAFE_FREE(e_data.format_probe_display_planar);
 	DRW_SHADER_FREE_SAFE(e_data.probe_default_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_glossy_sh);
 	DRW_SHADER_FREE_SAFE(e_data.probe_filter_diffuse_sh);

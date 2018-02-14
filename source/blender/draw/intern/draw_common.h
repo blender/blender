@@ -100,6 +100,7 @@ typedef struct GlobalsUboStorage {
 /* Keep in sync with globalsBlock in shaders */
 
 void DRW_globals_update(void);
+void DRW_globals_free(void);
 
 struct DRWShadingGroup *shgroup_dynlines_uniform_color(struct DRWPass *pass, float color[4]);
 struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, float color[4], float *size);
