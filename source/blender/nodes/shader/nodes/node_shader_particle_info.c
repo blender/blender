@@ -29,7 +29,7 @@
 #include "RE_shader_ext.h"
 
 static bNodeSocketTemplate outputs[] = {
-	{ SOCK_FLOAT,  0, "Index" },
+	{ SOCK_FLOAT,  0, "Random" },
 	{ SOCK_FLOAT,  0, "Age" },
 	{ SOCK_FLOAT,  0, "Lifetime" },
 	{ SOCK_VECTOR,  0, "Location" },

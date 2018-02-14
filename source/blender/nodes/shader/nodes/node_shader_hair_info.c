@@ -33,7 +33,7 @@ static bNodeSocketTemplate outputs[] = {
 	{	SOCK_FLOAT,  0, N_("Thickness"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, N_("Tangent Normal"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	/*{	SOCK_FLOAT,  0, N_("Fade"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},*/
-	{	SOCK_FLOAT,  0, "Index" },
+	{	SOCK_FLOAT,  0, N_("Random") },
 	{	-1, 0, ""	}
 };
 

@@ -146,7 +146,7 @@ public:
 	static ustring u_geom_dupli_uv;
 	static ustring u_material_index;
 	static ustring u_object_random;
-	static ustring u_particle_index;
+	static ustring u_particle_random;
 	static ustring u_particle_age;
 	static ustring u_particle_lifetime;
 	static ustring u_particle_location;
@@ -163,6 +163,7 @@ public:
 	static ustring u_is_curve;
 	static ustring u_curve_thickness;
 	static ustring u_curve_tangent_normal;
+	static ustring u_curve_random;
 	static ustring u_path_ray_length;
 	static ustring u_path_ray_depth;
 	static ustring u_path_diffuse_depth;

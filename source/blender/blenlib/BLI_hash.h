@@ -63,4 +63,9 @@ BLI_INLINE unsigned int BLI_hash_int(unsigned int k)
 	return BLI_hash_int_2d(k, 0);
 }
 
+BLI_INLINE float BLI_hash_int_01(unsigned int k)
+{
+	return (float)BLI_hash_int(k) * (1.0f/(float)0xFFFFFFFF);
+}
+
 #endif // __BLI_HASH_H__

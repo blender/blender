@@ -21,12 +21,12 @@ shader node_hair_info(
 	output float Intercept = 0.0,
 	output float Thickness = 0.0,
 	output normal TangentNormal = N,
-	output float Index = 0)
+	output float Random = 0)
 {
 	getattribute("geom:is_curve", IsStrand);
 	getattribute("geom:curve_intercept", Intercept);
 	getattribute("geom:curve_thickness", Thickness);
 	getattribute("geom:curve_tangent_normal", TangentNormal);
-	getattribute("geom:curve_index", Index);
+	getattribute("geom:curve_random", Random);
 }
 

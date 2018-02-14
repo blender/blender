@@ -61,6 +61,11 @@ static inline uint hash_string(const char *str)
 }
 #endif
 
+ccl_device_inline float hash_int_01(uint k)
+{
+	return (float)hash_int(k) * (1.0f/(float)0xFFFFFFFF);
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_HASH_H__ */

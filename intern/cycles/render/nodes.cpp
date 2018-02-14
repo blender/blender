@@ -3463,7 +3463,7 @@ NODE_DEFINE(ParticleInfoNode)
 {
 	NodeType* type = NodeType::add("particle_info", create, NodeType::SHADER);
 
-	SOCKET_OUT_FLOAT(index, "Index");
+	SOCKET_OUT_FLOAT(random, "Random");
 	SOCKET_OUT_FLOAT(age, "Age");
 	SOCKET_OUT_FLOAT(lifetime, "Lifetime");
 	SOCKET_OUT_POINT(location, "Location");
@@ -3484,7 +3484,7 @@ ParticleInfoNode::ParticleInfoNode()
 
 void ParticleInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 {
-	if(!output("Index")->links.empty())
+	if(!output("Random")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
 	if(!output("Age")->links.empty())
 		attributes->add(ATTR_STD_PARTICLE);
@@ -3510,9 +3510,9 @@ void ParticleInfoNode::compile(SVMCompiler& compiler)
 {
 	ShaderOutput *out;
 	
-	out = output("Index");
+	out = output("Random");
 	if(!out->links.empty()) {
-		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_INDEX, compiler.stack_assign(out));
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_RANDOM, compiler.stack_assign(out));
 	}
 	
 	out = output("Age");
@@ -3572,7 +3572,7 @@ NODE_DEFINE(HairInfoNode)
 #if 0 /*output for minimum hair width transparency - deactivated */
 	SOCKET_OUT_FLOAT(fade, "Fade");
 #endif
-	SOCKET_OUT_FLOAT(index, "Index");
+	SOCKET_OUT_FLOAT(index, "Random");
 
 	return type;
 }
@@ -3590,8 +3590,8 @@ void HairInfoNode::attributes(Shader *shader, AttributeRequestSet *attributes)
 		if(!intercept_out->links.empty())
 			attributes->add(ATTR_STD_CURVE_INTERCEPT);
 
-		if(!output("Index")->links.empty())
-			attributes->add(ATTR_STD_CURVE_INDEX);
+		if(!output("Random")->links.empty())
+			attributes->add(ATTR_STD_CURVE_RANDOM);
 	}
 
 	ShaderNode::attributes(shader, attributes);
@@ -3627,9 +3627,9 @@ void HairInfoNode::compile(SVMCompiler& compiler)
 		compiler.add_node(NODE_HAIR_INFO, NODE_INFO_CURVE_FADE, compiler.stack_assign(out));
 	}*/
 
-	out = output("Index");
+	out = output("Random");
 	if(!out->links.empty()) {
-		int attr = compiler.attribute(ATTR_STD_CURVE_INDEX);
+		int attr = compiler.attribute(ATTR_STD_CURVE_RANDOM);
 		compiler.add_node(NODE_ATTR, attr, compiler.stack_assign(out), NODE_ATTR_FLOAT);
 	}
 }
