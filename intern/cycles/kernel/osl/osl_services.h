@@ -146,6 +146,7 @@ public:
 	static ustring u_geom_dupli_uv;
 	static ustring u_material_index;
 	static ustring u_object_random;
+	static ustring u_particle_index;
 	static ustring u_particle_random;
 	static ustring u_particle_age;
 	static ustring u_particle_lifetime;

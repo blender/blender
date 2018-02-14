@@ -82,6 +82,7 @@ ustring OSLRenderServices::u_geom_dupli_generated("geom:dupli_generated");
 ustring OSLRenderServices::u_geom_dupli_uv("geom:dupli_uv");
 ustring OSLRenderServices::u_material_index("material:index");
 ustring OSLRenderServices::u_object_random("object:random");
+ustring OSLRenderServices::u_particle_index("particle:index");
 ustring OSLRenderServices::u_particle_random("particle:random");
 ustring OSLRenderServices::u_particle_age("particle:age");
 ustring OSLRenderServices::u_particle_lifetime("particle:lifetime");
@@ -652,11 +653,17 @@ bool OSLRenderServices::get_object_standard_attribute(KernelGlobals *kg, ShaderD
 	}
 
 	/* Particle Attributes */
-	else if(name == u_particle_random) {
+	else if(name == u_particle_index) {
 		int particle_id = object_particle_id(kg, sd->object);
-		float f = particle_random(kg, particle_id);
+		float f = particle_index(kg, particle_id);
 		return set_attribute_float(f, type, derivatives, val);
 	}
+	else if(name == u_particle_random) {
+		int particle_id = object_particle_id(kg, sd->object);
+		float f = hash_int_01(particle_index(kg, particle_id));
+		return set_attribute_float(f, type, derivatives, val);
+	}
+
 	else if(name == u_particle_age) {
 		int particle_id = object_particle_id(kg, sd->object);
 		float f = particle_age(kg, particle_id);

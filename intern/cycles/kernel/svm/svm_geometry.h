@@ -114,9 +114,15 @@ ccl_device void svm_node_particle_info(KernelGlobals *kg,
                                        uint out_offset)
 {
 	switch(type) {
+		case NODE_INFO_PAR_INDEX: {
+			int particle_id = object_particle_id(kg, sd->object);
+			stack_store_float(stack, out_offset, particle_index(kg, particle_id));
+			break;
+		}
 		case NODE_INFO_PAR_RANDOM: {
 			int particle_id = object_particle_id(kg, sd->object);
-			stack_store_float(stack, out_offset, particle_random(kg, particle_id));
+			float random = hash_int_01(particle_index(kg, particle_id));
+			stack_store_float(stack, out_offset, random);
 			break;
 		}
 		case NODE_INFO_PAR_AGE: {

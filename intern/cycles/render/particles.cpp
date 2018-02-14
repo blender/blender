@@ -80,8 +80,7 @@ void ParticleSystemManager::device_update_particles(Device *, DeviceScene *dscen
 			Particle& pa = psys->particles[k];
 			int offset = i*PARTICLE_SIZE;
 			
-			float random = hash_int_01(pa.index);
-			particles[offset] = make_float4(random, pa.age, pa.lifetime, pa.size);
+			particles[offset] = make_float4(__uint_as_float(pa.index), pa.age, pa.lifetime, pa.size);
 			particles[offset+1] = pa.rotation;
 			particles[offset+2] = make_float4(pa.location.x, pa.location.y, pa.location.z, pa.velocity.x);
 			particles[offset+3] = make_float4(pa.velocity.y, pa.velocity.z, pa.angular_velocity.x, pa.angular_velocity.y);

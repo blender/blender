@@ -1730,12 +1730,14 @@ static int gpu_get_particle_info(GPUParticleInfo *pi)
 		if (ind >= 0) {
 			ParticleData *p = &dob->particle_system->particles[ind];
 
-			pi->scalprops[0] = BLI_hash_int_01(ind);
+			pi->scalprops[0] = ind;
 			pi->scalprops[1] = GMS.gscene->r.cfra - p->time;
 			pi->scalprops[2] = p->lifetime;
 			pi->scalprops[3] = p->size;
 
 			copy_v3_v3(pi->location, p->state.co);
+			pi->location[3] = BLI_hash_int_01(ind);
+
 			copy_v3_v3(pi->velocity, p->state.vel);
 			copy_v3_v3(pi->angular_velocity, p->state.ave);
 			return 1;
