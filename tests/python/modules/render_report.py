@@ -49,12 +49,11 @@ def print_message(message, type=None, status=''):
     sys.stdout.flush()
 
 
-def blend_list(path):
-    for dirpath, dirnames, filenames in os.walk(path):
-        for filename in filenames:
-            if filename.lower().endswith(".blend"):
-                filepath = os.path.join(dirpath, filename)
-                yield filepath
+def blend_list(dirpath):
+    for filename in os.listdir(dirpath):
+        if filename.lower().endswith(".blend"):
+            filepath = os.path.join(dirpath, filename)
+            yield filepath
 
 def test_get_name(filepath):
     filename = os.path.basename(filepath)

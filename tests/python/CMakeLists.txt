@@ -538,7 +538,7 @@ if(WITH_CYCLES)
 				)
 			endif()
 		endmacro()
-		if(WITH_OPENGL_TESTS)
+		if(WITH_OPENGL_RENDER_TESTS)
 			add_cycles_render_test(opengl)
 		endif()
 		add_cycles_render_test(bake)
@@ -561,6 +561,52 @@ if(WITH_CYCLES)
 		MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
 	endif()
 endif()
+
+if(WITH_OPENGL_DRAW_TESTS)
+	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/opengl")
+		macro(add_opengl_draw_test subject)
+			if(MSVC)
+				add_test(
+					NAME opengl_draw_${subject}_test
+					COMMAND
+						"$<TARGET_FILE_DIR:blender>/${BLENDER_VERSION_MAJOR}.${BLENDER_VERSION_MINOR}/python/bin/python$<$<CONFIG:Debug>:_d>"
+						${CMAKE_CURRENT_LIST_DIR}/opengl_draw_tests.py
+					-blender "$<TARGET_FILE:blender>"
+					-testdir "${TEST_SRC_DIR}/${subject}"
+					-idiff "${OPENIMAGEIO_IDIFF}"
+					-outdir "${TEST_OUT_DIR}/opengl_draw"
+				)
+			else()
+				add_test(
+					NAME opengl_draw_${subject}_test
+					COMMAND ${CMAKE_CURRENT_LIST_DIR}/opengl_draw_tests.py
+					-blender "$<TARGET_FILE:blender>"
+					-testdir "${TEST_SRC_DIR}/${subject}"
+					-idiff "${OPENIMAGEIO_IDIFF}"
+					-outdir "${TEST_OUT_DIR}/opengl_draw"
+				)
+			endif()
+		endmacro()
+
+		function(add_opengl_draw_tests)
+			# Use all test folders
+			file(GLOB children RELATIVE ${TEST_SRC_DIR} ${TEST_SRC_DIR}/*)
+			foreach(child ${children})
+				if(IS_DIRECTORY ${TEST_SRC_DIR}/${child})
+					file(GLOB blends ${TEST_SRC_DIR}/${child}/*.blend)
+					if(blends)
+						add_opengl_draw_test(${child})
+					endif()
+				endif()
+			endforeach()
+		endfunction()
+
+		add_opengl_draw_tests()
+	else()
+		MESSAGE(STATUS "Disabling OpenGL tests because tests folder does not exist")
+	endif()
+endif()
+
 
 if(WITH_ALEMBIC)
 	find_package_wrapper(Alembic)
