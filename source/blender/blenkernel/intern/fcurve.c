@@ -804,7 +804,7 @@ void bezt_add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 	
 	for (ce = lb->first; ce; ce = ce->next) {
 		/* double key? */
-		if (ce->cfra == bezt->vec[1][0]) {
+		if (IS_EQT(ce->cfra, bezt->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
 			if (bezt->f2 & SELECT) ce->sel = bezt->f2;
 			return;
 		}
