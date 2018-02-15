@@ -358,6 +358,7 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 		totkeys = ctx->segments + 1;
 		max_length = ptex->length;
 
+		printf("%f\n", ptex->twist);
 		for (k = 0, key = keys; k < totkeys; k++, key++) {
 			ParticlePathIterator iter;
 			psys_path_iter_get(&iter, keys, totkeys, parent_keys, k);

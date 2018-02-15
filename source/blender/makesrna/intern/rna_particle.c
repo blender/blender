@@ -1894,6 +1894,10 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Length", "Affect the child hair length");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop = RNA_def_property(srna, "use_map_twist", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", PAMAP_TWIST);
+	RNA_def_property_ui_text(prop, "Twist", "Affect the child twist");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* influence factors */
 	prop = RNA_def_property(srna, "time_factor", PROP_FLOAT, PROP_NONE);
@@ -1974,6 +1978,12 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "roughfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Rough Factor", "Amount texture affects child roughness");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "twist_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "twistfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Twist Factor", "Amount texture affects child twist");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 }
 
