@@ -2306,7 +2306,19 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 
 		/* get the original coordinates (orco) for texture usage */
 		cpa_from = part->from;
-		cpa_num = pa->num;
+
+		/*
+		 * NOTE: Should in theory be the same as:
+		 cpa_num = psys_particle_dm_face_lookup(
+		        ctx->sim.psmd->dm_final,
+		        ctx->sim.psmd->dm_deformed,
+		        pa->num, pa->fuv,
+		        NULL);
+		*/
+		cpa_num = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND))
+		        ? pa->num
+		        : pa->num_dmcache;
+
 		/* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
 		if (cpa_num > ctx->sim.psmd->dm_final->getNumTessFaces(ctx->sim.psmd->dm_final))
 			cpa_num = 0;
