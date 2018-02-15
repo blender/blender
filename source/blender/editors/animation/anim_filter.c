@@ -877,6 +877,7 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				break;
 			}
 			case ANIMTYPE_FCURVE:
+			case ANIMTYPE_NLACURVE: /* practically the same as ANIMTYPE_FCURVE. Differences are applied post-creation */
 			{
 				FCurve *fcu = (FCurve *)data;
 				
@@ -1086,13 +1087,14 @@ static bool name_matches_dopesheet_filter(bDopeSheet *ads, char *name)
 /* (Display-)Name-based F-Curve filtering
  * NOTE: when this function returns true, the F-Curve is to be skipped 
  */
-static bool skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, ID *owner_id)
+static bool skip_fcurve_with_name(bDopeSheet *ads, FCurve *fcu, eAnim_ChannelType channel_type, void *owner, ID *owner_id)
 {
 	bAnimListElem ale_dummy = {NULL};
 	const bAnimChannelType *acf;
 	
-	/* create a dummy wrapper for the F-Curve */
-	ale_dummy.type = ANIMTYPE_FCURVE;
+	/* create a dummy wrapper for the F-Curve, so we can get typeinfo for it */
+	ale_dummy.type = channel_type;
+	ale_dummy.owner = owner;
 	ale_dummy.id = owner_id;
 	ale_dummy.data = fcu;
 	
@@ -1155,8 +1157,9 @@ static bool fcurve_has_errors(FCurve *fcu)
 }
 
 /* find the next F-Curve that is usable for inclusion */
-static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
+static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, eAnim_ChannelType channel_type, int filter_mode, void *owner, ID *owner_id)
 {
+	bActionGroup *grp = (channel_type == ANIMTYPE_FCURVE) ? owner : NULL;
 	FCurve *fcu = NULL;
 	
 	/* loop over F-Curves - assume that the caller of this has already checked that these should be included 
@@ -1190,7 +1193,7 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGro
 					if (!(filter_mode & ANIMFILTER_ACTIVE) || (fcu->flag & FCURVE_ACTIVE)) {
 						/* name based filtering... */
 						if ( ((ads) && (ads->filterflag & ADS_FILTER_BY_FCU_NAME)) && (owner_id) ) {
-							if (skip_fcurve_with_name(ads, fcu, owner_id))
+							if (skip_fcurve_with_name(ads, fcu, channel_type, owner, owner_id))
 								continue;
 						}
 						
@@ -1213,7 +1216,10 @@ static FCurve *animfilter_fcurve_next(bDopeSheet *ads, FCurve *first, bActionGro
 	return NULL;
 }
 
-static size_t animfilter_fcurves(ListBase *anim_data, bDopeSheet *ads, FCurve *first, bActionGroup *grp, int filter_mode, ID *owner_id)
+static size_t animfilter_fcurves(ListBase *anim_data, bDopeSheet *ads,
+                                 FCurve *first, eAnim_ChannelType fcurve_type,
+                                 int filter_mode,
+                                 void *owner, ID *owner_id)
 {
 	FCurve *fcu;
 	size_t items = 0;
@@ -1227,8 +1233,18 @@ static size_t animfilter_fcurves(ListBase *anim_data, bDopeSheet *ads, FCurve *f
 	 *		4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through 
 	 *		   the rest of the F-Curve list without an eternal loop. Back to step 2 :)
 	 */
-	for (fcu = first; ( (fcu = animfilter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu = fcu->next) {
-		ANIMCHANNEL_NEW_CHANNEL(fcu, ANIMTYPE_FCURVE, owner_id);
+	for (fcu = first; ( (fcu = animfilter_fcurve_next(ads, fcu, fcurve_type, filter_mode, owner, owner_id)) ); fcu = fcu->next) {
+		if (UNLIKELY(fcurve_type == ANIMTYPE_NLACURVE)) {
+			/* NLA Control Curve - Basically the same as normal F-Curves, except we need to set some stuff differently */
+			ANIMCHANNEL_NEW_CHANNEL_FULL(fcu, ANIMTYPE_NLACURVE, owner_id, {
+				ale->owner = owner; /* strip */
+				ale->adt = NULL;    /* to prevent time mapping from causing problems */
+			});
+		}
+		else {
+			/* Normal FCurve */
+			ANIMCHANNEL_NEW_CHANNEL(fcu, ANIMTYPE_FCURVE, owner_id);
+		}
 	}
 	
 	/* return the number of items added to the list */
@@ -1279,10 +1295,10 @@ static size_t animfilter_act_group(bAnimContext *ac, ListBase *anim_data, bDopeS
 				/* group must be editable for its children to be editable (if we care about this) */
 				if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_AGRP(agrp)) {
 					/* get first F-Curve which can be used here */
-					FCurve *first_fcu = animfilter_fcurve_next(ads, agrp->channels.first, agrp, filter_mode, owner_id);
+					FCurve *first_fcu = animfilter_fcurve_next(ads, agrp->channels.first, ANIMTYPE_FCURVE, filter_mode, agrp, owner_id);
 					
 					/* filter list, starting from this F-Curve */
-					tmp_items += animfilter_fcurves(&tmp_data, ads, first_fcu, agrp, filter_mode, owner_id);
+					tmp_items += animfilter_fcurves(&tmp_data, ads, first_fcu, ANIMTYPE_FCURVE, filter_mode, agrp, owner_id);
 				}
 			}
 		}
@@ -1338,7 +1354,7 @@ static size_t animfilter_action(bAnimContext *ac, ListBase *anim_data, bDopeShee
 	/* un-grouped F-Curves (only if we're not only considering those channels in the active group) */
 	if (!(filter_mode & ANIMFILTER_ACTGROUPED)) {
 		FCurve *firstfcu = (lastchan) ? (lastchan->next) : (act->curves.first);
-		items += animfilter_fcurves(anim_data, ads, firstfcu, NULL, filter_mode, owner_id);
+		items += animfilter_fcurves(anim_data, ads, firstfcu, ANIMTYPE_FCURVE, filter_mode, NULL, owner_id);
 	}
 	
 	/* return the number of items added to the list */
@@ -1460,36 +1476,8 @@ static size_t animfilter_nla_controls(ListBase *anim_data, bDopeSheet *ads, Anim
 		/* for now, we only go one level deep - so controls on grouped FCurves are not handled */
 		for (nlt = adt->nla_tracks.first; nlt; nlt = nlt->next) {
 			for (strip = nlt->strips.first; strip; strip = strip->next) {
-				ListBase strip_curves = {NULL, NULL};
-				size_t strip_items = 0;
-				
-				/* create the raw items */
-				strip_items += animfilter_fcurves(&strip_curves, ads, strip->fcurves.first, NULL, filter_mode, owner_id);
-				
-				/* change their types and add extra data
-				 * - There is no point making a separate copy of animfilter_fcurves for this now/yet,
-				 *   unless we later get per-element control curves for other stuff too
-				 */
-				if (strip_items) {
-					bAnimListElem *ale, *ale_n = NULL;
-					
-					for (ale = strip_curves.first; ale; ale = ale_n) {
-						ale_n = ale->next;
-						
-						/* change the type to being a FCurve for editing NLA strip controls */
-						BLI_assert(ale->type == ANIMTYPE_FCURVE);
-						
-						ale->type = ANIMTYPE_NLACURVE;
-						ale->owner = strip;
-						
-						ale->adt  = NULL; /* XXX: This way, there are no problems with time mapping errors */
-					}
-				}
-				
-				/* add strip curves to the set of channels inside the group being collected */
-				BLI_movelisttolist(&tmp_data, &strip_curves);
-				BLI_assert(BLI_listbase_is_empty(&strip_curves));
-				tmp_items += strip_items;
+				/* pass strip as the "owner", so that the name lookups (used while filtering) will resolve */
+				tmp_items += animfilter_fcurves(&tmp_data, ads, strip->fcurves.first, ANIMTYPE_NLACURVE, filter_mode, strip, owner_id);
 			}
 		}
 	}
@@ -1540,7 +1528,7 @@ static size_t animfilter_block_data(bAnimContext *ac, ListBase *anim_data, bDope
 				items += animfilter_nla(ac, anim_data, ads, adt, filter_mode, id);
 			},
 			{ /* Drivers */
-				items += animfilter_fcurves(anim_data, ads, adt->drivers.first, NULL, filter_mode, id);
+				items += animfilter_fcurves(anim_data, ads, adt->drivers.first, ANIMTYPE_FCURVE, filter_mode, NULL, id);
 			},
 			{ /* NLA Control Keyframes */
 				items += animfilter_nla_controls(anim_data, ads, adt, filter_mode, id);
