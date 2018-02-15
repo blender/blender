@@ -23,7 +23,7 @@ from bpy.types import Operator
 from mathutils import Vector
 
 
-def GlobalBB_LQ(bb_world):
+def worldspace_bounds_from_object_bounds(bb_world):
 
     # Initialize the variables with the 8th vertex
     left, right, front, back, down, up = (
@@ -65,7 +65,7 @@ def GlobalBB_LQ(bb_world):
     return (Vector((left, front, up)), Vector((right, back, down)))
 
 
-def GlobalBB_HQ(scene, obj):
+def worldspace_bounds_from_object_data(scene, obj):
 
     matrix_world = obj.matrix_world.copy()
 
@@ -74,20 +74,20 @@ def GlobalBB_HQ(scene, obj):
     me = obj.to_mesh(scene=scene, apply_modifiers=True, settings='PREVIEW')
     verts = me.vertices
 
-    val = matrix_world * verts[-1].co
+    val = matrix_world * (verts[-1].co if verts else Vector((0.0, 0.0, 0.0)))
 
-    left, right, front, back, down, up = (val[0],
-                                          val[0],
-                                          val[1],
-                                          val[1],
-                                          val[2],
-                                          val[2],
-                                          )
+    left, right, front, back, down, up = (
+        val[0],
+        val[0],
+        val[1],
+        val[1],
+        val[2],
+        val[2],
+    )
 
     # Test against all other verts
-    for i in range(len(verts) - 1):
-
-        vco = matrix_world * verts[i].co
+    for v in verts:
+        vco = matrix_world * v.co
 
         # X Range
         val = vco[0]
@@ -154,9 +154,9 @@ def align_objects(context,
     for obj, bb_world in objects:
 
         if bb_quality and obj.type == 'MESH':
-            GBB = GlobalBB_HQ(scene, obj)
+            GBB = worldspace_bounds_from_object_data(scene, obj)
         else:
-            GBB = GlobalBB_LQ(bb_world)
+            GBB = worldspace_bounds_from_object_bounds(bb_world)
 
         Left_Front_Up = GBB[0]
         Right_Back_Down = GBB[1]
@@ -218,9 +218,9 @@ def align_objects(context,
         bb_world = [matrix_world * Vector(v[:]) for v in obj.bound_box]
 
         if bb_quality and obj.type == 'MESH':
-            GBB = GlobalBB_HQ(scene, obj)
+            GBB = worldspace_bounds_from_object_data(scene, obj)
         else:
-            GBB = GlobalBB_LQ(bb_world)
+            GBB = worldspace_bounds_from_object_bounds(bb_world)
 
         Left_Front_Up = GBB[0]
         Right_Back_Down = GBB[1]
