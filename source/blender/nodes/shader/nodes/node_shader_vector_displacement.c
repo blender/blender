@@ -48,7 +48,7 @@ static void node_shader_init_vector_displacement(bNodeTree *UNUSED(ntree), bNode
 
 static int gpu_shader_vector_displacement(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	if(node->custom1 == SHD_SPACE_TANGENT) {
+	if (node->custom1 == SHD_SPACE_TANGENT) {
 		return GPU_stack_link(mat,
 		                      node,
 		                      "node_vector_displacement_tangent",
@@ -59,7 +59,7 @@ static int gpu_shader_vector_displacement(GPUMaterial *mat, bNode *node, bNodeEx
 		                      GPU_builtin(GPU_OBJECT_MATRIX),
 		                      GPU_builtin(GPU_VIEW_MATRIX));
 	}
-	else if(node->custom1 == SHD_SPACE_OBJECT) {
+	else if (node->custom1 == SHD_SPACE_OBJECT) {
 		return GPU_stack_link(mat, node, "node_vector_displacement_object", in, out, GPU_builtin(GPU_OBJECT_MATRIX));
 	}
 	else {
