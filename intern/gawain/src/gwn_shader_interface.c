@@ -222,6 +222,13 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 
 		glGetActiveAttrib(program, i, remaining_buffer, &name_len, &input->size, &input->gl_type, name);
 
+		// remove "[0]" from array name
+		if (name[name_len-1] == ']')
+			{
+			name[name_len-3] = '\0';
+			name_len -= 3;
+			}
+
 		// TODO: reject DOUBLE gl_types
 
 		input->location = glGetAttribLocation(program, name);
