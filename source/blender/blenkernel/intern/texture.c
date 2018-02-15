@@ -412,6 +412,7 @@ void BKE_texture_mtex_default(MTex *mtex)
 	mtex->kinkfac = 1.0f;
 	mtex->kinkampfac = 1.0f;
 	mtex->roughfac = 1.0f;
+	mtex->twistfac = 1.0f;
 	mtex->padensfac = 1.0f;
 	mtex->lifefac = 1.0f;
 	mtex->sizefac = 1.0f;

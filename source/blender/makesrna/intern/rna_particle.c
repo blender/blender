@@ -953,6 +953,19 @@ static void rna_ParticleSettings_use_roughness_curve_update(Main *bmain, Scene *
 	rna_Particle_redo_child(bmain, scene, ptr);
 }
 
+static void rna_ParticleSettings_use_twist_curve_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	ParticleSettings *part = ptr->data;
+
+	if (part->child_flag & PART_CHILD_USE_TWIST_CURVE) {
+		if (!part->twistcurve) {
+			BKE_particlesettings_twist_curve_init(part);
+		}
+	}
+
+	rna_Particle_redo_child(bmain, scene, ptr);
+}
+
 static void rna_ParticleSystem_name_set(PointerRNA *ptr, const char *value)
 {
 	Object *ob = ptr->id.data;
@@ -1309,6 +1322,7 @@ static void rna_ParticleVGroup_name_get_8(PointerRNA *ptr, char *value) { psys_v
 static void rna_ParticleVGroup_name_get_9(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 9); }
 static void rna_ParticleVGroup_name_get_10(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 10); }
 static void rna_ParticleVGroup_name_get_11(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 11); }
+static void rna_ParticleVGroup_name_get_12(PointerRNA *ptr, char *value) { psys_vg_name_get__internal(ptr, value, 12); }
 
 static int rna_ParticleVGroup_name_len_0(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 0); }
 static int rna_ParticleVGroup_name_len_1(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 1); }
@@ -1322,6 +1336,7 @@ static int rna_ParticleVGroup_name_len_8(PointerRNA *ptr) { return psys_vg_name_
 static int rna_ParticleVGroup_name_len_9(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 9); }
 static int rna_ParticleVGroup_name_len_10(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 10); }
 static int rna_ParticleVGroup_name_len_11(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 11); }
+static int rna_ParticleVGroup_name_len_12(PointerRNA *ptr) { return psys_vg_name_len__internal(ptr, 12); }
 
 static void rna_ParticleVGroup_name_set_0(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 0); }
 static void rna_ParticleVGroup_name_set_1(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 1); }
@@ -1335,6 +1350,7 @@ static void rna_ParticleVGroup_name_set_8(PointerRNA *ptr, const char *value) { 
 static void rna_ParticleVGroup_name_set_9(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 9); }
 static void rna_ParticleVGroup_name_set_10(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 10); }
 static void rna_ParticleVGroup_name_set_11(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 11); }
+static void rna_ParticleVGroup_name_set_12(PointerRNA *ptr, const char *value) { psys_vg_name_set__internal(ptr, value, 12); }
 
 
 #else
@@ -1887,6 +1903,10 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Length", "Affect the child hair length");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
+	prop = RNA_def_property(srna, "use_map_twist", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mapto", PAMAP_TWIST);
+	RNA_def_property_ui_text(prop, "Twist", "Affect the child twist");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* influence factors */
 	prop = RNA_def_property(srna, "time_factor", PROP_FLOAT, PROP_NONE);
@@ -1967,6 +1987,12 @@ static void rna_def_particle_settings_mtex(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "roughfac");
 	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
 	RNA_def_property_ui_text(prop, "Rough Factor", "Amount texture affects child roughness");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "twist_factor", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "twistfac");
+	RNA_def_property_ui_range(prop, 0, 1, 10, 3);
+	RNA_def_property_ui_text(prop, "Twist Factor", "Amount texture affects child twist");
 	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 }
 
@@ -3174,6 +3200,25 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "FieldSettings");
 	RNA_def_property_pointer_funcs(prop, "rna_Particle_field2_get", NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Force Field 2", "");
+
+	/* twist */
+	prop = RNA_def_property(srna, "twist", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_range(prop, -100000.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, -10.0f, 10.0f, 0.1, 3);
+	RNA_def_property_ui_text(prop, "Twist", "Number of turns around parent allong the strand");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "use_twist_curve", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "child_flag", PART_CHILD_USE_TWIST_CURVE);
+	RNA_def_property_ui_text(prop, "Use Twist Curve", "Use a curve to define twist");
+	RNA_def_property_update(prop, 0, "rna_ParticleSettings_use_twist_curve_update");
+
+	prop = RNA_def_property(srna, "twist_curve", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "twistcurve");
+	RNA_def_property_struct_type(prop, "CurveMapping");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Twist Curve", "Curve defining twist");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 }
 
 static void rna_def_particle_target(BlenderRNA *brna)
@@ -3506,6 +3551,18 @@ static void rna_def_particle_system(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_EFFECTOR));
 	RNA_def_property_ui_text(prop, "Vertex Group Field Negate", "Negate the effect of the field vertex group");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");
+
+	prop = RNA_def_property(srna, "vertex_group_twist", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_ParticleVGroup_name_get_12", "rna_ParticleVGroup_name_len_12",
+	                              "rna_ParticleVGroup_name_set_12");
+	RNA_def_property_ui_text(prop, "Vertex Group Twist", "Vertex group to control twist");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
+
+	prop = RNA_def_property(srna, "invert_vertex_group_twist", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "vg_neg", (1 << PSYS_VG_TWIST));
+	RNA_def_property_ui_text(prop, "Vertex Group Twist Negate",
+	                         "Negate the effect of the twist vertex group");
+	RNA_def_property_update(prop, 0, "rna_Particle_redo_child");
 
 	/* pointcache */
 	prop = RNA_def_property(srna, "point_cache", PROP_POINTER, PROP_NONE);

@@ -499,6 +499,8 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
 		MEM_freeN(ctx->vg_rough2);
 	if (ctx->vg_roughe)
 		MEM_freeN(ctx->vg_roughe);
+	if (ctx->vg_twist)
+		MEM_freeN(ctx->vg_twist);
 
 	if (ctx->sim.psys->lattice_deform_data) {
 		end_latt_deform(ctx->sim.psys->lattice_deform_data);
@@ -520,6 +522,9 @@ void psys_thread_context_free(ParticleThreadContext *ctx)
 	}
 	if (ctx->roughcurve != NULL) {
 		curvemapping_free(ctx->roughcurve);
+	}
+	if (ctx->twistcurve != NULL) {
+		curvemapping_free(ctx->twistcurve);
 	}
 }
 

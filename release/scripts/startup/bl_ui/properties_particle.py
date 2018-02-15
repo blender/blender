@@ -1197,6 +1197,12 @@ class PARTICLE_PT_children(ParticleButtonsPanel, Panel):
         col.label(text="Effects:")
 
         sub = col.column(align=True)
+        if part.child_type == 'SIMPLE':
+            sub.prop(part, "twist")
+            sub.prop(part, "use_twist_curve")
+            if part.use_twist_curve:
+                sub.template_curve_mapping(part, "twist_curve")
+
         sub.prop(part, "use_clump_curve")
         if part.use_clump_curve:
             sub.template_curve_mapping(part, "clump_curve")
@@ -1383,6 +1389,10 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
         row = col.row(align=True)
         row.prop_search(psys, "vertex_group_roughness_end", ob, "vertex_groups", text="Roughness End")
         row.prop(psys, "invert_vertex_group_roughness_end", text="", toggle=True, icon='ARROW_LEFTRIGHT')
+
+        row = col.row(align=True)
+        row.prop_search(psys, "vertex_group_twist", ob, "vertex_groups", text="Twist")
+        row.prop(psys, "invert_vertex_group_twist", text="", toggle=True, icon='ARROW_LEFTRIGHT')
 
         # Commented out vertex groups don't work and are still waiting for better implementation
         # row = layout.row()

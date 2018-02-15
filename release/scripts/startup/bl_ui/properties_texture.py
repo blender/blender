@@ -1173,6 +1173,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
             col = split.column()
             factor_but(col, "use_map_length", "length_factor", "Length")
             factor_but(col, "use_map_clump", "clump_factor", "Clump")
+            factor_but(col, "use_map_twist", "twist_factor", "Twist")
 
             col = split.column()
             factor_but(col, "use_map_kink_amp", "kink_amp_factor", "Kink Amplitude")
