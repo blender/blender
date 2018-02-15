@@ -259,7 +259,7 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 		shader_input_to_bucket(input, shaderface->ubo_buckets);
 
 #if DEBUG_SHADER_INTERFACE
-		printf("attrib[%u] '%s' at location %d\n", i, name, input->location);
+		printf("ubo '%s' at location %d\n", name, input->location);
 #endif
 		}
 
