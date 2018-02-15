@@ -837,9 +837,10 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		/* Visibility bias */
 		egrid->visibility_bias = 0.05f * probe->vis_bias;
 		egrid->visibility_bleed = probe->vis_bleedbias;
-		egrid->visibility_range = max_ff(max_ff(len_v3(egrid->increment_x),
-		                                        len_v3(egrid->increment_y)),
-		                                        len_v3(egrid->increment_z)) + 1.0f;
+		egrid->visibility_range = (
+		        sqrtf(max_fff(len_squared_v3(egrid->increment_x),
+		                      len_squared_v3(egrid->increment_y),
+		                      len_squared_v3(egrid->increment_z))) + 1.0f);
 
 		/* Debug Display */
 		if (DRW_state_draw_support() &&
