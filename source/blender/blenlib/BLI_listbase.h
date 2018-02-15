@@ -103,7 +103,8 @@ struct LinkData *BLI_genericNodeN(void *data);
  *
  * \code{.c}
  *
- * LISTBASE_CIRCULAR_FORWARD_BEGIN (listbase, item, item_init) {
+ * LISTBASE_CIRCULAR_FORWARD_BEGIN(listbase, item, item_init)
+ * {
  *     ...operate on marker...
  * }
  * LISTBASE_CIRCULAR_FORWARD_END (listbase, item, item_init);
