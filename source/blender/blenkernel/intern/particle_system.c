@@ -2903,7 +2903,9 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
+#if 0
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
+#endif
 	int distr=0, alloc=0, skip=0;
 
 	if ((psys->part->childtype && psys->totchild != psys_get_tot_child(sim->scene, psys)) || psys->recalc&PSYS_RECALC_RESET)

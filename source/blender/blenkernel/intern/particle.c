@@ -2581,7 +2581,9 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
 	PARTICLE_PSMD;
+#if 0
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
+#endif
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey *ca, **cache;
