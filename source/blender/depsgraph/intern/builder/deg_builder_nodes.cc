@@ -305,7 +305,7 @@ void DepsgraphNodeBuilder::build_group(Base *base, Group *group)
 	}
 	group_id->tag |= LIB_TAG_DOIT;
 
-	BLI_LISTBASE_FOREACH (GroupObject *, go, &group->gobject) {
+	LISTBASE_FOREACH (GroupObject *, go, &group->gobject) {
 		build_object(base, go->ob);
 	}
 }
@@ -524,7 +524,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 		}
 
 		/* drivers */
-		BLI_LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+		LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
 			/* create driver */
 			build_driver(id, fcu);
 		}
@@ -630,7 +630,7 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		BLI_LISTBASE_FOREACH (GroupObject *, go, &rbw->group->gobject) {
+		LISTBASE_FOREACH (GroupObject *, go, &rbw->group->gobject) {
 			Object *object = go->ob;
 
 			if (!object || (object->type != OB_MESH))
@@ -671,7 +671,7 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 	                                 object),
 	                   DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
 	/* Build all particle systems. */
-	BLI_LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		ParticleSettings *part = psys->part;
 		/* Particle settings. */
 		// XXX: what if this is used more than once!
@@ -766,7 +766,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 	// TODO: "Done" operation
 
 	/* Cloth modifier. */
-	BLI_LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+	LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
 		if (md->type == eModifierType_Cloth) {
 			build_cloth(object);
 		}
@@ -970,7 +970,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 	op_node->set_as_exit();
 
 	/* nodetree's nodes... */
-	BLI_LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
+	LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
 		if (id == NULL) {
 			continue;

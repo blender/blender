@@ -193,7 +193,7 @@ static bool particle_system_depends_on_time(ParticleSystem *psys)
 
 static bool object_particles_depends_on_time(Object *object)
 {
-	BLI_LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		if (particle_system_depends_on_time(psys)) {
 			return true;
 		}
@@ -349,7 +349,7 @@ void DepsgraphRelationBuilder::add_forcefield_relations(
 {
 	ListBase *effectors = pdInitEffectors(scene, object, psys, eff, false);
 	if (effectors != NULL) {
-		BLI_LISTBASE_FOREACH(EffectorCache *, eff, effectors) {
+		LISTBASE_FOREACH(EffectorCache *, eff, effectors) {
 			if (eff->ob != object) {
 				ComponentKey eff_key(&eff->ob->id, DEG_NODE_TYPE_TRANSFORM);
 				add_relation(eff_key, key, name);
@@ -429,7 +429,7 @@ void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 	OperationKey object_local_transform_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
-	BLI_LISTBASE_FOREACH (GroupObject *, go, &group->gobject) {
+	LISTBASE_FOREACH (GroupObject *, go, &group->gobject) {
 		if (!group_done) {
 			build_object(go->ob);
 		}
@@ -755,7 +755,7 @@ void DepsgraphRelationBuilder::build_constraints(ID *id,
 		else if (cti->get_constraint_targets) {
 			ListBase targets = {NULL, NULL};
 			cti->get_constraint_targets(con, &targets);
-			BLI_LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
+			LISTBASE_FOREACH (bConstraintTarget *, ct, &targets) {
 				if (ct->tar == NULL) {
 					continue;
 				}
@@ -932,7 +932,7 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	                              operation_from,
 	                              &adt->action->curves);
 	}
-	BLI_LISTBASE_FOREACH(NlaTrack *, nlt, &adt->nla_tracks) {
+	LISTBASE_FOREACH(NlaTrack *, nlt, &adt->nla_tracks) {
 		build_animdata_nlastrip_targets(id, adt_key,
 		                                operation_from,
 		                                &nlt->strips);
@@ -947,7 +947,7 @@ void DepsgraphRelationBuilder::build_animdata_curves_targets(
 	/* Iterate over all curves and build relations. */
 	PointerRNA id_ptr;
 	RNA_id_pointer_create(id, &id_ptr);
-	BLI_LISTBASE_FOREACH(FCurve *, fcu, curves) {
+	LISTBASE_FOREACH(FCurve *, fcu, curves) {
 		PointerRNA ptr;
 		PropertyRNA *prop;
 		int index;
@@ -983,7 +983,7 @@ void DepsgraphRelationBuilder::build_animdata_nlastrip_targets(
         OperationDepsNode *operation_from,
         ListBase *strips)
 {
-	BLI_LISTBASE_FOREACH(NlaStrip *, strip, strips) {
+	LISTBASE_FOREACH(NlaStrip *, strip, strips) {
 		if (strip->act != NULL) {
 			build_animdata_curves_targets(id, adt_key,
 			                              operation_from,
@@ -1004,7 +1004,7 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 		return;
 	}
 	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
-	BLI_LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
+	LISTBASE_FOREACH (FCurve *, fcu, &adt->drivers) {
 		OperationKey driver_key(id,
 		                        DEG_NODE_TYPE_PARAMETERS,
 		                        DEG_OPCODE_DRIVER,
@@ -1028,7 +1028,7 @@ void DepsgraphRelationBuilder::build_animdata_drivers(ID *id)
 		 */
 		if (fcu->array_index > 0) {
 			FCurve *fcu_prev = NULL;
-			BLI_LISTBASE_FOREACH (FCurve *, fcu_candidate, &adt->drivers) {
+			LISTBASE_FOREACH (FCurve *, fcu_candidate, &adt->drivers) {
 				/* Writing to different RNA paths is  */
 				const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
 				if (!STREQ(fcu_candidate->rna_path, rna_path)) {
@@ -1158,7 +1158,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 	const char *rna_path = fcu->rna_path ? fcu->rna_path : "";
 	const RNAPathKey self_key(id, rna_path);
 
-	BLI_LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
+	LISTBASE_FOREACH (DriverVar *, dvar, &driver->variables) {
 		/* Only used targets. */
 		DRIVER_TARGETS_USED_LOOPER(dvar)
 		{
@@ -1273,7 +1273,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		BLI_LISTBASE_FOREACH (GroupObject *, go, &rbw->group->gobject) {
+		LISTBASE_FOREACH (GroupObject *, go, &rbw->group->gobject) {
 			Object *object = go->ob;
 			if (object == NULL || object->type != OB_MESH) {
 				continue;
@@ -1327,7 +1327,7 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* constraints */
 	if (rbw->constraints) {
-		BLI_LISTBASE_FOREACH (GroupObject *, go, &rbw->constraints->gobject) {
+		LISTBASE_FOREACH (GroupObject *, go, &rbw->constraints->gobject) {
 			Object *object = go->ob;
 			if (object == NULL || !object->rigidbody_constraint) {
 				continue;
@@ -1363,7 +1363,7 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 	                           DEG_OPCODE_PARTICLE_SYSTEM_EVAL_INIT);
 
 	/* Particle systems. */
-	BLI_LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
+	LISTBASE_FOREACH (ParticleSystem *, psys, &object->particlesystem) {
 		ParticleSettings *part = psys->part;
 		/* Animation of particle settings, */
 		build_animdata(&part->id);
@@ -1409,8 +1409,8 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 		                         "Particle Field");
 		/* Boids. */
 		if (part->boids) {
-			BLI_LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
-				BLI_LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
+			LISTBASE_FOREACH (BoidState *, state, &part->boids->states) {
+				LISTBASE_FOREACH (BoidRule *, rule, &state->rules) {
 					Object *ruleob = NULL;
 					if (rule->type == eBoidRuleType_Avoid) {
 						ruleob = ((BoidRuleGoalAvoid *)rule)->ob;
@@ -1441,7 +1441,7 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
 					build_group(NULL, part->dup_group);
-					BLI_LISTBASE_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
+					LISTBASE_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
 						build_particles_visualization_object(object,
 						                                     psys,
 						                                     go->ob);
@@ -1563,7 +1563,7 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 		                                 DEG_NODE_TYPE_GEOMETRY,
 		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 
-		BLI_LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
+		LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
 			if (mti->updateDepsgraph) {
 				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
@@ -1756,7 +1756,7 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	                            DEG_OPCODE_PARAMETERS_EVAL);
 
 	/* nodetree's nodes... */
-	BLI_LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
+	LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
 		if (id == NULL) {
 			continue;

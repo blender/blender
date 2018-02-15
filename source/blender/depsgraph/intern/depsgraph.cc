@@ -155,7 +155,7 @@ static bool pointer_to_component_node_criteria(
 			return true;
 		}
 		else if (object->pose != NULL) {
-			BLI_LISTBASE_FOREACH(bPoseChannel *, pchan, &object->pose->chanbase) {
+			LISTBASE_FOREACH(bPoseChannel *, pchan, &object->pose->chanbase) {
 				if (BLI_findindex(&pchan->constraints, con) != -1) {
 					/* bone transforms */
 					*type = DEG_NODE_TYPE_BONE;

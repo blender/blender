@@ -78,7 +78,7 @@ void DepsgraphNodeBuilder::build_scene(Scene *scene)
 	/* Setup currently building context. */
 	scene_ = scene;
 	/* scene objects */
-	BLI_LISTBASE_FOREACH (Base *, base, &scene->base) {
+	LISTBASE_FOREACH (Base *, base, &scene->base) {
 		Object *object = base->object;
 		build_object(base, object);
 	}
@@ -103,15 +103,15 @@ void DepsgraphNodeBuilder::build_scene(Scene *scene)
 		build_gpencil(scene->gpd);
 	}
 	/* Cache file. */
-	BLI_LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
+	LISTBASE_FOREACH (CacheFile *, cachefile, &bmain_->cachefiles) {
 		build_cachefile(cachefile);
 	}
 	/* Masks. */
-	BLI_LISTBASE_FOREACH (Mask *, mask, &bmain_->mask) {
+	LISTBASE_FOREACH (Mask *, mask, &bmain_->mask) {
 		build_mask(mask);
 	}
 	/* Movie clips. */
-	BLI_LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
+	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
 	/* Parameters evaluation for scene relations mainly. */
