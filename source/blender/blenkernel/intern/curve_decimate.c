@@ -159,7 +159,7 @@ static void curve_decimate(
 		struct Knot *k;
 
 		{
-			struct Removal *r = BLI_heap_popmin(heap);
+			struct Removal *r = BLI_heap_pop_min(heap);
 			k = &knots[r->knot_index];
 			k->heap_node = NULL;
 			k->prev->handles[1] = r->handles[0];

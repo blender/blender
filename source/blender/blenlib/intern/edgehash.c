@@ -527,7 +527,7 @@ bool BLI_edgehash_haskey(EdgeHash *eh, uint v0, uint v1)
 /**
  * Return number of keys in hash.
  */
-int BLI_edgehash_size(EdgeHash *eh)
+int BLI_edgehash_len(EdgeHash *eh)
 {
 	return (int)eh->nentries;
 }
@@ -565,7 +565,7 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 
 void BLI_edgehash_free(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
-	BLI_assert((int)eh->nentries == BLI_mempool_count(eh->epool));
+	BLI_assert((int)eh->nentries == BLI_mempool_len(eh->epool));
 
 	if (valfreefp)
 		edgehash_free_cb(eh, valfreefp);
@@ -599,7 +599,7 @@ void BLI_edgehash_flag_clear(EdgeHash *eh, uint flag)
 /**
  * Create a new EdgeHashIterator. The hash table must not be mutated
  * while the iterator is in use, and the iterator will step exactly
- * BLI_edgehash_size(eh) times before becoming done.
+ * BLI_edgehash_len(eh) times before becoming done.
  */
 EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 {
@@ -611,7 +611,7 @@ EdgeHashIterator *BLI_edgehashIterator_new(EdgeHash *eh)
 /**
  * Init an already allocated EdgeHashIterator. The hash table must not
  * be mutated while the iterator is in use, and the iterator will
- * step exactly BLI_edgehash_size(eh) times before becoming done.
+ * step exactly BLI_edgehash_len(eh) times before becoming done.
  *
  * \param ehi The EdgeHashIterator to initialize.
  * \param eh The EdgeHash to iterate over.
@@ -729,7 +729,7 @@ EdgeSet *BLI_edgeset_new(const char *info)
 	return BLI_edgeset_new_ex(info, 0);
 }
 
-int BLI_edgeset_size(EdgeSet *es)
+int BLI_edgeset_len(EdgeSet *es)
 {
 	return (int)((EdgeHash *)es)->nentries;
 }

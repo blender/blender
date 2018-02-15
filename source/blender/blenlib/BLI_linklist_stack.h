@@ -60,7 +60,7 @@
 } (void)0
 
 #define BLI_LINKSTACK_SIZE(var) \
-	BLI_mempool_count(var##_pool_)
+	BLI_mempool_len(var##_pool_)
 
 /* check for typeof() */
 #ifdef __GNUC__

@@ -53,7 +53,7 @@ void         BLI_mempool_clear_ex(BLI_mempool *pool,
                                   const int totelem_reserve) ATTR_NONNULL(1);
 void         BLI_mempool_clear(BLI_mempool *pool) ATTR_NONNULL(1);
 void         BLI_mempool_destroy(BLI_mempool *pool) ATTR_NONNULL(1);
-int          BLI_mempool_count(BLI_mempool *pool) ATTR_NONNULL(1);
+int          BLI_mempool_len(BLI_mempool *pool) ATTR_NONNULL(1);
 void        *BLI_mempool_findelem(BLI_mempool *pool, unsigned int index) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
 
 void        BLI_mempool_as_table(BLI_mempool *pool, void **data) ATTR_NONNULL(1, 2);

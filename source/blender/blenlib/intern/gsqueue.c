@@ -81,7 +81,7 @@ bool BLI_gsqueue_is_empty(GSQueue *gq)
 /**
  * Query number elements in the queue
  */
-int BLI_gsqueue_size(GSQueue *gq)
+int BLI_gsqueue_len(GSQueue *gq)
 { 
 	GSQueueElem *elem;
 	int size = 0;
@@ -162,7 +162,7 @@ void BLI_gsqueue_push(GSQueue *gq, const void *item)
  * \param item A pointer to an appropriately
  * sized structure (the size passed to BLI_gsqueue_new).
  */
-void BLI_gsqueue_pushback(GSQueue *gq, const void *item)
+void BLI_gsqueue_push_back(GSQueue *gq, const void *item)
 {
 	GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
 	memcpy(elem->data, item, gq->elem_size);

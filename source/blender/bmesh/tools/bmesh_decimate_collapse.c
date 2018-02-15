@@ -1357,7 +1357,7 @@ void BM_mesh_decimate_collapse(
 		       (BLI_heap_node_value(BLI_heap_top(eheap)) != COST_INVALID))
 		{
 			// const float value = BLI_heap_node_value(BLI_heap_top(eheap));
-			BMEdge *e = BLI_heap_popmin(eheap);
+			BMEdge *e = BLI_heap_pop_min(eheap);
 			float optimize_co[3];
 			BLI_assert(BM_elem_index_get(e) < tot_edge_orig);  /* handy to detect corruptions elsewhere */
 
@@ -1388,7 +1388,7 @@ void BM_mesh_decimate_collapse(
 			 * - edges sharing a vertex are ignored, so the pivot vertex isnt moved to one side.
 			 */
 
-			BMEdge *e = BLI_heap_popmin(eheap);
+			BMEdge *e = BLI_heap_pop_min(eheap);
 			const int e_index = BM_elem_index_get(e);
 			const int e_index_mirr = edge_symmetry_map[e_index];
 			BMEdge *e_mirr = NULL;

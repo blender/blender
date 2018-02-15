@@ -1851,7 +1851,7 @@ static int stitch_init(bContext *C, wmOperator *op)
 		}
 	}
 
-	total_edges = BLI_ghash_size(edge_hash);
+	total_edges = BLI_ghash_len(edge_hash);
 	state->edges = edges = MEM_mallocN(sizeof(*edges) * total_edges, "stitch_edges");
 
 	/* I assume any system will be able to at least allocate an iterator :p */

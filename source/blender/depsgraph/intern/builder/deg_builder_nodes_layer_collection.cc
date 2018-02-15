@@ -94,7 +94,7 @@ void DepsgraphNodeBuilder::build_layer_collections(ID *owner_id,
                                                    ListBase *layer_collections,
                                                    LayerCollectionState *state)
 {
-	BLI_LISTBASE_FOREACH (LayerCollection *, layer_collection, layer_collections) {
+	LISTBASE_FOREACH (LayerCollection *, layer_collection, layer_collections) {
 		build_layer_collection(owner_id, layer_collection, state);
 	}
 }

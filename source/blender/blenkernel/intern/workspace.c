@@ -356,22 +356,22 @@ WorkSpaceLayout *BKE_workspace_layout_iter_circular(
 	WorkSpaceLayout *iter_layout;
 
 	if (iter_backward) {
-		BLI_LISTBASE_CIRCULAR_BACKWARD_BEGIN(&workspace->layouts, iter_layout, start)
+		LISTBASE_CIRCULAR_BACKWARD_BEGIN(&workspace->layouts, iter_layout, start)
 		{
 			if (!callback(iter_layout, arg)) {
 				return iter_layout;
 			}
 		}
-		BLI_LISTBASE_CIRCULAR_BACKWARD_END(&workspace->layouts, iter_layout, start);
+		LISTBASE_CIRCULAR_BACKWARD_END(&workspace->layouts, iter_layout, start);
 	}
 	else {
-		BLI_LISTBASE_CIRCULAR_FORWARD_BEGIN(&workspace->layouts, iter_layout, start)
+		LISTBASE_CIRCULAR_FORWARD_BEGIN(&workspace->layouts, iter_layout, start)
 		{
 			if (!callback(iter_layout, arg)) {
 				return iter_layout;
 			}
 		}
-		BLI_LISTBASE_CIRCULAR_FORWARD_END(&workspace->layouts, iter_layout, start)
+		LISTBASE_CIRCULAR_FORWARD_END(&workspace->layouts, iter_layout, start)
 	}
 
 	return NULL;

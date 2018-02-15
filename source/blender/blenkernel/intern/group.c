@@ -387,7 +387,7 @@ static void group_eval_layer_collections(
         ListBase *layer_collections,
         LayerCollection *parent_layer_collection)
 {
-	BLI_LISTBASE_FOREACH (LayerCollection *, layer_collection, layer_collections) {
+	LISTBASE_FOREACH (LayerCollection *, layer_collection, layer_collections) {
 		/* Evaluate layer collection itself. */
 		BKE_layer_eval_layer_collection(eval_ctx,
 		                                layer_collection,

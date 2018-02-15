@@ -1329,7 +1329,7 @@ void BLI_task_parallel_mempool(
 	ParallelMempoolState state;
 	int i, num_threads, num_tasks;
 
-	if (BLI_mempool_count(mempool) == 0) {
+	if (BLI_mempool_len(mempool) == 0) {
 		return;
 	}
 

@@ -92,7 +92,7 @@ void DepsgraphRelationBuilder::build_layer_collections(
         ListBase *layer_collections,
         LayerCollectionState *state)
 {
-	BLI_LISTBASE_FOREACH (LayerCollection *, layer_collection, layer_collections) {
+	LISTBASE_FOREACH (LayerCollection *, layer_collection, layer_collections) {
 		/* Recurs into the layer. */
 		build_layer_collection(owner_id, layer_collection, state);
 	}

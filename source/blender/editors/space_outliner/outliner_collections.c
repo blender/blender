@@ -494,7 +494,7 @@ static int collection_objects_add_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, struct Object *, ob, selected_objects)
 	{
-		BLI_LISTBASE_FOREACH (LinkData *, link, &data.scene_collections_array) {
+		LISTBASE_FOREACH (LinkData *, link, &data.scene_collections_array) {
 			SceneCollection *scene_collection = link->data;
 			BKE_collection_object_add(
 			            &scene->id,
@@ -549,7 +549,7 @@ static int collection_objects_remove_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, struct Object *, ob, selected_objects)
 	{
-		BLI_LISTBASE_FOREACH (LinkData *, link, &data.scene_collections_array) {
+		LISTBASE_FOREACH (LinkData *, link, &data.scene_collections_array) {
 			SceneCollection *scene_collection = link->data;
 			BKE_collection_object_remove(
 			            bmain,
@@ -605,7 +605,7 @@ static int object_collection_remove_exec(bContext *C, wmOperator *UNUSED(op))
 
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_SELECTED, outliner_find_selected_objects, &data);
 
-	BLI_LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
+	LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
 		TreeElement *te = (TreeElement *)link->data;
 		Object *ob = (Object *)TREESTORE(te)->id;
 		SceneCollection *scene_collection = NULL;
@@ -683,7 +683,7 @@ static int object_add_to_new_collection_exec(bContext *C, wmOperator *op)
 	scene_collection_parent = outliner_scene_collection_from_tree_element(te_parent);
 	scene_collection_new = BKE_collection_add(owner_id, scene_collection_parent, scene_collection_parent->type, NULL);
 
-	BLI_LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
+	LISTBASE_FOREACH (LinkData *, link, &data.objects_selected_array) {
 		TreeElement *te = (TreeElement *)link->data;
 		Object *ob = (Object *)TREESTORE(te)->id;
 		BKE_collection_object_add(owner_id, scene_collection_new, ob);

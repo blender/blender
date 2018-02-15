@@ -303,7 +303,7 @@ bool BLI_heap_is_empty(const Heap *heap)
 	return (heap->size == 0);
 }
 
-uint BLI_heap_size(const Heap *heap)
+uint BLI_heap_len(const Heap *heap)
 {
 	return heap->size;
 }
@@ -320,7 +320,7 @@ HeapNode *BLI_heap_top(const Heap *heap)
 /**
  * Pop the top node off the heap and return it's pointer.
  */
-void *BLI_heap_popmin(Heap *heap)
+void *BLI_heap_pop_min(Heap *heap)
 {
 	BLI_assert(heap->size != 0);
 
@@ -348,7 +348,7 @@ void BLI_heap_remove(Heap *heap, HeapNode *node)
 		i = p;
 	}
 
-	BLI_heap_popmin(heap);
+	BLI_heap_pop_min(heap);
 }
 
 /**

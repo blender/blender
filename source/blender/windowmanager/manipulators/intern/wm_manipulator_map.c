@@ -749,7 +749,7 @@ static bool wm_manipulatormap_select_all_intern(
 	int i;
 	bool changed = false;
 
-	wm_manipulatormap_select_array_ensure_len_alloc(mmap, BLI_ghash_size(hash));
+	wm_manipulatormap_select_array_ensure_len_alloc(mmap, BLI_ghash_len(hash));
 
 	GHASH_ITER_INDEX (gh_iter, hash, i) {
 		wmManipulator *mpr_iter = BLI_ghashIterator_getValue(&gh_iter);
@@ -758,7 +758,7 @@ static bool wm_manipulatormap_select_all_intern(
 	/* highlight first manipulator */
 	wm_manipulatormap_highlight_set(mmap, C, msel->items[0], msel->items[0]->highlight_part);
 
-	BLI_assert(BLI_ghash_size(hash) == msel->len);
+	BLI_assert(BLI_ghash_len(hash) == msel->len);
 
 	BLI_ghash_free(hash, NULL, NULL);
 	return changed;

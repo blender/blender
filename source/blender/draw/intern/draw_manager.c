@@ -2546,11 +2546,11 @@ static void drw_viewport_cache_resize(void)
 	GPU_viewport_cache_release(DST.viewport);
 
 	if (DST.vmempool != NULL) {
-		BLI_mempool_clear_ex(DST.vmempool->calls, BLI_mempool_count(DST.vmempool->calls));
-		BLI_mempool_clear_ex(DST.vmempool->calls_generate, BLI_mempool_count(DST.vmempool->calls_generate));
-		BLI_mempool_clear_ex(DST.vmempool->shgroups, BLI_mempool_count(DST.vmempool->shgroups));
-		BLI_mempool_clear_ex(DST.vmempool->uniforms, BLI_mempool_count(DST.vmempool->uniforms));
-		BLI_mempool_clear_ex(DST.vmempool->passes, BLI_mempool_count(DST.vmempool->passes));
+		BLI_mempool_clear_ex(DST.vmempool->calls, BLI_mempool_len(DST.vmempool->calls));
+		BLI_mempool_clear_ex(DST.vmempool->calls_generate, BLI_mempool_len(DST.vmempool->calls_generate));
+		BLI_mempool_clear_ex(DST.vmempool->shgroups, BLI_mempool_len(DST.vmempool->shgroups));
+		BLI_mempool_clear_ex(DST.vmempool->uniforms, BLI_mempool_len(DST.vmempool->uniforms));
+		BLI_mempool_clear_ex(DST.vmempool->passes, BLI_mempool_len(DST.vmempool->passes));
 	}
 
 	DRW_instance_data_list_free_unused(DST.idatalist);

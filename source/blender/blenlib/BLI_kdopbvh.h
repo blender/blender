@@ -129,7 +129,7 @@ BVHTreeOverlap *BLI_bvhtree_overlap(
         const BVHTree *tree1, const BVHTree *tree2, unsigned int *r_overlap_tot,
         BVHTree_OverlapCallback callback, void *userdata);
 
-int   BLI_bvhtree_get_size(const BVHTree *tree);
+int   BLI_bvhtree_get_len(const BVHTree *tree);
 
 float BLI_bvhtree_get_epsilon(const BVHTree *tree);
 

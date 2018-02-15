@@ -546,7 +546,7 @@ void verifyFaces(ReebGraph *rg)
 	int total = 0;
 	ReebArc *arc = NULL;
 	for (arc = rg->arcs.first; arc; arc = arc->next) {
-		total += BLI_ghash_size(arc->faces);
+		total += BLI_ghash_len(arc->faces);
 	}
 	
 #endif
@@ -1656,7 +1656,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 		{
 			GHashIterator ghi;
 			int merging = 0;
-			int total = BLI_ghash_size(arc->faces);
+			int total = BLI_ghash_len(arc->faces);
 			float avg_angle = 0;
 			float avg_vec[3] = {0, 0, 0};
 			
@@ -1932,7 +1932,7 @@ void REEB_exportGraph(ReebGraph *rg, int count)
 		add_v3_v3v3(p, arc->tail->p, arc->head->p);
 		mul_v3_fl(p, 0.5f);
 		
-		fprintf(f, "angle %0.3f %0.3f %0.3f %0.3f %i\n", p[0], p[1], p[2], arc->angle, BLI_ghash_size(arc->faces));
+		fprintf(f, "angle %0.3f %0.3f %0.3f %0.3f %i\n", p[0], p[1], p[2], arc->angle, BLI_ghash_len(arc->faces));
 		exportNode(f, "v2", arc->tail);
 	}
 	
@@ -2678,7 +2678,7 @@ static void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EdgeInd
 		eed->f1 = 0;
 	}
 	
-	while (BLI_heap_size(edge_heap) > 0) {
+	while (BLI_heap_len(edge_heap) > 0) {
 		float current_weight;
 		
 		current_eve->f1 = 1; /* mark vertex as selected */
@@ -2695,7 +2695,7 @@ static void shortestPathsFromVert(EditMesh *em, EditVert *starting_vert, EdgeInd
 		/* Find next shortest edge with unselected verts */
 		do {
 			current_weight = BLI_heap_node_value(BLI_heap_top(edge_heap));
-			select_eed = BLI_heap_popmin(edge_heap);
+			select_eed = BLI_heap_pop_min(edge_heap);
 		} while (select_eed != NULL && select_eed->v1->f1 != 0 && select_eed->v2->f1);
 		
 		if (select_eed != NULL) {

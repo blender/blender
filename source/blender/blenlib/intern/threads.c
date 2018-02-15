@@ -773,12 +773,12 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	return work;
 }
 
-int BLI_thread_queue_size(ThreadQueue *queue)
+int BLI_thread_queue_len(ThreadQueue *queue)
 {
 	int size;
 
 	pthread_mutex_lock(&queue->mutex);
-	size = BLI_gsqueue_size(queue->queue);
+	size = BLI_gsqueue_len(queue->queue);
 	pthread_mutex_unlock(&queue->mutex);
 
 	return size;

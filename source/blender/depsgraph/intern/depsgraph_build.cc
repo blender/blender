@@ -294,8 +294,8 @@ void DEG_graph_relations_update(Depsgraph *graph,
 void DEG_relations_tag_update(Main *bmain)
 {
 	DEG_DEBUG_PRINTF("%s: Tagging relations for update.\n", __func__);
-	BLI_LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
-		BLI_LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
 			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
 			                                             view_layer,

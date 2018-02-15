@@ -1607,7 +1607,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 		int axis, sign;
 		int u, v;
 
-		vert_curr = *((int *)BLI_heap_popmin(heap));
+		vert_curr = *((int *)BLI_heap_pop_min(heap));
 		if (vert_curr == vert_dst) {
 			break;
 		}

@@ -110,7 +110,7 @@ void   BLI_ghash_clear_ex(
 void  *BLI_ghash_popkey(GHash *gh, const void *key, GHashKeyFreeFP keyfreefp) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_ghash_haskey(GHash *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 bool   BLI_ghash_pop(GHash *gh, GHashIterState *state, void **r_key, void **r_val) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
-unsigned int BLI_ghash_size(GHash *gh) ATTR_WARN_UNUSED_RESULT;
+unsigned int BLI_ghash_len(GHash *gh) ATTR_WARN_UNUSED_RESULT;
 void   BLI_ghash_flag_set(GHash *gh, unsigned int flag);
 void   BLI_ghash_flag_clear(GHash *gh, unsigned int flag);
 
@@ -261,7 +261,7 @@ GSet  *BLI_gset_new_ex(
         const unsigned int nentries_reserve) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 GSet  *BLI_gset_new(GSetHashFP hashfp, GSetCmpFP cmpfp, const char *info) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
 GSet  *BLI_gset_copy(GSet *gs, GSetKeyCopyFP keycopyfp) ATTR_MALLOC ATTR_WARN_UNUSED_RESULT;
-unsigned int BLI_gset_size(GSet *gs) ATTR_WARN_UNUSED_RESULT;
+unsigned int BLI_gset_len(GSet *gs) ATTR_WARN_UNUSED_RESULT;
 void   BLI_gset_flag_set(GSet *gs, unsigned int flag);
 void   BLI_gset_flag_clear(GSet *gs, unsigned int flag);
 void   BLI_gset_free(GSet *gs, GSetKeyFreeFP keyfreefp);
@@ -309,8 +309,8 @@ BLI_INLINE bool BLI_gsetIterator_done(GSetIterator *gsi) { return BLI_ghashItera
 
 /* For testing, debugging only */
 #ifdef GHASH_INTERNAL_API
-int BLI_ghash_buckets_size(GHash *gh);
-int BLI_gset_buckets_size(GSet *gs);
+int BLI_ghash_buckets_len(GHash *gh);
+int BLI_gset_buckets_len(GSet *gs);
 
 double BLI_ghash_calc_quality_ex(
         GHash *gh, double *r_load, double *r_variance,

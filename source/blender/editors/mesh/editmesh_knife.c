@@ -1158,7 +1158,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.line);
 		glLineWidth(1.0);
 
-		immBeginAtMost(GWN_PRIM_LINES, BLI_mempool_count(kcd->kedges) * 2);
+		immBeginAtMost(GWN_PRIM_LINES, BLI_mempool_len(kcd->kedges) * 2);
 
 		BLI_mempool_iternew(kcd->kedges, &iter);
 		for (kfe = BLI_mempool_iterstep(&iter); kfe; kfe = BLI_mempool_iterstep(&iter)) {
@@ -1179,7 +1179,7 @@ static void knifetool_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		immUniformColor3ubv(kcd->colors.point);
 		glPointSize(5.0);
 
-		immBeginAtMost(GWN_PRIM_POINTS, BLI_mempool_count(kcd->kverts));
+		immBeginAtMost(GWN_PRIM_POINTS, BLI_mempool_len(kcd->kverts));
 
 		BLI_mempool_iternew(kcd->kverts, &iter);
 		for (kfv = BLI_mempool_iterstep(&iter); kfv; kfv = BLI_mempool_iterstep(&iter)) {
@@ -2300,7 +2300,7 @@ static void knife_make_face_cuts(KnifeTool_OpData *kcd, BMFace *f, ListBase *kfe
 	/* point to knife edges we've created edges in, edge_array aligned */
 	KnifeEdge **kfe_array = BLI_array_alloca(kfe_array, edge_array_len);
 
-	BLI_assert(BLI_gset_size(kcd->edgenet.edge_visit) == 0);
+	BLI_assert(BLI_gset_len(kcd->edgenet.edge_visit) == 0);
 
 	i = 0;
 	for (ref = kfedges->first; ref; ref = ref->next) {

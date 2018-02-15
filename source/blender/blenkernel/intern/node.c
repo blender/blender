@@ -2787,7 +2787,7 @@ int BKE_node_instance_hash_haskey(bNodeInstanceHash *hash, bNodeInstanceKey key)
 
 int BKE_node_instance_hash_size(bNodeInstanceHash *hash)
 {
-	return BLI_ghash_size(hash->ghash);
+	return BLI_ghash_len(hash->ghash);
 }
 
 void BKE_node_instance_hash_clear_tags(bNodeInstanceHash *hash)

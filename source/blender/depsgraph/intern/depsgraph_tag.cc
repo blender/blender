@@ -440,8 +440,8 @@ void deg_ensure_scene_view_layer(Depsgraph *graph,
 void deg_id_tag_update(Main *bmain, ID *id, int flag)
 {
 	deg_graph_id_tag_update(bmain, NULL, id, flag);
-	BLI_LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
-		BLI_LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
 			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
 			                                             view_layer,
@@ -555,8 +555,8 @@ void DEG_graph_on_visible_update(Main *bmain, Depsgraph *depsgraph)
 
 void DEG_on_visible_update(Main *bmain, const bool UNUSED(do_time))
 {
-	BLI_LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
-		BLI_LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
+	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
+		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
 			        (Depsgraph *)BKE_scene_get_depsgraph(scene,
 			                                             view_layer,

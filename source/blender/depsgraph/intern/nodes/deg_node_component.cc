@@ -301,7 +301,7 @@ OperationDepsNode *ComponentDepsNode::get_entry_operation()
 	if (entry_operation) {
 		return entry_operation;
 	}
-	else if (operations_map != NULL && BLI_ghash_size(operations_map) == 1) {
+	else if (operations_map != NULL && BLI_ghash_len(operations_map) == 1) {
 		OperationDepsNode *op_node = NULL;
 		/* TODO(sergey): This is somewhat slow. */
 		GHASH_FOREACH_BEGIN(OperationDepsNode *, tmp, operations_map)
@@ -324,7 +324,7 @@ OperationDepsNode *ComponentDepsNode::get_exit_operation()
 	if (exit_operation) {
 		return exit_operation;
 	}
-	else if (operations_map != NULL && BLI_ghash_size(operations_map) == 1) {
+	else if (operations_map != NULL && BLI_ghash_len(operations_map) == 1) {
 		OperationDepsNode *op_node = NULL;
 		/* TODO(sergey): This is somewhat slow. */
 		GHASH_FOREACH_BEGIN(OperationDepsNode *, tmp, operations_map)
@@ -344,7 +344,7 @@ OperationDepsNode *ComponentDepsNode::get_exit_operation()
 
 void ComponentDepsNode::finalize_build(Depsgraph * /*graph*/)
 {
-	operations.reserve(BLI_ghash_size(operations_map));
+	operations.reserve(BLI_ghash_len(operations_map));
 	GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, operations_map)
 	{
 		operations.push_back(op_node);

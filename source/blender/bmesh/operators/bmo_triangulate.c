@@ -106,7 +106,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		/* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, UNPACK2(sf_verts));
 		/* sf_edge->tmp.p = e; */ /* UNUSED */
 	}
-	nors_tot = BLI_ghash_size(sf_vert_map);
+	nors_tot = BLI_ghash_len(sf_vert_map);
 	BLI_ghash_free(sf_vert_map, NULL, NULL);
 	
 

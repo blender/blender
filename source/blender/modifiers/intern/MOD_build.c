@@ -154,7 +154,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 
 			numLoops_dst += mp->totloop;
 		}
-		BLI_assert(hash_num == BLI_ghash_size(vertHash));
+		BLI_assert(hash_num == BLI_ghash_len(vertHash));
 
 		/* get the set of edges that will be in the new mesh (i.e. all edges
 		 * that have both verts in the new mesh)
@@ -187,7 +187,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 		 */
 		medge = medge_src;
 		hash_num = 0;
-		BLI_assert(hash_num == BLI_ghash_size(vertHash));
+		BLI_assert(hash_num == BLI_ghash_len(vertHash));
 		for (i = 0; i < numEdges_dst; i++) {
 			void **val_p;
 			me = medge + edgeMap[i];
@@ -201,11 +201,11 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 				hash_num++;
 			}
 		}
-		BLI_assert(hash_num == BLI_ghash_size(vertHash));
+		BLI_assert(hash_num == BLI_ghash_len(vertHash));
 
 		/* get the set of edges that will be in the new mesh */
 		for (i = 0; i < numEdges_dst; i++) {
-			j = BLI_ghash_size(edgeHash);
+			j = BLI_ghash_len(edgeHash);
 			
 			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(j),
 			                 SET_INT_IN_POINTER(edgeMap[i]));
@@ -232,8 +232,8 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 	/* now we know the number of verts, edges and faces, we can create
 	 * the mesh
 	 */
-	result = CDDM_from_template(dm, BLI_ghash_size(vertHash),
-	                            BLI_ghash_size(edgeHash), 0, numLoops_dst, numFaces_dst);
+	result = CDDM_from_template(dm, BLI_ghash_len(vertHash),
+	                            BLI_ghash_len(edgeHash), 0, numLoops_dst, numFaces_dst);
 
 	/* copy the vertices across */
 	GHASH_ITER (gh_iter, vertHash) {
@@ -250,7 +250,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 	}
 	
 	/* copy the edges across, remapping indices */
-	for (i = 0; i < BLI_ghash_size(edgeHash); i++) {
+	for (i = 0; i < BLI_ghash_len(edgeHash); i++) {
 		MEdge source;
 		MEdge *dest;
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));

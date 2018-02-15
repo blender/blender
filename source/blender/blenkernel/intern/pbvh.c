@@ -1296,7 +1296,7 @@ void BKE_pbvh_get_grid_updates(PBVH *bvh, bool clear, void ***r_gridfaces, int *
 
 	pbvh_iter_end(&iter);
 	
-	const int tot = BLI_gset_size(face_set);
+	const int tot = BLI_gset_len(face_set);
 	if (tot == 0) {
 		*r_totface = 0;
 		*r_gridfaces = NULL;
@@ -1435,8 +1435,8 @@ void BKE_pbvh_node_num_verts(
 			if (r_uniquevert) *r_uniquevert = node->uniq_verts;
 			break;
 		case PBVH_BMESH:
-			tot = BLI_gset_size(node->bm_unique_verts);
-			if (r_totvert) *r_totvert = tot + BLI_gset_size(node->bm_other_verts);
+			tot = BLI_gset_len(node->bm_unique_verts);
+			if (r_totvert) *r_totvert = tot + BLI_gset_len(node->bm_other_verts);
 			if (r_uniquevert) *r_uniquevert = tot;
 			break;
 	}

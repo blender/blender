@@ -542,7 +542,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
 		BLI_ghash_insert(gh, dg->name, NULL);
 	}
 
-	BLI_assert(BLI_ghash_size(gh) == defbase_tot);
+	BLI_assert(BLI_ghash_len(gh) == defbase_tot);
 
 	/* now loop through the armature modifiers and identify deform bones */
 	for (md = ob->modifiers.first; md; md = !md->next && step1 ? (step1 = 0), modifiers_getVirtualModifierList(ob, &virtualModifierData) : md->next) {
@@ -577,7 +577,7 @@ bool *BKE_object_defgroup_validmap_get(Object *ob, const int defbase_tot)
 		defgroup_validmap[i] = (BLI_ghash_lookup(gh, dg->name) != NULL);
 	}
 
-	BLI_assert(i == BLI_ghash_size(gh));
+	BLI_assert(i == BLI_ghash_len(gh));
 
 	BLI_ghash_free(gh, NULL, NULL);
 

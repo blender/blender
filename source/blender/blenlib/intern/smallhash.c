@@ -310,7 +310,7 @@ bool BLI_smallhash_haskey(const SmallHash *sh, uintptr_t key)
 	return (e != NULL);
 }
 
-int BLI_smallhash_count(const SmallHash *sh)
+int BLI_smallhash_len(const SmallHash *sh)
 {
 	return (int)sh->nentries;
 }

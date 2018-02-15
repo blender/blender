@@ -401,7 +401,7 @@ void BLI_polyfill_beautify(
 	}
 
 	while (BLI_heap_is_empty(eheap) == false) {
-		struct HalfEdge *e = BLI_heap_popmin(eheap);
+		struct HalfEdge *e = BLI_heap_pop_min(eheap);
 		eheap_table[e->base_index] = NULL;
 
 		polyedge_rotate(half_edges, e);

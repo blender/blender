@@ -202,7 +202,7 @@ void ED_render_engine_changed(Main *bmain)
 	update_ctx.bmain = bmain;
 	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 		update_ctx.scene = scene;
-		BLI_LISTBASE_FOREACH(ViewLayer *, view_layer, &scene->view_layers) {
+		LISTBASE_FOREACH(ViewLayer *, view_layer, &scene->view_layers) {
 			/* TDODO(sergey): Iterate over depsgraphs instead? */
 			update_ctx.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 			update_ctx.view_layer = view_layer;

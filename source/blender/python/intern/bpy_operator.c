@@ -384,7 +384,7 @@ static PyObject *pyop_dir(PyObject *UNUSED(self))
 	int i;
 
 	WM_operatortype_iter(&iter);
-	list = PyList_New(BLI_ghash_size(iter.gh));
+	list = PyList_New(BLI_ghash_len(iter.gh));
 
 	for (i = 0; !BLI_ghashIterator_done(&iter); BLI_ghashIterator_step(&iter), i++) {
 		wmOperatorType *ot = BLI_ghashIterator_getValue(&iter);

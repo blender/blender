@@ -1412,7 +1412,7 @@ void BKE_mesh_calc_edges(Mesh *mesh, bool update, const bool select)
 		}
 	}
 
-	totedge = BLI_edgehash_size(eh);
+	totedge = BLI_edgehash_len(eh);
 
 	/* write new edges into a temporary CustomData */
 	CustomData_reset(&edata);

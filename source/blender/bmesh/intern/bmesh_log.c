@@ -990,11 +990,11 @@ void BM_log_all_added(BMesh *bm, BMLog *log)
 	BMFace *f;
 
 	/* avoid unnecessary resizing on initialization */
-	if (BLI_ghash_size(log->current_entry->added_verts) == 0) {
+	if (BLI_ghash_len(log->current_entry->added_verts) == 0) {
 		BLI_ghash_reserve(log->current_entry->added_verts, (uint)bm->totvert);
 	}
 
-	if (BLI_ghash_size(log->current_entry->added_faces) == 0) {
+	if (BLI_ghash_len(log->current_entry->added_faces) == 0) {
 		BLI_ghash_reserve(log->current_entry->added_faces, (uint)bm->totface);
 	}
 

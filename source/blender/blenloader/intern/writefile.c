@@ -2926,7 +2926,7 @@ static void write_soops(WriteData *wd, SpaceOops *so)
 	if (ts) {
 		SpaceOops so_flat = *so;
 
-		int elems = BLI_mempool_count(ts);
+		int elems = BLI_mempool_len(ts);
 		/* linearize mempool to array */
 		TreeStoreElem *data = elems ? BLI_mempool_as_arrayN(ts, "TreeStoreElem") : NULL;
 

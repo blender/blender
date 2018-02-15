@@ -1470,7 +1470,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 	while (!BLI_heap_is_empty(heap)) {
 		BMFace *adj[2];
 
-		e = BLI_heap_popmin(heap);
+		e = BLI_heap_pop_min(heap);
 
 		if (BM_edge_face_pair(e, &adj[0], &adj[1])) {
 			/* If both triangles still free, and if they don't already
