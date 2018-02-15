@@ -88,9 +88,7 @@ static SceneCollection *collection_add(ID *owner_id, SceneCollection *sc_parent,
 		else {
 			const int number = BLI_listbase_count(&sc_parent->scene_collections) + 1;
 			const int digits = integer_digits_i(number);
-			const int max_len = sizeof(sc_parent->name)
-			                    - 1 /* NULL terminator */
-			                    - (1 + digits) /* " %d" */;
+			const int max_len = sizeof(sc_parent->name) - 1 /* NULL terminator */ - (1 + digits) /* " %d" */;
 			name = BLI_sprintfN("%.*s %d", max_len, sc_parent->name, number);
 		}
 	}

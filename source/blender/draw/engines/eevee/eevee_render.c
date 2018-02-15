@@ -233,7 +233,7 @@ static void eevee_render_result_normal(
 
 		/* Convert Eevee encoded normals to Blender normals. */
 		for (int i = 0; i < rr->rectx * rr->recty * 3; i += 3) {
-			if (rp->rect[i] == 0.0f && rp->rect[i+1] == 0.0f) {
+			if (rp->rect[i] == 0.0f && rp->rect[i + 1] == 0.0f) {
 				/* If normal is not correct then do not produce NANs.  */
 				continue;
 			}
@@ -245,9 +245,9 @@ static void eevee_render_result_normal(
 			float f = dot_v2v2(fenc, fenc);
 			float g = sqrtf(1.0f - f / 4.0f);
 
-			rp->rect[i+0] = fenc[0] * g;
-			rp->rect[i+1] = fenc[1] * g;
-			rp->rect[i+2] = 1.0f - f / 2.0f;
+			rp->rect[i + 0] = fenc[0] * g;
+			rp->rect[i + 1] = fenc[1] * g;
+			rp->rect[i + 2] = 1.0f - f / 2.0f;
 
 			mul_mat3_m4_v3(g_data->viewinv, &rp->rect[i]);
 		}
@@ -342,7 +342,7 @@ static void eevee_render_result_occlusion(
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rr->rectx * rr->recty * 3; i += 3) {
-			rp->rect[i] = rp->rect[i+1] = rp->rect[i+2] = min_ff(1.0f, rp->rect[i] / render_samples);
+			rp->rect[i] = rp->rect[i + 1] = rp->rect[i+2] = min_ff(1.0f, rp->rect[i] / render_samples);
 		}
 	}
 }

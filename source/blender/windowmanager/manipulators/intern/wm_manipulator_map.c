@@ -608,7 +608,7 @@ wmManipulator *wm_manipulatormap_highlight_find(
 
 			if (do_step[step]) {
 				if ((mmap->update_flag[step] & MANIPULATORMAP_IS_REFRESH_CALLBACK) &&
-					(mgroup->type->refresh != NULL))
+				    (mgroup->type->refresh != NULL))
 				{
 					mgroup->type->refresh(C, mgroup);
 					/* cleared below */

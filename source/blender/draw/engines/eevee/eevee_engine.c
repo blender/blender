@@ -190,7 +190,7 @@ static void eevee_draw_background(void *vedata)
 		double r[3];
 
 		if (DRW_state_is_image_render() ||
-			((stl->effects->enabled_effects & EFFECT_TAA) != 0))
+		    ((stl->effects->enabled_effects & EFFECT_TAA) != 0))
 		{
 			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 			EEVEE_update_noise(psl, fbl, r);
@@ -226,8 +226,8 @@ static void eevee_draw_background(void *vedata)
 		}
 
 		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
-			 (stl->effects->taa_current_sample > 1) &&
-			 !DRW_state_is_image_render())
+		    (stl->effects->taa_current_sample > 1) &&
+		    !DRW_state_is_image_render())
 		{
 			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
 			DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);

@@ -507,28 +507,30 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		psl->probe_display = DRW_pass_create("LightProbe Display", state);
 
 		DRW_shgroup_instance_format(e_data.format_probe_display_cube, {
-		    {"probe_id"      , DRW_ATTRIB_INT, 1},
+		    {"probe_id",       DRW_ATTRIB_INT, 1},
 		    {"probe_location", DRW_ATTRIB_FLOAT, 3},
-		    {"sphere_size"   , DRW_ATTRIB_FLOAT, 1},
+		    {"sphere_size",    DRW_ATTRIB_FLOAT, 1},
 		});
 
-		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_cube_display_sh,
-		                                                   psl->probe_display,
-		                                                   DRW_cache_sphere_get(),
-		                                                   e_data.format_probe_display_cube);
+		DRWShadingGroup *grp = DRW_shgroup_instance_create(
+		        e_data.probe_cube_display_sh,
+		        psl->probe_display,
+		        DRW_cache_sphere_get(),
+		        e_data.format_probe_display_cube);
 		stl->g_data->cube_display_shgrp = grp;
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
 		DRW_shgroup_instance_format(e_data.format_probe_display_planar, {
-		    {"probe_id" , DRW_ATTRIB_INT, 1},
+		    {"probe_id", DRW_ATTRIB_INT, 1},
 		    {"probe_mat", DRW_ATTRIB_FLOAT, 16},
 		});
 
-		grp = DRW_shgroup_instance_create(e_data.probe_planar_display_sh,
-		                                  psl->probe_display,
-		                                  DRW_cache_quad_get(),
-		                                  e_data.format_probe_display_planar);
+		grp = DRW_shgroup_instance_create(
+		        e_data.probe_planar_display_sh,
+		        psl->probe_display,
+		        DRW_cache_quad_get(),
+		        e_data.format_probe_display_planar);
 		stl->g_data->planar_display_shgrp = grp;
 		DRW_shgroup_uniform_buffer(grp, "probePlanars", &txl->planar_pool);
 	}
@@ -537,9 +539,10 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample", DRW_STATE_WRITE_COLOR);
 
 		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_planar_downsample_sh,
-		                                                   psl->probe_planar_downsample_ps,
-		                                                   geom, NULL);
+		DRWShadingGroup *grp = DRW_shgroup_instance_create(
+		        e_data.probe_planar_downsample_sh,
+		        psl->probe_planar_downsample_ps,
+		        geom, NULL);
 		stl->g_data->planar_downsample = grp;
 		DRW_shgroup_uniform_buffer(grp, "source", &txl->planar_pool);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
@@ -564,7 +567,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 	ped->num_cell = probe->grid_resolution_x * probe->grid_resolution_y * probe->grid_resolution_z;
 
 	if ((probe->type == LIGHTPROBE_TYPE_GRID) &&
-		((pinfo->total_irradiance_samples + ped->num_cell) >= MAX_IRRADIANCE_SAMPLES))
+	    ((pinfo->total_irradiance_samples + ped->num_cell) >= MAX_IRRADIANCE_SAMPLES))
 	{
 		printf("Too much grid samples !!!\n");
 		return;
@@ -843,9 +846,10 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
 			struct Gwn_Batch *geom = DRW_cache_sphere_get();
-			DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.probe_grid_display_sh,
-			                                                   psl->probe_display,
-			                                                   geom, NULL);
+			DRWShadingGroup *grp = DRW_shgroup_instance_create(
+			        e_data.probe_grid_display_sh,
+			        psl->probe_display,
+			        geom, NULL);
 			DRW_shgroup_set_instance_count(grp, ped->num_cell);
 			DRW_shgroup_uniform_int(grp, "offset", &egrid->offset, 1);
 			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", egrid->resolution, 1);

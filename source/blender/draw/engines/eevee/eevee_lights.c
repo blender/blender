@@ -343,7 +343,7 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 					/* For light update tracking. */
 					if ((prev_cube_sh_id >= 0) &&
-						(prev_cube_sh_id < linfo->shcaster_backbuffer->count))
+					    (prev_cube_sh_id < linfo->shcaster_backbuffer->count))
 					{
 						linfo->new_shadow_id[prev_cube_sh_id] = linfo->cpu_cube_ct;
 					}

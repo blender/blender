@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/wm_message_bus.h
+/** \file blender/windowmanager/message_bus/wm_message_bus.h
  *  \ingroup wm
  */
 

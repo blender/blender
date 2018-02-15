@@ -132,7 +132,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 
 	/* Force normal buffer creation. */
 	if (DRW_state_is_image_render() &&
-		(view_layer->passflag & SCE_PASS_NORMAL) != 0)
+	    (view_layer->passflag & SCE_PASS_NORMAL) != 0)
 	{
 		effects->enabled_effects |= EFFECT_NORMAL_BUFFER;
 	}

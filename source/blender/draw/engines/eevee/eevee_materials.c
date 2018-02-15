@@ -594,7 +594,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 	}
 
 	if (!DRW_state_is_image_render() &&
-		((stl->effects->enabled_effects & EFFECT_TAA) == 0))
+	    ((stl->effects->enabled_effects & EFFECT_TAA) == 0))
 	{
 		e_data.alpha_hash_offset = 0.0f;
 	}

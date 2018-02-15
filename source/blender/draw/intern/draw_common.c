@@ -174,7 +174,7 @@ static struct {
 void DRW_globals_free(void)
 {
 	struct Gwn_VertFormat **format = &g_formats.instance_screenspace;
-	for (int i = 0; i < sizeof(g_formats) / sizeof(void*); ++i, ++format) {
+	for (int i = 0; i < sizeof(g_formats) / sizeof(void *); ++i, ++format) {
 		MEM_SAFE_FREE(*format);
 	}
 }

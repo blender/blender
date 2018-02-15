@@ -569,9 +569,9 @@ struct LayerCollection *BKE_layer_collection_duplicate(struct ID *owner_id, stru
 			                               layer_collection);
 			if (layer_collections_parent != NULL) {
 				layer_collection_new = BLI_findptr(
-										   layer_collections_parent,
-										   scene_collection_new,
-										   offsetof(LayerCollection, scene_collection));
+				        layer_collections_parent,
+				        scene_collection_new,
+				        offsetof(LayerCollection, scene_collection));
 				break;
 			}
 		}

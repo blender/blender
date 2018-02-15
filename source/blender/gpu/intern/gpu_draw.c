@@ -2097,7 +2097,7 @@ int GPU_scene_object_lights(ViewLayer *view_layer, float viewmat[4][4], int orth
 	return count;
 }
 
-static void gpu_disable_multisample()
+static void gpu_disable_multisample(void)
 {
 #ifdef __linux__
 	/* changing multisample from the default (enabled) causes problems on some

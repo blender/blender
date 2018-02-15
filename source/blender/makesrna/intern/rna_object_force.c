@@ -711,7 +711,7 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 
 	/* add/remove modifier as needed */
 	if (ob->pd->deflect && !md)
-		ED_object_modifier_add(NULL, bmain, scene, ob, bmain->eval_ctx->object_mode , NULL, eModifierType_Collision);
+		ED_object_modifier_add(NULL, bmain, scene, ob, bmain->eval_ctx->object_mode, NULL, eModifierType_Collision);
 	else if (!ob->pd->deflect && md)
 		ED_object_modifier_remove(NULL, bmain, ob, md);
 
