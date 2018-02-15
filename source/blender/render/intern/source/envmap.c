@@ -70,7 +70,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 	int dx, part;
 	
 	/* after lock we test cube[1], if set the other thread has done it fine */
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_thread_lock(LOCK_IMAGE);
 	if (env->cube[1] == NULL) {
 
 		BKE_texture_envmap_free_data(env);
@@ -118,7 +118,7 @@ static void envmap_split_ima(EnvMap *env, ImBuf *ibuf)
 			}
 		}
 	}
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_thread_unlock(LOCK_IMAGE);
 }
 
 /* ------------------------------------------------------------------------- */

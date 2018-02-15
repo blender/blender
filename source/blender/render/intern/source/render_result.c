@@ -1041,7 +1041,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 	RenderPass *rpassp;
 	int offs, partx, party;
 	
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_thread_lock(LOCK_IMAGE);
 	
 	for (rlp = rrpart->layers.first; rlp; rlp = rlp->next) {
 		rl = RE_GetRenderLayer(rr, rlp->name);
@@ -1090,7 +1090,7 @@ static void save_render_result_tile(RenderResult *rr, RenderResult *rrpart, cons
 		IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, viewname, false);
 	}
 
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_thread_unlock(LOCK_IMAGE);
 }
 
 void render_result_save_empty_result_tiles(Render *re)

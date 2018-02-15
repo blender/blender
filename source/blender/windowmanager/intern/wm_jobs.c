@@ -418,8 +418,8 @@ void WM_jobs_start(wmWindowManager *wm, wmJob *wm_job)
 
 				// printf("job started: %s\n", wm_job->name);
 				
-				BLI_init_threads(&wm_job->threads, do_job_thread, 1);
-				BLI_insert_thread(&wm_job->threads, wm_job);
+				BLI_threadpool_init(&wm_job->threads, do_job_thread, 1);
+				BLI_threadpool_insert(&wm_job->threads, wm_job);
 			}
 			
 			/* restarted job has timer already */
@@ -450,7 +450,7 @@ static void wm_jobs_kill_job(wmWindowManager *wm, wmJob *wm_job)
 		wm_job->stop = true;
 
 		WM_job_main_thread_lock_release(wm_job);
-		BLI_end_threads(&wm_job->threads);
+		BLI_threadpool_end(&wm_job->threads);
 		WM_job_main_thread_lock_acquire(wm_job);
 
 		if (wm_job->endjob)
@@ -601,7 +601,7 @@ void wm_jobs_timer(const bContext *C, wmWindowManager *wm, wmTimer *wt)
 					wm_job->running = false;
 
 					WM_job_main_thread_lock_release(wm_job);
-					BLI_end_threads(&wm_job->threads);
+					BLI_threadpool_end(&wm_job->threads);
 					WM_job_main_thread_lock_acquire(wm_job);
 					
 					if (wm_job->endnote)

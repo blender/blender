@@ -832,9 +832,9 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT : NULL);
 
 			/* baking itself is threaded, cannot use test_break in threads  */
-			BLI_init_threads(&threads, do_bake_render, 1);
+			BLI_threadpool_init(&threads, do_bake_render, 1);
 			bkr.ready = 0;
-			BLI_insert_thread(&threads, &bkr);
+			BLI_threadpool_insert(&threads, &bkr);
 
 			while (bkr.ready == 0) {
 				PIL_sleep_ms(50);
@@ -845,7 +845,7 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 				if (!G.background)
 					BKE_blender_test_break();
 			}
-			BLI_end_threads(&threads);
+			BLI_threadpool_end(&threads);
 
 			if (bkr.result == BAKE_RESULT_NO_OBJECTS)
 				BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");

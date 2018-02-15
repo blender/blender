@@ -553,7 +553,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 		occ_build_8_split(tree, begin, end, offset, count);
 
 		if (depth == 1 && tree->dothreadedbuild)
-			BLI_init_threads(&threads, exec_occ_build, tree->totbuildthread);
+			BLI_threadpool_init(&threads, exec_occ_build, tree->totbuildthread);
 
 		for (b = 0; b < TOTCHILD; b++) {
 			if (count[b] == 0) {
@@ -566,7 +566,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 			}
 			else {
 				if (tree->dothreadedbuild)
-					BLI_lock_thread(LOCK_CUSTOM1);
+					BLI_thread_lock(LOCK_CUSTOM1);
 
 				child = BLI_memarena_alloc(tree->arena, sizeof(OccNode));
 				node->child[b].node = child;
@@ -576,7 +576,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 					tree->maxdepth = depth + 1;
 
 				if (tree->dothreadedbuild)
-					BLI_unlock_thread(LOCK_CUSTOM1);
+					BLI_thread_unlock(LOCK_CUSTOM1);
 
 				if (depth == 1 && tree->dothreadedbuild) {
 					othreads[totthread].tree = tree;
@@ -584,7 +584,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 					othreads[totthread].begin = offset[b];
 					othreads[totthread].end = offset[b] + count[b];
 					othreads[totthread].depth = depth + 1;
-					BLI_insert_thread(&threads, &othreads[totthread]);
+					BLI_threadpool_insert(&threads, &othreads[totthread]);
 					totthread++;
 				}
 				else
@@ -593,7 +593,7 @@ static void occ_build_recursive(OcclusionTree *tree, OccNode *node, int begin, i
 		}
 
 		if (depth == 1 && tree->dothreadedbuild)
-			BLI_end_threads(&threads);
+			BLI_threadpool_end(&threads);
 	}
 
 	/* combine area, position and sh */
@@ -1313,12 +1313,12 @@ void make_occ_tree(Render *re)
 				exec_strandsurface_sample(&othreads[0]);
 			}
 			else {
-				BLI_init_threads(&threads, exec_strandsurface_sample, totthread);
+				BLI_threadpool_init(&threads, exec_strandsurface_sample, totthread);
 
 				for (a = 0; a < totthread; a++)
-					BLI_insert_thread(&threads, &othreads[a]);
+					BLI_threadpool_insert(&threads, &othreads[a]);
 
-				BLI_end_threads(&threads);
+				BLI_threadpool_end(&threads);
 			}
 
 			for (a = 0; a < mesh->totface; a++) {

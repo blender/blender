@@ -926,7 +926,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 
 	/* cache isn't threadsafe itself and also loading of movies
 	 * can't happen from concurrent threads that's why we use lock here */
-	BLI_lock_thread(LOCK_MOVIECLIP);
+	BLI_thread_lock(LOCK_MOVIECLIP);
 
 	/* try to obtain cached postprocessed frame first */
 	if (need_postprocessed_frame(user, postprocess_flag)) {
@@ -976,7 +976,7 @@ static ImBuf *movieclip_get_postprocessed_ibuf(MovieClip *clip,
 		}
 	}
 
-	BLI_unlock_thread(LOCK_MOVIECLIP);
+	BLI_thread_unlock(LOCK_MOVIECLIP);
 
 	return ibuf;
 }
@@ -1410,13 +1410,13 @@ static void movieclip_build_proxy_ibuf(MovieClip *clip, ImBuf *ibuf, int cfra, i
 	 *       could be solved in a way that thread only prepares memory
 	 *       buffer and write to disk happens separately
 	 */
-	BLI_lock_thread(LOCK_MOVIECLIP);
+	BLI_thread_lock(LOCK_MOVIECLIP);
 
 	BLI_make_existing_file(name);
 	if (IMB_saveiff(scaleibuf, name, IB_rect) == 0)
 		perror(name);
 
-	BLI_unlock_thread(LOCK_MOVIECLIP);
+	BLI_thread_unlock(LOCK_MOVIECLIP);
 
 	IMB_freeImBuf(scaleibuf);
 }
@@ -1560,9 +1560,9 @@ ImBuf *BKE_movieclip_anim_ibuf_for_frame(MovieClip *clip, MovieClipUser *user)
 	ImBuf *ibuf = NULL;
 
 	if (clip->source == MCLIP_SRC_MOVIE) {
-		BLI_lock_thread(LOCK_MOVIECLIP);
+		BLI_thread_lock(LOCK_MOVIECLIP);
 		ibuf = movieclip_load_movie_file(clip, user, user->framenr, clip->flag);
-		BLI_unlock_thread(LOCK_MOVIECLIP);
+		BLI_thread_unlock(LOCK_MOVIECLIP);
 	}
 
 	return ibuf;
@@ -1572,9 +1572,9 @@ bool BKE_movieclip_has_cached_frame(MovieClip *clip, MovieClipUser *user)
 {
 	bool has_frame = false;
 
-	BLI_lock_thread(LOCK_MOVIECLIP);
+	BLI_thread_lock(LOCK_MOVIECLIP);
 	has_frame = has_imbuf_cache(clip, user, clip->flag);
-	BLI_unlock_thread(LOCK_MOVIECLIP);
+	BLI_thread_unlock(LOCK_MOVIECLIP);
 
 	return has_frame;
 }
@@ -1585,9 +1585,9 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip,
 {
 	bool result;
 
-	BLI_lock_thread(LOCK_MOVIECLIP);
+	BLI_thread_lock(LOCK_MOVIECLIP);
 	result = put_imbuf_cache(clip, user, ibuf, clip->flag, false);
-	BLI_unlock_thread(LOCK_MOVIECLIP);
+	BLI_thread_unlock(LOCK_MOVIECLIP);
 
 	return result;
 }

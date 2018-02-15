@@ -2176,7 +2176,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 		BLI_rcti_init(&ibuf->invalid_rect, 0, 0, 0, 0);
 	}
 
-	BLI_lock_thread(LOCK_COLORMANAGE);
+	BLI_thread_lock(LOCK_COLORMANAGE);
 
 	/* ensure color management bit fields exists */
 	if (!ibuf->display_buffer_flags) {
@@ -2194,7 +2194,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 	display_buffer = colormanage_cache_get(ibuf, &cache_view_settings, &cache_display_settings, cache_handle);
 
 	if (display_buffer) {
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_thread_unlock(LOCK_COLORMANAGE);
 		return display_buffer;
 	}
 
@@ -2205,7 +2205,7 @@ unsigned char *IMB_display_buffer_acquire(ImBuf *ibuf, const ColorManagedViewSet
 
 	colormanage_cache_put(ibuf, &cache_view_settings, &cache_display_settings, display_buffer, cache_handle);
 
-	BLI_unlock_thread(LOCK_COLORMANAGE);
+	BLI_thread_unlock(LOCK_COLORMANAGE);
 
 	return display_buffer;
 }
@@ -2244,11 +2244,11 @@ void IMB_display_buffer_transform_apply(unsigned char *display_buffer, float *li
 void IMB_display_buffer_release(void *cache_handle)
 {
 	if (cache_handle) {
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_thread_lock(LOCK_COLORMANAGE);
 
 		colormanage_cache_handle_release(cache_handle);
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_thread_unlock(LOCK_COLORMANAGE);
 	}
 }
 
@@ -2964,7 +2964,7 @@ static void imb_partial_display_buffer_update_ex(ImBuf *ibuf,
 		view_flag = 1 << (cache_view_settings.view - 1);
 		display_index = cache_display_settings.display - 1;
 
-		BLI_lock_thread(LOCK_COLORMANAGE);
+		BLI_thread_lock(LOCK_COLORMANAGE);
 
 		if ((ibuf->userflags & IB_DISPLAY_BUFFER_INVALID) == 0) {
 			display_buffer = colormanage_cache_get(ibuf,
@@ -2983,7 +2983,7 @@ static void imb_partial_display_buffer_update_ex(ImBuf *ibuf,
 		memset(ibuf->display_buffer_flags, 0, global_tot_display * sizeof(unsigned int));
 		ibuf->display_buffer_flags[display_index] |= view_flag;
 
-		BLI_unlock_thread(LOCK_COLORMANAGE);
+		BLI_thread_unlock(LOCK_COLORMANAGE);
 	}
 
 	if (display_buffer == NULL) {

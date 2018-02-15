@@ -131,18 +131,18 @@ void WorkScheduler::start(CompositorContext &context)
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	unsigned int index;
 	g_cpuqueue = BLI_thread_queue_init();
-	BLI_init_threads(&g_cputhreads, thread_execute_cpu, g_cpudevices.size());
+	BLI_threadpool_init(&g_cputhreads, thread_execute_cpu, g_cpudevices.size());
 	for (index = 0; index < g_cpudevices.size(); index++) {
 		Device *device = g_cpudevices[index];
-		BLI_insert_thread(&g_cputhreads, device);
+		BLI_threadpool_insert(&g_cputhreads, device);
 	}
 #ifdef COM_OPENCL_ENABLED
 	if (context.getHasActiveOpenCLDevices()) {
 		g_gpuqueue = BLI_thread_queue_init();
-		BLI_init_threads(&g_gputhreads, thread_execute_gpu, g_gpudevices.size());
+		BLI_threadpool_init(&g_gputhreads, thread_execute_gpu, g_gpudevices.size());
 		for (index = 0; index < g_gpudevices.size(); index++) {
 			Device *device = g_gpudevices[index];
-			BLI_insert_thread(&g_gputhreads, device);
+			BLI_threadpool_insert(&g_gputhreads, device);
 		}
 		g_openclActive = true;
 	}
@@ -172,13 +172,13 @@ void WorkScheduler::stop()
 {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	BLI_thread_queue_nowait(g_cpuqueue);
-	BLI_end_threads(&g_cputhreads);
+	BLI_threadpool_end(&g_cputhreads);
 	BLI_thread_queue_free(g_cpuqueue);
 	g_cpuqueue = NULL;
 #ifdef COM_OPENCL_ENABLED
 	if (g_openclActive) {
 		BLI_thread_queue_nowait(g_gpuqueue);
-		BLI_end_threads(&g_gputhreads);
+		BLI_threadpool_end(&g_gputhreads);
 		BLI_thread_queue_free(g_gpuqueue);
 		g_gpuqueue = NULL;
 	}

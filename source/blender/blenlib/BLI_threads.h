@@ -55,19 +55,19 @@ void BLI_threadapi_exit(void);
 
 struct TaskScheduler *BLI_task_scheduler_get(void);
 
-void    BLI_init_threads(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
+void    BLI_threadpool_init(struct ListBase *threadbase, void *(*do_thread)(void *), int tot);
 int     BLI_available_threads(struct ListBase *threadbase);
-int     BLI_available_thread_index(struct ListBase *threadbase);
-void    BLI_insert_thread(struct ListBase *threadbase, void *callerdata);
-void    BLI_remove_thread(struct ListBase *threadbase, void *callerdata);
-void    BLI_remove_thread_index(struct ListBase *threadbase, int index);
-void    BLI_remove_threads(struct ListBase *threadbase);
-void    BLI_end_threads(struct ListBase *threadbase);
+int     BLI_threadpool_available_thread_index(struct ListBase *threadbase);
+void    BLI_threadpool_insert(struct ListBase *threadbase, void *callerdata);
+void    BLI_threadpool_remove(struct ListBase *threadbase, void *callerdata);
+void    BLI_threadpool_remove_index(struct ListBase *threadbase, int index);
+void    BLI_threadpool_clear(struct ListBase *threadbase);
+void    BLI_threadpool_end(struct ListBase *threadbase);
 int     BLI_thread_is_main(void);
 
 
-void BLI_begin_threaded_malloc(void);
-void BLI_end_threaded_malloc(void);
+void BLI_threaded_malloc_begin(void);
+void BLI_threaded_malloc_end(void);
 
 /* System Information */
 
@@ -91,8 +91,8 @@ int     BLI_system_num_threads_override_get(void);
 #define LOCK_FFTW       9
 #define LOCK_VIEW3D     10
 
-void    BLI_lock_thread(int type);
-void    BLI_unlock_thread(int type);
+void    BLI_thread_lock(int type);
+void    BLI_thread_unlock(int type);
 
 /* Mutex Lock */
 

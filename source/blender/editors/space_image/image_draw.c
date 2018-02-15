@@ -881,7 +881,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		 * other images are not modifying in such a way so they does not require
 		 * lock (sergey)
 		 */
-		BLI_lock_thread(LOCK_DRAW_IMAGE);
+		BLI_thread_lock(LOCK_DRAW_IMAGE);
 	}
 
 	if (show_stereo3d) {
@@ -942,7 +942,7 @@ void draw_image_main(const bContext *C, ARegion *ar)
 #endif
 
 	if (show_viewer) {
-		BLI_unlock_thread(LOCK_DRAW_IMAGE);
+		BLI_thread_unlock(LOCK_DRAW_IMAGE);
 	}
 
 	/* render info */

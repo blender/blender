@@ -973,9 +973,9 @@ void sss_add_points(Render *re, float (*co)[3], float (*color)[3], float *area, 
 		p->area= area;
 		p->totpoint= totpoint;
 
-		BLI_lock_thread(LOCK_CUSTOM1);
+		BLI_thread_lock(LOCK_CUSTOM1);
 		BLI_addtail(re->sss_points, p);
-		BLI_unlock_thread(LOCK_CUSTOM1);
+		BLI_thread_unlock(LOCK_CUSTOM1);
 	}
 }
 
