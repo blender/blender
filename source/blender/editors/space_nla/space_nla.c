@@ -506,12 +506,11 @@ static void nla_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *
 {
 	SpaceNla *snla = (SpaceNla *)slink;
 
-	if (!ELEM(GS(old_id->name), ID_GR)) {
-		return;
-	}
-
 	if ((ID *)snla->ads->filter_grp == old_id) {
 		snla->ads->filter_grp = (Group *)new_id;
+	}
+	if ((ID *)snla->ads->source == old_id) {
+		snla->ads->source = new_id;
 	}
 }
 
