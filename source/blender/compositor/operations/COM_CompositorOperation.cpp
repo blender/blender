@@ -108,9 +108,9 @@ void CompositorOperation::deinitExecution()
 			re = NULL;
 		}
 
-		BLI_lock_thread(LOCK_DRAW_IMAGE);
+		BLI_thread_lock(LOCK_DRAW_IMAGE);
 		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
-		BLI_unlock_thread(LOCK_DRAW_IMAGE);
+		BLI_thread_unlock(LOCK_DRAW_IMAGE);
 	}
 	else {
 		if (this->m_outputBuffer) {

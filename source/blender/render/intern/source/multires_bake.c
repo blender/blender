@@ -470,7 +470,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 			bake_data = initBakeData(bkr, ima);
 
 		if (tot_thread > 1)
-			BLI_init_threads(&threads, do_multires_bake_thread, tot_thread);
+			BLI_threadpool_init(&threads, do_multires_bake_thread, tot_thread);
 
 		handles = MEM_callocN(tot_thread * sizeof(MultiresBakeThread), "do_multires_bake handles");
 
@@ -512,12 +512,12 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, bool require_t
 			init_bake_rast(&handle->bake_rast, ibuf, &handle->data, flush_pixel, bkr->do_update);
 
 			if (tot_thread > 1)
-				BLI_insert_thread(&threads, handle);
+				BLI_threadpool_insert(&threads, handle);
 		}
 
 		/* run threads */
 		if (tot_thread > 1)
-			BLI_end_threads(&threads);
+			BLI_threadpool_end(&threads);
 		else
 			do_multires_bake_thread(&handles[0]);
 

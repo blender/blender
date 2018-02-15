@@ -170,11 +170,11 @@ void smoke_reallocate_highres_fluid(SmokeDomainSettings *sds, float dx, int res[
 	}
 
 	/* smoke_turbulence_init uses non-threadsafe functions from fftw3 lib (like fftw_plan & co). */
-	BLI_lock_thread(LOCK_FFTW);
+	BLI_thread_lock(LOCK_FFTW);
 
 	sds->wt = smoke_turbulence_init(res, sds->amplify + 1, sds->noise, BKE_tempdir_session(), use_fire, use_colors);
 
-	BLI_unlock_thread(LOCK_FFTW);
+	BLI_thread_unlock(LOCK_FFTW);
 
 	sds->res_wt[0] = res[0] * (sds->amplify + 1);
 	sds->res_wt[1] = res[1] * (sds->amplify + 1);

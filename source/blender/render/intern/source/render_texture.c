@@ -3675,7 +3675,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	if (R.r.scemode & R_NO_TEX) return;
 
 	if (firsttime) {
-		BLI_lock_thread(LOCK_IMAGE);
+		BLI_thread_lock(LOCK_IMAGE);
 		if (firsttime) {
 			const int num_threads = BLI_system_thread_count();
 			for (a = 0; a < num_threads; a++) {
@@ -3686,7 +3686,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 
 			firsttime= 0;
 		}
-		BLI_unlock_thread(LOCK_IMAGE);
+		BLI_thread_unlock(LOCK_IMAGE);
 	}
 	
 	tex= &imatex[shi->thread];

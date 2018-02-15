@@ -1580,12 +1580,12 @@ static void sb_sfesf_threads_run(const struct EvaluationContext *eval_ctx, Scene
 		sb_threads[i].tot= totthread;
 	}
 	if (totthread > 1) {
-		BLI_init_threads(&threads, exec_scan_for_ext_spring_forces, totthread);
+		BLI_threadpool_init(&threads, exec_scan_for_ext_spring_forces, totthread);
 
 		for (i=0; i<totthread; i++)
-			BLI_insert_thread(&threads, &sb_threads[i]);
+			BLI_threadpool_insert(&threads, &sb_threads[i]);
 
-		BLI_end_threads(&threads);
+		BLI_threadpool_end(&threads);
 	}
 	else
 		exec_scan_for_ext_spring_forces(&sb_threads[0]);
@@ -2192,12 +2192,12 @@ static void sb_cf_threads_run(Scene *scene, Object *ob, float forcetime, float t
 
 
 	if (totthread > 1) {
-		BLI_init_threads(&threads, exec_softbody_calc_forces, totthread);
+		BLI_threadpool_init(&threads, exec_softbody_calc_forces, totthread);
 
 		for (i=0; i<totthread; i++)
-			BLI_insert_thread(&threads, &sb_threads[i]);
+			BLI_threadpool_insert(&threads, &sb_threads[i]);
 
-		BLI_end_threads(&threads);
+		BLI_threadpool_end(&threads);
 	}
 	else
 		exec_softbody_calc_forces(&sb_threads[0]);

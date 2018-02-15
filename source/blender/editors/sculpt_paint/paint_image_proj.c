@@ -2694,7 +2694,7 @@ static void project_paint_face_init(
 		int face_seam_flag;
 
 		if (threaded)
-			BLI_lock_thread(LOCK_CUSTOM1);  /* Other threads could be modifying these vars */
+			BLI_thread_lock(LOCK_CUSTOM1);  /* Other threads could be modifying these vars */
 
 		face_seam_flag = ps->faceSeamFlags[tri_index];
 
@@ -2711,7 +2711,7 @@ static void project_paint_face_init(
 		if ((face_seam_flag & (PROJ_FACE_SEAM1 | PROJ_FACE_SEAM2 | PROJ_FACE_SEAM3)) == 0) {
 
 			if (threaded)
-				BLI_unlock_thread(LOCK_CUSTOM1);  /* Other threads could be modifying these vars */
+				BLI_thread_unlock(LOCK_CUSTOM1);  /* Other threads could be modifying these vars */
 
 		}
 		else {
@@ -2737,7 +2737,7 @@ static void project_paint_face_init(
 
 			/* ps->faceSeamUVs cant be modified when threading, now this is done we can unlock */
 			if (threaded)
-				BLI_unlock_thread(LOCK_CUSTOM1);  /* Other threads could be modifying these vars */
+				BLI_thread_unlock(LOCK_CUSTOM1);  /* Other threads could be modifying these vars */
 
 			vCoSS[0] = ps->screenCoords[lt_vtri[0]];
 			vCoSS[1] = ps->screenCoords[lt_vtri[1]];
@@ -4138,7 +4138,7 @@ static bool project_bucket_iter_next(
 	const int diameter = 2 * ps->brush_size;
 
 	if (ps->thread_tot > 1)
-		BLI_lock_thread(LOCK_CUSTOM1);
+		BLI_thread_lock(LOCK_CUSTOM1);
 
 	//printf("%d %d\n", ps->context_bucket_x, ps->context_bucket_y);
 
@@ -4155,7 +4155,7 @@ static bool project_bucket_iter_next(
 				ps->context_bucket_x++;
 
 				if (ps->thread_tot > 1)
-					BLI_unlock_thread(LOCK_CUSTOM1);
+					BLI_thread_unlock(LOCK_CUSTOM1);
 
 				return 1;
 			}
@@ -4164,7 +4164,7 @@ static bool project_bucket_iter_next(
 	}
 
 	if (ps->thread_tot > 1)
-		BLI_unlock_thread(LOCK_CUSTOM1);
+		BLI_thread_unlock(LOCK_CUSTOM1);
 	return 0;
 }
 
@@ -4883,7 +4883,7 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 	}
 
 	if (ps->thread_tot > 1)
-		BLI_init_threads(&threads, do_projectpaint_thread, ps->thread_tot);
+		BLI_threadpool_init(&threads, do_projectpaint_thread, ps->thread_tot);
 
 	pool = BKE_image_pool_new();
 
@@ -4913,11 +4913,11 @@ static bool project_paint_op(void *state, const float lastpos[2], const float po
 		handles[a].pool = pool;
 
 		if (ps->thread_tot > 1)
-			BLI_insert_thread(&threads, &handles[a]);
+			BLI_threadpool_insert(&threads, &handles[a]);
 	}
 
 	if (ps->thread_tot > 1) /* wait for everything to be done */
-		BLI_end_threads(&threads);
+		BLI_threadpool_end(&threads);
 	else
 		do_projectpaint_thread(&handles[0]);
 

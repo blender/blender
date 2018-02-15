@@ -177,7 +177,7 @@ RenderEngine *RE_engine_create_ex(RenderEngineType *type, bool use_for_viewport)
 	if (use_for_viewport) {
 		engine->flag |= RE_ENGINE_USED_FOR_VIEWPORT;
 
-		BLI_begin_threaded_malloc();
+		BLI_threaded_malloc_begin();
 	}
 
 	return engine;
@@ -192,7 +192,7 @@ void RE_engine_free(RenderEngine *engine)
 #endif
 
 	if (engine->flag & RE_ENGINE_USED_FOR_VIEWPORT) {
-		BLI_end_threaded_malloc();
+		BLI_threaded_malloc_end();
 	}
 
 	MEM_freeN(engine);

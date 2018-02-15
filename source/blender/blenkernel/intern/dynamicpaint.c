@@ -4555,7 +4555,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 	}
 
 	/* begin thread safe malloc */
-	BLI_begin_threaded_malloc();
+	BLI_threaded_malloc_begin();
 
 	/* only continue if particle bb is close enough to canvas bb */
 	if (boundsIntersectDist(&grid->grid_bounds, &part_bb, range)) {
@@ -4590,7 +4590,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 			                        &settings);
 		}
 	}
-	BLI_end_threaded_malloc();
+	BLI_threaded_malloc_end();
 	BLI_kdtree_free(tree);
 
 	return 1;

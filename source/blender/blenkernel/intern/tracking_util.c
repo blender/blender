@@ -787,9 +787,9 @@ static ImBuf *accessor_get_ibuf(TrackingImageAccessor *accessor,
 		 * in the cache which is nice on the one hand (faster re-use of the
 		 * frames) but on the other hand it bumps the memory usage up.
 		 */
-		BLI_lock_thread(LOCK_MOVIECLIP);
+		BLI_thread_lock(LOCK_MOVIECLIP);
 		IMB_float_from_rect(orig_ibuf);
-		BLI_unlock_thread(LOCK_MOVIECLIP);
+		BLI_thread_unlock(LOCK_MOVIECLIP);
 		final_ibuf = orig_ibuf;
 	}
 	/* Downscale if needed. */

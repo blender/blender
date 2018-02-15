@@ -83,13 +83,13 @@ static TaskScheduler *task_scheduler = NULL;
  *     int maxthreads = 2;
  *     int cont = 1;
  * 
- *     BLI_init_threads(&lb, do_something_func, maxthreads);
+ *     BLI_threadpool_init(&lb, do_something_func, maxthreads);
  * 
  *     while (cont) {
  *         if (BLI_available_threads(&lb) && !(escape loop event)) {
  *             // get new job (data pointer)
  *             // tag job 'processed 
- *             BLI_insert_thread(&lb, job);
+ *             BLI_threadpool_insert(&lb, job);
  *         }
  *         else PIL_sleep_ms(50);
  *         
@@ -98,7 +98,7 @@ static TaskScheduler *task_scheduler = NULL;
  *         for (go over all jobs)
  *             if (job is ready) {
  *                 if (job was not removed) {
- *                     BLI_remove_thread(&lb, job);
+ *                     BLI_threadpool_remove(&lb, job);
  *                 }
  *             }
  *             else cont = 1;
@@ -110,7 +110,7 @@ static TaskScheduler *task_scheduler = NULL;
  *         }
  *     }
  * 
- *     BLI_end_threads(&lb);
+ *     BLI_threadpool_end(&lb);
  *
  ************************************************ */
 static SpinLock _malloc_lock;
@@ -183,7 +183,7 @@ TaskScheduler *BLI_task_scheduler_get(void)
  * problem otherwise: scene render will kill of the mutex!
  */
 
-void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
+void BLI_threadpool_init(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
 	int a;
 
@@ -228,7 +228,7 @@ int BLI_available_threads(ListBase *threadbase)
 }
 
 /* returns thread number, for sample patterns or threadsafe tables */
-int BLI_available_thread_index(ListBase *threadbase)
+int BLI_threadpool_available_thread_index(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	int counter = 0;
@@ -258,7 +258,7 @@ int BLI_thread_is_main(void)
 	return pthread_equal(pthread_self(), mainid);
 }
 
-void BLI_insert_thread(ListBase *threadbase, void *callerdata)
+void BLI_threadpool_insert(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
 	
@@ -273,7 +273,7 @@ void BLI_insert_thread(ListBase *threadbase, void *callerdata)
 	printf("ERROR: could not insert thread slot\n");
 }
 
-void BLI_remove_thread(ListBase *threadbase, void *callerdata)
+void BLI_threadpool_remove(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
 	
@@ -286,7 +286,7 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 	}
 }
 
-void BLI_remove_thread_index(ListBase *threadbase, int index)
+void BLI_threadpool_remove_index(ListBase *threadbase, int index)
 {
 	ThreadSlot *tslot;
 	int counter = 0;
@@ -301,7 +301,7 @@ void BLI_remove_thread_index(ListBase *threadbase, int index)
 	}
 }
 
-void BLI_remove_threads(ListBase *threadbase)
+void BLI_threadpool_clear(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	
@@ -314,7 +314,7 @@ void BLI_remove_threads(ListBase *threadbase)
 	}
 }
 
-void BLI_end_threads(ListBase *threadbase)
+void BLI_threadpool_end(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	
@@ -418,12 +418,12 @@ static ThreadMutex *global_mutex_from_type(const int type)
 	}
 }
 
-void BLI_lock_thread(int type)
+void BLI_thread_lock(int type)
 {
 	pthread_mutex_lock(global_mutex_from_type(type));
 }
 
-void BLI_unlock_thread(int type)
+void BLI_thread_unlock(int type)
 {
 	pthread_mutex_unlock(global_mutex_from_type(type));
 }
@@ -819,7 +819,7 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 
 /* ************************************************ */
 
-void BLI_begin_threaded_malloc(void)
+void BLI_threaded_malloc_begin(void)
 {
 	unsigned int level = atomic_fetch_and_add_u(&thread_levels, 1);
 	if (level == 0) {
@@ -832,7 +832,7 @@ void BLI_begin_threaded_malloc(void)
 	}
 }
 
-void BLI_end_threaded_malloc(void)
+void BLI_threaded_malloc_end(void)
 {
 	unsigned int level = atomic_sub_and_fetch_u(&thread_levels, 1);
 	if (level == 0) {

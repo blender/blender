@@ -696,7 +696,7 @@ static TaskPool *task_pool_create_ex(TaskScheduler *scheduler,
 	 * and malloc could be non-thread safe at this point because
 	 * no other jobs are running.
 	 */
-	BLI_begin_threaded_malloc();
+	BLI_threaded_malloc_begin();
 
 	return pool;
 }
@@ -763,7 +763,7 @@ void BLI_task_pool_free(TaskPool *pool)
 
 	MEM_freeN(pool);
 
-	BLI_end_threaded_malloc();
+	BLI_threaded_malloc_end();
 }
 
 BLI_INLINE bool task_can_use_local_queues(TaskPool *pool, int thread_id)

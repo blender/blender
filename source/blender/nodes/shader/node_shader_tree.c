@@ -736,10 +736,10 @@ bool ntreeShaderExecTree(bNodeTree *ntree, ShadeInput *shi, ShadeResult *shr)
 	
 	/* ensure execdata is only initialized once */
 	if (!exec) {
-		BLI_lock_thread(LOCK_NODES);
+		BLI_thread_lock(LOCK_NODES);
 		if (!ntree->execdata)
 			ntree->execdata = ntreeShaderBeginExecTree(ntree);
-		BLI_unlock_thread(LOCK_NODES);
+		BLI_thread_unlock(LOCK_NODES);
 
 		exec = ntree->execdata;
 	}

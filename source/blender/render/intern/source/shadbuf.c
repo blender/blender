@@ -787,10 +787,10 @@ void makeshadowbuf(Render *re, LampRen *lar)
 		shb->totbuf= lar->buffers;
 
 		/* jitter, weights - not threadsafe! */
-		BLI_lock_thread(LOCK_CUSTOM1);
+		BLI_thread_lock(LOCK_CUSTOM1);
 		shb->jit= give_jitter_tab(get_render_shadow_samples(&re->r, shb->samp));
 		make_jitter_weight_tab(re, shb, lar->filtertype);
-		BLI_unlock_thread(LOCK_CUSTOM1);
+		BLI_thread_unlock(LOCK_CUSTOM1);
 		
 		if (shb->totbuf==4) jitbuf= give_jitter_tab(2);
 		else if (shb->totbuf==9) jitbuf= give_jitter_tab(3);
@@ -814,21 +814,21 @@ static void *do_shadow_thread(void *re_v)
 	LampRen *lar;
 
 	do {
-		BLI_lock_thread(LOCK_CUSTOM1);
+		BLI_thread_lock(LOCK_CUSTOM1);
 		for (lar=re->lampren.first; lar; lar=lar->next) {
 			if (lar->shb && !lar->thread_assigned) {
 				lar->thread_assigned= 1;
 				break;
 			}
 		}
-		BLI_unlock_thread(LOCK_CUSTOM1);
+		BLI_thread_unlock(LOCK_CUSTOM1);
 
 		/* if type is irregular, this only sets the perspective matrix and autoclips */
 		if (lar) {
 			makeshadowbuf(re, lar);
-			BLI_lock_thread(LOCK_CUSTOM1);
+			BLI_thread_lock(LOCK_CUSTOM1);
 			lar->thread_ready= 1;
-			BLI_unlock_thread(LOCK_CUSTOM1);
+			BLI_thread_unlock(LOCK_CUSTOM1);
 		}
 	} while (lar && !re->test_break(re->tbh));
 
@@ -878,10 +878,10 @@ void threaded_makeshadowbufs(Render *re)
 			lar->thread_ready= 0;
 		}
 
-		BLI_init_threads(&threads, do_shadow_thread, totthread);
+		BLI_threadpool_init(&threads, do_shadow_thread, totthread);
 		
 		for (a=0; a<totthread; a++)
-			BLI_insert_thread(&threads, re);
+			BLI_threadpool_insert(&threads, re);
 
 		/* keep rendering as long as there are shadow buffers not ready */
 		do {
@@ -890,14 +890,14 @@ void threaded_makeshadowbufs(Render *re)
 
 			PIL_sleep_ms(50);
 
-			BLI_lock_thread(LOCK_CUSTOM1);
+			BLI_thread_lock(LOCK_CUSTOM1);
 			for (lar=re->lampren.first; lar; lar= lar->next)
 				if (lar->shb && !lar->thread_ready)
 					break;
-			BLI_unlock_thread(LOCK_CUSTOM1);
+			BLI_thread_unlock(LOCK_CUSTOM1);
 		} while (lar);
 	
-		BLI_end_threads(&threads);
+		BLI_threadpool_end(&threads);
 
 		/* unset threadsafety */
 		re->test_break= test_break;

@@ -339,12 +339,12 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 
 	RE_SetReports(re, op->reports);
 
-	BLI_begin_threaded_malloc();
+	BLI_threaded_malloc_begin();
 	if (is_animation)
 		RE_BlenderAnim(re, mainp, scene, camera_override, lay_override, scene->r.sfra, scene->r.efra, scene->r.frame_step);
 	else
 		RE_BlenderFrame(re, mainp, scene, view_layer, camera_override, lay_override, scene->r.cfra, is_write_still);
-	BLI_end_threaded_malloc();
+	BLI_threaded_malloc_end();
 
 	RE_SetReports(re, NULL);
 

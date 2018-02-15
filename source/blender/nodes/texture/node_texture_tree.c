@@ -350,10 +350,10 @@ int ntreeTexExecTree(
 	
 	/* ensure execdata is only initialized once */
 	if (!exec) {
-		BLI_lock_thread(LOCK_NODES);
+		BLI_thread_lock(LOCK_NODES);
 		if (!nodes->execdata)
 			ntreeTexBeginExecTree(nodes);
-		BLI_unlock_thread(LOCK_NODES);
+		BLI_thread_unlock(LOCK_NODES);
 
 		exec = nodes->execdata;
 	}

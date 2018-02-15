@@ -1319,9 +1319,9 @@ static LinkNode *image_free_queue = NULL;
 
 static void gpu_queue_image_for_free(Image *ima)
 {
-	BLI_lock_thread(LOCK_OPENGL);
+	BLI_thread_lock(LOCK_OPENGL);
 	BLI_linklist_prepend(&image_free_queue, ima);
-	BLI_unlock_thread(LOCK_OPENGL);
+	BLI_thread_unlock(LOCK_OPENGL);
 }
 
 void GPU_free_unused_buffers(void)
@@ -1329,7 +1329,7 @@ void GPU_free_unused_buffers(void)
 	if (!BLI_thread_is_main())
 		return;
 
-	BLI_lock_thread(LOCK_OPENGL);
+	BLI_thread_lock(LOCK_OPENGL);
 
 	/* images */
 	for (LinkNode *node = image_free_queue; node; node = node->next) {
@@ -1346,7 +1346,7 @@ void GPU_free_unused_buffers(void)
 	/* vbo buffers */
 	GPU_global_buffer_pool_free_unused();
 
-	BLI_unlock_thread(LOCK_OPENGL);
+	BLI_thread_unlock(LOCK_OPENGL);
 }
 
 void GPU_free_image(Image *ima)

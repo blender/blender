@@ -1428,7 +1428,7 @@ static void threaded_tile_processor(Render *re)
 		BLI_thread_queue_nowait(workqueue);
 		
 		/* start all threads */
-		BLI_init_threads(&threads, do_render_thread, re->r.threads);
+		BLI_threadpool_init(&threads, do_render_thread, re->r.threads);
 		
 		for (a = 0; a < re->r.threads; a++) {
 			thread[a].workqueue = workqueue;
@@ -1444,7 +1444,7 @@ static void threaded_tile_processor(Render *re)
 				thread[a].duh = NULL;
 			}
 
-			BLI_insert_thread(&threads, &thread[a]);
+			BLI_threadpool_insert(&threads, &thread[a]);
 		}
 		
 		/* wait for results to come back */
@@ -1488,7 +1488,7 @@ static void threaded_tile_processor(Render *re)
 			}
 		}
 		
-		BLI_end_threads(&threads);
+		BLI_threadpool_end(&threads);
 		
 		if ((g_break=re->test_break(re->tbh)))
 			break;

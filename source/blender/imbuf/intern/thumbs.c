@@ -652,7 +652,7 @@ static struct IMBThumbLocks {
 
 void IMB_thumb_locks_acquire(void)
 {
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_thread_lock(LOCK_IMAGE);
 
 	if (thumb_locks.lock_counter == 0) {
 		BLI_assert(thumb_locks.locked_paths == NULL);
@@ -663,12 +663,12 @@ void IMB_thumb_locks_acquire(void)
 
 	BLI_assert(thumb_locks.locked_paths != NULL);
 	BLI_assert(thumb_locks.lock_counter > 0);
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_thread_unlock(LOCK_IMAGE);
 }
 
 void IMB_thumb_locks_release(void)
 {
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_thread_lock(LOCK_IMAGE);
 	BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
 
 	thumb_locks.lock_counter--;
@@ -678,14 +678,14 @@ void IMB_thumb_locks_release(void)
 		BLI_condition_end(&thumb_locks.cond);
 	}
 
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_thread_unlock(LOCK_IMAGE);
 }
 
 void IMB_thumb_path_lock(const char *path)
 {
 	void *key = BLI_strdup(path);
 
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_thread_lock(LOCK_IMAGE);
 	BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
 
 	if (thumb_locks.locked_paths) {
@@ -694,14 +694,14 @@ void IMB_thumb_path_lock(const char *path)
 		}
 	}
 
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_thread_unlock(LOCK_IMAGE);
 }
 
 void IMB_thumb_path_unlock(const char *path)
 {
 	const void *key = path;
 
-	BLI_lock_thread(LOCK_IMAGE);
+	BLI_thread_lock(LOCK_IMAGE);
 	BLI_assert((thumb_locks.locked_paths != NULL) && (thumb_locks.lock_counter > 0));
 
 	if (thumb_locks.locked_paths) {
@@ -711,5 +711,5 @@ void IMB_thumb_path_unlock(const char *path)
 		BLI_condition_notify_all(&thumb_locks.cond);
 	}
 
-	BLI_unlock_thread(LOCK_IMAGE);
+	BLI_thread_unlock(LOCK_IMAGE);
 }
