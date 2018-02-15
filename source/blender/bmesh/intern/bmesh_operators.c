@@ -673,7 +673,7 @@ int BMO_slot_map_count(BMOpSlot slot_args[BMO_OP_MAX_SLOTS], const char *slot_na
 {
 	BMOpSlot *slot = BMO_slot_get(slot_args, slot_name);
 	BLI_assert(slot->slot_type == BMO_OP_SLOT_MAPPING);
-	return BLI_ghash_size(slot->data.ghash);
+	return BLI_ghash_len(slot->data.ghash);
 }
 
 /* inserts a key/value mapping into a mapping slot.  note that it copies the

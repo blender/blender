@@ -2026,7 +2026,7 @@ void BKE_library_make_local(
 	GSet *loop_tags = BLI_gset_ptr_new(__func__);
 	for (LinkNode *it = todo_ids; it; it = it->next) {
 		library_make_local_copying_check(it->link, loop_tags, bmain->relations, done_ids);
-		BLI_assert(BLI_gset_size(loop_tags) == 0);
+		BLI_assert(BLI_gset_len(loop_tags) == 0);
 	}
 	BLI_gset_free(loop_tags, NULL);
 	BLI_gset_free(done_ids, NULL);

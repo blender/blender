@@ -172,7 +172,7 @@ const char *BIF_listTemplates(const bContext *UNUSED(C))
 	GHashIterator ghi;
 	const char *menu_header = IFACE_("Template %t|None %x0|");
 	char *p;
-	const size_t template_size = (BLI_ghash_size(TEMPLATES_HASH) * 32 + 30);
+	const size_t template_size = (BLI_ghash_len(TEMPLATES_HASH) * 32 + 30);
 
 	if (TEMPLATES_MENU != NULL) {
 		MEM_freeN(TEMPLATES_MENU);

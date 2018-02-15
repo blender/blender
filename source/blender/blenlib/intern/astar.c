@@ -231,7 +231,7 @@ bool BLI_astar_graph_solve(
 	                SET_INT_IN_POINTER(node_index_src));
 
 	while (!BLI_heap_is_empty(todo_nodes)) {
-		const int node_curr_idx = GET_INT_FROM_POINTER(BLI_heap_popmin(todo_nodes));
+		const int node_curr_idx = GET_INT_FROM_POINTER(BLI_heap_pop_min(todo_nodes));
 		BLI_AStarGNode *node_curr = &as_graph->nodes[node_curr_idx];
 		LinkData *ld;
 

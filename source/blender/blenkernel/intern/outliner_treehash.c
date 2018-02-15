@@ -112,7 +112,7 @@ static void fill_treehash(void *treehash, BLI_mempool *treestore)
 
 void *BKE_outliner_treehash_create_from_treestore(BLI_mempool *treestore)
 {
-	GHash *treehash = BLI_ghash_new_ex(tse_hash, tse_cmp, "treehash", BLI_mempool_count(treestore));
+	GHash *treehash = BLI_ghash_new_ex(tse_hash, tse_cmp, "treehash", BLI_mempool_len(treestore));
 	fill_treehash(treehash, treestore);
 	return treehash;
 }
@@ -126,7 +126,7 @@ void *BKE_outliner_treehash_rebuild_from_treestore(void *treehash, BLI_mempool *
 {
 	BLI_assert(treehash);
 
-	BLI_ghash_clear_ex(treehash, NULL, free_treehash_group, BLI_mempool_count(treestore));
+	BLI_ghash_clear_ex(treehash, NULL, free_treehash_group, BLI_mempool_len(treestore));
 	fill_treehash(treehash, treestore);
 	return treehash;
 }

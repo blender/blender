@@ -335,7 +335,7 @@ static LinkNode *bm_edgenet_path_calc(
 				BLI_linklist_free_pool(v_ls_next, NULL, path_pool);
 				BLI_linklist_free_pool(v_ls_prev, NULL, path_pool);
 
-				// BLI_assert(BLI_mempool_count(path_pool) == 0);
+				// BLI_assert(BLI_mempool_len(path_pool) == 0);
 
 				path_len = bm_edgenet_path_from_pass(e_found->v1, &path, vnet_info, path_pool);
 				BLI_linklist_reverse(&path);
@@ -505,7 +505,7 @@ void BM_mesh_edgenet(
 		}
 
 		BLI_linklist_free_pool(path, NULL, path_pool);
-		BLI_assert(BLI_mempool_count(path_pool) == 0);
+		BLI_assert(BLI_mempool_len(path_pool) == 0);
 	}
 
 	bm->elem_index_dirty |= BM_FACE | BM_LOOP;

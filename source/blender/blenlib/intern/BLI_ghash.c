@@ -741,7 +741,7 @@ void BLI_ghash_reserve(GHash *gh, const uint nentries_reserve)
 /**
  * \return size of the GHash.
  */
-uint BLI_ghash_size(GHash *gh)
+uint BLI_ghash_len(GHash *gh)
 {
 	return gh->nentries;
 }
@@ -1010,7 +1010,7 @@ void BLI_ghash_clear(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfree
  */
 void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreefp)
 {
-	BLI_assert((int)gh->nentries == BLI_mempool_count(gh->entrypool));
+	BLI_assert((int)gh->nentries == BLI_mempool_len(gh->entrypool));
 	if (keyfreefp || valfreefp)
 		ghash_free_cb(gh, keyfreefp, valfreefp);
 
@@ -1044,7 +1044,7 @@ void BLI_ghash_flag_clear(GHash *gh, uint flag)
 /**
  * Create a new GHashIterator. The hash table must not be mutated
  * while the iterator is in use, and the iterator will step exactly
- * BLI_ghash_size(gh) times before becoming done.
+ * BLI_ghash_len(gh) times before becoming done.
  *
  * \param gh The GHash to iterate over.
  * \return Pointer to a new DynStr.
@@ -1059,7 +1059,7 @@ GHashIterator *BLI_ghashIterator_new(GHash *gh)
 /**
  * Init an already allocated GHashIterator. The hash table must not
  * be mutated while the iterator is in use, and the iterator will
- * step exactly BLI_ghash_size(gh) times before becoming done.
+ * step exactly BLI_ghash_len(gh) times before becoming done.
  *
  * \param ghi The GHashIterator to initialize.
  * \param gh The GHash to iterate over.
@@ -1398,7 +1398,7 @@ GSet *BLI_gset_copy(GSet *gs, GHashKeyCopyFP keycopyfp)
 	return (GSet *)ghash_copy((GHash *)gs, keycopyfp, NULL);
 }
 
-uint BLI_gset_size(GSet *gs)
+uint BLI_gset_len(GSet *gs)
 {
 	return ((GHash *)gs)->nentries;
 }
@@ -1618,13 +1618,13 @@ GSet *BLI_gset_pair_new(const char *info)
 /**
  * \return number of buckets in the GHash.
  */
-int BLI_ghash_buckets_size(GHash *gh)
+int BLI_ghash_buckets_len(GHash *gh)
 {
 	return (int)gh->nbuckets;
 }
-int BLI_gset_buckets_size(GSet *gs)
+int BLI_gset_buckets_len(GSet *gs)
 {
-	return BLI_ghash_buckets_size((GHash *)gs);
+	return BLI_ghash_buckets_len((GHash *)gs);
 }
 
 /**

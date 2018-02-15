@@ -34,7 +34,7 @@ TEST(kdopbvh, Empty)
 {
 	BVHTree *tree = BLI_bvhtree_new(0, 0.0, 8, 8);
 	BLI_bvhtree_balance(tree);
-	EXPECT_EQ(0, BLI_bvhtree_get_size(tree));
+	EXPECT_EQ(0, BLI_bvhtree_get_len(tree));
 	BLI_bvhtree_free(tree);
 }
 
@@ -46,7 +46,7 @@ TEST(kdopbvh, Single)
 		BLI_bvhtree_insert(tree, 0, co, 1);
 	}
 
-	EXPECT_EQ(BLI_bvhtree_get_size(tree), 1);
+	EXPECT_EQ(BLI_bvhtree_get_len(tree), 1);
 
 	BLI_bvhtree_balance(tree);
 	BLI_bvhtree_free(tree);

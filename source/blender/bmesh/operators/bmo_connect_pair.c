@@ -662,11 +662,11 @@ void bmo_connect_vert_pair_exec(BMesh *bm, BMOperator *op)
 	while (!BLI_heap_is_empty(pc.states)) {
 
 #ifdef DEBUG_PRINT
-		printf("\n%s: stepping %u\n", __func__, BLI_heap_size(pc.states));
+		printf("\n%s: stepping %u\n", __func__, BLI_heap_len(pc.states));
 #endif
 
 		while (!BLI_heap_is_empty(pc.states)) {
-			PathLinkState *state = BLI_heap_popmin(pc.states);
+			PathLinkState *state = BLI_heap_pop_min(pc.states);
 
 			/* either we insert this into 'pc.states' or its freed */
 			bool continue_search;

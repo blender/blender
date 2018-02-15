@@ -30,7 +30,7 @@ TEST(heap, Empty)
 
 	heap = BLI_heap_new();
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
-	EXPECT_EQ(BLI_heap_size(heap), 0);
+	EXPECT_EQ(BLI_heap_len(heap), 0);
 	BLI_heap_free(heap, NULL);
 }
 
@@ -43,10 +43,10 @@ TEST(heap, One)
  
 	BLI_heap_insert(heap, 0.0f, (void *)in);
 	EXPECT_FALSE(BLI_heap_is_empty(heap));
-	EXPECT_EQ(BLI_heap_size(heap), 1);
-	EXPECT_EQ(in, BLI_heap_popmin(heap));
+	EXPECT_EQ(BLI_heap_len(heap), 1);
+	EXPECT_EQ(in, BLI_heap_pop_min(heap));
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
-	EXPECT_EQ(BLI_heap_size(heap), 0);
+	EXPECT_EQ(BLI_heap_len(heap), 0);
 	BLI_heap_free(heap, NULL);
 }
 
@@ -58,7 +58,7 @@ TEST(heap, Range)
 		BLI_heap_insert(heap, (float)in, SET_INT_IN_POINTER(in));
 	}
 	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_popmin(heap)));
+		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_pop_min(heap)));
 
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
@@ -73,7 +73,7 @@ TEST(heap, RangeReverse)
 		BLI_heap_insert(heap, (float)-in, SET_INT_IN_POINTER(-in));
 	}
 	for (int out_test = items_total - 1; out_test >= 0; out_test--) {
-		EXPECT_EQ(-out_test, GET_INT_FROM_POINTER(BLI_heap_popmin(heap)));
+		EXPECT_EQ(-out_test, GET_INT_FROM_POINTER(BLI_heap_pop_min(heap)));
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	BLI_heap_free(heap, NULL);
@@ -92,7 +92,7 @@ TEST(heap, RangeRemove)
 		nodes[i] = NULL;
 	}
 	for (int out_test = 1; out_test < items_total; out_test += 2) {
-		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_popmin(heap)));
+		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_pop_min(heap)));
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	BLI_heap_free(heap, NULL);
@@ -107,7 +107,7 @@ TEST(heap, Duplicates)
 		BLI_heap_insert(heap, 1.0f, 0);
 	}
 	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(0, GET_INT_FROM_POINTER(BLI_heap_popmin(heap)));
+		EXPECT_EQ(0, GET_INT_FROM_POINTER(BLI_heap_pop_min(heap)));
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	BLI_heap_free(heap, NULL);
@@ -125,7 +125,7 @@ static void random_heap_helper(
 		BLI_heap_insert(heap, values[i], SET_INT_IN_POINTER((int)values[i]));
 	}
 	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_popmin(heap)));
+		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_pop_min(heap)));
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	BLI_heap_free(heap, NULL);
@@ -150,7 +150,7 @@ TEST(heap, ReInsertSimple)
 	}
 
 	for (int out_test = 0; out_test < items_total; out_test++) {
-		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_popmin(heap)));
+		EXPECT_EQ(out_test, GET_INT_FROM_POINTER(BLI_heap_pop_min(heap)));
 	}
 
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
@@ -177,7 +177,7 @@ static void random_heap_reinsert_helper(
 		HeapNode *node_top = BLI_heap_top(heap);
 		float out = BLI_heap_node_value(node_top);
 		EXPECT_EQ((float)out_test, out);
-		BLI_heap_popmin(heap);
+		BLI_heap_pop_min(heap);
 	}
 	EXPECT_TRUE(BLI_heap_is_empty(heap));
 	BLI_heap_free(heap, NULL);

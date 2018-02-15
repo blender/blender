@@ -513,7 +513,7 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 		*points_r = cache->points;
 	}
 	else {
-		int totframe = BLI_ghash_size(cache->hash);
+		int totframe = BLI_ghash_len(cache->hash);
 		int *frames = MEM_callocN(totframe * sizeof(int), "movieclip cache frames");
 		int a, totseg = 0;
 		GHashIterator gh_iter;

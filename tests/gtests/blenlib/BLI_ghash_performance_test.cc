@@ -35,7 +35,7 @@ extern "C" {
 	printf("GHash stats (%u entries):\n\t" \
 	       "Quality (the lower the better): %f\n\tVariance (the lower the better): %f\n\tLoad: %f\n\t" \
 	       "Empty buckets: %.2f%%\n\tOverloaded buckets: %.2f%% (biggest bucket: %d)\n", \
-	       BLI_ghash_size(_gh), q, var, lf, pempty * 100.0, poverloaded * 100.0, bigb); \
+	       BLI_ghash_len(_gh), q, var, lf, pempty * 100.0, poverloaded * 100.0, bigb); \
 } void (0)
 
 /* Str: whole text, lines and words from a 'corpus' text. */
@@ -214,7 +214,7 @@ static void int_ghash_tests(GHash *ghash, const char *id, const unsigned int nbr
 
 		TIMEIT_END(int_pop);
 	}
-	EXPECT_EQ(BLI_ghash_size(ghash), 0);
+	EXPECT_EQ(BLI_ghash_len(ghash), 0);
 
 	BLI_ghash_free(ghash, NULL, NULL);
 

@@ -2009,7 +2009,7 @@ bool GPU_pbvh_buffers_diffuse_changed(
 	}
 	else if (buffers->use_bmesh) {
 		/* due to dynamic nature of dyntopo, only get first material */
-		if (BLI_gset_size(bm_faces) > 0) {
+		if (BLI_gset_len(bm_faces) > 0) {
 			GSetIterator gs_iter;
 			BMFace *f;
 

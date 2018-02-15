@@ -474,7 +474,7 @@ void BLI_mempool_free(BLI_mempool *pool, void *addr)
 	}
 }
 
-int BLI_mempool_count(BLI_mempool *pool)
+int BLI_mempool_len(BLI_mempool *pool)
 {
 	return (int)pool->totused;
 }

@@ -1291,7 +1291,7 @@ static void p_chart_fill_boundary(PChart *chart, PEdge *be, int nedges)
 		while (nedges > 2) {
 			PEdge *ne, *ne1, *ne2;
 
-			e = (PEdge *)BLI_heap_popmin(heap);
+			e = (PEdge *)BLI_heap_pop_min(heap);
 
 			e1 = p_boundary_edge_prev(e);
 			e2 = p_boundary_edge_next(e);
@@ -2190,7 +2190,7 @@ static void p_chart_simplify_compute(PChart *chart)
 			break;
 
 		HeapNode *link = BLI_heap_top(heap);
-		PEdge *edge = (PEdge *)BLI_heap_popmin(heap), *pair = edge->pair;
+		PEdge *edge = (PEdge *)BLI_heap_pop_min(heap), *pair = edge->pair;
 		PVert *oldv, *keepv;
 		PEdge *wheele, *nexte;
 

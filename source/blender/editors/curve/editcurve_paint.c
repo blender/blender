@@ -359,7 +359,7 @@ static void curve_draw_stroke_3d(const struct bContext *UNUSED(C), ARegion *UNUS
 	wmOperator *op = arg;
 	struct CurveDrawData *cdd = op->customdata;
 
-	const int stroke_len = BLI_mempool_count(cdd->stroke_elem_pool);
+	const int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
 	if (stroke_len == 0) {
 		return;
@@ -677,7 +677,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 	if (!RNA_property_is_set(op->ptr, prop)) {
 		bool use_cyclic = false;
 
-		if (BLI_mempool_count(cdd->stroke_elem_pool) > 2) {
+		if (BLI_mempool_len(cdd->stroke_elem_pool) > 2) {
 			BLI_mempool_iter iter;
 			const struct StrokeElem *selem, *selem_first, *selem_last;
 
@@ -703,7 +703,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 	    (cps->radius_taper_end   != 0.0f))
 	{
 		/* note, we could try to de-duplicate the length calculations above */
-		const int stroke_len = BLI_mempool_count(cdd->stroke_elem_pool);
+		const int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
 		BLI_mempool_iter iter;
 		struct StrokeElem *selem, *selem_prev;
@@ -763,14 +763,14 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 	Curve *cu = obedit->data;
 	ListBase *nurblist = object_editcurve_get(obedit);
 
-	int stroke_len = BLI_mempool_count(cdd->stroke_elem_pool);
+	int stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 
 	const bool is_3d = (cu->flag & CU_3D) != 0;
 	invert_m4_m4(obedit->imat, obedit->obmat);
 
-	if (BLI_mempool_count(cdd->stroke_elem_pool) == 0) {
+	if (BLI_mempool_len(cdd->stroke_elem_pool) == 0) {
 		curve_draw_stroke_from_operator(op);
-		stroke_len = BLI_mempool_count(cdd->stroke_elem_pool);
+		stroke_len = BLI_mempool_len(cdd->stroke_elem_pool);
 	}
 
 	ED_curve_deselect_all(cu->editnurb);

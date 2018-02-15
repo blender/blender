@@ -113,7 +113,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 			}
 			
 			if (unused) {
-				if (BLI_mempool_count(ts) == unused) {
+				if (BLI_mempool_len(ts) == unused) {
 					BLI_mempool_destroy(ts);
 					soops->treestore = NULL;
 					if (soops->treehash) {
@@ -123,7 +123,7 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 				}
 				else {
 					TreeStoreElem *tsenew;
-					BLI_mempool *new_ts = BLI_mempool_create(sizeof(TreeStoreElem), BLI_mempool_count(ts) - unused,
+					BLI_mempool *new_ts = BLI_mempool_create(sizeof(TreeStoreElem), BLI_mempool_len(ts) - unused,
 					                                         512, BLI_MEMPOOL_ALLOW_ITER);
 					BLI_mempool_iternew(ts, &iter);
 					while ((tselem = BLI_mempool_iterstep(&iter))) {
@@ -1635,7 +1635,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, SpaceOops *soops)
 	Base *base;
 	TreeElement *te = NULL, *ten;
 	TreeStoreElem *tselem;
-	int show_opened = !soops->treestore || !BLI_mempool_count(soops->treestore); /* on first view, we open scenes */
+	int show_opened = !soops->treestore || !BLI_mempool_len(soops->treestore); /* on first view, we open scenes */
 
 	/* Are we looking for something - we want to tag parents to filter child matches
 	 * - NOT in datablocks view - searching all datablocks takes way too long to be useful

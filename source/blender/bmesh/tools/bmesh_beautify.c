@@ -392,7 +392,7 @@ void BM_mesh_beautify_fill(
 	bm->elem_index_dirty |= BM_EDGE;
 
 	while (BLI_heap_is_empty(eheap) == false) {
-		BMEdge *e = BLI_heap_popmin(eheap);
+		BMEdge *e = BLI_heap_pop_min(eheap);
 		i = BM_elem_index_get(e);
 		eheap_table[i] = NULL;
 

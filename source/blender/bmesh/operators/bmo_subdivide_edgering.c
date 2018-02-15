@@ -269,7 +269,7 @@ static GSet *bm_edgering_pair_calc(BMesh *bm, ListBase *eloops_rim)
 
 	BLI_ghash_free(vert_eloop_gh, NULL, NULL);
 
-	if (BLI_gset_size(eloop_pair_gs) == 0) {
+	if (BLI_gset_len(eloop_pair_gs) == 0) {
 		BLI_gset_free(eloop_pair_gs, NULL);
 		eloop_pair_gs = NULL;
 	}
@@ -1193,7 +1193,7 @@ void bmo_subdivide_edgering_exec(BMesh *bm, BMOperator *op)
 			goto cleanup;
 		}
 
-		lpair_arr = BLI_array_alloca(lpair_arr, BLI_gset_size(eloop_pairs_gs));
+		lpair_arr = BLI_array_alloca(lpair_arr, BLI_gset_len(eloop_pairs_gs));
 
 		/* first cache pairs */
 		GSET_ITER_INDEX (gs_iter, eloop_pairs_gs, i) {

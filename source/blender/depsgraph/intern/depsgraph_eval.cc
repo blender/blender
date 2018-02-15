@@ -155,5 +155,5 @@ void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
 bool DEG_needs_eval(Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
-	return BLI_gset_size(deg_graph->entry_tags) != 0;
+	return BLI_gset_len(deg_graph->entry_tags) != 0;
 }

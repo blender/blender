@@ -223,7 +223,7 @@ static PyObject *id_free_weakref_cb(PyObject *weakinfo_capsule, PyObject *weakre
 	GHash *weakinfo_hash = PyCapsule_GetPointer(weakinfo_capsule, NULL);
 
 
-	if (BLI_ghash_size(weakinfo_hash) > 1) {
+	if (BLI_ghash_len(weakinfo_hash) > 1) {
 		BLI_ghash_remove(weakinfo_hash, weakref, NULL, NULL);
 	}
 	else { /* get the last id and free it */
@@ -243,7 +243,7 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 	BLI_ghashIterator_init(&weakinfo_hash_iter, weakinfo_hash);
 
 #ifdef DEBUG_RNA_WEAKREF
-	fprintf(stdout, "id_release_weakref: '%s', %d items\n", id->name, BLI_ghash_size(weakinfo_hash));
+	fprintf(stdout, "id_release_weakref: '%s', %d items\n", id->name, BLI_ghash_len(weakinfo_hash));
 #endif
 
 	while (!BLI_ghashIterator_done(&weakinfo_hash_iter)) {
@@ -266,7 +266,7 @@ static void id_release_weakref_list(struct ID *id, GHash *weakinfo_hash)
 	BLI_ghash_remove(id_weakref_pool, (void *)id, NULL, NULL);
 	BLI_ghash_free(weakinfo_hash, NULL, NULL);
 
-	if (BLI_ghash_size(id_weakref_pool) == 0) {
+	if (BLI_ghash_len(id_weakref_pool) == 0) {
 		BLI_ghash_free(id_weakref_pool, NULL, NULL);
 		id_weakref_pool = NULL;
 #ifdef DEBUG_RNA_WEAKREF

@@ -1003,7 +1003,7 @@ static void make_edges_mdata_extend(MEdge **r_alledge, int *r_totedge,
 		BKE_mesh_poly_edgehash_insert(eh, mp, mloop + mp->loopstart);
 	}
 
-	totedge_new = BLI_edgehash_size(eh);
+	totedge_new = BLI_edgehash_len(eh);
 
 #ifdef DEBUG
 	/* ensure that theres no overlap! */

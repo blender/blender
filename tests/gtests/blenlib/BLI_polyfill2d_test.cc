@@ -101,7 +101,7 @@ static void  test_polyfill_topology(
 			}
 		}
 	}
-	EXPECT_EQ(BLI_edgehash_size(edgehash), poly_tot + (poly_tot - 3));
+	EXPECT_EQ(BLI_edgehash_len(edgehash), poly_tot + (poly_tot - 3));
 
 	for (i = 0; i < poly_tot; i++) {
 		const unsigned int v1 = i;

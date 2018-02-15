@@ -66,7 +66,7 @@ bool    BLI_smallhash_remove(SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
 void   *BLI_smallhash_lookup(const SmallHash *sh, uintptr_t key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void  **BLI_smallhash_lookup_p(const SmallHash *sh, uintptr_t key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 bool    BLI_smallhash_haskey(const SmallHash *sh, uintptr_t key) ATTR_NONNULL(1);
-int     BLI_smallhash_count(const SmallHash *sh)  ATTR_NONNULL(1);
+int     BLI_smallhash_len(const SmallHash *sh)  ATTR_NONNULL(1);
 void   *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key)  ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void  **BLI_smallhash_iternext_p(SmallHashIter *iter, uintptr_t *key)  ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
 void   *BLI_smallhash_iternew(const SmallHash *sh, SmallHashIter *iter, uintptr_t *key) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;

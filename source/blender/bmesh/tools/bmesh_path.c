@@ -174,7 +174,7 @@ LinkNode *BM_mesh_calc_path_vert(
 	cost[BM_elem_index_get(v_src)] = 0.0f;
 
 	while (!BLI_heap_is_empty(heap)) {
-		v = BLI_heap_popmin(heap);
+		v = BLI_heap_pop_min(heap);
 
 		if (v == v_dst)
 			break;
@@ -346,7 +346,7 @@ LinkNode *BM_mesh_calc_path_edge(
 	cost[BM_elem_index_get(e_src)] = 0.0f;
 
 	while (!BLI_heap_is_empty(heap)) {
-		e = BLI_heap_popmin(heap);
+		e = BLI_heap_pop_min(heap);
 
 		if (e == e_dst)
 			break;
@@ -532,7 +532,7 @@ LinkNode *BM_mesh_calc_path_face(
 	cost[BM_elem_index_get(f_src)] = 0.0f;
 
 	while (!BLI_heap_is_empty(heap)) {
-		f = BLI_heap_popmin(heap);
+		f = BLI_heap_pop_min(heap);
 
 		if (f == f_dst)
 			break;

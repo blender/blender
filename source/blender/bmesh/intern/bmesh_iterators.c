@@ -430,7 +430,7 @@ int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const
 void bmiter__elem_of_mesh_begin(struct BMIter__elem_of_mesh *iter)
 {
 #ifdef USE_IMMUTABLE_ASSERT
-	((BMIter *)iter)->count = BLI_mempool_count(iter->pooliter.pool);
+	((BMIter *)iter)->count = BLI_mempool_len(iter->pooliter.pool);
 #endif
 	BLI_mempool_iternew(iter->pooliter.pool, &iter->pooliter);
 }
@@ -438,7 +438,7 @@ void bmiter__elem_of_mesh_begin(struct BMIter__elem_of_mesh *iter)
 void *bmiter__elem_of_mesh_step(struct BMIter__elem_of_mesh *iter)
 {
 #ifdef USE_IMMUTABLE_ASSERT
-	BLI_assert(((BMIter *)iter)->count <= BLI_mempool_count(iter->pooliter.pool));
+	BLI_assert(((BMIter *)iter)->count <= BLI_mempool_len(iter->pooliter.pool));
 #endif
 	return BLI_mempool_iterstep(&iter->pooliter);
 }
