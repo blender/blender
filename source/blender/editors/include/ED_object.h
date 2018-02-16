@@ -150,6 +150,11 @@ void ED_object_vpaintmode_exit(struct bContext *C);
 void ED_object_wpaintmode_exit_ex(struct WorkSpace *workspace, struct Object *ob);
 void ED_object_wpaintmode_exit(struct bContext *C);
 
+void ED_object_sculptmode_exit_ex(
+        const struct EvaluationContext *eval_ctx,
+        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
+void ED_object_sculptmode_exit(struct bContext *C);
+
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);

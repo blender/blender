@@ -146,7 +146,6 @@ void ED_object_base_activate(bContext *C, Base *base)
 		 * Not correct because it's possible other work-spaces use these.
 		 * although that's a corner case. */
 		if (workspace->object_mode & OB_MODE_EDIT) {
-			Object *obact = OBACT(view_layer);
 			FOREACH_OBJECT(view_layer, ob) {
 				if (ob != base->object) {
 					if (BKE_object_is_in_editmode(ob)) {
@@ -157,7 +156,8 @@ void ED_object_base_activate(bContext *C, Base *base)
 			FOREACH_OBJECT_END;
 		}
 		else if (workspace->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT)) {
-			Object *obact = OBACT(view_layer);
+			EvaluationContext eval_ctx;
+			CTX_data_eval_ctx(C, &eval_ctx);
 			FOREACH_OBJECT(view_layer, ob) {
 				if (ob != base->object) {
 					if (ob->sculpt) {
@@ -174,7 +174,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 							}
 							case OB_MODE_SCULPT:
 							{
-								/* TODO */
+								ED_object_sculptmode_exit_ex(&eval_ctx, workspace, scene, ob);
 								break;
 							}
 						}

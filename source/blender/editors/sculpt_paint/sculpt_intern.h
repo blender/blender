@@ -60,10 +60,19 @@ bool sculpt_stroke_get_location(struct bContext *C, float out[3], const float mo
 /* Dynamic topology */
 void sculpt_pbvh_clear(Object *ob);
 void sculpt_dyntopo_node_layers_add(struct SculptSession *ss);
-void sculpt_update_after_dynamic_topology_toggle(struct bContext *C);
-void sculpt_dynamic_topology_enable(struct bContext *C);
-void sculpt_dynamic_topology_disable(struct bContext *C,
-                                     struct SculptUndoNode *unode);
+void sculpt_update_after_dynamic_topology_toggle(
+        const struct EvaluationContext *eval_ctx,
+        struct Scene *scene, struct Object *ob);
+void sculpt_dynamic_topology_enable_ex(
+        const struct EvaluationContext *eval_ctx,
+        struct Scene *scene, struct Object *ob);
+void sculpt_dynamic_topology_enable(bContext *C);
+
+void sculpt_dynamic_topology_disable_ex(
+        const struct EvaluationContext *eval_ctx,
+        struct Scene *scene, struct Object *ob,
+        struct SculptUndoNode *unode);
+void sculpt_dynamic_topology_disable(bContext *C, struct SculptUndoNode *unode);
 
 /* Undo */
 
@@ -342,7 +351,7 @@ void sculpt_cache_free(StrokeCache *cache);
 SculptUndoNode *sculpt_undo_push_node(Object *ob, PBVHNode *node, SculptUndoType type);
 SculptUndoNode *sculpt_undo_get_node(PBVHNode *node);
 void sculpt_undo_push_begin(const char *name);
-void sculpt_undo_push_end(const struct bContext *C);
+void sculpt_undo_push_end(void);
 
 void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3]);
 
