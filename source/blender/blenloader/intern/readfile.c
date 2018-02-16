@@ -10472,6 +10472,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	Main *mainl = mainlist->first;
 	Main *mainptr;
 	ListBase *lbarray[MAX_LIBARRAY];
+	GHash *loaded_ids = BLI_ghash_str_new(__func__);
 	int a;
 	bool do_it = true;
 	
@@ -10485,7 +10486,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		mainptr= mainl->next;
 		while (mainptr) {
 			if (mainvar_id_tag_any_check(mainptr, LIB_TAG_READ)) {
-				// printf("found LIB_TAG_READ %s\n", mainptr->curlib->name);
+				// printf("found LIB_TAG_READ %s (%s)\n", mainptr->curlib->id.name, mainptr->curlib->name);
 
 				FileData *fd = mainptr->curlib->filedata;
 				
@@ -10583,25 +10584,38 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				a = set_listbasepointers(mainptr, lbarray);
 				while (a--) {
 					ID *id = lbarray[a]->first;
+					ListBase pending_free_ids = {NULL};
 
 					while (id) {
 						ID *idn = id->next;
 						if (id->tag & LIB_TAG_READ) {
-							ID *realid = NULL;
 							BLI_remlink(lbarray[a], id);
 
-							link_id_part(basefd->reports, fd, mainptr, id, &realid);
+							/* When playing with lib renaming and such, you may end with cases where you have
+							 * more than one linked ID of the same data-block from same library.
+							 * This is absolutely horrible, hence we use a ghash to ensure we go back to a single
+							 * linked data when loading the file... */
+							ID **realid = NULL;
+							if (!BLI_ghash_ensure_p(loaded_ids, id->name, (void ***)&realid)) {
+								link_id_part(basefd->reports, fd, mainptr, id, realid);
+							}
 
 							/* realid shall never be NULL - unless some source file/lib is broken
 							 * (known case: some directly linked shapekey from a missing lib...). */
-							/* BLI_assert(realid != NULL); */
+							/* BLI_assert(*realid != NULL); */
 
-							change_idid_adr(mainlist, basefd, id, realid);
+							change_idid_adr(mainlist, basefd, id, *realid);
 
-							MEM_freeN(id);
+							/* We cannot free old lib-ref placeholder ID here anymore, since we use its name
+							 * as key in loaded_ids hass. */
+							BLI_addtail(&pending_free_ids, id);
 						}
 						id = idn;
 					}
+
+					/* Clear GHash and free all lib-ref placeholders IDs of that type now. */
+					BLI_ghash_clear(loaded_ids, NULL, NULL);
+					BLI_freelistN(&pending_free_ids);
 				}
 				BLO_expand_main(fd, mainptr);
 			}
@@ -10609,7 +10623,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 			mainptr = mainptr->next;
 		}
 	}
-	
+
+	BLI_ghash_free(loaded_ids, NULL, NULL);
+	loaded_ids = NULL;
+
 	/* test if there are unread libblocks */
 	/* XXX This code block is kept for 2.77, until we are sure it never gets reached anymore. Can be removed later. */
 	for (mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
