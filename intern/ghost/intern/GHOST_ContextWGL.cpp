@@ -737,7 +737,7 @@ static void reportContextString(const char *name, const char *dummy, const char 
 {
 	fprintf(stderr, "%s: %s\n", name, context);
 
-	if (strcmp(dummy, context) != 0)
+	if (dummy && strcmp(dummy, context) != 0)
 		fprintf(stderr, "Warning! Dummy %s: %s\n", name, dummy);
 }
 #endif
@@ -901,16 +901,16 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 	initClearGL();
 	::SwapBuffers(m_hDC);
 
+#ifndef NDEBUG
 	const char *vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
 	const char *renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 	const char *version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 
-#ifndef NDEBUG
-	if (m_dummyVendor != NULL) {
-		reportContextString("Vendor", m_dummyVendor, vendor);
-		reportContextString("Renderer", m_dummyRenderer, renderer);
-		reportContextString("Version", m_dummyVersion, version);
-	}
+	reportContextString("Vendor", m_dummyVendor, vendor);
+	reportContextString("Renderer", m_dummyRenderer, renderer);
+	reportContextString("Version", m_dummyVersion, version);
+
+	fprintf(stderr, "Context Version: %d.%d\n", m_contextMajorVersion, m_contextMinorVersion);
 #endif
 
 	return GHOST_kSuccess;
