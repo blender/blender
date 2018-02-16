@@ -780,6 +780,9 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 
 	std::vector<float>::iterator it;
 
+	float qref[4];
+	unit_qt(qref);
+
 	// sample values at each frame
 	for (it = frames.begin(); it != frames.end(); it++) {
 		float fra = *it;
@@ -815,7 +818,9 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 
 		float rot[4], loc[3], scale[3];
 
-		mat4_to_quat(rot, mat);
+		bc_rotate_from_reference_quat(rot, qref, mat);
+		copy_qt_qt(qref, rot);
+
 #if 0
 		for (int i = 0 ; i < 4;  i++) {
 			rot[i] = RAD2DEGF(rot[i]);
@@ -1190,6 +1195,9 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 
 	std::sort(frames.begin(), frames.end());
 
+	float qref[4];
+	unit_qt(qref);
+
 	std::vector<float>::iterator it;
 
 	// sample values at each frame
@@ -1223,7 +1231,9 @@ void AnimationImporter::add_bone_animation_sampled(Object *ob, std::vector<FCurv
 
 		float rot[4], loc[3], scale[3];
 
-		mat4_to_quat(rot, mat);
+		bc_rotate_from_reference_quat(rot, qref, mat);
+		copy_qt_qt(qref, rot);
+
 		copy_v3_v3(loc, mat[3]);
 		mat4_to_size(scale, mat);
 

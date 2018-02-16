@@ -92,6 +92,7 @@ extern void bc_match_scale(Object *ob, UnitConverter &bc_unit, bool scale_to_sce
 extern void bc_match_scale(std::vector<Object *> *objects_done, UnitConverter &unit_converter, bool scale_to_scene);
 
 extern void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], float *size);
+extern void bc_rotate_from_reference_quat(float quat_to[4], float quat_from[4], float mat_to[4][4]);
 
 extern void bc_triangulate_mesh(Mesh *me);
 extern bool bc_is_leaf_bone(Bone *bone);

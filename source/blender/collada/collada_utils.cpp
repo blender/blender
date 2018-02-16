@@ -377,6 +377,35 @@ void bc_decompose(float mat[4][4], float *loc, float eul[3], float quat[4], floa
 	}
 }
 
+/*
+* Create rotation_quaternion from a delta rotation and a reference quat
+*
+* Input:
+* mat_from: The rotation matrix before rotation
+* mat_to  : The rotation matrix after rotation
+* qref    : the quat corresponding to mat_from
+*
+* Output:
+* rot     : the calculated result (quaternion)
+*
+*/
+void bc_rotate_from_reference_quat(float quat_to[4], float quat_from[4], float mat_to[4][4])
+{
+	float qd[4];
+	float matd[4][4];
+	float mati[4][4];
+	float mat_from[4][4];
+	quat_to_mat4(mat_from, quat_from);
+
+	// Calculate the difference matrix matd between mat_from and mat_to
+	invert_m4_m4(mati, mat_from);
+	mul_m4_m4m4(matd, mati, mat_to);
+
+	mat4_to_quat(qd, matd);
+
+	mul_qt_qtqt(quat_to, quat_from, qd); // rot is the final rotation corresponding to mat_to
+}
+
 void bc_triangulate_mesh(Mesh *me)
 {
 	bool use_beauty  = false;
