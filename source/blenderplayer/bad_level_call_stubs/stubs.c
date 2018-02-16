@@ -563,6 +563,7 @@ struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct M
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) RET_NONE
 void ED_object_editmode_enter(struct bContext *C, int flag) RET_NONE
 void ED_object_editmode_exit(struct bContext *C, int flag) RET_NONE
+void ED_object_editmode_exit_ex(struct bContext *C, struct WorkSpace *workspace, struct Scene *scene, struct Object *obedit, int flag) RET_NONE
 bool ED_object_editmode_load(struct Object *obedit) RET_ZERO
 void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object, eObjectMode object_mode) RET_NONE
 bool uiLayoutGetActive(struct uiLayout *layout) RET_ZERO
