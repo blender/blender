@@ -239,9 +239,9 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 #define FOREACH_OBJECT(view_layer, _instance)                                 \
 {                                                                             \
 	Object *_instance;                                                        \
-	Base *base;                                                               \
-	for (base = (view_layer)->object_bases.first; base; base = base->next) {  \
-		_instance = base->object;
+	Base *_base;                                                              \
+	for (_base = (view_layer)->object_bases.first; _base; _base = _base->next) { \
+		_instance = _base->object;
 
 #define FOREACH_OBJECT_END                                                    \
     }                                                                         \
