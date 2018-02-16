@@ -794,30 +794,22 @@ static DRWShadingGroup *drw_shgroup_create_ex(struct GPUShader *shader, DRWPass 
 	return shgroup;
 }
 
-static DRWShadingGroup *drw_shgroup_material_create_ex(
-        struct GPUMaterial *material, DRWPass *pass, Gwn_VertFormat *format, bool use_instancing)
+static DRWShadingGroup *drw_shgroup_material_create_ex(GPUPass *gpupass, DRWPass *pass)
 {
-	double time = 0.0; /* TODO make time variable */
-
-	/* TODO : Ideally we should not convert. But since the whole codegen
-	 * is relying on GPUPass we keep it as is for now. */
-	GPUPass *gpupass = GPU_material_get_pass(material);
-
 	if (!gpupass) {
 		/* Shader compilation error */
 		return NULL;
 	}
 
-	struct GPUShader *shader = GPU_pass_shader(gpupass);
+	DRWShadingGroup *grp = drw_shgroup_create_ex(GPU_pass_shader(gpupass), pass);
+	return grp;
+}
 
-	DRWShadingGroup *grp = drw_shgroup_create_ex(shader, pass);
-
-	if (use_instancing) {
-		drw_interface_instance_init(grp, shader, format);
-	}
-	else {
-		drw_interface_init(&grp->interface, shader);
-	}
+static DRWShadingGroup *drw_shgroup_material_inputs(
+         DRWShadingGroup *grp, struct GPUMaterial *material, GPUPass *gpupass)
+{
+	/* TODO : Ideally we should not convert. But since the whole codegen
+	 * is relying on GPUPass we keep it as is for now. */
 
 	/* Converting dynamic GPUInput to DRWUniform */
 	ListBase *inputs = &gpupass->inputs;
@@ -825,6 +817,7 @@ static DRWShadingGroup *drw_shgroup_material_create_ex(
 	for (GPUInput *input = inputs->first; input; input = input->next) {
 		/* Textures */
 		if (input->ima) {
+			double time = 0.0; /* TODO make time variable */
 			GPUTexture *tex = GPU_texture_from_blender(
 			        input->ima, input->iuser, input->textarget, input->image_isdata, time, 1);
 
@@ -868,19 +861,29 @@ static DRWShadingGroup *drw_shgroup_material_create_ex(
 DRWShadingGroup *DRW_shgroup_material_create(
         struct GPUMaterial *material, DRWPass *pass)
 {
-	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(material, pass, NULL, false);
+	GPUPass *gpupass = GPU_material_get_pass(material);
+	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
+
+	if (shgroup) {
+		drw_interface_init(&shgroup->interface, GPU_pass_shader(gpupass));
+		drw_shgroup_material_inputs(shgroup, material, gpupass);
+	}
+
 	return shgroup;
 }
 
 DRWShadingGroup *DRW_shgroup_material_instance_create(
         struct GPUMaterial *material, DRWPass *pass, Gwn_Batch *geom, Object *ob, Gwn_VertFormat *format)
 {
-	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(material, pass, format, true);
+	GPUPass *gpupass = GPU_material_get_pass(material);
+	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
 
 	if (shgroup) {
 		shgroup->type = DRW_SHG_INSTANCE;
 		shgroup->instance_geom = geom;
 		shgroup->instance_data = ob->data;
+		drw_interface_instance_init(shgroup, GPU_pass_shader(gpupass), format);
+		drw_shgroup_material_inputs(shgroup, material, gpupass);
 	}
 
 	return shgroup;
@@ -892,12 +895,15 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
 #ifdef USE_GPU_SELECT
 	BLI_assert((G.f & G_PICKSEL) == 0);
 #endif
-	/* Calling drw_interface_init because we don't need instancing_geom. */
-	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(material, pass, NULL, false);
+	GPUPass *gpupass = GPU_material_get_pass(material);
+	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
 
 	if (shgroup) {
 		shgroup->type = DRW_SHG_TRIANGLE_BATCH;
 		shgroup->interface.instance_count = size * 3;
+		/* Calling drw_interface_init will cause it to GWN_batch_draw_procedural. */
+		drw_interface_init(&shgroup->interface, GPU_pass_shader(gpupass));
+		drw_shgroup_material_inputs(shgroup, material, gpupass);
 	}
 
 	return shgroup;
@@ -958,7 +964,7 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DR
 #endif
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 
-	/* Calling drw_interface_init because we don't need instancing_geom. */
+	/* Calling drw_interface_init will cause it to GWN_batch_draw_procedural. */
 	drw_interface_init(&shgroup->interface, shader);
 
 	shgroup->type = DRW_SHG_TRIANGLE_BATCH;
