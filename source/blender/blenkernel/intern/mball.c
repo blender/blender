@@ -549,9 +549,9 @@ void BKE_mball_eval_geometry(const struct EvaluationContext *UNUSED(eval_ctx),
 /* Draw Engine */
 
 /* use for draw-manager only. */
-void BKE_mball_element_calc_display_m3x4(float r_scale_xform[3][4],
-                                         const float obmat[4][4],
-                                         const float local_pos[3])
+void BKE_mball_element_calc_scale_xform(float r_scale_xform[3][4],
+                                        const float obmat[4][4],
+                                        const float local_pos[3])
 {
 	float world_pos[3], scamat[3][3];
 	mul_v3_m4v3(world_pos, obmat, local_pos);

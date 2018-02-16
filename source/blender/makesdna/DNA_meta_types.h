@@ -62,7 +62,7 @@ typedef struct MetaElem {
 
 	/* Draw_Data: stores pointers used for shader attributes */
 	float draw_scale_xform[3][4]; /* Matrix of Scale and Translation */
-	float draw_stiffness_radius; /* stiffness circle radius (only in edit mode) */
+	float draw_stiffness_radius; /* radius of the stiffness circle (only in edit mode) */
 	float pad;
 } MetaElem;
 

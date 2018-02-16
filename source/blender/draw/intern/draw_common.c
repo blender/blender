@@ -168,7 +168,7 @@ static struct {
 	struct Gwn_VertFormat *instance_spot;
 	struct Gwn_VertFormat *instance_bone_envelope_wire;
 	struct Gwn_VertFormat *instance_bone_envelope_solid;
-	struct Gwn_VertFormat *instance_mball_helpers;
+	struct Gwn_VertFormat *instance_mball_handles;
 } g_formats = {NULL};
 
 void DRW_globals_free(void)
@@ -421,17 +421,17 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Gwn_
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_mball_helpers(DRWPass *pass, struct Gwn_Batch *geom)
+DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, struct Gwn_Batch *geom)
 {
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_MBALL_HELPERS);
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_MBALL_HANDLES);
 
-	DRW_shgroup_instance_format(g_formats.instance_mball_helpers, {
+	DRW_shgroup_instance_format(g_formats.instance_mball_handles, {
 		{"ScaleTranslationMatrix" , DRW_ATTRIB_FLOAT, 16},
 		{"radius"                 , DRW_ATTRIB_FLOAT, 1},
 		{"color"                  , DRW_ATTRIB_FLOAT, 3}
 	});
 
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom, g_formats.instance_mball_helpers);
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom, g_formats.instance_mball_handles);
 	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
 
 	return grp;

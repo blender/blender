@@ -98,7 +98,7 @@ extern char datatoc_gpu_shader_instance_edges_variying_color_geom_glsl[];
 extern char datatoc_gpu_shader_instance_edges_variying_color_vert_glsl[];
 extern char datatoc_gpu_shader_instance_bone_envelope_solid_vert_glsl[];
 extern char datatoc_gpu_shader_instance_bone_envelope_wire_vert_glsl[];
-extern char datatoc_gpu_shader_instance_mball_helpers_vert_glsl[];
+extern char datatoc_gpu_shader_instance_mball_handles_vert_glsl[];
 
 extern char datatoc_gpu_shader_3D_groundpoint_vert_glsl[];
 extern char datatoc_gpu_shader_3D_groundline_geom_glsl[];
@@ -823,7 +823,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_WIRE] = { datatoc_gpu_shader_instance_bone_envelope_wire_vert_glsl,
 		                                                datatoc_gpu_shader_flat_color_frag_glsl },
 
-		[GPU_SHADER_3D_INSTANCE_MBALL_HELPERS] = { datatoc_gpu_shader_instance_mball_helpers_vert_glsl,
+		[GPU_SHADER_3D_INSTANCE_MBALL_HANDLES] = { datatoc_gpu_shader_instance_mball_handles_vert_glsl,
 		                                           datatoc_gpu_shader_flat_color_frag_glsl },
 	};
 

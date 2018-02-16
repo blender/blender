@@ -156,7 +156,7 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *probe_grid;
 
 	/* MetaBalls */
-	DRWShadingGroup *mball_circle;
+	DRWShadingGroup *mball_handle;
 
 	/* Lamps */
 	DRWShadingGroup *lamp_center;
@@ -980,10 +980,10 @@ static void OBJECT_cache_init(void *vedata)
 	}
 
 	{
-		/* Metaballs Helpers */
+		/* Metaballs Handles */
 		struct Gwn_Batch *geom;
 		geom = DRW_cache_screenspace_circle_get();
-		stl->g_data->mball_circle = shgroup_instance_mball_helpers(psl->non_meshes, geom);
+		stl->g_data->mball_handle = shgroup_instance_mball_handles(psl->non_meshes, geom);
 	}
 
 	{
@@ -1115,7 +1115,7 @@ static void OBJECT_cache_init(void *vedata)
 	}
 }
 
-static void DRW_shgroup_mball_helpers(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer)
+static void DRW_shgroup_mball_handles(OBJECT_StorageList *stl, Object *ob, ViewLayer *view_layer)
 {
 	MetaBall *mb = ob->data;
 
@@ -1124,8 +1124,8 @@ static void DRW_shgroup_mball_helpers(OBJECT_StorageList *stl, Object *ob, ViewL
 
 	for (MetaElem *ml = mb->elems.first; ml != NULL; ml = ml->next) {
 		/* draw radius */
-		BKE_mball_element_calc_display_m3x4(ml->draw_scale_xform, ob->obmat, &ml->x);
-		DRW_shgroup_call_dynamic_add(stl->g_data->mball_circle, ml->draw_scale_xform, &ml->rad, color);
+		BKE_mball_element_calc_scale_xform(ml->draw_scale_xform, ob->obmat, &ml->x);
+		DRW_shgroup_call_dynamic_add(stl->g_data->mball_handle, ml->draw_scale_xform, &ml->rad, color);
 	}
 }
 
@@ -1884,7 +1884,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		case OB_MBALL:
 		{
 			if (ob != draw_ctx->object_edit) {
-				DRW_shgroup_mball_helpers(stl, ob, view_layer);
+				DRW_shgroup_mball_handles(stl, ob, view_layer);
 			}
 			break;
 		}
