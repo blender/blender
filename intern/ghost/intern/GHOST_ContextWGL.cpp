@@ -898,6 +898,15 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
 	initContextGLEW();
 
+	if (is_crappy_intel_card()) {
+		/* Some Intel cards with context 4.1 or 4.2
+		 * don't have the point sprite enabled by default.
+		 *
+		 * However GL_POINT_SPRITE was removed in 3.2 and is now permanently ON.
+		 * Then use brute force. */
+		glEnable(GL_POINT_SPRITE);
+	}
+
 	initClearGL();
 	::SwapBuffers(m_hDC);
 
