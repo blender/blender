@@ -403,7 +403,7 @@ void bc_rotate_from_reference_quat(float quat_to[4], float quat_from[4], float m
 
 	mat4_to_quat(qd, matd);
 
-	mul_qt_qtqt(quat_to, quat_from, qd); // rot is the final rotation corresponding to mat_to
+	mul_qt_qtqt(quat_to, qd, quat_from); // rot is the final rotation corresponding to mat_to
 }
 
 void bc_triangulate_mesh(Mesh *me)

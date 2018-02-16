@@ -817,6 +817,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 		}
 
 		float rot[4], loc[3], scale[3];
+		transpose_m4(mat);
 
 		bc_rotate_from_reference_quat(rot, qref, mat);
 		copy_qt_qt(qref, rot);
