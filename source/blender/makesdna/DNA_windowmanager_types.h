@@ -220,7 +220,6 @@ typedef struct wmWindow {
 	ListBase handlers;            /* window+screen handlers, handled last */
 	ListBase modalhandlers;       /* priority handlers, handled first */
 
-	ListBase subwindows;          /* opengl stuff for sub windows, see notes in wm_subwindow.c */
 	ListBase gesture;             /* gesture stuff */
 
 	struct Stereo3dFormat *stereo3d_format; /* properties for stereoscopic displays */

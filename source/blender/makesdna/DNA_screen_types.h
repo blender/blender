@@ -71,10 +71,9 @@ typedef struct bScreen {
 	char swap;							/* indicator to survive swap-exchange systems */
 	char skip_handling;					/* set to delay screen handling after switching back from maximized area */
 	char scrubbing;						/* set when scrubbing to avoid some costly updates */
-	char pad[6];
+	char pad[2];
 	
-	short mainwin;						/* screensize subwindow, for screenedges and global menus */
-	short subwinactive;					/* active subwindow */
+	struct ARegion *active_region;		/* active region that has mouse focus */
 
 	struct wmTimer *animtimer;			/* if set, screen has timer handler added in window */
 	void *context;						/* context callback */
@@ -254,7 +253,7 @@ typedef struct ARegion {
 	rcti drawrct;				/* runtime for partial redraw, same or smaller than winrct */
 	short winx, winy;			/* size */
 	
-	short swinid;
+	short visible;              /* region is currently visible on screen */
 	short regiontype;			/* window, header, etc. identifier for drawing */
 	short alignment;			/* how it should split */
 	short flag;					/* hide, ... */

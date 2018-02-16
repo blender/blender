@@ -49,7 +49,6 @@
 #include "WM_types.h"
 
 #include "wm.h"
-#include "wm_subwindow.h"
 #include "wm_draw.h"
 
 #include "GPU_immediate.h"
@@ -64,17 +63,14 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 	wmGesture *gesture = MEM_callocN(sizeof(wmGesture), "new gesture");
 	wmWindow *window = CTX_wm_window(C);
 	ARegion *ar = CTX_wm_region(C);
-	int sx, sy;
 	
 	BLI_addtail(&window->gesture, gesture);
 	
 	gesture->type = type;
 	gesture->event_type = event->type;
-	gesture->swinid = ar->swinid;    /* means only in area-region context! */
+	gesture->winrct = ar->winrct;
 	gesture->userdata_free = true;   /* Free if userdata is set. */
 	gesture->modal_state = GESTURE_MODAL_NOP;
-	
-	wm_subwindow_origin_get(window, gesture->swinid, &sx, &sy);
 	
 	if (ELEM(type, WM_GESTURE_RECT, WM_GESTURE_CROSS_RECT, WM_GESTURE_TWEAK,
 	          WM_GESTURE_CIRCLE, WM_GESTURE_STRAIGHTLINE))
@@ -82,22 +78,22 @@ wmGesture *WM_gesture_new(bContext *C, const wmEvent *event, int type)
 		rcti *rect = MEM_callocN(sizeof(rcti), "gesture rect new");
 		
 		gesture->customdata = rect;
-		rect->xmin = event->x - sx;
-		rect->ymin = event->y - sy;
+		rect->xmin = event->x - gesture->winrct.xmin;
+		rect->ymin = event->y - gesture->winrct.ymin;
 		if (type == WM_GESTURE_CIRCLE) {
 			/* caller is responsible for initializing 'xmax' to radius. */
 		}
 		else {
-			rect->xmax = event->x - sx;
-			rect->ymax = event->y - sy;
+			rect->xmax = event->x - gesture->winrct.xmin;
+			rect->ymax = event->y - gesture->winrct.ymin;
 		}
 	}
 	else if (ELEM(type, WM_GESTURE_LINES, WM_GESTURE_LASSO)) {
 		short *lasso;
 		gesture->points_alloc = 1024;
 		gesture->customdata = lasso = MEM_mallocN(sizeof(short[2]) * gesture->points_alloc, "lasso points");
-		lasso[0] = event->x - sx;
-		lasso[1] = event->y - sy;
+		lasso[0] = event->x - gesture->winrct.xmin;
+		lasso[1] = event->y - gesture->winrct.ymin;
 		gesture->points = 1;
 	}
 	
@@ -273,14 +269,13 @@ static void draw_filled_lasso_px_cb(int x, int x_end, int y, void *user_data)
 	memset(col, 0x10, x_end - x);
 }
 
-static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
+static void draw_filled_lasso(wmGesture *gt)
 {
 	const short *lasso = (short *)gt->customdata;
 	const int tot = gt->points;
 	int (*moves)[2] = MEM_mallocN(sizeof(*moves) * (tot + 1), __func__);
 	int i;
 	rcti rect;
-	rcti rect_win;
 	float red[4] = {1.0f, 0.0f, 0.0f, 0.0f};
 
 	for (i = 0; i < tot; i++, lasso += 2) {
@@ -290,10 +285,9 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 
 	BLI_lasso_boundbox(&rect, (const int (*)[2])moves, tot);
 
-	wm_subwindow_rect_get(win, gt->swinid, &rect_win);
-	BLI_rcti_translate(&rect, rect_win.xmin, rect_win.ymin);
-	BLI_rcti_isect(&rect_win, &rect, &rect);
-	BLI_rcti_translate(&rect, -rect_win.xmin, -rect_win.ymin);
+	BLI_rcti_translate(&rect, gt->winrct.xmin, gt->winrct.ymin);
+	BLI_rcti_isect(&gt->winrct, &rect, &rect);
+	BLI_rcti_translate(&rect, -gt->winrct.xmin, -gt->winrct.ymin);
 
 	/* highly unlikely this will fail, but could crash if (tot == 0) */
 	if (BLI_rcti_is_empty(&rect) == false) {
@@ -335,13 +329,13 @@ static void draw_filled_lasso(wmWindow *win, wmGesture *gt)
 }
 
 
-static void wm_gesture_draw_lasso(wmWindow *win, wmGesture *gt, bool filled)
+static void wm_gesture_draw_lasso(wmGesture *gt, bool filled)
 {
 	const short *lasso = (short *)gt->customdata;
 	int i;
 
 	if (filled) {
-		draw_filled_lasso(win, gt);
+		draw_filled_lasso(gt);
 	}
 
 	const int numverts = gt->points;
@@ -425,7 +419,7 @@ void wm_gesture_draw(wmWindow *win)
 	glLineWidth(1.0f);
 	for (; gt; gt = gt->next) {
 		/* all in subwindow space */
-		wmSubWindowSet(win, gt->swinid);
+		wmViewport(&gt->winrct);
 		
 		if (gt->type == WM_GESTURE_RECT)
 			wm_gesture_draw_rect(gt);
@@ -442,9 +436,9 @@ void wm_gesture_draw(wmWindow *win)
 			}
 		}
 		else if (gt->type == WM_GESTURE_LINES)
-			wm_gesture_draw_lasso(win, gt, false);
+			wm_gesture_draw_lasso(gt, false);
 		else if (gt->type == WM_GESTURE_LASSO)
-			wm_gesture_draw_lasso(win, gt, true);
+			wm_gesture_draw_lasso(gt, true);
 		else if (gt->type == WM_GESTURE_STRAIGHTLINE)
 			wm_gesture_draw_line(gt);
 	}

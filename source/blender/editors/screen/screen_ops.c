@@ -138,7 +138,7 @@ int ED_operator_screen_mainwinactive(bContext *C)
 	if (CTX_wm_window(C) == NULL) return 0;
 	screen = CTX_wm_screen(C);
 	if (screen == NULL) return 0;
-	if (screen->subwinactive != screen->mainwin) return 0;
+	if (screen->active_region != NULL) return 0;
 	return 1;
 }
 

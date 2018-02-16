@@ -68,7 +68,6 @@
 #include "wm.h"
 #include "wm_draw.h"
 #include "wm_window.h"
-#include "wm_subwindow.h"
 #include "wm_event_system.h"
 
 #include "ED_scene.h"
@@ -215,7 +214,6 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 	if (win->eventstate) MEM_freeN(win->eventstate);
 	
 	wm_event_free_all(win);
-	wm_subwindows_free(win);
 
 	wm_draw_data_free(win);
 

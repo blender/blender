@@ -161,7 +161,7 @@ void view3d_operator_needs_opengl(const bContext *C)
 	view3d_region_operator_needs_opengl(win, ar);
 }
 
-void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
+void view3d_region_operator_needs_opengl(wmWindow *UNUSED(win), ARegion *ar)
 {
 	/* for debugging purpose, context should always be OK */
 	if ((ar == NULL) || (ar->regiontype != RGN_TYPE_WINDOW)) {
@@ -170,7 +170,7 @@ void view3d_region_operator_needs_opengl(wmWindow *win, ARegion *ar)
 	else {
 		RegionView3D *rv3d = ar->regiondata;
 
-		wmSubWindowSet(win, ar->swinid);
+		wmViewport(&ar->winrct); // TODO: bad
 		gpuLoadProjectionMatrix(rv3d->winmat);
 		gpuLoadMatrix(rv3d->viewmat);
 	}

@@ -298,7 +298,7 @@ void ED_screen_draw_edges(wmWindow *win)
 
 	ScrArea *sa;
 
-	wmSubWindowSet(win, screen->mainwin);
+	wmWindowViewport(win);
 
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);

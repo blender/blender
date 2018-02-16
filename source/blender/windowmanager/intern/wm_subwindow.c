@@ -21,299 +21,87 @@
  * Contributor(s): 2007 Blender Foundation (refactor)
  *
  * ***** END GPL LICENSE BLOCK *****
- *
- *
- * Subwindow opengl handling. 
- * BTW: subwindows open/close in X11 are way too slow, tried it, and choose for my own system... (ton)
- * 
  */
 
 /** \file blender/windowmanager/intern/wm_subwindow.c
  *  \ingroup wm
  *
- * Internal subwindows used for OpenGL state, used for regions and screens.
+ * OpenGL utilities for setting up 2D viewport for window and regions.
  */
 
-#include <string.h>
-
-#include "MEM_guardedalloc.h"
-
-#include "DNA_windowmanager_types.h"
-#include "DNA_screen_types.h"
-
-#include "BLI_blenlib.h"
 #include "BLI_math.h"
-#include "BLI_utildefines.h"
+#include "BLI_rect.h"
+
+#include "DNA_screen_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BIF_gl.h"
 
 #include "GPU_matrix.h"
 
 #include "WM_api.h"
-#include "wm_subwindow.h"
 
-/**
- * \note #wmSubWindow stored in #wmWindow but not exposed outside this C file,
- * it seems a bit redundant (area regions can store it too, but we keep it
- * because we can store all kind of future opengl fanciness here.
- *
- * We use indices and array because:
- * - index has safety, no pointers from this C file hanging around
- * - fast lookups of indices with array, list would give overhead
- * - old code used it this way...
- * - keep option open to have 2 screens using same window
- */
-
-typedef struct wmSubWindow {
-	struct wmSubWindow *next, *prev;
-	
-	rcti winrct;
-	int swinid;
-} wmSubWindow;
-
-
-/* ******************* open, free, set, get data ******************** */
-
-/* not subwindow itself */
-static void wm_subwindow_free(wmSubWindow *UNUSED(swin))
+void wmViewport(const rcti *winrct)
 {
-	/* future fancy stuff */
-}
+	int width  = BLI_rcti_size_x(winrct) + 1;
+	int height = BLI_rcti_size_y(winrct) + 1;
 
-void wm_subwindows_free(wmWindow *win)
-{
-	wmSubWindow *swin;
-	
-	for (swin = win->subwindows.first; swin; swin = swin->next)
-		wm_subwindow_free(swin);
-	
-	BLI_freelistN(&win->subwindows);
-}
+	glViewport(winrct->xmin, winrct->ymin, width, height);
+	glScissor(winrct->xmin, winrct->ymin, width, height);
 
-
-static wmSubWindow *swin_from_swinid(wmWindow *win, int swinid)
-{
-	wmSubWindow *swin;
-	
-	for (swin = win->subwindows.first; swin; swin = swin->next)
-		if (swin->swinid == swinid)
-			break;
-	return swin;
-}
-
-
-static void wm_swin_size_get(wmSubWindow *swin, int *x, int *y)
-{
-	*x = BLI_rcti_size_x(&swin->winrct) + 1;
-	*y = BLI_rcti_size_y(&swin->winrct) + 1;
-}
-void wm_subwindow_size_get(wmWindow *win, int swinid, int *x, int *y)
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-
-	if (swin) {
-		wm_swin_size_get(swin, x, y);
-	}
-}
-
-
-static void wm_swin_origin_get(wmSubWindow *swin, int *x, int *y)
-{
-	*x = swin->winrct.xmin;
-	*y = swin->winrct.ymin;
-}
-void wm_subwindow_origin_get(wmWindow *win, int swinid, int *x, int *y)
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-
-	if (swin) {
-		wm_swin_origin_get(swin, x, y);
-	}
-}
-
-
-static void wm_swin_matrix_get(wmWindow *win, wmSubWindow *swin, float mat[4][4])
-{
-	const bScreen *screen = WM_window_get_active_screen(win);
-
-	/* used by UI, should find a better way to get the matrix there */
-	if (swin->swinid == screen->mainwin) {
-		int width, height;
-
-		wm_swin_size_get(swin, &width, &height);
-		orthographic_m4(mat, -GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS, -100, 100);
-	}
-	else {
-		gpuGetProjectionMatrix(mat);
-	}
-}
-void wm_subwindow_matrix_get(wmWindow *win, int swinid, float mat[4][4])
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-
-	if (swin) {
-		wm_swin_matrix_get(win, swin, mat);
-	}
-}
-
-
-static void wm_swin_rect_get(wmSubWindow *swin, rcti *r_rect)
-{
-	*r_rect = swin->winrct;
-}
-void wm_subwindow_rect_get(wmWindow *win, int swinid, rcti *r_rect)
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-
-	if (swin) {
-		wm_swin_rect_get(swin, r_rect);
-	}
-}
-
-
-static void wm_swin_rect_set(wmSubWindow *swin, const rcti *rect)
-{
-	swin->winrct = *rect;
-}
-void wm_subwindow_rect_set(wmWindow *win, int swinid, const rcti *rect)
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-
-	if (swin) {
-		wm_swin_rect_set(swin, rect);
-	}
-}
-
-
-/* always sets pixel-precise 2D window/view matrices */
-/* coords is in whole pixels. xmin = 15, xmax = 16: means window is 2 pix big */
-int wm_subwindow_open(wmWindow *win, const rcti *winrct, bool activate)
-{
-	wmSubWindow *swin;
-	int width, height;
-	int freewinid = 1;
-	
-	for (swin = win->subwindows.first; swin; swin = swin->next)
-		if (freewinid <= swin->swinid)
-			freewinid = swin->swinid + 1;
-
-	swin = MEM_callocN(sizeof(wmSubWindow), "swinopen");
-	BLI_addtail(&win->subwindows, swin);
-	
-	swin->swinid = freewinid;
-	swin->winrct = *winrct;
-
-	if (activate) {
-		/* and we appy it all right away */
-		wmSubWindowSet(win, swin->swinid);
-
-		/* extra service */
-		wm_swin_size_get(swin, &width, &height);
-		wmOrtho2_pixelspace(width, height);
-		gpuLoadIdentity();
-	}
-
-	return swin->swinid;
-}
-
-void wm_subwindow_close(wmWindow *win, int swinid)
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-
-	if (swin) {
-		wm_subwindow_free(swin);
-		BLI_remlink(&win->subwindows, swin);
-		MEM_freeN(swin);
-	}
-	else {
-		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
-	}
-}
-
-/* pixels go from 0-99 for a 100 pixel window */
-void wm_subwindow_position(wmWindow *win, int swinid, const rcti *winrct, bool activate)
-{
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-	
-	if (swin) {
-		const int winsize_x = WM_window_pixels_x(win);
-		const int winsize_y = WM_window_pixels_y(win);
-
-		int width, height;
-		
-		swin->winrct = *winrct;
-		
-		/* CRITICAL, this clamping ensures that
-		 * the viewport never goes outside the screen
-		 * edges (assuming the x, y coords aren't
-		 *        outside). This caused a hardware lock
-		 * on Matrox cards if it happens.
-		 *
-		 * Really Blender should never _ever_ try
-		 * to do such a thing, but just to be safe
-		 * clamp it anyway (or fix the bScreen
-		 * scaling routine, and be damn sure you
-		 * fixed it). - zr  (2001!)
-		 */
-		
-		if (swin->winrct.xmax > winsize_x)
-			swin->winrct.xmax = winsize_x;
-		if (swin->winrct.ymax > winsize_y)
-			swin->winrct.ymax = winsize_y;
-		
-		if (activate) {
-			/* extra service */
-			wmSubWindowSet(win, swinid);
-			wm_swin_size_get(swin, &width, &height);
-			wmOrtho2_pixelspace(width, height);
-		}
-	}
-	else {
-		printf("%s: Internal error, bad winid: %d\n", __func__, swinid);
-	}
-}
-
-/* ---------------- WM versions of OpenGL style API calls ------------------------ */
-/* ----------------- exported in WM_api.h ------------------------------------------------------ */
-
-void wmSubWindowScissorSet(wmWindow *win, int swinid, const rcti *srct, bool srct_pad)
-{
-	int width, height;
-	wmSubWindow *swin = swin_from_swinid(win, swinid);
-	
-	if (swin == NULL) {
-		printf("%s %d: doesn't exist\n", __func__, swinid);
-		return;
-	}
-	
-	width  = BLI_rcti_size_x(&swin->winrct) + 1;
-	height = BLI_rcti_size_y(&swin->winrct) + 1;
-	glViewport(swin->winrct.xmin, swin->winrct.ymin, width, height);
-	
-	if (srct) {
-		int scissor_width  = BLI_rcti_size_x(srct);
-		int scissor_height = BLI_rcti_size_y(srct);
-
-		/* typically a single pixel doesn't matter,
-		 * but one pixel offset is noticeable with viewport border render */
-		if (srct_pad) {
-			scissor_width  += 1;
-			scissor_height += 1;
-		}
-
-		glScissor(srct->xmin, srct->ymin, scissor_width, scissor_height);
-	}
-	else
-		glScissor(swin->winrct.xmin, swin->winrct.ymin, width, height);
-	
 	wmOrtho2_pixelspace(width, height);
 	gpuLoadIdentity();
 }
 
-/* enable the WM versions of opengl calls */
-void wmSubWindowSet(wmWindow *win, int swinid)
+void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct)
 {
-	wmSubWindowScissorSet(win, swinid, NULL, true);
+	/* Setup part of the viewport for partial redraw. */
+	bool scissor_pad;
+
+	if (partialrct->xmin == partialrct->xmax) {
+		/* Full region. */
+		*drawrct = *winrct;
+		scissor_pad = true;
+	}
+	else {
+		/* Partial redraw, clipped to region. */
+		BLI_rcti_isect(winrct, partialrct, drawrct);
+		scissor_pad = false;
+	}
+
+	int x = drawrct->xmin;
+	int y = drawrct->ymin;
+	int width  = BLI_rcti_size_x(winrct) + 1;
+	int height = BLI_rcti_size_y(winrct) + 1;
+
+	int scissor_width  = BLI_rcti_size_x(drawrct);
+	int scissor_height = BLI_rcti_size_y(drawrct);
+
+	/* Partial redraw rect uses different convention than region rect,
+	 * so compensate for that here. One pixel offset is noticeable with
+	 * viewport border render. */
+	if (scissor_pad) {
+		scissor_width  += 1;
+		scissor_height += 1;
+	}
+
+	glViewport(x, y, width, height);
+	glScissor(x, y, scissor_width, scissor_height);
+
+	wmOrtho2_pixelspace(width, height);
+	gpuLoadIdentity();
+}
+
+void wmWindowViewport(wmWindow *win)
+{
+	int width = WM_window_pixels_x(win);
+	int height = WM_window_pixels_y(win);
+
+	glViewport(0, 0, width, height);
+	glScissor(0, 0, width, height);
+
+	wmOrtho2_pixelspace(width, height);
+	gpuLoadIdentity();
 }
 
 void wmOrtho2(float x1, float x2, float y1, float y2)
@@ -330,9 +118,7 @@ static void wmOrtho2_offset(const float x, const float y, const float ofs)
 	wmOrtho2(ofs, x + ofs, ofs, y + ofs);
 }
 
-/**
- * default pixel alignment.
- */
+/* Default pixel alignment for regions. */
 void wmOrtho2_region_pixelspace(const ARegion *ar)
 {
 	wmOrtho2_offset(ar->winx, ar->winy, -0.01f);
@@ -343,5 +129,9 @@ void wmOrtho2_pixelspace(const float x, const float y)
 	wmOrtho2_offset(x, y, -GLA_PIXEL_OFS);
 }
 
-/* ********** END MY WINDOW ************** */
-
+void wmGetProjectionMatrix(float mat[4][4], const rcti *winrct)
+{
+	int width  = BLI_rcti_size_x(winrct) + 1;
+	int height = BLI_rcti_size_y(winrct) + 1;
+	orthographic_m4(mat, -GLA_PIXEL_OFS, (float)width - GLA_PIXEL_OFS, -GLA_PIXEL_OFS, (float)height - GLA_PIXEL_OFS, -100, 100);
+}

@@ -333,11 +333,6 @@ static void rna_def_region(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Region", "Region in a subdivided screen area");
 	RNA_def_struct_sdna(srna, "ARegion");
 
-	prop = RNA_def_property(srna, "id", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "swinid");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Region ID", "Unique ID for this region");
-
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "regiontype");
 	RNA_def_property_enum_items(prop, rna_enum_region_type_items);

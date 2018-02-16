@@ -133,9 +133,6 @@ static int select_report_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
 	ReportList *reports = CTX_wm_reports(C);
 	Report *report;
 
-	/* uses opengl */
-	wmSubWindowSet(CTX_wm_window(C), ar->swinid);
-	
 	report = info_text_pick(sinfo, ar, reports, event->mval[1]);
 
 	RNA_int_set(op->ptr, "report_index", BLI_findindex(&reports->list, report));

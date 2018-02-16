@@ -48,7 +48,6 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
-#include "wm_subwindow.h"
 
 #include "UI_interface.h"
 
@@ -589,9 +588,7 @@ uiBlock *ui_popup_block_refresh(
 	ED_region_init(C, ar);
 
 	/* get winmat now that we actually have the subwindow */
-	wmSubWindowSet(window, ar->swinid);
-
-	wm_subwindow_matrix_get(window, ar->swinid, block->winmat);
+	wmGetProjectionMatrix(block->winmat, &ar->winrct);
 
 	/* notify change and redraw */
 	ED_region_tag_redraw(ar);

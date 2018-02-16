@@ -457,15 +457,17 @@ struct wmDropBox	*WM_dropbox_add(ListBase *lb, const char *idname, int (*poll)(s
                                     void (*copy)(struct wmDrag *, struct wmDropBox *));
 ListBase	*WM_dropboxmap_find(const char *idname, int spaceid, int regionid);
 
-			/* Set a subwindow active in pixelspace view, with optional scissor subset */
-void		wmSubWindowSet			(struct wmWindow *win, int swinid);
-void		wmSubWindowScissorSet	(struct wmWindow *win, int swinid, const struct rcti *srct, bool srct_pad);
+			/* Set OpenGL viewport and scissor */
+void		wmViewport(const struct rcti *rect);
+void		wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct);
+void		wmWindowViewport(struct wmWindow *win);
 
 			/* OpenGL utilities with safety check */
 void		wmOrtho2			(float x1, float x2, float y1, float y2);
 			/* use for conventions (avoid hard-coded offsets all over) */
 void		wmOrtho2_region_pixelspace(const struct ARegion *ar);
 void		wmOrtho2_pixelspace(const float x, const float y);
+void		wmGetProjectionMatrix(float mat[4][4], const struct rcti *winrct);
 
 			/* threaded Jobs Manager */
 enum {

@@ -6505,7 +6505,6 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		BLI_listbase_clear(&win->queue);
 		BLI_listbase_clear(&win->handlers);
 		BLI_listbase_clear(&win->modalhandlers);
-		BLI_listbase_clear(&win->subwindows);
 		BLI_listbase_clear(&win->gesture);
 		BLI_listbase_clear(&win->drawdata);
 		
@@ -7307,7 +7306,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	BLI_listbase_clear(&ar->handlers);
 	BLI_listbase_clear(&ar->uiblocks);
 	ar->headerstr = NULL;
-	ar->swinid = 0;
+	ar->visible = 0;
 	ar->type = NULL;
 	ar->swap = 0;
 	ar->do_draw = 0;
@@ -7354,8 +7353,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 	link_list(fd, &(sc->areabase));
 	sc->regionbase.first = sc->regionbase.last= NULL;
 	sc->context = NULL;
-	
-	sc->mainwin = sc->subwinactive= 0;	/* indices */
+	sc->active_region = NULL;
 	sc->swap = 0;
 
 	sc->preview = direct_link_preview_image(fd, sc->preview);

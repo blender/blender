@@ -47,7 +47,6 @@
 #include "wm.h"
 #include "wm_event_types.h"
 #include "wm_event_system.h"
-#include "wm_subwindow.h"
 
 #include "ED_screen.h"
 
@@ -198,18 +197,15 @@ int WM_gesture_border_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
-	int sx, sy;
 
 	if (event->type == MOUSEMOVE) {
-		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
-
 		if (gesture->type == WM_GESTURE_CROSS_RECT && gesture->is_active == false) {
-			rect->xmin = rect->xmax = event->x - sx;
-			rect->ymin = rect->ymax = event->y - sy;
+			rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
+			rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
 		}
 		else {
-			rect->xmax = event->x - sx;
-			rect->ymax = event->y - sy;
+			rect->xmax = event->x - gesture->winrct.xmin;
+			rect->ymax = event->y - gesture->winrct.ymin;
 		}
 		gesture_border_apply_rect(op);
 
@@ -333,13 +329,11 @@ int WM_gesture_circle_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
-	int sx, sy;
 
 	if (event->type == MOUSEMOVE) {
-		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
-		rect->xmin = event->x - sx;
-		rect->ymin = event->y - sy;
+		rect->xmin = event->x - gesture->winrct.xmin;
+		rect->ymin = event->y - gesture->winrct.ymin;
 
 		wm_gesture_tag_redraw(C);
 
@@ -464,24 +458,22 @@ static void gesture_tweak_modal(bContext *C, const wmEvent *event)
 	wmWindow *window = CTX_wm_window(C);
 	wmGesture *gesture = window->tweak;
 	rcti *rect = gesture->customdata;
-	int sx, sy, val;
+	int val;
 
 	switch (event->type) {
 		case MOUSEMOVE:
 		case INBETWEEN_MOUSEMOVE:
 
-			wm_subwindow_origin_get(window, gesture->swinid, &sx, &sy);
-
-			rect->xmax = event->x - sx;
-			rect->ymax = event->y - sy;
+			rect->xmax = event->x - gesture->winrct.xmin;
+			rect->ymax = event->y - gesture->winrct.ymin;
 
 			if ((val = wm_gesture_evaluate(gesture))) {
 				wmEvent tevent;
 
 				wm_event_init_from_window(window, &tevent);
 				/* We want to get coord from start of drag, not from point where it becomes a tweak event, see T40549 */
-				tevent.x = rect->xmin + sx;
-				tevent.y = rect->ymin + sy;
+				tevent.x = rect->xmin + gesture->winrct.xmin;
+				tevent.y = rect->ymin + gesture->winrct.ymin;
 				if (gesture->event_type == LEFTMOUSE)
 					tevent.type = EVT_TWEAK_L;
 				else if (gesture->event_type == RIGHTMOUSE)
@@ -617,15 +609,12 @@ static void gesture_lasso_apply(bContext *C, wmOperator *op)
 int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	wmGesture *gesture = op->customdata;
-	int sx, sy;
 
 	switch (event->type) {
 		case MOUSEMOVE:
 		case INBETWEEN_MOUSEMOVE:
 
 			wm_gesture_tag_redraw(C);
-
-			wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
 
 			if (gesture->points == gesture->points_alloc) {
 				gesture->points_alloc *= 2;
@@ -637,15 +626,15 @@ int WM_gesture_lasso_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				short *lasso = gesture->customdata;
 
 				lasso += (2 * gesture->points - 2);
-				x = (event->x - sx - lasso[0]);
-				y = (event->y - sy - lasso[1]);
+				x = (event->x - gesture->winrct.xmin - lasso[0]);
+				y = (event->y - gesture->winrct.ymin - lasso[1]);
 
 				/* make a simple distance check to get a smoother lasso
 				 * add only when at least 2 pixels between this and previous location */
 				if ((x * x + y * y) > 4) {
 					lasso += 2;
-					lasso[0] = event->x - sx;
-					lasso[1] = event->y - sy;
+					lasso[0] = event->x - gesture->winrct.xmin;
+					lasso[1] = event->y - gesture->winrct.ymin;
 					gesture->points++;
 				}
 			}
@@ -813,18 +802,15 @@ int WM_gesture_straightline_modal(bContext *C, wmOperator *op, const wmEvent *ev
 {
 	wmGesture *gesture = op->customdata;
 	rcti *rect = gesture->customdata;
-	int sx, sy;
 
 	if (event->type == MOUSEMOVE) {
-		wm_subwindow_origin_get(CTX_wm_window(C), gesture->swinid, &sx, &sy);
-
 		if (gesture->is_active == false) {
-			rect->xmin = rect->xmax = event->x - sx;
-			rect->ymin = rect->ymax = event->y - sy;
+			rect->xmin = rect->xmax = event->x - gesture->winrct.xmin;
+			rect->ymin = rect->ymax = event->y - gesture->winrct.ymin;
 		}
 		else {
-			rect->xmax = event->x - sx;
-			rect->ymax = event->y - sy;
+			rect->xmax = event->x - gesture->winrct.xmin;
+			rect->ymax = event->y - gesture->winrct.ymin;
 			gesture_straightline_apply(C, op);
 		}
 

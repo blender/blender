@@ -115,6 +115,7 @@ struct ImBuf;
 
 #include "RNA_types.h"
 #include "DNA_listBase.h"
+#include "DNA_vec_types.h"
 #include "BLI_compiler_attrs.h"
 
 /* exported types for WM */
@@ -214,7 +215,6 @@ typedef struct wmNotifier {
 	struct wmWindowManager *wm;
 	struct wmWindow *window;
 	
-	int swinid;			/* can't rely on this, notifiers can be added without context, swinid of 0 */
 	unsigned int category, data, subtype, action;
 	
 	void *reference;
@@ -422,7 +422,7 @@ typedef struct wmGesture {
 	struct wmGesture *next, *prev;
 	int event_type;	/* event->type */
 	int type;		/* gesture type define */
-	int swinid;		/* initial subwindow id where it started */
+	rcti winrct;    /* bounds of region to draw gesture within */
 	int points;		/* optional, amount of points stored */
 	int points_alloc;	/* optional, maximum amount of points stored */
 	int modal_state;

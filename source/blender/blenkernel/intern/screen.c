@@ -182,7 +182,7 @@ ARegion *BKE_area_region_copy(SpaceType *st, ARegion *ar)
 	BLI_listbase_clear(&newar->panels_category);
 	BLI_listbase_clear(&newar->panels_category_active);
 	BLI_listbase_clear(&newar->ui_lists);
-	newar->swinid = 0;
+	newar->visible = 0;
 	newar->manipulator_map = NULL;
 	newar->regiontimer = NULL;
 	newar->headerstr = NULL;

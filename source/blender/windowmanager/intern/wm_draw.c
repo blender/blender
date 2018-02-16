@@ -95,7 +95,7 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 		bScreen *screen = WM_window_get_active_screen(win);
 		wmPaintCursor *pc;
 
-		if (ar->swinid && screen->subwinactive == ar->swinid) {
+		if (ar->visible && ar == screen->active_region) {
 			for (pc = wm->paintcursors.first; pc; pc = pc->next) {
 				if (pc->poll == NULL || pc->poll(C)) {
 					ARegion *ar_other = CTX_wm_region(C);
@@ -216,7 +216,7 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 		CTX_wm_area_set(C, sa);
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->swinid) {
+			if (ar->visible) {
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
 				ar->do_draw = false;
@@ -235,7 +235,7 @@ static void wm_method_draw_full(bContext *C, wmWindow *win)
 
 	/* draw overlapping regions */
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->swinid) {
+		if (ar->visible) {
 			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
 			ar->do_draw = false;
@@ -295,7 +295,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 	/* after backbuffer selection draw, we need to redraw */
 	for (sa = screen->areabase.first; sa; sa = sa->next)
 		for (ar = sa->regionbase.first; ar; ar = ar->next)
-			if (ar->swinid && !wm_area_test_invalid_backbuf(sa))
+			if (ar->visible && !wm_area_test_invalid_backbuf(sa))
 				ED_region_tag_redraw(ar);
 
 	/* flush overlapping regions */
@@ -303,17 +303,17 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 		/* flush redraws of area regions up to overlapping regions */
 		for (sa = screen->areabase.first; sa; sa = sa->next)
 			for (ar = sa->regionbase.first; ar; ar = ar->next)
-				if (ar->swinid && ar->do_draw)
+				if (ar->visible && ar->do_draw)
 					wm_flush_regions_up(screen, &ar->winrct);
 		
 		/* flush between overlapping regions */
 		for (ar = screen->regionbase.last; ar; ar = ar->prev)
-			if (ar->swinid && ar->do_draw)
+			if (ar->visible && ar->do_draw)
 				wm_flush_regions_up(screen, &ar->winrct);
 		
 		/* flush redraws of overlapping regions down to area regions */
 		for (ar = screen->regionbase.last; ar; ar = ar->prev)
-			if (ar->swinid && ar->do_draw)
+			if (ar->visible && ar->do_draw)
 				wm_flush_regions_down(screen, &ar->winrct);
 	}
 
@@ -332,7 +332,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 		CTX_wm_area_set(C, sa);
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->swinid) {
+			if (ar->visible) {
 				if (ar->do_draw) {
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
@@ -389,7 +389,7 @@ static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
 
 	/* draw marked overlapping regions */
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->swinid && ar->do_draw) {
+		if (ar->visible && ar->do_draw) {
 			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
 			ar->do_draw = false;
@@ -526,9 +526,7 @@ static void wm_draw_region_blend(wmWindow *win, ARegion *ar, wmDrawTriple *tripl
 	
 	/* region blend always is 1, except when blend timer is running */
 	if (fac < 1.0f) {
-		bScreen *screen = WM_window_get_active_screen(win);
-
-		wmSubWindowScissorSet(win, screen->mainwin, &ar->winrct, true);
+		wmViewport(&ar->winrct);
 
 		glEnable(GL_BLEND);
 		wm_triple_draw_textures(win, triple, 1.0f - fac);
@@ -551,7 +549,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
 
-		wmSubWindowSet(win, screen->mainwin);
+		wmWindowViewport(win);
 
 		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 	}
@@ -587,7 +585,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		CTX_wm_area_set(C, sa);
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->swinid && ar->do_draw) {
+			if (ar->visible && ar->do_draw) {
 				if (ar->overlap == false) {
 					CTX_wm_region_set(C, ar);
 					ED_region_do_draw(C, ar);
@@ -603,7 +601,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	}
 
 	if (copytex) {
-		wmSubWindowSet(win, screen->mainwin);
+		wmWindowViewport(win);
 
 		wm_triple_copy_textures(win, triple);
 	}
@@ -611,12 +609,12 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	if (wm->paintcursors.first) {
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->swinid && ar->swinid == screen->subwinactive) {
+				if (ar->visible && ar == screen->active_region) {
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
 
 					/* make region ready for draw, scissor, pixelspace */
-					wmSubWindowScissorSet(win, ar->swinid, &ar->winrct, true);
+					wmViewport(&ar->winrct);
 					wm_paintcursor_draw(C, ar);
 
 					CTX_wm_region_set(C, NULL);
@@ -625,7 +623,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 			}
 		}
 
-		wmSubWindowSet(win, screen->mainwin);
+		wmWindowViewport(win);
 	}
 
 	/* draw overlapping area regions (always like popups) */
@@ -633,7 +631,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		CTX_wm_area_set(C, sa);
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->swinid && ar->overlap) {
+			if (ar->visible && ar->overlap) {
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
 				ar->do_draw = false;
@@ -653,7 +651,7 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 
 	/* draw floating regions (menus) */
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->swinid) {
+		if (ar->visible) {
 			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
 			ar->do_draw = false;
@@ -693,7 +691,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #endif
 
-				wmSubWindowSet(win, screen->mainwin);
+				wmWindowViewport(win);
 
 				wm_triple_draw_textures(win, drawdata->triple, 1.0f);
 			}
@@ -758,7 +756,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 
 		/* draw marked area regions */
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->swinid && ar->do_draw) {
+			if (ar->visible && ar->do_draw) {
 
 				if (ar->overlap == false) {
 					CTX_wm_region_set(C, ar);
@@ -778,7 +776,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 	}
 
 	if (copytex) {
-		wmSubWindowSet(win, screen->mainwin);
+		wmWindowViewport(win);
 
 		wm_triple_copy_textures(win, triple_data);
 	}
@@ -786,12 +784,12 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 	if (wm->paintcursors.first) {
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->swinid && ar->swinid == screen->subwinactive) {
+				if (ar->visible && ar == screen->active_region) {
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
 
 					/* make region ready for draw, scissor, pixelspace */
-					wmSubWindowScissorSet(win, ar->swinid, &ar->winrct, true);
+					wmViewport(&ar->winrct);
 					wm_paintcursor_draw(C, ar);
 
 					CTX_wm_region_set(C, NULL);
@@ -800,7 +798,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 			}
 		}
 
-		wmSubWindowSet(win, screen->mainwin);
+		wmWindowViewport(win);
 	}
 
 	/* draw overlapping area regions (always like popups) */
@@ -808,7 +806,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 		CTX_wm_area_set(C, sa);
 
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->swinid && ar->overlap) {
+			if (ar->visible && ar->overlap) {
 				CTX_wm_region_set(C, ar);
 				ED_region_do_draw(C, ar);
 				if (sview == STEREO_RIGHT_ID)
@@ -831,7 +829,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 
 	/* draw floating regions (menus) */
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->swinid) {
+		if (ar->visible) {
 			CTX_wm_menu_set(C, ar);
 			ED_region_do_draw(C, ar);
 			if (sview == STEREO_RIGHT_ID)
@@ -850,7 +848,7 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 	}
 
 	/* copy the ui + overlays */
-	wmSubWindowSet(win, screen->mainwin);
+	wmWindowViewport(win);
 	wm_triple_copy_textures(win, triple_all);
 }
 
@@ -873,7 +871,7 @@ static bool wm_draw_update_test_window(wmWindow *win)
 			wm_tag_redraw_overlay(win, ar);
 			ar->do_draw_overlay = false;
 		}
-		if (ar->swinid && ar->do_draw)
+		if (ar->visible && ar->do_draw)
 			do_draw = true;
 	}
 
@@ -881,7 +879,7 @@ static bool wm_draw_update_test_window(wmWindow *win)
 		for (ar = sa->regionbase.first; ar; ar = ar->next) {
 			wm_region_test_render_do_draw(scene, depsgraph, sa, ar);
 
-			if (ar->swinid && ar->do_draw)
+			if (ar->visible && ar->do_draw)
 				do_draw = true;
 		}
 	}
