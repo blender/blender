@@ -56,7 +56,9 @@
 #include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_paint.h"
 #include "BKE_property.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
@@ -136,6 +138,53 @@ void ED_object_base_activate(bContext *C, Base *base)
 	}
 
 	eObjectMode object_mode = workspace->object_mode;
+
+	{
+		Scene *scene = CTX_data_scene(C);
+		/* We don't know the previous active object in update.
+		 *
+		 * Not correct because it's possible other work-spaces use these.
+		 * although that's a corner case. */
+		if (workspace->object_mode & OB_MODE_EDIT) {
+			Object *obact = OBACT(view_layer);
+			FOREACH_OBJECT(view_layer, ob) {
+				if (ob != base->object) {
+					if (BKE_object_is_in_editmode(ob)) {
+						ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
+					}
+				}
+			}
+			FOREACH_OBJECT_END;
+		}
+		else if (workspace->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT)) {
+			Object *obact = OBACT(view_layer);
+			FOREACH_OBJECT(view_layer, ob) {
+				if (ob != base->object) {
+					if (ob->sculpt) {
+						switch (ob->sculpt->mode_type) {
+							case OB_MODE_VERTEX_PAINT:
+							{
+								ED_object_vpaintmode_exit_ex(workspace, ob);
+								break;
+							}
+							case OB_MODE_WEIGHT_PAINT:
+							{
+								ED_object_wpaintmode_exit_ex(workspace, ob);
+								break;
+							}
+							case OB_MODE_SCULPT:
+							{
+								/* TODO */
+								break;
+							}
+						}
+					}
+				}
+			}
+			FOREACH_OBJECT_END;
+		}
+	}
+
 	workspace->object_mode = OB_MODE_OBJECT;
 
 	view_layer->basact = base;

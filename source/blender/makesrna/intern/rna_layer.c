@@ -847,24 +847,6 @@ static void rna_LayerObjects_active_object_update(struct bContext *C, PointerRNA
 		return;
 	}
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-
-	/* We don't know the previous active object in update.
-	 *
-	 * Not correct because it's possible other work-spaces use these.
-	 * although that's a corner case. */
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	if (workspace->object_mode & OB_MODE_EDIT) {
-		Object *obact = OBACT(view_layer);
-		FOREACH_OBJECT(view_layer, ob) {
-			if (ob != obact) {
-				if (BKE_object_is_in_editmode(ob)) {
-					ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
-				}
-			}
-		}
-		FOREACH_OBJECT_END;
-	}
-
 	ED_object_base_activate(C, view_layer->basact);
 }
 
