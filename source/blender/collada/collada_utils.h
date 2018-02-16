@@ -100,6 +100,7 @@ extern EditBone *bc_get_edit_bone(bArmature * armature, char *name);
 extern int bc_set_layer(int bitfield, int layer, bool enable);
 extern int bc_set_layer(int bitfield, int layer);
 extern void bc_sanitize_mat(float mat[4][4], int precision);
+extern void bc_sanitize_mat(double mat[4][4], int precision);
 
 extern IDProperty *bc_get_IDProperty(Bone *bone, std::string key);
 extern void bc_set_IDProperty(EditBone *ebone, const char *key, float value);

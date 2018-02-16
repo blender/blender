@@ -864,6 +864,13 @@ void bc_sanitize_mat(float mat[4][4], int precision)
 			mat[i][j] = double_round(mat[i][j], precision);
 }
 
+void bc_sanitize_mat(double mat[4][4], int precision)
+{
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			mat[i][j] = double_round(mat[i][j], precision);
+}
+
 /*
 * Returns name of Active UV Layer or empty String if no active UV Layer defined.
 * Assuming the Object is of type MESH
