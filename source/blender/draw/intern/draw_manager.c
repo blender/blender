@@ -3959,6 +3959,14 @@ bool DRW_state_is_scene_render(void)
 }
 
 /**
+* Whether we are rendering simple opengl render
+*/
+bool DRW_state_is_opengl_render(void)
+{
+	return DST.options.is_image_render && !DST.options.is_scene_render;
+}
+
+/**
  * Gives you the iterator mode to use for depsgraph.
  */
 eDepsObjectIteratorMode DRW_iterator_mode_get(void)
