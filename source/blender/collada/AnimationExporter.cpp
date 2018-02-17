@@ -989,6 +989,9 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &frames, Obj
 		double outmat[4][4];
 		converter.mat4_to_dae_double(outmat, mat);
 
+		if (this->export_settings->limit_precision)
+			bc_sanitize_mat(outmat, 6);
+
 		source.appendValues(outmat);
 
 		j++;
