@@ -18,10 +18,6 @@
 #  define KERNEL_TEX(type, name)
 #endif
 
-#ifndef KERNEL_IMAGE_TEX
-#  define KERNEL_IMAGE_TEX(type, ttype, name)
-#endif
-
 /* bvh */
 KERNEL_TEX(float4, __bvh_nodes)
 KERNEL_TEX(float4, __bvh_leaf_nodes)
@@ -82,6 +78,4 @@ KERNEL_TEX(uint, __sobol_directions)
 KERNEL_TEX(TextureInfo, __texture_info)
 
 #undef KERNEL_TEX
-#undef KERNEL_IMAGE_TEX
-
 

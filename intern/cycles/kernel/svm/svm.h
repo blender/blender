@@ -30,8 +30,7 @@
  * in local memory on the GPU, as it would take too many register and indexes in
  * ways not known at compile time. This seems the only solution even though it
  * may be slow, with two positive factors. If the same shader is being executed,
- * memory access will be coalesced, and on fermi cards, memory will actually be
- * cached.
+ * memory access will be coalesced and cached.
  *
  * The result of shader execution will be a single closure. This means the
  * closure type, associated label, data and weight. Sampling from multiple

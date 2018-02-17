@@ -254,7 +254,7 @@ int ImageManager::add_image(const string& filename,
 	/* Check whether it's a float texture. */
 	is_float = (type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4);
 
-	/* No half textures on OpenCL, use available slots */
+	/* No half textures on OpenCL, use full float instead. */
 	if(!has_half_images) {
 		if(type == IMAGE_DATA_TYPE_HALF4) {
 			type = IMAGE_DATA_TYPE_FLOAT4;

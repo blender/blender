@@ -85,7 +85,6 @@ void kernel_tex_copy(KernelGlobals *kg,
 		kg->tname.data = (type*)mem; \
 		kg->tname.width = size; \
 	}
-#define KERNEL_IMAGE_TEX(type, tname)
 #include "kernel/kernel_textures.h"
 	else {
 		assert(0);

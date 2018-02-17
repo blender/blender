@@ -500,17 +500,17 @@ ccl_device_forceinline bool cardinal_curve_intersect(
 }
 
 ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
-                                               Intersection *isect,
-                                               float3 P,
-                                               float3 direction,
-                                               uint visibility,
-                                               int object,
-                                               int curveAddr,
-                                               float time,
-                                               int type,
-                                               uint *lcg_state,
-                                               float difl,
-                                               float extmax)
+                                            Intersection *isect,
+                                            float3 P,
+                                            float3 direction,
+                                            uint visibility,
+                                            int object,
+                                            int curveAddr,
+                                            float time,
+                                            int type,
+                                            uint *lcg_state,
+                                            float difl,
+                                            float extmax)
 {
 	/* define few macros to minimize code duplication for SSE */
 #ifndef __KERNEL_SSE2__

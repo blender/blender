@@ -1069,8 +1069,6 @@ public:
 		}
 
 		/* Image Texture Storage */
-		CUtexref texref = NULL;
-
 		CUarray_format_enum format;
 		switch(mem.data_type) {
 			case TYPE_UCHAR: format = CU_AD_FORMAT_UNSIGNED_INT8; break;
