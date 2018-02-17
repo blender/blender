@@ -49,7 +49,6 @@ ImageManager::ImageManager(const DeviceInfo& info)
 	/* Set image limits */
 	max_num_images = TEX_NUM_MAX;
 	has_half_images = info.has_half_images;
-	cuda_fermi_limits = info.has_fermi_limits;
 
 	for(size_t type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
 		tex_num_images[type] = 0;
@@ -255,22 +254,13 @@ int ImageManager::add_image(const string& filename,
 	/* Check whether it's a float texture. */
 	is_float = (type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4);
 
-	/* No single channel and half textures on CUDA (Fermi) and no half on OpenCL, use available slots */
+	/* No half textures on OpenCL, use available slots */
 	if(!has_half_images) {
 		if(type == IMAGE_DATA_TYPE_HALF4) {
 			type = IMAGE_DATA_TYPE_FLOAT4;
 		}
 		else if(type == IMAGE_DATA_TYPE_HALF) {
 			type = IMAGE_DATA_TYPE_FLOAT;
-		}
-	}
-
-	if(cuda_fermi_limits) {
-		if(type == IMAGE_DATA_TYPE_FLOAT) {
-			type = IMAGE_DATA_TYPE_FLOAT4;
-		}
-		else if(type == IMAGE_DATA_TYPE_BYTE) {
-			type = IMAGE_DATA_TYPE_BYTE4;
 		}
 	}
 
@@ -303,27 +293,16 @@ int ImageManager::add_image(const string& filename,
 			break;
 	}
 
-	/* Count if we're over the limit */
-	if(cuda_fermi_limits) {
-		if(tex_num_images[IMAGE_DATA_TYPE_BYTE4] == TEX_NUM_BYTE4_CUDA
-			|| tex_num_images[IMAGE_DATA_TYPE_FLOAT4] == TEX_NUM_FLOAT4_CUDA)
-		{
-			printf("ImageManager::add_image: Reached %s image limit (%d), skipping '%s'\n",
-				name_from_type(type).c_str(), tex_num_images[type], filename.c_str());
-			return -1;
-		}
+	/* Count if we're over the limit.
+	 * Very unlikely, since max_num_images is insanely big. But better safe than sorry. */
+	int tex_count = 0;
+	for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
+		tex_count += tex_num_images[type];
 	}
-	else {
-		/* Very unlikely, since max_num_images is insanely big. But better safe than sorry. */
-		int tex_count = 0;
-		for(int type = 0; type < IMAGE_DATA_NUM_TYPES; type++) {
-			tex_count += tex_num_images[type];
-		}
-		if(tex_count > max_num_images) {
-			printf("ImageManager::add_image: Reached image limit (%d), skipping '%s'\n",
-				max_num_images, filename.c_str());
-			return -1;
-		}
+	if(tex_count > max_num_images) {
+		printf("ImageManager::add_image: Reached image limit (%d), skipping '%s'\n",
+			max_num_images, filename.c_str());
+		return -1;
 	}
 
 	if(slot == images[type].size()) {

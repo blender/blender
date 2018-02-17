@@ -135,17 +135,8 @@ ccl_device_inline uint ccl_num_groups(uint d)
 
 /* Textures */
 
-/* Use arrays for regular data. This is a little slower than textures on Fermi,
- * but allows for cleaner code and we will stop supporting Fermi soon. */
+/* Use arrays for regular data. */
 #define kernel_tex_fetch(t, index) t[(index)]
-
-/* On Kepler (6xx) and above, we use Bindless Textures for images.
- * On Fermi cards (4xx and 5xx), we have to use regular textures. */
-#if __CUDA_ARCH__ < 300
-typedef texture<float4, 2> texture_image_float4;
-typedef texture<float4, 3> texture_image3d_float4;
-typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
-#endif
 
 #define kernel_data __data
 

@@ -121,7 +121,6 @@ private:
 	int tex_num_images[IMAGE_DATA_NUM_TYPES];
 	int max_num_images;
 	bool has_half_images;
-	bool cuda_fermi_limits;
 
 	thread_mutex device_mutex;
 	int animation_frame;
