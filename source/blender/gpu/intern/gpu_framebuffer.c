@@ -385,6 +385,13 @@ bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	GG.currentfb = fb->object;
 
+	/* On macOS glDrawBuffer must be set when checking completeness,
+	 * otherwise it will return GL_FRAMEBUFFER_UNSUPPORTED when only a
+	 * color buffer without depth is used. */
+	if (fb->colortex[0]) {
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	}
+
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
 	if (status != GL_FRAMEBUFFER_COMPLETE) {
