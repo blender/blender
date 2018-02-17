@@ -322,9 +322,9 @@ public:
 		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
 		cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
-		/* We only support sm_20 and above */
-		if(major < 2) {
-			cuda_error_message(string_printf("CUDA device supported only with compute capability 2.0 or up, found %d.%d.", major, minor));
+		/* We only support sm_30 and above */
+		if(major < 3) {
+			cuda_error_message(string_printf("CUDA device supported only with compute capability 3.0 or up, found %d.%d.", major, minor));
 			return false;
 		}
 
@@ -462,9 +462,9 @@ public:
 
 #ifdef _WIN32
 		if(have_precompiled_kernels()) {
-			if(major < 2) {
+			if(major < 3) {
 				cuda_error_message(string_printf(
-				        "CUDA device requires compute capability 2.0 or up, "
+				        "CUDA device requires compute capability 3.0 or up, "
 				        "found %d.%d. Your GPU is not supported.",
 				        major, minor));
 			}
@@ -2532,7 +2532,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 		int major;
 		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
-		if(major < 2) {
+		if(major < 3) {
 			VLOG(1) << "Ignoring device \"" << name
 			        << "\", compute capability is too low.";
 			continue;
@@ -2544,7 +2544,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.description = string(name);
 		info.num = num;
 
-		info.advanced_shading = (major >= 2);
+		info.advanced_shading = (major >= 3);
 		info.has_fermi_limits = !(major >= 3);
 		info.has_half_images = (major >= 3);
 		info.has_volume_decoupled = false;
