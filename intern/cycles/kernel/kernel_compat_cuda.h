@@ -50,10 +50,7 @@ __device__ half __float2half(const float f)
 /* Qualifier wrappers for different names on different devices */
 
 #define ccl_device  __device__ __inline__
-#if __CUDA_ARCH__ < 300
-#  define ccl_device_inline  __device__ __inline__
-#  define ccl_device_forceinline  __device__ __forceinline__
-#elif __CUDA_ARCH__ < 500
+#if __CUDA_ARCH__ < 500
 #  define ccl_device_inline  __device__ __forceinline__
 #  define ccl_device_forceinline  __device__ __forceinline__
 #else

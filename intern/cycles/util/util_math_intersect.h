@@ -79,12 +79,7 @@ ccl_device bool ray_aligned_disk_intersect(
 	return true;
 }
 
-#if defined(__KERNEL_CUDA__) && __CUDA_ARCH__ < 300
-ccl_device_inline
-#else
-ccl_device_forceinline
-#endif
-bool ray_triangle_intersect(
+ccl_device_forceinline bool ray_triangle_intersect(
         float3 ray_P, float3 ray_dir, float ray_t,
 #if defined(__KERNEL_SSE2__) && defined(__KERNEL_SSE__)
         const ssef *ssef_verts,
