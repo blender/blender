@@ -309,9 +309,7 @@ public:
 
 		delete split_kernel;
 
-		if(!info.has_fermi_limits) {
-			texture_info.free();
-		}
+		texture_info.free();
 
 		cuda_assert(cuCtxDestroy(cuContext));
 	}
@@ -322,9 +320,9 @@ public:
 		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, cuDevId);
 		cuDeviceGetAttribute(&minor, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MINOR, cuDevId);
 
-		/* We only support sm_20 and above */
-		if(major < 2) {
-			cuda_error_message(string_printf("CUDA device supported only with compute capability 2.0 or up, found %d.%d.", major, minor));
+		/* We only support sm_30 and above */
+		if(major < 3) {
+			cuda_error_message(string_printf("CUDA device supported only with compute capability 3.0 or up, found %d.%d.", major, minor));
 			return false;
 		}
 
@@ -462,9 +460,9 @@ public:
 
 #ifdef _WIN32
 		if(have_precompiled_kernels()) {
-			if(major < 2) {
+			if(major < 3) {
 				cuda_error_message(string_printf(
-				        "CUDA device requires compute capability 2.0 or up, "
+				        "CUDA device requires compute capability 3.0 or up, "
 				        "found %d.%d. Your GPU is not supported.",
 				        major, minor));
 			}
@@ -680,7 +678,7 @@ public:
 
 	void load_texture_info()
 	{
-		if(!info.has_fermi_limits && need_texture_info) {
+		if(need_texture_info) {
 			texture_info.copy_to_device();
 			need_texture_info = false;
 		}
@@ -1018,9 +1016,6 @@ public:
 	{
 		CUDAContextScope scope(this);
 
-		/* Check if we are on sm_30 or above, for bindless textures. */
-		bool has_fermi_limits = info.has_fermi_limits;
-
 		/* General variables for both architectures */
 		string bind_name = mem.name;
 		size_t dsize = datatype_size(mem.data_type);
@@ -1074,27 +1069,6 @@ public:
 		}
 
 		/* Image Texture Storage */
-		CUtexref texref = NULL;
-
-		if(has_fermi_limits) {
-			if(mem.data_depth > 1) {
-				/* Kernel uses different bind names for 2d and 3d float textures,
-				 * so we have to adjust couple of things here.
-				 */
-				vector<string> tokens;
-				string_split(tokens, mem.name, "_");
-				bind_name = string_printf("__tex_image_%s_3d_%s",
-				                          tokens[2].c_str(),
-				                          tokens[3].c_str());
-			}
-
-			cuda_assert(cuModuleGetTexRef(&texref, cuModule, bind_name.c_str()));
-
-			if(!texref) {
-				return;
-			}
-		}
-
 		CUarray_format_enum format;
 		switch(mem.data_type) {
 			case TYPE_UCHAR: format = CU_AD_FORMAT_UNSIGNED_INT8; break;
@@ -1187,97 +1161,68 @@ public:
 			cuda_assert(cuMemcpyHtoD(mem.device_pointer, mem.host_pointer, size));
 		}
 
-		if(!has_fermi_limits) {
-			/* Kepler+, bindless textures. */
-			int flat_slot = 0;
-			if(string_startswith(mem.name, "__tex_image")) {
-				int pos =  string(mem.name).rfind("_");
-				flat_slot = atoi(mem.name + pos + 1);
-			}
-			else {
-				assert(0);
-			}
-
-			CUDA_RESOURCE_DESC resDesc;
-			memset(&resDesc, 0, sizeof(resDesc));
-
-			if(array_3d) {
-				resDesc.resType = CU_RESOURCE_TYPE_ARRAY;
-				resDesc.res.array.hArray = array_3d;
-				resDesc.flags = 0;
-			}
-			else if(mem.data_height > 0) {
-				resDesc.resType = CU_RESOURCE_TYPE_PITCH2D;
-				resDesc.res.pitch2D.devPtr = mem.device_pointer;
-				resDesc.res.pitch2D.format = format;
-				resDesc.res.pitch2D.numChannels = mem.data_elements;
-				resDesc.res.pitch2D.height = mem.data_height;
-				resDesc.res.pitch2D.width = mem.data_width;
-				resDesc.res.pitch2D.pitchInBytes = dst_pitch;
-			}
-			else {
-				resDesc.resType = CU_RESOURCE_TYPE_LINEAR;
-				resDesc.res.linear.devPtr = mem.device_pointer;
-				resDesc.res.linear.format = format;
-				resDesc.res.linear.numChannels = mem.data_elements;
-				resDesc.res.linear.sizeInBytes = mem.device_size;
-			}
-
-			CUDA_TEXTURE_DESC texDesc;
-			memset(&texDesc, 0, sizeof(texDesc));
-			texDesc.addressMode[0] = address_mode;
-			texDesc.addressMode[1] = address_mode;
-			texDesc.addressMode[2] = address_mode;
-			texDesc.filterMode = filter_mode;
-			texDesc.flags = CU_TRSF_NORMALIZED_COORDINATES;
-
-			cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
-
-			/* Resize once */
-			if(flat_slot >= texture_info.size()) {
-				/* Allocate some slots in advance, to reduce amount
-				 * of re-allocations. */
-				texture_info.resize(flat_slot + 128);
-			}
-
-			/* Set Mapping and tag that we need to (re-)upload to device */
-			TextureInfo& info = texture_info[flat_slot];
-			info.data = (uint64_t)cmem->texobject;
-			info.cl_buffer = 0;
-			info.interpolation = mem.interpolation;
-			info.extension = mem.extension;
-			info.width = mem.data_width;
-			info.height = mem.data_height;
-			info.depth = mem.data_depth;
-			need_texture_info = true;
+		/* Kepler+, bindless textures. */
+		int flat_slot = 0;
+		if(string_startswith(mem.name, "__tex_image")) {
+			int pos =  string(mem.name).rfind("_");
+			flat_slot = atoi(mem.name + pos + 1);
 		}
 		else {
-			/* Fermi, fixed texture slots. */
-			if(array_3d) {
-				cuda_assert(cuTexRefSetArray(texref, array_3d, CU_TRSA_OVERRIDE_FORMAT));
-			}
-			else if(mem.data_height > 0) {
-				CUDA_ARRAY_DESCRIPTOR array_desc;
-				array_desc.Format = format;
-				array_desc.Height = mem.data_height;
-				array_desc.Width = mem.data_width;
-				array_desc.NumChannels = mem.data_elements;
-				cuda_assert(cuTexRefSetAddress2D_v3(texref, &array_desc, mem.device_pointer, dst_pitch));
-			}
-			else {
-				cuda_assert(cuTexRefSetAddress(NULL, texref, cuda_device_ptr(mem.device_pointer), size));
-			}
-
-			/* Attach to texture reference. */
-			cuda_assert(cuTexRefSetFilterMode(texref, filter_mode));
-			cuda_assert(cuTexRefSetFlags(texref, CU_TRSF_NORMALIZED_COORDINATES));
-			cuda_assert(cuTexRefSetFormat(texref, format, mem.data_elements));
-			cuda_assert(cuTexRefSetAddressMode(texref, 0, address_mode));
-			cuda_assert(cuTexRefSetAddressMode(texref, 1, address_mode));
-			if(mem.data_depth > 1) {
-				cuda_assert(cuTexRefSetAddressMode(texref, 2, address_mode));
-			}
+			assert(0);
 		}
+
+		CUDA_RESOURCE_DESC resDesc;
+		memset(&resDesc, 0, sizeof(resDesc));
+
+		if(array_3d) {
+			resDesc.resType = CU_RESOURCE_TYPE_ARRAY;
+			resDesc.res.array.hArray = array_3d;
+			resDesc.flags = 0;
+		}
+		else if(mem.data_height > 0) {
+			resDesc.resType = CU_RESOURCE_TYPE_PITCH2D;
+			resDesc.res.pitch2D.devPtr = mem.device_pointer;
+			resDesc.res.pitch2D.format = format;
+			resDesc.res.pitch2D.numChannels = mem.data_elements;
+			resDesc.res.pitch2D.height = mem.data_height;
+			resDesc.res.pitch2D.width = mem.data_width;
+			resDesc.res.pitch2D.pitchInBytes = dst_pitch;
+		}
+		else {
+			resDesc.resType = CU_RESOURCE_TYPE_LINEAR;
+			resDesc.res.linear.devPtr = mem.device_pointer;
+			resDesc.res.linear.format = format;
+			resDesc.res.linear.numChannels = mem.data_elements;
+			resDesc.res.linear.sizeInBytes = mem.device_size;
+		}
+
+		CUDA_TEXTURE_DESC texDesc;
+		memset(&texDesc, 0, sizeof(texDesc));
+		texDesc.addressMode[0] = address_mode;
+		texDesc.addressMode[1] = address_mode;
+		texDesc.addressMode[2] = address_mode;
+		texDesc.filterMode = filter_mode;
+		texDesc.flags = CU_TRSF_NORMALIZED_COORDINATES;
+
+		cuda_assert(cuTexObjectCreate(&cmem->texobject, &resDesc, &texDesc, NULL));
+
+		/* Resize once */
+		if(flat_slot >= texture_info.size()) {
+			/* Allocate some slots in advance, to reduce amount
+			 * of re-allocations. */
+			texture_info.resize(flat_slot + 128);
+		}
+
+		/* Set Mapping and tag that we need to (re-)upload to device */
+		TextureInfo& info = texture_info[flat_slot];
+		info.data = (uint64_t)cmem->texobject;
+		info.cl_buffer = 0;
+		info.interpolation = mem.interpolation;
+		info.extension = mem.extension;
+		info.width = mem.data_width;
+		info.height = mem.data_height;
+		info.depth = mem.data_depth;
+		need_texture_info = true;
 	}
 
 	void tex_free(device_memory& mem)
@@ -2550,9 +2495,9 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 
 		int major;
 		cuDeviceGetAttribute(&major, CU_DEVICE_ATTRIBUTE_COMPUTE_CAPABILITY_MAJOR, num);
-		if(major < 2) {
+		if(major < 3) {
 			VLOG(1) << "Ignoring device \"" << name
-			        << "\", compute capability is too low.";
+			        << "\", this graphics card is no longer supported.";
 			continue;
 		}
 
@@ -2562,8 +2507,7 @@ void device_cuda_info(vector<DeviceInfo>& devices)
 		info.description = string(name);
 		info.num = num;
 
-		info.advanced_shading = (major >= 2);
-		info.has_fermi_limits = !(major >= 3);
+		info.advanced_shading = (major >= 3);
 		info.has_half_images = (major >= 3);
 		info.has_volume_decoupled = false;
 		info.bvh_layout_mask = BVH_LAYOUT_BVH2;

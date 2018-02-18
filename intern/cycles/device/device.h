@@ -56,7 +56,6 @@ public:
 	int num;
 	bool display_device;            /* GPU is used as a display device. */
 	bool advanced_shading;          /* Supports full shading system. */
-	bool has_fermi_limits;          /* Fixed number of textures limit. */
 	bool has_half_images;           /* Support half-float textures. */
 	bool has_volume_decoupled;      /* Decoupled volume shading. */
 	BVHLayoutMask bvh_layout_mask;  /* Bitmask of supported BVH layouts. */
@@ -73,7 +72,6 @@ public:
 		cpu_threads = 0;
 		display_device = false;
 		advanced_shading = true;
-		has_fermi_limits = false;
 		has_half_images = false;
 		has_volume_decoupled = false;
 		bvh_layout_mask = BVH_LAYOUT_NONE;

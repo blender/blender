@@ -39,7 +39,7 @@
 #include "BLI_math_matrix.h"
 #include "BLI_math_geom.h"
 #include "BLI_utildefines.h"
-#include "BLI_lasso.h"
+#include "BLI_lasso_2d.h"
 #include "BLI_task.h"
 
 #include "BKE_pbvh.h"

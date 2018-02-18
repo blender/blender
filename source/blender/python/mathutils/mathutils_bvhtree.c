@@ -33,7 +33,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_kdopbvh.h"
-#include "BLI_polyfill2d.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_math.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"

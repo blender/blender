@@ -18,10 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_DIAL_H__
-#define __BLI_DIAL_H__
+#ifndef __BLI_DIAL_2D_H__
+#define __BLI_DIAL_2D_H__
 
-/** \file BLI_dial.h
+/** \file BLI_dial_2d.h
  *  \ingroup bli
  *
  * \note dials act similar to old rotation based phones and output an angle.
@@ -56,4 +56,4 @@ Dial *BLI_dial_initialize(const float start_position[2], float threshold);
 
 float BLI_dial_angle(Dial *dial, const float current_position[2]);
 
-#endif /* __BLI_DIAL_H__ */
+#endif  /* __BLI_DIAL_2D_H__ */

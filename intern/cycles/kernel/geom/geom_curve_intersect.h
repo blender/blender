@@ -18,12 +18,6 @@ CCL_NAMESPACE_BEGIN
 
 #ifdef __HAIR__
 
-#if defined(__KERNEL_CUDA__) && (__CUDA_ARCH__ < 300)
-#  define ccl_device_curveintersect ccl_device
-#else
-#  define ccl_device_curveintersect ccl_device_forceinline
-#endif
-
 #ifdef __KERNEL_SSE2__
 ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
 {
@@ -32,7 +26,7 @@ ccl_device_inline ssef transform_point_T3(const ssef t[3], const ssef &a)
 #endif
 
 /* On CPU pass P and dir by reference to aligned vector. */
-ccl_device_curveintersect bool cardinal_curve_intersect(
+ccl_device_forceinline bool cardinal_curve_intersect(
         KernelGlobals *kg,
         Intersection *isect,
         const float3 ccl_ref P,
@@ -505,18 +499,18 @@ ccl_device_curveintersect bool cardinal_curve_intersect(
 	return hit;
 }
 
-ccl_device_curveintersect bool curve_intersect(KernelGlobals *kg,
-                                               Intersection *isect,
-                                               float3 P,
-                                               float3 direction,
-                                               uint visibility,
-                                               int object,
-                                               int curveAddr,
-                                               float time,
-                                               int type,
-                                               uint *lcg_state,
-                                               float difl,
-                                               float extmax)
+ccl_device_forceinline bool curve_intersect(KernelGlobals *kg,
+                                            Intersection *isect,
+                                            float3 P,
+                                            float3 direction,
+                                            uint visibility,
+                                            int object,
+                                            int curveAddr,
+                                            float time,
+                                            int type,
+                                            uint *lcg_state,
+                                            float difl,
+                                            float extmax)
 {
 	/* define few macros to minimize code duplication for SSE */
 #ifndef __KERNEL_SSE2__

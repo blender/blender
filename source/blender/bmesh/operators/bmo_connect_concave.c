@@ -39,8 +39,8 @@
 #include "BLI_alloca.h"
 #include "BLI_memarena.h"
 #include "BLI_heap.h"
-#include "BLI_polyfill2d.h"
-#include "BLI_polyfill2d_beautify.h"
+#include "BLI_polyfill_2d.h"
+#include "BLI_polyfill_2d_beautify.h"
 #include "BLI_linklist.h"
 
 #include "bmesh.h"

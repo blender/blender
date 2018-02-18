@@ -15,29 +15,39 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
+ * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): Campbell Barton
+ *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_POLYFILL2D_H__
-#define __BLI_POLYFILL2D_H__
+#ifndef __BLI_BOXPACK_2D_H__
+#define __BLI_BOXPACK_2D_H__
 
-struct MemArena;
+/** \file BLI_boxpack_2d.h
+ *  \ingroup bli
+ */
 
-void BLI_polyfill_calc_arena(
-        const float (*coords)[2],
-        const unsigned int coords_tot,
-        const int coords_sign,
-        unsigned int (*r_tris)[3],
+/* Box Packer */
 
-        struct MemArena *arena);
+typedef struct BoxPack {
+	float x;
+	float y;
+	float w;
+	float h;
 
-void BLI_polyfill_calc(
-        const float (*coords)[2],
-        const unsigned int coords_tot,
-        const int coords_sign,
-        unsigned int (*r_tris)[3]);
+	/* Verts this box uses
+	 * (BL,TR,TL,BR) / 0,1,2,3 */
+	struct BoxVert *v[4];
 
-/* default size of polyfill arena */
-#define BLI_POLYFILL_ARENA_SIZE MEM_SIZE_OPTIMAL(1 << 14)
+	int index;
+} BoxPack;
 
-#endif  /* __BLI_POLYFILL2D_H__ */
+void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width, float *tot_height);
+
+#endif  /* __BLI_BOXPACK_2D_H__ */
+

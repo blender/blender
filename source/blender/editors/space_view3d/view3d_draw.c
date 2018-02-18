@@ -35,7 +35,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_threads.h"
-#include "BLI_jitter.h"
+#include "BLI_jitter_2d.h"
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"

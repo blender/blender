@@ -502,7 +502,6 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 	info.description = "Multi Device";
 	info.num = 0;
 
-	info.has_fermi_limits = false;
 	info.has_half_images = true;
 	info.has_volume_decoupled = true;
 	info.bvh_layout_mask = BVH_LAYOUT_ALL;
@@ -538,8 +537,6 @@ DeviceInfo Device::get_multi_device(const vector<DeviceInfo>& subdevices, int th
 		}
 
 		/* Accumulate device info. */
-		info.has_fermi_limits = info.has_fermi_limits ||
-		                        device.has_fermi_limits;
 		info.has_half_images &= device.has_half_images;
 		info.has_volume_decoupled &= device.has_volume_decoupled;
 		info.bvh_layout_mask = device.bvh_layout_mask & info.bvh_layout_mask;

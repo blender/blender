@@ -35,7 +35,7 @@
 #include "BLI_string.h"
 
 extern "C" {
-#  include "BLI_voronoi.h"
+#  include "BLI_voronoi_2d.h"
 }
 
 /**

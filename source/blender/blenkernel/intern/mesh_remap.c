@@ -36,7 +36,7 @@
 #include "BLI_bitmap.h"
 #include "BLI_math.h"
 #include "BLI_memarena.h"
-#include "BLI_polyfill2d.h"
+#include "BLI_polyfill_2d.h"
 #include "BLI_rand.h"
 
 #include "BKE_bvhutils.h"

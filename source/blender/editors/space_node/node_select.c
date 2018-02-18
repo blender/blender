@@ -34,7 +34,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_rect.h"
-#include "BLI_lasso.h"
+#include "BLI_lasso_2d.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"

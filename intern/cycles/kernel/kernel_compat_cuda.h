@@ -50,10 +50,7 @@ __device__ half __float2half(const float f)
 /* Qualifier wrappers for different names on different devices */
 
 #define ccl_device  __device__ __inline__
-#if __CUDA_ARCH__ < 300
-#  define ccl_device_inline  __device__ __inline__
-#  define ccl_device_forceinline  __device__ __forceinline__
-#elif __CUDA_ARCH__ < 500
+#if __CUDA_ARCH__ < 500
 #  define ccl_device_inline  __device__ __forceinline__
 #  define ccl_device_forceinline  __device__ __forceinline__
 #else
@@ -138,17 +135,8 @@ ccl_device_inline uint ccl_num_groups(uint d)
 
 /* Textures */
 
-/* Use arrays for regular data. This is a little slower than textures on Fermi,
- * but allows for cleaner code and we will stop supporting Fermi soon. */
+/* Use arrays for regular data. */
 #define kernel_tex_fetch(t, index) t[(index)]
-
-/* On Kepler (6xx) and above, we use Bindless Textures for images.
- * On Fermi cards (4xx and 5xx), we have to use regular textures. */
-#if __CUDA_ARCH__ < 300
-typedef texture<float4, 2> texture_image_float4;
-typedef texture<float4, 3> texture_image3d_float4;
-typedef texture<uchar4, 2, cudaReadModeNormalizedFloat> texture_image_uchar4;
-#endif
 
 #define kernel_data __data
 

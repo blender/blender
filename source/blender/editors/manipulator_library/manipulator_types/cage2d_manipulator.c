@@ -37,7 +37,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_dial.h"
+#include "BLI_dial_2d.h"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
