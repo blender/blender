@@ -25,16 +25,17 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_JITTER_H__
-#define __BLI_JITTER_H__ 
+#ifndef __BLI_LASSO_2D_H__
+#define __BLI_LASSO_2D_H__
 
-/** \file BLI_jitter.h
+/** \file BLI_lasso_2d.h
  *  \ingroup bli
  */
 
-void BLI_jitter_init(float (*jitarr)[2], int num);
-void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float radius1);
-void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float radius2);
+struct rcti;
 
-#endif
+void BLI_lasso_boundbox(struct rcti *rect, const int mcords[][2], const unsigned int moves);
+bool BLI_lasso_is_point_inside(const int mcords[][2], const unsigned int moves, const int sx, const int sy, const int error_value);
+bool BLI_lasso_is_edge_inside(const int mcords[][2], const unsigned int moves, int x0, int y0, int x1, int y1, const int error_value);
 
+#endif  /* __BLI_LASSO_2D_H__ */

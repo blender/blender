@@ -20,34 +20,21 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): Campbell Barton
+ * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_BOXPACK2D_H__
-#define __BLI_BOXPACK2D_H__
+#ifndef __BLI_JITTER_2D_H__
+#define __BLI_JITTER_2D_H__
 
-/** \file BLI_boxpack2d.h
+/** \file BLI_jitter_2d.h
  *  \ingroup bli
  */
 
-/* Box Packer */
+void BLI_jitter_init(float (*jitarr)[2], int num);
+void BLI_jitterate1(float (*jit1)[2], float (*jit2)[2], int num, float radius1);
+void BLI_jitterate2(float (*jit1)[2], float (*jit2)[2], int num, float radius2);
 
-typedef struct BoxPack {
-	float x;
-	float y;
-	float w;
-	float h;
-	
-	/* Verts this box uses
-	 * (BL,TR,TL,BR) / 0,1,2,3 */
-	struct BoxVert *v[4];
-
-	int index;
-} BoxPack;
-
-void BLI_box_pack_2d(BoxPack *boxarray, const unsigned int len, float *tot_width, float *tot_height);
-
-#endif
+#endif  /* __BLI_JITTER_2D_H__ */
 

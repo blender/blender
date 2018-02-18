@@ -26,7 +26,7 @@
  *
  */
 
-/** \file blender/blenlib/intern/lasso.c
+/** \file blender/blenlib/intern/lasso_2d.c
  *  \ingroup bli
  */
 
@@ -35,7 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_strict_flags.h"
 
-#include "BLI_lasso.h" /* own include */
+#include "BLI_lasso_2d.h" /* own include */
 
 void BLI_lasso_boundbox(rcti *rect, const int mcords[][2], const unsigned int moves)
 {

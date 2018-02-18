@@ -23,20 +23,18 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/*
+/** \file blender/blenlib/intern/voronoi_2d.c
+ *  \ingroup bli
+ *
  * Fortune's algorithm implemented using explanation and some code snippets from
  * http://blog.ivank.net/fortunes-algorithm-and-implementation.html
- */
-
-/** \file blender/blenlib/intern/voronoi.c
- *  \ingroup bli
  */
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
-#include "BLI_voronoi.h"
+#include "BLI_voronoi_2d.h"
 #include "BLI_utildefines.h"
 
 #define VORONOI_EPS 1e-2f

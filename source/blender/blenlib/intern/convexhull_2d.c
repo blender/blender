@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/convexhull2d.c
+/** \file blender/blenlib/intern/convexhull_2d.c
  *  \ingroup bli
  */
 
@@ -28,7 +28,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_convexhull2d.h"
+#include "BLI_convexhull_2d.h"
 #include "BLI_math.h"
 #include "BLI_strict_flags.h"
 #include "BLI_utildefines.h"

@@ -35,7 +35,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_rand.h"
-#include "BLI_jitter.h"
+#include "BLI_jitter_2d.h"
 
 #include "BLI_strict_flags.h"
 

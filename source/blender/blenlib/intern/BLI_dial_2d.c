@@ -18,7 +18,11 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "BLI_dial.h"
+/** \file blender/blenlib/intern/BLI_dial_2d.c
+ *  \ingroup bli
+ */
+
+#include "BLI_dial_2d.h"
 #include "BLI_math.h"
 
 #include "MEM_guardedalloc.h"

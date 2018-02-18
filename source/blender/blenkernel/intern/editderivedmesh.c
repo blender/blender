@@ -44,7 +44,7 @@
 #include "atomic_ops.h"
 
 #include "BLI_math.h"
-#include "BLI_jitter.h"
+#include "BLI_jitter_2d.h"
 #include "BLI_bitmap.h"
 #include "BLI_task.h"
 

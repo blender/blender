@@ -30,7 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_boxpack2d.h"  /* own include */
+#include "BLI_boxpack_2d.h"  /* own include */
 
 #include "BLI_sort.h"  /* qsort_r */
 #define qsort_r  BLI_qsort_r

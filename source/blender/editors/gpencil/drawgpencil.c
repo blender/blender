@@ -41,7 +41,7 @@
 
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_polyfill2d.h"
+#include "BLI_polyfill_2d.h"
 
 #include "BLF_api.h"
 #include "BLT_translation.h"

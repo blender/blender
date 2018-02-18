@@ -37,7 +37,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
-#include "BLI_lasso.h"
+#include "BLI_lasso_2d.h"
 
 #include "DNA_anim_types.h"
 #include "DNA_screen_types.h"

@@ -32,8 +32,8 @@
 #include "BLI_math.h"
 #include "BLI_rand.h"
 #include "BLI_heap.h"
-#include "BLI_boxpack2d.h"
-#include "BLI_convexhull2d.h"
+#include "BLI_boxpack_2d.h"
+#include "BLI_convexhull_2d.h"
 
 #include "uvedit_parametrizer.h"
 

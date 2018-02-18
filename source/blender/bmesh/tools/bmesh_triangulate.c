@@ -38,8 +38,8 @@
 #include "BLI_linklist.h"
 
 /* only for defines */
-#include "BLI_polyfill2d.h"
-#include "BLI_polyfill2d_beautify.h"
+#include "BLI_polyfill_2d.h"
+#include "BLI_polyfill_2d_beautify.h"
 
 #include "bmesh.h"
 

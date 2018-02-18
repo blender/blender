@@ -44,7 +44,7 @@
 #include "BLI_memarena.h"
 #include "BLI_heap.h"
 
-#include "BLI_polyfill2d_beautify.h"  /* own include */
+#include "BLI_polyfill_2d_beautify.h"  /* own include */
 
 #include "BLI_strict_flags.h"
 

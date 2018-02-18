@@ -18,17 +18,26 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_CONVEXHULL2D_H__
-#define __BLI_CONVEXHULL2D_H__
+#ifndef __BLI_POLYFILL_2D_H__
+#define __BLI_POLYFILL_2D_H__
 
-/** \file BLI_convexhull2d.h
- *  \ingroup bli
- */
+struct MemArena;
 
-int BLI_convexhull_2d_sorted(const float (*points)[2], const int n, int r_points[]);
-int BLI_convexhull_2d(const float (*points)[2], const int n, int r_points[]);
+void BLI_polyfill_calc_arena(
+        const float (*coords)[2],
+        const unsigned int coords_tot,
+        const int coords_sign,
+        unsigned int (*r_tris)[3],
 
-float BLI_convexhull_aabb_fit_hull_2d(const float (*points_hull)[2], unsigned int n);
-float BLI_convexhull_aabb_fit_points_2d(const float (*points)[2], unsigned int n);
+        struct MemArena *arena);
 
-#endif  /* __BLI_CONVEXHULL2D_H__ */
+void BLI_polyfill_calc(
+        const float (*coords)[2],
+        const unsigned int coords_tot,
+        const int coords_sign,
+        unsigned int (*r_tris)[3]);
+
+/* default size of polyfill arena */
+#define BLI_POLYFILL_ARENA_SIZE MEM_SIZE_OPTIMAL(1 << 14)
+
+#endif  /* __BLI_POLYFILL_2D_H__ */

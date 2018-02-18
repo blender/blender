@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/polyfill2d.c
+/** \file blender/blenlib/intern/polyfill_2d.c
  *  \ingroup bli
  *
  * An ear clipping algorithm to triangulate single boundary polygons.
@@ -53,7 +53,7 @@
 #include "BLI_memarena.h"
 #include "BLI_alloca.h"
 
-#include "BLI_polyfill2d.h"  /* own include */
+#include "BLI_polyfill_2d.h"  /* own include */
 
 #include "BLI_strict_flags.h"
 

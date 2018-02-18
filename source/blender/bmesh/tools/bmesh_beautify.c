@@ -37,7 +37,7 @@
 
 #include "BLI_math.h"
 #include "BLI_heap.h"
-#include "BLI_polyfill2d_beautify.h"
+#include "BLI_polyfill_2d_beautify.h"
 
 #include "MEM_guardedalloc.h"
 

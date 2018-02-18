@@ -34,8 +34,8 @@
 #ifndef MATH_STANDALONE /* define when building outside blender */
 #  include "MEM_guardedalloc.h"
 #  include "BLI_blenlib.h"
-#  include "BLI_boxpack2d.h"
-#  include "BLI_convexhull2d.h"
+#  include "BLI_boxpack_2d.h"
+#  include "BLI_convexhull_2d.h"
 #  include "BKE_displist.h"
 #  include "BKE_curve.h"
 #endif
