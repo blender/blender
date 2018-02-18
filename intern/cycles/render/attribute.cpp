@@ -281,6 +281,8 @@ const char *Attribute::standard_name(AttributeStandard std)
 			return "flame";
 		case ATTR_STD_VOLUME_HEAT:
 			return "heat";
+		case ATTR_STD_VOLUME_TEMPERATURE:
+			return "temperature";
 		case ATTR_STD_VOLUME_VELOCITY:
 			return "velocity";
 		case ATTR_STD_POINTINESS:
@@ -425,6 +427,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 			case ATTR_STD_VOLUME_DENSITY:
 			case ATTR_STD_VOLUME_FLAME:
 			case ATTR_STD_VOLUME_HEAT:
+			case ATTR_STD_VOLUME_TEMPERATURE:
 				attr = add(name, TypeDesc::TypeFloat, ATTR_ELEMENT_VOXEL);
 				break;
 			case ATTR_STD_VOLUME_COLOR:
