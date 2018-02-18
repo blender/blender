@@ -604,9 +604,16 @@ void ObjectManager::device_update_flags(Device *,
 	foreach(Object *object, scene->objects) {
 		if(object->mesh->has_volume) {
 			object_flag[object_index] |= SD_OBJECT_HAS_VOLUME;
+			object_flag[object_index] &= ~SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
+
+			foreach(Attribute& attr, object->mesh->attributes.attributes) {
+				if(attr.element == ATTR_ELEMENT_VOXEL) {
+					object_flag[object_index] |= SD_OBJECT_HAS_VOLUME_ATTRIBUTES;
+				}
+			}
 		}
 		else {
-			object_flag[object_index] &= ~SD_OBJECT_HAS_VOLUME;
+			object_flag[object_index] &= ~(SD_OBJECT_HAS_VOLUME|SD_OBJECT_HAS_VOLUME_ATTRIBUTES);
 		}
 		if(object->is_shadow_catcher) {
 			object_flag[object_index] |= SD_OBJECT_SHADOW_CATCHER;

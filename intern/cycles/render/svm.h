@@ -117,6 +117,7 @@ public:
 	void add_node(const float4& f);
 	uint attribute(ustring name);
 	uint attribute(AttributeStandard std);
+	uint attribute_standard(ustring name);
 	uint encode_uchar4(uint x, uint y = 0, uint z = 0, uint w = 0);
 	uint closure_mix_weight_offset() { return mix_weight_offset; }
 

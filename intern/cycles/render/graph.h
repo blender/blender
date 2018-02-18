@@ -156,6 +156,7 @@ public:
 	virtual bool has_bssrdf_bump() { return false; }
 	virtual bool has_spatial_varying() { return false; }
 	virtual bool has_object_dependency() { return false; }
+	virtual bool has_attribute_dependency() { return false; }
 	virtual bool has_integrator_dependency() { return false; }
 	virtual bool has_volume_support() { return false; }
 	virtual bool has_raytrace() { return false; }

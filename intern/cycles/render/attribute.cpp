@@ -298,9 +298,13 @@ const char *Attribute::standard_name(AttributeStandard std)
 
 AttributeStandard Attribute::name_standard(const char *name)
 {
-	for(int std = ATTR_STD_NONE; std < ATTR_STD_NUM; std++)
-		if(strcmp(name, Attribute::standard_name((AttributeStandard)std)) == 0)
-			return (AttributeStandard)std;
+	if(name) {
+		for(int std = ATTR_STD_NONE; std < ATTR_STD_NUM; std++) {
+			if(strcmp(name, Attribute::standard_name((AttributeStandard)std)) == 0) {
+				return (AttributeStandard)std;
+			}
+		}
+	}
 
 	return ATTR_STD_NONE;
 }
@@ -615,9 +619,11 @@ bool AttributeRequestSet::modified(const AttributeRequestSet& other)
 
 void AttributeRequestSet::add(ustring name)
 {
-	foreach(AttributeRequest& req, requests)
-		if(req.name == name)
+	foreach(AttributeRequest& req, requests) {
+		if(req.name == name) {
 			return;
+		}
+	}
 
 	requests.push_back(AttributeRequest(name));
 }
@@ -638,6 +644,22 @@ void AttributeRequestSet::add(AttributeRequestSet& reqs)
 			add(req.name);
 		else
 			add(req.std);
+	}
+}
+
+void AttributeRequestSet::add_standard(ustring name)
+{
+	if(!name) {
+		return;
+	}
+
+	AttributeStandard std = Attribute::name_standard(name.c_str());
+
+	if(std) {
+		add(std);
+	}
+	else {
+		add(name);
 	}
 }
 
