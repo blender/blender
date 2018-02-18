@@ -354,6 +354,8 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		dy -= NODE_DYS / 2;
 	
 	/* output sockets */
+	bool add_output_space = false;
+
 	for (nsock = node->outputs.first; nsock; nsock = nsock->next) {
 		if (nodeSocketIsHidden(nsock))
 			continue;
@@ -386,6 +388,12 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		dy = buty;
 		if (nsock->next)
 			dy -= NODE_SOCKDY;
+
+		add_output_space = true;
+	}
+
+	if (add_output_space) {
+		dy -= NODE_DY / 4;
 	}
 
 	node->prvr.xmin = locx + NODE_DYS;
