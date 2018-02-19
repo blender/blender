@@ -380,7 +380,10 @@ void EDBM_mesh_load(Object *ob)
 		bm->shapenr = 1;
 	}
 
-	BM_mesh_bm_to_me(bm, me, (&(struct BMeshToMeshParams){0}));
+	BM_mesh_bm_to_me(
+	        bm, me, (&(struct BMeshToMeshParams){
+	            .calc_object_remap = true,
+	        }));
 
 #ifdef USE_TESSFACE_DEFAULT
 	BKE_mesh_tessface_calc(me);

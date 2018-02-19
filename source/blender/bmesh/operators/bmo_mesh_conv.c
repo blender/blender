@@ -72,5 +72,10 @@ void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
 	const bool dotess = !BMO_slot_bool_get(op->slots_in, "skip_tessface");
 
-	BM_mesh_bm_to_me(bm, me, (&(struct BMeshToMeshParams){ .calc_tessface = dotess, }));
+	BM_mesh_bm_to_me(
+	        bm, me,
+	        (&(struct BMeshToMeshParams){
+	            .calc_tessface = dotess,
+	            .calc_object_remap = true,
+	        }));
 }

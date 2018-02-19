@@ -751,7 +751,7 @@ void BM_mesh_bm_to_me(
 	}
 
 	/* patch hook indices and vertex parents */
-	if (ototvert > 0) {
+	if (params->calc_object_remap && (ototvert > 0)) {
 		Object *ob;
 		ModifierData *md;
 		BMVert **vertMap = NULL;
