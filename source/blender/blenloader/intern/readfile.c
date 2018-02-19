@@ -6496,6 +6496,7 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		oldnewmap_insert(fd->globmap, hook, win->workspace_hook, 0);
 
 		win->ghostwin = NULL;
+		win->gwnctx = NULL;
 		win->eventstate = NULL;
 		win->tweak = NULL;
 #ifdef WIN32

@@ -87,6 +87,8 @@
 
 #include "UI_resources.h"
 
+#include "../../../intern/gawain/gawain/gwn_context.h"
+
 /* for assert */
 #ifndef NDEBUG
 #  include "BLI_threads.h"
@@ -169,11 +171,17 @@ static void wm_window_check_position(rcti *rect)
 }
 
 
-static void wm_ghostwindow_destroy(wmWindow *win) 
+static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
 	if (win->ghostwin) {
+		/* We need this window's opengl context active to discard it. */
+		wm_window_make_drawable(wm, win);
+		/* Delete local gawain objects.  */
+		GWN_context_discard(win->gwnctx);
+
 		GHOST_DisposeWindow(g_system, win->ghostwin);
 		win->ghostwin = NULL;
+		win->gwnctx = NULL;
 	}
 }
 
@@ -191,11 +199,6 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 		if (CTX_wm_window(C) == win)
 			CTX_wm_window_set(C, NULL);
 	}
-
-	/* always set drawable and active to NULL,
-	 * prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
-	wm->windrawable = NULL;
-	wm->winactive = NULL;
 
 	/* end running jobs, a job end also removes its timer */
 	for (wt = wm->timers.first; wt; wt = wtnext) {
@@ -217,7 +220,12 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 
 	wm_draw_data_free(win);
 
-	wm_ghostwindow_destroy(win);
+	wm_ghostwindow_destroy(wm, win);
+
+	/* always set drawable and active to NULL,
+	 * prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
+	wm->windrawable = NULL;
+	wm->winactive = NULL;
 
 	BKE_workspace_instance_hook_free(G.main, win->workspace_hook);
 	MEM_freeN(win->stereo3d_format);
@@ -484,6 +492,8 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	
 	if (ghostwin) {
 		GHOST_RectangleHandle bounds;
+
+		win->gwnctx = GWN_context_create();
 		
 		/* the new window has already been made drawable upon creation */
 		wm->windrawable = win;
@@ -1000,7 +1010,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 {
 	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
-		
+
 		wm->windrawable = win;
 		if (G.debug & G_DEBUG_EVENTS) {
 			printf("%s: set drawable %d\n", __func__, win->winid);
@@ -1008,6 +1018,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 
 		immDeactivate();
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
+		GWN_context_active_set(win->gwnctx);
 		immActivate();
 
 		/* this can change per window */
@@ -1784,7 +1795,6 @@ void wm_window_raise(wmWindow *win)
 
 void wm_window_swap_buffers(wmWindow *win)
 {
-	
 #ifdef WIN32
 	glDisable(GL_SCISSOR_TEST);
 	GHOST_SwapWindowBuffers(win->ghostwin);
