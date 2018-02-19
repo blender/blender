@@ -958,7 +958,7 @@ void sculpt_undo_push_begin(const char *name)
 	                         sculpt_undo_restore, sculpt_undo_free, sculpt_undo_cleanup);
 }
 
-void sculpt_undo_push_end(const bContext *C)
+void sculpt_undo_push_end(void)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_MESH);
 	SculptUndoNode *unode;
@@ -976,5 +976,5 @@ void sculpt_undo_push_end(const bContext *C)
 
 	ED_undo_paint_push_end(UNDO_PAINT_MESH);
 
-	WM_file_tag_modified(C);
+	WM_file_tag_modified();
 }

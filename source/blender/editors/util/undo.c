@@ -110,7 +110,7 @@ void ED_undo_push(bContext *C, const char *str)
 		BKE_undo_write(C, str);
 	}
 
-	WM_file_tag_modified(C);
+	WM_file_tag_modified();
 }
 
 /* note: also check undo_history_exec() in bottom if you change notifiers */

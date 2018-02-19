@@ -5034,7 +5034,7 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 		sculpt_cache_free(ss->cache);
 		ss->cache = NULL;
 
-		sculpt_undo_push_end(C);
+		sculpt_undo_push_end();
 
 		BKE_pbvh_update(ss->pbvh, PBVH_UpdateOriginalBB, NULL);
 		
@@ -5242,21 +5242,19 @@ void sculpt_dyntopo_node_layers_add(SculptSession *ss)
 }
 
 
-void sculpt_update_after_dynamic_topology_toggle(bContext *C)
+void sculpt_update_after_dynamic_topology_toggle(
+        Scene *scene, Object *ob)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
 	Sculpt *sd = scene->toolsettings->sculpt;
 
 	/* Create the PBVH */
 	BKE_sculpt_update_mesh_elements(scene, sd, ob, false, false);
-	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
-void sculpt_dynamic_topology_enable(bContext *C)
+void sculpt_dynamic_topology_enable_ex(
+        Scene *scene, Object *ob)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
 	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
@@ -5292,17 +5290,16 @@ void sculpt_dynamic_topology_enable(bContext *C)
 	ss->bm_log = BM_log_create(ss->bm);
 
 	/* Refresh */
-	sculpt_update_after_dynamic_topology_toggle(C);
+	sculpt_update_after_dynamic_topology_toggle(scene, ob);
 }
 
 /* Free the sculpt BMesh and BMLog
  *
  * If 'unode' is given, the BMesh's data is copied out to the unode
  * before the BMesh is deleted so that it can be restored from */
-void sculpt_dynamic_topology_disable(bContext *C,
-                                     SculptUndoNode *unode)
+void sculpt_dynamic_topology_disable_ex(
+        Scene *scene, Object *ob, SculptUndoNode *unode)
 {
-	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
 
@@ -5351,28 +5348,54 @@ void sculpt_dynamic_topology_disable(bContext *C,
 	}
 
 	/* Refresh */
-	sculpt_update_after_dynamic_topology_toggle(C);
+	sculpt_update_after_dynamic_topology_toggle(scene, ob);
 }
 
+void sculpt_dynamic_topology_disable(bContext *C, SculptUndoNode *unode)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	sculpt_dynamic_topology_disable_ex(scene, ob, unode);
+}
+
+static void sculpt_dynamic_topology_disable_with_undo(
+        Scene *scene, Object *ob)
+{
+	SculptSession *ss = ob->sculpt;
+	if (ss->bm) {
+		sculpt_undo_push_begin("Dynamic topology disable");
+		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
+		sculpt_dynamic_topology_disable_ex(scene, ob, NULL);
+		sculpt_undo_push_end();
+	}
+}
+
+static void sculpt_dynamic_topology_enable_with_undo(
+        Scene *scene, Object *ob)
+{
+	SculptSession *ss = ob->sculpt;
+	if (ss->bm == NULL) {
+		sculpt_undo_push_begin("Dynamic topology enable");
+		sculpt_dynamic_topology_enable_ex(scene, ob);
+		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+		sculpt_undo_push_end();
+	}
+}
 
 static int sculpt_dynamic_topology_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 
 	WM_cursor_wait(1);
 
 	if (ss->bm) {
-		sculpt_undo_push_begin("Dynamic topology disable");
-		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_END);
-		sculpt_dynamic_topology_disable(C, NULL);
+		sculpt_dynamic_topology_disable_with_undo(scene, ob);
 	}
 	else {
-		sculpt_undo_push_begin("Dynamic topology enable");
-		sculpt_dynamic_topology_enable(C);
-		sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+		sculpt_dynamic_topology_enable_with_undo(scene, ob);
 	}
-	sculpt_undo_push_end(C);
 
 	WM_cursor_wait(0);
 
@@ -5560,7 +5583,7 @@ static int sculpt_symmetrize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* Finish undo */
 	BM_log_all_added(ss->bm, ss->bm_log);
-	sculpt_undo_push_end(C);
+	sculpt_undo_push_end();
 
 	/* Redraw */
 	sculpt_pbvh_clear(ob);
@@ -5592,6 +5615,53 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 	BKE_sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
+void ED_object_sculptmode_exit_ex(
+        Scene *scene, Object *ob)
+{
+	const int mode_flag = OB_MODE_SCULPT;
+	Mesh *me = BKE_mesh_from_object(ob);
+
+	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+	if (mmd) {
+		multires_force_update(ob);
+	}
+
+	/* Always for now, so leaving sculpt mode always ensures scene is in
+	 * a consistent state.
+	 */
+	if (true || /* flush_recalc || */ (ob->sculpt && ob->sculpt->bm)) {
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+
+	if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+		/* Dynamic topology must be disabled before exiting sculpt
+		 * mode to ensure the undo stack stays in a consistent
+		 * state */
+		sculpt_dynamic_topology_disable_with_undo(scene, ob);
+
+		/* store so we know to re-enable when entering sculpt mode */
+		me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
+	}
+
+	/* Leave sculptmode */
+	ob->mode &= ~mode_flag;
+
+	BKE_sculptsession_free(ob);
+
+	paint_cursor_delete_textures();
+
+	/* VBO no longer valid */
+	if (ob->derivedFinal) {
+		GPU_drawobject_free(ob->derivedFinal);
+	}
+}
+
+void ED_object_sculptmode_exit(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	ED_object_sculptmode_exit_ex(scene, ob);
+}
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
@@ -5617,32 +5687,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	flush_recalc |= sculpt_has_active_modifiers(scene, ob);
 
 	if (is_mode_set) {
-		if (mmd)
-			multires_force_update(ob);
-
-		/* Always for now, so leaving sculpt mode always ensures scene is in
-		 * a consistent state.
-		 */
-		if (true || flush_recalc || (ob->sculpt && ob->sculpt->bm)) {
-			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-
-		if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
-			/* Dynamic topology must be disabled before exiting sculpt
-			 * mode to ensure the undo stack stays in a consistent
-			 * state */
-			sculpt_dynamic_topology_toggle_exec(C, NULL);
-
-			/* store so we know to re-enable when entering sculpt mode */
-			me->flag |= ME_SCULPT_DYNAMIC_TOPOLOGY;
-		}
-
-		/* Leave sculptmode */
-		ob->mode &= ~mode_flag;
-
-		BKE_sculptsession_free(ob);
-
-		paint_cursor_delete_textures();
+		ED_object_sculptmode_exit_ex(scene, ob);
 	}
 	else {
 		/* Enter sculptmode */
@@ -5652,8 +5697,9 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
 		/* Create sculpt mode session data */
-		if (ob->sculpt)
+		if (ob->sculpt) {
 			BKE_sculptsession_free(ob);
+		}
 
 		sculpt_init_session(scene, ob);
 
@@ -5712,7 +5758,7 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 			if (message_unsupported == NULL) {
 				/* undo push is needed to prevent memory leak */
 				sculpt_undo_push_begin("Dynamic topology enable");
-				sculpt_dynamic_topology_enable(C);
+				sculpt_dynamic_topology_enable_ex(scene, ob);
 				sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
 			}
 			else {
@@ -5722,10 +5768,12 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 				me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 			}
 		}
-	}
 
-	if (ob->derivedFinal) /* VBO no longer valid */
-		GPU_drawobject_free(ob->derivedFinal);
+		/* VBO no longer valid */
+		if (ob->derivedFinal) {
+			GPU_drawobject_free(ob->derivedFinal);
+		}
+	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
@@ -5795,7 +5843,7 @@ static int sculpt_detail_flood_fill_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	MEM_freeN(nodes);
-	sculpt_undo_push_end(C);
+	sculpt_undo_push_end();
 
 	/* force rebuild of pbvh for better BB placement */
 	sculpt_pbvh_clear(ob);

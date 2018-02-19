@@ -315,10 +315,8 @@ static void wm_window_match_do(bContext *C, ListBase *oldwmlist)
 }
 
 /* in case UserDef was read, we re-initialize all, and do versioning */
-static void wm_init_userdef(bContext *C, const bool read_userdef_from_memory)
+static void wm_init_userdef(Main *bmain, const bool read_userdef_from_memory)
 {
-	Main *bmain = CTX_data_main(C);
-
 	/* versioning is here */
 	UI_init_userdef();
 	
@@ -579,7 +577,7 @@ bool WM_file_read(bContext *C, const char *filepath, ReportList *reports)
 
 		if (retval == BKE_BLENDFILE_READ_OK_USERPREFS) {
 			/* in case a userdef is read from regular .blend */
-			wm_init_userdef(C, false);
+			wm_init_userdef(G.main, false);
 		}
 		
 		if (retval != BKE_BLENDFILE_READ_FAIL) {
@@ -840,7 +838,7 @@ int wm_homefile_read(
 	
 	if (use_userdef) {
 		/* check userdef before open window, keymaps etc */
-		wm_init_userdef(C, read_userdef_from_memory);
+		wm_init_userdef(CTX_data_main(C), read_userdef_from_memory);
 	}
 	
 	/* match the read WM with current WM */
@@ -1351,13 +1349,13 @@ void wm_open_init_use_scripts(wmOperator *op, bool use_prefs)
 
 /** \} */
 
-void WM_file_tag_modified(const bContext *C)
+void WM_file_tag_modified(void)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindowManager *wm = G.main->wm.first;
 	if (wm->file_saved) {
 		wm->file_saved = 0;
 		/* notifier that data changed, for save-over warning or header */
-		WM_event_add_notifier(C, NC_WM | ND_DATACHANGED, NULL);
+		WM_main_add_notifier(NC_WM | ND_DATACHANGED, NULL);
 	}
 }
 

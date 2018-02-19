@@ -1026,6 +1026,161 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
 
 }
 
+/* -------------------------------------------------------------------- */
+/** \name Enter Vertex/Weight Paint Mode
+ * \{ */
+
+static void ed_vwpaintmode_enter_generic(
+        wmWindowManager *wm,
+        Scene *scene,
+        Object *ob, const eObjectMode mode_flag)
+{
+	ob->mode |= mode_flag;
+	Mesh *me = BKE_mesh_from_object(ob);
+
+	if (mode_flag == OB_MODE_VERTEX_PAINT) {
+		const ePaintMode paint_mode = ePaintVertex;
+		ED_mesh_color_ensure(me, NULL);
+
+		if (scene->toolsettings->vpaint == NULL) {
+			scene->toolsettings->vpaint = new_vpaint();
+		}
+
+		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+		paint_cursor_start_explicit(paint, wm, vertex_paint_poll);
+		BKE_paint_init(scene, paint_mode, PAINT_CURSOR_VERTEX_PAINT);
+	}
+	else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
+		const  ePaintMode paint_mode = ePaintWeight;
+
+		if (scene->toolsettings->wpaint == NULL) {
+			scene->toolsettings->wpaint = new_vpaint();
+		}
+
+		Paint *paint = BKE_paint_get_active_from_paintmode(scene, paint_mode);
+		paint_cursor_start_explicit(paint, wm, weight_paint_poll);
+		BKE_paint_init(scene, paint_mode, PAINT_CURSOR_WEIGHT_PAINT);
+
+		/* weight paint specific */
+		ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 's');
+		ED_vgroup_sync_from_pose(ob);
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	/* Create vertex/weight paint mode session data */
+	if (ob->sculpt) {
+		if (ob->sculpt->cache) {
+			sculpt_cache_free(ob->sculpt->cache);
+			ob->sculpt->cache = NULL;
+		}
+		BKE_sculptsession_free(ob);
+	}
+
+	vertex_paint_init_session(scene, ob);
+}
+
+void ED_object_vpaintmode_enter_ex(
+        wmWindowManager *wm,
+        Scene *scene, Object *ob)
+{
+	ed_vwpaintmode_enter_generic(
+	        wm, scene, ob, OB_MODE_VERTEX_PAINT);
+}
+void ED_object_vpaintmode_enter(struct bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	ED_object_vpaintmode_enter_ex(wm, scene, ob);
+}
+
+void ED_object_wpaintmode_enter_ex(
+        wmWindowManager *wm,
+        Scene *scene, Object *ob)
+{
+	ed_vwpaintmode_enter_generic(
+	        wm, scene, ob, OB_MODE_WEIGHT_PAINT);
+}
+void ED_object_wpaintmode_enter(struct bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	ED_object_wpaintmode_enter_ex(wm, scene, ob);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Exit Vertex/Weight Paint Mode
+ * \{ */
+
+static void ed_vwpaintmode_exit_generic(
+        Object *ob, const eObjectMode mode_flag)
+{
+	Mesh *me = BKE_mesh_from_object(ob);
+	ob->mode &= ~mode_flag;
+
+	if (mode_flag == OB_MODE_VERTEX_PAINT) {
+		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
+			BKE_mesh_flush_select_from_polys(me);
+		}
+		else if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
+			BKE_mesh_flush_select_from_verts(me);
+		}
+	}
+	else if (mode_flag == OB_MODE_WEIGHT_PAINT) {
+		if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
+			BKE_mesh_flush_select_from_verts(me);
+		}
+		else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
+			BKE_mesh_flush_select_from_polys(me);
+		}
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	/* If the cache is not released by a cancel or a done, free it now. */
+	if (ob->sculpt->cache) {
+		sculpt_cache_free(ob->sculpt->cache);
+		ob->sculpt->cache = NULL;
+	}
+
+	BKE_sculptsession_free(ob);
+
+	paint_cursor_delete_textures();
+
+	if (mode_flag == OB_MODE_WEIGHT_PAINT) {
+		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
+		ED_mesh_mirror_topo_table(NULL, NULL, 'e');
+	}
+}
+
+void ED_object_vpaintmode_exit_ex(Object *ob)
+{
+	ed_vwpaintmode_exit_generic(ob, OB_MODE_VERTEX_PAINT);
+}
+void ED_object_vpaintmode_exit(struct bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	ED_object_vpaintmode_exit_ex(ob);
+}
+
+void ED_object_wpaintmode_exit_ex(Object *ob)
+{
+	ed_vwpaintmode_exit_generic(ob, OB_MODE_WEIGHT_PAINT);
+}
+void ED_object_wpaintmode_exit(struct bContext *C)
+{
+	Object *ob = CTX_data_active_object(C);
+	ED_object_wpaintmode_exit_ex(ob);
+}
+
+/** \} */
+
 /* *************** set wpaint operator ****************** */
 
 /**
@@ -1037,8 +1192,6 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	const int mode_flag = OB_MODE_WEIGHT_PAINT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	Scene *scene = CTX_data_scene(C);
-	VPaint *wp = scene->toolsettings->wpaint;
-	Mesh *me;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
@@ -1046,51 +1199,14 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	me = BKE_mesh_from_object(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 
-	if (ob->mode & mode_flag) {
-		ob->mode &= ~mode_flag;
-
-		if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-			BKE_mesh_flush_select_from_verts(me);
-		}
-		else if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-			BKE_mesh_flush_select_from_polys(me);
-		}
-
-		/* weight paint specific */
-		ED_mesh_mirror_spatial_table(NULL, NULL, NULL, NULL, 'e');
-		ED_mesh_mirror_topo_table(NULL, NULL, 'e');
-
-		/* If the cache is not released by a cancel or a done, free it now. */
-		if (ob->sculpt->cache) {
-			sculpt_cache_free(ob->sculpt->cache);
-			ob->sculpt->cache = NULL;
-		}
-
-		BKE_sculptsession_free(ob);
-
-		paint_cursor_delete_textures();
+	if (is_mode_set) {
+		ED_object_wpaintmode_exit_ex(ob);
 	}
 	else {
-		ob->mode |= mode_flag;
-
-		if (wp == NULL)
-			wp = scene->toolsettings->wpaint = new_vpaint();
-
-		paint_cursor_start(C, weight_paint_poll);
-
-		BKE_paint_init(scene, ePaintWeight, PAINT_CURSOR_WEIGHT_PAINT);
-
-		/* weight paint specific */
-		ED_mesh_mirror_spatial_table(ob, NULL, NULL, NULL, 's');
-		ED_vgroup_sync_from_pose(ob);
-
-		/* Create vertex/weight paint mode session data */
-		if (ob->sculpt) {
-			BKE_sculptsession_free(ob);
-		}
-		vertex_paint_init_session(scene, ob);
+		wmWindowManager *wm = CTX_wm_manager(C);
+		ED_object_wpaintmode_enter_ex(wm, scene, ob);
 	}
 
 	/* Weightpaint works by overriding colors in mesh,
@@ -2203,8 +2319,6 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	const int mode_flag = OB_MODE_VERTEX_PAINT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 	Scene *scene = CTX_data_scene(C);
-	VPaint *vp = scene->toolsettings->vpaint;
-	Mesh *me;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
@@ -2212,50 +2326,15 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	me = BKE_mesh_from_object(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 
 	/* toggle: end vpaint */
 	if (is_mode_set) {
-		ob->mode &= ~mode_flag;
-
-		if (me->editflag & ME_EDIT_PAINT_FACE_SEL) {
-			BKE_mesh_flush_select_from_polys(me);
-		}
-		else if (me->editflag & ME_EDIT_PAINT_VERT_SEL) {
-			BKE_mesh_flush_select_from_verts(me);
-		}
-
-		/* If the cache is not released by a cancel or a done, free it now. */
-		if (ob->sculpt->cache) {
-			sculpt_cache_free(ob->sculpt->cache);
-			ob->sculpt->cache = NULL;
-		}
-
-		BKE_sculptsession_free(ob);
-
-		paint_cursor_delete_textures();
+		ED_object_vpaintmode_exit_ex(ob);
 	}
 	else {
-		ob->mode |= mode_flag;
-
-		ED_mesh_color_ensure(me, NULL);
-
-		if (vp == NULL)
-			vp = scene->toolsettings->vpaint = new_vpaint();
-
-		paint_cursor_start(C, vertex_paint_poll);
-
-		BKE_paint_init(scene, ePaintVertex, PAINT_CURSOR_VERTEX_PAINT);
-
-		/* Create vertex/weight paint mode session data */
-		if (ob->sculpt) {
-			if (ob->sculpt->cache) {
-				sculpt_cache_free(ob->sculpt->cache);
-				ob->sculpt->cache = NULL;
-			}
-			BKE_sculptsession_free(ob);
-		}
-		vertex_paint_init_session(scene, ob);
+		wmWindowManager *wm = CTX_wm_manager(C);
+		ED_object_vpaintmode_enter_ex(wm, scene, ob);
 	}
 
 	/* update modifier stack for mapping requirements */
@@ -3103,3 +3182,4 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 
 	paint_stroke_operator_properties(ot);
 }
+
