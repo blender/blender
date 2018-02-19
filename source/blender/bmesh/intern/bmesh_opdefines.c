@@ -843,7 +843,6 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 	 {"mesh", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_MESH}},
 	/* pointer to an object structure */
 	 {"object", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_OBJECT}},
-	 {"skip_tessface", BMO_OP_SLOT_BOOL},  /* don't calculate mfaces */
 	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */

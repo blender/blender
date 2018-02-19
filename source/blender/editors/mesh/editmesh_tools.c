@@ -3374,7 +3374,11 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 					}
 
 					if (retval_iter) {
-						BM_mesh_bm_to_me(bm_old, me, (&(struct BMeshToMeshParams){0}));
+						BM_mesh_bm_to_me(
+						        bm_old, me,
+						        (&(struct BMeshToMeshParams){
+						            .calc_object_remap = true,
+						        }));
 
 						DEG_id_tag_update(&me->id, OB_RECALC_DATA);
 						WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);

@@ -708,7 +708,7 @@ void BM_mesh_bm_to_me(
 	}
 
 	/* patch hook indices and vertex parents */
-	if (ototvert > 0) {
+	if (params->calc_object_remap && (ototvert > 0)) {
 		Object *ob;
 		ModifierData *md;
 		BMVert **vertMap = NULL;
@@ -765,11 +765,7 @@ void BM_mesh_bm_to_me(
 		if (vertMap) MEM_freeN(vertMap);
 	}
 
-	if (params->calc_tessface) {
-		BKE_mesh_tessface_calc(me);
-	}
-
-	BKE_mesh_update_customdata_pointers(me, params->calc_tessface);
+	BKE_mesh_update_customdata_pointers(me, false);
 
 	{
 		BMEditSelection *selected;

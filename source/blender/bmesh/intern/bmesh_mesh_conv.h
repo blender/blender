@@ -55,7 +55,8 @@ void BM_mesh_bm_from_me(
 ATTR_NONNULL(1, 3);
 
 struct BMeshToMeshParams {
-	uint calc_tessface : 1;
+	/** Update object hook indices & vertex parents. */
+	uint calc_object_remap : 1;
 	int64_t cd_mask_extra;
 };
 void BM_mesh_bm_to_me(

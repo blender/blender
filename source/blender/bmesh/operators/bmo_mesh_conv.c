@@ -62,15 +62,18 @@ void bmo_object_load_bmesh_exec(BMesh *bm, BMOperator *op)
 	Mesh *me = ob->data;
 
 	BMO_op_callf(bm, op->flag,
-	             "bmesh_to_mesh mesh=%p object=%p skip_tessface=%b",
-	             me, ob, true);
+	             "bmesh_to_mesh mesh=%p object=%p",
+	             me, ob);
 }
 
 void bmo_bmesh_to_mesh_exec(BMesh *bm, BMOperator *op)
 {
 	Mesh *me = BMO_slot_ptr_get(op->slots_in, "mesh");
 	/* Object *ob = BMO_slot_ptr_get(op, "object"); */
-	const bool dotess = !BMO_slot_bool_get(op->slots_in, "skip_tessface");
 
-	BM_mesh_bm_to_me(bm, me, (&(struct BMeshToMeshParams){ .calc_tessface = dotess, }));
+	BM_mesh_bm_to_me(
+	        bm, me,
+	        (&(struct BMeshToMeshParams){
+	            .calc_object_remap = true,
+	        }));
 }

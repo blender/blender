@@ -496,6 +496,8 @@ static void *editbtMesh_to_undoMesh(void *emv, void *obdata)
 
 	BM_mesh_bm_to_me(
 	        em->bm, &um->me, (&(struct BMeshToMeshParams){
+	            /* Undo code should not be manipulating 'G.main->object' hooks/vertex-parent. */
+	            .calc_object_remap = false,
 	            .cd_mask_extra = CD_MASK_SHAPE_KEYINDEX,
 	        }));
 
