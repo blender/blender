@@ -808,11 +808,7 @@ void BM_mesh_bm_to_me(
 		if (vertMap) MEM_freeN(vertMap);
 	}
 
-	if (params->calc_tessface) {
-		BKE_mesh_tessface_calc(me);
-	}
-
-	BKE_mesh_update_customdata_pointers(me, params->calc_tessface);
+	BKE_mesh_update_customdata_pointers(me, false);
 
 	{
 		BMEditSelection *selected;
