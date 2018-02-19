@@ -106,7 +106,7 @@ class SEQUENCER_HT_header(Header):
             layout.prop(st, "preview_channels", expand=True, text="")
             layout.prop(st, "display_channel", text="Channel")
 
-            ed = context.scene.sequence_editor
+            ed = scene.sequence_editor
             if ed:
                 row = layout.row(align=True)
                 row.prop(ed, "show_overlay", text="", icon='GHOST_ENABLED')
@@ -1076,7 +1076,7 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        sequencer = context.scene.sequence_editor
+        ed = context.scene.sequence_editor
 
         strip = act_strip(context)
 
@@ -1084,9 +1084,9 @@ class SEQUENCER_PT_proxy(SequencerButtonsPanel, Panel):
             proxy = strip.proxy
 
             flow = layout.column_flow()
-            flow.prop(sequencer, "proxy_storage", text="Storage")
-            if sequencer.proxy_storage == 'PROJECT':
-                flow.prop(sequencer, "proxy_dir", text="Directory")
+            flow.prop(ed, "proxy_storage", text="Storage")
+            if ed.proxy_storage == 'PROJECT':
+                flow.prop(ed, "proxy_dir", text="Directory")
             else:
                 flow.prop(proxy, "use_proxy_custom_directory")
                 flow.prop(proxy, "use_proxy_custom_file")
@@ -1192,7 +1192,7 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
         layout = self.layout
 
         strip = act_strip(context)
-        sequencer = context.scene.sequence_editor
+        ed = context.scene.sequence_editor
 
         layout.prop(strip, "use_linear_modifiers")
 
@@ -1223,9 +1223,9 @@ class SEQUENCER_PT_modifiers(SequencerButtonsPanel, Panel):
                 row.prop(mod, "input_mask_type", expand=True)
 
                 if mod.input_mask_type == 'STRIP':
-                    sequences_object = sequencer
-                    if sequencer.meta_stack:
-                        sequences_object = sequencer.meta_stack[-1]
+                    sequences_object = ed
+                    if ed.meta_stack:
+                        sequences_object = ed.meta_stack[-1]
                     box.prop_search(mod, "input_mask_strip", sequences_object, "sequences", text="Mask")
                 else:
                     box.prop(mod, "input_mask_id")
