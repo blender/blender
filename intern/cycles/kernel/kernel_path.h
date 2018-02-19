@@ -400,6 +400,13 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
                                      PathState *state,
                                      PathRadiance *L)
 {
+#ifdef __SUBSURFACE__
+	SubsurfaceIndirectRays ss_indirect;
+	kernel_path_subsurface_init_indirect(&ss_indirect);
+
+	for(;;) {
+#endif  /* __SUBSURFACE__ */
+
 	/* path iteration */
 	for(;;) {
 		/* Find intersection with objects in scene. */
@@ -485,29 +492,21 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		}
 #endif  /* __AO__ */
 
+
 #ifdef __SUBSURFACE__
 		/* bssrdf scatter to a different location on the same object, replacing
 		 * the closures with a diffuse BSDF */
 		if(sd->flag & SD_BSSRDF) {
-			float bssrdf_u, bssrdf_v;
-			path_state_rng_2D(kg,
-			                  state,
-			                  PRNG_BSDF_U,
-			                  &bssrdf_u, &bssrdf_v);
-
-			const ShaderClosure *sc = shader_bssrdf_pick(sd, &throughput, &bssrdf_u);
-
-			/* do bssrdf scatter step if we picked a bssrdf closure */
-			if(sc) {
-				uint lcg_state = lcg_state_init(state, 0x68bc21eb);
-
-				subsurface_scatter_step(kg,
-				                        sd,
-				                        state,
-				                        sc,
-				                        &lcg_state,
-				                        bssrdf_u, bssrdf_v,
-				                        false);
+			if(kernel_path_subsurface_scatter(kg,
+			                                  sd,
+			                                  emission_sd,
+			                                  L,
+			                                  state,
+			                                  ray,
+			                                  &throughput,
+			                                  &ss_indirect))
+			{
+				break;
 			}
 		}
 #endif  /* __SUBSURFACE__ */
@@ -530,6 +529,24 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 		if(!kernel_path_surface_bounce(kg, sd, &throughput, state, &L->state, ray))
 			break;
 	}
+
+#ifdef __SUBSURFACE__
+		/* Trace indirect subsurface rays by restarting the loop. this uses less
+		 * stack memory than invoking kernel_path_indirect.
+		 */
+		if(ss_indirect.num_rays) {
+			kernel_path_subsurface_setup_indirect(kg,
+			                                      &ss_indirect,
+			                                      state,
+			                                      ray,
+			                                      L,
+			                                      &throughput);
+		}
+		else {
+			break;
+		}
+	}
+#endif  /* __SUBSURFACE__ */
 }
 
 #endif /* defined(__BRANCHED_PATH__) || defined(__BAKING__) */

@@ -228,7 +228,9 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 		if(sd->flag & SD_BSSRDF) {
 
 #ifdef __BRANCHED_PATH__
-			if(!kernel_data.integrator.branched) {
+			if(!kernel_data.integrator.branched ||
+			   IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT))
+			{
 #endif
 				if(kernel_path_subsurface_scatter(kg,
 				                                  sd,
@@ -242,27 +244,6 @@ ccl_device void kernel_subsurface_scatter(KernelGlobals *kg)
 					kernel_split_path_end(kg, ray_index);
 				}
 #ifdef __BRANCHED_PATH__
-			}
-			else if(IS_FLAG(ray_state, ray_index, RAY_BRANCHED_INDIRECT)) {
-				float bssrdf_u, bssrdf_v;
-				path_state_rng_2D(kg,
-				                  state,
-				                  PRNG_BSDF_U,
-				                  &bssrdf_u, &bssrdf_v);
-
-				const ShaderClosure *sc = shader_bssrdf_pick(sd, throughput, &bssrdf_u);
-
-				/* do bssrdf scatter step if we picked a bssrdf closure */
-				if(sc) {
-					uint lcg_state = lcg_state_init_addrspace(state, 0x68bc21eb);
-					subsurface_scatter_step(kg,
-					                        sd,
-					                        state,
-					                        sc,
-					                        &lcg_state,
-					                        bssrdf_u, bssrdf_v,
-					                        false);
-				}
 			}
 			else {
 				kernel_split_branched_path_subsurface_indirect_light_init(kg, ray_index);
