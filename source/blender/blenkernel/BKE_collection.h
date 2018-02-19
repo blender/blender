@@ -51,7 +51,7 @@ bool BKE_collection_remove(struct ID *owner_id, struct SceneCollection *sc);
 void BKE_collection_copy_data(struct SceneCollection *sc_dst, struct SceneCollection *sc_src, const int flag);
 struct SceneCollection *BKE_collection_duplicate(struct ID *owner_id, struct SceneCollection *scene_collection);
 struct SceneCollection *BKE_collection_master(const struct ID *owner_id);
-void BKE_collection_rename(const struct Scene *scene, struct SceneCollection *sc, const char *name);
+void BKE_collection_rename(const struct ID *owner_id, struct SceneCollection *sc, const char *name);
 void BKE_collection_master_free(struct ID *owner_id, const bool do_id_user);
 bool BKE_collection_object_add(const struct ID *owner_id, struct SceneCollection *sc, struct Object *object);
 void BKE_collection_object_add_from(struct Scene *scene, struct Object *ob_src, struct Object *ob_dst);

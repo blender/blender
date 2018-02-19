@@ -97,7 +97,7 @@ static void rna_SceneCollection_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	SceneCollection *sc = (SceneCollection *)ptr->data;
-	BKE_collection_rename(scene, sc, value);
+	BKE_collection_rename(&scene->id, sc, value);
 }
 
 static PointerRNA rna_SceneCollection_objects_get(CollectionPropertyIterator *iter)
@@ -655,9 +655,9 @@ static int rna_LayerCollection_name_length(PointerRNA *ptr)
 
 static void rna_LayerCollection_name_set(PointerRNA *ptr, const char *value)
 {
-	Scene *scene = (Scene *)ptr->id.data;
+	ID *owner_id = (ID *)ptr->id.data;
 	SceneCollection *sc = ((LayerCollection *)ptr->data)->scene_collection;
-	BKE_collection_rename(scene, sc, value);
+	BKE_collection_rename(owner_id, sc, value);
 }
 
 static PointerRNA rna_LayerCollection_objects_get(CollectionPropertyIterator *iter)

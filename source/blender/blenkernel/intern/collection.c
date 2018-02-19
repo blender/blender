@@ -94,7 +94,7 @@ static SceneCollection *collection_add(ID *owner_id, SceneCollection *sc_parent,
 	}
 
 	BLI_addtail(&sc_parent->scene_collections, sc);
-	BKE_collection_rename((Scene *)owner_id, sc, name);
+	BKE_collection_rename(owner_id, sc, name);
 
 	if (name != name_custom) {
 		MEM_freeN((char *)name);
@@ -345,9 +345,9 @@ static void collection_rename(const ID *owner_id, SceneCollection *sc, const cha
 	BLI_uniquename(&sc_parent->scene_collections, sc, DATA_("Collection"), '.', offsetof(SceneCollection, name), sizeof(sc->name));
 }
 
-void BKE_collection_rename(const Scene *scene, SceneCollection *sc, const char *name)
+void BKE_collection_rename(const ID *owner_id, SceneCollection *sc, const char *name)
 {
-	collection_rename(&scene->id, sc, name);
+	collection_rename(owner_id, sc, name);
 }
 
 /**
