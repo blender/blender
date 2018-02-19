@@ -1818,7 +1818,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	if (version_suffix != NULL && version_suffix[0]) {
 		/* placed after the version number in the image,
 		 * placing y is tricky to match baseline */
-		int x = 260 * U.pixelsize - (2 * UI_DPI_FAC);
+		int x = 252 * U.pixelsize - (2 * UI_DPI_FAC);
 		int y = 242 * U.pixelsize + (4 * UI_DPI_FAC);
 		int w = 240 * U.pixelsize;
 
