@@ -410,6 +410,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				{
 					SceneCollection *sc = outliner_scene_collection_from_tree_element(te);
 					BKE_collection_rename(scene, sc, te->name);
+					WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
 					break;
 				}
 			}
