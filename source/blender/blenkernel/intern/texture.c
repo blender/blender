@@ -1207,17 +1207,17 @@ void BKE_texture_get_value(
 	BKE_texture_get_value_ex(scene, texture, tex_co, texres, NULL, use_color_management);
 }
 
-static void texture_nodes_fetch_images_for_pool(bNodeTree *ntree, struct ImagePool *pool)
+static void texture_nodes_fetch_images_for_pool(Tex *texture, bNodeTree *ntree, struct ImagePool *pool)
 {
 	for (bNode *node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == SH_NODE_TEX_IMAGE && node->id != NULL) {
 			Image *image = (Image *)node->id;
-			BKE_image_pool_acquire_ibuf(image, NULL, pool);
+			BKE_image_pool_acquire_ibuf(image, &texture->iuser, pool);
 		}
 		else if (node->type == NODE_GROUP && node->id != NULL) {
 			/* TODO(sergey): Do we need to control recursion here? */
 			bNodeTree *nested_tree = (bNodeTree *)node->id;
-			texture_nodes_fetch_images_for_pool(nested_tree, pool);
+			texture_nodes_fetch_images_for_pool(texture, nested_tree, pool);
 		}
 	}
 }
@@ -1226,12 +1226,12 @@ static void texture_nodes_fetch_images_for_pool(bNodeTree *ntree, struct ImagePo
 void BKE_texture_fetch_images_for_pool(Tex *texture, struct ImagePool *pool)
 {
 	if (texture->nodetree != NULL) {
-		texture_nodes_fetch_images_for_pool(texture->nodetree, pool);
+		texture_nodes_fetch_images_for_pool(texture, texture->nodetree, pool);
 	}
 	else {
 		if (texture->type == TEX_IMAGE) {
 			if (texture->ima != NULL) {
-				BKE_image_pool_acquire_ibuf(texture->ima, NULL, pool);
+				BKE_image_pool_acquire_ibuf(texture->ima, &texture->iuser, pool);
 			}
 		}
 	}
