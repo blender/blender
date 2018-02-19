@@ -105,7 +105,7 @@ void register_node_type_sh_bsdf_principled(void)
 	sh_node_type_base(&ntype, SH_NODE_BSDF_PRINCIPLED, "Principled BSDF", NODE_CLASS_SHADER, 0);
 	node_type_compatibility(&ntype, NODE_NEW_SHADING);
 	node_type_socket_templates(&ntype, sh_node_bsdf_principled_in, sh_node_bsdf_principled_out);
-	node_type_size_preset(&ntype, NODE_SIZE_MIDDLE);
+	node_type_size_preset(&ntype, NODE_SIZE_LARGE);
 	node_type_init(&ntype, node_shader_init_principled);
 	node_type_storage(&ntype, "", NULL, NULL);
 	node_type_gpu(&ntype, node_shader_gpu_bsdf_principled);
