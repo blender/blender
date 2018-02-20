@@ -14,7 +14,7 @@
 #include "gwn_common.h"
 
 #define GWN_VERT_ATTR_MAX_LEN 16
-#define MAX_ATTRIB_NAMES 3
+#define GWN_VERT_ATTR_MAX_NAMES 3
 #define GWN_VERT_ATTR_NAME_AVERAGE_LEN 11
 #define GWN_VERT_ATTR_NAMES_BUF_LEN ((GWN_VERT_ATTR_NAME_AVERAGE_LEN + 1) * GWN_VERT_ATTR_MAX_LEN)
 
@@ -39,24 +39,24 @@ typedef enum {
 } Gwn_VertFetchMode;
 
 typedef struct Gwn_VertAttr {
+	Gwn_VertFetchMode fetch_mode;
 	Gwn_VertCompType comp_type;
 	unsigned gl_comp_type;
 	unsigned comp_ct; // 1 to 4 or 8 or 12 or 16
 	unsigned sz; // size in bytes, 1 to 64
 	unsigned offset; // from beginning of vertex, in bytes
-	Gwn_VertFetchMode fetch_mode;
-	const char* name[MAX_ATTRIB_NAMES];
-	unsigned name_ct;
+	unsigned name_ct; // up to GWN_VERT_ATTR_MAX_NAMES
+	const char* name[GWN_VERT_ATTR_MAX_NAMES];
 } Gwn_VertAttr;
 
 typedef struct Gwn_VertFormat {
 	unsigned attrib_ct; // 0 to 16 (GWN_VERT_ATTR_MAX_LEN)
 	unsigned name_ct; // total count of active vertex attrib
 	unsigned stride; // stride in bytes, 1 to 256
-	bool packed;
-	Gwn_VertAttr attribs[GWN_VERT_ATTR_MAX_LEN]; // TODO: variable-size attribs array
-	char names[GWN_VERT_ATTR_NAMES_BUF_LEN];
 	unsigned name_offset;
+	bool packed;
+	char names[GWN_VERT_ATTR_NAMES_BUF_LEN];
+	Gwn_VertAttr attribs[GWN_VERT_ATTR_MAX_LEN]; // TODO: variable-size attribs array
 } Gwn_VertFormat;
 
 void GWN_vertformat_clear(Gwn_VertFormat*);

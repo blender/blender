@@ -177,7 +177,7 @@ void GWN_vertformat_alias_add(Gwn_VertFormat* format, const char* alias)
 	Gwn_VertAttr* attrib = format->attribs + (format->attrib_ct - 1);
 #if TRUST_NO_ONE
 	assert(format->name_ct < GWN_VERT_ATTR_MAX_LEN); // there's room for more
-	assert(attrib->name_ct < MAX_ATTRIB_NAMES);
+	assert(attrib->name_ct < GWN_VERT_ATTR_MAX_NAMES);
 #endif
 	format->name_ct++; // multiname support
 	attrib->name[attrib->name_ct++] = copy_attrib_name(format, alias);
