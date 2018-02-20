@@ -347,12 +347,20 @@ enum PathRayFlag {
 
 	PATH_RAY_ALL_VISIBILITY = ((1 << 14)-1),
 
-	PATH_RAY_MIS_SKIP               = (1 << 15),
-	PATH_RAY_DIFFUSE_ANCESTOR       = (1 << 16),
-	PATH_RAY_SINGLE_PASS_DONE       = (1 << 17),
-	PATH_RAY_SHADOW_CATCHER         = (1 << 18),
-	PATH_RAY_STORE_SHADOW_INFO      = (1 << 19),
-	PATH_RAY_TRANSPARENT_BACKGROUND = (1 << 20),
+	/* Don't apply multiple importance sampling weights to emission from
+	 * lamp or surface hits, because they were not direct light sampled. */
+	PATH_RAY_MIS_SKIP                    = (1 << 14),
+	/* Diffuse bounce earlier in the path, skip SSS to improve performance
+	 * and avoid branching twice with disk sampling SSS. */
+	PATH_RAY_DIFFUSE_ANCESTOR            = (1 << 15),
+	/* Single pass has been written. */
+	PATH_RAY_SINGLE_PASS_DONE            = (1 << 16),
+	/* Ray is behind a shadow catcher .*/
+	PATH_RAY_SHADOW_CATCHER              = (1 << 17),
+	/* Store shadow data for shadow catcher or denoising. */
+	PATH_RAY_STORE_SHADOW_INFO           = (1 << 18),
+	/* Zero background alpha, for camera or transparent glass rays. */
+	PATH_RAY_TRANSPARENT_BACKGROUND      = (1 << 19),
 };
 
 /* Closure Label */
