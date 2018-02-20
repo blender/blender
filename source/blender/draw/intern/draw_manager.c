@@ -3663,6 +3663,8 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
 			engine_type->draw_engine->render_to_image(data, engine, render_result, render_layer);
 			DST.buffer_finish_called = false;
+			/* Force cache to reset. */
+			drw_viewport_cache_resize();
 		}
 	}
 
