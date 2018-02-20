@@ -449,7 +449,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 		}
 		case CLOSURE_BSDF_TRANSPARENT_ID: {
 			float3 weight = sd->svm_closure_weight * mix_weight;
-			bsdf_transparent_setup(sd, weight);
+			bsdf_transparent_setup(sd, weight, path_flag);
 			break;
 		}
 		case CLOSURE_BSDF_REFLECTION_ID:
@@ -728,7 +728,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				 * the throughput can blow up after multiple bounces. we
 				 * better figure out a way to skip backfaces from rays
 				 * spawned by transmission from the front */
-				bsdf_transparent_setup(sd, make_float3(1.0f, 1.0f, 1.0f));
+				bsdf_transparent_setup(sd, make_float3(1.0f, 1.0f, 1.0f), path_flag);
 			}
 			else {
 				HairBsdf *bsdf = (HairBsdf*)bsdf_alloc(sd, sizeof(HairBsdf), weight);

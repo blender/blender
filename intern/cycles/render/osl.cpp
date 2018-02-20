@@ -249,6 +249,9 @@ void OSLShaderManager::shading_system_init()
 			"__unused__",
 			"__unused__",
 			"__unused__",
+			"__unused__",
+			"__unused__",
+			"__unused__",
 		};
 
 		const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);

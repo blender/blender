@@ -75,6 +75,9 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 	if(label & LABEL_TRANSPARENT) {
 		state->flag |= PATH_RAY_TRANSPARENT;
 		state->transparent_bounce++;
+		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
+			state->flag |= PATH_RAY_TERMINATE_IMMEDIATE;
+		}
 
 		if(!kernel_data.integrator.transparent_shadows)
 			state->flag |= PATH_RAY_MIS_SKIP;
@@ -86,6 +89,10 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 	}
 
 	state->bounce++;
+	if(state->bounce >= kernel_data.integrator.max_bounce) {
+		state->flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
+	}
+
 	state->flag &= ~(PATH_RAY_ALL_VISIBILITY|PATH_RAY_MIS_SKIP);
 
 #ifdef __VOLUME__
@@ -95,6 +102,9 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 		state->flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
 
 		state->volume_bounce++;
+		if(state->volume_bounce >= kernel_data.integrator.max_volume_bounce) {
+			state->flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
+		}
 	}
 	else
 #endif
@@ -104,10 +114,18 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 			state->flag |= PATH_RAY_REFLECT;
 			state->flag &= ~PATH_RAY_TRANSPARENT_BACKGROUND;
 
-			if(label & LABEL_DIFFUSE)
+			if(label & LABEL_DIFFUSE) {
 				state->diffuse_bounce++;
-			else
+				if(state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) {
+					state->flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
+				}
+			}
+			else {
 				state->glossy_bounce++;
+				if(state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) {
+					state->flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
+				}
+			}
 		}
 		else {
 			kernel_assert(label & LABEL_TRANSMIT);
@@ -119,6 +137,9 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 			}
 
 			state->transmission_bounce++;
+			if(state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce) {
+				state->flag |= PATH_RAY_TERMINATE_AFTER_TRANSPARENT;
+			}
 		}
 
 		/* diffuse/glossy/singular */
@@ -162,13 +183,13 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg,
                                                             ccl_addr_space PathState *state,
                                                             const float3 throughput)
 {
-	if(state->flag & PATH_RAY_TRANSPARENT) {
-		/* Transparent rays are treated separately with own max bounces. */
-		if(state->transparent_bounce >= kernel_data.integrator.transparent_max_bounce) {
-			return 0.0f;
-		}
+	if(state->flag & PATH_RAY_TERMINATE_IMMEDIATE) {
+		/* Ray is to be terminated immediately. */
+		return 0.0f;
+	}
+	else if(state->flag & PATH_RAY_TRANSPARENT) {
 		/* Do at least one bounce without RR. */
-		else if(state->transparent_bounce <= 1) {
+		if(state->transparent_bounce <= 1) {
 			return 1.0f;
 		}
 #ifdef __SHADOW_TRICKS__
@@ -179,19 +200,8 @@ ccl_device_inline float path_state_continuation_probability(KernelGlobals *kg,
 #endif
 	}
 	else {
-		/* Test max bounces for various ray types. */
-		if((state->bounce >= kernel_data.integrator.max_bounce) ||
-		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
-		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
-#ifdef __VOLUME__
-		   (state->volume_bounce >= kernel_data.integrator.max_volume_bounce) ||
-#endif
-		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
-		{
-			return 0.0f;
-		}
 		/* Do at least one bounce without RR. */
-		else if(state->bounce <= 1) {
+		if(state->bounce <= 1) {
 			return 1.0f;
 		}
 #ifdef __SHADOW_TRICKS__

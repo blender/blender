@@ -45,7 +45,7 @@ ccl_device_inline bool volume_shader_extinction_sample(KernelGlobals *kg,
                                                        float3 *extinction)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW, 0);
+	shader_eval_volume(kg, sd, state, state->volume_stack, PATH_RAY_SHADOW);
 
 	if(sd->flag & SD_EXTINCTION) {
 		*extinction = sd->closure_transparent_extinction;
@@ -64,7 +64,7 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
                                             VolumeShaderCoefficients *coeff)
 {
 	sd->P = P;
-	shader_eval_volume(kg, sd, state, state->volume_stack, state->flag, kernel_data.integrator.max_closures);
+	shader_eval_volume(kg, sd, state, state->volume_stack, state->flag);
 
 	if(!(sd->flag & (SD_EXTINCTION|SD_SCATTER|SD_EMISSION)))
 		return false;
@@ -76,18 +76,11 @@ ccl_device_inline bool volume_shader_sample(KernelGlobals *kg,
 	                                            make_float3(0.0f, 0.0f, 0.0f);
 
 	if(sd->flag & SD_SCATTER) {
-		if(state->bounce < kernel_data.integrator.max_bounce &&
-		   state->volume_bounce < kernel_data.integrator.max_volume_bounce) {
-			for(int i = 0; i < sd->num_closure; i++) {
-				const ShaderClosure *sc = &sd->closure[i];
+		for(int i = 0; i < sd->num_closure; i++) {
+			const ShaderClosure *sc = &sd->closure[i];
 
-				if(CLOSURE_IS_VOLUME(sc->type))
-					coeff->sigma_s += sc->weight;
-			}
-		}
-		else {
-			/* When at the max number of bounces, clear scattering. */
-			sd->flag &= ~SD_SCATTER;
+			if(CLOSURE_IS_VOLUME(sc->type))
+				coeff->sigma_s += sc->weight;
 		}
 	}
 
