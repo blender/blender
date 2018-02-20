@@ -25,10 +25,6 @@ extern "C" {
 GLuint GWN_buf_id_alloc(void);
 void GWN_buf_id_free(GLuint buffer_id);
 
-GLuint GWN_vao_alloc(void);
-void GWN_vao_free(GLuint vao_id);
-
-
 #ifdef __cplusplus
 }
 #endif

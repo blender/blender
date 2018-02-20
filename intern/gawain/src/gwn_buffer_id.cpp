@@ -20,7 +20,6 @@
 #endif
 
 static std::vector<GLuint> orphaned_buffer_ids;
-static std::vector<GLuint> orphaned_vao_ids;
 
 static std::mutex orphan_mutex;
 
@@ -36,10 +35,6 @@ static bool thread_is_main()
 
 GLuint GWN_buf_id_alloc()
 	{
-#if TRUST_NO_ONE
-	assert(thread_is_main());
-#endif
-
 	// delete orphaned IDs
 	orphan_mutex.lock();
 	if (!orphaned_buffer_ids.empty())
@@ -70,46 +65,6 @@ void GWN_buf_id_free(GLuint buffer_id)
 		printf("orphaning VBO %u\n", buffer_id);
 #endif
 		orphaned_buffer_ids.emplace_back(buffer_id);
-		orphan_mutex.unlock();
-		}
-	}
-
-GLuint GWN_vao_alloc()
-	{
-#if TRUST_NO_ONE
-	assert(thread_is_main());
-#endif
-
-	// delete orphaned IDs
-	orphan_mutex.lock();
-	if (!orphaned_vao_ids.empty())
-		{
-		const auto orphaned_vao_ct = (unsigned)orphaned_vao_ids.size();
-#if ORPHAN_DEBUG
-		printf("deleting %u orphaned VAO%s\n", orphaned_vao_ct, orphaned_vao_ct == 1 ? "" : "s");
-#endif
-		glDeleteVertexArrays(orphaned_vao_ct, orphaned_vao_ids.data());
-		orphaned_vao_ids.clear();
-		}
-	orphan_mutex.unlock();
-
-	GLuint new_vao_id = 0;
-	glGenVertexArrays(1, &new_vao_id);
-	return new_vao_id;
-	}
-
-void GWN_vao_free(GLuint vao_id)
-	{
-	if (thread_is_main())
-		glDeleteVertexArrays(1, &vao_id);
-	else
-		{
-		// add this ID to the orphaned list
-		orphan_mutex.lock();
-#if ORPHAN_DEBUG
-		printf("orphaning VAO %u\n", vao_id);
-#endif
-		orphaned_vao_ids.emplace_back(vao_id);
 		orphan_mutex.unlock();
 		}
 	}

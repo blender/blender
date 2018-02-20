@@ -16,6 +16,7 @@ set(SRC
 	src/gwn_imm_util.c
 	src/gwn_primitive.c
 	src/gwn_shader_interface.c
+	src/gwn_vertex_array_id.cpp
 	src/gwn_vertex_buffer.c
 	src/gwn_vertex_format.c
 
@@ -30,6 +31,7 @@ set(SRC
 	gawain/gwn_primitive.h
 	gawain/gwn_primitive_private.h
 	gawain/gwn_shader_interface.h
+	gawain/gwn_vertex_array_id.h
 	gawain/gwn_vertex_buffer.h
 	gawain/gwn_vertex_format.h
 	gawain/gwn_vertex_format_private.h

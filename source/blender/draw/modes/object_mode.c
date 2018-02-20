@@ -218,6 +218,7 @@ typedef struct OBJECT_PrivateData {
 
 static struct {
 	/* Instance Data format */
+	struct Gwn_VertFormat *particle_format;
 	struct Gwn_VertFormat *empty_image_format;
 	struct Gwn_VertFormat *empty_image_wire_format;
 
@@ -537,6 +538,7 @@ static void OBJECT_engine_init(void *vedata)
 
 static void OBJECT_engine_free(void)
 {
+	MEM_SAFE_FREE(e_data.particle_format);
 	MEM_SAFE_FREE(e_data.empty_image_format);
 	MEM_SAFE_FREE(e_data.empty_image_wire_format);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
@@ -1752,6 +1754,9 @@ static void OBJECT_cache_populate_particles(Object *ob,
 				static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
 				static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
 
+				/* Dummy particle format for instancing to work. */
+				DRW_shgroup_instance_format(e_data.particle_format, {{"dummy", DRW_ATTRIB_FLOAT, 1}});
+
 				Material *ma = give_current_material(ob, part->omat);
 
 				switch (draw_as) {
@@ -1766,21 +1771,24 @@ static void OBJECT_cache_populate_particles(Object *ob,
 						break;
 					case PART_DRAW_CROSS:
 						shgrp = DRW_shgroup_instance_create(
-						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS), NULL);
+						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS),
+						        e_data.particle_format);
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
 						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 						break;
 					case PART_DRAW_CIRC:
 						shgrp = DRW_shgroup_instance_create(
-						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC), NULL);
+						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC),
+						        e_data.particle_format);
 						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
 						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
 						break;
 					case PART_DRAW_AXIS:
 						shgrp = DRW_shgroup_instance_create(
-						        e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS), NULL);
+						        e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS),
+						        e_data.particle_format);
 						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
 						break;
 					default:

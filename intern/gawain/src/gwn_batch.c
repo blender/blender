@@ -11,12 +11,48 @@
 
 #include "gwn_batch.h"
 #include "gwn_buffer_id.h"
+#include "gwn_vertex_array_id.h"
 #include "gwn_primitive_private.h"
 #include <stdlib.h>
+#include <string.h>
 
 // necessary functions from matrix API
 extern void gpuBindMatrices(const Gwn_ShaderInterface* shaderface);
-extern bool gpuMatricesDirty(void); // how best to use this here?
+
+static void batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first);
+
+static void Batch_vao_cache_clear(Gwn_Batch* batch)
+	{
+	if (batch->is_dynamic_vao_count)
+		{
+		for (int i = 0; i < batch->dynamic_vaos.count; ++i)
+			{
+			if (batch->dynamic_vaos.vao_ids[i])
+				GWN_vao_free(batch->dynamic_vaos.vao_ids[i], batch->context);
+			if (batch->dynamic_vaos.interfaces[i])
+				GWN_shaderinterface_remove_batch_ref((Gwn_ShaderInterface *)batch->dynamic_vaos.interfaces[i], batch);
+			}
+		free(batch->dynamic_vaos.interfaces);
+		free(batch->dynamic_vaos.vao_ids);
+		}
+	else
+		{
+		for (int i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
+			{
+			if (batch->static_vaos.vao_ids[i])
+				GWN_vao_free(batch->static_vaos.vao_ids[i], batch->context);
+			if (batch->static_vaos.interfaces[i])
+				GWN_shaderinterface_remove_batch_ref((Gwn_ShaderInterface *)batch->static_vaos.interfaces[i], batch);
+			}
+		}
+
+	batch->is_dynamic_vao_count = false;
+	for (int i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
+		{
+		batch->static_vaos.vao_ids[i] = 0;
+		batch->static_vaos.interfaces[i] = NULL;
+		}
+	}
 
 Gwn_Batch* GWN_batch_create_ex(
         Gwn_PrimType prim_type, Gwn_VertBuf* verts, Gwn_IndexBuf* elem,
@@ -40,17 +76,34 @@ void GWN_batch_init_ex(
 	batch->verts[0] = verts;
 	for (int v = 1; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		batch->verts[v] = NULL;
+	batch->inst = NULL;
 	batch->elem = elem;
-	batch->prim_type = prim_type;
 	batch->gl_prim_type = convert_prim_type_to_gl(prim_type);
 	batch->phase = GWN_BATCH_READY_TO_DRAW;
+	batch->is_dynamic_vao_count = false;
 	batch->owns_flag = owns_flag;
+	batch->free_callback = NULL;
+	}
+
+// This will share the VBOs with the new batch
+Gwn_Batch* GWN_batch_duplicate(Gwn_Batch* batch_src)
+	{
+	Gwn_Batch* batch = GWN_batch_create_ex(GWN_PRIM_POINTS, batch_src->verts[0], batch_src->elem, 0);
+
+	batch->gl_prim_type = batch_src->gl_prim_type;
+	for (int v = 1; v < GWN_BATCH_VBO_MAX_LEN; ++v)
+		batch->verts[v] = batch_src->verts[v];
+
+	return batch;
 	}
 
 void GWN_batch_discard(Gwn_Batch* batch)
 	{
 	if (batch->owns_flag & GWN_BATCH_OWNS_INDEX)
 		GWN_indexbuf_discard(batch->elem);
+
+	if (batch->owns_flag & GWN_BATCH_OWNS_INSTANCES)
+		GWN_vertbuf_discard(batch->inst);
 
 	if ((batch->owns_flag & ~GWN_BATCH_OWNS_INDEX) != 0)
 		{
@@ -63,10 +116,37 @@ void GWN_batch_discard(Gwn_Batch* batch)
 			}
 		}
 
-	if (batch->vao_id)
-		GWN_vao_free(batch->vao_id);
+	Batch_vao_cache_clear(batch);
+
+	if (batch->free_callback)
+		batch->free_callback(batch, batch->callback_data);
 
 	free(batch);
+	}
+
+void GWN_batch_callback_free_set(Gwn_Batch* batch, void (*callback)(Gwn_Batch*, void*), void* user_data)
+	{
+	batch->free_callback = callback;
+	batch->callback_data = user_data;
+	}
+
+void GWN_batch_instbuf_set(Gwn_Batch* batch, Gwn_VertBuf* inst, bool own_vbo)
+	{
+#if TRUST_NO_ONE
+	assert(inst != NULL);
+#endif
+	// redo the bindings
+	Batch_vao_cache_clear(batch);
+
+	if (batch->inst != NULL && (batch->owns_flag & GWN_BATCH_OWNS_INSTANCES))
+		GWN_vertbuf_discard(batch->inst);
+
+	batch->inst = inst;
+
+	if (own_vbo)
+		batch->owns_flag |= GWN_BATCH_OWNS_INSTANCES;
+	else
+		batch->owns_flag &= ~GWN_BATCH_OWNS_INSTANCES;
 	}
 
 int GWN_batch_vertbuf_add_ex(
@@ -100,12 +180,96 @@ int GWN_batch_vertbuf_add_ex(
 void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
 	{
 #if TRUST_NO_ONE
-	assert(glIsProgram(program));
+	assert(glIsProgram(shaderface->program));
+	assert(batch->program_in_use == 0);
 #endif
 
+	batch->vao_id = 0;
 	batch->program = program;
 	batch->interface = shaderface;
-	batch->program_dirty = true;
+
+
+	// Search through cache
+	if (batch->is_dynamic_vao_count)
+		{
+		for (int i = 0; i < batch->dynamic_vaos.count && batch->vao_id == 0; ++i)
+			if (batch->dynamic_vaos.interfaces[i] == shaderface)
+				batch->vao_id = batch->dynamic_vaos.vao_ids[i];
+		}
+	else
+		{
+		for (int i = 0; i < GWN_BATCH_VAO_STATIC_LEN && batch->vao_id == 0; ++i)
+			if (batch->static_vaos.interfaces[i] == shaderface)
+				batch->vao_id = batch->static_vaos.vao_ids[i];
+		}
+
+	if (batch->vao_id == 0)
+		{
+		if (batch->context == NULL)
+			batch->context = GWN_context_active_get();
+#if TRUST_NO_ONE && 0 // disabled until we use a separate single context for UI.
+		else // Make sure you are not trying to draw this batch in another context.
+			assert(batch->context == GWN_context_active_get());
+#endif
+		// Cache miss, time to add a new entry!
+		if (!batch->is_dynamic_vao_count)
+			{
+			int i; // find first unused slot
+			for (i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
+				if (batch->static_vaos.vao_ids[i] == 0)
+					break;
+
+			if (i < GWN_BATCH_VAO_STATIC_LEN)
+				{
+				batch->static_vaos.interfaces[i] = shaderface;
+				batch->static_vaos.vao_ids[i] = batch->vao_id = GWN_vao_alloc();
+				}
+			else
+				{
+				// Not enough place switch to dynamic.
+				batch->is_dynamic_vao_count = true;
+				// Erase previous entries, they will be added back if drawn again.
+				for (int j = 0; j < GWN_BATCH_VAO_STATIC_LEN; ++j)
+					{
+					GWN_shaderinterface_remove_batch_ref((Gwn_ShaderInterface*)batch->static_vaos.interfaces[j], batch);
+					GWN_vao_free(batch->static_vaos.vao_ids[j], batch->context);
+					}
+				// Init dynamic arrays and let the branch below set the values.
+				batch->dynamic_vaos.count = GWN_BATCH_VAO_DYN_ALLOC_COUNT;
+				batch->dynamic_vaos.interfaces = calloc(batch->dynamic_vaos.count, sizeof(Gwn_ShaderInterface*));
+				batch->dynamic_vaos.vao_ids = calloc(batch->dynamic_vaos.count, sizeof(GLuint));
+				}
+			}
+
+		if (batch->is_dynamic_vao_count)
+			{
+			int i; // find first unused slot
+			for (i = 0; i < batch->dynamic_vaos.count; ++i)
+				if (batch->dynamic_vaos.vao_ids[i] == 0)
+					break;
+
+			if (i == batch->dynamic_vaos.count)
+				{
+				// Not enough place, realloc the array.
+				i = batch->dynamic_vaos.count;
+				batch->dynamic_vaos.count += GWN_BATCH_VAO_DYN_ALLOC_COUNT;
+				batch->dynamic_vaos.interfaces = realloc(batch->dynamic_vaos.interfaces, sizeof(Gwn_ShaderInterface*) * batch->dynamic_vaos.count);
+				batch->dynamic_vaos.vao_ids = realloc(batch->dynamic_vaos.vao_ids, sizeof(GLuint) * batch->dynamic_vaos.count);
+				memset(batch->dynamic_vaos.interfaces + i, 0, sizeof(Gwn_ShaderInterface*) * GWN_BATCH_VAO_DYN_ALLOC_COUNT);
+				memset(batch->dynamic_vaos.vao_ids + i, 0, sizeof(GLuint) * GWN_BATCH_VAO_DYN_ALLOC_COUNT);
+				}
+
+			batch->dynamic_vaos.interfaces[i] = shaderface;
+			batch->dynamic_vaos.vao_ids[i] = batch->vao_id = GWN_vao_alloc();
+			}
+
+		GWN_shaderinterface_add_batch_ref((Gwn_ShaderInterface*)shaderface, batch);
+
+		// We just got a fresh VAO we need to initialize it.
+		glBindVertexArray(batch->vao_id);
+		batch_update_program_bindings(batch, 0);
+		glBindVertexArray(0);
+		}
 
 	GWN_batch_program_use_begin(batch); // hack! to make Batch_Uniform* simpler
 	}
@@ -118,94 +282,104 @@ void GWN_batch_program_unset(Gwn_Batch* batch)
 	batch->program_in_use = false;
 	}
 
-static void create_bindings(Gwn_Batch* batch, const Gwn_ShaderInterface* interface, unsigned int v_first, const bool use_instancing)
+void GWN_batch_remove_interface_ref(Gwn_Batch* batch, const Gwn_ShaderInterface* interface)
 	{
-	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
+	if (batch->is_dynamic_vao_count)
 		{
-		Gwn_VertBuf* verts = batch->verts[v];
-		if (verts == NULL)
-			break;
-
-		const Gwn_VertFormat* format = &verts->format;
-
-		const unsigned attrib_ct = format->attrib_ct;
-		const unsigned stride = format->stride;
-
-		GWN_vertbuf_use(verts);
-
-		for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
+		for (int i = 0; i < batch->dynamic_vaos.count; ++i)
 			{
-			const Gwn_VertAttr* a = format->attribs + a_idx;
-
-			const GLvoid* pointer = (const GLubyte*)0 + a->offset + v_first * stride;
-
-			for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
+			if (batch->dynamic_vaos.interfaces[i] == interface)
 				{
-				const Gwn_ShaderInput* input = GWN_shaderinterface_attr(interface, a->name[n_idx]);
+				GWN_vao_free(batch->dynamic_vaos.vao_ids[i], batch->context);
+				batch->dynamic_vaos.vao_ids[i] = 0;
+				batch->dynamic_vaos.interfaces[i] = NULL;
+				break; // cannot have duplicates
+				}
+			}
+		}
+	else
+		{
+		int i;
+		for (i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
+			{
+			if (batch->static_vaos.interfaces[i] == interface)
+				{
+				GWN_vao_free(batch->static_vaos.vao_ids[i], batch->context);
+				batch->static_vaos.vao_ids[i] = 0;
+				batch->static_vaos.interfaces[i] = NULL;
+				break; // cannot have duplicates
+				}
+			}
+		}
+	}
 
-				if (input == NULL) continue;
+static void create_bindings(Gwn_VertBuf* verts, const Gwn_ShaderInterface* interface, unsigned int v_first, const bool use_instancing)
+	{
+	const Gwn_VertFormat* format = &verts->format;
 
-				if (a->comp_ct == 16 || a->comp_ct == 12 || a->comp_ct == 8)
-					{
+	const unsigned attrib_ct = format->attrib_ct;
+	const unsigned stride = format->stride;
+
+	GWN_vertbuf_use(verts);
+
+	for (unsigned a_idx = 0; a_idx < attrib_ct; ++a_idx)
+		{
+		const Gwn_VertAttr* a = format->attribs + a_idx;
+
+		const GLvoid* pointer = (const GLubyte*)0 + a->offset + v_first * stride;
+
+		for (unsigned n_idx = 0; n_idx < a->name_ct; ++n_idx)
+			{
+			const Gwn_ShaderInput* input = GWN_shaderinterface_attr(interface, a->name[n_idx]);
+
+			if (input == NULL) continue;
+
+			if (a->comp_ct == 16 || a->comp_ct == 12 || a->comp_ct == 8)
+				{
 #if TRUST_NO_ONE
-					assert(a->fetch_mode == GWN_FETCH_FLOAT);
-					assert(a->gl_comp_type == GL_FLOAT);
+				assert(a->fetch_mode == GWN_FETCH_FLOAT);
+				assert(a->gl_comp_type == GL_FLOAT);
 #endif
-					for (int i = 0; i < a->comp_ct / 4; ++i)
-						{
-						glEnableVertexAttribArray(input->location + i);
-						glVertexAttribDivisor(input->location + i, (use_instancing) ? 1 : 0);
-						glVertexAttribPointer(input->location + i, 4, a->gl_comp_type, GL_FALSE, stride,
-						                      (const GLubyte*)pointer + i * 16);
-						}
-					}
-				else
+				for (int i = 0; i < a->comp_ct / 4; ++i)
 					{
-					glEnableVertexAttribArray(input->location);
-					glVertexAttribDivisor(input->location, (use_instancing) ? 1 : 0);
+					glEnableVertexAttribArray(input->location + i);
+					glVertexAttribDivisor(input->location + i, (use_instancing) ? 1 : 0);
+					glVertexAttribPointer(input->location + i, 4, a->gl_comp_type, GL_FALSE, stride,
+					                      (const GLubyte*)pointer + i * 16);
+					}
+				}
+			else
+				{
+				glEnableVertexAttribArray(input->location);
+				glVertexAttribDivisor(input->location, (use_instancing) ? 1 : 0);
 
-					switch (a->fetch_mode)
-						{
-						case GWN_FETCH_FLOAT:
-						case GWN_FETCH_INT_TO_FLOAT:
-							glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
-							break;
-						case GWN_FETCH_INT_TO_FLOAT_UNIT:
-							glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
-							break;
-						case GWN_FETCH_INT:
-							glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
-						}
+				switch (a->fetch_mode)
+					{
+					case GWN_FETCH_FLOAT:
+					case GWN_FETCH_INT_TO_FLOAT:
+						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_FALSE, stride, pointer);
+						break;
+					case GWN_FETCH_INT_TO_FLOAT_UNIT:
+						glVertexAttribPointer(input->location, a->comp_ct, a->gl_comp_type, GL_TRUE, stride, pointer);
+						break;
+					case GWN_FETCH_INT:
+						glVertexAttribIPointer(input->location, a->comp_ct, a->gl_comp_type, stride, pointer);
 					}
 				}
 			}
 		}
 	}
 
-static void Batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first)
+static void batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first)
 	{
-	// disable all as a precaution
-	// why are we not using prev_attrib_enabled_bits?? see immediate.c
-	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
-		glDisableVertexAttribArray(a_idx);
+	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN && batch->verts[v] != NULL; ++v)
+		create_bindings(batch->verts[v], batch->interface, (batch->inst) ? 0 : v_first, false);
 
-	create_bindings(batch, batch->interface, v_first, false);
+	if (batch->inst)
+		create_bindings(batch->inst, batch->interface, v_first, true);
 
-	batch->program_dirty = false;
-	}
-
-static void Batch_update_program_bindings_instancing(Gwn_Batch* batch, Gwn_Batch* batch_instancing, unsigned int instance_first)
-	{
-	// disable all as a precaution
-	// why are we not using prev_attrib_enabled_bits?? see immediate.c
-	for (unsigned a_idx = 0; a_idx < GWN_VERT_ATTR_MAX_LEN; ++a_idx)
-		glDisableVertexAttribArray(a_idx);
-
-	create_bindings(batch, batch->interface, 0, false);
-	if (batch_instancing)
-		create_bindings(batch_instancing, batch->interface, instance_first, true);
-
-	batch->program_dirty = false;
+	if (batch->elem)
+		GWN_indexbuf_use(batch->elem);
 	}
 
 void GWN_batch_program_use_begin(Gwn_Batch* batch)
@@ -290,142 +464,86 @@ void GWN_batch_uniform_4fv(Gwn_Batch* batch, const char* name, const float data[
 	glUniform4fv(uniform->location, 1, data);
 	}
 
-static void Batch_prime(Gwn_Batch* batch)
-	{
-	batch->vao_id = GWN_vao_alloc();
-	glBindVertexArray(batch->vao_id);
-
-	for (int v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
-		{
-		if (batch->verts[v] == NULL)
-			break;
-		GWN_vertbuf_use(batch->verts[v]);
-		}
-
-	if (batch->elem)
-		GWN_indexbuf_use(batch->elem);
-
-	// vertex attribs and element list remain bound to this VAO
-	}
-
 void GWN_batch_draw(Gwn_Batch* batch)
 	{
 #if TRUST_NO_ONE
 	assert(batch->phase == GWN_BATCH_READY_TO_DRAW);
-	assert(glIsProgram(batch->program));
+	assert(batch->verts[0]->vbo_id != 0);
 #endif
-
-	if (batch->vao_id)
-		glBindVertexArray(batch->vao_id);
-	else
-		Batch_prime(batch);
-
-	if (batch->program_dirty)
-		Batch_update_program_bindings(batch, 0);
-
 	GWN_batch_program_use_begin(batch);
+	gpuBindMatrices(batch->interface); // external call.
 
-	gpuBindMatrices(batch->interface);
-
-	if (batch->elem)
-		{
-		const Gwn_IndexBuf* el = batch->elem;
-
-#if GWN_TRACK_INDEX_RANGE
-		if (el->base_index)
-			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0, el->base_index);
-		else
-			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, el->index_ct, el->gl_index_type, 0);
-#else
-		glDrawElements(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0);
-#endif
-		}
-	else
-		glDrawArrays(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct);
+	GWN_batch_draw_range_ex(batch, 0, 0, false);
 
 	GWN_batch_program_use_end(batch);
-	glBindVertexArray(0);
 	}
 
-void GWN_batch_draw_stupid(Gwn_Batch* batch, int v_first, int v_count)
-	{
-	if (batch->vao_id)
-		glBindVertexArray(batch->vao_id);
-	else
-		Batch_prime(batch);
-
-	if (batch->program_dirty)
-		Batch_update_program_bindings(batch, v_first);
-
-	// GWN_batch_program_use_begin(batch);
-
-	//gpuBindMatrices(batch->program);
-
-	// Infer lenght if vertex count is not given
-	if (v_count == 0)
-		v_count = (batch->elem) ? batch->elem->index_ct : batch->verts[0]->vertex_ct;
-
-	if (batch->elem)
-		{
-		const Gwn_IndexBuf* el = batch->elem;
-
-#if GWN_TRACK_INDEX_RANGE
-		if (el->base_index)
-			glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, v_count, el->gl_index_type, 0, el->base_index);
-		else
-			glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, v_count, el->gl_index_type, 0);
-#else
-		glDrawElements(batch->gl_prim_type, v_count, GL_UNSIGNED_INT, 0);
-#endif
-		}
-	else
-		glDrawArrays(batch->gl_prim_type, 0, v_count);
-
-	// GWN_batch_program_use_end(batch);
-	glBindVertexArray(0);
-	}
-
-void GWN_batch_draw_stupid_instanced(Gwn_Batch* batch_instanced, Gwn_Batch* batch_instancing, int instance_first, int instance_count)
+void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool force_instance)
 	{
 #if TRUST_NO_ONE
-	// batch_instancing can be null if the number of instances is specified.
-	assert(batch_instancing != NULL || instance_count != 0);
+	assert(!(force_instance && (batch->inst == NULL)) || v_count > 0); // we cannot infer length if force_instance
 #endif
-	if (batch_instanced->vao_id)
-		glBindVertexArray(batch_instanced->vao_id);
-	else
-		Batch_prime(batch_instanced);
 
-	if (batch_instanced->program_dirty)
-		Batch_update_program_bindings_instancing(batch_instanced, batch_instancing, instance_first);
-
-	if (instance_count == 0)
-		instance_count = batch_instancing->verts[0]->vertex_ct;
-
-	if (batch_instanced->elem)
+	// If using offset drawing, use the default VAO and redo bindings.
+	if (v_first != 0)
 		{
-		const Gwn_IndexBuf* el = batch_instanced->elem;
-
-#if GWN_TRACK_INDEX_RANGE
-		glDrawElementsInstancedBaseVertex(batch_instanced->gl_prim_type, el->index_ct, el->gl_index_type, 0, instance_count, el->base_index);
-#else
-		glDrawElementsInstanced(batch_instanced->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, instance_count);
-#endif
+		glBindVertexArray(GWN_vao_default());
+		batch_update_program_bindings(batch, v_first);
 		}
 	else
-		glDrawArraysInstanced(batch_instanced->gl_prim_type, 0, batch_instanced->verts[0]->vertex_ct, instance_count);
+		glBindVertexArray(batch->vao_id);
+
+	if (force_instance || batch->inst)
+		{
+		// Infer length if vertex count is not given
+		if (v_count == 0)
+			v_count = batch->inst->vertex_ct;
+
+		if (batch->elem)
+			{
+			const Gwn_IndexBuf* el = batch->elem;
+
+#if GWN_TRACK_INDEX_RANGE
+			glDrawElementsInstancedBaseVertex(batch->gl_prim_type, el->index_ct, el->gl_index_type, 0, v_count, el->base_index);
+#else
+			glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, v_count);
+#endif
+			}
+		else
+			glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, v_count);
+		}
+	else
+		{
+		// Infer length if vertex count is not given
+		if (v_count == 0)
+			v_count = (batch->elem) ? batch->elem->index_ct : batch->verts[0]->vertex_ct;
+
+		if (batch->elem)
+			{
+			const Gwn_IndexBuf* el = batch->elem;
+
+#if GWN_TRACK_INDEX_RANGE
+			if (el->base_index)
+				glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, v_count, el->gl_index_type, 0, el->base_index);
+			else
+				glDrawRangeElements(batch->gl_prim_type, el->min_index, el->max_index, v_count, el->gl_index_type, 0);
+#else
+			glDrawElements(batch->gl_prim_type, v_count, GL_UNSIGNED_INT, 0);
+#endif
+			}
+		else
+			glDrawArrays(batch->gl_prim_type, 0, v_count);
+		}
+
 
 	glBindVertexArray(0);
 	}
 
 // just draw some vertices and let shader place them where we want.
-void GWN_batch_draw_procedural(Gwn_Batch* batch, Gwn_PrimType prim_type, int v_count)
+void GWN_draw_primitive(Gwn_PrimType prim_type, int v_count)
 	{
 	// we cannot draw without vao ... annoying ...
-	if (batch->vao_id)
-		glBindVertexArray(batch->vao_id);
-	else
-		Batch_prime(batch);
+	glBindVertexArray(GWN_vao_default());
 
 	GLenum type = convert_prim_type_to_gl(prim_type);
 	glDrawArrays(type, 0, v_count);

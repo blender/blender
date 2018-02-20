@@ -341,7 +341,7 @@ typedef void (DRWCallGenerateFn)(
         void (*draw_fn)(DRWShadingGroup *shgroup, struct Gwn_Batch *geom),
         void *user_data);
 
-void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *instances);
+void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batch);
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4]);

@@ -109,7 +109,7 @@ GLuint GWN_vao_default(void)
 	return active_ctx->default_vao;
 	}
 
-GLuint GWN_vao_alloc_new(void)
+GLuint GWN_vao_alloc(void)
 	{
 #if TRUST_NO_ONE
 	assert(active_ctx); // need at least an active context
@@ -123,7 +123,7 @@ GLuint GWN_vao_alloc_new(void)
 	}
 
 // this can be called from multiple thread
-void GWN_vao_free_new(GLuint vao_id, Gwn_Context* ctx)
+void GWN_vao_free(GLuint vao_id, Gwn_Context* ctx)
 	{
 	if (ctx == active_ctx)
 		glDeleteVertexArrays(1, &vao_id);

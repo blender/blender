@@ -23,34 +23,61 @@ typedef enum {
 } Gwn_BatchPhase;
 
 #define GWN_BATCH_VBO_MAX_LEN 3
+#define GWN_BATCH_VAO_STATIC_LEN 3
+#define GWN_BATCH_VAO_DYN_ALLOC_COUNT 16
 
 typedef struct Gwn_Batch {
 	// geometry
 	Gwn_VertBuf* verts[GWN_BATCH_VBO_MAX_LEN]; // verts[0] is required, others can be NULL
+	Gwn_VertBuf* inst; // instance attribs
 	Gwn_IndexBuf* elem; // NULL if element list not needed
-	Gwn_PrimType prim_type;
 	GLenum gl_prim_type;
 
-	// book-keeping
-	GLuint vao_id; // remembers all geometry state (vertex attrib bindings & element buffer)
-	Gwn_BatchPhase phase;
-	bool program_dirty;
-	bool program_in_use;
-	unsigned owns_flag;
-
-	// state
+	// cached values (avoid dereferencing later)
+	GLuint vao_id;
 	GLuint program;
-	const Gwn_ShaderInterface* interface;
+	const struct Gwn_ShaderInterface* interface;
+
+	// book-keeping
+	unsigned owns_flag;
+	struct Gwn_Context *context; // used to free all vaos. this implies all vaos were created under the same context.
+	Gwn_BatchPhase phase;
+	bool program_in_use;
+
+	// Vao management: remembers all geometry state (vertex attrib bindings & element buffer)
+	// for each shader interface. Start with a static number of vaos and fallback to dynamic count
+	// if necessary. Once a batch goes dynamic it does not go back.
+	bool is_dynamic_vao_count;
+	union {
+		// Static handle count
+		struct {
+			const struct Gwn_ShaderInterface* interfaces[GWN_BATCH_VAO_STATIC_LEN];
+			GLuint vao_ids[GWN_BATCH_VAO_STATIC_LEN];
+		} static_vaos;
+		// Dynamic handle count
+		struct {
+			unsigned count;
+			const struct Gwn_ShaderInterface** interfaces;
+			GLuint* vao_ids;
+		} dynamic_vaos;
+	};
+
+	// XXX This is the only solution if we want to have some data structure using
+	// batches as key to identify nodes. We must destroy these nodes with this callback.
+	void (*free_callback)(struct Gwn_Batch*, void*);
+	void* callback_data;
 } Gwn_Batch;
 
 enum {
 	GWN_BATCH_OWNS_VBO = (1 << 0),
 	/* each vbo index gets bit-shifted */
+	GWN_BATCH_OWNS_INSTANCES = (1 << 30),
 	GWN_BATCH_OWNS_INDEX = (1 << 31),
 };
 
 Gwn_Batch* GWN_batch_create_ex(Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*, unsigned owns_flag);
 void GWN_batch_init_ex(Gwn_Batch*, Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*, unsigned owns_flag);
+Gwn_Batch* GWN_batch_duplicate(Gwn_Batch* batch_src);
 
 #define GWN_batch_create(prim, verts, elem) \
 	GWN_batch_create_ex(prim, verts, elem, 0)
@@ -59,10 +86,17 @@ void GWN_batch_init_ex(Gwn_Batch*, Gwn_PrimType, Gwn_VertBuf*, Gwn_IndexBuf*, un
 
 void GWN_batch_discard(Gwn_Batch*); // verts & elem are not discarded
 
+void GWN_batch_callback_free_set(Gwn_Batch*, void (*callback)(Gwn_Batch*, void*), void*);
+
+void GWN_batch_instbuf_set(Gwn_Batch*, Gwn_VertBuf*, bool own_vbo); // Instancing
+
 int GWN_batch_vertbuf_add_ex(Gwn_Batch*, Gwn_VertBuf*, bool own_vbo);
 
 #define GWN_batch_vertbuf_add(batch, verts) \
 	GWN_batch_vertbuf_add_ex(batch, verts, false)
+
+// This is a private function
+void GWN_batch_remove_interface_ref(Gwn_Batch*, const Gwn_ShaderInterface*);
 
 void GWN_batch_program_set(Gwn_Batch*, GLuint program, const Gwn_ShaderInterface*);
 void GWN_batch_program_unset(Gwn_Batch*);
@@ -84,11 +118,14 @@ void GWN_batch_uniform_4fv(Gwn_Batch*, const char* name, const float data[4]);
 
 void GWN_batch_draw(Gwn_Batch*);
 
+// This does not bind/unbind shader and does not call gpuBindMatrices()
+void GWN_batch_draw_range_ex(Gwn_Batch*, int v_first, int v_count, bool force_instance);
 
-void GWN_batch_draw_stupid(Gwn_Batch*, int v_first, int v_count);
-void GWN_batch_draw_stupid_instanced(Gwn_Batch*, Gwn_Batch*, int instance_first, int instance_count);
-void GWN_batch_draw_procedural(Gwn_Batch*, Gwn_PrimType, int v_count);
+#define GWN_batch_draw_range(batch, first, count) \
+	GWN_batch_draw_range_ex(batch, first, count, false)
 
+// Does not even need batch
+void GWN_draw_primitive(Gwn_PrimType, int v_count);
 
 #if 0 // future plans
 

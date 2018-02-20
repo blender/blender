@@ -26,8 +26,8 @@ extern "C" {
 #include "gwn_context.h"
 
 GLuint GWN_vao_default(void);
-GLuint GWN_vao_alloc_new(void);
-void GWN_vao_free_new(GLuint vao_id, Gwn_Context*);
+GLuint GWN_vao_alloc(void);
+void GWN_vao_free(GLuint vao_id, Gwn_Context*);
 
 #ifdef __cplusplus
 }
