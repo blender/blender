@@ -216,7 +216,7 @@ ccl_device void svm_node_bevel(
 	if(stack_valid(normal_offset)) {
 		/* Preserve input normal. */
 		float3 ref_N = stack_load_float3(stack, normal_offset);
-		bevel_N = normalize(sd->N + (bevel_N - ref_N));
+		bevel_N = normalize(ref_N + (bevel_N - sd->N));;
 	}
 
 	stack_store_float3(stack, out_offset, bevel_N);

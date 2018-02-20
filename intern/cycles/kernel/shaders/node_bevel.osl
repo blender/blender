@@ -23,9 +23,9 @@ shader node_bevel(
 	output normal NormalOut = N)
 {
 	/* Abuse texture call with special @bevel token. */
-	NormalOut = (normal)(color)texture("@bevel", samples, Radius);
+	vector bevel_N = (normal)(color)texture("@bevel", samples, Radius);
 
 	/* Preserve input normal. */
-	NormalOut = normalize(N + (NormalOut - NormalIn));
+	NormalOut = normalize(NormalIn + (bevel_N - N));
 }
 
