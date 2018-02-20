@@ -140,7 +140,7 @@ typedef struct DrawEngineType {
 	void (*view_update)(void *vedata);
 	void (*id_update)(void *vedata, struct ID *id);
 
-	void (*render_to_image)(void *vedata, struct RenderEngine *engine, struct Depsgraph *graph);
+	void (*render_to_image)(void *vedata, struct RenderEngine *engine, struct RenderResult *result, struct RenderLayer *layer);
 } DrawEngineType;
 
 #ifndef __DRW_ENGINE_H__

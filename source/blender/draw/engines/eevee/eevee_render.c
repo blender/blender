@@ -152,10 +152,9 @@ void EEVEE_render_cache(
 }
 
 static void eevee_render_result_combined(
-        RenderResult *rr, const char *viewname,
+        RenderResult *rr, RenderLayer *rl, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
 {
-	RenderLayer *rl = rr->layers.first;
 	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 
 	DRW_framebuffer_bind(vedata->stl->effects->final_fb);
@@ -163,7 +162,7 @@ static void eevee_render_result_combined(
 }
 
 static void eevee_render_result_subsurface(
-        RenderResult *rr, const char *viewname,
+        RenderResult *rr, RenderLayer *rl, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -175,7 +174,6 @@ static void eevee_render_result_subsurface(
 	}
 
 	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_COLOR) != 0) {
-		RenderLayer *rl = rr->layers.first;
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_COLOR, viewname);
 
 		IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
@@ -191,7 +189,6 @@ static void eevee_render_result_subsurface(
 	}
 
 	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_DIRECT) != 0) {
-		RenderLayer *rl = rr->layers.first;
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_DIRECT, viewname);
 
 		IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
@@ -213,7 +210,7 @@ static void eevee_render_result_subsurface(
 }
 
 static void eevee_render_result_normal(
-        RenderResult *rr, const char *viewname,
+        RenderResult *rr, RenderLayer *rl, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -226,7 +223,6 @@ static void eevee_render_result_normal(
 		return;
 
 	if ((view_layer->passflag & SCE_PASS_NORMAL) != 0) {
-		RenderLayer *rl = rr->layers.first;
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_NORMAL, viewname);
 
 		DRW_framebuffer_read_data(rr->xof, rr->yof, rr->rectx, rr->recty, 3, 1, rp->rect);
@@ -255,7 +251,7 @@ static void eevee_render_result_normal(
 }
 
 static void eevee_render_result_z(
-        RenderResult *rr, const char *viewname,
+        RenderResult *rr, RenderLayer *rl, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -269,7 +265,6 @@ static void eevee_render_result_z(
 		return;
 
 	if ((view_layer->passflag & SCE_PASS_Z) != 0) {
-		RenderLayer *rl = rr->layers.first;
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
 
 		DRW_framebuffer_read_depth(rr->xof, rr->yof, rr->rectx, rr->recty, rp->rect);
@@ -295,14 +290,13 @@ static void eevee_render_result_z(
 }
 
 static void eevee_render_result_mist(
-        RenderResult *rr, const char *viewname,
+        RenderResult *rr, RenderLayer *rl, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
 
 	if ((view_layer->passflag & SCE_PASS_MIST) != 0) {
-		RenderLayer *rl = rr->layers.first;
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_MIST, viewname);
 
 		IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
@@ -319,7 +313,7 @@ static void eevee_render_result_mist(
 }
 
 static void eevee_render_result_occlusion(
-        RenderResult *rr, const char *viewname,
+        RenderResult *rr, RenderLayer *rl, const char *viewname,
         EEVEE_Data *vedata, EEVEE_ViewLayerData *UNUSED(sldata))
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -331,7 +325,6 @@ static void eevee_render_result_occlusion(
 	}
 
 	if ((view_layer->passflag & SCE_PASS_AO) != 0) {
-		RenderLayer *rl = rr->layers.first;
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_AO, viewname);
 
 		IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
@@ -375,10 +368,11 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
 	DRW_framebuffer_bind(fbl->main);
 }
 
-void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
+void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderResult *rr, RenderLayer *rl)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
+	const char *viewname = RE_GetActiveRenderView(engine->re);
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
@@ -411,12 +405,6 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 	if ((view_layer->passflag & SCE_PASS_AO) != 0) {
 		EEVEE_occlusion_output_init(sldata, vedata);
 	}
-
-	/* Init render result. */
-	const char *viewname = RE_GetActiveRenderView(engine->re);
-	const float *render_size = DRW_viewport_size_get();
-
-	RenderResult *rr = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, viewname);
 
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 	unsigned int render_samples = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
@@ -482,7 +470,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		/* Occlusion output */
 		EEVEE_occlusion_output_accumulate(sldata, vedata);
 		/* Result NORMAL */
-		eevee_render_result_normal(rr, viewname, vedata, sldata);
+		eevee_render_result_normal(rr, rl, viewname, vedata, sldata);
 		/* Volumetrics Resolve Opaque */
 		EEVEE_volumes_resolve(sldata, vedata);
 		/* Mist output */
@@ -490,17 +478,15 @@ void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 		/* Transparent */
 		DRW_draw_pass(psl->transparent_pass);
 		/* Result Z */
-		eevee_render_result_z(rr, viewname, vedata, sldata);
+		eevee_render_result_z(rr, rl, viewname, vedata, sldata);
 		/* Post Process */
 		EEVEE_draw_effects(sldata, vedata);
 	}
 
-	eevee_render_result_combined(rr, viewname, vedata, sldata);
-	eevee_render_result_subsurface(rr, viewname, vedata, sldata);
-	eevee_render_result_mist(rr, viewname, vedata, sldata);
-	eevee_render_result_occlusion(rr, viewname, vedata, sldata);
-
-	RE_engine_end_result(engine, rr, false, false, false);
+	eevee_render_result_combined(rr, rl, viewname, vedata, sldata);
+	eevee_render_result_subsurface(rr, rl, viewname, vedata, sldata);
+	eevee_render_result_mist(rr, rl, viewname, vedata, sldata);
+	eevee_render_result_occlusion(rr, rl, viewname, vedata, sldata);
 }
 
 void EEVEE_render_update_passes(RenderEngine *engine, Scene *scene, ViewLayer *view_layer)

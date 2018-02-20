@@ -3606,14 +3606,13 @@ void DRW_draw_render_loop_offscreen(
 	GPU_offscreen_bind(ofs, false);
 }
 
-void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
+void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	RenderEngineType *engine_type = re->type;
+	RenderEngineType *engine_type = engine->type;
 	DrawEngineType *draw_engine_type = engine_type->draw_engine;
 	RenderData *r = &scene->r;
-	Render *render = re->re;
+	Render *render = engine->re;
 	const EvaluationContext *eval_ctx = RE_GetEvalCtx(render);
 
 	/* Reset before using it. */
@@ -3623,7 +3622,7 @@ void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
 	DST.options.draw_background = scene->r.alphamode == R_ADDSKY;
 
 	DST.draw_ctx = (DRWContextState){
-	    NULL, NULL, NULL, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, eval_ctx->object_mode, NULL,
+	    NULL, NULL, NULL, scene, NULL, NULL, engine_type, depsgraph, eval_ctx->object_mode, NULL,
 	};
 	drw_context_state_init();
 
@@ -3640,21 +3639,34 @@ void DRW_render_to_image(RenderEngine *re, struct Depsgraph *depsgraph)
 	glDisable(GL_SCISSOR_TEST);
 	glViewport(0, 0, size[0], size[1]);
 
-	if ((r->scemode & R_MULTIVIEW) != 0) {
-		for (SceneRenderView *srv = r->views.first; srv; srv = srv->next) {
-			if (BKE_scene_multiview_is_render_view_active(r, srv) == false)
-				continue;
+	/* Main rendering loop. */
 
-			RE_SetActiveRenderView(render, srv->name);
+	/* Init render result. */
+	const float *render_size = DRW_viewport_size_get();
+	RenderResult *render_result = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, NULL);
 
-			engine_type->draw_engine->render_to_image(data, re, depsgraph);
+	for (RenderView *render_view = render_result->views.first;
+	     render_view != NULL;
+	     render_view = render_view->next)
+	{
+		RE_SetActiveRenderView(render, render_view->name);
+		for (RenderLayer *render_layer = render_result->layers.first;
+			 render_layer != NULL;
+			 render_layer = render_layer->next)
+		{
+			ViewLayer *view_layer = BLI_findstring(&scene->view_layers, render_layer->name, offsetof(ViewLayer, name));
+			DST.draw_ctx.view_layer = view_layer;
+
+			/* TODO(dfelinto/sergey) we should not get depsgraph from scene.
+			 * For rendering depsgraph is to be owned by Render. */
+			DST.draw_ctx.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+
+			engine_type->draw_engine->render_to_image(data, engine, render_result, render_layer);
+			DST.buffer_finish_called = false;
 		}
 	}
-	else {
-		engine_type->draw_engine->render_to_image(data, re, depsgraph);
-	}
 
-	DST.buffer_finish_called = false;
+	RE_engine_end_result(engine, render_result, false, false, false);
 
 	/* TODO grease pencil */
 
