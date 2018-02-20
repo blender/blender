@@ -266,9 +266,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	RenderResult *rr;
 	RenderLayer *rl;
 	RenderView *rv;
-	ViewLayer *view_layer;
 	int rectx, recty;
-	int nr;
 	
 	rectx = BLI_rcti_size_x(partrct);
 	recty = BLI_rcti_size_y(partrct);
@@ -296,23 +294,14 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	render_result_views_new(rr, &re->r);
 
 	/* check renderdata for amount of layers */
-	for (nr = 0, view_layer = re->view_layers.first; view_layer; view_layer = view_layer->next, nr++) {
-
-		if (layername && layername[0])
-			if (!STREQ(view_layer->name, layername))
-				continue;
-
-		if (re->r.scemode & R_SINGLE_LAYER) {
-			if (nr != re->active_view_layer) {
+	FOREACH_VIEW_LAYER_TO_RENDER(re, view_layer)
+	{
+		if (layername && layername[0]) {
+			if (!STREQ(view_layer->name, layername)) {
 				continue;
 			}
 		}
-		else {
-			if ((view_layer->flag & VIEW_LAYER_RENDER) == 0) {
-				continue;
-			}
-		}
-		
+
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
@@ -417,6 +406,8 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 #undef RENDER_LAYER_ADD_PASS_SAFE
 		}
 	}
+	FOREACH_VIEW_LAYER_TO_RENDER_END
+
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");

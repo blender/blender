@@ -501,11 +501,6 @@ void RE_SetCamera(Render *re, Object *cam_ob)
 	re_camera_params_get(re, &params, cam_ob);
 }
 
-void RE_SetDepsgraph(Render *re, Depsgraph *graph)
-{
-	re->depsgraph = graph;
-}
-
 void RE_SetPixelSize(Render *re, float pixsize)
 {
 	re->viewdx = pixsize;

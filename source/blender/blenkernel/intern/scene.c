@@ -1455,11 +1455,6 @@ void BKE_scene_graph_update_for_newframe(EvaluationContext *eval_ctx,
                                          Scene *scene,
                                          ViewLayer *view_layer)
 {
-	/* TODO(sergey): Temporary solution for until pipeline.c is ported. */
-	if (view_layer == NULL) {
-		view_layer = DEG_get_evaluated_view_layer(depsgraph);
-		BLI_assert(view_layer != NULL);
-	}
 	/* TODO(sergey): Some functions here are changing global state,
 	 * for example, clearing update tags from bmain.
 	 */

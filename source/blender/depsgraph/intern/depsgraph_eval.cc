@@ -32,6 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "BLI_listbase.h"
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
@@ -90,6 +91,24 @@ void DEG_evaluation_context_init_from_scene(
 	eval_ctx->engine_type = engine_type;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
 	eval_ctx->object_mode = object_mode;
+}
+
+void DEG_evaluation_context_init_from_view_layer_for_render(
+        EvaluationContext *eval_ctx,
+        Depsgraph *depsgraph,
+        Scene *scene,
+        ViewLayer *view_layer)
+{
+	/* ViewLayer may come from a copy of scene.viewlayers, we need to find the original though. */
+	ViewLayer *view_layer_original = (ViewLayer *)BLI_findstring(&scene->view_layers, view_layer->name, offsetof(ViewLayer, name));
+	BLI_assert(view_layer_original != NULL);
+
+	DEG_evaluation_context_init(eval_ctx, DAG_EVAL_RENDER);
+	eval_ctx->ctime = BKE_scene_frame_get(scene);
+	eval_ctx->object_mode = OB_MODE_OBJECT;
+	eval_ctx->depsgraph = depsgraph;
+	eval_ctx->view_layer = view_layer_original;
+	eval_ctx->engine_type = NULL;
 }
 
 /* Free evaluation context. */

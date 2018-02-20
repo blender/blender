@@ -224,6 +224,12 @@ void DEG_evaluation_context_init_from_scene(
         const eObjectMode object_mode,
         eEvaluationMode mode);
 
+void DEG_evaluation_context_init_from_view_layer_for_render(
+        struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct ViewLayer *view_layer);
+
 /* Free evaluation context. */
 void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);
 

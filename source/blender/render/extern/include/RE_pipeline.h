@@ -34,6 +34,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "DEG_depsgraph.h"
 
 struct bMovieHandle;
 struct bNodeTree;
@@ -121,7 +122,9 @@ typedef struct RenderLayer {
 
 	/* optional saved endresult on disk */
 	void *exrhandle;
-	
+
+	struct EvaluationContext eval_ctx;
+
 	ListBase passes;
 	
 } RenderLayer;
@@ -250,7 +253,6 @@ void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetOverrideCamera(struct Render *re, struct Object *camera);
 void RE_SetCamera(struct Render *re, struct Object *camera);
-void RE_SetDepsgraph(struct Render *re, struct Depsgraph *graph);
 void RE_SetEnvmapCamera(struct Render *re, struct Object *cam_ob, float viewscale, float clipsta, float clipend);
 void RE_SetWindow(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
@@ -267,7 +269,7 @@ void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 void RE_Database_FromScene(
         struct Render *re, struct Main *bmain, struct Scene *scene,
         unsigned int lay, int use_camera_view);
-void RE_Database_Preprocess(struct Render *re);
+void RE_Database_Preprocess(struct EvaluationContext *eavl_ctx, struct Render *re);
 void RE_Database_Free(struct Render *re);
 
 /* project dbase again, when viewplane/perspective changed */
@@ -368,14 +370,13 @@ struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int pas
 #define RE_BAKE_VERTEX_COLORS		14
 
 void RE_Database_Baking(
-        struct Render *re, struct Main *bmain, struct Scene *scene,
+        struct Render *re, struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer,
         unsigned int lay, const int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[4][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4]);
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_mat[4][4]);
 struct Scene *RE_GetScene(struct Render *re);
-struct EvaluationContext *RE_GetEvalCtx(struct Render *re);
 
 bool RE_force_single_renderlayer(struct Scene *scene);
 bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);

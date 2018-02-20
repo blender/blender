@@ -40,6 +40,7 @@ extern "C" {
 struct Object;
 struct VlakRen;
 struct VertRen;
+struct EvaluationContext;
 struct HaloRen;
 struct Main;
 struct Material;
@@ -164,7 +165,7 @@ void area_lamp_vectors(struct LampRen *lar);
 
 /* convertblender.c */
 void init_render_world(Render *re);
-void RE_Database_FromScene_Vectors(Render *re, struct Main *bmain, struct Scene *sce, unsigned int lay);
+void RE_Database_FromScene_Vectors(struct EvaluationContext *eval_ctx, Render *re, struct Main *bmain, struct Scene *sce, unsigned int lay);
 
 #ifdef __cplusplus
 }

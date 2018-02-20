@@ -581,6 +581,7 @@ typedef struct BakeRender {
 	Render *re;
 	Main *main;
 	Scene *scene;
+	ViewLayer *view_layer;
 	struct Object *actob;
 	int result, ready;
 
@@ -630,6 +631,7 @@ static void init_bake_internal(BakeRender *bkr, bContext *C)
 	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL; /* can be NULL */
 	bkr->main = CTX_data_main(C);
 	bkr->scene = scene;
+	bkr->view_layer = view_layer;
 	bkr->actob = (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(view_layer) : NULL;
 	bkr->re = RE_NewRender("_Bake View_");
 
@@ -735,7 +737,7 @@ static void bake_startjob(void *bkv, short *stop, short *do_update, float *progr
 	RE_test_break_cb(bkr->re, NULL, thread_break);
 	G.is_break = false;   /* BKE_blender_test_break uses this global */
 
-	RE_Database_Baking(bkr->re, bmain, scene, scene->lay, scene->r.bake_mode, bkr->actob);
+	RE_Database_Baking(bkr->re, bmain, scene, bkr->view_layer, scene->lay, scene->r.bake_mode, bkr->actob);
 
 	/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
 	bkr->result = RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update, bkr->progress);
@@ -843,7 +845,6 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int result = OPERATOR_CANCELLED;
 
 	if (is_multires_bake(scene)) {
@@ -863,7 +864,8 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 			RE_test_break_cb(bkr.re, NULL, thread_break);
 			G.is_break = false;   /* BKE_blender_test_break uses this global */
 
-			RE_Database_Baking(bkr.re, bmain, scene, scene->lay, scene->r.bake_mode, (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(view_layer) : NULL);
+			RE_Database_Baking(bkr.re, bmain, scene, bkr.view_layer, scene->lay, scene->r.bake_mode,
+			                   (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(bkr.view_layer) : NULL);
 
 			/* baking itself is threaded, cannot use test_break in threads  */
 			BLI_threadpool_init(&threads, do_bake_render, 1);

@@ -297,7 +297,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	RenderEngineType *re_type = RE_engines_find(scene->view_render.engine_id);
 	ViewLayer *view_layer = NULL;
-	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Render *re;
 	Image *ima;
 	View3D *v3d = CTX_wm_view3d(C);
@@ -321,7 +320,6 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	}
 
 	re = RE_NewSceneRender(scene);
-	RE_SetDepsgraph(re, CTX_data_depsgraph(C));
 	lay_override = (v3d && v3d->lay != scene->lay) ? v3d->lay : 0;
 
 	G.is_break = false;
@@ -349,7 +347,7 @@ static int screen_render_exec(bContext *C, wmOperator *op)
 	RE_SetReports(re, NULL);
 
 	// no redraw needed, we leave state as we entered it
-	ED_update_for_newframe(mainp, scene, view_layer, depsgraph);
+	ED_update_for_newframe(mainp, scene, view_layer, CTX_data_depsgraph(C));
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
@@ -1008,7 +1006,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	RE_current_scene_update_cb(re, rj, current_scene_update);
 	RE_stats_draw_cb(re, rj, image_renderinfo_cb);
 	RE_progress_cb(re, rj, render_progress_update);
-	RE_SetDepsgraph(re, CTX_data_depsgraph(C));
 
 	rj->re = re;
 	G.is_break = false;
@@ -1079,6 +1076,7 @@ typedef struct RenderPreview {
 	wmJob *job;
 	
 	Scene *scene;
+	EvaluationContext *eval_ctx;
 	Depsgraph *depsgraph;
 	ScrArea *sa;
 	ARegion *ar;
@@ -1327,7 +1325,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		WM_job_main_thread_lock_release(rp->job);
 
 		/* do preprocessing like building raytree, shadows, volumes, SSS */
-		RE_Database_Preprocess(re);
+		RE_Database_Preprocess(rp->eval_ctx, re);
 
 		/* conversion not completed, need to do it again */
 		if (!rstats->convertdone) {
@@ -1393,6 +1391,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 static void render_view3d_free(void *customdata)
 {
 	RenderPreview *rp = customdata;
+	DEG_evaluation_context_free(rp->eval_ctx);
 	
 	MEM_freeN(rp);
 }
@@ -1508,6 +1507,8 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	/* customdata for preview thread */
 	rp->scene = scene;
 	rp->depsgraph = depsgraph;
+	rp->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_PREVIEW);
+	CTX_data_eval_ctx(C, rp->eval_ctx);
 	rp->engine = engine;
 	rp->sa = CTX_wm_area(C);
 	rp->ar = CTX_wm_region(C);

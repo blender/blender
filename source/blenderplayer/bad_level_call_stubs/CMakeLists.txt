@@ -33,6 +33,7 @@ set(INC
 	../../blender/blenlib
 	../../blender/blenkernel
 	../../blender/blenloader
+	../../blender/depsgraph
 	../../blender/makesdna
 	../../blender/makesrna
 	../../../intern/glew-mx

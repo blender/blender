@@ -3269,9 +3269,10 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	// have_seq = (scene->r.scemode & R_DOSEQ) && scene->ed && scene->ed->seqbase.first);  /* UNUSED */
 	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
-	/* Get depsgraph and scene layer for the strip. */
+	/* Get view layer for the strip. */
 	ViewLayer *view_layer = BKE_view_layer_from_scene_get(scene);
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+	/* Depsgraph will be NULL when doing rendering. */
+	Depsgraph *depsgraph = NULL;
 
 	orig_data.scemode = scene->r.scemode;
 	orig_data.cfra = scene->r.cfra;
@@ -3329,6 +3330,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 
 		/* opengl offscreen render */
 		context->eval_ctx->engine_type = RE_engines_find(scene->view_render.engine_id);
+		depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 		BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene, view_layer);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
@@ -3360,15 +3362,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 			if (re == NULL)
 				re = RE_NewSceneRender(scene);
 
-			/* NOTE: Without this tag rendering from command line fails.
-			 * TODO(sergey): Need some proper solution with ported
-			 * BKE_scene_set_background() or DEG_on_visible_change() ?
-			 */
-			RE_SetDepsgraph(re, depsgraph);
-			DEG_graph_id_tag_update(context->bmain, depsgraph, &scene->id, 0);
-
-			BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene, view_layer);
-			RE_BlenderFrame(re, context->bmain, scene, NULL, camera, scene->lay, frame, false);
+			RE_BlenderFrame(re, context->bmain, scene, view_layer, camera, scene->lay, frame, false);
 
 			/* restore previous state after it was toggled on & off by RE_BlenderFrame */
 			G.is_rendering = is_rendering;
@@ -3426,7 +3420,7 @@ finally:
 	scene->r.cfra = orig_data.cfra;
 	scene->r.subframe = orig_data.subframe;
 
-	if (is_frame_update) {
+	if (is_frame_update && (depsgraph != NULL)) {
 		BKE_scene_graph_update_for_newframe(context->eval_ctx, depsgraph, context->bmain, scene, view_layer);
 	}
 

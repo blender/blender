@@ -84,6 +84,7 @@
 #include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "PIL_time.h"
 
@@ -1291,9 +1292,9 @@ static void get_particle_uvco_mcol(short from, DerivedMesh *dm, float *fuv, int 
 		}
 	}
 }
-static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys, int timeoffset)
+static int render_new_particle_system(const EvaluationContext *eval_ctx, Render *re,
+                                      ObjectRen *obr, ParticleSystem *psys, int timeoffset)
 {
-	const EvaluationContext *eval_ctx = RE_GetEvalCtx(re);
 	Object *ob= obr->ob;
 //	Object *tob=0;
 	Material *ma = NULL;
@@ -1353,7 +1354,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if (!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
 
-	sim.eval_ctx = re->eval_ctx;
+	sim.eval_ctx = eval_ctx;
 	sim.scene = re->scene;
 	sim.ob = ob;
 	sim.psys = psys;
@@ -2178,7 +2179,7 @@ static void displace(Render *re, ObjectRen *obr)
 /* Metaball   																 */
 /* ------------------------------------------------------------------------- */
 
-static void init_render_mball(Render *re, ObjectRen *obr)
+static void init_render_mball(const EvaluationContext *eval_ctx, Render *re, ObjectRen *obr)
 {
 	Object *ob= obr->ob;
 	DispList *dl;
@@ -2204,7 +2205,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		need_orco= 1;
 	}
 
-	BKE_displist_make_mball_forRender(re->eval_ctx, re->scene, ob, &dispbase);
+	BKE_displist_make_mball_forRender(eval_ctx, re->scene, ob, &dispbase);
 	dl= dispbase.first;
 	if (dl == NULL) return;
 
@@ -2571,7 +2572,7 @@ static void init_render_dm(DerivedMesh *dm, Render *re, ObjectRen *obr,
 
 }
 
-static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
+static void init_render_surf(const EvaluationContext *eval_ctx, Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Nurb *nu = NULL;
@@ -2604,13 +2605,13 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	BKE_displist_make_surf(re->eval_ctx, re->scene, ob, &displist, &dm, 1, 0, 1);
+	BKE_displist_make_surf(eval_ctx, re->scene, ob, &displist, &dm, 1, 0, 1);
 
 	if (dm) {
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
 			if (!orco) {
-				orco= BKE_displist_make_orco(re->eval_ctx, re->scene, ob, dm, true, true);
+				orco= BKE_displist_make_orco(eval_ctx, re->scene, ob, dm, true, true);
 				if (orco) {
 					set_object_orco(re, ob, orco);
 				}
@@ -2642,7 +2643,7 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 	MEM_freeN(matar);
 }
 
-static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
+static void init_render_curve(const EvaluationContext *eval_ctx, Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Curve *cu;
@@ -2662,7 +2663,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	if (ob->type==OB_FONT && cu->str==NULL) return;
 	else if (ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
-	BKE_displist_make_curveTypes_forRender(re->eval_ctx, re->scene, ob, &disp, &dm, false, true);
+	BKE_displist_make_curveTypes_forRender(eval_ctx, re->scene, ob, &disp, &dm, false, true);
 	dl= disp.first;
 	if (dl==NULL) return;
 	
@@ -2689,7 +2690,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
 			if (!orco) {
-				orco = BKE_displist_make_orco(re->eval_ctx, re->scene, ob, dm, true, true);
+				orco = BKE_displist_make_orco(eval_ctx, re->scene, ob, dm, true, true);
 				if (orco) {
 					set_object_orco(re, ob, orco);
 				}
@@ -2703,7 +2704,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		if (need_orco) {
 			orco = get_object_orco(re, ob);
 			if (!orco) {
-				orco = BKE_curve_make_orco(re->eval_ctx, re->scene, ob, NULL);
+				orco = BKE_curve_make_orco(eval_ctx, re->scene, ob, NULL);
 				set_object_orco(re, ob, orco);
 			}
 		}
@@ -3114,7 +3115,7 @@ static bool has_freestyle_edge_mark(EdgeHash *edge_hash, int v1, int v2)
 }
 #endif
 
-static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
+static void init_render_mesh(const EvaluationContext *eval_ctx, Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	Mesh *me;
@@ -3203,9 +3204,9 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 #endif
 
 	if (re->r.scemode & R_VIEWPORT_PREVIEW)
-		dm= mesh_create_derived_view(re->eval_ctx, re->scene, ob, mask);
+		dm= mesh_create_derived_view(eval_ctx, re->scene, ob, mask);
 	else
-		dm= mesh_create_derived_render(re->eval_ctx, re->scene, ob, mask);
+		dm= mesh_create_derived_render(eval_ctx, re->scene, ob, mask);
 	if (dm==NULL) return;	/* in case duplicated object fails? */
 
 	mvert= dm->getVertArray(dm);
@@ -4608,7 +4609,7 @@ static void set_dupli_tex_mat(Render *re, ObjectInstanceRen *obi, DupliObject *d
 	copy_v2_v2(obi->dupliuv, dob->uv);
 }
 
-static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
+static void init_render_object_data(const EvaluationContext *eval_ctx, Render *re, ObjectRen *obr, int timeoffset)
 {
 	Object *ob= obr->ob;
 	ParticleSystem *psys;
@@ -4622,26 +4623,26 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 			const CustomDataMask mask = CD_MASK_RENDER_INTERNAL;
 
 			if (re->r.scemode & R_VIEWPORT_PREVIEW)
-				dm = mesh_create_derived_view(re->eval_ctx, re->scene, ob, mask);
+				dm = mesh_create_derived_view(eval_ctx, re->scene, ob, mask);
 			else
-				dm = mesh_create_derived_render(re->eval_ctx, re->scene, ob, mask);
+				dm = mesh_create_derived_render(eval_ctx, re->scene, ob, mask);
 			dm->release(dm);
 		}
 
 		for (psys=ob->particlesystem.first, i=0; i<obr->psysindex-1; i++)
 			psys= psys->next;
 
-		render_new_particle_system(re, obr, psys, timeoffset);
+		render_new_particle_system(eval_ctx, re, obr, psys, timeoffset);
 	}
 	else {
 		if (ELEM(ob->type, OB_FONT, OB_CURVE))
-			init_render_curve(re, obr, timeoffset);
+			init_render_curve(eval_ctx, re, obr, timeoffset);
 		else if (ob->type==OB_SURF)
-			init_render_surf(re, obr, timeoffset);
+			init_render_surf(eval_ctx, re, obr, timeoffset);
 		else if (ob->type==OB_MESH)
-			init_render_mesh(re, obr, timeoffset);
+			init_render_mesh(eval_ctx, re, obr, timeoffset);
 		else if (ob->type==OB_MBALL)
-			init_render_mball(re, obr);
+			init_render_mball(eval_ctx, re, obr);
 	}
 
 	finalize_render_object(re, obr, timeoffset);
@@ -4652,7 +4653,8 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int timeoffset)
 	re->totstrand += obr->totstrand;
 }
 
-static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, float omat[4][4], int timeoffset)
+static void add_render_object(const EvaluationContext *eval_ctx, Render *re, Object *ob, Object *par, DupliObject *dob,
+                              float omat[4][4], int timeoffset)
 {
 	ObjectRen *obr;
 	ObjectInstanceRen *obi;
@@ -4690,7 +4692,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			obr->flag |= R_INSTANCEABLE;
 			copy_m4_m4(obr->obmat, ob->obmat);
 		}
-		init_render_object_data(re, obr, timeoffset);
+		init_render_object_data(eval_ctx, re, obr, timeoffset);
 
 		/* only add instance for objects that have not been used for dupli */
 		if (!(ob->transflag & OB_RENDER_DUPLI)) {
@@ -4721,7 +4723,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 			}
 			if (dob)
 				psys->flag |= PSYS_USE_IMAT;
-			init_render_object_data(re, obr, timeoffset);
+			init_render_object_data(eval_ctx, re, obr, timeoffset);
 			if (!(re->r.scemode & R_VIEWPORT_PREVIEW) && !psys_has_renderdata) {
 				psys_render_restore(ob, psys);
 			}
@@ -4740,7 +4742,8 @@ static void add_render_object(Render *re, Object *ob, Object *par, DupliObject *
 
 /* par = pointer to duplicator parent, needed for object lookup table */
 /* index = when duplicater copies same object (particle), the counter */
-static void init_render_object(Render *re, Object *ob, Object *par, DupliObject *dob, float omat[4][4], int timeoffset)
+static void init_render_object(const EvaluationContext *eval_ctx, Render *re, Object *ob, Object *par, DupliObject *dob,
+                               float omat[4][4], int timeoffset)
 {
 	static double lasttime= 0.0;
 	double time;
@@ -4749,7 +4752,7 @@ static void init_render_object(Render *re, Object *ob, Object *par, DupliObject 
 	if (ob->type==OB_LAMP)
 		add_render_lamp(re, ob);
 	else if (render_object_type(ob->type))
-		add_render_object(re, ob, par, dob, omat, timeoffset);
+		add_render_object(eval_ctx, re, ob, par, dob, omat, timeoffset);
 	else {
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat, mat);
@@ -4905,7 +4908,8 @@ static int allow_render_dupli_instance(Render *UNUSED(re), DupliObject *dob, Obj
 			(!(dob->type == OB_DUPLIGROUP) || !dob->animated));
 }
 
-static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, int level, int enable)
+static void dupli_render_particle_set(const EvaluationContext *eval_ctx, Render *re, Object *ob,
+                                      int timeoffset, int level, int enable)
 {
 	/* ugly function, but we need to set particle systems to their render
 	 * settings before calling object_duplilist, to get render level duplis */
@@ -4932,7 +4936,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(re->eval_ctx, re->scene, ob, CD_MASK_RENDER_INTERNAL);
+			dm = mesh_create_derived_render(eval_ctx, re->scene, ob, CD_MASK_RENDER_INTERNAL);
 			dm->release(dm);
 
 			for (psys=ob->particlesystem.first; psys; psys=psys->next)
@@ -4944,7 +4948,7 @@ static void dupli_render_particle_set(Render *re, Object *ob, int timeoffset, in
 
 	FOREACH_GROUP_OBJECT(ob->dup_group, object)
 	{
-		dupli_render_particle_set(re, object, timeoffset, level+1, enable);
+		dupli_render_particle_set(eval_ctx, re, object, timeoffset, level+1, enable);
 	}
 	FOREACH_GROUP_OBJECT_END
 }
@@ -4954,7 +4958,8 @@ static int get_vector_viewlayers(Scene *UNUSED(sce))
 	return 0;
 }
 
-static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, int onlyselected, Object *actob, int timeoffset, int level)
+static void add_group_render_dupli_obs(const EvaluationContext *eval_ctx, Render *re, Group *group, int nolamps,
+                                       int onlyselected, Object *actob, int timeoffset, int level)
 {
 	/* Simple preventing of too deep nested groups. */
 	if (level > MAX_DUPLI_RECUR) return;
@@ -4966,11 +4971,11 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 		if (ob->flag & OB_DONE) {
 			if (ob->transflag & OB_RENDER_DUPLI) {
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
+					init_render_object(eval_ctx, re, ob, NULL, NULL, NULL, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 
 					if (ob->dup_group) {
-						add_group_render_dupli_obs(re, ob->dup_group, nolamps, onlyselected, actob, timeoffset, level+1);
+						add_group_render_dupli_obs(eval_ctx, re, ob->dup_group, nolamps, onlyselected, actob, timeoffset, level+1);
 					}
 				}
 			}
@@ -4979,7 +4984,8 @@ static void add_group_render_dupli_obs(Render *re, Group *group, int nolamps, in
 	FOREACH_GROUP_OBJECT_END
 }
 
-static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), int nolamps, int onlyselected, Object *actob, int timeoffset)
+static void database_init_objects(const EvaluationContext *eval_ctx, Render *re, unsigned int UNUSED(renderlay),
+                                  int nolamps, int onlyselected, Object *actob, int timeoffset)
 {
 	Base *base;
 	Object *ob;
@@ -5032,7 +5038,7 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 			 * it still needs to create the ObjectRen containing the data */
 			if (ob->transflag & OB_RENDER_DUPLI) {
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob)) {
-					init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
+					init_render_object(eval_ctx, re, ob, NULL, NULL, NULL, timeoffset);
 					ob->transflag &= ~OB_RENDER_DUPLI;
 				}
 			}
@@ -5046,9 +5052,9 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 
 				/* create list of duplis generated by this object, particle
 				 * system need to have render settings set for dupli particles */
-				dupli_render_particle_set(re, ob, timeoffset, 0, 1);
-				duplilist = object_duplilist(re->eval_ctx, re->scene, ob);
-				duplilist_apply_data = duplilist_apply(re->eval_ctx, ob, NULL, duplilist);
+				dupli_render_particle_set(eval_ctx, re, ob, timeoffset, 0, 1);
+				duplilist = object_duplilist(eval_ctx, re->scene, ob);
+				duplilist_apply_data = duplilist_apply(eval_ctx, ob, NULL, duplilist);
 				/* postpone 'dupli_render_particle_set', since RE_addRenderInstance reads
 				 * index values from 'dob->persistent_id[0]', referencing 'psys->child' which
 				 * may be smaller once the particle system is restored, see: T45563. */
@@ -5131,7 +5137,7 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 
 						if (obi==NULL)
 							/* can't instance, just create the object */
-							init_render_object(re, obd, ob, dob, dob_extra->obmat, timeoffset);
+							init_render_object(eval_ctx, re, obd, ob, dob, dob_extra->obmat, timeoffset);
 						
 						if (dob->type != OB_DUPLIGROUP) {
 							obd->flag |= OB_DONE;
@@ -5139,13 +5145,13 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 						}
 					}
 					else
-						init_render_object(re, obd, ob, dob, dob_extra->obmat, timeoffset);
+						init_render_object(eval_ctx, re, obd, ob, dob, dob_extra->obmat, timeoffset);
 					
 					if (re->test_break(re->tbh)) break;
 				}
 
 				/* restore particle system */
-				dupli_render_particle_set(re, ob, timeoffset, 0, false);
+				dupli_render_particle_set(eval_ctx, re, ob, timeoffset, 0, false);
 
 				if (duplilist_apply_data) {
 					duplilist_restore(duplilist, duplilist_apply_data);
@@ -5154,10 +5160,10 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 				free_object_duplilist(duplilist);
 
 				if (allow_render_object(re, ob, nolamps, onlyselected, actob))
-					init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
+					init_render_object(eval_ctx, re, ob, NULL, NULL, NULL, timeoffset);
 			}
 			else if (allow_render_object(re, ob, nolamps, onlyselected, actob))
-				init_render_object(re, ob, NULL, NULL, NULL, timeoffset);
+				init_render_object(eval_ctx, re, ob, NULL, NULL, NULL, timeoffset);
 		}
 
 		if (re->test_break(re->tbh)) break;
@@ -5166,7 +5172,7 @@ static void database_init_objects(Render *re, unsigned int UNUSED(renderlay), in
 	/* objects in groups with OB_RENDER_DUPLI set still need to be created,
 	 * since they may not be part of the scene */
 	for (group= re->main->group.first; group; group=group->id.next)
-		add_group_render_dupli_obs(re, group, nolamps, onlyselected, actob, timeoffset, 0);
+		add_group_render_dupli_obs(eval_ctx, re, group, nolamps, onlyselected, actob, timeoffset, 0);
 
 	if (!re->test_break(re->tbh))
 		RE_makeRenderInstances(re);
@@ -5210,7 +5216,6 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	/* applies changes fully */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_BUTS_PREVIEW|R_VIEWPORT_PREVIEW))==0) {
-		BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene, NULL);
 		render_update_anim_renderdata(re, &re->scene->r, &re->scene->view_layers);
 	}
 	
@@ -5247,7 +5252,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	set_node_shader_lamp_loop(shade_material_loop);
 
 	/* MAKE RENDER DATA */
-	database_init_objects(re, lay, 0, 0, NULL, 0);
+	EvaluationContext *eval_ctx = NULL;
+	BLI_assert(eval_ctx);
+	/* This will break things, and it should because honestly this function is deprecated and no one uses it.
+	 * maybe freestyle? But even so, this need to change. Even freestyle need to get data from depsgraph
+	 * so we can't create the database only once. */
+	database_init_objects(eval_ctx, re, lay, 0, 0, NULL, 0);
 	
 	if (!re->test_break(re->tbh)) {
 		set_material_lightgroups(re);
@@ -5262,7 +5272,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	}
 }
 
-void RE_Database_Preprocess(Render *re)
+void RE_Database_Preprocess(EvaluationContext *eval_ctx, Render *re)
 {
 	if (!re->test_break(re->tbh)) {
 		int tothalo;
@@ -5292,7 +5302,7 @@ void RE_Database_Preprocess(Render *re)
 				
 			/* point density texture */
 			if (!re->test_break(re->tbh))
-				make_pointdensities(re);
+				make_pointdensities(eval_ctx, re);
 			/* voxel data texture */
 			if (!re->test_break(re->tbh))
 				make_voxeldata(re);
@@ -5363,7 +5373,11 @@ void RE_DataBase_GetView(Render *re, float mat[4][4])
 /* Speed Vectors															 */
 /* ------------------------------------------------------------------------- */
 
-static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int lay, int timeoffset)
+static void database_fromscene_vectors(EvaluationContext *eval_ctx,
+                                       Render *re,
+                                       Scene *scene,
+                                       unsigned int lay,
+                                       int timeoffset)
 {
 	Object *camera= RE_GetCamera(re);
 	float mat[4][4];
@@ -5380,7 +5394,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	BKE_scene_graph_update_for_newframe(re->eval_ctx, re->depsgraph, re->main, re->scene, NULL);
+	BKE_scene_graph_update_for_newframe(eval_ctx, eval_ctx->depsgraph, re->main, re->scene, NULL);
 	
 	/* if no camera, viewmat should have been set! */
 	if (camera) {
@@ -5391,7 +5405,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	}
 	
 	/* MAKE RENDER DATA */
-	database_init_objects(re, lay, 0, 0, NULL, timeoffset);
+	database_init_objects(eval_ctx, re, lay, 0, 0, NULL, timeoffset);
 	
 	if (!re->test_break(re->tbh))
 		project_renderdata(re, projectverto, (re->r.mode & R_PANORAMA) != 0, 0, 1);
@@ -5748,7 +5762,7 @@ static void free_dbase_object_vectors(ListBase *lb)
 	BLI_freelistN(lb);
 }
 
-void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned int lay)
+void RE_Database_FromScene_Vectors(EvaluationContext *eval_ctx, Render *re, Main *bmain, Scene *sce, unsigned int lay)
 {
 	ObjectInstanceRen *obi, *oldobi;
 	StrandSurface *mesh;
@@ -5763,7 +5777,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	speedvector_project(re, NULL, NULL, NULL);	/* initializes projection code */
 	
 	/* creates entire dbase */
-	database_fromscene_vectors(re, sce, lay, -1);
+	database_fromscene_vectors(eval_ctx, re, sce, lay, -1);
 	
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &oldtable);
@@ -5779,7 +5793,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 		/* creates entire dbase */
 		re->i.infostr = IFACE_("Calculating next frame vectors");
 		
-		database_fromscene_vectors(re, sce, lay, +1);
+		database_fromscene_vectors(eval_ctx, re, sce, lay, +1);
 	}
 	/* copy away vertex info */
 	copy_dbase_object_vectors(re, &newtable);
@@ -5793,7 +5807,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 	
 	if (!re->test_break(re->tbh)) {
 		RE_Database_FromScene(re, bmain, sce, lay, 1);
-		RE_Database_Preprocess(re);
+		RE_Database_Preprocess(eval_ctx, re);
 	}
 	
 	if (!re->test_break(re->tbh)) {
@@ -5887,7 +5901,8 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
  * RE_BAKE_DERIVATIVE:for baking, no lamps, only selected objects
  * RE_BAKE_SHADOW: for baking, only shadows, but all objects
  */
-void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay, const int type, Object *actob)
+void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, ViewLayer *view_layer,
+                        unsigned int lay, const int type, Object *actob)
 {
 	Object *camera;
 	float mat[4][4];
@@ -5904,6 +5919,16 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	render_copy_viewrender(&re->view_render, &scene->view_render);
 
 	RE_init_threadcount(re);
+
+	EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
+	Depsgraph *depsgraph = DEG_graph_new();
+	DEG_evaluation_context_init_from_view_layer_for_render(eval_ctx, depsgraph, scene, view_layer);
+	DEG_graph_build_from_view_layer(depsgraph, bmain, scene, view_layer);
+	BKE_scene_graph_update_tagged(eval_ctx,
+	                              depsgraph,
+	                              bmain,
+	                              scene,
+	                              view_layer);
 	
 	re->flag |= R_BAKING;
 	re->excludeob= actob;
@@ -5975,7 +6000,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	set_node_shader_lamp_loop(shade_material_loop);
 	
 	/* MAKE RENDER DATA */
-	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
+	database_init_objects(eval_ctx, re, lay, nolamps, onlyselected, actob, 0);
 
 	set_material_lightgroups(re);
 	
@@ -5991,7 +6016,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, unsigned int lay,
 	
 	/* point density texture */
 	if (!re->test_break(re->tbh))
-		make_pointdensities(re);
+		make_pointdensities(eval_ctx, re);
 
 	/* voxel data texture */
 	if (!re->test_break(re->tbh))

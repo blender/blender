@@ -3745,7 +3745,7 @@ static void textured_face_generate_uv(
 }
 
 /* Generate an updated copy of material to use for color sampling. */
-Material *RE_sample_material_init(Material *orig_mat, Scene *scene)
+Material *RE_sample_material_init(const EvaluationContext *eval_ctx, Material *orig_mat, Scene *scene)
 {
 	Tex *tex = NULL;
 	Material *mat;
@@ -3821,7 +3821,7 @@ Material *RE_sample_material_init(Material *orig_mat, Scene *scene)
 				unit_m4(dummy_re.viewmat);
 				unit_m4(dummy_re.winmat);
 				dummy_re.winx = dummy_re.winy = 128;
-				cache_pointdensity(&dummy_re, tex->pd);
+				cache_pointdensity(eval_ctx, &dummy_re, tex->pd);
 			}
 
 			/* update image sequences and movies */

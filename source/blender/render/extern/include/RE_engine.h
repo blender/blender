@@ -92,7 +92,7 @@ typedef struct RenderEngineType {
 	char name[64];
 	int flag;
 
-	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Depsgraph *depsgraph, struct Scene *scene);
+	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Scene *scene);
 	void (*render_to_image)(struct RenderEngine *engine, struct Depsgraph *depsgraph);
 	void (*bake)(struct RenderEngine *engine, struct Scene *scene, struct Object *object, const int pass_type,
 	             const int pass_filter, const int object_id, const struct BakePixel *pixel_array, const int num_pixels,
@@ -190,9 +190,7 @@ RenderEngineType *RE_engines_find(const char *idname);
 rcti* RE_engine_get_current_tiles(struct Render *re, int *r_total_tiles, bool *r_needs_free);
 struct RenderData *RE_engine_get_render_data(struct Render *re);
 void RE_bake_engine_set_engine_parameters(
-        struct Render *re, struct Main *bmain, struct Depsgraph *graph, struct Scene *scene);
-
-struct ViewLayer *RE_engine_get_view_layer(struct Render *re);
+        struct Render *re, struct Main *bmain, struct Scene *scene);
 
 #endif /* __RE_ENGINE_H__ */
 

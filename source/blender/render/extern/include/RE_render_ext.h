@@ -38,6 +38,7 @@
 
 /* called by meshtools */
 struct DerivedMesh;
+struct EvaluationContext;
 struct ImagePool;
 struct MTex;
 struct Scene;
@@ -55,7 +56,7 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void RE_texture_rng_init(void);
 void RE_texture_rng_exit(void);
 
-struct Material *RE_sample_material_init(struct Material *orig_mat, struct Scene *scene);
+struct Material *RE_sample_material_init(const struct EvaluationContext *eval_ctx, struct Material *orig_mat, struct Scene *scene);
 void RE_sample_material_free(struct Material *mat);
 void RE_sample_material_color(
         struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],

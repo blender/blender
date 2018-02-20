@@ -54,6 +54,7 @@ public:
 	            BL::BlendData& b_data,
 	            BL::Depsgraph& b_graph,
 	            BL::Scene& b_scene,
+	            BL::ViewLayer& b_view_layer,
 	            Scene *scene,
 	            bool preview,
 	            Progress &progress);

@@ -185,8 +185,6 @@ struct Render {
 	
 	/* shadow counter, detect shadow-reuse for shaders */
 	int shadowsamplenr[BLENDER_MAX_THREADS];
-	
-	struct Depsgraph *depsgraph;
 
 	/* main, scene, and its full copy of renderdata and world */
 	struct Main *main;
@@ -280,7 +278,6 @@ struct Render {
 	struct ReportList *reports;
 
 	struct ImagePool *pool;
-	struct EvaluationContext *eval_ctx;
 
 	void **movie_ctx_arr;
 	char viewname[MAX_NAME];

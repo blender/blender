@@ -203,10 +203,10 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 
 static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 {
-	PyObject *pyengine, *pyuserpref, *pydata, *pygraph, *pyscene, *pyregion, *pyv3d, *pyrv3d;
+	PyObject *pyengine, *pyuserpref, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
 	int preview_osl;
 
-	if(!PyArg_ParseTuple(args, "OOOOOOOOi", &pyengine, &pyuserpref, &pydata, &pygraph, &pyscene,
+	if(!PyArg_ParseTuple(args, "OOOOOOOi", &pyengine, &pyuserpref, &pydata, &pyscene,
 	                     &pyregion, &pyv3d, &pyrv3d, &preview_osl))
 	{
 		return NULL;
@@ -224,10 +224,6 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 	PointerRNA dataptr;
 	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);
 	BL::BlendData data(dataptr);
-
-	PointerRNA graphptr;
-	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pygraph), &graphptr);
-	BL::Depsgraph graph(graphptr);
 
 	PointerRNA sceneptr;
 	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
@@ -253,7 +249,7 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 		int width = region.width();
 		int height = region.height();
 
-		session = new BlenderSession(engine, userpref, data, graph, scene, v3d, rv3d, width, height);
+		session = new BlenderSession(engine, userpref, data, scene, v3d, rv3d, width, height);
 	}
 	else {
 		/* override some settings for preview */
@@ -265,7 +261,7 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 		}
 
 		/* offline session or preview render */
-		session = new BlenderSession(engine, userpref, data, graph, scene);
+		session = new BlenderSession(engine, userpref, data, scene);
 	}
 
 	python_thread_state_save(&session->python_thread_state);

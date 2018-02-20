@@ -169,7 +169,7 @@ static void alloc_point_data(PointDensity *pd)
 	}
 }
 
-static void pointdensity_cache_psys(EvaluationContext *eval_ctx, Scene *scene,
+static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *scene,
                                     PointDensity *pd,
                                     Object *ob,
                                     ParticleSystem *psys,
@@ -403,7 +403,7 @@ static void pointdensity_cache_vertex_normal(PointDensity *pd, Object *UNUSED(ob
 	}
 }
 
-static void pointdensity_cache_object(EvaluationContext *eval_ctx, Scene *scene,
+static void pointdensity_cache_object(const EvaluationContext *eval_ctx, Scene *scene,
                                       PointDensity *pd,
                                       Object *ob,
                                       const bool use_render_params)
@@ -478,7 +478,8 @@ static void pointdensity_cache_object(EvaluationContext *eval_ctx, Scene *scene,
 
 }
 
-static void cache_pointdensity_ex(EvaluationContext *eval_ctx, Scene *scene,
+static void cache_pointdensity_ex(const EvaluationContext *eval_ctx,
+                                  Scene *scene,
                                   PointDensity *pd,
                                   float viewmat[4][4],
                                   float winmat[4][4],
@@ -523,9 +524,9 @@ static void cache_pointdensity_ex(EvaluationContext *eval_ctx, Scene *scene,
 	}
 }
 
-void cache_pointdensity(Render *re, PointDensity *pd)
+void cache_pointdensity(const EvaluationContext *eval_ctx, Render *re, PointDensity *pd)
 {
-	cache_pointdensity_ex(re->eval_ctx,
+	cache_pointdensity_ex(eval_ctx,
 	                      re->scene,
 	                      pd,
 	                      re->viewmat, re->winmat,
@@ -551,7 +552,7 @@ void free_pointdensity(PointDensity *pd)
 	pd->totpoints = 0;
 }
 
-void make_pointdensities(Render *re)
+void make_pointdensities(const EvaluationContext *eval_ctx, Render *re)
 {
 	Tex *tex;
 
@@ -564,7 +565,7 @@ void make_pointdensities(Render *re)
 
 	for (tex = re->main->tex.first; tex != NULL; tex = tex->id.next) {
 		if (tex->id.us && tex->type == TEX_POINTDENSITY) {
-			cache_pointdensity(re, tex->pd);
+			cache_pointdensity(eval_ctx, re, tex->pd);
 		}
 	}
 
