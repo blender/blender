@@ -1264,7 +1264,7 @@ void BKE_mesh_normals_loop_split(
         const MVert *mverts, const int UNUSED(numVerts), MEdge *medges, const int numEdges,
         MLoop *mloops, float (*r_loopnors)[3], const int numLoops,
         MPoly *mpolys, const float (*polynors)[3], const int numPolys,
-        const bool use_split_normals, float split_angle,
+        const bool use_split_normals, const float split_angle,
         MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], int *r_loop_to_poly)
 {
 	/* For now this is not supported. If we do not use split normals, we do not generate anything fancy! */
@@ -1325,9 +1325,7 @@ void BKE_mesh_normals_loop_split(
 	TIMEIT_START_AVERAGED(BKE_mesh_normals_loop_split);
 #endif
 
-	if (check_angle) {
-		split_angle = cosf(split_angle);
-	}
+	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
 	if (!r_lnors_spacearr && clnors_data) {
 		/* We need to compute lnor spacearr if some custom lnor data are given to us! */
@@ -1371,7 +1369,7 @@ void BKE_mesh_normals_loop_split(
 				 */
 				if (!(mp->flag & ME_SMOOTH) || (medges[ml_curr->e].flag & ME_SHARP) ||
 				    ml_curr->v == mloops[e2l[0]].v ||
-				    (check_angle && dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle))
+				    (check_angle && dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle_cos))
 				{
 					/* Note: we are sure that loop != 0 here ;) */
 					e2l[1] = INDEX_INVALID;
