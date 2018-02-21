@@ -2918,7 +2918,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 /* ************** */
 /* Evaluation API */
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 void BKE_animsys_eval_animdata(EvaluationContext *eval_ctx, ID *id)
 {

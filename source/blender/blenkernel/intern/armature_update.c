@@ -54,9 +54,9 @@
 #include "DEG_depsgraph.h"
 
 #ifdef WITH_LEGACY_DEPSGRAPH
-#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH) printf
+#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 #else
-#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 #endif
 
 /* ********************** SPLINE IK SOLVER ******************* */

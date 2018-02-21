@@ -357,6 +357,9 @@ static PyGetSetDef bpy_app_getsets[] = {
 	{(char *)"debug_handlers",  bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_HANDLERS},
 	{(char *)"debug_wm",        bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_WM},
 	{(char *)"debug_depsgraph", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_DEPSGRAPH},
+	{(char *)"debug_depsgraph_build", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_DEPSGRAPH_BUILD},
+	{(char *)"debug_depsgraph_eval", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_DEPSGRAPH_EVAL},
+	{(char *)"debug_depsgraph_tag", bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_DEPSGRAPH_TAG},
 	{(char *)"debug_simdata",   bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_SIMDATA},
 	{(char *)"debug_gpumem",    bpy_app_debug_get, bpy_app_debug_set, (char *)bpy_app_debug_doc, (void *)G_DEBUG_GPU_MEM},
 

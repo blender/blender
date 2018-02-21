@@ -1690,7 +1690,7 @@ void BKE_rigidbody_rebuild_sim(EvaluationContext *UNUSED(eval_ctx),
 {
 	float ctime = BKE_scene_frame_get(scene);
 
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s at %f\n", __func__, ctime);
 	}
 
@@ -1705,7 +1705,7 @@ void BKE_rigidbody_eval_simulation(EvaluationContext *UNUSED(eval_ctx),
 {
 	float ctime = BKE_scene_frame_get(scene);
 
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s at %f\n", __func__, ctime);
 	}
 
@@ -1722,7 +1722,7 @@ void BKE_rigidbody_object_sync_transforms(EvaluationContext *UNUSED(eval_ctx),
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	float ctime = BKE_scene_frame_get(scene);
 
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s on %s\n", __func__, ob->id.name);
 	}
 

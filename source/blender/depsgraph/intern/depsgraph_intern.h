@@ -111,7 +111,7 @@ void deg_editors_scene_update(struct Main *bmain, struct Scene *scene, bool upda
 
 #define DEG_DEBUG_PRINTF(...) \
 	do { \
-		if (G.debug & G_DEBUG_DEPSGRAPH) { \
+		if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) { \
 			fprintf(stderr, __VA_ARGS__); \
 		} \
 	} while (0)

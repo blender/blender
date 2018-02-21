@@ -897,7 +897,7 @@ void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
 	}
 }
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 void BKE_mask_eval_animation(struct EvaluationContext *eval_ctx, Mask *mask)
 {

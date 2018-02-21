@@ -62,9 +62,9 @@
 #include "DEG_depsgraph.h"
 
 #ifdef WITH_LEGACY_DEPSGRAPH
-#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH) printf
+#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 #else
-#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 #endif
 
 static ThreadMutex material_lock = BLI_MUTEX_INITIALIZER;
@@ -153,7 +153,7 @@ void BKE_object_handle_data_update(EvaluationContext *eval_ctx,
 	Key *key;
 	float ctime = BKE_scene_frame_get(scene);
 
-	if (G.debug & G_DEBUG_DEPSGRAPH)
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL)
 		printf("recalcdata %s\n", ob->id.name + 2);
 
 	/* TODO(sergey): Only used by legacy depsgraph. */

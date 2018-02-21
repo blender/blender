@@ -4405,7 +4405,7 @@ void BKE_particle_system_eval_init(EvaluationContext *UNUSED(eval_ctx),
                                    Scene *scene,
                                    Object *ob)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s on %s\n", __func__, ob->id.name);
 	}
 	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
