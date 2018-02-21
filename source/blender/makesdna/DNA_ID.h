@@ -519,6 +519,8 @@ enum {
  * keep them in sync! */
 enum {
 	INDEX_ID_LI = 0,
+	INDEX_ID_WS,
+	INDEX_ID_WM,
 	INDEX_ID_IP,
 	INDEX_ID_AC,
 	INDEX_ID_KE,
@@ -551,8 +553,6 @@ enum {
 	INDEX_ID_OB,
 	INDEX_ID_LS,
 	INDEX_ID_SCE,
-	INDEX_ID_WS,
-	INDEX_ID_WM,
 	INDEX_ID_MSK,
 	INDEX_ID_NULL,
 };
