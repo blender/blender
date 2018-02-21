@@ -3529,7 +3529,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 {
 	/* NOTE: We assume that all keys are sorted */
 	ListBase retained_keys = {NULL, NULL};
-	tRetainedKeyframe *last_rk = NULL;
 	
 	/* sanity checks */
 	if ((fcu->totvert == 0) || (fcu->bezt == NULL))
@@ -3587,9 +3586,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 			printf("   %d: f = %f, v = %f (n = %d)\n", rk_index, rk->frame, rk->val, rk->tot_count);
 			rk_index++;
 		}
-		
-		/* "last_rk" is the last one we need to search (assuming everything is sorted) */
-		last_rk = retained_keys.last;
 	}
 	
 	/* 2) Delete all keyframes duplicating the "retained keys" found above
@@ -3602,8 +3598,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 		
 		/* Is this a candidate for deletion? */
 		// TODO: Replace loop with an O(1) lookup instead
-		// TODO: update last_rk on each deletion
-		for (tRetainedKeyframe *rk = last_rk; rk; rk = rk->prev) {
+		for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
 			if (IS_EQT(bezt->vec[1][0], rk->frame, BEZT_BINARYSEARCH_THRESH)) {
 				/* Delete this keyframe, unless it's the last selected one on this frame,
 				 * in which case, we'll update its value instead
@@ -3612,9 +3607,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 					/* Update keyframe */
 					// XXX: update handles too...
 					bezt->vec[1][1] = rk->val;
-					
-					/* Adjust last_rk, since we don't need to use this one anymore */
-					last_rk = rk->prev;
 				}
 				else {
 					/* Delete keyframe */
@@ -3623,10 +3615,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 				
 				/* Stop searching for matching RK's */
 				rk->del_count++;
-				break;
-			}
-			else if (rk->frame < bezt->vec[1][0]) {
-				/* Terminate search early - There shouldn't be anything */
 				break;
 			}
 		}
