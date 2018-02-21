@@ -1680,6 +1680,11 @@ static bool seq_proxy_get_fname(Editing *ed, Sequence *seq, int cfra, int render
 		else if (seq->type == SEQ_TYPE_IMAGE) {
 			fname[0] = 0;
 		}
+		else {
+			/* We could make a name here, except non-movie's don't generate proxies,
+			 * cancel until other types of sequence strips are supported. */
+			return false;
+		}
 		BLI_path_append(dir, sizeof(dir), fname);
 		BLI_path_abs(name, G.main->name);
 	}

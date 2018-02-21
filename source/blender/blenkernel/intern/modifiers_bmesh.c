@@ -62,7 +62,7 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 {
 	MVert *mv, *mvert;
 	MEdge *me, *medge;
-	MPoly /* *mpoly, */ /* UNUSED */ *mp;
+	MPoly *mpoly, *mp;
 	MLoop *mloop;
 	BMVert *v, **vtable;
 	BMEdge *e, **etable;
@@ -70,7 +70,6 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 	BMFace *f;
 	int i, j, totvert, totedge /* , totface */ /* UNUSED */ ;
 	bool is_init = (bm->totvert == 0) && (bm->totedge == 0) && (bm->totface == 0);
-	bool is_cddm = (dm->type == DM_TYPE_CDDM);  /* duplicate the arrays for non cddm */
 	char has_orig_htype = 0;
 
 	int cd_vert_bweight_offset;
@@ -106,7 +105,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 	etable = MEM_mallocN(sizeof(*etable) * totedge, __func__);
 
 	/*do verts*/
-	mv = mvert = is_cddm ? dm->getVertArray(dm) : dm->dupVertArray(dm);
+	bool vert_allocated;
+	mv = mvert = DM_get_vert_array(dm, &vert_allocated);;
 	for (i = 0; i < totvert; i++, mv++) {
 		v = BM_vert_create(bm, mv->co, NULL, BM_CREATE_SKIP_CD);
 		normal_short_to_float_v3(v->no, mv->no);
@@ -124,11 +124,12 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
-	if (!is_cddm) MEM_freeN(mvert);
+	if (vert_allocated) MEM_freeN(mvert);
 	if (is_init) bm->elem_index_dirty &= ~BM_VERT;
 
 	/*do edges*/
-	me = medge = is_cddm ? dm->getEdgeArray(dm) : dm->dupEdgeArray(dm);
+	bool edge_allocated;
+	me = medge = DM_get_edge_array(dm, &edge_allocated);
 	for (i = 0; i < totedge; i++, me++) {
 		//BLI_assert(BM_edge_exists(vtable[me->v1], vtable[me->v2]) == NULL);
 		e = BM_edge_create(bm, vtable[me->v1], vtable[me->v2], NULL, BM_CREATE_SKIP_CD);
@@ -147,13 +148,14 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
-	if (!is_cddm) MEM_freeN(medge);
+	if (edge_allocated) MEM_freeN(medge);
 	if (is_init) bm->elem_index_dirty &= ~BM_EDGE;
 
 	/* do faces */
 	/* note: i_alt is aligned with bmesh faces which may not always align with mpolys */
-	mp = dm->getPolyArray(dm);
-	mloop = dm->getLoopArray(dm);
+	bool poly_allocated, loop_allocated;
+	mpoly = mp = DM_get_poly_array(dm, &poly_allocated);
+	mloop = DM_get_loop_array(dm, &loop_allocated);
 	face_normals = (dm->dirty & DM_DIRTY_NORMALS) ? NULL : CustomData_get_layer(&dm->polyData, CD_NORMAL);
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		BMLoop *l_iter;
@@ -194,6 +196,8 @@ void DM_to_bmesh_ex(DerivedMesh *dm, BMesh *bm, const bool calc_face_normal)
 			*orig_index = ORIGINDEX_NONE;
 		}
 	}
+	if (poly_allocated) MEM_freeN(mpoly);
+	if (loop_allocated) MEM_freeN(mloop);
 	if (is_init) bm->elem_index_dirty &= ~(BM_FACE | BM_LOOP);
 
 	MEM_freeN(vtable);

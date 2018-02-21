@@ -87,6 +87,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 	BLI_Stack *traversal_stack = BLI_stack_new(sizeof(StackEntry),
 	                                           "DEG detect cycles stack");
 
+	int num_cycles = 0;
 	foreach (OperationDepsNode *node, graph->operations) {
 		bool has_inlinks = false;
 		foreach (DepsRelation *rel, node->inlinks) {
@@ -136,6 +137,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 					}
 					/* TODO(sergey): So called russian roulette cycle solver. */
 					rel->flag |= DEPSREL_FLAG_CYCLIC;
+					++num_cycles;
 				}
 				else if (to_state == NODE_NOT_VISITED) {
 					StackEntry new_entry;
@@ -157,6 +159,10 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 	}
 
 	BLI_stack_free(traversal_stack);
+
+	if (num_cycles != 0) {
+		printf("Detected %d dependency cycles\n", num_cycles);
+	}
 }
 
 }  // namespace DEG
