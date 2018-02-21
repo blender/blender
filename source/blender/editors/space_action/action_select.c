@@ -262,7 +262,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 		{
 			/* loop over data selecting */
 			switch (ale->type) {
-#if 0 /* XXXX: Keyframes are not currently shown here */
+#if 0 /* XXX: Keyframes are not currently shown here */
 				case ANIMTYPE_GPDATABLOCK:
 				{
 					bGPdata *gpd = ale->data;
@@ -466,6 +466,7 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 		{
 			/* loop over data selecting */
 			switch (ale->type) {
+#if 0 /* XXX: Keyframes are not currently shown here */
 				case ANIMTYPE_GPDATABLOCK:
 				{
 					bGPdata *gpd = ale->data;
@@ -475,6 +476,7 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 					}
 					break;
 				}
+#endif
 				case ANIMTYPE_GPLAYER:
 				{
 					ED_gplayer_frames_select_region(&ked, ale->data, mode, selectmode);
@@ -717,8 +719,6 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 	CfraElem *ce;
 	KeyframeEditFunc select_cb, ok_cb;
 	KeyframeEditData ked = {{NULL}};
-	
-	/* initialize keyframe editing data */
 	
 	/* build list of columns */
 	switch (mode) {
