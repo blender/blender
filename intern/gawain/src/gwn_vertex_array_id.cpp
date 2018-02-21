@@ -34,6 +34,7 @@ struct Gwn_Context {
 	std::mutex orphans_mutex; // todo: try spinlock instead
 #if TRUST_NO_ONE
 	pthread_t thread; // Thread on which this context is active.
+	bool thread_is_used;
 #endif
 };
 
@@ -57,6 +58,7 @@ Gwn_Context* GWN_context_create(void)
 	assert(thread_is_main());
 #endif
 	Gwn_Context* ctx = (Gwn_Context*)calloc(1, sizeof(Gwn_Context));
+	new (&ctx->orphans_mutex) std::mutex();
 	glGenVertexArrays(1, &ctx->default_vao);
 	GWN_context_active_set(ctx);
 	return ctx;
@@ -68,10 +70,11 @@ void GWN_context_discard(Gwn_Context* ctx)
 #if TRUST_NO_ONE
 	// Make sure no other thread has locked it.
 	assert(ctx == active_ctx);
-	assert(ctx->thread == pthread_self());
+	assert(pthread_equal(pthread_self(), ctx->thread));
 	assert(ctx->orphaned_vertarray_ids.empty());
 #endif
 	glDeleteVertexArrays(1, &ctx->default_vao);
+	(&ctx->orphans_mutex)->~mutex();
 	free(ctx);
 	active_ctx = NULL;
 	}
@@ -81,13 +84,14 @@ void GWN_context_active_set(Gwn_Context* ctx)
 	{
 #if TRUST_NO_ONE
 	if (active_ctx)
-		active_ctx->thread = 0;
+		active_ctx->thread_is_used = false;
 	// Make sure no other context is already bound to this thread.
 	if (ctx)
 		{
 		// Make sure no other thread has locked it.
-		assert(ctx->thread == 0);
+		assert(ctx->thread_is_used == false);
 		ctx->thread = pthread_self();
+		ctx->thread_is_used = true;
 		}
 #endif
 	if (ctx)
@@ -104,7 +108,7 @@ GLuint GWN_vao_default(void)
 	{
 #if TRUST_NO_ONE
 	assert(active_ctx); // need at least an active context
-	assert(active_ctx->thread == pthread_self()); // context has been activated by another thread!
+	assert(pthread_equal(pthread_self(), active_ctx->thread)); // context has been activated by another thread!
 #endif
 	return active_ctx->default_vao;
 	}
@@ -113,7 +117,7 @@ GLuint GWN_vao_alloc(void)
 	{
 #if TRUST_NO_ONE
 	assert(active_ctx); // need at least an active context
-	assert(active_ctx->thread == pthread_self()); // context has been activated by another thread!
+	assert(pthread_equal(pthread_self(), active_ctx->thread)); // context has been activated by another thread!
 #endif
 	clear_orphans(active_ctx);
 
@@ -125,6 +129,9 @@ GLuint GWN_vao_alloc(void)
 // this can be called from multiple thread
 void GWN_vao_free(GLuint vao_id, Gwn_Context* ctx)
 	{
+#if TRUST_NO_ONE
+	assert(ctx);
+#endif
 	if (ctx == active_ctx)
 		glDeleteVertexArrays(1, &vao_id);
 	else
