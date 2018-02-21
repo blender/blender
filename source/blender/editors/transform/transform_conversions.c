@@ -3512,10 +3512,129 @@ static void posttrans_mask_clean(Mask *mask)
 	}
 }
 
+/* Time + Average value */
+typedef struct tRetainedKeyframe {
+	struct tRetainedKeyframe *next, *prev;
+	float frame;      /* frame to cluster around */
+	float val;        /* average value */
+	
+	size_t tot_count; /* number of keyframes that have been averaged */
+	size_t del_count; /* number of keyframes of this sort that have been deleted so far */
+} tRetainedKeyframe;
+
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
 static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
+{
+	/* NOTE: We assume that all keys are sorted */
+	ListBase retained_keys = {NULL, NULL};
+	tRetainedKeyframe *last_rk = NULL;
+	
+	/* sanity checks */
+	if ((fcu->totvert == 0) || (fcu->bezt == NULL))
+		return;
+	printf("cleaning fcurve = '%s' (%p)\n", fcu->rna_path, fcu);
+	
+	/* 1) Identify selected keyframes, and average the values on those
+	 * in case there are collisions due to multiple keys getting scaled
+	 * to all end up on the same frame
+	 */
+	for (int i = 0; i < fcu->totvert; i++) {
+		BezTriple *bezt = &fcu->bezt[i];
+		
+		if (BEZT_ISSEL_ANY(bezt)) {
+			bool found = false;
+			
+			/* If there's another selected frame here, merge it */
+			for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
+				if (IS_EQT(rk->frame, bezt->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
+					rk->val += (bezt->vec[1][1] - rk->val) / ((float)rk->tot_count);
+					rk->tot_count++;
+					
+					found = true;
+					break;
+				}
+				else if (rk->frame < bezt->vec[1][0]) {
+					/* XXX: terminate early if have passed the supposed insertion point? */
+					printf(" %f: rk %f (@ %p) is earlier (last = %p)\n", bezt->vec[1][0], rk->frame, rk, retained_keys.last);
+				}
+			}
+			
+			/* If nothing found yet, create a new one */
+			if (found == false) {
+				tRetainedKeyframe *rk = MEM_callocN(sizeof(tRetainedKeyframe), "tRetainedKeyframe");
+				
+				rk->frame = bezt->vec[1][0];
+				rk->val   = bezt->vec[1][1];
+				rk->tot_count = 1;
+				
+				BLI_addtail(&retained_keys, rk);
+			}
+		}
+	}
+	
+	if (BLI_listbase_is_empty(&retained_keys)) {
+		/* This may happen if none of the points were selected... */
+		printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
+		return;
+	}
+	else {
+		// XXX: Debug - Print out all the retained keys so we can check if they're in order!
+		int rk_index = 0;
+		for (tRetainedKeyframe *rk = retained_keys.first; rk; rk = rk->next) {
+			printf("   %d: f = %f, v = %f (n = %d)\n", rk_index, rk->frame, rk->val, rk->tot_count);
+			rk_index++;
+		}
+		
+		/* "last_rk" is the last one we need to search (assuming everything is sorted) */
+		last_rk = retained_keys.last;
+	}
+	
+	/* 2) Delete all keyframes duplicating the "retained keys" found above
+	 *   - Most of these will be unselected keyframes
+	 *   - Some will be selected keyframes though. For those, we only keep the last one
+	 *     (or else everything is gone), and replace its value with the averaged value. 
+	 */
+	for (int i = fcu->totvert - 1; i >= 0; i--) {
+		BezTriple *bezt = &fcu->bezt[i];
+		
+		/* Is this a candidate for deletion? */
+		// TODO: Replace loop with an O(1) lookup instead
+		// TODO: update last_rk on each deletion
+		for (tRetainedKeyframe *rk = last_rk; rk; rk = rk->prev) {
+			if (IS_EQT(bezt->vec[1][0], rk->frame, BEZT_BINARYSEARCH_THRESH)) {
+				/* Delete this keyframe, unless it's the last selected one on this frame,
+				 * in which case, we'll update its value instead
+				 */
+				if (BEZT_ISSEL_ANY(bezt) && (rk->del_count == rk->tot_count - 1)) {
+					/* Update keyframe */
+					// XXX: update handles too...
+					bezt->vec[1][1] = rk->val;
+					
+					/* Adjust last_rk, since we don't need to use this one anymore */
+					last_rk = rk->prev;
+				}
+				else {
+					/* Delete keyframe */
+					delete_fcurve_key(fcu, i, 0);
+				}
+				
+				/* Stop searching for matching RK's */
+				rk->del_count++;
+				break;
+			}
+			else if (rk->frame < bezt->vec[1][0]) {
+				/* Terminate search early - There shouldn't be anything */
+			}
+		}
+	}
+	
+	/* cleanup */
+	BLI_freelistN(&retained_keys);
+}
+
+static void UNUSED_FUNCTION(posttrans_fcurve_clean__OLD)(FCurve *fcu, const bool use_handle)
 {
 	float *selcache;    /* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
 	int len, index, i;  /* number of frames in cache, item index */
