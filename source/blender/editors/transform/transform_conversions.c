@@ -3529,6 +3529,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 {
 	/* NOTE: We assume that all keys are sorted */
 	ListBase retained_keys = {NULL, NULL};
+	const bool can_average_points = ((fcu->flag & (FCURVE_INT_VALUES | FCURVE_DISCRETE_VALUES)) == 0);
 	
 	/* sanity checks */
 	if ((fcu->totvert == 0) || (fcu->bezt == NULL))
@@ -3597,8 +3598,10 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 				 */
 				if (BEZT_ISSEL_ANY(bezt) && (rk->del_count == rk->tot_count - 1)) {
 					/* Update keyframe */
-					/* TODO: update handles too? */
-					bezt->vec[1][1] = rk->val;
+					if (can_average_points) {
+						/* TODO: update handles too? */
+						bezt->vec[1][1] = rk->val;
+					}
 				}
 				else {
 					/* Delete keyframe */
