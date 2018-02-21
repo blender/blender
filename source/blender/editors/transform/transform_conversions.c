@@ -3533,7 +3533,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 	/* sanity checks */
 	if ((fcu->totvert == 0) || (fcu->bezt == NULL))
 		return;
-	printf("cleaning fcurve = '%s' (%p)\n", fcu->rna_path, fcu);
 	
 	/* 1) Identify selected keyframes, and average the values on those
 	 * in case there are collisions due to multiple keys getting scaled
@@ -3556,7 +3555,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 				}
 				else if (rk->frame < bezt->vec[1][0]) {
 					/* Terminate early if have passed the supposed insertion point? */
-					printf(" %f: rk %f (@ %p) is earlier (last = %p)\n", bezt->vec[1][0], rk->frame, rk, retained_keys.last);
 					break;
 				}
 			}
@@ -3576,16 +3574,10 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 	
 	if (BLI_listbase_is_empty(&retained_keys)) {
 		/* This may happen if none of the points were selected... */
-		printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
-		return;
-	}
-	else {
-		// XXX: Debug - Print out all the retained keys so we can check if they're in order!
-		int rk_index = 0;
-		for (tRetainedKeyframe *rk = retained_keys.first; rk; rk = rk->next) {
-			printf("   %d: f = %f, v = %f (n = %d)\n", rk_index, rk->frame, rk->val, rk->tot_count);
-			rk_index++;
+		if (G.debug & G_DEBUG) {
+			printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
 		}
+		return;
 	}
 	
 	/* 2) Delete all keyframes duplicating the "retained keys" found above
@@ -3597,7 +3589,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 		BezTriple *bezt = &fcu->bezt[i];
 		
 		/* Is this a candidate for deletion? */
-		// TODO: Replace loop with an O(1) lookup instead
+		/* TODO: Replace loop with an O(1) lookup instead */
 		for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
 			if (IS_EQT(bezt->vec[1][0], rk->frame, BEZT_BINARYSEARCH_THRESH)) {
 				/* Delete this keyframe, unless it's the last selected one on this frame,
@@ -3605,7 +3597,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 				 */
 				if (BEZT_ISSEL_ANY(bezt) && (rk->del_count == rk->tot_count - 1)) {
 					/* Update keyframe */
-					// XXX: update handles too...
+					/* TODO: update handles too? */
 					bezt->vec[1][1] = rk->val;
 				}
 				else {
@@ -3623,63 +3615,6 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 	/* cleanup */
 	BLI_freelistN(&retained_keys);
 }
-
-static void UNUSED_FUNCTION(posttrans_fcurve_clean__OLD)(FCurve *fcu, const bool use_handle)
-{
-	float *selcache;    /* cache for frame numbers of selected frames (fcu->totvert*sizeof(float)) */
-	int len, index, i;  /* number of frames in cache, item index */
-
-	/* allocate memory for the cache */
-	// TODO: investigate using BezTriple columns instead?
-	if (fcu->totvert == 0 || fcu->bezt == NULL)
-		return;
-	selcache = MEM_callocN(sizeof(float) * fcu->totvert, "FCurveSelFrameNums");
-	len = 0;
-	index = 0;
-
-	/* We do 2 loops, 1 for marking keyframes for deletion, one for deleting
-	 * as there is no guarantee what order the keyframes are exactly, even though
-	 * they have been sorted by time.
-	 */
-
-	/*	Loop 1: find selected keyframes   */
-	for (i = 0; i < fcu->totvert; i++) {
-		BezTriple *bezt = &fcu->bezt[i];
-		
-		if (BEZT_ISSEL_ANY(bezt)) {
-			selcache[index] = bezt->vec[1][0];
-			index++;
-			len++;
-		}
-	}
-
-	/* Loop 2: delete unselected keyframes on the same frames 
-	 * (if any keyframes were found, or the whole curve wasn't affected) 
-	 */
-	if ((len) && (len != fcu->totvert)) {
-		for (i = fcu->totvert - 1; i >= 0; i--) {
-			BezTriple *bezt = &fcu->bezt[i];
-			
-			if (BEZT_ISSEL_ANY(bezt) == 0) {
-				/* check beztriple should be removed according to cache */
-				for (index = 0; index < len; index++) {
-					if (IS_EQF(bezt->vec[1][0], selcache[index])) {
-						delete_fcurve_key(fcu, i, 0);
-						break;
-					}
-					else if (bezt->vec[1][0] < selcache[index])
-						break;
-				}
-			}
-		}
-		
-		testhandles_fcurve(fcu, use_handle);
-	}
-
-	/* free cache */
-	MEM_freeN(selcache);
-}
-
 
 
 /* Called by special_aftertrans_update to make sure selected keyframes replace
