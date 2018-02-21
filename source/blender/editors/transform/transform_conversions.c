@@ -3548,7 +3548,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 			/* If there's another selected frame here, merge it */
 			for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
 				if (IS_EQT(rk->frame, bezt->vec[1][0], BEZT_BINARYSEARCH_THRESH)) {
-					rk->val += (bezt->vec[1][1] - rk->val) / ((float)rk->tot_count);
+					rk->val += bezt->vec[1][1];
 					rk->tot_count++;
 					
 					found = true;
@@ -3579,6 +3579,12 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 			printf("%s: nothing to do for FCurve %p (rna_path = '%s')\n", __func__, fcu, fcu->rna_path);
 		}
 		return;
+	}
+	else {
+		/* Compute the average values for each retained keyframe */
+		for (tRetainedKeyframe *rk = retained_keys.first; rk; rk = rk->next) {
+			rk->val = rk->val / (float)rk->tot_count;
+		}
 	}
 	
 	/* 2) Delete all keyframes duplicating the "retained keys" found above
