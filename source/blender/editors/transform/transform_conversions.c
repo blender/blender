@@ -3615,6 +3615,9 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 		}
 	}
 	
+	/* 3) Recalculate handles */
+	testhandles_fcurve(fcu, use_handle);
+	
 	/* cleanup */
 	BLI_freelistN(&retained_keys);
 }
