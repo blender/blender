@@ -705,7 +705,7 @@ public:
 
 	void setup(ShaderData *sd, int path_flag, float3 weight)
 	{
-		bsdf_transparent_setup(sd, weight);
+		bsdf_transparent_setup(sd, weight, path_flag);
 	}
 };
 

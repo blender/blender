@@ -3463,7 +3463,7 @@ NODE_DEFINE(ParticleInfoNode)
 {
 	NodeType* type = NodeType::add("particle_info", create, NodeType::SHADER);
 
-	SOCKET_OUT_FLOAT(random, "Index");
+	SOCKET_OUT_FLOAT(index, "Index");
 	SOCKET_OUT_FLOAT(random, "Random");
 	SOCKET_OUT_FLOAT(age, "Age");
 	SOCKET_OUT_FLOAT(lifetime, "Lifetime");
@@ -3576,7 +3576,7 @@ NODE_DEFINE(HairInfoNode)
 	SOCKET_OUT_FLOAT(is_strand, "Is Strand");
 	SOCKET_OUT_FLOAT(intercept, "Intercept");
 	SOCKET_OUT_FLOAT(thickness, "Thickness");
-	SOCKET_OUT_NORMAL(tangent Normal, "Tangent Normal");
+	SOCKET_OUT_NORMAL(tangent_normal, "Tangent Normal");
 #if 0 /*output for minimum hair width transparency - deactivated */
 	SOCKET_OUT_FLOAT(fade, "Fade");
 #endif

@@ -69,44 +69,42 @@ ccl_device_inline float3 subsurface_scatter_eval(ShaderData *sd,
 }
 
 /* replace closures with a single diffuse bsdf closure after scatter step */
-ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderData *sd, const ShaderClosure *sc, float3 weight, bool hit, float3 N)
+ccl_device void subsurface_scatter_setup_diffuse_bsdf(KernelGlobals *kg, ShaderData *sd, const ShaderClosure *sc, float3 weight, float3 N)
 {
 	sd->flag &= ~SD_CLOSURE_FLAGS;
 	sd->num_closure = 0;
 	sd->num_closure_left = kernel_data.integrator.max_closures;
 
-	if(hit) {
-		Bssrdf *bssrdf = (Bssrdf *)sc;
+	Bssrdf *bssrdf = (Bssrdf *)sc;
 #ifdef __PRINCIPLED__
-		if(bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
-		   bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
-		{
-			PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf*)bsdf_alloc(sd, sizeof(PrincipledDiffuseBsdf), weight);
+	if(bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_ID ||
+	   bssrdf->type == CLOSURE_BSSRDF_PRINCIPLED_RANDOM_WALK_ID)
+	{
+		PrincipledDiffuseBsdf *bsdf = (PrincipledDiffuseBsdf*)bsdf_alloc(sd, sizeof(PrincipledDiffuseBsdf), weight);
 
-			if(bsdf) {
-				bsdf->N = N;
-				bsdf->roughness = bssrdf->roughness;
-				sd->flag |= bsdf_principled_diffuse_setup(bsdf);
+		if(bsdf) {
+			bsdf->N = N;
+			bsdf->roughness = bssrdf->roughness;
+			sd->flag |= bsdf_principled_diffuse_setup(bsdf);
 
-				/* replace CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID with this special ID so render passes
-				 * can recognize it as not being a regular Disney principled diffuse closure */
-				bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
-			}
+			/* replace CLOSURE_BSDF_PRINCIPLED_DIFFUSE_ID with this special ID so render passes
+			 * can recognize it as not being a regular Disney principled diffuse closure */
+			bsdf->type = CLOSURE_BSDF_BSSRDF_PRINCIPLED_ID;
 		}
-		else if(CLOSURE_IS_BSDF_BSSRDF(bssrdf->type) ||
-		        CLOSURE_IS_BSSRDF(bssrdf->type))
+	}
+	else if(CLOSURE_IS_BSDF_BSSRDF(bssrdf->type) ||
+			CLOSURE_IS_BSSRDF(bssrdf->type))
 #endif  /* __PRINCIPLED__ */
-		{
-			DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd, sizeof(DiffuseBsdf), weight);
+	{
+		DiffuseBsdf *bsdf = (DiffuseBsdf*)bsdf_alloc(sd, sizeof(DiffuseBsdf), weight);
 
-			if(bsdf) {
-				bsdf->N = N;
-				sd->flag |= bsdf_diffuse_setup(bsdf);
+		if(bsdf) {
+			bsdf->N = N;
+			sd->flag |= bsdf_diffuse_setup(bsdf);
 
-				/* replace CLOSURE_BSDF_DIFFUSE_ID with this special ID so render passes
-				 * can recognize it as not being a regular diffuse closure */
-				bsdf->type = CLOSURE_BSDF_BSSRDF_ID;
-			}
+			/* replace CLOSURE_BSDF_DIFFUSE_ID with this special ID so render passes
+			 * can recognize it as not being a regular diffuse closure */
+			bsdf->type = CLOSURE_BSDF_BSSRDF_ID;
 		}
 	}
 }
@@ -148,7 +146,7 @@ ccl_device void subsurface_color_bump_blur(KernelGlobals *kg,
 
 	if(bump || texture_blur > 0.0f) {
 		/* average color and normal at incoming point */
-		shader_eval_surface(kg, sd, state, state->flag, kernel_data.integrator.max_closures);
+		shader_eval_surface(kg, sd, state, state->flag);
 		float3 in_color = shader_bssrdf_sum(sd, (bump)? N: NULL, NULL);
 
 		/* we simply divide out the average color and multiply with the average
@@ -334,104 +332,7 @@ ccl_device_noinline void subsurface_scatter_multi_setup(
 	subsurface_color_bump_blur(kg, sd, state, &weight, &N);
 
 	/* Setup diffuse BSDF. */
-	subsurface_scatter_setup_diffuse_bsdf(kg, sd, sc, weight, true, N);
-}
-
-/* subsurface scattering step, from a point on the surface to another nearby point on the same object */
-ccl_device void subsurface_scatter_step(KernelGlobals *kg, ShaderData *sd, ccl_addr_space PathState *state,
-	const ShaderClosure *sc, uint *lcg_state, float disk_u, float disk_v, bool all)
-{
-	float3 eval = make_float3(0.0f, 0.0f, 0.0f);
-
-	/* pick random axis in local frame and point on disk */
-	float3 disk_N, disk_T, disk_B;
-	float pick_pdf_N, pick_pdf_T, pick_pdf_B;
-
-	disk_N = sd->Ng;
-	make_orthonormals(disk_N, &disk_T, &disk_B);
-
-	if(disk_v < 0.5f) {
-		pick_pdf_N = 0.5f;
-		pick_pdf_T = 0.25f;
-		pick_pdf_B = 0.25f;
-		disk_v *= 2.0f;
-	}
-	else if(disk_v < 0.75f) {
-		float3 tmp = disk_N;
-		disk_N = disk_T;
-		disk_T = tmp;
-		pick_pdf_N = 0.25f;
-		pick_pdf_T = 0.5f;
-		pick_pdf_B = 0.25f;
-		disk_v = (disk_v - 0.5f)*4.0f;
-	}
-	else {
-		float3 tmp = disk_N;
-		disk_N = disk_B;
-		disk_B = tmp;
-		pick_pdf_N = 0.25f;
-		pick_pdf_T = 0.25f;
-		pick_pdf_B = 0.5f;
-		disk_v = (disk_v - 0.75f)*4.0f;
-	}
-
-	/* sample point on disk */
-	float phi = M_2PI_F * disk_v;
-	float disk_height, disk_r;
-
-	bssrdf_sample(sc, disk_u, &disk_r, &disk_height);
-
-	float3 disk_P = (disk_r*cosf(phi)) * disk_T + (disk_r*sinf(phi)) * disk_B;
-
-	/* create ray */
-	Ray ray;
-	ray.P = sd->P + disk_N*disk_height + disk_P;
-	ray.D = -disk_N;
-	ray.t = 2.0f*disk_height;
-	ray.dP = sd->dP;
-	ray.dD = differential3_zero();
-	ray.time = sd->time;
-
-	/* intersect with the same object. if multiple intersections are
-	 * found it will randomly pick one of them */
-	LocalIntersection ss_isect;
-	scene_intersect_local(kg, ray, &ss_isect, sd->object, lcg_state, 1);
-
-	/* evaluate bssrdf */
-	if(ss_isect.num_hits > 0) {
-		float3 origP = sd->P;
-
-		/* Workaround for AMD GPU OpenCL compiler. Most probably cache bypass issue. */
-#if defined(__SPLIT_KERNEL__) && defined(__KERNEL_OPENCL_AMD__) && defined(__KERNEL_GPU__)
-		kernel_split_params.dummy_sd_flag = sd->flag;
-#endif
-		/* setup new shading point */
-		shader_setup_from_subsurface(kg, sd, &ss_isect.hits[0], &ray);
-
-		/* Probability densities for local frame axes. */
-		float pdf_N = pick_pdf_N * fabsf(dot(disk_N, sd->Ng));
-		float pdf_T = pick_pdf_T * fabsf(dot(disk_T, sd->Ng));
-		float pdf_B = pick_pdf_B * fabsf(dot(disk_B, sd->Ng));
-
-		/* Multiple importance sample between 3 axes, power heuristic
-		 * found to be slightly better than balance heuristic. pdf_N
-		 * in the MIS weight and denominator cancelled out. */
-		float w = pdf_N / (sqr(pdf_N) + sqr(pdf_T) + sqr(pdf_B));
-		w *= ss_isect.num_hits;
-
-		/* Real distance to sampled point. */
-		float r = len(sd->P - origP);
-
-		/* Evaluate profiles. */
-		eval = subsurface_scatter_eval(sd, sc, disk_r, r, all) * w;
-	}
-
-	/* optionally blur colors and bump mapping */
-	float3 N = sd->N;
-	subsurface_color_bump_blur(kg, sd, state, &eval, &N);
-
-	/* setup diffuse bsdf */
-	subsurface_scatter_setup_diffuse_bsdf(kg, sd, sc, eval, (ss_isect.num_hits > 0), N);
+	subsurface_scatter_setup_diffuse_bsdf(kg, sd, sc, weight, N);
 }
 
 /* Random walk subsurface scattering.

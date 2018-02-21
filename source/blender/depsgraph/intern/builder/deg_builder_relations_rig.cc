@@ -181,9 +181,6 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 	bPoseChannel *parchan = pchan;
 	/* exclude tip from chain? */
 	if (!(data->flag & CONSTRAINT_IK_TIP)) {
-		OperationKey tip_transforms_key(&object->id, DEG_NODE_TYPE_BONE,
-		                                parchan->name, DEG_OPCODE_BONE_LOCAL);
-		add_relation(solver_key, tip_transforms_key, "IK Solver Result");
 		parchan = pchan->parent;
 	}
 

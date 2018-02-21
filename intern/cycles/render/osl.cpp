@@ -233,18 +233,25 @@ void OSLShaderManager::shading_system_init()
 			"glossy",			/* PATH_RAY_GLOSSY */
 			"singular",			/* PATH_RAY_SINGULAR */
 			"transparent",		/* PATH_RAY_TRANSPARENT */
+
 			"shadow",			/* PATH_RAY_SHADOW_OPAQUE_NON_CATCHER */
 			"shadow",			/* PATH_RAY_SHADOW_OPAQUE_CATCHER */
 			"shadow",			/* PATH_RAY_SHADOW_TRANSPARENT_NON_CATCHER */
 			"shadow",			/* PATH_RAY_SHADOW_TRANSPARENT_CATCHER */
 
 			"__unused__",
+			"volume_scatter",	/* PATH_RAY_VOLUME_SCATTER */
+			"__unused__",
+
 			"__unused__",
 			"diffuse_ancestor",	/* PATH_RAY_DIFFUSE_ANCESTOR */
 			"__unused__",
 			"__unused__",
-			"__unused__",		/* PATH_RAY_SINGLE_PASS_DONE */
-			"volume_scatter",	/* PATH_RAY_VOLUME_SCATTER */
+			"__unused__",
+			"__unused__",
+			"__unused__",
+			"__unused__",
+			"__unused__",
 		};
 
 		const int nraytypes = sizeof(raytypes)/sizeof(raytypes[0]);

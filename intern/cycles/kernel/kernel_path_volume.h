@@ -99,6 +99,23 @@ bool kernel_path_volume_bounce(
 	/* update path state */
 	path_state_next(kg, state, label);
 
+	/* Russian roulette termination of volume ray scattering. */
+	float probability = path_state_continuation_probability(kg, state, *throughput);
+
+	if(probability == 0.0f) {
+		return false;
+	}
+	else if(probability != 1.0f) {
+		/* Use dimension from the previous bounce, has not been used yet. */
+		float terminate = path_state_rng_1D(kg, state, PRNG_TERMINATE - PRNG_BOUNCE_NUM);
+
+		if(terminate >= probability) {
+			return false;
+		}
+
+		*throughput /= probability;
+	}
+
 	/* setup ray */
 	ray->P = sd->P;
 	ray->D = phase_omega_in;

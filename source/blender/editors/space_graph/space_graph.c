@@ -700,12 +700,11 @@ static void graph_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID
 {
 	SpaceIpo *sgraph = (SpaceIpo *)slink;
 
-	if (!ELEM(GS(old_id->name), ID_GR)) {
-		return;
-	}
-
 	if (sgraph->ads && (ID *)sgraph->ads->filter_grp == old_id) {
 		sgraph->ads->filter_grp = (Group *)new_id;
+	}
+	if ((ID *)sgraph->ads->source == old_id) {
+		sgraph->ads->source = new_id;
 	}
 }
 
