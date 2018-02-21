@@ -508,7 +508,9 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 		/* Ideally should not happen, but old depsgraph allowed this. */
 		return;
 	}
-	DEG_DEBUG_PRINTF("%s: id=%s flag=%d\n", __func__, id->name, flag);
+	if (G.debug & G_DEBUG_DEPSGRAPH_TAG) {
+		printf("%s: id=%s flag=%d\n", __func__, id->name, flag);
+	}
 	DEG::deg_id_tag_update(bmain, id, flag);
 }
 

@@ -4419,7 +4419,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 void BKE_particle_system_settings_eval(const struct EvaluationContext *UNUSED(eval_ctx),
                                        ParticleSystem *psys)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s on %s (%p)\n", __func__, psys->name, psys);
 	}
 	psys->recalc |= psys->part->recalc;
@@ -4428,7 +4428,7 @@ void BKE_particle_system_settings_eval(const struct EvaluationContext *UNUSED(ev
 void BKE_particle_system_settings_recalc_clear(struct EvaluationContext *UNUSED(eval_ctx),
                                                ParticleSettings *particle_settings)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s on %s (%p)\n", __func__, particle_settings->id.name, particle_settings);
 	}
 	particle_settings->recalc = 0;
@@ -4438,7 +4438,7 @@ void BKE_particle_system_eval_init(const struct EvaluationContext *UNUSED(eval_c
                                    Scene *scene,
                                    Object *ob)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s on %s (%p)\n", __func__, ob->id.name, ob);
 	}
 	BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);

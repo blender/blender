@@ -57,7 +57,7 @@
 
 #include "MEM_guardedalloc.h"
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 /* prototype */
 struct EngineSettingsCB_Type;

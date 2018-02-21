@@ -3870,7 +3870,7 @@ void BKE_nodetree_shading_params_eval(const struct EvaluationContext *UNUSED(eva
                                       bNodeTree *ntree_dst,
                                       const bNodeTree *ntree_src)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH) {
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
 		printf("%s on %s (%p)\n", __func__, ntree_src->id.name, ntree_dst);
 	}
 	BKE_nodetree_copy_default_values(ntree_dst, ntree_src);

@@ -114,7 +114,7 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
 
 #define DEG_DEBUG_PRINTF(...)               \
 	do {                                    \
-		if (G.debug & G_DEBUG_DEPSGRAPH) {  \
+		if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {  \
 			fprintf(stderr, __VA_ARGS__);   \
 			fflush(stderr);                 \
 		}                                   \

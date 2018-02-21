@@ -55,7 +55,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 /** Free (or release) any data used by this group (does not free the group itself). */
 void BKE_group_free(Group *group)

@@ -50,7 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH) printf
+#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 /* ********************** SPLINE IK SOLVER ******************* */
 
