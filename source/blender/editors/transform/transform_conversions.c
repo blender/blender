@@ -3556,8 +3556,9 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 					break;
 				}
 				else if (rk->frame < bezt->vec[1][0]) {
-					/* XXX: terminate early if have passed the supposed insertion point? */
+					/* Terminate early if have passed the supposed insertion point? */
 					printf(" %f: rk %f (@ %p) is earlier (last = %p)\n", bezt->vec[1][0], rk->frame, rk, retained_keys.last);
+					break;
 				}
 			}
 			
@@ -3626,6 +3627,7 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 			}
 			else if (rk->frame < bezt->vec[1][0]) {
 				/* Terminate search early - There shouldn't be anything */
+				break;
 			}
 		}
 	}
