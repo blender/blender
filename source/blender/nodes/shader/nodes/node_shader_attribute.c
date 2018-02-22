@@ -59,6 +59,11 @@ static int node_shader_gpu_attribute(GPUMaterial *mat, bNode *node, bNodeExecDat
 		return GPU_stack_link(mat, node, "node_attribute_volume_flame", in, out,
 		                      GPU_builtin(GPU_VOLUME_FLAME));
 	}
+	else if (strcmp(attr->name, "temperature") == 0) {
+		return GPU_stack_link(mat, node, "node_attribute_volume_temperature", in, out,
+		                      GPU_builtin(GPU_VOLUME_FLAME),
+		                      GPU_builtin(GPU_VOLUME_TEMPERATURE));
+	}
 	else {
 		GPUNodeLink *cd_attr = GPU_attribute(CD_AUTO_FROM_NAME, attr->name);
 		return GPU_stack_link(mat, node, "node_attribute", in, out, cd_attr);

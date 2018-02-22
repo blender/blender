@@ -427,6 +427,8 @@ const char *GPU_builtin_name(GPUBuiltin builtin)
 		return "sampdensity";
 	else if (builtin == GPU_VOLUME_FLAME)
 		return "sampflame";
+	else if (builtin == GPU_VOLUME_TEMPERATURE)
+		return "unftemperature";
 	else
 		return "";
 }

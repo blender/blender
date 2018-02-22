@@ -506,6 +506,9 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		if (sds->tex_flame != NULL) {
 			DRW_shgroup_uniform_buffer(grp, "sampflame", &sds->tex_flame);
 		}
+
+		/* Output is such that 0..1 maps to 0..1000K */
+		DRW_shgroup_uniform_vec2(grp, "unftemperature", &sds->flame_ignition, 1);
 	}
 }
 

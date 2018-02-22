@@ -110,7 +110,8 @@ typedef enum GPUBuiltin {
 	GPU_INVERSE_LOC_TO_VIEW_MATRIX = (1 << 14),
 	GPU_OBJECT_INFO =           (1 << 15),
 	GPU_VOLUME_DENSITY =        (1 << 16),
-	GPU_VOLUME_FLAME =          (1 << 17)
+	GPU_VOLUME_FLAME =          (1 << 17),
+	GPU_VOLUME_TEMPERATURE =    (1 << 18)
 } GPUBuiltin;
 
 typedef enum GPUOpenGLBuiltin {
