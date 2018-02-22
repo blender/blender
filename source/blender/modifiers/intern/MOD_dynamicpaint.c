@@ -146,10 +146,7 @@ static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContex
 			dag_add_collision_relations(ctx->forest, ctx->scene, ctx->object, ctx->obNode, surface->brush_group, -1, eModifierType_DynamicPaint, is_brush_cb, false, "Dynamic Paint Brush");
 		}
 #else
-	(void)forest;
-	(void)scene;
-	(void)ob;
-	(void)obNode;
+	(void)ctx;
 #endif
 	}
 }

@@ -127,10 +127,7 @@ static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContex
 		dag_add_collision_relations(ctx->forest, ctx->scene, ctx->object, ctx->obNode, clmd->coll_parms->group, ctx->object->lay|ctx->scene->lay, eModifierType_Collision, NULL, true, "Cloth Collision");
 		dag_add_forcefield_relations(ctx->forest, ctx->scene, ctx->object, ctx->obNode, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 #else
-	(void)forest;
-	(void)scene;
-	(void)ob;
-	(void)obNode;
+	(void)ctx;
 #endif
 	}
 }
