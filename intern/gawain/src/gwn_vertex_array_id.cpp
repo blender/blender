@@ -46,7 +46,12 @@ struct Gwn_Context {
 #endif
 };
 
+#if defined(_MSC_VER) && (_MSC_VER == 1800)
+#define thread_local __declspec(thread)
+thread_local Gwn_Context* active_ctx = NULL;
+#else
 static thread_local Gwn_Context* active_ctx = NULL;
+#endif
 
 static void clear_orphans(Gwn_Context* ctx)
 	{
