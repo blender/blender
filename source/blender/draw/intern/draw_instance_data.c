@@ -110,7 +110,7 @@ static void instance_batch_free(Gwn_Batch *batch, void *UNUSED(user_data))
 	/* TODO: Make it thread safe! Batch freeing can happen from another thread. */
 	/* XXX we need to iterate over all idatalists unless we make some smart
 	 * data structure to store the locations to update. */
-	for (DRWInstanceDataList *idatalist = g_idatalists.first; idatalist; ++idatalist) {
+	for (DRWInstanceDataList *idatalist = g_idatalists.first; idatalist; idatalist = idatalist->next) {
 		DRWInstancingBuffer *ibuf = idatalist->instancing.ibufs;
 		for (int i = 0; i < idatalist->instancing.alloc_size; i++, ibuf++) {
 			if (ibuf->instance == batch) {
