@@ -123,9 +123,8 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	 *       Eventually, we need some type of proxy/isolation mechanism in-between here
 	 *       to ensure that we can use same rig multiple times in same scene...
 	 */
-	if ((arm->id.tag & LIB_TAG_DOIT) == 0) {
+	if (built_map_.checkIsBuilt(arm)) {
 		build_animdata(&arm->id);
-
 		/* Make sure pose is up-to-date with armature updates. */
 		add_operation_node(&arm->id,
 		                   DEG_NODE_TYPE_PARAMETERS,

@@ -290,7 +290,6 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, const char *name)
 	if (!id_node) {
 		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", name);
-		id->tag |= LIB_TAG_DOIT;
 		/* register */
 		BLI_ghash_insert(id_hash, id, id_node);
 		id_nodes.push_back(id_node);

@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph_types.h"
 
 struct Base;
@@ -161,6 +162,8 @@ protected:
 
 	/* State which demotes currently built entities. */
 	Scene *scene_;
+
+	BuilderMap built_map_;
 };
 
 }  // namespace DEG

@@ -279,32 +279,13 @@ OperationDepsNode *DepsgraphNodeBuilder::find_operation_node(
 /* **** Build functions for entity nodes **** */
 
 void DepsgraphNodeBuilder::begin_build() {
-	/* LIB_TAG_DOIT is used to indicate whether node for given ID was already
-	 * created or not. This flag is being set in add_id_node(), so functions
-	 * shouldn't bother with setting it, they only might query this flag when
-	 * needed.
-	 */
-	BKE_main_id_tag_all(bmain_, LIB_TAG_DOIT, false);
-	/* XXX nested node trees are not included in tag-clearing above,
-	 * so we need to do this manually.
-	 */
-	FOREACH_NODETREE(bmain_, nodetree, id)
-	{
-		if (id != (ID *)nodetree) {
-			nodetree->id.tag &= ~LIB_TAG_DOIT;
-		}
-	}
-	FOREACH_NODETREE_END;
 }
 
 void DepsgraphNodeBuilder::build_group(Base *base, Group *group)
 {
-	ID *group_id = &group->id;
-	if (group_id->tag & LIB_TAG_DOIT) {
+	if (built_map_.checkIsBuiltAndTag(group)) {
 		return;
 	}
-	group_id->tag |= LIB_TAG_DOIT;
-
 	LISTBASE_FOREACH (GroupObject *, go, &group->gobject) {
 		build_object(base, go->ob);
 	}
@@ -312,7 +293,7 @@ void DepsgraphNodeBuilder::build_group(Base *base, Group *group)
 
 void DepsgraphNodeBuilder::build_object(Base *base, Object *object)
 {
-	const bool has_object = (object->id.tag & LIB_TAG_DOIT);
+	const bool has_object = built_map_.checkIsBuiltAndTag(object);
 	IDDepsNode *id_node = (has_object)
 	        ? graph_->find_id_node(&object->id)
 	        : add_id_node(&object->id);
@@ -334,7 +315,6 @@ void DepsgraphNodeBuilder::build_object(Base *base, Object *object)
 	if (has_object) {
 		return;
 	}
-	object->id.tag |= LIB_TAG_DOIT;
 	object->customdata_mask = 0;
 	/* Transform. */
 	build_object_transform(object);
@@ -424,7 +404,7 @@ void DepsgraphNodeBuilder::build_object_data(Object *object)
 		default:
 		{
 			ID *obdata = (ID *)object->data;
-			if ((obdata->tag & LIB_TAG_DOIT) == 0) {
+			if (built_map_.checkIsBuilt(obdata) == 0) {
 				build_animdata(obdata);
 			}
 			break;
@@ -565,22 +545,18 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 /* Recursively build graph for world */
 void DepsgraphNodeBuilder::build_world(World *world)
 {
-	ID *world_id = &world->id;
-	if (world_id->tag & LIB_TAG_DOIT) {
+	if (built_map_.checkIsBuiltAndTag(world)) {
 		return;
 	}
-
+	ID *world_id = &world->id;
 	build_animdata(world_id);
-
 	/* world itself */
 	add_operation_node(world_id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARAMETERS_EVAL);
-
 	/* textures */
 	build_texture_stack(world->mtex);
-
 	/* world's nodetree */
 	if (world->nodetree) {
 		build_nodetree(world->nodetree);
@@ -785,7 +761,7 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 		// add geometry collider relations
 	}
 
-	if (obdata->tag & LIB_TAG_DOIT) {
+	if (built_map_.checkIsBuiltAndTag(obdata)) {
 		return;
 	}
 
@@ -905,20 +881,16 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 void DepsgraphNodeBuilder::build_camera(Object *object)
 {
 	/* TODO: Link scene-camera links in somehow... */
-	Camera *cam = (Camera *)object->data;
-	ID *camera_id = &cam->id;
-	if (camera_id->tag & LIB_TAG_DOIT) {
+	Camera *camera = (Camera *)object->data;
+	if (built_map_.checkIsBuiltAndTag(camera)) {
 		return;
 	}
-
-	build_animdata(&cam->id);
-
-	add_operation_node(camera_id,
+	build_animdata(&camera->id);
+	add_operation_node(&camera->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARAMETERS_EVAL);
-
-	if (cam->dof_ob != NULL) {
+	if (camera->dof_ob != NULL) {
 		/* TODO(sergey): For now parametrs are on object level. */
 		add_operation_node(&object->id, DEG_NODE_TYPE_PARAMETERS, NULL,
 		                   DEG_OPCODE_PLACEHOLDER, "Camera DOF");
@@ -928,47 +900,40 @@ void DepsgraphNodeBuilder::build_camera(Object *object)
 /* Lamps */
 void DepsgraphNodeBuilder::build_lamp(Object *object)
 {
-	Lamp *la = (Lamp *)object->data;
-	ID *lamp_id = &la->id;
-	if (lamp_id->tag & LIB_TAG_DOIT) {
+	Lamp *lamp = (Lamp *)object->data;
+	if (built_map_.checkIsBuiltAndTag(lamp)) {
 		return;
 	}
-
-	build_animdata(&la->id);
-
+	build_animdata(&lamp->id);
 	/* TODO(sergey): Is it really how we're supposed to work with drivers? */
-	add_operation_node(lamp_id,
+	add_operation_node(&lamp->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARAMETERS_EVAL);
-
 	/* lamp's nodetree */
-	if (la->nodetree) {
-		build_nodetree(la->nodetree);
-	}
-
+	build_nodetree(lamp->nodetree);
 	/* textures */
-	build_texture_stack(la->mtex);
+	build_texture_stack(lamp->mtex);
 }
 
 void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 {
-	if (!ntree)
+	if (ntree == NULL) {
 		return;
+	}
+	if (built_map_.checkIsBuiltAndTag(ntree)) {
+		return;
+	}
 
 	/* nodetree itself */
-	ID *ntree_id = &ntree->id;
 	OperationDepsNode *op_node;
-
-	build_animdata(ntree_id);
-
+	build_animdata(&ntree->id);
 	/* Parameters for drivers. */
-	op_node = add_operation_node(ntree_id,
+	op_node = add_operation_node(&ntree->id,
 	                             DEG_NODE_TYPE_PARAMETERS,
 	                             NULL,
 	                             DEG_OPCODE_PARAMETERS_EVAL);
 	op_node->set_as_exit();
-
 	/* nodetree's nodes... */
 	LISTBASE_FOREACH (bNode *, bnode, &ntree->nodes) {
 		ID *id = bnode->id;
@@ -998,9 +963,7 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 		}
 		else if (bnode->type == NODE_GROUP) {
 			bNodeTree *group_ntree = (bNodeTree *)id;
-			if ((group_ntree->id.tag & LIB_TAG_DOIT) == 0) {
-				build_nodetree(group_ntree);
-			}
+			build_nodetree(group_ntree);
 		}
 		else {
 			BLI_assert(!"Unknown ID type used for node");
@@ -1011,24 +974,20 @@ void DepsgraphNodeBuilder::build_nodetree(bNodeTree *ntree)
 }
 
 /* Recursively build graph for material */
-void DepsgraphNodeBuilder::build_material(Material *ma)
+void DepsgraphNodeBuilder::build_material(Material *material)
 {
-	ID *ma_id = &ma->id;
-	if (ma_id->tag & LIB_TAG_DOIT) {
+	if (built_map_.checkIsBuiltAndTag(material)) {
 		return;
 	}
-
-	add_operation_node(ma_id, DEG_NODE_TYPE_SHADING, NULL,
+	add_operation_node(&material->id, DEG_NODE_TYPE_SHADING, NULL,
 	                   DEG_OPCODE_PLACEHOLDER, "Material Update");
 
 	/* material animation */
-	build_animdata(ma_id);
-
+	build_animdata(&material->id);
 	/* textures */
-	build_texture_stack(ma->mtex);
-
+	build_texture_stack(material->mtex);
 	/* material's nodetree */
-	build_nodetree(ma->nodetree);
+	build_nodetree(material->nodetree);
 }
 
 /* Texture-stack attached to some shading datablock */
@@ -1045,33 +1004,29 @@ void DepsgraphNodeBuilder::build_texture_stack(MTex **texture_stack)
 }
 
 /* Recursively build graph for texture */
-void DepsgraphNodeBuilder::build_texture(Tex *tex)
+void DepsgraphNodeBuilder::build_texture(Tex *texture)
 {
-	ID *tex_id = &tex->id;
-	if (tex_id->tag & LIB_TAG_DOIT) {
+	if (built_map_.checkIsBuiltAndTag(texture)) {
 		return;
 	}
-	tex_id->tag |= LIB_TAG_DOIT;
 	/* Texture itself. */
-	build_animdata(tex_id);
+	build_animdata(&texture->id);
 	/* Texture's nodetree. */
-	build_nodetree(tex->nodetree);
+	build_nodetree(texture->nodetree);
 	/* Special cases for different IDs which texture uses. */
-	if (tex->type == TEX_IMAGE) {
-		if (tex->ima != NULL) {
-			build_image(tex->ima);
+	if (texture->type == TEX_IMAGE) {
+		if (texture->ima != NULL) {
+			build_image(texture->ima);
 		}
 	}
 }
 
 void DepsgraphNodeBuilder::build_image(Image *image) {
-	ID *image_id = &image->id;
-	if (image_id->tag & LIB_TAG_DOIT) {
+	if (built_map_.checkIsBuiltAndTag(image)) {
 		return;
 	}
-	image_id->tag |= LIB_TAG_DOIT;
 	/* Placeholder so we can add relations and tag ID node for update. */
-	add_operation_node(image_id,
+	add_operation_node(&image->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PLACEHOLDER,
