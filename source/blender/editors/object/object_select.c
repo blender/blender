@@ -141,13 +141,14 @@ void ED_object_base_activate(bContext *C, Base *base)
 
 	{
 		Scene *scene = CTX_data_scene(C);
+		Object *obact = base ? base->object : NULL;
 		/* We don't know the previous active object in update.
 		 *
 		 * Not correct because it's possible other work-spaces use these.
 		 * although that's a corner case. */
 		if (workspace->object_mode & OB_MODE_EDIT) {
 			FOREACH_OBJECT(view_layer, ob) {
-				if (ob != base->object) {
+				if (ob != obact) {
 					if (BKE_object_is_in_editmode(ob)) {
 						ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
 					}
@@ -159,7 +160,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 			EvaluationContext eval_ctx;
 			CTX_data_eval_ctx(C, &eval_ctx);
 			FOREACH_OBJECT(view_layer, ob) {
-				if (ob != base->object) {
+				if (ob != obact) {
 					if (ob->sculpt) {
 						switch (ob->sculpt->mode_type) {
 							case OB_MODE_VERTEX_PAINT:
