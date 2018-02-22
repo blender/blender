@@ -194,6 +194,13 @@ void BKE_mesh_calc_normals_looptri(
         const struct MLoopTri *looptri, int looptri_num,
         float (*r_tri_nors)[3]);
 
+void BKE_edges_sharp_from_angle_set(
+        const struct MVert *mverts, const int numVerts,
+        struct MEdge *medges, const int numEdges,
+        struct MLoop *mloops, const int numLoops,
+        struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
+        const float split_angle);
+
 /**
  * References a contiguous loop-fan with normal offset vars.
  */
