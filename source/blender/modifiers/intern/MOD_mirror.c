@@ -77,32 +77,24 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->mirror_ob, IDWALK_CB_NOP);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob),
-                           DagNode *obNode)
+static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
 	if (mmd->mirror_ob) {
-		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
+		DagNode *latNode = dag_get_node(ctx->forest, mmd->mirror_ob);
 
-		dag_add_relation(forest, latNode, obNode, DAG_RL_OB_DATA, "Mirror Modifier");
+		dag_add_relation(ctx->forest, latNode, ctx->obNode, DAG_RL_OB_DATA, "Mirror Modifier");
 	}
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	MirrorModifierData *mmd = (MirrorModifierData *)md;
 	if (mmd->mirror_ob != NULL) {
-		DEG_add_object_relation(node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
+		DEG_add_object_relation(ctx->node, mmd->mirror_ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
 	}
-	DEG_add_object_relation(node, ob, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
+	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
 }
 
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,

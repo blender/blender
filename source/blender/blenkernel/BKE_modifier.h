@@ -127,6 +127,19 @@ typedef enum ModifierApplyFlag {
 } ModifierApplyFlag;
 
 
+typedef struct ModifierUpdateDepsgraphContext {
+	struct Main *bmain;
+	struct Scene *scene;
+	struct Object *object;
+
+	/* Old depsgraph node handle. */
+	struct DagForest *forest;
+	struct DagNode *obNode;
+
+	/* new depsgraph node handle. */
+	struct DepsNodeHandle *node;
+} ModifierUpdateDepsgraphContext;
+
 typedef struct ModifierTypeInfo {
 	/* The user visible name for this modifier */
 	char name[32];
@@ -265,9 +278,8 @@ typedef struct ModifierTypeInfo {
 	 *
 	 * This function is optional.
 	 */
-	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest,
-	                       struct Main *bmain, struct Scene *scene,
-	                       struct Object *ob, struct DagNode *obNode);
+	void (*updateDepgraph)(struct ModifierData *md,
+	                       const ModifierUpdateDepsgraphContext* ctx);
 
 	/* Add the appropriate relations to the dependency graph.
 	 *
@@ -275,10 +287,7 @@ typedef struct ModifierTypeInfo {
 	 */
 	/* TODO(sergey): Remove once we finally switched to the new depsgraph. */
 	void (*updateDepsgraph)(struct ModifierData *md,
-	                        struct Main *bmain,
-	                        struct Scene *scene,
-	                        struct Object *ob,
-	                        struct DepsNodeHandle *node);
+	                        const ModifierUpdateDepsgraphContext* ctx);
 
 	/* Should return true if the modifier needs to be recalculated on time
 	 * changes.

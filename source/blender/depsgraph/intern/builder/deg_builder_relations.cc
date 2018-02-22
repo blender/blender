@@ -1539,17 +1539,17 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 		OperationKey obdata_ubereval_key(&object->id,
 		                                 DEG_NODE_TYPE_GEOMETRY,
 		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
+		ModifierUpdateDepsgraphContext ctx = {};
+		ctx.bmain = bmain_;
+		ctx.scene = scene_;
+		ctx.object = object;
 
 		LISTBASE_FOREACH (ModifierData *, md, &object->modifiers) {
 			const ModifierTypeInfo *mti = modifierType_getInfo((ModifierType)md->type);
 			if (mti->updateDepsgraph) {
 				DepsNodeHandle handle = create_node_handle(obdata_ubereval_key);
-				mti->updateDepsgraph(
-				        md,
-				        bmain_,
-				        scene_,
-				        object,
-				        reinterpret_cast< ::DepsNodeHandle* >(&handle));
+				ctx.node = reinterpret_cast< ::DepsNodeHandle* >(&handle);
+				mti->updateDepsgraph(md, &ctx);
 			}
 			if (BKE_object_modifier_use_time(object, md)) {
 				TimeSourceKey time_src_key;

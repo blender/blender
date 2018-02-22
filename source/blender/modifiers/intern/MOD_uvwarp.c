@@ -235,7 +235,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 }
 
 static void uv_warp_deps_object_bone(DagForest *forest, DagNode *obNode,
-                                Object *obj, const char *bonename)
+                                     Object *obj, const char *bonename)
 {
 	if (obj) {
 		DagNode *curNode = dag_get_node(forest, obj);
@@ -247,16 +247,12 @@ static void uv_warp_deps_object_bone(DagForest *forest, DagNode *obNode,
 	}
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob),
-                           DagNode *obNode)
+static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 
-	uv_warp_deps_object_bone(forest, obNode, umd->object_src, umd->bone_src);
-	uv_warp_deps_object_bone(forest, obNode, umd->object_dst, umd->bone_dst);
+	uv_warp_deps_object_bone(ctx->forest, ctx->obNode, umd->object_src, umd->bone_src);
+	uv_warp_deps_object_bone(ctx->forest, ctx->obNode, umd->object_dst, umd->bone_dst);
 }
 
 static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
@@ -271,16 +267,12 @@ static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
 	}
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 
-	uv_warp_deps_object_bone_new(node, umd->object_src, umd->bone_src);
-	uv_warp_deps_object_bone_new(node, umd->object_dst, umd->bone_dst);
+	uv_warp_deps_object_bone_new(ctx->node, umd->object_src, umd->bone_src);
+	uv_warp_deps_object_bone_new(ctx->node, umd->object_dst, umd->bone_dst);
 }
 
 ModifierTypeInfo modifierType_UVWarp = {

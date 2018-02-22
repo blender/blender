@@ -511,29 +511,22 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return !is_valid_target(enmd);
 }
 
-static void updateDepgraph(ModifierData *md, DagForest *forest,
-                           struct Main *UNUSED(bmain),
-                           struct Scene *UNUSED(scene),
-                           Object *UNUSED(ob), DagNode *obNode)
+static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *) md;
 
 	if (enmd->target) {
-		DagNode *Node = dag_get_node(forest, enmd->target);
+		DagNode *Node = dag_get_node(ctx->forest, enmd->target);
 
-		dag_add_relation(forest, Node, obNode, DAG_RL_OB_DATA, "NormalEdit Modifier");
+		dag_add_relation(ctx->forest, Node, ctx->obNode, DAG_RL_OB_DATA, "NormalEdit Modifier");
 	}
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *) md;
 	if (enmd->target) {
-		DEG_add_object_relation(node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
+		DEG_add_object_relation(ctx->node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
 	}
 }
 

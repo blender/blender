@@ -103,26 +103,23 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	return result ? result : dm;
 }
 
-static void updateDepgraph(
-        ModifierData *md, DagForest *forest,
-        struct Main *UNUSED(bmain), Scene *scene,
-        Object *ob, DagNode *obNode)
+static void updateDepgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	Base *base;
 
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-			for (base = scene->base.first; base; base = base->next) {
+			for (base = ctx->scene->base.first; base; base = base->next) {
 				Object *ob1 = base->object;
-				if (ob1 != ob) {
+				if (ob1 != ctx->object) {
 					FluidsimModifierData *fluidmdtmp =
 					        (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
 					
 					/* only put dependencies from NON-DOMAIN fluids in here */
 					if (fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN)) {
-						DagNode *curNode = dag_get_node(forest, ob1);
-						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Fluidsim Object");
+						DagNode *curNode = dag_get_node(ctx->forest, ob1);
+						dag_add_relation(ctx->forest, curNode, ctx->obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Fluidsim Object");
 					}
 				}
 			}
@@ -130,25 +127,21 @@ static void updateDepgraph(
 	}
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *scene,
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
 			Base *base;
-			for (base = scene->base.first; base; base = base->next) {
+			for (base = ctx->scene->base.first; base; base = base->next) {
 				Object *ob1 = base->object;
-				if (ob1 != ob) {
+				if (ob1 != ctx->object) {
 					FluidsimModifierData *fluidmdtmp =
 					        (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
 
 					/* Only put dependencies from NON-DOMAIN fluids in here. */
 					if (fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN)) {
-						DEG_add_object_relation(node, ob1, DEG_OB_COMP_TRANSFORM, "Fluidsim Object");
+						DEG_add_object_relation(ctx->node, ob1, DEG_OB_COMP_TRANSFORM, "Fluidsim Object");
 					}
 				}
 			}
