@@ -520,6 +520,17 @@ void WM_exit_ext(bContext *C, const bool do_python)
 #ifdef WITH_COMPOSITOR
 	COM_deinitialize();
 #endif
+
+	if (!G.background) {
+#ifdef WITH_OPENSUBDIV
+		BKE_subsurf_osd_cleanup();
+#endif
+
+		GPU_global_buffer_pool_free();
+		GPU_free_unused_buffers();
+
+		GPU_exit();
+	}
 	
 	BKE_blender_free();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();
@@ -564,17 +575,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 #else
 	(void)do_python;
 #endif
-
-	if (!G.background) {
-#ifdef WITH_OPENSUBDIV
-		BKE_subsurf_osd_cleanup();
-#endif
-
-		GPU_global_buffer_pool_free();
-		GPU_free_unused_buffers();
-
-		GPU_exit();
-	}
 
 	BKE_undo_reset();
 	

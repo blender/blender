@@ -9,6 +9,7 @@
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
+#include "gwn_batch_private.h"
 #include "gwn_shader_interface.h"
 #include "gwn_vertex_array_id.h"
 #include <stdlib.h>
@@ -282,7 +283,7 @@ void GWN_shaderinterface_discard(Gwn_ShaderInterface* shaderface)
 	// Remove this interface from all linked Batches vao cache.
 	for (int i = 0; i < shaderface->batches_ct; ++i)
 		if (shaderface->batches[i] != NULL)
-			GWN_batch_remove_interface_ref(shaderface->batches[i], shaderface);
+			gwn_batch_remove_interface_ref(shaderface->batches[i], shaderface);
 
 	free(shaderface->batches);
 	// Free memory used by shader interface by its self.

@@ -10,6 +10,7 @@
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 #include "gwn_batch.h"
+#include "gwn_batch_private.h"
 #include "gwn_buffer_id.h"
 #include "gwn_vertex_array_id.h"
 #include "gwn_primitive_private.h"
@@ -21,8 +22,11 @@ extern void gpuBindMatrices(const Gwn_ShaderInterface* shaderface);
 
 static void batch_update_program_bindings(Gwn_Batch* batch, unsigned int v_first);
 
-static void Batch_vao_cache_clear(Gwn_Batch* batch)
+void gwn_batch_vao_cache_clear(Gwn_Batch* batch)
 	{
+	if (batch->context == NULL)
+		return;
+
 	if (batch->is_dynamic_vao_count)
 		{
 		for (int i = 0; i < batch->dynamic_vaos.count; ++i)
@@ -52,6 +56,9 @@ static void Batch_vao_cache_clear(Gwn_Batch* batch)
 		batch->static_vaos.vao_ids[i] = 0;
 		batch->static_vaos.interfaces[i] = NULL;
 		}
+
+	gwn_context_remove_batch(batch->context, batch);
+	batch->context = NULL;
 	}
 
 Gwn_Batch* GWN_batch_create_ex(
@@ -116,7 +123,7 @@ void GWN_batch_discard(Gwn_Batch* batch)
 			}
 		}
 
-	Batch_vao_cache_clear(batch);
+	gwn_batch_vao_cache_clear(batch);
 
 	if (batch->free_callback)
 		batch->free_callback(batch, batch->callback_data);
@@ -136,7 +143,7 @@ void GWN_batch_instbuf_set(Gwn_Batch* batch, Gwn_VertBuf* inst, bool own_vbo)
 	assert(inst != NULL);
 #endif
 	// redo the bindings
-	Batch_vao_cache_clear(batch);
+	gwn_batch_vao_cache_clear(batch);
 
 	if (batch->inst != NULL && (batch->owns_flag & GWN_BATCH_OWNS_INSTANCES))
 		GWN_vertbuf_discard(batch->inst);
@@ -153,6 +160,9 @@ int GWN_batch_vertbuf_add_ex(
         Gwn_Batch* batch, Gwn_VertBuf* verts,
         bool own_vbo)
 	{
+	// redo the bindings
+	gwn_batch_vao_cache_clear(batch);
+
 	for (unsigned v = 0; v < GWN_BATCH_VBO_MAX_LEN; ++v)
 		{
 		if (batch->verts[v] == NULL)
@@ -206,7 +216,10 @@ void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInt
 	if (batch->vao_id == 0)
 		{
 		if (batch->context == NULL)
+			{
 			batch->context = GWN_context_active_get();
+			gwn_context_add_batch(batch->context, batch);
+			}
 #if TRUST_NO_ONE && 0 // disabled until we use a separate single context for UI.
 		else // Make sure you are not trying to draw this batch in another context.
 			assert(batch->context == GWN_context_active_get());
@@ -282,7 +295,7 @@ void GWN_batch_program_unset(Gwn_Batch* batch)
 	batch->program_in_use = false;
 	}
 
-void GWN_batch_remove_interface_ref(Gwn_Batch* batch, const Gwn_ShaderInterface* interface)
+void gwn_batch_remove_interface_ref(Gwn_Batch* batch, const Gwn_ShaderInterface* interface)
 	{
 	if (batch->is_dynamic_vao_count)
 		{

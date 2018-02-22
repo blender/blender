@@ -9,12 +9,14 @@
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. If a copy of
 // the MPL was not distributed with this file, You can obtain one at https://mozilla.org/MPL/2.0/.#include "buffer_id.h"
 
+#include "gwn_batch_private.h"
 #include "gwn_vertex_array_id.h"
 #include "gwn_context.h"
 #include <vector>
 #include <string.h>
 #include <pthread.h>
 #include <mutex>
+#include <forward_list>
 
 #if TRUST_NO_ONE
 extern "C" {
@@ -30,6 +32,7 @@ static bool thread_is_main()
 
 struct Gwn_Context {
 	GLuint default_vao;
+	std::forward_list<Gwn_Batch*> batches; // Batches that have VAOs from this context
 	std::vector<GLuint> orphaned_vertarray_ids;
 	std::mutex orphans_mutex; // todo: try spinlock instead
 #if TRUST_NO_ONE
@@ -73,8 +76,16 @@ void GWN_context_discard(Gwn_Context* ctx)
 	assert(pthread_equal(pthread_self(), ctx->thread));
 	assert(ctx->orphaned_vertarray_ids.empty());
 #endif
+	// delete remaining vaos
+	while (!ctx->batches.empty())
+		{
+		// this removes the array entry
+		gwn_batch_vao_cache_clear(ctx->batches.front());
+		}
 	glDeleteVertexArrays(1, &ctx->default_vao);
+	(&ctx->orphaned_vertarray_ids)->~vector();
 	(&ctx->orphans_mutex)->~mutex();
+	(&ctx->batches)->~forward_list();
 	free(ctx);
 	active_ctx = NULL;
 	}
@@ -140,4 +151,14 @@ void GWN_vao_free(GLuint vao_id, Gwn_Context* ctx)
 		ctx->orphaned_vertarray_ids.emplace_back(vao_id);
 		ctx->orphans_mutex.unlock();
 		}
+	}
+
+void gwn_context_add_batch(Gwn_Context* ctx, Gwn_Batch* batch)
+	{
+	ctx->batches.emplace_front(batch);
+	}
+
+void gwn_context_remove_batch(Gwn_Context* ctx, Gwn_Batch* batch)
+	{
+	ctx->batches.remove(batch);
 	}

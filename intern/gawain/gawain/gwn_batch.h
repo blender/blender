@@ -95,9 +95,6 @@ int GWN_batch_vertbuf_add_ex(Gwn_Batch*, Gwn_VertBuf*, bool own_vbo);
 #define GWN_batch_vertbuf_add(batch, verts) \
 	GWN_batch_vertbuf_add_ex(batch, verts, false)
 
-// This is a private function
-void GWN_batch_remove_interface_ref(Gwn_Batch*, const Gwn_ShaderInterface*);
-
 void GWN_batch_program_set(Gwn_Batch*, GLuint program, const Gwn_ShaderInterface*);
 void GWN_batch_program_unset(Gwn_Batch*);
 // Entire batch draws with one shader program, but can be redrawn later with another program.

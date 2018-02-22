@@ -23,6 +23,7 @@ set(SRC
 	gawain/gwn_attr_binding.h
 	gawain/gwn_attr_binding_private.h
 	gawain/gwn_batch.h
+	gawain/gwn_batch_private.h
 	gawain/gwn_buffer_id.h
 	gawain/gwn_common.h
 	gawain/gwn_element.h
