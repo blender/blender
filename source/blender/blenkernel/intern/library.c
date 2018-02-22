@@ -1067,8 +1067,6 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	 * This is important because freeing data decreases usercounts of other datablocks,
 	 * if this data is its self freed it can crash. */
 	lb[INDEX_ID_LI] = &(main->library);  /* Libraries may be accessed from pretty much any other ID... */
-	lb[INDEX_ID_WS]  = &(main->workspaces); /* before wm, so it's freed after it! */
-	lb[INDEX_ID_WM]  = &(main->wm);
 	lb[INDEX_ID_IP] = &(main->ipo);
 	lb[INDEX_ID_AC] = &(main->action); /* moved here to avoid problems when freeing with animato (aligorith) */
 	lb[INDEX_ID_KE] = &(main->key);
@@ -1110,6 +1108,8 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[INDEX_ID_OB]  = &(main->object);
 	lb[INDEX_ID_LS]  = &(main->linestyle); /* referenced by scenes */
 	lb[INDEX_ID_SCE] = &(main->scene);
+	lb[INDEX_ID_WS]  = &(main->workspaces); /* before wm, so it's freed after it! */
+	lb[INDEX_ID_WM]  = &(main->wm);
 	lb[INDEX_ID_MSK] = &(main->mask);
 	
 	lb[INDEX_ID_NULL] = NULL;
