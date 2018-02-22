@@ -117,7 +117,7 @@ void deg_graph_transitive_reduction(Depsgraph *graph)
 			}
 		}
 	}
-	DEG_DEBUG_PRINTF("Removed %d relations\n", num_removed_relations);
+	DEG_DEBUG_PRINTF(BUILD, "Removed %d relations\n", num_removed_relations);
 }
 
 }  // namespace DEG

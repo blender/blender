@@ -282,7 +282,7 @@ void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
 		graph_->add_new_relation(timesrc, node_to, description, check_unique);
 	}
 	else {
-		DEG_DEBUG_PRINTF("add_time_relation(%p = %s, %p = %s, %s) Failed\n",
+		DEG_DEBUG_PRINTF(BUILD, "add_time_relation(%p = %s, %p = %s, %s) Failed\n",
 		                 timesrc,   (timesrc) ? timesrc->identifier().c_str() : "<None>",
 		                 node_to,   (node_to) ? node_to->identifier().c_str() : "<None>",
 		                 description);
@@ -299,7 +299,7 @@ void DepsgraphRelationBuilder::add_operation_relation(
 		graph_->add_new_relation(node_from, node_to, description, check_unique);
 	}
 	else {
-		DEG_DEBUG_PRINTF("add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
+		DEG_DEBUG_PRINTF(BUILD, "add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
 		                 node_from, (node_from) ? node_from->identifier().c_str() : "<None>",
 		                 node_to,   (node_to)   ? node_to->identifier().c_str() : "<None>",
 		                 description);
