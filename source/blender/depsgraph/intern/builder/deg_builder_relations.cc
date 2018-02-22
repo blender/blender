@@ -1643,7 +1643,6 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 	/* Modifiers */
 	if (object->modifiers.first != NULL) {
 		ModifierUpdateDepsgraphContext ctx = {};
-		ctx.bmain = bmain_;
 		ctx.scene = scene_;
 		ctx.object = object;
 

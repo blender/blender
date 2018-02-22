@@ -130,7 +130,6 @@ typedef enum ModifierApplyFlag {
 
 
 typedef struct ModifierUpdateDepsgraphContext {
-	struct Main *bmain;
 	struct Scene *scene;
 	struct Object *object;
 
