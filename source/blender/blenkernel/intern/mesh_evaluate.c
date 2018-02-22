@@ -680,10 +680,11 @@ typedef struct LoopSplitTaskDataCommon {
 	const MEdge *medges;
 	const MLoop *mloops;
 	const MPoly *mpolys;
-	const int (*edge_to_loops)[2];
-	const int *loop_to_poly;
+	int (*edge_to_loops)[2];
+	int *loop_to_poly;
 	const float (*polynors)[3];
 
+	int numEdges;
 	int numLoops;
 	int numPolys;
 } LoopSplitTaskDataCommon;
@@ -692,6 +693,154 @@ typedef struct LoopSplitTaskDataCommon {
 #define INDEX_INVALID -1
 /* See comment about edge_to_loops below. */
 #define IS_EDGE_SHARP(_e2l) (ELEM((_e2l)[1], INDEX_UNSET, INDEX_INVALID))
+
+static void mesh_edges_sharp_tag(
+        LoopSplitTaskDataCommon *data,
+        const bool check_angle, const float split_angle, const bool do_sharp_edges_tag)
+{
+	MVert *mverts = data->mverts;
+	MEdge *medges = data->medges;
+	MLoop *mloops = data->mloops;
+	MPoly *mpolys = data->mpolys;
+
+	const int numEdges = data->numEdges;
+	const int numPolys = data->numPolys;
+
+	float (*loopnors)[3] = data->loopnors;  /* Note: loopnors may be NULL here. */
+	const float (*polynors)[3] = data->polynors;
+
+	int (*edge_to_loops)[2] = data->edge_to_loops;
+	int *loop_to_poly = data->loop_to_poly;
+
+	BLI_bitmap *sharp_edges = do_sharp_edges_tag ? BLI_BITMAP_NEW(numEdges, __func__) : NULL;
+
+	MPoly *mp;
+	int mp_index;
+
+	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
+
+	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
+		MLoop *ml_curr;
+		int *e2l;
+		int ml_curr_index = mp->loopstart;
+		const int ml_last_index = (ml_curr_index + mp->totloop) - 1;
+
+		ml_curr = &mloops[ml_curr_index];
+
+		for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
+			MEdge *me = &medges[ml_curr->e];
+
+			e2l = edge_to_loops[ml_curr->e];
+
+			loop_to_poly[ml_curr_index] = mp_index;
+
+			/* Pre-populate all loop normals as if their verts were all-smooth, this way we don't have to compute
+			 * those later!
+			 */
+			if (loopnors) {
+				normal_short_to_float_v3(loopnors[ml_curr_index], mverts[ml_curr->v].no);
+			}
+
+			/* Check whether current edge might be smooth or sharp */
+			if ((e2l[0] | e2l[1]) == 0) {
+				/* 'Empty' edge until now, set e2l[0] (and e2l[1] to INDEX_UNSET to tag it as unset). */
+				e2l[0] = ml_curr_index;
+				/* We have to check this here too, else we might miss some flat faces!!! */
+				e2l[1] = (mp->flag & ME_SMOOTH) ? INDEX_UNSET : INDEX_INVALID;
+			}
+			else if (e2l[1] == INDEX_UNSET) {
+				const bool is_angle_sharp = (check_angle &&
+				                             dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle_cos);
+
+				/* Second loop using this edge, time to test its sharpness.
+				 * An edge is sharp if it is tagged as such, or its face is not smooth,
+				 * or both poly have opposed (flipped) normals, i.e. both loops on the same edge share the same vertex,
+				 * or angle between both its polys' normals is above split_angle value.
+				 */
+				if (!(mp->flag & ME_SMOOTH) || (me->flag & ME_SHARP) ||
+				    ml_curr->v == mloops[e2l[0]].v ||
+				    is_angle_sharp)
+				{
+					/* Note: we are sure that loop != 0 here ;) */
+					e2l[1] = INDEX_INVALID;
+
+					/* We want to avoid tagging edges as sharp when it is already defined as such by
+					 * other causes than angle threshold... */
+					if (do_sharp_edges_tag && is_angle_sharp) {
+						BLI_BITMAP_SET(sharp_edges, ml_curr->e, true);
+					}
+				}
+				else {
+					e2l[1] = ml_curr_index;
+				}
+			}
+			else if (!IS_EDGE_SHARP(e2l)) {
+				/* More than two loops using this edge, tag as sharp if not yet done. */
+				e2l[1] = INDEX_INVALID;
+
+				/* We want to avoid tagging edges as sharp when it is already defined as such by
+				 * other causes than angle threshold... */
+				if (do_sharp_edges_tag) {
+					BLI_BITMAP_SET(sharp_edges, ml_curr->e, false);
+				}
+			}
+			/* Else, edge is already 'disqualified' (i.e. sharp)! */
+		}
+	}
+
+	/* If requested, do actual tagging of edges as sharp in another loop. */
+	if (do_sharp_edges_tag) {
+		MEdge *me;
+		int me_index;
+		for (me = medges, me_index = 0; me_index < numEdges; me++, me_index++) {
+			if (BLI_BITMAP_TEST(sharp_edges, me_index)) {
+				me->flag |= ME_SHARP;
+			}
+		}
+
+		MEM_freeN(sharp_edges);
+	}
+}
+
+/** Define sharp edges as needed to mimic 'autosmooth' from angle threshold.
+ *
+ * Used when defining an empty custom loop normals data layer, to keep same shading as with autosmooth!
+ */
+void BKE_edges_sharp_from_angle_set(
+        const struct MVert *mverts, const int UNUSED(numVerts),
+        struct MEdge *medges, const int numEdges,
+        struct MLoop *mloops, const int numLoops,
+        struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
+        const float split_angle)
+{
+	if (split_angle >= (float)M_PI) {
+		/* Nothing to do! */
+		return;
+	}
+
+	/* Mapping edge -> loops. See BKE_mesh_normals_loop_split() for details. */
+	int (*edge_to_loops)[2] = MEM_calloc_arrayN((size_t)numEdges, sizeof(*edge_to_loops), __func__);
+
+	/* Simple mapping from a loop to its polygon index. */
+	int *loop_to_poly = MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
+
+	LoopSplitTaskDataCommon common_data = {
+	    .mverts = mverts,
+	    .medges = medges,
+	    .mloops = mloops,
+	    .mpolys = mpolys,
+	    .edge_to_loops = edge_to_loops,
+	    .loop_to_poly = loop_to_poly,
+	    .polynors = polynors,
+	    .numEdges = numEdges,
+	    .numPolys = numPolys,
+	};
+
+	mesh_edges_sharp_tag(&common_data, true, split_angle, true);
+
+	MEM_freeN(edge_to_loops);
+	MEM_freeN(loop_to_poly);
+}
 
 static void loop_manifold_fan_around_vert_next(
         const MLoop *mloops, const MPoly *mpolys,
@@ -1313,12 +1462,8 @@ void BKE_mesh_normals_loop_split(
 	/* Simple mapping from a loop to its polygon index. */
 	int *loop_to_poly = r_loop_to_poly ? r_loop_to_poly : MEM_malloc_arrayN((size_t)numLoops, sizeof(*loop_to_poly), __func__);
 
-	MPoly *mp;
-	int mp_index;
-
 	/* When using custom loop normals, disable the angle feature! */
 	const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == NULL);
-	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
 	MLoopNorSpaceArray _lnors_spacearr = {NULL};
 
@@ -1334,57 +1479,6 @@ void BKE_mesh_normals_loop_split(
 		BKE_lnor_spacearr_init(r_lnors_spacearr, numLoops);
 	}
 
-	/* This first loop check which edges are actually smooth, and compute edge vectors. */
-	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
-		MLoop *ml_curr;
-		int *e2l;
-		int ml_curr_index = mp->loopstart;
-		const int ml_last_index = (ml_curr_index + mp->totloop) - 1;
-
-		ml_curr = &mloops[ml_curr_index];
-
-		for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
-			e2l = edge_to_loops[ml_curr->e];
-
-			loop_to_poly[ml_curr_index] = mp_index;
-
-			/* Pre-populate all loop normals as if their verts were all-smooth, this way we don't have to compute
-			 * those later!
-			 */
-			normal_short_to_float_v3(r_loopnors[ml_curr_index], mverts[ml_curr->v].no);
-
-			/* Check whether current edge might be smooth or sharp */
-			if ((e2l[0] | e2l[1]) == 0) {
-				/* 'Empty' edge until now, set e2l[0] (and e2l[1] to INDEX_UNSET to tag it as unset). */
-				e2l[0] = ml_curr_index;
-				/* We have to check this here too, else we might miss some flat faces!!! */
-				e2l[1] = (mp->flag & ME_SMOOTH) ? INDEX_UNSET : INDEX_INVALID;
-			}
-			else if (e2l[1] == INDEX_UNSET) {
-				/* Second loop using this edge, time to test its sharpness.
-				 * An edge is sharp if it is tagged as such, or its face is not smooth,
-				 * or both poly have opposed (flipped) normals, i.e. both loops on the same edge share the same vertex,
-				 * or angle between both its polys' normals is above split_angle value.
-				 */
-				if (!(mp->flag & ME_SMOOTH) || (medges[ml_curr->e].flag & ME_SHARP) ||
-				    ml_curr->v == mloops[e2l[0]].v ||
-				    (check_angle && dot_v3v3(polynors[loop_to_poly[e2l[0]]], polynors[mp_index]) < split_angle_cos))
-				{
-					/* Note: we are sure that loop != 0 here ;) */
-					e2l[1] = INDEX_INVALID;
-				}
-				else {
-					e2l[1] = ml_curr_index;
-				}
-			}
-			else if (!IS_EDGE_SHARP(e2l)) {
-				/* More than two loops using this edge, tag as sharp if not yet done. */
-				e2l[1] = INDEX_INVALID;
-			}
-			/* Else, edge is already 'disqualified' (i.e. sharp)! */
-		}
-	}
-
 	/* Init data common to all tasks. */
 	LoopSplitTaskDataCommon common_data = {
 	    .lnors_spacearr = r_lnors_spacearr,
@@ -1394,12 +1488,16 @@ void BKE_mesh_normals_loop_split(
 	    .medges = medges,
 	    .mloops = mloops,
 	    .mpolys = mpolys,
-	    .edge_to_loops = (const int(*)[2])edge_to_loops,
+	    .edge_to_loops = edge_to_loops,
 	    .loop_to_poly = loop_to_poly,
 	    .polynors = polynors,
+	    .numEdges = numEdges,
 	    .numLoops = numLoops,
 	    .numPolys = numPolys,
 	};
+
+	/* This first loop check which edges are actually smooth, and compute edge vectors. */
+	mesh_edges_sharp_tag(&common_data, check_angle, split_angle, false);
 
 	if (numLoops < LOOP_SPLIT_TASK_BLOCK_SIZE * 8) {
 		/* Not enough loops to be worth the whole threading overhead... */

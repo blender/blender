@@ -196,6 +196,13 @@ void BKE_mesh_loop_tangents_ex(
 void BKE_mesh_loop_tangents(
         struct Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], struct ReportList *reports);
 
+void BKE_edges_sharp_from_angle_set(
+        const struct MVert *mverts, const int numVerts,
+        struct MEdge *medges, const int numEdges,
+        struct MLoop *mloops, const int numLoops,
+        struct MPoly *mpolys, const float (*polynors)[3], const int numPolys,
+        const float split_angle);
+
 /**
  * References a contiguous loop-fan with normal offset vars.
  */
