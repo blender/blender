@@ -175,13 +175,19 @@ static void wm_ghostwindow_destroy(wmWindowManager *wm, wmWindow *win)
 {
 	if (win->ghostwin) {
 		/* We need this window's opengl context active to discard it. */
-		wm_window_make_drawable(wm, win);
+		GHOST_ActivateWindowDrawingContext(win->ghostwin);
+		GWN_context_active_set(win->gwnctx);
+
 		/* Delete local gawain objects.  */
 		GWN_context_discard(win->gwnctx);
 
 		GHOST_DisposeWindow(g_system, win->ghostwin);
 		win->ghostwin = NULL;
 		win->gwnctx = NULL;
+
+		/* prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
+		wm->windrawable = NULL;
+		wm->winactive = NULL;
 	}
 }
 
@@ -221,11 +227,6 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 	wm_draw_data_free(win);
 
 	wm_ghostwindow_destroy(wm, win);
-
-	/* always set drawable and active to NULL,
-	 * prevents non-drawable state of main windows (bugs #22967 and #25071, possibly #22477 too) */
-	wm->windrawable = NULL;
-	wm->winactive = NULL;
 
 	BKE_workspace_instance_hook_free(G.main, win->workspace_hook);
 	MEM_freeN(win->stereo3d_format);
@@ -378,9 +379,20 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 		if (screen) {
 			ED_screen_exit(C, win, screen);
 		}
-		
+
+		if (tmpwin) {
+			immDeactivate();
+		}
+
 		wm_window_free(C, wm, win);
-	
+
+		/* keep imediatemode active before the next `wm_window_make_drawable` call */
+		if (tmpwin) {
+			GHOST_ActivateWindowDrawingContext(tmpwin->ghostwin);
+			GWN_context_active_set(tmpwin->gwnctx);
+			immActivate();
+		}
+
 		/* if temp screen, delete it after window free (it stops jobs that can access it) */
 		if (screen && screen->temp) {
 			Main *bmain = CTX_data_main(C);
