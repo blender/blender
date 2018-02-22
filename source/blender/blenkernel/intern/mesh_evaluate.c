@@ -698,10 +698,11 @@ static void mesh_edges_sharp_tag(
         LoopSplitTaskDataCommon *data,
         const bool check_angle, const float split_angle, const bool do_sharp_edges_tag)
 {
-	MVert *mverts = data->mverts;
-	MEdge *medges = data->medges;
-	MLoop *mloops = data->mloops;
-	MPoly *mpolys = data->mpolys;
+	const MVert *mverts = data->mverts;
+	const MEdge *medges = data->medges;
+	const MLoop *mloops = data->mloops;
+
+	const MPoly *mpolys = data->mpolys;
 
 	const int numEdges = data->numEdges;
 	const int numPolys = data->numPolys;
@@ -714,13 +715,13 @@ static void mesh_edges_sharp_tag(
 
 	BLI_bitmap *sharp_edges = do_sharp_edges_tag ? BLI_BITMAP_NEW(numEdges, __func__) : NULL;
 
-	MPoly *mp;
+	const MPoly *mp;
 	int mp_index;
 
 	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
 	for (mp = mpolys, mp_index = 0; mp_index < numPolys; mp++, mp_index++) {
-		MLoop *ml_curr;
+		const MLoop *ml_curr;
 		int *e2l;
 		int ml_curr_index = mp->loopstart;
 		const int ml_last_index = (ml_curr_index + mp->totloop) - 1;
@@ -728,8 +729,6 @@ static void mesh_edges_sharp_tag(
 		ml_curr = &mloops[ml_curr_index];
 
 		for (; ml_curr_index <= ml_last_index; ml_curr++, ml_curr_index++) {
-			MEdge *me = &medges[ml_curr->e];
-
 			e2l = edge_to_loops[ml_curr->e];
 
 			loop_to_poly[ml_curr_index] = mp_index;
@@ -757,7 +756,7 @@ static void mesh_edges_sharp_tag(
 				 * or both poly have opposed (flipped) normals, i.e. both loops on the same edge share the same vertex,
 				 * or angle between both its polys' normals is above split_angle value.
 				 */
-				if (!(mp->flag & ME_SMOOTH) || (me->flag & ME_SHARP) ||
+				if (!(mp->flag & ME_SMOOTH) || (medges[ml_curr->e].flag & ME_SHARP) ||
 				    ml_curr->v == mloops[e2l[0]].v ||
 				    is_angle_sharp)
 				{
@@ -792,7 +791,7 @@ static void mesh_edges_sharp_tag(
 	if (do_sharp_edges_tag) {
 		MEdge *me;
 		int me_index;
-		for (me = medges, me_index = 0; me_index < numEdges; me++, me_index++) {
+		for (me = (MEdge *)medges, me_index = 0; me_index < numEdges; me++, me_index++) {
 			if (BLI_BITMAP_TEST(sharp_edges, me_index)) {
 				me->flag |= ME_SHARP;
 			}
