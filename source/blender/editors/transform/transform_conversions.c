@@ -3595,27 +3595,40 @@ static void posttrans_fcurve_clean(FCurve *fcu, const bool use_handle)
 	for (int i = fcu->totvert - 1; i >= 0; i--) {
 		BezTriple *bezt = &fcu->bezt[i];
 		
-		/* Is this a candidate for deletion? */
+		/* Is this keyframe a candidate for deletion? */
 		/* TODO: Replace loop with an O(1) lookup instead */
 		for (tRetainedKeyframe *rk = retained_keys.last; rk; rk = rk->prev) {
 			if (IS_EQT(bezt->vec[1][0], rk->frame, BEZT_BINARYSEARCH_THRESH)) {
-				/* Delete this keyframe, unless it's the last selected one on this frame,
-				 * in which case, we'll update its value instead
-				 */
-				if (BEZT_ISSEL_ANY(bezt) && (rk->del_count == rk->tot_count - 1)) {
-					/* Update keyframe */
-					if (can_average_points) {
-						/* TODO: update handles too? */
-						bezt->vec[1][1] = rk->val;
+				/* Selected keys are treated with greater care than unselected ones... */
+				if (BEZT_ISSEL_ANY(bezt)) {
+					/* - If this is the last selected key left (based on rk->del_count) ==> UPDATE IT
+					 *   (or else we wouldn't have any keyframe left here)
+					 * - Otherwise, there are still other selected keyframes on this frame
+					 *   to be merged down still ==> DELETE IT
+					 */
+					if (rk->del_count == rk->tot_count - 1) {
+						/* Update keyframe... */
+						if (can_average_points) {
+							/* TODO: update handles too? */
+							bezt->vec[1][1] = rk->val;
+						}
 					}
+					else {
+						/* Delete Keyframe */
+						delete_fcurve_key(fcu, i, 0);
+					}
+					
+					/* Update count of how many we've deleted
+					 * - It should only matter that we're doing this for all but the last one
+					 */
+					rk->del_count++;
 				}
 				else {
-					/* Delete keyframe */
+					/* Always delete - Unselected keys don't matter */
 					delete_fcurve_key(fcu, i, 0);
 				}
-				
-				/* Stop searching for matching RK's */
-				rk->del_count++;
+								
+				/* Stop the RK search... we've found our match now */
 				break;
 			}
 		}
