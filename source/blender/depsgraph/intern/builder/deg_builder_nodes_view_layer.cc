@@ -86,13 +86,13 @@ void DepsgraphNodeBuilder::build_view_layer(
 		 */
 		LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
 			Object *object = base->object;
-			add_id_node(&object->id, false);
+			add_id_node(&object->id);
 		}
 		/* Create ID node for nested ID of nodetree as well, otherwise remapping
 		 * will not work correct either.
 		 */
 		if (scene->nodetree != NULL) {
-			add_id_node(&scene->nodetree->id, false);
+			add_id_node(&scene->nodetree->id);
 		}
 		/* Make sure we've got ID node, so we can get pointer to CoW datablock.
 		 */

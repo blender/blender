@@ -294,7 +294,7 @@ IDDepsNode *Depsgraph::find_id_node(const ID *id) const
 	return reinterpret_cast<IDDepsNode *>(BLI_ghash_lookup(id_hash, id));
 }
 
-IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
+IDDepsNode *Depsgraph::add_id_node(ID *id, ID *id_cow_hint)
 {
 	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) == 0);
 	IDDepsNode *id_node = find_id_node(id);
@@ -302,9 +302,6 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
 		DepsNodeFactory *factory = deg_type_get_factory(DEG_NODE_TYPE_ID_REF);
 		id_node = (IDDepsNode *)factory->create_node(id, "", id->name);
 		id_node->init_copy_on_write(id_cow_hint);
-		if (do_tag) {
-			id->tag |= LIB_TAG_DOIT;
-		}
 		/* Register node in ID hash.
 		 *
 		 * NOTE: We address ID nodes by the original ID pointer they are
@@ -312,9 +309,6 @@ IDDepsNode *Depsgraph::add_id_node(ID *id, bool do_tag, ID *id_cow_hint)
 		 */
 		BLI_ghash_insert(id_hash, id, id_node);
 		id_nodes.push_back(id_node);
-	}
-	else if (do_tag) {
-		id->tag |= LIB_TAG_DOIT;
 	}
 	return id_node;
 }

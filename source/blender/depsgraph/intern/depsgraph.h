@@ -119,7 +119,7 @@ struct Depsgraph {
 	TimeSourceDepsNode *find_time_source() const;
 
 	IDDepsNode *find_id_node(const ID *id) const;
-	IDDepsNode *add_id_node(ID *id, bool do_tag = true, ID *id_cow_hint = NULL);
+	IDDepsNode *add_id_node(ID *id, ID *id_cow_hint = NULL);
 	void clear_id_nodes();
 
 	/* Add new relationship between two nodes. */

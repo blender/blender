@@ -43,6 +43,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
+#include "intern/builder/deg_builder_map.h"
 #include "intern/nodes/deg_node.h"
 #include "intern/nodes/deg_node_component.h"
 #include "intern/nodes/deg_node_operation.h"
@@ -339,6 +340,8 @@ private:
 
 	/* State which demotes currently built entities. */
 	Scene *scene_;
+
+	BuilderMap built_map_;
 };
 
 struct DepsNodeHandle

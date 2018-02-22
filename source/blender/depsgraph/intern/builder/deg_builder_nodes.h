@@ -30,6 +30,7 @@
 
 #pragma once
 
+#include "intern/builder/deg_builder_map.h"
 #include "intern/depsgraph_types.h"
 
 #include "DEG_depsgraph.h"  /* used for DEG_depsgraph_use_copy_on_write() */
@@ -112,7 +113,7 @@ struct DepsgraphNodeBuilder {
 	void begin_build();
 	void end_build();
 
-	IDDepsNode *add_id_node(ID *id, bool do_tag = true);
+	IDDepsNode *add_id_node(ID *id);
 	IDDepsNode *find_id_node(ID *id);
 	TimeSourceDepsNode *add_time_source();
 
@@ -231,6 +232,7 @@ protected:
 	Scene *scene_;
 
 	GHash *cow_id_hash_;
+	BuilderMap built_map_;
 };
 
 }  // namespace DEG

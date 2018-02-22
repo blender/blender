@@ -135,7 +135,6 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 void DepsgraphNodeBuilder::build_rig(Object *object)
 {
 	bArmature *armature = (bArmature *)object->data;
-	const short armature_tag = armature->id.tag;
 	Scene *scene_cow;
 	Object *object_cow;
 	bArmature *armature_cow;
@@ -163,9 +162,8 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	 *       mechanism in-between here to ensure that we can use same rig
 	 *       multiple times in same scene.
 	 */
-	if ((armature_tag & LIB_TAG_DOIT) == 0) {
+	if (built_map_.checkIsBuilt(armature)) {
 		build_animdata(&armature->id);
-
 		/* Make sure pose is up-to-date with armature updates. */
 		add_operation_node(&armature->id,
 		                   DEG_NODE_TYPE_PARAMETERS,
