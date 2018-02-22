@@ -38,6 +38,11 @@ struct Gwn_Context {
 #if TRUST_NO_ONE
 	pthread_t thread; // Thread on which this context is active.
 	bool thread_is_used;
+
+	Gwn_Context()
+		{
+		thread_is_used = false;
+		}
 #endif
 };
 
@@ -60,8 +65,7 @@ Gwn_Context* GWN_context_create(void)
 #if TRUST_NO_ONE
 	assert(thread_is_main());
 #endif
-	Gwn_Context* ctx = (Gwn_Context*)calloc(1, sizeof(Gwn_Context));
-	new (&ctx->orphans_mutex) std::mutex();
+	Gwn_Context* ctx = new Gwn_Context;
 	glGenVertexArrays(1, &ctx->default_vao);
 	GWN_context_active_set(ctx);
 	return ctx;
@@ -83,10 +87,7 @@ void GWN_context_discard(Gwn_Context* ctx)
 		gwn_batch_vao_cache_clear(ctx->batches.front());
 		}
 	glDeleteVertexArrays(1, &ctx->default_vao);
-	(&ctx->orphaned_vertarray_ids)->~vector();
-	(&ctx->orphans_mutex)->~mutex();
-	(&ctx->batches)->~forward_list();
-	free(ctx);
+	delete ctx;
 	active_ctx = NULL;
 	}
 
