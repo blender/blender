@@ -32,15 +32,11 @@
 
 #include "MEM_guardedalloc.h"
 
-// #define DEBUG_TIME
-
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
-#ifdef DEBUG_TIME
-#  include "PIL_time.h"
-#  include "PIL_time_utildefines.h"
-#endif
+#include "PIL_time.h"
+#include "PIL_time_utildefines.h"
 
 extern "C" {
 #include "DNA_cachefile_types.h"
@@ -200,9 +196,10 @@ void DEG_add_special_eval_flag(Depsgraph *graph, ID *id, short flag)
  */
 void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 {
-#ifdef DEBUG_TIME
-	TIMEIT_START(DEG_graph_build_from_scene);
-#endif
+	double start_time;
+	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
+		start_time = PIL_check_seconds_timer();
+	}
 
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 
@@ -240,9 +237,10 @@ void DEG_graph_build_from_scene(Depsgraph *graph, Main *bmain, Scene *scene)
 	}
 #endif
 
-#ifdef DEBUG_TIME
-	TIMEIT_END(DEG_graph_build_from_scene);
-#endif
+	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
+		printf("Depsgraph built in %f seconds.\n",
+		       PIL_check_seconds_timer() - start_time);
+	}
 }
 
 /* Tag graph relations for update. */
