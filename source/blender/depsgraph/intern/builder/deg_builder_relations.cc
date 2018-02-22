@@ -1540,7 +1540,6 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 		                                 DEG_NODE_TYPE_GEOMETRY,
 		                                 DEG_OPCODE_GEOMETRY_UBEREVAL);
 		ModifierUpdateDepsgraphContext ctx = {};
-		ctx.bmain = bmain_;
 		ctx.scene = scene_;
 		ctx.object = object;
 

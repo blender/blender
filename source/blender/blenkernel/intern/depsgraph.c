@@ -646,7 +646,6 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Main *bmain, Sc
 	if (ob->modifiers.first) {
 		ModifierData *md;
 		ModifierUpdateDepsgraphContext ctx = {
-			.bmain = bmain,
 			.scene = scene,
 			.object = ob,
 
