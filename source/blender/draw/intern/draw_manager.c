@@ -1031,6 +1031,9 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 	if (obmat != NULL) {
 		copy_m4_m4(call->obmat, obmat);
 	}
+	else {
+		unit_m4(call->obmat);
+	}
 
 	call->geometry = geom;
 	call->ob_data = NULL;
@@ -1074,6 +1077,9 @@ void DRW_shgroup_call_generate_add(
 
 	if (obmat != NULL) {
 		copy_m4_m4(call->obmat, obmat);
+	}
+	else {
+		unit_m4(call->obmat);
 	}
 
 	call->geometry_fn = geometry_fn;
