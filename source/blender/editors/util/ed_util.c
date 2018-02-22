@@ -60,6 +60,8 @@
 #include "BKE_packedFile.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
+#include "BKE_layer.h"
 
 #include "ED_armature.h"
 #include "ED_buttons.h"
@@ -90,7 +92,6 @@
 void ED_editors_init(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	Scene *sce = CTX_data_scene(C);
 
 	/* This is called during initialization, so we don't want to store any reports */
 	ReportList *reports = CTX_wm_reports(C);
@@ -98,9 +99,45 @@ void ED_editors_init(bContext *C)
 
 	SWAP(int, reports->flag, reports_flag_prev);
 
+
+	/* toggle on modes for objects that were saved with these enabled. for
+	 * e.g. linked objects we have to ensure that they are actually the
+	 * active object in this scene. */
+	{
+		wmWindow *win_orig = CTX_wm_window(C);
+		CTX_wm_window_set(C, NULL);
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
+			Scene *scene = WM_window_get_active_scene(win);
+			ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
+			Object *obact = view_layer ? OBACT(view_layer) : NULL;
+			eObjectMode object_mode = workspace->object_mode;
+			workspace->object_mode = OB_MODE_OBJECT;
+			if (view_layer && obact) {
+				const ID *data = obact->data;
+				if (!ELEM(object_mode, OB_MODE_OBJECT, OB_MODE_POSE)) {
+					if (!ID_IS_LINKED(obact) && !(data && ID_IS_LINKED(data))) {
+						CTX_wm_window_set(C, win);
+						ED_object_toggle_modes(C, object_mode);
+						CTX_wm_window_set(C, NULL);
+					}
+				}
+				else if (object_mode == OB_MODE_POSE) {
+					if (!ID_IS_LINKED(obact) && (obact->type == OB_ARMATURE)) {
+						workspace->object_mode = object_mode;
+					}
+				}
+			}
+		}
+		CTX_wm_window_set(C, win_orig);
+	}
+
 	/* image editor paint mode */
-	if (sce) {
-		ED_space_image_paint_update(wm, sce);
+	{
+		Scene *sce = CTX_data_scene(C);
+		if (sce) {
+			ED_space_image_paint_update(wm, sce);
+		}
 	}
 
 	SWAP(int, reports->flag, reports_flag_prev);

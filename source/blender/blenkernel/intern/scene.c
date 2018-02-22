@@ -1376,7 +1376,10 @@ static bool check_rendered_viewport_visible(Main *bmain)
 	return false;
 }
 
-static void prepare_mesh_for_viewport_render(Main *bmain, const EvaluationContext *eval_ctx)
+/* TODO(campbell): shouldn't we be able to use 'eval_ctx->view_layer' here?
+ * Currently this is NULL on load, so don't. */
+static void prepare_mesh_for_viewport_render(
+        Main *bmain, const EvaluationContext *eval_ctx, const ViewLayer *view_layer)
 {
 	/* This is needed to prepare mesh to be used by the render
 	 * engine from the viewport rendering. We do loading here
@@ -1387,7 +1390,8 @@ static void prepare_mesh_for_viewport_render(Main *bmain, const EvaluationContex
 	 * call loading of the edit data for the mesh objects.
 	 */
 
-	Object *obedit = OBEDIT_FROM_EVAL_CTX(eval_ctx);
+	/* Expanded 'OBEDIT_FROM_EVAL_CTX' */
+	Object *obedit = (eval_ctx->object_mode & OB_MODE_EDIT) ? OBACT(view_layer) : NULL;
 	if (obedit) {
 		Mesh *mesh = obedit->data;
 		if ((obedit->type == OB_MESH) &&
@@ -1429,7 +1433,7 @@ void BKE_scene_graph_update_tagged(EvaluationContext *eval_ctx,
 	/* Uncomment this to check if graph was properly tagged for update. */
 	// DEG_debug_graph_relations_validate(depsgraph, bmain, scene);
 	/* Flush editing data if needed. */
-	prepare_mesh_for_viewport_render(bmain, eval_ctx);
+	prepare_mesh_for_viewport_render(bmain, eval_ctx, view_layer);
 	/* Flush recalc flags to dependencies. */
 	DEG_graph_flush_update(bmain, depsgraph);
 	/* Update all objects: drivers, matrices, displists, etc. flags set
