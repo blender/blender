@@ -39,7 +39,7 @@ int OpenVDB_getVersionHex()
 OpenVDBFloatGrid *OpenVDB_export_grid_fl(
         OpenVDBWriter *writer,
         const char *name, float *data,
-        const int res[3], float matrix[4][4],
+		const int res[3], float matrix[4][4], const float clipping,
         OpenVDBFloatGrid *mask)
 {
 	Timer(__func__);
@@ -53,6 +53,7 @@ OpenVDBFloatGrid *OpenVDB_export_grid_fl(
 	        data,
 	        res,
 	        matrix,
+			clipping,
 	        mask_grid);
 
 	return reinterpret_cast<OpenVDBFloatGrid *>(grid);
@@ -61,7 +62,7 @@ OpenVDBFloatGrid *OpenVDB_export_grid_fl(
 OpenVDBIntGrid *OpenVDB_export_grid_ch(
         OpenVDBWriter *writer,
         const char *name, unsigned char *data,
-        const int res[3], float matrix[4][4],
+		const int res[3], float matrix[4][4], const float clipping,
         OpenVDBFloatGrid *mask)
 {
 	Timer(__func__);
@@ -76,17 +77,17 @@ OpenVDBIntGrid *OpenVDB_export_grid_ch(
 	        data,
 	        res,
 	        matrix,
+			clipping,
 	        mask_grid);
 
 	return reinterpret_cast<OpenVDBIntGrid *>(grid);
 }
 
-OpenVDBVectorGrid *OpenVDB_export_grid_vec(
-        struct OpenVDBWriter *writer,
-        const char *name,
-        const float *data_x, const float *data_y, const float *data_z,
-        const int res[3], float matrix[4][4], short vec_type,
-        const bool is_color, OpenVDBFloatGrid *mask)
+OpenVDBVectorGrid *OpenVDB_export_grid_vec(struct OpenVDBWriter *writer,
+		const char *name,
+		const float *data_x, const float *data_y, const float *data_z,
+		const int res[3], float matrix[4][4], short vec_type, const float clipping,
+		const bool is_color, OpenVDBFloatGrid *mask)
 {
 	Timer(__func__);
 
@@ -105,6 +106,7 @@ OpenVDBVectorGrid *OpenVDB_export_grid_vec(
 	        matrix,
 	        static_cast<VecType>(vec_type),
 	        is_color,
+			clipping,
 	        mask_grid);
 
 	return reinterpret_cast<OpenVDBVectorGrid *>(grid);

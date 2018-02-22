@@ -972,20 +972,20 @@ static int ptcache_smoke_openvdb_write(struct OpenVDBWriter *writer, void *smoke
 
 		smoke_turbulence_export(sds->wt, &dens, &react, &flame, &fuel, &r, &g, &b, &tcu, &tcv, &tcw);
 
-		wt_density_grid = OpenVDB_export_grid_fl(writer, "density", dens, sds->res_wt, sds->fluidmat_wt, NULL);
+		wt_density_grid = OpenVDB_export_grid_fl(writer, "density", dens, sds->res_wt, sds->fluidmat_wt, sds->clipping, NULL);
 		clip_grid = wt_density_grid;
 
 		if (fluid_fields & SM_ACTIVE_FIRE) {
-			OpenVDB_export_grid_fl(writer, "flame", flame, sds->res_wt, sds->fluidmat_wt, wt_density_grid);
-			OpenVDB_export_grid_fl(writer, "fuel", fuel, sds->res_wt, sds->fluidmat_wt, wt_density_grid);
-			OpenVDB_export_grid_fl(writer, "react", react, sds->res_wt, sds->fluidmat_wt, wt_density_grid);
+			OpenVDB_export_grid_fl(writer, "flame", flame, sds->res_wt, sds->fluidmat_wt, sds->clipping, wt_density_grid);
+			OpenVDB_export_grid_fl(writer, "fuel", fuel, sds->res_wt, sds->fluidmat_wt, sds->clipping, wt_density_grid);
+			OpenVDB_export_grid_fl(writer, "react", react, sds->res_wt, sds->fluidmat_wt, sds->clipping, wt_density_grid);
 		}
 
 		if (fluid_fields & SM_ACTIVE_COLORS) {
-			OpenVDB_export_grid_vec(writer, "color", r, g, b, sds->res_wt, sds->fluidmat_wt, VEC_INVARIANT, true, wt_density_grid);
+			OpenVDB_export_grid_vec(writer, "color", r, g, b, sds->res_wt, sds->fluidmat_wt, VEC_INVARIANT, true, sds->clipping, wt_density_grid);
 		}
 
-		OpenVDB_export_grid_vec(writer, "texture coordinates", tcu, tcv, tcw, sds->res, sds->fluidmat, VEC_INVARIANT, false, wt_density_grid);
+		OpenVDB_export_grid_vec(writer, "texture coordinates", tcu, tcv, tcw, sds->res, sds->fluidmat, VEC_INVARIANT, false, sds->clipping, wt_density_grid);
 	}
 
 	if (sds->fluid) {
@@ -1000,32 +1000,32 @@ static int ptcache_smoke_openvdb_write(struct OpenVDBWriter *writer, void *smoke
 		OpenVDBWriter_add_meta_fl(writer, "blender/smoke/dt", dt);
 
 		const char *name = (!sds->wt) ? "density" : "density_low";
-		density_grid = OpenVDB_export_grid_fl(writer, name, dens, sds->res, sds->fluidmat, NULL);
+		density_grid = OpenVDB_export_grid_fl(writer, name, dens, sds->res, sds->fluidmat, sds->clipping, NULL);
 		clip_grid = sds->wt ? clip_grid : density_grid;
 
-		OpenVDB_export_grid_fl(writer, "shadow", sds->shadow, sds->res, sds->fluidmat, NULL);
+		OpenVDB_export_grid_fl(writer, "shadow", sds->shadow, sds->res, sds->fluidmat, sds->clipping, NULL);
 
 		if (fluid_fields & SM_ACTIVE_HEAT) {
-			OpenVDB_export_grid_fl(writer, "heat", heat, sds->res, sds->fluidmat, clip_grid);
-			OpenVDB_export_grid_fl(writer, "heat_old", heatold, sds->res, sds->fluidmat, clip_grid);
+			OpenVDB_export_grid_fl(writer, "heat", heat, sds->res, sds->fluidmat, sds->clipping, clip_grid);
+			OpenVDB_export_grid_fl(writer, "heat_old", heatold, sds->res, sds->fluidmat, sds->clipping, clip_grid);
 		}
 
 		if (fluid_fields & SM_ACTIVE_FIRE) {
 			name = (!sds->wt) ? "flame" : "flame_low";
-			OpenVDB_export_grid_fl(writer, name, flame, sds->res, sds->fluidmat, density_grid);
+			OpenVDB_export_grid_fl(writer, name, flame, sds->res, sds->fluidmat, sds->clipping, density_grid);
 			name = (!sds->wt) ? "fuel" : "fuel_low";
-			OpenVDB_export_grid_fl(writer, name, fuel, sds->res, sds->fluidmat, density_grid);
+			OpenVDB_export_grid_fl(writer, name, fuel, sds->res, sds->fluidmat, sds->clipping, density_grid);
 			name = (!sds->wt) ? "react" : "react_low";
-			OpenVDB_export_grid_fl(writer, name, react, sds->res, sds->fluidmat, density_grid);
+			OpenVDB_export_grid_fl(writer, name, react, sds->res, sds->fluidmat, sds->clipping, density_grid);
 		}
 
 		if (fluid_fields & SM_ACTIVE_COLORS) {
 			name = (!sds->wt) ? "color" : "color_low";
-			OpenVDB_export_grid_vec(writer, name, r, g, b, sds->res, sds->fluidmat, VEC_INVARIANT, true, density_grid);
+			OpenVDB_export_grid_vec(writer, name, r, g, b, sds->res, sds->fluidmat, VEC_INVARIANT, true, sds->clipping, density_grid);
 		}
 
-		OpenVDB_export_grid_vec(writer, "velocity", vx, vy, vz, sds->res, sds->fluidmat, VEC_CONTRAVARIANT_RELATIVE, false, clip_grid);
-		OpenVDB_export_grid_ch(writer, "obstacles", obstacles, sds->res, sds->fluidmat, NULL);
+		OpenVDB_export_grid_vec(writer, "velocity", vx, vy, vz, sds->res, sds->fluidmat, VEC_CONTRAVARIANT_RELATIVE, false, sds->clipping, clip_grid);
+		OpenVDB_export_grid_ch(writer, "obstacles", obstacles, sds->res, sds->fluidmat, sds->clipping, NULL);
 	}
 
 	return 1;

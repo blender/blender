@@ -551,6 +551,8 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 
 			smd->domain->coba = NULL;
 			smd->domain->coba_field = FLUID_FIELD_DENSITY;
+
+			smd->domain->clipping = 1e-3f;
 		}
 		else if (smd->type & MOD_SMOKE_TYPE_FLOW)
 		{
