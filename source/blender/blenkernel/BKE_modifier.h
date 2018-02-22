@@ -34,8 +34,6 @@
 
 struct ID;
 struct DerivedMesh;
-struct DagForest;
-struct DagNode;
 struct EvaluationContext;
 struct Object;
 struct Scene;
@@ -132,12 +130,6 @@ typedef enum ModifierApplyFlag {
 typedef struct ModifierUpdateDepsgraphContext {
 	struct Scene *scene;
 	struct Object *object;
-
-	/* Old depsgraph node handle. */
-	struct DagForest *forest;
-	struct DagNode *obNode;
-
-	/* new depsgraph node handle. */
 	struct DepsNodeHandle *node;
 } ModifierUpdateDepsgraphContext;
 
