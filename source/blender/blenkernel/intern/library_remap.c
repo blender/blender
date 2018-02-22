@@ -279,6 +279,26 @@ static void libblock_remap_data_preprocess_scene_object_unlink(
 	}
 }
 
+static void libblock_remap_data_preprocess_group_unlink(
+        IDRemap *r_id_remap_data, Object *ob, const bool skip_indirect, const bool is_indirect)
+{
+	Main *bmain = r_id_remap_data->bmain;
+	for (Group *group = bmain->group.first; group; group = group->id.next) {
+		if (BKE_group_object_exists(group, ob)) {
+			if (skip_indirect && is_indirect) {
+				r_id_remap_data->skipped_indirect++;
+				r_id_remap_data->skipped_refcounted++;
+			}
+			else {
+				BKE_collections_object_remove(bmain, &group->id, ob, false);
+				if (!is_indirect) {
+					r_id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
+				}
+			}
+		}
+	}
+}
+
 static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 {
 	switch (GS(r_id_remap_data->id->name)) {
@@ -297,6 +317,8 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 					{
 						libblock_remap_data_preprocess_scene_object_unlink(
 						            r_id_remap_data, sce, ob_iter, skip_indirect, is_indirect);
+						libblock_remap_data_preprocess_group_unlink(
+						            r_id_remap_data, ob_iter, skip_indirect, is_indirect);
 					}
 					FOREACH_SCENE_OBJECT_END
 				}
@@ -305,7 +327,10 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 					Object *old_ob = (Object *)r_id_remap_data->old_id;
 					libblock_remap_data_preprocess_scene_object_unlink(
 					            r_id_remap_data, sce, old_ob, skip_indirect, is_indirect);
+					libblock_remap_data_preprocess_group_unlink(
+					            r_id_remap_data, old_ob, skip_indirect, is_indirect);
 				}
+
 			}
 			break;
 		}
