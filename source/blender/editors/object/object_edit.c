@@ -77,6 +77,7 @@
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_pointcache.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
@@ -2067,6 +2068,55 @@ void OBJECT_OT_game_physics_copy(struct wmOperatorType *ot)
 }
 
 /* generic utility function */
+
+bool ED_object_mode_generic_enter(
+        struct bContext *C, eObjectMode object_mode)
+{
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	if (workspace->object_mode == object_mode) {
+		return true;
+	}
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_mode_set", false);
+	PointerRNA ptr;
+	WM_operator_properties_create_ptr(&ptr, ot);
+	RNA_enum_set(&ptr, "mode", object_mode);
+	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+	WM_operator_properties_free(&ptr);
+	return (workspace->object_mode == object_mode);
+}
+
+/**
+ * Use for changing works-paces or changing active object.
+ * Caller can check #OB_MODE_ALL_MODE_DATA to test if this needs to be run.
+ */
+void ED_object_mode_generic_exit(
+        const struct EvaluationContext *eval_ctx,
+        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob)
+{
+	if (eval_ctx->object_mode & OB_MODE_EDIT) {
+		if (BKE_object_is_in_editmode(ob)) {
+			ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
+		}
+	}
+	else if (eval_ctx->object_mode & OB_MODE_VERTEX_PAINT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_VERTEX_PAINT)) {
+			ED_object_vpaintmode_exit_ex(workspace, ob);
+		}
+	}
+	else if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_WEIGHT_PAINT)) {
+			ED_object_wpaintmode_exit_ex(workspace, ob);
+		}
+	}
+	else if (eval_ctx->object_mode & OB_MODE_SCULPT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT)) {
+			ED_object_sculptmode_exit_ex(eval_ctx, workspace, scene, ob);
+		}
+	}
+	else {
+		BLI_assert((eval_ctx->object_mode & OB_MODE_ALL_MODE_DATA) == 0);
+	}
+}
 
 bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_only, float r_center[3])
 {

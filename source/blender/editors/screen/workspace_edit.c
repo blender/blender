@@ -56,6 +56,8 @@
 
 #include "RNA_access.h"
 
+#include "DEG_depsgraph.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -166,6 +168,41 @@ bool ED_workspace_change(
 	BLI_assert(BKE_workspace_layout_screen_get(layout_new) == screen_new);
 
 	if (screen_new) {
+		bool object_mode_set = false;
+
+		/* Handle object mode switching */
+		if ((workspace_old->object_mode != OB_MODE_OBJECT) ||
+		    (workspace_new->object_mode != OB_MODE_OBJECT))
+		{
+			Scene *scene = CTX_data_scene(C);
+			ViewLayer *view_layer_old = BKE_workspace_view_layer_get(workspace_old, scene);
+			ViewLayer *view_layer_new = BKE_workspace_view_layer_get(workspace_new, scene);
+			Object *obact_old = OBACT(view_layer_old);
+			Object *obact_new = OBACT(view_layer_new);
+
+			if ((workspace_old->object_mode == workspace_new->object_mode) &&
+			    (obact_old == obact_new))
+			{
+				/* pass */
+			}
+			else {
+				if (workspace_old->object_mode & OB_MODE_ALL_MODE_DATA) {
+					if (obact_old) {
+						eObjectMode object_mode = workspace_old->object_mode;
+						EvaluationContext eval_ctx;
+						CTX_data_eval_ctx(C, &eval_ctx);
+						ED_object_mode_generic_exit(&eval_ctx, workspace_old, scene, obact_old);
+						/* weak, set it back so it's used when activating again. */
+						workspace_old->object_mode = object_mode;
+					}
+				}
+
+				if (workspace_new->object_mode != OB_MODE_OBJECT) {
+					object_mode_set = true;
+				}
+			}
+		}
+
 		WM_window_set_active_layout(win, workspace_new, layout_new);
 		WM_window_set_active_workspace(win, workspace_new);
 
@@ -178,6 +215,12 @@ bool ED_workspace_change(
 
 		WM_toolsystem_unlink(C, workspace_old);
 		WM_toolsystem_link(C, workspace_new);
+
+		if (object_mode_set) {
+			eObjectMode object_mode = workspace_new->object_mode;
+			workspace_new->object_mode = OB_MODE_OBJECT;
+			ED_object_mode_generic_enter(C, object_mode);
+		}
 
 		return true;
 	}

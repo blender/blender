@@ -146,40 +146,12 @@ void ED_object_base_activate(bContext *C, Base *base)
 		 *
 		 * Not correct because it's possible other work-spaces use these.
 		 * although that's a corner case. */
-		if (workspace->object_mode & OB_MODE_EDIT) {
-			FOREACH_OBJECT(view_layer, ob) {
-				if (ob != obact) {
-					if (BKE_object_is_in_editmode(ob)) {
-						ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
-					}
-				}
-			}
-			FOREACH_OBJECT_END;
-		}
-		else if (workspace->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_SCULPT)) {
+		if (workspace->object_mode & OB_MODE_ALL_MODE_DATA) {
 			EvaluationContext eval_ctx;
 			CTX_data_eval_ctx(C, &eval_ctx);
 			FOREACH_OBJECT(view_layer, ob) {
 				if (ob != obact) {
-					if (ob->sculpt) {
-						switch (ob->sculpt->mode_type) {
-							case OB_MODE_VERTEX_PAINT:
-							{
-								ED_object_vpaintmode_exit_ex(workspace, ob);
-								break;
-							}
-							case OB_MODE_WEIGHT_PAINT:
-							{
-								ED_object_wpaintmode_exit_ex(workspace, ob);
-								break;
-							}
-							case OB_MODE_SCULPT:
-							{
-								ED_object_sculptmode_exit_ex(&eval_ctx, workspace, scene, ob);
-								break;
-							}
-						}
-					}
+					ED_object_mode_generic_exit(&eval_ctx, workspace, scene, ob);
 				}
 			}
 			FOREACH_OBJECT_END;
@@ -191,12 +163,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 	view_layer->basact = base;
 
 	if (reset == false) {
-		wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_mode_set", false);
-		PointerRNA ptr;
-		WM_operator_properties_create_ptr(&ptr, ot);
-		RNA_enum_set(&ptr, "mode", object_mode);
-		WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
-		WM_operator_properties_free(&ptr);
+		ED_object_mode_generic_enter(C, object_mode);
 	}
 
 	if (base) {
