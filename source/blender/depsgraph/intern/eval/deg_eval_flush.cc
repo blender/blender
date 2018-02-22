@@ -248,7 +248,7 @@ void flush_editors_id_update(Main *bmain,
 			id_cow->recalc |= factory->id_recalc_tag();
 		}
 		GHASH_FOREACH_END();
-		DEG_DEBUG_PRINTF("Accumulated recalc bits for %s: %u\n",
+		DEG_DEBUG_PRINTF(EVAL, "Accumulated recalc bits for %s: %u\n",
 		                 id_orig->name, (unsigned int)id_cow->recalc);
 		/* Inform editors. */
 		if (deg_copy_on_write_is_expanded(id_cow)) {

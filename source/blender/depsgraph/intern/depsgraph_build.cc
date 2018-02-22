@@ -32,16 +32,12 @@
 
 #include "MEM_guardedalloc.h"
 
-// #define DEBUG_TIME
-
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
-#ifdef DEBUG_TIME
-#  include "PIL_time.h"
-#  include "PIL_time_utildefines.h"
-#endif
+#include "PIL_time.h"
+#include "PIL_time_utildefines.h"
 
 extern "C" {
 #include "DNA_cachefile_types.h"
@@ -202,9 +198,10 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
                                       Scene *scene,
                                       ViewLayer *view_layer)
 {
-#ifdef DEBUG_TIME
-	TIMEIT_START(DEG_graph_build_from_view_layer);
-#endif
+	double start_time;
+	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
+		start_time = PIL_check_seconds_timer();
+	}
 
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
@@ -257,15 +254,16 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	}
 #endif
 
-#ifdef DEBUG_TIME
-	TIMEIT_END(DEG_graph_build_from_view_layer);
-#endif
-
 	/* Relations are up to date. */
 	deg_graph->need_update = false;
 
 	if (need_on_visible_update) {
 		DEG_graph_on_visible_update(bmain, graph);
+	}
+
+	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
+		printf("Depsgraph built in %f seconds.\n",
+		       PIL_check_seconds_timer() - start_time);
 	}
 }
 
@@ -293,7 +291,7 @@ void DEG_graph_relations_update(Depsgraph *graph,
 /* Tag all relations for update. */
 void DEG_relations_tag_update(Main *bmain)
 {
-	DEG_DEBUG_PRINTF("%s: Tagging relations for update.\n", __func__);
+	DEG_DEBUG_PRINTF(TAG, "%s: Tagging relations for update.\n", __func__);
 	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
 		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =
@@ -341,45 +339,40 @@ void DEG_add_forcefield_relations(DepsNodeHandle *handle,
                                   const char *name)
 {
 	ListBase *effectors = pdInitEffectors(NULL, scene, object, NULL, effector_weights, false);
-
-	if (effectors) {
-		for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
-			if (eff->ob != object && eff->pd->forcefield != skip_forcefield) {
-				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
-
-				if (eff->psys) {
-					DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
-
-					/* TODO: remove this when/if EVAL_PARTICLES is sufficient
-					 * for up to date particles.
-					 */
-					DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_GEOMETRY, name);
-				}
-
-				if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
-					DEG_add_object_relation(handle,
-					                        eff->pd->f_source,
-					                        DEG_OB_COMP_TRANSFORM,
-					                        "Smoke Force Domain");
-					DEG_add_object_relation(handle,
-					                        eff->pd->f_source,
-					                        DEG_OB_COMP_GEOMETRY,
-					                        "Smoke Force Domain");
-				}
-
-				if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
-					DEG_add_collision_relations(handle,
-					                            scene,
-					                            object,
-					                            NULL,
-					                            eModifierType_Collision,
-					                            NULL,
-					                            true,
-					                            "Force Absorption");
-				}
+	if (effectors == NULL) {
+		return;
+	}
+	for (EffectorCache *eff = (EffectorCache*)effectors->first; eff; eff = eff->next) {
+		if (eff->ob != object && eff->pd->forcefield != skip_forcefield) {
+			DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_TRANSFORM, name);
+			if (eff->psys) {
+				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_EVAL_PARTICLES, name);
+				/* TODO: remove this when/if EVAL_PARTICLES is sufficient
+				 * for up to date particles.
+				 */
+				DEG_add_object_relation(handle, eff->ob, DEG_OB_COMP_GEOMETRY, name);
+			}
+			if (eff->pd->forcefield == PFIELD_SMOKEFLOW && eff->pd->f_source) {
+				DEG_add_object_relation(handle,
+				                        eff->pd->f_source,
+				                        DEG_OB_COMP_TRANSFORM,
+				                        "Smoke Force Domain");
+				DEG_add_object_relation(handle,
+				                        eff->pd->f_source,
+				                        DEG_OB_COMP_GEOMETRY,
+				                        "Smoke Force Domain");
+			}
+			if (add_absorption && (eff->pd->flag & PFIELD_VISIBILITY)) {
+				DEG_add_collision_relations(handle,
+				                            scene,
+				                            object,
+				                            NULL,
+				                            eModifierType_Collision,
+				                            NULL,
+				                            true,
+				                            "Force Absorption");
 			}
 		}
 	}
-
 	pdEndEffectors(&effectors);
 }

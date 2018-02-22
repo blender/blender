@@ -112,12 +112,11 @@ void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx,
 void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
                               bool updated);
 
-#define DEG_DEBUG_PRINTF(...)               \
-	do {                                    \
-		if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {  \
-			fprintf(stderr, __VA_ARGS__);   \
-			fflush(stderr);                 \
-		}                                   \
+#define DEG_DEBUG_PRINTF(type, ...) \
+	do { \
+		if (G.debug & G_DEBUG_DEPSGRAPH_ ## type) { \
+			fprintf(stderr, __VA_ARGS__); \
+		} \
 	} while (0)
 
 #define DEG_ERROR_PRINTF(...)               \
