@@ -1318,14 +1318,13 @@ void BKE_mesh_normals_loop_split(
 
 	/* When using custom loop normals, disable the angle feature! */
 	const bool check_angle = (split_angle < (float)M_PI) && (clnors_data == NULL);
+	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
 	MLoopNorSpaceArray _lnors_spacearr = {NULL};
 
 #ifdef DEBUG_TIME
 	TIMEIT_START_AVERAGED(BKE_mesh_normals_loop_split);
 #endif
-
-	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
 	if (!r_lnors_spacearr && clnors_data) {
 		/* We need to compute lnor spacearr if some custom lnor data are given to us! */

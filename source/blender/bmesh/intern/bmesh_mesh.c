@@ -524,7 +524,7 @@ void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*
  * Helpers for #BM_mesh_loop_normals_update and #BM_loops_calc_normals_vnos
  */
 static void bm_mesh_edges_sharp_tag(
-        BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], float split_angle,
+        BMesh *bm, const float (*vnos)[3], const float (*fnos)[3], const float split_angle,
         float (*r_lnos)[3])
 {
 	BMIter eiter;
@@ -532,10 +532,7 @@ static void bm_mesh_edges_sharp_tag(
 	int i;
 
 	const bool check_angle = (split_angle < (float)M_PI);
-
-	if (check_angle) {
-		split_angle = cosf(split_angle);
-	}
+	const float split_angle_cos = check_angle ? cosf(split_angle) : -1.0f;
 
 	{
 		char htype = BM_VERT | BM_LOOP;
@@ -560,7 +557,7 @@ static void bm_mesh_edges_sharp_tag(
 			if (check_angle) {
 				const float *no_a = fnos ? fnos[BM_elem_index_get(l_a->f)] : l_a->f->no;
 				const float *no_b = fnos ? fnos[BM_elem_index_get(l_b->f)] : l_b->f->no;
-				is_angle_smooth = (dot_v3v3(no_a, no_b) >= split_angle);
+				is_angle_smooth = (dot_v3v3(no_a, no_b) >= split_angle_cos);
 			}
 
 			/* We only tag edges that are *really* smooth:
