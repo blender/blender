@@ -220,7 +220,7 @@ static void borderselect_action(bAnimContext *ac, const rcti rect, short mode, s
 	UI_view2d_region_to_view(v2d, rect.xmax, rect.ymax - 2, &rectf.xmax, &rectf.ymax);
 	
 	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing/validation funcs  */
@@ -401,7 +401,7 @@ static void region_select_action_keys(bAnimContext *ac, const rctf *rectf_view, 
 	UI_view2d_region_to_view_rctf(v2d, rectf_view, &rectf);
 	
 	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS | ANIMFILTER_NODUPLIS);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_LIST_CHANNELS);
 	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* get beztriple editing/validation funcs  */
