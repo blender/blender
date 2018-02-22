@@ -122,16 +122,12 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->object, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
 	if (mmd->object != NULL) {
 		/* TODO(sergey): Do we need transform component here? */
-		DEG_add_object_relation(node, mmd->object, DEG_OB_COMP_GEOMETRY, "Mesh Deform Modifier");
+		DEG_add_object_relation(ctx->node, mmd->object, DEG_OB_COMP_GEOMETRY, "Mesh Deform Modifier");
 	}
 }
 

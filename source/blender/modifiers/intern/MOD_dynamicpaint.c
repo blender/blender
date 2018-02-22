@@ -132,22 +132,18 @@ static bool is_brush_cb(Object *UNUSED(ob), ModifierData *pmd)
 	return ((DynamicPaintModifierData *)pmd)->brush != NULL;
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *scene,
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
 	/* Add relation from canvases to all brush objects. */
 	if (pmd->canvas != NULL) {
 		for (DynamicPaintSurface *surface = pmd->canvas->surfaces.first; surface; surface = surface->next) {
 			if (surface->effect & MOD_DPAINT_EFFECT_DO_DRIP) {
-				DEG_add_forcefield_relations(node, scene, ob, surface->effector_weights, true, 0, "Dynamic Paint Field");
+				DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, surface->effector_weights, true, 0, "Dynamic Paint Field");
 			}
 
 			/* Actual code uses custom loop over group/scene without layer checks in dynamicPaint_doStep */
-			DEG_add_collision_relations(node, scene, ob, surface->brush_group,  eModifierType_DynamicPaint, is_brush_cb, false, "Dynamic Paint Brush");
+			DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, surface->brush_group,  eModifierType_DynamicPaint, is_brush_cb, false, "Dynamic Paint Brush");
 		}
 	}
 }

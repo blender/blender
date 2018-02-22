@@ -125,15 +125,11 @@ static void foreachObjectLink(
 	walk(userData, ob, &dtmd->ob_source, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	DataTransferModifierData *dtmd = (DataTransferModifierData *) md;
 	if (dtmd->ob_source != NULL) {
-		DEG_add_object_relation(node, dtmd->ob_source, DEG_OB_COMP_GEOMETRY, "DataTransfer Modifier");
+		DEG_add_object_relation(ctx->node, dtmd->ob_source, DEG_OB_COMP_GEOMETRY, "DataTransfer Modifier");
 	}
 }
 

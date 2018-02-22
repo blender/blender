@@ -173,19 +173,13 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 }
 
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *bmain,
-                            struct Scene *scene,
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
 	if (mcmd->cache_file != NULL) {
-		DEG_add_object_cache_relation(node, mcmd->cache_file, DEG_OB_COMP_CACHE, "Mesh Cache File");
+		DEG_add_object_cache_relation(ctx->node, mcmd->cache_file, DEG_OB_COMP_CACHE, "Mesh Cache File");
 	}
-
-	UNUSED_VARS(bmain, scene, ob);
 }
 
 ModifierTypeInfo modifierType_MeshSequenceCache = {

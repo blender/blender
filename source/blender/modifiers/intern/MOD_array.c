@@ -96,26 +96,22 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->offset_ob, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	ArrayModifierData *amd = (ArrayModifierData *)md;
 	if (amd->start_cap != NULL) {
-		DEG_add_object_relation(node, amd->start_cap, DEG_OB_COMP_TRANSFORM, "Array Modifier Start Cap");
+		DEG_add_object_relation(ctx->node, amd->start_cap, DEG_OB_COMP_TRANSFORM, "Array Modifier Start Cap");
 	}
 	if (amd->end_cap != NULL) {
-		DEG_add_object_relation(node, amd->end_cap, DEG_OB_COMP_TRANSFORM, "Array Modifier End Cap");
+		DEG_add_object_relation(ctx->node, amd->end_cap, DEG_OB_COMP_TRANSFORM, "Array Modifier End Cap");
 	}
 	if (amd->curve_ob) {
-		struct Depsgraph *depsgraph = DEG_get_graph_from_handle(node);
-		DEG_add_object_relation(node, amd->curve_ob, DEG_OB_COMP_GEOMETRY, "Array Modifier Curve");
+		struct Depsgraph *depsgraph = DEG_get_graph_from_handle(ctx->node);
+		DEG_add_object_relation(ctx->node, amd->curve_ob, DEG_OB_COMP_GEOMETRY, "Array Modifier Curve");
 		DEG_add_special_eval_flag(depsgraph, &amd->curve_ob->id, DAG_EVAL_NEED_CURVE_PATH);
 	}
 	if (amd->offset_ob != NULL) {
-		DEG_add_object_relation(node, amd->offset_ob, DEG_OB_COMP_TRANSFORM, "Array Modifier Offset");
+		DEG_add_object_relation(ctx->node, amd->offset_ob, DEG_OB_COMP_TRANSFORM, "Array Modifier Offset");
 	}
 }
 

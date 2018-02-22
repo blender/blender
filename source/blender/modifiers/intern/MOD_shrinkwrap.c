@@ -142,20 +142,16 @@ static void deformVertsEM(ModifierData *md, const struct EvaluationContext *eval
 		dm->release(dm);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
 	if (smd->target != NULL) {
-		DEG_add_object_relation(node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-		DEG_add_object_relation(node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
+		DEG_add_object_relation(ctx->node, smd->target, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
 	}
 	if (smd->auxTarget != NULL) {
-		DEG_add_object_relation(node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
-		DEG_add_object_relation(node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
+		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_TRANSFORM, "Shrinkwrap Modifier");
+		DEG_add_object_relation(ctx->node, smd->auxTarget, DEG_OB_COMP_GEOMETRY, "Shrinkwrap Modifier");
 	}
 }
 

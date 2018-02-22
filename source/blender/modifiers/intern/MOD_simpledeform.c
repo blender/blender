@@ -375,15 +375,11 @@ static void foreachObjectLink(
 	walk(userData, ob, &smd->origin, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
 	if (smd->origin != NULL) {
-		DEG_add_object_relation(node, smd->origin, DEG_OB_COMP_TRANSFORM, "SimpleDeform Modifier");
+		DEG_add_object_relation(ctx->node, smd->origin, DEG_OB_COMP_TRANSFORM, "SimpleDeform Modifier");
 	}
 }
 

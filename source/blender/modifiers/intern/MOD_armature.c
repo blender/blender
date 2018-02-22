@@ -97,16 +97,12 @@ static void foreachObjectLink(
 	walk(userData, ob, &amd->object, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *)md;
 	if (amd->object != NULL) {
-		DEG_add_object_relation(node, amd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
-		DEG_add_object_relation(node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
+		DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_EVAL_POSE, "Armature Modifier");
+		DEG_add_object_relation(ctx->node, amd->object, DEG_OB_COMP_TRANSFORM, "Armature Modifier");
 	}
 }
 

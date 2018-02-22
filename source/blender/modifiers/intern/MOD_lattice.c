@@ -89,18 +89,14 @@ static void foreachObjectLink(
 	walk(userData, ob, &lmd->object, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *object,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
 	if (lmd->object != NULL) {
-		DEG_add_object_relation(node, lmd->object, DEG_OB_COMP_GEOMETRY, "Lattice Modifier");
-		DEG_add_object_relation(node, lmd->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
+		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_GEOMETRY, "Lattice Modifier");
+		DEG_add_object_relation(ctx->node, lmd->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
 	}
-	DEG_add_object_relation(node, object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
+	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Lattice Modifier");
 }
 
 static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),

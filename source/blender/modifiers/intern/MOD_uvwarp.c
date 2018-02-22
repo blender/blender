@@ -232,9 +232,9 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 	walk(userData, ob, &umd->object_src, IDWALK_CB_NOP);
 }
 
-static void uv_warp_deps_object_bone(struct DepsNodeHandle *node,
-                                     Object *object,
-                                     const char *bonename)
+static void uv_warp_deps_object_bone_new(struct DepsNodeHandle *node,
+                                         Object *object,
+                                         const char *bonename)
 {
 	if (object != NULL) {
 		if (bonename[0])
@@ -244,16 +244,12 @@ static void uv_warp_deps_object_bone(struct DepsNodeHandle *node,
 	}
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *) md;
 
-	uv_warp_deps_object_bone(node, umd->object_src, umd->bone_src);
-	uv_warp_deps_object_bone(node, umd->object_dst, umd->bone_dst);
+	uv_warp_deps_object_bone_new(ctx->node, umd->object_src, umd->bone_src);
+	uv_warp_deps_object_bone_new(ctx->node, umd->object_dst, umd->bone_dst);
 }
 
 ModifierTypeInfo modifierType_UVWarp = {

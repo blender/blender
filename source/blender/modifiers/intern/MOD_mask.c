@@ -78,18 +78,14 @@ static void foreachObjectLink(
 	walk(userData, ob, &mmd->ob_arm, IDWALK_CB_NOP);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
 	if (mmd->ob_arm) {
 		bArmature *arm = (bArmature *)mmd->ob_arm->data;
 		/* Tag relationship in depsgraph, but also on the armature. */
 		/* TODO(sergey): Is it a proper relation here? */
-		DEG_add_object_relation(node, mmd->ob_arm, DEG_OB_COMP_TRANSFORM, "Mask Modifier");
+		DEG_add_object_relation(ctx->node, mmd->ob_arm, DEG_OB_COMP_TRANSFORM, "Mask Modifier");
 		arm->flag |= ARM_HAS_VIZ_DEPS;
 	}
 }

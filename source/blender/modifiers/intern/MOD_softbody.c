@@ -63,17 +63,13 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void updateDepsgraph(ModifierData *UNUSED(md),
-                            struct Main *UNUSED(bmain),
-                            struct Scene *scene,
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *UNUSED(md), const ModifierUpdateDepsgraphContext *ctx)
 {
-	if (ob->soft) {
+	if (ctx->object->soft) {
 		/* Actual code uses ccd_build_deflector_hash */
-		DEG_add_collision_relations(node, scene, ob, ob->soft->collision_group, eModifierType_Collision, NULL, false, "Softbody Collision");
+		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, ctx->object->soft->collision_group, eModifierType_Collision, NULL, false, "Softbody Collision");
 
-		DEG_add_forcefield_relations(node, scene, ob, ob->soft->effector_weights, true, 0, "Softbody Field");
+		DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, ctx->object->soft->effector_weights, true, 0, "Softbody Field");
 	}
 }
 

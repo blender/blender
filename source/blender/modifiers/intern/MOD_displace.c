@@ -154,21 +154,17 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return ((!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) || dmd->strength == 0.0f);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
 	if (dmd->map_object != NULL && dmd->texmapping == MOD_DISP_MAP_OBJECT) {
-		DEG_add_object_relation(node, dmd->map_object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
+		DEG_add_object_relation(ctx->node, dmd->map_object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
 	}
 	if (dmd->texmapping == MOD_DISP_MAP_GLOBAL ||
 	    (ELEM(dmd->direction, MOD_DISP_DIR_X, MOD_DISP_DIR_Y, MOD_DISP_DIR_Z, MOD_DISP_DIR_RGB_XYZ) &&
 	    dmd->space == MOD_DISP_SPACE_GLOBAL))
 	{
-		DEG_add_object_relation(node, ob, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
+		DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Displace Modifier");
 	}
 }
 

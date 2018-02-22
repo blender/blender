@@ -1117,15 +1117,11 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 	return result;
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	ScrewModifierData *ltmd = (ScrewModifierData *)md;
 	if (ltmd->ob_axis != NULL) {
-		DEG_add_object_relation(node, ltmd->ob_axis, DEG_OB_COMP_TRANSFORM, "Screw Modifier");
+		DEG_add_object_relation(ctx->node, ltmd->ob_axis, DEG_OB_COMP_TRANSFORM, "Screw Modifier");
 	}
 }
 

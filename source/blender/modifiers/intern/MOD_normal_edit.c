@@ -509,15 +509,11 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return !is_valid_target(enmd);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *UNUSED(scene),
-                            Object *UNUSED(ob),
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *) md;
 	if (enmd->target) {
-		DEG_add_object_relation(node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
+		DEG_add_object_relation(ctx->node, enmd->target, DEG_OB_COMP_TRANSFORM, "NormalEdit Modifier");
 	}
 }
 

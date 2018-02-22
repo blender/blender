@@ -114,18 +114,14 @@ static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_c
 	dm->release(dm);
 }
 
-static void updateDepsgraph(ModifierData *md,
-                            struct Main *UNUSED(bmain),
-                            struct Scene *scene,
-                            Object *ob,
-                            struct DepsNodeHandle *node)
+static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphContext *ctx)
 {
 	ClothModifierData *clmd = (ClothModifierData *)md;
 	if (clmd != NULL) {
 		/* Actual code uses get_collisionobjects */
-		DEG_add_collision_relations(node, scene, ob, clmd->coll_parms->group, eModifierType_Collision, NULL, true, "Cloth Collision");
+		DEG_add_collision_relations(ctx->node, ctx->scene, ctx->object, clmd->coll_parms->group, eModifierType_Collision, NULL, true, "Cloth Collision");
 
-		DEG_add_forcefield_relations(node, scene, ob, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
+		DEG_add_forcefield_relations(ctx->node, ctx->scene, ctx->object, clmd->sim_parms->effector_weights, true, 0, "Cloth Field");
 	}
 }
 
