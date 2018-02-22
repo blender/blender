@@ -147,7 +147,6 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 		zero_v4(gs->vec);
 		gs->link = NULL;
 		gs->type = GPU_NONE;
-		gs->name = "";
 		gs->hasinput = false;
 		gs->hasoutput = false;
 		gs->sockettype = type;
@@ -167,7 +166,6 @@ void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 		else
 			gs->type = GPU_NONE;
 
-		gs->name = "";
 		gs->hasinput = ns->hasinput && ns->data;
 		/* XXX Commented out the ns->data check here, as it seems it's not always set,
 		 *     even though there *is* a valid connection/output... But that might need
@@ -193,7 +191,7 @@ static void gpu_stack_from_data_list(GPUNodeStack *gs, ListBase *sockets, bNodeS
 	for (sock = sockets->first, i = 0; sock; sock = sock->next, i++)
 		node_gpu_stack_from_data(&gs[i], sock->type, ns[i]);
 	
-	gs[i].type = GPU_NONE;
+	gs[i].end = true;
 }
 
 static void data_from_gpu_stack_list(ListBase *sockets, bNodeStack **ns, GPUNodeStack *gs)

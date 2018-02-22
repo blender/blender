@@ -1960,16 +1960,20 @@ bool GPU_stack_link(GPUMaterial *material, bNode *bnode, const char *name, GPUNo
 	totout = 0;
 
 	if (in) {
-		for (i = 0; in[i].type != GPU_NONE; i++) {
-			gpu_node_input_socket(material, bnode, node, &in[i], i);
-			totin++;
+		for (i = 0; !in[i].end; i++) {
+			if (in[i].type != GPU_NONE) {
+				gpu_node_input_socket(material, bnode, node, &in[i], i);
+				totin++;
+			}
 		}
 	}
 
 	if (out) {
-		for (i = 0; out[i].type != GPU_NONE; i++) {
-			gpu_node_output(node, out[i].type, &out[i].link);
-			totout++;
+		for (i = 0; !out[i].end; i++) {
+			if (out[i].type != GPU_NONE) {
+				gpu_node_output(node, out[i].type, &out[i].link);
+				totout++;
+			}
 		}
 	}
 

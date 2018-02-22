@@ -136,12 +136,12 @@ typedef enum GPUBlendMode {
 
 typedef struct GPUNodeStack {
 	GPUType type;
-	const char *name;
 	float vec[4];
 	struct GPUNodeLink *link;
 	bool hasinput;
 	bool hasoutput;
 	short sockettype;
+	bool end;
 } GPUNodeStack;
 
 
