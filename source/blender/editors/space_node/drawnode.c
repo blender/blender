@@ -3016,7 +3016,7 @@ static const float std_node_socket_colors[][4] = {
 	{0.70, 0.65, 0.19, 1.0},    /* SOCK_BOOLEAN */
 	{0.0, 0.0, 0.0, 1.0},       /*__SOCK_MESH (deprecated) */
 	{0.06, 0.52, 0.15, 1.0},    /* SOCK_INT */
-	{1.0, 1.0, 1.0, 1.0},       /* SOCK_STRING */
+	{0.39, 0.39, 0.39, 1.0},    /* SOCK_STRING */
 };
 
 /* common color callbacks for standard types */
@@ -3103,20 +3103,11 @@ static void std_node_socket_draw(bContext *C, uiLayout *layout, PointerRNA *ptr,
 			uiTemplateComponentMenu(layout, ptr, "default_value", text);
 			break;
 		case SOCK_RGBA:
-		{
-			uiLayout *row = uiLayoutRow(layout, false);
-			uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
-			/* draw the socket name right of the actual button */
-			uiItemR(row, ptr, "default_value", 0, "", 0);
-			uiItemL(row, text, 0);
-			break;
-		}
 		case SOCK_STRING:
 		{
-			uiLayout *row = uiLayoutRow(layout, true);
-			/* draw the socket name right of the actual button */
-			uiItemR(row, ptr, "default_value", 0, "", 0);
+			uiLayout *row = uiLayoutSplit(layout, 0.5f, false);
 			uiItemL(row, text, 0);
+			uiItemR(row, ptr, "default_value", 0, "", 0);
 			break;
 		}
 		default:
@@ -3150,11 +3141,6 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiItemR(row, ptr, "max_value", 0, IFACE_("Max"), 0);
 			break;
 		}
-		case SOCK_BOOLEAN:
-		{
-			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
-			break;
-		}
 		case SOCK_VECTOR:
 		{
 			uiLayout *row;
@@ -3164,11 +3150,8 @@ static void std_node_socket_interface_draw(bContext *UNUSED(C), uiLayout *layout
 			uiItemR(row, ptr, "max_value", 0, IFACE_("Max"), 0);
 			break;
 		}
+		case SOCK_BOOLEAN:
 		case SOCK_RGBA:
-		{
-			uiItemR(layout, ptr, "default_value", 0, NULL, 0);
-			break;
-		}
 		case SOCK_STRING:
 		{
 			uiItemR(layout, ptr, "default_value", 0, NULL, 0);

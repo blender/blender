@@ -159,6 +159,7 @@ public:
 	void add(ustring name);
 	void add(AttributeStandard std);
 	void add(AttributeRequestSet& reqs);
+	void add_standard(ustring name);
 
 	bool find(ustring name);
 	bool find(AttributeStandard std);

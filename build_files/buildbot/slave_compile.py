@@ -73,8 +73,9 @@ if 'cmake' in builder:
         if builder.endswith('x86_64_10_9_cmake'):
             cmake_extra_options.append('-DCMAKE_OSX_ARCHITECTURES:STRING=x86_64')
         cmake_extra_options.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=10.9')
-        cmake_extra_options.append('-DCUDA_HOST_COMPILER=/usr/local/cuda-hack/clang')
-        cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/nvcc')
+        # Used to trick CUDFA to see CLang as an older version.
+        # cmake_extra_options.append('-DCUDA_HOST_COMPILER=/usr/local/cuda-hack/clang')
+        # cmake_extra_options.append('-DCUDA_NVCC_EXECUTABLE=/usr/local/cuda-hack/nvcc')
 
     elif builder.startswith('win'):
         if builder.endswith('_vc2015'):
@@ -116,7 +117,7 @@ if 'cmake' in builder:
     # Prepare CMake options needed to configure cuda binaries compilation, 64bit only.
     if bits == 64:
         cuda_cmake_options.append("-DWITH_CYCLES_CUDA_BINARIES=%s" % ('ON' if build_cubins else 'OFF'))
-        cuda_cmake_options.append("-DCYCLES_CUDA_BINARIES_ARCH=sm_30;sm_35;sm_37;sm_50;sm_52;sm_60;sm_61")
+        cuda_cmake_options.append("-DCYCLES_CUDA_BINARIES_ARCH=sm_30;sm_35;sm_37;sm_50;sm_52;sm_60;sm_61;sm_70")
         if build_cubins or 'cuda' in targets:
             cuda_cmake_options.append("-DCUDA_64_BIT_DEVICE_CODE=ON")
 

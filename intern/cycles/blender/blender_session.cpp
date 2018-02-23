@@ -1071,7 +1071,8 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 
 		if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_DENSITY) ||
 		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME) ||
-		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT))
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT) ||
+		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE))
 			channels = 1;
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR))
 			channels = 4;
@@ -1289,6 +1290,13 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 			SmokeDomainSettings_heat_grid_get_length(&b_domain.ptr, &length);
 			if(length == num_pixels) {
 				SmokeDomainSettings_heat_grid_get(&b_domain.ptr, pixels);
+				return true;
+			}
+		}
+		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE)) {
+			SmokeDomainSettings_temperature_grid_get_length(&b_domain.ptr, &length);
+			if(length == num_pixels) {
+				SmokeDomainSettings_temperature_grid_get(&b_domain.ptr, pixels);
 				return true;
 			}
 		}

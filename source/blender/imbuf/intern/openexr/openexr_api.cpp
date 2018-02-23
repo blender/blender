@@ -1290,7 +1290,7 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 		return 1;
 	}
 
-	/* last token is single character channel identifier */
+	/* last token is channel identifier */
 	len = imb_exr_split_token(name, end, &token);
 	if (len == 0) {
 		printf("multilayer read: bad channel name: %s\n", name);
@@ -1319,10 +1319,30 @@ static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *pa
 				ok = true;
 			}
 		}
+		else if (BLI_strcaseeq(token, "red")) {
+			echan->chan_id = 'R';
+			ok = true;
+		}
+		else if (BLI_strcaseeq(token, "green")) {
+			echan->chan_id = 'G';
+			ok = true;
+		}
+		else if (BLI_strcaseeq(token, "blue")) {
+			echan->chan_id = 'B';
+			ok = true;
+		}
+		else if (BLI_strcaseeq(token, "alpha")) {
+			echan->chan_id = 'A';
+			ok = true;
+		}
+		else if (BLI_strcaseeq(token, "depth")) {
+			echan->chan_id = 'Z';
+			ok = true;
+		}
 
 		if (ok == false) {
 			BLI_strncpy(tokenbuf, token, std::min(len + 1, EXR_TOT_MAXNAME));
-			printf("multilayer read: channel token too long: %s\n", tokenbuf);
+			printf("multilayer read: unknown channel token: %s\n", tokenbuf);
 			return 0;
 		}
 	}

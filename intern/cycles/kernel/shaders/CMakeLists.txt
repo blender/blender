@@ -36,6 +36,7 @@ set(SRC_OSL
 	node_hair_info.osl
 	node_scatter_volume.osl
 	node_absorption_volume.osl
+	node_principled_volume.osl
 	node_holdout.osl
 	node_hsv.osl
 	node_image_texture.osl
