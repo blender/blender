@@ -55,6 +55,7 @@
 
 #include "RE_engine.h"
 
+struct rcti;
 struct bContext;
 struct GPUFrameBuffer;
 struct GPUShader;
@@ -140,7 +141,7 @@ typedef struct DrawEngineType {
 	void (*view_update)(void *vedata);
 	void (*id_update)(void *vedata, struct ID *id);
 
-	void (*render_to_image)(void *vedata, struct RenderEngine *engine, struct RenderResult *result, struct RenderLayer *layer);
+	void (*render_to_image)(void *vedata, struct RenderEngine *engine, struct RenderLayer *layer, const struct rcti *rect);
 } DrawEngineType;
 
 #ifndef __DRW_ENGINE_H__

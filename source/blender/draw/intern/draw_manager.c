@@ -3656,6 +3656,9 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	/* Init render result. */
 	const float *render_size = DRW_viewport_size_get();
 	RenderResult *render_result = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, NULL);
+	rctf view_rect;
+	rcti render_rect;
+	RE_GetViewPlane(render, &view_rect, &render_rect);
 
 	for (RenderView *render_view = render_result->views.first;
 	     render_view != NULL;
@@ -3673,7 +3676,7 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 			 * For rendering depsgraph is to be owned by Render. */
 			DST.draw_ctx.depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 
-			engine_type->draw_engine->render_to_image(data, engine, render_result, render_layer);
+			engine_type->draw_engine->render_to_image(data, engine, render_layer, &render_rect);
 			DST.buffer_finish_called = false;
 			/* Force cache to reset. */
 			drw_viewport_cache_resize();

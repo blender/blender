@@ -377,7 +377,7 @@ static void eevee_id_update(void *vedata, ID *id)
 	}
 }
 
-static void eevee_render_to_image(void *vedata, RenderEngine *engine, struct RenderResult *render_result, struct RenderLayer *render_layer)
+static void eevee_render_to_image(void *vedata, RenderEngine *engine, struct RenderLayer *render_layer, const rcti *rect)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	EEVEE_render_init(vedata, engine, draw_ctx->depsgraph);
@@ -385,7 +385,7 @@ static void eevee_render_to_image(void *vedata, RenderEngine *engine, struct Ren
 	DRW_render_object_iter(vedata, engine, draw_ctx->depsgraph, EEVEE_render_cache);
 
 	/* Actually do the rendering. */
-	EEVEE_render_draw(vedata, engine, render_result, render_layer);
+	EEVEE_render_draw(vedata, engine, render_layer, rect);
 }
 
 static void eevee_engine_free(void)
