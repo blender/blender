@@ -34,9 +34,10 @@
 
 #include "rna_internal.h"
 
-#include "DEG_depsgraph.h"
-
 #include "DNA_object_types.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #define STATS_MAX_SIZE 16384
 
@@ -240,6 +241,13 @@ static ID *rna_Depsgraph_evaluated_id_get(Depsgraph *depsgraph, ID *id_orig)
 	return DEG_get_evaluated_id(depsgraph, id_orig);
 }
 
+static PointerRNA rna_Depsgraph_view_layer_get(PointerRNA *ptr)
+{
+	Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer);
+}
+
 #else
 
 static void rna_def_depsgraph_iter(BlenderRNA *brna)
@@ -358,6 +366,11 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                  "rna_Depsgraph_duplis_end",
 	                                  "rna_Depsgraph_duplis_get",
 	                                  NULL, NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ViewLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_view_layer_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Scene layer", "");
 }
 
 void RNA_def_depsgraph(BlenderRNA *brna)
