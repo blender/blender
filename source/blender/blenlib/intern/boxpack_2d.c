@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/boxpack2d.c
+/** \file blender/blenlib/intern/boxpack_2d.c
  *  \ingroup bli
  */
 

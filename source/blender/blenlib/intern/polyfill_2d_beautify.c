@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/polyfill2d_beautify.c
+/** \file blender/blenlib/intern/polyfill_2d_beautify.c
  *  \ingroup bli
  *
  * This function is to improve the tessellation resulting from polyfill2d,

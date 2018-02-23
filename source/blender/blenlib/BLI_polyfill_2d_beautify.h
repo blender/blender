@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_POLYFILL2D_BEAUTIFY_H__
-#define __BLI_POLYFILL2D_BEAUTIFY_H__
+#ifndef __BLI_POLYFILL_2D_BEAUTIFY_H__
+#define __BLI_POLYFILL_2D_BEAUTIFY_H__
 
 struct Heap;
 struct MemArena;
@@ -42,4 +42,4 @@ float BLI_polyfill_beautify_quad_rotate_calc_ex(
 /* avoid realloc's when creating new structures for polyfill ngons */
 #define BLI_POLYFILL_ALLOC_NGON_RESERVE 64
 
-#endif  /* __BLI_POLYFILL2D_BEAUTIFY_H__ */
+#endif  /* __BLI_POLYFILL_2D_BEAUTIFY_H__ */

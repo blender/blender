@@ -278,7 +278,7 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*updateDepgraph)(struct ModifierData *md,
-	                       const ModifierUpdateDepsgraphContext* ctx);
+	                       const ModifierUpdateDepsgraphContext *ctx);
 
 	/* Add the appropriate relations to the dependency graph.
 	 *
@@ -286,7 +286,7 @@ typedef struct ModifierTypeInfo {
 	 */
 	/* TODO(sergey): Remove once we finally switched to the new depsgraph. */
 	void (*updateDepsgraph)(struct ModifierData *md,
-	                        const ModifierUpdateDepsgraphContext* ctx);
+	                        const ModifierUpdateDepsgraphContext *ctx);
 
 	/* Should return true if the modifier needs to be recalculated on time
 	 * changes.
