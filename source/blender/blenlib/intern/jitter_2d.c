@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/blenlib/intern/jitter.c
+/** \file blender/blenlib/intern/jitter_2d.c
  *  \ingroup bli
  *  \brief Jitter offset table
  */

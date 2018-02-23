@@ -23,8 +23,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __BLI_VORONOI_H__
-#define __BLI_VORONOI_H__
+#ifndef __BLI_VORONOI_2D_H__
+#define __BLI_VORONOI_2D_H__
 
 struct ListBase;
 
@@ -67,4 +67,4 @@ void BLI_voronoi_triangulate(const VoronoiSite *sites, int sites_total, struct L
                              VoronoiTriangulationPoint **triangulated_points_r, int *triangulated_points_total_r,
                              int (**triangles_r)[3], int *triangles_total_r);
 
-#endif /* __BLI_VORONOI_H__ */
+#endif /* __BLI_VORONOI_2D_H__ */

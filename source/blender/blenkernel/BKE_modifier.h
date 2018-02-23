@@ -272,8 +272,8 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*updateDepsgraph)(struct ModifierData *md,
-	                        const ModifierUpdateDepsgraphContext* ctx);
-
+	                        const ModifierUpdateDepsgraphContext *ctx);
+ 
 	/* Should return true if the modifier needs to be recalculated on time
 	 * changes.
 	 *

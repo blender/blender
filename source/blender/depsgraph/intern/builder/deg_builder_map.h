@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/depsgraph/intern/builder/deg_builder.h
+/** \file blender/depsgraph/intern/builder/deg_builder_map.h
  *  \ingroup depsgraph
  */
 
