@@ -3653,12 +3653,16 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 
 	/* Main rendering loop. */
 
-	/* Init render result. */
 	const float *render_size = DRW_viewport_size_get();
-	RenderResult *render_result = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, NULL);
 	rctf view_rect;
 	rcti render_rect;
 	RE_GetViewPlane(render, &view_rect, &render_rect);
+	if (BLI_rcti_is_empty(&render_rect)) {
+		BLI_rcti_init(&render_rect, 0, size[0], 0, size[1]);
+	}
+
+	/* Init render result. */
+	RenderResult *render_result = RE_engine_begin_result(engine, 0, 0, (int)render_size[0], (int)render_size[1], NULL, NULL);
 
 	for (RenderView *render_view = render_result->views.first;
 	     render_view != NULL;
