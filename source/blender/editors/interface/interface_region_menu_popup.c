@@ -518,9 +518,10 @@ int UI_popup_menu_invoke(bContext *C, const char *idname, ReportList *reports)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (mt->poll && mt->poll(C, mt) == 0)
+	if (WM_menutype_poll(C, mt) == false) {
 		/* cancel but allow event to pass through, just like operators do */
 		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+	}
 
 	pup = UI_popup_menu_begin(C, IFACE_(mt->label), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);

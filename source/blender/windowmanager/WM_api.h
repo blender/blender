@@ -378,6 +378,7 @@ struct MenuType    *WM_menutype_find(const char *idname, bool quiet);
 bool                WM_menutype_add(struct MenuType *mt);
 void                WM_menutype_freelink(struct MenuType *mt);
 void                WM_menutype_free(void);
+bool                WM_menutype_poll(struct bContext *C, struct MenuType *mt);
 
 /* wm_gesture_ops.c */
 int			WM_gesture_border_invoke	(struct bContext *C, struct wmOperator *op, const struct wmEvent *event);

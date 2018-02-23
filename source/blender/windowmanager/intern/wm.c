@@ -337,6 +337,14 @@ void WM_menutype_free(void)
 	menutypes_hash = NULL;
 }
 
+bool WM_menutype_poll(bContext *C, MenuType *mt)
+{
+	if (mt->poll != NULL) {
+		return mt->poll(C, mt);
+	}
+	return true;
+}
+
 /* ****************************************** */
 
 void WM_keymap_init(bContext *C)
