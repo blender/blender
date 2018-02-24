@@ -268,7 +268,7 @@ static void rna_Scene_alembic_export(
 
 /* Note: This definition must match to the generated function call */
 static void rna_Scene_collada_export(
-        Scene *scene,
+        bContext *C,
         const char *filepath, 
         int apply_modifiers,
 
@@ -291,7 +291,7 @@ static void rna_Scene_collada_export(
         int limit_precision,
         int keep_bind_info)
 {
-	collada_export(scene,
+	collada_export(C,
 		filepath,
 
 		apply_modifiers,
@@ -379,6 +379,7 @@ void RNA_api_scene(StructRNA *srna)
 #ifdef WITH_COLLADA
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func = RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_string(func, "filepath", NULL, FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
