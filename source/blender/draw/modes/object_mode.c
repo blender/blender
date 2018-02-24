@@ -214,6 +214,14 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *wire_select;
 	DRWShadingGroup *wire_select_group;
 	DRWShadingGroup *wire_transform;
+
+	/* Points */
+	DRWShadingGroup *points;
+	DRWShadingGroup *points_active;
+	DRWShadingGroup *points_active_group;
+	DRWShadingGroup *points_select;
+	DRWShadingGroup *points_select_group;
+	DRWShadingGroup *points_transform;
 } OBJECT_PrivateData; /* Transient data */
 
 static struct {
@@ -571,6 +579,15 @@ static DRWShadingGroup *shgroup_wire(DRWPass *pass, const float col[4], GPUShade
 	return grp;
 }
 
+/* currently same as 'shgroup_outline', new function to avoid confustion */
+static DRWShadingGroup *shgroup_points(DRWPass *pass, const float col[4], GPUShader *sh)
+{
+	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
+	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
+
+	return grp;
+}
+
 static DRWShadingGroup *shgroup_theme_id_to_outline_or(
         OBJECT_StorageList *stl, int theme_id, DRWShadingGroup *fallback)
 {
@@ -600,6 +617,23 @@ static DRWShadingGroup *shgroup_theme_id_to_wire_or(
 			return stl->g_data->wire_select_group;
 		case TH_TRANSFORM:
 			return stl->g_data->wire_transform;
+		default:
+			return fallback;
+	}
+}
+
+static DRWShadingGroup *shgroup_theme_id_to_point_or(
+        OBJECT_StorageList *stl, int theme_id, DRWShadingGroup *fallback)
+{
+	switch (theme_id) {
+		case TH_ACTIVE:
+			return stl->g_data->points_active;
+		case TH_SELECT:
+			return stl->g_data->points_select;
+		case TH_GROUP_ACTIVE:
+			return stl->g_data->points_select_group;
+		case TH_TRANSFORM:
+			return stl->g_data->points_transform;
 		default:
 			return fallback;
 	}
@@ -979,6 +1013,25 @@ static void OBJECT_cache_init(void *vedata)
 		/* Active */
 		stl->g_data->wire_active = shgroup_wire(psl->non_meshes, ts.colorActive, sh);
 		stl->g_data->wire_active_group = shgroup_wire(psl->non_meshes, ts.colorGroupActive, sh);
+	}
+
+
+	{
+		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_POINT_FIXED_SIZE_UNIFORM_COLOR);
+
+		/* Unselected */
+		stl->g_data->points = shgroup_points(psl->non_meshes, ts.colorWire, sh);
+
+		/* Select */
+		stl->g_data->points_select = shgroup_points(psl->non_meshes, ts.colorSelect, sh);
+		stl->g_data->points_select_group = shgroup_points(psl->non_meshes, ts.colorGroupActive, sh);
+
+		/* Transform */
+		stl->g_data->points_transform = shgroup_points(psl->non_meshes, ts.colorTransform, sh);
+
+		/* Active */
+		stl->g_data->points_active = shgroup_points(psl->non_meshes, ts.colorActive, sh);
+		stl->g_data->points_active_group = shgroup_points(psl->non_meshes, ts.colorGroupActive, sh);
 	}
 
 	{
@@ -1845,17 +1898,30 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 	switch (ob->type) {
 		case OB_MESH:
 		{
-			Mesh *me = ob->data;
-			if (me->totpoly == 0) {
-				if (ob != draw_ctx->object_edit) {
-					struct Gwn_Batch *geom = DRW_cache_mesh_edges_get(ob);
-					if (geom) {
-						if (theme_id == TH_UNDEFINED) {
-							theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
-						}
+			if (ob != draw_ctx->object_edit) {
+				Mesh *me = ob->data;
+				if (me->totpoly == 0) {
+					if (me->totedge == 0) {
+						struct Gwn_Batch *geom = DRW_cache_mesh_verts_get(ob);
+						if (geom) {
+							if (theme_id == TH_UNDEFINED) {
+								theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+							}
 
-						DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-						DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+							DRWShadingGroup *shgroup = shgroup_theme_id_to_point_or(stl, theme_id, stl->g_data->points);
+							DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+						}
+					}
+					else {
+						struct Gwn_Batch *geom = DRW_cache_mesh_edges_get(ob);
+						if (geom) {
+							if (theme_id == TH_UNDEFINED) {
+								theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
+							}
+
+							DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
+							DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+						}
 					}
 				}
 			}
