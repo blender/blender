@@ -653,9 +653,15 @@ static void eevee_shadow_cube_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_La
 
 #define LERP(t, a, b) ((a) + (t) * ((b) - (a)))
 
-static void frustum_min_bounding_sphere(const float corners[8][4], float r_center[3], float *r_radius)
+static double round_to_digits(double value, int digits)
 {
-#if 0 /* Simple solution but waist too much space. */
+	double factor = pow(10.0, digits - ceil(log10(fabs(value))));
+	return round(value * factor) / factor;
+}
+
+static void frustum_min_bounding_sphere(const float corners[8][3], float r_center[3], float *r_radius)
+{
+#if 0 /* Simple solution but waste too much space. */
 	float minvec[3], maxvec[3];
 
 	/* compute the bounding box */
@@ -669,19 +675,27 @@ static void frustum_min_bounding_sphere(const float corners[8][4], float r_cente
 	add_v3_v3v3(r_center, minvec, maxvec);
 	mul_v3_fl(r_center, 0.5f);
 #else
-	/* Make the bouding sphere always centered on the front diagonal */
-	add_v3_v3v3(r_center, corners[4], corners[7]);
-	mul_v3_fl(r_center, 0.5f);
-	*r_radius = len_v3v3(corners[0], r_center);
+	/* Find averaged center. */
+	zero_v3(r_center);
+	for (int i = 0; i < 8; ++i) {
+		add_v3_v3(r_center, corners[i]);
+	}
+	mul_v3_fl(r_center, 1.0f / 8.0f);
 
-	/* Search the largest distance between the sphere center
-	 * and the front plane corners. */
-	for (int i = 0; i < 4; ++i) {
-		float rad = len_v3v3(corners[4 + i], r_center);
+	/* Search the largest distance from the sphere center. */
+	*r_radius = 0.0f;
+	for (int i = 0; i < 8; ++i) {
+		float rad = len_squared_v3v3(corners[i], r_center);
 		if (rad > *r_radius) {
 			*r_radius = rad;
 		}
 	}
+
+	/* TODO try to reduce the radius further by moving the center.
+	 * Remember we need a __stable__ solution! */
+
+	/* Try to reduce float imprecision leading to shimmering. */
+	*r_radius = (float)round_to_digits(sqrtf(*r_radius), 3);
 #endif
 }
 
@@ -820,39 +834,36 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	/* For each cascade */
 	for (int c = 0; c < cascade_nbr; ++c) {
 		/* Given 8 frustum corners */
-		float corners[8][4] = {
+		float corners[8][3] = {
 			/* Near Cap */
-			{-1.0f, -1.0f, splits_start_ndc[c], 1.0f},
-			{ 1.0f, -1.0f, splits_start_ndc[c], 1.0f},
-			{-1.0f,  1.0f, splits_start_ndc[c], 1.0f},
-			{ 1.0f,  1.0f, splits_start_ndc[c], 1.0f},
+			{-1.0f, -1.0f, splits_start_ndc[c]},
+			{ 1.0f, -1.0f, splits_start_ndc[c]},
+			{-1.0f,  1.0f, splits_start_ndc[c]},
+			{ 1.0f,  1.0f, splits_start_ndc[c]},
 			/* Far Cap */
-			{-1.0f, -1.0f, splits_end_ndc[c], 1.0f},
-			{ 1.0f, -1.0f, splits_end_ndc[c], 1.0f},
-			{-1.0f,  1.0f, splits_end_ndc[c], 1.0f},
-			{ 1.0f,  1.0f, splits_end_ndc[c], 1.0f}
+			{-1.0f, -1.0f, splits_end_ndc[c]},
+			{ 1.0f, -1.0f, splits_end_ndc[c]},
+			{-1.0f,  1.0f, splits_end_ndc[c]},
+			{ 1.0f,  1.0f, splits_end_ndc[c]}
 		};
 
 		/* Transform them into world space */
 		for (int i = 0; i < 8; ++i) {
-			mul_m4_v4(persinv, corners[i]);
-			mul_v3_fl(corners[i], 1.0f / corners[i][3]);
-			corners[i][3] = 1.0f;
+			mul_project_m4_v3(persinv, corners[i]);
 		}
 
+		float center[3];
+		frustum_min_bounding_sphere(corners, center, &(sh_data->radius[c]));
 
-		/* Project them into light space */
+		printf("\n");
+
+		/* Project into lightspace */
 		invert_m4_m4(viewmat, ob->obmat);
 		normalize_v3(viewmat[0]);
 		normalize_v3(viewmat[1]);
 		normalize_v3(viewmat[2]);
 
-		for (int i = 0; i < 8; ++i) {
-			mul_m4_v4(viewmat, corners[i]);
-		}
-
-		float center[3];
-		frustum_min_bounding_sphere(corners, center, &(sh_data->radius[c]));
+		mul_mat3_m4_v3(viewmat, center);
 
 		/* Snap projection center to nearest texel to cancel shimmering. */
 		float shadow_origin[2], shadow_texco[2];
@@ -860,8 +871,8 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		mul_v2_v2fl(shadow_origin, center, linfo->shadow_size / (2.0f * sh_data->radius[c]));
 
 		/* Find the nearest texel. */
-		shadow_texco[0] = round(shadow_origin[0]);
-		shadow_texco[1] = round(shadow_origin[1]);
+		shadow_texco[0] = roundf(shadow_origin[0]);
+		shadow_texco[1] = roundf(shadow_origin[1]);
 
 		/* Compute offset. */
 		sub_v2_v2(shadow_texco, shadow_origin);
