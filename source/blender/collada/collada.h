@@ -64,9 +64,7 @@ int collada_import(struct bContext *C,
 
 				   int keep_bind_info);
 
-int collada_export(const struct EvaluationContext *eval_ctx,
-                   struct Scene *sce,
-                   struct ViewLayer *view_layer,
+int collada_export(struct bContext *C,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,
@@ -76,6 +74,7 @@ int collada_export(const struct EvaluationContext *eval_ctx,
                    int include_armatures,
                    int include_shapekeys,
                    int deform_bones_only,
+                   int sampling_rate,
 
                    int active_uv_only,
                    int include_material_textures,

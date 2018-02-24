@@ -37,6 +37,7 @@ extern "C"
 {
 #include "BKE_scene.h"
 #include "BKE_context.h"
+#include "DEG_depsgraph.h"
 
 /* make dummy file */
 #include "BLI_fileops.h"
@@ -67,9 +68,7 @@ int collada_import(bContext *C,
 	return 0;
 }
 
-int collada_export(const EvaluationContext *eval_ctx,
-                   Scene *sce,
-                   ViewLayer *view_layer,
+int collada_export(bContext *C,
                    const char *filepath,
 
                    int apply_modifiers,
@@ -80,6 +79,7 @@ int collada_export(const EvaluationContext *eval_ctx,
                    int include_armatures,
 				   int include_shapekeys,
                    int deform_bones_only,
+                   int sampling_rate,
 
 				   int active_uv_only,
 				   int include_material_textures,
@@ -96,6 +96,11 @@ int collada_export(const EvaluationContext *eval_ctx,
 {
 	ExportSettings export_settings;
 
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+	Scene *sce = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
 	export_settings.filepath                 = (char *)filepath;
 
 	export_settings.apply_modifiers          = apply_modifiers != 0;
@@ -105,6 +110,7 @@ int collada_export(const EvaluationContext *eval_ctx,
 	export_settings.include_armatures        = include_armatures != 0;
 	export_settings.include_shapekeys        = include_shapekeys != 0;
 	export_settings.deform_bones_only        = deform_bones_only != 0;
+	export_settings.sampling_rate            = sampling_rate;
 
 	export_settings.active_uv_only           = active_uv_only != 0;
 	export_settings.include_material_textures= include_material_textures != 0;
@@ -124,7 +130,9 @@ int collada_export(const EvaluationContext *eval_ctx,
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
 	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
+
 	export_settings.export_set = BKE_object_relational_superset(view_layer, objectSet, (eObRelationTypes)includeFilter);
+
 	int export_count = BLI_linklist_count(export_settings.export_set);
 
 	if (export_count == 0) {
@@ -141,7 +149,7 @@ int collada_export(const EvaluationContext *eval_ctx,
 	}
 
 	DocumentExporter exporter(&export_settings);
-	int status = exporter.exportCurrentScene(eval_ctx, sce);
+	int status = exporter.exportCurrentScene(&eval_ctx, sce);
 
 	BLI_linklist_free(export_settings.export_set, NULL);
 

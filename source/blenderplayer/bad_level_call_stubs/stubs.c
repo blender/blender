@@ -838,6 +838,7 @@ int collada_export(const struct EvaluationContext *eval_ctx,
                    int include_armatures,
                    int include_shapekeys,
                    int deform_bones_only,
+                   int sampling_rate,
 
                    int active_uv_only,
                    int include_material_textures,

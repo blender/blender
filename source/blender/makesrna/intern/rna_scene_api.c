@@ -296,7 +296,6 @@ static void rna_Scene_alembic_export(
 
 /* Note: This definition must match to the generated function call */
 static void rna_Scene_collada_export(
-        Scene *scene,
         bContext *C,
         const char *filepath, 
         int apply_modifiers,
@@ -307,6 +306,7 @@ static void rna_Scene_collada_export(
         int include_armatures,
         int include_shapekeys,
         int deform_bones_only,
+        int sampling_rate,
         int active_uv_only,
         int include_material_textures,
         int use_texture_copies,
@@ -319,13 +319,7 @@ static void rna_Scene_collada_export(
         int limit_precision,
         int keep_bind_info)
 {
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
-
-	collada_export(&eval_ctx,
-		scene,
-		CTX_data_view_layer(C),
+	collada_export(C,
 		filepath,
 
 		apply_modifiers,
@@ -336,6 +330,7 @@ static void rna_Scene_collada_export(
 		include_armatures,
 		include_shapekeys,
 		deform_bones_only,
+		sampling_rate,
 
 		active_uv_only,
 		include_material_textures,
@@ -415,6 +410,7 @@ void RNA_api_scene(StructRNA *srna)
 #ifdef WITH_COLLADA
 	/* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 	func = RNA_def_function(srna, "collada_export", "rna_Scene_collada_export");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_string(func, "filepath", NULL, FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
@@ -437,6 +433,9 @@ void RNA_api_scene(StructRNA *srna)
 
 	RNA_def_boolean(func, "deform_bones_only", false,
 	                "Deform Bones only", "Only export deforming bones with armatures");
+
+	RNA_def_int(func, "sampling_rate", 0, -1, INT_MAX,
+		"Samplintg Rate", "The maximum distance of frames between 2 keyframes. Disabled when value is -1", -1, INT_MAX);
 
 	RNA_def_boolean(func, "active_uv_only", false, "Only Selected UV Map", "Export only the selected UV Map");
 

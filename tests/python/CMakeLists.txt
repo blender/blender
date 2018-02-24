@@ -618,3 +618,4 @@ if(WITH_ALEMBIC)
 endif()
 
 add_subdirectory(view_layer)
+add_subdirectory(collada)

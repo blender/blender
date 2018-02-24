@@ -64,6 +64,10 @@ struct EvaluationContext;
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *> > TexIndexTextureArrayMap;
 
+extern Scene *bc_get_scene(bContext *C);
+extern Main *bc_get_main();
+extern EvaluationContext *bc_get_evaluation_context();
+
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
 extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);

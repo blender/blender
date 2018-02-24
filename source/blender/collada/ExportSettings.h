@@ -40,6 +40,7 @@ public:
 	bool include_armatures;
 	bool include_shapekeys;
 	bool deform_bones_only;
+	int sampling_rate;
 
 	bool active_uv_only;
 	bool include_material_textures;
