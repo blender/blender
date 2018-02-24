@@ -79,7 +79,8 @@ openvdb::GridBase *OpenVDB_export_vector_grid(
         const int res[3],
         float fluid_mat[4][4],
         openvdb::VecType vec_type,
-        const bool is_color,
+		const bool is_color,
+		const float clipping,
         const openvdb::FloatGrid *mask)
 {
 	using namespace openvdb;
@@ -92,15 +93,15 @@ openvdb::GridBase *OpenVDB_export_vector_grid(
 
 	grid[0] = FloatGrid::create(0.0f);
 	tools::Dense<const float, tools::LayoutXYZ> dense_grid_x(bbox, data_x);
-	tools::copyFromDense(dense_grid_x, grid[0]->tree(), TOLERANCE);
+	tools::copyFromDense(dense_grid_x, grid[0]->tree(), clipping);
 
 	grid[1] = FloatGrid::create(0.0f);
 	tools::Dense<const float, tools::LayoutXYZ> dense_grid_y(bbox, data_y);
-	tools::copyFromDense(dense_grid_y, grid[1]->tree(), TOLERANCE);
+	tools::copyFromDense(dense_grid_y, grid[1]->tree(), clipping);
 
 	grid[2] = FloatGrid::create(0.0f);
 	tools::Dense<const float, tools::LayoutXYZ> dense_grid_z(bbox, data_z);
-	tools::copyFromDense(dense_grid_z, grid[2]->tree(), TOLERANCE);
+	tools::copyFromDense(dense_grid_z, grid[2]->tree(), clipping);
 
 	Vec3SGrid::Ptr vecgrid = Vec3SGrid::create(Vec3s(0.0f));
 
@@ -163,6 +164,21 @@ void OpenVDB_import_grid_vector(
 			}
 		}
 	}
+}
+
+openvdb::Name do_name_versionning(const openvdb::Name &name)
+{
+	openvdb::Name temp_name = name;
+
+	if (temp_name.find("_low", temp_name.size() - 4, 4) == temp_name.size() - 4) {
+		return temp_name.replace(temp_name.size() - 4, 4, " low");
+	}
+
+	if (temp_name.find("_old", temp_name.size() - 4, 4) == temp_name.size() - 4) {
+		return temp_name.replace(temp_name.size() - 4, 4, " old");
+	}
+
+	return temp_name;
 }
 
 }  /* namespace internal */
