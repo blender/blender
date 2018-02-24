@@ -78,6 +78,7 @@ int collada_export(Scene *sce,
                    int include_armatures,
 				   int include_shapekeys,
                    int deform_bones_only,
+                   int sampling_rate,
 
 				   int active_uv_only,
 				   BC_export_texture_type export_texture_type,
@@ -103,6 +104,7 @@ int collada_export(Scene *sce,
 	export_settings.include_armatures        = include_armatures != 0;
 	export_settings.include_shapekeys        = include_shapekeys != 0;
 	export_settings.deform_bones_only        = deform_bones_only != 0;
+	export_settings.sampling_rate            = sampling_rate;
 
 	export_settings.active_uv_only           = active_uv_only != 0;
 	export_settings.export_texture_type      = export_texture_type;

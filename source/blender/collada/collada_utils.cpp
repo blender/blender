@@ -53,6 +53,7 @@ extern "C" {
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_main.h"
 
 #include "ED_armature.h"
 
@@ -130,6 +131,17 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 #endif
 
 	return true;
+}
+
+Main *bc_get_main()
+{
+	return G.main;
+}
+
+EvaluationContext *bc_get_evaluation_context()
+{
+	Main *bmain = G.main;
+	return bmain->eval_ctx;
 }
 
 Object *bc_add_object(Scene *scene, int type, const char *name)

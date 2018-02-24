@@ -77,6 +77,7 @@ int collada_export(struct Scene *sce,
                    int include_armatures,
                    int include_shapekeys,
                    int deform_bones_only,
+                   int sampling_rate,
 
                    int active_uv_only,
                    BC_export_texture_type export_texture_type,

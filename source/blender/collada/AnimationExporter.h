@@ -90,9 +90,11 @@ private:
 public:
 
 	AnimationExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
-			COLLADASW::LibraryAnimations(sw), export_settings(export_settings)
-			{ this->sw = sw; }
-	
+		COLLADASW::LibraryAnimations(sw),
+		export_settings(export_settings)
+	{
+		this->sw = sw;
+	}
 
 	bool exportAnimations(Scene *sce);
 
@@ -102,7 +104,6 @@ public:
 protected:
 	const ExportSettings *export_settings;
 
-	void dae_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma = NULL);
 
 	void export_object_constraint_animation(Object *ob);
 
@@ -143,7 +144,15 @@ protected:
 	
 	float* get_eul_source_for_quat(Object *ob );
 
+	void export_keyframed_animation_set(Object *ob);
+	void create_keyframed_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma = NULL);
+	void export_sampled_animation_set(Object *ob);
+	void create_sampled_animation(int channel_count, std::vector<float> &times, std::vector<float> &values, std::string, std::string label, std::string axis_name, bool is_rot);
+
+	void evaluate_anim_with_constraints(Object *ob, float ctime);
+
 	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name);
+	std::string create_source_from_fcurve(COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id, const char *axis_name, Object *ob);
 
 	std::string create_lens_source_from_fcurve(Camera *cam, COLLADASW::InputSemantic::Semantics semantic, FCurve *fcu, const std::string& anim_id);
 
@@ -164,8 +173,10 @@ protected:
 	std::string get_light_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	std::string get_camera_param_sid(char *rna_path, int tm_type, const char *axis_name, bool append_axis);
 	
-	void find_frames(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
-	void find_frames(Object *ob, std::vector<float> &fra);
+	void find_keyframes(Object *ob, std::vector<float> &fra, const char *prefix, const char *tm_name);
+	void find_keyframes(Object *ob, std::vector<float> &fra);
+	void find_sampleframes(Object *ob, std::vector<float> &fra);
+
 
 	void make_anim_frames_from_targets(Object *ob, std::vector<float> &frames );
 
@@ -186,6 +197,6 @@ protected:
 
 	bool validateConstraints(bConstraint *con);
 
-	void calc_ob_mat_at_time(Object *ob, float ctime , float mat[][4]);
+	//void calc_obmat_at_time(Object *ob, float ctime);
 
 };

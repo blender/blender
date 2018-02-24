@@ -86,6 +86,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int include_armatures;
 	int include_shapekeys;
 	int deform_bones_only;
+	int sampling_rate;
 
 	int export_texture_type;
 	int use_texture_copies;
@@ -136,6 +137,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
 	include_shapekeys        = RNA_boolean_get(op->ptr, "include_shapekeys");
+	sampling_rate             = RNA_int_get(op->ptr,     "sampling_rate");
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 
 	export_texture_type      = RNA_enum_get(op->ptr, "export_texture_type_selection");
@@ -165,6 +167,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		include_armatures,
 		include_shapekeys,
 		deform_bones_only,
+		sampling_rate,
 
 		active_uv_only,
 		export_texture_type,
@@ -229,6 +232,10 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "include_shapekeys", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
+	row = uiLayoutRow(box, false);
+	uiItemR(row, imfptr, "sampling_rate", 0, NULL, ICON_NONE);
+
+	
 	/* Texture options */
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, false);
@@ -251,6 +258,7 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
+
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "open_sim", 0, NULL, ICON_NONE);
 
@@ -366,7 +374,10 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	                "Export all Shape Keys from Mesh Objects");
 
 	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
-	                "Only export deforming bones with armatures");
+	            	"Only export deforming bones with armatures");
+
+	RNA_def_int(func, "sampling_rate", 0, -1, INT_MAX,
+		"Samplintg Rate", "The maximum distance of frames between 2 keyframes. Disabled when value is -1", -1, INT_MAX);
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");
