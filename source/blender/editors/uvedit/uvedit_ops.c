@@ -336,6 +336,21 @@ static void uvedit_pixel_to_float(SpaceImage *sima, float *dist, float pixeldist
 
 /*************** visibility and selection utilities **************/
 
+static void uvedit_vertex_select_tagged(BMEditMesh *em, Scene *scene, bool select, int cd_loop_uv_offset)
+{
+	BMFace *efa;
+	BMLoop *l;
+	BMIter iter, liter;
+
+	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+			if (BM_elem_flag_test(l->v, BM_ELEM_TAG)) {
+				uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+			}
+		}
+	}
+}
+
 bool uvedit_face_visible_nolocal(Scene *scene, BMFace *efa)
 {
 	ToolSettings *ts = scene->toolsettings;
@@ -2857,6 +2872,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
+	BMVert *eve;
 	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf;
@@ -2911,7 +2927,11 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	else {
 		/* other selection modes */
 		changed = true;
-		
+
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_disable(eve, BM_ELEM_TAG);
+		}
+
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 			if (!uvedit_face_visible_test(scene, ima, efa, tf))
@@ -2924,14 +2944,20 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 					/* UV_SYNC_SELECTION - can't do pinned selection */
 					if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
 						uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+						BM_elem_flag_enable(l->v, BM_ELEM_TAG);
 					}
 				}
 				else if (pinned) {
 					if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
 						uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+						BM_elem_flag_enable(l->v, BM_ELEM_TAG);
 					}
 				}
 			}
+		}
+
+		if (sima->sticky == SI_STICKY_VERTEX) {
+			uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
 		}
 	}
 
@@ -2982,19 +3008,6 @@ static int uv_inside_circle(const float uv[2], const float offset[2], const floa
 	return ((x * x + y * y) < 1.0f);
 }
 
-static bool uv_select_inside_ellipse(BMEditMesh *em, Scene *scene, const bool select,
-                                     const float offset[2], const float ellipse[2], BMLoop *l, MLoopUV *luv,
-                                     const int cd_loop_uv_offset)
-{
-	if (uv_inside_circle(luv->uv, offset, ellipse)) {
-		uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-		return true;
-	}
-	else {
-		return false;
-	}
-}
-
 static int uv_circle_select_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
@@ -3004,6 +3017,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ARegion *ar = CTX_wm_region(C);
 	BMFace *efa;
+	BMVert *eve;
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
@@ -3054,11 +3068,23 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_disable(eve, BM_ELEM_TAG);
+		}
+
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				changed |= uv_select_inside_ellipse(em, scene, select, offset, ellipse, l, luv, cd_loop_uv_offset);
+				if (uv_inside_circle(luv->uv, offset, ellipse)) {
+					changed = true;
+					uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+					BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+				}
 			}
+		}
+
+		if (sima->sticky == SI_STICKY_VERTEX) {
+			uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
 		}
 	}
 
@@ -3116,6 +3142,7 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 	BMIter iter, liter;
 
 	BMFace *efa;
+	BMVert *eve;
 	BMLoop *l;
 	MTexPoly *tf;
 	int screen_uv[2];
@@ -3152,6 +3179,10 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 		}
 	}
 	else { /* Vert Sel */
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_disable(eve, BM_ELEM_TAG);
+		}
+
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 			if (uvedit_face_visible_test(scene, ima, efa, tf)) {
@@ -3166,10 +3197,15 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 						{
 							uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
 							changed = true;
+							BM_elem_flag_enable(l->v, BM_ELEM_TAG);
 						}
 					}
 				}
 			}
+		}
+
+		if (sima->sticky == SI_STICKY_VERTEX) {
+			uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
 		}
 	}
 
