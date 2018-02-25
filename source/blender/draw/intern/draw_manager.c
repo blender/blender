@@ -1781,16 +1781,16 @@ static void draw_geometry_execute_ex(
 	}
 
 	/* step 2 : bind vertex array & draw */
-	GWN_batch_program_set(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+	GWN_batch_program_set_no_use(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+	/* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
+	geom->program_in_use = true;
 	if (ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_INSTANCE_EXTERNAL)) {
 		GWN_batch_draw_range_ex(geom, start, count, true);
 	}
 	else {
 		GWN_batch_draw_range(geom, start, count);
 	}
-	/* XXX this just tells gawain we are done with the shader.
-	 * This does not unbind the shader. */
-	GWN_batch_program_unset(geom);
+	geom->program_in_use = false; /* XXX hacking gawain */
 }
 
 static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)

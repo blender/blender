@@ -187,112 +187,118 @@ int GWN_batch_vertbuf_add_ex(
 	return -1;
 	}
 
-void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
+static GLuint batch_vao_get(Gwn_Batch *batch)
+	{
+	// Search through cache
+	if (batch->is_dynamic_vao_count)
+		{
+		for (int i = 0; i < batch->dynamic_vaos.count; ++i)
+			if (batch->dynamic_vaos.interfaces[i] == batch->interface)
+				return batch->dynamic_vaos.vao_ids[i];
+		}
+	else
+		{
+		for (int i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
+			if (batch->static_vaos.interfaces[i] == batch->interface)
+				return batch->static_vaos.vao_ids[i];
+		}
+
+	// Set context of this batch.
+	// It will be bound to it until gwn_batch_vao_cache_clear is called.
+	// Until then it can only be drawn with this context.
+	if (batch->context == NULL)
+		{
+		batch->context = GWN_context_active_get();
+		gwn_context_add_batch(batch->context, batch);
+		}
+#if TRUST_NO_ONE && 0 // disabled until we use a separate single context for UI.
+	else // Make sure you are not trying to draw this batch in another context.
+		assert(batch->context == GWN_context_active_get());
+#endif
+
+	// Cache miss, time to add a new entry!
+	GLuint new_vao = 0;
+	if (!batch->is_dynamic_vao_count)
+		{
+		int i; // find first unused slot
+		for (i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
+			if (batch->static_vaos.vao_ids[i] == 0)
+				break;
+
+		if (i < GWN_BATCH_VAO_STATIC_LEN)
+			{
+			batch->static_vaos.interfaces[i] = batch->interface;
+			batch->static_vaos.vao_ids[i] = new_vao = GWN_vao_alloc();
+			}
+		else
+			{
+			// Not enough place switch to dynamic.
+			batch->is_dynamic_vao_count = true;
+			// Erase previous entries, they will be added back if drawn again.
+			for (int j = 0; j < GWN_BATCH_VAO_STATIC_LEN; ++j)
+				{
+				GWN_shaderinterface_remove_batch_ref((Gwn_ShaderInterface*)batch->static_vaos.interfaces[j], batch);
+				GWN_vao_free(batch->static_vaos.vao_ids[j], batch->context);
+				}
+			// Init dynamic arrays and let the branch below set the values.
+			batch->dynamic_vaos.count = GWN_BATCH_VAO_DYN_ALLOC_COUNT;
+			batch->dynamic_vaos.interfaces = calloc(batch->dynamic_vaos.count, sizeof(Gwn_ShaderInterface*));
+			batch->dynamic_vaos.vao_ids = calloc(batch->dynamic_vaos.count, sizeof(GLuint));
+			}
+		}
+
+	if (batch->is_dynamic_vao_count)
+		{
+		int i; // find first unused slot
+		for (i = 0; i < batch->dynamic_vaos.count; ++i)
+			if (batch->dynamic_vaos.vao_ids[i] == 0)
+				break;
+
+		if (i == batch->dynamic_vaos.count)
+			{
+			// Not enough place, realloc the array.
+			i = batch->dynamic_vaos.count;
+			batch->dynamic_vaos.count += GWN_BATCH_VAO_DYN_ALLOC_COUNT;
+			batch->dynamic_vaos.interfaces = realloc(batch->dynamic_vaos.interfaces, sizeof(Gwn_ShaderInterface*) * batch->dynamic_vaos.count);
+			batch->dynamic_vaos.vao_ids = realloc(batch->dynamic_vaos.vao_ids, sizeof(GLuint) * batch->dynamic_vaos.count);
+			memset(batch->dynamic_vaos.interfaces + i, 0, sizeof(Gwn_ShaderInterface*) * GWN_BATCH_VAO_DYN_ALLOC_COUNT);
+			memset(batch->dynamic_vaos.vao_ids + i, 0, sizeof(GLuint) * GWN_BATCH_VAO_DYN_ALLOC_COUNT);
+			}
+
+		batch->dynamic_vaos.interfaces[i] = batch->interface;
+		batch->dynamic_vaos.vao_ids[i] = new_vao = GWN_vao_alloc();
+		}
+
+	GWN_shaderinterface_add_batch_ref((Gwn_ShaderInterface*)batch->interface, batch);
+
+#if TRUST_NO_ONE
+	assert(new_vao != 0);
+#endif
+
+	// We just got a fresh VAO we need to initialize it.
+	glBindVertexArray(new_vao);
+	batch_update_program_bindings(batch, 0);
+	glBindVertexArray(0);
+
+	return new_vao;
+	}
+
+void GWN_batch_program_set_no_use(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
 	{
 #if TRUST_NO_ONE
 	assert(glIsProgram(shaderface->program));
 	assert(batch->program_in_use == 0);
 #endif
 
-	batch->vao_id = 0;
-	batch->program = program;
 	batch->interface = shaderface;
-
-
-	// Search through cache
-	if (batch->is_dynamic_vao_count)
-		{
-		for (int i = 0; i < batch->dynamic_vaos.count && batch->vao_id == 0; ++i)
-			if (batch->dynamic_vaos.interfaces[i] == shaderface)
-				batch->vao_id = batch->dynamic_vaos.vao_ids[i];
-		}
-	else
-		{
-		for (int i = 0; i < GWN_BATCH_VAO_STATIC_LEN && batch->vao_id == 0; ++i)
-			if (batch->static_vaos.interfaces[i] == shaderface)
-				batch->vao_id = batch->static_vaos.vao_ids[i];
-		}
-
-	if (batch->vao_id == 0)
-		{
-		if (batch->context == NULL)
-			{
-			batch->context = GWN_context_active_get();
-			gwn_context_add_batch(batch->context, batch);
-			}
-#if TRUST_NO_ONE && 0 // disabled until we use a separate single context for UI.
-		else // Make sure you are not trying to draw this batch in another context.
-			assert(batch->context == GWN_context_active_get());
-#endif
-		// Cache miss, time to add a new entry!
-		if (!batch->is_dynamic_vao_count)
-			{
-			int i; // find first unused slot
-			for (i = 0; i < GWN_BATCH_VAO_STATIC_LEN; ++i)
-				if (batch->static_vaos.vao_ids[i] == 0)
-					break;
-
-			if (i < GWN_BATCH_VAO_STATIC_LEN)
-				{
-				batch->static_vaos.interfaces[i] = shaderface;
-				batch->static_vaos.vao_ids[i] = batch->vao_id = GWN_vao_alloc();
-				}
-			else
-				{
-				// Not enough place switch to dynamic.
-				batch->is_dynamic_vao_count = true;
-				// Erase previous entries, they will be added back if drawn again.
-				for (int j = 0; j < GWN_BATCH_VAO_STATIC_LEN; ++j)
-					{
-					GWN_shaderinterface_remove_batch_ref((Gwn_ShaderInterface*)batch->static_vaos.interfaces[j], batch);
-					GWN_vao_free(batch->static_vaos.vao_ids[j], batch->context);
-					}
-				// Init dynamic arrays and let the branch below set the values.
-				batch->dynamic_vaos.count = GWN_BATCH_VAO_DYN_ALLOC_COUNT;
-				batch->dynamic_vaos.interfaces = calloc(batch->dynamic_vaos.count, sizeof(Gwn_ShaderInterface*));
-				batch->dynamic_vaos.vao_ids = calloc(batch->dynamic_vaos.count, sizeof(GLuint));
-				}
-			}
-
-		if (batch->is_dynamic_vao_count)
-			{
-			int i; // find first unused slot
-			for (i = 0; i < batch->dynamic_vaos.count; ++i)
-				if (batch->dynamic_vaos.vao_ids[i] == 0)
-					break;
-
-			if (i == batch->dynamic_vaos.count)
-				{
-				// Not enough place, realloc the array.
-				i = batch->dynamic_vaos.count;
-				batch->dynamic_vaos.count += GWN_BATCH_VAO_DYN_ALLOC_COUNT;
-				batch->dynamic_vaos.interfaces = realloc(batch->dynamic_vaos.interfaces, sizeof(Gwn_ShaderInterface*) * batch->dynamic_vaos.count);
-				batch->dynamic_vaos.vao_ids = realloc(batch->dynamic_vaos.vao_ids, sizeof(GLuint) * batch->dynamic_vaos.count);
-				memset(batch->dynamic_vaos.interfaces + i, 0, sizeof(Gwn_ShaderInterface*) * GWN_BATCH_VAO_DYN_ALLOC_COUNT);
-				memset(batch->dynamic_vaos.vao_ids + i, 0, sizeof(GLuint) * GWN_BATCH_VAO_DYN_ALLOC_COUNT);
-				}
-
-			batch->dynamic_vaos.interfaces[i] = shaderface;
-			batch->dynamic_vaos.vao_ids[i] = batch->vao_id = GWN_vao_alloc();
-			}
-
-		GWN_shaderinterface_add_batch_ref((Gwn_ShaderInterface*)shaderface, batch);
-
-		// We just got a fresh VAO we need to initialize it.
-		glBindVertexArray(batch->vao_id);
-		batch_update_program_bindings(batch, 0);
-		glBindVertexArray(0);
-		}
-
-	GWN_batch_program_use_begin(batch); // hack! to make Batch_Uniform* simpler
+	batch->program = program;
+	batch->vao_id = batch_vao_get(batch);
 	}
 
-// fclem : hack !
-// we need this because we don't want to unbind the shader between drawcalls
-// but we still want the correct shader to be bound outside the draw manager
-void GWN_batch_program_unset(Gwn_Batch* batch)
+void GWN_batch_program_set(Gwn_Batch* batch, GLuint program, const Gwn_ShaderInterface* shaderface)
 	{
-	batch->program_in_use = false;
+	GWN_batch_program_set_no_use(batch, program, shaderface);
+	GWN_batch_program_use_begin(batch); // hack! to make Batch_Uniform* simpler
 	}
 
 void gwn_batch_remove_interface_ref(Gwn_Batch* batch, const Gwn_ShaderInterface* interface)
