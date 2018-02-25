@@ -201,10 +201,10 @@ void wm_manipulatorgroup_ensure_initialized(wmManipulatorGroup *mgroup, const bC
 	}
 }
 
-bool wm_manipulatorgroup_is_visible(const wmManipulatorGroup *mgroup, const bContext *C)
+bool WM_manipulator_group_type_poll(const bContext *C, const struct wmManipulatorGroupType *wgt)
 {
 	/* Check for poll function, if manipulator-group belongs to an operator, also check if the operator is running. */
-	return (!mgroup->type->poll || mgroup->type->poll(C, mgroup->type));
+	return (!wgt->poll || wgt->poll(C, (wmManipulatorGroupType *)wgt));
 }
 
 bool wm_manipulatorgroup_is_visible_in_drawstep(

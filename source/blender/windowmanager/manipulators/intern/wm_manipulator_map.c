@@ -272,7 +272,7 @@ static GHash *WM_manipulatormap_manipulator_hash_new(
 
 	/* collect manipulators */
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
-		if (!mgroup->type->poll || mgroup->type->poll(C, mgroup->type)) {
+		if (WM_manipulator_group_type_poll(C, mgroup->type)) {
 			for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {
 				if ((include_hidden || (mpr->flag & WM_MANIPULATOR_HIDDEN) == 0) &&
 				    (!poll || poll(mpr, data)))
@@ -350,7 +350,7 @@ static void manipulatormap_prepare_drawing(
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
 		/* check group visibility - drawstep first to avoid unnecessary call of group poll callback */
 		if (!wm_manipulatorgroup_is_visible_in_drawstep(mgroup, drawstep) ||
-		    !wm_manipulatorgroup_is_visible(mgroup, C))
+		    !WM_manipulator_group_type_poll(C, mgroup->type))
 		{
 			continue;
 		}
@@ -597,7 +597,7 @@ wmManipulator *wm_manipulatormap_highlight_find(
 			continue;
 		}
 
-		if (wm_manipulatorgroup_is_visible(mgroup, C)) {
+		if (WM_manipulator_group_type_poll(C, mgroup->type)) {
 			eWM_ManipulatorMapDrawStep step;
 			if (mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
 				step = WM_MANIPULATORMAP_DRAWSTEP_3D;
@@ -984,7 +984,7 @@ void WM_manipulatormap_message_subscribe(
         bContext *C, wmManipulatorMap *mmap, ARegion *ar, struct wmMsgBus *mbus)
 {
 	for (wmManipulatorGroup *mgroup = mmap->groups.first; mgroup; mgroup = mgroup->next) {
-		if (!wm_manipulatorgroup_is_visible(mgroup, C)) {
+		if (!WM_manipulator_group_type_poll(C, mgroup->type)) {
 			continue;
 		}
 		for (wmManipulator *mpr = mgroup->manipulators.first; mpr; mpr = mpr->next) {

@@ -75,7 +75,6 @@ struct wmManipulator *wm_manipulatorgroup_find_intersected_manipulator(
 void wm_manipulatorgroup_intersectable_manipulators_to_list(
         const struct wmManipulatorGroup *mgroup, struct ListBase *listbase);
 void wm_manipulatorgroup_ensure_initialized(struct wmManipulatorGroup *mgroup, const struct bContext *C);
-bool wm_manipulatorgroup_is_visible(const struct wmManipulatorGroup *mgroup, const struct bContext *C);
 bool wm_manipulatorgroup_is_visible_in_drawstep(
         const struct wmManipulatorGroup *mgroup, const eWM_ManipulatorMapDrawStep drawstep);
 

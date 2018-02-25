@@ -331,4 +331,6 @@ void WM_manipulator_group_type_unlink_delayed(const char *idname);
 /* Utilities */
 bool WM_manipulator_context_check_drawstep(const struct bContext *C, eWM_ManipulatorMapDrawStep step);
 
+bool WM_manipulator_group_type_poll(const struct bContext *C, const struct wmManipulatorGroupType *wgt);
+
 #endif  /* __WM_MANIPULATOR_API_H__ */
