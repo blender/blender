@@ -36,6 +36,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
@@ -164,8 +165,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	/* get editmode results */
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
+	EvaluationContext *eval_ctx = G.main->eval_ctx;
+	Scene *scene = CTX_data_scene(C);
 
-	export_count = collada_export(CTX_data_scene(C),
+	export_count = collada_export(eval_ctx,
+		scene,
 		filepath,
 		apply_modifiers,
 		export_mesh_type,

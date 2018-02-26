@@ -32,6 +32,7 @@
 extern "C" {
 #endif
 
+#include "BKE_depsgraph.h"
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "RNA_types.h"
@@ -51,6 +52,7 @@ typedef enum BC_export_texture_type {
 	BC_TEXTURE_TYPE_UV
 } BC_export_texture_type;
 
+struct EvaluationContext;
 struct bContext;
 struct Scene;
 
@@ -67,7 +69,8 @@ int collada_import(struct bContext *C,
 
 				   int keep_bind_info);
 
-int collada_export(struct Scene *sce,
+int collada_export(struct EvaluationContext *eval_ctx,
+                   struct Scene *sce,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,
