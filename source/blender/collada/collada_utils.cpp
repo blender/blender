@@ -144,6 +144,14 @@ EvaluationContext *bc_get_evaluation_context()
 	return bmain->eval_ctx;
 }
 
+void bc_update_scene(Scene *scene, float ctime)
+{
+	BKE_scene_frame_set(scene, ctime);
+	Main *bmain = bc_get_main();
+	EvaluationContext *ev_context = bc_get_evaluation_context();
+	BKE_scene_update_for_newframe(ev_context, bmain, scene, scene->lay);
+}
+
 Object *bc_add_object(Scene *scene, int type, const char *name)
 {
 	Object *ob = BKE_object_add_only_object(G.main, type, name);
@@ -881,6 +889,21 @@ void bc_sanitize_mat(double mat[4][4], int precision)
 	for (int i = 0; i < 4; i++)
 		for (int j = 0; j < 4; j++)
 			mat[i][j] = double_round(mat[i][j], precision);
+}
+
+void bc_copy_m4_farray(float r[4][4], float *a)
+{
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			r[i][j] = *a++;
+}
+
+void bc_copy_farray_m4(float *r, float a[4][4])
+{
+	for (int i = 0; i < 4; i++)
+		for (int j = 0; j < 4; j++)
+			*r++ = a[i][j];
+
 }
 
 /*

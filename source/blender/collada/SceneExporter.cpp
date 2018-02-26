@@ -38,11 +38,6 @@ SceneExporter::SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm,
 {
 }
 
-void SceneExporter::setExportTransformationType(BC_export_transformation_type transformation_type)
-{
-	this->transformation_type = transformation_type;
-}
-
 void SceneExporter::exportScene(Scene *sce)
 {
 	// <library_visual_scenes> <visual_scene>
@@ -138,7 +133,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		// for skinned mesh we write obmat in <bind_shape_matrix>
 		TransformWriter::add_node_transform_identity(colladaNode);
 	else {
-		TransformWriter::add_node_transform_ob(colladaNode, ob, this->transformation_type);
+		TransformWriter::add_node_transform_ob(colladaNode, ob, this->export_settings->export_transformation_type);
 	}
 
 	// <instance_geometry>

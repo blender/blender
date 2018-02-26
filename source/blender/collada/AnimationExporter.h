@@ -144,9 +144,12 @@ protected:
 	
 	float* get_eul_source_for_quat(Object *ob );
 
+	bool is_flat_line(std::vector<float> &values, int channel_count);
 	void export_keyframed_animation_set(Object *ob);
 	void create_keyframed_animation(Object *ob, FCurve *fcu, char *transformName, bool is_param, Material *ma = NULL);
 	void export_sampled_animation_set(Object *ob);
+	void export_sampled_transrotloc_animation(Object *ob, std::vector<float> &ctimes);
+	void export_sampled_matrix_animation(Object *ob, std::vector<float> &ctimes);
 	void create_sampled_animation(int channel_count, std::vector<float> &times, std::vector<float> &values, std::string, std::string label, std::string axis_name, bool is_rot);
 
 	void evaluate_anim_with_constraints(Object *ob, float ctime);
@@ -161,7 +164,7 @@ protected:
 	std::string create_source_from_vector(COLLADASW::InputSemantic::Semantics semantic, std::vector<float> &fra, bool is_rot, const std::string& anim_id, const char *axis_name);
 
 	std::string create_xyz_source(float *v, int tot, const std::string& anim_id);
-
+	std::string create_4x4_source(std::vector<float> &times, std::vector<float> &values, const std::string& anim_id);
 	std::string create_4x4_source(std::vector<float> &frames, Object * ob_arm, Bone *bone, const std::string& anim_id);
 
 	std::string create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents);

@@ -86,6 +86,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int include_armatures;
 	int include_shapekeys;
 	int deform_bones_only;
+
+	int include_animations;
+	int sample_animations;
 	int sampling_rate;
 
 	int export_texture_type;
@@ -137,7 +140,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
 	include_shapekeys        = RNA_boolean_get(op->ptr, "include_shapekeys");
-	sampling_rate             = RNA_int_get(op->ptr,     "sampling_rate");
+
+	include_animations       = RNA_boolean_get(op->ptr, "include_animations");
+	sample_animations        = RNA_boolean_get(op->ptr, "sample_animations");
+	sampling_rate            = (sample_animations)? RNA_int_get(op->ptr, "sampling_rate") : 0;
+
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 
 	export_texture_type      = RNA_enum_get(op->ptr, "export_texture_type_selection");
@@ -167,6 +174,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		include_armatures,
 		include_shapekeys,
 		deform_bones_only,
+		include_animations,
 		sampling_rate,
 
 		active_uv_only,
@@ -203,6 +211,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
 	uiLayout *box, *row, *col, *split;
+	bool include_animations = RNA_boolean_get(imfptr, "include_animations");
 
 	/* Export Options: */
 	box = uiLayoutBox(layout);
@@ -233,9 +242,15 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
 	row = uiLayoutRow(box, false);
-	uiItemR(row, imfptr, "sampling_rate", 0, NULL, ICON_NONE);
+	uiItemR(row, imfptr, "include_animations", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, false);
+	if (include_animations) {
+		uiItemR(row, imfptr, "sample_animations", 0, NULL, ICON_NONE);
+		row = uiLayoutColumn(box, false);
+		uiItemR(row, imfptr, "sampling_rate", 0, NULL, ICON_NONE);
+		uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "sample_animations"));
+	}
 
-	
 	/* Texture options */
 	box = uiLayoutBox(layout);
 	row = uiLayoutRow(box, false);
@@ -278,7 +293,6 @@ static void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	split = uiLayoutSplit(row, 0.6f, UI_LAYOUT_ALIGN_RIGHT);
 	uiItemL(split, IFACE_("Transformation Type"), ICON_NONE);
 	uiItemR(split, imfptr, "export_transformation_type_selection", 0, "", ICON_NONE);
-
 	row = uiLayoutRow(box, false);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
 
@@ -376,8 +390,14 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
 	            	"Only export deforming bones with armatures");
 
-	RNA_def_int(func, "sampling_rate", 0, -1, INT_MAX,
-		"Samplintg Rate", "The maximum distance of frames between 2 keyframes. Disabled when value is -1", -1, INT_MAX);
+	RNA_def_boolean(func, "include_animations", false,
+		"Include Animations", "Export Animations if available.\nExporting Animations will enforce the decomposition of node transforms\ninto  <translation> <rotation> and <scale> components");
+
+	RNA_def_boolean(func, "sample_animations", 0,
+		"Sample Animations", "Auto-generate keyframes with a frame distance set by 'Sampling Rate'.\nWhen disabled, export only the keyframes defined in the animation f-curves (may be less accurate)");
+
+	RNA_def_int(func, "sampling_rate", 1, 1, INT_MAX,
+		"Sampling Rate", "The distance between 2 keyframes. 1 means: Every frame is keyed", 1, INT_MAX);
 
 	RNA_def_boolean(func, "active_uv_only", 0, "Only Selected UV Map",
 	                "Export only the selected UV Map");

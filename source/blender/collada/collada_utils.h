@@ -65,6 +65,7 @@ typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *> > TexIndexTextureA
 
 extern Main *bc_get_main();
 extern EvaluationContext *bc_get_evaluation_context();
+extern void bc_update_scene(Scene *scene, float ctime);
 
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
@@ -102,6 +103,13 @@ extern bool bc_is_leaf_bone(Bone *bone);
 extern EditBone *bc_get_edit_bone(bArmature * armature, char *name);
 extern int bc_set_layer(int bitfield, int layer, bool enable);
 extern int bc_set_layer(int bitfield, int layer);
+
+inline bool bc_in_range(float a, float b, float range) {
+	return abs(a - b) < range;
+}
+void bc_copy_m4_farray(float r[4][4], float *a);
+void bc_copy_farray_m4(float *r, float a[4][4]);
+
 extern void bc_sanitize_mat(float mat[4][4], int precision);
 extern void bc_sanitize_mat(double mat[4][4], int precision);
 
