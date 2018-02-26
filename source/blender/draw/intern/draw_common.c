@@ -122,12 +122,12 @@ void DRW_globals_update(void)
 	ts.sizeEdge = 1.0f / 2.0f; /* TODO Theme */
 	ts.sizeEdgeFix = 0.5f + 2.0f * (2.0f * (MAX2(ts.sizeVertex, ts.sizeEdge)) * (float)M_SQRT1_2);
 
-	/* TODO Waiting for notifiers to invalidate cache */
-	if (globals_ubo) {
-		DRW_uniformbuffer_free(globals_ubo);
+
+	if (globals_ubo == NULL) {
+		globals_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), &ts);
 	}
 
-	globals_ubo = DRW_uniformbuffer_create(sizeof(GlobalsUboStorage), &ts);
+	DRW_uniformbuffer_update(globals_ubo, &ts);
 
 	ColorBand ramp = {0};
 	float *colors;
