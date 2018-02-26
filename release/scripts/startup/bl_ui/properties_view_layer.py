@@ -457,6 +457,7 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
+        with_freestyle = bpy.app.build_options.freestyle
 
         scene = context.scene
         rd = scene.render
@@ -477,6 +478,12 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
         row = col.row(align=True)
         row.prop(view_layer, "use_pass_subsurface_direct", text="Direct", toggle=True)
         row.prop(view_layer, "use_pass_subsurface_color", text="Color", toggle=True)
+        if with_freestyle:
+            col.separator()
+            col.label(text="Layer:")
+            row = col.row()
+            row.prop(view_layer, "use_freestyle", "Use Freestyle")
+            row.active = rd.use_freestyle
 
 
 classes = (
