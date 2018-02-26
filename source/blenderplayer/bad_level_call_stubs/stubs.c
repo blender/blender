@@ -146,7 +146,6 @@ struct wmWindowManager;
 #include "../../intern/elbeem/extern/elbeem.h"
 #include "../blender/blenkernel/BKE_modifier.h"
 #include "../blender/blenkernel/BKE_paint.h"
-#include "../blender/collada/collada.h"
 #include "../blender/compositor/COM_compositor.h"
 #include "../blender/editors/include/ED_armature.h"
 #include "../blender/editors/include/ED_anim_api.h"
@@ -725,34 +724,6 @@ void UI_pie_menu_end(struct bContext *C, uiPieMenu *pie) RET_NONE
 struct uiLayout *uiLayoutRadial(struct uiLayout *layout) RET_NULL
 int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title, const char *opname,
                              const char *propname, const struct wmEvent *event) RET_ZERO
-
-/* RNA COLLADA dependency                                       */
-/* XXX (gaia) Why do we need this declaration here?             */
-/*     The collada header is included anyways further up...     */
-int collada_export(struct Scene *sce,
-                   const char *filepath,
-                   int apply_modifiers,
-                   BC_export_mesh_type export_mesh_type,
-
-                   int selected,
-                   int include_children,
-                   int include_armatures,
-                   int include_shapekeys,
-                   int deform_bones_only,
-                   int sampling_rate,
-
-                   int active_uv_only,
-                   BC_export_texture_type export_texture_type,
-                   int use_texture_copies,
-
-                   int triangulate,
-                   int use_object_instantiation,
-                   int use_blender_profile,
-                   int sort_by_name,
-                   BC_export_transformation_type export_transformation_type,
-                   int open_sim,
-                   int limit_precision,
-                   int keep_bind_info) RET_ZERO
 
 void ED_mesh_calc_tessface(struct Mesh *mesh, bool free_mpoly) RET_NONE
 
