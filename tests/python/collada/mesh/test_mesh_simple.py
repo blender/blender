@@ -56,6 +56,8 @@ def with_tempdir(wrapped):
 
     return decorator
 
+LINE = "+----------------------------------------------------------------"
+
 class AbstractColladaTest(unittest.TestCase):
 
     @classmethod
@@ -89,12 +91,19 @@ class AbstractColladaTest(unittest.TestCase):
                         break
             if error:
                 diff_count +=1
-                print ("%s"%line.strip())
+                pline = line.strip()
+                if diff_count == 1:
+                    print("\n%s" % LINE)
+                    print("|Test has errors:")
+                    print(LINE)
+                pre = "reference" if pline[0] == "-" else "generated"
+                print ("| %s:%s"% (pre, pline[1:]))
 
         if diff_count > 0:
-            print("Generated file differs from reference")
-            print("reference: %s" % reference)
-            print("result   : %s" % export)
+            print(LINE)
+            print("ref :%s" % reference)
+            print("test:%s" % export)
+            print("%s\n" % LINE)
 
         return diff_count == 0
 
@@ -134,7 +143,8 @@ class MeshExportTest(AbstractColladaTest):
             keep_bind_info=False)
         
         # Now check the resulting Collada file.
-        self.assertTrue(self.checkdae(reference_dae, outfile))
+        if not self.checkdae(reference_dae, outfile):
+            self.fail()
 
 if __name__ == '__main__':
     sys.argv = [__file__] + (sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else [])

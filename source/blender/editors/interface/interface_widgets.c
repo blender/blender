@@ -1591,6 +1591,7 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 		rcti temp = *rect;
 		temp.xmin = rect->xmax - BLI_rcti_size_y(rect) - 1;
 		widget_draw_icon(but, ICON_LAYER_USED, alpha, &temp, false);
+		rect->xmax = temp.xmin;
 	}
 
 	/* If there's an icon too (made with uiDefIconTextBut) then draw the icon

@@ -179,7 +179,7 @@ static COLLADABU::NativeString make_temp_filepath(const char *name, const char *
 // COLLADA allows this through multiple <channel>s in <animation>.
 // For this to work, we need to know objects that use a certain action.
 
-int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scene *sce)
+int DocumentExporter::exportCurrentScene(EvaluationContext *eval_ctx, Scene *sce)
 {
 	PointerRNA sceneptr, unit_settings;
 	PropertyRNA *system; /* unused , *scale; */
@@ -300,29 +300,11 @@ int DocumentExporter::exportCurrentScene(const EvaluationContext *eval_ctx, Scen
 
 	SceneExporter se(writer, &arm_exporter, this->export_settings);
 
-	// <library_animations>
-	AnimationExporter ae(writer, this->export_settings);
-
-#if 0
-	bool has_animations = ae.exportAnimations(eval_ctx, sce);
-	/* The following code seems to be an obsolete workaround
-	Comment out until it proofs correct that we no longer need it.
-	*/
-	if (has_animations && this->export_settings->export_transformation_type == BC_TRANSFORMATION_TYPE_MATRIX) {
-		// channels adressing <matrix> objects is not (yet) supported
-		// So we force usage of <location>, <translation> and <scale>
-		fprintf(stdout, 
-			"For animated Ojects we must use decomposed <matrix> elements,\n" \
-			"Forcing usage of TransLocRot transformation type.");
-		se.setExportTransformationType(BC_TRANSFORMATION_TYPE_TRANSROTLOC);
+	if (this->export_settings->include_animations) {
+		// <library_animations>
+		AnimationExporter ae(writer, this->export_settings);
+		ae.exportAnimations(eval_ctx, sce);
 	}
-	else {
-		se.setExportTransformationType(this->export_settings->export_transformation_type);
-	}
-#else
-	ae.exportAnimations(eval_ctx, sce);
-	se.setExportTransformationType(this->export_settings->export_transformation_type);
-#endif
 	se.exportScene(eval_ctx, sce);
 	
 	// <scene>

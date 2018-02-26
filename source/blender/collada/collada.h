@@ -64,31 +64,35 @@ int collada_import(struct bContext *C,
 
 				   int keep_bind_info);
 
-int collada_export(struct bContext *C,
-                   const char *filepath,
-                   int apply_modifiers,
-                   BC_export_mesh_type export_mesh_type,
+int collada_export(
+	EvaluationContext *eval_ctx,
+	Scene *sce,
+	const char *filepath,
 
-                   int selected,
-                   int include_children,
-                   int include_armatures,
-                   int include_shapekeys,
-                   int deform_bones_only,
-                   int sampling_rate,
+	int apply_modifiers,
+	BC_export_mesh_type export_mesh_type,
 
-                   int active_uv_only,
-                   int include_material_textures,
-                   int use_texture_copies,
+	int selected,
+	int include_children,
+	int include_armatures,
+	int include_shapekeys,
+	int deform_bones_only,
+	int include_animations,
+	int sampling_rate,
 
-                   int triangulate,
-                   int use_object_instantiation,
-                   int use_blender_profile,
-                   int sort_by_name,
-                   BC_export_transformation_type export_transformation_type,
+	int active_uv_only,
+	int include_material_textures,
+	int use_texture_copies,
 
-				   int open_sim,
-				   int limit_precision,
-				   int keep_bind_info);
+	int triangulate,
+	int use_object_instantiation,
+	int use_blender_profile,
+	int sort_by_name,
+	BC_export_transformation_type export_transformation_type,
+
+	int open_sim,
+	int limit_precision,
+	int keep_bind_info);
 
 #ifdef __cplusplus
 }

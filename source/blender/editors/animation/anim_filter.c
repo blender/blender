@@ -116,7 +116,7 @@ static void animedit_get_yscale_factor(bAnimContext *ac)
 	
 	/* grab scale factor directly from action editor setting
 	 * NOTE: This theme setting doesn't have an ID, as it cannot be accessed normally
-	 *       since it is a float, and the theem settings methods can only handle chars.
+	 *       since it is a float, and the theme settings methods can only handle chars.
 	 */
 	ac->yscale_fac = btheme->tact.keyframe_scale_fac;
 	

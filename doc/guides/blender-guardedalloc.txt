@@ -1,7 +1,7 @@
 MEMORY MANAGEMENT IN BLENDER (guardedalloc)
 -------------------------------------------
 
-NOTE: This file does not cover memutil and smart pointers and rerefence counted
+NOTE: This file does not cover memutil and smart pointers and reference counted
       garbage collection, which are contained in the memutil module.
 
 Blender takes care of dynamic memory allocation using a set of own functions

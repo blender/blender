@@ -39,7 +39,7 @@ class DocumentExporter
 {
  public:
 	DocumentExporter(const ExportSettings *export_settings);
-	int  exportCurrentScene(const struct EvaluationContext *eval_ctx, Scene *sce);
+	int  exportCurrentScene(EvaluationContext *eval_ctx, Scene *sce);
 	void exportScenes(const char *filename);
 private:
 	const ExportSettings *export_settings;

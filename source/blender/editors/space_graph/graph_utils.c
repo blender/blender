@@ -171,8 +171,8 @@ int graphop_editable_keyframes_poll(bContext *C)
 		
 		/* editable curves must fulfill the following criteria:
 		 *	- it has bezier keyframes
-		 *	- it must not be protected from editing (this is already checked for with the foredit flag
-		 *	- F-Curve modifiers do not interfere with the result too much 
+		 *	- it must not be protected from editing (this is already checked for with the edit flag
+		 *	- F-Curve modifiers do not interfere with the result too much
 		 *	  (i.e. the modifier-control drawing check returns false)
 		 */
 		if (fcu->bezt == NULL)
