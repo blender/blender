@@ -35,6 +35,7 @@ set(INC
 	../compositor
 	../depsgraph
 	../editors/include
+	../draw
 	../gpu
 	../imbuf
 	../makesdna

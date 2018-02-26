@@ -922,6 +922,11 @@ int view3d_opengl_select(
 	UI_Theme_Store(&theme_state);
 	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
+#ifndef WITH_OPENGL_LEGACY
+	/* All of the queries need to be perform on the drawing context. */
+	DRW_opengl_context_enable();
+#endif
+
 	/* Re-use cache (rect must be smaller then the cached)
 	 * other context is assumed to be unchanged */
 	if (GPU_select_is_cached()) {
@@ -941,7 +946,7 @@ int view3d_opengl_select(
 		v3d->zbuf = true;
 		glEnable(GL_DEPTH_TEST);
 	}
-	
+
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(vc->rv3d);
 	
@@ -994,6 +999,11 @@ int view3d_opengl_select(
 		ED_view3d_clipping_disable();
 
 finally:
+
+#ifndef WITH_OPENGL_LEGACY
+	DRW_opengl_context_disable();
+#endif
+
 	if (hits < 0) printf("Too many objects in select buffer\n");  /* XXX make error message */
 
 	UI_Theme_Restore(&theme_state);

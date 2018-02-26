@@ -1038,6 +1038,26 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 	}
 }
 
+/* Reset active the current window opengl drawing context. */
+void wm_window_reset_drawable(void)
+{
+	BLI_assert(BLI_thread_is_main());
+	wmWindowManager *wm = G.main->wm.first;
+
+	if (wm == NULL)
+		return;
+
+	wmWindow *win = wm->windrawable;
+
+	if (win && win->ghostwin) {
+		gpu_batch_presets_reset();
+		immDeactivate();
+		GHOST_ActivateWindowDrawingContext(win->ghostwin);
+		GWN_context_active_set(win->gwnctx);
+		immActivate();
+	}
+}
+
 /* called by ghost, here we handle events for windows themselves or send to event system */
 /* mouse coordinate converversion happens here */
 static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
@@ -2044,3 +2064,25 @@ void wm_window_IME_end(wmWindow *win)
 	win->ime_data = NULL;
 }
 #endif  /* WITH_INPUT_IME */
+
+/* ****** direct opengl context management ****** */
+
+void *WM_opengl_context_create(void)
+{
+	return GHOST_CreateOpenGLContext(g_system);
+}
+
+void WM_opengl_context_dispose(void *context)
+{
+	GHOST_DisposeOpenGLContext(g_system, (GHOST_ContextHandle)context);
+}
+
+void WM_opengl_context_activate(void *context)
+{
+	GHOST_ActivateOpenGLContext((GHOST_ContextHandle)context);
+}
+
+void WM_opengl_context_release(void *context)
+{
+	GHOST_ReleaseOpenGLContext((GHOST_ContextHandle)context);
+}

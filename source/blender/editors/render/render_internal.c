@@ -869,15 +869,6 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		return OPERATOR_CANCELLED;
 	}
 
-	/* XXX FIXME If engine is an OpenGL engine do not run modal.
-	 * This is a problem for animation rendering since you cannot abort them.
-	 * This also does not open an image editor space. */
-	if (RE_engine_is_opengl(re_type)) {
-		/* ensure at least 1 area shows result */
-		render_view_open(C, event->x, event->y, op->reports);
-		return screen_render_exec(C, op);
-	}
-	
 	/* only one render job at a time */
 	if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_RENDER))
 		return OPERATOR_CANCELLED;

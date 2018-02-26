@@ -30,6 +30,7 @@
 #include "BLI_rect.h"
 #include "BLI_string.h"
 #include "BLI_string_utils.h"
+#include "BLI_threads.h"
 
 #include "BIF_glutil.h"
 
@@ -82,6 +83,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "wm_window.h"
 
 #include "draw_manager_text.h"
 #include "draw_manager_profiling.h"
@@ -96,6 +98,8 @@
 #include "engines/eevee/eevee_engine.h"
 #include "engines/basic/basic_engine.h"
 #include "engines/external/external_engine.h"
+
+#include "../../../intern/gawain/gawain/gwn_context.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -368,6 +372,13 @@ static struct DRWMatrixOveride {
 } viewport_matrix_override = {{{{0}}}};
 
 ListBase DRW_engines = {NULL, NULL};
+
+/* Unique ghost context used by the draw manager. */
+static void *g_ogl_context = NULL;
+static Gwn_Context *g_gwn_context = NULL;
+
+/* Mutex to lock the drw manager and avoid concurent context usage. */
+static ThreadMutex g_ogl_context_mutex = BLI_MUTEX_INITIALIZER;
 
 #ifdef USE_GPU_SELECT
 static unsigned int g_DRW_select_id = (unsigned int)-1;
@@ -3440,6 +3451,7 @@ void DRW_draw_render_loop_ex(
         ARegion *ar, View3D *v3d, const eObjectMode object_mode,
         const bContext *evil_C)
 {
+
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
@@ -3626,6 +3638,11 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	RenderData *r = &scene->r;
 	Render *render = engine->re;
 	const EvaluationContext *eval_ctx = RE_GetEvalCtx(render);
+	/* Changing Context */
+	DRW_opengl_context_enable();
+	/* IMPORTANT: We dont support immediate mode in render mode!
+	 * This shall remain in effect until immediate mode supports
+	 * multiple threads. */
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
@@ -3705,6 +3722,9 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	glEnable(GL_SCISSOR_TEST);
 	GPU_framebuffer_restore();
 
+	/* Changing Context */
+	DRW_opengl_context_disable();
+
 #ifdef DEBUG
 	/* Avoid accidental reuse. */
 	memset(&DST, 0xFF, sizeof(DST));
@@ -3720,6 +3740,37 @@ void DRW_render_object_iter(
 		callback(vedata, ob, engine, depsgraph);
 	}
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
+}
+
+static struct DRWSelectBuffer {
+	struct GPUFrameBuffer *framebuffer;
+	struct GPUTexture *texture_depth;
+} g_select_buffer = {NULL};
+
+static void draw_select_framebuffer_setup(const rcti *rect)
+{
+	if (g_select_buffer.framebuffer == NULL) {
+		g_select_buffer.framebuffer = GPU_framebuffer_create();
+	}
+
+	/* If size mismatch recreate the texture. */
+	if ((g_select_buffer.texture_depth != NULL) &&
+		((GPU_texture_width(g_select_buffer.texture_depth) != BLI_rcti_size_x(rect)) ||
+		(GPU_texture_height(g_select_buffer.texture_depth) != BLI_rcti_size_y(rect))))
+	{
+		GPU_texture_free(g_select_buffer.texture_depth);
+		g_select_buffer.texture_depth = NULL;
+	}
+
+	if (g_select_buffer.texture_depth == NULL) {
+		g_select_buffer.texture_depth = GPU_texture_create_depth(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), NULL);
+
+		GPU_framebuffer_texture_attach(g_select_buffer.framebuffer, g_select_buffer.texture_depth, 0, 0);
+
+		if (!GPU_framebuffer_check_valid(g_select_buffer.framebuffer, NULL)) {
+			printf("Error invalid selection framebuffer\n");
+		}
+	}
 }
 
 /* Must run after all instance datas have been added. */
@@ -3767,12 +3818,19 @@ void DRW_draw_select_loop(
 		}
 	}
 
+	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
+	glDisable(GL_SCISSOR_TEST);
+
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)});
 
-	bool cache_is_dirty;
 	DST.viewport = viewport;
 	v3d->zbuf = true;
+
+	/* Setup framebuffer */
+	draw_select_framebuffer_setup(rect);
+	GPU_framebuffer_bind(g_select_buffer.framebuffer);
+	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
 
 	DST.options.is_select = true;
 
@@ -3786,7 +3844,6 @@ void DRW_draw_select_loop(
 	}
 
 	/* Setup viewport */
-	cache_is_dirty = true;
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
@@ -3802,10 +3859,7 @@ void DRW_draw_select_loop(
 	/* Init engines */
 	drw_engines_init();
 
-	/* TODO : tag to refresh by the dependency graph */
-	/* ideally only refresh when objects are added/removed */
-	/* or render properties / materials change */
-	if (cache_is_dirty) {
+	{
 		drw_engines_cache_init();
 
 		if (use_obedit) {
@@ -3843,14 +3897,55 @@ void DRW_draw_select_loop(
 	/* Avoid accidental reuse. */
 	memset(&DST, 0xFF, sizeof(DST));
 #endif
+	GPU_framebuffer_restore();
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
 	MEM_freeN(viewport);
 
+	/* Restore Drawing area. */
+	gpuPopAttrib();
+	glEnable(GL_SCISSOR_TEST);
+
 	/* restore */
 	rv3d->viewport = backup_viewport;
 #endif  /* USE_GPU_SELECT */
+}
+
+static void draw_depth_texture_to_screen(GPUTexture *texture)
+{
+	const float w = (float)GPU_texture_width(texture);
+	const float h = (float)GPU_texture_height(texture);
+
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_DEPTH_COPY);
+
+	GPU_texture_bind(texture, 0);
+
+	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
+
+	immBegin(GWN_PRIM_TRI_STRIP, 4);
+
+	immAttrib2f(texcoord, 0.0f, 0.0f);
+	immVertex2f(pos, 0.0f, 0.0f);
+
+	immAttrib2f(texcoord, 1.0f, 0.0f);
+	immVertex2f(pos, w, 0.0f);
+
+	immAttrib2f(texcoord, 0.0f, 1.0f);
+	immVertex2f(pos, 0.0f, h);
+
+	immAttrib2f(texcoord, 1.0f, 1.0f);
+	immVertex2f(pos, w, h);
+
+	immEnd();
+
+	GPU_texture_unbind(texture);
+
+	immUnbindProgram();
 }
 
 /**
@@ -3865,6 +3960,8 @@ void DRW_draw_depth_loop(
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 
+	DRW_opengl_context_enable();
+
 	/* backup (_never_ use rv3d->viewport) */
 	void *backup_viewport = rv3d->viewport;
 	rv3d->viewport = NULL;
@@ -3872,8 +3969,16 @@ void DRW_draw_depth_loop(
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
 
+	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
+	glDisable(GL_SCISSOR_TEST);
+
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){ar->winx, ar->winy});
+
+	/* Setup framebuffer */
+	draw_select_framebuffer_setup(&ar->winrct);
+	GPU_framebuffer_bind(g_select_buffer.framebuffer);
+	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
 
 	bool cache_is_dirty;
 	DST.viewport = viewport;
@@ -3935,9 +4040,34 @@ void DRW_draw_depth_loop(
 	memset(&DST, 0xFF, sizeof(DST));
 #endif
 
+	/* TODO: Reading depth for operators should be done here. */
+
+	GPU_framebuffer_restore();
+
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
 	MEM_freeN(viewport);
+
+	/* Restore Drawing area. */
+	gpuPopAttrib();
+	glEnable(GL_SCISSOR_TEST);
+
+	/* Changin context */
+	DRW_opengl_context_disable();
+
+	/* XXX Drawing the resulting buffer to the BACK_BUFFER */
+	gpuPushMatrix();
+	gpuPushProjectionMatrix();
+	wmOrtho2_region_pixelspace(ar);
+	gpuLoadIdentity();
+
+	glEnable(GL_DEPTH_TEST); /* Cannot write to depth buffer without testing */
+	glDepthFunc(GL_ALWAYS);
+	draw_depth_texture_to_screen(g_select_buffer.texture_depth);
+	glDepthFunc(GL_LEQUAL);
+
+	gpuPopMatrix();
+	gpuPopProjectionMatrix();
 
 	/* restore */
 	rv3d->viewport = backup_viewport;
@@ -4139,6 +4269,11 @@ extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GPUTexture *globals_ramp; /* draw_common.c */
 void DRW_engines_free(void)
 {
+	DRW_opengl_context_enable();
+
+	DRW_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
+	DRW_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer);
+
 	DRW_shape_cache_free();
 	DRW_stats_free();
 	DRW_globals_free();
@@ -4164,9 +4299,86 @@ void DRW_engines_free(void)
 	MEM_SAFE_FREE(RST.bound_texs);
 	MEM_SAFE_FREE(RST.bound_tex_slots);
 
+	DRW_opengl_context_disable();
+
 #ifdef WITH_CLAY_ENGINE
 	BLI_remlink(&R_engines, &DRW_engine_viewport_clay_type);
 #endif
+}
+
+/** \} */
+
+/** \name Init/Exit (DRW_opengl_ctx)
+ * \{ */
+
+void DRW_opengl_context_create(void)
+{
+	BLI_assert(g_ogl_context == NULL); /* Ensure it's called once */
+	BLI_assert(BLI_thread_is_main());
+
+	BLI_mutex_init(&g_ogl_context_mutex);
+
+	immDeactivate();
+	/* This changes the active context. */
+	g_ogl_context = WM_opengl_context_create();
+	/* Be sure to create gawain.context too. */
+	g_gwn_context = GWN_context_create();
+	immActivate();
+	/* Set default Blender OpenGL state */
+	GPU_state_init();
+	/* So we activate the window's one afterwards. */
+	wm_window_reset_drawable();
+}
+
+void DRW_opengl_context_destroy(void)
+{
+	BLI_assert(BLI_thread_is_main());
+	if (g_ogl_context != NULL) {
+		WM_opengl_context_activate(g_ogl_context);
+		GWN_context_active_set(g_gwn_context);
+		GWN_context_discard(g_gwn_context);
+		WM_opengl_context_dispose(g_ogl_context);
+		BLI_mutex_end(&g_ogl_context_mutex);
+	}
+}
+
+void DRW_opengl_context_enable(void)
+{
+	if (g_ogl_context != NULL) {
+		/* IMPORTANT: We dont support immediate mode in render mode!
+		 * This shall remain in effect until immediate mode supports
+		 * multiple threads. */
+		BLI_mutex_lock(&g_ogl_context_mutex);
+		if (BLI_thread_is_main()) {
+			immDeactivate();
+		}
+		WM_opengl_context_activate(g_ogl_context);
+		GWN_context_active_set(g_gwn_context);
+		if (BLI_thread_is_main()) {
+			immActivate();
+		}
+	}
+}
+
+void DRW_opengl_context_disable(void)
+{
+	if (g_ogl_context != NULL) {
+#ifdef __APPLE__
+		/* Need to flush before disabling draw context, otherwise it does not
+		 * always finish drawing and viewport can be empty or partially drawn */
+		glFlush();
+#endif
+
+		if (BLI_thread_is_main()) {
+			wm_window_reset_drawable();
+		}
+		else {
+			WM_opengl_context_release(g_ogl_context);
+			GWN_context_active_set(NULL);
+		}
+
+		BLI_mutex_unlock(&g_ogl_context_mutex);
+	}
 }
 
 /** \} */

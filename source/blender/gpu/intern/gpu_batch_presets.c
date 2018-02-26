@@ -31,6 +31,7 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
+#include "BLI_threads.h"
 
 #include "GPU_batch.h"
 #include "gpu_shader_private.h"
@@ -71,7 +72,7 @@ static void batch_sphere_lat_lon_vert(
 }
 
 /* Replacement for gluSphere */
-static Gwn_Batch *batch_sphere(int lat_res, int lon_res)
+Gwn_Batch *gpu_batch_sphere(int lat_res, int lon_res)
 {
 	const float lon_inc = 2 * M_PI / lon_res;
 	const float lat_inc = M_PI / lat_res;
@@ -146,6 +147,7 @@ static Gwn_Batch *batch_sphere_wire(int lat_res, int lon_res)
 Gwn_Batch *GPU_batch_preset_sphere(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 2);
+	BLI_assert(BLI_thread_is_main());
 
 	if (lod == 0) {
 		return g_presets_3d.batch.sphere_low;
@@ -161,6 +163,7 @@ Gwn_Batch *GPU_batch_preset_sphere(int lod)
 Gwn_Batch *GPU_batch_preset_sphere_wire(int lod)
 {
 	BLI_assert(lod >= 0 && lod <= 1);
+	BLI_assert(BLI_thread_is_main());
 
 	if (lod == 0) {
 		return g_presets_3d.batch.sphere_wire_low;
@@ -182,9 +185,9 @@ void gpu_batch_presets_init(void)
 	}
 
 	/* Hard coded resolution */
-	g_presets_3d.batch.sphere_low = batch_sphere(8, 16);
-	g_presets_3d.batch.sphere_med = batch_sphere(16, 10);
-	g_presets_3d.batch.sphere_high = batch_sphere(32, 24);
+	g_presets_3d.batch.sphere_low = gpu_batch_sphere(8, 16);
+	g_presets_3d.batch.sphere_med = gpu_batch_sphere(16, 10);
+	g_presets_3d.batch.sphere_high = gpu_batch_sphere(32, 24);
 
 	g_presets_3d.batch.sphere_wire_low = batch_sphere_wire(6, 8);
 	g_presets_3d.batch.sphere_wire_med = batch_sphere_wire(8, 16);

@@ -58,6 +58,7 @@ void		wm_window_process_events	(const bContext *C);
 void		wm_window_process_events_nosleep(void);
 
 void		wm_window_make_drawable(wmWindowManager *wm, wmWindow *win);
+void		wm_window_reset_drawable(void);
 
 void		wm_window_raise			(wmWindow *win);
 void		wm_window_lower			(wmWindow *win);

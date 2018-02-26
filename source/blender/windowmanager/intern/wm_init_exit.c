@@ -125,6 +125,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "DRW_engine.h"
+
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.h"
 #endif
@@ -207,6 +209,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 		/* sets 3D mouse deadzone */
 		WM_ndof_deadzone_set(U.ndof_deadzone);
 #endif
+		DRW_opengl_context_create();
 
 		GPU_init();
 
@@ -548,6 +551,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	wm_manipulatortype_free();
 
 	BLF_exit();
+
+	if (!G.background) {
+		DRW_opengl_context_destroy();
+	}
 
 #ifdef WITH_INTERNATIONAL
 	BLF_free_unifont();

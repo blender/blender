@@ -345,6 +345,8 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 	int rect_w = BLI_rcti_size_x(rect) + 1;
 	int rect_h = BLI_rcti_size_y(rect) + 1;
 
+	DRW_opengl_context_enable();
+
 	if (dfbl->default_fb) {
 		if (rect_w != viewport->size[0] || rect_h != viewport->size[1] || U.ogl_multisamples != viewport->samples) {
 			gpu_viewport_buffers_free(
@@ -465,6 +467,7 @@ cleanup:
 		if (!ok) {
 			GPU_viewport_free(viewport);
 			MEM_freeN(viewport);
+			DRW_opengl_context_disable();
 			return;
 		}
 
@@ -523,7 +526,11 @@ void GPU_viewport_unbind(GPUViewport *viewport)
 	if (dfbl->default_fb) {
 		GPU_framebuffer_texture_unbind(NULL, NULL);
 		GPU_framebuffer_restore();
+	}
 
+	DRW_opengl_context_disable();
+
+	if (dfbl->default_fb) {
 		glEnable(GL_SCISSOR_TEST);
 		glDisable(GL_DEPTH_TEST);
 	}
@@ -581,6 +588,7 @@ static void gpu_viewport_passes_free(PassList *psl, int psl_len)
 	}
 }
 
+/* Must be executed inside Drawmanager Opengl Context. */
 void GPU_viewport_free(GPUViewport *viewport)
 {
 	gpu_viewport_engines_data_free(viewport);

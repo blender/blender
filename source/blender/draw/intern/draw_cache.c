@@ -45,6 +45,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_single_vertice;
 	Gwn_Batch *drw_fullscreen_quad;
 	Gwn_Batch *drw_quad;
+	Gwn_Batch *drw_sphere;
 	Gwn_Batch *drw_screenspace_circle;
 	Gwn_Batch *drw_plain_axes;
 	Gwn_Batch *drw_single_arrow;
@@ -266,7 +267,6 @@ Gwn_Batch *DRW_cache_fullscreen_quad_get(void)
 Gwn_Batch *DRW_cache_quad_get(void)
 {
 	if (!SHC.drw_quad) {
-		/* Use a triangle instead of a real quad */
 		float pos[4][2] = {{-1.0f, -1.0f}, { 1.0f, -1.0f}, {1.0f,  1.0f}, {-1.0f,  1.0f}};
 		float uvs[4][2] = {{ 0.0f,  0.0f}, { 1.0f,  0.0f}, {1.0f,  1.0f}, { 0.0f,  1.0f}};
 
@@ -294,7 +294,10 @@ Gwn_Batch *DRW_cache_quad_get(void)
 /* Sphere */
 Gwn_Batch *DRW_cache_sphere_get(void)
 {
-	return GPU_batch_preset_sphere(2);
+	if (!SHC.drw_sphere) {
+		SHC.drw_sphere = gpu_batch_sphere(32, 24);
+	}
+	return SHC.drw_sphere;
 }
 
 /** \} */
