@@ -1381,9 +1381,7 @@ static int uv_select_more_less(bContext *C, const bool select)
 	if (ts->uv_selectmode == UV_SELECT_FACE) {
 
 		/* clear tags */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_elem_flag_disable(efa, BM_ELEM_TAG);
-		}
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
 
 		/* mark loops to be selected */
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1585,9 +1583,7 @@ static void uv_weld_align(bContext *C, int tool)
 		BMIter iter, liter, eiter;
 
 		/* clear tag */
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_disable(eve, BM_ELEM_TAG);
-		}
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
 		/* tag verts with a selected UV */
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
@@ -2707,12 +2703,8 @@ static void uv_select_flush_from_tag_face(SpaceImage *sima, Scene *scene, Object
 	if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_VERTEX) {
 		/* Tag all verts as untouched, then touch the ones that have a face center
 		 * in the loop and select all MLoopUV's that use a touched vert. */
-		BMVert *eve;
-		
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_disable(eve, BM_ELEM_TAG);
-		}
-		
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -2798,11 +2790,7 @@ static void uv_select_flush_from_tag_loop(SpaceImage *sima, Scene *scene, Object
 	if ((ts->uv_flag & UV_SYNC_SELECTION) == 0 && sima->sticky == SI_STICKY_VERTEX) {
 		/* Tag all verts as untouched, then touch the ones that have a face center
 		 * in the loop and select all MLoopUV's that use a touched vert. */
-		BMVert *eve;
-
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_disable(eve, BM_ELEM_TAG);
-		}
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -2872,7 +2860,6 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
-	BMVert *eve;
 	BMLoop *l;
 	BMIter iter, liter;
 	MTexPoly *tf;
@@ -2927,10 +2914,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 	else {
 		/* other selection modes */
 		changed = true;
-
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_disable(eve, BM_ELEM_TAG);
-		}
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
@@ -3017,7 +3001,6 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	ARegion *ar = CTX_wm_region(C);
 	BMFace *efa;
-	BMVert *eve;
 	BMLoop *l;
 	BMIter iter, liter;
 	MLoopUV *luv;
@@ -3068,9 +3051,7 @@ static int uv_circle_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_disable(eve, BM_ELEM_TAG);
-		}
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
@@ -3142,7 +3123,6 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 	BMIter iter, liter;
 
 	BMFace *efa;
-	BMVert *eve;
 	BMLoop *l;
 	MTexPoly *tf;
 	int screen_uv[2];
@@ -3179,9 +3159,7 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 		}
 	}
 	else { /* Vert Sel */
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_disable(eve, BM_ELEM_TAG);
-		}
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
 		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 			tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
@@ -4204,17 +4182,14 @@ static int uv_mark_seam_exec(bContext *C, wmOperator *op)
 	BMFace *efa;
 	BMLoop *loop;
 	BMIter iter, liter;
-	bool clear = RNA_boolean_get(op->ptr, "clear");
+	bool flag_set = !RNA_boolean_get(op->ptr, "clear");
 
 	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
 	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
 			if (uvedit_edge_select_test(scene, loop, cd_loop_uv_offset)) {
-				if (clear)
-					BM_elem_flag_disable(loop->e, BM_ELEM_SEAM);
-				else
-					BM_elem_flag_enable(loop->e, BM_ELEM_SEAM);
+				BM_elem_flag_set(loop->e, BM_ELEM_SEAM, flag_set);
 			}
 		}
 	}
