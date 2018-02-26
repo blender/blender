@@ -52,6 +52,7 @@ GHOST_DECLARE_HANDLE(GHOST_WindowHandle);
 GHOST_DECLARE_HANDLE(GHOST_EventHandle);
 GHOST_DECLARE_HANDLE(GHOST_RectangleHandle);
 GHOST_DECLARE_HANDLE(GHOST_EventConsumerHandle);
+GHOST_DECLARE_HANDLE(GHOST_ContextHandle);
 
 
 /**
@@ -187,6 +188,23 @@ extern GHOST_WindowHandle GHOST_CreateWindow(
         GHOST_TWindowState state,
         GHOST_TDrawingContextType type,
         GHOST_GLSettings glSettings);
+
+/**
+ * Create a new offscreen context.
+ * Never explicitly delete the context, use disposeContext() instead.
+ * \param systemhandle The handle to the system
+ * \return A handle to the new context ( == NULL if creation failed).
+ */
+extern GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle);
+
+/**
+ * Dispose of a context.
+ * \param systemhandle The handle to the system
+ * \param contexthandle Handle to the context to be disposed.
+ * \return Indication of success.
+ */
+extern GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
+                                                    GHOST_ContextHandle contexthandle);
 
 /**
  * Returns the window user data.
@@ -709,6 +727,20 @@ extern GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle wind
  * \return Indication of success.
  */
 extern GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle);
+
+/**
+ * Activates the drawing context of this context.
+ * \param contexthandle The handle to the context
+ * \return A success indicator.
+ */
+extern GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle);
+
+/**
+ * Release the drawing context bound to this thread.
+ * \param contexthandle The handle to the context
+ * \return A success indicator.
+ */
+extern GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle);
 
 /**
  * Returns the status of the tablet

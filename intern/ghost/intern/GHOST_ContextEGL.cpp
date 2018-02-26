@@ -312,6 +312,17 @@ GHOST_TSuccess GHOST_ContextEGL::activateDrawingContext()
 	}
 }
 
+GHOST_TSuccess GHOST_ContextEGL::releaseDrawingContext()
+{
+	if (m_display) {
+		bindAPI(m_api);
+
+		return EGL_CHK(::eglMakeCurrent(m_display, None, None, NULL)) ? GHOST_kSuccess : GHOST_kFailure;
+	}
+	else {
+		return GHOST_kFailure;
+	}
+}
 
 void GHOST_ContextEGL::initContextEGLEW()
 {

@@ -74,7 +74,6 @@ GHOST_ContextGLX::GHOST_ContextGLX(
       m_contextResetNotificationStrategy(contextResetNotificationStrategy),
       m_context(None)
 {
-	assert(m_window  != 0);
 	assert(m_display != NULL);
 }
 
@@ -113,6 +112,16 @@ GHOST_TSuccess GHOST_ContextGLX::activateDrawingContext()
 {
 	if (m_display) {
 		return ::glXMakeCurrent(m_display, m_window, m_context) ? GHOST_kSuccess : GHOST_kFailure;
+	}
+	else {
+		return GHOST_kFailure;
+	}
+}
+
+GHOST_TSuccess GHOST_ContextGLX::releaseDrawingContext()
+{
+	if (m_display) {
+		return ::glXMakeCurrent(m_display, None, NULL) ? GHOST_kSuccess : GHOST_kFailure;
 	}
 	else {
 		return GHOST_kFailure;
@@ -246,9 +255,22 @@ const bool GLXEW_ARB_create_context_robustness =
 		}
 		attribs[i++] = 0;
 
+		/* Some drivers don't like having a true offscreen context.
+		 * Create a pixel buffer instead of a window to render to.
+		 * even if it will never be used for drawing. */
+		int pbuffer_attribs[] = {
+			GLX_PBUFFER_WIDTH, 1,
+			GLX_PBUFFER_HEIGHT, 1,
+			None
+		};
+
 		/* Create a GL 3.x context */
 		if (m_fbconfig) {
 			m_context = glXCreateContextAttribsARB(m_display, m_fbconfig, s_sharedContext, true, attribs);
+
+			if (!m_window) {
+				m_window = (Window)glXCreatePbuffer(m_display, m_fbconfig, pbuffer_attribs);
+			}
 		}
 		else {
 			GLXFBConfig *framebuffer_config = NULL;
@@ -263,6 +285,11 @@ const bool GLXEW_ARB_create_context_robustness =
 
 			if (framebuffer_config) {
 				m_context = glXCreateContextAttribsARB(m_display, framebuffer_config[0], s_sharedContext, True, attribs);
+
+				if (!m_window) {
+					m_window = (Window)glXCreatePbuffer(m_display, framebuffer_config[0], pbuffer_attribs);
+				}
+
 				XFree(framebuffer_config);
 			}
 		}
@@ -288,8 +315,10 @@ const bool GLXEW_ARB_create_context_robustness =
 		// which means we cannot use glX extensions until after we create a context
 		initContextGLXEW();
 
-		initClearGL();
-		::glXSwapBuffers(m_display, m_window);
+		if (m_window) {
+			initClearGL();
+			::glXSwapBuffers(m_display, m_window);
+		}
 
 		/* re initialize to get the extensions properly */
 		initContextGLXEW();

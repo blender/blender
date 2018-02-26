@@ -79,6 +79,12 @@ public:
 	GHOST_TSuccess activateDrawingContext();
 
 	/**
+	 * Release the drawing context of the calling thread.
+	 * \return  A boolean success indicator.
+	 */
+	GHOST_TSuccess releaseDrawingContext();
+
+	/**
 	 * Call immediately after new to initialize.  If this fails then immediately delete the object.
 	 * \return Indication as to whether initialization has succeeded.
 	 */
@@ -136,6 +142,10 @@ private:
 	        int  swapMethod);
 
 	void initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD);
+
+	/* offscreen buffer with size of 1x1 pixel,
+	 * kept here to release the device constext when closing the program. */
+	HPBUFFERARB m_dummyPbuffer;
 
 	HWND m_hWnd;
 	HDC  m_hDC;

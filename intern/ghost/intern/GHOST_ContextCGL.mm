@@ -35,6 +35,8 @@
 
 #include <Cocoa/Cocoa.h>
 
+//#define GHOST_MULTITHREADED_OPENGL
+
 #ifdef GHOST_MULTITHREADED_OPENGL
 #include <OpenGL/OpenGL.h>
 #endif
@@ -62,8 +64,6 @@ GHOST_ContextCGL::GHOST_ContextCGL(
       m_openGLContext(nil),
       m_debug(contextFlags)
 {
-	assert(openGLView != nil);
-
 	// for now be very strict about OpenGL version requested
 	switch (contextMajorVersion) {
 		case 2:
@@ -73,7 +73,7 @@ GHOST_ContextCGL::GHOST_ContextCGL(
 			break;
 		case 3:
 			// Apple didn't implement 3.0 or 3.1
-			assert(contextMinorVersion == 2);
+			assert(contextMinorVersion == 3);
 			assert(contextProfileMask == GL_CONTEXT_CORE_PROFILE_BIT);
 			m_coreProfile = true;
 			break;
@@ -88,7 +88,10 @@ GHOST_ContextCGL::~GHOST_ContextCGL()
 	if (m_openGLContext != nil) {
 		if (m_openGLContext == [NSOpenGLContext currentContext]) {
 			[NSOpenGLContext clearCurrentContext];
-			[m_openGLView clearGLContext];
+
+			if(m_openGLView) {
+				[m_openGLView clearGLContext];
+			}
 		}
 
 		if (m_openGLContext != s_sharedOpenGLContext || s_sharedCount == 1) {
@@ -167,6 +170,18 @@ GHOST_TSuccess GHOST_ContextCGL::activateDrawingContext()
 	}
 }
 
+GHOST_TSuccess GHOST_ContextCGL::releaseDrawingContext()
+{
+	if (m_openGLContext != nil) {
+		NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+		[NSOpenGLContext clearCurrentContext];
+		[pool drain];
+		return GHOST_kSuccess;
+	}
+	else {
+		return GHOST_kFailure;
+	}
+}
 
 GHOST_TSuccess GHOST_ContextCGL::updateDrawingContext()
 {
@@ -258,7 +273,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 	std::vector<NSOpenGLPixelFormatAttribute> attribs;
 	attribs.reserve(40);
 
-	NSOpenGLContext *prev_openGLContext = [m_openGLView openGLContext];
+	NSOpenGLContext *prev_openGLContext = (m_openGLView) ? [m_openGLView openGLContext] : NULL;
 
 #ifdef GHOST_OPENGL_ALPHA
 	static const bool needAlpha   = true;
@@ -346,8 +361,7 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
 #ifdef GHOST_MULTITHREADED_OPENGL
 	//Switch openGL to multhreaded mode
-	CGLContextObj cglCtx = (CGLContextObj)[tmpOpenGLContext CGLContextObj];
-	if (CGLEnable(cglCtx, kCGLCEMPEngine) == kCGLNoError)
+	if (CGLEnable(CGLGetCurrentContext(), kCGLCEMPEngine) == kCGLNoError)
 		if (m_debug)
 			fprintf(stderr, "\nSwitched OpenGL to multithreaded mode\n");
 #endif
@@ -362,8 +376,10 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
 	initContextGLEW();
 
-	[m_openGLView setOpenGLContext:m_openGLContext];
-	[m_openGLContext setView:m_openGLView];
+	if (m_openGLView) {
+		[m_openGLView setOpenGLContext:m_openGLContext];
+		[m_openGLContext setView:m_openGLView];
+	}
 
 	if (s_sharedCount == 0)
 		s_sharedOpenGLContext = m_openGLContext;
@@ -380,7 +396,10 @@ GHOST_TSuccess GHOST_ContextCGL::initializeDrawingContext()
 
 error:
 
-	[m_openGLView setOpenGLContext:prev_openGLContext];
+	if (m_openGLView) {
+		[m_openGLView setOpenGLContext:prev_openGLContext];
+	}
+
 	[pixelFormat release];
 
 	[pool drain];

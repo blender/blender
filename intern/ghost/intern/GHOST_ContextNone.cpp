@@ -46,6 +46,12 @@ GHOST_TSuccess GHOST_ContextNone::activateDrawingContext()
 }
 
 
+GHOST_TSuccess GHOST_ContextNone::releaseDrawingContext()
+{
+	return GHOST_kSuccess;
+}
+
+
 GHOST_TSuccess GHOST_ContextNone::updateDrawingContext()
 {
 	return GHOST_kSuccess;

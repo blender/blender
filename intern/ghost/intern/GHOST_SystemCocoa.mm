@@ -27,15 +27,6 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#import <Cocoa/Cocoa.h>
-
-/*For the currently not ported to Cocoa keyboard layout functions (64bit & 10.6 compatible)*/
-#include <Carbon/Carbon.h>
-
-#include <sys/time.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-
 #include "GHOST_SystemCocoa.h"
 
 #include "GHOST_DisplayManagerCocoa.h"
@@ -51,12 +42,26 @@
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCocoa.h"
 
+#if defined(WITH_GL_EGL)
+#  include "GHOST_ContextEGL.h"
+#else
+#  include "GHOST_ContextCGL.h"
+#endif
+
 #ifdef WITH_INPUT_NDOF
   #include "GHOST_NDOFManagerCocoa.h"
 #endif
 
 #include "AssertMacros.h"
 
+#import <Cocoa/Cocoa.h>
+
+/* For the currently not ported to Cocoa keyboard layout functions (64bit & 10.6 compatible) */
+#include <Carbon/Carbon.h>
+
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 #pragma mark KeyMap, mouse converters
 
@@ -578,6 +583,53 @@ GHOST_IWindow* GHOST_SystemCocoa::createWindow(
 
 	[pool drain];
 	return window;
+}
+
+/**
+ * Create a new offscreen context.
+ * Never explicitly delete the context, use disposeContext() instead.
+ * \return  The new context (or 0 if creation failed).
+ */
+GHOST_IContext *
+GHOST_SystemCocoa::
+createOffscreenContext()
+{
+	GHOST_Context *context = new GHOST_ContextCGL(
+		false,
+		0,
+		NULL,
+		NULL,
+
+#if defined(WITH_GL_PROFILE_CORE)
+		GL_CONTEXT_CORE_PROFILE_BIT,
+		3, 3,
+#else
+		0, // no profile bit
+		2, 1,
+#endif
+		GHOST_OPENGL_CGL_CONTEXT_FLAGS,
+		GHOST_OPENGL_CGL_RESET_NOTIFICATION_STRATEGY);
+
+	if (context->initializeDrawingContext())
+		return context;
+	else
+		delete context;
+
+	return NULL;
+}
+
+/**
+ * Dispose of a context.
+ * \param   context Pointer to the context to be disposed.
+ * \return  Indication of success.
+ */
+GHOST_TSuccess
+GHOST_SystemCocoa::
+disposeContext(GHOST_IContext *context)
+{
+	delete context;
+
+	return GHOST_kSuccess;
 }
 
 /**

@@ -171,6 +171,26 @@ public:
 	    const GHOST_TEmbedderWindowID parentWindow = 0
 	    );
 
+
+	/**
+	 * Create a new offscreen context.
+	 * Never explicitly delete the context, use disposeContext() instead.
+	 * \return  The new context (or 0 if creation failed).
+	 */
+	GHOST_IContext *
+	createOffscreenContext(
+	    );
+
+	/**
+	 * Dispose of a context.
+	 * \param   context Pointer to the context to be disposed.
+	 * \return  Indication of success.
+	 */
+	GHOST_TSuccess
+	disposeContext(
+	    GHOST_IContext *context
+	    );
+
 	/**
 	 * Retrieves events from the system and stores them in the queue.
 	 * \param waitForEvent Flag to wait for an event (or return immediately).

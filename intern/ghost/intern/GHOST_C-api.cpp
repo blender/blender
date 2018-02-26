@@ -132,6 +132,22 @@ void GHOST_GetAllDisplayDimensions(GHOST_SystemHandle systemhandle,
 	system->getAllDisplayDimensions(*width, *height);
 }
 
+GHOST_ContextHandle GHOST_CreateOpenGLContext(GHOST_SystemHandle systemhandle)
+{
+	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
+
+	return (GHOST_ContextHandle) system->createOffscreenContext();
+}
+
+GHOST_TSuccess GHOST_DisposeOpenGLContext(GHOST_SystemHandle systemhandle,
+                                             GHOST_ContextHandle contexthandle)
+{
+	GHOST_ISystem *system = (GHOST_ISystem *) systemhandle;
+	GHOST_IContext *context = (GHOST_IContext *) contexthandle;
+
+	return system->disposeContext(context);
+}
+
 GHOST_WindowHandle GHOST_CreateWindow(GHOST_SystemHandle systemhandle,
                                       const char *title,
                                       GHOST_TInt32 left,
@@ -713,7 +729,19 @@ GHOST_TSuccess GHOST_ActivateWindowDrawingContext(GHOST_WindowHandle windowhandl
 	return window->activateDrawingContext();
 }
 
+GHOST_TSuccess GHOST_ActivateOpenGLContext(GHOST_ContextHandle contexthandle)
+{
+	GHOST_IContext *context = (GHOST_IContext *) contexthandle;
 
+	return context->activateDrawingContext();
+}
+
+GHOST_TSuccess GHOST_ReleaseOpenGLContext(GHOST_ContextHandle contexthandle)
+{
+	GHOST_IContext *context = (GHOST_IContext *) contexthandle;
+
+	return context->releaseDrawingContext();
+}
 
 GHOST_TSuccess GHOST_InvalidateWindow(GHOST_WindowHandle windowhandle)
 {

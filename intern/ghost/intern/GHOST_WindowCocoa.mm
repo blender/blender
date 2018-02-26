@@ -1005,7 +1005,7 @@ GHOST_Context *GHOST_WindowCocoa::newDrawingContext(GHOST_TDrawingContextType ty
 
 #if defined(WITH_GL_PROFILE_CORE)
 			GL_CONTEXT_CORE_PROFILE_BIT,
-			3, 2,
+			3, 3,
 #else
 			0, // no profile bit
 			2, 1,

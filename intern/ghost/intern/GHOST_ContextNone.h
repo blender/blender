@@ -61,6 +61,12 @@ public:
 
 	/**
 	 * Dummy function
+	 * \return  Always succeeds
+	 */
+	GHOST_TSuccess releaseDrawingContext();
+
+	/**
+	 * Dummy function
 	 * \return Always succeeds
 	 */
 	GHOST_TSuccess updateDrawingContext();

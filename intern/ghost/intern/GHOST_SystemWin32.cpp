@@ -56,6 +56,12 @@
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowWin32.h"
 
+#if defined(WITH_GL_EGL)
+#  include "GHOST_ContextEGL.h"
+#else
+#  include "GHOST_ContextWGL.h"
+#endif
+
 #ifdef WITH_INPUT_NDOF
   #include "GHOST_NDOFManagerWin32.h"
 #endif
@@ -296,6 +302,94 @@ GHOST_IWindow *GHOST_SystemWin32::createWindow(
 	}
 
 	return window;
+}
+
+
+/**
+ * Create a new offscreen context.
+ * Never explicitly delete the window, use disposeContext() instead.
+ * \return  The new context (or 0 if creation failed).
+ */
+GHOST_IContext *GHOST_SystemWin32::createOffscreenContext()
+{
+	bool debug_context = false; /* TODO: inform as a parameter */
+
+	GHOST_Context *context;
+
+#if defined(WITH_GL_PROFILE_CORE)
+	for (int minor = 5; minor >= 0; --minor) {
+			context = new GHOST_ContextWGL(
+			    false, true, 0,
+			    NULL, NULL,
+			    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+			    4, minor,
+			    (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+			    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+			if (context->initializeDrawingContext()) {
+				return context;
+			}
+			else {
+				delete context;
+			}
+		}
+
+		context = new GHOST_ContextWGL(
+		    false, true, 0,
+		    NULL, NULL,
+		    WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+		    3, 3,
+		    (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+		    GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+		if (context->initializeDrawingContext()) {
+			return context;
+		}
+		else {
+			MessageBox(
+			        NULL,
+			        "Blender requires a graphics driver with at least OpenGL 3.3 support.\n\n"
+			        "The program will now close.",
+			        "Blender - Unsupported Graphics Driver!",
+			        MB_OK | MB_ICONERROR);
+			delete context;
+			exit();
+		}
+
+#elif defined(WITH_GL_PROFILE_COMPAT)
+		// ask for 2.1 context, driver gives any GL version >= 2.1 (hopefully the latest compatibility profile)
+		// 2.1 ignores the profile bit & is incompatible with core profile
+		context = new GHOST_ContextWGL(
+		        false, true, 0,
+		        NULL, NULL,
+		        0, // no profile bit
+		        2, 1,
+		        (debug_context ? WGL_CONTEXT_DEBUG_BIT_ARB : 0),
+		        GHOST_OPENGL_WGL_RESET_NOTIFICATION_STRATEGY);
+
+		if (context->initializeDrawingContext()) {
+			return context;
+		}
+		else {
+			delete context;
+		}
+#else
+#  error // must specify either core or compat at build time
+#endif
+
+	return NULL;
+}
+
+/**
+ * Dispose of a context.
+ * \param   context Pointer to the context to be disposed.
+ * \return  Indication of success.
+ */
+GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
+{
+	delete context;
+
+	return GHOST_kSuccess;
 }
 
 

@@ -105,6 +105,18 @@ GHOST_TSuccess GHOST_ContextSDL::activateDrawingContext()
 }
 
 
+GHOST_TSuccess GHOST_ContextSDL::releaseDrawingContext()
+{
+	if (m_context) {
+		/* Untested, may not work */
+		return SDL_GL_MakeCurrent(NULL, NULL) ? GHOST_kSuccess : GHOST_kFailure;
+	}
+	else {
+		return GHOST_kFailure;
+	}
+}
+
+
 GHOST_TSuccess GHOST_ContextSDL::initializeDrawingContext()
 {
 #ifdef GHOST_OPENGL_ALPHA

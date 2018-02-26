@@ -54,6 +54,7 @@ set(SRC
 	intern/GHOST_WindowManager.cpp
 
 	GHOST_C-api.h
+	GHOST_IContext.h
 	GHOST_IEvent.h
 	GHOST_IEventConsumer.h
 	GHOST_ISystem.h
