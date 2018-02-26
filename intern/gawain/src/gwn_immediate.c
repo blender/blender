@@ -28,6 +28,8 @@ typedef struct {
 #if IMM_BATCH_COMBO
 	Gwn_Batch* batch;
 #endif
+	Gwn_Context* context;
+
 	// current draw call
 	GLubyte* buffer_data;
 	unsigned buffer_offset;
@@ -86,7 +88,8 @@ void immActivate(void)
 	assert(imm.prim_type == GWN_PRIM_NONE); // make sure we're not between a Begin/End pair
 	assert(imm.vao_id == 0);
 #endif
-	imm.vao_id = GWN_vao_default();
+	imm.vao_id = GWN_vao_alloc();
+	imm.context = GWN_context_active_get();
 	}
 
 void immDeactivate(void)
@@ -96,6 +99,7 @@ void immDeactivate(void)
 	assert(imm.prim_type == GWN_PRIM_NONE); // make sure we're not between a Begin/End pair
 	assert(imm.vao_id != 0);
 #endif
+	GWN_vao_free(imm.vao_id, imm.context);
 	imm.vao_id = 0;
 	imm.prev_enabled_attrib_bits = 0;
 	}
