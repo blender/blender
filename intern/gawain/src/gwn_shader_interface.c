@@ -265,6 +265,14 @@ Gwn_ShaderInterface* GWN_shaderinterface_create(GLint program)
 #endif
 		}
 
+	// Builtin Uniforms
+	for (Gwn_UniformBuiltin u = GWN_UNIFORM_NONE + 1; u < GWN_UNIFORM_CUSTOM; ++u)
+		{
+		const char* builtin_name = BuiltinUniform_name(u);
+		if (glGetUniformLocation(program, builtin_name) != -1)
+			add_uniform((Gwn_ShaderInterface*)shaderface, builtin_name);
+		}
+
 	// Batches ref buffer
 	shaderface->batches_ct = GWN_SHADERINTERFACE_REF_ALLOC_COUNT;
 	shaderface->batches = calloc(shaderface->batches_ct, sizeof(Gwn_Batch*));
@@ -309,14 +317,7 @@ const Gwn_ShaderInput* GWN_shaderinterface_uniform_builtin(const Gwn_ShaderInter
 	assert(builtin != GWN_UNIFORM_CUSTOM);
 	assert(builtin != GWN_NUM_UNIFORMS);
 #endif
-
-	const Gwn_ShaderInput* input = shaderface->builtin_uniforms[builtin];
-
-	// If input is not found add it so it's found next time.
-	if (input == NULL)
-		input = add_uniform((Gwn_ShaderInterface*)shaderface, BuiltinUniform_name(builtin));
-
-	return (input->location != -1) ? input : NULL;
+	return shaderface->builtin_uniforms[builtin];
 	}
 
 const Gwn_ShaderInput* GWN_shaderinterface_ubo(const Gwn_ShaderInterface* shaderface, const char* name)
