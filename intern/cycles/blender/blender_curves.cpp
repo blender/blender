@@ -326,14 +326,14 @@ static bool ObtainCacheParticleVcol(Mesh *mesh,
 	return true;
 }
 
-static void set_resolution(BL::Object *b_ob, BL::Scene *scene, BL::ViewLayer *view_layer, bool render)
+static void set_resolution(BL::Object& b_ob, BL::Scene& scene, BL::ViewLayer& view_layer, bool render)
 {
 	BL::Object::modifiers_iterator b_mod;
-	for(b_ob->modifiers.begin(b_mod); b_mod != b_ob->modifiers.end(); ++b_mod) {
+	for(b_ob.modifiers.begin(b_mod); b_mod != b_ob.modifiers.end(); ++b_mod) {
 		if((b_mod->type() == b_mod->type_PARTICLE_SYSTEM) && ((b_mod->show_viewport()) || (b_mod->show_render()))) {
 			BL::ParticleSystemModifier psmd((const PointerRNA)b_mod->ptr);
 			BL::ParticleSystem b_psys((const PointerRNA)psmd.particle_system().ptr);
-			b_psys.set_resolution(*scene, *view_layer, *b_ob, (render)? 2: 1);
+			b_psys.set_resolution(scene, view_layer, b_ob, (render)? 2: 1);
 		}
 	}
 }
@@ -884,7 +884,8 @@ void BlenderSync::sync_curve_settings()
 		curve_system_manager->tag_update(scene);
 }
 
-void BlenderSync::sync_curves(Mesh *mesh,
+void BlenderSync::sync_curves(BL::Depsgraph& b_depsgraph,
+                              Mesh *mesh,
                               BL::Mesh& b_mesh,
                               BL::Object& b_ob,
                               bool motion,
@@ -920,8 +921,9 @@ void BlenderSync::sync_curves(Mesh *mesh,
 
 	ParticleCurveData CData;
 
+	BL::ViewLayer b_view_layer = b_depsgraph.view_layer();
 	if(!preview)
-		set_resolution(&b_ob, &b_scene, &b_view_layer, true);
+		set_resolution(b_ob, b_scene, b_view_layer, true);
 
 	ObtainCacheParticleData(mesh, &b_mesh, &b_ob, &CData, !preview);
 
@@ -1066,7 +1068,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
 	}
 
 	if(!preview)
-		set_resolution(&b_ob, &b_scene, &b_view_layer, false);
+		set_resolution(b_ob, b_scene, b_view_layer, false);
 
 	mesh->compute_bounds();
 }

@@ -263,7 +263,8 @@ void BlenderSync::sync_background_light(bool use_portal)
 
 /* Object */
 
-Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
+Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
+                                 BL::Depsgraph::duplis_iterator& b_dupli_iter,
                                  uint layer_flag,
                                  float motion_time,
                                  bool hide_tris,
@@ -366,7 +367,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 
 			/* mesh deformation */
 			if(object->mesh)
-				sync_mesh_motion(b_ob, object, motion_time);
+				sync_mesh_motion(b_depsgraph, b_ob, object, motion_time);
 		}
 
 		return object;
@@ -379,7 +380,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph::duplis_iterator& b_dupli_iter,
 		object_updated = true;
 	
 	/* mesh sync */
-	object->mesh = sync_mesh(b_ob, b_ob_instance, object_updated, hide_tris);
+	object->mesh = sync_mesh(b_depsgraph, b_ob, b_ob_instance, object_updated, hide_tris);
 
 	/* special case not tracked by object update flags */
 
@@ -520,7 +521,7 @@ static bool object_render_hide(BL::Object& b_ob,
 
 /* Object Loop */
 
-void BlenderSync::sync_objects(float motion_time)
+void BlenderSync::sync_objects(BL::Depsgraph& b_depsgraph, float motion_time)
 {
 	/* layer data */
 	bool motion = motion_time != 0.0f;
@@ -564,7 +565,8 @@ void BlenderSync::sync_objects(float motion_time)
 
 		 if(!object_render_hide(b_ob, true, true, hide_tris)) {
 			/* object itself */
-			sync_object(b_dupli_iter,
+			sync_object(b_depsgraph,
+			            b_dupli_iter,
 			            ~(0), /* until we get rid of layers */
 			            motion_time,
 			            hide_tris,
@@ -596,6 +598,7 @@ void BlenderSync::sync_objects(float motion_time)
 }
 
 void BlenderSync::sync_motion(BL::RenderSettings& b_render,
+                              BL::Depsgraph& b_depsgraph,
                               BL::Object& b_override,
                               int width, int height,
                               void **python_thread_state)
@@ -625,6 +628,8 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 			assert(scene->camera->motion_position == Camera::MOTION_POSITION_START);
 			frame_center_delta = shuttertime * 0.5f;
 		}
+
+		/* TODO: move frame on depsgraph. */
 		float time = frame_center + subframe_center + frame_center_delta;
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
@@ -632,7 +637,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		b_engine.frame_set(frame, subframe);
 		python_thread_state_save(python_thread_state);
 		sync_camera_motion(b_render, b_cam, width, height, 0.0f);
-		sync_objects(0.0f);
+		sync_objects(b_depsgraph, 0.0f);
 	}
 
 	/* always sample these times for camera motion */
@@ -652,6 +657,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
 
+		/* TODO: move frame on depsgraph. */
 		/* change frame */
 		python_thread_state_restore(python_thread_state);
 		b_engine.frame_set(frame, subframe);
@@ -666,7 +672,7 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		}
 
 		/* sync object */
-		sync_objects(relative_time);
+		sync_objects(b_depsgraph, relative_time);
 	}
 
 	/* we need to set the python thread state again because this

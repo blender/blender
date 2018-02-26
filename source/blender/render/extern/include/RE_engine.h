@@ -94,7 +94,8 @@ typedef struct RenderEngineType {
 
 	void (*update)(struct RenderEngine *engine, struct Main *bmain, struct Scene *scene);
 	void (*render_to_image)(struct RenderEngine *engine, struct Depsgraph *depsgraph);
-	void (*bake)(struct RenderEngine *engine, struct Scene *scene, struct Object *object, const int pass_type,
+	void (*bake)(struct RenderEngine *engine, struct Depsgraph *depsgraph,
+	             struct Scene *scene, struct Object *object, const int pass_type,
 	             const int pass_filter, const int object_id, const struct BakePixel *pixel_array, const int num_pixels,
 	             const int depth, void *result);
 

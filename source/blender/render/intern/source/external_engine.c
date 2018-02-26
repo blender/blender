@@ -584,17 +584,32 @@ bool RE_bake_engine(
 		type->update(engine, re->main, re->scene);
 
 	if (type->bake) {
-		type->bake(
-		            engine,
-		            re->scene,
-		            object,
-		            pass_type,
-		            pass_filter,
-		            object_id,
-		            pixel_array,
-		            num_pixels,
-		            depth,
-		            result);
+		EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
+		Depsgraph *depsgraph = DEG_graph_new();
+		ViewLayer *view_layer = BLI_findlink(&re->scene->view_layers, re->scene->active_view_layer);
+
+		DEG_evaluation_context_init_from_view_layer_for_render(
+					eval_ctx,
+					depsgraph,
+					re->scene,
+					view_layer);
+
+		BKE_scene_graph_update_tagged(eval_ctx, depsgraph, re->main, re->scene, view_layer);
+
+		type->bake(engine,
+		           depsgraph,
+		           re->scene,
+		           object,
+		           pass_type,
+		           pass_filter,
+		           object_id,
+		           pixel_array,
+		           num_pixels,
+		           depth,
+		           result);
+
+		DEG_graph_free(depsgraph);
+		DEG_evaluation_context_free(eval_ctx);
 	}
 
 	engine->tile_x = 0;

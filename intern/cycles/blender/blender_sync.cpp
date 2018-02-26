@@ -44,17 +44,13 @@ CCL_NAMESPACE_BEGIN
 
 BlenderSync::BlenderSync(BL::RenderEngine& b_engine,
                          BL::BlendData& b_data,
-                         BL::Depsgraph& b_depsgraph,
                          BL::Scene& b_scene,
-                         BL::ViewLayer& b_view_layer,
                          Scene *scene,
                          bool preview,
                          Progress &progress)
 : b_engine(b_engine),
   b_data(b_data),
-  b_depsgraph(b_depsgraph),
   b_scene(b_scene),
-  b_view_layer(b_view_layer),
   shader_map(&scene->shaders),
   object_map(&scene->objects),
   mesh_map(&scene->meshes),
@@ -193,16 +189,18 @@ bool BlenderSync::sync_recalc()
 }
 
 void BlenderSync::sync_data(BL::RenderSettings& b_render,
+	                        BL::Depsgraph& b_depsgraph,
                             BL::SpaceView3D& b_v3d,
                             BL::Object& b_override,
                             int width, int height,
-                            void **python_thread_state,
-                            const char *layer)
+                            void **python_thread_state)
 {
-	sync_view_layers(b_v3d, layer);
+	BL::ViewLayer b_view_layer = b_depsgraph.view_layer();
+
+	sync_view_layer(b_v3d, b_view_layer);
 	sync_integrator();
 	sync_film();
-	sync_shaders();
+	sync_shaders(b_depsgraph);
 	sync_images();
 	sync_curve_settings();
 
@@ -212,9 +210,10 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
 	   scene->need_motion() == Scene::MOTION_NONE ||
 	   scene->camera->motion_position == Camera::MOTION_POSITION_CENTER)
 	{
-		sync_objects();
+		sync_objects(b_depsgraph);
 	}
 	sync_motion(b_render,
+	            b_depsgraph,
 	            b_override,
 	            width, height,
 	            python_thread_state);
@@ -373,47 +372,31 @@ void BlenderSync::sync_film()
 
 /* Render Layer */
 
-void BlenderSync::sync_view_layers(BL::SpaceView3D& b_v3d, const char *layer)
+void BlenderSync::sync_view_layer(BL::SpaceView3D& /*b_v3d*/, BL::ViewLayer& b_view_layer)
 {
-	string layername;
-
-	/* 3d view */
-	if(b_v3d) {
-		layername = b_scene.view_layers.active().name();
-		layer = layername.c_str();
-	}
-
 	/* render layer */
-	BL::Scene::view_layers_iterator b_view_layer;
-	bool first_layer = true;
 	uint layer_override = get_layer(b_engine.layer_override());
 	uint view_layers = layer_override ? layer_override : get_layer(b_scene.layers());
 
-	for(b_scene.view_layers.begin(b_view_layer); b_view_layer != b_scene.view_layers.end(); ++b_view_layer) {
-		if((!layer && first_layer) || (layer && b_view_layer->name() == layer)) {
-			view_layer.name = b_view_layer->name();
+	view_layer.name = b_view_layer.name();
 
-			view_layer.holdout_layer = 0;
-			view_layer.exclude_layer = 0;
+	view_layer.holdout_layer = 0;
+	view_layer.exclude_layer = 0;
 
-			view_layer.view_layer = view_layers & ~view_layer.exclude_layer;
-			view_layer.view_layer |= view_layer.exclude_layer & view_layer.holdout_layer;
+	view_layer.view_layer = view_layers & ~view_layer.exclude_layer;
+	view_layer.view_layer |= view_layer.exclude_layer & view_layer.holdout_layer;
 
-			view_layer.layer = (1 << 20) - 1;
-			view_layer.layer |= view_layer.holdout_layer;
+	view_layer.layer = (1 << 20) - 1;
+	view_layer.layer |= view_layer.holdout_layer;
 
-			view_layer.material_override = PointerRNA_NULL;
-			view_layer.use_background_shader = b_view_layer->use_sky();
-			view_layer.use_background_ao = b_view_layer->use_ao();
-			view_layer.use_surfaces = b_view_layer->use_solid();
-			view_layer.use_hair = b_view_layer->use_strand();
+	view_layer.material_override = PointerRNA_NULL;
+	view_layer.use_background_shader = b_view_layer.use_sky();
+	view_layer.use_background_ao = b_view_layer.use_ao();
+	view_layer.use_surfaces = b_view_layer.use_solid();
+	view_layer.use_hair = b_view_layer.use_strand();
 
-			view_layer.bound_samples = false;
-			view_layer.samples = 0;
-		}
-
-		first_layer = false;
-	}
+	view_layer.bound_samples = false;
+	view_layer.samples = 0;
 }
 
 /* Images */

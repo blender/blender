@@ -182,7 +182,7 @@ static void engine_render_to_image(RenderEngine *engine, Depsgraph *depsgraph)
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_bake(RenderEngine *engine, struct Scene *scene,
+static void engine_bake(RenderEngine *engine, struct Depsgraph *depsgraph, struct Scene *scene,
                         struct Object *object, const int pass_type, const int pass_filter,
                         const int object_id, const struct BakePixel *pixel_array,
                         const int num_pixels, const int depth, void *result)
@@ -196,6 +196,7 @@ static void engine_bake(RenderEngine *engine, struct Scene *scene,
 	func = &rna_RenderEngine_bake_func;
 
 	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "depsgraph", &depsgraph);
 	RNA_parameter_set_lookup(&list, "scene", &scene);
 	RNA_parameter_set_lookup(&list, "object", &object);
 	RNA_parameter_set_lookup(&list, "pass_type", &pass_type);
@@ -501,17 +502,19 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Export scene data for render");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	RNA_def_pointer(func, "data", "BlendData", "", "");
-	RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
 	RNA_def_pointer(func, "scene", "Scene", "", "");
 
 	func = RNA_def_function(srna, "render_to_image", NULL);
 	RNA_def_function_ui_description(func, "Render scene into an image");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-	RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "bake", NULL);
 	RNA_def_function_ui_description(func, "Bake passes");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "Object", "", "");
