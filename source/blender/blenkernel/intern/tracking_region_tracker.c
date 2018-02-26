@@ -189,7 +189,7 @@ void tracking_configure_tracker(const MovieTrackingTrack *track, float *mask,
 		options->image1_mask = NULL;
 }
 
-/* Peform tracking from a reference_marker to destination_ibuf.
+/* Perform tracking from a reference_marker to destination_ibuf.
  * Uses marker as an initial position guess.
  *
  * Returns truth if tracker returned success, puts result
