@@ -97,7 +97,7 @@ void AnimationExporter::create_sampled_animation(int channel_count,
 	std::string output_id;
 	if (channel_count == 1)
 		output_id = create_source_from_array(COLLADASW::InputSemantic::OUTPUT, &values[0], values.size(), is_rot, anim_id, axis_name.c_str());
-	else if(channel_count = 3)
+	else if(channel_count == 3)
 		output_id = create_xyz_source(&values[0], times.size(), anim_id);
 
 	std::string sampler_id = std::string(anim_id) + SAMPLER_ID_SUFFIX;
