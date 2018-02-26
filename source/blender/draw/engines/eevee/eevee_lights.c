@@ -855,8 +855,6 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		float center[3];
 		frustum_min_bounding_sphere(corners, center, &(sh_data->radius[c]));
 
-		printf("\n");
-
 		/* Project into lightspace */
 		invert_m4_m4(viewmat, ob->obmat);
 		normalize_v3(viewmat[0]);

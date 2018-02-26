@@ -418,6 +418,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
 		/* Restore winmat before jittering again. */
 		copy_m4_m4(stl->effects->overide_winmat, g_data->winmat);
+		/* Copy previous persmat to UBO data */
+		copy_m4_m4(sldata->common_data.prev_persmat, stl->effects->prev_persmat);
 
 		BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
 		EEVEE_update_noise(psl, fbl, r);

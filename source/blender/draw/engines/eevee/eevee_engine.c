@@ -197,6 +197,8 @@ static void eevee_draw_background(void *vedata)
 			EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
 			EEVEE_materials_init(sldata, stl, fbl);
 		}
+		/* Copy previous persmat to UBO data */
+		copy_m4_m4(sldata->common_data.prev_persmat, stl->effects->prev_persmat);
 
 		/* Refresh Probes */
 		DRW_stats_group_start("Probes Refresh");

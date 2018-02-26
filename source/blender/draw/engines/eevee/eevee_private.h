@@ -514,6 +514,8 @@ typedef struct EEVEE_EffectsInfo {
 	float dof_bokeh[4];
 	float dof_layer_select[2];
 	int dof_target_size[2];
+	/* Other */
+	float prev_persmat[4][4];
 	/* Bloom */
 	int bloom_iteration_ct;
 	float source_texel_size[2];
