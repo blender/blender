@@ -2036,9 +2036,7 @@ void ED_view3d_draw_offscreen(
 	else
 		view3d_main_region_setup_view(eval_ctx, scene, v3d, ar, viewmat, winmat, NULL);
 
-	/* XXX, should take depsgraph as arg */
-	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, false);
-	BLI_assert(depsgraph != NULL);
+	Depsgraph *depsgraph = eval_ctx->depsgraph;
 
 	/* main drawing call */
 	RenderEngineType *engine_type = eval_ctx->engine_type;
