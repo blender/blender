@@ -158,7 +158,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
 
-	export_count = collada_export(C,
+	export_count = collada_export(CTX_data_scene(C),
 		filepath,
 		apply_modifiers,
 		export_mesh_type,

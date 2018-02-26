@@ -67,7 +67,7 @@ int collada_import(bContext *C,
 	return 0;
 }
 
-int collada_export(bContext *C,
+int collada_export(Scene *sce,
                    const char *filepath,
 
                    int apply_modifiers,
@@ -124,7 +124,6 @@ int collada_export(bContext *C,
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
 	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
-	Scene *sce = CTX_data_scene(C);
 	export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
 	int export_count = BLI_linklist_count(export_settings.export_set);
 

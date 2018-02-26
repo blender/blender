@@ -67,7 +67,7 @@ int collada_import(struct bContext *C,
 
 				   int keep_bind_info);
 
-int collada_export(struct bContext *C,
+int collada_export(struct Scene *sce,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,

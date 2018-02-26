@@ -729,7 +729,7 @@ int UI_pie_menu_invoke_from_operator_enum(struct bContext *C, const char *title,
 /* RNA COLLADA dependency                                       */
 /* XXX (gaia) Why do we need this declaration here?             */
 /*     The collada header is included anyways further up...     */
-int collada_export(struct bContext *C,
+int collada_export(struct Scene *sce,
                    const char *filepath,
                    int apply_modifiers,
                    BC_export_mesh_type export_mesh_type,
