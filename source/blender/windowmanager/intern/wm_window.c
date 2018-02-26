@@ -79,6 +79,7 @@
 
 #include "PIL_time.h"
 
+#include "GPU_batch.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
 #include "GPU_init_exit.h"
@@ -381,6 +382,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 		}
 
 		if (tmpwin) {
+			gpu_batch_presets_reset();
 			immDeactivate();
 		}
 
@@ -501,7 +503,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 #endif
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              glSettings);
-	
+
 	if (ghostwin) {
 		GHOST_RectangleHandle bounds;
 
@@ -1028,6 +1030,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 			printf("%s: set drawable %d\n", __func__, win->winid);
 		}
 
+		gpu_batch_presets_reset();
 		immDeactivate();
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 		GWN_context_active_set(win->gwnctx);

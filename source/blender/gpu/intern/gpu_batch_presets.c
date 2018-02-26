@@ -193,6 +193,17 @@ void gpu_batch_presets_init(void)
 	g_presets_3d.batch.sphere_wire_med = batch_sphere_wire(8, 16);
 }
 
+void gpu_batch_presets_reset(void)
+{
+	/* Reset vao caches for these every time we switch opengl context.
+	 * This way they will draw correctly for each window. */
+	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_low);
+	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_med);
+	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_high);
+	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_wire_low);
+	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_wire_med);
+}
+
 void gpu_batch_presets_exit(void)
 {
 	GWN_batch_discard(g_presets_3d.batch.sphere_low);
