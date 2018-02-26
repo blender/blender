@@ -219,6 +219,7 @@ void AnimationExporter::export_sampled_matrix_animation(Object *ob, std::vector<
 
 		bc_update_scene(eval_ctx, scene, *ctime);
 		BKE_object_matrix_local_get(ob, fmat);
+
 		converter.mat4_to_dae(outmat, fmat);
 
 		if (this->export_settings->limit_precision)
@@ -284,8 +285,8 @@ void AnimationExporter::export_sampled_transrotloc_animation(Object *ob, std::ve
 	create_sampled_animation(1, ctimes, baked_curves[EULY], ob_name, "rotation", "Y", true);
 	create_sampled_animation(1, ctimes, baked_curves[EULZ], ob_name, "rotation", "Z", true);
 
-	fprintf(stdout, "Animation Export: Baked %zd frames for %s (sampling rate: %d)\n",
-		baked_curves[0].size(),
+	fprintf(stdout, "Animation Export: Baked %d frames for %s (sampling rate: %d)\n",
+		(int)baked_curves[0].size(),
 		ob->id.name,
 		this->export_settings->sampling_rate);
 }
@@ -1260,10 +1261,6 @@ std::string AnimationExporter::create_4x4_source(std::vector<float> &ctimes, std
 	add_source_parameters(param, semantic, false, NULL, true);
 
 	source.prepareToAppendValues();
-
-	bPoseChannel *parchan = NULL;
-	bPoseChannel *pchan = NULL;
-
 
 	std::vector<float>::iterator it;
 
