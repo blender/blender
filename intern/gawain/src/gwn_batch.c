@@ -429,6 +429,12 @@ void GWN_batch_program_use_end(Gwn_Batch* batch)
   #define GET_UNIFORM const Gwn_ShaderInput* uniform = GWN_shaderinterface_uniform(batch->interface, name);
 #endif
 
+void GWN_batch_uniform_1ui(Gwn_Batch* batch, const char* name, int value)
+	{
+	GET_UNIFORM
+	glUniform1ui(uniform->location, value);
+	}
+
 void GWN_batch_uniform_1i(Gwn_Batch* batch, const char* name, int value)
 	{
 	GET_UNIFORM
