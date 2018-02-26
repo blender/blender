@@ -187,7 +187,6 @@ clean_name._trans_cache = {}
 
 
 def _clean_utf8(name):
-    name = _os.path.splitext(basename(name))[0]
     if type(name) == bytes:
         return name.decode("utf8", "replace")
     else:
@@ -207,6 +206,9 @@ def display_name(name):
     mixed case names are kept as is. Intended for use with
     filenames and module names.
     """
+
+    name = _os.path.splitext(basename(name))[0]
+
     # string replacements
     for disp_value, file_value in _display_name_literals.items():
         name = name.replace(file_value, disp_value)
@@ -237,6 +239,7 @@ def display_name_from_filepath(name):
     ensured to be utf8 compatible.
     """
 
+    name = _os.path.splitext(basename(name))[0]
     name = _clean_utf8(name)
     return name
 
