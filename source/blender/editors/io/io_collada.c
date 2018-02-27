@@ -394,7 +394,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
 	            	"Only export deforming bones with armatures");
 
-	RNA_def_boolean(func, "include_animations", false,
+	RNA_def_boolean(func, "include_animations", true,
 		"Include Animations", "Export Animations if available.\nExporting Animations will enforce the decomposition of node transforms\ninto  <translation> <rotation> and <scale> components");
 
 	RNA_def_boolean(func, "sample_animations", 0,
