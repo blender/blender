@@ -53,13 +53,14 @@ endif()
 
 # ------------------------------------------------------------------------------
 # GENERAL PYTHON CORRECTNESS TESTS
-macro (COLLADA_TEST module test_name)
+macro (COLLADA_TEST module test_name blend_file)
 	add_test(
-		NAME collada_${test_name}
-		COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${TEST_SRC_DIR}/collada/${module}/${test_name}.blend
-		--python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${test_name}.py --
+		NAME collada_${module}_${test_name}
+		COMMAND "$<TARGET_FILE:blender>" ${TEST_BLENDER_EXE_PARAMS} ${TEST_SRC_DIR}/collada/${module}/${blend_file}
+		--python ${CMAKE_CURRENT_LIST_DIR}/${module}/test_${module}_${test_name}.py --
 		--testdir ${TEST_SRC_DIR}/collada/${module}
 	)
 endmacro()
 
-COLLADA_TEST(mesh mesh_simple)
+COLLADA_TEST(mesh simple mesh_simple.blend)
+COLLADA_TEST(animation simple suzannes_parent_inverse.blend)
