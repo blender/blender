@@ -3890,6 +3890,10 @@ void DRW_draw_select_loop(
 	drw_engines_draw_scene();
 	DRW_draw_callbacks_post_scene();
 
+#ifdef USE_GPU_SELECT
+	GPU_select_finalize();
+#endif
+
 	DRW_state_reset();
 	drw_engines_disable();
 
