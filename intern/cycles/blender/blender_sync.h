@@ -110,7 +110,7 @@ private:
 	                 void **python_thread_state);
 	void sync_film();
 	void sync_view();
-	void sync_world(bool update_all);
+	void sync_world(BL::Depsgraph& b_depsgraph, bool update_all);
 	void sync_shaders(BL::Depsgraph& b_depsgraph);
 	void sync_curve_settings();
 
