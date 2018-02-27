@@ -3376,6 +3376,10 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 		return;
 	}
 
+	/* XXX Really nasty locking. But else this could
+	 * be executed by the material previews thread
+	 * while rendering a viewport. */
+	BLI_mutex_lock(&g_ogl_context_mutex);
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, sizeof(DST));
@@ -3400,6 +3404,8 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 	DST.viewport = NULL;
 
 	drw_engines_disable();
+
+	BLI_mutex_unlock(&g_ogl_context_mutex);
 }
 
 /** \} */
