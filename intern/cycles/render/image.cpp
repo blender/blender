@@ -84,99 +84,109 @@ bool ImageManager::set_animation_frame_update(int frame)
 	return false;
 }
 
-ImageDataType ImageManager::get_image_metadata(const string& filename,
-                                               void *builtin_data,
-                                               bool& is_linear,
-                                               bool& builtin_free_cache)
+bool ImageManager::get_image_metadata(const string& filename,
+                                      void *builtin_data,
+                                      ImageMetaData& metadata)
 {
-	bool is_float = false, is_half = false;
-	is_linear = false;
-	builtin_free_cache = false;
-	int channels = 4;
+	memset(&metadata, 0, sizeof(metadata));
 
 	if(builtin_data) {
 		if(builtin_image_info_cb) {
-			int width, height, depth;
-			builtin_image_info_cb(filename, builtin_data, is_float, width, height, depth, channels, builtin_free_cache);
-		}
-
-		if(is_float) {
-			is_linear = true;
-			return (channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+			builtin_image_info_cb(filename, builtin_data, metadata);
 		}
 		else {
-			return (channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+			return false;
 		}
+
+		if(metadata.is_float) {
+			metadata.is_linear = true;
+			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+		}
+		else {
+			metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+		}
+
+		return true;
 	}
 
 	/* Perform preliminary checks, with meaningful logging. */
 	if(!path_exists(filename)) {
 		VLOG(1) << "File '" << filename << "' does not exist.";
-		return IMAGE_DATA_TYPE_BYTE4;
+		return false;
 	}
 	if(path_is_directory(filename)) {
 		VLOG(1) << "File '" << filename << "' is a directory, can't use as image.";
-		return IMAGE_DATA_TYPE_BYTE4;
+		return false;
 	}
 
 	ImageInput *in = ImageInput::create(filename);
 
-	if(in) {
-		ImageSpec spec;
+	if(!in) {
+		return false;
+	}
 
-		if(in->open(filename, spec)) {
-			/* check the main format, and channel formats;
-			 * if any take up more than one byte, we'll need a float texture slot */
-			if(spec.format.basesize() > 1) {
-				is_float = true;
-				is_linear = true;
-			}
-
-			for(size_t channel = 0; channel < spec.channelformats.size(); channel++) {
-				if(spec.channelformats[channel].basesize() > 1) {
-					is_float = true;
-					is_linear = true;
-				}
-			}
-
-			/* check if it's half float */
-			if(spec.format == TypeDesc::HALF)
-				is_half = true;
-
-			channels = spec.nchannels;
-
-			/* basic color space detection, not great but better than nothing
-			 * before we do OpenColorIO integration */
-			if(is_float) {
-				string colorspace = spec.get_string_attribute("oiio:ColorSpace");
-
-				is_linear = !(colorspace == "sRGB" ||
-				              colorspace == "GammaCorrected" ||
-				              (colorspace == "" &&
-				                  (strcmp(in->format_name(), "png") == 0 ||
-				                   strcmp(in->format_name(), "tiff") == 0 ||
-				                   strcmp(in->format_name(), "dpx") == 0 ||
-				                   strcmp(in->format_name(), "jpeg2000") == 0)));
-			}
-			else {
-				is_linear = false;
-			}
-
-			in->close();
-		}
-
+	ImageSpec spec;
+	if(!in->open(filename, spec)) {
 		delete in;
+		return false;
 	}
 
-	if(is_half) {
-		return (channels > 1) ? IMAGE_DATA_TYPE_HALF4 : IMAGE_DATA_TYPE_HALF;
+	metadata.width = spec.width;
+	metadata.height = spec.height;
+	metadata.depth = spec.depth;
+
+	/* check the main format, and channel formats;
+	 * if any take up more than one byte, we'll need a float texture slot */
+	if(spec.format.basesize() > 1) {
+		metadata.is_float = true;
+		metadata.is_linear = true;
 	}
-	else if(is_float) {
-		return (channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+
+	for(size_t channel = 0; channel < spec.channelformats.size(); channel++) {
+		if(spec.channelformats[channel].basesize() > 1) {
+			metadata.is_float = true;
+			metadata.is_linear = true;
+		}
+	}
+
+	/* check if it's half float */
+	if(spec.format == TypeDesc::HALF)
+		metadata.is_half = true;
+
+	/* basic color space detection, not great but better than nothing
+	 * before we do OpenColorIO integration */
+	if(metadata.is_float) {
+		string colorspace = spec.get_string_attribute("oiio:ColorSpace");
+
+		metadata.is_linear = !(colorspace == "sRGB" ||
+							   colorspace == "GammaCorrected" ||
+							   (colorspace == "" &&
+								   (strcmp(in->format_name(), "png") == 0 ||
+									strcmp(in->format_name(), "tiff") == 0 ||
+									strcmp(in->format_name(), "dpx") == 0 ||
+									strcmp(in->format_name(), "jpeg2000") == 0)));
 	}
 	else {
-		return (channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+		metadata.is_linear = false;
 	}
+
+	/* set type and channels */
+	metadata.channels = spec.nchannels;
+
+	if(metadata.is_half) {
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_HALF4 : IMAGE_DATA_TYPE_HALF;
+	}
+	else if(metadata.is_float) {
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_FLOAT4 : IMAGE_DATA_TYPE_FLOAT;
+	}
+	else {
+		metadata.type = (metadata.channels > 1) ? IMAGE_DATA_TYPE_BYTE4 : IMAGE_DATA_TYPE_BYTE;
+	}
+
+	in->close();
+	delete in;
+
+	return true;
 }
 
 int ImageManager::max_flattened_slot(ImageDataType type)
@@ -237,22 +247,18 @@ int ImageManager::add_image(const string& filename,
                             void *builtin_data,
                             bool animated,
                             float frame,
-                            bool& is_float,
-                            bool& is_linear,
                             InterpolationType interpolation,
                             ExtensionType extension,
-                            bool use_alpha)
+                            bool use_alpha,
+                            ImageMetaData& metadata)
 {
 	Image *img;
 	size_t slot;
-	bool builtin_free_cache;
 
-	ImageDataType type = get_image_metadata(filename, builtin_data, is_linear, builtin_free_cache);
+	get_image_metadata(filename, builtin_data, metadata);
+	ImageDataType type = metadata.type;
 
 	thread_scoped_lock device_lock(device_mutex);
-
-	/* Check whether it's a float texture. */
-	is_float = (type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4);
 
 	/* No half textures on OpenCL, use full float instead. */
 	if(!has_half_images) {
@@ -313,7 +319,7 @@ int ImageManager::add_image(const string& filename,
 	img = new Image();
 	img->filename = filename;
 	img->builtin_data = builtin_data;
-	img->builtin_free_cache = builtin_free_cache;
+	img->builtin_free_cache = metadata.builtin_free_cache;
 	img->need_load = true;
 	img->animated = animated;
 	img->frame = frame;
@@ -444,8 +450,13 @@ bool ImageManager::file_load_image_generic(Image *img,
 		if(!builtin_image_info_cb || !builtin_image_pixels_cb)
 			return false;
 
-		bool is_float, free_cache;
-		builtin_image_info_cb(img->filename, img->builtin_data, is_float, width, height, depth, components, free_cache);
+		ImageMetaData metadata;
+		builtin_image_info_cb(img->filename, img->builtin_data, metadata);
+
+		width = metadata.width;
+		height = metadata.height;
+		depth = metadata.depth;
+		components = metadata.channels;
 	}
 
 	/* we only handle certain number of components */

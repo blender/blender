@@ -26,6 +26,7 @@
 
 CCL_NAMESPACE_BEGIN
 
+class ImageMetaData;
 class Scene;
 class Session;
 class RenderBuffers;
@@ -153,12 +154,7 @@ protected:
 	int builtin_image_frame(const string &builtin_name);
 	void builtin_image_info(const string &builtin_name,
 	                        void *builtin_data,
-	                        bool &is_float,
-	                        int &width,
-	                        int &height,
-	                        int &depth,
-	                        int &channels,
-	                        bool &free_cache);
+	                        ImageMetaData& metadata);
 	bool builtin_image_pixels(const string &builtin_name,
 	                          void *builtin_data,
 	                          unsigned char *pixels,
