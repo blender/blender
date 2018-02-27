@@ -53,7 +53,6 @@ extern "C" {
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
-#include "BKE_world.h"
 
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
@@ -92,7 +91,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	freestyle_scene->r.cfra = old_scene->r.cfra;
 	freestyle_scene->r.mode = old_scene->r.mode &
 	                          ~(R_EDGE_FRS | R_SHADOW | R_SSS | R_PANORAMA | R_ENVMAP | R_MBLUR | R_BORDER);
-	freestyle_scene->r.alphamode = R_ALPHAPREMUL;
 	freestyle_scene->r.xsch = re->rectx; // old_scene->r.xsch
 	freestyle_scene->r.ysch = re->recty; // old_scene->r.ysch
 	freestyle_scene->r.xasp = 1.0f; // old_scene->r.xasp;
@@ -168,13 +166,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	object_camera->loc[2] = 1.0f;
 
 	freestyle_scene->camera = object_camera;
-
-	// World
-	World *world = BKE_world_add(freestyle_bmain, "FRSWorld");
-	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &world->id, 0);
-	world->horr = world->horg = world->horb = 0.0f;
-	world->zenr = world->zeng = world->zenb = 0.0f;
-	freestyle_scene->world = world;
 
 	// Reset serial mesh ID (used for BlenderStrokeRenderer::NewMesh())
 	_mesh_id = 0xffffffff;
