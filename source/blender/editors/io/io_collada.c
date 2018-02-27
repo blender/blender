@@ -388,7 +388,7 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(func, "include_armatures", 0, "Include Armatures",
 	                "Export related armatures (even if not selected)");
 
-	RNA_def_boolean(func, "include_shapekeys", 1, "Include Shape Keys",
+	RNA_def_boolean(func, "include_shapekeys", false, "Include Shape Keys",
 	                "Export all Shape Keys from Mesh Objects");
 
 	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
