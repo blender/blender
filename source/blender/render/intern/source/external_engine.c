@@ -754,7 +754,7 @@ int RE_engine_render(Render *re, int do_all)
 	}
 
 	if (type->render_to_image) {
-		FOREACH_VIEW_LAYER_TO_RENDER(re, view_layer_iter)
+		FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re, view_layer_iter)
 		{
 			EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 			Depsgraph *depsgraph = DEG_graph_new();

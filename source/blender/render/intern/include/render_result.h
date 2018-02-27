@@ -117,16 +117,16 @@ void render_result_views_shallowcopy(struct RenderResult *dst, struct RenderResu
 void render_result_views_shallowdelete(struct RenderResult *rr);
 bool render_result_has_views(struct RenderResult *rr);
 
-#define FOREACH_VIEW_LAYER_TO_RENDER(re_, iter_)          \
+#define FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re_, iter_)    \
 {                                                         \
-	int nr;                                               \
+	int nr_;                                              \
 	ViewLayer *iter_;                                     \
-	for (nr = 0, iter_ = (re_)->view_layers.first;        \
+	for (nr_ = 0, iter_ = (re_)->view_layers.first;       \
 	     iter_ != NULL;                                   \
-         iter_ = iter_->next, nr++)                       \
+	    iter_ = iter_->next, nr_++)                       \
 	{                                                     \
 		if ((re_)->r.scemode & R_SINGLE_LAYER) {          \
-			if (nr != re->active_view_layer) {            \
+			if (nr_ != re->active_view_layer) {           \
 				continue;                                 \
 			}                                             \
 		}                                                 \

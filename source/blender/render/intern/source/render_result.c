@@ -294,7 +294,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	render_result_views_new(rr, &re->r);
 
 	/* check renderdata for amount of layers */
-	FOREACH_VIEW_LAYER_TO_RENDER(re, view_layer)
+	FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re, view_layer)
 	{
 		if (layername && layername[0]) {
 			if (!STREQ(view_layer->name, layername)) {
