@@ -200,6 +200,5 @@ protected:
 
 	bool validateConstraints(bConstraint *con);
 
-	//void calc_obmat_at_time(Object *ob, float ctime);
 
 };
