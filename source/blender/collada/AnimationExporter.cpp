@@ -155,7 +155,6 @@ void AnimationExporter::export_keyframed_animation_set(Object *ob)
 	if (this->export_settings->export_transformation_type == BC_TRANSFORMATION_TYPE_MATRIX) {
 
 		std::vector<float> ctimes;
-		std::vector<float[4][4]> values;
 		find_keyframes(ob, ctimes);
 		if (ctimes.size() > 0)
 			export_sampled_matrix_animation(ob, ctimes);
