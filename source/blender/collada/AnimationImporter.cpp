@@ -764,7 +764,6 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 			axis = i - 7;
 		}
 
-
 		if (is_joint)
 			BLI_snprintf(rna_path, sizeof(rna_path), "%s.%s", joint_path, tm_str);
 		else
@@ -780,8 +779,8 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 
 	std::vector<float>::iterator it;
 
-	float qref[4];
-	unit_qt(qref);
+	//float qref[4];
+	//unit_qt(qref);
 
 	// sample values at each frame
 	for (it = frames.begin(); it != frames.end(); it++) {
@@ -817,17 +816,7 @@ void AnimationImporter::apply_matrix_curves(Object *ob, std::vector<FCurve *>& a
 		}
 
 		float rot[4], loc[3], scale[3];
-
-		bc_rotate_from_reference_quat(rot, qref, mat);
-		copy_qt_qt(qref, rot);
-
-#if 0
-		for (int i = 0 ; i < 4;  i++) {
-			rot[i] = RAD2DEGF(rot[i]);
-		}
-#endif
-		copy_v3_v3(loc, mat[3]);
-		mat4_to_size(scale, mat);
+		mat4_decompose(loc, rot, scale, mat);
 
 		// add keys
 		for (int i = 0; i < totcu; i++) {
@@ -1854,12 +1843,7 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 					}
 					fcurve_is_used(*it);
 				}
-
-				COLLADAFW::Matrix tm(matrix);
-				dae_matrix_to_mat4(&tm, mat);
-
-				std::vector<FCurve *>::iterator it;
-
+				unit_converter->dae_matrix_to_mat4_(mat, matrix);
 				return true;
 			}
 		}

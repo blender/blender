@@ -214,19 +214,15 @@ void AnimationExporter::export_sampled_matrix_animation(Object *ob, std::vector<
 
 	for (std::vector<float>::iterator ctime = ctimes.begin(); ctime != ctimes.end(); ++ctime) {
 		float fmat[4][4];
-		float outmat[4][4];
 
 		bc_update_scene(eval_ctx, scene, *ctime);
 		BKE_object_matrix_local_get(ob, fmat);
-
-		converter.mat4_to_dae(outmat, fmat);
-
 		if (this->export_settings->limit_precision)
-			bc_sanitize_mat(outmat, 6);
+			bc_sanitize_mat(fmat, 6);
 
 		for (int i = 0; i < 4; i++)
 			for (int j = 0; j < 4; j++)
-				values.push_back(outmat[j][i]);
+				values.push_back(fmat[i][j]);
 	}
 
 	std::string ob_name = id_name(ob);
@@ -252,7 +248,6 @@ void AnimationExporter::export_sampled_transrotloc_animation(Object *ob, std::ve
 		float feul[3];
 
 		bc_update_scene(eval_ctx, scene, *ctime);
-
 		BKE_object_matrix_local_get(ob, fmat);
 		mat4_decompose(floc, fquat, fsize, fmat);
 		quat_to_eul(feul, fquat);
