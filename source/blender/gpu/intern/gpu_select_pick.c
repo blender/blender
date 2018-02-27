@@ -526,6 +526,19 @@ bool gpu_select_pick_load_id(unsigned int id)
 	return true;
 }
 
+ /**
+  * (Optional), call before 'gpu_select_pick_end' if GL context is not kept.
+  * is not compatible with regular select case.
+  * */
+void gpu_select_pick_finalize(void)
+{
+	GPUPickState *ps = &g_pick_state;
+	if (ps->gl.is_init) {
+		/* force finishing last pass */
+		gpu_select_pick_load_id(ps->gl.prev_id);
+	}
+}
+
 unsigned int gpu_select_pick_end(void)
 {
 	GPUPickState *ps = &g_pick_state;
@@ -535,10 +548,7 @@ unsigned int gpu_select_pick_end(void)
 #endif
 
 	if (ps->is_cached == false) {
-		if (ps->gl.is_init) {
-			/* force finishing last pass */
-			gpu_select_pick_load_id(ps->gl.prev_id);
-		}
+		gpu_select_pick_finalize();
 
 		glPopAttrib();
 		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
