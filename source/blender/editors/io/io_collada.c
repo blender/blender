@@ -379,19 +379,19 @@ void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_enum(func, "export_mesh_type_selection", prop_bc_export_mesh_type, 0,
 	             "Resolution", "Modifier resolution for export");
 
-	RNA_def_boolean(func, "selected", 0, "Selection Only",
+	RNA_def_boolean(func, "selected", false, "Selection Only",
 	                "Export only selected elements");
 
-	RNA_def_boolean(func, "include_children", 0, "Include Children",
+	RNA_def_boolean(func, "include_children", false, "Include Children",
 	                "Export all children of selected objects (even if not selected)");
 
-	RNA_def_boolean(func, "include_armatures", 0, "Include Armatures",
+	RNA_def_boolean(func, "include_armatures", false, "Include Armatures",
 	                "Export related armatures (even if not selected)");
 
 	RNA_def_boolean(func, "include_shapekeys", false, "Include Shape Keys",
 	                "Export all Shape Keys from Mesh Objects");
 
-	RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only",
+	RNA_def_boolean(func, "deform_bones_only", false, "Deform Bones only",
 	            	"Only export deforming bones with armatures");
 
 	RNA_def_boolean(func, "include_animations", true,
