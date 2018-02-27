@@ -1376,7 +1376,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 	sp->bmain = CTX_data_main(C);
 	sp->view_render = view_render;
 
-	/* hardcoded preview .blend for cycles/internal, this should be solved
+	/* hardcoded preview .blend for Eevee + cycles/internal, this should be solved
 	 * once with custom preview .blend path for external engines */
 	if ((method != PR_NODE_RENDER) && id_type != ID_TE && use_new_shading) {
 		sp->pr_main = G_pr_main_cycles;

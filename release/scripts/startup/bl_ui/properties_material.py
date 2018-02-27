@@ -183,7 +183,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
 
 class MATERIAL_PT_preview(MaterialButtonsPanel, Panel):
     bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         self.layout.template_preview(context.material)
