@@ -135,7 +135,7 @@ void BlenderSession::create_session()
 	scene = new Scene(scene_params, session->device);
 
 	/* setup callbacks for builtin image support */
-	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3, _4, _5, _6, _7, _8);
+	scene->image_manager->builtin_image_info_cb = function_bind(&BlenderSession::builtin_image_info, this, _1, _2, _3);
 	scene->image_manager->builtin_image_pixels_cb = function_bind(&BlenderSession::builtin_image_pixels, this, _1, _2, _3, _4, _5);
 	scene->image_manager->builtin_image_float_pixels_cb = function_bind(&BlenderSession::builtin_image_float_pixels, this, _1, _2, _3, _4, _5);
 
@@ -1018,20 +1018,11 @@ int BlenderSession::builtin_image_frame(const string &builtin_name)
 
 void BlenderSession::builtin_image_info(const string &builtin_name,
                                         void *builtin_data,
-                                        bool &is_float,
-                                        int &width,
-                                        int &height,
-                                        int &depth,
-                                        int &channels,
-                                        bool& free_cache)
+                                        ImageMetaData& metadata)
 {
 	/* empty image */
-	is_float = false;
-	width = 1;
-	height = 1;
-	depth = 0;
-	channels = 0;
-	free_cache = false;
+	metadata.width = 1;
+	metadata.height = 1;
 
 	if(!builtin_data)
 		return;
@@ -1045,21 +1036,21 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 		/* image data */
 		BL::Image b_image(b_id);
 
-		free_cache = !b_image.has_data();
-		is_float = b_image.is_float();
-		width = b_image.size()[0];
-		height = b_image.size()[1];
-		depth = 1;
-		channels = b_image.channels();
+		metadata.builtin_free_cache = !b_image.has_data();
+		metadata.is_float = b_image.is_float();
+		metadata.width = b_image.size()[0];
+		metadata.height = b_image.size()[1];
+		metadata.depth = 1;
+		metadata.channels = b_image.channels();
 	}
 	else if(b_id.is_a(&RNA_Object)) {
 		/* smoke volume data */
 		BL::Object b_ob(b_id);
 		BL::SmokeDomainSettings b_domain = object_smoke_domain_find(b_ob);
 
-		is_float = true;
-		depth = 1;
-		channels = 1;
+		metadata.is_float = true;
+		metadata.depth = 1;
+		metadata.channels = 1;
 
 		if(!b_domain)
 			return;
@@ -1068,11 +1059,11 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_FLAME) ||
 		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_HEAT) ||
 		   builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_TEMPERATURE))
-			channels = 1;
+			metadata.channels = 1;
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_COLOR))
-			channels = 4;
+			metadata.channels = 4;
 		else if(builtin_name == Attribute::standard_name(ATTR_STD_VOLUME_VELOCITY))
-			channels = 3;
+			metadata.channels = 3;
 		else
 			return;
 
@@ -1086,9 +1077,9 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 			amplify = 1;
 		}
 
-		width = resolution.x * amplify;
-		height = resolution.y * amplify;
-		depth = resolution.z * amplify;
+		metadata.width = resolution.x * amplify;
+		metadata.height = resolution.y * amplify;
+		metadata.depth = resolution.z * amplify;
 	}
 	else {
 		/* TODO(sergey): Check we're indeed in shader node tree. */
@@ -1097,9 +1088,11 @@ void BlenderSession::builtin_image_info(const string &builtin_name,
 		BL::Node b_node(ptr);
 		if(b_node.is_a(&RNA_ShaderNodeTexPointDensity)) {
 			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
-			channels = 4;
-			width = height = depth = b_point_density_node.resolution();
-			is_float = true;
+			metadata.channels = 4;
+			metadata.width = b_point_density_node.resolution();
+			metadata.height = metadata.width;
+			metadata.depth = metadata.width;
+			metadata.is_float = true;
 		}
 	}
 }

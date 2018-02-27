@@ -302,17 +302,17 @@ void ImageTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
-		bool is_float_bool;
+		ImageMetaData metadata;
 		slot = image_manager->add_image(filename.string(),
 		                                builtin_data,
 		                                animated,
 		                                0,
-		                                is_float_bool,
-		                                is_linear,
 		                                interpolation,
 		                                extension,
-		                                use_alpha);
-		is_float = (int)is_float_bool;
+		                                use_alpha,
+		                                metadata);
+		is_float = metadata.is_float;
+		is_linear = metadata.is_linear;
 	}
 
 	if(slot != -1) {
@@ -363,26 +363,22 @@ void ImageTextureNode::compile(OSLCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
+		ImageMetaData metadata;
 		if(builtin_data == NULL) {
-			ImageDataType type;
-			bool builtin_free_cache;
-			type = image_manager->get_image_metadata(filename.string(), NULL, is_linear, builtin_free_cache);
-			if(type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4)
-				is_float = 1;
+			image_manager->get_image_metadata(filename.string(), NULL, metadata);
 		}
 		else {
-			bool is_float_bool;
 			slot = image_manager->add_image(filename.string(),
 			                                builtin_data,
 			                                animated,
 			                                0,
-			                                is_float_bool,
-			                                is_linear,
 			                                interpolation,
 			                                extension,
-			                                use_alpha);
-			is_float = (int)is_float_bool;
+			                                use_alpha,
+			                                metadata);
 		}
+		is_float = metadata.is_float;
+		is_linear = metadata.is_linear;
 	}
 
 	if(slot == -1) {
@@ -501,17 +497,17 @@ void EnvironmentTextureNode::compile(SVMCompiler& compiler)
 
 	image_manager = compiler.image_manager;
 	if(slot == -1) {
-		bool is_float_bool;
+		ImageMetaData metadata;
 		slot = image_manager->add_image(filename.string(),
 		                                builtin_data,
 		                                animated,
 		                                0,
-		                                is_float_bool,
-		                                is_linear,
 		                                interpolation,
 		                                EXTENSION_REPEAT,
-		                                use_alpha);
-		is_float = (int)is_float_bool;
+		                                use_alpha,
+		                                metadata);
+		is_float = metadata.is_float;
+		is_linear = metadata.is_linear;
 	}
 
 	if(slot != -1) {
@@ -553,26 +549,22 @@ void EnvironmentTextureNode::compile(OSLCompiler& compiler)
 	 */
 	image_manager = compiler.image_manager;
 	if(is_float == -1) {
+		ImageMetaData metadata;
 		if(builtin_data == NULL) {
-			ImageDataType type;
-			bool builtin_free_cache;
-			type = image_manager->get_image_metadata(filename.string(), NULL, is_linear, builtin_free_cache);
-			if(type == IMAGE_DATA_TYPE_FLOAT || type == IMAGE_DATA_TYPE_FLOAT4)
-				is_float = 1;
+			image_manager->get_image_metadata(filename.string(), NULL, metadata);
 		}
 		else {
-			bool is_float_bool;
 			slot = image_manager->add_image(filename.string(),
 			                                builtin_data,
 			                                animated,
 			                                0,
-			                                is_float_bool,
-			                                is_linear,
 			                                interpolation,
 			                                EXTENSION_REPEAT,
-			                                use_alpha);
-			is_float = (int)is_float_bool;
+			                                use_alpha,
+			                                metadata);
 		}
+		is_float = metadata.is_float;
+		is_linear = metadata.is_linear;
 	}
 
 	if(slot == -1) {
@@ -1421,13 +1413,13 @@ void PointDensityTextureNode::compile(SVMCompiler& compiler)
 
 	if(use_density || use_color) {
 		if(slot == -1) {
-			bool is_float, is_linear;
+			ImageMetaData metadata;
 			slot = image_manager->add_image(filename.string(), builtin_data,
 			                                false, 0,
-			                                is_float, is_linear,
 			                                interpolation,
 			                                EXTENSION_CLIP,
-			                                true);
+			                                true,
+			                                metadata);
 		}
 
 		if(slot != -1) {
@@ -1473,13 +1465,13 @@ void PointDensityTextureNode::compile(OSLCompiler& compiler)
 
 	if(use_density || use_color) {
 		if(slot == -1) {
-			bool is_float, is_linear;
+			ImageMetaData metadata;
 			slot = image_manager->add_image(filename.string(), builtin_data,
 			                                false, 0,
-			                                is_float, is_linear,
 			                                interpolation,
 			                                EXTENSION_CLIP,
-			                                true);
+			                                true,
+			                                metadata);
 		}
 
 		if(slot != -1) {

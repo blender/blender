@@ -337,8 +337,9 @@ static void create_mesh_volume_attribute(BL::Object& b_ob,
 
 	Attribute *attr = mesh->attributes.add(std);
 	VoxelAttribute *volume_data = attr->data_voxel();
-	bool is_float, is_linear;
+	ImageMetaData metadata;
 	bool animated = false;
+	bool use_alpha = true;
 
 	volume_data->manager = image_manager;
 	volume_data->slot = image_manager->add_image(
@@ -346,11 +347,10 @@ static void create_mesh_volume_attribute(BL::Object& b_ob,
 	        b_ob.ptr.data,
 	        animated,
 	        frame,
-	        is_float,
-	        is_linear,
 	        INTERPOLATION_LINEAR,
 	        EXTENSION_CLIP,
-	        true);
+	        use_alpha,
+	        metadata);
 }
 
 static void create_mesh_volume_attributes(Scene *scene,

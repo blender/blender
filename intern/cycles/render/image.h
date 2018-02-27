@@ -31,6 +31,19 @@ class Device;
 class Progress;
 class Scene;
 
+class ImageMetaData {
+public:
+	/* Must be set by image file or builtin callback. */
+	bool is_float, is_half;
+	int channels;
+	size_t width, height, depth;
+	bool builtin_free_cache;
+
+	/* Automatically set. */
+	ImageDataType type;
+	bool is_linear;
+};
+
 class ImageManager {
 public:
 	explicit ImageManager(const DeviceInfo& info);
@@ -40,11 +53,10 @@ public:
 	              void *builtin_data,
 	              bool animated,
 	              float frame,
-	              bool& is_float,
-	              bool& is_linear,
 	              InterpolationType interpolation,
 	              ExtensionType extension,
-	              bool use_alpha);
+	              bool use_alpha,
+	              ImageMetaData& metadata);
 	void remove_image(int flat_slot);
 	void remove_image(const string& filename,
 	                  void *builtin_data,
@@ -56,10 +68,9 @@ public:
 	                      InterpolationType interpolation,
 	                      ExtensionType extension,
 	                      bool use_alpha);
-	ImageDataType get_image_metadata(const string& filename,
-	                                 void *builtin_data,
-	                                 bool& is_linear,
-	                                 bool& builtin_free_cache);
+	bool get_image_metadata(const string& filename,
+	                        void *builtin_data,
+	                        ImageMetaData& metadata);
 
 	void device_update(Device *device,
 	                   Scene *scene,
@@ -82,12 +93,7 @@ public:
 	 */
 	function<void(const string &filename,
 	              void *data,
-	              bool &is_float,
-	              int &width,
-	              int &height,
-	              int &depth,
-	              int &channels,
-	              bool &free_cache)> builtin_image_info_cb;
+	              ImageMetaData& metadata)> builtin_image_info_cb;
 	function<bool(const string &filename,
 	              void *data,
 	              unsigned char *pixels,
