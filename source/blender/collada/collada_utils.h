@@ -107,7 +107,7 @@ extern int bc_set_layer(int bitfield, int layer, bool enable);
 extern int bc_set_layer(int bitfield, int layer);
 
 inline bool bc_in_range(float a, float b, float range) {
-	return abs(a - b) < range;
+	return fabsf(a - b) < range;
 }
 void bc_copy_m4_farray(float r[4][4], float *a);
 void bc_copy_farray_m4(float *r, float a[4][4]);
