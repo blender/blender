@@ -31,6 +31,7 @@
 
 extern "C" {
 #include "DNA_customdata_types.h"
+#include "BKE_depsgraph.h"
 }
 
 struct Scene;
