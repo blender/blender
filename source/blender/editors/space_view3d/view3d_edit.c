@@ -2094,7 +2094,7 @@ static int viewzoom_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		viewzoom_apply(
 		        vod, &event->x, U.viewzoom,
 		        (U.uiflag & USER_ZOOM_INVERT) != 0,
-		        (use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)) ? vod->prev.event_xy : NULL);
+		        (use_mouse_init && (U.uiflag & USER_ZOOM_TO_MOUSEPOS)));
 		if (ED_screen_animation_playing(CTX_wm_manager(C))) {
 			use_autokey = true;
 		}

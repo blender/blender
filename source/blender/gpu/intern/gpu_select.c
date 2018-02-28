@@ -73,7 +73,7 @@ static GPUSelectState g_select_state = {0};
 /**
  * initialize and provide buffer for results
  */
-void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rcti *input, char mode, int oldhits)
+void GPU_select_begin(uint *buffer, uint bufsize, const rcti *input, char mode, int oldhits)
 {
 	if (mode == GPU_SELECT_NEAREST_SECOND_PASS) {
 		/* In the case hits was '-1', don't start the second pass since it's not going to give useful results.
@@ -108,12 +108,12 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rcti *in
 		case ALGO_GL_QUERY:
 		{
 			g_select_state.use_cache = false;
-			gpu_select_query_begin((unsigned int (*)[4])buffer, bufsize / 4, input, mode, oldhits);
+			gpu_select_query_begin((uint (*)[4])buffer, bufsize / 4, input, mode, oldhits);
 			break;
 		}
 		default:  /* ALGO_GL_PICK */
 		{
-			gpu_select_pick_begin((unsigned int (*)[4])buffer, bufsize / 4, input, mode);
+			gpu_select_pick_begin((uint (*)[4])buffer, bufsize / 4, input, mode);
 			break;
 		}
 	}
@@ -126,7 +126,7 @@ void GPU_select_begin(unsigned int *buffer, unsigned int bufsize, const rcti *in
  *
  * \warning We rely on the order of object rendering on passes to be the same for this to work.
  */
-bool GPU_select_load_id(unsigned int id)
+bool GPU_select_load_id(uint id)
 {
 	/* if no selection mode active, ignore */
 	if (!g_select_state.select_is_active)
@@ -177,9 +177,9 @@ void GPU_select_finalize(void)
  * Return number of hits and hits in buffer.
  * if \a dopass is true, we will do a second pass with occlusion queries to get the closest hit.
  */
-unsigned int GPU_select_end(void)
+uint GPU_select_end(void)
 {
-	unsigned int hits = 0;
+	uint hits = 0;
 
 	switch (g_select_state.algorithm) {
 		case ALGO_GL_LEGACY:

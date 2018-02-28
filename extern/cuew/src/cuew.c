@@ -338,7 +338,7 @@ static int cuewCudaInit(void) {
   /* Default installation path. */
   const char *cuda_paths[] = {"/usr/local/cuda/lib/libcuda.dylib", NULL};
 #else
-  const char *cuda_paths[] = {"libcuda.so", NULL};
+  const char *cuda_paths[] = {"libcuda.so", "libcuda.so.1", NULL};
 #endif
   static int initialized = 0;
   static int result = 0;

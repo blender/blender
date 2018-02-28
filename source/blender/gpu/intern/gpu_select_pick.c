@@ -62,14 +62,14 @@
 
 /* For looping over a sub-region of a rect, could be moved into 'rct.c'*/
 typedef struct SubRectStride {
-	unsigned int start;     /* start here */
-	unsigned int span;      /* read these */
-	unsigned int span_len;  /* len times (read span 'len' times). */
-	unsigned int skip;      /* skip those */
+	uint start;     /* start here */
+	uint span;      /* read these */
+	uint span_len;  /* len times (read span 'len' times). */
+	uint skip;      /* skip those */
 } SubRectStride;
 
 /* we may want to change back to float if uint isn't well supported */
-typedef unsigned int depth_t;
+typedef uint depth_t;
 
 /**
  * Calculate values needed for looping over a sub-region (smaller buffer within a larger buffer).
@@ -89,10 +89,10 @@ static void rect_subregion_stride_calc(const rcti *src, const rcti *dst, SubRect
 	           src->ymax >= dst->ymax && src->ymax >= dst->ymax);
 	BLI_assert(x >= 0 && y >= 0);
 
-	r_sub->start    = (unsigned int)((src_x * y) + x);
-	r_sub->span     = (unsigned int)dst_x;
-	r_sub->span_len = (unsigned int)dst_y;
-	r_sub->skip     = (unsigned int)(src_x - dst_x);
+	r_sub->start    = (uint)((src_x * y) + x);
+	r_sub->span     = (uint)dst_x;
+	r_sub->span_len = (uint)dst_y;
+	r_sub->skip     = (uint)(src_x - dst_x);
 }
 
 /**
@@ -114,11 +114,11 @@ BLI_INLINE bool depth_is_filled(const depth_t *prev, const depth_t *curr)
 /* store result of glReadPixels */
 typedef struct DepthBufCache {
 	struct DepthBufCache *next, *prev;
-	unsigned int id;
+	uint id;
 	depth_t buf[0];
 } DepthBufCache;
 
-static DepthBufCache *depth_buf_malloc(unsigned int rect_len)
+static DepthBufCache *depth_buf_malloc(uint rect_len)
 {
 	DepthBufCache *rect = MEM_mallocN(sizeof(DepthBufCache) + sizeof(depth_t) * rect_len, __func__);
 	rect->id = SELECT_ID_NONE;
@@ -127,10 +127,10 @@ static DepthBufCache *depth_buf_malloc(unsigned int rect_len)
 
 static bool depth_buf_rect_depth_any(
         const DepthBufCache *rect_depth,
-        unsigned int rect_len)
+        uint rect_len)
 {
 	const depth_t *curr = rect_depth->buf;
-	for (unsigned int i = 0; i < rect_len; i++, curr++) {
+	for (uint i = 0; i < rect_len; i++, curr++) {
 		if (*curr != DEPTH_MAX) {
 			return true;
 		}
@@ -143,7 +143,7 @@ static bool depth_buf_subrect_depth_any(
         const SubRectStride *sub_rect)
 {
 	const depth_t *curr = rect_depth->buf + sub_rect->start;
-	for (unsigned int i = 0; i < sub_rect->span_len; i++) {
+	for (uint i = 0; i < sub_rect->span_len; i++) {
 		const depth_t *curr_end = curr + sub_rect->span;
 		for (; curr < curr_end; curr++, curr++) {
 			if (*curr != DEPTH_MAX) {
@@ -157,14 +157,14 @@ static bool depth_buf_subrect_depth_any(
 
 static bool depth_buf_rect_depth_any_filled(
         const DepthBufCache *rect_prev, const DepthBufCache *rect_curr,
-        unsigned int rect_len)
+        uint rect_len)
 {
 #if 0
 	return memcmp(rect_depth_a->buf, rect_depth_b->buf, rect_len * sizeof(depth_t)) != 0;
 #else
 	const depth_t *prev = rect_prev->buf;
 	const depth_t *curr = rect_curr->buf;
-	for (unsigned int i = 0; i < rect_len; i++, curr++, prev++) {
+	for (uint i = 0; i < rect_len; i++, curr++, prev++) {
 		if (depth_is_filled(prev, curr)) {
 			return true;
 		}
@@ -183,7 +183,7 @@ static bool depth_buf_subrect_depth_any_filled(
 	/* same as above but different rect sizes */
 	const depth_t *prev = rect_src->buf + sub_rect->start;
 	const depth_t *curr = rect_dst->buf + sub_rect->start;
-	for (unsigned int i = 0; i < sub_rect->span_len; i++) {
+	for (uint i = 0; i < sub_rect->span_len; i++) {
 		const depth_t *curr_end = curr + sub_rect->span;
 		for (; curr < curr_end; prev++, curr++) {
 			if (depth_is_filled(prev, curr)) {
@@ -203,7 +203,7 @@ static bool depth_buf_subrect_depth_any_filled(
  */
 
 typedef struct DepthID {
-	unsigned int id;
+	uint id;
 	depth_t depth;
 } DepthID;
 
@@ -238,10 +238,10 @@ static int depth_cmp(const void *v1, const void *v2)
 /* depth sorting */
 typedef struct GPUPickState {
 	/* cache on initialization */
-	unsigned int (*buffer)[4];
+	uint (*buffer)[4];
 
 	/* buffer size (stores number of integers, for actual size multiply by sizeof integer)*/
-	unsigned int bufsize;
+	uint bufsize;
 	/* mode of operation */
 	char mode;
 
@@ -258,14 +258,14 @@ typedef struct GPUPickState {
 		/* Set after first draw */
 		bool is_init;
 		bool is_finalized;
-		unsigned int prev_id;
+		uint prev_id;
 	} gl;
 
 	/* src: data stored in 'cache' and 'gl',
 	 * dst: use when cached region is smaller (where src -> dst isn't 1:1) */
 	struct {
 		rcti clip_rect;
-		unsigned int rect_len;
+		uint rect_len;
 	} src, dst;
 
 	/* Store cache between `GPU_select_cache_begin/end` */
@@ -285,13 +285,13 @@ typedef struct GPUPickState {
 		/* GPU_SELECT_PICK_ALL */
 		struct {
 			DepthID *hits;
-			unsigned int hits_len;
-			unsigned int hits_len_alloc;
+			uint hits_len;
+			uint hits_len_alloc;
 		} all;
 
 		/* GPU_SELECT_PICK_NEAREST */
 		struct {
-			unsigned int *rect_id;
+			uint *rect_id;
 		} nearest;
 	};
 } GPUPickState;
@@ -300,7 +300,7 @@ typedef struct GPUPickState {
 static GPUPickState g_pick_state = {0};
 
 void gpu_select_pick_begin(
-        unsigned int (*buffer)[4], unsigned int bufsize,
+        uint (*buffer)[4], uint bufsize,
         const rcti *input, char mode)
 {
 	GPUPickState *ps = &g_pick_state;
@@ -313,7 +313,7 @@ void gpu_select_pick_begin(
 	ps->buffer = buffer;
 	ps->mode = mode;
 
-	const unsigned int rect_len = (unsigned int)(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
+	const uint rect_len = (uint)(BLI_rcti_size_x(input) * BLI_rcti_size_y(input));
 	ps->dst.clip_rect = *input;
 	ps->dst.rect_len = rect_len;
 
@@ -328,6 +328,9 @@ void gpu_select_pick_begin(
 		glDepthMask(GL_TRUE);
 
 		if (mode == GPU_SELECT_PICK_ALL) {
+			/* Note that other depth settings (such as #GL_LEQUAL) work too,
+			 * since the depth is always cleared.
+			 * Noting this for cases when depth picking is used where drawing calls change depth settings. */
 			glDepthFunc(GL_ALWAYS);
 		}
 		else {
@@ -359,7 +362,7 @@ void gpu_select_pick_begin(
 #if 0
 		glReadPixels(UNPACK4(ps->gl.clip_readpixels), GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, ps->gl.rect_depth->buf);
 #else
-		for (unsigned int i = 0; i < rect_len; i++) {
+		for (uint i = 0; i < rect_len; i++) {
 			ps->gl.rect_depth->buf[i] = DEPTH_MAX;
 		}
 #endif
@@ -383,8 +386,8 @@ void gpu_select_pick_begin(
 	}
 	else {
 		/* Set to 0xff for SELECT_ID_NONE */
-		ps->nearest.rect_id = MEM_mallocN(sizeof(unsigned int) * ps->dst.rect_len, __func__);
-		memset(ps->nearest.rect_id, 0xff, sizeof(unsigned int) * ps->dst.rect_len);
+		ps->nearest.rect_id = MEM_mallocN(sizeof(uint) * ps->dst.rect_len, __func__);
+		memset(ps->nearest.rect_id, 0xff, sizeof(uint) * ps->dst.rect_len);
 	}
 }
 
@@ -395,7 +398,7 @@ void gpu_select_pick_begin(
 static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
 {
 	GPUPickState *ps = &g_pick_state;
-	const unsigned int id = rect_curr->id;
+	const uint id = rect_curr->id;
 	/* find the best depth for this pass and store in 'all.hits' */
 	depth_t depth_best = DEPTH_MAX;
 
@@ -407,15 +410,15 @@ static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
 	if (ps->is_cached == false) {
 		const depth_t *curr = rect_curr->buf;
 		BLI_assert(ps->src.rect_len == ps->dst.rect_len);
-		const unsigned int rect_len = ps->src.rect_len;
-		for (unsigned int i = 0; i < rect_len; i++, curr++) {
+		const uint rect_len = ps->src.rect_len;
+		for (uint i = 0; i < rect_len; i++, curr++) {
 			EVAL_TEST();
 		}
 	}
 	else {
 		/* same as above but different rect sizes */
 		const depth_t *curr = rect_curr->buf + ps->cache.sub_rect.start;
-		for (unsigned int i = 0; i < ps->cache.sub_rect.span_len; i++) {
+		for (uint i = 0; i < ps->cache.sub_rect.span_len; i++) {
 			const depth_t *curr_end = curr + ps->cache.sub_rect.span;
 			for (; curr < curr_end; curr++) {
 				EVAL_TEST();
@@ -439,10 +442,10 @@ static void gpu_select_load_id_pass_all(const DepthBufCache *rect_curr)
 static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev, const DepthBufCache *rect_curr)
 {
 	GPUPickState *ps = &g_pick_state;
-	const unsigned int id = rect_curr->id;
+	const uint id = rect_curr->id;
 	/* keep track each pixels ID in 'nearest.rect_id' */
 	if (id != SELECT_ID_NONE) {
-		unsigned int *id_ptr = ps->nearest.rect_id;
+		uint *id_ptr = ps->nearest.rect_id;
 
 		/* Check against DEPTH_MAX because XRAY will clear the buffer,
 		 * so previously set values will become unset.
@@ -456,8 +459,8 @@ static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev, cons
 			const depth_t *prev = rect_prev->buf;
 			const depth_t *curr = rect_curr->buf;
 			BLI_assert(ps->src.rect_len == ps->dst.rect_len);
-			const unsigned int rect_len = ps->src.rect_len;
-			for (unsigned int i = 0; i < rect_len; i++, curr++, prev++, id_ptr++) {
+			const uint rect_len = ps->src.rect_len;
+			for (uint i = 0; i < rect_len; i++, curr++, prev++, id_ptr++) {
 				EVAL_TEST();
 			}
 		}
@@ -465,7 +468,7 @@ static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev, cons
 			/* same as above but different rect sizes */
 			const depth_t *prev = rect_prev->buf + ps->cache.sub_rect.start;
 			const depth_t *curr = rect_curr->buf + ps->cache.sub_rect.start;
-			for (unsigned int i = 0; i < ps->cache.sub_rect.span_len; i++) {
+			for (uint i = 0; i < ps->cache.sub_rect.span_len; i++) {
 				const depth_t *curr_end = curr + ps->cache.sub_rect.span;
 				for (; curr < curr_end; prev++, curr++, id_ptr++) {
 					EVAL_TEST();
@@ -480,11 +483,11 @@ static void gpu_select_load_id_pass_nearest(const DepthBufCache *rect_prev, cons
 }
 
 
-bool gpu_select_pick_load_id(unsigned int id)
+bool gpu_select_pick_load_id(uint id)
 {
 	GPUPickState *ps = &g_pick_state;
 	if (ps->gl.is_init) {
-		const unsigned int rect_len = ps->src.rect_len;
+		const uint rect_len = ps->src.rect_len;
 		glReadPixels(UNPACK4(ps->gl.clip_readpixels), GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, ps->gl.rect_depth_test->buf);
 		/* perform initial check since most cases the array remains unchanged  */
 
@@ -540,7 +543,7 @@ void gpu_select_pick_finalize(void)
 	ps->gl.is_finalized = true;
 }
 
-unsigned int gpu_select_pick_end(void)
+uint gpu_select_pick_end(void)
 {
 	GPUPickState *ps = &g_pick_state;
 
@@ -574,9 +577,9 @@ unsigned int gpu_select_pick_end(void)
 		rect_depth_final = ps->gl.rect_depth;
 	}
 
-	unsigned int maxhits = g_pick_state.bufsize;
+	uint maxhits = g_pick_state.bufsize;
 	DepthID *depth_data;
-	unsigned int depth_data_len = 0;
+	uint depth_data_len = 0;
 
 	if (g_pick_state.mode == GPU_SELECT_PICK_ALL) {
 		depth_data = ps->all.hits;
@@ -590,7 +593,7 @@ unsigned int gpu_select_pick_end(void)
 		/* GPU_SELECT_PICK_NEAREST */
 
 		/* Over alloc (unlikely we have as many depths as pixels) */
-		unsigned int depth_data_len_first_pass = 0;
+		uint depth_data_len_first_pass = 0;
 		depth_data = MEM_mallocN(ps->dst.rect_len * sizeof(*depth_data), __func__);
 
 		/* Partially de-duplicating copy,
@@ -599,7 +602,7 @@ unsigned int gpu_select_pick_end(void)
 
 #define EVAL_TEST(i_src, i_dst) \
 		{ \
-			const unsigned int id = ps->nearest.rect_id[i_dst]; \
+			const uint id = ps->nearest.rect_id[i_dst]; \
 			if (id != SELECT_ID_NONE) { \
 				const depth_t depth = rect_depth_final->buf[i_src]; \
 				if (depth_last == NULL || depth_last->id != id) { \
@@ -616,15 +619,15 @@ unsigned int gpu_select_pick_end(void)
 		{
 			DepthID *depth_last = NULL;
 			if (ps->is_cached == false) {
-				for (unsigned int i = 0; i < ps->src.rect_len; i++) {
+				for (uint i = 0; i < ps->src.rect_len; i++) {
 					EVAL_TEST(i, i);
 				}
 			}
 			else {
 				/* same as above but different rect sizes */
-				unsigned int i_src = ps->cache.sub_rect.start, i_dst = 0;
-				for (unsigned int j = 0; j < ps->cache.sub_rect.span_len; j++) {
-					const unsigned int i_src_end = i_src + ps->cache.sub_rect.span;
+				uint i_src = ps->cache.sub_rect.start, i_dst = 0;
+				for (uint j = 0; j < ps->cache.sub_rect.span_len; j++) {
+					const uint i_src_end = i_src + ps->cache.sub_rect.span;
 					for (; i_src < i_src_end; i_src++, i_dst++) {
 						EVAL_TEST(i_src, i_dst);
 					}
@@ -641,7 +644,7 @@ unsigned int gpu_select_pick_end(void)
 		depth_data_len = 0;
 		{
 			DepthID *depth_last = NULL;
-			for (unsigned int i = 0; i < depth_data_len_first_pass; i++) {
+			for (uint i = 0; i < depth_data_len_first_pass; i++) {
 				if (depth_last == NULL || depth_last->id != depth_data[i].id) {
 					depth_last = &depth_data[depth_data_len++];
 					*depth_last = depth_data[i];
@@ -655,16 +658,16 @@ unsigned int gpu_select_pick_end(void)
 
 	/* Finally sort each unique (id, depth) pair by depth
 	 * so the final hit-list is sorted by depth (nearest first) */
-	unsigned int hits = 0;
+	uint hits = 0;
 
 	if (depth_data_len > maxhits) {
-		hits = (unsigned int)-1;
+		hits = (uint)-1;
 	}
 	else {
 		/* leave sorting up to the caller */
 		qsort(depth_data, depth_data_len, sizeof(DepthID), depth_cmp);
 
-		for (unsigned int i = 0; i < depth_data_len; i++) {
+		for (uint i = 0; i < depth_data_len; i++) {
 #ifdef DEBUG_PRINT
 			printf("  hit: %u: depth %u\n", depth_data[i].id,  depth_data[i].depth);
 #endif
