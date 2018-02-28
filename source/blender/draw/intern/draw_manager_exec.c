@@ -582,8 +582,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	}
 
 #ifdef USE_GPU_SELECT
-	/* use the first item because of selection we only ever add one */
-#  define GPU_SELECT_LOAD_IF_PICKSEL(_call) \
+#  define GPU_SELECT_LOAD_IF_PICKSEL(_select_id) \
+	if (G.f & G_PICKSEL) { \
+		GPU_select_load_id(_select_id); \
+	} ((void)0)
+
+#  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(_call) \
 	if ((G.f & G_PICKSEL) && (_call)) { \
 		GPU_select_load_id((_call)->head.select_id); \
 	} ((void)0)
@@ -615,7 +619,8 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	}
 
 #else
-#  define GPU_SELECT_LOAD_IF_PICKSEL(call)
+#  define GPU_SELECT_LOAD_IF_PICKSEL(select_id)
+#  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(call)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
 	_start = 0;                                                     \
@@ -629,14 +634,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		if (ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_INSTANCE_EXTERNAL)) {
 			if (shgroup->type == DRW_SHG_INSTANCE_EXTERNAL) {
 				if (shgroup->instance_geom != NULL) {
-					unsigned int count, start;
+					GPU_SELECT_LOAD_IF_PICKSEL(shgroup->override_selectid);
 					draw_geometry_prepare(shgroup, NULL);
-					/* This will only load override_selectid */
-					GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
-					{
-						draw_geometry_execute(shgroup, shgroup->instance_geom);
-					}
-					GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
+					draw_geometry_execute(shgroup, shgroup->instance_geom);
 				}
 			}
 			else {
@@ -677,7 +677,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				prev_neg_scale = neg_scale;
 			}
 
-			GPU_SELECT_LOAD_IF_PICKSEL(call);
+			GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
 
 			if (call->head.type == DRW_CALL_SINGLE) {
 				draw_geometry_prepare(shgroup, &call->state);
