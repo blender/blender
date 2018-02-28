@@ -34,7 +34,7 @@ void forEachObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 	}
 }
 
-bool AnimationExporter::exportAnimations(EvaluationContext *eval_ctx, Scene *sce)
+bool AnimationExporter::exportAnimations(Scene *sce)
 {
 	bool has_animations = hasAnimations(sce);
 	if (has_animations) {

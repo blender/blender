@@ -90,15 +90,15 @@ private:
 
 public:
 
-	AnimationExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
+	AnimationExporter(EvaluationContext *eval_ctx, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
+		eval_ctx(eval_ctx),
 		COLLADASW::LibraryAnimations(sw),
 		export_settings(export_settings)
 	{
 		this->sw = sw;
 	}
 
-	bool exportAnimations(EvaluationContext *eval_ctx, Scene *sce);
-
+	bool exportAnimations(Scene *sce);
 	// called for each exported object
 	void operator() (Object *ob); 
 	

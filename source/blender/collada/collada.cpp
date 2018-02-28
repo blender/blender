@@ -149,8 +149,8 @@ int collada_export(
 			bc_bubble_sort_by_Object_name(export_settings.export_set);
 	}
 
-	DocumentExporter exporter(&export_settings);
-	int status = exporter.exportCurrentScene(eval_ctx, sce);
+	DocumentExporter exporter(eval_ctx, &export_settings);
+	int status = exporter.exportCurrentScene(sce);
 
 	BLI_linklist_free(export_settings.export_set, NULL);
 
