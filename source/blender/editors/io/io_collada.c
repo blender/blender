@@ -39,6 +39,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 
@@ -174,32 +175,39 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	CTX_data_eval_ctx(C, &eval_ctx);
 
+	ExportSettings export_settings;
+
+	export_settings.filepath = filepath;
+
+	export_settings.apply_modifiers = apply_modifiers != 0;
+	export_settings.export_mesh_type = export_mesh_type;
+	export_settings.selected = selected != 0;
+	export_settings.include_children = include_children != 0;
+	export_settings.include_armatures = include_armatures != 0;
+	export_settings.include_shapekeys = include_shapekeys != 0;
+	export_settings.deform_bones_only = deform_bones_only != 0;
+	export_settings.include_animations = include_animations;
+	export_settings.sampling_rate = sampling_rate;
+
+	export_settings.active_uv_only = active_uv_only != 0;
+	export_settings.use_texture_copies = use_texture_copies != 0;
+
+	export_settings.triangulate = triangulate != 0;
+	export_settings.use_object_instantiation = use_object_instantiation != 0;
+	export_settings.use_blender_profile = use_blender_profile != 0;
+	export_settings.sort_by_name = sort_by_name != 0;
+	export_settings.export_transformation_type = export_transformation_type;
+	export_settings.open_sim = open_sim != 0;
+	export_settings.limit_precision = limit_precision != 0;
+	export_settings.keep_bind_info = keep_bind_info != 0;
+
+	int includeFilter = OB_REL_NONE;
+	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
+	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
+
 	export_count = collada_export(&eval_ctx,
 		scene,
-		filepath,
-		apply_modifiers,
-		export_mesh_type,
-		selected,
-		include_children,
-		include_armatures,
-		include_shapekeys,
-		deform_bones_only,
-		include_animations,
-		sampling_rate,
-
-		active_uv_only,
-		include_material_textures,
-		use_texture_copies,
-
-		triangulate,
-		use_object_instantiation,
-		use_blender_profile,
-		sort_by_name,
-		export_transformation_type,
-
-		open_sim,
-		limit_precision,
-		keep_bind_info
+		&export_settings
 	);
 
 	if (export_count == 0) {
@@ -455,6 +463,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	int min_chain_length;
 
 	int keep_bind_info;
+	ImportSettings import_settings;
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -472,14 +481,16 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	min_chain_length = RNA_int_get(op->ptr, "min_chain_length");
 
 	RNA_string_get(op->ptr, "filepath", filename);
-	if (collada_import(
-	        C, filename,
-	        import_units,
-	        find_chains,
-	        auto_connect,
-	        fix_orientation,
-	        min_chain_length,
-	        keep_bind_info) )
+
+	import_settings.filepath = filename;
+	import_settings.import_units = import_units != 0;
+	import_settings.auto_connect = auto_connect != 0;
+	import_settings.find_chains = find_chains != 0;
+	import_settings.fix_orientation = fix_orientation != 0;
+	import_settings.min_chain_length = min_chain_length;
+	import_settings.keep_bind_info = keep_bind_info != 0;
+
+	if (collada_import(C, &import_settings) )
 	{
 		DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_BASE_FLAGS_UPDATE);
 		return OPERATOR_FINISHED;

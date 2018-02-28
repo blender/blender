@@ -28,6 +28,10 @@
 #define __COLLADA_H__
 
 #include <stdlib.h>
+
+#include "ImportSettings.h"
+#include "ExportSettings.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -35,16 +39,6 @@ extern "C" {
 #include "BLI_linklist.h"
 #include "BLI_path_util.h"
 #include "RNA_types.h"
-
-typedef enum BC_export_mesh_type {
-	BC_MESH_TYPE_VIEW,
-	BC_MESH_TYPE_RENDER
-} BC_export_mesh_type;
-
-typedef enum BC_export_transformation_type {
-	BC_TRANSFORMATION_TYPE_MATRIX,
-	BC_TRANSFORMATION_TYPE_TRANSROTLOC
-} BC_export_transformation_type;
 
 struct bContext;
 struct Scene;
@@ -55,44 +49,12 @@ struct EvaluationContext;
  * both return 1 on success, 0 on error
  */
 int collada_import(struct bContext *C,
-                   const char *filepath,
-				   int import_units,
-				   int find_chains,
-				   int auto_connect,
-				   int fix_orientation,
-				   int min_chain_length,
+				   ImportSettings *import_settings);
 
-				   int keep_bind_info);
 
-int collada_export(
-	EvaluationContext *eval_ctx,
-	Scene *sce,
-	const char *filepath,
-
-	int apply_modifiers,
-	BC_export_mesh_type export_mesh_type,
-
-	int selected,
-	int include_children,
-	int include_armatures,
-	int include_shapekeys,
-	int deform_bones_only,
-	int include_animations,
-	int sampling_rate,
-
-	int active_uv_only,
-	int include_material_textures,
-	int use_texture_copies,
-
-	int triangulate,
-	int use_object_instantiation,
-	int use_blender_profile,
-	int sort_by_name,
-	BC_export_transformation_type export_transformation_type,
-
-	int open_sim,
-	int limit_precision,
-	int keep_bind_info);
+int collada_export(struct EvaluationContext *eval_ctx,
+                   struct Scene *sce,
+                   ExportSettings *export_settings);
 
 #ifdef __cplusplus
 }
