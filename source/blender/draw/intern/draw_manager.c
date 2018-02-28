@@ -1213,7 +1213,6 @@ void DRW_draw_render_loop_offscreen(
 			/* don't free data owned by 'ofs' */
 			GPU_viewport_clear_from_offscreen(rv3d->viewport);
 			GPU_viewport_free(rv3d->viewport);
-			MEM_freeN(rv3d->viewport);
 		}
 
 		rv3d->viewport = backup_viewport;
@@ -1297,7 +1296,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	/* TODO grease pencil */
 
 	GPU_viewport_free(DST.viewport);
-	MEM_freeN(DST.viewport);
 
 	DRW_state_reset();
 	/* FIXME GL_DEPTH_TEST is enabled by default but it seems
@@ -1493,7 +1491,6 @@ void DRW_draw_select_loop(
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
-	MEM_freeN(viewport);
 
 	/* Restore Drawing area. */
 	gpuPopAttrib();
@@ -1638,7 +1635,6 @@ void DRW_draw_depth_loop(
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
-	MEM_freeN(viewport);
 
 	/* Restore Drawing area. */
 	gpuPopAttrib();

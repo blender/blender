@@ -410,7 +410,6 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 cleanup_multisample:
 			if (!ok) {
 				GPU_viewport_free(viewport);
-				MEM_freeN(viewport);
 				return;
 			}
 		}
@@ -466,7 +465,6 @@ cleanup_multisample:
 cleanup:
 		if (!ok) {
 			GPU_viewport_free(viewport);
-			MEM_freeN(viewport);
 			DRW_opengl_context_disable();
 			return;
 		}
@@ -622,6 +620,8 @@ void GPU_viewport_free(GPUViewport *viewport)
 	MEM_freeN(viewport->idatalist);
 
 	GPU_viewport_debug_depth_free(viewport);
+
+	MEM_freeN(viewport);
 }
 
 /****************** debug ********************/

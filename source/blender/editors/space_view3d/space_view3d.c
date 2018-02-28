@@ -577,7 +577,6 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 		DRW_opengl_context_enable();
 		GPU_viewport_free(rv3d->viewport);
 		DRW_opengl_context_disable();
-		MEM_freeN(rv3d->viewport);
 		rv3d->viewport = NULL;
 	}
 }
@@ -764,7 +763,6 @@ static void view3d_main_region_free(ARegion *ar)
 			DRW_opengl_context_enable();
 			GPU_viewport_free(rv3d->viewport);
 			DRW_opengl_context_disable();
-			MEM_freeN(rv3d->viewport);
 		}
 
 		MEM_freeN(rv3d);

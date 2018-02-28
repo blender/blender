@@ -2235,7 +2235,6 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			/* don't free data owned by 'ofs' */
 			GPU_viewport_clear_from_offscreen(viewport);
 			GPU_viewport_free(viewport);
-			MEM_freeN(viewport);
 		}
 
 		if (ibuf->rect_float == NULL) {
