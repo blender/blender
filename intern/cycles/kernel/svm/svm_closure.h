@@ -893,7 +893,7 @@ ccl_device void svm_node_principled_volume(KernelGlobals *kg, ShaderData *sd, fl
 		/* Add extinction weight. */
 		float3 zero = make_float3(0.0f, 0.0f, 0.0f);
 		float3 one = make_float3(1.0f, 1.0f, 1.0f);
-		float3 absorption_color = stack_load_float3(stack, absorption_color_offset);
+		float3 absorption_color = max(sqrt(stack_load_float3(stack, absorption_color_offset)), zero);
 		float3 absorption = max(one - color, zero) * max(one - absorption_color, zero);
 		volume_extinction_setup(sd, (color + absorption) * density);
 	}
