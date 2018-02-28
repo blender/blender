@@ -341,6 +341,7 @@ typedef struct wmManipulatorGroupTypeRef {
 typedef struct wmManipulatorGroupType {
 	const char *idname;  /* MAX_NAME */
 	const char *name; /* manipulator-group name - displayed in UI (keymap editor) */
+	char owner_id[64];  /* MAX_NAME */
 
 	/* poll if manipulator-map should be visible */
 	wmManipulatorGroupFnPoll poll;

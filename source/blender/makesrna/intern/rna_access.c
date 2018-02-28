@@ -7723,3 +7723,22 @@ bool RNA_path_resolved_create(
 		return false;
 	}
 }
+
+static char rna_struct_state_owner[64];
+void RNA_struct_state_owner_set(const char *name)
+{
+	if (name) {
+		BLI_strncpy(rna_struct_state_owner, name, sizeof(rna_struct_state_owner));
+	}
+	else {
+		rna_struct_state_owner[0] = '\0';
+	}
+}
+
+const char *RNA_struct_state_owner_get(void)
+{
+	if (rna_struct_state_owner[0]) {
+		return rna_struct_state_owner;
+	}
+	return NULL;
+}

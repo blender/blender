@@ -169,6 +169,7 @@ void BKE_workspace_free(WorkSpace *workspace)
 	BKE_workspace_relations_free(&workspace->hook_layout_relations);
 	BKE_workspace_relations_free(&workspace->scene_viewlayer_relations);
 
+	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
 	BLI_freelistN(&workspace->transform_orientations);
 
@@ -535,3 +536,16 @@ Object *BKE_workspace_edit_object(WorkSpace *workspace, Scene *scene)
 	return NULL;
 }
 
+bool BKE_workspace_owner_id_check(
+        const WorkSpace *workspace, const char *owner_id)
+{
+	if ((*owner_id == '\0') ||
+	    ((workspace->flags & WORKSPACE_USE_FILTER_BY_ORIGIN) == 0))
+	{
+		return true;
+	}
+	else {
+		/* we could use hash lookup, for now this list is highly under < ~16 items. */
+		return BLI_findstring(&workspace->owner_ids, owner_id, offsetof(wmOwnerID, name)) != NULL;
+	}
+}

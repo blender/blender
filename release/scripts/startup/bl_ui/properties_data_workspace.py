@@ -61,6 +61,62 @@ class WORKSPACE_PT_workspace(WorkSpaceButtonsPanel, Panel):
             layout.prop(view_render, "engine", text="")
 
 
+class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
+    bl_label = "Show/Hide Add-ons"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        workspace = context.workspace
+        self.layout.prop(workspace, "use_filter_by_owner", text="")
+
+    def draw(self, context):
+        layout = self.layout
+        # align just to pack more tightly
+        col = layout.box().column(align=True)
+
+        workspace = context.workspace
+        userpref = context.user_preferences
+
+        col.active = workspace.use_filter_by_owner
+
+        import addon_utils
+        addon_map = {
+            mod.__name__: ("%s: %s" % (mod.bl_info["category"], mod.bl_info["name"]))
+            for mod in addon_utils.modules()
+        }
+        owner_ids = {owner_id.name  for owner_id in workspace.owner_ids}
+
+        for addon in userpref.addons:
+            module_name = addon.module
+            text = addon_map[module_name]
+            is_enabled = module_name in owner_ids
+            row = col.row()
+            row.operator(
+                "wm.owner_disable" if is_enabled else "wm.owner_enable",
+                icon='CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT',
+                text="",
+                emboss=False,
+            ).owner_id = module_name
+            row.label(text)
+            if is_enabled:
+                owner_ids.remove(module_name)
+
+        # Detect unused
+        if owner_ids:
+            layout.label(text="Unknown add-ons", icon='ERROR')
+            col = layout.box().column(align=True)
+            for module_name in sorted(owner_ids):
+                row = col.row()
+                row.operator(
+                    "wm.owner_disable",
+                    icon='CHECKBOX_HLT',
+                    text="",
+                    emboss=False,
+                ).owner_id = module_name
+                row.label(module_name)
+
+
+
 class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):
     _context_path = "workspace"
     _property_type = bpy.types.WorkSpace
@@ -69,6 +125,7 @@ class WORKSPACE_PT_custom_props(WorkSpaceButtonsPanel, PropertyPanel, Panel):
 classes = (
     WORKSPACE_PT_context,
     WORKSPACE_PT_workspace,
+    WORKSPACE_PT_owner_ids,
     WORKSPACE_PT_custom_props,
 )
 

@@ -77,6 +77,12 @@ typedef struct WorkSpaceLayout {
 	char name[64] DNA_PRIVATE_WORKSPACE; /* MAX_NAME */
 } WorkSpaceLayout;
 
+/** Optional tags, which features to use, aligned with #bAddon names by convention. */
+typedef struct wmOwnerID {
+	struct wmOwnerID *next, *prev;
+	char name[64] DNA_PRIVATE_WORKSPACE; /* MAX_NAME */
+} wmOwnerID;
+
 typedef struct WorkSpace {
 	ID id;
 
@@ -85,6 +91,9 @@ typedef struct WorkSpace {
 	 * been activated the last time this workspace was visible. */
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
 	ListBase scene_viewlayer_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
+
+	/* Feature tagging (use for addons) */
+	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */
 
 	/* Custom transform orientations */
 	ListBase transform_orientations DNA_PRIVATE_WORKSPACE;
@@ -154,6 +163,7 @@ typedef struct WorkSpaceInstanceHook {
 
 typedef enum eWorkSpaceFlags {
 	WORKSPACE_USE_SCENE_SETTINGS = (1 << 0),
+	WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
 } eWorkSpaceFlags;
 
 #endif /* __DNA_WORKSPACE_TYPES_H__ */

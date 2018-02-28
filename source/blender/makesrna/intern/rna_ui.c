@@ -267,6 +267,13 @@ static StructRNA *rna_Panel_register(
 	else
 		BLI_addtail(&art->paneltypes, pt);
 
+	{
+		const char *owner_id = RNA_struct_state_owner_get();
+		if (owner_id) {
+			BLI_strncpy(pt->owner_id, owner_id, sizeof(pt->owner_id));
+		}
+	}
+
 	/* update while blender is running */
 	WM_main_add_notifier(NC_WINDOW, NULL);
 	
@@ -773,6 +780,13 @@ static StructRNA *rna_Menu_register(
 	mt->poll = (have_function[0]) ? menu_poll : NULL;
 	mt->draw = (have_function[1]) ? menu_draw : NULL;
 
+	{
+		const char *owner_id = RNA_struct_state_owner_get();
+		if (owner_id) {
+			BLI_strncpy(mt->owner_id, owner_id, sizeof(mt->owner_id));
+		}
+	}
+
 	WM_menutype_add(mt);
 
 	/* update while blender is running */
@@ -1021,6 +1035,10 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_category", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->category");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
+
+	prop = RNA_def_property(srna, "bl_owner_id", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->owner_id");
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	prop = RNA_def_property(srna, "bl_space_type", PROP_ENUM, PROP_NONE);
@@ -1289,6 +1307,10 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* RNA_def_property_clear_flag(prop, PROP_EDITABLE); */
 	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 	RNA_def_property_clear_flag(prop, PROP_NEVER_NULL); /* check for NULL */
+
+	prop = RNA_def_property(srna, "bl_owner_id", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->owner_id");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	RNA_define_verify_sdna(1);
 }

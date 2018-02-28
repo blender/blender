@@ -2904,6 +2904,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 	link_list(fd, &workspace->hook_layout_relations);
 	link_list(fd, &workspace->scene_viewlayer_relations);
 	link_list(fd, BKE_workspace_transform_orientations_get(workspace));
+	link_list(fd, &workspace->owner_ids);
 
 	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first;
 	     relation;

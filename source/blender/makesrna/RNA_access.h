@@ -719,6 +719,7 @@ extern StructRNA RNA_WipeSequence;
 extern StructRNA RNA_WireframeModifier;
 extern StructRNA RNA_WoodTexture;
 extern StructRNA RNA_WorkSpace;
+extern StructRNA RNA_wmOwnerIDs;
 extern StructRNA RNA_World;
 extern StructRNA RNA_WorldAmbientOcclusion;
 extern StructRNA RNA_WorldLighting;
@@ -1302,6 +1303,10 @@ struct IDOverrideStaticPropertyOperation *RNA_property_override_property_operati
 void RNA_property_override_status(
         PointerRNA *ptr, PropertyRNA *prop, const int index,
         bool *r_overridable, bool *r_overridden, bool *r_mandatory, bool *r_locked);
+
+void        RNA_struct_state_owner_set(const char *name);
+const char *RNA_struct_state_owner_get(void);
+
 
 #ifdef __cplusplus
 }

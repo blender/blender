@@ -225,4 +225,8 @@ int pyrna_prop_validity_check(BPy_PropertyRNA *self);
 extern PyMethodDef meth_bpy_register_class;
 extern PyMethodDef meth_bpy_unregister_class;
 
+/* bpy.utils._bl_owner_(get/set) */
+extern PyMethodDef meth_bpy_owner_id_set;
+extern PyMethodDef meth_bpy_owner_id_get;
+
 #endif

@@ -52,6 +52,10 @@
 
 #include "RNA_access.h"
 
+static void rna_window_update_all(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
+{
+	WM_main_add_notifier(NC_WINDOW, NULL);
+}
 
 void rna_workspace_screens_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
@@ -79,7 +83,93 @@ static PointerRNA rna_workspace_transform_orientations_item_get(CollectionProper
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_TransformOrientation, transform_orientation);
 }
 
+/* workspace.owner_ids */
+
+static wmOwnerID *rna_WorkSpace_owner_ids_new(
+        WorkSpace *workspace, const char *name)
+{
+	wmOwnerID *owner_id = MEM_callocN(sizeof(*owner_id), __func__);
+	BLI_addtail(&workspace->owner_ids, owner_id);
+	BLI_strncpy(owner_id->name, name, sizeof(owner_id->name));
+	WM_main_add_notifier(NC_WINDOW, NULL);
+	return owner_id;
+}
+
+static void rna_WorkSpace_owner_ids_remove(
+        WorkSpace *workspace, ReportList *reports, PointerRNA *wstag_ptr)
+{
+	wmOwnerID *owner_id = wstag_ptr->data;
+	if (BLI_remlink_safe(&workspace->owner_ids, owner_id) == false) {
+		BKE_reportf(reports, RPT_ERROR,
+		            "wmOwnerID '%s' not in workspace '%s'",
+		            owner_id->name, workspace->id.name + 2);
+		return;
+	}
+
+	MEM_freeN(owner_id);
+	RNA_POINTER_INVALIDATE(wstag_ptr);
+
+	WM_main_add_notifier(NC_WINDOW, NULL);
+}
+
+static void rna_WorkSpace_owner_ids_clear(
+        WorkSpace *workspace)
+{
+	BLI_freelistN(&workspace->owner_ids);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, workspace);
+}
+
 #else /* RNA_RUNTIME */
+
+static void rna_def_workspace_owner(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "wmOwnerID", NULL);
+	RNA_def_struct_sdna(srna, "wmOwnerID");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Work Space UI Tag", "");
+
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
+}
+
+static void rna_def_workspace_owner_ids(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "wmOwnerIDs");
+	srna = RNA_def_struct(brna, "wmOwnerIDs", NULL);
+	RNA_def_struct_sdna(srna, "WorkSpace");
+	RNA_def_struct_ui_text(srna, "WorkSpace UI Tags", "");
+
+	/* add owner_id */
+	func = RNA_def_function(srna, "new", "rna_WorkSpace_owner_ids_new");
+	RNA_def_function_ui_description(func, "Add ui tag");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the tag");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "owner_id", "wmOwnerID", "", "");
+	RNA_def_function_return(func, parm);
+
+	/* remove owner_id */
+	func = RNA_def_function(srna, "remove", "rna_WorkSpace_owner_ids_remove");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_ui_description(func, "Remove ui tag");
+	/* owner_id to remove */
+	parm = RNA_def_pointer(func, "owner_id", "wmOwnerID", "", "Tag to remove");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
+	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+	/* clear all modifiers */
+	func = RNA_def_function(srna, "clear", "rna_WorkSpace_owner_ids_clear");
+	RNA_def_function_ui_description(func, "Remove all tags");
+}
 
 static void rna_def_workspace(BlenderRNA *brna)
 {
@@ -121,6 +211,11 @@ static void rna_def_workspace(BlenderRNA *brna)
 	                                  "rna_workspace_transform_orientations_item_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Transform Orientations", "");
 
+	prop = RNA_def_property(srna, "owner_ids", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_type(prop, "wmOwnerID");
+	RNA_def_property_ui_text(prop, "UI Tags", "");
+	rna_def_workspace_owner_ids(brna, prop);
+
 	prop = RNA_def_property(srna, "object_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_object_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode used in this window");
@@ -138,6 +233,13 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Scene Settings",
 	                         "Use scene settings instead of workspace settings");
 	RNA_def_property_update(prop, NC_SCREEN | ND_LAYER, NULL);
+
+	prop = RNA_def_property(srna, "use_filter_by_owner", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flags", WORKSPACE_USE_FILTER_BY_ORIGIN);
+	RNA_def_property_ui_text(prop, "Use UI Tags",
+	                         "Filter the UI by tags");
+	RNA_def_property_update(prop, 0, "rna_window_update_all");
 }
 
 static void rna_def_transform_orientation(BlenderRNA *brna)
@@ -160,6 +262,7 @@ static void rna_def_transform_orientation(BlenderRNA *brna)
 
 void RNA_def_workspace(BlenderRNA *brna)
 {
+	rna_def_workspace_owner(brna);
 	rna_def_workspace(brna);
 	rna_def_transform_orientation(brna);
 }

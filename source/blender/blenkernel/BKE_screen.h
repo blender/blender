@@ -194,6 +194,7 @@ typedef struct PanelType {
 	char translation_context[BKE_ST_MAXNAME];
 	char context[BKE_ST_MAXNAME];             /* for buttons window */
 	char category[BKE_ST_MAXNAME];            /* for category tabs */
+	char owner_id[BKE_ST_MAXNAME];              /* for work-spaces to selectively show. */
 	int space_type;
 	int region_type;
 
@@ -264,6 +265,7 @@ typedef struct MenuType {
 	char idname[BKE_ST_MAXNAME];        /* unique name */
 	char label[BKE_ST_MAXNAME];         /* for button text */
 	char translation_context[BKE_ST_MAXNAME];
+	char owner_id[BKE_ST_MAXNAME];  /* optional, see: #wmOwnerID */
 	const char *description;
 
 	/* verify if the menu should draw or not */

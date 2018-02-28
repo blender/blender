@@ -806,6 +806,13 @@ static StructRNA *rna_ManipulatorGroup_register(
 	wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_append_ptr(
 	        BPY_RNA_manipulatorgroup_wrapper, (void *)&dummywgt);
 
+	{
+		const char *owner_id = RNA_struct_state_owner_get();
+		if (owner_id) {
+			BLI_strncpy(wgt->owner_id, owner_id, sizeof(wgt->owner_id));
+		}
+	}
+
 	if (wgt->flag & WM_MANIPULATORGROUPTYPE_PERSISTENT) {
 		WM_manipulator_group_type_add_ptr_ex(wgt, mmap_type);
 
@@ -1203,6 +1210,10 @@ static void rna_def_manipulatorgroup(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, rna_enum_region_type_items);
 	RNA_def_property_flag(prop, PROP_REGISTER);
 	RNA_def_property_ui_text(prop, "Region Type", "The region where the panel is going to be used in");
+
+	prop = RNA_def_property(srna, "bl_owner_id", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "type->owner_id");
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL);
 
 	/* bl_options */
 	static EnumPropertyItem manipulatorgroup_flag_items[] = {

@@ -505,7 +505,6 @@ typedef struct ExtensionRNA {
 	StructRNA *srna;
 	StructCallbackFunc call;
 	StructFreeFunc free;
-	
 } ExtensionRNA;
 
 #ifdef __cplusplus

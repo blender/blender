@@ -1887,6 +1887,37 @@ class WM_OT_addon_disable(Operator):
         return {'FINISHED'}
 
 
+class WM_OT_owner_enable(Operator):
+    """Enable workspace owner ID"""
+    bl_idname = "wm.owner_enable"
+    bl_label = "Enable Add-on"
+
+    owner_id = StringProperty(
+            name="UI Tag",
+            )
+
+    def execute(self, context):
+        workspace = context.workspace
+        workspace.owner_ids.new(self.owner_id)
+        return {'FINISHED'}
+
+
+class WM_OT_owner_disable(Operator):
+    """Enable workspace owner ID"""
+    bl_idname = "wm.owner_disable"
+    bl_label = "Disable UI Tag"
+
+    owner_id = StringProperty(
+            name="UI Tag",
+            )
+
+    def execute(self, context):
+        workspace = context.workspace
+        owner_id = workspace.owner_ids[self.owner_id]
+        workspace.owner_ids.remove(owner_id)
+        return {'FINISHED'}
+
+
 class WM_OT_theme_install(Operator):
     """Load and apply a Blender XML theme file"""
     bl_idname = "wm.theme_install"
@@ -2384,5 +2415,7 @@ classes = (
     WM_OT_properties_remove,
     WM_OT_sysinfo,
     WM_OT_theme_install,
+    WM_OT_owner_disable,
+    WM_OT_owner_enable,
     WM_OT_url_open,
 )

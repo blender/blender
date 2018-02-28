@@ -37,6 +37,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -49,6 +50,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 #include "BLT_translation.h"
 
@@ -341,6 +343,12 @@ static wmKeyMap *wm_keymap_new(const char *idname, int spaceid, int regionid)
 	km->spaceid = spaceid;
 	km->regionid = regionid;
 
+	{
+		const char *owner_id = RNA_struct_state_owner_get();
+		if (owner_id) {
+			BLI_strncpy(km->owner_id, owner_id, sizeof(km->owner_id));
+		}
+	}
 	return km;
 }
 
@@ -401,6 +409,14 @@ bool WM_keymap_remove(wmKeyConfig *keyconf, wmKeyMap *keymap)
 
 bool WM_keymap_poll(bContext *C, wmKeyMap *keymap)
 {
+	/* If we're tagged, only use compatible. */
+	if (keymap->owner_id[0] != '\0') {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
+		if (BKE_workspace_owner_id_check(workspace, keymap->owner_id) == false) {
+			return false;
+		}
+	}
+
 	if (keymap->poll != NULL) {
 		return keymap->poll(C);
 	}

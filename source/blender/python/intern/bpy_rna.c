@@ -8257,6 +8257,43 @@ static PyObject *pyrna_unregister_class(PyObject *UNUSED(self), PyObject *py_cla
 	Py_RETURN_NONE;
 }
 
+/* Access to 'owner_id' internal global. */
+
+static PyObject *pyrna_bl_owner_id_get(PyObject *UNUSED(self))
+{
+	const char *name = RNA_struct_state_owner_get();
+	if (name) {
+		return PyUnicode_FromString(name);
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *pyrna_bl_owner_id_set(PyObject *UNUSED(self), PyObject *value)
+{
+	const char *name;
+	if (value == Py_None) {
+		name = NULL;
+	}
+	else if (PyUnicode_Check(value)) {
+		name = _PyUnicode_AsString(value);
+	}
+	else {
+		PyErr_Format(PyExc_ValueError,
+		             "owner_set(...): "
+		             "expected None or a string, not '%.200s'", Py_TYPE(value)->tp_name);
+		return NULL;
+	}
+	RNA_struct_state_owner_set(name);
+	Py_RETURN_NONE;
+}
+
+PyMethodDef meth_bpy_owner_id_get = {
+	"_bl_owner_id_get", (PyCFunction)pyrna_bl_owner_id_get, METH_NOARGS, NULL,
+};
+PyMethodDef meth_bpy_owner_id_set = {
+	"_bl_owner_id_set", (PyCFunction)pyrna_bl_owner_id_set, METH_O, NULL,
+};
+
 /* currently this is fairly limited, we would need to make some way to split up
  * pyrna_callback_classmethod_... if we want more than one callback per type */
 typedef struct BPyRNA_CallBack {

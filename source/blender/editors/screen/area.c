@@ -41,10 +41,10 @@
 #include "BLI_utildefines.h"
 #include "BLI_linklist_stack.h"
 
-
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_screen.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 #include "RNA_types.h"
@@ -1824,6 +1824,7 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 
 void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int contextnr, const bool vertical)
 {
+	const WorkSpace *workspace = CTX_wm_workspace(C);
 	ScrArea *sa = CTX_wm_area(C);
 	uiStyle *style = UI_style_get_dpi();
 	uiBlock *block;
@@ -1871,6 +1872,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 	for (pt = ar->type->paneltypes.last; pt; pt = pt->prev) {
 		/* verify context */
 		if (context && pt->context[0] && !STREQ(context, pt->context)) {
+			continue;
+		}
+
+		/* If we're tagged, only use compatible. */
+		if (pt->owner_id[0] && BKE_workspace_owner_id_check(workspace, pt->owner_id) == false) {
 			continue;
 		}
 

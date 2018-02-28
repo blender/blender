@@ -376,6 +376,9 @@ void BPy_init_modules(void)
 	PyModule_AddObject(mod, meth_bpy_register_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_register_class, NULL));
 	PyModule_AddObject(mod, meth_bpy_unregister_class.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_unregister_class, NULL));
 
+	PyModule_AddObject(mod, meth_bpy_owner_id_get.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_owner_id_get, NULL));
+	PyModule_AddObject(mod, meth_bpy_owner_id_set.ml_name, (PyObject *)PyCFunction_New(&meth_bpy_owner_id_set, NULL));
+
 	/* add our own modules dir, this is a python package */
 	bpy_package_py = bpy_import_test("bpy");
 }

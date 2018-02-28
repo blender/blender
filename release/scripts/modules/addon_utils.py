@@ -352,6 +352,11 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
         # 2) try register collected modules
         # removed, addons need to handle own registration now.
 
+
+        from _bpy import _bl_owner_id_get, _bl_owner_id_set
+        owner_id_prev = _bl_owner_id_get()
+        _bl_owner_id_set(module_name)
+
         # 3) try run the modules register function
         try:
             mod.register()
@@ -363,6 +368,8 @@ def enable(module_name, *, default_set=False, persistent=False, handle_error=Non
             if default_set:
                 _addon_remove(module_name)
             return None
+        finally:
+            _bl_owner_id_set(owner_id_prev)
 
     # * OK loaded successfully! *
     mod.__addon_enabled__ = True

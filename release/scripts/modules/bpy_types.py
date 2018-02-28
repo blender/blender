@@ -766,7 +766,23 @@ class _GenericUI:
                 # ensure menus always get default context
                 operator_context_default = self.layout.operator_context
 
+                # Support filtering out by owner
+                workspace = context.workspace
+                if workspace.use_filter_by_owner:
+                    owner_names = {owner_id.name for owner_id in workspace.owner_ids}
+                else:
+                    owner_names = None
+
                 for func in draw_ls._draw_funcs:
+
+                    # Begin 'owner_id' filter.
+                    if owner_names is not None:
+                        owner_id = getattr(func, "_owner", None)
+                        if owner_id is not None:
+                            if func._owner not in owner_names:
+                                continue
+                    # End 'owner_id' filter.
+
                     # so bad menu functions don't stop
                     # the entire menu from drawing
                     try:
@@ -782,6 +798,13 @@ class _GenericUI:
 
         return draw_funcs
 
+    @staticmethod
+    def _dyn_owner_apply(draw_func):
+        from _bpy import _bl_owner_id_get
+        owner_id = _bl_owner_id_get()
+        if owner_id is not None:
+            draw_func._owner = owner_id
+
     @classmethod
     def is_extended(cls):
         return bool(getattr(cls.draw, "_draw_funcs", None))
@@ -793,6 +816,7 @@ class _GenericUI:
         takes the same arguments as the menus draw function
         """
         draw_funcs = cls._dyn_ui_initialize()
+        cls._dyn_owner_apply(draw_func)
         draw_funcs.append(draw_func)
 
     @classmethod
@@ -802,6 +826,7 @@ class _GenericUI:
         the menus draw function
         """
         draw_funcs = cls._dyn_ui_initialize()
+        cls._dyn_owner_apply(draw_func)
         draw_funcs.insert(0, draw_func)
 
     @classmethod

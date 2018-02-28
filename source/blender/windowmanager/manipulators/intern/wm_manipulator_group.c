@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -203,6 +204,13 @@ void wm_manipulatorgroup_ensure_initialized(wmManipulatorGroup *mgroup, const bC
 
 bool WM_manipulator_group_type_poll(const bContext *C, const struct wmManipulatorGroupType *wgt)
 {
+	/* If we're tagged, only use compatible. */
+	if (wgt->owner_id[0] != '\0') {
+		const WorkSpace *workspace = CTX_wm_workspace(C);
+		if (BKE_workspace_owner_id_check(workspace, wgt->owner_id) == false) {
+			return false;
+		}
+	}
 	/* Check for poll function, if manipulator-group belongs to an operator, also check if the operator is running. */
 	return (!wgt->poll || wgt->poll(C, (wmManipulatorGroupType *)wgt));
 }
