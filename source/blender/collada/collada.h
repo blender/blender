@@ -28,6 +28,10 @@
 #define __COLLADA_H__
 
 #include <stdlib.h>
+
+#include "ImportSettings.h"
+#include "ExportSettings.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,20 +41,6 @@ extern "C" {
 #include "BLI_path_util.h"
 #include "RNA_types.h"
 
-typedef enum BC_export_mesh_type {
-	BC_MESH_TYPE_VIEW,
-	BC_MESH_TYPE_RENDER
-} BC_export_mesh_type;
-
-typedef enum BC_export_transformation_type {
-	BC_TRANSFORMATION_TYPE_MATRIX,
-	BC_TRANSFORMATION_TYPE_TRANSROTLOC
-} BC_export_transformation_type;
-
-typedef enum BC_export_texture_type {
-	BC_TEXTURE_TYPE_MAT,
-	BC_TEXTURE_TYPE_UV
-} BC_export_texture_type;
 
 struct EvaluationContext;
 struct bContext;

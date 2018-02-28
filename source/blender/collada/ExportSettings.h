@@ -27,10 +27,28 @@
 #ifndef __EXPORTSETTINGS_H__
 #define __EXPORTSETTINGS_H__
 
-#include "collada.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-struct ExportSettings {
-public:
+#include "BLI_linklist.h"
+
+typedef enum BC_export_mesh_type {
+	BC_MESH_TYPE_VIEW,
+	BC_MESH_TYPE_RENDER
+} BC_export_mesh_type;
+
+typedef enum BC_export_transformation_type {
+	BC_TRANSFORMATION_TYPE_MATRIX,
+	BC_TRANSFORMATION_TYPE_TRANSROTLOC
+} BC_export_transformation_type;
+
+typedef enum BC_export_texture_type {
+	BC_TEXTURE_TYPE_MAT,
+	BC_TEXTURE_TYPE_UV
+} BC_export_texture_type;
+
+typedef struct ExportSettings {
 	bool apply_modifiers;
 	BC_export_mesh_type export_mesh_type;
 
@@ -58,6 +76,10 @@ public:
 
 	char *filepath;
 	LinkNode *export_set;
-};
+} ExportSettings;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

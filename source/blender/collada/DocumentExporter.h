@@ -27,7 +27,7 @@
 #ifndef __DOCUMENTEXPORTER_H__
 #define __DOCUMENTEXPORTER_H__
 
-#include "ExportSettings.h"
+#include "collada.h"
 
 extern "C" {
 #include "DNA_customdata_types.h"
