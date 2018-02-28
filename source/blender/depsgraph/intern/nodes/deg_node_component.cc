@@ -166,7 +166,7 @@ string ComponentDepsNode::identifier() const
 
 OperationDepsNode *ComponentDepsNode::find_operation(OperationIDKey key) const
 {
-	OperationDepsNode *node;
+	OperationDepsNode *node = NULL;
 	if (operations_map != NULL) {
 		node = (OperationDepsNode *)BLI_ghash_lookup(operations_map, &key);
 	}
