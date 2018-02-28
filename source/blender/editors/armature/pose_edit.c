@@ -589,7 +589,7 @@ static void pose_copy_menu(Scene *scene)
 
 /* ********************************************** */
 
-static int pose_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
+static int pose_flip_names_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm;
@@ -597,6 +597,8 @@ static int pose_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 	/* paranoia checks */
 	if (ELEM(NULL, ob, ob->pose)) 
 		return OPERATOR_CANCELLED;
+
+	const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
 
 	arm = ob->data;
 
@@ -608,7 +610,7 @@ static int pose_flip_names_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	CTX_DATA_END;
 
-	ED_armature_bones_flip_names(arm, &bones_names);
+	ED_armature_bones_flip_names(arm, &bones_names, do_strip_numbers);
 
 	BLI_freelistN(&bones_names);
 	
@@ -634,6 +636,10 @@ void POSE_OT_flip_names(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "do_strip_numbers", false, "Strip Numbers",
+	                "Try to remove right-most dot-number from flipped names "
+	                "(WARNING: may result in incoherent naming in some cases)");
 }
 
 /* ------------------ */
