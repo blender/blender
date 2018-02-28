@@ -472,7 +472,7 @@ EditBone *duplicateEditBone(EditBone *curBone, const char *name, ListBase *editb
 	return duplicateEditBoneObjects(curBone, name, editbones, ob, ob);
 }
 
-static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 {
 	bArmature *arm;
 	EditBone *ebone_iter;
@@ -484,7 +484,9 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	/* cancel if nothing selected */
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 		return OPERATOR_CANCELLED;
-	
+
+	const bool do_flip_names = RNA_boolean_get(op->ptr, "do_flip_names");
+
 	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
 
 	preEditBoneDuplicate(arm->edbo);
@@ -512,8 +514,20 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		    (ebone_iter->flag & BONE_SELECTED))
 		{
 			EditBone *ebone;
+			char new_bone_name_buff[MAXBONENAME];
+			char *new_bone_name = ebone_iter->name;
 
-			ebone = duplicateEditBone(ebone_iter, ebone_iter->name, arm->edbo, obedit);
+			if (do_flip_names) {
+				BLI_string_flip_side_name(new_bone_name_buff, ebone_iter->name, false, sizeof(new_bone_name_buff));
+
+				/* Only use flipped name if not yet in use. Otherwise we'd get again inconsistent namings
+				 * (different numbers), better keep default behavior in this case. */
+				if (ED_armature_bone_find_name(arm->edbo, new_bone_name_buff) == NULL) {
+					new_bone_name = new_bone_name_buff;
+				}
+			}
+
+			ebone = duplicateEditBone(ebone_iter, new_bone_name, arm->edbo, obedit);
 
 			if (!ebone_first_dupe) {
 				ebone_first_dupe = ebone;
@@ -590,6 +604,10 @@ void ARMATURE_OT_duplicate(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(
+	        ot->srna, "do_flip_names", false,
+	        "Flip Names", "Try to flip names of the bones, if possible, instead of adding a number extension");
 }
 
 /**
