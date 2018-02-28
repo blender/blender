@@ -667,11 +667,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	else {
 		bool prev_neg_scale = false;
 		for (DRWCall *call = (DRWCall *)shgroup->calls.first; call; call = (DRWCall *)call->head.next) {
-			if ((call->state.flag & DRW_CALL_CULLED) != 0)
+			if ((call->state->flag & DRW_CALL_CULLED) != 0)
 				continue;
 
 			/* Negative scale objects */
-			bool neg_scale = call->state.flag & DRW_CALL_NEGSCALE;
+			bool neg_scale = call->state->flag & DRW_CALL_NEGSCALE;
 			if (neg_scale != prev_neg_scale) {
 				glFrontFace((neg_scale) ? DST.backface : DST.frontface);
 				prev_neg_scale = neg_scale;
@@ -680,13 +680,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
 
 			if (call->head.type == DRW_CALL_SINGLE) {
-				draw_geometry_prepare(shgroup, &call->state);
+				draw_geometry_prepare(shgroup, call->state);
 				draw_geometry_execute(shgroup, call->geometry);
 			}
 			else {
 				BLI_assert(call->head.type == DRW_CALL_GENERATE);
 				DRWCallGenerate *callgen = ((DRWCallGenerate *)call);
-				draw_geometry_prepare(shgroup, &callgen->state);
+				draw_geometry_prepare(shgroup, callgen->state);
 				callgen->geometry_fn(shgroup, draw_geometry_execute, callgen->user_data);
 			}
 		}

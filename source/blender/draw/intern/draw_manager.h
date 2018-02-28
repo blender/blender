@@ -113,14 +113,14 @@ typedef struct DRWCallState {
 
 typedef struct DRWCall {
 	DRWCallHeader head;
-	DRWCallState state; /* For now integrated to the struct. */
+	DRWCallState *state;
 
 	Gwn_Batch *geometry;
 } DRWCall;
 
 typedef struct DRWCallGenerate {
 	DRWCallHeader head;
-	DRWCallState state; /* For now integrated to the struct. */
+	DRWCallState *state;
 
 	DRWCallGenerateFn *geometry_fn;
 	void *user_data;
