@@ -51,7 +51,8 @@ shader node_principled_volume(
 
 		/* Add scattering and absorption closures. */
 		color scatter_coeff = scatter_color;
-		color absorption_coeff = max(1.0 - scatter_color, 0.0) * max(1.0 - AbsorptionColor, 0.0);
+		color absorption_color = sqrt(max(AbsorptionColor, 0.0));
+		color absorption_coeff = max(1.0 - scatter_color, 0.0) * max(1.0 - absorption_color, 0.0);
 		Volume = scatter_coeff * density * henyey_greenstein(Anisotropy) +
 		         absorption_coeff * density * absorption();
 	}

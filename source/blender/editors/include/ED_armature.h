@@ -186,7 +186,7 @@ void create_vgroups_from_armature(
 /* if bone is already in list, pass it as param to ignore it */
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone);
 void ED_armature_bone_rename(struct bArmature *arm, const char *oldnamep, const char *newnamep);
-void ED_armature_bones_flip_names(struct bArmature *arm, struct ListBase *bones_names);
+void ED_armature_bones_flip_names(struct bArmature *arm, struct ListBase *bones_names, const bool do_strip_numbers);
 
 void undo_push_armature(struct bContext *C, const char *name);
 

@@ -3122,6 +3122,7 @@ void node_volume_principled(
 		vec3 scatter_color = color.rgb * color_attribute.rgb;
 
 		scatter_coeff = scatter_color * density;
+		absorption_color.rgb = sqrt(max(absorption_color.rgb, 0.0));
 		absorption_coeff = max(1.0 - scatter_color, 0.0) * max(1.0 - absorption_color.rgb, 0.0) * density;
 	}
 
