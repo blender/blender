@@ -1149,9 +1149,11 @@ void DRW_draw_render_loop_ex(
 	}
 
 	if (G.debug_value > 20) {
+		glDisable(GL_DEPTH_TEST);
 		rcti rect; /* local coordinate visible rect inside region, to accomodate overlapping ui */
 		ED_region_visible_rect(DST.draw_ctx.ar, &rect);
 		DRW_stats_draw(&rect);
+		glEnable(GL_DEPTH_TEST);
 	}
 
 	DRW_state_reset();
