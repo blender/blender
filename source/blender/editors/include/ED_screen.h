@@ -187,6 +187,11 @@ bool ED_workspace_layout_cycle(
         struct WorkSpace *workspace, const short direction,
         struct bContext *C) ATTR_NONNULL();
 
+void ED_workspace_object_mode_sync_from_object(
+        struct wmWindowManager *wm, WorkSpace *workspace, struct Object *obact);
+void ED_workspace_object_mode_sync_from_scene(
+        struct wmWindowManager *wm, WorkSpace *workspace, struct Scene *scene);
+
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, struct Depsgraph *depsgraph);
 

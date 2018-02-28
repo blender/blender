@@ -72,6 +72,7 @@
 #include "ED_physics.h"
 #include "ED_mesh.h"
 #include "ED_particle.h"
+#include "ED_screen.h"
 #include "ED_view3d.h"
 
 #include "GPU_immediate.h"
@@ -4786,6 +4787,7 @@ static int particle_edit_toggle_poll(bContext *C)
 
 static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	struct WorkSpace *workspace = CTX_wm_workspace(C);
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
@@ -4819,6 +4821,8 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 		toggle_particle_cursor(C, 0);
 		WM_event_add_notifier(C, NC_SCENE|ND_MODE|NS_MODE_OBJECT, NULL);
 	}
+
+	ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 

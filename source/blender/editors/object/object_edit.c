@@ -313,6 +313,8 @@ void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene,
 		workspace->object_mode &= ~OB_MODE_EDIT;
 	}
 
+	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, obedit);
+
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 
 	/* This way we ensure scene's obedit is copied into all CoW scenes.  */
@@ -441,6 +443,8 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
 
+	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
+
 	if (flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 }
@@ -506,6 +510,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 static int posemode_exec(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	Base *base = CTX_data_active_base(C);
 	Object *ob = base->object;
@@ -527,7 +532,9 @@ static int posemode_exec(bContext *C, wmOperator *op)
 			ED_armature_exit_posemode(C, base);
 		else
 			ED_armature_enter_posemode(C, base);
-		
+
+		ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
+
 		return OPERATOR_FINISHED;
 	}
 	

@@ -1376,6 +1376,7 @@ static int texture_paint_toggle_poll(bContext *C)
 
 static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -1449,6 +1450,8 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 		toggle_paint_cursor(C, 1);
 	}
+
+	ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
 	GPU_drawobject_free(ob->derivedFinal);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);

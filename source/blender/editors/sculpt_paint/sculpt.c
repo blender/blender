@@ -60,6 +60,7 @@
 #include "BKE_image.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
+#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
@@ -5669,6 +5670,8 @@ void ED_object_sculptmode_exit_ex(
 	/* Leave sculptmode */
 	workspace->object_mode &= ~mode_flag;
 
+	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
+
 	BKE_sculptsession_free(ob);
 
 	paint_cursor_delete_textures();
@@ -5691,6 +5694,7 @@ void ED_object_sculptmode_exit(bContext *C)
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -5799,6 +5803,8 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 				me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
 			}
 		}
+
+		ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
 		/* VBO no longer valid */
 		if (ob->derivedFinal) {
