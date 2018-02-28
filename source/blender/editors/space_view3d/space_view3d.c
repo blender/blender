@@ -1072,7 +1072,7 @@ static void view3d_main_region_message_subscribe(
 	 *
 	 * For other space types we might try avoid this, keep the 3D view as an exceptional case! */
 	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
-	wmMsgParams_RNA msg_key_params = {0};
+	wmMsgParams_RNA msg_key_params = {{{0}}};
 
 	/* Only subscribe to types. */
 	StructRNA *type_array[] = {

@@ -117,7 +117,7 @@ static int bpygwn_ParseVertFetchMode(PyObject *o, void *p)
 		} \
 	} ((void)0)
 
-	Gwn_VertCompType mode;
+	Gwn_VertFetchMode mode;
 	MATCH_ID(FLOAT);
 	MATCH_ID(INT);
 	MATCH_ID(INT_TO_FLOAT_UNIT);
@@ -168,7 +168,7 @@ static int bpygwn_ParsePrimType(PyObject *o, void *p)
 	return 0;
 
 success:
-	(*(Gwn_VertFetchMode *)p) = mode;
+	(*(Gwn_PrimType *)p) = mode;
 	return 1;
 }
 

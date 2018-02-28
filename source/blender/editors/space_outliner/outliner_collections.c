@@ -656,7 +656,7 @@ static int object_add_to_new_collection_exec(bContext *C, wmOperator *op)
 	SceneCollection *scene_collection_parent, *scene_collection_new;
 	TreeElement *te_active, *te_parent;
 
-	struct ObjectsSelectedData data = {NULL}, active = {NULL};
+	struct ObjectsSelectedData data = {{NULL}}, active = {{NULL}};
 
 	outliner_tree_traverse(soops, &soops->tree, 0, TSE_HIGHLIGHTED, outliner_find_selected_objects, &active);
 	if (BLI_listbase_is_empty(&active.objects_selected_array)) {

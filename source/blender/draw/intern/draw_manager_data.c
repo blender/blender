@@ -465,8 +465,7 @@ static void drw_interface_batching_init(
 		case DRW_SHG_POINT_BATCH: type = GWN_PRIM_POINTS; break;
 		case DRW_SHG_LINE_BATCH: type = GWN_PRIM_LINES; break;
 		case DRW_SHG_TRIANGLE_BATCH: type = GWN_PRIM_TRIS; break;
-		default:
-			BLI_assert(0);
+		default: type = GWN_PRIM_NONE; BLI_assert(0); break;
 	}
 
 	DRW_batching_buffer_request(DST.idatalist, format, type, shgroup,
