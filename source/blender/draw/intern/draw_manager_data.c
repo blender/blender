@@ -253,7 +253,7 @@ static void drw_call_set_matrices(DRWCallState *state, float (*obmat)[4], ID *ob
 		copy_m4_m4(state->model, obmat);
 
 		if (is_negative_m4(state->model)) {
-			state->matflag |= DRW_CALL_NEGSCALE;
+			state->flag |= DRW_CALL_NEGSCALE;
 		}
 	}
 	else {
