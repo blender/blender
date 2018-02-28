@@ -326,6 +326,9 @@ void gpu_select_pick_begin(
 		glDepthMask(GL_TRUE);
 
 		if (mode == GPU_SELECT_PICK_ALL) {
+			/* Note that other depth settings (such as #GL_LEQUAL) work too,
+			 * since the depth is always cleared.
+			 * Noting this for cases when depth picking is used where drawing calls change depth settings. */
 			glDepthFunc(GL_ALWAYS);
 		}
 		else {
