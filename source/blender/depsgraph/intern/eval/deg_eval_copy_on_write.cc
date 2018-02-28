@@ -614,6 +614,8 @@ void update_copy_on_write_scene(const Depsgraph *depsgraph,
 	BLI_strncpy(scene_cow->view_render.engine_id,
 	            scene_orig->view_render.engine_id,
 	            sizeof(scene_cow->view_render.engine_id));
+	BKE_toolsettings_free(scene_cow->toolsettings);
+	scene_cow->toolsettings = BKE_toolsettings_copy(scene_orig->toolsettings, 0);
 	/* TODO(sergey): What else do we need here? */
 }
 
