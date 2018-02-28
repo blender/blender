@@ -369,7 +369,7 @@ static void drw_viewport_var_init(void)
 		DST.vmempool = GPU_viewport_mempool_get(DST.viewport);
 
 		if (DST.vmempool->calls == NULL) {
-			DST.vmempool->calls = BLI_mempool_create(MAX2(sizeof(DRWCall), sizeof(DRWCallGenerate)), 0, 512, 0);
+			DST.vmempool->calls = BLI_mempool_create(sizeof(DRWCall), 0, 512, 0);
 		}
 		if (DST.vmempool->states == NULL) {
 			DST.vmempool->states = BLI_mempool_create(sizeof(DRWCallState), 0, 512, BLI_MEMPOOL_ALLOW_ITER);

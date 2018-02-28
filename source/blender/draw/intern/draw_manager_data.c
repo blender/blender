@@ -293,13 +293,13 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 	call->state = drw_call_state_create(shgroup, obmat, NULL);
-	call->head.type = DRW_CALL_SINGLE;
+	call->type = DRW_CALL_SINGLE;
 #ifdef USE_GPU_SELECT
-	call->head.select_id = DST.select_id;
+	call->select_id = DST.select_id;
 #endif
-	call->geometry = geom;
+	call->single.geometry = geom;
 
-	BLI_LINKS_APPEND(&shgroup->calls, (DRWCallHeader *)call);
+	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 /* These calls can be culled and are optimized for redraw */
@@ -310,13 +310,13 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Obje
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 	call->state = drw_call_state_object(shgroup, ob->obmat, ob->data);
-	call->head.type = DRW_CALL_SINGLE;
+	call->type = DRW_CALL_SINGLE;
 #ifdef USE_GPU_SELECT
-	call->head.select_id = DST.select_id;
+	call->select_id = DST.select_id;
 #endif
-	call->geometry = geom;
+	call->single.geometry = geom;
 
-	BLI_LINKS_APPEND(&shgroup->calls, (DRWCallHeader *)call);
+	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 void DRW_shgroup_call_generate_add(
@@ -327,16 +327,16 @@ void DRW_shgroup_call_generate_add(
 	BLI_assert(geometry_fn != NULL);
 	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
 
-	DRWCallGenerate *call = BLI_mempool_alloc(DST.vmempool->calls);
+	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 	call->state = drw_call_state_create(shgroup, obmat, NULL);
-	call->head.type = DRW_CALL_GENERATE;
+	call->type = DRW_CALL_GENERATE;
 #ifdef USE_GPU_SELECT
-	call->head.select_id = DST.select_id;
+	call->select_id = DST.select_id;
 #endif
-	call->geometry_fn = geometry_fn;
-	call->user_data = user_data;
+	call->generate.geometry_fn = geometry_fn;
+	call->generate.user_data = user_data;
 
-	BLI_LINKS_APPEND(&shgroup->calls, (DRWCallHeader *)call);
+	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
 static void sculpt_draw_cb(

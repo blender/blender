@@ -597,7 +597,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 #  define GPU_SELECT_LOAD_IF_PICKSEL_CALL(_call) \
 	if ((G.f & G_PICKSEL) && (_call)) { \
-		GPU_select_load_id((_call)->head.select_id); \
+		GPU_select_load_id((_call)->select_id); \
 	} ((void)0)
 
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count)  \
@@ -674,7 +674,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	}
 	else {
 		bool prev_neg_scale = false;
-		for (DRWCall *call = (DRWCall *)shgroup->calls.first; call; call = (DRWCall *)call->head.next) {
+		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 			if ((call->state->flag & DRW_CALL_CULLED) != 0)
 				continue;
 
@@ -686,16 +686,14 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 
 			GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
+			draw_geometry_prepare(shgroup, call->state);
 
-			if (call->head.type == DRW_CALL_SINGLE) {
-				draw_geometry_prepare(shgroup, call->state);
-				draw_geometry_execute(shgroup, call->geometry);
+			if (call->type == DRW_CALL_SINGLE) {
+				draw_geometry_execute(shgroup, call->single.geometry);
 			}
 			else {
-				BLI_assert(call->head.type == DRW_CALL_GENERATE);
-				DRWCallGenerate *callgen = ((DRWCallGenerate *)call);
-				draw_geometry_prepare(shgroup, callgen->state);
-				callgen->geometry_fn(shgroup, draw_geometry_execute, callgen->user_data);
+				BLI_assert(call->type == DRW_CALL_GENERATE);
+				call->generate.geometry_fn(shgroup, draw_geometry_execute, call->generate.user_data);
 			}
 		}
 		/* Reset state */
