@@ -25,6 +25,8 @@
 
 #include "draw_manager.h"
 
+#include "BLI_mempool.h"
+
 #include "BIF_glutil.h"
 
 #include "BKE_global.h"
@@ -367,7 +369,13 @@ void DRW_state_clip_planes_reset(void)
 
 static void draw_matrices_model_prepare(DRWCallState *st)
 {
-	/* OPTI : We can optimize further by sharing this computation for each call using the same object. */
+	if (st->cache_id == DST.state_cache_id) {
+		return; /* Values are already updated for this view. */
+	}
+	else {
+		st->cache_id = DST.state_cache_id;
+	}
+
 	/* Order matters */
 	if (st->matflag & (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE |
 	                  DRW_CALL_NORMALVIEW | DRW_CALL_EYEVEC))
@@ -700,8 +708,25 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
 {
-	/* Start fresh */
 	DST.shader = NULL;
+
+	if (DST.dirty_mat) {
+		DST.state_cache_id++;
+		DST.dirty_mat = false;
+		/* Catch integer wrap around. */
+		if (UNLIKELY(DST.state_cache_id == 0)) {
+			DST.state_cache_id = 1;
+			/* We must reset all CallStates to ensure that not
+			 * a single one stayed with cache_id equal to 1. */
+			BLI_mempool_iter iter;
+			DRWCallState *state;
+			BLI_mempool_iternew(DST.vmempool->states, &iter);
+			while ((state = BLI_mempool_iterstep(&iter))) {
+				state->cache_id = 0;
+			}
+		}
+		/* TODO dispatch threads to compute matrices/culling */
+	}
 
 	BLI_assert(DST.buffer_finish_called && "DRW_render_instance_buffer_finish had not been called before drawing");
 

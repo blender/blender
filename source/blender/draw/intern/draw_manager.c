@@ -372,7 +372,7 @@ static void drw_viewport_var_init(void)
 			DST.vmempool->calls = BLI_mempool_create(MAX2(sizeof(DRWCall), sizeof(DRWCallGenerate)), 0, 512, 0);
 		}
 		if (DST.vmempool->states == NULL) {
-			DST.vmempool->states = BLI_mempool_create(sizeof(DRWCallState), 0, 512, 0);
+			DST.vmempool->states = BLI_mempool_create(sizeof(DRWCallState), 0, 512, BLI_MEMPOOL_ALLOW_ITER);
 		}
 		if (DST.vmempool->shgroups == NULL) {
 			DST.vmempool->shgroups = BLI_mempool_create(sizeof(DRWShadingGroup), 0, 256, 0);
@@ -438,6 +438,9 @@ static void drw_viewport_var_init(void)
 	}
 
 	DST.override_mat = 0;
+	DST.dirty_mat = false;
+	DST.state_cache_id = 1;
+
 	memset(DST.common_instance_data, 0x0, sizeof(DST.common_instance_data));
 }
 
@@ -453,12 +456,14 @@ void DRW_viewport_matrix_override_set(float mat[4][4], DRWViewportMatrixType typ
 {
 	copy_m4_m4(DST.view_data.mat[type], mat);
 	DST.override_mat |= (1 << type);
+	DST.dirty_mat = true;
 }
 
 void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 {
 	copy_m4_m4(DST.view_data.mat[type], DST.original_mat[type]);
 	DST.override_mat &= ~(1 << type);
+	DST.dirty_mat = true;
 }
 
 bool DRW_viewport_is_persp_get(void)
@@ -628,6 +633,8 @@ static void drw_engines_cache_init(void)
 
 static void drw_engines_cache_populate(Object *ob)
 {
+	DST.ob_state = NULL;
+
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
 		DrawEngineType *engine = link->data;
 		ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
@@ -1324,6 +1331,7 @@ void DRW_render_object_iter(
 {
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE(depsgraph, ob, DRW_iterator_mode_get())
 	{
+		DST.ob_state = NULL;
 		callback(vedata, ob, engine, depsgraph);
 	}
 	DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END

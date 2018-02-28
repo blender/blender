@@ -93,7 +93,8 @@ typedef struct DRWCallHeader {
 
 typedef struct DRWCallState {
 	unsigned char flag;
-	uint16_t matflag;
+	unsigned char cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
+	uint16_t matflag;         /* Which matrices to compute. */
 	/* Culling: Using Bounding Sphere for now for faster culling.
 	 * Not ideal for planes. */
 	struct {
@@ -254,12 +255,11 @@ typedef struct DRWManager {
 	/* TODO clean up this struct a bit */
 	/* Cache generation */
 	ViewportMemoryPool *vmempool;
-	DRWUniform *last_uniform;
-	DRWCall *last_call;
-	DRWCallGenerate *last_callgenerate;
-	DRWShadingGroup *last_shgroup;
 	DRWInstanceDataList *idatalist;
 	DRWInstanceData *common_instance_data[MAX_INSTANCE_DATA_SIZE];
+	/* State of the object being evaluated if already allocated. */
+	DRWCallState *ob_state;
+	unsigned char state_cache_id; /* Could be larger but 254 view changes is already a lot! */
 
 	/* Rendering state */
 	GPUShader *shader;
@@ -300,8 +300,9 @@ typedef struct DRWManager {
 
 	/* View dependant uniforms. */
 	float original_mat[6][4][4]; /* Original rv3d matrices. */
-	int override_mat;           /* Bitflag of which matrices are overriden. */
+	int override_mat;            /* Bitflag of which matrices are overriden. */
 	int num_clip_planes;         /* Number of active clipplanes. */
+	bool dirty_mat;
 
 	struct {
 		float mat[6][4][4];
