@@ -34,7 +34,7 @@ void density_texture_space_invert(float3& loc,
 
 }  /* namespace */
 
-void point_density_texture_space(BL::Scene& b_scene, BL::ViewLayer& b_view_layer,
+void point_density_texture_space(BL::Depsgraph& b_depsgraph,
                                  BL::ShaderNodeTexPointDensity& b_point_density_node,
                                  int settings,
                                  float3& loc,
@@ -47,8 +47,7 @@ void point_density_texture_space(BL::Scene& b_scene, BL::ViewLayer& b_view_layer
 		return;
 	}
 	float3 min, max;
-	b_point_density_node.calc_point_density_minmax(b_scene,
-	                                               b_view_layer,
+	b_point_density_node.calc_point_density_minmax(b_depsgraph,
 	                                               settings,
 	                                               &min[0],
 	                                               &max[0]);

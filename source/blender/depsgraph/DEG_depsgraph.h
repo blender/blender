@@ -230,6 +230,11 @@ void DEG_evaluation_context_init_from_view_layer_for_render(
         struct Scene *scene,
         struct ViewLayer *view_layer);
 
+void DEG_evaluation_context_init_from_depsgraph(
+        struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
+        eEvaluationMode mode);
+
 /* Free evaluation context. */
 void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);
 

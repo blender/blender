@@ -1280,9 +1280,8 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 	else {
 		/* TODO: fix point density to work with new view layer depsgraph */
 #if 0
-		/* We originally were passing view_layer here but in reality we need a whole EvaluationContext
-		 * in the RE_point_density_minmax() function.
-		 * Note: There is not a single EvaluationContext for the entire render. They are per RenderLayer now.
+		/* We originally were passing view_layer here but in reality we need a whole EvaluationContext or at the
+		 * very least a dpesgraph to pass to the RE_point_density_minmax() function.
 		 */
 		/* TODO(sergey): Check we're indeed in shader node tree. */
 		PointerRNA ptr;
@@ -1292,7 +1291,7 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
 			int length;
 			int settings = background ? 1 : 0;  /* 1 - render settings, 0 - vewport settings. */
-			b_point_density_node.calc_point_density(b_scene, b_view_layer, settings, &length, &pixels);
+			b_point_density_node.calc_point_density(b_depsgraph, settings, &length, &pixels);
 		}
 #endif
 	}

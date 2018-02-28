@@ -39,10 +39,12 @@
 extern "C" {
 #include "BKE_scene.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "intern/eval/deg_eval.h"
 #include "intern/eval/deg_eval_flush.h"
@@ -108,6 +110,20 @@ void DEG_evaluation_context_init_from_view_layer_for_render(
 	eval_ctx->object_mode = OB_MODE_OBJECT;
 	eval_ctx->depsgraph = depsgraph;
 	eval_ctx->view_layer = view_layer_original;
+	eval_ctx->engine_type = NULL;
+}
+
+void DEG_evaluation_context_init_from_depsgraph(
+        EvaluationContext *eval_ctx,
+        Depsgraph *depsgraph,
+        eEvaluationMode mode)
+{
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	DEG_evaluation_context_init(eval_ctx, mode);
+	eval_ctx->ctime = (float)scene->r.cfra + scene->r.subframe;
+	eval_ctx->object_mode = OB_MODE_OBJECT;
+	eval_ctx->depsgraph = depsgraph;
+	eval_ctx->view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	eval_ctx->engine_type = NULL;
 }
 

@@ -72,24 +72,18 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 struct PointDensity;
 
 void RE_point_density_cache(
-        struct Scene *scene,
-        struct ViewLayer *view_layer,
-        struct PointDensity *pd,
-        const bool use_render_params);
+        const struct EvaluationContext *eval_ctx,
+        struct PointDensity *pd);
 
 void RE_point_density_minmax(
-        struct Scene *scene,
-        struct ViewLayer *view_layer,
+        const struct EvaluationContext *eval_ctx,
         struct PointDensity *pd,
-        const bool use_render_params,
         float r_min[3], float r_max[3]);
 
 void RE_point_density_sample(
-        struct Scene *scene,
-        struct ViewLayer *view_layer,
+        const struct EvaluationContext *eval_ctx,
         struct PointDensity *pd,
         const int resolution,
-        const bool use_render_params,
         float *values);
 
 void RE_point_density_free(struct PointDensity *pd);
