@@ -1144,7 +1144,7 @@ static void ed_vwpaintmode_exit_generic(
 	}
 
 	/* If the cache is not released by a cancel or a done, free it now. */
-	if (ob->sculpt->cache) {
+	if (ob->sculpt && ob->sculpt->cache) {
 		sculpt_cache_free(ob->sculpt->cache);
 		ob->sculpt->cache = NULL;
 	}
