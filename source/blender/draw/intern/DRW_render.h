@@ -288,7 +288,7 @@ typedef enum {
 	DRW_STATE_CULL_BACK     = (1 << 6),
 	DRW_STATE_CULL_FRONT    = (1 << 7),
 	DRW_STATE_WIRE          = (1 << 8),
-	DRW_STATE_WIRE_LARGE    = (1 << 9),
+//	DRW_STATE_WIRE_LARGE    = (1 << 9), /* Removed from ogl in 3.0 */
 	DRW_STATE_POINT         = (1 << 10),
 	DRW_STATE_STIPPLE_2     = (1 << 11),
 	DRW_STATE_STIPPLE_3     = (1 << 12),

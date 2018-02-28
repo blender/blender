@@ -32,7 +32,12 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "draw_manager.h"
+
 #include "GPU_glew.h"
+#include "GPU_texture.h"
+
+#include "UI_resources.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -198,14 +203,120 @@ void DRW_stats_reset(void)
 	}
 }
 
+static void draw_stat_5row(rcti *rect, int u, int v, const char *txt, const int size)
+{
+	BLF_draw_default_ascii(rect->xmin + (1 + u * 5) * U.widget_unit,
+	                       rect->ymax - (3 + v) * U.widget_unit, 0.0f,
+	                       txt, size);
+}
+
+static void draw_stat(rcti *rect, int u, int v, const char *txt, const int size)
+{
+	BLF_draw_default_ascii(rect->xmin + (1 + u) * U.widget_unit,
+	                       rect->ymax - (3 + v) * U.widget_unit, 0.0f,
+	                       txt, size);
+}
+
 void DRW_stats_draw(rcti *rect)
 {
 	char stat_string[64];
 	int lvl_index[MAX_NESTED_TIMER];
-	int v = 0;
+	int v = 0, u = 0;
 
-	BLI_snprintf(stat_string, sizeof(stat_string), "GPU Render Stats");
-	BLF_draw_default_ascii(rect->xmin + 1 * U.widget_unit, rect->ymax - v++ * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+	double init_tot_time = 0.0, background_tot_time = 0.0, render_tot_time = 0.0, tot_time = 0.0;
+
+	UI_FontThemeColor(BLF_default(), TH_TEXT_HI);
+
+	/* ------------------------------------------ */
+	/* ---------------- CPU stats --------------- */
+	/* ------------------------------------------ */
+	/* Label row */
+	char col_label[32];
+	sprintf(col_label, "Engine");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	sprintf(col_label, "Init");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	sprintf(col_label, "Background");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	sprintf(col_label, "Render");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	sprintf(col_label, "Total (w/o cache)");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	v++;
+
+	/* Engines rows */
+	char time_to_txt[16];
+	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+		u = 0;
+		DrawEngineType *engine = link->data;
+		ViewportEngineData *data = drw_viewport_engine_data_ensure(engine);
+
+		draw_stat_5row(rect, u++, v, engine->idname, sizeof(engine->idname));
+
+		init_tot_time += data->init_time;
+		sprintf(time_to_txt, "%.2fms", data->init_time);
+		draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+
+		background_tot_time += data->background_time;
+		sprintf(time_to_txt, "%.2fms", data->background_time);
+		draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+
+		render_tot_time += data->render_time;
+		sprintf(time_to_txt, "%.2fms", data->render_time);
+		draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+
+		tot_time += data->init_time + data->background_time + data->render_time;
+		sprintf(time_to_txt, "%.2fms", data->init_time + data->background_time + data->render_time);
+		draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+		v++;
+	}
+
+	/* Totals row */
+	u = 0;
+	sprintf(col_label, "Sub Total");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	sprintf(time_to_txt, "%.2fms", init_tot_time);
+	draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+	sprintf(time_to_txt, "%.2fms", background_tot_time);
+	draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+	sprintf(time_to_txt, "%.2fms", render_tot_time);
+	draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+	sprintf(time_to_txt, "%.2fms", tot_time);
+	draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+	v += 2;
+
+	u = 0;
+	sprintf(col_label, "Cache Time");
+	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
+	sprintf(time_to_txt, "%.2fms", DST.cache_time);
+	draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
+	v += 2;
+
+	/* ------------------------------------------ */
+	/* ---------------- GPU stats --------------- */
+	/* ------------------------------------------ */
+
+	/* Memory Stats */
+	unsigned int tex_mem = GPU_texture_memory_usage_get();
+	unsigned int vbo_mem = GWN_vertbuf_get_memory_usage();
+
+	sprintf(stat_string, "GPU Memory");
+	draw_stat(rect, 0, v, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "%.2fMB", (double)(tex_mem + vbo_mem) / 1000000.0);
+	draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "Textures");
+	draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "%.2fMB", (double)tex_mem / 1000000.0);
+	draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "Meshes");
+	draw_stat(rect, 1, v, stat_string, sizeof(stat_string));
+	sprintf(stat_string, "%.2fMB", (double)vbo_mem / 1000000.0);
+	draw_stat_5row(rect, 1, v++, stat_string, sizeof(stat_string));
+	v += 1;
+
+	/* GPU Timings */
+	BLI_snprintf(stat_string, sizeof(stat_string), "GPU Render Timings");
+	draw_stat(rect, 0, v++, stat_string, sizeof(stat_string));
 
 	for (int i = 0; i < DTP.timer_increment; ++i) {
 		double time_ms, time_percent;
@@ -232,11 +343,11 @@ void DRW_stats_draw(rcti *rect)
 		time_percent = MIN2(time_percent, 100.0);
 
 		BLI_snprintf(stat_string, sizeof(stat_string), "%s", timer->name);
-		BLF_draw_default_ascii(rect->xmin + (1 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+		draw_stat(rect, 0  + timer->lvl, v, stat_string, sizeof(stat_string));
 		BLI_snprintf(stat_string, sizeof(stat_string), "%.2fms", time_ms);
-		BLF_draw_default_ascii(rect->xmin + (13 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+		draw_stat(rect, 12 + timer->lvl, v, stat_string, sizeof(stat_string));
 		BLI_snprintf(stat_string, sizeof(stat_string), "%.0f", time_percent);
-		BLF_draw_default_ascii(rect->xmin + (17 + timer->lvl) * U.widget_unit, rect->ymax - v * U.widget_unit, 0.0f, stat_string, sizeof(stat_string));
+		draw_stat(rect, 16 + timer->lvl, v, stat_string, sizeof(stat_string));
 		v++;
 	}
 }
