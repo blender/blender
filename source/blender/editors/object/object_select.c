@@ -126,20 +126,29 @@ void ED_object_base_activate(bContext *C, Base *base)
 
 	WorkSpace *workspace = CTX_wm_workspace(C);
 
-	bool reset = true;
-	if (base) {
-		Object *ob_prev = OBACT(view_layer);
-		Object *ob_curr = base->object;
-		if (ob_prev != NULL) {
-			if (ob_prev->type == ob_curr->type) {
-				reset = false;
+	eObjectMode object_mode = workspace->object_mode;
+	eObjectMode object_mode_set = OB_MODE_OBJECT;
+
+	if (base && ED_workspace_object_mode_in_other_window(
+	            CTX_wm_manager(C), workspace, base->object,
+	            &object_mode_set))
+	{
+		/* Sync existing object mode with workspace. */
+		workspace->object_mode = object_mode_set;
+	}
+	else {
+		/* Apply the workspaces more to the object (when possible). */
+		bool reset = true;
+		if (base) {
+			Object *ob_prev = OBACT(view_layer);
+			Object *ob_curr = base->object;
+			if (ob_prev != NULL) {
+				if (ob_prev->type == ob_curr->type) {
+					reset = false;
+				}
 			}
 		}
-	}
 
-	eObjectMode object_mode = workspace->object_mode;
-
-	{
 		Scene *scene = CTX_data_scene(C);
 		Object *obact = base ? base->object : NULL;
 		/* We don't know the previous active object in update.
@@ -156,14 +165,14 @@ void ED_object_base_activate(bContext *C, Base *base)
 			}
 			FOREACH_OBJECT_END;
 		}
-	}
 
-	workspace->object_mode = OB_MODE_OBJECT;
+		workspace->object_mode = OB_MODE_OBJECT;
 
-	view_layer->basact = base;
+		view_layer->basact = base;
 
-	if (reset == false) {
-		ED_object_mode_generic_enter(C, object_mode);
+		if (reset == false) {
+			ED_object_mode_generic_enter(C, object_mode);
+		}
 	}
 
 	if (base) {

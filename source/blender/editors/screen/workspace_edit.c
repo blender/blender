@@ -336,9 +336,29 @@ void ED_workspace_object_mode_sync_from_scene(wmWindowManager *wm, WorkSpace *wo
 {
 	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
 	if (view_layer) {
-		Object *obact = obact = OBACT(view_layer);
+		Object *obact = OBACT(view_layer);
 		ED_workspace_object_mode_sync_from_object(wm, workspace, obact);
 	}
+}
+
+bool ED_workspace_object_mode_in_other_window(
+        struct wmWindowManager *wm, WorkSpace *workspace, Object *obact,
+        eObjectMode *r_object_mode)
+{
+	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+		WorkSpace *workspace_iter = BKE_workspace_active_get(win->workspace_hook);
+		if (workspace != workspace_iter) {
+			Scene *scene_iter = WM_window_get_active_scene(win);
+			ViewLayer *view_layer_iter = BKE_view_layer_from_workspace_get(scene_iter, workspace_iter);
+			Object *obact_iter = OBACT(view_layer_iter);
+			if (obact == obact_iter) {
+				*r_object_mode = workspace_iter->object_mode;
+				return true;
+			}
+		}
+	}
+
+	return false;
 }
 
 /** \} Workspace API */
