@@ -52,20 +52,20 @@ typedef struct GPUQueryState {
 	/* Tracks whether a query has been issued so that gpu_load_id can end the previous one */
 	bool query_issued;
 	/* array holding the OpenGL query identifiers */
-	unsigned int *queries;
+	uint *queries;
 	/* array holding the id corresponding to each query */
-	unsigned int *id;
+	uint *id;
 	/* number of queries in *queries and *id */
-	unsigned int num_of_queries;
+	uint num_of_queries;
 	/* index to the next query to start */
-	unsigned int active_query;
+	uint active_query;
 	/* cache on initialization */
-	unsigned int (*buffer)[4];
+	uint (*buffer)[4];
 	/* buffer size (stores number of integers, for actual size multiply by sizeof integer)*/
-	unsigned int bufsize;
+	uint bufsize;
 	/* mode of operation */
 	char mode;
-	unsigned int index;
+	uint index;
 	int oldhits;
 } GPUQueryState;
 
@@ -73,7 +73,7 @@ static GPUQueryState g_query_state = {0};
 
 
 void gpu_select_query_begin(
-        unsigned int (*buffer)[4], unsigned int bufsize,
+        uint (*buffer)[4], uint bufsize,
         const rcti *input, char mode,
         int oldhits)
 {
@@ -124,7 +124,7 @@ void gpu_select_query_begin(
 	}
 }
 
-bool gpu_select_query_load_id(unsigned int id)
+bool gpu_select_query_load_id(uint id)
 {
 	if (g_query_state.query_issued) {
 		glEndQuery(GL_SAMPLES_PASSED);
@@ -159,19 +159,19 @@ bool gpu_select_query_load_id(unsigned int id)
 	return true;
 }
 
-unsigned int gpu_select_query_end(void)
+uint gpu_select_query_end(void)
 {
 	int i;
 
-	unsigned int hits = 0;
-	const unsigned int maxhits = g_query_state.bufsize;
+	uint hits = 0;
+	const uint maxhits = g_query_state.bufsize;
 
 	if (g_query_state.query_issued) {
 		glEndQuery(GL_SAMPLES_PASSED);
 	}
 
 	for (i = 0; i < g_query_state.active_query; i++) {
-		unsigned int result;
+		uint result;
 		glGetQueryObjectuiv(g_query_state.queries[i], GL_QUERY_RESULT, &result);
 		if (result > 0) {
 			if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
