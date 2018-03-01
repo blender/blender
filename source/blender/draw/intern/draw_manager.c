@@ -1384,7 +1384,8 @@ void DRW_render_instance_buffer_finish(void)
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d, const eObjectMode object_mode,
-        bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect)
+        bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect,
+        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
@@ -1484,12 +1485,21 @@ void DRW_draw_select_loop(
 	/* Start Drawing */
 	DRW_state_reset();
 	DRW_draw_callbacks_pre_scene();
-	drw_engines_draw_scene();
-	DRW_draw_callbacks_post_scene();
 
-#ifdef USE_GPU_SELECT
-	GPU_select_finalize();
-#endif
+	/* Only 1-2 passes. */
+	while (true) {
+		if (!select_pass_fn(DRW_SELECT_PASS_PRE, select_pass_user_data)) {
+			break;
+		}
+
+		drw_engines_draw_scene();
+
+		if (!select_pass_fn(DRW_SELECT_PASS_POST, select_pass_user_data)) {
+			break;
+		}
+	}
+
+	DRW_draw_callbacks_post_scene();
 
 	DRW_state_reset();
 	drw_engines_disable();

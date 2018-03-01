@@ -88,6 +88,11 @@ typedef struct DRWUpdateContext {
 void DRW_notify_view_update(const DRWUpdateContext *update_ctx);
 void DRW_notify_id_update(const DRWUpdateContext *update_ctx, struct ID *id);
 
+
+typedef enum eDRWSelectStage { DRW_SELECT_PASS_PRE = 1, DRW_SELECT_PASS_POST, } eDRWSelectStage;
+typedef bool (*DRW_SelectPassFn)(
+        eDRWSelectStage stage, void *user_data);
+
 void DRW_draw_view(const struct bContext *C);
 
 void DRW_draw_render_loop_ex(
@@ -108,7 +113,8 @@ void DRW_draw_render_loop_offscreen(
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
         struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode,
-        bool use_obedit_skip, bool use_nearest, const struct rcti *rect);
+        bool use_obedit_skip, bool use_nearest, const struct rcti *rect,
+        DRW_SelectPassFn select_pass_fn, void *select_pass_user_data);
 void DRW_draw_depth_loop(
         struct Depsgraph *depsgraph,
         struct ARegion *ar, struct View3D *v3d, const eObjectMode object_mode);
