@@ -10,6 +10,11 @@ void ssao_factors(
         in float depth, in vec3 normal, in vec3 position, in vec2 screenco,
         out float cavities, out float edges)
 {
+	cavities = edges = 0.0;
+	/* early out if there is no need for SSAO */
+	if (ssao_factor_cavity == 0.0 && ssao_factor_edge == 0.0)
+		return;
+
 	/* take the normalized ray direction here */
 	vec3 noise = texture(ssao_jitter, screenco.xy * jitter_tilling).rgb;
 
@@ -22,7 +27,6 @@ void ssao_factors(
 	/* convert from -1.0...1.0 range to 0.0..1.0 for easy use with texture coordinates */
 	offset *= 0.5;
 
-	cavities = edges = 0.0;
 	int num_samples = int(ssao_samples_num);
 
 	/* Note. Putting noise usage here to put some ALU after texture fetch. */
