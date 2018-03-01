@@ -444,7 +444,7 @@ cleanup:
 		MEM_freeN(fnors);
 }
 
-void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoops)
+void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoops, const char data_type)
 {
 	if (!(lnors_spacearr->lspacearr && lnors_spacearr->loops_pool)) {
 		MemArena *mem;
@@ -456,6 +456,8 @@ void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoo
 		lnors_spacearr->lspacearr = BLI_memarena_calloc(mem, sizeof(MLoopNorSpace *) * (size_t)numLoops);
 		lnors_spacearr->loops_pool = BLI_memarena_alloc(mem, sizeof(LinkNode) * (size_t)numLoops);
 	}
+	BLI_assert(ELEM(data_type, MLNOR_SPACEARR_BMLOOP_PTR, MLNOR_SPACEARR_LOOP_INDEX));
+	lnors_spacearr->data_type = data_type;
 }
 
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr)
@@ -549,12 +551,32 @@ void BKE_lnor_space_define(MLoopNorSpace *lnor_space, const float lnor[3],
 	}
 }
 
-void BKE_lnor_space_add_loop(MLoopNorSpaceArray *lnors_spacearr, MLoopNorSpace *lnor_space, const int ml_index,
-                             const bool do_add_loop)
+/**
+ * Add a new given loop to given lnor_space.
+ * Depending on \a lnor_space->data_type, we expect \a bm_loop to be a pointer to BMLoop struct (in case of BMLOOP_PTR),
+ * or NULL (in case of LOOP_INDEX), loop index is then stored in pointer.
+ * If \a is_single is set, the BMLoop or loop index is directly stored in \a lnor_space->loops pointer (since there
+ * is only one loop in this fan), else it is added to the linked list of loops in the fan.
+ */
+void BKE_lnor_space_add_loop(
+        MLoopNorSpaceArray *lnors_spacearr, MLoopNorSpace *lnor_space,
+        const int ml_index, void *bm_loop, const bool is_single)
 {
+	BLI_assert((lnors_spacearr->data_type == MLNOR_SPACEARR_LOOP_INDEX && bm_loop == NULL) ||
+	           (lnors_spacearr->data_type == MLNOR_SPACEARR_BMLOOP_PTR && bm_loop != NULL));
+
 	lnors_spacearr->lspacearr[ml_index] = lnor_space;
-	if (do_add_loop) {
-		BLI_linklist_prepend_nlink(&lnor_space->loops, SET_INT_IN_POINTER(ml_index), &lnors_spacearr->loops_pool[ml_index]);
+	if (bm_loop == NULL) {
+		bm_loop = SET_INT_IN_POINTER(ml_index);
+	}
+	if (is_single) {
+		BLI_assert(lnor_space->loops == NULL);
+		lnor_space->flags |= MLNOR_SPACE_IS_SINGLE;
+		lnor_space->loops = bm_loop;
+	}
+	else {
+		BLI_assert((lnor_space->flags & MLNOR_SPACE_IS_SINGLE) == 0);
+		BLI_linklist_prepend_nlink(&lnor_space->loops, bm_loop, &lnors_spacearr->loops_pool[ml_index]);
 	}
 }
 
@@ -841,7 +863,7 @@ void BKE_edges_sharp_from_angle_set(
 	MEM_freeN(loop_to_poly);
 }
 
-static void loop_manifold_fan_around_vert_next(
+void BKE_mesh_loop_manifold_fan_around_vert_next(
         const MLoop *mloops, const MPoly *mpolys,
         const int *loop_to_poly, const int *e2lfan_curr, const uint mv_pivot_index,
         const MLoop **r_mlfan_curr, int *r_mlfan_curr_index, int *r_mlfan_vert_index, int *r_mpfan_curr_index)
@@ -930,7 +952,7 @@ static void split_loop_nor_single_do(LoopSplitTaskDataCommon *common_data, LoopS
 
 		BKE_lnor_space_define(lnor_space, *lnor, vec_curr, vec_prev, NULL);
 		/* We know there is only one loop in this space, no need to create a linklist in this case... */
-		BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, ml_curr_index, false);
+		BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, ml_curr_index, NULL, true);
 
 		if (clnors_data) {
 			BKE_lnor_space_custom_data_to_normal(lnor_space, clnors_data[ml_curr_index], *lnor);
@@ -1063,7 +1085,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 
 		if (lnors_spacearr) {
 			/* Assign current lnor space to current 'vertex' loop. */
-			BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, mlfan_vert_index, true);
+			BKE_lnor_space_add_loop(lnors_spacearr, lnor_space, mlfan_vert_index, NULL, false);
 			if (me_curr != me_org) {
 				/* We store here all edges-normalized vectors processed. */
 				BLI_stack_push(edge_vectors, vec_curr);
@@ -1081,7 +1103,7 @@ static void split_loop_nor_fan_do(LoopSplitTaskDataCommon *common_data, LoopSpli
 		copy_v3_v3(vec_prev, vec_curr);
 
 		/* Find next loop of the smooth fan. */
-		loop_manifold_fan_around_vert_next(
+		BKE_mesh_loop_manifold_fan_around_vert_next(
 		            mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,
 		            &mlfan_curr, &mlfan_curr_index, &mlfan_vert_index, &mpfan_curr_index);
 
@@ -1218,7 +1240,7 @@ static bool loop_split_generator_check_cyclic_smooth_fan(
 
 	while (true) {
 		/* Find next loop of the smooth fan. */
-		loop_manifold_fan_around_vert_next(
+		BKE_mesh_loop_manifold_fan_around_vert_next(
 		            mloops, mpolys, loop_to_poly, e2lfan_curr, mv_pivot_index,
 		            &mlfan_curr, &mlfan_curr_index, &mlfan_vert_index, &mpfan_curr_index);
 
@@ -1475,7 +1497,7 @@ void BKE_mesh_normals_loop_split(
 		r_lnors_spacearr = &_lnors_spacearr;
 	}
 	if (r_lnors_spacearr) {
-		BKE_lnor_spacearr_init(r_lnors_spacearr, numLoops);
+		BKE_lnor_spacearr_init(r_lnors_spacearr, numLoops, MLNOR_SPACEARR_LOOP_INDEX);
 	}
 
 	/* Init data common to all tasks. */
@@ -1589,6 +1611,8 @@ static void mesh_normals_loop_custom_set(
 		}
 	}
 
+	BLI_assert(lnors_spacearr.data_type == MLNOR_SPACEARR_LOOP_INDEX);
+
 	/* Now, check each current smooth fan (one lnor space per smooth fan!), and if all its matching custom lnors
 	 * are not (enough) equal, add sharp edges as needed.
 	 * This way, next time we run BKE_mesh_normals_loop_split(), we'll get lnor spacearr/smooth fans matching
@@ -1612,7 +1636,7 @@ static void mesh_normals_loop_custom_set(
 
 			if (!BLI_BITMAP_TEST(done_loops, i)) {
 				/* Notes:
-				 *     * In case of mono-loop smooth fan, loops is NULL, so everything is fine (we have nothing to do).
+				 *     * In case of mono-loop smooth fan, we have nothing to do.
 				 *     * Loops in this linklist are ordered (in reversed order compared to how they were discovered by
 				 *       BKE_mesh_normals_loop_split(), but this is not a problem). Which means if we find a
 				 *       mismatching clnor, we know all remaining loops will have to be in a new, different smooth fan/
@@ -1620,6 +1644,11 @@ static void mesh_normals_loop_custom_set(
 				 *     * In smooth fan case, we compare each clnor against a ref one, to avoid small differences adding
 				 *       up into a real big one in the end!
 				 */
+				if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+					BLI_BITMAP_ENABLE(done_loops, i);
+					continue;
+				}
+
 				LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
 				MLoop *prev_ml = NULL;
 				const float *org_nor = NULL;
@@ -1667,9 +1696,6 @@ static void mesh_normals_loop_custom_set(
 						medges[(prev_ml->e == mlp->e) ? prev_ml->e : ml->e].flag |= ME_SHARP;
 					}
 				}
-
-				/* For single loops, where lnors_spacearr.lspacearr[i]->loops is NULL. */
-				BLI_BITMAP_ENABLE(done_loops, i);
 			}
 		}
 
@@ -1699,7 +1725,15 @@ static void mesh_normals_loop_custom_set(
 			 * computed 2D factors).
 			 */
 			LinkNode *loops = lnors_spacearr.lspacearr[i]->loops;
-			if (loops) {
+			if (lnors_spacearr.lspacearr[i]->flags & MLNOR_SPACE_IS_SINGLE) {
+				BLI_assert(GET_INT_FROM_POINTER(loops) == i);
+				const int nidx = use_vertices ? (int)mloops[i].v : i;
+				float *nor = r_custom_loopnors[nidx];
+
+				BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
+				BLI_BITMAP_DISABLE(done_loops, i);
+			}
+			else {
 				int nbr_nors = 0;
 				float avg_nor[3];
 				short clnor_data_tmp[2], *clnor_data;
@@ -1725,13 +1759,6 @@ static void mesh_normals_loop_custom_set(
 					clnor_data[0] = clnor_data_tmp[0];
 					clnor_data[1] = clnor_data_tmp[1];
 				}
-			}
-			else {
-				const int nidx = use_vertices ? (int)mloops[i].v : i;
-				float *nor = r_custom_loopnors[nidx];
-
-				BKE_lnor_space_custom_normal_to_data(lnors_spacearr.lspacearr[i], nor, r_clnors_data[i]);
-				BLI_BITMAP_DISABLE(done_loops, i);
 			}
 		}
 	}

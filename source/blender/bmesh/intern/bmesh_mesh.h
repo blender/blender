@@ -52,6 +52,9 @@ void BM_loops_calc_normal_vcos(
         const bool use_split_normals, const float split_angle, float (*r_lnos)[3],
         struct MLoopNorSpaceArray *r_lnors_spacearr, short (*clnors_data)[2], const int cd_loop_clnors_offset);
 
+bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr);
+
+
 void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle);
 
 void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
