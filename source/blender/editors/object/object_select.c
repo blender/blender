@@ -135,6 +135,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 	{
 		/* Sync existing object mode with workspace. */
 		workspace->object_mode = object_mode_set;
+		view_layer->basact = base;
 	}
 	else {
 		/* Apply the workspaces more to the object (when possible). */
