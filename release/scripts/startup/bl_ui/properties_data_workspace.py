@@ -80,15 +80,14 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
         col.active = workspace.use_filter_by_owner
 
         import addon_utils
-        addon_map = {
-            mod.__name__: ("%s: %s" % (mod.bl_info["category"], mod.bl_info["name"]))
-            for mod in addon_utils.modules()
-        }
+        addon_map = {mod.__name__: mod for mod in addon_utils.modules()}
         owner_ids = {owner_id.name  for owner_id in workspace.owner_ids}
 
         for addon in userpref.addons:
             module_name = addon.module
-            text = addon_map[module_name]
+            info = addon_utils.module_bl_info(addon_map[module_name])
+            if not info["use_owner"]:
+                continue
             is_enabled = module_name in owner_ids
             row = col.row()
             row.operator(
@@ -97,7 +96,7 @@ class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
                 text="",
                 emboss=False,
             ).owner_id = module_name
-            row.label(text)
+            row.label("%s: %s" % (info["category"], info["name"]))
             if is_enabled:
                 owner_ids.remove(module_name)
 
