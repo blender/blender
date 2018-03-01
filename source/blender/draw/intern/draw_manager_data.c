@@ -28,6 +28,7 @@
 #include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_object.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
 
@@ -246,15 +247,12 @@ static void drw_call_calc_orco(ID *ob_data, float (*r_orcofacs)[3])
 	}
 }
 
-static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obmat)[4], ID *ob_data)
+static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obmat)[4], Object *ob)
 {
 	DRWCallState *state = BLI_mempool_alloc(DST.vmempool->states);
 	state->flag = 0;
 	state->cache_id = 0;
 	state->matflag = shgroup->matflag;
-
-	/* TODO Set culling bsphere IF needed by the DRWPass */
-	state->bsphere.rad = -1.0f;
 
 	/* Matrices */
 	if (obmat != NULL) {
@@ -268,19 +266,33 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
 		unit_m4(state->model);
 	}
 
+	if (ob != NULL) {
+		float corner[3];
+		BoundBox *bbox = BKE_object_boundbox_get(ob);
+		/* Get BoundSphere center and radius from the BoundBox. */
+		mid_v3_v3v3(state->bsphere.center, bbox->vec[0], bbox->vec[6]);
+		mul_v3_m4v3(corner, obmat, bbox->vec[0]);
+		mul_m4_v3(obmat, state->bsphere.center);
+		state->bsphere.radius = len_v3v3(state->bsphere.center, corner);
+	}
+	else {
+		/* Bypass test. */
+		state->bsphere.radius = -1.0f;
+	}
+
 	/* Orco factors: We compute this at creation to not have to save the *ob_data */
 	if ((state->matflag & DRW_CALL_ORCOTEXFAC) != 0) {
-		drw_call_calc_orco(ob_data, state->orcotexfac);
+		drw_call_calc_orco(ob->data, state->orcotexfac);
 		state->matflag &= ~DRW_CALL_ORCOTEXFAC;
 	}
 
 	return state;
 }
 
-static DRWCallState *drw_call_state_object(DRWShadingGroup *shgroup, float (*obmat)[4], ID *ob_data)
+static DRWCallState *drw_call_state_object(DRWShadingGroup *shgroup, float (*obmat)[4], Object *ob)
 {
 	if (DST.ob_state == NULL) {
-		DST.ob_state = drw_call_state_create(shgroup, obmat, ob_data);
+		DST.ob_state = drw_call_state_create(shgroup, obmat, ob);
 	}
 	else {
 		/* If the DRWCallState is reused, add necessary matrices. */
@@ -298,10 +310,10 @@ void DRW_shgroup_call_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obm
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 	call->state = drw_call_state_create(shgroup, obmat, NULL);
 	call->type = DRW_CALL_SINGLE;
+	call->single.geometry = geom;
 #ifdef USE_GPU_SELECT
 	call->select_id = DST.select_id;
 #endif
-	call->single.geometry = geom;
 
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
@@ -313,12 +325,12 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Obje
 	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
-	call->state = drw_call_state_object(shgroup, ob->obmat, ob->data);
+	call->state = drw_call_state_object(shgroup, ob->obmat, ob);
 	call->type = DRW_CALL_SINGLE;
+	call->single.geometry = geom;
 #ifdef USE_GPU_SELECT
 	call->select_id = DST.select_id;
 #endif
-	call->single.geometry = geom;
 
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
@@ -334,11 +346,11 @@ void DRW_shgroup_call_generate_add(
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 	call->state = drw_call_state_create(shgroup, obmat, NULL);
 	call->type = DRW_CALL_GENERATE;
+	call->generate.geometry_fn = geometry_fn;
+	call->generate.user_data = user_data;
 #ifdef USE_GPU_SELECT
 	call->select_id = DST.select_id;
 #endif
-	call->generate.geometry_fn = geometry_fn;
-	call->generate.user_data = user_data;
 
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }

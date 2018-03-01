@@ -441,6 +441,8 @@ static void drw_viewport_var_init(void)
 	DST.dirty_mat = false;
 	DST.state_cache_id = 1;
 
+	DST.clipping.updated = false;
+
 	memset(DST.common_instance_data, 0x0, sizeof(DST.common_instance_data));
 }
 

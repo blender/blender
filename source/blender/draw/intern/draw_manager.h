@@ -76,6 +76,12 @@
 
 #endif  /* USE_PROFILE */
 
+/* TODO Put it somewhere else? */
+typedef struct BoundSphere {
+	float center[3], radius;
+} BoundSphere;
+
+
 /* ------------ Data Structure --------------- */
 /**
  * Data structure containing all drawcalls organized by passes and materials.
@@ -107,9 +113,7 @@ typedef struct DRWCallState {
 	uint16_t matflag;         /* Which matrices to compute. */
 	/* Culling: Using Bounding Sphere for now for faster culling.
 	 * Not ideal for planes. */
-	struct {
-		float loc[3], rad; /* Bypassed if radius is < 0.0. */
-	} bsphere;
+	BoundSphere bsphere;
 	/* Matrices */
 	float model[4][4];
 	float modelinverse[4][4];
@@ -304,6 +308,12 @@ typedef struct DRWManager {
 		float viewcamtexcofac[4];
 		float clip_planes_eq[MAX_CLIP_PLANES][4];
 	} view_data;
+
+	struct {
+		float frustum_planes[6][4];
+		BoundSphere frustum_bsphere;
+		bool updated;
+	} clipping;
 
 #ifdef USE_GPU_SELECT
 	unsigned int select_id;
