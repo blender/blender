@@ -144,14 +144,14 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 /**
   * Depsgraph objects iterator for draw manager and final render
   */
-#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph_, instance_, mode_) \
-	DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_,                \
-	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY  |          \
-	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |            \
-	        DEG_ITER_OBJECT_FLAG_VISIBLE |                   \
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_BEGIN(graph_, instance_, mode_) \
+	DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_,                       \
+	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |                        \
+	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |                         \
+	        DEG_ITER_OBJECT_FLAG_VISIBLE |                                \
 	        DEG_ITER_OBJECT_FLAG_DUPLI)
 
-#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END                \
+#define DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END                             \
 	DEG_OBJECT_ITER_END
 
 /* ************************ DEG traversal ********************* */
