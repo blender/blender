@@ -108,7 +108,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-			FOREACH_SCENE_OBJECT(ctx->scene, ob1)
+			FOREACH_SCENE_OBJECT_BEGIN(ctx->scene, ob1)
 			{
 				if (ob1 != ctx->object) {
 					FluidsimModifierData *fluidmdtmp =

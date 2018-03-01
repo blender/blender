@@ -351,7 +351,7 @@ static void id_search_cb_objects_from_scene(const bContext *C, void *arg_templat
 
 	BKE_main_id_flag_listbase(lb, LIB_TAG_DOIT, false);
 
-	FOREACH_SCENE_OBJECT(scene, ob_iter)
+	FOREACH_SCENE_OBJECT_BEGIN(scene, ob_iter)
 	{
 		ob_iter->id.tag |= LIB_TAG_DOIT;
 	}

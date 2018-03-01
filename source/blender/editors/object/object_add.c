@@ -1719,7 +1719,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 	/* don't forget multiple users! */
 
 	{
-		FOREACH_SCENE_OBJECT(scene, ob)
+		FOREACH_SCENE_OBJECT_BEGIN(scene, ob)
 		{
 			ob->flag &= ~OB_DONE;
 
@@ -2009,7 +2009,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 
 	if (!keep_original) {
 		if (mballConverted) {
-			FOREACH_SCENE_OBJECT(scene, ob_mball)
+			FOREACH_SCENE_OBJECT_BEGIN(scene, ob_mball)
 			{
 				if (ob_mball->type == OB_MBALL) {
 					if (ob_mball->flag & OB_DONE) {

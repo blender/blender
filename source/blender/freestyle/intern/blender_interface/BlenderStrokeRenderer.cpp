@@ -217,7 +217,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	}
 
 	// Make sure we don't have any bases which might reference freed objects.
-	FOREACH_SCENE_COLLECTION(freestyle_scene, sc)
+	FOREACH_SCENE_COLLECTION_BEGIN(freestyle_scene, sc)
 	{
 		BLI_freelistN(&sc->objects);
 	}

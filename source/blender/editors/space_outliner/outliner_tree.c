@@ -2380,7 +2380,7 @@ void outliner_build_tree(
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
 		if ((soops->filter & SO_FILTER_ENABLE) && (soops->filter & SO_FILTER_NO_COLLECTION)) {
-			FOREACH_SCENE_OBJECT(scene, ob)
+			FOREACH_SCENE_OBJECT_BEGIN(scene, ob)
 			{
 				outliner_add_element(soops, eval_ctx, &soops->tree, ob, NULL, 0, 0);
 			}

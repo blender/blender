@@ -199,7 +199,7 @@ void BKE_visible_bases_iterator_begin(BLI_Iterator *iter, void *data_in);
 void BKE_visible_bases_iterator_next(BLI_Iterator *iter);
 void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 
-#define FOREACH_SELECTED_OBJECT(view_layer, _instance)                        \
+#define FOREACH_SELECTED_OBJECT_BEGIN(view_layer, _instance)                  \
 	ITER_BEGIN(BKE_selected_objects_iterator_begin,                           \
 	           BKE_selected_objects_iterator_next,                            \
 	           BKE_selected_objects_iterator_end,                             \
@@ -208,7 +208,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 #define FOREACH_SELECTED_OBJECT_END                                           \
 	ITER_END
 
-#define FOREACH_VISIBLE_OBJECT(view_layer, _instance)                         \
+#define FOREACH_VISIBLE_OBJECT_BEGIN(view_layer, _instance)                   \
 	ITER_BEGIN(BKE_visible_objects_iterator_begin,                            \
 	           BKE_visible_objects_iterator_next,                             \
 	           BKE_visible_objects_iterator_end,                              \
@@ -217,7 +217,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 #define FOREACH_VISIBLE_OBJECT_END                                            \
 	ITER_END
 
-#define FOREACH_SELECTED_BASE(view_layer, _instance)                           \
+#define FOREACH_SELECTED_BASE_BEGIN(view_layer, _instance)                     \
 	ITER_BEGIN(BKE_selected_bases_iterator_begin,                              \
 	           BKE_selected_bases_iterator_next,                               \
 	           BKE_selected_bases_iterator_end,                                \
@@ -226,7 +226,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 #define FOREACH_SELECTED_BASE_END                                              \
 	ITER_END
 
-#define FOREACH_VISIBLE_BASE(view_layer, _instance)                           \
+#define FOREACH_VISIBLE_BASE_BEGIN(view_layer, _instance)                     \
 	ITER_BEGIN(BKE_visible_bases_iterator_begin,                              \
 	           BKE_visible_bases_iterator_next,                               \
 	           BKE_visible_bases_iterator_end,                                \
@@ -236,7 +236,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 	ITER_END
 
 
-#define FOREACH_OBJECT(view_layer, _instance)                                 \
+#define FOREACH_OBJECT_BEGIN(view_layer, _instance)                           \
 {                                                                             \
 	Object *_instance;                                                        \
 	Base *_base;                                                              \
@@ -247,7 +247,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
     }                                                                         \
 }
 
-#define FOREACH_OBJECT_FLAG(scene, view_layer, flag, _instance)               \
+#define FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, _instance)         \
 {                                                                             \
 	IteratorBeginCb func_begin;                                               \
 	IteratorCb func_next, func_end;                                           \
@@ -284,7 +284,7 @@ typedef struct ObjectsRenderableIteratorData {
 	} iter;
 } ObjectsRenderableIteratorData;
 
-#define FOREACH_OBJECT_RENDERABLE(scene_, _instance)                          \
+#define FOREACH_OBJECT_RENDERABLE_BEGIN(scene_, _instance)                    \
 	ObjectsRenderableIteratorData data_ = {                                   \
 	    .scene = (scene_),                                                    \
 	};                                                                        \

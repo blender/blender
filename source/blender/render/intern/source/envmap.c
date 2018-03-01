@@ -250,7 +250,7 @@ static void env_set_imats(Render *re)
 {
 	float mat[4][4];
 
-	FOREACH_SCENE_OBJECT(re->scene, ob)
+	FOREACH_SCENE_OBJECT_BEGIN(re->scene, ob)
 	{
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat, mat);

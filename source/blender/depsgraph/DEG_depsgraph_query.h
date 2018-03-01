@@ -124,7 +124,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
  * Although they are available they have no overrides (collection_properties)
  * and will crash if you try to access it.
  */
-#define DEG_OBJECT_ITER(graph_, instance_, mode_, flag_)                          \
+#define DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_, flag_)                    \
 	{                                                                             \
 		DEGObjectIterData data_ = {                                               \
 			.graph = (graph_),                                                    \
@@ -145,7 +145,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
   * Depsgraph objects iterator for draw manager and final render
   */
 #define DEG_OBJECT_ITER_FOR_RENDER_ENGINE(graph_, instance_, mode_) \
-	DEG_OBJECT_ITER(graph_, instance_, mode_,                \
+	DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_,                \
 	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY  |          \
 	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |            \
 	        DEG_ITER_OBJECT_FLAG_VISIBLE |                   \

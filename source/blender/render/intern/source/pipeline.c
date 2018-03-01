@@ -1981,7 +1981,7 @@ bool RE_allow_render_generic_object(Object *ob)
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 static void tag_dependend_objects_for_render(Scene *scene, int UNUSED(renderlay))
 {
-	FOREACH_OBJECT_RENDERABLE(scene, object)
+	FOREACH_OBJECT_RENDERABLE_BEGIN(scene, object)
 	{
 		if (object->type == OB_MESH) {
 			if (RE_allow_render_generic_object(object)) {

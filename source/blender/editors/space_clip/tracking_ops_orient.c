@@ -71,7 +71,7 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 		return camera;
 	}
 
-	FOREACH_SCENE_OBJECT(scene, ob)
+	FOREACH_SCENE_OBJECT_BEGIN(scene, ob)
 	{
 		if (ob->type == OB_CAMERA) {
 			if (BKE_object_movieclip_get(scene, ob, false) == clip) {

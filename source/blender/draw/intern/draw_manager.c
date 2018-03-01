@@ -1464,7 +1464,7 @@ void DRW_draw_select_loop(
 			drw_engines_cache_populate(obact);
 		}
 		else {
-			DEG_OBJECT_ITER(depsgraph, ob, DRW_iterator_mode_get(),
+			DEG_OBJECT_ITER_BEGIN(depsgraph, ob, DRW_iterator_mode_get(),
 			                DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
 			                DEG_ITER_OBJECT_FLAG_VISIBLE |
 			                DEG_ITER_OBJECT_FLAG_DUPLI)

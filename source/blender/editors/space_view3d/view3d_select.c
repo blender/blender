@@ -2045,7 +2045,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 		qsort(vbuffer, hits, sizeof(uint[4]), opengl_select_buffer_cmp);
 
 		/*
-		 * Even though 'DRW_draw_select_loop' uses 'DEG_OBJECT_ITER',
+		 * Even though 'DRW_draw_select_loop' uses 'DEG_OBJECT_ITER_BEGIN',
 		 * we can be sure the order remains the same between both.
 		 */
 		for (base = vc->view_layer->object_bases.first; base && hits; base = base->next) {

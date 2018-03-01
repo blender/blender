@@ -1747,7 +1747,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
  * button can be functional.*/
 void ED_object_single_user(Main *bmain, Scene *scene, Object *ob)
 {
-	FOREACH_SCENE_OBJECT(scene, ob_iter)
+	FOREACH_SCENE_OBJECT_BEGIN(scene, ob_iter)
 	{
 		ob_iter->flag &= ~OB_DONE;
 	}
@@ -1791,7 +1791,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 	ID *id;
 	int a;
 
-	FOREACH_OBJECT_FLAG(scene, view_layer, flag, ob)
+	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
 	{
 		if (!ID_IS_LINKED(ob)) {
 			id = ob->data;
@@ -1849,7 +1849,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 						printf("ERROR %s: can't copy %s\n", __func__, id->name);
 						BLI_assert(!"This should never happen.");
 
-						/* We need to end the FOREACH_OBJECT_FLAG iterator to prevent memory leak. */
+						/* We need to end the FOREACH_OBJECT_FLAG_BEGIN iterator to prevent memory leak. */
 						BKE_scene_objects_iterator_end(&iter_macro);
 						return;
 				}
@@ -1876,7 +1876,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 
 static void single_object_action_users(Scene *scene, ViewLayer *view_layer, const int flag)
 {
-	FOREACH_OBJECT_FLAG(scene, view_layer, flag, ob)
+	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
 		if (!ID_IS_LINKED(ob)) {
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_animdata_copy_id_action(&ob->id, false);
@@ -1890,7 +1890,7 @@ static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, c
 	Tex *tex;
 	int a, b;
 
-	FOREACH_OBJECT_FLAG(scene, view_layer, flag, ob)
+	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
 		if (!ID_IS_LINKED(ob)) {
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
@@ -2045,7 +2045,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 	{
 		IDP_RelinkProperty(scene->id.properties);
 
-		FOREACH_SCENE_OBJECT(scene, ob)
+		FOREACH_SCENE_OBJECT_BEGIN(scene, ob)
 		{
 			if (!ID_IS_LINKED(ob)) {
 				IDP_RelinkProperty(ob->id.properties);

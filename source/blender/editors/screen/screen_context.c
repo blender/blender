@@ -103,7 +103,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "visible_objects")) {
-		FOREACH_VISIBLE_OBJECT(view_layer, ob)
+		FOREACH_VISIBLE_OBJECT_BEGIN(view_layer, ob)
 		{
 			CTX_data_id_list_add(result, &ob->id);
 		}
@@ -121,7 +121,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "selected_objects")) {
-		FOREACH_SELECTED_OBJECT(view_layer, ob)
+		FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
 		{
 			CTX_data_id_list_add(result, &ob->id);
 		}
@@ -130,7 +130,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if (CTX_data_equals(member, "selected_editable_objects")) {
-		FOREACH_SELECTED_OBJECT(view_layer, ob)
+		FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
 		{
 			if (0 == BKE_object_is_libdata(ob)) {
 				CTX_data_id_list_add(result, &ob->id);
@@ -142,7 +142,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "editable_objects")) {
 		/* Visible + Editable, but not necessarily selected */
-		FOREACH_VISIBLE_OBJECT(view_layer, ob)
+		FOREACH_VISIBLE_OBJECT_BEGIN(view_layer, ob)
 		{
 			if (0 == BKE_object_is_libdata(ob)) {
 				CTX_data_id_list_add(result, &ob->id);
@@ -153,7 +153,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		return 1;
 	}
 	else if ( CTX_data_equals(member, "visible_bases")) {
-		FOREACH_VISIBLE_BASE(view_layer, base)
+		FOREACH_VISIBLE_BASE_BEGIN(view_layer, base)
 		{
 			CTX_data_list_add(result, &scene->id, &RNA_ObjectBase, base);
 		}

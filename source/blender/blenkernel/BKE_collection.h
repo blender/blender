@@ -83,7 +83,7 @@ void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
-#define FOREACH_SCENE_COLLECTION(_id, _instance)                              \
+#define FOREACH_SCENE_COLLECTION_BEGIN(_id, _instance)                        \
 	ITER_BEGIN(BKE_scene_collections_iterator_begin,                          \
 	           BKE_scene_collections_iterator_next,                           \
 	           BKE_scene_collections_iterator_end,                            \
@@ -92,7 +92,7 @@ void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 #define FOREACH_SCENE_COLLECTION_END                                          \
 	ITER_END
 
-#define FOREACH_SCENE_OBJECT(scene, _instance)                                \
+#define FOREACH_SCENE_OBJECT_BEGIN(scene, _instance)                          \
 	ITER_BEGIN(BKE_scene_objects_iterator_begin,                              \
 	           BKE_scene_objects_iterator_next,                               \
 	           BKE_scene_objects_iterator_end,                                \

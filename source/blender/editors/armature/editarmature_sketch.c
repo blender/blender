@@ -158,7 +158,7 @@ void BIF_makeListTemplates(const bContext *C)
 	TEMPLATES_HASH = BLI_ghash_int_new("makeListTemplates gh");
 	TEMPLATES_CURRENT = 0;
 
-	FOREACH_OBJECT(view_layer, ob)
+	FOREACH_OBJECT_BEGIN(view_layer, ob)
 	{
 		if (ob != obedit && ob->type == OB_ARMATURE) {
 			index++;
