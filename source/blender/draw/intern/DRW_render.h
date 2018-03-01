@@ -451,6 +451,7 @@ void DRW_draw_region_engine_info(void);
 
 void DRW_state_reset_ex(DRWState state);
 void DRW_state_reset(void);
+void DRW_state_lock(DRWState state);
 
 void DRW_state_invert_facing(void);
 

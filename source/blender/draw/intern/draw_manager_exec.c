@@ -61,15 +61,18 @@ void drw_state_set(DRWState state)
 	}
 
 #define CHANGED_TO(f) \
-	((DST.state & (f)) ? \
-		((state & (f)) ?  0 : -1) : \
-		((state & (f)) ?  1 :  0))
+	((((DST.state & (f)) ? \
+	   ((state & (f)) ?  0 : -1) : \
+	   ((state & (f)) ?  1 :  0))) && \
+	 ((DST.state_lock & (f)) == 0))
 
 #define CHANGED_ANY(f) \
-	((DST.state & (f)) != (state & (f)))
+	(((DST.state & (f)) != (state & (f))) && \
+	 ((DST.state_lock & (f)) == 0))
 
 #define CHANGED_ANY_STORE_VAR(f, enabled) \
-	((DST.state & (f)) != (enabled = (state & (f))))
+	(((DST.state & (f)) != (enabled = (state & (f)))) && \
+	 (((DST.state_lock & (f)) == 0)))
 
 	/* Depth Write */
 	{
@@ -328,6 +331,17 @@ void DRW_state_reset_ex(DRWState state)
 {
 	DST.state = ~state;
 	drw_state_set(state);
+}
+
+/**
+ * Use with care, intended so selection code can override passes depth settings,
+ * which is important for selection to work properly.
+ *
+ * Should be set in main draw loop, cleared afterwards
+ */
+void DRW_state_lock(DRWState state)
+{
+	DST.state_lock = state;
 }
 
 void DRW_state_reset(void)

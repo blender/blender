@@ -265,6 +265,7 @@ typedef struct DRWManager {
 
 	/* Managed by `DRW_state_set`, `DRW_state_reset` */
 	DRWState state;
+	DRWState state_lock;
 	unsigned int stencil_mask;
 
 	/* Per viewport */

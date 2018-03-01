@@ -1486,6 +1486,15 @@ void DRW_draw_select_loop(
 	DRW_state_reset();
 	DRW_draw_callbacks_pre_scene();
 
+
+	DRW_state_lock(
+	        DRW_STATE_WRITE_DEPTH |
+	        DRW_STATE_DEPTH_ALWAYS |
+	        DRW_STATE_DEPTH_LESS |
+	        DRW_STATE_DEPTH_EQUAL |
+	        DRW_STATE_DEPTH_GREATER |
+	        DRW_STATE_DEPTH_ALWAYS);
+
 	/* Only 1-2 passes. */
 	while (true) {
 		if (!select_pass_fn(DRW_SELECT_PASS_PRE, select_pass_user_data)) {
@@ -1498,6 +1507,8 @@ void DRW_draw_select_loop(
 			break;
 		}
 	}
+
+	DRW_state_lock(0);
 
 	DRW_draw_callbacks_post_scene();
 
