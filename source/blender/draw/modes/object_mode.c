@@ -1889,7 +1889,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_outline_or(stl, theme_id, NULL);
 				if (shgroup != NULL) {
-					DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+					DRW_shgroup_call_object_add(shgroup, geom, ob);
 				}
 			}
 		}
@@ -1909,7 +1909,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 							}
 
 							DRWShadingGroup *shgroup = shgroup_theme_id_to_point_or(stl, theme_id, stl->g_data->points);
-							DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+							DRW_shgroup_call_object_add(shgroup, geom, ob);
 						}
 					}
 					else {
@@ -1920,7 +1920,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 							}
 
 							DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-							DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+							DRW_shgroup_call_object_add(shgroup, geom, ob);
 						}
 					}
 				}
@@ -1938,7 +1938,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 				}
 
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-				DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
 		}
@@ -1951,7 +1951,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					theme_id = DRW_object_wire_theme_get(ob, view_layer, NULL);
 				}
 				DRWShadingGroup *shgroup = shgroup_theme_id_to_wire_or(stl, theme_id, stl->g_data->wire);
-				DRW_shgroup_call_add(shgroup, geom, ob->obmat);
+				DRW_shgroup_call_object_add(shgroup, geom, ob);
 			}
 			break;
 		}
