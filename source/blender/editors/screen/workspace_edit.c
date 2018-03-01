@@ -352,7 +352,9 @@ bool ED_workspace_object_mode_in_other_window(
 			ViewLayer *view_layer_iter = BKE_view_layer_from_workspace_get(scene_iter, workspace_iter);
 			Object *obact_iter = OBACT(view_layer_iter);
 			if (obact == obact_iter) {
-				*r_object_mode = workspace_iter->object_mode;
+				if (r_object_mode) {
+					*r_object_mode = workspace_iter->object_mode;
+				}
 				return true;
 			}
 		}

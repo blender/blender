@@ -160,6 +160,9 @@ bool ED_object_mode_generic_enter(
 void ED_object_mode_generic_exit(
         const struct EvaluationContext *eval_ctx,
         struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
+bool ED_object_mode_generic_has_data(
+        const struct EvaluationContext *eval_ctx,
+        struct Object *ob);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);

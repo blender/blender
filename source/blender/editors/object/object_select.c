@@ -157,11 +157,16 @@ void ED_object_base_activate(bContext *C, Base *base)
 		 * Not correct because it's possible other work-spaces use these.
 		 * although that's a corner case. */
 		if (workspace->object_mode & OB_MODE_ALL_MODE_DATA) {
+			wmWindowManager *wm = CTX_wm_manager(C);
 			EvaluationContext eval_ctx;
 			CTX_data_eval_ctx(C, &eval_ctx);
 			FOREACH_OBJECT_BEGIN(view_layer, ob) {
 				if (ob != obact) {
-					ED_object_mode_generic_exit(&eval_ctx, workspace, scene, ob);
+					if (ED_object_mode_generic_has_data(&eval_ctx, ob) &&
+					    ED_workspace_object_mode_in_other_window(wm, workspace, ob, NULL) == false)
+					{
+						ED_object_mode_generic_exit(&eval_ctx, workspace, scene, ob);
+					}
 				}
 			}
 			FOREACH_OBJECT_END;
