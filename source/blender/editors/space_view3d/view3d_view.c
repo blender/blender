@@ -888,7 +888,7 @@ static bool drw_select_loop_pass(eDRWSelectStage stage, void *user_data)
 		}
 		if (data->gpu_select_mode == GPU_SELECT_NEAREST_FIRST_PASS) {
 			data->gpu_select_mode = GPU_SELECT_NEAREST_SECOND_PASS;
-			continue_pass = true;
+			continue_pass = (hits > 0);
 		}
 		data->pass += 1;
 	}
@@ -961,11 +961,6 @@ int view3d_opengl_select(
 	UI_Theme_Store(&theme_state);
 	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 
-#ifndef WITH_OPENGL_LEGACY
-	/* All of the queries need to be perform on the drawing context. */
-	DRW_opengl_context_enable();
-#endif
-
 	/* Re-use cache (rect must be smaller then the cached)
 	 * other context is assumed to be unchanged */
 	if (GPU_select_is_cached()) {
@@ -974,6 +969,11 @@ int view3d_opengl_select(
 		hits = GPU_select_end();
 		goto finally;
 	}
+
+#ifndef WITH_OPENGL_LEGACY
+	/* All of the queries need to be perform on the drawing context. */
+	DRW_opengl_context_enable();
+#endif
 
 	G.f |= G_PICKSEL;
 
@@ -1034,11 +1034,11 @@ int view3d_opengl_select(
 	if (vc->rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();
 
-finally:
-
 #ifndef WITH_OPENGL_LEGACY
 	DRW_opengl_context_disable();
 #endif
+
+finally:
 
 	if (hits < 0) printf("Too many objects in select buffer\n");  /* XXX make error message */
 
