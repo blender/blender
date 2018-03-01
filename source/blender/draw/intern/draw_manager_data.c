@@ -282,6 +282,10 @@ static DRWCallState *drw_call_state_object(DRWShadingGroup *shgroup, float (*obm
 	if (DST.ob_state == NULL) {
 		DST.ob_state = drw_call_state_create(shgroup, obmat, ob_data);
 	}
+	else {
+		/* If the DRWCallState is reused, add necessary matrices. */
+		DST.ob_state->matflag |= shgroup->matflag;
+	}
 
 	return DST.ob_state;
 }
