@@ -446,6 +446,7 @@ Mesh::Mesh()
 
 	geometry_flags = GEOMETRY_NONE;
 
+	volume_isovalue = 0.001f;
 	has_volume = false;
 	has_surface_bssrdf = false;
 
@@ -533,7 +534,7 @@ void Mesh::reserve_subd_faces(int numfaces, int num_ngons_, int numcorners)
 	subd_attributes.resize(true);
 }
 
-void Mesh::clear()
+void Mesh::clear(bool preserve_voxel_data)
 {
 	/* clear all verts and triangles */
 	verts.clear();
@@ -556,15 +557,18 @@ void Mesh::clear()
 
 	subd_creases.clear();
 
-	attributes.clear();
 	curve_attributes.clear();
 	subd_attributes.clear();
-	used_shaders.clear();
+	attributes.clear(preserve_voxel_data);
+
+	if(!preserve_voxel_data) {
+		used_shaders.clear();
+		geometry_flags = GEOMETRY_NONE;
+	}
 
 	transform_applied = false;
 	transform_negative_scaled = false;
 	transform_normal = transform_identity();
-	geometry_flags = GEOMETRY_NONE;
 
 	delete patch_table;
 	patch_table = NULL;
@@ -1892,17 +1896,22 @@ void MeshManager::device_update_bvh(Device *device, DeviceScene *dscene, Scene *
 	delete bvh;
 }
 
-void MeshManager::device_update_flags(Device * /*device*/,
-                                      DeviceScene * /*dscene*/,
-                                      Scene * scene,
-                                      Progress& /*progress*/)
+void MeshManager::device_update_preprocess(Device *device,
+                                           Scene *scene,
+                                           Progress& progress)
 {
 	if(!need_update && !need_flags_update) {
 		return;
 	}
-	/* update flags */
+
+	progress.set_status("Updating Meshes Flags");
+
+	/* Update flags. */
+	bool volume_images_updated = false;
+
 	foreach(Mesh *mesh, scene->meshes) {
 		mesh->has_volume = false;
+
 		foreach(const Shader *shader, mesh->used_shaders) {
 			if(shader->has_volume) {
 				mesh->has_volume = true;
@@ -1911,7 +1920,29 @@ void MeshManager::device_update_flags(Device * /*device*/,
 				mesh->has_surface_bssrdf = true;
 			}
 		}
+
+		if(need_update && mesh->has_volume) {
+			/* Create volume meshes if there is voxel data. */
+			bool has_voxel_attributes = false;
+
+			foreach(Attribute& attr, mesh->attributes.attributes) {
+				if(attr.element == ATTR_ELEMENT_VOXEL) {
+					has_voxel_attributes = true;
+				}
+			}
+
+			if(has_voxel_attributes) {
+				if(!volume_images_updated) {
+					progress.set_status("Updating Meshes Volume Bounds");
+					device_update_volume_images(device, scene, progress);
+					volume_images_updated = true;
+				}
+
+				create_volume_mesh(scene, mesh, progress);
+			}
+		}
 	}
+
 	need_flags_update = false;
 }
 
@@ -1950,6 +1981,44 @@ void MeshManager::device_update_displacement_images(Device *device,
 		                        scene,
 		                        slot,
 		                        &progress));
+	}
+	pool.wait_work();
+}
+
+void MeshManager::device_update_volume_images(Device *device,
+											  Scene *scene,
+											  Progress& progress)
+{
+	progress.set_status("Updating Volume Images");
+	TaskPool pool;
+	ImageManager *image_manager = scene->image_manager;
+	set<int> volume_images;
+
+	foreach(Mesh *mesh, scene->meshes) {
+		if(!mesh->need_update) {
+			continue;
+		}
+
+		foreach(Attribute& attr, mesh->attributes.attributes) {
+			if(attr.element != ATTR_ELEMENT_VOXEL) {
+				continue;
+			}
+
+			VoxelAttribute *voxel = attr.data_voxel();
+
+			if(voxel->slot != -1) {
+				volume_images.insert(voxel->slot);
+			}
+		}
+	}
+
+	foreach(int slot, volume_images) {
+		pool.push(function_bind(&ImageManager::device_update_slot,
+								image_manager,
+								device,
+								scene,
+								slot,
+								&progress));
 	}
 	pool.wait_work();
 }

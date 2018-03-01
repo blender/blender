@@ -23,6 +23,7 @@ set(SRC
 	mesh.cpp
 	mesh_displace.cpp
 	mesh_subdivision.cpp
+	mesh_volume.cpp
 	nodes.cpp
 	object.cpp
 	osl.cpp

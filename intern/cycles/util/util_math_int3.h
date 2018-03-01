@@ -78,6 +78,22 @@ ccl_device_inline int3 clamp(const int3& a, int3& mn, int mx)
 }
 #endif  /* !__KERNEL_OPENCL__ */
 
+
+ccl_device_inline bool operator==(const int3 &a, const int3 &b)
+{
+	return a.x == b.x && a.y == b.y && a.z == b.z;
+}
+
+ccl_device_inline bool operator!=(const int3 &a, const int3 &b)
+{
+	return !(a == b);
+}
+
+ccl_device_inline bool operator<(const int3 &a, const int3 &b)
+{
+	return a.x < b.x && a.y < b.y && a.z < b.z;
+}
+
 CCL_NAMESPACE_END
 
 #endif /* __UTIL_MATH_INT3_H__ */

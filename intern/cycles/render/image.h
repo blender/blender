@@ -85,6 +85,8 @@ public:
 	void set_osl_texture_system(void *texture_system);
 	bool set_animation_frame_update(int frame);
 
+	device_memory *image_memory(int flat_slot);
+
 	bool need_update;
 
 	/* NOTE: Here pixels_size is a size of storage, which equals to

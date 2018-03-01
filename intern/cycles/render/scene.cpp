@@ -204,8 +204,7 @@ void Scene::device_update(Device *device_, Progress& progress)
 
 	if(progress.get_cancel() || device->have_error()) return;
 
-	progress.set_status("Updating Meshes Flags");
-	mesh_manager->device_update_flags(device, &dscene, this, progress);
+	mesh_manager->device_update_preprocess(device, this, progress);
 
 	if(progress.get_cancel() || device->have_error()) return;
 
