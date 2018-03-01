@@ -123,7 +123,7 @@ public:
 	void remove(Attribute *attribute);
 
 	void resize(bool reserve_only = false);
-	void clear();
+	void clear(bool preserve_voxel_data = false);
 };
 
 /* AttributeRequest

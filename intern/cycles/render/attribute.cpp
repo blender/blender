@@ -535,9 +535,23 @@ void AttributeSet::resize(bool reserve_only)
 	}
 }
 
-void AttributeSet::clear()
+void AttributeSet::clear(bool preserve_voxel_data)
 {
-	attributes.clear();
+	if(preserve_voxel_data) {
+		list<Attribute>::iterator it;
+
+		for(it = attributes.begin(); it != attributes.end();) {
+			if(it->element == ATTR_ELEMENT_VOXEL || it->std == ATTR_STD_GENERATED_TRANSFORM) {
+				it++;
+			}
+			else {
+				attributes.erase(it++);
+			}
+		}
+	}
+	else {
+		attributes.clear();
+	}
 }
 
 /* AttributeRequest */
