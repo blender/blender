@@ -1938,16 +1938,16 @@ static void samevolume_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 	/* apply scaling factor to the channels not being kept */
 	switch (data->flag) {
 		case SAMEVOL_X:
-			mul_v3_fl(cob->matrix[1], fac);
-			mul_v3_fl(cob->matrix[2], fac);
+			mul_v3_fl(cob->matrix[1], fac / obsize[1]);
+			mul_v3_fl(cob->matrix[2], fac / obsize[2]);
 			break;
 		case SAMEVOL_Y:
-			mul_v3_fl(cob->matrix[0], fac);
-			mul_v3_fl(cob->matrix[2], fac);
+			mul_v3_fl(cob->matrix[0], fac / obsize[0]);
+			mul_v3_fl(cob->matrix[2], fac / obsize[2]);
 			break;
 		case SAMEVOL_Z:
-			mul_v3_fl(cob->matrix[0], fac);
-			mul_v3_fl(cob->matrix[1], fac);
+			mul_v3_fl(cob->matrix[0], fac / obsize[0]);
+			mul_v3_fl(cob->matrix[1], fac / obsize[1]);
 			break;
 	}
 }
