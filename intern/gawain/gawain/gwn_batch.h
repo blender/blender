@@ -119,9 +119,6 @@ void GWN_batch_draw(Gwn_Batch*);
 // This does not bind/unbind shader and does not call gpuBindMatrices()
 void GWN_batch_draw_range_ex(Gwn_Batch*, int v_first, int v_count, bool force_instance);
 
-#define GWN_batch_draw_range(batch, first, count) \
-	GWN_batch_draw_range_ex(batch, first, count, false)
-
 // Does not even need batch
 void GWN_draw_primitive(Gwn_PrimType, int v_count);
 

@@ -128,6 +128,7 @@ typedef struct DRWCallState {
 
 typedef enum {
 	DRW_CALL_SINGLE,                 /* A single batch */
+	DRW_CALL_INSTANCES,              /* Draw instances without any instancing attribs. */
 	DRW_CALL_GENERATE,               /* Uses a callback to draw with any number of batches. */
 } DRWCallType;
 
@@ -139,6 +140,11 @@ typedef struct DRWCall {
 		struct { /* type == DRW_CALL_SINGLE */
 			Gwn_Batch *geometry;
 		} single;
+		struct { /* type == DRW_CALL_INSTANCES */
+			Gwn_Batch *geometry;
+			/* Count can be adjusted between redraw. If needed, we can add fixed count. */
+			unsigned int *count;
+		} instances;
 		struct { /* type == DRW_CALL_GENERATE */
 			DRWCallGenerateFn *geometry_fn;
 			void *user_data;

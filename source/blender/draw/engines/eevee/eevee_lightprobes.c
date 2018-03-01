@@ -538,14 +538,10 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 	{
 		psl->probe_planar_downsample_ps = DRW_pass_create("LightProbe Planar Downsample", DRW_STATE_WRITE_COLOR);
 
-		struct Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
-		DRWShadingGroup *grp = DRW_shgroup_instance_create(
-		        e_data.probe_planar_downsample_sh,
-		        psl->probe_planar_downsample_ps,
-		        geom, NULL);
-		stl->g_data->planar_downsample = grp;
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_planar_downsample_sh, psl->probe_planar_downsample_ps);
 		DRW_shgroup_uniform_buffer(grp, "source", &txl->planar_pool);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
+		DRW_shgroup_call_instances_add(grp, DRW_cache_fullscreen_quad_get(), NULL, (unsigned int *)&pinfo->num_planar);
 	}
 }
 
@@ -846,12 +842,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 		if (DRW_state_draw_support() &&
 		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
 		{
-			struct Gwn_Batch *geom = DRW_cache_sphere_get();
-			DRWShadingGroup *grp = DRW_shgroup_instance_create(
-			        e_data.probe_grid_display_sh,
-			        psl->probe_display,
-			        geom, NULL);
-			DRW_shgroup_set_instance_count(grp, ped->num_cell);
+			DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_grid_display_sh, psl->probe_display);
 			DRW_shgroup_uniform_int(grp, "offset", &egrid->offset, 1);
 			DRW_shgroup_uniform_ivec3(grp, "grid_resolution", egrid->resolution, 1);
 			DRW_shgroup_uniform_vec3(grp, "corner", egrid->corner, 1);
@@ -860,6 +851,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 			DRW_shgroup_uniform_vec3(grp, "increment_z", egrid->increment_z, 1);
 			DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
 			DRW_shgroup_uniform_float(grp, "sphere_size", &probe->data_draw_size, 1);
+			DRW_shgroup_call_instances_add(grp, DRW_cache_sphere_get(), NULL, (unsigned int *)&ped->num_cell);
 		}
 	}
 }
@@ -897,9 +889,6 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 	/* XXX this should be run each frame as it ensure planar_depth is set */
 	planar_pool_ensure_alloc(vedata, pinfo->num_planar);
-
-	/* Setup planar filtering pass */
-	DRW_shgroup_set_instance_count(stl->g_data->planar_downsample, pinfo->num_planar);
 
 	if (!sldata->probe_pool) {
 		sldata->probe_pool = DRW_texture_create_2D_array(pinfo->cubemap_res, pinfo->cubemap_res, max_ff(1, pinfo->num_cube),

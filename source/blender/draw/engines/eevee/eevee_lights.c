@@ -205,9 +205,11 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 	}
 }
 
-void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
+void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_LampsInfo *linfo = sldata->lamps;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_PassList *psl = vedata->psl;
 
 	linfo->shcaster_frontbuffer->count = 0;
 	linfo->num_light = 0;
@@ -271,15 +273,11 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 	}
 
 	{
-		psl->shadow_cube_pass = DRW_pass_create(
-		        "Shadow Cube Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
-	}
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->shadow_pass = DRW_pass_create("Shadow Pass", state);
 
-	{
-		psl->shadow_cascade_pass = DRW_pass_create(
-		        "Shadow Cascade Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		DRWShadingGroup *grp = stl->g_data->shadow_shgrp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
+		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 	}
 }
 
@@ -378,24 +376,20 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 /* Add a shadow caster to the shadowpasses */
 void EEVEE_lights_cache_shcaster_add(
-        EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct Gwn_Batch *geom, float (*obmat)[4])
+        EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, struct Gwn_Batch *geom, Object *ob)
 {
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cube_pass, geom, NULL);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
-	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-	DRW_shgroup_set_instance_count(grp, 6);
-
-	grp = DRW_shgroup_instance_create(e_data.shadow_sh, psl->shadow_cascade_pass, geom, NULL);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
-	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-	DRW_shgroup_set_instance_count(grp, MAX_CASCADE_NUM);
+	DRW_shgroup_call_object_instances_add(
+	        stl->g_data->shadow_shgrp,
+	        geom, ob,
+	        &sldata->lamps->shadow_instance_count);
 }
 
 void EEVEE_lights_cache_shcaster_material_add(
 	EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct GPUMaterial *gpumat,
 	struct Gwn_Batch *geom, struct Object *ob, float (*obmat)[4], float *alpha_threshold)
 {
-	DRWShadingGroup *grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cube_pass, geom, ob, NULL);
+	/* TODO / PERF : reuse the same shading group for objects with the same material */
+	DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);
 
 	if (grp == NULL) return;
 
@@ -405,16 +399,7 @@ void EEVEE_lights_cache_shcaster_material_add(
 	if (alpha_threshold != NULL)
 		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
 
-	DRW_shgroup_set_instance_count(grp, 6);
-
-	grp = DRW_shgroup_material_instance_create(gpumat, psl->shadow_cascade_pass, geom, ob, NULL);
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
-	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-
-	if (alpha_threshold != NULL)
-		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
-
-	DRW_shgroup_set_instance_count(grp, MAX_CASCADE_NUM);
+	DRW_shgroup_call_object_instances_add(grp, geom, ob, &sldata->lamps->shadow_instance_count);
 }
 
 /* Make that object update shadow casting lamps inside its influence bounding box. */
@@ -1036,7 +1021,8 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		DRW_framebuffer_clear(true, true, false, clear_col, 1.0f);
 
 		/* Render shadow cube */
-		DRW_draw_pass(psl->shadow_cube_pass);
+		linfo->shadow_instance_count = 6;
+		DRW_draw_pass(psl->shadow_pass);
 
 		/* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big. */
 		float filter_texture_size = la->soft * 0.001f;
@@ -1110,7 +1096,8 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		DRW_framebuffer_clear(false, true, false, NULL, 1.0);
 
 		/* Render shadow cascades */
-		DRW_draw_pass(psl->shadow_cascade_pass);
+		linfo->shadow_instance_count = la->cascade_count;
+		DRW_draw_pass(psl->shadow_pass);
 
 		/* TODO: OPTI: Filter all cascade in one/two draw call */
 		for (linfo->current_shadow_cascade = 0;

@@ -1,5 +1,5 @@
 
-uniform mat4 ShadowModelMatrix;
+uniform mat4 ModelMatrix;
 #ifdef MESH_SHADER
 uniform mat3 WorldNormalMatrix;
 #endif
@@ -17,7 +17,7 @@ out vec3 vNor;
 flat out int face;
 
 void main() {
-	vPos = ShadowModelMatrix * vec4(pos, 1.0);
+	vPos = ModelMatrix * vec4(pos, 1.0);
 	face = gl_InstanceID;
 
 #ifdef MESH_SHADER

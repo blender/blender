@@ -142,10 +142,8 @@ typedef struct EEVEE_BoundBox {
 typedef struct EEVEE_PassList {
 	/* Shadows */
 	struct DRWPass *shadow_pass;
-	struct DRWPass *shadow_cube_pass;
 	struct DRWPass *shadow_cube_copy_pass;
 	struct DRWPass *shadow_cube_store_pass;
-	struct DRWPass *shadow_cascade_pass;
 	struct DRWPass *shadow_cascade_copy_pass;
 	struct DRWPass *shadow_cascade_store_pass;
 
@@ -367,6 +365,7 @@ typedef struct EEVEE_LampsInfo {
 	int shadow_cube_target_size;
 	int current_shadow_cascade;
 	int current_shadow_face;
+	unsigned int shadow_instance_count;
 	float filter_size;
 	/* List of lights in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
@@ -734,7 +733,6 @@ typedef struct EEVEE_PrivateData {
 	struct DRWShadingGroup *refract_depth_shgrp_clip_cull;
 	struct DRWShadingGroup *cube_display_shgrp;
 	struct DRWShadingGroup *planar_display_shgrp;
-	struct DRWShadingGroup *planar_downsample;
 	struct GHash *material_hash;
 	struct GHash *hair_material_hash;
 	struct GPUTexture *minzbuffer;
@@ -785,10 +783,10 @@ void EEVEE_update_noise(EEVEE_PassList *psl, EEVEE_FramebufferList *fbl, const d
 
 /* eevee_lights.c */
 void EEVEE_lights_init(EEVEE_ViewLayerData *sldata);
-void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl);
+void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, struct Object *ob);
 void EEVEE_lights_cache_shcaster_add(
-        EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct Gwn_Batch *geom, float (*obmat)[4]);
+        EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, struct Gwn_Batch *geom, Object *ob);
 void EEVEE_lights_cache_shcaster_material_add(
         EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl,
         struct GPUMaterial *gpumat, struct Gwn_Batch *geom, struct Object *ob,

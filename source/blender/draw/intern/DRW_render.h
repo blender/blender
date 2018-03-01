@@ -347,6 +347,11 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batc
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4]);
 void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob);
+/* Used for drawing a batch with instancing without instance attribs. */
+void DRW_shgroup_call_instances_add(
+        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4], unsigned int *count);
+void DRW_shgroup_call_object_instances_add(
+        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob, unsigned int *count);
 void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, struct Object *ob, float (*obmat)[4]);
 void DRW_shgroup_call_generate_add(
         DRWShadingGroup *shgroup, DRWCallGenerateFn *geometry_fn, void *user_data, float (*obmat)[4]);
@@ -355,8 +360,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 	const void *array[] = {__VA_ARGS__}; \
 	DRW_shgroup_call_dynamic_add_array(shgroup, array, (sizeof(array) / sizeof(*array))); \
 } while (0)
-/* Use this to set a high number of instances. */
-void DRW_shgroup_set_instance_count(DRWShadingGroup *shgroup, unsigned int count);
+
 unsigned int DRW_shgroup_get_instance_count(const DRWShadingGroup *shgroup);
 
 void DRW_shgroup_state_enable(DRWShadingGroup *shgroup, DRWState state);

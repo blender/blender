@@ -1232,8 +1232,8 @@ static void material_transparent(
 
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob)
 {
-	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
-	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
+	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_StorageList *stl = vedata->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Scene *scene = draw_ctx->scene;
 	GHash *material_hash = stl->g_data->material_hash;
@@ -1349,7 +1349,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 					struct GPUMaterial *gpumat;
 					switch (ma->blend_shadow) {
 						case MA_BS_SOLID:
-							EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+							EEVEE_lights_cache_shcaster_add(sldata, stl, mat_geom[i], ob);
 							break;
 						case MA_BS_CLIP:
 							gpumat = EEVEE_material_mesh_depth_get(scene, ma, false, true);
@@ -1365,7 +1365,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 					}
 				}
 				else {
-					EEVEE_lights_cache_shcaster_add(sldata, psl, mat_geom[i], ob->obmat);
+					EEVEE_lights_cache_shcaster_add(sldata, stl, mat_geom[i], ob);
 				}
 			}
 		}

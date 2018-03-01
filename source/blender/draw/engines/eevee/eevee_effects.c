@@ -240,13 +240,13 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 	{
 		static int zero = 0;
+		static unsigned int six = 6;
 		psl->color_downsample_cube_ps = DRW_pass_create("Downsample Cube", DRW_STATE_WRITE_COLOR);
-		DRWShadingGroup *grp = DRW_shgroup_instance_create(e_data.downsample_cube_sh, psl->color_downsample_cube_ps,
-		                                                   quad, NULL);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_cube_sh, psl->color_downsample_cube_ps);
 		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
 		DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
 		DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
-		DRW_shgroup_set_instance_count(grp, 6);
+		DRW_shgroup_call_instances_add(grp, quad, NULL, &six);
 	}
 
 	{

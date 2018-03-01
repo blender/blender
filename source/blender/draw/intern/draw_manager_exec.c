@@ -618,7 +618,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
 }
 
 static void draw_geometry_execute_ex(
-        DRWShadingGroup *shgroup, Gwn_Batch *geom, unsigned int start, unsigned int count)
+        DRWShadingGroup *shgroup, Gwn_Batch *geom, unsigned int start, unsigned int count, bool draw_instance)
 {
 	/* Special case: empty drawcall, placement is done via shader, don't bind anything. */
 	if (geom == NULL) {
@@ -632,18 +632,15 @@ static void draw_geometry_execute_ex(
 	GWN_batch_program_set_no_use(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	/* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
 	geom->program_in_use = true;
-	if (ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_INSTANCE_EXTERNAL)) {
-		GWN_batch_draw_range_ex(geom, start, count, true);
-	}
-	else {
-		GWN_batch_draw_range(geom, start, count);
-	}
+
+	GWN_batch_draw_range_ex(geom, start, count, draw_instance);
+
 	geom->program_in_use = false; /* XXX hacking gawain */
 }
 
 static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
 {
-	draw_geometry_execute_ex(shgroup, geom, 0, 0);
+	draw_geometry_execute_ex(shgroup, geom, 0, 0, false);
 }
 
 static void bind_texture(GPUTexture *tex)
@@ -817,7 +814,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				if (shgroup->instance_geom != NULL) {
 					GPU_SELECT_LOAD_IF_PICKSEL(shgroup->override_selectid);
 					draw_geometry_prepare(shgroup, NULL);
-					draw_geometry_execute(shgroup, shgroup->instance_geom);
+					draw_geometry_execute_ex(shgroup, shgroup->instance_geom, 0, 0, true);
 				}
 			}
 			else {
@@ -826,7 +823,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 					draw_geometry_prepare(shgroup, NULL);
 					GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
 					{
-						draw_geometry_execute_ex(shgroup, shgroup->instance_geom, start, count);
+						draw_geometry_execute_ex(shgroup, shgroup->instance_geom, start, count, true);
 					}
 					GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
 				}
@@ -839,7 +836,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				draw_geometry_prepare(shgroup, NULL);
 				GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
 				{
-					draw_geometry_execute_ex(shgroup, shgroup->batch_geom, start, count);
+					draw_geometry_execute_ex(shgroup, shgroup->batch_geom, start, count, false);
 				}
 				GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
 			}
@@ -865,12 +862,18 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			GPU_SELECT_LOAD_IF_PICKSEL_CALL(call);
 			draw_geometry_prepare(shgroup, call->state);
 
-			if (call->type == DRW_CALL_SINGLE) {
-				draw_geometry_execute(shgroup, call->single.geometry);
-			}
-			else {
-				BLI_assert(call->type == DRW_CALL_GENERATE);
-				call->generate.geometry_fn(shgroup, draw_geometry_execute, call->generate.user_data);
+			switch (call->type) {
+				case DRW_CALL_SINGLE:
+					draw_geometry_execute(shgroup, call->single.geometry);
+					break;
+				case DRW_CALL_INSTANCES:
+					draw_geometry_execute_ex(shgroup, call->instances.geometry, 0, *call->instances.count, true);
+					break;
+				case DRW_CALL_GENERATE:
+					call->generate.geometry_fn(shgroup, draw_geometry_execute, call->generate.user_data);
+					break;
+				default:
+					BLI_assert(0);
 			}
 		}
 		/* Reset state */
