@@ -28,37 +28,17 @@ import sys
 import tempfile
 import unittest
 
+from modules.test_utils import (with_tempdir,
+                                AbstractBlenderRunnerTest,
+                                )
 
-def with_tempdir(wrapped):
-    """Creates a temporary directory for the function, cleaning up after it returns normally.
-
-    When the wrapped function raises an exception, the contents of the temporary directory
-    remain available for manual inspection.
-
-    The wrapped function is called with an extra positional argument containing
-    the pathlib.Path() of the temporary directory.
-    """
-
-    @functools.wraps(wrapped)
-    def decorator(*args, **kwargs):
-        dirname = tempfile.mkdtemp(prefix='blender-alembic-test')
-        try:
-            retval = wrapped(*args, pathlib.Path(dirname), **kwargs)
-        except:
-            print('Exception in %s, not cleaning up temporary directory %s' % (wrapped, dirname))
-            raise
-        else:
-            shutil.rmtree(dirname)
-        return retval
-
-    return decorator
 
 
 class AbcPropError(Exception):
     """Raised when AbstractAlembicTest.abcprop() finds an error."""
 
 
-class AbstractAlembicTest(unittest.TestCase):
+class AbstractAlembicTest(AbstractBlenderRunnerTest):
     @classmethod
     def setUpClass(cls):
         import re
@@ -73,37 +53,6 @@ class AbstractAlembicTest(unittest.TestCase):
 
         # 'abcls' array notation, like "name[16]"
         cls.abcls_array = re.compile(r'^(?P<name>[^\[]+)(\[(?P<arraysize>\d+)\])?$')
-
-    def run_blender(self, filepath: str, python_script: str, timeout: int=300) -> str:
-        """Runs Blender by opening a blendfile and executing a script.
-
-        Returns Blender's stdout + stderr combined into one string.
-
-        :param filepath: taken relative to self.testdir.
-        :param timeout: in seconds
-        """
-
-        blendfile = self.testdir / filepath
-
-        command = (
-            self.blender,
-            '--background',
-            '-noaudio',
-            '--factory-startup',
-            '--enable-autoexec',
-            str(blendfile),
-            '-E', 'CYCLES',
-            '--python-exit-code', '47',
-            '--python-expr', python_script,
-        )
-
-        proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                              timeout=timeout)
-        output = proc.stdout.decode('utf8')
-        if proc.returncode:
-            self.fail('Error %d running Blender:\n%s' % (proc.returncode, output))
-
-        return output
 
     def abcprop(self, filepath: pathlib.Path, proppath: str) -> dict:
         """Uses abcls to obtain compound property values from an Alembic object.
