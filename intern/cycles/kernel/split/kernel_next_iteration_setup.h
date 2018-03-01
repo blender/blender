@@ -53,39 +53,52 @@ ccl_device_inline void kernel_split_branched_indirect_light_init(KernelGlobals *
 	ADD_RAY_FLAG(kernel_split_state.ray_state, ray_index, RAY_BRANCHED_LIGHT_INDIRECT);
 }
 
-ccl_device void kernel_split_branched_indirect_light_end(KernelGlobals *kg, int ray_index)
+ccl_device void kernel_split_branched_transparent_bounce(KernelGlobals *kg, int ray_index)
 {
-	kernel_split_branched_path_indirect_loop_end(kg, ray_index);
-
 	ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
 	ShaderData *sd = kernel_split_sd(sd, ray_index);
 	ccl_global PathState *state = &kernel_split_state.path_state[ray_index];
 	ccl_global Ray *ray = &kernel_split_state.ray[ray_index];
 
-	/* continue in case of transparency */
-	*throughput *= shader_bsdf_transparency(kg, sd);
+#  ifdef __VOLUME__
+	if(!(sd->flag & SD_HAS_ONLY_VOLUME)) {
+#  endif
+		/* continue in case of transparency */
+		*throughput *= shader_bsdf_transparency(kg, sd);
 
-	if(is_zero(*throughput)) {
-		kernel_split_path_end(kg, ray_index);
-	}
-	else {
+		if(is_zero(*throughput)) {
+			kernel_split_path_end(kg, ray_index);
+			return;
+		}
+
 		/* Update Path State */
 		path_state_next(kg, state, LABEL_TRANSPARENT);
+#  ifdef __VOLUME__
+	}
+	else {
+		/* For volume bounding meshes we pass through without counting transparent
+		 * bounces, only sanity check in case self intersection gets us stuck. */
+		state->volume_bounds_bounce++;
+		if (state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
+			kernel_split_path_end(kg, ray_index);
+			return;
+		}
+	}
+#  endif
 
-		ray->P = ray_offset(sd->P, -sd->Ng);
-		ray->t -= sd->ray_length; /* clipping works through transparent */
+	ray->P = ray_offset(sd->P, -sd->Ng);
+	ray->t -= sd->ray_length; /* clipping works through transparent */
 
 #  ifdef __RAY_DIFFERENTIALS__
-		ray->dP = sd->dP;
-		ray->dD.dx = -sd->dI.dx;
-		ray->dD.dy = -sd->dI.dy;
+	ray->dP = sd->dP;
+	ray->dD.dx = -sd->dI.dx;
+	ray->dD.dy = -sd->dI.dy;
 #  endif  /* __RAY_DIFFERENTIALS__ */
 
 #  ifdef __VOLUME__
-		/* enter/exit volume */
-		kernel_volume_stack_enter_exit(kg, sd, state->volume_stack);
+	/* enter/exit volume */
+	kernel_volume_stack_enter_exit(kg, sd, state->volume_stack);
 #  endif  /* __VOLUME__ */
-	}
 }
 #endif  /* __BRANCHED_PATH__ */
 
@@ -121,6 +134,13 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 
 	ccl_global char *ray_state = kernel_split_state.ray_state;
 
+#  ifdef __VOLUME__
+	/* Reactivate only volume rays here, most surface work was skipped. */
+	if(IS_STATE(ray_state, ray_index, RAY_HAS_ONLY_VOLUME)) {
+		ASSIGN_RAY_STATE(ray_state, ray_index, RAY_ACTIVE);
+	}
+#  endif
+
 	bool active = IS_STATE(ray_state, ray_index, RAY_ACTIVE);
 	if(active) {
 		ccl_global float3 *throughput = &kernel_split_state.throughput[ray_index];
@@ -138,6 +158,9 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 			}
 #ifdef __BRANCHED_PATH__
 		}
+		else if(sd->flag & SD_HAS_ONLY_VOLUME) {
+			kernel_split_branched_transparent_bounce(kg, ray_index);
+		}
 		else {
 			kernel_split_branched_indirect_light_init(kg, ray_index);
 
@@ -151,7 +174,8 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 				ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 			}
 			else {
-				kernel_split_branched_indirect_light_end(kg, ray_index);
+				kernel_split_branched_path_indirect_loop_end(kg, ray_index);
+				kernel_split_branched_transparent_bounce(kg, ray_index);
 			}
 		}
 #endif  /* __BRANCHED_PATH__ */
@@ -196,7 +220,8 @@ ccl_device void kernel_next_iteration_setup(KernelGlobals *kg,
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 		}
 		else {
-			kernel_split_branched_indirect_light_end(kg, ray_index);
+			kernel_split_branched_path_indirect_loop_end(kg, ray_index);
+			kernel_split_branched_transparent_bounce(kg, ray_index);
 		}
 	}
 

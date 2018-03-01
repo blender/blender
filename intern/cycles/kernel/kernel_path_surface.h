@@ -329,10 +329,12 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
 	}
 #ifdef __VOLUME__
 	else if(sd->flag & SD_HAS_ONLY_VOLUME) {
-		/* no surface shader but have a volume shader? act transparent */
-
-		/* update path state, count as transparent */
-		path_state_next(kg, state, LABEL_TRANSPARENT);
+		/* For volume bounding meshes we pass through without counting transparent
+		 * bounces, only sanity check in case self intersection gets us stuck. */
+		state->volume_bounds_bounce++;
+		if (state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
+			return false;
+		}
 
 		if(state->bounce == 0)
 			ray->t -= sd->ray_length; /* clipping works through transparent */

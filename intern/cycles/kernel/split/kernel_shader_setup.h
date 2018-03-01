@@ -59,12 +59,20 @@ ccl_device void kernel_shader_setup(KernelGlobals *kg,
 	if(IS_STATE(kernel_split_state.ray_state, ray_index, RAY_ACTIVE)) {
 		Intersection isect = kernel_split_state.isect[ray_index];
 		Ray ray = kernel_split_state.ray[ray_index];
+		ShaderData *sd = kernel_split_sd(sd, ray_index);
 
 		shader_setup_from_ray(kg,
-		                      kernel_split_sd(sd, ray_index),
+		                      sd,
 		                      &isect,
 		                      &ray);
+
+#ifdef __VOLUME__
+		if(sd->flag & SD_HAS_ONLY_VOLUME) {
+			ASSIGN_RAY_STATE(kernel_split_state.ray_state, ray_index, RAY_HAS_ONLY_VOLUME);
+		}
+#endif
 	}
+
 }
 
 CCL_NAMESPACE_END

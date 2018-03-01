@@ -445,8 +445,15 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			break;
 		}
 
-		/* Setup and evaluate shader. */
+		/* Setup shader data. */
 		shader_setup_from_ray(kg, sd, &isect, ray);
+
+		/* Skip most work for volume bounding surface. */
+#ifdef __VOLUME__
+		if(!(sd->flag & SD_HAS_ONLY_VOLUME)) {
+#endif
+
+		/* Evaluate shader. */
 		shader_eval_surface(kg, sd, state, state->flag);
 		shader_prepare_closures(sd, state);
 
@@ -522,6 +529,10 @@ ccl_device void kernel_path_indirect(KernelGlobals *kg,
 			                                           all);
 		}
 #endif  /* defined(__EMISSION__) */
+
+#ifdef __VOLUME__
+		}
+#endif
 
 		if(!kernel_path_surface_bounce(kg, sd, &throughput, state, &L->state, ray))
 			break;
@@ -605,8 +616,15 @@ ccl_device_forceinline void kernel_path_integrate(
 			break;
 		}
 
-		/* Setup and evaluate shader. */
+		/* Setup shader data. */
 		shader_setup_from_ray(kg, &sd, &isect, ray);
+
+		/* Skip most work for volume bounding surface. */
+#ifdef __VOLUME__
+		if(!(sd.flag & SD_HAS_ONLY_VOLUME)) {
+#endif
+
+		/* Evaluate shader. */
 		shader_eval_surface(kg, &sd, state, state->flag);
 		shader_prepare_closures(&sd, state);
 
@@ -668,6 +686,10 @@ ccl_device_forceinline void kernel_path_integrate(
 
 		/* direct lighting */
 		kernel_path_surface_connect_light(kg, &sd, emission_sd, throughput, state, L);
+
+#ifdef __VOLUME__
+		}
+#endif
 
 		/* compute direct lighting and next bounce */
 		if(!kernel_path_surface_bounce(kg, &sd, &throughput, state, &L->state, ray))

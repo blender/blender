@@ -55,6 +55,7 @@ ccl_device_inline void path_state_init(KernelGlobals *kg,
 
 #ifdef __VOLUME__
 	state->volume_bounce = 0;
+	state->volume_bounds_bounce = 0;
 
 	if(kernel_data.integrator.use_volumes) {
 		/* Initialize volume stack with volume we are inside of. */

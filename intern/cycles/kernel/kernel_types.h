@@ -49,6 +49,8 @@ CCL_NAMESPACE_BEGIN
 #define BSSRDF_MAX_BOUNCES			256
 #define LOCAL_MAX_HITS				4
 
+#define VOLUME_BOUNDS_MAX       1024
+
 #define BECKMANN_TABLE_SIZE		256
 
 #define SHADER_NONE				(~0)
@@ -1107,6 +1109,7 @@ typedef struct PathState {
 	/* volume rendering */
 #ifdef __VOLUME__
 	int volume_bounce;
+	int volume_bounds_bounce;
 	uint rng_congruential;
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #endif
@@ -1497,8 +1500,10 @@ enum RayState {
 	RAY_ACTIVE,
 	/* Denotes ray has completed processing all samples and is inactive. */
 	RAY_INACTIVE,
-	/* Denoted ray has exited path-iteration and needs to update output buffer. */
+	/* Denotes ray has exited path-iteration and needs to update output buffer. */
 	RAY_UPDATE_BUFFER,
+	/* Denotes ray needs to skip most surface shader work. */
+	RAY_HAS_ONLY_VOLUME,
 	/* Donotes ray has hit background */
 	RAY_HIT_BACKGROUND,
 	/* Denotes ray has to be regenerated */
