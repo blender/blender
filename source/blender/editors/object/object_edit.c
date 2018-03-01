@@ -299,6 +299,8 @@ void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene,
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DEG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);
+
+		workspace->object_mode &= ~OB_MODE_EDIT;
 	
 		if (flag & EM_DO_UNDO)
 			ED_undo_push(C, "Editmode");
@@ -309,8 +311,6 @@ void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene,
 		else {
 			WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 		}
-
-		workspace->object_mode &= ~OB_MODE_EDIT;
 	}
 
 	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, obedit);
