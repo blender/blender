@@ -148,7 +148,6 @@ static void wm_msg_rna_update_by_id(
 				}
 			}
 
-			printf("AAA ~ %d\n", remove);
 			if (remove) {
 				/* Failed to persist, remove the key. */
 				BLI_remlink(&mbus->messages, key);
