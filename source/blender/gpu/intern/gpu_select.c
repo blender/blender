@@ -150,29 +150,6 @@ bool GPU_select_load_id(uint id)
 }
 
 /**
- * Needed when GL context of #GPU_select_end
- * can't be used to finalize selection operations
- * (because of context changes).
- */
-void GPU_select_finalize(void)
-{
-	if (!g_select_state.select_is_active)
-		return;
-
-	switch (g_select_state.algorithm) {
-		case ALGO_GL_LEGACY:
-		case ALGO_GL_QUERY:
-		{
-			break;
-		}
-		default:  /* ALGO_GL_PICK */
-		{
-			gpu_select_pick_finalize();
-		}
-	}
-}
-
-/**
  * Cleanup and flush selection results to buffer.
  * Return number of hits and hits in buffer.
  * if \a dopass is true, we will do a second pass with occlusion queries to get the closest hit.

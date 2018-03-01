@@ -35,7 +35,6 @@
 /* gpu_select_pick */
 void gpu_select_pick_begin(unsigned int (*buffer)[4], unsigned int bufsize, const rcti *input, char mode);
 bool gpu_select_pick_load_id(unsigned int id);
-void gpu_select_pick_finalize(void);
 unsigned int gpu_select_pick_end(void);
 
 void gpu_select_pick_cache_begin(void);
