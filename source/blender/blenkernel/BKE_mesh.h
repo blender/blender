@@ -193,6 +193,17 @@ void BKE_mesh_calc_normals_looptri(
         const struct MLoop *mloop,
         const struct MLoopTri *looptri, int looptri_num,
         float (*r_tri_nors)[3]);
+void BKE_mesh_loop_tangents_ex(
+        const struct MVert *mverts, const int numVerts, const struct MLoop *mloops,
+        float (*r_looptangent)[4], float (*loopnors)[3], const struct MLoopUV *loopuv,
+        const int numLoops, const struct MPoly *mpolys, const int numPolys,
+        struct ReportList *reports);
+void BKE_mesh_loop_tangents(
+        struct Mesh *mesh, const char *uvmap, float (*r_looptangents)[4], struct ReportList *reports);
+void BKE_mesh_loop_manifold_fan_around_vert_next(
+        const struct MLoop *mloops, const struct MPoly *mpolys,
+        const int *loop_to_poly, const int *e2lfan_curr, const uint mv_pivot_index,
+        const struct MLoop **r_mlfan_curr, int *r_mlfan_curr_index, int *r_mlfan_vert_index, int *r_mpfan_curr_index);
 
 void BKE_edges_sharp_from_angle_set(
         const struct MVert *mverts, const int numVerts,
@@ -210,17 +221,38 @@ typedef struct MLoopNorSpace {
 	float vec_ortho[3];     /* Third vector, orthogonal to vec_lnor and vec_ref. */
 	float ref_alpha;        /* Reference angle, around vec_ortho, in ]0, pi] range (0.0 marks that space as invalid). */
 	float ref_beta;         /* Reference angle, around vec_lnor, in ]0, 2pi] range (0.0 marks that space as invalid). */
-	struct LinkNode *loops; /* All indices (uint_in_ptr) of loops using this lnor space (i.e. smooth fan of loops). */
+	/* All loops using this lnor space (i.e. smooth fan of loops),
+	 * as (depending on owning MLoopNorSpaceArrary.data_type):
+	 *     - Indices (uint_in_ptr), or
+	 *     - BMLoop pointers. */
+	struct LinkNode *loops;
+	char flags;
 } MLoopNorSpace;
+/**
+ * MLoopNorSpace.flags
+ */
+enum {
+	MLNOR_SPACE_IS_SINGLE = 1 << 0,
+};
+
 /**
  * Collection of #MLoopNorSpace basic storage & pre-allocation.
  */
 typedef struct MLoopNorSpaceArray {
 	MLoopNorSpace **lspacearr;    /* MLoop aligned array */
 	struct LinkNode *loops_pool;  /* Allocated once, avoids to call BLI_linklist_prepend_arena() for each loop! */
+	char data_type;               /* Whether we store loop indices, or pointers to BMLoop. */
 	struct MemArena *mem;
 } MLoopNorSpaceArray;
-void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoops);
+/**
+ * MLoopNorSpaceArray.data_type
+ */
+enum {
+	MLNOR_SPACEARR_LOOP_INDEX = 0,
+	MLNOR_SPACEARR_BMLOOP_PTR = 1,
+};
+
+void BKE_lnor_spacearr_init(MLoopNorSpaceArray *lnors_spacearr, const int numLoops, const char data_type);
 void BKE_lnor_spacearr_clear(MLoopNorSpaceArray *lnors_spacearr);
 void BKE_lnor_spacearr_free(MLoopNorSpaceArray *lnors_spacearr);
 MLoopNorSpace *BKE_lnor_space_create(MLoopNorSpaceArray *lnors_spacearr);
@@ -228,7 +260,8 @@ void BKE_lnor_space_define(
         MLoopNorSpace *lnor_space, const float lnor[3], float vec_ref[3], float vec_other[3],
         struct BLI_Stack *edge_vectors);
 void BKE_lnor_space_add_loop(
-        MLoopNorSpaceArray *lnors_spacearr, MLoopNorSpace *lnor_space, const int ml_index, const bool add_to_list);
+        MLoopNorSpaceArray *lnors_spacearr, MLoopNorSpace *lnor_space,
+        const int ml_index, void *bm_loop, const bool is_single);
 void BKE_lnor_space_custom_data_to_normal(MLoopNorSpace *lnor_space, const short clnor_data[2], float r_custom_lnor[3]);
 void BKE_lnor_space_custom_normal_to_data(MLoopNorSpace *lnor_space, const float custom_lnor[3], short r_clnor_data[2]);
 

@@ -497,6 +497,8 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 		BPY_python_reset(C);
 		addons_loaded = true;
 	}
+#else
+	UNUSED_VARS(use_userdef);
 #endif  /* WITH_PYTHON */
 
 	WM_operatortype_last_properties_clear_all();

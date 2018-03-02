@@ -597,9 +597,11 @@ static void bm_mesh_edges_sharp_tag(
 	bm->elem_index_dirty &= ~BM_EDGE;
 }
 
-/* Check whether gievn loop is part of an unknown-so-far cyclic smooth fan, or not.
- * Needed because cyclic smooth fans have no obvious 'entry point', and yet we need to walk them once, and only once. */
-static bool bm_mesh_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
+/**
+ * Check whether given loop is part of an unknown-so-far cyclic smooth fan, or not.
+ * Needed because cyclic smooth fans have no obvious 'entry point', and yet we need to walk them once, and only once.
+ */
+bool BM_loop_check_cyclic_smooth_fan(BMLoop *l_curr)
 {
 	BMLoop *lfan_pivot_next = l_curr;
 	BMEdge *e_next = l_curr->e;
@@ -665,7 +667,7 @@ static void bm_mesh_loops_calc_normals(
 		r_lnors_spacearr = &_lnors_spacearr;
 	}
 	if (r_lnors_spacearr) {
-		BKE_lnor_spacearr_init(r_lnors_spacearr, bm->totloop);
+		BKE_lnor_spacearr_init(r_lnors_spacearr, bm->totloop, MLNOR_SPACEARR_BMLOOP_PTR);
 		edge_vectors = BLI_stack_new(sizeof(float[3]), __func__);
 	}
 
@@ -700,7 +702,7 @@ static void bm_mesh_loops_calc_normals(
 			 * However, this would complicate the code, add more memory usage, and BM_vert_step_fan_loop()
 			 * is quite cheap in term of CPU cycles, so really think it's not worth it. */
 			if (BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
-			    (BM_elem_flag_test(l_curr, BM_ELEM_TAG) || !bm_mesh_loop_check_cyclic_smooth_fan(l_curr)))
+			    (BM_elem_flag_test(l_curr, BM_ELEM_TAG) || !BM_loop_check_cyclic_smooth_fan(l_curr)))
 			{
 			}
 			else if (!BM_elem_flag_test(l_curr->e, BM_ELEM_TAG) &&
@@ -734,7 +736,7 @@ static void bm_mesh_loops_calc_normals(
 
 					BKE_lnor_space_define(lnor_space, r_lnos[l_curr_index], vec_curr, vec_prev, NULL);
 					/* We know there is only one loop in this space, no need to create a linklist in this case... */
-					BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, l_curr_index, false);
+					BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, l_curr_index, l_curr, true);
 
 					if (has_clnors) {
 						short (*clnor)[2] = clnors_data ? &clnors_data[l_curr_index] :
@@ -853,7 +855,7 @@ static void bm_mesh_loops_calc_normals(
 
 					if (r_lnors_spacearr) {
 						/* Assign current lnor space to current 'vertex' loop. */
-						BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, lfan_pivot_index, true);
+						BKE_lnor_space_add_loop(r_lnors_spacearr, lnor_space, lfan_pivot_index, lfan_pivot, false);
 						if (e_next != e_org) {
 							/* We store here all edges-normalized vectors processed. */
 							BLI_stack_push(edge_vectors, vec_next);
