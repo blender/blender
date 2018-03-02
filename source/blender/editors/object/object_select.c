@@ -138,18 +138,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 		view_layer->basact = base;
 	}
 	else {
-		/* Apply the workspaces more to the object (when possible). */
-		bool reset = true;
-		if (base) {
-			Object *ob_prev = OBACT(view_layer);
-			Object *ob_curr = base->object;
-			if (ob_prev != NULL) {
-				if (ob_prev->type == ob_curr->type) {
-					reset = false;
-				}
-			}
-		}
-
+		/* Apply the workspaces mode to the object (when possible). */
 		Scene *scene = CTX_data_scene(C);
 		Object *obact = base ? base->object : NULL;
 		/* We don't know the previous active object in update.
@@ -176,9 +165,7 @@ void ED_object_base_activate(bContext *C, Base *base)
 
 		view_layer->basact = base;
 
-		if (reset == false) {
-			ED_object_mode_generic_enter(C, object_mode);
-		}
+		ED_object_mode_generic_enter(C, object_mode);
 	}
 
 	if (base) {
