@@ -1246,12 +1246,12 @@ static void render_scene_to_planar(
 	DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
 	DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
 
+	/* Be sure that cascaded shadow maps are updated. */
+	EEVEE_draw_shadows(sldata, psl);
+
 	/* Since we are rendering with an inverted view matrix, we need
 	 * to invert the facing for backface culling to be the same. */
 	DRW_state_invert_facing();
-
-	/* Be sure that cascaded shadow maps are updated. */
-	EEVEE_draw_shadows(sldata, psl);
 
 	DRW_state_clip_planes_add(clip_plane);
 

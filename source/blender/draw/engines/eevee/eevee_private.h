@@ -655,6 +655,7 @@ typedef struct EEVEE_ShadowCubeData {
 typedef struct EEVEE_ShadowCascadeData {
 	short light_id, shadow_id, cascade_id, layer_id;
 	float viewprojmat[MAX_CASCADE_NUM][4][4]; /* World->Lamp->NDC : used for rendering the shadow map. */
+	float clipmat[DRW_MAT_COUNT][4][4]; /* Override matrices used for clipping. */
 	float radius[MAX_CASCADE_NUM];
 } EEVEE_ShadowCascadeData;
 
