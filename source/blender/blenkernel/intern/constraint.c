@@ -1917,28 +1917,29 @@ static void samevolume_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *
 	bSameVolumeConstraint *data = con->data;
 
 	float volume = data->volume;
-	float fac = 1.0f;
+	float fac = 1.0f, total_scale;
 	float obsize[3];
 
 	mat4_to_size(obsize, cob->matrix);
 	
 	/* calculate normalizing scale factor for non-essential values */
-	if (obsize[data->flag] != 0) 
-		fac = sqrtf(volume / obsize[data->flag]);
+	total_scale = obsize[0] * obsize[1] * obsize[2];
+	if (total_scale != 0)
+		fac = sqrtf(volume / total_scale);
 	
 	/* apply scaling factor to the channels not being kept */
 	switch (data->flag) {
 		case SAMEVOL_X:
-			mul_v3_fl(cob->matrix[1], fac / obsize[1]);
-			mul_v3_fl(cob->matrix[2], fac / obsize[2]);
+			mul_v3_fl(cob->matrix[1], fac);
+			mul_v3_fl(cob->matrix[2], fac);
 			break;
 		case SAMEVOL_Y:
-			mul_v3_fl(cob->matrix[0], fac / obsize[0]);
-			mul_v3_fl(cob->matrix[2], fac / obsize[2]);
+			mul_v3_fl(cob->matrix[0], fac);
+			mul_v3_fl(cob->matrix[2], fac);
 			break;
 		case SAMEVOL_Z:
-			mul_v3_fl(cob->matrix[0], fac / obsize[0]);
-			mul_v3_fl(cob->matrix[1], fac / obsize[1]);
+			mul_v3_fl(cob->matrix[0], fac);
+			mul_v3_fl(cob->matrix[1], fac);
 			break;
 	}
 }

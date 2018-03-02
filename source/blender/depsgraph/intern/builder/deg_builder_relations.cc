@@ -1178,6 +1178,26 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 				}
 			}
 		}
+		if (RNA_pointer_is_null(&target_key.ptr)) {
+			/* TODO(sergey): This would only mean that driver is broken.
+			 * so we can't create relation anyway. However, we need to avoid
+			 * adding drivers which are known to be buggy to a dependency
+			 * graph, in order to save computational power.
+			 */
+		}
+		else {
+			if (target_key.prop != NULL &&
+			    RNA_property_is_idprop(target_key.prop))
+			{
+				OperationKey parameters_key(id,
+				                            DEG_NODE_TYPE_PARAMETERS,
+				                            DEG_OPCODE_PARAMETERS_EVAL);
+				add_relation(target_key,
+				             parameters_key,
+				             "Driver Target -> Properties");
+			}
+			add_relation(driver_key, target_key, "Driver -> Target");
+		}
 	}
 }
 

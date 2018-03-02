@@ -285,6 +285,22 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 	                          name_tag);
 }
 
+OperationDepsNode *DepsgraphNodeBuilder::ensure_operation_node(
+        ID *id,
+        eDepsNode_Type comp_type,
+        const DepsEvalOperationCb& op,
+        eDepsOperation_Code opcode,
+        const char *name,
+        int name_tag)
+{
+	OperationDepsNode *operation =
+	        find_operation_node(id, comp_type, opcode, name, name_tag);
+	if (operation != NULL) {
+		return operation;
+	}
+	return add_operation_node(id, comp_type, op, opcode, name, name_tag);
+}
+
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
                                               const char *comp_name,
@@ -693,37 +709,57 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
  * \param id: ID-Block that driver is attached to
  * \param fcu: Driver-FCurve
  */
-OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
+void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve)
 {
 	ID *id_cow = get_cow_id(id);
 
 	/* Create data node for this driver */
-	/* TODO(sergey): Avoid creating same operation multiple times,
-	 * in the future we need to avoid lookup of the operation as well
-	 * and use some tagging magic instead.
-	 */
-	OperationDepsNode *driver_op = find_operation_node(
-	        id,
-	        DEG_NODE_TYPE_PARAMETERS,
-	        DEG_OPCODE_DRIVER,
-	        fcu->rna_path ? fcu->rna_path : "",
-	        fcu->array_index);
+	/* TODO(sergey): Shall we use COW of fcu itself here? */
+	ensure_operation_node(id,
+	                      DEG_NODE_TYPE_PARAMETERS,
+	                      function_bind(BKE_animsys_eval_driver, _1, id_cow, fcurve),
+	                      DEG_OPCODE_DRIVER,
+	                      fcurve->rna_path ? fcurve->rna_path : "",
+	                      fcurve->array_index);
+	build_driver_variables(id, fcurve);
+}
 
-	if (driver_op == NULL) {
-		/* TODO(sergey): Shall we use COW of fcu itself here? */
-		driver_op = add_operation_node(id,
-		                               DEG_NODE_TYPE_PARAMETERS,
-		                               function_bind(BKE_animsys_eval_driver,
-		                                             _1,
-		                                             id_cow,
-		                                             fcu),
-		                               DEG_OPCODE_DRIVER,
-		                               fcu->rna_path ? fcu->rna_path : "",
-		                               fcu->array_index);
+void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
+{
+	build_driver_id_property(id, fcurve->rna_path);
+	LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
+		DRIVER_TARGETS_USED_LOOPER(dvar)
+		{
+			build_driver_id_property(dtar->id, dtar->rna_path);
+		}
+		DRIVER_TARGETS_LOOPER_END
 	}
+}
 
-	/* return driver node created */
-	return driver_op;
+void DepsgraphNodeBuilder::build_driver_id_property(ID *id,
+                                                    const char *rna_path)
+{
+	if (id == NULL || rna_path == NULL) {
+		return;
+	}
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	RNA_id_pointer_create(id, &id_ptr);
+	if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, NULL)) {
+		return;
+	}
+	if (prop == NULL) {
+		return;
+	}
+	if (!RNA_property_is_idprop(prop)) {
+		return;
+	}
+	const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
+	ensure_operation_node(id,
+	                      DEG_NODE_TYPE_PARAMETERS,
+	                      NULL,
+	                      DEG_OPCODE_ID_PROPERTY,
+	                      prop_identifier);
 }
 
 /* Recursively build graph for world */

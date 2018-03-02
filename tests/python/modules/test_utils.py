@@ -58,11 +58,10 @@ def with_tempdir(wrapped):
 class AbstractBlenderRunnerTest(unittest.TestCase):
     """Base class for all test suites which needs to run Blender"""
 
-    @classmethod
-    def setUpClass(cls):
-        global args
-        cls.blender = args.blender
-        cls.testdir = pathlib.Path(args.testdir)
+    # Set in a subclass
+    blender: pathlib.Path = None
+    testdir: pathlib.Path = None
+    
 
     def run_blender(self, filepath: str, python_script: str, timeout: int=300) -> str:
         """Runs Blender by opening a blendfile and executing a script.
@@ -72,6 +71,9 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
         :param filepath: taken relative to self.testdir.
         :param timeout: in seconds
         """
+
+        assert self.blender, "Path to Blender binary is to be set in setUpClass()"
+        assert self.testdir, "Path to tests binary is to be set in setUpClass()"
 
         blendfile = self.testdir / filepath
 
