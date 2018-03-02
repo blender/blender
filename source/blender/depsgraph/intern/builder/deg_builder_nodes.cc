@@ -516,7 +516,7 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
  * \param id: ID-Block that driver is attached to
  * \param fcu: Driver-FCurve
  */
-OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
+void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 {
 	/* Create data node for this driver */
 	/* TODO(sergey): Avoid creating same operation multiple times,
@@ -528,18 +528,14 @@ OperationDepsNode *DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 	                                                   DEG_OPCODE_DRIVER,
 	                                                   fcu->rna_path ? fcu->rna_path : "",
 	                                                   fcu->array_index);
-
 	if (driver_op == NULL) {
-		driver_op = add_operation_node(id,
-		                               DEG_NODE_TYPE_PARAMETERS,
-		                               function_bind(BKE_animsys_eval_driver, _1, id, fcu),
-		                               DEG_OPCODE_DRIVER,
-		                               fcu->rna_path ? fcu->rna_path : "",
-		                               fcu->array_index);
+		add_operation_node(id,
+		                   DEG_NODE_TYPE_PARAMETERS,
+		                   function_bind(BKE_animsys_eval_driver, _1, id, fcu),
+		                   DEG_OPCODE_DRIVER,
+		                   fcu->rna_path ? fcu->rna_path : "",
+		                   fcu->array_index);
 	}
-
-	/* return driver node created */
-	return driver_op;
 }
 
 /* Recursively build graph for world */

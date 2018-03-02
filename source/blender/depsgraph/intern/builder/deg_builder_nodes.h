@@ -130,7 +130,7 @@ struct DepsgraphNodeBuilder {
 	void build_particles(Object *object);
 	void build_cloth(Object *object);
 	void build_animdata(ID *id);
-	OperationDepsNode *build_driver(ID *id, FCurve *fcurve);
+	void build_driver(ID *id, FCurve *fcurve);
 	void build_ik_pose(Object *object,
 	                   bPoseChannel *pchan,
 	                   bConstraint *con);
