@@ -106,7 +106,7 @@ void ED_editors_init(bContext *C)
 			data = ob->data;
 
 			if (ob == obact && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data)))
-				ED_object_toggle_modes(C, mode);
+				ED_object_mode_toggle(C, mode);
 		}
 	}
 
