@@ -239,6 +239,22 @@ OperationDepsNode *DepsgraphNodeBuilder::add_operation_node(
 	                          name_tag);
 }
 
+OperationDepsNode *DepsgraphNodeBuilder::ensure_operation_node(
+        ID *id,
+        eDepsNode_Type comp_type,
+        const DepsEvalOperationCb& op,
+        eDepsOperation_Code opcode,
+        const char *name,
+        int name_tag)
+{
+	OperationDepsNode *operation =
+	        find_operation_node(id, comp_type, opcode, name, name_tag);
+	if (operation != NULL) {
+		return operation;
+	}
+	return add_operation_node(id, comp_type, op, opcode, name, name_tag);
+}
+
 bool DepsgraphNodeBuilder::has_operation_node(ID *id,
                                               eDepsNode_Type comp_type,
                                               const char *comp_name,
@@ -519,23 +535,12 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
 {
 	/* Create data node for this driver */
-	/* TODO(sergey): Avoid creating same operation multiple times,
-	 * in the future we need to avoid lookup of the operation as well
-	 * and use some tagging magic instead.
-	 */
-	OperationDepsNode *driver_op = find_operation_node(id,
-	                                                   DEG_NODE_TYPE_PARAMETERS,
-	                                                   DEG_OPCODE_DRIVER,
-	                                                   fcu->rna_path ? fcu->rna_path : "",
-	                                                   fcu->array_index);
-	if (driver_op == NULL) {
-		add_operation_node(id,
-		                   DEG_NODE_TYPE_PARAMETERS,
-		                   function_bind(BKE_animsys_eval_driver, _1, id, fcu),
-		                   DEG_OPCODE_DRIVER,
-		                   fcu->rna_path ? fcu->rna_path : "",
-		                   fcu->array_index);
-	}
+	ensure_operation_node(id,
+	                      DEG_NODE_TYPE_PARAMETERS,
+	                      function_bind(BKE_animsys_eval_driver, _1, id, fcu),
+	                      DEG_OPCODE_DRIVER,
+	                      fcu->rna_path ? fcu->rna_path : "",
+	                      fcu->array_index);
 }
 
 /* Recursively build graph for world */

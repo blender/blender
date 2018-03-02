@@ -99,6 +99,13 @@ struct DepsgraphNodeBuilder {
 	                                      const char *name = "",
 	                                      int name_tag = -1);
 
+	OperationDepsNode *ensure_operation_node(ID *id,
+	                                         eDepsNode_Type comp_type,
+	                                         const DepsEvalOperationCb& op,
+	                                         eDepsOperation_Code opcode,
+	                                         const char *name = "",
+	                                         int name_tag = -1);
+
 	bool has_operation_node(ID *id,
 	                        eDepsNode_Type comp_type,
 	                        const char *comp_name,
