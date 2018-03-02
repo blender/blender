@@ -458,12 +458,12 @@ static void drw_interface_init(DRWShadingGroup *shgroup, GPUShader *shader)
 #endif
 
 	/* TODO : They should be grouped inside a UBO updated once per redraw. */
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW, DST.view_data.mat[DRW_MAT_VIEW], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW_INV, DST.view_data.mat[DRW_MAT_VIEWINV], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION, DST.view_data.mat[DRW_MAT_PERS], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION_INV, DST.view_data.mat[DRW_MAT_PERSINV], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION, DST.view_data.mat[DRW_MAT_WIN], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION_INV, DST.view_data.mat[DRW_MAT_WININV], 16, 1);
+	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW, DST.view_data.matstate.mat[DRW_MAT_VIEW], 16, 1);
+	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW_INV, DST.view_data.matstate.mat[DRW_MAT_VIEWINV], 16, 1);
+	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION, DST.view_data.matstate.mat[DRW_MAT_PERS], 16, 1);
+	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_PERSINV], 16, 1);
+	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION, DST.view_data.matstate.mat[DRW_MAT_WIN], 16, 1);
+	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_WININV], 16, 1);
 	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_CAMERATEXCO, DST.view_data.viewcamtexcofac, 3, 2);
 	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_CLIPPLANES, DST.view_data.clip_planes_eq, 4, DST.num_clip_planes); /* TO REMOVE */
 
@@ -895,7 +895,7 @@ static int pass_shgroup_dist_sort(void *thunk, const void *a, const void *b)
 void DRW_pass_sort_shgroup_z(DRWPass *pass)
 {
 	float (*viewinv)[4];
-	viewinv = DST.view_data.mat[DRW_MAT_VIEWINV];
+	viewinv = DST.view_data.matstate.mat[DRW_MAT_VIEWINV];
 
 	ZSortData zsortdata = {viewinv[2], viewinv[3]};
 

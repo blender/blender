@@ -305,13 +305,13 @@ typedef struct DRWManager {
 	double cache_time;
 
 	/* View dependant uniforms. */
-	float original_mat[6][4][4]; /* Original rv3d matrices. */
+	DRWMatrixState original_mat; /* Original rv3d matrices. */
 	int override_mat;            /* Bitflag of which matrices are overriden. */
 	int num_clip_planes;         /* Number of active clipplanes. */
 	bool dirty_mat;
 
 	struct {
-		float mat[6][4][4];
+		DRWMatrixState matstate;
 		float viewcamtexcofac[4];
 		float clip_planes_eq[MAX_CLIP_PLANES][4];
 	} view_data;

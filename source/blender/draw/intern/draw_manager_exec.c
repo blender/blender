@@ -388,10 +388,10 @@ static void draw_clipping_setup_from_view(void)
 	if (DST.clipping.updated)
 		return;
 
-	float (*viewprojinv)[4] = DST.view_data.mat[DRW_MAT_PERSINV];
-	float (*viewinv)[4] = DST.view_data.mat[DRW_MAT_VIEWINV];
-	float (*projmat)[4] = DST.view_data.mat[DRW_MAT_WIN];
-	float (*projinv)[4] = DST.view_data.mat[DRW_MAT_WININV];
+	float (*viewprojinv)[4] = DST.view_data.matstate.mat[DRW_MAT_PERSINV];
+	float (*viewinv)[4] = DST.view_data.matstate.mat[DRW_MAT_VIEWINV];
+	float (*projmat)[4] = DST.view_data.matstate.mat[DRW_MAT_WIN];
+	float (*projinv)[4] = DST.view_data.matstate.mat[DRW_MAT_WININV];
 	BoundSphere *bsphere = &DST.clipping.frustum_bsphere;
 
 	/* Extract Clipping Planes */
@@ -555,13 +555,13 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 	if (st->matflag & (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE |
 	                  DRW_CALL_NORMALVIEW | DRW_CALL_EYEVEC))
 	{
-		mul_m4_m4m4(st->modelview, DST.view_data.mat[DRW_MAT_VIEW], st->model);
+		mul_m4_m4m4(st->modelview, DST.view_data.matstate.mat[DRW_MAT_VIEW], st->model);
 	}
 	if (st->matflag & DRW_CALL_MODELVIEWINVERSE) {
 		invert_m4_m4(st->modelviewinverse, st->modelview);
 	}
 	if (st->matflag & DRW_CALL_MODELVIEWPROJECTION) {
-		mul_m4_m4m4(st->modelviewprojection, DST.view_data.mat[DRW_MAT_PERS], st->model);
+		mul_m4_m4m4(st->modelviewprojection, DST.view_data.matstate.mat[DRW_MAT_PERS], st->model);
 	}
 	if (st->matflag & DRW_CALL_NORMALVIEW) {
 		copy_m3_m4(st->normalview, st->modelview);
@@ -610,9 +610,9 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
 		unit_m4(unitmat);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->model, 16, 1, (float *)unitmat);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelinverse, 16, 1, (float *)unitmat);
-		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelview, 16, 1, (float *)DST.view_data.mat[DRW_MAT_VIEW]);
-		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewinverse, 16, 1, (float *)DST.view_data.mat[DRW_MAT_VIEWINV]);
-		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewprojection, 16, 1, (float *)DST.view_data.mat[DRW_MAT_PERS]);
+		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelview, 16, 1, (float *)DST.view_data.matstate.mat[DRW_MAT_VIEW]);
+		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewinverse, 16, 1, (float *)DST.view_data.matstate.mat[DRW_MAT_VIEWINV]);
+		GPU_shader_uniform_vector(shgroup->shader, shgroup->modelviewprojection, 16, 1, (float *)DST.view_data.matstate.mat[DRW_MAT_PERS]);
 		GPU_shader_uniform_vector(shgroup->shader, shgroup->orcotexfac, 3, 2, (float *)shgroup->instance_orcofac);
 	}
 }

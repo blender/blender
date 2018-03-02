@@ -405,14 +405,14 @@ static void drw_viewport_var_init(void)
 		/* Refresh DST.pixelsize */
 		DST.pixsize = rv3d->pixsize;
 
-		copy_m4_m4(DST.original_mat[DRW_MAT_PERS], rv3d->persmat);
-		copy_m4_m4(DST.original_mat[DRW_MAT_PERSINV], rv3d->persinv);
-		copy_m4_m4(DST.original_mat[DRW_MAT_VIEW], rv3d->viewmat);
-		copy_m4_m4(DST.original_mat[DRW_MAT_VIEWINV], rv3d->viewinv);
-		copy_m4_m4(DST.original_mat[DRW_MAT_WIN], rv3d->winmat);
-		invert_m4_m4(DST.original_mat[DRW_MAT_WININV], rv3d->winmat);
+		copy_m4_m4(DST.original_mat.mat[DRW_MAT_PERS], rv3d->persmat);
+		copy_m4_m4(DST.original_mat.mat[DRW_MAT_PERSINV], rv3d->persinv);
+		copy_m4_m4(DST.original_mat.mat[DRW_MAT_VIEW], rv3d->viewmat);
+		copy_m4_m4(DST.original_mat.mat[DRW_MAT_VIEWINV], rv3d->viewinv);
+		copy_m4_m4(DST.original_mat.mat[DRW_MAT_WIN], rv3d->winmat);
+		invert_m4_m4(DST.original_mat.mat[DRW_MAT_WININV], rv3d->winmat);
 
-		memcpy(DST.view_data.mat, DST.original_mat, sizeof(DST.original_mat));
+		memcpy(DST.view_data.matstate.mat, DST.original_mat.mat, sizeof(DST.original_mat.mat));
 
 		copy_v4_v4(DST.view_data.viewcamtexcofac, rv3d->viewcamtexcofac);
 	}
@@ -448,23 +448,43 @@ static void drw_viewport_var_init(void)
 
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 {
-	BLI_assert(type >= DRW_MAT_PERS && type <= DRW_MAT_WININV);
+	BLI_assert(type >= 0 && type < DRW_MAT_COUNT);
 	BLI_assert(((DST.override_mat & (1 << type)) != 0)|| DST.draw_ctx.rv3d != NULL); /* Can't use this in render mode. */
 
-	copy_m4_m4(mat, DST.view_data.mat[type]);
+	copy_m4_m4(mat, DST.view_data.matstate.mat[type]);
+}
+
+void DRW_viewport_matrix_get_all(DRWMatrixState *state)
+{
+	memcpy(state, DST.view_data.matstate.mat, sizeof(DRWMatrixState));
 }
 
 void DRW_viewport_matrix_override_set(float mat[4][4], DRWViewportMatrixType type)
 {
-	copy_m4_m4(DST.view_data.mat[type], mat);
+	BLI_assert(type < DRW_MAT_COUNT);
+	copy_m4_m4(DST.view_data.matstate.mat[type], mat);
 	DST.override_mat |= (1 << type);
 	DST.dirty_mat = true;
 }
 
 void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 {
-	copy_m4_m4(DST.view_data.mat[type], DST.original_mat[type]);
+	BLI_assert(type < DRW_MAT_COUNT);
+	copy_m4_m4(DST.view_data.matstate.mat[type], DST.original_mat.mat[type]);
 	DST.override_mat &= ~(1 << type);
+	DST.dirty_mat = true;
+}
+
+void DRW_viewport_matrix_override_set_all(DRWMatrixState *state)
+{
+	memcpy(DST.view_data.matstate.mat, state, sizeof(DRWMatrixState));
+	DST.dirty_mat = true;
+}
+
+void DRW_viewport_matrix_override_unset_all(void)
+{
+	memcpy(DST.view_data.matstate.mat, DST.original_mat.mat, sizeof(DRWMatrixState));
+	DST.override_mat = 0;
 	DST.dirty_mat = true;
 }
 
@@ -475,7 +495,7 @@ bool DRW_viewport_is_persp_get(void)
 		return rv3d->is_persp;
 	}
 	else {
-		return DST.view_data.mat[DRW_MAT_WIN][3][3] == 0.0f;
+		return DST.view_data.matstate.mat[DRW_MAT_WIN][3][3] == 0.0f;
 	}
 	BLI_assert(0);
 	return false;
