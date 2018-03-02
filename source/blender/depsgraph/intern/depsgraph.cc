@@ -128,7 +128,7 @@ static bool pointer_to_component_node_criteria(
 			*type = DEG_NODE_TYPE_PARAMETERS;
 			*subdata = "";
 			*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
-			*operation_name = pchan->name;;
+			*operation_name = pchan->name;
 		}
 		else {
 			/* Bone - generally, we just want the bone component. */
