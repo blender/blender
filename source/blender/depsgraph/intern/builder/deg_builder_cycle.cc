@@ -46,6 +46,8 @@
 
 namespace DEG {
 
+namespace {
+
 typedef enum eCyclicCheckVisitedState {
 	/* Not is not visited at all during traversal. */
 	NODE_NOT_VISITED = 0,
@@ -54,6 +56,30 @@ typedef enum eCyclicCheckVisitedState {
 	/* Node has been visited during traversal and is in current stack. */
 	NODE_IN_STACK = 2,
 } eCyclicCheckVisitedState;
+
+struct StackEntry {
+	OperationDepsNode *node;
+	StackEntry *from;
+	DepsRelation *via_relation;
+};
+
+struct CyclesSolverState {
+	CyclesSolverState(Depsgraph *graph)
+		: graph(graph),
+		  traversal_stack(BLI_stack_new(sizeof(StackEntry),
+		                                "DEG detect cycles stack")),
+		  num_cycles(0) {
+	}
+	~CyclesSolverState() {
+		BLI_stack_free(traversal_stack);
+		if (num_cycles != 0) {
+			printf("Detected %d dependency cycles\n", num_cycles);
+		}
+	}
+	Depsgraph *graph;
+	BLI_Stack *traversal_stack;
+	int num_cycles;
+};
 
 BLI_INLINE void set_node_visited_state(DepsNode *node,
                                        eCyclicCheckVisitedState state)
@@ -76,19 +102,20 @@ BLI_INLINE int get_node_num_visited_children(DepsNode *node)
 	return node->done >> 2;
 }
 
-void deg_graph_detect_cycles(Depsgraph *graph)
+void schedule_node_to_stack(CyclesSolverState *state, OperationDepsNode *node)
 {
-	struct StackEntry {
-		OperationDepsNode *node;
-		StackEntry *from;
-		DepsRelation *via_relation;
-	};
+	StackEntry entry;
+	entry.node = node;
+	entry.from = NULL;
+	entry.via_relation = NULL;
+	BLI_stack_push(state->traversal_stack, &entry);
+	set_node_visited_state(node, NODE_IN_STACK);
+}
 
-	BLI_Stack *traversal_stack = BLI_stack_new(sizeof(StackEntry),
-	                                           "DEG detect cycles stack");
-
-	int num_cycles = 0;
-	foreach (OperationDepsNode *node, graph->operations) {
+/* Schedule leaf nodes (node without input links) for traversal. */
+void schedule_leaf_nodes(CyclesSolverState *state)
+{
+	foreach (OperationDepsNode *node, state->graph->operations) {
 		bool has_inlinks = false;
 		foreach (DepsRelation *rel, node->inlinks) {
 			if (rel->from->type == DEG_NODE_TYPE_OPERATION) {
@@ -97,18 +124,32 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 		}
 		node->done = 0;
 		if (has_inlinks == false) {
-			StackEntry entry;
-			entry.node = node;
-			entry.from = NULL;
-			entry.via_relation = NULL;
-			BLI_stack_push(traversal_stack, &entry);
-			set_node_visited_state(node, NODE_IN_STACK);
+			schedule_node_to_stack(state, node);
 		}
 		else {
 			set_node_visited_state(node, NODE_NOT_VISITED);
 		}
 	}
+}
 
+/* Schedule node which was not checked yet for being belong to
+ * any of dependency cycle.
+ */
+bool schedule_non_checked_node(CyclesSolverState *state)
+{
+	foreach (OperationDepsNode *node, state->graph->operations) {
+		if (get_node_visited_state(node) == NODE_NOT_VISITED) {
+			schedule_node_to_stack(state, node);
+			return true;
+		}
+	}
+	return false;
+}
+
+/* Solve cycles with all nodes which are scheduled for traversal. */
+void solve_cycles(CyclesSolverState *state)
+{
+	BLI_Stack *traversal_stack = state->traversal_stack;
 	while (!BLI_stack_is_empty(traversal_stack)) {
 		StackEntry *entry = (StackEntry *)BLI_stack_peek(traversal_stack);
 		OperationDepsNode *node = entry->node;
@@ -137,7 +178,7 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 					}
 					/* TODO(sergey): So called russian roulette cycle solver. */
 					rel->flag |= DEPSREL_FLAG_CYCLIC;
-					++num_cycles;
+					++state->num_cycles;
 				}
 				else if (to_state == NODE_NOT_VISITED) {
 					StackEntry new_entry;
@@ -157,11 +198,23 @@ void deg_graph_detect_cycles(Depsgraph *graph)
 			BLI_stack_discard(traversal_stack);
 		}
 	}
+}
 
-	BLI_stack_free(traversal_stack);
+}  // namespace
 
-	if (num_cycles != 0) {
-		printf("Detected %d dependency cycles\n", num_cycles);
+void deg_graph_detect_cycles(Depsgraph *graph)
+{
+	CyclesSolverState state(graph);
+	/* First we solve cycles which are reachable from leaf nodes. */
+	schedule_leaf_nodes(&state);
+	solve_cycles(&state);
+	/* We are not done yet. It is possible to have closed loop cycle,
+	 * for example A -> B -> C -> A. These nodes were not scheduled
+	 * yet (since they all have inlinks), and were not traversed since
+	 * nobody else points to them.
+	 */
+	while (schedule_non_checked_node(&state)) {
+		solve_cycles(&state);
 	}
 }
 
