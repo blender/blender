@@ -214,10 +214,18 @@ static bool pointer_to_component_node_criteria(
 	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
-		*type = DEG_NODE_TYPE_PARAMETERS;
-		*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
-		*operation_name = "";
-		*operation_name_tag = -1;
+		if (RNA_property_is_idprop(prop)) {
+			*type = DEG_NODE_TYPE_PARAMETERS;
+			*operation_code = DEG_OPCODE_ID_PROPERTY;
+			*operation_name = RNA_property_identifier((PropertyRNA *)prop);
+			*operation_name_tag = -1;
+		}
+		else {
+			*type = DEG_NODE_TYPE_PARAMETERS;
+			*operation_code = DEG_OPCODE_PARAMETERS_EVAL;
+			*operation_name = "";
+			*operation_name_tag = -1;
+		}
 		return true;
 	}
 	return false;

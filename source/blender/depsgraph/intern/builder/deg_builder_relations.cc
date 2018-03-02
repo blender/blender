@@ -1134,6 +1134,16 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 			 */
 		}
 		else {
+			if (target_key.prop != NULL &&
+			    RNA_property_is_idprop(target_key.prop))
+			{
+				OperationKey parameters_key(id,
+				                            DEG_NODE_TYPE_PARAMETERS,
+				                            DEG_OPCODE_PARAMETERS_EVAL);
+				add_relation(target_key,
+				             parameters_key,
+				             "Driver Target -> Properties");
+			}
 			add_relation(driver_key, target_key, "Driver -> Target");
 		}
 	}

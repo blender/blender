@@ -532,15 +532,54 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
  * \param id: ID-Block that driver is attached to
  * \param fcu: Driver-FCurve
  */
-void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcu)
+void DepsgraphNodeBuilder::build_driver(ID *id, FCurve *fcurve)
 {
 	/* Create data node for this driver */
 	ensure_operation_node(id,
 	                      DEG_NODE_TYPE_PARAMETERS,
-	                      function_bind(BKE_animsys_eval_driver, _1, id, fcu),
+	                      function_bind(BKE_animsys_eval_driver, _1, id, fcurve),
 	                      DEG_OPCODE_DRIVER,
-	                      fcu->rna_path ? fcu->rna_path : "",
-	                      fcu->array_index);
+	                      fcurve->rna_path ? fcurve->rna_path : "",
+	                      fcurve->array_index);
+	build_driver_variables(id, fcurve);
+}
+
+void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
+{
+	build_driver_id_property(id, fcurve->rna_path);
+	LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
+		DRIVER_TARGETS_USED_LOOPER(dvar)
+		{
+			build_driver_id_property(dtar->id, dtar->rna_path);
+		}
+		DRIVER_TARGETS_LOOPER_END
+	}
+}
+
+void DepsgraphNodeBuilder::build_driver_id_property(ID *id,
+                                                    const char *rna_path)
+{
+	if (id == NULL || rna_path == NULL) {
+		return;
+	}
+	PointerRNA id_ptr, ptr;
+	PropertyRNA *prop;
+	RNA_id_pointer_create(id, &id_ptr);
+	if (!RNA_path_resolve_full(&id_ptr, rna_path, &ptr, &prop, NULL)) {
+		return;
+	}
+	if (prop == NULL) {
+		return;
+	}
+	if (!RNA_property_is_idprop(prop)) {
+		return;
+	}
+	const char *prop_identifier = RNA_property_identifier((PropertyRNA *)prop);
+	ensure_operation_node(id,
+	                      DEG_NODE_TYPE_PARAMETERS,
+	                      NULL,
+	                      DEG_OPCODE_ID_PROPERTY,
+	                      prop_identifier);
 }
 
 /* Recursively build graph for world */
