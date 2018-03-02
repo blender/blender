@@ -124,13 +124,15 @@ void ED_object_base_activate(bContext *C, Base *base)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win = CTX_wm_window(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
 
 	eObjectMode object_mode = workspace->object_mode;
 	eObjectMode object_mode_set = OB_MODE_OBJECT;
 
 	if (base && ED_workspace_object_mode_in_other_window(
-	            CTX_wm_manager(C), workspace, base->object,
+	            wm, win, base->object,
 	            &object_mode_set))
 	{
 		/* Sync existing object mode with workspace. */
@@ -146,13 +148,12 @@ void ED_object_base_activate(bContext *C, Base *base)
 		 * Not correct because it's possible other work-spaces use these.
 		 * although that's a corner case. */
 		if (workspace->object_mode & OB_MODE_ALL_MODE_DATA) {
-			wmWindowManager *wm = CTX_wm_manager(C);
 			EvaluationContext eval_ctx;
 			CTX_data_eval_ctx(C, &eval_ctx);
 			FOREACH_OBJECT_BEGIN(view_layer, ob) {
 				if (ob != obact) {
 					if (ED_object_mode_generic_has_data(&eval_ctx, ob) &&
-					    ED_workspace_object_mode_in_other_window(wm, workspace, ob, NULL) == false)
+					    ED_workspace_object_mode_in_other_window(wm, win, ob, NULL) == false)
 					{
 						ED_object_mode_generic_exit(&eval_ctx, workspace, scene, ob);
 					}

@@ -135,7 +135,7 @@ void ED_scene_change_update(
 	Object *obact_old = OBACT(layer_old);
 	if (obact_old && (obact_new != obact_old))  {
 		bool obact_old_is_active =
-			ED_workspace_object_mode_in_other_window(bmain->wm.first, workspace, obact_old, NULL);
+			ED_workspace_object_mode_in_other_window(bmain->wm.first, win, obact_old, NULL);
 		if (obact_old && (obact_old_is_active == false)) {
 			EvaluationContext eval_ctx;
 			CTX_data_eval_ctx(C, &eval_ctx);
@@ -162,7 +162,7 @@ void ED_scene_change_update(
 	else {
 		eObjectMode object_mode_set = OB_MODE_OBJECT;
 		if (ED_workspace_object_mode_in_other_window(
-		            bmain->wm.first, workspace, obact_new, &object_mode_set))
+		            bmain->wm.first, win, obact_new, &object_mode_set))
 		{
 			workspace->object_mode = object_mode_set;
 		}

@@ -195,7 +195,7 @@ void ED_workspace_object_mode_sync_from_scene(
         struct wmWindowManager *wm, WorkSpace *workspace, struct Scene *scene);
 
 bool ED_workspace_object_mode_in_other_window(
-        struct wmWindowManager *wm, WorkSpace *workspace, struct Object *obact,
+        struct wmWindowManager *wm, const struct wmWindow *win_compare, struct Object *obact,
         eObjectMode *r_object_mode);
 
 /* anim */
