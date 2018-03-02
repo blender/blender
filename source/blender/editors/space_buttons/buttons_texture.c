@@ -351,18 +351,20 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 			workspace = (WorkSpace *)workspace;
 	}
 
-	if (!scene)
+	if (!scene) {
 		scene = CTX_data_scene(C);
-
-	if (!pinid || GS(pinid->name) == ID_SCE) {
-		wrld = scene->world;
-		brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-		linestyle = BKE_linestyle_active_from_scene(scene);
 	}
-	else if (!pinid || GS(pinid->name) == ID_WS) {
-		if (!workspace) {
+
+	const ID_Type id_type = pinid != NULL ? GS(pinid->name) : -1;
+	if (!pinid || ELEM(id_type, ID_SCE, ID_WS)) {
+		brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
+
+		if (workspace == NULL) {
+			wrld = scene->world;
+			linestyle = BKE_linestyle_active_from_scene(scene);
 			workspace = CTX_wm_workspace(C);
 		}
+
 		ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
 		ob = OBACT(view_layer);
 	}
