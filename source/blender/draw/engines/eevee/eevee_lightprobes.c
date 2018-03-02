@@ -859,7 +859,6 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
-	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
 
@@ -1219,12 +1218,7 @@ static void render_scene_to_probe(
 	DRW_framebuffer_texture_attach(sldata->probe_fb, sldata->probe_rt, 0, 0);
 	DRW_framebuffer_texture_attach(sldata->probe_fb, sldata->probe_depth_rt, 0, 0);
 
-	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
-	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
-	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
-	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
-	DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
-	DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
+	DRW_viewport_matrix_override_unset_all();
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
@@ -1301,10 +1295,7 @@ static void render_scene_to_planar(
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
 	txl->planar_depth = tmp_planar_depth;
-	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
-	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
-	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
-	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
+	DRW_viewport_matrix_override_unset_all();
 
 	DRW_framebuffer_texture_detach(txl->planar_pool);
 	DRW_framebuffer_texture_detach(txl->planar_depth);
@@ -1353,12 +1344,7 @@ static void render_world_to_probe(EEVEE_ViewLayerData *sldata, EEVEE_PassList *p
 	DRW_framebuffer_texture_attach(sldata->probe_fb, sldata->probe_rt, 0, 0);
 	DRW_framebuffer_texture_attach(sldata->probe_fb, sldata->probe_depth_rt, 0, 0);
 
-	DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
-	DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
-	DRW_viewport_matrix_override_unset(DRW_MAT_VIEW);
-	DRW_viewport_matrix_override_unset(DRW_MAT_VIEWINV);
-	DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
-	DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
+	DRW_viewport_matrix_override_unset_all();
 }
 
 static void lightprobe_cell_grid_location_get(EEVEE_LightGrid *egrid, int cell_idx, float r_local_cell[3])

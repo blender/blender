@@ -87,10 +87,7 @@ static void eevee_engine_init(void *ved)
 
 	if ((stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render()) {
 		/* XXX otherwise it would break the other engines. */
-		DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
-		DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
-		DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
-		DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
+		DRW_viewport_matrix_override_unset_all();
 	}
 }
 
