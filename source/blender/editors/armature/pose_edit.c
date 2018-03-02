@@ -109,7 +109,7 @@ void ED_armature_enter_posemode(bContext *C, Base *base)
 	}
 	
 	/* XXX: disabled as this would otherwise cause a nasty loop... */
-	//ED_object_toggle_modes(C, ob->mode);
+	//ED_object_mode_toggle(C, ob->mode);
 }
 
 void ED_armature_exit_posemode(bContext *C, Base *base)

@@ -118,9 +118,6 @@ struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, st
 
 void ED_object_parent(struct Object *ob, struct Object *parent, const int type, const char *substr);
 
-bool ED_object_mode_compat_set(struct bContext *C, struct WorkSpace *workspace, eObjectMode mode, struct ReportList *reports);
-void ED_object_toggle_modes(struct bContext *C, eObjectMode mode);
-
 /* bitflags for enter/exit editmode */
 #define EM_FREEDATA     1
 #define EM_FREEUNDO     2
@@ -216,6 +213,10 @@ void undo_push_lattice(struct bContext *C, const char *name);
 /* object_lattice.c */
 
 void ED_lattice_flags_set(struct Object *obedit, int flag);
+
+bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
+bool ED_object_mode_compat_set(struct bContext *C, struct WorkSpace *workspace, eObjectMode mode, struct ReportList *reports);
+void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
 
 /* object_modifier.c */
 enum {

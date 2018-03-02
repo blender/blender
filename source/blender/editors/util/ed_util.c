@@ -118,7 +118,7 @@ void ED_editors_init(bContext *C)
 				if (!ELEM(object_mode, OB_MODE_OBJECT, OB_MODE_POSE)) {
 					if (!ID_IS_LINKED(obact) && !(data && ID_IS_LINKED(data))) {
 						CTX_wm_window_set(C, win);
-						ED_object_toggle_modes(C, object_mode);
+						ED_object_mode_toggle(C, object_mode);
 						CTX_wm_window_set(C, NULL);
 					}
 				}

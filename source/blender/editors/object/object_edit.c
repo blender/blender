@@ -366,7 +366,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	/* note, when switching scenes the object can have editmode data but
 	 * not be scene->obedit: bug 22954, this avoids calling self eternally */
 	if ((workspace->object_mode_restore & OB_MODE_EDIT) == 0)
-		ED_object_toggle_modes(C, workspace->object_mode);
+		ED_object_mode_toggle(C, workspace->object_mode);
 
 	workspace->object_mode = OB_MODE_EDIT;
 
@@ -1491,92 +1491,6 @@ static const EnumPropertyItem *object_mode_set_itemsf(
 	return item;
 }
 
-static const char *object_mode_op_string(eObjectMode mode)
-{
-	if (mode & OB_MODE_EDIT)
-		return "OBJECT_OT_editmode_toggle";
-	if (mode == OB_MODE_SCULPT)
-		return "SCULPT_OT_sculptmode_toggle";
-	if (mode == OB_MODE_VERTEX_PAINT)
-		return "PAINT_OT_vertex_paint_toggle";
-	if (mode == OB_MODE_WEIGHT_PAINT)
-		return "PAINT_OT_weight_paint_toggle";
-	if (mode == OB_MODE_TEXTURE_PAINT)
-		return "PAINT_OT_texture_paint_toggle";
-	if (mode == OB_MODE_PARTICLE_EDIT)
-		return "PARTICLE_OT_particle_edit_toggle";
-	if (mode == OB_MODE_POSE)
-		return "OBJECT_OT_posemode_toggle";
-	if (mode == OB_MODE_GPENCIL)
-		return "GPENCIL_OT_editmode_toggle";
-	return NULL;
-}
-
-/* checks the mode to be set is compatible with the object
- * should be made into a generic function
- */
-static bool object_mode_compat_test(Object *ob, eObjectMode mode)
-{
-	if (ob) {
-		if (mode == OB_MODE_OBJECT)
-			return true;
-		else if (mode == OB_MODE_GPENCIL)
-			return true; /* XXX: assume this is the case for now... */
-
-		switch (ob->type) {
-			case OB_MESH:
-				if (mode & (OB_MODE_EDIT | OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT |
-				            OB_MODE_TEXTURE_PAINT | OB_MODE_PARTICLE_EDIT))
-				{
-					return true;
-				}
-				break;
-			case OB_CURVE:
-			case OB_SURF:
-			case OB_FONT:
-			case OB_MBALL:
-				if (mode & (OB_MODE_EDIT))
-					return true;
-				break;
-			case OB_LATTICE:
-				if (mode & (OB_MODE_EDIT | OB_MODE_WEIGHT_PAINT))
-					return true;
-				break;
-			case OB_ARMATURE:
-				if (mode & (OB_MODE_EDIT | OB_MODE_POSE))
-					return true;
-				break;
-		}
-	}
-
-	return false;
-}
-
-/**
- * Sets the mode to a compatible state (use before entering the mode).
- *
- * This is so each mode's exec function can call
- */
-bool ED_object_mode_compat_set(bContext *C, WorkSpace *workspace, eObjectMode mode, ReportList *reports)
-{
-	bool ok;
-	if (!ELEM(workspace->object_mode, mode, OB_MODE_OBJECT)) {
-		const char *opstring = object_mode_op_string(workspace->object_mode);
-
-		WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
-		ok = ELEM(workspace->object_mode, mode, OB_MODE_OBJECT);
-		if (!ok) {
-			wmOperatorType *ot = WM_operatortype_find(opstring, false);
-			BKE_reportf(reports, RPT_ERROR, "Unable to execute '%s', error changing modes", ot->name);
-		}
-	}
-	else {
-		ok = true;
-	}
-
-	return ok;
-}
-
 static int object_mode_set_poll(bContext *C)
 {
 	/* Since Grease Pencil editmode is also handled here,
@@ -1617,7 +1531,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 		}
 	}
 	
-	if (!ob || !object_mode_compat_test(ob, mode))
+	if (!ob || !ED_object_mode_compat_test(ob, mode))
 		return OPERATOR_PASS_THROUGH;
 
 	if (workspace->object_mode != mode) {
@@ -1628,7 +1542,7 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	/* Exit current mode if it's not the mode we're setting */
 	if (mode != OB_MODE_OBJECT && (workspace->object_mode != mode || toggle)) {
 		/* Enter new mode */
-		ED_object_toggle_modes(C, mode);
+		ED_object_mode_toggle(C, mode);
 	}
 
 	if (toggle) {
@@ -1637,14 +1551,14 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 		    (restore_mode == OB_MODE_OBJECT) &&
 		    (workspace->object_mode_restore != OB_MODE_OBJECT))
 		{
-			ED_object_toggle_modes(C, workspace->object_mode_restore);
+			ED_object_mode_toggle(C, workspace->object_mode_restore);
 		}
 		else if (workspace->object_mode == mode) {
 			/* For toggling, store old mode so we know what to go back to */
 			workspace->object_mode_restore = restore_mode;
 		}
 		else if (!ELEM(workspace->object_mode_restore, mode, OB_MODE_OBJECT)) {
-			ED_object_toggle_modes(C, workspace->object_mode_restore);
+			ED_object_mode_toggle(C, workspace->object_mode_restore);
 		}
 	}
 
@@ -1674,17 +1588,6 @@ void OBJECT_OT_mode_set(wmOperatorType *ot)
 
 	prop = RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-}
-
-void ED_object_toggle_modes(bContext *C, eObjectMode mode)
-{
-	if (mode != OB_MODE_OBJECT) {
-		const char *opstring = object_mode_op_string(mode);
-
-		if (opstring) {
-			WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
-		}
-	}
 }
 
 /************************ Game Properties ***********************/
