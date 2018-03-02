@@ -1238,7 +1238,7 @@ bScreen *screen_change_prepare(bScreen *screen_old, bScreen *screen_new, Main *b
 	return NULL;
 }
 
-void screen_changed_update(bContext *C, wmWindow *win, bScreen *sc)
+void screen_change_update(bContext *C, wmWindow *win, bScreen *sc)
 {
 	Scene *scene = WM_window_get_active_scene(win);
 	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
@@ -1275,7 +1275,7 @@ bool ED_screen_change(bContext *C, bScreen *sc)
 	if (screen_new) {
 		WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
 		WM_window_set_active_screen(win, workspace, sc);
-		screen_changed_update(C, win, screen_new);
+		screen_change_update(C, win, screen_new);
 
 		return true;
 	}

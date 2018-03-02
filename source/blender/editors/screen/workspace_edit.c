@@ -208,7 +208,7 @@ bool ED_workspace_change(
 		WM_window_set_active_workspace(win, workspace_new);
 
 		/* update screen *after* changing workspace - which also causes the actual screen change */
-		screen_changed_update(C, win, screen_new);
+		screen_change_update(C, win, screen_new);
 		workspace_change_update(workspace_new, workspace_old, C);
 
 		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);
