@@ -61,10 +61,10 @@ void drw_state_set(DRWState state)
 	}
 
 #define CHANGED_TO(f) \
-	((((DST.state & (f)) ? \
+	((DST.state_lock & (f)) ? 0 : \
+	 (((DST.state & (f)) ? \
 	   ((state & (f)) ?  0 : -1) : \
-	   ((state & (f)) ?  1 :  0))) && \
-	 ((DST.state_lock & (f)) == 0))
+	   ((state & (f)) ?  1 :  0))))
 
 #define CHANGED_ANY(f) \
 	(((DST.state & (f)) != (state & (f))) && \
