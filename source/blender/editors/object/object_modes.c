@@ -281,4 +281,17 @@ bool ED_object_mode_generic_enter_or_other_window(
 	}
 }
 
+void ED_object_mode_generic_exit_or_other_window(
+        const struct EvaluationContext *eval_ctx, wmWindowManager *wm,
+        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob)
+{
+	if (ob == NULL) {
+		return;
+	}
+	bool is_active = ED_workspace_object_mode_in_other_window(wm, NULL, ob, NULL);
+	if (is_active == false) {
+		ED_object_mode_generic_exit(eval_ctx, workspace, scene, ob);
+	}
+}
+
 /** \} */

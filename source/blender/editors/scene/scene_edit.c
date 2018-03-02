@@ -130,18 +130,11 @@ void ED_scene_change_update(
 	Object *obact_new = OBACT(layer_new);
 
 	/* mode syncing */
+	EvaluationContext eval_ctx_old;
+	CTX_data_eval_ctx(C, &eval_ctx_old);
 	eObjectMode object_mode_old = workspace->object_mode;
 	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
 	Object *obact_old = OBACT(layer_old);
-	if (obact_old && (obact_new != obact_old))  {
-		bool obact_old_is_active =
-			ED_workspace_object_mode_in_other_window(bmain->wm.first, win, obact_old, NULL);
-		if (obact_old && (obact_old_is_active == false)) {
-			EvaluationContext eval_ctx;
-			CTX_data_eval_ctx(C, &eval_ctx);
-			ED_object_mode_generic_exit(&eval_ctx, workspace, scene_old, obact_old);
-		}
-	}
 
 	win->scene = scene_new;
 	CTX_data_scene_set(C, scene_new);
@@ -150,16 +143,13 @@ void ED_scene_change_update(
 	DEG_graph_relations_update(depsgraph, bmain, scene_new, layer_new);
 	DEG_on_visible_update(bmain, false);
 
-
-	/* TODO(campbell) Syncing duplicates some logic without being 100% identical,
-	 * keep and eye on this to see if we can generalize in the future. */
 	if (obact_new == obact_old) {
 		/* pass */
 	}
 	else {
+		ED_object_mode_generic_exit_or_other_window(&eval_ctx_old, bmain->wm.first, workspace, scene_old, obact_old);
 		ED_object_mode_generic_enter_or_other_window(C, object_mode_old);
 	}
-
 
 	ED_screen_update_after_scene_change(screen, scene_new, layer_new);
 	ED_render_engine_changed(bmain);

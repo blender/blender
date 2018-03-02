@@ -171,10 +171,14 @@ bool ED_workspace_change(
 	if (screen_new) {
 		bool use_object_mode = false;
 
+		/* Store old context for exiting edit-mode. */
+		EvaluationContext eval_ctx_old;
+		CTX_data_eval_ctx(C, &eval_ctx_old);
 		Scene *scene = WM_window_get_active_scene(win);
 		ViewLayer *view_layer_old = BKE_workspace_view_layer_get(workspace_old, scene);
-		ViewLayer *view_layer_new = BKE_workspace_view_layer_get(workspace_new, scene);
 		Object *obact_old = OBACT(view_layer_old);
+
+		ViewLayer *view_layer_new = BKE_workspace_view_layer_get(workspace_new, scene);
 		Object *obact_new = OBACT(view_layer_new);
 
 		/* Handle object mode switching */
@@ -187,26 +191,10 @@ bool ED_workspace_change(
 				/* pass */
 			}
 			else {
-				if (workspace_old->object_mode & OB_MODE_ALL_MODE_DATA) {
-					if (obact_old) {
-						bool obact_old_is_active =
-							ED_workspace_object_mode_in_other_window(bmain->wm.first, win, obact_old, NULL);
-						if (obact_old_is_active == false) {
-							eObjectMode object_mode = workspace_old->object_mode;
-							EvaluationContext eval_ctx;
-							CTX_data_eval_ctx(C, &eval_ctx);
-							ED_object_mode_generic_exit(&eval_ctx, workspace_old, scene, obact_old);
-							/* weak, set it back so it's used when activating again. */
-							workspace_old->object_mode = object_mode;
-						}
-					}
-				}
-
-				if (workspace_new->object_mode != OB_MODE_OBJECT) {
-					use_object_mode = true;
-				}
+				use_object_mode = true;
 			}
 		}
+
 
 		WM_window_set_active_layout(win, workspace_new, layout_new);
 		WM_window_set_active_workspace(win, workspace_new);
@@ -222,6 +210,10 @@ bool ED_workspace_change(
 		WM_toolsystem_link(C, workspace_new);
 
 		if (use_object_mode) {
+			/* weak, set it back so it's used when activating again. */
+			eObjectMode object_mode = workspace_old->object_mode;
+			ED_object_mode_generic_exit_or_other_window(&eval_ctx_old, bmain->wm.first, workspace_old, scene, obact_old);
+			workspace_old->object_mode = object_mode;
 			ED_object_mode_generic_enter_or_other_window(C, workspace_new->object_mode);
 		}
 		else {
