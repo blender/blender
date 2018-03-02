@@ -212,7 +212,12 @@ bool ED_workspace_change(
 		if (use_object_mode) {
 			/* weak, set it back so it's used when activating again. */
 			eObjectMode object_mode = workspace_old->object_mode;
-			ED_object_mode_generic_exit_or_other_window(&eval_ctx_old, bmain->wm.first, workspace_old, scene, obact_old);
+			if (obact_old == obact_new) {
+				ED_object_mode_generic_exit(&eval_ctx_old, workspace_old, scene, obact_old);
+			}
+			else {
+				ED_object_mode_generic_exit_or_other_window(&eval_ctx_old, bmain->wm.first, workspace_old, scene, obact_old);
+			}
 			workspace_old->object_mode = object_mode;
 			ED_object_mode_generic_enter_or_other_window(C, workspace_new->object_mode);
 		}
