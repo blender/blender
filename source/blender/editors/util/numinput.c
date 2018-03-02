@@ -478,9 +478,9 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 	/* At this point, our value has changed, try to interpret it with python (if str is not empty!). */
 	if (n->str[0]) {
 		const float val_prev = n->val[idx];
+		double val;
 #ifdef WITH_PYTHON
 		Scene *sce = CTX_data_scene(C);
-		double val;
 		char str_unit_convert[NUM_STR_REP_LEN * 6];  /* Should be more than enough! */
 		const char *default_unit = NULL;
 
@@ -506,8 +506,9 @@ bool handleNumInput(bContext *C, NumInput *n, const wmEvent *event)
 			n->val_flag[idx] |= NUM_INVALID;
 		}
 #else  /* Very unlikely, but does not harm... */
-		n->val[idx] = (float)atof(n->str);
-		(void)C;
+		val = atof(n->str);
+		n->val[idx] = (float)val;
+		UNUSED_VARS(C);
 #endif  /* WITH_PYTHON */
 
 		if (n->val_flag[idx] & NUM_NEGATE) {

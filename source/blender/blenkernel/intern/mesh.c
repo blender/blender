@@ -2497,7 +2497,7 @@ Mesh *BKE_mesh_new_from_object(
 				ListBase disp = {NULL, NULL};
 				/* TODO(sergey): This is gonna to work for until EvaluationContext
 				 *               only contains for_render flag. As soon as CoW is
-				 *               implemented, this is to be rethinked.
+				 *               implemented, this is to be rethought.
 				 */
 				EvaluationContext eval_ctx;
 				DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_RENDER);
