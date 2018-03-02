@@ -2003,11 +2003,11 @@ Scene *WM_window_get_active_scene(const wmWindow *win)
  */
 void WM_window_change_active_scene(Main *bmain, bContext *C, wmWindow *win, Scene *scene_new)
 {
+	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	const bScreen *screen = WM_window_get_active_screen(win);
+	Scene *scene_old = win->scene;
 
-	ED_scene_exit(C);
-	win->scene = scene_new;
-	ED_scene_changed_update(bmain, C, scene_new, screen);
+	ED_scene_change_update(bmain, C, win, screen, scene_old, scene_new);
 }
 
 WorkSpace *WM_window_get_active_workspace(const wmWindow *win)
