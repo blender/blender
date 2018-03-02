@@ -152,15 +152,6 @@ void ED_object_sculptmode_exit_ex(
         struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
 void ED_object_sculptmode_exit(struct bContext *C);
 
-bool ED_object_mode_generic_enter(
-        struct bContext *C, eObjectMode object_mode);
-void ED_object_mode_generic_exit(
-        const struct EvaluationContext *eval_ctx,
-        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
-bool ED_object_mode_generic_has_data(
-        const struct EvaluationContext *eval_ctx,
-        struct Object *ob);
-
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);
@@ -214,9 +205,19 @@ void undo_push_lattice(struct bContext *C, const char *name);
 
 void ED_lattice_flags_set(struct Object *obedit, int flag);
 
+/* object_modes.c */
 bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
 bool ED_object_mode_compat_set(struct bContext *C, struct WorkSpace *workspace, eObjectMode mode, struct ReportList *reports);
 void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
+
+bool ED_object_mode_generic_enter(
+        struct bContext *C, eObjectMode object_mode);
+void ED_object_mode_generic_exit(
+        const struct EvaluationContext *eval_ctx,
+        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
+bool ED_object_mode_generic_has_data(
+        const struct EvaluationContext *eval_ctx,
+        struct Object *ob);
 
 /* object_modifier.c */
 enum {

@@ -34,12 +34,23 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_object.h"
+#include "BKE_paint.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_object.h"
+#include "RNA_access.h"
+
+#include "DEG_depsgraph.h"
+
+#include "ED_object.h"  /* own include */
+
+/* -------------------------------------------------------------------- */
+/** \name High Level Mode Operations
+ *
+ * \{ */
 
 static const char *object_mode_op_string(eObjectMode mode)
 {
@@ -138,3 +149,96 @@ void ED_object_mode_toggle(bContext *C, eObjectMode mode)
 		}
 	}
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic Mode Enter/Exit
+ *
+ * Supports exiting a mode without it being in the current context.
+ * This could be done for entering modes too if it's needed.
+ *
+ * \{ */
+
+bool ED_object_mode_generic_enter(
+        struct bContext *C, eObjectMode object_mode)
+{
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	if (workspace->object_mode == object_mode) {
+		return true;
+	}
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_mode_set", false);
+	PointerRNA ptr;
+	WM_operator_properties_create_ptr(&ptr, ot);
+	RNA_enum_set(&ptr, "mode", object_mode);
+	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
+	WM_operator_properties_free(&ptr);
+	return (workspace->object_mode == object_mode);
+}
+
+/**
+ * Use for changing works-paces or changing active object.
+ * Caller can check #OB_MODE_ALL_MODE_DATA to test if this needs to be run.
+ */
+static bool ed_object_mode_generic_exit_ex(
+        const struct EvaluationContext *eval_ctx,
+        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob,
+        bool only_test)
+{
+	if (eval_ctx->object_mode & OB_MODE_EDIT) {
+		if (BKE_object_is_in_editmode(ob)) {
+			if (only_test) {
+				return true;
+			}
+			ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
+		}
+	}
+	else if (eval_ctx->object_mode & OB_MODE_VERTEX_PAINT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_VERTEX_PAINT)) {
+			if (only_test) {
+				return true;
+			}
+			ED_object_vpaintmode_exit_ex(workspace, ob);
+		}
+	}
+	else if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_WEIGHT_PAINT)) {
+			if (only_test) {
+				return true;
+			}
+			ED_object_wpaintmode_exit_ex(workspace, ob);
+		}
+	}
+	else if (eval_ctx->object_mode & OB_MODE_SCULPT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT)) {
+			if (only_test) {
+				return true;
+			}
+			ED_object_sculptmode_exit_ex(eval_ctx, workspace, scene, ob);
+		}
+	}
+	else {
+		if (only_test) {
+			return false;
+		}
+		BLI_assert((eval_ctx->object_mode & OB_MODE_ALL_MODE_DATA) == 0);
+	}
+
+	return false;
+}
+
+void ED_object_mode_generic_exit(
+        const struct EvaluationContext *eval_ctx,
+        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob)
+{
+	ed_object_mode_generic_exit_ex(eval_ctx, workspace, scene, ob, false);
+}
+
+bool ED_object_mode_generic_has_data(
+        const struct EvaluationContext *eval_ctx,
+        struct Object *ob)
+{
+	return ed_object_mode_generic_exit_ex(eval_ctx, NULL, NULL, ob, true);
+}
+
+/** \} */
