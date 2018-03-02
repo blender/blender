@@ -1590,11 +1590,9 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 		return 0.0f;
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_SCALEX) {
-		/* extract scale, and choose the right axis */
-		float scale[3];
-		
-		mat4_to_size(scale, mat);
-		return scale[dtar->transChan - DTAR_TRANSCHAN_SCALEX];
+		/* Extract scale, and choose the right axis,
+		 * inline 'mat4_to_size'. */
+		return len_v3(mat[dtar->transChan - DTAR_TRANSCHAN_SCALEX]);
 	}
 	else if (dtar->transChan >= DTAR_TRANSCHAN_ROTX) {
 		/* extract rotation as eulers (if needed) 
