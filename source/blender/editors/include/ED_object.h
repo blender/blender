@@ -219,6 +219,9 @@ bool ED_object_mode_generic_has_data(
         const struct EvaluationContext *eval_ctx,
         struct Object *ob);
 
+bool ED_object_mode_generic_enter_or_other_window(
+        struct bContext *C, eObjectMode object_mode);
+
 /* object_modifier.c */
 enum {
 	MODIFIER_APPLY_DATA = 1,

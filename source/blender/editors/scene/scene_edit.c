@@ -156,20 +156,8 @@ void ED_scene_change_update(
 	if (obact_new == obact_old) {
 		/* pass */
 	}
-	else if (obact_new == NULL) {
-		workspace->object_mode = OB_MODE_OBJECT;
-	}
 	else {
-		eObjectMode object_mode_set = OB_MODE_OBJECT;
-		if (ED_workspace_object_mode_in_other_window(
-		            bmain->wm.first, win, obact_new, &object_mode_set))
-		{
-			workspace->object_mode = object_mode_set;
-		}
-		else {
-			workspace->object_mode = OB_MODE_OBJECT;
-			ED_object_mode_generic_enter(C, object_mode_old);
-		}
+		ED_object_mode_generic_enter_or_other_window(C, object_mode_old);
 	}
 
 

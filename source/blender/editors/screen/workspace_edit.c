@@ -221,19 +221,12 @@ bool ED_workspace_change(
 		WM_toolsystem_unlink(C, workspace_old);
 		WM_toolsystem_link(C, workspace_new);
 
-		if (obact_new == NULL) {
-			workspace_new->object_mode = OB_MODE_OBJECT;
+		if (use_object_mode) {
+			ED_object_mode_generic_enter_or_other_window(C, workspace_new->object_mode);
 		}
-		else if (use_object_mode) {
-			eObjectMode object_mode_set = workspace_new->object_mode;
-			if (ED_workspace_object_mode_in_other_window(
-			            bmain->wm.first, win, obact_new, &object_mode_set))
-			{
-				workspace_new->object_mode = object_mode_set;
-			}
-			else {
+		else {
+			if (obact_new == NULL) {
 				workspace_new->object_mode = OB_MODE_OBJECT;
-				ED_object_mode_generic_enter(C, object_mode_set);
 			}
 		}
 

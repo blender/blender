@@ -45,6 +45,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_screen.h"
+
 #include "ED_object.h"  /* own include */
 
 /* -------------------------------------------------------------------- */
@@ -239,6 +241,44 @@ bool ED_object_mode_generic_has_data(
         struct Object *ob)
 {
 	return ed_object_mode_generic_exit_ex(eval_ctx, NULL, NULL, ob, true);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mode Syncing Utils
+ *
+ * \{ */
+
+/**
+ * A version of #ED_object_mode_generic_enter that checks if the object
+ * has an active mode mode in another window we need to use another window first.
+ */
+bool ED_object_mode_generic_enter_or_other_window(
+        struct bContext *C, eObjectMode object_mode)
+{
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Base *basact = view_layer->basact;
+	if (basact == NULL) {
+		workspace->object_mode = OB_MODE_OBJECT;
+		return (workspace->object_mode == object_mode);
+	}
+
+	wmWindowManager *wm = CTX_wm_manager(C);
+	eObjectMode object_mode_set = OB_MODE_OBJECT;
+	view_layer->basact = NULL;
+	bool use_object_mode = ED_workspace_object_mode_in_other_window(wm, NULL, basact->object, &object_mode_set);
+	view_layer->basact = basact;
+
+	if (use_object_mode) {
+		workspace->object_mode = object_mode_set;
+		return (workspace->object_mode == object_mode);
+	}
+	else {
+		workspace->object_mode = OB_MODE_OBJECT;
+		return ED_object_mode_generic_enter(C, object_mode);
+	}
 }
 
 /** \} */
