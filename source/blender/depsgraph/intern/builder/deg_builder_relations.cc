@@ -1126,7 +1126,16 @@ void DepsgraphRelationBuilder::build_driver_data(ID *id, FCurve *fcu)
 	}
 	else {
 		RNAPathKey target_key(id, rna_path);
-		add_relation(driver_key, target_key, "Driver -> Target");
+		if (RNA_pointer_is_null(&target_key.ptr)) {
+			/* TODO(sergey): This would only mean that driver is broken.
+			 * so we can't create relation anyway. However, we need to avoid
+			 * adding drivers which are known to be buggy to a dependency
+			 * graph, in order to save computational power.
+			 */
+		}
+		else {
+			add_relation(driver_key, target_key, "Driver -> Target");
+		}
 	}
 }
 
