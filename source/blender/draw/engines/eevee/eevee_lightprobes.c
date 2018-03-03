@@ -1140,8 +1140,15 @@ static void render_scene_to_probe(
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
-	float winmat[4][4], wininv[4][4], posmat[4][4];
+	DRWMatrixState matstate;
+	float (*viewmat)[4] = matstate.mat[DRW_MAT_VIEW];
+	float (*viewinv)[4] = matstate.mat[DRW_MAT_VIEWINV];
+	float (*persmat)[4] = matstate.mat[DRW_MAT_PERS];
+	float (*persinv)[4] = matstate.mat[DRW_MAT_PERSINV];
+	float (*winmat)[4] = matstate.mat[DRW_MAT_WIN];
+	float (*wininv)[4] = matstate.mat[DRW_MAT_WININV];
 
+	float posmat[4][4];
 	unit_m4(posmat);
 
 	/* Move to capture position */
@@ -1170,9 +1177,6 @@ static void render_scene_to_probe(
 	DRW_framebuffer_texture_detach(sldata->probe_rt);
 	DRW_framebuffer_texture_detach(sldata->probe_depth_rt);
 	for (int i = 0; i < 6; ++i) {
-		float viewmat[4][4], persmat[4][4];
-		float viewinv[4][4], persinv[4][4];
-
 		/* Setup custom matrices */
 		mul_m4_m4m4(viewmat, cubefacemat[i], posmat);
 		mul_m4_m4m4(persmat, winmat, viewmat);
@@ -1180,12 +1184,7 @@ static void render_scene_to_probe(
 		invert_m4_m4(viewinv, viewmat);
 		invert_m4_m4(wininv, winmat);
 
-		DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
-		DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
-		DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
-		DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
-		DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
-		DRW_viewport_matrix_override_set(wininv, DRW_MAT_WININV);
+		DRW_viewport_matrix_override_set_all(&matstate);
 
 		/* Be sure that cascaded shadow maps are updated. */
 		EEVEE_draw_shadows(sldata, psl);
