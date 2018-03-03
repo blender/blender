@@ -135,6 +135,8 @@ void ED_scene_change_update(
 	eObjectMode object_mode_old = workspace->object_mode;
 	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
 	Object *obact_old = OBACT(layer_old);
+	bool obact_new_mode_exists = ED_object_mode_generic_exists(bmain->wm.first, obact_new, workspace->object_mode);
+
 
 	win->scene = scene_new;
 	CTX_data_scene_set(C, scene_new);
@@ -148,7 +150,12 @@ void ED_scene_change_update(
 	}
 	else {
 		ED_object_mode_generic_exit_or_other_window(&eval_ctx_old, bmain->wm.first, workspace, scene_old, obact_old);
-		ED_object_mode_generic_enter_or_other_window(C, object_mode_old);
+		if (obact_new_mode_exists) {
+			workspace->object_mode = object_mode_old;
+		}
+		else {
+			ED_object_mode_generic_enter_or_other_window(C, win, object_mode_old);
+		}
 	}
 
 	ED_screen_update_after_scene_change(screen, scene_new, layer_new);

@@ -57,6 +57,7 @@ struct PropertyRNA;
 struct EnumPropertyItem;
 struct EvaluationContext;
 struct WorkSpace;
+struct wmWindow;
 struct wmWindowManager;
 
 #include "DNA_object_enums.h"
@@ -211,7 +212,8 @@ bool ED_object_mode_compat_set(struct bContext *C, struct WorkSpace *workspace, 
 void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
 
 bool ED_object_mode_generic_enter(
-        struct bContext *C, eObjectMode object_mode);
+        struct bContext *C,
+        eObjectMode object_mode);
 void ED_object_mode_generic_exit(
         const struct EvaluationContext *eval_ctx,
         struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
@@ -220,10 +222,15 @@ bool ED_object_mode_generic_has_data(
         struct Object *ob);
 
 bool ED_object_mode_generic_enter_or_other_window(
-        struct bContext *C, eObjectMode object_mode);
+        struct bContext *C, const struct wmWindow *win_compare,
+        eObjectMode object_mode);
 void ED_object_mode_generic_exit_or_other_window(
         const struct EvaluationContext *eval_ctx, struct wmWindowManager *wm,
         struct WorkSpace *workspace, struct Scene *scene, struct Object *ob);
+
+bool ED_object_mode_generic_exists(
+        struct wmWindowManager *wm, struct Object *ob,
+        eObjectMode object_mode);
 
 /* object_modifier.c */
 enum {

@@ -255,7 +255,7 @@ bool ED_object_mode_generic_has_data(
  * has an active mode mode in another window we need to use another window first.
  */
 bool ED_object_mode_generic_enter_or_other_window(
-        struct bContext *C, eObjectMode object_mode)
+        struct bContext *C, const wmWindow *win_compare, eObjectMode object_mode)
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -267,9 +267,7 @@ bool ED_object_mode_generic_enter_or_other_window(
 
 	wmWindowManager *wm = CTX_wm_manager(C);
 	eObjectMode object_mode_set = OB_MODE_OBJECT;
-	view_layer->basact = NULL;
-	bool use_object_mode = ED_workspace_object_mode_in_other_window(wm, NULL, basact->object, &object_mode_set);
-	view_layer->basact = basact;
+	bool use_object_mode = ED_workspace_object_mode_in_other_window(wm, win_compare, basact->object, &object_mode_set);
 
 	if (use_object_mode) {
 		workspace->object_mode = object_mode_set;
@@ -292,6 +290,29 @@ void ED_object_mode_generic_exit_or_other_window(
 	if (is_active == false) {
 		ED_object_mode_generic_exit(eval_ctx, workspace, scene, ob);
 	}
+}
+
+/**
+ * Use to find if we need to create the mode-data.
+ *
+ * When the mode 'exists' it means we have a windowing showing an object with this mode.
+ * So it's data is already created.
+ * Used to check if we need to perform mode switching.
+ */
+bool ED_object_mode_generic_exists(
+        wmWindowManager *wm, struct Object *ob,
+        eObjectMode object_mode)
+{
+	if (ob == NULL) {
+		return false;
+	}
+	eObjectMode object_mode_test;
+	if (ED_workspace_object_mode_in_other_window(wm, NULL, ob, &object_mode_test)) {
+		if (object_mode == object_mode_test) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /** \} */
