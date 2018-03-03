@@ -485,6 +485,7 @@ static void screen_preview_draw(const bScreen *screen, int size_x, int size_y)
 	wmOrtho2(0.0f, size_x, 0.0f, size_y);
 	/* center */
 	gpuPushMatrix();
+	gpuLoadIdentity();
 	gpuTranslate2f(size_x * (1.0f - asp[0]) * 0.5f, size_y * (1.0f - asp[1]) * 0.5f);
 
 	screen_preview_scale_get(screen, size_x, size_y, asp, scale);
@@ -503,7 +504,7 @@ void ED_screen_preview_render(const bScreen *screen, int size_x, int size_y, uns
 
 	GPU_offscreen_bind(offscreen, true);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	screen_preview_draw(screen, size_x, size_y);
 
