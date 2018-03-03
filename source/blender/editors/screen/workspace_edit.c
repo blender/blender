@@ -324,7 +324,7 @@ void ED_workspace_object_mode_sync_from_object(wmWindowManager *wm, WorkSpace *w
 	}
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		WorkSpace *workspace_iter = BKE_workspace_active_get(win->workspace_hook);
-		if (workspace != workspace_iter) {
+		if ((workspace != workspace_iter) && (workspace->object_mode != workspace_iter->object_mode)) {
 			Scene *scene_iter = WM_window_get_active_scene(win);
 			ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene_iter, workspace_iter);
 			if (obact == OBACT(view_layer)) {
