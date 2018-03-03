@@ -720,109 +720,89 @@ Image *BKE_image_add_from_imbuf(Main *bmain, ImBuf *ibuf, const char *name)
   return ima;
 }
 
-/* packs rects from memory as PNG
- * convert multiview images to R_IMF_VIEWS_INDIVIDUAL
- */
-static void image_memorypack_multiview(Image *ima)
+/* Pack image buffer to memory as PNG. */
+static bool image_memorypack_imbuf(Image *ima, ImBuf *ibuf, const char *filepath)
 {
-  ImageView *iv;
-  int i;
-
-  image_free_packedfiles(ima);
-
-  for (i = 0, iv = ima->views.first; iv; iv = iv->next, i++) {
-    ImBuf *ibuf = image_get_cached_ibuf_for_index_frame(ima, i, 0);
-
-    ibuf->ftype = IMB_FTYPE_PNG;
-    ibuf->planes = R_IMF_PLANES_RGBA;
-
-    /* if the image was a R_IMF_VIEWS_STEREO_3D we force _L, _R suffices */
-    if (ima->views_format == R_IMF_VIEWS_STEREO_3D) {
-      const char *suffix[2] = {STEREO_LEFT_SUFFIX, STEREO_RIGHT_SUFFIX};
-      BLI_path_suffix(iv->filepath, FILE_MAX, suffix[i], "");
-    }
-
-    IMB_saveiff(ibuf, iv->filepath, IB_rect | IB_mem);
-
-    if (ibuf->encodedbuffer == NULL) {
-      CLOG_STR_ERROR(&LOG, "memory save for pack error");
-      IMB_freeImBuf(ibuf);
-      image_free_packedfiles(ima);
-      return;
-    }
-    else {
-      ImagePackedFile *imapf;
-      PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");
-
-      pf->data = ibuf->encodedbuffer;
-      pf->size = ibuf->encodedsize;
-
-      imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile");
-      STRNCPY(imapf->filepath, iv->filepath);
-      imapf->packedfile = pf;
-      BLI_addtail(&ima->packedfiles, imapf);
-
-      ibuf->encodedbuffer = NULL;
-      ibuf->encodedsize = 0;
-      ibuf->userflags &= ~IB_BITMAPDIRTY;
-    }
-    IMB_freeImBuf(ibuf);
-  }
-
-  if (ima->source == IMA_SRC_GENERATED) {
-    ima->source = IMA_SRC_FILE;
-    ima->type = IMA_TYPE_IMAGE;
-  }
-  ima->views_format = R_IMF_VIEWS_INDIVIDUAL;
-}
-
-/* packs rect from memory as PNG */
-void BKE_image_memorypack(Image *ima)
-{
-  ImBuf *ibuf;
-
-  if (BKE_image_is_multiview(ima)) {
-    image_memorypack_multiview(ima);
-    return;
-  }
-
-  ibuf = image_get_cached_ibuf_for_index_frame(ima, IMA_NO_INDEX, 0);
-
-  if (ibuf == NULL)
-    return;
-
-  image_free_packedfiles(ima);
-
   ibuf->ftype = IMB_FTYPE_PNG;
   ibuf->planes = R_IMF_PLANES_RGBA;
 
-  IMB_saveiff(ibuf, ibuf->name, IB_rect | IB_mem);
+  IMB_saveiff(ibuf, filepath, IB_rect | IB_mem);
+
   if (ibuf->encodedbuffer == NULL) {
     CLOG_STR_ERROR(&LOG, "memory save for pack error");
+    IMB_freeImBuf(ibuf);
+    image_free_packedfiles(ima);
+    return false;
+  }
+
+  ImagePackedFile *imapf;
+  PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");
+
+  pf->data = ibuf->encodedbuffer;
+  pf->size = ibuf->encodedsize;
+
+  imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile");
+  STRNCPY(imapf->filepath, filepath);
+  imapf->packedfile = pf;
+  BLI_addtail(&ima->packedfiles, imapf);
+
+  ibuf->encodedbuffer = NULL;
+  ibuf->encodedsize = 0;
+  ibuf->userflags &= ~IB_BITMAPDIRTY;
+
+  return true;
+}
+
+/* Pack image to memory. */
+bool BKE_image_memorypack(Image *ima)
+{
+  bool ok = true;
+
+  image_free_packedfiles(ima);
+
+  if (BKE_image_is_multiview(ima)) {
+    /* Store each view as a separate packed files with R_IMF_VIEWS_INDIVIDUAL. */
+    ImageView *iv;
+    int i;
+
+    for (i = 0, iv = ima->views.first; iv; iv = iv->next, i++) {
+      ImBuf *ibuf = image_get_cached_ibuf_for_index_frame(ima, i, 0);
+
+      if (!ibuf) {
+        ok = false;
+        break;
+      }
+
+      /* if the image was a R_IMF_VIEWS_STEREO_3D we force _L, _R suffices */
+      if (ima->views_format == R_IMF_VIEWS_STEREO_3D) {
+        const char *suffix[2] = {STEREO_LEFT_SUFFIX, STEREO_RIGHT_SUFFIX};
+        BLI_path_suffix(iv->filepath, FILE_MAX, suffix[i], "");
+      }
+
+      ok = ok && image_memorypack_imbuf(ima, ibuf, iv->filepath);
+      IMB_freeImBuf(ibuf);
+    }
+
+    ima->views_format = R_IMF_VIEWS_INDIVIDUAL;
   }
   else {
-    ImagePackedFile *imapf;
-    PackedFile *pf = MEM_callocN(sizeof(*pf), "PackedFile");
+    ImBuf *ibuf = image_get_cached_ibuf_for_index_frame(ima, IMA_NO_INDEX, 0);
 
-    pf->data = ibuf->encodedbuffer;
-    pf->size = ibuf->encodedsize;
-
-    imapf = MEM_mallocN(sizeof(ImagePackedFile), "Image PackedFile");
-    STRNCPY(imapf->filepath, ima->name);
-    imapf->packedfile = pf;
-    BLI_addtail(&ima->packedfiles, imapf);
-
-    ibuf->encodedbuffer = NULL;
-    ibuf->encodedsize = 0;
-    ibuf->userflags &= ~IB_BITMAPDIRTY;
-
-    if (ima->source == IMA_SRC_GENERATED) {
-      ima->source = IMA_SRC_FILE;
-      ima->type = IMA_TYPE_IMAGE;
+    if (ibuf) {
+      ok = ok && image_memorypack_imbuf(ima, ibuf, ibuf->name);
+      IMB_freeImBuf(ibuf);
+    }
+    else {
+      ok = false;
     }
   }
 
-  IMB_freeImBuf(ibuf);
+  if (ok && ima->source == IMA_SRC_GENERATED) {
+    ima->source = IMA_SRC_FILE;
+    ima->type = IMA_TYPE_IMAGE;
+  }
+
+  return ok;
 }
 
 void BKE_image_packfiles(ReportList *reports, Image *ima, const char *basepath)
