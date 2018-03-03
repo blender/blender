@@ -1115,6 +1115,7 @@ static void tex_mat_set_texture_cb(void *userData, int mat_nr, void *attribs)
 			gattribs->layer[0].type = CD_MTFACE;
 			gattribs->layer[0].name[0] = '\0';
 			gattribs->layer[0].gltexco = 1;
+			gattribs->layer[0].glinfoindoex = -1;
 			gattribs->totlayer = 1;
 
 			/* bind material */
