@@ -204,7 +204,7 @@ static void xml_read_camera(XMLReadState& state, xml_node node)
 	cam->matrix = state.tfm;
 
 	cam->need_update = true;
-	cam->update();
+	cam->update(state.scene);
 }
 
 /* Shader */
@@ -515,7 +515,7 @@ static void xml_read_mesh(const XMLReadState& state, xml_node node)
 		xml_read_float(&sdparams.dicing_rate, node, "dicing_rate");
 		sdparams.dicing_rate = std::max(0.1f, sdparams.dicing_rate);
 
-		state.scene->camera->update();
+		state.scene->camera->update(state.scene);
 		sdparams.camera = state.scene->camera;
 		sdparams.objecttoworld = state.tfm;
 	}

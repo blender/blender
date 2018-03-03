@@ -561,8 +561,9 @@ void Mesh::clear(bool preserve_voxel_data)
 	subd_attributes.clear();
 	attributes.clear(preserve_voxel_data);
 
+	used_shaders.clear();
+
 	if(!preserve_voxel_data) {
-		used_shaders.clear();
 		geometry_flags = GEOMETRY_NONE;
 	}
 
