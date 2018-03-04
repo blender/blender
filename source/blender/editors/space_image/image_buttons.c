@@ -928,11 +928,16 @@ void uiTemplateImage(uiLayout *layout,
       layout = uiLayoutColumn(layout, false);
       uiLayoutSetEnabled(layout, !is_dirty);
 
+      /* Image source */
       uiItemR(layout, &imaptr, "source", 0, NULL, ICON_NONE);
 
-      if (ima->source != IMA_SRC_GENERATED) {
+      /* Filepath */
+      const bool is_packed = BKE_image_has_packedfile(ima);
+      const bool no_filepath = is_packed && !BKE_image_has_filepath(ima);
+
+      if ((ima->source != IMA_SRC_GENERATED) && !no_filepath) {
         row = uiLayoutRow(layout, true);
-        if (BKE_image_has_packedfile(ima)) {
+        if (is_packed) {
           uiItemO(row, "", ICON_PACKAGE, "image.unpack");
         }
         else {
@@ -940,12 +945,12 @@ void uiTemplateImage(uiLayout *layout,
         }
 
         row = uiLayoutRow(row, true);
-        uiLayoutSetEnabled(row, BKE_image_has_packedfile(ima) == false);
+        uiLayoutSetEnabled(row, is_packed == false);
         uiItemR(row, &imaptr, "filepath", 0, "", ICON_NONE);
         uiItemO(row, "", ICON_FILE_REFRESH, "image.reload");
       }
 
-      /* multilayer? */
+      /* Image layers and Info */
       if (ima->type == IMA_TYPE_MULTILAYER && ima->rr) {
         const float dpi_fac = UI_DPI_FAC;
         uiblock_layer_pass_buttons(layout, ima, ima->rr, iuser, 230 * dpi_fac, NULL);

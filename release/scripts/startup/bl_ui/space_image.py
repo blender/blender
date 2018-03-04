@@ -237,13 +237,14 @@ class IMAGE_MT_image(Menu):
 
             layout.menu("IMAGE_MT_image_invert")
 
-            if not show_render:
-                layout.separator()
-                if ima.packed_file:
-                    layout.operator("image.pack", text="Repack")
+        if ima and not show_render:
+            if ima.packed_file:
+                if len(ima.filepath):
+                    layout.separator()
                     layout.operator("image.unpack", text="Unpack")
-                else:
-                    layout.operator("image.pack", text="Pack")
+            else:
+                layout.separator()
+                layout.operator("image.pack", text="Pack")
 
 
 class IMAGE_MT_image_invert(Menu):

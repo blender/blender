@@ -450,7 +450,10 @@ void BKE_bpath_traverse_id(
       Image *ima;
       ima = (Image *)id;
       if (BKE_image_has_packedfile(ima) == false || (flag & BKE_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-        if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+        /* Skip empty file paths, these are typically from generated images and
+         * don't make sense to add directories to until the image has been saved
+         * once to give it a meaningful value. */
+        if (ELEM(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE) && ima->name[0]) {
           if (rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data)) {
             if (flag & BKE_BPATH_TRAVERSE_RELOAD_EDITED) {
               if (!BKE_image_has_packedfile(ima) &&

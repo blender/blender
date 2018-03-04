@@ -244,42 +244,6 @@ static bool imbuf_format_writeable(const ImBuf *ibuf)
   return (BKE_image_imtype_to_ftype(im_format.imtype, &options_dummy) == ibuf->ftype);
 }
 
-static bool space_image_file_exists_poll(bContext *C)
-{
-  if (image_buffer_exists_from_context(C) == false) {
-    return false;
-  }
-
-  Main *bmain = CTX_data_main(C);
-  Image *ima = image_from_context(C);
-  ImageUser *iuser = image_user_from_context(C);
-  void *lock;
-  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
-  bool ret = false;
-
-  if (ibuf) {
-    char name[FILE_MAX];
-    BLI_strncpy(name, ibuf->name, FILE_MAX);
-    BLI_path_abs(name, BKE_main_blendfile_path(bmain));
-
-    if (BLI_exists(name) == false) {
-      CTX_wm_operator_poll_msg_set(C, "image file not found");
-    }
-    else if (!BLI_file_is_writable(name)) {
-      CTX_wm_operator_poll_msg_set(C, "image path can't be written to");
-    }
-    else if (!imbuf_format_writeable(ibuf)) {
-      CTX_wm_operator_poll_msg_set(C, "image format is read-only");
-    }
-    else {
-      ret = true;
-    }
-  }
-
-  BKE_image_release_ibuf(ima, ibuf, lock);
-  return ret;
-}
-
 bool space_image_main_region_poll(bContext *C)
 {
   SpaceImage *sima = CTX_wm_space_image(C);
@@ -1882,7 +1846,12 @@ static int image_save_as_exec(bContext *C, wmOperator *op)
 
   save_image_op(C, op, &opts);
 
+  if (opts.save_copy == false) {
+    BKE_image_free_packedfiles(image);
+  }
+
   image_save_as_free(op);
+
   return OPERATOR_FINISHED;
 }
 
@@ -2035,6 +2004,61 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 
 /******************** save image operator ********************/
 
+static bool image_file_path_saveable(bContext *C, Image *ima, ImageUser *iuser)
+{
+  /* Can always repack images. */
+  if (BKE_image_has_packedfile(ima)) {
+    return true;
+  }
+
+  /* Test for valid filepath. */
+  void *lock;
+  ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, &lock);
+  bool ret = false;
+
+  if (ibuf) {
+    Main *bmain = CTX_data_main(C);
+    char name[FILE_MAX];
+    BLI_strncpy(name, ibuf->name, FILE_MAX);
+    BLI_path_abs(name, BKE_main_blendfile_path(bmain));
+
+    if (BLI_exists(name) == false) {
+      CTX_wm_operator_poll_msg_set(C, "image file not found");
+    }
+    else if (!BLI_file_is_writable(name)) {
+      CTX_wm_operator_poll_msg_set(C, "image path can't be written to");
+    }
+    else if (!imbuf_format_writeable(ibuf)) {
+      CTX_wm_operator_poll_msg_set(C, "image format is read-only");
+    }
+    else {
+      ret = true;
+    }
+  }
+
+  BKE_image_release_ibuf(ima, ibuf, lock);
+  return ret;
+}
+
+static bool image_save_poll(bContext *C)
+{
+  /* Can't save if there are no pixels. */
+  if (image_buffer_exists_from_context(C) == false) {
+    return false;
+  }
+
+  Image *ima = image_from_context(C);
+  ImageUser *iuser = image_user_from_context(C);
+
+  /* Images without a filepath will go to save as. */
+  if (!BKE_image_has_filepath(ima)) {
+    return true;
+  }
+
+  /* Check if there is a valid file path and image format we can write. */
+  return image_file_path_saveable(C, ima, iuser);
+}
+
 static int image_save_exec(bContext *C, wmOperator *op)
 {
   Main *bmain = CTX_data_main(C);
@@ -2042,6 +2066,12 @@ static int image_save_exec(bContext *C, wmOperator *op)
   ImageUser *iuser = image_user_from_context(C);
   Scene *scene = CTX_data_scene(C);
   ImageSaveOptions opts;
+
+  if (BKE_image_has_packedfile(image)) {
+    /* Save packed files to memory. */
+    BKE_image_memorypack(image);
+    return OPERATOR_FINISHED;
+  }
 
   BKE_image_save_options_init(&opts, bmain, scene);
   if (image_save_options_init(bmain, &opts, image, iuser, false, false) == 0) {
@@ -2066,12 +2096,14 @@ static int image_save_exec(bContext *C, wmOperator *op)
 
 static int image_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
-  if (space_image_file_exists_poll(C)) {
-    return image_save_exec(C, op);
-  }
-  else {
+  Image *ima = image_from_context(C);
+
+  if (!BKE_image_has_packedfile(ima) && !BKE_image_has_filepath(ima)) {
     WM_operator_name_call(C, "IMAGE_OT_save_as", WM_OP_INVOKE_DEFAULT, NULL);
     return OPERATOR_CANCELLED;
+  }
+  else {
+    return image_save_exec(C, op);
   }
 }
 
@@ -2085,7 +2117,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
   /* api callbacks */
   ot->exec = image_save_exec;
   ot->invoke = image_save_invoke;
-  ot->poll = image_save_as_poll;
+  ot->poll = image_save_poll;
 
   /* flags */
   ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2192,7 +2224,8 @@ static bool image_should_be_saved_when_modified(Image *ima)
 
 static bool image_should_be_saved(Image *ima)
 {
-  if (BKE_image_is_dirty(ima) && (ima->source == IMA_SRC_FILE)) {
+  if (BKE_image_is_dirty(ima) &&
+      (ima->source == IMA_SRC_FILE || ima->source == IMA_SRC_GENERATED)) {
     return image_should_be_saved_when_modified(ima);
   }
   else {
@@ -2219,7 +2252,7 @@ int ED_image_save_all_modified_info(const bContext *C, ReportList *reports)
 
   for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
     if (image_should_be_saved(ima)) {
-      if (BKE_image_has_packedfile(ima)) {
+      if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
         if (ima->id.lib == NULL) {
           num_saveable_images++;
         }
@@ -2268,7 +2301,7 @@ bool ED_image_save_all_modified(const bContext *C, ReportList *reports)
 
   for (Image *ima = bmain->images.first; ima; ima = ima->id.next) {
     if (image_should_be_saved(ima)) {
-      if (BKE_image_has_packedfile(ima)) {
+      if (BKE_image_has_packedfile(ima) || (ima->source == IMA_SRC_GENERATED)) {
         BKE_image_memorypack(ima);
       }
       else {

@@ -325,6 +325,7 @@ void BKE_image_mark_dirty(struct Image *image, struct ImBuf *ibuf);
 int BKE_image_sequence_guess_offset(struct Image *image);
 bool BKE_image_has_anim(struct Image *image);
 bool BKE_image_has_packedfile(struct Image *image);
+bool BKE_image_has_filepath(struct Image *ima);
 bool BKE_image_is_animated(struct Image *image);
 void BKE_image_file_format_set(struct Image *image,
                                int ftype,
