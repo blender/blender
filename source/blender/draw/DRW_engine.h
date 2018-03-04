@@ -46,6 +46,7 @@ struct ViewContext;
 struct ViewportEngineData;
 struct View3D;
 struct rcti;
+struct GPUMaterial;
 struct GPUOffScreen;
 struct GPUViewport;
 struct RenderEngine;
@@ -135,5 +136,7 @@ void DRW_opengl_context_create(void);
 void DRW_opengl_context_destroy(void);
 void DRW_opengl_context_enable(void);
 void DRW_opengl_context_disable(void);
+
+void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 
 #endif /* __DRW_ENGINE_H__ */

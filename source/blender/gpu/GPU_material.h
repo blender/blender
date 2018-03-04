@@ -144,6 +144,11 @@ typedef struct GPUNodeStack {
 	bool end;
 } GPUNodeStack;
 
+typedef enum GPUMaterialSatus {
+	GPU_MAT_FAILED = 0,
+	GPU_MAT_QUEUED,
+	GPU_MAT_SUCCESS,
+} GPUMaterialSatus;
 
 #define GPU_DYNAMIC_GROUP_FROM_TYPE(f) ((f) & 0xFFFF0000)
 
@@ -245,9 +250,11 @@ GPUMaterial *GPU_material_from_nodetree_find(
         struct ListBase *gpumaterials, const void *engine_type, int options);
 GPUMaterial *GPU_material_from_nodetree(
         struct Scene *scene, struct bNodeTree *ntree, struct ListBase *gpumaterials, const void *engine_type, int options,
-        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines, bool deferred);
 GPUMaterial *GPU_material_from_blender(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
 GPUMaterial *GPU_material_matcap(struct Scene *scene, struct Material *ma, bool use_opensubdiv);
+void GPU_material_generate_pass(
+		GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(void);
@@ -263,6 +270,7 @@ bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 GPUMatType GPU_Material_get_type(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
+GPUMaterialSatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material);
 void GPU_material_create_uniform_buffer(GPUMaterial *material, struct ListBase *inputs);

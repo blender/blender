@@ -183,6 +183,9 @@ GPUPass *GPU_generate_pass(
 
 struct GPUShader *GPU_pass_shader(GPUPass *pass);
 
+void GPU_nodes_get_vertex_attributes(ListBase *nodes, struct GPUVertexAttribs *attribs);
+void GPU_nodes_prune(ListBase *nodes, struct GPUNodeLink *outlink);
+
 void GPU_pass_bind(GPUPass *pass, double time, int mipmap);
 void GPU_pass_update_uniforms(GPUPass *pass);
 void GPU_pass_unbind(GPUPass *pass);

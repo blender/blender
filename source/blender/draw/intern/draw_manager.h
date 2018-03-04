@@ -356,4 +356,7 @@ void *drw_viewport_engine_data_ensure(void *engine_type);
 
 void drw_state_set(DRWState state);
 
+void DRW_deferred_compiler_init(void);
+void DRW_deferred_compiler_exit(void);
+
 #endif /* __DRAW_MANAGER_H__ */

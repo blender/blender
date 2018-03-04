@@ -68,6 +68,8 @@
 #include "GPU_texture.h"
 #include "GPU_uniformbuffer.h"
 
+#include "DRW_engine.h"
+
 #include "gpu_codegen.h"
 #include "gpu_lamp_private.h"
 
@@ -103,6 +105,7 @@ struct GPUMaterial {
 	/* material for mesh surface, worlds or something else.
 	 * some code generation is done differently depending on the use case */
 	int type; /* DEPRECATED */
+	GPUMaterialSatus status;
 
 	const void *engine_type;   /* attached engine type */
 	int options;    /* to identify shader variations (shadow, probe, world background...) */
@@ -142,7 +145,10 @@ struct GPUMaterial {
 	 */
 	int domain;
 
+	/* Used by 2.8 pipeline */
 	GPUUniformBuffer *ubo; /* UBOs for shader uniforms. */
+
+	/* Eevee SSS */
 	GPUUniformBuffer *sss_profile; /* UBO containing SSS profile. */
 	GPUTexture *sss_tex_profile; /* Texture containing SSS profile. */
 	float *sss_radii; /* UBO containing SSS profile. */
@@ -221,6 +227,8 @@ static int gpu_material_construct_end(GPUMaterial *material, const char *passnam
 			material->is_opensubdiv,
 			GPU_material_use_new_shading_nodes(material));
 
+		material->status = (material->pass) ? GPU_MAT_SUCCESS : GPU_MAT_FAILED;
+
 		if (!material->pass)
 			return 0;
 
@@ -269,6 +277,11 @@ void GPU_material_free(ListBase *gpumaterial)
 {
 	for (LinkData *link = gpumaterial->first; link; link = link->next) {
 		GPUMaterial *material = link->data;
+
+		/* Cancel / wait any pending lazy compilation. */
+		DRW_deferred_shader_remove(material);
+
+		GPU_pass_free_nodes(&material->nodes);
 
 		if (material->pass)
 			GPU_pass_free(material->pass);
@@ -827,6 +840,12 @@ GPUBlendMode GPU_material_alpha_blend(GPUMaterial *material, float obcol[4])
 void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 {
 	BLI_addtail(&material->nodes, node);
+}
+
+/* Return true if the material compilation has not yet begin or begin. */
+GPUMaterialSatus GPU_material_status(GPUMaterial *mat)
+{
+	return mat->status;
 }
 
 /* Code generation */
@@ -2490,10 +2509,8 @@ GPUMaterial *GPU_material_from_nodetree_find(
  */
 GPUMaterial *GPU_material_from_nodetree(
         Scene *scene, struct bNodeTree *ntree, ListBase *gpumaterials, const void *engine_type, int options,
-        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+        const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines, bool deferred)
 {
-	GPUMaterial *mat;
-	GPUNodeLink *outlink;
 	LinkData *link;
 	bool has_volume_output, has_surface_output;
 
@@ -2501,7 +2518,7 @@ GPUMaterial *GPU_material_from_nodetree(
 	BLI_assert(GPU_material_from_nodetree_find(gpumaterials, engine_type, options) == NULL);
 
 	/* allocate material */
-	mat = GPU_material_construct_begin(NULL); /* TODO remove GPU_material_construct_begin */
+	GPUMaterial *mat = MEM_callocN(sizeof(GPUMaterial), "GPUMaterial");;
 	mat->scene = scene;
 	mat->engine_type = engine_type;
 	mat->options = options;
@@ -2516,11 +2533,15 @@ GPUMaterial *GPU_material_from_nodetree(
 		mat->domain |= GPU_DOMAIN_VOLUME;
 	}
 
-	/* Let Draw manager finish the construction. */
-	if (mat->outlink) {
-		outlink = mat->outlink;
-		mat->pass = GPU_generate_pass_new(
-		        mat, &mat->nodes, outlink, &mat->attribs, vert_code, geom_code, frag_lib, defines);
+	if (!deferred) {
+		GPU_material_generate_pass(mat, vert_code, geom_code, frag_lib, defines);
+	}
+	else if (mat->outlink) {
+		/* Prune the unused nodes and extract attribs before compiling so the
+		 * generated VBOs are ready to accept the future shader. */
+		GPU_nodes_prune(&mat->nodes, mat->outlink);
+		GPU_nodes_get_vertex_attributes(&mat->nodes, &mat->attribs);
+		mat->status = GPU_MAT_QUEUED;
 	}
 
 	/* note that even if building the shader fails in some way, we still keep
@@ -2532,6 +2553,18 @@ GPUMaterial *GPU_material_from_nodetree(
 	BLI_addtail(gpumaterials, link);
 
 	return mat;
+}
+
+/* Calls this function if /a mat was created with deferred compilation.  */
+void GPU_material_generate_pass(
+		GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+{
+	BLI_assert(mat->pass == NULL); /* Only run once! */
+	if (mat->outlink) {
+		mat->pass = GPU_generate_pass_new(
+		        mat, &mat->nodes, mat->outlink, &mat->attribs, vert_code, geom_code, frag_lib, defines);
+		mat->status = (mat->pass) ? GPU_MAT_SUCCESS : GPU_MAT_FAILED;
+	}
 }
 
 GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_opensubdiv)

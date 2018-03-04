@@ -1720,7 +1720,7 @@ static void gpu_nodes_free(ListBase *nodes)
 
 /* vertex attributes */
 
-static void gpu_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
+void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 {
 	GPUNode *node;
 	GPUInput *input;
@@ -2052,7 +2052,7 @@ static void gpu_nodes_tag(GPUNodeLink *link)
 			gpu_nodes_tag(input->link);
 }
 
-static void gpu_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
+void GPU_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 {
 	GPUNode *node, *next;
 
@@ -2084,9 +2084,9 @@ GPUPass *GPU_generate_pass_new(
 	char *vertexcode, *geometrycode, *fragmentcode;
 
 	/* prune unused nodes */
-	gpu_nodes_prune(nodes, frag_outlink);
+	GPU_nodes_prune(nodes, frag_outlink);
 
-	gpu_nodes_get_vertex_attributes(nodes, attribs);
+	GPU_nodes_get_vertex_attributes(nodes, attribs);
 
 	/* generate code and compile with opengl */
 	fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, true);
@@ -2135,7 +2135,6 @@ GPUPass *GPU_generate_pass_new(
 
 	/* extract dynamic inputs and throw away nodes */
 	gpu_nodes_extract_dynamic_inputs_new(pass, nodes);
-	gpu_nodes_free(nodes);
 
 	MEM_freeN(fragmentgen);
 	MEM_freeN(vertexgen);
@@ -2162,9 +2161,9 @@ GPUPass *GPU_generate_pass(
 #endif
 
 	/* prune unused nodes */
-	gpu_nodes_prune(nodes, outlink);
+	GPU_nodes_prune(nodes, outlink);
 
-	gpu_nodes_get_vertex_attributes(nodes, attribs);
+	GPU_nodes_get_vertex_attributes(nodes, attribs);
 	gpu_nodes_get_builtin_flag(nodes, builtins);
 
 	/* generate code and compile with opengl */

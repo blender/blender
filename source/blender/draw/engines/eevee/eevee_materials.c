@@ -630,8 +630,8 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, Wor
 	if (mat != NULL) {
 		return mat;
 	}
-	return GPU_material_from_nodetree(
-	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
+	return DRW_shader_create_from_world(
+	        scene, wo, engine, options,
 	        datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
 	        SHADER_DEFINES "#define PROBE_CAPTURE\n");
 }
@@ -645,8 +645,8 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	if (mat != NULL) {
 		return mat;
 	}
-	return GPU_material_from_nodetree(
-	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
+	return DRW_shader_create_from_world(
+	        scene, wo, engine, options,
 	        datatoc_background_vert_glsl, NULL, e_data.frag_shader_lib,
 	        SHADER_DEFINES "#define WORLD_BACKGROUND\n");
 }
@@ -663,8 +663,8 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *
 
 	char *defines = eevee_get_volume_defines(options);
 
-	mat = GPU_material_from_nodetree(
-	        scene, wo->nodetree, &wo->gpumaterial, engine, options,
+	mat = DRW_shader_create_from_world(
+	        scene, wo, engine, options,
 	        datatoc_volumetric_vert_glsl, datatoc_volumetric_geom_glsl, e_data.volume_shader_lib,
 	        defines);
 
@@ -698,8 +698,8 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 
 	char *defines = eevee_get_defines(options);
 
-	mat = GPU_material_from_nodetree(
-	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	mat = DRW_shader_create_from_material(
+	        scene, ma, engine, options,
 	        datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
 	        defines);
 
@@ -720,8 +720,8 @@ struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material
 
 	char *defines = eevee_get_volume_defines(options);
 
-	mat = GPU_material_from_nodetree(
-	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	mat = DRW_shader_create_from_material(
+	        scene, ma, engine, options,
 	        datatoc_volumetric_vert_glsl, datatoc_volumetric_geom_glsl, e_data.volume_shader_lib,
 	        defines);
 
@@ -758,8 +758,8 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(
 	        e_data.frag_shader_lib,
 	        datatoc_prepass_frag_glsl);
 
-	mat = GPU_material_from_nodetree(
-	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	mat = DRW_shader_create_from_material(
+	        scene, ma, engine, options,
 	        (is_shadow) ? datatoc_shadow_vert_glsl : datatoc_lit_surface_vert_glsl,
 	        (is_shadow) ? datatoc_shadow_geom_glsl : NULL,
 	        frag_str,
@@ -786,8 +786,8 @@ struct GPUMaterial *EEVEE_material_hair_get(
 
 	char *defines = eevee_get_defines(options);
 
-	mat = GPU_material_from_nodetree(
-	        scene, ma->nodetree, &ma->gpumaterial, engine, options,
+	mat = DRW_shader_create_from_material(
+	        scene, ma, engine, options,
 	        datatoc_lit_surface_vert_glsl, NULL, e_data.frag_shader_lib,
 	        defines);
 
@@ -883,17 +883,24 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 			col = &wo->horr;
 
 			if (wo->use_nodes && wo->nodetree) {
+				static float error_col[3] = {1.0f, 0.0f, 1.0f};
+				static float compile_col[3] = {0.5f, 0.5f, 0.5f};
 				struct GPUMaterial *gpumat = EEVEE_material_world_background_get(scene, wo);
-				grp = DRW_shgroup_material_create(gpumat, psl->background_pass);
 
-				if (grp) {
-					DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
-					DRW_shgroup_call_add(grp, geom, NULL);
-				}
-				else {
-					/* Shader failed : pink background */
-					static float pink[3] = {1.0f, 0.0f, 1.0f};
-					col = pink;
+				switch (GPU_material_status(gpumat)) {
+					case GPU_MAT_SUCCESS:
+						grp = DRW_shgroup_material_create(gpumat, psl->background_pass);
+						DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+						DRW_shgroup_call_add(grp, geom, NULL);
+						break;
+					case GPU_MAT_QUEUED:
+						/* TODO Bypass probe compilation. */
+						col = compile_col;
+						break;
+					case GPU_MAT_FAILED:
+					default:
+						col = error_col;
+						break;
 				}
 			}
 		}
