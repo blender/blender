@@ -321,8 +321,10 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 
 		sldata->probes->target_size = prop_cubemap_res >> 1;
 
+		DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
 		DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
 		DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
+		DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
 	}
 
 	int visibility_res = BKE_collection_engine_property_value_get_int(props, "gi_visibility_resolution");
