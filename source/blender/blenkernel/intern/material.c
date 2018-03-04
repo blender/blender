@@ -98,6 +98,9 @@ void BKE_material_free(Material *ma)
 	
 	MEM_SAFE_FREE(ma->ramp_col);
 	MEM_SAFE_FREE(ma->ramp_spec);
+
+	/* Free gpu material before the ntree */
+	GPU_material_free(&ma->gpumaterial);
 	
 	/* is no lib link block, but material extension */
 	if (ma->nodetree) {
@@ -107,8 +110,6 @@ void BKE_material_free(Material *ma)
 	}
 
 	MEM_SAFE_FREE(ma->texpaintslot);
-
-	GPU_material_free(&ma->gpumaterial);
 
 	BKE_icon_id_delete((ID *)ma);
 	BKE_previewimg_free(&ma->preview);
@@ -1709,12 +1710,13 @@ void paste_matcopybuf(Material *ma)
 			MEM_freeN(mtex);
 	}
 
+	/* Free gpu material before the ntree */
+	GPU_material_free(&ma->gpumaterial);
+
 	if (ma->nodetree) {
 		ntreeFreeTree(ma->nodetree);
 		MEM_freeN(ma->nodetree);
 	}
-
-	GPU_material_free(&ma->gpumaterial);
 
 	id = (ma->id);
 	memcpy(ma, &matcopybuf, sizeof(Material));
