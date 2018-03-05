@@ -1202,6 +1202,23 @@ int BKE_movieclip_get_duration(MovieClip *clip)
 	return clip->len;
 }
 
+float BKE_movieclip_get_fps(MovieClip *clip)
+{
+	if (clip->source != MCLIP_SRC_MOVIE) {
+		return 0.0f;
+	}
+	movieclip_open_anim_file(clip);
+	if (clip->anim == NULL) {
+		return 0.0f;
+	}
+	short frs_sec;
+	float frs_sec_base;
+	if (IMB_anim_get_fps(clip->anim, &frs_sec, &frs_sec_base, true)) {
+		return (float)frs_sec / frs_sec_base;
+	}
+	return 0.0f;
+}
+
 void BKE_movieclip_get_aspect(MovieClip *clip, float *aspx, float *aspy)
 {
 	*aspx = 1.0;

@@ -405,6 +405,8 @@ struct Sequence *BKE_sequence_alloc(ListBase *lb, int cfra, int machine);
 void BKE_sequence_alpha_mode_from_extension(struct Sequence *seq);
 void BKE_sequence_init_colorspace(struct Sequence *seq);
 
+float BKE_sequence_get_fps(struct Scene *scene, struct Sequence *seq);
+
 /* RNA enums, just to be more readable */
 enum {
 	SEQ_SIDE_NONE = 0,
