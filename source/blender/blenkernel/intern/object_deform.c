@@ -457,6 +457,70 @@ void BKE_object_defgroup_remove_all(struct Object *ob)
 	BKE_object_defgroup_remove_all_ex(ob, false);
 }
 
+/**
+ * Compute mapping for vertex groups with matching name, -1 is used for no remapping.
+ * Returns null if no remapping is required.
+ * The returned array has to be freed.
+ */
+int *BKE_object_defgroup_index_map_create(Object *ob_src, Object *ob_dst, int *r_map_len)
+{
+	/* Build src to merged mapping of vgroup indices. */
+	if (BLI_listbase_is_empty(&ob_src->defbase) || BLI_listbase_is_empty(&ob_dst->defbase)) {
+		*r_map_len = 0;
+		return NULL;
+	}
+
+	bDeformGroup *dg_src;
+	*r_map_len = BLI_listbase_count(&ob_src->defbase);
+	int *vgroup_index_map = MEM_malloc_arrayN(*r_map_len, sizeof(*vgroup_index_map), "defgroup index map create");
+	bool is_vgroup_remap_needed = false;
+	int i;
+
+	for (dg_src = ob_src->defbase.first, i = 0; dg_src; dg_src = dg_src->next, i++) {
+		vgroup_index_map[i] = defgroup_name_index(ob_dst, dg_src->name);
+		is_vgroup_remap_needed = is_vgroup_remap_needed || (vgroup_index_map[i] != i);
+	}
+
+	if (!is_vgroup_remap_needed) {
+		MEM_freeN(vgroup_index_map);
+		vgroup_index_map = NULL;
+		*r_map_len = 0;
+	}
+
+	return vgroup_index_map;
+}
+
+void BKE_object_defgroup_index_map_apply(MDeformVert *dvert, int dvert_len, const int *map, int map_len)
+{
+	if (map == NULL || map_len == 0) {
+		return;
+	}
+
+	MDeformVert *dv = dvert;
+	for (int i = 0; i < dvert_len; i++, dv++) {
+		int totweight = dv->totweight;
+		for (int j = 0; j < totweight; j++) {
+			int def_nr = dv->dw[j].def_nr;
+			if ((uint)def_nr < (uint)map_len && map[def_nr] != -1) {
+				dv->dw[j].def_nr = map[def_nr];
+			}
+			else {
+				totweight--;
+				dv->dw[j] = dv->dw[totweight];
+				j--;
+			}
+		}
+		if (totweight != dv->totweight) {
+			if (totweight) {
+				dv->dw = MEM_reallocN(dv->dw, sizeof(*dv->dw) * totweight);
+			}
+			else {
+				MEM_SAFE_FREE(dv->dw);
+			}
+			dv->totweight = totweight;
+		}
+	}
+}
 
 /**
  * Get MDeformVert vgroup data from given object. Should only be used in Object mode.

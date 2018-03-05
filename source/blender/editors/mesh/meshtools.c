@@ -58,6 +58,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_object.h"
+#include "BKE_object_deform.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
 #include "BKE_multires.h"
@@ -111,21 +112,12 @@ static void join_mesh_single(
 			BLI_assert(dvert != NULL);
 
 			/* Build src to merged mapping of vgroup indices. */
-			bDeformGroup *dg_src;
-			int *vgroup_index_map = alloca(sizeof(*vgroup_index_map) * BLI_listbase_count(&ob_src->defbase));
-			bool is_vgroup_remap_needed = false;
-
-			for (dg_src = ob_src->defbase.first, b = 0; dg_src; dg_src = dg_src->next, b++) {
-				vgroup_index_map[b] = defgroup_name_index(ob_dst, dg_src->name);
-				is_vgroup_remap_needed = is_vgroup_remap_needed || (vgroup_index_map[b] != b);
-			}
-
-			if (is_vgroup_remap_needed) {
-				for (a = 0; a < me->totvert; a++) {
-					for (b = 0; b < dvert[a].totweight; b++) {
-						dvert[a].dw[b].def_nr = vgroup_index_map[dvert_src[a].dw[b].def_nr];
-					}
-				}
+			int *vgroup_index_map;
+			int vgroup_index_map_len;
+			vgroup_index_map = BKE_object_defgroup_index_map_create(ob_src, ob_dst, &vgroup_index_map_len);
+			BKE_object_defgroup_index_map_apply(dvert, me->totvert, vgroup_index_map, vgroup_index_map_len);
+			if (vgroup_index_map != NULL) {
+				MEM_freeN(vgroup_index_map);
 			}
 		}
 
