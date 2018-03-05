@@ -65,6 +65,11 @@ void MapRangeOperation::executePixelSampled(float output[4], float x, float y, P
 	dest_min = inputs[3];
 	dest_max = inputs[4];
 
+	if (fabsf(source_max - source_min) < 1e-6f) {
+		output[0] = 0.0f;
+		return;
+	}
+
 	if (value >= -BLENDER_ZMAX && value <= BLENDER_ZMAX) {
 		value = (value - source_min) / (source_max - source_min);
 		value = dest_min + value * (dest_max - dest_min);
