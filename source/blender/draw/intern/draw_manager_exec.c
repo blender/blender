@@ -563,7 +563,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 	if (st->matflag & DRW_CALL_MODELVIEWPROJECTION) {
 		mul_m4_m4m4(st->modelviewprojection, DST.view_data.matstate.mat[DRW_MAT_PERS], st->model);
 	}
-	if (st->matflag & DRW_CALL_NORMALVIEW) {
+	if (st->matflag & (DRW_CALL_NORMALVIEW | DRW_CALL_EYEVEC)) {
 		copy_m3_m4(st->normalview, st->modelview);
 		invert_m3(st->normalview);
 		transpose_m3(st->normalview);
