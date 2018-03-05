@@ -1141,7 +1141,7 @@ static void material_opaque(
 		}
 	}
 
-	emsg = MEM_mallocN(sizeof("EeveeMaterialShadingGroups"), "EeveeMaterialShadingGroups");
+	emsg = MEM_mallocN(sizeof(EeveeMaterialShadingGroups), "EeveeMaterialShadingGroups");
 	emsg->shading_grp = *shgrp;
 	emsg->depth_grp = *shgrp_depth;
 	emsg->depth_clip_grp = *shgrp_depth_clip;
