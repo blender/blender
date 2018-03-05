@@ -75,6 +75,7 @@ const EnumPropertyItem rna_enum_sequence_modifier_type_items[] = {
 
 #include "BKE_report.h"
 #include "BKE_idprop.h"
+#include "BKE_movieclip.h"
 
 #include "WM_api.h"
 
@@ -1085,6 +1086,13 @@ static void rna_Sequence_modifier_clear(Sequence *seq, bContext *C)
 	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, NULL);
 }
 
+static float rna_Sequence_fps_get(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->id.data;
+	Sequence *seq = (Sequence *)(ptr->data);
+	return BKE_sequence_get_fps(scene, seq);
+}
+
 #else
 
 static void rna_def_strip_element(BlenderRNA *brna)
@@ -1840,6 +1848,16 @@ static void rna_def_color_management(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
 }
 
+static void rna_def_movie_types(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "fps", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "FPS", "Frames per second");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_Sequence_fps_get", NULL, NULL);
+}
+
 static void rna_def_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1939,6 +1957,7 @@ static void rna_def_scene(BlenderRNA *brna)
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
 	rna_def_input(srna);
+	rna_def_movie_types(srna);
 }
 
 static void rna_def_movie(BlenderRNA *brna)
@@ -1999,6 +2018,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	rna_def_proxy(srna);
 	rna_def_input(srna);
 	rna_def_color_management(srna);
+	rna_def_movie_types(srna);
 }
 
 static void rna_def_movieclip(BlenderRNA *brna)
@@ -2024,6 +2044,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 
 	rna_def_filter_video(srna);
 	rna_def_input(srna);
+	rna_def_movie_types(srna);
 }
 
 static void rna_def_mask(BlenderRNA *brna)
