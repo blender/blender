@@ -91,7 +91,7 @@ static const EnumPropertyItem space_items[] = {
 #include "DEG_depsgraph.h"
 
 /* Convert a given matrix from a space to another (using the object and/or a bone as reference). */
-static void rna_Scene_mat_convert_space(Object *ob, ReportList *reports, bPoseChannel *pchan,
+static void rna_Object_mat_convert_space(Object *ob, ReportList *reports, bPoseChannel *pchan,
                                         float *mat, float *mat_ret, int from, int to)
 {
 	copy_m4_m4((float (*)[4])mat_ret, (float (*)[4])mat);
@@ -508,7 +508,7 @@ void RNA_api_object(StructRNA *srna)
 #endif
 
 	/* Matrix space conversion */
-	func = RNA_def_function(srna, "convert_space", "rna_Scene_mat_convert_space");
+	func = RNA_def_function(srna, "convert_space", "rna_Object_mat_convert_space");
 	RNA_def_function_ui_description(func, "Convert (transform) the given matrix from one space to another");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "pose_bone", "PoseBone", "",
