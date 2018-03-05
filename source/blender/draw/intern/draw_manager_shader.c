@@ -34,10 +34,14 @@
 #include "BLI_threads.h"
 #include "BLI_task.h"
 
+#include "BKE_global.h"
+#include "BKE_main.h"
+
 #include "GPU_shader.h"
 #include "GPU_material.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 
 extern char datatoc_gpu_shader_2D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
@@ -58,30 +62,21 @@ typedef struct DRWDeferredShader {
 
 	GPUMaterial *mat;
 	char *vert, *geom, *frag, *defs;
-
-	ThreadMutex compilation_mutex;
 } DRWDeferredShader;
 
 typedef struct DRWShaderCompiler {
 	ListBase queue; /* DRWDeferredShader */
-	ThreadMutex list_mutex;
+	SpinLock list_lock;
 
 	DRWDeferredShader *mat_compiling;
-	ThreadMutex compilation_mutex;
+	ThreadMutex compilation_lock;
 
-	TaskScheduler *task_scheduler; /* NULL if nothing is running. */
-	TaskPool *task_pool;
-
-	void *ogl_context;
+	int shaders_done; /* To compute progress. */
 } DRWShaderCompiler;
-
-static DRWShaderCompiler DSC = {{NULL}};
 
 static void drw_deferred_shader_free(DRWDeferredShader *dsh)
 {
 	/* Make sure it is not queued before freeing. */
-	BLI_assert(BLI_findindex(&DSC.queue, dsh) == -1);
-
 	MEM_SAFE_FREE(dsh->vert);
 	MEM_SAFE_FREE(dsh->geom);
 	MEM_SAFE_FREE(dsh->frag);
@@ -90,34 +85,77 @@ static void drw_deferred_shader_free(DRWDeferredShader *dsh)
 	MEM_freeN(dsh);
 }
 
-static void drw_deferred_shader_compilation_exec(TaskPool * __restrict UNUSED(pool), void *UNUSED(taskdata), int UNUSED(threadid))
+static void drw_deferred_shader_queue_free(ListBase *queue)
 {
-	WM_opengl_context_activate(DSC.ogl_context);
+	DRWDeferredShader *dsh;
+	while((dsh = BLI_pophead(queue))) {
+		drw_deferred_shader_free(dsh);
+	}
+}
+
+static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop, short *do_update, float *progress)
+{
+	DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
+
+	/* Create one context per task. */
+	void *ogl_context = WM_opengl_context_create();
+	WM_opengl_context_activate(ogl_context);
 
 	while (true) {
-		BLI_mutex_lock(&DSC.list_mutex);
-		DSC.mat_compiling = BLI_pophead(&DSC.queue);
-		if (DSC.mat_compiling == NULL) {
+		BLI_spin_lock(&comp->list_lock);
+
+		if (*stop != 0) {
+			/* We don't want user to be able to cancel the compilation
+			 * but wm can kill the task if we are closing blender. */
+			BLI_spin_unlock(&comp->list_lock);
 			break;
 		}
-		BLI_mutex_lock(&DSC.compilation_mutex);
-		BLI_mutex_unlock(&DSC.list_mutex);
+
+		/* Pop tail because it will be less likely to lock the main thread
+		 * if all GPUMaterials are to be freed (see DRW_deferred_shader_remove()). */
+		comp->mat_compiling = BLI_poptail(&comp->queue);
+		if (comp->mat_compiling == NULL) {
+			/* No more Shader to compile. */
+			BLI_spin_unlock(&comp->list_lock);
+			break;
+		}
+
+		comp->shaders_done++;
+		int total = BLI_listbase_count(&comp->queue) + comp->shaders_done;
+
+		BLI_mutex_lock(&comp->compilation_lock);
+		BLI_spin_unlock(&comp->list_lock);
 
 		/* Do the compilation. */
 		GPU_material_generate_pass(
-		        DSC.mat_compiling->mat,
-		        DSC.mat_compiling->vert,
-		        DSC.mat_compiling->geom,
-		        DSC.mat_compiling->frag,
-		        DSC.mat_compiling->defs);
+		        comp->mat_compiling->mat,
+		        comp->mat_compiling->vert,
+		        comp->mat_compiling->geom,
+		        comp->mat_compiling->frag,
+		        comp->mat_compiling->defs);
 
-		BLI_mutex_unlock(&DSC.compilation_mutex);
+		*progress = (float)comp->shaders_done / (float)total;
+		*do_update = true;
 
-		drw_deferred_shader_free(DSC.mat_compiling);
+		BLI_mutex_unlock(&comp->compilation_lock);
+
+		drw_deferred_shader_free(comp->mat_compiling);
 	}
 
-	WM_opengl_context_release(DSC.ogl_context);
-	BLI_mutex_unlock(&DSC.list_mutex);
+	WM_opengl_context_release(ogl_context);
+	WM_opengl_context_dispose(ogl_context);
+}
+
+static void drw_deferred_shader_compilation_free(void *custom_data)
+{
+	DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
+
+	drw_deferred_shader_queue_free(&comp->queue);
+
+	BLI_spin_end(&comp->list_lock);
+	BLI_mutex_end(&comp->compilation_lock);
+
+	MEM_freeN(comp);
 }
 
 static void drw_deferred_shader_add(
@@ -137,63 +175,68 @@ static void drw_deferred_shader_add(
 	if (frag_lib) dsh->frag = BLI_strdup(frag_lib);
 	if (defines)  dsh->defs = BLI_strdup(defines);
 
-	BLI_mutex_lock(&DSC.list_mutex);
-	BLI_addtail(&DSC.queue, dsh);
-	if (DSC.mat_compiling == NULL) {
-		/* Set value so that other threads do not start a new task. */
-		DSC.mat_compiling = (void *)1;
+	BLI_assert(DST.draw_ctx.evil_C);
+	wmWindowManager *wm = CTX_wm_manager(DST.draw_ctx.evil_C);
+	wmWindow *win = CTX_wm_window(DST.draw_ctx.evil_C);
+	Scene *scene = DST.draw_ctx.scene;
 
-		if (DSC.task_scheduler == NULL) {
-			DSC.task_scheduler = BLI_task_scheduler_create(1);
-			DSC.task_pool = BLI_task_pool_create_background(DSC.task_scheduler, NULL);
-		}
-		BLI_task_pool_push(DSC.task_pool, drw_deferred_shader_compilation_exec, NULL, false, TASK_PRIORITY_LOW);
+	/* Get the running job or a new one if none is running. Can only have one job per type & owner.  */
+	wmJob *wm_job = WM_jobs_get(wm, win, scene, "Shaders Compilation",
+	                            WM_JOB_PROGRESS | WM_JOB_SUSPEND, WM_JOB_TYPE_SHADER_COMPILATION);
+
+	DRWShaderCompiler *old_comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
+
+	DRWShaderCompiler *comp = MEM_callocN(sizeof(DRWShaderCompiler), "DRWShaderCompiler");
+	BLI_spin_init(&comp->list_lock);
+	BLI_mutex_init(&comp->compilation_lock);
+
+	if (old_comp) {
+		BLI_spin_lock(&old_comp->list_lock);
+		BLI_movelisttolist(&comp->queue, &old_comp->queue);
+		BLI_spin_unlock(&old_comp->list_lock);
 	}
-	BLI_mutex_unlock(&DSC.list_mutex);
+
+	BLI_addtail(&comp->queue, dsh);
+
+	WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);
+	WM_jobs_timer(wm_job, 0.1, NC_MATERIAL | ND_SHADING_DRAW, 0);
+	WM_jobs_callbacks(wm_job, drw_deferred_shader_compilation_exec, NULL, NULL, NULL);
+	WM_jobs_start(wm, wm_job);
 }
 
 void DRW_deferred_shader_remove(GPUMaterial *mat)
 {
-	BLI_mutex_lock(&DSC.list_mutex);
-	DRWDeferredShader *dsh = (DRWDeferredShader *)BLI_findptr(&DSC.queue, mat, offsetof(DRWDeferredShader, mat));
-	if (dsh) {
-		BLI_remlink(&DSC.queue, dsh);
-	}
-	if (DSC.mat_compiling != NULL) {
-		if (DSC.mat_compiling->mat == mat) {
-			/* Wait for compilation to finish */
-			BLI_mutex_lock(&DSC.compilation_mutex);
-			BLI_mutex_unlock(&DSC.compilation_mutex);
+	Scene *scene = GPU_material_scene(mat);
+
+	for (wmWindowManager *wm = G.main->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			wmJob *wm_job = WM_jobs_get(wm, win, scene, "Shaders Compilation",
+			                            WM_JOB_PROGRESS | WM_JOB_SUSPEND, WM_JOB_TYPE_SHADER_COMPILATION);
+
+			DRWShaderCompiler *comp = (DRWShaderCompiler *)WM_jobs_customdata_get(wm_job);
+			if (comp != NULL) {
+				BLI_spin_lock(&comp->list_lock);
+				DRWDeferredShader *dsh;
+				dsh = (DRWDeferredShader *)BLI_findptr(&comp->queue, mat, offsetof(DRWDeferredShader, mat));
+				if (dsh) {
+					BLI_remlink(&comp->queue, dsh);
+				}
+
+				/* Wait for compilation to finish */
+				if (comp->mat_compiling != NULL) {
+					if (comp->mat_compiling->mat == mat) {
+						BLI_mutex_lock(&comp->compilation_lock);
+						BLI_mutex_unlock(&comp->compilation_lock);
+					}
+				}
+				BLI_spin_unlock(&comp->list_lock);
+
+				if (dsh) {
+					drw_deferred_shader_free(dsh);
+				}
+			}
 		}
 	}
-	BLI_mutex_unlock(&DSC.list_mutex);
-	if (dsh) {
-		drw_deferred_shader_free(dsh);
-	}
-}
-
-
-static void drw_deferred_compiler_finish(void)
-{
-	if (DSC.task_scheduler != NULL) {
-		BLI_task_pool_work_and_wait(DSC.task_pool);
-		BLI_task_pool_free(DSC.task_pool);
-		BLI_task_scheduler_free(DSC.task_scheduler);
-		DSC.task_scheduler = NULL;
-	}
-}
-
-void DRW_deferred_compiler_init(void)
-{
-	BLI_mutex_init(&DSC.list_mutex);
-	BLI_mutex_init(&DSC.compilation_mutex);
-	DSC.ogl_context = WM_opengl_context_create();
-}
-
-void DRW_deferred_compiler_exit(void)
-{
-	drw_deferred_compiler_finish();
-	WM_opengl_context_dispose(DSC.ogl_context);
 }
 
 /** \} */

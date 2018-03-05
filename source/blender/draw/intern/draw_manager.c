@@ -1957,7 +1957,6 @@ void DRW_opengl_context_create(void)
 
 	immDeactivate();
 	/* This changes the active context. */
-	DRW_deferred_compiler_init();
 	DST.ogl_context = WM_opengl_context_create();
 	/* Be sure to create gawain.context too. */
 	DST.gwn_context = GWN_context_create();
@@ -1972,7 +1971,6 @@ void DRW_opengl_context_destroy(void)
 {
 	BLI_assert(BLI_thread_is_main());
 	if (DST.ogl_context != NULL) {
-		DRW_deferred_compiler_exit();
 		WM_opengl_context_activate(DST.ogl_context);
 		GWN_context_active_set(DST.gwn_context);
 		GWN_context_discard(DST.gwn_context);

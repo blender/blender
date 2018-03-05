@@ -504,6 +504,7 @@ enum {
 	WM_JOB_TYPE_POINTCACHE,
 	WM_JOB_TYPE_DPAINT_BAKE,
 	WM_JOB_TYPE_ALEMBIC,
+	WM_JOB_TYPE_SHADER_COMPILATION,
 	/* add as needed, screencast, seq proxy build
 	 * if having hard coded values is a problem */
 };
