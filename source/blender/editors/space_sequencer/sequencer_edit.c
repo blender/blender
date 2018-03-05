@@ -671,8 +671,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 	Sequence *seqn = NULL;
 	bool skip_dup = false;
 
-	/* The frame is exactly on the endpoint,
-	 * this needs special handling for soft cut (not needed for hard cut). */
+	/* Unlike soft-cut, it's important to use the same value for both strips. */
 	const bool is_end_exact = ((seq->start + seq->len) == cutframe);
 
 	/* backup values */
@@ -793,8 +792,6 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 	Sequence *seqn = NULL;
 	bool skip_dup = false;
 
-	/* The frame is exactly on the endpoint,
-	 * this needs special handling for soft cut (not needed for hard cut). */
 	bool is_end_exact = ((seq->start + seq->len) == cutframe);
 
 	/* backup values */
