@@ -62,7 +62,7 @@ class WORKSPACE_PT_workspace(WorkSpaceButtonsPanel, Panel):
 
 
 class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):
-    bl_label = "Show/Hide Add-ons"
+    bl_label = "Workspace Add-ons"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw_header(self, context):
