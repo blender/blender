@@ -27,6 +27,7 @@
 set(USE_EXPERIMENTAL_TESTS FALSE)
 
 set(TEST_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests)
+set(TEST_DATA_SRC_DIR ${CMAKE_SOURCE_DIR}/../lib/tests_data)
 set(TEST_OUT_DIR ${CMAKE_BINARY_DIR}/tests)
 
 # ugh, any better way to do this on testing only?
@@ -614,6 +615,15 @@ if(WITH_ALEMBIC)
 		--
 		--testdir "${TEST_SRC_DIR}/alembic"
 		--with-legacy-depsgraph=${WITH_LEGACY_DEPSGRAPH}
+	)
+endif()
+
+if(WITH_CODEC_FFMPEG)
+	add_python_test(
+		ffmpeg_tests
+		${CMAKE_CURRENT_LIST_DIR}/ffmpeg_tests.py
+		--blender "$<TARGET_FILE:blender>"
+		--testdir "${TEST_DATA_SRC_DIR}/ffmpeg"
 	)
 endif()
 
