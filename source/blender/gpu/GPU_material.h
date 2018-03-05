@@ -144,11 +144,11 @@ typedef struct GPUNodeStack {
 	bool end;
 } GPUNodeStack;
 
-typedef enum GPUMaterialSatus {
+typedef enum GPUMaterialStatus {
 	GPU_MAT_FAILED = 0,
 	GPU_MAT_QUEUED,
 	GPU_MAT_SUCCESS,
-} GPUMaterialSatus;
+} GPUMaterialStatus;
 
 #define GPU_DYNAMIC_GROUP_FROM_TYPE(f) ((f) & 0xFFFF0000)
 
@@ -270,7 +270,7 @@ bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 GPUMatType GPU_Material_get_type(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
-GPUMaterialSatus GPU_material_status(GPUMaterial *mat);
+GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material);
 void GPU_material_create_uniform_buffer(GPUMaterial *material, struct ListBase *inputs);

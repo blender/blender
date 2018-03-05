@@ -105,7 +105,7 @@ struct GPUMaterial {
 	/* material for mesh surface, worlds or something else.
 	 * some code generation is done differently depending on the use case */
 	int type; /* DEPRECATED */
-	GPUMaterialSatus status;
+	GPUMaterialStatus status;
 
 	const void *engine_type;   /* attached engine type */
 	int options;    /* to identify shader variations (shadow, probe, world background...) */
@@ -843,7 +843,7 @@ void gpu_material_add_node(GPUMaterial *material, GPUNode *node)
 }
 
 /* Return true if the material compilation has not yet begin or begin. */
-GPUMaterialSatus GPU_material_status(GPUMaterial *mat)
+GPUMaterialStatus GPU_material_status(GPUMaterial *mat)
 {
 	return mat->status;
 }
