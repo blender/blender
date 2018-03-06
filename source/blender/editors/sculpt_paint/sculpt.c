@@ -5460,13 +5460,11 @@ static int dyntopo_warning_popup(bContext *C, wmOperatorType *ot, enum eDynTopoW
 	return OPERATOR_INTERFACE;
 }
 
-static enum eDynTopoWarnFlag sculpt_dynamic_topology_check(bContext *C)
+static enum eDynTopoWarnFlag sculpt_dynamic_topology_check(Scene *scene, Object *ob)
 {
-	Object *ob = CTX_data_active_object(C);
 	Mesh *me = ob->data;
 	SculptSession *ss = ob->sculpt;
 
-	Scene *scene = CTX_data_scene(C);
 	enum eDynTopoWarnFlag flag = 0;
 
 	BLI_assert(ss->bm == NULL);
@@ -5511,7 +5509,8 @@ static int sculpt_dynamic_topology_toggle_invoke(bContext *C, wmOperator *op, co
 	SculptSession *ss = ob->sculpt;
 
 	if (!ss->bm) {
-		enum eDynTopoWarnFlag flag = sculpt_dynamic_topology_check(C);
+		Scene *scene = CTX_data_scene(C);
+		enum eDynTopoWarnFlag flag = sculpt_dynamic_topology_check(scene, ob);
 
 		if (flag) {
 			/* The mesh has customdata that will be lost, let the user confirm this is OK */
@@ -5638,6 +5637,126 @@ static void sculpt_init_session(const EvaluationContext *eval_ctx, Scene *scene,
 	BKE_sculpt_update_mesh_elements(eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
 }
 
+static int ed_object_sculptmode_flush_recalc_flag(Scene *scene, Object *ob, MultiresModifierData *mmd)
+{
+	int flush_recalc = 0;
+	/* multires in sculpt mode could have different from object mode subdivision level */
+	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
+	/* if object has got active modifiers, it's dm could be different in sculpt mode  */
+	flush_recalc |= sculpt_has_active_modifiers(scene, ob);
+	return flush_recalc;
+}
+
+void ED_object_sculptmode_enter_ex(
+        const EvaluationContext *eval_ctx,
+        WorkSpace *workspace, Scene *scene, Object *ob,
+        ReportList *reports)
+{
+	const int mode_flag = OB_MODE_SCULPT;
+	Mesh *me = BKE_mesh_from_object(ob);
+
+	/* Enter sculptmode */
+	workspace->object_mode |= mode_flag;
+
+	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
+
+	const int flush_recalc = ed_object_sculptmode_flush_recalc_flag(scene, ob, mmd);
+
+	if (flush_recalc)
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+	/* Create sculpt mode session data */
+	if (ob->sculpt) {
+		BKE_sculptsession_free(ob);
+	}
+
+	sculpt_init_session(eval_ctx, scene, ob);
+
+	/* Mask layer is required */
+	if (mmd) {
+		/* XXX, we could attempt to support adding mask data mid-sculpt mode (with multi-res)
+		 * but this ends up being quite tricky (and slow) */
+		BKE_sculpt_mask_layers_ensure(ob, mmd);
+	}
+
+	if (!(fabsf(ob->size[0] - ob->size[1]) < 1e-4f && fabsf(ob->size[1] - ob->size[2]) < 1e-4f)) {
+		BKE_report(reports, RPT_WARNING,
+		           "Object has non-uniform scale, sculpting may be unpredictable");
+	}
+	else if (is_negative_m4(ob->obmat)) {
+		BKE_report(reports, RPT_WARNING,
+		           "Object has negative scale, sculpting may be unpredictable");
+	}
+
+	Paint *paint = BKE_paint_get_active_from_paintmode(scene, ePaintSculpt);
+	BKE_paint_init(scene, ePaintSculpt, PAINT_CURSOR_SCULPT);
+
+	paint_cursor_start_explicit(paint, G.main->wm.first, sculpt_poll_view3d);
+
+	/* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
+	 * As long as no data was added that is not supported. */
+	if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
+		const char *message_unsupported = NULL;
+		if (me->totloop != me->totpoly * 3) {
+			message_unsupported = TIP_("non-triangle face");
+		}
+		else if (mmd != NULL) {
+			message_unsupported = TIP_("multi-res modifier");
+		}
+		else {
+			enum eDynTopoWarnFlag flag = sculpt_dynamic_topology_check(scene, ob);
+			if (flag == 0) {
+				/* pass */
+			}
+			else if (flag & DYNTOPO_WARN_VDATA) {
+				message_unsupported = TIP_("vertex data");
+			}
+			else if (flag & DYNTOPO_WARN_EDATA) {
+				message_unsupported = TIP_("edge data");
+			}
+			else if (flag & DYNTOPO_WARN_LDATA) {
+				message_unsupported = TIP_("face data");
+			}
+			else if (flag & DYNTOPO_WARN_MODIFIER) {
+				message_unsupported = TIP_("constructive modifier");
+			}
+			else {
+				BLI_assert(0);
+			}
+		}
+
+		if (message_unsupported == NULL) {
+			/* undo push is needed to prevent memory leak */
+			sculpt_undo_push_begin("Dynamic topology enable");
+			sculpt_dynamic_topology_enable_ex(eval_ctx, scene, ob);
+			sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
+		}
+		else {
+			BKE_reportf(reports, RPT_WARNING,
+			            "Dynamic Topology found: %s, disabled",
+			            message_unsupported);
+			me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
+		}
+	}
+
+	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
+
+	/* VBO no longer valid */
+	if (ob->derivedFinal) {
+		GPU_drawobject_free(ob->derivedFinal);
+	}
+}
+
+void ED_object_sculptmode_enter(struct bContext *C, ReportList *reports)
+{
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_active_object(C);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+	ED_object_sculptmode_enter_ex(&eval_ctx, workspace, scene, ob, reports);
+}
+
 void ED_object_sculptmode_exit_ex(
         const EvaluationContext *eval_ctx,
         WorkSpace *workspace, Scene *scene, Object *ob)
@@ -5649,6 +5768,11 @@ void ED_object_sculptmode_exit_ex(
 	if (mmd) {
 		multires_force_update(ob);
 	}
+
+	/* Not needed for now. */
+#if 0
+	const int flush_recalc = ed_object_sculptmode_flush_recalc_flag(scene, ob, mmd);
+#endif
 
 	/* Always for now, so leaving sculpt mode always ensures scene is in
 	 * a consistent state.
@@ -5694,15 +5818,11 @@ void ED_object_sculptmode_exit(bContext *C)
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
 	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
-	Mesh *me;
-	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
-	int flush_recalc = 0;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
@@ -5710,106 +5830,14 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	me = BKE_mesh_from_object(ob);
-
-	/* multires in sculpt mode could have different from object mode subdivision level */
-	flush_recalc |= mmd && mmd->sculptlvl != mmd->lvl;
-	/* if object has got active modifiers, it's dm could be different in sculpt mode  */
-	flush_recalc |= sculpt_has_active_modifiers(scene, ob);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (is_mode_set) {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
 		ED_object_sculptmode_exit_ex(&eval_ctx, workspace, scene, ob);
 	}
 	else {
-		/* Enter sculptmode */
-		workspace->object_mode |= mode_flag;
-
-		if (flush_recalc)
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-
-		/* Create sculpt mode session data */
-		if (ob->sculpt) {
-			BKE_sculptsession_free(ob);
-		}
-
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
-		sculpt_init_session(&eval_ctx, scene, ob);
-
-		/* Mask layer is required */
-		if (mmd) {
-			/* XXX, we could attempt to support adding mask data mid-sculpt mode (with multi-res)
-			 * but this ends up being quite tricky (and slow) */
-			BKE_sculpt_mask_layers_ensure(ob, mmd);
-		}
-
-		if (!(fabsf(ob->size[0] - ob->size[1]) < 1e-4f && fabsf(ob->size[1] - ob->size[2]) < 1e-4f)) {
-			BKE_report(op->reports, RPT_WARNING,
-			           "Object has non-uniform scale, sculpting may be unpredictable");
-		}
-		else if (is_negative_m4(ob->obmat)) {
-			BKE_report(op->reports, RPT_WARNING,
-			           "Object has negative scale, sculpting may be unpredictable");
-		}
-
-		BKE_paint_init(scene, ePaintSculpt, PAINT_CURSOR_SCULPT);
-
-		paint_cursor_start(C, sculpt_poll_view3d);
-
-		/* Check dynamic-topology flag; re-enter dynamic-topology mode when changing modes,
-		 * As long as no data was added that is not supported. */
-		if (me->flag & ME_SCULPT_DYNAMIC_TOPOLOGY) {
-			const char *message_unsupported = NULL;
-			if (me->totloop != me->totpoly * 3) {
-				message_unsupported = TIP_("non-triangle face");
-			}
-			else if (mmd != NULL) {
-				message_unsupported = TIP_("multi-res modifier");
-			}
-			else {
-				enum eDynTopoWarnFlag flag = sculpt_dynamic_topology_check(C);
-				if (flag == 0) {
-					/* pass */
-				}
-				else if (flag & DYNTOPO_WARN_VDATA) {
-					message_unsupported = TIP_("vertex data");
-				}
-				else if (flag & DYNTOPO_WARN_EDATA) {
-					message_unsupported = TIP_("edge data");
-				}
-				else if (flag & DYNTOPO_WARN_LDATA) {
-					message_unsupported = TIP_("face data");
-				}
-				else if (flag & DYNTOPO_WARN_MODIFIER) {
-					message_unsupported = TIP_("constructive modifier");
-				}
-				else {
-					BLI_assert(0);
-				}
-			}
-
-			if (message_unsupported == NULL) {
-				/* undo push is needed to prevent memory leak */
-				sculpt_undo_push_begin("Dynamic topology enable");
-				sculpt_dynamic_topology_enable_ex(&eval_ctx, scene, ob);
-				sculpt_undo_push_node(ob, NULL, SCULPT_UNDO_DYNTOPO_BEGIN);
-			}
-			else {
-				BKE_reportf(op->reports, RPT_WARNING,
-				            "Dynamic Topology found: %s, disabled",
-				            message_unsupported);
-				me->flag &= ~ME_SCULPT_DYNAMIC_TOPOLOGY;
-			}
-		}
-
-		ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
-
-		/* VBO no longer valid */
-		if (ob->derivedFinal) {
-			GPU_drawobject_free(ob->derivedFinal);
-		}
+		ED_object_sculptmode_enter_ex(&eval_ctx, workspace, scene, ob, op->reports);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
