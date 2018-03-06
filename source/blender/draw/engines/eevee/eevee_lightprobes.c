@@ -428,20 +428,15 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 
 			if (wo->update_flag != 0 || pinfo->prev_world != wo || pinfo->prev_wo_sh_compiled != wo_sh_compiled) {
 				pinfo->update_world |= PROBE_UPDATE_ALL;
-				pinfo->updated_bounce = 0;
-				pinfo->grid_initialized = false;
-
 				pinfo->prev_wo_sh_compiled = wo_sh_compiled;
 				pinfo->prev_world = wo;
 			}
 			wo->update_flag = 0;
 		}
 		else if (pinfo->prev_world) {
+			pinfo->update_world |= PROBE_UPDATE_ALL;
 			pinfo->prev_wo_sh_compiled = false;
 			pinfo->prev_world = NULL;
-			pinfo->update_world |= PROBE_UPDATE_ALL;
-			pinfo->updated_bounce = 0;
-			pinfo->grid_initialized = false;
 		}
 
 		/* Fallback if shader fails or if not using nodetree. */
@@ -885,6 +880,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	/* Free textures if number mismatch. */
 	if (pinfo->num_cube != pinfo->cache_num_cube) {
 		DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
+		pinfo->cache_num_cube = pinfo->num_cube;
 	}
 
 	if (pinfo->num_planar != pinfo->cache_num_planar) {
@@ -914,12 +910,12 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		if (sldata->probe_filter_fb) {
 			DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 		}
-
 		/* Tag probes to refresh */
 		pinfo->update_world |= PROBE_UPDATE_CUBE;
-		common_data->prb_num_render_cube = 0;
-		pinfo->cache_num_cube = pinfo->num_cube;
+	}
 
+	if ((pinfo->update_world & PROBE_UPDATE_CUBE) != 0) {
+		common_data->prb_num_render_cube = 0;
 		for (int i = 1; (ob = pinfo->probes_cube_ref[i]) && (i < MAX_PROBE); i++) {
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 			ped->need_update = true;
@@ -949,11 +945,14 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 			sldata->irradiance_rt = DRW_texture_create_2D_array(irr_size[0], irr_size[1], irr_size[2],
 			                                                    irradiance_format, DRW_TEX_FILTER, NULL);
 		}
+		/* Tag probes to refresh */
+		pinfo->update_world |= PROBE_UPDATE_GRID;
+		pinfo->grid_initialized = false;
+	}
+
+	if ((pinfo->update_world & PROBE_UPDATE_GRID) != 0) {
 		common_data->prb_num_render_grid = 0;
 		pinfo->updated_bounce = 0;
-		pinfo->grid_initialized = false;
-		pinfo->update_world |= PROBE_UPDATE_GRID;
-
 		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 			ped->need_update = true;
