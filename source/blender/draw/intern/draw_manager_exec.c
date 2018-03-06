@@ -420,15 +420,57 @@ static void draw_clipping_setup_from_view(void)
 	}
 
 	/* Extract Bounding Sphere */
-	/**
-	 * Compute bounding sphere for the general case and not only symmetric frustum:
-	 * We put the sphere center on the line that goes from origin to the center of the far clipping plane.
-	 * This is the optimal position if the frustum is symmetric or very asymmetric and probably close
-	 * to optimal for the general case. The sphere center position is computed so that the distance to
-	 * the near and far extreme frustum points are equal.
-	 **/
-	if (projmat[3][3] == 0.0f) {
-		/* Perspective */
+	if (projmat[3][3] != 0.0f) {
+		/* Orthographic */
+		/* The most extreme points on the near and far plane. (normalized device coords). */
+		float *nearpoint = bbox.vec[0];
+		float *farpoint = bbox.vec[6];
+
+		mul_project_m4_v3(projinv, nearpoint);
+		mul_project_m4_v3(projinv, farpoint);
+
+		/* just use median point */
+		mid_v3_v3v3(bsphere->center, farpoint, nearpoint);
+		bsphere->radius = len_v3v3(bsphere->center, farpoint);
+	}
+	else if (projmat[2][0] == 0.0f && projmat[2][1] == 0.0f) {
+		/* Perspective with symmetrical frustum. */
+
+		/* We obtain the center and radius of the circumscribed circle of the
+		 * isosceles trapezoid composed by the diagonals of the near and far clipping plane */
+
+		/* center of each clipping plane */
+		float mid_min[3], mid_max[3];
+		mid_v3_v3v3(mid_min, bbox.vec[3], bbox.vec[4]);
+		mid_v3_v3v3(mid_max, bbox.vec[2], bbox.vec[5]);
+
+		/* square length of the diagonals of each clipping plane */
+		float a_sq = len_squared_v3v3(bbox.vec[3], bbox.vec[4]);
+		float b_sq = len_squared_v3v3(bbox.vec[2], bbox.vec[5]);
+
+		/* distance squared between clipping planes */
+		float h_sq = len_squared_v3v3(mid_min, mid_max);
+
+		float fac = (4 * h_sq + b_sq - a_sq) / (8 * h_sq);
+		BLI_assert(fac >= 0.0f);
+
+		/* The goal is to get the smallest sphere,
+		 * not the sphere that passes through each corner */
+		if (fac > 1.0f) {
+			fac = 1.0f;
+		}
+
+		interp_v3_v3v3(bsphere->center, mid_min, mid_max, fac);
+
+		/* distance from the center to one of the points of the far plane (1, 2, 5, 6) */
+		bsphere->radius = len_v3v3(bsphere->center, bbox.vec[1]);
+	}
+	else {
+		/* Perspective with asymmetrical frustum. */
+
+		/* We put the sphere center on the line that goes from origin
+		 * to the center of the far clipping plane. */
+
 		/* Detect which of the corner of the far clipping plane is the farthest to the origin */
 		float nfar[4];       /* most extreme far point in NDC space */
 		float farxy[2];      /* farpoint projection onto the near plane */
@@ -483,24 +525,10 @@ static void draw_clipping_setup_from_view(void)
 		bsphere->center[1] = farcenter[1] * z/e;
 		bsphere->center[2] = z;
 		bsphere->radius = len_v3v3(bsphere->center, farpoint);
+
+		/* Transform to world space. */
+		mul_m4_v3(viewinv, bsphere->center);
 	}
-	else {
-		/* Orthographic */
-		/* The most extreme points on the near and far plane. (normalized device coords) */
-		float nearpoint[3] = {-1.0f, -1.0f, -1.0f};
-		float farpoint[3] =  { 1.0f,  1.0f,  1.0f};
-
-		mul_project_m4_v3(projinv, nearpoint);
-		mul_project_m4_v3(projinv, farpoint);
-
-		/* just use median point */
-		mid_v3_v3v3(bsphere->center, farpoint, nearpoint);
-		bsphere->radius = len_v3v3(bsphere->center, farpoint);
-	}
-
-	/* Transform to world space. */
-	mul_m4_v3(viewinv, bsphere->center);
-
 }
 
 /* Return True if the given BoundSphere intersect the current view frustum */
