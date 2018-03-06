@@ -54,7 +54,8 @@ void BKE_object_defgroup_remove(struct Object *ob, struct bDeformGroup *defgroup
 void BKE_object_defgroup_remove_all_ex(struct Object *ob, bool only_unlocked);
 void BKE_object_defgroup_remove_all(struct Object *ob);
 
-
+int *BKE_object_defgroup_index_map_create(struct Object *ob_src, struct Object *ob_dst, int *r_map_len);
+void BKE_object_defgroup_index_map_apply(struct MDeformVert *dvert, int dvert_len, const int *map, int map_len);
 
 /* Select helpers */
 enum eVGroupSelect;
