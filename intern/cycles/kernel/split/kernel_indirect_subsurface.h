@@ -38,7 +38,6 @@ ccl_device void kernel_indirect_subsurface(KernelGlobals *kg)
 	                          1);
 
 #ifdef __SUBSURFACE__
-
 	if(ray_index == QUEUE_EMPTY_SLOT) {
 		return;
 	}
@@ -57,17 +56,15 @@ ccl_device void kernel_indirect_subsurface(KernelGlobals *kg)
 		 */
 		if(ss_indirect->num_rays) {
 			kernel_path_subsurface_setup_indirect(kg,
-												  ss_indirect,
-												  state,
-												  ray,
-												  L,
-												  throughput);
+			                                      ss_indirect,
+			                                      state,
+			                                      ray,
+			                                      L,
+			                                      throughput);
 			ASSIGN_RAY_STATE(ray_state, ray_index, RAY_REGENERATED);
 		}
 	}
-
 #endif  /* __SUBSURFACE__ */
-
 }
 
 CCL_NAMESPACE_END
