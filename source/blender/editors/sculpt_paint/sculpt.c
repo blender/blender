@@ -5790,15 +5790,12 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
-	Mesh *me;
 
 	if (!is_mode_set) {
 		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
-
-	me = BKE_mesh_from_object(ob);
 
 	if (is_mode_set) {
 		ED_object_sculptmode_exit_ex(scene, ob);
