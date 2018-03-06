@@ -1129,6 +1129,8 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 	DRW_framebuffer_texture_detach(sldata->shadow_cube_target);
 	DRW_stats_group_end();
 
+	DRW_viewport_matrix_override_set_all(&saved_mats);
+
 	/* Cascaded Shadow Maps */
 	DRW_stats_group_start("Cascaded Shadow Maps");
 	DRW_framebuffer_texture_attach(sldata->shadow_target_fb, sldata->shadow_cascade_target, 0, 0);
