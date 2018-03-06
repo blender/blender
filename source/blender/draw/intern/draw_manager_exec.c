@@ -469,7 +469,7 @@ static void draw_clipping_setup_from_view(void)
 		e = farpoint[2];
 		s = nearpoint[2];
 		/* distance to view Z axis */
-		f = len_v2(nearpoint);
+		f = len_v2(farpoint);
 		/* get corresponding point on the near plane */
 		mul_v2_v2fl(farxy, farpoint, s/e);
 		/* this formula preserve the sign of n */
