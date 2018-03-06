@@ -441,7 +441,10 @@ typedef struct EEVEE_LightProbesInfo {
 	int target_size;
 	int grid_initialized;
 	struct World *prev_world;
+	int update_world;
+	bool prev_wo_sh_compiled;
 	bool do_cube_update;
+	bool all_materials_updated;
 	/* For rendering probes */
 	float probemat[6][4][4];
 	int layer;
@@ -766,7 +769,7 @@ EEVEE_LampEngineData *EEVEE_lamp_data_ensure(Object *ob);
 /* eevee_materials.c */
 struct GPUTexture *EEVEE_materials_get_util_tex(void); /* XXX */
 void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, EEVEE_FramebufferList *fbl);
-void EEVEE_materials_cache_init(EEVEE_Data *vedata);
+void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata);
 void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob);
 void EEVEE_materials_cache_finish(EEVEE_Data *vedata);
 struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, struct World *wo);

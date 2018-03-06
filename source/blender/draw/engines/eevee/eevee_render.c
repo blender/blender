@@ -115,7 +115,7 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	EEVEE_effects_cache_init(sldata, vedata);
 	EEVEE_lightprobes_cache_init(sldata, vedata);
 	EEVEE_lights_cache_init(sldata, vedata);
-	EEVEE_materials_cache_init(vedata);
+	EEVEE_materials_cache_init(sldata, vedata);
 	EEVEE_motion_blur_cache_init(sldata, vedata);
 	EEVEE_occlusion_cache_init(sldata, vedata);
 	EEVEE_screen_raytrace_cache_init(sldata, vedata);

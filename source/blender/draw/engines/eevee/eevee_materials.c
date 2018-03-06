@@ -856,7 +856,7 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 	return DRW_shgroup_create(e_data.default_lit[options], vedata->psl->default_pass[options]);
 }
 
-void EEVEE_materials_cache_init(EEVEE_Data *vedata)
+void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
@@ -894,6 +894,7 @@ void EEVEE_materials_cache_init(EEVEE_Data *vedata)
 						DRW_shgroup_call_add(grp, geom, NULL);
 						break;
 					case GPU_MAT_QUEUED:
+						sldata->probes->all_materials_updated = false;
 						/* TODO Bypass probe compilation. */
 						col = compile_col;
 						break;
@@ -1042,60 +1043,29 @@ static void material_opaque(
 	}
 
 	if (use_gpumat) {
+		static float error_col[3] = {1.0f, 0.0f, 1.0f};
+		static float compile_col[3] = {0.5f, 0.5f, 0.5f};
+		static float half = 0.5f;
+
 		/* Shading */
 		*gpumat = EEVEE_material_mesh_get(scene, ma, vedata, false, false, use_refract,
 		                                  use_sss, use_translucency, linfo->shadow_method);
 
-		*shgrp = DRW_shgroup_material_create(*gpumat,
-		                                     (use_refract) ? psl->refract_pass :
-		                                     (use_sss) ? psl->sss_pass : psl->material_pass);
-		if (*shgrp) {
-			static int no_ssr = -1;
-			static int first_ssr = 1;
-			int *ssr_id = (((effects->enabled_effects & EFFECT_SSR) != 0) && !use_refract) ? &first_ssr : &no_ssr;
-			add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth, use_refract, false);
-
-			if (use_sss) {
-				struct GPUTexture *sss_tex_profile = NULL;
-				struct GPUUniformBuffer *sss_profile = GPU_material_sss_profile_get(*gpumat,
-				                                                                    stl->effects->sss_sample_count,
-				                                                                    &sss_tex_profile);
-
-				if (sss_profile) {
-					if (use_translucency) {
-						DRW_shgroup_uniform_block(*shgrp, "sssProfile", sss_profile);
-						DRW_shgroup_uniform_texture(*shgrp, "sssTexProfile", sss_tex_profile);
-					}
-
-					/* Limit of 8 bit stencil buffer. ID 255 is refraction. */
-					if (e_data.sss_count < 254) {
-						DRW_shgroup_stencil_mask(*shgrp, e_data.sss_count + 1);
-						EEVEE_subsurface_add_pass(sldata, vedata, e_data.sss_count + 1, sss_profile);
-						e_data.sss_count++;
-					}
-					else {
-						/* TODO : display message. */
-						printf("Error: Too many different Subsurface shader in the scene.\n");
-					}
-				}
-			}
-		}
-		else {
-			/* Shader failed : pink color */
-			static float col[3] = {1.0f, 0.0f, 1.0f};
-			static float half = 0.5f;
-
-			color_p = col;
-			metal_p = spec_p = rough_p = &half;
-		}
+		GPUMaterialStatus status_mat_surface = GPU_material_status(*gpumat);
 
 		/* Alpha CLipped : Discard pixel from depth pass, then
 		 * fail the depth test for shading. */
 		if (ELEM(ma->blend_method, MA_BM_CLIP, MA_BM_HASHED)) {
 			*gpumat_depth = EEVEE_material_mesh_depth_get(scene, ma,
-			        (ma->blend_method == MA_BM_HASHED), false);
+			                                              (ma->blend_method == MA_BM_HASHED), false);
 
-			if (use_refract) {
+			GPUMaterialStatus status_mat_depth = GPU_material_status(*gpumat_depth);
+			if (status_mat_depth != GPU_MAT_SUCCESS) {
+				/* Mixing both flags. If depth shader fails, show it to the user by not using
+				 * the surface shader. */
+				status_mat_surface = status_mat_depth;
+			}
+			else if (use_refract) {
 				*shgrp_depth = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->refract_depth_pass_cull : psl->refract_depth_pass);
 				*shgrp_depth_clip = DRW_shgroup_material_create(*gpumat_depth, (do_cull) ? psl->refract_depth_pass_clip_cull : psl->refract_depth_pass_clip);
 			}
@@ -1116,6 +1086,59 @@ static void material_opaque(
 					DRW_shgroup_uniform_float(*shgrp_depth_clip, "hashAlphaOffset", &e_data.alpha_hash_offset, 1);
 				}
 			}
+		}
+
+		switch (status_mat_surface) {
+			case GPU_MAT_SUCCESS:
+			{
+				static int no_ssr = -1;
+				static int first_ssr = 1;
+				int *ssr_id = (((effects->enabled_effects & EFFECT_SSR) != 0) && !use_refract) ? &first_ssr : &no_ssr;
+
+				*shgrp = DRW_shgroup_material_create(*gpumat,
+				                                     (use_refract) ? psl->refract_pass :
+				                                     (use_sss) ? psl->sss_pass : psl->material_pass);
+				add_standard_uniforms(*shgrp, sldata, vedata, ssr_id, &ma->refract_depth, use_refract, false);
+
+				if (use_sss) {
+					struct GPUTexture *sss_tex_profile = NULL;
+					struct GPUUniformBuffer *sss_profile = GPU_material_sss_profile_get(*gpumat,
+					                                                                    stl->effects->sss_sample_count,
+					                                                                    &sss_tex_profile);
+
+					if (sss_profile) {
+						if (use_translucency) {
+							DRW_shgroup_uniform_block(*shgrp, "sssProfile", sss_profile);
+							DRW_shgroup_uniform_texture(*shgrp, "sssTexProfile", sss_tex_profile);
+						}
+
+						/* Limit of 8 bit stencil buffer. ID 255 is refraction. */
+						if (e_data.sss_count < 254) {
+							DRW_shgroup_stencil_mask(*shgrp, e_data.sss_count + 1);
+							EEVEE_subsurface_add_pass(sldata, vedata, e_data.sss_count + 1, sss_profile);
+							e_data.sss_count++;
+						}
+						else {
+							/* TODO : display message. */
+							printf("Error: Too many different Subsurface shader in the scene.\n");
+						}
+					}
+				}
+				break;
+			}
+			case GPU_MAT_QUEUED:
+			{
+				sldata->probes->all_materials_updated = false;
+				/* TODO Bypass probe compilation. */
+				color_p = compile_col;
+				metal_p = spec_p = rough_p = &half;
+				break;
+			}
+			case GPU_MAT_FAILED:
+			default:
+				color_p = error_col;
+				metal_p = spec_p = rough_p = &half;
+				break;
 		}
 	}
 
@@ -1166,23 +1189,37 @@ static void material_transparent(
 	float *rough_p = &ma->gloss_mir;
 
 	if (ma->use_nodes && ma->nodetree) {
+		static float error_col[3] = {1.0f, 0.0f, 1.0f};
+		static float compile_col[3] = {0.5f, 0.5f, 0.5f};
+		static float half = 0.5f;
+
 		/* Shading */
 		*gpumat = EEVEE_material_mesh_get(scene, ma, vedata, true, (ma->blend_method == MA_BM_MULTIPLY), use_refract,
 		                                  false, false, linfo->shadow_method);
 
-		*shgrp = DRW_shgroup_material_create(*gpumat, psl->transparent_pass);
-		if (*shgrp) {
-			static int ssr_id = -1; /* TODO transparent SSR */
-			bool use_blend = (ma->blend_method & MA_BM_BLEND) != 0;
-			add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id, &ma->refract_depth, use_refract, use_blend);
-		}
-		else {
-			/* Shader failed : pink color */
-			static float col[3] = {1.0f, 0.0f, 1.0f};
-			static float half = 0.5f;
+		switch (GPU_material_status(*gpumat)) {
+			case GPU_MAT_SUCCESS:
+			{
+				static int ssr_id = -1; /* TODO transparent SSR */
+				bool use_blend = (ma->blend_method & MA_BM_BLEND) != 0;
 
-			color_p = col;
-			metal_p = spec_p = rough_p = &half;
+				*shgrp = DRW_shgroup_material_create(*gpumat, psl->transparent_pass);
+				add_standard_uniforms(*shgrp, sldata, vedata, &ssr_id, &ma->refract_depth, use_refract, use_blend);
+				break;
+			}
+			case GPU_MAT_QUEUED:
+			{
+				sldata->probes->all_materials_updated = false;
+				/* TODO Bypass probe compilation. */
+				color_p = compile_col;
+				metal_p = spec_p = rough_p = &half;
+				break;
+			}
+			case GPU_MAT_FAILED:
+			default:
+				color_p = error_col;
+				metal_p = spec_p = rough_p = &half;
+				break;
 		}
 	}
 

@@ -85,8 +85,6 @@ static struct {
 
 	struct Gwn_VertFormat *format_probe_display_cube;
 	struct Gwn_VertFormat *format_probe_display_planar;
-
-	int update_world;
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_background_vert_glsl[];
@@ -304,6 +302,9 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 		sldata->planar_ubo = DRW_uniformbuffer_create(sizeof(EEVEE_PlanarReflection) * MAX_PLANAR, NULL);
 	}
 
+	/* Only start doing probes if all materials have finished compiling. */
+	sldata->probes->all_materials_updated = true;
+
 	common_data->spec_toggle = true;
 	common_data->ssr_toggle = true;
 	common_data->sss_toggle = true;
@@ -334,7 +335,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 	}
 
 	if (update_all) {
-		e_data.update_world |= PROBE_UPDATE_ALL;
+		sldata->probes->update_world |= PROBE_UPDATE_ALL;
 		sldata->probes->updated_bounce = 0;
 		sldata->probes->grid_initialized = false;
 	}
@@ -395,34 +396,50 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		float *col = ts.colorBackground;
 		if (wo) {
 			col = &wo->horr;
-			if (wo->update_flag != 0 || pinfo->prev_world != wo) {
-				e_data.update_world |= PROBE_UPDATE_ALL;
-				pinfo->updated_bounce = 0;
-				pinfo->grid_initialized = false;
-			}
-			wo->update_flag = 0;
+			bool wo_sh_compiled = true;
 
 			if (wo->use_nodes && wo->nodetree) {
+				static float error_col[3] = {1.0f, 0.0f, 1.0f};
+				static float compile_col[3] = {0.5f, 0.5f, 0.5f};
 				struct GPUMaterial *gpumat = EEVEE_material_world_lightprobe_get(scene, wo);
 
-				grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
+				GPUMaterialStatus status = GPU_material_status(gpumat);
 
-				if (grp) {
-					DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
-					DRW_shgroup_call_add(grp, geom, NULL);
-				}
-				else {
-					/* Shader failed : pink background */
-					static float pink[3] = {1.0f, 0.0f, 1.0f};
-					col = pink;
+				switch (status) {
+					case GPU_MAT_SUCCESS:
+						grp = DRW_shgroup_material_create(gpumat, psl->probe_background);
+						DRW_shgroup_uniform_float(grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
+						DRW_shgroup_call_add(grp, geom, NULL);
+						wo_sh_compiled = true;
+						break;
+					case GPU_MAT_QUEUED:
+						pinfo->all_materials_updated = false;
+						wo_sh_compiled = false;
+						/* TODO Bypass probe compilation. */
+						col = compile_col;
+						break;
+					case GPU_MAT_FAILED:
+					default:
+						wo_sh_compiled = true;
+						col = error_col;
+						break;
 				}
 			}
 
-			pinfo->prev_world = wo;
+			if (wo->update_flag != 0 || pinfo->prev_world != wo || pinfo->prev_wo_sh_compiled != wo_sh_compiled) {
+				pinfo->update_world |= PROBE_UPDATE_ALL;
+				pinfo->updated_bounce = 0;
+				pinfo->grid_initialized = false;
+
+				pinfo->prev_wo_sh_compiled = wo_sh_compiled;
+				pinfo->prev_world = wo;
+			}
+			wo->update_flag = 0;
 		}
 		else if (pinfo->prev_world) {
+			pinfo->prev_wo_sh_compiled = false;
 			pinfo->prev_world = NULL;
-			e_data.update_world |= PROBE_UPDATE_ALL;
+			pinfo->update_world |= PROBE_UPDATE_ALL;
 			pinfo->updated_bounce = 0;
 			pinfo->grid_initialized = false;
 		}
@@ -584,7 +601,7 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 		}
 	}
 
-	if (e_data.update_world) {
+	if (pinfo->update_world) {
 		ped->need_update = true;
 		ped->updated_cells = 0;
 		ped->updated_lvl = 0;
@@ -899,7 +916,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		}
 
 		/* Tag probes to refresh */
-		e_data.update_world |= PROBE_UPDATE_CUBE;
+		pinfo->update_world |= PROBE_UPDATE_CUBE;
 		common_data->prb_num_render_cube = 0;
 		pinfo->cache_num_cube = pinfo->num_cube;
 
@@ -935,7 +952,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		common_data->prb_num_render_grid = 0;
 		pinfo->updated_bounce = 0;
 		pinfo->grid_initialized = false;
-		e_data.update_world |= PROBE_UPDATE_GRID;
+		pinfo->update_world |= PROBE_UPDATE_GRID;
 
 		for (int i = 1; (ob = pinfo->probes_grid_ref[i]) && (i < MAX_PROBE); i++) {
 			EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
@@ -1372,14 +1389,15 @@ static void lightprobe_cell_world_location_get(EEVEE_LightGrid *egrid, float loc
 static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
+	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	EEVEE_PassList *psl = vedata->psl;
 
 	render_world_to_probe(sldata, psl);
-	if (e_data.update_world & PROBE_UPDATE_CUBE) {
+	if (pinfo->update_world & PROBE_UPDATE_CUBE) {
 		glossy_filter_probe(sldata, vedata, psl, 0, 1.0);
 		common_data->prb_num_render_cube = 1;
 	}
-	if (e_data.update_world & PROBE_UPDATE_GRID) {
+	if (pinfo->update_world & PROBE_UPDATE_GRID) {
 		diffuse_filter_probe(sldata, vedata, psl, 0, 0.0, 0.0, 0.0, 0.0, 1.0);
 		SWAP(GPUTexture *, sldata->irradiance_pool, sldata->irradiance_rt);
 		DRW_framebuffer_texture_detach(sldata->probe_pool);
@@ -1389,7 +1407,7 @@ static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 		common_data->prb_num_render_grid = 1;
 	}
-	e_data.update_world = 0;
+	pinfo->update_world = 0;
 	DRW_viewport_request_redraw();
 }
 
@@ -1664,6 +1682,7 @@ bool EEVEE_lightprobes_all_probes_ready(EEVEE_ViewLayerData *sldata, EEVEE_Data 
 void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
+	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
 	/* Disable specular lighting when rendering probes to avoid feedback loops (looks bad). */
 	common_data->spec_toggle = false;
@@ -1677,10 +1696,10 @@ void EEVEE_lightprobes_refresh(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	common_data->ao_dist = 0.0f;
 
 	/* Render world in priority */
-	if (e_data.update_world) {
+	if (pinfo->update_world) {
 		lightprobes_refresh_world(sldata, vedata);
 	}
-	else if (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
+	else if (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false && pinfo->all_materials_updated) {
 		lightprobes_refresh_all_no_world(sldata, vedata);
 	}
 

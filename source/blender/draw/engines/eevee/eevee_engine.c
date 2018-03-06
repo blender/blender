@@ -100,7 +100,7 @@ static void eevee_cache_init(void *vedata)
 	EEVEE_effects_cache_init(sldata, vedata);
 	EEVEE_lightprobes_cache_init(sldata, vedata);
 	EEVEE_lights_cache_init(sldata, vedata);
-	EEVEE_materials_cache_init(vedata);
+	EEVEE_materials_cache_init(sldata, vedata);
 	EEVEE_motion_blur_cache_init(sldata, vedata);
 	EEVEE_occlusion_cache_init(sldata, vedata);
 	EEVEE_screen_raytrace_cache_init(sldata, vedata);
