@@ -360,7 +360,7 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	if ((effects->enabled_effects & EFFECT_VOLUMETRIC) != 0) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		Scene *scene = draw_ctx->scene;
-		DRWShadingGroup *grp;
+		DRWShadingGroup *grp = NULL;
 
 		/* Quick breakdown of the Volumetric rendering:
 		 *
@@ -404,7 +404,8 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 				DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 			}
 		}
-		else {
+
+		if (grp == NULL) {
 			/* If no world or volume material is present just clear the buffer with this drawcall */
 			grp = DRW_shgroup_empty_tri_batch_create(e_data.volumetric_clear_sh,
 				                                     psl->volumetric_world_ps,
