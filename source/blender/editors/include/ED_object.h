@@ -139,6 +139,10 @@ void ED_object_vpaintmode_exit(struct bContext *C);
 void ED_object_wpaintmode_exit_ex(struct Object *ob);
 void ED_object_wpaintmode_exit(struct bContext *C);
 
+void ED_object_sculptmode_enter_ex(
+        struct Scene *scene, struct Object *ob,
+        struct ReportList *reports);
+void ED_object_sculptmode_enter(struct bContext *C, struct ReportList *reports);
 void ED_object_sculptmode_exit_ex(
         struct Scene *scene, struct Object *ob);
 void ED_object_sculptmode_exit(struct bContext *C);
