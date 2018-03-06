@@ -478,6 +478,7 @@ void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 void DRW_viewport_matrix_override_set_all(DRWMatrixState *state)
 {
 	memcpy(DST.view_data.matstate.mat, state, sizeof(DRWMatrixState));
+	DST.override_mat = 0xFFFFFF;
 	DST.dirty_mat = true;
 }
 
