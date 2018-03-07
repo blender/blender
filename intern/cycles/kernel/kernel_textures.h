@@ -61,11 +61,11 @@ KERNEL_TEX(float2, __light_background_marginal_cdf)
 KERNEL_TEX(float2, __light_background_conditional_cdf)
 
 /* particles */
-KERNEL_TEX(float4, __particles)
+KERNEL_TEX(KernelParticle, __particles)
 
 /* shaders */
 KERNEL_TEX(uint4, __svm_nodes)
-KERNEL_TEX(uint, __shader_flag)
+KERNEL_TEX(KernelShader, __shaders)
 KERNEL_TEX(uint, __object_flag)
 
 /* lookup tables */

@@ -322,67 +322,49 @@ ccl_device_inline uint object_patch_map_offset(KernelGlobals *kg, int object)
 
 ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)
 {
-	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE + 1);
+	return kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).pass_id;
 }
 
 /* Particle data from which object was instanced */
 
 ccl_device_inline uint particle_index(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return __float_as_uint(f.x);
+	return kernel_tex_fetch(__particles, particle).index;
 }
 
 ccl_device float particle_age(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return f.y;
+	return kernel_tex_fetch(__particles, particle).age;
 }
 
 ccl_device float particle_lifetime(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return f.z;
+	return kernel_tex_fetch(__particles, particle).lifetime;
 }
 
 ccl_device float particle_size(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return f.w;
+	return kernel_tex_fetch(__particles, particle).size;
 }
 
 ccl_device float4 particle_rotation(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 1);
-	return f;
+	return kernel_tex_fetch(__particles, particle).rotation;
 }
 
 ccl_device float3 particle_location(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 2);
-	return make_float3(f.x, f.y, f.z);
+	return float4_to_float3(kernel_tex_fetch(__particles, particle).location);
 }
 
 ccl_device float3 particle_velocity(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f2 = kernel_tex_fetch(__particles, offset + 2);
-	float4 f3 = kernel_tex_fetch(__particles, offset + 3);
-	return make_float3(f2.w, f3.x, f3.y);
+	return float4_to_float3(kernel_tex_fetch(__particles, particle).velocity);
 }
 
 ccl_device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f3 = kernel_tex_fetch(__particles, offset + 3);
-	float4 f4 = kernel_tex_fetch(__particles, offset + 4);
-	return make_float3(f3.z, f3.w, f4.x);
+	return float4_to_float3(kernel_tex_fetch(__particles, particle).angular_velocity);
 }
 
 /* Object intersection in BVH */

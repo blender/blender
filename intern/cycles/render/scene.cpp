@@ -71,7 +71,7 @@ DeviceScene::DeviceScene(Device *device)
   light_background_conditional_cdf(device, "__light_background_conditional_cdf", MEM_TEXTURE),
   particles(device, "__particles", MEM_TEXTURE),
   svm_nodes(device, "__svm_nodes", MEM_TEXTURE),
-  shader_flag(device, "__shader_flag", MEM_TEXTURE),
+  shaders(device, "__shaders", MEM_TEXTURE),
   object_flag(device, "__object_flag", MEM_TEXTURE),
   lookup_table(device, "__lookup_table", MEM_TEXTURE),
   sobol_directions(device, "__sobol_directions", MEM_TEXTURE)

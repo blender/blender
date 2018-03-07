@@ -39,8 +39,6 @@ CCL_NAMESPACE_BEGIN
 #define FILTER_TABLE_SIZE	1024
 #define RAMP_TABLE_SIZE		256
 #define SHUTTER_TABLE_SIZE		256
-#define PARTICLE_SIZE 		5
-#define SHADER_SIZE		5
 
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
@@ -923,7 +921,7 @@ enum ShaderDataFlag {
 	SD_HAS_BUMP               = (1 << 25),
 	/* Has true displacement. */
 	SD_HAS_DISPLACEMENT       = (1 << 26),
-	/* Has constant emission (value stored in __shader_flag) */
+	/* Has constant emission (value stored in __shaders) */
 	SD_HAS_CONSTANT_EMISSION  = (1 << 27),
 	/* Needs to access attributes */
 	SD_NEED_ATTRIBUTES        = (1 << 28),
@@ -1510,6 +1508,29 @@ typedef struct KernelLightDistribution {
 	};
 } KernelLightDistribution;
 static_assert_align(KernelLightDistribution, 16);
+
+typedef struct KernelParticle {
+	int index;
+	float age;
+	float lifetime;
+	float size;
+	float4 rotation;
+	/* Only xyz are used of the following. float4 instead of float3 are used
+	 * to ensure consistent padding/alignment across devices. */
+	float4 location;
+	float4 velocity;
+	float4 angular_velocity;
+} KernelParticle;
+static_assert_align(KernelParticle, 16);
+
+typedef struct KernelShader {
+	float constant_emission[3];
+	float pad1;
+	int flags;
+	int pass_id;
+	int pad2, pad3;
+} KernelShader;
+static_assert_align(KernelShader, 16);
 
 /* Declarations required for split kernel */
 

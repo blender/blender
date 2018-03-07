@@ -114,7 +114,7 @@ ccl_device_noinline void shader_setup_from_ray(KernelGlobals *kg,
 
 	sd->I = -ray->D;
 
-	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
+	sd->flag |= kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 
 #ifdef __INSTANCING__
 	if(isect->object != OBJECT_NONE) {
@@ -199,7 +199,7 @@ void shader_setup_from_subsurface(
 		motion_triangle_shader_setup(kg, sd, isect, ray, true);
 	}
 
-	sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
+	sd->flag |= kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 
 #  ifdef __INSTANCING__
 	if(isect->object != OBJECT_NONE) {
@@ -276,7 +276,7 @@ ccl_device_inline void shader_setup_from_sample(KernelGlobals *kg,
 	sd->time = time;
 	sd->ray_length = t;
 
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
+	sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 	sd->object_flag = 0;
 	if(sd->object != OBJECT_NONE) {
 		sd->object_flag |= kernel_tex_fetch(__object_flag,
@@ -386,7 +386,7 @@ ccl_device_inline void shader_setup_from_background(KernelGlobals *kg, ShaderDat
 	sd->Ng = -ray->D;
 	sd->I = -ray->D;
 	sd->shader = kernel_data.background.surface_shader;
-	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
+	sd->flag = kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 	sd->object_flag = 0;
 	sd->time = ray->time;
 	sd->ray_length = 0.0f;
@@ -1181,7 +1181,7 @@ ccl_device_inline void shader_eval_volume(KernelGlobals *kg,
 		sd->shader = stack[i].shader;
 
 		sd->flag &= ~SD_SHADER_FLAGS;
-		sd->flag |= kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE);
+		sd->flag |= kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).flags;
 		sd->object_flag &= ~SD_OBJECT_FLAGS;
 
 		if(sd->object != OBJECT_NONE) {
@@ -1254,7 +1254,7 @@ ccl_device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect
 		shader = __float_as_int(str.z);
 	}
 #endif
-	int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*SHADER_SIZE);
+	int flag = kernel_tex_fetch(__shaders, (shader & SHADER_MASK)).flags;
 
 	return (flag & SD_HAS_TRANSPARENT_SHADOW) != 0;
 }
