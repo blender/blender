@@ -386,6 +386,8 @@ void BLI_halton_1D(unsigned int prime, double offset, int n, double *r)
 {
 	const double invprime = 1.0 / (double)prime;
 
+	*r = 0.0;
+
 	for (int s = 0; s < n; s++) {
 		*r = halton_ex(invprime, &offset);
 	}
@@ -394,6 +396,8 @@ void BLI_halton_1D(unsigned int prime, double offset, int n, double *r)
 void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r)
 {
 	const double invprimes[2] = {1.0 / (double)prime[0], 1.0 / (double)prime[1]};
+
+	r[0] = r[1] = 0.0;
 
 	for (int s = 0; s < n; s++) {
 		for (int i = 0; i < 2; i++) {
@@ -405,6 +409,8 @@ void BLI_halton_2D(unsigned int prime[2], double offset[2], int n, double *r)
 void BLI_halton_3D(unsigned int prime[3], double offset[3], int n, double *r)
 {
 	const double invprimes[3] = {1.0 / (double)prime[0], 1.0 / (double)prime[1], 1.0 / (double)prime[2]};
+
+	r[0] = r[1] = r[2] = 0.0;
 
 	for (int s = 0; s < n; s++) {
 		for (int i = 0; i < 3; i++) {
