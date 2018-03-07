@@ -1289,7 +1289,7 @@ static int edbm_select_similar_region_exec(bContext *C, wmOperator *op)
 	MEM_freeN(group_index);
 
 	if (changed) {
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 	else {
 		BKE_report(op->reports, RPT_WARNING, "No matching face regions found");
@@ -1482,7 +1482,7 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 	MEM_freeN(edarray);
 //	if (EM_texFaceCheck())
 	
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1689,7 +1689,7 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 		}
 	}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 
 	return true;
 }
@@ -1776,7 +1776,7 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 			break;
 	}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -1804,7 +1804,7 @@ static int edbm_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 	if (EDBM_select_interior_faces(em)) {
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1941,7 +1941,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 
 		}
 
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 		return true;
 	}
 
@@ -2653,7 +2653,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 		select_linked_delimit_end(em);
 	}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2821,7 +2821,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	/* return warning! */
 	if (unified_findnearest(&vc, &eve, &eed, &efa) == 0) {
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 		return OPERATOR_CANCELLED;
 	}
@@ -2842,7 +2842,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	RNA_int_set(op->ptr, "index", index);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -2871,7 +2871,7 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 
 	edbm_select_linked_pick_ex(em, ele, sel, delimit);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
 }
@@ -3109,7 +3109,7 @@ static int edbm_select_more_exec(bContext *C, wmOperator *op)
 
 	EDBM_select_more(em, use_face_step);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
 
@@ -3138,7 +3138,7 @@ static int edbm_select_less_exec(bContext *C, wmOperator *op)
 
 	EDBM_select_less(em, use_face_step);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
 
