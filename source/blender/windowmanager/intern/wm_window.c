@@ -766,7 +766,11 @@ wmWindow *WM_window_open_temp(bContext *C, int x, int y, int sizex, int sizey, i
 		WM_window_set_active_layout(win, workspace, layout);
 	}
 
-	if (WM_window_get_active_scene(win) != scene) {
+	if (win->scene == NULL) {
+		win->scene = scene;
+	}
+	/* In case we reuse an already existing temp window (see win lookup above). */
+	else if (WM_window_get_active_scene(win) != scene) {
 		WM_window_change_active_scene(bmain, C, win, scene);
 	}
 
