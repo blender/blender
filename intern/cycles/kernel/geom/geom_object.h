@@ -60,12 +60,17 @@ ccl_device_inline Transform object_fetch_transform(KernelGlobals *kg, int object
 
 ccl_device_inline Transform lamp_fetch_transform(KernelGlobals *kg, int lamp, bool inverse)
 {
-	int offset = lamp*LIGHT_SIZE + (inverse? 8 : 5);
-
 	Transform tfm;
-	tfm.x = kernel_tex_fetch(__light_data, offset + 0);
-	tfm.y = kernel_tex_fetch(__light_data, offset + 1);
-	tfm.z = kernel_tex_fetch(__light_data, offset + 2);
+	if(inverse) {
+		tfm.x = kernel_tex_fetch(__lights, lamp).itfm[0];
+		tfm.y = kernel_tex_fetch(__lights, lamp).itfm[1];
+		tfm.z = kernel_tex_fetch(__lights, lamp).itfm[2];
+	}
+	else {
+		tfm.x = kernel_tex_fetch(__lights, lamp).tfm[0];
+		tfm.y = kernel_tex_fetch(__lights, lamp).tfm[1];
+		tfm.z = kernel_tex_fetch(__lights, lamp).tfm[2];
+	}
 	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	return tfm;
@@ -240,8 +245,7 @@ ccl_device_inline float lamp_random_number(KernelGlobals *kg, int lamp)
 	if(lamp == LAMP_NONE)
 		return 0.0f;
 
-	float4 f = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 4);
-	return f.y;
+	return kernel_tex_fetch(__lights, lamp).random;
 }
 
 /* Per object random number for shader variation */

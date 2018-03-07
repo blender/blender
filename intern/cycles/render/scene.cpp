@@ -66,7 +66,7 @@ DeviceScene::DeviceScene(Device *device)
   attributes_float3(device, "__attributes_float3", MEM_TEXTURE),
   attributes_uchar4(device, "__attributes_uchar4", MEM_TEXTURE),
   light_distribution(device, "__light_distribution", MEM_TEXTURE),
-  light_data(device, "__light_data", MEM_TEXTURE),
+  lights(device, "__lights", MEM_TEXTURE),
   light_background_marginal_cdf(device, "__light_background_marginal_cdf", MEM_TEXTURE),
   light_background_conditional_cdf(device, "__light_background_conditional_cdf", MEM_TEXTURE),
   particles(device, "__particles", MEM_TEXTURE),
