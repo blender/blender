@@ -209,6 +209,10 @@ void DRW_deferred_shader_remove(GPUMaterial *mat)
 	Scene *scene = GPU_material_scene(mat);
 
 	for (wmWindowManager *wm = G.main->wm.first; wm; wm = wm->id.next) {
+		if (WM_jobs_test(wm, scene, WM_JOB_TYPE_SHADER_COMPILATION) == false) {
+			/* No job running, do not create a new one by calling WM_jobs_get. */
+			continue;
+		}
 		for (wmWindow *win = wm->windows.first; win; win = win->next) {
 			wmJob *wm_job = WM_jobs_get(wm, win, scene, "Shaders Compilation",
 			                            WM_JOB_PROGRESS | WM_JOB_SUSPEND, WM_JOB_TYPE_SHADER_COMPILATION);
