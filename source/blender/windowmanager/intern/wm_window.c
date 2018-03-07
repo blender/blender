@@ -2075,6 +2075,11 @@ void wm_window_IME_end(wmWindow *win)
 
 void *WM_opengl_context_create(void)
 {
+	/* On Windows there is a problem creating contexts that share lists
+	 * from one context that is current in another thread.
+	 * So we should call this function only on the main thread.
+	 */
+	BLI_assert(BLI_thread_is_main());
 	return GHOST_CreateOpenGLContext(g_system);
 }
 

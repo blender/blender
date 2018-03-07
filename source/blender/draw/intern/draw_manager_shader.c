@@ -200,7 +200,6 @@ static void drw_deferred_shader_add(
 	BLI_addtail(&comp->queue, dsh);
 
 	/* Create one context per task. */
-	BLI_assert(BLI_thread_is_main());
 	comp->ogl_context = WM_opengl_context_create();
 	WM_opengl_context_activate(DST.ogl_context);
 
