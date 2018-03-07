@@ -196,6 +196,16 @@ static void eevee_draw_background(void *vedata)
 		/* Copy previous persmat to UBO data */
 		copy_m4_m4(sldata->common_data.prev_persmat, stl->effects->prev_persmat);
 
+		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
+		    (stl->effects->taa_current_sample > 1) &&
+		    !DRW_state_is_image_render())
+		{
+			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
+			DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);
+			DRW_viewport_matrix_override_set(stl->effects->overide_winmat, DRW_MAT_WIN);
+			DRW_viewport_matrix_override_set(stl->effects->overide_wininv, DRW_MAT_WININV);
+		}
+
 		/* Refresh Probes */
 		DRW_stats_group_start("Probes Refresh");
 		EEVEE_lightprobes_refresh(sldata, vedata);
@@ -221,16 +231,6 @@ static void eevee_draw_background(void *vedata)
 			/* We need to clear the alpha chanel in this case. */
 			float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 			DRW_framebuffer_clear(true, true, true, clear_col, 1.0f);
-		}
-
-		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
-		    (stl->effects->taa_current_sample > 1) &&
-		    !DRW_state_is_image_render())
-		{
-			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
-			DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);
-			DRW_viewport_matrix_override_set(stl->effects->overide_winmat, DRW_MAT_WIN);
-			DRW_viewport_matrix_override_set(stl->effects->overide_wininv, DRW_MAT_WININV);
 		}
 
 		/* Depth prepass */
@@ -283,10 +283,7 @@ static void eevee_draw_background(void *vedata)
 		DRW_stats_group_end();
 
 		if ((stl->effects->taa_current_sample > 1) && !DRW_state_is_image_render()) {
-			DRW_viewport_matrix_override_unset(DRW_MAT_PERS);
-			DRW_viewport_matrix_override_unset(DRW_MAT_PERSINV);
-			DRW_viewport_matrix_override_unset(DRW_MAT_WIN);
-			DRW_viewport_matrix_override_unset(DRW_MAT_WININV);
+			DRW_viewport_matrix_override_unset_all();
 		}
 	}
 

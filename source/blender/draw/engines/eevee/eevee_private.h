@@ -658,7 +658,7 @@ typedef struct EEVEE_ShadowCubeData {
 typedef struct EEVEE_ShadowCascadeData {
 	short light_id, shadow_id, cascade_id, layer_id;
 	float viewprojmat[MAX_CASCADE_NUM][4][4]; /* World->Lamp->NDC : used for rendering the shadow map. */
-	float clipmat[DRW_MAT_COUNT][4][4]; /* Override matrices used for clipping. */
+	DRWMatrixState clipmat; /* Override matrices used for clipping. */
 	float radius[MAX_CASCADE_NUM];
 } EEVEE_ShadowCascadeData;
 
@@ -701,9 +701,7 @@ typedef struct EEVEE_LightProbeEngineData {
 	int max_lvl;
 	int probe_id; /* Only used for display data */
 	float probe_size; /* Only used for display data */
-	/* For planar reflection rendering */
-	float viewmat[4][4];
-	float persmat[4][4];
+	DRWMatrixState mats; /* For planar probes */
 	float planer_eq_offset[4];
 	struct ListBase captured_object_list;
 } EEVEE_LightProbeEngineData;

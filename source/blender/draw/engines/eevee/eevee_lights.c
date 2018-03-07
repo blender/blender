@@ -722,10 +722,10 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 
 	/* obmat = Object Space > World Space */
 	/* viewmat = World Space > View Space */
-	invert_m4_m4(sh_data->clipmat[DRW_MAT_VIEW], ob->obmat);
-	viewmat = sh_data->clipmat[DRW_MAT_VIEW];
+	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_VIEW], ob->obmat);
+	viewmat = sh_data->clipmat.mat[DRW_MAT_VIEW];
 	normalize_m4(viewmat);
-	invert_m4_m4(sh_data->clipmat[DRW_MAT_VIEWINV], viewmat);
+	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_VIEWINV], viewmat);
 
 	/* The technique consists into splitting
 	 * the view frustum into several sub-frustum
@@ -887,13 +887,13 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	}
 
 	/* Clipping mats */
-	orthographic_m4(sh_data->clipmat[DRW_MAT_WIN],
+	orthographic_m4(sh_data->clipmat.mat[DRW_MAT_WIN],
 	                rect_clip.xmin, rect_clip.xmax,
 	                rect_clip.ymin, rect_clip.ymax,
 	                la->clipsta, la->clipend);
-	mul_m4_m4m4(sh_data->clipmat[DRW_MAT_PERS], sh_data->clipmat[DRW_MAT_WIN], viewmat);
-	invert_m4_m4(sh_data->clipmat[DRW_MAT_WININV], sh_data->clipmat[DRW_MAT_WIN]);
-	invert_m4_m4(sh_data->clipmat[DRW_MAT_PERSINV], sh_data->clipmat[DRW_MAT_PERS]);
+	mul_m4_m4m4(sh_data->clipmat.mat[DRW_MAT_PERS], sh_data->clipmat.mat[DRW_MAT_WIN], viewmat);
+	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_WININV], sh_data->clipmat.mat[DRW_MAT_WIN]);
+	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_PERSINV], sh_data->clipmat.mat[DRW_MAT_PERS]);
 
 	ubo_data->bias = 0.05f * la->bias;
 	ubo_data->near = la->clipsta;
@@ -1024,7 +1024,7 @@ static void eevee_shadows_cube_culling_frustum(EEVEE_ShadowRender *srd)
 
 static void eevee_shadows_cascade_culling_frustum(EEVEE_ShadowCascadeData *evscd)
 {
-	DRW_viewport_matrix_override_set_all((DRWMatrixState *)evscd->clipmat);
+	DRW_viewport_matrix_override_set_all(&evscd->clipmat);
 }
 
 /* this refresh lamps shadow buffers */

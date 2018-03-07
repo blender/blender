@@ -426,12 +426,6 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
 		EEVEE_materials_init(sldata, stl, fbl);
 
-		/* Refresh Probes */
-		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
-			EEVEE_lightprobes_refresh(sldata, vedata);
-		}
-		EEVEE_lightprobes_refresh_planar(sldata, vedata);
-		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 		/* Set matrices. */
 		DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
 		DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);
@@ -439,6 +433,14 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		DRW_viewport_matrix_override_set(stl->effects->overide_wininv, DRW_MAT_WININV);
 		DRW_viewport_matrix_override_set(g_data->viewmat, DRW_MAT_VIEW);
 		DRW_viewport_matrix_override_set(g_data->viewinv, DRW_MAT_VIEWINV);
+
+		/* Refresh Probes */
+		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
+			EEVEE_lightprobes_refresh(sldata, vedata);
+		}
+		EEVEE_lightprobes_refresh_planar(sldata, vedata);
+		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+
 		/* Refresh Shadows */
 		EEVEE_draw_shadows(sldata, psl);
 

@@ -383,7 +383,6 @@ void DRW_state_clip_planes_reset(void)
  * \{ */
 
 static void draw_clipping_setup_from_view(void)
-
 {
 	if (DST.clipping.updated)
 		return;
