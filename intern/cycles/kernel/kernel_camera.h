@@ -92,16 +92,10 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
-#  ifdef __KERNEL_OPENCL__
-		const MotionTransform tfm = kernel_data.cam.motion;
-		transform_motion_interpolate(&cameratoworld,
-									 &tfm,
-		                             ray->time);
-#  else
-		transform_motion_interpolate(&cameratoworld,
-		                             &kernel_data.cam.motion,
-		                             ray->time);
-#  endif
+		ccl_constant MotionTransform *motion = &kernel_data.cam.motion;
+		transform_motion_interpolate_constant(&cameratoworld,
+		                                      motion,
+		                                      ray->time);
 	}
 #endif
 
@@ -204,16 +198,10 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 
 #ifdef __CAMERA_MOTION__
 	if(kernel_data.cam.have_motion) {
-#  ifdef __KERNEL_OPENCL__
-		const MotionTransform tfm = kernel_data.cam.motion;
-		transform_motion_interpolate(&cameratoworld,
-		                             &tfm,
-		                             ray->time);
-#  else
-		transform_motion_interpolate(&cameratoworld,
-		                             &kernel_data.cam.motion,
-		                             ray->time);
-#  endif
+		ccl_constant MotionTransform *motion = &kernel_data.cam.motion;
+		transform_motion_interpolate_constant(&cameratoworld,
+		                                      motion,
+		                                      ray->time);
 	}
 #endif
 
@@ -282,16 +270,10 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 
 #ifdef __CAMERA_MOTION__
 	if(cam->have_motion) {
-#  ifdef __KERNEL_OPENCL__
-		const MotionTransform tfm = cam->motion;
-		transform_motion_interpolate(&cameratoworld,
-		                             &tfm,
-		                             ray->time);
-#  else
-		transform_motion_interpolate(&cameratoworld,
-		                             &cam->motion,
-		                             ray->time);
-#  endif
+		ccl_constant MotionTransform *motion = &cam->motion;
+		transform_motion_interpolate_constant(&cameratoworld,
+		                                      motion,
+		                                      ray->time);
 	}
 #endif
 
