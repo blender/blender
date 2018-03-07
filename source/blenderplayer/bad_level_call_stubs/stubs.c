@@ -238,6 +238,8 @@ bool BPY_string_is_keyword(const char *str) { return false; }
 /* -------------------------------------------------------------------- */
 /* Stubs */
 
+void DRW_deferred_shader_remove(struct GPUMaterial *mat) RET_NONE
+
 /*new render funcs */
 void EDBM_selectmode_set(struct BMEditMesh *em) RET_NONE
 void EDBM_mesh_load(struct Object *ob) RET_NONE
