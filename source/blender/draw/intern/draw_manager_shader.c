@@ -71,6 +71,8 @@ typedef struct DRWShaderCompiler {
 	DRWDeferredShader *mat_compiling;
 	ThreadMutex compilation_lock;
 
+	void *ogl_context;
+
 	int shaders_done; /* To compute progress. */
 } DRWShaderCompiler;
 
@@ -97,9 +99,7 @@ static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop,
 {
 	DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
 
-	/* Create one context per task. */
-	void *ogl_context = WM_opengl_context_create();
-	WM_opengl_context_activate(ogl_context);
+	WM_opengl_context_activate(comp->ogl_context);
 
 	while (true) {
 		BLI_spin_lock(&comp->list_lock);
@@ -142,8 +142,7 @@ static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop,
 		drw_deferred_shader_free(comp->mat_compiling);
 	}
 
-	WM_opengl_context_release(ogl_context);
-	WM_opengl_context_dispose(ogl_context);
+	WM_opengl_context_release(comp->ogl_context);
 }
 
 static void drw_deferred_shader_compilation_free(void *custom_data)
@@ -154,6 +153,8 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 
 	BLI_spin_end(&comp->list_lock);
 	BLI_mutex_end(&comp->compilation_lock);
+
+	WM_opengl_context_dispose(comp->ogl_context);
 
 	MEM_freeN(comp);
 }
@@ -197,6 +198,11 @@ static void drw_deferred_shader_add(
 	}
 
 	BLI_addtail(&comp->queue, dsh);
+
+	/* Create one context per task. */
+	BLI_assert(BLI_thread_is_main());
+	comp->ogl_context = WM_opengl_context_create();
+	WM_opengl_context_activate(DST.ogl_context);
 
 	WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);
 	WM_jobs_timer(wm_job, 0.1, NC_MATERIAL | ND_SHADING_DRAW, 0);
