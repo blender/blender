@@ -407,7 +407,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 	}
 
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
-	unsigned int render_samples = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+	unsigned int tot_sample = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+	unsigned int render_samples = tot_sample;
 
 	while (render_samples-- > 0) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -485,6 +486,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		eevee_render_result_z(rl, viewname, rect, vedata, sldata);
 		/* Post Process */
 		EEVEE_draw_effects(sldata, vedata);
+
+		RE_engine_update_progress(engine, (float)(tot_sample - render_samples) / (float)tot_sample);
 	}
 
 	eevee_render_result_combined(rl, viewname, rect, vedata, sldata);
