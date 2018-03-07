@@ -134,7 +134,7 @@ void ED_scene_change_update(
 	CTX_data_eval_ctx(C, &eval_ctx_old);
 	eObjectMode object_mode_old = workspace->object_mode;
 	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
-	Object *obact_old = OBACT(layer_old);
+	Object *obact_old = layer_old ? OBACT(layer_old) : NULL;
 	bool obact_new_mode_exists = ED_object_mode_generic_exists(bmain->wm.first, obact_new, workspace->object_mode);
 
 
