@@ -48,29 +48,7 @@
 #include "ED_util.h"
 #include "ED_mesh.h"
 
-
 #include "util_intern.h"
-
-/* ***************** generic editmode undo system ********************* */
-/*
- * Add this in your local code:
- *
- * void undo_editmode_push(bContext *C, const char *name, 
- *      void * (*getdata)(bContext *C),     // use context to retrieve current editdata
- *      void (*freedata)(void *),           // pointer to function freeing data
- *      void (*to_editmode)(void *, void *),        // data to editmode conversion
- *      void * (*from_editmode)(void *))      // editmode to data conversion
- *      int  (*validate_undo)(void *, void *))      // check if undo data is still valid
- *
- *
- * Further exported for UI is:
- *
- * void undo_editmode_step(bContext *C, int step);	 // undo and redo
- * void undo_editmode_clear(void)				// free & clear all data
- * void undo_editmode_menu(void)				// history menu
- */
-
-/* ********************************************************************* */
 
 /* ****** XXX ***** */
 static void error(const char *UNUSED(arg)) {}
@@ -78,24 +56,30 @@ static void error(const char *UNUSED(arg)) {}
 
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
-	ID id;          // copy of editmode object ID
-	Object *ob;     // pointer to edited object
-	int type;       // type of edited object
+	/** copy of edit-mode object ID */
+	ID id;
+	/** pointer to edited object */
+	Object *ob;
+	/** type of edited object */
+	int type;
 	void *undodata;
 	uintptr_t undosize;
 	char name[BKE_UNDO_STR_MAX];
+
+	/** Use context to retrieve current edit-data. */
 	void * (*getdata)(bContext * C);
+	/** Pointer to function freeing data. */
 	void (*freedata)(void *);
+	 /** Data to edit-mode conversion. */
 	void (*to_editmode)(void *, void *, void *);
+	/** Edit-mode to data conversion. */
 	void * (*from_editmode)(void *, void *);
+	/** Check if undo data is still valid. */
 	int (*validate_undo)(void *, void *);
 } UndoElem;
 
-static ListBase undobase = {NULL, NULL};
-static UndoElem *curundo = NULL;
-
-
-/* ********************* xtern api calls ************* */
+static ListBase g_undobase = {NULL, NULL};
+static UndoElem *g_curundo = NULL;
 
 static void undo_restore(UndoElem *undo, void *editdata, void *obdata)
 {
@@ -104,34 +88,38 @@ static void undo_restore(UndoElem *undo, void *editdata, void *obdata)
 	}
 }
 
-/* name can be a dynamic string */
-void undo_editmode_push(bContext *C, const char *name, 
-                        void * (*getdata)(bContext * C),
-                        void (*freedata)(void *),
-                        void (*to_editmode)(void *, void *, void *),
-                        void *(*from_editmode)(void *, void *),
-                        int (*validate_undo)(void *, void *))
+/**
+ * name can be a dynamic string
+ * See #UndoElem for callbacks docs.
+ * */
+void undo_editmode_push(
+        bContext *C, const char *name,
+        void * (*getdata)(bContext * C),
+        void (*freedata)(void *),
+        void (*to_editmode)(void *, void *, void *),
+        void *(*from_editmode)(void *, void *),
+        int (*validate_undo)(void *, void *))
 {
 	UndoElem *uel;
 	Object *obedit = CTX_data_edit_object(C);
 	void *editdata;
 	int nr;
-	uintptr_t memused, totmem, maxmem;
+	uintptr_t mem_used, mem_total, mem_max;
 
 	/* at first here was code to prevent an "original" key to be inserted twice
 	 * this was giving conflicts for example when mesh changed due to keys or apply */
 	
-	/* remove all undos after (also when curundo == NULL) */
-	while (undobase.last != curundo) {
-		uel = undobase.last;
+	/* remove all undos after (also when g_curundo == NULL) */
+	while (g_undobase.last != g_curundo) {
+		uel = g_undobase.last;
 		uel->freedata(uel->undodata);
-		BLI_freelinkN(&undobase, uel);
+		BLI_freelinkN(&g_undobase, uel);
 	}
 	
 	/* make new */
-	curundo = uel = MEM_callocN(sizeof(UndoElem), "undo editmode");
+	g_curundo = uel = MEM_callocN(sizeof(UndoElem), "undo editmode");
 	BLI_strncpy(uel->name, name, sizeof(uel->name));
-	BLI_addtail(&undobase, uel);
+	BLI_addtail(&g_undobase, uel);
 	
 	uel->getdata = getdata;
 	uel->freedata = freedata;
@@ -141,129 +129,143 @@ void undo_editmode_push(bContext *C, const char *name,
 	
 	/* limit amount to the maximum amount*/
 	nr = 0;
-	uel = undobase.last;
+	uel = g_undobase.last;
 	while (uel) {
 		nr++;
-		if (nr == U.undosteps) break;
+		if (nr == U.undosteps) {
+			break;
+		}
 		uel = uel->prev;
 	}
 	if (uel) {
-		while (undobase.first != uel) {
-			UndoElem *first = undobase.first;
+		while (g_undobase.first != uel) {
+			UndoElem *first = g_undobase.first;
 			first->freedata(first->undodata);
-			BLI_freelinkN(&undobase, first);
+			BLI_freelinkN(&g_undobase, first);
 		}
 	}
 
 	/* copy  */
-	memused = MEM_get_memory_in_use();
+	mem_used = MEM_get_memory_in_use();
 	editdata = getdata(C);
-	curundo->undodata = curundo->from_editmode(editdata, obedit->data);
-	curundo->undosize = MEM_get_memory_in_use() - memused;
-	curundo->ob = obedit;
-	curundo->id = obedit->id;
-	curundo->type = obedit->type;
+	g_curundo->undodata = g_curundo->from_editmode(editdata, obedit->data);
+	g_curundo->undosize = MEM_get_memory_in_use() - mem_used;
+	g_curundo->ob = obedit;
+	g_curundo->id = obedit->id;
+	g_curundo->type = obedit->type;
 
 	if (U.undomemory != 0) {
 		/* limit to maximum memory (afterwards, we can't know in advance) */
-		totmem = 0;
-		maxmem = ((uintptr_t)U.undomemory) * 1024 * 1024;
+		mem_total = 0;
+		mem_max = ((uintptr_t)U.undomemory) * 1024 * 1024;
 
-		uel = undobase.last;
+		uel = g_undobase.last;
 		while (uel && uel->prev) {
-			totmem += uel->undosize;
-			if (totmem > maxmem) break;
+			mem_total += uel->undosize;
+			if (mem_total > mem_max) {
+				break;
+			}
 			uel = uel->prev;
 		}
 
 		if (uel) {
-			if (uel->prev && uel->prev->prev)
+			if (uel->prev && uel->prev->prev) {
 				uel = uel->prev;
-
-			while (undobase.first != uel) {
-				UndoElem *first = undobase.first;
+			}
+			while (g_undobase.first != uel) {
+				UndoElem *first = g_undobase.first;
 				first->freedata(first->undodata);
-				BLI_freelinkN(&undobase, first);
+				BLI_freelinkN(&g_undobase, first);
 			}
 		}
 	}
 }
+
+/** \} */
+
 
 /* helper to remove clean other objects from undo stack */
 static void undo_clean_stack(bContext *C)
 {
-	UndoElem *uel, *next;
+	UndoElem *uel;
 	Object *obedit = CTX_data_edit_object(C);
-	
+
 	/* global undo changes pointers, so we also allow identical names */
 	/* side effect: when deleting/renaming object and start editing new one with same name */
-	
-	uel = undobase.first;
+
+	uel = g_undobase.first;
 	while (uel) {
 		void *editdata = uel->getdata(C);
 		bool is_valid = false;
-		next = uel->next;
-		
+		UndoElem *uel_next = uel->next;
+
 		/* for when objects are converted, renamed, or global undo changes pointers... */
 		if (uel->type == obedit->type) {
 			if (STREQ(uel->id.name, obedit->id.name)) {
-				if (uel->validate_undo == NULL)
+				if (uel->validate_undo == NULL) {
 					is_valid = true;
-				else if (uel->validate_undo(uel->undodata, editdata))
+				}
+				else if (uel->validate_undo(uel->undodata, editdata)) {
 					is_valid = true;
+				}
 			}
 		}
-		if (is_valid)
+		if (is_valid) {
 			uel->ob = obedit;
+		}
 		else {
-			if (uel == curundo)
-				curundo = NULL;
+			if (uel == g_curundo) {
+				g_curundo = NULL;
+			}
 
 			uel->freedata(uel->undodata);
-			BLI_freelinkN(&undobase, uel);
+			BLI_freelinkN(&g_undobase, uel);
 		}
-		
-		uel = next;
+
+		uel = uel_next;
 	}
-	
-	if (curundo == NULL) curundo = undobase.last;
+
+	if (g_curundo == NULL) {
+		g_curundo = g_undobase.last;
+	}
 }
 
-/* 1 = an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
+/**
+ * 1 = an undo, -1 is a redo.
+ * we have to make sure 'g_curundo' remains at current situation
+ */
 void undo_editmode_step(bContext *C, int step)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	
+
 	/* prevent undo to happen on wrong object, stack can be a mix */
 	undo_clean_stack(C);
-	
+
 	if (step == 0) {
-		undo_restore(curundo, curundo->getdata(C), obedit->data);
+		undo_restore(g_curundo, g_curundo->getdata(C), obedit->data);
 	}
 	else if (step == 1) {
-		
-		if (curundo == NULL || curundo->prev == NULL) {
+		if (g_curundo == NULL || g_curundo->prev == NULL) {
 			error("No more steps to undo");
 		}
 		else {
-			if (G.debug & G_DEBUG) printf("undo %s\n", curundo->name);
-			curundo = curundo->prev;
-			undo_restore(curundo, curundo->getdata(C), obedit->data);
+			if (G.debug & G_DEBUG) printf("undo %s\n", g_curundo->name);
+			g_curundo = g_curundo->prev;
+			undo_restore(g_curundo, g_curundo->getdata(C), obedit->data);
 		}
 	}
 	else {
-		/* curundo has to remain current situation! */
-		
-		if (curundo == NULL || curundo->next == NULL) {
+		/* g_curundo has to remain current situation! */
+		if (g_curundo == NULL || g_curundo->next == NULL) {
 			error("No more steps to redo");
 		}
 		else {
-			undo_restore(curundo->next, curundo->getdata(C), obedit->data);
-			curundo = curundo->next;
-			if (G.debug & G_DEBUG) printf("redo %s\n", curundo->name);
+			undo_restore(g_curundo->next, g_curundo->getdata(C), obedit->data);
+			g_curundo = g_curundo->next;
+			if (G.debug & G_DEBUG) printf("redo %s\n", g_curundo->name);
 		}
 	}
-	
+
 	/* special case for editmesh, mode must be copied back to the scene */
 	if (obedit->type == OB_MESH) {
 		EDBM_selectmode_to_scene(C);
@@ -277,14 +279,14 @@ void undo_editmode_step(bContext *C, int step)
 void undo_editmode_clear(void)
 {
 	UndoElem *uel;
-	
-	uel = undobase.first;
+
+	uel = g_undobase.first;
 	while (uel) {
 		uel->freedata(uel->undodata);
 		uel = uel->next;
 	}
-	BLI_freelistN(&undobase);
-	curundo = NULL;
+	BLI_freelistN(&g_undobase);
+	g_curundo = NULL;
 }
 
 /* based on index nr it does a restore */
@@ -292,58 +294,69 @@ void undo_editmode_number(bContext *C, int nr)
 {
 	UndoElem *uel;
 	int a = 1;
-	
-	for (uel = undobase.first; uel; uel = uel->next, a++) {
-		if (a == nr) break;
+
+	for (uel = g_undobase.first; uel; uel = uel->next, a++) {
+		if (a == nr) {
+			break;
+		}
 	}
-	curundo = uel;
+	g_curundo = uel;
 	undo_editmode_step(C, 0);
 }
 
 void undo_editmode_name(bContext *C, const char *undoname)
 {
 	UndoElem *uel;
-	
-	for (uel = undobase.last; uel; uel = uel->prev) {
-		if (STREQ(undoname, uel->name))
+
+	for (uel = g_undobase.last; uel; uel = uel->prev) {
+		if (STREQ(undoname, uel->name)) {
 			break;
+		}
 	}
 	if (uel && uel->prev) {
-		curundo = uel->prev;
+		g_curundo = uel->prev;
 		undo_editmode_step(C, 0);
 	}
 }
 
-/* undoname optionally, if NULL it just checks for existing undo steps */
+/**
+ * \a undoname is optional, when NULL it just checks for existing undo steps
+ */
 bool undo_editmode_is_valid(const char *undoname)
 {
 	if (undoname) {
 		UndoElem *uel;
-		
-		for (uel = undobase.last; uel; uel = uel->prev) {
-			if (STREQ(undoname, uel->name))
+
+		for (uel = g_undobase.last; uel; uel = uel->prev) {
+			if (STREQ(undoname, uel->name)) {
 				break;
+			}
 		}
 		return uel != NULL;
 	}
-	return undobase.last != undobase.first;
+	return g_undobase.last != g_undobase.first;
 }
 
 
-/* get name of undo item, return null if no item with this index */
-/* if active pointer, set it to 1 if true */
+/**
+ * Get name of undo item, return null if no item with this index.
+ *
+ * if active pointer, set it to 1 if true
+ */
 const char *undo_editmode_get_name(bContext *C, int nr, bool *r_active)
 {
 	UndoElem *uel;
-	
+
 	/* prevent wrong numbers to be returned */
 	undo_clean_stack(C);
-	
-	if (r_active) *r_active = false;
-	
-	uel = BLI_findlink(&undobase, nr);
+
+	if (r_active) {
+		*r_active = false;
+	}
+
+	uel = BLI_findlink(&g_undobase, nr);
 	if (uel) {
-		if (r_active && (uel == curundo)) {
+		if (r_active && (uel == g_curundo)) {
 			*r_active = true;
 		}
 		return uel->name;
@@ -354,7 +367,9 @@ const char *undo_editmode_get_name(bContext *C, int nr, bool *r_active)
 
 void *undo_editmode_get_prev(Object *ob)
 {
-	UndoElem *ue = undobase.last;
-	if (ue && ue->prev && ue->prev->ob == ob) return ue->prev->undodata;
+	UndoElem *ue = g_undobase.last;
+	if (ue && ue->prev && ue->prev->ob == ob) {
+		return ue->prev->undodata;
+	}
 	return NULL;
 }
