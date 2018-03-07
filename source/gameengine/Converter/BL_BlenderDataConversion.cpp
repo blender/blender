@@ -2059,7 +2059,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 			for (git=tempglist.begin(); git!=tempglist.end(); git++)
 			{
 				Group* group = *git;
-				FOREACH_GROUP_OBJECT(group, blenderobject)
+				FOREACH_GROUP_OBJECT_BEGIN(group, blenderobject)
 				{
 					if (converter->FindGameObject(blenderobject) == NULL)
 					{

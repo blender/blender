@@ -400,7 +400,7 @@ static const EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA 
 		return DummyRNA_DEFAULT_items;
 
 	/* find the object to affect */
-	FOREACH_GROUP_OBJECT(ob->dup_group, object)
+	FOREACH_GROUP_OBJECT_BEGIN(ob->dup_group, object)
 	{
 		item_tmp.identifier = item_tmp.name = object->id.name + 2;
 		item_tmp.value = i++;
@@ -1710,7 +1710,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 		if (copy_groups && group->view_layer->object_bases.first) {
 			bool all_duplicated = true;
 
-			FOREACH_GROUP_OBJECT(group, object)
+			FOREACH_GROUP_OBJECT_BEGIN(group, object)
 			{
 				if (object->id.newid == NULL) {
 					all_duplicated = false;
@@ -1722,7 +1722,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 			if (all_duplicated) {
 				groupn = ID_NEW_SET(group, BKE_group_copy(bmain, group));
 
-				FOREACH_GROUP_BASE(groupn, base)
+				FOREACH_GROUP_BASE_BEGIN(groupn, base)
 				{
 					base->object = (Object *)base->object->id.newid;
 				}
@@ -2425,7 +2425,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		/* Then, we tag our 'main' object and its detected dependencies to be also overridden. */
 		obact->id.tag |= LIB_TAG_DOIT;
 
-		FOREACH_GROUP_OBJECT(obgroup->dup_group, ob)
+		FOREACH_GROUP_OBJECT_BEGIN(obgroup->dup_group, ob)
 		{
 			make_override_static_tag_object(obact, ob);
 		}

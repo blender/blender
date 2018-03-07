@@ -213,7 +213,7 @@ static bool group_object_cyclic_check_internal(Object *object, Group *group)
 		if (dup_group == group)
 			return true;
 		else {
-			FOREACH_GROUP_OBJECT(dup_group, group_object)
+			FOREACH_GROUP_OBJECT_BEGIN(dup_group, group_object)
 			{
 				if (group_object_cyclic_check_internal(group_object, dup_group)) {
 					return true;
@@ -278,7 +278,7 @@ Group *BKE_group_object_find(Group *group, Object *ob)
 
 bool BKE_group_is_animated(Group *group, Object *UNUSED(parent))
 {
-	FOREACH_GROUP_OBJECT(group, object)
+	FOREACH_GROUP_OBJECT_BEGIN(group, object)
 	{
 		if (object->proxy) {
 			return true;
@@ -369,7 +369,7 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 #endif
 	{
 		/* only do existing tags, as set by regular depsgraph */
-		FOREACH_GROUP_OBJECT(group, object)
+		FOREACH_GROUP_OBJECT_BEGIN(group, object)
 		{
 			if (object->id.recalc & ID_RECALC_ALL) {
 				BKE_object_handle_update(eval_ctx, scene, object);

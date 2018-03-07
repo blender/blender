@@ -82,7 +82,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	for (Group *group = bmain->group.first; group; group = group->id.next) {
-		FOREACH_GROUP_OBJECT(group, object)
+		FOREACH_GROUP_OBJECT_BEGIN(group, object)
 		{
 			if (object && (object->id.tag & LIB_TAG_DOIT)) {
 				BKE_copybuffer_tag_ID(&group->id);

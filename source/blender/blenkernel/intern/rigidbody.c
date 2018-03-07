@@ -92,7 +92,7 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 	if (rbw->physics_world) {
 		/* free physics references, we assume that all physics objects in will have been added to the world */
 		if (rbw->constraints) {
-			FOREACH_GROUP_OBJECT(rbw->constraints, object)
+			FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, object)
 			{
 				if (object->rigidbody_constraint) {
 					RigidBodyCon *rbc = object->rigidbody_constraint;
@@ -105,7 +105,7 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 		}
 
 		if (rbw->group) {
-			FOREACH_GROUP_OBJECT(rbw->group, object)
+			FOREACH_GROUP_OBJECT_BEGIN(rbw->group, object)
 			{
 				if (object->rigidbody_object) {
 					RigidBodyOb *rbo = object->rigidbody_object;
@@ -1148,7 +1148,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 
 		/* remove object from rigid body constraints */
 		if (rbw->constraints) {
-			FOREACH_GROUP_OBJECT(rbw->constraints, obt)
+			FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, obt)
 			{
 				if (obt && obt->rigidbody_constraint) {
 					rbc = obt->rigidbody_constraint;
@@ -1201,7 +1201,7 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
 	}
 
 	i = 0;
-	FOREACH_GROUP_OBJECT(rbw->group, object)
+	FOREACH_GROUP_OBJECT_BEGIN(rbw->group, object)
 	{
 		rbw->objects[i] = object;
 		i++;
@@ -1332,7 +1332,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 	 * Memory management needs redesign here, this is just a dirty workaround.
 	 */
 	if (rebuild && rbw->constraints) {
-		FOREACH_GROUP_OBJECT(rbw->constraints, ob)
+		FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, ob)
 		{
 			RigidBodyCon *rbc = ob->rigidbody_constraint;
 			if (rbc && rbc->physics_constraint) {
@@ -1345,7 +1345,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 	}
 
 	/* update objects */
-	FOREACH_GROUP_OBJECT(rbw->group, ob)
+	FOREACH_GROUP_OBJECT_BEGIN(rbw->group, ob)
 	{
 		if (ob->type == OB_MESH) {
 			/* validate that we've got valid object set up here... */
@@ -1394,7 +1394,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 	if (rbw->constraints == NULL) /* no constraints, move on */
 		return;
 
-	FOREACH_GROUP_OBJECT(rbw->constraints, ob)
+	FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, ob)
 	{
 		/* validate that we've got valid object set up here... */
 		RigidBodyCon *rbc = ob->rigidbody_constraint;
@@ -1427,7 +1427,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 
 static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 {
-	FOREACH_GROUP_BASE(rbw->group, base)
+	FOREACH_GROUP_BASE_BEGIN(rbw->group, base)
 	{
 		Object *ob = base->object;
 		RigidBodyOb *rbo = ob->rigidbody_object;

@@ -961,7 +961,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 
 	/* group flags again */
 	for (group = bmain->group.first; group; group = group->id.next) {
-		FOREACH_GROUP_OBJECT(group, object)
+		FOREACH_GROUP_OBJECT_BEGIN(group, object)
 		{
 			object->flag |= OB_FROMGROUP;
 		}

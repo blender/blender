@@ -738,7 +738,7 @@ void KX_Scene::DupliGroupRecurse(CValue* obj, int level)
 	m_groupGameObjects.clear();
 
 	group = blgroupobj->dup_group;
-	FOREACH_GROUP_BASE(group, base)
+	FOREACH_GROUP_BASE_BEGIN(group, base)
 	{
 		Object *blenderobj = base->object;
 		if (blgroupobj == blenderobj)

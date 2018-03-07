@@ -1346,7 +1346,7 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part)
 			if (dw->ob != NULL) {
 				dw->index = 0;
 				if (part->dup_group) { /* can be NULL if lining fails or set to None */
-					FOREACH_GROUP_OBJECT(part->dup_group, object)
+					FOREACH_GROUP_OBJECT_BEGIN(part->dup_group, object)
 					{
 						if (object != dw->ob) {
 							dw->index++;

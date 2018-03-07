@@ -175,7 +175,7 @@ void SceneExporter::writeNodes(const EvaluationContext *eval_ctx, Object *ob, Sc
 		if ((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
 			Group *group = ob->dup_group;
 			/* printf("group detected '%s'\n", group->id.name + 2); */
-			FOREACH_GROUP_OBJECT(group, object)
+			FOREACH_GROUP_OBJECT_BEGIN(group, object)
 			{
 				printf("\t%s\n", object->id.name);
 			}
