@@ -86,7 +86,7 @@ public:
 	device_vector<uint> patches;
 
 	/* objects */
-	device_vector<float4> objects;
+	device_vector<KernelObject> objects;
 	device_vector<float4> objects_vector;
 
 	/* attributes */

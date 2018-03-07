@@ -31,7 +31,7 @@ KERNEL_TEX(uint, __object_node)
 KERNEL_TEX(float2, __prim_time)
 
 /* objects */
-KERNEL_TEX(float4, __objects)
+KERNEL_TEX(KernelObject, __objects)
 KERNEL_TEX(float4, __objects_vector)
 
 /* triangles */

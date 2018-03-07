@@ -35,7 +35,6 @@
 CCL_NAMESPACE_BEGIN
 
 /* Constants */
-#define OBJECT_SIZE 		16
 #define OBJECT_VECTOR_SIZE	6
 #define LIGHT_SIZE		11
 #define FILTER_TABLE_SIZE	1024
@@ -1433,6 +1432,30 @@ typedef struct KernelData {
 	KernelTables tables;
 } KernelData;
 static_assert_align(KernelData, 16);
+
+/* Kernel data structures. */
+
+typedef struct KernelObject {
+	MotionTransform tfm;
+
+	float surface_area;
+	float pass_id;
+	float random_number;
+	int particle_index;
+
+	float dupli_generated[3];
+	float dupli_uv[2];
+
+	int numkeys;
+	int numsteps;
+	int numverts;
+
+	uint patch_map_offset;
+	uint attribute_map_offset;
+	uint pad1, pad2;
+} KernelObject;;
+static_assert_align(KernelObject, 16);
+
 
 /* Declarations required for split kernel */
 
