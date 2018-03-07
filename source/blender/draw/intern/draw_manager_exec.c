@@ -414,6 +414,9 @@ static void draw_clipping_setup_from_view(void)
 			case 4:  q=0; r=3; break;
 			default: q=4; r=7; break;
 		}
+		if (DST.frontface == GL_CW) {
+			SWAP(int, q, r);
+		}
 
 		normal_tri_v3(DST.clipping.frustum_planes[p], bbox.vec[p], bbox.vec[q], bbox.vec[r]);
 		DST.clipping.frustum_planes[p][3] = -dot_v3v3(DST.clipping.frustum_planes[p], bbox.vec[p]);
