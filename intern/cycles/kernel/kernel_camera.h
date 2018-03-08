@@ -42,7 +42,7 @@ ccl_device float2 camera_sample_aperture(ccl_constant KernelCamera *cam, float u
 ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, ccl_addr_space Ray *ray)
 {
 	/* create ray form raster position */
-	Transform rastertocamera = kernel_data.cam.rastertocamera;
+	ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 raster = make_float3(raster_x, raster_y, 0.0f);
 	float3 Pcamera = transform_perspective(&rastertocamera, raster);
 
@@ -54,13 +54,13 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 		 * interpolated field of view.
 		 */
 		if(ray->time < 0.5f) {
-			Transform rastertocamera_pre = kernel_data.cam.perspective_motion.pre;
+			ProjectionTransform rastertocamera_pre = kernel_data.cam.perspective_motion.pre;
 			float3 Pcamera_pre =
 			        transform_perspective(&rastertocamera_pre, raster);
 			Pcamera = interp(Pcamera_pre, Pcamera, ray->time * 2.0f);
 		}
 		else {
-			Transform rastertocamera_post = kernel_data.cam.perspective_motion.post;
+			ProjectionTransform rastertocamera_post = kernel_data.cam.perspective_motion.post;
 			float3 Pcamera_post =
 			        transform_perspective(&rastertocamera_post, raster);
 			Pcamera = interp(Pcamera, Pcamera_post, (ray->time - 0.5f) * 2.0f);
@@ -169,7 +169,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, ccl_addr_space Ray *ray)
 {
 	/* create ray form raster position */
-	Transform rastertocamera = kernel_data.cam.rastertocamera;
+	ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	float3 P;
@@ -231,7 +231,7 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
                                               float lens_u, float lens_v,
                                               ccl_addr_space Ray *ray)
 {
-	Transform rastertocamera = cam->rastertocamera;
+	ProjectionTransform rastertocamera = cam->rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	/* create ray form raster position */
@@ -442,7 +442,7 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, 
 		if(sd->object == PRIM_NONE && kernel_data.cam.type == CAMERA_PERSPECTIVE)
 			P += camera_position(kg);
 
-		Transform tfm = kernel_data.cam.worldtondc;
+		ProjectionTransform tfm = kernel_data.cam.worldtondc;
 		return transform_perspective(&tfm, P);
 	}
 	else {

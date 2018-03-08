@@ -67,6 +67,7 @@ set(SRC_HEADERS
 	util_param.h
 	util_path.h
 	util_progress.h
+	util_projection.h
 	util_queue.h
 	util_rect.h
 	util_set.h

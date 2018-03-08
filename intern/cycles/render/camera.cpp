@@ -163,12 +163,12 @@ Camera::Camera()
 
 	compute_auto_viewplane();
 
-	screentoworld = transform_identity();
-	rastertoworld = transform_identity();
-	ndctoworld = transform_identity();
-	rastertocamera = transform_identity();
+	screentoworld = projection_identity();
+	rastertoworld = projection_identity();
+	ndctoworld = projection_identity();
+	rastertocamera = projection_identity();
 	cameratoworld = transform_identity();
-	worldtoraster = transform_identity();
+	worldtoraster = projection_identity();
 
 	dx = make_float3(0.0f, 0.0f, 0.0f);
 	dy = make_float3(0.0f, 0.0f, 0.0f);
@@ -241,18 +241,18 @@ void Camera::update(Scene *scene)
 	Transform full_rastertoscreen = transform_inverse(full_screentoraster);
 
 	/* screen to camera */
-	Transform cameratoscreen;
+	ProjectionTransform cameratoscreen;
 	if(type == CAMERA_PERSPECTIVE)
-		cameratoscreen = transform_perspective(fov, nearclip, farclip);
+		cameratoscreen = projection_perspective(fov, nearclip, farclip);
 	else if(type == CAMERA_ORTHOGRAPHIC)
-		cameratoscreen = transform_orthographic(nearclip, farclip);
+		cameratoscreen = projection_orthographic(nearclip, farclip);
 	else
-		cameratoscreen = transform_identity();
+		cameratoscreen = projection_identity();
 	
-	Transform screentocamera = transform_inverse(cameratoscreen);
+	ProjectionTransform screentocamera = projection_inverse(cameratoscreen);
 
 	rastertocamera = screentocamera * rastertoscreen;
-	Transform full_rastertocamera = screentocamera * full_rastertoscreen;
+	ProjectionTransform full_rastertocamera = screentocamera * full_rastertoscreen;
 	cameratoraster = screentoraster * cameratoscreen;
 
 	cameratoworld = matrix;
@@ -270,10 +270,10 @@ void Camera::update(Scene *scene)
 
 	/* differentials */
 	if(type == CAMERA_ORTHOGRAPHIC) {
-		dx = transform_direction(&rastertocamera, make_float3(1, 0, 0));
-		dy = transform_direction(&rastertocamera, make_float3(0, 1, 0));
-		full_dx = transform_direction(&full_rastertocamera, make_float3(1, 0, 0));
-		full_dy = transform_direction(&full_rastertocamera, make_float3(0, 1, 0));
+		dx = transform_perspective_direction(&rastertocamera, make_float3(1, 0, 0));
+		dy = transform_perspective_direction(&rastertocamera, make_float3(0, 1, 0));
+		full_dx = transform_perspective_direction(&full_rastertocamera, make_float3(1, 0, 0));
+		full_dy = transform_perspective_direction(&full_rastertocamera, make_float3(0, 1, 0));
 	}
 	else if(type == CAMERA_PERSPECTIVE) {
 		dx = transform_perspective(&rastertocamera, make_float3(1, 0, 0)) -
@@ -307,14 +307,14 @@ void Camera::update(Scene *scene)
 		/* TODO(sergey): Move to an utility function and de-duplicate with
 		 * calculation above.
 		 */
-		Transform screentocamera_pre =
-		        transform_inverse(transform_perspective(fov_pre,
-		                                                nearclip,
-		                                                farclip));
-		Transform screentocamera_post =
-		        transform_inverse(transform_perspective(fov_post,
-		                                                nearclip,
-		                                                farclip));
+		ProjectionTransform screentocamera_pre =
+		        projection_inverse(projection_perspective(fov_pre,
+		                                                  nearclip,
+		                                                  farclip));
+		ProjectionTransform screentocamera_post =
+		        projection_inverse(projection_perspective(fov_post,
+		                                                  nearclip,
+		                                                  farclip));
 		perspective_motion.pre = screentocamera_pre * rastertoscreen;
 		perspective_motion.post = screentocamera_post * rastertoscreen;
 	}
@@ -331,6 +331,7 @@ void Camera::update(Scene *scene)
 	kcam->worldtoscreen = worldtoscreen;
 	kcam->worldtoraster = worldtoraster;
 	kcam->worldtondc = worldtondc;
+	kcam->ndctoworld = ndctoworld;
 
 	/* camera motion */
 	kcam->have_motion = 0;
@@ -350,12 +351,12 @@ void Camera::update(Scene *scene)
 		}
 		else {
 			if(use_motion) {
-				kcam->motion.pre = cameratoraster * transform_inverse(motion.pre);
-				kcam->motion.post = cameratoraster * transform_inverse(motion.post);
+				kcam->perspective_motion.pre = cameratoraster * transform_inverse(motion.pre);
+				kcam->perspective_motion.post = cameratoraster * transform_inverse(motion.post);
 			}
 			else {
-				kcam->motion.pre = worldtoraster;
-				kcam->motion.post = worldtoraster;
+				kcam->perspective_motion.pre = worldtoraster;
+				kcam->perspective_motion.post = worldtoraster;
 			}
 		}
 	}
@@ -606,7 +607,7 @@ float Camera::world_to_raster_size(float3 P)
 		res = min(len(full_dx), len(full_dy));
 
 		if(offscreen_dicing_scale > 1.0f) {
-			float3 p = transform_perspective(&worldtocamera, P);
+			float3 p = transform_point(&worldtocamera, P);
 			float3 v = transform_perspective(&rastertocamera, make_float3(width, height, 0.0f));
 
 			/* Create point clamped to frustum */

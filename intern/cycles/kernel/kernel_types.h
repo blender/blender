@@ -1159,7 +1159,7 @@ typedef struct KernelCamera {
 
 	/* matrices */
 	Transform cameratoworld;
-	Transform rastertocamera;
+	ProjectionTransform rastertocamera;
 
 	/* differentials */
 	float4 dx;
@@ -1193,21 +1193,18 @@ typedef struct KernelCamera {
 	int is_inside_volume;
 
 	/* more matrices */
-	Transform screentoworld;
-	Transform rastertoworld;
-	/* work around cuda sm 2.0 crash, this seems to
-	 * cross some limit in combination with motion 
-	 * Transform ndctoworld; */
-	Transform worldtoscreen;
-	Transform worldtoraster;
-	Transform worldtondc;
+	ProjectionTransform screentoworld;
+	ProjectionTransform rastertoworld;
+	ProjectionTransform ndctoworld;
+	ProjectionTransform worldtoscreen;
+	ProjectionTransform worldtoraster;
+	ProjectionTransform worldtondc;
 	Transform worldtocamera;
 
 	MotionTransform motion;
 
-	/* Denotes changes in the projective matrix, namely in rastertocamera.
-	 * Used for camera zoom motion blur,
-	 */
+	/* Stores changes in the projeciton matrix. Use for camera zoom motion
+	 * blur and motion pass output for perspective camera. */
 	PerspectiveMotionTransform perspective_motion;
 
 	int shutter_table_offset;

@@ -22,6 +22,7 @@
 #include "graph/node.h"
 
 #include "util/util_boundbox.h"
+#include "util/util_projection.h"
 #include "util/util_transform.h"
 #include "util/util_types.h"
 
@@ -146,18 +147,18 @@ public:
 	PerspectiveMotionTransform perspective_motion;
 
 	/* computed camera parameters */
-	Transform screentoworld;
-	Transform rastertoworld;
-	Transform ndctoworld;
+	ProjectionTransform screentoworld;
+	ProjectionTransform rastertoworld;
+	ProjectionTransform ndctoworld;
 	Transform cameratoworld;
 
-	Transform worldtoraster;
-	Transform worldtoscreen;
-	Transform worldtondc;
+	ProjectionTransform worldtoraster;
+	ProjectionTransform worldtoscreen;
+	ProjectionTransform worldtondc;
 	Transform worldtocamera;
 
-	Transform rastertocamera;
-	Transform cameratoraster;
+	ProjectionTransform rastertocamera;
+	ProjectionTransform cameratoraster;
 
 	float3 dx;
 	float3 dy;

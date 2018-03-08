@@ -47,21 +47,7 @@ typedef struct ccl_may_alias MotionTransform {
 	Transform post;
 } MotionTransform;
 
-typedef struct PerspectiveMotionTransform {
-	Transform pre;
-	Transform post;
-} PerspectiveMotionTransform;
-
 /* Functions */
-
-ccl_device_inline float3 transform_perspective(const Transform *t, const float3 a)
-{
-	float4 b = make_float4(a.x, a.y, a.z, 1.0f);
-	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
-	float w = dot(t->w, b);
-
-	return (w != 0.0f)? c/w: make_float3(0.0f, 0.0f, 0.0f);
-}
 
 ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 {
@@ -221,21 +207,6 @@ ccl_device_inline Transform transform_scale(float x, float y, float z)
 	return transform_scale(make_float3(x, y, z));
 }
 
-ccl_device_inline Transform transform_perspective(float fov, float n, float f)
-{
-	Transform persp = make_transform(
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, f / (f - n), -f*n / (f - n),
-		0, 0, 1, 0);
-
-	float inv_angle = 1.0f/tanf(0.5f*fov);
-
-	Transform scale = transform_scale(inv_angle, inv_angle, 1);
-
-	return scale * persp;
-}
-
 ccl_device_inline Transform transform_rotate(float angle, float3 axis)
 {
 	float s = sinf(angle);
@@ -270,12 +241,6 @@ ccl_device_inline Transform transform_euler(float3 euler)
 		transform_rotate(euler.z, make_float3(0.0f, 0.0f, 1.0f)) *
 		transform_rotate(euler.y, make_float3(0.0f, 1.0f, 0.0f)) *
 		transform_rotate(euler.x, make_float3(1.0f, 0.0f, 0.0f));
-}
-
-ccl_device_inline Transform transform_orthographic(float znear, float zfar)
-{
-	return transform_scale(1.0f, 1.0f, 1.0f / (zfar-znear)) *
-		transform_translate(0.0f, 0.0f, -znear);
 }
 
 ccl_device_inline Transform transform_identity()

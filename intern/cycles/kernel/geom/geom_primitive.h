@@ -204,14 +204,14 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	/* camera motion, for perspective/orthographic motion.pre/post will be a
 	 * world-to-raster matrix, for panorama it's world-to-camera */
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
-		tfm = kernel_data.cam.worldtoraster;
-		motion_center = transform_perspective(&tfm, center);
+		ProjectionTransform projection = kernel_data.cam.worldtoraster;
+		motion_center = transform_perspective(&projection, center);
 
-		tfm = kernel_data.cam.motion.pre;
-		motion_pre = transform_perspective(&tfm, motion_pre);
+		projection = kernel_data.cam.perspective_motion.pre;
+		motion_pre = transform_perspective(&projection, motion_pre);
 
-		tfm = kernel_data.cam.motion.post;
-		motion_post = transform_perspective(&tfm, motion_post);
+		projection = kernel_data.cam.perspective_motion.post;
+		motion_post = transform_perspective(&projection, motion_post);
 	}
 	else {
 		tfm = kernel_data.cam.worldtocamera;
