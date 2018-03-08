@@ -1059,8 +1059,8 @@ static int object_speaker_add_exec(bContext *C, wmOperator *op)
 	{
 		/* create new data for NLA hierarchy */
 		AnimData *adt = BKE_animdata_add_id(&ob->id);
-		NlaTrack *nlt = add_nlatrack(adt, NULL);
-		NlaStrip *strip = add_nla_soundstrip(scene, ob->data);
+		NlaTrack *nlt = BKE_nlatrack_add(adt, NULL);
+		NlaStrip *strip = BKE_nla_add_soundstrip(scene, ob->data);
 		strip->start = CFRA;
 		strip->end += strip->start;
 

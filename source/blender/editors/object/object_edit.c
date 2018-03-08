@@ -1096,7 +1096,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 				}
 				else if (event == 26) {
 #if 0 // XXX old animation system
-					copy_nlastrips(&base->object->nlastrips, &ob->nlastrips);
+					BKE_nlastrip_copy(s(&base->object->nlastrips, &ob->nlastrips);
 #endif // XXX old animation system
 				}
 				else if (event == 27) {   /* autosmooth */

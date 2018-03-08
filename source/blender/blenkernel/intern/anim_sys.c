@@ -243,7 +243,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 			}
 				
 			/* free nla data */
-			free_nladata(&adt->nla_tracks);
+			BKE_nla_tracks_free(&adt->nla_tracks);
 			
 			/* free drivers - stored as a list of F-Curves */
 			free_fcurves(&adt->drivers);
@@ -282,7 +282,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action)
 	}
 
 	/* duplicate NLA data */
-	copy_nladata(&dadt->nla_tracks, &adt->nla_tracks);
+	BKE_nla_tracks_copy(&dadt->nla_tracks, &adt->nla_tracks);
 	
 	/* duplicate drivers (F-Curves) */
 	copy_fcurves(&dadt->drivers, &adt->drivers);
@@ -364,7 +364,7 @@ void BKE_animdata_merge_copy(ID *dst_id, ID *src_id, eAnimData_MergeCopy_Modes a
 	if (src->nla_tracks.first) {
 		ListBase tracks = {NULL, NULL};
 		
-		copy_nladata(&tracks, &src->nla_tracks);
+		BKE_nla_tracks_copy(&tracks, &src->nla_tracks);
 		BLI_movelisttolist(&dst->nla_tracks, &tracks);
 	}
 	

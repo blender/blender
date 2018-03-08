@@ -371,7 +371,7 @@ static FCurve *rna_NlaStrip_fcurve_find(NlaStrip *strip, ReportList *reports, co
 static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *reports, const char *UNUSED(name),
                                   int start, bAction *action)
 {
-	NlaStrip *strip = add_nlastrip(action);
+	NlaStrip *strip = BKE_nlastrip_new(action);
 	
 	if (strip == NULL) {
 		BKE_report(reports, RPT_ERROR, "Unable to create new strip");
@@ -384,7 +384,7 @@ static NlaStrip *rna_NlaStrip_new(NlaTrack *track, bContext *C, ReportList *repo
 	if (BKE_nlastrips_add_strip(&track->strips, strip) == 0) {
 		BKE_report(reports, RPT_ERROR,
 		           "Unable to add strip (the track does not have any space to accommodate this new strip)");
-		free_nlastrip(NULL, strip);
+		BKE_nlastrip_free(NULL, strip);
 		return NULL;
 	}
 	
@@ -425,7 +425,7 @@ static void rna_NlaStrip_remove(NlaTrack *track, bContext *C, ReportList *report
 		return;
 	}
 
-	free_nlastrip(&track->strips, strip);
+	BKE_nlastrip_free(&track->strips, strip);
 	RNA_POINTER_INVALIDATE(strip_ptr);
 
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);
