@@ -75,7 +75,7 @@
 /* Remove the given NLA strip from the NLA track it occupies, free the strip's data,
  * and the strip itself. 
  */
-void free_nlastrip(ListBase *strips, NlaStrip *strip)
+void BKE_nlastrip_free(ListBase *strips, NlaStrip *strip)
 {
 	NlaStrip *cs, *csn;
 	
@@ -86,7 +86,7 @@ void free_nlastrip(ListBase *strips, NlaStrip *strip)
 	/* free child-strips */
 	for (cs = strip->strips.first; cs; cs = csn) {
 		csn = cs->next;
-		free_nlastrip(&strip->strips, cs);
+		BKE_nlastrip_free(&strip->strips, cs);
 	}
 		
 	/* remove reference to action */
@@ -113,7 +113,7 @@ void free_nlastrip(ListBase *strips, NlaStrip *strip)
 /* Remove the given NLA track from the set of NLA tracks, free the track's data,
  * and the track itself.
  */
-void free_nlatrack(ListBase *tracks, NlaTrack *nlt)
+void BKE_nlatrack_free(ListBase *tracks, NlaTrack *nlt)
 {
 	NlaStrip *strip, *stripn;
 	
@@ -124,7 +124,7 @@ void free_nlatrack(ListBase *tracks, NlaTrack *nlt)
 	/* free strips */
 	for (strip = nlt->strips.first; strip; strip = stripn) {
 		stripn = strip->next;
-		free_nlastrip(&nlt->strips, strip);
+		BKE_nlastrip_free(&nlt->strips, strip);
 	}
 	
 	/* free NLA track itself now */
@@ -137,7 +137,7 @@ void free_nlatrack(ListBase *tracks, NlaTrack *nlt)
 /* Free the elements of type NLA Tracks provided in the given list, but do not free
  * the list itself since that is not free-standing
  */
-void free_nladata(ListBase *tracks)
+void BKE_nla_tracks_free(ListBase *tracks)
 {
 	NlaTrack *nlt, *nltn;
 	
@@ -148,7 +148,7 @@ void free_nladata(ListBase *tracks)
 	/* free tracks one by one */
 	for (nlt = tracks->first; nlt; nlt = nltn) {
 		nltn = nlt->next;
-		free_nlatrack(tracks, nlt);
+		BKE_nlatrack_free(tracks, nlt);
 	}
 	
 	/* clear the list's pointers to be safe */
@@ -162,7 +162,7 @@ void free_nladata(ListBase *tracks)
  *
  * \param use_same_action When true, the existing action is used (instead of being duplicated)
  */
-NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
+NlaStrip *BKE_nlastrip_copy(NlaStrip *strip, const bool use_same_action)
 {
 	NlaStrip *strip_d;
 	NlaStrip *cs, *cs_d;
@@ -195,7 +195,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
 	BLI_listbase_clear(&strip_d->strips);
 	
 	for (cs = strip->strips.first; cs; cs = cs->next) {
-		cs_d = copy_nlastrip(cs, use_same_action);
+		cs_d = BKE_nlastrip_copy(cs, use_same_action);
 		BLI_addtail(&strip_d->strips, cs_d);
 	}
 	
@@ -204,7 +204,7 @@ NlaStrip *copy_nlastrip(NlaStrip *strip, const bool use_same_action)
 }
 
 /* Copy NLA Track */
-NlaTrack *copy_nlatrack(NlaTrack *nlt, const bool use_same_actions)
+NlaTrack *BKE_nlatrack_copy(NlaTrack *nlt, const bool use_same_actions)
 {
 	NlaStrip *strip, *strip_d;
 	NlaTrack *nlt_d;
@@ -221,7 +221,7 @@ NlaTrack *copy_nlatrack(NlaTrack *nlt, const bool use_same_actions)
 	BLI_listbase_clear(&nlt_d->strips);
 	
 	for (strip = nlt->strips.first; strip; strip = strip->next) {
-		strip_d = copy_nlastrip(strip, use_same_actions);
+		strip_d = BKE_nlastrip_copy(strip, use_same_actions);
 		BLI_addtail(&nlt_d->strips, strip_d);
 	}
 	
@@ -230,7 +230,7 @@ NlaTrack *copy_nlatrack(NlaTrack *nlt, const bool use_same_actions)
 }
 
 /* Copy all NLA data */
-void copy_nladata(ListBase *dst, ListBase *src)
+void BKE_nla_tracks_copy(ListBase *dst, ListBase *src)
 {
 	NlaTrack *nlt, *nlt_d;
 	
@@ -245,7 +245,7 @@ void copy_nladata(ListBase *dst, ListBase *src)
 	for (nlt = src->first; nlt; nlt = nlt->next) {
 		/* make a copy, and add the copy to the destination list */
 		// XXX: we need to fix this sometime
-		nlt_d = copy_nlatrack(nlt, true);
+		nlt_d = BKE_nlatrack_copy(nlt, true);
 		BLI_addtail(dst, nlt_d);
 	}
 }
@@ -255,7 +255,7 @@ void copy_nladata(ListBase *dst, ListBase *src)
 /* Add a NLA Track to the given AnimData 
  *	- prev: NLA-Track to add the new one after
  */
-NlaTrack *add_nlatrack(AnimData *adt, NlaTrack *prev)
+NlaTrack *BKE_nlatrack_add(AnimData *adt, NlaTrack *prev)
 {
 	NlaTrack *nlt;
 	
@@ -285,8 +285,8 @@ NlaTrack *add_nlatrack(AnimData *adt, NlaTrack *prev)
 	return nlt;
 }
 
-/* Add a NLA Strip referencing the given Action */
-NlaStrip *add_nlastrip(bAction *act)
+/* Create a NLA Strip referencing the given Action */
+NlaStrip *BKE_nlastrip_new(bAction *act)
 {
 	NlaStrip *strip;
 	
@@ -327,7 +327,7 @@ NlaStrip *add_nlastrip(bAction *act)
 }
 
 /* Add new NLA-strip to the top of the NLA stack - i.e. into the last track if space, or a new one otherwise */
-NlaStrip *add_nlastrip_to_stack(AnimData *adt, bAction *act)
+NlaStrip *BKE_nlastack_add_strip(AnimData *adt, bAction *act)
 {
 	NlaStrip *strip;
 	NlaTrack *nlt;
@@ -337,7 +337,7 @@ NlaStrip *add_nlastrip_to_stack(AnimData *adt, bAction *act)
 		return NULL;
 	
 	/* create a new NLA strip */
-	strip = add_nlastrip(act);
+	strip = BKE_nlastrip_new(act);
 	if (strip == NULL)
 		return NULL;
 	
@@ -346,7 +346,7 @@ NlaStrip *add_nlastrip_to_stack(AnimData *adt, bAction *act)
 		/* trying to add to the last track failed (no track or no space), 
 		 * so add a new track to the stack, and add to that...
 		 */
-		nlt = add_nlatrack(adt, NULL);
+		nlt = BKE_nlatrack_add(adt, NULL);
 		BKE_nlatrack_add_strip(nlt, strip);
 	}
 	
@@ -358,7 +358,7 @@ NlaStrip *add_nlastrip_to_stack(AnimData *adt, bAction *act)
 }
 
 /* Add a NLA Strip referencing the given speaker's sound */
-NlaStrip *add_nla_soundstrip(Scene *scene, Speaker *speaker)
+NlaStrip *BKE_nla_add_soundstrip(Scene *scene, Speaker *speaker)
 {
 	NlaStrip *strip = MEM_callocN(sizeof(NlaStrip), "NlaSoundStrip");
 	
@@ -751,7 +751,7 @@ void BKE_nlastrips_clear_metastrip(ListBase *strips, NlaStrip *strip)
 	}
 	
 	/* free the meta-strip now */
-	free_nlastrip(strips, strip);
+	BKE_nlastrip_free(strips, strip);
 }
 
 /* Remove meta-strips (i.e. flatten the list of strips) from the top-level of the list of strips
@@ -1392,7 +1392,12 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 			/* store path - make copy, and store that */
 			fcu->rna_path = BLI_strdupn("influence", 9);
 			
-			/* TODO: insert a few keyframes to ensure default behavior? */
+			/* insert keyframe to ensure current value stays on first refresh */
+			fcu->bezt = MEM_callocN(sizeof(BezTriple), "nlastrip influence bezt");
+			fcu->totvert = 1;
+			
+			fcu->bezt->vec[1][0] = strip->start;
+			fcu->bezt->vec[1][1] = strip->influence;
 		}
 	}
 	
@@ -1709,7 +1714,7 @@ bool BKE_nla_action_stash(AnimData *adt)
 		}
 	}
 	
-	nlt = add_nlatrack(adt, prev_track);
+	nlt = BKE_nlatrack_add(adt, prev_track);
 	BLI_assert(nlt != NULL);
 	
 	/* we need to ensure that if there wasn't any previous instance, it must go to tbe bottom of the stack */
@@ -1724,7 +1729,7 @@ bool BKE_nla_action_stash(AnimData *adt)
 	/* add the action as a strip in this new track
 	 * NOTE: a new user is created here
 	 */
-	strip = add_nlastrip(adt->action);
+	strip = BKE_nlastrip_new(adt->action);
 	BLI_assert(strip != NULL);
 	
 	BKE_nlatrack_add_strip(nlt, strip);
@@ -1760,7 +1765,8 @@ bool BKE_nla_action_stash(AnimData *adt)
 void BKE_nla_action_pushdown(AnimData *adt)
 {
 	NlaStrip *strip;
-
+	const bool is_first = (adt) && (adt->nla_tracks.first == NULL);
+	
 	/* sanity checks */
 	/* TODO: need to report the error for this */
 	if (ELEM(NULL, adt, adt->action))
@@ -1776,13 +1782,39 @@ void BKE_nla_action_pushdown(AnimData *adt)
 	}
 	
 	/* add a new NLA strip to the track, which references the active action */
-	strip = add_nlastrip_to_stack(adt, adt->action);
+	strip = BKE_nlastack_add_strip(adt, adt->action);
 	
 	/* do other necessary work on strip */
 	if (strip) {
 		/* clear reference to action now that we've pushed it onto the stack */
 		id_us_min(&adt->action->id);
 		adt->action = NULL;
+		
+		/* copy current "action blending" settings from adt to the strip,
+		 * as it was keyframed with these settings, so omitting them will
+		 * change the effect  [T54233]
+		 *
+		 * NOTE: We only do this when there are no tracks
+		 */
+		if (is_first == false) {
+			strip->blendmode = adt->act_blendmode;
+			strip->influence = adt->act_influence;
+			strip->extendmode = adt->act_extendmode;
+			
+			if (adt->act_influence < 1.0f) {
+				/* enable "user-controlled" influence (which will insert a default keyframe)
+				 * so that the influence doesn't get lost on the new update
+				 *
+				 * NOTE: An alternative way would have been to instead hack the influence
+				 * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
+				 * is disabled but auto-blending isn't being used. However, that approach
+				 * is a bit hacky/hard to discover, and may cause backwards compatability issues,
+				 * so it's better to just do it this way.
+				 */
+				strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+				BKE_nlastrip_validate_fcurves(strip);
+			}
+		}
 		
 		/* if the strip is the first one in the track it lives in, check if there
 		 * are strips in any other tracks that may be before this, and set the extend
@@ -1793,7 +1825,8 @@ void BKE_nla_action_pushdown(AnimData *adt)
 			 * so that it doesn't override strips in previous tracks
 			 */
 			/* FIXME: this needs to be more automated, since user can rearrange strips */
-			strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
+			if (strip->extendmode == NLASTRIP_EXTEND_HOLD)
+				strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
 		}
 		
 		/* make strip the active one... */

@@ -212,31 +212,31 @@ static void draw_view_icon(RegionView3D *rv3d, rcti *rect)
 /* *********************** backdraw for selection *************** */
 
 static void backdrawview3d(
-        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
-        ARegion *ar, View3D *v3d)
+        const struct EvaluationContext *eval_ctx, Scene *scene,
+        ARegion *ar, View3D *v3d,
+        Object *obact, Object *obedit)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	struct Base *base = view_layer->basact;
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
-	if (base && (eval_ctx->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
-	             BKE_paint_select_face_test(base->object, eval_ctx->object_mode)))
+	if (obact && (eval_ctx->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
+	             BKE_paint_select_face_test(obact, eval_ctx->object_mode)))
 	{
 		/* do nothing */
 	}
 	/* texture paint mode sampling */
-	else if (base && (eval_ctx->object_mode & OB_MODE_TEXTURE_PAINT) &&
+	else if (obact && (eval_ctx->object_mode & OB_MODE_TEXTURE_PAINT) &&
 	         (v3d->drawtype > OB_WIRE))
 	{
 		/* do nothing */
 	}
-	else if ((base && (eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT)) &&
+	else if ((obact && (eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT)) &&
 	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
 	}
-	else if ((eval_ctx->object_mode & OB_MODE_EDIT) &&
+	else if ((eval_ctx->object_mode & OB_MODE_EDIT) && (obedit != NULL) &&
 	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
@@ -310,10 +310,11 @@ static void backdrawview3d(
 		ED_view3d_clipping_set(rv3d);
 	
 	G.f |= G_BACKBUFSEL;
-	
-	if (base && ((base->flag & BASE_VISIBLED) != 0))
-		draw_object_backbufsel(eval_ctx, scene, v3d, rv3d, base->object);
-	
+
+	if (obact && ((obact->base_flag & BASE_VISIBLED) != 0)) {
+		draw_object_backbufsel(eval_ctx, scene, v3d, rv3d, obact);
+	}
+
 	if (rv3d->gpuoffscreen)
 		GPU_offscreen_unbind(rv3d->gpuoffscreen, true);
 	else
@@ -354,7 +355,7 @@ static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h,
 void ED_view3d_backbuf_validate(const struct EvaluationContext *eval_ctx, ViewContext *vc)
 {
 	if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
-		backdrawview3d(eval_ctx, vc->scene, vc->view_layer, vc->ar, vc->v3d);
+		backdrawview3d(eval_ctx, vc->scene, vc->ar, vc->v3d, vc->obact, vc->obedit);
 	}
 }
 

@@ -280,7 +280,7 @@ static void animrecord_check_state(Scene *scene, ID *id, wmTimer *animtimer)
 				/* only push down if action is more than 1-2 frames long */
 				calc_action_range(adt->action, &astart, &aend, 1);
 				if (aend > astart + 2.0f) {
-					NlaStrip *strip = add_nlastrip_to_stack(adt, adt->action);
+					NlaStrip *strip = BKE_nlastack_add_strip(adt, adt->action);
 					
 					/* clear reference to action now that we've pushed it onto the stack */
 					id_us_min(&adt->action->id);

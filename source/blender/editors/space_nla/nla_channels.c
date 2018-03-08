@@ -594,12 +594,12 @@ bool nlaedit_add_tracks_existing(bAnimContext *ac, bool above_sel)
 			 */
 			if (above_sel) {
 				/* just add a new one above this one */
-				add_nlatrack(adt, nlt);
+				BKE_nlatrack_add(adt, nlt);
 				added = true;
 			}
 			else if ((lastAdt == NULL) || (adt != lastAdt)) {
 				/* add one track to the top of the owning AnimData's stack, then don't add anymore to this stack */
-				add_nlatrack(adt, NULL);
+				BKE_nlatrack_add(adt, NULL);
 				lastAdt = adt;
 				added = true;
 			}
@@ -634,7 +634,7 @@ bool nlaedit_add_tracks_empty(bAnimContext *ac)
 		/* ensure it is empty */
 		if (BLI_listbase_is_empty(&adt->nla_tracks)) {
 			/* add new track to this AnimData block then */
-			add_nlatrack(adt, NULL);
+			BKE_nlatrack_add(adt, NULL);
 			added = true;
 		}
 	}
@@ -729,7 +729,7 @@ static int nlaedit_delete_tracks_exec(bContext *C, wmOperator *UNUSED(op))
 				adt->flag &= ~ADT_NLA_SOLO_TRACK;
 			
 			/* call delete on this track - deletes all strips too */
-			free_nlatrack(&adt->nla_tracks, nlt);
+			BKE_nlatrack_free(&adt->nla_tracks, nlt);
 		}
 	}
 	

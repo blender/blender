@@ -520,7 +520,7 @@ static void rna_KeyingSet_paths_clear(KeyingSet *keyingset, ReportList *reports)
 /* needs wrapper function to push notifier */
 static NlaTrack *rna_NlaTrack_new(AnimData *adt, bContext *C, NlaTrack *track)
 {
-	NlaTrack *new_track = add_nlatrack(adt, track);
+	NlaTrack *new_track = BKE_nlatrack_add(adt, track);
 
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_ADDED, NULL);
 
@@ -536,7 +536,7 @@ static void rna_NlaTrack_remove(AnimData *adt, bContext *C, ReportList *reports,
 		return;
 	}
 
-	free_nlatrack(&adt->nla_tracks, track);
+	BKE_nlatrack_free(&adt->nla_tracks, track);
 	RNA_POINTER_INVALIDATE(track_ptr);
 
 	WM_event_add_notifier(C, NC_ANIMATION | ND_NLA | NA_REMOVED, NULL);

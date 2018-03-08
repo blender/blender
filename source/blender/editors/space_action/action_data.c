@@ -568,11 +568,11 @@ void ED_animedit_unlink_action(bContext *C, ID *id, AnimData *adt, bAction *act,
 						
 						if (strip->act == act) {
 							/* Remove this strip, and the track too if it doesn't have anything else */
-							free_nlastrip(&nlt->strips, strip);
+							BKE_nlastrip_free(&nlt->strips, strip);
 							
 							if (nlt->strips.first == NULL) {
 								BLI_assert(nstrip == NULL);
-								free_nlatrack(&adt->nla_tracks, nlt);
+								BKE_nlatrack_free(&adt->nla_tracks, nlt);
 							}
 						}
 					}
