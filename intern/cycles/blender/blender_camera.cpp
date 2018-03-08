@@ -229,9 +229,7 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 		else
 			bcam->sensor_fit = BlenderCamera::VERTICAL;
 
-		if(object_use_motion(b_ob, b_ob)) {
-			bcam->motion_steps = object_motion_steps(b_ob);
-		}
+		bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 	}
 	else {
 		/* from lamp not implemented yet */

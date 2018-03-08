@@ -61,6 +61,7 @@ DeviceScene::DeviceScene(Device *device)
   patches(device, "__patches", MEM_TEXTURE),
   objects(device, "__objects", MEM_TEXTURE),
   object_motion_pass(device, "__object_motion_pass", MEM_TEXTURE),
+  object_motion(device, "__object_motion", MEM_TEXTURE),
   object_flag(device, "__object_flag", MEM_TEXTURE),
   camera_motion(device, "__camera_motion", MEM_TEXTURE),
   attributes_map(device, "__attributes_map", MEM_TEXTURE),

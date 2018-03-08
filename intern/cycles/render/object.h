@@ -50,8 +50,7 @@ public:
 	int pass_id;
 	vector<ParamValue> attributes;
 	uint visibility;
-	MotionTransform motion;
-	bool use_motion;
+	array<Transform> motion;
 	bool hide_on_missing_motion;
 	bool use_holdout;
 	bool is_shadow_catcher;
@@ -69,6 +68,13 @@ public:
 
 	void compute_bounds(bool motion_blur);
 	void apply_transform(bool apply_to_motion);
+
+	/* Convert between normalized -1..1 motion time and index
+	 * in the motion array. */
+	bool use_motion() const;
+	float motion_time(int step) const;
+	int motion_step(float time) const;
+	void update_motion();
 
 	/* Check whether object is traceable and it worth adding it to
 	 * kernel scene.

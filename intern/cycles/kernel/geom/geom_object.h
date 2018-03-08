@@ -40,18 +40,12 @@ enum ObjectVectorTransform {
 
 ccl_device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, enum ObjectTransform type)
 {
-	Transform tfm;
 	if(type == OBJECT_INVERSE_TRANSFORM) {
-		tfm.x = kernel_tex_fetch(__objects, object).tfm.mid.x;
-		tfm.y = kernel_tex_fetch(__objects, object).tfm.mid.y;
-		tfm.z = kernel_tex_fetch(__objects, object).tfm.mid.z;
+		return kernel_tex_fetch(__objects, object).itfm;
 	}
 	else {
-		tfm.x = kernel_tex_fetch(__objects, object).tfm.pre.x;
-		tfm.y = kernel_tex_fetch(__objects, object).tfm.pre.y;
-		tfm.z = kernel_tex_fetch(__objects, object).tfm.pre.z;
+		return kernel_tex_fetch(__objects, object).tfm;
 	}
-	return tfm;
 }
 
 /* Lamp to world space transformation */
@@ -79,10 +73,12 @@ ccl_device_inline Transform object_fetch_motion_pass_transform(KernelGlobals *kg
 #ifdef __OBJECT_MOTION__
 ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int object, float time)
 {
-	const ccl_global DecomposedMotionTransform *motion = &kernel_tex_fetch(__objects, object).tfm;
+	const uint motion_offset = kernel_tex_fetch(__objects, object).motion_offset;
+	const ccl_global DecomposedTransform *motion = &kernel_tex_fetch(__object_motion, motion_offset);
+	const uint num_steps = kernel_tex_fetch(__objects, object).numsteps * 2 + 1;
 
 	Transform tfm;
-	transform_motion_array_interpolate(&tfm, &motion->pre, 3, time);
+	transform_motion_array_interpolate(&tfm, motion, num_steps, time);
 
 	return tfm;
 }

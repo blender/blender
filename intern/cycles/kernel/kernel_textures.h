@@ -33,6 +33,7 @@ KERNEL_TEX(float2, __prim_time)
 /* objects */
 KERNEL_TEX(KernelObject, __objects)
 KERNEL_TEX(Transform, __object_motion_pass)
+KERNEL_TEX(DecomposedTransform, __object_motion)
 KERNEL_TEX(uint, __object_flag)
 
 /* cameras */

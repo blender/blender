@@ -1433,7 +1433,8 @@ static_assert_align(KernelData, 16);
 /* Kernel data structures. */
 
 typedef struct KernelObject {
-	DecomposedMotionTransform tfm;
+	Transform tfm;
+	Transform itfm;
 
 	float surface_area;
 	float pass_id;
@@ -1449,7 +1450,8 @@ typedef struct KernelObject {
 
 	uint patch_map_offset;
 	uint attribute_map_offset;
-	uint pad1, pad2;
+	uint motion_offset;
+	uint pad;
 } KernelObject;;
 static_assert_align(KernelObject, 16);
 

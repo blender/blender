@@ -37,12 +37,6 @@ typedef struct Transform {
 #endif
 } Transform;
 
-typedef struct ccl_may_alias MotionTransform {
-	Transform pre;
-	Transform mid;
-	Transform post;
-} MotionTransform;
-
 /* Transform decomposed in rotation/translation/scale. we use the same data
  * structure as Transform, and tightly pack decomposition into it. first the
  * rotation (4), then translation (3), then 3x3 scale matrix (9). */
@@ -50,12 +44,6 @@ typedef struct ccl_may_alias MotionTransform {
 typedef struct DecomposedTransform {
 	float4 x, y, z, w;
 } DecomposedTransform;
-
-typedef struct ccl_may_alias DecomposedMotionTransform {
-	DecomposedTransform pre;
-	DecomposedTransform mid;
-	DecomposedTransform post;
-} DecomposedMotionTransform;
 
 /* Functions */
 
@@ -441,11 +429,6 @@ class BoundBox2D;
 ccl_device_inline bool operator==(const DecomposedTransform& A, const DecomposedTransform& B)
 {
 	return memcmp(&A, &B, sizeof(DecomposedTransform)) == 0;
-}
-
-ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransform& B)
-{
-	return (A.pre == B.pre && A.post == B.post);
 }
 
 float4 transform_to_quat(const Transform& tfm);

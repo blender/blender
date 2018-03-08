@@ -792,7 +792,8 @@ ccl_device_inline bool triangle_world_space_vertices(KernelGlobals *kg, int obje
 #ifdef __INSTANCING__
 	if(!(object_flag & SD_OBJECT_TRANSFORM_APPLIED)) {
 #  ifdef __OBJECT_MOTION__
-		Transform tfm = object_fetch_transform_motion_test(kg, object, time, NULL);
+		float object_time = (time >= 0.0f) ? time : 0.5f;
+		Transform tfm = object_fetch_transform_motion_test(kg, object, object_time, NULL);
 #  else
 		Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #  endif
