@@ -1392,7 +1392,12 @@ void BKE_nlastrip_validate_fcurves(NlaStrip *strip)
 			/* store path - make copy, and store that */
 			fcu->rna_path = BLI_strdupn("influence", 9);
 			
-			/* TODO: insert a few keyframes to ensure default behavior? */
+			/* insert keyframe to ensure current value stays on first refresh */
+			fcu->bezt = MEM_callocN(sizeof(BezTriple), "nlastrip influence bezt");
+			fcu->totvert = 1;
+			
+			fcu->bezt->vec[1][0] = strip->start;
+			fcu->bezt->vec[1][1] = strip->influence;
 		}
 	}
 	
@@ -1760,7 +1765,8 @@ bool BKE_nla_action_stash(AnimData *adt)
 void BKE_nla_action_pushdown(AnimData *adt)
 {
 	NlaStrip *strip;
-
+	const bool is_first = (adt) && (adt->nla_tracks.first == NULL);
+	
 	/* sanity checks */
 	/* TODO: need to report the error for this */
 	if (ELEM(NULL, adt, adt->action))
@@ -1784,6 +1790,32 @@ void BKE_nla_action_pushdown(AnimData *adt)
 		id_us_min(&adt->action->id);
 		adt->action = NULL;
 		
+		/* copy current "action blending" settings from adt to the strip,
+		 * as it was keyframed with these settings, so omitting them will
+		 * change the effect  [T54233]
+		 *
+		 * NOTE: We only do this when there are no tracks
+		 */
+		if (is_first == false) {
+			strip->blendmode = adt->act_blendmode;
+			strip->influence = adt->act_influence;
+			strip->extendmode = adt->act_extendmode;
+			
+			if (adt->act_influence < 1.0f) {
+				/* enable "user-controlled" influence (which will insert a default keyframe)
+				 * so that the influence doesn't get lost on the new update
+				 *
+				 * NOTE: An alternative way would have been to instead hack the influence
+				 * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
+				 * is disabled but auto-blending isn't being used. However, that approach
+				 * is a bit hacky/hard to discover, and may cause backwards compatability issues,
+				 * so it's better to just do it this way.
+				 */
+				strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+				BKE_nlastrip_validate_fcurves(strip);
+			}
+		}
+		
 		/* if the strip is the first one in the track it lives in, check if there
 		 * are strips in any other tracks that may be before this, and set the extend
 		 * mode accordingly
@@ -1793,7 +1825,8 @@ void BKE_nla_action_pushdown(AnimData *adt)
 			 * so that it doesn't override strips in previous tracks
 			 */
 			/* FIXME: this needs to be more automated, since user can rearrange strips */
-			strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
+			if (strip->extendmode == NLASTRIP_EXTEND_HOLD)
+				strip->extendmode = NLASTRIP_EXTEND_HOLD_FORWARD;
 		}
 		
 		/* make strip the active one... */
