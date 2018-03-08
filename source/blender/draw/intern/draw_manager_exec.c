@@ -387,7 +387,6 @@ static void draw_clipping_setup_from_view(void)
 	if (DST.clipping.updated)
 		return;
 
-	float (*viewprojinv)[4] = DST.view_data.matstate.mat[DRW_MAT_PERSINV];
 	float (*viewinv)[4] = DST.view_data.matstate.mat[DRW_MAT_VIEWINV];
 	float (*projmat)[4] = DST.view_data.matstate.mat[DRW_MAT_WIN];
 	float (*projinv)[4] = DST.view_data.matstate.mat[DRW_MAT_WININV];
@@ -399,7 +398,9 @@ static void draw_clipping_setup_from_view(void)
 
 	/* Extract the 8 corners (world space). */
 	for (int i = 0; i < 8; i++) {
-		mul_project_m4_v3(viewprojinv, bbox.vec[i]);
+		/* Use separate matrix mul for more precision. */
+		mul_project_m4_v3(projinv, bbox.vec[i]);
+		mul_m4_v3(viewinv, bbox.vec[i]);
 	}
 
 	/* Compute clip planes using the world space frustum corners. */
@@ -458,9 +459,7 @@ static void draw_clipping_setup_from_view(void)
 
 		/* The goal is to get the smallest sphere,
 		 * not the sphere that passes through each corner */
-		if (fac > 1.0f) {
-			fac = 1.0f;
-		}
+		CLAMP(fac, 0.0f, 1.0f);
 
 		interp_v3_v3v3(bsphere->center, mid_min, mid_max, fac);
 
