@@ -443,7 +443,7 @@ static int paint_mask_gesture_lasso_exec(bContext *C, wmOperator *op)
 		/* Calculations of individual vertices are done in 2D screen space to diminish the amount of
 		 * calculations done. Bounding box PBVH collision is not computed against enclosing rectangle
 		 * of lasso */
-		view3d_set_viewcontext(C, &vc);
+		ED_view3d_viewcontext_init(C, &vc);
 		view3d_get_transformation(vc.ar, vc.rv3d, vc.obact, &mats);
 
 		/* lasso data calculations */

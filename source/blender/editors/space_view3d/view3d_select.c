@@ -104,7 +104,7 @@ float ED_view3d_select_dist_px(void)
 }
 
 /* TODO: should return whether there is valid context to continue */
-void view3d_set_viewcontext(bContext *C, ViewContext *vc)
+void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc)
 {
 	memset(vc, 0, sizeof(ViewContext));
 	vc->ar = CTX_wm_region(C);
@@ -884,7 +884,7 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 		view3d_operator_needs_opengl(C);
 		
 		/* setup view context for argument to callbacks */
-		view3d_set_viewcontext(C, &vc);
+		ED_view3d_viewcontext_init(C, &vc);
 		
 		extend = RNA_boolean_get(op->ptr, "extend");
 		select = !RNA_boolean_get(op->ptr, "deselect");
@@ -1329,7 +1329,7 @@ Base *ED_view3d_give_base_under_cursor(bContext *C, const int mval[2])
 	
 	/* setup view context for argument to callbacks */
 	view3d_operator_needs_opengl(C);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	
 	hits = mixed_bones_object_selectbuffer(&vc, buffer, mval, false, false, &do_nearest);
 	
@@ -1378,7 +1378,7 @@ static bool ed_object_select_pick(
 
 	
 	/* setup view context for argument to callbacks */
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	is_obedit = (vc.obedit != NULL);
 	if (object) {
@@ -2081,7 +2081,7 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	view3d_operator_needs_opengl(C);
 
 	/* setup view context for argument to callbacks */
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	
 	select = !RNA_boolean_get(op->ptr, "deselect");
 	extend = RNA_boolean_get(op->ptr, "extend");
@@ -2779,7 +2779,7 @@ static bool object_circle_select(ViewContext *vc, const bool select, const int m
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
 	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	Object *obact = vc.obact;
 	Object *obedit = vc.obedit;
 	const int radius = RNA_int_get(op->ptr, "radius");

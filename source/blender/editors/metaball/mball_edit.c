@@ -595,7 +595,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 	unsigned int buffer[MAXPICKBUF];
 	rcti rect;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	BLI_rcti_init_pt_radius(&rect, mval, 12);
 

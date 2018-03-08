@@ -741,7 +741,7 @@ static PaintOperation *texture_paint_init(bContext *C, wmOperator *op, const flo
 	PaintOperation *pop = MEM_callocN(sizeof(PaintOperation), "PaintOperation"); /* caller frees */
 	Brush *brush = BKE_paint_brush(&settings->imapaint.paint);
 	int mode = RNA_enum_get(op->ptr, "mode");
-	view3d_set_viewcontext(C, &pop->vc);
+	ED_view3d_viewcontext_init(C, &pop->vc);
 
 	copy_v2_v2(pop->prevmouse, mouse);
 	copy_v2_v2(pop->startmouse, mouse);

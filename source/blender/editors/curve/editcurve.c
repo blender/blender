@@ -4308,7 +4308,7 @@ bool ED_curve_editnurb_select_pick(bContext *C, const int mval[2], bool extend, 
 	short hand;
 	
 	view3d_operator_needs_opengl(C);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	
 	location[0] = mval[0];
 	location[1] = mval[1];
@@ -4984,7 +4984,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewContext vc;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (vc.rv3d && !RNA_struct_property_is_set(op->ptr, "location")) {
 		Curve *cu;

@@ -396,7 +396,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 {
 	PE_set_data(C, data);
 
-	view3d_set_viewcontext(C, &data->vc);
+	ED_view3d_viewcontext_init(C, &data->vc);
 	/* note, the object argument means the modelview matrix does not account for the objects matrix, use viewmat rather than (obmat * viewmat) */
 	view3d_get_transformation(data->vc.ar, data->vc.rv3d, NULL, &data->mats);
 

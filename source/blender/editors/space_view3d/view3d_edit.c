@@ -4468,7 +4468,7 @@ static int view3d_clipping_exec(bContext *C, wmOperator *op)
 	/* note; otherwise opengl won't work */
 	view3d_operator_needs_opengl(C);
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	view3d_get_transformation(vc.ar, vc.rv3d, NULL, &mats); /* NULL because we don't want it in object space */
 	ED_view3d_clipping_calc(rv3d->clipbb, rv3d->clip, &mats, &rect);
 

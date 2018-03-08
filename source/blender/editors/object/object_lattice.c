@@ -882,7 +882,7 @@ bool ED_lattice_select_pick(bContext *C, const int mval[2], bool extend, bool de
 	BPoint *bp = NULL;
 	Lattice *lt;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	lt = ((Lattice *)vc.obedit->data)->editlatt->latt;
 	bp = findnearestLattvert(&vc, mval, true);
 

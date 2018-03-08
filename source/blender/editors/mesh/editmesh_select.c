@@ -3381,7 +3381,7 @@ void MESH_OT_select_nth(wmOperatorType *ot)
 
 void em_setup_viewcontext(bContext *C, ViewContext *vc)
 {
-	view3d_set_viewcontext(C, vc);
+	ED_view3d_viewcontext_init(C, vc);
 	
 	if (vc->obedit) {
 		vc->em = BKE_editmesh_from_object(vc->obedit);

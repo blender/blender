@@ -689,7 +689,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 	Brush *br = stroke->brush = BKE_paint_brush(p);
 	float zoomx, zoomy;
 
-	view3d_set_viewcontext(C, &stroke->vc);
+	ED_view3d_viewcontext_init(C, &stroke->vc);
 
 	stroke->get_location = get_location;
 	stroke->test_start = test_start;

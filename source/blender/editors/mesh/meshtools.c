@@ -1088,7 +1088,7 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 	if (!me || me->totpoly == 0)
 		return false;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (size) {
 		/* sample rect to increase chances of selecting, so that when clicking
@@ -1253,7 +1253,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 	if (!me || me->totvert == 0)
 		return false;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (use_zbuf) {
 		if (size > 0) {

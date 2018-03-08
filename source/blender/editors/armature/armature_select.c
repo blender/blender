@@ -171,7 +171,7 @@ void *get_nearest_bone(bContext *C, const int xy[2], bool findunsel)
 	unsigned int buffer[MAXPICKBUF];
 	short hits;
 	
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	
 	// rect.xmin = ... mouseco!
 	rect.xmin = rect.xmax = xy[0];
@@ -486,7 +486,7 @@ bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool d
 	EditBone *nearBone = NULL;
 	int selmask;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	
 	if (BIF_sk_selectStroke(C, mval, extend)) {
 		return true;

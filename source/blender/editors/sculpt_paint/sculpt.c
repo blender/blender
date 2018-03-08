@@ -4721,7 +4721,7 @@ bool sculpt_stroke_get_location(bContext *C, float out[3], const float mouse[2])
 	bool original;
 	ViewContext vc;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	ob = vc.obact;
 
@@ -5904,7 +5904,7 @@ static void sample_detail(bContext *C, int ss_co[2])
 	float ray_start[3], ray_end[3], ray_normal[3], depth;
 	SculptDetailRaycastData srd;
 	float mouse[2] = {ss_co[0], ss_co[1]};
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	sd = CTX_data_tool_settings(C)->sculpt;
 	ob = vc.obact;

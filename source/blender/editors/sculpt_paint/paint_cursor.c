@@ -1011,7 +1011,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	/* can't use stroke vc here because this will be called during
 	 * mouse over too, not just during a stroke */
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (vc.rv3d && (vc.rv3d->rflag & RV3D_NAVIGATING)) {
 		return;

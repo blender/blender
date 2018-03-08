@@ -559,7 +559,7 @@ static int select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent 
 	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 
 	view3d_operator_needs_opengl(C);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (!ED_curve_pick_vert(&vc, 1, event->mval, &nu, &bezt, &bp, NULL)) {
 		return OPERATOR_CANCELLED;
@@ -1677,7 +1677,7 @@ static int edcu_shortest_path_pick_invoke(bContext *C, wmOperator *op, const wmE
 	}
 
 	view3d_operator_needs_opengl(C);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (!ED_curve_pick_vert(&vc, 1, event->mval, &nu_dst, &bezt_dst, &bp_dst, NULL)) {
 		return OPERATOR_PASS_THROUGH;
