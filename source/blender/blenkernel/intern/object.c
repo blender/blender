@@ -2321,7 +2321,7 @@ void BKE_object_apply_mat4(Object *ob, float mat[4][4], const bool use_compat, c
 BoundBox *BKE_boundbox_alloc_unit(void)
 {
 	BoundBox *bb;
-	const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {-1.0f, -1.0f, -1.0f};
+	const float min[3] = {-1.0f, -1.0f, -1.0f}, max[3] = {1.0f, 1.0f, 1.0f};
 
 	bb = MEM_callocN(sizeof(BoundBox), "OB-BoundBox");
 	BKE_boundbox_init_from_minmax(bb, min, max);
