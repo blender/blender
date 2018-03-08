@@ -564,12 +564,32 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	LightProbe *probe = (LightProbe *)ob->data;
 
-	/* Step 1 find all lamps in the scene and setup them */
 	if ((probe->type == LIGHTPROBE_TYPE_CUBE && pinfo->num_cube >= MAX_PROBE) ||
-	    (probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= MAX_PROBE))
+	    (probe->type == LIGHTPROBE_TYPE_GRID && pinfo->num_grid >= MAX_PROBE) ||
+	    (probe->type == LIGHTPROBE_TYPE_PLANAR && pinfo->num_grid >= MAX_PLANAR))
 	{
 		printf("Too much probes in the scene !!!\n");
 		return;
+	}
+
+	if (probe->type == LIGHTPROBE_TYPE_PLANAR) {
+		/* See if this planar probe is inside the view frustum. If not, no need to update it. */
+		/* NOTE: this could be bypassed if we want feedback loop mirrors for rendering. */
+		BoundBox bbox; float tmp[4][4];
+		const float min[3] = {-1.0f, -1.0f, -1.0f};
+		const float max[3] = { 1.0f,  1.0f,  1.0f};
+		BKE_boundbox_init_from_minmax(&bbox, min, max);
+
+		copy_m4_m4(tmp, ob->obmat);
+		normalize_v3(tmp[2]);
+		mul_v3_fl(tmp[2], probe->distinf);
+
+		for (int v = 0; v < 8; ++v) {
+			mul_m4_v3(tmp, bbox.vec[v]);
+		}
+		if (!DRW_culling_box_test(&bbox)) {
+			return; /* Culled */
+		}
 	}
 
 	EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
@@ -605,18 +625,20 @@ void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 	pinfo->do_cube_update |= ped->need_update;
 
-	if (probe->type == LIGHTPROBE_TYPE_CUBE) {
-		pinfo->probes_cube_ref[pinfo->num_cube] = ob;
-		pinfo->num_cube++;
-	}
-	else if (probe->type == LIGHTPROBE_TYPE_PLANAR) {
-		pinfo->probes_planar_ref[pinfo->num_planar] = ob;
-		pinfo->num_planar++;
-	}
-	else { /* GRID */
-		pinfo->probes_grid_ref[pinfo->num_grid] = ob;
-		pinfo->num_grid++;
-		pinfo->total_irradiance_samples += ped->num_cell;
+	switch (probe->type) {
+		case LIGHTPROBE_TYPE_CUBE:
+			pinfo->probes_cube_ref[pinfo->num_cube] = ob;
+			pinfo->num_cube++;
+			break;
+		case LIGHTPROBE_TYPE_PLANAR:
+			pinfo->probes_planar_ref[pinfo->num_planar] = ob;
+			pinfo->num_planar++;
+			break;
+		case LIGHTPROBE_TYPE_GRID:
+			pinfo->probes_grid_ref[pinfo->num_grid] = ob;
+			pinfo->num_grid++;
+			pinfo->total_irradiance_samples += ped->num_cell;
+			break;
 	}
 }
 
@@ -635,8 +657,6 @@ static void EEVEE_planar_reflections_cache_finish(EEVEE_ViewLayerData *sldata, E
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
 		LightProbe *probe = (LightProbe *)ob->data;
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
-
-		/* TODO do culling here */
 
 		ped->probe_id = i;
 
@@ -688,8 +708,6 @@ static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata)
 		mul_m4_m4m4(eplanar->reflectionmat, ped->mats.mat[DRW_MAT_WIN], viewmat); /* TODO FOV margin */
 		/* Convert from [-1, 1] to [0, 1] (NDC to Texture coord). */
 		mul_m4_m4m4(eplanar->reflectionmat, rangemat, eplanar->reflectionmat);
-
-		ped->need_update = true;
 
 		/* Compute clip plane equation / normal. */
 		float refpoint[3];
@@ -1478,12 +1496,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
-		if (!ped->need_update) {
-			continue;
-		}
 		render_scene_to_planar(sldata, vedata, i, ped);
-		ped->need_update = false;
-		ped->probe_id = i;
 	}
 
 	/* Restore */
