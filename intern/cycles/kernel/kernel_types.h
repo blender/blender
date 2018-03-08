@@ -1201,11 +1201,14 @@ typedef struct KernelCamera {
 	ProjectionTransform worldtondc;
 	Transform worldtocamera;
 
-	MotionTransform motion;
+	DecomposedMotionTransform motion;
 
 	/* Stores changes in the projeciton matrix. Use for camera zoom motion
 	 * blur and motion pass output for perspective camera. */
 	PerspectiveMotionTransform perspective_motion;
+
+	/* Transforms for motion pass. */
+	MotionTransform pass_motion;
 
 	int shutter_table_offset;
 
@@ -1430,7 +1433,7 @@ static_assert_align(KernelData, 16);
 /* Kernel data structures. */
 
 typedef struct KernelObject {
-	MotionTransform tfm;
+	DecomposedMotionTransform tfm;
 
 	float surface_area;
 	float pass_id;

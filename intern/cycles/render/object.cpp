@@ -97,7 +97,7 @@ void Object::compute_bounds(bool motion_blur)
 			mtfm.post = tfm;
 		}
 
-		MotionTransform decomp;
+		DecomposedMotionTransform decomp;
 		transform_motion_decompose(&decomp, &mtfm, &tfm);
 
 		bounds = BoundBox::empty;
@@ -401,7 +401,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 	else if(state->need_motion == Scene::MOTION_BLUR) {
 		if(ob->use_motion) {
 			/* decompose transformations for interpolation. */
-			MotionTransform decomp;
+			DecomposedMotionTransform decomp;
 
 			transform_motion_decompose(&decomp, &ob->motion, &ob->tfm);
 			kobject.tfm = decomp;

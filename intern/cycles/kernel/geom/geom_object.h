@@ -96,7 +96,7 @@ ccl_device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int
 #ifdef __OBJECT_MOTION__
 ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int object, float time)
 {
-	const ccl_global MotionTransform *motion = &kernel_tex_fetch(__objects, object).tfm;
+	const ccl_global DecomposedMotionTransform *motion = &kernel_tex_fetch(__objects, object).tfm;
 
 	Transform tfm;
 	transform_motion_interpolate(&tfm, motion, time);

@@ -202,7 +202,7 @@ float4 transform_to_quat(const Transform& tfm)
 	return qt;
 }
 
-static void transform_decompose(Transform *decomp, const Transform *tfm)
+static void transform_decompose(DecomposedTransform *decomp, const Transform *tfm)
 {
 	/* extract translation */
 	decomp->y = make_float4(tfm->x.w, tfm->y.w, tfm->z.w, 0.0f);
@@ -247,7 +247,7 @@ static void transform_decompose(Transform *decomp, const Transform *tfm)
 	decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
 }
 
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
+void transform_motion_decompose(DecomposedMotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
 {
 	transform_decompose(&decomp->pre, &motion->pre);
 	transform_decompose(&decomp->mid, mid);

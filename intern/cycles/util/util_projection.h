@@ -21,7 +21,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Data Types */
+/* 4x4 projection matrix, perspective or orthographic. */
 
 typedef struct ProjectionTransform {
 	float4 x, y, z, w; /* rows */

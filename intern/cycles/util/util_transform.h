@@ -37,15 +37,25 @@ typedef struct Transform {
 #endif
 } Transform;
 
-/* transform decomposed in rotation/translation/scale. we use the same data
- * structure as Transform, and tightly pack decomposition into it. first the
- * rotation (4), then translation (3), then 3x3 scale matrix (9). */
-
 typedef struct ccl_may_alias MotionTransform {
 	Transform pre;
 	Transform mid;
 	Transform post;
 } MotionTransform;
+
+/* Transform decomposed in rotation/translation/scale. we use the same data
+ * structure as Transform, and tightly pack decomposition into it. first the
+ * rotation (4), then translation (3), then 3x3 scale matrix (9). */
+
+typedef struct DecomposedTransform {
+	float4 x, y, z, w;
+} DecomposedTransform;
+
+typedef struct ccl_may_alias DecomposedMotionTransform {
+	DecomposedTransform pre;
+	DecomposedTransform mid;
+	DecomposedTransform post;
+} DecomposedMotionTransform;
 
 /* Functions */
 
@@ -384,7 +394,7 @@ ccl_device_inline Transform transform_quick_inverse(Transform M)
 	return R;
 }
 
-ccl_device_inline void transform_compose(Transform *tfm, const Transform *decomp)
+ccl_device_inline void transform_compose(Transform *tfm, const DecomposedTransform *decomp)
 {
 	/* rotation */
 	float q0, q1, q2, q3, qda, qdb, qdc, qaa, qab, qac, qbb, qbc, qcc;
@@ -420,9 +430,9 @@ ccl_device_inline void transform_compose(Transform *tfm, const Transform *decomp
 	tfm->w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
-ccl_device void transform_motion_interpolate(Transform *tfm, const ccl_global MotionTransform *motion, float t)
+ccl_device void transform_motion_interpolate(Transform *tfm, const ccl_global DecomposedMotionTransform *motion, float t)
 {
-	Transform decomp;
+	DecomposedTransform decomp;
 
 	/* linear interpolation for rotation and scale */
 	if(t < 0.5f) {
@@ -446,12 +456,12 @@ ccl_device void transform_motion_interpolate(Transform *tfm, const ccl_global Mo
 	transform_compose(tfm, &decomp);
 }
 
-ccl_device void transform_motion_interpolate_constant(Transform *tfm, ccl_constant MotionTransform *motion, float t)
+ccl_device void transform_motion_interpolate_constant(Transform *tfm, ccl_constant DecomposedMotionTransform *motion, float t)
 {
 	/* possible optimization: is it worth it adding a check to skip scaling?
 	 * it's probably quite uncommon to have scaling objects. or can we skip
 	 * just shearing perhaps? */
-	Transform decomp;
+	DecomposedTransform decomp;
 
 	/* linear interpolation for rotation and scale */
 	if(t < 0.5f) {
@@ -479,13 +489,18 @@ ccl_device void transform_motion_interpolate_constant(Transform *tfm, ccl_consta
 
 class BoundBox2D;
 
+ccl_device_inline bool operator==(const DecomposedTransform& A, const DecomposedTransform& B)
+{
+	return memcmp(&A, &B, sizeof(DecomposedTransform)) == 0;
+}
+
 ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransform& B)
 {
 	return (A.pre == B.pre && A.post == B.post);
 }
 
 float4 transform_to_quat(const Transform& tfm);
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
+void transform_motion_decompose(DecomposedMotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
 Transform transform_from_viewplane(BoundBox2D& viewplane);
 
 #endif

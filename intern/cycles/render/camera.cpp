@@ -341,12 +341,12 @@ void Camera::update(Scene *scene)
 		/* TODO(sergey): Support perspective (zoom, fov) motion. */
 		if(type == CAMERA_PANORAMA) {
 			if(use_motion) {
-				kcam->motion.pre = transform_inverse(motion.pre);
-				kcam->motion.post = transform_inverse(motion.post);
+				kcam->pass_motion.pre = transform_inverse(motion.pre);
+				kcam->pass_motion.post = transform_inverse(motion.post);
 			}
 			else {
-				kcam->motion.pre = kcam->worldtocamera;
-				kcam->motion.post = kcam->worldtocamera;
+				kcam->pass_motion.pre = kcam->worldtocamera;
+				kcam->pass_motion.post = kcam->worldtocamera;
 			}
 		}
 		else {
