@@ -87,7 +87,7 @@ public:
 
 	/* objects */
 	device_vector<KernelObject> objects;
-	device_vector<float4> objects_vector;
+	device_vector<Transform> objects_vector;
 
 	/* attributes */
 	device_vector<uint4> attributes_map;

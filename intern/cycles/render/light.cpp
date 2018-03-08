@@ -785,11 +785,8 @@ void LightManager::device_update_points(Device *,
 		klights[light_index].max_bounces = max_bounces;
 		klights[light_index].random = random;
 
-
-		Transform tfm = light->tfm;
-		Transform itfm = transform_inverse(tfm);
-		memcpy(&klights[light_index].tfm, &tfm, sizeof(float4)*3);
-		memcpy(&klights[light_index].itfm, &itfm, sizeof(float4)*3);
+		klights[light_index].tfm = light->tfm;
+		klights[light_index].itfm = transform_inverse(light->tfm);
 
 		light_index++;
 	}
@@ -825,10 +822,8 @@ void LightManager::device_update_points(Device *,
 		klights[light_index].area.dir[0] = dir.x;
 		klights[light_index].area.dir[1] = dir.y;
 		klights[light_index].area.dir[2] = dir.z;
-		Transform tfm = light->tfm;
-		Transform itfm = transform_inverse(tfm);
-		memcpy(&klights[light_index].tfm, &tfm, sizeof(float4)*3);
-		memcpy(&klights[light_index].itfm, &itfm, sizeof(float4)*3);
+		klights[light_index].tfm = light->tfm;
+		klights[light_index].itfm = transform_inverse(light->tfm);
 
 		light_index++;
 	}

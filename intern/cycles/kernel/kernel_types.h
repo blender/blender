@@ -35,10 +35,10 @@
 CCL_NAMESPACE_BEGIN
 
 /* Constants */
-#define OBJECT_VECTOR_SIZE	6
+#define OBJECT_VECTOR_SIZE	2
 #define FILTER_TABLE_SIZE	1024
 #define RAMP_TABLE_SIZE		256
-#define SHUTTER_TABLE_SIZE		256
+#define SHUTTER_TABLE_SIZE	256
 
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
@@ -1483,8 +1483,8 @@ typedef struct KernelLight {
 	int samples;
 	float max_bounces;
 	float random;
-	float4 tfm[3];
-	float4 itfm[3];
+	Transform tfm;
+	Transform itfm;
 	union {
 		KernelSpotLight spot;
 		KernelAreaLight area;

@@ -28,12 +28,12 @@ CCL_NAMESPACE_BEGIN
 
 enum ObjectTransform {
 	OBJECT_TRANSFORM = 0,
-	OBJECT_INVERSE_TRANSFORM = 4,
+	OBJECT_INVERSE_TRANSFORM = 1,
 };
 
 enum ObjectVectorTransform {
 	OBJECT_VECTOR_MOTION_PRE = 0,
-	OBJECT_VECTOR_MOTION_POST = 3
+	OBJECT_VECTOR_MOTION_POST = 1
 };
 
 /* Object to world space transformation */
@@ -51,8 +51,6 @@ ccl_device_inline Transform object_fetch_transform(KernelGlobals *kg, int object
 		tfm.y = kernel_tex_fetch(__objects, object).tfm.pre.y;
 		tfm.z = kernel_tex_fetch(__objects, object).tfm.pre.z;
 	}
-	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-
 	return tfm;
 }
 
@@ -60,20 +58,12 @@ ccl_device_inline Transform object_fetch_transform(KernelGlobals *kg, int object
 
 ccl_device_inline Transform lamp_fetch_transform(KernelGlobals *kg, int lamp, bool inverse)
 {
-	Transform tfm;
 	if(inverse) {
-		tfm.x = kernel_tex_fetch(__lights, lamp).itfm[0];
-		tfm.y = kernel_tex_fetch(__lights, lamp).itfm[1];
-		tfm.z = kernel_tex_fetch(__lights, lamp).itfm[2];
+		return kernel_tex_fetch(__lights, lamp).itfm;
 	}
 	else {
-		tfm.x = kernel_tex_fetch(__lights, lamp).tfm[0];
-		tfm.y = kernel_tex_fetch(__lights, lamp).tfm[1];
-		tfm.z = kernel_tex_fetch(__lights, lamp).tfm[2];
+		return kernel_tex_fetch(__lights, lamp).tfm;
 	}
-	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	return tfm;
 }
 
 /* Object to world space transformation for motion vectors */
@@ -81,14 +71,7 @@ ccl_device_inline Transform lamp_fetch_transform(KernelGlobals *kg, int lamp, bo
 ccl_device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
 {
 	int offset = object*OBJECT_VECTOR_SIZE + (int)type;
-
-	Transform tfm;
-	tfm.x = kernel_tex_fetch(__objects_vector, offset + 0);
-	tfm.y = kernel_tex_fetch(__objects_vector, offset + 1);
-	tfm.z = kernel_tex_fetch(__objects_vector, offset + 2);
-	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	return tfm;
+	return kernel_tex_fetch(__objects_vector, offset);
 }
 
 /* Motion blurred object transformations */

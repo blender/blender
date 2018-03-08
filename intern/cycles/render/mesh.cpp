@@ -1445,11 +1445,11 @@ static void update_attribute_element_offset(Mesh *mesh,
 			Transform *tfm = mattr->data_transform();
 			offset = attr_float3_offset;
 
-			assert(attr_float3.size() >= offset + size * 4);
-			for(size_t k = 0; k < size*4; k++) {
+			assert(attr_float3.size() >= offset + size * 3);
+			for(size_t k = 0; k < size*3; k++) {
 				attr_float3[offset+k] = (&tfm->x)[k];
 			}
-			attr_float3_offset += size * 4;
+			attr_float3_offset += size * 3;
 		}
 		else {
 			float4 *data = mattr->data_float4();

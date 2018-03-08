@@ -46,6 +46,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "util/util_projection.h"
 #include "util/util_transform.h"
 
 #include "util/util_boundbox.h"
@@ -129,9 +130,9 @@ static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
 	return true;
 }
 
-Transform transform_inverse(const Transform& tfm)
+ProjectionTransform projection_inverse(const ProjectionTransform& tfm)
 {
-	Transform tfmR = transform_identity();
+	ProjectionTransform tfmR = projection_identity();
 	float M[4][4], R[4][4];
 
 	memcpy(R, &tfmR, sizeof(R));
@@ -145,13 +146,26 @@ Transform transform_inverse(const Transform& tfm)
 		M[2][2] += 1e-8f;
 
 		if(UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
-			return transform_identity();
+			return projection_identity();
 		}
 	}
 
 	memcpy(&tfmR, R, sizeof(R));
 
 	return tfmR;
+}
+
+Transform transform_inverse(const Transform& tfm)
+{
+	ProjectionTransform projection(tfm);
+	return projection_to_transform(projection_inverse(projection));
+}
+
+Transform transform_transposed_inverse(const Transform& tfm)
+{
+	ProjectionTransform projection(tfm);
+	ProjectionTransform iprojection = projection_inverse(projection);
+	return projection_to_transform(projection_transpose(iprojection));
 }
 
 /* Motion Transform */
@@ -209,7 +223,7 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
 
 	/* extract rotation */
 	Transform M = *tfm;
-	M.x.w = 0.0f; M.y.w = 0.0f; M.z.w = 0.0f; M.w.w = 1.0f;
+	M.x.w = 0.0f; M.y.w = 0.0f; M.z.w = 0.0f;
 
 	Transform R = M;
 	float norm;
@@ -217,9 +231,9 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
 
 	do {
 		Transform Rnext;
-		Transform Rit = transform_inverse(transform_transpose(R));
+		Transform Rit = transform_transposed_inverse(R);
 
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 3; i++)
 			for(int j = 0; j < 4; j++)
 				Rnext[i][j] = 0.5f * (R[i][j] + Rit[i][j]);
 		

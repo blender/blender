@@ -247,14 +247,15 @@ static inline float *image_get_float_pixels_for_frame(BL::Image& image,
 
 static inline Transform get_transform(const BL::Array<float, 16>& array)
 {
-	Transform tfm;
+	ProjectionTransform projection;
 
-	/* we assume both types to be just 16 floats, and transpose because blender
-	 * use column major matrix order while we use row major */
-	memcpy(&tfm, &array, sizeof(float)*16);
-	tfm = transform_transpose(tfm);
+	/* We assume both types to be just 16 floats, and transpose because blender
+	 * use column major matrix order while we use row major. */
+	memcpy(&projection, &array, sizeof(float)*16);
+	projection = projection_transpose(projection);
 
-	return tfm;
+	/* Drop last row, matrix is assumed to be affine transform. */
+	return projection_to_transform(projection);
 }
 
 static inline float2 get_float2(const BL::Array<float, 2>& array)

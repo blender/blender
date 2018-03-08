@@ -39,7 +39,6 @@ ccl_device void svm_node_tex_voxel(KernelGlobals *kg,
 		tfm.x = read_node_float(kg, offset);
 		tfm.y = read_node_float(kg, offset);
 		tfm.z = read_node_float(kg, offset);
-		tfm.w = read_node_float(kg, offset);
 		co = transform_point(&tfm, co);
 	}
 

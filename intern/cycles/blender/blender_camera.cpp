@@ -246,8 +246,7 @@ static Transform blender_camera_matrix(const Transform& tfm,
 			result = tfm *
 				make_transform(1.0f, 0.0f, 0.0f, 0.0f,
 				               0.0f, 0.0f, 1.0f, 0.0f,
-				               0.0f, 1.0f, 0.0f, 0.0f,
-				               0.0f, 0.0f, 0.0f, 1.0f);
+				               0.0f, 1.0f, 0.0f, 0.0f);
 		}
 		else {
 			/* Make it so environment camera needs to be pointed in the direction
@@ -257,8 +256,7 @@ static Transform blender_camera_matrix(const Transform& tfm,
 			result = tfm *
 				make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
 				                0.0f,  0.0f, 1.0f, 0.0f,
-				               -1.0f,  0.0f, 0.0f, 0.0f,
-				                0.0f,  0.0f, 0.0f, 1.0f);
+				               -1.0f,  0.0f, 0.0f, 0.0f);
 		}
 	}
 	else {

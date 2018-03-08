@@ -40,6 +40,7 @@
 
 #include "util/util_foreach.h"
 #include "util/util_path.h"
+#include "util/util_projection.h"
 #include "util/util_transform.h"
 #include "util/util_xml.h"
 
@@ -546,8 +547,10 @@ static void xml_read_transform(xml_node node, Transform& tfm)
 {
 	if(node.attribute("matrix")) {
 		vector<float> matrix;
-		if(xml_read_float_array(matrix, node, "matrix") && matrix.size() == 16)
-			tfm = tfm * transform_transpose((*(Transform*)&matrix[0]));
+		if(xml_read_float_array(matrix, node, "matrix") && matrix.size() == 16) {
+			ProjectionTransform projection = *(ProjectionTransform*)&matrix[0];
+			tfm = tfm * projection_to_transform(projection_transpose(projection));
+		}
 	}
 
 	if(node.attribute("translate")) {

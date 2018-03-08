@@ -103,7 +103,6 @@ ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderD
 	tfm.x = kernel_tex_fetch(__attributes_float3, desc.offset + 0);
 	tfm.y = kernel_tex_fetch(__attributes_float3, desc.offset + 1);
 	tfm.z = kernel_tex_fetch(__attributes_float3, desc.offset + 2);
-	tfm.w = kernel_tex_fetch(__attributes_float3, desc.offset + 3);
 
 	return tfm;
 }

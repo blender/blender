@@ -132,7 +132,7 @@ void Object::apply_transform(bool apply_to_motion)
 		/* store matrix to transform later. when accessing these as attributes we
 		 * do not want the transform to be applied for consistency between static
 		 * and dynamic BVH, so we do it on packing. */
-		mesh->transform_normal = transform_transpose(transform_inverse(tfm));
+		mesh->transform_normal = transform_transposed_inverse(tfm);
 
 		/* apply to mesh vertices */
 		for(size_t i = 0; i < mesh->verts.size(); i++)
@@ -290,7 +290,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
                                                    int object_index)
 {
 	KernelObject& kobject = state->objects[object_index];
-	float4 *objects_vector = state->objects_vector;
+	Transform *objects_vector = state->objects_vector;
 
 	Mesh *mesh = ob->mesh;
 	uint flag = 0;
@@ -357,11 +357,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 		}
 	}
 
-	/* OBJECT_TRANSFORM */
-	memcpy(&kobject.tfm.pre, &tfm, sizeof(float4)*3);
-	/* OBJECT_INVERSE_TRANSFORM */
-	memcpy(&kobject.tfm.mid, &itfm, sizeof(float4)*3);
-	/* OBJECT_PROPERTIES */
+	memcpy(&kobject.tfm.pre, &tfm, sizeof(tfm));
+	memcpy(&kobject.tfm.mid, &itfm, sizeof(itfm));
 	kobject.surface_area = surface_area;
 	kobject.pass_id = pass_id;
 	kobject.random_number = random_number;
@@ -395,8 +392,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 			mtfm.post = mtfm.post * itfm;
 		}
 
-		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+0], &mtfm.pre, sizeof(float4)*3);
-		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+3], &mtfm.post, sizeof(float4)*3);
+		objects_vector[object_index*OBJECT_VECTOR_SIZE+0] = mtfm.pre;
+		objects_vector[object_index*OBJECT_VECTOR_SIZE+1] = mtfm.post;
 	}
 	else if(state->need_motion == Scene::MOTION_BLUR) {
 		if(ob->use_motion) {

@@ -64,8 +64,7 @@ CCL_NAMESPACE_BEGIN
 
 static void copy_matrix(OSL::Matrix44& m, const Transform& tfm)
 {
-	// TODO: remember when making affine
-	Transform t = transform_transpose(tfm);
+	ProjectionTransform t = projection_transpose(ProjectionTransform(tfm));
 	memcpy(&m, &t, sizeof(m));
 }
 
@@ -553,8 +552,7 @@ static bool set_attribute_float3_3(float3 P[3], TypeDesc type, bool derivatives,
 static bool set_attribute_matrix(const Transform& tfm, TypeDesc type, void *val)
 {
 	if(type == TypeDesc::TypeMatrix) {
-		Transform transpose = transform_transpose(tfm);
-		memcpy(val, &transpose, sizeof(Transform));
+		copy_matrix(*(OSL::Matrix44*)val, tfm);
 		return true;
 	}
 

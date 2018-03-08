@@ -135,7 +135,7 @@ protected:
 		/* Packed object arrays. Those will be filled in. */
 		uint *object_flag;
 		KernelObject *objects;
-		float4 *objects_vector;
+		Transform *objects_vector;
 
 		/* Flags which will be synchronized to Integrator. */
 		bool have_motion;

@@ -35,7 +35,7 @@ typedef struct ProjectionTransform {
 	: x(tfm.x),
 	  y(tfm.y),
 	  z(tfm.z),
-	  w(tfm.w)
+	  w(make_float4(0.0f, 0.0f, 0.0f, 1.0f))
 	{
 	}
 #endif
@@ -69,6 +69,12 @@ ccl_device_inline float3 transform_perspective_direction(const ProjectionTransfo
 
 #ifndef __KERNEL_GPU__
 
+ccl_device_inline Transform projection_to_transform(const ProjectionTransform& a)
+{
+	Transform tfm = {a.x, a.y, a.z};
+	return tfm;
+}
+
 ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTransform& a)
 {
 	ProjectionTransform t;
@@ -81,12 +87,7 @@ ccl_device_inline ProjectionTransform projection_transpose(const ProjectionTrans
 	return t;
 }
 
-ccl_device_inline ProjectionTransform projection_inverse(const ProjectionTransform& a)
-{
-	Transform t = {a.x, a.y, a.z, a.w};
-	t = transform_inverse(t);
-	return ProjectionTransform(t);
-}
+ProjectionTransform projection_inverse(const ProjectionTransform& a);
 
 ccl_device_inline ProjectionTransform make_projection(
 	float a, float b, float c, float d,

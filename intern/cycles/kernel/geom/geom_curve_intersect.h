@@ -170,8 +170,7 @@ ccl_device_forceinline bool cardinal_curve_intersect(
 		htfm = make_transform(
 			dir.z / d, 0, -dir.x /d, 0,
 			-dir.x * dir.y /d, d, -dir.y * dir.z /d, 0,
-			dir.x, dir.y, dir.z, 0,
-			0, 0, 0, 1);
+			dir.x, dir.y, dir.z, 0);
 
 		float4 v00 = kernel_tex_fetch(__curves, prim);
 

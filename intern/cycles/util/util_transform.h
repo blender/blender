@@ -26,10 +26,10 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Data Types */
+/* Affine transformation, stored as 4x3 matrix. */
 
 typedef struct Transform {
-	float4 x, y, z, w; /* rows */
+	float4 x, y, z;
 
 #ifndef __KERNEL_GPU__
 	float4 operator[](int i) const { return *(&x + i); }
@@ -69,7 +69,7 @@ ccl_device_inline float3 transform_point(const Transform *t, const float3 a)
 	x = _mm_loadu_ps(&t->x.x);
 	y = _mm_loadu_ps(&t->y.x);
 	z = _mm_loadu_ps(&t->z.x);
-	w = _mm_loadu_ps(&t->w.x);
+	w = _mm_set_ps(1.0f, 0.0f, 0.0f, 0.0f);
 
 	_MM_TRANSPOSE4_PS(x, y, z, w);
 
@@ -125,29 +125,15 @@ ccl_device_inline float3 transform_direction_transposed(const Transform *t, cons
 	return make_float3(dot(x, a), dot(y, a), dot(z, a));
 }
 
-ccl_device_inline Transform transform_transpose(const Transform a)
-{
-	Transform t;
-
-	t.x.x = a.x.x; t.x.y = a.y.x; t.x.z = a.z.x; t.x.w = a.w.x;
-	t.y.x = a.x.y; t.y.y = a.y.y; t.y.z = a.z.y; t.y.w = a.w.y;
-	t.z.x = a.x.z; t.z.y = a.y.z; t.z.z = a.z.z; t.z.w = a.w.z;
-	t.w.x = a.x.w; t.w.y = a.y.w; t.w.z = a.z.w; t.w.w = a.w.w;
-
-	return t;
-}
-
 ccl_device_inline Transform make_transform(float a, float b, float c, float d,
                                            float e, float f, float g, float h,
-                                           float i, float j, float k, float l,
-                                           float m, float n, float o, float p)
+                                           float i, float j, float k, float l)
 {
 	Transform t;
 
 	t.x.x = a; t.x.y = b; t.x.z = c; t.x.w = d;
 	t.y.x = e; t.y.y = f; t.y.z = g; t.y.w = h;
 	t.z.x = i; t.z.y = j; t.z.z = k; t.z.w = l;
-	t.w.x = m; t.w.y = n; t.w.z = o; t.w.w = p;
 
 	return t;
 }
@@ -161,21 +147,22 @@ ccl_device_inline Transform make_transform_frame(float3 N)
 	const float3 dy = normalize(cross(N, dx));
 	return make_transform(dx.x, dx.y, dx.z, 0.0f,
 	                      dy.x, dy.y, dy.z, 0.0f,
-	                      N.x , N.y,  N.z,  0.0f,
-	                      0.0f, 0.0f, 0.0f, 1.0f);
+	                      N.x , N.y,  N.z,  0.0f);
 }
 
 #ifndef __KERNEL_GPU__
 
 ccl_device_inline Transform operator*(const Transform a, const Transform b)
 {
-	Transform c = transform_transpose(b);
-	Transform t;
+	float4 c_x = make_float4(b.x.x, b.y.x, b.z.x, 0.0f);
+	float4 c_y = make_float4(b.x.y, b.y.y, b.z.y, 0.0f);
+	float4 c_z = make_float4(b.x.z, b.y.z, b.z.z, 0.0f);
+	float4 c_w = make_float4(b.x.w, b.y.w, b.z.w, 1.0f);
 
-	t.x = make_float4(dot(a.x, c.x), dot(a.x, c.y), dot(a.x, c.z), dot(a.x, c.w));
-	t.y = make_float4(dot(a.y, c.x), dot(a.y, c.y), dot(a.y, c.z), dot(a.y, c.w));
-	t.z = make_float4(dot(a.z, c.x), dot(a.z, c.y), dot(a.z, c.z), dot(a.z, c.w));
-	t.w = make_float4(dot(a.w, c.x), dot(a.w, c.y), dot(a.w, c.z), dot(a.w, c.w));
+	Transform t;
+	t.x = make_float4(dot(a.x, c_x), dot(a.x, c_y), dot(a.x, c_z), dot(a.x, c_w));
+	t.y = make_float4(dot(a.y, c_x), dot(a.y, c_y), dot(a.y, c_z), dot(a.y, c_w));
+	t.z = make_float4(dot(a.z, c_x), dot(a.z, c_y), dot(a.z, c_z), dot(a.z, c_w));
 
 	return t;
 }
@@ -185,7 +172,6 @@ ccl_device_inline void print_transform(const char *label, const Transform& t)
 	print_float4(label, t.x);
 	print_float4(label, t.y);
 	print_float4(label, t.z);
-	print_float4(label, t.w);
 	printf("\n");
 }
 
@@ -194,8 +180,7 @@ ccl_device_inline Transform transform_translate(float3 t)
 	return make_transform(
 		1, 0, 0, t.x,
 		0, 1, 0, t.y,
-		0, 0, 1, t.z,
-		0, 0, 0, 1);
+		0, 0, 1, t.z);
 }
 
 ccl_device_inline Transform transform_translate(float x, float y, float z)
@@ -208,8 +193,7 @@ ccl_device_inline Transform transform_scale(float3 s)
 	return make_transform(
 		s.x, 0, 0, 0,
 		0, s.y, 0, 0,
-		0, 0, s.z, 0,
-		0, 0, 0, 1);
+		0, 0, s.z, 0);
 }
 
 ccl_device_inline Transform transform_scale(float x, float y, float z)
@@ -239,9 +223,7 @@ ccl_device_inline Transform transform_rotate(float angle, float3 axis)
 		axis.z*axis.x*t - s*axis.y,
 		axis.z*axis.y*t + s*axis.x,
 		axis.z*axis.z*t + c,
-		0.0f,
-
-		0.0f, 0.0f, 0.0f, 1.0f);
+		0.0f);
 }
 
 /* Euler is assumed to be in XYZ order. */
@@ -281,20 +263,20 @@ ccl_device_inline void transform_set_column(Transform *t, int column, float3 val
 }
 
 Transform transform_inverse(const Transform& a);
+Transform transform_transposed_inverse(const Transform& a);
 
 ccl_device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
 {
 	/* the epsilon here is quite arbitrary, but this function is only used for
-	 * surface area and bump, where we except it to not be so sensitive */
-	Transform ttfm = transform_transpose(tfm);
+	 * surface area and bump, where we expect it to not be so sensitive */
 	float eps = 1e-6f;
 	
 	float sx = len_squared(float4_to_float3(tfm.x));
 	float sy = len_squared(float4_to_float3(tfm.y));
 	float sz = len_squared(float4_to_float3(tfm.z));
-	float stx = len_squared(float4_to_float3(ttfm.x));
-	float sty = len_squared(float4_to_float3(ttfm.y));
-	float stz = len_squared(float4_to_float3(ttfm.z));
+	float stx = len_squared(transform_get_column(&tfm, 0));
+	float sty = len_squared(transform_get_column(&tfm, 1));
+	float stz = len_squared(transform_get_column(&tfm, 2));
 
 	if(fabsf(sx - sy) < eps && fabsf(sx - sz) < eps &&
 	   fabsf(sx - stx) < eps && fabsf(sx - sty) < eps &&
@@ -330,7 +312,6 @@ ccl_device_inline Transform transform_clear_scale(const Transform& tfm)
 ccl_device_inline Transform transform_empty()
 {
 	return make_transform(
-		0, 0, 0, 0,
 		0, 0, 0, 0,
 		0, 0, 0, 0,
 		0, 0, 0, 0);
@@ -389,7 +370,6 @@ ccl_device_inline Transform transform_quick_inverse(Transform M)
 	R.x = make_float4(Rx.x, Rx.y, Rx.z, dot(Rx, T));
 	R.y = make_float4(Ry.x, Ry.y, Ry.z, dot(Ry, T));
 	R.z = make_float4(Rz.x, Rz.y, Rz.z, dot(Rz, T));
-	R.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 
 	return R;
 }
@@ -427,7 +407,6 @@ ccl_device_inline void transform_compose(Transform *tfm, const DecomposedTransfo
 	tfm->x = make_float4(dot(rotation_x, scale_x), dot(rotation_x, scale_y), dot(rotation_x, scale_z), decomp->y.x);
 	tfm->y = make_float4(dot(rotation_y, scale_x), dot(rotation_y, scale_y), dot(rotation_y, scale_z), decomp->y.y);
 	tfm->z = make_float4(dot(rotation_z, scale_x), dot(rotation_z, scale_y), dot(rotation_z, scale_z), decomp->y.z);
-	tfm->w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 ccl_device void transform_motion_interpolate(Transform *tfm, const ccl_global DecomposedMotionTransform *motion, float t)
