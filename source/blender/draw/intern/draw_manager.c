@@ -465,6 +465,7 @@ void DRW_viewport_matrix_override_set(float mat[4][4], DRWViewportMatrixType typ
 	copy_m4_m4(DST.view_data.matstate.mat[type], mat);
 	DST.override_mat |= (1 << type);
 	DST.dirty_mat = true;
+	DST.clipping.updated = false;
 }
 
 void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
@@ -473,6 +474,7 @@ void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type)
 	copy_m4_m4(DST.view_data.matstate.mat[type], DST.original_mat.mat[type]);
 	DST.override_mat &= ~(1 << type);
 	DST.dirty_mat = true;
+	DST.clipping.updated = false;
 }
 
 void DRW_viewport_matrix_override_set_all(DRWMatrixState *state)
@@ -480,6 +482,7 @@ void DRW_viewport_matrix_override_set_all(DRWMatrixState *state)
 	memcpy(DST.view_data.matstate.mat, state, sizeof(DRWMatrixState));
 	DST.override_mat = 0xFFFFFF;
 	DST.dirty_mat = true;
+	DST.clipping.updated = false;
 }
 
 void DRW_viewport_matrix_override_unset_all(void)
@@ -487,6 +490,7 @@ void DRW_viewport_matrix_override_unset_all(void)
 	memcpy(DST.view_data.matstate.mat, DST.original_mat.mat, sizeof(DRWMatrixState));
 	DST.override_mat = 0;
 	DST.dirty_mat = true;
+	DST.clipping.updated = false;
 }
 
 bool DRW_viewport_is_persp_get(void)

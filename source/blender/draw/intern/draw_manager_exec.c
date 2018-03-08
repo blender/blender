@@ -530,11 +530,15 @@ static void draw_clipping_setup_from_view(void)
 		/* Transform to world space. */
 		mul_m4_v3(viewinv, bsphere->center);
 	}
+
+	DST.clipping.updated = true;
 }
 
 /* Return True if the given BoundSphere intersect the current view frustum */
-static bool draw_culling_sphere_test(BoundSphere *bsphere)
+bool DRW_culling_sphere_test(BoundSphere *bsphere)
 {
+	draw_clipping_setup_from_view();
+
 	/* Bypass test if radius is negative. */
 	if (bsphere->radius < 0.0f)
 		return true;
@@ -550,6 +554,32 @@ static bool draw_culling_sphere_test(BoundSphere *bsphere)
 		float dist = plane_point_side_v3(DST.clipping.frustum_planes[p], bsphere->center);
 		if (dist < -bsphere->radius) {
 			return false;
+		}
+	}
+
+	return true;
+}
+
+/* Return True if the given BoundBox intersect the current view frustum.
+ * bbox must be in world space. */
+bool DRW_culling_box_test(BoundBox *bbox)
+{
+	draw_clipping_setup_from_view();
+
+	/* 6 view frustum planes */
+	for (int p = 0; p < 6; p++) {
+		/* 8 box vertices. */
+		for (int v = 0; v < 8 ; v++) {
+			float dist = plane_point_side_v3(DST.clipping.frustum_planes[p], bbox->vec[v]);
+			if (dist > 0.0f) {
+				/* At least one point in front of this plane.
+				 * Go to next plane. */
+				break;
+			}
+			else if (v == 7) {
+				/* 8 points behind this plane. */
+				return false;
+			}
 		}
 	}
 
@@ -572,7 +602,7 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 		st->cache_id = DST.state_cache_id;
 	}
 
-	if (draw_culling_sphere_test(&st->bsphere)) {
+	if (DRW_culling_sphere_test(&st->bsphere)) {
 		st->flag &= ~DRW_CALL_CULLED;
 	}
 	else {
@@ -933,8 +963,6 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 				state->cache_id = 0;
 			}
 		}
-
-		DST.clipping.updated = false;
 
 		/* TODO dispatch threads to compute matrices/culling */
 	}

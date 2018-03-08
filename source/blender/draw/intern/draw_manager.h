@@ -76,12 +76,6 @@
 
 #endif  /* USE_PROFILE */
 
-/* TODO Put it somewhere else? */
-typedef struct BoundSphere {
-	float center[3], radius;
-} BoundSphere;
-
-
 /* ------------ Data Structure --------------- */
 /**
  * Data structure containing all drawcalls organized by passes and materials.

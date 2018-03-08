@@ -77,6 +77,11 @@ typedef struct DRWInterface DRWInterface;
 typedef struct DRWPass DRWPass;
 typedef struct DRWShadingGroup DRWShadingGroup;
 
+/* TODO Put it somewhere else? */
+typedef struct BoundSphere {
+	float center[3], radius;
+} BoundSphere;
+
 /* declare members as empty (unused) */
 typedef char DRWViewportEmptyList;
 
@@ -477,6 +482,10 @@ void DRW_state_invert_facing(void);
 
 void DRW_state_clip_planes_add(float plane_eq[4]);
 void DRW_state_clip_planes_reset(void);
+
+/* Culling, return true if object is inside view frustum. */
+bool DRW_culling_sphere_test(BoundSphere *bsphere);
+bool DRW_culling_box_test(BoundBox *bbox);
 
 /* Selection */
 void DRW_select_load_id(unsigned int id);
