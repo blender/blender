@@ -1312,6 +1312,13 @@ static void render_scene_to_planar(
 	DRW_draw_pass(psl->material_pass);
 	DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
 
+	/* Transparent */
+	if (DRW_state_is_image_render()) {
+		/* Do the reordering only for offline because it can be costly. */
+		DRW_pass_sort_shgroup_z(psl->transparent_pass);
+	}
+	DRW_draw_pass(psl->transparent_pass);
+
 	DRW_state_invert_facing();
 	DRW_state_clip_planes_reset();
 
@@ -1484,8 +1491,8 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	common_data->ssr_toggle = true;
 	common_data->sss_toggle = true;
 
-	/* If there is at least one planar probe */
-	if (pinfo->num_planar > 0 && (vedata->stl->effects->enabled_effects & EFFECT_SSR) != 0) {
+	/* Prefilter for SSR */
+	if ((vedata->stl->effects->enabled_effects & EFFECT_SSR) != 0) {
 		const int max_lod = 9;
 		DRW_stats_group_start("Planar Probe Downsample");
 		DRW_framebuffer_recursive_downsample(vedata->fbl->downsample_fb, txl->planar_pool, max_lod, &downsample_planar, vedata);
@@ -1495,6 +1502,11 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	}
 
 	DRW_viewport_matrix_override_set_all(&saved_mats);
+
+	if (DRW_state_is_image_render()) {
+		/* Sort transparents because planar reflections could have re-sorted them. */
+		DRW_pass_sort_shgroup_z(vedata->psl->transparent_pass);
+	}
 
 	/* Disable SSR if we cannot read previous frame */
 	common_data->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
