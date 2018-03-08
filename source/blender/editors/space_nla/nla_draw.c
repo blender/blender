@@ -285,16 +285,20 @@ static void nla_draw_strip_curves(NlaStrip *strip, float yminc, float ymaxc)
 		float cfra;
 		
 		/* plot the curve (over the strip's main region) */
-		glBegin(GL_LINE_STRIP);
-		/* sample at 1 frame intervals, and draw
-		 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
-		 */
-		for (cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
-			float y = evaluate_fcurve(fcu, cfra);
-			CLAMP(y, 0.0f, 1.0f);
-			glVertex2f(cfra, ((y * yheight) + yminc));
+		if (fcu) {
+			glBegin(GL_LINE_STRIP);
+			
+			/* sample at 1 frame intervals, and draw
+			 *	- min y-val is yminc, max is y-maxc, so clamp in those regions
+			 */
+			for (cfra = strip->start; cfra <= strip->end; cfra += 1.0f) {
+				float y = evaluate_fcurve(fcu, cfra);
+				CLAMP(y, 0.0f, 1.0f);
+				glVertex2f(cfra, ((y * yheight) + yminc));
+			}
+			
+			glEnd(); // GL_LINE_STRIP
 		}
-		glEnd(); // GL_LINE_STRIP
 	}
 	else {
 		/* use blend in/out values only if both aren't zero */
