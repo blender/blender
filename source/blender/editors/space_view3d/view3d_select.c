@@ -2778,21 +2778,19 @@ static bool object_circle_select(ViewContext *vc, const bool select, const int m
 /* not a real operator, only for circle test */
 static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	Object *obact = CTX_data_active_object(C);
+	ViewContext vc;
+	view3d_set_viewcontext(C, &vc);
+	Object *obact = vc.obact;
+	Object *obedit = vc.obedit;
 	const int radius = RNA_int_get(op->ptr, "radius");
 	const bool select = !RNA_boolean_get(op->ptr, "deselect");
 	const int mval[2] = {RNA_int_get(op->ptr, "x"),
 	                     RNA_int_get(op->ptr, "y")};
 
-	if (CTX_data_edit_object(C) || BKE_paint_select_elem_test(obact) ||
+	if (obedit || BKE_paint_select_elem_test(obact) ||
 	    (obact && (obact->mode & (OB_MODE_PARTICLE_EDIT | OB_MODE_POSE))) )
 	{
-		ViewContext vc;
-		
 		view3d_operator_needs_opengl(C);
-		
-		view3d_set_viewcontext(C, &vc);
 
 		if (CTX_data_edit_object(C)) {
 			obedit_circle_select(&vc, select, mval, (float)radius);
@@ -2806,23 +2804,22 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 			paint_vertsel_circle_select(&vc, select, mval, (float)radius);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
 		}
-		else if (obact->mode & OB_MODE_POSE)
+		else if (obact->mode & OB_MODE_POSE) {
 			pose_circle_select(&vc, select, mval, (float)radius);
-		else
+		}
+		else {
 			return PE_circle_select(C, select, mval, (float)radius);
+		}
 	}
 	else if (obact && obact->mode & OB_MODE_SCULPT) {
 		return OPERATOR_CANCELLED;
 	}
 	else {
-		ViewContext vc;
-		view3d_set_viewcontext(C, &vc);
-
 		if (object_circle_select(&vc, select, mval, (float)radius)) {
-			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc.scene);
 		}
 	}
-	
+
 	return OPERATOR_FINISHED;
 }
 
