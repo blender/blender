@@ -627,15 +627,36 @@ static void scale_m4_v3(float R[4][4], float v[3])
 		mul_v3_v3(R[i], v);
 }
 
-static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl)
+static void EEVEE_planar_reflections_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl)
+{
+	EEVEE_LightProbesInfo *pinfo = sldata->probes;
+	Object *ob;
+
+	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
+		LightProbe *probe = (LightProbe *)ob->data;
+		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
+
+		/* TODO do culling here */
+
+		ped->probe_id = i;
+
+		/* Debug Display */
+		if (DRW_state_draw_support() &&
+		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
+		{
+			DRW_shgroup_call_dynamic_add(stl->g_data->planar_display_shgrp, &ped->probe_id, ob->obmat);
+		}
+	}
+}
+
+static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata)
 {
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	Object *ob;
 	float mtx[4][4], normat[4][4], imat[4][4], rangemat[4][4];
 
-	float viewmat[4][4], winmat[4][4];
+	float viewmat[4][4];
 	DRW_viewport_matrix_get(viewmat, DRW_MAT_VIEW);
-	DRW_viewport_matrix_get(winmat, DRW_MAT_WIN);
 
 	zero_m4(rangemat);
 	rangemat[0][0] = rangemat[1][1] = rangemat[2][2] = 0.5f;
@@ -647,25 +668,19 @@ static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_
 		LightProbe *probe = (LightProbe *)ob->data;
 		EEVEE_PlanarReflection *eplanar = &pinfo->planar_data[i];
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
-
 		/* Computing mtx : matrix that mirror position around object's XY plane. */
 		normalize_m4_m4(normat, ob->obmat);  /* object > world */
 		invert_m4_m4(imat, normat); /* world > object */
-
 		float reflect[3] = {1.0f, 1.0f, -1.0f}; /* XY reflection plane */
 		scale_m4_v3(imat, reflect); /* world > object > mirrored obj */
 		mul_m4_m4m4(mtx, normat, imat); /* world > object > mirrored obj > world */
-
 		/* Reflect Camera Matrix. */
 		mul_m4_m4m4(ped->mats.mat[DRW_MAT_VIEW], viewmat, mtx);
-
 		/* TODO FOV margin */
-		/* TODO temporal sampling jitter */
-		copy_m4_m4(ped->mats.mat[DRW_MAT_WIN], winmat);
-
-		/* Apply Perspective Matrix. */
+		/* Temporal sampling jitter should be already applied to the DRW_MAT_WIN. */
+		DRW_viewport_matrix_get(ped->mats.mat[DRW_MAT_WIN], DRW_MAT_WIN);
+		/* Apply Projection Matrix. */
 		mul_m4_m4m4(ped->mats.mat[DRW_MAT_PERS], ped->mats.mat[DRW_MAT_WIN], ped->mats.mat[DRW_MAT_VIEW]);
-
 		/* This is the matrix used to reconstruct texture coordinates.
 		 * We use the original view matrix because it does not create
 		 * visual artifacts if receiver is not perfectly aligned with
@@ -674,7 +689,6 @@ static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_
 		/* Convert from [-1, 1] to [0, 1] (NDC to Texture coord). */
 		mul_m4_m4m4(eplanar->reflectionmat, rangemat, eplanar->reflectionmat);
 
-		/* TODO frustum check. */
 		ped->need_update = true;
 
 		/* Compute clip plane equation / normal. */
@@ -721,13 +735,6 @@ static void EEVEE_planar_reflections_updates(EEVEE_ViewLayerData *sldata, EEVEE_
 		float min_dist = min_ff(1.0f - 1e-8f, 1.0f - probe->falloff) * probe->distinf;
 		eplanar->attenuation_scale = -1.0f / max_ff(1e-8f, max_dist - min_dist);
 		eplanar->attenuation_bias = max_dist * -eplanar->attenuation_scale;
-
-		/* Debug Display */
-		if (DRW_state_draw_support() &&
-		    (probe->flag & LIGHTPROBE_FLAG_SHOW_DATA))
-		{
-			DRW_shgroup_call_dynamic_add(stl->g_data->planar_display_shgrp, &ped->probe_id, ob->obmat);
-		}
 	}
 }
 
@@ -965,12 +972,12 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		common_data->prb_num_render_grid = pinfo->num_grid;
 	}
 
+	EEVEE_planar_reflections_cache_finish(sldata, vedata->stl);
+
 	EEVEE_lightprobes_updates(sldata, vedata->psl, vedata->stl);
-	EEVEE_planar_reflections_updates(sldata, vedata->stl);
 
 	DRW_uniformbuffer_update(sldata->probe_ubo, &sldata->probes->probe_data);
 	DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
-	DRW_uniformbuffer_update(sldata->planar_ubo, &sldata->probes->planar_data);
 }
 
 static void downsample_planar(void *vedata, int level)
@@ -1447,6 +1454,9 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		common_data->ssr_toggle = vedata->stl->g_data->valid_double_buffer;
 		return;
 	}
+
+	EEVEE_planar_reflections_updates(sldata);
+	DRW_uniformbuffer_update(sldata->planar_ubo, &sldata->probes->planar_data);
 
 	/* We need to save the Matrices before overidding them */
 	DRW_viewport_matrix_get_all(&saved_mats);
