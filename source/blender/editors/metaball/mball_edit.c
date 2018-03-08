@@ -598,7 +598,7 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 	rcti rect;
 
 	CTX_data_eval_ctx(C, &eval_ctx);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	BLI_rcti_init_pt_radius(&rect, mval, 12);
 

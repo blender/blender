@@ -325,7 +325,7 @@ static void clip_planes_from_rect(bContext *C,
 	BoundBox bb;
 	
 	view3d_operator_needs_opengl(C);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	ED_view3d_clipping_calc(&bb, clip_planes, vc.ar, vc.obact, rect);
 	negate_m4(clip_planes);
 }

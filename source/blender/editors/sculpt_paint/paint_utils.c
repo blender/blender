@@ -468,7 +468,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 			unsigned int totpoly = me->totpoly;
 
 			if (dm->getLoopDataArray(dm, CD_MLOOPUV)) {
-				view3d_set_viewcontext(C, &vc);
+				ED_view3d_viewcontext_init(C, &vc);
 
 				view3d_operator_needs_opengl(C);
 

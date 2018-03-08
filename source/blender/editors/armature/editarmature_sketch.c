@@ -1932,7 +1932,7 @@ static bool sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], c
 	short hits;
 
 	CTX_data_eval_ctx(C, &eval_ctx);
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	BLI_rcti_init_pt_radius(&rect, mval, 5);
 

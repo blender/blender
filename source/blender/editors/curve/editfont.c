@@ -1857,7 +1857,7 @@ bool ED_curve_editfont_select_pick(bContext *C, const int mval[2], bool extend, 
 	const float dist = ED_view3d_select_dist_px();
 	float dist_sq_best = dist * dist;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 

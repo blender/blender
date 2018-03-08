@@ -183,7 +183,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	Mesh *me;
 	bool changed = false;
 
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 	me = BKE_mesh_from_object(vc.obact);
 
 	if (me && me->dvert && vc.v3d && vc.rv3d && (vc.obact->actdef != 0)) {
@@ -298,7 +298,7 @@ static const EnumPropertyItem *weight_paint_sample_enum_itemf(
 			ViewContext vc;
 			Mesh *me;
 
-			view3d_set_viewcontext(C, &vc);
+			ED_view3d_viewcontext_init(C, &vc);
 			me = BKE_mesh_from_object(vc.obact);
 
 			if (me && me->dvert && vc.v3d && vc.rv3d && vc.obact->defbase.first) {
@@ -367,7 +367,7 @@ static int weight_sample_group_exec(bContext *C, wmOperator *op)
 {
 	int type = RNA_enum_get(op->ptr, "group");
 	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	BLI_assert(type + 1 >= 0);
 	vc.obact->actdef = type + 1;

@@ -412,7 +412,7 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 {
 	PE_set_data(C, data);
 
-	view3d_set_viewcontext(C, &data->vc);
+	ED_view3d_viewcontext_init(C, &data->vc);
 
 	if (V3D_IS_ZBUF(data->vc.v3d)) {
 		if (data->vc.v3d->flag & V3D_INVALID_BACKBUF) {

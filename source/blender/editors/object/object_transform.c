@@ -1286,7 +1286,7 @@ static void object_transform_axis_target_cancel(bContext *C, wmOperator *op)
 static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	ViewContext vc;
-	view3d_set_viewcontext(C, &vc);
+	ED_view3d_viewcontext_init(C, &vc);
 
 	if (!object_is_target_compat(vc.obact)) {
 		/* Falls back to texture space transform. */
