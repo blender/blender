@@ -353,6 +353,10 @@ void ED_widgetgroup_manipulator2d_draw_prepare(const bContext *C, wmManipulatorG
  */
 bool ED_widgetgroup_manipulator2d_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
+	if ((U.manipulator_flag & USER_MANIPULATOR_DRAW) == 0) {
+		return false;
+	}
+
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obedit = CTX_data_edit_object(C);
 
