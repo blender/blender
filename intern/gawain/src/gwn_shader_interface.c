@@ -45,7 +45,6 @@ static const char* BuiltinUniform_name(Gwn_UniformBuiltin u)
 		[GWN_UNIFORM_WORLDNORMAL] = "WorldNormalMatrix",
 		[GWN_UNIFORM_CAMERATEXCO] = "CameraTexCoFactors",
 		[GWN_UNIFORM_ORCO] = "OrcoTexCoFactors",
-		[GWN_UNIFORM_CLIPPLANES] = "ClipPlanes",
 
 		[GWN_UNIFORM_COLOR] = "color",
 		[GWN_UNIFORM_EYE] = "eye",

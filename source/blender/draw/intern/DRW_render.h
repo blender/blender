@@ -480,7 +480,7 @@ void DRW_state_lock(DRWState state);
 
 void DRW_state_invert_facing(void);
 
-void DRW_state_clip_planes_add(float plane_eq[4]);
+void DRW_state_clip_planes_count_set(unsigned int plane_ct);
 void DRW_state_clip_planes_reset(void);
 
 /* Culling, return true if object is inside view frustum. */

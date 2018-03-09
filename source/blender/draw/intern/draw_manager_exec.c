@@ -366,10 +366,10 @@ void DRW_state_invert_facing(void)
  * and if the shaders have support for it (see usage of gl_ClipDistance).
  * Be sure to call DRW_state_clip_planes_reset() after you finish drawing.
  **/
-void DRW_state_clip_planes_add(float plane_eq[4])
+void DRW_state_clip_planes_count_set(unsigned int plane_ct)
 {
-	BLI_assert(DST.num_clip_planes < MAX_CLIP_PLANES-1);
-	// copy_v4_v4(DST.view_data.clip_planes_eq[DST.num_clip_planes++], plane_eq);
+	BLI_assert(plane_ct <= MAX_CLIP_PLANES);
+	DST.num_clip_planes = plane_ct;
 }
 
 void DRW_state_clip_planes_reset(void)

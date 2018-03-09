@@ -1294,7 +1294,7 @@ static void render_scene_to_planar(
 	 * to invert the facing for backface culling to be the same. */
 	DRW_state_invert_facing();
 
-	DRW_state_clip_planes_add(ped->planer_eq_offset);
+	DRW_state_clip_planes_count_set(1);
 
 	/* Attach depth here since it's a DRW_TEX_TEMP */
 	DRW_framebuffer_texture_layer_attach(fbl->planarref_fb, txl->planar_depth, 0, layer, 0);

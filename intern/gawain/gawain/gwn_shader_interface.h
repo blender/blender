@@ -33,7 +33,6 @@ typedef enum {
 	GWN_UNIFORM_WORLDNORMAL, // mat3 WorldNormalMatrix
 	GWN_UNIFORM_CAMERATEXCO, // vec4 CameraTexCoFactors
 	GWN_UNIFORM_ORCO,        // vec3 OrcoTexCoFactors[]
-	GWN_UNIFORM_CLIPPLANES,  // vec4 ClipPlanes[]
 
 	GWN_UNIFORM_COLOR, // vec4 color
 	GWN_UNIFORM_EYE, // vec3 eye
