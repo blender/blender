@@ -122,11 +122,13 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
+	BLI_assert(tex != NULL);
 	drw_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
 }
 
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
+	BLI_assert(ubo != NULL);
 	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
 }
 
