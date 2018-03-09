@@ -49,6 +49,8 @@ void DRW_select_load_id(unsigned int id)
 }
 #endif
 
+struct GPUUniformBuffer *view_ubo;
+
 /* -------------------------------------------------------------------- */
 
 /** \name Draw State (DRW_state)
@@ -367,7 +369,7 @@ void DRW_state_invert_facing(void)
 void DRW_state_clip_planes_add(float plane_eq[4])
 {
 	BLI_assert(DST.num_clip_planes < MAX_CLIP_PLANES-1);
-	copy_v4_v4(DST.view_data.clip_planes_eq[DST.num_clip_planes++], plane_eq);
+	// copy_v4_v4(DST.view_data.clip_planes_eq[DST.num_clip_planes++], plane_eq);
 }
 
 void DRW_state_clip_planes_reset(void)
@@ -943,13 +945,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	DRW_state_reset();
 }
 
-static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
+static void drw_update_view(void)
 {
-	DST.shader = NULL;
-
 	if (DST.dirty_mat) {
 		DST.state_cache_id++;
 		DST.dirty_mat = false;
+
+		DRW_uniformbuffer_update(view_ubo, &DST.view_data);
 
 		/* Catch integer wrap around. */
 		if (UNLIKELY(DST.state_cache_id == 0)) {
@@ -968,8 +970,15 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 	}
 
 	draw_clipping_setup_from_view();
+}
+
+static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWShadingGroup *end_group)
+{
+	DST.shader = NULL;
 
 	BLI_assert(DST.buffer_finish_called && "DRW_render_instance_buffer_finish had not been called before drawing");
+
+	drw_update_view();
 
 	drw_state_set(pass->state);
 

@@ -90,6 +90,8 @@ DRWManager DST = {NULL};
 
 ListBase DRW_engines = {NULL, NULL};
 
+extern struct GPUUniformBuffer *view_ubo; /* draw_manager_exec.c */
+
 /* -------------------------------------------------------------------- */
 
 void DRW_draw_callbacks_pre_scene(void)
@@ -437,8 +439,12 @@ static void drw_viewport_var_init(void)
 		DST.RST.bound_tex_slots = MEM_callocN(sizeof(bool) * GPU_max_textures(), "Bound Texture Slots");
 	}
 
+	if (view_ubo == NULL) {
+		view_ubo = DRW_uniformbuffer_create(sizeof(ViewUboStorage), NULL);
+	}
+
 	DST.override_mat = 0;
-	DST.dirty_mat = false;
+	DST.dirty_mat = true;
 	DST.state_cache_id = 1;
 
 	DST.clipping.updated = false;
@@ -1936,6 +1942,7 @@ void DRW_engines_free(void)
 	}
 
 	DRW_UBO_FREE_SAFE(globals_ubo);
+	DRW_UBO_FREE_SAFE(view_ubo);
 	DRW_TEXTURE_FREE_SAFE(globals_ramp);
 	MEM_SAFE_FREE(g_pos_format);
 

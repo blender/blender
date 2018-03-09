@@ -43,6 +43,8 @@
 
 struct Gwn_VertFormat *g_pos_format = NULL;
 
+extern struct GPUUniformBuffer *view_ubo; /* draw_manager_exec.c */
+
 /* -------------------------------------------------------------------- */
 
 /** \name Uniform Buffer Object (DRW_uniformbuffer)
@@ -70,22 +72,27 @@ void DRW_uniformbuffer_free(GPUUniformBuffer *ubo)
 /** \name Uniforms (DRW_shgroup_uniform)
  * \{ */
 
-static void drw_interface_builtin_uniform(
-        DRWShadingGroup *shgroup, int builtin, const void *value, int length, int arraysize)
+static void drw_interface_uniform_create_ex(DRWShadingGroup *shgroup, int loc,
+                                            DRWUniformType type, const void *value, int length, int arraysize)
 {
-	int loc = GPU_shader_get_builtin_uniform(shgroup->shader, builtin);
-
-	if (loc == -1)
-		return;
-
 	DRWUniform *uni = BLI_mempool_alloc(DST.vmempool->uniforms);
 	uni->location = loc;
-	uni->type = DRW_UNIFORM_FLOAT;
+	uni->type = type;
 	uni->value = value;
 	uni->length = length;
 	uni->arraysize = arraysize;
 
 	BLI_LINKS_PREPEND(shgroup->uniforms, uni);
+}
+
+static void drw_interface_builtin_uniform(
+        DRWShadingGroup *shgroup, int builtin, const void *value, int length, int arraysize)
+{
+	int loc = GPU_shader_get_builtin_uniform(shgroup->shader, builtin);
+
+	if (loc != -1) {
+		drw_interface_uniform_create_ex(shgroup, loc, DRW_UNIFORM_FLOAT, value, length, arraysize);
+	}
 }
 
 static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
@@ -107,18 +114,10 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 		return;
 	}
 
-	DRWUniform *uni = BLI_mempool_alloc(DST.vmempool->uniforms);
-
 	BLI_assert(arraysize > 0 && arraysize <= 16);
 	BLI_assert(length >= 0 && length <= 16);
 
-	uni->location = location;
-	uni->type = type;
-	uni->value = value;
-	uni->length = length;
-	uni->arraysize = arraysize;
-
-	BLI_LINKS_PREPEND(shgroup->uniforms, uni);
+	drw_interface_uniform_create_ex(shgroup, location, type, value, length, arraysize);
 }
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
@@ -457,15 +456,21 @@ static void drw_interface_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	shgroup->attribs_count = 0;
 #endif
 
-	/* TODO : They should be grouped inside a UBO updated once per redraw. */
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW, DST.view_data.matstate.mat[DRW_MAT_VIEW], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW_INV, DST.view_data.matstate.mat[DRW_MAT_VIEWINV], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION, DST.view_data.matstate.mat[DRW_MAT_PERS], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_PERSINV], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION, DST.view_data.matstate.mat[DRW_MAT_WIN], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_WININV], 16, 1);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_CAMERATEXCO, DST.view_data.viewcamtexcofac, 3, 2);
-	drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_CLIPPLANES, DST.view_data.clip_planes_eq, 4, DST.num_clip_planes); /* TO REMOVE */
+	int view_ubo_location = GPU_shader_get_uniform_block(shader, "viewBlock");
+
+	if (view_ubo_location != -1) {
+		drw_interface_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, view_ubo, 0, 1);
+	}
+	else {
+		/* Only here to support builtin shaders. This should not be used by engines. */
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW, DST.view_data.matstate.mat[DRW_MAT_VIEW], 16, 1);
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW_INV, DST.view_data.matstate.mat[DRW_MAT_VIEWINV], 16, 1);
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION, DST.view_data.matstate.mat[DRW_MAT_PERS], 16, 1);
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_PERSINV], 16, 1);
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION, DST.view_data.matstate.mat[DRW_MAT_WIN], 16, 1);
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_WININV], 16, 1);
+		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_CAMERATEXCO, DST.view_data.viewcamtexcofac, 3, 2);
+	}
 
 	shgroup->model = GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_MODEL);
 	shgroup->modelinverse = GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_MODEL_INV);

@@ -413,7 +413,7 @@ typedef enum {
 	DRW_MAT_COUNT, // Don't use this.
 } DRWViewportMatrixType;
 
-typedef struct DRWMatrixState{
+typedef struct DRWMatrixState {
 	float mat[DRW_MAT_COUNT][4][4];
 } DRWMatrixState;
 
