@@ -109,6 +109,7 @@ extern char datatoc_lightprobe_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 
 extern GlobalsUboStorage ts;
@@ -205,8 +206,10 @@ static void lightprobe_shaders_init(void)
 	                             "#define NOISE_SIZE 64\n";
 
 	char *shader_str = NULL;
+	char *vert_str = NULL;
 
 	shader_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_bsdf_sampling_lib_glsl,
@@ -221,6 +224,7 @@ static void lightprobe_shaders_init(void)
 	MEM_freeN(shader_str);
 
 	shader_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_bsdf_sampling_lib_glsl,
@@ -231,6 +235,7 @@ static void lightprobe_shaders_init(void)
 	MEM_freeN(shader_str);
 
 	shader_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_bsdf_sampling_lib_glsl,
@@ -242,15 +247,20 @@ static void lightprobe_shaders_init(void)
 
 	shader_str = BLI_string_joinN(
 	        datatoc_octahedron_lib_glsl,
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_irradiance_lib_glsl,
 	        datatoc_lightprobe_lib_glsl,
 	        datatoc_lightprobe_grid_display_frag_glsl);
 
-	e_data.probe_grid_display_sh = DRW_shader_create(
-	        datatoc_lightprobe_grid_display_vert_glsl, NULL, shader_str, filter_defines);
+	vert_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
+	        datatoc_lightprobe_grid_display_vert_glsl);
 
+	e_data.probe_grid_display_sh = DRW_shader_create(vert_str, NULL, shader_str, filter_defines);
+
+	MEM_freeN(vert_str);
 	MEM_freeN(shader_str);
 
 	e_data.probe_grid_fill_sh = DRW_shader_create_fullscreen(
@@ -258,19 +268,33 @@ static void lightprobe_shaders_init(void)
 
 	shader_str = BLI_string_joinN(
 	        datatoc_octahedron_lib_glsl,
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_lightprobe_lib_glsl,
 	        datatoc_lightprobe_cube_display_frag_glsl);
 
-	e_data.probe_cube_display_sh = DRW_shader_create(
-	        datatoc_lightprobe_cube_display_vert_glsl, NULL, shader_str, NULL);
+	vert_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
+	        datatoc_lightprobe_cube_display_vert_glsl);
 
+	e_data.probe_cube_display_sh = DRW_shader_create(vert_str, NULL, shader_str, NULL);
+
+	MEM_freeN(vert_str);
 	MEM_freeN(shader_str);
 
-	e_data.probe_planar_display_sh = DRW_shader_create(
-	        datatoc_lightprobe_planar_display_vert_glsl, NULL,
-	        datatoc_lightprobe_planar_display_frag_glsl, NULL);
+	vert_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
+	        datatoc_lightprobe_planar_display_vert_glsl);
+
+	shader_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
+	        datatoc_lightprobe_planar_display_frag_glsl);
+
+	e_data.probe_planar_display_sh = DRW_shader_create(vert_str, NULL, shader_str, NULL);
+
+	MEM_freeN(vert_str);
+	MEM_freeN(shader_str);
 
 	e_data.probe_planar_downsample_sh = DRW_shader_create(
 	        datatoc_lightprobe_planar_downsample_vert_glsl,

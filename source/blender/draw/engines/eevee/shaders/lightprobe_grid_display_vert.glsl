@@ -1,8 +1,6 @@
 
 in vec3 pos;
 
-uniform mat4 ViewProjectionMatrix;
-
 uniform float sphere_size;
 uniform int offset;
 uniform ivec3 grid_resolution;

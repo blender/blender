@@ -35,6 +35,7 @@
 
 #include "eevee_private.h"
 
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_effect_mist_frag_glsl[];
@@ -59,6 +60,7 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 	if (e_data.mist_sh == NULL) {
 		char *frag_str = BLI_string_joinN(
+		        datatoc_common_view_lib_glsl,
 		        datatoc_common_uniforms_lib_glsl,
 		        datatoc_bsdf_common_lib_glsl,
 		        datatoc_effect_mist_frag_glsl);

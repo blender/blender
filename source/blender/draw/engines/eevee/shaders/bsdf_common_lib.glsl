@@ -8,12 +8,7 @@
 
 #define LUT_SIZE 64
 
-uniform mat4 ProjectionMatrix;
-uniform mat4 ViewProjectionMatrix;
-uniform mat4 ViewMatrixInverse;
-#ifndef SHADOW_SHADER
-uniform mat4 ViewMatrix;
-#else
+#ifdef SHADOW_SHADER
 layout(std140) uniform shadow_render_block {
 	mat4 ShadowMatrix[6];
 	mat4 FaceViewMatrix[6];
@@ -27,7 +22,21 @@ layout(std140) uniform shadow_render_block {
 };
 
 flat in int shFace; /* Shadow layer we are rendering to. */
-#define ViewMatrix      FaceViewMatrix[shFace]
+
+/* Replacing viewBlock */
+#define ViewMatrix              FaceViewMatrix[shFace]
+#define ViewProjectionMatrix    ShadowMatrix[shFace]
+/* TODO optimize */
+#define ProjectionMatrix       \
+mat4(vec4(1.0, 0.0, 0.0, 0.0), \
+     vec4(0.0, 1.0, 0.0, 0.0), \
+     vec4(0.0, 0.0, -(farClip + nearClip) / (farClip - nearClip), -1.0), \
+     vec4(0.0, 0.0, (-2.0 * farClip * nearClip) / (farClip - nearClip), 0.0))
+
+#define ViewMatrixInverse             invert(ViewMatrix)
+#define ViewProjectionMatrixInverse   invert(ViewProjectionMatrix)
+#define ProjectionMatrixInverse       invert(ProjectionMatrix)
+#define CameraTexCoFactors            vec4(1.0f, 1.0f, 0.0f, 0.0f)
 #endif
 
 /* Buffers */

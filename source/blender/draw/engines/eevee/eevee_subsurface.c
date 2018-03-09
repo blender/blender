@@ -36,12 +36,14 @@ static struct {
 	struct GPUShader *sss_sh[4];
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_effect_subsurface_frag_glsl[];
 
 static void eevee_create_shader_subsurface(void)
 {
 	char *frag_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_effect_subsurface_frag_glsl);
 

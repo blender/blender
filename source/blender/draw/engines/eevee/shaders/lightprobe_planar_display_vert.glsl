@@ -4,8 +4,6 @@ in vec3 pos;
 in int probe_id;
 in mat4 probe_mat;
 
-uniform mat4 ViewProjectionMatrix;
-
 out vec3 worldPosition;
 flat out int probeIdx;
 

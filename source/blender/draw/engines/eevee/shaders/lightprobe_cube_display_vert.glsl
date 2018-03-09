@@ -6,8 +6,6 @@ in int probe_id;
 in vec3 probe_location;
 in float sphere_size;
 
-uniform mat4 ViewProjectionMatrix;
-
 flat out int pid;
 out vec3 worldNormal;
 out vec3 worldPosition;

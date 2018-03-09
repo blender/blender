@@ -44,6 +44,7 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_effect_gtao_frag_glsl[];
@@ -51,6 +52,7 @@ extern char datatoc_effect_gtao_frag_glsl[];
 static void eevee_create_shader_occlusion(void)
 {
 	char *frag_str = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_ambient_occlusion_lib_glsl,

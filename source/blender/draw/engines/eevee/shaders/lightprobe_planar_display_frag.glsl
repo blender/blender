@@ -1,5 +1,4 @@
 
-uniform mat4 ViewProjectionMatrix;
 uniform sampler2DArray probePlanars;
 
 in vec3 worldPosition;

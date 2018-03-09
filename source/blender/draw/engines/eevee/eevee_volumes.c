@@ -65,6 +65,7 @@ static struct {
 extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_direct_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_lamps_lib_glsl[];
@@ -80,11 +81,13 @@ extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
 static void eevee_create_shader_volumes(void)
 {
 	e_data.volumetric_common_lib = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_volumetric_lib_glsl);
 
 	e_data.volumetric_common_lamps_lib = BLI_string_joinN(
+	        datatoc_common_view_lib_glsl,
 	        datatoc_common_uniforms_lib_glsl,
 	        datatoc_bsdf_common_lib_glsl,
 	        datatoc_bsdf_direct_lib_glsl,

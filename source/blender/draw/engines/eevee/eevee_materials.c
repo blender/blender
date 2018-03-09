@@ -47,6 +47,7 @@
 
 /* *********** STATIC *********** */
 static struct {
+	char *shadow_shader_lib;
 	char *frag_shader_lib;
 	char *volume_shader_lib;
 
@@ -81,6 +82,7 @@ extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_bsdf_direct_lib_glsl[];
 extern char datatoc_bsdf_sampling_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_irradiance_lib_glsl[];
 extern char datatoc_octahedron_lib_glsl[];
 extern char datatoc_lit_surface_frag_glsl[];
@@ -531,7 +533,7 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		char *frag_str = NULL;
 
 		/* Shaders */
-		e_data.frag_shader_lib = BLI_string_joinN(
+		e_data.shadow_shader_lib = BLI_string_joinN(
 		        datatoc_common_uniforms_lib_glsl,
 		        datatoc_bsdf_common_lib_glsl,
 		        datatoc_bsdf_sampling_lib_glsl,
@@ -555,7 +557,12 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		        datatoc_lit_surface_frag_glsl,
 		        datatoc_volumetric_lib_glsl);
 
+		e_data.frag_shader_lib = BLI_string_joinN(
+		        datatoc_common_view_lib_glsl,
+		        e_data.shadow_shader_lib);
+
 		e_data.volume_shader_lib = BLI_string_joinN(
+		        datatoc_common_view_lib_glsl,
 		        datatoc_common_uniforms_lib_glsl,
 		        datatoc_bsdf_common_lib_glsl,
 		        datatoc_ambient_occlusion_lib_glsl,
@@ -755,7 +762,7 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(
 	char *defines = eevee_get_defines(options);
 
 	char *frag_str = BLI_string_joinN(
-	        e_data.frag_shader_lib,
+	        (is_shadow) ? e_data.shadow_shader_lib : e_data.frag_shader_lib,
 	        datatoc_prepass_frag_glsl);
 
 	mat = DRW_shader_create_from_material(
@@ -1515,6 +1522,7 @@ void EEVEE_materials_free(void)
 	for (int i = 0; i < VAR_MAT_MAX; ++i) {
 		DRW_SHADER_FREE_SAFE(e_data.default_lit[i]);
 	}
+	MEM_SAFE_FREE(e_data.shadow_shader_lib);
 	MEM_SAFE_FREE(e_data.frag_shader_lib);
 	MEM_SAFE_FREE(e_data.volume_shader_lib);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
