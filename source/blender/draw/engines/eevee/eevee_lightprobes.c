@@ -1336,9 +1336,14 @@ static void render_scene_to_planar(
 	txl->planar_pool = e_data.planar_pool_placeholder;
 	txl->planar_depth = e_data.depth_array_placeholder;
 
+	/* Slight modification: we handle refraction as normal
+	 * shading and don't do SSRefraction. */
+
 	/* Depth prepass */
 	DRW_draw_pass(psl->depth_pass_clip);
 	DRW_draw_pass(psl->depth_pass_clip_cull);
+	DRW_draw_pass(psl->refract_depth_pass);
+	DRW_draw_pass(psl->refract_depth_pass_cull);
 
 	/* Background */
 	DRW_draw_pass(psl->probe_background);
@@ -1355,6 +1360,7 @@ static void render_scene_to_planar(
 	EEVEE_draw_default_passes(psl);
 	DRW_draw_pass(psl->material_pass);
 	DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
+	DRW_draw_pass(psl->refract_pass);
 
 	/* Transparent */
 	if (DRW_state_is_image_render()) {
