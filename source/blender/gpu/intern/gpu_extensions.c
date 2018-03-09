@@ -149,7 +149,7 @@ void gpu_extensions_init(void)
 	else
 		GG.max_anisotropy = 1.0f;
 
-	glGetIntegerv(GL_MAX_UNIFORM_BUFFER_BINDINGS, &GG.maxubobinds);
+	glGetIntegerv(GL_MAX_FRAGMENT_UNIFORM_BLOCKS, &GG.maxubobinds);
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &GG.maxubosize);
 
 #ifndef NDEBUG

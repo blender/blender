@@ -336,6 +336,8 @@ typedef struct DRWManager {
 		GPUTexture **bound_texs;
 		bool *bound_tex_slots;
 		int bind_tex_inc;
+		GPUUniformBuffer **bound_ubos;
+		bool *bound_ubo_slots;
 		int bind_ubo_inc;
 	} RST;
 } DRWManager;

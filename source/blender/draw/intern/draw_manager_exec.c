@@ -729,11 +729,20 @@ static void bind_texture(GPUTexture *tex)
 
 static void bind_ubo(GPUUniformBuffer *ubo)
 {
-	if (DST.RST.bind_ubo_inc < GPU_max_ubo_binds()) {
-		GPU_uniformbuffer_bind(ubo, DST.RST.bind_ubo_inc);
-		DST.RST.bind_ubo_inc++;
-	}
-	else {
+	int bind_num = GPU_uniformbuffer_bindpoint(ubo);
+	if (bind_num == -1) {
+		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
+			DST.RST.bind_ubo_inc = (DST.RST.bind_ubo_inc + 1) % GPU_max_ubo_binds();
+			if (DST.RST.bound_ubo_slots[DST.RST.bind_ubo_inc] == false) {
+				if (DST.RST.bound_ubos[DST.RST.bind_ubo_inc] != NULL) {
+					GPU_uniformbuffer_unbind(DST.RST.bound_ubos[DST.RST.bind_ubo_inc]);
+				}
+				GPU_uniformbuffer_bind(ubo, DST.RST.bind_ubo_inc);
+				DST.RST.bound_ubos[DST.RST.bind_ubo_inc] = ubo;
+				DST.RST.bound_ubo_slots[DST.RST.bind_ubo_inc] = true;
+				return;
+			}
+		}
 		/* This is not depending on user input.
 		 * It is our responsability to make sure there enough slots. */
 		BLI_assert(0 && "Not enough ubo slots! This should not happen!\n");
@@ -741,6 +750,7 @@ static void bind_ubo(GPUUniformBuffer *ubo)
 		/* printf so user can report bad behaviour */
 		printf("Not enough ubo slots! This should not happen!\n");
 	}
+	DST.RST.bound_ubo_slots[bind_num] = true;
 }
 
 static void release_texture_slots(void)
@@ -750,7 +760,7 @@ static void release_texture_slots(void)
 
 static void release_ubo_slots(void)
 {
-	DST.RST.bind_ubo_inc = 0;
+	memset(DST.RST.bound_ubo_slots, 0x0, sizeof(bool) * GPU_max_textures());
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -766,10 +776,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		if (DST.shader) GPU_shader_unbind();
 		GPU_shader_bind(shgroup->shader);
 		DST.shader = shgroup->shader;
-	}
 
-	release_texture_slots();
-	release_ubo_slots();
+		release_texture_slots();
+		release_ubo_slots();
+	}
 
 	drw_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
 	drw_stencil_set(shgroup->stencil_mask);
@@ -997,6 +1007,14 @@ static void drw_draw_pass_ex(DRWPass *pass, DRWShadingGroup *start_group, DRWSha
 		if (DST.RST.bound_texs[i] != NULL) {
 			GPU_texture_unbind(DST.RST.bound_texs[i]);
 			DST.RST.bound_texs[i] = NULL;
+		}
+	}
+
+	/* Clear Bound Ubos */
+	for (int i = 0; i < GPU_max_ubo_binds(); i++) {
+		if (DST.RST.bound_ubos[i] != NULL) {
+			GPU_uniformbuffer_unbind(DST.RST.bound_ubos[i]);
+			DST.RST.bound_ubos[i] = NULL;
 		}
 	}
 

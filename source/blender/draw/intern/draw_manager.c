@@ -438,6 +438,12 @@ static void drw_viewport_var_init(void)
 	if (DST.RST.bound_tex_slots == NULL) {
 		DST.RST.bound_tex_slots = MEM_callocN(sizeof(bool) * GPU_max_textures(), "Bound Texture Slots");
 	}
+	if (DST.RST.bound_ubos == NULL) {
+		DST.RST.bound_ubos = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_ubo_binds(), "Bound GPUUniformBuffer refs");
+	}
+	if (DST.RST.bound_ubo_slots == NULL) {
+		DST.RST.bound_ubo_slots = MEM_callocN(sizeof(bool) * GPU_max_textures(), "Bound Ubo Slots");
+	}
 
 	if (view_ubo == NULL) {
 		view_ubo = DRW_uniformbuffer_create(sizeof(ViewUboStorage), NULL);
@@ -1948,6 +1954,8 @@ void DRW_engines_free(void)
 
 	MEM_SAFE_FREE(DST.RST.bound_texs);
 	MEM_SAFE_FREE(DST.RST.bound_tex_slots);
+	MEM_SAFE_FREE(DST.RST.bound_ubos);
+	MEM_SAFE_FREE(DST.RST.bound_ubo_slots);
 
 	DRW_opengl_context_disable();
 
