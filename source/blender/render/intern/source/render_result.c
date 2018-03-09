@@ -406,7 +406,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 #undef RENDER_LAYER_ADD_PASS_SAFE
 		}
 	}
-	FOREACH_VIEW_LAYER_TO_RENDER_END
+	FOREACH_VIEW_LAYER_TO_RENDER_END;
 
 	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {

@@ -179,7 +179,7 @@ void SceneExporter::writeNodes(const EvaluationContext *eval_ctx, Object *ob, Sc
 			{
 				printf("\t%s\n", object->id.name);
 			}
-			FOREACH_GROUP_OBJECT_END
+			FOREACH_GROUP_OBJECT_END;
 		}
 	}
 

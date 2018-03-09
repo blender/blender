@@ -553,7 +553,7 @@ static void group_linkobs2scene_cb(
 
 		base->flag |= BASE_SELECTED;
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 }
 
 static void group_instance_cb(

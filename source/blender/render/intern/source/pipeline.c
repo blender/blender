@@ -2043,7 +2043,7 @@ static void tag_dependend_objects_for_render(Scene *scene, int UNUSED(renderlay)
 			}
 		}
 	}
-	FOREACH_OBJECT_RENDERABLE_END
+	FOREACH_OBJECT_RENDERABLE_END;
 }
 #endif
 

@@ -446,7 +446,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						CALLBACK_INVOKE_ID(link->data, IDWALK_CB_USER);
 					}
 				}
-				FOREACH_SCENE_COLLECTION_END
+				FOREACH_SCENE_COLLECTION_END;
 
 				ViewLayer *view_layer;
 				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {

@@ -613,7 +613,7 @@ static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene),
 		{
 			BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 		}
-		FOREACH_SCENE_OBJECT_END
+		FOREACH_SCENE_OBJECT_END;
 	}
 	else {
 		DEG_id_tag_update(id, OB_RECALC_DATA | PSYS_RECALC_RESET);

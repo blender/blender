@@ -2967,7 +2967,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 			}
 		}
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 
 	if (!skip) {
 		psys_cache_paths(sim, cfra, use_render_params);

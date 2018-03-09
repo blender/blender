@@ -255,7 +255,7 @@ static void env_set_imats(Render *re)
 		mul_m4_m4m4(mat, re->viewmat, ob->obmat);
 		invert_m4_m4(ob->imat, mat);
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 }
 
 /* ------------------------------------------------------------------------- */

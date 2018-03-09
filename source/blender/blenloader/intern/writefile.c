@@ -1352,7 +1352,7 @@ static void write_particlesettings(WriteData *wd, ParticleSettings *part)
 							dw->index++;
 						}
 					}
-					FOREACH_GROUP_OBJECT_END
+					FOREACH_GROUP_OBJECT_END;
 				}
 			}
 			writestruct(wd, DATA, ParticleDupliWeight, 1, dw);

@@ -1473,7 +1473,7 @@ static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	{
 		BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 }
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
@@ -1549,7 +1549,7 @@ static void rna_Scene_use_simplify_update(Main *UNUSED(bmain), Scene *UNUSED(sce
 	{
 		object_simplify_update(ob);
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 
 	for (SETLOOPER_SET_ONLY(sce, sce_iter, base)) {
 		object_simplify_update(base->object);

@@ -937,7 +937,7 @@ static void do_outliner_item_activate_tree_element(
 				{
 					ED_object_base_select(BKE_view_layer_base_find(view_layer, object), sel);
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_OBJECT_END;
 			}
 			else {
 				BKE_view_layer_base_deselect_all(view_layer);
@@ -952,7 +952,7 @@ static void do_outliner_item_activate_tree_element(
 						}
 					}
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_OBJECT_END;
 			}
 			
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);

@@ -965,7 +965,7 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 		{
 			object->flag |= OB_FROMGROUP;
 		}
-		FOREACH_GROUP_OBJECT_END
+		FOREACH_GROUP_OBJECT_END;
 	}
 
 	/* copy layers and flags from bases to objects */

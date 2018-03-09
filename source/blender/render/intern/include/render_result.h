@@ -138,7 +138,7 @@ bool render_result_has_views(struct RenderResult *rr);
 
 #define FOREACH_VIEW_LAYER_TO_RENDER_END                  \
 	}                                                     \
-}
+} ((void)0)
 
 #endif /* __RENDER_RESULT_H__ */
 

@@ -101,7 +101,7 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 					}
 				}
 			}
-			FOREACH_GROUP_OBJECT_END
+			FOREACH_GROUP_OBJECT_END;
 		}
 
 		if (rbw->group) {
@@ -114,7 +114,7 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 					}
 				}
 			}
-			FOREACH_GROUP_OBJECT_END
+			FOREACH_GROUP_OBJECT_END;
 		}
 		/* free dynamics world */
 		RB_dworld_delete(rbw->physics_world);
@@ -1157,7 +1157,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 					}
 				}
 			}
-			FOREACH_GROUP_OBJECT_END
+			FOREACH_GROUP_OBJECT_END;
 		}
 	}
 
@@ -1206,7 +1206,7 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
 		rbw->objects[i] = object;
 		i++;
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 }
 
 static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
@@ -1341,7 +1341,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 				rbc->physics_constraint = NULL;
 			}
 		}
-		FOREACH_GROUP_OBJECT_END
+		FOREACH_GROUP_OBJECT_END;
 	}
 
 	/* update objects */
@@ -1388,7 +1388,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 			rigidbody_update_sim_ob(eval_ctx, scene, rbw, ob, rbo);
 		}
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 	
 	/* update constraints */
 	if (rbw->constraints == NULL) /* no constraints, move on */
@@ -1422,7 +1422,7 @@ static void rigidbody_update_simulation(const struct EvaluationContext *eval_ctx
 			rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
 		}
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 }
 
 static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)

@@ -4016,7 +4016,7 @@ static void add_lightgroup(Render *re, Group *group, int exclusive)
 			}
 		}
 	}
-	FOREACH_GROUP_BASE_END
+	FOREACH_GROUP_BASE_END;
 #else
 	UNUSED_VARS(re, exclusive);
 #endif
@@ -4950,7 +4950,7 @@ static void dupli_render_particle_set(const EvaluationContext *eval_ctx, Render 
 	{
 		dupli_render_particle_set(eval_ctx, re, object, timeoffset, level+1, enable);
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 }
 
 static int get_vector_viewlayers(Scene *UNUSED(sce))
@@ -4981,7 +4981,7 @@ static void add_group_render_dupli_obs(const EvaluationContext *eval_ctx, Render
 			}
 		}
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 }
 
 static void database_init_objects(const EvaluationContext *eval_ctx, Render *re, unsigned int UNUSED(renderlay),

@@ -2095,7 +2095,7 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 						}
 					}
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_OBJECT_END;
 			}
 		}
 	}

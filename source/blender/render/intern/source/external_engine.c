@@ -771,7 +771,7 @@ int RE_engine_render(Render *re, int do_all)
 			DEG_graph_free(depsgraph);
 			DEG_evaluation_context_free(eval_ctx);
 		}
-		FOREACH_VIEW_LAYER_TO_RENDER_END
+		FOREACH_VIEW_LAYER_TO_RENDER_END;
 	}
 
 	engine->tile_x = 0;

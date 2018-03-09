@@ -120,7 +120,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 					}
 				}
 			}
-			FOREACH_SCENE_OBJECT_END
+			FOREACH_SCENE_OBJECT_END;
 		}
 	}
 }

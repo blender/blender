@@ -1112,7 +1112,7 @@ void DRW_draw_render_loop_ex(
 		{
 			drw_engines_cache_populate(ob);
 		}
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
+		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
 
 		drw_engines_cache_finish();
 
@@ -1485,17 +1485,18 @@ void DRW_draw_select_loop(
 			drw_engines_cache_populate(obact);
 		}
 		else {
-			DEG_OBJECT_ITER_BEGIN(depsgraph, ob, DRW_iterator_mode_get(),
-			                DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-			                DEG_ITER_OBJECT_FLAG_VISIBLE |
-			                DEG_ITER_OBJECT_FLAG_DUPLI)
+			DEG_OBJECT_ITER_BEGIN(
+			        depsgraph, ob, DRW_iterator_mode_get(),
+			        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+			        DEG_ITER_OBJECT_FLAG_VISIBLE |
+			        DEG_ITER_OBJECT_FLAG_DUPLI)
 			{
 				if ((ob->base_flag & BASE_SELECTABLED) != 0) {
 					DRW_select_load_id(ob->select_color);
 					drw_engines_cache_populate(ob);
 				}
 			}
-			DEG_OBJECT_ITER_END
+			DEG_OBJECT_ITER_END;
 		}
 
 		drw_engines_cache_finish();
@@ -1661,7 +1662,7 @@ void DRW_draw_depth_loop(
 		{
 			drw_engines_cache_populate(ob);
 		}
-		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END
+		DEG_OBJECT_ITER_FOR_RENDER_ENGINE_END;
 
 		drw_engines_cache_finish();
 

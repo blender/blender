@@ -406,7 +406,7 @@ static const EnumPropertyItem *proxy_group_object_itemf(bContext *C, PointerRNA 
 		item_tmp.value = i++;
 		RNA_enum_item_add(&item, &totitem, &item_tmp);
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
@@ -1717,7 +1717,7 @@ static void single_object_users(Main *bmain, Scene *scene, View3D *v3d, const in
 					break;
 				}
 			}
-			FOREACH_GROUP_OBJECT_END
+			FOREACH_GROUP_OBJECT_END;
 
 			if (all_duplicated) {
 				groupn = ID_NEW_SET(group, BKE_group_copy(bmain, group));
@@ -1751,7 +1751,7 @@ void ED_object_single_user(Main *bmain, Scene *scene, Object *ob)
 	{
 		ob_iter->flag &= ~OB_DONE;
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 
 	/* tag only the one object */
 	ob->flag |= OB_DONE;
@@ -1865,7 +1865,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 			}
 		}
 	}
-	FOREACH_OBJECT_FLAG_END
+	FOREACH_OBJECT_FLAG_END;
 
 	me = bmain->mesh.first;
 	while (me) {
@@ -1877,11 +1877,13 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 static void single_object_action_users(Scene *scene, ViewLayer *view_layer, const int flag)
 {
 	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
+	{
 		if (!ID_IS_LINKED(ob)) {
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			BKE_animdata_copy_id_action(&ob->id, false);
 		}
-	FOREACH_OBJECT_FLAG_END
+	}
+	FOREACH_OBJECT_FLAG_END;
 }
 
 static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag, const bool do_textures)
@@ -1891,6 +1893,7 @@ static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, c
 	int a, b;
 
 	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
+	{
 		if (!ID_IS_LINKED(ob)) {
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
@@ -1920,7 +1923,8 @@ static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, c
 				}
 			}
 		}
-	FOREACH_OBJECT_FLAG_END
+	}
+	FOREACH_OBJECT_FLAG_END;
 }
 
 static void do_single_tex_user(Main *bmain, Tex **from)
@@ -2051,7 +2055,7 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 				IDP_RelinkProperty(ob->id.properties);
 			}
 		}
-		FOREACH_SCENE_OBJECT_END
+		FOREACH_SCENE_OBJECT_END;
 
 		if (scene->nodetree) {
 			IDP_RelinkProperty(scene->nodetree->id.properties);

@@ -245,7 +245,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 
 #define FOREACH_OBJECT_END                                                    \
     }                                                                         \
-}
+} ((void)0)
 
 #define FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, _instance)         \
 {                                                                             \
@@ -269,10 +269,10 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *iter);
 
 
 #define FOREACH_OBJECT_FLAG_END                                               \
-	ITER_END                                                                  \
-}
+	ITER_END;                                                                 \
+} ((void)0)
 
-typedef struct ObjectsRenderableIteratorData {
+struct ObjectsRenderableIteratorData {
 	struct Scene *scene;
 	struct Base base_temp;
 	struct Scene scene_temp;
@@ -282,10 +282,11 @@ typedef struct ObjectsRenderableIteratorData {
 		struct Base *base;
 		struct Scene *set;
 	} iter;
-} ObjectsRenderableIteratorData;
+};
 
 #define FOREACH_OBJECT_RENDERABLE_BEGIN(scene_, _instance)                    \
-	ObjectsRenderableIteratorData data_ = {                                   \
+{                                                                             \
+	struct ObjectsRenderableIteratorData data_ = {                                   \
 	    .scene = (scene_),                                                    \
 	};                                                                        \
 	ITER_BEGIN(BKE_renderable_objects_iterator_begin,                         \
@@ -295,7 +296,8 @@ typedef struct ObjectsRenderableIteratorData {
 
 
 #define FOREACH_OBJECT_RENDERABLE_END                                         \
-	ITER_END
+	ITER_END;                                                                 \
+} ((void)0)
 
 #ifdef __cplusplus
 }

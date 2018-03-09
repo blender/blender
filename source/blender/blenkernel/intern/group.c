@@ -219,7 +219,7 @@ static bool group_object_cyclic_check_internal(Object *object, Group *group)
 					return true;
 				}
 			}
-			FOREACH_GROUP_OBJECT_END
+			FOREACH_GROUP_OBJECT_END;
 		}
 
 		/* un-flag the object, it's allowed to have the same group multiple times in parallel */
@@ -284,7 +284,7 @@ bool BKE_group_is_animated(Group *group, Object *UNUSED(parent))
 			return true;
 		}
 	}
-	FOREACH_GROUP_OBJECT_END
+	FOREACH_GROUP_OBJECT_END;
 	return false;
 }
 
@@ -375,7 +375,7 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 				BKE_object_handle_update(eval_ctx, scene, object);
 			}
 		}
-		FOREACH_GROUP_OBJECT_END
+		FOREACH_GROUP_OBJECT_END;
 	}
 }
 

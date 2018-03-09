@@ -169,7 +169,7 @@ void BIF_makeListTemplates(const bContext *C)
 			}
 		}
 	}
-	FOREACH_OBJECT_END
+	FOREACH_OBJECT_END;
 }
 
 #if 0  /* UNUSED */

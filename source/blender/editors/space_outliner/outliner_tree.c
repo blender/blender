@@ -2384,7 +2384,7 @@ void outliner_build_tree(
 			{
 				outliner_add_element(soops, eval_ctx, &soops->tree, ob, NULL, 0, 0);
 			}
-			FOREACH_SCENE_OBJECT_END
+			FOREACH_SCENE_OBJECT_END;
 			outliner_make_hierarchy(&soops->tree);
 		}
 		else {

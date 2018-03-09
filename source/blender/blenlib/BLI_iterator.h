@@ -57,6 +57,6 @@ typedef void (*IteratorBeginCb)(BLI_Iterator *iter, void *data_in);
 #define ITER_END                                                                     \
 	}                                                                                \
 	callback_end_func(&iter_macro);                                                  \
-}
+} ((void)0)
 
 #endif /* __BLI_ITERATOR_H__ */

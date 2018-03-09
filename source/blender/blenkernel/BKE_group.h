@@ -80,6 +80,6 @@ void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
 		BLI_assert(_object != NULL);
 
 #define FOREACH_GROUP_OBJECT_END                                  \
-	}
+	} ((void)0)
 
 #endif  /* __BKE_GROUP_H__ */

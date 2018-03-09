@@ -138,7 +138,7 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 		           &data_, Object *, instance_)
 
 #define DEG_OBJECT_ITER_END                                                       \
-		ITER_END                                                                  \
+		ITER_END;                                                                 \
 	}
 
 /**

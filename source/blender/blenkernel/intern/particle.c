@@ -365,7 +365,7 @@ void psys_check_group_weights(ParticleSettings *part)
 				BLI_addtail(&part->dupliweights, dw);
 			}
 		}
-		FOREACH_GROUP_OBJECT_END
+		FOREACH_GROUP_OBJECT_END;
 
 		dw = part->dupliweights.first;
 		for (; dw; dw = dw->next) {

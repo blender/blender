@@ -911,18 +911,19 @@ static void rna_LayerObjects_selected_begin(CollectionPropertyIterator *iter, Po
 static void rna_ViewLayer_update_tagged(ViewLayer *UNUSED(view_layer), bContext *C)
 {
 	Depsgraph *graph = CTX_data_depsgraph(C);
-	DEG_OBJECT_ITER_BEGIN(graph, ob, DEG_ITER_OBJECT_MODE_VIEWPORT,
-	                DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
-	                DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
-	                DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
-	                DEG_ITER_OBJECT_FLAG_VISIBLE |
-	                DEG_ITER_OBJECT_FLAG_DUPLI)
+	DEG_OBJECT_ITER_BEGIN(
+	        graph, ob, DEG_ITER_OBJECT_MODE_VIEWPORT,
+	        DEG_ITER_OBJECT_FLAG_LINKED_DIRECTLY |
+	        DEG_ITER_OBJECT_FLAG_LINKED_VIA_SET |
+	        DEG_ITER_OBJECT_FLAG_LINKED_INDIRECTLY |
+	        DEG_ITER_OBJECT_FLAG_VISIBLE |
+	        DEG_ITER_OBJECT_FLAG_DUPLI)
 	{
 		/* Don't do anything, we just need to run the iterator to flush
 		 * the base info to the objects. */
 		UNUSED_VARS(ob);
 	}
-	DEG_OBJECT_ITER_END
+	DEG_OBJECT_ITER_END;
 }
 
 static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)

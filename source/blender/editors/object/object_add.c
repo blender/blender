@@ -1739,7 +1739,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				}
 			}
 		}
-		FOREACH_SCENE_OBJECT_END
+		FOREACH_SCENE_OBJECT_END;
 	}
 
 	ListBase selected_editable_bases = CTX_data_collection_get(C, "selected_editable_bases");
@@ -2022,7 +2022,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					}
 				}
 			}
-			FOREACH_SCENE_OBJECT_END
+			FOREACH_SCENE_OBJECT_END;
 		}
 
 		/* delete object should renew depsgraph */

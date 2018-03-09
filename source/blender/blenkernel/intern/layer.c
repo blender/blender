@@ -2137,7 +2137,7 @@ void BKE_visible_bases_iterator_end(BLI_Iterator *UNUSED(iter))
 
 void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
-	ObjectsRenderableIteratorData *data = data_in;
+	struct ObjectsRenderableIteratorData *data = data_in;
 
 	/* Tag objects to prevent going over the same object twice. */
 	for (Scene *scene = data->scene; scene; scene = scene->set) {
@@ -2165,7 +2165,7 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
 
-	ObjectsRenderableIteratorData *data = iter->data;
+	struct ObjectsRenderableIteratorData *data = iter->data;
 	Base *base = data->iter.base->next;
 
 	/* There is still a base in the current scene layer. */

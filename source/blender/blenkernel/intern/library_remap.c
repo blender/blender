@@ -320,7 +320,7 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 						libblock_remap_data_preprocess_group_unlink(
 						            r_id_remap_data, ob_iter, skip_indirect, is_indirect);
 					}
-					FOREACH_SCENE_OBJECT_END
+					FOREACH_SCENE_OBJECT_END;
 				}
 				else if (GS(r_id_remap_data->old_id->name) == ID_OB) {
 					/* ... a specific object from scene. */
@@ -405,7 +405,7 @@ static void libblock_remap_data_postprocess_group_scene_unlink(Main *UNUSED(bmai
 			}
 		}
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 }
 
 static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), Object *ob, ID *new_id)

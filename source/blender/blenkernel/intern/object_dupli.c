@@ -937,7 +937,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					(void) object;
 					totgroup++;
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_OBJECT_END;
 			}
 
 			/* we also copy the actual objects to restore afterwards, since
@@ -967,7 +967,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 						continue;
 					}
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_OBJECT_END;
 			}
 		}
 		else {
@@ -1082,7 +1082,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 					b++;
 				}
-				FOREACH_GROUP_OBJECT_END
+				FOREACH_GROUP_OBJECT_END;
 			}
 			else {
 				/* to give ipos in object correct offset */

@@ -236,7 +236,7 @@ bool BKE_collection_remove(ID *owner_id, SceneCollection *sc)
 			link = link_next;
 		}
 	}
-	FOREACH_SCENE_COLLECTION_END
+	FOREACH_SCENE_COLLECTION_END;
 
 	for (LinkData *link = collection_objects.first; link; link = link->next) {
 		BKE_collection_object_add(owner_id, sc_master, link->data);
@@ -411,7 +411,7 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
 			collection_object_add(&scene->id, sc, ob_dst);
 		}
 	}
-	FOREACH_SCENE_COLLECTION_END
+	FOREACH_SCENE_COLLECTION_END;
 
 	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 		Base *base_src = BKE_view_layer_base_find(view_layer, ob_src);
@@ -484,7 +484,7 @@ bool BKE_collections_object_remove(Main *bmain, ID *owner_id, Object *ob, const 
 	{
 		removed |= BKE_collection_object_remove(bmain, owner_id, sc, ob, free_us);
 	}
-	FOREACH_SCENE_COLLECTION_END
+	FOREACH_SCENE_COLLECTION_END;
 	return removed;
 }
 
@@ -556,7 +556,7 @@ Group *BKE_collection_group_create(Main *bmain, Scene *scene, LayerCollection *l
 	{
 		sc_group->type = COLLECTION_TYPE_GROUP_INTERNAL;
 	}
-	FOREACH_SCENE_COLLECTION_END
+	FOREACH_SCENE_COLLECTION_END;
 
 	lc_dst = BKE_collection_link(group->view_layer, sc_dst);
 	layer_collection_sync(lc_dst, lc_src);

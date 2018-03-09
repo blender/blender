@@ -91,7 +91,7 @@ static int view3d_copybuffer_exec(bContext *C, wmOperator *op)
 				break;
 			}
 		}
-		FOREACH_GROUP_OBJECT_END
+		FOREACH_GROUP_OBJECT_END;
 	}
 	
 	BLI_make_file_string("/", str, BKE_tempdir_base(), "copybuffer.blend");

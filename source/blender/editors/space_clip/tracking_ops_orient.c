@@ -80,7 +80,7 @@ static Object *get_camera_with_movieclip(Scene *scene, MovieClip *clip)
 			}
 		}
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 
 	return camera;
 }

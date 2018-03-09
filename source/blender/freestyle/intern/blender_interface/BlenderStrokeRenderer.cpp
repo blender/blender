@@ -221,7 +221,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	{
 		BLI_freelistN(&sc->objects);
 	}
-	FOREACH_SCENE_COLLECTION_END
+	FOREACH_SCENE_COLLECTION_END;
 	BLI_freelistN(&view_layer->object_bases);
 
 	// release materials
