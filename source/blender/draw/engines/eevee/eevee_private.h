@@ -604,6 +604,12 @@ typedef struct EEVEE_CommonUniformBuffer {
 	float prb_lod_planar_max; /* float */
 } EEVEE_CommonUniformBuffer;
 
+/* ***************** CLIP PLANES DATA **************** */
+
+typedef struct EEVEE_ClipPlanesUniformBuffer {
+	float clip_planes[1][4]; /* must be less than MAX_CLIP_PLANES */
+} EEVEE_ClipPlanesUniformBuffer;
+
 /* ************** SCENE LAYER DATA ************** */
 typedef struct EEVEE_ViewLayerData {
 	/* Lamps */
@@ -644,6 +650,9 @@ typedef struct EEVEE_ViewLayerData {
 	/* Common Uniform Buffer */
 	struct EEVEE_CommonUniformBuffer common_data;
 	struct GPUUniformBuffer *common_ubo;
+
+	struct EEVEE_ClipPlanesUniformBuffer clip_data;
+	struct GPUUniformBuffer *clip_ubo;
 } EEVEE_ViewLayerData;
 
 /* ************ OBJECT DATA ************ */

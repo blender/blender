@@ -14,7 +14,10 @@ out vec3 worldPosition;
 out vec3 viewPosition;
 
 /* Used for planar reflections */
-uniform vec4 ClipPlanes[1];
+/* keep in sync with EEVEE_ClipPlanesUniformBuffer */
+layout(std140) uniform clip_block {
+	vec4 ClipPlanes[1];
+};
 
 #ifdef USE_FLAT_NORMAL
 flat out vec3 worldNormal;

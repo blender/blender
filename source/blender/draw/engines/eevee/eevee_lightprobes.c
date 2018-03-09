@@ -1317,7 +1317,9 @@ static void render_scene_to_planar(
 	/* Since we are rendering with an inverted view matrix, we need
 	 * to invert the facing for backface culling to be the same. */
 	DRW_state_invert_facing();
-
+	/* Set clipping plan */
+	copy_v4_v4(sldata->clip_data.clip_planes[0], ped->planer_eq_offset);
+	DRW_uniformbuffer_update(sldata->clip_ubo, &sldata->clip_data);
 	DRW_state_clip_planes_count_set(1);
 
 	/* Attach depth here since it's a DRW_TEX_TEMP */

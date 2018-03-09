@@ -84,6 +84,9 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	if (sldata->common_ubo == NULL) {
 		sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data), &sldata->common_data);
 	}
+	if (sldata->clip_ubo == NULL) {
+		sldata->clip_ubo = DRW_uniformbuffer_create(sizeof(sldata->clip_data), &sldata->clip_data);
+	}
 
 	/* Set the pers & view matrix. */
 	struct Object *camera = RE_GetCamera(engine->re);

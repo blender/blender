@@ -78,6 +78,9 @@ static void eevee_engine_init(void *ved)
 	if (sldata->common_ubo == NULL) {
 		sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data), &sldata->common_data);
 	}
+	if (sldata->clip_ubo == NULL) {
+		sldata->clip_ubo = DRW_uniformbuffer_create(sizeof(sldata->clip_data), &sldata->clip_data);
+	}
 
 	/* EEVEE_effects_init needs to go first for TAA */
 	EEVEE_effects_init(sldata, vedata, camera);
