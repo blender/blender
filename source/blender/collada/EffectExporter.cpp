@@ -79,7 +79,7 @@ bool EffectsExporter::hasEffects(Scene *sce)
 			return true;
 		}
 	}
-	FOREACH_SCENE_OBJECT_END
+	FOREACH_SCENE_OBJECT_END;
 	return false;
 }
 
