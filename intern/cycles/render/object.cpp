@@ -57,7 +57,8 @@ struct UpdateObjectTransformState {
 	/* Packed object arrays. Those will be filled in. */
 	uint *object_flag;
 	KernelObject *objects;
-	Transform *objects_vector;
+	Transform *object_motion_pass;
+	DecomposedTransform *object_motion;
 
 	/* Flags which will be synchronized to Integrator. */
 	bool have_motion;
@@ -274,27 +275,7 @@ void Object::tag_update(Scene *scene)
 	scene->object_manager->need_update = true;
 }
 
-vector<float> Object::motion_times()
-{
-	/* compute times at which we sample motion for this object */
-	vector<float> times;
-
-	if(!mesh || mesh->motion_steps == 1)
-		return times;
-
-	int motion_steps = mesh->motion_steps;
-
-	for(int step = 0; step < motion_steps; step++) {
-		if(step != motion_steps / 2) {
-			float time = 2.0f * step / (motion_steps - 1) - 1.0f;
-			times.push_back(time);
-		}
-	}
-
-	return times;
-}
-
-bool Object::is_traceable()
+bool Object::is_traceable() const
 {
 	/* Mesh itself can be empty,can skip all such objects. */
 	if(!bounds.valid() || bounds.size() == make_float3(0.0f, 0.0f, 0.0f)) {
@@ -332,7 +313,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
                                                    int object_index)
 {
 	KernelObject& kobject = state->objects[object_index];
-	Transform *objects_vector = state->objects_vector;
+	Transform *object_motion_pass = state->object_motion_pass;
 
 	Mesh *mesh = ob->mesh;
 	uint flag = 0;
@@ -434,8 +415,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 			mtfm.post = mtfm.post * itfm;
 		}
 
-		objects_vector[object_index*OBJECT_VECTOR_SIZE+0] = mtfm.pre;
-		objects_vector[object_index*OBJECT_VECTOR_SIZE+1] = mtfm.post;
+		object_motion_pass[object_index*OBJECT_MOTION_PASS_SIZE+0] = mtfm.pre;
+		object_motion_pass[object_index*OBJECT_MOTION_PASS_SIZE+1] = mtfm.post;
 	}
 	else if(state->need_motion == Scene::MOTION_BLUR) {
 		if(ob->use_motion) {
@@ -528,10 +509,10 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene,
 
 	state.objects = dscene->objects.alloc(scene->objects.size());
 	state.object_flag = dscene->object_flag.alloc(scene->objects.size());
-	state.objects_vector = NULL;
+	state.object_motion_pass = NULL;
 
 	if(state.need_motion == Scene::MOTION_PASS) {
-		state.objects_vector = dscene->objects_vector.alloc(OBJECT_VECTOR_SIZE*scene->objects.size());
+		state.object_motion_pass = dscene->object_motion_pass.alloc(OBJECT_MOTION_PASS_SIZE*scene->objects.size());
 	}
 
 	/* Particle system device offsets
@@ -574,7 +555,7 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene,
 
 	dscene->objects.copy_to_device();
 	if(state.need_motion == Scene::MOTION_PASS) {
-		dscene->objects_vector.copy_to_device();
+		dscene->object_motion_pass.copy_to_device();
 	}
 
 	dscene->data.bvh.have_motion = state.have_motion;
@@ -724,7 +705,7 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
 void ObjectManager::device_free(Device *, DeviceScene *dscene)
 {
 	dscene->objects.free();
-	dscene->objects_vector.free();
+	dscene->object_motion_pass.free();
 	dscene->object_flag.free();
 }
 

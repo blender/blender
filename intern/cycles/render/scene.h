@@ -87,7 +87,8 @@ public:
 
 	/* objects */
 	device_vector<KernelObject> objects;
-	device_vector<Transform> objects_vector;
+	device_vector<Transform> object_motion_pass;
+	device_vector<uint> object_flag;
 
 	/* attributes */
 	device_vector<uint4> attributes_map;
@@ -107,7 +108,6 @@ public:
 	/* shaders */
 	device_vector<int4> svm_nodes;
 	device_vector<KernelShader> shaders;
-	device_vector<uint> object_flag;
 
 	/* lookup tables */
 	device_vector<float> lookup_table;

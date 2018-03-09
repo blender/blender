@@ -396,7 +396,6 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 		/* motion blur */
 		if(scene->need_motion() == Scene::MOTION_BLUR && object->mesh) {
 			Mesh *mesh = object->mesh;
-
 			mesh->use_motion_blur = false;
 
 			if(object_use_motion(b_parent, b_ob)) {
@@ -405,9 +404,9 @@ Object *BlenderSync::sync_object(BL::Object& b_parent,
 					mesh->use_motion_blur = true;
 				}
 
-				vector<float> times = object->motion_times();
-				foreach(float time, times)
-					motion_times.insert(time);
+				for(size_t step = 0; step < mesh->motion_steps - 1; step++) {
+					motion_times.insert(mesh->motion_time(step));
+				}
 			}
 		}
 
@@ -694,6 +693,11 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 
 	/* note iteration over motion_times set happens in sorted order */
 	foreach(float relative_time, motion_times) {
+		/* center time is already handled. */
+		if(relative_time == 0.0f) {
+			continue;
+		}
+
 		VLOG(1) << "Synchronizing motion for the relative time "
 		        << relative_time << ".";
 

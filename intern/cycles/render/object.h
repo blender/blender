@@ -70,12 +70,10 @@ public:
 	void compute_bounds(bool motion_blur);
 	void apply_transform(bool apply_to_motion);
 
-	vector<float> motion_times();
-
 	/* Check whether object is traceable and it worth adding it to
 	 * kernel scene.
 	 */
-	bool is_traceable();
+	bool is_traceable() const;
 
 	/* Combine object's visibility with all possible internal run-time
 	 * determined flags which denotes trace-time visibility.

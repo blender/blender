@@ -633,10 +633,10 @@ static void ExportCurveSegments(Scene *scene, Mesh *mesh, ParticleCurveData *CDa
 	}
 }
 
-static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int time_index)
+static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int motion_step)
 {
 	VLOG(1) << "Exporting curve motion segments for mesh " << mesh->name
-	        << ", time index " << time_index;
+	        << ", motion step " << motion_step;
 
 	/* find attribute */
 	Attribute *attr_mP = mesh->curve_attributes.find(ATTR_STD_MOTION_VERTEX_POSITION);
@@ -651,7 +651,7 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 
 	/* export motion vectors for curve keys */
 	size_t numkeys = mesh->curve_keys.size();
-	float4 *mP = attr_mP->data_float4() + time_index*numkeys;
+	float4 *mP = attr_mP->data_float4() + motion_step*numkeys;
 	bool have_motion = false;
 	int i = 0;
 
@@ -702,12 +702,12 @@ static void ExportCurveSegmentsMotion(Mesh *mesh, ParticleCurveData *CData, int 
 			}
 			mesh->curve_attributes.remove(ATTR_STD_MOTION_VERTEX_POSITION);
 		}
-		else if(time_index > 0) {
-			VLOG(1) << "Filling in new motion vertex position for time_index "
-			        << time_index;
+		else if(motion_step > 0) {
+			VLOG(1) << "Filling in new motion vertex position for motion_step "
+			        << motion_step;
 			/* motion, fill up previous steps that we might have skipped because
 			 * they had no motion, but we need them anyway now */
-			for(int step = 0; step < time_index; step++) {
+			for(int step = 0; step < motion_step; step++) {
 				float4 *mP = attr_mP->data_float4() + step*numkeys;
 
 				for(int key = 0; key < numkeys; key++) {
@@ -888,7 +888,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
                               BL::Mesh& b_mesh,
                               BL::Object& b_ob,
                               bool motion,
-                              int time_index)
+                              int motion_step)
 {
 	if(!motion) {
 		/* Clear stored curve data */
@@ -951,7 +951,7 @@ void BlenderSync::sync_curves(Mesh *mesh,
 	}
 	else {
 		if(motion)
-			ExportCurveSegmentsMotion(mesh, &CData, time_index);
+			ExportCurveSegmentsMotion(mesh, &CData, motion_step);
 		else
 			ExportCurveSegments(scene, mesh, &CData);
 	}

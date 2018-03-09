@@ -1117,6 +1117,32 @@ bool Mesh::has_true_displacement() const
 	return false;
 }
 
+float Mesh::motion_time(int step) const
+{
+	return (motion_steps > 1) ? 2.0f * step / (motion_steps - 1) - 1.0f : 0.0f;
+}
+
+int Mesh::motion_step(float time) const
+{
+	if(motion_steps > 1) {
+		int attr_step = 0;
+
+		for(int step = 0; step < motion_steps; step++) {
+			float step_time = motion_time(step);
+			if(step_time == time) {
+				return attr_step;
+			}
+
+			/* Center step is stored in a separate attribute. */
+			if(step != motion_steps / 2) {
+				attr_step++;
+			}
+		}
+	}
+
+	return -1;
+}
+
 bool Mesh::need_build_bvh() const
 {
 	return !transform_applied || has_surface_bssrdf;

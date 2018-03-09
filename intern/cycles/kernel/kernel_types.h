@@ -35,10 +35,10 @@
 CCL_NAMESPACE_BEGIN
 
 /* Constants */
-#define OBJECT_VECTOR_SIZE	2
-#define FILTER_TABLE_SIZE	1024
-#define RAMP_TABLE_SIZE		256
-#define SHUTTER_TABLE_SIZE	256
+#define OBJECT_MOTION_PASS_SIZE 2
+#define FILTER_TABLE_SIZE       1024
+#define RAMP_TABLE_SIZE         256
+#define SHUTTER_TABLE_SIZE      256
 
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
@@ -1205,10 +1205,12 @@ typedef struct KernelCamera {
 
 	/* Stores changes in the projeciton matrix. Use for camera zoom motion
 	 * blur and motion pass output for perspective camera. */
-	PerspectiveMotionTransform perspective_motion;
+	ProjectionTransform perspective_pre;
+	ProjectionTransform perspective_post;
 
 	/* Transforms for motion pass. */
-	MotionTransform pass_motion;
+	Transform motion_pass_pre;
+	Transform motion_pass_post;
 
 	int shutter_table_offset;
 

@@ -304,6 +304,11 @@ public:
 	bool has_motion_blur() const;
 	bool has_true_displacement() const;
 
+	/* Convert between normalized -1..1 motion time and index
+	 * in the VERTEX_MOTION attribute. */
+	float motion_time(int step) const;
+	int motion_step(float time) const;
+
 	/* Check whether the mesh should have own BVH built separately. Briefly,
 	 * own BVH is needed for mesh, if:
 	 *

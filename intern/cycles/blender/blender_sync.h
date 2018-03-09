@@ -118,7 +118,7 @@ private:
 	                 BL::Mesh& b_mesh,
 	                 BL::Object& b_ob,
 	                 bool motion,
-	                 int time_index = 0);
+	                 int motion_step = 0);
 	Object *sync_object(BL::Object& b_parent,
 	                    int persistent_id[OBJECT_PERSISTENT_ID_SIZE],
 	                    BL::DupliObject& b_dupli_ob,

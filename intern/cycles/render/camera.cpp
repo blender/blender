@@ -302,23 +302,6 @@ void Camera::update(Scene *scene)
 		frustum_top_normal = normalize(make_float3(0.0f, v.z, -v.y));
 	}
 
-	/* TODO(sergey): Support other types of camera. */
-	if(type == CAMERA_PERSPECTIVE) {
-		/* TODO(sergey): Move to an utility function and de-duplicate with
-		 * calculation above.
-		 */
-		ProjectionTransform screentocamera_pre =
-		        projection_inverse(projection_perspective(fov_pre,
-		                                                  nearclip,
-		                                                  farclip));
-		ProjectionTransform screentocamera_post =
-		        projection_inverse(projection_perspective(fov_post,
-		                                                  nearclip,
-		                                                  farclip));
-		perspective_motion.pre = screentocamera_pre * rastertoscreen;
-		perspective_motion.post = screentocamera_post * rastertoscreen;
-	}
-
 	/* Compute kernel camera data. */
 	KernelCamera *kcam = &kernel_camera;
 
@@ -341,22 +324,22 @@ void Camera::update(Scene *scene)
 		/* TODO(sergey): Support perspective (zoom, fov) motion. */
 		if(type == CAMERA_PANORAMA) {
 			if(use_motion) {
-				kcam->pass_motion.pre = transform_inverse(motion.pre);
-				kcam->pass_motion.post = transform_inverse(motion.post);
+				kcam->motion_pass_pre = transform_inverse(motion.pre);
+				kcam->motion_pass_post = transform_inverse(motion.post);
 			}
 			else {
-				kcam->pass_motion.pre = kcam->worldtocamera;
-				kcam->pass_motion.post = kcam->worldtocamera;
+				kcam->motion_pass_pre = kcam->worldtocamera;
+				kcam->motion_pass_post = kcam->worldtocamera;
 			}
 		}
 		else {
 			if(use_motion) {
-				kcam->perspective_motion.pre = cameratoraster * transform_inverse(motion.pre);
-				kcam->perspective_motion.post = cameratoraster * transform_inverse(motion.post);
+				kcam->perspective_pre = cameratoraster * transform_inverse(motion.pre);
+				kcam->perspective_post = cameratoraster * transform_inverse(motion.post);
 			}
 			else {
-				kcam->perspective_motion.pre = worldtoraster;
-				kcam->perspective_motion.post = worldtoraster;
+				kcam->perspective_pre = worldtoraster;
+				kcam->perspective_post = worldtoraster;
 			}
 		}
 	}
@@ -365,8 +348,23 @@ void Camera::update(Scene *scene)
 			transform_motion_decompose(&kcam->motion, &motion, &matrix);
 			kcam->have_motion = 1;
 		}
-		if(use_perspective_motion) {
-			kcam->perspective_motion = perspective_motion;
+
+		/* TODO(sergey): Support other types of camera. */
+		if(use_perspective_motion && type == CAMERA_PERSPECTIVE) {
+			/* TODO(sergey): Move to an utility function and de-duplicate with
+			 * calculation above.
+			 */
+			ProjectionTransform screentocamera_pre =
+					projection_inverse(projection_perspective(fov_pre,
+					                                          nearclip,
+					                                          farclip));
+			ProjectionTransform screentocamera_post =
+					projection_inverse(projection_perspective(fov_post,
+					                                          nearclip,
+					                                          farclip));
+
+			kcam->perspective_pre = screentocamera_pre * rastertoscreen;
+			kcam->perspective_post = screentocamera_post * rastertoscreen;
 			kcam->have_perspective_motion = 1;
 		}
 	}

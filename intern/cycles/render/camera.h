@@ -144,7 +144,6 @@ public:
 	MotionTransform motion;
 	bool use_motion, use_perspective_motion;
 	float fov_pre, fov_post;
-	PerspectiveMotionTransform perspective_motion;
 
 	/* computed camera parameters */
 	ProjectionTransform screentoworld;

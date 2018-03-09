@@ -32,7 +32,8 @@ KERNEL_TEX(float2, __prim_time)
 
 /* objects */
 KERNEL_TEX(KernelObject, __objects)
-KERNEL_TEX(Transform, __objects_vector)
+KERNEL_TEX(Transform, __object_motion_pass)
+KERNEL_TEX(uint, __object_flag)
 
 /* triangles */
 KERNEL_TEX(uint, __tri_shader)
@@ -66,7 +67,6 @@ KERNEL_TEX(KernelParticle, __particles)
 /* shaders */
 KERNEL_TEX(uint4, __svm_nodes)
 KERNEL_TEX(KernelShader, __shaders)
-KERNEL_TEX(uint, __object_flag)
 
 /* lookup tables */
 KERNEL_TEX(float, __lookup_table)

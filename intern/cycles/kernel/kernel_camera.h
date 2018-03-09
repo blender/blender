@@ -54,13 +54,13 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 		 * interpolated field of view.
 		 */
 		if(ray->time < 0.5f) {
-			ProjectionTransform rastertocamera_pre = kernel_data.cam.perspective_motion.pre;
+			ProjectionTransform rastertocamera_pre = kernel_data.cam.perspective_pre;
 			float3 Pcamera_pre =
 			        transform_perspective(&rastertocamera_pre, raster);
 			Pcamera = interp(Pcamera_pre, Pcamera, ray->time * 2.0f);
 		}
 		else {
-			ProjectionTransform rastertocamera_post = kernel_data.cam.perspective_motion.post;
+			ProjectionTransform rastertocamera_post = kernel_data.cam.perspective_post;
 			float3 Pcamera_post =
 			        transform_perspective(&rastertocamera_post, raster);
 			Pcamera = interp(Pcamera, Pcamera_post, (ray->time - 0.5f) * 2.0f);

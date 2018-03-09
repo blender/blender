@@ -32,8 +32,8 @@ enum ObjectTransform {
 };
 
 enum ObjectVectorTransform {
-	OBJECT_VECTOR_MOTION_PRE = 0,
-	OBJECT_VECTOR_MOTION_POST = 1
+	OBJECT_PASS_MOTION_PRE = 0,
+	OBJECT_PASS_MOTION_POST = 1
 };
 
 /* Object to world space transformation */
@@ -68,10 +68,10 @@ ccl_device_inline Transform lamp_fetch_transform(KernelGlobals *kg, int lamp, bo
 
 /* Object to world space transformation for motion vectors */
 
-ccl_device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
+ccl_device_inline Transform object_fetch_motion_pass_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
 {
-	int offset = object*OBJECT_VECTOR_SIZE + (int)type;
-	return kernel_tex_fetch(__objects_vector, offset);
+	int offset = object*OBJECT_MOTION_PASS_SIZE + (int)type;
+	return kernel_tex_fetch(__object_motion_pass, offset);
 }
 
 /* Motion blurred object transformations */
