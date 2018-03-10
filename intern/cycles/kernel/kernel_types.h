@@ -35,14 +35,10 @@
 CCL_NAMESPACE_BEGIN
 
 /* Constants */
-#define OBJECT_SIZE 		16
-#define OBJECT_VECTOR_SIZE	6
-#define LIGHT_SIZE		11
-#define FILTER_TABLE_SIZE	1024
-#define RAMP_TABLE_SIZE		256
-#define SHUTTER_TABLE_SIZE		256
-#define PARTICLE_SIZE 		5
-#define SHADER_SIZE		5
+#define OBJECT_MOTION_PASS_SIZE 2
+#define FILTER_TABLE_SIZE       1024
+#define RAMP_TABLE_SIZE         256
+#define SHUTTER_TABLE_SIZE      256
 
 #define BSSRDF_MIN_RADIUS			1e-8f
 #define BSSRDF_MAX_HITS				4
@@ -925,7 +921,7 @@ enum ShaderDataFlag {
 	SD_HAS_BUMP               = (1 << 25),
 	/* Has true displacement. */
 	SD_HAS_DISPLACEMENT       = (1 << 26),
-	/* Has constant emission (value stored in __shader_flag) */
+	/* Has constant emission (value stored in __shaders) */
 	SD_HAS_CONSTANT_EMISSION  = (1 << 27),
 	/* Needs to access attributes */
 	SD_NEED_ATTRIBUTES        = (1 << 28),
@@ -1163,7 +1159,7 @@ typedef struct KernelCamera {
 
 	/* matrices */
 	Transform cameratoworld;
-	Transform rastertocamera;
+	ProjectionTransform rastertocamera;
 
 	/* differentials */
 	float4 dx;
@@ -1177,7 +1173,7 @@ typedef struct KernelCamera {
 
 	/* motion blur */
 	float shuttertime;
-	int have_motion, have_perspective_motion;
+	int num_motion_steps, have_perspective_motion;
 
 	/* clipping */
 	float nearclip;
@@ -1197,22 +1193,22 @@ typedef struct KernelCamera {
 	int is_inside_volume;
 
 	/* more matrices */
-	Transform screentoworld;
-	Transform rastertoworld;
-	/* work around cuda sm 2.0 crash, this seems to
-	 * cross some limit in combination with motion 
-	 * Transform ndctoworld; */
-	Transform worldtoscreen;
-	Transform worldtoraster;
-	Transform worldtondc;
+	ProjectionTransform screentoworld;
+	ProjectionTransform rastertoworld;
+	ProjectionTransform ndctoworld;
+	ProjectionTransform worldtoscreen;
+	ProjectionTransform worldtoraster;
+	ProjectionTransform worldtondc;
 	Transform worldtocamera;
 
-	MotionTransform motion;
+	/* Stores changes in the projeciton matrix. Use for camera zoom motion
+	 * blur and motion pass output for perspective camera. */
+	ProjectionTransform perspective_pre;
+	ProjectionTransform perspective_post;
 
-	/* Denotes changes in the projective matrix, namely in rastertocamera.
-	 * Used for camera zoom motion blur,
-	 */
-	PerspectiveMotionTransform perspective_motion;
+	/* Transforms for motion pass. */
+	Transform motion_pass_pre;
+	Transform motion_pass_post;
 
 	int shutter_table_offset;
 
@@ -1433,6 +1429,110 @@ typedef struct KernelData {
 	KernelTables tables;
 } KernelData;
 static_assert_align(KernelData, 16);
+
+/* Kernel data structures. */
+
+typedef struct KernelObject {
+	Transform tfm;
+	Transform itfm;
+
+	float surface_area;
+	float pass_id;
+	float random_number;
+	int particle_index;
+
+	float dupli_generated[3];
+	float dupli_uv[2];
+
+	int numkeys;
+	int numsteps;
+	int numverts;
+
+	uint patch_map_offset;
+	uint attribute_map_offset;
+	uint motion_offset;
+	uint pad;
+} KernelObject;;
+static_assert_align(KernelObject, 16);
+
+typedef struct KernelSpotLight {
+	float radius;
+	float invarea;
+	float spot_angle;
+	float spot_smooth;
+	float dir[3];
+} KernelSpotLight;
+
+/* PointLight is SpotLight with only radius and invarea being used. */
+
+typedef struct KernelAreaLight {
+	float axisu[3];
+	float invarea;
+	float axisv[3];
+	float dir[3];
+} KernelAreaLight;
+
+typedef struct KernelDistantLight {
+	float radius;
+	float cosangle;
+	float invarea;
+} KernelDistantLight;
+
+typedef struct KernelLight {
+	int type;
+	float co[3];
+	int shader_id;
+	int samples;
+	float max_bounces;
+	float random;
+	Transform tfm;
+	Transform itfm;
+	union {
+		KernelSpotLight spot;
+		KernelAreaLight area;
+		KernelDistantLight distant;
+	};
+} KernelLight;
+static_assert_align(KernelLight, 16);
+
+typedef struct KernelLightDistribution {
+	float totarea;
+	int prim;
+	union {
+		struct {
+			int shader_flag;
+			int object_id;
+		} mesh_light;
+		struct {
+			float pad;
+			float size;
+		} lamp;
+	};
+} KernelLightDistribution;
+static_assert_align(KernelLightDistribution, 16);
+
+typedef struct KernelParticle {
+	int index;
+	float age;
+	float lifetime;
+	float size;
+	float4 rotation;
+	/* Only xyz are used of the following. float4 instead of float3 are used
+	 * to ensure consistent padding/alignment across devices. */
+	float4 location;
+	float4 velocity;
+	float4 angular_velocity;
+} KernelParticle;
+static_assert_align(KernelParticle, 16);
+
+typedef struct KernelShader {
+	float constant_emission[3];
+	float pad1;
+	int flags;
+	int pass_id;
+	int pad2, pad3;
+} KernelShader;
+static_assert_align(KernelShader, 16);
 
 /* Declarations required for split kernel */
 

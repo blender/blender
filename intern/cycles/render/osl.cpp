@@ -34,6 +34,7 @@
 #include "util/util_md5.h"
 #include "util/util_path.h"
 #include "util/util_progress.h"
+#include "util/util_projection.h"
 
 #endif
 
@@ -832,7 +833,9 @@ void OSLCompiler::parameter(ShaderNode* node, const char *name)
 		case SocketType::TRANSFORM:
 		{
 			Transform value = node->get_transform(socket);
-			ss->Parameter(uname, TypeDesc::TypeMatrix, &value);
+			ProjectionTransform projection(value);
+			projection = projection_transpose(projection);
+			ss->Parameter(uname, TypeDesc::TypeMatrix, &projection);
 			break;
 		}
 		case SocketType::BOOLEAN_ARRAY:
@@ -900,7 +903,11 @@ void OSLCompiler::parameter(ShaderNode* node, const char *name)
 		case SocketType::TRANSFORM_ARRAY:
 		{
 			const array<Transform>& value = node->get_transform_array(socket);
-			ss->Parameter(uname, array_typedesc(TypeDesc::TypeMatrix, value.size()), value.data());
+			array<ProjectionTransform> fvalue(value.size());
+			for(size_t i = 0; i < value.size(); i++) {
+				fvalue[i] = projection_transpose(ProjectionTransform(value[i]));
+			}
+			ss->Parameter(uname, array_typedesc(TypeDesc::TypeMatrix, fvalue.size()), fvalue.data());
 			break;
 		}
 		case SocketType::CLOSURE:
@@ -967,7 +974,9 @@ void OSLCompiler::parameter(const char *name, ustring s)
 void OSLCompiler::parameter(const char *name, const Transform& tfm)
 {
 	OSL::ShadingSystem *ss = (OSL::ShadingSystem*)shadingsys;
-	ss->Parameter(name, TypeDesc::TypeMatrix, (float*)&tfm);
+	ProjectionTransform projection(tfm);
+	projection = projection_transpose(projection);
+	ss->Parameter(name, TypeDesc::TypeMatrix, (float*)&projection);
 }
 
 void OSLCompiler::parameter_array(const char *name, const float f[], int arraylen)

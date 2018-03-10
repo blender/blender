@@ -75,18 +75,24 @@ class AbstractBlenderRunnerTest(unittest.TestCase):
         assert self.blender, "Path to Blender binary is to be set in setUpClass()"
         assert self.testdir, "Path to tests binary is to be set in setUpClass()"
 
-        blendfile = self.testdir / filepath
+        blendfile = self.testdir / filepath if filepath else ""
 
-        command = (
+        command = [
             self.blender,
             '--background',
             '-noaudio',
             '--factory-startup',
             '--enable-autoexec',
-            str(blendfile),
+        ]
+
+        if blendfile:
+            command.append(str(blendfile))
+
+        command.extend([
             '-E', 'CYCLES',
             '--python-exit-code', '47',
             '--python-expr', python_script,
+            ]
         )
 
         proc = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,

@@ -28,62 +28,44 @@ CCL_NAMESPACE_BEGIN
 
 enum ObjectTransform {
 	OBJECT_TRANSFORM = 0,
-	OBJECT_INVERSE_TRANSFORM = 4,
-	OBJECT_TRANSFORM_MOTION_PRE = 0,
-	OBJECT_TRANSFORM_MOTION_MID = 4,
-	OBJECT_TRANSFORM_MOTION_POST = 8,
-	OBJECT_PROPERTIES = 12,
-	OBJECT_DUPLI = 13
+	OBJECT_INVERSE_TRANSFORM = 1,
 };
 
 enum ObjectVectorTransform {
-	OBJECT_VECTOR_MOTION_PRE = 0,
-	OBJECT_VECTOR_MOTION_POST = 3
+	OBJECT_PASS_MOTION_PRE = 0,
+	OBJECT_PASS_MOTION_POST = 1
 };
 
 /* Object to world space transformation */
 
 ccl_device_inline Transform object_fetch_transform(KernelGlobals *kg, int object, enum ObjectTransform type)
 {
-	int offset = object*OBJECT_SIZE + (int)type;
-
-	Transform tfm;
-	tfm.x = kernel_tex_fetch(__objects, offset + 0);
-	tfm.y = kernel_tex_fetch(__objects, offset + 1);
-	tfm.z = kernel_tex_fetch(__objects, offset + 2);
-	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	return tfm;
+	if(type == OBJECT_INVERSE_TRANSFORM) {
+		return kernel_tex_fetch(__objects, object).itfm;
+	}
+	else {
+		return kernel_tex_fetch(__objects, object).tfm;
+	}
 }
 
 /* Lamp to world space transformation */
 
 ccl_device_inline Transform lamp_fetch_transform(KernelGlobals *kg, int lamp, bool inverse)
 {
-	int offset = lamp*LIGHT_SIZE + (inverse? 8 : 5);
-
-	Transform tfm;
-	tfm.x = kernel_tex_fetch(__light_data, offset + 0);
-	tfm.y = kernel_tex_fetch(__light_data, offset + 1);
-	tfm.z = kernel_tex_fetch(__light_data, offset + 2);
-	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	return tfm;
+	if(inverse) {
+		return kernel_tex_fetch(__lights, lamp).itfm;
+	}
+	else {
+		return kernel_tex_fetch(__lights, lamp).tfm;
+	}
 }
 
 /* Object to world space transformation for motion vectors */
 
-ccl_device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
+ccl_device_inline Transform object_fetch_motion_pass_transform(KernelGlobals *kg, int object, enum ObjectVectorTransform type)
 {
-	int offset = object*OBJECT_VECTOR_SIZE + (int)type;
-
-	Transform tfm;
-	tfm.x = kernel_tex_fetch(__objects_vector, offset + 0);
-	tfm.y = kernel_tex_fetch(__objects_vector, offset + 1);
-	tfm.z = kernel_tex_fetch(__objects_vector, offset + 2);
-	tfm.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
-
-	return tfm;
+	int offset = object*OBJECT_MOTION_PASS_SIZE + (int)type;
+	return kernel_tex_fetch(__object_motion_pass, offset);
 }
 
 /* Motion blurred object transformations */
@@ -91,27 +73,12 @@ ccl_device_inline Transform object_fetch_vector_transform(KernelGlobals *kg, int
 #ifdef __OBJECT_MOTION__
 ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int object, float time)
 {
-	MotionTransform motion;
-
-	int offset = object*OBJECT_SIZE + (int)OBJECT_TRANSFORM_MOTION_PRE;
-
-	motion.pre.x = kernel_tex_fetch(__objects, offset + 0);
-	motion.pre.y = kernel_tex_fetch(__objects, offset + 1);
-	motion.pre.z = kernel_tex_fetch(__objects, offset + 2);
-	motion.pre.w = kernel_tex_fetch(__objects, offset + 3);
-
-	motion.mid.x = kernel_tex_fetch(__objects, offset + 4);
-	motion.mid.y = kernel_tex_fetch(__objects, offset + 5);
-	motion.mid.z = kernel_tex_fetch(__objects, offset + 6);
-	motion.mid.w = kernel_tex_fetch(__objects, offset + 7);
-
-	motion.post.x = kernel_tex_fetch(__objects, offset + 8);
-	motion.post.y = kernel_tex_fetch(__objects, offset + 9);
-	motion.post.z = kernel_tex_fetch(__objects, offset + 10);
-	motion.post.w = kernel_tex_fetch(__objects, offset + 11);
+	const uint motion_offset = kernel_tex_fetch(__objects, object).motion_offset;
+	const ccl_global DecomposedTransform *motion = &kernel_tex_fetch(__object_motion, motion_offset);
+	const uint num_steps = kernel_tex_fetch(__objects, object).numsteps * 2 + 1;
 
 	Transform tfm;
-	transform_motion_interpolate(&tfm, &motion, time);
+	transform_motion_array_interpolate(&tfm, motion, num_steps, time);
 
 	return tfm;
 }
@@ -237,9 +204,7 @@ ccl_device_inline float3 object_location(KernelGlobals *kg, const ShaderData *sd
 
 ccl_device_inline float object_surface_area(KernelGlobals *kg, int object)
 {
-	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return f.x;
+	return kernel_tex_fetch(__objects, object).surface_area;
 }
 
 /* Pass ID number of object */
@@ -249,9 +214,7 @@ ccl_device_inline float object_pass_id(KernelGlobals *kg, int object)
 	if(object == OBJECT_NONE)
 		return 0.0f;
 
-	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return f.y;
+	return kernel_tex_fetch(__objects, object).pass_id;
 }
 
 /* Per lamp random number for shader variation */
@@ -261,8 +224,7 @@ ccl_device_inline float lamp_random_number(KernelGlobals *kg, int lamp)
 	if(lamp == LAMP_NONE)
 		return 0.0f;
 
-	float4 f = kernel_tex_fetch(__light_data, lamp*LIGHT_SIZE + 4);
-	return f.y;
+	return kernel_tex_fetch(__lights, lamp).random;
 }
 
 /* Per object random number for shader variation */
@@ -272,9 +234,7 @@ ccl_device_inline float object_random_number(KernelGlobals *kg, int object)
 	if(object == OBJECT_NONE)
 		return 0.0f;
 
-	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return f.z;
+	return kernel_tex_fetch(__objects, object).random_number;
 }
 
 /* Particle ID from which this object was generated */
@@ -284,9 +244,7 @@ ccl_device_inline int object_particle_id(KernelGlobals *kg, int object)
 	if(object == OBJECT_NONE)
 		return 0;
 
-	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return __float_as_uint(f.w);
+	return kernel_tex_fetch(__objects, object).particle_index;
 }
 
 /* Generated texture coordinate on surface from where object was instanced */
@@ -296,9 +254,10 @@ ccl_device_inline float3 object_dupli_generated(KernelGlobals *kg, int object)
 	if(object == OBJECT_NONE)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return make_float3(f.x, f.y, f.z);
+	const ccl_global KernelObject *kobject = &kernel_tex_fetch(__objects, object);
+	return make_float3(kobject->dupli_generated[0],
+	                   kobject->dupli_generated[1],
+	                   kobject->dupli_generated[2]);
 }
 
 /* UV texture coordinate on surface from where object was instanced */
@@ -308,27 +267,24 @@ ccl_device_inline float3 object_dupli_uv(KernelGlobals *kg, int object)
 	if(object == OBJECT_NONE)
 		return make_float3(0.0f, 0.0f, 0.0f);
 
-	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
-	float4 f = kernel_tex_fetch(__objects, offset + 1);
-	return make_float3(f.x, f.y, 0.0f);
+	const ccl_global KernelObject *kobject = &kernel_tex_fetch(__objects, object);
+	return make_float3(kobject->dupli_uv[0],
+	                   kobject->dupli_uv[1],
+	                   0.0f);
 }
 
 /* Information about mesh for motion blurred triangles and curves */
 
 ccl_device_inline void object_motion_info(KernelGlobals *kg, int object, int *numsteps, int *numverts, int *numkeys)
 {
-	int offset = object*OBJECT_SIZE + OBJECT_DUPLI;
-
 	if(numkeys) {
-		float4 f = kernel_tex_fetch(__objects, offset);
-		*numkeys = __float_as_int(f.w);
+		*numkeys = kernel_tex_fetch(__objects, object).numkeys;
 	}
 
-	float4 f = kernel_tex_fetch(__objects, offset + 1);
 	if(numsteps)
-		*numsteps = __float_as_int(f.z);
+		*numsteps = kernel_tex_fetch(__objects, object).numsteps;
 	if(numverts)
-		*numverts = __float_as_int(f.w);
+		*numverts = kernel_tex_fetch(__objects, object).numverts;
 }
 
 /* Offset to an objects patch map */
@@ -338,76 +294,56 @@ ccl_device_inline uint object_patch_map_offset(KernelGlobals *kg, int object)
 	if(object == OBJECT_NONE)
 		return 0;
 
-	int offset = object*OBJECT_SIZE + 15;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return __float_as_uint(f.x);
+	return kernel_tex_fetch(__objects, object).patch_map_offset;
 }
 
 /* Pass ID for shader */
 
 ccl_device int shader_pass_id(KernelGlobals *kg, const ShaderData *sd)
 {
-	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*SHADER_SIZE + 1);
+	return kernel_tex_fetch(__shaders, (sd->shader & SHADER_MASK)).pass_id;
 }
 
 /* Particle data from which object was instanced */
 
 ccl_device_inline uint particle_index(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return __float_as_uint(f.x);
+	return kernel_tex_fetch(__particles, particle).index;
 }
 
 ccl_device float particle_age(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return f.y;
+	return kernel_tex_fetch(__particles, particle).age;
 }
 
 ccl_device float particle_lifetime(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return f.z;
+	return kernel_tex_fetch(__particles, particle).lifetime;
 }
 
 ccl_device float particle_size(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 0);
-	return f.w;
+	return kernel_tex_fetch(__particles, particle).size;
 }
 
 ccl_device float4 particle_rotation(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 1);
-	return f;
+	return kernel_tex_fetch(__particles, particle).rotation;
 }
 
 ccl_device float3 particle_location(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f = kernel_tex_fetch(__particles, offset + 2);
-	return make_float3(f.x, f.y, f.z);
+	return float4_to_float3(kernel_tex_fetch(__particles, particle).location);
 }
 
 ccl_device float3 particle_velocity(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f2 = kernel_tex_fetch(__particles, offset + 2);
-	float4 f3 = kernel_tex_fetch(__particles, offset + 3);
-	return make_float3(f2.w, f3.x, f3.y);
+	return float4_to_float3(kernel_tex_fetch(__particles, particle).velocity);
 }
 
 ccl_device float3 particle_angular_velocity(KernelGlobals *kg, int particle)
 {
-	int offset = particle*PARTICLE_SIZE;
-	float4 f3 = kernel_tex_fetch(__particles, offset + 3);
-	float4 f4 = kernel_tex_fetch(__particles, offset + 4);
-	return make_float3(f3.z, f3.w, f4.x);
+	return float4_to_float3(kernel_tex_fetch(__particles, particle).angular_velocity);
 }
 
 /* Object intersection in BVH */

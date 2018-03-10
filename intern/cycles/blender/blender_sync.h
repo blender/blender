@@ -125,7 +125,7 @@ private:
 	                 BL::Mesh& b_mesh,
 	                 BL::Object& b_ob,
 	                 bool motion,
-	                 int time_index = 0);
+	                 int motion_step = 0);
 	Object *sync_object(BL::Depsgraph& b_depsgraph,
 	                    BL::Depsgraph::duplis_iterator& b_dupli_iter,
 	                    uint layer_flag,

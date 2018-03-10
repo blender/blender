@@ -42,7 +42,7 @@ ccl_device float2 camera_sample_aperture(ccl_constant KernelCamera *cam, float u
 ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, ccl_addr_space Ray *ray)
 {
 	/* create ray form raster position */
-	Transform rastertocamera = kernel_data.cam.rastertocamera;
+	ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 raster = make_float3(raster_x, raster_y, 0.0f);
 	float3 Pcamera = transform_perspective(&rastertocamera, raster);
 
@@ -54,13 +54,13 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 		 * interpolated field of view.
 		 */
 		if(ray->time < 0.5f) {
-			Transform rastertocamera_pre = kernel_data.cam.perspective_motion.pre;
+			ProjectionTransform rastertocamera_pre = kernel_data.cam.perspective_pre;
 			float3 Pcamera_pre =
 			        transform_perspective(&rastertocamera_pre, raster);
 			Pcamera = interp(Pcamera_pre, Pcamera, ray->time * 2.0f);
 		}
 		else {
-			Transform rastertocamera_post = kernel_data.cam.perspective_motion.post;
+			ProjectionTransform rastertocamera_post = kernel_data.cam.perspective_post;
 			float3 Pcamera_post =
 			        transform_perspective(&rastertocamera_post, raster);
 			Pcamera = interp(Pcamera, Pcamera_post, (ray->time - 0.5f) * 2.0f);
@@ -91,17 +91,12 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(kernel_data.cam.have_motion) {
-#  ifdef __KERNEL_OPENCL__
-		const MotionTransform tfm = kernel_data.cam.motion;
-		transform_motion_interpolate(&cameratoworld,
-									 &tfm,
-		                             ray->time);
-#  else
-		transform_motion_interpolate(&cameratoworld,
-		                             &kernel_data.cam.motion,
-		                             ray->time);
-#  endif
+	if(kernel_data.cam.num_motion_steps) {
+		transform_motion_array_interpolate(
+			&cameratoworld,
+			kernel_tex_array(__camera_motion),
+			kernel_data.cam.num_motion_steps,
+			ray->time);
 	}
 #endif
 
@@ -175,7 +170,7 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, float raster_y, float lens_u, float lens_v, ccl_addr_space Ray *ray)
 {
 	/* create ray form raster position */
-	Transform rastertocamera = kernel_data.cam.rastertocamera;
+	ProjectionTransform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	float3 P;
@@ -203,17 +198,12 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(kernel_data.cam.have_motion) {
-#  ifdef __KERNEL_OPENCL__
-		const MotionTransform tfm = kernel_data.cam.motion;
-		transform_motion_interpolate(&cameratoworld,
-		                             &tfm,
-		                             ray->time);
-#  else
-		transform_motion_interpolate(&cameratoworld,
-		                             &kernel_data.cam.motion,
-		                             ray->time);
-#  endif
+	if(kernel_data.cam.num_motion_steps) {
+		transform_motion_array_interpolate(
+			&cameratoworld,
+			kernel_tex_array(__camera_motion),
+			kernel_data.cam.num_motion_steps,
+			ray->time);
 	}
 #endif
 
@@ -239,11 +229,12 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 /* Panorama Camera */
 
 ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
+                                              const ccl_global DecomposedTransform *cam_motion,
                                               float raster_x, float raster_y,
                                               float lens_u, float lens_v,
                                               ccl_addr_space Ray *ray)
 {
-	Transform rastertocamera = cam->rastertocamera;
+	ProjectionTransform rastertocamera = cam->rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
 
 	/* create ray form raster position */
@@ -281,17 +272,12 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 	Transform cameratoworld = cam->cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(cam->have_motion) {
-#  ifdef __KERNEL_OPENCL__
-		const MotionTransform tfm = cam->motion;
-		transform_motion_interpolate(&cameratoworld,
-		                             &tfm,
-		                             ray->time);
-#  else
-		transform_motion_interpolate(&cameratoworld,
-		                             &cam->motion,
-		                             ray->time);
-#  endif
+	if(cam->num_motion_steps) {
+		transform_motion_array_interpolate(
+			&cameratoworld,
+			cam_motion,
+			cam->num_motion_steps,
+			ray->time);
 	}
 #endif
 
@@ -410,12 +396,16 @@ ccl_device_inline void camera_sample(KernelGlobals *kg,
 #endif
 
 	/* sample */
-	if(kernel_data.cam.type == CAMERA_PERSPECTIVE)
+	if(kernel_data.cam.type == CAMERA_PERSPECTIVE) {
 		camera_sample_perspective(kg, raster_x, raster_y, lens_u, lens_v, ray);
-	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+	}
+	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
 		camera_sample_orthographic(kg, raster_x, raster_y, lens_u, lens_v, ray);
-	else
-		camera_sample_panorama(&kernel_data.cam, raster_x, raster_y, lens_u, lens_v, ray);
+	}
+	else {
+		const ccl_global DecomposedTransform *cam_motion = kernel_tex_array(__camera_motion);
+		camera_sample_panorama(&kernel_data.cam, cam_motion, raster_x, raster_y, lens_u, lens_v, ray);
+	}
 }
 
 /* Utilities */
@@ -460,7 +450,7 @@ ccl_device_inline float3 camera_world_to_ndc(KernelGlobals *kg, ShaderData *sd, 
 		if(sd->object == PRIM_NONE && kernel_data.cam.type == CAMERA_PERSPECTIVE)
 			P += camera_position(kg);
 
-		Transform tfm = kernel_data.cam.worldtondc;
+		ProjectionTransform tfm = kernel_data.cam.worldtondc;
 		return transform_perspective(&tfm, P);
 	}
 	else {

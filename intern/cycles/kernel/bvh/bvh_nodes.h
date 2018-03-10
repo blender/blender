@@ -25,7 +25,6 @@ ccl_device_forceinline Transform bvh_unaligned_node_fetch_space(KernelGlobals *k
 	space.x = kernel_tex_fetch(__bvh_nodes, child_addr+1);
 	space.y = kernel_tex_fetch(__bvh_nodes, child_addr+2);
 	space.z = kernel_tex_fetch(__bvh_nodes, child_addr+3);
-	space.w = make_float4(0.0f, 0.0f, 0.0f, 1.0f);
 	return space;
 }
 

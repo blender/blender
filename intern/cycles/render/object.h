@@ -35,6 +35,7 @@ class ParticleSystem;
 class Progress;
 class Scene;
 struct Transform;
+struct UpdateObjectTransformState;
 
 /* Object */
 
@@ -49,8 +50,7 @@ public:
 	int pass_id;
 	vector<ParamValue> attributes;
 	uint visibility;
-	MotionTransform motion;
-	bool use_motion;
+	array<Transform> motion;
 	bool hide_on_missing_motion;
 	bool use_holdout;
 	bool is_shadow_catcher;
@@ -69,12 +69,17 @@ public:
 	void compute_bounds(bool motion_blur);
 	void apply_transform(bool apply_to_motion);
 
-	vector<float> motion_times();
+	/* Convert between normalized -1..1 motion time and index
+	 * in the motion array. */
+	bool use_motion() const;
+	float motion_time(int step) const;
+	int motion_step(float time) const;
+	void update_motion();
 
 	/* Check whether object is traceable and it worth adding it to
 	 * kernel scene.
 	 */
-	bool is_traceable();
+	bool is_traceable() const;
 
 	/* Combine object's visibility with all possible internal run-time
 	 * determined flags which denotes trace-time visibility.
@@ -95,7 +100,6 @@ public:
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_transforms(DeviceScene *dscene,
 	                              Scene *scene,
-	                              uint *object_flag,
 	                              Progress& progress);
 
 	void device_update_flags(Device *device,
@@ -109,49 +113,9 @@ public:
 
 	void tag_update(Scene *scene);
 
-	void apply_static_transforms(DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress);
+	void apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress& progress);
 
 protected:
-	/* Global state of object transform update. */
-	struct UpdateObjectTransformState {
-		/* Global state used by device_update_object_transform().
-		 * Common for both threaded and non-threaded update.
-		 */
-
-		/* Type of the motion required by the scene settings. */
-		Scene::MotionType need_motion;
-
-		/* Mapping from particle system to a index in packed particle array.
-		 * Only used for read.
-		 */
-		map<ParticleSystem*, int> particle_offset;
-
-		/* Mesh area.
-		 * Used to avoid calculation of mesh area multiple times. Used for both
-		 * read and write. Acquire surface_area_lock to keep it all thread safe.
-		 */
-		map<Mesh*, float> surface_area_map;
-
-		/* Packed object arrays. Those will be filled in. */
-		uint *object_flag;
-		float4 *objects;
-		float4 *objects_vector;
-
-		/* Flags which will be synchronized to Integrator. */
-		bool have_motion;
-		bool have_curves;
-
-		/* ** Scheduling queue. ** */
-
-		Scene *scene;
-
-		/* Some locks to keep everything thread-safe. */
-		thread_spin_lock queue_lock;
-		thread_spin_lock surface_area_lock;
-
-		/* First unused object index in the queue. */
-		int queue_start_object;
-	};
 	void device_update_object_transform(UpdateObjectTransformState *state,
 	                                    Object *ob,
 	                                    const int object_index);

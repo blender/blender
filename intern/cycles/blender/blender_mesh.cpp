@@ -1252,36 +1252,10 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 	if(mesh_synced.find(mesh) == mesh_synced.end())
 		return;
 
-	/* for motion pass always compute, for motion blur it can be disabled */
-	int time_index = 0;
-
-	if(scene->need_motion() == Scene::MOTION_BLUR) {
-		if(!mesh->use_motion_blur)
-			return;
-
-		/* see if this mesh needs motion data at this time */
-		vector<float> object_times = object->motion_times();
-		bool found = false;
-
-		foreach(float object_time, object_times) {
-			if(motion_time == object_time) {
-				found = true;
-				break;
-			}
-			else
-				time_index++;
-		}
-
-		if(!found)
-			return;
-	}
-	else {
-		if(motion_time == -1.0f)
-			time_index = 0;
-		else if(motion_time == 1.0f)
-			time_index = 1;
-		else
-			return;
+	/* Find time matching motion step required by mesh. */
+	int motion_step = mesh->motion_step(motion_time);
+	if(motion_step < 0) {
+		return;
 	}
 
 	/* skip empty meshes */
@@ -1324,9 +1298,9 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 				float3 *P = &mesh->verts[0];
 				float3 *N = (attr_N)? attr_N->data_float3(): NULL;
 
-				memcpy(attr_mP->data_float3() + time_index*numverts, P, sizeof(float3)*numverts);
+				memcpy(attr_mP->data_float3() + motion_step*numverts, P, sizeof(float3)*numverts);
 				if(attr_mN)
-					memcpy(attr_mN->data_float3() + time_index*numverts, N, sizeof(float3)*numverts);
+					memcpy(attr_mN->data_float3() + motion_step*numverts, N, sizeof(float3)*numverts);
 			}
 		}
 
@@ -1336,7 +1310,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 
 			if(attr_mP) {
 				float3 *keys = &mesh->curve_keys[0];
-				memcpy(attr_mP->data_float3() + time_index*numkeys, keys, sizeof(float3)*numkeys);
+				memcpy(attr_mP->data_float3() + motion_step*numkeys, keys, sizeof(float3)*numkeys);
 			}
 		}
 
@@ -1359,8 +1333,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 			new_attribute = true;
 		}
 		/* Load vertex data from mesh. */
-		float3 *mP = attr_mP->data_float3() + time_index*numverts;
-		float3 *mN = (attr_mN)? attr_mN->data_float3() + time_index*numverts: NULL;
+		float3 *mP = attr_mP->data_float3() + motion_step*numverts;
+		float3 *mN = (attr_mN)? attr_mN->data_float3() + motion_step*numverts: NULL;
 		/* NOTE: We don't copy more that existing amount of vertices to prevent
 		 * possible memory corruption.
 		 */
@@ -1389,13 +1363,13 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 				if(attr_mN)
 					mesh->attributes.remove(ATTR_STD_MOTION_VERTEX_NORMAL);
 			}
-			else if(time_index > 0) {
+			else if(motion_step > 0) {
 				VLOG(1) << "Filling deformation motion for object " << b_ob.name();
 				/* motion, fill up previous steps that we might have skipped because
 				 * they had no motion, but we need them anyway now */
 				float3 *P = &mesh->verts[0];
 				float3 *N = (attr_N)? attr_N->data_float3(): NULL;
-				for(int step = 0; step < time_index; step++) {
+				for(int step = 0; step < motion_step; step++) {
 					memcpy(attr_mP->data_float3() + step*numverts, P, sizeof(float3)*numverts);
 					if(attr_mN)
 						memcpy(attr_mN->data_float3() + step*numverts, N, sizeof(float3)*numverts);
@@ -1405,7 +1379,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 		else {
 			if(b_mesh.vertices.length() != numverts) {
 				VLOG(1) << "Topology differs, discarding motion blur for object "
-				        << b_ob.name() << " at time " << time_index;
+				        << b_ob.name() << " at time " << motion_step;
 				memcpy(mP, &mesh->verts[0], sizeof(float3)*numverts);
 				if(mN != NULL) {
 					memcpy(mN, attr_N->data_float3(), sizeof(float3)*numverts);
@@ -1416,7 +1390,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 
 	/* hair motion */
 	if(numkeys)
-		sync_curves(b_depsgraph, mesh, b_mesh, b_ob, true, time_index);
+		sync_curves(b_depsgraph, mesh, b_mesh, b_ob, true, motion_step);
 
 	/* free derived mesh */
 	b_data.meshes.remove(b_mesh, false, true, false);

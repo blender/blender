@@ -104,7 +104,7 @@ ccl_device float kernel_volume_channel_get(float3 value, int channel)
 ccl_device bool volume_stack_is_heterogeneous(KernelGlobals *kg, ccl_addr_space VolumeStack *stack)
 {
 	for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
-		int shader_flag = kernel_tex_fetch(__shader_flag, (stack[i].shader & SHADER_MASK)*SHADER_SIZE);
+		int shader_flag = kernel_tex_fetch(__shaders, (stack[i].shader & SHADER_MASK)).flags;
 
 		if(shader_flag & SD_HETEROGENEOUS_VOLUME) {
 			return true;
@@ -134,7 +134,7 @@ ccl_device int volume_stack_sampling_method(KernelGlobals *kg, VolumeStack *stac
 	int method = -1;
 
 	for(int i = 0; stack[i].shader != SHADER_NONE; i++) {
-		int shader_flag = kernel_tex_fetch(__shader_flag, (stack[i].shader & SHADER_MASK)*SHADER_SIZE);
+		int shader_flag = kernel_tex_fetch(__shaders, (stack[i].shader & SHADER_MASK)).flags;
 
 		if(shader_flag & SD_VOLUME_MIS) {
 			return SD_VOLUME_MIS;

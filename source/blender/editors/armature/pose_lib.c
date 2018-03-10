@@ -834,7 +834,6 @@ typedef struct tPoseLib_PreviewData {
 	bAction *act;           /* poselib to use */
 	TimeMarker *marker;     /* 'active' pose */
 
-	int selcount;           /* number of selected elements to work on */
 	int totcount;           /* total number of elements to work on */
 
 	short state;            /* state of main loop */
@@ -867,7 +866,8 @@ enum {
 /* defines for tPoseLib_PreviewData->flag values */
 enum {
 	PL_PREVIEW_FIRSTTIME    = (1 << 0),
-	PL_PREVIEW_SHOWORIGINAL = (1 << 1)
+	PL_PREVIEW_SHOWORIGINAL = (1 << 1),
+	PL_PREVIEW_ANY_BONE_SELECTED = (1 << 2),
 };
 
 /* ---------------------------- */
@@ -887,7 +887,20 @@ static void poselib_backup_posecopy(tPoseLib_PreviewData *pld)
 {
 	bActionGroup *agrp;
 	bPoseChannel *pchan;
-	
+	bool selected = false;
+
+	/* determine whether any bone is selected. */
+	LISTBASE_FOREACH (bPoseChannel *, bchan, &pld->pose->chanbase) {
+		selected = bchan->bone != NULL && bchan->bone->flag & BONE_SELECTED;
+		if (selected) {
+			pld->flag |= PL_PREVIEW_ANY_BONE_SELECTED;
+			break;
+		}
+	}
+	if (!selected) {
+		pld->flag &= ~PL_PREVIEW_ANY_BONE_SELECTED;
+	}
+
 	/* for each posechannel that has an actionchannel in */
 	for (agrp = pld->act->groups.first; agrp; agrp = agrp->next) {
 		/* try to find posechannel */
@@ -909,8 +922,6 @@ static void poselib_backup_posecopy(tPoseLib_PreviewData *pld)
 			BLI_addtail(&pld->backups, plb);
 			
 			/* mark as being affected */
-			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))
-				pld->selcount++;
 			pld->totcount++;
 		}
 	}
@@ -971,6 +982,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 	KeyframeEditData ked = {{NULL}};
 	KeyframeEditFunc group_ok_cb;
 	int frame = 1;
+	const bool any_bone_selected = pld->flag & PL_PREVIEW_ANY_BONE_SELECTED;
 	
 	/* get the frame */
 	if (pld->marker)
@@ -983,8 +995,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 	group_ok_cb = ANIM_editkeyframes_ok(BEZT_OK_FRAMERANGE);
 	ked.f1 = ((float)frame) - 0.5f;
 	ked.f2 = ((float)frame) + 0.5f;
-	
-	
+
 	/* start applying - only those channels which have a key at this point in time! */
 	for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 		/* check if group has any keyframes */
@@ -996,7 +1007,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 				bool ok = 0;
 				
 				/* check if this bone should get any animation applied */
-				if (pld->selcount == 0) {
+				if (!any_bone_selected) {
 					/* if no bones are selected, then any bone is ok */
 					ok = 1;
 				}
@@ -1009,7 +1020,7 @@ static void poselib_apply_pose(tPoseLib_PreviewData *pld)
 						ok = 1;
 					}
 				}
-				
+
 				if (ok) 
 					animsys_evaluate_action_group(ptr, act, agrp, NULL, (float)frame);
 			}
@@ -1028,14 +1039,15 @@ static void poselib_keytag_pose(bContext *C, Scene *scene, tPoseLib_PreviewData 
 	KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_WHOLE_CHARACTER_ID);
 	ListBase dsources = {NULL, NULL};
 	bool autokey = autokeyframe_cfra_can_key(scene, &pld->ob->id);
-	
+	const bool any_bone_selected = pld->flag & PL_PREVIEW_ANY_BONE_SELECTED;
+
 	/* start tagging/keying */
 	for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 		/* only for selected bones unless there aren't any selected, in which case all are included  */
 		pchan = BKE_pose_channel_find_name(pose, agrp->name);
 		
 		if (pchan) {
-			if ((pld->selcount == 0) || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))) {
+			if (!any_bone_selected || ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED))) {
 				if (autokey) {
 					/* add datasource override for the PoseChannel, to be used later */
 					ANIM_relative_keyingset_add_source(&dsources, &pld->ob->id, &RNA_PoseBone, pchan); 

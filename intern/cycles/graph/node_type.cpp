@@ -77,7 +77,7 @@ size_t SocketType::max_size()
 
 void *SocketType::zero_default_value()
 {
-	static Transform zero_transform = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
+	static Transform zero_transform = {{0, 0, 0, 0}, {0, 0, 0, 0}, {0, 0, 0, 0}};
 	return &zero_transform;
 }
 

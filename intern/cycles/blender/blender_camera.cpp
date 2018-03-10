@@ -83,6 +83,8 @@ struct BlenderCamera {
 	Transform matrix;
 
 	float offscreen_dicing_scale;
+
+	int motion_steps;
 };
 
 static void blender_camera_init(BlenderCamera *bcam,
@@ -226,6 +228,8 @@ static void blender_camera_from_object(BlenderCamera *bcam,
 			bcam->sensor_fit = BlenderCamera::HORIZONTAL;
 		else
 			bcam->sensor_fit = BlenderCamera::VERTICAL;
+
+		bcam->motion_steps = object_motion_steps(b_ob, b_ob);
 	}
 	else {
 		/* from lamp not implemented yet */
@@ -246,8 +250,7 @@ static Transform blender_camera_matrix(const Transform& tfm,
 			result = tfm *
 				make_transform(1.0f, 0.0f, 0.0f, 0.0f,
 				               0.0f, 0.0f, 1.0f, 0.0f,
-				               0.0f, 1.0f, 0.0f, 0.0f,
-				               0.0f, 0.0f, 0.0f, 1.0f);
+				               0.0f, 1.0f, 0.0f, 0.0f);
 		}
 		else {
 			/* Make it so environment camera needs to be pointed in the direction
@@ -257,8 +260,7 @@ static Transform blender_camera_matrix(const Transform& tfm,
 			result = tfm *
 				make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
 				                0.0f,  0.0f, 1.0f, 0.0f,
-				               -1.0f,  0.0f, 0.0f, 0.0f,
-				                0.0f,  0.0f, 0.0f, 1.0f);
+				               -1.0f,  0.0f, 0.0f, 0.0f);
 		}
 	}
 	else {
@@ -455,9 +457,7 @@ static void blender_camera_sync(Camera *cam,
 	cam->matrix = blender_camera_matrix(bcam->matrix,
 	                                    bcam->type,
 	                                    bcam->panorama_type);
-	cam->motion.pre = cam->matrix;
-	cam->motion.post = cam->matrix;
-	cam->use_motion = false;
+	cam->motion.resize(bcam->motion_steps, cam->matrix);
 	cam->use_perspective_motion = false;
 	cam->shuttertime = bcam->shuttertime;
 	cam->fov_pre = cam->fov;
@@ -566,20 +566,15 @@ void BlenderSync::sync_camera_motion(BL::RenderSettings& b_render,
 	Transform tfm = get_transform(b_ob_matrix);
 	tfm = blender_camera_matrix(tfm, cam->type, cam->panorama_type);
 
-	if(tfm != cam->matrix) {
-		VLOG(1) << "Camera " << b_ob.name() << " motion detected.";
-		if(motion_time == 0.0f) {
-			/* When motion blur is not centered in frame, cam->matrix gets reset. */
-			cam->matrix = tfm;
-		}
-		else if(motion_time == -1.0f) {
-			cam->motion.pre = tfm;
-			cam->use_motion = true;
-		}
-		else if(motion_time == 1.0f) {
-			cam->motion.post = tfm;
-			cam->use_motion = true;
-		}
+	if(motion_time == 0.0f) {
+		/* When motion blur is not centered in frame, cam->matrix gets reset. */
+		cam->matrix = tfm;
+	}
+
+	/* Set transform in motion array. */
+	int motion_step = cam->motion_step(motion_time);
+	if(motion_step >= 0) {
+		cam->motion[motion_step] = tfm;
 	}
 
 	if(cam->type == CAMERA_PERSPECTIVE) {

@@ -117,8 +117,7 @@ Transform TextureMapping::compute_transform()
 		case NORMAL:
 			/* no translation for normals, and inverse transpose */
 			mat = rmat*smat;
-			mat = transform_inverse(mat);
-			mat = transform_transpose(mat);
+			mat = transform_transposed_inverse(mat);
 			break;
 	}
 
@@ -153,7 +152,6 @@ void TextureMapping::compile(SVMCompiler& compiler, int offset_in, int offset_ou
 	compiler.add_node(tfm.x);
 	compiler.add_node(tfm.y);
 	compiler.add_node(tfm.z);
-	compiler.add_node(tfm.w);
 
 	if(use_minmax) {
 		compiler.add_node(NODE_MIN_MAX, offset_out, offset_out);
@@ -193,9 +191,7 @@ void TextureMapping::compile_end(SVMCompiler& compiler, ShaderInput *vector_in, 
 void TextureMapping::compile(OSLCompiler &compiler)
 {
 	if(!skip()) {
-		Transform tfm = transform_transpose(compute_transform());
-
-		compiler.parameter("mapping", tfm);
+		compiler.parameter("mapping", compute_transform());
 		compiler.parameter("use_mapping", 1);
 	}
 }
@@ -1434,7 +1430,6 @@ void PointDensityTextureNode::compile(SVMCompiler& compiler)
 				compiler.add_node(tfm.x);
 				compiler.add_node(tfm.y);
 				compiler.add_node(tfm.z);
-				compiler.add_node(tfm.w);
 			}
 		}
 		else {
@@ -1478,7 +1473,7 @@ void PointDensityTextureNode::compile(OSLCompiler& compiler)
 			compiler.parameter("filename", string_printf("@%d", slot).c_str());
 		}
 		if(space == NODE_TEX_VOXEL_SPACE_WORLD) {
-			compiler.parameter("mapping", transform_transpose(tfm));
+			compiler.parameter("mapping", tfm);
 			compiler.parameter("use_mapping", 1);
 		}
 		compiler.parameter(this, "interpolation");
@@ -1558,8 +1553,7 @@ void MappingNode::compile(SVMCompiler& compiler)
 
 void MappingNode::compile(OSLCompiler& compiler)
 {
-	Transform tfm = transform_transpose(tex_mapping.compute_transform());
-	compiler.parameter("Matrix", tfm);
+	compiler.parameter("Matrix", tex_mapping.compute_transform());
 	compiler.parameter_point("mapping_min", tex_mapping.min);
 	compiler.parameter_point("mapping_max", tex_mapping.max);
 	compiler.parameter("use_minmax", tex_mapping.use_minmax);
@@ -3220,7 +3214,6 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 			compiler.add_node(ob_itfm.x);
 			compiler.add_node(ob_itfm.y);
 			compiler.add_node(ob_itfm.z);
-			compiler.add_node(ob_itfm.w);
 		}
 	}
 
@@ -3259,7 +3252,7 @@ void TextureCoordinateNode::compile(OSLCompiler& compiler)
 	if(compiler.output_type() == SHADER_TYPE_VOLUME)
 		compiler.parameter("is_volume", true);
 	compiler.parameter(this, "use_transform");
-	Transform ob_itfm = transform_transpose(transform_inverse(ob_tfm));
+	Transform ob_itfm = transform_transposed_inverse(ob_tfm);
 	compiler.parameter("object_itfm", ob_itfm);
 
 	compiler.parameter(this, "from_dupli");

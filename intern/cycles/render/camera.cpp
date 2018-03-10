@@ -82,6 +82,7 @@ NODE_DEFINE(Camera)
 	SOCKET_FLOAT(bladesrotation, "Blades Rotation", 0.0f);
 
 	SOCKET_TRANSFORM(matrix, "Matrix", transform_identity());
+	SOCKET_TRANSFORM_ARRAY(motion, "Motion", array<Transform>());
 
 	SOCKET_FLOAT(aperture_ratio, "Aperture Ratio", 1.0f);
 
@@ -151,9 +152,6 @@ Camera::Camera()
 	height = 512;
 	resolution = 1;
 
-	motion.pre = transform_identity();
-	motion.post = transform_identity();
-	use_motion = false;
 	use_perspective_motion = false;
 
 	shutter_curve.resize(RAMP_TABLE_SIZE);
@@ -163,12 +161,12 @@ Camera::Camera()
 
 	compute_auto_viewplane();
 
-	screentoworld = transform_identity();
-	rastertoworld = transform_identity();
-	ndctoworld = transform_identity();
-	rastertocamera = transform_identity();
+	screentoworld = projection_identity();
+	rastertoworld = projection_identity();
+	ndctoworld = projection_identity();
+	rastertocamera = projection_identity();
 	cameratoworld = transform_identity();
-	worldtoraster = transform_identity();
+	worldtoraster = projection_identity();
 
 	dx = make_float3(0.0f, 0.0f, 0.0f);
 	dy = make_float3(0.0f, 0.0f, 0.0f);
@@ -241,18 +239,18 @@ void Camera::update(Scene *scene)
 	Transform full_rastertoscreen = transform_inverse(full_screentoraster);
 
 	/* screen to camera */
-	Transform cameratoscreen;
+	ProjectionTransform cameratoscreen;
 	if(type == CAMERA_PERSPECTIVE)
-		cameratoscreen = transform_perspective(fov, nearclip, farclip);
+		cameratoscreen = projection_perspective(fov, nearclip, farclip);
 	else if(type == CAMERA_ORTHOGRAPHIC)
-		cameratoscreen = transform_orthographic(nearclip, farclip);
+		cameratoscreen = projection_orthographic(nearclip, farclip);
 	else
-		cameratoscreen = transform_identity();
+		cameratoscreen = projection_identity();
 	
-	Transform screentocamera = transform_inverse(cameratoscreen);
+	ProjectionTransform screentocamera = projection_inverse(cameratoscreen);
 
 	rastertocamera = screentocamera * rastertoscreen;
-	Transform full_rastertocamera = screentocamera * full_rastertoscreen;
+	ProjectionTransform full_rastertocamera = screentocamera * full_rastertoscreen;
 	cameratoraster = screentoraster * cameratoscreen;
 
 	cameratoworld = matrix;
@@ -270,10 +268,10 @@ void Camera::update(Scene *scene)
 
 	/* differentials */
 	if(type == CAMERA_ORTHOGRAPHIC) {
-		dx = transform_direction(&rastertocamera, make_float3(1, 0, 0));
-		dy = transform_direction(&rastertocamera, make_float3(0, 1, 0));
-		full_dx = transform_direction(&full_rastertocamera, make_float3(1, 0, 0));
-		full_dy = transform_direction(&full_rastertocamera, make_float3(0, 1, 0));
+		dx = transform_perspective_direction(&rastertocamera, make_float3(1, 0, 0));
+		dy = transform_perspective_direction(&rastertocamera, make_float3(0, 1, 0));
+		full_dx = transform_perspective_direction(&full_rastertocamera, make_float3(1, 0, 0));
+		full_dy = transform_perspective_direction(&full_rastertocamera, make_float3(0, 1, 0));
 	}
 	else if(type == CAMERA_PERSPECTIVE) {
 		dx = transform_perspective(&rastertocamera, make_float3(1, 0, 0)) -
@@ -302,23 +300,6 @@ void Camera::update(Scene *scene)
 		frustum_top_normal = normalize(make_float3(0.0f, v.z, -v.y));
 	}
 
-	/* TODO(sergey): Support other types of camera. */
-	if(type == CAMERA_PERSPECTIVE) {
-		/* TODO(sergey): Move to an utility function and de-duplicate with
-		 * calculation above.
-		 */
-		Transform screentocamera_pre =
-		        transform_inverse(transform_perspective(fov_pre,
-		                                                nearclip,
-		                                                farclip));
-		Transform screentocamera_post =
-		        transform_inverse(transform_perspective(fov_post,
-		                                                nearclip,
-		                                                farclip));
-		perspective_motion.pre = screentocamera_pre * rastertoscreen;
-		perspective_motion.post = screentocamera_post * rastertoscreen;
-	}
-
 	/* Compute kernel camera data. */
 	KernelCamera *kcam = &kernel_camera;
 
@@ -331,41 +312,65 @@ void Camera::update(Scene *scene)
 	kcam->worldtoscreen = worldtoscreen;
 	kcam->worldtoraster = worldtoraster;
 	kcam->worldtondc = worldtondc;
+	kcam->ndctoworld = ndctoworld;
 
 	/* camera motion */
-	kcam->have_motion = 0;
+	kcam->num_motion_steps = 0;
 	kcam->have_perspective_motion = 0;
+	kernel_camera_motion.clear();
+
+	/* Test if any of the transforms are actually different. */
+	bool have_motion = false;
+	for(size_t i = 0; i < motion.size(); i++) {
+		have_motion = have_motion || motion[i] != matrix;
+	}
 
 	if(need_motion == Scene::MOTION_PASS) {
 		/* TODO(sergey): Support perspective (zoom, fov) motion. */
 		if(type == CAMERA_PANORAMA) {
-			if(use_motion) {
-				kcam->motion.pre = transform_inverse(motion.pre);
-				kcam->motion.post = transform_inverse(motion.post);
+			if(have_motion) {
+				kcam->motion_pass_pre = transform_inverse(motion[0]);
+				kcam->motion_pass_post = transform_inverse(motion[motion.size()-1]);
 			}
 			else {
-				kcam->motion.pre = kcam->worldtocamera;
-				kcam->motion.post = kcam->worldtocamera;
+				kcam->motion_pass_pre = kcam->worldtocamera;
+				kcam->motion_pass_post = kcam->worldtocamera;
 			}
 		}
 		else {
-			if(use_motion) {
-				kcam->motion.pre = cameratoraster * transform_inverse(motion.pre);
-				kcam->motion.post = cameratoraster * transform_inverse(motion.post);
+			if(have_motion) {
+				kcam->perspective_pre = cameratoraster * transform_inverse(motion[0]);
+				kcam->perspective_post = cameratoraster * transform_inverse(motion[motion.size()-1]);
 			}
 			else {
-				kcam->motion.pre = worldtoraster;
-				kcam->motion.post = worldtoraster;
+				kcam->perspective_pre = worldtoraster;
+				kcam->perspective_post = worldtoraster;
 			}
 		}
 	}
 	else if(need_motion == Scene::MOTION_BLUR) {
-		if(use_motion) {
-			transform_motion_decompose(&kcam->motion, &motion, &matrix);
-			kcam->have_motion = 1;
+		if(have_motion) {
+			kernel_camera_motion.resize(motion.size());
+			transform_motion_decompose(kernel_camera_motion.data(), motion.data(), motion.size());
+			kcam->num_motion_steps = motion.size();
 		}
-		if(use_perspective_motion) {
-			kcam->perspective_motion = perspective_motion;
+
+		/* TODO(sergey): Support other types of camera. */
+		if(use_perspective_motion && type == CAMERA_PERSPECTIVE) {
+			/* TODO(sergey): Move to an utility function and de-duplicate with
+			 * calculation above.
+			 */
+			ProjectionTransform screentocamera_pre =
+					projection_inverse(projection_perspective(fov_pre,
+					                                          nearclip,
+					                                          farclip));
+			ProjectionTransform screentocamera_post =
+					projection_inverse(projection_perspective(fov_post,
+					                                          nearclip,
+					                                          farclip));
+
+			kcam->perspective_pre = screentocamera_pre * rastertoscreen;
+			kcam->perspective_post = screentocamera_post * rastertoscreen;
 			kcam->have_perspective_motion = 1;
 		}
 	}
@@ -470,6 +475,16 @@ void Camera::device_update(Device * /* device */,
 	}
 
 	dscene->data.cam = kernel_camera;
+
+	size_t num_motion_steps = kernel_camera_motion.size();
+	if(num_motion_steps) {
+		DecomposedTransform *camera_motion = dscene->camera_motion.alloc(num_motion_steps);
+		memcpy(camera_motion, kernel_camera_motion.data(), sizeof(*camera_motion) * num_motion_steps);
+		dscene->camera_motion.copy_to_device();
+	}
+	else {
+		dscene->camera_motion.free();
+	}
 }
 
 void Camera::device_update_volume(Device * /*device*/,
@@ -496,10 +511,11 @@ void Camera::device_update_volume(Device * /*device*/,
 }
 
 void Camera::device_free(Device * /*device*/,
-                         DeviceScene * /*dscene*/,
+                         DeviceScene *dscene,
                          Scene *scene)
 {
 	scene->lookup_tables->remove_table(&shutter_table_offset);
+	dscene->camera_motion.free();
 }
 
 bool Camera::modified(const Camera& cam)
@@ -510,7 +526,6 @@ bool Camera::modified(const Camera& cam)
 bool Camera::motion_modified(const Camera& cam)
 {
 	return !((motion == cam.motion) &&
-	         (use_motion == cam.use_motion) &&
 	         (use_perspective_motion == cam.use_perspective_motion));
 }
 
@@ -606,7 +621,7 @@ float Camera::world_to_raster_size(float3 P)
 		res = min(len(full_dx), len(full_dy));
 
 		if(offscreen_dicing_scale > 1.0f) {
-			float3 p = transform_perspective(&worldtocamera, P);
+			float3 p = transform_point(&worldtocamera, P);
 			float3 v = transform_perspective(&rastertocamera, make_float3(width, height, 0.0f));
 
 			/* Create point clamped to frustum */
@@ -707,17 +722,17 @@ float Camera::world_to_raster_size(float3 P)
 		 * may be a better way to do this, but calculating differentials from the
 		 * point directly ahead seems to produce good enough results. */
 #if 0
-		float2 dir = direction_to_panorama(&kernel_camera, normalize(D));
+		float2 dir = direction_to_panorama(&kernel_camera, kernel_camera_motion.data(), normalize(D));
 		float3 raster = transform_perspective(&cameratoraster, make_float3(dir.x, dir.y, 0.0f));
 
 		ray.t = 1.0f;
-		camera_sample_panorama(&kernel_camera, raster.x, raster.y, 0.0f, 0.0f, &ray);
+		camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), raster.x, raster.y, 0.0f, 0.0f, &ray);
 		if(ray.t == 0.0f) {
 			/* No differentials, just use from directly ahead. */
-			camera_sample_panorama(&kernel_camera, 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+			camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
 		}
 #else
-		camera_sample_panorama(&kernel_camera, 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
+		camera_sample_panorama(&kernel_camera, kernel_camera_motion.data(), 0.5f*width, 0.5f*height, 0.0f, 0.0f, &ray);
 #endif
 
 		differential_transfer(&ray.dP, ray.dP, ray.D, ray.dD, ray.D, dist);
@@ -727,6 +742,29 @@ float Camera::world_to_raster_size(float3 P)
 	}
 
 	return res;
+}
+
+bool Camera::use_motion() const
+{
+	return motion.size() > 1;
+}
+
+float Camera::motion_time(int step) const
+{
+	return (use_motion()) ? 2.0f * step / (motion.size() - 1) - 1.0f : 0.0f;
+}
+
+int Camera::motion_step(float time) const
+{
+	if(use_motion()) {
+		for(int step = 0; step < motion.size(); step++) {
+			if(time == motion_time(step)) {
+				return step;
+			}
+		}
+	}
+
+	return -1;
 }
 
 CCL_NAMESPACE_END

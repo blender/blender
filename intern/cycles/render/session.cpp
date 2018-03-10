@@ -656,13 +656,13 @@ DeviceRequestedFeatures Session::get_requested_device_features()
 	 */
 	requested_features.use_hair = false;
 	requested_features.use_object_motion = false;
-	requested_features.use_camera_motion = scene->camera->use_motion;
+	requested_features.use_camera_motion = scene->camera->use_motion();
 	foreach(Object *object, scene->objects) {
 		Mesh *mesh = object->mesh;
 		if(mesh->num_curves()) {
 			requested_features.use_hair = true;
 		}
-		requested_features.use_object_motion |= object->use_motion | mesh->use_motion_blur;
+		requested_features.use_object_motion |= object->use_motion() | mesh->use_motion_blur;
 		requested_features.use_camera_motion |= mesh->use_motion_blur;
 #ifdef WITH_OPENSUBDIV
 		if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE) {

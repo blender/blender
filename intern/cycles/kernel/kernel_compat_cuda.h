@@ -137,6 +137,7 @@ ccl_device_inline uint ccl_num_groups(uint d)
 
 /* Use arrays for regular data. */
 #define kernel_tex_fetch(t, index) t[(index)]
+#define kernel_tex_array(t) (t)
 
 #define kernel_data __data
 

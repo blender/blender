@@ -62,11 +62,17 @@ CCL_NAMESPACE_BEGIN
 
 /* RenderServices implementation */
 
-#define COPY_MATRIX44(m1, m2)  { \
-	CHECK_TYPE(m1, OSL::Matrix44*); \
-	CHECK_TYPE(m2, Transform*); \
-	memcpy(m1, m2, sizeof(*m2)); \
-} (void)0
+static void copy_matrix(OSL::Matrix44& m, const Transform& tfm)
+{
+	ProjectionTransform t = projection_transpose(ProjectionTransform(tfm));
+	memcpy(&m, &t, sizeof(m));
+}
+
+static void copy_matrix(OSL::Matrix44& m, const ProjectionTransform& tfm)
+{
+	ProjectionTransform t = projection_transpose(tfm);
+	memcpy(&m, &t, sizeof(m));
+}
 
 /* static ustrings */
 ustring OSLRenderServices::u_distance("distance");
@@ -167,14 +173,12 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result
 #else
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
-			tfm = transform_transpose(tfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, tfm);
 
 			return true;
 		}
 		else if(sd->type == PRIMITIVE_LAMP) {
-			Transform tfm = transform_transpose(sd->ob_tfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, sd->ob_tfm);
 
 			return true;
 		}
@@ -203,14 +207,12 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44
 #else
 			Transform itfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
-			itfm = transform_transpose(itfm);
-			COPY_MATRIX44(&result, &itfm);
+			copy_matrix(result, itfm);
 
 			return true;
 		}
 		else if(sd->type == PRIMITIVE_LAMP) {
-			Transform tfm = transform_transpose(sd->ob_itfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, sd->ob_itfm);
 
 			return true;
 		}
@@ -224,23 +226,19 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result
 	KernelGlobals *kg = kernel_globals;
 
 	if(from == u_ndc) {
-		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.ndctoworld);
 		return true;
 	}
 	else if(from == u_raster) {
-		Transform tfm = transform_transpose(kernel_data.cam.rastertoworld);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.rastertoworld);
 		return true;
 	}
 	else if(from == u_screen) {
-		Transform tfm = transform_transpose(kernel_data.cam.screentoworld);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.screentoworld);
 		return true;
 	}
 	else if(from == u_camera) {
-		Transform tfm = transform_transpose(kernel_data.cam.cameratoworld);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.cameratoworld);
 		return true;
 	}
 	else if(from == u_world) {
@@ -256,23 +254,19 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44
 	KernelGlobals *kg = kernel_globals;
 
 	if(to == u_ndc) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtondc);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtondc);
 		return true;
 	}
 	else if(to == u_raster) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtoraster);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtoraster);
 		return true;
 	}
 	else if(to == u_screen) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtoscreen);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtoscreen);
 		return true;
 	}
 	else if(to == u_camera) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtocamera);
 		return true;
 	}
 	else if(to == u_world) {
@@ -298,14 +292,12 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result
 			KernelGlobals *kg = sd->osl_globals;
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
 #endif
-			tfm = transform_transpose(tfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, tfm);
 
 			return true;
 		}
 		else if(sd->type == PRIMITIVE_LAMP) {
-			Transform tfm = transform_transpose(sd->ob_tfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, sd->ob_tfm);
 
 			return true;
 		}
@@ -329,14 +321,12 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44
 			KernelGlobals *kg = sd->osl_globals;
 			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
 #endif
-			tfm = transform_transpose(tfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, tfm);
 
 			return true;
 		}
 		else if(sd->type == PRIMITIVE_LAMP) {
-			Transform tfm = transform_transpose(sd->ob_itfm);
-			COPY_MATRIX44(&result, &tfm);
+			copy_matrix(result, sd->ob_itfm);
 
 			return true;
 		}
@@ -350,23 +340,19 @@ bool OSLRenderServices::get_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44 &result
 	KernelGlobals *kg = kernel_globals;
 
 	if(from == u_ndc) {
-		Transform tfm = transform_transpose(transform_quick_inverse(kernel_data.cam.worldtondc));
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.ndctoworld);
 		return true;
 	}
 	else if(from == u_raster) {
-		Transform tfm = transform_transpose(kernel_data.cam.rastertoworld);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.rastertoworld);
 		return true;
 	}
 	else if(from == u_screen) {
-		Transform tfm = transform_transpose(kernel_data.cam.screentoworld);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.screentoworld);
 		return true;
 	}
 	else if(from == u_camera) {
-		Transform tfm = transform_transpose(kernel_data.cam.cameratoworld);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.cameratoworld);
 		return true;
 	}
 
@@ -378,23 +364,19 @@ bool OSLRenderServices::get_inverse_matrix(OSL::ShaderGlobals *sg, OSL::Matrix44
 	KernelGlobals *kg = kernel_globals;
 	
 	if(to == u_ndc) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtondc);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtondc);
 		return true;
 	}
 	else if(to == u_raster) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtoraster);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtoraster);
 		return true;
 	}
 	else if(to == u_screen) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtoscreen);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtoscreen);
 		return true;
 	}
 	else if(to == u_camera) {
-		Transform tfm = transform_transpose(kernel_data.cam.worldtocamera);
-		COPY_MATRIX44(&result, &tfm);
+		copy_matrix(result, kernel_data.cam.worldtocamera);
 		return true;
 	}
 	
@@ -570,8 +552,7 @@ static bool set_attribute_float3_3(float3 P[3], TypeDesc type, bool derivatives,
 static bool set_attribute_matrix(const Transform& tfm, TypeDesc type, void *val)
 {
 	if(type == TypeDesc::TypeMatrix) {
-		Transform transpose = transform_transpose(tfm);
-		memcpy(val, &transpose, sizeof(Transform));
+		copy_matrix(*(OSL::Matrix44*)val, tfm);
 		return true;
 	}
 

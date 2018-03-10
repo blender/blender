@@ -26,7 +26,6 @@ ccl_device void svm_node_mapping(KernelGlobals *kg, ShaderData *sd, float *stack
 	tfm.x = read_node_float(kg, offset);
 	tfm.y = read_node_float(kg, offset);
 	tfm.z = read_node_float(kg, offset);
-	tfm.w = read_node_float(kg, offset);
 
 	float3 r = transform_point(&tfm, v);
 	stack_store_float3(stack, out_offset, r);

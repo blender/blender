@@ -42,7 +42,6 @@ ccl_device void svm_node_tex_coord(KernelGlobals *kg,
 				tfm.x = read_node_float(kg, offset);
 				tfm.y = read_node_float(kg, offset);
 				tfm.z = read_node_float(kg, offset);
-				tfm.w = read_node_float(kg, offset);
 				data = transform_point(&tfm, data);
 			}
 			break;
@@ -123,7 +122,6 @@ ccl_device void svm_node_tex_coord_bump_dx(KernelGlobals *kg,
 				tfm.x = read_node_float(kg, offset);
 				tfm.y = read_node_float(kg, offset);
 				tfm.z = read_node_float(kg, offset);
-				tfm.w = read_node_float(kg, offset);
 				data = transform_point(&tfm, data);
 			}
 			break;
@@ -207,7 +205,6 @@ ccl_device void svm_node_tex_coord_bump_dy(KernelGlobals *kg,
 				tfm.x = read_node_float(kg, offset);
 				tfm.y = read_node_float(kg, offset);
 				tfm.z = read_node_float(kg, offset);
-				tfm.w = read_node_float(kg, offset);
 				data = transform_point(&tfm, data);
 			}
 			break;

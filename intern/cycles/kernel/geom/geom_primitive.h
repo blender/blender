@@ -193,10 +193,10 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	 * transformation was set match the world/object space of motion_pre/post */
 	Transform tfm;
 	
-	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_PRE);
+	tfm = object_fetch_motion_pass_transform(kg, sd->object, OBJECT_PASS_MOTION_PRE);
 	motion_pre = transform_point(&tfm, motion_pre);
 
-	tfm = object_fetch_vector_transform(kg, sd->object, OBJECT_VECTOR_MOTION_POST);
+	tfm = object_fetch_motion_pass_transform(kg, sd->object, OBJECT_PASS_MOTION_POST);
 	motion_post = transform_point(&tfm, motion_post);
 
 	float3 motion_center;
@@ -204,14 +204,14 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 	/* camera motion, for perspective/orthographic motion.pre/post will be a
 	 * world-to-raster matrix, for panorama it's world-to-camera */
 	if(kernel_data.cam.type != CAMERA_PANORAMA) {
-		tfm = kernel_data.cam.worldtoraster;
-		motion_center = transform_perspective(&tfm, center);
+		ProjectionTransform projection = kernel_data.cam.worldtoraster;
+		motion_center = transform_perspective(&projection, center);
 
-		tfm = kernel_data.cam.motion.pre;
-		motion_pre = transform_perspective(&tfm, motion_pre);
+		projection = kernel_data.cam.perspective_pre;
+		motion_pre = transform_perspective(&projection, motion_pre);
 
-		tfm = kernel_data.cam.motion.post;
-		motion_post = transform_perspective(&tfm, motion_post);
+		projection = kernel_data.cam.perspective_post;
+		motion_post = transform_perspective(&projection, motion_post);
 	}
 	else {
 		tfm = kernel_data.cam.worldtocamera;
@@ -220,13 +220,13 @@ ccl_device_inline float4 primitive_motion_vector(KernelGlobals *kg, ShaderData *
 		motion_center.x *= kernel_data.cam.width;
 		motion_center.y *= kernel_data.cam.height;
 
-		tfm = kernel_data.cam.motion.pre;
+		tfm = kernel_data.cam.motion_pass_pre;
 		motion_pre = normalize(transform_point(&tfm, motion_pre));
 		motion_pre = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_pre));
 		motion_pre.x *= kernel_data.cam.width;
 		motion_pre.y *= kernel_data.cam.height;
 
-		tfm = kernel_data.cam.motion.post;
+		tfm = kernel_data.cam.motion_pass_post;
 		motion_post = normalize(transform_point(&tfm, motion_post));
 		motion_post = float2_to_float3(direction_to_panorama(&kernel_data.cam, motion_post));
 		motion_post.x *= kernel_data.cam.width;

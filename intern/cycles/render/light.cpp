@@ -288,7 +288,7 @@ void LightManager::device_update_distribution(Device *, DeviceScene *dscene, Sce
 	VLOG(1) << "Total " << num_distribution << " of light distribution primitives.";
 
 	/* emission area */
-	float4 *distribution = dscene->light_distribution.alloc(num_distribution + 1);
+	KernelLightDistribution *distribution = dscene->light_distribution.alloc(num_distribution + 1);
 	float totarea = 0.0f;
 
 	/* triangles */
@@ -334,10 +334,10 @@ void LightManager::device_update_distribution(Device *, DeviceScene *dscene, Sce
 			                         : scene->default_surface;
 
 			if(shader->use_mis && shader->has_surface_emission) {
-				distribution[offset].x = totarea;
-				distribution[offset].y = __int_as_float(i + mesh->tri_offset);
-				distribution[offset].z = __int_as_float(shader_flag);
-				distribution[offset].w = __int_as_float(object_id);
+				distribution[offset].totarea = totarea;
+				distribution[offset].prim = i + mesh->tri_offset;
+				distribution[offset].mesh_light.shader_flag = shader_flag;
+				distribution[offset].mesh_light.object_id = object_id;
 				offset++;
 
 				Mesh::Triangle t = mesh->get_triangle(i);
@@ -372,10 +372,10 @@ void LightManager::device_update_distribution(Device *, DeviceScene *dscene, Sce
 		if(!light->is_enabled)
 			continue;
 
-		distribution[offset].x = totarea;
-		distribution[offset].y = __int_as_float(~light_index);
-		distribution[offset].z = 1.0f;
-		distribution[offset].w = light->size;
+		distribution[offset].totarea = totarea;
+		distribution[offset].prim = ~light_index;
+		distribution[offset].lamp.pad = 1.0f;
+		distribution[offset].lamp.size = light->size;
 		totarea += lightarea;
 
 		if(light->size > 0.0f && light->use_mis)
@@ -390,15 +390,15 @@ void LightManager::device_update_distribution(Device *, DeviceScene *dscene, Sce
 	}
 
 	/* normalize cumulative distribution functions */
-	distribution[num_distribution].x = totarea;
-	distribution[num_distribution].y = 0.0f;
-	distribution[num_distribution].z = 0.0f;
-	distribution[num_distribution].w = 0.0f;
+	distribution[num_distribution].totarea = totarea;
+	distribution[num_distribution].prim = 0.0f;
+	distribution[num_distribution].lamp.pad = 0.0f;
+	distribution[num_distribution].lamp.size = 0.0f;
 
 	if(totarea > 0.0f) {
 		for(size_t i = 0; i < num_distribution; i++)
-			distribution[i].x /= totarea;
-		distribution[num_distribution].x = 1.0f;
+			distribution[i].totarea /= totarea;
+		distribution[num_distribution].totarea = 1.0f;
 	}
 
 	if(progress.get_cancel()) return;
@@ -620,7 +620,7 @@ void LightManager::device_update_points(Device *,
 		}
 	}
 
-	float4 *light_data = dscene->light_data.alloc(num_lights*LIGHT_SIZE);
+	KernelLight *klights = dscene->lights.alloc(num_lights);
 
 	if(num_lights == 0) {
 		VLOG(1) << "No effective light, ignoring points update.";
@@ -637,8 +637,8 @@ void LightManager::device_update_points(Device *,
 		float3 co = light->co;
 		Shader *shader = (light->shader) ? light->shader : scene->default_light;
 		int shader_id = scene->shader_manager->get_shader_id(shader);
-		float samples = __int_as_float(light->samples);
-		float max_bounces = __int_as_float(light->max_bounces);
+		int samples = light->samples;
+		int max_bounces = light->max_bounces;
 		float random = (float)light->random_id * (1.0f/(float)0xFFFFFFFF);
 
 		if(!light->cast_shadow)
@@ -661,6 +661,9 @@ void LightManager::device_update_points(Device *,
 			use_light_visibility = true;
 		}
 
+		klights[light_index].type = light->type;
+		klights[light_index].samples = samples;
+
 		if(light->type == LIGHT_POINT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
 
@@ -670,10 +673,12 @@ void LightManager::device_update_points(Device *,
 			if(light->use_mis && radius > 0.0f)
 				shader_id |= SHADER_USE_MIS;
 
-			light_data[light_index*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), co.x, co.y, co.z);
-			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), radius, invarea, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
+			klights[light_index].co[0] = co.x;
+			klights[light_index].co[1] = co.y;
+			klights[light_index].co[2] = co.z;
+
+			klights[light_index].spot.radius = radius;
+			klights[light_index].spot.invarea = invarea;
 		}
 		else if(light->type == LIGHT_DISTANT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -690,10 +695,13 @@ void LightManager::device_update_points(Device *,
 			if(light->use_mis && area > 0.0f)
 				shader_id |= SHADER_USE_MIS;
 
-			light_data[light_index*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), dir.x, dir.y, dir.z);
-			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), radius, cosangle, invarea);
-			light_data[light_index*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
+			klights[light_index].co[0] = dir.x;
+			klights[light_index].co[1] = dir.y;
+			klights[light_index].co[2] = dir.z;
+
+			klights[light_index].distant.invarea = invarea;
+			klights[light_index].distant.radius = radius;
+			klights[light_index].distant.cosangle = cosangle;
 		}
 		else if(light->type == LIGHT_BACKGROUND) {
 			uint visibility = scene->background->visibility;
@@ -717,11 +725,6 @@ void LightManager::device_update_points(Device *,
 				shader_id |= SHADER_EXCLUDE_SCATTER;
 				use_light_visibility = true;
 			}
-
-			light_data[light_index*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 2] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
-			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
 		}
 		else if(light->type == LIGHT_AREA) {
 			float3 axisu = light->axisu*(light->sizeu*light->size);
@@ -735,10 +738,20 @@ void LightManager::device_update_points(Device *,
 			if(light->use_mis && area > 0.0f)
 				shader_id |= SHADER_USE_MIS;
 
-			light_data[light_index*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), co.x, co.y, co.z);
-			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), axisu.x, axisu.y, axisu.z);
-			light_data[light_index*LIGHT_SIZE + 2] = make_float4(invarea, axisv.x, axisv.y, axisv.z);
-			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, dir.x, dir.y, dir.z);
+			klights[light_index].co[0] = co.x;
+			klights[light_index].co[1] = co.y;
+			klights[light_index].co[2] = co.z;
+
+			klights[light_index].area.axisu[0] = axisu.x;
+			klights[light_index].area.axisu[1] = axisu.y;
+			klights[light_index].area.axisu[2] = axisu.z;
+			klights[light_index].area.axisv[0] = axisv.x;
+			klights[light_index].area.axisv[1] = axisv.y;
+			klights[light_index].area.axisv[2] = axisv.z;
+			klights[light_index].area.invarea = invarea;
+			klights[light_index].area.dir[0] = dir.x;
+			klights[light_index].area.dir[1] = dir.y;
+			klights[light_index].area.dir[2] = dir.z;
 		}
 		else if(light->type == LIGHT_SPOT) {
 			shader_id &= ~SHADER_AREA_LIGHT;
@@ -754,18 +767,26 @@ void LightManager::device_update_points(Device *,
 			if(light->use_mis && radius > 0.0f)
 				shader_id |= SHADER_USE_MIS;
 
-			light_data[light_index*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), co.x, co.y, co.z);
-			light_data[light_index*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), radius, invarea, spot_angle);
-			light_data[light_index*LIGHT_SIZE + 2] = make_float4(spot_smooth, dir.x, dir.y, dir.z);
-			light_data[light_index*LIGHT_SIZE + 3] = make_float4(samples, 0.0f, 0.0f, 0.0f);
+			klights[light_index].co[0] = co.x;
+			klights[light_index].co[1] = co.y;
+			klights[light_index].co[2] = co.z;
+
+			klights[light_index].spot.radius = radius;
+			klights[light_index].spot.invarea = invarea;
+			klights[light_index].spot.spot_angle = spot_angle;
+			klights[light_index].spot.spot_smooth = spot_smooth;
+			klights[light_index].spot.dir[0] = dir.x;
+			klights[light_index].spot.dir[1] = dir.y;
+			klights[light_index].spot.dir[2] = dir.z;
 		}
 
-		light_data[light_index*LIGHT_SIZE + 4] = make_float4(max_bounces, random, 0.0f, 0.0f);
+		klights[light_index].shader_id = shader_id;
 
-		Transform tfm = light->tfm;
-		Transform itfm = transform_inverse(tfm);
-		memcpy(&light_data[light_index*LIGHT_SIZE + 5], &tfm, sizeof(float4)*3);
-		memcpy(&light_data[light_index*LIGHT_SIZE + 8], &itfm, sizeof(float4)*3);
+		klights[light_index].max_bounces = max_bounces;
+		klights[light_index].random = random;
+
+		klights[light_index].tfm = light->tfm;
+		klights[light_index].itfm = transform_inverse(light->tfm);
 
 		light_index++;
 	}
@@ -782,21 +803,27 @@ void LightManager::device_update_points(Device *,
 		float3 axisu = light->axisu*(light->sizeu*light->size);
 		float3 axisv = light->axisv*(light->sizev*light->size);
 		float area = len(axisu)*len(axisv);
-		float invarea = (area > 0.0f) ? 1.0f / area : 1.0f;
+		float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
 		float3 dir = light->dir;
 
 		dir = safe_normalize(dir);
 
-		light_data[light_index*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), co.x, co.y, co.z);
-		light_data[light_index*LIGHT_SIZE + 1] = make_float4(area, axisu.x, axisu.y, axisu.z);
-		light_data[light_index*LIGHT_SIZE + 2] = make_float4(invarea, axisv.x, axisv.y, axisv.z);
-		light_data[light_index*LIGHT_SIZE + 3] = make_float4(-1, dir.x, dir.y, dir.z);
-		light_data[light_index*LIGHT_SIZE + 4] = make_float4(-1, 0.0f, 0.0f, 0.0f);
+		klights[light_index].co[0] = co.x;
+		klights[light_index].co[1] = co.y;
+		klights[light_index].co[2] = co.z;
 
-		Transform tfm = light->tfm;
-		Transform itfm = transform_inverse(tfm);
-		memcpy(&light_data[light_index*LIGHT_SIZE + 5], &tfm, sizeof(float4)*3);
-		memcpy(&light_data[light_index*LIGHT_SIZE + 8], &itfm, sizeof(float4)*3);
+		klights[light_index].area.axisu[0] = axisu.x;
+		klights[light_index].area.axisu[1] = axisu.y;
+		klights[light_index].area.axisu[2] = axisu.z;
+		klights[light_index].area.axisv[0] = axisv.x;
+		klights[light_index].area.axisv[1] = axisv.y;
+		klights[light_index].area.axisv[2] = axisv.z;
+		klights[light_index].area.invarea = invarea;
+		klights[light_index].area.dir[0] = dir.x;
+		klights[light_index].area.dir[1] = dir.y;
+		klights[light_index].area.dir[2] = dir.z;
+		klights[light_index].tfm = light->tfm;
+		klights[light_index].itfm = transform_inverse(light->tfm);
 
 		light_index++;
 	}
@@ -806,7 +833,7 @@ void LightManager::device_update_points(Device *,
 	VLOG(1) << "Number of lights without contribution: "
 	        << num_scene_lights - light_index;
 
-	dscene->light_data.copy_to_device();
+	dscene->lights.copy_to_device();
 }
 
 void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
@@ -842,7 +869,7 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 void LightManager::device_free(Device *, DeviceScene *dscene)
 {
 	dscene->light_distribution.free();
-	dscene->light_data.free();
+	dscene->lights.free();
 	dscene->light_background_marginal_cdf.free();
 	dscene->light_background_conditional_cdf.free();
 }

@@ -86,8 +86,13 @@ public:
 	device_vector<uint> patches;
 
 	/* objects */
-	device_vector<float4> objects;
-	device_vector<float4> objects_vector;
+	device_vector<KernelObject> objects;
+	device_vector<Transform> object_motion_pass;
+	device_vector<DecomposedTransform> object_motion;
+	device_vector<uint> object_flag;
+
+	/* cameras */
+	device_vector<DecomposedTransform> camera_motion;
 
 	/* attributes */
 	device_vector<uint4> attributes_map;
@@ -96,18 +101,17 @@ public:
 	device_vector<uchar4> attributes_uchar4;
 
 	/* lights */
-	device_vector<float4> light_distribution;
-	device_vector<float4> light_data;
+	device_vector<KernelLightDistribution> light_distribution;
+	device_vector<KernelLight> lights;
 	device_vector<float2> light_background_marginal_cdf;
 	device_vector<float2> light_background_conditional_cdf;
 
 	/* particles */
-	device_vector<float4> particles;
+	device_vector<KernelParticle> particles;
 
 	/* shaders */
 	device_vector<int4> svm_nodes;
-	device_vector<uint> shader_flag;
-	device_vector<uint> object_flag;
+	device_vector<KernelShader> shaders;
 
 	/* lookup tables */
 	device_vector<float> lookup_table;

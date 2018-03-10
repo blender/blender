@@ -279,7 +279,8 @@ public:
 	void add_vertex_normals();
 	void add_undisplaced();
 
-	void pack_normals(Scene *scene, uint *shader, float4 *vnormal);
+	void pack_shaders(Scene *scene, uint *shader);
+	void pack_normals(float4 *vnormal);
 	void pack_verts(const vector<uint>& tri_prim_index,
 	                uint4 *tri_vindex,
 	                uint *tri_patch,
@@ -303,6 +304,11 @@ public:
 
 	bool has_motion_blur() const;
 	bool has_true_displacement() const;
+
+	/* Convert between normalized -1..1 motion time and index
+	 * in the VERTEX_MOTION attribute. */
+	float motion_time(int step) const;
+	int motion_step(float time) const;
 
 	/* Check whether the mesh should have own BVH built separately. Briefly,
 	 * own BVH is needed for mesh, if:

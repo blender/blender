@@ -1521,12 +1521,15 @@ class USERPREF_PT_addons(Panel):
                             split.operator(
                                 "wm.url_open", text="Documentation", icon='HELP',
                             ).url = info["wiki_url"]
-                        split.operator(
-                            "wm.url_open", text="Report a Bug", icon='URL',
-                        ).url = info.get(
-                            "tracker_url",
-                            "https://developer.blender.org/maniphest/task/edit/form/2",
-                        )
+                        # Only add "Report a Bug" button if tracker_url is set
+                        # or the add-on is bundled (use official tracker then).
+                        if info.get("tracker_url") or not user_addon:
+                            split.operator(
+                                "wm.url_open", text="Report a Bug", icon='URL',
+                            ).url = info.get(
+                                "tracker_url",
+                                "https://developer.blender.org/maniphest/task/edit/form/2",
+                            )
                         if user_addon:
                             split.operator(
                                 "wm.addon_remove", text="Remove", icon='CANCEL',

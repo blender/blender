@@ -22,6 +22,7 @@
 #include "graph/node.h"
 
 #include "util/util_boundbox.h"
+#include "util/util_projection.h"
 #include "util/util_transform.h"
 #include "util/util_types.h"
 
@@ -140,24 +141,23 @@ public:
 	Transform matrix;
 
 	/* motion */
-	MotionTransform motion;
-	bool use_motion, use_perspective_motion;
+	array<Transform> motion;
+	bool use_perspective_motion;
 	float fov_pre, fov_post;
-	PerspectiveMotionTransform perspective_motion;
 
 	/* computed camera parameters */
-	Transform screentoworld;
-	Transform rastertoworld;
-	Transform ndctoworld;
+	ProjectionTransform screentoworld;
+	ProjectionTransform rastertoworld;
+	ProjectionTransform ndctoworld;
 	Transform cameratoworld;
 
-	Transform worldtoraster;
-	Transform worldtoscreen;
-	Transform worldtondc;
+	ProjectionTransform worldtoraster;
+	ProjectionTransform worldtoscreen;
+	ProjectionTransform worldtondc;
 	Transform worldtocamera;
 
-	Transform rastertocamera;
-	Transform cameratoraster;
+	ProjectionTransform rastertocamera;
+	ProjectionTransform cameratoraster;
 
 	float3 dx;
 	float3 dy;
@@ -176,6 +176,7 @@ public:
 
 	/* Kernel camera data, copied here for dicing. */
 	KernelCamera kernel_camera;
+	array<DecomposedTransform> kernel_camera_motion;
 
 	/* functions */
 	Camera();
@@ -198,6 +199,11 @@ public:
 
 	/* Calculates the width of a pixel at point in world space. */
 	float world_to_raster_size(float3 P);
+
+	/* Motion blur. */
+	float motion_time(int step) const;
+	int motion_step(float time) const;
+	bool use_motion() const;
 
 private:
 	/* Private utility functions. */

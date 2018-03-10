@@ -53,9 +53,7 @@ ccl_device_inline AttributeDescriptor attribute_not_found()
 
 ccl_device_inline uint object_attribute_map_offset(KernelGlobals *kg, int object)
 {
-	int offset = object*OBJECT_SIZE + 15;
-	float4 f = kernel_tex_fetch(__objects, offset);
-	return __float_as_uint(f.y);
+	return kernel_tex_fetch(__objects, object).attribute_map_offset;
 }
 
 ccl_device_inline AttributeDescriptor find_attribute(KernelGlobals *kg, const ShaderData *sd, uint id)
@@ -105,7 +103,6 @@ ccl_device Transform primitive_attribute_matrix(KernelGlobals *kg, const ShaderD
 	tfm.x = kernel_tex_fetch(__attributes_float3, desc.offset + 0);
 	tfm.y = kernel_tex_fetch(__attributes_float3, desc.offset + 1);
 	tfm.z = kernel_tex_fetch(__attributes_float3, desc.offset + 2);
-	tfm.w = kernel_tex_fetch(__attributes_float3, desc.offset + 3);
 
 	return tfm;
 }

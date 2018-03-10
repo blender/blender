@@ -31,8 +31,13 @@ KERNEL_TEX(uint, __object_node)
 KERNEL_TEX(float2, __prim_time)
 
 /* objects */
-KERNEL_TEX(float4, __objects)
-KERNEL_TEX(float4, __objects_vector)
+KERNEL_TEX(KernelObject, __objects)
+KERNEL_TEX(Transform, __object_motion_pass)
+KERNEL_TEX(DecomposedTransform, __object_motion)
+KERNEL_TEX(uint, __object_flag)
+
+/* cameras */
+KERNEL_TEX(DecomposedTransform, __camera_motion)
 
 /* triangles */
 KERNEL_TEX(uint, __tri_shader)
@@ -55,18 +60,17 @@ KERNEL_TEX(float4, __attributes_float3)
 KERNEL_TEX(uchar4, __attributes_uchar4)
 
 /* lights */
-KERNEL_TEX(float4, __light_distribution)
-KERNEL_TEX(float4, __light_data)
+KERNEL_TEX(KernelLightDistribution, __light_distribution)
+KERNEL_TEX(KernelLight, __lights)
 KERNEL_TEX(float2, __light_background_marginal_cdf)
 KERNEL_TEX(float2, __light_background_conditional_cdf)
 
 /* particles */
-KERNEL_TEX(float4, __particles)
+KERNEL_TEX(KernelParticle, __particles)
 
 /* shaders */
 KERNEL_TEX(uint4, __svm_nodes)
-KERNEL_TEX(uint, __shader_flag)
-KERNEL_TEX(uint, __object_flag)
+KERNEL_TEX(KernelShader, __shaders)
 
 /* lookup tables */
 KERNEL_TEX(float, __lookup_table)

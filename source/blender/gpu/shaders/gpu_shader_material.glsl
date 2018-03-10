@@ -3229,7 +3229,7 @@ void node_attribute_volume_color(sampler3D tex, out vec4 outcol, out vec3 outvec
 
 	vec4 value = texture(tex, cos).rgba;
 	/* Density is premultiplied for interpolation, divide it out here. */
-	if (value.a > 0.0)
+	if (value.a > 1e-8)
 		value.rgb /= value.a;
 
 	outvec = value.rgb;

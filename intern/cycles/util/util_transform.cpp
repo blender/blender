@@ -46,6 +46,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "util/util_projection.h"
 #include "util/util_transform.h"
 
 #include "util/util_boundbox.h"
@@ -129,9 +130,9 @@ static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
 	return true;
 }
 
-Transform transform_inverse(const Transform& tfm)
+ProjectionTransform projection_inverse(const ProjectionTransform& tfm)
 {
-	Transform tfmR = transform_identity();
+	ProjectionTransform tfmR = projection_identity();
 	float M[4][4], R[4][4];
 
 	memcpy(R, &tfmR, sizeof(R));
@@ -145,13 +146,26 @@ Transform transform_inverse(const Transform& tfm)
 		M[2][2] += 1e-8f;
 
 		if(UNLIKELY(!transform_matrix4_gj_inverse(R, M))) {
-			return transform_identity();
+			return projection_identity();
 		}
 	}
 
 	memcpy(&tfmR, R, sizeof(R));
 
 	return tfmR;
+}
+
+Transform transform_inverse(const Transform& tfm)
+{
+	ProjectionTransform projection(tfm);
+	return projection_to_transform(projection_inverse(projection));
+}
+
+Transform transform_transposed_inverse(const Transform& tfm)
+{
+	ProjectionTransform projection(tfm);
+	ProjectionTransform iprojection = projection_inverse(projection);
+	return projection_to_transform(projection_transpose(iprojection));
 }
 
 /* Motion Transform */
@@ -202,14 +216,14 @@ float4 transform_to_quat(const Transform& tfm)
 	return qt;
 }
 
-static void transform_decompose(Transform *decomp, const Transform *tfm)
+static void transform_decompose(DecomposedTransform *decomp, const Transform *tfm)
 {
 	/* extract translation */
 	decomp->y = make_float4(tfm->x.w, tfm->y.w, tfm->z.w, 0.0f);
 
 	/* extract rotation */
 	Transform M = *tfm;
-	M.x.w = 0.0f; M.y.w = 0.0f; M.z.w = 0.0f; M.w.w = 1.0f;
+	M.x.w = 0.0f; M.y.w = 0.0f; M.z.w = 0.0f;
 
 	Transform R = M;
 	float norm;
@@ -217,9 +231,9 @@ static void transform_decompose(Transform *decomp, const Transform *tfm)
 
 	do {
 		Transform Rnext;
-		Transform Rit = transform_inverse(transform_transpose(R));
+		Transform Rit = transform_transposed_inverse(R);
 
-		for(int i = 0; i < 4; i++)
+		for(int i = 0; i < 3; i++)
 			for(int j = 0; j < 4; j++)
 				Rnext[i][j] = 0.5f * (R[i][j] + Rit[i][j]);
 		
@@ -247,18 +261,18 @@ static void transform_decompose(Transform *decomp, const Transform *tfm)
 	decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
 }
 
-void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
+void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size)
 {
-	transform_decompose(&decomp->pre, &motion->pre);
-	transform_decompose(&decomp->mid, mid);
-	transform_decompose(&decomp->post, &motion->post);
+	for(size_t i = 0; i < size; i++) {
+		transform_decompose(decomp + i, motion + i);
 
-	/* ensure rotation around shortest angle, negated quaternions are the same
-	 * but this means we don't have to do the check in quat_interpolate */
-	if(dot(decomp->pre.x, decomp->mid.x) < 0.0f)
-		decomp->pre.x = -decomp->pre.x;
-	if(dot(decomp->mid.x, decomp->post.x) < 0.0f)
-		decomp->mid.x = -decomp->mid.x;
+		if(i > 0) {
+			/* Ensure rotation around shortest angle, negated quaternions are the same
+			 * but this means we don't have to do the check in quat_interpolate */
+			if(dot(decomp[i-1].x, decomp[i].x) < 0.0f)
+				decomp[i-1].x = -decomp[i-1].x;
+		}
+	}
 }
 
 Transform transform_from_viewplane(BoundBox2D& viewplane)

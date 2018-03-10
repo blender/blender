@@ -1621,14 +1621,13 @@ static bool exr_has_alpha(MultiPartInputFile& file)
 
 static bool imb_exr_is_multilayer_file(MultiPartInputFile& file)
 {
-	const StringAttribute *comments = file.header(0).findTypedAttribute<StringAttribute>("BlenderMultiChannel");
 	const ChannelList& channels = file.header(0).channels();
 	std::set <std::string> layerNames;
 
 	/* will not include empty layer names */
 	channels.layers(layerNames);
 
-	if (comments || layerNames.size() > 1)
+	if (layerNames.size() > 1)
 		return true;
 
 	if (layerNames.size()) {
@@ -1667,7 +1666,7 @@ static void imb_exr_type_by_channels(ChannelList& channels, StringVector& views,
 	}
 	else {
 		*r_singlelayer = false;
-		*r_multilayer = true;
+		*r_multilayer = (layerNames.size() > 1);
 		*r_multiview = false;
 		return;
 	}

@@ -877,15 +877,8 @@ void Mesh::add_undisplaced()
 	}
 }
 
-void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
+void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
 {
-	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-	if(attr_vN == NULL) {
-		/* Happens on objects with just hair. */
-		return;
-	}
-
-	float3 *vN = attr_vN->data_float3();
 	uint shader_id = 0;
 	uint last_shader = -1;
 	bool last_smooth = false;
@@ -893,10 +886,6 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 	size_t triangles_size = num_triangles();
 	int *shader_ptr = shader.data();
 
-	bool do_transform = transform_applied;
-	Transform ntfm = transform_normal;
-
-	/* save shader */
 	for(size_t i = 0; i < triangles_size; i++) {
 		if(shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
 			last_shader = shader_ptr[i];
@@ -908,7 +897,20 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 
 		tri_shader[i] = shader_id;
 	}
+}
 
+void Mesh::pack_normals(float4 *vnormal)
+{
+	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+	if(attr_vN == NULL) {
+		/* Happens on objects with just hair. */
+		return;
+	}
+
+	bool do_transform = transform_applied;
+	Transform ntfm = transform_normal;
+
+	float3 *vN = attr_vN->data_float3();
 	size_t verts_size = verts.size();
 
 	for(size_t i = 0; i < verts_size; i++) {
@@ -1115,6 +1117,32 @@ bool Mesh::has_true_displacement() const
 	}
 
 	return false;
+}
+
+float Mesh::motion_time(int step) const
+{
+	return (motion_steps > 1) ? 2.0f * step / (motion_steps - 1) - 1.0f : 0.0f;
+}
+
+int Mesh::motion_step(float time) const
+{
+	if(motion_steps > 1) {
+		int attr_step = 0;
+
+		for(int step = 0; step < motion_steps; step++) {
+			float step_time = motion_time(step);
+			if(step_time == time) {
+				return attr_step;
+			}
+
+			/* Center step is stored in a separate attribute. */
+			if(step != motion_steps / 2) {
+				attr_step++;
+			}
+		}
+	}
+
+	return -1;
 }
 
 bool Mesh::need_build_bvh() const
@@ -1445,11 +1473,11 @@ static void update_attribute_element_offset(Mesh *mesh,
 			Transform *tfm = mattr->data_transform();
 			offset = attr_float3_offset;
 
-			assert(attr_float3.size() >= offset + size * 4);
-			for(size_t k = 0; k < size*4; k++) {
+			assert(attr_float3.size() >= offset + size * 3);
+			for(size_t k = 0; k < size*3; k++) {
 				attr_float3[offset+k] = (&tfm->x)[k];
 			}
-			attr_float3_offset += size * 4;
+			attr_float3_offset += size * 3;
 		}
 		else {
 			float4 *data = mattr->data_float4();
@@ -1747,9 +1775,9 @@ void MeshManager::device_update_mesh(Device *,
 		float2 *tri_patch_uv = dscene->tri_patch_uv.alloc(vert_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
-			mesh->pack_normals(scene,
-			                   &tri_shader[mesh->tri_offset],
-			                   &vnormal[mesh->vert_offset]);
+			mesh->pack_shaders(scene,
+			                   &tri_shader[mesh->tri_offset]);
+			mesh->pack_normals(&vnormal[mesh->vert_offset]);
 			mesh->pack_verts(tri_prim_index,
 			                 &tri_vindex[mesh->tri_offset],
 			                 &tri_patch[mesh->tri_offset],
@@ -2031,7 +2059,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	VLOG(1) << "Total " << scene->meshes.size() << " meshes.";
 
-	/* Update normals. */
+	bool true_displacement_used = false;
+	size_t total_tess_needed = 0;
+
 	foreach(Mesh *mesh, scene->meshes) {
 		foreach(Shader *shader, mesh->used_shaders) {
 			if(shader->need_update_mesh)
@@ -2039,6 +2069,7 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		}
 
 		if(mesh->need_update) {
+			/* Update normals. */
 			mesh->add_face_normals();
 			mesh->add_vertex_normals();
 
@@ -2046,57 +2077,53 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 				mesh->add_undisplaced();
 			}
 
+			/* Test if we need tesselation. */
+			if(mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
+			   mesh->num_subd_verts == 0 &&
+			   mesh->subd_params)
+			{
+				total_tess_needed++;
+			}
+
+			/* Test if we need displacement. */
+			if(mesh->has_true_displacement()) {
+				true_displacement_used = true;
+			}
+
 			if(progress.get_cancel()) return;
 		}
 	}
 
 	/* Tessellate meshes that are using subdivision */
-	size_t total_tess_needed = 0;
-	foreach(Mesh *mesh, scene->meshes) {
-		if(mesh->need_update &&
-		   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
-		   mesh->num_subd_verts == 0 &&
-		   mesh->subd_params)
-		{
-			total_tess_needed++;
-		}
-	}
+	if(total_tess_needed) {
+		size_t i = 0;
+		foreach(Mesh *mesh, scene->meshes) {
+			if(mesh->need_update &&
+			   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
+			   mesh->num_subd_verts == 0 &&
+			   mesh->subd_params)
+			{
+				string msg = "Tessellating ";
+				if(mesh->name == "")
+					msg += string_printf("%u/%u", (uint)(i+1), (uint)total_tess_needed);
+				else
+					msg += string_printf("%s %u/%u", mesh->name.c_str(), (uint)(i+1), (uint)total_tess_needed);
 
-	size_t i = 0;
-	foreach(Mesh *mesh, scene->meshes) {
-		if(mesh->need_update &&
-		   mesh->subdivision_type != Mesh::SUBDIVISION_NONE &&
-		   mesh->num_subd_verts == 0 &&
-		   mesh->subd_params)
-		{
-			string msg = "Tessellating ";
-			if(mesh->name == "")
-				msg += string_printf("%u/%u", (uint)(i+1), (uint)total_tess_needed);
-			else
-				msg += string_printf("%s %u/%u", mesh->name.c_str(), (uint)(i+1), (uint)total_tess_needed);
+				progress.set_status("Updating Mesh", msg);
 
-			progress.set_status("Updating Mesh", msg);
+				DiagSplit dsplit(*mesh->subd_params);
+				mesh->tessellate(&dsplit);
 
-			DiagSplit dsplit(*mesh->subd_params);
-			mesh->tessellate(&dsplit);
+				i++;
 
-			i++;
+				if(progress.get_cancel()) return;
+			}
 
-			if(progress.get_cancel()) return;
 		}
 	}
 
 	/* Update images needed for true displacement. */
-	bool true_displacement_used = false;
 	bool old_need_object_flags_update = false;
-	foreach(Mesh *mesh, scene->meshes) {
-		if(mesh->need_update &&
-		   mesh->has_true_displacement())
-		{
-			true_displacement_used = true;
-			break;
-		}
-	}
 	if(true_displacement_used) {
 		VLOG(1) << "Updating images used for true displacement.";
 		device_update_displacement_images(device, scene, progress);
@@ -2122,11 +2149,17 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 
 	/* Update displacement. */
 	bool displacement_done = false;
+	size_t num_bvh = 0;
+
 	foreach(Mesh *mesh, scene->meshes) {
-		if(mesh->need_update &&
-		   displace(device, dscene, scene, mesh, progress))
-		{
-			displacement_done = true;
+		if(mesh->need_update) {
+			if(displace(device, dscene, scene, mesh, progress)) {
+				displacement_done = true;
+			}
+
+			if(mesh->need_build_bvh()) {
+				num_bvh++;
+			}
 		}
 	}
 
@@ -2141,17 +2174,9 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 		if(progress.get_cancel()) return;
 	}
 
-	/* Update bvh. */
-	size_t num_bvh = 0;
-	foreach(Mesh *mesh, scene->meshes) {
-		if(mesh->need_update && mesh->need_build_bvh()) {
-			num_bvh++;
-		}
-	}
-
 	TaskPool pool;
 
-	i = 0;
+	size_t i = 0;
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
 			pool.push(function_bind(&Mesh::compute_bvh,

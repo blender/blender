@@ -347,22 +347,11 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 	if(motion) {
 		object = object_map.find(key);
 
-		if(object && (scene->need_motion() == Scene::MOTION_PASS ||
-		              object_use_motion(b_parent, b_ob)))
-		{
-			/* object transformation */
-			if(tfm != object->tfm) {
-				VLOG(1) << "Object " << b_ob.name() << " motion detected.";
-				if(motion_time == -1.0f || motion_time == 1.0f) {
-					object->use_motion = true;
-				}
-			}
-
-			if(motion_time == -1.0f) {
-				object->motion.pre = tfm;
-			}
-			else if(motion_time == 1.0f) {
-				object->motion.post = tfm;
+		if(object && object->use_motion()) {
+			/* Set transform at matching motion time step. */
+			int time_index = object->motion_step(motion_time);
+			if(time_index >= 0) {
+				object->motion[time_index] = tfm;
 			}
 
 			/* mesh deformation */
@@ -409,25 +398,34 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
-		object->motion.pre = transform_empty();
-		object->motion.post = transform_empty();
-		object->use_motion = false;
+		object->motion.clear();
 
 		/* motion blur */
-		if(scene->need_motion() == Scene::MOTION_BLUR && object->mesh) {
+		Scene::MotionType need_motion = scene->need_motion();
+		if(need_motion != Scene::MOTION_NONE && object->mesh) {
 			Mesh *mesh = object->mesh;
-
 			mesh->use_motion_blur = false;
+			mesh->motion_steps = 0;
 
-			if(object_use_motion(b_parent, b_ob)) {
+			uint motion_steps;
+
+			if(scene->need_motion() == Scene::MOTION_BLUR) {
+				motion_steps = object_motion_steps(b_parent, b_ob);
 				if(object_use_deform_motion(b_parent, b_ob)) {
-					mesh->motion_steps = object_motion_steps(b_ob);
+					mesh->motion_steps = motion_steps;
 					mesh->use_motion_blur = true;
 				}
+			}
+			else {
+				motion_steps = 3;
+				mesh->motion_steps = motion_steps;
+			}
 
-				vector<float> times = object->motion_times();
-				foreach(float time, times)
-					motion_times.insert(time);
+			object->motion.resize(motion_steps, transform_empty());
+			object->motion[motion_steps/2] = tfm;
+
+			for(size_t step = 0; step < motion_steps; step++) {
+				motion_times.insert(object->motion_time(step));
 			}
 		}
 
@@ -646,6 +644,11 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 
 	/* note iteration over motion_times set happens in sorted order */
 	foreach(float relative_time, motion_times) {
+		/* center time is already handled. */
+		if(relative_time == 0.0f) {
+			continue;
+		}
+
 		VLOG(1) << "Synchronizing motion for the relative time "
 		        << relative_time << ".";
 

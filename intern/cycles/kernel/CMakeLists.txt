@@ -254,6 +254,7 @@ set(SRC_UTIL_HEADERS
 	../util/util_math_int3.h
 	../util/util_math_int4.h
 	../util/util_math_matrix.h
+	../util/util_projection.h
 	../util/util_rect.h
 	../util/util_static_assert.h
 	../util/util_transform.h

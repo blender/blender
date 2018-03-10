@@ -1082,7 +1082,7 @@ class CyclesObjectSettings(bpy.types.PropertyGroup):
 
         cls.motion_steps = IntProperty(
                 name="Motion Steps",
-                description="Control accuracy of deformation motion blur, more steps gives more memory usage (actual number of steps is 2^(steps - 1))",
+                description="Control accuracy of motion blur, more steps gives more memory usage (actual number of steps is 2^(steps - 1))",
                 min=1, soft_max=8,
                 default=1,
                 )

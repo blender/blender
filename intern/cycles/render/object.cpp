@@ -33,6 +33,52 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Global state of object transform update. */
+
+struct UpdateObjectTransformState {
+	/* Global state used by device_update_object_transform().
+	 * Common for both threaded and non-threaded update.
+	 */
+
+	/* Type of the motion required by the scene settings. */
+	Scene::MotionType need_motion;
+
+	/* Mapping from particle system to a index in packed particle array.
+	 * Only used for read.
+	 */
+	map<ParticleSystem*, int> particle_offset;
+
+	/* Mesh area.
+	 * Used to avoid calculation of mesh area multiple times. Used for both
+	 * read and write. Acquire surface_area_lock to keep it all thread safe.
+	 */
+	map<Mesh*, float> surface_area_map;
+
+	/* Motion offsets for each object. */
+	array<uint> motion_offset;
+
+	/* Packed object arrays. Those will be filled in. */
+	uint *object_flag;
+	KernelObject *objects;
+	Transform *object_motion_pass;
+	DecomposedTransform *object_motion;
+
+	/* Flags which will be synchronized to Integrator. */
+	bool have_motion;
+	bool have_curves;
+
+	/* ** Scheduling queue. ** */
+
+	Scene *scene;
+
+	/* Some locks to keep everything thread-safe. */
+	thread_spin_lock queue_lock;
+	thread_spin_lock surface_area_lock;
+
+	/* First unused object index in the queue. */
+	int queue_start_object;
+};
+
 /* Object */
 
 NODE_DEFINE(Object)
@@ -48,6 +94,7 @@ NODE_DEFINE(Object)
 	SOCKET_BOOLEAN(hide_on_missing_motion, "Hide on Missing Motion", false);
 	SOCKET_POINT(dupli_generated, "Dupli Generated", make_float3(0.0f, 0.0f, 0.0f));
 	SOCKET_POINT2(dupli_uv, "Dupli UV", make_float2(0.0f, 0.0f));
+	SOCKET_TRANSFORM_ARRAY(motion, "Motion", array<Transform>());
 
 	SOCKET_BOOLEAN(is_shadow_catcher, "Shadow Catcher", false);
 
@@ -60,45 +107,54 @@ Object::Object()
 	particle_system = NULL;
 	particle_index = 0;
 	bounds = BoundBox::empty;
-	motion.pre = transform_empty();
-	motion.mid = transform_empty();
-	motion.post = transform_empty();
-	use_motion = false;
 }
 
 Object::~Object()
 {
 }
 
+void Object::update_motion()
+{
+	if(!use_motion()) {
+		return;
+	}
+
+	bool have_motion = false;
+
+	for(size_t i = 0; i < motion.size(); i++) {
+		if(motion[i] == transform_empty()) {
+			if(hide_on_missing_motion) {
+				/* Hide objects that have no valid previous or next
+				 * transform, for example particle that stop existing. It
+				 * would be better to handle this in the kernel and make
+				 * objects invisible outside certain motion steps. */
+				tfm = transform_empty();
+				motion.clear();
+				return;
+			}
+			else {
+				/* Otherwise just copy center motion. */
+				motion[i] = tfm;
+			}
+		}
+
+		/* Test if any of the transforms are actually different. */
+		have_motion = have_motion || motion[i] != tfm;
+	}
+
+	/* Clear motion array if there is no actual motion. */
+	if(!have_motion) {
+		motion.clear();
+	}
+}
+
 void Object::compute_bounds(bool motion_blur)
 {
 	BoundBox mbounds = mesh->bounds;
 
-	if(motion_blur && use_motion) {
-		MotionTransform mtfm = motion;
-
-		if(hide_on_missing_motion) {
-			/* Hide objects that have no valid previous or next transform, for
-			 * example particle that stop existing. TODO: add support for this
-			 * case in the kernel so we don't get render artifacts. */
-			if(mtfm.pre == transform_empty() ||
-			   mtfm.post == transform_empty()) {
-				bounds = BoundBox::empty;
-				return;
-			}
-		}
-
-		/* In case of missing motion information for previous/next frame,
-		 * assume there is no motion. */
-		if(mtfm.pre == transform_empty()) {
-			mtfm.pre = tfm;
-		}
-		if(mtfm.post == transform_empty()) {
-			mtfm.post = tfm;
-		}
-
-		MotionTransform decomp;
-		transform_motion_decompose(&decomp, &mtfm, &tfm);
+	if(motion_blur && use_motion()) {
+		array<DecomposedTransform> decomp(motion.size());
+		transform_motion_decompose(decomp.data(), motion.data(), motion.size());
 
 		bounds = BoundBox::empty;
 
@@ -108,11 +164,12 @@ void Object::compute_bounds(bool motion_blur)
 		for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
 			Transform ttfm;
 
-			transform_motion_interpolate(&ttfm, &decomp, t);
+			transform_motion_array_interpolate(&ttfm, decomp.data(), motion.size(), t);
 			bounds.grow(mbounds.transformed(&ttfm));
 		}
 	}
 	else {
+		/* No motion blur case. */
 		if(mesh->transform_applied) {
 			bounds = mbounds;
 		}
@@ -132,7 +189,7 @@ void Object::apply_transform(bool apply_to_motion)
 		/* store matrix to transform later. when accessing these as attributes we
 		 * do not want the transform to be applied for consistency between static
 		 * and dynamic BVH, so we do it on packing. */
-		mesh->transform_normal = transform_transpose(transform_inverse(tfm));
+		mesh->transform_normal = transform_transposed_inverse(tfm);
 
 		/* apply to mesh vertices */
 		for(size_t i = 0; i < mesh->verts.size(); i++)
@@ -232,27 +289,30 @@ void Object::tag_update(Scene *scene)
 	scene->object_manager->need_update = true;
 }
 
-vector<float> Object::motion_times()
+bool Object::use_motion() const
 {
-	/* compute times at which we sample motion for this object */
-	vector<float> times;
+	return (motion.size() > 1);
+}
 
-	if(!mesh || mesh->motion_steps == 1)
-		return times;
+float Object::motion_time(int step) const
+{
+	return (use_motion()) ? 2.0f * step / (motion.size() - 1) - 1.0f : 0.0f;
+}
 
-	int motion_steps = mesh->motion_steps;
-
-	for(int step = 0; step < motion_steps; step++) {
-		if(step != motion_steps / 2) {
-			float time = 2.0f * step / (motion_steps - 1) - 1.0f;
-			times.push_back(time);
+int Object::motion_step(float time) const
+{
+	if(use_motion()) {
+		for(size_t step = 0; step < motion.size(); step++) {
+			if(time == motion_time(step)) {
+				return step;
+			}
 		}
 	}
 
-	return times;
+	return -1;
 }
 
-bool Object::is_traceable()
+bool Object::is_traceable() const
 {
 	/* Mesh itself can be empty,can skip all such objects. */
 	if(!bounds.valid() || bounds.size() == make_float3(0.0f, 0.0f, 0.0f)) {
@@ -289,8 +349,8 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
                                                    Object *ob,
                                                    int object_index)
 {
-	float4 *objects = state->objects;
-	float4 *objects_vector = state->objects_vector;
+	KernelObject& kobject = state->objects[object_index];
+	Transform *object_motion_pass = state->object_motion_pass;
 
 	Mesh *mesh = ob->mesh;
 	uint flag = 0;
@@ -357,15 +417,13 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 		}
 	}
 
-	/* Pack in texture. */
-	int offset = object_index*OBJECT_SIZE;
-
-	/* OBJECT_TRANSFORM */
-	memcpy(&objects[offset], &tfm, sizeof(float4)*3);
-	/* OBJECT_INVERSE_TRANSFORM */
-	memcpy(&objects[offset+4], &itfm, sizeof(float4)*3);
-	/* OBJECT_PROPERTIES */
-	objects[offset+12] = make_float4(surface_area, pass_id, random_number, __int_as_float(particle_index));
+	kobject.tfm = tfm;
+	kobject.itfm = itfm;
+	kobject.surface_area = surface_area;
+	kobject.pass_id = pass_id;
+	kobject.random_number = random_number;
+	kobject.particle_index = particle_index;
+	kobject.motion_offset = 0;
 
 	if(mesh->use_motion_blur) {
 		state->have_motion = true;
@@ -375,50 +433,56 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 	}
 
 	if(state->need_motion == Scene::MOTION_PASS) {
+		/* Clear motion array if there is no actual motion. */
+		ob->update_motion();
+
+		/* Compute motion transforms. */
+		Transform tfm_pre, tfm_post;
+		if(ob->use_motion()) {
+			tfm_pre = ob->motion[0];
+			tfm_post = ob->motion[ob->motion.size() - 1];
+		}
+		else {
+			tfm_pre = tfm;
+			tfm_post = tfm;
+		}
+
 		/* Motion transformations, is world/object space depending if mesh
 		 * comes with deformed position in object space, or if we transform
-		 * the shading point in world space.
-		 */
-		MotionTransform mtfm = ob->motion;
-
-		/* In case of missing motion information for previous/next frame,
-		 * assume there is no motion. */
-		if(!ob->use_motion || mtfm.pre == transform_empty()) {
-			mtfm.pre = ob->tfm;
-		}
-		if(!ob->use_motion || mtfm.post == transform_empty()) {
-			mtfm.post = ob->tfm;
-		}
-
+		 * the shading point in world space. */
 		if(!mesh->attributes.find(ATTR_STD_MOTION_VERTEX_POSITION)) {
-			mtfm.pre = mtfm.pre * itfm;
-			mtfm.post = mtfm.post * itfm;
+			tfm_pre = tfm_pre * itfm;
+			tfm_post = tfm_post * itfm;
 		}
 
-		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+0], &mtfm.pre, sizeof(float4)*3);
-		memcpy(&objects_vector[object_index*OBJECT_VECTOR_SIZE+3], &mtfm.post, sizeof(float4)*3);
+		int motion_pass_offset = object_index*OBJECT_MOTION_PASS_SIZE;
+		object_motion_pass[motion_pass_offset + 0] = tfm_pre;
+		object_motion_pass[motion_pass_offset + 1] = tfm_post;
 	}
 	else if(state->need_motion == Scene::MOTION_BLUR) {
-		if(ob->use_motion) {
-			/* decompose transformations for interpolation. */
-			MotionTransform decomp;
+		if(ob->use_motion()) {
+			kobject.motion_offset = state->motion_offset[object_index];
 
-			transform_motion_decompose(&decomp, &ob->motion, &ob->tfm);
-			memcpy(&objects[offset], &decomp, sizeof(float4)*12);
+			/* Decompose transforms for interpolation. */
+			DecomposedTransform *decomp = state->object_motion + kobject.motion_offset;
+			transform_motion_decompose(decomp, ob->motion.data(), ob->motion.size());
 			flag |= SD_OBJECT_MOTION;
 			state->have_motion = true;
 		}
 	}
 
 	/* Dupli object coords and motion info. */
+	kobject.dupli_generated[0] = ob->dupli_generated[0];
+	kobject.dupli_generated[1] = ob->dupli_generated[1];
+	kobject.dupli_generated[2] = ob->dupli_generated[2];
+	kobject.numkeys = mesh->curve_keys.size();
+	kobject.dupli_uv[0] = ob->dupli_uv[0];
+	kobject.dupli_uv[1] = ob->dupli_uv[1];
 	int totalsteps = mesh->motion_steps;
-	int numsteps = (totalsteps - 1)/2;
-	int numverts = mesh->verts.size();
-	int numkeys = mesh->curve_keys.size();
-
-	objects[offset+13] = make_float4(ob->dupli_generated[0], ob->dupli_generated[1], ob->dupli_generated[2], __int_as_float(numkeys));
-	objects[offset+14] = make_float4(ob->dupli_uv[0], ob->dupli_uv[1], __int_as_float(numsteps), __int_as_float(numverts));
-	objects[offset+15] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	kobject.numsteps = (totalsteps - 1)/2;
+	kobject.numverts = mesh->verts.size();;
+	kobject.patch_map_offset = 0;
+	kobject.attribute_map_offset = 0;
 
 	/* Object flag. */
 	if(ob->use_holdout) {
@@ -475,7 +539,6 @@ void ObjectManager::device_update_object_transform_task(
 
 void ObjectManager::device_update_transforms(DeviceScene *dscene,
                                              Scene *scene,
-                                             uint *object_flag,
                                              Progress& progress)
 {
 	UpdateObjectTransformState state;
@@ -485,13 +548,29 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene,
 	state.scene = scene;
 	state.queue_start_object = 0;
 
-	state.object_flag = object_flag;
-	state.objects = dscene->objects.alloc(OBJECT_SIZE*scene->objects.size());
+	state.objects = dscene->objects.alloc(scene->objects.size());
+	state.object_flag = dscene->object_flag.alloc(scene->objects.size());
+	state.object_motion = NULL;
+	state.object_motion_pass = NULL;
+
 	if(state.need_motion == Scene::MOTION_PASS) {
-		state.objects_vector = dscene->objects_vector.alloc(OBJECT_VECTOR_SIZE*scene->objects.size());
+		state.object_motion_pass = dscene->object_motion_pass.alloc(OBJECT_MOTION_PASS_SIZE*scene->objects.size());
 	}
-	else {
-		state.objects_vector = NULL;
+	else if(state.need_motion == Scene::MOTION_BLUR) {
+		/* Set object offsets into global object motion array. */
+		uint *motion_offsets = state.motion_offset.resize(scene->objects.size());
+		uint motion_offset = 0;
+
+		foreach(Object *ob, scene->objects) {
+			*motion_offsets = motion_offset;
+			motion_offsets++;
+
+			/* Clear motion array if there is no actual motion. */
+			ob->update_motion();
+			motion_offset += ob->motion.size();
+		}
+
+		state.object_motion = dscene->object_motion.alloc(motion_offset);
 	}
 
 	/* Particle system device offsets
@@ -534,7 +613,10 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene,
 
 	dscene->objects.copy_to_device();
 	if(state.need_motion == Scene::MOTION_PASS) {
-		dscene->objects_vector.copy_to_device();
+		dscene->object_motion_pass.copy_to_device();
+	}
+	else if(state.need_motion == Scene::MOTION_BLUR) {
+		dscene->object_motion.copy_to_device();
 	}
 
 	dscene->data.bvh.have_motion = state.have_motion;
@@ -554,12 +636,9 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	if(scene->objects.size() == 0)
 		return;
 
-	/* object info flag */
-	uint *object_flag = dscene->object_flag.alloc(scene->objects.size());
-
 	/* set object transform matrices, before applying static transforms */
 	progress.set_status("Updating Objects", "Copying Transformations to device");
-	device_update_transforms(dscene, scene, object_flag, progress);
+	device_update_transforms(dscene, scene, progress);
 
 	if(progress.get_cancel()) return;
 
@@ -567,7 +646,7 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	/* todo: do before to support getting object level coords? */
 	if(scene->params.bvh_type == SceneParams::BVH_STATIC) {
 		progress.set_status("Updating Objects", "Applying Static Transformations");
-		apply_static_transforms(dscene, scene, object_flag, progress);
+		apply_static_transforms(dscene, scene, progress);
 	}
 }
 
@@ -586,9 +665,10 @@ void ObjectManager::device_update_flags(Device *,
 	if(scene->objects.size() == 0)
 		return;
 
-	/* object info flag */
+	/* Object info flag. */
 	uint *object_flag = dscene->object_flag.data();
 
+	/* Object volume intersection. */
 	vector<Object *> volume_objects;
 	bool has_volume_objects = false;
 	foreach(Object *object, scene->objects) {
@@ -642,7 +722,7 @@ void ObjectManager::device_update_flags(Device *,
 		++object_index;
 	}
 
-	/* allocate object flag */
+	/* Copy object flag. */
 	dscene->object_flag.copy_to_device();
 }
 
@@ -652,27 +732,26 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
 		return;
 	}
 
-	uint4* objects = (uint4*)dscene->objects.data();
+	KernelObject *kobjects = dscene->objects.data();
 
 	bool update = false;
 	int object_index = 0;
 
 	foreach(Object *object, scene->objects) {
 		Mesh* mesh = object->mesh;
-		int offset = object_index*OBJECT_SIZE + 15;
 
 		if(mesh->patch_table) {
 			uint patch_map_offset = 2*(mesh->patch_table_offset + mesh->patch_table->total_size() -
 			                           mesh->patch_table->num_nodes * PATCH_NODE_SIZE) - mesh->patch_offset;
 
-			if(objects[offset].x != patch_map_offset) {
-				objects[offset].x = patch_map_offset;
+			if(kobjects[object_index].patch_map_offset != patch_map_offset) {
+				kobjects[object_index].patch_map_offset = patch_map_offset;
 				update = true;
 			}
 		}
 
-		if(objects[offset].y != mesh->attr_map_offset) {
-			objects[offset].y = mesh->attr_map_offset;
+		if(kobjects[object_index].attribute_map_offset != mesh->attr_map_offset) {
+			kobjects[object_index].attribute_map_offset = mesh->attr_map_offset;
 			update = true;
 		}
 
@@ -687,11 +766,12 @@ void ObjectManager::device_update_mesh_offsets(Device *, DeviceScene *dscene, Sc
 void ObjectManager::device_free(Device *, DeviceScene *dscene)
 {
 	dscene->objects.free();
-	dscene->objects_vector.free();
+	dscene->object_motion_pass.free();
+	dscene->object_motion.free();
 	dscene->object_flag.free();
 }
 
-void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress)
+void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	/* todo: normals and displacement should be done before applying transform! */
 	/* todo: create objects/meshes in right order! */
@@ -715,6 +795,8 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 
 	if(progress.get_cancel()) return;
 
+	uint *object_flag = dscene->object_flag.data();
+
 	/* apply transforms for objects with single user meshes */
 	foreach(Object *object, scene->objects) {
 		/* Annoying feedback loop here: we can't use is_instanced() because
@@ -725,7 +807,7 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 		if((mesh_users[object->mesh] == 1 && !object->mesh->has_surface_bssrdf) &&
 		   !object->mesh->has_true_displacement() && object->mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
 		{
-			if(!(motion_blur && object->use_motion)) {
+			if(!(motion_blur && object->use_motion())) {
 				if(!object->mesh->transform_applied) {
 					object->apply_transform(apply_to_motion);
 					object->mesh->transform_applied = true;
