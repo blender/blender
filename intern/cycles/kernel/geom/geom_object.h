@@ -82,7 +82,7 @@ ccl_device_inline Transform object_fetch_transform_motion(KernelGlobals *kg, int
 	const ccl_global DecomposedMotionTransform *motion = &kernel_tex_fetch(__objects, object).tfm;
 
 	Transform tfm;
-	transform_motion_interpolate(&tfm, motion, time);
+	transform_motion_array_interpolate(&tfm, &motion->pre, 3, time);
 
 	return tfm;
 }

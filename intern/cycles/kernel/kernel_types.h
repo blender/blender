@@ -1173,7 +1173,7 @@ typedef struct KernelCamera {
 
 	/* motion blur */
 	float shuttertime;
-	int have_motion, have_perspective_motion;
+	int num_motion_steps, have_perspective_motion;
 
 	/* clipping */
 	float nearclip;
@@ -1200,8 +1200,6 @@ typedef struct KernelCamera {
 	ProjectionTransform worldtoraster;
 	ProjectionTransform worldtondc;
 	Transform worldtocamera;
-
-	DecomposedMotionTransform motion;
 
 	/* Stores changes in the projeciton matrix. Use for camera zoom motion
 	 * blur and motion pass output for perspective camera. */

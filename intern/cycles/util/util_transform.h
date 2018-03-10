@@ -409,58 +409,28 @@ ccl_device_inline void transform_compose(Transform *tfm, const DecomposedTransfo
 	tfm->z = make_float4(dot(rotation_z, scale_x), dot(rotation_z, scale_y), dot(rotation_z, scale_z), decomp->y.z);
 }
 
-ccl_device void transform_motion_interpolate(Transform *tfm, const ccl_global DecomposedMotionTransform *motion, float t)
+/* Interpolate from array of decomposed transforms. */
+ccl_device void transform_motion_array_interpolate(Transform *tfm,
+                                                   const ccl_global DecomposedTransform *motion,
+                                                   uint numsteps,
+                                                   float time)
 {
+	/* Figure out which steps we need to interpolate. */
+	int maxstep = numsteps-1;
+	int step = min((int)(time*maxstep), maxstep-1);
+	float t = time*maxstep - step;
+
+	const ccl_global DecomposedTransform *a = motion + step;
+	const ccl_global DecomposedTransform *b = motion + step + 1;
+
+	/* Interpolate rotation, translation and scale. */
 	DecomposedTransform decomp;
+	decomp.x = quat_interpolate(a->x, b->x, t);
+	decomp.y = (1.0f - t)*a->y + t*b->y;
+	decomp.z = (1.0f - t)*a->z + t*b->z;
+	decomp.w = (1.0f - t)*a->w + t*b->w;
 
-	/* linear interpolation for rotation and scale */
-	if(t < 0.5f) {
-		t *= 2.0f;
-
-		decomp.x = quat_interpolate(motion->pre.x, motion->mid.x, t);
-		decomp.y = (1.0f - t)*motion->pre.y + t*motion->mid.y;
-		decomp.z = (1.0f - t)*motion->pre.z + t*motion->mid.z;
-		decomp.w = (1.0f - t)*motion->pre.w + t*motion->mid.w;
-	}
-	else {
-		t = (t - 0.5f)*2.0f;
-
-		decomp.x = quat_interpolate(motion->mid.x, motion->post.x, t);
-		decomp.y = (1.0f - t)*motion->mid.y + t*motion->post.y;
-		decomp.z = (1.0f - t)*motion->mid.z + t*motion->post.z;
-		decomp.w = (1.0f - t)*motion->mid.w + t*motion->post.w;
-	}
-
-	/* compose rotation, translation, scale into matrix */
-	transform_compose(tfm, &decomp);
-}
-
-ccl_device void transform_motion_interpolate_constant(Transform *tfm, ccl_constant DecomposedMotionTransform *motion, float t)
-{
-	/* possible optimization: is it worth it adding a check to skip scaling?
-	 * it's probably quite uncommon to have scaling objects. or can we skip
-	 * just shearing perhaps? */
-	DecomposedTransform decomp;
-
-	/* linear interpolation for rotation and scale */
-	if(t < 0.5f) {
-		t *= 2.0f;
-
-		decomp.x = quat_interpolate(motion->pre.x, motion->mid.x, t);
-		decomp.y = (1.0f - t)*motion->pre.y + t*motion->mid.y;
-		decomp.z = (1.0f - t)*motion->pre.z + t*motion->mid.z;
-		decomp.w = (1.0f - t)*motion->pre.w + t*motion->mid.w;
-	}
-	else {
-		t = (t - 0.5f)*2.0f;
-
-		decomp.x = quat_interpolate(motion->mid.x, motion->post.x, t);
-		decomp.y = (1.0f - t)*motion->mid.y + t*motion->post.y;
-		decomp.z = (1.0f - t)*motion->mid.z + t*motion->post.z;
-		decomp.w = (1.0f - t)*motion->mid.w + t*motion->post.w;
-	}
-
-	/* compose rotation, translation, scale into matrix */
+	/* Compose rotation, translation, scale into matrix. */
 	transform_compose(tfm, &decomp);
 }
 
@@ -479,7 +449,7 @@ ccl_device_inline bool operator==(const MotionTransform& A, const MotionTransfor
 }
 
 float4 transform_to_quat(const Transform& tfm);
-void transform_motion_decompose(DecomposedMotionTransform *decomp, const MotionTransform *motion, const Transform *mid);
+void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size);
 Transform transform_from_viewplane(BoundBox2D& viewplane);
 
 #endif

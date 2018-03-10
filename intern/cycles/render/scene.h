@@ -90,6 +90,9 @@ public:
 	device_vector<Transform> object_motion_pass;
 	device_vector<uint> object_flag;
 
+	/* cameras */
+	device_vector<DecomposedTransform> camera_motion;
+
 	/* attributes */
 	device_vector<uint4> attributes_map;
 	device_vector<float> attributes_float;

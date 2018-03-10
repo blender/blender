@@ -139,9 +139,10 @@ void Object::compute_bounds(bool motion_blur)
 		if(mtfm.post == transform_empty()) {
 			mtfm.post = tfm;
 		}
+		mtfm.mid = tfm;
 
 		DecomposedMotionTransform decomp;
-		transform_motion_decompose(&decomp, &mtfm, &tfm);
+		transform_motion_decompose(&decomp.pre, &mtfm.pre, 3);
 
 		bounds = BoundBox::empty;
 
@@ -151,7 +152,7 @@ void Object::compute_bounds(bool motion_blur)
 		for(float t = 0.0f; t < 1.0f; t += (1.0f/128.0f)) {
 			Transform ttfm;
 
-			transform_motion_interpolate(&ttfm, &decomp, t);
+			transform_motion_array_interpolate(&ttfm, &decomp.pre, 3, t);
 			bounds.grow(mbounds.transformed(&ttfm));
 		}
 	}
@@ -422,8 +423,10 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 		if(ob->use_motion) {
 			/* decompose transformations for interpolation. */
 			DecomposedMotionTransform decomp;
+			MotionTransform mtfm = ob->motion;
+			mtfm.mid = tfm;
 
-			transform_motion_decompose(&decomp, &ob->motion, &ob->tfm);
+			transform_motion_decompose(&decomp.pre, &mtfm.pre, 3);
 			kobject.tfm = decomp;
 			flag |= SD_OBJECT_MOTION;
 			state->have_motion = true;

@@ -35,6 +35,9 @@ KERNEL_TEX(KernelObject, __objects)
 KERNEL_TEX(Transform, __object_motion_pass)
 KERNEL_TEX(uint, __object_flag)
 
+/* cameras */
+KERNEL_TEX(DecomposedTransform, __camera_motion)
+
 /* triangles */
 KERNEL_TEX(uint, __tri_shader)
 KERNEL_TEX(float4, __tri_vnormal)

@@ -215,6 +215,18 @@ public:
 		return data_;
 	}
 
+	T* resize(size_t newsize, const T& value)
+	{
+		size_t oldsize = size();
+		resize(newsize);
+
+		for(size_t i = oldsize; i < size(); i++) {
+			data_[i] = value;
+		}
+
+		return data_;
+	}
+
 	void clear()
 	{
 		if(data_ != NULL) {

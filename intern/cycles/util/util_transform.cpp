@@ -261,18 +261,18 @@ static void transform_decompose(DecomposedTransform *decomp, const Transform *tf
 	decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
 }
 
-void transform_motion_decompose(DecomposedMotionTransform *decomp, const MotionTransform *motion, const Transform *mid)
+void transform_motion_decompose(DecomposedTransform *decomp, const Transform *motion, size_t size)
 {
-	transform_decompose(&decomp->pre, &motion->pre);
-	transform_decompose(&decomp->mid, mid);
-	transform_decompose(&decomp->post, &motion->post);
+	for(size_t i = 0; i < size; i++) {
+		transform_decompose(decomp + i, motion + i);
 
-	/* ensure rotation around shortest angle, negated quaternions are the same
-	 * but this means we don't have to do the check in quat_interpolate */
-	if(dot(decomp->pre.x, decomp->mid.x) < 0.0f)
-		decomp->pre.x = -decomp->pre.x;
-	if(dot(decomp->mid.x, decomp->post.x) < 0.0f)
-		decomp->mid.x = -decomp->mid.x;
+		if(i > 0) {
+			/* Ensure rotation around shortest angle, negated quaternions are the same
+			 * but this means we don't have to do the check in quat_interpolate */
+			if(dot(decomp[i-1].x, decomp[i].x) < 0.0f)
+				decomp[i-1].x = -decomp[i-1].x;
+		}
+	}
 }
 
 Transform transform_from_viewplane(BoundBox2D& viewplane)

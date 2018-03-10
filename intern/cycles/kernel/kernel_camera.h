@@ -91,11 +91,12 @@ ccl_device void camera_sample_perspective(KernelGlobals *kg, float raster_x, flo
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(kernel_data.cam.have_motion) {
-		ccl_constant DecomposedMotionTransform *motion = &kernel_data.cam.motion;
-		transform_motion_interpolate_constant(&cameratoworld,
-		                                      motion,
-		                                      ray->time);
+	if(kernel_data.cam.num_motion_steps) {
+		transform_motion_array_interpolate(
+			&cameratoworld,
+			kernel_tex_array(__camera_motion),
+			kernel_data.cam.num_motion_steps,
+			ray->time);
 	}
 #endif
 
@@ -197,11 +198,12 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(kernel_data.cam.have_motion) {
-		ccl_constant DecomposedMotionTransform *motion = &kernel_data.cam.motion;
-		transform_motion_interpolate_constant(&cameratoworld,
-		                                      motion,
-		                                      ray->time);
+	if(kernel_data.cam.num_motion_steps) {
+		transform_motion_array_interpolate(
+			&cameratoworld,
+			kernel_tex_array(__camera_motion),
+			kernel_data.cam.num_motion_steps,
+			ray->time);
 	}
 #endif
 
@@ -227,6 +229,7 @@ ccl_device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, fl
 /* Panorama Camera */
 
 ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
+                                              const ccl_global DecomposedTransform *cam_motion,
                                               float raster_x, float raster_y,
                                               float lens_u, float lens_v,
                                               ccl_addr_space Ray *ray)
@@ -269,11 +272,12 @@ ccl_device_inline void camera_sample_panorama(ccl_constant KernelCamera *cam,
 	Transform cameratoworld = cam->cameratoworld;
 
 #ifdef __CAMERA_MOTION__
-	if(cam->have_motion) {
-		ccl_constant DecomposedMotionTransform *motion = &cam->motion;
-		transform_motion_interpolate_constant(&cameratoworld,
-		                                      motion,
-		                                      ray->time);
+	if(cam->num_motion_steps) {
+		transform_motion_array_interpolate(
+			&cameratoworld,
+			cam_motion,
+			cam->num_motion_steps,
+			ray->time);
 	}
 #endif
 
@@ -392,12 +396,16 @@ ccl_device_inline void camera_sample(KernelGlobals *kg,
 #endif
 
 	/* sample */
-	if(kernel_data.cam.type == CAMERA_PERSPECTIVE)
+	if(kernel_data.cam.type == CAMERA_PERSPECTIVE) {
 		camera_sample_perspective(kg, raster_x, raster_y, lens_u, lens_v, ray);
-	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC)
+	}
+	else if(kernel_data.cam.type == CAMERA_ORTHOGRAPHIC) {
 		camera_sample_orthographic(kg, raster_x, raster_y, lens_u, lens_v, ray);
-	else
-		camera_sample_panorama(&kernel_data.cam, raster_x, raster_y, lens_u, lens_v, ray);
+	}
+	else {
+		const ccl_global DecomposedTransform *cam_motion = kernel_tex_array(__camera_motion);
+		camera_sample_panorama(&kernel_data.cam, cam_motion, raster_x, raster_y, lens_u, lens_v, ray);
+	}
 }
 
 /* Utilities */
