@@ -1858,7 +1858,7 @@ NODE_DEFINE(AnisotropicBsdfNode)
 
 	SOCKET_IN_VECTOR(tangent, "Tangent", make_float3(0.0f, 0.0f, 0.0f), SocketType::LINK_TANGENT);
 
-	SOCKET_IN_FLOAT(roughness, "Roughness", 0.2f);
+	SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
 	SOCKET_IN_FLOAT(anisotropy, "Anisotropy", 0.5f);
 	SOCKET_IN_FLOAT(rotation, "Rotation", 0.0f);
 
@@ -1918,7 +1918,7 @@ NODE_DEFINE(GlossyBsdfNode)
 	distribution_enum.insert("ashikhmin_shirley", CLOSURE_BSDF_ASHIKHMIN_SHIRLEY_ID);
 	distribution_enum.insert("Multiscatter GGX", CLOSURE_BSDF_MICROFACET_MULTI_GGX_ID);
 	SOCKET_ENUM(distribution, "Distribution", distribution_enum, CLOSURE_BSDF_MICROFACET_GGX_ID);
-	SOCKET_IN_FLOAT(roughness, "Roughness", 0.2f);
+	SOCKET_IN_FLOAT(roughness, "Roughness", 0.5f);
 
 	SOCKET_OUT_CLOSURE(BSDF, "BSDF");
 

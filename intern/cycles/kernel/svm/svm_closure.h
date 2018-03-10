@@ -468,10 +468,12 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 				break;
 			}
 
+			float roughness = sqr(param1);
+
 			bsdf->N = N;
 			bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
-			bsdf->alpha_x = param1;
-			bsdf->alpha_y = param1;
+			bsdf->alpha_x = roughness;
+			bsdf->alpha_y = roughness;
 			bsdf->ior = 0.0f;
 			bsdf->extra = NULL;
 
@@ -525,8 +527,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					sd->flag |= bsdf_refraction_setup(bsdf);
 				}
 				else {
-					bsdf->alpha_x = param1;
-					bsdf->alpha_y = param1;
+					float roughness = sqr(param1);
+					bsdf->alpha_x = roughness;
+					bsdf->alpha_y = roughness;
 					bsdf->ior = eta;
 
 					if(type == CLOSURE_BSDF_MICROFACET_BECKMANN_REFRACTION_ID)
@@ -557,7 +560,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			/* fresnel */
 			float cosNO = dot(N, sd->I);
 			float fresnel = fresnel_dielectric_cos(cosNO, eta);
-			float roughness = param1;
+			float roughness = sqr(param1);
 
 			/* reflection */
 #ifdef __CAUSTICS_TRICKS__
@@ -611,8 +614,9 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 			bsdf->extra = extra;
 			bsdf->T = make_float3(0.0f, 0.0f, 0.0f);
 
-			bsdf->alpha_x = param1;
-			bsdf->alpha_y = param1;
+			float roughness = sqr(param1);
+			bsdf->alpha_x = roughness;
+			bsdf->alpha_y = roughness;
 			float eta = fmaxf(param2, 1e-5f);
 			bsdf->ior = (sd->flag & SD_BACKFACING)? 1.0f/eta: eta;
 
@@ -648,7 +652,7 @@ ccl_device void svm_node_closure_bsdf(KernelGlobals *kg, ShaderData *sd, float *
 					bsdf->T = rotate_around_axis(bsdf->T, bsdf->N, rotation * M_2PI_F);
 
 				/* compute roughness */
-				float roughness = param1;
+				float roughness = sqr(param1);
 				float anisotropy = clamp(param2, -0.99f, 0.99f);
 
 				if(anisotropy < 0.0f) {

@@ -33,27 +33,28 @@ shader node_anisotropic_bsdf(
 		T = rotate(T, Rotation * M_2PI, point(0.0, 0.0, 0.0), Normal);
 
 	/* compute roughness */
-	float RoughnessU, RoughnessV;
+	float roughness = Roughness * Roughness;
+	float roughness_u, roughness_v;
 	float aniso = clamp(Anisotropy, -0.99, 0.99);
 
 	if (aniso < 0.0) {
-		RoughnessU = Roughness / (1.0 + aniso);
-		RoughnessV = Roughness * (1.0 + aniso);
+		roughness_u = roughness / (1.0 + aniso);
+		roughness_v = roughness * (1.0 + aniso);
 	}
 	else {
-		RoughnessU = Roughness * (1.0 - aniso);
-		RoughnessV = Roughness / (1.0 - aniso);
+		roughness_u = roughness * (1.0 - aniso);
+		roughness_v = roughness / (1.0 - aniso);
 	}
 
 	if (distribution == "sharp")
 		BSDF = Color * reflection(Normal);
 	else if (distribution == "beckmann")
-		BSDF = Color * microfacet_beckmann_aniso(Normal, T, RoughnessU, RoughnessV);
+		BSDF = Color * microfacet_beckmann_aniso(Normal, T, roughness_u, roughness_v);
 	else if (distribution == "GGX")
-		BSDF = Color * microfacet_ggx_aniso(Normal, T, RoughnessU, RoughnessV);
+		BSDF = Color * microfacet_ggx_aniso(Normal, T, roughness_u, roughness_v);
 	else if (distribution == "Multiscatter GGX")
-		BSDF = Color * microfacet_multi_ggx_aniso(Normal, T, RoughnessU, RoughnessV, Color);
+		BSDF = Color * microfacet_multi_ggx_aniso(Normal, T, roughness_u, roughness_v, Color);
 	else
-		BSDF = Color * ashikhmin_shirley(Normal, T, RoughnessU, RoughnessV);
+		BSDF = Color * ashikhmin_shirley(Normal, T, roughness_u, roughness_v);
 }
 

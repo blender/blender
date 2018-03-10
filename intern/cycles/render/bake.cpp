@@ -247,7 +247,7 @@ void BakeManager::device_free(Device * /*device*/, DeviceScene * /*dscene*/)
 
 int BakeManager::aa_samples(Scene *scene, BakeData *bake_data, ShaderEvalType type)
 {
-	if(type == SHADER_EVAL_UV) {
+	if(type == SHADER_EVAL_UV || type == SHADER_EVAL_ROUGHNESS) {
 		return 1;
 	}
 	else if(type == SHADER_EVAL_NORMAL) {
