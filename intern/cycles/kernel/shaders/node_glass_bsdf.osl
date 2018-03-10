@@ -29,16 +29,17 @@ shader node_glass_bsdf(
 	float eta = backfacing() ? 1.0 / f : f;
 	float cosi = dot(I, Normal);
 	float Fr = fresnel_dielectric_cos(cosi, eta);
+	float roughness = Roughness * Roughness;
 
 	if (distribution == "sharp")
 		BSDF = Color * (Fr * reflection(Normal) + (1.0 - Fr) * refraction(Normal, eta));
 	else if (distribution == "beckmann")
-		BSDF = Color * (Fr * microfacet_beckmann(Normal, Roughness) +
-		                (1.0 - Fr) * microfacet_beckmann_refraction(Normal, Roughness, eta));
+		BSDF = Color * (Fr * microfacet_beckmann(Normal, roughness) +
+		                (1.0 - Fr) * microfacet_beckmann_refraction(Normal, roughness, eta));
 	else if (distribution == "Multiscatter GGX")
-		BSDF = Color * microfacet_multi_ggx_glass(Normal, Roughness, eta, Color);
+		BSDF = Color * microfacet_multi_ggx_glass(Normal, roughness, eta, Color);
 	else if (distribution == "GGX")
-		BSDF = Color * (Fr * microfacet_ggx(Normal, Roughness) +
-		                (1.0 - Fr) * microfacet_ggx_refraction(Normal, Roughness, eta));
+		BSDF = Color * (Fr * microfacet_ggx(Normal, roughness) +
+		                (1.0 - Fr) * microfacet_ggx_refraction(Normal, roughness, eta));
 }
 

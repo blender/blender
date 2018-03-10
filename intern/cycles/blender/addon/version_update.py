@@ -17,6 +17,7 @@
 # <pep8 compliant>
 
 import bpy
+import math
 
 from bpy.app.handlers import persistent
 
@@ -137,6 +138,56 @@ def displacement_principled_nodes(node):
     if node.bl_idname == 'ShaderNodeBsdfPrincipled':
         if node.subsurface_method != 'RANDOM_WALK':
             node.subsurface_method = 'BURLEY'
+
+def square_roughness_node_insert(material, nodetree, traversed):
+    if nodetree in traversed:
+        return
+    traversed.add(nodetree)
+
+    roughness_node_types = {
+        'ShaderNodeBsdfAnisotropic',
+        'ShaderNodeBsdfGlass',
+        'ShaderNodeBsdfGlossy',
+        'ShaderNodeBsdfRefraction'}
+
+    # Update default values
+    for node in nodetree.nodes:
+        if node.bl_idname == 'ShaderNodeGroup':
+            square_roughness_node_insert(material, node.node_tree, traversed)
+        elif node.bl_idname in roughness_node_types:
+            roughness_input = node.inputs['Roughness']
+            roughness_input.default_value = math.sqrt(max(roughness_input.default_value, 0.0))
+
+    # Gather roughness links to replace
+    roughness_links = []
+    for link in nodetree.links:
+        if link.to_node.bl_idname in roughness_node_types and \
+           link.to_socket.identifier == 'Roughness':
+           roughness_links.append(link)
+
+    # Replace links with sqrt node
+    for link in roughness_links:
+        from_node = link.from_node
+        from_socket = link.from_socket
+        to_node = link.to_node
+        to_socket = link.to_socket
+
+        nodetree.links.remove(link)
+
+        node = nodetree.nodes.new(type='ShaderNodeMath')
+        node.operation = 'POWER'
+        node.location[0] = 0.5 * (from_node.location[0] + to_node.location[0]);
+        node.location[1] = 0.5 * (from_node.location[1] + to_node.location[1]);
+
+        nodetree.links.new(from_socket, node.inputs[0])
+        node.inputs[1].default_value = 0.5
+        nodetree.links.new(node.outputs['Value'], to_socket)
+
+def square_roughness_nodes_insert():
+    traversed = set()
+    for material in bpy.data.materials:
+        if check_is_new_shading_material(material):
+            square_roughness_node_insert(material, material.node_tree, traversed)
 
 
 def mapping_node_order_flip(node):
@@ -376,3 +427,7 @@ def do_versions(self):
                 cmat.displacement_method = 'BUMP'
 
         foreach_cycles_node(displacement_principled_nodes)
+
+    if bpy.data.version <= (2, 79, 3):
+        # Switch to squared roughness convention
+        square_roughness_nodes_insert()

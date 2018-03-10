@@ -2599,7 +2599,8 @@ void node_bsdf_glossy(vec4 color, float roughness, vec3 N, out vec4 result)
 		vec3 light_specular = gl_LightSource[i].specular.rgb;
 
 		/* we mix in some diffuse so low roughness still shows up */
-		float bsdf = 0.5 * pow(max(dot(N, H), 0.0), 1.0 / roughness);
+		float r2 = roughness * roughness;
+		float bsdf = 0.5 * pow(max(dot(N, H), 0.0), 1.0 / r2);
 		bsdf += 0.5 * max(dot(N, light_position), 0.0);
 		L += light_specular * bsdf;
 	}
