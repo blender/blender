@@ -899,7 +899,7 @@ void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
 	}
 }
 
-void Mesh::pack_normals(Scene *scene, float4 *vnormal)
+void Mesh::pack_normals(float4 *vnormal)
 {
 	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
 	if(attr_vN == NULL) {
@@ -1777,8 +1777,7 @@ void MeshManager::device_update_mesh(Device *,
 		foreach(Mesh *mesh, scene->meshes) {
 			mesh->pack_shaders(scene,
 			                   &tri_shader[mesh->tri_offset]);
-			mesh->pack_normals(scene,
-			                   &vnormal[mesh->vert_offset]);
+			mesh->pack_normals(&vnormal[mesh->vert_offset]);
 			mesh->pack_verts(tri_prim_index,
 			                 &tri_vindex[mesh->tri_offset],
 			                 &tri_patch[mesh->tri_offset],
