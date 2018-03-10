@@ -571,6 +571,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 ('SHADOW', "Shadow", ""),
                 ('NORMAL', "Normal", ""),
                 ('UV', "UV", ""),
+                ('ROUGHNESS', "Roughness", ""),
                 ('EMIT', "Emit", ""),
                 ('ENVIRONMENT', "Environment", ""),
                 ('DIFFUSE', "Diffuse", ""),

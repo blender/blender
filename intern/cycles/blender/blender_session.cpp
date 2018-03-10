@@ -252,6 +252,8 @@ static ShaderEvalType get_shader_type(const string& pass_type)
 		return SHADER_EVAL_NORMAL;
 	else if(strcmp(shader_type, "UV")==0)
 		return SHADER_EVAL_UV;
+	else if(strcmp(shader_type, "ROUGHNESS")==0)
+		return SHADER_EVAL_ROUGHNESS;
 	else if(strcmp(shader_type, "DIFFUSE_COLOR")==0)
 		return SHADER_EVAL_DIFFUSE_COLOR;
 	else if(strcmp(shader_type, "GLOSSY_COLOR")==0)
