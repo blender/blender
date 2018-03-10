@@ -33,6 +33,48 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Global state of object transform update. */
+
+struct UpdateObjectTransformState {
+	/* Global state used by device_update_object_transform().
+	 * Common for both threaded and non-threaded update.
+	 */
+
+	/* Type of the motion required by the scene settings. */
+	Scene::MotionType need_motion;
+
+	/* Mapping from particle system to a index in packed particle array.
+	 * Only used for read.
+	 */
+	map<ParticleSystem*, int> particle_offset;
+
+	/* Mesh area.
+	 * Used to avoid calculation of mesh area multiple times. Used for both
+	 * read and write. Acquire surface_area_lock to keep it all thread safe.
+	 */
+	map<Mesh*, float> surface_area_map;
+
+	/* Packed object arrays. Those will be filled in. */
+	uint *object_flag;
+	KernelObject *objects;
+	Transform *objects_vector;
+
+	/* Flags which will be synchronized to Integrator. */
+	bool have_motion;
+	bool have_curves;
+
+	/* ** Scheduling queue. ** */
+
+	Scene *scene;
+
+	/* Some locks to keep everything thread-safe. */
+	thread_spin_lock queue_lock;
+	thread_spin_lock surface_area_lock;
+
+	/* First unused object index in the queue. */
+	int queue_start_object;
+};
+
 /* Object */
 
 NODE_DEFINE(Object)
@@ -475,7 +517,6 @@ void ObjectManager::device_update_object_transform_task(
 
 void ObjectManager::device_update_transforms(DeviceScene *dscene,
                                              Scene *scene,
-                                             uint *object_flag,
                                              Progress& progress)
 {
 	UpdateObjectTransformState state;
@@ -485,13 +526,12 @@ void ObjectManager::device_update_transforms(DeviceScene *dscene,
 	state.scene = scene;
 	state.queue_start_object = 0;
 
-	state.object_flag = object_flag;
 	state.objects = dscene->objects.alloc(scene->objects.size());
+	state.object_flag = dscene->object_flag.alloc(scene->objects.size());
+	state.objects_vector = NULL;
+
 	if(state.need_motion == Scene::MOTION_PASS) {
 		state.objects_vector = dscene->objects_vector.alloc(OBJECT_VECTOR_SIZE*scene->objects.size());
-	}
-	else {
-		state.objects_vector = NULL;
 	}
 
 	/* Particle system device offsets
@@ -554,12 +594,9 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	if(scene->objects.size() == 0)
 		return;
 
-	/* object info flag */
-	uint *object_flag = dscene->object_flag.alloc(scene->objects.size());
-
 	/* set object transform matrices, before applying static transforms */
 	progress.set_status("Updating Objects", "Copying Transformations to device");
-	device_update_transforms(dscene, scene, object_flag, progress);
+	device_update_transforms(dscene, scene, progress);
 
 	if(progress.get_cancel()) return;
 
@@ -567,7 +604,7 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 	/* todo: do before to support getting object level coords? */
 	if(scene->params.bvh_type == SceneParams::BVH_STATIC) {
 		progress.set_status("Updating Objects", "Applying Static Transformations");
-		apply_static_transforms(dscene, scene, object_flag, progress);
+		apply_static_transforms(dscene, scene, progress);
 	}
 }
 
@@ -586,9 +623,10 @@ void ObjectManager::device_update_flags(Device *,
 	if(scene->objects.size() == 0)
 		return;
 
-	/* object info flag */
+	/* Object info flag. */
 	uint *object_flag = dscene->object_flag.data();
 
+	/* Object volume intersection. */
 	vector<Object *> volume_objects;
 	bool has_volume_objects = false;
 	foreach(Object *object, scene->objects) {
@@ -642,7 +680,7 @@ void ObjectManager::device_update_flags(Device *,
 		++object_index;
 	}
 
-	/* allocate object flag */
+	/* Copy object flag. */
 	dscene->object_flag.copy_to_device();
 }
 
@@ -690,7 +728,7 @@ void ObjectManager::device_free(Device *, DeviceScene *dscene)
 	dscene->object_flag.free();
 }
 
-void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress)
+void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	/* todo: normals and displacement should be done before applying transform! */
 	/* todo: create objects/meshes in right order! */
@@ -713,6 +751,8 @@ void ObjectManager::apply_static_transforms(DeviceScene *dscene, Scene *scene, u
 	}
 
 	if(progress.get_cancel()) return;
+
+	uint *object_flag = dscene->object_flag.data();
 
 	/* apply transforms for objects with single user meshes */
 	foreach(Object *object, scene->objects) {

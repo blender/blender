@@ -35,6 +35,7 @@ class ParticleSystem;
 class Progress;
 class Scene;
 struct Transform;
+struct UpdateObjectTransformState;
 
 /* Object */
 
@@ -95,7 +96,6 @@ public:
 	void device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress);
 	void device_update_transforms(DeviceScene *dscene,
 	                              Scene *scene,
-	                              uint *object_flag,
 	                              Progress& progress);
 
 	void device_update_flags(Device *device,
@@ -109,49 +109,9 @@ public:
 
 	void tag_update(Scene *scene);
 
-	void apply_static_transforms(DeviceScene *dscene, Scene *scene, uint *object_flag, Progress& progress);
+	void apply_static_transforms(DeviceScene *dscene, Scene *scene, Progress& progress);
 
 protected:
-	/* Global state of object transform update. */
-	struct UpdateObjectTransformState {
-		/* Global state used by device_update_object_transform().
-		 * Common for both threaded and non-threaded update.
-		 */
-
-		/* Type of the motion required by the scene settings. */
-		Scene::MotionType need_motion;
-
-		/* Mapping from particle system to a index in packed particle array.
-		 * Only used for read.
-		 */
-		map<ParticleSystem*, int> particle_offset;
-
-		/* Mesh area.
-		 * Used to avoid calculation of mesh area multiple times. Used for both
-		 * read and write. Acquire surface_area_lock to keep it all thread safe.
-		 */
-		map<Mesh*, float> surface_area_map;
-
-		/* Packed object arrays. Those will be filled in. */
-		uint *object_flag;
-		KernelObject *objects;
-		Transform *objects_vector;
-
-		/* Flags which will be synchronized to Integrator. */
-		bool have_motion;
-		bool have_curves;
-
-		/* ** Scheduling queue. ** */
-
-		Scene *scene;
-
-		/* Some locks to keep everything thread-safe. */
-		thread_spin_lock queue_lock;
-		thread_spin_lock surface_area_lock;
-
-		/* First unused object index in the queue. */
-		int queue_start_object;
-	};
 	void device_update_object_transform(UpdateObjectTransformState *state,
 	                                    Object *ob,
 	                                    const int object_index);
