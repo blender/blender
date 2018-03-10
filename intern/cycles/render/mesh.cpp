@@ -877,15 +877,8 @@ void Mesh::add_undisplaced()
 	}
 }
 
-void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
+void Mesh::pack_shaders(Scene *scene, uint *tri_shader)
 {
-	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
-	if(attr_vN == NULL) {
-		/* Happens on objects with just hair. */
-		return;
-	}
-
-	float3 *vN = attr_vN->data_float3();
 	uint shader_id = 0;
 	uint last_shader = -1;
 	bool last_smooth = false;
@@ -893,10 +886,6 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 	size_t triangles_size = num_triangles();
 	int *shader_ptr = shader.data();
 
-	bool do_transform = transform_applied;
-	Transform ntfm = transform_normal;
-
-	/* save shader */
 	for(size_t i = 0; i < triangles_size; i++) {
 		if(shader_ptr[i] != last_shader || last_smooth != smooth[i]) {
 			last_shader = shader_ptr[i];
@@ -908,7 +897,20 @@ void Mesh::pack_normals(Scene *scene, uint *tri_shader, float4 *vnormal)
 
 		tri_shader[i] = shader_id;
 	}
+}
 
+void Mesh::pack_normals(Scene *scene, float4 *vnormal)
+{
+	Attribute *attr_vN = attributes.find(ATTR_STD_VERTEX_NORMAL);
+	if(attr_vN == NULL) {
+		/* Happens on objects with just hair. */
+		return;
+	}
+
+	bool do_transform = transform_applied;
+	Transform ntfm = transform_normal;
+
+	float3 *vN = attr_vN->data_float3();
 	size_t verts_size = verts.size();
 
 	for(size_t i = 0; i < verts_size; i++) {
@@ -1773,8 +1775,9 @@ void MeshManager::device_update_mesh(Device *,
 		float2 *tri_patch_uv = dscene->tri_patch_uv.alloc(vert_size);
 
 		foreach(Mesh *mesh, scene->meshes) {
+			mesh->pack_shaders(scene,
+			                   &tri_shader[mesh->tri_offset]);
 			mesh->pack_normals(scene,
-			                   &tri_shader[mesh->tri_offset],
 			                   &vnormal[mesh->vert_offset]);
 			mesh->pack_verts(tri_prim_index,
 			                 &tri_vindex[mesh->tri_offset],
