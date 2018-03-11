@@ -1063,6 +1063,7 @@ public:
 class DisplacementNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(DisplacementNode)
+	void constant_fold(const ConstantFolder& folder);
 	virtual int get_feature() {
 		return NODE_FEATURE_BUMP;
 	}
@@ -1079,6 +1080,7 @@ public:
 	SHADER_NODE_CLASS(VectorDisplacementNode)
 	void attributes(Shader *shader, AttributeRequestSet *attributes);
 	bool has_attribute_dependency() { return true; }
+	void constant_fold(const ConstantFolder& folder);
 	virtual int get_feature() {
 		return NODE_FEATURE_BUMP;
 	}
