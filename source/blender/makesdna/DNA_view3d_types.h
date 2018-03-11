@@ -121,7 +121,8 @@ typedef struct RegionView3D {
 	/* min/max dot product on twmat xyz axis. */
 	float tw_axis_min[3], tw_axis_max[3];
 	float tw_axis_matrix[3][3];
-	char _pad[4];
+
+	float gridview;
 
 	float viewquat[4];			/* view rotation, must be kept normalized */
 	float dist;					/* distance from 'ofs' along -viewinv[2] vector, where result is negative as is 'ofs' */
@@ -146,10 +147,6 @@ typedef struct RegionView3D {
 	/* last view (use when switching out of camera view) */
 	float lviewquat[4];
 	short lpersp, lview; /* lpersp can never be set to 'RV3D_CAMOB' */
-
-	float gridview;
-	float tw_idot[3];  /* manipulator runtime: (1 - dot) product with view vector (used to check view alignment) */
-
 
 	/* active rotation from NDOF or elsewhere */
 	float rot_angle;
