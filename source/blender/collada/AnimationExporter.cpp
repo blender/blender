@@ -1926,15 +1926,21 @@ void AnimationExporter::sample_animation(float *v, std::vector<float> &frames, i
 
 bool AnimationExporter::validateConstraints(bConstraint *con)
 {
-	bool valid = true;
 	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
 	/* these we can skip completely (invalid constraints...) */
-	if (cti == NULL) valid = false;
-	if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF)) valid = false;
-	/* these constraints can't be evaluated anyway */
-	if (cti->evaluate_constraint == NULL) valid = false;
-	/* influence == 0 should be ignored */
-	if (con->enforce == 0.0f) valid = false;
+	if (cti == NULL)
+		return false;
+	if (con->flag & (CONSTRAINT_DISABLE | CONSTRAINT_OFF))
+		return false;
 
-	return valid;
+	/* these constraints can't be evaluated anyway */
+	if (cti->evaluate_constraint == NULL)
+		return false;
+
+	/* influence == 0 should be ignored */
+	if (con->enforce == 0.0f)
+		return false;
+
+	/* validation passed */
+	return true;
 }
