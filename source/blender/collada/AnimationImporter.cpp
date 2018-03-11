@@ -70,14 +70,15 @@ FCurve *AnimationImporter::create_fcurve(int array_index, const char *rna_path)
 	fcu->array_index = array_index;
 	return fcu;
 }
-	
-void AnimationImporter::create_bezt(FCurve *fcu, float frame, float output)
+
+void AnimationImporter::add_bezt(FCurve *fcu, float frame, float value, eBezTriple_Interpolation ipo)
 {
+	//float fps = (float)FPS;
 	BezTriple bez;
 	memset(&bez, 0, sizeof(BezTriple));
 	bez.vec[1][0] = frame;
-	bez.vec[1][1] = output;
-	bez.ipo = U.ipo_new; /* use default interpolation mode here... */
+	bez.vec[1][1] = value;
+	bez.ipo = ipo; /* use default interpolation mode here... */
 	bez.f1 = bez.f2 = bez.f3 = SELECT;
 	bez.h1 = bez.h2 = HD_AUTO;
 	insert_bezt_fcurve(fcu, &bez, 0);
@@ -401,7 +402,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 				eul_to_quat(quat, eul);
 
 				for (int k = 0; k < 4; k++)
-					create_bezt(quatcu[k], frame, quat[k]);
+					create_bezt(quatcu[k], frame, quat[k], U.ipo_new);
 			}
 		}
 
@@ -1560,7 +1561,8 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 			copy_m4_m4(mat, matfra);
 		}
 
-		float val[4], rot[4], loc[3], scale[3];
+		float val[4] = {};
+		float rot[4], loc[3], scale[3];
 
 		switch (tm_type) {
 			case COLLADAFW::Transformation::ROTATE:
@@ -1832,14 +1834,14 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 				}
 
 				COLLADABU::Math::Matrix4 matrix;
-				int i = 0, j = 0;
+				int mi = 0, mj = 0;
 
 				for (std::vector<FCurve *>::iterator it = curves.begin(); it != curves.end(); it++) {
-					matrix.setElement(i, j, evaluate_fcurve(*it, fra));
-					j++;
-					if (j == 4) {
-						i++;
-						j = 0;
+					matrix.setElement(mi, mj, evaluate_fcurve(*it, fra));
+					mj++;
+					if (mj == 4) {
+						mi++;
+						mj = 0;
 					}
 					fcurve_is_used(*it);
 				}
@@ -2006,19 +2008,6 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
 	action_groups_add_channel(act, grp, fcu);
 }
 
-void AnimationImporter::add_bezt(FCurve *fcu, float fra, float value)
-{
-	//float fps = (float)FPS;
-	BezTriple bez;
-	memset(&bez, 0, sizeof(BezTriple));
-	bez.vec[1][0] = fra;
-	bez.vec[1][1] = value;
-	bez.ipo = BEZT_IPO_LIN; /* use default interpolation mode here... */
-	bez.f1 = bez.f2 = bez.f3 = SELECT;
-	bez.h1 = bez.h2 = HD_AUTO;
-	insert_bezt_fcurve(fcu, &bez, 0);
-	calchandles_fcurve(fcu);
-}
 
 void AnimationImporter::set_import_from_version(std::string import_from_version)
 {

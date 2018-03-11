@@ -284,12 +284,11 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 	BoneExtensionMap &extended_bones = bone_extension_manager.getExtensionMap(armature);
 	BoneExtended *dominant_child = NULL;
 	int maxlen = 0;
-	Bone *child;
 
 	if (parentbone == NULL)
 		return;
 
-	child = (Bone *)parentbone->childbase.first;
+	Bone *child = (Bone *)parentbone->childbase.first;
 	if (child && (import_settings->find_chains || child->next==NULL)) {
 		for (; child; child = child->next) {
 			BoneExtended *be = extended_bones[child->name];
@@ -339,8 +338,8 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 				}
 			}
 		}
-		for (Bone *child = (Bone *)parentbone->childbase.first; child; child = child->next) {
-			ArmatureImporter::connect_bone_chains(armature, child, UNLIMITED_CHAIN_MAX);
+		for (Bone *ch = (Bone *)parentbone->childbase.first; ch; ch = ch->next) {
+			ArmatureImporter::connect_bone_chains(armature, ch, UNLIMITED_CHAIN_MAX);
 		}
 	}
 	else if (maxlen>1 && maxlen > this->import_settings->min_chain_length) {
@@ -350,8 +349,8 @@ void ArmatureImporter::connect_bone_chains(bArmature *armature, Bone *parentbone
 	else {
 		/* can't connect this Bone. Proceed with children ... */
 		if (pbe) pbe->set_leaf_bone(true);
-		for (Bone *child = (Bone *)parentbone->childbase.first; child; child = child->next) {
-			ArmatureImporter::connect_bone_chains(armature, child, UNLIMITED_CHAIN_MAX);
+		for (Bone *ch = (Bone *)parentbone->childbase.first; ch; ch = ch->next) {
+			ArmatureImporter::connect_bone_chains(armature, ch, UNLIMITED_CHAIN_MAX);
 		}
 	}
 

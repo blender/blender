@@ -495,12 +495,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	
 	ghostwin = GHOST_CreateWindow(g_system, title,
 	                              win->posx, posy, win->sizex, win->sizey,
-#ifdef __APPLE__
-	                              /* we agreed to not set any fullscreen or iconized state on startup */
-	                              GHOST_kWindowStateNormal,
-#else
 	                              (GHOST_TWindowState)win->windowstate,
-#endif
 	                              GHOST_kDrawingContextTypeOpenGL,
 	                              glSettings);
 

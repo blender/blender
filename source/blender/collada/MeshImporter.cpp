@@ -554,7 +554,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 {
 	CustomData edata;
 	MEdge *medge;
-	int i, totedge;
+	int totedge;
 
 	if (len == 0)
 		return;
@@ -574,7 +574,7 @@ void MeshImporter::mesh_add_edges(Mesh *mesh, int len)
 
 	/* set default flags */
 	medge = &mesh->medge[mesh->totedge];
-	for (i = 0; i < len; i++, medge++)
+	for (int i = 0; i < len; i++, medge++)
 		medge->flag = ME_EDGEDRAW | ME_EDGERENDER | SELECT;
 
 	mesh->totedge = totedge;
@@ -608,12 +608,12 @@ void MeshImporter::read_lines(COLLADAFW::Mesh *mesh, Mesh *me)
 				unsigned int edge_count  = mp->getFaceCount();
 				unsigned int *indices    = mp->getPositionIndices().getData();
 				
-				for (int i = 0; i < edge_count; i++, med++) {
+				for (int j = 0; j < edge_count; j++, med++) {
 					med->bweight = 0;
 					med->crease  = 0;
 					med->flag   |= ME_LOOSEEDGE;
-					med->v1      = indices[2 * i];
-					med->v2      = indices[2 * i + 1];
+					med->v1      = indices[2 * j];
+					med->v2      = indices[2 * j + 1];
 				}
 			}
 		}

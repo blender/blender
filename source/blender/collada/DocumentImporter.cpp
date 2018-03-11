@@ -195,8 +195,8 @@ void DocumentImporter::finish()
 	std::vector<Object *> *objects_to_scale = new std::vector<Object *>();
 
 	/** TODO Break up and put into 2-pass parsing of DAE */
-	std::vector<const COLLADAFW::VisualScene *>::iterator it;
-	for (it = vscenes.begin(); it != vscenes.end(); it++) {
+	std::vector<const COLLADAFW::VisualScene *>::iterator sit;
+	for (sit = vscenes.begin(); sit != vscenes.end(); sit++) {
 		PointerRNA sceneptr, unit_settings;
 		PropertyRNA *system, *scale;
 		
@@ -227,7 +227,7 @@ void DocumentImporter::finish()
 		}
 
 		// Write nodes to scene
-		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
+		const COLLADAFW::NodePointerArray& roots = (*sit)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			std::vector<Object *> *objects_done = write_node(roots[i], NULL, sce, NULL, false);
 			objects_to_scale->insert(objects_to_scale->end(), objects_done->begin(), objects_done->end());
@@ -252,8 +252,8 @@ void DocumentImporter::finish()
 	armature_importer.fix_animation();
 #endif
 
-	for (std::vector<const COLLADAFW::VisualScene *>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
-		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
+	for (std::vector<const COLLADAFW::VisualScene *>::iterator vsit = vscenes.begin(); vsit != vscenes.end(); vsit++) {
+		const COLLADAFW::NodePointerArray& roots = (*vsit)->getRootNodes();
 
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			translate_anim_recursive(roots[i], NULL, NULL);
@@ -261,7 +261,6 @@ void DocumentImporter::finish()
 	}
 
 	if (libnode_ob.size()) {
-		Scene *sce = CTX_data_scene(mContext);
 
 		fprintf(stderr, "got %d library nodes to free\n", (int)libnode_ob.size());
 		// free all library_nodes
@@ -472,9 +471,9 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
 {
 	if (et && et->isProfile("blender")) {
 		std::string name;
-		short* type = 0;
-		et->setData("type", type);
-		BKE_constraint_add_for_object(ob, "Test_con", *type);
+		short type = 0;
+		et->setData("type", &type);
+		BKE_constraint_add_for_object(ob, "Test_con", type);
 		
 	}
 }
@@ -585,8 +584,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			++lamp_done;
 		}
 		while (controller_done < controller.getCount()) {
-			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry *)controller[controller_done];
-			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
+			COLLADAFW::InstanceGeometry *geometry = (COLLADAFW::InstanceGeometry *)controller[controller_done];
+			ob = mesh_importer.create_mesh_object(node, geometry, true, uid_material_map, material_texture_mapping_map);
 			if (ob == NULL) {
 				report_unknown_reference(*node, "instance_controller");
 			}

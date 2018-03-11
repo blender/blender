@@ -78,7 +78,7 @@ private:
 	
 	FCurve *create_fcurve(int array_index, const char *rna_path);
 	
-	void create_bezt(FCurve *fcu, float frame, float output);
+	void add_bezt(FCurve *fcu, float frame, float value, eBezTriple_Interpolation ipo=BEZT_IPO_LIN);
 
 	// create one or several fcurves depending on the number of parameters being animated
 	void animation_to_fcurves(COLLADAFW::AnimationCurve *curve);
@@ -213,8 +213,6 @@ public:
 #endif
 
 	void add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurve *fcu);
-
-	void add_bezt(FCurve *fcu, float fra, float value);
 
 	void extra_data_importer(std::string elementName);
 };
