@@ -474,9 +474,9 @@ void DocumentImporter::create_constraints(ExtraTags *et, Object *ob)
 {
 	if (et && et->isProfile("blender")) {
 		std::string name;
-		short* type = 0;
-		et->setData("type", type);
-		BKE_constraint_add_for_object(ob, "Test_con", *type);
+		short type = 0;
+		et->setData("type", &type);
+		BKE_constraint_add_for_object(ob, "Test_con", type);
 		
 	}
 }
@@ -587,8 +587,8 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 			++lamp_done;
 		}
 		while (controller_done < controller.getCount()) {
-			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry *)controller[controller_done];
-			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
+			COLLADAFW::InstanceGeometry *geometry = (COLLADAFW::InstanceGeometry *)controller[controller_done];
+			ob = mesh_importer.create_mesh_object(node, geometry, true, uid_material_map, material_texture_mapping_map);
 			if (ob == NULL) {
 				report_unknown_reference(*node, "instance_controller");
 			}

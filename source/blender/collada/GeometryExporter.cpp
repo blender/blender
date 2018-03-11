@@ -149,8 +149,8 @@ void GeometryExporter::operator()(Object *ob)
 		}
 		else {
 			bool all_uv_layers = !this->export_settings->active_uv_only;
-			std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
-			createPolylists(uv_images, has_uvs, has_color, ob, me, geom_id, norind);
+			std::set<Image *> uv_image_set = bc_getUVImages(ob, all_uv_layers);
+			createPolylists(uv_image_set, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	

@@ -203,8 +203,8 @@ bool ImagesExporter::hasImages(Scene *sce)
 	
 	for (node = this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
-		int a;
-		for (a = 0; a < ob->totcol; a++) {
+
+		for (int a = 0; a < ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a + 1);
 
 			// no material, but check all of the slots
