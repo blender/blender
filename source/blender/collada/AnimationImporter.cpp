@@ -1834,14 +1834,14 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 				}
 
 				COLLADABU::Math::Matrix4 matrix;
-				int i = 0, j = 0;
+				int mi = 0, mj = 0;
 
 				for (std::vector<FCurve *>::iterator it = curves.begin(); it != curves.end(); it++) {
-					matrix.setElement(i, j, evaluate_fcurve(*it, fra));
-					j++;
-					if (j == 4) {
-						i++;
-						j = 0;
+					matrix.setElement(mi, mj, evaluate_fcurve(*it, fra));
+					mj++;
+					if (mj == 4) {
+						mi++;
+						mj = 0;
 					}
 					fcurve_is_used(*it);
 				}
