@@ -39,9 +39,13 @@
 #include "DNA_node_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_hash_mm2a.h"
+#include "BLI_linklist.h"
 #include "BLI_utildefines.h"
 #include "BLI_dynstr.h"
 #include "BLI_ghash.h"
+
+#include "PIL_time.h"
 
 #include "GPU_extensions.h"
 #include "GPU_glew.h"
@@ -64,6 +68,50 @@ extern char datatoc_gpu_shader_geometry_glsl[];
 
 static char *glsl_material_library = NULL;
 
+/* -------------------- GPUPass Cache ------------------ */
+/**
+ * Internal shader cache: This prevent the shader recompilation / stall when
+ * using undo/redo AND also allows for GPUPass reuse if the Shader code is the
+ * same for 2 different Materials. Unused GPUPasses are free by Garbage collection.
+ **/
+
+static LinkNode *pass_cache = NULL; /* GPUPass */
+
+static uint32_t gpu_pass_hash(const char *vert, const char *geom, const char *frag, const char *defs)
+{
+	BLI_HashMurmur2A hm2a;
+	BLI_hash_mm2a_init(&hm2a, 0);
+	BLI_hash_mm2a_add(&hm2a, (unsigned char *)frag, strlen(frag));
+	BLI_hash_mm2a_add(&hm2a, (unsigned char *)vert, strlen(vert));
+	if (defs)
+		BLI_hash_mm2a_add(&hm2a, (unsigned char *)defs, strlen(defs));
+	if (geom)
+		BLI_hash_mm2a_add(&hm2a, (unsigned char *)geom, strlen(geom));
+
+	return BLI_hash_mm2a_end(&hm2a);
+}
+
+/* Search by hash then by exact string match. */
+static GPUPass *gpu_pass_cache_lookup(
+        const char *vert, const char *geom, const char *frag, const char *defs, uint32_t hash)
+{
+	for (LinkNode *ln = pass_cache; ln; ln = ln->next) {
+		GPUPass *pass = (GPUPass *)ln->link;
+		if (pass->hash == hash) {
+			/* Note: Could be made faster if that becomes a real bottleneck. */
+			if ((defs != NULL) && (strcmp(pass->defines, defs) != 0)) { /* Pass */ }
+			else if ((geom != NULL) && (strcmp(pass->geometrycode, geom) != 0)) { /* Pass */ }
+			else if ((strcmp(pass->fragmentcode, frag) == 0) &&
+			         (strcmp(pass->vertexcode, vert) == 0))
+			{
+				return pass;
+			}
+		}
+	}
+	return NULL;
+}
+
+/* -------------------- GPU Codegen ------------------ */
 
 /* type definitions and constants */
 
@@ -1175,15 +1223,13 @@ GPUShader *GPU_pass_shader(GPUPass *pass)
 	return pass->shader;
 }
 
-static void gpu_nodes_extract_dynamic_inputs_new(GPUPass *pass, ListBase *nodes)
+static void gpu_nodes_extract_dynamic_inputs_new(GPUShader *shader, ListBase *inputs, ListBase *nodes)
 {
-	GPUShader *shader = pass->shader;
 	GPUNode *node;
 	GPUInput *next, *input;
-	ListBase *inputs = &pass->inputs;
 	int extract, z;
 
-	memset(inputs, 0, sizeof(*inputs));
+	BLI_listbase_clear(inputs);
 
 	if (!shader)
 		return;
@@ -1236,15 +1282,13 @@ static void gpu_nodes_extract_dynamic_inputs_new(GPUPass *pass, ListBase *nodes)
 	GPU_shader_unbind();
 }
 
-static void gpu_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
+static void gpu_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListBase *nodes)
 {
-	GPUShader *shader = pass->shader;
 	GPUNode *node;
 	GPUInput *next, *input;
-	ListBase *inputs = &pass->inputs;
 	int extract, z;
 
-	memset(inputs, 0, sizeof(*inputs));
+	BLI_listbase_clear(inputs);
 
 	if (!shader)
 		return;
@@ -1322,11 +1366,10 @@ static void gpu_nodes_extract_dynamic_inputs(GPUPass *pass, ListBase *nodes)
 	GPU_shader_unbind();
 }
 
-void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
+void GPU_pass_bind(GPUPass *pass, ListBase *inputs, double time, int mipmap)
 {
 	GPUInput *input;
 	GPUShader *shader = pass->shader;
-	ListBase *inputs = &pass->inputs;
 
 	if (!shader)
 		return;
@@ -1351,11 +1394,10 @@ void GPU_pass_bind(GPUPass *pass, double time, int mipmap)
 	}
 }
 
-void GPU_pass_update_uniforms(GPUPass *pass)
+void GPU_pass_update_uniforms(GPUPass *pass, ListBase *inputs)
 {
 	GPUInput *input;
 	GPUShader *shader = pass->shader;
-	ListBase *inputs = &pass->inputs;
 
 	if (!shader)
 		return;
@@ -1376,11 +1418,10 @@ void GPU_pass_update_uniforms(GPUPass *pass)
 	}
 }
 
-void GPU_pass_unbind(GPUPass *pass)
+void GPU_pass_unbind(GPUPass *pass, ListBase *inputs)
 {
 	GPUInput *input;
 	GPUShader *shader = pass->shader;
-	ListBase *inputs = &pass->inputs;
 
 	if (!shader)
 		return;
@@ -1679,7 +1720,7 @@ static void gpu_node_output(GPUNode *node, const GPUType type, GPUNodeLink **lin
 	BLI_addtail(&node->outputs, output);
 }
 
-static void gpu_inputs_free(ListBase *inputs)
+void GPU_inputs_free(ListBase *inputs)
 {
 	GPUInput *input;
 
@@ -1697,7 +1738,7 @@ static void gpu_node_free(GPUNode *node)
 {
 	GPUOutput *output;
 
-	gpu_inputs_free(&node->inputs);
+	GPU_inputs_free(&node->inputs);
 
 	for (output = node->outputs.first; output; output = output->next)
 		if (output->link) {
@@ -2072,78 +2113,83 @@ void GPU_nodes_prune(ListBase *nodes, GPUNodeLink *outlink)
 }
 
 GPUPass *GPU_generate_pass_new(
-        struct GPUMaterial *material,
-        ListBase *nodes, struct GPUNodeLink *frag_outlink,
-        GPUVertexAttribs *attribs,
+        GPUMaterial *material,
+        GPUNodeLink *frag_outlink, struct GPUVertexAttribs *attribs,
+        ListBase *nodes, ListBase *inputs,
         const char *vert_code, const char *geom_code,
         const char *frag_lib, const char *defines)
 {
+	char *vertexcode, *geometrycode, *fragmentcode;
 	GPUShader *shader;
 	GPUPass *pass;
-	char *vertexgen, *fragmentgen, *tmp;
-	char *vertexcode, *geometrycode, *fragmentcode;
 
 	/* prune unused nodes */
 	GPU_nodes_prune(nodes, frag_outlink);
 
 	GPU_nodes_get_vertex_attributes(nodes, attribs);
 
-	/* generate code and compile with opengl */
-	fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, true);
-	vertexgen = code_generate_vertex_new(nodes, vert_code, (geom_code != NULL));
+	/* generate code */
+	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, true);
+	char *tmp = BLI_strdupcat(frag_lib, glsl_material_library);
 
-	tmp = BLI_strdupcat(frag_lib, glsl_material_library);
+	vertexcode = code_generate_vertex_new(nodes, vert_code, (geom_code != NULL));
+	geometrycode = (geom_code) ? code_generate_geometry_new(nodes, geom_code) : NULL;
 	fragmentcode = BLI_strdupcat(tmp, fragmentgen);
-	vertexcode = BLI_strdup(vertexgen);
-
-	if (geom_code) {
-		geometrycode = code_generate_geometry_new(nodes, geom_code);
-	}
-	else {
-		geometrycode = NULL;
-	}
-
-	shader = GPU_shader_create(vertexcode,
-	                           fragmentcode,
-	                           geometrycode,
-	                           NULL,
-	                           defines);
-
-	MEM_freeN(tmp);
-
-	/* failed? */
-	if (!shader) {
-		if (fragmentcode)
-			MEM_freeN(fragmentcode);
-		if (vertexcode)
-			MEM_freeN(vertexcode);
-		if (geometrycode)
-			MEM_freeN(geometrycode);
-		MEM_freeN(fragmentgen);
-		MEM_freeN(vertexgen);
-		gpu_nodes_free(nodes);
-		return NULL;
-	}
-
-	/* create pass */
-	pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
-	pass->shader = shader;
-	pass->fragmentcode = fragmentcode;
-	pass->geometrycode = geometrycode;
-	pass->vertexcode = vertexcode;
-	pass->libcode = glsl_material_library;
-
-	/* extract dynamic inputs and throw away nodes */
-	gpu_nodes_extract_dynamic_inputs_new(pass, nodes);
 
 	MEM_freeN(fragmentgen);
-	MEM_freeN(vertexgen);
+	MEM_freeN(tmp);
 
-	return pass;
+	/* Cache lookup: Reuse shaders already compiled */
+	uint32_t hash = gpu_pass_hash(vertexcode, geometrycode, fragmentcode, defines);
+	pass = gpu_pass_cache_lookup(vertexcode, geometrycode, fragmentcode, defines, hash);
+	if (pass) {
+		/* Cache hit. Reuse the same GPUPass and GPUShader. */
+		shader = pass->shader;
+		pass->refcount += 1;
+
+		MEM_SAFE_FREE(vertexcode);
+		MEM_SAFE_FREE(fragmentcode);
+		MEM_SAFE_FREE(geometrycode);
+	}
+	else {
+		/* Cache miss. (Re)compile the shader. */
+		shader = GPU_shader_create(vertexcode,
+		                           fragmentcode,
+		                           geometrycode,
+		                           NULL,
+		                           defines);
+
+		/* We still create a pass even if shader compilation
+		 * fails to avoid trying to compile again and again. */
+		pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
+		pass->shader = shader;
+		pass->refcount = 1;
+		pass->hash = hash;
+		pass->vertexcode = vertexcode;
+		pass->fragmentcode = fragmentcode;
+		pass->geometrycode = geometrycode;
+		pass->libcode = glsl_material_library;
+		pass->defines = (defines) ? BLI_strdup(defines) : NULL;
+
+		BLI_linklist_prepend(&pass_cache, pass);
+	}
+
+	/* did compilation failed ? */
+	if (!shader) {
+		gpu_nodes_free(nodes);
+		/* Pass will not be used. Don't increment refcount. */
+		pass->refcount--;
+		return NULL;
+	}
+	else {
+		gpu_nodes_extract_dynamic_inputs_new(shader, inputs, nodes);
+		return pass;
+	}
 }
 
+/* TODO(fclem) Remove for 2.8 */
 GPUPass *GPU_generate_pass(
-        ListBase *nodes, GPUNodeLink *outlink,
+        ListBase *nodes, ListBase *inputs, GPUNodeLink *outlink,
         GPUVertexAttribs *attribs, int *builtins,
         const GPUMatType type, const char *UNUSED(name),
         const bool use_opensubdiv,
@@ -2199,30 +2245,36 @@ GPUPass *GPU_generate_pass(
 	
 	/* create pass */
 	pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
-
+	pass->refcount = 1;
 	pass->shader = shader;
 	pass->fragmentcode = fragmentcode;
 	pass->geometrycode = geometrycode;
 	pass->vertexcode = vertexcode;
 	pass->libcode = glsl_material_library;
 
+	BLI_linklist_prepend(&pass_cache, pass);
+
 	/* extract dynamic inputs and throw away nodes */
-	gpu_nodes_extract_dynamic_inputs(pass, nodes);
+	gpu_nodes_extract_dynamic_inputs(shader, inputs, nodes);
 	gpu_nodes_free(nodes);
 
 	return pass;
 }
 
-void GPU_pass_free(GPUPass *pass)
+void GPU_pass_release(GPUPass *pass)
 {
+	BLI_assert(pass->refcount > 0);
+	pass->refcount--;
+}
+
+static void gpu_pass_free(GPUPass *pass)
+{
+	BLI_assert(pass->refcount == 0);
 	GPU_shader_free(pass->shader);
-	gpu_inputs_free(&pass->inputs);
-	if (pass->fragmentcode)
-		MEM_freeN(pass->fragmentcode);
-	if (pass->geometrycode)
-		MEM_freeN(pass->geometrycode);
-	if (pass->vertexcode)
-		MEM_freeN(pass->vertexcode);
+	MEM_SAFE_FREE(pass->fragmentcode);
+	MEM_SAFE_FREE(pass->geometrycode);
+	MEM_SAFE_FREE(pass->vertexcode);
+	MEM_SAFE_FREE(pass->defines);
 	MEM_freeN(pass);
 }
 
@@ -2231,3 +2283,34 @@ void GPU_pass_free_nodes(ListBase *nodes)
 	gpu_nodes_free(nodes);
 }
 
+void GPU_pass_cache_garbage_collect(void)
+{
+	static int lasttime = 0;
+	const int shadercollectrate = 60; /* hardcoded for now. */
+	int ctime = (int)PIL_check_seconds_timer();
+
+	if (ctime < shadercollectrate + lasttime)
+		return;
+
+	lasttime = ctime;
+
+	LinkNode *next, **prev_ln = &pass_cache;
+	for (LinkNode *ln = pass_cache; ln; ln = next) {
+		GPUPass *pass = (GPUPass *)ln->link;
+		next = ln->next;
+		if (pass->refcount == 0) {
+			gpu_pass_free(pass);
+			/* Remove from list */
+			MEM_freeN(ln);
+			*prev_ln = next;
+		}
+		else {
+			prev_ln = &ln->next;
+		}
+	}
+}
+
+void GPU_pass_cache_free(void)
+{
+	BLI_linklist_free(pass_cache, (LinkNodeFreeFP)gpu_pass_free);
+}

@@ -270,6 +270,7 @@ bool GPU_material_bound(GPUMaterial *material);
 struct Scene *GPU_material_scene(GPUMaterial *material);
 GPUMatType GPU_Material_get_type(GPUMaterial *material);
 struct GPUPass *GPU_material_get_pass(GPUMaterial *material);
+struct ListBase *GPU_material_get_inputs(GPUMaterial *material);
 GPUMaterialStatus GPU_material_status(GPUMaterial *mat);
 
 struct GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material);
@@ -376,6 +377,9 @@ struct DerivedMesh;
 void GPU_material_update_fvar_offset(GPUMaterial *gpu_material,
                                      struct DerivedMesh *dm);
 #endif
+
+void GPU_pass_cache_garbage_collect(void);
+void GPU_pass_cache_free(void);
 
 #ifdef __cplusplus
 }

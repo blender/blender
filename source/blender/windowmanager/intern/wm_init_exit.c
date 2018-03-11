@@ -116,6 +116,7 @@
 #include "BLF_api.h"
 #include "BLT_lang.h"
 
+#include "GPU_material.h"
 #include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_init_exit.h"
@@ -553,6 +554,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BLF_exit();
 
 	if (!G.background) {
+		GPU_pass_cache_free();
 		DRW_opengl_context_destroy();
 	}
 
