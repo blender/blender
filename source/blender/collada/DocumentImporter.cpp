@@ -190,8 +190,8 @@ void DocumentImporter::finish()
 	std::vector<Object *> *objects_to_scale = new std::vector<Object *>();
 
 	/** TODO Break up and put into 2-pass parsing of DAE */
-	std::vector<const COLLADAFW::VisualScene *>::iterator it;
-	for (it = vscenes.begin(); it != vscenes.end(); it++) {
+	std::vector<const COLLADAFW::VisualScene *>::iterator sit;
+	for (sit = vscenes.begin(); sit != vscenes.end(); sit++) {
 		PointerRNA sceneptr, unit_settings;
 		PropertyRNA *system, *scale;
 		
@@ -222,7 +222,7 @@ void DocumentImporter::finish()
 		}
 
 		// Write nodes to scene
-		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
+		const COLLADAFW::NodePointerArray& roots = (*sit)->getRootNodes();
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			std::vector<Object *> *objects_done = write_node(roots[i], NULL, sce, NULL, false);
 			objects_to_scale->insert(objects_to_scale->end(), objects_done->begin(), objects_done->end());
@@ -247,8 +247,8 @@ void DocumentImporter::finish()
 	armature_importer.fix_animation();
 #endif
 
-	for (std::vector<const COLLADAFW::VisualScene *>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
-		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
+	for (std::vector<const COLLADAFW::VisualScene *>::iterator vsit = vscenes.begin(); vsit != vscenes.end(); vsit++) {
+		const COLLADAFW::NodePointerArray& roots = (*vsit)->getRootNodes();
 
 		for (unsigned int i = 0; i < roots.getCount(); i++) {
 			translate_anim_recursive(roots[i], NULL, NULL);
@@ -260,9 +260,9 @@ void DocumentImporter::finish()
 
 		fprintf(stderr, "got %d library nodes to free\n", (int)libnode_ob.size());
 		// free all library_nodes
-		std::vector<Object *>::iterator it;
-		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
-			Object *ob = *it;
+		std::vector<Object *>::iterator lit;
+		for (lit = libnode_ob.begin(); lit != libnode_ob.end(); lit++) {
+			Object *ob = *lit;
 
 			Base *base = BKE_scene_base_find(sce, ob);
 			if (base) {
