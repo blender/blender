@@ -1922,6 +1922,9 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	BLI_rcti_translate(&rect, -ar->winrct.xmin, -ar->winrct.ymin);
 	GPU_viewport_draw_to_screen(rv3d->viewport, &rect);
 
+	GPU_free_images_old();
+	GPU_pass_cache_garbage_collect();
+
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
 

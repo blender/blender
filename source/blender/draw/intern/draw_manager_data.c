@@ -582,15 +582,14 @@ static DRWShadingGroup *drw_shgroup_material_create_ex(GPUPass *gpupass, DRWPass
 	return grp;
 }
 
-static DRWShadingGroup *drw_shgroup_material_inputs(
-         DRWShadingGroup *grp, struct GPUMaterial *material, GPUPass *gpupass)
+static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct GPUMaterial *material)
 {
 	/* TODO : Ideally we should not convert. But since the whole codegen
 	 * is relying on GPUPass we keep it as is for now. */
 
-	/* Converting dynamic GPUInput to DRWUniform */
-	ListBase *inputs = &gpupass->inputs;
+	ListBase *inputs = GPU_material_get_inputs(material);
 
+	/* Converting dynamic GPUInput to DRWUniform */
 	for (GPUInput *input = inputs->first; input; input = input->next) {
 		/* Textures */
 		if (input->ima) {
@@ -656,7 +655,7 @@ DRWShadingGroup *DRW_shgroup_material_create(
 
 	if (shgroup) {
 		drw_interface_init(shgroup, GPU_pass_shader(gpupass));
-		drw_shgroup_material_inputs(shgroup, material, gpupass);
+		drw_shgroup_material_inputs(shgroup, material);
 	}
 
 	return shgroup;
@@ -673,7 +672,7 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(
 		shgroup->instance_geom = geom;
 		drw_call_calc_orco(ob->data, shgroup->instance_orcofac);
 		drw_interface_instance_init(shgroup, GPU_pass_shader(gpupass), geom, format);
-		drw_shgroup_material_inputs(shgroup, material, gpupass);
+		drw_shgroup_material_inputs(shgroup, material);
 	}
 
 	return shgroup;
@@ -693,7 +692,7 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
 		drw_interface_init(shgroup, GPU_pass_shader(gpupass));
 		shgroup->type = DRW_SHG_TRIANGLE_BATCH;
 		shgroup->instance_count = tri_count * 3;
-		drw_shgroup_material_inputs(shgroup, material, gpupass);
+		drw_shgroup_material_inputs(shgroup, material);
 	}
 
 	return shgroup;

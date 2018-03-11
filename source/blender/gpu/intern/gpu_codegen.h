@@ -157,25 +157,27 @@ typedef struct GPUInput {
 } GPUInput;
 
 struct GPUPass {
-	ListBase inputs;
 	struct GPUShader *shader;
 	char *fragmentcode;
 	char *geometrycode;
 	char *vertexcode;
+	char *defines;
 	const char *libcode;
+	unsigned int refcount;       /* Orphaned GPUPasses gets freed by the garbage collector. */
+	uint32_t hash;               /* Identity hash generated from all GLSL code. */
 };
 
 
 typedef struct GPUPass GPUPass;
 
 GPUPass *GPU_generate_pass_new(
-        struct GPUMaterial *material,
-        ListBase *nodes, struct GPUNodeLink *frag_outlink,
-        struct GPUVertexAttribs *attribs,
+        GPUMaterial *material,
+        GPUNodeLink *frag_outlink, struct GPUVertexAttribs *attribs,
+        ListBase *nodes, ListBase *inputs,
         const char *vert_code, const char *geom_code,
         const char *frag_lib, const char *defines);
 GPUPass *GPU_generate_pass(
-        ListBase *nodes, struct GPUNodeLink *outlink,
+        ListBase *nodes, ListBase *inputs, struct GPUNodeLink *outlink,
         struct GPUVertexAttribs *attribs, int *builtin,
         const GPUMatType type, const char *name,
         const bool use_opensubdiv,
@@ -186,12 +188,14 @@ struct GPUShader *GPU_pass_shader(GPUPass *pass);
 void GPU_nodes_get_vertex_attributes(ListBase *nodes, struct GPUVertexAttribs *attribs);
 void GPU_nodes_prune(ListBase *nodes, struct GPUNodeLink *outlink);
 
-void GPU_pass_bind(GPUPass *pass, double time, int mipmap);
-void GPU_pass_update_uniforms(GPUPass *pass);
-void GPU_pass_unbind(GPUPass *pass);
+void GPU_pass_bind(GPUPass *pass, ListBase *inputs, double time, int mipmap);
+void GPU_pass_update_uniforms(GPUPass *pass, ListBase *inputs);
+void GPU_pass_unbind(GPUPass *pass, ListBase *inputs);
 
-void GPU_pass_free(GPUPass *pass);
+void GPU_pass_release(GPUPass *pass);
 void GPU_pass_free_nodes(ListBase *nodes);
+
+void GPU_inputs_free(ListBase *inputs);
 
 void gpu_codegen_init(void);
 void gpu_codegen_exit(void);

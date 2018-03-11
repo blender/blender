@@ -116,6 +116,7 @@ struct GPUMaterial {
 
 	/* for binding the material */
 	GPUPass *pass;
+	ListBase inputs;  /* GPUInput */
 	GPUVertexAttribs attribs;
 	int builtins;
 	int alpha, obcolalpha;
@@ -221,7 +222,7 @@ static int gpu_material_construct_end(GPUMaterial *material, const char *passnam
 {
 	if (material->outlink) {
 		GPUNodeLink *outlink = material->outlink;
-		material->pass = GPU_generate_pass(&material->nodes, outlink,
+		material->pass = GPU_generate_pass(&material->nodes, &material->inputs, outlink,
 			&material->attribs, &material->builtins, material->type,
 			passname,
 			material->is_opensubdiv,
@@ -282,9 +283,10 @@ void GPU_material_free(ListBase *gpumaterial)
 		DRW_deferred_shader_remove(material);
 
 		GPU_pass_free_nodes(&material->nodes);
+		GPU_inputs_free(&material->inputs);
 
 		if (material->pass)
-			GPU_pass_free(material->pass);
+			GPU_pass_release(material->pass);
 
 		if (material->ubo != NULL) {
 			GPU_uniformbuffer_free(material->ubo);
@@ -356,7 +358,7 @@ void GPU_material_bind(
 		}
 		
 		/* note material must be bound before setting uniforms */
-		GPU_pass_bind(material->pass, time, mipmap);
+		GPU_pass_bind(material->pass, &material->inputs, time, mipmap);
 
 		/* handle per material built-ins */
 		if (material->builtins & GPU_VIEW_MATRIX) {
@@ -376,7 +378,7 @@ void GPU_material_bind(
 			}
 		}
 
-		GPU_pass_update_uniforms(material->pass);
+		GPU_pass_update_uniforms(material->pass, &material->inputs);
 
 		material->bound = 1;
 	}
@@ -449,7 +451,7 @@ void GPU_material_unbind(GPUMaterial *material)
 {
 	if (material->pass) {
 		material->bound = 0;
-		GPU_pass_unbind(material->pass);
+		GPU_pass_unbind(material->pass, &material->inputs);
 	}
 }
 
@@ -471,6 +473,11 @@ GPUMatType GPU_Material_get_type(GPUMaterial *material)
 GPUPass *GPU_material_get_pass(GPUMaterial *material)
 {
 	return material->pass;
+}
+
+ListBase *GPU_material_get_inputs(GPUMaterial *material)
+{
+	return &material->inputs;
 }
 
 GPUUniformBuffer *GPU_material_get_uniform_buffer(GPUMaterial *material)
@@ -2562,7 +2569,7 @@ void GPU_material_generate_pass(
 	BLI_assert(mat->pass == NULL); /* Only run once! */
 	if (mat->outlink) {
 		mat->pass = GPU_generate_pass_new(
-		        mat, &mat->nodes, mat->outlink, &mat->attribs, vert_code, geom_code, frag_lib, defines);
+		        mat, mat->outlink, &mat->attribs, &mat->nodes, &mat->inputs, vert_code, geom_code, frag_lib, defines);
 		mat->status = (mat->pass) ? GPU_MAT_SUCCESS : GPU_MAT_FAILED;
 	}
 }
@@ -2729,7 +2736,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 	if (pass && pass->fragmentcode && pass->vertexcode) {
 		shader = MEM_callocN(sizeof(GPUShaderExport), "GPUShaderExport");
 
-		for (input = pass->inputs.first; input; input = input->next) {
+		for (input = mat->inputs.first; input; input = input->next) {
 			GPUInputUniform *uniform = MEM_callocN(sizeof(GPUInputUniform), "GPUInputUniform");
 
 			if (input->ima) {
@@ -2906,7 +2913,7 @@ void GPU_material_update_fvar_offset(GPUMaterial *gpu_material,
 {
 	GPUPass *pass = gpu_material->pass;
 	GPUShader *shader = (pass != NULL ? pass->shader : NULL);
-	ListBase *inputs = (pass != NULL ? &pass->inputs : NULL);
+	ListBase *inputs = (pass != NULL ? &gpu_material->inputs : NULL);
 	GPUInput *input;
 
 	if (shader == NULL) {
