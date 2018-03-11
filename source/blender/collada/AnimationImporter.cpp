@@ -1561,7 +1561,8 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 			copy_m4_m4(mat, matfra);
 		}
 
-		float val[4], rot[4], loc[3], scale[3];
+		float val[4] = {};
+		float rot[4], loc[3], scale[3];
 
 		switch (tm_type) {
 			case COLLADAFW::Transformation::ROTATE:
