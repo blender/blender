@@ -23,8 +23,6 @@ layout(location = 0) out vec4 FragColor;
 layout(location = 1) out vec4 sssColor;
 #endif
 
-uniform mat4 ProjectionMatrix;
-
 float get_view_z_from_depth(float depth)
 {
 	if (ProjectionMatrix[3][3] == 0.0) {
