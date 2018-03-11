@@ -505,7 +505,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("\n");
 	printf("Window Options:\n");
 	BLI_argsPrintArgDoc(ba, "--window-border");
-	BLI_argsPrintArgDoc(ba, "--window-borderless");
+	BLI_argsPrintArgDoc(ba, "--window-fullscreen");
 	BLI_argsPrintArgDoc(ba, "--window-geometry");
 	BLI_argsPrintArgDoc(ba, "--start-console");
 	BLI_argsPrintArgDoc(ba, "--no-native-pixels");
@@ -972,7 +972,7 @@ static int arg_handle_with_borders(int UNUSED(argc), const char **UNUSED(argv), 
 }
 
 static const char arg_handle_without_borders_doc[] =
-"\n\tForce opening without borders."
+"\n\tForce opening in fullscreen mode."
 ;
 static int arg_handle_without_borders(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
@@ -1892,7 +1892,7 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	/* second pass: custom window stuff */
 	BLI_argsAdd(ba, 2, "-p", "--window-geometry", CB(arg_handle_window_geometry), NULL);
 	BLI_argsAdd(ba, 2, "-w", "--window-border", CB(arg_handle_with_borders), NULL);
-	BLI_argsAdd(ba, 2, "-W", "--window-borderless", CB(arg_handle_without_borders), NULL);
+	BLI_argsAdd(ba, 2, "-W", "--window-fullscreen", CB(arg_handle_without_borders), NULL);
 	BLI_argsAdd(ba, 2, "-con", "--start-console", CB(arg_handle_start_with_console), NULL);
 	BLI_argsAdd(ba, 2, "-R", NULL, CB(arg_handle_register_extension), NULL);
 	BLI_argsAdd(ba, 2, "-r", NULL, CB_EX(arg_handle_register_extension, silent), ba);
