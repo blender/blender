@@ -434,12 +434,9 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 		}
 		else {
 			/* old shading system, we set texface */
-			MTexPoly *tf;
-			
-			if (em && EDBM_mtexpoly_check(em)) {
-				tf = EDBM_mtexpoly_active_get(em, NULL, sloppy, selected);
-
-				if (tf) {
+			if (em && EDBM_uv_check(em)) {
+				MTexPoly *tf;
+				if (EDBM_uv_active_face_get(em, sloppy, selected, &tf)) {
 					/* don't need to check for pin here, see above */
 					sima->image = tf->tpage;
 					

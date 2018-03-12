@@ -227,7 +227,7 @@ void EDBM_mesh_load(struct Object *ob) RET_NONE
 void EDBM_mesh_make(struct ToolSettings *ts, struct Object *ob, const bool use_key_index) RET_NONE
 void EDBM_mesh_normals_update(struct BMEditMesh *em) RET_NONE
 void *g_system;
-bool EDBM_mtexpoly_check(struct BMEditMesh *em) RET_ZERO
+bool EDBM_uv_check(struct BMEditMesh *em) RET_ZERO
 
 float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl, const char *name, const char *viewname) RET_NULL
 float RE_filter_value(int type, float x) RET_ZERO

@@ -47,6 +47,7 @@ struct bDeformGroup;
 struct MDeformVert;
 struct Scene;
 struct Mesh;
+struct MTexPoly;
 struct UvVertMap;
 struct UvMapVert;
 struct BMEditMesh;
@@ -112,8 +113,10 @@ struct UvElementMap *BM_uv_element_map_create(
 void                 BM_uv_element_map_free(struct UvElementMap *vmap);
 struct UvElement    *BM_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 
-bool             EDBM_mtexpoly_check(struct BMEditMesh *em);
-struct MTexPoly *EDBM_mtexpoly_active_get(struct BMEditMesh *em, struct BMFace **r_act_efa, const bool sloppy, const bool selected);
+bool           EDBM_uv_check(struct BMEditMesh *em);
+struct BMFace *EDBM_uv_active_face_get(
+        struct BMEditMesh *em, const bool sloppy, const bool selected,
+        struct MTexPoly **r_tf);
 
 void              BM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
@@ -137,8 +140,9 @@ bool EDBM_backbuf_border_init(struct ViewContext *vc, short xmin, short ymin, sh
 bool EDBM_backbuf_check(unsigned int index);
 void EDBM_backbuf_free(void);
 
-bool EDBM_backbuf_border_mask_init(struct ViewContext *vc, const int mcords[][2], short tot,
-                                   short xmin, short ymin, short xmax, short ymax);
+bool EDBM_backbuf_border_mask_init(
+        struct ViewContext *vc, const int mcords[][2], short tot,
+        short xmin, short ymin, short xmax, short ymax);
 bool EDBM_backbuf_circle_init(struct ViewContext *vc, short xs, short ys, short rads);
 
 struct BMVert *EDBM_vert_find_nearest_ex(
@@ -218,9 +222,11 @@ typedef struct MirrTopoStore_t {
 	int prev_ob_mode;
 } MirrTopoStore_t;
 
-bool ED_mesh_mirrtopo_recalc_check(struct Mesh *me, struct DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
-void ED_mesh_mirrtopo_init(struct Mesh *me, struct DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
-                           const bool skip_em_vert_array_init);
+bool ED_mesh_mirrtopo_recalc_check(
+        struct Mesh *me, struct DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store);
+void ED_mesh_mirrtopo_init(
+        struct Mesh *me, struct DerivedMesh *dm, const int ob_mode, MirrTopoStore_t *mesh_topo_store,
+        const bool skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
 

@@ -106,7 +106,7 @@ bool ED_uvedit_test(Object *obedit)
 		return 0;
 
 	em = BKE_editmesh_from_object(obedit);
-	ret = EDBM_mtexpoly_check(em);
+	ret = EDBM_uv_check(em);
 	
 	return ret;
 }
@@ -4081,7 +4081,7 @@ static int uv_seams_from_islands_exec(bContext *C, wmOperator *op)
 	em = me->edit_btmesh;
 	bm = em->bm;
 
-	if (!EDBM_mtexpoly_check(em)) {
+	if (!EDBM_uv_check(em)) {
 		return OPERATOR_CANCELLED;
 	}
 
