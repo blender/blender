@@ -125,13 +125,17 @@ enum {
 	G_DEBUG_DEPSGRAPH_BUILD      = (1 << 8),   /* depsgraph construction messages */
 	G_DEBUG_DEPSGRAPH_EVAL       = (1 << 9),   /* depsgraph evaluation messages */
 	G_DEBUG_DEPSGRAPH_TAG        = (1 << 10),  /* depsgraph tagging messages */
-	G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 11),  /* single threaded depsgraph */
-	G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD | G_DEBUG_DEPSGRAPH_EVAL | G_DEBUG_DEPSGRAPH_TAG),
-	G_DEBUG_SIMDATA =   (1 << 12), /* sim debug data display */
-	G_DEBUG_GPU_MEM =   (1 << 13), /* gpu memory in status bar */
-	G_DEBUG_GPU =        (1 << 14), /* gpu debug */
+	G_DEBUG_DEPSGRAPH_TIME       = (1 << 11),  /* depsgraph timing statistics and messages */
+	G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12),  /* single threaded depsgraph */
+	G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD |
+	                     G_DEBUG_DEPSGRAPH_EVAL |
+	                     G_DEBUG_DEPSGRAPH_TAG |
+	                     G_DEBUG_DEPSGRAPH_TIME),
+	G_DEBUG_SIMDATA =   (1 << 13), /* sim debug data display */
+	G_DEBUG_GPU_MEM =   (1 << 14), /* gpu memory in status bar */
+	G_DEBUG_GPU =        (1 << 15), /* gpu debug */
 	G_DEBUG_IO = (1 << 13),   /* IO Debugging (for Collada, ...)*/
-	G_DEBUG_GPU_SHADERS = (1 << 15),   /* GLSL shaders */
+	G_DEBUG_GPU_SHADERS = (1 << 16),   /* GLSL shaders */
 };
 
 #define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \

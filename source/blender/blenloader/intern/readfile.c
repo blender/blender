@@ -8524,6 +8524,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 	id->icon_id = 0;
 	id->newid = NULL;  /* Needed because .blend may have been saved with crap value here... */
 	id->orig_id = NULL;
+	id->recalc = 0;
 	
 	/* this case cannot be direct_linked: it's just the ID part */
 	if (bhead->code == ID_ID) {

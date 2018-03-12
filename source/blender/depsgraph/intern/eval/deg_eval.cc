@@ -234,6 +234,7 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	if (BLI_gset_len(graph->entry_tags) == 0) {
 		return;
 	}
+	const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();
 	eval_ctx->depsgraph = (::Depsgraph *)graph;
@@ -243,7 +244,7 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	DepsgraphEvalState state;
 	state.eval_ctx = eval_ctx;
 	state.graph = graph;
-	state.do_stats = (G.debug_value != 0);
+	state.do_stats = do_time_debug;
 	/* Set up task scheduler and pull for threaded evaluation. */
 	TaskScheduler *task_scheduler;
 	bool need_free_scheduler;

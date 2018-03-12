@@ -753,6 +753,8 @@ static const char arg_handle_debug_mode_generic_set_doc_depsgraph_build[] =
 "\n\tEnable debug messages from dependency graph related on graph construction.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_tag[] =
 "\n\tEnable debug messages from dependency graph related on tagging.";
+static const char arg_handle_debug_mode_generic_set_doc_depsgraph_time[] =
+"\n\tEnable debug messages from dependency graph related on timing.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_eval[] =
 "\n\tEnable debug messages from dependency graph related on evaluation.";
 static const char arg_handle_debug_mode_generic_set_doc_depsgraph_no_threads[] =
@@ -1848,6 +1850,8 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	            CB_EX(arg_handle_debug_mode_generic_set, depsgraph_eval), (void *)G_DEBUG_DEPSGRAPH_EVAL);
 	BLI_argsAdd(ba, 1, NULL, "--debug-depsgraph-tag",
 	            CB_EX(arg_handle_debug_mode_generic_set, depsgraph_tag), (void *)G_DEBUG_DEPSGRAPH_TAG);
+	BLI_argsAdd(ba, 1, NULL, "--debug-depsgraph-time",
+	            CB_EX(arg_handle_debug_mode_generic_set, depsgraph_time), (void *)G_DEBUG_DEPSGRAPH_TIME);
 	BLI_argsAdd(ba, 1, NULL, "--debug-depsgraph-no-threads",
 	            CB_EX(arg_handle_debug_mode_generic_set, depsgraph_no_threads), (void *)G_DEBUG_DEPSGRAPH_NO_THREADS);
 	BLI_argsAdd(ba, 1, NULL, "--debug-gpumem",
