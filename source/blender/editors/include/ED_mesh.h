@@ -115,7 +115,8 @@ void                 BM_uv_element_map_free(struct UvElementMap *vmap);
 struct UvElement    *BM_uv_element_get(struct UvElementMap *map, struct BMFace *efa, struct BMLoop *l);
 
 bool           EDBM_uv_check(struct BMEditMesh *em);
-struct BMFace *EDBM_uv_active_face_get(struct BMEditMesh *em, const bool sloppy, const bool selected);
+struct BMFace *EDBM_uv_active_face_get(
+        struct BMEditMesh *em, const bool sloppy, const bool selected);
 
 void              BM_uv_vert_map_free(struct UvVertMap *vmap);
 struct UvMapVert *BM_uv_vert_map_at_index(struct UvVertMap *vmap, unsigned int v);
@@ -263,6 +264,7 @@ void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 void                 ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
+
 
 /* mesh_data.c */
 // void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);

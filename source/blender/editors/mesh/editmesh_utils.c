@@ -921,9 +921,10 @@ BMFace *EDBM_uv_active_face_get(BMEditMesh *em, const bool sloppy, const bool se
 {
 	BMFace *efa = NULL;
 	
-	if (!EDBM_uv_check(em))
+	if (!EDBM_uv_check(em)) {
 		return NULL;
-	
+	}
+
 	efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
 
 	if (efa) {
