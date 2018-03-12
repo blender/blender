@@ -1301,7 +1301,7 @@ int UI_idcode_icon_get(const int idcode)
 {
 	switch (idcode) {
 		case ID_AC:
-			return ICON_ANIM_DATA;
+			return ICON_ACTION;
 		case ID_AR:
 			return ICON_ARMATURE_DATA;
 		case ID_BR:
