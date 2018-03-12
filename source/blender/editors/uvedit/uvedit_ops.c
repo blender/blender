@@ -1981,7 +1981,7 @@ static void UV_OT_select_all(wmOperatorType *ot)
 
 /* ******************** mouse select operator **************** */
 
-static bool uv_sticky_select(float *limit, int hitv[4], int v, float *hituv[4], float *uv, int sticky, int hitlen)
+static bool uv_sticky_select(float *limit, int hitv[], int v, float *hituv[], float *uv, int sticky, int hitlen)
 {
 	int i;
 
