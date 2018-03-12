@@ -125,7 +125,7 @@ enum {
 	G_DEBUG_DEPSGRAPH_BUILD      = (1 << 8),   /* depsgraph construction messages */
 	G_DEBUG_DEPSGRAPH_EVAL       = (1 << 9),   /* depsgraph evaluation messages */
 	G_DEBUG_DEPSGRAPH_TAG        = (1 << 10),  /* depsgraph tagging messages */
-	G_DEBUG_DEPSGRAPH_TIME       = (1 << 11),  /* single threaded depsgraph */
+	G_DEBUG_DEPSGRAPH_TIME       = (1 << 11),  /* depsgraph timing statistics and messages */
 	G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12),  /* single threaded depsgraph */
 	G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD |
 	                     G_DEBUG_DEPSGRAPH_EVAL |
