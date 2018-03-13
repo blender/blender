@@ -212,6 +212,10 @@ static void eevee_draw_background(void *vedata)
 		/* Refresh Probes */
 		DRW_stats_group_start("Probes Refresh");
 		EEVEE_lightprobes_refresh(sldata, vedata);
+		/* Probes refresh can have reset the current sample. */
+		if (stl->effects->taa_current_sample == 1) {
+			DRW_viewport_matrix_override_unset_all();
+		}
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_stats_group_end();
 
