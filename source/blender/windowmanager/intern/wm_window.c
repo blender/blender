@@ -551,7 +551,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 }
 
 /**
- * Initialize #wmWindows without ghostwin, open these and clear.
+ * Initialize #wmWindow without ghostwin, open these and clear.
  *
  * window size is read from window, if 0 it uses prefsize
  * called in #WM_check, also inits stuff after file read.

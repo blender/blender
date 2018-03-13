@@ -182,9 +182,6 @@ void undo_editmode_push(
 	}
 }
 
-/** \} */
-
-
 /* helper to remove clean other objects from undo stack */
 static void undo_clean_stack(bContext *C)
 {

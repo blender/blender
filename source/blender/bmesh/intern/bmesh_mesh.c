@@ -521,7 +521,7 @@ void BM_verts_calc_normal_vcos(BMesh *bm, const float (*fnos)[3], const float (*
 }
 
 /**
- * Helpers for #BM_mesh_loop_normals_update and #BM_loops_calc_normals_vnos
+ * Helpers for #BM_mesh_loop_normals_update and #BM_loops_calc_normal_vcos
  */
 static void bm_mesh_edges_sharp_tag(
         BMesh *bm,

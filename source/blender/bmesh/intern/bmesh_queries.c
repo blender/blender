@@ -1526,9 +1526,9 @@ float BM_loop_calc_face_angle(const BMLoop *l)
  *
  * Calculate the normal at this loop corner or fallback to the face normal on straight lines.
  *
- * \param l The loop to calculate the normal at
- * \param epsilon: Value to avoid numeric errors (1e-5f works well).
- * \param r_normal Resulting normal
+ * \param l: The loop to calculate the normal at.
+ * \param epsilon_sq: Value to avoid numeric errors (1e-5f works well).
+ * \param r_normal: Resulting normal.
  */
 float BM_loop_calc_face_normal_safe_ex(const BMLoop *l, const float epsilon_sq, float r_normal[3])
 {

@@ -2452,10 +2452,10 @@ static bool select_linked_delimit_test(
  * Gets the default from the operator fallback to own last-used value
  * (selected based on mode)
  */
-static int select_linked_delimit_default_from_op(wmOperator *op, BMEditMesh *em)
+static int select_linked_delimit_default_from_op(wmOperator *op, int select_mode)
 {
 	static char delimit_last_store[2] = {0, BMO_DELIM_SEAM};
-	int delimit_last_index = (em->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0;
+	int delimit_last_index = (select_mode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0;
 	char *delimit_last = &delimit_last_store[delimit_last_index];
 	PropertyRNA *prop_delimit = RNA_struct_find_property(op->ptr, "delimit");
 	int delimit;
@@ -2525,7 +2525,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	BMWalker walker;
 
 #ifdef USE_LINKED_SELECT_DEFAULT_HACK
-	int delimit = select_linked_delimit_default_from_op(op, em);
+	int delimit = select_linked_delimit_default_from_op(op, em->selectmode);
 #else
 	int delimit = RNA_enum_get(op->ptr, "delimit");
 #endif
@@ -2859,7 +2859,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	}
 
 #ifdef USE_LINKED_SELECT_DEFAULT_HACK
-	int delimit = select_linked_delimit_default_from_op(op, em);
+	int delimit = select_linked_delimit_default_from_op(op, em->selectmode);
 #else
 	int delimit = RNA_enum_get(op->ptr, "delimit");
 #endif
@@ -2896,7 +2896,7 @@ static int edbm_select_linked_pick_exec(bContext *C, wmOperator *op)
 	BMElem *ele = EDBM_elem_from_index_any(em, index);
 
 #ifdef USE_LINKED_SELECT_DEFAULT_HACK
-	int delimit = select_linked_delimit_default_from_op(op, em);
+	int delimit = select_linked_delimit_default_from_op(op, em->selectmode);
 #else
 	int delimit = RNA_enum_get(op->ptr, "delimit");
 #endif

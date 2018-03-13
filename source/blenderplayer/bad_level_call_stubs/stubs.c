@@ -243,7 +243,7 @@ void DRW_deferred_shader_remove(struct GPUMaterial *mat) RET_NONE
 /*new render funcs */
 void EDBM_selectmode_set(struct BMEditMesh *em) RET_NONE
 void EDBM_mesh_load(struct Object *ob) RET_NONE
-void EDBM_mesh_make(struct ToolSettings *ts, struct Object *ob, const bool use_key_index) RET_NONE
+void EDBM_mesh_make(struct Object *ob, const int select_mode, const bool use_key_index) RET_NONE
 void EDBM_mesh_normals_update(struct BMEditMesh *em) RET_NONE
 void *g_system;
 bool EDBM_uv_check(struct BMEditMesh *em) RET_ZERO

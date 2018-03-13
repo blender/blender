@@ -4066,6 +4066,7 @@ static const EnumPropertyItem *rna_id_itemf(
 
 	for (; id; id = id->next) {
 		if ((filter_ids != NULL) && filter_ids(user_data, id) == false) {
+			i++;
 			continue;
 		}
 		if (local == false || !ID_IS_LINKED(id)) {

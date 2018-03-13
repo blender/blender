@@ -1924,6 +1924,7 @@ void BLI_bvhtree_ray_cast_all(
 	BLI_bvhtree_ray_cast_all_ex(tree, co, dir, radius, hit_dist, callback, userdata, BVH_RAYCAST_DEFAULT);
 }
 
+/** \} */
 
 /* -------------------------------------------------------------------- */
 

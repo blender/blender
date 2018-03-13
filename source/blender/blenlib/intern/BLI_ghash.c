@@ -1345,7 +1345,7 @@ void *BLI_gset_lookup(GSet *gs, const void *key)
 
 /**
  * Returns the pointer to the key if it's found, removing it from the GSet.
- * \node Caller must handle freeing.
+ * \note Caller must handle freeing.
  */
 void *BLI_gset_pop_key(GSet *gs, const void *key)
 {

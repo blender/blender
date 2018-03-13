@@ -299,7 +299,7 @@ typedef struct BChunk {
 } BChunk;
 
 /**
- * Links to store #BChunk data in #BChunkList.chunks.
+ * Links to store #BChunk data in #BChunkList.chunk_refs.
  */
 typedef struct BChunkRef {
 	struct BChunkRef *next, *prev;
@@ -749,6 +749,7 @@ static void bchunk_list_fill_from_array(
 	ASSERT_CHUNKLIST_DATA(chunk_list, data);
 }
 
+/** \} */
 
 /* ---------------------------------------------------------------------------
  * Internal Table Lookup Functions
@@ -1012,6 +1013,10 @@ static const BChunkRef *table_lookup(
  * ---------------- */
 
 /** \} */
+
+/** \name Main Data De-Duplication Function
+ *
+ * \{ */
 
 /**
  * \param data: Data to store in the returned value.
@@ -1503,6 +1508,8 @@ void BLI_array_store_clear(
 	BLI_mempool_clear(bs->memory.chunk_ref);
 	BLI_mempool_clear(bs->memory.chunk);
 }
+
+/** \} */
 
 /** \name BArrayStore Statistics
  * \{ */

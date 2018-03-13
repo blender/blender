@@ -331,7 +331,7 @@ void EDBM_selectmode_to_scene(bContext *C)
 	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, scene);
 }
 
-void EDBM_mesh_make(ToolSettings *ts, Object *ob, const bool add_key_index)
+void EDBM_mesh_make(Object *ob, const int select_mode, const bool add_key_index)
 {
 	Mesh *me = ob->data;
 	BMesh *bm;
@@ -358,7 +358,7 @@ void EDBM_mesh_make(ToolSettings *ts, Object *ob, const bool add_key_index)
 	me->edit_btmesh = BKE_editmesh_create(bm, false);
 #endif
 
-	me->edit_btmesh->selectmode = me->edit_btmesh->bm->selectmode = ts->selectmode;
+	me->edit_btmesh->selectmode = me->edit_btmesh->bm->selectmode = select_mode;
 	me->edit_btmesh->mat_nr = (ob->actcol > 0) ? ob->actcol - 1 : 0;
 	me->edit_btmesh->ob = ob;
 
