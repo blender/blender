@@ -433,6 +433,10 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		/* Refresh Probes */
 		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
 			EEVEE_lightprobes_refresh(sldata, vedata);
+			/* Refreshing probes can take some times, allow exit. */
+			if (RE_engine_test_break(engine)) {
+				return;
+			}
 		}
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
