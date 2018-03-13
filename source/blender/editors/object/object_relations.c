@@ -140,7 +140,7 @@ static int vertex_parent_set_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em;
 
 		EDBM_mesh_load(obedit);
-		EDBM_mesh_make(scene->toolsettings, obedit, true);
+		EDBM_mesh_make(obedit, scene->toolsettings->selectmode, true);
 
 		DAG_id_tag_update(obedit->data, 0);
 

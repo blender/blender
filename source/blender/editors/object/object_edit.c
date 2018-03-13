@@ -564,7 +564,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 		const bool use_key_index = mesh_needs_keyindex(ob->data);
 
-		EDBM_mesh_make(scene->toolsettings, ob, use_key_index);
+		EDBM_mesh_make(ob, scene->toolsettings->selectmode, use_key_index);
 
 		em = BKE_editmesh_from_object(ob);
 		if (LIKELY(em)) {
