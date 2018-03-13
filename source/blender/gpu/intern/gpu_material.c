@@ -2572,6 +2572,9 @@ void GPU_material_generate_pass(
 		        mat, mat->outlink, &mat->attribs, &mat->nodes, &mat->inputs, vert_code, geom_code, frag_lib, defines);
 		mat->status = (mat->pass) ? GPU_MAT_SUCCESS : GPU_MAT_FAILED;
 	}
+	else {
+		mat->status = GPU_MAT_FAILED;
+	}
 }
 
 GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_opensubdiv)
