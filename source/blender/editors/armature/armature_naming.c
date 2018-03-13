@@ -313,7 +313,7 @@ typedef struct BoneFlipNameData {
  *
  * \param arm: Armature the bones belong to
  * \param bones_names: List of BoneConflict elems.
- * \param do_flip_numbers: if set, try to get rid of dot-numbers at end of bone names.
+ * \param do_strip_numbers: if set, try to get rid of dot-numbers at end of bone names.
  */
 void ED_armature_bones_flip_names(bArmature *arm, ListBase *bones_names, const bool do_strip_numbers)
 {

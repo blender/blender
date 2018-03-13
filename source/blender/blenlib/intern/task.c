@@ -1310,11 +1310,11 @@ static void parallel_mempool_func(
 /**
  * This function allows to parallelize for loops over Mempool items.
  *
- * \param pool The iterable BLI_mempool to loop over.
- * \param userdata Common userdata passed to all instances of \a func.
- * \param func Callback function.
- * \param use_threading If \a true, actually split-execute loop in threads, else just do a sequential forloop
- *                      (allows caller to use any kind of test to switch on parallelization or not).
+ * \param mempool: The iterable BLI_mempool to loop over.
+ * \param userdata: Common userdata passed to all instances of \a func.
+ * \param func: Callback function.
+ * \param use_threading: If \a true, actually split-execute loop in threads, else just do a sequential for loop
+ * (allows caller to use any kind of test to switch on parallelization or not).
  *
  * \note There is no static scheduling here.
  */

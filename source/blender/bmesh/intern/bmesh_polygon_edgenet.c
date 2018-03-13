@@ -860,7 +860,7 @@ static void bvhtree_test_edges_isect_2d_ray_cb(
 /**
  * Store values for:
  * - #bm_face_split_edgenet_find_connection
- * - #test_edges_isect_2d
+ * - #test_edges_isect_2d_vert
  * ... which don't change each call.
  */
 struct EdgeGroup_FindConnection_Args {

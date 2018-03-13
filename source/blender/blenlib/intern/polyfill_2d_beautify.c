@@ -265,7 +265,8 @@ static void polyedge_rotate(
         struct HalfEdge *e)
 {
 	/** CCW winding, rotate internal edge to new vertical state.
-	 * <pre>
+	 *
+	 * \code{.unparsed}
 	 *   Before         After
 	 *      X             X
 	 *     / \           /|\
@@ -276,7 +277,7 @@ static void polyedge_rotate(
 	 *  e2\   /e1     e2\ | /e1
 	 *     \ /           \|/
 	 *      X             X
-	 * </pre>
+	 * \endcode
 	 */
 	struct HalfEdge *ed[6];
 	uint ed_index[6];

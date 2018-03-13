@@ -199,6 +199,8 @@ void   BLI_gset_clear(GSet *gs, GSetKeyFreeFP keyfreefp);
 void  *BLI_gset_lookup(GSet *gh, const void *key) ATTR_WARN_UNUSED_RESULT;
 void  *BLI_gset_pop_key(GSet *gs, const void *key) ATTR_WARN_UNUSED_RESULT;
 
+/** \} */
+
 /** \name GSet Iterator
  * \{ */
 
@@ -286,7 +288,7 @@ double BLI_gset_calc_quality(GSet *gs);
  *
  * \note '_p' suffix denotes void pointer arg,
  * so we can have functions that take correctly typed args too.
- * \{ */
+ */
 
 unsigned int    BLI_ghashutil_ptrhash(const void *key);
 bool            BLI_ghashutil_ptrcmp(const void *a, const void *b);

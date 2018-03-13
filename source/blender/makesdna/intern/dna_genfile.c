@@ -57,7 +57,7 @@
  * \section dna_genfile Overview
  *
  * - please note: no builtin security to detect input of double structs
- * - if you want a struct not to be in DNA file: add two hash marks above it (#<enter>#<enter>)
+ * - if you want a struct not to be in DNA file: add two hash marks above it `(#<enter>#<enter>)`.
  *
  * Structure DNA data is added to each blender file and to each executable, this to detect
  * in .blend files new variables in structs, changed array sizes, etc. It's also used for

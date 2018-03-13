@@ -59,6 +59,10 @@
 
 #include "transform.h"
 
+/* -------------------------------------------------------------------- */
+/** Internal Data Types
+ * \{ */
+
 enum eViewProj {
 	VIEW_PROJ_NONE = -1,
 	VIEW_PROJ_ORTHO = 0,
@@ -132,10 +136,8 @@ struct SnapObjectContext {
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-
-/** Common utilities
+/** Common Utilities
  * \{ */
 
 
@@ -256,9 +258,7 @@ static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt);
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-
 /** \name Ray Cast Funcs
  * \{ */
 
@@ -785,7 +785,6 @@ static void raycast_obj_cb(SnapObjectContext *sctx, bool is_obedit, Object *ob, 
  * Walks through all objects in the scene to find the `hit` on object surface.
  *
  * \param sctx: Snap context to store data.
- * \param snapdata: struct generated in `set_snapdata`.
  * \param snap_select : from enum eSnapSelect.
  * \param use_object_edit_cage : Uses the coordinates of BMesh(if any) to do the snapping.
  * \param obj_list: List with objects to snap (created in `create_object_list`).
@@ -842,9 +841,7 @@ static bool raycastObjects(
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-
 /** Snap Nearest utilities
  * \{ */
 
@@ -1154,9 +1151,7 @@ static float dist_squared_to_projected_aabb_simple(
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-
 /** Walk DFS
  * \{ */
 
@@ -1252,7 +1247,6 @@ static bool cb_nearest_walk_order(const BVHTreeAxisRange *UNUSED(bounds), char a
 /** \} */
 
 /* -------------------------------------------------------------------- */
-
 /** \name Internal Object Snapping API
  * \{ */
 
@@ -2076,9 +2070,7 @@ static bool snapObjectsRay(
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-
 /** \name Public Object Snapping API
  * \{ */
 
