@@ -31,6 +31,7 @@
 #include "DRW_render.h"
 
 #include "DNA_node_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_rand.h"
 #include "BLI_rect.h"
@@ -129,9 +130,13 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 
 void EEVEE_render_cache(
         void *vedata, struct Object *ob,
-        struct RenderEngine *UNUSED(engine), struct Depsgraph *UNUSED(depsgraph))
+        struct RenderEngine *engine, struct Depsgraph *UNUSED(depsgraph))
 {
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+
+	char info[42];
+	BLI_snprintf(info, sizeof(info), "Syncing %s", ob->id.name + 2);
+	RE_engine_update_stats(engine, NULL, info);
 
 	if (DRW_check_object_visible_within_active_context(ob) == false) {
 		return;
@@ -432,6 +437,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
 		/* Refresh Probes */
 		while (EEVEE_lightprobes_all_probes_ready(sldata, vedata) == false) {
+			RE_engine_update_stats(engine, NULL, "Updating Probes");
 			EEVEE_lightprobes_refresh(sldata, vedata);
 			/* Refreshing probes can take some times, allow exit. */
 			if (RE_engine_test_break(engine)) {
@@ -440,6 +446,10 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		}
 		EEVEE_lightprobes_refresh_planar(sldata, vedata);
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
+
+		char info[42];
+		BLI_snprintf(info, sizeof(info), "Rendering %u / %u samples", render_samples+1, tot_sample);
+		RE_engine_update_stats(engine, NULL, info);
 
 		/* Refresh Shadows */
 		EEVEE_draw_shadows(sldata, psl);
