@@ -1632,33 +1632,30 @@ void OBJECT_OT_make_links_data(wmOperatorType *ot)
 
 static Object *single_object_users_object(Main *bmain, Scene *scene, Object *ob, const bool copy_groups)
 {
-	if (!ID_IS_LINKED(ob) && ob->id.us > 1) {
-		/* base gets copy of object */
-		Object *obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
+	/* base gets copy of object */
+	Object *obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 
-		if (copy_groups) {
-			if (ob->flag & OB_FROMGROUP) {
-				obn->flag |= OB_FROMGROUP;
-			}
+	if (copy_groups) {
+		if (ob->flag & OB_FROMGROUP) {
+			obn->flag |= OB_FROMGROUP;
 		}
-		else {
-			/* copy already clears */
-		}
-		/* remap gpencil parenting */
-
-		if (scene->gpd) {
-			bGPdata *gpd = scene->gpd;
-			for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-				if (gpl->parent == ob) {
-					gpl->parent = obn;
-				}
-			}
-		}
-
-		id_us_min(&ob->id);
-		return obn;
 	}
-	return NULL;
+	else {
+		/* copy already clears */
+	}
+	/* remap gpencil parenting */
+
+	if (scene->gpd) {
+		bGPdata *gpd = scene->gpd;
+		for (bGPDlayer *gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+			if (gpl->parent == ob) {
+				gpl->parent = obn;
+			}
+		}
+	}
+
+	id_us_min(&ob->id);
+	return obn;
 }
 
 static void libblock_relink_scene_collection(SceneCollection *sc)
@@ -1678,7 +1675,9 @@ static void single_object_users_scene_collection(Main *bmain, Scene *scene, Scen
 		Object *ob = link->data;
 		/* an object may be in more than one collection */
 		if ((ob->id.newid == NULL) && ((ob->flag & flag) == flag)) {
-			link->data = single_object_users_object(bmain, scene, link->data, copy_groups);
+			if (!ID_IS_LINKED(ob) && ob->id.us > 1) {
+				link->data = single_object_users_object(bmain, scene, link->data, copy_groups);
+			}
 		}
 	}
 
