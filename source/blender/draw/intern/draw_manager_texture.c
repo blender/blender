@@ -35,6 +35,7 @@ void drw_texture_get_format(
 			/* Only add formats that are COMPATIBLE with FB.
 			 * Generally they are multiple of 16bit. */
 			case DRW_TEX_R_16:
+			case DRW_TEX_R_16I:
 			case DRW_TEX_R_32:
 			case DRW_TEX_RG_8:
 			case DRW_TEX_RG_16:
@@ -70,6 +71,7 @@ void drw_texture_get_format(
 		case DRW_TEX_RG_32: *r_data_type = GPU_RG32F; break;
 		case DRW_TEX_R_8: *r_data_type = GPU_R8; break;
 		case DRW_TEX_R_16: *r_data_type = GPU_R16F; break;
+		case DRW_TEX_R_16I: *r_data_type = GPU_R16I; break;
 		case DRW_TEX_R_32: *r_data_type = GPU_R32F; break;
 #if 0
 		case DRW_TEX_RGB_8: *r_data_type = GPU_RGB8; break;

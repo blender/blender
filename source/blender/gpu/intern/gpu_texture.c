@@ -136,7 +136,7 @@ static GLenum gpu_texture_get_format(
 		*is_stencil = false;
 
 		/* Integer formats */
-		if (ELEM(data_type, GPU_RG16I)) {
+		if (ELEM(data_type, GPU_RG16I, GPU_R16I)) {
 			*data_format = GL_INT;
 
 			switch (components) {
@@ -185,6 +185,7 @@ static GLenum gpu_texture_get_format(
 			break;
 		case GPU_DEPTH_COMPONENT16:
 		case GPU_R16F:
+		case GPU_R16I:
 		case GPU_RG8:
 			*bytesize = 2;
 			break;
@@ -209,6 +210,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_RGBA8: return GL_RGBA8;
 		case GPU_R32F: return GL_R32F;
 		case GPU_R16F: return GL_R16F;
+		case GPU_R16I: return GL_R16I;
 		case GPU_RG8: return GL_RG8;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
