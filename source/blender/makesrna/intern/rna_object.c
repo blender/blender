@@ -301,9 +301,11 @@ void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
 }
 
-static void rna_Object_active_shape_update(bContext *C, Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 
 	if (CTX_data_edit_object(C) == ob) {
 		/* exit/enter editmode to get new shape */
