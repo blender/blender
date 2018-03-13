@@ -417,19 +417,28 @@ MODULE_GROUPING = {
 # -------------------------------BLENDER----------------------------------------
 
 blender_version_strings = [str(v) for v in bpy.app.version]
+is_release = bpy.app.version_cycle in {"rc", "release"}
 
 # converting bytes to strings, due to T30154
 BLENDER_REVISION = str(bpy.app.build_hash, 'utf_8')
 BLENDER_DATE = str(bpy.app.build_date, 'utf_8')
 
-BLENDER_VERSION_DOTS = ".".join(blender_version_strings)    # '2.62.1'
+if is_release:
+    # '2.62a'
+    BLENDER_VERSION_DOTS = ".".join(blender_version_strings[:2]) + bpy.app.version_char
+else:
+    # '2.62.1'
+    BLENDER_VERSION_DOTS = ".".join(blender_version_strings)
 if BLENDER_REVISION != "Unknown":
-    BLENDER_VERSION_DOTS += " " + BLENDER_REVISION          # '2.62.1 SHA1'
+    # '2.62a SHA1' (release) or '2.62.1 SHA1' (non-release)
+    BLENDER_VERSION_DOTS += " " + BLENDER_REVISION          
 
-BLENDER_VERSION_PATH = "_".join(blender_version_strings)    # '2_62_1'
-if bpy.app.version_cycle in {"rc", "release"}:
+if is_release:
     # '2_62a_release'
     BLENDER_VERSION_PATH = "%s%s_release" % ("_".join(blender_version_strings[:2]), bpy.app.version_char)
+else:
+    # '2_62_1'
+    BLENDER_VERSION_PATH = "_".join(blender_version_strings)
 
 # --------------------------DOWNLOADABLE FILES----------------------------------
 
