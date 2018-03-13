@@ -1446,6 +1446,7 @@ static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	EEVEE_PassList *psl = vedata->psl;
+	EEVEE_StorageList *stl = vedata->stl;
 	DRWMatrixState saved_mats;
 
 	/* We need to save the Matrices before overidding them */
@@ -1465,9 +1466,14 @@ static void lightprobes_refresh_world(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_framebuffer_texture_detach(sldata->irradiance_rt);
 		DRW_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 		common_data->prb_num_render_grid = 1;
+		/* Reset volume history. */
+		stl->effects->volume_current_sample = -1;
+		common_data->vol_history_alpha = 0.0f;
 	}
 	pinfo->update_world = 0;
 	DRW_viewport_request_redraw();
+	/* Do not let this frame accumulate. */
+	stl->effects->taa_current_sample = 1;
 
 	DRW_viewport_matrix_override_set_all(&saved_mats);
 }
@@ -1585,7 +1591,6 @@ static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 		DRW_viewport_request_redraw();
 		/* Do not let this frame accumulate. */
 		stl->effects->taa_current_sample = 1;
-
 		/* Only do one probe per frame */
 		return;
 	}
@@ -1712,6 +1717,9 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 			DRW_viewport_request_redraw();
 			/* Do not let this frame accumulate. */
 			stl->effects->taa_current_sample = 1;
+			/* Reset volume history. */
+			stl->effects->volume_current_sample = -1;
+			common_data->vol_history_alpha = 0.0f;
 			/* Restore matrices */
 			DRW_viewport_matrix_override_set_all(&saved_mats);
 			return;
