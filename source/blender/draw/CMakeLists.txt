@@ -132,6 +132,7 @@ if(WITH_CLAY_ENGINE)
 endif()
 
 data_to_c_simple(engines/clay/shaders/clay_frag.glsl SRC)
+data_to_c_simple(engines/clay/shaders/clay_prepass_frag.glsl SRC)
 data_to_c_simple(engines/clay/shaders/clay_vert.glsl SRC)
 data_to_c_simple(engines/clay/shaders/clay_particle_vert.glsl SRC)
 data_to_c_simple(engines/clay/shaders/clay_particle_strand_frag.glsl SRC)

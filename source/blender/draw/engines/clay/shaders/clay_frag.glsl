@@ -1,5 +1,4 @@
-uniform vec2 screenres;
-uniform sampler2D depthtex;
+uniform vec2 invscreenres;
 uniform mat4 WinMatrix;
 
 /* Matcap */
@@ -33,7 +32,14 @@ layout(std140) uniform material_block {
 	Material matcaps_param[MAX_MATERIAL];
 };
 
+#ifdef DEFERRED_SHADING
+uniform sampler2D depthtex;
+uniform sampler2D normaltex;
+uniform isampler2D idtex;
+int mat_id; /* global */
+#else
 uniform int mat_id;
+#endif
 
 /* Aliases */
 #define ssao_samples_num	ssao_params.x
@@ -44,10 +50,12 @@ uniform int mat_id;
 #define matcap_index		matcaps_param[mat_id].matcap_hsv_id.w
 #define matcap_rotation		matcaps_param[mat_id].matcap_rot.xy
 
-#ifdef USE_FLAT_NORMAL
+#ifndef DEFERRED_SHADING
+#  ifdef USE_FLAT_NORMAL
 flat in vec3 normal;
-#else
+#  else
 in vec3 normal;
+#  endif
 #endif
 
 out vec4 fragColor;
@@ -169,24 +177,33 @@ void ssao_factors(
         out float cavities, out float edges);
 #endif
 
-void main() {
-	vec2 screenco = vec2(gl_FragCoord.xy) / screenres;
-	float depth = texture(depthtex, screenco).r;
+/* From http://aras-p.info/texts/CompactNormalStorage.html
+ * Using Method #4: Spheremap Transform */
+vec3 normal_decode(vec2 enc)
+{
+	vec2 fenc = enc * 4.0 - 2.0;
+	float f = dot(fenc, fenc);
+	float g = sqrt(1.0 - f / 4.0);
+	vec3 n;
+	n.xy = fenc*g;
+	n.z = 1 - f / 2;
+	return n;
+}
 
-	vec3 position = get_view_space_from_depth(screenco, depth);
-
+vec3 shade(vec3 N, vec3 position, float depth, vec2 screenco)
+{
 #ifdef USE_ROTATION
 	/* Rotate texture coordinates */
 	vec2 rotY = vec2(-matcap_rotation.y, matcap_rotation.x);
-	vec2 texco = abs(vec2(dot(normal.xy, matcap_rotation), dot(normal.xy, rotY)) * .49 + 0.5);
+	vec2 texco = abs(vec2(dot(N.xy, matcap_rotation), dot(N.xy, rotY)) * .49 + 0.5);
 #else
-	vec2 texco = abs(normal.xy * .49 + 0.5);
+	vec2 texco = abs(N.xy * .49 + 0.5);
 #endif
 	vec3 col = texture(matcaps, vec3(texco, matcap_index)).rgb;
 
 #ifdef USE_AO
-	float cavity, edges;
-	ssao_factors(depth, normal, position, screenco, cavity, edges);
+	float cavity = 0.0, edges = 0.0;
+	ssao_factors(depth, N, position, screenco, cavity, edges);
 
 	col *= mix(vec3(1.0), matcaps_color[int(matcap_index)].rgb, cavity);
 #endif
@@ -199,6 +216,36 @@ void main() {
 	/* Apply highlights after hue shift */
 	col *= edges + 1.0;
 #endif
+
+	return col;
+}
+
+void main()
+{
+	vec2 screenco = vec2(gl_FragCoord.xy) * invscreenres;
+
+#ifdef DEFERRED_SHADING
+	mat_id = texture(idtex, screenco).r;
+
+	/* early out (manual stencil test) */
+	if (mat_id == 0)
+		discard;
+
+	float depth = texture(depthtex, screenco).r;
+	vec3 N = normal_decode(texture(normaltex, screenco).rg);
+	/* see the prepass for explanations. */
+	if (mat_id < 0) {
+		N = -N;
+	}
+	mat_id = abs(mat_id) - 1;
+#else
+	float depth = gl_FragCoord.z;
+	vec3 N = normal;
+#endif
+
+	vec3 position = get_view_space_from_depth(screenco, depth);
+
+	vec3 col = shade(N, position, depth, screenco);
 
 	fragColor = vec4(col, 1.0);
 }
