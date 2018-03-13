@@ -5785,6 +5785,15 @@ DisplacementNode::DisplacementNode()
 {
 }
 
+void DisplacementNode::constant_fold(const ConstantFolder& folder)
+{
+	if(folder.all_inputs_constant()) {
+		if((height - midlevel == 0.0f) || (scale == 0.0f)) {
+			folder.make_zero();
+		}
+	}
+}
+
 void DisplacementNode::compile(SVMCompiler& compiler)
 {
 	ShaderInput *height_in = input("Height");
@@ -5834,6 +5843,16 @@ NODE_DEFINE(VectorDisplacementNode)
 VectorDisplacementNode::VectorDisplacementNode()
 : ShaderNode(node_type)
 {
+}
+
+void VectorDisplacementNode::constant_fold(const ConstantFolder& folder)
+{
+	if(folder.all_inputs_constant()) {
+		if((vector == make_float3(0.0f, 0.0f, 0.0f) && midlevel == 0.0f) ||
+		   (scale == 0.0f)) {
+			folder.make_zero();
+		}
+	}
 }
 
 void VectorDisplacementNode::attributes(Shader *shader, AttributeRequestSet *attributes)

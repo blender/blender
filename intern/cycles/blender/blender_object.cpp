@@ -411,7 +411,7 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 
 			if(scene->need_motion() == Scene::MOTION_BLUR) {
 				motion_steps = object_motion_steps(b_parent, b_ob);
-				if(object_use_deform_motion(b_parent, b_ob)) {
+				if(motion_steps && object_use_deform_motion(b_parent, b_ob)) {
 					mesh->motion_steps = motion_steps;
 					mesh->use_motion_blur = true;
 				}
@@ -422,10 +422,13 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 			}
 
 			object->motion.resize(motion_steps, transform_empty());
-			object->motion[motion_steps/2] = tfm;
 
-			for(size_t step = 0; step < motion_steps; step++) {
-				motion_times.insert(object->motion_time(step));
+			if(motion_steps) {
+				object->motion[motion_steps/2] = tfm;
+
+				for(size_t step = 0; step < motion_steps; step++) {
+					motion_times.insert(object->motion_time(step));
+				}
 			}
 		}
 
