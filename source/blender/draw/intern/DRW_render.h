@@ -273,6 +273,8 @@ struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D_depth_only(void);
+struct GPUMaterial *DRW_shader_find_from_world(struct World *wo, const void *engine_type, int options);
+struct GPUMaterial *DRW_shader_find_from_material(struct Material *ma, const void *engine_type, int options);
 struct GPUMaterial *DRW_shader_create_from_world(
         struct Scene *scene, struct World *wo, const void *engine_type, int options,
         const char *vert, const char *geom, const char *frag_lib, const char *defines);

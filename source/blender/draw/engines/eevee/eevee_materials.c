@@ -634,7 +634,7 @@ struct GPUMaterial *EEVEE_material_world_lightprobe_get(struct Scene *scene, Wor
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	const int options = VAR_WORLD_PROBE;
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_world(wo, engine, options);
 	if (mat != NULL) {
 		return mat;
 	}
@@ -649,7 +649,7 @@ struct GPUMaterial *EEVEE_material_world_background_get(struct Scene *scene, Wor
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_WORLD_BACKGROUND;
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_world(wo, engine, options);
 	if (mat != NULL) {
 		return mat;
 	}
@@ -664,7 +664,7 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, World *
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_WORLD_VOLUME;
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_world(wo, engine, options);
 	if (mat != NULL) {
 		return mat;
 	}
@@ -699,7 +699,7 @@ struct GPUMaterial *EEVEE_material_mesh_get(
 
 	options |= eevee_material_shadow_option(shadow_method);
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options);
 	if (mat) {
 		return mat;
 	}
@@ -721,7 +721,7 @@ struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material
 	const void *engine = &DRW_engine_viewport_eevee_type;
 	int options = VAR_MAT_VOLUME;
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options);
 	if (mat != NULL) {
 		return mat;
 	}
@@ -755,7 +755,7 @@ struct GPUMaterial *EEVEE_material_mesh_depth_get(
 	if (is_shadow)
 		options |= VAR_MAT_SHADOW;
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options);
 	if (mat) {
 		return mat;
 	}
@@ -787,7 +787,7 @@ struct GPUMaterial *EEVEE_material_hair_get(
 
 	options |= eevee_material_shadow_option(shadow_method);
 
-	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine, options);
+	GPUMaterial *mat = DRW_shader_find_from_material(ma, engine, options);
 	if (mat) {
 		return mat;
 	}

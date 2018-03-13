@@ -162,8 +162,11 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 static void drw_deferred_shader_add(
         GPUMaterial *mat, const char *vert, const char *geom, const char *frag_lib, const char *defines)
 {
+	/* Do not deferre the compilation if we are rendering for image. */
 	if (DRW_state_is_image_render()) {
-		/* Do not deferre the compilation if we are rendering for image. */
+		/* Double checking that this GPUMaterial is not going to be
+		 * compiled by another thread. */
+		DRW_deferred_shader_remove(mat);
 		GPU_material_generate_pass(mat, vert, geom, frag_lib, defines);
 		return;
 	}
@@ -302,13 +305,46 @@ GPUShader *DRW_shader_create_3D_depth_only(void)
 	return GPU_shader_get_builtin_shader(GPU_SHADER_3D_DEPTH_ONLY);
 }
 
+GPUMaterial *DRW_shader_find_from_world(World *wo, const void *engine_type, int options)
+{
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
+	if (DRW_state_is_image_render()) {
+		if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
+			/* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
+			 * with the shader code and we will resume the compilation from there. */
+			return NULL;
+		}
+	}
+	return mat;
+}
+
+GPUMaterial *DRW_shader_find_from_material(Material *ma, const void *engine_type, int options)
+{
+	GPUMaterial *mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
+	if (DRW_state_is_image_render()) {
+		if (mat != NULL && GPU_material_status(mat) == GPU_MAT_QUEUED) {
+			/* XXX Hack : we return NULL so that the engine will call DRW_shader_create_from_XXX
+			 * with the shader code and we will resume the compilation from there. */
+			return NULL;
+		}
+	}
+	return mat;
+}
+
 GPUMaterial *DRW_shader_create_from_world(
         struct Scene *scene, World *wo, const void *engine_type, int options,
         const char *vert, const char *geom, const char *frag_lib, const char *defines)
 {
-	GPUMaterial *mat = GPU_material_from_nodetree(
-	        scene, wo->nodetree, &wo->gpumaterial, engine_type, options,
-	        vert, geom, frag_lib, defines, true);
+	GPUMaterial *mat = NULL;
+	if (DRW_state_is_image_render()) {
+		mat = GPU_material_from_nodetree_find(&wo->gpumaterial, engine_type, options);
+	}
+
+	if (mat == NULL) {
+		mat = GPU_material_from_nodetree(
+		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options,
+		        vert, geom, frag_lib, defines, true);
+	}
 
 	drw_deferred_shader_add(mat, vert, geom, frag_lib, defines);
 
@@ -319,9 +355,16 @@ GPUMaterial *DRW_shader_create_from_material(
         struct Scene *scene, Material *ma, const void *engine_type, int options,
         const char *vert, const char *geom, const char *frag_lib, const char *defines)
 {
-	GPUMaterial *mat = GPU_material_from_nodetree(
-	        scene, ma->nodetree, &ma->gpumaterial, engine_type, options,
-	        vert, geom, frag_lib, defines, true);
+	GPUMaterial *mat = NULL;
+	if (DRW_state_is_image_render()) {
+		mat = GPU_material_from_nodetree_find(&ma->gpumaterial, engine_type, options);
+	}
+
+	if (mat == NULL) {
+		mat = GPU_material_from_nodetree(
+		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options,
+		        vert, geom, frag_lib, defines, true);
+	}
 
 	drw_deferred_shader_add(mat, vert, geom, frag_lib, defines);
 
