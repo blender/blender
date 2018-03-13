@@ -429,6 +429,7 @@ void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type);
 void DRW_viewport_matrix_override_unset_all(void);
 
 const float *DRW_viewport_size_get(void);
+const float *DRW_viewport_invert_size_get(void);
 const float *DRW_viewport_screenvecs_get(void);
 const float *DRW_viewport_pixelsize_get(void);
 bool DRW_viewport_is_persp_get(void);

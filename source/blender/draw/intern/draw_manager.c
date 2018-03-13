@@ -297,7 +297,12 @@ void DRW_engine_viewport_data_size_get(
 
 const float *DRW_viewport_size_get(void)
 {
-	return &DST.size[0];
+	return DST.size;
+}
+
+const float *DRW_viewport_invert_size_get(void)
+{
+	return DST.inv_size;
 }
 
 const float *DRW_viewport_screenvecs_get(void)
@@ -364,6 +369,8 @@ static void drw_viewport_var_init(void)
 		GPU_viewport_size_get(DST.viewport, size);
 		DST.size[0] = size[0];
 		DST.size[1] = size[1];
+		DST.inv_size[0] = 1.0f / size[0];
+		DST.inv_size[1] = 1.0f / size[1];
 
 		DefaultFramebufferList *fbl = (DefaultFramebufferList *)GPU_viewport_framebuffer_list_get(DST.viewport);
 		DST.default_framebuffer = fbl->default_fb;
@@ -392,6 +399,9 @@ static void drw_viewport_var_init(void)
 	else {
 		DST.size[0] = 0;
 		DST.size[1] = 0;
+
+		DST.inv_size[0] = 0;
+		DST.inv_size[1] = 0;
 
 		DST.default_framebuffer = NULL;
 		DST.vmempool = NULL;
