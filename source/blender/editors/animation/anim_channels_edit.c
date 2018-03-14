@@ -3085,7 +3085,7 @@ static bool select_anim_channel_keys(bAnimContext *ac, int channel_index, bool e
 			for (ale = anim_data.first; ale; ale = ale->next) {
 				FCurve *fcu_inner = (FCurve *)ale->key_data;
 
-				if (fcu_inner) {
+				if (fcu_inner != NULL && fcu_inner->bezt != NULL) {
 					for (i = 0, bezt = fcu_inner->bezt; i < fcu_inner->totvert; i++, bezt++) {
 						bezt->f2 = bezt->f1 = bezt->f3 = 0;
 					}
