@@ -179,9 +179,10 @@ static void eevee_draw_background(void *vedata)
 	/* Sort transparents before the loop. */
 	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
-	/* Number of iteration: needed for all temporal effect (SSR, TAA)
+	/* Number of iteration: needed for all temporal effect (SSR, volumetrics)
 	 * when using opengl render. */
-	int loop_ct = DRW_state_is_image_render() ? 4 : 1;
+	int loop_ct = (DRW_state_is_image_render() &&
+	               (stl->effects->enabled_effects & (EFFECT_VOLUMETRIC | EFFECT_SSR)) != 0) ? 4 : 1;
 
 	while (loop_ct--) {
 		unsigned int primes[3] = {2, 3, 7};
@@ -332,6 +333,10 @@ static void eevee_draw_background(void *vedata)
 	}
 
 	EEVEE_volumes_free_smoke_textures();
+
+	if (DRW_state_is_image_render()) {
+		MULTISAMPLE_SYNC_ENABLE(dfbl);
+	}
 
 	stl->g_data->view_updated = false;
 }
