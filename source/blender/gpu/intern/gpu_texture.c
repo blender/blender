@@ -67,6 +67,7 @@ struct GPUTexture {
 	unsigned int bytesize; /* number of byte for one pixel */
 	int format;         /* GPUTextureFormat */
 	int components;     /* number of color/alpha channels */
+	int samples;        /* number of samples for multisamples textures. 0 if not multisample target */
 };
 
 /* ------ Memory Management ------- */
@@ -340,6 +341,7 @@ static GPUTexture *GPU_texture_create_nD(
 	tex->w = w;
 	tex->h = h;
 	tex->d = d;
+	tex->samples = samples;
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->fb_attachment = -1;
@@ -483,6 +485,7 @@ static GPUTexture *GPU_texture_cube_create(
 	tex->w = w;
 	tex->h = w;
 	tex->d = d;
+	tex->samples = 0;
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->fb_attachment = -1;
@@ -576,6 +579,7 @@ GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget
 	tex->fromblender = 1;
 	tex->format = -1;
 	tex->components = -1;
+	tex->samples = 0;
 
 	ima->gputexture[gputt] = tex;
 
@@ -1012,6 +1016,11 @@ int GPU_texture_height(const GPUTexture *tex)
 int GPU_texture_format(const GPUTexture *tex)
 {
 	return tex->format;
+}
+
+int GPU_texture_samples(const GPUTexture *tex)
+{
+	return tex->samples;
 }
 
 bool GPU_texture_depth(const GPUTexture *tex)
