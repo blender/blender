@@ -20,7 +20,7 @@
  */
 
 #include "BLI_utildefines.h"
-#include "BLI_dynstr.h"
+#include "BLI_string_utils.h"
 #include "BLI_rand.h"
 
 #include "DNA_particle_types.h"
@@ -62,10 +62,13 @@
 
 extern char datatoc_clay_frag_glsl[];
 extern char datatoc_clay_prepass_frag_glsl[];
+extern char datatoc_clay_copy_glsl[];
 extern char datatoc_clay_vert_glsl[];
+extern char datatoc_clay_fxaa_glsl[];
 extern char datatoc_clay_particle_vert_glsl[];
 extern char datatoc_clay_particle_strand_frag_glsl[];
 extern char datatoc_ssao_alchemy_glsl[];
+extern char datatoc_common_fxaa_lib_glsl[];
 
 /* *********** LISTS *********** */
 
@@ -126,7 +129,7 @@ typedef struct CLAY_StorageList {
 } CLAY_StorageList;
 
 typedef struct CLAY_FramebufferList {
-	struct GPUFrameBuffer *dupli_depth_fb;
+	struct GPUFrameBuffer *antialias_fb;
 	struct GPUFrameBuffer *prepass_fb;
 } CLAY_FramebufferList;
 
@@ -140,13 +143,19 @@ typedef struct CLAY_PassList {
 	struct DRWPass *clay_flat_pre_ps;
 	struct DRWPass *clay_flat_pre_cull_ps;
 	struct DRWPass *clay_deferred_ps;
+	struct DRWPass *fxaa_ps;
+	struct DRWPass *copy_ps;
 	struct DRWPass *hair_pass;
 } CLAY_PassList;
+
+typedef struct CLAY_TextureList {
+	struct GPUTexture *color_copy; /* only used if fxaa */
+} CLAY_TextureList;
 
 typedef struct CLAY_Data {
 	void *engine_type;
 	CLAY_FramebufferList *fbl;
-	DRWViewportEmptyList *txl;
+	CLAY_TextureList *txl;
 	CLAY_PassList *psl;
 	CLAY_StorageList *stl;
 } CLAY_Data;
@@ -169,6 +178,8 @@ static struct {
 	struct GPUShader *clay_prepass_flat_sh;
 	struct GPUShader *clay_prepass_sh;
 	struct GPUShader *clay_deferred_shading_sh;
+	struct GPUShader *fxaa_sh;
+	struct GPUShader *copy_sh;
 	struct GPUShader *hair_sh;
 	/* Matcap textures */
 	struct GPUTexture *matcap_array;
@@ -185,7 +196,7 @@ typedef struct CLAY_PrivateData {
 	DRWShadingGroup *depth_shgrp_cull_select;
 	DRWShadingGroup *depth_shgrp_cull_active;
 	/* Deferred shading */
-	struct GPUTexture *depth_dup; /* ref only, not alloced */
+	struct GPUTexture *depth_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_tx; /* ref only, not alloced */
 	struct GPUTexture *id_tx; /* ref only, not alloced */
 	bool enable_deferred_path;
@@ -338,6 +349,7 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 static void clay_engine_init(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
+	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 
@@ -376,13 +388,9 @@ static void clay_engine_init(void *vedata)
 
 	/* Shading pass */
 	if (!e_data.clay_sh) {
-		DynStr *ds = BLI_dynstr_new();
-		char *matcap_with_ao;
-
-		BLI_dynstr_append(ds, datatoc_clay_frag_glsl);
-		BLI_dynstr_append(ds, datatoc_ssao_alchemy_glsl);
-
-		matcap_with_ao = BLI_dynstr_get_cstring(ds);
+		char *matcap_with_ao = BLI_string_joinN(
+		        datatoc_clay_frag_glsl,
+		        datatoc_ssao_alchemy_glsl);
 
 		e_data.clay_sh = DRW_shader_create(
 		        datatoc_clay_vert_glsl, NULL, datatoc_clay_frag_glsl,
@@ -405,8 +413,17 @@ static void clay_engine_init(void *vedata)
 		        SHADER_DEFINES
 		        "#define DEFERRED_SHADING\n");
 
-		BLI_dynstr_free(ds);
 		MEM_freeN(matcap_with_ao);
+
+		char *fxaa_str = BLI_string_joinN(
+		        datatoc_common_fxaa_lib_glsl,
+		        datatoc_clay_fxaa_glsl);
+
+		e_data.fxaa_sh = DRW_shader_create_fullscreen(fxaa_str, NULL);
+
+		MEM_freeN(fxaa_str);
+
+		e_data.copy_sh = DRW_shader_create_fullscreen(datatoc_clay_copy_glsl, NULL);
 	}
 
 	if (!e_data.hair_sh) {
@@ -445,20 +462,18 @@ static void clay_engine_init(void *vedata)
 	}
 
 	if (DRW_state_is_fbo()) {
-#if 0 /* TODO, multisample */
-		const float *viewport_size = DRW_viewport_size_get();
-		DRWFboTexture tex = {&e_data.depth_dup, DRW_TEX_DEPTH_24_STENCIL_8, DRW_TEX_TEMP};
-		DRW_framebuffer_init(&fbl->dupli_depth_fb, &draw_engine_clay_type,
-		                     (int)viewport_size[0], (int)viewport_size[1],
-		                     &tex, 1);
-#endif
-
 		const float *viewport_size = DRW_viewport_size_get();
 		DRWFboTexture texs[2] = {{&g_data->normal_tx, DRW_TEX_RG_8, DRW_TEX_TEMP},
 		                         {&g_data->id_tx, DRW_TEX_R_16I, DRW_TEX_TEMP}};
 		DRW_framebuffer_init(&fbl->prepass_fb, &draw_engine_clay_type,
 		                     (int)viewport_size[0], (int)viewport_size[1],
 		                     texs, 2);
+
+		/* For FXAA */
+		DRWFboTexture tex = {&txl->color_copy, DRW_TEX_RGBA_8, DRW_TEX_FILTER};
+		DRW_framebuffer_init(&fbl->antialias_fb, &draw_engine_clay_type,
+		                     (int)viewport_size[0], (int)viewport_size[1],
+		                     &tex, 1);
 	}
 
 	/* SSAO setup */
@@ -559,7 +574,7 @@ static DRWShadingGroup *CLAY_shgroup_deferred_shading_create(DRWPass *pass, CLAY
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.clay_deferred_shading_sh, pass);
 	DRW_shgroup_stencil_mask(grp, 1);
-	DRW_shgroup_uniform_buffer(grp, "depthtex", &g_data->depth_dup);
+	DRW_shgroup_uniform_buffer(grp, "depthtex", &g_data->depth_tx);
 	DRW_shgroup_uniform_buffer(grp, "normaltex", &g_data->normal_tx);
 	DRW_shgroup_uniform_buffer(grp, "idtex", &g_data->id_tx);
 	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array);
@@ -788,8 +803,10 @@ static DRWShadingGroup *CLAY_hair_shgrp_get(CLAY_Data *UNUSED(vedata), Object *o
 
 static void clay_cache_init(void *vedata)
 {
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
+	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
 	const bool multisample = false;
 
 	/* Disable AO unless a material needs it. */
@@ -826,6 +843,19 @@ static void clay_cache_init(void *vedata)
 		psl->hair_pass = DRW_pass_create(
 		                     "Hair Pass",
 		                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
+	}
+
+	{
+		psl->fxaa_ps = DRW_pass_create("Fxaa", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.fxaa_sh, psl->fxaa_ps);
+		DRW_shgroup_uniform_buffer(grp, "colortex", &dtxl->color);
+		DRW_shgroup_uniform_vec2(grp, "invscreenres", DRW_viewport_invert_size_get(), 1);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+
+		psl->copy_ps = DRW_pass_create("Copy", DRW_STATE_WRITE_COLOR);
+		grp = DRW_shgroup_create(e_data.copy_sh, psl->copy_ps);
+		DRW_shgroup_uniform_buffer(grp, "colortex", &txl->color_copy);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 }
 
@@ -916,7 +946,7 @@ static void clay_draw_scene(void *vedata)
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-	const bool multisample = false;
+	stl->g_data->depth_tx = dtxl->depth;
 
 	/* Passes are ordered to have less _potential_ overdraw */
 	DRW_draw_pass(psl->clay_cull_ps);
@@ -943,17 +973,6 @@ static void clay_draw_scene(void *vedata)
 
 		if (DRW_state_is_fbo()) {
 			DRW_framebuffer_texture_detach(dtxl->depth);
-
-			if (multisample) {
-				/* For multisample, we need to copy the depth tex (all samples). */
-				DRW_framebuffer_texture_attach(fbl->dupli_depth_fb, stl->g_data->depth_dup, 0, 0);
-				DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth_fb, true, false);
-				DRW_framebuffer_texture_detach(stl->g_data->depth_dup);
-			}
-			else {
-				stl->g_data->depth_dup = dtxl->depth;
-			}
-
 			DRW_framebuffer_bind(dfbl->default_fb);
 
 			DRW_draw_pass(psl->clay_deferred_ps);
@@ -961,6 +980,14 @@ static void clay_draw_scene(void *vedata)
 			DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 			DRW_framebuffer_bind(dfbl->default_fb);
 		}
+	}
+
+	if (true) { /* Always on for now. We might want a parameter for this. */
+		DRW_framebuffer_bind(fbl->antialias_fb);
+		DRW_draw_pass(psl->fxaa_ps);
+
+		DRW_framebuffer_bind(dfbl->default_fb);
+		DRW_draw_pass(psl->copy_ps);
 	}
 }
 
@@ -999,6 +1026,8 @@ static void clay_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.clay_prepass_flat_sh);
 	DRW_SHADER_FREE_SAFE(e_data.clay_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.clay_deferred_shading_sh);
+	DRW_SHADER_FREE_SAFE(e_data.fxaa_sh);
+	DRW_SHADER_FREE_SAFE(e_data.copy_sh);
 	DRW_SHADER_FREE_SAFE(e_data.hair_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.matcap_array);
 }
