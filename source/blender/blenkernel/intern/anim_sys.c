@@ -2891,6 +2891,24 @@ void BKE_animsys_eval_animdata(const EvaluationContext *eval_ctx, ID *id)
 	BKE_animsys_evaluate_animdata(scene, id, adt, eval_ctx->ctime, ADT_RECALC_ANIM);
 }
 
+/* TODO(sergey): This is slow lookup of driver from CoW datablock.
+ * Keep this for until we've got something smarter for depsgraph
+ * building.\
+ */
+static FCurve *find_driver_from_evaluated_id(ID *id, FCurve *fcu)
+{
+	/* We've got non-CoW datablock, can use f-curve as-is. */
+	if (id->orig_id == NULL) {
+		return fcu;
+	}
+	/*const*/ ID *id_orig = id->orig_id;
+	const AnimData *adt_orig = BKE_animdata_from_id(id_orig);
+	const AnimData *adt_cow = BKE_animdata_from_id(id);
+	const int fcu_index = BLI_findindex(&adt_orig->drivers, fcu);
+	BLI_assert(fcu_index != -1);
+	return BLI_findlink(&adt_cow->drivers, fcu_index);
+}
+
 void BKE_animsys_eval_driver(const EvaluationContext *eval_ctx,
                              ID *id,
                              FCurve *fcu)
@@ -2899,6 +2917,8 @@ void BKE_animsys_eval_driver(const EvaluationContext *eval_ctx,
 	ChannelDriver *driver = fcu->driver;
 	PointerRNA id_ptr;
 	bool ok = false;
+
+	fcu = find_driver_from_evaluated_id(id, fcu);
 
 	DEBUG_PRINT("%s on %s (%s[%d])\n",
 	            __func__,
