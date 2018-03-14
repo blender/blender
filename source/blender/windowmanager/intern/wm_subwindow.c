@@ -69,8 +69,6 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
 		scissor_pad = false;
 	}
 
-	int x = drawrct->xmin;
-	int y = drawrct->ymin;
 	int width  = BLI_rcti_size_x(winrct) + 1;
 	int height = BLI_rcti_size_y(winrct) + 1;
 
@@ -85,8 +83,8 @@ void wmPartialViewport(rcti *drawrct, const rcti *winrct, const rcti *partialrct
 		scissor_height += 1;
 	}
 
-	glViewport(x, y, width, height);
-	glScissor(x, y, scissor_width, scissor_height);
+	glViewport(winrct->xmin, winrct->ymin, width, height);
+	glScissor(drawrct->xmin, drawrct->ymin, scissor_width, scissor_height);
 
 	wmOrtho2_pixelspace(width, height);
 	gpuLoadIdentity();
