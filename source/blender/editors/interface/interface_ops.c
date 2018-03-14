@@ -482,13 +482,12 @@ static int override_type_set_button_poll(bContext *C)
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
-	bool is_overridable;
 
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-	RNA_property_override_status(&ptr, prop, index, &is_overridable, NULL, NULL, NULL);
+	const int override_status = RNA_property_override_status(&ptr, prop, index);
 
-	return (ptr.data && prop && is_overridable);
+	return (ptr.data && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDABLE));
 }
 
 static int override_type_set_button_exec(bContext *C, wmOperator *op)
@@ -572,13 +571,12 @@ static int override_remove_button_poll(bContext *C)
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
-	bool is_overridden;
 
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
 
-	RNA_property_override_status(&ptr, prop, index, NULL, &is_overridden, NULL, NULL);
+	const int override_status = RNA_property_override_status(&ptr, prop, index);
 
-	return (ptr.data && ptr.id.data && prop && is_overridden);
+	return (ptr.data && ptr.id.data && prop && (override_status & RNA_OVERRIDE_STATUS_OVERRIDDEN));
 }
 
 static int override_remove_button_exec(bContext *C, wmOperator *op)
