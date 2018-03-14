@@ -1782,7 +1782,7 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	}
 
 	kcd->linehits = linehits;
-	kcd->totlinehit = BLI_array_count(linehits);
+	kcd->totlinehit = BLI_array_len(linehits);
 
 	/* find position along screen line, used for sorting */
 	for (i = 0; i < kcd->totlinehit; i++) {

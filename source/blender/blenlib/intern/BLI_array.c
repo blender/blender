@@ -66,21 +66,23 @@
 /**
  * This function is only to be called via macros.
  *
- * \note The caller must adjust \a arr_count
+ * \note The caller must adjust \a arr_len
  */
-void _bli_array_grow_func(void **arr_p, const void *arr_static,
-                          const int sizeof_arr_p, const int arr_count, const int num,
-                          const char *alloc_str)
+void _bli_array_grow_func(
+        void **arr_p, const void *arr_static,
+        const int sizeof_arr_p, const int arr_len, const int num,
+        const char *alloc_str)
 {
 	void *arr = *arr_p;
 	void *arr_tmp;
 
-	arr_tmp = MEM_mallocN(sizeof_arr_p *
-	                      ((num < arr_count) ?
-	                      (arr_count * 2 + 2) : (arr_count + num)), alloc_str);
+	arr_tmp = MEM_mallocN(
+	        sizeof_arr_p *
+	        ((num < arr_len) ?
+	         (arr_len * 2 + 2) : (arr_len + num)), alloc_str);
 
 	if (arr) {
-		memcpy(arr_tmp, arr, sizeof_arr_p * arr_count);
+		memcpy(arr_tmp, arr, sizeof_arr_p * arr_len);
 
 		if (arr != arr_static) {
 			MEM_freeN(arr);
@@ -91,6 +93,6 @@ void _bli_array_grow_func(void **arr_p, const void *arr_static,
 
 	/* caller must do */
 #if 0
-	arr_count += num;
+	arr_len += num;
 #endif
 }

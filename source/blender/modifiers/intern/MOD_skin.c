@@ -1304,9 +1304,9 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	else if (split_face->len > 4) {
 		/* Maintain a dynamic vert array containing the split_face's
 		 * vertices, avoids frequent allocs in collapse_face_corners() */
-		if (BLI_array_count(vert_buf) < split_face->len) {
+		if (BLI_array_len(vert_buf) < split_face->len) {
 			BLI_array_grow_items(vert_buf, (split_face->len -
-			                                BLI_array_count(vert_buf)));
+			                                BLI_array_len(vert_buf)));
 		}
 
 		/* Get split face's verts */

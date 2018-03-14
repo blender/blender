@@ -179,7 +179,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 		}
 		BMW_end(&regwalker);
 		
-		for (i = 0; i < BLI_array_count(faces); i++) {
+		for (i = 0; i < BLI_array_len(faces); i++) {
 			f_iter = faces[i];
 			BMO_face_flag_disable(bm, f_iter, FACE_TAG);
 			BMO_face_flag_enable(bm, f_iter, FACE_ORIG);
@@ -198,7 +198,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 	/* track how many faces we should end up with */
 	int totface_target = bm->totface;
 
-	for (i = 0; i < BLI_array_count(regions); i++) {
+	for (i = 0; i < BLI_array_len(regions); i++) {
 		BMFace *f_new;
 		int tot = 0;
 		
@@ -259,7 +259,7 @@ void bmo_dissolve_faces_exec(BMesh *bm, BMOperator *op)
 
 cleanup:
 	/* free/cleanup */
-	for (i = 0; i < BLI_array_count(regions); i++) {
+	for (i = 0; i < BLI_array_len(regions); i++) {
 		if (regions[i]) MEM_freeN(regions[i]);
 	}
 

@@ -665,7 +665,7 @@ bool BM_face_split_edgenet(
 		BM_ELEM_API_FLAG_DISABLE(l_iter->v, VERT_VISIT);
 	} while ((l_iter = l_iter->next) != l_first);
 
-	if (BLI_array_count(face_arr)) {
+	if (BLI_array_len(face_arr)) {
 		bmesh_face_swap_data(f, face_arr[0]);
 		BM_face_kill(bm, face_arr[0]);
 		face_arr[0] = f;
@@ -674,13 +674,13 @@ bool BM_face_split_edgenet(
 		BM_ELEM_API_FLAG_DISABLE(f, FACE_NET);
 	}
 
-	for (i = 0; i < BLI_array_count(face_arr); i++) {
+	for (i = 0; i < BLI_array_len(face_arr); i++) {
 		BM_ELEM_API_FLAG_DISABLE(face_arr[i], FACE_NET);
 	}
 
 	if (r_face_arr) {
 		*r_face_arr = face_arr;
-		*r_face_arr_len = BLI_array_count(face_arr);
+		*r_face_arr_len = BLI_array_len(face_arr);
 	}
 	else {
 		if (face_arr) {

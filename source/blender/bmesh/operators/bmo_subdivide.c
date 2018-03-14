@@ -1157,7 +1157,7 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 				loops[a] = l;
 			}
 			
-			vlen = BLI_array_count(loops);
+			vlen = BLI_array_len(loops);
 
 			/* find the boundary of one of the split edges */
 			for (a = 1; a < vlen; a++) {
@@ -1236,9 +1236,9 @@ void bmo_subdivide_edges_exec(BMesh *bm, BMOperator *op)
 			 * - concave corner of an ngon.
 			 * - 2 edges being used in 2+ ngons.
 			 */
-//			BM_face_splits_check_legal(bm, face, loops_split, BLI_array_count(loops_split));
+//			BM_face_splits_check_legal(bm, face, loops_split, BLI_array_len(loops_split));
 
-			for (j = 0; j < BLI_array_count(loops_split); j++) {
+			for (j = 0; j < BLI_array_len(loops_split); j++) {
 				if (loops_split[j][0]) {
 					BMFace *f_new;
 					BLI_assert(BM_edge_exists(loops_split[j][0]->v, loops_split[j][1]->v) == NULL);

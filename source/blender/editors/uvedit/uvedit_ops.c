@@ -1663,13 +1663,13 @@ static void uv_weld_align(bContext *C, int tool)
 			}
 
 			/* now we have all verts, make into a line */
-			if (BLI_array_count(eve_line) > 2) {
+			if (BLI_array_len(eve_line) > 2) {
 
 				/* we know the returns from these must be valid */
 				const float *uv_start = uv_sel_co_from_eve(
 				        scene, obedit, ima, em, eve_line[0]);
 				const float *uv_end   = uv_sel_co_from_eve(
-				        scene, obedit, ima, em, eve_line[BLI_array_count(eve_line) - 1]);
+				        scene, obedit, ima, em, eve_line[BLI_array_len(eve_line) - 1]);
 				/* For t & u modes */
 				float a = 0.0f;
 
@@ -1687,7 +1687,7 @@ static void uv_weld_align(bContext *C, int tool)
 				}
 
 				/* go over all verts except for endpoints */
-				for (i = 0; i < BLI_array_count(eve_line); i++) {
+				for (i = 0; i < BLI_array_len(eve_line); i++) {
 					BM_ITER_ELEM (l, &liter, eve_line[i], BM_LOOPS_OF_VERT) {
 						if (!uvedit_face_visible_test(scene, obedit, ima, l->f))
 							continue;
@@ -1818,7 +1818,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		for (uv_a_index = 0; uv_a_index < BLI_array_count(vert_arr); uv_a_index++) {
+		for (uv_a_index = 0; uv_a_index < BLI_array_len(vert_arr); uv_a_index++) {
 			if (vert_arr[uv_a_index].weld == false) {
 				float uv_min[2];
 				float uv_max[2];
@@ -1832,7 +1832,7 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 				copy_v2_v2(uv_min, uv_a);
 
 				vert_arr[uv_a_index].weld = true;
-				for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_count(vert_arr); uv_b_index++) {
+				for (uv_b_index = uv_a_index + 1; uv_b_index < BLI_array_len(vert_arr); uv_b_index++) {
 					uv_b = vert_arr[uv_b_index].uv_loop->uv;
 					if ((vert_arr[uv_b_index].weld == false) &&
 					    (len_manhattan_v2v2(uv_a, uv_b) < threshold))
@@ -1842,10 +1842,10 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 						vert_arr[uv_b_index].weld = true;
 					}
 				}
-				if (BLI_array_count(loop_arr)) {
+				if (BLI_array_len(loop_arr)) {
 					float uv_mid[2];
 					mid_v2_v2v2(uv_mid, uv_min, uv_max);
-					for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr); uv_b_index++) {
+					for (uv_b_index = 0; uv_b_index < BLI_array_len(loop_arr); uv_b_index++) {
 						copy_v2_v2(loop_arr[uv_b_index]->uv, uv_mid);
 					}
 				}
@@ -1879,12 +1879,12 @@ static int uv_remove_doubles_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		for (uv_a_index = 0; uv_a_index < BLI_array_count(loop_arr); uv_a_index++) {
+		for (uv_a_index = 0; uv_a_index < BLI_array_len(loop_arr); uv_a_index++) {
 			float dist_best = FLT_MAX, dist;
 			const float *uv_best = NULL;
 
 			uv_a = loop_arr[uv_a_index]->uv;
-			for (uv_b_index = 0; uv_b_index < BLI_array_count(loop_arr_unselected); uv_b_index++) {
+			for (uv_b_index = 0; uv_b_index < BLI_array_len(loop_arr_unselected); uv_b_index++) {
 				uv_b = loop_arr_unselected[uv_b_index]->uv;
 				dist = len_manhattan_v2v2(uv_a, uv_b);
 				if ((dist < threshold) && (dist < dist_best)) {

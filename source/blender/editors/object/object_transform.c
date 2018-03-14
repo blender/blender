@@ -1343,9 +1343,9 @@ static int object_transform_axis_target_invoke(bContext *C, wmOperator *op, cons
 		CTX_DATA_END;
 
 		xfd->object_data = object_data;
-		xfd->object_data_len = BLI_array_count(object_data);
+		xfd->object_data_len = BLI_array_len(object_data);
 
-		if (xfd->object_data_len != BLI_array_count(object_data)) {
+		if (xfd->object_data_len != BLI_array_len(object_data)) {
 			xfd->object_data = MEM_reallocN(xfd->object_data, xfd->object_data_len * sizeof(*xfd->object_data));
 		}
 	}

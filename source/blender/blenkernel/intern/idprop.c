@@ -905,9 +905,10 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
 			if (prop1->len != prop2->len)
 				return false;
 
-			for (i = 0; i < prop1->len; i++)
-				if (!IDP_EqualsProperties(&array1[i], &array2[i]))
+			for (i = 0; i < prop1->len; i++) {
+				if (!IDP_EqualsProperties_ex(&array1[i], &array2[i], is_strict))
 					return false;
+			}
 			return true;
 		}
 		case IDP_ID:

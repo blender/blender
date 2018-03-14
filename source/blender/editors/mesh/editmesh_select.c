@@ -4103,7 +4103,7 @@ static int loop_find_region(
 	BLI_array_append(stack, l->f);
 	BLI_gset_insert(visit_face_set, l->f);
 
-	while (BLI_array_count(stack) > 0) {
+	while (BLI_array_len(stack) > 0) {
 		BMIter liter1, liter2;
 		BMLoop *l1, *l2;
 
@@ -4131,7 +4131,7 @@ static int loop_find_region(
 	BLI_array_free(stack);
 
 	*region_out = region;
-	return BLI_array_count(region);
+	return BLI_array_len(region);
 }
 
 static int verg_radial(const void *va, const void *vb)
