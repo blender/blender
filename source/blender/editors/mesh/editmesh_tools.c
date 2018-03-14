@@ -87,6 +87,10 @@
 
 #define USE_FACE_CREATE_SEL_EXTEND
 
+/* -------------------------------------------------------------------- */
+/** \name Subdivide Operator
+ * \{ */
+
 static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -96,19 +100,20 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
 	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
-	if (RNA_boolean_get(op->ptr, "quadtri") && 
+	if (RNA_boolean_get(op->ptr, "quadtri") &&
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
 	{
 		RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
 	}
-	
-	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, SUBD_FALLOFF_LIN, false,
-	                   fractal, along_normal,
-	                   cuts,
-	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
-	                   RNA_boolean_get(op->ptr, "quadtri"), true, false,
-	                   RNA_int_get(op->ptr, "seed"));
+
+	BM_mesh_esubdivide(
+	        em->bm, BM_ELEM_SELECT,
+	        smooth, SUBD_FALLOFF_LIN, false,
+	        fractal, along_normal,
+	        cuts,
+	        SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
+	        RNA_boolean_get(op->ptr, "quadtri"), true, false,
+	        RNA_int_get(op->ptr, "seed"));
 
 	EDBM_update_generic(em, true, true);
 
@@ -159,10 +164,14 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "seed", 0, 0, INT_MAX, "Random Seed", "Seed for the random number generator", 0, 255);
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/* Edge Ring Subdiv
- * (bridge code shares props)
- */
+/** \name Edge Ring Subdivide Operator
+ *
+ * Bridge code shares props.
+ *
+ * \{ */
 
 struct EdgeRingOpSubdProps {
 	int interp_mode;
@@ -224,11 +233,12 @@ static int edbm_subdivide_edge_ring_exec(bContext *C, wmOperator *op)
 
 	mesh_operator_edgering_props_get(op, &op_props);
 
-	if (!EDBM_op_callf(em, op,
-	                   "subdivide_edgering edges=%he interp_mode=%i cuts=%i smooth=%f "
-	                   "profile_shape=%i profile_shape_factor=%f",
-	                   BM_ELEM_SELECT, op_props.interp_mode, op_props.cuts, op_props.smooth,
-	                   op_props.profile_shape, op_props.profile_shape_factor))
+	if (!EDBM_op_callf(
+	            em, op,
+	            "subdivide_edgering edges=%he interp_mode=%i cuts=%i smooth=%f "
+	            "profile_shape=%i profile_shape_factor=%f",
+	            BM_ELEM_SELECT, op_props.interp_mode, op_props.cuts, op_props.smooth,
+	            op_props.profile_shape, op_props.profile_shape_factor))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -256,6 +266,11 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 	mesh_operator_edgering_props(ot, 1, 10);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Un-Subdivide Operator
+ * \{ */
 
 static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
 {
@@ -337,6 +352,11 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 	ED_transform_snap_object_context_destroy(snap_context);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Operator
+ * \{ */
 
 /* Note, these values must match delete_mesh() event values */
 enum {
@@ -391,7 +411,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 	EDBM_update_generic(em, true, true);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -410,13 +430,13 @@ void MESH_OT_delete(wmOperatorType *ot)
 	ot->name = "Delete";
 	ot->description = "Delete selected vertices, edges or faces";
 	ot->idname = "MESH_OT_delete";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = edbm_delete_exec;
-	
+
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -425,6 +445,11 @@ void MESH_OT_delete(wmOperatorType *ot)
 	                        "Type", "Method used for deleting mesh data");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Loose Operator
+ * \{ */
 
 static bool bm_face_is_loose(BMFace *f)
 {
@@ -523,6 +548,11 @@ void MESH_OT_delete_loose(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_faces", false, "Faces", "Remove loose faces");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Collapse Edge Operator
+ * \{ */
 
 static int edbm_collapse_edge_exec(bContext *C, wmOperator *op)
 {
@@ -551,6 +581,12 @@ void MESH_OT_edge_collapse(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Create Edge/Face Operator
+ * \{ */
 
 static bool edbm_add_edge_face__smooth_get(BMesh *bm)
 {
@@ -621,8 +657,9 @@ static BMElem *edbm_add_edge_face_exec__tricky_extend_sel(BMesh *bm)
 			     (BM_edge_share_face_check(ed_pair[0], ed_pair[1]) == false))
 			    )
 			{
-				BMEdge *e_other = BM_edge_exists(BM_edge_other_vert(ed_pair[0], v),
-				                                 BM_edge_other_vert(ed_pair[1], v));
+				BMEdge *e_other = BM_edge_exists(
+				        BM_edge_other_vert(ed_pair[0], v),
+				        BM_edge_other_vert(ed_pair[1], v));
 				BM_edge_select_set(bm, ed_pair[0], true);
 				BM_edge_select_set(bm, ed_pair[1], true);
 				if (e_other) {
@@ -745,13 +782,14 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 	ele_desel = edbm_add_edge_face_exec__tricky_extend_sel(em->bm);
 #endif
 
-	if (!EDBM_op_init(em, &bmop, op,
-	                  "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
-	                  BM_ELEM_SELECT, em->mat_nr, use_smooth))
+	if (!EDBM_op_init(
+	            em, &bmop, op,
+	            "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
+	            BM_ELEM_SELECT, em->mat_nr, use_smooth))
 	{
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	BMO_op_exec(em->bm, &bmop);
 
 	/* cancel if nothing was done */
@@ -801,16 +839,20 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 	ot->name = "Make Edge/Face";
 	ot->description = "Add an edge or face to selected";
 	ot->idname = "MESH_OT_edge_face_add";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_add_edge_face_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/* ************************* SEAMS AND EDGES **************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mark Edge (Seam) Operator
+ * \{ */
 
 static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 {
@@ -822,7 +864,7 @@ static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMIter iter;
 	const bool clear = RNA_boolean_get(op->ptr, "clear");
-	
+
 	/* auto-enable seams drawing */
 	if (clear == 0) {
 		me->drawflag |= ME_DRAWSEAMS;
@@ -832,7 +874,7 @@ static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
 				continue;
-			
+
 			BM_elem_flag_disable(eed, BM_ELEM_SEAM);
 		}
 	}
@@ -858,11 +900,11 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 	ot->name = "Mark Seam";
 	ot->idname = "MESH_OT_mark_seam";
 	ot->description = "(Un)mark selected edges as a seam";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_mark_seam_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -871,6 +913,12 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 
 	WM_operatortype_props_advanced_begin(ot);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mark Edge (Sharp) Operator
+ * \{ */
 
 static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 {
@@ -914,14 +962,14 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	ot->name = "Mark Sharp";
 	ot->idname = "MESH_OT_mark_sharp";
 	ot->description = "(Un)mark selected edges as sharp";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_mark_sharp_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	prop = RNA_def_boolean(ot->srna, "clear", false, "Clear", "");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "use_verts", false, "Vertices",
@@ -965,17 +1013,19 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 	}
 
 	if (is_pair) {
-		if (!EDBM_op_init(em, &bmop, op,
-		                  "connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
-		                  verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
+		if (!EDBM_op_init(
+		            em, &bmop, op,
+		            "connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
+		            verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
 		{
 			goto finally;
 		}
 	}
 	else {
-		if (!EDBM_op_init(em, &bmop, op,
-		                  "connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
-		                  verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
+		if (!EDBM_op_init(
+		            em, &bmop, op,
+		            "connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
+		            verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
 		{
 			goto finally;
 		}
@@ -1012,15 +1062,20 @@ void MESH_OT_vert_connect(wmOperatorType *ot)
 	ot->name = "Vertex Connect";
 	ot->idname = "MESH_OT_vert_connect";
 	ot->description = "Connect selected vertices of faces, splitting the face";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_vert_connect_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Concave Faces Operator
+ * \{ */
 
 /**
  * check that endpoints are verts and only have a single selected edge connected.
@@ -1325,6 +1380,11 @@ void MESH_OT_vert_connect_concave(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Non-Planar Faces Operator
+ * \{ */
 
 static int edbm_vert_connect_nonplaner_exec(bContext *C, wmOperator *op)
 {
@@ -1369,6 +1429,12 @@ void MESH_OT_vert_connect_nonplanar(wmOperatorType *ot)
 	RNA_def_property_float_default(prop, DEG2RADF(5.0f));
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Make Planar Faces Operator
+ * \{ */
+
 static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -1406,6 +1472,11 @@ void MESH_OT_face_make_planar(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "repeat", 1, 1, 10000, "Iterations", "", 1, 200);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Edge Operator
+ * \{ */
 
 static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
@@ -1420,7 +1491,7 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 	{
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	if (em->selectmode == SCE_SELECT_FACE) {
 		EDBM_select_flush(em);
 	}
@@ -1436,16 +1507,20 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 	ot->name = "Edge Split";
 	ot->idname = "MESH_OT_edge_split";
 	ot->description = "Split selected edges so that each neighbor face gets its own copy";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_edge_split_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/****************** add duplicate operator ***************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Duplicate Operator
+ * \{ */
 
 static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 {
@@ -1476,7 +1551,7 @@ static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 	}
 
 	EDBM_update_generic(em, true, true);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1485,7 +1560,7 @@ static int edbm_duplicate_invoke(bContext *C, wmOperator *op, const wmEvent *UNU
 	WM_cursor_wait(1);
 	edbm_duplicate_exec(C, op);
 	WM_cursor_wait(0);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -1495,29 +1570,34 @@ void MESH_OT_duplicate(wmOperatorType *ot)
 	ot->name = "Duplicate";
 	ot->description = "Duplicate selected vertices, edges or faces";
 	ot->idname = "MESH_OT_duplicate";
-	
+
 	/* api callbacks */
 	ot->invoke = edbm_duplicate_invoke;
 	ot->exec = edbm_duplicate_exec;
-	
+
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* to give to transform */
 	RNA_def_int(ot->srna, "mode", TFM_TRANSLATION, 0, INT_MAX, "Mode", "", 0, INT_MAX);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Flip Normals Operator
+ * \{ */
 static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	
+
 	if (!EDBM_op_callf(
 	        em, op, "reverse_faces faces=%hf flip_multires=%b",
 	        BM_ELEM_SELECT, true))
 	{
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	EDBM_update_generic(em, true, false);
 
 	return OPERATOR_FINISHED;
@@ -1529,14 +1609,20 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 	ot->name = "Flip Normals";
 	ot->description = "Flip the direction of selected faces' normals (and of their vertices)";
 	ot->idname = "MESH_OT_flip_normals";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_flip_normals_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Rotate Edge Operator
+ * \{ */
 
 /**
  * Rotate the edges between selected faces, otherwise rotate the selected edges.
@@ -1571,7 +1657,7 @@ static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
+
 	/* ok, we don't have two adjacent faces, but we do have two selected ones.
 	 * that's an error condition.*/
 	if (tot == 0) {
@@ -1630,12 +1716,17 @@ void MESH_OT_edge_rotate(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_ccw", false, "Counter Clockwise", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hide Operator
+ * \{ */
 
 static int edbm_hide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	
+
 	EDBM_mesh_hide(em, RNA_boolean_get(op->ptr, "unselected"));
 
 	EDBM_update_generic(em, true, false);
@@ -1649,17 +1740,23 @@ void MESH_OT_hide(wmOperatorType *ot)
 	ot->name = "Hide Selection";
 	ot->idname = "MESH_OT_hide";
 	ot->description = "Hide (un)selected vertices, edges or faces";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_hide_exec;
 	ot->poll = ED_operator_editmesh;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", false, "Unselected", "Hide unselected rather than selected");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Reveal Operator
+ * \{ */
 
 static int edbm_reveal_exec(bContext *C, wmOperator *op)
 {
@@ -1680,22 +1777,28 @@ void MESH_OT_reveal(wmOperatorType *ot)
 	ot->name = "Reveal Hidden";
 	ot->idname = "MESH_OT_reveal";
 	ot->description = "Reveal all hidden vertices, edges and faces";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_reveal_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "select", true, "Select", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Recalculate Normals Operator
+ * \{ */
+
 static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	
+
 	/* doflip has to do with bmesh_rationalize_normals, it's an internal
 	 * thing */
 	if (!EDBM_op_callf(em, op, "recalc_face_normals faces=%hf", BM_ELEM_SELECT))
@@ -1716,18 +1819,22 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 	ot->name = "Make Normals Consistent";
 	ot->description = "Make face and vertex normals point either outside or inside the mesh";
 	ot->idname = "MESH_OT_normals_make_consistent";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_normals_make_consistent_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	RNA_def_boolean(ot->srna, "inside", false, "Inside", "");
 }
 
+/** \} */
 
+/* -------------------------------------------------------------------- */
+/** \name Smooth Vertex Operator
+ * \{ */
 
 static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 {
@@ -1751,12 +1858,12 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 	}
 
 	/* if there is a mirror modifier with clipping, flag the verts that
-	 * are within tolerance of the plane(s) of reflection 
+	 * are within tolerance of the plane(s) of reflection
 	 */
 	for (md = obedit->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
 			MirrorModifierData *mmd = (MirrorModifierData *)md;
-		
+
 			if (mmd->flag & MOD_MIR_CLIPPING) {
 				if (mmd->flag & MOD_MIR_AXIS_X)
 					mirrx = true;
@@ -1775,10 +1882,11 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 		repeat = 1;
 
 	for (i = 0; i < repeat; i++) {
-		if (!EDBM_op_callf(em, op,
-		                   "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b "
-		                   "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
-		                   BM_ELEM_SELECT, fac, mirrx, mirry, mirrz, clip_dist, xaxis, yaxis, zaxis))
+		if (!EDBM_op_callf(
+		            em, op,
+		            "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b "
+		            "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
+		            BM_ELEM_SELECT, fac, mirrx, mirry, mirrz, clip_dist, xaxis, yaxis, zaxis))
 		{
 			return OPERATOR_CANCELLED;
 		}
@@ -1793,19 +1901,20 @@ static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 	EDBM_update_generic(em, true, false);
 
 	return OPERATOR_FINISHED;
-}	
-	
+}
+
+
 void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Smooth Vertex";
 	ot->description = "Flatten angles of selected vertices";
 	ot->idname = "MESH_OT_vertices_smooth";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_do_smooth_vertex_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1818,6 +1927,12 @@ void MESH_OT_vertices_smooth(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "yaxis", true, "Y-Axis", "Smooth along the Y axis");
 	RNA_def_boolean(ot->srna, "zaxis", true, "Z-Axis", "Smooth along the Z axis");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Laplacian Vertex Smooth Operator
+ * \{ */
 
 static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 {
@@ -1838,7 +1953,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 			if (f->len > 4) {
 				BKE_report(op->reports, RPT_WARNING, "Selected faces must be triangles or quads");
 				return OPERATOR_CANCELLED;
-			}	
+			}
 		}
 	}
 
@@ -1856,11 +1971,12 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 	preserve_volume = RNA_boolean_get(op->ptr, "preserve_volume");
 	if (!repeat)
 		repeat = 1;
-	
+
 	for (i = 0; i < repeat; i++) {
-		if (!EDBM_op_callf(em, op,
-		                   "smooth_laplacian_vert verts=%hv lambda_factor=%f lambda_border=%f use_x=%b use_y=%b use_z=%b preserve_volume=%b",
-		                   BM_ELEM_SELECT, lambda_factor, lambda_border, usex, usey, usez, preserve_volume))
+		if (!EDBM_op_callf(
+		            em, op,
+		            "smooth_laplacian_vert verts=%hv lambda_factor=%f lambda_border=%f use_x=%b use_y=%b use_z=%b preserve_volume=%b",
+		            BM_ELEM_SELECT, lambda_factor, lambda_border, usex, usey, usez, preserve_volume))
 		{
 			return OPERATOR_CANCELLED;
 		}
@@ -1883,11 +1999,11 @@ void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
 	ot->name = "Laplacian Smooth Vertex";
 	ot->description = "Laplacian smooth of selected vertices";
 	ot->idname = "MESH_OT_vertices_smooth_laplacian";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_do_smooth_laplacian_vertex_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -1906,7 +2022,11 @@ void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "preserve_volume", true, "Preserve Volume", "Apply volume preservation after smooth");
 }
 
-/********************** Smooth/Solid Operators *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Faces Smooth Shading Operator
+ * \{ */
 
 static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 {
@@ -1914,7 +2034,7 @@ static void mesh_set_smooth_faces(BMEditMesh *em, short smooth)
 	BMFace *efa;
 
 	if (em == NULL) return;
-	
+
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 			BM_elem_flag_set(efa, BM_ELEM_SMOOTH, smooth);
@@ -1949,6 +2069,12 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Set Faces Flat Shading Operator
+ * \{ */
+
 static int edbm_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -1976,8 +2102,11 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
 
-/********************** UV/Color Operators *************************/
+/* -------------------------------------------------------------------- */
+/** \name UV/Color Rotate/Reverse Operator
+ * \{ */
 
 static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 {
@@ -2147,6 +2276,11 @@ void MESH_OT_colors_reverse(wmOperatorType *ot)
 	//RNA_def_enum(ot->srna, "axis", axis_items, DIRECTION_CW, "Axis", "Axis to mirror colors around");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Merge Vertices Operator
+ * \{ */
 
 enum {
 	MESH_MERGE_LAST     = 1,
@@ -2183,7 +2317,7 @@ static bool merge_firstlast(BMEditMesh *em, const bool use_first, const bool use
 
 	if (!BM_elem_flag_test(mergevert, BM_ELEM_SELECT))
 		return false;
-	
+
 	if (use_uvmerge) {
 		if (!EDBM_op_callf(em, wmop, "pointmerge_facedata verts=%hv vert_snap=%e", BM_ELEM_SELECT, mergevert))
 			return false;
@@ -2195,8 +2329,9 @@ static bool merge_firstlast(BMEditMesh *em, const bool use_first, const bool use
 	return true;
 }
 
-static bool merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
-                         const bool use_cursor, const bool use_uvmerge, wmOperator *wmop)
+static bool merge_target(
+        BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
+        const bool use_cursor, const bool use_uvmerge, wmOperator *wmop)
 {
 	BMIter iter;
 	BMVert *v;
@@ -2217,7 +2352,7 @@ static bool merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 			add_v3_v3(cent, v->co);
 			i++;
 		}
-		
+
 		if (!i)
 			return false;
 
@@ -2229,7 +2364,7 @@ static bool merge_target(BMEditMesh *em, Scene *scene, View3D *v3d, Object *ob,
 
 	if (!vco)
 		return false;
-	
+
 	if (use_uvmerge) {
 		if (!EDBM_op_callf(em, wmop, "average_vert_facedata verts=%hv", BM_ELEM_SELECT))
 			return false;
@@ -2296,14 +2431,14 @@ static const EnumPropertyItem merge_type_items[] = {
 };
 
 static const EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), bool *r_free)
-{	
+{
 	Object *obedit;
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
-	
+
 	if (!C) /* needed for docs */
 		return merge_type_items;
-	
+
 	obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_MESH) {
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -2333,7 +2468,7 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(
 
 		return item;
 	}
-	
+
 	return NULL;
 }
 
@@ -2361,6 +2496,11 @@ void MESH_OT_merge(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "uvs", false, "UVs", "Move UVs according to merge");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Remove Doubles Operator
+ * \{ */
 
 static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 {
@@ -2383,9 +2523,10 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 
 
 	if (use_unselected) {
-		EDBM_op_init(em, &bmop, op,
-		             "automerge verts=%hv dist=%f",
-		             BM_ELEM_SELECT, threshold);
+		EDBM_op_init(
+		        em, &bmop, op,
+		        "automerge verts=%hv dist=%f",
+		        BM_ELEM_SELECT, threshold);
 		BMO_op_exec(em->bm, &bmop);
 
 		if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -2393,9 +2534,10 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		EDBM_op_init(em, &bmop, op,
-		             "find_doubles verts=%hv dist=%f",
-		             BM_ELEM_SELECT, threshold);
+		EDBM_op_init(
+		        em, &bmop, op,
+		        "find_doubles verts=%hv dist=%f",
+		        BM_ELEM_SELECT, threshold);
 		BMO_op_exec(em->bm, &bmop);
 
 		if (!EDBM_op_callf(em, op, "weld_verts targetmap=%S", &bmop, "targetmap.out")) {
@@ -2407,7 +2549,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 			return OPERATOR_CANCELLED;
 		}
 	}
-	
+
 	count = totvert_orig - em->bm->totvert;
 	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
 
@@ -2439,8 +2581,11 @@ void MESH_OT_remove_doubles(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_unselected", false, "Unselected", "Merge selected to other unselected vertices");
 }
 
+/** \} */
 
-/************************ Shape Operators *************************/
+/* -------------------------------------------------------------------- */
+/** \name Shape Key Propagate Operator
+ * \{ */
 
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
 static void shape_propagate(BMEditMesh *em, wmOperator *op)
@@ -2454,7 +2599,7 @@ static void shape_propagate(BMEditMesh *em, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "Mesh does not have shape keys");
 		return;
 	}
-	
+
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
 			continue;
@@ -2505,6 +2650,12 @@ void MESH_OT_shape_propagate_to_all(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Blend from Shape Operator
+ * \{ */
+
 /* BMESH_TODO this should be properly encapsulated in a bmop.  but later.*/
 static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 {
@@ -2531,23 +2682,23 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 	if (key) {
 		kb = BLI_findlink(&key->block, shape);
 	}
-	
+
 	/* perform blending on selected vertices*/
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 		if (!BM_elem_flag_test(eve, BM_ELEM_SELECT) || BM_elem_flag_test(eve, BM_ELEM_HIDDEN))
 			continue;
-		
+
 		/* get coordinates of shapekey we're blending from */
 		sco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, shape);
 		copy_v3_v3(co, sco);
-		
+
 		if (use_add) {
 			/* in add mode, we add relative shape key offset */
 			if (kb) {
 				const float *rco = CustomData_bmesh_get_n(&em->bm->vdata, eve->head.data, CD_SHAPEKEY, kb->relative);
 				sub_v3_v3v3(co, co, rco);
 			}
-			
+
 			madd_v3_v3fl(eve->co, co, blend);
 		}
 		else {
@@ -2562,7 +2713,7 @@ static int edbm_blend_from_shape_exec(bContext *C, wmOperator *op)
 }
 
 static const EnumPropertyItem *shape_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), bool *r_free)
-{	
+{
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em;
 	EnumPropertyItem *item = NULL;
@@ -2635,6 +2786,12 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "add", true, "Add", "Add rather than blend between shapes");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Solidify Mesh Operator
+ * \{ */
+
 static int edbm_solidify_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -2689,6 +2846,12 @@ void MESH_OT_solidify(wmOperatorType *ot)
 	RNA_def_property_ui_range(prop, -10.0, 10.0, 0.1, 4);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Knife Subdivide Operator
+ * \{ */
+
 /* ******************************************************************** */
 /* Knife Subdivide Tool.  Subdivides edges intersected by a mouse trail
  * drawn by user.
@@ -2722,8 +2885,9 @@ static const EnumPropertyItem knife_items[] = {
 
 /* bm_edge_seg_isect() Determines if and where a mouse trail intersects an BMEdge */
 
-static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
-                               float (*mouse_path)[2], int len, char mode, int *isected)
+static float bm_edge_seg_isect(
+        const float sco_a[2], const float sco_b[2],
+        float (*mouse_path)[2], int len, char mode, int *isected)
 {
 #define MAXSLOPE 100000
 	float x11, y11, x12 = 0, y12 = 0, x2max, x2min, y2max;
@@ -2732,17 +2896,17 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 	float yi, x1min, x1max, y1max, y1min, perc = 0;
 	float threshold = 0.0;
 	int i;
-	
+
 	//threshold = 0.000001; /* tolerance for vertex intersection */
 	// XXX threshold = scene->toolsettings->select_thresh / 100;
-	
+
 	/* Get screen coords of verts */
 	x21 = sco_a[0];
 	y21 = sco_a[1];
-	
+
 	x22 = sco_b[0];
 	y22 = sco_b[1];
-	
+
 	xdiff2 = (x22 - x21);
 	if (xdiff2) {
 		m2 = (y22 - y21) / xdiff2;
@@ -2768,7 +2932,7 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 			}
 			x12 = mouse_path[i][0];
 			y12 = mouse_path[i][1];
-			
+
 			/* test e->v1 */
 			if ((x11 == x21 && y11 == y21) || (x12 == x21 && y12 == y21)) {
 				perc = 0;
@@ -2783,7 +2947,7 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 			}
 		}
 	}
-	
+
 	/* now check for edge intersect (may produce vertex intersection as well) */
 	for (i = 0; i < len; i++) {
 		if (i > 0) {
@@ -2796,14 +2960,14 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 		}
 		x12 = mouse_path[i][0];
 		y12 = mouse_path[i][1];
-		
+
 		/* Perp. Distance from point to line */
 		if (m2 != MAXSLOPE) dist = (y12 - m2 * x12 - b2);  /* /sqrt(m2 * m2 + 1); Only looking for */
 		/* change in sign.  Skip extra math */
 		else dist = x22 - x12;
-		
+
 		if (i == 0) lastdist = dist;
-		
+
 		/* if dist changes sign, and intersect point in edge's Bound Box */
 		if ((lastdist * dist) <= 0) {
 			xdiff1 = (x12 - x11); /* Equation of line between last 2 points */
@@ -2819,14 +2983,14 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 			x2min = min_ff(x21, x22) - 0.001f; /* due to round off error */
 			y2max = max_ff(y21, y22) + 0.001f;
 			y2min = min_ff(y21, y22) - 0.001f;
-			
+
 			/* Found an intersect,  calc intersect point */
 			if (m1 == m2) { /* co-incident lines */
 				/* cut at 50% of overlap area */
 				x1max = max_ff(x11, x12);
 				x1min = min_ff(x11, x12);
 				xi = (min_ff(x2max, x1max) + max_ff(x2min, x1min)) / 2.0f;
-				
+
 				y1max = max_ff(y11, y12);
 				y1min = min_ff(y11, y12);
 				yi = (min_ff(y2max, y1max) + max_ff(y2min, y1min)) / 2.0f;
@@ -2843,7 +3007,7 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 				xi = (b1 - b2) / (m2 - m1);
 				yi = (b1 * m2 - m1 * b2) / (m2 - m1);
 			}
-			
+
 			/* Intersect inside bounding box of edge?*/
 			if ((xi >= x2min) && (xi <= x2max) && (yi <= y2max) && (yi >= y2min)) {
 				/* test for vertex intersect that may be 'close enough'*/
@@ -2866,7 +3030,7 @@ static float bm_edge_seg_isect(const float sco_a[2], const float sco_b[2],
 				if ((m2 <= 1.0f) && (m2 >= -1.0f)) perc = (xi - x21) / (x22 - x21);
 				else perc = (yi - y21) / (y22 - y21);  /* lower slope more accurate */
 				//isect = 32768.0 * (perc + 0.0000153); /* Percentage in 1 / 32768ths */
-				
+
 				break;
 			}
 		}
@@ -2895,11 +3059,11 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 
 	/* allocd vars */
 	float (*screen_vert_coords)[2], (*sco)[2], (*mouse_path)[2];
-	
+
 	/* edit-object needed for matrix, and ar->regiondata for projections to work */
 	if (ELEM(NULL, obedit, ar, ar->regiondata))
 		return OPERATOR_CANCELLED;
-	
+
 	if (bm->totvertsel < 2) {
 		BKE_report(op->reports, RPT_ERROR, "No edges are selected to operate on");
 		return OPERATOR_CANCELLED;
@@ -2984,7 +3148,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	BMO_slot_bool_set(bmop.slots_in, "use_grid_fill", false);
 
 	BMO_slot_float_set(bmop.slots_in, "radius", 0);
-	
+
 	BMO_op_exec(bm, &bmop);
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
 		return OPERATOR_CANCELLED;
@@ -3002,13 +3166,13 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	ot->name = "Knife Cut";
 	ot->description = "Cut selected edges and faces into parts";
 	ot->idname = "MESH_OT_knife_cut";
-	
+
 	ot->invoke = WM_gesture_lines_invoke;
 	ot->modal = WM_gesture_lines_modal;
 	ot->exec = edbm_knife_cut_exec;
-	
+
 	ot->poll = EDBM_view3d_poll;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -3018,13 +3182,16 @@ void MESH_OT_knife_cut(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 
 	RNA_def_enum(ot->srna, "type", knife_items, KNIFE_EXACT, "Type", "");
-	
+
 	/* internal */
 	RNA_def_int(ot->srna, "cursor", BC_KNIFECURSOR, 0, BC_NUMCURSORS, "Cursor", "", 0, BC_NUMCURSORS);
 }
 
+/** \} */
 
-/* *************** Operator: separate parts *************/
+/* -------------------------------------------------------------------- */
+/** \name Separate Parts Operator
+ * \{ */
 
 enum {
 	MESH_SEPARATE_SELECTED = 0,
@@ -3075,7 +3242,7 @@ static Base *mesh_separate_tagged(Main *bmain, Scene *scene, ViewLayer *view_lay
 
 	BM_mesh_free(bm_new);
 	((Mesh *)base_new->object->data)->edit_btmesh = NULL;
-	
+
 	return base_new;
 }
 
@@ -3304,7 +3471,7 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const int type = RNA_enum_get(op->ptr, "type");
 	int retval = 0;
-	
+
 	if (ED_operator_editmesh(C)) {
 		Base *base = CTX_data_active_base(C);
 		BMEditMesh *em = BKE_editmesh_from_object(base->object);
@@ -3417,18 +3584,23 @@ void MESH_OT_separate(wmOperatorType *ot)
 	ot->name = "Separate";
 	ot->description = "Separate selected geometry into a new mesh";
 	ot->idname = "MESH_OT_separate";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = edbm_separate_exec;
 	ot->poll = ED_operator_scene_editable; /* object and editmode */
-	
+
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
-	
+
 	ot->prop = RNA_def_enum(ot->srna, "type", prop_separate_types, MESH_SEPARATE_SELECTED, "Type", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Triangle Fill Operator
+ * \{ */
 
 static int edbm_fill_exec(bContext *C, wmOperator *op)
 {
@@ -3450,9 +3622,9 @@ static int edbm_fill_exec(bContext *C, wmOperator *op)
 	{
 		return OPERATOR_CANCELLED;
 	}
-	
+
 	BMO_op_exec(em->bm, &bmop);
-	
+
 	if (totface_orig != em->bm->totface) {
 		/* select new geometry */
 		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, BM_ELEM_SELECT, true);
@@ -3490,9 +3662,11 @@ void MESH_OT_fill(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_beauty", true, "Beauty", "Use best triangulation division");
 }
 
+/** \} */
 
 /* -------------------------------------------------------------------- */
-/* Grid Fill (and helper functions) */
+/** \name Grid Fill Operator
+ * \{ */
 
 static bool bm_edge_test_fill_grid_cb(BMEdge *e, void *UNUSED(bm_v))
 {
@@ -3683,10 +3857,11 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 	/* end tricky prepare code */
 
 
-	if (!EDBM_op_init(em, &bmop, op,
-	                  "grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
-	                  use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
-	                  em->mat_nr, use_smooth, use_interp_simple))
+	if (!EDBM_op_init(
+	            em, &bmop, op,
+	            "grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
+	            use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
+	            em->mat_nr, use_smooth, use_interp_simple))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3736,6 +3911,12 @@ void MESH_OT_fill_grid(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_interp_simple", false, "Simple Blending", "");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Hole Fill Operator
+ * \{ */
+
 static int edbm_fill_holes_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -3775,6 +3956,12 @@ void MESH_OT_fill_holes(wmOperatorType *ot)
 	            "Sides", "Number of sides in hole required to fill (zero fills all holes)", 0, 100);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Beauty Fill Operator
+ * \{ */
+
 static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -3792,9 +3979,10 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 		BMEdge *e;
 
 		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_set(e, BM_ELEM_TAG,
-			                 (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
-			                  BM_edge_calc_face_angle_ex(e, angle_max) < angle_limit));
+			BM_elem_flag_set(
+			        e, BM_ELEM_TAG,
+			        (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
+			         BM_edge_calc_face_angle_ex(e, angle_max) < angle_limit));
 
 		}
 
@@ -3810,7 +3998,7 @@ static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 	}
 
 	EDBM_update_generic(em, true, true);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -3836,8 +4024,11 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 	RNA_def_property_float_default(prop, DEG2RADF(180.0f));
 }
 
+/** \} */
 
-/********************** Poke Face **********************/
+/* -------------------------------------------------------------------- */
+/** \name Poke Face Operator
+ * \{ */
 
 static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 {
@@ -3897,7 +4088,11 @@ void MESH_OT_poke(wmOperatorType *ot)
 	             "Poke Center", "Poke Face Center Calculation");
 }
 
-/********************** Quad/Tri Operators *************************/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Triangulate Face Operator
+ * \{ */
 
 static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 {
@@ -3951,6 +4146,12 @@ void MESH_OT_quads_convert_to_tris(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "ngon_method", rna_enum_modifier_triangulate_ngon_method_items, MOD_TRIANGULATE_NGON_BEAUTY,
 	             "Polygon Method", "Method for splitting the polygons into triangles");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convert to Quads Operator
+ * \{ */
 
 static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 {
@@ -4042,10 +4243,10 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	join_triangle_props(ot);
 }
 
+/** \} */
 
 /* -------------------------------------------------------------------- */
-
-/** \name Decimate
+/** \name Decimate Operator
  *
  * \note The function to decimate is intended for use as a modifier,
  * while its handy allow access as a tool - this does cause access to be a little awkward
@@ -4231,9 +4432,9 @@ void MESH_OT_decimate(wmOperatorType *ot)
 
 /** \} */
 
-
 /* -------------------------------------------------------------------- */
-/* Dissolve */
+/** \name Dissolve Vertices Operator
+ * \{ */
 
 static void edbm_dissolve_prop__use_verts(wmOperatorType *ot, bool value, int flag)
 {
@@ -4265,9 +4466,10 @@ static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
 	const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
 
-	if (!EDBM_op_callf(em, op,
-	                   "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
-	                   BM_ELEM_SELECT, use_face_split, use_boundary_tear))
+	if (!EDBM_op_callf(
+	            em, op,
+	            "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
+	            BM_ELEM_SELECT, use_face_split, use_boundary_tear))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -4295,6 +4497,12 @@ void MESH_OT_dissolve_verts(wmOperatorType *ot)
 	edbm_dissolve_prop__use_boundary_tear(ot);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dissolve Edges Operator
+ * \{ */
+
 static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -4303,9 +4511,10 @@ static int edbm_dissolve_edges_exec(bContext *C, wmOperator *op)
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
 	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
 
-	if (!EDBM_op_callf(em, op,
-	                   "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
-	                   BM_ELEM_SELECT, use_verts, use_face_split))
+	if (!EDBM_op_callf(
+	            em, op,
+	            "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
+	            BM_ELEM_SELECT, use_verts, use_face_split))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -4332,6 +4541,12 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 	edbm_dissolve_prop__use_verts(ot, true, 0);
 	edbm_dissolve_prop__use_face_split(ot);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dissolve Faces Operator
+ * \{ */
 
 static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
 {
@@ -4371,6 +4586,11 @@ void MESH_OT_dissolve_faces(wmOperatorType *ot)
 	edbm_dissolve_prop__use_verts(ot, false, 0);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Dissolve (Context Sensitive) Operator
+ * \{ */
 
 static int edbm_dissolve_mode_exec(bContext *C, wmOperator *op)
 {
@@ -4415,6 +4635,12 @@ void MESH_OT_dissolve_mode(wmOperatorType *ot)
 	edbm_dissolve_prop__use_face_split(ot);
 	edbm_dissolve_prop__use_boundary_tear(ot);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Limited Dissolve Operator
+ * \{ */
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
@@ -4493,6 +4719,12 @@ void MESH_OT_dissolve_limited(wmOperatorType *ot)
 	                  "Delimit dissolve operation");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Degenerate Dissolve Operator
+ * \{ */
+
 static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -4537,6 +4769,11 @@ void MESH_OT_dissolve_degenerate(wmOperatorType *ot)
 	                       "Minimum distance between elements to merge", 1e-5f, 10.0f);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Delete Edge-Loop Operator
+ * \{ */
 
 /* internally uses dissolve */
 static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
@@ -4563,9 +4800,10 @@ static int edbm_delete_edgeloop_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (!EDBM_op_callf(em, op,
-	                   "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
-	                   BM_ELEM_SELECT, true, use_face_split))
+	if (!EDBM_op_callf(
+	            em, op,
+	            "dissolve_edges edges=%he use_verts=%b use_face_split=%b",
+	            BM_ELEM_SELECT, true, use_face_split))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -4596,6 +4834,12 @@ void MESH_OT_delete_edgeloop(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_face_split", true, "Face Split",
 	                "Split off face corners to maintain surrounding geometry");
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Split Geometry Operator
+ * \{ */
 
 static int edbm_split_exec(bContext *C, wmOperator *op)
 {
@@ -4634,16 +4878,21 @@ void MESH_OT_split(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-/******************************************************************************
- * qsort routines.
- * Now unified, for vertices/edges/faces. */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Sort Geometry Elements Operator
+ *
+ * Unified for vertices/edges/faces.
+ *
+ * \{ */
 
 enum {
 	SRT_VIEW_ZAXIS = 1,  /* Use view Z (deep) axis. */
 	SRT_VIEW_XAXIS,      /* Use view X (left to right) axis. */
 	SRT_CURSOR_DISTANCE, /* Use distance from element to 3D cursor. */
 	SRT_MATERIAL,        /* Face only: use mat number. */
-	SRT_SELECTED,        /* Move selected elements in first, without modifying 
+	SRT_SELECTED,        /* Move selected elements in first, without modifying
 	                      * relative order of selected and unselected elements. */
 	SRT_RANDOMIZE,       /* Randomize selected elements. */
 	SRT_REVERSE,         /* Reverse current order of selected elements. */
@@ -4662,10 +4911,11 @@ static int bmelemsort_comp(const void *v1, const void *v2)
 }
 
 /* Reorders vertices/edges/faces using a given methods. Loops are not supported. */
-static void sort_bmelem_flag(Scene *scene, Object *ob,
-                             View3D *v3d, RegionView3D *rv3d,
-                             const int types, const int flag, const int action,
-                             const int reverse, const unsigned int seed)
+static void sort_bmelem_flag(
+        Scene *scene, Object *ob,
+        View3D *v3d, RegionView3D *rv3d,
+        const int types, const int flag, const int action,
+        const int reverse, const unsigned int seed)
 {
 	BMEditMesh *em = BKE_editmesh_from_object(ob);
 
@@ -5131,8 +5381,9 @@ static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
 		RNA_enum_set(op->ptr, "elements", elem_types);
 	}
 
-	sort_bmelem_flag(scene, ob, v3d, rv3d,
-	                 elem_types, BM_ELEM_SELECT, action, use_reverse, seed);
+	sort_bmelem_flag(
+	        scene, ob, v3d, rv3d,
+	        elem_types, BM_ELEM_SELECT, action, use_reverse, seed);
 	return OPERATOR_FINISHED;
 }
 
@@ -5221,7 +5472,11 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "seed", 0, 0, INT_MAX, "Seed", "Seed for random-based operations", 0, 255);
 }
 
-/****** end of qsort stuff ****/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Noise (Deform Vertices) Operator
+ * \{ */
 
 static int edbm_noise_exec(bContext *C, wmOperator *op)
 {
@@ -5254,7 +5509,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 				vec[0] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0] + ofs, eve->co[1], eve->co[2]));
 				vec[1] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1] + ofs, eve->co[2]));
 				vec[2] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2] + ofs));
-				
+
 				add_v3_v3(eve->co, vec);
 			}
 		}
@@ -5295,6 +5550,11 @@ void MESH_OT_noise(wmOperatorType *ot)
 	RNA_def_float(ot->srna, "factor", 0.1f, -1e4f, 1e4f, "Factor", "", 0.0f, 1.0f);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Bridge Operator
+ * \{ */
 
 enum {
 	MESH_BRIDGELOOP_SINGLE = 0,
@@ -5381,9 +5641,10 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 		edge_hflag = BM_ELEM_SELECT;
 	}
 
-	EDBM_op_init(em, &bmop, op,
-	             "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f twist_offset=%i",
-	             edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor, twist_offset);
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "bridge_loops edges=%he use_pairs=%b use_cyclic=%b use_merge=%b merge_factor=%f twist_offset=%i",
+	        edge_hflag, use_pairs, use_cyclic, use_merge, merge_factor, twist_offset);
 
 	if (use_faces && totface_del) {
 		int i;
@@ -5391,9 +5652,10 @@ static int edbm_bridge_edge_loops_exec(bContext *C, wmOperator *op)
 		for (i = 0; i < totface_del; i++) {
 			BM_elem_flag_enable(totface_del_arr[i], BM_ELEM_TAG);
 		}
-		BMO_op_callf(em->bm, BMO_FLAG_DEFAULTS,
-		             "delete geom=%hf context=%i",
-		             BM_ELEM_TAG, DEL_FACES_KEEP_BOUNDARY);
+		BMO_op_callf(
+		        em->bm, BMO_FLAG_DEFAULTS,
+		        "delete geom=%hf context=%i",
+		        BM_ELEM_TAG, DEL_FACES_KEEP_BOUNDARY);
 	}
 
 	BMO_op_exec(em->bm, &bmop);
@@ -5459,11 +5721,11 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 	ot->name = "Bridge Edge Loops";
 	ot->description = "Make faces between two or more edge loops";
 	ot->idname = "MESH_OT_bridge_edge_loops";
-	
+
 	/* api callbacks */
 	ot->exec = edbm_bridge_edge_loops_exec;
 	ot->poll = ED_operator_editmesh;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
@@ -5476,6 +5738,12 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 
 	mesh_operator_edgering_props(ot, 0, 0);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Wire-Frame Operator
+ * \{ */
 
 static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 {
@@ -5491,11 +5759,12 @@ static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 	const float thickness          = RNA_float_get(op->ptr,   "thickness");
 	const float offset             = RNA_float_get(op->ptr,   "offset");
 
-	EDBM_op_init(em, &bmop, op,
-	             "wireframe faces=%hf use_replace=%b use_boundary=%b use_even_offset=%b use_relative_offset=%b "
-	             "use_crease=%b crease_weight=%f thickness=%f offset=%f",
-	             BM_ELEM_SELECT, use_replace, use_boundary, use_even_offset, use_relative_offset,
-	             use_crease, crease_weight, thickness, offset);
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "wireframe faces=%hf use_replace=%b use_boundary=%b use_even_offset=%b use_relative_offset=%b "
+	        "use_crease=%b crease_weight=%f thickness=%f offset=%f",
+	        BM_ELEM_SELECT, use_replace, use_boundary, use_even_offset, use_relative_offset,
+	        use_crease, crease_weight, thickness, offset);
 
 	BMO_op_exec(em->bm, &bmop);
 
@@ -5540,6 +5809,12 @@ void MESH_OT_wireframe(wmOperatorType *ot)
 	prop = RNA_def_float(ot->srna, "crease_weight", 0.01f, 0.0f, 1e3f, "Crease weight", "", 0.0f, 1.0f);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 2);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Offset Edge-Loop Operator
+ * \{ */
 
 static int edbm_offset_edgeloop_exec(bContext *C, wmOperator *op)
 {
@@ -5595,6 +5870,12 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_cap_endpoint", false, "Cap Endpoint", "Extend loop around end-points");
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Convex Hull Operator
+ * \{ */
+
 #ifdef WITH_BULLET
 static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 {
@@ -5602,10 +5883,11 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMOperator bmop;
 
-	EDBM_op_init(em, &bmop, op, "convex_hull input=%hvef "
-	             "use_existing_faces=%b",
-	             BM_ELEM_SELECT,
-	             RNA_boolean_get(op->ptr, "use_existing_faces"));
+	EDBM_op_init(
+	        em, &bmop, op, "convex_hull input=%hvef "
+	        "use_existing_faces=%b",
+	        BM_ELEM_SELECT,
+	        RNA_boolean_get(op->ptr, "use_existing_faces"));
 	BMO_op_exec(em->bm, &bmop);
 
 	/* Hull fails if input is coplanar */
@@ -5618,8 +5900,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Delete unused vertices, edges, and faces */
 	if (RNA_boolean_get(op->ptr, "delete_unused")) {
-		if (!EDBM_op_callf(em, op, "delete geom=%S context=%i",
-		                   &bmop, "geom_unused.out", DEL_ONLYTAGGED))
+		if (!EDBM_op_callf(
+		            em, op, "delete geom=%S context=%i",
+		            &bmop, "geom_unused.out", DEL_ONLYTAGGED))
 		{
 			EDBM_op_finish(em, &bmop, op, true);
 			return OPERATOR_CANCELLED;
@@ -5628,8 +5911,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 
 	/* Delete hole edges/faces */
 	if (RNA_boolean_get(op->ptr, "make_holes")) {
-		if (!EDBM_op_callf(em, op, "delete geom=%S context=%i",
-		                   &bmop, "geom_holes.out", DEL_ONLYTAGGED))
+		if (!EDBM_op_callf(
+		            em, op, "delete geom=%S context=%i",
+		            &bmop, "geom_holes.out", DEL_ONLYTAGGED))
 		{
 			EDBM_op_finish(em, &bmop, op, true);
 			return OPERATOR_CANCELLED;
@@ -5697,7 +5981,13 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 	join_triangle_props(ot);
 }
-#endif
+#endif  /* WITH_BULLET */
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Symmetrize Operator
+ * \{ */
 
 static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {
@@ -5707,9 +5997,10 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 
-	EDBM_op_init(em, &bmop, op,
-	             "symmetrize input=%hvef direction=%i dist=%f",
-	             BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
+	EDBM_op_init(
+	        em, &bmop, op,
+	        "symmetrize input=%hvef direction=%i dist=%f",
+	        BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
 	BMO_op_exec(em->bm, &bmop);
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -5740,11 +6031,18 @@ void MESH_OT_symmetrize(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ot->prop = RNA_def_enum(ot->srna, "direction", rna_enum_symmetrize_direction_items,
-	                        BMO_SYMMETRIZE_NEGATIVE_X,
-	                        "Direction", "Which sides to copy from and to");
+	ot->prop = RNA_def_enum(
+	        ot->srna, "direction", rna_enum_symmetrize_direction_items,
+	        BMO_SYMMETRIZE_NEGATIVE_X,
+	        "Direction", "Which sides to copy from and to");
 	RNA_def_float(ot->srna, "threshold", 1e-4f, 0.0f, 10.0f, "Threshold", "", 1e-5f, 0.1f);
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Snap to Symmetry Operator
+ * \{ */
 
 static int mesh_symmetry_snap_exec(bContext *C, wmOperator *op)
 {
@@ -5864,15 +6162,22 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ot->prop = RNA_def_enum(ot->srna, "direction", rna_enum_symmetrize_direction_items,
-	                        BMO_SYMMETRIZE_NEGATIVE_X,
-	                        "Direction", "Which sides to copy from and to");
+	ot->prop = RNA_def_enum(
+	        ot->srna, "direction", rna_enum_symmetrize_direction_items,
+	        BMO_SYMMETRIZE_NEGATIVE_X,
+	        "Direction", "Which sides to copy from and to");
 	RNA_def_float_distance(ot->srna, "threshold", 0.05f, 0.0f, 10.0f, "Threshold", "", 1e-4f, 1.0f);
 	RNA_def_float(ot->srna, "factor", 0.5f, 0.0f, 1.0f, "Factor", "", 0.0f, 1.0f);
 	RNA_def_boolean(ot->srna, "use_center", true, "Center", "Snap mid verts to the axis center");
 }
 
+/** \} */
+
 #ifdef WITH_FREESTYLE
+
+/* -------------------------------------------------------------------- */
+/** \name Mark Edge (FreeStyle) Operator
+ * \{ */
 
 static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 {
@@ -5939,6 +6244,12 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Mark Face (FreeStyle) Operator
+ * \{ */
+
 static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
@@ -6003,4 +6314,6 @@ void MESH_OT_mark_freestyle_face(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-#endif
+/** \} */
+
+#endif  /* WITH_FREESTYLE */
