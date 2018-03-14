@@ -529,9 +529,10 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 #if TRUST_NO_ONE
 	assert(!(force_instance && (batch->inst == NULL)) || v_count > 0); // we cannot infer length if force_instance
 #endif
+	const bool do_instance = (force_instance || batch->inst);
 
 	// If using offset drawing, use the default VAO and redo bindings.
-	if (v_first != 0)
+	if (v_first != 0 && (do_instance || batch->elem))
 		{
 		glBindVertexArray(GWN_vao_default());
 		batch_update_program_bindings(batch, v_first);
@@ -539,7 +540,7 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 	else
 		glBindVertexArray(batch->vao_id);
 
-	if (force_instance || batch->inst)
+	if (do_instance)
 		{
 		// Infer length if vertex count is not given
 		if (v_count == 0)
@@ -588,9 +589,8 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 				primitive_restart_disable();
 			}
 		else
-			glDrawArrays(batch->gl_prim_type, 0, v_count);
+			glDrawArrays(batch->gl_prim_type, v_first, v_count);
 		}
-
 
 	glBindVertexArray(0);
 	}
