@@ -153,15 +153,22 @@ GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs)
  */
 void GPU_viewport_clear_from_offscreen(GPUViewport *viewport)
 {
-	if (viewport->fbl->multisample_fb) {
-		viewport->fbl->multisample_fb = NULL;
-		viewport->txl->multisample_color = NULL;
-		viewport->txl->multisample_depth = NULL;
+	DefaultFramebufferList *dfbl = viewport->fbl;
+	DefaultTextureList *dtxl = viewport->txl;
+
+	if (dfbl->multisample_fb) {
+		/* GPUViewport expect the final result to be in default_fb but
+		 * GPUOffscreen wants it in its multisample_fb, so we sync it back. */
+		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, false, false);
+		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, true, false);
+		dfbl->multisample_fb = NULL;
+		dtxl->multisample_color = NULL;
+		dtxl->multisample_depth = NULL;
 	}
 	else {
 		viewport->fbl->default_fb = NULL;
-		viewport->txl->color = NULL;
-		viewport->txl->depth = NULL;
+		dtxl->color = NULL;
+		dtxl->depth = NULL;
 	}
 }
 

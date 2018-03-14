@@ -334,10 +334,6 @@ static void eevee_draw_background(void *vedata)
 
 	EEVEE_volumes_free_smoke_textures();
 
-	if (DRW_state_is_image_render()) {
-		MULTISAMPLE_SYNC_ENABLE(dfbl);
-	}
-
 	stl->g_data->view_updated = false;
 }
 
