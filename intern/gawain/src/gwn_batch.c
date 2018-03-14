@@ -592,7 +592,9 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 			glDrawArrays(batch->gl_prim_type, v_first, v_count);
 		}
 
-	glBindVertexArray(0);
+	// Performance hog if you are drawing with the same vao multiple time.
+	// Only activate for debugging.
+	// glBindVertexArray(0);
 	}
 
 // just draw some vertices and let shader place them where we want.
@@ -604,5 +606,7 @@ void GWN_draw_primitive(Gwn_PrimType prim_type, int v_count)
 	GLenum type = convert_prim_type_to_gl(prim_type);
 	glDrawArrays(type, 0, v_count);
 
-	glBindVertexArray(0);
+	// Performance hog if you are drawing with the same vao multiple time.
+	// Only activate for debugging.
+	// glBindVertexArray(0);
 	}
