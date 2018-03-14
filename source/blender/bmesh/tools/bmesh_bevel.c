@@ -3209,7 +3209,7 @@ static void build_center_ngon(BMesh *bm, BevVert *bv, int mat_nr)
 			BLI_array_append(ve, NULL);
 		}
 	} while ((v = v->next) != vm->boundstart);
-	bev_create_ngon(bm, vv, BLI_array_count(vv), vf, frep, ve, mat_nr, true);
+	bev_create_ngon(bm, vv, BLI_array_len(vv), vf, frep, ve, mat_nr, true);
 
 	BLI_array_free(vv);
 	BLI_array_free(vf);
@@ -3960,7 +3960,7 @@ static int bevel_edge_order_extend(BMesh *bm, BevVert *bv, int i)
 			BLI_array_append(sucs, bme2);
 		}
 	}
-	nsucs = BLI_array_count(sucs);
+	nsucs = BLI_array_len(sucs);
 
 	bestj = j = i;
 	for (sucindex = 0; sucindex < nsucs; sucindex++) {
@@ -4500,15 +4500,15 @@ static bool bev_rebuild_polygon(BMesh *bm, BevelParams *bp, BMFace *f)
 		}
 	}
 	if (do_rebuild) {
-		n = BLI_array_count(vv);
+		n = BLI_array_len(vv);
 		f_new = bev_create_ngon(bm, vv, n, NULL, f, NULL, -1, true);
 
-		for (k = 0; k < BLI_array_count(vv_fix); k++) {
+		for (k = 0; k < BLI_array_len(vv_fix); k++) {
 			bev_merge_uvs(bm, vv_fix[k]);
 		}
 
 		/* copy attributes from old edges */
-		BLI_assert(n == BLI_array_count(ee));
+		BLI_assert(n == BLI_array_len(ee));
 		bme_prev = ee[n - 1];
 		for (k = 0; k < n; k++) {
 			bme_new = BM_edge_exists(vv[k], vv[(k + 1) % n]);

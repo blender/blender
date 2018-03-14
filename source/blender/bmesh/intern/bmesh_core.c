@@ -1282,8 +1282,8 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 	}
 
 	/* create region face */
-	f_new = BLI_array_count(edges) ?
-	        BM_face_create_ngon(bm, v1, v2, edges, BLI_array_count(edges), faces[0], BM_CREATE_NOP) : NULL;
+	f_new = BLI_array_len(edges) ?
+	        BM_face_create_ngon(bm, v1, v2, edges, BLI_array_len(edges), faces[0], BM_CREATE_NOP) : NULL;
 	if (UNLIKELY(f_new == NULL)) {
 		/* Invalid boundary region to join faces */
 		goto error;
@@ -1347,11 +1347,11 @@ BMFace *BM_faces_join(BMesh *bm, BMFace **faces, int totface, const bool do_del)
 
 	/* delete old geometry */
 	if (do_del) {
-		for (i = 0; i < BLI_array_count(deledges); i++) {
+		for (i = 0; i < BLI_array_len(deledges); i++) {
 			BM_edge_kill(bm, deledges[i]);
 		}
 
-		for (i = 0; i < BLI_array_count(delverts); i++) {
+		for (i = 0; i < BLI_array_len(delverts); i++) {
 			BM_vert_kill(bm, delverts[i]);
 		}
 	}

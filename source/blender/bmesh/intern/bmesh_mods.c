@@ -482,8 +482,8 @@ BMEdge *BM_vert_collapse_faces(
 			BLI_array_append(faces, f);
 		}
 
-		if (BLI_array_count(faces) >= 2) {
-			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_count(faces), true);
+		if (BLI_array_len(faces) >= 2) {
+			BMFace *f2 = BM_faces_join(bm, faces, BLI_array_len(faces), true);
 			if (f2) {
 				BMLoop *l_a, *l_b;
 
@@ -499,7 +499,7 @@ BMEdge *BM_vert_collapse_faces(
 			}
 		}
 
-		BLI_assert(BLI_array_count(faces) < 8);
+		BLI_assert(BLI_array_len(faces) < 8);
 
 		BLI_array_free(faces);
 	}
@@ -608,7 +608,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 		} while (l != e->l);
 		
 		/* flag existing faces so we can differentiate oldfaces from new faces */
-		for (i = 0; i < BLI_array_count(oldfaces); i++) {
+		for (i = 0; i < BLI_array_len(oldfaces); i++) {
 			BM_ELEM_API_FLAG_ENABLE(oldfaces[i], _FLAG_OVERLAP);
 			oldfaces[i] = BM_face_copy(bm, bm, oldfaces[i], true, true);
 			BM_ELEM_API_FLAG_DISABLE(oldfaces[i], _FLAG_OVERLAP);
@@ -639,7 +639,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 		int i, j;
 
 		/* interpolate new/changed loop data from copied old faces */
-		for (i = 0; i < BLI_array_count(oldfaces); i++) {
+		for (i = 0; i < BLI_array_len(oldfaces); i++) {
 			float f_center_old[3];
 
 			BM_face_calc_center_mean(oldfaces[i], f_center_old);
@@ -671,7 +671,7 @@ BMVert *BM_edge_split(BMesh *bm, BMEdge *e, BMVert *v, BMEdge **r_e, float fac)
 		}
 		
 		/* destroy the old faces */
-		for (i = 0; i < BLI_array_count(oldfaces); i++) {
+		for (i = 0; i < BLI_array_len(oldfaces); i++) {
 			BM_face_verts_kill(bm, oldfaces[i]);
 		}
 		

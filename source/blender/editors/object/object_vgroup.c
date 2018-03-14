@@ -1187,7 +1187,7 @@ static int *getSurroundingVerts(Mesh *me, int vert, int *count)
 				}
 
 				/* Append a and b verts to array, if not yet present. */
-				k = BLI_array_count(verts);
+				k = BLI_array_len(verts);
 				/* XXX Maybe a == b is enough? */
 				while (k-- && !(a == b && a == -1)) {
 					if (verts[k] == a)
@@ -1209,7 +1209,7 @@ static int *getSurroundingVerts(Mesh *me, int vert, int *count)
 	}
 
 	/* Do not free the array! */
-	*count = BLI_array_count(verts);
+	*count = BLI_array_len(verts);
 	return verts;
 }
 
