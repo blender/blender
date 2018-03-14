@@ -1,13 +1,12 @@
 """
-Get/Set Example
-+++++++++++++++
+Getter/Setter Example
++++++++++++++++++++++
 
-Get/Set functions can be used for boolean, int, float, string and enum properties.
+Getter/setter functions can be used for boolean, int, float, string and enum properties.
 If these callbacks are defined the property will not be stored in the ID properties
-automatically, instead the get/set functions will be called when the property is
-read or written from the API.
+automatically. Instead, the `get` and `set` functions will be called when the property
+is respectively read or written from the API.
 """
-
 import bpy
 
 
@@ -65,25 +64,24 @@ def set_enum(self, value):
 bpy.types.Scene.test_enum = bpy.props.EnumProperty(items=test_items, get=get_enum, set=set_enum)
 
 
-# Testing
-
+# Testing the properties:
 scene = bpy.context.scene
 
 scene.test_float = 12.34
-print(scene.test_float)
+print('test_float:', scene.test_float)
 
 scene.test_array = (True, False)
-print([x for x in scene.test_array])
+print('test_array:', tuple(scene.test_array))
 
 # scene.test_date = "blah"   # this would fail, property is read-only
-print(scene.test_date)
+print('test_date:', scene.test_date)
 
 scene.test_enum = 'BLUE'
-print(scene.test_enum)
+print('test_enum:', scene.test_enum)
 
-
-# >>> 12.34000015258789
-# >>> [True, False]
-# >>> 2013-01-05 16:33:52.135340
-# >>> setting value 3
-# >>> GREEN
+# The above outputs:
+# test_float: 12.34000015258789
+# test_array: (True, False)
+# test_date: 2018-03-14 11:36:53.158653
+# setting value 3
+# test_enum: GREEN
