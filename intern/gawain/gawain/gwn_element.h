@@ -15,6 +15,8 @@
 
 #define GWN_TRACK_INDEX_RANGE 1
 
+#define GWN_PRIM_RESTART 0xFFFFFFFF
+
 typedef enum {
 	GWN_INDEX_U8, // GL has this, Vulkan does not
 	GWN_INDEX_U16,
@@ -32,6 +34,7 @@ typedef struct Gwn_IndexBuf {
 #endif
 	void* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
+	bool use_prim_restart;
 } Gwn_IndexBuf;
 
 void GWN_indexbuf_use(Gwn_IndexBuf*);
@@ -43,17 +46,18 @@ typedef struct Gwn_IndexBufBuilder {
 	unsigned index_ct;
 	Gwn_PrimType prim_type;
 	unsigned* data;
+	bool use_prim_restart;
 } Gwn_IndexBufBuilder;
 
-// supported primitives:
-//  GWN_PRIM_POINTS
-//  GWN_PRIM_LINES
-//  GWN_PRIM_TRIS
 
+// supports all primitive types.
+void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned index_ct, unsigned vertex_ct, bool use_prim_restart);
+
+// supports only GWN_PRIM_POINTS, GWN_PRIM_LINES and GWN_PRIM_TRIS.
 void GWN_indexbuf_init(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned prim_ct, unsigned vertex_ct);
-//void GWN_indexbuf_init_custom(Gwn_IndexBufBuilder*, Gwn_PrimType, unsigned index_ct, unsigned vertex_ct);
 
 void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder*, unsigned v);
+void GWN_indexbuf_add_primitive_restart(Gwn_IndexBufBuilder*);
 
 void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder*, unsigned v);
 void GWN_indexbuf_add_line_verts(Gwn_IndexBufBuilder*, unsigned v1, unsigned v2);

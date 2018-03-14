@@ -61,6 +61,16 @@ void GWN_indexbuf_use(Gwn_IndexBuf* elem)
 		ElementList_prime(elem);
 	}
 
+void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned index_ct, unsigned vertex_ct, bool use_prim_restart)
+	{
+	builder->use_prim_restart = use_prim_restart;
+	builder->max_allowed_index = vertex_ct - 1;
+	builder->max_index_ct = index_ct;
+	builder->index_ct = 0; // start empty
+	builder->prim_type = prim_type;
+	builder->data = calloc(builder->max_index_ct, sizeof(unsigned));
+	}
+
 void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned prim_ct, unsigned vertex_ct)
 	{
 	unsigned verts_per_prim = 0;
@@ -82,11 +92,7 @@ void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, uns
 			return;
 		}
 
-	builder->max_allowed_index = vertex_ct - 1;
-	builder->max_index_ct = prim_ct * verts_per_prim;
-	builder->index_ct = 0; // start empty
-	builder->prim_type = prim_type;
-	builder->data = calloc(builder->max_index_ct, sizeof(unsigned));
+	GWN_indexbuf_init_ex(builder, prim_type, prim_ct * verts_per_prim, vertex_ct, false);
 	}
 
 void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder* builder, unsigned v)
@@ -98,6 +104,17 @@ void GWN_indexbuf_add_generic_vert(Gwn_IndexBufBuilder* builder, unsigned v)
 #endif
 
 	builder->data[builder->index_ct++] = v;
+	}
+
+void GWN_indexbuf_add_primitive_restart(Gwn_IndexBufBuilder* builder)
+	{
+#if TRUST_NO_ONE
+	assert(builder->data != NULL);
+	assert(builder->index_ct < builder->max_index_ct);
+	assert(builder->use_prim_restart);
+#endif
+
+	builder->data[builder->index_ct++] = GWN_PRIM_RESTART;
 	}
 
 void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder* builder, unsigned v)
@@ -149,7 +166,9 @@ static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned
 	for (unsigned i = 1; i < value_ct; ++i)
 		{
 		const unsigned value = values[i];
-		if (value < min_value)
+		if (value == GWN_PRIM_RESTART)
+			continue;
+		else if (value < min_value)
 			min_value = value;
 		else if (value > max_value)
 			max_value = value;
@@ -173,7 +192,7 @@ static void squeeze_indices_byte(const unsigned values[], Gwn_IndexBuf* elem)
 		elem->max_index -= base;
 
 		for (unsigned i = 0; i < index_ct; ++i)
-			data[i] = (GLubyte)(values[i] - base);
+			data[i] = (values[i] == GWN_PRIM_RESTART) ? 0xFF : (GLubyte)(values[i] - base);
 		}
 	else
 		{
@@ -200,7 +219,7 @@ static void squeeze_indices_short(const unsigned values[], Gwn_IndexBuf* elem)
 		elem->max_index -= base;
 
 		for (unsigned i = 0; i < index_ct; ++i)
-			data[i] = (GLushort)(values[i] - base);
+			data[i] = (values[i] == GWN_PRIM_RESTART) ? 0xFFFF : (GLushort)(values[i] - base);
 		}
 	else
 		{
@@ -229,9 +248,14 @@ void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder* builder, Gwn_IndexBuf* ele
 #endif
 
 	elem->index_ct = builder->index_ct;
+	elem->use_prim_restart = builder->use_prim_restart;
 
 #if GWN_TRACK_INDEX_RANGE
-	const unsigned range = index_range(builder->data, builder->index_ct, &elem->min_index, &elem->max_index);
+	unsigned range = index_range(builder->data, builder->index_ct, &elem->min_index, &elem->max_index);
+
+	// count the primitive restart index.
+	if (elem->use_prim_restart)
+		range += 1;
 
 	if (range <= 0xFF)
 		{

@@ -489,6 +489,27 @@ void GWN_batch_uniform_4fv(Gwn_Batch* batch, const char* name, const float data[
 	glUniform4fv(uniform->location, 1, data);
 	}
 
+static void primitive_restart_enable(const Gwn_IndexBuf *el)
+{
+	// TODO(fclem) Replace by GL_PRIMITIVE_RESTART_FIXED_INDEX when we have ogl 4.3
+	glEnable(GL_PRIMITIVE_RESTART);
+	GLuint restart_index = (GLuint)0xFFFFFFFF;
+
+#if GWN_TRACK_INDEX_RANGE
+	if (el->index_type == GWN_INDEX_U8)
+		restart_index = (GLuint)0xFF;
+	else if (el->index_type == GWN_INDEX_U16)
+		restart_index = (GLuint)0xFFFF;
+#endif
+
+	glPrimitiveRestartIndex(restart_index);
+}
+
+static void primitive_restart_disable(void)
+{
+	glDisable(GL_PRIMITIVE_RESTART);
+}
+
 void GWN_batch_draw(Gwn_Batch* batch)
 	{
 #if TRUST_NO_ONE
@@ -528,11 +549,16 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 			{
 			const Gwn_IndexBuf* el = batch->elem;
 
+			if (el->use_prim_restart)
+				primitive_restart_enable(el);
+
 #if GWN_TRACK_INDEX_RANGE
 			glDrawElementsInstancedBaseVertex(batch->gl_prim_type, el->index_ct, el->gl_index_type, 0, v_count, el->base_index);
 #else
 			glDrawElementsInstanced(batch->gl_prim_type, el->index_ct, GL_UNSIGNED_INT, 0, v_count);
 #endif
+			if (el->use_prim_restart)
+				primitive_restart_disable();
 			}
 		else
 			glDrawArraysInstanced(batch->gl_prim_type, 0, batch->verts[0]->vertex_ct, v_count);
@@ -547,6 +573,9 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 			{
 			const Gwn_IndexBuf* el = batch->elem;
 
+			if (el->use_prim_restart)
+				primitive_restart_enable(el);
+
 #if GWN_TRACK_INDEX_RANGE
 			if (el->base_index)
 				glDrawRangeElementsBaseVertex(batch->gl_prim_type, el->min_index, el->max_index, v_count, el->gl_index_type, 0, el->base_index);
@@ -555,6 +584,8 @@ void GWN_batch_draw_range_ex(Gwn_Batch* batch, int v_first, int v_count, bool fo
 #else
 			glDrawElements(batch->gl_prim_type, v_count, GL_UNSIGNED_INT, 0);
 #endif
+			if (el->use_prim_restart)
+				primitive_restart_disable();
 			}
 		else
 			glDrawArrays(batch->gl_prim_type, 0, v_count);
