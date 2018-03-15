@@ -221,7 +221,7 @@ static void VertexBuffer_prime(Gwn_VertBuf* verts)
 	verts->vbo_id = GWN_buf_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	// fill with delicious data & send to GPU the first time only
-	glBufferData(GL_ARRAY_BUFFER, verts->vram_size, verts->data, (verts->data_dynamic) ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, buffer_sz, verts->data, (verts->data_dynamic) ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
 
 	// now that GL has a copy, discard original
 	if (!verts->data_dynamic)
