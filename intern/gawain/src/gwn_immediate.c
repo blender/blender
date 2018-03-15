@@ -277,8 +277,6 @@ Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, unsigned vertex_ct)
 	imm.batch = GWN_batch_create(prim_type, verts, NULL);
 	imm.batch->phase = GWN_BATCH_BUILDING;
 
-	GWN_batch_program_set(imm.batch, imm.bound_program, imm.shader_interface);
-
 	return imm.batch;
 	}
 
@@ -398,6 +396,7 @@ void immEnd(void)
 			// TODO: resize only if vertex count is much smaller
 			}
 
+		GWN_batch_program_set(imm.batch, imm.bound_program, imm.shader_interface);
 		imm.batch->phase = GWN_BATCH_READY_TO_DRAW;
 		imm.batch = NULL; // don't free, batch belongs to caller
 		}
