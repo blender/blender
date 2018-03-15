@@ -41,9 +41,8 @@ extern "C" {
 #include "BLI_compiler_compat.h"
 #include "BLI_utildefines_variadic.h"
 
-#ifndef NDEBUG /* for BLI_assert */
-#include <stdio.h>
-#endif
+/* We could remove in future. */
+#include "BLI_assert.h"
 
 /* useful for finding bad use of min/max */
 #if 0
@@ -614,74 +613,6 @@ extern bool BLI_memory_is_zero(const void *arr, const size_t arr_size);
 #else
 #  define UNUSED_VARS_NDEBUG UNUSED_VARS
 #endif
-
-
-/* BLI_assert(), default only to print
- * for aborting need to define WITH_ASSERT_ABORT
- */
-/* For 'abort' only. */
-#include <stdlib.h>
-
-#ifndef NDEBUG
-#  include "BLI_system.h"
-#  ifdef WITH_ASSERT_ABORT
-#    define _BLI_DUMMY_ABORT abort
-#  else
-#    define _BLI_DUMMY_ABORT() (void)0
-#  endif
-#  if defined(__GNUC__) || defined(_MSC_VER) /* check __func__ is available */
-#    define BLI_assert(a)                                                     \
-	(void)((!(a)) ?  (                                                        \
-		(                                                                     \
-		BLI_system_backtrace(stderr),                                         \
-		fprintf(stderr,                                                       \
-			"BLI_assert failed: %s:%d, %s(), at \'%s\'\n",                    \
-			__FILE__, __LINE__, __func__, STRINGIFY(a)),                      \
-		_BLI_DUMMY_ABORT(),                                                   \
-		NULL)) : NULL)
-#  else
-#    define BLI_assert(a)                                                     \
-	(void)((!(a)) ?  (                                                        \
-		(                                                                     \
-		fprintf(stderr,                                                       \
-			"BLI_assert failed: %s:%d, at \'%s\'\n",                          \
-			__FILE__, __LINE__, STRINGIFY(a)),                                \
-		_BLI_DUMMY_ABORT(),                                                   \
-		NULL)) : NULL)
-#  endif
-#else
-#  define BLI_assert(a) (void)0
-#endif
-
-/* C++ can't use _Static_assert, expects static_assert() but c++0x only,
- * Coverity also errors out. */
-#if (!defined(__cplusplus)) && \
-    (!defined(__COVERITY__)) && \
-    (defined(__GNUC__) && ((__GNUC__ * 100 + __GNUC_MINOR__) >= 406))  /* gcc4.6+ only */
-#  define BLI_STATIC_ASSERT(a, msg) __extension__ _Static_assert(a, msg);
-#else
-/* Code adapted from http://www.pixelbeat.org/programming/gcc/static_assert.html */
-/* Note we need the two concats below because arguments to ## are not expanded, so we need to
- * expand __LINE__ with one indirection before doing the actual concatenation. */
-#  define ASSERT_CONCAT_(a, b) a##b
-#  define ASSERT_CONCAT(a, b) ASSERT_CONCAT_(a, b)
-   /* These can't be used after statements in c89. */
-#  if defined(__COUNTER__)  /* MSVC */
-#    define BLI_STATIC_ASSERT(a, msg) \
-         ; enum { ASSERT_CONCAT(static_assert_, __COUNTER__) = 1 / (int)(!!(a)) };
-#  else  /* older gcc, clang... */
-    /* This can't be used twice on the same line so ensure if using in headers
-     * that the headers are not included twice (by wrapping in #ifndef...#endif)
-     * Note it doesn't cause an issue when used on same line of separate modules
-     * compiled with gcc -combine -fwhole-program. */
-#    define BLI_STATIC_ASSERT(a, msg) \
-         ; enum { ASSERT_CONCAT(assert_line_, __LINE__) = 1 / (int)(!!(a)) };
-#  endif
-#endif
-
-
-#define BLI_STATIC_ASSERT_ALIGN(st, align) \
-  BLI_STATIC_ASSERT((sizeof(st) % (align) == 0), "Structure must be strictly aligned")
 
 /* hints for branch prediction, only use in code that runs a _lot_ where */
 #ifdef __GNUC__
