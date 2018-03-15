@@ -870,6 +870,22 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				gpumaterial_ptr = &world->gpumaterial;
 				break;
 			}
+			case ID_NT:
+			{
+				/* Node trees should try to preserve their socket pointers
+				 * as much as possible. This is due to UBOs code in GPU,
+				 * which references sockets from trees.
+				 *
+				 * These flags CURRENTLY don't need full datablock update,
+				 * everything is done by node tree update function which
+				 * only copies socket values.
+				 */
+				const int ignore_flag = (ID_RECALC_DRAW | ID_RECALC_ANIMATION);
+				if ((id_cow->recalc & ~ignore_flag) == 0) {
+					return id_cow;
+				}
+				break;
+			}
 			case ID_OB:
 			{
 				Object *object = (Object *)id_cow;
