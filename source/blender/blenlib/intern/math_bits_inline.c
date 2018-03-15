@@ -33,7 +33,9 @@
 
 MINLINE int bitscan_forward_i(int a)
 {
+#if 0  /* No BLI_assert in INLINE :/ */
 	BLI_assert(a != 0);
+#endif
 #  ifdef _MSC_VER
 	unsigned long ctz;
 	_BitScanForward(&ctz, a);
