@@ -51,6 +51,7 @@ struct Options {
 	SessionParams session_params;
 	bool quiet;
 	bool show_help, interactive, pause;
+	string output_path;
 } options;
 
 static void session_print(const string& str)
@@ -84,6 +85,34 @@ static void session_print_status()
 	/* print status */
 	status = string_printf("Progress %05.2f   %s", (double) progress*100, status.c_str());
 	session_print(status);
+}
+
+static bool write_render(const uchar *pixels, int w, int h, int channels)
+{
+	string msg = string_printf("Writing image %s", options.output_path.c_str());
+	session_print(msg);
+
+	ImageOutput *out = ImageOutput::create(options.output_path);
+	if(!out) {
+		return false;
+	}
+
+	ImageSpec spec(w, h, channels, TypeDesc::UINT8);
+	if(!out->open(options.output_path, spec)) {
+		return false;
+	}
+
+	/* conversion for different top/bottom convention */
+	out->write_image(TypeDesc::UINT8,
+		pixels + (h - 1) * w * channels,
+		AutoStride,
+		-w * channels,
+		AutoStride);
+
+	out->close();
+	delete out;
+
+	return true;
 }
 
 static BufferParams& session_buffer_params()
@@ -120,6 +149,7 @@ static void scene_init()
 
 static void session_init()
 {
+	options.session_params.write_render_cb = write_render;
 	options.session = new Session(options.session_params);
 
 	if(options.session_params.background && !options.quiet)
@@ -364,7 +394,7 @@ static void options_parse(int argc, const char **argv)
 		"--background", &options.session_params.background, "Render in background, without user interface",
 		"--quiet", &options.quiet, "In background mode, don't print progress messages",
 		"--samples %d", &options.session_params.samples, "Number of samples to render",
-		"--output %s", &options.session_params.output_path, "File path to write output image",
+		"--output %s", &options.output_path, "File path to write output image",
 		"--threads %d", &options.session_params.threads, "CPU Rendering Threads",
 		"--width  %d", &options.width, "Window width in pixel",
 		"--height %d", &options.height, "Window height in pixel",

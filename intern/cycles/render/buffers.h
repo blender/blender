@@ -113,7 +113,6 @@ public:
 	~DisplayBuffer();
 
 	void reset(BufferParams& params);
-	void write(const string& filename);
 
 	void draw_set(int width, int height);
 	void draw(Device *device, const DeviceDrawParams& draw_params);
