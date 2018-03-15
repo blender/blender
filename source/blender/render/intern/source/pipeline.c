@@ -257,6 +257,11 @@ RenderLayer *RE_GetRenderLayer(RenderResult *rr, const char *name)
 	}
 }
 
+bool RE_HasSingleLayer(Render *re)
+{
+	return (re->r.scemode & R_SINGLE_LAYER);
+}
+
 RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty)
 {
 	return render_result_new_from_exr(exrhandle, colorspace, predivide, rectx, recty);
@@ -264,12 +269,19 @@ RenderResult *RE_MultilayerConvert(void *exrhandle, const char *colorspace, bool
 
 RenderLayer *render_get_active_layer(Render *re, RenderResult *rr)
 {
-	RenderLayer *rl = BLI_findlink(&rr->layers, re->r.actlay);
-	
-	if (rl)
-		return rl;
-	else 
-		return rr->layers.first;
+	SceneRenderLayer *srl = BLI_findlink(&re->r.layers, re->r.actlay);
+
+	if (srl) {
+		RenderLayer *rl = BLI_findstring(&rr->layers,
+		                                 srl->name,
+		                                 offsetof(RenderLayer, name));
+
+		if (rl) {
+			return rl;
+		}
+	}
+
+	return rr->layers.first;
 }
 
 static int render_scene_needs_vector(Render *re)

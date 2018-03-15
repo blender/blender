@@ -521,10 +521,8 @@ static void render_image_update_pass_and_layer(RenderJob *rj, RenderResult *rr, 
 			int layer = BLI_findstringindex(&main_rr->layers,
 			                                (char *)rr->renlay->name,
 			                                offsetof(RenderLayer, name));
-			if (layer != rj->last_layer) {
-				sima->iuser.layer = layer;
-				rj->last_layer = layer;
-			}
+			sima->iuser.layer = layer;
+			rj->last_layer = layer;
 		}
 
 		iuser->pass = sima->iuser.pass;
@@ -621,7 +619,21 @@ static void render_image_restore_layer(RenderJob *rj)
 				if (sa == rj->sa) {
 					if (sa->spacetype == SPACE_IMAGE) {
 						SpaceImage *sima = sa->spacedata.first;
-						sima->iuser.layer = rj->orig_layer;
+
+						if (RE_HasSingleLayer(rj->re)) {
+							/* For single layer renders keep the active layer
+							 * visible, or show the compositing result. */
+							RenderResult *rr = RE_AcquireResultRead(rj->re);
+							if(RE_HasCombinedLayer(rr)) {
+								sima->iuser.layer = 0;
+							}
+							RE_ReleaseResult(rj->re);
+						}
+						else {
+							/* For multiple layer render, set back the layer
+							 * that was set at the start of rendering. */
+							sima->iuser.layer = rj->orig_layer;
+						}
 					}
 					return;
 				}
