@@ -64,7 +64,9 @@ MINLINE unsigned int bitscan_forward_clear_uint(unsigned int *a)
 
 MINLINE int bitscan_reverse_i(int a)
 {
+#if 0  /* No BLI_assert in INLINE :/ */
 	BLI_assert(a != 0);
+#endif
 #  ifdef _MSC_VER
 	unsigned long clz;
 	_BitScanReverse(&clz, a);
