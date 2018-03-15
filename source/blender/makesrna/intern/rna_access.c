@@ -451,8 +451,9 @@ static void *rna_idproperty_check_ex(PropertyRNA **prop, PointerRNA *ptr, const 
 
 			return idprop;
 		}
-		else
+		else {
 			return return_rnaprop ? *prop : NULL;
+		}
 	}
 
 	{
@@ -7149,6 +7150,8 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
  * When \a prop is given, \a prop_a and \a prop_b should always be NULL, and vice-versa.
  * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
  * (unset IDProps would merely be NULL then).
+ *
+ * \note When there is no equality, but we cannot determine an order (greater than/lesser then), we return 1.
  */
 static int rna_property_override_diff(
         PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
