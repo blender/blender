@@ -35,6 +35,7 @@
 #endif
 
 #include <math.h>
+#include "BLI_assert.h"
 #include "BLI_math_inline.h"
 
 #ifndef M_PI
