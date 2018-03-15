@@ -41,6 +41,8 @@
 #  include <X11/extensions/XInput.h>
 #endif
 
+#include "GHOST_TaskbarX11.h"
+
 #include <map>
 
 class STR_String;
@@ -165,6 +167,9 @@ public:
 	GHOST_TSuccess
 	invalidate(
 	    );
+
+	GHOST_TSuccess setProgressBar(float progress);
+	GHOST_TSuccess endProgressBar();
 
 	/**
 	 * Destructor.
@@ -346,6 +351,8 @@ private:
 	
 	/** Cache of XC_* ID's to XCursor structures */
 	std::map<unsigned int, Cursor> m_standard_cursors;
+
+	GHOST_TaskBarX11 m_taskbar;
 
 #ifdef WITH_XDND
 	GHOST_DropTargetX11 *m_dropTarget;
