@@ -363,7 +363,8 @@ void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 		dummyHDC = GetDC(dummyHWND);
 	}
 	else {
-		dummyhBuffer = wglCreatePbufferARB(m_hDC, iPixelFormat, 1, 1, 0);
+		int iAttribList[] = {0};
+		dummyhBuffer = wglCreatePbufferARB(m_hDC, iPixelFormat, 1, 1, iAttribList);
 		dummyHDC = wglGetPbufferDCARB(dummyhBuffer);
 	}
 
@@ -812,7 +813,8 @@ GHOST_TSuccess GHOST_ContextWGL::initializeDrawingContext()
 
 		if (create_hDC) {
 			/* create an off-screen pixel buffer (Pbuffer) */
-			m_dummyPbuffer = wglCreatePbufferARB(m_hDC, iPixelFormat, 1, 1, 0);
+			int iAttribList[] = {0};
+			m_dummyPbuffer = wglCreatePbufferARB(m_hDC, iPixelFormat, 1, 1, iAttribList);
 			m_hDC = wglGetPbufferDCARB(m_dummyPbuffer);
 		}
 
