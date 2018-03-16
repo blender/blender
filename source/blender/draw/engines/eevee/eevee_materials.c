@@ -858,6 +858,8 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 		vedata->psl->default_pass[options] = DRW_pass_create("Default Lit Pass", state);
 
 		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit[options], vedata->psl->default_pass[options]);
+		/* XXX / WATCH: This creates non persistent binds for the ubos and textures.
+		 * But it's currently OK because the following shgroups does not add any bind. */
 		add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false, false);
 	}
 
