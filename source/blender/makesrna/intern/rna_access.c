@@ -7151,11 +7151,12 @@ bool RNA_struct_equals(PointerRNA *ptr_a, PointerRNA *ptr_b, eRNACompareMode mod
  * This is necessary, because we cannot perform 'set/unset' checks on resolved properties
  * (unset IDProps would merely be NULL then).
  *
- * \note When there is no equality, but we cannot determine an order (greater than/lesser then), we return 1.
+ * \note When there is no equality, but we cannot determine an order (greater than/lesser than), we return 1.
  */
 static int rna_property_override_diff(
-        PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b, const char *rna_path,
-        eRNACompareMode mode, IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags)
+        PointerRNA *ptr_a, PointerRNA *ptr_b, PropertyRNA *prop, PropertyRNA *prop_a, PropertyRNA *prop_b,
+        const char *rna_path, eRNACompareMode mode,
+        IDOverrideStatic *override, const int flags, eRNAOverrideMatchResult *r_report_flags)
 {
 	if (prop != NULL) {
 		BLI_assert(prop_a == NULL && prop_b == NULL);
@@ -7681,7 +7682,7 @@ IDOverrideStaticPropertyOperation *RNA_property_override_property_operation_get(
 	return BKE_override_static_property_operation_get(op, operation, NULL, NULL, index, index, strict, r_strict, r_created);
 }
 
-int RNA_property_override_status(PointerRNA *ptr, PropertyRNA *prop, const int index)
+eRNAOverrideStatus RNA_property_override_status(PointerRNA *ptr, PropertyRNA *prop, const int index)
 {
 	int override_status = 0;
 

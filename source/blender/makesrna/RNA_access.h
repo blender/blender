@@ -1307,7 +1307,7 @@ struct IDOverrideStaticPropertyOperation *RNA_property_override_property_operati
         PointerRNA *ptr, PropertyRNA *prop, const short operation, const int index,
         const bool strict, bool *r_strict, bool *r_created);
 
-int RNA_property_override_status(PointerRNA *ptr, PropertyRNA *prop, const int index);
+eRNAOverrideStatus RNA_property_override_status(PointerRNA *ptr, PropertyRNA *prop, const int index);
 
 void        RNA_struct_state_owner_set(const char *name);
 const char *RNA_struct_state_owner_get(void);
