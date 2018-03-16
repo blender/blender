@@ -431,13 +431,13 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
 	}
 }
 
-void BKE_icon_changed(int id)
+void BKE_icon_changed(const int icon_id)
 {
 	Icon *icon = NULL;
 	
-	if (!id || G.background) return;
+	if (!icon_id || G.background) return;
 
-	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(id));
+	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (icon) {
 		PreviewImage *prv = BKE_previewimg_id_ensure((ID *)icon->obj);
@@ -547,7 +547,7 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 	return preview->icon_id;
 }
 
-Icon *BKE_icon_get(int icon_id)
+Icon *BKE_icon_get(const int icon_id)
 {
 	Icon *icon = NULL;
 
@@ -561,7 +561,7 @@ Icon *BKE_icon_get(int icon_id)
 	return icon;
 }
 
-void BKE_icon_set(int icon_id, struct Icon *icon)
+void BKE_icon_set(const int icon_id, struct Icon *icon)
 {
 	void **val_p;
 
@@ -584,7 +584,7 @@ void BKE_icon_id_delete(struct ID *id)
 /**
  * Remove icon and free data.
  */
-void BKE_icon_delete(int icon_id)
+void BKE_icon_delete(const int icon_id)
 {
 	Icon *icon;
 
