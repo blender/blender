@@ -159,8 +159,10 @@ typedef enum {
 	DRW_UNIFORM_INT,
 	DRW_UNIFORM_FLOAT,
 	DRW_UNIFORM_TEXTURE,
+	DRW_UNIFORM_TEXTURE_PERSIST,
 	DRW_UNIFORM_BUFFER,
-	DRW_UNIFORM_BLOCK
+	DRW_UNIFORM_BLOCK,
+	DRW_UNIFORM_BLOCK_PERSIST
 } DRWUniformType;
 
 struct DRWUniform {
@@ -335,10 +337,10 @@ typedef struct DRWManager {
 	/** GPU Resource State: Memory storage between drawing. */
 	struct {
 		GPUTexture **bound_texs;
-		bool *bound_tex_slots;
+		char *bound_tex_slots;
 		int bind_tex_inc;
 		GPUUniformBuffer **bound_ubos;
-		bool *bound_ubo_slots;
+		char *bound_ubo_slots;
 		int bind_ubo_inc;
 	} RST;
 } DRWManager;

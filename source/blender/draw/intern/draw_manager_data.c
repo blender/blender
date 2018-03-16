@@ -99,7 +99,7 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
                                   DRWUniformType type, const void *value, int length, int arraysize)
 {
 	int location;
-	if (type == DRW_UNIFORM_BLOCK) {
+	if (ELEM(type, DRW_UNIFORM_BLOCK, DRW_UNIFORM_BLOCK_PERSIST)) {
 		location = GPU_shader_get_uniform_block(shgroup->shader, name);
 	}
 	else {
@@ -126,10 +126,24 @@ void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, con
 	drw_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
 }
 
+/* Same as DRW_shgroup_uniform_texture but is garanteed to be bound if shader does not change between shgrp. */
+void DRW_shgroup_uniform_texture_persistent(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
+{
+	BLI_assert(tex != NULL);
+	drw_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_PERSIST, tex, 0, 1);
+}
+
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
 	BLI_assert(ubo != NULL);
 	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
+}
+
+/* Same as DRW_shgroup_uniform_block but is garanteed to be bound if shader does not change between shgrp. */
+void DRW_shgroup_uniform_block_persistent(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
+{
+	BLI_assert(ubo != NULL);
+	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK_PERSIST, ubo, 0, 1);
 }
 
 void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
@@ -461,7 +475,7 @@ static void drw_interface_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	int view_ubo_location = GPU_shader_get_uniform_block(shader, "viewBlock");
 
 	if (view_ubo_location != -1) {
-		drw_interface_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK, view_ubo, 0, 1);
+		drw_interface_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK_PERSIST, view_ubo, 0, 1);
 	}
 	else {
 		/* Only here to support builtin shaders. This should not be used by engines. */

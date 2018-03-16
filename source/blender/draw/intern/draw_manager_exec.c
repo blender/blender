@@ -704,63 +704,87 @@ static void draw_geometry_execute(DRWShadingGroup *shgroup, Gwn_Batch *geom)
 	draw_geometry_execute_ex(shgroup, geom, 0, 0, false);
 }
 
-static void bind_texture(GPUTexture *tex)
+enum {
+	BIND_NONE = 0,
+	BIND_TEMP = 1,         /* Release slot after this shading group. */
+	BIND_PERSIST = 2,      /* Release slot only after the next shader change. */
+};
+
+static void bind_texture(GPUTexture *tex, char bind_type)
 {
+	int index;
+	char *slot_flags = DST.RST.bound_tex_slots;
 	int bind_num = GPU_texture_bound_number(tex);
 	if (bind_num == -1) {
 		for (int i = 0; i < GPU_max_textures(); ++i) {
-			DST.RST.bind_tex_inc = (DST.RST.bind_tex_inc + 1) % GPU_max_textures();
-			if (DST.RST.bound_tex_slots[DST.RST.bind_tex_inc] == false) {
-				if (DST.RST.bound_texs[DST.RST.bind_tex_inc] != NULL) {
-					GPU_texture_unbind(DST.RST.bound_texs[DST.RST.bind_tex_inc]);
+			index = DST.RST.bind_tex_inc = (DST.RST.bind_tex_inc + 1) % GPU_max_textures();
+			if (slot_flags[index] == BIND_NONE) {
+				if (DST.RST.bound_texs[index] != NULL) {
+					GPU_texture_unbind(DST.RST.bound_texs[index]);
 				}
-				GPU_texture_bind(tex, DST.RST.bind_tex_inc);
-				DST.RST.bound_texs[DST.RST.bind_tex_inc] = tex;
-				DST.RST.bound_tex_slots[DST.RST.bind_tex_inc] = true;
+				GPU_texture_bind(tex, index);
+				DST.RST.bound_texs[index] = tex;
+				slot_flags[index] = bind_type;
 				// printf("Binds Texture %d %p\n", DST.RST.bind_tex_inc, tex);
 				return;
 			}
 		}
-
 		printf("Not enough texture slots! Reduce number of textures used by your shader.\n");
 	}
-	DST.RST.bound_tex_slots[bind_num] = true;
+	slot_flags[bind_num] = bind_type;
 }
 
-static void bind_ubo(GPUUniformBuffer *ubo)
+static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 {
+	int index;
+	char *slot_flags = DST.RST.bound_ubo_slots;
 	int bind_num = GPU_uniformbuffer_bindpoint(ubo);
 	if (bind_num == -1) {
 		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
-			DST.RST.bind_ubo_inc = (DST.RST.bind_ubo_inc + 1) % GPU_max_ubo_binds();
-			if (DST.RST.bound_ubo_slots[DST.RST.bind_ubo_inc] == false) {
-				if (DST.RST.bound_ubos[DST.RST.bind_ubo_inc] != NULL) {
-					GPU_uniformbuffer_unbind(DST.RST.bound_ubos[DST.RST.bind_ubo_inc]);
+			index = DST.RST.bind_ubo_inc = (DST.RST.bind_ubo_inc + 1) % GPU_max_ubo_binds();
+			if (slot_flags[index] == BIND_NONE) {
+				if (DST.RST.bound_ubos[index] != NULL) {
+					GPU_uniformbuffer_unbind(DST.RST.bound_ubos[index]);
 				}
-				GPU_uniformbuffer_bind(ubo, DST.RST.bind_ubo_inc);
-				DST.RST.bound_ubos[DST.RST.bind_ubo_inc] = ubo;
-				DST.RST.bound_ubo_slots[DST.RST.bind_ubo_inc] = true;
+				GPU_uniformbuffer_bind(ubo, index);
+				DST.RST.bound_ubos[index] = ubo;
+				slot_flags[bind_num] = bind_type;
 				return;
 			}
 		}
-		/* This is not depending on user input.
-		 * It is our responsability to make sure there enough slots. */
-		BLI_assert(0 && "Not enough ubo slots! This should not happen!\n");
-
 		/* printf so user can report bad behaviour */
 		printf("Not enough ubo slots! This should not happen!\n");
+		/* This is not depending on user input.
+		 * It is our responsability to make sure there is enough slots. */
+		BLI_assert(0);
 	}
-	DST.RST.bound_ubo_slots[bind_num] = true;
+	slot_flags[bind_num] = bind_type;
 }
 
-static void release_texture_slots(void)
+static void release_texture_slots(bool with_persist)
 {
-	memset(DST.RST.bound_tex_slots, 0x0, sizeof(bool) * GPU_max_textures());
+	if (with_persist) {
+		memset(DST.RST.bound_tex_slots, 0x0, sizeof(*DST.RST.bound_tex_slots) * GPU_max_ubo_binds());
+	}
+	else {
+		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
+			if (DST.RST.bound_tex_slots[i] != BIND_PERSIST)
+				DST.RST.bound_tex_slots[i] = BIND_NONE;
+		}
+	}
 }
 
-static void release_ubo_slots(void)
+static void release_ubo_slots(bool with_persist)
 {
-	memset(DST.RST.bound_ubo_slots, 0x0, sizeof(bool) * GPU_max_textures());
+	if (with_persist) {
+		memset(DST.RST.bound_ubo_slots, 0x0, sizeof(*DST.RST.bound_ubo_slots) * GPU_max_ubo_binds());
+	}
+	else {
+		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
+			if (DST.RST.bound_ubo_slots[i] != BIND_PERSIST)
+				DST.RST.bound_ubo_slots[i] = BIND_NONE;
+		}
+	}
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
@@ -771,15 +795,16 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	GPUUniformBuffer *ubo;
 	int val;
 	float fval;
+	const bool shader_changed = (DST.shader != shgroup->shader);
 
-	if (DST.shader != shgroup->shader) {
+	if (shader_changed) {
 		if (DST.shader) GPU_shader_unbind();
 		GPU_shader_bind(shgroup->shader);
 		DST.shader = shgroup->shader;
-
-		release_texture_slots();
-		release_ubo_slots();
 	}
+
+	release_ubo_slots(shader_changed);
+	release_texture_slots(shader_changed);
 
 	drw_state_set((pass_state & shgroup->state_extra_disable) | shgroup->state_extra);
 	drw_stencil_set(shgroup->stencil_mask);
@@ -810,7 +835,13 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			case DRW_UNIFORM_TEXTURE:
 				tex = (GPUTexture *)uni->value;
 				BLI_assert(tex);
-				bind_texture(tex);
+				bind_texture(tex, BIND_TEMP);
+				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
+				break;
+			case DRW_UNIFORM_TEXTURE_PERSIST:
+				tex = (GPUTexture *)uni->value;
+				BLI_assert(tex);
+				bind_texture(tex, BIND_PERSIST);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BUFFER:
@@ -819,12 +850,17 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				}
 				tex = *((GPUTexture **)uni->value);
 				BLI_assert(tex);
-				bind_texture(tex);
+				bind_texture(tex, BIND_TEMP);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BLOCK:
 				ubo = (GPUUniformBuffer *)uni->value;
-				bind_ubo(ubo);
+				bind_ubo(ubo, BIND_TEMP);
+				GPU_shader_uniform_buffer(shgroup->shader, uni->location, ubo);
+				break;
+			case DRW_UNIFORM_BLOCK_PERSIST:
+				ubo = (GPUUniformBuffer *)uni->value;
+				bind_ubo(ubo, BIND_PERSIST);
 				GPU_shader_uniform_buffer(shgroup->shader, uni->location, ubo);
 				break;
 		}
