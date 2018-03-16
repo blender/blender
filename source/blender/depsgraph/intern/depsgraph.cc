@@ -35,6 +35,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_console.h"
+#include "BLI_hash.h"
 #include "BLI_ghash.h"
 #include "BLI_listbase.h"
 
@@ -458,6 +460,31 @@ void deg_editors_scene_update(Main *bmain, Scene *scene, bool updated)
 	}
 }
 
+bool deg_terminal_do_color(void)
+{
+	return (G.debug & G_DEBUG_DEPSGRAPH_PRETTY) != 0;
+}
+
+string deg_color_for_pointer(const void *pointer)
+{
+	if (!deg_terminal_do_color()) {
+		return "";
+	}
+	int r, g, b;
+	BLI_hash_pointer_to_color(pointer, &r, &g, &b);
+	char buffer[64];
+	BLI_snprintf(buffer, sizeof(buffer), TRUECOLOR_ANSI_COLOR_FORMAT, r, g, b);
+	return string(buffer);
+}
+
+string deg_color_end(void)
+{
+	if (!deg_terminal_do_color()) {
+		return "";
+	}
+	return string(TRUECOLOR_ANSI_COLOR_FINISH);
+}
+
 }  // namespace DEG
 
 /* **************** */
@@ -495,6 +522,8 @@ void DEG_editors_update_pre(Main *bmain, Scene *scene, bool time)
 	}
 }
 
+/* Evaluation and debug */
+
 void DEG_debug_print_eval(const char *function_name,
                           const char *object_name,
                           const void *object_address)
@@ -502,7 +531,12 @@ void DEG_debug_print_eval(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s (%p)\n", function_name, object_name, object_address);
+	printf("%s on %s %s(%p)%s\n",
+	       function_name,
+	       object_name,
+	       DEG::deg_color_for_pointer(object_address).c_str(),
+	       object_address,
+	       DEG::deg_color_end().c_str());
 }
 
 void DEG_debug_print_eval_subdata(const char *function_name,
@@ -515,11 +549,17 @@ void DEG_debug_print_eval_subdata(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s (%p) %s %s (%p)\n",
+	printf("%s on %s %s(%p)%s %s %s %s(%p)%s\n",
 	       function_name,
-	       object_name, object_address,
+	       object_name,
+	       DEG::deg_color_for_pointer(object_address).c_str(),
+	       object_address,
+	       DEG::deg_color_end().c_str(),
 	       subdata_comment,
-	       subdata_name, subdata_address);
+	       subdata_name,
+	       DEG::deg_color_for_pointer(subdata_address).c_str(),
+	       subdata_address,
+	       DEG::deg_color_end().c_str());
 }
 
 void DEG_debug_print_eval_subdata_index(const char *function_name,
@@ -533,11 +573,18 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s (%p) %s %s[%d] (%p)\n",
+	printf("%s on %s %s(%p)^%s %s %s[%d] %s(%p)%s\n",
 	       function_name,
-	       object_name, object_address,
+	       object_name,
+	       DEG::deg_color_for_pointer(object_address).c_str(),
+	       object_address,
+	       DEG::deg_color_end().c_str(),
 	       subdata_comment,
-	       subdata_name, subdata_index, subdata_address);
+	       subdata_name,
+	       subdata_index,
+	       DEG::deg_color_for_pointer(subdata_address).c_str(),
+	       subdata_address,
+	       DEG::deg_color_end().c_str());
 }
 
 void DEG_debug_print_eval_time(const char *function_name,
@@ -548,6 +595,11 @@ void DEG_debug_print_eval_time(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s (%p) at time %f\n",
-	       function_name, object_name, object_address, time);
+	printf("%s on %s %s(%p)%s at time %f\n",
+	       function_name,
+	       object_name,
+	       DEG::deg_color_for_pointer(object_address).c_str(),
+	       object_address,
+	       DEG::deg_color_end().c_str(),
+	       time);
 }
