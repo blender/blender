@@ -440,14 +440,16 @@ void BKE_icon_changed(const int icon_id)
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (icon) {
-		PreviewImage *prv = BKE_previewimg_id_ensure((ID *)icon->obj);
+		/* Do not enforce creation of previews for valid ID types using BKE_previewimg_id_ensure() here ,
+		 * we only want to ensure *existing* preview images are properly tagged as changed/invalid, that's all. */
+		PreviewImage **p_prv = BKE_previewimg_id_get_p((ID *)icon->obj);
 
-		/* all previews changed */
-		if (prv) {
+		/* If we have previews, they all are now invalid changed. */
+		if (p_prv && *p_prv) {
 			int i;
 			for (i = 0; i < NUM_ICON_SIZES; ++i) {
-				prv->flag[i] |= PRV_CHANGED;
-				prv->changed_timestamp[i]++;
+				(*p_prv)->flag[i] |= PRV_CHANGED;
+				(*p_prv)->changed_timestamp[i]++;
 			}
 		}
 	}
