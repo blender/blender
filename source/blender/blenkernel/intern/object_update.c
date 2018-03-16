@@ -61,18 +61,12 @@
 
 #include "DEG_depsgraph.h"
 
-#ifdef WITH_LEGACY_DEPSGRAPH
-#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
-#else
-#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
-#endif
-
 static ThreadMutex material_lock = BLI_MUTEX_INITIALIZER;
 
 void BKE_object_eval_local_transform(EvaluationContext *UNUSED(eval_ctx),
                                      Object *ob)
 {
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* calculate local matrix */
 	BKE_object_to_mat4(ob, ob->obmat);
@@ -90,7 +84,7 @@ void BKE_object_eval_parent(EvaluationContext *UNUSED(eval_ctx),
 	float tmat[4][4];
 	float locmat[4][4];
 
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* get local matrix (but don't calculate it, as that was done already!) */
 	// XXX: redundant?
@@ -119,7 +113,7 @@ void BKE_object_eval_constraints(EvaluationContext *UNUSED(eval_ctx),
 	bConstraintOb *cob;
 	float ctime = BKE_scene_frame_get(scene);
 
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* evaluate constraints stack */
 	/* TODO: split this into:
@@ -137,7 +131,7 @@ void BKE_object_eval_constraints(EvaluationContext *UNUSED(eval_ctx),
 
 void BKE_object_eval_done(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 {
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* Set negative scale flag in object. */
 	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
@@ -332,7 +326,7 @@ void BKE_object_eval_uber_data(EvaluationContext *eval_ctx,
                                Scene *scene,
                                Object *ob)
 {
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type != OB_ARMATURE);
 	BKE_object_handle_data_update(eval_ctx, scene, ob);
 
@@ -343,7 +337,7 @@ void BKE_object_eval_cloth(EvaluationContext *UNUSED(eval_ctx),
                            Scene *scene,
                            Object *object)
 {
-	DEBUG_PRINT("%s on %s\n", __func__, object->id.name);
+	DEG_debug_print_eval(__func__, object->id.name, object);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }
 

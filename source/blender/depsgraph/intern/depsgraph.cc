@@ -494,3 +494,60 @@ void DEG_editors_update_pre(Main *bmain, Scene *scene, bool time)
 		DEG::deg_editor_update_scene_pre_cb(bmain, scene, time);
 	}
 }
+
+void DEG_debug_print_eval(const char *function_name,
+                          const char *object_name,
+                          const void *object_address)
+{
+	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	printf("%s on %s (%p)\n", function_name, object_name, object_address);
+}
+
+void DEG_debug_print_eval_subdata(const char *function_name,
+                                  const char *object_name,
+                                  const void *object_address,
+                                  const char *subdata_comment,
+                                  const char *subdata_name,
+                                  const void *subdata_address)
+{
+	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	printf("%s on %s (%p) %s %s (%p)\n",
+	       function_name,
+	       object_name, object_address,
+	       subdata_comment,
+	       subdata_name, subdata_address);
+}
+
+void DEG_debug_print_eval_subdata_index(const char *function_name,
+                                        const char *object_name,
+                                        const void *object_address,
+                                        const char *subdata_comment,
+                                        const char *subdata_name,
+                                        const void *subdata_address,
+                                        const int subdata_index)
+{
+	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	printf("%s on %s (%p) %s %s[%d] (%p)\n",
+	       function_name,
+	       object_name, object_address,
+	       subdata_comment,
+	       subdata_name, subdata_index, subdata_address);
+}
+
+void DEG_debug_print_eval_time(const char *function_name,
+                               const char *object_name,
+                               const void *object_address,
+                               float time)
+{
+	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	printf("%s on %s (%p) at time %f\n",
+	       function_name, object_name, object_address, time);
+}

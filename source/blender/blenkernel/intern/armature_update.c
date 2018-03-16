@@ -53,12 +53,6 @@
 
 #include "DEG_depsgraph.h"
 
-#ifdef WITH_LEGACY_DEPSGRAPH
-#  define DEBUG_PRINT if (!DEG_depsgraph_use_legacy() && G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
-#else
-#  define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
-#endif
-
 /* ********************** SPLINE IK SOLVER ******************* */
 
 /* Temporary evaluation tree data used for Spline IK */
@@ -565,7 +559,7 @@ void BKE_pose_eval_init(EvaluationContext *UNUSED(eval_ctx),
 {
 	bPoseChannel *pchan;
 
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	BLI_assert(ob->type == OB_ARMATURE);
 
@@ -587,7 +581,7 @@ void BKE_pose_eval_init_ik(EvaluationContext *UNUSED(eval_ctx),
                            Object *ob,
                            bPose *UNUSED(pose))
 {
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bArmature *arm = (bArmature *)ob->data;
@@ -608,7 +602,8 @@ void BKE_pose_eval_bone(EvaluationContext *UNUSED(eval_ctx),
                         Object *ob,
                         bPoseChannel *pchan)
 {
-	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, pchan->name);
+	DEG_debug_print_eval_subdata(
+	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	BLI_assert(ob->type == OB_ARMATURE);
 	bArmature *arm = (bArmature *)ob->data;
 	if (arm->edbo || (arm->flag & ARM_RESTPOS)) {
@@ -643,7 +638,8 @@ void BKE_pose_constraints_evaluate(EvaluationContext *UNUSED(eval_ctx),
                                    Object *ob,
                                    bPoseChannel *pchan)
 {
-	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, pchan->name);
+	DEG_debug_print_eval_subdata(
+	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	bArmature *arm = (bArmature *)ob->data;
 	if (arm->flag & ARM_RESTPOS) {
 		return;
@@ -663,7 +659,7 @@ void BKE_pose_bone_done(EvaluationContext *UNUSED(eval_ctx),
                         bPoseChannel *pchan)
 {
 	float imat[4][4];
-	DEBUG_PRINT("%s on pchan %s\n", __func__, pchan->name);
+	DEG_debug_print_eval(__func__, pchan->name, pchan);
 	if (pchan->bone) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
@@ -675,7 +671,8 @@ void BKE_pose_iktree_evaluate(EvaluationContext *UNUSED(eval_ctx),
                               Object *ob,
                               bPoseChannel *rootchan)
 {
-	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, rootchan->name);
+	DEG_debug_print_eval_subdata(
+	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bArmature *arm = (bArmature *)ob->data;
@@ -689,8 +686,10 @@ void BKE_pose_splineik_evaluate(EvaluationContext *UNUSED(eval_ctx),
                                 Scene *scene,
                                 Object *ob,
                                 bPoseChannel *rootchan)
+
 {
-	DEBUG_PRINT("%s on %s pchan %s\n", __func__, ob->id.name, rootchan->name);
+	DEG_debug_print_eval_subdata(
+	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bArmature *arm = (bArmature *)ob->data;
@@ -706,7 +705,7 @@ void BKE_pose_eval_flush(EvaluationContext *UNUSED(eval_ctx),
                          bPose *UNUSED(pose))
 {
 	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type == OB_ARMATURE);
 
 	/* 6. release the IK tree */
@@ -718,7 +717,7 @@ void BKE_pose_eval_flush(EvaluationContext *UNUSED(eval_ctx),
 void BKE_pose_eval_proxy_copy(EvaluationContext *UNUSED(eval_ctx), Object *ob)
 {
 	BLI_assert(ID_IS_LINKED(ob) && ob->proxy_from != NULL);
-	DEBUG_PRINT("%s on %s\n", __func__, ob->id.name);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
 		printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
 		       ob->id.name + 2, ob->proxy_from->id.name + 2);

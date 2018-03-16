@@ -76,6 +76,8 @@
 
 #include "atomic_ops.h"
 
+#include "DEG_depsgraph.h"
+
 /* ***************************************** */
 /* AnimData API */
 
@@ -2918,15 +2920,13 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 /* ************** */
 /* Evaluation API */
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
-
 void BKE_animsys_eval_animdata(EvaluationContext *eval_ctx, ID *id)
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	Scene *scene = NULL; /* XXX: this is only needed for flushing RNA updates,
 	                      * which should get handled as part of the dependency graph instead...
 	                      */
-	DEBUG_PRINT("%s on %s, time=%f\n\n", __func__, id->name, (double)eval_ctx->ctime);
+	DEG_debug_print_eval_time(__func__, id->name, id, eval_ctx->ctime);
 	BKE_animsys_evaluate_animdata(scene, id, adt, eval_ctx->ctime, ADT_RECALC_ANIM);
 }
 
@@ -2939,11 +2939,8 @@ void BKE_animsys_eval_driver(EvaluationContext *eval_ctx,
 	PointerRNA id_ptr;
 	bool ok = false;
 
-	DEBUG_PRINT("%s on %s (%s[%d])\n",
-	            __func__,
-	            id->name,
-	            fcu->rna_path,
-	            fcu->array_index);
+	DEG_debug_print_eval_subdata_index(
+	        __func__, id->name, id, "fcu", fcu->rna_path, fcu, fcu->array_index);
 
 	RNA_id_pointer_create(id, &id_ptr);
 
@@ -2976,5 +2973,3 @@ void BKE_animsys_eval_driver(EvaluationContext *eval_ctx,
 		}
 	}
 }
-
-#undef DEBUG_PRINT
