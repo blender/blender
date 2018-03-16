@@ -334,6 +334,7 @@ GHOST_WindowX11(GHOST_SystemX11 *system,
       m_empty_cursor(None),
       m_custom_cursor(None),
       m_visible_cursor(None),
+      m_taskbar("blender.desktop"),
 #ifdef WITH_XDND
       m_dropTarget(NULL),
 #endif
@@ -1696,4 +1697,25 @@ getDPIHint()
 	float inchDiagonal = mmDiagonal * 0.039f;
 	int dpi = pixelDiagonal / inchDiagonal;
 	return dpi;
+}
+
+GHOST_TSuccess GHOST_WindowX11::setProgressBar(float progress)
+{
+	if (m_taskbar.is_valid()) {
+		m_taskbar.set_progress(progress);
+		m_taskbar.set_progress_enabled(true);
+		return GHOST_kSuccess;
+	}
+
+	return GHOST_kFailure;
+}
+
+GHOST_TSuccess GHOST_WindowX11::endProgressBar()
+{
+	if (m_taskbar.is_valid()) {
+		m_taskbar.set_progress_enabled(false);
+		return GHOST_kSuccess;
+	}
+
+	return GHOST_kFailure;
 }

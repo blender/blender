@@ -238,6 +238,8 @@ void RE_render_result_rect_from_ibuf(
 struct RenderLayer *RE_GetRenderLayer(struct RenderResult *rr, const char *name);
 float *RE_RenderLayerGetPass(volatile struct RenderLayer *rl, const char *name, const char *viewname);
 
+bool RE_HasSingleLayer(struct Render *re);
+
 /* add passes for grease pencil */
 struct RenderPass *RE_create_gp_pass(struct RenderResult *rr, const char *layername, const char *viewname);
 
