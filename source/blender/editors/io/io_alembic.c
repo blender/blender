@@ -59,6 +59,8 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
+#include "ED_object.h"
+
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -540,6 +542,22 @@ static int wm_alembic_import_exec(bContext *C, wmOperator *op)
 		if (sequence_len < 0) {
 			BKE_report(op->reports, RPT_ERROR, "Unable to determine ABC sequence length");
 			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Switch to object mode to avoid being stuck in other modes (T54326). */
+	if (CTX_data_mode_enum(C) != CTX_MODE_OBJECT) {
+		Object *obedit = CTX_data_edit_object(C);
+
+		if (obedit != NULL) {
+			ED_object_mode_toggle(C, obedit->mode);
+		}
+		else {
+			Object *ob = CTX_data_active_object(C);
+
+			if (ob) {
+				ED_object_mode_toggle(C, ob->mode);
+			}
 		}
 	}
 
