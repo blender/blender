@@ -433,23 +433,28 @@ void BKE_previewimg_ensure(PreviewImage *prv, const int size)
 	}
 }
 
-void BKE_icon_changed(int id)
+void BKE_icon_changed(const int icon_id)
 {
 	Icon *icon = NULL;
 	
-	if (!id || G.background) return;
+	if (!icon_id || G.background) return;
 
-	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(id));
+	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (icon) {
-		PreviewImage *prv = BKE_previewimg_id_ensure((ID *)icon->obj);
+		/* We *only* expect ID-tied icons here, not non-ID icon/preview! */
+		BLI_assert(icon->type != 0);
 
-		/* all previews changed */
-		if (prv) {
+		/* Do not enforce creation of previews for valid ID types using BKE_previewimg_id_ensure() here ,
+		 * we only want to ensure *existing* preview images are properly tagged as changed/invalid, that's all. */
+		PreviewImage **p_prv = BKE_previewimg_id_get_p((ID *)icon->obj);
+
+		/* If we have previews, they all are now invalid changed. */
+		if (p_prv && *p_prv) {
 			int i;
 			for (i = 0; i < NUM_ICON_SIZES; ++i) {
-				prv->flag[i] |= PRV_CHANGED;
-				prv->changed_timestamp[i]++;
+				(*p_prv)->flag[i] |= PRV_CHANGED;
+				(*p_prv)->changed_timestamp[i]++;
 			}
 		}
 	}
@@ -549,7 +554,7 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 	return preview->icon_id;
 }
 
-Icon *BKE_icon_get(int icon_id)
+Icon *BKE_icon_get(const int icon_id)
 {
 	Icon *icon = NULL;
 
@@ -563,7 +568,7 @@ Icon *BKE_icon_get(int icon_id)
 	return icon;
 }
 
-void BKE_icon_set(int icon_id, struct Icon *icon)
+void BKE_icon_set(const int icon_id, struct Icon *icon)
 {
 	void **val_p;
 
@@ -586,7 +591,7 @@ void BKE_icon_id_delete(struct ID *id)
 /**
  * Remove icon and free data.
  */
-void BKE_icon_delete(int icon_id)
+void BKE_icon_delete(const int icon_id)
 {
 	Icon *icon;
 

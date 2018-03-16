@@ -441,7 +441,6 @@ static void rna_Brush_icon_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 	br->id.icon_id = 0;
 
 	if (br->flag & BRUSH_CUSTOM_ICON) {
-		BKE_previewimg_id_ensure(&br->id);
 		BKE_icon_changed(BKE_icon_id_ensure(&br->id));
 	}
 

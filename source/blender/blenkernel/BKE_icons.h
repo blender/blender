@@ -58,19 +58,19 @@ int BKE_icon_id_ensure(struct ID *id);
 int BKE_icon_preview_ensure(struct ID *id, struct PreviewImage *preview);
 
 /* retrieve icon for id */
-struct Icon *BKE_icon_get(int icon_id);
+struct Icon *BKE_icon_get(const int icon_id);
 
 /* set icon for id if not already defined */
 /* used for inserting the internal icons */
-void BKE_icon_set(int icon_id, struct Icon *icon);
+void BKE_icon_set(const int icon_id, struct Icon *icon);
 
 /* remove icon and free data if library object becomes invalid */
 void BKE_icon_id_delete(struct ID *id);
 
-void BKE_icon_delete(int icon_id);
+void BKE_icon_delete(const int icon_id);
 
 /* report changes - icon needs to be recalculated */
-void BKE_icon_changed(int icon_id);
+void BKE_icon_changed(const int icon_id);
 
 /* free all icons */
 void BKE_icons_free(void);
