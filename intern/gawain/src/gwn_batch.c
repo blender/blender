@@ -211,7 +211,7 @@ static GLuint batch_vao_get(Gwn_Batch *batch)
 		batch->context = GWN_context_active_get();
 		gwn_context_add_batch(batch->context, batch);
 		}
-#if TRUST_NO_ONE && 0 // disabled until we use a separate single context for UI.
+#if TRUST_NO_ONE
 	else // Make sure you are not trying to draw this batch in another context.
 		assert(batch->context == GWN_context_active_get());
 #endif
