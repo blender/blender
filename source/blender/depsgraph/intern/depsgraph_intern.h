@@ -125,4 +125,8 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
 		fflush(stderr);                     \
 	} while (0)
 
+bool deg_terminal_do_color(void);
+string deg_color_for_pointer(const void *pointer);
+string deg_color_end(void);
+
 }  // namespace DEG

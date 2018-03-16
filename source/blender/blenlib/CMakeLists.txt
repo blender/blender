@@ -139,6 +139,7 @@ set(SRC
 	BLI_compiler_attrs.h
 	BLI_compiler_compat.h
 	BLI_compiler_typecheck.h
+	BLI_console.h
 	BLI_convexhull_2d.h
 	BLI_dial_2d.h
 	BLI_dlrbTree.h

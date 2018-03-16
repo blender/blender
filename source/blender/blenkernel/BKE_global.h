@@ -127,15 +127,16 @@ enum {
 	G_DEBUG_DEPSGRAPH_TAG        = (1 << 10),  /* depsgraph tagging messages */
 	G_DEBUG_DEPSGRAPH_TIME       = (1 << 11),  /* depsgraph timing statistics and messages */
 	G_DEBUG_DEPSGRAPH_NO_THREADS = (1 << 12),  /* single threaded depsgraph */
+	G_DEBUG_DEPSGRAPH_PRETTY     = (1 << 13),  /* use pretty colors in depsgraph messages */
 	G_DEBUG_DEPSGRAPH = (G_DEBUG_DEPSGRAPH_BUILD |
 	                     G_DEBUG_DEPSGRAPH_EVAL |
 	                     G_DEBUG_DEPSGRAPH_TAG |
 	                     G_DEBUG_DEPSGRAPH_TIME),
-	G_DEBUG_SIMDATA =   (1 << 13), /* sim debug data display */
-	G_DEBUG_GPU_MEM =   (1 << 14), /* gpu memory in status bar */
-	G_DEBUG_GPU =        (1 << 15), /* gpu debug */
-	G_DEBUG_IO = (1 << 13),   /* IO Debugging (for Collada, ...)*/
-	G_DEBUG_GPU_SHADERS = (1 << 16),   /* GLSL shaders */
+	G_DEBUG_SIMDATA =   (1 << 14), /* sim debug data display */
+	G_DEBUG_GPU_MEM =   (1 << 15), /* gpu memory in status bar */
+	G_DEBUG_GPU =        (1 << 16), /* gpu debug */
+	G_DEBUG_IO = (1 << 17),   /* IO Debugging (for Collada, ...)*/
+	G_DEBUG_GPU_SHADERS = (1 << 18),   /* GLSL shaders */
 };
 
 #define G_DEBUG_ALL  (G_DEBUG | G_DEBUG_FFMPEG | G_DEBUG_PYTHON | G_DEBUG_EVENTS | G_DEBUG_WM | G_DEBUG_JOBS | \
