@@ -1458,6 +1458,10 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				if (propname != NULL) {
 					propname_a = RNA_property_string_get_alloc(&iter_a.ptr, propname, propname_buff_a, sizeof(propname_buff_a), NULL);
 					propname_b = RNA_property_string_get_alloc(&iter_b.ptr, propname, propname_buff_b, sizeof(propname_buff_b), NULL);
+				}
+				/* There may be a propname defined in some cases, while no actual name set
+				 * (e.g. happens with point cache), in that case too we want to fall back to index. */
+				if ((propname_a != NULL && propname_a[0] != '\0') || (propname_b != NULL && propname_b[0] != '\0')) {
 					if (!STREQ(propname_a, propname_b)) {
 						/* Same as above, not same structs. */
 						equals = false;
