@@ -186,6 +186,8 @@ static struct {
 	float matcap_colors[24][4];
 	/* Just a serie of int from 0 to MAX_CLAY_MAT-1 */
 	int ubo_mat_idxs[MAX_CLAY_MAT];
+	/* To avoid useless texture and ubo binds. */
+	bool first_shgrp;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct CLAY_PrivateData {
@@ -553,17 +555,18 @@ static DRWShadingGroup *CLAY_shgroup_create(DRWPass *pass, GPUShader *sh, int id
 {
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array);
-	DRW_shgroup_uniform_block(grp, "material_block", sldata->mat_ubo);
-	DRW_shgroup_uniform_block(grp, "matcaps_block", sldata->matcaps_ubo);
 	DRW_shgroup_uniform_int(grp, "mat_id", &e_data.ubo_mat_idxs[id], 1);
+	if (e_data.first_shgrp) {
+		DRW_shgroup_uniform_texture_persistent(grp, "matcaps", e_data.matcap_array);
+		DRW_shgroup_uniform_block_persistent(grp, "material_block", sldata->mat_ubo);
+		DRW_shgroup_uniform_block_persistent(grp, "matcaps_block", sldata->matcaps_ubo);
+	}
 	return grp;
 }
 
 static DRWShadingGroup *CLAY_shgroup_deferred_prepass_create(DRWPass *pass, GPUShader *sh, int id)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-	DRW_shgroup_stencil_mask(grp, 1);
 	DRW_shgroup_uniform_int(grp, "mat_id", &e_data.ubo_mat_idxs[id], 1);
 
 	return grp;
@@ -573,7 +576,6 @@ static DRWShadingGroup *CLAY_shgroup_deferred_shading_create(DRWPass *pass, CLAY
 {
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.clay_deferred_shading_sh, pass);
-	DRW_shgroup_stencil_mask(grp, 1);
 	DRW_shgroup_uniform_buffer(grp, "depthtex", &g_data->depth_tx);
 	DRW_shgroup_uniform_buffer(grp, "normaltex", &g_data->normal_tx);
 	DRW_shgroup_uniform_buffer(grp, "idtex", &g_data->id_tx);
@@ -779,6 +781,7 @@ static DRWShadingGroup *CLAY_object_shgrp_get(CLAY_Data *vedata, Object *ob, boo
 
 		if (shgrps[id] == NULL) {
 			shgrps[id] = CLAY_shgroup_create(pass, sh, id);
+			e_data.first_shgrp = false;
 		}
 	}
 
@@ -807,13 +810,13 @@ static void clay_cache_init(void *vedata)
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
 	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
-	const bool multisample = false;
 
 	/* Disable AO unless a material needs it. */
 	stl->g_data->enable_deferred_path = false;
 
 	/* Reset UBO datas, shgrp pointers and material id counters. */
 	memset(stl->storage, 0, sizeof(*stl->storage));
+	e_data.first_shgrp = true;
 
 	/* Solid Passes */
 	{
@@ -823,17 +826,14 @@ static void clay_cache_init(void *vedata)
 		psl->clay_flat_ps =      DRW_pass_create("Clay Flat", state);
 		psl->clay_flat_cull_ps = DRW_pass_create("Clay Flat Culled", state | DRW_STATE_CULL_BACK);
 
-		DRWState prepass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-		                          ((multisample) ? DRW_STATE_WRITE_STENCIL : 0);
+		DRWState prepass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 		DRWState prepass_cull_state = prepass_state | DRW_STATE_CULL_BACK;
 		psl->clay_pre_ps =           DRW_pass_create("Clay Deferred Pre", prepass_state);
 		psl->clay_pre_cull_ps =      DRW_pass_create("Clay Deferred Pre Culled", prepass_cull_state);
 		psl->clay_flat_pre_ps =      DRW_pass_create("Clay Deferred Flat Pre", prepass_state);
 		psl->clay_flat_pre_cull_ps = DRW_pass_create("Clay Deferred Flat Pre Culled", prepass_cull_state);
 
-		DRWState deferred_state = DRW_STATE_WRITE_COLOR | ((multisample) ? DRW_STATE_STENCIL_EQUAL : 0);
-		psl->clay_deferred_ps = DRW_pass_create("Clay Deferred Shading", deferred_state);
-
+		psl->clay_deferred_ps = DRW_pass_create("Clay Deferred Shading", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = CLAY_shgroup_deferred_shading_create(psl->clay_deferred_ps, stl->g_data);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
