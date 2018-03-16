@@ -40,7 +40,7 @@
 /** \name Public API
  * \{ */
 
-static wmMsgTypeInfo wm_msg_types[WM_MSG_TYPE_NUM] = {NULL};
+static wmMsgTypeInfo wm_msg_types[WM_MSG_TYPE_NUM] = {{{NULL}}};
 
 typedef void (*wmMsgTypeInitFn)(wmMsgTypeInfo *);
 

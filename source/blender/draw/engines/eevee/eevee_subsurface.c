@@ -34,7 +34,7 @@
 
 static struct {
 	struct GPUShader *sss_sh[4];
-} e_data = {NULL}; /* Engine data */
+} e_data = {{NULL}}; /* Engine data */
 
 extern char datatoc_common_view_lib_glsl[];
 extern char datatoc_common_uniforms_lib_glsl[];

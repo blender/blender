@@ -1814,7 +1814,7 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 {
 	ScrArea *sa = CTX_wm_area(C);
 
-	bToolDef tool_def = {0};
+	bToolDef tool_def = {{0}};
 
 	tool_def.index = RNA_int_get(op->ptr, "index");
 	tool_def.spacetype = sa->spacetype;

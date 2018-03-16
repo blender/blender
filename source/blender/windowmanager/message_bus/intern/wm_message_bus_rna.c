@@ -300,14 +300,14 @@ void WM_msg_subscribe_ID(
         struct wmMsgBus *mbus, ID *id, const wmMsgSubscribeValue *msg_val_params,
         const char *id_repr)
 {
-	wmMsgParams_RNA msg_key_params = {NULL};
+	wmMsgParams_RNA msg_key_params = {{{NULL}}};
 	RNA_id_pointer_create(id, &msg_key_params.ptr);
 	WM_msg_subscribe_rna_params(mbus, &msg_key_params, msg_val_params, id_repr);
 }
 
 void WM_msg_publish_ID(struct wmMsgBus *mbus, ID *id)
 {
-	wmMsgParams_RNA msg_key_params = {NULL};
+	wmMsgParams_RNA msg_key_params = {{{NULL}}};
 	RNA_id_pointer_create(id, &msg_key_params.ptr);
 	WM_msg_publish_rna_params(mbus, &msg_key_params);
 }

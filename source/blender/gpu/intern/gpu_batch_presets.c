@@ -51,7 +51,7 @@ static struct {
 	struct {
 		uint pos, nor;
 	} attr_id;
-} g_presets_3d = {0};
+} g_presets_3d = {{0}};
 
 /* We may want 2D presets later. */
 

@@ -48,7 +48,7 @@ static struct {
 	/* Theses are just references, not actually allocated */
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
-} e_data = {NULL}; /* Engine data */
+} e_data = {{NULL}}; /* Engine data */
 
 extern char datatoc_ambient_occlusion_lib_glsl[];
 extern char datatoc_common_view_lib_glsl[];

@@ -41,7 +41,7 @@ static struct {
 	struct GPUShader *bloom_downsample_sh[2];
 	struct GPUShader *bloom_upsample_sh[2];
 	struct GPUShader *bloom_resolve_sh[2];
-} e_data = {NULL}; /* Engine data */
+} e_data = {{NULL}}; /* Engine data */
 
 extern char datatoc_effect_bloom_frag_glsl[];
 
