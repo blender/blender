@@ -440,6 +440,9 @@ void BKE_icon_changed(const int icon_id)
 	icon = BLI_ghash_lookup(gIcons, SET_INT_IN_POINTER(icon_id));
 	
 	if (icon) {
+		/* We *only* expect ID-tied icons here, not non-ID icon/preview! */
+		BLI_assert(icon->type != 0);
+
 		/* Do not enforce creation of previews for valid ID types using BKE_previewimg_id_ensure() here ,
 		 * we only want to ensure *existing* preview images are properly tagged as changed/invalid, that's all. */
 		PreviewImage **p_prv = BKE_previewimg_id_get_p((ID *)icon->obj);
