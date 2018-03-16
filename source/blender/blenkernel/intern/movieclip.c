@@ -73,11 +73,11 @@
 #include "IMB_imbuf.h"
 #include "IMB_moviecache.h"
 
+#include "DEG_depsgraph.h"
+
 #ifdef WITH_OPENEXR
 #  include "intern/openexr/openexr_multi.h"
 #endif
-
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 /*********************** movieclip buffer loaders *************************/
 
@@ -1611,6 +1611,6 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip,
 
 void BKE_movieclip_eval_update(struct EvaluationContext *UNUSED(eval_ctx), MovieClip *clip)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, clip->id.name, clip);
+	DEG_debug_print_eval(__func__, clip->id.name, clip);
 	BKE_tracking_dopesheet_tag_update(&clip->tracking);
 }

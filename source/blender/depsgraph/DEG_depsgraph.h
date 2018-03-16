@@ -280,6 +280,32 @@ typedef void (*DEG_EditorUpdateSceneCb)(
 void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
                                DEG_EditorUpdateSceneCb scene_func);
 
+/* Evaluation Debug ------------------------------ */
+
+void DEG_debug_print_eval(const char* function_name,
+                          const char* object_name,
+                          const void* object_address);
+
+void DEG_debug_print_eval_subdata(const char *function_name,
+                                  const char *object_name,
+                                  const void *object_address,
+                                  const char *subdata_comment,
+                                  const char *subdata_name,
+                                  const void *subdata_address);
+
+void DEG_debug_print_eval_subdata_index(const char *function_name,
+                                        const char *object_name,
+                                        const void *object_address,
+                                        const char *subdata_comment,
+                                        const char *subdata_name,
+                                        const void *subdata_address,
+                                        const int subdata_index);
+
+void DEG_debug_print_eval_time(const char* function_name,
+                               const char* object_name,
+                               const void* object_address,
+                               float time);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

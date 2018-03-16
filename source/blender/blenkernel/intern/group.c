@@ -55,7 +55,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
+#include "DEG_depsgraph.h"
 
 /** Free (or release) any data used by this group (does not free the group itself). */
 void BKE_group_free(Group *group)
@@ -403,7 +403,7 @@ static void group_eval_layer_collections(
 void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
                                 Group *group)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, group->id.name, group);
+	DEG_debug_print_eval(__func__, group->id.name, group);
 	BKE_layer_eval_layer_collection_pre(eval_ctx, &group->id, group->view_layer);
 	group_eval_layer_collections(eval_ctx,
 	                             group,

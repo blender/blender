@@ -65,12 +65,11 @@
 #include "MEM_guardedalloc.h"
 #include "DEG_depsgraph.h"
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
 
 void BKE_object_eval_local_transform(const EvaluationContext *UNUSED(eval_ctx),
                                      Object *ob)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, ob->id.name, ob);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* calculate local matrix */
 	BKE_object_to_mat4(ob, ob->obmat);
@@ -88,7 +87,7 @@ void BKE_object_eval_parent(const EvaluationContext *UNUSED(eval_ctx),
 	float tmat[4][4];
 	float locmat[4][4];
 
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, ob->id.name, ob);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* get local matrix (but don't calculate it, as that was done already!) */
 	// XXX: redundant?
@@ -117,7 +116,7 @@ void BKE_object_eval_constraints(const EvaluationContext *eval_ctx,
 	bConstraintOb *cob;
 	float ctime = BKE_scene_frame_get(scene);
 
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, ob->id.name, ob);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* evaluate constraints stack */
 	/* TODO: split this into:
@@ -135,7 +134,7 @@ void BKE_object_eval_constraints(const EvaluationContext *eval_ctx,
 
 void BKE_object_eval_done(const EvaluationContext *UNUSED(eval_ctx), Object *ob)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, ob->id.name, ob);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
 	/* Set negative scale flag in object. */
 	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
@@ -305,7 +304,7 @@ void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
                                Scene *scene,
                                Object *ob)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, ob->id.name, ob);
+	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type != OB_ARMATURE);
 	BKE_object_handle_data_update(eval_ctx, scene, ob);
 
@@ -383,7 +382,7 @@ void BKE_object_eval_cloth(const EvaluationContext *UNUSED(eval_ctx),
                            Scene *scene,
                            Object *object)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, object->id.name, object);
+	DEG_debug_print_eval(__func__, object->id.name, object);
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }
 
@@ -406,7 +405,7 @@ void BKE_object_eval_transform_all(const EvaluationContext *eval_ctx,
 void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx),
                                     Object *object)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, object->id.name, object);
+	DEG_debug_print_eval(__func__, object->id.name, object);
 	if (object->type == OB_MESH) {
 		BKE_mesh_batch_cache_dirty(object->data, BKE_MESH_BATCH_DIRTY_SHADING);
 	}
@@ -415,7 +414,7 @@ void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx),
 void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
                                    struct ID *object_data)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, object_data->name, object_data);
+	DEG_debug_print_eval(__func__, object_data->name, object_data);
 	switch (GS(object_data->name)) {
 		case ID_ME:
 			BKE_mesh_batch_cache_dirty((Mesh *)object_data,
@@ -437,7 +436,7 @@ void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
 void BKE_object_eval_flush_base_flags(const EvaluationContext *UNUSED(eval_ctx),
                                       Object *object, Base *base, bool is_from_set)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, object->id.name, object);
+	DEG_debug_print_eval(__func__, object->id.name, object);
 
 	/* Make sure we have the base collection settings is already populated.
 	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet.

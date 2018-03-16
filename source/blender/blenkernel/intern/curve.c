@@ -5258,9 +5258,7 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *t
 void BKE_curve_eval_geometry(const EvaluationContext *UNUSED(eval_ctx),
                              Curve *curve)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
-		printf("%s on %s\n", __func__, curve->id.name);
-	}
+	DEG_debug_print_eval(__func__, curve->id.name, curve);
 	if (curve->bb == NULL || (curve->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_curve_texspace_calc(curve);
 	}

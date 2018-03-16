@@ -57,8 +57,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#define DEBUG_PRINT if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) printf
-
 /* prototype */
 struct EngineSettingsCB_Type;
 static void layer_collections_sync_flags(ListBase *layer_collections_dst, const ListBase *layer_collections_src);
@@ -2245,7 +2243,7 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 void BKE_layer_eval_layer_collection_pre(const struct EvaluationContext *UNUSED(eval_ctx),
                                          ID *owner_id, ViewLayer *view_layer)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, view_layer->name, view_layer);
+	DEG_debug_print_eval(__func__, view_layer->name, view_layer);
 	Scene *scene = (GS(owner_id->name) == ID_SCE) ? (Scene *)owner_id : NULL;
 
 	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
@@ -2289,14 +2287,17 @@ void BKE_layer_eval_layer_collection(const EvaluationContext *eval_ctx,
                                      LayerCollection *layer_collection,
                                      LayerCollection *parent_layer_collection)
 {
-	DEBUG_PRINT("%s on %s (%p) [%s], parent %s (%p) [%s]\n",
-	            __func__,
-	            layer_collection->scene_collection->name,
-	            layer_collection->scene_collection,
-	            collection_type_lookup[layer_collection->scene_collection->type],
-	            (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
-	            (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL,
-	            (parent_layer_collection != NULL) ? collection_type_lookup[parent_layer_collection->scene_collection->type] : "");
+	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
+		/* TODO)sergey): Try to make it more generic and handled by depsgraph messaging. */
+		printf("%s on %s (%p) [%s], parent %s (%p) [%s]\n",
+		       __func__,
+		       layer_collection->scene_collection->name,
+		       layer_collection->scene_collection,
+		       collection_type_lookup[layer_collection->scene_collection->type],
+		       (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
+		       (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL,
+		       (parent_layer_collection != NULL) ? collection_type_lookup[parent_layer_collection->scene_collection->type] : "");
+	}
 	BLI_assert(layer_collection != parent_layer_collection);
 
 	/* visibility */
@@ -2345,7 +2346,7 @@ void BKE_layer_eval_layer_collection(const EvaluationContext *eval_ctx,
 void BKE_layer_eval_layer_collection_post(const struct EvaluationContext *UNUSED(eval_ctx),
                                           ViewLayer *view_layer)
 {
-	DEBUG_PRINT("%s on %s (%p)\n", __func__, view_layer->name, view_layer);
+	DEG_debug_print_eval(__func__, view_layer->name, view_layer);
 	/* if base is not selectabled, clear select */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		if ((base->flag & BASE_SELECTABLED) == 0) {

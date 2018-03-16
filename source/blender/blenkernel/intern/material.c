@@ -72,6 +72,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_font.h"
 
+#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "GPU_material.h"
@@ -1774,9 +1775,7 @@ bool BKE_object_material_edit_image_set(Object *ob, short mat_nr, Image *image)
 
 void BKE_material_eval(const struct EvaluationContext *UNUSED(eval_ctx), Material *material)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
-		printf("%s on %s (%p)\n", __func__, material->id.name, material);
-	}
+	DEG_debug_print_eval(__func__, material->id.name, material);
 	if ((BLI_listbase_is_empty(&material->gpumaterial) == false)) {
 		GPU_material_uniform_buffer_tag_dirty(&material->gpumaterial);
 	}
