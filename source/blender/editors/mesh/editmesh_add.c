@@ -60,9 +60,10 @@
 
 /* ********* add primitive operators ************* */
 
-static Object *make_prim_init(bContext *C, const char *idname,
-                              float *dia, float mat[4][4],
-                              bool *was_editmode, const float loc[3], const float rot[3], const unsigned int layer)
+static Object *make_prim_init(
+        bContext *C, const char *idname,
+        float *dia, float mat[4][4],
+        bool *was_editmode, const float loc[3], const float rot[3], const unsigned int layer)
 {
 	Object *obedit = CTX_data_edit_object(C);
 
