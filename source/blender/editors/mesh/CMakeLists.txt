@@ -60,6 +60,7 @@ set(SRC
 	editmesh_undo.c
 	editmesh_utils.c
 	mesh_data.c
+	mesh_mirror.c
 	mesh_ops.c
 	meshtools.c
 

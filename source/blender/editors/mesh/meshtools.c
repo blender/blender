@@ -47,8 +47,6 @@
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
 
-
-#include "BLI_kdtree.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
@@ -681,84 +679,6 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	
 	return OPERATOR_FINISHED;
 }
-
-/* -------------------------------------------------------------------- */
-/* Mesh Mirror (Spatial) */
-
-/** \name Mesh Spatial Mirror API
- * \{ */
-
-#define KD_THRESH      0.00002f
-
-static struct { void *tree; } MirrKdStore = {NULL};
-
-/* mode is 's' start, or 'e' end, or 'u' use */
-/* if end, ob can be NULL */
-int ED_mesh_mirror_spatial_table(Object *ob, BMEditMesh *em, DerivedMesh *dm, const float co[3], char mode)
-{
-	if (mode == 'u') {        /* use table */
-		if (MirrKdStore.tree == NULL)
-			ED_mesh_mirror_spatial_table(ob, em, dm, NULL, 's');
-
-		if (MirrKdStore.tree) {
-			KDTreeNearest nearest;
-			const int i = BLI_kdtree_find_nearest(MirrKdStore.tree, co, &nearest);
-
-			if (i != -1) {
-				if (nearest.dist < KD_THRESH) {
-					return i;
-				}
-			}
-		}
-		return -1;
-	}
-	else if (mode == 's') {   /* start table */
-		Mesh *me = ob->data;
-		const bool use_em = (!dm && em && me->edit_btmesh == em);
-		const int totvert = use_em ? em->bm->totvert : dm ? dm->getNumVerts(dm) : me->totvert;
-
-		if (MirrKdStore.tree) /* happens when entering this call without ending it */
-			ED_mesh_mirror_spatial_table(ob, em, dm, co, 'e');
-
-		MirrKdStore.tree = BLI_kdtree_new(totvert);
-
-		if (use_em) {
-			BMVert *eve;
-			BMIter iter;
-			int i;
-
-			/* this needs to be valid for index lookups later (callers need) */
-			BM_mesh_elem_table_ensure(em->bm, BM_VERT);
-
-			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-				BLI_kdtree_insert(MirrKdStore.tree, i, eve->co);
-			}
-		}
-		else {
-			MVert *mvert = dm ? dm->getVertArray(dm) : me->mvert;
-			int i;
-			
-			for (i = 0; i < totvert; i++, mvert++) {
-				BLI_kdtree_insert(MirrKdStore.tree, i, mvert->co);
-			}
-		}
-
-		BLI_kdtree_balance(MirrKdStore.tree);
-	}
-	else if (mode == 'e') { /* end table */
-		if (MirrKdStore.tree) {
-			BLI_kdtree_free(MirrKdStore.tree);
-			MirrKdStore.tree = NULL;
-		}
-	}
-	else {
-		BLI_assert(0);
-	}
-
-	return 0;
-}
-
-/** \} */
 
 
 /* -------------------------------------------------------------------- */

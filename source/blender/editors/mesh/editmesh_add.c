@@ -65,9 +65,10 @@ typedef struct MakePrimitiveData {
 	bool was_editmode;
 } MakePrimitiveData;
 
-static Object *make_prim_init(bContext *C, const char *idname,
-                              const float loc[3], const float rot[3], const unsigned int layer,
-                              MakePrimitiveData *r_creation_data)
+static Object *make_prim_init(
+        bContext *C, const char *idname,
+        const float loc[3], const float rot[3], const unsigned int layer,
+        MakePrimitiveData *r_creation_data)
 {
 	Object *obedit = CTX_data_edit_object(C);
 
