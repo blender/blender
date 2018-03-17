@@ -32,7 +32,6 @@ typedef struct Gwn_IndexBuf {
 	unsigned max_index;
 	unsigned base_index;
 #endif
-	void* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
 	GLuint vbo_id; // 0 indicates not yet sent to VRAM
 	bool use_prim_restart;
 } Gwn_IndexBuf;

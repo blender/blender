@@ -39,28 +39,6 @@ unsigned GWN_indexbuf_size_get(const Gwn_IndexBuf* elem)
 #endif
 	}
 
-static void ElementList_prime(Gwn_IndexBuf* elem)
-	{
-	elem->vbo_id = GWN_buf_id_alloc();
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
-	// fill with delicious data & send to GPU the first time only
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, GWN_indexbuf_size_get(elem), elem->data, GL_STATIC_DRAW);
-
-#if KEEP_SINGLE_COPY
-	// now that GL has a copy, discard original
-	free(elem->data);
-	elem->data = NULL;
-#endif
-	}
-
-void GWN_indexbuf_use(Gwn_IndexBuf* elem)
-	{
-	if (elem->vbo_id)
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
-	else
-		ElementList_prime(elem);
-	}
-
 void GWN_indexbuf_init_ex(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, unsigned index_ct, unsigned vertex_ct, bool use_prim_restart)
 	{
 	builder->use_prim_restart = use_prim_restart;
@@ -178,10 +156,14 @@ static unsigned index_range(const unsigned values[], unsigned value_ct, unsigned
 	return max_value - min_value;
 	}
 
-static void squeeze_indices_byte(const unsigned values[], Gwn_IndexBuf* elem)
+static void squeeze_indices_byte(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* elem)
 	{
+	const unsigned *values = builder->data;
 	const unsigned index_ct = elem->index_ct;
-	GLubyte* data = malloc(index_ct * sizeof(GLubyte));
+
+	// data will never be *larger* than builder->data...
+	// converting in place to avoid extra allocation
+	GLubyte *data = (GLubyte *)builder->data;
 
 	if (elem->max_index > 0xFF)
 		{
@@ -201,14 +183,16 @@ static void squeeze_indices_byte(const unsigned values[], Gwn_IndexBuf* elem)
 		for (unsigned i = 0; i < index_ct; ++i)
 			data[i] = (GLubyte)(values[i]);
 		}
-
-	elem->data = data;
 	}
 
-static void squeeze_indices_short(const unsigned values[], Gwn_IndexBuf* elem)
+static void squeeze_indices_short(Gwn_IndexBufBuilder *builder, Gwn_IndexBuf* elem)
 	{
+	const unsigned *values = builder->data;
 	const unsigned index_ct = elem->index_ct;
-	GLushort* data = malloc(index_ct * sizeof(GLushort));
+
+	// data will never be *larger* than builder->data...
+	// converting in place to avoid extra allocation
+	GLushort *data = (GLushort *)builder->data;
 
 	if (elem->max_index > 0xFFFF)
 		{
@@ -228,8 +212,6 @@ static void squeeze_indices_short(const unsigned values[], Gwn_IndexBuf* elem)
 		for (unsigned i = 0; i < index_ct; ++i)
 			data[i] = (GLushort)(values[i]);
 		}
-
-	elem->data = data;
 	}
 
 #endif // GWN_TRACK_INDEX_RANGE
@@ -260,60 +242,44 @@ void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder* builder, Gwn_IndexBuf* ele
 	if (range <= 0xFF)
 		{
 		elem->index_type = GWN_INDEX_U8;
-		squeeze_indices_byte(builder->data, elem);
+		squeeze_indices_byte(builder, elem);
 		}
 	else if (range <= 0xFFFF)
 		{
 		elem->index_type = GWN_INDEX_U16;
-		squeeze_indices_short(builder->data, elem);
+		squeeze_indices_short(builder, elem);
 		}
 	else
 		{
 		elem->index_type = GWN_INDEX_U32;
 		elem->base_index = 0;
-
-		if (builder->index_ct < builder->max_index_ct)
-			{
-			builder->data = realloc(builder->data, builder->index_ct * sizeof(unsigned));
-			// TODO: realloc only if index_ct is much smaller than max_index_ct
-			}
-
-		elem->data = builder->data;
 		}
 
 	elem->gl_index_type = convert_index_type_to_gl(elem->index_type);
-#else
-	if (builder->index_ct < builder->max_index_ct)
-		{
-		builder->data = realloc(builder->data, builder->index_ct * sizeof(unsigned));
-		// TODO: realloc only if index_ct is much smaller than max_index_ct
-		}
-
-	elem->data = builder->data;
 #endif
 
-	// elem->data will never be *larger* than builder->data... how about converting
-	// in place to avoid extra allocation?
+	if (elem->vbo_id == 0)
+		elem->vbo_id = GWN_buf_id_alloc();
 
-	elem->vbo_id = 0;
-	// TODO: create GL buffer object directly, based on an input flag
+	// send data to GPU
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, GWN_indexbuf_size_get(elem), builder->data, GL_STATIC_DRAW);
 
 	// discard builder (one-time use)
-	if (builder->data != elem->data)
-		free(builder->data);
+	free(builder->data);
 	builder->data = NULL;
 	// other fields are safe to leave
+	}
+
+void GWN_indexbuf_use(Gwn_IndexBuf* elem)
+	{
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
 	}
 
 void GWN_indexbuf_discard(Gwn_IndexBuf* elem)
 	{
 	if (elem->vbo_id)
 		GWN_buf_id_free(elem->vbo_id);
-#if KEEP_SINGLE_COPY
-	else
-#endif
-	if (elem->data)
-		free(elem->data);
 
 	free(elem);
 	}
