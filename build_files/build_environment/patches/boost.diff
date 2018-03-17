@@ -1,0 +1,15 @@
+--- a/boost/config/compiler/visualc.hpp       2015-12-08 11:55:19 -0700
++++ b/boost/config/compiler/visualc.hpp    2018-03-17 10:29:52 -0600
+@@ -287,12 +287,3 @@
+ #  define BOOST_COMPILER "Microsoft Visual C++ version " BOOST_STRINGIZE(BOOST_COMPILER_VERSION)
+ #endif
+
+-//
+-// last known and checked version is 19.00.23026 (VC++ 2015 RTM):
+-#if (_MSC_VER > 1900)
+-#  if defined(BOOST_ASSERT_CONFIG)
+-#     error "Unknown compiler version - please run the configure tests and report the results"
+-#  else
+-#     pragma message("Unknown compiler version - please run the configure tests and report the results")
+-#  endif
+-#endif
