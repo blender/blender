@@ -89,7 +89,7 @@ void ArmatureExporter::add_armature_bones(const EvaluationContext *eval_ctx, Obj
 void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
 {
 	if (bc_is_root_bone(bone, this->export_settings->deform_bones_only))
-		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(bone, ob_arm)));
+		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(ob_arm, bone)));
 	else {
 		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
 			write_bone_URLs(ins, ob_arm, child);
@@ -162,9 +162,9 @@ void ArmatureExporter::add_bone_node(const EvaluationContext *eval_ctx, Bone *bo
                                      std::list<Object *>& child_objects)
 {
 	if (!(this->export_settings->deform_bones_only && bone->flag & BONE_NO_DEFORM)) {
-		std::string node_id = get_joint_id(bone, ob_arm);
+		std::string node_id = get_joint_id(ob_arm, bone);
 		std::string node_name = std::string(bone->name);
-		std::string node_sid = get_joint_sid(bone, ob_arm);
+		std::string node_sid = get_joint_sid(bone);
 
 		COLLADASW::Node node(mSW);
 
