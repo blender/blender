@@ -19,16 +19,26 @@
 
 static unsigned vbo_memory_usage;
 
-Gwn_VertBuf* GWN_vertbuf_create(void)
+static GLenum convert_usage_type_to_gl(Gwn_UsageType type)
+	{
+	static const GLenum table[] = {
+		[GWN_USAGE_STREAM] = GL_STREAM_DRAW,
+		[GWN_USAGE_STATIC] = GL_STATIC_DRAW,
+		[GWN_USAGE_DYNAMIC] = GL_DYNAMIC_DRAW
+		};
+	return table[type];
+	}
+
+Gwn_VertBuf* GWN_vertbuf_create(Gwn_UsageType usage)
 	{
 	Gwn_VertBuf* verts = malloc(sizeof(Gwn_VertBuf));
-	GWN_vertbuf_init(verts);
+	GWN_vertbuf_init(verts, usage);
 	return verts;
 	}
 
-Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat* format)
+Gwn_VertBuf* GWN_vertbuf_create_with_format_ex(const Gwn_VertFormat* format, Gwn_UsageType usage)
 	{
-	Gwn_VertBuf* verts = GWN_vertbuf_create();
+	Gwn_VertBuf* verts = GWN_vertbuf_create(usage);
 	GWN_vertformat_copy(&verts->format, format);
 	if (!format->packed)
 		VertexFormat_pack(&verts->format);
@@ -38,43 +48,18 @@ Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat* format)
 	// TODO: implement those memory savings
 	}
 
-Gwn_VertBuf* GWN_vertbuf_create_dynamic_with_format(const Gwn_VertFormat* format)
-	{
-	Gwn_VertBuf* verts = GWN_vertbuf_create_with_format(format);
-	verts->data_dynamic = true;
-	return verts;
-	}
-
-void GWN_vertbuf_init(Gwn_VertBuf* verts)
+void GWN_vertbuf_init(Gwn_VertBuf* verts, Gwn_UsageType usage)
 	{
 	memset(verts, 0, sizeof(Gwn_VertBuf));
+	verts->usage = usage;
 	}
 
-void GWN_vertbuf_init_with_format(Gwn_VertBuf* verts, const Gwn_VertFormat* format)
+void GWN_vertbuf_init_with_format_ex(Gwn_VertBuf* verts, const Gwn_VertFormat* format, Gwn_UsageType usage)
 	{
-	GWN_vertbuf_init(verts);
+	GWN_vertbuf_init(verts, usage);
 	GWN_vertformat_copy(&verts->format, format);
 	if (!format->packed)
 		VertexFormat_pack(&verts->format);
-	}
-
-/**
- * Like #GWN_vertbuf_discard but doesn't free.
- */
-void GWN_vertbuf_clear(Gwn_VertBuf* verts)
-	{
-	if (verts->vbo_id) {
-		GWN_buf_id_free(verts->vbo_id);
-#if VRAM_USAGE
-		vbo_memory_usage -= verts->vram_size;
-#endif
-	}
-
-	if (verts->data)
-		{
-		free(verts->data);
-		verts->data = NULL;
-		}
 	}
 
 void GWN_vertbuf_discard(Gwn_VertBuf* verts)
@@ -83,15 +68,9 @@ void GWN_vertbuf_discard(Gwn_VertBuf* verts)
 		{
 		GWN_buf_id_free(verts->vbo_id);
 #if VRAM_USAGE
-		vbo_memory_usage -= verts->vram_size;
+		vbo_memory_usage -= GWN_vertbuf_size_get(verts);
 #endif
 		}
-
-	if (verts->data)
-		{
-		free(verts->data);
-		}
-
 
 	free(verts);
 	}
@@ -109,25 +88,82 @@ void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 
 	verts->vertex_ct = v_ct;
 
-	// Data initially lives in main memory. Will be transferred to VRAM when we "prime" it.
-	verts->data = malloc(GWN_vertbuf_size_get(verts));
-	}
-
-void GWN_vertbuf_data_resize(Gwn_VertBuf* verts, unsigned v_ct)
-	{
 #if TRUST_NO_ONE
-	assert(verts->vertex_ct != v_ct); // allow this?
-	assert(verts->data != NULL); // has already been allocated
-	assert(verts->vbo_id == 0 || verts->data_dynamic); // has not been sent to VRAM
+	assert(verts->vbo_id == 0);
 #endif
 
-	// for dynamic buffers
-	verts->data_resized = true;
+	unsigned buffer_sz = GWN_vertbuf_size_get(verts);
+#if VRAM_USAGE
+	vbo_memory_usage += buffer_sz;
+#endif
 
+	// create an array buffer and map it to memory
+	verts->vbo_id = GWN_buf_id_alloc();
+	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
+	glBufferData(GL_ARRAY_BUFFER, buffer_sz, NULL, convert_usage_type_to_gl(verts->usage));
+	verts->data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	}
+
+void GWN_vertbuf_data_resize_ex(Gwn_VertBuf* verts, unsigned v_ct, bool keep_data)
+	{
+#if TRUST_NO_ONE
+	assert(verts->vbo_id != 0);
+#endif
+
+	if (verts->vertex_ct == v_ct)
+		return;
+
+	unsigned old_buf_sz = GWN_vertbuf_size_get(verts);
 	verts->vertex_ct = v_ct;
-	verts->data = realloc(verts->data, GWN_vertbuf_size_get(verts));
-	// TODO: skip realloc if v_ct < existing vertex count
-	// extra space will be reclaimed, and never sent to VRAM (see VertexBuffer_prime)
+	unsigned new_buf_sz = GWN_vertbuf_size_get(verts);
+#if VRAM_USAGE
+	vbo_memory_usage += new_buf_sz - old_buf_sz;
+#endif
+
+	if (keep_data)
+		{
+		// we need to do a copy to keep the existing data
+		GLuint vbo_tmp;
+		glGenBuffers(1, &vbo_tmp);
+		// only copy the data that can fit in the new buffer
+		unsigned copy_sz = (old_buf_sz < new_buf_sz) ? old_buf_sz : new_buf_sz;
+		glBindBuffer(GL_COPY_WRITE_BUFFER, vbo_tmp);
+		glBufferData(GL_COPY_WRITE_BUFFER, copy_sz, NULL, GL_STREAM_COPY);
+
+		glBindBuffer(GL_COPY_READ_BUFFER, verts->vbo_id);
+		// we cannot copy from/to a mapped buffer
+		if (verts->data)
+			glUnmapBuffer(GL_COPY_READ_BUFFER);
+
+		// save data, resize the buffer, restore data
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, copy_sz);
+		glBufferData(GL_COPY_READ_BUFFER, new_buf_sz, NULL, convert_usage_type_to_gl(verts->usage));
+		glCopyBufferSubData(GL_COPY_WRITE_BUFFER, GL_COPY_READ_BUFFER, 0, 0, copy_sz);
+
+		glDeleteBuffers(1, &vbo_tmp);
+		}
+	else
+		{
+		glBindBuffer(GL_COPY_READ_BUFFER, verts->vbo_id);
+		glBufferData(GL_COPY_READ_BUFFER, new_buf_sz, NULL, convert_usage_type_to_gl(verts->usage));
+		}
+
+	// if the buffer was mapped, update it's pointer
+	if (verts->data)
+		verts->data = glMapBuffer(GL_COPY_READ_BUFFER, GL_WRITE_ONLY);
+	}
+
+static void VertexBuffer_map(Gwn_VertBuf* verts)
+	{
+	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
+	verts->data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	}
+
+static void VertexBuffer_unmap(Gwn_VertBuf* verts)
+	{
+	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	verts->data = NULL;
 	}
 
 void GWN_vertbuf_attr_set(Gwn_VertBuf* verts, unsigned a_idx, unsigned v_idx, const void* data)
@@ -135,13 +171,13 @@ void GWN_vertbuf_attr_set(Gwn_VertBuf* verts, unsigned a_idx, unsigned v_idx, co
 	const Gwn_VertFormat* format = &verts->format;
 	const Gwn_VertAttr* a = format->attribs + a_idx;
 
-	verts->data_dirty = true;
-
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
 	assert(v_idx < verts->vertex_ct);
-	assert(verts->data != NULL); // data must be in main mem
 #endif
+
+	if (verts->data == NULL)
+		VertexBuffer_map(verts);
 
 	memcpy((GLubyte*)verts->data + a->offset + v_idx * format->stride, data, a->sz);
 	}
@@ -150,8 +186,6 @@ void GWN_vertbuf_attr_fill(Gwn_VertBuf* verts, unsigned a_idx, const void* data)
 	{
 	const Gwn_VertFormat* format = &verts->format;
 	const Gwn_VertAttr* a = format->attribs + a_idx;
-
-	verts->data_dirty = true;
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
@@ -167,14 +201,14 @@ void GWN_vertbuf_attr_fill_stride(Gwn_VertBuf* verts, unsigned a_idx, unsigned s
 	const Gwn_VertFormat* format = &verts->format;
 	const Gwn_VertAttr* a = format->attribs + a_idx;
 
-	verts->data_dirty = true;
-
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
-	assert(verts->data != NULL); // data must be in main mem
 #endif
 
 	const unsigned vertex_ct = verts->vertex_ct;
+
+	if (verts->data == NULL)
+		VertexBuffer_map(verts);
 
 	if (format->attrib_ct == 1 && stride == format->stride)
 		{
@@ -196,8 +230,10 @@ void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf* verts, unsigned a_idx, Gwn_VertB
 
 #if TRUST_NO_ONE
 	assert(a_idx < format->attrib_ct);
-	assert(verts->data != NULL); // data must be in main mem
 #endif
+
+	if (verts->data == NULL)
+		VertexBuffer_map(verts);
 
 	access->size = a->sz;
 	access->stride = format->stride;
@@ -208,59 +244,11 @@ void GWN_vertbuf_attr_get_raw_data(Gwn_VertBuf* verts, unsigned a_idx, Gwn_VertB
 #endif
 	}
 
-
-static void VertexBuffer_prime(Gwn_VertBuf* verts)
-	{
-	unsigned buffer_sz = GWN_vertbuf_size_get(verts);
-
-#if VRAM_USAGE
-	vbo_memory_usage += buffer_sz;
-	verts->vram_size = buffer_sz;
-#endif
-
-	verts->vbo_id = GWN_buf_id_alloc();
-	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
-	// fill with delicious data & send to GPU the first time only
-	glBufferData(GL_ARRAY_BUFFER, buffer_sz, verts->data, (verts->data_dynamic) ? GL_DYNAMIC_DRAW : GL_STATIC_DRAW);
-
-	// now that GL has a copy, discard original
-	if (!verts->data_dynamic)
-		{
-		free(verts->data);
-		verts->data = NULL;
-		}
-
-	verts->data_dirty = false;
-	}
-
-static void VertexBuffer_update(Gwn_VertBuf* verts)
-	{
-	unsigned buffer_sz = GWN_vertbuf_size_get(verts);
-
-#if VRAM_USAGE
-	vbo_memory_usage -= verts->vram_size;
-	vbo_memory_usage += buffer_sz;
-	verts->vram_size = buffer_sz;
-#endif
-
-	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
-
-	// fill with delicious data & send to GPU ... AGAIN
-	if (verts->data_resized)
-		glBufferData(GL_ARRAY_BUFFER, buffer_sz, verts->data, GL_DYNAMIC_DRAW);
-	else
-		glBufferSubData(GL_ARRAY_BUFFER, 0, buffer_sz, verts->data); // .. todo try glMapBuffer
-
-	verts->data_dirty = false;
-	verts->data_resized = false;
-	}
-
 void GWN_vertbuf_use(Gwn_VertBuf* verts)
 	{
-	if (!verts->vbo_id)
-		VertexBuffer_prime(verts);
-	else if (verts->data_dirty)
-		VertexBuffer_update(verts);
+	if (verts->data)
+		// this also calls glBindBuffer
+		VertexBuffer_unmap(verts);
 	else
 		glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	}

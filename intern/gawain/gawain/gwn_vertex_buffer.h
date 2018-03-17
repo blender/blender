@@ -22,33 +22,41 @@
 
 // Is Gwn_VertBuf always used as part of a Gwn_Batch?
 
+typedef enum {
+	// can be extended to support more types
+	GWN_USAGE_STREAM,
+	GWN_USAGE_STATIC,
+	GWN_USAGE_DYNAMIC
+} Gwn_UsageType;
+
 typedef struct Gwn_VertBuf {
 	Gwn_VertFormat format;
 	unsigned vertex_ct;
-	unsigned alloc_ct; // size in vertex of alloced data
-#if VRAM_USAGE
-	unsigned vram_size; // size in byte of data present in the VRAM
-#endif
-	unsigned data_dirty : 1; // does the data has been touched since last transfert
-	unsigned data_dynamic : 1; // do we keep the RAM allocation for further updates?
-	unsigned data_resized : 1; // does the data has been resized since last transfert
-	GLubyte* data; // NULL indicates data in VRAM (unmapped) or not yet allocated
-	GLuint vbo_id; // 0 indicates not yet sent to VRAM
+	GLubyte* data; // NULL indicates data in VRAM (unmapped)
+	GLuint vbo_id; // 0 indicates not yet allocated
+	Gwn_UsageType usage; // usage hint for GL optimisation
 } Gwn_VertBuf;
 
-Gwn_VertBuf* GWN_vertbuf_create(void);
-Gwn_VertBuf* GWN_vertbuf_create_with_format(const Gwn_VertFormat*);
-Gwn_VertBuf* GWN_vertbuf_create_dynamic_with_format(const Gwn_VertFormat*);
+Gwn_VertBuf* GWN_vertbuf_create(Gwn_UsageType);
+Gwn_VertBuf* GWN_vertbuf_create_with_format_ex(const Gwn_VertFormat*, Gwn_UsageType);
 
-void GWN_vertbuf_clear(Gwn_VertBuf*);
+#define GWN_vertbuf_create_with_format(format) \
+	GWN_vertbuf_create_with_format_ex(format, GWN_USAGE_STATIC)
+
 void GWN_vertbuf_discard(Gwn_VertBuf*);
 
-void GWN_vertbuf_init(Gwn_VertBuf*);
-void GWN_vertbuf_init_with_format(Gwn_VertBuf*, const Gwn_VertFormat*);
+void GWN_vertbuf_init(Gwn_VertBuf*, Gwn_UsageType);
+void GWN_vertbuf_init_with_format_ex(Gwn_VertBuf*, const Gwn_VertFormat*, Gwn_UsageType);
+
+#define GWN_vertbuf_init_with_format(verts, format) \
+	GWN_vertbuf_init_with_format_ex(verts, format, GWN_USAGE_STATIC)
 
 unsigned GWN_vertbuf_size_get(const Gwn_VertBuf*);
 void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_ct);
-void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_ct);
+void GWN_vertbuf_data_resize_ex(Gwn_VertBuf*, unsigned v_ct, bool keep_data);
+
+#define GWN_vertbuf_data_resize(verts, v_ct) \
+	GWN_vertbuf_data_resize_ex(verts, v_ct, true)
 
 // The most important set_attrib variant is the untyped one. Get it right first.
 // It takes a void* so the app developer is responsible for matching their app data types

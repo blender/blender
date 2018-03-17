@@ -156,7 +156,7 @@ void DRW_batching_buffer_request(
 	}
 	/* Create the batch. */
 	bbuf = chunk->bbufs + new_id;
-	bbuf->vert = *r_vert = GWN_vertbuf_create_dynamic_with_format(format);
+	bbuf->vert = *r_vert = GWN_vertbuf_create_with_format_ex(format, GWN_USAGE_DYNAMIC);
 	bbuf->batch = *r_batch = GWN_batch_create_ex(type, bbuf->vert, NULL, 0);
 	bbuf->format = format;
 	bbuf->shgroup = shgroup;
@@ -197,7 +197,7 @@ void DRW_instancing_buffer_request(
 	}
 	/* Create the batch. */
 	ibuf = chunk->ibufs + new_id;
-	ibuf->vert = *r_vert = GWN_vertbuf_create_dynamic_with_format(format);
+	ibuf->vert = *r_vert = GWN_vertbuf_create_with_format_ex(format, GWN_USAGE_DYNAMIC);
 	ibuf->batch = *r_batch = GWN_batch_duplicate(instance);
 	ibuf->format = format;
 	ibuf->shgroup = shgroup;
