@@ -764,10 +764,10 @@ static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 static void release_texture_slots(bool with_persist)
 {
 	if (with_persist) {
-		memset(DST.RST.bound_tex_slots, 0x0, sizeof(*DST.RST.bound_tex_slots) * GPU_max_ubo_binds());
+		memset(DST.RST.bound_tex_slots, 0x0, sizeof(*DST.RST.bound_tex_slots) * GPU_max_textures());
 	}
 	else {
-		for (int i = 0; i < GPU_max_ubo_binds(); ++i) {
+		for (int i = 0; i < GPU_max_textures(); ++i) {
 			if (DST.RST.bound_tex_slots[i] != BIND_PERSIST)
 				DST.RST.bound_tex_slots[i] = BIND_NONE;
 		}
