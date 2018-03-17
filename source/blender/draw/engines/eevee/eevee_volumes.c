@@ -472,17 +472,20 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 	DRWShadingGroup *grp = DRW_shgroup_material_empty_tri_batch_create(mat, vedata->psl->volumetric_objects_ps, sldata->common_data.vol_tex_size[2]);
 
+	/* If shader failed to compile or is currently compiling. */
+	if (grp == NULL) {
+		return;
+	}
+
 	/* Making sure it's updated. */
 	invert_m4_m4(ob->imat, ob->obmat);
 
 	BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
 
-	if (grp) {
-		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-		DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", (float *)ob->imat);
-		DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
-		DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
-	}
+	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+	DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", (float *)ob->imat);
+	DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
+	DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
 
 	/* Smoke Simulation */
 	if (((ob->base_flag & BASE_FROMDUPLI) == 0) &&
