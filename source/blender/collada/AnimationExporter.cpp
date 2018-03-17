@@ -771,7 +771,7 @@ void AnimationExporter::dae_baked_animation(std::vector<float> &fra, Object *ob_
 
 	addSampler(sampler);
 
-	std::string target = get_joint_id(bone, ob_arm) + "/transform";
+	std::string target = get_joint_id(ob_arm, bone) + "/transform";
 	addChannel(COLLADABU::URI(empty, sampler_id), target);
 
 	closeAnimation();
