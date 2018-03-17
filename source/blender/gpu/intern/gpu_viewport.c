@@ -87,6 +87,9 @@ struct GPUViewport {
 	struct DRWInstanceDataList *idatalist; /* Used for rendering data structure. */
 
 	ListBase tex_pool;  /* ViewportTempTexture list : Temporary textures shared across draw engines */
+
+	/* Profiling data */
+	double cache_time;
 };
 
 enum {
@@ -273,6 +276,11 @@ void GPU_viewport_size_set(GPUViewport *viewport, const int size[2])
 {
 	viewport->size[0] = size[0];
 	viewport->size[1] = size[1];
+}
+
+double *GPU_viewport_cache_time_get(GPUViewport *viewport)
+{
+	return &viewport->cache_time;
 }
 
 /**

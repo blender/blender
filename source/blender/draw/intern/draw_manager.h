@@ -52,7 +52,7 @@
 #ifdef USE_PROFILE
 #  include "PIL_time.h"
 
-#  define PROFILE_TIMER_FALLOFF 0.1
+#  define PROFILE_TIMER_FALLOFF 0.04
 
 #  define PROFILE_START(time_start) \
 	double time_start = PIL_check_seconds_timer();
@@ -303,9 +303,6 @@ typedef struct DRWManager {
 	ListBase enabled_engines; /* RenderEngineType */
 
 	bool buffer_finish_called; /* Avoid bad usage of DRW_render_instance_buffer_finish */
-
-	/* Profiling */
-	double cache_time;
 
 	/* View dependant uniforms. */
 	DRWMatrixState original_mat; /* Original rv3d matrices. */

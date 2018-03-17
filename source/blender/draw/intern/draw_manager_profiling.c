@@ -286,9 +286,10 @@ void DRW_stats_draw(rcti *rect)
 	v += 2;
 
 	u = 0;
+	double *cache_time = GPU_viewport_cache_time_get(DST.viewport);
 	sprintf(col_label, "Cache Time");
 	draw_stat_5row(rect, u++, v, col_label, sizeof(col_label));
-	sprintf(time_to_txt, "%.2fms", DST.cache_time);
+	sprintf(time_to_txt, "%.2fms", *cache_time);
 	draw_stat_5row(rect, u++, v, time_to_txt, sizeof(time_to_txt));
 	v += 2;
 

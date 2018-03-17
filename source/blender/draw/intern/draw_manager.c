@@ -1143,7 +1143,11 @@ void DRW_draw_render_loop_ex(
 		drw_engines_cache_finish();
 
 		DRW_render_instance_buffer_finish();
-		PROFILE_END_ACCUM(DST.cache_time, stime);
+
+#ifdef USE_PROFILE
+		double *cache_time = GPU_viewport_cache_time_get(DST.viewport);
+		PROFILE_END_UPDATE(*cache_time, stime);
+#endif
 	}
 
 	DRW_stats_begin();
