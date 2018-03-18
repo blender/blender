@@ -856,9 +856,8 @@ static void non_recursive_bvh_div_nodes_task_cb(
 		else {
 			break;
 		}
-
-		parent->totnode = (char)(k + 1);
 	}
+	parent->totnode = (char)k;
 }
 
 /**

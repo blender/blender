@@ -560,12 +560,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		if (ma)
 			id_us_min(&ma->id);
 	}
-	if (ob->mat) MEM_freeN(ob->mat);
-	if (ob->matbits) MEM_freeN(ob->matbits);
-	if (me->mat) MEM_freeN(me->mat);
-	ob->mat = me->mat = NULL;
-	ob->matbits = NULL;
-	
+	MEM_SAFE_FREE(ob->mat);
+	MEM_SAFE_FREE(ob->matbits);
+	MEM_SAFE_FREE(me->mat);
+
 	if (totcol) {
 		me->mat = matar;
 		ob->mat = MEM_callocN(sizeof(*ob->mat) * totcol, "join obmatar");

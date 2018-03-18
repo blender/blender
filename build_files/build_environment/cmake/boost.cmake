@@ -53,17 +53,20 @@ if(WIN32)
 	if(BUILD_MODE STREQUAL Release)
 		set(BOOST_HARVEST_CMD ${BOOST_HARVEST_CMD} && ${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/boost/include/boost-1_60/ ${HARVEST_TARGET}/boost/include/)
 	endif()
+	set(BOOST_PATCH_COMMAND ${PATCH_CMD} --verbose -p 1 -N -d ${BUILD_DIR}/boost/src/external_boost < ${PATCH_DIR}/boost.diff)
 
 elseif(APPLE)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
 	set(BOOST_BUILD_COMMAND ./bjam)
 	set(BOOST_BUILD_OPTIONS toolset=clang cxxflags=${PLATFORM_CXXFLAGS} linkflags=${PLATFORM_LDFLAGS} --disable-icu boost.locale.icu=off)
 	set(BOOST_HARVEST_CMD echo .)
+	set(BOOST_PATCH_COMMAND echo .)
 else()
 	set(BOOST_HARVEST_CMD echo .)
 	set(BOOST_CONFIGURE_COMMAND ./bootstrap.sh)
 	set(BOOST_BUILD_COMMAND ./bjam)
 	set(BOOST_BUILD_OPTIONS cxxflags=${PLATFORM_CXXFLAGS} --disable-icu boost.locale.icu=off)
+	set(BOOST_PATCH_COMMAND echo .)
 endif()
 
 set(BOOST_OPTIONS
@@ -96,6 +99,7 @@ ExternalProject_Add(external_boost
 	URL_HASH MD5=${BOOST_MD5}
 	PREFIX ${BUILD_DIR}/boost
 	UPDATE_COMMAND	""
+	PATCH_COMMAND ${BOOST_PATCH_COMMAND}
 	CONFIGURE_COMMAND ${BOOST_CONFIGURE_COMMAND}
 	BUILD_COMMAND ${BOOST_BUILD_COMMAND} ${BOOST_BUILD_OPTIONS} -j${MAKE_THREADS} architecture=x86 address-model=${BOOST_ADDRESS_MODEL} variant=${BOOST_BUILD_TYPE} link=static threading=multi ${BOOST_OPTIONS}	--prefix=${LIBDIR}/boost install
 	BUILD_IN_SOURCE 1
