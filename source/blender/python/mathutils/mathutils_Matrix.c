@@ -1710,10 +1710,18 @@ static PyObject *Matrix_lerp(MatrixObject *self, PyObject *args)
 
 	/* TODO, different sized matrix */
 	if (self->num_col == 4 && self->num_row == 4) {
+#ifdef MATH_STANDALONE
+		blend_m4_m4m4((float (*)[4])mat, (float (*)[4])self->matrix, (float (*)[4])mat2->matrix, fac);
+#else
 		interp_m4_m4m4((float (*)[4])mat, (float (*)[4])self->matrix, (float (*)[4])mat2->matrix, fac);
+#endif
 	}
 	else if (self->num_col == 3 && self->num_row == 3) {
+#ifdef MATH_STANDALONE
+		blend_m3_m3m3((float (*)[3])mat, (float (*)[3])self->matrix, (float (*)[3])mat2->matrix, fac);
+#else
 		interp_m3_m3m3((float (*)[3])mat, (float (*)[3])self->matrix, (float (*)[3])mat2->matrix, fac);
+#endif
 	}
 	else {
 		PyErr_SetString(PyExc_ValueError,
