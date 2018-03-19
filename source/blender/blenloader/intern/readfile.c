@@ -9211,15 +9211,15 @@ static void expand_nodetree(FileData *fd, Main *mainvar, bNodeTree *ntree)
 		expand_idprops(fd, mainvar, node->prop);
 
 		for (sock = node->inputs.first; sock; sock = sock->next)
-			expand_doit(fd, mainvar, sock->prop);
+			expand_idprops(fd, mainvar, sock->prop);
 		for (sock = node->outputs.first; sock; sock = sock->next)
-			expand_doit(fd, mainvar, sock->prop);
+			expand_idprops(fd, mainvar, sock->prop);
 	}
 
 	for (sock = ntree->inputs.first; sock; sock = sock->next)
-		expand_doit(fd, mainvar, sock->prop);
+		expand_idprops(fd, mainvar, sock->prop);
 	for (sock = ntree->outputs.first; sock; sock = sock->next)
-		expand_doit(fd, mainvar, sock->prop);
+		expand_idprops(fd, mainvar, sock->prop);
 }
 
 static void expand_texture(FileData *fd, Main *mainvar, Tex *tex)
