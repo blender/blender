@@ -101,7 +101,7 @@ void GWN_vertbuf_data_alloc(Gwn_VertBuf* verts, unsigned v_ct)
 	verts->vbo_id = GWN_buf_id_alloc();
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
 	glBufferData(GL_ARRAY_BUFFER, buffer_sz, NULL, convert_usage_type_to_gl(verts->usage));
-	verts->data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	verts->data = glMapBufferRange(GL_ARRAY_BUFFER, 0, buffer_sz, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 	}
 
 void GWN_vertbuf_data_resize_ex(Gwn_VertBuf* verts, unsigned v_ct, bool keep_data)
@@ -150,13 +150,13 @@ void GWN_vertbuf_data_resize_ex(Gwn_VertBuf* verts, unsigned v_ct, bool keep_dat
 
 	// if the buffer was mapped, update it's pointer
 	if (verts->data)
-		verts->data = glMapBuffer(GL_COPY_READ_BUFFER, GL_WRITE_ONLY);
+		verts->data = glMapBufferRange(GL_COPY_READ_BUFFER, 0, new_buf_sz, GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 	}
 
 static void VertexBuffer_map(Gwn_VertBuf* verts)
 	{
 	glBindBuffer(GL_ARRAY_BUFFER, verts->vbo_id);
-	verts->data = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	verts->data = glMapBufferRange(GL_ARRAY_BUFFER, 0, GWN_vertbuf_size_get(verts), GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
 	}
 
 static void VertexBuffer_unmap(Gwn_VertBuf* verts)
