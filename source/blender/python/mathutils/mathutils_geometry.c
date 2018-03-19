@@ -742,7 +742,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 	float lambda;
 	PyObject *ret;
 	int size = 2;
-	
+
 	if (!PyArg_ParseTuple(
 	        args, "OOO:intersect_point_line",
 	        &py_pt, &py_line_a, &py_line_b))
@@ -760,7 +760,7 @@ static PyObject *M_Geometry_intersect_point_line(PyObject *UNUSED(self), PyObjec
 
 	/* do the calculation */
 	lambda = closest_to_line_v3(pt_out, pt, line_a, line_b);
-	
+
 	ret = PyTuple_New(2);
 	PyTuple_SET_ITEMS(ret,
 	        Vector_CreatePyObject(pt_out, size, NULL),
@@ -882,7 +882,7 @@ static PyObject *M_Geometry_intersect_point_quad_2d(PyObject *UNUSED(self), PyOb
 	PyObject *py_pt, *py_quad[4];
 	float pt[2], quad[4][2];
 	int i;
-	
+
 	if (!PyArg_ParseTuple(
 	        args, "OOOOO:intersect_point_quad_2d",
 	        &py_pt, UNPACK4_EX(&, py_quad, )))
@@ -954,12 +954,12 @@ PyDoc_STRVAR(M_Geometry_barycentric_transform_doc,
 "   :type tri_a2: :class:`mathutils.Vector`\n"
 "   :arg tri_a3: source triangle vertex.\n"
 "   :type tri_a3: :class:`mathutils.Vector`\n"
-"   :arg tri_a1: target triangle vertex.\n"
-"   :type tri_a1: :class:`mathutils.Vector`\n"
-"   :arg tri_a2: target triangle vertex.\n"
-"   :type tri_a2: :class:`mathutils.Vector`\n"
-"   :arg tri_a3: target triangle vertex.\n"
-"   :type tri_a3: :class:`mathutils.Vector`\n"
+"   :arg tri_b1: target triangle vertex.\n"
+"   :type tri_b1: :class:`mathutils.Vector`\n"
+"   :arg tri_b2: target triangle vertex.\n"
+"   :type tri_b2: :class:`mathutils.Vector`\n"
+"   :arg tri_b3: target triangle vertex.\n"
+"   :type tri_b3: :class:`mathutils.Vector`\n"
 "   :return: The transformed point\n"
 "   :rtype: :class:`mathutils.Vector`'s\n"
 );
