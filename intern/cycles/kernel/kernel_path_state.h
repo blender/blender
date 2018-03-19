@@ -166,6 +166,23 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 #endif
 }
 
+ccl_device_inline bool path_state_volume_next(KernelGlobals *kg, ccl_addr_space PathState *state)
+{
+	/* For volume bounding meshes we pass through without counting transparent
+	 * bounces, only sanity check in case self intersection gets us stuck. */
+	state->volume_bounds_bounce++;
+	if (state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
+		return false;
+	}
+
+	/* Random number generator next bounce. */
+	if(state->volume_bounds_bounce > 1) {
+		state->rng_offset += PRNG_BOUNCE_NUM;
+	}
+
+	return true;
+}
+
 ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, ccl_addr_space PathState *state)
 {
 	uint flag = state->flag & PATH_RAY_ALL_VISIBILITY;
