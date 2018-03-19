@@ -48,11 +48,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-
 #include "ED_particle.h"
-
-
-
 
 #include "particle_edit_utildefines.h"
 
