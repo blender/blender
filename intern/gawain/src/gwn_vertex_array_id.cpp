@@ -16,7 +16,7 @@
 #include <string.h>
 #include <pthread.h>
 #include <mutex>
-#include <forward_list>
+#include <unordered_set>
 
 #if TRUST_NO_ONE
 extern "C" {
@@ -32,7 +32,7 @@ static bool thread_is_main()
 
 struct Gwn_Context {
 	GLuint default_vao;
-	std::forward_list<Gwn_Batch*> batches; // Batches that have VAOs from this context
+	std::unordered_set<Gwn_Batch*> batches; // Batches that have VAOs from this context
 	std::vector<GLuint> orphaned_vertarray_ids;
 	std::mutex orphans_mutex; // todo: try spinlock instead
 #if TRUST_NO_ONE
@@ -89,7 +89,7 @@ void GWN_context_discard(Gwn_Context* ctx)
 	while (!ctx->batches.empty())
 		{
 		// this removes the array entry
-		gwn_batch_vao_cache_clear(ctx->batches.front());
+		gwn_batch_vao_cache_clear(*ctx->batches.begin());
 		}
 	glDeleteVertexArrays(1, &ctx->default_vao);
 	delete ctx;
@@ -161,10 +161,10 @@ void GWN_vao_free(GLuint vao_id, Gwn_Context* ctx)
 
 void gwn_context_add_batch(Gwn_Context* ctx, Gwn_Batch* batch)
 	{
-	ctx->batches.emplace_front(batch);
+	ctx->batches.emplace(batch);
 	}
 
 void gwn_context_remove_batch(Gwn_Context* ctx, Gwn_Batch* batch)
 	{
-	ctx->batches.remove(batch);
+	ctx->batches.erase(batch);
 	}
