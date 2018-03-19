@@ -69,12 +69,6 @@
 
 #include "physics_intern.h"
 
-extern void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, ParticleSystem *psys);
-extern void PTCacheUndo_clear(PTCacheEdit *edit);
-extern void recalc_lengths(PTCacheEdit *edit);
-extern void recalc_emitter_field(Object *ob, ParticleSystem *psys);
-extern void update_world_cos(Object *ob, PTCacheEdit *edit);
-
 #define KEY_K					PTCacheEditKey *key; int k
 #define POINT_P					PTCacheEditPoint *point; int p
 #define LOOP_POINTS				for (p=0, point=edit->points; p<edit->totpoint; p++, point++)
