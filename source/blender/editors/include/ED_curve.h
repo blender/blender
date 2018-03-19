@@ -48,7 +48,6 @@ void    ED_operatormacros_curve(void);
 void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
-void    undo_push_curve(struct bContext *C, const char *name);
 ListBase *object_editcurve_get(struct Object *ob);
 
 void    ED_curve_editnurb_load(struct Object *obedit);
@@ -71,6 +70,9 @@ bool ED_curve_select_check(struct Curve *cu, struct EditNurb *editnurb);
 void ED_curve_deselect_all(struct EditNurb *editnurb);
 void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
+
+/* editcurve_undo.c */
+void undo_push_curve(struct bContext *C, const char *name);
 
 /* editfont.c */
 void    ED_curve_editfont_load(struct Object *obedit);

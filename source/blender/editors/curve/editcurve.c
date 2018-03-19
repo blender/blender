@@ -81,16 +81,6 @@
 #include "RNA_define.h"
 #include "RNA_enum_types.h"
 
-/* Undo stuff */
-typedef struct {
-	ListBase nubase;
-	int actvert;
-	GHash *undoIndex;
-	ListBase fcurves, drivers;
-	int actnu;
-	int flag;
-} UndoCurve;
-
 void selectend_nurb(Object *obedit, enum eEndPoint_Types selfirst, bool doswap, bool selstatus);
 static void adduplicateflagNurb(Object *obedit, ListBase *newnurb, const short flag, const bool split);
 static int curve_delete_segments(Object *obedit, const bool split);
@@ -343,7 +333,7 @@ static void keyIndex_updateBP(EditNurb *editnurb, BPoint *bp,
 	keyIndex_updateCV(editnurb, (char *)bp, (char *)newbp, count, sizeof(BPoint));
 }
 
-static void keyIndex_updateNurb(EditNurb *editnurb, Nurb *nu, Nurb *newnu)
+void ED_curve_keyindex_update_nurb(EditNurb *editnurb, Nurb *nu, Nurb *newnu)
 {
 	if (nu->bezt) {
 		keyIndex_updateBezt(editnurb, nu->bezt, newnu->bezt, newnu->pntsu);
@@ -522,7 +512,7 @@ static void keyData_switchDirectionNurb(Curve *cu, Nurb *nu)
 		switch_keys_direction(cu, nu);
 }
 
-static GHash *dupli_keyIndexHash(GHash *keyindex)
+GHash *ED_curve_keyindex_hash_duplicate(GHash *keyindex)
 {
 	GHash *gh;
 	GHashIterator gh_iter;
@@ -6196,119 +6186,6 @@ void CURVE_OT_tilt_clear(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/****************** undo for curves ****************/
-
-static void undoCurve_to_editCurve(void *ucu, void *UNUSED(edata), void *cu_v)
-{
-	Curve *cu = cu_v;
-	UndoCurve *undoCurve = ucu;
-	ListBase *undobase = &undoCurve->nubase;
-	ListBase *editbase = BKE_curve_editNurbs_get(cu);
-	Nurb *nu, *newnu;
-	EditNurb *editnurb = cu->editnurb;
-	AnimData *ad = BKE_animdata_from_id(&cu->id);
-
-	BKE_nurbList_free(editbase);
-
-	if (undoCurve->undoIndex) {
-		BKE_curve_editNurb_keyIndex_free(&editnurb->keyindex);
-		editnurb->keyindex = dupli_keyIndexHash(undoCurve->undoIndex);
-	}
-
-	if (ad) {
-		if (ad->action) {
-			free_fcurves(&ad->action->curves);
-			copy_fcurves(&ad->action->curves, &undoCurve->fcurves);
-		}
-
-		free_fcurves(&ad->drivers);
-		copy_fcurves(&ad->drivers, &undoCurve->drivers);
-	}
-
-	/* copy  */
-	for (nu = undobase->first; nu; nu = nu->next) {
-		newnu = BKE_nurb_duplicate(nu);
-
-		if (editnurb->keyindex) {
-			keyIndex_updateNurb(editnurb, nu, newnu);
-		}
-
-		BLI_addtail(editbase, newnu);
-	}
-
-	cu->actvert = undoCurve->actvert;
-	cu->actnu = undoCurve->actnu;
-	cu->flag = undoCurve->flag;
-	ED_curve_updateAnimPaths(cu);
-}
-
-static void *editCurve_to_undoCurve(void *UNUSED(edata), void *cu_v)
-{
-	Curve *cu = cu_v;
-	ListBase *nubase = BKE_curve_editNurbs_get(cu);
-	UndoCurve *undoCurve;
-	EditNurb *editnurb = cu->editnurb, tmpEditnurb;
-	Nurb *nu, *newnu;
-	AnimData *ad = BKE_animdata_from_id(&cu->id);
-
-	undoCurve = MEM_callocN(sizeof(UndoCurve), "undoCurve");
-
-	if (editnurb->keyindex) {
-		undoCurve->undoIndex = dupli_keyIndexHash(editnurb->keyindex);
-		tmpEditnurb.keyindex = undoCurve->undoIndex;
-	}
-
-	if (ad) {
-		if (ad->action)
-			copy_fcurves(&undoCurve->fcurves, &ad->action->curves);
-
-		copy_fcurves(&undoCurve->drivers, &ad->drivers);
-	}
-
-	/* copy  */
-	for (nu = nubase->first; nu; nu = nu->next) {
-		newnu = BKE_nurb_duplicate(nu);
-
-		if (undoCurve->undoIndex) {
-			keyIndex_updateNurb(&tmpEditnurb, nu, newnu);
-		}
-
-		BLI_addtail(&undoCurve->nubase, newnu);
-	}
-
-	undoCurve->actvert = cu->actvert;
-	undoCurve->actnu = cu->actnu;
-	undoCurve->flag = cu->flag;
-
-	return undoCurve;
-}
-
-static void free_undoCurve(void *ucv)
-{
-	UndoCurve *undoCurve = ucv;
-
-	BKE_nurbList_free(&undoCurve->nubase);
-
-	BKE_curve_editNurb_keyIndex_free(&undoCurve->undoIndex);
-
-	free_fcurves(&undoCurve->fcurves);
-	free_fcurves(&undoCurve->drivers);
-
-	MEM_freeN(undoCurve);
-}
-
-static void *get_data(bContext *C)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	return obedit;
-}
-
-/* and this is all the undo system needs to know */
-void undo_push_curve(bContext *C, const char *name)
-{
-	undo_editmode_push(C, name, get_data, free_undoCurve, undoCurve_to_editCurve, editCurve_to_undoCurve, NULL);
 }
 
 void ED_curve_beztcpy(EditNurb *editnurb, BezTriple *dst, BezTriple *src, int count)
