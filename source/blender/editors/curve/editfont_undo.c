@@ -29,6 +29,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_array_utils.h"
+
 
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
@@ -36,9 +38,15 @@
 
 #include "BKE_context.h"
 #include "BKE_font.h"
+#include "BKE_depsgraph.h"
+#include "BKE_undo_system.h"
 
+#include "ED_object.h"
 #include "ED_curve.h"
 #include "ED_util.h"
+
+#include "WM_types.h"
+#include "WM_api.h"
 
 #define USE_ARRAY_STORE
 
@@ -49,6 +57,10 @@
 #  include "BLI_listbase.h"
 #  define ARRAY_CHUNK_SIZE 32
 #endif
+
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
 
 typedef struct UndoFont {
 	wchar_t *textbuf;
@@ -62,6 +74,8 @@ typedef struct UndoFont {
 		BArrayState *textbufinfo;
 	} store;
 #endif
+
+	size_t undo_size;
 } UndoFont;
 
 
@@ -202,23 +216,20 @@ static void uf_arraystore_free(UndoFont *uf)
 
 		BLI_array_store_at_size_clear(&uf_arraystore.bs_stride);
 	}
-
 }
 
 /** \} */
 
 #endif  /* USE_ARRAY_STORE */
 
-static void undoFont_to_editFont(void *uf_v, void *ecu, void *UNUSED(obdata))
+static void undofont_to_editfont(UndoFont *uf, Curve *cu)
 {
-	Curve *cu = (Curve *)ecu;
 	EditFont *ef = cu->editfont;
-	const UndoFont *uf = uf_v;
 
 	size_t final_size;
 
 #ifdef USE_ARRAY_STORE
-	uf_arraystore_expand(uf_v);
+	uf_arraystore_expand(uf);
 #endif
 
 	final_size = sizeof(wchar_t) * (uf->len + 1);
@@ -233,16 +244,17 @@ static void undoFont_to_editFont(void *uf_v, void *ecu, void *UNUSED(obdata))
 	ef->selstart = ef->selend = 0;
 
 #ifdef USE_ARRAY_STORE
-	uf_arraystore_expand_clear(uf_v);
+	uf_arraystore_expand_clear(uf);
 #endif
 }
 
-static void *editFont_to_undoFont(void *ecu, void *UNUSED(obdata))
+static void *undofont_from_editfont(UndoFont *uf, Curve *cu)
 {
-	Curve *cu = (Curve *)ecu;
+	BLI_assert(BLI_array_is_zeroed(uf, 1));
+
 	EditFont *ef = cu->editfont;
 
-	UndoFont *uf = MEM_callocN(sizeof(*uf), __func__);
+	size_t mem_used_prev = MEM_get_memory_in_use();
 
 	size_t final_size;
 
@@ -269,13 +281,15 @@ static void *editFont_to_undoFont(void *ecu, void *UNUSED(obdata))
 	}
 #endif
 
+	size_t mem_used_curr = MEM_get_memory_in_use();
+
+	uf->undo_size = mem_used_prev < mem_used_curr ? mem_used_curr - mem_used_prev : sizeof(UndoFont);
+
 	return uf;
 }
 
-static void free_undoFont(void *uf_v)
+static void undofont_free_data(UndoFont *uf)
 {
-	UndoFont *uf = uf_v;
-
 #ifdef USE_ARRAY_STORE
 	{
 		LinkData *link = BLI_findptr(&uf_arraystore.local_links, uf, offsetof(LinkData, data));
@@ -291,21 +305,91 @@ static void free_undoFont(void *uf_v)
 	if (uf->textbufinfo) {
 		MEM_freeN(uf->textbufinfo);
 	}
-
-	MEM_freeN(uf);
 }
 
-static void *get_undoFont(bContext *C)
+static Object *editfont_object_from_context(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_FONT) {
-		return obedit->data;
+		Curve *cu = obedit->data;
+		EditFont *ef = cu->editfont;
+		if (ef != NULL) {
+			return obedit;
+		}
 	}
 	return NULL;
 }
 
-/* and this is all the undo system needs to know */
-void undo_push_font(bContext *C, const char *name)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
+
+typedef struct FontUndoStep {
+	UndoStep step;
+	/* note: will split out into list for multi-object-editmode. */
+	UndoRefID_Object obedit_ref;
+	UndoFont data;
+} FontUndoStep;
+
+static bool font_undosys_poll(bContext *C)
 {
-	undo_editmode_push(C, name, get_undoFont, free_undoFont, undoFont_to_editFont, editFont_to_undoFont, NULL);
+	return editfont_object_from_context(C) != NULL;
 }
+
+static bool font_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+{
+	FontUndoStep *us = (FontUndoStep *)us_p;
+	us->obedit_ref.ptr = editfont_object_from_context(C);
+	Curve *cu = us->obedit_ref.ptr->data;
+	undofont_from_editfont(&us->data, cu);
+	us->step.data_size = us->data.undo_size;
+	return true;
+}
+
+static void font_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+{
+	/* TODO(campbell): undo_system: use low-level API to set mode. */
+	ED_object_mode_set(C, OB_MODE_EDIT);
+	BLI_assert(font_undosys_poll(C));
+
+	FontUndoStep *us = (FontUndoStep *)us_p;
+	Object *obedit = us->obedit_ref.ptr;
+	Curve *cu = obedit->data;
+	undofont_to_editfont(&us->data, cu);
+	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+}
+
+static void font_undosys_step_free(UndoStep *us_p)
+{
+	FontUndoStep *us = (FontUndoStep *)us_p;
+	undofont_free_data(&us->data);
+}
+
+static void font_undosys_foreach_ID_ref(
+        UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
+{
+	FontUndoStep *us = (FontUndoStep *)us_p;
+	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
+}
+
+/* Export for ED_undo_sys. */
+void ED_font_undosys_type(UndoType *ut)
+{
+	ut->name = "Edit Font";
+	ut->poll = font_undosys_poll;
+	ut->step_encode = font_undosys_step_encode;
+	ut->step_decode = font_undosys_step_decode;
+	ut->step_free = font_undosys_step_free;
+
+	ut->step_foreach_ID_ref = font_undosys_foreach_ID_ref;
+
+	ut->mode = BKE_UNDOTYPE_MODE_STORE;
+	ut->use_context = true;
+
+	ut->step_size = sizeof(FontUndoStep);
+}
+
+/** \} */

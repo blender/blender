@@ -51,7 +51,6 @@ set(SRC
 	paint_mask.c
 	paint_ops.c
 	paint_stroke.c
-	paint_undo.c
 	paint_utils.c
 	paint_vertex.c
 	paint_vertex_color_ops.c

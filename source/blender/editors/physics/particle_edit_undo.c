@@ -38,6 +38,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
@@ -47,37 +48,28 @@
 #include "BKE_global.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
+#include "BKE_context.h"
+#include "BKE_main.h"
+#include "BKE_undo_system.h"
 
+#include "ED_object.h"
 #include "ED_particle.h"
+#include "ED_physics.h"
 
 #include "particle_edit_utildefines.h"
 
 #include "physics_intern.h"
 
-static void free_PTCacheUndo(PTCacheUndo *undo)
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
+
+static void undoptcache_from_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 {
 	PTCacheEditPoint *point;
 	int i;
 
-	for (i=0, point=undo->points; i<undo->totpoint; i++, point++) {
-		if (undo->particles && (undo->particles + i)->hair)
-			MEM_freeN((undo->particles + i)->hair);
-		if (point->keys)
-			MEM_freeN(point->keys);
-	}
-	if (undo->points)
-		MEM_freeN(undo->points);
-
-	if (undo->particles)
-		MEM_freeN(undo->particles);
-
-	BKE_ptcache_free_mem(&undo->mem_cache);
-}
-
-static void make_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
-{
-	PTCacheEditPoint *point;
-	int i;
+	size_t mem_used_prev = MEM_get_memory_in_use();
 
 	undo->totpoint= edit->totpoint;
 
@@ -86,8 +78,9 @@ static void make_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 
 		pa= undo->particles= MEM_dupallocN(edit->psys->particles);
 
-		for (i=0; i<edit->totpoint; i++, pa++)
+		for (i=0; i<edit->totpoint; i++, pa++) {
 			pa->hair= MEM_dupallocN(pa->hair);
+		}
 
 		undo->psys_flag = edit->psys->flag;
 	}
@@ -98,8 +91,9 @@ static void make_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 		pm = undo->mem_cache.first;
 
 		for (; pm; pm=pm->next) {
-			for (i=0; i<BPHYS_TOT_DATA; i++)
+			for (i=0; i<BPHYS_TOT_DATA; i++) {
 				pm->data[i] = MEM_dupallocN(pm->data[i]);
+			}
 		}
 	}
 
@@ -110,9 +104,13 @@ static void make_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 		point->keys= MEM_dupallocN(point->keys);
 		/* no need to update edit key->co & key->time pointers here */
 	}
+
+	size_t mem_used_curr = MEM_get_memory_in_use();
+
+	undo->undo_size = mem_used_prev < mem_used_curr ? mem_used_curr - mem_used_prev : sizeof(PTCacheUndo);
 }
 
-static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
+static void undoptcache_to_editcache(PTCacheUndo *undo, PTCacheEdit *edit)
 {
 	ParticleSystem *psys = edit->psys;
 	ParticleData *pa;
@@ -120,16 +118,20 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 	POINT_P; KEY_K;
 
 	LOOP_POINTS {
-		if (psys && psys->particles[p].hair)
+		if (psys && psys->particles[p].hair) {
 			MEM_freeN(psys->particles[p].hair);
+		}
 
-		if (point->keys)
+		if (point->keys) {
 			MEM_freeN(point->keys);
+		}
 	}
-	if (psys && psys->particles)
+	if (psys && psys->particles) {
 		MEM_freeN(psys->particles);
-	if (edit->points)
+	}
+	if (edit->points) {
 		MEM_freeN(edit->points);
+	}
 	if (edit->mirror_cache) {
 		MEM_freeN(edit->mirror_cache);
 		edit->mirror_cache= NULL;
@@ -171,9 +173,9 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 		pm = edit->pid.cache->mem_cache.first;
 
 		for (; pm; pm=pm->next) {
-			for (i=0; i<BPHYS_TOT_DATA; i++)
+			for (i = 0; i < BPHYS_TOT_DATA; i++) {
 				pm->data[i] = MEM_dupallocN(pm->data[i]);
-
+			}
 			BKE_ptcache_mem_pointers_init(pm);
 
 			LOOP_POINTS {
@@ -191,150 +193,122 @@ static void get_PTCacheUndo(PTCacheEdit *edit, PTCacheUndo *undo)
 	}
 }
 
-void PE_undo_push(Scene *scene, const char *str)
+static void undoptcache_free_data(PTCacheUndo *undo)
 {
-	PTCacheEdit *edit= PE_get_current(scene, OBACT);
-	PTCacheUndo *undo;
-	int nr;
+	PTCacheEditPoint *point;
+	int i;
 
-	if (!edit) return;
-
-	/* remove all undos after (also when curundo==NULL) */
-	while (edit->undo.last != edit->curundo) {
-		undo= edit->undo.last;
-		BLI_remlink(&edit->undo, undo);
-		free_PTCacheUndo(undo);
-		MEM_freeN(undo);
-	}
-
-	/* make new */
-	edit->curundo= undo= MEM_callocN(sizeof(PTCacheUndo), "particle undo file");
-	BLI_strncpy(undo->name, str, sizeof(undo->name));
-	BLI_addtail(&edit->undo, undo);
-	
-	/* and limit amount to the maximum */
-	nr= 0;
-	undo= edit->undo.last;
-	while (undo) {
-		nr++;
-		if (nr==U.undosteps) break;
-		undo= undo->prev;
-	}
-	if (undo) {
-		while (edit->undo.first != undo) {
-			PTCacheUndo *first= edit->undo.first;
-			BLI_remlink(&edit->undo, first);
-			free_PTCacheUndo(first);
-			MEM_freeN(first);
+	for (i = 0, point=undo->points; i < undo->totpoint; i++, point++) {
+		if (undo->particles && (undo->particles + i)->hair) {
+			MEM_freeN((undo->particles + i)->hair);
+		}
+		if (point->keys) {
+			MEM_freeN(point->keys);
 		}
 	}
-
-	/* copy  */
-	make_PTCacheUndo(edit, edit->curundo);
+	if (undo->points) {
+		MEM_freeN(undo->points);
+	}
+	if (undo->particles) {
+		MEM_freeN(undo->particles);
+	}
+	BKE_ptcache_free_mem(&undo->mem_cache);
 }
 
-void PE_undo_step(Scene *scene, int step)
-{	
-	PTCacheEdit *edit= PE_get_current(scene, OBACT);
+/** \} */
 
-	if (!edit) return;
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
 
-	if (step==0) {
-		get_PTCacheUndo(edit, edit->curundo);
-	}
-	else if (step==1) {
-		
-		if (edit->curundo==NULL || edit->curundo->prev==NULL) {
-			/* pass */
-		}
-		else {
-			if (G.debug & G_DEBUG) printf("undo %s\n", edit->curundo->name);
-			edit->curundo= edit->curundo->prev;
-			get_PTCacheUndo(edit, edit->curundo);
-		}
+typedef struct ParticleUndoStep {
+	UndoStep step;
+	UndoRefID_Scene scene_ref;
+	UndoRefID_Object object_ref;
+	PTCacheUndo data;
+} ParticleUndoStep;
+
+static bool particle_undosys_poll(struct bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = OBACT;
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	return (edit != NULL);
+}
+
+static bool particle_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+{
+	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+	us->scene_ref.ptr = CTX_data_scene(C);
+	us->object_ref.ptr = us->scene_ref.ptr->basact->object;
+	PTCacheEdit *edit = PE_get_current(us->scene_ref.ptr, us->object_ref.ptr);
+	undoptcache_from_editcache(&us->data, edit);
+	return true;
+}
+
+static void particle_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+{
+	/* TODO(campbell): undo_system: use low-level API to set mode. */
+	ED_object_mode_set(C, OB_MODE_PARTICLE_EDIT);
+	BLI_assert(particle_undosys_poll(C));
+
+	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+	Scene *scene = us->scene_ref.ptr;
+	Object *ob = us->object_ref.ptr;
+	PTCacheEdit *edit = PE_get_current(scene, ob);
+	if (edit) {
+		undoptcache_to_editcache(&us->data, edit);
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else {
-		/* curundo has to remain current situation! */
-		
-		if (edit->curundo==NULL || edit->curundo->next==NULL) {
-			/* pass */
-		}
-		else {
-			get_PTCacheUndo(edit, edit->curundo->next);
-			edit->curundo= edit->curundo->next;
-			if (G.debug & G_DEBUG) printf("redo %s\n", edit->curundo->name);
-		}
+		BLI_assert(0);
 	}
-
-	DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
 }
 
-bool PE_undo_is_valid(Scene *scene)
+static void particle_undosys_step_free(UndoStep *us_p)
 {
-	PTCacheEdit *edit= PE_get_current(scene, OBACT);
-	
-	if (edit) {
-		return (edit->undo.last != edit->undo.first);
-	}
-	return 0;
+	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+	undoptcache_free_data(&us->data);
 }
 
-void PTCacheUndo_clear(PTCacheEdit *edit)
+static void particle_undosys_foreach_ID_ref(
+        UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
 {
-	PTCacheUndo *undo;
-
-	if (edit==NULL) return;
-	
-	undo= edit->undo.first;
-	while (undo) {
-		free_PTCacheUndo(undo);
-		undo= undo->next;
-	}
-	BLI_freelistN(&edit->undo);
-	edit->curundo= NULL;
+	ParticleUndoStep *us = (ParticleUndoStep *)us_p;
+	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->scene_ref));
+	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->object_ref));
 }
 
-void PE_undo(Scene *scene)
+/* Export for ED_undo_sys. */
+void ED_particle_undosys_type(UndoType *ut)
 {
-	PE_undo_step(scene, 1);
+	ut->name = "Edit Particle";
+	ut->poll = particle_undosys_poll;
+	ut->step_encode = particle_undosys_step_encode;
+	ut->step_decode = particle_undosys_step_decode;
+	ut->step_free = particle_undosys_step_free;
+
+	ut->step_foreach_ID_ref = particle_undosys_foreach_ID_ref;
+
+	ut->mode = BKE_UNDOTYPE_MODE_STORE;
+	ut->use_context = true;
+
+	ut->step_size = sizeof(ParticleUndoStep);
 }
 
-void PE_redo(Scene *scene)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+void PE_undo_push(struct Scene *scene, const char *str)
 {
-	PE_undo_step(scene, -1);
+	wmWindowManager *wm = G.main->wm.first;
+	bContext *C_temp = CTX_create();
+	CTX_data_scene_set(C_temp, scene);
+	BKE_undosys_step_push_with_type(wm->undo_stack, C_temp, str, BKE_UNDOSYS_TYPE_PARTICLE);
+	CTX_free(C_temp);
 }
 
-void PE_undo_number(Scene *scene, int nr)
-{
-	PTCacheEdit *edit= PE_get_current(scene, OBACT);
-	PTCacheUndo *undo;
-	int a=0;
-	
-	for (undo= edit->undo.first; undo; undo= undo->next, a++) {
-		if (a==nr) break;
-	}
-	edit->curundo= undo;
-	PE_undo_step(scene, 0);
-}
-
-
-/* get name of undo item, return null if no item with this index */
-/* if active pointer, set it to 1 if true */
-const char *PE_undo_get_name(Scene *scene, int nr, bool *r_active)
-{
-	PTCacheEdit *edit= PE_get_current(scene, OBACT);
-	PTCacheUndo *undo;
-	
-	if (r_active) *r_active = false;
-	
-	if (edit) {
-		undo= BLI_findlink(&edit->undo, nr);
-		if (undo) {
-			if (r_active && (undo == edit->curundo)) {
-				*r_active = true;
-			}
-			return undo->name;
-		}
-	}
-	return NULL;
-}
+/** \} */

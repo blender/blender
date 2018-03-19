@@ -68,7 +68,6 @@ void PARTICLE_OT_edited_clear(struct wmOperatorType *ot);
 
 void PARTICLE_OT_unify_length(struct wmOperatorType *ot);
 
-void PTCacheUndo_clear(struct PTCacheEdit *edit);
 void PE_create_particle_edit(struct Scene *scene, struct Object *ob, struct PointCache *cache, struct ParticleSystem *psys);
 void recalc_lengths(struct PTCacheEdit *edit);
 void recalc_emitter_field(struct Object *ob, struct ParticleSystem *psys);

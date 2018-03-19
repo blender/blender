@@ -227,7 +227,6 @@ typedef struct PTCacheEditPoint {
 } PTCacheEditPoint;
 
 typedef struct PTCacheUndo {
-	struct PTCacheUndo *next, *prev;
 	struct PTCacheEditPoint *points;
 
 	/* particles stuff */
@@ -240,12 +239,11 @@ typedef struct PTCacheUndo {
 	struct ListBase mem_cache;
 
 	int totpoint;
-	char name[64];
+
+	size_t undo_size;
 } PTCacheUndo;
 
 typedef struct PTCacheEdit {
-	ListBase undo;
-	struct PTCacheUndo *curundo;
 	PTCacheEditPoint *points;
 
 	struct PTCacheID pid;

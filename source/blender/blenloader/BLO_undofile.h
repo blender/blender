@@ -33,6 +33,8 @@
  *  \ingroup blenloader
  */
 
+struct Scene;
+
 typedef struct {
 	void *next, *prev;
 	const char *buf;
@@ -47,6 +49,12 @@ typedef struct MemFile {
 	size_t size;
 } MemFile;
 
+typedef struct MemFileUndoData {
+	char filename[1024];  /* FILE_MAX */
+	MemFile memfile;
+	size_t undo_size;
+} MemFileUndoData;
+
 /* actually only used writefile.c */
 extern void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsigned int size);
 
@@ -54,5 +62,9 @@ extern void memfile_chunk_add(MemFile *compare, MemFile *current, const char *bu
 extern void BLO_memfile_free(MemFile *memfile);
 extern void BLO_memfile_merge(MemFile *first, MemFile *second);
 
-#endif
+/* utilities */
+extern struct Main *BLO_memfile_main_get(struct MemFile *memfile, struct Main *bmain, struct Scene **r_scene);
+extern bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename);
+
+#endif  /* __BLO_UNDOFILE_H__ */
 

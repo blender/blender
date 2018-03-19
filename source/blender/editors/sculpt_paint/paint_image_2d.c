@@ -1035,6 +1035,8 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
 	ImBuf tmpbuf;
 	IMB_initImBuf(&tmpbuf, IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, 0);
 
+	ListBase *undo_tiles = ED_image_undo_get_tiles();
+
 	for (int ty = tiley; ty <= tileh; ty++) {
 		for (int tx = tilex; tx <= tilew; tx++) {
 			/* retrieve original pixels + mask from undo buffer */
@@ -1043,9 +1045,9 @@ static void paint_2d_do_making_brush(ImagePaintState *s,
 			int origy = region->desty - ty * IMAPAINT_TILE_SIZE;
 
 			if (s->canvas->rect_float)
-				tmpbuf.rect_float = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask, false);
+				tmpbuf.rect_float = image_undo_find_tile(undo_tiles, s->image, s->canvas, tx, ty, &mask, false);
 			else
-				tmpbuf.rect = image_undo_find_tile(s->image, s->canvas, tx, ty, &mask, false);
+				tmpbuf.rect = image_undo_find_tile(undo_tiles, s->image, s->canvas, tx, ty, &mask, false);
 
 			IMB_rectblend(s->canvas, &tmpbuf, frombuf, mask,
 			              curveb, texmaskb, mask_max,

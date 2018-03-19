@@ -188,6 +188,7 @@ set(SRC
 	intern/tracking_solver.c
 	intern/tracking_stabilize.c
 	intern/tracking_util.c
+	intern/undo_system.c
 	intern/unit.c
 	intern/world.c
 	intern/writeavi.c
@@ -296,6 +297,7 @@ set(SRC
 	BKE_text.h
 	BKE_texture.h
 	BKE_tracking.h
+	BKE_undo_system.h
 	BKE_unit.h
 	BKE_world.h
 	BKE_writeavi.h

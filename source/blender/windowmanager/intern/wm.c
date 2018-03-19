@@ -61,6 +61,7 @@
 #include "wm.h"
 
 #include "ED_screen.h"
+#include "BKE_undo_system.h"
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
@@ -485,7 +486,12 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	WM_drag_free_list(&wm->drags);
 	
 	wm_reports_free(wm);
-	
+
+	if (wm->undo_stack) {
+		BKE_undosys_stack_destroy(wm->undo_stack);
+		wm->undo_stack = NULL;
+	}
+
 	if (C && CTX_wm_manager(C) == wm) CTX_wm_manager_set(C, NULL);
 }
 

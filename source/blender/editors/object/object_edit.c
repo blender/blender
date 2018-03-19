@@ -85,6 +85,7 @@
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
+#include "BKE_undo_system.h"
 
 #include "ED_armature.h"
 #include "ED_curve.h"

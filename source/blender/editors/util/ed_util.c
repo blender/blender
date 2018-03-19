@@ -58,6 +58,7 @@
 #include "BKE_packedFile.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
+#include "BKE_undo_system.h"
 
 #include "ED_armature.h"
 #include "ED_buttons.h"
@@ -88,6 +89,10 @@ void ED_editors_init(bContext *C)
 	Scene *sce = CTX_data_scene(C);
 	Object *ob, *obact = (sce && sce->basact) ? sce->basact->object : NULL;
 	ID *data;
+
+	if (wm->undo_stack == NULL) {
+		wm->undo_stack = BKE_undosys_stack_create();
+	}
 
 	/* This is called during initialization, so we don't want to store any reports */
 	ReportList *reports = CTX_wm_reports(C);
@@ -128,9 +133,15 @@ void ED_editors_exit(bContext *C)
 		return;
 	
 	/* frees all editmode undos */
-	undo_editmode_clear();
-	ED_undo_paint_free();
-	
+	if (G.main->wm.first) {
+		wmWindowManager *wm = G.main->wm.first;
+		/* normally we don't check for NULL undo stack, do here since it may run in different context. */
+		if (wm->undo_stack) {
+			BKE_undosys_stack_destroy(wm->undo_stack);
+			wm->undo_stack = NULL;
+		}
+	}
+
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		if (sce->obedit) {
 			Object *ob = sce->obedit;

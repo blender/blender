@@ -34,6 +34,7 @@
 struct bContext;
 struct Object;
 struct wmKeyConfig;
+struct UndoType;
 
 void ED_operatortypes_metaball(void);
 void ED_operatormacros_metaball(void);
@@ -47,6 +48,7 @@ void ED_mball_editmball_free(struct Object *obedit);
 void ED_mball_editmball_make(struct Object *obedit);
 void ED_mball_editmball_load(struct Object *obedit);
 
-void undo_push_mball(struct bContext *C, const char *name);
+/* editmball_undo.c */
+void ED_mball_undosys_type(struct UndoType *ut);
 
 #endif  /* __ED_MBALL_H__ */

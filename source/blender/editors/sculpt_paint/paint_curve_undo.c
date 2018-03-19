@@ -30,9 +30,13 @@
 #include "DNA_space_types.h"
 
 #include "BLI_string.h"
+#include "BLI_array_utils.h"
 
 #include "BKE_context.h"
 #include "BKE_paint.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_undo_system.h"
 
 #include "ED_paint.h"
 
@@ -41,89 +45,125 @@
 
 #include "paint_intern.h"
 
-typedef struct UndoCurve {
-	struct UndoImageTile *next, *prev;
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
 
+typedef struct UndoCurve {
 	PaintCurvePoint *points; /* points of curve */
 	int tot_points;
-	int active_point;
-
-	char idname[MAX_ID_NAME];  /* name instead of pointer*/
+	int add_index;
 } UndoCurve;
 
-static void paintcurve_undo_restore(bContext *C, ListBase *lb)
+static void undocurve_from_paintcurve(UndoCurve *uc, const PaintCurve *pc)
+{
+	BLI_assert(BLI_array_is_zeroed(uc, 1));
+	uc->points = MEM_dupallocN(pc->points);
+	uc->tot_points = pc->tot_points;
+	uc->add_index = pc->add_index;
+}
+
+static void undocurve_to_paintcurve(const UndoCurve *uc, PaintCurve *pc)
+{
+	MEM_SAFE_FREE(pc->points);
+	pc->points = MEM_dupallocN(uc->points);
+	pc->tot_points = uc->tot_points;
+	pc->add_index = uc->add_index;
+}
+
+static void undocurve_free_data(UndoCurve *uc)
+{
+	MEM_SAFE_FREE(uc->points);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
+
+typedef struct PaintCurveUndoStep {
+	UndoStep step;
+	PaintCurve *pc;
+	UndoCurve data;
+} PaintCurveUndoStep;
+
+static bool paintcurve_undosys_poll(bContext *C)
 {
 	Paint *p = BKE_paint_get_active_from_context(C);
-	UndoCurve *uc;
-	PaintCurve *pc = NULL;
-
-	if (p->brush) {
-		pc = p->brush->paint_curve;
-	}
-
-	if (!pc) {
-		return;
-	}
-
-	uc = (UndoCurve *)lb->first;
-
-	if (STREQLEN(uc->idname, pc->id.name, BLI_strnlen(uc->idname, sizeof(uc->idname)))) {
-		SWAP(PaintCurvePoint *, pc->points, uc->points);
-		SWAP(int, pc->tot_points, uc->tot_points);
-		SWAP(int, pc->add_index, uc->active_point);
-	}
+	return (p->brush && p->brush->paint_curve);
 }
 
-static void paintcurve_undo_delete(ListBase *lb)
+static void paintcurve_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
 {
-	UndoCurve *uc;
-	uc = (UndoCurve *)lb->first;
-
-	if (uc->points)
-		MEM_freeN(uc->points);
-	uc->points = NULL;
+	/* XXX, use to set the undo type only. */
+	UNUSED_VARS(C, us_p);
 }
 
-/**
- * \note This is called before executing steps (not after).
- */
-void ED_paintcurve_undo_push(bContext *C, wmOperator *op, PaintCurve *pc)
+static bool paintcurve_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
-	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-	ListBase *lb = NULL;
-	int undo_stack_id;
-	UndoCurve *uc;
-
-	switch (mode) {
-		case ePaintTexture2D:
-		case ePaintTextureProjective:
-			undo_stack_id = UNDO_PAINT_IMAGE;
-			break;
-
-		case ePaintSculpt:
-			undo_stack_id = UNDO_PAINT_MESH;
-			break;
-
-		default:
-			/* do nothing, undo is handled by global */
-			return;
+	Paint *p = BKE_paint_get_active_from_context(C);
+	PaintCurve *pc = p ? (p->brush ? p->brush->paint_curve : NULL) : NULL;
+	if (pc == NULL) {
+		return false;
 	}
 
+	PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+	BLI_assert(us->step.data_size == 0);
 
-	ED_undo_paint_push_begin(undo_stack_id, op->type->name,
-	                         paintcurve_undo_restore, paintcurve_undo_delete, NULL);
-	lb = undo_paint_push_get_list(undo_stack_id);
+	us->pc = pc;
+	undocurve_from_paintcurve(&us->data, pc);
 
-	uc = MEM_callocN(sizeof(*uc), "Undo_curve");
-
-	lb->first = uc;
-
-	BLI_strncpy(uc->idname, pc->id.name, sizeof(uc->idname));
-	uc->tot_points = pc->tot_points;
-	uc->active_point = pc->add_index;
-	uc->points = MEM_dupallocN(pc->points);
-
-	undo_paint_push_count_alloc(undo_stack_id, sizeof(*uc) + sizeof(*pc->points) * pc->tot_points);
-
-	ED_undo_paint_push_end(undo_stack_id);
+	return true;
 }
+
+static void paintcurve_undosys_step_decode(struct bContext *UNUSED(C), UndoStep *us_p, int UNUSED(dir))
+{
+	PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+	undocurve_to_paintcurve(&us->data, us->pc);
+}
+
+static void paintcurve_undosys_step_free(UndoStep *us_p)
+{
+	PaintCurveUndoStep *us = (PaintCurveUndoStep *)us_p;
+	undocurve_free_data(&us->data);
+}
+
+/* Export for ED_undo_sys. */
+void ED_paintcurve_undosys_type(UndoType *ut)
+{
+	ut->name = "Paint Curve";
+	/* don't poll for now */
+	ut->poll = paintcurve_undosys_poll;
+	ut->step_encode_init = paintcurve_undosys_step_encode_init;
+	ut->step_encode = paintcurve_undosys_step_encode;
+	ut->step_decode = paintcurve_undosys_step_decode;
+	ut->step_free = paintcurve_undosys_step_free;
+
+	ut->mode = BKE_UNDOTYPE_MODE_STORE;
+	ut->use_context = false;
+
+	ut->step_size = sizeof(PaintCurveUndoStep);
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+void ED_paintcurve_undo_push_begin(const char *name)
+{
+	bContext *C = NULL; /* special case, we never read from this. */
+	wmWindowManager *wm = G.main->wm.first;
+	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, name, BKE_UNDOSYS_TYPE_PAINTCURVE);
+}
+
+void ED_paintcurve_undo_push_end(void)
+{
+	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
+	BKE_undosys_step_push(wm->undo_stack, NULL, NULL);
+}
+
+/** \} */

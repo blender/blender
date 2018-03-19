@@ -38,6 +38,7 @@ struct ParticleEditSettings;
 struct rcti;
 struct PTCacheEdit;
 struct Scene;
+struct UndoType;
 
 /* particle edit mode */
 void PE_free_ptcache_edit(struct PTCacheEdit *edit);
@@ -61,14 +62,10 @@ int PE_circle_select(struct bContext *C, int selecting, const int mval[2], float
 int PE_lasso_select(struct bContext *C, const int mcords[][2], const short moves, bool extend, bool select);
 void PE_deselect_all_visible(struct PTCacheEdit *edit);
 
-/* undo */
+/* particle_edit_undo.c */
+void ED_particle_undosys_type(struct UndoType *ut);
+
 void PE_undo_push(struct Scene *scene, const char *str);
-void PE_undo_step(struct Scene *scene, int step);
-void PE_undo(struct Scene *scene);
-void PE_redo(struct Scene *scene);
-bool PE_undo_is_valid(struct Scene *scene);
-void PE_undo_number(struct Scene *scene, int nr);
-const char *PE_undo_get_name(struct Scene *scene, int nr, bool *r_active);
 
 #endif /* __ED_PARTICLE_H__ */
 

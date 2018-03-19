@@ -34,6 +34,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_array_utils.h"
 
 #include "DNA_curve_types.h"
 #include "DNA_lattice_types.h"
@@ -41,31 +42,39 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_context.h"
+#include "BKE_depsgraph.h"
+#include "BKE_undo_system.h"
 
+#include "ED_object.h"
 #include "ED_lattice.h"
 #include "ED_util.h"
 
+#include "WM_types.h"
+#include "WM_api.h"
+
 #include "lattice_intern.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
 
 typedef struct UndoLattice {
 	BPoint *def;
 	int pntsu, pntsv, pntsw, actbp;
+	size_t undo_size;
 } UndoLattice;
 
-static void undoLatt_to_editLatt(void *data, void *edata, void *UNUSED(obdata))
+static void undolatt_to_editlatt(UndoLattice *ult, EditLatt *editlatt)
 {
-	UndoLattice *ult = (UndoLattice *)data;
-	EditLatt *editlatt = (EditLatt *)edata;
-	int a = editlatt->latt->pntsu * editlatt->latt->pntsv * editlatt->latt->pntsw;
+	int len = editlatt->latt->pntsu * editlatt->latt->pntsv * editlatt->latt->pntsw;
 
-	memcpy(editlatt->latt->def, ult->def, a * sizeof(BPoint));
+	memcpy(editlatt->latt->def, ult->def, sizeof(BPoint) * len);
 	editlatt->latt->actbp = ult->actbp;
 }
 
-static void *editLatt_to_undoLatt(void *edata, void *UNUSED(obdata))
+static void *undolatt_from_editlatt(UndoLattice *ult, EditLatt *editlatt)
 {
-	UndoLattice *ult = MEM_callocN(sizeof(UndoLattice), "UndoLattice");
-	EditLatt *editlatt = (EditLatt *)edata;
+	BLI_assert(BLI_array_is_zeroed(ult, 1));
 
 	ult->def = MEM_dupallocN(editlatt->latt->def);
 	ult->pntsu = editlatt->latt->pntsu;
@@ -73,17 +82,19 @@ static void *editLatt_to_undoLatt(void *edata, void *UNUSED(obdata))
 	ult->pntsw = editlatt->latt->pntsw;
 	ult->actbp = editlatt->latt->actbp;
 
+	ult->undo_size += sizeof(*ult->def) * ult->pntsu * ult->pntsv * ult->pntsw;
+
 	return ult;
 }
 
-static void free_undoLatt(void *data)
+static void undolatt_free_data(UndoLattice *ult)
 {
-	UndoLattice *ult = (UndoLattice *)data;
-
-	if (ult->def) MEM_freeN(ult->def);
-	MEM_freeN(ult);
+	if (ult->def) {
+		MEM_freeN(ult->def);
+	}
 }
 
+#if 0
 static int validate_undoLatt(void *data, void *edata)
 {
 	UndoLattice *ult = (UndoLattice *)data;
@@ -93,21 +104,92 @@ static int validate_undoLatt(void *data, void *edata)
 	        ult->pntsv == editlatt->latt->pntsv &&
 	        ult->pntsw == editlatt->latt->pntsw);
 }
+#endif
 
-static void *get_editlatt(bContext *C)
+static Object *editlatt_object_from_context(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
-
 	if (obedit && obedit->type == OB_LATTICE) {
 		Lattice *lt = obedit->data;
-		return lt->editlatt;
+		if (lt->editlatt != NULL) {
+			return obedit;
+		}
 	}
 
 	return NULL;
 }
 
-/* and this is all the undo system needs to know */
-void undo_push_lattice(bContext *C, const char *name)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
+
+typedef struct LatticeUndoStep {
+	UndoStep step;
+	/* note: will split out into list for multi-object-editmode. */
+	UndoRefID_Object obedit_ref;
+	UndoLattice data;
+} LatticeUndoStep;
+
+static bool lattice_undosys_poll(bContext *C)
 {
-	undo_editmode_push(C, name, get_editlatt, free_undoLatt, undoLatt_to_editLatt, editLatt_to_undoLatt, validate_undoLatt);
+	return editlatt_object_from_context(C) != NULL;
 }
+
+static bool lattice_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+{
+	LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+	us->obedit_ref.ptr = editlatt_object_from_context(C);
+	Lattice *lt = us->obedit_ref.ptr->data;
+	undolatt_from_editlatt(&us->data, lt->editlatt);
+	us->step.data_size = us->data.undo_size;
+	return true;
+}
+
+static void lattice_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+{
+	/* TODO(campbell): undo_system: use low-level API to set mode. */
+	ED_object_mode_set(C, OB_MODE_EDIT);
+	BLI_assert(lattice_undosys_poll(C));
+
+	LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+	Object *obedit = us->obedit_ref.ptr;
+	Lattice *lt = obedit->data;
+	EditLatt *editlatt = lt->editlatt;
+	undolatt_to_editlatt(&us->data, editlatt);
+	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+}
+
+static void lattice_undosys_step_free(UndoStep *us_p)
+{
+	LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+	undolatt_free_data(&us->data);
+}
+
+static void lattice_undosys_foreach_ID_ref(
+        UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
+{
+	LatticeUndoStep *us = (LatticeUndoStep *)us_p;
+	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
+}
+
+/* Export for ED_undo_sys. */
+void ED_lattice_undosys_type(UndoType *ut)
+{
+	ut->name = "Edit Lattice";
+	ut->poll = lattice_undosys_poll;
+	ut->step_encode = lattice_undosys_step_encode;
+	ut->step_decode = lattice_undosys_step_decode;
+	ut->step_free = lattice_undosys_step_free;
+
+	ut->step_foreach_ID_ref = lattice_undosys_foreach_ID_ref;
+
+	ut->mode = BKE_UNDOTYPE_MODE_STORE;
+	ut->use_context = true;
+
+	ut->step_size = sizeof(LatticeUndoStep);
+}
+
+/** \} */

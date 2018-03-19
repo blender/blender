@@ -6300,7 +6300,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->defaultconf = NULL;
 	wm->addonconf = NULL;
 	wm->userconf = NULL;
-	
+	wm->undo_stack = NULL;
+
 	BLI_listbase_clear(&wm->jobs);
 	BLI_listbase_clear(&wm->drags);
 	

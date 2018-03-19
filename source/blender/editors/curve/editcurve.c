@@ -1229,7 +1229,10 @@ void ED_curve_editnurb_make(Object *obedit)
 
 		if (actkey) {
 			// XXX strcpy(G.editModeTitleExtra, "(Key) ");
+			/* TODO(campbell): undo_system: investigate why this was needed. */
+#if 0
 			undo_editmode_clear();
+#endif
 		}
 
 		if (editnurb) {

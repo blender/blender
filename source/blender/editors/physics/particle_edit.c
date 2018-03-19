@@ -126,8 +126,6 @@ void PE_free_ptcache_edit(PTCacheEdit *edit)
 
 	if (edit==0) return;
 
-	PTCacheUndo_clear(edit);
-
 	if (edit->points) {
 		LOOP_POINTS {
 			if (point->keys)
@@ -4380,8 +4378,11 @@ void PE_create_particle_edit(Scene *scene, Object *ob, PointCache *cache, Partic
 			recalc_emitter_field(ob, psys);
 		PE_update_object(scene, ob, 1);
 
-		PTCacheUndo_clear(edit);
+		/* Causes issues, adding undo pushes while performing undo history.
+		 * Seems not to like this isn't needed anyway - Campbell. */
+#if 0
 		PE_undo_push(scene, "Original");
+#endif
 	}
 }
 

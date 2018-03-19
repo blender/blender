@@ -136,3 +136,43 @@ void ED_object_mode_toggle(bContext *C, eObjectMode mode)
 		}
 	}
 }
+
+/* Wrapper for operator  */
+void ED_object_mode_set(bContext *C, eObjectMode mode)
+{
+#if 0
+	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_mode_set", false);
+	PointerRNA ptr;
+
+	WM_operator_properties_create_ptr(&ptr, ot);
+	RNA_enum_set(&ptr, "mode", mode);
+	RNA_boolean_set(&ptr, "toggle", false);
+	WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &ptr);
+	WM_operator_properties_free(&ptr);
+#else
+	Object *ob = CTX_data_active_object(C);
+	if (ob == NULL) {
+		return;
+	}
+	if (ob->mode == mode) {
+		/* pass */
+	}
+	else if (mode != OB_MODE_OBJECT) {
+		if (ob && (ob->mode & mode) == 0) {
+			/* needed so we don't do undo pushes. */
+			wmWindowManager *wm = CTX_wm_manager(C);
+			wm->op_undo_depth++;
+			ED_object_mode_toggle(C, mode);
+			wm->op_undo_depth--;
+		}
+	}
+	else {
+		/* needed so we don't do undo pushes. */
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wm->op_undo_depth++;
+		ED_object_mode_toggle(C, ob->mode);
+		wm->op_undo_depth--;
+
+	}
+#endif
+}

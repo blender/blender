@@ -31,6 +31,8 @@
 #define __ED_LATTICE_H__
 
 struct wmKeyConfig;
+struct UndoType;
+struct Object;
 
 /* lattice_ops.c */
 void ED_operatortypes_lattice(void);
@@ -41,6 +43,6 @@ void ED_lattice_flags_set(struct Object *obedit, int flag);
 bool ED_lattice_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
 /* editlattice_undo.c */
-void undo_push_lattice(struct bContext *C, const char *name);
+void ED_lattice_undosys_type(struct UndoType *ut);
 
 #endif  /* __ED_LATTICE_H__ */

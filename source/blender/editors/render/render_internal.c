@@ -65,6 +65,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_screen.h"
 #include "BKE_scene.h"
+#include "BKE_undo_system.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -88,6 +89,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "BLO_undofile.h"
 
 #include "render_intern.h"
 
@@ -866,7 +868,8 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	/* get main */
 	if (G.debug_value == 101) {
 		/* thread-safety experiment, copy main from the undo buffer */
-		mainp = BKE_undo_get_main(&scene);
+		struct MemFile *memfile = ED_undosys_stack_memfile_get_active(CTX_wm_manager(C)->undo_stack);
+		mainp = BLO_memfile_main_get(memfile, CTX_data_main(C), &scene);
 	}
 	else
 		mainp = CTX_data_main(C);
