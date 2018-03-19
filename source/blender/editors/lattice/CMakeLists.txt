@@ -22,53 +22,25 @@ set(INC
 	../include
 	../../blenkernel
 	../../blenlib
-	../../blentranslation
 	../../depsgraph
-	../../gpu
 	../../makesdna
 	../../makesrna
+	../../render/extern/include
 	../../windowmanager
-	../../../../intern/elbeem/extern
 	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+
 )
 
 set(SRC
-	dynamicpaint_ops.c
-	particle_boids.c
-	particle_edit.c
-	particle_edit_undo.c
-	particle_object.c
-	physics_fluid.c
-	physics_ops.c
-	physics_pointcache.c
-	rigidbody_constraint.c
-	rigidbody_object.c
-	rigidbody_world.c
+	editlattice_select.c
+	editlattice_tools.c
+	editlattice_undo.c
+	lattice_ops.c
 
-	particle_edit_utildefines.h
-	physics_intern.h
+	lattice_intern.h
 )
 
-if(WITH_MOD_FLUID)
-	add_definitions(-DWITH_MOD_FLUID)
-endif()
-
-if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
-if(WITH_BULLET)
-	list(APPEND INC
-		../../../../intern/rigidbody
-	)
-	add_definitions(-DWITH_BULLET)
-endif()
-
-add_definitions(${GL_DEFINITIONS})
-
-blender_add_lib(bf_editor_physics "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_lattice "${SRC}" "${INC}" "${INC_SYS}")

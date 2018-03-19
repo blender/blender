@@ -83,6 +83,7 @@
 
 #include "ED_armature.h"
 #include "ED_curve.h"
+#include "ED_lattice.h"
 #include "ED_particle.h"
 #include "ED_mesh.h"
 #include "ED_object.h"

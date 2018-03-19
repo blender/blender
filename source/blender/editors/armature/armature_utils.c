@@ -711,11 +711,11 @@ void ED_armature_to_edit(bArmature *arm)
 }
 
 /* *************************************************************** */
-/* Undo for Armature EditMode*/
+/* Used by Undo for Armature EditMode*/
 
 /* free's bones and their properties */
 
-static void ED_armature_ebone_listbase_free(ListBase *lb)
+void ED_armature_ebone_listbase_free(ListBase *lb)
 {
 	EditBone *ebone, *ebone_next;
 
@@ -733,7 +733,7 @@ static void ED_armature_ebone_listbase_free(ListBase *lb)
 	BLI_listbase_clear(lb);
 }
 
-static void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
+void ED_armature_ebone_listbase_copy(ListBase *lb_dst, ListBase *lb_src)
 {
 	EditBone *ebone_src;
 	EditBone *ebone_dst;
@@ -764,78 +764,6 @@ void ED_armature_ebone_listbase_temp_clear(ListBase *lb)
 	for (ebone = lb->first; ebone; ebone = ebone->next) {
 		ebone->temp.p = NULL;
 	}
-}
-
-typedef struct UndoArmature {
-	EditBone *act_edbone;
-	ListBase lb;
-} UndoArmature;
-
-static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
-{
-	UndoArmature *uarm = uarmv;
-	bArmature *arm = armv;
-	EditBone *ebone;
-	
-	ED_armature_ebone_listbase_free(arm->edbo);
-	ED_armature_ebone_listbase_copy(arm->edbo, &uarm->lb);
-	
-	/* active bone */
-	if (uarm->act_edbone) {
-		ebone = uarm->act_edbone;
-		arm->act_edbone = ebone->temp.ebone;
-	}
-	else {
-		arm->act_edbone = NULL;
-	}
-
-	ED_armature_ebone_listbase_temp_clear(arm->edbo);
-}
-
-static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
-{
-	bArmature *arm = armv;
-	UndoArmature *uarm;
-	EditBone *ebone;
-	
-	uarm = MEM_callocN(sizeof(UndoArmature), "listbase undo");
-	
-	ED_armature_ebone_listbase_copy(&uarm->lb, arm->edbo);
-	
-	/* active bone */
-	if (arm->act_edbone) {
-		ebone = arm->act_edbone;
-		uarm->act_edbone = ebone->temp.ebone;
-	}
-
-	ED_armature_ebone_listbase_temp_clear(&uarm->lb);
-	
-	return uarm;
-}
-
-static void free_undoBones(void *uarmv)
-{
-	UndoArmature *uarm = uarmv;
-	
-	ED_armature_ebone_listbase_free(&uarm->lb);
-
-	MEM_freeN(uarm);
-}
-
-static void *get_armature_edit(bContext *C)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	if (obedit && obedit->type == OB_ARMATURE) {
-		return obedit->data;
-	}
-	return NULL;
-}
-
-/* and this is all the undo system needs to know */
-void undo_push_armature(bContext *C, const char *name)
-{
-	// XXX solve getdata()
-	undo_editmode_push(C, name, get_armature_edit, free_undoBones, undoBones_to_editBones, editBones_to_undoBones, NULL);
 }
 
 /* *************************************************************** */

@@ -83,6 +83,7 @@
 #include "BKE_sca.h"
 #include "BKE_softbody.h"
 #include "BKE_modifier.h"
+#include "BKE_editlattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
 #include "BKE_object.h"
@@ -236,9 +237,9 @@ static bool ED_object_editmode_load_ex(Main *bmain, Object *obedit, const bool f
 		if (lt->editlatt == NULL) {
 			return false;
 		}
-		ED_lattice_editlatt_load(obedit);
+		BKE_editlattice_load(obedit);
 		if (freedata) {
-			ED_lattice_editlatt_free(obedit);
+			BKE_editlattice_free(obedit);
 		}
 	}
 	else if (obedit->type == OB_MBALL) {
@@ -422,7 +423,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 	}
 	else if (ob->type == OB_LATTICE) {
 		ok = 1;
-		ED_lattice_editlatt_make(ob);
+		BKE_editlattice_make(ob);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_EDITMODE_LATTICE, scene);
 	}

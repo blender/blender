@@ -45,6 +45,7 @@
 
 #include "BKE_camera.h"
 #include "BKE_paint.h"
+#include "BKE_editlattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_group.h" /* needed for BKE_group_object_exists() */
 #include "BKE_object_deform.h"
@@ -325,8 +326,8 @@ static void rna_Object_active_shape_update(bContext *C, PointerRNA *ptr)
 				ED_curve_editnurb_make(ob);
 				break;
 			case OB_LATTICE:
-				ED_lattice_editlatt_load(ob);
-				ED_lattice_editlatt_make(ob);
+				BKE_editlattice_load(ob);
+				BKE_editlattice_make(ob);
 				break;
 		}
 	}

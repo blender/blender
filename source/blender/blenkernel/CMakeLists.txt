@@ -103,6 +103,7 @@ set(SRC
 	intern/displist.c
 	intern/dynamicpaint.c
 	intern/editderivedmesh.c
+	intern/editlattice.c
 	intern/editmesh.c
 	intern/editmesh_bvh.c
 	intern/editmesh_tangent.c
@@ -238,6 +239,7 @@ set(SRC
 	BKE_deform.h
 	BKE_displist.h
 	BKE_dynamicpaint.h
+	BKE_editlattice.h
 	BKE_editmesh.h
 	BKE_editmesh_bvh.h
 	BKE_editmesh_tangent.h

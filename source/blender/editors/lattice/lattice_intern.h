@@ -18,29 +18,27 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * Contributor(s): Blender Foundation
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ED_lattice.h
- *  \ingroup editors
+/** \file blender/editors/metaball/lattice_intern.h
+ *  \ingroup edlattice
  */
 
-#ifndef __ED_LATTICE_H__
-#define __ED_LATTICE_H__
 
-struct wmKeyConfig;
-
-/* lattice_ops.c */
-void ED_operatortypes_lattice(void);
-void ED_keymap_lattice(struct wmKeyConfig *keyconf);
+#ifndef __LATTICE_INTERN_H__
+#define __LATTICE_INTERN_H__
 
 /* editlattice_select.c */
-void ED_lattice_flags_set(struct Object *obedit, int flag);
-bool ED_lattice_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
+void LATTICE_OT_select_all(struct wmOperatorType *ot);
+void LATTICE_OT_select_more(struct wmOperatorType *ot);
+void LATTICE_OT_select_less(struct wmOperatorType *ot);
+void LATTICE_OT_select_ungrouped(struct wmOperatorType *ot);
+void LATTICE_OT_select_random(struct wmOperatorType *ot);
+void LATTICE_OT_select_mirror(struct wmOperatorType *ot);
 
-/* editlattice_undo.c */
-void undo_push_lattice(struct bContext *C, const char *name);
+/* editlattice_tools.c */
+void LATTICE_OT_make_regular(struct wmOperatorType *ot);
+void LATTICE_OT_flip(struct wmOperatorType *ot);
 
-#endif  /* __ED_LATTICE_H__ */
+#endif  /* __LATTICE_INTERN_H__ */

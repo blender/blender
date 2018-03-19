@@ -61,6 +61,7 @@
 #include "ED_space_api.h"
 #include "ED_sound.h"
 #include "ED_uvedit.h"
+#include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_logic.h"
 #include "ED_clip.h"
@@ -108,6 +109,7 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_animchannels();
 	ED_operatortypes_gpencil();
 	ED_operatortypes_object();
+	ED_operatortypes_lattice();
 	ED_operatortypes_mesh();
 	ED_operatortypes_sculpt();
 	ED_operatortypes_uvedit();
@@ -195,7 +197,8 @@ void ED_spacetypes_keymap(wmKeyConfig *keyconf)
 	ED_keymap_anim(keyconf);
 	ED_keymap_animchannels(keyconf);
 	ED_keymap_gpencil(keyconf);
-	ED_keymap_object(keyconf); /* defines lattice also */
+	ED_keymap_object(keyconf);
+	ED_keymap_lattice(keyconf);
 	ED_keymap_mesh(keyconf);
 	ED_keymap_uvedit(keyconf);
 	ED_keymap_curve(keyconf);

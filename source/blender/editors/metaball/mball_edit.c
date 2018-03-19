@@ -29,7 +29,6 @@
  *  \ingroup edmeta
  */
 
-
 #include <math.h>
 #include <string.h>
 
@@ -56,7 +55,6 @@
 #include "ED_mball.h"
 #include "ED_screen.h"
 #include "ED_view3d.h"
-#include "ED_util.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -668,94 +666,3 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 }
 
 
-/*  ************* undo for MetaBalls ************* */
-
-typedef struct UndoMBall {
-	ListBase editelems;
-	int lastelem_index;
-} UndoMBall;
-
-/* free all MetaElems from ListBase */
-static void freeMetaElemlist(ListBase *lb)
-{
-	MetaElem *ml;
-
-	if (lb == NULL) return;
-
-	while ((ml = BLI_pophead(lb))) {
-		MEM_freeN(ml);
-	}
-}
-
-
-static void undoMball_to_editMball(void *umb_v, void *mb_v, void *UNUSED(obdata))
-{
-	MetaBall *mb = mb_v;
-	UndoMBall *umb = umb_v;
-
-	freeMetaElemlist(mb->editelems);
-	mb->lastelem = NULL;
-
-	/* copy 'undo' MetaElems to 'edit' MetaElems */
-	int index = 0;
-	for (MetaElem *ml_undo = umb->editelems.first; ml_undo; ml_undo = ml_undo->next, index += 1) {
-		MetaElem *ml_edit = MEM_dupallocN(ml_undo);
-		BLI_addtail(mb->editelems, ml_edit);
-		if (index == umb->lastelem_index) {
-			mb->lastelem = ml_edit;
-		}
-	}
-	
-}
-
-static void *editMball_to_undoMball(void *mb_v, void *UNUSED(obdata))
-{
-	MetaBall *mb = mb_v;
-	UndoMBall *umb;
-
-	/* allocate memory for undo ListBase */
-	umb = MEM_callocN(sizeof(UndoMBall), __func__);
-	umb->lastelem_index = -1;
-	
-	/* copy contents of current ListBase to the undo ListBase */
-	int index = 0;
-	for (MetaElem *ml_edit = mb->editelems->first; ml_edit; ml_edit = ml_edit->next, index += 1) {
-		MetaElem *ml_undo = MEM_dupallocN(ml_edit);
-		BLI_addtail(&umb->editelems, ml_undo);
-		if (ml_edit == mb->lastelem) {
-			umb->lastelem_index = index;
-		}
-	}
-	
-	return umb;
-}
-
-/* free undo ListBase of MetaElems */
-static void free_undoMball(void *umb_v)
-{
-	UndoMBall *umb = umb_v;
-	
-	freeMetaElemlist(&umb->editelems);
-	MEM_freeN(umb);
-}
-
-static MetaBall *metaball_get_obdata(Object *ob)
-{
-	if (ob && ob->type == OB_MBALL) {
-		return ob->data;
-	}
-	return NULL;
-}
-
-
-static void *get_data(bContext *C)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	return metaball_get_obdata(obedit);
-}
-
-/* this is undo system for MetaBalls */
-void undo_push_mball(bContext *C, const char *name)
-{
-	undo_editmode_push(C, name, get_data, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
-}

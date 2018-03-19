@@ -49,6 +49,7 @@ set(SRC
 	editarmature_generate.c
 	editarmature_retarget.c
 	editarmature_sketch.c
+	editarmature_undo.c
 	meshlaplacian.c
 	pose_edit.c
 	pose_lib.c

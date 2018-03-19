@@ -33,6 +33,13 @@
 #ifndef __PHYSICS_INTERN_H__
 #define __PHYSICS_INTERN_H__
 
+struct EvaluationContext;
+struct Object;
+struct PTCacheEdit;
+struct ParticleSystem;
+struct PointCache;
+struct Scene;
+struct ViewLayer;
 struct wmOperatorType;
 
 /* particle_edit.c */
@@ -62,6 +69,14 @@ void PARTICLE_OT_particle_edit_toggle(struct wmOperatorType *ot);
 void PARTICLE_OT_edited_clear(struct wmOperatorType *ot);
 
 void PARTICLE_OT_unify_length(struct wmOperatorType *ot);
+
+void PTCacheUndo_clear(struct PTCacheEdit *edit);
+void PE_create_particle_edit(
+        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct ViewLayer *view_layer,
+        struct Object *ob, struct PointCache *cache, struct ParticleSystem *psys);
+void recalc_lengths(struct PTCacheEdit *edit);
+void recalc_emitter_field(struct Object *ob, struct ParticleSystem *psys);
+void update_world_cos(struct Object *ob, struct PTCacheEdit *edit);
 
 /* particle_object.c */
 void OBJECT_OT_particle_system_add(struct wmOperatorType *ot);

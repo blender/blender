@@ -196,6 +196,10 @@
  *  \ingroup editors
  */
 
+/** \defgroup edlattice lattice
+ *  \ingroup editors
+ */
+
 /** \defgroup edmesh mesh
  *  \ingroup editors
  */

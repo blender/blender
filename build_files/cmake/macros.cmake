@@ -595,6 +595,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_mesh
 		bf_editor_metaball
 		bf_editor_object
+		bf_editor_lattice
 		bf_editor_armature
 		bf_editor_physics
 		bf_editor_render
