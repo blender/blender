@@ -55,7 +55,6 @@
 
 #include "physics_intern.h"
 
-
 static void free_PTCacheUndo(PTCacheUndo *undo)
 {
 	PTCacheEditPoint *point;
