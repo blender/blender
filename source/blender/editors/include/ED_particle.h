@@ -55,7 +55,7 @@ struct ParticleEditSettings *PE_settings(struct Scene *scene);
 void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra);
 void PE_update_object(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
-        struct ViewLayer *view_layer, struct Object *ob, int useflag);
+        struct Object *ob, int useflag);
 
 /* selection tools */
 int PE_mouse_particles(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);

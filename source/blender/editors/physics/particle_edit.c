@@ -351,6 +351,7 @@ typedef struct PEData {
 	DerivedMesh *dm;
 	PTCacheEdit *edit;
 	BVHTreeFromMesh shape_bvh;
+	EvaluationContext eval_ctx;
 
 	const int *mval;
 	rcti *rect;
@@ -383,6 +384,7 @@ static void PE_set_data(bContext *C, PEData *data)
 	data->scene = CTX_data_scene(C);
 	data->view_layer = CTX_data_view_layer(C);
 	data->ob = CTX_data_active_object(C);
+	CTX_data_eval_ctx(C, &data->eval_ctx);
 	data->edit = PE_get_current(data->scene, data->view_layer, data->ob);
 }
 
@@ -394,13 +396,10 @@ static void PE_set_view3d_data(bContext *C, PEData *data)
 
 	if (V3D_IS_ZBUF(data->vc.v3d)) {
 		if (data->vc.v3d->flag & V3D_INVALID_BACKBUF) {
-			EvaluationContext eval_ctx;
-			CTX_data_eval_ctx(C, &eval_ctx);
-
 			/* needed or else the draw matrix can be incorrect */
 			view3d_operator_needs_opengl(C);
 
-			ED_view3d_backbuf_validate(&eval_ctx, &data->vc);
+			ED_view3d_backbuf_validate(&data->eval_ctx, &data->vc);
 			/* we may need to force an update here by setting the rv3d as dirty
 			 * for now it seems ok, but take care!:
 			 * rv3d->depths->dirty = 1; */
@@ -1145,14 +1144,11 @@ void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	BLI_kdtree_balance(edit->emitter_field);
 }
 
-static void PE_update_selection(const bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int useflag)
+static void PE_update_selection(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, int useflag)
 {
-	PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
+	PTCacheEdit *edit = PE_get_current(scene, eval_ctx->view_layer, ob);
 	HairKey *hkey;
-	EvaluationContext eval_ctx;
 	POINT_P; KEY_K;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* flag all particles to be updated if not using flag */
 	if (!useflag)
@@ -1169,7 +1165,7 @@ static void PE_update_selection(const bContext *C, Scene *scene, ViewLayer *view
 		}
 	}
 
-	psys_cache_edit_paths(&eval_ctx, scene, ob, edit, CFRA, G.is_rendering);
+	psys_cache_edit_paths(eval_ctx, scene, ob, edit, CFRA, G.is_rendering);
 
 
 	/* disable update flag */
@@ -1255,12 +1251,12 @@ static void update_velocities(PTCacheEdit *edit)
 	}
 }
 
-void PE_update_object(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, Object *ob, int useflag)
+void PE_update_object(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, int useflag)
 {
 	/* use this to do partial particle updates, not usable when adding or
 	 * removing, then a full redo is necessary and calling this may crash */
 	ParticleEditSettings *pset= PE_settings(scene);
-	PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
+	PTCacheEdit *edit = PE_get_current(scene, eval_ctx->view_layer, ob);
 	POINT_P;
 
 	if (!edit)
@@ -1397,9 +1393,10 @@ static void select_action_apply(PTCacheEditPoint *point, PTCacheEditKey *key, in
 static int pe_select_all_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob= CTX_data_active_object(C);
-	PTCacheEdit *edit= PE_get_current(scene, view_layer, ob);
+	PTCacheEdit *edit= PE_get_current(scene, eval_ctx.view_layer, ob);
 	POINT_P; KEY_K;
 	int action = RNA_enum_get(op->ptr, "action");
 
@@ -1422,7 +1419,7 @@ static int pe_select_all_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
@@ -1480,7 +1477,7 @@ int PE_mouse_particles(bContext *C, const int mval[2], bool extend, bool deselec
 	else
 		for_mouse_hit_keys(&data, toggle_key_select, 1);
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&data.eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1521,7 +1518,7 @@ static int select_roots_exec(bContext *C, wmOperator *op)
 	data.select_action = action;
 	foreach_point(&data, select_root);
 
-	PE_update_selection(C, data.scene, data.view_layer, data.ob, 1);
+	PE_update_selection(&data.eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1586,7 +1583,7 @@ static int select_tips_exec(bContext *C, wmOperator *op)
 	data.select_action = action;
 	foreach_point(&data, select_tip);
 
-	PE_update_selection(C, data.scene, data.view_layer, data.ob, 1);
+	PE_update_selection(&data.eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1625,7 +1622,6 @@ static int select_random_exec(bContext *C, wmOperator *op)
 	PEData data;
 	int type;
 	Scene *scene;
-	ViewLayer *view_layer;
 	Object *ob;
 
 	/* used by LOOP_VISIBLE_POINTS, LOOP_VISIBLE_KEYS and LOOP_KEYS */
@@ -1645,9 +1641,8 @@ static int select_random_exec(bContext *C, wmOperator *op)
 	PE_set_data(C, &data);
 	data.select_action = SEL_SELECT;
 	scene = CTX_data_scene(C);
-	view_layer = CTX_data_view_layer(C);
 	ob = CTX_data_active_object(C);
-	edit = PE_get_current(scene, view_layer, ob);
+	edit = PE_get_current(scene, data.eval_ctx.view_layer, ob);
 
 	rng = BLI_rng_new_srandom(seed);
 
@@ -1672,7 +1667,7 @@ static int select_random_exec(bContext *C, wmOperator *op)
 
 	BLI_rng_free(rng);
 
-	PE_update_selection(C, data.scene, data.view_layer, data.ob, 1);
+	PE_update_selection(&data.eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1716,7 +1711,7 @@ static int select_linked_exec(bContext *C, wmOperator *op)
 	data.select= !RNA_boolean_get(op->ptr, "deselect");
 
 	for_mouse_hit_keys(&data, select_keys, 1);  /* nearest only */
-	PE_update_selection(C, data.scene, data.view_layer, data.ob, 1);
+	PE_update_selection(&data.eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -1781,7 +1776,7 @@ int PE_border_select(bContext *C, rcti *rect, bool select, bool extend)
 
 	for_mouse_hit_keys(&data, select_key, 0);
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&data.eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
@@ -1807,7 +1802,7 @@ int PE_circle_select(bContext *C, int selecting, const int mval[2], float rad)
 
 	for_mouse_hit_keys(&data, select_key, 0);
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&data.eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
@@ -1896,7 +1891,7 @@ int PE_lasso_select(bContext *C, const int mcords[][2], const short moves, bool 
 		}
 	}
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&data.eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
@@ -1908,10 +1903,13 @@ static int hide_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	PTCacheEdit *edit= PE_get_current(scene, view_layer, ob);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	PTCacheEdit *edit= PE_get_current(scene, eval_ctx.view_layer, ob);
 	POINT_P; KEY_K;
-	
+
+
 	if (RNA_enum_get(op->ptr, "unselected")) {
 		LOOP_UNSELECTED_POINTS {
 			point->flag |= PEP_HIDE;
@@ -1931,7 +1929,7 @@ static int hide_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
@@ -1961,8 +1959,9 @@ static int reveal_exec(bContext *C, wmOperator *op)
 {
 	Object *ob= CTX_data_active_object(C);
 	Scene *scene= CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	PTCacheEdit *edit= PE_get_current(scene, view_layer, ob);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+	PTCacheEdit *edit= PE_get_current(scene, eval_ctx.view_layer, ob);
 	const bool select = RNA_boolean_get(op->ptr, "select");
 	POINT_P; KEY_K;
 
@@ -1977,7 +1976,7 @@ static int reveal_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	PE_update_selection(C, scene, view_layer, ob, 1);
+	PE_update_selection(&eval_ctx, scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, ob);
 
 	return OPERATOR_FINISHED;
@@ -2039,7 +2038,7 @@ static int select_less_exec(bContext *C, wmOperator *UNUSED(op))
 	PE_set_data(C, &data);
 	foreach_point(&data, select_less_keys);
 
-	PE_update_selection(C, data.scene, data.view_layer, data.ob, 1);
+	PE_update_selection(&data.eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2101,7 +2100,7 @@ static int select_more_exec(bContext *C, wmOperator *UNUSED(op))
 	PE_set_data(C, &data);
 	foreach_point(&data, select_more_keys);
 
-	PE_update_selection(C, data.scene, data.view_layer, data.ob, 1);
+	PE_update_selection(&data.eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2204,7 +2203,7 @@ static int rekey_exec(bContext *C, wmOperator *op)
 	foreach_selected_point(&data, rekey_particle);
 	
 	recalc_lengths(data.edit);
-	PE_update_object(&eval_ctx, data.scene, data.view_layer, data.ob, 1);
+	PE_update_object(&eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -2545,7 +2544,7 @@ static int subdivide_exec(bContext *C, wmOperator *UNUSED(op))
 	foreach_point(&data, subdivide_particle);
 	
 	recalc_lengths(data.edit);
-	PE_update_object(&eval_ctx, data.scene, data.view_layer, data.ob, 1);
+	PE_update_object(&eval_ctx, data.scene, data.ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, data.ob);
 
 	return OPERATOR_FINISHED;
@@ -4008,7 +4007,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
-				PE_update_object(&eval_ctx, scene, view_layer, ob, 1);
+				PE_update_object(&eval_ctx, scene, ob, 1);
 			}
 		}
 
@@ -4244,9 +4243,6 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 	
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	/* disable locking temporatily for disconnected hair */
 	if (edit->psys && edit->psys->flag & PSYS_GLOBAL_HAIR)
 		pset->flag &= ~PE_LOCK_FIRST;
@@ -4275,7 +4271,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
 		else {
-			PE_update_object(&eval_ctx, scene, view_layer, ob, 1);
+			PE_update_object(&data.eval_ctx, scene, ob, 1);
 		}
 		
 		if (edit->psys) {
@@ -4453,7 +4449,7 @@ void PE_create_particle_edit(
 		recalc_lengths(edit);
 		if (psys && !cache)
 			recalc_emitter_field(ob, psys);
-		PE_update_object(eval_ctx, scene, view_layer, ob, 1);
+		PE_update_object(eval_ctx, scene, ob, 1);
 
 		PTCacheUndo_clear(edit);
 		PE_undo_push(scene, view_layer, "Original");
@@ -4667,8 +4663,10 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = CTX_data_active_object(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
+	PTCacheEdit *edit = PE_get_current(scene, eval_ctx.view_layer, ob);
 	float average_length = calculate_average_length(edit);
 
 	if (average_length == 0.0f) {
@@ -4676,10 +4674,8 @@ static int unify_length_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	scale_points_to_length(edit, average_length);
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 
-	PE_update_object(&eval_ctx, scene, view_layer, ob, 1);
+	PE_update_object(&eval_ctx, scene, ob, 1);
 	if (edit->psys) {
 		WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
 	}

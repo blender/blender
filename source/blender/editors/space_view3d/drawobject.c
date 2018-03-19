@@ -6622,7 +6622,7 @@ static void draw_update_ptcache_edit(
         const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, Object *ob, PTCacheEdit *edit)
 {
 	if (edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED)
-		PE_update_object(eval_ctx, scene, view_layer, ob, 0);
+		PE_update_object(eval_ctx, scene, ob, 0);
 
 	/* create path and child path cache if it doesn't exist already */
 	if (edit->pathcache == NULL) {

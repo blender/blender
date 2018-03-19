@@ -595,7 +595,7 @@ static void disconnect_hair(
 	if (ELEM(pset->brushtype, PE_BRUSH_ADD, PE_BRUSH_PUFF))
 		pset->brushtype = PE_BRUSH_NONE;
 
-	PE_update_object(eval_ctx, scene, view_layer, ob, 0);
+	PE_update_object(eval_ctx, scene, ob, 0);
 }
 
 static int disconnect_hair_exec(bContext *C, wmOperator *op)
@@ -832,7 +832,7 @@ static bool remap_hair_emitter(
 
 	psys_free_path_cache(target_psys, target_edit);
 
-	PE_update_object(eval_ctx, scene, view_layer, target_ob, 0);
+	PE_update_object(eval_ctx, scene, target_ob, 0);
 
 	return true;
 }
@@ -964,7 +964,7 @@ static void copy_particle_edit(
 	
 	recalc_lengths(edit);
 	recalc_emitter_field(ob, psys);
-	PE_update_object(eval_ctx, scene, view_layer, ob, true);
+	PE_update_object(eval_ctx, scene, ob, true);
 	
 	PTCacheUndo_clear(edit);
 	PE_undo_push(scene, view_layer, "Original");

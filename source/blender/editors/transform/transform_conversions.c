@@ -2049,7 +2049,7 @@ void flushTransParticles(TransInfo *t)
 			point->flag |= PEP_EDIT_RECALC;
 	}
 
-	PE_update_object(&t->eval_ctx, scene, view_layer, OBACT(view_layer), 1);
+	PE_update_object(&t->eval_ctx, scene, OBACT(view_layer), 1);
 }
 
 /* ********************* mesh ****************** */
