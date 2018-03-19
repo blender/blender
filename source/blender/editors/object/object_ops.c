@@ -219,15 +219,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
 	WM_operatortype_append(OBJECT_OT_shape_key_move);
 
-	WM_operatortype_append(LATTICE_OT_select_all);
-	WM_operatortype_append(LATTICE_OT_select_more);
-	WM_operatortype_append(LATTICE_OT_select_less);
-	WM_operatortype_append(LATTICE_OT_select_ungrouped);
-	WM_operatortype_append(LATTICE_OT_select_random);
-	WM_operatortype_append(LATTICE_OT_select_mirror);
-	WM_operatortype_append(LATTICE_OT_make_regular);
-	WM_operatortype_append(LATTICE_OT_flip);
-
 	WM_operatortype_append(OBJECT_OT_group_add);
 	WM_operatortype_append(OBJECT_OT_group_link);
 	WM_operatortype_append(OBJECT_OT_group_remove);
@@ -443,30 +434,6 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 		kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY + i, KM_PRESS, KM_CTRL, 0);
 		RNA_int_set(kmi->ptr, "level", i);
 	}
-
-	/* ############################################################################ */
-	/* ################################ LATTICE ################################### */
-	/* ############################################################################ */
-
-	keymap = WM_keymap_find(keyconf, "Lattice", 0, 0);
-	keymap->poll = ED_operator_editlattice;
-
-	kmi = WM_keymap_add_item(keymap, "LATTICE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
-	kmi = WM_keymap_add_item(keymap, "LATTICE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
-	WM_keymap_add_item(keymap, "LATTICE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "LATTICE_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
-
-	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
-	
-	WM_keymap_add_item(keymap, "LATTICE_OT_flip", FKEY, KM_PRESS, KM_CTRL, 0);
-	
-	/* menus */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_hook", HKEY, KM_PRESS, KM_CTRL, 0);
-
-	ED_keymap_proportional_cycle(keyconf, keymap);
-	ED_keymap_proportional_editmode(keyconf, keymap, false);
 }
 
 void ED_keymap_proportional_cycle(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)

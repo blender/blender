@@ -22,60 +22,24 @@ set(INC
 	../include
 	../../blenkernel
 	../../blenlib
-	../../blentranslation
-	../../bmesh
-	../../gpu
-	../../ikplugin
-	../../imbuf
 	../../makesdna
 	../../makesrna
-	../../python
 	../../render/extern/include
 	../../windowmanager
 	../../../../intern/guardedalloc
-	../../../../intern/glew-mx
 )
 
 set(INC_SYS
-	${GLEW_INCLUDE_PATH}
+
 )
 
 set(SRC
-	object_add.c
-	object_bake.c
-	object_bake_api.c
-	object_constraint.c
-	object_edit.c
-	object_group.c
-	object_hook.c
-	object_lod.c
-	object_modes.c
-	object_modifier.c
-	object_ops.c
-	object_random.c
-	object_relations.c
-	object_select.c
-	object_shapekey.c
-	object_data_transfer.c
-	object_transform.c
-	object_warp.c
-	object_vgroup.c
+	editlattice_select.c
+	editlattice_tools.c
+	editlattice_undo.c
+	lattice_ops.c
 
-	object_intern.h
+	lattice_intern.h
 )
 
-add_definitions(${GL_DEFINITIONS})
-
-if(WITH_PYTHON)
-	add_definitions(-DWITH_PYTHON)
-endif()
-
-if(WITH_GAMEENGINE)
-	add_definitions(-DWITH_GAMEENGINE)
-endif()
-
-if(WITH_INTERNATIONAL)
-	add_definitions(-DWITH_INTERNATIONAL)
-endif()
-
-blender_add_lib(bf_editor_object "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_lattice "${SRC}" "${INC}" "${INC_SYS}")

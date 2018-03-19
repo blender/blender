@@ -15,32 +15,20 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- *
- * Contributor(s): Blender Foundation
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file ED_lattice.h
- *  \ingroup editors
+/** \file BKE_editlattice.h
+ *  \ingroup bke
  */
 
-#ifndef __ED_LATTICE_H__
-#define __ED_LATTICE_H__
+#ifndef __BKE_EDITLATTICE_H__
+#define __BKE_EDITLATTICE_H__
 
-struct wmKeyConfig;
+struct Object;
 
-/* lattice_ops.c */
-void ED_operatortypes_lattice(void);
-void ED_keymap_lattice(struct wmKeyConfig *keyconf);
+void BKE_editlattice_free(struct Object *ob);
+void BKE_editlattice_make(struct Object *obedit);
+void BKE_editlattice_load(struct Object *obedit);
 
-/* editlattice_select.c */
-void ED_lattice_flags_set(struct Object *obedit, int flag);
-bool ED_lattice_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
-
-/* editlattice_undo.c */
-void undo_push_lattice(struct bContext *C, const char *name);
-
-#endif  /* __ED_LATTICE_H__ */
+#endif  /* __BKE_EDITLATTICE_H__ */

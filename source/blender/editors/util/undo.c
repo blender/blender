@@ -52,6 +52,7 @@
 #include "ED_particle.h"
 #include "ED_curve.h"
 #include "ED_gpencil.h"
+#include "ED_lattice.h"
 #include "ED_mball.h"
 #include "ED_mesh.h"
 #include "ED_object.h"

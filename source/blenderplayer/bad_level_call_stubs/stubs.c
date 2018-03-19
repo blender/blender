@@ -560,12 +560,8 @@ bool ED_transform_snap_object_project_ray_ex(
         float r_loc[3], float r_no[3], int *r_index,
         struct Object **r_ob, float r_obmat[4][4]) RET_ZERO
 
-void ED_lattice_editlatt_make(struct Object *obedit) RET_NONE
-void ED_lattice_editlatt_load(struct Object *obedit) RET_NONE
-
 void ED_curve_editnurb_load(struct Object *obedit) RET_NONE
 void ED_curve_editnurb_make(struct Object *obedit) RET_NONE
-
 
 void uiItemR(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int flag, const char *name, int icon) RET_NONE
 

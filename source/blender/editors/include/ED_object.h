@@ -192,14 +192,6 @@ void ED_object_constraint_dependency_update(struct Main *bmain, struct Object *o
 void ED_object_constraint_tag_update(struct Object *ob, struct bConstraint *con);
 void ED_object_constraint_dependency_tag_update(struct Main *bmain, struct Object *ob, struct bConstraint *con);
 
-/* object_lattice.c */
-bool ED_lattice_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
-void undo_push_lattice(struct bContext *C, const char *name);
-
-/* object_lattice.c */
-
-void ED_lattice_flags_set(struct Object *obedit, int flag);
-
 /* object_modes.c */
 bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
 bool ED_object_mode_compat_set(struct bContext *C, struct Object *ob, eObjectMode mode, struct ReportList *reports);
