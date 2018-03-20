@@ -452,7 +452,7 @@ static void drw_viewport_var_init(void)
 		DST.RST.bound_ubos = MEM_callocN(sizeof(GPUUniformBuffer *) * GPU_max_ubo_binds(), "Bound GPUUniformBuffer refs");
 	}
 	if (DST.RST.bound_ubo_slots == NULL) {
-		DST.RST.bound_ubo_slots = MEM_callocN(sizeof(char) * GPU_max_textures(), "Bound Ubo Slots");
+		DST.RST.bound_ubo_slots = MEM_callocN(sizeof(char) * GPU_max_ubo_binds(), "Bound Ubo Slots");
 	}
 
 	if (view_ubo == NULL) {
