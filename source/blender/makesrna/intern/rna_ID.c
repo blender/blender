@@ -793,14 +793,6 @@ static int rna_ID_is_updated_data_get(PointerRNA *ptr)
 	return ((data->recalc & ID_RECALC_ALL) != 0);
 }
 
-static PointerRNA rna_ID_override_reference_get(PointerRNA *ptr)
-{
-	ID *id = (ID *)ptr->data;
-	ID *reference = (id && id->override_static) ? id->override_static->reference : NULL;
-
-	return reference ? rna_pointer_inherit_refine(ptr, ID_code_to_RNA_type(GS(reference->name)), reference) : PointerRNA_NULL;
-}
-
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -1012,15 +1004,14 @@ static void rna_def_ID_override_static_property(BlenderRNA *brna)
 	static void rna_def_ID_override_static(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "IDOverrideStatic", NULL);
 	RNA_def_struct_ui_text(srna, "ID Static Override", "Struct gathering all data needed by statically overridden IDs");
 
-	prop = RNA_def_pointer(srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
+	RNA_def_pointer(srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
 
-	prop = RNA_def_collection(srna, "properties", "IDOverrideStaticProperty", "Properties",
-	                          "List of overridden properties");
+	RNA_def_collection(srna, "properties", "IDOverrideStaticProperty", "Properties",
+	                   "List of overridden properties");
 
 	rna_def_ID_override_static_property(brna);
 }
@@ -1090,12 +1081,6 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "lib");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Library", "Library file the data-block is linked from");
-
-	prop = RNA_def_pointer(srna, "override_static_reference", "ID",
-	                       "Override Reference", "Reference linked data-block overridden by this one");
-	RNA_def_property_pointer_sdna(prop, NULL, "override_static->reference");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_pointer_funcs(prop, "rna_ID_override_reference_get", NULL, NULL, NULL);
 
 	prop = RNA_def_pointer(srna, "override_static", "IDOverrideStatic", "Static Override", "Static override data");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
