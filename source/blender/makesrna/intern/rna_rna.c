@@ -1476,7 +1476,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 					}
 				}
 
-				if (equals) {
+				if (equals || do_create) {
 					const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
 					const int eq = rna_property_override_diff_propptr(
 					              &iter_a.ptr, &iter_b.ptr, mode, no_ownership,
