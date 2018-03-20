@@ -691,6 +691,9 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					library_foreach_ID_as_subdata_link((ID **)&material->nodetree, callback, user_data, flag, &data);
 				}
 				CALLBACK_INVOKE(material->group, IDWALK_CB_USER);
+				if (material->texpaintslot != NULL) {
+					CALLBACK_INVOKE(material->texpaintslot->ima, IDWALK_CB_NOP);
+				}
 				break;
 			}
 
