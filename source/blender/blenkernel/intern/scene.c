@@ -1966,10 +1966,6 @@ void BKE_scene_update_for_newframe_ex(EvaluationContext *eval_ctx, Main *bmain, 
 	(void) do_invisible_flush;
 #endif
 
-	if (!MEM_consistency_check()) {
-		abort();
-	}
-
 	DAG_editors_update_pre(bmain, sce, true);
 
 	/* keep this first */
