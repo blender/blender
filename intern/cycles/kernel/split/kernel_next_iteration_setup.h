@@ -76,10 +76,7 @@ ccl_device void kernel_split_branched_transparent_bounce(KernelGlobals *kg, int 
 #  ifdef __VOLUME__
 	}
 	else {
-		/* For volume bounding meshes we pass through without counting transparent
-		 * bounces, only sanity check in case self intersection gets us stuck. */
-		state->volume_bounds_bounce++;
-		if (state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
+		if(!path_state_volume_next(kg, state)) {
 			kernel_split_path_end(kg, ray_index);
 			return;
 		}

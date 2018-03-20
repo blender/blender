@@ -329,10 +329,7 @@ ccl_device bool kernel_path_surface_bounce(KernelGlobals *kg,
 	}
 #ifdef __VOLUME__
 	else if(sd->flag & SD_HAS_ONLY_VOLUME) {
-		/* For volume bounding meshes we pass through without counting transparent
-		 * bounces, only sanity check in case self intersection gets us stuck. */
-		state->volume_bounds_bounce++;
-		if (state->volume_bounds_bounce > VOLUME_BOUNDS_MAX) {
+		if(!path_state_volume_next(kg, state)) {
 			return false;
 		}
 

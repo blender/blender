@@ -187,7 +187,9 @@ void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene
 		max_samples = max(max_samples, volume_samples);
 	}
 
-	uint total_bounces = max_bounce + transparent_max_bounce + 3 +
+	uint total_bounces = max_bounce +
+	                     transparent_max_bounce + 3 +
+	                     VOLUME_BOUNDS_MAX +
 	                     max(BSSRDF_MAX_HITS, BSSRDF_MAX_BOUNCES);
 
 	max_samples *= total_bounces;

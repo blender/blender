@@ -68,7 +68,7 @@ ccl_device float3 volume_attribute_float3(KernelGlobals *kg, const ShaderData *s
 	if(dx) *dx = make_float3(0.0f, 0.0f, 0.0f);
 	if(dy) *dy = make_float3(0.0f, 0.0f, 0.0f);
 
-	if(r.w > 1e-8f && r.w != 1.0f) {
+	if(r.w > 1e-6f && r.w != 1.0f) {
 		/* For RGBA colors, unpremultiply after interpolation. */
 		return float4_to_float3(r) / r.w;
 	}

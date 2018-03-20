@@ -495,52 +495,12 @@ void MeshManager::create_volume_mesh(Scene *scene,
 
 				for(size_t i = 0; i < voxel_grids.size(); ++i) {
 					const VoxelAttributeGrid &voxel_grid = voxel_grids[i];
+					const int channels = voxel_grid.channels;
 
-					if(voxel_grid.channels == 1) {
-						if(voxel_grid.data[voxel_index] >= isovalue) {
+					for(int c = 0; c < channels; c++) {
+						if(voxel_grid.data[voxel_index * channels + c] >= isovalue) {
 							builder.add_node_with_padding(x, y, z);
 							break;
-						}
-					}
-					else if(voxel_grid.channels == 3) {
-						voxel_index = compute_voxel_index(resolution, x*3, y, z);
-
-						if(voxel_grid.data[voxel_index] >= isovalue) {
-							builder.add_node_with_padding(x, y, z);
-							break;
-						}
-
-						if(voxel_grid.data[voxel_index + 1] >= isovalue) {
-							builder.add_node_with_padding(x, y, z);
-							break;
-						}
-
-						if(voxel_grid.data[voxel_index + 2] >= isovalue) {
-							builder.add_node_with_padding(x, y, z);
-							break;
-						}
-					}
-					else if(voxel_grid.channels == 4) {
-						voxel_index = compute_voxel_index(resolution, x*4, y, z);
-
-						/* check alpha first */
-						if(voxel_grid.data[voxel_index + 3] < isovalue) {
-							continue;
-						}
-
-						if(voxel_grid.data[voxel_index] >= isovalue) {
-							builder.add_node_with_padding(x, y, z);
-							continue;
-						}
-
-						if(voxel_grid.data[voxel_index + 1] >= isovalue) {
-							builder.add_node_with_padding(x, y, z);
-							continue;
-						}
-
-						if(voxel_grid.data[voxel_index + 2] >= isovalue) {
-							builder.add_node_with_padding(x, y, z);
-							continue;
 						}
 					}
 				}

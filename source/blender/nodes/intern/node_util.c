@@ -124,6 +124,11 @@ void node_filter_label(bNodeTree *UNUSED(ntree), bNode *node, char *label, int m
 /* test if two sockets are interchangeable */
 static bool node_link_socket_match(bNodeSocket *a, bNodeSocket *b)
 {
+	/* check if sockets are of the same type */
+	if (a->typeinfo != b->typeinfo) {
+		return false;
+	}
+
 	/* tests if alphabetic prefix matches
 	 * this allows for imperfect matches, such as numeric suffixes,
 	 * like Color1/Color2
