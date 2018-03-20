@@ -748,7 +748,7 @@ static void bind_ubo(GPUUniformBuffer *ubo, char bind_type)
 				}
 				GPU_uniformbuffer_bind(ubo, index);
 				DST.RST.bound_ubos[index] = ubo;
-				slot_flags[bind_num] = bind_type;
+				slot_flags[index] = bind_type;
 				return;
 			}
 		}
