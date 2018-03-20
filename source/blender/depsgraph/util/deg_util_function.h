@@ -30,7 +30,7 @@
 
 #pragma once
 
-#if (__cplusplus > 199711L)
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
 
 #include <functional>
 

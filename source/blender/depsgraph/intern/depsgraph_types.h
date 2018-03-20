@@ -43,6 +43,7 @@
  */
 #include <string>
 #include <vector>
+#include <algorithm>
 
 struct bAction;
 struct ChannelDriver;
