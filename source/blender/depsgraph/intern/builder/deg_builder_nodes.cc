@@ -374,6 +374,9 @@ void DepsgraphNodeBuilder::begin_build() {
 		cow_id_hash_ = BLI_ghash_ptr_new("Depsgraph id hash");
 		foreach (IDDepsNode *id_node, graph_->id_nodes) {
 			if (deg_copy_on_write_is_expanded(id_node->id_cow)) {
+				if (id_node->id_orig == id_node->id_cow) {
+					continue;
+				}
 				BLI_ghash_insert(cow_id_hash_,
 				                 id_node->id_orig,
 				                 id_node->id_cow);
