@@ -169,12 +169,27 @@ bool ED_workspace_change(
 	BLI_assert(BKE_workspace_layout_screen_get(layout_new) == screen_new);
 
 	if (screen_new) {
+		Scene *scene = WM_window_get_active_scene(win);
 		bool use_object_mode = false;
 
 		/* Store old context for exiting edit-mode. */
 		EvaluationContext eval_ctx_old;
 		CTX_data_eval_ctx(C, &eval_ctx_old);
-		Scene *scene = WM_window_get_active_scene(win);
+
+
+		WM_window_set_active_layout(win, workspace_new, layout_new);
+		WM_window_set_active_workspace(win, workspace_new);
+
+		/* update screen *after* changing workspace - which also causes the actual screen change */
+		screen_change_update(C, win, screen_new);
+		workspace_change_update(workspace_new, workspace_old, C);
+
+		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);
+		BLI_assert(CTX_wm_workspace(C) == workspace_new);
+
+		WM_toolsystem_unlink(C, workspace_old);
+		WM_toolsystem_link(C, workspace_new);
+
 		ViewLayer *view_layer_old = BKE_workspace_view_layer_get(workspace_old, scene);
 		Object *obact_old = OBACT(view_layer_old);
 
@@ -194,20 +209,6 @@ bool ED_workspace_change(
 				use_object_mode = true;
 			}
 		}
-
-
-		WM_window_set_active_layout(win, workspace_new, layout_new);
-		WM_window_set_active_workspace(win, workspace_new);
-
-		/* update screen *after* changing workspace - which also causes the actual screen change */
-		screen_change_update(C, win, screen_new);
-		workspace_change_update(workspace_new, workspace_old, C);
-
-		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);
-		BLI_assert(CTX_wm_workspace(C) == workspace_new);
-
-		WM_toolsystem_unlink(C, workspace_old);
-		WM_toolsystem_link(C, workspace_new);
 
 		if (use_object_mode) {
 			/* weak, set it back so it's used when activating again. */
