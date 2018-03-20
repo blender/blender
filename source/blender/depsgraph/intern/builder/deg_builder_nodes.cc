@@ -155,6 +155,7 @@ void free_copy_on_write_datablock(void *id_v)
 {
 	ID *id = (ID *)id_v;
 	deg_free_copy_on_write_datablock(id);
+	MEM_freeN(id);
 }
 
 }  /* namespace */
