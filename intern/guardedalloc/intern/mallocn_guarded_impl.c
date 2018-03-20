@@ -282,7 +282,7 @@ static void mem_unlock_thread(void)
 		thread_unlock_callback();
 }
 
-bool MEM_guarded_check_memory_integrity(void)
+bool MEM_guarded_consistency_check(void)
 {
 	const char *err_val = NULL;
 	MemHead *listend;
@@ -292,7 +292,7 @@ bool MEM_guarded_check_memory_integrity(void)
 	
 	err_val = check_memlist(listend);
 
-	return (err_val != NULL);
+	return (err_val == NULL);
 }
 
 

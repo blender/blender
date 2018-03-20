@@ -165,8 +165,8 @@ extern "C" {
 	/**
 	 * Are the start/end block markers still correct ?
 	 *
-	 * @retval 0 for correct memory, 1 for corrupted memory. */
-	extern bool (*MEM_check_memory_integrity)(void);
+	 * @retval true for correct memory, false for corrupted memory. */
+	extern bool (*MEM_consistency_check)(void);
 
 	/** Set thread locking functions for safe memory allocation from multiple
 	 * threads, pass NULL pointers to disable thread locking again. */

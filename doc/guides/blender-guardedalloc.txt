@@ -51,7 +51,7 @@ void MEM_printmemlist(void);
 - if err_stream is set by MEM_set_error_stream() this function dumps a list of all
 currently allocated memory blocks with length and name to the stream
 
-int MEM_check_memory_integrity(void);
+bool MEM_consistency_check(void);
 
 - this function tests if the internal structures of the memory manager are intact
 - returns 0 on success and !=0 on error

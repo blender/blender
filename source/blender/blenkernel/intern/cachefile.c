@@ -181,7 +181,6 @@ void BKE_cachefile_update_frame(Main *bmain, Scene *scene, const float ctime, co
 			ABC_free_handle(cache_file->handle);
 			cache_file->handle = ABC_create_handle(filename, NULL);
 #endif
-			break;
 		}
 	}
 }
