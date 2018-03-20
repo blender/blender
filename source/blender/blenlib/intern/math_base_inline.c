@@ -368,8 +368,10 @@ MINLINE int compare_ff_relative(float a, float b, const float max_diff, const in
 {
 	union {float f; int i;} ua, ub;
 
+#if 0  /* No BLI_assert in INLINE :/ */
 	BLI_assert(sizeof(float) == sizeof(int));
 	BLI_assert(max_ulps < (1 << 22));
+#endif
 
 	if (fabsf(a - b) <= max_diff) {
 		return 1;
