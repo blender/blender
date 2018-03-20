@@ -469,7 +469,7 @@ void MEM_lockfree_set_error_callback(void (*func)(const char *))
 	error_callback = func;
 }
 
-bool MEM_lockfree_check_memory_integrity(void)
+bool MEM_lockfree_consistency_check(void)
 {
 	return true;
 }

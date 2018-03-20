@@ -90,7 +90,7 @@ int main(int argc, char *argv[])
 	if (verbose > 1) MEM_printmemlist();
 
 	/* memory is there: test it */
-	error_status = MEM_check_memory_integrity();
+	error_status = MEM_consistency_check();
 
 	if (verbose) {
 		if (error_status) {
@@ -125,7 +125,7 @@ int main(int argc, char *argv[])
 	ip = (int*) p[6];
 	*(ip+10005) = 0;
 	
-	retval = MEM_check_memory_integrity();
+	retval = MEM_consistency_check();
 
 	/* the test should have failed */
 	error_status |= !retval;		
