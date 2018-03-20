@@ -294,6 +294,8 @@ extern StructRNA RNA_HemiLamp;
 extern StructRNA RNA_Histogram;
 extern StructRNA RNA_HookModifier;
 extern StructRNA RNA_ID;
+extern StructRNA RNA_IDOverrideStatic;
+extern StructRNA RNA_IDOverrideStaticProperty;
 extern StructRNA RNA_IKParam;
 extern StructRNA RNA_Image;
 extern StructRNA RNA_ImageFormatSettings;

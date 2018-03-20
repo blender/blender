@@ -997,6 +997,34 @@ static void rna_def_image_preview(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Reload the preview from its source path");
 }
 
+static void rna_def_ID_override_static_property(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "IDOverrideStaticProperty", NULL);
+	RNA_def_struct_ui_text(srna, "ID Static Override Property", "Description of an overridden property");
+
+	prop = RNA_def_string(srna, "rna_path", NULL, INT_MAX, "RNA Path", "RNA path leading to that property, from owning ID");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+}
+
+	static void rna_def_ID_override_static(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "IDOverrideStatic", NULL);
+	RNA_def_struct_ui_text(srna, "ID Static Override", "Struct gathering all data needed by statically overridden IDs");
+
+	prop = RNA_def_pointer(srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
+
+	prop = RNA_def_collection(srna, "properties", "IDOverrideStaticProperty", "Properties",
+	                          "List of overridden properties");
+
+	rna_def_ID_override_static_property(brna);
+}
+
 static void rna_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1068,6 +1096,9 @@ static void rna_def_ID(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "override_static->reference");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_ID_override_reference_get", NULL, NULL, NULL);
+
+	prop = RNA_def_pointer(srna, "override_static", "IDOverrideStatic", "Static Override", "Static override data");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_pointer(srna, "preview", "ImagePreview", "Preview",
 	                       "Preview image and icon of this data-block (None if not supported for this type of data)");
@@ -1177,6 +1208,7 @@ void RNA_def_ID(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Any Type", "RNA type used for pointers to any possible data");
 
 	rna_def_ID(brna);
+	rna_def_ID_override_static(brna);
 	rna_def_image_preview(brna);
 	rna_def_ID_properties(brna);
 	rna_def_ID_materials(brna);
