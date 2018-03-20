@@ -673,6 +673,9 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 				CALLBACK_INVOKE(material->group, IDWALK_CB_USER);
 				CALLBACK_INVOKE(material->edit_image, IDWALK_CB_USER);
+				if (material->texpaintslot != NULL) {
+					CALLBACK_INVOKE(material->texpaintslot->ima, IDWALK_CB_NOP);
+				}
 				break;
 			}
 

@@ -261,6 +261,10 @@ void BKE_material_copy_data(Main *bmain, Material *ma_dst, const Material *ma_sr
 		ma_dst->preview = NULL;
 	}
 
+	if (ma_src->texpaintslot != NULL) {
+		ma_dst->texpaintslot = MEM_dupallocN(ma_src->texpaintslot);
+	}
+
 	BLI_listbase_clear(&ma_dst->gpumaterial);
 
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
