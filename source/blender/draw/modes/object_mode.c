@@ -1304,7 +1304,8 @@ static void DRW_shgroup_camera(OBJECT_StorageList *stl, Object *ob, ViewLayer *v
 	RegionView3D *rv3d = draw_ctx->rv3d;
 
 	Camera *cam = ob->data;
-	const bool is_active = (ob == v3d->camera);
+	const  Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, v3d->camera);
+	const bool is_active = (ob == camera_object);
 	const bool look_through = (is_active && (rv3d->persp == RV3D_CAMOB));
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
