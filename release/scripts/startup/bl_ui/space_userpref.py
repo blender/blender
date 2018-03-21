@@ -211,7 +211,6 @@ class USERPREF_PT_interface(Panel):
         return (userpref.active_section == 'INTERFACE')
 
     def draw(self, context):
-        import sys
         layout = self.layout
 
         userpref = context.user_preferences
@@ -244,9 +243,8 @@ class USERPREF_PT_interface(Panel):
 
         col.separator()
 
-        if sys.platform[:3] == "win":
-            col.label("Warnings")
-            col.prop(view, "use_quit_dialog")
+        col.label("Warnings")
+        col.prop(view, "use_quit_dialog")
 
         row.separator()
         row.separator()

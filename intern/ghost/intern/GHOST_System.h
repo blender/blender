@@ -319,6 +319,10 @@ public:
 	 */
 	virtual int confirmQuit(GHOST_IWindow *window) const;
 
+	/**
+	 * Informs if the system provides native dialogs (eg. confirm quit)
+	 */
+	virtual bool supportsNativeDialogs(void);
 
 	
 protected:

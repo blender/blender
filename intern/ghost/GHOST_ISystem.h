@@ -418,6 +418,12 @@ public:
 	 * in the application
 	 */
 	virtual int confirmQuit(GHOST_IWindow *window) const = 0;
+
+	/**
+	 * Informs if the system provides native dialogs (eg. confirm quit)
+	 */
+	virtual bool supportsNativeDialogs(void) = 0;
+
 protected:
 	/**
 	 * Initialize the system.

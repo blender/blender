@@ -379,6 +379,11 @@ createWindow(const STR_String& title,
 	return window;
 }
 
+bool GHOST_SystemX11::supportsNativeDialogs(void) 
+{
+	return false;
+}
+
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 static void destroyIMCallback(XIM /*xim*/, XPointer ptr, XPointer /*data*/)
 {

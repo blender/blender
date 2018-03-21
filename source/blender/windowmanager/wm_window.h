@@ -78,6 +78,7 @@ void		wm_window_IME_end	(wmWindow *win);
 int			wm_window_close_exec(bContext *C, struct wmOperator *op);
 int			wm_window_duplicate_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
+void		wm_confirm_quit(bContext *C);
 
 /* Initial (unmaximized) size to start with for
  * systems that can't find it for themselves (X11).
