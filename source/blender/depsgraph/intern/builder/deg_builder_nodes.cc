@@ -1177,12 +1177,6 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 /* Cameras */
 void DepsgraphNodeBuilder::build_camera(Object *object)
 {
-	/* Object itself. */
-	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PARAMETERS_EVAL,
-	                   "Camera Parameters");
 	/* Object data. */
 	/* TODO: Link scene-camera links in somehow... */
 	Camera *camera = (Camera *)object->data;
@@ -1199,12 +1193,6 @@ void DepsgraphNodeBuilder::build_camera(Object *object)
 /* Lamps */
 void DepsgraphNodeBuilder::build_lamp(Object *object)
 {
-	/* Object itself. */
-	add_operation_node(&object->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   NULL,
-	                   DEG_OPCODE_PARAMETERS_EVAL,
-	                   "Lamp Parameters");
 	/* Object data. */
 	Lamp *lamp = (Lamp *)object->data;
 	if (built_map_.checkIsBuiltAndTag(lamp)) {
