@@ -538,9 +538,11 @@ static void scene_changed(Main *bmain, Scene *scene)
 
 	if (has_texture_mode) {
 		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			BKE_texpaint_slots_refresh_object(scene, ob);
-			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-			GPU_drawobject_free(ob->derivedFinal);
+			if (ob->type == OB_MESH) {
+				BKE_texpaint_slots_refresh_object(scene, ob);
+				BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
+				GPU_drawobject_free(ob->derivedFinal);
+			}
 		}
 	}
 }
