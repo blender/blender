@@ -312,6 +312,8 @@ class CLIP_OT_bundles_to_mesh(Operator):
             ob = bpy.data.objects.new(name="Tracks", object_data=mesh)
             ob.matrix_world = matrix
             context.scene.objects.link(ob)
+            ob.select = True
+            context.scene.objects.active = ob
         else:
             self.report({'WARNING'}, "No usable tracks selected")
 
