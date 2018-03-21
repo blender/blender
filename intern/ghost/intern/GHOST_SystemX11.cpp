@@ -386,6 +386,10 @@ createWindow(const STR_String& title,
 	return window;
 }
 
+bool GHOST_SystemX11::supportsNativeDialogs(void) 
+{
+	return false;
+}
 
 /**
  * Create a new offscreen context.

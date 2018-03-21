@@ -97,6 +97,10 @@ public:
 	init(
 	    );
 
+	/**
+	 * Informs if the system provides native dialogs (eg. confirm quit)
+	 */
+	virtual bool supportsNativeDialogs(void);
 
 	/**
 	 * \section Interface Inherited from GHOST_ISystem

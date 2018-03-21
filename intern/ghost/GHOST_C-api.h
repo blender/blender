@@ -930,6 +930,11 @@ extern int GHOST_toggleConsole(int action);
 extern int GHOST_confirmQuit(GHOST_WindowHandle windowhandle);
 
 /**
+ * Informs if the system provides native dialogs (eg. confirm quit)
+ */
+extern int GHOST_SupportsNativeDialogs(void);
+
+/**
  * Use native pixel size (MacBook pro 'retina'), if supported.
  */
 extern int GHOST_UseNativePixels(void);

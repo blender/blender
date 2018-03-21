@@ -52,6 +52,7 @@ public:
 	GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) { return GHOST_kFailure; }
 	void getMainDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const { /* nop */ }
 	void getAllDisplayDimensions(GHOST_TUns32& width, GHOST_TUns32& height) const { /* nop */ }
+	bool supportsNativeDialogs(void) { return false;}
 
 	GHOST_TSuccess init() {
 		GHOST_TSuccess success = GHOST_System::init();

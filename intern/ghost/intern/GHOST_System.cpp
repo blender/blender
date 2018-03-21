@@ -380,6 +380,11 @@ int GHOST_System::confirmQuit(GHOST_IWindow * /*window*/) const
 	return 1;
 }
 
+bool GHOST_System::supportsNativeDialogs(void)
+{
+	return 1;
+}
+
 bool GHOST_System::useNativePixel(void)
 {
 	m_nativePixel = true;

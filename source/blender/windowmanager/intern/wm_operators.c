@@ -2317,10 +2317,16 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 
 static int wm_exit_blender_exec(bContext *C, wmOperator *op)
 {
-	WM_operator_free(op);
-	
-	WM_exit(C);
-	
+	wmWindowManager *wm = CTX_wm_manager(C);
+
+	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved) {
+		wm_confirm_quit(C);
+	}
+	else {
+		WM_operator_free(op);
+		WM_exit(C);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2330,7 +2336,6 @@ static void WM_OT_quit_blender(wmOperatorType *ot)
 	ot->idname = "WM_OT_quit_blender";
 	ot->description = "Quit Blender";
 
-	ot->invoke = WM_operator_confirm;
 	ot->exec = wm_exit_blender_exec;
 }
 

@@ -921,6 +921,11 @@ int GHOST_toggleConsole(int action)
 	return system->toggleConsole(action);
 }
 
+int GHOST_SupportsNativeDialogs(void)
+{
+	GHOST_ISystem *system = GHOST_ISystem::getSystem();
+	return system->supportsNativeDialogs();
+}
 
 int GHOST_confirmQuit(GHOST_WindowHandle windowhandle)
 {
