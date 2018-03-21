@@ -90,7 +90,8 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	}
 
 	/* Set the pers & view matrix. */
-	struct Object *camera = RE_GetCamera(engine->re);
+	/* TODO(sergey): Shall render hold pointer to an evaluated camera instead? */
+	struct Object *camera = DEG_get_evaluated_object(depsgraph, RE_GetCamera(engine->re));
 	float frame = BKE_scene_frame_get(scene);
 	RE_GetCameraWindow(engine->re, camera, frame, g_data->winmat);
 	RE_GetCameraModelMatrix(engine->re, camera, g_data->viewinv);
