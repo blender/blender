@@ -64,8 +64,14 @@ struct CameraWidgetGroup {
 static bool WIDGETGROUP_camera_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
 	Object *ob = CTX_data_active_object(C);
-
-	return (ob && ob->type == OB_CAMERA);
+	if (ob && ob->type == OB_CAMERA) {
+		Camera *camera = ob->data;
+		/* TODO: support overrides. */
+		if (camera->id.lib == NULL) {
+			return true;
+		}
+	}
+	return false;
 }
 
 static void WIDGETGROUP_camera_setup(const bContext *C, wmManipulatorGroup *mgroup)
@@ -332,10 +338,7 @@ static void manipulator_render_border_prop_matrix_set(
 
 static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupType *UNUSED(wgt))
 {
-	ARegion *ar = CTX_wm_region(C);
-	RegionView3D *rv3d = ar->regiondata;
 	Scene *scene = CTX_data_scene(C);
-	View3D *v3d = CTX_wm_view3d(C);
 
 	/* This is just so the border isn't always in the way,
 	 * stealing mouse clicks from regular usage.
@@ -347,9 +350,15 @@ static bool WIDGETGROUP_camera_view_poll(const bContext *C, wmManipulatorGroupTy
 		}
 	}
 
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+	View3D *v3d = CTX_wm_view3d(C);
 	if (rv3d->persp == RV3D_CAMOB) {
 		if (scene->r.mode & R_BORDER) {
-			return true;
+			/* TODO: support overrides. */
+			if (scene->id.lib == NULL) {
+				return true;
+			}
 		}
 	}
 	else if (v3d->flag2 & V3D_RENDER_BORDER) {
