@@ -262,8 +262,11 @@ void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder* builder, Gwn_IndexBuf* ele
 		elem->vbo_id = GWN_buf_id_alloc();
 
 	// send data to GPU
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elem->vbo_id);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, GWN_indexbuf_size_get(elem), builder->data, GL_STATIC_DRAW);
+	// GL_ELEMENT_ARRAY_BUFFER changes the state of the last VAO bound,
+	// so we use the GL_ARRAY_BUFFER here to create a buffer without
+	// interfering in the VAO state.
+	glBindBuffer(GL_ARRAY_BUFFER, elem->vbo_id);
+	glBufferData(GL_ARRAY_BUFFER, GWN_indexbuf_size_get(elem), builder->data, GL_STATIC_DRAW);
 
 	// discard builder (one-time use)
 	free(builder->data);
