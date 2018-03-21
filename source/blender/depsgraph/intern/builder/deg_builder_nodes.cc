@@ -499,6 +499,11 @@ void DepsgraphNodeBuilder::build_object(Base *base,
 	 * on object's level animation, for example in case of rebuilding
 	 * pose for proxy.
 	 */
+	OperationDepsNode *op_node = add_operation_node(&object->id,
+	                                                DEG_NODE_TYPE_PARAMETERS,
+	                                                NULL,
+	                                                DEG_OPCODE_PARAMETERS_EVAL);
+	op_node->set_as_exit();
 	build_animdata(&object->id);
 	/* Particle systems. */
 	if (object->particlesystem.first != NULL) {
@@ -984,17 +989,6 @@ void DepsgraphNodeBuilder::build_obdata_geom(Object *object)
 	OperationDepsNode *op_node;
 	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *object_cow = get_cow_datablock(object);
-
-	/* TODO(sergey): This way using this object's properties as driver target
-	 * works fine.
-	 *
-	 * Does this depend on other nodes?
-	 */
-	op_node = add_operation_node(&object->id,
-	                             DEG_NODE_TYPE_PARAMETERS,
-	                             NULL,
-	                             DEG_OPCODE_PARAMETERS_EVAL);
-	op_node->set_as_exit();
 
 	/* Temporary uber-update node, which does everything.
 	 * It is for the being we're porting old dependencies into the new system.

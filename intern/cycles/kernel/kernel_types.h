@@ -1462,6 +1462,7 @@ typedef struct KernelSpotLight {
 	float spot_angle;
 	float spot_smooth;
 	float dir[3];
+	float pad;
 } KernelSpotLight;
 
 /* PointLight is SpotLight with only radius and invarea being used. */
@@ -1470,13 +1471,16 @@ typedef struct KernelAreaLight {
 	float axisu[3];
 	float invarea;
 	float axisv[3];
+	float pad1;
 	float dir[3];
+	float pad2;
 } KernelAreaLight;
 
 typedef struct KernelDistantLight {
 	float radius;
 	float cosangle;
 	float invarea;
+	float pad;
 } KernelDistantLight;
 
 typedef struct KernelLight {
