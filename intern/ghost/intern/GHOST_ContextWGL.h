@@ -167,8 +167,6 @@ private:
 
 	static HGLRC s_sharedHGLRC;
 	static int   s_sharedCount;
-
-	static bool s_singleContextMode;
 };
 
 #endif  // __GHOST_CONTEXTWGL_H__
