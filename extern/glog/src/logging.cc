@@ -260,6 +260,9 @@ static bool TerminalSupportsColor() {
       !strcmp(term, "xterm-color") ||
       !strcmp(term, "xterm-256color") ||
       !strcmp(term, "screen-256color") ||
+      !strcmp(term, "konsole") ||
+      !strcmp(term, "konsole-16color") ||
+      !strcmp(term, "konsole-256color") ||
       !strcmp(term, "screen") ||
       !strcmp(term, "linux") ||
       !strcmp(term, "cygwin");
@@ -301,7 +304,7 @@ static GLogColor SeverityToColor(LogSeverity severity) {
 #ifdef OS_WINDOWS
 
 // Returns the character attribute for the given color.
-static WORD GetColorAttribute(GLogColor color) {
+WORD GetColorAttribute(GLogColor color) {
   switch (color) {
     case COLOR_RED:    return FOREGROUND_RED;
     case COLOR_GREEN:  return FOREGROUND_GREEN;
@@ -313,7 +316,7 @@ static WORD GetColorAttribute(GLogColor color) {
 #else
 
 // Returns the ANSI color code for the given color.
-static const char* GetAnsiColorCode(GLogColor color) {
+const char* GetAnsiColorCode(GLogColor color) {
   switch (color) {
   case COLOR_RED:     return "1";
   case COLOR_GREEN:   return "2";
@@ -825,6 +828,7 @@ void LogDestination::DeleteLogDestinations() {
   }
   MutexLock l(&sink_mutex_);
   delete sinks_;
+  sinks_ = NULL;
 }
 
 namespace {
@@ -1677,7 +1681,6 @@ void LogToStderr() {
 namespace base {
 namespace internal {
 
-bool GetExitOnDFatal();
 bool GetExitOnDFatal() {
   MutexLock l(&log_mutex);
   return exit_on_dfatal;
@@ -1693,7 +1696,6 @@ bool GetExitOnDFatal() {
 // and the stack trace is not recorded.  The LOG(FATAL) *will* still
 // exit the program.  Since this function is used only in testing,
 // these differences are acceptable.
-void SetExitOnDFatal(bool value);
 void SetExitOnDFatal(bool value) {
   MutexLock l(&log_mutex);
   exit_on_dfatal = value;

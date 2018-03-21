@@ -1,8 +1,5 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
-/* define if you have google gflags library */
-#define HAVE_LIB_GFLAGS 1
-
 /* Namespace for Google classes */
 #define GOOGLE_NAMESPACE google
 
@@ -11,10 +8,6 @@
 
 /* Puts following code inside the Google namespace */
 #define _START_GOOGLE_NAMESPACE_ namespace google {
-
-#if defined(__MINGW32__) || (defined(_MSC_VER) && (_MSC_VER >= 1900))
-#  define HAVE_SNPRINTF
-#endif
 
 /* Always the empty-string on non-windows systems. On windows, should be
    "__declspec(dllexport)". This way, when we compile the dll, we export our

@@ -59,8 +59,7 @@
 # include <unistd.h>
 #endif
 
-// Hurd does not have SYS_write.
-#if (defined(HAVE_SYSCALL_H) || defined(HAVE_SYS_SYSCALL_H)) && !defined(__GNU__)
+#if defined(HAVE_SYSCALL_H) || defined(HAVE_SYS_SYSCALL_H)
 # define safe_write(fd, s, len)  syscall(SYS_write, fd, s, len)
 #else
   // Not so safe, but what can you do?

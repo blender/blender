@@ -327,7 +327,7 @@ FindSymbol(uint64_t pc, const int fd, char *out, int out_size,
 // false.
 static bool GetSymbolFromObjectFile(const int fd, uint64_t pc,
                                     char *out, int out_size,
-                                    uint64_t map_start_address) {
+                                    uint64_t map_base_address) {
   // Read the ELF header.
   ElfW(Ehdr) elf_header;
   if (!ReadFromOffsetExact(fd, &elf_header, sizeof(elf_header), 0)) {
@@ -336,7 +336,28 @@ static bool GetSymbolFromObjectFile(const int fd, uint64_t pc,
 
   uint64_t symbol_offset = 0;
   if (elf_header.e_type == ET_DYN) {  // DSO needs offset adjustment.
-    symbol_offset = map_start_address;
+    ElfW(Phdr) phdr;
+    // We need to find the PT_LOAD segment corresponding to the read-execute
+    // file mapping in order to correctly perform the offset adjustment.
+    for (unsigned i = 0; i != elf_header.e_phnum; ++i) {
+      if (!ReadFromOffsetExact(fd, &phdr, sizeof(phdr),
+                               elf_header.e_phoff + i * sizeof(phdr)))
+        return false;
+      if (phdr.p_type == PT_LOAD &&
+          (phdr.p_flags & (PF_R | PF_X)) == (PF_R | PF_X)) {
+        // Find the mapped address corresponding to virtual address zero. We do
+        // this by first adding p_offset. This gives us the mapped address of
+        // the start of the segment, or in other words the mapped address
+        // corresponding to the virtual address of the segment. (Note that this
+        // is distinct from the start address, as p_offset is not guaranteed to
+        // be page aligned.) We then subtract p_vaddr, which takes us to virtual
+        // address zero.
+        symbol_offset = map_base_address + phdr.p_offset - phdr.p_vaddr;
+        break;
+      }
+    }
+    if (symbol_offset == 0)
+      return false;
   }
 
   ElfW(Shdr) symtab, strtab;
@@ -569,8 +590,8 @@ OpenObjectFileContainingPcAndGetStartAddress(uint64_t pc,
       return -1;  // Malformed line.
     }
 
-    // Check flags.  We are only interested in "r-x" maps.
-    if (memcmp(flags_start, "r-x", 3) != 0) {  // Not a "r-x" map.
+   // Check flags.  We are only interested in "r*x" maps.
+    if (flags_start[0] != 'r' || flags_start[2] != 'x') {
       continue;  // We skip this map.
     }
     ++cursor;  // Skip ' '.
@@ -634,7 +655,7 @@ OpenObjectFileContainingPcAndGetStartAddress(uint64_t pc,
 // bytes. Output will be truncated as needed, and a NUL character is always
 // appended.
 // NOTE: code from sandbox/linux/seccomp-bpf/demo.cc.
-static char *itoa_r(intptr_t i, char *buf, size_t sz, int base, size_t padding) {
+char *itoa_r(intptr_t i, char *buf, size_t sz, int base, size_t padding) {
   // Make sure we can write at least one NUL byte.
   size_t n = 1;
   if (n > sz)
@@ -696,7 +717,7 @@ static char *itoa_r(intptr_t i, char *buf, size_t sz, int base, size_t padding) 
 
 // Safely appends string |source| to string |dest|.  Never writes past the
 // buffer size |dest_size| and guarantees that |dest| is null-terminated.
-static void SafeAppendString(const char* source, char* dest, int dest_size) {
+void SafeAppendString(const char* source, char* dest, int dest_size) {
   int dest_string_length = strlen(dest);
   SAFE_ASSERT(dest_string_length < dest_size);
   dest += dest_string_length;
@@ -709,7 +730,7 @@ static void SafeAppendString(const char* source, char* dest, int dest_size) {
 // Converts a 64-bit value into a hex string, and safely appends it to |dest|.
 // Never writes past the buffer size |dest_size| and guarantees that |dest| is
 // null-terminated.
-static void SafeAppendHexNumber(uint64_t value, char* dest, int dest_size) {
+void SafeAppendHexNumber(uint64_t value, char* dest, int dest_size) {
   // 64-bit numbers in hex can have up to 16 digits.
   char buf[17] = {'\0'};
   SafeAppendString(itoa_r(value, buf, sizeof(buf), 16, 0), dest, dest_size);
@@ -782,7 +803,7 @@ static ATTRIBUTE_NOINLINE bool SymbolizeAndDemangle(void *pc, char *out,
     }
   }
   if (!GetSymbolFromObjectFile(wrapped_object_fd.get(), pc0,
-                               out, out_size, start_address)) {
+                               out, out_size, base_address)) {
     return false;
   }
 

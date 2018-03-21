@@ -69,9 +69,7 @@ extern GFLAGS_DLL_DECL int snprintf(char *str, size_t size,
 extern int GFLAGS_DLL_DECL safe_vsnprintf(char *str, size_t size,
                                              const char *format, va_list ap);
 #define vsnprintf(str, size, format, ap)  safe_vsnprintf(str, size, format, ap)
-#if defined(_MSC_VER) &&  (_MSC_VER < 1400)
 #define va_copy(dst, src)  (dst) = (src)
-#endif
 #endif
 #endif  /* #if !defined(__MINGW32__) && !defined(__MINGW64__) */
 
@@ -111,7 +109,9 @@ inline void setenv(const char* name, const char* value, int) {
 #define unlink   _unlink
 #endif
 
-#if !(defined(_MSC_VER) && _MSC_VER >= 1400)
+#if defined(_MSC_VER) && _MSC_VER >= 1800
+#include <inttypes.h>
+#else
 #define PRId32  "d"
 #define PRIu32  "u"
 #define PRId64  "I64d"

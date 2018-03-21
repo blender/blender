@@ -106,7 +106,7 @@
 #ifndef GFLAGS_MUTEX_H_
 #define GFLAGS_MUTEX_H_
 
-#include "gflags_declare.h"     // to figure out pthreads support
+#include "gflags/gflags_declare.h"     // to figure out pthreads support
 
 #if defined(NO_THREADS)
   typedef int MutexType;        // to keep a lock-count
@@ -166,7 +166,7 @@ class Mutex {
   // It inhibits work being done by the destructor, which makes it
   // safer for code that tries to acqiure this mutex in their global
   // destructor.
-  inline Mutex(LinkerInitialized);
+  explicit inline Mutex(LinkerInitialized);
 
   // Destructor
   inline ~Mutex();
@@ -197,7 +197,7 @@ class Mutex {
   inline void SetIsSafe() { is_safe_ = true; }
 
   // Catch the error of writing Mutex when intending MutexLock.
-  Mutex(Mutex* /*ignored*/) {}
+  explicit Mutex(Mutex* /*ignored*/) {}
   // Disallow "evil" constructors
   Mutex(const Mutex&);
   void operator=(const Mutex&);

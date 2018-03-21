@@ -77,6 +77,7 @@ using GFLAGS_NAMESPACE::AppendFlagsIntoFile;
 using GFLAGS_NAMESPACE::ReadFromFlagsFile;
 using GFLAGS_NAMESPACE::BoolFromEnv;
 using GFLAGS_NAMESPACE::Int32FromEnv;
+using GFLAGS_NAMESPACE::Uint32FromEnv;
 using GFLAGS_NAMESPACE::Int64FromEnv;
 using GFLAGS_NAMESPACE::Uint64FromEnv;
 using GFLAGS_NAMESPACE::DoubleFromEnv;
