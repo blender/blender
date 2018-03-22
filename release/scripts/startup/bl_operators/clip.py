@@ -302,7 +302,7 @@ class CLIP_OT_bundles_to_mesh(Operator):
             matrix = camera.matrix_world * reconstructed_matrix.inverted()
 
         for track in tracking_object.tracks:
-            if track.has_bundle and track.select == True:
+            if track.has_bundle and track.select:
                 new_verts.append(track.bundle)
 
         if new_verts:
