@@ -1458,6 +1458,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
 		if (ebone->flag & BONE_DONE) {
 			copy_v3_v3(ebone->parent->tail, ebone->tail);
 			ebone->parent->rad_tail = ebone->rad_tail;
+			SET_FLAG_FROM_TEST(ebone->parent->flag, ebone->flag & BONE_TIPSEL, BONE_TIPSEL);
 
 			ED_armature_edit_bone_remove(arm, ebone);
 			changed = true;
@@ -1471,7 +1472,7 @@ static int armature_dissolve_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			    (ebone->flag & BONE_CONNECTED) == 0)
 			{
 				ebone->flag |= BONE_CONNECTED;
-				ebone->rad_head = ebone->parent->rad_head;
+				ebone->rad_head = ebone->parent->rad_tail;
 			}
 		}
 
