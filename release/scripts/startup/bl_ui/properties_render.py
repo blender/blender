@@ -473,7 +473,8 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
             layout.prop(ffmpeg, "use_lossless_output")
 
         # Output quality
-        if needs_codec and ffmpeg.codec in {'H264', 'MPEG4'}:
+        use_crf = needs_codec and ffmpeg.codec in {'H264', 'MPEG4'}
+        if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
 
         # Encoding speed
@@ -488,7 +489,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         pbox.enabled = ffmpeg.use_max_b_frames
 
         split = layout.split()
-        split.enabled = ffmpeg.constant_rate_factor == 'NONE'
+        split.enabled = not use_crf or ffmpeg.constant_rate_factor == 'NONE'
         col = split.column()
         col.label(text="Rate:")
         col.prop(ffmpeg, "video_bitrate")
