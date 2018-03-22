@@ -2160,7 +2160,7 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
-static int wm_exit_blender_exec(bContext *C, wmOperator *op)
+static int wm_exit_blender_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 
@@ -2168,8 +2168,7 @@ static int wm_exit_blender_exec(bContext *C, wmOperator *op)
 		wm_confirm_quit(C);
 	}
 	else {
-		WM_operator_free(op);
-		WM_exit(C);
+		wm_exit_schedule_delayed(C);
 	}
 
 	return OPERATOR_FINISHED;

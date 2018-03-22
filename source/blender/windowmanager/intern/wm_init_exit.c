@@ -434,6 +434,30 @@ static void wait_for_console_key(void)
 }
 #endif
 
+static int wm_exit_handler(bContext *C, const wmEvent *event, void *userdata)
+{
+	WM_exit(C);
+
+	UNUSED_VARS(event, userdata);
+	return WM_UI_HANDLER_BREAK;
+}
+
+/**
+ * Cause a delayed WM_exit() call to avoid leaking memory when trying to exit from within operators.
+ */
+void wm_exit_schedule_delayed(const bContext *C)
+{
+	/* What we do here is a little bit hacky, but quite simple and doesn't require bigger
+	 * changes: Add a handler wrapping WM_exit() to cause a delayed call of it. */
+
+	wmWindowManager *wm = CTX_wm_manager(C);
+	/* Doesn't matter which window we use. */
+	wmWindow *win = wm->windows.first;
+
+	/* Use modal UI handler for now. Could add separate WM handlers or so, but probably not worth it. */
+	WM_event_add_ui_handler(C, &win->modalhandlers, wm_exit_handler, NULL, NULL, 0);
+}
+
 /**
  * \note doesn't run exit() call #WM_exit() for that.
  */
@@ -604,6 +628,10 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	BKE_tempdir_session_purge();
 }
 
+/**
+ * \brief Main exit function to close Blender ordinarily.
+ * \note Use #wm_exit_schedule_delayed() to close Blender from an operator. Might leak memory otherwise.
+ */
 void WM_exit(bContext *C)
 {
 	WM_exit_ext(C, 1);
