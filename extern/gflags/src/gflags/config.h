@@ -2,11 +2,15 @@
 
 // Note: This header file is only used internally. It is not part of public interface!
 
+#ifndef GFLAGS_CONFIG_H_
+#define GFLAGS_CONFIG_H_
+
+
 // ---------------------------------------------------------------------------
 // System checks
 
 // Define if you build this library for a MS Windows OS.
-#ifdef WIN32
+#ifdef _WIN32
 #  define OS_WINDOWS
 #endif
 
@@ -58,19 +62,19 @@
 #define PACKAGE_NAME gflags
 
 // Define to the full name and version of this package.
-#define PACKAGE_STRING gflags 2.2.0
+#define PACKAGE_STRING gflags 2.2.1
 
 // Define to the one symbol short name of this package.
-#define PACKAGE_TARNAME gflags-2.2.0
+#define PACKAGE_TARNAME gflags-2.2.1
 
 // Define to the version of this package.
-#define PACKAGE_VERSION 2.2.0
+#define PACKAGE_VERSION 2.2.1
 
 // Version number of package.
 #define VERSION PACKAGE_VERSION
 
 // Define to the address where bug reports for this package should be sent.
-#define PACKAGE_BUGREPORT https://github.com/schuhschuh/gflags/issues
+#define PACKAGE_BUGREPORT https://github.com/gflags/gflags/issues
 
 // ---------------------------------------------------------------------------
 // Path separator
@@ -112,3 +116,6 @@
 #  endif
 #  include "windows_port.h"
 #endif
+
+
+#endif // GFLAGS_CONFIG_H_

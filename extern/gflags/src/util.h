@@ -37,7 +37,6 @@
 #include "config.h"
 
 #include <assert.h>
-#include <config.h>
 #ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>
 #endif

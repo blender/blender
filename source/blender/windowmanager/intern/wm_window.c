@@ -366,6 +366,8 @@ static void wm_block_confirm_quit_save(bContext *C, void *arg_block, void *UNUSE
 
 	WM_operator_properties_create_ptr(&props_ptr, ot);
 	RNA_boolean_set(&props_ptr, "exit", true);
+	/* No need for second confirmation popup. */
+	RNA_boolean_set(&props_ptr, "check_existing", false);
 	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &props_ptr);
 	WM_operator_properties_free(&props_ptr);
 }

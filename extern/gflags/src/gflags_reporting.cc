@@ -56,8 +56,8 @@
 #include <vector>
 
 #include "config.h"
-#include "gflags.h"
-#include "gflags_completions.h"
+#include "gflags/gflags.h"
+#include "gflags/gflags_completions.h"
 #include "util.h"
 
 
@@ -126,7 +126,8 @@ string DescribeOneFlag(const CommandLineFlagInfo& flag) {
   string final_string = "";
   int chars_in_line = 0;  // how many chars in current line so far?
   while (1) {
-    assert(chars_left == strlen(c_string));  // Unless there's a \0 in there?
+    assert(static_cast<size_t>(chars_left)
+            == strlen(c_string));  // Unless there's a \0 in there?
     const char* newline = strchr(c_string, '\n');
     if (newline == NULL && chars_in_line+chars_left < kLineLength) {
       // The whole remainder of the string fits on this line

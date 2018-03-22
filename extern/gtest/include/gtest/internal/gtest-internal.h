@@ -60,10 +60,6 @@
 #include <string>
 #include <vector>
 
-#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-# include <type_traits>
-#endif
-
 #include "gtest/gtest-message.h"
 #include "gtest/internal/gtest-string.h"
 #include "gtest/internal/gtest-filepath.h"
@@ -858,7 +854,6 @@ struct AddReference<T&> { typedef T& type; };  // NOLINT
 template <typename From, typename To>
 class ImplicitlyConvertible {
  private:
-#if !((__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800))
   // We need the following helper functions only for their types.
   // They have no implementations.
 
@@ -879,7 +874,6 @@ class ImplicitlyConvertible {
   // implicitly converted to type To.
   static char Helper(To);
   static char (&Helper(...))[2];  // NOLINT
-#endif
 
   // We have to put the 'public' section after the 'private' section,
   // or MSVC refuses to compile the code.
@@ -889,8 +883,6 @@ class ImplicitlyConvertible {
   // instantiation.  The simplest workaround is to use its C++0x type traits
   // functions (C++Builder 2009 and above only).
   static const bool value = __is_convertible(From, To);
-#elif (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
-  static const bool value = std::is_convertible<From, To>::value;
 #else
   // MSVC warns about implicitly converting from double to int for
   // possible loss of data, so we need to temporarily disable the

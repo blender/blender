@@ -35,7 +35,7 @@ set(SRC
 	src/gflags_completions.cc
 	src/gflags_reporting.cc
 
-	src/config.h
+	src/gflags/config.h
 	src/gflags/gflags_completions.h
 	src/gflags/gflags_declare.h
 	src/gflags/gflags_gflags.h

@@ -235,6 +235,7 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 		return;
 	}
 	const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
+	const double start_time = do_time_debug ? PIL_check_seconds_timer() : 0;
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();
 	eval_ctx->depsgraph = (::Depsgraph *)graph;
@@ -274,6 +275,10 @@ void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
 	deg_graph_clear_tags(graph);
 	if (need_free_scheduler) {
 		BLI_task_scheduler_free(task_scheduler);
+	}
+	if (do_time_debug) {
+		printf("Depsgraph updated in %f seconds.\n",
+		       PIL_check_seconds_timer() - start_time);
 	}
 }
 

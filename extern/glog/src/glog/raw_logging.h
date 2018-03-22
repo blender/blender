@@ -32,9 +32,6 @@
 // Thread-safe logging routines that do not allocate any memory or
 // acquire any locks, and can therefore be used by low-level memory
 // allocation and synchronization code.
-#ifdef WIN32
-#  include "windows/glog/raw_logging.h"
-#else  // WIN32
 
 #ifndef BASE_RAW_LOGGING_H_
 #define BASE_RAW_LOGGING_H_
@@ -176,7 +173,7 @@ GOOGLE_GLOG_DLL_DECL void RawLog__(LogSeverity severity,
                                    const char* file,
                                    int line,
                                    const char* format, ...)
-   ;
+   __attribute__((__format__ (__printf__, 4, 5)));
 
 // Hack to propagate time information into this module so that
 // this module does not have to directly call localtime_r(),
@@ -186,5 +183,3 @@ GOOGLE_GLOG_DLL_DECL void RawLog__SetLastTime(const struct tm& t, int usecs);
 }
 
 #endif  // BASE_RAW_LOGGING_H_
-
-#endif  // WIN32

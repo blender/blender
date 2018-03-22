@@ -45,18 +45,27 @@
 // ---------------------------------------------------------------------------
 // Windows DLL import/export.
 
-// We always want to import the symbols of the gflags library
+// Whether gflags library is a DLL.
+//
+// Set to 1 by default when the shared gflags library was built on Windows.
+// Must be overwritten when this header file is used with the optionally also
+// built static library instead; set by CMake's INTERFACE_COMPILE_DEFINITIONS.
+#ifndef GFLAGS_IS_A_DLL
+#  define GFLAGS_IS_A_DLL 1
+#endif
+
+// We always want to import the symbols of the gflags library.
 #ifndef GFLAGS_DLL_DECL
-#  if 1 && defined(_MSC_VER)
+#  if GFLAGS_IS_A_DLL && defined(_MSC_VER)
 #    define GFLAGS_DLL_DECL __declspec(dllimport)
 #  else
 #    define GFLAGS_DLL_DECL
 #  endif
 #endif
 
-// We always want to import variables declared in user code
+// We always want to import variables declared in user code.
 #ifndef GFLAGS_DLL_DECLARE_FLAG
-#  ifdef _MSC_VER
+#  if GFLAGS_IS_A_DLL && defined(_MSC_VER)
 #    define GFLAGS_DLL_DECLARE_FLAG __declspec(dllimport)
 #  else
 #    define GFLAGS_DLL_DECLARE_FLAG
@@ -119,6 +128,9 @@ typedef std::string clstring;
 
 #define DECLARE_int32(name) \
   DECLARE_VARIABLE(::GFLAGS_NAMESPACE::int32, I, name)
+
+#define DECLARE_uint32(name) \
+  DECLARE_VARIABLE(::GFLAGS_NAMESPACE::uint32, U, name)
 
 #define DECLARE_int64(name) \
   DECLARE_VARIABLE(::GFLAGS_NAMESPACE::int64, I64, name)

@@ -81,12 +81,12 @@
 #include <string>
 #include <vector>
 
-#include "gflags_declare.h" // IWYU pragma: export
+#include "gflags/gflags_declare.h" // IWYU pragma: export
 
 
 // We always want to export variables defined in user code
 #ifndef GFLAGS_DLL_DEFINE_FLAG
-#  ifdef _MSC_VER
+#  if GFLAGS_IS_A_DLL && defined(_MSC_VER)
 #    define GFLAGS_DLL_DEFINE_FLAG __declspec(dllexport)
 #  else
 #    define GFLAGS_DLL_DEFINE_FLAG
@@ -128,6 +128,7 @@ namespace GFLAGS_NAMESPACE {
 // validator is already registered for this flag).
 extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const bool*        flag, bool (*validate_fn)(const char*, bool));
 extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const int32*       flag, bool (*validate_fn)(const char*, int32));
+extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const uint32*      flag, bool (*validate_fn)(const char*, uint32));
 extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const int64*       flag, bool (*validate_fn)(const char*, int64));
 extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const uint64*      flag, bool (*validate_fn)(const char*, uint64));
 extern GFLAGS_DLL_DECL bool RegisterFlagValidator(const double*      flag, bool (*validate_fn)(const char*, double));
@@ -284,7 +285,7 @@ class GFLAGS_DLL_DECL FlagSaver {
 
   FlagSaver(const FlagSaver&);  // no copying!
   void operator=(const FlagSaver&);
-};
+}__attribute((unused));
 
 // --------------------------------------------------------------------
 // Some deprecated or hopefully-soon-to-be-deprecated functions.
@@ -313,6 +314,7 @@ extern GFLAGS_DLL_DECL bool ReadFromFlagsFile(const std::string& filename, const
 
 extern GFLAGS_DLL_DECL bool BoolFromEnv(const char *varname, bool defval);
 extern GFLAGS_DLL_DECL int32 Int32FromEnv(const char *varname, int32 defval);
+extern GFLAGS_DLL_DECL uint32 Uint32FromEnv(const char *varname, uint32 defval);
 extern GFLAGS_DLL_DECL int64 Int64FromEnv(const char *varname, int64 defval);
 extern GFLAGS_DLL_DECL uint64 Uint64FromEnv(const char *varname, uint64 defval);
 extern GFLAGS_DLL_DECL double DoubleFromEnv(const char *varname, double defval);
@@ -429,9 +431,14 @@ extern GFLAGS_DLL_DECL void ShutDownCommandLineFlags();
 
 class GFLAGS_DLL_DECL FlagRegisterer {
  public:
-  FlagRegisterer(const char* name, const char* type,
+  // We instantiate this template ctor for all supported types,
+  // so it is possible to place implementation of the FlagRegisterer ctor in
+  // .cc file.
+  // Calling this constructor with unsupported type will produce linker error.
+  template <typename FlagType>
+  FlagRegisterer(const char* name,
                  const char* help, const char* filename,
-                 void* current_storage, void* defvalue_storage);
+                 FlagType* current_storage, FlagType* defvalue_storage);
 };
 
 // If your application #defines STRIP_FLAG_HELP to a non-zero value
@@ -473,7 +480,7 @@ extern GFLAGS_DLL_DECL const char kStrippedFlagHelp[];
     GFLAGS_DLL_DEFINE_FLAG type FLAGS_##name = FLAGS_nono##name;        \
     type FLAGS_no##name = FLAGS_nono##name;                             \
     static GFLAGS_NAMESPACE::FlagRegisterer o_##name(                   \
-      #name, #type, MAYBE_STRIPPED_HELP(help), __FILE__,                \
+      #name, MAYBE_STRIPPED_HELP(help), __FILE__,                       \
       &FLAGS_##name, &FLAGS_no##name);                                  \
   }                                                                     \
   using fL##shorttype::FLAGS_##name
@@ -508,6 +515,10 @@ GFLAGS_DLL_DECL bool IsBoolFlag(bool from);
    DEFINE_VARIABLE(GFLAGS_NAMESPACE::int32, I, \
                    name, val, txt)
 
+#define DEFINE_uint32(name,val, txt) \
+   DEFINE_VARIABLE(GFLAGS_NAMESPACE::uint32, U, \
+                   name, val, txt)
+
 #define DEFINE_int64(name, val, txt) \
    DEFINE_VARIABLE(GFLAGS_NAMESPACE::int64, I64, \
                    name, val, txt)
@@ -538,6 +549,26 @@ inline clstring* dont_pass0toDEFINE_string(char *stringspot,
 }
 inline clstring* dont_pass0toDEFINE_string(char *stringspot,
                                            int value);
+
+// Auxiliary class used to explicitly call destructor of string objects
+// allocated using placement new during static program deinitialization.
+// The destructor MUST be an inline function such that the explicit
+// destruction occurs in the same compilation unit as the placement new.
+class StringFlagDestructor {
+  void *current_storage_;
+  void *defvalue_storage_;
+
+public: 
+
+  StringFlagDestructor(void *current, void *defvalue)
+  : current_storage_(current), defvalue_storage_(defvalue) {}
+
+  ~StringFlagDestructor() {
+    reinterpret_cast<clstring*>(current_storage_ )->~clstring();
+    reinterpret_cast<clstring*>(defvalue_storage_)->~clstring();
+  }
+};
+
 }  // namespace fLS
 
 // We need to define a var named FLAGS_no##name so people don't define
@@ -550,13 +581,15 @@ inline clstring* dont_pass0toDEFINE_string(char *stringspot,
 #define DEFINE_string(name, val, txt)                                       \
   namespace fLS {                                                           \
     using ::fLS::clstring;                                                  \
+    using ::fLS::StringFlagDestructor;                                      \
     static union { void* align; char s[sizeof(clstring)]; } s_##name[2];    \
     clstring* const FLAGS_no##name = ::fLS::                                \
                                    dont_pass0toDEFINE_string(s_##name[0].s, \
                                                              val);          \
     static GFLAGS_NAMESPACE::FlagRegisterer o_##name(                       \
-        #name, "string", MAYBE_STRIPPED_HELP(txt), __FILE__,                \
-        s_##name[0].s, new (s_##name[1].s) clstring(*FLAGS_no##name));      \
+        #name, MAYBE_STRIPPED_HELP(txt), __FILE__,                          \
+        FLAGS_no##name, new (s_##name[1].s) clstring(*FLAGS_no##name));     \
+    static StringFlagDestructor d_##name(s_##name[0].s, s_##name[1].s);     \
     extern GFLAGS_DLL_DEFINE_FLAG clstring& FLAGS_##name;                   \
     using fLS::FLAGS_##name;                                                \
     clstring& FLAGS_##name = *FLAGS_no##name;                               \

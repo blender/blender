@@ -134,7 +134,10 @@ void bone_free(bArmature *arm, EditBone *bone)
 	BLI_freelinkN(arm->edbo, bone);
 }
 
-void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
+/**
+ * \param clear_connected: When false caller is responsible for keeping the flag in a valid state.
+ */
+void ED_armature_edit_bone_remove_ex(bArmature *arm, EditBone *exBone, bool clear_connected)
 {
 	EditBone *curBone;
 
@@ -142,11 +145,18 @@ void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
 	for (curBone = arm->edbo->first; curBone; curBone = curBone->next) {
 		if (curBone->parent == exBone) {
 			curBone->parent = exBone->parent;
-			curBone->flag &= ~BONE_CONNECTED;
+			if (clear_connected) {
+				curBone->flag &= ~BONE_CONNECTED;
+			}
 		}
 	}
 
 	bone_free(arm, exBone);
+}
+
+void ED_armature_edit_bone_remove(bArmature *arm, EditBone *exBone)
+{
+	ED_armature_edit_bone_remove_ex(arm, exBone, true);
 }
 
 bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child)

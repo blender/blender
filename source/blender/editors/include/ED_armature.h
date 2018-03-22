@@ -156,6 +156,8 @@ void ED_armature_validate_active(struct bArmature *arm);
 
 EditBone *ED_armature_edit_bone_add_primitive(struct Object *obedit_arm, float length, bool view_aligned);
 EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name);
+
+void ED_armature_edit_bone_remove_ex(struct bArmature *arm, EditBone *exBone, bool clear_connected);
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 bool ED_armature_ebone_is_child_recursive(EditBone *ebone_parent, EditBone *ebone_child);
