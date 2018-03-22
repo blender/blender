@@ -80,7 +80,6 @@ set(SRC
 	shaders/gpu_shader_fx_dof_hq_frag.glsl
 	shaders/gpu_shader_fx_dof_hq_vert.glsl
 	shaders/gpu_shader_fx_dof_hq_geo.glsl
-	shaders/gpu_shader_fullscreen_vert.glsl
 	shaders/gpu_shader_material.glsl
 	shaders/gpu_shader_sep_gaussian_blur_frag.glsl
 	shaders/gpu_shader_sep_gaussian_blur_vert.glsl
