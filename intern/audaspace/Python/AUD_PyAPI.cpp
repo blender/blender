@@ -2698,7 +2698,7 @@ Device_set_doppler_factor(Device *self, PyObject *args, void* nothing)
 
 PyDoc_STRVAR(M_aud_Device_distance_model_doc,
 			 "The distance model of the device.\n\n"
-			 ".. seealso:: `OpenAL documentation <https://www.openal.org/documentation>`");
+			 ".. seealso:: `OpenAL documentation <https://www.openal.org/documentation>`__");
 
 static PyObject *
 Device_get_distance_model(Device *self, void* nothing)
