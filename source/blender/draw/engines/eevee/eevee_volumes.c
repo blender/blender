@@ -76,7 +76,7 @@ extern char datatoc_volumetric_resolve_frag_glsl[];
 extern char datatoc_volumetric_scatter_frag_glsl[];
 extern char datatoc_volumetric_integration_frag_glsl[];
 extern char datatoc_volumetric_lib_glsl[];
-extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
+extern char datatoc_common_fullscreen_vert_glsl[];
 
 static void eevee_create_shader_volumes(void)
 {
@@ -126,7 +126,7 @@ static void eevee_create_shader_volumes(void)
 	        datatoc_volumetric_integration_frag_glsl,
 	        e_data.volumetric_common_lib, NULL);
 	e_data.volumetric_resolve_sh = DRW_shader_create_with_lib(
-	        datatoc_gpu_shader_fullscreen_vert_glsl, NULL,
+	        datatoc_common_fullscreen_vert_glsl, NULL,
 	        datatoc_volumetric_resolve_frag_glsl,
 	        e_data.volumetric_common_lib, NULL);
 }

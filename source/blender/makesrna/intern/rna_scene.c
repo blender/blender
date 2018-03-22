@@ -1925,13 +1925,6 @@ char *rna_GPUDOF_path(PointerRNA *ptr)
 	return BLI_strdup("");
 }
 
-static void rna_GPUFXSettings_fx_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	GPUFXSettings *fx_settings = ptr->data;
-
-	BKE_screen_gpu_fx_validate(fx_settings);
-}
-
 static void rna_GPUDOFSettings_blades_set(PointerRNA *ptr, const int value)
 {
 	GPUDOFSettings *dofsettings = (GPUDOFSettings *)ptr->data;
@@ -4839,7 +4832,7 @@ static void rna_def_gpu_fx(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "fx_flag", GPU_FX_FLAG_DOF);
 	RNA_def_property_ui_text(prop, "Depth Of Field",
 	                         "Use depth of field on viewport using the values from active camera");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUFXSettings_fx_update");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 
 	prop = RNA_def_property(srna, "ssao", PROP_POINTER, PROP_NONE);
@@ -4850,7 +4843,7 @@ static void rna_def_gpu_fx(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_ssao", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "fx_flag", GPU_FX_FLAG_SSAO);
 	RNA_def_property_ui_text(prop, "SSAO", "Use screen space ambient occlusion of field on viewport");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_GPUFXSettings_fx_update");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
 static void rna_def_view_layers(BlenderRNA *brna, PropertyRNA *cprop)

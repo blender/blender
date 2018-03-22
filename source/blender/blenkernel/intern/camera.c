@@ -61,8 +61,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "GPU_compositing.h"
-
 /****************************** Camera Datablock *****************************/
 
 void BKE_camera_init(Camera *cam)
@@ -78,8 +76,6 @@ void BKE_camera_init(Camera *cam)
 	cam->ortho_scale = 6.0;
 	cam->flag |= CAM_SHOWPASSEPARTOUT;
 	cam->passepartalpha = 0.5f;
-
-	GPU_fx_compositor_init_dof_settings(&cam->gpu_dof);
 
 	/* stereoscopy 3d */
 	cam->stereo.interocular_distance = 0.065f;

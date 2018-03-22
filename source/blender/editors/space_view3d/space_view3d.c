@@ -59,7 +59,6 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 
-#include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
 #include "GPU_material.h"
 #include "GPU_viewport.h"
@@ -568,11 +567,6 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 		rv3d->gpuoffscreen = NULL;
 	}
 	
-	if (rv3d->compositor) {
-		GPU_fx_compositor_destroy(rv3d->compositor);
-		rv3d->compositor = NULL;
-	}
-
 	if (rv3d->viewport) {
 		DRW_opengl_context_enable();
 		GPU_viewport_free(rv3d->viewport);
@@ -755,9 +749,6 @@ static void view3d_main_region_free(ARegion *ar)
 		}
 		if (rv3d->gpuoffscreen) {
 			GPU_offscreen_free(rv3d->gpuoffscreen);
-		}
-		if (rv3d->compositor) {
-			GPU_fx_compositor_destroy(rv3d->compositor);
 		}
 		if (rv3d->viewport) {
 			DRW_opengl_context_enable();

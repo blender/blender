@@ -58,7 +58,6 @@
 
 #include "BIF_glutil.h"
 
-#include "GPU_compositing.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
 #include "GPU_matrix.h"
@@ -924,12 +923,6 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	        rectx, recty, proxy_size,
 	        &context);
 	context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
-	if (scene->r.seq_flag & R_SEQ_CAMERA_DOF) {
-		if (sseq->compositor == NULL) {
-			sseq->compositor = GPU_fx_compositor_create();
-		}
-		context.gpu_fx = sseq->compositor;
-	}
 
 	/* sequencer could start rendering, in this case we need to be sure it wouldn't be canceled
 	 * by Esc pressed somewhere in the past

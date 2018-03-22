@@ -3337,7 +3337,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		        context->eval_ctx, scene, view_layer, camera, width, height, IB_rect,
 		        draw_flags, context->scene->r.seq_prev_type,
 		        scene->r.alphamode, context->gpu_samples, viewname,
-		        context->gpu_fx, context->gpu_offscreen, err_out);
+		        context->gpu_offscreen, err_out);
 		if (ibuf == NULL) {
 			fprintf(stderr, "seq_render_scene_strip failed to get opengl buffer: %s\n", err_out);
 		}

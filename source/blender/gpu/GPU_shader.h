@@ -72,9 +72,6 @@ int GPU_shader_get_program(GPUShader *shader);
 
 void *GPU_shader_get_interface(GPUShader *shader);
 
-void *GPU_fx_shader_get_interface(GPUShader *shader);
-void GPU_fx_shader_set_interface(GPUShader *shader, void *interface);
-
 int GPU_shader_get_uniform(GPUShader *shader, const char *name);
 int GPU_shader_get_builtin_uniform(GPUShader *shader, int builtin);
 int GPU_shader_get_uniform_block(GPUShader *shader, const char *name);
@@ -191,7 +188,6 @@ typedef enum GPUInterlaceShader {
 } GPUInterlaceShader;
 
 GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader);
-GPUShader *GPU_shader_get_builtin_fx_shader(int effects, bool persp);
 
 void GPU_shader_free_builtin_shaders(void);
 

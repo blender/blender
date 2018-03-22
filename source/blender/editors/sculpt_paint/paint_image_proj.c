@@ -5478,7 +5478,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	ibuf = ED_view3d_draw_offscreen_imbuf(
 	        &eval_ctx, scene, view_layer, CTX_wm_view3d(C), CTX_wm_region(C),
 	        w, h, IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
-	        NULL, NULL, err_out);
+	        NULL, err_out);
 	if (!ibuf) {
 		/* Mostly happens when OpenGL offscreen buffer was failed to create, */
 		/* but could be other reasons. Should be handled in the future. nazgul */

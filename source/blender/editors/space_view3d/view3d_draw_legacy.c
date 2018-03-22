@@ -100,7 +100,6 @@
 #include "GPU_framebuffer.h"
 #include "GPU_lamp.h"
 #include "GPU_material.h"
-#include "GPU_compositing.h"
 #include "GPU_extensions.h"
 #include "GPU_immediate.h"
 #include "GPU_immediate_util.h"
@@ -1425,7 +1424,7 @@ static void gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Sc
 		ED_view3d_draw_offscreen(
 		            eval_ctx, scene, eval_ctx->view_layer, v3d, &ar, winsize, winsize, viewmat, winmat,
 		            false, false, true,
-		            NULL, NULL, NULL, NULL, NULL);
+		            NULL, NULL, NULL, NULL);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);
 		
 		v3d->drawtype = drawtype;
@@ -1499,7 +1498,7 @@ static void view3d_draw_objects(
         const EvaluationContext *eval_ctx,
         Scene *scene, View3D *v3d, ARegion *ar,
         const char **grid_unit,
-        const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
+        const bool do_bgpic, const bool draw_offscreen)
 {
 	ViewLayer *view_layer = C ? CTX_data_view_layer(C) : BKE_view_layer_from_scene_get(scene);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
@@ -1510,8 +1509,7 @@ static void view3d_draw_objects(
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
 	/* only draw grids after in solid modes, else it hovers over mesh wires */
-	const bool draw_grids_after = draw_grids && draw_floor && (v3d->drawtype > OB_WIRE) && fx;
-	bool do_composite_xray = false;
+	const bool draw_grids_after = draw_grids && draw_floor && (v3d->drawtype > OB_WIRE);
 	bool xrayclear = true;
 
 	if (!draw_offscreen) {
@@ -1636,18 +1634,8 @@ static void view3d_draw_objects(
 	/* transp and X-ray afterdraw stuff */
 	if (v3d->afterdraw_transp.first)     view3d_draw_transp(eval_ctx, scene, view_layer, ar, v3d);
 
-	/* always do that here to cleanup depth buffers if none needed */
-	if (fx) {
-		do_composite_xray = v3d->zbuf && (v3d->afterdraw_xray.first || v3d->afterdraw_xraytransp.first);
-		GPU_fx_compositor_setup_XRay_pass(fx, do_composite_xray);
-	}
-
 	if (v3d->afterdraw_xray.first)       view3d_draw_xray(eval_ctx, scene, view_layer, ar, v3d, &xrayclear);
 	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(eval_ctx, scene, view_layer, ar, v3d, xrayclear);
-
-	if (fx && do_composite_xray) {
-		GPU_fx_compositor_XRay_resolve(fx);
-	}
 
 	if (!draw_offscreen) {
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
@@ -1957,9 +1945,6 @@ static void view3d_main_region_draw_objects(
 	
 	CTX_data_eval_ctx(C, &eval_ctx);
 
-	/* post processing */
-	bool do_compositing = false;
-	
 	/* shadow buffers, before we setup matrices */
 	if (draw_glsl_material(&eval_ctx, scene, view_layer, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows_world(&eval_ctx, scene, v3d);
@@ -1987,30 +1972,9 @@ static void view3d_main_region_draw_objects(
 		update_lods(scene, rv3d->viewinv[3]);
 	}
 #endif
-
-	/* framebuffer fx needed, we need to draw offscreen first */
-	if (v3d->fx_settings.fx_flag && v3d->drawtype >= OB_SOLID) {
-		BKE_screen_gpu_fx_validate(&v3d->fx_settings);
-		GPUFXSettings fx_settings = v3d->fx_settings;
-		if (!rv3d->compositor)
-			rv3d->compositor = GPU_fx_compositor_create();
-		
-		if (rv3d->persp == RV3D_CAMOB && v3d->camera)
-			BKE_camera_to_gpu_dof(v3d->camera, &fx_settings);
-		else {
-			fx_settings.dof = NULL;
-		}
-
-		do_compositing = GPU_fx_compositor_initialize_passes(rv3d->compositor, &ar->winrct, &ar->drawrct, &fx_settings);
-	}
 	
 	/* main drawing call */
-	view3d_draw_objects(C, &eval_ctx, scene, v3d, ar, grid_unit, true, false, do_compositing ? rv3d->compositor : NULL);
-
-	/* post process */
-	if (do_compositing) {
-		GPU_fx_do_composite_pass(rv3d->compositor, rv3d->winmat, rv3d->is_persp, scene, NULL);
-	}
+	view3d_draw_objects(C, &eval_ctx, scene, v3d, ar, grid_unit, true, false);
 
 	if (v3d->lay_used != lay_used) { /* happens when loading old files or loading with UI load */
 		/* find header and force tag redraw */
@@ -2170,9 +2134,9 @@ void VP_deprecated_view3d_draw_objects(
         const EvaluationContext *eval_ctx,
         Scene *scene, View3D *v3d, ARegion *ar,
         const char **grid_unit,
-        const bool do_bgpic, const bool draw_offscreen, GPUFX *fx)
+        const bool do_bgpic, const bool draw_offscreen)
 {
-	view3d_draw_objects(C, eval_ctx, scene, v3d, ar, grid_unit, do_bgpic, draw_offscreen, fx);
+	view3d_draw_objects(C, eval_ctx, scene, v3d, ar, grid_unit, do_bgpic, draw_offscreen);
 }
 
 void VP_deprecated_gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Scene *scene, View3D *v3d)

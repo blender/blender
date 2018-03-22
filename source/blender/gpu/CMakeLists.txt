@@ -55,7 +55,6 @@ set(SRC
 	intern/gpu_batch_presets.c
 	intern/gpu_buffers.c
 	intern/gpu_codegen.c
-	intern/gpu_compositing.c
 	intern/gpu_debug.c
 	intern/gpu_draw.c
 	intern/gpu_extensions.c
@@ -99,7 +98,6 @@ set(SRC
 	GPU_basic_shader.h
 	GPU_batch.h
 	GPU_buffers.h
-	GPU_compositing.h
 	GPU_debug.h
 	GPU_draw.h
 	GPU_extensions.h
@@ -222,15 +220,6 @@ data_to_c_simple(shaders/gpu_shader_vertex.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vertex_world.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_frag.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_vsm_store_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fullscreen_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_ssao_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_dof_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_dof_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_dof_hq_frag.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_dof_hq_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_dof_hq_geo.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_depth_resolve.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_fx_lib.glsl SRC)
 
 if(WITH_GAMEENGINE)
 	add_definitions(-DWITH_GAMEENGINE)

@@ -78,7 +78,6 @@
 #include "GPU_immediate_util.h"
 #include "GPU_material.h"
 #include "GPU_viewport.h"
-#include "GPU_compositing.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1988,11 +1987,10 @@ void ED_view3d_draw_offscreen(
         const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, int winx, int winy,
         float viewmat[4][4], float winmat[4][4],
-        bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
-        GPUFX *fx, GPUFXSettings *fx_settings,
+        bool do_bgpic, bool do_sky, bool UNUSED(is_persp), const char *viewname,
+        GPUFXSettings *UNUSED(fx_settings),
         GPUOffScreen *ofs, GPUViewport *viewport)
 {
-	bool do_compositing = false;
 	RegionView3D *rv3d = ar->regiondata;
 
 	/* set temporary new size */
@@ -2035,30 +2033,7 @@ void ED_view3d_draw_offscreen(
 	/* main drawing call */
 	RenderEngineType *engine_type = eval_ctx->engine_type;
 	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
-
-		/* framebuffer fx needed, we need to draw offscreen first */
-		if (v3d->fx_settings.fx_flag && fx) {
-			GPUSSAOSettings *ssao = NULL;
-
-			if (v3d->drawtype < OB_SOLID) {
-				ssao = v3d->fx_settings.ssao;
-				v3d->fx_settings.ssao = NULL;
-			}
-
-			do_compositing = GPU_fx_compositor_initialize_passes(fx, &ar->winrct, NULL, fx_settings);
-
-			if (ssao)
-				v3d->fx_settings.ssao = ssao;
-		}
-
-		VP_deprecated_view3d_draw_objects(NULL, eval_ctx, scene, v3d, ar, NULL, do_bgpic, true, do_compositing ? fx : NULL);
-
-		/* post process */
-		if (do_compositing) {
-			if (!winmat)
-				is_persp = rv3d->is_persp;
-			GPU_fx_do_composite_pass(fx, winmat, is_persp, scene, ofs);
-		}
+		VP_deprecated_view3d_draw_objects(NULL, eval_ctx, scene, v3d, ar, NULL, do_bgpic, true);
 
 		if ((v3d->flag2 & V3D_RENDER_SHADOW) == 0) {
 			/* draw grease-pencil stuff */
@@ -2104,7 +2079,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
         unsigned int flag, unsigned int draw_flags,
         int alpha_mode, int samples, const char *viewname,
         /* output vars */
-        GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
+        GPUOffScreen *ofs, char err_out[256])
 {
 	const Depsgraph *depsgraph = eval_ctx->depsgraph;
 	RegionView3D *rv3d = ar->regiondata;
@@ -2178,7 +2153,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		ED_view3d_draw_offscreen(
 		        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
-		        fx, &fx_settings, ofs, NULL);
+		        &fx_settings, ofs, NULL);
 
 		if (ibuf->rect_float) {
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, ibuf->rect_float);
@@ -2202,7 +2177,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		ED_view3d_draw_offscreen(
 		        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
-		        fx, &fx_settings, ofs, viewport);
+		        &fx_settings, ofs, viewport);
 		GPU_offscreen_read_pixels(ofs, GL_FLOAT, accum_buffer);
 
 		/* skip the first sample */
@@ -2216,7 +2191,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			ED_view3d_draw_offscreen(
 			        eval_ctx, scene, view_layer, v3d, ar, sizex, sizey, NULL, winmat_jitter,
 			        draw_background, draw_sky, !is_ortho, viewname,
-			        fx, &fx_settings, ofs, viewport);
+			        &fx_settings, ofs, viewport);
 			GPU_offscreen_read_pixels(ofs, GL_FLOAT, rect_temp);
 
 			unsigned int i = sizex * sizey * 4;
@@ -2281,7 +2256,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         Object *camera, int width, int height,
         unsigned int flag, unsigned int draw_flags, int drawtype,
         int alpha_mode, int samples, const char *viewname,
-        GPUFX *fx, GPUOffScreen *ofs, char err_out[256])
+        GPUOffScreen *ofs, char err_out[256])
 {
 	View3D v3d = {NULL};
 	ARegion ar = {NULL};
@@ -2340,7 +2315,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 
 	return ED_view3d_draw_offscreen_imbuf(
 	        eval_ctx, scene, view_layer, &v3d, &ar, width, height, flag,
-	        draw_flags, alpha_mode, samples, viewname, fx, ofs, err_out);
+	        draw_flags, alpha_mode, samples, viewname, ofs, err_out);
 }
 
 /** \} */

@@ -74,7 +74,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
 #include "GPU_glew.h"
 #include "GPU_matrix.h"
@@ -122,7 +121,6 @@ typedef struct OGLRender {
 	GPUOffScreen *ofs;
 	int ofs_samples;
 	bool ofs_full_samples;
-	GPUFX *fx;
 	int sizex, sizey;
 	int write_still;
 
@@ -365,7 +363,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
 			       &eval_ctx, scene, view_layer, v3d, ar, sizex, sizey,
 			       IB_rectfloat, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
-			       oglrender->fx, oglrender->ofs, err_out);
+			       oglrender->ofs, err_out);
 
 			/* for stamp only */
 			if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
@@ -378,7 +376,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			        &eval_ctx, scene, view_layer, scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rectfloat, draw_flags, OB_SOLID,
 			        alpha_mode, oglrender->ofs_samples, viewname,
-			        oglrender->fx, oglrender->ofs, err_out);
+			        oglrender->ofs, err_out);
 			camera = scene->camera;
 		}
 
@@ -545,7 +543,6 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
 		for (view_id = 0; view_id < oglrender->views_len; view_id++) {
 			context.view_id = view_id;
 			context.gpu_offscreen = oglrender->ofs;
-			context.gpu_fx = oglrender->fx;
 			context.gpu_full_samples = oglrender->ofs_full_samples;
 
 			oglrender->seq_data.ibufs_arr[view_id] = BKE_sequencer_give_ibuf(&context, CFRA, chanshown);
@@ -706,19 +703,6 @@ static bool screen_opengl_render_init(bContext *C, wmOperator *op)
 		/* apply immediately in case we're rendering from a script,
 		 * running notifiers again will overwrite */
 		oglrender->scene->customdata_mask |= oglrender->scene->customdata_mask_modal;
-
-		if (oglrender->v3d->fx_settings.fx_flag & (GPU_FX_FLAG_DOF | GPU_FX_FLAG_SSAO)) {
-			oglrender->fx = GPU_fx_compositor_create();
-		}
-	}
-	else if (is_sequencer) {
-		/* NOTE: We allow animation of DoF setting for flexibility in edits, so
-		 * we can't check in advance whether we need FX compositor or not.
-		 * We just always allocated it and make sure it doesn't add extra
-		 * overhead rather than memory allocation here if it's not really
-		 * needed.
-		 */
-		oglrender->fx = GPU_fx_compositor_create();
 	}
 
 	/* create render */
@@ -843,9 +827,6 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 	WM_cursor_modal_restore(oglrender->win);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, oglrender->scene);
-
-	if (oglrender->fx)
-		GPU_fx_compositor_destroy(oglrender->fx);
 
 	DRW_opengl_context_enable();
 	GPU_offscreen_free(oglrender->ofs);

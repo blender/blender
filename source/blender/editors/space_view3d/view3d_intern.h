@@ -402,6 +402,6 @@ void VP_deprecated_view3d_draw_objects(
         const struct EvaluationContext *eval_ctx,
         Scene *scene, View3D *v3d, ARegion *ar,
         const char **grid_unit,
-        const bool do_bgpic, const bool draw_offscreen, struct GPUFX *fx);
+        const bool do_bgpic, const bool draw_offscreen);
 
 #endif /* __VIEW3D_INTERN_H__ */

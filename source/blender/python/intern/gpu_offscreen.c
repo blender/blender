@@ -37,7 +37,6 @@
 
 #include "ED_screen.h"
 
-#include "GPU_compositing.h"
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
 

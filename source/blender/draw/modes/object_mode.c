@@ -83,7 +83,7 @@ extern char datatoc_object_particle_dot_frag_glsl[];
 extern char datatoc_common_globals_lib_glsl[];
 extern char datatoc_common_fxaa_lib_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
-extern char datatoc_gpu_shader_fullscreen_vert_glsl[];
+extern char datatoc_common_fullscreen_vert_glsl[];
 extern char datatoc_gpu_shader_uniform_color_frag_glsl[];
 
 /* *********** LISTS *********** */
@@ -307,7 +307,7 @@ static void OBJECT_engine_init(void *vedata)
 
 	if (!e_data.outline_resolve_aa_sh) {
 		e_data.outline_resolve_aa_sh = DRW_shader_create_with_lib(
-		            datatoc_gpu_shader_fullscreen_vert_glsl, NULL,
+		            datatoc_common_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_resolve_frag_glsl,
 		            datatoc_common_fxaa_lib_glsl,
 		            "#define FXAA_ALPHA\n"
