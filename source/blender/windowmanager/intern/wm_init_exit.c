@@ -450,12 +450,11 @@ void wm_exit_schedule_delayed(const bContext *C)
 	/* What we do here is a little bit hacky, but quite simple and doesn't require bigger
 	 * changes: Add a handler wrapping WM_exit() to cause a delayed call of it. */
 
-	wmWindowManager *wm = CTX_wm_manager(C);
-	/* Doesn't matter which window we use. */
-	wmWindow *win = wm->windows.first;
+	wmWindow *win = CTX_wm_window(C);
 
 	/* Use modal UI handler for now. Could add separate WM handlers or so, but probably not worth it. */
 	WM_event_add_ui_handler(C, &win->modalhandlers, wm_exit_handler, NULL, NULL, 0);
+	WM_event_add_mousemove(C); /* ensure handler actually gets called */
 }
 
 /**
