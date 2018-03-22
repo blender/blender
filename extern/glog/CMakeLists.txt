@@ -23,7 +23,6 @@
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
-	src
 	../gflags/src
 )
 
@@ -71,8 +70,13 @@ if(WIN32)
 
 	list(APPEND INC
 		src/windows
+		src
 	)
 else()
+	list(APPEND INC
+		src
+	)
+
 	list(APPEND SRC
 		src/demangle.cc
 		src/signalhandler.cc
