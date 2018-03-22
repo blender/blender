@@ -21,3 +21,6 @@ Local modifications:
   not trigger strict compiler warning.
 
 - Did the same for CommandLineFlagParser::ValidateFlags().
+
+- Ifdef-ed __attribute((unused)) in gflags.h.
+  This file is compile-time configurable in upstream, so can not avoid change here.
