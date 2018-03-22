@@ -584,6 +584,8 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
         if elem and elem.orig_width > 0 and elem.orig_height > 0:
             col.label(text=iface_("Original Dimension: %dx%d") % (elem.orig_width, elem.orig_height), translate=False)
+        else:
+            col.label(text="Original Dimension: None")
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
