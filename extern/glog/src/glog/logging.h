@@ -33,6 +33,11 @@
 // Pretty much everybody needs to #include this file so that they can
 // log various happenings.
 //
+
+#ifdef WIN32
+#  include "windows/glog/logging.h"
+#else  // WIN32
+
 #ifndef _LOGGING_H_
 #define _LOGGING_H_
 
@@ -1623,3 +1628,5 @@ GOOGLE_GLOG_DLL_DECL void InstallFailureWriter(
 }
 
 #endif // _LOGGING_H_
+
+#endif  // WIN32
