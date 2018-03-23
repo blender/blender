@@ -54,11 +54,13 @@ void ED_undo_paint_push_begin(int type, const char *name, UndoRestoreCb restore,
 void ED_undo_paint_push_end(int type);
 
 /* paint_image.c */
-/* image painting specific undo */
-void ED_image_undo_restore(struct bContext *C, struct ListBase *lb);
-void ED_image_undo_free(struct ListBase *lb);
 void ED_imapaint_clear_partial_redraw(void);
 void ED_imapaint_dirty_region(struct Image *ima, struct ImBuf *ibuf, int x, int y, int w, int h, bool find_old);
 void ED_imapaint_bucket_fill(struct bContext *C, float color[3], struct wmOperator *op);
+
+/* paint_image_undo.c */
+void ED_image_undo_push_begin(const char *name);
+void ED_image_undo_push_end(void);
+void ED_image_undo_restore(void);
 
 #endif /* __ED_PAINT_H__ */
