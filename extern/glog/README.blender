@@ -5,3 +5,5 @@ Upstream version: 0.3.5, a6a166db069
 Local modifications:
 * Added per-platform config.h files so no configuration-time
   checks for functions and so are needed.
+* Added special definitions of HAVE_SNPRINTF and HAVE_LIB_GFLAGS
+  in Windows' specific config.h.

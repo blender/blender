@@ -124,7 +124,7 @@ if(WITH_LIBMV)
 
 	list(APPEND INC
 		\${GFLAGS_INCLUDE_DIRS}
-		../../extern/glog/src
+		\${GLOG_INCLUDE_DIRS}
 		../../extern/ceres/include
 		../../extern/ceres/config
 		../guardedalloc

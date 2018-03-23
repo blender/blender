@@ -24,6 +24,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <gflags/gflags.h>
+
 #include "intern/logging.h"
 #include "intern/utildefines.h"
 #include "libmv/logging/logging.h"

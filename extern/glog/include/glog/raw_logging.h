@@ -33,10 +33,6 @@
 // acquire any locks, and can therefore be used by low-level memory
 // allocation and synchronization code.
 
-#ifdef WIN32
-#  include "windows/glog/raw_logging.h"
-#else  // WIN32
-
 #ifndef BASE_RAW_LOGGING_H_
 #define BASE_RAW_LOGGING_H_
 
@@ -187,5 +183,3 @@ GOOGLE_GLOG_DLL_DECL void RawLog__SetLastTime(const struct tm& t, int usecs);
 }
 
 #endif  // BASE_RAW_LOGGING_H_
-
-#endif  // WIN32

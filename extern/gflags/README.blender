@@ -17,10 +17,5 @@ Local modifications:
 - Applied some modifications from fork https://github.com/Nazg-Gul/gflags.git
   (see https://github.com/gflags/gflags/pull/129)
 
-- Made `google::{anonymous}::FlagValue::ValueSize() const` inlined, so it does
-  not trigger strict compiler warning.
-
-- Did the same for CommandLineFlagParser::ValidateFlags().
-
 - Ifdef-ed __attribute((unused)) in gflags.h.
   This file is compile-time configurable in upstream, so can not avoid change here.
