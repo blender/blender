@@ -82,7 +82,7 @@ void		wm_window_IME_end	(wmWindow *win);
 /* *************** window operators ************** */
 int			wm_window_close_exec(bContext *C, struct wmOperator *op);
 int			wm_window_fullscreen_toggle_exec(bContext *C, struct wmOperator *op);
-void		wm_confirm_quit(bContext *C);
+void		wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win) ATTR_NONNULL();
 
 const struct EnumPropertyItem *wm_window_new_screen_itemf(
         bContext *C, struct PointerRNA *ptr, struct PropertyRNA *prop, bool *r_free);

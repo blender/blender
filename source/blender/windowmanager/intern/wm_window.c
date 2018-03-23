@@ -438,18 +438,46 @@ static uiBlock *block_create_confirm_quit(struct bContext *C, struct ARegion *ar
 }
 
 
-/** Call the confirm dialog on quitting. */
-void wm_confirm_quit(bContext *C)
+/**
+ * Call the confirm dialog on quitting. It's displayed in the context window so
+ * caller should set it as desired.
+ */
+static void wm_confirm_quit(bContext *C)
+{
+	wmWindow *win = CTX_wm_window(C);
+
+	if (GHOST_SupportsNativeDialogs() == 0) {
+		UI_popup_block_invoke(C, block_create_confirm_quit, NULL);
+	}
+	else if (GHOST_confirmQuit(win->ghostwin)) {
+		wm_exit_schedule_delayed(C);
+	}
+}
+
+/**
+ * Call the quit confirmation prompt or exit directly if needed. The use can
+ * still cancel via the confirmation popup. Also, this may not quit Blender
+ * immediately, but rather schedule the closing.
+ *
+ * \param win The window to show the confirmation popup/window in.
+ */
+void wm_quit_with_optional_confirmation_prompt(bContext *C, wmWindow *win)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *win_ctx = CTX_wm_window(C);
 
-	/* The popup needs to have a window set in context to show up since
-	 * it's being called outside the normal operator event handling loop */
-	if (wm->winactive) {
-		CTX_wm_window_set(C, wm->winactive);
+	/* The popup will be displayed in the context window which may not be set
+	 * here (this function gets called outside of normal event handling loop). */
+	CTX_wm_window_set(C, win);
+
+	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved && !G.background) {
+		wm_confirm_quit(C);
+	}
+	else {
+		wm_exit_schedule_delayed(C);
 	}
 
-	UI_popup_block_invoke(C, block_create_confirm_quit, NULL);
+	CTX_wm_window_set(C, win_ctx);
 }
 
 /** \} */
@@ -458,7 +486,6 @@ void wm_confirm_quit(bContext *C)
 void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 {
 	wmWindow *tmpwin;
-	bool do_exit = false;
 	
 	/* first check if we have to quit (there are non-temp remaining windows) */
 	for (tmpwin = wm->windows.first; tmpwin; tmpwin = tmpwin->next) {
@@ -468,23 +495,8 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 			break;
 	}
 
-	if (tmpwin == NULL)
-		do_exit = 1;
-
-	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved && !G.background && do_exit) {
-		/* We have unsaved changes and we're quitting */
-		if(GHOST_SupportsNativeDialogs() == 0) {
-			wm_confirm_quit(C);
-		}
-		else {
-			if (!GHOST_confirmQuit(win->ghostwin))
-				return;
-		}
-	}
-	else if (do_exit) {
-		/* No changes but we're quitting */
-		/* let WM_exit do all freeing, for correct quit.blend save */
-		WM_exit(C);
+	if (tmpwin == NULL) {
+		wm_quit_with_optional_confirmation_prompt(C, win);
 	}
 	else {
 		bScreen *screen = WM_window_get_active_screen(win);

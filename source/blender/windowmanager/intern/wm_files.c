@@ -2128,7 +2128,7 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
 
 	if (RNA_boolean_get(op->ptr, "exit")) {
-		WM_exit(C);
+		wm_exit_schedule_delayed(C);
 	}
 
 	return OPERATOR_FINISHED;

@@ -2315,18 +2315,9 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 }
 
-static int wm_exit_blender_exec(bContext *C, wmOperator *op)
+static int wm_exit_blender_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-
-	if ((U.uiflag & USER_QUIT_PROMPT) && !wm->file_saved) {
-		wm_confirm_quit(C);
-	}
-	else {
-		WM_operator_free(op);
-		WM_exit(C);
-	}
-
+	wm_quit_with_optional_confirmation_prompt(C, CTX_wm_window(C));
 	return OPERATOR_FINISHED;
 }
 

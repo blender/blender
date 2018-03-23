@@ -3226,7 +3226,7 @@ static void WM_event_remove_handler(ListBase *handlers, wmEventHandler *handler)
 }
 #endif
 
-void WM_event_add_mousemove(bContext *C)
+void WM_event_add_mousemove(const bContext *C)
 {
 	wmWindow *window = CTX_wm_window(C);
 	

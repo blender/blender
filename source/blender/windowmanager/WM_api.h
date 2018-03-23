@@ -220,7 +220,7 @@ enum {
 struct wmEventHandler *WM_event_add_dropbox_handler(ListBase *handlers, ListBase *dropboxes);
 
 			/* mouse */
-void		WM_event_add_mousemove(struct bContext *C);
+void		WM_event_add_mousemove(const struct bContext *C);
 bool		WM_event_is_modal_tweak_exit(const struct wmEvent *event, int tweak_event);
 bool		WM_event_is_last_mousemove(const struct wmEvent *event);
 

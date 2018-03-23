@@ -45,6 +45,9 @@ typedef struct wmPaintCursor {
 	void (*draw)(bContext *C, int, int, void *customdata);
 } wmPaintCursor;
 
+
+void wm_exit_schedule_delayed(const bContext *C);
+
 extern void wm_close_and_free(bContext *C, wmWindowManager *);
 extern void wm_close_and_free_all(bContext *C, ListBase *);
 
