@@ -330,8 +330,9 @@ bool paint_use_opacity_masking(Brush *brush)
 	            false : true;
 }
 
-void paint_brush_color_get(struct Scene *scene, struct Brush *br, bool color_correction, bool invert, float distance,
-                           float pressure, float color[3], struct ColorManagedDisplay *display)
+void paint_brush_color_get(
+        struct Scene *scene, struct Brush *br, bool color_correction, bool invert, float distance,
+        float pressure, float color[3], struct ColorManagedDisplay *display)
 {
 	if (invert)
 		copy_v3_v3(color, BKE_brush_secondary_color_get(scene, br));

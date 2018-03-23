@@ -17,7 +17,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/sculpt_paint/image_undo.c
+/** \file blender/editors/sculpt_paint/paint_image_undo.c
  *  \ingroup edsculpt
  */
 
@@ -160,7 +160,9 @@ void *image_undo_find_tile(Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsi
 	return NULL;
 }
 
-void *image_undo_push_tile(Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile, unsigned short **mask, bool **valid, bool proj, bool find_prev)
+void *image_undo_push_tile(
+        Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile,
+        unsigned short **mask, bool **valid, bool proj, bool find_prev)
 {
 	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
 	UndoImageTile *tile;
