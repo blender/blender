@@ -1317,8 +1317,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine_type);
 
 	/* set default viewport */
-	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
-	glDisable(GL_SCISSOR_TEST);
 	glViewport(0, 0, size[0], size[1]);
 
 	/* Main rendering. */
@@ -1357,16 +1355,6 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	/* TODO grease pencil */
 
 	GPU_viewport_free(DST.viewport);
-
-	DRW_state_reset();
-	/* FIXME GL_DEPTH_TEST is enabled by default but it seems
-	 * to trigger some bad behaviour / artifacts if it's turned
-	 * on at this point. */
-	glDisable(GL_DEPTH_TEST);
-
-	/* Restore Drawing area. */
-	gpuPopAttrib();
-	glEnable(GL_SCISSOR_TEST);
 	GPU_framebuffer_restore();
 
 	/* Changing Context */
@@ -1467,9 +1455,6 @@ void DRW_draw_select_loop(
 		}
 	}
 
-	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
-	glDisable(GL_SCISSOR_TEST);
-
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)});
 
@@ -1538,7 +1523,6 @@ void DRW_draw_select_loop(
 	DRW_state_reset();
 	DRW_draw_callbacks_pre_scene();
 
-
 	DRW_state_lock(
 	        DRW_STATE_WRITE_DEPTH |
 	        DRW_STATE_DEPTH_ALWAYS |
@@ -1575,10 +1559,6 @@ void DRW_draw_select_loop(
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
-
-	/* Restore Drawing area. */
-	gpuPopAttrib();
-	glEnable(GL_SCISSOR_TEST);
 
 	/* restore */
 	rv3d->viewport = backup_viewport;
@@ -1641,9 +1621,6 @@ void DRW_draw_depth_loop(
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, offsetof(DRWManager, ogl_context));
-
-	gpuPushAttrib(GPU_ENABLE_BIT | GPU_VIEWPORT_BIT);
-	glDisable(GL_SCISSOR_TEST);
 
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){ar->winx, ar->winy});
@@ -1719,10 +1696,6 @@ void DRW_draw_depth_loop(
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
-
-	/* Restore Drawing area. */
-	gpuPopAttrib();
-	glEnable(GL_SCISSOR_TEST);
 
 	/* Changin context */
 	DRW_opengl_context_disable();
