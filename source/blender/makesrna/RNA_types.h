@@ -158,7 +158,7 @@ typedef enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 3, 9, 11, 13, 14, 15, 30 */
+ * FREE FLAGS: 9, 11, 13, 14, 15, 30 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -178,6 +178,10 @@ typedef enum PropertyFlag {
 
 	/* Means the property can be overriden by a local 'proxy' of some linked datablock. */
 	PROP_OVERRIDABLE_STATIC      = (1 << 2),
+
+	/* Forbid usage of this property in comparison (& hence override) code.
+	 * Useful e.g. for collections of data like mesh's geometry, particles, etc. */
+	PROP_NO_COMPARISON           = (1 << 3),
 
 	/* This flag means when the property's widget is in 'textedit' mode, it will be updated
 	 * after every typed char, instead of waiting final validation. Used e.g. for text searchbox.

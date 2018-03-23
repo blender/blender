@@ -1843,7 +1843,7 @@ bool RNA_property_editable(PointerRNA *ptr, PropertyRNA *prop)
 	return ((flag & PROP_EDITABLE) &&
 	        (flag & PROP_REGISTER) == 0 &&
 	        (!id || ((!ID_IS_LINKED(id) || (prop->flag & PROP_LIB_EXCEPTION)) &&
-	                 (!id->override_static || (prop->flag & PROP_OVERRIDABLE_STATIC)))));
+	                 (!id->override_static || RNA_property_overridable(ptr, prop)))));
 }
 
 /**
@@ -1876,7 +1876,7 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
 			}
 			return false;
 		}
-		if (id->override_static != NULL && (prop->flag & PROP_OVERRIDABLE_STATIC) == 0) {
+		if (id->override_static != NULL && !RNA_property_overridable(ptr, prop)) {
 			if (!(*r_info)[0]) {
 				*r_info = "Can't edit this property from an override data-block.";
 			}
@@ -1953,6 +1953,34 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 	}
 
 	return false;
+}
+
+/** \note Does not take into account editable status, this has to be checked separately
+ * (using RNA_property_edtiable_flag() usually). */
+bool RNA_property_overridable(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+{
+	prop = rna_ensure_property(prop);
+
+	return !(prop->flag & PROP_NO_COMPARISON) && (prop->flag & PROP_OVERRIDABLE_STATIC);
+}
+
+bool RNA_property_overridden(PointerRNA *ptr, PropertyRNA *prop)
+{
+	char *rna_path = RNA_path_from_ID_to_property(ptr, prop);
+	ID *id = ptr->id.data;
+
+	if (rna_path == NULL || id == NULL || id->override_static == NULL) {
+		return false;
+	}
+
+	return (BKE_override_static_property_find(id->override_static, rna_path) != NULL);
+}
+
+bool RNA_property_comparable(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+{
+	prop = rna_ensure_property(prop);
+
+	return !(prop->flag & PROP_NO_COMPARISON);
 }
 
 /* this function is to check if its possible to create a valid path from the ID
@@ -7168,6 +7196,10 @@ static int rna_property_override_diff(
 		return (prop_a == prop_b) ? 0 : 1;
 	}
 
+	if (!RNA_property_comparable(ptr_a, prop_a) || !RNA_property_comparable(ptr_b, prop_b)) {
+		return 0;
+	}
+
 	if (mode == RNA_EQ_UNSET_MATCH_ANY) {
 		/* uninitialized properties are assumed to match anything */
 		if (!RNA_property_is_set(ptr_a, prop_a) || !RNA_property_is_set(ptr_b, prop_b)) {
@@ -7245,7 +7277,7 @@ static int rna_property_override_diff(
 
 	bool override_changed = false;
 	int diff_flags = flags;
-	if ((RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC) == 0) {
+	if (!RNA_property_overridable(ptr_a, prop_a)) {
 		diff_flags &= ~RNA_OVERRIDE_COMPARE_CREATE;
 	}
 	const int diff = override_diff(
@@ -7431,7 +7463,7 @@ bool RNA_struct_override_matches(
 			continue;
 		}
 
-		if (ignore_non_overridable && !(prop_local->flag & PROP_OVERRIDABLE_STATIC)) {
+		if (ignore_non_overridable && !RNA_property_overridable(ptr_local, prop_local)) {
 			continue;
 		}
 
@@ -7690,7 +7722,7 @@ eRNAOverrideStatus RNA_property_override_status(PointerRNA *ptr, PropertyRNA *pr
 		return override_status;
 	}
 
-	if ((prop->flag & PROP_OVERRIDABLE_STATIC) && (prop->flag & PROP_EDITABLE)) {
+	if (RNA_property_overridable(ptr, prop) && RNA_property_editable_flag(ptr, prop)) {
 		override_status |= RNA_OVERRIDE_STATUS_OVERRIDABLE;
 	}
 
