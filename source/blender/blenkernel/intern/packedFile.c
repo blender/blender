@@ -354,16 +354,15 @@ int writePackedFile(ReportList *reports, const char *filename, PackedFile *pf, i
 
 	return (ret_value);
 }
-	
-/*
+
+/**
  * This function compares a packed file to a 'real' file.
  * It returns an integer indicating if:
  *
- * PF_EQUAL		- the packed file and original file are identical
- * PF_DIFFERENT	- the packed file and original file differ
- * PF_NOFILE	- the original file doens't exist
+ * - PF_EQUAL:     the packed file and original file are identical
+ * - PF_DIFFERENT: the packed file and original file differ
+ * - PF_NOFILE:    the original file doens't exist
  */
-
 int checkPackedFile(const char *filename, PackedFile *pf)
 {
 	BLI_stat_t st;

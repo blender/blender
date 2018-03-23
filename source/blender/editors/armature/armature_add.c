@@ -1029,7 +1029,7 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	
 	ED_armature_deselect_all(obedit);
 	
-	/*	Create a bone	*/
+	/*	Create a bone */
 	bone = ED_armature_edit_bone_add(obedit->data, name);
 
 	copy_v3_v3(bone->head, curs);

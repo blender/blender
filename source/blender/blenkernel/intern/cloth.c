@@ -641,7 +641,7 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
  **/
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3])
 {
-	unsigned int	i = 0;
+	unsigned int i = 0;
 	Cloth *cloth = clmd->clothObject;
 
 	if (clmd->clothObject) {

@@ -231,7 +231,7 @@ void ED_pose_de_selectall(Object *ob, int select_mode, const bool ignore_visibil
 		return;
 	}
 	
-	/*	Determine if we're selecting or deselecting	*/
+	/* Determine if we're selecting or deselecting */
 	if (select_mode == SEL_TOGGLE) {
 		select_mode = SEL_SELECT;
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {

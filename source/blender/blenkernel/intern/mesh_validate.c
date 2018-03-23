@@ -63,8 +63,8 @@ typedef union {
 } EdgeUUID;
 
 typedef struct SortFace {
-	EdgeUUID		es[4];
-	unsigned int	index;
+	EdgeUUID     es[4];
+	unsigned int index;
 } SortFace;
 
 /* Used to detect polys (faces) using exactly the same vertices. */
@@ -127,28 +127,28 @@ static int search_face_cmp(const void *v1, const void *v2)
 	if (sfa->es[0].edval > sfb->es[0].edval) {
 		return 1;
 	}
-	else if	(sfa->es[0].edval < sfb->es[0].edval) {
+	else if (sfa->es[0].edval < sfb->es[0].edval) {
 		return -1;
 	}
 
-	else if	(sfa->es[1].edval > sfb->es[1].edval) {
+	else if (sfa->es[1].edval > sfb->es[1].edval) {
 		return 1;
 	}
-	else if	(sfa->es[1].edval < sfb->es[1].edval) {
+	else if (sfa->es[1].edval < sfb->es[1].edval) {
 		return -1;
 	}
 
-	else if	(sfa->es[2].edval > sfb->es[2].edval) {
+	else if (sfa->es[2].edval > sfb->es[2].edval) {
 		return 1;
 	}
-	else if	(sfa->es[2].edval < sfb->es[2].edval) {
+	else if (sfa->es[2].edval < sfb->es[2].edval) {
 		return -1;
 	}
 
-	else if	(sfa->es[3].edval > sfb->es[3].edval) {
+	else if (sfa->es[3].edval > sfb->es[3].edval) {
 		return 1;
 	}
-	else if	(sfa->es[3].edval < sfb->es[3].edval) {
+	else if (sfa->es[3].edval < sfb->es[3].edval) {
 		return -1;
 	}
 

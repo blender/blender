@@ -1947,7 +1947,7 @@ static int edbm_do_smooth_laplacian_vertex_exec(bContext *C, wmOperator *op)
 	BMIter fiter;
 	BMFace *f;
 
-	/* Check if select faces are triangles	*/
+	/* Check if select faces are triangles */
 	BM_ITER_MESH (f, &fiter, em->bm, BM_FACES_OF_MESH) {
 		if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
 			if (f->len > 4) {

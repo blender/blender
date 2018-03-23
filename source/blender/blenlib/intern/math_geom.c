@@ -3748,7 +3748,7 @@ void orthographic_m4(float matrix[4][4], const float left, const float right, co
 	matrix[3][0] = -(right + left) / Xdelta;
 	matrix[1][1] = 2.0f / Ydelta;
 	matrix[3][1] = -(top + bottom) / Ydelta;
-	matrix[2][2] = -2.0f / Zdelta; /* note: negate Z	*/
+	matrix[2][2] = -2.0f / Zdelta; /* note: negate Z */
 	matrix[3][2] = -(farClip + nearClip) / Zdelta;
 }
 
@@ -3767,7 +3767,7 @@ void perspective_m4(float mat[4][4], const float left, const float right, const 
 	}
 	mat[0][0] = nearClip * 2.0f / Xdelta;
 	mat[1][1] = nearClip * 2.0f / Ydelta;
-	mat[2][0] = (right + left) / Xdelta; /* note: negate Z	*/
+	mat[2][0] = (right + left) / Xdelta; /* note: negate Z */
 	mat[2][1] = (top + bottom) / Ydelta;
 	mat[2][2] = -(farClip + nearClip) / Zdelta;
 	mat[2][3] = -1.0f;

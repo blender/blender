@@ -602,7 +602,7 @@ void ED_armature_from_edit(bArmature *arm)
 		if (len_sq <= SQUARE(0.000001f)) {  /* FLT_EPSILON is too large? */
 			EditBone *fBone;
 			
-			/*	Find any bones that refer to this bone	*/
+			/* Find any bones that refer to this bone */
 			for (fBone = arm->edbo->first; fBone; fBone = fBone->next) {
 				if (fBone->parent == eBone)
 					fBone->parent = eBone->parent;

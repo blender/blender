@@ -176,12 +176,6 @@ typedef struct ImagePaintPartialRedraw {
 #define IMAPAINT_TILE_NUMBER(size)  (((size) + IMAPAINT_TILE_SIZE - 1) >> IMAPAINT_TILE_BITS)
 
 int image_texture_paint_poll(struct bContext *C);
-void *image_undo_find_tile(struct Image *ima, struct ImBuf *ibuf, int x_tile, int y_tile, unsigned short **mask, bool validate);
-void *image_undo_push_tile(struct Image *ima, struct ImBuf *ibuf, struct ImBuf **tmpibuf, int x_tile, int y_tile,  unsigned short **, bool **valid, bool proj, bool find_prev);
-void image_undo_remove_masks(void);
-void image_undo_init_locks(void);
-void image_undo_end_locks(void);
-
 void imapaint_image_update(struct SpaceImage *sima, struct Image *image, struct ImBuf *ibuf, short texpaint);
 struct ImagePaintPartialRedraw *get_imapaintpartial(void);
 void set_imapaintpartial(struct ImagePaintPartialRedraw *ippr);
@@ -190,15 +184,25 @@ int get_imapaint_zoom(struct bContext *C, float *zoomx, float *zoomy);
 void *paint_2d_new_stroke(struct bContext *, struct wmOperator *, int mode);
 void paint_2d_redraw(const struct bContext *C, void *ps, bool final);
 void paint_2d_stroke_done(void *ps);
-void paint_2d_stroke(void *ps, const float prev_mval[2], const float mval[2], const bool eraser, float pressure, float distance, float size);
-void paint_2d_bucket_fill(const struct bContext *C, const float color[3], struct Brush *br, const float mouse_init[2], void *ps);
-void paint_2d_gradient_fill(const struct bContext *C, struct Brush *br, const float mouse_init[2], const float mouse_final[2], void *ps);
-void *paint_proj_new_stroke(struct bContext *C, struct Object *ob, const float mouse[2], int mode);
-void paint_proj_stroke(const struct bContext *C, void *ps, const float prevmval_i[2], const float mval_i[2], const bool eraser, float pressure, float distance, float size);
+void paint_2d_stroke(
+        void *ps, const float prev_mval[2], const float mval[2],
+        const bool eraser, float pressure, float distance, float size);
+void paint_2d_bucket_fill(
+        const struct bContext *C, const float color[3], struct Brush *br, const float mouse_init[2], void *ps);
+void paint_2d_gradient_fill(
+        const struct bContext *C, struct Brush *br, const float mouse_init[2], const float mouse_final[2], void *ps);
+void *paint_proj_new_stroke(
+        struct bContext *C, struct Object *ob, const float mouse[2], int mode);
+void paint_proj_stroke(
+        const struct bContext *C, void *ps, const float prevmval_i[2], const float mval_i[2],
+        const bool eraser, float pressure, float distance, float size);
 void paint_proj_redraw(const struct bContext *C, void *pps, bool final);
 void paint_proj_stroke_done(void *ps);
 
-void paint_brush_color_get(struct Scene *scene, struct Brush *br, bool color_correction, bool invert, float distance, float pressure, float color[3], struct ColorManagedDisplay *display);
+void paint_brush_color_get(
+        struct Scene *scene, struct Brush *br,
+        bool color_correction, bool invert, float distance, float pressure, float color[3],
+        struct ColorManagedDisplay *display);
 bool paint_use_opacity_masking(struct Brush *brush);
 void paint_brush_init_tex(struct Brush *brush);
 void paint_brush_exit_tex(struct Brush *brush);
@@ -214,7 +218,18 @@ void PAINT_OT_delete_texture_paint_slot(struct wmOperatorType *ot);
 void PAINT_OT_image_paint(struct wmOperatorType *ot);
 void PAINT_OT_add_simple_uvs(struct wmOperatorType *ot);
 
-/* uv sculpting */
+/* paint_image_undo.c */
+void *image_undo_find_tile(
+        struct Image *ima, struct ImBuf *ibuf, int x_tile, int y_tile,
+        unsigned short **mask, bool validate);
+void *image_undo_push_tile(
+        struct Image *ima, struct ImBuf *ibuf, struct ImBuf **tmpibuf, int x_tile, int y_tile,
+        unsigned short **, bool **valid, bool proj, bool find_prev);
+void image_undo_remove_masks(void);
+void image_undo_init_locks(void);
+void image_undo_end_locks(void);
+
+/* sculpt_uv.c */
 int uv_sculpt_poll(struct bContext *C);
 int uv_sculpt_keymap_poll(struct bContext *C);
 
