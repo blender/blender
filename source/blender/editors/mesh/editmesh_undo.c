@@ -247,7 +247,7 @@ static void um_arraystore_cd_free(BArrayCustomData *bcd)
 		BArrayCustomData *bcd_next = bcd->next;
 		const int stride = CustomData_sizeof(bcd->type);
 		BArrayStore *bs = BLI_array_store_at_size_get(&um_arraystore.bs_stride, stride);
-		for (int i = 0; i <		bcd->states_len; i++) {
+		for (int i = 0; i < bcd->states_len; i++) {
 			if (bcd->states[i]) {
 				BLI_array_store_state_remove(bs, bcd->states[i]);
 			}

@@ -803,7 +803,7 @@ static void distribute_invalid(Scene *scene, ParticleSystem *psys, int from)
 	}
 }
 
-/* Creates a distribution of coordinates on a DerivedMesh	*/
+/* Creates a distribution of coordinates on a DerivedMesh */
 /* This is to denote functionality that does not yet work with mesh - only derived mesh */
 static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, ParticleSimulationData *sim, int from)
 {
@@ -953,9 +953,9 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		return 0;
 	}
 
-	element_weight	= MEM_callocN(sizeof(float)*totelem, "particle_distribution_weights");
-	particle_element= MEM_callocN(sizeof(int)*totpart, "particle_distribution_indexes");
-	jitter_offset	= MEM_callocN(sizeof(float)*totelem, "particle_distribution_jitoff");
+	element_weight   = MEM_callocN(sizeof(float) * totelem, "particle_distribution_weights");
+	particle_element = MEM_callocN(sizeof(int) * totpart, "particle_distribution_indexes");
+	jitter_offset    = MEM_callocN(sizeof(float) * totelem, "particle_distribution_jitoff");
 
 	/* Calculate weights from face areas */
 	if ((part->flag&PART_EDISTR || children) && from != PART_FROM_VERT) {

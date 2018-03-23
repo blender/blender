@@ -8104,7 +8104,7 @@ static const char *dataname(short id_code)
 		case ID_WO: return "Data from WO";
 		case ID_SCR: return "Data from SCR";
 		case ID_VF: return "Data from VF";
-		case ID_TXT	: return "Data from TXT";
+		case ID_TXT: return "Data from TXT";
 		case ID_SPK: return "Data from SPK";
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";

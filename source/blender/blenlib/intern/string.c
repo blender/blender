@@ -931,13 +931,13 @@ size_t BLI_str_partition_ex(
 		if (end) {
 			if (from_right) {
 				for (tmp = end - 1; (tmp >= str) && (*tmp != *d); tmp--);
-				if (tmp	< str) {
+				if (tmp < str) {
 					tmp = NULL;
 				}
 			}
 			else {
 				tmp = func(str, *d);
-				if (tmp	>= end) {
+				if (tmp >= end) {
 					tmp = NULL;
 				}
 			}

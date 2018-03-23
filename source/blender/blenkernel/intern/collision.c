@@ -178,8 +178,8 @@ static void collision_compute_barycentric ( float pv[3], float p1[3], float p2[3
 	/* dot_v3v3 */
 #define INPR(v1, v2) ( (v1)[0] * (v2)[0] + (v1)[1] * (v2)[1] + (v1)[2] * (v2)[2])
 
-	double	tempV1[3], tempV2[3], tempV4[3];
-	double	a, b, c, d, e, f;
+	double tempV1[3], tempV2[3], tempV4[3];
+	double a, b, c, d, e, f;
 
 	VECSUB ( tempV1, p1, p3 );
 	VECSUB ( tempV2, p2, p3 );

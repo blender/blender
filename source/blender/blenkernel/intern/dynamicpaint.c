@@ -54,7 +54,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
-#include "BKE_bvhutils.h"   /* bvh tree	*/
+#include "BKE_bvhutils.h"   /* bvh tree */
 #include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_constraint.h"
@@ -4518,7 +4518,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 	 */
 	tree = BLI_kdtree_new(psys->totpart);
 
-	/* loop through particles and insert valid ones	to the tree	*/
+	/* loop through particles and insert valid ones to the tree */
 	p = 0;
 	for (ParticleData *pa = psys->particles; p < psys->totpart; p++, pa++) {
 		/* Proceed only if particle is active	*/

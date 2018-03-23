@@ -620,7 +620,7 @@ void BKE_screen_view3d_twmode_remove(View3D *v3d, const int i)
 {
 	const int selected_index = (v3d->twmode - V3D_MANIP_CUSTOM);
 	if (selected_index == i) {
-		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
+		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global */
 	}
 	else if (selected_index > i) {
 		v3d->twmode--;

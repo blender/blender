@@ -70,7 +70,7 @@ void BIF_clearTransformOrientation(bContext *C)
 	
 	// Need to loop over all view3d
 	if (v3d && v3d->twmode >= V3D_MANIP_CUSTOM) {
-		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
+		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global */
 	}
 }
 
@@ -919,7 +919,7 @@ int getTransformOrientation_ex(const bContext *C, float normal[3], float plane[3
 								}
 								else if (is_next_sel) {
 									/* A segment, add the edge normal */
-									sub_v3_v3v3(tvec, bp->vec, bp_next->vec	);
+									sub_v3_v3v3(tvec, bp->vec, bp_next->vec);
 									normalize_v3(tvec);
 									add_v3_v3(normal, tvec);
 								}
