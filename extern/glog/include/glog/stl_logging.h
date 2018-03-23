@@ -44,10 +44,6 @@
 // - GLOG_STL_LOGGING_FOR_EXT_SLIST     - <ext/slist>
 //
 
-#ifdef WIN32
-#  include "windows/glog/stl_logging.h"
-#else  // WIN32
-
 #ifndef UTIL_GTL_STL_LOGGING_INL_H_
 #define UTIL_GTL_STL_LOGGING_INL_H_
 
@@ -222,5 +218,3 @@ inline void PrintSequence(std::ostream& out, Iter begin, Iter end) {
 namespace std { using ::operator<<; }
 
 #endif  // UTIL_GTL_STL_LOGGING_INL_H_
-
-#endif  // WIN32

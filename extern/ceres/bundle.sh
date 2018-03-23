@@ -129,6 +129,8 @@ set(INC
 
 set(INC_SYS
 	\${EIGEN3_INCLUDE_DIRS}
+	\${GFLAGS_INCLUDE_DIRS}
+	\${GLOG_INCLUDE_DIRS}
 )
 
 set(SRC
@@ -143,16 +145,6 @@ ${generated_sources}
 	)
 else()
 	add_definitions(-DCERES_RESTRICT_SCHUR_SPECIALIZATION)
-endif()
-
-if(WIN32)
-	list(APPEND INC
-		../glog/src/windows
-	)
-else()
-	list(APPEND INC
-		../glog/src
-	)
 endif()
 
 add_definitions(\${GFLAGS_DEFINES})
