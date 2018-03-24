@@ -121,6 +121,49 @@
  *
  */
 
+
+/* Undo opcodes */
+
+enum {
+	/* Complex editing */
+	/* 1 - opcode is followed by 1 byte for ascii character and opcode (repeat)) */
+	/* 2 - opcode is followed by 2 bytes for utf-8 character and opcode (repeat)) */
+	/* 3 - opcode is followed by 3 bytes for utf-8 character and opcode (repeat)) */
+	/* 4 - opcode is followed by 4 bytes for unicode character and opcode (repeat)) */
+	UNDO_INSERT_1   = 013,
+	UNDO_INSERT_2   = 014,
+	UNDO_INSERT_3   = 015,
+	UNDO_INSERT_4   = 016,
+
+	UNDO_BS_1       = 017,
+	UNDO_BS_2       = 020,
+	UNDO_BS_3       = 021,
+	UNDO_BS_4       = 022,
+
+	UNDO_DEL_1      = 023,
+	UNDO_DEL_2      = 024,
+	UNDO_DEL_3      = 025,
+	UNDO_DEL_4      = 026,
+
+	/* Text block (opcode is followed
+	 * by 4 character length ID + the text
+	 * block itself + the 4 character length
+	 * ID (repeat) and opcode (repeat)) */
+	UNDO_DBLOCK     = 027, /* Delete block */
+	UNDO_IBLOCK     = 030, /* Insert block */
+
+	/* Misc */
+	UNDO_INDENT     = 032,
+	UNDO_UNINDENT   = 033,
+	UNDO_COMMENT    = 034,
+	UNDO_UNCOMMENT  = 035,
+
+	UNDO_MOVE_LINES_UP      = 036,
+	UNDO_MOVE_LINES_DOWN    = 037,
+
+	UNDO_DUPLICATE  = 040,
+};
+
 /***/
 
 static void txt_pop_first(Text *text);
