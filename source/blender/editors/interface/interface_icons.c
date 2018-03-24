@@ -1027,6 +1027,7 @@ static void icon_draw_texture(
 	y1 = iy * icongltex.invh;
 	y2 = (iy + ih) * icongltex.invh;
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);

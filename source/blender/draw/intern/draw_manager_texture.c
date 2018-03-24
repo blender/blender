@@ -120,7 +120,7 @@ void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
 	GPU_texture_bind(tex, 0);
 	if (flags & DRW_TEX_MIPMAP) {
 		GPU_texture_mipmap_mode(tex, true, flags & DRW_TEX_FILTER);
-		DRW_texture_generate_mipmaps(tex);
+		GPU_texture_generate_mipmap(tex);
 	}
 	else {
 		GPU_texture_filter_mode(tex, flags & DRW_TEX_FILTER);

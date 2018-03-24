@@ -338,6 +338,7 @@ static int load_tex(Brush *br, ViewContext *vc, float zoom, bool col, bool prima
 		size = target->old_size;
 	}
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, target->overlay_texture);
 
 	if (refresh) {
@@ -464,6 +465,7 @@ static int load_tex_cursor(Brush *br, ViewContext *vc, float zoom)
 		size = cursor_snap.size;
 	}
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, cursor_snap.overlay_texture);
 
 	if (refresh) {
@@ -767,7 +769,7 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		/* draw textured quad */
 
 		/* draw textured quad */
-		immUniform1i("image", GL_TEXTURE0);
+		immUniform1i("image", 0);
 
 		immBegin(GWN_PRIM_TRI_FAN, 4);
 		immAttrib2f(texCoord, 0.0f, 0.0f);

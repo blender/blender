@@ -1131,6 +1131,7 @@ static void draw_plane_marker_image(Scene *scene,
 
 			glGenTextures(1, (GLuint *)&texid);
 
+			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, texid);
 
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1148,7 +1149,7 @@ static void draw_plane_marker_image(Scene *scene,
 
 			immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 			immUniformColor4f(1.0f, 1.0f, 1.0f, plane_track->image_opacity);
-			immUniform1i("image", GL_TEXTURE0);
+			immUniform1i("image", 0);
 
 			immBegin(GWN_PRIM_TRI_FAN, 4);
 

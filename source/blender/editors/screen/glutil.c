@@ -198,6 +198,7 @@ void immDrawPixelsTexScaled_clipping(IMMDrawPixelsTexState *state,
 	glGetIntegerv(GL_UNPACK_ROW_LENGTH, &unpack_row_length);
 
 	glPixelStorei(GL_UNPACK_ROW_LENGTH, img_w);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texid);
 
 	/* don't want nasty border artifacts */

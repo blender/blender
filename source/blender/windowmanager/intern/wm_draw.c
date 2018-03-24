@@ -505,8 +505,6 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	immUnbindProgram();
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-	if (activeTex != 0)
-		glActiveTexture(GL_TEXTURE0);
 }
 
 static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)

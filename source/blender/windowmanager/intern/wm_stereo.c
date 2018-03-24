@@ -204,6 +204,7 @@ static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
+	glActiveTexture(GL_TEXTURE0);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
@@ -266,6 +267,7 @@ static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
+	glActiveTexture(GL_TEXTURE0);
 
 	for (view = 0; view < 2; view ++) {
 		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);

@@ -755,8 +755,6 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		immEnd();
 
 		immUnbindProgram();
-
-		glBindTexture(GL_TEXTURE_2D, 0); /* necessary? */
 	}
 
 	/* Draw the image outline */

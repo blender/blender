@@ -410,6 +410,8 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	if ((!g->width) || (!g->height))
 		return;
 
+	glActiveTexture(GL_TEXTURE0);
+
 	if (g->build_tex == 0) {
 		GlyphCacheBLF *gc = font->glyph_cache;
 

@@ -1309,6 +1309,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 
 	glGenTextures(1, (GLuint *)&texid);
 
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texid);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -1322,7 +1323,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	if (!glsl_used) {
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
 		immUniformColor3f(1.0f, 1.0f, 1.0f);
-		immUniform1i("image", GL_TEXTURE0);
+		immUniform1i("image", 0);
 	}
 
 	immBegin(GWN_PRIM_TRI_FAN, 4);

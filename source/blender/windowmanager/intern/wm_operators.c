@@ -2504,6 +2504,7 @@ static void radial_control_set_tex(RadialControl *rc)
 				glBindTexture(GL_TEXTURE_2D, rc->gltex);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, ibuf->x, ibuf->y, 0,
 				             GL_RED, GL_FLOAT, ibuf->rect_float);
+				glBindTexture(GL_TEXTURE_2D, 0);
 				MEM_freeN(ibuf->rect_float);
 				MEM_freeN(ibuf);
 			}
@@ -2544,6 +2545,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 
 		unsigned int texCoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, rc->gltex);
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -2555,7 +2557,7 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 		immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_MASK_UNIFORM_COLOR);
 
 		immUniformColor3fvAlpha(col, alpha);
-		immUniform1i("image", GL_TEXTURE0);
+		immUniform1i("image", 0);
 
 		/* set up rotation if available */
 		if (rc->rot_prop) {

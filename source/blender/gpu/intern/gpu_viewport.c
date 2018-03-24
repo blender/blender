@@ -407,7 +407,7 @@ static void gpu_viewport_default_fb_create(GPUViewport *viewport)
 		/* Define texture parameters */
 		GPU_texture_bind(dtxl->depth, 0);
 		GPU_texture_compare_mode(dtxl->depth, false);
-		GPU_texture_filter_mode(dtxl->depth, true);
+		GPU_texture_filter_mode(dtxl->depth, false);
 		GPU_texture_unbind(dtxl->depth);
 	}
 	else {
