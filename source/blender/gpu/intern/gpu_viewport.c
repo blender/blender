@@ -520,8 +520,13 @@ cleanup_multisample:
 	GPU_framebuffer_slots_bind(dfbl->default_fb, 0);
 }
 
-static void draw_ofs_to_screen(GPUViewport *viewport, const rcti *rect)
+void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 {
+	DefaultFramebufferList *dfbl = viewport->fbl;
+
+	if (dfbl->default_fb == NULL)
+		return;
+
 	DefaultTextureList *dtxl = viewport->txl;
 
 	GPUTexture *color = dtxl->color;
@@ -536,10 +541,11 @@ static void draw_ofs_to_screen(GPUViewport *viewport, const rcti *rect)
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_MODULATE_ALPHA);
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
 	GPU_texture_bind(color, 0);
 
 	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
+	immUniform1f("alpha", 1.0f);
 
 	immBegin(GWN_PRIM_TRI_STRIP, 4);
 
@@ -562,31 +568,9 @@ static void draw_ofs_to_screen(GPUViewport *viewport, const rcti *rect)
 	immUnbindProgram();
 }
 
-void GPU_viewport_unbind(GPUViewport *viewport)
+void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
 {
-	DefaultFramebufferList *dfbl = viewport->fbl;
-
-	if (dfbl->default_fb) {
-		GPU_framebuffer_texture_unbind(NULL, NULL);
-		GPU_framebuffer_restore();
-	}
-
 	DRW_opengl_context_disable();
-
-	if (dfbl->default_fb) {
-		glEnable(GL_SCISSOR_TEST);
-		glDisable(GL_DEPTH_TEST);
-	}
-}
-
-void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
-{
-	DefaultFramebufferList *dfbl = viewport->fbl;
-
-	if (dfbl->default_fb) {
-		/* This might be bandwidth limiting */
-		draw_ofs_to_screen(viewport, rect);
-	}
 }
 
 static void gpu_viewport_buffers_free(
