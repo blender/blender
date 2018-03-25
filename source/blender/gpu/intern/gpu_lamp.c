@@ -49,6 +49,7 @@
 #include "GPU_material.h"
 #include "GPU_shader.h"
 #include "GPU_texture.h"
+#include "GPU_batch.h"
 
 #include "gpu_lamp_private.h"
 
@@ -333,7 +334,6 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 				return lamp;
 			}
 
-			GPU_framebuffer_texture_unbind(lamp->blurfb, lamp->blurtex);
 		}
 		else {
 			lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
@@ -447,11 +447,43 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsiz
 	*winsize = lamp->size;
 }
 
+static void gpu_lamp_shadow_blur(GPULamp *lamp)
+{
+	const float scaleh[2] = {1.0f / GPU_texture_width(lamp->blurtex), 0.0f};
+	const float scalev[2] = {0.0f, 1.0f / GPU_texture_height(lamp->tex)};
+
+	GPUShader *blur_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SEP_GAUSSIAN_BLUR);
+
+	if (!blur_shader)
+		return;
+
+	int tex_loc = GPU_shader_get_uniform(blur_shader, "textureSource");
+	int scale_loc = GPU_shader_get_uniform(blur_shader, "ScaleU");
+
+	glDisable(GL_DEPTH_TEST);
+
+	GPU_shader_bind(blur_shader);
+
+	/* Blurring horizontally */
+	GPU_framebuffer_bind(lamp->blurfb);
+	GPU_texture_bind(lamp->tex, 0);
+	GPU_shader_uniform_vector(blur_shader, scale_loc, 2, 1, scaleh);
+	GPU_shader_uniform_texture(blur_shader, tex_loc, lamp->tex);
+	GWN_draw_primitive(GL_TRIANGLES, 3);
+
+	/* Blurring vertically */
+	GPU_framebuffer_bind(lamp->fb);
+	GPU_texture_bind(lamp->blurtex, 0);
+	GPU_shader_uniform_vector(blur_shader, scale_loc, 2, 1, scalev);
+	GPU_shader_uniform_texture(blur_shader, tex_loc, lamp->blurtex);
+	GWN_draw_primitive(GL_TRIANGLES, 3);
+}
+
 void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp)
 {
 	if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE) {
 		GPU_shader_unbind();
-		GPU_framebuffer_blur(lamp->fb, lamp->tex, lamp->blurfb, lamp->blurtex);
+		gpu_lamp_shadow_blur(lamp);
 	}
 
 	GPU_framebuffer_texture_unbind(lamp->fb, lamp->tex);

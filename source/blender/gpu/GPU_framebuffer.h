@@ -69,9 +69,6 @@ void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot);
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
 
 void GPU_framebuffer_restore(void);
-void GPU_framebuffer_blur(
-        GPUFrameBuffer *fb, struct GPUTexture *tex,
-        GPUFrameBuffer *blurfb, struct GPUTexture *blurtex);
 
 void GPU_framebuffer_blit(
         GPUFrameBuffer *fb_read, int read_slot,
