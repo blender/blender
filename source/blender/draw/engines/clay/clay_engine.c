@@ -584,9 +584,9 @@ static DRWShadingGroup *CLAY_shgroup_deferred_shading_create(DRWPass *pass, CLAY
 {
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.clay_deferred_shading_sh, pass);
-	DRW_shgroup_uniform_buffer(grp, "depthtex", &g_data->depth_tx);
-	DRW_shgroup_uniform_buffer(grp, "normaltex", &g_data->normal_tx);
-	DRW_shgroup_uniform_buffer(grp, "idtex", &g_data->id_tx);
+	DRW_shgroup_uniform_texture_ref(grp, "depthtex", &g_data->depth_tx);
+	DRW_shgroup_uniform_texture_ref(grp, "normaltex", &g_data->normal_tx);
+	DRW_shgroup_uniform_texture_ref(grp, "idtex", &g_data->id_tx);
 	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array);
 	DRW_shgroup_uniform_texture(grp, "ssao_jitter", sldata->jitter_tx);
 	DRW_shgroup_uniform_block(grp, "samples_block", sldata->sampling_ubo);
@@ -855,13 +855,13 @@ static void clay_cache_init(void *vedata)
 	{
 		psl->fxaa_ps = DRW_pass_create("Fxaa", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.fxaa_sh, psl->fxaa_ps);
-		DRW_shgroup_uniform_buffer(grp, "colortex", &dtxl->color);
+		DRW_shgroup_uniform_texture_ref(grp, "colortex", &dtxl->color);
 		DRW_shgroup_uniform_vec2(grp, "invscreenres", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
 		psl->copy_ps = DRW_pass_create("Copy", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(e_data.copy_sh, psl->copy_ps);
-		DRW_shgroup_uniform_buffer(grp, "colortex", &stl->g_data->color_copy);
+		DRW_shgroup_uniform_texture_ref(grp, "colortex", &stl->g_data->color_copy);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 }

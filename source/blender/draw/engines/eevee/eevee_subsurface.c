@@ -208,8 +208,8 @@ void EEVEE_subsurface_add_pass(
 
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.sss_sh[0], psl->sss_blur_ps);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
-	DRW_shgroup_uniform_buffer(grp, "sssData", &effects->sss_data);
+	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+	DRW_shgroup_uniform_texture_ref(grp, "sssData", &effects->sss_data);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 	DRW_shgroup_stencil_mask(grp, sss_id);
@@ -218,23 +218,23 @@ void EEVEE_subsurface_add_pass(
 	struct GPUShader *sh = (effects->sss_separate_albedo) ? e_data.sss_sh[2] : e_data.sss_sh[1];
 	grp = DRW_shgroup_create(sh, psl->sss_resolve_ps);
 	DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-	DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
-	DRW_shgroup_uniform_buffer(grp, "sssData", &effects->sss_blur);
+	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+	DRW_shgroup_uniform_texture_ref(grp, "sssData", &effects->sss_blur);
 	DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 	DRW_shgroup_stencil_mask(grp, sss_id);
 	DRW_shgroup_call_add(grp, quad, NULL);
 
 	if (effects->sss_separate_albedo) {
-		DRW_shgroup_uniform_buffer(grp, "sssAlbedo", &effects->sss_albedo);
+		DRW_shgroup_uniform_texture_ref(grp, "sssAlbedo", &effects->sss_albedo);
 	}
 
 	if (DRW_state_is_image_render()) {
 		grp = DRW_shgroup_create(e_data.sss_sh[3], psl->sss_accum_ps);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
-		DRW_shgroup_uniform_buffer(grp, "sssData", &effects->sss_blur);
-		DRW_shgroup_uniform_buffer(grp, "sssAlbedo", &effects->sss_albedo);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_texture_ref(grp, "sssData", &effects->sss_blur);
+		DRW_shgroup_uniform_texture_ref(grp, "sssAlbedo", &effects->sss_albedo);
 		DRW_shgroup_uniform_block(grp, "sssProfile", sss_profile);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_stencil_mask(grp, sss_id);

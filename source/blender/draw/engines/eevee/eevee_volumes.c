@@ -421,14 +421,14 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		psl->volumetric_scatter_ps = DRW_pass_create("Volumetric Scattering", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_empty_tri_batch_create(scatter_sh, psl->volumetric_scatter_ps,
 		                                         common_data->vol_tex_size[2]);
-		DRW_shgroup_uniform_buffer(grp, "irradianceGrid", &sldata->irradiance_pool);
-		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_pool);
-		DRW_shgroup_uniform_buffer(grp, "volumeScattering", &txl->volume_prop_scattering);
-		DRW_shgroup_uniform_buffer(grp, "volumeExtinction", &txl->volume_prop_extinction);
-		DRW_shgroup_uniform_buffer(grp, "volumeEmission", &txl->volume_prop_emission);
-		DRW_shgroup_uniform_buffer(grp, "volumePhase", &txl->volume_prop_phase);
-		DRW_shgroup_uniform_buffer(grp, "historyScattering", &txl->volume_scatter_history);
-		DRW_shgroup_uniform_buffer(grp, "historyTransmittance", &txl->volume_transmittance_history);
+		DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &sldata->irradiance_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "volumeScattering", &txl->volume_prop_scattering);
+		DRW_shgroup_uniform_texture_ref(grp, "volumeExtinction", &txl->volume_prop_extinction);
+		DRW_shgroup_uniform_texture_ref(grp, "volumeEmission", &txl->volume_prop_emission);
+		DRW_shgroup_uniform_texture_ref(grp, "volumePhase", &txl->volume_prop_phase);
+		DRW_shgroup_uniform_texture_ref(grp, "historyScattering", &txl->volume_scatter_history);
+		DRW_shgroup_uniform_texture_ref(grp, "historyTransmittance", &txl->volume_transmittance_history);
 		DRW_shgroup_uniform_block(grp, "light_block", sldata->light_ubo);
 		DRW_shgroup_uniform_block(grp, "shadow_block", sldata->shadow_ubo);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -437,16 +437,16 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		grp = DRW_shgroup_empty_tri_batch_create(e_data.volumetric_integration_sh,
 		                                         psl->volumetric_integration_ps,
 		                                         common_data->vol_tex_size[2]);
-		DRW_shgroup_uniform_buffer(grp, "volumeScattering", &txl->volume_scatter);
-		DRW_shgroup_uniform_buffer(grp, "volumeExtinction", &txl->volume_transmittance);
+		DRW_shgroup_uniform_texture_ref(grp, "volumeScattering", &txl->volume_scatter);
+		DRW_shgroup_uniform_texture_ref(grp, "volumeExtinction", &txl->volume_transmittance);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 
 		psl->volumetric_resolve_ps = DRW_pass_create("Volumetric Resolve", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(e_data.volumetric_resolve_sh, psl->volumetric_resolve_ps);
-		DRW_shgroup_uniform_buffer(grp, "inScattering", &txl->volume_scatter);
-		DRW_shgroup_uniform_buffer(grp, "inTransmittance", &txl->volume_transmittance);
-		DRW_shgroup_uniform_buffer(grp, "inSceneColor", &e_data.color_src);
-		DRW_shgroup_uniform_buffer(grp, "inSceneDepth", &e_data.depth_src);
+		DRW_shgroup_uniform_texture_ref(grp, "inScattering", &txl->volume_scatter);
+		DRW_shgroup_uniform_texture_ref(grp, "inTransmittance", &txl->volume_transmittance);
+		DRW_shgroup_uniform_texture_ref(grp, "inSceneColor", &e_data.color_src);
+		DRW_shgroup_uniform_texture_ref(grp, "inSceneDepth", &e_data.depth_src);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
@@ -503,10 +503,10 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 		}
 
 		if (sds->tex != NULL) {
-			DRW_shgroup_uniform_buffer(grp, "sampdensity", &sds->tex);
+			DRW_shgroup_uniform_texture_ref(grp, "sampdensity", &sds->tex);
 		}
 		if (sds->tex_flame != NULL) {
-			DRW_shgroup_uniform_buffer(grp, "sampflame", &sds->tex_flame);
+			DRW_shgroup_uniform_texture_ref(grp, "sampflame", &sds->tex_flame);
 		}
 
 		/* Output is such that 0..1 maps to 0..1000K */

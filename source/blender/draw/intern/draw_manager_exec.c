@@ -844,10 +844,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 				bind_texture(tex, BIND_PERSIST);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
-			case DRW_UNIFORM_BUFFER:
-				if (!DRW_state_is_fbo()) {
-					break;
-				}
+			case DRW_UNIFORM_TEXTURE_REF:
 				tex = *((GPUTexture **)uni->value);
 				BLI_assert(tex);
 				bind_texture(tex, BIND_TEMP);

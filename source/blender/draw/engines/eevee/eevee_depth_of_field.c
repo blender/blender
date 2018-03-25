@@ -204,8 +204,8 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		psl->dof_down = DRW_pass_create("DoF Downsample", DRW_STATE_WRITE_COLOR);
 
 		grp = DRW_shgroup_create(e_data.dof_downsample_sh, psl->dof_down);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
 		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -218,18 +218,18 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		const int sprite_ct = ((int)viewport_size[0] / 2) * ((int)viewport_size[1] / 2); /* brackets matters */
 		grp = DRW_shgroup_empty_tri_batch_create(e_data.dof_scatter_sh, psl->dof_scatter, sprite_ct);
 
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->unf_source_buffer);
-		DRW_shgroup_uniform_buffer(grp, "cocBuffer", &effects->dof_coc);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->unf_source_buffer);
+		DRW_shgroup_uniform_texture_ref(grp, "cocBuffer", &effects->dof_coc);
 		DRW_shgroup_uniform_vec2(grp, "layerSelection", effects->dof_layer_select, 1);
 		DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 1);
 
 		psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
 
 		grp = DRW_shgroup_create(e_data.dof_resolve_sh, psl->dof_resolve);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &effects->source_buffer);
-		DRW_shgroup_uniform_buffer(grp, "nearBuffer", &effects->dof_near_blur);
-		DRW_shgroup_uniform_buffer(grp, "farBuffer", &effects->dof_far_blur);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &dtxl->depth);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->source_buffer);
+		DRW_shgroup_uniform_texture_ref(grp, "nearBuffer", &effects->dof_near_blur);
+		DRW_shgroup_uniform_texture_ref(grp, "farBuffer", &effects->dof_far_blur);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 		DRW_shgroup_uniform_vec2(grp, "nearFar", effects->dof_near_far, 1);
 		DRW_shgroup_uniform_vec3(grp, "dofParams", effects->dof_params, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);

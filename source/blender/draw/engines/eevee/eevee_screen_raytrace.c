@@ -213,11 +213,11 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		 */
 		psl->ssr_raytrace = DRW_pass_create("SSR Raytrace", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(trace_shader, psl->ssr_raytrace);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
-		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &effects->ssr_normal_input);
-		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &effects->ssr_specrough_input);
-		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
-		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &effects->ssr_normal_input);
+		DRW_shgroup_uniform_texture_ref(grp, "specroughBuffer", &effects->ssr_specrough_input);
+		DRW_shgroup_uniform_texture_ref(grp, "maxzBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_texture_ref(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
@@ -228,22 +228,22 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
 		psl->ssr_resolve = DRW_pass_create("SSR Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
 		grp = DRW_shgroup_create(resolve_shader, psl->ssr_resolve);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
-		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &effects->ssr_normal_input);
-		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &effects->ssr_specrough_input);
-		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
-		DRW_shgroup_uniform_buffer(grp, "probePlanars", &vedata->txl->planar_pool);
-		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
-		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &effects->ssr_hit_output);
-		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &effects->ssr_pdf_output);
-		DRW_shgroup_uniform_buffer(grp, "prevColorBuffer", &txl->color_double_buffer);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &effects->ssr_normal_input);
+		DRW_shgroup_uniform_texture_ref(grp, "specroughBuffer", &effects->ssr_specrough_input);
+		DRW_shgroup_uniform_texture_ref(grp, "probeCubes", &sldata->probe_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "probePlanars", &vedata->txl->planar_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "planarDepth", &vedata->txl->planar_depth);
+		DRW_shgroup_uniform_texture_ref(grp, "hitBuffer", &effects->ssr_hit_output);
+		DRW_shgroup_uniform_texture_ref(grp, "pdfBuffer", &effects->ssr_pdf_output);
+		DRW_shgroup_uniform_texture_ref(grp, "prevColorBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
 		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
 		DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
 		if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
 			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &effects->gtao_horizons);
+			DRW_shgroup_uniform_texture_ref(grp, "horizonBuffer", &effects->gtao_horizons);
 		}
 
 		DRW_shgroup_call_add(grp, quad, NULL);

@@ -200,10 +200,10 @@ static DRWShadingGroup *eevee_create_bloom_pass(
 
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, *pass);
 	DRW_shgroup_call_add(grp, quad, NULL);
-	DRW_shgroup_uniform_buffer(grp, "sourceBuffer", &effects->unf_source_buffer);
+	DRW_shgroup_uniform_texture_ref(grp, "sourceBuffer", &effects->unf_source_buffer);
 	DRW_shgroup_uniform_vec2(grp, "sourceBufferTexelSize", effects->unf_source_texel_size, 1);
 	if (upsample) {
-		DRW_shgroup_uniform_buffer(grp, "baseBuffer", &effects->unf_base_buffer);
+		DRW_shgroup_uniform_texture_ref(grp, "baseBuffer", &effects->unf_base_buffer);
 		DRW_shgroup_uniform_float(grp, "sampleScale", &effects->bloom_sample_scale, 1);
 	}
 

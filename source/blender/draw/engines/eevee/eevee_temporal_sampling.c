@@ -267,8 +267,8 @@ void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEV
 		psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.taa_resolve_sh, psl->taa_resolve);
 
-		DRW_shgroup_uniform_buffer(grp, "historyBuffer", &txl->color_double_buffer);
-		DRW_shgroup_uniform_buffer(grp, "colorBuffer", &txl->color);
+		DRW_shgroup_uniform_texture_ref(grp, "historyBuffer", &txl->color_double_buffer);
+		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &txl->color);
 		DRW_shgroup_uniform_float(grp, "alpha", &effects->taa_alpha, 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}

@@ -251,7 +251,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	{
 		psl->color_downsample_ps = DRW_pass_create("Downsample", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_sh, psl->color_downsample_ps);
-		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
+		DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
@@ -261,7 +261,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		static unsigned int six = 6;
 		psl->color_downsample_cube_ps = DRW_pass_create("Downsample Cube", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_cube_sh, psl->color_downsample_cube_ps);
-		DRW_shgroup_uniform_buffer(grp, "source", &e_data.color_src);
+		DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
 		DRW_shgroup_uniform_float(grp, "texelSize", &e_data.cube_texel_size, 1);
 		DRW_shgroup_uniform_int(grp, "Layer", &zero, 1);
 		DRW_shgroup_call_instances_add(grp, quad, NULL, &six);
@@ -273,25 +273,25 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		psl->maxz_downlevel_ps = DRW_pass_create("HiZ Max Down Level", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_downlevel_sh, psl->maxz_downlevel_ps);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &txl->maxzbuffer);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &txl->maxzbuffer);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		/* Copy depth buffer to halfres top level of HiZ */
 
 		psl->maxz_downdepth_ps = DRW_pass_create("HiZ Max Copy Depth Halfres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_downdepth_sh, psl->maxz_downdepth_ps);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->maxz_downdepth_layer_ps = DRW_pass_create("HiZ Max Copy DepthLayer Halfres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_downdepth_layer_sh, psl->maxz_downdepth_layer_ps);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_uniform_int(grp, "depthLayer", &e_data.depth_src_layer, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->maxz_copydepth_ps = DRW_pass_create("HiZ Max Copy Depth Fullres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_copydepth_sh, psl->maxz_copydepth_ps);
-		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 }

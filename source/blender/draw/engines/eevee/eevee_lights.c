@@ -231,7 +231,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		DRWShadingGroup *grp = DRW_shgroup_create(
 		        e_data.shadow_store_cube_sh[linfo->shadow_method], psl->shadow_cube_store_pass);
-		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cube_blur);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_cube_blur);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
@@ -242,7 +242,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		DRWShadingGroup *grp = DRW_shgroup_create(
 		        e_data.shadow_store_cascade_sh[linfo->shadow_method], psl->shadow_cascade_store_pass);
-		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cascade_blur);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_cascade_blur);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_uniform_int(grp, "cascadeId", &linfo->current_shadow_cascade, 1);
 		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
@@ -254,7 +254,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		DRWShadingGroup *grp = DRW_shgroup_create(
 		        e_data.shadow_copy_cube_sh[linfo->shadow_method], psl->shadow_cube_copy_pass);
-		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cube_target);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_cube_target);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
 		DRW_shgroup_uniform_int(grp, "faceId", &linfo->current_shadow_face, 1);
@@ -266,7 +266,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		DRWShadingGroup *grp = DRW_shgroup_create(
 		        e_data.shadow_copy_cascade_sh[linfo->shadow_method], psl->shadow_cascade_copy_pass);
-		DRW_shgroup_uniform_buffer(grp, "shadowTexture", &sldata->shadow_cascade_target);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_cascade_target);
 		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
 		DRW_shgroup_uniform_float(grp, "shadowFilterSize", &linfo->filter_size, 1);
 		DRW_shgroup_uniform_int(grp, "cascadeId", &linfo->current_shadow_cascade, 1);

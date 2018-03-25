@@ -362,7 +362,7 @@ void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, con
 void DRW_shgroup_uniform_texture_persistent(DRWShadingGroup *shgroup, const char *name, const struct GPUTexture *tex);
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const struct GPUUniformBuffer *ubo);
 void DRW_shgroup_uniform_block_persistent(DRWShadingGroup *shgroup, const char *name, const struct GPUUniformBuffer *ubo);
-void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, struct GPUTexture **tex);
+void DRW_shgroup_uniform_texture_ref(DRWShadingGroup *shgroup, const char *name, struct GPUTexture **tex);
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
 void DRW_shgroup_uniform_vec2(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
 void DRW_shgroup_uniform_vec3(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize);
