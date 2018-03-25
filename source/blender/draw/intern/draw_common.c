@@ -426,7 +426,7 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, struct Gwn_Batch 
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_MBALL_HANDLES);
 
 	DRW_shgroup_instance_format(g_formats.instance_mball_handles, {
-		{"ScaleTranslationMatrix" , DRW_ATTRIB_FLOAT, 16},
+		{"ScaleTranslationMatrix" , DRW_ATTRIB_FLOAT, 12},
 		{"radius"                 , DRW_ATTRIB_FLOAT, 1},
 		{"color"                  , DRW_ATTRIB_FLOAT, 3}
 	});
