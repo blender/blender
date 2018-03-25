@@ -46,33 +46,9 @@
 
 /* GPUViewport.storage
  * Is freed everytime the viewport engine changes */
-typedef struct BASIC_Storage {
-	int dummy;
-} BASIC_Storage;
-
 typedef struct BASIC_StorageList {
-	struct BASIC_Storage *storage;
 	struct BASIC_PrivateData *g_data;
 } BASIC_StorageList;
-
-typedef struct BASIC_FramebufferList {
-	/* default */
-	struct GPUFrameBuffer *default_fb;
-	/* engine specific */
-#ifdef USE_DEPTH
-	struct GPUFrameBuffer *dupli_depth;
-#endif
-} BASIC_FramebufferList;
-
-typedef struct BASIC_TextureList {
-	/* default */
-	struct GPUTexture *color;
-#ifdef USE_DEPTH
-	struct GPUTexture *depth;
-	/* engine specific */
-	struct GPUTexture *depth_dup;
-#endif
-} BASIC_TextureList;
 
 typedef struct BASIC_PassList {
 #ifdef USE_DEPTH
@@ -84,8 +60,8 @@ typedef struct BASIC_PassList {
 
 typedef struct BASIC_Data {
 	void *engine_type;
-	BASIC_FramebufferList *fbl;
-	BASIC_TextureList *txl;
+	DRWViewportEmptyList *fbl;
+	DRWViewportEmptyList *txl;
 	BASIC_PassList *psl;
 	BASIC_StorageList *stl;
 } BASIC_Data;
@@ -111,12 +87,8 @@ typedef struct BASIC_PrivateData {
 
 /* Functions */
 
-static void basic_engine_init(void *vedata)
+static void basic_engine_init(void *UNUSED(vedata))
 {
-	BASIC_StorageList *stl = ((BASIC_Data *)vedata)->stl;
-	BASIC_TextureList *txl = ((BASIC_Data *)vedata)->txl;
-	BASIC_FramebufferList *fbl = ((BASIC_Data *)vedata)->fbl;
-
 #ifdef USE_DEPTH
 	/* Depth prepass */
 	if (!e_data.depth_sh) {
@@ -128,20 +100,6 @@ static void basic_engine_init(void *vedata)
 	if (!e_data.color_sh) {
 		e_data.color_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
 	}
-
-	if (!stl->storage) {
-		stl->storage = MEM_callocN(sizeof(BASIC_Storage), "BASIC_Storage");
-	}
-
-#ifdef USE_DEPTH
-	if (DRW_state_is_fbo()) {
-		const float *viewport_size = DRW_viewport_size_get();
-		DRWFboTexture tex = {&txl->depth_dup, DRW_TEX_DEPTH_24_STENCIL_8, 0};
-		DRW_framebuffer_init(&fbl->dupli_depth, &draw_engine_basic_type,
-		                     (int)viewport_size[0], (int)viewport_size[1],
-		                     &tex, 1);
-	}
-#endif
 }
 
 static void basic_cache_init(void *vedata)
@@ -204,8 +162,6 @@ static void basic_draw_scene(void *vedata)
 {
 
 	BASIC_PassList *psl = ((BASIC_Data *)vedata)->psl;
-	BASIC_FramebufferList *fbl = ((BASIC_Data *)vedata)->fbl;
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	const bool is_select = DRW_state_is_select();
 
 	bool use_color = true;
@@ -227,14 +183,6 @@ static void basic_draw_scene(void *vedata)
 
 	if (use_depth_cull) {
 		DRW_draw_pass(psl->depth_pass_cull);
-	}
-
-	/* Pass 2 : Duplicate depth */
-	if (use_depth || use_depth_cull) {
-		/* Unless we go for deferred shading we need this to avoid manual depth test and artifacts */
-		if (DRW_state_is_fbo()) {
-			DRW_framebuffer_blit(dfbl->default_fb, fbl->dupli_depth, true, false);
-		}
 	}
 #endif
 
