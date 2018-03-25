@@ -53,6 +53,15 @@ struct GPUFrameBuffer {
 	GPUTexture *depthtex;
 };
 
+static GLenum convert_buffer_bits_to_gl(GPUFrameBufferBits bits)
+{
+	GLbitfield mask = 0;
+	mask |= (bits & GPU_DEPTH_BIT) ? GL_DEPTH_BUFFER_BIT : 0;
+	mask |= (bits & GPU_STENCIL_BIT) ? GL_STENCIL_BUFFER_BIT : 0;
+	mask |= (bits & GPU_COLOR_BIT) ? GL_COLOR_BUFFER_BIT : 0;
+	return mask;
+}
+
 static void gpu_print_framebuffer_error(GLenum status, char err_out[256])
 {
 	const char *format = "GPUFrameBuffer: framebuffer status %s\n";
@@ -437,6 +446,40 @@ void GPU_framebuffer_restore(void)
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		g_currentfb = 0;
 	}
+}
+
+#define CHECK_FRAMEBUFFER_IS_BOUND(_fb) \
+	BLI_assert(GPU_framebuffer_bound(_fb)); \
+	UNUSED_VARS_NDEBUG(_fb);
+
+/* Needs to be done after binding. */
+void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h)
+{
+	CHECK_FRAMEBUFFER_IS_BOUND(fb);
+
+	glViewport(x, y, w, h);
+}
+
+void GPU_framebuffer_clear(
+        GPUFrameBuffer *fb, GPUFrameBufferBits buffers,
+        const float clear_col[4], float clear_depth, unsigned int clear_stencil)
+{
+	CHECK_FRAMEBUFFER_IS_BOUND(fb);
+
+	if (buffers & GPU_COLOR_BIT) {
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glClearColor(clear_col[0], clear_col[1], clear_col[2], clear_col[3]);
+	}
+	if (buffers & GPU_DEPTH_BIT) {
+		glDepthMask(GL_TRUE);
+		glClearDepth(clear_depth);
+	}
+	if (buffers & GPU_STENCIL_BIT) {
+		glStencilMask(clear_stencil);
+	}
+
+	GLbitfield mask = convert_buffer_bits_to_gl(buffers);
+	glClear(mask);
 }
 
 void GPU_framebuffer_blit(

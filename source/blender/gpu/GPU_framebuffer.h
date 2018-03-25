@@ -36,6 +36,12 @@
 extern "C" {
 #endif
 
+typedef enum GPUFrameBufferBits{
+	GPU_COLOR_BIT    = (1 << 0),
+	GPU_DEPTH_BIT    = (1 << 1),
+	GPU_STENCIL_BIT  = (1 << 2),
+} GPUFrameBufferBits;
+
 typedef struct GPUFrameBuffer GPUFrameBuffer;
 typedef struct GPUOffScreen GPUOffScreen;
 struct GPUTexture;
@@ -67,8 +73,33 @@ unsigned int GPU_framebuffer_current_get(void);
 void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot);
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
+/* Framebuffer operations */
+
+void GPU_framebuffer_viewport_set(GPUFrameBuffer *fb, int x, int y, int w, int h);
 
 void GPU_framebuffer_restore(void);
+void GPU_framebuffer_clear(
+        GPUFrameBuffer *fb, GPUFrameBufferBits buffers,
+        const float clear_col[4], float clear_depth, unsigned int clear_stencil);
+
+#define GPU_framebuffer_clear_color(fb, col) \
+        GPU_framebuffer_clear(fb, GPU_COLOR_BIT, col, 0.0f, 0x00)
+
+#define GPU_framebuffer_clear_depth(fb, depth) \
+        GPU_framebuffer_clear(fb, GPU_DEPTH_BIT, NULL, depth, 0x00)
+
+#define GPU_framebuffer_clear_color_depth(fb, col, depth) \
+        GPU_framebuffer_clear(fb, GPU_COLOR_BIT | GPU_DEPTH_BIT, col, depth, 0x00)
+
+#define GPU_framebuffer_clear_stencil(fb, stencil) \
+        GPU_framebuffer_clear(fb, GPU_STENCIL_BIT, NULL, 0.0f, stencil)
+
+#define GPU_framebuffer_clear_depth_stencil(fb, depth, stencil) \
+        GPU_framebuffer_clear(fb, GPU_DEPTH_BIT | GPU_STENCIL_BIT, NULL, depth, stencil)
+
+#define GPU_framebuffer_clear_color_depth_stencil(fb, col, depth, stencil) \
+        GPU_framebuffer_clear(fb, GPU_COLOR_BIT | GPU_DEPTH_BIT | GPU_STENCIL_BIT, col, depth, stencil)
+
 
 void GPU_framebuffer_blit(
         GPUFrameBuffer *fb_read, int read_slot,
