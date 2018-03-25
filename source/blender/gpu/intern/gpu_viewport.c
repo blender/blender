@@ -48,6 +48,7 @@
 #include "GPU_immediate.h"
 #include "GPU_texture.h"
 #include "GPU_viewport.h"
+#include "GPU_draw.h"
 
 #include "DRW_engine.h"
 
@@ -69,7 +70,6 @@ typedef struct ViewportTempTexture {
 
 struct GPUViewport {
 	int size[2];
-
 	int samples;
 	int flag;
 
@@ -137,12 +137,19 @@ GPUViewport *GPU_viewport_create_from_offscreen(struct GPUOffScreen *ofs)
 		viewport->txl->multisample_depth = depth;
 		viewport->fbl->multisample_fb = fb;
 		gpu_viewport_default_fb_create(viewport);
-		GPU_framebuffer_slots_bind(viewport->fbl->default_fb, 0);
 	}
 	else {
 		viewport->fbl->default_fb = fb;
 		viewport->txl->color = color;
 		viewport->txl->depth = depth;
+		GPU_framebuffer_ensure_config(&viewport->fbl->color_only_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(viewport->txl->color)
+		});
+		GPU_framebuffer_ensure_config(&viewport->fbl->depth_only_fb, {
+			GPU_ATTACHMENT_TEXTURE(viewport->txl->depth),
+			GPU_ATTACHMENT_NONE
+		});
 	}
 
 	return viewport;
@@ -158,8 +165,7 @@ void GPU_viewport_clear_from_offscreen(GPUViewport *viewport)
 	if (dfbl->multisample_fb) {
 		/* GPUViewport expect the final result to be in default_fb but
 		 * GPUOffscreen wants it in its multisample_fb, so we sync it back. */
-		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, false, false);
-		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, true, false);
+		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT);
 		dfbl->multisample_fb = NULL;
 		dtxl->multisample_color = NULL;
 		dtxl->multisample_depth = NULL;
@@ -288,9 +294,9 @@ GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine,
 	GPUTexture *tex;
 
 	for (ViewportTempTexture *tmp_tex = viewport->tex_pool.first; tmp_tex; tmp_tex = tmp_tex->next) {
-		if ((GPU_texture_width(tmp_tex->texture) == width) &&
-		    (GPU_texture_height(tmp_tex->texture) == height) &&
-		    (GPU_texture_format(tmp_tex->texture) == format))
+		if ((GPU_texture_format(tmp_tex->texture) == format) &&
+		    (GPU_texture_width(tmp_tex->texture) == width) &&
+		    (GPU_texture_height(tmp_tex->texture) == height))
 		{
 			/* Search if the engine is not already using this texture */
 			for (int i = 0; i < MAX_ENGINE_BUFFER_SHARING; ++i) {
@@ -307,11 +313,16 @@ GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine,
 	}
 
 	tex = GPU_texture_create_2D_custom(width, height, channels, format, NULL, NULL);
+	GPU_texture_bind(tex, 0);
+	/* Doing filtering for depth does not make sense when not doing shadow mapping,
+	 * and enabling texture filtering on integer texture make them unreadable. */
+	bool do_filter = !GPU_texture_depth(tex) && !GPU_texture_integer(tex);
+	GPU_texture_filter_mode(tex, do_filter);
+	GPU_texture_unbind(tex);
 
 	ViewportTempTexture *tmp_tex = MEM_callocN(sizeof(ViewportTempTexture), "ViewportTempTexture");
 	tmp_tex->texture = tex;
 	tmp_tex->user[0] = engine;
-
 	BLI_addtail(&viewport->tex_pool, tmp_tex);
 
 	return tex;
@@ -378,47 +389,65 @@ static void gpu_viewport_default_fb_create(GPUViewport *viewport)
 	int *size = viewport->size;
 	bool ok = true;
 
-	dfbl->default_fb = GPU_framebuffer_create();
-	if (!dfbl->default_fb) {
-		ok = false;
-		goto cleanup;
-	}
-
-	/* Color */
 	dtxl->color = GPU_texture_create_2D(size[0], size[1], NULL, NULL);
-	if (!dtxl->color) {
-		ok = false;
-		goto cleanup;
-	}
-
-	if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->color, 0, 0)) {
-		ok = false;
-		goto cleanup;
-	}
-
-	/* Depth */
 	dtxl->depth = GPU_texture_create_depth_with_stencil(size[0], size[1], NULL);
 
-	if (dtxl->depth) {
-		/* Define texture parameters */
-		GPU_texture_bind(dtxl->depth, 0);
-		GPU_texture_compare_mode(dtxl->depth, false);
-		GPU_texture_filter_mode(dtxl->depth, false);
-		GPU_texture_unbind(dtxl->depth);
-	}
-	else {
+	if (!(dtxl->depth && dtxl->color)) {
 		ok = false;
 		goto cleanup;
 	}
 
-	if (!GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0)) {
+	GPU_framebuffer_ensure_config(&dfbl->default_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+		GPU_ATTACHMENT_TEXTURE(dtxl->color)
+	});
+
+	GPU_framebuffer_ensure_config(&dfbl->depth_only_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+		GPU_ATTACHMENT_NONE
+	});
+
+	GPU_framebuffer_ensure_config(&dfbl->color_only_fb, {
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_TEXTURE(dtxl->color)
+	});
+
+	ok = ok && GPU_framebuffer_check_valid(dfbl->default_fb, NULL);
+	ok = ok && GPU_framebuffer_check_valid(dfbl->color_only_fb, NULL);
+	ok = ok && GPU_framebuffer_check_valid(dfbl->depth_only_fb, NULL);
+
+cleanup:
+	if (!ok) {
+		GPU_viewport_free(viewport);
+		DRW_opengl_context_disable();
+		return;
+	}
+
+	GPU_framebuffer_restore();
+}
+
+static void gpu_viewport_default_multisample_fb_create(GPUViewport *viewport)
+{
+	DefaultFramebufferList *dfbl = viewport->fbl;
+	DefaultTextureList *dtxl = viewport->txl;
+	int *size = viewport->size;
+	int samples = viewport->samples;
+	bool ok = true;
+
+	dtxl->multisample_color = GPU_texture_create_2D_multisample(size[0], size[1], NULL, samples, NULL);
+	dtxl->multisample_depth = GPU_texture_create_depth_with_stencil_multisample(size[0], size[1], samples, NULL);
+
+	if (!(dtxl->multisample_depth && dtxl->multisample_color)) {
 		ok = false;
 		goto cleanup;
 	}
-	else if (!GPU_framebuffer_check_valid(dfbl->default_fb, NULL)) {
-		ok = false;
-		goto cleanup;
-	}
+
+	GPU_framebuffer_ensure_config(&dfbl->multisample_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->multisample_depth),
+		GPU_ATTACHMENT_TEXTURE(dtxl->multisample_color)
+	});
+
+	ok = ok && GPU_framebuffer_check_valid(dfbl->multisample_fb, NULL);
 
 cleanup:
 	if (!ok) {
@@ -433,7 +462,6 @@ cleanup:
 void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 {
 	DefaultFramebufferList *dfbl = viewport->fbl;
-	DefaultTextureList *dtxl = viewport->txl;
 	int fbl_len, txl_len;
 
 	/* add one pixel because of scissor test */
@@ -460,64 +488,20 @@ void GPU_viewport_bind(GPUViewport *viewport, const rcti *rect)
 
 	viewport->size[0] = rect_w;
 	viewport->size[1] = rect_h;
+	viewport->samples = U.ogl_multisamples;
 
 	gpu_viewport_texture_pool_clear_users(viewport);
 
 	/* Multisample Buffer */
-	if (U.ogl_multisamples > 0) {
+	if (viewport->samples > 0) {
 		if (!dfbl->default_fb) {
-			bool ok = true;
-			viewport->samples = U.ogl_multisamples;
-
-			dfbl->multisample_fb = GPU_framebuffer_create();
-			if (!dfbl->multisample_fb) {
-				ok = false;
-				goto cleanup_multisample;
-			}
-
-			/* Color */
-			dtxl->multisample_color = GPU_texture_create_2D_multisample(rect_w, rect_h, NULL, U.ogl_multisamples, NULL);
-			if (!dtxl->multisample_color) {
-				ok = false;
-				goto cleanup_multisample;
-			}
-
-			if (!GPU_framebuffer_texture_attach(dfbl->multisample_fb, dtxl->multisample_color, 0, 0)) {
-				ok = false;
-				goto cleanup_multisample;
-			}
-
-			/* Depth */
-			dtxl->multisample_depth = GPU_texture_create_depth_with_stencil_multisample(rect_w, rect_h,
-				                                                                        U.ogl_multisamples, NULL);
-
-			if (!dtxl->multisample_depth) {
-				ok = false;
-				goto cleanup_multisample;
-			}
-
-			if (!GPU_framebuffer_texture_attach(dfbl->multisample_fb, dtxl->multisample_depth, 0, 0)) {
-				ok = false;
-				goto cleanup_multisample;
-			}
-			else if (!GPU_framebuffer_check_valid(dfbl->multisample_fb, NULL)) {
-				ok = false;
-				goto cleanup_multisample;
-			}
-
-cleanup_multisample:
-			if (!ok) {
-				GPU_viewport_free(viewport);
-				return;
-			}
+			gpu_viewport_default_multisample_fb_create(viewport);
 		}
 	}
 
 	if (!dfbl->default_fb) {
 		gpu_viewport_default_fb_create(viewport);
 	}
-
-	GPU_framebuffer_slots_bind(dfbl->default_fb, 0);
 }
 
 void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)

@@ -744,6 +744,10 @@ static void drw_engines_draw_scene(void)
 		if (engine->draw_scene) {
 			DRW_stats_group_start(engine->idname);
 			engine->draw_scene(data);
+			/* Restore for next engine */
+			if (DRW_state_is_fbo()) {
+				GPU_framebuffer_bind(DST.default_framebuffer);
+			}
 			DRW_stats_group_end();
 		}
 
@@ -1126,6 +1130,9 @@ void DRW_draw_render_loop_ex(
 	/* Update ubos */
 	DRW_globals_update();
 
+	/* No framebuffer allowed before drawing. */
+	BLI_assert(GPU_framebuffer_current_get() == 0);
+
 	/* Init engines */
 	drw_engines_init();
 
@@ -1151,6 +1158,8 @@ void DRW_draw_render_loop_ex(
 	}
 
 	DRW_stats_begin();
+
+	GPU_framebuffer_bind(DST.default_framebuffer);
 
 	/* Start Drawing */
 	DRW_state_reset();
@@ -1217,6 +1226,8 @@ void DRW_draw_render_loop_ex(
 		glEnable(GL_DEPTH_TEST);
 	}
 
+	GPU_framebuffer_restore();
+
 	DRW_state_reset();
 	drw_engines_disable();
 
@@ -1261,6 +1272,8 @@ void DRW_draw_render_loop_offscreen(
 			rv3d->viewport = viewport;
 		}
 	}
+
+	GPU_framebuffer_restore();
 
 	/* Reset before using it. */
 	memset(&DST, 0x0, offsetof(DRWManager, ogl_context));
@@ -1461,11 +1474,6 @@ void DRW_draw_select_loop(
 	DST.viewport = viewport;
 	v3d->zbuf = true;
 
-	/* Setup framebuffer */
-	draw_select_framebuffer_setup(rect);
-	GPU_framebuffer_bind(g_select_buffer.framebuffer);
-	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
-
 	DST.options.is_select = true;
 
 	/* Get list of enabled engines */
@@ -1518,6 +1526,11 @@ void DRW_draw_select_loop(
 
 		DRW_render_instance_buffer_finish();
 	}
+
+	/* Setup framebuffer */
+	draw_select_framebuffer_setup(rect);
+	GPU_framebuffer_bind(g_select_buffer.framebuffer);
+	GPU_framebuffer_clear_depth(g_select_buffer.framebuffer, 1.0f);
 
 	/* Start Drawing */
 	DRW_state_reset();
@@ -1628,7 +1641,7 @@ void DRW_draw_depth_loop(
 	/* Setup framebuffer */
 	draw_select_framebuffer_setup(&ar->winrct);
 	GPU_framebuffer_bind(g_select_buffer.framebuffer);
-	DRW_framebuffer_clear(false, true, false, NULL, 1.0f);
+	GPU_framebuffer_clear_depth(g_select_buffer.framebuffer, 1.0f);
 
 	bool cache_is_dirty;
 	DST.viewport = viewport;
@@ -1918,7 +1931,7 @@ void DRW_engines_free(void)
 	DRW_opengl_context_enable();
 
 	DRW_TEXTURE_FREE_SAFE(g_select_buffer.texture_depth);
-	DRW_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer);
+	GPU_FRAMEBUFFER_FREE_SAFE(g_select_buffer.framebuffer);
 
 	DRW_shape_cache_free();
 	DRW_stats_free();

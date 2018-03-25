@@ -55,7 +55,6 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_PrivateData *g_data = stl->g_data;
 	Scene *scene = draw_ctx->scene;
 
-	const float *viewport_size = DRW_viewport_size_get();
 	float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	if (e_data.mist_sh == NULL) {
@@ -71,13 +70,16 @@ void EEVEE_mist_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	}
 
 	/* Create FrameBuffer. */
-	DRWFboTexture tex_data = {&txl->mist_accum, DRW_TEX_R_32, 0}; /* Should be enough precision for many samples. */
-	DRW_framebuffer_init(&fbl->mist_accum_fb, &draw_engine_eevee_type, (int)viewport_size[0], (int)viewport_size[1],
-	                     &tex_data, 1);
+	DRW_texture_ensure_fullscreen_2D(&txl->mist_accum, DRW_TEX_R_32, 0); /* Should be enough precision for many samples. */
+
+	GPU_framebuffer_ensure_config(&fbl->mist_accum_fb, {
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_TEXTURE(txl->mist_accum)
+	});
 
 	/* Clear texture. */
-	DRW_framebuffer_bind(fbl->mist_accum_fb);
-	DRW_framebuffer_clear(true, false, false, clear, 0.0f);
+	GPU_framebuffer_bind(fbl->mist_accum_fb);
+	GPU_framebuffer_clear_color(fbl->mist_accum_fb, clear);
 
 	/* Mist settings. */
 	if (scene && scene->world) {
@@ -123,11 +125,11 @@ void EEVEE_mist_output_accumulate(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 	EEVEE_PassList *psl = vedata->psl;
 
 	if (fbl->mist_accum_fb != NULL) {
-		DRW_framebuffer_bind(fbl->mist_accum_fb);
+		GPU_framebuffer_bind(fbl->mist_accum_fb);
 		DRW_draw_pass(psl->mist_accum_ps);
 
 		/* Restore */
-		DRW_framebuffer_bind(fbl->main);
+		GPU_framebuffer_bind(fbl->main_fb);
 	}
 }
 

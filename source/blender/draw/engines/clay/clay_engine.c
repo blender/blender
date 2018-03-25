@@ -148,14 +148,11 @@ typedef struct CLAY_PassList {
 	struct DRWPass *hair_pass;
 } CLAY_PassList;
 
-typedef struct CLAY_TextureList {
-	struct GPUTexture *color_copy; /* only used if fxaa */
-} CLAY_TextureList;
 
 typedef struct CLAY_Data {
 	void *engine_type;
 	CLAY_FramebufferList *fbl;
-	CLAY_TextureList *txl;
+	DRWViewportEmptyList *txl;
 	CLAY_PassList *psl;
 	CLAY_StorageList *stl;
 } CLAY_Data;
@@ -201,6 +198,7 @@ typedef struct CLAY_PrivateData {
 	struct GPUTexture *depth_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_tx; /* ref only, not alloced */
 	struct GPUTexture *id_tx; /* ref only, not alloced */
+	struct GPUTexture *color_copy; /* ref only, not alloced */
 	bool enable_deferred_path;
 	/* Ssao */
 	float winmat[4][4];
@@ -351,9 +349,9 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 static void clay_engine_init(void *vedata)
 {
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
-	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
 	CLAY_FramebufferList *fbl = ((CLAY_Data *)vedata)->fbl;
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	/* Create Texture Array */
 	if (!e_data.matcap_array) {
@@ -463,19 +461,29 @@ static void clay_engine_init(void *vedata)
 		}
 	}
 
-	if (DRW_state_is_fbo()) {
+	/* FBO setup */
+	{
 		const float *viewport_size = DRW_viewport_size_get();
-		DRWFboTexture texs[2] = {{&g_data->normal_tx, DRW_TEX_RG_8, DRW_TEX_TEMP},
-		                         {&g_data->id_tx, DRW_TEX_R_16I, DRW_TEX_TEMP}};
-		DRW_framebuffer_init(&fbl->prepass_fb, &draw_engine_clay_type,
-		                     (int)viewport_size[0], (int)viewport_size[1],
-		                     texs, 2);
+		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+
+		g_data->normal_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RG_8, &draw_engine_clay_type);
+		g_data->id_tx =     DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_R_16I, &draw_engine_clay_type);
+
+		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
+			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+			GPU_ATTACHMENT_TEXTURE(g_data->normal_tx),
+			GPU_ATTACHMENT_TEXTURE(g_data->id_tx)
+		});
 
 		/* For FXAA */
-		DRWFboTexture tex = {&txl->color_copy, DRW_TEX_RGBA_8, DRW_TEX_FILTER};
-		DRW_framebuffer_init(&fbl->antialias_fb, &draw_engine_clay_type,
-		                     (int)viewport_size[0], (int)viewport_size[1],
-		                     &tex, 1);
+		/* TODO(fclem): OPTI: we could merge normal_tx and id_tx into a DRW_TEX_RGBA_8
+		 * and reuse it for the fxaa target. */
+		g_data->color_copy = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8, &draw_engine_clay_type);
+
+		GPU_framebuffer_ensure_config(&fbl->antialias_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(g_data->color_copy)
+		});
 	}
 
 	/* SSAO setup */
@@ -809,7 +817,6 @@ static void clay_cache_init(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	CLAY_PassList *psl = ((CLAY_Data *)vedata)->psl;
 	CLAY_StorageList *stl = ((CLAY_Data *)vedata)->stl;
-	CLAY_TextureList *txl = ((CLAY_Data *)vedata)->txl;
 
 	/* Disable AO unless a material needs it. */
 	stl->g_data->enable_deferred_path = false;
@@ -854,7 +861,7 @@ static void clay_cache_init(void *vedata)
 
 		psl->copy_ps = DRW_pass_create("Copy", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(e_data.copy_sh, psl->copy_ps);
-		DRW_shgroup_uniform_buffer(grp, "colortex", &txl->color_copy);
+		DRW_shgroup_uniform_buffer(grp, "colortex", &stl->g_data->color_copy);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 }
@@ -956,37 +963,25 @@ static void clay_draw_scene(void *vedata)
 	DRW_draw_pass(psl->hair_pass);
 
 	if (stl->g_data->enable_deferred_path) {
-		if (DRW_state_is_fbo()) {
-			DRW_framebuffer_texture_detach(dtxl->depth);
-			DRW_framebuffer_texture_attach(fbl->prepass_fb, dtxl->depth, 0, 0);
-			DRW_framebuffer_texture_attach(fbl->prepass_fb, stl->g_data->normal_tx, 0, 0);
-			DRW_framebuffer_texture_attach(fbl->prepass_fb, stl->g_data->id_tx, 1, 0);
-			DRW_framebuffer_bind(fbl->prepass_fb);
-			/* We need to clear the id texture unfortunately. */
-			DRW_framebuffer_clear(true, false, false, (float[4]){0.0f, 0.0f, 0.0f, 0.0f}, 0.0f);
-		}
+		GPU_framebuffer_bind(fbl->prepass_fb);
+		/* We need to clear the id texture unfortunately. */
+		const float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+		GPU_framebuffer_clear_color(fbl->prepass_fb, clear_col);
 
 		DRW_draw_pass(psl->clay_pre_cull_ps);
 		DRW_draw_pass(psl->clay_flat_pre_cull_ps);
 		DRW_draw_pass(psl->clay_pre_ps);
 		DRW_draw_pass(psl->clay_flat_pre_ps);
 
-		if (DRW_state_is_fbo()) {
-			DRW_framebuffer_texture_detach(dtxl->depth);
-			DRW_framebuffer_bind(dfbl->default_fb);
-
-			DRW_draw_pass(psl->clay_deferred_ps);
-
-			DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-			DRW_framebuffer_bind(dfbl->default_fb);
-		}
+		GPU_framebuffer_bind(dfbl->color_only_fb);
+		DRW_draw_pass(psl->clay_deferred_ps);
 	}
 
 	if (true) { /* Always on for now. We might want a parameter for this. */
-		DRW_framebuffer_bind(fbl->antialias_fb);
+		GPU_framebuffer_bind(fbl->antialias_fb);
 		DRW_draw_pass(psl->fxaa_ps);
 
-		DRW_framebuffer_bind(dfbl->default_fb);
+		GPU_framebuffer_bind(dfbl->color_only_fb);
 		DRW_draw_pass(psl->copy_ps);
 	}
 }

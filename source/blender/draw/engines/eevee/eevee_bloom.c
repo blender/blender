@@ -84,7 +84,6 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
-	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -112,10 +111,13 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 		effects->blit_texel_size[0] = 1.0f / (float)blitsize[0];
 		effects->blit_texel_size[1] = 1.0f / (float)blitsize[1];
 
-		DRWFboTexture tex_blit = {&txl->bloom_blit, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
-		DRW_framebuffer_init(&fbl->bloom_blit_fb, &draw_engine_eevee_type,
-		                    (int)blitsize[0], (int)blitsize[1],
-		                    &tex_blit, 1);
+		effects->bloom_blit = DRW_texture_pool_query_2D(blitsize[0], blitsize[1], DRW_TEX_RGB_11_11_10,
+		                                                &draw_engine_eevee_type);
+
+		GPU_framebuffer_ensure_config(&fbl->bloom_blit_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(effects->bloom_blit)
+		});
 
 		/* Parameters */
 		float threshold = BKE_collection_engine_property_value_get_float(props, "bloom_threshold");
@@ -151,10 +153,12 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 			effects->downsamp_texel_size[i][0] = 1.0f / (float)texsize[0];
 			effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
 
-			DRWFboTexture tex_bloom = {&txl->bloom_downsample[i], DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->bloom_down_fb[i], &draw_engine_eevee_type,
-			                    (int)texsize[0], (int)texsize[1],
-			                    &tex_bloom, 1);
+			effects->bloom_downsample[i] = DRW_texture_pool_query_2D(texsize[0], texsize[1], DRW_TEX_RGB_11_11_10,
+			                                                         &draw_engine_eevee_type);
+			GPU_framebuffer_ensure_config(&fbl->bloom_down_fb[i], {
+				GPU_ATTACHMENT_NONE,
+				GPU_ATTACHMENT_TEXTURE(effects->bloom_downsample[i])
+			});
 		}
 
 		/* Upsample buffers */
@@ -165,30 +169,23 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 			texsize[0] = MAX2(texsize[0], 2);
 			texsize[1] = MAX2(texsize[1], 2);
 
-			DRWFboTexture tex_bloom = {&txl->bloom_upsample[i], DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER};
-			DRW_framebuffer_init(&fbl->bloom_accum_fb[i], &draw_engine_eevee_type,
-			                    (int)texsize[0], (int)texsize[1],
-			                    &tex_bloom, 1);
+			effects->bloom_upsample[i] = DRW_texture_pool_query_2D(texsize[0], texsize[1], DRW_TEX_RGB_11_11_10,
+			                                                       &draw_engine_eevee_type);
+			GPU_framebuffer_ensure_config(&fbl->bloom_accum_fb[i], {
+				GPU_ATTACHMENT_NONE,
+				GPU_ATTACHMENT_TEXTURE(effects->bloom_upsample[i])
+			});
 		}
 
 		return EFFECT_BLOOM | EFFECT_POST_BUFFER;
 	}
 
 	/* Cleanup to release memory */
-	DRW_TEXTURE_FREE_SAFE(txl->bloom_blit);
-	DRW_FRAMEBUFFER_FREE_SAFE(fbl->bloom_blit_fb);
-
-	/* Bloom and dof share this buffer. This
-	 * tells dof to reconfigure it's framebuffer. */
-	if (txl->bloom_downsample[0] != NULL) {
-		DRW_FRAMEBUFFER_FREE_SAFE(fbl->dof_down_fb);
-	}
+	GPU_FRAMEBUFFER_FREE_SAFE(fbl->bloom_blit_fb);
 
 	for (int i = 0; i < MAX_BLOOM_STEP - 1; ++i) {
-		DRW_TEXTURE_FREE_SAFE(txl->bloom_downsample[i]);
-		DRW_TEXTURE_FREE_SAFE(txl->bloom_upsample[i]);
-		DRW_FRAMEBUFFER_FREE_SAFE(fbl->bloom_down_fb[i]);
-		DRW_FRAMEBUFFER_FREE_SAFE(fbl->bloom_accum_fb[i]);
+		GPU_FRAMEBUFFER_FREE_SAFE(fbl->bloom_down_fb[i]);
+		GPU_FRAMEBUFFER_FREE_SAFE(fbl->bloom_accum_fb[i]);
 	}
 
 	return 0;
@@ -280,39 +277,39 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata)
 		copy_v2_v2(effects->unf_source_texel_size, effects->source_texel_size);
 		effects->unf_source_buffer = effects->source_buffer;
 
-		DRW_framebuffer_bind(fbl->bloom_blit_fb);
+		GPU_framebuffer_bind(fbl->bloom_blit_fb);
 		DRW_draw_pass(psl->bloom_blit);
 
 		/* Downsample */
 		copy_v2_v2(effects->unf_source_texel_size, effects->blit_texel_size);
-		effects->unf_source_buffer = txl->bloom_blit;
+		effects->unf_source_buffer = effects->bloom_blit;
 
-		DRW_framebuffer_bind(fbl->bloom_down_fb[0]);
+		GPU_framebuffer_bind(fbl->bloom_down_fb[0]);
 		DRW_draw_pass(psl->bloom_downsample_first);
 
-		last = txl->bloom_downsample[0];
+		last = effects->bloom_downsample[0];
 
 		for (int i = 1; i < effects->bloom_iteration_ct; ++i) {
 			copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i - 1]);
 			effects->unf_source_buffer = last;
 
-			DRW_framebuffer_bind(fbl->bloom_down_fb[i]);
+			GPU_framebuffer_bind(fbl->bloom_down_fb[i]);
 			DRW_draw_pass(psl->bloom_downsample);
 
 			/* Used in next loop */
-			last = txl->bloom_downsample[i];
+			last = effects->bloom_downsample[i];
 		}
 
 		/* Upsample and accumulate */
 		for (int i = effects->bloom_iteration_ct - 2; i >= 0; --i) {
 			copy_v2_v2(effects->unf_source_texel_size, effects->downsamp_texel_size[i]);
-			effects->unf_source_buffer = txl->bloom_downsample[i];
+			effects->unf_source_buffer = effects->bloom_downsample[i];
 			effects->unf_base_buffer = last;
 
-			DRW_framebuffer_bind(fbl->bloom_accum_fb[i]);
+			GPU_framebuffer_bind(fbl->bloom_accum_fb[i]);
 			DRW_draw_pass(psl->bloom_upsample);
 
-			last = txl->bloom_upsample[i];
+			last = effects->bloom_upsample[i];
 		}
 
 		/* Resolve */
@@ -320,7 +317,7 @@ void EEVEE_bloom_draw(EEVEE_Data *vedata)
 		effects->unf_source_buffer = last;
 		effects->unf_base_buffer = effects->source_buffer;
 
-		DRW_framebuffer_bind(effects->target_buffer);
+		GPU_framebuffer_bind(effects->target_buffer);
 		DRW_draw_pass(psl->bloom_resolve);
 		SWAP_BUFFERS();
 	}

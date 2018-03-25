@@ -45,6 +45,8 @@
 #include "DNA_material_types.h"
 #include "DNA_scene_types.h"
 
+#include "GPU_framebuffer.h"
+
 #include "draw_common.h"
 #include "draw_cache.h"
 #include "draw_view.h"
@@ -100,9 +102,8 @@ typedef char DRWViewportEmptyList;
 #define MULTISAMPLE_SYNC_ENABLE(dfbl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Blit"); \
-		DRW_framebuffer_blit(dfbl->default_fb, dfbl->multisample_fb, false, false); \
-		DRW_framebuffer_blit(dfbl->default_fb, dfbl->multisample_fb, true, false); \
-		DRW_framebuffer_bind(dfbl->multisample_fb); \
+		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT); \
+		GPU_framebuffer_bind(dfbl->multisample_fb); \
 		DRW_stats_query_end(); \
 	} \
 }
@@ -110,9 +111,8 @@ typedef char DRWViewportEmptyList;
 #define MULTISAMPLE_SYNC_DISABLE(dfbl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Resolve"); \
-		DRW_framebuffer_blit(dfbl->multisample_fb, dfbl->default_fb, false, false); \
-		DRW_framebuffer_blit(dfbl->multisample_fb, dfbl->default_fb, true, false); \
-		DRW_framebuffer_bind(dfbl->default_fb); \
+		GPU_framebuffer_blit(dfbl->multisample_fb, 0, dfbl->default_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT); \
+		GPU_framebuffer_bind(dfbl->default_fb); \
 		DRW_stats_query_end(); \
 	} \
 }
@@ -153,6 +153,8 @@ typedef struct DrawEngineType {
 /* Buffer and textures used by the viewport by default */
 typedef struct DefaultFramebufferList {
 	struct GPUFrameBuffer *default_fb;
+	struct GPUFrameBuffer *color_only_fb;
+	struct GPUFrameBuffer *depth_only_fb;
 	struct GPUFrameBuffer *multisample_fb;
 } DefaultFramebufferList;
 
@@ -195,8 +197,12 @@ typedef enum {
 	DRW_TEX_WRAP = (1 << 1),
 	DRW_TEX_COMPARE = (1 << 2),
 	DRW_TEX_MIPMAP = (1 << 3),
-	DRW_TEX_TEMP = (1 << 4),
 } DRWTextureFlag;
+
+/* Textures from DRW_texture_pool_query_* have the options
+ * DRW_TEX_FILTER for color float textures, and no options
+ * for depth textures and integer textures. */
+struct GPUTexture *DRW_texture_pool_query_2D(int w, int h, DRWTextureFormat format, DrawEngineType *engine_type);
 
 struct GPUTexture *DRW_texture_create_1D(
         int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
@@ -208,6 +214,12 @@ struct GPUTexture *DRW_texture_create_3D(
         int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_cube(
         int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+
+void DRW_texture_ensure_fullscreen_2D(
+        struct GPUTexture **tex, DRWTextureFormat format, DRWTextureFlag flags);
+void DRW_texture_ensure_2D(
+        struct GPUTexture **tex, int w, int h, DRWTextureFormat format, DRWTextureFlag flags);
+
 void DRW_texture_generate_mipmaps(struct GPUTexture *tex);
 void DRW_texture_free(struct GPUTexture *tex);
 #define DRW_TEXTURE_FREE_SAFE(tex) do { \
@@ -225,40 +237,6 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 	if (ubo != NULL) { \
 		DRW_uniformbuffer_free(ubo); \
 		ubo = NULL; \
-	} \
-} while (0)
-
-/* Buffers */
-#define MAX_FBO_TEX			5
-
-typedef struct DRWFboTexture {
-	struct GPUTexture **tex;
-	int format;
-	DRWTextureFlag flag;
-} DRWFboTexture;
-
-struct GPUFrameBuffer *DRW_framebuffer_create(void);
-void DRW_framebuffer_init(
-        struct GPUFrameBuffer **fb, void *engine_type, int width, int height,
-        DRWFboTexture textures[MAX_FBO_TEX], int textures_len);
-void DRW_framebuffer_bind(struct GPUFrameBuffer *fb);
-void DRW_framebuffer_clear(bool color, bool depth, bool stencil, float clear_col[4], float clear_depth);
-void DRW_framebuffer_read_data(int x, int y, int w, int h, int channels, int slot, float *data);
-void DRW_framebuffer_read_depth(int x, int y, int w, int h, float *data);
-void DRW_framebuffer_texture_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int mip);
-void DRW_framebuffer_texture_layer_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int layer, int mip);
-void DRW_framebuffer_cubeface_attach(struct GPUFrameBuffer *fb, struct GPUTexture *tex, int slot, int face, int mip);
-void DRW_framebuffer_texture_detach(struct GPUTexture *tex);
-void DRW_framebuffer_blit(struct GPUFrameBuffer *fb_read, struct GPUFrameBuffer *fb_write, bool depth, bool stencil);
-void DRW_framebuffer_recursive_downsample(
-        struct GPUFrameBuffer *fb, struct GPUTexture *tex, int num_iter,
-        void (*callback)(void *userData, int level), void *userData);
-void DRW_framebuffer_viewport_size(struct GPUFrameBuffer *fb_read, int x, int y, int w, int h);
-void DRW_framebuffer_free(struct GPUFrameBuffer *fb);
-#define DRW_FRAMEBUFFER_FREE_SAFE(fb) do { \
-	if (fb != NULL) { \
-		DRW_framebuffer_free(fb); \
-		fb = NULL; \
 	} \
 } while (0)
 

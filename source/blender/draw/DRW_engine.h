@@ -58,6 +58,8 @@ struct WorkSpace;
 /* Buffer and textures used by the viewport by default */
 typedef struct DefaultFramebufferList {
 	struct GPUFrameBuffer *default_fb;
+	struct GPUFrameBuffer *color_only_fb;
+	struct GPUFrameBuffer *depth_only_fb;
 	struct GPUFrameBuffer *multisample_fb;
 } DefaultFramebufferList;
 

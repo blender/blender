@@ -55,6 +55,7 @@ static void eevee_engine_init(void *ved)
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
@@ -68,12 +69,22 @@ static void eevee_engine_init(void *ved)
 	stl->g_data->background_alpha = DRW_state_draw_background() ? 1.0f : 0.0f;
 	stl->g_data->valid_double_buffer = (txl->color_double_buffer != NULL);
 
-	DRWFboTexture tex = {&txl->color, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+	/* Main Buffer */
+	DRW_texture_ensure_fullscreen_2D(&txl->color, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
-	const float *viewport_size = DRW_viewport_size_get();
-	DRW_framebuffer_init(&fbl->main, &draw_engine_eevee_type,
-	                    (int)viewport_size[0], (int)viewport_size[1],
-	                    &tex, 1);
+	GPU_framebuffer_ensure_config(&fbl->main_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+		GPU_ATTACHMENT_TEXTURE(txl->color),
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_LEAVE
+	});
+
+	GPU_framebuffer_ensure_config(&fbl->main_color_fb, {
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_TEXTURE(txl->color)
+	});
 
 	if (sldata->common_ubo == NULL) {
 		sldata->common_ubo = DRW_uniformbuffer_create(sizeof(sldata->common_data), &sldata->common_data);
@@ -170,6 +181,7 @@ static void eevee_draw_background(void *vedata)
 	EEVEE_TextureList *txl = ((EEVEE_Data *)vedata)->txl;
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 	EEVEE_FramebufferList *fbl = ((EEVEE_Data *)vedata)->fbl;
+	EEVEE_EffectsInfo *effects = stl->effects;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 
 	/* Default framebuffer and texture */
@@ -185,6 +197,9 @@ static void eevee_draw_background(void *vedata)
 	               (stl->effects->enabled_effects & (EFFECT_VOLUMETRIC | EFFECT_SSR)) != 0) ? 4 : 1;
 
 	while (loop_ct--) {
+		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+		float clear_depth = 1.0f;
+		unsigned int clear_stencil = 0xFF;
 		unsigned int primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
@@ -228,18 +243,11 @@ static void eevee_draw_background(void *vedata)
 		EEVEE_draw_shadows(sldata, psl);
 		DRW_stats_group_end();
 
-		/* Attach depth to the hdr buffer and bind it */
-		DRW_framebuffer_texture_detach(dtxl->depth);
-		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
-		DRW_framebuffer_bind(fbl->main);
-		if (DRW_state_draw_background()) {
-			DRW_framebuffer_clear(false, true, true, NULL, 1.0f);
-		}
-		else {
-			/* We need to clear the alpha chanel in this case. */
-			float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-			DRW_framebuffer_clear(true, true, true, clear_col, 1.0f);
-		}
+		GPU_framebuffer_bind(fbl->main_fb);
+		GPUFrameBufferBits clear_bits = GPU_DEPTH_BIT;
+		clear_bits |= (DRW_state_draw_background()) ? 0 : GPU_COLOR_BIT;
+		clear_bits |= ((stl->effects->enabled_effects & EFFECT_SSS) != 0) ? GPU_STENCIL_BIT : 0;
+		GPU_framebuffer_clear(fbl->main_fb, clear_bits, clear_col, clear_depth, clear_stencil);
 
 		/* Depth prepass */
 		DRW_stats_group_start("Prepass");
@@ -295,11 +303,8 @@ static void eevee_draw_background(void *vedata)
 		}
 	}
 
-	/* Restore default framebuffer */
-	DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
-	DRW_framebuffer_bind(dfbl->default_fb);
-
-	/* Tonemapping */
+	/* Tonemapping and transfer result to default framebuffer. */
+	GPU_framebuffer_bind(dfbl->default_fb);
 	DRW_transform_to_display(stl->effects->final_tx);
 
 	/* Debug : Ouput buffer to view. */
@@ -308,25 +313,25 @@ static void eevee_draw_background(void *vedata)
 			if (txl->maxzbuffer) DRW_transform_to_display(txl->maxzbuffer);
 			break;
 		case 2:
-			if (stl->g_data->ssr_pdf_output) DRW_transform_to_display(stl->g_data->ssr_pdf_output);
+			if (effects->ssr_pdf_output) DRW_transform_to_display(effects->ssr_pdf_output);
 			break;
 		case 3:
-			if (txl->ssr_normal_input) DRW_transform_to_display(txl->ssr_normal_input);
+			if (effects->ssr_normal_input) DRW_transform_to_display(effects->ssr_normal_input);
 			break;
 		case 4:
-			if (txl->ssr_specrough_input) DRW_transform_to_display(txl->ssr_specrough_input);
+			if (effects->ssr_specrough_input) DRW_transform_to_display(effects->ssr_specrough_input);
 			break;
 		case 5:
 			if (txl->color_double_buffer) DRW_transform_to_display(txl->color_double_buffer);
 			break;
 		case 6:
-			if (stl->g_data->gtao_horizons_debug) DRW_transform_to_display(stl->g_data->gtao_horizons_debug);
+			if (effects->gtao_horizons_debug) DRW_transform_to_display(effects->gtao_horizons_debug);
 			break;
 		case 7:
-			if (txl->gtao_horizons) DRW_transform_to_display(txl->gtao_horizons);
+			if (effects->gtao_horizons) DRW_transform_to_display(effects->gtao_horizons);
 			break;
 		case 8:
-			if (txl->sss_data) DRW_transform_to_display(txl->sss_data);
+			if (effects->sss_data) DRW_transform_to_display(effects->sss_data);
 			break;
 		default:
 			break;

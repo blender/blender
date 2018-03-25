@@ -66,7 +66,6 @@ set(SRC
 	intern/draw_manager.c
 	intern/draw_manager_data.c
 	intern/draw_manager_exec.c
-	intern/draw_manager_framebuffer.c
 	intern/draw_manager_shader.c
 	intern/draw_manager_text.c
 	intern/draw_manager_texture.c

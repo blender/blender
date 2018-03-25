@@ -225,14 +225,15 @@ void main()
 	vec2 screenco = vec2(gl_FragCoord.xy) * invscreenres;
 
 #ifdef DEFERRED_SHADING
-	mat_id = texture(idtex, screenco).r;
+	ivec2 texel = ivec2(gl_FragCoord.xy);
+	mat_id = texelFetch(idtex, texel, 0).r;
 
 	/* early out (manual stencil test) */
 	if (mat_id == 0)
 		discard;
 
-	float depth = texture(depthtex, screenco).r;
-	vec3 N = normal_decode(texture(normaltex, screenco).rg);
+	float depth = texelFetch(depthtex, texel, 0).r;
+	vec3 N = normal_decode(texelFetch(normaltex, texel, 0).rg);
 	/* see the prepass for explanations. */
 	if (mat_id < 0) {
 		N = -N;

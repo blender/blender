@@ -53,7 +53,6 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	const float *viewport_size = DRW_viewport_size_get();
 
 	/* Init default FB and render targets:
 	 * In render mode the default framebuffer is not generated
@@ -62,16 +61,22 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	/* NOTE : use 32 bit format for precision in render mode. */
-	DRWFboTexture dtex = {&dtxl->depth, DRW_TEX_DEPTH_24_STENCIL_8, 0};
-	DRW_framebuffer_init(&dfbl->default_fb, &draw_engine_eevee_type,
-	                     (int)viewport_size[0], (int)viewport_size[1],
-	                     &dtex, 1);
+	/* TODO 32 bit depth */
+	DRW_texture_ensure_fullscreen_2D(&dtxl->depth, DRW_TEX_DEPTH_24_STENCIL_8, 0);
+	DRW_texture_ensure_fullscreen_2D(&txl->color, DRW_TEX_RGBA_32, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
-	DRWFboTexture tex = {&txl->color, DRW_TEX_RGBA_32, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
-	DRW_framebuffer_init(&fbl->main, &draw_engine_eevee_type,
-	                     (int)viewport_size[0], (int)viewport_size[1],
-	                     &tex, 1);
+	GPU_framebuffer_ensure_config(&dfbl->default_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+		GPU_ATTACHMENT_TEXTURE(txl->color)
+	});
+	GPU_framebuffer_ensure_config(&fbl->main_fb, {
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+		GPU_ATTACHMENT_TEXTURE(txl->color)
+	});
+	GPU_framebuffer_ensure_config(&fbl->main_color_fb, {
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_TEXTURE(txl->color)
+	});
 
 	/* Alloc transient data. */
 	if (!stl->g_data) {
@@ -166,8 +171,11 @@ static void eevee_render_result_combined(
 {
 	RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_COMBINED, viewname);
 
-	DRW_framebuffer_bind(vedata->stl->effects->final_fb);
-	DRW_framebuffer_read_data(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), 4, 0, rp->rect);
+	GPU_framebuffer_bind(vedata->stl->effects->final_fb);
+	GPU_framebuffer_read_color(vedata->stl->effects->final_fb,
+	                           rect->xmin, rect->ymin,
+	                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+	                           4, 0, rp->rect);
 }
 
 static void eevee_render_result_subsurface(
@@ -185,8 +193,11 @@ static void eevee_render_result_subsurface(
 	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_COLOR) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_COLOR, viewname);
 
-		DRW_framebuffer_bind(vedata->fbl->sss_accum_fb);
-		DRW_framebuffer_read_data(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), 3, 1, rp->rect);
+		GPU_framebuffer_bind(vedata->fbl->sss_accum_fb);
+		GPU_framebuffer_read_color(vedata->fbl->sss_accum_fb,
+		                           rect->xmin, rect->ymin,
+		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		                           3, 1, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i++) {
@@ -197,8 +208,11 @@ static void eevee_render_result_subsurface(
 	if ((view_layer->passflag & SCE_PASS_SUBSURFACE_DIRECT) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_SUBSURFACE_DIRECT, viewname);
 
-		DRW_framebuffer_bind(vedata->fbl->sss_accum_fb);
-		DRW_framebuffer_read_data(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), 3, 0, rp->rect);
+		GPU_framebuffer_bind(vedata->fbl->sss_accum_fb);
+		GPU_framebuffer_read_color(vedata->fbl->sss_accum_fb,
+		                           rect->xmin, rect->ymin,
+		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		                           3, 0, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i++) {
@@ -228,7 +242,11 @@ static void eevee_render_result_normal(
 	if ((view_layer->passflag & SCE_PASS_NORMAL) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_NORMAL, viewname);
 
-		DRW_framebuffer_read_data(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), 3, 1, rp->rect);
+		GPU_framebuffer_bind(vedata->fbl->main_fb);
+		GPU_framebuffer_read_color(vedata->fbl->main_fb,
+		                           rect->xmin, rect->ymin,
+		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		                           3, 1, rp->rect);
 
 		/* Convert Eevee encoded normals to Blender normals. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i += 3) {
@@ -270,7 +288,10 @@ static void eevee_render_result_z(
 	if ((view_layer->passflag & SCE_PASS_Z) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
 
-		DRW_framebuffer_read_depth(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), rp->rect);
+		GPU_framebuffer_read_depth(vedata->fbl->main_fb,
+		                           rect->xmin, rect->ymin,
+		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		                           rp->rect);
 
 		bool is_persp = DRW_viewport_is_persp_get();
 
@@ -302,8 +323,11 @@ static void eevee_render_result_mist(
 	if ((view_layer->passflag & SCE_PASS_MIST) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_MIST, viewname);
 
-		DRW_framebuffer_bind(vedata->fbl->mist_accum_fb);
-		DRW_framebuffer_read_data(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), 1, 0, rp->rect);
+		GPU_framebuffer_bind(vedata->fbl->mist_accum_fb);
+		GPU_framebuffer_read_color(vedata->fbl->mist_accum_fb,
+		                           rect->xmin, rect->ymin,
+		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		                           1, 0, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty; i++) {
@@ -327,8 +351,11 @@ static void eevee_render_result_occlusion(
 	if ((view_layer->passflag & SCE_PASS_AO) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_AO, viewname);
 
-		DRW_framebuffer_bind(vedata->fbl->ao_accum_fb);
-		DRW_framebuffer_read_data(rect->xmin, rect->ymin, BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), 3, 0, rp->rect);
+		GPU_framebuffer_bind(vedata->fbl->ao_accum_fb);
+		GPU_framebuffer_read_color(vedata->fbl->ao_accum_fb,
+		                           rect->xmin, rect->ymin,
+		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
+		                           3, 0, rp->rect);
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i += 3) {
@@ -339,30 +366,34 @@ static void eevee_render_result_occlusion(
 
 static void eevee_render_draw_background(EEVEE_Data *vedata)
 {
-	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
+	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_PassList *psl = vedata->psl;
 
 	/* Prevent background to write to data buffers.
 	 * NOTE : This also make sure the textures are bound
 	 *        to the right double buffer. */
-	if (txl->ssr_normal_input != NULL) {
-		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
-	}
-	if (txl->ssr_specrough_input != NULL) {
-		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
-	}
-	DRW_framebuffer_bind(fbl->main);
+	GPU_framebuffer_ensure_config(&fbl->main_fb, {
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_NONE
+	});
+	GPU_framebuffer_bind(fbl->main_fb);
 
 	DRW_draw_pass(psl->background_pass);
 
-	if (txl->ssr_normal_input != NULL) {
-		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
-	}
-	if (txl->ssr_specrough_input != NULL) {
-		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
-	}
-	DRW_framebuffer_bind(fbl->main);
+	GPU_framebuffer_ensure_config(&fbl->main_fb, {
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_LEAVE,
+		GPU_ATTACHMENT_TEXTURE(stl->effects->ssr_normal_input),
+		GPU_ATTACHMENT_TEXTURE(stl->effects->ssr_specrough_input),
+		GPU_ATTACHMENT_TEXTURE(stl->effects->sss_data),
+		GPU_ATTACHMENT_TEXTURE(stl->effects->sss_albedo)
+	});
+	GPU_framebuffer_bind(fbl->main_fb);
 }
 
 void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl, const rcti *rect)
@@ -413,6 +444,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 
 	while (render_samples < tot_sample && !RE_engine_test_break(engine)) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+		float clear_depth = 1.0f;
+		unsigned int clear_stencil = 0xFF;
 		unsigned int primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
@@ -455,10 +488,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		/* Refresh Shadows */
 		EEVEE_draw_shadows(sldata, psl);
 
-		DRW_framebuffer_texture_detach(dtxl->depth);
-		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
-		DRW_framebuffer_bind(fbl->main);
-		DRW_framebuffer_clear(true, true, true, clear_col, 1.0f);
+		GPU_framebuffer_bind(fbl->main_fb);
+		GPU_framebuffer_clear_color_depth_stencil(fbl->main_fb, clear_col, clear_depth, clear_stencil);
 		/* Depth prepass */
 		DRW_draw_pass(psl->depth_pass);
 		DRW_draw_pass(psl->depth_pass_cull);
@@ -468,7 +499,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		EEVEE_volumes_compute(sldata, vedata);
 		/* Shading pass */
 		eevee_render_draw_background(vedata);
-		DRW_framebuffer_bind(fbl->main);
+		GPU_framebuffer_bind(fbl->main_fb);
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		EEVEE_subsurface_data_render(sldata, vedata);

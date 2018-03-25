@@ -82,6 +82,7 @@
 #include "GPU_batch.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_framebuffer.h"
 #include "GPU_init_exit.h"
 #include "GPU_immediate.h"
 #include "BLF_api.h"
@@ -1157,6 +1158,8 @@ static int query_qual(modifierKeyType qual)
 
 void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win) 
 {
+	BLI_assert(GPU_framebuffer_current_get() == 0);
+
 	if (win != wm->windrawable && win->ghostwin) {
 //		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
 
@@ -1180,6 +1183,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 void wm_window_reset_drawable(void)
 {
 	BLI_assert(BLI_thread_is_main());
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	wmWindowManager *wm = G.main->wm.first;
 
 	if (wm == NULL)
@@ -2211,20 +2215,24 @@ void *WM_opengl_context_create(void)
 	 * So we should call this function only on the main thread.
 	 */
 	BLI_assert(BLI_thread_is_main());
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	return GHOST_CreateOpenGLContext(g_system);
 }
 
 void WM_opengl_context_dispose(void *context)
 {
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	GHOST_DisposeOpenGLContext(g_system, (GHOST_ContextHandle)context);
 }
 
 void WM_opengl_context_activate(void *context)
 {
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	GHOST_ActivateOpenGLContext((GHOST_ContextHandle)context);
 }
 
 void WM_opengl_context_release(void *context)
 {
+	BLI_assert(GPU_framebuffer_current_get() == 0);
 	GHOST_ReleaseOpenGLContext((GHOST_ContextHandle)context);
 }

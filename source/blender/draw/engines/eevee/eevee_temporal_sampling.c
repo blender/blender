@@ -179,7 +179,6 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	    (effects->enabled_effects & EFFECT_MOTION_BLUR) == 0) ||
 	    DRW_state_is_image_render())
 	{
-		const float *viewport_size = DRW_viewport_size_get();
 		float persmat[4][4], viewmat[4][4];
 
 		if (!e_data.taa_resolve_sh) {
@@ -239,11 +238,11 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 			effects->taa_current_sample = 1;
 		}
 
-		DRWFboTexture tex_double_buffer = {&txl->depth_double_buffer, DRW_TEX_DEPTH_24_STENCIL_8, 0};
+		DRW_texture_ensure_fullscreen_2D(&txl->depth_double_buffer, DRW_TEX_DEPTH_24_STENCIL_8, 0);
 
-		DRW_framebuffer_init(&fbl->depth_double_buffer_fb, &draw_engine_eevee_type,
-		                    (int)viewport_size[0], (int)viewport_size[1],
-		                    &tex_double_buffer, 1);
+		GPU_framebuffer_ensure_config(&fbl->double_buffer_depth_fb, {
+			GPU_ATTACHMENT_TEXTURE(txl->depth_double_buffer)
+		});
 
 		return EFFECT_TAA | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
 	}
@@ -252,7 +251,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
 	/* Cleanup to release memory */
 	DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
-	DRW_FRAMEBUFFER_FREE_SAFE(fbl->depth_double_buffer_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(fbl->double_buffer_depth_fb);
 
 	return 0;
 }
@@ -293,27 +292,28 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 				effects->taa_alpha = 1.0f / (float)(effects->taa_current_sample);
 			}
 
-			DRW_framebuffer_bind(fbl->effect_fb);
+			GPU_framebuffer_bind(fbl->effect_color_fb);
 			DRW_draw_pass(psl->taa_resolve);
 
 			/* Restore the depth from sample 1. */
 			if (!DRW_state_is_image_render()) {
-				DRW_framebuffer_blit(fbl->depth_double_buffer_fb, fbl->main, true, false);
+				GPU_framebuffer_blit(fbl->double_buffer_depth_fb, 0, fbl->main_fb, 0, GPU_DEPTH_BIT);
 			}
 
 			/* Special Swap */
-			SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer);
+			SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer_fb);
+			SWAP(struct GPUFrameBuffer *, fbl->effect_color_fb, fbl->double_buffer_color_fb);
 			SWAP(GPUTexture *, txl->color_post, txl->color_double_buffer);
 			effects->swap_double_buffer = false;
 			effects->source_buffer = txl->color_double_buffer;
-			effects->target_buffer = fbl->main;
+			effects->target_buffer = fbl->main_fb;
 		}
 		else {
 			/* Save the depth buffer for the next frame.
 			 * This saves us from doing anything special
 			 * in the other mode engines. */
 			if (!DRW_state_is_image_render()) {
-				DRW_framebuffer_blit(fbl->main, fbl->depth_double_buffer_fb, true, false);
+				GPU_framebuffer_blit(fbl->main_fb, 0, fbl->double_buffer_depth_fb, 0, GPU_DEPTH_BIT);
 			}
 		}
 

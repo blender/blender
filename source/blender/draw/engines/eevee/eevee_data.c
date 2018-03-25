@@ -38,8 +38,9 @@ static void eevee_view_layer_data_free(void *storage)
 	DRW_UBO_FREE_SAFE(sldata->light_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_render_ubo);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_target_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->shadow_store_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_target_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_target_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_store_fb);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
@@ -57,8 +58,10 @@ static void eevee_view_layer_data_free(void *storage)
 	DRW_UBO_FREE_SAFE(sldata->planar_ubo);
 	DRW_UBO_FREE_SAFE(sldata->common_ubo);
 	DRW_UBO_FREE_SAFE(sldata->clip_ubo);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_fb);
-	DRW_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(sldata->probe_filter_fb);
+	for (int i = 0; i < 6; ++i) {
+		GPU_FRAMEBUFFER_FREE_SAFE(sldata->probe_face_fb[i]);
+	}
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_rt);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_depth_rt);
 	DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);

@@ -124,14 +124,15 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		const bool use_refraction = BKE_collection_engine_property_value_get_bool(props, "ssr_refraction");
 
 		if (use_refraction) {
-			DRWFboTexture tex = {&txl->refract_color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP};
+			/* TODO: Opti: Could be shared. */
+			DRW_texture_ensure_fullscreen_2D(&txl->refract_color, DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
-			DRW_framebuffer_init(&fbl->refract_fb, &draw_engine_eevee_type,
-			                     (int)viewport_size[0], (int)viewport_size[1],
-			                     &tex, 1);
+			GPU_framebuffer_ensure_config(&fbl->refract_fb, {
+				GPU_ATTACHMENT_NONE,
+				GPU_ATTACHMENT_TEXTURE(txl->refract_color)
+			});
 		}
 
-		bool prev_trace_full = effects->reflection_trace_full;
 		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
 		common_data->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
 		common_data->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
@@ -144,47 +145,39 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			common_data->ssr_firefly_fac = FLT_MAX;
 		}
 
-		if (prev_trace_full != effects->reflection_trace_full) {
-			DRW_TEXTURE_FREE_SAFE(txl->ssr_hit_output);
-		}
-
 		const int divisor = (effects->reflection_trace_full) ? 1 : 2;
 		int tracing_res[2] = {(int)viewport_size[0] / divisor, (int)viewport_size[1] / divisor};
+		int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		const bool high_qual_input = true; /* TODO dither low quality input */
+		const DRWTextureFormat format = (high_qual_input) ? DRW_TEX_RGBA_16 : DRW_TEX_RGBA_8;
 
 		/* MRT for the shading pass in order to output needed data for the SSR pass. */
-		/* TODO create one texture layer per lobe */
-		if (txl->ssr_specrough_input == NULL) {
-			DRWTextureFormat specrough_format = (high_qual_input) ? DRW_TEX_RGBA_16 : DRW_TEX_RGBA_8;
-			txl->ssr_specrough_input = DRW_texture_create_2D((int)viewport_size[0], (int)viewport_size[1],
-			                                                 specrough_format, 0, NULL);
-		}
+		effects->ssr_specrough_input = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], format,
+		                                                         &draw_engine_eevee_type);
 
-		/* Reattach textures to the right buffer (because we are alternating between buffers) */
-		/* TODO multiple FBO per texture!!!! */
-		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
-		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
+		GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_specrough_input, 2, 0);
 
 		/* Raytracing output */
-		/* (AMD or Intel) For some reason DRW_TEX_TEMP with DRW_TEX_RG_16I
-		 * creates problems when toggling ssr_halfres. Texture is not read correctly (black output).
-		 * So using a persistent buffer instead. */
-		DRWFboTexture tex_output[2] = {{&txl->ssr_hit_output, DRW_TEX_RG_16I, 0},
-		                               {&stl->g_data->ssr_pdf_output, DRW_TEX_R_16, DRW_TEX_TEMP}};
+		effects->ssr_hit_output = DRW_texture_pool_query_2D(tracing_res[0], tracing_res[1], DRW_TEX_RG_16I,
+		                                                    &draw_engine_eevee_type);
+		effects->ssr_pdf_output = DRW_texture_pool_query_2D(tracing_res[0], tracing_res[1], DRW_TEX_R_16,
+		                                                    &draw_engine_eevee_type);
 
-		DRW_framebuffer_init(&fbl->screen_tracing_fb, &draw_engine_eevee_type,
-		                     tracing_res[0], tracing_res[1],
-		                     tex_output, 2);
+		GPU_framebuffer_ensure_config(&fbl->screen_tracing_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(effects->ssr_hit_output),
+			GPU_ATTACHMENT_TEXTURE(effects->ssr_pdf_output)
+		});
 
 		/* Enable double buffering to be able to read previous frame color */
 		return EFFECT_SSR | EFFECT_NORMAL_BUFFER | EFFECT_DOUBLE_BUFFER | ((use_refraction) ? EFFECT_REFRACT : 0);
 	}
 
 	/* Cleanup to release memory */
-	DRW_TEXTURE_FREE_SAFE(txl->ssr_specrough_input);
-	DRW_TEXTURE_FREE_SAFE(txl->ssr_hit_output);
-	DRW_FRAMEBUFFER_FREE_SAFE(fbl->screen_tracing_fb);
-	stl->g_data->ssr_pdf_output = NULL;
+	GPU_FRAMEBUFFER_FREE_SAFE(fbl->screen_tracing_fb);
+	effects->ssr_specrough_input = NULL;
+	effects->ssr_hit_output = NULL;
+	effects->ssr_pdf_output = NULL;
 
 	return 0;
 }
@@ -221,8 +214,8 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		psl->ssr_raytrace = DRW_pass_create("SSR Raytrace", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(trace_shader, psl->ssr_raytrace);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
-		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
-		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &effects->ssr_normal_input);
+		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &effects->ssr_specrough_input);
 		DRW_shgroup_uniform_buffer(grp, "maxzBuffer", &txl->maxzbuffer);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
 		DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
@@ -236,13 +229,13 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		psl->ssr_resolve = DRW_pass_create("SSR Resolve", DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
 		grp = DRW_shgroup_create(resolve_shader, psl->ssr_resolve);
 		DRW_shgroup_uniform_buffer(grp, "depthBuffer", &e_data.depth_src);
-		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &txl->ssr_normal_input);
-		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &txl->ssr_specrough_input);
+		DRW_shgroup_uniform_buffer(grp, "normalBuffer", &effects->ssr_normal_input);
+		DRW_shgroup_uniform_buffer(grp, "specroughBuffer", &effects->ssr_specrough_input);
 		DRW_shgroup_uniform_buffer(grp, "probeCubes", &sldata->probe_pool);
 		DRW_shgroup_uniform_buffer(grp, "probePlanars", &vedata->txl->planar_pool);
 		DRW_shgroup_uniform_buffer(grp, "planarDepth", &vedata->txl->planar_depth);
-		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &vedata->txl->ssr_hit_output);
-		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &stl->g_data->ssr_pdf_output);
+		DRW_shgroup_uniform_buffer(grp, "hitBuffer", &effects->ssr_hit_output);
+		DRW_shgroup_uniform_buffer(grp, "pdfBuffer", &effects->ssr_pdf_output);
 		DRW_shgroup_uniform_buffer(grp, "prevColorBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_block(grp, "probe_block", sldata->probe_ubo);
 		DRW_shgroup_uniform_block(grp, "planar_block", sldata->planar_ubo);
@@ -250,7 +243,7 @@ void EEVEE_screen_raytrace_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 		DRW_shgroup_uniform_int(grp, "neighborOffset", &effects->ssr_neighbor_ofs, 1);
 		if ((effects->enabled_effects & EFFECT_GTAO) != 0) {
 			DRW_shgroup_uniform_texture(grp, "utilTex", EEVEE_materials_get_util_tex());
-			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &vedata->txl->gtao_horizons);
+			DRW_shgroup_uniform_buffer(grp, "horizonBuffer", &effects->gtao_horizons);
 		}
 
 		DRW_shgroup_call_add(grp, quad, NULL);
@@ -265,12 +258,11 @@ void EEVEE_refraction_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	if ((effects->enabled_effects & EFFECT_REFRACT) != 0) {
-		DRW_framebuffer_texture_attach(fbl->refract_fb, txl->refract_color, 0, 0);
-		DRW_framebuffer_blit(fbl->main, fbl->refract_fb, false, false);
-		EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->refract_color, 9);
+		GPU_framebuffer_blit(fbl->main_fb, 0, fbl->refract_fb, 0, GPU_COLOR_BIT);
+		EEVEE_downsample_buffer(vedata, txl->refract_color, 9);
 
 		/* Restore */
-		DRW_framebuffer_bind(fbl->main);
+		GPU_framebuffer_bind(fbl->main_fb);
 	}
 }
 
@@ -287,15 +279,12 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 		e_data.depth_src = dtxl->depth;
 
 		DRW_stats_group_start("SSR");
-		DRW_framebuffer_texture_attach(fbl->screen_tracing_fb, stl->g_data->ssr_pdf_output, 1, 0);
-		DRW_framebuffer_bind(fbl->screen_tracing_fb);
 
 		/* Raytrace. */
+		GPU_framebuffer_bind(fbl->screen_tracing_fb);
 		DRW_draw_pass(psl->ssr_raytrace);
 
-		DRW_framebuffer_texture_detach(stl->g_data->ssr_pdf_output);
-
-		EEVEE_downsample_buffer(vedata, fbl->downsample_fb, txl->color_double_buffer, 9);
+		EEVEE_downsample_buffer(vedata, txl->color_double_buffer, 9);
 
 		/* Resolve at fullres */
 		int sample = (DRW_state_is_image_render()) ? effects->taa_render_sample : effects->taa_current_sample;
@@ -320,18 +309,11 @@ void EEVEE_reflection_compute(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 				effects->ssr_halfres_ofs[1] = 1;
 				break;
 		}
-		DRW_framebuffer_texture_detach(dtxl->depth);
-		DRW_framebuffer_texture_detach(txl->ssr_normal_input);
-		DRW_framebuffer_texture_detach(txl->ssr_specrough_input);
-		DRW_framebuffer_bind(fbl->main);
+		GPU_framebuffer_bind(fbl->main_color_fb);
 		DRW_draw_pass(psl->ssr_resolve);
 
 		/* Restore */
-		DRW_framebuffer_texture_attach(fbl->main, dtxl->depth, 0, 0);
-		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_normal_input, 1, 0);
-		DRW_framebuffer_texture_attach(fbl->main, txl->ssr_specrough_input, 2, 0);
-		DRW_framebuffer_bind(fbl->main);
-
+		GPU_framebuffer_bind(fbl->main_fb);
 		DRW_stats_group_end();
 	}
 }

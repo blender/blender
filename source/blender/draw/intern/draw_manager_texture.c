@@ -197,6 +197,33 @@ GPUTexture *DRW_texture_create_cube(int w, DRWTextureFormat format, DRWTextureFl
 	return tex;
 }
 
+GPUTexture *DRW_texture_pool_query_2D(int w, int h, DRWTextureFormat format, DrawEngineType *engine_type)
+{
+	GPUTexture *tex;
+	GPUTextureFormat data_type;
+	int channels;
+
+	drw_texture_get_format(format, true, &data_type, &channels, NULL);
+	tex = GPU_viewport_texture_pool_query(DST.viewport, engine_type, w, h, channels, data_type);
+
+	return tex;
+}
+
+void DRW_texture_ensure_fullscreen_2D(GPUTexture **tex, DRWTextureFormat format, DRWTextureFlag flags)
+{
+	if (*(tex) == NULL) {
+		const float *size = DRW_viewport_size_get();
+		*(tex) = DRW_texture_create_2D((int)size[0], (int)size[1], format, flags, NULL);
+	}
+}
+
+void DRW_texture_ensure_2D(GPUTexture **tex, int w, int h, DRWTextureFormat format, DRWTextureFlag flags)
+{
+	if (*(tex) == NULL) {
+		*(tex) = DRW_texture_create_2D(w, h, format, flags, NULL);
+	}
+}
+
 void DRW_texture_generate_mipmaps(GPUTexture *tex)
 {
 	GPU_texture_bind(tex, 0);

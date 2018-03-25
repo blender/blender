@@ -760,20 +760,13 @@ Closure closure_add(Closure cl1, Closure cl2)
 
 #  if defined(MESH_SHADER) && !defined(USE_ALPHA_HASH) && !defined(USE_ALPHA_CLIP) && !defined(SHADOW_SHADER) && !defined(USE_MULTIPLY)
 layout(location = 0) out vec4 fragColor;
-#    ifdef USE_SSS
-#      ifdef USE_SSS_ALBEDO
-layout(location = 1) out vec4 sssData;
-layout(location = 2) out vec4 sssAlbedo;
-layout(location = 3) out vec4 ssrNormals;
-layout(location = 4) out vec4 ssrData;
-#      else
-layout(location = 1) out vec4 sssData;
-layout(location = 2) out vec4 ssrNormals;
-layout(location = 3) out vec4 ssrData;
-#      endif /* USE_SSS_ALBEDO */
-#    else
 layout(location = 1) out vec4 ssrNormals;
 layout(location = 2) out vec4 ssrData;
+#    ifdef USE_SSS
+layout(location = 3) out vec4 sssData;
+#      ifdef USE_SSS_ALBEDO
+layout(location = 4) out vec4 sssAlbedo;
+#      endif /* USE_SSS_ALBEDO */
 #    endif /* USE_SSS */
 
 Closure nodetree_exec(void); /* Prototype */

@@ -217,7 +217,7 @@ void EEVEE_motion_blur_draw(EEVEE_Data *vedata)
 
 	/* Motion Blur */
 	if ((effects->enabled_effects & EFFECT_MOTION_BLUR) != 0) {
-		DRW_framebuffer_bind(effects->target_buffer);
+		GPU_framebuffer_bind(effects->target_buffer);
 		DRW_draw_pass(psl->motion_blur);
 		SWAP_BUFFERS();
 	}

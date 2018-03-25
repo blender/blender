@@ -137,15 +137,17 @@ static void EDIT_MESH_engine_init(void *vedata)
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 
 	const float *viewport_size = DRW_viewport_size_get();
+	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-	DRWFboTexture tex[2] = {{
-	    &e_data.occlude_wire_depth_tx, DRW_TEX_DEPTH_24, DRW_TEX_TEMP},
-	    {&e_data.occlude_wire_color_tx, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_TEMP}
-	};
-	DRW_framebuffer_init(
-	        &fbl->occlude_wire_fb, &draw_engine_edit_mesh_type,
-	        (int)viewport_size[0], (int)viewport_size[1],
-	        tex, ARRAY_SIZE(tex));
+	e_data.occlude_wire_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_DEPTH_24,
+	                                                         &draw_engine_edit_mesh_type);
+	e_data.occlude_wire_color_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8,
+	                                                         &draw_engine_edit_mesh_type);
+
+	GPU_framebuffer_ensure_config(&fbl->occlude_wire_fb, {
+		GPU_ATTACHMENT_TEXTURE(e_data.occlude_wire_depth_tx),
+		GPU_ATTACHMENT_TEXTURE(e_data.occlude_wire_color_tx)
+	});
 
 	if (!e_data.vcolor_face_shader) {
 		e_data.vcolor_face_shader = GPU_shader_get_builtin_shader(GPU_SHADER_SIMPLE_LIGHTING_SMOOTH_COLOR_ALPHA);
@@ -523,7 +525,6 @@ static void EDIT_MESH_draw_scene(void *vedata)
 	EDIT_MESH_PassList *psl = ((EDIT_MESH_Data *)vedata)->psl;
 	EDIT_MESH_FramebufferList *fbl = ((EDIT_MESH_Data *)vedata)->fbl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	DRW_draw_pass(psl->vcolor_faces);
 
@@ -534,29 +535,15 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		/* render facefill */
 		DRW_draw_pass(psl->facefill_occlude);
 
-		/* attach temp textures */
-		DRW_framebuffer_texture_attach(fbl->occlude_wire_fb, e_data.occlude_wire_depth_tx, 0, 0);
-		DRW_framebuffer_texture_attach(fbl->occlude_wire_fb, e_data.occlude_wire_color_tx, 0, 0);
-		
 		/* Render wires on a separate framebuffer */
-		DRW_framebuffer_bind(fbl->occlude_wire_fb);
-		DRW_framebuffer_clear(true, true, false, clearcol, 1.0f);
+		GPU_framebuffer_bind(fbl->occlude_wire_fb);
+		GPU_framebuffer_clear_color_depth(fbl->occlude_wire_fb, clearcol, 1.0f);
 		DRW_draw_pass(psl->normals);
 		DRW_draw_pass(psl->edit_face_occluded);
 
-		/* detach textures */
-		DRW_framebuffer_texture_detach(dtxl->depth);
-
 		/* Combine with scene buffer */
-		DRW_framebuffer_bind(dfbl->default_fb);
+		GPU_framebuffer_bind(dfbl->color_only_fb);
 		DRW_draw_pass(psl->mix_occlude);
-
-		/* detach temp textures */
-		DRW_framebuffer_texture_detach(e_data.occlude_wire_depth_tx);
-		DRW_framebuffer_texture_detach(e_data.occlude_wire_color_tx);
-
-		/* reattach */
-		DRW_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 	}
 	else {
 		DRW_draw_pass(psl->normals);

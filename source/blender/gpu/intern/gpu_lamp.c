@@ -267,89 +267,35 @@ GPULamp *GPU_lamp_from_blender(Scene *scene, Object *ob, Object *par)
 	if ((la->type == LA_SPOT && (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY))) ||
 	    (la->type == LA_SUN && (la->mode & LA_SHAD_RAY)))
 	{
-		/* opengl */
-		lamp->fb = GPU_framebuffer_create();
-		if (!lamp->fb) {
-			gpu_lamp_shadow_free(lamp);
-			return lamp;
-		}
-
 		if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE) {
-			/* Shadow depth map */
 			lamp->depthtex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
-			if (!lamp->depthtex) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
-			GPU_texture_bind(lamp->depthtex, 0);
-			GPU_texture_compare_mode(lamp->depthtex, true);
-			GPU_texture_unbind(lamp->depthtex);
-
-			if (!GPU_framebuffer_texture_attach(lamp->fb, lamp->depthtex, 0, 0)) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
-			/* Shadow color map */
 			lamp->tex = gpu_lamp_create_vsm_shadow_map(lamp->size);
-			if (!lamp->tex) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
-			if (!GPU_framebuffer_texture_attach(lamp->fb, lamp->tex, 0, 0)) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
-			if (!GPU_framebuffer_check_valid(lamp->fb, NULL)) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
-			/* FBO and texture for blurring */
-			lamp->blurfb = GPU_framebuffer_create();
-			if (!lamp->blurfb) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
 			lamp->blurtex = gpu_lamp_create_vsm_shadow_map(lamp->size * 0.5);
-			if (!lamp->blurtex) {
+
+			lamp->fb = GPU_framebuffer_create();
+			GPU_framebuffer_texture_attach(lamp->fb, lamp->depthtex, 0, 0);
+			GPU_framebuffer_texture_attach(lamp->fb, lamp->tex, 0, 0);
+
+			lamp->blurfb = GPU_framebuffer_create();
+			GPU_framebuffer_texture_attach(lamp->blurfb, lamp->blurtex, 0, 0);
+
+			if (!GPU_framebuffer_check_valid(lamp->fb, NULL) ||
+			    !GPU_framebuffer_check_valid(lamp->blurfb, NULL))
+			{
 				gpu_lamp_shadow_free(lamp);
 				return lamp;
 			}
-
-			if (!GPU_framebuffer_texture_attach(lamp->blurfb, lamp->blurtex, 0, 0)) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
-			/* we need to properly bind to test for completeness */
-			GPU_texture_bind_as_framebuffer(lamp->blurtex);
-
-			if (!GPU_framebuffer_check_valid(lamp->blurfb, NULL)) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
-
 		}
 		else {
 			lamp->tex = GPU_texture_create_depth(lamp->size, lamp->size, NULL);
-			if (!lamp->tex) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
 
 			GPU_texture_bind(lamp->tex, 0);
 			GPU_texture_compare_mode(lamp->tex, true);
+			GPU_texture_filter_mode(lamp->tex, true);
 			GPU_texture_unbind(lamp->tex);
 
-			if (!GPU_framebuffer_texture_attach(lamp->fb, lamp->tex, 0, 0)) {
-				gpu_lamp_shadow_free(lamp);
-				return lamp;
-			}
+			lamp->fb = GPU_framebuffer_create();
+			GPU_framebuffer_texture_attach(lamp->fb, lamp->tex, 0, 0);
 
 			if (!GPU_framebuffer_check_valid(lamp->fb, NULL)) {
 				gpu_lamp_shadow_free(lamp);
@@ -437,7 +383,7 @@ void GPU_lamp_shadow_buffer_bind(GPULamp *lamp, float viewmat[4][4], int *winsiz
 
 	/* opengl */
 	glDisable(GL_SCISSOR_TEST);
-	GPU_texture_bind_as_framebuffer(lamp->tex);
+	GPU_framebuffer_bind(lamp->fb);
 	if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE)
 		GPU_shader_bind(GPU_shader_get_builtin_shader(GPU_SHADER_VSM_STORE));
 
@@ -486,7 +432,6 @@ void GPU_lamp_shadow_buffer_unbind(GPULamp *lamp)
 		gpu_lamp_shadow_blur(lamp);
 	}
 
-	GPU_framebuffer_texture_unbind(lamp->fb, lamp->tex);
 	GPU_framebuffer_restore();
 	glEnable(GL_SCISSOR_TEST);
 }

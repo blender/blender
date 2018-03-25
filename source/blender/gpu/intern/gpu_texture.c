@@ -48,6 +48,9 @@ static struct GPUTextureGlobal {
 	GPUTexture *invalid_tex_3D;
 } GG = {NULL, NULL, NULL};
 
+/* Maximum number of FBOs a texture can be attached to. */
+#define GPU_TEX_MAX_FBO_ATTACHED 8
+
 typedef enum GPUTextureFormatFlag{
 	GPU_FORMAT_DEPTH     = (1 << 0),
 	GPU_FORMAT_STENCIL   = (1 << 1),
@@ -72,14 +75,15 @@ struct GPUTexture {
 	GLuint bindcode;    /* opengl identifier for texture */
 	int fromblender;    /* we got the texture from Blender */
 
+	GPUTextureFormat format;
 	GPUTextureFormatFlag format_flag;
-	GPUFrameBuffer *fb; /* GPUFramebuffer this texture is attached to */
-	int fb_attachment;  /* slot the texture is attached to */
 
 	unsigned int bytesize; /* number of byte for one pixel */
-	GPUTextureFormat format;
 	int components;     /* number of color/alpha channels */
 	int samples;        /* number of samples for multisamples textures. 0 if not multisample target */
+
+	int fb_attachment[GPU_TEX_MAX_FBO_ATTACHED];
+	GPUFrameBuffer *fb[GPU_TEX_MAX_FBO_ATTACHED];
 };
 
 /* ------ Memory Management ------- */
@@ -355,7 +359,6 @@ static GPUTexture *GPU_texture_create_nD(
 	tex->samples = samples;
 	tex->number = -1;
 	tex->refcount = 1;
-	tex->fb_attachment = -1;
 	tex->format = data_type;
 	tex->components = components;
 	tex->format_flag = 0;
@@ -506,7 +509,6 @@ static GPUTexture *GPU_texture_cube_create(
 	tex->samples = 0;
 	tex->number = -1;
 	tex->refcount = 1;
-	tex->fb_attachment = -1;
 	tex->format = data_type;
 	tex->components = components;
 	tex->format_flag = GPU_FORMAT_CUBE;
@@ -847,8 +849,13 @@ void GPU_texture_bind(GPUTexture *tex, int number)
 	}
 
 	if ((G.debug & G_DEBUG)) {
-		if (tex->fb && GPU_framebuffer_bound(tex->fb)) {
-			fprintf(stderr, "Feedback loop warning!: Attempting to bind texture attached to current framebuffer!\n");
+		for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+			if (tex->fb[i] && GPU_framebuffer_bound(tex->fb[i])) {
+				fprintf(stderr, "Feedback loop warning!: Attempting to bind "
+				                "texture attached to current framebuffer!\n");
+				BLI_assert(0); /* Should never happen! */
+				break;
+			}
 		}
 	}
 
@@ -961,8 +968,12 @@ void GPU_texture_free(GPUTexture *tex)
 		fprintf(stderr, "GPUTexture: negative refcount\n");
 	
 	if (tex->refcount == 0) {
-		if (tex->fb)
-			GPU_framebuffer_texture_detach(tex);
+		for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+			if (tex->fb[i] != NULL) {
+				GPU_framebuffer_texture_detach_slot(tex->fb[i], tex, tex->fb_attachment[i]);
+			}
+		}
+
 		if (tex->bindcode && !tex->fromblender)
 			glDeleteTextures(1, &tex->bindcode);
 
@@ -1027,19 +1038,28 @@ int GPU_texture_opengl_bindcode(const GPUTexture *tex)
 	return tex->bindcode;
 }
 
-GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex)
+void GPU_texture_attach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb, int attachment)
 {
-	return tex->fb;
+	for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+		if (tex->fb[i] == NULL) {
+			tex->fb[i] = fb;
+			tex->fb_attachment[i] = attachment;
+			return;
+		}
+	}
+
+	BLI_assert(!"Error: Texture: Not enough Framebuffer slots");
 }
 
-int GPU_texture_framebuffer_attachment(GPUTexture *tex)
+/* Return previous attachment point */
+int GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
 {
-	return tex->fb_attachment;
-}
+	for (int i = 0; i < GPU_TEX_MAX_FBO_ATTACHED; ++i) {
+		if (tex->fb[i] == fb) {
+			tex->fb[i] = NULL;
+			return tex->fb_attachment[i];
+		}
+	}
 
-void GPU_texture_framebuffer_set(GPUTexture *tex, GPUFrameBuffer *fb, int attachment)
-{
-	tex->fb = fb;
-	tex->fb_attachment = attachment;
+	BLI_assert(!"Error: Texture: Framebuffer is not attached");
 }
-

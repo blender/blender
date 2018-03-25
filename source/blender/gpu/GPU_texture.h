@@ -189,9 +189,8 @@ void GPU_texture_filter_mode(GPUTexture *tex, bool use_filter);
 void GPU_texture_mipmap_mode(GPUTexture *tex, bool use_mipmap, bool use_filter);
 void GPU_texture_wrap_mode(GPUTexture *tex, bool use_repeat);
 
-struct GPUFrameBuffer *GPU_texture_framebuffer(GPUTexture *tex);
-int GPU_texture_framebuffer_attachment(GPUTexture *tex);
-void GPU_texture_framebuffer_set(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);
+void GPU_texture_attach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb, int attachment);
+int GPU_texture_detach_framebuffer(GPUTexture *tex, struct GPUFrameBuffer *fb);
 
 int GPU_texture_target(const GPUTexture *tex);
 int GPU_texture_width(const GPUTexture *tex);
