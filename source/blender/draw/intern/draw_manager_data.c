@@ -72,7 +72,7 @@ void DRW_uniformbuffer_free(GPUUniformBuffer *ubo)
 /** \name Uniforms (DRW_shgroup_uniform)
  * \{ */
 
-static void drw_interface_uniform_create_ex(DRWShadingGroup *shgroup, int loc,
+static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup, int loc,
                                             DRWUniformType type, const void *value, int length, int arraysize)
 {
 	DRWUniform *uni = BLI_mempool_alloc(DST.vmempool->uniforms);
@@ -85,17 +85,17 @@ static void drw_interface_uniform_create_ex(DRWShadingGroup *shgroup, int loc,
 	BLI_LINKS_PREPEND(shgroup->uniforms, uni);
 }
 
-static void drw_interface_builtin_uniform(
+static void drw_shgroup_builtin_uniform(
         DRWShadingGroup *shgroup, int builtin, const void *value, int length, int arraysize)
 {
 	int loc = GPU_shader_get_builtin_uniform(shgroup->shader, builtin);
 
 	if (loc != -1) {
-		drw_interface_uniform_create_ex(shgroup, loc, DRW_UNIFORM_FLOAT, value, length, arraysize);
+		drw_shgroup_uniform_create_ex(shgroup, loc, DRW_UNIFORM_FLOAT, value, length, arraysize);
 	}
 }
 
-static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
+static void drw_shgroup_uniform(DRWShadingGroup *shgroup, const char *name,
                                   DRWUniformType type, const void *value, int length, int arraysize)
 {
 	int location;
@@ -117,98 +117,98 @@ static void drw_interface_uniform(DRWShadingGroup *shgroup, const char *name,
 	BLI_assert(arraysize > 0 && arraysize <= 16);
 	BLI_assert(length >= 0 && length <= 16);
 
-	drw_interface_uniform_create_ex(shgroup, location, type, value, length, arraysize);
+	drw_shgroup_uniform_create_ex(shgroup, location, type, value, length, arraysize);
 }
 
 void DRW_shgroup_uniform_texture(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
 	BLI_assert(tex != NULL);
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE, tex, 0, 1);
 }
 
 /* Same as DRW_shgroup_uniform_texture but is garanteed to be bound if shader does not change between shgrp. */
 void DRW_shgroup_uniform_texture_persistent(DRWShadingGroup *shgroup, const char *name, const GPUTexture *tex)
 {
 	BLI_assert(tex != NULL);
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_PERSIST, tex, 0, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_TEXTURE_PERSIST, tex, 0, 1);
 }
 
 void DRW_shgroup_uniform_block(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
 	BLI_assert(ubo != NULL);
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK, ubo, 0, 1);
 }
 
 /* Same as DRW_shgroup_uniform_block but is garanteed to be bound if shader does not change between shgrp. */
 void DRW_shgroup_uniform_block_persistent(DRWShadingGroup *shgroup, const char *name, const GPUUniformBuffer *ubo)
 {
 	BLI_assert(ubo != NULL);
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BLOCK_PERSIST, ubo, 0, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BLOCK_PERSIST, ubo, 0, 1);
 }
 
 void DRW_shgroup_uniform_buffer(DRWShadingGroup *shgroup, const char *name, GPUTexture **tex)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BUFFER, tex, 0, 1);
 }
 
 void DRW_shgroup_uniform_bool(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_BOOL, value, 1, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BOOL, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_float(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 1, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_vec2(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 2, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 2, arraysize);
 }
 
 void DRW_shgroup_uniform_vec3(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 3, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 3, arraysize);
 }
 
 void DRW_shgroup_uniform_vec4(DRWShadingGroup *shgroup, const char *name, const float *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 4, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 4, arraysize);
 }
 
 void DRW_shgroup_uniform_short_to_int(DRWShadingGroup *shgroup, const char *name, const short *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_INT, value, 1, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_INT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_short_to_float(DRWShadingGroup *shgroup, const char *name, const short *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_FLOAT, value, 1, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_SHORT_TO_FLOAT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_int(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 1, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 1, arraysize);
 }
 
 void DRW_shgroup_uniform_ivec2(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 2, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 2, arraysize);
 }
 
 void DRW_shgroup_uniform_ivec3(DRWShadingGroup *shgroup, const char *name, const int *value, int arraysize)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_INT, value, 3, arraysize);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 3, arraysize);
 }
 
 void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const float *value)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 9, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 9, 1);
 }
 
 void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float *value)
 {
-	drw_interface_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 16, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 16, 1);
 }
 
 /** \} */
@@ -458,7 +458,7 @@ void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *at
 /** \name Shading Groups (DRW_shgroup)
  * \{ */
 
-static void drw_interface_init(DRWShadingGroup *shgroup, GPUShader *shader)
+static void drw_shgroup_init(DRWShadingGroup *shgroup, GPUShader *shader)
 {
 	shgroup->instance_geom = NULL;
 	shgroup->instance_vbo = NULL;
@@ -475,17 +475,17 @@ static void drw_interface_init(DRWShadingGroup *shgroup, GPUShader *shader)
 	int view_ubo_location = GPU_shader_get_uniform_block(shader, "viewBlock");
 
 	if (view_ubo_location != -1) {
-		drw_interface_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK_PERSIST, view_ubo, 0, 1);
+		drw_shgroup_uniform_create_ex(shgroup, view_ubo_location, DRW_UNIFORM_BLOCK_PERSIST, view_ubo, 0, 1);
 	}
 	else {
 		/* Only here to support builtin shaders. This should not be used by engines. */
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW, DST.view_data.matstate.mat[DRW_MAT_VIEW], 16, 1);
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEW_INV, DST.view_data.matstate.mat[DRW_MAT_VIEWINV], 16, 1);
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION, DST.view_data.matstate.mat[DRW_MAT_PERS], 16, 1);
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_PERSINV], 16, 1);
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION, DST.view_data.matstate.mat[DRW_MAT_WIN], 16, 1);
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_WININV], 16, 1);
-		drw_interface_builtin_uniform(shgroup, GWN_UNIFORM_CAMERATEXCO, DST.view_data.viewcamtexcofac, 3, 2);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_VIEW, DST.view_data.matstate.mat[DRW_MAT_VIEW], 16, 1);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_VIEW_INV, DST.view_data.matstate.mat[DRW_MAT_VIEWINV], 16, 1);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION, DST.view_data.matstate.mat[DRW_MAT_PERS], 16, 1);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_VIEWPROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_PERSINV], 16, 1);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION, DST.view_data.matstate.mat[DRW_MAT_WIN], 16, 1);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_PROJECTION_INV, DST.view_data.matstate.mat[DRW_MAT_WININV], 16, 1);
+		drw_shgroup_builtin_uniform(shgroup, GWN_UNIFORM_CAMERATEXCO, DST.view_data.viewcamtexcofac, 3, 2);
 	}
 
 	shgroup->model = GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_MODEL);
@@ -517,14 +517,14 @@ static void drw_interface_init(DRWShadingGroup *shgroup, GPUShader *shader)
 		shgroup->matflag |= DRW_CALL_EYEVEC;
 }
 
-static void drw_interface_instance_init(
+static void drw_shgroup_instance_init(
         DRWShadingGroup *shgroup, GPUShader *shader, Gwn_Batch *batch, Gwn_VertFormat *format)
 {
 	BLI_assert(shgroup->type == DRW_SHG_INSTANCE);
 	BLI_assert(batch != NULL);
 	BLI_assert(format != NULL);
 
-	drw_interface_init(shgroup, shader);
+	drw_shgroup_init(shgroup, shader);
 
 	shgroup->instance_geom = batch;
 #ifndef NDEBUG
@@ -535,10 +535,10 @@ static void drw_interface_instance_init(
 	                              &shgroup->instance_geom, &shgroup->instance_vbo);
 }
 
-static void drw_interface_batching_init(
+static void drw_shgroup_batching_init(
         DRWShadingGroup *shgroup, GPUShader *shader, Gwn_VertFormat *format)
 {
-	drw_interface_init(shgroup, shader);
+	drw_shgroup_init(shgroup, shader);
 
 #ifndef NDEBUG
 	shgroup->attribs_count = (format != NULL) ? format->attrib_ct : 0;
@@ -668,7 +668,7 @@ DRWShadingGroup *DRW_shgroup_material_create(
 	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
 
 	if (shgroup) {
-		drw_interface_init(shgroup, GPU_pass_shader(gpupass));
+		drw_shgroup_init(shgroup, GPU_pass_shader(gpupass));
 		drw_shgroup_material_inputs(shgroup, material);
 	}
 
@@ -685,7 +685,7 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(
 		shgroup->type = DRW_SHG_INSTANCE;
 		shgroup->instance_geom = geom;
 		drw_call_calc_orco(ob->data, shgroup->instance_orcofac);
-		drw_interface_instance_init(shgroup, GPU_pass_shader(gpupass), geom, format);
+		drw_shgroup_instance_init(shgroup, GPU_pass_shader(gpupass), geom, format);
 		drw_shgroup_material_inputs(shgroup, material);
 	}
 
@@ -702,8 +702,8 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
 	DRWShadingGroup *shgroup = drw_shgroup_material_create_ex(gpupass, pass);
 
 	if (shgroup) {
-		/* Calling drw_interface_init will cause it to call GWN_draw_primitive(). */
-		drw_interface_init(shgroup, GPU_pass_shader(gpupass));
+		/* Calling drw_shgroup_init will cause it to call GWN_draw_primitive(). */
+		drw_shgroup_init(shgroup, GPU_pass_shader(gpupass));
 		shgroup->type = DRW_SHG_TRIANGLE_BATCH;
 		shgroup->instance_count = tri_count * 3;
 		drw_shgroup_material_inputs(shgroup, material);
@@ -715,7 +715,7 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(
 DRWShadingGroup *DRW_shgroup_create(struct GPUShader *shader, DRWPass *pass)
 {
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
-	drw_interface_init(shgroup, shader);
+	drw_shgroup_init(shgroup, shader);
 	return shgroup;
 }
 
@@ -726,7 +726,7 @@ DRWShadingGroup *DRW_shgroup_instance_create(
 	shgroup->type = DRW_SHG_INSTANCE;
 	shgroup->instance_geom = geom;
 	drw_call_calc_orco(NULL, shgroup->instance_orcofac);
-	drw_interface_instance_init(shgroup, shader, geom, format);
+	drw_shgroup_instance_init(shgroup, shader, geom, format);
 
 	return shgroup;
 }
@@ -738,7 +738,7 @@ DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPas
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 	shgroup->type = DRW_SHG_POINT_BATCH;
 
-	drw_interface_batching_init(shgroup, shader, g_pos_format);
+	drw_shgroup_batching_init(shgroup, shader, g_pos_format);
 
 	return shgroup;
 }
@@ -750,7 +750,7 @@ DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 	shgroup->type = DRW_SHG_LINE_BATCH;
 
-	drw_interface_batching_init(shgroup, shader, g_pos_format);
+	drw_shgroup_batching_init(shgroup, shader, g_pos_format);
 
 	return shgroup;
 }
@@ -765,8 +765,8 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DR
 #endif
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 
-	/* Calling drw_interface_init will cause it to call GWN_draw_primitive(). */
-	drw_interface_init(shgroup, shader);
+	/* Calling drw_shgroup_init will cause it to call GWN_draw_primitive(). */
+	drw_shgroup_init(shgroup, shader);
 
 	shgroup->type = DRW_SHG_TRIANGLE_BATCH;
 	shgroup->instance_count = tri_count * 3;
