@@ -68,10 +68,6 @@ typedef struct ViewportTempTexture {
 } ViewportTempTexture;
 
 struct GPUViewport {
-	float pad[4];
-
-	/* debug */
-	GPUTexture *debug_depth;
 	int size[2];
 
 	int samples;
@@ -668,86 +664,5 @@ void GPU_viewport_free(GPUViewport *viewport)
 	DRW_instance_data_list_free(viewport->idatalist);
 	MEM_freeN(viewport->idatalist);
 
-	GPU_viewport_debug_depth_free(viewport);
-
 	MEM_freeN(viewport);
-}
-
-/****************** debug ********************/
-
-bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256])
-{
-	viewport->debug_depth = GPU_texture_create_2D_custom(width, height, 4, GPU_RGBA16F, NULL, err_out);
-	return (viewport->debug_depth != NULL);
-}
-
-void GPU_viewport_debug_depth_free(GPUViewport *viewport)
-{
-	if (viewport->debug_depth != NULL) {
-		MEM_freeN(viewport->debug_depth);
-		viewport->debug_depth = NULL;
-	}
-}
-
-void GPU_viewport_debug_depth_store(GPUViewport *viewport, const int x, const int y)
-{
-	const int w = GPU_texture_width(viewport->debug_depth);
-	const int h = GPU_texture_height(viewport->debug_depth);
-
-	GPU_texture_bind(viewport->debug_depth, 0);
-	glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, x, y, w, h, 0);
-	GPU_texture_unbind(viewport->debug_depth);
-}
-
-void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, const float zfar)
-{
-	const float w = (float)GPU_texture_width(viewport->debug_depth);
-	const float h = (float)GPU_texture_height(viewport->debug_depth);
-
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_DEPTH);
-
-	GPU_texture_bind(viewport->debug_depth, 0);
-
-	immUniform1f("znear", znear);
-	immUniform1f("zfar", zfar);
-	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
-
-	immBegin(GWN_PRIM_TRI_STRIP, 4);
-
-	immAttrib2f(texcoord, 0.0f, 0.0f);
-	immVertex2f(pos, 0.0f, 0.0f);
-
-	immAttrib2f(texcoord, 1.0f, 0.0f);
-	immVertex2f(pos, w, 0.0f);
-
-	immAttrib2f(texcoord, 0.0f, 1.0f);
-	immVertex2f(pos, 0.0f, h);
-
-	immAttrib2f(texcoord, 1.0f, 1.0f);
-	immVertex2f(pos, w, h);
-
-	immEnd();
-
-	GPU_texture_unbind(viewport->debug_depth);
-
-	immUnbindProgram();
-}
-
-int GPU_viewport_debug_depth_width(const GPUViewport *viewport)
-{
-	return GPU_texture_width(viewport->debug_depth);
-}
-
-int GPU_viewport_debug_depth_height(const GPUViewport *viewport)
-{
-	return GPU_texture_height(viewport->debug_depth);
-}
-
-bool GPU_viewport_debug_depth_is_valid(GPUViewport *viewport)
-{
-	return viewport->debug_depth != NULL;
 }

@@ -125,13 +125,4 @@ GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine,
 bool GPU_viewport_engines_data_validate(GPUViewport *viewport, unsigned int hash);
 void GPU_viewport_cache_release(GPUViewport *viewport);
 
-/* debug */
-bool GPU_viewport_debug_depth_create(GPUViewport *viewport, int width, int height, char err_out[256]);
-void GPU_viewport_debug_depth_free(GPUViewport *viewport);
-void GPU_viewport_debug_depth_store(GPUViewport *viewport, const int x, const int y);
-void GPU_viewport_debug_depth_draw(GPUViewport *viewport, const float znear, const float zfar);
-bool GPU_viewport_debug_depth_is_valid(GPUViewport *viewport);
-int GPU_viewport_debug_depth_width(const GPUViewport *viewport);
-int GPU_viewport_debug_depth_height(const GPUViewport *viewport);
-
 #endif // __GPU_VIEWPORT_H__
