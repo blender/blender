@@ -961,7 +961,7 @@ static int text_line_break_exec(bContext *C, wmOperator *UNUSED(op))
 	text_update_cursor_moved(C);
 	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
 
-	return OPERATOR_CANCELLED;
+	return OPERATOR_FINISHED;
 }
 
 void TEXT_OT_line_break(wmOperatorType *ot)
