@@ -28,6 +28,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_global.h"
@@ -40,9 +41,7 @@
 #include "GPU_shader.h"
 #include "GPU_texture.h"
 
-static struct GPUFrameBufferGlobal {
-	GLuint currentfb;
-} GG = {0};
+static ThreadLocal(GLuint) g_currentfb;
 
 /* Number of maximum output slots.
  * We support 5 outputs for now (usually we wouldn't need more to preserve fill rate) */
@@ -134,7 +133,7 @@ bool GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slo
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 
 	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex))
 		attachment = GL_DEPTH_STENCIL_ATTACHMENT;
@@ -176,7 +175,7 @@ static bool gpu_framebuffer_texture_layer_attach_ex(GPUFrameBuffer *fb, GPUTextu
 	}
 
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 
 	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex))
 		attachment = GL_DEPTH_STENCIL_ATTACHMENT;
@@ -223,9 +222,9 @@ void GPU_framebuffer_texture_detach(GPUTexture *tex)
 	if (!fb)
 		return;
 
-	if (GG.currentfb != fb->object) {
+	if (g_currentfb != fb->object) {
 		glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
-		GG.currentfb = fb->object;
+		g_currentfb = fb->object;
 	}
 
 	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex)) {
@@ -280,7 +279,7 @@ void GPU_texture_bind_as_framebuffer(GPUTexture *tex)
 
 	/* set default viewport */
 	glViewport(0, 0, GPU_texture_width(tex), GPU_texture_height(tex));
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 }
 
 void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
@@ -313,7 +312,7 @@ void GPU_framebuffer_slots_bind(GPUFrameBuffer *fb, int slot)
 
 	/* set default viewport */
 	glViewport(0, 0, GPU_texture_width(fb->colortex[slot]), GPU_texture_height(fb->colortex[slot]));
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 }
 
 void GPU_framebuffer_bind(GPUFrameBuffer *fb)
@@ -354,7 +353,7 @@ void GPU_framebuffer_bind(GPUFrameBuffer *fb)
 	}
 
 	glViewport(0, 0, GPU_texture_width(tex), GPU_texture_height(tex));
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 }
 
 void GPU_framebuffer_texture_unbind(GPUFrameBuffer *UNUSED(fb), GPUTexture *UNUSED(tex))
@@ -372,18 +371,18 @@ void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot)
 
 	/* push matrices and set default viewport and matrix */
 	glViewport(0, 0, GPU_texture_width(fb->colortex[slot]), GPU_texture_height(fb->colortex[slot]));
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 }
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb)
 {
-	return fb->object == GG.currentfb;
+	return fb->object == g_currentfb;
 }
 
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 {
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 
 	/* On macOS glDrawBuffer must be set when checking completeness,
 	 * otherwise it will return GL_FRAMEBUFFER_UNSUPPORTED when only a
@@ -418,20 +417,25 @@ void GPU_framebuffer_free(GPUFrameBuffer *fb)
 	if (fb->object) {
 		glDeleteFramebuffers(1, &fb->object);
 
-		if (GG.currentfb == fb->object) {
+		if (g_currentfb == fb->object) {
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			GG.currentfb = 0;
+			g_currentfb = 0;
 		}
 	}
 
 	MEM_freeN(fb);
 }
 
+unsigned int GPU_framebuffer_current_get(void)
+{
+	return g_currentfb;
+}
+
 void GPU_framebuffer_restore(void)
 {
-	if (GG.currentfb != 0) {
+	if (g_currentfb != 0) {
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		GG.currentfb = 0;
+		g_currentfb = 0;
 	}
 }
 
@@ -486,7 +490,7 @@ void GPU_framebuffer_blur(
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	
 	/* avoid warnings from texture binding */
-	GG.currentfb = blurfb->object;
+	g_currentfb = blurfb->object;
 
 	glViewport(0, 0, GPU_texture_width(blurtex), GPU_texture_height(blurtex));
 
@@ -501,7 +505,7 @@ void GPU_framebuffer_blur(
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 	
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 	
 	glViewport(0, 0, GPU_texture_width(tex), GPU_texture_height(tex));
 
@@ -567,7 +571,7 @@ void GPU_framebuffer_blit(
 	                  GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 	/* Restore previous framebuffer */
-	glBindFramebuffer(GL_FRAMEBUFFER, GG.currentfb);
+	glBindFramebuffer(GL_FRAMEBUFFER, g_currentfb);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
 }
 
@@ -584,7 +588,7 @@ void GPU_framebuffer_recursive_downsample(
 
 	/* Manually setup framebuffer to not use GPU_texture_framebuffer_set() */
 	glBindFramebuffer(GL_FRAMEBUFFER, fb->object);
-	GG.currentfb = fb->object;
+	g_currentfb = fb->object;
 
 	if (GPU_texture_stencil(tex) && GPU_texture_depth(tex))
 		attachment = GL_DEPTH_STENCIL_ATTACHMENT;

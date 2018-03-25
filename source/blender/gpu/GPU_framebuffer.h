@@ -62,6 +62,8 @@ void GPU_framebuffer_texture_unbind(GPUFrameBuffer *fb, struct GPUTexture *tex);
 void GPU_framebuffer_free(GPUFrameBuffer *fb);
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256]);
 
+/* internal use only */
+unsigned int GPU_framebuffer_current_get(void);
 void GPU_framebuffer_bind_no_save(GPUFrameBuffer *fb, int slot);
 
 bool GPU_framebuffer_bound(GPUFrameBuffer *fb);
