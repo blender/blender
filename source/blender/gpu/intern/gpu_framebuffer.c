@@ -665,23 +665,6 @@ void GPU_offscreen_unbind(GPUOffScreen *ofs, bool restore)
 	glEnable(GL_SCISSOR_TEST);
 }
 
-void GPU_offscreen_blit(GPUOffScreen *ofs, int x, int y)
-{
-	const int w = GPU_texture_width(ofs->color);
-	const int h = GPU_texture_height(ofs->color);
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, ofs->fb->object);
-	GLenum status = glCheckFramebufferStatus(GL_READ_FRAMEBUFFER);
-
-	if (status == GL_FRAMEBUFFER_COMPLETE) {
-		glBlitFramebuffer(0, 0, w, h, x, y, x + w, y + h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-	}
-	else {
-		gpu_print_framebuffer_error(status, NULL);
-	}
-
-	glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-}
 
 void GPU_offscreen_read_pixels(GPUOffScreen *ofs, int type, void *pixels)
 {
