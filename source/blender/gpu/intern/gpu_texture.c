@@ -715,7 +715,8 @@ GPUTexture *GPU_texture_create_2D_custom_multisample(
 	return GPU_texture_create_nD(w, h, 0, 2, pixels, data_type, channels, samples, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_array_custom(int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_2D_array_custom(
+        int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
 	return GPU_texture_create_nD(w, h, d, 2, pixels, data_type, channels, 0, false, err_out);
 }
@@ -725,11 +726,13 @@ GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char
 	return GPU_texture_create_nD(w, h, d, 3, pixels, GPU_RGBA8, 4, 0, true, err_out);
 }
 
-GPUTexture *GPU_texture_create_3D_custom(int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_3D_custom(
+        int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
 	return GPU_texture_create_nD(w, h, d, 3, pixels, data_type, channels, 0, true, err_out);
 }
-GPUTexture *GPU_texture_create_cube_custom(int w, int channels, GPUTextureFormat data_type, const float *fpixels, char err_out[256])
+GPUTexture *GPU_texture_create_cube_custom(
+        int w, int channels, GPUTextureFormat data_type, const float *fpixels, char err_out[256])
 {
 	const float *fpixels_px, *fpixels_py, *fpixels_pz, *fpixels_nx, *fpixels_ny, *fpixels_nz;
 
@@ -745,7 +748,8 @@ GPUTexture *GPU_texture_create_cube_custom(int w, int channels, GPUTextureFormat
 		fpixels_px = fpixels_py = fpixels_pz = fpixels_nx = fpixels_ny = fpixels_nz = NULL;
 	}
 
-	return GPU_texture_cube_create(w, 0, fpixels_px, fpixels_py, fpixels_pz, fpixels_nx, fpixels_ny, fpixels_nz, data_type, channels, err_out);
+	return GPU_texture_cube_create(w, 0, fpixels_px, fpixels_py, fpixels_pz, fpixels_nx, fpixels_ny, fpixels_nz,
+	                               data_type, channels, err_out);
 }
 
 GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])
