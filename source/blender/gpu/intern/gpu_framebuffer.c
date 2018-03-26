@@ -231,20 +231,20 @@ static void gpu_framebuffer_texture_attach_ex(GPUFrameBuffer *fb, GPUTexture *te
 
 void GPU_framebuffer_texture_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int mip)
 {
-	return gpu_framebuffer_texture_attach_ex(fb, tex, slot, -1, mip);
+	gpu_framebuffer_texture_attach_ex(fb, tex, slot, -1, mip);
 }
 
 void GPU_framebuffer_texture_layer_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int layer, int mip)
 {
 	/* NOTE: We could support 1D ARRAY texture. */
 	BLI_assert(GPU_texture_target(tex) == GL_TEXTURE_2D_ARRAY);
-	return gpu_framebuffer_texture_attach_ex(fb, tex, slot, layer, mip);
+	gpu_framebuffer_texture_attach_ex(fb, tex, slot, layer, mip);
 }
 
 void GPU_framebuffer_texture_cubeface_attach(GPUFrameBuffer *fb, GPUTexture *tex, int slot, int face, int mip)
 {
 	BLI_assert(GPU_texture_cube(tex));
-	return gpu_framebuffer_texture_attach_ex(fb, tex, slot, face, mip);
+	gpu_framebuffer_texture_attach_ex(fb, tex, slot, face, mip);
 }
 
 /* ---------- Detach ----------- */
