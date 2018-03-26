@@ -2835,6 +2835,7 @@ static void rna_def_object(BlenderRNA *brna)
 	                                  NULL,
 	                                  NULL);
 	RNA_def_property_struct_type(prop, "LayerCollectionSettings");
+	RNA_def_property_flag(prop, PROP_NO_COMPARISON);  /* XXX see T53800. */
 	RNA_def_property_ui_text(prop, "Collection Settings",
 	                         "Engine specific render settings to be overridden by collections");
 
