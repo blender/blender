@@ -949,7 +949,7 @@ int main(int argc, char **argv)
 	MultiTestApp *app;
 
 #ifndef USE_BMF
-	BLF_init(11, 72);
+	BLF_init();
 #endif
 
 	app = multitestapp_new();

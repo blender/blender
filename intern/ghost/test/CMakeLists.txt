@@ -204,6 +204,7 @@ target_link_libraries(gears_c
 		string_lib
 		${OPENGL_gl_LIBRARY}
 		${OPENGL_glu_LIBRARY}
+		${CMAKE_DL_LIBS}
 		${PLATFORM_LINKLIBS}
 		)
 
@@ -218,6 +219,7 @@ target_link_libraries(gears_cpp
 		string_lib
 		${OPENGL_gl_LIBRARY}
 		${OPENGL_glu_LIBRARY}
+		${CMAKE_DL_LIBS}
 		${PLATFORM_LINKLIBS}
 		)
 
@@ -251,5 +253,6 @@ target_link_libraries(multitest_c
 		${OPENGL_glu_LIBRARY}
 		${FREETYPE_LIBRARY}
 		${ZLIB_LIBRARIES}
+		${CMAKE_DL_LIBS}
 		${PLATFORM_LINKLIBS}
 		)
