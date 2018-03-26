@@ -1107,7 +1107,6 @@ typedef struct PathState {
 #ifdef __VOLUME__
 	int volume_bounce;
 	int volume_bounds_bounce;
-	uint rng_congruential;
 	VolumeStack volume_stack[VOLUME_STACK_SIZE];
 #endif
 } PathState;

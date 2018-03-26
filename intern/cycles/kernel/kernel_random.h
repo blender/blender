@@ -199,6 +199,19 @@ ccl_device_inline void path_state_rng_2D(KernelGlobals *kg,
 	            fx, fy);
 }
 
+ccl_device_inline float path_state_rng_1D_hash(KernelGlobals *kg,
+                                          const ccl_addr_space PathState *state,
+                                          uint hash)
+{
+	/* Use a hash instead of dimension, this is not great but avoids adding
+	 * more dimensions to each bounce which reduces quality of dimensions we
+	 * are already using. */
+	return path_rng_1D(kg,
+	                   cmj_hash_simple(state->rng_hash, hash),
+	                   state->sample, state->num_samples,
+	                   state->rng_offset);
+}
+
 ccl_device_inline float path_branched_rng_1D(
         KernelGlobals *kg,
         uint rng_hash,
