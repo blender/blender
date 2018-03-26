@@ -306,7 +306,7 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			SWAP(GPUTexture *, txl->color_post, txl->color_double_buffer);
 			effects->swap_double_buffer = false;
 			effects->source_buffer = txl->color_double_buffer;
-			effects->target_buffer = fbl->main_fb;
+			effects->target_buffer = fbl->main_color_fb;
 		}
 		else {
 			/* Save the depth buffer for the next frame.
