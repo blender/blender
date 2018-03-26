@@ -468,8 +468,24 @@ enum {
 };
 
 /* ************ EFFECTS DATA ************* */
+
+typedef enum EEVEE_EffectsFlag {
+	EFFECT_MOTION_BLUR         = (1 << 0),
+	EFFECT_BLOOM               = (1 << 1),
+	EFFECT_DOF                 = (1 << 2),
+	EFFECT_VOLUMETRIC          = (1 << 3),
+	EFFECT_SSR                 = (1 << 4),
+	EFFECT_DOUBLE_BUFFER       = (1 << 5), /* Not really an effect but a feature */
+	EFFECT_REFRACT             = (1 << 6),
+	EFFECT_GTAO                = (1 << 7),
+	EFFECT_TAA                 = (1 << 8),
+	EFFECT_POST_BUFFER         = (1 << 9), /* Not really an effect but a feature */
+	EFFECT_NORMAL_BUFFER       = (1 << 10), /* Not really an effect but a feature */
+	EFFECT_SSS                 = (1 << 11),
+} EEVEE_EffectsFlag;
+
 typedef struct EEVEE_EffectsInfo {
-	int enabled_effects;
+	EEVEE_EffectsFlag enabled_effects;
 	bool swap_double_buffer;
 	/* SSSS */
 	int sss_sample_count;
@@ -542,21 +558,6 @@ typedef struct EEVEE_EffectsInfo {
 	struct GPUTexture *final_tx;            /* Final color to transform to display color space. */
 	struct GPUFrameBuffer *final_fb;        /* Framebuffer with final_tx as attachement. */
 } EEVEE_EffectsInfo;
-
-enum {
-	EFFECT_MOTION_BLUR         = (1 << 0),
-	EFFECT_BLOOM               = (1 << 1),
-	EFFECT_DOF                 = (1 << 2),
-	EFFECT_VOLUMETRIC          = (1 << 3),
-	EFFECT_SSR                 = (1 << 4),
-	EFFECT_DOUBLE_BUFFER       = (1 << 5), /* Not really an effect but a feature */
-	EFFECT_REFRACT             = (1 << 6),
-	EFFECT_GTAO                = (1 << 7),
-	EFFECT_TAA                 = (1 << 8),
-	EFFECT_POST_BUFFER         = (1 << 9), /* Not really an effect but a feature */
-	EFFECT_NORMAL_BUFFER       = (1 << 10), /* Not really an effect but a feature */
-	EFFECT_SSS                 = (1 << 11),
-};
 
 /* ***************** COMMON DATA **************** */
 
