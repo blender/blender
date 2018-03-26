@@ -120,6 +120,49 @@
  *
  */
 
+
+/* Undo opcodes */
+
+enum {
+	/* Complex editing */
+	/* 1 - opcode is followed by 1 byte for ascii character and opcode (repeat)) */
+	/* 2 - opcode is followed by 2 bytes for utf-8 character and opcode (repeat)) */
+	/* 3 - opcode is followed by 3 bytes for utf-8 character and opcode (repeat)) */
+	/* 4 - opcode is followed by 4 bytes for unicode character and opcode (repeat)) */
+	UNDO_INSERT_1   = 013,
+	UNDO_INSERT_2   = 014,
+	UNDO_INSERT_3   = 015,
+	UNDO_INSERT_4   = 016,
+
+	UNDO_BS_1       = 017,
+	UNDO_BS_2       = 020,
+	UNDO_BS_3       = 021,
+	UNDO_BS_4       = 022,
+
+	UNDO_DEL_1      = 023,
+	UNDO_DEL_2      = 024,
+	UNDO_DEL_3      = 025,
+	UNDO_DEL_4      = 026,
+
+	/* Text block (opcode is followed
+	 * by 4 character length ID + the text
+	 * block itself + the 4 character length
+	 * ID (repeat) and opcode (repeat)) */
+	UNDO_DBLOCK     = 027, /* Delete block */
+	UNDO_IBLOCK     = 030, /* Insert block */
+
+	/* Misc */
+	UNDO_INDENT     = 032,
+	UNDO_UNINDENT   = 033,
+	UNDO_COMMENT    = 034,
+	UNDO_UNCOMMENT  = 035,
+
+	UNDO_MOVE_LINES_UP      = 036,
+	UNDO_MOVE_LINES_DOWN    = 037,
+
+	UNDO_DUPLICATE  = 040,
+};
+
 /***/
 
 static void txt_pop_first(Text *text);
@@ -147,8 +190,8 @@ int txt_get_undostate(void)
 static void init_undo_text(Text *text)
 {
 	text->undo_pos = -1;
-	text->undo_len = TXT_INIT_UNDO;
-	text->undo_buf = MEM_mallocN(text->undo_len, "undo buf");
+	text->undo_len = 0;
+	text->undo_buf = NULL;
 }
 
 /**
@@ -1422,24 +1465,39 @@ void txt_insert_buf(Text *text, const char *in_buffer)
 
 static bool max_undo_test(Text *text, int x)
 {
-	while (text->undo_pos + x >= text->undo_len) {
-		if (text->undo_len * 2 > TXT_MAX_UNDO) {
-			/* XXX error("Undo limit reached, buffer cleared\n"); */
-			MEM_freeN(text->undo_buf);
-			init_undo_text(text);
-			return false;
-		}
-		else {
-			void *tmp = text->undo_buf;
-			text->undo_buf = MEM_callocN(text->undo_len * 2, "undo buf");
-			memcpy(text->undo_buf, tmp, text->undo_len);
-			text->undo_len *= 2;
-			MEM_freeN(tmp);
-		}
-	}
+	/* Normally over-allocating is preferred,
+	 * however in this case the buffer is small enough and re-allocation
+	 * fast enough for each undo step that it's not a problem to allocate each time.
+	 * This also saves on some memory when we have many text buffers
+	 * that would have an empty undo memory allocated.
+	 */
 
+	/* Add one for the null terminator. */
+	text->undo_len = text->undo_pos + x + 1;
+	if (text->undo_len > TXT_MAX_UNDO) {
+		/* XXX error("Undo limit reached, buffer cleared\n"); */
+		MEM_freeN(text->undo_buf);
+		init_undo_text(text);
+		return false;
+	}
+	else {
+		/* Small reallocations on each undo step is fine. */
+		text->undo_buf = MEM_recallocN(text->undo_buf, text->undo_len);
+	}
 	return true;
 }
+
+static void txt_undo_end(Text *text)
+{
+	int undo_pos_end = text->undo_pos + 1;
+	BLI_assert(undo_pos_end + 1 == text->undo_len);
+	text->undo_buf[undo_pos_end] = '\0';
+}
+
+/* Call once undo is done. */
+#ifndef NDEBUG
+
+#endif
 
 #if 0  /* UNUSED */
 static void dump_buffer(Text *text) 
@@ -1628,21 +1686,21 @@ static void txt_undo_store_uint32(char *undo_buf, int *undo_pos, unsigned int va
 	(*undo_pos)++;
 }
 
-/* store the cur cursor to the undo buffer */
+/* store the cur cursor to the undo buffer (6 bytes)*/
 static void txt_undo_store_cur(Text *text)
 {
 	txt_undo_store_uint16(text->undo_buf, &text->undo_pos, text->curc);
 	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, txt_get_span(text->lines.first, text->curl));
 }
 
-/* store the sel cursor to the undo buffer */
+/* store the sel cursor to the undo buffer (6 bytes) */
 static void txt_undo_store_sel(Text *text)
 {
 	txt_undo_store_uint16(text->undo_buf, &text->undo_pos, text->selc);
 	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, txt_get_span(text->lines.first, text->sell));
 }
 
-/* store both cursors to the undo buffer */
+/* store both cursors to the undo buffer (12 bytes) */
 static void txt_undo_store_cursors(Text *text)
 {
 	txt_undo_store_cur(text);
@@ -1653,42 +1711,46 @@ static void txt_undo_store_cursors(Text *text)
 static void txt_undo_add_blockop(Text *text, int op, const char *buf)
 {
 	unsigned int length = strlen(buf);
-	
-	if (!max_undo_test(text, length + 11 + 12))
-		return;
 
+	if (!max_undo_test(text, 2 + 12 + 4 + length + 4 + 1)) {
+		return;
+	}
+	/* 2 bytes */
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos] = op;
 	text->undo_pos++;
-	
+	/* 12 bytes */
 	txt_undo_store_cursors(text);
-
+	/* 4 bytes */
 	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, length);
-	
+	/* 'length' bytes */
 	strncpy(text->undo_buf + text->undo_pos, buf, length);
 	text->undo_pos += length;
-
+	/* 4 bytes */
 	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, length);
+	/* 1 byte */
 	text->undo_buf[text->undo_pos] = op;
-	
-	text->undo_buf[text->undo_pos + 1] = 0;
+
+	txt_undo_end(text);
 }
 
 /* store a regular operator */
 void txt_undo_add_op(Text *text, int op)
 {
-	if (!max_undo_test(text, 15))
+	if (!max_undo_test(text, 2 + 12 + 1)) {
 		return;
+	}
 
+	/* 2 bytes */
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos] = op;
-
 	text->undo_pos++;
-	
+	/* 12 bytes */
 	txt_undo_store_cursors(text);
-		
+	/* 1 byte */
 	text->undo_buf[text->undo_pos] = op;
-	text->undo_buf[text->undo_pos + 1] = 0;
+
+	txt_undo_end(text);
 }
 
 /* store an operator for a single character */
@@ -1697,35 +1759,41 @@ static void txt_undo_add_charop(Text *text, int op_start, unsigned int c)
 	char utf8[BLI_UTF8_MAX];
 	size_t i, utf8_size = BLI_str_utf8_from_unicode(c, utf8);
 	
-	if (!max_undo_test(text, 3 + utf8_size + 12))
-		return;
-	
-	text->undo_pos++;
-	
-	if (utf8_size < 4) {
+	if (utf8_size < 4 && 0) {
+		if (!max_undo_test(text, 2 + 6 + utf8_size + 1)) {
+			return;
+		}
+		/* 2 bytes */
+		text->undo_pos++;
 		text->undo_buf[text->undo_pos] = op_start + utf8_size - 1;
 		text->undo_pos++;
-		
+		/* 6 bytes */
 		txt_undo_store_cur(text);
-
+		/* 'utf8_size' bytes */
 		for (i = 0; i < utf8_size; i++) {
 			text->undo_buf[text->undo_pos] = utf8[i];
 			text->undo_pos++;
 		}
-		
+		/* 1 byte */
 		text->undo_buf[text->undo_pos] = op_start + utf8_size - 1;
 	}
 	else {
+		if (!max_undo_test(text, 2 + 6 + 4 + 1)) {
+			return;
+		}
+		/* 2 bytes */
+		text->undo_pos++;
 		text->undo_buf[text->undo_pos] = op_start + 3;
 		text->undo_pos++;
-
-		txt_undo_store_cursors(text);
-
+		/* 6 bytes */
+		txt_undo_store_cur(text);
+		/* 4 bytes */
 		txt_undo_store_uint32(text->undo_buf, &text->undo_pos, c);
+		/* 1 byte */
 		text->undo_buf[text->undo_pos] = op_start + 3;
 	}
 	
-	text->undo_buf[text->undo_pos + 1] = 0;
+	txt_undo_end(text);
 }
 
 /* extends Link */
@@ -1747,30 +1815,35 @@ static void txt_undo_add_unprefix_op(
 	BLI_assert(BLI_listbase_count(line_index_mask) == line_index_mask_len);
 
 	/* OP byte + UInt32 count + counted UInt32 line numbers + UInt32 count + 12-bytes selection + OP byte */
-	if (!max_undo_test(text, 1 + 4 + (line_index_mask_len * 4) + 4 + 12 + 1)) {
+	if (!max_undo_test(text, 2 + 4 + (line_index_mask_len * 4) + 4 + 12 + 1)) {
 		return;
 	}
 
-	/* Opening buffer sequence with OP */
+	/* 2 bytes */
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos] = undo_op;
 	text->undo_pos++;
-	/* Adding number of line numbers to read */
+	/* Adding number of line numbers to read
+	 * 4 bytes */
 	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, line_index_mask_len);
 
-	/* Adding linenumbers of lines that shall not be indented if undoing */
+	/* Adding linenumbers of lines that shall not be indented if undoing.
+	 * 'line_index_mask_len * 4' bytes */
 	for (idata = line_index_mask->first; idata; idata = idata->next) {
 		txt_undo_store_uint32(text->undo_buf, &text->undo_pos, idata->value);
 	}
 
-	/* Adding number of line numbers to read again */
+	/* Adding number of line numbers to read again.
+	 * 4 bytes */
 	txt_undo_store_uint32(text->undo_buf, &text->undo_pos, line_index_mask_len);
-	/* Adding current selection */
+	/* Adding current selection.
+	 * 12 bytes */
 	txt_undo_store_cursors(text);
-	/* Closing with OP (same as above) */
+	/* Closing with OP (same as above).
+	 * 1 byte */
 	text->undo_buf[text->undo_pos] = undo_op;
 	/* Marking as last undo operation */
-	text->undo_buf[text->undo_pos + 1] = 0;
+	txt_undo_end(text);
 }
 
 static unsigned short txt_undo_read_uint16(const char *undo_buf, int *undo_pos)
@@ -1913,7 +1986,7 @@ static unsigned int txt_redo_read_unicode(const char *undo_buf, int *undo_pos, s
 			unicode = BLI_str_utf8_as_unicode(utf8);
 			break;
 		case 4: /* 32-bit unicode symbol */
-			unicode = txt_undo_read_uint32(undo_buf, undo_pos);
+			unicode = txt_redo_read_uint32(undo_buf, undo_pos);
 			break;
 		default:
 			/* should never happen */

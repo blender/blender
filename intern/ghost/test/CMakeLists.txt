@@ -203,6 +203,11 @@ target_link_libraries(gears_c
 		glewmx_lib
 		string_lib
 		${OPENGL_gl_LIBRARY}
+<<<<<<< HEAD
+=======
+		${OPENGL_glu_LIBRARY}
+		${CMAKE_DL_LIBS}
+>>>>>>> master
 		${PLATFORM_LINKLIBS}
 		)
 
@@ -216,6 +221,11 @@ target_link_libraries(gears_cpp
 		glewmx_lib
 		string_lib
 		${OPENGL_gl_LIBRARY}
+<<<<<<< HEAD
+=======
+		${OPENGL_glu_LIBRARY}
+		${CMAKE_DL_LIBS}
+>>>>>>> master
 		${PLATFORM_LINKLIBS}
 		)
 
@@ -248,5 +258,6 @@ target_link_libraries(multitest_c
 		${OPENGL_gl_LIBRARY}
 		${FREETYPE_LIBRARY}
 		${ZLIB_LIBRARIES}
+		${CMAKE_DL_LIBS}
 		${PLATFORM_LINKLIBS}
 		)

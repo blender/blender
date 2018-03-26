@@ -33,6 +33,7 @@
 #define __BLF_API_H__
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 /* enable this only if needed (unused circa 2016) */
 #define BLF_BLUR_ENABLE 0
@@ -46,6 +47,9 @@ void BLF_exit(void);
 void BLF_default_dpi(int dpi);
 void BLF_default_set(int fontid);
 int BLF_default(void); /* get default font ID so we can pass it to other functions */
+
+void BLF_antialias_set(bool enabled);
+bool BLF_antialias_get(void);
 
 void BLF_cache_clear(void);
 

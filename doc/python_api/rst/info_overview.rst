@@ -194,9 +194,10 @@ User interface classes are given a context in which to draw, buttons window, fil
 then they are drawn when that area is displayed so they are never called by Python scripts directly.
 
 
+.. _info_overview_registration:
+
 Registration
 ============
-
 
 Module Registration
 -------------------

@@ -7788,7 +7788,10 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 
 	/* highlight has timers for tooltips and auto open */
 	if (state == BUTTON_STATE_HIGHLIGHT) {
-		but->flag &= ~UI_SELECT;
+		/* for list-items (that are not drawn with regular emboss), don't change selection based on hovering */
+		if (((but->flag & UI_BUT_LIST_ITEM) == 0) && (but->dragflag & UI_EMBOSS_NONE)) {
+			but->flag &= ~UI_SELECT;
+		}
 
 		button_tooltip_timer_reset(C, but);
 
