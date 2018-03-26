@@ -56,7 +56,7 @@
 #include "BLF_api.h"
 
 #ifndef BLF_STANDALONE
-#include "GPU_basic_shader.h"
+#  include "GPU_basic_shader.h"
 #endif
 
 #include "blf_internal_types.h"
