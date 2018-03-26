@@ -1062,4 +1062,5 @@ int GPU_texture_detach_framebuffer(GPUTexture *tex, GPUFrameBuffer *fb)
 	}
 
 	BLI_assert(!"Error: Texture: Framebuffer is not attached");
+	return 0;
 }
