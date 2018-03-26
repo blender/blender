@@ -33,9 +33,9 @@ mat4(vec4(1.0, 0.0, 0.0, 0.0), \
      vec4(0.0, 0.0, -(farClip + nearClip) / (farClip - nearClip), -1.0), \
      vec4(0.0, 0.0, (-2.0 * farClip * nearClip) / (farClip - nearClip), 0.0))
 
-#define ViewMatrixInverse             invert(ViewMatrix)
-#define ViewProjectionMatrixInverse   invert(ViewProjectionMatrix)
-#define ProjectionMatrixInverse       invert(ProjectionMatrix)
+#define ViewMatrixInverse             inverse(ViewMatrix)
+#define ViewProjectionMatrixInverse   inverse(ViewProjectionMatrix)
+#define ProjectionMatrixInverse       inverse(ProjectionMatrix)
 #define CameraTexCoFactors            vec4(1.0f, 1.0f, 0.0f, 0.0f)
 #endif
 
