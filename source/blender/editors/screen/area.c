@@ -102,9 +102,11 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 	/* right  */
 	immAttrib4ub(color, 0, 0, 0, 30);
 	immVertex2f(pos, rect.xmax, rect.ymax);
+	immAttrib4ub(color, 0, 0, 0, 30);
 	immVertex2f(pos, rect.xmax, rect.ymin);
 	
 	/* bottom  */
+	immAttrib4ub(color, 0, 0, 0, 30);
 	immVertex2f(pos, rect.xmin, rect.ymin);
 	
 	/* left  */
@@ -112,6 +114,7 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 	immVertex2f(pos, rect.xmin, rect.ymax);
 
 	/* top  */
+	immAttrib4ub(color, 255, 255, 255, 30);
 	immVertex2f(pos, rect.xmax, rect.ymax);
 	
 	immEnd();
@@ -264,26 +267,32 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 
 	immAttrib4ub(col, 255, 255, 255, 180);
 	immVertex2f(pos, x1, y2);
+	immAttrib4ub(col, 255, 255, 255, 180);
 	immVertex2f(pos, x2, y1);
 
 	immAttrib4ub(col, 255, 255, 255, 130);
 	immVertex2f(pos, x1, y2 - dy);
+	immAttrib4ub(col, 255, 255, 255, 130);
 	immVertex2f(pos, x2 - dx, y1);
 
 	immAttrib4ub(col, 255, 255, 255, 80);
 	immVertex2f(pos, x1, y2 - 2 * dy);
+	immAttrib4ub(col, 255, 255, 255, 80);
 	immVertex2f(pos, x2 - 2 * dx, y1);
 	
 	immAttrib4ub(col, 0, 0, 0, 210);
 	immVertex2f(pos, x1, y2 + 1);
+	immAttrib4ub(col, 0, 0, 0, 210);
 	immVertex2f(pos, x2 + 1, y1);
 
 	immAttrib4ub(col, 0, 0, 0, 180);
 	immVertex2f(pos, x1, y2 - dy + 1);
+	immAttrib4ub(col, 0, 0, 0, 180);
 	immVertex2f(pos, x2 - dx + 1, y1);
 
 	immAttrib4ub(col, 0, 0, 0, 150);
 	immVertex2f(pos, x1, y2 - 2 * dy + 1);
+	immAttrib4ub(col, 0, 0, 0, 150);
 	immVertex2f(pos, x2 - 2 * dx + 1, y1);
 
 	immEnd();
@@ -2503,28 +2512,34 @@ void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
 		
 		float theme_color[3];
 		UI_GetThemeColorShade3fv(TH_BACK, (int)(20.0f * (1.0f - blendfac)), theme_color);
-		immAttrib3fv(color, theme_color);
 		fac = 0.0f;
 		
 		/* the fine resolution level */
 		for (int i = 0; i < count_fine; i++) {
+			immAttrib3fv(color, theme_color);
 			immVertex2f(pos, x1, y1 * (1.0f - fac) + y2 * fac);
+			immAttrib3fv(color, theme_color);
 			immVertex2f(pos, x2, y1 * (1.0f - fac) + y2 * fac);
+			immAttrib3fv(color, theme_color);
 			immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y1);
+			immAttrib3fv(color, theme_color);
 			immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y2);
 			fac += gridstep;
 		}
 
 		if (count_large > 0) {
 			UI_GetThemeColor3fv(TH_BACK, theme_color);
-			immAttrib3fv(color, theme_color);
 			fac = 0.0f;
 			
 			/* the large resolution level */
 			for (int i = 0; i < count_large; i++) {
+				immAttrib3fv(color, theme_color);
 				immVertex2f(pos, x1, y1 * (1.0f - fac) + y2 * fac);
+				immAttrib3fv(color, theme_color);
 				immVertex2f(pos, x2, y1 * (1.0f - fac) + y2 * fac);
+				immAttrib3fv(color, theme_color);
 				immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y1);
+				immAttrib3fv(color, theme_color);
 				immVertex2f(pos, x1 * (1.0f - fac) + x2 * fac, y2);
 				fac += 4.0f * gridstep;
 			}

@@ -1468,6 +1468,7 @@ static void draw_view_axis(RegionView3D *rv3d, const rcti *rect)
 
 		immAttrib4ubv(col, axis_col[i]);
 		immVertex2f(pos, startx, starty);
+		immAttrib4ubv(col, axis_col[i]);
 		immVertex2fv(pos, axis_pos[i]);
 	}
 
