@@ -76,10 +76,11 @@
 
 typedef struct UndoElem {
 	struct UndoElem *next, *prev;
-	char str[FILE_MAX];
+	/* Only for 'UNDO_DISK' */
+	char filename[FILE_MAX];
 	char name[BKE_UNDO_STR_MAX];
 	MemFile memfile;
-	uintptr_t undosize;
+	size_t undo_size;
 } UndoElem;
 
 static ListBase undobase = {NULL, NULL};
@@ -108,10 +109,12 @@ static int read_undosave(bContext *C, UndoElem *uel)
 	fileflags = G.fileflags;
 	G.fileflags |= G_FILE_NO_UI;
 
-	if (UNDO_DISK)
-		success = (BKE_blendfile_read(C, uel->str, NULL, 0) != BKE_BLENDFILE_READ_FAIL);
-	else
+	if (UNDO_DISK) {
+		success = (BKE_blendfile_read(C, uel->filename, NULL, 0) != BKE_BLENDFILE_READ_FAIL);
+	}
+	else {
 		success = BKE_blendfile_read_from_memfile(C, &uel->memfile, NULL, 0);
+	}
 
 	/* restore */
 	BLI_strncpy(G.main->name, mainstr, sizeof(G.main->name)); /* restore */
@@ -128,7 +131,6 @@ static int read_undosave(bContext *C, UndoElem *uel)
 /* name can be a dynamic string */
 void BKE_undo_write(bContext *C, const char *name)
 {
-	uintptr_t maxmem, totmem, memused;
 	int nr /*, success */ /* UNUSED */;
 	UndoElem *uel;
 
@@ -175,40 +177,40 @@ void BKE_undo_write(bContext *C, const char *name)
 	/* disk save version */
 	if (UNDO_DISK) {
 		static int counter = 0;
-		char filepath[FILE_MAX];
+		char filename[FILE_MAX];
 		char numstr[32];
 		int fileflags = G.fileflags & ~(G_FILE_HISTORY); /* don't do file history on undo */
 
-		/* calculate current filepath */
+		/* Calculate current filename. */
 		counter++;
 		counter = counter % U.undosteps;
 
 		BLI_snprintf(numstr, sizeof(numstr), "%d.blend", counter);
-		BLI_make_file_string("/", filepath, BKE_tempdir_session(), numstr);
+		BLI_make_file_string("/", filename, BKE_tempdir_session(), numstr);
 
-		/* success = */ /* UNUSED */ BLO_write_file(CTX_data_main(C), filepath, fileflags, NULL, NULL);
+		/* success = */ /* UNUSED */ BLO_write_file(CTX_data_main(C), filename, fileflags, NULL, NULL);
 
-		BLI_strncpy(curundo->str, filepath, sizeof(curundo->str));
+		BLI_strncpy(curundo->filename, filename, sizeof(curundo->filename));
 	}
 	else {
 		MemFile *prevfile = NULL;
 
 		if (curundo->prev) prevfile = &(curundo->prev->memfile);
 
-		memused = MEM_get_memory_in_use();
 		/* success = */ /* UNUSED */ BLO_write_file_mem(CTX_data_main(C), prevfile, &curundo->memfile, G.fileflags);
-		curundo->undosize = MEM_get_memory_in_use() - memused;
+		curundo->undo_size = curundo->memfile.size;
 	}
 
 	if (U.undomemory != 0) {
+		size_t maxmem, totmem;
 		/* limit to maximum memory (afterwards, we can't know in advance) */
 		totmem = 0;
-		maxmem = ((uintptr_t)U.undomemory) * 1024 * 1024;
+		maxmem = ((size_t)U.undomemory) * 1024 * 1024;
 
 		/* keep at least two (original + other) */
 		uel = undobase.last;
 		while (uel && uel->prev) {
-			totmem += uel->undosize;
+			totmem += uel->undo_size;
 			if (totmem > maxmem) break;
 			uel = uel->prev;
 		}

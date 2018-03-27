@@ -43,6 +43,9 @@
 
 #include "BLO_undofile.h"
 
+/* keep last */
+#include "BLI_strict_flags.h"
+
 /* **************** support for memory-write, for undo buffers *************** */
 
 /* not memfile itself */
@@ -51,8 +54,9 @@ void BLO_memfile_free(MemFile *memfile)
 	MemFileChunk *chunk;
 	
 	while ((chunk = BLI_pophead(&memfile->chunks))) {
-		if (chunk->ident == 0)
-			MEM_freeN(chunk->buf);
+		if (chunk->is_identical == false) {
+			MEM_freeN((void *)chunk->buf);
+		}
 		MEM_freeN(chunk);
 	}
 	memfile->size = 0;
@@ -68,9 +72,9 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 	sc = second->chunks.first;
 	while (fc || sc) {
 		if (fc && sc) {
-			if (sc->ident) {
-				sc->ident = 0;
-				fc->ident = 1;
+			if (sc->is_identical) {
+				sc->is_identical = false;
+				fc->is_identical = true;
 			}
 		}
 		if (fc) fc = fc->next;
@@ -98,7 +102,7 @@ void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsi
 	curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
 	curchunk->size = size;
 	curchunk->buf = NULL;
-	curchunk->ident = 0;
+	curchunk->is_identical = false;
 	BLI_addtail(&current->chunks, curchunk);
 	
 	/* we compare compchunk with buf */
@@ -106,17 +110,17 @@ void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsi
 		if (compchunk->size == curchunk->size) {
 			if (memcmp(compchunk->buf, buf, size) == 0) {
 				curchunk->buf = compchunk->buf;
-				curchunk->ident = 1;
+				curchunk->is_identical = true;
 			}
 		}
 		compchunk = compchunk->next;
 	}
-	
+
 	/* not equal... */
 	if (curchunk->buf == NULL) {
-		curchunk->buf = MEM_mallocN(size, "Chunk buffer");
-		memcpy(curchunk->buf, buf, size);
+		char *buf_new = MEM_mallocN(size, "Chunk buffer");
+		memcpy(buf_new, buf, size);
+		curchunk->buf = buf_new;
 		current->size += size;
 	}
 }
-
