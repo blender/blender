@@ -43,6 +43,7 @@ struct MTex;
 struct Object;
 struct PaintStroke;
 struct Paint;
+struct PaintCurve;
 struct PointerRNA;
 struct rcti;
 struct Scene;
@@ -341,6 +342,9 @@ void PAINTCURVE_OT_select(struct wmOperatorType *ot);
 void PAINTCURVE_OT_slide(struct wmOperatorType *ot);
 void PAINTCURVE_OT_draw(struct wmOperatorType *ot);
 void PAINTCURVE_OT_cursor(struct wmOperatorType *ot);
+
+/* paint_curve_undo.c */
+void ED_paintcurve_undo_push(struct bContext *C, struct wmOperator *op, struct PaintCurve *pc);
 
 /* image painting blur kernel */
 typedef struct {
