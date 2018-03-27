@@ -870,7 +870,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		immUniformColor4ubv(tcol);
 
 		/* for each AA step */
-		immBegin(GWN_PRIM_TRIS, (wtb->tria1.tot + wtb->tria2.tot) * 3);
+		immBegin(GWN_PRIM_TRIS, (wtb->tria1.tot + wtb->tria2.tot) * 3 * WIDGET_AA_JITTER);
 		if (wtb->tria1.tot){
 			shape_preset_draw_trias_aa(&wtb->tria1, pos);
 		}
