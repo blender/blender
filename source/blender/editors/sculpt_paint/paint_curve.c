@@ -34,13 +34,11 @@
 #include "DNA_view3d_types.h"
 
 #include "BLI_math_vector.h"
-#include "BLI_string.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
 
-#include "ED_paint.h"
 #include "ED_view3d.h"
 
 #include "WM_api.h"
@@ -55,7 +53,6 @@
 
 #define PAINT_CURVE_SELECT_THRESHOLD 40.0f
 #define PAINT_CURVE_POINT_SELECT(pcp, i) (*(&pcp->bez.f1 + i) = SELECT)
-
 
 int paint_curve_poll(bContext *C)
 {
@@ -81,91 +78,6 @@ int paint_curve_poll(bContext *C)
 	return false;
 }
 
-/* Paint Curve Undo*/
-
-typedef struct UndoCurve {
-	struct UndoImageTile *next, *prev;
-
-	PaintCurvePoint *points; /* points of curve */
-	int tot_points;
-	int active_point;
-
-	char idname[MAX_ID_NAME];  /* name instead of pointer*/
-} UndoCurve;
-
-static void paintcurve_undo_restore(bContext *C, ListBase *lb)
-{
-	Paint *p = BKE_paint_get_active_from_context(C);
-	UndoCurve *uc;
-	PaintCurve *pc = NULL;
-
-	if (p->brush) {
-		pc = p->brush->paint_curve;
-	}
-
-	if (!pc)
-		return;
-
-	uc = (UndoCurve *)lb->first;
-
-	if (STREQLEN(uc->idname, pc->id.name, BLI_strnlen(uc->idname, sizeof(uc->idname)))) {
-		SWAP(PaintCurvePoint *, pc->points, uc->points);
-		SWAP(int, pc->tot_points, uc->tot_points);
-		SWAP(int, pc->add_index, uc->active_point);
-	}
-}
-
-static void paintcurve_undo_delete(ListBase *lb)
-{
-	UndoCurve *uc;
-	uc = (UndoCurve *)lb->first;
-
-	if (uc->points)
-		MEM_freeN(uc->points);
-	uc->points = NULL;
-}
-
-
-static void paintcurve_undo_begin(bContext *C, wmOperator *op, PaintCurve *pc)
-{
-	ePaintMode mode = BKE_paintmode_get_active_from_context(C);
-	ListBase *lb = NULL;
-	int undo_stack_id;
-	UndoCurve *uc;
-
-	switch (mode) {
-		case ePaintTexture2D:
-		case ePaintTextureProjective:
-			undo_stack_id = UNDO_PAINT_IMAGE;
-			break;
-
-		case ePaintSculpt:
-			undo_stack_id = UNDO_PAINT_MESH;
-			break;
-
-		default:
-			/* do nothing, undo is handled by global */
-			return;
-	}
-
-
-	ED_undo_paint_push_begin(undo_stack_id, op->type->name,
-	                         paintcurve_undo_restore, paintcurve_undo_delete, NULL);
-	lb = undo_paint_push_get_list(undo_stack_id);
-
-	uc = MEM_callocN(sizeof(*uc), "Undo_curve");
-
-	lb->first = uc;
-
-	BLI_strncpy(uc->idname, pc->id.name, sizeof(uc->idname));
-	uc->tot_points = pc->tot_points;
-	uc->active_point = pc->add_index;
-	uc->points = MEM_dupallocN(pc->points);
-
-	undo_paint_push_count_alloc(undo_stack_id, sizeof(*uc) + sizeof(*pc->points) * pc->tot_points);
-
-	ED_undo_paint_push_end(undo_stack_id);
-}
 #define SEL_F1 (1 << 0)
 #define SEL_F2 (1 << 1)
 #define SEL_F3 (1 << 2)
@@ -291,7 +203,7 @@ static void paintcurve_point_add(bContext *C,  wmOperator *op, const int loc[2])
 		br->paint_curve = pc = BKE_paint_curve_add(bmain, "PaintCurve");
 	}
 
-	paintcurve_undo_begin(C, op, pc);
+	ED_paintcurve_undo_push(C, op, pc);
 
 	pcp = MEM_mallocN((pc->tot_points + 1) * sizeof(PaintCurvePoint), "PaintCurvePoint");
 	add_index = pc->add_index;
@@ -390,7 +302,7 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	paintcurve_undo_begin(C, op, pc);
+	ED_paintcurve_undo_push(C, op, pc);
 
 #define DELETE_TAG 2
 
@@ -467,7 +379,7 @@ static bool paintcurve_point_select(bContext *C, wmOperator *op, const int loc[2
 	if (!pc)
 		return false;
 
-	paintcurve_undo_begin(C, op, pc);
+	ED_paintcurve_undo_push(C, op, pc);
 
 	if (toggle) {
 		PaintCurvePoint *pcp;
@@ -651,7 +563,7 @@ static int paintcurve_slide_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		op->customdata = psd;
 
 		if (do_select)
-			paintcurve_undo_begin(C, op, pc);
+			ED_paintcurve_undo_push(C, op, pc);
 
 		/* first, clear all selection from points */
 		for (i = 0; i < pc->tot_points; i++)

@@ -42,6 +42,7 @@ set(INC_SYS
 set(SRC
 	paint_cursor.c
 	paint_curve.c
+	paint_curve_undo.c
 	paint_hide.c
 	paint_image.c
 	paint_image_2d.c
