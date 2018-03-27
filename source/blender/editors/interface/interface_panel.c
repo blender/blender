@@ -501,9 +501,28 @@ static void ui_draw_panel_scalewidget(unsigned int pos, const rcti *rect)
 
 	glDisable(GL_BLEND);
 }
-static void ui_draw_panel_dragwidget(unsigned int pos, const rctf *rect)
+
+static void immRectf_tris_color_ex(unsigned int pos, float x1, float y1, float x2, float y2,
+                              unsigned int col, const float color[3])
 {
-	unsigned char col_back[3], col_high[3], col_dark[3];
+	immAttrib4fv(col, color);
+	immVertex2f(pos, x1, y1);
+	immAttrib4fv(col, color);
+	immVertex2f(pos, x2, y1);
+	immAttrib4fv(col, color);
+	immVertex2f(pos, x2, y2);
+
+	immAttrib4fv(col, color);
+	immVertex2f(pos, x1, y1);
+	immAttrib4fv(col, color);
+	immVertex2f(pos, x2, y2);
+	immAttrib4fv(col, color);
+	immVertex2f(pos, x1, y2);
+}
+
+static void ui_draw_panel_dragwidget(unsigned int pos, unsigned int col, const rctf *rect)
+{
+	float col_high[4], col_dark[4];
 	const int col_tint = 84;
 
 	const int px = (int)U.pixelsize;
@@ -518,24 +537,24 @@ static void ui_draw_panel_dragwidget(unsigned int pos, const rctf *rect)
 	const int x_ofs = y_ofs;
 	int i_x, i_y;
 
-
-	UI_GetThemeColor3ubv(UI_GetThemeValue(TH_PANEL_SHOW_HEADER) ? TH_PANEL_HEADER : TH_PANEL_BACK, col_back);
-	UI_GetColorPtrShade3ubv(col_back, col_high,  col_tint);
-	UI_GetColorPtrShade3ubv(col_back, col_dark, -col_tint);
-
+	int col_id = UI_GetThemeValue(TH_PANEL_SHOW_HEADER) ? TH_PANEL_HEADER : TH_PANEL_BACK;
+	UI_GetThemeColorShade4fv(col_id,  col_tint, col_high);
+	UI_GetThemeColorShade4fv(col_id, -col_tint, col_dark);
 
 	/* draw multiple boxes */
+	immBegin(GWN_PRIM_TRIS, 4 * 2 * (6 * 2));
 	for (i_x = 0; i_x < 4; i_x++) {
 		for (i_y = 0; i_y < 2; i_y++) {
 			const int x_co = (x_min + x_ofs) + (i_x * (box_size + box_margin));
 			const int y_co = (y_min + y_ofs) + (i_y * (box_size + box_margin));
 
-			immUniformColor3ubv(col_dark);
-			immRectf(pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom);
-			immUniformColor3ubv(col_high);
-			immRectf(pos, x_co - box_size, y_co, x_co, y_co + box_size);
+			immRectf_tris_color_ex(pos, x_co - box_size, y_co - px_zoom, x_co, (y_co + box_size) - px_zoom,
+			                       col, col_dark);
+			immRectf_tris_color_ex(pos, x_co - box_size, y_co, x_co, y_co + box_size,
+			                       col, col_high);
 		}
 	}
+	immEnd();
 }
 
 
@@ -662,8 +681,11 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 
 	/* horizontal title */
 	if (is_closed_x == false) {
+		unsigned int col;
 		ui_draw_aligned_panel_header(style, block, &headrect, 'h');
-		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		Gwn_VertFormat *format = immVertexFormat();
+		pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		col = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
 
 		/* itemrect smaller */
 		itemrect.xmax = headrect.xmax - 5.0f / block->aspect;
@@ -672,9 +694,12 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 		itemrect.ymax = headrect.ymax;
 
 		BLI_rctf_scale(&itemrect, 0.7f);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		ui_draw_panel_dragwidget(pos, &itemrect);
+		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+		ui_draw_panel_dragwidget(pos, col, &itemrect);
 		immUnbindProgram();
+
+		/* Restore format for the following draws. */
+		pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	}
 
 	/* if the panel is minimized vertically:
