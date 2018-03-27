@@ -35,9 +35,6 @@ struct GPUShader {
 	GLuint geometry; /* handle for geometry shader */
 	GLuint fragment; /* handle for fragment shader */
 
-	void *uniform_interface; /* cached uniform interface for shader. Data depends on shader */
-	/* NOTE: ^-- only FX compositing shaders use this */
-
 	Gwn_ShaderInterface *interface; /* cached uniform & attrib interface for shader */
 };
 

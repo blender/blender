@@ -530,9 +530,6 @@ void GPU_shader_free(GPUShader *shader)
 	if (shader->program)
 		glDeleteProgram(shader->program);
 
-	if (shader->uniform_interface)
-		MEM_freeN(shader->uniform_interface);
-
 	if (shader->interface)
 		GWN_shaderinterface_discard(shader->interface);
 
