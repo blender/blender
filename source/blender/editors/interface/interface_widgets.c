@@ -580,13 +580,15 @@ static void shape_preset_init_scroll_circle(uiWidgetTrias *tria, const rcti *rec
 	        g_shape_preset_scroll_circle_face, ARRAY_SIZE(g_shape_preset_scroll_circle_face));
 }
 
-static void shape_preset_draw_trias(uiWidgetTrias *tria, uint pos)
+static void shape_preset_draw_trias_aa(uiWidgetTrias *tria, uint pos)
 {
-	immBegin(GWN_PRIM_TRIS, tria->tot * 3);
-	for (int i = 0; i < tria->tot; ++i)
-		for (int j = 0; j < 3; ++j)
-			immVertex2fv(pos, tria->vec[tria->index[i][j]]);
-	immEnd();
+	for (int k = 0; k < WIDGET_AA_JITTER; k++) {
+		for (int i = 0; i < tria->tot; ++i)
+			for (int j = 0; j < 3; ++j)
+				immVertex2f(pos,
+				            tria->vec[tria->index[i][j]][0] + jit[k][0],
+				            tria->vec[tria->index[i][j]][1] + jit[k][1]);
+	}
 }
 
 static void widget_draw_vertex_buffer(unsigned int pos, unsigned int col, int mode,
@@ -599,6 +601,40 @@ static void widget_draw_vertex_buffer(unsigned int pos, unsigned int col, int mo
 		if (quads_col)
 			immAttrib4ubv(col, quads_col[i]);
 		immVertex2fv(pos, quads_pos[i]);
+	}
+	immEnd();
+}
+
+static void widget_draw_vertex_buffer_aa(unsigned int pos, unsigned int col, int mode,
+                                         const float quads_pos[WIDGET_SIZE_MAX][2],
+                                         const unsigned char quads_col[WIDGET_SIZE_MAX][4],
+                                         unsigned int totvert)
+{
+	immBegin(mode, (totvert+3) * WIDGET_AA_JITTER);
+	for (int j = 0; j < WIDGET_AA_JITTER; j++) {
+		/* Duplicate First vertex. */
+		if (quads_col)
+			immAttrib4ubv(col, quads_col[0]);
+		immVertex2f(pos,
+		            quads_pos[0][0] + jit[j][0],
+		            quads_pos[0][1] + jit[j][1]);
+
+		for (int i = 0; i < totvert; ++i) {
+			if (quads_col)
+				immAttrib4ubv(col, quads_col[i]);
+			immVertex2f(pos,
+			            quads_pos[i][0] + jit[j][0],
+			            quads_pos[i][1] + jit[j][1]);
+		}
+
+		/* Degenerate triangle to simulate primitive restart. */
+		for (int i = 0; i < 2; ++i) {
+			if (quads_col)
+				immAttrib4ubv(col, quads_col[totvert-1]);
+			immVertex2f(pos,
+			            quads_pos[totvert-1][0] + jit[j][0],
+			            quads_pos[totvert-1][1] + jit[j][1]);
+		}
 	}
 	immEnd();
 }
@@ -701,7 +737,7 @@ static void widgetbase_outline(uiWidgetBase *wtb, unsigned int pos)
 
 static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 {
-	int j, a;
+	int a;
 
 	glEnable(GL_BLEND);
 
@@ -805,24 +841,20 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			gpuTranslate2fv(jit[j]);
-			
-			/* outline */
-			immUniformColor4ubv(tcol);
 
-			widget_draw_vertex_buffer(pos, 0, GL_TRIANGLE_STRIP, triangle_strip, NULL, wtb->totvert * 2 + 2);
+		/* outline */
+		immUniformColor4ubv(tcol);
 
-			/* emboss bottom shadow */
-			if (wtb->draw_emboss) {
-				if (emboss[3]) {
-					immUniformColor4ubv(emboss);
-					widget_draw_vertex_buffer(pos, 0, GL_TRIANGLE_STRIP, triangle_strip_emboss, NULL, wtb->halfwayvert * 2);
-				}
+		widget_draw_vertex_buffer_aa(pos, 0, GL_TRIANGLE_STRIP, triangle_strip, NULL, wtb->totvert * 2 + 2);
+
+		/* emboss bottom shadow */
+		if (wtb->draw_emboss) {
+			if (emboss[3]) {
+				immUniformColor4ubv(emboss);
+				widget_draw_vertex_buffer_aa(pos, 0, GL_TRIANGLE_STRIP, triangle_strip_emboss, NULL, wtb->halfwayvert * 2);
 			}
-			
-			gpuTranslate2f(-jit[j][0], -jit[j][1]);
 		}
+
 		immUnbindProgram();
 	}
 
@@ -838,17 +870,14 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		immUniformColor4ubv(tcol);
 
 		/* for each AA step */
-		for (j = 0; j < WIDGET_AA_JITTER; j++) {
-			gpuTranslate2fv(jit[j]);
-
-			if (wtb->tria1.tot)
-				shape_preset_draw_trias(&wtb->tria1, pos);
-
-			if (wtb->tria2.tot)
-				shape_preset_draw_trias(&wtb->tria2, pos);
-
-			gpuTranslate2f(-jit[j][0], -jit[j][1]);
+		immBegin(GWN_PRIM_TRIS, (wtb->tria1.tot + wtb->tria2.tot) * 3);
+		if (wtb->tria1.tot){
+			shape_preset_draw_trias_aa(&wtb->tria1, pos);
 		}
+		if (wtb->tria2.tot) {
+			shape_preset_draw_trias_aa(&wtb->tria2, pos);
+		}
+		immEnd();
 
 		immUnbindProgram();
 	}
