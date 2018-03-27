@@ -35,15 +35,16 @@
 
 typedef struct {
 	void *next, *prev;
-	
-	char *buf;
-	unsigned int ident, size;
-	
+	const char *buf;
+	/** Size in bytes. */
+	unsigned int size;
+	/** When true, this chunk doesn't own the memory, it's shared with a previous #MemFileChunk */
+	bool is_identical;
 } MemFileChunk;
 
 typedef struct MemFile {
 	ListBase chunks;
-	unsigned int size;
+	size_t size;
 } MemFile;
 
 /* actually only used writefile.c */
