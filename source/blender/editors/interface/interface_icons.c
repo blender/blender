@@ -1029,31 +1029,18 @@ static void icon_draw_texture(
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int texCoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_COLOR);
-	if (rgb) immUniformColor3fvAlpha(rgb, alpha);
-	else     immUniformColor4f(alpha, alpha, alpha, alpha);
+	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+	GPU_shader_bind(shader);
 
-	immUniform1i("image", 0);
+	if (rgb) glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), rgb[0], rgb[1], rgb[2], alpha);
+	else     glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
 
-	immBegin(GWN_PRIM_TRI_STRIP, 4);
-	immAttrib2f(texCoord, x1, y2);
-	immVertex2f(pos, x, y + h);
+	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), x1, y1, x2, y2);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), x, y, x + w, y + h);
 
-	immAttrib2f(texCoord, x1, y1);
-	immVertex2f(pos, x, y);
-
-	immAttrib2f(texCoord, x2, y2);
-	immVertex2f(pos, x + w, y + h);
-
-	immAttrib2f(texCoord, x2, y1);
-	immVertex2f(pos, x + w, y);
-	immEnd();
-
-	immUnbindProgram();
+	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
