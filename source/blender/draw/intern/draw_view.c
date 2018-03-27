@@ -645,7 +645,7 @@ void DRW_draw_cursor(void)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	View3D *v3d = draw_ctx->v3d;
-	RegionView3D *rv3d = draw_ctx->rv3d;
+	ARegion *ar = draw_ctx->ar;
 	Scene *scene = draw_ctx->scene;
 	ViewLayer *view_layer = draw_ctx->view_layer;
 
@@ -655,61 +655,18 @@ void DRW_draw_cursor(void)
 	glLineWidth(1.0f);
 
 	if (is_cursor_visible(draw_ctx, scene, view_layer)) {
-		float *co = ED_view3d_cursor3d_get(scene, v3d);
-		unsigned char crosshair_color[3];
+		int co[2];
+		if (ED_view3d_project_int_global(ar, ED_view3d_cursor3d_get(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 
-		const float f5 = 0.25f;
-		const float f10 = 0.5f;
-		const float f20 = 1.0f;
+			ED_region_pixelspace(ar);
+			gpuTranslate2f(co[0], co[1]);
+			gpuScale2f(U.widget_unit, U.widget_unit);
 
-		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
-		unsigned int wpos = GWN_vertformat_attr_add(format, "world_pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-
-		/* XXX Using instance shader without instance */
-		immBindBuiltinProgram(GPU_SHADER_3D_SCREENSPACE_VARIYING_COLOR);
-		immUniform1f("size", U.widget_unit);
-		immUniform1f("pixel_size", *DRW_viewport_pixelsize_get());
-		immUniformArray3fv("screen_vecs", DRW_viewport_screenvecs_get(), 2);
-		immUniformMatrix4fv("ViewProjectionMatrix", rv3d->persmat);
-
-		const int segments = 16;
-
-		immBegin(GWN_PRIM_LINE_LOOP, segments);
-		immAttrib3fv(wpos, co);
-
-		for (int i = 0; i < segments; ++i) {
-			float angle = (float)(2 * M_PI) * ((float)i / (float)segments);
-			float x = f10 * cosf(angle);
-			float y = f10 * sinf(angle);
-
-			if (i % 2 == 0)
-				immAttrib3ub(color, 255, 0, 0);
-			else
-				immAttrib3ub(color, 255, 255, 255);
-
-			immVertex2f(pos, x, y);
+			Gwn_Batch *cursor_batch = DRW_cache_cursor_get();
+			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
+			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+			GWN_batch_draw(cursor_batch);
 		}
-		immEnd();
-
-		UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
-
-		immBegin(GWN_PRIM_LINES, 8);
-		immAttrib3ubv(color, crosshair_color);
-		immAttrib3fv(wpos, co);
-
-		immVertex2f(pos, -f20, 0);
-		immVertex2f(pos, -f5, 0);
-		immVertex2f(pos, +f5, 0);
-		immVertex2f(pos, +f20, 0);
-		immVertex2f(pos, 0, -f20);
-		immVertex2f(pos, 0, -f5);
-		immVertex2f(pos, 0, +f5);
-		immVertex2f(pos, 0, +f20);
-		immEnd();
-
-		immUnbindProgram();
 	}
 }
 

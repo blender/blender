@@ -32,6 +32,8 @@
 #include "DNA_modifier_types.h"
 #include "DNA_lattice_types.h"
 
+#include "UI_resources.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
@@ -43,6 +45,7 @@
 /* Batch's only (free'd as an array) */
 static struct DRWShapeCache {
 	Gwn_Batch *drw_single_vertice;
+	Gwn_Batch *drw_cursor;
 	Gwn_Batch *drw_fullscreen_quad;
 	Gwn_Batch *drw_quad;
 	Gwn_Batch *drw_sphere;
@@ -2708,4 +2711,92 @@ Gwn_Batch *DRW_cache_particles_get_prim(int type)
 	}
 
 	return NULL;
+}
+
+/* 3D cursor */
+Gwn_Batch *DRW_cache_cursor_get(void)
+{
+	if (!SHC.drw_cursor) {
+		const float f5 = 0.25f;
+		const float f10 = 0.5f;
+		const float f20 = 1.0f;
+
+		const int segments = 16;
+		const int vert_ct = segments + 8;
+		const int index_ct = vert_ct + 5;
+
+		unsigned char red[3] = {255, 0, 0};
+		unsigned char white[3] = {255, 255, 255};
+		unsigned char crosshair_color[3];
+		UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
+
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos, color; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.color = GWN_vertformat_attr_add(&format, "color", GWN_COMP_U8, 3, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		}
+
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_LINE_STRIP, index_ct, vert_ct, true);
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, vert_ct);
+
+		int v = 0;
+		for (int i = 0; i < segments; ++i) {
+			float angle = (float)(2 * M_PI) * ((float)i / (float)segments);
+			float x = f10 * cosf(angle);
+			float y = f10 * sinf(angle);
+
+			if (i % 2 == 0)
+				GWN_vertbuf_attr_set(vbo, attr_id.color, v, red);
+			else
+				GWN_vertbuf_attr_set(vbo, attr_id.color, v, white);
+
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){x, y});
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+		}
+		GWN_indexbuf_add_generic_vert(&elb, 0);
+		GWN_indexbuf_add_primitive_restart(&elb);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){-f20, 0});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){-f5, 0});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+
+		GWN_indexbuf_add_primitive_restart(&elb);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){+f5, 0});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){+f20, 0});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+
+		GWN_indexbuf_add_primitive_restart(&elb);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, -f20});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, -f5});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+
+		GWN_indexbuf_add_primitive_restart(&elb);
+
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, +f5});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, +f20});
+		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+		GWN_indexbuf_add_generic_vert(&elb, v++);
+
+		Gwn_IndexBuf *ibo = GWN_indexbuf_build(&elb);
+
+		SHC.drw_cursor = GWN_batch_create_ex(GWN_PRIM_LINE_STRIP, vbo, ibo, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+	}
+	return SHC.drw_cursor;
 }
