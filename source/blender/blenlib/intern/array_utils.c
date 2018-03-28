@@ -310,9 +310,9 @@ bool _bli_array_iter_span(
 }
 
 /**
- * Simple utility to check memory is zero'd.
+ * Simple utility to check memory is zeroed.
  */
-bool _bli_array_is_zerod(
+bool _bli_array_is_zeroed(
         const void *arr_v,
         unsigned int arr_len, size_t arr_stride)
 {

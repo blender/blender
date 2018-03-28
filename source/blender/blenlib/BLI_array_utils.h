@@ -81,11 +81,11 @@ bool _bli_array_iter_span(
 	        arr, arr_len, sizeof(*(arr)), use_wrap, use_delimit_bounds, test_fn, user_data, \
 	        span_step, r_span_len)
 
-bool _bli_array_is_zerod(
+bool _bli_array_is_zeroed(
         const void *arr,
         unsigned int arr_len, size_t arr_stride);
-#define BLI_array_is_zerod(arr, arr_len) \
-	_bli_array_is_zerod( \
+#define BLI_array_is_zeroed(arr, arr_len) \
+	_bli_array_is_zeroed( \
 	        arr, arr_len, sizeof(*(arr)))
 
 #endif  /* __BLI_ARRAY_UTILS_H__ */
