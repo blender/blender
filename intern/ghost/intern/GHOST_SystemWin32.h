@@ -208,10 +208,10 @@ public:
 	 */
 	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_WindowWin32 *window, int mouseX, int mouseY, void *data);
 	
-/**
- * Confirms quitting he program when there is just one window left open
- * in the application
- */
+	/**
+	 * Confirms quitting he program when there is just one window left open
+	 * in the application
+	 */
 	int confirmQuit(GHOST_IWindow *window) const;
 
 protected:

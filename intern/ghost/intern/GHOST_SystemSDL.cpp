@@ -636,9 +636,9 @@ GHOST_SystemSDL::addDirtyWindow(GHOST_WindowSDL *bad_wind)
 }
 
 bool
-GHOST_SystemSDL::supportsNativeDialogs(void) 
+GHOST_SystemSDL::supportsNativeDialogs(void)
 {
-	return false
+	return false;
 }
 
 GHOST_TSuccess GHOST_SystemSDL::getButtons(GHOST_Buttons& buttons) const
