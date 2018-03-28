@@ -26,7 +26,11 @@ thread::thread(function<void(void)> run_cb, int group)
     joined_(false),
 	group_(group)
 {
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+	thread_ = std::thread(&thread::run, this);
+#else
 	pthread_create(&pthread_id_, NULL, run, (void*)this);
+#endif
 }
 
 thread::~thread()
@@ -60,7 +64,17 @@ void *thread::run(void *arg)
 bool thread::join()
 {
 	joined_ = true;
+#if (__cplusplus > 199711L) || (defined(_MSC_VER) && _MSC_VER >= 1800)
+	try {
+		thread_.join();
+		return true;
+	}
+	catch (const std::system_error&) {
+		return false;
+	}
+#else
 	return pthread_join(pthread_id_, NULL) == 0;
+#endif
 }
 
 CCL_NAMESPACE_END
