@@ -458,19 +458,11 @@ bool BKE_collection_object_remove(Main *bmain, ID *owner_id, SceneCollection *sc
 }
 
 /**
- * Move object from a collection into another
- */
-void BKE_collection_object_move(ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
-{
-	if (BKE_collection_object_add(owner_id, sc_dst, ob)) {
-		BKE_collection_object_remove(NULL, owner_id, sc_src, ob, false);
-	}
-}
-
-/**
  * Remove object from all collections of scene
+ * \param scene_collection_skip: Don't remove base from this collection.
  */
-bool BKE_collections_object_remove(Main *bmain, ID *owner_id, Object *ob, const bool free_us)
+static bool collections_object_remove_ex(Main *bmain, ID *owner_id, Object *ob, const bool free_us,
+                                         SceneCollection *scene_collection_skip)
 {
 	bool removed = false;
 	if (GS(owner_id->name) == ID_SCE) {
@@ -482,10 +474,42 @@ bool BKE_collections_object_remove(Main *bmain, ID *owner_id, Object *ob, const 
 
 	FOREACH_SCENE_COLLECTION_BEGIN(owner_id, sc)
 	{
-		removed |= BKE_collection_object_remove(bmain, owner_id, sc, ob, free_us);
+		if (sc != scene_collection_skip) {
+			removed |= BKE_collection_object_remove(bmain, owner_id, sc, ob, free_us);
+		}
 	}
 	FOREACH_SCENE_COLLECTION_END;
 	return removed;
+}
+
+/**
+ * Remove object from all collections of scene
+ */
+bool BKE_collections_object_remove(Main *bmain, ID *owner_id, Object *ob, const bool free_us)
+{
+	return collections_object_remove_ex(bmain, owner_id, ob, free_us, NULL);
+}
+
+/**
+ * Move object from a collection into another
+ *
+ * If source collection is NULL move it from all the existing collections.
+ */
+void BKE_collection_object_move(ID *owner_id, SceneCollection *sc_dst, SceneCollection *sc_src, Object *ob)
+{
+	/* In both cases we first add the object, then remove it from the other collections.
+	 * Otherwise we lose the original base and whether it was active and selected. */
+	if (sc_src != NULL) {
+		if (BKE_collection_object_add(owner_id, sc_dst, ob)) {
+			BKE_collection_object_remove(NULL, owner_id, sc_src, ob, false);
+		}
+	}
+	else {
+		/* Adding will fail if object is already in collection.
+		 * However we still need to remove it from the other collections. */
+		BKE_collection_object_add(owner_id, sc_dst, ob);
+		collections_object_remove_ex(NULL, owner_id, ob, false, sc_dst);
+	}
 }
 
 static void layer_collection_sync(LayerCollection *lc_dst, LayerCollection *lc_src)

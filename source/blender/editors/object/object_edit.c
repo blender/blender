@@ -64,6 +64,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "BKE_anim.h"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -109,10 +110,15 @@
 /* for menu/popup icons etc etc*/
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "object_intern.h"  // own include
+
+/* prototypes */
+typedef struct MoveToCollectionData MoveToCollectionData;
+static void move_to_collection_menus_items(struct uiLayout *layout, struct MoveToCollectionData *menu);
 
 /* ************* XXX **************** */
 static void error(const char *UNUSED(arg)) {}
@@ -2039,3 +2045,242 @@ bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_onl
 
 	return false;
 }
+
+#define COLLECTION_INVALID_INDEX -1
+
+static SceneCollection *scene_collection_from_index_recursive(SceneCollection *scene_collection, const int index, int *index_current)
+{
+	if (index == (*index_current)) {
+		return scene_collection;
+	}
+
+	(*index_current)++;
+
+	for (SceneCollection *scene_collection_iter = scene_collection->scene_collections.first;
+	     scene_collection_iter != NULL;
+	     scene_collection_iter = scene_collection_iter->next)
+	{
+		SceneCollection *nested = scene_collection_from_index_recursive(scene_collection_iter, index, index_current);
+		if (nested != NULL) {
+			return nested;
+		}
+	}
+	return NULL;
+}
+
+static SceneCollection *scene_collection_from_index(Scene *scene, const int index)
+{
+	int index_current = 0;
+	SceneCollection *master_collection = BKE_collection_master(&scene->id);
+	return scene_collection_from_index_recursive(master_collection, index, &index_current);
+}
+
+static int move_to_collection_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_index");
+	const bool is_add = RNA_boolean_get(op->ptr, "is_add");
+	SceneCollection *scene_collection;
+
+	if (!RNA_property_is_set(op->ptr, prop)) {
+		BKE_report(op->reports, RPT_ERROR, "No collection selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	int collection_index = RNA_property_int_get(op->ptr, prop);
+	scene_collection = scene_collection_from_index(CTX_data_scene(C), collection_index);
+	if (scene_collection == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
+		return OPERATOR_CANCELLED;
+	}
+
+	Object *single_object = NULL;
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		if (single_object != NULL) {
+			single_object = NULL;
+			break;
+		}
+		else {
+			single_object = ob;
+		}
+	}
+	CTX_DATA_END;
+
+	if ((single_object != NULL) &&
+	    is_add &&
+	    BLI_findptr(&scene_collection->objects, single_object, offsetof(LinkData, data)))
+	{
+		BKE_reportf(op->reports, RPT_ERROR, "%s already in %s", single_object->id.name + 2, scene_collection->name);
+		return OPERATOR_CANCELLED;
+	}
+
+	CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+	{
+		if (!is_add) {
+			BKE_collection_object_move(&scene->id, scene_collection, NULL, ob);
+		}
+		else {
+			BKE_collection_object_add(&scene->id, scene_collection, ob);
+		}
+	}
+	CTX_DATA_END;
+
+	BKE_reportf(op->reports,
+	            RPT_INFO,
+	            "%s %s to %s",
+	            (single_object != NULL) ? single_object->id.name + 2 : "Objects",
+	            is_add ? "added" : "moved",
+	            scene_collection->name);
+
+	DEG_relations_tag_update(CTX_data_main(C));
+	DEG_id_tag_update(&scene->id, 0);
+
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+typedef struct MoveToCollectionData {
+	struct MoveToCollectionData *next, *prev;
+	int index;
+	struct SceneCollection *collection;
+	struct ListBase submenus;
+} MoveToCollectionData;
+
+static int move_to_collection_menus_create(MoveToCollectionData *menu)
+{
+	int index = menu->index;
+	for (SceneCollection *scene_collection = menu->collection->scene_collections.first;
+	     scene_collection != NULL;
+	     scene_collection = scene_collection->next)
+	{
+		MoveToCollectionData *submenu = MEM_callocN(sizeof(MoveToCollectionData),
+		                                            "MoveToCollectionData submenu - expected memleak");
+		BLI_addtail(&menu->submenus, submenu);
+		submenu->collection = scene_collection;
+		submenu->index = ++index;
+		index = move_to_collection_menus_create(submenu);
+	}
+	return index;
+}
+
+static void move_to_collection_menus_free(MoveToCollectionData *menu)
+{
+	for (MoveToCollectionData *submenu = menu->submenus.first;
+	     submenu != NULL;
+	     submenu = submenu->next)
+	{
+		move_to_collection_menus_free(submenu);
+	}
+	BLI_freelistN(&menu->submenus);
+}
+
+static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout, void *menu_v)
+{
+	MoveToCollectionData *menu = menu_v;
+
+	uiItemIntO(layout,
+			   menu->collection->name,
+			   ICON_NONE,
+			   "OBJECT_OT_move_to_collection",
+			   "collection_index",
+			   menu->index);
+	uiItemS(layout);
+
+	for (MoveToCollectionData *submenu = menu->submenus.first;
+		 submenu != NULL;
+		 submenu = submenu->next)
+	{
+		move_to_collection_menus_items(layout, submenu);
+	}
+}
+
+static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionData *menu)
+{
+	if (BLI_listbase_is_empty(&menu->submenus)) {
+		uiItemIntO(layout,
+		           menu->collection->name,
+		           ICON_NONE,
+		           "OBJECT_OT_move_to_collection",
+		           "collection_index",
+		           menu->index);
+	}
+	else {
+		uiItemMenuF(layout,
+		            menu->collection->name,
+		            ICON_NONE,
+		            move_to_collection_menu_create,
+		            menu);
+	}
+}
+
+static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_index");
+	if (RNA_property_is_set(op->ptr, prop)) {
+		RNA_boolean_set(op->ptr, "is_add", event->ctrl);
+		return move_to_collection_exec(C, op);
+	}
+
+	SceneCollection *master_collection = BKE_collection_master(&CTX_data_scene(C)->id);
+
+	/* We need the data to be allocated so it's available during menu drawing.
+	 * Technically we could use wmOperator->customdata. However there is no free callback
+	 * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
+	 *
+	 * So we are left with a memory that will necessarily leak. It's a small leak though.*/
+	static MoveToCollectionData *master_collection_menu = NULL;
+
+	if (master_collection_menu == NULL) {
+		master_collection_menu = MEM_callocN(sizeof(MoveToCollectionData),
+		                                     "MoveToCollectionData menu - expected memleak");
+	}
+
+	/* Reset the menus data for the current master collection, and free previously allocated data. */
+	move_to_collection_menus_free(master_collection_menu);
+	master_collection_menu->collection = master_collection;
+	move_to_collection_menus_create(master_collection_menu);
+
+	uiPopupMenu *pup;
+	uiLayout *layout;
+
+	/* Build the menus. */
+	pup = UI_popup_menu_begin(C, IFACE_("Move to Collection"), ICON_NONE);
+	layout = UI_popup_menu_layout(pup);
+	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+
+	move_to_collection_menus_items(layout, master_collection_menu);
+
+	UI_popup_menu_end(C, pup);
+
+	return OPERATOR_INTERFACE;
+}
+
+void OBJECT_OT_move_to_collection(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Move to Collection";
+	ot->description = "Move to a collection only (Ctrl to add)";
+	ot->idname = "OBJECT_OT_move_to_collection";
+
+	/* api callbacks */
+	ot->exec = move_to_collection_exec;
+	ot->invoke = move_to_collection_invoke;
+	ot->poll = ED_operator_object_active_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	prop = RNA_def_int(ot->srna, "collection_index", COLLECTION_INVALID_INDEX, COLLECTION_INVALID_INDEX, INT_MAX,
+	                   "Collection Index", "Index of the collection to move to", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "is_add", false, "Add", "Keep object in original collections as well");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+}
+
+#undef COLLECTION_INVALID_INDEX
