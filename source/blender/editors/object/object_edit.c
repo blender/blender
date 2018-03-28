@@ -2252,7 +2252,7 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
 	layout = UI_popup_menu_layout(pup);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
 
-	move_to_collection_menus_items(layout, master_collection_menu);
+	move_to_collection_menu_create(C, layout, master_collection_menu);
 
 	UI_popup_menu_end(C, pup);
 
