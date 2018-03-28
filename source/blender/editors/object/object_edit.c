@@ -2080,6 +2080,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_index");
 	const bool is_add = RNA_boolean_get(op->ptr, "is_add");
+	const bool is_new = RNA_boolean_get(op->ptr, "is_new");
 	SceneCollection *scene_collection;
 
 	if (!RNA_property_is_set(op->ptr, prop)) {
@@ -2106,6 +2107,10 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 		}
 	}
 	CTX_DATA_END;
+
+	if (is_new) {
+		scene_collection = BKE_collection_add(&scene->id, scene_collection, COLLECTION_TYPE_NONE, NULL);
+	}
 
 	if ((single_object != NULL) &&
 	    is_add &&
@@ -2148,9 +2153,11 @@ typedef struct MoveToCollectionData {
 	int index;
 	struct SceneCollection *collection;
 	struct ListBase submenus;
+	PointerRNA ptr;
+	struct wmOperatorType *ot;
 } MoveToCollectionData;
 
-static int move_to_collection_menus_create(MoveToCollectionData *menu)
+static int move_to_collection_menus_create(wmOperator *op, MoveToCollectionData *menu)
 {
 	int index = menu->index;
 	for (SceneCollection *scene_collection = menu->collection->scene_collections.first;
@@ -2162,7 +2169,8 @@ static int move_to_collection_menus_create(MoveToCollectionData *menu)
 		BLI_addtail(&menu->submenus, submenu);
 		submenu->collection = scene_collection;
 		submenu->index = ++index;
-		index = move_to_collection_menus_create(submenu);
+		index = move_to_collection_menus_create(op, submenu);
+		submenu->ot = op->type;
 	}
 	return index;
 }
@@ -2196,6 +2204,22 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
 	{
 		move_to_collection_menus_items(layout, submenu);
 	}
+
+	uiItemS(layout);
+
+	WM_operator_properties_create_ptr(&menu->ptr, menu->ot);
+	RNA_int_set(&menu->ptr, "collection_index", menu->index);
+	RNA_boolean_set(&menu->ptr, "is_new", true);
+
+	uiItemFullO_ptr(layout,
+	                menu->ot,
+	                "New Collection",
+	                ICON_ZOOMIN,
+	                menu->ptr.data,
+	                /* We use invoke here so we can read ctrl from event. */
+	                WM_OP_INVOKE_DEFAULT,
+	                0,
+	                NULL);
 }
 
 static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionData *menu)
@@ -2241,8 +2265,10 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 	/* Reset the menus data for the current master collection, and free previously allocated data. */
 	move_to_collection_menus_free(master_collection_menu);
+
 	master_collection_menu->collection = master_collection;
-	move_to_collection_menus_create(master_collection_menu);
+	master_collection_menu->ot = op->type;
+	move_to_collection_menus_create(op, master_collection_menu);
 
 	uiPopupMenu *pup;
 	uiLayout *layout;
@@ -2250,7 +2276,9 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
 	/* Build the menus. */
 	pup = UI_popup_menu_begin(C, IFACE_("Move to Collection"), ICON_NONE);
 	layout = UI_popup_menu_layout(pup);
-	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_DEFAULT);
+
+	/* We use invoke here so we can read ctrl from event. */
+	uiLayoutSetOperatorContext(layout, WM_OP_INVOKE_DEFAULT);
 
 	move_to_collection_menu_create(C, layout, master_collection_menu);
 
@@ -2280,6 +2308,8 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
 	                   "Collection Index", "Index of the collection to move to", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 	prop = RNA_def_boolean(ot->srna, "is_add", false, "Add", "Keep object in original collections as well");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
