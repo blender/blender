@@ -901,13 +901,6 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 		 * NOTE: The call itself ensures settings are only build once.
 		 */
 		build_particle_settings(part);
-		/* Update on particle settings change. */
-		add_operation_node(psys_comp,
-		                   function_bind(BKE_particle_system_settings_eval,
-		                                 _1,
-		                                 psys),
-		                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
-		                   psys->name);
 		/* Particle system evaluation. */
 		add_operation_node(psys_comp,
 		                   NULL,
@@ -951,12 +944,6 @@ void DepsgraphNodeBuilder::build_particle_settings(ParticleSettings *part) {
 	                   DEG_NODE_TYPE_PARAMETERS,
 	                   NULL,
 	                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
-	add_operation_node(&part->id,
-	                   DEG_NODE_TYPE_PARAMETERS,
-	                   function_bind(BKE_particle_system_settings_recalc_clear,
-	                                 _1,
-	                                 part),
-	                   DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR);
 }
 
 void DepsgraphNodeBuilder::build_cloth(Object *object)

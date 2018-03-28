@@ -262,7 +262,7 @@ typedef struct ParticleSettings {
 	short use_modifier_stack;
 
 	short pad5;
-	int recalc;
+	int pad8;
 
 	float twist;
 	float pad6;

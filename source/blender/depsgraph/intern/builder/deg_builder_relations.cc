@@ -1430,19 +1430,7 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 		OperationKey particle_settings_key(&part->id,
 		                                   DEG_NODE_TYPE_PARAMETERS,
 		                                   DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
-		OperationKey particle_settings_recalc_clear_key(
-		        &part->id,
-		        DEG_NODE_TYPE_PARAMETERS,
-		        DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR);
-		OperationKey psys_settings_key(&object->id,
-		                               DEG_NODE_TYPE_EVAL_PARTICLES,
-		                               DEG_OPCODE_PARTICLE_SETTINGS_EVAL,
-		                               psys->name);
-		add_relation(particle_settings_key, psys_settings_key, "Particle Settings Change");
-		add_relation(psys_settings_key, psys_key, "Particle Settings Update");
-		add_relation(psys_key,
-		             particle_settings_recalc_clear_key,
-		             "Particle Settings Recalc Clear");
+		add_relation(particle_settings_key, eval_init_key, "Particle Settings Change");
 		add_relation(eval_init_key, psys_key, "Init -> PSys");
 		/* TODO(sergey): Currently particle update is just a placeholder,
 		 * hook it to the ubereval node so particle system is getting updated
@@ -1543,14 +1531,6 @@ void DepsgraphRelationBuilder::build_particle_settings(ParticleSettings *part)
 	}
 	/* Animation data relations. */
 	build_animdata(&part->id);
-
-	OperationKey eval_key(&part->id,
-	                      DEG_NODE_TYPE_PARAMETERS,
-	                      DEG_OPCODE_PARTICLE_SETTINGS_EVAL);
-	OperationKey recalc_clear_key(&part->id,
-	                             DEG_NODE_TYPE_PARAMETERS,
-	                             DEG_OPCODE_PARTICLE_SETTINGS_RECALC_CLEAR);
-	add_relation(eval_key, recalc_clear_key, "Particle Settings Clear Recalc");
 }
 
 void DepsgraphRelationBuilder::build_particles_visualization_object(
