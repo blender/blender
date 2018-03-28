@@ -140,7 +140,7 @@ ccl_device_inline void kernel_update_denoising_features(KernelGlobals *kg,
 		/* All closures contribute to the normal feature, but only diffuse-like ones to the albedo. */
 		normal += sc->N * sc->sample_weight;
 		sum_weight += sc->sample_weight;
-		if(bsdf_get_roughness_squared(sc) > sqr(0.075f)) {
+		if(bsdf_get_specular_roughness_squared(sc) > sqr(0.075f)) {
 			albedo += sc->weight;
 			sum_nonspecular_weight += sc->sample_weight;
 		}
