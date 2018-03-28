@@ -607,7 +607,6 @@ static DRWShadingGroup *CLAY_hair_shgroup_create(DRWPass *pass, int id)
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.hair_sh, pass);
 	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array);
 	DRW_shgroup_uniform_block(grp, "material_block", sldata->mat_ubo);
-	DRW_shgroup_uniform_block(grp, "matcaps_block", sldata->matcaps_ubo);
 	DRW_shgroup_uniform_int(grp, "mat_id", &e_data.ubo_mat_idxs[id], 1);
 
 	return grp;
