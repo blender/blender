@@ -108,6 +108,7 @@ void OBJECT_OT_select_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_select_more(struct wmOperatorType *ot);
 void OBJECT_OT_select_less(struct wmOperatorType *ot);
 void OBJECT_OT_select_same_group(struct wmOperatorType *ot);
+void OBJECT_OT_select_same_collection(struct wmOperatorType *ot);
 
 /* object_add.c */
 void OBJECT_OT_add(struct wmOperatorType *ot);
