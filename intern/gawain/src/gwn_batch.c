@@ -489,6 +489,12 @@ void GWN_batch_uniform_4fv(Gwn_Batch* batch, const char* name, const float data[
 	glUniform4fv(uniform->location, 1, data);
 	}
 
+void GWN_batch_uniform_4fv_array(Gwn_Batch* batch, const char* name, const int len, const float *data)
+	{
+	GET_UNIFORM
+	glUniform4fv(uniform->location, len, data);
+	}
+
 static void primitive_restart_enable(const Gwn_IndexBuf *el)
 {
 	// TODO(fclem) Replace by GL_PRIMITIVE_RESTART_FIXED_INDEX when we have ogl 4.3
