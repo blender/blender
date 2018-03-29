@@ -689,6 +689,8 @@ PyDoc_STRVAR(euler_doc,
 "\n"
 "   This object gives access to Eulers in Blender.\n"
 "\n"
+"   .. seealso:: `Euler angles <https://en.wikipedia.org/wiki/Euler_angles>`__ on Wikipedia.\n"
+"\n"
 "   :param angles: Three angles, in radians.\n"
 "   :type angles: 3d vector\n"
 "   :param order: Optional order of the angles, a permutation of ``XYZ``.\n"
