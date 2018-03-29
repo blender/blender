@@ -390,7 +390,7 @@ static void collection_object_add(const ID *owner_id, SceneCollection *sc, Objec
  */
 bool BKE_collection_object_add(const ID *owner_id, SceneCollection *sc, Object *ob)
 {
-	if (BLI_findptr(&sc->objects, ob, offsetof(LinkData, data))) {
+	if (BKE_collection_object_exists(sc, ob)) {
 		/* don't add the same object twice */
 		return false;
 	}
@@ -510,6 +510,17 @@ void BKE_collection_object_move(ID *owner_id, SceneCollection *sc_dst, SceneColl
 		BKE_collection_object_add(owner_id, sc_dst, ob);
 		collections_object_remove_ex(NULL, owner_id, ob, false, sc_dst);
 	}
+}
+
+/**
+ * Whether the object is directly inside the collection.
+ */
+bool BKE_collection_object_exists(struct SceneCollection *scene_collection, struct Object *ob)
+{
+	if (BLI_findptr(&scene_collection->objects, ob, offsetof(LinkData, data))) {
+		return true;
+	}
+	return false;
 }
 
 static void layer_collection_sync(LayerCollection *lc_dst, LayerCollection *lc_src)
