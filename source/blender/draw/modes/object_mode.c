@@ -1812,7 +1812,7 @@ static void OBJECT_cache_populate_particles(Object *ob,
 			unit_m4(mat);
 
 			if (draw_as != PART_DRAW_PATH) {
-				struct Gwn_Batch *geom = DRW_cache_particles_get_dots(psys);
+				struct Gwn_Batch *geom = DRW_cache_particles_get_dots(ob, psys);
 				DRWShadingGroup *shgrp = NULL;
 				static int screen_space[2] = {0, 1};
 				static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};

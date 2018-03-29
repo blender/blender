@@ -29,6 +29,8 @@
  * \brief Particle API for render engines
  */
 
+#include "DRW_render.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
@@ -442,7 +444,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 	cache->segments = GWN_indexbuf_build(&elb);
 }
 
-static void particle_batch_cache_ensure_pos(ParticleSystem *psys, ParticleBatchCache *cache)
+static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys, ParticleBatchCache *cache)
 {
 	if (cache->pos != NULL) {
 		return;
@@ -452,6 +454,23 @@ static void particle_batch_cache_ensure_pos(ParticleSystem *psys, ParticleBatchC
 	static unsigned pos_id, rot_id, val_id;
 	int i, curr_point;
 	ParticleData *pa;
+	ParticleKey state;
+	ParticleSimulationData sim = {NULL};
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
+	sim.eval_ctx = &draw_ctx->eval_ctx;
+	sim.scene = draw_ctx->scene;
+	sim.ob = object;
+	sim.psys = psys;
+	sim.psmd = psys_get_modifier(object, psys);
+
+	if (psys->part->phystype == PART_PHYS_KEYED) {
+		if (psys->flag & PSYS_KEYED) {
+			psys_count_keyed_targets(&sim);
+			if (psys->totkeyed == 0)
+				return;
+		}
+	}
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
 	GWN_INDEXBUF_DISCARD_SAFE(cache->segments);
@@ -467,30 +486,31 @@ static void particle_batch_cache_ensure_pos(ParticleSystem *psys, ParticleBatchC
 	GWN_vertbuf_data_alloc(cache->pos, psys->totpart);
 
 	for (curr_point = 0, i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
-		if (pa->state.time >= pa->time && pa->state.time < pa->dietime &&
-		    !(pa->flag & (PARS_NO_DISP | PARS_UNEXIST)))
-		{
-			float val;
-
-			GWN_vertbuf_attr_set(cache->pos, pos_id, curr_point, pa->state.co);
-			GWN_vertbuf_attr_set(cache->pos, rot_id, curr_point, pa->state.rot);
-
-			switch (psys->part->draw_col) {
-				case PART_DRAW_COL_VEL:
-					val = len_v3(pa->state.vel) / psys->part->color_vec_max;
-					break;
-				case PART_DRAW_COL_ACC:
-					val = len_v3v3(pa->state.vel, pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * psys->part->color_vec_max);
-					break;
-				default:
-					val = -1.0f;
-					break;
-			}
-
-			GWN_vertbuf_attr_set(cache->pos, val_id, curr_point, &val);
-
-			curr_point++;
+		state.time = draw_ctx->eval_ctx.ctime;
+		if (!psys_get_particle_state(&sim, curr_point, &state, 0)) {
+			continue;
 		}
+
+		float val;
+
+		GWN_vertbuf_attr_set(cache->pos, pos_id, curr_point, pa->state.co);
+		GWN_vertbuf_attr_set(cache->pos, rot_id, curr_point, pa->state.rot);
+
+		switch (psys->part->draw_col) {
+			case PART_DRAW_COL_VEL:
+				val = len_v3(pa->state.vel) / psys->part->color_vec_max;
+				break;
+			case PART_DRAW_COL_ACC:
+				val = len_v3v3(pa->state.vel, pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * psys->part->color_vec_max);
+				break;
+			default:
+				val = -1.0f;
+				break;
+		}
+
+		GWN_vertbuf_attr_set(cache->pos, val_id, curr_point, &val);
+
+		curr_point++;
 	}
 
 	if (curr_point != psys->totpart) {
@@ -511,12 +531,12 @@ Gwn_Batch *DRW_particles_batch_cache_get_hair(ParticleSystem *psys, ModifierData
 	return cache->hairs;
 }
 
-Gwn_Batch *DRW_particles_batch_cache_get_dots(ParticleSystem *psys)
+Gwn_Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psys)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 
 	if (cache->hairs == NULL) {
-		particle_batch_cache_ensure_pos(psys, cache);
+		particle_batch_cache_ensure_pos(object, psys, cache);
 		cache->hairs = GWN_batch_create(GWN_PRIM_POINTS, cache->pos, NULL);
 	}
 
