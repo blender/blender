@@ -710,6 +710,12 @@ void immVertex3f(unsigned attrib_id, float x, float y, float z)
 	immEndVertex();
 	}
 
+void immVertex4f(unsigned attrib_id, float x, float y, float z, float w)
+	{
+	immAttrib4f(attrib_id, x, y, z, w);
+	immEndVertex();
+	}
+
 void immVertex2i(unsigned attrib_id, int x, int y)
 	{
 	immAttrib2i(attrib_id, x, y);

@@ -70,6 +70,7 @@ void immSkipAttrib(unsigned attrib_id);
 // this is most often used for 2D or 3D position (similar to glVertex)
 void immVertex2f(unsigned attrib_id, float x, float y);
 void immVertex3f(unsigned attrib_id, float x, float y, float z);
+void immVertex4f(unsigned attrib_id, float x, float y, float z, float w);
 
 void immVertex2i(unsigned attrib_id, int x, int y);
 
