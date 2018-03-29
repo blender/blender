@@ -44,6 +44,7 @@ struct Main;
 struct Object;
 struct Scene;
 struct SceneCollection;
+struct ViewLayer;
 
 struct SceneCollection *BKE_collection_add(
         struct ID *owner_id, struct SceneCollection *sc_parent, const int type, const char *name);
@@ -60,6 +61,8 @@ bool BKE_collections_object_remove(struct Main *bmain, struct ID *owner_id, stru
 void BKE_collection_object_move(struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src, struct Object *ob);
 bool BKE_collection_object_exists(struct SceneCollection *scene_collection, struct Object *ob);
 struct SceneCollection *BKE_collection_from_index(struct Scene *scene, const int index);
+
+bool BKE_collection_objects_select(struct ViewLayer *view_layer, struct SceneCollection *scene_collection);
 
 struct Group *BKE_collection_group_create(struct Main *bmain, struct Scene *scene, struct LayerCollection *lc);
 

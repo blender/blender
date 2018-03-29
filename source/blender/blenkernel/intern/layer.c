@@ -1282,16 +1282,29 @@ static LayerCollection *layer_collection_add(ViewLayer *view_layer, LayerCollect
 /* ---------------------------------------------------------------------- */
 
 /**
- * See if render layer has the scene collection linked directly, or indirectly (nested)
+ * Return the first matching LayerCollection in the ViewLayer for the SceneCollection.
  */
-bool BKE_view_layer_has_collection(ViewLayer *view_layer, const SceneCollection *sc)
+LayerCollection *BKE_layer_collection_first_from_scene_collection(ViewLayer *view_layer, const SceneCollection *scene_collection)
 {
-	for (LayerCollection *lc = view_layer->layer_collections.first; lc; lc = lc->next) {
-		if (find_layer_collection_by_scene_collection(lc, sc) != NULL) {
-			return true;
+	for (LayerCollection *layer_collection = view_layer->layer_collections.first;
+	     layer_collection != NULL;
+	     layer_collection = layer_collection->next)
+	{
+		LayerCollection *found = find_layer_collection_by_scene_collection(layer_collection, scene_collection);
+
+		if (found != NULL) {
+			return found;
 		}
 	}
-	return false;
+	return NULL;
+}
+
+/**
+ * See if view layer has the scene collection linked directly, or indirectly (nested)
+ */
+bool BKE_view_layer_has_collection(ViewLayer *view_layer, const SceneCollection *scene_collection)
+{
+	return BKE_layer_collection_first_from_scene_collection(view_layer, scene_collection) != NULL;
 }
 
 /**

@@ -112,6 +112,7 @@ void BKE_collection_unlink(struct ViewLayer *view_layer, struct LayerCollection 
 
 void BKE_collection_enable(struct ViewLayer *view_layer, struct LayerCollection *lc);
 
+struct LayerCollection *BKE_layer_collection_first_from_scene_collection(struct ViewLayer *view_layer, const struct SceneCollection *scene_collection);
 bool BKE_view_layer_has_collection(struct ViewLayer *view_layer, const struct SceneCollection *sc);
 bool BKE_scene_has_object(struct Scene *scene, struct Object *ob);
 

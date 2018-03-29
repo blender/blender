@@ -574,6 +574,33 @@ static void layer_collection_sync(LayerCollection *lc_dst, LayerCollection *lc_s
 }
 
 /**
+ * Select all the objects in this SceneCollection (and its nested collections) for this ViewLayer.
+ * Return true if any object was selected.
+ */
+bool BKE_collection_objects_select(ViewLayer *view_layer, SceneCollection *scene_collection)
+{
+	LayerCollection *layer_collection = BKE_layer_collection_first_from_scene_collection(view_layer, scene_collection);
+	if (layer_collection != NULL) {
+		BKE_layer_collection_objects_select(layer_collection);
+		return true;
+	}
+	else {
+		/* Slower approach, we need to iterate over all the objects and for each one we see if there is a base. */
+		bool changed = false;
+		for (LinkData *link = scene_collection->objects.first; link; link = link->next) {
+			Base *base = BKE_view_layer_base_find(view_layer, link->data);
+			if (base != NULL) {
+				if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
+					base->flag |= BASE_SELECTED;
+					changed = true;
+				}
+			}
+		}
+		return changed;
+	}
+}
+
+/**
  * Leave only the master collection in, remove everything else.
  * @param group
  */
