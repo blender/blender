@@ -1168,4 +1168,8 @@ void UI_tooltip_free(struct bContext *C, struct bScreen *sc, struct ARegion *ar)
 
 int UI_calc_float_precision(int prec, double value);
 
+/* UI Batches managment */
+void ui_widget_batch_preset_reset(void);
+void ui_widget_batch_preset_exit(void);
+
 #endif  /* __UI_INTERFACE_H__ */
