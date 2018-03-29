@@ -616,6 +616,8 @@ void GPU_framebuffer_recursive_downsample(
 			}
 		}
 
+		BLI_assert(GPU_framebuffer_check_valid(fb, NULL));
+
 		glViewport(0, 0, current_dim[0], current_dim[1]);
 		callback(userData, i);
 

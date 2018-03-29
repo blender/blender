@@ -170,16 +170,13 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
 		/* Intel gpu seems to have problem rendering to only depth format */
 		DRW_texture_ensure_2D(&txl->maxzbuffer, size[0], size[1], DRW_TEX_R_32, DRW_TEX_MIPMAP);
-		GPU_framebuffer_ensure_config(&fbl->downsample_fb, {
-			GPU_ATTACHMENT_NONE,
-			GPU_ATTACHMENT_TEXTURE(txl->maxzbuffer)
-		});
 	}
 	else {
 		DRW_texture_ensure_2D(&txl->maxzbuffer, size[0], size[1], DRW_TEX_DEPTH_24, DRW_TEX_MIPMAP);
-		GPU_framebuffer_ensure_config(&fbl->downsample_fb, {
-			GPU_ATTACHMENT_TEXTURE(txl->maxzbuffer)
-		});
+	}
+
+	if (fbl->downsample_fb == NULL) {
+		fbl->downsample_fb = GPU_framebuffer_create();
 	}
 
 	/**
@@ -363,6 +360,7 @@ void EEVEE_create_minmax_buffer(EEVEE_Data *vedata, GPUTexture *depth_src, int l
 
 	/* Create lower levels */
 	GPU_framebuffer_recursive_downsample(fbl->downsample_fb, 8, &max_downsample_cb, vedata);
+	GPU_framebuffer_texture_detach(fbl->downsample_fb, txl->maxzbuffer);
 	DRW_stats_group_end();
 
 	/* Restore */
@@ -381,6 +379,7 @@ void EEVEE_downsample_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, int le
 	DRW_stats_group_start("Downsample buffer");
 	GPU_framebuffer_texture_attach(fbl->downsample_fb, texture_src, 0, 0);
 	GPU_framebuffer_recursive_downsample(fbl->downsample_fb, level, &simple_downsample_cb, vedata);
+	GPU_framebuffer_texture_detach(fbl->downsample_fb, texture_src);
 	DRW_stats_group_end();
 }
 
@@ -396,6 +395,7 @@ void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, i
 	DRW_stats_group_start("Downsample Cube buffer");
 	GPU_framebuffer_texture_attach(fbl->downsample_fb, texture_src, 0, 0);
 	GPU_framebuffer_recursive_downsample(fbl->downsample_fb, level, &simple_downsample_cube_cb, vedata);
+	GPU_framebuffer_texture_detach(fbl->downsample_fb, texture_src);
 	DRW_stats_group_end();
 }
 
