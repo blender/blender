@@ -176,7 +176,8 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 
 static unsigned int verts_needed(const FontBLF *font, const char *str, size_t len)
 {
-	unsigned int length = (unsigned int)((len == INT_MAX) ? strlen(str) : len);
+	size_t str_len = (len > 50) ? strlen(str) : INT_MAX; /* Arbitrary. */
+	unsigned int length = (unsigned int)MIN2(str_len, len);
 	unsigned int quad_ct = 1;
 
 	if (font->flags & BLF_SHADOW) {
