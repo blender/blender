@@ -308,3 +308,20 @@ bool _bli_array_iter_span(
 
 	return false;
 }
+
+/**
+ * Simple utility to check memory is zeroed.
+ */
+bool _bli_array_is_zeroed(
+        const void *arr_v,
+        unsigned int arr_len, size_t arr_stride)
+{
+	const char *arr_step = (const char *)arr_v;
+	size_t i = arr_stride * arr_len;
+	while (i--) {
+		if (*(arr_step++)) {
+			return false;
+		}
+	}
+	return true;
+}

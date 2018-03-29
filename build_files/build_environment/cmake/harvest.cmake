@@ -102,8 +102,6 @@ if(BUILD_MODE STREQUAL Release)
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/python/ ${HARVEST_TARGET}/python/ &&
 				# alembic
 				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/alembic ${HARVEST_TARGET}/alembic &&
-				# hdf5
-				${CMAKE_COMMAND} -E copy_directory ${LIBDIR}/hdf5 ${HARVEST_TARGET}/hdf5 &&
 				# BlendThumb
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb64/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb64.dll &&
 				${CMAKE_COMMAND} -E copy ${LIBDIR}/BlendThumb32/bin/blendthumb.dll ${HARVEST_TARGET}/ThumbHandler/lib/BlendThumb.dll &&

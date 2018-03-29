@@ -202,6 +202,8 @@ public:
 	// gives a world-space mat, end's mat not included
 	bool calc_joint_parent_mat_rest(float mat[4][4], float par[4][4], COLLADAFW::Node *node, COLLADAFW::Node *end);
 
+	float convert_to_focal_length(float in_xfov, int fov_type, float aspect, float sensorx);
+
 #ifdef ARMATURE_TEST
 	Object *get_joint_object(COLLADAFW::Node *root, COLLADAFW::Node *node, Object *par_job);
 #endif

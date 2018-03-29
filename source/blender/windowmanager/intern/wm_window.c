@@ -385,7 +385,7 @@ static uiBlock *block_create_confirm_quit(struct bContext *C, struct ARegion *ar
 	UI_block_emboss_set(block, UI_EMBOSS);
 
 	uiLayout *layout = UI_block_layout(
-	        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.pixelsize * 480, U.pixelsize * 110, 0, style);
+	        block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 10, 2, U.widget_unit * 24, U.widget_unit * 6, 0, style);
 
 	/* Text and some vertical space */
 	{

@@ -38,6 +38,7 @@ set(SRC
 if(WITH_OPENVDB)
 	add_definitions(
 		-DWITH_OPENVDB
+		-DOPENVDB_3_ABI_COMPATIBLE
 	)
 
 	list(APPEND INC_SYS

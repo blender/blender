@@ -109,7 +109,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 				fcu->flag = (FCURVE_VISIBLE | FCURVE_AUTO_HANDLES | FCURVE_SELECTED);
 				// fcu->rna_path = BLI_strdupn(path, strlen(path));
 				fcu->array_index = 0;
-				fcu->totvert = curve->getKeyCount();
+				//fcu->totvert = curve->getKeyCount();
 
 				// create beztriple for each key
 				for (unsigned int j = 0; j < curve->getKeyCount(); j++) {
@@ -669,6 +669,13 @@ void AnimationImporter:: Assign_float_animations(const COLLADAFW::UniqueId& list
 	
 }
 
+float AnimationImporter::convert_to_focal_length(float in_xfov, int fov_type, float aspect, float sensorx)
+{
+	// NOTE: Needs more testing (As we curretnly have no official test data for this)
+	float xfov = (fov_type == CAMERA_YFOV) ? (2.0f * atanf(aspect * tanf(DEG2RADF(in_xfov) * 0.5f))) : DEG2RADF(in_xfov);
+	return fov_to_focallength(xfov, sensorx);
+}
+
 /*
  * Lens animations must be stored in COLLADA by using FOV,
  * while blender internally uses focal length.
@@ -698,13 +705,9 @@ void AnimationImporter::Assign_lens_animations(const COLLADAFW::UniqueId& listid
 				FCurve *fcu = *iter;
 				
 				for (unsigned int i = 0; i < fcu->totvert; i++) {
-
-					double input_fov = fcu->bezt[i].vec[1][1];
-
-					// NOTE: Needs more testing (As we curretnly have no official test data for this)
-					double xfov = (fov_type == CAMERA_YFOV) ? (2.0f * atanf(aspect * tanf(DEG2RADF(input_fov) * 0.5f))) : DEG2RADF(input_fov);
-
-					fcu->bezt[i].vec[1][1] = fov_to_focallength(xfov, cam->sensor_x);
+					fcu->bezt[i].vec[0][1] = convert_to_focal_length(fcu->bezt[i].vec[0][1], fov_type, aspect, cam->sensor_x);
+					fcu->bezt[i].vec[1][1] = convert_to_focal_length(fcu->bezt[i].vec[1][1], fov_type, aspect, cam->sensor_x);
+					fcu->bezt[i].vec[2][1] = convert_to_focal_length(fcu->bezt[i].vec[2][1], fov_type, aspect, cam->sensor_x);
 				}
 
 				BLI_addtail(AnimCurves, fcu);

@@ -280,6 +280,11 @@ public:
 	 */
 	GHOST_TSuccess handleKeyEvent(void *eventPtr);
 	
+	/**
+	 * Informs if the system provides native dialogs (eg. confirm quit)
+	 */
+	virtual bool supportsNativeDialogs(void);
+
 protected:
 	/**
 	 * Initializes the system.

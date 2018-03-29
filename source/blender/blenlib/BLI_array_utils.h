@@ -74,10 +74,18 @@ bool _bli_array_iter_span(
         bool use_wrap, bool use_delimit_bounds,
         bool (*test_fn)(const void *arr_item, void *user_data), void *user_data,
         unsigned int span_step[2], unsigned int *r_span_len);
-#define BLI_array_iter_span(arr, arr_len, use_wrap, use_delimit_bounds, test_fn, user_data, \
-	        span_step, r_span_len) \
+#define BLI_array_iter_span( \
+        arr, arr_len, use_wrap, use_delimit_bounds, test_fn, user_data, \
+        span_step, r_span_len) \
 	_bli_array_iter_span( \
 	        arr, arr_len, sizeof(*(arr)), use_wrap, use_delimit_bounds, test_fn, user_data, \
 	        span_step, r_span_len)
+
+bool _bli_array_is_zeroed(
+        const void *arr,
+        unsigned int arr_len, size_t arr_stride);
+#define BLI_array_is_zeroed(arr, arr_len) \
+	_bli_array_is_zeroed( \
+	        arr, arr_len, sizeof(*(arr)))
 
 #endif  /* __BLI_ARRAY_UTILS_H__ */
