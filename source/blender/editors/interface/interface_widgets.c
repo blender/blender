@@ -935,7 +935,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	}
 
 	/* Draw everything in one drawcall */
-	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[4]) {
+	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3]) {
 		widgetbase_set_uniform_colors_ubv(wtb, inner_col1, inner_col2, outline_col, emboss_col);
 
 		Gwn_Batch *roundbox_batch = ui_batch_roundbox_get();
