@@ -164,6 +164,7 @@ ccl_device_inline void path_state_next(KernelGlobals *kg, ccl_addr_space PathSta
 #endif
 }
 
+#ifdef __VOLUME__
 ccl_device_inline bool path_state_volume_next(KernelGlobals *kg, ccl_addr_space PathState *state)
 {
 	/* For volume bounding meshes we pass through without counting transparent
@@ -180,6 +181,7 @@ ccl_device_inline bool path_state_volume_next(KernelGlobals *kg, ccl_addr_space 
 
 	return true;
 }
+#endif
 
 ccl_device_inline uint path_state_ray_visibility(KernelGlobals *kg, ccl_addr_space PathState *state)
 {
