@@ -327,14 +327,14 @@ static Gwn_Batch *ui_batch_roundbox_get(void)
 #undef EMBOSS
 #undef NO_AA
 
-void ui_widget_batch_preset_reset(void)
+void UI_widget_batch_preset_reset(void)
 {
 	if (g_ui_batch_cache.roundbox) {
 		gwn_batch_vao_cache_clear(g_ui_batch_cache.roundbox);
 	}
 }
 
-void ui_widget_batch_preset_exit(void)
+void UI_widget_batch_preset_exit(void)
 {
 	GWN_BATCH_DISCARD_SAFE(g_ui_batch_cache.roundbox);
 }

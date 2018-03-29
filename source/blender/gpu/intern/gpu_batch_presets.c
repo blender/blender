@@ -205,7 +205,7 @@ void gpu_batch_presets_reset(void)
 	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_wire_low);
 	gwn_batch_vao_cache_clear(g_presets_3d.batch.sphere_wire_med);
 
-	ui_widget_batch_preset_reset();
+	UI_widget_batch_preset_reset();
 }
 
 void gpu_batch_presets_exit(void)
@@ -216,5 +216,5 @@ void gpu_batch_presets_exit(void)
 	GWN_batch_discard(g_presets_3d.batch.sphere_wire_low);
 	GWN_batch_discard(g_presets_3d.batch.sphere_wire_med);
 
-	ui_widget_batch_preset_exit();
+	UI_widget_batch_preset_exit();
 }
