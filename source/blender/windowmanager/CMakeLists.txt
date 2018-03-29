@@ -39,6 +39,7 @@ set(INC
 	../nodes
 	../render/extern/include
 	../../gameengine/BlenderRoutines
+	../../../intern/clog
 	../../../intern/ghost
 	../../../intern/guardedalloc
 	../../../intern/glew-mx

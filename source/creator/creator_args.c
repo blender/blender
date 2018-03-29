@@ -30,6 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
@@ -529,6 +531,11 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--python-exit-code");
 	BLI_argsPrintArgDoc(ba, "--addons");
 
+	printf("\n");
+	printf("Logging Options:\n");
+	BLI_argsPrintArgDoc(ba, "--log");
+	BLI_argsPrintArgDoc(ba, "--log-level");
+	BLI_argsPrintArgDoc(ba, "--log-file");
 
 	printf("\n");
 	printf("Debug Options:\n");
@@ -702,6 +709,88 @@ static int arg_handle_background_mode_set(int UNUSED(argc), const char **UNUSED(
 {
 	G.background = 1;
 	return 0;
+}
+
+static const char arg_handle_log_level_set_doc[] =
+"\n\tSet the logging verbosity level (higher for more details) defaults to 1."
+;
+static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--log-level";
+	if (argc > 1) {
+		const char *err_msg = NULL;
+		if (!parse_int_clamp(argv[1], NULL, 0, INT_MAX, &G.log.level, &err_msg)) {
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		}
+		return 1;
+	}
+	else {
+		printf("\nError: '%s' no args given.\n", arg_id);
+		return 0;
+	}
+}
+
+static const char arg_handle_log_file_set_doc[] =
+"\n\tSet a file to output the log to."
+;
+static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--log-file";
+	if (argc > 1) {
+		errno = 0;
+		FILE *fp = BLI_fopen(argv[1], "w");
+		if (fp == NULL) {
+			const char *err_msg = errno ? strerror(errno) : "unknown";
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		}
+		else {
+			if (UNLIKELY(G.log.file != NULL)) {
+				fclose(G.log.file);
+			}
+			G.log.file = fp;
+			CLG_output_set(G.log.file);
+		}
+		return 1;
+	}
+	else {
+		printf("\nError: '%s' no args given.\n", arg_id);
+		return 0;
+	}
+}
+
+static const char arg_handle_log_set_doc[] =
+"\n\tEnable logging categories, taking a single comma separated argument.\n"
+"\tMultiple categories can be matched using a '.*' suffix, so '--log \"wm.*\"' logs every kind of window-manager message.\n"
+"\tUse \"*\" to log everything."
+;
+static int arg_handle_log_set(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--log";
+	if (argc > 1) {
+		const char *str_step = argv[1];
+		while (*str_step) {
+			const char *str_step_end = strchr(str_step, ',');
+			int str_step_len = str_step_end ? (str_step_end - str_step) : strlen(str_step);
+
+			CLG_type_filter(str_step, str_step_len);
+
+			if (str_step_end) {
+				/* typically only be one, but don't fail on multiple.*/
+				while (*str_step_end == ',') {
+					str_step_end++;
+				}
+				str_step = str_step_end;
+			}
+			else {
+				break;
+			}
+		}
+		return 1;
+	}
+	else {
+		printf("\nError: '%s' no args given.\n", arg_id);
+		return 0;
+	}
 }
 
 static const char arg_handle_debug_mode_set_doc[] =
@@ -1826,6 +1915,10 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-b", "--background", CB(arg_handle_background_mode_set), NULL);
 
 	BLI_argsAdd(ba, 1, "-a", NULL, CB(arg_handle_playback_mode), NULL);
+
+	BLI_argsAdd(ba, 1, NULL, "--log-level", CB(arg_handle_log_level_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log", CB(arg_handle_log_set), ba);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", CB(arg_handle_debug_mode_set), ba);
 

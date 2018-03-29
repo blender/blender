@@ -40,6 +40,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_genfile.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -126,6 +128,11 @@
 #ifdef WITH_OPENSUBDIV
 #  include "BKE_subsurf.h"
 #endif
+
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_OPERATORS, "wm.operator");
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_HANDLERS, "wm.handler");
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_EVENTS, "wm.event");
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_KEYMAPS, "wm.keymap");
 
 static void wm_init_reports(bContext *C)
 {
@@ -612,6 +619,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	/* No need to call this early, rather do it late so that other pieces of Blender using sound may exit cleanly,
 	 * see also T50676. */
 	BKE_sound_exit();
+
+	CLG_exit();
 
 	BKE_blender_atexit();
 

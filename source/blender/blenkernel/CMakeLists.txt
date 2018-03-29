@@ -48,6 +48,7 @@ set(INC
 	../../../intern/mikktspace
 	../../../intern/smoke/extern
 	../../../intern/atomic
+	../../../intern/clog
 	../../../intern/libmv
 	../../../extern/curve_fit_nd
 )

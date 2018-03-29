@@ -80,6 +80,13 @@ typedef struct Global {
 	 * however this is now only used for runtime options */
 	int f;
 
+	struct {
+		/* Logging vars (different loggers may use). */
+		int level;
+		/* FILE handle or use stderr (we own this so close when done). */
+		void *file;
+	} log;
+
 	/* debug flag, G_DEBUG, G_DEBUG_PYTHON & friends, set python or command line args */
 	int debug;
 

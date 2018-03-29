@@ -1,4 +1,5 @@
 /*
+ * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -39,6 +40,7 @@
 #include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
+#include "CLG_log.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -886,11 +888,13 @@ wmKeyMapItem *WM_modalkeymap_find_propvalue(wmKeyMap *km, const int propvalue)
 void WM_modalkeymap_assign(wmKeyMap *km, const char *opname)
 {
 	wmOperatorType *ot = WM_operatortype_find(opname, 0);
-	
-	if (ot)
+
+	if (ot) {
 		ot->modalkeymap = km;
-	else
-		printf("error: modalkeymap_assign, unknown operator %s\n", opname);
+	}
+	else {
+		CLOG_ERROR(WM_LOG_KEYMAPS, "unknown operator '%s'", opname);
+	}
 }
 
 static void wm_user_modal_keymap_set_items(wmWindowManager *wm, wmKeyMap *km)
