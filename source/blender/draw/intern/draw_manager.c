@@ -101,10 +101,12 @@ static void drw_state_prepare_clean_for_draw(DRWManager *dst)
  * where we don't re-use data by accident across different
  * draw calls.
  */
+#ifdef DEBUG
 static void drw_state_ensure_not_reused(DRWManager *dst)
 {
 	memset(dst, 0xff, offsetof(DRWManager, ogl_context));
 }
+#endif
 
 /* -------------------------------------------------------------------- */
 
