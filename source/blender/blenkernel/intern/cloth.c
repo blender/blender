@@ -480,8 +480,6 @@ void clothModifier_do(ClothModifierData *clmd, const struct EvaluationContext *e
 		return;
 	}
 
-		return;
-
 	/* if on second frame, write cache for first frame */
 	if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
 		BKE_ptcache_write(&pid, startframe);
