@@ -318,31 +318,11 @@ void blf_glyph_free(GlyphBLF *g)
 
 static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float dx, float y1, float dx1, float y2)
 {
-	/* First triangle. */
-	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[0][1]);
-	immSkipAttrib(BLF_COLOR_ID); /* skip color of most vertices */
-	immVertex2f(BLF_POS_ID, dx, y1);
-
-	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[1][1]);
-	immSkipAttrib(BLF_COLOR_ID);
-	immVertex2f(BLF_POS_ID, dx, y2);
-
-	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[1][1]);
-	immAttrib4ubv(BLF_COLOR_ID, color); /* set color of provoking vertex */
-	immVertex2f(BLF_POS_ID, dx1, y2);
-
-	/* Second triangle. */
-	immAttrib2f(BLF_COORD_ID, uv[0][0], uv[0][1]);
-	immSkipAttrib(BLF_COLOR_ID); /* skip color of most vertices */
-	immVertex2f(BLF_POS_ID, dx, y1);
-
-	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[1][1]);
-	immSkipAttrib(BLF_COLOR_ID);
-	immVertex2f(BLF_POS_ID, dx1, y2);
-
-	immAttrib2f(BLF_COORD_ID, uv[1][0], uv[0][1]);
-	immAttrib4ubv(BLF_COLOR_ID, color); /* set color of provoking vertex */
-	immVertex2f(BLF_POS_ID, dx1, y1);
+	/* Only one vertex per glyph, geometry shader expand it into a quad. */
+	/* TODO Get rid of Geom Shader because it's not optimal AT ALL for the GPU */
+	immAttrib4ubv(BLF_COLOR_ID, color);
+	immAttrib4fv(BLF_COORD_ID, (float *)uv);
+	immVertex4f(BLF_POS_ID, dx, y1, dx1, y2);
 }
 
 static void blf_texture5_draw(const unsigned char color_in[4], float uv[2][2], float x1, float y1, float x2, float y2)

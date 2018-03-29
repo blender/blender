@@ -135,6 +135,7 @@ extern char datatoc_gpu_shader_edges_overlay_geom_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_simple_geom_glsl[];
 extern char datatoc_gpu_shader_edges_overlay_frag_glsl[];
 extern char datatoc_gpu_shader_text_vert_glsl[];
+extern char datatoc_gpu_shader_text_geom_glsl[];
 extern char datatoc_gpu_shader_text_frag_glsl[];
 extern char datatoc_gpu_shader_keyframe_diamond_vert_glsl[];
 extern char datatoc_gpu_shader_keyframe_diamond_frag_glsl[];
@@ -649,7 +650,9 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_SMOKE_FIRE] = { datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl },
 		[GPU_SHADER_SMOKE_COBA] = { datatoc_gpu_shader_smoke_vert_glsl, datatoc_gpu_shader_smoke_frag_glsl },
 
-		[GPU_SHADER_TEXT] = { datatoc_gpu_shader_text_vert_glsl, datatoc_gpu_shader_text_frag_glsl },
+		[GPU_SHADER_TEXT] = { datatoc_gpu_shader_text_vert_glsl,
+		                      datatoc_gpu_shader_text_frag_glsl,
+		                      datatoc_gpu_shader_text_geom_glsl },
 		[GPU_SHADER_KEYFRAME_DIAMOND] = { datatoc_gpu_shader_keyframe_diamond_vert_glsl,
 		                                  datatoc_gpu_shader_keyframe_diamond_frag_glsl },
 		[GPU_SHADER_EDGES_FRONT_BACK_PERSP] = { datatoc_gpu_shader_edges_front_back_persp_vert_glsl,
