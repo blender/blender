@@ -346,6 +346,17 @@ static void drw_viewport_cache_resize(void)
 	DRW_instance_data_list_resize(DST.idatalist);
 }
 
+static void drw_state_eval_ctx_init(DRWManager *dst)
+{
+	DRWContextState *draw_ctx = &dst->draw_ctx;
+	DEG_evaluation_context_init_from_scene(
+	        &draw_ctx->eval_ctx,
+	        draw_ctx->scene,
+	        draw_ctx->view_layer,
+	        draw_ctx->engine_type,
+	        draw_ctx->object_mode,
+	        DST.options.is_scene_render ? DAG_EVAL_RENDER : DAG_EVAL_VIEWPORT);
+}
 
 /* Not a viewport variable, we could split this out. */
 static void drw_context_state_init(void)
@@ -368,6 +379,8 @@ static void drw_context_state_init(void)
 	else {
 		DST.draw_ctx.object_pose = NULL;
 	}
+
+	drw_state_eval_ctx_init(&DST);
 }
 
 /* It also stores viewport variable to an immutable place: DST

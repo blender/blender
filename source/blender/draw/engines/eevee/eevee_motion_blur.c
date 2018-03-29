@@ -59,7 +59,6 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
         float time,
         float r_mat[4][4])
 {
-	EvaluationContext eval_ctx;
 	float obmat[4][4];
 
 	/* HACK */
@@ -68,19 +67,9 @@ static void eevee_motion_blur_camera_get_matrix_at_time(
 	memcpy(&camdata_cpy, camera->data, sizeof(camdata_cpy));
 	cam_cpy.data = &camdata_cpy;
 
-	/* NOTE: Mode corresponds to old usage of eval_ctx from viewport (which was
-	 * actually coming from bmain). It was always DAG_EVAL_VIEWPORT. For F12
-	 * render this should be DAG_EVAL_RENDER, but the whole hack is to be
-	 * reconsidered first anyway.
-	 */
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	DEG_evaluation_context_init_from_scene(
-	        &eval_ctx,
-	        scene,
-	        draw_ctx->view_layer,
-	        draw_ctx->engine_type,
-	        draw_ctx->object_mode,
-	        DAG_EVAL_VIEWPORT);
+	/* We will be modifying time, so we create copy of eval_ctx. */
+	EvaluationContext eval_ctx = draw_ctx->eval_ctx;
 	eval_ctx.ctime = time;
 
 	/* Past matrix */

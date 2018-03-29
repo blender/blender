@@ -57,6 +57,8 @@
 
 #include "RE_engine.h"
 
+#include "DEG_depsgraph.h"
+
 struct rcti;
 struct bContext;
 struct GPUFrameBuffer;
@@ -504,6 +506,7 @@ typedef struct DRWContextState {
 
 	struct RenderEngineType *engine_type;
 
+	EvaluationContext eval_ctx;
 	struct Depsgraph *depsgraph;
 
 	eObjectMode object_mode;

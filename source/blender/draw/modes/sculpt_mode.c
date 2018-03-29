@@ -193,12 +193,8 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		EvaluationContext eval_ctx;
-
-		CTX_data_eval_ctx(draw_ctx->evil_C, &eval_ctx);
 
 		if (ob->sculpt && (ob == draw_ctx->obact)) {
-
 			/* XXX, needed for dyntopo-undo (which clears).
 			 * probably depsgraph should handlle? in 2.7x getting derived-mesh does this (mesh_build_data) */
 			if (ob->sculpt->pbvh == NULL) {
@@ -206,7 +202,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 				 * but this avoids waiting on first stroke) */
 				Scene *scene = draw_ctx->scene;
 
-				BKE_sculpt_update_mesh_elements(&eval_ctx, scene, scene->toolsettings->sculpt, ob, false, false);
+				BKE_sculpt_update_mesh_elements(&draw_ctx->eval_ctx, scene, scene->toolsettings->sculpt, ob, false, false);
 			}
 
 			PBVH *pbvh = ob->sculpt->pbvh;
