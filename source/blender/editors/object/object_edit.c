@@ -2048,33 +2048,6 @@ bool ED_object_editmode_calc_active_center(Object *obedit, const bool select_onl
 
 #define COLLECTION_INVALID_INDEX -1
 
-static SceneCollection *scene_collection_from_index_recursive(SceneCollection *scene_collection, const int index, int *index_current)
-{
-	if (index == (*index_current)) {
-		return scene_collection;
-	}
-
-	(*index_current)++;
-
-	for (SceneCollection *scene_collection_iter = scene_collection->scene_collections.first;
-	     scene_collection_iter != NULL;
-	     scene_collection_iter = scene_collection_iter->next)
-	{
-		SceneCollection *nested = scene_collection_from_index_recursive(scene_collection_iter, index, index_current);
-		if (nested != NULL) {
-			return nested;
-		}
-	}
-	return NULL;
-}
-
-static SceneCollection *scene_collection_from_index(Scene *scene, const int index)
-{
-	int index_current = 0;
-	SceneCollection *master_collection = BKE_collection_master(&scene->id);
-	return scene_collection_from_index_recursive(master_collection, index, &index_current);
-}
-
 static int move_to_collection_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
@@ -2089,7 +2062,7 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 	}
 
 	int collection_index = RNA_property_int_get(op->ptr, prop);
-	scene_collection = scene_collection_from_index(CTX_data_scene(C), collection_index);
+	scene_collection = BKE_collection_from_index(CTX_data_scene(C), collection_index);
 	if (scene_collection == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "Unexpected error, collection not found");
 		return OPERATOR_CANCELLED;

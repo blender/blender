@@ -523,6 +523,38 @@ bool BKE_collection_object_exists(struct SceneCollection *scene_collection, stru
 	return false;
 }
 
+static SceneCollection *scene_collection_from_index_recursive(SceneCollection *scene_collection, const int index, int *index_current)
+{
+	if (index == (*index_current)) {
+		return scene_collection;
+	}
+
+	(*index_current)++;
+
+	for (SceneCollection *scene_collection_iter = scene_collection->scene_collections.first;
+	     scene_collection_iter != NULL;
+	     scene_collection_iter = scene_collection_iter->next)
+	{
+		SceneCollection *nested = scene_collection_from_index_recursive(scene_collection_iter, index, index_current);
+		if (nested != NULL) {
+			return nested;
+		}
+	}
+	return NULL;
+}
+
+/**
+ * Return Scene Collection for a given index.
+ *
+ * The index is calculated from top to bottom counting the children before the siblings.
+ */
+SceneCollection *BKE_collection_from_index(Scene *scene, const int index)
+{
+	int index_current = 0;
+	SceneCollection *master_collection = BKE_collection_master(&scene->id);
+	return scene_collection_from_index_recursive(master_collection, index, &index_current);
+}
+
 static void layer_collection_sync(LayerCollection *lc_dst, LayerCollection *lc_src)
 {
 	lc_dst->flag = lc_src->flag;
