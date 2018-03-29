@@ -6,18 +6,15 @@ Video Texture (bge.texture)
 Introduction
 ************
 
-The bge.texture module allows you to manipulate textures during the game.
-
-Several sources for texture are possible: video files, image files, video capture, memory buffer,
-camera render or a mix of that.
-
-The video and image files can be loaded from the internet using an URL instead of a file name.
-
-In addition, you can apply filters on the images before sending them to the GPU, allowing video effect:
-blue screen, color band, gray, normal map.
-
-bge.texture uses FFmpeg to load images and videos.
-All the formats and codecs that FFmpeg supports are supported by this module, including but not limited to:
+The ``bge.texture`` module allows you to manipulate textures during the game.
+Several sources for texture are possible: video files, image files, video capture,
+memory buffer, camera render or a mix of that.
+The video and image files can be loaded from the Internet using a URL instead of a file name.
+In addition, you can apply filters on the images before sending them to the GPU,
+allowing video effect: blue screen, color band, gray, normal map.
+``bge.texture`` uses FFmpeg to load images and videos.
+All the formats and codecs that FFmpeg supports are supported by ``bge.texture``,
+including but not limited to:
 
 * AVI
 * Ogg
@@ -28,16 +25,45 @@ All the formats and codecs that FFmpeg supports are supported by this module, in
 * videoForWindows capture card (this includes many webcams)
 * JPG
 
-The principle is simple: first you identify a texture on an existing object using
-the :class:`~bge.texture.materialID` function, then you create a new texture with dynamic content
+
+How it works
+------------
+
+The principle is simple: first you identify a texture on an existing object using the
+:class:`~bge.texture.materialID` function, then you create a new texture with dynamic content
 and swap the two textures in the GPU.
 
-The GE is not aware of the substitution and continues to display the object as always,
+The game engine is not aware of the substitution and continues to display the object as always,
 except that you are now in control of the texture.
 
 When the texture object is deleted, the new texture is deleted and the old texture restored.
 
-.. module:: bge.texture
+
+Game Preparation
+----------------
+
+Before you can use the :mod:`bge.texture` module,
+you must have objects with textures applied appropriately.
+
+Imagine you want to have a television showing live broadcast programs in the game.
+You will create a television object and UV-apply a different texture at the place of the screen,
+for example ``tv.png``. What this texture looks like is not important;
+probably you want to make it dark gray to simulate power-off state.
+When the television must be turned on, you create a dynamic texture from a video capture card
+and use it instead of ``tv.png``: the TV screen will come to life.
+
+You have two ways to define textures that ``bge.texture`` can grab:
+
+- Simple UV texture.
+- Blender material with image texture channel.
+
+Because ``bge.texture`` works at texture level, it is compatible with all
+the Blender Game Engine's fancy texturing features: GLSL, multi-texture, custom shaders, etc.
+
+
+********
+Examples
+********
 
 .. include:: __/examples/bge.texture.py
    :start-line: 1
@@ -53,7 +79,6 @@ When the texture object is deleted, the new texture is deleted and the old textu
 .. literalinclude:: __/examples/bge.texture.1.py
    :lines: 8-
 
-
 .. include:: __/examples/bge.texture.2.py
    :start-line: 1
    :end-line: 6
@@ -62,13 +87,15 @@ When the texture object is deleted, the new texture is deleted and the old textu
    :lines: 8-
 
 
+.. module:: bge.texture
+
 *************
 Video classes
 *************
 
 .. class:: VideoFFmpeg(file, capture=-1, rate=25.0, width=0, height=0)
 
-   FFmpeg video source.
+   FFmpeg video source, used for video files, video captures, or video streams.
 
    :arg file: Path to the video to load; if capture >= 0 on Windows, this parameter will not be used.
    :type file: str
@@ -90,19 +117,20 @@ Video classes
 
    .. attribute:: range
 
-      Replay range.
+      The start and stop time of the video playback, expressed in seconds from beginning.
+      By default the entire video.
 
       :type: sequence of two floats
 
    .. attribute:: repeat
 
-      Repeat count, -1 for infinite repeat.
+      Number of times to replay the video, -1 for infinite repeat.
 
       :type: int
 
    .. attribute:: framerate
 
-      Frame rate.
+      Relative frame rate, <1.0 for slow, >1.0 for fast.
 
       :type: float
 
@@ -126,21 +154,26 @@ Video classes
 
    .. attribute:: scale
 
-      Fast scale of image (near neighbour).
+      Set to True to activate fast nearest neighbor scaling algorithm.
+      Texture width and height must be a power of 2.
+      If the video picture size is not a power of 2, rescaling is required.
+      By default ``bge.texture`` uses the precise but slow ``gluScaleImage()`` function.
+      Best is to rescale the video offline so that no scaling is necessary at runtime!
 
       :type: bool
 
    .. attribute:: flip
 
-      Flip image vertically.
+      If True the imaged will be flipped vertically.
+      FFmpeg always delivers the image upside down, so this attribute is set to True by default.
 
       :type: bool
 
    .. attribute:: filter
 
-      Pixel filter.
+      An additional filter that is applied on the video before sending it to the GPU.
 
-      :type: one of...
+      :type: one of:
 
          * :class:`FilterBGR24`
          * :class:`FilterBlueScreen`
@@ -207,7 +240,7 @@ Image classes
 
 .. class:: ImageFFmpeg(file)
 
-   FFmpeg image source.
+   FFmpeg image source, used for image files and web based images.
 
    :arg file: Path to the image to load.
    :type file: str
@@ -286,7 +319,8 @@ Image classes
 
 .. class:: ImageBuff(width, height, color=0, scale=False)
 
-   Image source from image buffer.
+   Image from application memory.
+   For computer generated images, drawing applications.
 
    :arg width: Width of the image.
    :type width: int
@@ -477,7 +511,7 @@ Image classes
 
 .. class:: ImageMix
 
-   Image mixer.
+   Image mixer used to mix multiple image sources together.
 
    .. attribute:: filter
 
@@ -592,7 +626,7 @@ Image classes
 
 .. class:: ImageRender(scene, camera)
 
-   Image source from render.
+   Image source from a render of a non active camera.
    The render is done on a custom framebuffer object if fbo is specified,
    otherwise on the default framebuffer.
 
@@ -723,7 +757,8 @@ Image classes
 
 .. class:: ImageViewport
 
-   Image source from viewport.
+   Image source from viewport rendered by the active camera.
+   To render from a non active camera see :class:`ImageRender`.
 
    .. attribute:: alpha
 
@@ -774,11 +809,10 @@ Image classes
 
       Refresh video - copy the viewport to an external buffer (optional) then invalidate its current content.
 
-      :arg buffer: An optional object that implements the buffer protocol.
-         If specified, the image is copied to the buffer, which must be big enough or an exception is thrown.
-         The transfer to the buffer is optimal if no processing of the image is needed.
-         This is the case if ``flip=False, alpha=True, scale=False, whole=True, depth=False, zbuff=False``
-         and no filter is set.
+      :arg buffer: An optional object that implements the buffer protocol. If specified,
+         the image is copied to the buffer, which must be big enough or an exception is thrown.
+         The transfer to the buffer is optimal if no processing of the image is needed. This is the case if
+         ``flip=False, alpha=True, scale=False, whole=True, depth=False, zbuff=False`` and no filter is set.
       :type buffer: any buffer type
       :arg format: An optional image format specifier for the image that will be copied to the buffer.
          Only valid values are "RGBA" or "BGRA"
@@ -838,18 +872,16 @@ Image classes
    :arg capture: Card number from which the input video must be captured.
    :type capture: int
 
-   The format argument must be written as ``<displayMode>/<pixelFormat>[/3D][:<cacheSize>]`` where ``<displayMode>``
-   describes the frame size and rate and <pixelFormat> the encoding of the pixels.
+   The format argument must be written as ``<displayMode>/<pixelFormat>[/3D][:<cacheSize>]``
+   where ``<displayMode>`` describes the frame size and rate and <pixelFormat> the encoding of the pixels.
    The optional ``/3D`` suffix is to be used if the video stream is stereo with a left and right eye feed.
    The optional ``:<cacheSize>`` suffix determines the number of the video frames kept in cache, by default 8.
-   Some DeckLink cards won't work below a certain cache size.
-   The default value 8 should be sufficient for all cards.
+   Some DeckLink cards won't work below a certain cache size. The default value 8 should be sufficient for all cards.
    You may try to reduce the cache size to reduce the memory footprint. For example the The 4K Extreme is known
    to work with 3 frames only, the Extreme 2 needs 4 frames and the Intensity Shuttle needs 6 frames, etc.
    Reducing the cache size may be useful when Decklink is used in conjunction with GPUDirect:
    all frames must be locked in memory in that case and that puts a lot of pressure on memory.
-   If you reduce the cache size too much,
-   you'll get no error but no video feed either.
+   If you reduce the cache size too much, you'll get no error but no video feed either.
 
    The valid ``<displayMode>`` values are copied from the ``BMDDisplayMode`` enum in the DeckLink API
    without the 'bmdMode' prefix. In case a mode that is not in this list is added in a later version
@@ -1006,15 +1038,20 @@ Texture classes
 
 .. class:: Texture(gameObj, materialID=0, textureID=0, textureObj=None)
 
-   Texture object.
+   Class that creates the ``Texture`` object that loads the dynamic texture on the GPU.
 
    :arg gameObj: Game object to be created a video texture on.
    :type gameObj: :class:`~bge.types.KX_GameObject`
-   :arg materialID: Material ID. (optional)
+   :arg materialID: Material ID default, 0 is the first material. (optional)
    :type materialID: int
-   :arg textureID: Texture ID. (optional)
+   :arg textureID: Texture index in case of multi-texture channel, 0 = first channel by default.
+      In case of UV texture, this parameter should always be 0. (optional)
    :type textureID: int
-   :arg textureObj: Texture object with shared bindId. (optional)
+   :arg textureObj: Reference to another ``Texture`` object with shared bindId
+      which he user might want to reuse the texture.
+      If this argument is used, you should not create any source on this texture
+      and there is no need to refresh it either: the other ``Texture`` object will
+      provide the texture for both materials/textures.(optional)
    :type textureObj: :class:`Texture`
 
    .. attribute:: bindId
@@ -1094,7 +1131,7 @@ Texture classes
 
    .. attribute:: source
 
-      This attribute must be set to one of the image source. If the image size does not fit exactly
+      This attribute must be set to one of the image sources. If the image size does not fit exactly
       the frame size, the extend attribute determines what to do.
 
       For best performance, the source image should match exactly the size of the output frame.
@@ -1368,7 +1405,7 @@ Functions
 
    Returns a :class:`~bgl.Buffer` corresponding to the current image stored in a texture source object.
 
-   :arg image: Image source object of type ...
+   :arg image: Image source object of type:
 
       * :class:`VideoFFmpeg`
       * :class:`ImageFFmpeg`
@@ -1387,7 +1424,7 @@ Functions
 
         - "BGR" will return 3 bytes per pixel with the
           Blue, Green and Red channels in that order.
-        - "RGB1" will return 4 bytes per pixel with the 
+        - "RGB1" will return 4 bytes per pixel with the
           Red, Green, Blue channels in that order and the alpha channel forced to 255.
 
       - A special mode "F" allows to return the image as an array of float.
@@ -1429,9 +1466,10 @@ Functions
 
 .. function:: setLogFile(filename)
 
-   Sets the name of a text file in which runtime error messages will be written, in addition to the printing
-   of the messages on the Python console. Only the runtime errors specific to the VideoTexture module
-   are written in that file, ordinary runtime time errors are not written.
+   Sets the name of a text file in which runtime error messages will be written,
+   in addition to the printing of the messages on the Python console.
+   Only the runtime errors specific to the VideoTexture module are written in that file,
+   ordinary runtime time errors are not written.
 
    :arg filename: Name of the error log file.
    :type filename: str
@@ -1517,4 +1555,3 @@ See Wikipedia's `Blend Modes <https://en.wikipedia.org/wiki/Blend_modes>`_ for r
 .. data:: IMB_BLEND_COPY_RGB
 
 .. data:: IMB_BLEND_COPY_ALPHA
-
