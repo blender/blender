@@ -768,17 +768,7 @@ static bool select_grouped_collection(bContext *C, Object *ob)  /* Select object
 	}
 	else if (collection_count == 1) {
 		collection = ob_collections[0].collection;
-		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-		{
-			if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
-				if (BKE_collection_object_exists(collection, base->object)) {
-					ED_object_base_select(base, BA_SELECT);
-					changed = true;
-				}
-			}
-		}
-		CTX_DATA_END;
-		return changed;
+		return BKE_collection_objects_select(CTX_data_view_layer(C), collection);
 	}
 
 	/* build the menu. */
@@ -1139,17 +1129,9 @@ static int object_select_same_collection_exec(bContext *C, wmOperator *op)
 		return OPERATOR_PASS_THROUGH;
 	}
 
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
-	{
-		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
-			if (BKE_collection_object_exists(collection, base->object)) {
-				ED_object_base_select(base, BA_SELECT);
-			}
-		}
+	if (BKE_collection_objects_select(CTX_data_view_layer(C), collection)) {
+		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 	}
-	CTX_DATA_END;
-
-	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, CTX_data_scene(C));
 
 	return OPERATOR_FINISHED;
 }
