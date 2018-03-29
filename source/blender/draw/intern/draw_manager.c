@@ -1020,8 +1020,10 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 
 	DST.viewport = rv3d->viewport;
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, OB_MODE_OBJECT,
-		NULL,
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+		.engine_type = engine_type,
+		.depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
 	};
 
 	drw_engines_enable(view_layer, engine_type);
@@ -1069,7 +1071,10 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
 	drw_state_prepare_clean_for_draw(&DST);
 	DST.viewport = rv3d->viewport;
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, OB_MODE_OBJECT, NULL,
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+		.engine_type = engine_type,
+		.depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
 	};
 	drw_engines_enable(view_layer, engine_type);
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
@@ -1130,10 +1135,13 @@ void DRW_draw_render_loop_ex(
 	GPU_viewport_engines_data_validate(DST.viewport, DRW_engines_get_hash());
 
 	DST.draw_ctx = (DRWContextState){
-	    ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, object_mode,
+	    .ar = ar, .rv3d = rv3d, .v3d = v3d,
+	    .scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+	    .engine_type = engine_type,
+	    .depsgraph = depsgraph, .object_mode = object_mode,
 
 	    /* reuse if caller sets */
-	    DST.draw_ctx.evil_C,
+	    .evil_C = DST.draw_ctx.evil_C,
 	};
 	drw_context_state_init();
 	drw_viewport_var_init();
@@ -1331,7 +1339,9 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	DST.options.draw_background = scene->r.alphamode == R_ADDSKY;
 
 	DST.draw_ctx = (DRWContextState){
-	    NULL, NULL, NULL, scene, view_layer, NULL, engine_type, depsgraph, OB_MODE_OBJECT, NULL,
+	    .scene = scene, .view_layer = view_layer,
+	    .engine_type = engine_type,
+	    .depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
 	};
 	drw_context_state_init();
 
@@ -1503,8 +1513,10 @@ void DRW_draw_select_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, obact, engine_type, depsgraph, object_mode,
-		(bContext *)NULL,
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = obact,
+		.engine_type = engine_type,
+		.depsgraph = depsgraph, .object_mode = object_mode,
 	};
 	drw_context_state_init();
 	drw_viewport_var_init();
@@ -1674,8 +1686,10 @@ void DRW_draw_depth_loop(
 
 	/* Instead of 'DRW_context_state_init(C, &DST.draw_ctx)', assign from args */
 	DST.draw_ctx = (DRWContextState){
-		ar, rv3d, v3d, scene, view_layer, OBACT(view_layer), engine_type, depsgraph, object_mode,
-		(bContext *)NULL,
+		.ar = ar, .rv3d = rv3d, .v3d = v3d,
+		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+		.engine_type = engine_type,
+		.depsgraph = depsgraph, .object_mode = object_mode,
 	};
 	drw_context_state_init();
 	drw_viewport_var_init();
