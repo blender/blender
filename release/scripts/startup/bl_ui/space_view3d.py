@@ -2668,8 +2668,8 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.operator("object.vertex_parent_set")
 
 
-class VIEW3D_MT_edit_mesh_edges(Menu):
-    bl_label = "Edges"
+class VIEW3D_MT_edit_mesh_edges_data(Menu):
+    bl_label = "Edge Data"
 
     def draw(self, context):
         layout = self.layout
@@ -2677,13 +2677,6 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         with_freestyle = bpy.app.build_options.freestyle
 
         layout.operator_context = 'INVOKE_REGION_WIN'
-
-        layout.operator("mesh.edge_face_add")
-        layout.operator("mesh.subdivide")
-        layout.operator("mesh.subdivide_edgering")
-        layout.operator("mesh.unsubdivide")
-
-        layout.separator()
 
         layout.operator("transform.edge_crease")
         layout.operator("transform.edge_bevelweight")
@@ -2704,6 +2697,26 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
             layout.operator("mesh.mark_freestyle_edge").clear = False
             layout.operator("mesh.mark_freestyle_edge", text="Clear Freestyle Edge").clear = True
             layout.separator()
+
+
+class VIEW3D_MT_edit_mesh_edges(Menu):
+    bl_label = "Edges"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator_context = 'INVOKE_REGION_WIN'
+
+        layout.operator("mesh.edge_face_add")
+        layout.operator("mesh.subdivide")
+        layout.operator("mesh.subdivide_edgering")
+        layout.operator("mesh.unsubdivide")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_edit_mesh_edges_data")
+
+        layout.separator()
 
         layout.operator("mesh.edge_rotate", text="Rotate Edge CW").use_ccw = False
         layout.operator("mesh.edge_rotate", text="Rotate Edge CCW").use_ccw = True
@@ -4111,6 +4124,7 @@ classes = (
     VIEW3D_MT_edit_mesh_extrude,
     VIEW3D_MT_edit_mesh_vertices,
     VIEW3D_MT_edit_mesh_edges,
+    VIEW3D_MT_edit_mesh_edges_data,
     VIEW3D_MT_edit_mesh_faces,
     VIEW3D_MT_edit_mesh_normals,
     VIEW3D_MT_edit_mesh_clean,
