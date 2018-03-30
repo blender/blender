@@ -1619,30 +1619,36 @@ static void ui_panel_category_draw_tab(
 
 	immBegin(filled ? GWN_PRIM_TRI_FAN : GWN_PRIM_LINE_STRIP, vert_ct);
 
-	immAttrib3ubv(color, col);
-
 	/* start with corner right-top */
 	if (use_highlight) {
 		if (roundboxtype & UI_CNR_TOP_RIGHT) {
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, maxx, maxy - rad);
 			for (a = 0; a < 4; a++) {
+				immAttrib3ubv(color, col);
 				immVertex2f(pos, maxx - vec[a][1], maxy - rad + vec[a][0]);
 			}
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, maxx - rad, maxy);
 		}
 		else {
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, maxx, maxy);
 		}
 
 		/* corner left-top */
 		if (roundboxtype & UI_CNR_TOP_LEFT) {
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, minx + rad, maxy);
 			for (a = 0; a < 4; a++) {
+				immAttrib3ubv(color, col);
 				immVertex2f(pos, minx + rad - vec[a][0], maxy - vec[a][1]);
 			}
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, minx, maxy - rad);
 		}
 		else {
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, minx, maxy);
 		}
 	}
@@ -1650,6 +1656,9 @@ static void ui_panel_category_draw_tab(
 	if (use_highlight && !use_shadow) {
 		if (highlight_fade) {
 			immAttrib3ubv(color, highlight_fade);
+		}
+		else {
+			immAttrib3ubv(color, col);
 		}
 		immVertex2f(pos, minx, miny + rad);
 		immEnd();
@@ -1659,25 +1668,33 @@ static void ui_panel_category_draw_tab(
 
 	/* corner left-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_LEFT) {
+		immAttrib3ubv(color, col);
 		immVertex2f(pos, minx, miny + rad);
 		for (a = 0; a < 4; a++) {
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, minx + vec[a][1], miny + rad - vec[a][0]);
 		}
+		immAttrib3ubv(color, col);
 		immVertex2f(pos, minx + rad, miny);
 	}
 	else {
+		immAttrib3ubv(color, col);
 		immVertex2f(pos, minx, miny);
 	}
 
 	/* corner right-bottom */
 	if (roundboxtype & UI_CNR_BOTTOM_RIGHT) {
+		immAttrib3ubv(color, col);
 		immVertex2f(pos, maxx - rad, miny);
 		for (a = 0; a < 4; a++) {
+			immAttrib3ubv(color, col);
 			immVertex2f(pos, maxx - rad + vec[a][0], miny + vec[a][1]);
 		}
+		immAttrib3ubv(color, col);
 		immVertex2f(pos, maxx, miny + rad);
 	}
 	else {
+		immAttrib3ubv(color, col);
 		immVertex2f(pos, maxx, miny);
 	}
 
