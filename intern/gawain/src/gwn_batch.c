@@ -418,7 +418,9 @@ void GWN_batch_program_use_end(Gwn_Batch* batch)
 	{
 	if (batch->program_in_use)
 		{
+#if PROGRAM_NO_OPTI
 		glUseProgram(0);
+#endif
 		batch->program_in_use = false;
 		}
 	}

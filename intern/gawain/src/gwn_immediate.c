@@ -140,8 +140,9 @@ void immUnbindProgram(void)
 #if TRUST_NO_ONE
 	assert(imm.bound_program != 0);
 #endif
-
+#if PROGRAM_NO_OPTI
 	glUseProgram(0);
+#endif
 	imm.bound_program = 0;
 	}
 

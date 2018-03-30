@@ -11,6 +11,8 @@
 
 #pragma once
 
+#define PROGRAM_NO_OPTI 0
+
 #if defined(NDEBUG)
   #define TRUST_NO_ONE 0
 #else
