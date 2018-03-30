@@ -519,6 +519,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 		}
 
 		if (tmpwin) {
+			BLF_batch_reset();
 			gpu_batch_presets_reset();
 			immDeactivate();
 		}
@@ -1168,6 +1169,7 @@ void wm_window_make_drawable(wmWindowManager *wm, wmWindow *win)
 			printf("%s: set drawable %d\n", __func__, win->winid);
 		}
 
+		BLF_batch_reset();
 		gpu_batch_presets_reset();
 		immDeactivate();
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
@@ -1192,6 +1194,7 @@ void wm_window_reset_drawable(void)
 	wmWindow *win = wm->windrawable;
 
 	if (win && win->ghostwin) {
+		BLF_batch_reset();
 		gpu_batch_presets_reset();
 		immDeactivate();
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);

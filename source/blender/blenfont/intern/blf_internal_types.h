@@ -31,6 +31,24 @@
 #ifndef __BLF_INTERNAL_TYPES_H__
 #define __BLF_INTERNAL_TYPES_H__
 
+#include "../../../intern/gawain/gawain/gwn_vertex_buffer.h"
+
+#define BLF_BATCHING_SIZE 2048 /* in glyph */
+
+typedef struct BatchBLF{
+	struct FontBLF *font; /* can only batch glyph from the same font */
+	struct Gwn_Batch *batch;
+	struct Gwn_VertBuf *verts;
+	struct Gwn_VertBufRaw pos_step, tex_step, col_step;
+	unsigned int pos_loc, tex_loc, col_loc;
+	unsigned int glyph_ct;
+	float ofs[2];    /* copy of font->pos */
+	float mat[4][4]; /* to catch bad usage */
+	bool enabled;
+} BatchBLF;
+
+extern BatchBLF g_batch;
+
 typedef struct GlyphCacheBLF {
 	struct GlyphCacheBLF *next;
 	struct GlyphCacheBLF *prev;

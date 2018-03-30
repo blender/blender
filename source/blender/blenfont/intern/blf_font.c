@@ -59,6 +59,8 @@
 #include "BLF_api.h"
 
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
+#include "GPU_batch.h"
 
 #include "blf_internal_types.h"
 #include "blf_internal.h"
@@ -69,12 +71,104 @@
 #  define FT_New_Face FT_New_Face__win32_compat
 #endif
 
+/* Batching buffer for drawing. */
+BatchBLF g_batch;
+
 /* freetype2 handle ONLY for this file!. */
 static FT_Library ft_lib;
 static SpinLock ft_lib_mutex;
 
+/* -------------------------------------------------------------------- */
+/** \name Glyph Batching
+ * \{ */
+/**
+ * Drawcalls are precious! make them count!
+ * Since most of the Text elems are not covered by other UI elements, we can
+ * group some strings together and render them in one drawcall. This behaviour
+ * is on demand only, between BLF_batch_start() and BLF_batch_end().
+ **/
+static void blf_batching_init(void)
+{
+	Gwn_VertFormat format = {0};
+	g_batch.pos_loc = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	g_batch.tex_loc = GWN_vertformat_attr_add(&format, "tex", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	g_batch.col_loc = GWN_vertformat_attr_add(&format, "col", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+
+	g_batch.verts = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STREAM);
+	GWN_vertbuf_data_alloc(g_batch.verts, BLF_BATCHING_SIZE);
+
+	g_batch.batch = GWN_batch_create_ex(GWN_PRIM_POINTS, g_batch.verts, NULL, GWN_BATCH_OWNS_VBO);
+}
+
+static void blf_batching_exit(void)
+{
+	GWN_BATCH_DISCARD_SAFE(g_batch.batch);
+}
+
+void blf_batching_vao_clear(void)
+{
+	if (g_batch.batch) {
+		gwn_batch_vao_cache_clear(g_batch.batch);
+	}
+}
+
+void blf_batching_start(FontBLF *font)
+{
+	if (g_batch.batch == NULL) {
+		blf_batching_init();
+	}
+
+	zero_v2(g_batch.ofs);
+	if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0) {
+		copy_v2_v2(g_batch.ofs, font->pos);
+	}
+
+	/* restart to 1st vertex data pointers */
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
+	g_batch.glyph_ct = 0;
+	g_batch.font = font;
+}
+
+void blf_batching_draw(void)
+{
+	if (g_batch.glyph_ct == 0)
+		return;
+
+	glEnable(GL_BLEND);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+	BLI_assert(g_batch.font->tex_bind_state != 0); /* must still be valid */
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, g_batch.font->tex_bind_state);
+
+	GWN_vertbuf_vertex_count_set(g_batch.verts, g_batch.glyph_ct);
+	GWN_vertbuf_use(g_batch.verts); /* send data */
+
+	GWN_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);
+	GWN_batch_uniform_1i(g_batch.batch, "glyph", 0);
+	GWN_batch_draw(g_batch.batch);
+
+	glDisable(GL_BLEND);
+
+	g_batch.glyph_ct = 0;
+}
+
+static void blf_batching_end(void)
+{
+	if (!g_batch.enabled) {
+		blf_batching_draw();
+	}
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
 int blf_font_init(void)
 {
+	memset(&g_batch, 0, sizeof(g_batch));
 	BLI_spin_init(&ft_lib_mutex);
 	return FT_Init_FreeType(&ft_lib);
 }
@@ -83,6 +177,7 @@ void blf_font_exit(void)
 {
 	FT_Done_FreeType(ft_lib);
 	BLI_spin_end(&ft_lib_mutex);
+	blf_batching_exit();
 }
 
 void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
@@ -174,24 +269,6 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	}                                                                            \
 } (void)0
 
-static unsigned int verts_needed(const FontBLF *font, const char *str, size_t len)
-{
-	size_t str_len = (len > 50) ? strlen(str) : INT_MAX; /* Arbitrary. */
-	unsigned int length = (unsigned int)MIN2(str_len, len);
-	unsigned int quad_ct = 1;
-
-	if (font->flags & BLF_SHADOW) {
-		if (font->shadow == 0)
-			quad_ct += 1;
-		if (font->shadow <= 4)
-			quad_ct += 9; /* 3x3 kernel */
-		else
-			quad_ct += 25; /* 5x5 kernel */
-	}
-
-	return length * quad_ct; /* Only one vert per quad */
-}
-
 static void blf_font_draw_ex(
         FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
         int pen_y)
@@ -212,8 +289,7 @@ static void blf_font_draw_ex(
 
 	blf_font_ensure_ascii_table(font);
 
-	immBeginAtMost(GWN_PRIM_POINTS, verts_needed(font, str, len));
-	/* at most because some glyphs might be clipped & not drawn */
+	blf_batching_start(font);
 
 	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
@@ -232,7 +308,7 @@ static void blf_font_draw_ex(
 		g_prev = g;
 	}
 
-	immEnd();
+	blf_batching_end();
 
 	if (r_info) {
 		r_info->lines = 1;
@@ -259,7 +335,7 @@ static void blf_font_draw_ascii_ex(
 
 	blf_font_ensure_ascii_table(font);
 
-	immBeginAtMost(GWN_PRIM_POINTS, verts_needed(font, str, len));
+	blf_batching_start(font);
 
 	while ((c = *(str++)) && len--) {
 		BLI_assert(c < 128);
@@ -275,7 +351,7 @@ static void blf_font_draw_ascii_ex(
 		g_prev = g;
 	}
 
-	immEnd();
+	blf_batching_end();
 
 	if (r_info) {
 		r_info->lines = 1;
@@ -299,7 +375,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
 
 	blf_font_ensure_ascii_table(font);
 
-	immBeginAtMost(GWN_PRIM_POINTS, verts_needed(font, str, len));
+	blf_batching_start(font);
 
 	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
@@ -320,7 +396,7 @@ int blf_font_draw_mono(FontBLF *font, const char *str, size_t len, int cwidth)
 		pen_x += cwidth * col;
 	}
 
-	immEnd();
+	blf_batching_end();
 
 	return columns;
 }

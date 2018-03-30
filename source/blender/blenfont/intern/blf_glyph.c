@@ -63,6 +63,7 @@
 #include "blf_internal.h"
 
 #include "BLI_strict_flags.h"
+#include "BLI_math_vector.h"
 
 GlyphCacheBLF *blf_glyph_cache_find(FontBLF *font, unsigned int size, unsigned int dpi)
 {
@@ -316,13 +317,19 @@ void blf_glyph_free(GlyphBLF *g)
 	MEM_freeN(g);
 }
 
-static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float dx, float y1, float dx1, float y2)
+static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float x1, float y1, float x2, float y2)
 {
+	if (g_batch.glyph_ct == BLF_BATCHING_SIZE) {
+		blf_batching_draw();
+		blf_batching_start(g_batch.font);
+	}
+	g_batch.glyph_ct++;
 	/* Only one vertex per glyph, geometry shader expand it into a quad. */
 	/* TODO Get rid of Geom Shader because it's not optimal AT ALL for the GPU */
-	immAttrib4ubv(BLF_COLOR_ID, color);
-	immAttrib4fv(BLF_COORD_ID, (float *)uv);
-	immVertex4f(BLF_POS_ID, dx, y1, dx1, y2);
+	copy_v4_fl4(GWN_vertbuf_raw_step(&g_batch.pos_step), x1 + g_batch.ofs[0], y1 + g_batch.ofs[1],
+	                                                     x2 + g_batch.ofs[0], y2 + g_batch.ofs[1]);
+	copy_v4_v4(GWN_vertbuf_raw_step(&g_batch.tex_step), (float *)uv);
+	copy_v4_v4_uchar(GWN_vertbuf_raw_step(&g_batch.col_step), color);
 }
 
 static void blf_texture5_draw(const unsigned char color_in[4], float uv[2][2], float x1, float y1, float x2, float y2)

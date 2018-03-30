@@ -47,6 +47,7 @@ void BLF_exit(void);
 void BLF_default_dpi(int dpi);
 void BLF_default_set(int fontid);
 int BLF_default(void); /* get default font ID so we can pass it to other functions */
+void BLF_batch_reset(void); /* call when changing opengl context. */
 
 void BLF_antialias_set(bool enabled);
 bool BLF_antialias_get(void);

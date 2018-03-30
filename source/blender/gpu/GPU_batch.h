@@ -40,6 +40,7 @@ struct rctf;
 // #include "gawain/batch.h"
 
 #include "BLI_compiler_attrs.h"
+#include "BLI_sys_types.h"
 
 #include "GPU_shader.h"
 
