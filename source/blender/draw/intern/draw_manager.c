@@ -31,6 +31,8 @@
 #include "BLI_string.h"
 #include "BLI_threads.h"
 
+#include "BLF_api.h"
+
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
@@ -2056,6 +2058,7 @@ void DRW_opengl_context_enable(void)
 		GWN_context_active_set(DST.gwn_context);
 		if (BLI_thread_is_main()) {
 			immActivate();
+			BLF_batch_reset();
 		}
 	}
 }
