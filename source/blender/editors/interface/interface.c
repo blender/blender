@@ -1426,6 +1426,8 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	else if (block->panel)
 		ui_draw_aligned_panel(&style, block, &rect, UI_panel_category_is_visible(ar));
 
+	BLF_batching_start();
+
 	/* widgets */
 	for (but = block->buttons.first; but; but = but->next) {
 		if (!(but->flag & (UI_HIDDEN | UI_SCROLLED))) {
@@ -1437,6 +1439,8 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 				ui_draw_but(C, ar, &style, but, &rect);
 		}
 	}
+
+	BLF_batching_end();
 	
 	/* restore matrix */
 	gpuPopProjectionMatrix();
