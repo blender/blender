@@ -31,7 +31,8 @@ typedef enum {
 
 typedef struct Gwn_VertBuf {
 	Gwn_VertFormat format;
-	unsigned vertex_ct;
+	unsigned vertex_ct;    // number of verts we want to draw
+	unsigned vertex_alloc; // number of verts data
 	bool dirty;
 	GLubyte* data; // NULL indicates data in VRAM (unmapped)
 	GLuint vbo_id; // 0 indicates not yet allocated
@@ -55,6 +56,7 @@ void GWN_vertbuf_init_with_format_ex(Gwn_VertBuf*, const Gwn_VertFormat*, Gwn_Us
 unsigned GWN_vertbuf_size_get(const Gwn_VertBuf*);
 void GWN_vertbuf_data_alloc(Gwn_VertBuf*, unsigned v_ct);
 void GWN_vertbuf_data_resize(Gwn_VertBuf*, unsigned v_ct);
+void GWN_vertbuf_vertex_count_set(Gwn_VertBuf*, unsigned v_ct);
 
 // The most important set_attrib variant is the untyped one. Get it right first.
 // It takes a void* so the app developer is responsible for matching their app data types
