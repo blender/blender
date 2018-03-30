@@ -27,7 +27,7 @@ else()
 	set(SNDFILE_OPTIONS --enable-static --disable-shared )
 endif()
 
-if(APPLE)
+if(UNIX)
 	set(SNDFILE_PATCH_CMD ${PATCH_CMD} --verbose -p 0 -d ${BUILD_DIR}/sndfile/src/external_sndfile < ${PATCH_DIR}/sndfile.diff)
 else()
 	set(SNDFILE_PATCH_CMD)
