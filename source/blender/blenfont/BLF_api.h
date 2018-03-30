@@ -95,6 +95,11 @@ void BLF_color3fv_alpha(int fontid, const float rgb[3], float alpha);
  */
 void BLF_matrix(int fontid, const float m[16]);
 
+/* Batch drawcalls together as long as
+ * the modelview matrix and the font remain unchanged. */
+void BLF_batching_start(void);
+void BLF_batching_end(void);
+
 /* Draw the string using the default font, size and dpi. */
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();
 void BLF_draw_default_ascii(float x, float y, float z, const char *str, size_t len) ATTR_NONNULL();

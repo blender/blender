@@ -97,6 +97,11 @@ static void blf_batching_init(void)
 	g_batch.verts = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STREAM);
 	GWN_vertbuf_data_alloc(g_batch.verts, BLF_BATCHING_SIZE);
 
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
+	g_batch.glyph_ct = 0;
+
 	g_batch.batch = GWN_batch_create_ex(GWN_PRIM_POINTS, g_batch.verts, NULL, GWN_BATCH_OWNS_VBO);
 }
 
@@ -118,17 +123,53 @@ void blf_batching_start(FontBLF *font)
 		blf_batching_init();
 	}
 
-	zero_v2(g_batch.ofs);
-	if ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0) {
+	const bool font_changed = (g_batch.font != font);
+	g_batch.font = font;
+
+	const bool manual_ofs_active = ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0);
+	g_batch.active = g_batch.enabled && manual_ofs_active;
+
+	if (manual_ofs_active) {
+		/* Offset is applied to each glyph. */
 		copy_v2_v2(g_batch.ofs, font->pos);
 	}
+	else {
+		/* Offset is baked in modelview mat. */
+		zero_v2(g_batch.ofs);
+	}
 
-	/* restart to 1st vertex data pointers */
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
-	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
-	g_batch.glyph_ct = 0;
-	g_batch.font = font;
+	if (g_batch.active) {
+		float gpumat[4][4];
+		gpuGetModelViewMatrix(gpumat);
+
+		bool mat_changed = (memcmp(gpumat, g_batch.mat, sizeof(g_batch.mat)) != 0);
+		/* Save for next memcmp. */
+		memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
+
+		if (mat_changed) {
+			/* Modelviewmat is no longer the same.
+			 * Flush cache but with the previous mat. */
+			gpuPushMatrix();
+			gpuLoadMatrix(g_batch.mat);
+		}
+
+		/* flush cache if config is not the same. */
+		if (mat_changed || font_changed) {
+			blf_batching_draw();
+		}
+		else {
+			/* Nothing changed continue batching. */
+			return;
+		}
+
+		if (mat_changed) {
+			gpuPopMatrix();
+		}
+	}
+	else {
+		/* flush cache */
+		blf_batching_draw();
+	}
 }
 
 void blf_batching_draw(void)
@@ -152,12 +193,16 @@ void blf_batching_draw(void)
 
 	glDisable(GL_BLEND);
 
+	/* restart to 1st vertex data pointers */
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.pos_loc, &g_batch.pos_step);
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.tex_loc, &g_batch.tex_step);
+	GWN_vertbuf_attr_get_raw_data(g_batch.verts, g_batch.col_loc, &g_batch.col_step);
 	g_batch.glyph_ct = 0;
 }
 
 static void blf_batching_end(void)
 {
-	if (!g_batch.enabled) {
+	if (!g_batch.active) {
 		blf_batching_draw();
 	}
 }

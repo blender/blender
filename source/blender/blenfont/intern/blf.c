@@ -540,6 +540,19 @@ void BLF_color3f(int fontid, float r, float g, float b)
 	BLF_color4fv(fontid, rgba);
 }
 
+void BLF_batching_start(void)
+{
+	BLI_assert(g_batch.enabled == false);
+	g_batch.enabled = true;
+}
+
+void BLF_batching_end(void)
+{
+	BLI_assert(g_batch.enabled == true);
+	blf_batching_draw(); /* Draw remaining glyphs */
+	g_batch.enabled = false;
+}
+
 void BLF_draw_default(float x, float y, float z, const char *str, size_t len)
 {
 	ASSERT_DEFAULT_SET;

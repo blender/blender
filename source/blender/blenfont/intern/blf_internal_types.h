@@ -43,8 +43,8 @@ typedef struct BatchBLF{
 	unsigned int pos_loc, tex_loc, col_loc;
 	unsigned int glyph_ct;
 	float ofs[2];    /* copy of font->pos */
-	float mat[4][4]; /* to catch bad usage */
-	bool enabled;
+	float mat[4][4]; /* previous call modelmatrix. */
+	bool enabled, active;
 } BatchBLF;
 
 extern BatchBLF g_batch;
