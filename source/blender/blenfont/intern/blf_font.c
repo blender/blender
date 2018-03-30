@@ -124,12 +124,12 @@ void blf_batching_start(FontBLF *font)
 	}
 
 	const bool font_changed = (g_batch.font != font);
-	g_batch.font = font;
+	const bool simple_shader = ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0);
+	const bool shader_changed = (simple_shader != g_batch.simple_shader);
 
-	const bool manual_ofs_active = ((font->flags & (BLF_ROTATION | BLF_MATRIX | BLF_ASPECT)) == 0);
-	g_batch.active = g_batch.enabled && manual_ofs_active;
+	g_batch.active = g_batch.enabled && simple_shader;
 
-	if (manual_ofs_active) {
+	if (g_batch.simple_shader) {
 		/* Offset is applied to each glyph. */
 		copy_v2_v2(g_batch.ofs, font->pos);
 	}
@@ -143,8 +143,6 @@ void blf_batching_start(FontBLF *font)
 		gpuGetModelViewMatrix(gpumat);
 
 		bool mat_changed = (memcmp(gpumat, g_batch.mat, sizeof(g_batch.mat)) != 0);
-		/* Save for next memcmp. */
-		memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
 
 		if (mat_changed) {
 			/* Modelviewmat is no longer the same.
@@ -154,8 +152,12 @@ void blf_batching_start(FontBLF *font)
 		}
 
 		/* flush cache if config is not the same. */
-		if (mat_changed || font_changed) {
+		if (mat_changed || font_changed || shader_changed) {
 			blf_batching_draw();
+			g_batch.simple_shader = simple_shader;
+			g_batch.font = font;
+			/* Save for next memcmp. */
+			memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
 		}
 		else {
 			/* Nothing changed continue batching. */
@@ -169,6 +171,8 @@ void blf_batching_start(FontBLF *font)
 	else {
 		/* flush cache */
 		blf_batching_draw();
+		g_batch.font = font;
+		g_batch.simple_shader = simple_shader;
 	}
 }
 
@@ -187,7 +191,8 @@ void blf_batching_draw(void)
 	GWN_vertbuf_vertex_count_set(g_batch.verts, g_batch.glyph_ct);
 	GWN_vertbuf_use(g_batch.verts); /* send data */
 
-	GWN_batch_program_set_builtin(g_batch.batch, GPU_SHADER_TEXT);
+	GPUBuiltinShader shader = (g_batch.simple_shader) ? GPU_SHADER_TEXT_SIMPLE : GPU_SHADER_TEXT;
+	GWN_batch_program_set_builtin(g_batch.batch, shader);
 	GWN_batch_uniform_1i(g_batch.batch, "glyph", 0);
 	GWN_batch_draw(g_batch.batch);
 

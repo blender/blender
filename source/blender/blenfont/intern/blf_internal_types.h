@@ -44,7 +44,7 @@ typedef struct BatchBLF{
 	unsigned int glyph_ct;
 	float ofs[2];    /* copy of font->pos */
 	float mat[4][4]; /* previous call modelmatrix. */
-	bool enabled, active;
+	bool enabled, active, simple_shader;
 } BatchBLF;
 
 extern BatchBLF g_batch;
