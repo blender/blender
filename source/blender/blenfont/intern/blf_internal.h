@@ -37,9 +37,9 @@ struct GlyphBLF;
 struct GlyphCacheBLF;
 struct rctf;
 
-void blf_batching_vao_clear(void);
-void blf_batching_start(struct FontBLF *font);
-void blf_batching_draw(void);
+void blf_batch_draw_vao_clear(void);
+void blf_batch_draw_begin(struct FontBLF *font);
+void blf_batch_draw(void);
 
 unsigned int blf_next_p2(unsigned int x);
 unsigned int blf_hash(unsigned int val);

@@ -609,7 +609,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 	}
 
-	BLF_batching_start();
+	BLF_batch_draw_begin();
 
 	for (i = offset; (i < numfiles) && (i < offset + numfiles_layout); i++) {
 		unsigned int file_selflag;
@@ -740,7 +740,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		}
 	}
 
-	BLF_batching_end();
+	BLF_batch_draw_end();
 
 	UI_block_end(C, block);
 	UI_block_draw(C, block);

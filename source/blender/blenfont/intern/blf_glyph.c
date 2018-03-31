@@ -325,10 +325,10 @@ static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float
 	                                                     x2 + g_batch.ofs[0], y2 + g_batch.ofs[1]);
 	copy_v4_v4(GWN_vertbuf_raw_step(&g_batch.tex_step), (float *)uv);
 	copy_v4_v4_uchar(GWN_vertbuf_raw_step(&g_batch.col_step), color);
-	g_batch.glyph_ct++;
+	g_batch.glyph_len++;
 	/* Flush cache if it's full. */
-	if (g_batch.glyph_ct == BLF_BATCHING_SIZE) {
-		blf_batching_draw();
+	if (g_batch.glyph_len == BLF_BATCH_DRAW_LEN_MAX) {
+		blf_batch_draw();
 	}
 }
 

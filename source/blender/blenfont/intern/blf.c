@@ -134,7 +134,7 @@ void BLF_exit(void)
 
 void BLF_batch_reset(void)
 {
-	blf_batching_vao_clear();
+	blf_batch_draw_vao_clear();
 }
 
 void BLF_cache_clear(void)
@@ -540,16 +540,16 @@ void BLF_color3f(int fontid, float r, float g, float b)
 	BLF_color4fv(fontid, rgba);
 }
 
-void BLF_batching_start(void)
+void BLF_batch_draw_begin(void)
 {
 	BLI_assert(g_batch.enabled == false);
 	g_batch.enabled = true;
 }
 
-void BLF_batching_end(void)
+void BLF_batch_draw_end(void)
 {
 	BLI_assert(g_batch.enabled == true);
-	blf_batching_draw(); /* Draw remaining glyphs */
+	blf_batch_draw(); /* Draw remaining glyphs */
 	g_batch.enabled = false;
 }
 

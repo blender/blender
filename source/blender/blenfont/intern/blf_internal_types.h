@@ -33,7 +33,7 @@
 
 #include "../../../intern/gawain/gawain/gwn_vertex_buffer.h"
 
-#define BLF_BATCHING_SIZE 2048 /* in glyph */
+#define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
 typedef struct BatchBLF{
 	struct FontBLF *font; /* can only batch glyph from the same font */
@@ -41,7 +41,7 @@ typedef struct BatchBLF{
 	struct Gwn_VertBuf *verts;
 	struct Gwn_VertBufRaw pos_step, tex_step, col_step;
 	unsigned int pos_loc, tex_loc, col_loc;
-	unsigned int glyph_ct;
+	unsigned int glyph_len;
 	float ofs[2];    /* copy of font->pos */
 	float mat[4][4]; /* previous call modelmatrix. */
 	bool enabled, active, simple_shader;
