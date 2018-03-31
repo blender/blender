@@ -535,6 +535,7 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	printf("Logging Options:\n");
 	BLI_argsPrintArgDoc(ba, "--log");
 	BLI_argsPrintArgDoc(ba, "--log-level");
+	BLI_argsPrintArgDoc(ba, "--log-show-basename");
 	BLI_argsPrintArgDoc(ba, "--log-file");
 
 	printf("\n");
@@ -730,6 +731,15 @@ static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(da
 		printf("\nError: '%s' no args given.\n", arg_id);
 		return 0;
 	}
+}
+
+static const char arg_handle_log_show_basename_set_doc[] =
+"\n\tOnly show file name in output (not the leading path)."
+;
+static int arg_handle_log_show_basename_set(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	CLG_output_use_basename_set(true);
+	return 0;
 }
 
 static const char arg_handle_log_file_set_doc[] =
@@ -1931,6 +1941,7 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	BLI_argsAdd(ba, 1, NULL, "--log", CB(arg_handle_log_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-level", CB(arg_handle_log_level_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log-show-basename", CB(arg_handle_log_show_basename_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", CB(arg_handle_debug_mode_set), ba);

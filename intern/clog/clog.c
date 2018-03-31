@@ -43,6 +43,12 @@
 #define STREQ(a, b) (strcmp(a, b) == 0)
 #define STREQLEN(a, b, n) (strncmp(a, b, n) == 0)
 
+#ifdef _WIN32
+#  define PATHSEP_CHAR '\\'
+#else
+#  define PATHSEP_CHAR '/'
+#endif
+
 /* -------------------------------------------------------------------- */
 /** \name Internal Types
  * \{ */
@@ -59,6 +65,7 @@ typedef struct CLogContext {
 	/* exclude, include filters.  */
 	CLG_IDFilter *filters[2];
 	bool use_color;
+	bool use_basename;
 
 	/** Borrowed, not owned. */
 	FILE *output;
@@ -353,9 +360,23 @@ static void write_type(CLogStringBuf *cstr, CLG_LogType *lg)
 	clg_str_append(cstr, "): ");
 }
 
-static void write_file_line_fn(CLogStringBuf *cstr, const char *file_line, const char *fn)
+static void write_file_line_fn(CLogStringBuf *cstr, const char *file_line, const char *fn, const bool use_basename)
 {
-	clg_str_append(cstr, file_line);
+	uint file_line_len = strlen(file_line);
+	if (use_basename) {
+		uint file_line_offset = file_line_len;
+		while (file_line_offset-- > 0) {
+			if (file_line[file_line_offset] == PATHSEP_CHAR) {
+				file_line_offset++;
+				break;
+			}
+		}
+		file_line += file_line_offset;
+		file_line_len -= file_line_offset;
+	}
+	clg_str_append_with_len(cstr, file_line, file_line_len);
+
+
 	clg_str_append(cstr, " ");
 	clg_str_append(cstr, fn);
 	clg_str_append(cstr, ": ");
@@ -373,7 +394,7 @@ void CLG_log_str(
 	write_type(&cstr, lg);
 
 	{
-		write_file_line_fn(&cstr, file_line, fn);
+		write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename);
 		clg_str_append(&cstr, message);
 	}
 	clg_str_append(&cstr, "\n");
@@ -397,12 +418,11 @@ void CLG_logf(
 	char cstr_stack_buf[CLOG_BUF_LEN_INIT];
 	clg_str_init(&cstr, cstr_stack_buf, sizeof(cstr_stack_buf));
 
-	// FILE *fh = lg->ctx->output;
 	write_severity(&cstr, severity, lg->ctx->use_color);
 	write_type(&cstr, lg);
 
 	{
-		write_file_line_fn(&cstr, file_line, fn);
+		write_file_line_fn(&cstr, file_line, fn, lg->ctx->use_basename);
 
 		va_list ap;
 		va_start(ap, fmt);
@@ -434,6 +454,11 @@ static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
 #if defined(__unix__)
 	ctx->use_color = isatty(fileno(file_handle));
 #endif
+}
+
+static void CLG_ctx_output_use_basename_set(CLogContext *ctx, bool value)
+{
+	ctx->use_basename = value;
 }
 
 /** Action on fatal severity. */
@@ -519,6 +544,12 @@ void CLG_output_set(void *file_handle)
 {
 	CLG_ctx_output_set(g_ctx, file_handle);
 }
+
+void CLG_output_use_basename_set(bool value)
+{
+	CLG_ctx_output_use_basename_set(g_ctx, value);
+}
+
 
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle))
 {
