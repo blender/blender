@@ -397,7 +397,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	DEG_id_type_tag(bmain, GS(id->name));
 	if (flag == 0) {
 		/* TODO(sergey): Which recalc flags to set here? */
-		id->recalc |= ID_RECALC_ALL;
+		id->recalc |= ID_RECALC_ALL & ~DEG_TAG_PSYS_ALL;
 		if (id_node != NULL) {
 			id_node->tag_update(graph);
 		}
