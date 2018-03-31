@@ -34,11 +34,13 @@
 #include "MEM_guardedalloc.h"
 
 #include "GPU_draw.h"
+#include "GPU_matrix.h"
 #include "GPU_immediate.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 #include "BLI_fileops_types.h"
+#include "BLI_math_vector.h"
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
@@ -1016,10 +1018,113 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		IMB_freeImBuf(ima);
 }
 
-static void icon_draw_texture(
+/* High enough to make a difference, low enough so that
+ * small draws are still efficient with the use of glUniform.
+ * NOTE TODO: We could use UBO but we would need some triple
+ * buffer system + persistent mapping for this to be more
+ * efficient than simple glUniform calls. */
+#define ICON_DRAW_CACHE_SIZE 16
+
+typedef struct IconDrawCall{
+	rctf pos;
+	rctf tex;
+	float color[4];
+} IconDrawCall;
+
+static struct {
+	IconDrawCall drawcall_cache[ICON_DRAW_CACHE_SIZE];
+	int calls; /* Number of calls batched together */
+	bool enabled;
+	float mat[4][4];
+} g_icon_draw_cache = {0};
+
+void UI_icon_draw_cache_begin(void)
+{
+	BLI_assert(g_icon_draw_cache.enabled == false);
+	g_icon_draw_cache.enabled = true;
+}
+
+static void icon_draw_cache_flush_ex(void)
+{
+	if (g_icon_draw_cache.calls == 0)
+		return;
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, icongltex.id);
+
+	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_MULTI_RECT_COLOR);
+	GPU_shader_bind(shader);
+
+	int img_loc = GPU_shader_get_uniform(shader, "image");
+	int data_loc = GPU_shader_get_uniform(shader, "calls_data[0]");
+
+	glUniform1i(img_loc, 0);
+	glUniform4fv(data_loc, ICON_DRAW_CACHE_SIZE * 3, (float *)g_icon_draw_cache.drawcall_cache);
+
+	GWN_draw_primitive(GWN_PRIM_TRIS, 6 * g_icon_draw_cache.calls);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	g_icon_draw_cache.calls = 0;
+}
+
+void UI_icon_draw_cache_end(void)
+{
+	BLI_assert(g_icon_draw_cache.enabled == true);
+	g_icon_draw_cache.enabled = false;
+
+	/* Don't change blend state if it's not needed. */
+	if (g_icon_draw_cache.calls == 0)
+		return;
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+	icon_draw_cache_flush_ex();
+
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+}
+
+static void icon_draw_texture_cached(
         float x, float y, float w, float h, int ix, int iy,
         int UNUSED(iw), int ih, float alpha, const float rgb[3])
 {
+
+	float mvp[4][4];
+	gpuGetModelViewProjectionMatrix(mvp);
+
+	IconDrawCall *call = &g_icon_draw_cache.drawcall_cache[g_icon_draw_cache.calls];
+	g_icon_draw_cache.calls++;
+
+	/* Manual mat4*vec2 */
+	call->pos.xmin = x * mvp[0][0] + y * mvp[1][0] + mvp[3][0];
+	call->pos.ymin = x * mvp[0][1] + y * mvp[1][1] + mvp[3][1];
+	call->pos.xmax = call->pos.xmin + w * mvp[0][0] + h * mvp[1][0];
+	call->pos.ymax = call->pos.ymin + w * mvp[0][1] + h * mvp[1][1];
+
+	call->tex.xmin = ix * icongltex.invw;
+	call->tex.xmax = (ix + ih) * icongltex.invw;
+	call->tex.ymin = iy * icongltex.invh;
+	call->tex.ymax = (iy + ih) * icongltex.invh;
+
+	if (rgb) copy_v4_fl4(call->color, rgb[0], rgb[1], rgb[2], alpha);
+	else     copy_v4_fl(call->color, alpha);
+
+	if (g_icon_draw_cache.calls == ICON_DRAW_CACHE_SIZE) {
+		icon_draw_cache_flush_ex();
+	}
+}
+
+static void icon_draw_texture(
+        float x, float y, float w, float h, int ix, int iy,
+        int iw, int ih, float alpha, const float rgb[3])
+{
+	if (g_icon_draw_cache.enabled) {
+		icon_draw_texture_cached(x, y, w, h, ix, iy, iw, ih, alpha, rgb);
+		return;
+	}
+
 	float x1, x2, y1, y2;
 
 	x1 = ix * icongltex.invw;

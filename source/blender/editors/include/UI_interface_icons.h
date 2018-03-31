@@ -77,6 +77,9 @@ void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha);
 void UI_icons_free(void);
 void UI_icons_free_drawinfo(void *drawinfo);
 
+void UI_icon_draw_cache_begin(void);
+void UI_icon_draw_cache_end(void);
+
 struct ListBase *UI_iconfile_list(void);
 int UI_iconfile_get_index(const char *filename);
 
