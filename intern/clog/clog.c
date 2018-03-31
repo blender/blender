@@ -56,7 +56,8 @@ typedef struct CLG_IDFilter {
 typedef struct CLogContext {
 	/** Single linked list of types.  */
 	CLG_LogType *types;
-	CLG_IDFilter *filters;
+	/* exclude, include filters.  */
+	CLG_IDFilter *filters[2];
 	bool use_color;
 
 	/** Borrowed, not owned. */
@@ -263,21 +264,24 @@ static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
  */
 static bool clg_ctx_filter_check(CLogContext *ctx, const char *identifier)
 {
-	const CLG_IDFilter *flt = ctx->filters;
 	const int identifier_len = strlen(identifier);
-	while (flt != NULL) {
-		const int len = strlen(flt->match);
-		if (STREQ(flt->match, "*") ||
-		    ((len == identifier_len) && (STREQ(identifier, flt->match))))
-		{
-			return true;
-		}
-		if ((len >= 2) && (STREQLEN(".*", &flt->match[len - 2], 2))) {
-			if (((identifier_len == len - 2) && STREQLEN(identifier, flt->match, len - 2)) ||
-			    ((identifier_len >= len - 1) && STREQLEN(identifier, flt->match, len - 1)))
+	for (uint i = 0; i < 2; i++) {
+		const CLG_IDFilter *flt = ctx->filters[i];
+		while (flt != NULL) {
+			const int len = strlen(flt->match);
+			if (STREQ(flt->match, "*") ||
+				((len == identifier_len) && (STREQ(identifier, flt->match))))
 			{
-				return true;
+				return (bool)i;
 			}
+			if ((len >= 2) && (STREQLEN(".*", &flt->match[len - 2], 2))) {
+				if (((identifier_len == len - 2) && STREQLEN(identifier, flt->match, len - 2)) ||
+					((identifier_len >= len - 1) && STREQLEN(identifier, flt->match, len - 1)))
+				{
+					return (bool)i;
+				}
+			}
+			flt = flt->next;
 		}
 	}
 	return false;
@@ -438,13 +442,26 @@ static void CLG_ctx_fatal_fn_set(CLogContext *ctx, void (*fatal_fn)(void *file_h
 	ctx->callbacks.fatal_fn = fatal_fn;
 }
 
-static void CLG_ctx_type_filter(CLogContext *ctx, const char *type_match, int type_match_len)
+static void clg_ctx_type_filter_append(CLG_IDFilter **flt_list, const char *type_match, int type_match_len)
 {
+	if (type_match_len == 0) {
+		return;
+	}
 	CLG_IDFilter *flt = MEM_callocN(sizeof(*flt) + (type_match_len + 1), __func__);
-	flt->next = ctx->filters;
-	ctx->filters = flt;
+	flt->next = *flt_list;
+	*flt_list = flt;
 	memcpy(flt->match, type_match, type_match_len);
 	/* no need to null terminate since we calloc'd */
+}
+
+static void CLG_ctx_type_filter_exclude(CLogContext *ctx, const char *type_match, int type_match_len)
+{
+	clg_ctx_type_filter_append(&ctx->filters[0], type_match, type_match_len);
+}
+
+static void CLG_ctx_type_filter_include(CLogContext *ctx, const char *type_match, int type_match_len)
+{
+	clg_ctx_type_filter_append(&ctx->filters[1], type_match, type_match_len);
 }
 
 static CLogContext *CLG_ctx_init(void)
@@ -464,10 +481,13 @@ static void CLG_ctx_free(CLogContext *ctx)
 		ctx->types = item->next;
 		MEM_freeN(item);
 	}
-	while (ctx->filters != NULL) {
-		CLG_IDFilter *item = ctx->filters;
-		ctx->filters = item->next;
-		MEM_freeN(item);
+
+	for (uint i = 0; i < 2; i++) {
+		while (ctx->filters[i] != NULL) {
+			CLG_IDFilter *item = ctx->filters[i];
+			ctx->filters[i] = item->next;
+			MEM_freeN(item);
+		}
 	}
 	MEM_freeN(ctx);
 }
@@ -505,9 +525,14 @@ void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle))
 	CLG_ctx_fatal_fn_set(g_ctx, fatal_fn);
 }
 
-void CLG_type_filter(const char *type_match, int type_match_len)
+void CLG_type_filter_exclude(const char *type_match, int type_match_len)
 {
-	CLG_ctx_type_filter(g_ctx, type_match, type_match_len);
+	CLG_ctx_type_filter_exclude(g_ctx, type_match, type_match_len);
+}
+
+void CLG_type_filter_include(const char *type_match, int type_match_len)
+{
+	CLG_ctx_type_filter_include(g_ctx, type_match, type_match_len);
 }
 
 /** \} */

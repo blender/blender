@@ -41,7 +41,8 @@
  * You can define and use identifiers as needed, logging will lazily initialize them.
  *
  * By convention lower case dot separated identifiers are used, eg:
- * `module.sub_module`, this allows filtering by `module.*`, see #CLG_type_filter
+ * `module.sub_module`, this allows filtering by `module.*`,
+ * see #CLG_type_filter_include, #CLG_type_filter_exclude
  *
  * There is currently no functionality to remove a category once it's created.
  *
@@ -145,7 +146,8 @@ void CLG_exit(void);
 void CLG_output_set(void *file_handle);
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle));
 
-void CLG_type_filter(const char *type_filter, int type_filter_len);
+void CLG_type_filter_include(const char *type_filter, int type_filter_len);
+void CLG_type_filter_exclude(const char *type_filter, int type_filter_len);
 
 void CLG_logref_init(CLG_LogRef *clg_ref);
 

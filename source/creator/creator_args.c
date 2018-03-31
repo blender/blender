@@ -761,6 +761,7 @@ static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(dat
 static const char arg_handle_log_set_doc[] =
 "\n\tEnable logging categories, taking a single comma separated argument.\n"
 "\tMultiple categories can be matched using a '.*' suffix, so '--log \"wm.*\"' logs every kind of window-manager message.\n"
+"\tUse \"^\" prefix to ignore, so '--log \"*,^wm.operator.*\"' logs all except for 'wm.operators.*'\n"
 "\tUse \"*\" to log everything."
 ;
 static int arg_handle_log_set(int argc, const char **argv, void *UNUSED(data))
@@ -772,7 +773,12 @@ static int arg_handle_log_set(int argc, const char **argv, void *UNUSED(data))
 			const char *str_step_end = strchr(str_step, ',');
 			int str_step_len = str_step_end ? (str_step_end - str_step) : strlen(str_step);
 
-			CLG_type_filter(str_step, str_step_len);
+			if (str_step[0] == '^') {
+				CLG_type_filter_exclude(str_step + 1, str_step_len - 1);
+			}
+			else {
+				CLG_type_filter_include(str_step, str_step_len);
+			}
 
 			if (str_step_end) {
 				/* typically only be one, but don't fail on multiple.*/
