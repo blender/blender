@@ -166,6 +166,7 @@ static void clg_str_vappendf(CLogStringBuf *cstr, const char *fmt, va_list args)
 		int retval = vsnprintf(cstr->data + cstr->len, len_avail, fmt, args_cpy);
 		va_end(args_cpy);
 		if (retval != -1) {
+			cstr->len += retval;
 			break;
 		}
 		else {
