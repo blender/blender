@@ -270,7 +270,7 @@ void bmo_join_triangles_exec(BMesh *bm, BMOperator *op)
 	BMFace *f;
 	BMEdge *e;
 	/* data: edge-to-join, sort_value: error weight */
-	struct SortPointerByFloat *jedges;
+	struct SortPtrByFloat *jedges;
 	unsigned i, totedge;
 	uint totedge_tag = 0;
 
