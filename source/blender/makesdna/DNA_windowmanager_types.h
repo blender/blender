@@ -316,6 +316,7 @@ typedef struct wmKeyMap {
 	short kmi_id;     /* last kmi id */
 
 	/* runtime */
+	/** Verify if enabled in the current context, use #WM_keymap_poll instead of direct calls. */
 	int (*poll)(struct bContext *);
 	/** For modal, #EnumPropertyItem for now. */
 	const void *modal_items;
