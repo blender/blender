@@ -1293,49 +1293,49 @@ static void rna_def_rigidbody_constraint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Z Angle Stiffness", "Stiffness on the Z rotational axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_damping_x", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "spring_damping_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_damping_x");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_x_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping X", "Damping on the X axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_damping_y", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "spring_damping_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_damping_y");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_y_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping Y", "Damping on the Y axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_damping_z", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "spring_damping_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_damping_z");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_z_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping Z", "Damping on the Z axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_damping_ang_x", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "spring_damping_ang_x", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_damping_ang_x");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_ang_x_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping X Angle", "Damping on the X rotational axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_damping_ang_y", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "spring_damping_ang_y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_damping_ang_y");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_ang_y_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping Y Angle", "Damping on the Y rotational axis");
 	RNA_def_property_update(prop, NC_OBJECT, "rna_RigidBodyOb_reset");
 
-	prop = RNA_def_property(srna, "spring_damping_ang_z", PROP_FLOAT, PROP_FACTOR);
+	prop = RNA_def_property(srna, "spring_damping_ang_z", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "spring_damping_ang_z");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_float_funcs(prop, NULL, "rna_RigidBodyCon_spring_damping_ang_z_set", NULL);
 	RNA_def_property_ui_text(prop, "Damping Z Angle", "Damping on the Z rotational axis");
