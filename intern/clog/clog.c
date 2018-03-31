@@ -29,6 +29,7 @@
 #  include <unistd.h>
 #endif
 
+/* Only other dependency (could use regular malloc too). */
 #include "MEM_guardedalloc.h"
 
 /* own include. */
@@ -102,15 +103,21 @@ static void clg_str_free(CLogStringBuf *cstr)
 static void clg_str_reserve(CLogStringBuf *cstr, const uint len)
 {
 	if (len > cstr->len_alloc) {
-		if (cstr->is_alloc == false) {
-			cstr->is_alloc = true;
-			cstr->data = NULL;
-		}
 		cstr->len_alloc *= 2;
 		if (len > cstr->len_alloc) {
 			cstr->len_alloc = len;
 		}
-		cstr->data = MEM_reallocN(cstr->data, len);
+
+		if (cstr->is_alloc) {
+			cstr->data = MEM_reallocN(cstr->data, cstr->len_alloc);
+		}
+		else {
+			/* Copy the static buffer. */
+			char *data = MEM_mallocN(cstr->len_alloc, __func__);
+			memcpy(data, cstr->data, cstr->len);
+			cstr->data = data;
+			cstr->is_alloc = true;
+		}
 		cstr->len_alloc = len;
 	}
 }
@@ -399,6 +406,8 @@ void CLG_logf(
 	/* could be optional */
 	fwrite(cstr.data, cstr.len, 1, lg->ctx->output);
 	fflush(lg->ctx->output);
+
+	clg_str_free(&cstr);
 
 	if (severity == CLG_SEVERITY_FATAL) {
 		clg_ctx_fatal_action(lg->ctx, lg->ctx->output);
