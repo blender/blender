@@ -236,8 +236,7 @@ static const char *clg_severity_as_text(enum CLG_Severity severity)
 
 static enum eCLogColor clg_severity_to_color(enum CLG_Severity severity)
 {
-	bool ok = (unsigned int)severity < CLG_SEVERITY_LEN;
-	assert(ok);
+	assert((unsigned int)severity < CLG_SEVERITY_LEN);
 	enum eCLogColor color = COLOR_DEFAULT;
 	switch (severity) {
 		case CLG_SEVERITY_INFO:
