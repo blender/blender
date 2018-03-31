@@ -456,9 +456,9 @@ static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
 #endif
 }
 
-static void CLG_ctx_output_use_basename_set(CLogContext *ctx, bool value)
+static void CLG_ctx_output_use_basename_set(CLogContext *ctx, int value)
 {
-	ctx->use_basename = value;
+	ctx->use_basename = (bool)value;
 }
 
 /** Action on fatal severity. */
@@ -545,7 +545,7 @@ void CLG_output_set(void *file_handle)
 	CLG_ctx_output_set(g_ctx, file_handle);
 }
 
-void CLG_output_use_basename_set(bool value)
+void CLG_output_use_basename_set(int value)
 {
 	CLG_ctx_output_use_basename_set(g_ctx, value);
 }
