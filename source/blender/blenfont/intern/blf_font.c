@@ -378,9 +378,6 @@ static void blf_font_draw_ex(
 	blf_font_ensure_ascii_table(font);
 	blf_font_ensure_ascii_kerning(font, kern_mode);
 
-	if (strcmp(str, "Tools") == 0)
-		printf("AAAA\n");
-
 	blf_batch_draw_begin(font);
 
 	while ((i < len) && str[i]) {
