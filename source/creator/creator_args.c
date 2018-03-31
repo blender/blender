@@ -712,7 +712,9 @@ static int arg_handle_background_mode_set(int UNUSED(argc), const char **UNUSED(
 }
 
 static const char arg_handle_log_level_set_doc[] =
-"\n\tSet the logging verbosity level (higher for more details) defaults to 1."
+"<level>\n"
+"\n"
+"\tSet the logging verbosity level (higher for more details) defaults to 1."
 ;
 static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(data))
 {
@@ -731,7 +733,9 @@ static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(da
 }
 
 static const char arg_handle_log_file_set_doc[] =
-"\n\tSet a file to output the log to."
+"<filename>\n"
+"\n"
+"\tSet a file to output the log to."
 ;
 static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(data))
 {
@@ -759,8 +763,10 @@ static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(dat
 }
 
 static const char arg_handle_log_set_doc[] =
-"\n\tEnable logging categories, taking a single comma separated argument.\n"
-"\tMultiple categories can be matched using a '.*' suffix, so '--log \"wm.*\"' logs every kind of window-manager message.\n"
+"<match>\n"
+"\tEnable logging categories, taking a single comma separated argument.\n"
+"\tMultiple categories can be matched using a '.*' suffix,\n"
+"\tso '--log \"wm.*\"' logs every kind of window-manager message.\n"
 "\tUse \"^\" prefix to ignore, so '--log \"*,^wm.operator.*\"' logs all except for 'wm.operators.*'\n"
 "\tUse \"*\" to log everything."
 ;
@@ -1776,7 +1782,7 @@ static int arg_handle_python_console_run(int UNUSED(argc), const char **argv, vo
 }
 
 static const char arg_handle_python_exit_code_set_doc[] =
-"\n"
+"<code>\n"
 "\tSet the exit-code in [0..255] to exit if a Python exception is raised\n"
 "\t(only for scripts executed from the command line), zero disables."
 ;
@@ -1802,7 +1808,8 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
 }
 
 static const char arg_handle_addons_set_doc[] =
-"\n\tComma separated list of add-ons (no spaces)."
+"<addon(s)>\n"
+"\tComma separated list of add-ons (no spaces)."
 ;
 static int arg_handle_addons_set(int argc, const char **argv, void *data)
 {
@@ -1922,9 +1929,9 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 	BLI_argsAdd(ba, 1, "-a", NULL, CB(arg_handle_playback_mode), NULL);
 
+	BLI_argsAdd(ba, 1, NULL, "--log", CB(arg_handle_log_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-level", CB(arg_handle_log_level_set), ba);
 	BLI_argsAdd(ba, 1, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
-	BLI_argsAdd(ba, 1, NULL, "--log", CB(arg_handle_log_set), ba);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", CB(arg_handle_debug_mode_set), ba);
 
