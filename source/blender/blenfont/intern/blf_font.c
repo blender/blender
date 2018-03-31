@@ -235,6 +235,14 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
 	GlyphCacheBLF *gc;
 	FT_Error err;
 
+	gc = blf_glyph_cache_find(font, size, dpi);
+	if (gc) {
+		font->glyph_cache = gc;
+		/* Optimization: do not call FT_Set_Char_Size if size did not change. */
+		if (font->size == size && font->dpi == dpi)
+			return;
+	}
+
 	err = FT_Set_Char_Size(font->face, 0, (FT_F26Dot6)(size * 64), dpi, dpi);
 	if (err) {
 		/* FIXME: here we can go through the fixed size and choice a close one */
@@ -245,10 +253,7 @@ void blf_font_size(FontBLF *font, unsigned int size, unsigned int dpi)
 	font->size = size;
 	font->dpi = dpi;
 
-	gc = blf_glyph_cache_find(font, size, dpi);
-	if (gc)
-		font->glyph_cache = gc;
-	else {
+	if (!gc) {
 		gc = blf_glyph_cache_new(font);
 		if (gc)
 			font->glyph_cache = gc;
