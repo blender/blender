@@ -144,8 +144,10 @@ void BLF_cache_clear(void)
 
 	for (i = 0; i < BLF_MAX_FONT; i++) {
 		font = global_font[i];
-		if (font)
+		if (font) {
 			blf_glyph_cache_clear(font);
+			blf_kerning_cache_clear(font);
+		}
 	}
 }
 

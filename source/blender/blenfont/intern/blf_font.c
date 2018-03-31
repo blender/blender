@@ -276,6 +276,20 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	}
 }
 
+static void blf_font_ensure_ascii_kerning(FontBLF *font, const FT_UInt kern_mode)
+{
+	KerningCacheBLF *kc = font->kerning_cache;
+
+	font->kerning_mode = kern_mode;
+
+	if (!kc || kc->mode != kern_mode) {
+		font->kerning_cache = kc = blf_kerning_cache_find(font);
+		if (!kc) {
+			font->kerning_cache = kc = blf_kerning_cache_new(font);
+		}
+	}
+}
+
 /* Fast path for runs of ASCII characters. Given that common UTF-8
  * input will consist of an overwhelming majority of ASCII
  * characters.
@@ -303,6 +317,26 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	                         (((_font)->flags & BLF_KERNING_DEFAULT) ?           \
 	                          ft_kerning_default : (FT_UInt)FT_KERNING_UNFITTED) \
 
+/* Note,
+ * blf_font_ensure_ascii_kerning(font, kern_mode); must be called before this macro */
+
+#define BLF_KERNING_STEP_FAST(_font, _kern_mode, _g_prev, _g, _c_prev, _c, _pen_x) \
+{                                                                                \
+	if (_g_prev) {                                                               \
+		FT_Vector _delta;                                                        \
+		if (_c_prev < 0x80 && _c < 0x80) {                                       \
+			_pen_x += (_font)->kerning_cache->table[_c][_c_prev];                 \
+		}                                                                        \
+		else if (FT_Get_Kerning((_font)->face,                                   \
+		                        (_g_prev)->idx,                                  \
+		                        (_g)->idx,                                       \
+		                        _kern_mode,                                      \
+		                        &(_delta)) == 0)                                 \
+		{                                                                        \
+			_pen_x += (int)_delta.x >> 6;                                        \
+		}                                                                        \
+	}                                                                            \
+} (void)0
 
 #define BLF_KERNING_STEP(_font, _kern_mode, _g_prev, _g, _delta, _pen_x)         \
 {                                                                                \
@@ -323,9 +357,8 @@ static void blf_font_draw_ex(
         FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
         int pen_y)
 {
-	unsigned int c;
+	unsigned int c, c_prev = BLI_UTF8_ERR;
 	GlyphBLF *g, *g_prev = NULL;
-	FT_Vector delta;
 	int pen_x = 0;
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
@@ -338,6 +371,7 @@ static void blf_font_draw_ex(
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
+	blf_font_ensure_ascii_kerning(font, kern_mode);
 
 	blf_batch_draw_begin(font);
 
@@ -349,13 +383,14 @@ static void blf_font_draw_ex(
 		if (UNLIKELY(g == NULL))
 			continue;
 		if (has_kerning)
-			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+			BLF_KERNING_STEP_FAST(font, kern_mode, g_prev, g, c_prev, c, pen_x);
 
 		/* do not return this loop if clipped, we want every character tested */
 		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
 
 		pen_x += g->advance_i;
 		g_prev = g;
+		c_prev = c;
 	}
 
 	blf_batch_draw_end();
@@ -734,9 +769,8 @@ static void blf_font_boundbox_ex(
         FontBLF *font, const char *str, size_t len, rctf *box, struct ResultBLF *r_info,
         int pen_y)
 {
-	unsigned int c;
+	unsigned int c, c_prev = BLI_UTF8_ERR;
 	GlyphBLF *g, *g_prev = NULL;
-	FT_Vector delta;
 	int pen_x = 0;
 	size_t i = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
@@ -751,6 +785,7 @@ static void blf_font_boundbox_ex(
 	box->ymax = -32000.0f;
 
 	blf_font_ensure_ascii_table(font);
+	blf_font_ensure_ascii_kerning(font, kern_mode);
 
 	while ((i < len) && str[i]) {
 		BLF_UTF8_NEXT_FAST(font, g, str, i, c, glyph_ascii_table);
@@ -760,7 +795,7 @@ static void blf_font_boundbox_ex(
 		if (UNLIKELY(g == NULL))
 			continue;
 		if (has_kerning)
-			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+			BLF_KERNING_STEP_FAST(font, kern_mode, g_prev, g, c_prev, c, pen_x);
 
 		gbox.xmin = (float)pen_x;
 		gbox.xmax = (float)pen_x + g->advance;
@@ -775,6 +810,7 @@ static void blf_font_boundbox_ex(
 
 		pen_x += g->advance_i;
 		g_prev = g;
+		c_prev = c;
 	}
 
 	if (box->xmin > box->xmax) {
@@ -1055,6 +1091,8 @@ void blf_font_free(FontBLF *font)
 		blf_glyph_cache_free(gc);
 	}
 
+	blf_kerning_cache_clear(font);
+
 	FT_Done_Face(font->face);
 	if (font->filename)
 		MEM_freeN(font->filename);
@@ -1089,7 +1127,9 @@ static void blf_font_fill(FontBLF *font)
 	font->dpi = 0;
 	font->size = 0;
 	BLI_listbase_clear(&font->cache);
+	BLI_listbase_clear(&font->kerning_caches);
 	font->glyph_cache = NULL;
+	font->kerning_cache = NULL;
 #if BLF_BLUR_ENABLE
 	font->blur = 0;
 #endif

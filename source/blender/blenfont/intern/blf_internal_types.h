@@ -49,6 +49,17 @@ typedef struct BatchBLF{
 
 extern BatchBLF g_batch;
 
+typedef struct KerningCacheBLF {
+	struct KerningCacheBLF *next, *prev;
+
+	/* kerning mode. */
+	FT_UInt mode;
+
+	/* only cache a ascii glyph pairs. Only store the x
+	 * offset we are interested in, instead of the full FT_Vector. */
+	int table[0x80][0x80];
+} KerningCacheBLF;
+
 typedef struct GlyphCacheBLF {
 	struct GlyphCacheBLF *next;
 	struct GlyphCacheBLF *prev;
@@ -243,6 +254,12 @@ typedef struct FontBLF {
 	/* current glyph cache, size and dpi. */
 	GlyphCacheBLF *glyph_cache;
 
+	/* list of kerning cache for this font. */
+	ListBase kerning_caches;
+
+	/* current kerning cache for this font and kerning mode. */
+	KerningCacheBLF *kerning_cache;
+
 	/* freetype2 lib handle. */
 	FT_Library ft_lib;
 
@@ -251,6 +268,9 @@ typedef struct FontBLF {
 
 	/* freetype2 face. */
 	FT_Face face;
+
+	/* freetype kerning */
+	FT_UInt kerning_mode;
 
 	/* data for buffer usage (drawing into a texture buffer) */
 	FontBufInfoBLF buf_info;
