@@ -18,6 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+/** \file clog/clog.c
+ *  \ingroup clog
+ */
+
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>

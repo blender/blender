@@ -21,6 +21,58 @@
 #ifndef __CLOG_H__
 #define __CLOG_H__
 
+/** \file clog/CLG_log.h
+ *  \ingroup clog
+ *
+ * C Logging Library (clog)
+ * ========================
+ *
+ * Usage
+ * -----
+ *
+ * - `CLG_LOGREF_DECLARE_GLOBAL` macro to declare #CLG_LogRef pointers.
+ * - `CLOG_` prefixed macros for logging.
+ *
+ * Identifiers
+ * -----------
+ *
+ * #CLG_LogRef holds an identifier which defines the category of the logger.
+ *
+ * You can define and use identifiers as needed, logging will lazily initialize them.
+ *
+ * By convention lower case dot separated identifiers are used, eg:
+ * `module.sub_module`, this allows filtering by `module.*`, see #CLG_type_filter
+ *
+ * There is currently no functionality to remove a category once it's created.
+ *
+ * Severity
+ * --------
+ *
+ * - `INFO`: Simply log events, uses verbosity levels to control how much information to show.
+ * - `WARN`: General warnings (which aren't necessary to show to users).
+ * - `ERROR`: An error we can recover from, should not happen.
+ * - `FATAL`: Similar to assert. This logs the message, then a stack trace and abort.
+ *
+ *
+ * Verbosity Level
+ * ---------------
+ *
+ * Usage:
+ *
+ * - 0: Always show (used for warnings, errors).
+ *   Should never get in the way or become annoying.
+ *
+ * - 1: Top level module actions (eg: load a file, create a new window .. etc).
+ *
+ * - 2: Actions within a module (steps which compose an action, but don't flood output).
+ *   Running a tool, full data recalculation.
+ *
+ * - 3: Detailed actions which may be of interest when debugging internal logic of a module
+ *   These *may* flood the log with details.
+ *
+ * - 4+: May be used for more details than 3, should be avoided but not prevented.
+ */
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */

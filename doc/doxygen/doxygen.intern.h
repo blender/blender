@@ -10,6 +10,10 @@
  *  \ingroup intern
  */
 
+/** \defgroup clog C-Logging (CLOG)
+ *  \ingroup intern
+ */
+
 /** \defgroup ctr container
  *  \ingroup intern
  */
