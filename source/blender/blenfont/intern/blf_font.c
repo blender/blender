@@ -129,7 +129,7 @@ void blf_batch_draw_begin(FontBLF *font)
 
 	g_batch.active = g_batch.enabled && simple_shader;
 
-	if (g_batch.simple_shader) {
+	if (simple_shader) {
 		/* Offset is applied to each glyph. */
 		copy_v2_v2(g_batch.ofs, font->pos);
 	}
@@ -156,8 +156,6 @@ void blf_batch_draw_begin(FontBLF *font)
 			blf_batch_draw();
 			g_batch.simple_shader = simple_shader;
 			g_batch.font = font;
-			/* Save for next memcmp. */
-			memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
 		}
 		else {
 			/* Nothing changed continue batching. */
@@ -166,6 +164,8 @@ void blf_batch_draw_begin(FontBLF *font)
 
 		if (mat_changed) {
 			gpuPopMatrix();
+			/* Save for next memcmp. */
+			memcpy(g_batch.mat, gpumat, sizeof(g_batch.mat));
 		}
 	}
 	else {
@@ -377,6 +377,9 @@ static void blf_font_draw_ex(
 
 	blf_font_ensure_ascii_table(font);
 	blf_font_ensure_ascii_kerning(font, kern_mode);
+
+	if (strcmp(str, "Tools") == 0)
+		printf("AAAA\n");
 
 	blf_batch_draw_begin(font);
 
