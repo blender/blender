@@ -41,9 +41,37 @@ const vec2 jit[9] = vec2[9](
 #define COLOR_EDGE     1u
 #define COLOR_EMBOSS   2u
 
+/* 2bits for trias type */
+#define TRIA_FLAG      (1u << 14u) /* is tria vert */
+#define TRIA_FIRST     INNER_FLAG  /* is first tria (reuse INNER_FLAG) */
+
+/* We can reuse the CORNER_* bits for tria */
+#define TRIA_VEC_RANGE BIT_RANGE(6u)
+const vec2 triavec[34] = vec2[34](
+	/* horizontal tria */
+	vec2(-0.352077, 0.532607), vec2(-0.352077, -0.549313), vec2( 0.330000, -0.008353),
+	vec2( 0.352077, 0.532607), vec2( 0.352077, -0.549313), vec2(-0.330000, -0.008353),
+	/* circle tria (triangle strip) */
+	vec2(0.000000, 1.000000),
+	vec2(0.382684, 0.923879), vec2(-0.382683, 0.923880),
+	vec2(0.707107, 0.707107), vec2(-0.707107, 0.707107),
+	vec2(0.923879, 0.382684), vec2(-0.923879, 0.382684),
+	vec2(1.000000, 0.000000), vec2(-1.000000, 0.000000),
+	vec2(0.923879, -0.382684), vec2(-0.923879, -0.382684),
+	vec2(0.707107, -0.707107), vec2(-0.707107, -0.707107),
+	vec2(0.382684, -0.923879), vec2(-0.382683, -0.923880),
+	vec2(0.000000, -1.000000),
+	/* menu arrow */
+	vec2(-0.33, 0.16), vec2(0.33, 0.16), vec2(0.0, 0.82),
+	vec2(0.0, -0.82), vec2(-0.33, -0.16), vec2(0.33, -0.16),
+	/* check mark */
+	vec2(-0.578579, 0.253369),  vec2(-0.392773, 0.412794),  vec2(-0.004241, -0.328551),
+	vec2(-0.003001, 0.034320),  vec2(1.055313, 0.864744),   vec2(0.866408, 1.026895)
+);
+
 uniform mat4 ModelViewProjectionMatrix;
 
-uniform vec4 parameters[9];
+uniform vec4 parameters[11];
 /* radi and rad per corner */
 #define recti        parameters[0]
 #define rect         parameters[1]
@@ -55,13 +83,18 @@ uniform vec4 parameters[9];
 #define colorInner2  parameters[5]
 #define colorEdge    parameters[6]
 #define colorEmboss  parameters[7]
-#define shadeDir     parameters[8].x
+#define colorTria    parameters[8]
+#define tria1Center  parameters[9].xy
+#define tria2Center  parameters[9].zw
+#define tria1Size    parameters[10].x
+#define tria2Size    parameters[10].y
+#define shadeDir     parameters[10].z
 
 in uint vflag;
 
 noperspective out vec4 finalColor;
 
-void main()
+vec2 do_widget(void)
 {
 	uint cflag = vflag & CNR_FLAG_RANGE;
 	uint vofs = (vflag >> CORNER_VEC_OFS) & CORNER_VEC_RANGE;
@@ -100,6 +133,33 @@ void main()
 
 	bool is_emboss = (vflag & EMBOSS_FLAG) != 0u;
 	v.y -= (is_emboss) ? 1.0f : 0.0;
+
+	return v;
+}
+
+vec2 do_tria()
+{
+	uint vofs = vflag & TRIA_VEC_RANGE;
+
+	vec2 v = triavec[vofs];
+
+	finalColor = colorTria;
+
+	bool is_tria_first = (vflag & TRIA_FIRST) != 0u;
+
+	if (is_tria_first)
+		v = v * tria1Size + tria1Center;
+	else
+		v = v * tria2Size + tria2Center;
+
+	return v;
+}
+
+void main()
+{
+	bool is_tria = (vflag & TRIA_FLAG) != 0u;
+
+	vec2 v = (is_tria) ? do_tria() : do_widget();
 
 	/* Antialiasing offset */
 	v += jit[(vflag >> JIT_OFS) & JIT_RANGE];
