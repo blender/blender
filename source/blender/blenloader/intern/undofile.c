@@ -188,7 +188,7 @@ bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
 	}
 
 	for (chunk = memfile->chunks.first; chunk; chunk = chunk->next) {
-		if (write(file, chunk->buf, chunk->size) != chunk->size) {
+		if ((size_t)write(file, chunk->buf, chunk->size) != chunk->size) {
 			break;
 		}
 	}
