@@ -230,6 +230,7 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  * modified by specialized shaders to draw certain elements really fast.
  * TODO: find a better place. Maybe it's own file?
  **/
+
 enum {
 	ROUNDBOX_TRIA_NONE = 0,
 	ROUNDBOX_TRIA_ARROWS,
@@ -749,11 +750,13 @@ static void shape_preset_init_trias_ex(
 		sizex = -sizex;
 	}
 	else if (where == 't') {
+		centx = (float)rect->xmin + 0.5f * minsize;
 		centy = (float)rect->ymax - 0.5f * minsize;
 		sizey = -sizey;
 		i2 = 0; i1 = 1;
 	}
 	else if (where == 'b') {
+		centx = (float)rect->xmin + 0.5f * minsize;
 		sizex = -sizex;
 		i2 = 0; i1 = 1;
 	}
