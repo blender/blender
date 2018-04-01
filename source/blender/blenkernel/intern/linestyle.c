@@ -47,7 +47,6 @@
 #include "BKE_colorband.h"
 #include "BKE_context.h"
 #include "BKE_freestyle.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_linestyle.h"
 #include "BKE_node.h"

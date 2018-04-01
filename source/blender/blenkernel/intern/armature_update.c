@@ -48,7 +48,6 @@
 
 #include "BIK_api.h"
 
-#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "DEG_depsgraph.h"

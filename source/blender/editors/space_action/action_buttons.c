@@ -51,7 +51,6 @@
 #include "BKE_depsgraph.h"
 #include "BKE_fcurve.h"
 #include "BKE_main.h"
-#include "BKE_global.h"
 #include "BKE_screen.h"
 #include "BKE_unit.h"
 

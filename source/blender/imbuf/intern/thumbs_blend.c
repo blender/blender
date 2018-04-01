@@ -36,7 +36,6 @@
 #include "BLO_blend_defs.h"
 #include "BLO_readfile.h"
 
-#include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_icons.h"
 #include "BKE_library.h"

@@ -52,7 +52,6 @@
 #include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_idcode.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"

@@ -60,7 +60,6 @@
 #include "BKE_paint.h"
 #include "BKE_undo_system.h"
 
-#include "BKE_global.h"
 
 #include "UI_interface.h"
 #include "UI_view2d.h"

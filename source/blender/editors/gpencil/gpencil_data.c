@@ -53,7 +53,6 @@
 #include "DNA_gpencil_types.h"
 
 #include "BKE_context.h"
-#include "BKE_global.h"
 #include "BKE_gpencil.h"
 #include "BKE_library.h"
 #include "BKE_object.h"

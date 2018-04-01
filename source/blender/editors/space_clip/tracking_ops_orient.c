@@ -42,7 +42,6 @@
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_tracking.h"
-#include "BKE_global.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
 #include "BKE_report.h"

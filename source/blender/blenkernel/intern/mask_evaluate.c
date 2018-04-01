@@ -43,7 +43,6 @@
 
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_global.h"
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.h"

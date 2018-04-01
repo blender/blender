@@ -48,7 +48,6 @@
 #include "BKE_cloth.h"
 #include "BKE_collision.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
 
 #include "BPH_mass_spring.h"
 
