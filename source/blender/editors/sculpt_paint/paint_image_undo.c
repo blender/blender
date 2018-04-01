@@ -29,6 +29,11 @@
 #include "BLI_threads.h"
 
 #include "DNA_image_types.h"
+#include "DNA_windowmanager_types.h"
+#include "DNA_object_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_workspace_types.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -36,6 +41,8 @@
 #include "BKE_context.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
+#include "BKE_global.h"
+#include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
 
@@ -45,10 +52,14 @@
 
 #include "paint_intern.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
+
 typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
 
-	char idname[MAX_ID_NAME];  /* name instead of pointer*/
+	char idname[MAX_ID_NAME];  /* name instead of pointer */
 	char ibufname[IMB_FILENAME_SIZE];
 
 	union {
@@ -65,6 +76,8 @@ typedef struct UndoImageTile {
 	short source, use_float;
 	char gen_type;
 	bool valid;
+
+	size_t undo_size;
 } UndoImageTile;
 
 /* this is a static resource for non-globality,
@@ -130,13 +143,14 @@ static void undo_copy_tile(UndoImageTile *tile, ImBuf *tmpibuf, ImBuf *ibuf, Cop
 	}
 }
 
-void *image_undo_find_tile(Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsigned short **mask, bool validate)
+void *image_undo_find_tile(
+        ListBase *undo_tiles,
+        Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsigned short **mask, bool validate)
 {
-	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
 	UndoImageTile *tile;
 	short use_float = ibuf->rect_float ? 1 : 0;
 
-	for (tile = lb->first; tile; tile = tile->next) {
+	for (tile = undo_tiles->first; tile; tile = tile->next) {
 		if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source) {
 			if (tile->use_float == use_float) {
 				if (STREQ(tile->idname, ima->id.name) && STREQ(tile->ibufname, ibuf->name)) {
@@ -162,10 +176,10 @@ void *image_undo_find_tile(Image *ima, ImBuf *ibuf, int x_tile, int y_tile, unsi
 }
 
 void *image_undo_push_tile(
+        ListBase *undo_tiles,
         Image *ima, ImBuf *ibuf, ImBuf **tmpibuf, int x_tile, int y_tile,
         unsigned short **mask, bool **valid, bool proj, bool find_prev)
 {
-	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
 	UndoImageTile *tile;
 	int allocsize;
 	short use_float = ibuf->rect_float ? 1 : 0;
@@ -175,7 +189,7 @@ void *image_undo_push_tile(
 
 	/* in projective painting we keep accounting of tiles, so if we need one pushed, just push! */
 	if (find_prev) {
-		data = image_undo_find_tile(ima, ibuf, x_tile, y_tile, mask, true);
+		data = image_undo_find_tile(undo_tiles, ima, ibuf, x_tile, y_tile, mask, true);
 		if (data) {
 			return data;
 		}
@@ -215,8 +229,7 @@ void *image_undo_push_tile(
 	if (proj) {
 		BLI_spin_lock(&undolock);
 	}
-	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, allocsize);
-	BLI_addtail(lb, tile);
+	BLI_addtail(undo_tiles, tile);
 
 	if (proj) {
 		BLI_spin_unlock(&undolock);
@@ -226,10 +239,10 @@ void *image_undo_push_tile(
 
 void image_undo_remove_masks(void)
 {
-	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	ListBase *undo_tiles = ED_image_undo_get_tiles();
 	UndoImageTile *tile;
 
-	for (tile = lb->first; tile; tile = tile->next) {
+	for (tile = undo_tiles->first; tile; tile = tile->next) {
 		if (tile->mask) {
 			MEM_freeN(tile->mask);
 			tile->mask = NULL;
@@ -347,50 +360,146 @@ static void image_undo_free_list(ListBase *lb)
 
 void ED_image_undo_push_begin(const char *name)
 {
-	ED_undo_paint_push_begin(UNDO_PAINT_IMAGE, name, image_undo_restore_list, image_undo_free_list, NULL);
+	bContext *C = NULL; /* special case, we never read from this. */
+	wmWindowManager *wm = G.main->wm.first;
+	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, name, BKE_UNDOSYS_TYPE_IMAGE);
 }
 
 void ED_image_undo_push_end(void)
 {
-	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
-	UndoImageTile *tile;
-	int deallocsize = 0;
-	int allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
-
-	/* first dispose of invalid tiles (may happen due to drag dot for instance) */
-	for (tile = lb->first; tile;) {
-		if (!tile->valid) {
-			UndoImageTile *tmp_tile = tile->next;
-			deallocsize += allocsize * ((tile->use_float) ? sizeof(float) : sizeof(char));
-			MEM_freeN(tile->rect.pt);
-			BLI_freelinkN(lb, tile);
-			tile = tmp_tile;
-		}
-		else {
-			tile = tile->next;
-		}
-	}
-
-	/* don't forget to remove the size of deallocated tiles */
-	undo_paint_push_count_alloc(UNDO_PAINT_IMAGE, -deallocsize);
-
-	ED_undo_paint_push_end(UNDO_PAINT_IMAGE);
+	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
+	BKE_undosys_step_push(wm->undo_stack, NULL, NULL);
 }
 
 static void image_undo_invalidate(void)
 {
 	UndoImageTile *tile;
-	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	ListBase *lb = ED_image_undo_get_tiles();
 
 	for (tile = lb->first; tile; tile = tile->next) {
 		tile->valid = false;
 	}
 }
 
-/* restore painting image to previous state. Used for anchored and drag-dot style brushes*/
-void ED_image_undo_restore(void)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
+
+typedef struct ImageUndoStep {
+	UndoStep step;
+	ListBase tiles;
+} ImageUndoStep;
+
+static bool image_undosys_poll(bContext *C)
 {
-	ListBase *lb = undo_paint_push_get_list(UNDO_PAINT_IMAGE);
+	const WorkSpace *workspace = CTX_wm_workspace(C);
+	Object *obact = CTX_data_active_object(C);
+
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && (sa->spacetype == SPACE_IMAGE)) {
+		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
+		if ((obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
+			return true;
+		}
+	}
+	else if (sa && (sa->spacetype == SPACE_VIEW3D)) {
+		if (obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) {
+			return true;
+		}
+	}
+	return false;
+}
+
+static void image_undosys_step_encode_init(struct bContext *UNUSED(C), UndoStep *us_p)
+{
+	ImageUndoStep *us = (ImageUndoStep *)us_p;
+	/* dummy, memory is cleared anyway. */
+	BLI_listbase_clear(&us->tiles);
+}
+
+static bool image_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_p)
+{
+	/* dummy, encoding is done along the way by adding tiles
+	 * to the current 'ImageUndoStep' added by encode_init. */
+	ImageUndoStep *us = (ImageUndoStep *)us_p;
+
+	BLI_assert(us->step.data_size == 0);
+
+	int allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
+
+	/* first dispose of invalid tiles (may happen due to drag dot for instance) */
+	for (UndoImageTile *tile = us->tiles.first; tile;) {
+		if (!tile->valid) {
+			UndoImageTile *tmp_tile = tile->next;
+			MEM_freeN(tile->rect.pt);
+			BLI_freelinkN(&us->tiles, tile);
+			tile = tmp_tile;
+		}
+		else {
+			us->step.data_size += allocsize * ((tile->use_float) ? sizeof(float) : sizeof(char));
+			tile = tile->next;
+		}
+	}
+
+	return true;
+}
+
+static void image_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+{
+	ImageUndoStep *us = (ImageUndoStep *)us_p;
+	image_undo_restore_list(C, &us->tiles);
+}
+
+static void image_undosys_step_free(UndoStep *us_p)
+{
+	ImageUndoStep *us = (ImageUndoStep *)us_p;
+	image_undo_free_list(&us->tiles);
+}
+
+/* Export for ED_undo_sys. */
+void ED_image_undosys_type(UndoType *ut)
+{
+	ut->name = "Image";
+	ut->poll = image_undosys_poll;
+	ut->step_encode_init = image_undosys_step_encode_init;
+	ut->step_encode = image_undosys_step_encode;
+	ut->step_decode = image_undosys_step_decode;
+	ut->step_free = image_undosys_step_free;
+
+	ut->mode = BKE_UNDOTYPE_MODE_ACCUMULATE;
+	ut->use_context = true;
+
+	ut->step_size = sizeof(ImageUndoStep);
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+ListBase *ED_image_undosys_step_get_tiles(UndoStep *us_p)
+{
+	ImageUndoStep *us = (ImageUndoStep *)us_p;
+	return &us->tiles;
+}
+
+ListBase *ED_image_undo_get_tiles(void)
+{
+	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
+	UndoStep *us = BKE_undosys_stack_init_or_active_with_type(wm->undo_stack, BKE_UNDOSYS_TYPE_IMAGE);
+	return ED_image_undosys_step_get_tiles(us);
+}
+
+/* restore painting image to previous state. Used for anchored and drag-dot style brushes*/
+void ED_image_undo_restore(UndoStep *us)
+{
+	ListBase *lb = ED_image_undosys_step_get_tiles(us);
 	image_undo_restore_runtime(lb);
 	image_undo_invalidate();
 }
+
+/** \} */

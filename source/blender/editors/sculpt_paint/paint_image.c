@@ -57,6 +57,8 @@
 #include "BKE_material.h"
 #include "BKE_node.h"
 #include "BKE_paint.h"
+#include "BKE_undo_system.h"
+
 
 #include "DEG_depsgraph.h"
 
@@ -146,9 +148,11 @@ void ED_imapaint_dirty_region(Image *ima, ImBuf *ibuf, int x, int y, int w, int 
 
 	imapaint_region_tiles(ibuf, x, y, w, h, &tilex, &tiley, &tilew, &tileh);
 
+	ListBase *undo_tiles = ED_image_undo_get_tiles();
+
 	for (ty = tiley; ty <= tileh; ty++)
 		for (tx = tilex; tx <= tilew; tx++)
-			image_undo_push_tile(ima, ibuf, &tmpibuf, tx, ty, NULL, NULL, false, find_old);
+			image_undo_push_tile(undo_tiles, ima, ibuf, &tmpibuf, tx, ty, NULL, NULL, false, find_old);
 
 	ibuf->userflags |= IB_BITMAPDIRTY;
 
@@ -511,7 +515,8 @@ static void paint_stroke_update_step(bContext *C, struct PaintStroke *stroke, Po
 		BKE_brush_alpha_set(scene, brush, max_ff(0.0f, startalpha * alphafac));
 
 	if ((brush->flag & BRUSH_DRAG_DOT) || (brush->flag & BRUSH_ANCHORED)) {
-		ED_image_undo_restore();
+		UndoStack *ustack = CTX_wm_manager(C)->undo_stack;
+		ED_image_undo_restore(ustack->step_init);
 	}
 
 	if (pop->mode == PAINT_MODE_3D_PROJECT) {
@@ -1208,14 +1213,17 @@ void PAINT_OT_brush_colors_flip(wmOperatorType *ot)
 
 void ED_imapaint_bucket_fill(struct bContext *C, float color[3], wmOperator *op)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Image *ima = sima->image;
+
+	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, op->type->name, BKE_UNDOSYS_TYPE_IMAGE);
 
 	ED_image_undo_push_begin(op->type->name);
 
 	paint_2d_bucket_fill(C, color, NULL, NULL, NULL);
 
-	ED_undo_paint_push_end(UNDO_PAINT_IMAGE);
+	BKE_undosys_step_push(wm->undo_stack, C, op->type->name);
 
 	DEG_id_tag_update(&ima->id, 0);
 }

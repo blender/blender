@@ -1893,7 +1893,7 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 	TransDataExtension *tx;
 	Object *ob = CTX_data_active_object(C);
 	ParticleEditSettings *pset = PE_settings(t->scene);
-	PTCacheEdit *edit = PE_get_current(t->scene, t->view_layer, ob);
+	PTCacheEdit *edit = PE_get_current(t->scene, ob);
 	ParticleSystem *psys = NULL;
 	ParticleSystemModifierData *psmd = NULL;
 	PTCacheEditPoint *point;
@@ -2010,7 +2010,7 @@ void flushTransParticles(TransInfo *t)
 	Scene *scene = t->scene;
 	ViewLayer *view_layer = t->view_layer;
 	Object *ob = OBACT(view_layer);
-	PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
+	PTCacheEdit *edit = PE_get_current(scene, ob);
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = NULL;
 	PTCacheEditPoint *point;
@@ -6550,7 +6550,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	else if ((t->view_layer->basact) &&
 	         (ob = t->view_layer->basact->object) &&
 	         (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
-	         PE_get_current(t->scene, t->view_layer, ob))
+	         PE_get_current(t->scene, ob))
 	{
 		/* do nothing */
 	}
@@ -8307,7 +8307,7 @@ void createTransData(bContext *C, TransInfo *t)
 		}
 	}
 	else if (ob && (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
-	         PE_start_edit(PE_get_current(scene, view_layer, ob)))
+	         PE_start_edit(PE_get_current(scene, ob)))
 	{
 		createTransParticleVerts(C, t);
 		t->flag |= T_POINTS;

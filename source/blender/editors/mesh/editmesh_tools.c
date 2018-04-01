@@ -3762,7 +3762,7 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 			 *
 			 * note: we may have already checked 'edbm_fill_grid_vert_tag_angle()' on each
 			 * vert, but advantage of de-duplicating is minimal. */
-			struct SortPointerByFloat *ele_sort = MEM_mallocN(sizeof(*ele_sort) * verts_len, __func__);
+			struct SortPtrByFloat *ele_sort = MEM_mallocN(sizeof(*ele_sort) * verts_len, __func__);
 			LinkData *v_link;
 			for (v_link = verts->first, i = 0; v_link; v_link = v_link->next, i++) {
 				BMVert *v = v_link->data;

@@ -51,7 +51,7 @@
 
 #include "BKE_animsys.h"
 #include "BKE_curve.h"
-#include "BKE_global.h"
+
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mask.h"

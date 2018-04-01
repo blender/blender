@@ -48,7 +48,6 @@
 #include "BKE_animsys.h"
 #include "BKE_camera.h"
 #include "BKE_object.h"
-#include "BKE_global.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"

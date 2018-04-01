@@ -41,6 +41,7 @@ struct Curve;
 struct EditNurb;
 struct BezTriple;
 struct BPoint;
+struct UndoType;
 
 /* curve_ops.c */
 void    ED_operatortypes_curve(void);
@@ -48,7 +49,7 @@ void    ED_operatormacros_curve(void);
 void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
-ListBase *object_editcurve_get(struct Object *ob);
+struct ListBase *object_editcurve_get(struct Object *ob);
 
 void    ED_curve_editnurb_load(struct Object *obedit);
 void    ED_curve_editnurb_make(struct Object *obedit);
@@ -72,7 +73,7 @@ void ED_curve_select_all(struct EditNurb *editnurb);
 void ED_curve_select_swap(struct EditNurb *editnurb, bool hide_handles);
 
 /* editcurve_undo.c */
-void undo_push_curve(struct bContext *C, const char *name);
+void ED_curve_undosys_type(struct UndoType *ut);
 
 /* editfont.c */
 void    ED_curve_editfont_load(struct Object *obedit);
@@ -91,7 +92,8 @@ bool ED_curve_active_center(struct Curve *cu, float center[3]);
 bool ED_curve_editfont_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 
 /* editfont_undo.c */
-void    undo_push_font(struct bContext *C, const char *name);
+void ED_font_undosys_type(struct UndoType *ut);
+
 
 #if 0
 /* debug only */

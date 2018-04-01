@@ -924,7 +924,7 @@ static void blf_font_wrap_apply(
 			wrap.start = wrap.last[0];
 			i = wrap.last[1];
 			pen_x = 0;
-			pen_y -= font->glyph_cache->max_glyph_height;
+			pen_y -= font->glyph_cache->glyph_height_max;
 			g_prev = NULL;
 			lines += 1;
 			continue;
@@ -1138,7 +1138,7 @@ static void blf_font_fill(FontBLF *font)
 #if BLF_BLUR_ENABLE
 	font->blur = 0;
 #endif
-	font->max_tex_size = -1;
+	font->tex_size_max = -1;
 
 	font->buf_info.fbuf = NULL;
 	font->buf_info.cbuf = NULL;

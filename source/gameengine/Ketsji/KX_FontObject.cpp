@@ -142,7 +142,7 @@ int GetFontId(VFont *vfont)
 		fontid = BLF_load("default");
 		
 		/* XXX the following code is supposed to work (after you add get_builtin_packedfile to BKE_font.h )
-		 * unfortunately it's crashing on blf_glyph.c:173 because gc->max_glyph_width is 0
+		 * unfortunately it's crashing on blf_glyph.c:173 because gc->glyph_width_max is 0
 		 */
 		// packedfile=get_builtin_packedfile();
 		// fontid= BLF_load_mem(font->name, (unsigned char*)packedfile->data, packedfile->size);

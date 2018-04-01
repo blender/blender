@@ -59,6 +59,7 @@ struct ReportList;
 struct Report;
 struct uiLayout;
 struct Stereo3dFormat;
+struct UndoStep;
 
 #define OP_MAX_TYPENAME 64
 #define KMAP_MAX_NAME   64
@@ -154,6 +155,8 @@ typedef struct wmWindowManager {
 
 	ListBase timers;                  /* active timers */
 	struct wmTimer *autosavetimer;    /* timer for auto save */
+
+	struct UndoStack *undo_stack;     /* all undo history (runtime only). */
 
 	char is_interface_locked;		/* indicates whether interface is locked for user interaction */
 	char par[7];

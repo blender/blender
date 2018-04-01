@@ -34,6 +34,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
+#include <fcntl.h>
+#include <errno.h>
+
+/* open/close */
+#ifndef _WIN32
+#  include <unistd.h>
+#else
+#  include <io.h>
+#endif
 
 #include "MEM_guardedalloc.h"
 
@@ -42,6 +51,9 @@
 #include "BLI_blenlib.h"
 
 #include "BLO_undofile.h"
+#include "BLO_readfile.h"
+
+#include "BKE_main.h"
 
 /* keep last */
 #include "BLI_strict_flags.h"
@@ -123,4 +135,70 @@ void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsi
 		curchunk->buf = buf_new;
 		current->size += size;
 	}
+}
+
+struct Main *BLO_memfile_main_get(struct MemFile *memfile, struct Main *oldmain, struct Scene **r_scene)
+{
+	struct Main *bmain_undo = NULL;
+	BlendFileData *bfd = BLO_read_from_memfile(oldmain, oldmain->name, memfile, NULL, BLO_READ_SKIP_NONE);
+
+	if (bfd) {
+		bmain_undo = bfd->main;
+		if (r_scene) {
+			*r_scene = bfd->curscene;
+		}
+
+		MEM_freeN(bfd);
+	}
+
+	return bmain_undo;
+}
+
+
+/**
+ * Saves .blend using undo buffer.
+ *
+ * \return success.
+ */
+bool BLO_memfile_write_file(struct MemFile *memfile, const char *filename)
+{
+	MemFileChunk *chunk;
+	int file, oflags;
+
+	/* note: This is currently used for autosave and 'quit.blend', where _not_ following symlinks is OK,
+	 * however if this is ever executed explicitly by the user, we may want to allow writing to symlinks.
+	 */
+
+	oflags = O_BINARY | O_WRONLY | O_CREAT | O_TRUNC;
+#ifdef O_NOFOLLOW
+	/* use O_NOFOLLOW to avoid writing to a symlink - use 'O_EXCL' (CVE-2008-1103) */
+	oflags |= O_NOFOLLOW;
+#else
+	/* TODO(sergey): How to deal with symlinks on windows? */
+#  ifndef _MSC_VER
+#    warning "Symbolic links will be followed on undo save, possibly causing CVE-2008-1103"
+#  endif
+#endif
+	file = BLI_open(filename,  oflags, 0666);
+
+	if (file == -1) {
+		fprintf(stderr, "Unable to save '%s': %s\n",
+		        filename, errno ? strerror(errno) : "Unknown error opening file");
+		return false;
+	}
+
+	for (chunk = memfile->chunks.first; chunk; chunk = chunk->next) {
+		if ((size_t)write(file, chunk->buf, chunk->size) != chunk->size) {
+			break;
+		}
+	}
+
+	close(file);
+
+	if (chunk) {
+		fprintf(stderr, "Unable to save '%s': %s\n",
+		        filename, errno ? strerror(errno) : "Unknown error writing file");
+		return false;
+	}
+	return true;
 }

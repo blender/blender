@@ -62,6 +62,7 @@
 #include "BKE_screen.h"
 #include "BKE_workspace.h"
 #include "BKE_layer.h"
+#include "BKE_undo_system.h"
 
 #include "ED_armature.h"
 #include "ED_buttons.h"
@@ -93,12 +94,15 @@ void ED_editors_init(bContext *C)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 
+	if (wm->undo_stack == NULL) {
+		wm->undo_stack = BKE_undosys_stack_create();
+	}
+
 	/* This is called during initialization, so we don't want to store any reports */
 	ReportList *reports = CTX_wm_reports(C);
 	int reports_flag_prev = reports->flag & ~RPT_STORE;
 
 	SWAP(int, reports->flag, reports_flag_prev);
-
 
 	/* toggle on modes for objects that were saved with these enabled. for
 	 * e.g. linked objects we have to ensure that they are actually the
@@ -150,10 +154,16 @@ void ED_editors_exit(bContext *C)
 
 	if (!bmain)
 		return;
-	
+
 	/* frees all editmode undos */
-	undo_editmode_clear();
-	ED_undo_paint_free();
+	if (G.main->wm.first) {
+		wmWindowManager *wm = G.main->wm.first;
+		/* normally we don't check for NULL undo stack, do here since it may run in different context. */
+		if (wm->undo_stack) {
+			BKE_undosys_stack_destroy(wm->undo_stack);
+			wm->undo_stack = NULL;
+		}
+	}
 
 	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->type == OB_MESH) {

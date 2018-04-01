@@ -43,7 +43,6 @@
 #include "BLI_fileops.h"
 #include "BLI_string.h"
 
-#include "BKE_global.h"
 
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"

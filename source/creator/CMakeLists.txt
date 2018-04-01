@@ -26,6 +26,7 @@
 setup_libdirs()
 
 blender_include_dirs(
+	../../intern/clog
 	../../intern/guardedalloc
 	../../intern/glew-mx
 	../blender/blenlib

@@ -30,6 +30,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #ifdef WIN32
 #  include "BLI_winstuff.h"
 #endif
@@ -528,6 +530,12 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--python-exit-code");
 	BLI_argsPrintArgDoc(ba, "--addons");
 
+	printf("\n");
+	printf("Logging Options:\n");
+	BLI_argsPrintArgDoc(ba, "--log");
+	BLI_argsPrintArgDoc(ba, "--log-level");
+	BLI_argsPrintArgDoc(ba, "--log-show-basename");
+	BLI_argsPrintArgDoc(ba, "--log-file");
 
 	printf("\n");
 	printf("Debug Options:\n");
@@ -700,6 +708,109 @@ static int arg_handle_background_mode_set(int UNUSED(argc), const char **UNUSED(
 {
 	G.background = 1;
 	return 0;
+}
+
+static const char arg_handle_log_level_set_doc[] =
+"<level>\n"
+"\n"
+"\tSet the logging verbosity level (higher for more details) defaults to 1."
+;
+static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--log-level";
+	if (argc > 1) {
+		const char *err_msg = NULL;
+		if (!parse_int_clamp(argv[1], NULL, 0, INT_MAX, &G.log.level, &err_msg)) {
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		}
+		return 1;
+	}
+	else {
+		printf("\nError: '%s' no args given.\n", arg_id);
+		return 0;
+	}
+}
+
+static const char arg_handle_log_show_basename_set_doc[] =
+"\n\tOnly show file name in output (not the leading path)."
+;
+static int arg_handle_log_show_basename_set(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
+{
+	CLG_output_use_basename_set(true);
+	return 0;
+}
+
+static const char arg_handle_log_file_set_doc[] =
+"<filename>\n"
+"\n"
+"\tSet a file to output the log to."
+;
+static int arg_handle_log_file_set(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--log-file";
+	if (argc > 1) {
+		errno = 0;
+		FILE *fp = BLI_fopen(argv[1], "w");
+		if (fp == NULL) {
+			const char *err_msg = errno ? strerror(errno) : "unknown";
+			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		}
+		else {
+			if (UNLIKELY(G.log.file != NULL)) {
+				fclose(G.log.file);
+			}
+			G.log.file = fp;
+			CLG_output_set(G.log.file);
+		}
+		return 1;
+	}
+	else {
+		printf("\nError: '%s' no args given.\n", arg_id);
+		return 0;
+	}
+}
+
+static const char arg_handle_log_set_doc[] =
+"<match>\n"
+"\tEnable logging categories, taking a single comma separated argument.\n"
+"\tMultiple categories can be matched using a '.*' suffix,\n"
+"\tso '--log \"wm.*\"' logs every kind of window-manager message.\n"
+"\tUse \"^\" prefix to ignore, so '--log \"*,^wm.operator.*\"' logs all except for 'wm.operators.*'\n"
+"\tUse \"*\" to log everything."
+;
+static int arg_handle_log_set(int argc, const char **argv, void *UNUSED(data))
+{
+	const char *arg_id = "--log";
+	if (argc > 1) {
+		const char *str_step = argv[1];
+		while (*str_step) {
+			const char *str_step_end = strchr(str_step, ',');
+			int str_step_len = str_step_end ? (str_step_end - str_step) : strlen(str_step);
+
+			if (str_step[0] == '^') {
+				CLG_type_filter_exclude(str_step + 1, str_step_len - 1);
+			}
+			else {
+				CLG_type_filter_include(str_step, str_step_len);
+			}
+
+			if (str_step_end) {
+				/* typically only be one, but don't fail on multiple.*/
+				while (*str_step_end == ',') {
+					str_step_end++;
+				}
+				str_step = str_step_end;
+			}
+			else {
+				break;
+			}
+		}
+		return 1;
+	}
+	else {
+		printf("\nError: '%s' no args given.\n", arg_id);
+		return 0;
+	}
 }
 
 static const char arg_handle_debug_mode_set_doc[] =
@@ -1657,7 +1768,7 @@ static int arg_handle_python_console_run(int UNUSED(argc), const char **argv, vo
 }
 
 static const char arg_handle_python_exit_code_set_doc[] =
-"\n"
+"<code>\n"
 "\tSet the exit-code in [0..255] to exit if a Python exception is raised\n"
 "\t(only for scripts executed from the command line), zero disables."
 ;
@@ -1683,7 +1794,8 @@ static int arg_handle_python_exit_code_set(int argc, const char **argv, void *UN
 }
 
 static const char arg_handle_addons_set_doc[] =
-"\n\tComma separated list of add-ons (no spaces)."
+"<addon(s)>\n"
+"\tComma separated list of add-ons (no spaces)."
 ;
 static int arg_handle_addons_set(int argc, const char **argv, void *data)
 {
@@ -1802,6 +1914,11 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, "-b", "--background", CB(arg_handle_background_mode_set), NULL);
 
 	BLI_argsAdd(ba, 1, "-a", NULL, CB(arg_handle_playback_mode), NULL);
+
+	BLI_argsAdd(ba, 1, NULL, "--log", CB(arg_handle_log_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log-level", CB(arg_handle_log_level_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log-show-basename", CB(arg_handle_log_show_basename_set), ba);
+	BLI_argsAdd(ba, 1, NULL, "--log-file", CB(arg_handle_log_file_set), ba);
 
 	BLI_argsAdd(ba, 1, "-d", "--debug", CB(arg_handle_debug_mode_set), ba);
 

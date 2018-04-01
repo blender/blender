@@ -33,21 +33,32 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
+#include "BLI_array_utils.h"
 
 #include "BKE_context.h"
+#include "BKE_undo_system.h"
+
+#include "DEG_depsgraph.h"
 
 #include "ED_armature.h"
+#include "ED_object.h"
 #include "ED_util.h"
+
+#include "WM_types.h"
+#include "WM_api.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
 
 typedef struct UndoArmature {
 	EditBone *act_edbone;
 	ListBase lb;
+	size_t undo_size;
 } UndoArmature;
 
-static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
+static void undoarm_to_editarm(UndoArmature *uarm, bArmature *arm)
 {
-	UndoArmature *uarm = uarmv;
-	bArmature *arm = armv;
 	EditBone *ebone;
 
 	ED_armature_ebone_listbase_free(arm->edbo);
@@ -65,48 +76,117 @@ static void undoBones_to_editBones(void *uarmv, void *armv, void *UNUSED(data))
 	ED_armature_ebone_listbase_temp_clear(arm->edbo);
 }
 
-static void *editBones_to_undoBones(void *armv, void *UNUSED(obdata))
+static void *undoarm_from_editarm(UndoArmature *uarm, bArmature *arm)
 {
-	bArmature *arm = armv;
-	UndoArmature *uarm;
-	EditBone *ebone;
+	BLI_assert(BLI_array_is_zeroed(uarm, 1));
 
-	uarm = MEM_callocN(sizeof(UndoArmature), "listbase undo");
+	/* TODO: include size of ID-properties. */
+	uarm->undo_size = 0;
 
 	ED_armature_ebone_listbase_copy(&uarm->lb, arm->edbo);
 
 	/* active bone */
 	if (arm->act_edbone) {
-		ebone = arm->act_edbone;
+		EditBone *ebone = arm->act_edbone;
 		uarm->act_edbone = ebone->temp.ebone;
 	}
 
 	ED_armature_ebone_listbase_temp_clear(&uarm->lb);
 
+	for (EditBone *ebone = uarm->lb.first; ebone; ebone = ebone->next) {
+		uarm->undo_size += sizeof(EditBone);
+	}
+
 	return uarm;
 }
 
-static void free_undoBones(void *uarmv)
+static void undoarm_free_data(UndoArmature *uarm)
 {
-	UndoArmature *uarm = uarmv;
-
 	ED_armature_ebone_listbase_free(&uarm->lb);
-
-	MEM_freeN(uarm);
 }
 
-static void *get_armature_edit(bContext *C)
+static Object *editarm_object_from_context(bContext *C)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	if (obedit && obedit->type == OB_ARMATURE) {
-		return obedit->data;
+		bArmature *arm = obedit->data;
+		if (arm->edbo != NULL) {
+			return obedit;
+		}
 	}
 	return NULL;
 }
 
-/* and this is all the undo system needs to know */
-void undo_push_armature(bContext *C, const char *name)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
+
+typedef struct ArmatureUndoStep {
+	UndoStep step;
+	/* note: will split out into list for multi-object-editmode. */
+	UndoRefID_Object obedit_ref;
+	UndoArmature data;
+} ArmatureUndoStep;
+
+static bool armature_undosys_poll(bContext *C)
 {
-	// XXX solve getdata()
-	undo_editmode_push(C, name, get_armature_edit, free_undoBones, undoBones_to_editBones, editBones_to_undoBones, NULL);
+	return editarm_object_from_context(C) != NULL;
 }
+
+static bool armature_undosys_step_encode(struct bContext *C, UndoStep *us_p)
+{
+	ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+	us->obedit_ref.ptr = editarm_object_from_context(C);
+	bArmature *arm = us->obedit_ref.ptr->data;
+	undoarm_from_editarm(&us->data, arm);
+	us->step.data_size = us->data.undo_size;
+	return true;
+}
+
+static void armature_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+{
+	/* TODO(campbell): undo_system: use low-level API to set mode. */
+	ED_object_mode_set(C, OB_MODE_EDIT);
+	BLI_assert(armature_undosys_poll(C));
+
+	ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+	Object *obedit = us->obedit_ref.ptr;
+	bArmature *arm = obedit->data;
+	undoarm_to_editarm(&us->data, arm);
+	DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+}
+
+static void armature_undosys_step_free(UndoStep *us_p)
+{
+	ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+	undoarm_free_data(&us->data);
+}
+
+static void armature_undosys_foreach_ID_ref(
+        UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
+{
+	ArmatureUndoStep *us = (ArmatureUndoStep *)us_p;
+	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
+}
+
+/* Export for ED_undo_sys. */
+void ED_armature_undosys_type(UndoType *ut)
+{
+	ut->name = "Edit Armature";
+	ut->poll = armature_undosys_poll;
+	ut->step_encode = armature_undosys_step_encode;
+	ut->step_decode = armature_undosys_step_decode;
+	ut->step_free = armature_undosys_step_free;
+
+	ut->step_foreach_ID_ref = armature_undosys_foreach_ID_ref;
+
+	ut->mode = BKE_UNDOTYPE_MODE_STORE;
+	ut->use_context = true;
+
+	ut->step_size = sizeof(ArmatureUndoStep);
+}
+
+/** \} */

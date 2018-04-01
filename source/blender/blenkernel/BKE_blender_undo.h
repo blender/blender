@@ -31,22 +31,13 @@ extern "C" {
 struct bContext;
 struct Scene;
 struct Main;
+struct MemFileUndoData;
 
 #define BKE_UNDO_STR_MAX 64
 
-/* global undo */
-extern void          BKE_undo_write(struct bContext *C, const char *name);
-extern void          BKE_undo_step(struct bContext *C, int step);
-extern void          BKE_undo_name(struct bContext *C, const char *name);
-extern bool          BKE_undo_is_valid(const char *name);
-extern void          BKE_undo_reset(void);
-extern void          BKE_undo_number(struct bContext *C, int nr);
-extern const char   *BKE_undo_get_name(int nr, bool *r_active);
-extern const char   *BKE_undo_get_name_last(void);
-extern bool          BKE_undo_save_file(const char *filename);
-extern struct Main  *BKE_undo_get_main(struct Scene **r_scene);
-
-extern void          BKE_undo_callback_wm_kill_jobs_set(void (*callback)(struct bContext *C));
+struct MemFileUndoData *BKE_memfile_undo_encode(struct Main *bmain, struct MemFileUndoData *mfu_prev);
+bool                    BKE_memfile_undo_decode(struct MemFileUndoData *mfu, struct bContext *C);
+void                    BKE_memfile_undo_free(struct MemFileUndoData *mfu);
 
 #ifdef __cplusplus
 }

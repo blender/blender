@@ -68,7 +68,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_global.h"
 
 #ifdef WITH_AVI
 #  include "AVI_avi.h"

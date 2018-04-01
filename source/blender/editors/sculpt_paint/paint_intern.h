@@ -55,6 +55,7 @@ struct wmOperator;
 struct wmOperatorType;
 struct wmWindowManager;
 struct DMCoNo;
+struct UndoStep;
 enum ePaintMode;
 
 /* paint_stroke.c */
@@ -221,14 +222,19 @@ void PAINT_OT_add_simple_uvs(struct wmOperatorType *ot);
 
 /* paint_image_undo.c */
 void *image_undo_find_tile(
+        ListBase *undo_tiles,
         struct Image *ima, struct ImBuf *ibuf, int x_tile, int y_tile,
         unsigned short **mask, bool validate);
 void *image_undo_push_tile(
+        ListBase *undo_tiles,
         struct Image *ima, struct ImBuf *ibuf, struct ImBuf **tmpibuf, int x_tile, int y_tile,
         unsigned short **, bool **valid, bool proj, bool find_prev);
 void image_undo_remove_masks(void);
 void image_undo_init_locks(void);
 void image_undo_end_locks(void);
+
+struct ListBase *ED_image_undosys_step_get_tiles(struct UndoStep *us_p);
+struct ListBase *ED_image_undo_get_tiles(void);
 
 /* sculpt_uv.c */
 int uv_sculpt_poll(struct bContext *C);
@@ -302,10 +308,6 @@ typedef enum {
 
 void set_brush_rc_props(struct PointerRNA *ptr, const char *paint, const char *prop, const char *secondary_prop,
                         RCFlags flags);
-
-/* paint_undo.c */
-struct ListBase *undo_paint_push_get_list(int type);
-void undo_paint_push_count_alloc(int type, int size);
 
 /* paint_hide.c */
 

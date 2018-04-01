@@ -42,7 +42,6 @@
 
 #include "BKE_animsys.h"
 #include "BKE_cachefile.h"
-#include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"

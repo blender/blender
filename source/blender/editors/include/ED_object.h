@@ -207,6 +207,7 @@ void ED_object_constraint_dependency_tag_update(struct Main *bmain, struct Objec
 bool ED_object_mode_compat_test(const struct Object *ob, eObjectMode mode);
 bool ED_object_mode_compat_set(struct bContext *C, struct WorkSpace *workspace, eObjectMode mode, struct ReportList *reports);
 void ED_object_mode_toggle(struct bContext *C, eObjectMode mode);
+void ED_object_mode_set(struct bContext *C, eObjectMode mode);
 
 bool ED_object_mode_generic_enter(
         struct bContext *C,

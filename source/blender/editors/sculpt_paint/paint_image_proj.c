@@ -1501,15 +1501,16 @@ static int project_paint_undo_subtiles(const TileInfo *tinf, int tx, int ty)
 
 
 	if (generate_tile) {
+		ListBase *undo_tiles = ED_image_undo_get_tiles();
 		volatile void *undorect;
 		if (tinf->masked) {
 			undorect = image_undo_push_tile(
-			        pjIma->ima, pjIma->ibuf, tinf->tmpibuf,
+			        undo_tiles, pjIma->ima, pjIma->ibuf, tinf->tmpibuf,
 			        tx, ty, &pjIma->maskRect[tile_index], &pjIma->valid[tile_index], true, false);
 		}
 		else {
 			undorect = image_undo_push_tile(
-			        pjIma->ima, pjIma->ibuf, tinf->tmpibuf,
+			        undo_tiles, pjIma->ima, pjIma->ibuf, tinf->tmpibuf,
 			        tx, ty, NULL, &pjIma->valid[tile_index], true, false);
 		}
 

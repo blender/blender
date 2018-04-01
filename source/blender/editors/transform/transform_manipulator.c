@@ -976,7 +976,7 @@ static int calc_manipulator_stats(
 		/* pass */
 	}
 	else if (ob && workspace->object_mode & OB_MODE_PARTICLE_EDIT) {
-		PTCacheEdit *edit = PE_get_current(scene, view_layer, ob);
+		PTCacheEdit *edit = PE_get_current(scene, ob);
 		PTCacheEditPoint *point;
 		PTCacheEditKey *ek;
 		int k;

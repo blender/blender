@@ -37,6 +37,10 @@ struct SortAnyByInt {
 	int sort_value;
 };
 
+struct SortAnyByPtr {
+	const void *sort_value;
+};
+
 int BLI_sortutil_cmp_float(const void *a_, const void *b_)
 {
 	const struct SortAnyByFloat *a = a_;
@@ -68,6 +72,24 @@ int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_)
 {
 	const struct SortAnyByInt *a = a_;
 	const struct SortAnyByInt *b = b_;
+	if      (a->sort_value < b->sort_value) return  1;
+	else if (a->sort_value > b->sort_value) return -1;
+	else                                    return  0;
+}
+
+int BLI_sortutil_cmp_ptr(const void *a_, const void *b_)
+{
+	const struct SortAnyByPtr *a = a_;
+	const struct SortAnyByPtr *b = b_;
+	if      (a->sort_value > b->sort_value) return  1;
+	else if (a->sort_value < b->sort_value) return -1;
+	else                                    return  0;
+}
+
+int BLI_sortutil_cmp_ptr_reverse(const void *a_, const void *b_)
+{
+	const struct SortAnyByPtr *a = a_;
+	const struct SortAnyByPtr *b = b_;
 	if      (a->sort_value < b->sort_value) return  1;
 	else if (a->sort_value > b->sort_value) return -1;
 	else                                    return  0;

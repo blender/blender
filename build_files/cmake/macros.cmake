@@ -565,6 +565,9 @@ function(SETUP_BLENDER_SORTED_LIBS)
 	set(BLENDER_SORTED_LIBS
 		bf_windowmanager
 
+		# needed twice because of text undo
+		bf_editor_util
+
 		bf_editor_space_api
 		bf_editor_space_action
 		bf_editor_space_buttons
@@ -689,6 +692,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		extern_sdlew
 
 		bf_intern_glew_mx
+		bf_intern_clog
 	)
 
 	if(NOT WITH_SYSTEM_GLOG)

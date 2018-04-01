@@ -902,7 +902,7 @@ static void recalcData_objects(TransInfo *t)
 			BKE_pose_where_is(&t->eval_ctx, t->scene, ob);
 	}
 	else if (base && (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
-	         PE_get_current(t->scene, t->view_layer, base->object))
+	         PE_get_current(t->scene, base->object))
 	{
 		if (t->state != TRANS_CANCEL) {
 			applyProject(t);

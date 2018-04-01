@@ -46,6 +46,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_ID.h"
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
@@ -142,12 +144,12 @@ wmOperatorType *WM_operatortype_find(const char *idname, bool quiet)
 		}
 
 		if (!quiet) {
-			printf("search for unknown operator '%s', '%s'\n", idname_bl, idname);
+			CLOG_INFO(WM_LOG_OPERATORS, 0, "search for unknown operator '%s', '%s'\n", idname_bl, idname);
 		}
 	}
 	else {
 		if (!quiet) {
-			printf("search for empty operator\n");
+			CLOG_INFO(WM_LOG_OPERATORS, 0, "search for empty operator");
 		}
 	}
 
@@ -180,8 +182,7 @@ static wmOperatorType *wm_operatortype_append__begin(void)
 static void wm_operatortype_append__end(wmOperatorType *ot)
 {
 	if (ot->name == NULL) {
-		fprintf(stderr, "ERROR: Operator %s has no name property!\n", ot->idname);
-		ot->name = N_("Dummy Name");
+		CLOG_ERROR(WM_LOG_OPERATORS, "Operator '%s' has no name property", ot->idname);
 	}
 
 	/* Allow calling _begin without _end in operatortype creation. */
@@ -269,7 +270,7 @@ static int wm_macro_exec(bContext *C, wmOperator *op)
 			}
 		}
 		else {
-			printf("%s: '%s' cant exec macro\n", __func__, opm->type->idname);
+			CLOG_WARN(WM_LOG_OPERATORS, "'%s' cant exec macro", opm->type->idname);
 		}
 	}
 	
@@ -314,8 +315,9 @@ static int wm_macro_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	wmOperator *opm = op->opm;
 	int retval = OPERATOR_FINISHED;
 	
-	if (opm == NULL)
-		printf("%s: macro error, calling NULL modal()\n", __func__);
+	if (opm == NULL) {
+		CLOG_ERROR(WM_LOG_OPERATORS, "macro error, calling NULL modal()");
+	}
 	else {
 		retval = opm->type->modal(C, opm, event);
 		OPERATOR_RETVAL_CHECK(retval);
@@ -389,7 +391,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	const char *i18n_context;
 	
 	if (WM_operatortype_find(idname, true)) {
-		printf("%s: macro error: operator %s exists\n", __func__, idname);
+		CLOG_ERROR(WM_LOG_OPERATORS, "operator %s exists, cannot create macro", idname);
 		return NULL;
 	}
 	
@@ -1198,11 +1200,14 @@ int WM_menu_invoke_ex(bContext *C, wmOperator *op, int opcontext)
 	uiLayout *layout;
 
 	if (prop == NULL) {
-		printf("%s: %s has no enum property set\n", __func__, op->type->idname);
+		CLOG_ERROR(WM_LOG_OPERATORS,
+		           "'%s' has no enum property set",
+		           op->type->idname);
 	}
 	else if (RNA_property_type(prop) != PROP_ENUM) {
-		printf("%s: %s \"%s\" is not an enum property\n",
-		       __func__, op->type->idname, RNA_property_identifier(prop));
+		CLOG_ERROR(WM_LOG_OPERATORS,
+		           "'%s', '%s' is not an enum property",
+		           op->type->idname, RNA_property_identifier(prop));
 	}
 	else if (RNA_property_is_set(op->ptr, prop)) {
 		const int retval = op->type->exec(C, op);
@@ -1956,8 +1961,9 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 					memcpy(ibuf->rect, ibuf_template->rect, ibuf_template->x * ibuf_template->y * sizeof(char[4]));
 				}
 				else {
-					printf("Splash expected %dx%d found %dx%d, ignoring: %s\n",
-					       x_expect, y_expect, ibuf_template->x, ibuf_template->y, splash_filepath);
+					CLOG_ERROR(WM_LOG_OPERATORS,
+					           "Splash expected %dx%d found %dx%d, ignoring: %s\n",
+					           x_expect, y_expect, ibuf_template->x, ibuf_template->y, splash_filepath);
 				}
 				IMB_freeImBuf(ibuf_template);
 			}

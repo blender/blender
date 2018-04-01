@@ -125,6 +125,8 @@ typedef struct SculptUndoNode {
 
 	/* shape keys */
 	char shapeName[sizeof(((KeyBlock *)0))->name];
+
+	size_t undo_size;
 } SculptUndoNode;
 
 /* Factor of brush to have rake point following behind

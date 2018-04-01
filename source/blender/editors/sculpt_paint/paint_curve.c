@@ -43,6 +43,7 @@
 #include "DEG_depsgraph.h"
 
 #include "ED_view3d.h"
+#include "ED_paint.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -207,7 +208,7 @@ static void paintcurve_point_add(bContext *C,  wmOperator *op, const int loc[2])
 		br->paint_curve = pc = BKE_paint_curve_add(bmain, "PaintCurve");
 	}
 
-	ED_paintcurve_undo_push(C, op, pc);
+	ED_paintcurve_undo_push_begin(op->type->name);
 
 	pcp = MEM_mallocN((pc->tot_points + 1) * sizeof(PaintCurvePoint), "PaintCurvePoint");
 	add_index = pc->add_index;
@@ -244,6 +245,8 @@ static void paintcurve_point_add(bContext *C,  wmOperator *op, const int loc[2])
 		pcp[add_index].bez.f1 = SELECT;
 		pcp[add_index].bez.h1 = HD_ALIGN;
 	}
+
+	ED_paintcurve_undo_push_end();
 
 	WM_paint_cursor_tag_redraw(window, ar);
 }
@@ -306,7 +309,7 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_paintcurve_undo_push(C, op, pc);
+	ED_paintcurve_undo_push_begin(op->type->name);
 
 #define DELETE_TAG 2
 
@@ -346,6 +349,8 @@ static int paintcurve_delete_point_exec(bContext *C, wmOperator *op)
 
 #undef DELETE_TAG
 
+	ED_paintcurve_undo_push_end();
+
 	WM_paint_cursor_tag_redraw(window, ar);
 
 	return OPERATOR_FINISHED;
@@ -383,7 +388,7 @@ static bool paintcurve_point_select(bContext *C, wmOperator *op, const int loc[2
 	if (!pc)
 		return false;
 
-	ED_paintcurve_undo_push(C, op, pc);
+	ED_paintcurve_undo_push_begin(op->type->name);
 
 	if (toggle) {
 		PaintCurvePoint *pcp;
@@ -448,9 +453,13 @@ static bool paintcurve_point_select(bContext *C, wmOperator *op, const int loc[2
 			}
 		}
 
-		if (!pcp)
+		if (!pcp) {
+			ED_paintcurve_undo_push_end();
 			return false;
+		}
 	}
+
+	ED_paintcurve_undo_push_end();
 
 	WM_paint_cursor_tag_redraw(window, ar);
 
@@ -566,9 +575,6 @@ static int paintcurve_slide_invoke(bContext *C, wmOperator *op, const wmEvent *e
 		psd->align = align;
 		op->customdata = psd;
 
-		if (do_select)
-			ED_paintcurve_undo_push(C, op, pc);
-
 		/* first, clear all selection from points */
 		for (i = 0; i < pc->tot_points; i++)
 			pc->points[i].bez.f1 = pc->points[i].bez.f3 = pc->points[i].bez.f2 = 0;
@@ -591,6 +597,8 @@ static int paintcurve_slide_modal(bContext *C, wmOperator *op, const wmEvent *ev
 
 	if (event->type == psd->event && event->val == KM_RELEASE) {
 		MEM_freeN(psd);
+		ED_paintcurve_undo_push_begin(op->type->name);
+		ED_paintcurve_undo_push_end();
 		return OPERATOR_FINISHED;
 	}
 

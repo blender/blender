@@ -29,19 +29,32 @@
 
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
+#include "BLI_array_utils.h"
 
 #include "DNA_defs.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_context.h"
+#include "BKE_undo_system.h"
 
+#include "DEG_depsgraph.h"
+
+#include "ED_object.h"
 #include "ED_mball.h"
 #include "ED_util.h"
+
+#include "WM_types.h"
+#include "WM_api.h"
+
+/* -------------------------------------------------------------------- */
+/** \name Undo Conversion
+ * \{ */
 
 typedef struct UndoMBall {
 	ListBase editelems;
 	int lastelem_index;
+	size_t undo_size;
 } UndoMBall;
 
 /* free all MetaElems from ListBase */
@@ -58,11 +71,8 @@ static void freeMetaElemlist(ListBase *lb)
 	}
 }
 
-static void undoMball_to_editMball(void *umb_v, void *mb_v, void *UNUSED(obdata))
+static void undomball_to_editmball(UndoMBall *umb, MetaBall *mb)
 {
-	MetaBall *mb = mb_v;
-	UndoMBall *umb = umb_v;
-
 	freeMetaElemlist(mb->editelems);
 	mb->lastelem = NULL;
 
@@ -75,18 +85,15 @@ static void undoMball_to_editMball(void *umb_v, void *mb_v, void *UNUSED(obdata)
 			mb->lastelem = ml_edit;
 		}
 	}
-	
 }
 
-static void *editMball_to_undoMball(void *mb_v, void *UNUSED(obdata))
+static void *editmball_from_undomball(UndoMBall *umb, MetaBall *mb)
 {
-	MetaBall *mb = mb_v;
-	UndoMBall *umb;
+	BLI_assert(BLI_array_is_zeroed(umb, 1));
 
 	/* allocate memory for undo ListBase */
-	umb = MEM_callocN(sizeof(UndoMBall), __func__);
 	umb->lastelem_index = -1;
-	
+
 	/* copy contents of current ListBase to the undo ListBase */
 	int index = 0;
 	for (MetaElem *ml_edit = mb->editelems->first; ml_edit; ml_edit = ml_edit->next, index += 1) {
@@ -95,37 +102,99 @@ static void *editMball_to_undoMball(void *mb_v, void *UNUSED(obdata))
 		if (ml_edit == mb->lastelem) {
 			umb->lastelem_index = index;
 		}
+		umb->undo_size += sizeof(MetaElem);
 	}
-	
+
 	return umb;
 }
 
 /* free undo ListBase of MetaElems */
-static void free_undoMball(void *umb_v)
+static void undomball_free_data(UndoMBall *umb)
 {
-	UndoMBall *umb = umb_v;
-	
 	freeMetaElemlist(&umb->editelems);
-	MEM_freeN(umb);
 }
 
-static MetaBall *metaball_get_obdata(Object *ob)
+static Object *editmball_object_from_context(bContext *C)
 {
-	if (ob && ob->type == OB_MBALL) {
-		return ob->data;
+	Object *obedit = CTX_data_edit_object(C);
+	if (obedit && obedit->type == OB_MBALL) {
+		MetaBall *mb = obedit->data;
+		if (mb->editelems != NULL) {
+			return obedit;
+		}
 	}
 	return NULL;
 }
 
+/** \} */
 
-static void *get_data(bContext *C)
+/* -------------------------------------------------------------------- */
+/** \name Implements ED Undo System
+ * \{ */
+
+typedef struct MBallUndoStep {
+	UndoStep step;
+	/* note: will split out into list for multi-object-editmode. */
+	UndoRefID_Object obedit_ref;
+	UndoMBall data;
+} MBallUndoStep;
+
+static bool mball_undosys_poll(bContext *C)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	return metaball_get_obdata(obedit);
+	return editmball_object_from_context(C) != NULL;
 }
 
-/* this is undo system for MetaBalls */
-void undo_push_mball(bContext *C, const char *name)
+static bool mball_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
-	undo_editmode_push(C, name, get_data, free_undoMball, undoMball_to_editMball, editMball_to_undoMball, NULL);
+	MBallUndoStep *us = (MBallUndoStep *)us_p;
+	us->obedit_ref.ptr = editmball_object_from_context(C);
+	MetaBall *mb = us->obedit_ref.ptr->data;
+	editmball_from_undomball(&us->data, mb);
+	us->step.data_size = us->data.undo_size;
+	return true;
 }
+
+static void mball_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+{
+	ED_object_mode_set(C, OB_MODE_EDIT);
+
+	MBallUndoStep *us = (MBallUndoStep *)us_p;
+	Object *obedit = us->obedit_ref.ptr;
+	MetaBall *mb = obedit->data;
+	undomball_to_editmball(&us->data, mb);
+	DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
+}
+
+static void mball_undosys_step_free(UndoStep *us_p)
+{
+	MBallUndoStep *us = (MBallUndoStep *)us_p;
+	undomball_free_data(&us->data);
+}
+
+static void mball_undosys_foreach_ID_ref(
+        UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
+{
+	MBallUndoStep *us = (MBallUndoStep *)us_p;
+	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
+}
+
+/* Export for ED_undo_sys. */
+void ED_mball_undosys_type(UndoType *ut)
+{
+	ut->name = "Edit MBall";
+	ut->poll = mball_undosys_poll;
+	ut->step_encode = mball_undosys_step_encode;
+	ut->step_decode = mball_undosys_step_decode;
+	ut->step_free = mball_undosys_step_free;
+
+	ut->step_foreach_ID_ref = mball_undosys_foreach_ID_ref;
+
+	ut->mode = BKE_UNDOTYPE_MODE_STORE;
+	ut->use_context = true;
+
+	ut->step_size = sizeof(MBallUndoStep);
+
+}
+
+/** \} */

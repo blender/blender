@@ -35,6 +35,9 @@ struct bContext;
 struct SpaceLink;
 struct wmOperator;
 struct wmOperatorType;
+struct UndoStack;
+struct ScrArea;
+struct PackedFile;
 
 /* ed_util.c */
 
@@ -70,16 +73,12 @@ void    ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg
 
 bool    ED_undo_is_valid(const struct bContext *C, const char *undoname);
 
-/* undo_editmode.c */
-void undo_editmode_push(struct bContext *C, const char *name, 
-                        void * (*getdata)(struct bContext *C),
-                        void (*freedata)(void *),
-                        void (*to_editmode)(void *, void *, void *),
-                        void *(*from_editmode)(void *, void *),
-                        int (*validate_undo)(void *, void *));
+/* undo_system_types.c */
+void ED_undosys_type_init(void);
+void ED_undosys_type_free(void);
 
-
-void    undo_editmode_clear(void);
+/* memfile_undo.c */
+struct MemFile *ED_undosys_stack_memfile_get_active(struct UndoStack *ustack);
 
 /* ************** XXX OLD CRUFT WARNING ************* */
 

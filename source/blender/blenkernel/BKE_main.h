@@ -84,10 +84,12 @@ typedef struct Main {
 	short minversionfile, minsubversionfile;
 	uint64_t build_commit_timestamp; /* commit's timestamp from buildinfo */
 	char build_hash[16];  /* hash from buildinfo */
-	short recovered;	/* indicate the main->name (file) is the recovered one */
+	char recovered;	/* indicate the main->name (file) is the recovered one */
+	/** All current ID's exist in the last memfile undo step. */
+	char is_memfile_undo_written;
 
 	BlendThumbnail *blen_thumb;
-	
+
 	struct Library *curlib;
 	ListBase scene;
 	ListBase library;

@@ -44,7 +44,6 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
-#include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"

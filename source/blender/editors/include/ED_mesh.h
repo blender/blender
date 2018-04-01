@@ -63,6 +63,7 @@ struct UvMapVert;
 struct ToolSettings;
 struct Object;
 struct rcti;
+struct UndoType;
 
 /* editmesh_utils.c */
 void           EDBM_verts_mirror_cache_begin_ex(struct BMEditMesh *em, const int axis,
@@ -99,8 +100,6 @@ void EDBM_selectmode_flush(struct BMEditMesh *em);
 void EDBM_deselect_flush(struct BMEditMesh *em);
 void EDBM_select_flush(struct BMEditMesh *em);
 
-void undo_push_mesh(struct bContext *C, const char *name);
-
 bool EDBM_vert_color_check(struct BMEditMesh *em);
 
 void EDBM_mesh_hide(struct BMEditMesh *em, bool swap);
@@ -130,6 +129,9 @@ void EDBM_flag_disable_all(struct BMEditMesh *em, const char hflag);
 bool BMBVH_EdgeVisible(struct BMBVHTree *tree, struct BMEdge *e,
                        const struct Depsgraph *depsgraph,
                        struct ARegion *ar, struct View3D *v3d, struct Object *obedit);
+
+/* editmesh_undo.c */
+void ED_mesh_undosys_type(struct UndoType *ut);
 
 /* editmesh_select.c */
 void EDBM_select_mirrored(

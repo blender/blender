@@ -2667,8 +2667,9 @@ static int image_invert_exec(bContext *C, wmOperator *op)
 	if (ibuf->mipmap[0])
 		ibuf->userflags |= IB_MIPMAP_INVALID;
 
-	if (support_undo)
-		ED_undo_paint_push_end(UNDO_PAINT_IMAGE);
+	if (support_undo) {
+		ED_image_undo_push_end();
+	}
 
 	/* force GPU reupload, all image is invalid */
 	GPU_free_image(ima);

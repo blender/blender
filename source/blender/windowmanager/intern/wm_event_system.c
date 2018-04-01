@@ -43,6 +43,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "GHOST_C-api.h"
 
 #include "BLI_blenlib.h"
@@ -608,14 +610,6 @@ int WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context)
 	return wm_operator_call_internal(C, ot, NULL, NULL, context, true);
 }
 
-static void wm_operator_print(bContext *C, wmOperator *op)
-{
-	/* context is needed for enum function */
-	char *buf = WM_operator_pystring(C, op, false, true);
-	puts(buf);
-	MEM_freeN(buf);
-}
-
 /**
  * Sets the active region for this space from the context.
  *
@@ -776,10 +770,7 @@ static void wm_operator_reports(bContext *C, wmOperator *op, int retval, bool ca
 	}
 	
 	if (retval & OPERATOR_FINISHED) {
-		if (G.debug & G_DEBUG_WM) {
-			/* todo - this print may double up, might want to check more flags then the FINISHED */
-			wm_operator_print(C, op);
-		}
+		CLOG_STR_INFO_N(WM_LOG_OPERATORS, 1, WM_operator_pystring(C, op, false, true));
 
 		if (caller_owns_reports == false) {
 			BKE_reports_print(op->reports, RPT_DEBUG); /* print out reports to console. */
@@ -1104,9 +1095,7 @@ bool WM_operator_last_properties_init(wmOperator *op)
 		IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
 		PropertyRNA *iterprop;
 
-		if (G.debug & G_DEBUG_WM) {
-			printf("%s: loading previous properties for '%s'\n", __func__, op->type->idname);
-		}
+		CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
 
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
@@ -1151,9 +1140,7 @@ bool WM_operator_last_properties_store(wmOperator *op)
 	}
 
 	if (op->properties) {
-		if (G.debug & G_DEBUG_WM) {
-			printf("%s: storing properties for '%s'\n", __func__, op->type->idname);
-		}
+		CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
 		op->type->last_properties = IDP_CopyProperty(op->properties);
 		return true;
 	}
@@ -1203,11 +1190,12 @@ static int wm_operator_invoke(
 			WM_operator_last_properties_init(op);
 		}
 
-		if ((G.debug & G_DEBUG_HANDLERS) && ((event == NULL) || (event->type != MOUSEMOVE))) {
-			printf("%s: handle evt %d region %p op %s\n",
-			       __func__, event ? event->type : 0, CTX_wm_screen(C)->active_region, ot->idname);
+		if ((event == NULL) || (event->type != MOUSEMOVE)) {
+			CLOG_INFO(WM_LOG_HANDLERS, 2,
+			          "handle evt %d win %p op %s",
+			          event ? event->type : 0, CTX_wm_screen(C)->active_region, ot->idname);
 		}
-		
+
 		if (op->type->invoke && event) {
 			wm_region_mouse_co(C, event);
 
@@ -1232,9 +1220,9 @@ static int wm_operator_invoke(
 		}
 		else {
 			/* debug, important to leave a while, should never happen */
-			printf("%s: invalid operator call '%s'\n", __func__, ot->idname);
+			CLOG_ERROR(WM_LOG_OPERATORS, "invalid operator call '%s'", op->idname);
 		}
-		
+
 		/* Note, if the report is given as an argument then assume the caller will deal with displaying them
 		 * currently python only uses this */
 		if (!(retval & OPERATOR_HANDLED) && (retval & (OPERATOR_FINISHED | OPERATOR_CANCELLED))) {
@@ -1509,8 +1497,10 @@ int WM_operator_call_py(
 		if (is_undo && op->type->flag & OPTYPE_UNDO && CTX_wm_manager(C) == wm)
 			wm->op_undo_depth--;
 	}
-	else
-		printf("error \"%s\" operator has no exec function, python cannot call it\n", op->type->name);
+	else {
+		CLOG_WARN(WM_LOG_OPERATORS, "\"%s\" operator has no exec function, Python cannot call it", op->type->name);
+	}
+
 #endif
 
 	/* not especially nice using undo depth here, its used so py never
@@ -1554,8 +1544,9 @@ static void wm_handler_op_context(bContext *C, wmEventHandler *handler, const wm
 			if (sa == NULL) {
 				/* when changing screen layouts with running modal handlers (like render display), this
 				 * is not an error to print */
-				if (handler->op == NULL)
-					printf("internal error: handler (%s) has invalid area\n", handler->op->type->idname);
+				if (handler->op == NULL) {
+					CLOG_ERROR(WM_LOG_HANDLERS, "internal error: handler (%s) has invalid area", handler->op->type->idname);
+				}
 			}
 			else {
 				ARegion *ar;
@@ -1901,10 +1892,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					//retval &= ~OPERATOR_PASS_THROUGH;
 				}
 			}
-			
 		}
 		else {
-			printf("%s: error '%s' missing modal\n", __func__, op->idname);
+			CLOG_ERROR(WM_LOG_HANDLERS, "missing modal '%s'", op->idname);
 		}
 	}
 	else {
@@ -2195,19 +2185,15 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
 							if (action & WM_HANDLER_BREAK) {
 								/* not always_pass here, it denotes removed handler */
-								
-								if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
-									printf("%s:       handled! '%s'\n", __func__, kmi->idname);
-
+								CLOG_INFO(WM_LOG_HANDLERS, 2, "handled! '%s'", kmi->idname);
 								break;
 							}
 							else {
 								if (action & WM_HANDLER_HANDLED) {
-									if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS))
-										printf("%s:       handled - and pass on! '%s'\n", __func__, kmi->idname);
+									CLOG_INFO(WM_LOG_HANDLERS, 2, "handled - and pass on! '%s'", kmi->idname);
 								}
 								else {
-									PRINT("%s:       un-handled '%s'\n", __func__, kmi->idname);
+									CLOG_INFO(WM_LOG_HANDLERS, 2, "un-handled '%s'", kmi->idname);
 								}
 							}
 						}
@@ -2466,10 +2452,8 @@ static int wm_handlers_do(bContext *C, wmEvent *event, ListBase *handlers)
 					{
 						event->val = KM_CLICK;
 
-						if (G.debug & (G_DEBUG_HANDLERS)) {
-							printf("%s: handling CLICK\n", __func__);
-						}
-
+						CLOG_INFO(WM_LOG_HANDLERS, 1, "handling CLICK");
+	
 						action |= wm_handlers_do_intern(C, event, handlers);
 
 						event->val = KM_RELEASE;
@@ -2708,8 +2692,8 @@ void wm_event_do_handlers(bContext *C)
 
 			/* take care of pie event filter */
 			if (wm_event_pie_filter(win, event)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS) && !ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
-					printf("\n%s: event filtered due to pie button pressed\n", __func__);
+				if (!ELEM(event->type, MOUSEMOVE, INBETWEEN_MOUSEMOVE)) {
+					CLOG_INFO(WM_LOG_HANDLERS, 1, "event filtered due to pie button pressed");
 				}
 				BLI_remlink(&win->queue, event);
 				wm_event_free(event);
@@ -3058,7 +3042,7 @@ wmEventHandler *WM_event_add_keymap_handler(ListBase *handlers, wmKeyMap *keymap
 	wmEventHandler *handler;
 
 	if (!keymap) {
-		printf("%s: called with NULL keymap\n", __func__);
+		CLOG_WARN(WM_LOG_HANDLERS, "called with NULL keymap");
 		return NULL;
 	}
 
@@ -3679,8 +3663,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			
 			/* double click test */
 			if (wm_event_is_double_click(&event, evt)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
-					printf("%s Send double click\n", __func__);
+				CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
 				event.val = KM_DBL_CLICK;
 			}
 			if (event.val == KM_PRESS) {
@@ -3734,7 +3717,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 				/* ghost should do this already for key up */
 				if (event.utf8_buf[0]) {
-					printf("%s: ghost on your platform is misbehaving, utf8 events on key up!\n", __func__);
+					CLOG_ERROR(WM_LOG_EVENTS, "ghost on your platform is misbehaving, utf8 events on key up!");
 				}
 				event.utf8_buf[0] = '\0';
 			}
@@ -3747,8 +3730,9 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 
 			if (event.utf8_buf[0]) {
 				if (BLI_str_utf8_size(event.utf8_buf) == -1) {
-					printf("%s: ghost detected an invalid unicode character '%d'!\n",
-					       __func__, (int)(unsigned char)event.utf8_buf[0]);
+					CLOG_ERROR(WM_LOG_EVENTS,
+					           "ghost detected an invalid unicode character '%d'",
+					           (int)(unsigned char)event.utf8_buf[0]);
 					event.utf8_buf[0] = '\0';
 				}
 			}
@@ -3797,8 +3781,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			/* double click test */
 			/* if previous event was same type, and previous was release, and now it presses... */
 			if (wm_event_is_double_click(&event, evt)) {
-				if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
-					printf("%s Send double click\n", __func__);
+				CLOG_INFO(WM_LOG_HANDLERS, 1, "Send double click");
 				evt->val = event.val = KM_DBL_CLICK;
 			}
 			
@@ -3868,9 +3851,7 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 			attach_ndof_data(&event, customdata);
 			wm_event_add(win, &event);
 
-			if (G.debug & (G_DEBUG_HANDLERS | G_DEBUG_EVENTS))
-				printf("%s sending NDOF_MOTION, prev = %d %d\n", __func__, event.x, event.y);
-
+			CLOG_INFO(WM_LOG_HANDLERS, 1, "sending NDOF_MOTION, prev = %d %d", event.x, event.y);
 			break;
 		}
 

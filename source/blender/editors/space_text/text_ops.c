@@ -756,7 +756,10 @@ void TEXT_OT_paste(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_paste_exec;
 	ot->poll = text_edit_poll;
-	
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
 	/* properties */
 	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied (X11 only)");
 }
@@ -785,10 +788,13 @@ void TEXT_OT_duplicate_line(wmOperatorType *ot)
 	ot->name = "Duplicate Line";
 	ot->idname = "TEXT_OT_duplicate_line";
 	ot->description = "Duplicate the current line";
-	
+
 	/* api callbacks */
 	ot->exec = text_duplicate_line_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* copy operator *********************/
@@ -860,6 +866,9 @@ void TEXT_OT_cut(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_cut_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* indent operator *********************/
@@ -895,6 +904,9 @@ void TEXT_OT_indent(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_indent_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* unindent operator *********************/
@@ -926,6 +938,9 @@ void TEXT_OT_unindent(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_unindent_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* line break operator *********************/
@@ -970,10 +985,13 @@ void TEXT_OT_line_break(wmOperatorType *ot)
 	ot->name = "Line Break";
 	ot->idname = "TEXT_OT_line_break";
 	ot->description = "Insert line break at cursor position";
-	
+
 	/* api callbacks */
 	ot->exec = text_line_break_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* comment operator *********************/
@@ -1003,10 +1021,13 @@ void TEXT_OT_comment(wmOperatorType *ot)
 	ot->name = "Comment";
 	ot->idname = "TEXT_OT_comment";
 	ot->description = "Convert selected text to comment";
-	
+
 	/* api callbacks */
 	ot->exec = text_comment_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* uncomment operator *********************/
@@ -1041,6 +1062,9 @@ void TEXT_OT_uncomment(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_uncomment_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* convert whitespace operator *********************/
@@ -1174,6 +1198,9 @@ void TEXT_OT_convert_whitespace(wmOperatorType *ot)
 	ot->exec = text_convert_whitespace_exec;
 	ot->poll = text_edit_poll;
 
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
 	/* properties */
 	RNA_def_enum(ot->srna, "type", whitespace_type_items, TO_SPACES, "Type", "Type of whitespace to convert to");
 }
@@ -1294,6 +1321,9 @@ void TEXT_OT_move_lines(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = move_lines_exec;
 	ot->poll = text_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "direction", direction_items, 1, "Direction", "");
@@ -2919,6 +2949,9 @@ void TEXT_OT_insert(wmOperatorType *ot)
 	ot->invoke = text_insert_invoke;
 	ot->poll = text_edit_poll;
 
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
 	/* properties */
 	prop = RNA_def_string(ot->srna, "text", NULL, 0, "Text", "Text to insert at the cursor position");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
@@ -3024,6 +3057,9 @@ void TEXT_OT_replace(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_replace_exec;
 	ot->poll = text_space_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /******************* find set selected *********************/
@@ -3081,6 +3117,9 @@ void TEXT_OT_replace_set_selected(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = text_replace_set_selected_exec;
 	ot->poll = text_space_edit_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
 }
 
 /****************** resolve conflict operator ******************/
@@ -3201,26 +3240,3 @@ void TEXT_OT_to_3d_object(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "split_lines", 0, "Split Lines", "Create one object per line in the text");
 }
-
-
-/************************ undo ******************************/
-
-void ED_text_undo_step(bContext *C, int step)
-{
-	Text *text = CTX_data_edit_text(C);
-
-	if (!text)
-		return;
-
-	if (step == 1)
-		txt_do_undo(text);
-	else if (step == -1)
-		txt_do_redo(text);
-
-	text_update_edited(text);
-
-	text_update_cursor_moved(C);
-	text_drawcache_tag_update(CTX_wm_space_text(C), 1);
-	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
-}
-

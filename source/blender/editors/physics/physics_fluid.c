@@ -48,7 +48,6 @@
 #include "BKE_context.h"
 #include "BKE_customdata.h"
 #include "BKE_fluidsim.h"
-#include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -68,6 +67,8 @@
 
 /* enable/disable overall compilation */
 #ifdef WITH_MOD_FLUID
+
+#include "BKE_global.h"
 
 #include "WM_api.h"
 

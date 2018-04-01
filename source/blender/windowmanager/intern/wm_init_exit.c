@@ -40,6 +40,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "DNA_genfile.h"
 #include "DNA_scene_types.h"
 #include "DNA_userdef_types.h"
@@ -53,6 +55,7 @@
 #include "BLI_utildefines.h"
 
 #include "BLO_writefile.h"
+#include "BLO_undofile.h"
 
 #include "BKE_blender.h"
 #include "BKE_blender_undo.h"
@@ -132,6 +135,11 @@
 #  include "BKE_subsurf.h"
 #endif
 
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_OPERATORS, "wm.operator");
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_HANDLERS, "wm.handler");
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_EVENTS, "wm.event");
+CLG_LOGREF_DECLARE_GLOBAL(WM_LOG_KEYMAPS, "wm.keymap");
+
 static void wm_init_reports(bContext *C)
 {
 	ReportList *reports = CTX_wm_reports(C);
@@ -145,11 +153,6 @@ static void wm_free_reports(bContext *C)
 	ReportList *reports = CTX_wm_reports(C);
 
 	BKE_reports_clear(reports);
-}
-
-static void wm_undo_kill_callback(bContext *C)
-{
-	WM_jobs_kill_all_except(CTX_wm_manager(C), CTX_wm_screen(C));
 }
 
 bool wm_start_with_console = false; /* used in creator.c */
@@ -172,7 +175,7 @@ void WM_init(bContext *C, int argc, const char **argv)
 	wm_manipulatortype_init();
 	wm_manipulatorgrouptype_init();
 
-	BKE_undo_callback_wm_kill_jobs_set(wm_undo_kill_callback);
+	ED_undosys_type_init();
 
 	BKE_library_callback_free_window_manager_set(wm_close_and_free);   /* library.c */
 	BKE_library_callback_free_notifier_reference_set(WM_main_remove_notifier_reference);   /* library.c */
@@ -482,7 +485,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		wmWindow *win;
 
 		if (!G.background) {
-			if ((U.uiflag2 & USER_KEEP_SESSION) || BKE_undo_is_valid(NULL)) {
+			struct MemFile *undo_memfile = wm->undo_stack ? ED_undosys_stack_memfile_get_active(wm->undo_stack) : NULL;
+			if ((U.uiflag2 & USER_KEEP_SESSION) || (undo_memfile != NULL)) {
 				/* save the undo state as quit.blend */
 				char filename[FILE_MAX];
 				bool has_edited;
@@ -493,7 +497,7 @@ void WM_exit_ext(bContext *C, const bool do_python)
 				has_edited = ED_editors_flush_edits(C, false);
 
 				if ((has_edited && BLO_write_file(CTX_data_main(C), filename, fileflags, NULL, NULL)) ||
-				    BKE_undo_save_file(filename))
+				    (undo_memfile && BLO_memfile_write_file(undo_memfile, filename)))
 				{
 					printf("Saved session recovery to '%s'\n", filename);
 				}
@@ -516,10 +520,12 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	wm_dropbox_free();
 	WM_menutype_free();
 	WM_uilisttype_free();
-	
+
 	/* all non-screen and non-space stuff editors did, like editmode */
 	if (C)
 		ED_editors_exit(C);
+
+	ED_undosys_type_free();
 
 //	XXX	
 //	BIF_GlobalReebFree();
@@ -608,8 +614,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	(void)do_python;
 #endif
 
-	BKE_undo_reset();
-	
 	ED_file_exit(); /* for fsmenu */
 
 	UI_exit();
@@ -633,6 +637,8 @@ void WM_exit_ext(bContext *C, const bool do_python)
 	/* No need to call this early, rather do it late so that other pieces of Blender using sound may exit cleanly,
 	 * see also T50676. */
 	BKE_sound_exit();
+
+	CLG_exit();
 
 	BKE_blender_atexit();
 

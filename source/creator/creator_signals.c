@@ -64,6 +64,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 
+
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
 #  include "BL_System.h"
@@ -74,6 +75,12 @@
 #include <signal.h>
 
 #include "creator_intern.h"  /* own include */
+
+// #define USE_WRITE_CRASH_BLEND
+#ifdef USE_WRITE_CRASH_BLEND
+#  include "BKE_undo_system.h"
+#  include "BLO_undofile.h"
+#endif
 
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
@@ -110,29 +117,32 @@ static void sig_handle_crash_backtrace(FILE *fp)
 
 static void sig_handle_crash(int signum)
 {
+	wmWindowManager *wm = G.main->wm.first;
 
-#if 0
-	{
-		char fname[FILE_MAX];
+#ifdef USE_WRITE_CRASH_BLEND
+	if (wm->undo_stack) {
+		struct MemFile *memfile = BKE_undosys_stack_memfile_get_active(wm->undo_stack);
+		if (memfile) {
+			char fname[FILE_MAX];
 
-		if (!G.main->name[0]) {
-			BLI_make_file_string("/", fname, BKE_tempdir_base(), "crash.blend");
+			if (!G.main->name[0]) {
+				BLI_make_file_string("/", fname, BKE_tempdir_base(), "crash.blend");
+			}
+			else {
+				BLI_strncpy(fname, G.main->name, sizeof(fname));
+				BLI_replace_extension(fname, sizeof(fname), ".crash.blend");
+			}
+
+			printf("Writing: %s\n", fname);
+			fflush(stdout);
+
+			BLO_memfile_write_file(memfile, fname);
 		}
-		else {
-			BLI_strncpy(fname, G.main->name, sizeof(fname));
-			BLI_replace_extension(fname, sizeof(fname), ".crash.blend");
-		}
-
-		printf("Writing: %s\n", fname);
-		fflush(stdout);
-
-		BKE_undo_save_file(fname);
 	}
 #endif
 
 	FILE *fp;
 	char header[512];
-	wmWindowManager *wm = G.main->wm.first;
 
 	char fname[FILE_MAX];
 

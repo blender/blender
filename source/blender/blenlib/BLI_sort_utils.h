@@ -32,7 +32,7 @@
  * \note keep \a sort_value first,
  * so cmp functions can be reused.
  */
-struct SortPointerByFloat {
+struct SortPtrByFloat {
 	float sort_value;
 	void *data;
 };
@@ -42,7 +42,7 @@ struct SortIntByFloat {
 	int data;
 };
 
-struct SortPointerByInt {
+struct SortPtrByInt {
 	int sort_value;
 	void *data;
 };
@@ -57,5 +57,8 @@ int BLI_sortutil_cmp_float_reverse(const void *a_, const void *b_);
 
 int BLI_sortutil_cmp_int(const void *a_, const void *b_);
 int BLI_sortutil_cmp_int_reverse(const void *a_, const void *b_);
+
+int BLI_sortutil_cmp_ptr(const void *a_, const void *b_);
+int BLI_sortutil_cmp_ptr_reverse(const void *a_, const void *b_);
 
 #endif  /* __BLI_SORT_UTILS_H__ */

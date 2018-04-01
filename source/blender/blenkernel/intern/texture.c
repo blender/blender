@@ -55,7 +55,6 @@
 
 #include "IMB_imbuf.h"
 
-#include "BKE_global.h"
 #include "BKE_main.h"
 
 #include "BKE_colorband.h"
