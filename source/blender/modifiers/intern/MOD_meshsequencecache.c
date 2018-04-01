@@ -44,6 +44,7 @@
 
 #ifdef WITH_ALEMBIC
 #	include "ABC_alembic.h"
+#	include "BKE_global.h"
 #endif
 
 static void initData(ModifierData *md)
