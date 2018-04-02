@@ -38,6 +38,8 @@
 
 #include "python_utildefines.h"
 
+#include "BLI_string.h"
+
 #ifndef MATH_STANDALONE
 /* only for BLI_strncpy_wchar_from_utf8, should replace with py funcs but too late in release now */
 #include "BLI_string_utf8.h"
@@ -225,22 +227,49 @@ int PyC_ParseBool(PyObject *o, void *p)
 /* for debugging */
 void PyC_ObSpit(const char *name, PyObject *var)
 {
+	const char *null_str = "<null>";
 	fprintf(stderr, "<%s> : ", name);
 	if (var == NULL) {
-		fprintf(stderr, "<NIL>");
+		fprintf(stderr, "%s\n", null_str);
 	}
 	else {
 		PyObject_Print(var, stderr, 0);
-		fprintf(stderr, " ref:%d ", (int)var->ob_refcnt);
-		fprintf(stderr, " ptr:%p", (void *)var);
-		
-		fprintf(stderr, " type:");
-		if (Py_TYPE(var))
-			fprintf(stderr, "%s", Py_TYPE(var)->tp_name);
-		else
-			fprintf(stderr, "<NIL>");
+		const PyTypeObject *type = Py_TYPE(var);
+		fprintf(stderr,
+		        " ref:%d, ptr:%p, type: %s\n",
+		        (int)var->ob_refcnt, (void *)var, type ? type->tp_name : null_str);
 	}
-	fprintf(stderr, "\n");
+}
+
+/**
+ * A version of #PyC_ObSpit that writes into a string (and doesn't take a name argument).
+ * Use for logging.
+ */
+void PyC_ObSpitStr(char *result, size_t result_len, PyObject *var)
+{
+	/* No name, creator of string can manage that. */
+	const char *null_str = "<null>";
+	if (var == NULL) {
+		BLI_snprintf(result, result_len, "%s", null_str);
+	}
+	else {
+		const PyTypeObject *type = Py_TYPE(var);
+		PyObject *var_str = PyObject_Repr(var);
+		if (var_str == NULL) {
+			/* We could print error here, but this may be used for generating errors - so don't for now. */
+			PyErr_Clear();
+		}
+		BLI_snprintf(
+		        result, result_len,
+		        " ref=%d, ptr=%p, type=%s, value=%.200s",
+		        (int)var->ob_refcnt,
+		        (void *)var,
+		        type ? type->tp_name : null_str,
+		        var_str ? _PyUnicode_AsString(var_str) : "<error>");
+		if (var_str != NULL) {
+			Py_DECREF(var_str);
+		}
+	}
 }
 
 void PyC_LineSpit(void)

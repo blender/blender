@@ -31,6 +31,7 @@
 #include "BLI_utildefines_variadic.h"
 
 void			PyC_ObSpit(const char *name, PyObject *var);
+void			PyC_ObSpitStr(char *result, size_t result_len, PyObject *var);
 void			PyC_LineSpit(void);
 void			PyC_StackSpit(void);
 PyObject *		PyC_ExceptionBuffer(void);

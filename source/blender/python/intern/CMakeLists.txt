@@ -23,7 +23,7 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 
-set(INC 
+set(INC
 	..
 	../../blenkernel
 	../../blenlib
@@ -35,9 +35,10 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../../../intern/cycles/blender
-	../../../../intern/opencolorio
+	../../../../intern/clog
 	../../../../intern/guardedalloc
+	../../../../intern/opencolorio
+	../../../../intern/cycles/blender
 )
 
 set(INC_SYS
@@ -111,6 +112,7 @@ set(SRC
 	bpy_utils_units.h
 	gpu.h
 	../BPY_extern.h
+	../BPY_extern_clog.h
 )
 
 # only to check if buildinfo is available
