@@ -68,6 +68,28 @@ static SceneCollection *collection_master_from_id(const ID *owner_id)
 }
 
 /**
+ * The automatic/fallback name of a new collection.
+ */
+void BKE_collection_new_name_get(ID *owner_id, SceneCollection *sc_parent, char *rname)
+{
+	SceneCollection *sc_master = collection_master_from_id(owner_id);
+	char *name;
+
+	if (sc_parent == sc_master) {
+		name = BLI_sprintfN("Collection %d", BLI_listbase_count(&sc_master->scene_collections) + 1);
+	}
+	else {
+		const int number = BLI_listbase_count(&sc_parent->scene_collections) + 1;
+		const int digits = integer_digits_i(number);
+		const int max_len = sizeof(sc_parent->name) - 1 /* NULL terminator */ - (1 + digits) /* " %d" */;
+		name = BLI_sprintfN("%.*s %d", max_len, sc_parent->name, number);
+	}
+
+	BLI_strncpy(rname, name, MAX_NAME);
+	MEM_freeN(name);
+}
+
+/**
  * Add a new collection, but don't handle syncing with layer collections
  */
 static SceneCollection *collection_add(ID *owner_id, SceneCollection *sc_parent, const int type, const char *name_custom)
@@ -75,30 +97,21 @@ static SceneCollection *collection_add(ID *owner_id, SceneCollection *sc_parent,
 	SceneCollection *sc_master = collection_master_from_id(owner_id);
 	SceneCollection *sc = MEM_callocN(sizeof(SceneCollection), "New Collection");
 	sc->type = type;
-	const char *name = name_custom;
+	char name[MAX_NAME];
 
 	if (!sc_parent) {
 		sc_parent = sc_master;
 	}
 
-	if (!name) {
-		if (sc_parent == sc_master) {
-			name = BLI_sprintfN("Collection %d", BLI_listbase_count(&sc_master->scene_collections) + 1);
-		}
-		else {
-			const int number = BLI_listbase_count(&sc_parent->scene_collections) + 1;
-			const int digits = integer_digits_i(number);
-			const int max_len = sizeof(sc_parent->name) - 1 /* NULL terminator */ - (1 + digits) /* " %d" */;
-			name = BLI_sprintfN("%.*s %d", max_len, sc_parent->name, number);
-		}
+	if (name_custom != NULL) {
+		BLI_strncpy(name, name_custom, MAX_NAME);
+	}
+	else {
+		BKE_collection_new_name_get(owner_id, sc_parent, name);
 	}
 
 	BLI_addtail(&sc_parent->scene_collections, sc);
 	BKE_collection_rename(owner_id, sc, name);
-
-	if (name != name_custom) {
-		MEM_freeN((char *)name);
-	}
 
 	return sc;
 }
