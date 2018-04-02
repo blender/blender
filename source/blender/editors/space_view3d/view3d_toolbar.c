@@ -55,7 +55,7 @@
 #include "RNA_access.h"
 
 #include "ED_screen.h"
-#include "ED_util.h"
+#include "ED_undo.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"

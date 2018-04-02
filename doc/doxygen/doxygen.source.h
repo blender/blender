@@ -316,6 +316,10 @@
  *  \ingroup editors
  */
 
+/** \defgroup edundo undo utilities
+ *  \ingroup editors
+ */
+
 /** \defgroup spuv UV editing
  *  \ingroup editors
  */

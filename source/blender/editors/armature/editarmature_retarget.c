@@ -42,7 +42,7 @@
 #include "BKE_context.h"
 
 #include "ED_armature.h"
-#include "ED_util.h"
+#include "ED_undo.h"
 
 #include "BIF_retarget.h"
 
