@@ -2222,12 +2222,19 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 	prop = RNA_struct_find_property(op->ptr, "collection_index");
 	if (RNA_property_is_set(op->ptr, prop)) {
+		int collection_index = RNA_property_int_get(op->ptr, prop);
 		RNA_boolean_set(op->ptr, "is_add", event->ctrl);
 
 		if (RNA_boolean_get(op->ptr, "is_new")) {
 			prop = RNA_struct_find_property(op->ptr, "new_collection_name");
 			if (!RNA_property_is_set(op->ptr, prop)) {
-				RNA_property_string_set(op->ptr, prop, "New Collection");
+				char name[MAX_NAME];
+				SceneCollection *scene_collection;
+
+				scene_collection = BKE_collection_from_index(CTX_data_scene(C), collection_index);
+				BKE_collection_new_name_get(&CTX_data_scene(C)->id, scene_collection, name);
+
+				RNA_property_string_set(op->ptr, prop, name);
 				return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
 			}
 		}
