@@ -297,7 +297,10 @@ bool BKE_displist_surfindex_get(DispList *dl, int a, int *b, int *p1, int *p2, i
 }
 
 /* ****************** make displists ********************* */
-
+#ifdef __INTEL_COMPILER
+/* ICC with the optimization -02 causes crashes. */
+#   pragma intel optimization_level 1
+#endif
 static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase,
                               const bool for_render, const bool use_render_resolution)
 {
