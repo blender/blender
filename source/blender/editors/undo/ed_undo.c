@@ -26,16 +26,13 @@
  */
 
 /** \file blender/editors/util/undo.c
- *  \ingroup edutil
+ *  \ingroup edundo
  */
 
-#include <stdlib.h>
 #include <string.h>
-#include <math.h>
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -45,26 +42,13 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
-#include "BKE_library_override.h"
-#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_undo_system.h"
 
-#include "DEG_depsgraph.h"
-
-#include "ED_armature.h"
-#include "ED_particle.h"
-#include "ED_curve.h"
 #include "ED_gpencil.h"
-#include "ED_lattice.h"
-#include "ED_mball.h"
-#include "ED_mesh.h"
-#include "ED_object.h"
 #include "ED_render.h"
 #include "ED_screen.h"
-#include "ED_paint.h"
-#include "ED_util.h"
-#include "ED_text.h"
+#include "ED_undo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -75,9 +59,11 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "util_intern.h"
-
-/* ***************** generic undo system ********************* */
+/* -------------------------------------------------------------------- */
+/** \name Generic Undo System Access
+ *
+ * Non-operator undo editor functions.
+ * \{ */
 
 void ED_undo_push(bContext *C, const char *str)
 {
@@ -204,6 +190,12 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 	return BKE_undosys_stack_has_undo(wm->undo_stack, undoname);
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Undo, Undo Push & Redo Operators
+ * \{ */
+
 static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/* "last operator" should disappear, later we can tie this with undo stack nicer */
@@ -234,11 +226,9 @@ static int ed_undo_redo_exec(bContext *C, wmOperator *UNUSED(op))
 static int ed_undo_redo_poll(bContext *C)
 {
 	wmOperator *last_op = WM_operator_last_redo(C);
-	return last_op && ED_operator_screenactive(C) && 
+	return last_op && ED_operator_screenactive(C) &&
 		WM_operator_check_ui_enabled(C, last_op->type->name);
 }
-
-/* ********************** */
 
 void ED_OT_undo(wmOperatorType *ot)
 {
@@ -246,7 +236,7 @@ void ED_OT_undo(wmOperatorType *ot)
 	ot->name = "Undo";
 	ot->description = "Undo previous action";
 	ot->idname = "ED_OT_undo";
-	
+
 	/* api callbacks */
 	ot->exec = ed_undo_exec;
 	ot->poll = ED_operator_screenactive;
@@ -258,7 +248,7 @@ void ED_OT_undo_push(wmOperatorType *ot)
 	ot->name = "Undo Push";
 	ot->description = "Add an undo state (internal use only)";
 	ot->idname = "ED_OT_undo_push";
-	
+
 	/* api callbacks */
 	ot->exec = ed_undo_push_exec;
 
@@ -273,7 +263,7 @@ void ED_OT_redo(wmOperatorType *ot)
 	ot->name = "Redo";
 	ot->description = "Redo previous action";
 	ot->idname = "ED_OT_redo";
-	
+
 	/* api callbacks */
 	ot->exec = ed_redo_exec;
 	ot->poll = ED_operator_screenactive;
@@ -285,11 +275,17 @@ void ED_OT_undo_redo(wmOperatorType *ot)
 	ot->name = "Undo and Redo";
 	ot->description = "Undo and redo previous action";
 	ot->idname = "ED_OT_undo_redo";
-	
+
 	/* api callbacks */
 	ot->exec = ed_undo_redo_exec;
 	ot->poll = ed_undo_redo_poll;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Operator Repeat
+ * \{ */
 
 /* ui callbacks should call this rather than calling WM_operator_repeat() themselves */
 int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
@@ -376,8 +372,11 @@ void ED_undo_operator_repeat_cb_evt(bContext *C, void *arg_op, int UNUSED(arg_ev
 	ED_undo_operator_repeat(C, (wmOperator *)arg_op);
 }
 
+/** \} */
 
-/* ************************** */
+/* -------------------------------------------------------------------- */
+/** \name Undo History Operator
+ * \{ */
 
 /* create enum based on undo items */
 static const EnumPropertyItem *rna_undo_itemf(bContext *C, int *totitem)
@@ -393,7 +392,6 @@ static const EnumPropertyItem *rna_undo_itemf(bContext *C, int *totitem)
 	for (UndoStep *us = wm->undo_stack->steps.first; us; us = us->next, i++) {
 		if (us->skip == false) {
 			item_tmp.identifier = us->name;
-			/* XXX This won't work with non-default contexts (e.g. operators) :/ */
 			item_tmp.name = IFACE_(us->name);
 			if (us == wm->undo_stack->step_active) {
 				item_tmp.icon = ICON_RESTRICT_VIEW_OFF;
@@ -426,7 +424,7 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 			const int col_size = 20 + totitem / 12;
 			int i, c;
 			bool add_col = true;
-			
+
 			for (c = 0, i = totitem; i--;) {
 				if (add_col && !(c % col_size)) {
 					column = uiLayoutColumn(split, false);
@@ -438,12 +436,12 @@ static int undo_history_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSE
 					add_col = true;
 				}
 			}
-			
+
 			MEM_freeN((void *)item);
-			
+
 			UI_popup_menu_end(C, pup);
 		}
-		
+
 	}
 	return OPERATOR_CANCELLED;
 }
@@ -468,14 +466,14 @@ void ED_OT_undo_history(wmOperatorType *ot)
 	ot->name = "Undo History";
 	ot->description = "Redo specific action in history";
 	ot->idname = "ED_OT_undo_history";
-	
+
 	/* api callbacks */
 	ot->invoke = undo_history_invoke;
 	ot->exec = undo_history_exec;
 	ot->poll = ED_operator_screenactive;
-	
+
 	RNA_def_int(ot->srna, "item", 0, 0, INT_MAX, "Item", "", 0, INT_MAX);
 
 }
 
-
+/** \} */

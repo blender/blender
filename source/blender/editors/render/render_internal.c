@@ -77,6 +77,7 @@
 #include "ED_render.h"
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_undo.h"
 #include "ED_view3d.h"
 
 #include "RE_pipeline.h"

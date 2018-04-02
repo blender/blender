@@ -45,6 +45,7 @@
 #include "BLI_utildefines.h"
 
 #include "BPY_extern.h"
+#include "BPY_extern_clog.h"
 
 #include "bpy_rna.h"
 #include "bpy_rna_anim.h"
@@ -60,6 +61,8 @@
 #include "RNA_enum_types.h"
 #include "RNA_define.h" /* RNA_def_property_free_identifier */
 #include "RNA_access.h"
+
+#include "CLG_log.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1418,10 +1421,11 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 					const char *ptr_name = RNA_struct_name_get_alloc(ptr, NULL, 0, NULL);
 
 					/* prefer not fail silently in case of api errors, maybe disable it later */
-					printf("RNA Warning: Current value \"%d\" "
-					       "matches no enum in '%s', '%s', '%s'\n",
-					       val, RNA_struct_identifier(ptr->type),
-					       ptr_name, RNA_property_identifier(prop));
+					CLOG_WARN(BPY_LOG_RNA,
+					          "Current value \"%d\" "
+					          "matches no enum in '%s', '%s', '%s'\n",
+					          val, RNA_struct_identifier(ptr->type),
+					          ptr_name, RNA_property_identifier(prop));
 
 #if 0				/* gives python decoding errors while generating docs :( */
 					char error_str[256];
@@ -6605,7 +6609,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 		if (bpy_types == NULL) {
 			PyErr_Print();
 			PyErr_Clear();
-			fprintf(stderr, "%s: failed to find 'bpy_types' module\n", __func__);
+			CLOG_ERROR(BPY_LOG_RNA, "failed to find 'bpy_types' module\n");
 			return NULL;
 		}
 		bpy_types_dict = PyModule_GetDict(bpy_types);  /* borrow */
@@ -6623,20 +6627,22 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 		PyObject *tp_slots = PyDict_GetItem(((PyTypeObject *)newclass)->tp_dict, bpy_intern_str___slots__);
 
 		if (tp_slots == NULL) {
-			fprintf(stderr, "%s: expected class '%s' to have __slots__ defined\n\nSee bpy_types.py\n", __func__, idname);
+			CLOG_ERROR(BPY_LOG_RNA, "expected class '%s' to have __slots__ defined, see bpy_types.py\n", idname);
 			newclass = NULL;
 		}
 		else if (PyTuple_GET_SIZE(tp_bases)) {
 			PyObject *base = PyTuple_GET_ITEM(tp_bases, 0);
 
 			if (base_compare != base) {
-				fprintf(stderr, "%s: incorrect subclassing of SRNA '%s'\nSee bpy_types.py\n", __func__, idname);
-				PyC_ObSpit("Expected! ", base_compare);
+				char pyob_info[256];
+				PyC_ObSpitStr(pyob_info, sizeof(pyob_info), base_compare);
+				CLOG_ERROR(BPY_LOG_RNA,
+				           "incorrect subclassing of SRNA '%s', expected '%s', see bpy_types.py\n",
+				           idname, pyob_info);
 				newclass = NULL;
 			}
 			else {
-				if (G.debug & G_DEBUG_PYTHON)
-					fprintf(stderr, "SRNA Subclassed: '%s'\n", idname);
+				CLOG_INFO(BPY_LOG_RNA, 2, "SRNA sub-classed: '%s'\n", idname);
 			}
 		}
 	}
@@ -6734,7 +6740,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 		}
 		else {
 			/* this should not happen */
-			printf("%s: error registering '%s'\n", __func__, idname);
+			CLOG_ERROR(BPY_LOG_RNA, "error registering '%s'", idname);
 			PyErr_Print();
 			PyErr_Clear();
 		}
@@ -6800,7 +6806,7 @@ PyObject *pyrna_struct_CreatePyObject(PointerRNA *ptr)
 			Py_DECREF(tp); /* srna owns, cant hold a ref */
 		}
 		else {
-			fprintf(stderr, "%s: could not make type\n", __func__);
+			CLOG_WARN(BPY_LOG_RNA, "could not make type '%s'", RNA_struct_identifier(ptr->type));
 			pyrna = (BPy_StructRNA *) PyObject_GC_New(BPy_StructRNA, &pyrna_struct_Type);
 #ifdef USE_WEAKREFS
 			pyrna->in_weakreflist = NULL;
@@ -7607,8 +7613,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	py_class = RNA_struct_py_type_get(ptr->type);
 	/* rare case. can happen when registering subclasses */
 	if (py_class == NULL) {
-		fprintf(stderr, "%s: unable to get python class for rna struct '%.200s'\n",
-		        __func__, RNA_struct_identifier(ptr->type));
+		CLOG_WARN(BPY_LOG_RNA, "unable to get Python class for rna struct '%.200s'\n", RNA_struct_identifier(ptr->type));
 		return -1;
 	}
 

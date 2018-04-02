@@ -19,7 +19,7 @@
  */
 
 /** \file blender/editors/util/undo_system_types.c
- *  \ingroup edutil
+ *  \ingroup edundo
  */
 
 #include <string.h>
@@ -36,8 +36,8 @@
 #include "ED_particle.h"
 #include "ED_sculpt.h"
 #include "ED_text.h"
-#include "ED_util.h"
-#include "util_intern.h"
+#include "ED_undo.h"
+#include "undo_intern.h"
 
 /* Keep last */
 #include "BKE_undo_system.h"

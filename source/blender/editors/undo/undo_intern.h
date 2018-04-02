@@ -15,30 +15,21 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2008 Blender Foundation.
- * All rights reserved.
- *
- * 
- * Contributor(s): Blender Foundation
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/util/util_intern.h
- *  \ingroup edutil
+/** \file blender/editors/undo/undo_intern.h
+ *  \ingroup edundo
  */
 
-
-#ifndef __UTIL_INTERN_H__
-#define __UTIL_INTERN_H__
+#ifndef __UNDO_INTERN_H__
+#define __UNDO_INTERN_H__
 
 /* internal exports only */
 
 struct UndoType;
-struct Main;
-struct Scene;
 
 /* memfile_undo.c */
 void ED_memfile_undosys_type(struct UndoType *ut);
 
-#endif /* __UTIL_INTERN_H__ */
+#endif /* __UNDO_INTERN_H__ */

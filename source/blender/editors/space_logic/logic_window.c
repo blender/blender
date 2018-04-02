@@ -56,7 +56,7 @@
 #include "BKE_main.h"
 #include "BKE_sca.h"
 
-#include "ED_util.h"
+#include "ED_undo.h"
 
 #include "BLT_translation.h"
 

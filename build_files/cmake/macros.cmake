@@ -565,8 +565,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 	set(BLENDER_SORTED_LIBS
 		bf_windowmanager
 
-		# needed twice because of text undo
-		bf_editor_util
+		bf_editor_undo
 
 		bf_editor_space_api
 		bf_editor_space_action

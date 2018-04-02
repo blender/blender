@@ -19,9 +19,9 @@
  */
 
 /** \file blender/editors/util/memfile_undo.c
- *  \ingroup edutil
+ *  \ingroup edundo
  *
- * Wrapper between 'BKE_undo.h' and 'BKE_undo_system.h'
+ * Wrapper between 'ED_undo.h' and 'BKE_undo_system.h' API's.
  */
 
 #include "BLI_utildefines.h"
@@ -37,13 +37,13 @@
 #include "WM_types.h"
 
 #include "ED_object.h"
-#include "ED_util.h"
+#include "ED_undo.h"
 #include "ED_render.h"
 
 
 #include "../blenloader/BLO_undofile.h"
 
-#include "util_intern.h"
+#include "undo_intern.h"
 
 /** Store workspace modes in undo steps, this may be removed if find a better way to handle. */
 #define USE_WORKSPACE_OBJECT_MODE_HACK

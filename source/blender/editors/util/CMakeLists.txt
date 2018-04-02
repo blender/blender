@@ -42,12 +42,8 @@ set(INC_SYS
 set(SRC
 	ed_transverts.c
 	ed_util.c
-	memfile_undo.c
 	numinput.c
-	undo.c
-	undo_system_types.c
 
-	util_intern.h
 	# general includes
 	../include/BIF_gl.h
 	../include/BIF_glutil.h

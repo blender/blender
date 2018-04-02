@@ -33,6 +33,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_path_util.h"
 #include "BLI_fileops.h"
@@ -76,6 +78,9 @@
 #include "../bmesh/bmesh_py_api.h"
 #include "../mathutils/mathutils.h"
 
+/* Logging types to use anywhere in the Python modules. */
+CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_CONTEXT, "bpy.context");
+CLG_LOGREF_DECLARE_GLOBAL(BPY_LOG_RNA, "bpy.rna");
 
 /* for internal use, when starting and ending python scripts */
 
@@ -803,8 +808,9 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 					CTX_data_list_add(result, ptr->id.data, ptr->type, ptr->data);
 				}
 				else {
-					printf("PyContext: '%s' list item not a valid type in sequece type '%s'\n",
-					       member, Py_TYPE(item)->tp_name);
+					CLOG_INFO(BPY_LOG_CONTEXT, 1,
+					          "'%s' list item not a valid type in sequence type '%s'",
+					          member, Py_TYPE(item)->tp_name);
 				}
 
 			}
@@ -816,16 +822,14 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 	if (done == false) {
 		if (item) {
-			printf("PyContext '%s' not a valid type\n", member);
+			CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not a valid type", member);
 		}
 		else {
-			printf("PyContext '%s' not found\n", member);
+			CLOG_INFO(BPY_LOG_CONTEXT, 1, "'%s' not found\n", member);
 		}
 	}
 	else {
-		if (G.debug & G_DEBUG_PYTHON) {
-			printf("PyContext '%s' found\n", member);
-		}
+		CLOG_INFO(BPY_LOG_CONTEXT, 2, "'%s' found", member);
 	}
 
 	if (use_gil)

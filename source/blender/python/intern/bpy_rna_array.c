@@ -28,6 +28,8 @@
 
 #include <Python.h>
 
+#include "CLG_log.h"
+
 #include "BLI_utildefines.h"
 
 #include "RNA_types.h"
@@ -38,6 +40,8 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+
+#include "BPY_extern_clog.h"
 
 #include "../generic/py_capi_utils.h"
 
@@ -785,8 +789,7 @@ PyObject *pyrna_py_from_array_index(BPy_PropertyArrayRNA *self, PointerRNA *ptr,
 	len = RNA_property_multi_array_length(ptr, prop, arraydim);
 	if (index >= len || index < 0) {
 		/* this shouldn't happen because higher level funcs must check for invalid index */
-		if (G.debug & G_DEBUG_PYTHON)
-			printf("%s: invalid index %d for array with length=%d\n", __func__, index, len);
+		CLOG_WARN(BPY_LOG_RNA, "invalid index %d for array with length=%d", index, len);
 
 		PyErr_SetString(PyExc_IndexError, "out of range");
 		return NULL;

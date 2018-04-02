@@ -106,6 +106,7 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 #include "ED_util.h"
+#include "ED_undo.h"
 
 #include "GHOST_C-api.h"
 #include "GHOST_Path-api.h"

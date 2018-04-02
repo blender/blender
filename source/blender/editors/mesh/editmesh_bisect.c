@@ -58,7 +58,7 @@
 
 #ifdef USE_MANIPULATOR
 #include "ED_manipulator_library.h"
-#include "ED_util.h"
+#include "ED_undo.h"
 #endif
 
 static int mesh_bisect_exec(bContext *C, wmOperator *op);

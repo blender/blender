@@ -53,7 +53,7 @@
 
 #include "ED_node.h"  /* own include */
 
-#include "ED_util.h"
+#include "ED_undo.h"
 
 
 /************************* Node Socket Manipulation **************************/

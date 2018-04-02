@@ -61,10 +61,16 @@ typedef struct {
 	ListBase fcurves, drivers;
 	int actnu;
 	int flag;
+
+	/* Stored in the object, needed since users may change the active key while in edit-mode. */
+	struct {
+		short shapenr;
+	} obedit;
+
 	size_t undo_size;
 } UndoCurve;
 
-static void undocurve_to_editcurve(UndoCurve *ucu, Curve *cu)
+static void undocurve_to_editcurve(UndoCurve *ucu, Curve *cu, short *r_shapenr)
 {
 	ListBase *undobase = &ucu->nubase;
 	ListBase *editbase = BKE_curve_editNurbs_get(cu);
@@ -103,10 +109,11 @@ static void undocurve_to_editcurve(UndoCurve *ucu, Curve *cu)
 	cu->actvert = ucu->actvert;
 	cu->actnu = ucu->actnu;
 	cu->flag = ucu->flag;
+	*r_shapenr = ucu->obedit.shapenr;
 	ED_curve_updateAnimPaths(cu);
 }
 
-static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu)
+static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu, const short shapenr)
 {
 	BLI_assert(BLI_array_is_zeroed(ucu, 1));
 	ListBase *nubase = BKE_curve_editNurbs_get(cu);
@@ -150,6 +157,8 @@ static void undocurve_from_editcurve(UndoCurve *ucu, Curve *cu)
 	ucu->actvert = cu->actvert;
 	ucu->actnu = cu->actnu;
 	ucu->flag = cu->flag;
+
+	ucu->obedit.shapenr = shapenr;
 }
 
 static void undocurve_free_data(UndoCurve *uc)
@@ -197,7 +206,7 @@ static bool curve_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
 	CurveUndoStep *us = (CurveUndoStep *)us_p;
 	us->obedit_ref.ptr = editcurve_object_from_context(C);
-	undocurve_from_editcurve(&us->data, us->obedit_ref.ptr->data);
+	undocurve_from_editcurve(&us->data, us->obedit_ref.ptr->data, us->obedit_ref.ptr->shapenr);
 	us->step.data_size = us->data.undo_size;
 	return true;
 }
@@ -210,7 +219,7 @@ static void curve_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UN
 
 	CurveUndoStep *us = (CurveUndoStep *)us_p;
 	Object *obedit = us->obedit_ref.ptr;
-	undocurve_to_editcurve(&us->data, obedit->data);
+	undocurve_to_editcurve(&us->data, obedit->data, &obedit->shapenr);
 	DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 }

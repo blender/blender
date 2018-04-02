@@ -62,7 +62,7 @@
 #include "UI_resources.h"
 
 #include "ED_anim_api.h"
-#include "ED_util.h"
+#include "ED_undo.h"
 
 /* ********************************************** */
 /* UI STUFF */

@@ -68,7 +68,6 @@
 
 #include "MEM_guardedalloc.h"
 
-
 #ifdef WITH_AVI
 #  include "AVI_avi.h"
 #endif
@@ -83,6 +82,8 @@
 #include "IMB_indexer.h"
 
 #ifdef WITH_FFMPEG
+#  include "BKE_global.h"  /* ENDIAN_ORDER */
+
 #  include <libavformat/avformat.h>
 #  include <libavcodec/avcodec.h>
 #  include <libavutil/rational.h>
