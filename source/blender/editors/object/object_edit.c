@@ -2082,7 +2082,9 @@ static int move_to_collection_exec(bContext *C, wmOperator *op)
 	CTX_DATA_END;
 
 	if (is_new) {
-		scene_collection = BKE_collection_add(&scene->id, scene_collection, COLLECTION_TYPE_NONE, NULL);
+		char new_collection_name[MAX_NAME];
+		RNA_string_get(op->ptr, "new_collection_name", new_collection_name);
+		scene_collection = BKE_collection_add(&scene->id, scene_collection, COLLECTION_TYPE_NONE, new_collection_name);
 	}
 
 	if ((single_object != NULL) &&
@@ -2216,9 +2218,19 @@ static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionDat
 
 static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "collection_index");
+	PropertyRNA *prop;
+
+	prop = RNA_struct_find_property(op->ptr, "collection_index");
 	if (RNA_property_is_set(op->ptr, prop)) {
 		RNA_boolean_set(op->ptr, "is_add", event->ctrl);
+
+		if (RNA_boolean_get(op->ptr, "is_new")) {
+			prop = RNA_struct_find_property(op->ptr, "new_collection_name");
+			if (!RNA_property_is_set(op->ptr, prop)) {
+				RNA_property_string_set(op->ptr, prop, "New Collection");
+				return WM_operator_props_dialog_popup(C, op, 10 * UI_UNIT_X, 5 * UI_UNIT_Y);
+			}
+		}
 		return move_to_collection_exec(C, op);
 	}
 
@@ -2279,10 +2291,13 @@ void OBJECT_OT_move_to_collection(wmOperatorType *ot)
 
 	prop = RNA_def_int(ot->srna, "collection_index", COLLECTION_INVALID_INDEX, COLLECTION_INVALID_INDEX, INT_MAX,
 	                   "Collection Index", "Index of the collection to move to", 0, INT_MAX);
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 	prop = RNA_def_boolean(ot->srna, "is_add", false, "Add", "Keep object in original collections as well");
-	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
 	prop = RNA_def_boolean(ot->srna, "is_new", false, "New", "Move objects to a new collection");
+	RNA_def_property_flag(prop, PROP_SKIP_SAVE | PROP_HIDDEN);
+	prop = RNA_def_string(ot->srna, "new_collection_name", NULL, MAX_NAME, "Name",
+	                      "Name of the newly added collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
