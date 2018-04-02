@@ -2150,15 +2150,26 @@ static int move_to_collection_menus_create(wmOperator *op, MoveToCollectionData 
 	return index;
 }
 
-static void move_to_collection_menus_free(MoveToCollectionData *menu)
+static void move_to_collection_menus_free_recursive(MoveToCollectionData *menu)
 {
 	for (MoveToCollectionData *submenu = menu->submenus.first;
 	     submenu != NULL;
 	     submenu = submenu->next)
 	{
-		move_to_collection_menus_free(submenu);
+		move_to_collection_menus_free_recursive(submenu);
 	}
 	BLI_freelistN(&menu->submenus);
+}
+
+static void move_to_collection_menus_free(MoveToCollectionData **menu)
+{
+	if (*menu == NULL) {
+		return;
+	}
+
+	move_to_collection_menus_free_recursive(*menu);
+	MEM_freeN(*menu);
+	*menu = NULL;
 }
 
 static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout, void *menu_v)
@@ -2216,10 +2227,15 @@ static void move_to_collection_menus_items(uiLayout *layout, MoveToCollectionDat
 	}
 }
 
+/* This is allocated statically because we need this available for the menus creation callback. */
+static MoveToCollectionData *master_collection_menu = NULL;
+
 static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	PropertyRNA *prop;
+	/* Reset the menus data for the current master collection, and free previously allocated data. */
+	move_to_collection_menus_free(&master_collection_menu);
 
+	PropertyRNA *prop;
 	prop = RNA_struct_find_property(op->ptr, "collection_index");
 	if (RNA_property_is_set(op->ptr, prop)) {
 		int collection_index = RNA_property_int_get(op->ptr, prop);
@@ -2248,15 +2264,10 @@ static int move_to_collection_invoke(bContext *C, wmOperator *op, const wmEvent 
 	 * called to an operator that exit with OPERATOR_INTERFACE to launch a menu.
 	 *
 	 * So we are left with a memory that will necessarily leak. It's a small leak though.*/
-	static MoveToCollectionData *master_collection_menu = NULL;
-
 	if (master_collection_menu == NULL) {
 		master_collection_menu = MEM_callocN(sizeof(MoveToCollectionData),
-		                                     "MoveToCollectionData menu - expected memleak");
+		                                     "MoveToCollectionData menu - expected eventual memleak");
 	}
-
-	/* Reset the menus data for the current master collection, and free previously allocated data. */
-	move_to_collection_menus_free(master_collection_menu);
 
 	master_collection_menu->collection = master_collection;
 	master_collection_menu->ot = op->type;
