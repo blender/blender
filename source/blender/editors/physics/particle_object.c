@@ -911,7 +911,7 @@ typedef enum eCopyParticlesSpace {
 } eCopyParticlesSpace;
 
 static void copy_particle_edit(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        const EvaluationContext *eval_ctx, Scene *scene,
         Object *ob, ParticleSystem *psys, ParticleSystem *psys_from)
 {
 	PTCacheEdit *edit_from = psys_from->edit, *edit;
@@ -989,7 +989,6 @@ static void remove_particle_systems_from_object(Object *ob_to)
 /* single_psys_from is optional, if NULL all psys of ob_from are copied */
 static bool copy_particle_systems_to_object(const bContext *C,
                                             Scene *scene,
-                                            ViewLayer *view_layer,
                                             Object *ob_from,
                                             ParticleSystem *single_psys_from,
                                             Object *ob_to,
@@ -1074,7 +1073,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		DM_ensure_tessface(psmd->dm_final);
 		
 		if (psys_from->edit) {
-			copy_particle_edit(&eval_ctx, scene, view_layer, ob_to, psys, psys_from);
+			copy_particle_edit(&eval_ctx, scene, ob_to, psys, psys_from);
 		}
 
 		if (duplicate_settings) {
@@ -1145,7 +1144,6 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 	const bool remove_target_particles = RNA_boolean_get(op->ptr, "remove_target_particles");
 	const bool use_active = RNA_boolean_get(op->ptr, "use_active");
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob_from = ED_object_active_context(C);
 	ParticleSystem *psys_from = use_active ? CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data : NULL;
 	
@@ -1160,7 +1158,7 @@ static int copy_particle_systems_exec(bContext *C, wmOperator *op)
 				remove_particle_systems_from_object(ob_to);
 				changed = true;
 			}
-			if (copy_particle_systems_to_object(C, scene, view_layer, ob_from, psys_from, ob_to, space, false))
+			if (copy_particle_systems_to_object(C, scene, ob_from, psys_from, ob_to, space, false))
 				changed = true;
 			else
 				fail++;
@@ -1221,7 +1219,7 @@ static int duplicate_particle_systems_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
 	ParticleSystem *psys = CTX_data_pointer_get_type(C, "particle_system", &RNA_ParticleSystem).data;
-	copy_particle_systems_to_object(C, scene, CTX_data_view_layer(C), ob, psys, ob,
+	copy_particle_systems_to_object(C, scene, ob, psys, ob,
 	                                PAR_COPY_SPACE_OBJECT, duplicate_settings);
 	return OPERATOR_FINISHED;
 }
