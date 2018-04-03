@@ -555,9 +555,9 @@ static int pbvh_bmesh_node_vert_use_count(PBVH *bvh, PBVHNode *node, BMVert *v)
 #endif
 
 #define pbvh_bmesh_node_vert_use_count_is_equal(bvh, node, v, n) \
-	(pbvh_bmesh_node_vert_use_count_ex(bvh, node, v, (n) + 1) == n)
+	(pbvh_bmesh_node_vert_use_count_at_most(bvh, node, v, (n) + 1) == n)
 
-static int pbvh_bmesh_node_vert_use_count_ex(PBVH *bvh, PBVHNode *node, BMVert *v, const int count_max)
+static int pbvh_bmesh_node_vert_use_count_at_most(PBVH *bvh, PBVHNode *node, BMVert *v, const int count_max)
 {
 	int count = 0;
 	BMFace *f;

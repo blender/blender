@@ -1563,7 +1563,7 @@ static float neighbor_average_mask(SculptSession *ss, unsigned vert)
 static void bmesh_neighbor_average(float avg[3], BMVert *v)
 {
 	/* logic for 3 or more is identical */
-	const int vfcount = BM_vert_face_count_ex(v, 3);
+	const int vfcount = BM_vert_face_count_at_most(v, 3);
 
 	/* Don't modify corner vertices */
 	if (vfcount > 1) {
@@ -1578,7 +1578,7 @@ static void bmesh_neighbor_average(float avg[3], BMVert *v)
 
 			for (i = 0; i < ARRAY_SIZE(adj_v); i++) {
 				const BMVert *v_other = adj_v[i];
-				if (vfcount != 2 || BM_vert_face_count_ex(v_other, 2) <= 2) {
+				if (vfcount != 2 || BM_vert_face_count_at_most(v_other, 2) <= 2) {
 					add_v3_v3(avg, v_other->co);
 					total++;
 				}

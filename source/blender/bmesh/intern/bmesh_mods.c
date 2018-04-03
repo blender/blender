@@ -65,7 +65,7 @@
 bool BM_vert_dissolve(BMesh *bm, BMVert *v)
 {
 	/* logic for 3 or more is identical */
-	const int len = BM_vert_edge_count_ex(v, 3);
+	const int len = BM_vert_edge_count_at_most(v, 3);
 	
 	if (len == 1) {
 		BM_vert_kill(bm, v); /* will kill edges too */
