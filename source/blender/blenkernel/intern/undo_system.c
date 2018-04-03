@@ -355,7 +355,7 @@ void BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, const 
 	if (ut->step_encode_init) {
 		undosys_stack_validate(ustack, false);
 		UndoStep *us = MEM_callocN(ut->step_size, __func__);
-		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, name, us->type->name);
+		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, name, ut->name);
 		if (name != NULL) {
 			BLI_strncpy(us->name, name, sizeof(us->name));
 		}
