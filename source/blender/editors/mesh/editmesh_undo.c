@@ -687,8 +687,8 @@ static void mesh_undosys_step_encode_store_ids(MeshUndoStep *us)
 	BMesh *bm = me->edit_btmesh->bm;
 	const int mtex_len = CustomData_number_of_layers(&bm->pdata, CD_MTEXPOLY);
 	if (mtex_len != 0) {
-		ID **id_src = BLI_array_alloca(id_src,  mtex_len);
-		memset(id_src, 0x0, sizeof(*id_src) * mtex_len);
+		ID **id_prev_array = BLI_array_alloca(id_prev_array,  mtex_len);
+		memset(id_prev_array, 0x0, sizeof(*id_prev_array) * mtex_len);
 
 		BMIter iter;
 		BMFace *efa;
@@ -706,10 +706,7 @@ static void mesh_undosys_step_encode_store_ids(MeshUndoStep *us)
 			{
 				const MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 				if (tf->tpage != NULL) {
-					if ((ID *)tf->tpage != id_src[i]) {
-						BKE_undosys_ID_map_add(us->id_map, (ID *)tf->tpage);
-						id_src[i] = (ID *)tf->tpage;
-					}
+					BKE_undosys_ID_map_add_with_prev(us->id_map, (ID *)tf->tpage, &id_prev_array[i]);
 				}
 			}
 		}
@@ -725,9 +722,8 @@ static void mesh_undosys_step_decode_restore_ids(MeshUndoStep *us)
 		BMIter iter;
 		BMFace *efa;
 
-		ID **id_dst = BLI_array_alloca(id_dst,  mtex_len);
-		ID **id_src = BLI_array_alloca(id_src,  mtex_len);
-		memset(id_src, 0x0, sizeof(*id_src) * mtex_len);
+		ID *(*id_prev_array)[2] = BLI_array_alloca(id_prev_array, mtex_len);
+		memset(id_prev_array, 0x0, sizeof(*id_prev_array) * mtex_len);
 
 		uint cd_poly_tex_offset_first = CustomData_get_n_offset(&bm->pdata, CD_MTEXPOLY, 0);
 		uint cd_poly_tex_offset_end = cd_poly_tex_offset_first + (sizeof(MTexPoly) * mtex_len);
@@ -738,14 +734,7 @@ static void mesh_undosys_step_decode_restore_ids(MeshUndoStep *us)
 			{
 				MTexPoly *tf = BM_ELEM_CD_GET_VOID_P(efa, cd_poly_tex_offset);
 				if (tf->tpage != NULL) {
-					if ((ID *)tf->tpage == id_src[i]) {
-						tf->tpage = (Image *)id_dst[i];
-					}
-					else {
-						id_src[i] = (ID *)tf->tpage;
-						tf->tpage = (Image *)BKE_undosys_ID_map_lookup(us->id_map, (ID *)tf->tpage);
-						id_dst[i] = (ID *)tf->tpage;
-					}
+					tf->tpage = (Image *)BKE_undosys_ID_map_lookup_with_prev(us->id_map, (ID *)tf->tpage, id_prev_array[i]);
 				}
 			}
 		}
