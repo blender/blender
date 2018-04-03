@@ -843,7 +843,7 @@ static void import_endjob(void *user_data)
 
 		lc = BKE_layer_collection_get_active(view_layer);
 		if (lc == NULL) {
-			BLI_assert(BLI_listbase_count_ex(&view_layer->layer_collections, 1) == 0);
+			BLI_assert(BLI_listbase_count_at_most(&view_layer->layer_collections, 1) == 0);
 			/* when there is no collection linked to this ViewLayer, create one */
 			SceneCollection *sc = BKE_collection_add(&data->scene->id, NULL, COLLECTION_TYPE_NONE, NULL);
 			lc = BKE_collection_link(view_layer, sc);
