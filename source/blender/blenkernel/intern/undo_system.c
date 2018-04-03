@@ -720,6 +720,9 @@ static bool undosys_ID_map_lookup_index(const UndoIDPtrMap *map, const void *key
 			max = mid - 1;
 		}
 	}
+	if (r_index) {
+		*r_index = min;
+	}
 	return false;
 }
 
@@ -772,12 +775,13 @@ void BKE_undosys_ID_map_add(UndoIDPtrMap *map, ID *id)
 #endif
 	map->refs[len_src].ptr = id;
 
-	map->pmap[len_src].ptr = id;
-	map->pmap[len_src].index = len_src;
-	map->len = len_dst;
+	if (len_src != 0 && index != len_src) {
+		memmove(&map->pmap[index + 1], &map->pmap[index], sizeof(*map->pmap) * (len_src - index));
+	}
+	map->pmap[index].ptr = id;
+	map->pmap[index].index = len_src;
 
-	/* TODO(campbell): use binary search result and memmove instread of full-sort. */
-	qsort(map->pmap, map->len, sizeof(*map->pmap), BLI_sortutil_cmp_ptr);
+	map->len = len_dst;
 }
 
 ID *BKE_undosys_ID_map_lookup(const UndoIDPtrMap *map, const ID *id_src)
