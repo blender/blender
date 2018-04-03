@@ -629,7 +629,7 @@ static const EnumPropertyItem *rna_Property_tags_itemf(
 	int totitem = 0;
 
 	for (const EnumPropertyItem *struct_tags = RNA_struct_property_tag_defines(srna);
-	     struct_tags->identifier;
+	     struct_tags != NULL && struct_tags->identifier != NULL;
 	     struct_tags++)
 	{
 		memcpy(&tmp, struct_tags, sizeof(tmp));
