@@ -505,7 +505,7 @@ void do_versions_after_linking_280(Main *main)
 
 						soutliner->outlinevis = SO_VIEW_LAYER;
 
-						if (BLI_listbase_count_ex(&layer->layer_collections, 2) == 1) {
+						if (BLI_listbase_count_at_most(&layer->layer_collections, 2) == 1) {
 							if (soutliner->treestore == NULL) {
 								soutliner->treestore = BLI_mempool_create(
 								        sizeof(TreeStoreElem), 1, 512, BLI_MEMPOOL_ALLOW_ITER);

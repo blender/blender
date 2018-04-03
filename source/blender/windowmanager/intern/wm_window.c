@@ -1015,7 +1015,7 @@ int wm_window_new_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(even
 	WorkSpace *workspace = WM_window_get_active_workspace(win);
 	ListBase *listbase = BKE_workspace_layouts_get(workspace);
 
-	if (BLI_listbase_count_ex(listbase, 2) == 1) {
+	if (BLI_listbase_count_at_most(listbase, 2) == 1) {
 		RNA_enum_set(op->ptr, "screen", 0);
 		return wm_window_new_exec(C, op);
 	}
