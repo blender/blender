@@ -857,7 +857,7 @@ static void knife_cut_face(KnifeTool_OpData *kcd, BMFace *f, ListBase *hits)
 {
 	Ref *r;
 
-	if (BLI_listbase_count_ex(hits, 2) != 2)
+	if (BLI_listbase_count_at_most(hits, 2) != 2)
 		return;
 
 	for (r = hits->first; r->next; r = r->next) {

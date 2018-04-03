@@ -373,7 +373,7 @@ void BKE_paint_curve_clamp_endpoint_add_index(PaintCurve *pc, const int add_inde
 /* remove colour from palette. Must be certain color is inside the palette! */
 void BKE_palette_color_remove(Palette *palette, PaletteColor *color)
 {
-	if (BLI_listbase_count_ex(&palette->colors, palette->active_color) == palette->active_color) {
+	if (BLI_listbase_count_at_most(&palette->colors, palette->active_color) == palette->active_color) {
 		palette->active_color--;
 	}
 

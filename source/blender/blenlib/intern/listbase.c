@@ -484,7 +484,7 @@ void BLI_freelistN(ListBase *listbase)
  *
  * \note Use to avoid redundant looping.
  */
-int BLI_listbase_count_ex(const ListBase *listbase, const int count_max)
+int BLI_listbase_count_at_most(const ListBase *listbase, const int count_max)
 {
 	Link *link;
 	int count = 0;
