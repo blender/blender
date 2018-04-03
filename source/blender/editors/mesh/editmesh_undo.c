@@ -677,8 +677,6 @@ typedef struct MeshUndoStep {
 
 	/* note: will split out into list for multi-object-editmode. */
 	UndoRefID_Object obedit_ref;
-	/* Needed for MTexPoly's image use. */
-	UndoRefID_Object *image_array_ref;
 	UndoMesh data;
 } MeshUndoStep;
 
