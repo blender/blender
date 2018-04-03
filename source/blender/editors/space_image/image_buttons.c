@@ -762,7 +762,7 @@ static void uiblock_layer_pass_buttons(
 		}
 
 		/* view */
-		if (BLI_listbase_count_ex(&rr->views, 2) > 1 &&
+		if (BLI_listbase_count_at_most(&rr->views, 2) > 1 &&
 		    ((!show_stereo) || (!RE_RenderResult_is_stereo(rr))))
 		{
 			rview = BLI_findlink(&rr->views, iuser->view);

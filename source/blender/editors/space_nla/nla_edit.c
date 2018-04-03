@@ -1501,7 +1501,7 @@ static int nlaedit_swap_exec(bContext *C, wmOperator *op)
 			NlaStrip *mstrip = (NlaStrip *)nlt->strips.first;
 			
 			if ((mstrip->flag & NLASTRIP_FLAG_TEMP_META) &&
-			    (BLI_listbase_count_ex(&mstrip->strips, 3) == 2))
+			    (BLI_listbase_count_at_most(&mstrip->strips, 3) == 2))
 			{
 				/* remove this temp meta, so that we can see the strips inside */
 				BKE_nlastrips_clear_metas(&nlt->strips, 0, 1);

@@ -355,7 +355,7 @@ void BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, const 
 	if (ut->step_encode_init) {
 		undosys_stack_validate(ustack, false);
 		UndoStep *us = MEM_callocN(ut->step_size, __func__);
-		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, name, us->type->name);
+		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, name, ut->name);
 		if (name != NULL) {
 			BLI_strncpy(us->name, name, sizeof(us->name));
 		}
@@ -720,6 +720,9 @@ static bool undosys_ID_map_lookup_index(const UndoIDPtrMap *map, const void *key
 			max = mid - 1;
 		}
 	}
+	if (r_index) {
+		*r_index = min;
+	}
 	return false;
 }
 
@@ -772,11 +775,13 @@ void BKE_undosys_ID_map_add(UndoIDPtrMap *map, ID *id)
 #endif
 	map->refs[len_src].ptr = id;
 
-	map->pmap[len_src].ptr = id;
-	map->pmap[len_src].index = len_src;
-	map->len = len_dst;
+	if (len_src != 0 && index != len_src) {
+		memmove(&map->pmap[index + 1], &map->pmap[index], sizeof(*map->pmap) * (len_src - index));
+	}
+	map->pmap[index].ptr = id;
+	map->pmap[index].index = len_src;
 
-	qsort(map->pmap, map->len, sizeof(*map->pmap), BLI_sortutil_cmp_ptr);
+	map->len = len_dst;
 }
 
 ID *BKE_undosys_ID_map_lookup(const UndoIDPtrMap *map, const ID *id_src)
@@ -786,10 +791,33 @@ ID *BKE_undosys_ID_map_lookup(const UndoIDPtrMap *map, const ID *id_src)
 	if (!undosys_ID_map_lookup_index(map, id_src, &index)) {
 		BLI_assert(0);
 	}
+	index = map->pmap[index].index;
 	ID *id_dst = map->refs[index].ptr;
 	BLI_assert(id_dst != NULL);
 	BLI_assert(STREQ(id_dst->name, map->refs[index].name));
 	return id_dst;
+}
+
+void BKE_undosys_ID_map_add_with_prev(UndoIDPtrMap *map, ID *id, ID **id_prev)
+{
+	if (id == *id_prev) {
+		return;
+	}
+	*id_prev = id;
+	BKE_undosys_ID_map_add(map, id);
+}
+
+ID *BKE_undosys_ID_map_lookup_with_prev(const UndoIDPtrMap *map, ID *id_src, ID *id_prev_match[2])
+{
+	if (id_src == id_prev_match[0]) {
+		return id_prev_match[1];
+	}
+	else {
+		ID *id_dst = BKE_undosys_ID_map_lookup(map, id_src);
+		id_prev_match[0] = id_src;
+		id_prev_match[1] = id_dst;
+		return id_dst;
+	}
 }
 
 /** \} */

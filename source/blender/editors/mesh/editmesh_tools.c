@@ -1126,7 +1126,7 @@ static bool bm_vert_connect_select_history(BMesh *bm)
 	 * - Otherwise connect faces.
 	 * - If all edges have been created already, closed the loop.
 	 */
-	if (BLI_listbase_count_ex(&bm->selected, 2) == 2 && (bm->totvertsel > 2)) {
+	if (BLI_listbase_count_at_most(&bm->selected, 2) == 2 && (bm->totvertsel > 2)) {
 		BMEditSelection *ese;
 		int tot = 0;
 		bool changed = false;

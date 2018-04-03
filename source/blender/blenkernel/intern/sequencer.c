@@ -2959,7 +2959,7 @@ static ImBuf *seq_render_movie_strip(const SeqRenderData *context, Sequence *seq
 		int totviews;
 		int i;
 
-		if (totfiles != BLI_listbase_count_ex(&seq->anims, totfiles + 1))
+		if (totfiles != BLI_listbase_count_at_most(&seq->anims, totfiles + 1))
 			goto monoview_movie;
 
 		totviews = BKE_scene_multiview_num_views_get(&context->scene->r);

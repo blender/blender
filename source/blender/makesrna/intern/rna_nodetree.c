@@ -2723,7 +2723,7 @@ static int rna_Node_image_has_views_get(PointerRNA *ptr)
 
 	if (!ima || !(ima->rr)) return 0;
 
-	return BLI_listbase_count_ex(&ima->rr->views, 2) > 1;
+	return BLI_listbase_count_at_most(&ima->rr->views, 2) > 1;
 }
 
 static const EnumPropertyItem *renderresult_views_add_enum(RenderView *rv)

@@ -3180,7 +3180,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 
 	psys->part = BKE_particlesettings_add(NULL, DATA_("ParticleSettings"));
 
-	if (BLI_listbase_count_ex(&ob->particlesystem, 2) > 1)
+	if (BLI_listbase_count_at_most(&ob->particlesystem, 2) > 1)
 		BLI_snprintf(psys->name, sizeof(psys->name), DATA_("ParticleSystem %i"), BLI_listbase_count(&ob->particlesystem));
 	else
 		BLI_strncpy(psys->name, DATA_("ParticleSystem"), sizeof(psys->name));

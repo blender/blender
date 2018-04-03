@@ -799,9 +799,9 @@ int BM_vert_edge_count(const BMVert *v)
 	return bmesh_disk_count(v);
 }
 
-int BM_vert_edge_count_ex(const BMVert *v, const int count_max)
+int BM_vert_edge_count_at_most(const BMVert *v, const int count_max)
 {
-	return bmesh_disk_count_ex(v, count_max);
+	return bmesh_disk_count_at_most(v, count_max);
 }
 
 int BM_vert_edge_count_nonwire(const BMVert *v)
@@ -835,7 +835,7 @@ int BM_edge_face_count(const BMEdge *e)
 	return count;
 }
 
-int BM_edge_face_count_ex(const BMEdge *e, const int count_max)
+int BM_edge_face_count_at_most(const BMEdge *e, const int count_max)
 {
 	int count = 0;
 
@@ -863,9 +863,9 @@ int BM_vert_face_count(const BMVert *v)
 	return bmesh_disk_facevert_count(v);
 }
 
-int BM_vert_face_count_ex(const BMVert *v, int count_max)
+int BM_vert_face_count_at_most(const BMVert *v, int count_max)
 {
-	return bmesh_disk_facevert_count_ex(v, count_max);
+	return bmesh_disk_facevert_count_at_most(v, count_max);
 }
 
 /**
@@ -1044,7 +1044,7 @@ static int bm_loop_region_count__clear(BMLoop *l)
 /**
  * The number of loops connected to this loop (not including disconnected regions).
  */
-int BM_loop_region_loops_count_ex(BMLoop *l, int *r_loop_total)
+int BM_loop_region_loops_count_at_most(BMLoop *l, int *r_loop_total)
 {
 	const int count       = bm_loop_region_count__recursive(l->e, l->v);
 	const int count_total = bm_loop_region_count__clear(l);
@@ -1059,7 +1059,7 @@ int BM_loop_region_loops_count_ex(BMLoop *l, int *r_loop_total)
 
 int BM_loop_region_loops_count(BMLoop *l)
 {
-	return BM_loop_region_loops_count_ex(l, NULL);
+	return BM_loop_region_loops_count_at_most(l, NULL);
 }
 
 /**
@@ -1071,7 +1071,7 @@ bool BM_vert_is_manifold_region(const BMVert *v)
 	BMLoop *l_first = BM_vert_find_first_loop((BMVert *)v);
 	if (l_first) {
 		int count, count_total;
-		count = BM_loop_region_loops_count_ex(l_first, &count_total);
+		count = BM_loop_region_loops_count_at_most(l_first, &count_total);
 		return (count == count_total);
 	}
 	return true;

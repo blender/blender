@@ -244,7 +244,7 @@ int bmesh_disk_count(const BMVert *v)
 	return count;
 }
 
-int bmesh_disk_count_ex(const BMVert *v, const int count_max)
+int bmesh_disk_count_at_most(const BMVert *v, const int count_max)
 {
 	int count = 0;
 	if (v->e) {
@@ -267,7 +267,7 @@ bool bmesh_disk_validate(int len, BMEdge *e, BMVert *v)
 	if (!BM_vert_in_edge(e, v)) {
 		return false;
 	}
-	if (len == 0 || bmesh_disk_count_ex(v, len + 1) != len) {
+	if (len == 0 || bmesh_disk_count_at_most(v, len + 1) != len) {
 		return false;
 	}
 
@@ -307,7 +307,7 @@ int bmesh_disk_facevert_count(const BMVert *v)
 	return count;
 }
 
-int bmesh_disk_facevert_count_ex(const BMVert *v, const int count_max)
+int bmesh_disk_facevert_count_at_most(const BMVert *v, const int count_max)
 {
 	/* is there an edge on this vert at all */
 	int count = 0;
@@ -318,7 +318,7 @@ int bmesh_disk_facevert_count_ex(const BMVert *v, const int count_max)
 		e_first = e_iter = v->e;
 		do {
 			if (e_iter->l) {
-				count += bmesh_radial_facevert_count_ex(e_iter->l, v, count_max - count);
+				count += bmesh_radial_facevert_count_at_most(e_iter->l, v, count_max - count);
 				if (count == count_max) {
 					break;
 				}
@@ -560,7 +560,7 @@ int bmesh_radial_facevert_count(const BMLoop *l, const BMVert *v)
 	return count;
 }
 
-int bmesh_radial_facevert_count_ex(const BMLoop *l, const BMVert *v, const int count_max)
+int bmesh_radial_facevert_count_at_most(const BMLoop *l, const BMVert *v, const int count_max)
 {
 	const BMLoop *l_iter;
 	int count = 0;

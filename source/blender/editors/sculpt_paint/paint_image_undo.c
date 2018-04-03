@@ -59,7 +59,6 @@
 typedef struct UndoImageTile {
 	struct UndoImageTile *next, *prev;
 
-	char idname[MAX_ID_NAME];  /* name instead of pointer */
 	char ibufname[IMB_FILENAME_SIZE];
 
 	union {
@@ -153,7 +152,7 @@ void *image_undo_find_tile(
 	for (tile = undo_tiles->first; tile; tile = tile->next) {
 		if (tile->x == x_tile && tile->y == y_tile && ima->gen_type == tile->gen_type && ima->source == tile->source) {
 			if (tile->use_float == use_float) {
-				if (STREQ(tile->idname, ima->id.name) && STREQ(tile->ibufname, ibuf->name)) {
+				if (STREQ(tile->ibufname, ibuf->name)) {
 					if (mask) {
 						/* allocate mask if requested */
 						if (!tile->mask) {
@@ -200,7 +199,6 @@ void *image_undo_push_tile(
 	}
 
 	tile = MEM_callocN(sizeof(UndoImageTile), "UndoImageTile");
-	BLI_strncpy(tile->idname, ima->id.name, sizeof(tile->idname));
 	tile->x = x_tile;
 	tile->y = y_tile;
 
@@ -279,28 +277,19 @@ static void image_undo_restore_runtime(ListBase *lb)
 	IMB_freeImBuf(tmpibuf);
 }
 
-static void image_undo_restore_list(bContext *C, ListBase *lb)
+static void image_undo_restore_list(ListBase *lb, struct UndoIDPtrMap *id_map)
 {
-	Main *bmain = CTX_data_main(C);
-	Image *ima = NULL;
-	ImBuf *ibuf, *tmpibuf;
-	UndoImageTile *tile;
+	ImBuf *tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32, IB_rectfloat | IB_rect);
 
-	tmpibuf = IMB_allocImBuf(IMAPAINT_TILE_SIZE, IMAPAINT_TILE_SIZE, 32,
-	                         IB_rectfloat | IB_rect);
+	/* Store last found image. */
+	ID *image_prev[2] = {NULL};
 
-	for (tile = lb->first; tile; tile = tile->next) {
+	for (UndoImageTile *tile = lb->first; tile; tile = tile->next) {
 		short use_float;
 
-		/* find image based on name, pointer becomes invalid with global undo */
-		if (ima && STREQ(tile->idname, ima->id.name)) {
-			/* ima is valid */
-		}
-		else {
-			ima = BLI_findstring(&bmain->image, tile->idname, offsetof(ID, name));
-		}
+		Image *ima = (Image *)BKE_undosys_ID_map_lookup_with_prev(id_map, &tile->ima->id, image_prev);
 
-		ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
+		ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
 
 		if (ima && ibuf && !STREQ(tile->ibufname, ibuf->name)) {
 			/* current ImBuf filename was changed, probably current frame
@@ -390,7 +379,31 @@ static void image_undo_invalidate(void)
 typedef struct ImageUndoStep {
 	UndoStep step;
 	ListBase tiles;
+
+	/* Use for all ID lookups (can be NULL). */
+	struct UndoIDPtrMap *id_map;
 } ImageUndoStep;
+
+static void image_undosys_step_encode_store_ids(ImageUndoStep *us)
+{
+	us->id_map = BKE_undosys_ID_map_create();
+
+	ID *image_prev = NULL;
+	for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
+		BKE_undosys_ID_map_add_with_prev(us->id_map, &tile->ima->id, &image_prev);
+	}
+}
+
+/* Restore at runtime. */
+#if 0
+static void paint_undosys_step_decode_restore_ids(ImageUndoStep *us)
+{
+	ID *image_prev[2] = {NULL};
+	for (UndoImageTile *tile = us->tiles.first; tile; tile = tile->next) {
+		tile->ima = (Image *)BKE_undosys_ID_map_lookup_with_prev(us->id_map, &tile->ima->id, image_prev);
+	}
+}
+#endif
 
 static bool image_undosys_poll(bContext *C)
 {
@@ -429,6 +442,7 @@ static bool image_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_p
 
 	int allocsize = IMAPAINT_TILE_SIZE * IMAPAINT_TILE_SIZE * 4;
 
+
 	/* first dispose of invalid tiles (may happen due to drag dot for instance) */
 	for (UndoImageTile *tile = us->tiles.first; tile;) {
 		if (!tile->valid) {
@@ -443,19 +457,34 @@ static bool image_undosys_step_encode(struct bContext *UNUSED(C), UndoStep *us_p
 		}
 	}
 
+	image_undosys_step_encode_store_ids(us);
+
 	return true;
 }
 
-static void image_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
+static void image_undosys_step_decode(struct bContext *UNUSED(C), UndoStep *us_p, int UNUSED(dir))
 {
 	ImageUndoStep *us = (ImageUndoStep *)us_p;
-	image_undo_restore_list(C, &us->tiles);
+#if 0
+	paint_undosys_step_decode_restore_ids(us);
+#endif
+	image_undo_restore_list(&us->tiles, us->id_map);
 }
 
 static void image_undosys_step_free(UndoStep *us_p)
 {
 	ImageUndoStep *us = (ImageUndoStep *)us_p;
 	image_undo_free_list(&us->tiles);
+	BKE_undosys_ID_map_destroy(us->id_map);
+}
+
+static void image_undosys_foreach_ID_ref(
+        UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
+{
+	ImageUndoStep *us = (ImageUndoStep *)us_p;
+	if (us->id_map != NULL) {
+		BKE_undosys_ID_map_foreach_ID_ref(us->id_map, foreach_ID_ref_fn, user_data);
+	}
 }
 
 /* Export for ED_undo_sys. */
@@ -467,6 +496,8 @@ void ED_image_undosys_type(UndoType *ut)
 	ut->step_encode = image_undosys_step_encode;
 	ut->step_decode = image_undosys_step_decode;
 	ut->step_free = image_undosys_step_free;
+
+	ut->step_foreach_ID_ref = image_undosys_foreach_ID_ref;
 
 	ut->mode = BKE_UNDOTYPE_MODE_ACCUMULATE;
 	ut->use_context = true;

@@ -685,7 +685,7 @@ int bmesh_elem_check(void *element, const char htype)
 						err |= IS_FACE_LOOP_WRONG_RADIAL_LENGTH;
 					}
 
-					if (bmesh_disk_count_ex(l_iter->v, 2) < 2) {
+					if (bmesh_disk_count_at_most(l_iter->v, 2) < 2) {
 						err |= IS_FACE_LOOP_WRONG_DISK_LENGTH;
 					}
 				}
@@ -1785,7 +1785,7 @@ BMEdge *bmesh_kernel_join_edge_kill_vert(
 		return NULL;
 	}
 	
-	if (bmesh_disk_count_ex(v_kill, 3) == 2) {
+	if (bmesh_disk_count_at_most(v_kill, 3) == 2) {
 #ifndef NDEBUG
 		int valence1, valence2;
 		BMLoop *l;

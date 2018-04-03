@@ -2740,7 +2740,7 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			if (BKE_image_has_packedfile(ima)) {
 				const int totfiles = image_num_files(ima);
 
-				if (totfiles != BLI_listbase_count_ex(&ima->packedfiles, totfiles + 1)) {
+				if (totfiles != BLI_listbase_count_at_most(&ima->packedfiles, totfiles + 1)) {
 					/* in case there are new available files to be loaded */
 					image_free_packedfiles(ima);
 					BKE_image_packfiles(NULL, ima, ID_BLEND_PATH(G.main, &ima->id));
@@ -2895,7 +2895,7 @@ void BKE_image_multiview_index(Image *ima, ImageUser *iuser)
 			iuser->multi_index = iuser->multiview_eye;
 		}
 		else {
-			if ((iuser->view < 0) || (iuser->view >= BLI_listbase_count_ex(&ima->views, iuser->view + 1))) {
+			if ((iuser->view < 0) || (iuser->view >= BLI_listbase_count_at_most(&ima->views, iuser->view + 1))) {
 				iuser->multi_index = iuser->view = 0;
 			}
 			else {
@@ -3362,7 +3362,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 	const int totfiles = image_num_files(ima);
 	int i;
 
-	if (totfiles != BLI_listbase_count_ex(&ima->anims, totfiles + 1)) {
+	if (totfiles != BLI_listbase_count_at_most(&ima->anims, totfiles + 1)) {
 		image_free_anims(ima);
 
 		for (i = 0; i < totfiles; i++) {
@@ -3518,7 +3518,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 
 	/* this should never happen, but just playing safe */
 	if (has_packed) {
-		if (totfiles != BLI_listbase_count_ex(&ima->packedfiles, totfiles + 1)) {
+		if (totfiles != BLI_listbase_count_at_most(&ima->packedfiles, totfiles + 1)) {
 			image_free_packedfiles(ima);
 			has_packed = false;
 		}
