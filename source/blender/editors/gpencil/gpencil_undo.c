@@ -45,7 +45,6 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_main.h"
 
 #include "ED_gpencil.h"
 
