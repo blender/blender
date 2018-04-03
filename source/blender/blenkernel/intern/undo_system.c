@@ -787,6 +787,7 @@ ID *BKE_undosys_ID_map_lookup(const UndoIDPtrMap *map, const ID *id_src)
 	if (!undosys_ID_map_lookup_index(map, id_src, &index)) {
 		BLI_assert(0);
 	}
+	index = map->pmap[index].index;
 	ID *id_dst = map->refs[index].ptr;
 	BLI_assert(id_dst != NULL);
 	BLI_assert(STREQ(id_dst->name, map->refs[index].name));
