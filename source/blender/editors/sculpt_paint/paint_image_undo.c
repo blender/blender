@@ -41,10 +41,10 @@
 #include "BKE_depsgraph.h"
 #include "BKE_image.h"
 #include "BKE_main.h"
-#include "BKE_global.h"
 #include "BKE_undo_system.h"
 
 #include "ED_paint.h"
+#include "ED_undo.h"
 
 #include "GPU_draw.h"
 
@@ -358,15 +358,15 @@ static void image_undo_free_list(ListBase *lb)
 
 void ED_image_undo_push_begin(const char *name)
 {
+	UndoStack *ustack = ED_undo_stack_get();
 	bContext *C = NULL; /* special case, we never read from this. */
-	wmWindowManager *wm = G.main->wm.first;
-	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, name, BKE_UNDOSYS_TYPE_IMAGE);
+	BKE_undosys_step_push_init_with_type(ustack, C, name, BKE_UNDOSYS_TYPE_IMAGE);
 }
 
 void ED_image_undo_push_end(void)
 {
-	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
-	BKE_undosys_step_push(wm->undo_stack, NULL, NULL);
+	UndoStack *ustack = ED_undo_stack_get();
+	BKE_undosys_step_push(ustack, NULL, NULL);
 }
 
 static void image_undo_invalidate(void)
@@ -486,8 +486,8 @@ ListBase *ED_image_undosys_step_get_tiles(UndoStep *us_p)
 
 ListBase *ED_image_undo_get_tiles(void)
 {
-	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
-	UndoStep *us = BKE_undosys_stack_init_or_active_with_type(wm->undo_stack, BKE_UNDOSYS_TYPE_IMAGE);
+	UndoStack *ustack = ED_undo_stack_get();
+	UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_IMAGE);
 	return ED_image_undosys_step_get_tiles(us);
 }
 

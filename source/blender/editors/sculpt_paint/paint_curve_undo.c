@@ -34,11 +34,10 @@
 
 #include "BKE_context.h"
 #include "BKE_paint.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_undo_system.h"
 
 #include "ED_paint.h"
+#include "ED_undo.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -155,15 +154,15 @@ void ED_paintcurve_undosys_type(UndoType *ut)
 
 void ED_paintcurve_undo_push_begin(const char *name)
 {
+	UndoStack *ustack = ED_undo_stack_get();
 	bContext *C = NULL; /* special case, we never read from this. */
-	wmWindowManager *wm = G.main->wm.first;
-	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, name, BKE_UNDOSYS_TYPE_PAINTCURVE);
+	BKE_undosys_step_push_init_with_type(ustack, C, name, BKE_UNDOSYS_TYPE_PAINTCURVE);
 }
 
 void ED_paintcurve_undo_push_end(void)
 {
-	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
-	BKE_undosys_step_push(wm->undo_stack, NULL, NULL);
+	UndoStack *ustack = ED_undo_stack_get();
+	BKE_undosys_step_push(ustack, NULL, NULL);
 }
 
 /** \} */
