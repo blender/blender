@@ -397,9 +397,8 @@ static void draw_frustum_boundbox_calc(const float (*projmat)[4], const float (*
 	copy_m3_m4(screenvecs, viewinv);
 	copy_v3_v3(loc, viewinv[3]);
 
-	/* get the values of the minimum and maximum
-	 * clipping planes distances and the height and
-	  *width of the near plane divided by half. */
+	/* get the values of the minimum and maximum clipping planes distances
+	 * and half the width and height of the nearplane rectangle. */
 	if (is_persp) {
 		near = projmat[3][2] / (projmat[2][2] - 1.0f);
 		far = projmat[3][2] / (projmat[2][2] + 1.0f);
