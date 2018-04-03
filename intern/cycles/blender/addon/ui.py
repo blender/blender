@@ -50,7 +50,7 @@ class CyclesButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        return context.scene.view_render.engine in cls.COMPAT_ENGINES
+        return context.engine in cls.COMPAT_ENGINES
 
 
 def get_device_type(context):
