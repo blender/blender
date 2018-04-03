@@ -427,7 +427,7 @@ unsigned int GPU_framebuffer_current_get(void)
 
 bool GPU_framebuffer_check_valid(GPUFrameBuffer *fb, char err_out[256])
 {
-	if (g_currentfb != fb->object)
+	if (!GPU_framebuffer_bound(fb))
 		GPU_framebuffer_bind(fb);
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
