@@ -33,11 +33,6 @@ __forceinline float4::float4()
 {
 }
 
-__forceinline float4::float4(const float4& a)
-        : m128(a.m128)
-{
-}
-
 __forceinline float4::float4(const __m128& a)
         : m128(a)
 {

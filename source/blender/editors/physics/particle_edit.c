@@ -4436,6 +4436,7 @@ void PE_create_particle_edit(
 		recalc_lengths(edit);
 		if (psys && !cache)
 			recalc_emitter_field(ob, psys);
+
 		PE_update_object(eval_ctx, scene, ob, 1);
 	}
 }

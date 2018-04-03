@@ -46,7 +46,7 @@
 #include "IMB_colormanagement.h"
 #include "IMB_colormanagement_intern.h"
 
-static ImBuf *prepare_write_imbuf(const ImFileType *type, ImBuf *ibuf)
+static bool prepare_write_imbuf(const ImFileType *type, ImBuf *ibuf)
 {
 	return IMB_prepare_write_ImBuf((type->flag & IM_FTYPE_FLOAT), ibuf);
 }
@@ -64,15 +64,11 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 
 	for (type = IMB_FILE_TYPES; type < IMB_FILE_TYPES_LAST; type++) {
 		if (type->save && type->ftype(type, ibuf)) {
-			ImBuf *write_ibuf;
 			short result = false;
 
-			write_ibuf = prepare_write_imbuf(type, ibuf);
+			prepare_write_imbuf(type, ibuf);
 
-			result = type->save(write_ibuf, name, flags);
-
-			if (write_ibuf != ibuf)
-				IMB_freeImBuf(write_ibuf);
+			result = type->save(ibuf, name, flags);
 
 			return result;
 		}
@@ -83,9 +79,9 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 	return false;
 }
 
-ImBuf *IMB_prepare_write_ImBuf(const bool isfloat, ImBuf *ibuf)
+bool IMB_prepare_write_ImBuf(const bool isfloat, ImBuf *ibuf)
 {
-	ImBuf *write_ibuf = ibuf;
+    bool changed = false;
 
 	if (isfloat) {
 		/* pass */
@@ -94,8 +90,11 @@ ImBuf *IMB_prepare_write_ImBuf(const bool isfloat, ImBuf *ibuf)
 		if (ibuf->rect == NULL && ibuf->rect_float) {
 			ibuf->rect_colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
 			IMB_rect_from_float(ibuf);
+            if (ibuf->rect != NULL) {
+                changed = true;
+            }
 		}
 	}
 
-	return write_ibuf;
+	return changed;
 }

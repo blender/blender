@@ -253,6 +253,8 @@ option(WITH_OPENSUBDIV    "Enable OpenSubdiv for surface subdivision" _init_OPEN
 
 option(WITH_OPENVDB       "Enable features relying on OpenVDB" OFF)
 option(WITH_OPENVDB_BLOSC "Enable blosc compression for OpenVDB, only enable if OpenVDB was built with blosc support" OFF)
+option(WITH_OPENVDB_3_ABI_COMPATIBLE "Assume OpenVDB library has been compiled with version 3 ABI compatibility" OFF)
+mark_as_advanced(WITH_OPENVDB_3_ABI_COMPATIBLE)
 
 # GHOST Windowing Library Options
 option(WITH_GHOST_DEBUG   "Enable debugging output for the GHOST library" OFF)
@@ -1443,8 +1445,8 @@ elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_SIGN_COMPARE -Wno-sign-compare)
 
 	# disable numbered, false positives
-	set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556")
-	set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556")
+	set(C_WARNINGS "${C_WARNINGS} -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
+	set(CXX_WARNINGS "${CXX_WARNINGS} -wd188,186,144,913,556,858,597,177,1292,167,279,592,94,2722,3199")
 elseif(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	# most msvc warnings are C & C++
 	set(_WARNINGS

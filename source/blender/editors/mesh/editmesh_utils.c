@@ -43,7 +43,6 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_context.h"
-#include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_report.h"

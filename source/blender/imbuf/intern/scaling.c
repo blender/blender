@@ -1550,12 +1550,17 @@ static void scalefast_Z_ImBuf(ImBuf *ibuf, int newx, int newy)
 	}
 }
 
-struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
+/**
+ * Return true if \a ibuf is modified.
+ */
+bool IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
-	if (ibuf == NULL) return (NULL);
-	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return (ibuf);
+	if (ibuf == NULL) return false;
+	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return false;
 	
-	if (newx == ibuf->x && newy == ibuf->y) { return ibuf; }
+	if (newx == ibuf->x && newy == ibuf->y) {
+		return false;
+	}
 
 	/* scaleup / scaledown functions below change ibuf->x and ibuf->y
 	 * so we first scale the Z-buffer (if any) */
@@ -1564,7 +1569,7 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int
 	/* try to scale common cases in a fast way */
 	/* disabled, quality loss is unacceptable, see report #18609  (ton) */
 	if (0 && q_scale_linear_interpolation(ibuf, newx, newy)) {
-		return ibuf;
+		return true;
 	}
 
 	if (newx && (newx < ibuf->x)) scaledownx(ibuf, newx);
@@ -1572,14 +1577,17 @@ struct ImBuf *IMB_scaleImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int
 	if (newx && (newx > ibuf->x)) scaleupx(ibuf, newx);
 	if (newy && (newy > ibuf->y)) scaleupy(ibuf, newy);
 	
-	return(ibuf);
+	return true;
 }
 
 struct imbufRGBA {
 	float r, g, b, a;
 };
 
-struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
+/**
+ * Return true if \a ibuf is modified.
+ */
+bool IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned int newy)
 {
 	unsigned int *rect, *_newrect, *newrect;
 	struct imbufRGBA *rectf, *_newrectf, *newrectf;
@@ -1590,16 +1598,16 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 	rect = NULL; _newrect = NULL; newrect = NULL;
 	rectf = NULL; _newrectf = NULL; newrectf = NULL;
 
-	if (ibuf == NULL) return(NULL);
+	if (ibuf == NULL) return false;
 	if (ibuf->rect) do_rect = true;
 	if (ibuf->rect_float) do_float = true;
-	if (do_rect == false && do_float == false) return(ibuf);
+	if (do_rect == false && do_float == false) return false;
 	
-	if (newx == ibuf->x && newy == ibuf->y) return(ibuf);
+	if (newx == ibuf->x && newy == ibuf->y) return false;
 	
 	if (do_rect) {
 		_newrect = MEM_mallocN(newx * newy * sizeof(int), "scalefastimbuf");
-		if (_newrect == NULL) return(ibuf);
+		if (_newrect == NULL) return false;
 		newrect = _newrect;
 	}
 	
@@ -1607,7 +1615,7 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 		_newrectf = MEM_mallocN(newx * newy * sizeof(float) * 4, "scalefastimbuf f");
 		if (_newrectf == NULL) {
 			if (_newrect) MEM_freeN(_newrect);
-			return(ibuf);
+			return false;
 		}
 		newrectf = _newrectf;
 	}
@@ -1643,18 +1651,18 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 		ibuf->mall |= IB_rect;
 		ibuf->rect = _newrect;
 	}
-	
+
 	if (do_float) {
 		imb_freerectfloatImBuf(ibuf);
 		ibuf->mall |= IB_rectfloat;
 		ibuf->rect_float = (float *)_newrectf;
 	}
-	
+
 	scalefast_Z_ImBuf(ibuf, newx, newy);
-	
+
 	ibuf->x = newx;
 	ibuf->y = newy;
-	return(ibuf);
+	return true;
 }
 
 /* ******** threaded scaling ******** */

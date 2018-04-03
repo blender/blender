@@ -59,10 +59,9 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_subsurf.h"
-#include "DEG_depsgraph.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
 #include "BKE_undo_system.h"
+
+#include "DEG_depsgraph.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -72,6 +71,7 @@
 #include "ED_paint.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
+#include "ED_undo.h"
 
 #include "bmesh.h"
 #include "paint_intern.h"
@@ -981,9 +981,9 @@ SculptUndoNode *sculpt_undo_push_node(
 
 void sculpt_undo_push_begin(const char *name)
 {
+	UndoStack *ustack = ED_undo_stack_get();
 	bContext *C = NULL; /* special case, we never read from this. */
-	wmWindowManager *wm = G.main->wm.first;
-	BKE_undosys_step_push_init_with_type(wm->undo_stack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
+	BKE_undosys_step_push_init_with_type(ustack, C, name, BKE_UNDOSYS_TYPE_SCULPT);
 }
 
 void sculpt_undo_push_end(void)
@@ -1002,8 +1002,8 @@ void sculpt_undo_push_end(void)
 			BKE_pbvh_node_layer_disp_free(unode->node);
 	}
 
-	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
-	BKE_undosys_step_push(wm->undo_stack, NULL, NULL);
+	UndoStack *ustack = ED_undo_stack_get();
+	BKE_undosys_step_push(ustack, NULL, NULL);
 }
 
 /* -------------------------------------------------------------------- */
@@ -1091,8 +1091,8 @@ static UndoSculpt *sculpt_undosys_step_get_nodes(UndoStep *us_p)
 
 static UndoSculpt *sculpt_undo_get_nodes(void)
 {
-	wmWindowManager *wm = G.main->wm.first;  /* XXX, avoids adding extra arg. */
-	UndoStep *us = BKE_undosys_stack_init_or_active_with_type(wm->undo_stack, BKE_UNDOSYS_TYPE_SCULPT);
+	UndoStack *ustack = ED_undo_stack_get();
+	UndoStep *us = BKE_undosys_stack_init_or_active_with_type(ustack, BKE_UNDOSYS_TYPE_SCULPT);
 	return sculpt_undosys_step_get_nodes(us);
 }
 

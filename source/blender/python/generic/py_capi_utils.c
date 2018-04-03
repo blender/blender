@@ -146,6 +146,15 @@ PyObject *PyC_Tuple_PackArray_F32(const float *array, uint len)
 	return tuple;
 }
 
+PyObject *PyC_Tuple_PackArray_F64(const double *array, uint len)
+{
+	PyObject *tuple = PyTuple_New(len);
+	for (uint i = 0; i < len; i++) {
+		PyTuple_SET_ITEM(tuple, i, PyFloat_FromDouble(array[i]));
+	}
+	return tuple;
+}
+
 PyObject *PyC_Tuple_PackArray_I32(const int *array, uint len)
 {
 	PyObject *tuple = PyTuple_New(len);

@@ -46,7 +46,6 @@
 
 #include "PIL_time.h"
 
-#include "BKE_main.h"
 #include "BKE_paint.h"
 #include "BKE_gpencil.h"
 #include "BKE_context.h"

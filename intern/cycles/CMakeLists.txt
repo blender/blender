@@ -104,6 +104,54 @@ elseif(CMAKE_COMPILER_IS_GNUCC OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang"))
 	endif()
 
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CYCLES_KERNEL_FLAGS}")
+elseif(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+	check_cxx_compiler_flag(/QxSSE2 CXX_HAS_SSE)
+	check_cxx_compiler_flag(/arch:AVX CXX_HAS_AVX)
+	check_cxx_compiler_flag(/QxCORE-AVX2 CXX_HAS_AVX2)
+
+	if(CXX_HAS_SSE)
+		set(CYCLES_SSE2_KERNEL_FLAGS "/QxSSE2")
+		set(CYCLES_SSE3_KERNEL_FLAGS "/QxSSSE3")
+		set(CYCLES_SSE41_KERNEL_FLAGS "/QxSSE4.1")
+
+		if(CXX_HAS_AVX)
+			set(CYCLES_AVX_KERNEL_FLAGS "/arch:AVX")
+		endif()
+
+		if(CXX_HAS_AVX2)
+			set(CYCLES_AVX2_KERNEL_FLAGS "/QxCORE-AVX2")
+		endif()
+	endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Intel")
+	if(APPLE)
+		# ICC does not support SSE2 flag on MacOSX
+		check_cxx_compiler_flag(-xssse3 CXX_HAS_SSE)
+	else()
+		check_cxx_compiler_flag(-xsse2 CXX_HAS_SSE)
+	endif()
+
+	check_cxx_compiler_flag(-xavx CXX_HAS_AVX)
+	check_cxx_compiler_flag(-xcore-avx2 CXX_HAS_AVX2)
+
+	if(CXX_HAS_SSE)
+		if(APPLE)
+			# ICC does not support SSE2 flag on MacOSX
+			set(CYCLES_SSE2_KERNEL_FLAGS "-xssse3")
+		else()
+			set(CYCLES_SSE2_KERNEL_FLAGS "-xsse2")
+		endif()
+
+		set(CYCLES_SSE3_KERNEL_FLAGS "-xssse3")
+		set(CYCLES_SSE41_KERNEL_FLAGS "-xsse4.1")
+
+		if(CXX_HAS_AVX)
+			set(CYCLES_AVX_KERNEL_FLAGS "-xavx")
+		endif()
+
+		if(CXX_HAS_AVX2)
+			set(CYCLES_AVX2_KERNEL_FLAGS "-xcore-avx2")
+		endif()
+	endif()
 endif()
 
 if(CXX_HAS_SSE)

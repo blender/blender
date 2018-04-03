@@ -51,6 +51,8 @@ void    ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg
 
 bool    ED_undo_is_valid(const struct bContext *C, const char *undoname);
 
+struct UndoStack *ED_undo_stack_get(void);
+
 /* undo_system_types.c */
 void ED_undosys_type_init(void);
 void ED_undosys_type_free(void);

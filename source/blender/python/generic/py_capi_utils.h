@@ -51,12 +51,15 @@ int             PyC_AsArray(
         const PyTypeObject *type, const bool is_double, const char *error_prefix);
 
 PyObject       *PyC_Tuple_PackArray_F32(const float *array, uint len);
+PyObject       *PyC_Tuple_PackArray_F64(const double *array, uint len);
 PyObject       *PyC_Tuple_PackArray_I32(const int *array, uint len);
 PyObject       *PyC_Tuple_PackArray_I32FromBool(const int *array, uint len);
 PyObject       *PyC_Tuple_PackArray_Bool(const bool *array, uint len);
 
 #define PyC_Tuple_Pack_F32(...) \
 	PyC_Tuple_PackArray_F32(((const float []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
+#define PyC_Tuple_Pack_F64(...) \
+	PyC_Tuple_PackArray_F64(((const double []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_I32(...) \
 	PyC_Tuple_PackArray_I32(((const int []){__VA_ARGS__}), VA_NARGS_COUNT(__VA_ARGS__))
 #define PyC_Tuple_Pack_I32FromBool(...) \

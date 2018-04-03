@@ -1422,8 +1422,8 @@ static PyObject *pyrna_enum_to_py(PointerRNA *ptr, PropertyRNA *prop, int val)
 
 					/* prefer not fail silently in case of api errors, maybe disable it later */
 					CLOG_WARN(BPY_LOG_RNA,
-					          "Current value \"%d\" "
-					          "matches no enum in '%s', '%s', '%s'\n",
+					          "current value '%d' "
+					          "matches no enum in '%s', '%s', '%s'",
 					          val, RNA_struct_identifier(ptr->type),
 					          ptr_name, RNA_property_identifier(prop));
 
@@ -6609,7 +6609,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 		if (bpy_types == NULL) {
 			PyErr_Print();
 			PyErr_Clear();
-			CLOG_ERROR(BPY_LOG_RNA, "failed to find 'bpy_types' module\n");
+			CLOG_ERROR(BPY_LOG_RNA, "failed to find 'bpy_types' module");
 			return NULL;
 		}
 		bpy_types_dict = PyModule_GetDict(bpy_types);  /* borrow */
@@ -6627,7 +6627,7 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 		PyObject *tp_slots = PyDict_GetItem(((PyTypeObject *)newclass)->tp_dict, bpy_intern_str___slots__);
 
 		if (tp_slots == NULL) {
-			CLOG_ERROR(BPY_LOG_RNA, "expected class '%s' to have __slots__ defined, see bpy_types.py\n", idname);
+			CLOG_ERROR(BPY_LOG_RNA, "expected class '%s' to have __slots__ defined, see bpy_types.py", idname);
 			newclass = NULL;
 		}
 		else if (PyTuple_GET_SIZE(tp_bases)) {
@@ -6637,12 +6637,12 @@ static PyObject *pyrna_srna_ExternalType(StructRNA *srna)
 				char pyob_info[256];
 				PyC_ObSpitStr(pyob_info, sizeof(pyob_info), base_compare);
 				CLOG_ERROR(BPY_LOG_RNA,
-				           "incorrect subclassing of SRNA '%s', expected '%s', see bpy_types.py\n",
+				           "incorrect subclassing of SRNA '%s', expected '%s', see bpy_types.py",
 				           idname, pyob_info);
 				newclass = NULL;
 			}
 			else {
-				CLOG_INFO(BPY_LOG_RNA, 2, "SRNA sub-classed: '%s'\n", idname);
+				CLOG_INFO(BPY_LOG_RNA, 2, "SRNA sub-classed: '%s'", idname);
 			}
 		}
 	}
@@ -6740,7 +6740,7 @@ static PyObject *pyrna_srna_Subtype(StructRNA *srna)
 		}
 		else {
 			/* this should not happen */
-			CLOG_ERROR(BPY_LOG_RNA, "error registering '%s'", idname);
+			CLOG_ERROR(BPY_LOG_RNA, "failed to register '%s'", idname);
 			PyErr_Print();
 			PyErr_Clear();
 		}
@@ -7613,7 +7613,7 @@ static int bpy_class_call(bContext *C, PointerRNA *ptr, FunctionRNA *func, Param
 	py_class = RNA_struct_py_type_get(ptr->type);
 	/* rare case. can happen when registering subclasses */
 	if (py_class == NULL) {
-		CLOG_WARN(BPY_LOG_RNA, "unable to get Python class for rna struct '%.200s'\n", RNA_struct_identifier(ptr->type));
+		CLOG_WARN(BPY_LOG_RNA, "unable to get Python class for rna struct '%.200s'", RNA_struct_identifier(ptr->type));
 		return -1;
 	}
 

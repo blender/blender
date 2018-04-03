@@ -42,6 +42,7 @@
 #include "BKE_blender_undo.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_screen.h"
 #include "BKE_undo_system.h"
 
@@ -188,6 +189,19 @@ bool ED_undo_is_valid(const bContext *C, const char *undoname)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	return BKE_undosys_stack_has_undo(wm->undo_stack, undoname);
+}
+
+/**
+ * Ideally we wont access the stack directly,
+ * this is needed for modes which handle undo themselves (bypassing #ED_undo_push).
+ *
+ * Using global isn't great, this just avoids doing inline,
+ * causing 'BKE_global.h' & 'BKE_main.h' includes.
+ */
+UndoStack *ED_undo_stack_get(void)
+{
+	wmWindowManager *wm = G.main->wm.first;
+	return wm->undo_stack;
 }
 
 /** \} */

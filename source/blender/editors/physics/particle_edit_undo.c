@@ -44,11 +44,9 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_global.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_context.h"
-#include "BKE_main.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
