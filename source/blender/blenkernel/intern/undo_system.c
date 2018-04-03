@@ -776,6 +776,7 @@ void BKE_undosys_ID_map_add(UndoIDPtrMap *map, ID *id)
 	map->pmap[len_src].index = len_src;
 	map->len = len_dst;
 
+	/* TODO(campbell): use binary search result and memmove instread of full-sort. */
 	qsort(map->pmap, map->len, sizeof(*map->pmap), BLI_sortutil_cmp_ptr);
 }
 
@@ -790,6 +791,28 @@ ID *BKE_undosys_ID_map_lookup(const UndoIDPtrMap *map, const ID *id_src)
 	BLI_assert(id_dst != NULL);
 	BLI_assert(STREQ(id_dst->name, map->refs[index].name));
 	return id_dst;
+}
+
+void BKE_undosys_ID_map_add_with_prev(UndoIDPtrMap *map, ID *id, ID **id_prev)
+{
+	if (id == *id_prev) {
+		return;
+	}
+	*id_prev = id;
+	BKE_undosys_ID_map_add(map, id);
+}
+
+ID *BKE_undosys_ID_map_lookup_with_prev(const UndoIDPtrMap *map, ID *id_src, ID *id_prev_match[2])
+{
+	if (id_src == id_prev_match[0]) {
+		return id_prev_match[1];
+	}
+	else {
+		ID *id_dst = BKE_undosys_ID_map_lookup(map, id_src);
+		id_prev_match[0] = id_src;
+		id_prev_match[1] = id_dst;
+		return id_dst;
+	}
 }
 
 /** \} */
