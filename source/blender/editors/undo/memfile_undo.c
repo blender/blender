@@ -132,7 +132,7 @@ static void memfile_undosys_step_decode(struct bContext *C, UndoStep *us_p, int 
 	{
 		struct Main *bmain = CTX_data_main(C);
 		for (WorkSpaceData *wsd = us->workspace_data.first; wsd != NULL; wsd = wsd->next) {
-			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, wsd->name, offsetof(ID, name));
+			WorkSpace *workspace = BLI_findstring(&bmain->workspaces, wsd->name, offsetof(ID, name) + 2);
 			if (workspace) {
 				workspace->object_mode = wsd->object_mode;
 				workspace->object_mode_restore = wsd->object_mode_restore;
