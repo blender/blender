@@ -65,7 +65,5 @@ void PE_deselect_all_visible(struct PTCacheEdit *edit);
 /* particle_edit_undo.c */
 void ED_particle_undosys_type(struct UndoType *ut);
 
-void PE_undo_push(struct Scene *scene, const char *str);
-
 #endif /* __ED_PARTICLE_H__ */
 

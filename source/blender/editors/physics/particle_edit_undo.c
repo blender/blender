@@ -53,7 +53,6 @@
 #include "ED_object.h"
 #include "ED_particle.h"
 #include "ED_physics.h"
-#include "ED_undo.h"
 
 #include "particle_edit_utildefines.h"
 
@@ -293,21 +292,6 @@ void ED_particle_undosys_type(UndoType *ut)
 	ut->use_context = true;
 
 	ut->step_size = sizeof(ParticleUndoStep);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Utilities
- * \{ */
-
-void PE_undo_push(struct Scene *scene, const char *str)
-{
-	UndoStack *ustack = ED_undo_stack_get();
-	bContext *C_temp = CTX_create();
-	CTX_data_scene_set(C_temp, scene);
-	BKE_undosys_step_push_with_type(ustack, C_temp, str, BKE_UNDOSYS_TYPE_PARTICLE);
-	CTX_free(C_temp);
 }
 
 /** \} */
