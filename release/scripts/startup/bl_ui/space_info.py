@@ -154,6 +154,7 @@ class INFO_MT_file(Menu):
         layout.separator()
 
         layout.menu("INFO_MT_file_external_data", icon='EXTERNAL_DATA')
+        layout.operator("wm.blend_strings_utf8_validate", icon='FILE_BLEND')
 
         layout.separator()
 
