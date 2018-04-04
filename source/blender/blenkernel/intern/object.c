@@ -201,12 +201,12 @@ void BKE_object_free_curve_cache(Object *ob)
 	}
 }
 
-void BKE_object_free_modifiers(Object *ob)
+void BKE_object_free_modifiers(Object *ob, const int flag)
 {
 	ModifierData *md;
 
 	while ((md = BLI_pophead(&ob->modifiers))) {
-		modifier_free(md);
+		modifier_free_ex(md, flag);
 	}
 
 	/* particle modifiers were freed, so free the particlesystems as well */
@@ -268,7 +268,7 @@ bool BKE_object_support_modifier_type_check(Object *ob, int modifier_type)
 void BKE_object_link_modifiers(struct Object *ob_dst, const struct Object *ob_src)
 {
 	ModifierData *md;
-	BKE_object_free_modifiers(ob_dst);
+	BKE_object_free_modifiers(ob_dst, 0);
 
 	if (!ELEM(ob_dst->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_LATTICE)) {
 		/* only objects listed above can have modifiers and linking them to objects
@@ -410,7 +410,8 @@ void BKE_object_free(Object *ob)
 {
 	BKE_animdata_free((ID *)ob, false);
 
-	BKE_object_free_modifiers(ob);
+	/* BKE_<id>_free shall never touch to ID->us. Never ever. */
+	BKE_object_free_modifiers(ob, LIB_ID_CREATE_NO_USER_REFCOUNT);
 
 	MEM_SAFE_FREE(ob->mat);
 	MEM_SAFE_FREE(ob->matbits);

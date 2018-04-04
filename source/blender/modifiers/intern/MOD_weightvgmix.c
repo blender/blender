@@ -126,14 +126,6 @@ static void initData(ModifierData *md)
 	wmd->mask_tex_mapping       = MOD_DISP_MAP_LOCAL;
 }
 
-static void freeData(ModifierData *md)
-{
-	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
-	if (wmd->mask_texture) {
-		id_us_min(&wmd->mask_texture->id);
-	}
-}
-
 static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0
@@ -427,7 +419,7 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          freeData,
+	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepgraph */    updateDepgraph,
 	/* updateDepsgraph */   updateDepsgraph,
