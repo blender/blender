@@ -2051,7 +2051,7 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
         row = col.row(align=True)
         row.operator("ed.undo")
         row.operator("ed.redo")
-        if obj is None or workspace.object_mode != 'SCULPT':
+        if obj is None or context.workspace.object_mode != 'SCULPT':
             # Sculpt mode does not generate an undo menu it seems...
             col.operator("ed.undo_history")
 
