@@ -28,7 +28,7 @@ CCL_NAMESPACE_BEGIN
 /* Utilities */
 
 bool BlenderSync::sync_dupli_particle(BL::Object& b_ob,
-                                      BL::DupliObject& b_dup,
+                                      BL::DepsgraphIter& b_dup,
                                       Object *object)
 {
 	/* test if this dupli was generated from a particle sytem */

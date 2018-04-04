@@ -81,6 +81,14 @@ static PointerRNA rna_DepsgraphIter_parent_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_Object, dupli_parent);
 }
 
+static PointerRNA rna_DepsgraphIter_particle_system_get(PointerRNA *ptr)
+{
+	BLI_Iterator *iterator = ptr->data;
+	DEGObjectIterData *deg_iter = (DEGObjectIterData *)iterator->data;
+	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem,
+		deg_iter->dupli_object_current->particle_system);
+}
+
 static void rna_DepsgraphIter_persistent_id_get(PointerRNA *ptr, int *persistent_id)
 {
 	BLI_Iterator *iterator = ptr->data;
@@ -276,6 +284,12 @@ static void rna_def_depsgraph_iter(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Parent", "Parent of the duplication list");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphIter_parent_get", NULL, NULL, NULL);
+
+	prop = RNA_def_property(srna, "particle_system", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ParticleSystem");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Particle System", "Particle system that this object was instanced from");
+	RNA_def_property_pointer_funcs(prop, "rna_DepsgraphIter_particle_system_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "persistent_id", PROP_INT, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Persistent ID",

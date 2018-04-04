@@ -152,7 +152,7 @@ private:
 
 	/* particles */
 	bool sync_dupli_particle(BL::Object& b_ob,
-	                         BL::DupliObject& b_dup,
+	                         BL::DepsgraphIter& b_dup,
 	                         Object *object);
 
 	/* Images. */

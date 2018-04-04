@@ -437,6 +437,9 @@ Object *BlenderSync::sync_object(BL::Depsgraph& b_depsgraph,
 			object->dupli_generated = 0.5f*get_float3(b_dupli_iter->orco()) - make_float3(0.5f, 0.5f, 0.5f);
 			object->dupli_uv = get_float2(b_dupli_iter->uv());
 			object->random_id = b_dupli_iter->random_id();
+
+			/* Sync possible particle data. */
+			sync_dupli_particle(b_ob, *b_dupli_iter, object);
 		}
 		else {
 			object->dupli_generated = make_float3(0.0f, 0.0f, 0.0f);
