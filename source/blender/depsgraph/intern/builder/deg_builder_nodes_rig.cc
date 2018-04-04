@@ -85,6 +85,7 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object,
                                          bPoseChannel *pchan,
                                          bConstraint *con)
 {
+	Object *object_cow = get_cow_datablock(object);
 	bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 
 	/* Find the chain's root. */
@@ -99,14 +100,14 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object,
 		return;
 	}
 
-	int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
+	int rootchan_index = BLI_findindex(&object_cow->pose->chanbase, rootchan);
 	BLI_assert(rootchan_index != -1);
 	/* Operation node for evaluating/running IK Solver. */
 	add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                   function_bind(BKE_pose_iktree_evaluate,
 	                                 _1,
 	                                 get_cow_datablock(scene_),
-	                                 get_cow_datablock(object),
+	                                 object_cow,
 	                                 rootchan_index),
 	                   DEG_OPCODE_POSE_IK_SOLVER);
 }
@@ -116,6 +117,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
                                                bPoseChannel *pchan,
                                                bConstraint *con)
 {
+	Object *object_cow = get_cow_datablock(object);
 	bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 
 	/* Find the chain's root. */
@@ -125,13 +127,13 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 	 * Store the "root bone" of this chain in the solver, so it knows where to
 	 * start.
 	 */
-	int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
+	int rootchan_index = BLI_findindex(&object_cow->pose->chanbase, rootchan);
 	BLI_assert(rootchan_index != -1);
 	add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                   function_bind(BKE_pose_splineik_evaluate,
 	                                 _1,
 	                                 get_cow_datablock(scene_),
-	                                 get_cow_datablock(object),
+	                                 object_cow,
 	                                 rootchan_index),
 	                   DEG_OPCODE_POSE_SPLINE_IK_SOLVER);
 }
