@@ -166,5 +166,7 @@ void gwn_context_add_batch(Gwn_Context* ctx, Gwn_Batch* batch)
 
 void gwn_context_remove_batch(Gwn_Context* ctx, Gwn_Batch* batch)
 	{
+	ctx->orphans_mutex.lock();
 	ctx->batches.erase(batch);
+	ctx->orphans_mutex.unlock();
 	}
