@@ -2073,18 +2073,18 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 				graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
 			}
 			else {
-				bool has_same_id_dependency = false;
+				bool has_same_comp_dependency = false;
 				foreach (DepsRelation *rel, op_node->inlinks) {
 					if (rel->from->type != DEG_NODE_TYPE_OPERATION) {
 						continue;
 					}
 					OperationDepsNode *op_node_from = (OperationDepsNode *)rel->from;
-					if (op_node_from->owner->owner == op_node->owner->owner) {
-						has_same_id_dependency = true;
+					if (op_node_from->owner == op_node->owner) {
+						has_same_comp_dependency = true;
 						break;
 					}
 				}
-				if (!has_same_id_dependency) {
+				if (!has_same_comp_dependency) {
 					graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
 				}
 			}
