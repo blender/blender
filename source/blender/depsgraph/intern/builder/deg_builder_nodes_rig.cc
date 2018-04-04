@@ -100,6 +100,7 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object,
 	}
 
 	int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
+	BLI_assert(rootchan_index != -1);
 	/* Operation node for evaluating/running IK Solver. */
 	add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                   function_bind(BKE_pose_iktree_evaluate,
@@ -125,6 +126,7 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 	 * start.
 	 */
 	int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
+	BLI_assert(rootchan_index != -1);
 	add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                   function_bind(BKE_pose_splineik_evaluate,
 	                                 _1,
