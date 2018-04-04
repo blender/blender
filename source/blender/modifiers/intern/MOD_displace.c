@@ -80,14 +80,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static void freeData(ModifierData *md)
-{
-	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
-	if (dmd->texture) {
-		id_us_min(&dmd->texture->id);
-	}
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
@@ -422,7 +414,7 @@ ModifierTypeInfo modifierType_Displace = {
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          freeData,
+	/* freeData */          NULL,
 	/* isDisabled */        isDisabled,
 	/* updateDepsgraph */   updateDepsgraph,
 	/* dependsOnTime */     dependsOnTime,

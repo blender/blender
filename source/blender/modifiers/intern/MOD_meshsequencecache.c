@@ -74,10 +74,6 @@ static void freeData(ModifierData *md)
 {
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
-	if (mcmd->cache_file) {
-		id_us_min(&mcmd->cache_file->id);
-	}
-
 	if (mcmd->reader) {
 #ifdef WITH_ALEMBIC
 		CacheReader_free(mcmd->reader);

@@ -78,10 +78,6 @@ static void freeData(ModifierData *md)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData *) md;
 	curvemapping_free(wmd->cmap_curve);
-
-	if (wmd->mask_texture) {
-		id_us_min(&wmd->mask_texture->id);
-	}
 }
 
 static void copyData(ModifierData *md, ModifierData *target)

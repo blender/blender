@@ -2469,7 +2469,7 @@ Mesh *BKE_mesh_new_from_object(
 
 			/* if getting the original caged mesh, delete object modifiers */
 			if (cage)
-				BKE_object_free_modifiers(tmpobj);
+				BKE_object_free_modifiers(tmpobj, 0);
 
 			/* copies the data */
 			copycu = tmpobj->data = BKE_curve_copy(bmain, (Curve *) ob->data);
