@@ -267,7 +267,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name,
 		                             function_bind(BKE_pose_bone_done,
 		                                           _1,
-		                                           object,
+		                                           object_cow,
 		                                           pchan_index),
 		                             DEG_OPCODE_BONE_DONE);
 		op_node->set_as_exit();
