@@ -218,8 +218,9 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 /** \name Draw Call (DRW_calls)
  * \{ */
 
-static void drw_call_calc_orco(ID *ob_data, float (*r_orcofacs)[3])
+static void drw_call_calc_orco(Object *ob, float (*r_orcofacs)[3])
 {
+	ID *ob_data = (ob) ? ob->data : NULL;
 	float *texcoloc = NULL;
 	float *texcosize = NULL;
 	if (ob_data != NULL) {
@@ -297,7 +298,7 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
 
 	/* Orco factors: We compute this at creation to not have to save the *ob_data */
 	if ((state->matflag & DRW_CALL_ORCOTEXFAC) != 0) {
-		drw_call_calc_orco(ob->data, state->orcotexfac);
+		drw_call_calc_orco(ob, state->orcotexfac);
 		state->matflag &= ~DRW_CALL_ORCOTEXFAC;
 	}
 
@@ -684,7 +685,7 @@ DRWShadingGroup *DRW_shgroup_material_instance_create(
 	if (shgroup) {
 		shgroup->type = DRW_SHG_INSTANCE;
 		shgroup->instance_geom = geom;
-		drw_call_calc_orco(ob->data, shgroup->instance_orcofac);
+		drw_call_calc_orco(ob, shgroup->instance_orcofac);
 		drw_shgroup_instance_init(shgroup, GPU_pass_shader(gpupass), geom, format);
 		drw_shgroup_material_inputs(shgroup, material);
 	}
