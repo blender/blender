@@ -551,6 +551,15 @@ void BKE_splineik_execute_tree(Scene *scene, Object *ob, bPoseChannel *pchan_roo
 
 /* *************** Depsgraph evaluation callbacks ************ */
 
+BLI_INLINE bPoseChannel *pose_pchan_get_indexed(Object *ob, int pchan_index)
+{
+	bPose *pose = ob->pose;
+	BLI_assert(pose != NULL);
+	BLI_assert(pchan_index >= 0);
+	BLI_assert(pchan_index < MEM_allocN_len(pose->chan_array) / sizeof(bPoseChannel *));
+	return pose->chan_array[pchan_index];
+}
+
 void BKE_pose_eval_init(EvaluationContext *UNUSED(eval_ctx),
                         Scene *UNUSED(scene),
                         Object *ob)
@@ -606,8 +615,7 @@ void BKE_pose_eval_bone(EvaluationContext *UNUSED(eval_ctx),
                         Object *ob,
                         int pchan_index)
 {
-	BLI_assert(ob->pose != NULL);
-	bPoseChannel *pchan = ob->pose->chan_array[pchan_index];
+	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	BLI_assert(ob->type == OB_ARMATURE);
@@ -644,8 +652,7 @@ void BKE_pose_constraints_evaluate(EvaluationContext *UNUSED(eval_ctx),
                                    Object *ob,
                                    int pchan_index)
 {
-	BLI_assert(ob->pose != NULL);
-	bPoseChannel *pchan = ob->pose->chan_array[pchan_index];
+	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	bArmature *arm = (bArmature *)ob->data;
@@ -667,8 +674,7 @@ void BKE_pose_bone_done(EvaluationContext *UNUSED(eval_ctx),
                         struct Object *ob,
                         int pchan_index)
 {
-	BLI_assert(ob->pose != NULL);
-	bPoseChannel *pchan = ob->pose->chan_array[pchan_index];
+	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
 	float imat[4][4];
 	DEG_debug_print_eval(__func__, pchan->name, pchan);
 	if (pchan->bone) {
@@ -682,8 +688,7 @@ void BKE_pose_iktree_evaluate(EvaluationContext *UNUSED(eval_ctx),
                               Object *ob,
                               int rootchan_index)
 {
-	BLI_assert(ob->pose != NULL);
-	bPoseChannel *rootchan = ob->pose->chan_array[rootchan_index];
+	bPoseChannel *rootchan = pose_pchan_get_indexed(ob, rootchan_index);
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
@@ -701,8 +706,7 @@ void BKE_pose_splineik_evaluate(EvaluationContext *UNUSED(eval_ctx),
                                 int rootchan_index)
 
 {
-	BLI_assert(ob->pose != NULL);
-	bPoseChannel *rootchan = ob->pose->chan_array[rootchan_index];
+	bPoseChannel *rootchan = pose_pchan_get_indexed(ob, rootchan_index);
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
