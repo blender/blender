@@ -861,6 +861,10 @@ static void release_texture_slots(bool with_persist)
 				DST.RST.bound_tex_slots[i] = BIND_NONE;
 		}
 	}
+
+	/* Reset so that slots are consistenly assigned for different shader
+	 * draw calls, to avoid shader specialization/patching by the driver. */
+	DST.RST.bind_tex_inc = 0;
 }
 
 static void release_ubo_slots(bool with_persist)
@@ -874,6 +878,10 @@ static void release_ubo_slots(bool with_persist)
 				DST.RST.bound_ubo_slots[i] = BIND_NONE;
 		}
 	}
+
+	/* Reset so that slots are consistenly assigned for different shader
+	 * draw calls, to avoid shader specialization/patching by the driver. */
+	DST.RST.bind_ubo_inc = 0;
 }
 
 static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)

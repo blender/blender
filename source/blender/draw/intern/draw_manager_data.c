@@ -82,7 +82,24 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup, int loc,
 	uni->length = length;
 	uni->arraysize = arraysize;
 
-	BLI_LINKS_PREPEND(shgroup->uniforms, uni);
+	/* Insert into list sorted by location so that slots are consistenly assigned
+	 * for different draw calls, to avoid shader specialization/patching by the driver. */
+	DRWUniform *next = shgroup->uniforms;
+	DRWUniform *prev = NULL;
+
+	while (next && loc > next->location) {
+		prev = next;
+		next = next->next;
+	}
+
+	if (prev) {
+		prev->next = uni;
+	}
+	else {
+		shgroup->uniforms = uni;
+	}
+
+	uni->next = next;
 }
 
 static void drw_shgroup_builtin_uniform(
