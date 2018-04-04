@@ -5178,6 +5178,33 @@ static void database_init_objects(const EvaluationContext *eval_ctx, Render *re,
 		RE_makeRenderInstances(re);
 }
 
+void RE_Database_CameraOnly(Render *re, Main *bmain, Scene *scene, unsigned int lay, int use_camera_view)
+{
+	Object *camera;
+	float mat[4][4];
+
+	re->main= bmain;
+	re->scene= scene;
+	re->lay= lay;
+
+	/* scene needs to be set to get camera */
+	camera= RE_GetCamera(re);
+
+	/* if no camera, viewmat should have been set! */
+	if (use_camera_view && camera) {
+		/* called before but need to call again in case of lens animation from the
+		 * above call to BKE_scene_graph_update_for_newframe, fixes bug. [#22702].
+		 * following calls don't depend on 'RE_SetCamera' */
+		RE_SetCamera(re, camera);
+		RE_GetCameraModelMatrix(re, camera, mat);
+		invert_m4(mat);
+		RE_SetView(re, mat);
+
+		/* force correct matrix for scaled cameras */
+		DEG_id_tag_update_ex(re->main, &camera->id, OB_RECALC_OB);
+	}
+}
+
 /* used to be 'rotate scene' */
 void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int lay, int use_camera_view)
 {

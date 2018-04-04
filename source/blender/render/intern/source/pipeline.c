@@ -3327,10 +3327,8 @@ void RE_RenderFreestyleExternal(Render *re)
 
 		for (rv = re->result->views.first; rv; rv = rv->next) {
 			RE_SetActiveRenderView(re, rv->name);
-			RE_Database_FromScene(re, re->main, re->scene, re->lay, 1);
-			RE_Database_Preprocess(NULL, re);
+			RE_Database_CameraOnly(re, re->main, re->scene, re->lay, 1);
 			add_freestyle(re, 1);
-			RE_Database_Free(re);
 		}
 	}
 }

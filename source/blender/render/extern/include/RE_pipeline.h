@@ -271,6 +271,9 @@ void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 void RE_Database_FromScene(
         struct Render *re, struct Main *bmain, struct Scene *scene,
         unsigned int lay, int use_camera_view);
+void RE_Database_CameraOnly(
+        struct Render *re, struct Main *bmain, struct Scene *scene,
+        unsigned int lay, int use_camera_view);
 void RE_Database_Preprocess(struct EvaluationContext *eavl_ctx, struct Render *re);
 void RE_Database_Free(struct Render *re);
 

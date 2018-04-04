@@ -40,17 +40,28 @@
 #include "../system/RenderMonitor.h"
 
 extern "C" {
+#include "MEM_guardedalloc.h"
+
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "renderdatabase.h"
 #include "render_types.h"
 
+#include "BKE_customdata.h"
+#include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 
+#include "BLI_iterator.h"
+#include "BLI_listbase.h"
 #include "BLI_math.h"
+
+#include "DEG_depsgraph_query.h"
 }
 
 #ifdef WITH_CXX_GUARDEDALLOC
@@ -96,9 +107,8 @@ public:
 	inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {_pRenderMonitor = iRenderMonitor;}
 
 protected:
-	void insertShapeNode(ObjectInstanceRen *obi, int id);
+	void insertShapeNode(Object *ob, Mesh *mesh, int id);
 	int testDegenerateTriangle(float v1[3], float v2[3], float v3[3]);
-	bool testEdgeRotation(float v1[3], float v2[3], float v3[3], float v4[3]);
 	int countClippedFaces(float v1[3], float v2[3], float v3[3], int clip[3]);
 	void clipLine(float v1[3], float v2[3], float c[3], float z);
 	void clipTriangle(int numTris, float triCoords[][3], float v1[3], float v2[3], float v3[3],
