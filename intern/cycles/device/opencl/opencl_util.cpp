@@ -633,7 +633,7 @@ bool OpenCLInfo::device_supported(const string& platform_name,
 		}
 		const char *blacklist[] = {
 			/* GCN 1 */
-			"Tahiti", "Pitcairn", "Capeverde", "Oland",
+			"Tahiti", "Pitcairn", "Capeverde", "Oland", "Hainan",
 			NULL
 		};
 		for(int i = 0; blacklist[i] != NULL; i++) {

@@ -171,41 +171,39 @@ void BKE_splineik_execute_tree(
 
 void BKE_pose_eval_init(const struct EvaluationContext *eval_ctx,
                         struct Scene *scene,
-                        struct Object *ob,
-                        struct bPose *pose);
+                        struct Object *ob);
 
 void BKE_pose_eval_init_ik(const struct EvaluationContext *eval_ctx,
                            struct Scene *scene,
-                           struct Object *ob,
-                           struct bPose *pose);
+                           struct Object *ob);
 
 void BKE_pose_eval_bone(const struct EvaluationContext *eval_ctx,
                         struct Scene *scene,
                         struct Object *ob,
-                        struct bPoseChannel *pchan);
+                        int pchan_index);
 
 void BKE_pose_constraints_evaluate(const struct EvaluationContext *eval_ctx,
                                    struct Scene *scene,
                                    struct Object *ob,
-                                   struct bPoseChannel *pchan);
+                                   int pchan_index);
 
 void BKE_pose_bone_done(const struct EvaluationContext *eval_ctx,
-                        struct bPoseChannel *pchan);
+                        struct Object *ob,
+                        int pchan_index);
 
 void BKE_pose_iktree_evaluate(const struct EvaluationContext *eval_ctx,
                               struct Scene *scene,
                               struct Object *ob,
-                              struct bPoseChannel *rootchan);
+                              int rootchan_index);
 
 void BKE_pose_splineik_evaluate(const struct EvaluationContext *eval_ctx,
                                 struct Scene *scene,
                                 struct Object *ob,
-                                struct bPoseChannel *rootchan);
+                                int rootchan_index);
 
 void BKE_pose_eval_flush(const struct EvaluationContext *eval_ctx,
                          struct Scene *scene,
-                         struct Object *ob,
-                         struct bPose *pose);
+                         struct Object *ob);
 
 void BKE_pose_eval_proxy_copy(const struct EvaluationContext *eval_ctx,
                               struct Object *ob);

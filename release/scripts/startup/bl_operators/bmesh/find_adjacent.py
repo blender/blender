@@ -113,7 +113,7 @@ def elems_depth_search(ele_init, depths, other_edges_over_cb, results_init=None)
     else:
         test_ele = {
             v for v, depth in vert_depths.items()
-            if depth >= depth_min for e in v.link_edges if not e.is_wire}
+            if depth >= depth_min}
 
     result_ele = set()
 

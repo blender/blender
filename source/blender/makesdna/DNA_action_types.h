@@ -393,7 +393,12 @@ typedef enum eRotationModes {
 typedef struct bPose {
 	ListBase chanbase;          /* list of pose channels, PoseBones in RNA */
 	struct GHash *chanhash;     /* ghash for quicker string lookups */
-	
+
+	/* Flat array of pose channels. It references pointers from
+	 * chanbase. Used for quick pose channel lookup from an index.
+	 */
+	bPoseChannel **chan_array;
+
 	short flag, pad;
 	unsigned int proxy_layer;   /* proxy layer: copy from armature, gets synced */
 	int pad1;

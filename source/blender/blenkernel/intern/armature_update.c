@@ -560,10 +560,10 @@ void BKE_splineik_execute_tree(
 
 void BKE_pose_eval_init(const struct EvaluationContext *UNUSED(eval_ctx),
                         Scene *UNUSED(scene),
-                        Object *ob,
-                        bPose *pose)
+                        Object *ob)
 {
-	bPoseChannel *pchan;
+	bPose *pose = ob->pose;
+	BLI_assert(pose != NULL);
 
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
@@ -576,16 +576,21 @@ void BKE_pose_eval_init(const struct EvaluationContext *UNUSED(eval_ctx),
 	/* imat is needed for solvers. */
 	invert_m4_m4(ob->imat, ob->obmat);
 
-	/* 1. clear flags */
-	for (pchan = pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
+	const int num_channels = BLI_listbase_count(&pose->chanbase);
+	pose->chan_array = MEM_malloc_arrayN(
+	        num_channels, sizeof(bPoseChannel*), "pose->chan_array");
+
+	/* clear flags */
+	int pchan_index = 0;
+	for (bPoseChannel *pchan = pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
 		pchan->flag &= ~(POSE_DONE | POSE_CHAIN | POSE_IKTREE | POSE_IKSPLINE);
+		pose->chan_array[pchan_index++] = pchan;
 	}
 }
 
 void BKE_pose_eval_init_ik(const struct EvaluationContext *eval_ctx,
                            Scene *scene,
-                           Object *ob,
-                           bPose *UNUSED(pose))
+                           Object *ob)
 {
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type == OB_ARMATURE);
@@ -594,11 +599,11 @@ void BKE_pose_eval_init_ik(const struct EvaluationContext *eval_ctx,
 	if (arm->flag & ARM_RESTPOS) {
 		return;
 	}
-	/* 2a. construct the IK tree (standard IK) */
+	/* construct the IK tree (standard IK) */
 	BIK_initialize_tree(eval_ctx, scene, ob, ctime);
-	/* 2b. construct the Spline IK trees
+	/* construct the Spline IK trees
 	 *  - this is not integrated as an IK plugin, since it should be able
-	 *	  to function in conjunction with standard IK
+	 *    to function in conjunction with standard IK
 	 */
 	BKE_pose_splineik_init_tree(scene, ob, ctime);
 }
@@ -606,8 +611,10 @@ void BKE_pose_eval_init_ik(const struct EvaluationContext *eval_ctx,
 void BKE_pose_eval_bone(const struct EvaluationContext *eval_ctx,
                         Scene *scene,
                         Object *ob,
-                        bPoseChannel *pchan)
+                        int pchan_index)
 {
+	BLI_assert(ob->pose != NULL);
+	bPoseChannel *pchan = ob->pose->chan_array[pchan_index];
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	BLI_assert(ob->type == OB_ARMATURE);
@@ -642,8 +649,10 @@ void BKE_pose_eval_bone(const struct EvaluationContext *eval_ctx,
 void BKE_pose_constraints_evaluate(const struct EvaluationContext *eval_ctx,
                                    Scene *scene,
                                    Object *ob,
-                                   bPoseChannel *pchan)
+                                   int pchan_index)
 {
+	BLI_assert(ob->pose != NULL);
+	bPoseChannel *pchan = ob->pose->chan_array[pchan_index];
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	bArmature *arm = (bArmature *)ob->data;
@@ -662,8 +671,11 @@ void BKE_pose_constraints_evaluate(const struct EvaluationContext *eval_ctx,
 }
 
 void BKE_pose_bone_done(const struct EvaluationContext *UNUSED(eval_ctx),
-                        bPoseChannel *pchan)
+                        struct Object *ob,
+                        int pchan_index)
 {
+	BLI_assert(ob->pose != NULL);
+	bPoseChannel *pchan = ob->pose->chan_array[pchan_index];
 	float imat[4][4];
 	DEG_debug_print_eval(__func__, pchan->name, pchan);
 	if (pchan->bone) {
@@ -675,8 +687,10 @@ void BKE_pose_bone_done(const struct EvaluationContext *UNUSED(eval_ctx),
 void BKE_pose_iktree_evaluate(const struct EvaluationContext *eval_ctx,
                               Scene *scene,
                               Object *ob,
-                              bPoseChannel *rootchan)
+                              int rootchan_index)
 {
+	BLI_assert(ob->pose != NULL);
+	bPoseChannel *rootchan = ob->pose->chan_array[rootchan_index];
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
@@ -691,9 +705,11 @@ void BKE_pose_iktree_evaluate(const struct EvaluationContext *eval_ctx,
 void BKE_pose_splineik_evaluate(const struct EvaluationContext *eval_ctx,
                                 Scene *scene,
                                 Object *ob,
-                                bPoseChannel *rootchan)
+                                int rootchan_index)
 
 {
+	BLI_assert(ob->pose != NULL);
+	bPoseChannel *rootchan = ob->pose->chan_array[rootchan_index];
 	DEG_debug_print_eval_subdata(
 	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
@@ -707,15 +723,21 @@ void BKE_pose_splineik_evaluate(const struct EvaluationContext *eval_ctx,
 
 void BKE_pose_eval_flush(const struct EvaluationContext *UNUSED(eval_ctx),
                          Scene *scene,
-                         Object *ob,
-                         bPose *UNUSED(pose))
+                         Object *ob)
 {
+	bPose *pose = ob->pose;
+	BLI_assert(pose != NULL);
+
 	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type == OB_ARMATURE);
 
-	/* 6. release the IK tree */
+	/* release the IK tree */
 	BIK_release_tree(scene, ob, ctime);
+
+	BLI_assert(pose->chan_array != NULL);
+	MEM_freeN(pose->chan_array);
+	pose->chan_array = NULL;
 }
 
 void BKE_pose_eval_proxy_copy(const struct EvaluationContext *UNUSED(eval_ctx), Object *ob)
