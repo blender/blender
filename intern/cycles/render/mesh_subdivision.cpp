@@ -204,7 +204,9 @@ public:
 			src = dest;
 		}
 
-		patch_table->ComputeLocalPointValues(&verts[0], &verts[num_refiner_verts]);
+		if(num_refiner_verts) {
+			patch_table->ComputeLocalPointValues(&verts[0], &verts[num_refiner_verts]);
+		}
 
 		/* create patch map */
 		patch_map = new Far::PatchMap(*patch_table);
@@ -236,13 +238,15 @@ public:
 				src = dest;
 			}
 
-			if(attr.same_storage(attr.type, TypeDesc::TypeFloat)) {
-				patch_table->ComputeLocalPointValues((OsdValue<float>*)&attr.buffer[0],
-					                                 (OsdValue<float>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
-			}
-			else {
-				patch_table->ComputeLocalPointValues((OsdValue<float4>*)&attr.buffer[0],
-					                                 (OsdValue<float4>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
+			if(num_refiner_verts) {
+				if(attr.same_storage(attr.type, TypeDesc::TypeFloat)) {
+					patch_table->ComputeLocalPointValues((OsdValue<float>*)&attr.buffer[0],
+							                             (OsdValue<float>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
+				}
+				else {
+					patch_table->ComputeLocalPointValues((OsdValue<float4>*)&attr.buffer[0],
+							                             (OsdValue<float4>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
+				}
 			}
 		}
 		else if(attr.element == ATTR_ELEMENT_CORNER || attr.element == ATTR_ELEMENT_CORNER_BYTE) {
