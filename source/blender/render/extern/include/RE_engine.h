@@ -39,7 +39,10 @@
 
 struct bNode;
 struct bNodeTree;
+struct BakePixel;
 struct Depsgraph;
+struct Depsgraph;
+struct EvaluationContext;
 struct IDProperty;
 struct Main;
 struct Object;
@@ -51,7 +54,7 @@ struct RenderLayer;
 struct RenderResult;
 struct ReportList;
 struct Scene;
-struct BakePixel;
+struct ViewLayer;
 
 /* External Engine */
 
@@ -132,6 +135,11 @@ typedef struct RenderEngine {
 	int resolution_x, resolution_y;
 
 	struct ReportList *reports;
+
+	/* Depsgraph */
+	struct EvaluationContext *eval_ctx;
+	struct Depsgraph *depsgraph;
+	struct ViewLayer *view_layer;
 
 	/* for blender internal only */
 	int update_flag;

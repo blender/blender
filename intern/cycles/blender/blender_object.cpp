@@ -633,7 +633,6 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 			frame_center_delta = shuttertime * 0.5f;
 		}
 
-		/* TODO: move frame on depsgraph. */
 		float time = frame_center + subframe_center + frame_center_delta;
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
@@ -666,7 +665,6 @@ void BlenderSync::sync_motion(BL::RenderSettings& b_render,
 		int frame = (int)floorf(time);
 		float subframe = time - frame;
 
-		/* TODO: move frame on depsgraph. */
 		/* change frame */
 		python_thread_state_restore(python_thread_state);
 		b_engine.frame_set(frame, subframe);
