@@ -204,7 +204,7 @@ public:
 			src = dest;
 		}
 
-		if(num_refiner_verts) {
+		if(num_local_points) {
 			patch_table->ComputeLocalPointValues(&verts[0], &verts[num_refiner_verts]);
 		}
 
@@ -238,7 +238,7 @@ public:
 				src = dest;
 			}
 
-			if(num_refiner_verts) {
+			if(num_local_points) {
 				if(attr.same_storage(attr.type, TypeDesc::TypeFloat)) {
 					patch_table->ComputeLocalPointValues((OsdValue<float>*)&attr.buffer[0],
 							                             (OsdValue<float>*)&attr.buffer[num_refiner_verts * attr.data_sizeof()]);
