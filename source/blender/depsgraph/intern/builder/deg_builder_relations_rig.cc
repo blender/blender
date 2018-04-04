@@ -431,6 +431,7 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 
 		/* assume that all bones must be done for the pose to be ready (for deformers) */
 		add_relation(bone_done_key, flush_key, "PoseEval Result-Bone Link");
+
 		/* Custom shape. */
 		if (pchan->custom != NULL) {
 			build_object(NULL, pchan->custom);
