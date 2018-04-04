@@ -284,6 +284,11 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 			}
 		}
 
+		/* Custom shape. */
+		if (pchan->custom != NULL) {
+			build_object(NULL, pchan->custom);
+		}
+
 		pchan_index++;
 	}
 }
