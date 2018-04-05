@@ -44,6 +44,7 @@ uniform bool doArrow;
 #endif
 
 uniform float expandSize;
+uniform float arrowSize;
 uniform mat4 ModelViewProjectionMatrix;
 
 out float colorGradient;
@@ -72,7 +73,7 @@ void main(void)
 	vec2 normal = tangent.yx * vec2(-1.0, 1.0);
 
 	/* Position vertex on the curve tangent space */
-	point += pos.x * tangent + pos.y * normal;
+	point += (pos.x * tangent + pos.y * normal) * arrowSize;
 
 	gl_Position = ModelViewProjectionMatrix * vec4(point, 0.0, 1.0);
 

@@ -3394,11 +3394,10 @@ bool node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, flo
 
 #define NODELINK_GROUP_SIZE 256
 #define LINK_RESOL  24
-#define LINK_WIDTH  2.5f
-// #define ARROW_SIZE (7 * UI_DPI_FAC)
-#define ARROW_SIZE 7
+#define LINK_WIDTH  (2.5f * UI_DPI_FAC)
+#define ARROW_SIZE  (7 * UI_DPI_FAC)
 
-static float arrow_verts[3][2] = {{-ARROW_SIZE, ARROW_SIZE}, {0.0f, 0.0f}, {-ARROW_SIZE, -ARROW_SIZE}};
+static float arrow_verts[3][2] = {{-1.0f, 1.0f}, {0.0f, 0.0f}, {-1.0f, -1.0f}};
 static float arrow_expand_axis[3][2] = {{0.7071f, 0.7071f}, {M_SQRT2, 0.0f}, {0.7071f, -0.7071f}};
 
 struct {
@@ -3542,6 +3541,7 @@ static void nodelink_batch_draw(SpaceNode *snode)
 	GWN_batch_program_set_builtin(g_batch_link.batch, GPU_SHADER_2D_NODELINK_INST);
 	GWN_batch_uniform_4fv_array(g_batch_link.batch, "colors", 6, (float *)colors);
 	GWN_batch_uniform_1f(g_batch_link.batch, "expandSize", snode->aspect * LINK_WIDTH);
+	GWN_batch_uniform_1f(g_batch_link.batch, "arrowSize", ARROW_SIZE);
 	GWN_batch_draw(g_batch_link.batch);
 
 	nodelink_batch_reset();
@@ -3618,6 +3618,7 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link,
 			GWN_batch_uniform_2fv_array(batch, "bezierPts", 4, (float *)vec);
 			GWN_batch_uniform_4fv_array(batch, "colors", 3, (float *)colors);
 			GWN_batch_uniform_1f(batch, "expandSize", snode->aspect * LINK_WIDTH);
+			GWN_batch_uniform_1f(batch, "arrowSize", ARROW_SIZE);
 			GWN_batch_uniform_1i(batch, "doArrow", drawarrow);
 			GWN_batch_draw(batch);
 		}
