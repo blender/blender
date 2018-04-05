@@ -241,7 +241,7 @@ static void get_suggest_prefix(Text *text, int offset)
 	texttool_suggest_prefix(line + i, len);
 }
 
-static void confirm_suggestion(Text *text)
+static void confirm_suggestion(Text *text, TextUndoBuf *utxt)
 {
 	SuggItem *sel;
 	int i, over = 0;
@@ -260,7 +260,7 @@ static void confirm_suggestion(Text *text)
 //	for (i = 0; i < skipleft; i++)
 //		txt_move_left(text, 0);
 	BLI_assert(memcmp(sel->name, &line[i], over) == 0);
-	txt_insert_buf(text, sel->name + over);
+	txt_insert_buf(text, utxt, sel->name + over);
 
 //	for (i = 0; i < skipleft; i++)
 //		txt_move_right(text, 0);
@@ -284,7 +284,8 @@ static int text_autocomplete_invoke(bContext *C, wmOperator *op, const wmEvent *
 		ED_area_tag_redraw(CTX_wm_area(C));
 
 		if (texttool_suggest_first() == texttool_suggest_last()) {
-			confirm_suggestion(st->text);
+			TextUndoBuf *utxt = NULL; // FIXME
+			confirm_suggestion(st->text, utxt);
 			text_update_line_edited(st->text->curl);
 			text_autocomplete_free(C, op);
 			return OPERATOR_FINISHED;
@@ -314,6 +315,8 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 
 	(void)text;
 
+	TextUndoBuf *utxt = NULL; // FIXME
+
 	if (st->doplugins && texttool_text_is_active(st->text)) {
 		if (texttool_suggest_first()) tools |= TOOL_SUGG_LIST;
 		if (texttool_docs_get()) tools |= TOOL_DOCUMENT;
@@ -340,7 +343,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 		case MIDDLEMOUSE:
 			if (event->val == KM_PRESS) {
 				if (text_do_suggest_select(st, ar)) {
-					confirm_suggestion(st->text);
+					confirm_suggestion(st->text, utxt);
 					text_update_line_edited(st->text->curl);
 					swallow = 1;
 				}
@@ -375,7 +378,7 @@ static int text_autocomplete_modal(bContext *C, wmOperator *op, const wmEvent *e
 		case PADENTER:
 			if (event->val == KM_PRESS) {
 				if (tools & TOOL_SUGG_LIST) {
-					confirm_suggestion(st->text);
+					confirm_suggestion(st->text, utxt);
 					text_update_line_edited(st->text->curl);
 					swallow = 1;
 					draw = 1;

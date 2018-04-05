@@ -3712,15 +3712,11 @@ static void lib_link_text(FileData *fd, Main *main)
 static void direct_link_text(FileData *fd, Text *text)
 {
 	TextLine *ln;
-	
+
 	text->name = newdataadr(fd, text->name);
-	
-	text->undo_pos = -1;
-	text->undo_len = TXT_INIT_UNDO;
-	text->undo_buf = MEM_mallocN(text->undo_len, "undo buf");
-	
+
 	text->compiled = NULL;
-	
+
 #if 0
 	if (text->flags & TXT_ISEXT) {
 		BKE_text_reload(text);

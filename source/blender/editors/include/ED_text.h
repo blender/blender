@@ -33,10 +33,13 @@
 struct SpaceText;
 struct ARegion;
 struct UndoType;
+struct TextUndoBuf;
 
 bool ED_text_region_location_from_cursor(struct SpaceText *st, struct ARegion *ar, const int cursor_co[2], int r_pixel_co[2]);
 
 /* text_undo.c */
 void ED_text_undosys_type(struct UndoType *ut);
+
+struct TextUndoBuf *ED_text_undo_push_init(struct bContext *C);
 
 #endif /* __ED_TEXT_H__ */
