@@ -378,6 +378,7 @@ static Gwn_Batch *ui_batch_roundbox_get(int tria)
 			roundbox_batch_add_tria(&vflag_step, tria, last_data);
 		}
 		g_ui_batch_cache.roundbox[tria] = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		gpu_batch_presets_register(g_ui_batch_cache.roundbox[tria]);
 	}
 	return g_ui_batch_cache.roundbox[tria];
 }
@@ -386,22 +387,6 @@ static Gwn_Batch *ui_batch_roundbox_get(int tria)
 #undef OUTLINE
 #undef EMBOSS
 #undef NO_AA
-
-void UI_widget_batch_preset_reset(void)
-{
-	for (int i = 0; i < ROUNDBOX_TRIA_MAX; ++i) {
-		if (g_ui_batch_cache.roundbox[i]) {
-			gwn_batch_vao_cache_clear(g_ui_batch_cache.roundbox[i]);
-		}
-	}
-}
-
-void UI_widget_batch_preset_exit(void)
-{
-	for (int i = 0; i < ROUNDBOX_TRIA_MAX; ++i) {
-		GWN_BATCH_DISCARD_SAFE(g_ui_batch_cache.roundbox[i]);
-	}
-}
 
 /* ************************************************* */
 
