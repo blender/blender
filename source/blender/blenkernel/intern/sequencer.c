@@ -84,6 +84,7 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_colormanagement.h"
+#include "IMB_metadata.h"
 
 #include "BKE_context.h"
 #include "BKE_sound.h"

@@ -73,6 +73,7 @@ set(SRC
 	IMB_colormanagement.h
 	IMB_imbuf.h
 	IMB_imbuf_types.h
+	IMB_metadata.h
 	IMB_moviecache.h
 	IMB_thumbs.h
 	intern/IMB_allocimbuf.h
@@ -81,7 +82,6 @@ set(SRC
 	intern/IMB_filetype.h
 	intern/IMB_filter.h
 	intern/IMB_indexer.h
-	intern/IMB_metadata.h
 	intern/imbuf.h
 	
 	# orphan include

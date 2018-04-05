@@ -382,7 +382,8 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 					 * the information when we write
 					 * it back to disk.
 					 */
-					IMB_metadata_add_field(ibuf, "None", str);
+					IMB_metadata_ensure(&ibuf->metadata);
+					IMB_metadata_set_field(ibuf->metadata, "None", str);
 					ibuf->flags |= IB_metadata;
 					MEM_freeN(str);
 					goto next_stamp_marker;
@@ -408,7 +409,8 @@ static ImBuf *ibJpegImageFromCinfo(struct jpeg_decompress_struct *cinfo, int fla
 
 				*value = '\0'; /* need finish the key string */
 				value++;
-				IMB_metadata_add_field(ibuf, key, value);
+				IMB_metadata_ensure(&ibuf->metadata);
+				IMB_metadata_set_field(ibuf->metadata, key, value);
 				ibuf->flags |= IB_metadata;
 				MEM_freeN(str);
 next_stamp_marker:

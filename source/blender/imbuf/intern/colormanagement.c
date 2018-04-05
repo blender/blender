@@ -49,6 +49,7 @@
 #include "IMB_filetype.h"
 #include "IMB_filter.h"
 #include "IMB_moviecache.h"
+#include "IMB_metadata.h"
 
 #include "MEM_guardedalloc.h"
 
