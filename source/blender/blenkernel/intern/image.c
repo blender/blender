@@ -1711,6 +1711,15 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		stamp_data->frame[0] = '\0';
 	}
 
+	if (scene->r.stamp & R_STAMP_FRAME_RANGE) {
+		BLI_snprintf(stamp_data->frame_range, sizeof(stamp_data->frame),
+		             do_prefix ? "Frame Range %d:%d" : "%d:%d",
+		             scene->r.sfra, scene->r.efra);
+	}
+	else {
+		stamp_data->frame_range[0] = '\0';
+	}
+
 	if (use_dynamic && scene->r.stamp & R_STAMP_CAMERA) {
 		BLI_snprintf(stamp_data->camera, sizeof(stamp_data->camera), do_prefix ? "Camera %s" : "%s", camera ? camera->id.name + 2 : "<none>");
 	}
@@ -1770,6 +1779,13 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 		else {
 			stamp_data->memory[0] = '\0';
 		}
+	}
+	if (scene->r.stamp & R_STAMP_FRAME_RANGE) {
+		BLI_snprintf(stamp_data->frame_range, sizeof(stamp_data->frame_range),
+		             do_prefix ? "Frame Range %d:%d" : "%d:%d", scene->r.sfra, scene->r.efra);
+	}
+	else {
+		stamp_data->frame_range[0] = '\0';
 	}
 }
 
@@ -2151,6 +2167,7 @@ void BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCall
 	CALL(marker, "Marker");
 	CALL(time, "Time");
 	CALL(frame, "Frame");
+	CALL(frame_range, "FrameRange");
 	CALL(camera, "Camera");
 	CALL(cameralens, "Lens");
 	CALL(scene, "Scene");
