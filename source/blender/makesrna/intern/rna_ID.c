@@ -754,6 +754,14 @@ static PointerRNA rna_IDPreview_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(ptr, &RNA_ImagePreview, prv_img);
 }
 
+static IDProperty *rna_IDPropertyWrapPtr_idprops(PointerRNA *ptr, bool UNUSED(create))
+{
+	if (ptr == NULL) {
+		return NULL;
+	}
+	return ptr->data;
+}
+
 #else
 
 static void rna_def_ID_properties(BlenderRNA *brna)
@@ -1105,6 +1113,20 @@ static void rna_def_library(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Reload this library and all its linked data-blocks");
 }
+
+/**
+ * \attention This is separate from the above. It allows for RNA functions to
+ * return an IDProperty *. See MovieClip.metadata for a usage example.
+ **/
+static void rna_def_idproperty_wrap_ptr(BlenderRNA *brna)
+{
+	StructRNA *srna;
+
+	srna = RNA_def_struct(brna, "IDPropertyWrapPtr", NULL);
+	RNA_def_struct_idprops_func(srna, "rna_IDPropertyWrapPtr_idprops");
+	RNA_def_struct_flag(srna, STRUCT_NO_DATABLOCK_IDPROPERTIES);
+}
+
 void RNA_def_ID(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1122,6 +1144,7 @@ void RNA_def_ID(BlenderRNA *brna)
 	rna_def_ID_properties(brna);
 	rna_def_ID_materials(brna);
 	rna_def_library(brna);
+	rna_def_idproperty_wrap_ptr(brna);
 }
 
 #endif

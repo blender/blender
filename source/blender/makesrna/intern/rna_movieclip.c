@@ -33,6 +33,7 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
 
 #include "rna_internal.h"
@@ -44,6 +45,7 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_metadata.h"
 
 #ifdef RNA_RUNTIME
 
@@ -101,6 +103,22 @@ static void rna_MovieClipUser_proxy_render_settings_update(Main *UNUSED(bmain), 
 			}
 		}
 	}
+}
+
+static PointerRNA rna_MovieClip_metadata_get(MovieClip *clip)
+{
+	if (clip == NULL || clip->anim == NULL) {
+		return PointerRNA_NULL;
+	}
+
+	IDProperty *metadata = IMB_anim_load_metadata(clip->anim);
+	if (metadata == NULL) {
+		return PointerRNA_NULL;
+	}
+
+	PointerRNA ptr;
+	RNA_pointer_create(NULL, &RNA_IDPropertyWrapPtr, metadata, &ptr);
+	return ptr;
 }
 
 #else
@@ -257,6 +275,8 @@ static void rna_def_movieclip(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+	FunctionRNA *func;
+	PropertyRNA *parm;
 
 	static const EnumPropertyItem clip_source_items[] = {
 		{MCLIP_SRC_SEQUENCE, "SEQUENCE", 0, "Image Sequence", "Multiple image files, as a sequence"},
@@ -347,6 +367,14 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_pointer_sdna(prop, NULL, "colorspace_settings");
 	RNA_def_property_struct_type(prop, "ColorManagedInputColorspaceSettings");
 	RNA_def_property_ui_text(prop, "Color Space Settings", "Input color space settings");
+
+	/* metadata */
+	func = RNA_def_function(srna, "metadata", "rna_MovieClip_metadata_get");
+	RNA_def_function_ui_description(func, "Retrieve metadata of the movie file");
+	/* return type */
+	parm = RNA_def_pointer(func, "metadata", "IDPropertyWrapPtr", "", "Dict-like object containing the metadata");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
 
 	rna_def_animdata_common(srna);
 }

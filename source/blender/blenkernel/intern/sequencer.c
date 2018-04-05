@@ -943,6 +943,8 @@ void BKE_sequence_reload_new_file(Scene *scene, Sequence *seq, const bool lock_r
 				return;
 			}
 
+			IMB_anim_load_metadata(sanim->anim);
+
 			seq->len = IMB_anim_get_duration(sanim->anim, seq->strip->proxy ? seq->strip->proxy->tc : IMB_TC_RECORD_RUN);
 
 			seq->anim_preseek = IMB_anim_get_preseek(sanim->anim);
@@ -5381,6 +5383,8 @@ Sequence *BKE_sequencer_add_movie_strip(bContext *C, ListBase *seqbasep, SeqLoad
 			break;
 		}
 	}
+
+	IMB_anim_load_metadata(anim_arr[0]);
 
 	seq->anim_preseek = IMB_anim_get_preseek(anim_arr[0]);
 	BLI_strncpy(seq->name + 2, "Movie", SEQ_NAME_MAXSTR - 2);

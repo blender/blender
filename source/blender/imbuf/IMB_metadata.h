@@ -73,5 +73,6 @@ bool IMB_metadata_get_field(struct IDProperty *metadata, const char *key, char *
 void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const char *value);
 
 void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb);
+struct IDProperty *IMB_anim_load_metadata(struct anim *anim);
 
 #endif /* __IMB_METADATA_H__ */
