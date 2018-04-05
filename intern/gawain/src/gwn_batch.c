@@ -491,6 +491,12 @@ void GWN_batch_uniform_4fv(Gwn_Batch* batch, const char* name, const float data[
 	glUniform4fv(uniform->location, 1, data);
 	}
 
+void GWN_batch_uniform_2fv_array(Gwn_Batch* batch, const char* name, const int len, const float *data)
+	{
+	GET_UNIFORM
+	glUniform2fv(uniform->location, len, data);
+	}
+
 void GWN_batch_uniform_4fv_array(Gwn_Batch* batch, const char* name, const int len, const float *data)
 	{
 	GET_UNIFORM
