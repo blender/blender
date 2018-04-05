@@ -90,7 +90,6 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object,
                                          bPoseChannel *pchan,
                                          bConstraint *con)
 {
-	Object *object_cow = get_cow_datablock(object);
 	bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 
 	/* Find the chain's root. */
@@ -105,14 +104,14 @@ void DepsgraphNodeBuilder::build_ik_pose(Object *object,
 		return;
 	}
 
-	int rootchan_index = BLI_findindex(&object_cow->pose->chanbase, rootchan);
+	int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
 	BLI_assert(rootchan_index != -1);
 	/* Operation node for evaluating/running IK Solver. */
 	add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                   function_bind(BKE_pose_iktree_evaluate,
 	                                 _1,
 	                                 get_cow_datablock(scene_),
-	                                 object_cow,
+	                                 get_cow_datablock(object),
 	                                 rootchan_index),
 	                   DEG_OPCODE_POSE_IK_SOLVER);
 }
@@ -122,7 +121,6 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
                                                bPoseChannel *pchan,
                                                bConstraint *con)
 {
-	Object *object_cow = get_cow_datablock(object);
 	bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
 
 	/* Find the chain's root. */
@@ -132,13 +130,13 @@ void DepsgraphNodeBuilder::build_splineik_pose(Object *object,
 	 * Store the "root bone" of this chain in the solver, so it knows where to
 	 * start.
 	 */
-	int rootchan_index = BLI_findindex(&object_cow->pose->chanbase, rootchan);
+	int rootchan_index = BLI_findindex(&object->pose->chanbase, rootchan);
 	BLI_assert(rootchan_index != -1);
 	add_operation_node(&object->id, DEG_NODE_TYPE_EVAL_POSE, rootchan->name,
 	                   function_bind(BKE_pose_splineik_evaluate,
 	                                 _1,
 	                                 get_cow_datablock(scene_),
-	                                 object_cow,
+	                                 get_cow_datablock(object),
 	                                 rootchan_index),
 	                   DEG_OPCODE_POSE_SPLINE_IK_SOLVER);
 }
@@ -149,19 +147,13 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	bArmature *armature = (bArmature *)object->data;
 	Scene *scene_cow;
 	Object *object_cow;
-	bArmature *armature_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
-		/* NOTE: We need to expand both object and armature, so this way we can
-		 * safely create object level pose.
-		 */
 		scene_cow = get_cow_datablock(scene_);
-		object_cow = expand_cow_datablock(object);
-		armature_cow = expand_cow_datablock(armature);
+		object_cow = get_cow_datablock(object);
 	}
 	else {
 		scene_cow = scene_;
 		object_cow = object;
-		armature_cow = armature;
 	}
 	OperationDepsNode *op_node;
 
@@ -185,22 +177,22 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 	}
 
 	/* Rebuild pose if not up to date. */
-	if (object_cow->pose == NULL || (object->pose->flag & POSE_RECALC)) {
-		BKE_pose_rebuild(object_cow, armature_cow);
+	if (object->pose == NULL || (object->pose->flag & POSE_RECALC)) {
+		BKE_pose_rebuild(object, armature);
 		/* XXX: Without this animation gets lost in certain circumstances
 		 * after loading file. Need to investigate further since it does
 		 * not happen with simple scenes..
 		 */
-		if (object_cow->adt) {
-			object_cow->adt->recalc |= ADT_RECALC_ANIM;
+		if (object->adt) {
+			object->adt->recalc |= ADT_RECALC_ANIM;
 		}
 	}
 
 	/* speed optimization for animation lookups */
-	if (object_cow->pose != NULL) {
-		BKE_pose_channels_hash_make(object_cow->pose);
-		if (object_cow->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
-			BKE_pose_update_constraint_flags(object_cow->pose);
+	if (object->pose != NULL) {
+		BKE_pose_channels_hash_make(object->pose);
+		if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+			BKE_pose_update_constraint_flags(object->pose);
 		}
 	}
 
@@ -255,7 +247,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 
 	/* bones */
 	int pchan_index = 0;
-	LISTBASE_FOREACH (bPoseChannel *, pchan, &object_cow->pose->chanbase) {
+	LISTBASE_FOREACH (bPoseChannel *, pchan, &object->pose->chanbase) {
 		/* Node for bone evaluation. */
 		op_node = add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name, NULL,
 		                             DEG_OPCODE_BONE_LOCAL);
@@ -320,11 +312,8 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 		}
 
 		/* Custom shape. */
-		/* NOTE: Custom shape datablock is already remapped to CoW version. */
 		if (pchan->custom != NULL) {
-			build_object(NULL,
-			             get_orig_datablock(pchan->custom),
-			             DEG_ID_LINKED_INDIRECTLY);
+			build_object(NULL, pchan->custom, DEG_ID_LINKED_INDIRECTLY);
 		}
 
 		pchan_index++;
@@ -337,10 +326,7 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	OperationDepsNode *op_node;
 	Object *object_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
-		/* NOTE: We need to expand both object and armature, so this way we can
-		 * safely create object level pose.
-		 */
-		object_cow = expand_cow_datablock(object);
+		object_cow = get_cow_datablock(object);
 	}
 	else {
 		object_cow = object;
@@ -351,8 +337,8 @@ void DepsgraphNodeBuilder::build_proxy_rig(Object *object)
 	build_animdata(&arm->id);
 	/* speed optimization for animation lookups */
 	BKE_pose_channels_hash_make(object->pose);
-	if (object_cow->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
-		BKE_pose_update_constraint_flags(object_cow->pose);
+	if (object->pose->flag & POSE_CONSTRAINTS_NEED_UPDATE_FLAGS) {
+		BKE_pose_update_constraint_flags(object->pose);
 	}
 	op_node = add_operation_node(&object->id,
 	                             DEG_NODE_TYPE_EVAL_POSE,

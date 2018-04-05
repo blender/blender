@@ -317,9 +317,7 @@ BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
 static bool check_datablock_expanded_at_construction(const ID *id_orig)
 {
 	const ID_Type id_type = GS(id_orig->name);
-	return (id_type == ID_SCE) ||
-	       (id_type == ID_OB && ((Object *)id_orig)->type == OB_ARMATURE) ||
-	       (id_type == ID_AR);
+	return (id_type == ID_SCE);
 }
 
 /* Those are datablocks which are not covered by dependency graph and hence
