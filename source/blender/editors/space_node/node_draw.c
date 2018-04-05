@@ -1244,12 +1244,12 @@ void node_draw_nodetree(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeT
 	
 	/* node lines */
 	glEnable(GL_BLEND);
-	glEnable(GL_LINE_SMOOTH);
+	nodelink_batch_start(snode);
 	for (link = ntree->links.first; link; link = link->next) {
 		if (!nodeLinkIsHidden(link))
 			node_draw_link(&ar->v2d, snode, link);
 	}
-	glDisable(GL_LINE_SMOOTH);
+	nodelink_batch_end(snode);
 	glDisable(GL_BLEND);
 	
 	/* draw foreground nodes, last nodes in front */
