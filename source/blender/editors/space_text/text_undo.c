@@ -90,10 +90,16 @@ static bool text_undosys_poll(bContext *C)
 static bool text_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
 	TextUndoStep *us = (TextUndoStep *)us_p;
-	Text *text = CTX_data_edit_text(C);
-	us->text_ref.ptr = text;
-
 	BLI_assert(BLI_array_is_zeroed(&us->data, 1));
+
+	Text *text = CTX_data_edit_text(C);
+
+	/* No undo data was generated. Hint, use global undo here. */
+	if (text->undo_pos == -1) {
+		return false;
+	}
+
+	us->text_ref.ptr = text;
 
 	us->data.buf = text->undo_buf;
 	us->data.pos = text->undo_pos;
