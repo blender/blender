@@ -48,6 +48,7 @@
 #include "ED_text.h"
 #include "ED_curve.h"
 #include "ED_screen.h"
+#include "ED_undo.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -63,11 +64,6 @@
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
  * \{ */
-typedef struct TextUndoBuf {
-	char *buf;
-	int len;
-	int pos;
-} TextUndoBuf;
 
 typedef struct TextUndoStep {
 	UndoStep step;
@@ -87,23 +83,33 @@ static bool text_undosys_poll(bContext *C)
 	return true;
 }
 
+static void text_undosys_step_encode_init(struct bContext *C, UndoStep *us_p)
+{
+	TextUndoStep *us = (TextUndoStep *)us_p;
+	BLI_assert(BLI_array_is_zeroed(&us->data, 1));
+
+	UNUSED_VARS(C);
+	/* XXX, use to set the undo type only. */
+
+	us->data.buf = NULL;
+	us->data.len = 0;
+	us->data.pos = -1;
+}
+
 static bool text_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
 	TextUndoStep *us = (TextUndoStep *)us_p;
+
 	Text *text = CTX_data_edit_text(C);
+
+	/* No undo data was generated. Hint, use global undo here. */
+	if ((us->data.pos == -1) || (us->data.buf == NULL)) {
+		return false;
+	}
+
 	us->text_ref.ptr = text;
 
-	BLI_assert(BLI_array_is_zeroed(&us->data, 1));
-
-	us->data.buf = text->undo_buf;
-	us->data.pos = text->undo_pos;
-	us->data.len = text->undo_len;
-
-	text->undo_buf = NULL;
-	text->undo_len = 0;
-	text->undo_pos = -1;
-
-	us->step.data_size = text->undo_len;
+	us->step.data_size = us->data.len;
 
 	return true;
 }
@@ -113,20 +119,15 @@ static void text_undosys_step_decode(struct bContext *C, UndoStep *us_p, int dir
 	TextUndoStep *us = (TextUndoStep *)us_p;
 	Text *text = us->text_ref.ptr;
 
-	/* TODO(campbell): undo_system: move undo out of Text data block. */
-	text->undo_buf = us->data.buf;
-	text->undo_len = us->data.len;
 	if (dir < 0) {
-		text->undo_pos = us->data.pos;
-		txt_do_undo(text);
+		TextUndoBuf data = us->data;
+		txt_do_undo(text, &data);
 	}
 	else {
-		text->undo_pos = -1;
-		txt_do_redo(text);
+		TextUndoBuf data = us->data;
+		data.pos = -1;
+		txt_do_redo(text, &data);
 	}
-	text->undo_buf = NULL;
-	text->undo_len = 0;
-	text->undo_pos = -1;
 
 	text_update_edited(text);
 	text_update_cursor_moved(C);
@@ -153,6 +154,7 @@ void ED_text_undosys_type(UndoType *ut)
 {
 	ut->name = "Text";
 	ut->poll = text_undosys_poll;
+	ut->step_encode_init = text_undosys_step_encode_init;
 	ut->step_encode = text_undosys_step_encode;
 	ut->step_decode = text_undosys_step_decode;
 	ut->step_free = text_undosys_step_free;
@@ -160,9 +162,24 @@ void ED_text_undosys_type(UndoType *ut)
 	ut->step_foreach_ID_ref = text_undosys_foreach_ID_ref;
 
 	ut->mode = BKE_UNDOTYPE_MODE_ACCUMULATE;
-	ut->use_context = true;
+	ut->use_context = false;
 
 	ut->step_size = sizeof(TextUndoStep);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Utilities
+ * \{ */
+
+/* Use operator system to finish the undo step. */
+TextUndoBuf *ED_text_undo_push_init(bContext *C)
+{
+	UndoStack *ustack = ED_undo_stack_get();
+	UndoStep *us_p = BKE_undosys_step_push_init_with_type(ustack, C, NULL, BKE_UNDOSYS_TYPE_TEXT);
+	TextUndoStep *us = (TextUndoStep *)us_p;
+	return &us->data;
 }
 
 /** \} */

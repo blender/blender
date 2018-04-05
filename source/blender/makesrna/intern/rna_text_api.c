@@ -40,13 +40,13 @@
 
 static void rna_Text_clear(Text *text)
 {
-	BKE_text_clear(text);
+	BKE_text_clear(text, NULL);
 	WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 
 static void rna_Text_write(Text *text, const char *str)
 {
-	BKE_text_write(text, str);
+	BKE_text_write(text, NULL, str);
 	WM_main_add_notifier(NC_TEXT | NA_EDITED, text);
 }
 

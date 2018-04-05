@@ -125,11 +125,12 @@ typedef struct UndoType {
 } UndoType;
 
 /* expose since we need to perform operations on spesific undo types (rarely). */
-extern const UndoType *BKE_UNDOSYS_TYPE_MEMFILE;
 extern const UndoType *BKE_UNDOSYS_TYPE_IMAGE;
-extern const UndoType *BKE_UNDOSYS_TYPE_SCULPT;
-extern const UndoType *BKE_UNDOSYS_TYPE_PARTICLE;
+extern const UndoType *BKE_UNDOSYS_TYPE_MEMFILE;
 extern const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE;
+extern const UndoType *BKE_UNDOSYS_TYPE_PARTICLE;
+extern const UndoType *BKE_UNDOSYS_TYPE_SCULPT;
+extern const UndoType *BKE_UNDOSYS_TYPE_TEXT;
 
 UndoStack      *BKE_undosys_stack_create(void);
 void            BKE_undosys_stack_destroy(UndoStack *ustack);
@@ -141,8 +142,8 @@ UndoStep       *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, co
 void            BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit);
 
 /* Only some UndoType's require init. */
-void BKE_undosys_step_push_init_with_type(UndoStack *ustack, struct bContext *C, const char *name, const UndoType *ut);
-void BKE_undosys_step_push_init(UndoStack *ustack, struct bContext *C, const char *name);
+UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack, struct bContext *C, const char *name, const UndoType *ut);
+UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, struct bContext *C, const char *name);
 
 bool BKE_undosys_step_push_with_type(UndoStack *ustack, struct bContext *C, const char *name, const UndoType *ut);
 bool BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);

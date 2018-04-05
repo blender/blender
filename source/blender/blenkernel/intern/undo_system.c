@@ -88,11 +88,12 @@ static bool g_undo_callback_running = false;
  *
  * Unfortunately we need this for a handful of places.
  */
-const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_IMAGE = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_SCULPT = NULL;
-const UndoType *BKE_UNDOSYS_TYPE_PARTICLE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_MEMFILE = NULL;
 const UndoType *BKE_UNDOSYS_TYPE_PAINTCURVE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_PARTICLE = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_SCULPT = NULL;
+const UndoType *BKE_UNDOSYS_TYPE_TEXT = NULL;
 /** \} */
 
 /* UndoType */
@@ -143,7 +144,7 @@ static void undosys_id_ref_resolve(void *user_data, UndoRefID *id_ref)
 
 static bool undosys_step_encode(bContext *C, UndoStep *us)
 {
-	CLOG_INFO(&LOG, 2, "%p '%s', type='%s'", us, us->name, us->type->name);
+	CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 	UNDO_NESTED_CHECK_BEGIN;
 	bool ok = us->type->step_encode(C, us);
 	UNDO_NESTED_CHECK_END;
@@ -154,12 +155,15 @@ static bool undosys_step_encode(bContext *C, UndoStep *us)
 			us->type->step_foreach_ID_ref(us, undosys_id_ref_store, bmain);
 		}
 	}
+	if (ok == false) {
+		CLOG_INFO(&LOG, 2, "encode callback didn't create undo step");
+	}
 	return ok;
 }
 
 static void undosys_step_decode(bContext *C, UndoStep *us, int dir)
 {
-	CLOG_INFO(&LOG, 2, "%p '%s', type='%s'", us, us->name, us->type->name);
+	CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 	if (us->type->step_foreach_ID_ref) {
 		/* Don't use from context yet because sometimes context is fake and not all members are filled in. */
 		Main *bmain = G.main;
@@ -173,7 +177,7 @@ static void undosys_step_decode(bContext *C, UndoStep *us, int dir)
 
 static void undosys_step_free_and_unlink(UndoStack *ustack, UndoStep *us)
 {
-	CLOG_INFO(&LOG, 2, "%p '%s', type='%s'", us, us->name, us->type->name);
+	CLOG_INFO(&LOG, 2, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 	UNDO_NESTED_CHECK_BEGIN;
 	us->type->step_free(us);
 	UNDO_NESTED_CHECK_END;
@@ -347,7 +351,7 @@ void BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size
 
 /** \} */
 
-void BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, const char *name, const UndoType *ut)
+UndoStep *BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, const char *name, const UndoType *ut)
 {
 	UNDO_NESTED_ASSERT(false);
 	/* We could detect and clean this up (but it should never happen!). */
@@ -355,7 +359,7 @@ void BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, const 
 	if (ut->step_encode_init) {
 		undosys_stack_validate(ustack, false);
 		UndoStep *us = MEM_callocN(ut->step_size, __func__);
-		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, name, ut->name);
+		CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, name, ut->name);
 		if (name != NULL) {
 			BLI_strncpy(us->name, name, sizeof(us->name));
 		}
@@ -363,17 +367,21 @@ void BKE_undosys_step_push_init_with_type(UndoStack *ustack, bContext *C, const 
 		ustack->step_init = us;
 		ut->step_encode_init(C, us);
 		undosys_stack_validate(ustack, true);
+		return us;
+	}
+	else {
+		return NULL;
 	}
 }
 
-void BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char *name)
+UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char *name)
 {
 	UNDO_NESTED_ASSERT(false);
 	/* We could detect and clean this up (but it should never happen!). */
 	BLI_assert(ustack->step_init == NULL);
 	const UndoType *ut = BKE_undosys_type_from_context(C);
 	if (ut == NULL) {
-		return;
+		return NULL;
 	}
 	return BKE_undosys_step_push_init_with_type(ustack, C, name, ut);
 }
@@ -507,7 +515,7 @@ bool BKE_undosys_step_undo_with_data_ex(
 	}
 
 	if (us != NULL) {
-		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, us->name, us->type->name);
+		CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 		undosys_step_decode(C, us, -1);
 		ustack->step_active = us_prev;
 		undosys_stack_validate(ustack, true);
@@ -548,7 +556,7 @@ bool BKE_undosys_step_redo_with_data_ex(
 	us = us_next;
 
 	if (us != NULL) {
-		CLOG_INFO(&LOG, 1, "%p, '%s', type='%s'", us, us->name, us->type->name);
+		CLOG_INFO(&LOG, 1, "addr=%p, name='%s', type='%s'", us, us->name, us->type->name);
 		undosys_step_decode(C, us, 1);
 		ustack->step_active = us_next;
 		if (use_skip) {

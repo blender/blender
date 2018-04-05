@@ -59,10 +59,6 @@ typedef struct Text {
 	TextLine *curl, *sell;
 	int curc, selc;
 	
-	char *undo_buf;
-	void *pad;
-	int undo_pos, undo_len;
-
 	double mtime;
 } Text;
 
