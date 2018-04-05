@@ -6355,7 +6355,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_stamp_date", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_DATE);
-	RNA_def_property_ui_text(prop, "Stamp Date", "Include the current date in image metadata");
+	RNA_def_property_ui_text(prop, "Stamp Date", "Include the current date in image/video metadata");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "use_stamp_frame", PROP_BOOLEAN, PROP_NONE);
@@ -6375,12 +6375,12 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_stamp_scene", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_SCENE);
-	RNA_def_property_ui_text(prop, "Stamp Scene", "Include the name of the active scene in image metadata");
+	RNA_def_property_ui_text(prop, "Stamp Scene", "Include the name of the active scene in image/video metadata");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "use_stamp_note", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_NOTE);
-	RNA_def_property_ui_text(prop, "Stamp Note", "Include a custom note in image metadata");
+	RNA_def_property_ui_text(prop, "Stamp Note", "Include a custom note in image/video metadata");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "use_stamp_marker", PROP_BOOLEAN, PROP_NONE);
@@ -6390,7 +6390,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_stamp_filename", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "stamp", R_STAMP_FILENAME);
-	RNA_def_property_ui_text(prop, "Stamp Filename", "Include the .blend filename in image metadata");
+	RNA_def_property_ui_text(prop, "Stamp Filename", "Include the .blend filename in image/video metadata");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "use_stamp_sequencer_strip", PROP_BOOLEAN, PROP_NONE);
