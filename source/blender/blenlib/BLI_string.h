@@ -103,6 +103,20 @@ int BLI_string_find_split_words(
         const char delim, int r_words[][2], int words_max)
         ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 
+/** \name String Copy/Format Macros
+ * Avoid repeating destination with `sizeof(..)`.
+ * \note `ARRAY_SIZE` allows pointers on some platforms.
+ * \{ */
+#define STRNCPY(dst, src) \
+    BLI_strncpy(dst, src, ARRAY_SIZE(dst))
+#define STRNCPY_RLEN(dst, src) \
+    BLI_strncpy_rlen(dst, src, ARRAY_SIZE(dst))
+#define SNPRINTF(dst, format, ...) \
+    BLI_snprintf(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+#define SNPRINTF_RLEN(dst, format, ...) \
+    BLI_snprintf_rlen(dst, ARRAY_SIZE(dst), format, __VA_ARGS__)
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif
