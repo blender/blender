@@ -68,6 +68,8 @@ extern char datatoc_gpu_shader_2D_image_vert_glsl[];
 extern char datatoc_gpu_shader_2D_image_rect_vert_glsl[];
 extern char datatoc_gpu_shader_2D_image_multi_rect_vert_glsl[];
 extern char datatoc_gpu_shader_2D_widget_base_vert_glsl[];
+extern char datatoc_gpu_shader_2D_nodelink_frag_glsl[];
+extern char datatoc_gpu_shader_2D_nodelink_vert_glsl[];
 
 extern char datatoc_gpu_shader_3D_image_vert_glsl[];
 extern char datatoc_gpu_shader_image_frag_glsl[];
@@ -799,6 +801,10 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 		[GPU_SHADER_2D_WIDGET_BASE] = { datatoc_gpu_shader_2D_widget_base_vert_glsl,
 		                                datatoc_gpu_shader_2D_smooth_color_frag_glsl},
+		[GPU_SHADER_2D_NODELINK] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
+		                             datatoc_gpu_shader_2D_nodelink_frag_glsl },
+		[GPU_SHADER_2D_NODELINK_INST] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
+		                                  datatoc_gpu_shader_2D_nodelink_frag_glsl },
 
 		[GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID] = { datatoc_gpu_shader_instance_bone_envelope_solid_vert_glsl,
 		                                                 datatoc_gpu_shader_simple_lighting_frag_glsl },
@@ -813,6 +819,9 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		/* just a few special cases */
 		const char *defines = NULL;
 		switch (shader) {
+			case GPU_SHADER_2D_NODELINK_INST:
+				defines = "#define USE_INSTANCE;\n";
+				break;
 			case GPU_SHADER_SMOKE_COBA:
 				defines = "#define USE_COBA;\n";
 				break;
