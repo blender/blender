@@ -544,7 +544,7 @@ static void initSnappingMode(TransInfo *t)
 		}
 		/* Particles edit mode*/
 		else if (t->tsnap.applySnap != NULL && // A snapping function actually exist
-		         (obedit == NULL && base_act && base_act->object && t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT))
+		         (obedit == NULL && base_act && base_act->object && base_act->object->mode & OB_MODE_PARTICLE_EDIT))
 		{
 			t->tsnap.modeSelect = SNAP_ALL;
 		}

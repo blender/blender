@@ -918,7 +918,7 @@ int view3d_opengl_select(
 	ARegion *ar = vc->ar;
 	rcti rect;
 	int hits;
-	const bool use_obedit_skip = (OBEDIT_FROM_EVAL_CTX(eval_ctx) != NULL) && (vc->obedit == NULL);
+	const bool use_obedit_skip = (OBEDIT_FROM_VIEW_LAYER(vc->view_layer) != NULL) && (vc->obedit == NULL);
 	const bool is_pick_select = (U.gpu_select_pick_deph != 0);
 	const bool do_passes = (
 	        (is_pick_select == false) &&
@@ -1016,7 +1016,7 @@ int view3d_opengl_select(
 			.gpu_select_mode = gpu_select_mode,
 		};
 		DRW_draw_select_loop(
-		        graph, ar, v3d, eval_ctx->object_mode,
+		        graph, ar, v3d,
 		        use_obedit_skip, use_nearest, &rect,
 		        drw_select_loop_pass, &drw_select_loop_user_data);
 		hits = drw_select_loop_user_data.hits;
@@ -1104,13 +1104,11 @@ int ED_view3d_view_layer_set(int lay, const int *values, int *active)
 static ListBase queue_back;
 static void game_engine_save_state(bContext *C, wmWindow *win)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *obact = CTX_data_active_object(C);
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	if (obact && eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+	if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
 		GPU_paint_set_mipmap(1);
 	}
 
@@ -1121,11 +1119,9 @@ static void game_engine_save_state(bContext *C, wmWindow *win)
 
 static void game_engine_restore_state(bContext *C, wmWindow *win)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *obact = CTX_data_active_object(C);
 
-	if (obact && eval_ctx.object_mode & OB_MODE_TEXTURE_PAINT) {
+	if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
 		GPU_paint_set_mipmap(0);
 	}
 	/* check because closing win can set to NULL */

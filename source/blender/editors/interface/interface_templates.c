@@ -575,9 +575,6 @@ static void template_ID(
         bContext *C, uiLayout *layout, TemplateID *template_ui, StructRNA *type, int flag,
         const char *newop, const char *openop, const char *unlinkop)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	uiBut *but;
 	uiBlock *block;
 	PointerRNA idptr;
@@ -662,7 +659,7 @@ static void template_ID(
 			    (idfrom && idfrom->lib) ||
 			    (!editable) ||
 			    /* object in editmode - don't change data */
-			    (idfrom && GS(idfrom->name) == ID_OB && (eval_ctx.object_mode & OB_MODE_EDIT)))
+			    (idfrom && GS(idfrom->name) == ID_OB && (((Object *)idfrom)->mode & OB_MODE_EDIT)))
 			{
 				UI_but_flag_enable(but, UI_BUT_DISABLED);
 			}
@@ -1210,8 +1207,7 @@ static int modifier_is_simulation(ModifierData *md)
 }
 
 static uiLayout *draw_modifier(
-        uiLayout *layout,
-        const EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        uiLayout *layout, Scene *scene, Object *ob,
         ModifierData *md, int index, int cageIndex, int lastCageIndex)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1348,7 +1344,7 @@ static uiLayout *draw_modifier(
 			if (md->type == eModifierType_ParticleSystem) {
 				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
 				
-				if (!(eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT)) {
+				if (!(ob->mode & OB_MODE_PARTICLE_EDIT)) {
 					if (ELEM(psys->part->ren_as, PART_DRAW_GR, PART_DRAW_OB))
 						uiItemO(row, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Convert"), ICON_NONE,
 						        "OBJECT_OT_duplicates_make_real");
@@ -1397,8 +1393,6 @@ static uiLayout *draw_modifier(
 
 uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob;
 	ModifierData *md, *vmd;
@@ -1429,7 +1423,7 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 	for (i = 0; vmd; i++, vmd = vmd->next) {
 		if (md == vmd)
-			return draw_modifier(layout, &eval_ctx, scene, ob, md, i, cageIndex, lastCageIndex);
+			return draw_modifier(layout, scene, ob, md, i, cageIndex, lastCageIndex);
 		else if (vmd->mode & eModifierMode_Virtual)
 			i--;
 	}

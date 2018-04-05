@@ -388,9 +388,8 @@ class BUILTIN_KSI_WholeCharacter(KeyingSetInfo):
 
     # poll - pose-mode on active object only
     def poll(ksi, context):
-        workspace = context.workspace
-        ob = context.active_object
-        return (ob and ob.pose and (workspace.object_mode == 'POSE'))
+        return ((context.active_object) and (context.active_object.pose) and
+                (context.active_object.mode == 'POSE'))
 
     # iterator - all bones regardless of selection
     def iterator(ksi, context, ks):

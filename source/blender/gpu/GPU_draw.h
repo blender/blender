@@ -46,7 +46,6 @@ struct View3D;
 struct RegionView3D;
 struct SmokeModifierData;
 struct DupliObject;
-struct EvaluationContext;
 
 #include "DNA_object_enums.h"
 
@@ -79,7 +78,7 @@ void GPU_disable_program_point_size(void);
 void GPU_begin_object_materials(
         struct View3D *v3d, struct RegionView3D *rv3d,
         struct Scene *scene, struct ViewLayer *view_layer,
-        struct Object *ob, bool glsl, const eObjectMode object_mode, bool *do_alpha_after);
+        struct Object *ob, bool glsl, bool *do_alpha_after);
 void GPU_end_object_materials(void);
 bool GPU_object_materials_check(void);
 

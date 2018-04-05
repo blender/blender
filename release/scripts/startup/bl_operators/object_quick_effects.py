@@ -73,10 +73,9 @@ class QuickFur(Operator):
             )
 
     def execute(self, context):
-        workspace = context.workspace
         fake_context = context.copy()
         mesh_objects = [obj for obj in context.selected_objects
-                        if obj.type == 'MESH' and workspace.object_mode == 'OBJECT']
+                        if obj.type == 'MESH' and obj.mode == 'OBJECT']
 
         if not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")

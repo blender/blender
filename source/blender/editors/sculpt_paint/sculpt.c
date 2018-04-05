@@ -4083,9 +4083,8 @@ static void sculpt_update_tex(const Scene *scene, Sculpt *sd, SculptSession *ss)
 
 int sculpt_mode_poll(bContext *C)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
-	return ob && workspace->object_mode & OB_MODE_SCULPT;
+	return ob && ob->mode & OB_MODE_SCULPT;
 }
 
 int sculpt_mode_poll_view3d(bContext *C)
@@ -5220,7 +5219,7 @@ void sculpt_pbvh_clear(Object *ob)
 		BKE_pbvh_free(ss->pbvh);
 	ss->pbvh = NULL;
 	if (dm)
-		dm->getPBVH(NULL, dm, OB_MODE_OBJECT);
+		dm->getPBVH(NULL, dm);
 	BKE_object_free_derived_caches(ob);
 }
 
@@ -5649,14 +5648,14 @@ static int ed_object_sculptmode_flush_recalc_flag(Scene *scene, Object *ob, Mult
 
 void ED_object_sculptmode_enter_ex(
         const EvaluationContext *eval_ctx,
-        WorkSpace *workspace, Scene *scene, Object *ob,
+        Scene *scene, Object *ob,
         ReportList *reports)
 {
 	const int mode_flag = OB_MODE_SCULPT;
 	Mesh *me = BKE_mesh_from_object(ob);
 
 	/* Enter sculptmode */
-	workspace->object_mode |= mode_flag;
+	ob->mode |= mode_flag;
 
 	MultiresModifierData *mmd = BKE_sculpt_multires_active(scene, ob);
 
@@ -5739,7 +5738,7 @@ void ED_object_sculptmode_enter_ex(
 		}
 	}
 
-	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
+	// ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
 
 	/* VBO no longer valid */
 	if (ob->derivedFinal) {
@@ -5749,17 +5748,16 @@ void ED_object_sculptmode_enter_ex(
 
 void ED_object_sculptmode_enter(struct bContext *C, ReportList *reports)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
-	ED_object_sculptmode_enter_ex(&eval_ctx, workspace, scene, ob, reports);
+	ED_object_sculptmode_enter_ex(&eval_ctx, scene, ob, reports);
 }
 
 void ED_object_sculptmode_exit_ex(
         const EvaluationContext *eval_ctx,
-        WorkSpace *workspace, Scene *scene, Object *ob)
+        Scene *scene, Object *ob)
 {
 	const int mode_flag = OB_MODE_SCULPT;
 	Mesh *me = BKE_mesh_from_object(ob);
@@ -5792,9 +5790,9 @@ void ED_object_sculptmode_exit_ex(
 	}
 
 	/* Leave sculptmode */
-	workspace->object_mode &= ~mode_flag;
+	ob->mode &= ~mode_flag;
 
-	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
+	// ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
 
 	BKE_sculptsession_free(ob);
 
@@ -5808,24 +5806,22 @@ void ED_object_sculptmode_exit_ex(
 
 void ED_object_sculptmode_exit(bContext *C)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
-	ED_object_sculptmode_exit_ex(&eval_ctx, workspace, scene, ob);
+	ED_object_sculptmode_exit_ex(&eval_ctx, scene, ob);
 }
 
 static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_SCULPT;
-	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
+	const bool is_mode_set = (ob->mode & mode_flag) != 0;
 
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -5834,10 +5830,10 @@ static int sculpt_mode_toggle_exec(bContext *C, wmOperator *op)
 	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (is_mode_set) {
-		ED_object_sculptmode_exit_ex(&eval_ctx, workspace, scene, ob);
+		ED_object_sculptmode_exit_ex(&eval_ctx, scene, ob);
 	}
 	else {
-		ED_object_sculptmode_enter_ex(&eval_ctx, workspace, scene, ob, op->reports);
+		ED_object_sculptmode_enter_ex(&eval_ctx, scene, ob, op->reports);
 	}
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);

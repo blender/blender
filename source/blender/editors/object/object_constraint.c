@@ -87,12 +87,12 @@
 /* -------------- Get Active Constraint Data ---------------------- */
 
 /* if object in posemode, active bone constraints, else object constraints */
-ListBase *get_active_constraints(const EvaluationContext *eval_ctx, Object *ob)
+ListBase *get_active_constraints(Object *ob)
 {
 	if (ob == NULL)
 		return NULL;
 	
-	if (eval_ctx->object_mode & OB_MODE_POSE) {
+	if (ob->mode & OB_MODE_POSE) {
 		bPoseChannel *pchan;
 		
 		pchan = BKE_pose_channel_active(ob);
@@ -142,9 +142,9 @@ ListBase *get_constraint_lb(Object *ob, bConstraint *con, bPoseChannel **r_pchan
 }
 
 /* single constraint */
-bConstraint *get_active_constraint(const EvaluationContext *eval_ctx, Object *ob)
+bConstraint *get_active_constraint(Object *ob)
 {
-	return BKE_constraints_active_get(get_active_constraints(eval_ctx, ob));
+	return BKE_constraints_active_get(get_active_constraints(ob));
 }
 
 /* -------------- Constraint Management (Add New, Remove, Rename) -------------------- */
@@ -639,8 +639,7 @@ static int edit_constraint_invoke_properties(bContext *C, wmOperator *op)
 	return 0;
 }
 
-static bConstraint *edit_constraint_property_get(
-        const EvaluationContext *eval_ctx, wmOperator *op, Object *ob, int type)
+static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int type)
 {
 	char constraint_name[MAX_NAME];
 	int owner = RNA_enum_get(op->ptr, "owner");
@@ -665,7 +664,7 @@ static bConstraint *edit_constraint_property_get(
 	else {
 		//if (G.debug & G_DEBUG)
 		//printf("edit_constraint_property_get: defaulting to getting list in the standard way\n");
-		list = get_active_constraints(eval_ctx, ob);
+		list = get_active_constraints(ob);
 	}
 	
 	con = BKE_constraints_find_name(list, constraint_name);
@@ -688,7 +687,7 @@ static int stretchto_reset_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_STRETCHTO);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_STRETCHTO);
 	bStretchToConstraint *data = (con) ? (bStretchToConstraint *)con->data : NULL;
 	
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
@@ -736,7 +735,7 @@ static int limitdistance_reset_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_DISTLIMIT);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_DISTLIMIT);
 	bDistLimitConstraint *data = (con) ? (bDistLimitConstraint *)con->data : NULL;
 	
 	/* despite 3 layers of checks, we may still not be able to find a constraint */
@@ -875,7 +874,7 @@ static int childof_set_inverse_exec(bContext *C, wmOperator *op)
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_CHILDOF);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : NULL;
 	const int owner = RNA_enum_get(op->ptr, "owner");
 
@@ -926,7 +925,7 @@ static int childof_clear_inverse_exec(bContext *C, wmOperator *op)
 	Object *ob = ED_object_active_context(C);
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_CHILDOF);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_CHILDOF);
 	bChildOfConstraint *data = (con) ? (bChildOfConstraint *)con->data : NULL;
 	
 	if (data == NULL) {
@@ -976,7 +975,7 @@ static int followpath_path_animate_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_FOLLOWPATH);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_FOLLOWPATH);
 	bFollowPathConstraint *data = (con) ? (bFollowPathConstraint *)con->data : NULL;
 	
 	bAction *act = NULL;
@@ -1103,7 +1102,7 @@ static int objectsolver_set_inverse_exec(bContext *C, wmOperator *op)
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
 	bObjectSolverConstraint *data = (con) ? (bObjectSolverConstraint *)con->data : NULL;
 	const int owner = RNA_enum_get(op->ptr, "owner");
 
@@ -1153,7 +1152,7 @@ static int objectsolver_clear_inverse_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
+	bConstraint *con = edit_constraint_property_get(op, ob, CONSTRAINT_TYPE_OBJECTSOLVER);
 	bObjectSolverConstraint *data = (con) ? (bObjectSolverConstraint *)con->data : NULL;
 
 	if (data == NULL) {
@@ -1324,7 +1323,7 @@ static int constraint_move_down_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, 0);
+	bConstraint *con = edit_constraint_property_get(op, ob, 0);
 	
 	if (con && con->next) {
 		ListBase *conlist = get_constraint_lb(ob, con, NULL);
@@ -1375,7 +1374,7 @@ static int constraint_move_up_exec(bContext *C, wmOperator *op)
 	EvaluationContext eval_ctx;
 	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	bConstraint *con = edit_constraint_property_get(&eval_ctx, op, ob, 0);
+	bConstraint *con = edit_constraint_property_get(op, ob, 0);
 	
 	if (con && con->prev) {
 		ListBase *conlist = get_constraint_lb(ob, con, NULL);
@@ -1892,8 +1891,6 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = BKE_object_pose_armature_get(ED_object_active_context(C));
 	int type = RNA_enum_get(op->ptr, "type");
 	short with_targets = 0;
@@ -1909,7 +1906,7 @@ static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 	if (strstr(op->idname, "with_targets"))
 		with_targets = 1;
 	
-	return constraint_add_exec(C, op, ob, get_active_constraints(&eval_ctx, ob), type, with_targets);
+	return constraint_add_exec(C, op, ob, get_active_constraints(ob), type, with_targets);
 }
 
 /* ------------------ */
@@ -2050,13 +2047,11 @@ static int pose_ik_add_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED
 /* call constraint_add_exec() to add the IK constraint */
 static int pose_ik_add_exec(bContext *C, wmOperator *op)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = CTX_data_active_object(C);
 	const bool with_targets = RNA_boolean_get(op->ptr, "with_targets");
 	
 	/* add the constraint - all necessary checks should have been done by the invoke() callback already... */
-	return constraint_add_exec(C, op, ob, get_active_constraints(&eval_ctx, ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);
+	return constraint_add_exec(C, op, ob, get_active_constraints(ob), CONSTRAINT_TYPE_KINEMATIC, with_targets);
 }
 
 void POSE_OT_ik_add(wmOperatorType *ot)

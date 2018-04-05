@@ -903,8 +903,7 @@ void BlenderSync::sync_curves(BL::Depsgraph& b_depsgraph,
 	/* obtain general settings */
 	const bool use_curves = scene->curve_system_manager->use_curves;
 
-	/* TODO/OBMODE, make cycles mode aware. */
-	if(!(use_curves /* && b_ob.mode() != b_ob.mode_PARTICLE_EDIT */ )) {
+	if(!(use_curves && b_ob.mode() != b_ob.mode_PARTICLE_EDIT)) {
 		if(!motion)
 			mesh->compute_bounds();
 		return;

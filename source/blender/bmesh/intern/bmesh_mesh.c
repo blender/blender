@@ -1042,7 +1042,7 @@ void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle)
 }
 
 static void UNUSED_FUNCTION(bm_mdisps_space_set)(
-        Object *ob, BMesh *bm, int from, int to, eObjectMode object_mode)
+        Object *ob, BMesh *bm, int from, int to)
 {
 	/* switch multires data out of tangent space */
 	if (CustomData_has_layer(&bm->ldata, CD_MDISPS)) {
@@ -1053,7 +1053,7 @@ static void UNUSED_FUNCTION(bm_mdisps_space_set)(
 		BMIter iter;
 		// int i = 0; // UNUSED
 		
-		multires_set_space(dm, ob, from, to, object_mode);
+		multires_set_space(dm, ob, from, to);
 		
 		mdisps = CustomData_get_layer(&dm->loopData, CD_MDISPS);
 		

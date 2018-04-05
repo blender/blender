@@ -998,7 +998,7 @@ static short pose_grab_with_ik(Object *ob)
 	Bone *bonec;
 	short tot_ik = 0;
 
-	if ((ob == NULL) || (ob->pose == NULL))
+	if ((ob == NULL) || (ob->pose == NULL) || (ob->mode & OB_MODE_POSE) == 0)
 		return 0;
 
 	arm = ob->data;
@@ -2559,7 +2559,7 @@ static void createTransEditVerts(TransInfo *t)
 	/* detect CrazySpace [tm] */
 	if (modifiers_getCageIndex(t->scene, t->obedit, NULL, 1) != -1) {
 		int totleft = -1;
-		if (modifiers_isCorrectableDeformed(&t->eval_ctx, t->scene, t->obedit)) {
+		if (modifiers_isCorrectableDeformed(t->scene, t->obedit)) {
 			/* check if we can use deform matrices for modifier from the
 			 * start up to stack, they are more accurate than quats */
 			totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(&t->eval_ctx, t->scene, t->obedit, em, &defmats, &defcos);
@@ -6549,7 +6549,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if ((t->view_layer->basact) &&
 	         (ob = t->view_layer->basact->object) &&
-	         (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
+	         (ob->mode & OB_MODE_PARTICLE_EDIT) &&
 	         PE_get_current(t->scene, ob))
 	{
 		/* do nothing */
@@ -8287,28 +8287,26 @@ void createTransData(bContext *C, TransInfo *t)
 			t->poseobj = ob;    /* <- tsk tsk, this is going to give issues one day */
 		}
 	}
-	else if (ob && (t->eval_ctx.object_mode & OB_MODE_POSE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		// XXX this is currently limited to active armature only...
 		// XXX active-layer checking isn't done as that should probably be checked through context instead
 		createTransPose(t, ob);
 	}
-	else if (ob && (t->eval_ctx.object_mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
+	else if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT) && !(t->options & CTX_PAINT_CURVE)) {
 		/* important that ob_armature can be set even when its not selected [#23412]
 		 * lines below just check is also visible */
 		Object *ob_armature = modifiers_isDeformedByArmature(ob);
-		if (ob_armature) {
-//			const bArmature *arm = ob_armature->data;
+		if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
 			Base *base_arm = BKE_view_layer_base_find(t->view_layer, ob_armature);
 			if (base_arm) {
 				if (BASE_VISIBLE(base_arm)) {
 					createTransPose(t, ob_armature);
 				}
 			}
+			
 		}
 	}
-	else if (ob && (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
-	         PE_start_edit(PE_get_current(scene, ob)))
-	{
+	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT) && PE_start_edit(PE_get_current(scene, ob))) {
 		createTransParticleVerts(C, t);
 		t->flag |= T_POINTS;
 
@@ -8318,7 +8316,7 @@ void createTransData(bContext *C, TransInfo *t)
 			sort_trans_data_dist(t);
 		}
 	}
-	else if (ob && (t->eval_ctx.object_mode & OB_MODE_ALL_PAINT)) {
+	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		if ((t->options & CTX_PAINT_CURVE) && !ELEM(t->mode, TFM_SHEAR, TFM_SHRINKFATTEN)) {
 			t->flag |= T_POINTS | T_2D_EDIT;
 			createTransPaintCurveVerts(C, t);

@@ -32,7 +32,6 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_math_vector.h"
 
@@ -60,13 +59,12 @@
 
 int paint_curve_poll(bContext *C)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	Paint *p;
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	SpaceImage *sima;
 
-	if (rv3d && !(ob && ((workspace->object_mode & OB_MODE_ALL_PAINT) != 0)))
+	if (rv3d && !(ob && ((ob->mode & OB_MODE_ALL_PAINT) != 0)))
 		return false;
 
 	sima = CTX_wm_space_image(C);

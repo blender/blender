@@ -63,7 +63,6 @@
 #include "BKE_material.h"
 #include "BKE_group.h"
 
-#include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
 
 #include "../blenloader/BLO_readfile.h"
@@ -977,7 +976,6 @@ static int outliner_open_back(TreeElement *te)
 
 static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	SpaceOops *so = CTX_wm_space_outliner(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -998,13 +996,13 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 		/* traverse down the bone hierarchy in case of armature */
 		TreeElement *te_obact = te;
 
-		if (workspace->object_mode & OB_MODE_POSE) {
+		if (obact->mode & OB_MODE_POSE) {
 			bPoseChannel *pchan = CTX_data_active_pose_bone(C);
 			if (pchan) {
 				te = outliner_find_posechannel(&te_obact->subtree, pchan);
 			}
 		}
-		else if (workspace->object_mode & OB_MODE_EDIT) {
+		else if (obact->mode & OB_MODE_EDIT) {
 			EditBone *ebone = CTX_data_active_bone(C);
 			if (ebone) {
 				te = outliner_find_editbone(&te_obact->subtree, ebone);

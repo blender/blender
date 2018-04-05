@@ -866,7 +866,7 @@ static int bake(
 
 			/* triangulating so BVH returns the primitive_id that will be used for rendering */
 			highpoly[i].tri_mod = ED_object_modifier_add(
-			        reports, bmain, scene, highpoly[i].ob, OB_MODE_OBJECT,
+			        reports, bmain, scene, highpoly[i].ob,
 			        "TmpTriangulate", eModifierType_Triangulate);
 			tmd = (TriangulateModifierData *)highpoly[i].tri_mod;
 			tmd->quad_method = MOD_TRIANGULATE_QUAD_FIXED;

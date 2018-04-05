@@ -172,6 +172,9 @@ typedef struct Object {
 	ListBase modifiers; /* list of ModifierData structures */
 	ListBase fmaps;     /* list of facemaps */
 
+	int mode;           /* Local object mode */
+	int restore_mode;
+
 	/* materials */
 	struct Material **mat;	/* material slots */
 	char *matbits;			/* a boolean field, with each byte 1 if corresponding material is linked to object */

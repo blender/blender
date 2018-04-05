@@ -520,9 +520,9 @@ static bool test_rotmode_euler(short rotmode)
 	return (ELEM(rotmode, ROT_MODE_AXISANGLE, ROT_MODE_QUAT)) ? 0 : 1;
 }
 
-bool gimbal_axis(Object *ob, float gmat[3][3], const eObjectMode object_mode)
+bool gimbal_axis(Object *ob, float gmat[3][3])
 {
-	if (object_mode & OB_MODE_POSE) {
+	if (ob->mode & OB_MODE_POSE) {
 		bPoseChannel *pchan = BKE_pose_channel_active(ob);
 
 		if (pchan) {
@@ -591,7 +591,6 @@ static int calc_manipulator_stats(
         const bContext *C, bool use_only_center,
         struct TransformBounds *tbounds)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	Scene *scene = CTX_data_scene(C);
@@ -629,7 +628,7 @@ static int calc_manipulator_stats(
 			case V3D_MANIP_GIMBAL:
 			{
 				float mat[3][3];
-				if (gimbal_axis(ob, mat, workspace->object_mode)) {
+				if (gimbal_axis(ob, mat)) {
 					copy_m4_m3(rv3d->twmat, mat);
 					break;
 				}
@@ -638,7 +637,7 @@ static int calc_manipulator_stats(
 			}
 			case V3D_MANIP_NORMAL:
 			{
-				if (obedit || workspace->object_mode & OB_MODE_POSE) {
+				if (obedit || ob->mode & OB_MODE_POSE) {
 					float mat[3][3];
 					ED_getTransformOrientationMatrix(C, mat, v3d->around);
 					copy_m4_m3(rv3d->twmat, mat);
@@ -649,7 +648,7 @@ static int calc_manipulator_stats(
 			}
 			case V3D_MANIP_LOCAL:
 			{
-				if (workspace->object_mode & OB_MODE_POSE) {
+				if (ob->mode & OB_MODE_POSE) {
 					/* each bone moves on its own local axis, but  to avoid confusion,
 					 * use the active pones axis for display [#33575], this works as expected on a single bone
 					 * and users who select many bones will understand whats going on and what local means
@@ -691,7 +690,7 @@ static int calc_manipulator_stats(
 
 #ifdef USE_AXIS_BOUNDS
 	copy_m3_m4(tbounds->axis, rv3d->twmat);
-	if (ob && workspace->object_mode & OB_MODE_EDIT) {
+	if (ob && ob->mode & OB_MODE_EDIT) {
 		float diff_mat[3][3];
 		copy_m3_m4(diff_mat, ob->obmat);
 		normalize_m3(diff_mat);
@@ -934,7 +933,7 @@ static int calc_manipulator_stats(
 			mul_m4_v3(obedit->obmat, tbounds->max);
 		}
 	}
-	else if (ob && (workspace->object_mode & OB_MODE_POSE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		bPoseChannel *pchan;
 		int mode = TFM_ROTATION; // mislead counting bones... bah. We don't know the manipulator mode, could be mixed
 		bool ok = false;
@@ -972,10 +971,10 @@ static int calc_manipulator_stats(
 			mul_m4_v3(ob->obmat, tbounds->max);
 		}
 	}
-	else if (ob && (workspace->object_mode & OB_MODE_ALL_PAINT)) {
+	else if (ob && (ob->mode & OB_MODE_ALL_PAINT)) {
 		/* pass */
 	}
-	else if (ob && workspace->object_mode & OB_MODE_PARTICLE_EDIT) {
+	else if (ob && ob->mode & OB_MODE_PARTICLE_EDIT) {
 		PTCacheEdit *edit = PE_get_current(scene, ob);
 		PTCacheEditPoint *point;
 		PTCacheEditKey *ek;
@@ -1065,13 +1064,12 @@ static void manipulator_prepare_mat(
 		case V3D_AROUND_CENTER_BOUNDS:
 		case V3D_AROUND_ACTIVE:
 		{
-			const WorkSpace *workspace = CTX_wm_workspace(C);
 			bGPdata *gpd = CTX_data_gpencil_data(C);
 			Object *ob = OBACT(view_layer);
 
-			if (((v3d->around == V3D_AROUND_ACTIVE) && ((workspace->object_mode & OB_MODE_EDIT) == 0)) &&
+			if (((v3d->around == V3D_AROUND_ACTIVE) && (OBEDIT_FROM_OBACT(ob) == NULL)) &&
 			    ((gpd == NULL) || !(gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
-			    (!(workspace->object_mode & OB_MODE_POSE)))
+			    (!(ob->mode & OB_MODE_POSE)))
 			{
 				copy_v3_v3(rv3d->twmat[3], ob->obmat[3]);
 			}
@@ -1660,10 +1658,10 @@ static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmManipulator
 {
 	struct XFormCageWidgetGroup *xmgroup = mgroup->customdata;
 	wmManipulator *mpr = xmgroup->manipulator;
-	const WorkSpace *workspace = CTX_wm_workspace(C);
+
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	if (ob && workspace->object_mode & OB_MODE_EDIT) {
+	if (ob && ob->mode & OB_MODE_EDIT) {
 		copy_m4_m4(mpr->matrix_space, ob->obmat);
 	}
 	else {

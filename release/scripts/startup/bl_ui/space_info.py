@@ -48,7 +48,7 @@ class INFO_HT_header(Header):
             layout.template_ID(window, "workspace", new="workspace.workspace_add_menu", unlink="workspace.workspace_delete")
             layout.template_search_preview(window, "screen", workspace, "screens", new="screen.new", unlink="screen.delete", rows=2, cols=6)
 
-        act_mode_item = bpy.types.WorkSpace.bl_rna.properties['object_mode'].enum_items[workspace.object_mode]
+        act_mode_item = bpy.types.Object.bl_rna.properties["mode"].enum_items[layer.objects.active.mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
 
         row = layout.row()
@@ -84,7 +84,7 @@ class INFO_HT_header(Header):
             return
 
         row.operator("wm.splash", text="", icon='BLENDER', emboss=False)
-        row.label(text=scene.statistics(workspace, context.view_layer), translate=False)
+        row.label(text=scene.statistics(context.view_layer), translate=False)
 
 
 class INFO_MT_editor_menus(Menu):

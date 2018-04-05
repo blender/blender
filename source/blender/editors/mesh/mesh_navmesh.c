@@ -662,10 +662,8 @@ void MESH_OT_navmesh_face_add(struct wmOperatorType *ot)
 
 static int navmesh_obmode_data_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	if (ob && (eval_ctx.object_mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
+	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
 		Mesh *me = ob->data;
 		return CustomData_has_layer(&me->pdata, CD_RECAST);
 	}
@@ -674,10 +672,8 @@ static int navmesh_obmode_data_poll(bContext *C)
 
 static int navmesh_obmode_poll(bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	Object *ob = ED_object_active_context(C);
-	if (ob && (eval_ctx.object_mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
+	if (ob && (ob->mode == OB_MODE_OBJECT) && (ob->type == OB_MESH)) {
 		return true;
 	}
 	return false;

@@ -2667,10 +2667,8 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
  *  note: object should be in posemode
  */
 static void draw_ghost_poses_range(
-        const EvaluationContext *eval_ctx_init,
-        Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base)
+        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base)
 {
-	EvaluationContext eval_ctx = *eval_ctx_init;
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
 	bArmature *arm = ob->data;
@@ -2692,7 +2690,7 @@ static void draw_ghost_poses_range(
 	range = (float)(end - start);
 	
 	/* store values */
-	eval_ctx.object_mode &= ~OB_MODE_POSE;
+	ob->mode &= ~OB_MODE_POSE;
 	cfrao = CFRA;
 	flago = arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES | ARM_DRAWAXES);
@@ -2713,8 +2711,8 @@ static void draw_ghost_poses_range(
 		UI_GetThemeColorShadeAlpha4ubv(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)), col);
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-		BKE_pose_where_is(&eval_ctx, scene, ob);
-		draw_pose_bones(&eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+		BKE_pose_where_is(eval_ctx, scene, ob);
+		draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2730,17 +2728,16 @@ static void draw_ghost_poses_range(
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	eval_ctx.object_mode |= OB_MODE_POSE;
+	ob->mode |= OB_MODE_POSE;
 }
 
 /* draw ghosts on keyframes in action within range 
  *	- object should be in posemode 
  */
 static void draw_ghost_poses_keys(
-        const struct EvaluationContext *eval_ctx_init, Scene *scene, ViewLayer *view_layer,
+        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, Base *base)
 {
-	EvaluationContext eval_ctx = *eval_ctx_init;
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
 	bAction *act = (adt) ? adt->action : NULL;
@@ -2774,7 +2771,7 @@ static void draw_ghost_poses_keys(
 	if (range == 0) return;
 	
 	/* store values */
-	eval_ctx.object_mode &= ~OB_MODE_POSE;
+	ob->mode &= ~OB_MODE_POSE;
 	cfrao = CFRA;
 	flago = arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES | ARM_DRAWAXES);
@@ -2797,8 +2794,8 @@ static void draw_ghost_poses_keys(
 		CFRA = (int)ak->cfra;
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-		BKE_pose_where_is(&eval_ctx, scene, ob);
-		draw_pose_bones(&eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+		BKE_pose_where_is(eval_ctx, scene, ob);
+		draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2815,17 +2812,16 @@ static void draw_ghost_poses_keys(
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	eval_ctx.object_mode |= OB_MODE_POSE;
+	ob->mode |= OB_MODE_POSE;
 }
 
 /* draw ghosts around current frame
  *  - object is supposed to be armature in posemode
  */
 static void draw_ghost_poses(
-        const struct EvaluationContext *eval_ctx_init, Scene *scene, ViewLayer *view_layer,
+        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, Base *base)
 {
-	EvaluationContext eval_ctx = *eval_ctx_init;
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
 	bArmature *arm = ob->data;
@@ -2850,7 +2846,7 @@ static void draw_ghost_poses(
 	range = (float)(arm->ghostep) * stepsize + 0.5f;   /* plus half to make the for loop end correct */
 	
 	/* store values */
-	eval_ctx.object_mode &= ~OB_MODE_POSE;
+	ob->mode &= ~OB_MODE_POSE;
 	cfrao = CFRA;
 	actframe = BKE_nla_tweakedit_remap(adt, (float)CFRA, 0);
 	flago = arm->flag;
@@ -2878,8 +2874,8 @@ static void draw_ghost_poses(
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-				BKE_pose_where_is(&eval_ctx, scene, ob);
-				draw_pose_bones(&eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+				BKE_pose_where_is(eval_ctx, scene, ob);
+				draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 			}
 		}
 		
@@ -2893,8 +2889,8 @@ static void draw_ghost_poses(
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-				BKE_pose_where_is(&eval_ctx, scene, ob);
-				draw_pose_bones(&eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+				BKE_pose_where_is(eval_ctx, scene, ob);
+				draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 			}
 		}
 	}
@@ -2912,7 +2908,7 @@ static void draw_ghost_poses(
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	eval_ctx.object_mode |= OB_MODE_POSE;
+	ob->mode |= OB_MODE_POSE;
 }
 
 /* ********************************** Armature Drawing - Main ************************* */
@@ -2974,11 +2970,11 @@ bool draw_armature(
 					}
 					else
 #endif
-					if (eval_ctx->object_mode & OB_MODE_POSE) {
+					if (ob->mode & OB_MODE_POSE) {
 						arm->flag |= ARM_POSEMODE;
 					}
 				}
-				else if (eval_ctx->object_mode & OB_MODE_POSE) {
+				else if (ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
 						draw_ghost_poses_range(eval_ctx, scene, view_layer, v3d, ar, base);
 					}
@@ -2992,7 +2988,7 @@ bool draw_armature(
 					if ((dflag & DRAW_SCENESET) == 0) {
 						if (ob == OBACT(view_layer))
 							arm->flag |= ARM_POSEMODE;
-						else if (OBACT(view_layer) && (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT)) {
+						else if (OBACT(view_layer) && (OBACT(view_layer)->mode & OB_MODE_WEIGHT_PAINT)) {
 							if (ob == modifiers_isDeformedByArmature(OBACT(view_layer)))
 								arm->flag |= ARM_POSEMODE;
 						}

@@ -54,7 +54,6 @@ struct wmKeyConfig;
 struct wmManipulatorGroupType;
 struct wmManipulatorType;
 struct wmWindowManager;
-struct EvaluationContext;
 
 /* drawing flags: */
 enum {
@@ -155,19 +154,13 @@ void draw_object_select(
         const struct EvaluationContext *eval_ctx, Scene *scene, struct ViewLayer *view_layer, struct ARegion *ar, View3D *v3d,
         Base *base, const short dflag);
 
-void draw_mesh_object_outline(
-        const struct EvaluationContext *eval_ctx, View3D *v3d,
-        struct Object *ob, struct DerivedMesh *dm, const unsigned char ob_wire_col[4]);
+void draw_mesh_object_outline(View3D *v3d, struct Object *ob, struct DerivedMesh *dm, const unsigned char ob_wire_col[4]);
 
-bool draw_glsl_material(
-        const struct EvaluationContext *eval_ctx, Scene *scene, struct ViewLayer *view_layer,
-        struct Object *ob, View3D *v3d, const char dt);
+bool draw_glsl_material(Scene *scene, struct ViewLayer *view_layer, struct Object *ob, View3D *v3d, const char dt);
 void draw_object_instance(const struct EvaluationContext *eval_ctx, Scene *scene, struct ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const char dt, int outline, const float wire_col[4]);
 void draw_object_backbufsel(const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 
-void draw_object_wire_color(
-        const struct EvaluationContext *eval_ctx, struct ViewLayer *,
-        Base *base, unsigned char r_ob_wire_col[4]);
+void draw_object_wire_color(struct ViewLayer *, Base *base, unsigned char r_ob_wire_col[4]);
 void drawaxes(const float viewmat_local[4][4], float size, char drawtype, const unsigned char color[4]);
 void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
               const char dt, const short dflag, const unsigned char ob_wire_col[4],
@@ -216,10 +209,8 @@ void draw_mesh_paint_vcolor_faces(struct DerivedMesh *dm, const bool use_light,
 void draw_mesh_paint_weight_edges(RegionView3D *rv3d, struct DerivedMesh *dm,
                                   const bool use_depth, const bool use_alpha,
                                   void *edgemask_cb, void *user_data);
-void draw_mesh_paint(
-        const struct EvaluationContext *eval_ctx,
-        View3D *v3d, RegionView3D *rv3d,
-        struct Object *ob, struct DerivedMesh *dm, const int draw_flags);
+void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
+                     struct Object *ob, struct DerivedMesh *dm, const int draw_flags);
 
 /* drawsimdebug.c */
 void draw_sim_debug_data(Scene *scene, View3D *v3d, ARegion *ar);
@@ -376,12 +367,10 @@ extern bool view3d_camera_border_hack_test;
 #endif
 
 /* temporary for legacy viewport to work */
-void VP_legacy_drawcursor(
-        const struct EvaluationContext *eval_ctx, Scene *scene,
-        struct ViewLayer *view_layer, ARegion *ar, View3D *v3d);
+void VP_legacy_drawcursor(Scene *scene, struct ViewLayer *view_layer, ARegion *ar, View3D *v3d);
 void VP_legacy_draw_view_axis(RegionView3D *rv3d, const rcti *rect);
 void VP_legacy_draw_viewport_name(ARegion *ar, View3D *v3d, const rcti *rect);
-void VP_legacy_draw_selected_name(Scene *scene, struct Object *ob, eObjectMode object_mode, const rcti *rect);
+void VP_legacy_draw_selected_name(Scene *scene, struct Object *ob, rcti *rect);
 void VP_legacy_drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit);
 void VP_legacy_drawfloor(Scene *scene, View3D *v3d, const char **grid_unit, bool write_depth);
 void VP_legacy_view3d_main_region_setup_view(const struct EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, ARegion *ar, float viewmat[4][4], float winmat[4][4]);

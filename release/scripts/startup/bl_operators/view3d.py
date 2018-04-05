@@ -30,9 +30,8 @@ class VIEW3D_OT_edit_mesh_extrude_individual_move(Operator):
 
     @classmethod
     def poll(cls, context):
-        workspace = context.workspace
         obj = context.active_object
-        return (obj is not None and workspace.object_mode == 'EDIT')
+        return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
         mesh = context.object.data
@@ -69,9 +68,8 @@ class VIEW3D_OT_edit_mesh_extrude_move(Operator):
 
     @classmethod
     def poll(cls, context):
-        workspace = context.workspace
         obj = context.active_object
-        return (obj is not None and workspace.object_mode == 'EDIT')
+        return (obj is not None and obj.mode == 'EDIT')
 
     @staticmethod
     def extrude_region(context, use_vert_normals):
@@ -119,9 +117,8 @@ class VIEW3D_OT_edit_mesh_extrude_shrink_fatten(Operator):
 
     @classmethod
     def poll(cls, context):
-        workspace = context.workspace
         obj = context.active_object
-        return (obj is not None and workspace.object_mode == 'EDIT')
+        return (obj is not None and obj.mode == 'EDIT')
 
     def execute(self, context):
         return VIEW3D_OT_edit_mesh_extrude_move.extrude_region(context, True)
@@ -176,8 +173,7 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
     def poll(cls, context):
         active_object = context.active_object
         if active_object:
-            workspace = context.workspace
-            return workspace.object_mode in {'EDIT', 'OBJECT', 'POSE'}
+            return active_object.mode in {'EDIT', 'OBJECT', 'POSE'}
         return True
 
     def invoke(self, context, event):
@@ -188,9 +184,7 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
             active_object = context.active_object
 
             if active_object:
-                workspace = context.workspace
-                object_mode = workspace.object_mode
-                if object_mode == 'EDIT':
+                if active_object.mode == 'EDIT':
                     if active_object.type == 'MESH':
                         bpy.ops.mesh.select_all(action='DESELECT')
                     elif active_object.type == 'CURVE':
@@ -203,9 +197,9 @@ class VIEW3D_OT_select_or_deselect_all(Operator):
                         bpy.ops.mball.select_all(action='DESELECT')
                     elif active_object.type == 'ARMATURE':
                         bpy.ops.armature.select_all(action='DESELECT')
-                elif object_mode == 'POSE':
+                elif active_object.mode == 'POSE':
                     bpy.ops.pose.select_all(action='DESELECT')
-                elif object_mode == 'PARTICLE_EDIT':
+                elif active_object.mode == 'PARTICLE_EDIT':
                     bpy.ops.particle.select_all(action='DESELECT')
                 else:
                     bpy.ops.object.select_all(action='DESELECT')

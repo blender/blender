@@ -36,7 +36,6 @@ extern "C" {
 #endif
 
 struct ID;
-struct EvaluationContext;
 struct View3D;
 struct ARegion;
 struct bContext;
@@ -266,7 +265,6 @@ void                 ED_vgroup_vert_add(struct Object *ob, struct bDeformGroup *
 void                 ED_vgroup_vert_remove(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 float                ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vertnum);
 void                 ED_vgroup_vert_active_mirror(struct Object *ob, int def_nr);
-
 
 /* mesh_data.c */
 // void ED_mesh_geometry_add(struct Mesh *mesh, struct ReportList *reports, int verts, int edges, int faces);

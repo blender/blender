@@ -67,8 +67,7 @@ struct ARegion;
 struct ScrArea;
 struct Main;
 struct bToolDef;
-
-#include "DNA_object_enums.h"
+struct ViewLayer;
 
 #ifdef WITH_INPUT_NDOF
 struct wmNDOFMotionData;
@@ -105,7 +104,6 @@ bool		WM_window_is_fullscreen	(struct wmWindow *win);
 void WM_windows_scene_data_sync(const ListBase *win_lb, struct Scene *scene) ATTR_NONNULL();
 struct Scene *WM_windows_scene_get_from_screen(const struct wmWindowManager *wm, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 struct WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
-eObjectMode WM_windows_object_mode_get(const struct wmWindowManager *wm) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 
 struct Scene *WM_window_get_active_scene(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void          WM_window_change_active_scene(struct Main *bmain, struct bContext *C, struct wmWindow *win,
@@ -117,6 +115,10 @@ void                    WM_window_set_active_layout(
         struct wmWindow *win, struct WorkSpace *workspace, struct WorkSpaceLayout *layout) ATTR_NONNULL(1);
 struct bScreen *WM_window_get_active_screen(const struct wmWindow *win) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;
 void            WM_window_set_active_screen(struct wmWindow *win, struct WorkSpace *workspace, struct bScreen *screen) ATTR_NONNULL(1);
+
+struct ViewLayer *WM_window_get_active_view_layer_ex(const struct wmWindow *win, struct Scene **r_scene) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+struct ViewLayer *WM_window_get_active_view_layer(const struct wmWindow *win) ATTR_NONNULL(1) ATTR_WARN_UNUSED_RESULT;
+
 bool WM_window_is_temp_screen(const struct wmWindow *win) ATTR_WARN_UNUSED_RESULT;
 
 void *WM_opengl_context_create(void);

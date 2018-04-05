@@ -1341,7 +1341,7 @@ static int render_new_particle_system(const EvaluationContext *eval_ctx, Render 
 	if (part->ren_as==PART_DRAW_OB || part->ren_as==PART_DRAW_GR || part->ren_as==PART_DRAW_NOT)
 		return 1;
 
-	if ((re->r.scemode & R_VIEWPORT_PREVIEW) && (eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT))
+	if ((re->r.scemode & R_VIEWPORT_PREVIEW) && (ob->mode & OB_MODE_PARTICLE_EDIT))
 		return 0;
 
 	if (part->ren_as == PART_DRAW_BB && part->bb_ob == NULL && RE_GetCamera(re) == NULL)

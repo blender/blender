@@ -1294,7 +1294,7 @@ static int gp_convert_poll(bContext *C)
 	bGPDframe *gpf = NULL;
 	ScrArea *sa = CTX_wm_area(C);
 	Scene *scene = CTX_data_scene(C);
-	const WorkSpace *workspace = CTX_wm_workspace(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	
 	/* only if the current view is 3D View, if there's valid data (i.e. at least one stroke!),
 	 * and if we are not in edit mode!
@@ -1303,7 +1303,7 @@ static int gp_convert_poll(bContext *C)
 	        (gpl = BKE_gpencil_layer_getactive(gpd)) &&
 	        (gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0)) &&
 	        (gpf->strokes.first) &&
-	        ((workspace->object_mode & OB_MODE_EDIT) == 0));
+	        (OBEDIT_FROM_VIEW_LAYER(view_layer) == NULL));
 }
 
 static int gp_convert_layer_exec(bContext *C, wmOperator *op)

@@ -274,9 +274,12 @@ bool ED_object_editmode_load(Object *obedit)
  * - Only in exceptional cases should #EM_DO_UNDO NOT be in the flag.
  * - If #EM_FREEDATA isn't in the flag, use ED_object_editmode_load directly.
  */
-void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene, Object *obedit, int flag)
+void ED_object_editmode_exit_ex(bContext *C, Scene *scene, Object *obedit, int flag)
 {
 	BLI_assert(C || !(flag & EM_DO_UNDO));
+	/* Note! only in exceptional cases should 'EM_DO_UNDO' NOT be in the flag */
+	/* Note! if 'EM_FREEDATA' isn't in the flag, use ED_object_editmode_load directly */
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
@@ -284,7 +287,9 @@ void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene,
 	if (ED_object_editmode_load_ex(G.main, obedit, freedata) == false) {
 		/* in rare cases (background mode) its possible active object
 		 * is flagged for editmode, without 'obedit' being set [#35489] */
-		workspace->object_mode &= ~OB_MODE_EDIT;
+		if (UNLIKELY(view_layer->basact && (view_layer->basact->object->mode & OB_MODE_EDIT))) {
+			view_layer->basact->object->mode &= ~OB_MODE_EDIT;
+		}
 		if (flag & EM_WAITCURSOR) waitcursor(0);
 		return;
 	}
@@ -306,21 +311,14 @@ void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene,
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DEG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);
-
-		workspace->object_mode &= ~OB_MODE_EDIT;
 	
 		if (flag & EM_DO_UNDO)
 			ED_undo_push(C, "Editmode");
 
-		if (C != NULL) {
-			WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
-		}
-		else {
-			WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
-		}
-	}
+		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 
-	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, obedit);
+		obedit->mode &= ~OB_MODE_EDIT;
+	}
 
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 
@@ -330,15 +328,13 @@ void ED_object_editmode_exit_ex(bContext *C, WorkSpace *workspace, Scene *scene,
 
 void ED_object_editmode_exit(bContext *C, int flag)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	ED_object_editmode_exit_ex(C, workspace, scene, obedit, flag);
+	ED_object_editmode_exit_ex(C, scene, obedit, flag);
 }
 
 void ED_object_editmode_enter(bContext *C, int flag)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob;
@@ -368,14 +364,14 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
 
-	workspace->object_mode_restore = workspace->object_mode;
+	ob->restore_mode = ob->mode;
 
 	/* note, when switching scenes the object can have editmode data but
 	 * not be scene->obedit: bug 22954, this avoids calling self eternally */
-	if ((workspace->object_mode_restore & OB_MODE_EDIT) == 0)
-		ED_object_mode_toggle(C, workspace->object_mode);
+	if ((ob->restore_mode & OB_MODE_EDIT) == 0)
+		ED_object_mode_toggle(C, ob->mode);
 
-	workspace->object_mode = OB_MODE_EDIT;
+	ob->mode = OB_MODE_EDIT;
 
 	if (ob->type == OB_MESH) {
 		BMEditMesh *em;
@@ -446,11 +442,9 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		DEG_id_tag_update(&scene->id, 0);
 	}
 	else {
-		workspace->object_mode &= ~OB_MODE_EDIT;
+		ob->mode &= ~OB_MODE_EDIT;
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
-
-	ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
 
 	if (flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if (flag & EM_WAITCURSOR) waitcursor(0);
@@ -458,13 +452,13 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	const int mode_flag = OB_MODE_EDIT;
 	const bool is_mode_set = (CTX_data_edit_object(C) != NULL);
 	Scene *scene =  CTX_data_scene(C);
 
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
+		Object *ob = CTX_data_active_object(C);
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -487,10 +481,8 @@ static int editmode_toggle_poll(bContext *C)
 	if (ELEM(NULL, ob, ob->data) || ID_IS_LINKED(ob->data))
 		return 0;
 
-	const WorkSpace *workspace = CTX_wm_workspace(C);
-
 	/* if hidden but in edit mode, we still display */
-	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(workspace->object_mode & OB_MODE_EDIT)) {
+	if ((ob->restrictflag & OB_RESTRICT_VIEW) && !(ob->mode & OB_MODE_EDIT)) {
 		return 0;
 	}
 
@@ -517,15 +509,13 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 static int posemode_exec(bContext *C, wmOperator *op)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Base *base = CTX_data_active_base(C);
 	Object *ob = base->object;
 	const int mode_flag = OB_MODE_POSE;
-	const bool is_mode_set = (workspace->object_mode & mode_flag) != 0;
-
+	const bool is_mode_set = (ob->mode & mode_flag) != 0;
+	
 	if (!is_mode_set) {
-		if (!ED_object_mode_compat_set(C, workspace, mode_flag, op->reports)) {
+		if (!ED_object_mode_compat_set(C, ob, mode_flag, op->reports)) {
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -539,8 +529,6 @@ static int posemode_exec(bContext *C, wmOperator *op)
 			ED_armature_exit_posemode(C, base);
 		else
 			ED_armature_enter_posemode(C, base);
-
-		ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1020,7 +1008,7 @@ static void UNUSED_FUNCTION(copy_attr_menu) (Main *bmain, Scene *scene, ViewLaye
 
 /* ******************* force field toggle operator ***************** */
 
-void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object, eObjectMode object_mode)
+void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object)
 {
 	PartDeflect *pd = object->pd;
 	ModifierData *md = modifiers_findByType(object, eModifierType_Surface);
@@ -1029,7 +1017,7 @@ void ED_object_check_force_modifiers(Main *bmain, Scene *scene, Object *object, 
 	if (!md) {
 		if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && !ELEM(pd->forcefield, 0, PFIELD_GUIDE, PFIELD_TEXTURE)) {
 			if (ELEM(object->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE)) {
-				ED_object_modifier_add(NULL, bmain, scene, object, object_mode, NULL, eModifierType_Surface);
+				ED_object_modifier_add(NULL, bmain, scene, object, NULL, eModifierType_Surface);
 			}
 		}
 	}
@@ -1051,8 +1039,7 @@ static int forcefield_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	else
 		ob->pd->forcefield = 0;
 
-	const WorkSpace *workspace = CTX_wm_workspace(C);
-	ED_object_check_force_modifiers(CTX_data_main(C), CTX_data_scene(C), ob, workspace->object_mode);
+	ED_object_check_force_modifiers(CTX_data_main(C), CTX_data_scene(C), ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
@@ -1513,11 +1500,10 @@ static int object_mode_set_poll(bContext *C)
 
 static int object_mode_set_exec(bContext *C, wmOperator *op)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	eObjectMode mode = RNA_enum_get(op->ptr, "mode");
-	eObjectMode restore_mode = workspace->object_mode;
+	eObjectMode restore_mode = (ob) ? ob->mode : OB_MODE_OBJECT;
 	const bool toggle = RNA_boolean_get(op->ptr, "toggle");
 	
 	if (gpd) {
@@ -1541,31 +1527,28 @@ static int object_mode_set_exec(bContext *C, wmOperator *op)
 	if (!ob || !ED_object_mode_compat_test(ob, mode))
 		return OPERATOR_PASS_THROUGH;
 
-	if (workspace->object_mode != mode) {
+	if (ob->mode != mode) {
 		/* we should be able to remove this call, each operator calls  */
-		ED_object_mode_compat_set(C, workspace, mode, op->reports);
+		ED_object_mode_compat_set(C, ob, mode, op->reports);
 	}
 
 	/* Exit current mode if it's not the mode we're setting */
-	if (mode != OB_MODE_OBJECT && (workspace->object_mode != mode || toggle)) {
+	if (mode != OB_MODE_OBJECT && (ob->mode != mode || toggle)) {
 		/* Enter new mode */
 		ED_object_mode_toggle(C, mode);
 	}
 
 	if (toggle) {
 		/* Special case for Object mode! */
-		if ((mode == OB_MODE_OBJECT) &&
-		    (restore_mode == OB_MODE_OBJECT) &&
-		    (workspace->object_mode_restore != OB_MODE_OBJECT))
-		{
-			ED_object_mode_toggle(C, workspace->object_mode_restore);
+		if (mode == OB_MODE_OBJECT && restore_mode == OB_MODE_OBJECT && ob->restore_mode != OB_MODE_OBJECT) {
+			ED_object_mode_toggle(C, ob->restore_mode);
 		}
-		else if (workspace->object_mode == mode) {
+		else if (ob->mode == mode) {
 			/* For toggling, store old mode so we know what to go back to */
-			workspace->object_mode_restore = restore_mode;
+			ob->restore_mode = restore_mode;
 		}
-		else if (!ELEM(workspace->object_mode_restore, mode, OB_MODE_OBJECT)) {
-			ED_object_mode_toggle(C, workspace->object_mode_restore);
+		else if (ob->restore_mode != OB_MODE_OBJECT && ob->restore_mode != mode) {
+			ED_object_mode_toggle(C, ob->restore_mode);
 		}
 	}
 

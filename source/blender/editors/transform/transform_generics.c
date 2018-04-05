@@ -901,7 +901,7 @@ static void recalcData_objects(TransInfo *t)
 		else
 			BKE_pose_where_is(&t->eval_ctx, t->scene, ob);
 	}
-	else if (base && (t->eval_ctx.object_mode & OB_MODE_PARTICLE_EDIT) &&
+	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) &&
 	         PE_get_current(t->scene, base->object))
 	{
 		if (t->state != TRANS_CANCEL) {
@@ -1266,7 +1266,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			}
 		}
 
-		if (ob && t->eval_ctx.object_mode & OB_MODE_ALL_PAINT) {
+		if (ob && ob->mode & OB_MODE_ALL_PAINT) {
 			Paint *p = BKE_paint_get_active_from_context(C);
 			if (p && p->brush && (p->brush->flag & BRUSH_CURVE)) {
 				t->options |= CTX_PAINT_CURVE;
@@ -1815,7 +1815,7 @@ bool calculateCenterActive(TransInfo *t, bool select_only, float r_center[3])
 		}
 	}
 	else if (t->options & CTX_PAINT_CURVE) {
-		Paint *p = BKE_paint_get_active(t->scene, t->view_layer, t->eval_ctx.object_mode);
+		Paint *p = BKE_paint_get_active(t->scene, t->view_layer);
 		Brush *br = p->brush;
 		PaintCurve *pc = br->paint_curve;
 		copy_v3_v3(r_center, pc->points[pc->add_index - 1].bez.vec[1]);

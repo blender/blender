@@ -338,8 +338,6 @@ void wm_event_do_refresh_wm_and_depsgraph(bContext *C)
 
 			WorkSpace *workspace = WM_window_get_active_workspace(win);
 
-			BKE_workspace_update_object_mode(bmain->eval_ctx, workspace);
-
 			BKE_workspace_update_tagged(bmain->eval_ctx, bmain, workspace, scene);
 		}
 	}
@@ -384,7 +382,7 @@ void wm_event_do_notifiers(bContext *C)
 
 						UI_popup_handlers_remove_all(C, &win->modalhandlers);
 
-						ED_workspace_change(ref_ws, C, win);
+						ED_workspace_change(ref_ws, C, wm, win);
 						if (G.debug & G_DEBUG_EVENTS)
 							printf("%s: Workspace set %p\n", __func__, note->reference);
 					}

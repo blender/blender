@@ -131,7 +131,7 @@ void ED_unwrap_lscm(struct Scene *scene, struct Object *obedit, const short sel)
 void ED_image_draw_cursor(
 struct ARegion *ar, const float cursor[2]);
 void ED_uvedit_draw_main(
-        struct SpaceImage *sima, const struct EvaluationContext *eval_ctx,
+        struct SpaceImage *sima,
         struct ARegion *ar, struct Scene *scene, struct ViewLayer *view_layer,
         struct Object *obedit, struct Object *obact, struct Depsgraph *depsgraph);
 

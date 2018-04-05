@@ -219,23 +219,23 @@ static void backdrawview3d(
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
-	if (obact && (eval_ctx->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
-	             BKE_paint_select_face_test(obact, eval_ctx->object_mode)))
+	if (obact && (obact->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
+	             BKE_paint_select_face_test(obact)))
 	{
 		/* do nothing */
 	}
 	/* texture paint mode sampling */
-	else if (obact && (eval_ctx->object_mode & OB_MODE_TEXTURE_PAINT) &&
+	else if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT) &&
 	         (v3d->drawtype > OB_WIRE))
 	{
 		/* do nothing */
 	}
-	else if ((obact && (eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT)) &&
+	else if ((obact && (obact->mode & OB_MODE_PARTICLE_EDIT)) &&
 	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
 	}
-	else if ((eval_ctx->object_mode & OB_MODE_EDIT) && (obedit != NULL) &&
+	else if ((obedit && (obedit->mode & OB_MODE_EDIT)) &&
 	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
@@ -1504,7 +1504,7 @@ static void view3d_draw_objects(
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
-	Object *obedit = OBEDIT_FROM_EVAL_CTX(eval_ctx);
+	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 	const bool do_camera_frame = !draw_offscreen;
 	const bool draw_grids = !draw_offscreen && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0;
 	const bool draw_floor = (rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO);
@@ -1934,9 +1934,8 @@ static void update_lods(Scene *scene, float camera_pos[3])
 }
 #endif
 
-static void view3d_main_region_draw_objects(
-        const bContext *C, Scene *scene, ViewLayer *view_layer, View3D *v3d,
-        ARegion *ar, const char **grid_unit)
+static void view3d_main_region_draw_objects(const bContext *C, Scene *scene, ViewLayer *view_layer, View3D *v3d,
+                                          ARegion *ar, const char **grid_unit)
 {
 	wmWindow *win = CTX_wm_window(C);
 	EvaluationContext eval_ctx;
@@ -1946,7 +1945,7 @@ static void view3d_main_region_draw_objects(
 	CTX_data_eval_ctx(C, &eval_ctx);
 
 	/* shadow buffers, before we setup matrices */
-	if (draw_glsl_material(&eval_ctx, scene, view_layer, NULL, v3d, v3d->drawtype))
+	if (draw_glsl_material(scene, view_layer, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows_world(&eval_ctx, scene, v3d);
 
 	/* reset default OpenGL lights if needed (i.e. after preferences have been altered) */
@@ -1988,13 +1987,10 @@ static void view3d_main_region_draw_objects(
 	}
 }
 
-static void view3d_main_region_draw_info(
-        const bContext *C, Scene *scene,
-        ARegion *ar, View3D *v3d,
-        const char *grid_unit, bool render_border)
+static void view3d_main_region_draw_info(const bContext *C, Scene *scene,
+                                       ARegion *ar, View3D *v3d,
+                                       const char *grid_unit, bool render_border)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
 	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
@@ -2017,7 +2013,7 @@ static void view3d_main_region_draw_info(
 	}
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
-		VP_legacy_drawcursor(&eval_ctx, scene, view_layer, ar, v3d); /* 3D cursor */
+		VP_legacy_drawcursor(scene, view_layer, ar, v3d); /* 3D cursor */
 
 		if (U.uiflag & USER_SHOW_ROTVIEWICON)
 			VP_legacy_draw_view_axis(rv3d, &rect);
@@ -2026,7 +2022,7 @@ static void view3d_main_region_draw_info(
 
 		if (U.uiflag & USER_DRAWVIEWINFO) {
 			Object *ob = OBACT(view_layer);
-			VP_legacy_draw_selected_name(scene, ob, eval_ctx.object_mode, &rect);
+			VP_legacy_draw_selected_name(scene, ob, &rect);
 		}
 	}
 

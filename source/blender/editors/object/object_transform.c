@@ -245,7 +245,6 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
                                                void (*clear_func)(Object *, const bool),
                                                const char default_ksName[])
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	KeyingSet *ks;
 	const bool clear_delta = RNA_boolean_get(op->ptr, "clear_delta");
@@ -264,7 +263,7 @@ static int object_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	 */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (!(workspace->object_mode & OB_MODE_WEIGHT_PAINT)) {
+		if (!(ob->mode & OB_MODE_WEIGHT_PAINT)) {
 			/* run provided clearing function */
 			clear_func(ob, clear_delta);
 			

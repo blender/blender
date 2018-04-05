@@ -94,13 +94,10 @@ class MESH_UL_shape_keys(UIList):
         # key = data
         key_block = item
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            workspace = context.workspace
             split = layout.split(0.66, False)
             split.prop(key_block, "name", text="", emboss=False, icon_value=icon)
             row = split.row(align=True)
-            if (key_block.mute or
-                (workspace.object_mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH'))
-            ):
+            if key_block.mute or (obj.mode == 'EDIT' and not (obj.use_shape_key_edit_mode and obj.type == 'MESH')):
                 row.active = False
             if not item.id_data.use_relative:
                 row.prop(key_block, "frame", text="", emboss=False)
@@ -208,7 +205,6 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        workspace = context.workspace
         ob = context.object
         group = ob.vertex_groups.active
 
@@ -229,10 +225,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if (ob.vertex_groups and
-            ((workspace.object_mode == 'EDIT') or
-             (workspace.object_mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex))
-        ):
+        if ob.vertex_groups and (ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex)):
             row = layout.row()
 
             sub = row.row(align=True)
@@ -258,7 +251,6 @@ class DATA_PT_face_maps(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        workspace = context.workspace
         ob = context.object
         facemap = ob.face_maps.active
 
@@ -277,7 +269,7 @@ class DATA_PT_face_maps(MeshButtonsPanel, Panel):
             col.operator("object.face_map_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.face_map_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
 
-        if ob.face_maps and (workspace.object_mode == 'EDIT' and ob.type == 'MESH'):
+        if ob.face_maps and (ob.mode == 'EDIT' and ob.type == 'MESH'):
             row = layout.row()
 
             sub = row.row(align=True)
@@ -301,12 +293,11 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        workspace = context.workspace
         ob = context.object
         key = ob.data.shape_keys
         kb = ob.active_shape_key
 
-        enable_edit = workspace.object_mode != 'EDIT'
+        enable_edit = ob.mode != 'EDIT'
         enable_edit_value = False
 
         if ob.show_only_shape_key is False:
@@ -428,7 +419,6 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
     def draw(self, context):
         layout = self.layout
 
-        workspace = context.workspace
         obj = context.object
         me = context.mesh
         col = layout.column()
@@ -443,7 +433,7 @@ class DATA_PT_customdata(MeshButtonsPanel, Panel):
 
         col = layout.column()
 
-        col.enabled = (workspace.object_mode != 'EDIT')
+        col.enabled = (obj.mode != 'EDIT')
         col.prop(me, "use_customdata_vertex_bevel")
         col.prop(me, "use_customdata_edge_bevel")
         col.prop(me, "use_customdata_edge_crease")

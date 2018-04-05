@@ -108,8 +108,8 @@ static void init_context(DupliContext *r_ctx, const EvaluationContext *eval_ctx,
 	r_ctx->animated = false;
 	r_ctx->group = NULL;
 
-	r_ctx->obedit = OBEDIT_FROM_EVAL_CTX(eval_ctx);
 	r_ctx->object = ob;
+	r_ctx->obedit = OBEDIT_FROM_OBACT(ob);
 	if (space_mat)
 		copy_m4_m4(r_ctx->space_mat, space_mat);
 	else

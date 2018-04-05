@@ -281,6 +281,7 @@ int join_armature_exec(bContext *C, wmOperator *op)
 	
 	/* get pose of active object and move it out of posemode */
 	pose = ob->pose;
+	ob->mode &= ~OB_MODE_POSE;
 
 	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
 	{
@@ -301,6 +302,8 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			
 			/* Get Pose of current armature */
 			opose = base->object->pose;
+			base->object->mode &= ~OB_MODE_POSE;
+			//BASACT->flag &= ~OB_MODE_POSE;
 			
 			/* Find the difference matrix */
 			invert_m4_m4(oimat, ob->obmat);
@@ -605,6 +608,8 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	/* 1) store starting settings and exit editmode */
 	oldob = obedit;
 	oldbase = view_layer->basact;
+	oldob->mode &= ~OB_MODE_POSE;
+	//oldbase->flag &= ~OB_POSEMODE;
 	
 	ED_armature_from_edit(obedit->data);
 	ED_armature_edit_free(obedit->data);

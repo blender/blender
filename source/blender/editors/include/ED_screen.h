@@ -162,7 +162,7 @@ struct WorkSpace *ED_workspace_add(
 bool ED_workspace_change(
         struct WorkSpace *workspace_new,
         struct bContext *C,
-        struct wmWindow *win) ATTR_NONNULL();
+        struct wmWindowManager *wm, struct wmWindow *win) ATTR_NONNULL();
 struct WorkSpace *ED_workspace_duplicate(
         struct WorkSpace *workspace_old,
         struct Main *bmain, struct wmWindow *win);
@@ -193,10 +193,6 @@ void ED_workspace_object_mode_sync_from_object(
         struct wmWindowManager *wm, WorkSpace *workspace, struct Object *obact);
 void ED_workspace_object_mode_sync_from_scene(
         struct wmWindowManager *wm, WorkSpace *workspace, struct Scene *scene);
-
-bool ED_workspace_object_mode_in_other_window(
-        struct wmWindowManager *wm, const struct wmWindow *win_compare, struct Object *obact,
-        eObjectMode *r_object_mode);
 
 /* anim */
 void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, struct Depsgraph *depsgraph);

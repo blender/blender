@@ -910,9 +910,8 @@ class OBJECT_PT_constraints(ConstraintButtonsPanel, Panel):
         layout = self.layout
 
         obj = context.object
-        workspace = context.workspace
 
-        if obj.type == 'ARMATURE' and workspace.object_mode == 'POSE':
+        if obj.type == 'ARMATURE' and obj.mode == 'POSE':
             box = layout.box()
             box.alert = True  # XXX: this should apply to the box background
             box.label(icon='INFO', text="Constraints for active bone do not live here")

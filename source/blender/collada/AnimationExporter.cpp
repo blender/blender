@@ -403,7 +403,7 @@ void AnimationExporter::export_morph_animation(Object *ob)
 
 void AnimationExporter::make_anim_frames_from_targets(Object *ob, std::vector<float> &frames )
 {
-	ListBase *conlist = get_active_constraints(this->eval_ctx, ob);
+	ListBase *conlist = get_active_constraints(ob);
 	if (conlist == NULL) return;
 	bConstraint *con;
 	for (con = (bConstraint *)conlist->first; con; con = con->next) {
@@ -1006,7 +1006,7 @@ std::string AnimationExporter::create_source_from_fcurve(COLLADASW::InputSemanti
 void AnimationExporter::evaluate_anim_with_constraints(Object *ob, float ctime)
 {
 	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_ALL);
-	ListBase *conlist = get_active_constraints(this->eval_ctx, ob);
+	ListBase *conlist = get_active_constraints(ob);
 	bConstraint *con;
 	for (con = (bConstraint *)conlist->first; con; con = con->next) {
 		ListBase targets = { NULL, NULL };

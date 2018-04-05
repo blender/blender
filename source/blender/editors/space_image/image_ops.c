@@ -275,12 +275,11 @@ int space_image_main_region_poll(bContext *C)
 /* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
 static int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Scene *scene = CTX_data_scene(C);
 	ToolSettings *toolsettings = scene->toolsettings;
 
-	if (sima && !toolsettings->uvsculpt && ((workspace->object_mode & OB_MODE_EDIT) == 0)) {
+	if (sima && !toolsettings->uvsculpt && (CTX_data_edit_object(C) == NULL)) {
 		return 1;
 	}
 
@@ -793,7 +792,6 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 
 static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	SpaceImage *sima;
 	ARegion *ar;
 	Scene *scene;
@@ -817,7 +815,7 @@ static int image_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			return OPERATOR_CANCELLED;
 		}
 	}
-	else if (ED_space_image_check_show_maskedit(sima, workspace, view_layer)) {
+	else if (ED_space_image_check_show_maskedit(sima, view_layer)) {
 		if (!ED_mask_selected_minmax(C, min, max)) {
 			return OPERATOR_CANCELLED;
 		}

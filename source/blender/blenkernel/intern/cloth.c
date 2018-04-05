@@ -306,14 +306,14 @@ void bvhselftree_update_from_cloth(ClothModifierData *clmd, bool moving)
 	}
 }
 
-void cloth_clear_cache(const EvaluationContext *eval_ctx, Object *ob, ClothModifierData *clmd, float framenr)
+void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
 	PTCacheID pid;
 	
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);
 
 	// don't do anything as long as we're in editmode!
-	if (pid.cache->edit && eval_ctx->object_mode & OB_MODE_PARTICLE_EDIT)
+	if (pid.cache->edit && ob->mode & OB_MODE_PARTICLE_EDIT)
 		return;
 	
 	BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);

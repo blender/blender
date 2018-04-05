@@ -57,8 +57,6 @@
 
 #include "BLI_strict_flags.h"
 
-#include "DEG_depsgraph.h"
-
 /* for timing... */
 #if 0
 #  include "PIL_time_utildefines.h"
@@ -616,9 +614,8 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(
-        const EvaluationContext *eval_ctx, ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm,
-        float (*vertexCos)[3], int numVerts, bool for_render)
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm,
+                               float (*vertexCos)[3], int numVerts, bool for_render)
 {
 
 	DerivedMesh *ss_mesh    = NULL;
@@ -673,8 +670,7 @@ void shrinkwrapModifier_deform(
 			ssmd.subdivType = ME_CC_SUBSURF;        /* catmull clark */
 			ssmd.levels     = smd->subsurfLevels;   /* levels */
 
-			ss_mesh = subsurf_make_derived_from_derived(
-			        dm, &ssmd, NULL, (eval_ctx->object_mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
+			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
 
 			if (ss_mesh) {
 				calc.vert = ss_mesh->getVertDataArray(ss_mesh, CD_MVERT);

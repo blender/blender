@@ -143,7 +143,6 @@ void ED_armature_deselect_all(struct Object *obedit);
 void ED_armature_deselect_all_visible(struct Object *obedit);
 
 bool ED_do_pose_selectbuffer(
-        const struct EvaluationContext *eval_ctx,
         struct ViewLayer *view_layer, struct Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest);
 bool ED_armature_select_pick(struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
@@ -189,8 +188,6 @@ void create_vgroups_from_armature(
 void unique_editbone_name(struct ListBase *ebones, char *name, EditBone *bone);
 void ED_armature_bone_rename(struct bArmature *arm, const char *oldnamep, const char *newnamep);
 void ED_armature_bones_flip_names(struct bArmature *arm, struct ListBase *bones_names, const bool do_strip_numbers);
-
-void undo_push_armature(struct bContext *C, const char *name);
 
 /* low level selection functions which handle */
 int  ED_armature_ebone_selectflag_get(const EditBone *ebone);

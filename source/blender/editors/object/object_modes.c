@@ -121,14 +121,14 @@ bool ED_object_mode_compat_test(const Object *ob, eObjectMode mode)
  *
  * This is so each mode's exec function can call
  */
-bool ED_object_mode_compat_set(bContext *C, WorkSpace *workspace, eObjectMode mode, ReportList *reports)
+bool ED_object_mode_compat_set(bContext *C, Object *ob, eObjectMode mode, ReportList *reports)
 {
 	bool ok;
-	if (!ELEM(workspace->object_mode, mode, OB_MODE_OBJECT)) {
-		const char *opstring = object_mode_op_string(workspace->object_mode);
+	if (!ELEM(ob->mode, mode, OB_MODE_OBJECT)) {
+		const char *opstring = object_mode_op_string(ob->mode);
 
 		WM_operator_name_call(C, opstring, WM_OP_EXEC_REGION_WIN, NULL);
-		ok = ELEM(workspace->object_mode, mode, OB_MODE_OBJECT);
+		ok = ELEM(ob->mode, mode, OB_MODE_OBJECT);
 		if (!ok) {
 			wmOperatorType *ot = WM_operatortype_find(opstring, false);
 			BKE_reportf(reports, RPT_ERROR, "Unable to execute '%s', error changing modes", ot->name);
@@ -176,8 +176,8 @@ void ED_object_mode_set(bContext *C, eObjectMode mode)
 bool ED_object_mode_generic_enter(
         struct bContext *C, eObjectMode object_mode)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	if (workspace->object_mode == object_mode) {
+	Object *ob = CTX_data_active_object(C);
+	if (ob->mode == object_mode) {
 		return true;
 	}
 	wmOperatorType *ot = WM_operatortype_find("OBJECT_OT_mode_set", false);
@@ -186,7 +186,7 @@ bool ED_object_mode_generic_enter(
 	RNA_enum_set(&ptr, "mode", object_mode);
 	WM_operator_name_call_ptr(C, ot, WM_OP_INVOKE_DEFAULT, &ptr);
 	WM_operator_properties_free(&ptr);
-	return (workspace->object_mode == object_mode);
+	return (ob->mode == object_mode);
 }
 
 /**
@@ -195,46 +195,46 @@ bool ED_object_mode_generic_enter(
  */
 static bool ed_object_mode_generic_exit_ex(
         const struct EvaluationContext *eval_ctx,
-        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob,
+        struct Scene *scene, struct Object *ob,
         bool only_test)
 {
-	if (eval_ctx->object_mode & OB_MODE_EDIT) {
+	if (ob->mode & OB_MODE_EDIT) {
 		if (BKE_object_is_in_editmode(ob)) {
 			if (only_test) {
 				return true;
 			}
-			ED_object_editmode_exit_ex(NULL, workspace, scene, ob, EM_FREEDATA);
+			ED_object_editmode_exit_ex(NULL, scene, ob, EM_FREEDATA);
 		}
 	}
-	else if (eval_ctx->object_mode & OB_MODE_VERTEX_PAINT) {
+	else if (ob->mode & OB_MODE_VERTEX_PAINT) {
 		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_VERTEX_PAINT)) {
 			if (only_test) {
 				return true;
 			}
-			ED_object_vpaintmode_exit_ex(workspace, ob);
+			ED_object_vpaintmode_exit_ex(ob);
 		}
 	}
-	else if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+	else if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_WEIGHT_PAINT)) {
 			if (only_test) {
 				return true;
 			}
-			ED_object_wpaintmode_exit_ex(workspace, ob);
+			ED_object_wpaintmode_exit_ex(ob);
 		}
 	}
-	else if (eval_ctx->object_mode & OB_MODE_SCULPT) {
+	else if (ob->mode & OB_MODE_SCULPT) {
 		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT)) {
 			if (only_test) {
 				return true;
 			}
-			ED_object_sculptmode_exit_ex(eval_ctx, workspace, scene, ob);
+			ED_object_sculptmode_exit_ex(eval_ctx, scene, ob);
 		}
 	}
 	else {
 		if (only_test) {
 			return false;
 		}
-		BLI_assert((eval_ctx->object_mode & OB_MODE_ALL_MODE_DATA) == 0);
+		BLI_assert((ob->mode & OB_MODE_ALL_MODE_DATA) == 0);
 	}
 
 	return false;
@@ -242,88 +242,16 @@ static bool ed_object_mode_generic_exit_ex(
 
 void ED_object_mode_generic_exit(
         const struct EvaluationContext *eval_ctx,
-        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob)
+        struct Scene *scene, struct Object *ob)
 {
-	ed_object_mode_generic_exit_ex(eval_ctx, workspace, scene, ob, false);
+	ed_object_mode_generic_exit_ex(eval_ctx, scene, ob, false);
 }
 
 bool ED_object_mode_generic_has_data(
         const struct EvaluationContext *eval_ctx,
         struct Object *ob)
 {
-	return ed_object_mode_generic_exit_ex(eval_ctx, NULL, NULL, ob, true);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
-/** \name Mode Syncing Utils
- *
- * \{ */
-
-/**
- * A version of #ED_object_mode_generic_enter that checks if the object
- * has an active mode mode in another window we need to use another window first.
- */
-bool ED_object_mode_generic_enter_or_other_window(
-        struct bContext *C, const wmWindow *win_compare, eObjectMode object_mode)
-{
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Base *basact = view_layer->basact;
-	if (basact == NULL) {
-		workspace->object_mode = OB_MODE_OBJECT;
-		return (workspace->object_mode == object_mode);
-	}
-
-	wmWindowManager *wm = CTX_wm_manager(C);
-	eObjectMode object_mode_set = OB_MODE_OBJECT;
-	bool use_object_mode = ED_workspace_object_mode_in_other_window(wm, win_compare, basact->object, &object_mode_set);
-
-	if (use_object_mode) {
-		workspace->object_mode = object_mode_set;
-		return (workspace->object_mode == object_mode);
-	}
-	else {
-		workspace->object_mode = OB_MODE_OBJECT;
-		return ED_object_mode_generic_enter(C, object_mode);
-	}
-}
-
-void ED_object_mode_generic_exit_or_other_window(
-        const struct EvaluationContext *eval_ctx, wmWindowManager *wm,
-        struct WorkSpace *workspace, struct Scene *scene, struct Object *ob)
-{
-	if (ob == NULL) {
-		return;
-	}
-	bool is_active = ED_workspace_object_mode_in_other_window(wm, NULL, ob, NULL);
-	if (is_active == false) {
-		ED_object_mode_generic_exit(eval_ctx, workspace, scene, ob);
-	}
-}
-
-/**
- * Use to find if we need to create the mode-data.
- *
- * When the mode 'exists' it means we have a windowing showing an object with this mode.
- * So it's data is already created.
- * Used to check if we need to perform mode switching.
- */
-bool ED_object_mode_generic_exists(
-        wmWindowManager *wm, struct Object *ob,
-        eObjectMode object_mode)
-{
-	if (ob == NULL) {
-		return false;
-	}
-	eObjectMode object_mode_test;
-	if (ED_workspace_object_mode_in_other_window(wm, NULL, ob, &object_mode_test)) {
-		if (object_mode == object_mode_test) {
-			return true;
-		}
-	}
-	return false;
+	return ed_object_mode_generic_exit_ex(eval_ctx, NULL, ob, true);
 }
 
 /** \} */

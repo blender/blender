@@ -39,7 +39,6 @@
 #include "DNA_brush_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BKE_paint.h"
 #include "BKE_material.h"
@@ -393,12 +392,11 @@ static void rna_ImaPaint_stencil_update(bContext *C, PointerRNA *UNUSED(ptr))
 
 static void rna_ImaPaint_canvas_update(bContext *C, PointerRNA *UNUSED(ptr))
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	Object *obedit = ((workspace->object_mode & OB_MODE_EDIT) && BKE_object_is_in_editmode(ob)) ? ob : NULL;
+	Object *obedit = OBEDIT_FROM_OBACT(ob);
 	bScreen *sc;
 	Image *ima = scene->toolsettings->imapaint.canvas;
 	

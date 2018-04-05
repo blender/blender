@@ -216,9 +216,11 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "UI Tags", "");
 	rna_def_workspace_owner_ids(brna, prop);
 
+#if 0
 	prop = RNA_def_property(srna, "object_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_object_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode used in this window");
+#endif
 
 	/* View Render */
 	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);

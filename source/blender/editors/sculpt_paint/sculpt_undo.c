@@ -1020,9 +1020,8 @@ static bool sculpt_undosys_poll(bContext *C)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && (sa->spacetype == SPACE_VIEW3D)) {
-		const WorkSpace *workspace = CTX_wm_workspace(C);
 		Object *obact = CTX_data_active_object(C);
-		if (obact && (workspace->object_mode & OB_MODE_SCULPT)) {
+		if (obact && (obact->mode & OB_MODE_SCULPT)) {
 			return true;
 		}
 	}

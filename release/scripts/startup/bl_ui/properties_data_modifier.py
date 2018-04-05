@@ -404,8 +404,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.label(text="Settings are inside the Physics tab")
 
     def HOOK(self, layout, ob, md):
-        from bpy import context
-        workspace = context.workspace
         use_falloff = (md.falloff_type != 'NONE')
         split = layout.split()
 
@@ -437,7 +435,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col = split.column()
         col.prop(md, "use_falloff_uniform")
 
-        if workspace.object_mode == 'EDIT':
+        if ob.mode == 'EDIT':
             row = col.row(align=True)
             row.operator("object.hook_reset", text="Reset")
             row.operator("object.hook_recenter", text="Recenter")
@@ -593,9 +591,6 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "mirror_object", text="")
 
     def MULTIRES(self, layout, ob, md):
-        from bpy import context
-        workspace = context.workspace
-
         layout.row().prop(md, "subdivision_type", expand=True)
 
         split = layout.split()
@@ -606,7 +601,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
         col = split.column()
 
-        col.enabled = workspace.object_mode != 'EDIT'
+        col.enabled = ob.mode != 'EDIT'
         col.operator("object.multires_subdivide", text="Subdivide")
         col.operator("object.multires_higher_levels_delete", text="Delete Higher")
         col.operator("object.multires_reshape", text="Reshape")

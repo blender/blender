@@ -402,7 +402,6 @@ static void time_draw_caches_keyframes(Main *bmain, ViewLayer *view_layer, View2
 /* draw keyframe lines for timeline */
 static void time_draw_keyframes(const bContext *C, ARegion *ar)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = CTX_data_active_object(C);
@@ -444,7 +443,7 @@ static void time_draw_keyframes(const bContext *C, ARegion *ar)
 	 */
 	UI_GetThemeColor3ubv(TH_TIME_KEYFRAME, color);
 
-	if (ob && ((workspace->object_mode == OB_MODE_POSE) || onlysel)) {
+	if (ob && ((ob->mode == OB_MODE_POSE) || onlysel)) {
 		/* draw keyframes for active object only */
 		time_draw_idblock_keyframes(v2d, (ID *)ob, onlysel, color);
 	}

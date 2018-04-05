@@ -57,9 +57,8 @@ class MeshMirrorUV(Operator):
         precision = self.precision
         double_warn = 0
 
-        workspace = context.workspace
         ob = context.active_object
-        is_editmode = (workspace.object_mode == 'EDIT')
+        is_editmode = (ob.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 

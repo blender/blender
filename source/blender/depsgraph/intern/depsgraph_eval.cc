@@ -84,7 +84,6 @@ void DEG_evaluation_context_init_from_scene(
         Scene *scene,
         ViewLayer *view_layer,
         RenderEngineType *engine_type,
-        eObjectMode object_mode,
         eEvaluationMode mode)
 {
 	DEG_evaluation_context_init(eval_ctx, mode);
@@ -92,7 +91,6 @@ void DEG_evaluation_context_init_from_scene(
 	eval_ctx->view_layer = view_layer;
 	eval_ctx->engine_type = engine_type;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
-	eval_ctx->object_mode = object_mode;
 }
 
 void DEG_evaluation_context_init_from_view_layer_for_render(
@@ -107,7 +105,6 @@ void DEG_evaluation_context_init_from_view_layer_for_render(
 
 	DEG_evaluation_context_init(eval_ctx, DAG_EVAL_RENDER);
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
-	eval_ctx->object_mode = OB_MODE_OBJECT;
 	eval_ctx->depsgraph = depsgraph;
 	eval_ctx->view_layer = view_layer_original;
 	eval_ctx->engine_type = NULL;
@@ -121,7 +118,6 @@ void DEG_evaluation_context_init_from_depsgraph(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	DEG_evaluation_context_init(eval_ctx, mode);
 	eval_ctx->ctime = (float)scene->r.cfra + scene->r.subframe;
-	eval_ctx->object_mode = OB_MODE_OBJECT;
 	eval_ctx->depsgraph = depsgraph;
 	eval_ctx->view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	eval_ctx->engine_type = NULL;

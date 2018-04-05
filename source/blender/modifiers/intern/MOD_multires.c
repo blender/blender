@@ -48,8 +48,6 @@
 
 #include "MOD_modifiertypes.h"
 
-#include "DEG_depsgraph.h"
-
 static void initData(ModifierData *md)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -69,7 +67,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob,
+static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
                                   DerivedMesh *dm, ModifierApplyFlag flag)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
@@ -96,7 +94,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 	if (ignore_simplify)
 		flags |= MULTIRES_IGNORE_SIMPLIFY;
 
-	result = multires_make_derived_from_derived(dm, mmd, ob, flags, eval_ctx->object_mode);
+	result = multires_make_derived_from_derived(dm, mmd, ob, flags);
 
 	if (result == dm)
 		return dm;

@@ -1460,7 +1460,6 @@ static struct GPUMaterialState {
 	Material *gmatbuf_fixed[FIXEDMAT];
 	Material *gboundmat;
 	Object *gob;
-	eObjectMode gob_object_mode;
 	DupliObject *dob;
 	Scene *gscene;
 	int glay;
@@ -1555,7 +1554,7 @@ void GPU_end_dupli_object(void)
 
 void GPU_begin_object_materials(
         View3D *v3d, RegionView3D *rv3d, Scene *scene, ViewLayer *view_layer, Object *ob,
-        bool glsl, const eObjectMode object_mode, bool *do_alpha_after)
+        bool glsl, bool *do_alpha_after)
 {
 	Material *ma;
 	GPUMaterial *gpumat;
@@ -1593,7 +1592,7 @@ void GPU_begin_object_materials(
 
 #ifdef WITH_GAMEENGINE
 	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
-		ob = BKE_object_lod_matob_get(ob, view_layer, object_mode);
+		ob = BKE_object_lod_matob_get(ob, view_layer);
 	}
 #else
 	UNUSED_VARS(view_layer);
@@ -1617,7 +1616,6 @@ void GPU_begin_object_materials(
 		GMS.two_sided_lighting = (((Mesh *)ob->data)->flag & ME_TWOSIDED) != 0;
 
 	GMS.gob = ob;
-	GMS.gob_object_mode = object_mode;
 	GMS.gscene = scene;
 	GMS.is_opensubdiv = use_opensubdiv;
 	GMS.totmat = use_matcap ? 1 : ob->totcol + 1;  /* materials start from 1, default material is 0 */
@@ -1838,7 +1836,7 @@ int GPU_object_material_bind(int nr, void *attribs)
 			}
 
 			GPU_material_bind(
-			        gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob_object_mode & OB_MODE_TEXTURE_PAINT),
+			        gpumat, GMS.gob->lay, GMS.glay, 1.0, !(GMS.gob->mode & OB_MODE_TEXTURE_PAINT),
 			        GMS.gviewmat, GMS.gviewinv, GMS.gviewcamtexcofac);
 
 			auto_bump_scale = GMS.gob->derivedFinal != NULL ? GMS.gob->derivedFinal->auto_bump_scale : 1.0f;

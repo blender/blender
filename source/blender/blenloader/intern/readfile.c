@@ -4944,7 +4944,8 @@ static void lib_link_object(FileData *fd, Main *main)
 #else
 					MEM_freeN(ob->pose);
 #endif
-					ob->pose = NULL;
+					ob->pose= NULL;
+					ob->mode &= ~OB_MODE_POSE;
 				}
 			}
 			for (a=0; a < ob->totcol; a++) 
@@ -5553,6 +5554,19 @@ static void direct_link_object(FileData *fd, Object *ob)
 
 	/* XXX This should not be needed - but seems like it can happen in some cases, so for now play safe... */
 	ob->proxy_from = NULL;
+
+	/* loading saved files with editmode enabled works, but for undo we like
+	 * to stay in object mode during undo presses so keep editmode disabled.
+	 *
+	 * Also when linking in a file don't allow edit and pose modes.
+	 * See [#34776, #42780] for more information.
+	 */
+	if (fd->memfile || (ob->id.tag & (LIB_TAG_EXTERN | LIB_TAG_INDIRECT))) {
+		ob->mode &= ~(OB_MODE_EDIT | OB_MODE_PARTICLE_EDIT);
+		if (!fd->memfile) {
+			ob->mode &= ~OB_MODE_POSE;
+		}
+	}
 	
 	ob->adt = newdataadr(fd, ob->adt);
 	direct_link_animdata(fd, ob->adt);
@@ -10500,6 +10514,7 @@ static void link_object_postprocess(ID *id, Scene *scene, ViewLayer *view_layer,
 		SceneCollection *sc;
 
 		ob = (Object *)id;
+		ob->mode = OB_MODE_OBJECT;
 
 		sc =  get_scene_collection_active_or_create(scene, view_layer, flag);
 		BKE_collection_object_add(&scene->id, sc, ob);
@@ -10542,6 +10557,8 @@ void BLO_library_link_copypaste(Main *mainl, BlendHandle *bh)
 			if (bhead->code == ID_OB) {
 				/* Instead of instancing Base's directly, postpone until after groups are loaded
 				 * otherwise the base's flag is set incorrectly when groups are used */
+				Object *ob = (Object *)id;
+				ob->mode = OB_MODE_OBJECT;
 				/* ensure give_base_to_objects runs on this object */
 				BLI_assert(id->us == 0);
 			}

@@ -337,6 +337,10 @@ struct WorkSpace *WM_windows_workspace_get_from_screen(const struct wmWindowMana
 struct bScreen *WM_window_get_active_screen(const struct wmWindow *win) RET_NULL
 struct Scene *WM_window_get_active_scene(const struct wmWindow *win) RET_NULL
 struct WorkSpace *WM_window_get_active_workspace(const wmWindow *win) RET_NULL
+
+struct ViewLayer *WM_window_get_active_view_layer_ex(const struct wmWindow *win, struct Scene **r_scene) RET_NULL
+struct ViewLayer *WM_window_get_active_view_layer(const struct wmWindow *win) RET_NULL
+	
 void WM_window_change_active_scene(struct Main *bmain, struct bContext *C, struct wmWindow *win, struct Scene *scene_new) RET_NONE
 bool WM_window_is_temp_screen(const struct wmWindow *win) RET_ZERO
 
@@ -449,7 +453,7 @@ void UI_view2d_sync(struct bScreen *screen, struct ScrArea *sa, struct View2D *v
 
 struct EditBone *ED_armature_bone_get_mirrored(const struct ListBase *edbo, EditBone *ebo) RET_NULL
 struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name) RET_NULL
-struct ListBase *get_active_constraints (const struct EvaluationContext *eval_ctx, struct Object *ob) RET_NULL
+struct ListBase *get_active_constraints (struct Object *ob) RET_NULL
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **r_pchan) RET_NULL
 
 bool ED_space_image_show_uvedit(struct SpaceImage *sima, struct Object *obedit) RET_ZERO
@@ -522,7 +526,7 @@ bool ANIM_remove_driver(struct ReportList *reports, struct ID *id, const char rn
 void ED_space_image_release_buffer(struct SpaceImage *sima, struct ImBuf *ibuf, void *lock) RET_NONE
 struct ImBuf *ED_space_image_acquire_buffer(struct SpaceImage *sima, void **r_lock) RET_NULL
 void ED_space_image_get_zoom(struct SpaceImage *sima, struct ARegion *ar, float *zoomx, float *zoomy) RET_NONE
-const char *ED_info_stats_string(struct Scene *scene, struct WorkSpace *workspace, struct ViewLayer *view_layer) RET_NULL
+const char *ED_info_stats_string(struct Scene *scene, struct ViewLayer *view_layer) RET_NULL
 void ED_area_tag_redraw(struct ScrArea *sa) RET_NONE
 void ED_area_tag_refresh(struct ScrArea *sa) RET_NONE
 void ED_area_newspace(struct bContext *C, struct ScrArea *sa, int type, const bool skip_ar_exit) RET_NONE
@@ -560,13 +564,13 @@ bool ED_scene_view_layer_delete(struct Main *bmain, Scene *scene, ViewLayer *lay
 void ED_object_base_select(struct Base *base, eObjectSelect_Mode mode) RET_NONE
 void ED_object_base_activate(struct bContext *C, struct Base *base) RET_NONE
 bool ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Object *ob, struct ModifierData *md) RET_ZERO
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, eObjectMode object_mode, const char *name, int type) RET_ZERO
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type) RET_ZERO
 void ED_object_modifier_clear(struct Main *bmain, struct Object *ob) RET_NONE
 void ED_object_editmode_enter(struct bContext *C, int flag) RET_NONE
 void ED_object_editmode_exit(struct bContext *C, int flag) RET_NONE
-void ED_object_editmode_exit_ex(struct bContext *C, struct WorkSpace *workspace, struct Scene *scene, struct Object *obedit, int flag) RET_NONE
+void ED_object_editmode_exit_ex(struct bContext *C, struct Scene *scene, struct Object *obedit, int flag) RET_NONE
 bool ED_object_editmode_load(struct Object *obedit) RET_ZERO
-void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object, eObjectMode object_mode) RET_NONE
+void ED_object_check_force_modifiers(struct Main *bmain, struct Scene *scene, struct Object *object) RET_NONE
 bool uiLayoutGetActive(struct uiLayout *layout) RET_ZERO
 int uiLayoutGetOperatorContext(struct uiLayout *layout) RET_ZERO
 int uiLayoutGetAlignment(struct uiLayout *layout) RET_ZERO
@@ -606,7 +610,7 @@ int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, struc
 
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
-bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, const struct WorkSpace *workspace, struct ViewLayer *view_layer) RET_ZERO
+bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, struct ViewLayer *view_layer) RET_ZERO
 
 bool ED_texture_context_check_world(const struct bContext *C) RET_ZERO
 bool ED_texture_context_check_material(const struct bContext *C) RET_ZERO

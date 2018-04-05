@@ -51,8 +51,6 @@
 #include "BLI_linklist.h"
 #include "BLI_task.h"
 
-#include "DEG_depsgraph.h"
-
 #include "BKE_cdderivedmesh.h"
 #include "BKE_colorband.h"
 #include "BKE_editmesh.h"
@@ -352,7 +350,7 @@ void DM_init(
 	dm->numPolyData = numPolys;
 
 	DM_init_funcs(dm);
-
+	
 	dm->needsFree = 1;
 	dm->auto_bump_scale = -1.0f;
 	dm->dirty = 0;
@@ -412,7 +410,6 @@ int DM_release(DerivedMesh *dm)
 	if (dm->needsFree) {
 		bvhcache_free(&dm->bvhCache);
 		GPU_drawobject_free(dm);
-
 		CustomData_free(&dm->vertData, dm->numVertData);
 		CustomData_free(&dm->edgeData, dm->numEdgeData);
 		CustomData_free(&dm->faceData, dm->numTessFaceData);
@@ -1778,19 +1775,17 @@ static void mesh_calc_modifiers(
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	const bool has_multires = (mmd && mmd->sculptlvl != 0);
 	bool multires_applied = false;
-	const bool sculpt_mode = eval_ctx->object_mode & OB_MODE_SCULPT && ob->sculpt && !useRenderParams;
+	const bool sculpt_mode = ob->mode & OB_MODE_SCULPT && ob->sculpt && !useRenderParams;
 	const bool sculpt_dyntopo = (sculpt_mode && ob->sculpt->bm)  && !useRenderParams;
 	const int draw_flag = dm_drawflag_calc(scene->toolsettings, me);
 
 	/* Generic preview only in object mode! */
-	const bool do_mod_mcol = (eval_ctx->object_mode == OB_MODE_OBJECT);
+	const bool do_mod_mcol = (ob->mode == OB_MODE_OBJECT);
 #if 0 /* XXX Will re-enable this when we have global mod stack options. */
 	const bool do_final_wmcol = (scene->toolsettings->weights_preview == WP_WPREVIEW_FINAL) && do_wmcol;
 #endif
 	const bool do_final_wmcol = false;
-	const bool do_init_wmcol = (
-	        (dataMask & CD_MASK_PREVIEW_MLOOPCOL) &&
-	        (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
+	const bool do_init_wmcol = ((dataMask & CD_MASK_PREVIEW_MLOOPCOL) && (ob->mode & OB_MODE_WEIGHT_PAINT) && !do_final_wmcol);
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
 	const bool do_mod_wmcol = do_init_wmcol;
 
@@ -2628,7 +2623,7 @@ static bool calc_modifiers_skip_orco(const EvaluationContext *eval_ctx,
 		if (U.opensubdiv_compute_type == USER_OPENSUBDIV_COMPUTE_NONE) {
 			return false;
 		}
-		else if ((eval_ctx->object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
+		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
 			return false;
 		}
 		else if ((DEG_get_eval_flags_for_id(eval_ctx->depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
@@ -2669,7 +2664,7 @@ static void mesh_build_data(
 	ob->lastDataMask = dataMask;
 	ob->lastNeedMapping = need_mapping;
 
-	if ((eval_ctx->object_mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
+	if ((ob->mode & OB_MODE_ALL_SCULPT) && ob->sculpt) {
 		/* create PBVH immediately (would be created on the fly too,
 		 * but this avoids waiting on first stroke) */
 
@@ -2707,9 +2702,7 @@ static void editbmesh_build_data(
 	BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS));
 }
 
-static CustomDataMask object_get_datamask(
-        const EvaluationContext *eval_ctx,
-        const Scene *scene, Object *ob, bool *r_need_mapping)
+static CustomDataMask object_get_datamask(const Scene *scene, Object *ob, bool *r_need_mapping)
 {
 	/* TODO(sergey): Avoid this linear list lookup. */
 	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
@@ -2721,28 +2714,28 @@ static CustomDataMask object_get_datamask(
 	}
 
 	if (ob == actob) {
-		bool editing = BKE_paint_select_face_test(ob, eval_ctx->object_mode);
+		bool editing = BKE_paint_select_face_test(ob);
 
 		/* weight paint and face select need original indices because of selection buffer drawing */
 		if (r_need_mapping) {
-			*r_need_mapping = (editing || (eval_ctx->object_mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT)));
+			*r_need_mapping = (editing || (ob->mode & (OB_MODE_WEIGHT_PAINT | OB_MODE_VERTEX_PAINT)));
 		}
 
 		/* check if we need tfaces & mcols due to face select or texture paint */
-		if ((eval_ctx->object_mode & OB_MODE_TEXTURE_PAINT) || editing) {
+		if ((ob->mode & OB_MODE_TEXTURE_PAINT) || editing) {
 			mask |= CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL;
 		}
 
 		/* check if we need mcols due to vertex paint or weightpaint */
-		if (eval_ctx->object_mode & OB_MODE_VERTEX_PAINT) {
+		if (ob->mode & OB_MODE_VERTEX_PAINT) {
 			mask |= CD_MASK_MLOOPCOL;
 		}
 
-		if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			mask |= CD_MASK_PREVIEW_MLOOPCOL;
 		}
 
-		if (eval_ctx->object_mode & OB_MODE_EDIT)
+		if (ob->mode & OB_MODE_EDIT)
 			mask |= CD_MASK_MVERT_SKIN;
 	}
 
@@ -2754,7 +2747,7 @@ void makeDerivedMesh(
         CustomDataMask dataMask, const bool build_shapekey_layers)
 {
 	bool need_mapping;
-	dataMask |= object_get_datamask(eval_ctx, scene, ob, &need_mapping);
+	dataMask |= object_get_datamask(scene, ob, &need_mapping);
 
 	if (em) {
 		editbmesh_build_data(eval_ctx, scene, ob, em, dataMask);
@@ -2773,7 +2766,7 @@ DerivedMesh *mesh_get_derived_final(
 	 * the data we need, rebuild the derived mesh
 	 */
 	bool need_mapping;
-	dataMask |= object_get_datamask(eval_ctx, scene, ob, &need_mapping);
+	dataMask |= object_get_datamask(scene, ob, &need_mapping);
 
 	if (!ob->derivedFinal ||
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
@@ -2793,7 +2786,7 @@ DerivedMesh *mesh_get_derived_deform(const struct EvaluationContext *eval_ctx, S
 	 */
 	bool need_mapping;
 
-	dataMask |= object_get_datamask(eval_ctx, scene, ob, &need_mapping);
+	dataMask |= object_get_datamask(scene, ob, &need_mapping);
 
 	if (!ob->derivedDeform ||
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
@@ -2912,7 +2905,7 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
-	dataMask |= object_get_datamask(eval_ctx, scene, obedit, NULL);
+	dataMask |= object_get_datamask(scene, obedit, NULL);
 
 	if (!em->derivedCage ||
 	    (em->lastDataMask & dataMask) != dataMask)
@@ -2932,7 +2925,7 @@ DerivedMesh *editbmesh_get_derived_cage(
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
-	dataMask |= object_get_datamask(eval_ctx, scene, obedit, NULL);
+	dataMask |= object_get_datamask(scene, obedit, NULL);
 
 	if (!em->derivedCage ||
 	    (em->lastDataMask & dataMask) != dataMask)

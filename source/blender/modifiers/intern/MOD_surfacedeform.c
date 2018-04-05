@@ -1110,7 +1110,7 @@ static void surfacedeformModifier_do(
 	}
 
 	/* Handle target mesh both in and out of edit mode */
-	if (smd->target == OBEDIT_FROM_EVAL_CTX(eval_ctx)) {
+	if (smd->target == OBEDIT_FROM_VIEW_LAYER(eval_ctx->view_layer)) {
 		BMEditMesh *em = BKE_editmesh_from_object(smd->target);
 		tdm = em->derivedFinal;
 	}

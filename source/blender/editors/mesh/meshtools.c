@@ -79,7 +79,7 @@
  * return 0 if no join is made (error) and 1 if the join is done */
 
 static void join_mesh_single(
-        bContext *C, Main *bmain, Scene *scene,
+        const EvaluationContext *eval_ctx, Main *bmain, Scene *scene,
         Object *ob_dst, Object *ob_src, float imat[4][4],
         MVert **mvert_pp, MEdge **medge_pp, MLoop **mloop_pp, MPoly **mpoly_pp,
         CustomData *vdata, CustomData *edata, CustomData *ldata, CustomData *pdata,
@@ -88,7 +88,6 @@ static void join_mesh_single(
         Material **matar, int *matmap, int totcol,
         int *vertofs, int *edgeofs, int *loopofs, int *polyofs)
 {
-	EvaluationContext eval_ctx;
 	int a, b;
 
 	Mesh *me = ob_src->data;
@@ -96,8 +95,6 @@ static void join_mesh_single(
 	MEdge *medge = *medge_pp;
 	MLoop *mloop = *mloop_pp;
 	MPoly *mpoly = *mpoly_pp;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (me->totvert) {
 		/* merge customdata flag */
@@ -210,13 +207,12 @@ static void join_mesh_single(
 		if (ob_src != ob_dst) {
 			MultiresModifierData *mmd;
 
-			multiresModifier_prepare_join(&eval_ctx, scene, ob_src, ob_dst);
+			multiresModifier_prepare_join(eval_ctx, scene, ob_src, ob_dst);
 
 			if ((mmd = get_multires_modifier(scene, ob_src, true))) {
-				ED_object_iter_other(
-				        &eval_ctx, bmain, ob_src, true,
-				        ED_object_multires_update_totlevels_cb,
-				        &mmd->totlvl);
+				ED_object_iter_other(bmain, ob_src, true,
+				                     ED_object_multires_update_totlevels_cb,
+				                     &mmd->totlvl);
 			}
 		}
 
@@ -266,7 +262,6 @@ static void join_mesh_single(
 
 int join_mesh_exec(bContext *C, wmOperator *op)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
@@ -286,7 +281,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	bDeformGroup *dg, *odg;
 	CustomData vdata, edata, fdata, ldata, pdata;
 
-	if (workspace->object_mode & OB_MODE_EDIT) {
+	if (ob->mode & OB_MODE_EDIT) {
 		BKE_report(op->reports, RPT_WARNING, "Cannot join while in edit mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -296,7 +291,10 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_WARNING, "Active object is not a mesh");
 		return OPERATOR_CANCELLED;
 	}
-	
+
+	EvaluationContext eval_ctx;
+	CTX_data_eval_ctx(C, &eval_ctx);
+
 	/* count & check */
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
@@ -491,7 +489,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 * active mesh will remain first ones in new result of the merge, in same order for CD layers, etc. See also T50084.
 	 */
 	join_mesh_single(
-	            C, bmain, scene,
+	            &eval_ctx, bmain, scene,
 	            ob, ob, imat,
 	            &mvert, &medge, &mloop, &mpoly,
 	            &vdata, &edata, &ldata, &pdata,
@@ -508,7 +506,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		/* only join if this is a mesh */
 		if (base->object->type == OB_MESH) {
 			join_mesh_single(
-			            C, bmain, scene,
+			            &eval_ctx, bmain, scene,
 			            ob, base->object, imat,
 			            &mvert, &medge, &mloop, &mpoly,
 			            &vdata, &edata, &ldata, &pdata,
@@ -1253,17 +1251,17 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 
 MDeformVert *ED_mesh_active_dvert_get_em(Object *ob, BMVert **r_eve)
 {
-	if (ob->type == OB_MESH && ob->defbase.first) {
+	if (ob->mode & OB_MODE_EDIT && ob->type == OB_MESH && ob->defbase.first) {
 		Mesh *me = ob->data;
-		if (me->edit_btmesh != NULL) {
-			BMesh *bm = me->edit_btmesh->bm;
-			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-			if (cd_dvert_offset != -1) {
-				BMVert *eve = BM_mesh_active_vert_get(bm);
-				if (eve) {
-					if (r_eve) *r_eve = eve;
-					return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
-				}
+		BMesh *bm = me->edit_btmesh->bm;
+		const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+
+		if (cd_dvert_offset != -1) {
+			BMVert *eve = BM_mesh_active_vert_get(bm);
+
+			if (eve) {
+				if (r_eve) *r_eve = eve;
+				return BM_ELEM_CD_GET_VOID_P(eve, cd_dvert_offset);
 			}
 		}
 	}
@@ -1288,8 +1286,7 @@ MDeformVert *ED_mesh_active_dvert_get_ob(Object *ob, int *r_index)
 MDeformVert *ED_mesh_active_dvert_get_only(Object *ob)
 {
 	if (ob->type == OB_MESH) {
-		Mesh *me = ob->data;
-		if (me->edit_btmesh != NULL) {
+		if (ob->mode & OB_MODE_EDIT) {
 			return ED_mesh_active_dvert_get_em(ob, NULL);
 		}
 		else {

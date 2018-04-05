@@ -2123,18 +2123,6 @@ WorkSpace *WM_windows_workspace_get_from_screen(const wmWindowManager *wm, const
 	return NULL;
 }
 
-eObjectMode WM_windows_object_mode_get(const struct wmWindowManager *wm)
-{
-	eObjectMode object_mode = 0;
-	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		const WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-		if (workspace != NULL) {
-			object_mode |= workspace->object_mode;
-		}
-	}
-	return object_mode;
-}
-
 Scene *WM_window_get_active_scene(const wmWindow *win)
 {
 	return win->scene;
@@ -2182,6 +2170,26 @@ bScreen *WM_window_get_active_screen(const wmWindow *win)
 void WM_window_set_active_screen(wmWindow *win, WorkSpace *workspace, bScreen *screen)
 {
 	BKE_workspace_active_screen_set(win->workspace_hook, workspace, screen);
+}
+
+struct ViewLayer *WM_window_get_active_view_layer_ex(const wmWindow *win, Scene **r_scene)
+{
+	const WorkSpace *workspace = WM_window_get_active_workspace(win);
+	Scene *scene = WM_window_get_active_scene(win);
+	/* May be NULL in rare cases like closing Blender */
+	bScreen *screen = (LIKELY(workspace != NULL) ? BKE_workspace_active_screen_get(win->workspace_hook) : NULL);
+	if (screen != NULL) {
+		if (r_scene) {
+			*r_scene = scene;
+		}
+		return BKE_workspace_view_layer_get(workspace, scene);
+	}
+	return NULL;
+}
+
+struct ViewLayer *WM_window_get_active_view_layer(const wmWindow *win)
+{
+	return WM_window_get_active_view_layer_ex(win, NULL);
 }
 
 bool WM_window_is_temp_screen(const wmWindow *win)

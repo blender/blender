@@ -85,8 +85,6 @@
 
 #include "CCGSubSurf.h"
 
-#include "DEG_depsgraph.h"
-
 #ifdef WITH_OPENSUBDIV
 #  include "opensubdiv_capi.h"
 #endif
@@ -3790,14 +3788,12 @@ static void ccgDM_release(DerivedMesh *dm)
 			{
 				ccgdm->multires.mmd = NULL;
 			}
+			
 			if (ccgdm->multires.mmd) {
-				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED) {
-					/* TODO/OBMODE, pass real mode? */
-					multires_modifier_update_mdisps(dm, OB_MODE_OBJECT);
-				}
-				if (ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED) {
+				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)
+					multires_modifier_update_mdisps(dm);
+				if (ccgdm->multires.modified_flags & MULTIRES_HIDDEN_MODIFIED)
 					multires_modifier_update_hidden(dm);
-				}
 			}
 		}
 
@@ -4191,8 +4187,7 @@ static int ccgDM_use_grid_pbvh(CCGDerivedMesh *ccgdm)
 	return 1;
 }
 
-static struct PBVH *ccgDM_getPBVH(
-        Object *ob, DerivedMesh *dm, eObjectMode object_mode)
+static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
 	CCGKey key;
@@ -4209,7 +4204,7 @@ static struct PBVH *ccgDM_getPBVH(
 		return NULL;
 
 	bool grid_pbvh = ccgDM_use_grid_pbvh(ccgdm);
-	if ((object_mode & OB_MODE_SCULPT) == 0) {
+	if ((ob->mode & OB_MODE_SCULPT) == 0) {
 		/* In vwpaint, we may use a grid_pbvh for multires/subsurf, under certain conditions.
 		 * More complex cases break 'history' trail back to original vertices, in that case we fall back to
 		 * deformed cage only (i.e. original deformed mesh). */

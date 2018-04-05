@@ -227,7 +227,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 
-	ModifierData *md = ED_object_modifier_add(NULL, bmain, scene, ob, OB_MODE_OBJECT, NULL, eModifierType_Armature);
+	ModifierData *md = ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Armature);
 	ArmatureModifierData *amd = (ArmatureModifierData *)md;
 	amd->object = ob_arm;
 

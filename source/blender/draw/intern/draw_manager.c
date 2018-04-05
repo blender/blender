@@ -358,13 +358,19 @@ static void drw_state_eval_ctx_init(DRWManager *dst)
 	        draw_ctx->scene,
 	        draw_ctx->view_layer,
 	        draw_ctx->engine_type,
-	        draw_ctx->object_mode,
 	        DST.options.is_scene_render ? DAG_EVAL_RENDER : DAG_EVAL_VIEWPORT);
 }
 
 /* Not a viewport variable, we could split this out. */
 static void drw_context_state_init(void)
 {
+	if (DST.draw_ctx.obact) {
+		DST.draw_ctx.object_mode = DST.draw_ctx.obact->mode;
+	}
+	else {
+		DST.draw_ctx.object_mode = OB_MODE_OBJECT;
+	}
+
 	/* Edit object. */
 	if (DST.draw_ctx.object_mode & OB_MODE_EDIT) {
 		DST.draw_ctx.object_edit = DST.draw_ctx.obact;
@@ -1125,7 +1131,7 @@ void DRW_draw_view(const bContext *C)
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
-	DRW_draw_render_loop_ex(eval_ctx.depsgraph, engine_type, ar, v3d, eval_ctx.object_mode, C);
+	DRW_draw_render_loop_ex(eval_ctx.depsgraph, engine_type, ar, v3d, C);
 }
 
 /**
@@ -1135,7 +1141,7 @@ void DRW_draw_view(const bContext *C)
 void DRW_draw_render_loop_ex(
         struct Depsgraph *depsgraph,
         RenderEngineType *engine_type,
-        ARegion *ar, View3D *v3d, const eObjectMode object_mode,
+        ARegion *ar, View3D *v3d,
         const bContext *evil_C)
 {
 
@@ -1155,7 +1161,7 @@ void DRW_draw_render_loop_ex(
 	    .ar = ar, .rv3d = rv3d, .v3d = v3d,
 	    .scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
 	    .engine_type = engine_type,
-	    .depsgraph = depsgraph, .object_mode = object_mode,
+	    .depsgraph = depsgraph,
 
 	    /* reuse if caller sets */
 	    .evil_C = DST.draw_ctx.evil_C,
@@ -1280,7 +1286,7 @@ void DRW_draw_render_loop_ex(
 
 void DRW_draw_render_loop(
         struct Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d, const eObjectMode object_mode)
+        ARegion *ar, View3D *v3d)
 {
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
@@ -1288,13 +1294,13 @@ void DRW_draw_render_loop(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
 
-	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, object_mode, NULL);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
 }
 
 /* @viewport CAN be NULL, in this case we create one. */
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *depsgraph, RenderEngineType *engine_type,
-        ARegion *ar, View3D *v3d, const eObjectMode object_mode,
+        ARegion *ar, View3D *v3d,
         const bool draw_background, GPUOffScreen *ofs,
         GPUViewport *viewport)
 {
@@ -1318,7 +1324,7 @@ void DRW_draw_render_loop_offscreen(
 	drw_state_prepare_clean_for_draw(&DST);
 	DST.options.is_image_render = true;
 	DST.options.draw_background = draw_background;
-	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, object_mode, NULL);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
 
 	/* restore */
 	{
@@ -1476,7 +1482,7 @@ void DRW_render_instance_buffer_finish(void)
  */
 void DRW_draw_select_loop(
         struct Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d, const eObjectMode object_mode,
+        ARegion *ar, View3D *v3d,
         bool UNUSED(use_obedit_skip), bool UNUSED(use_nearest), const rcti *rect,
         DRW_SelectPassFn select_pass_fn, void *select_pass_user_data)
 {
@@ -1484,6 +1490,7 @@ void DRW_draw_select_loop(
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	Object *obact = OBACT(view_layer);
+	Object *obedit = OBEDIT_FROM_OBACT(obact);
 #ifndef USE_GPU_SELECT
 	UNUSED_VARS(vc, scene, view_layer, v3d, ar, rect);
 #else
@@ -1498,12 +1505,12 @@ void DRW_draw_select_loop(
 
 	bool use_obedit = false;
 	int obedit_mode = 0;
-	if (object_mode & OB_MODE_EDIT) {
-		if (obact->type == OB_MBALL) {
+	if (obedit != NULL) {
+		if (obedit->type == OB_MBALL) {
 			use_obedit = true;
 			obedit_mode = CTX_MODE_EDIT_METABALL;
 		}
-		else if (obact->type == OB_ARMATURE) {
+		else if (obedit->type == OB_ARMATURE) {
 			use_obedit = true;
 			obedit_mode = CTX_MODE_EDIT_ARMATURE;
 		}
@@ -1533,7 +1540,7 @@ void DRW_draw_select_loop(
 		.ar = ar, .rv3d = rv3d, .v3d = v3d,
 		.scene = scene, .view_layer = view_layer, .obact = obact,
 		.engine_type = engine_type,
-		.depsgraph = depsgraph, .object_mode = object_mode,
+		.depsgraph = depsgraph,
 	};
 	drw_context_state_init();
 	drw_viewport_var_init();
@@ -1662,7 +1669,7 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
  */
 void DRW_draw_depth_loop(
         Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d, const eObjectMode object_mode)
+        ARegion *ar, View3D *v3d)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
@@ -1706,7 +1713,7 @@ void DRW_draw_depth_loop(
 		.ar = ar, .rv3d = rv3d, .v3d = v3d,
 		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
 		.engine_type = engine_type,
-		.depsgraph = depsgraph, .object_mode = object_mode,
+		.depsgraph = depsgraph,
 	};
 	drw_context_state_init();
 	drw_viewport_var_init();

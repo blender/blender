@@ -122,21 +122,23 @@ static ViewLayer *scene_change_get_new_view_layer(const WorkSpace *workspace, co
 
 void ED_scene_change_update(
         Main *bmain, bContext *C,
-        wmWindow *win, const bScreen *screen, Scene *scene_old, Scene *scene_new)
+        wmWindow *win, const bScreen *screen, Scene *UNUSED(scene_old), Scene *scene_new)
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	ViewLayer *layer_new = scene_change_get_new_view_layer(workspace, scene_new);
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene_new, layer_new, true);
 	Object *obact_new = OBACT(layer_new);
+	UNUSED_VARS(obact_new);
 
+#if 0
 	/* mode syncing */
 	EvaluationContext eval_ctx_old;
 	CTX_data_eval_ctx(C, &eval_ctx_old);
 	eObjectMode object_mode_old = workspace->object_mode;
 	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
 	Object *obact_old = OBACT(layer_old);
-	bool obact_new_mode_exists = ED_object_mode_generic_exists(bmain->wm.first, obact_new, workspace->object_mode);
-
+	UNUSED_VARS(obact_old, object_mode_old);
+#endif
 
 	win->scene = scene_new;
 	CTX_data_scene_set(C, scene_new);
@@ -144,19 +146,6 @@ void ED_scene_change_update(
 	BKE_scene_set_background(bmain, scene_new);
 	DEG_graph_relations_update(depsgraph, bmain, scene_new, layer_new);
 	DEG_on_visible_update(bmain, false);
-
-	if (obact_new == obact_old) {
-		/* pass */
-	}
-	else {
-		ED_object_mode_generic_exit_or_other_window(&eval_ctx_old, bmain->wm.first, workspace, scene_old, obact_old);
-		if (obact_new_mode_exists) {
-			workspace->object_mode = object_mode_old;
-		}
-		else {
-			ED_object_mode_generic_enter_or_other_window(C, win, object_mode_old);
-		}
-	}
 
 	ED_screen_update_after_scene_change(screen, scene_new, layer_new);
 	ED_render_engine_changed(bmain);

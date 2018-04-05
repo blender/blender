@@ -93,10 +93,8 @@ typedef enum eOverlayControlFlags {
 						     PAINT_OVERLAY_OVERRIDE_PRIMARY | \
 						     PAINT_OVERLAY_OVERRIDE_CURSOR)
 
-void BKE_paint_invalidate_overlay_tex(
-        struct Scene *scene, struct ViewLayer *view_layer, const struct Tex *tex, eObjectMode object_mode);
-void BKE_paint_invalidate_cursor_overlay(
-        struct Scene *scene, struct ViewLayer *view_layer, struct CurveMapping *curve, eObjectMode object_mode);
+void BKE_paint_invalidate_overlay_tex(struct Scene *scene, struct ViewLayer *view_layer, const struct Tex *tex);
+void BKE_paint_invalidate_cursor_overlay(struct Scene *scene, struct ViewLayer *view_layer, struct CurveMapping *curve);
 void BKE_paint_invalidate_overlay_all(void);
 eOverlayControlFlags BKE_paint_get_overlay_flags(void);
 void BKE_paint_reset_overlay_invalid(eOverlayControlFlags flag);
@@ -130,8 +128,7 @@ void BKE_paint_cavity_curve_preset(struct Paint *p, int preset);
 
 eObjectMode BKE_paint_object_mode_from_paint_mode(ePaintMode mode);
 struct Paint *BKE_paint_get_active_from_paintmode(struct Scene *sce, ePaintMode mode);
-struct Paint *BKE_paint_get_active(
-        struct Scene *sce, struct ViewLayer *view_layer, const eObjectMode object_mode);
+struct Paint *BKE_paint_get_active(struct Scene *sce, struct ViewLayer *view_layer);
 struct Paint *BKE_paint_get_active_from_context(const struct bContext *C);
 ePaintMode BKE_paintmode_get_active_from_context(const struct bContext *C);
 struct Brush *BKE_paint_brush(struct Paint *paint);
@@ -147,9 +144,9 @@ bool BKE_paint_proj_mesh_data_check(struct Scene *scene, struct Object *ob, bool
 /* testing face select mode
  * Texture paint could be removed since selected faces are not used
  * however hiding faces is useful */
-bool BKE_paint_select_face_test(struct Object *ob, eObjectMode object_mode);
-bool BKE_paint_select_vert_test(struct Object *ob, eObjectMode object_mode);
-bool BKE_paint_select_elem_test(struct Object *ob, eObjectMode object_mode);
+bool BKE_paint_select_face_test(struct Object *ob);
+bool BKE_paint_select_vert_test(struct Object *ob);
+bool BKE_paint_select_elem_test(struct Object *ob);
 
 /* partial visibility */
 bool paint_is_face_hidden(const struct MLoopTri *lt, const struct MVert *mvert, const struct MLoop *mloop);

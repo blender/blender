@@ -193,10 +193,10 @@ static eOLDrawState tree_element_set_active_object(
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 	}
-
-	if (CTX_data_edit_object(C)) {
+	
+	if (ob != OBEDIT_FROM_VIEW_LAYER(view_layer))
 		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
-	}
+		
 	return OL_DRAWSEL_NORMAL;
 }
 
@@ -658,7 +658,6 @@ static eOLDrawState tree_element_active_text(
 static eOLDrawState tree_element_active_pose(
         bContext *C, ViewLayer *view_layer, TreeElement *UNUSED(te), TreeStoreElem *tselem, const eOLSetState set)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = (Object *)tselem->id;
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
@@ -668,18 +667,16 @@ static eOLDrawState tree_element_active_pose(
 	}
 
 	if (set != OL_SETSEL_NONE) {
-		if (workspace->object_mode & OB_MODE_EDIT) {
+		if (OBEDIT_FROM_VIEW_LAYER(view_layer))
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
-		}
-		if (workspace->object_mode & OB_MODE_POSE) {
+		
+		if (ob->mode & OB_MODE_POSE)
 			ED_armature_exit_posemode(C, base);
-		}
-		else {
+		else 
 			ED_armature_enter_posemode(C, base);
-		}
 	}
 	else {
-		if (workspace->object_mode & OB_MODE_POSE) {
+		if (ob->mode & OB_MODE_POSE) {
 			return OL_DRAWSEL_NORMAL;
 		}
 	}

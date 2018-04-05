@@ -364,11 +364,8 @@ static void rna_UserDef_weight_color_update(Main *bmain, Scene *scene, PointerRN
 	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL, btheme->tv3d.vertex_unreferenced);
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
-		/* TODO/OBMODE (not urgent) */
-		// if (ob->mode & OB_MODE_WEIGHT_PAINT)
-		{
+		if (ob->mode & OB_MODE_WEIGHT_PAINT)
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
 	}
 
 	rna_userdef_update(bmain, scene, ptr);

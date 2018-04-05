@@ -63,13 +63,12 @@ class SelectPattern(Operator):
             pattern_match = (lambda a, b:
                              fnmatch.fnmatchcase(a.upper(), b.upper()))
         is_ebone = False
-        workspace = context.workspace
         obj = context.object
-        if obj and workspace.object_mode == 'POSE':
+        if obj and obj.mode == 'POSE':
             items = obj.data.bones
             if not self.extend:
                 bpy.ops.pose.select_all(action='DESELECT')
-        elif obj and obj.type == 'ARMATURE' and workspace.object_mode == 'EDIT':
+        elif obj and obj.type == 'ARMATURE' and obj.mode == 'EDIT':
             items = obj.data.edit_bones
             if not self.extend:
                 bpy.ops.armature.select_all(action='DESELECT')
@@ -249,8 +248,6 @@ class SubdivisionSet(Operator):
         if not relative and level < 0:
             self.level = level = 0
 
-        workspace = context.workspace
-
         def set_object_subd(obj):
             for mod in obj.modifiers:
                 if mod.type == 'MULTIRES':
@@ -260,18 +257,18 @@ class SubdivisionSet(Operator):
                             for i in range(sub):
                                 bpy.ops.object.multires_subdivide(modifier="Multires")
 
-                        if workspace.object_mode == 'SCULPT':
+                        if obj.mode == 'SCULPT':
                             if mod.sculpt_levels != level:
                                 mod.sculpt_levels = level
-                        elif workspace.object_mode == 'OBJECT':
+                        elif obj.mode == 'OBJECT':
                             if mod.levels != level:
                                 mod.levels = level
                         return
                     else:
-                        if workspace.object_mode == 'SCULPT':
+                        if obj.mode == 'SCULPT':
                             if mod.sculpt_levels + level <= mod.total_levels:
                                 mod.sculpt_levels += level
-                        elif workspace.object_mode == 'OBJECT':
+                        elif obj.mode == 'OBJECT':
                             if mod.levels + level <= mod.total_levels:
                                 mod.levels += level
                         return
@@ -287,7 +284,7 @@ class SubdivisionSet(Operator):
 
             # add a new modifier
             try:
-                if workspace.object_mode == 'SCULPT':
+                if obj.mode == 'SCULPT':
                     mod = obj.modifiers.new("Multires", 'MULTIRES')
                     if level > 0:
                         for i in range(0, level):
@@ -470,9 +467,8 @@ class ShapeTransfer(Operator):
 
     @classmethod
     def poll(cls, context):
-        workspace = context.workspace
         obj = context.active_object
-        return (obj and workspace.object_mode != 'EDIT')
+        return (obj and obj.mode != 'EDIT')
 
     def execute(self, context):
         ob_act = context.active_object
@@ -512,11 +508,10 @@ class JoinUVs(Operator):
 
     def _main(self, context):
         import array
-        workspace = context.workspace
         obj = context.active_object
         mesh = obj.data
 
-        is_editmode = (workspace.object_mode == 'EDIT')
+        is_editmode = (obj.mode == 'EDIT')
         if is_editmode:
             bpy.ops.object.mode_set(mode='OBJECT', toggle=False)
 

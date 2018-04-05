@@ -2081,9 +2081,7 @@ void OBJECT_OT_convert(wmOperatorType *ot)
 /* used below, assumes id.new is correct */
 /* leaves selection of base/object unaltered */
 /* Does set ID->newid pointers. */
-static Base *object_add_duplicate_internal(
-        Main *bmain, Scene *scene,
-        ViewLayer *view_layer, Object *ob, int dupflag)
+static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer *view_layer, Object *ob, int dupflag)
 {
 #define ID_NEW_REMAP_US(a)	if (      (a)->id.newid) { (a) = (void *)(a)->id.newid;       (a)->id.us++; }
 #define ID_NEW_REMAP_US2(a)	if (((ID *)a)->newid)    { (a) = ((ID  *)a)->newid;     ((ID *)a)->us++;    }
@@ -2094,14 +2092,10 @@ static Base *object_add_duplicate_internal(
 	ID *id;
 	int a, didit;
 
-	/* ignore pose mode now, Caller can inspect mode. */
-#if 0
-	if (eval_ctx->object_mode & OB_MODE_POSE) {
+	if (ob->mode & OB_MODE_POSE) {
 		; /* nothing? */
 	}
-	else
-#endif
-	{
+	else {
 		obn = ID_NEW_SET(ob, BKE_object_copy(bmain, ob));
 		DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
@@ -2529,10 +2523,9 @@ static int join_poll(bContext *C)
 
 static int join_exec(bContext *C, wmOperator *op)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 
-	if (workspace->object_mode & OB_MODE_EDIT) {
+	if (ob->mode & OB_MODE_EDIT) {
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
 		return OPERATOR_CANCELLED;
 	}
@@ -2583,10 +2576,9 @@ static int join_shapes_poll(bContext *C)
 
 static int join_shapes_exec(bContext *C, wmOperator *op)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
 
-	if (workspace->object_mode & OB_MODE_EDIT) {
+	if (ob->mode & OB_MODE_EDIT) {
 		BKE_report(op->reports, RPT_ERROR, "This data does not support joining in edit mode");
 		return OPERATOR_CANCELLED;
 	}

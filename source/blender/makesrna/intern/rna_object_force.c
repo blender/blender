@@ -53,7 +53,6 @@ static const EnumPropertyItem effector_shape_items[] = {
 
 #include "BLI_math_base.h"
 
-#include "BKE_main.h"
 
 /* type specific return values only used from functions */
 static const EnumPropertyItem curve_shape_items[] = {
@@ -524,7 +523,7 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 {
 	if (!particle_id_check(ptr)) {
 		Object *ob = (Object *)ptr->id.data;
-		ED_object_check_force_modifiers(bmain, scene, ob, bmain->eval_ctx->object_mode);
+		ED_object_check_force_modifiers(bmain, scene, ob);
 		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 	}
@@ -711,7 +710,7 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 
 	/* add/remove modifier as needed */
 	if (ob->pd->deflect && !md)
-		ED_object_modifier_add(NULL, bmain, scene, ob, bmain->eval_ctx->object_mode, NULL, eModifierType_Collision);
+		ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Collision);
 	else if (!ob->pd->deflect && md)
 		ED_object_modifier_remove(NULL, bmain, ob, md);
 

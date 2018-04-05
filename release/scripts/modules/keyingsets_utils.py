@@ -57,10 +57,9 @@ def path_add_property(path, prop):
 
 # selected objects (active object must be in object mode)
 def RKS_POLL_selected_objects(ksi, context):
-    workspace = context.workspace
     ob = context.active_object
     if ob:
-        return workspace.object_mode == 'OBJECT'
+        return ob.mode == 'OBJECT'
     else:
         return bool(context.selected_objects)
 
@@ -68,9 +67,8 @@ def RKS_POLL_selected_objects(ksi, context):
 # selected bones
 def RKS_POLL_selected_bones(ksi, context):
     # we must be in Pose Mode, and there must be some bones selected
-    workspace = context.workspace
     ob = context.active_object
-    if ob and workspace.object_mode == 'POSE':
+    if ob and ob.mode == 'POSE':
         if context.active_pose_bone or context.selected_pose_bones:
             return True
 
@@ -89,9 +87,8 @@ def RKS_POLL_selected_items(ksi, context):
 
 # all selected objects or pose bones, depending on which we've got
 def RKS_ITER_selected_item(ksi, context, ks):
-    workspace = context.workspace
     ob = context.active_object
-    if ob and workspace.object_mode == 'POSE':
+    if ob and ob.mode == 'POSE':
         for bone in context.selected_pose_bones:
             ksi.generate(context, ks, bone)
     else:

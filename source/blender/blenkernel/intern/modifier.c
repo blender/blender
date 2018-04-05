@@ -684,13 +684,13 @@ bool modifier_isCorrectableDeformed(ModifierData *md)
 	return (mti->deformMatricesEM != NULL);
 }
 
-bool modifiers_isCorrectableDeformed(const EvaluationContext *eval_ctx, struct Scene *scene, Object *ob)
+bool modifiers_isCorrectableDeformed(struct Scene *scene, Object *ob)
 {
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	int required_mode = eModifierMode_Realtime;
 
-	if (eval_ctx->object_mode == OB_MODE_EDIT) {
+	if (ob->mode == OB_MODE_EDIT) {
 		required_mode |= eModifierMode_Editmode;
 	}
 	for (; md; md = md->next) {

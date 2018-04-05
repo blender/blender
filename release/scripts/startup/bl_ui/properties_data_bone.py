@@ -58,8 +58,7 @@ class BONE_PT_transform(BoneButtonsPanel, Panel):
             return True
 
         ob = context.object
-        workspace = context.workspace
-        return ob and workspace.object_mode == 'POSE' and context.bone
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
@@ -111,8 +110,7 @@ class BONE_PT_transform_locks(BoneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        workspace = context.workspace
-        return ob and workspace.object_mode == 'POSE' and context.bone
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
@@ -313,8 +311,7 @@ class BONE_PT_inverse_kinematics(BoneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        workspace = context.workspace
-        return ob and workspace.object_mode == 'POSE' and context.bone
+        return ob and ob.mode == 'POSE' and context.bone
 
     def draw(self, context):
         layout = self.layout
@@ -442,8 +439,7 @@ class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
     @property
     def _context_path(self):
         obj = bpy.context.object
-        workspace = context.workspace
-        if obj and workspace.object_mode == 'POSE':
+        if obj and obj.mode == 'POSE':
             return "active_pose_bone"
         else:
             return "active_bone"

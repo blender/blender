@@ -172,7 +172,7 @@ void BKE_object_handle_data_update(
 	switch (ob->type) {
 		case OB_MESH:
 		{
-			BMEditMesh *em = (eval_ctx->object_mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
+			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
 			uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
 #ifdef WITH_FREESTYLE
 			/* make sure Freestyle edge/face marks appear in DM for render (see T40315) */
@@ -222,7 +222,7 @@ void BKE_object_handle_data_update(
 	}
 
 	/* particles */
-	if ((ob != OBEDIT_FROM_EVAL_CTX(eval_ctx)) && ob->particlesystem.first) {
+	if ((ob != OBEDIT_FROM_VIEW_LAYER(eval_ctx->view_layer)) && ob->particlesystem.first) {
 		ParticleSystem *tpsys, *psys;
 		DerivedMesh *dm;
 		ob->transflag &= ~OB_DUPLIPARTS;

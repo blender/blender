@@ -36,7 +36,6 @@
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -375,21 +374,22 @@ static bool stats_is_object_dynamic_topology_sculpt(Object *ob, const eObjectMod
 }
 
 /* Statistics displayed in info header. Called regularly on scene changes. */
-static void stats_update(ViewLayer *view_layer, Object *obedit, const eObjectMode object_mode)
+static void stats_update(ViewLayer *view_layer)
 {
 	SceneStats stats = {0};
-	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
+	Object *ob = OBACT(view_layer);
+	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 	Base *base;
 
 	if (obedit) {
 		/* Edit Mode */
 		stats_object_edit(ob, &stats);
 	}
-	else if (ob && (object_mode & OB_MODE_POSE)) {
+	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
 	}
-	else if (stats_is_object_dynamic_topology_sculpt(ob, object_mode)) {
+	else if (stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
 		/* Dynamic-topology sculpt mode */
 		stats_object_sculpt_dynamic_topology(ob, &stats);
 	}
@@ -408,12 +408,14 @@ static void stats_update(ViewLayer *view_layer, Object *obedit, const eObjectMod
 	*(view_layer->stats) = stats;
 }
 
-static void stats_string(ViewLayer *view_layer, Object *obedit, const eObjectMode object_mode)
+static void stats_string(ViewLayer *view_layer)
 {
 #define MAX_INFO_MEM_LEN  64
 	SceneStats *stats = view_layer->stats;
 	SceneStatsFmt stats_fmt;
-	Object *ob = (view_layer->basact) ? view_layer->basact->object : NULL;
+	Object *ob = OBACT(view_layer);
+	Object *obedit = OBEDIT_FROM_OBACT(ob);
+	eObjectMode object_mode = ob ? ob->mode : OB_MODE_OBJECT;
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[MAX_INFO_MEM_LEN];
 	char gpumemstr[MAX_INFO_MEM_LEN] = "";
@@ -528,16 +530,11 @@ void ED_info_stats_clear(ViewLayer *view_layer)
 	}
 }
 
-const char *ED_info_stats_string(Scene *UNUSED(scene), WorkSpace *workspace, ViewLayer *view_layer)
+const char *ED_info_stats_string(Scene *UNUSED(scene), ViewLayer *view_layer)
 {
-	Object *obact = (view_layer->basact) ? view_layer->basact->object : NULL;
-	Object *obedit = (obact && (workspace->object_mode & OB_MODE_EDIT) &&
-	                  BKE_object_is_in_editmode(obact)) ? obact : NULL;
-
 	if (!view_layer->stats) {
-		stats_update(view_layer, obedit, workspace->object_mode);
+		stats_update(view_layer);
 	}
-	stats_string(view_layer, obedit, workspace->object_mode);
-
+	stats_string(view_layer);
 	return view_layer->stats->infostr;
 }

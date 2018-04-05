@@ -286,9 +286,8 @@ void ED_operatormacros_object(void)
 
 static int object_mode_poll(bContext *C)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
-	return (!ob || workspace->object_mode == OB_MODE_OBJECT);
+	return (!ob || ob->mode == OB_MODE_OBJECT);
 }
 
 void ED_keymap_object(wmKeyConfig *keyconf)

@@ -35,7 +35,6 @@
 #include "DNA_texture_types.h"
 #include "DNA_node_types.h"
 #include "DNA_space_types.h"
-#include "DNA_workspace_types.h"
 
 #include "BLI_listbase.h"
 #include "BLI_threads.h"
@@ -63,7 +62,6 @@
 static void texture_get_from_context(
         const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
@@ -98,7 +96,7 @@ static void texture_get_from_context(
 	else if (snode->texfrom == SNODE_TEX_BRUSH) {
 		struct Brush *brush = NULL;
 		
-		if (ob && (workspace->object_mode & OB_MODE_SCULPT))
+		if (ob && (ob->mode & OB_MODE_SCULPT))
 			brush = BKE_paint_brush(&scene->toolsettings->sculpt->paint);
 		else
 			brush = BKE_paint_brush(&scene->toolsettings->imapaint.paint);

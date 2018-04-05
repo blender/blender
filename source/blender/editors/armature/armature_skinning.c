@@ -192,7 +192,6 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 }
 
 static void envelope_bone_weighting(
-        const EvaluationContext *eval_ctx,
         Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist,
         bDeformGroup **dgrouplist, bDeformGroup **dgroupflip,
         float (*root)[3], float (*tip)[3], const int *selected, float scale)
@@ -206,7 +205,7 @@ static void envelope_bone_weighting(
 	bool use_topology = (mesh->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 	bool use_mask = false;
 
-	if ((eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) &&
+	if ((ob->mode & OB_MODE_WEIGHT_PAINT) &&
 	    (mesh->editflag & (ME_EDIT_PAINT_FACE_SEL | ME_EDIT_PAINT_VERT_SEL)))
 	{
 		use_mask = true;
@@ -277,12 +276,13 @@ static void add_verts_to_dgroups(
 	float (*root)[3], (*tip)[3], (*verts)[3];
 	int *selected;
 	int numbones, vertsfilled = 0, i, j, segments = 0;
+	const bool wpmode = (ob->mode & OB_MODE_WEIGHT_PAINT);
 	struct { Object *armob; void *list; int heat; bool is_weight_paint; } looper_data;
 
 	looper_data.armob = par;
 	looper_data.heat = heat;
 	looper_data.list = NULL;
-	looper_data.is_weight_paint = (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT);
+	looper_data.is_weight_paint = wpmode;
 
 	/* count the number of skinnable bones */
 	numbones = bone_looper(ob, arm->bonebase.first, &looper_data, bone_skinnable_cb);
@@ -355,7 +355,7 @@ static void add_verts_to_dgroups(
 		mul_m4_v3(par->obmat, tip[j]);
 		
 		/* set selected */
-		if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+		if (wpmode) {
 			if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))
 				selected[j] = 1;
 		}
@@ -375,7 +375,7 @@ static void add_verts_to_dgroups(
 	mesh = (Mesh *)ob->data;
 	verts = MEM_callocN(mesh->totvert * sizeof(*verts), "closestboneverts");
 
-	if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+	if (wpmode) {
 		/* if in weight paint mode, use final verts from derivedmesh */
 		DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
 		
@@ -406,7 +406,7 @@ static void add_verts_to_dgroups(
 		const char *error = NULL;
 
 		heat_bone_weighting(
-		        eval_ctx, ob, mesh, verts, numbones, dgrouplist, dgroupflip,
+		        ob, mesh, verts, numbones, dgrouplist, dgroupflip,
 		        root, tip, selected, &error);
 		if (error) {
 			BKE_report(reports, RPT_WARNING, error);
@@ -414,7 +414,7 @@ static void add_verts_to_dgroups(
 	}
 	else {
 		envelope_bone_weighting(
-		        eval_ctx, ob, mesh, verts, numbones, bonelist, dgrouplist,
+		        ob, mesh, verts, numbones, bonelist, dgrouplist,
 		        dgroupflip, root, tip, selected, mat4_to_scale(par->obmat));
 	}
 

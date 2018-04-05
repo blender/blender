@@ -76,67 +76,27 @@ const char PAINT_CURSOR_TEXTURE_PAINT[3] = {255, 255, 255};
 
 static eOverlayControlFlags overlay_flags = 0;
 
-/* Keep in sync with 'BKE_paint_get_active' */
-#define OB_MODE_HAS_PAINT_STRUCT(SEP) \
-	OB_MODE_SCULPT SEP \
-	OB_MODE_VERTEX_PAINT SEP \
-	OB_MODE_WEIGHT_PAINT SEP \
-	OB_MODE_TEXTURE_PAINT SEP \
-	OB_MODE_EDIT
-
-#define COMMA ,
-static const eObjectMode ob_mode_has_paint_struct = OB_MODE_HAS_PAINT_STRUCT(|);
-static const eObjectMode ob_mode_has_paint_struct_array[] = {OB_MODE_HAS_PAINT_STRUCT(COMMA)};
-#undef COMMA
-
-#define FOREACH_OB_MODE_PAINT_ITER_BEGIN(scene, view_layer, object_mode, p) \
-{ \
-	eObjectMode object_mode_test = object_mode & ob_mode_has_paint_struct; \
-	for (uint _i = 0; _i < ARRAY_SIZE(ob_mode_has_paint_struct_array) && object_mode_test; _i++) { \
-		eObjectMode object_mode_single = ob_mode_has_paint_struct_array[_i]; \
-		if (object_mode_test & object_mode_single) { \
-			object_mode_test &= ~object_mode_single; \
-			Paint *p = BKE_paint_get_active(scene, view_layer, object_mode_single); \
-			{
-
-#define FOREACH_OB_MODE_PAINT_ITER_END \
-			} \
-		} \
-	} \
-} ((void)0)
-
-void BKE_paint_invalidate_overlay_tex(
-        Scene *scene, ViewLayer *view_layer, const Tex *tex, eObjectMode object_mode)
+void BKE_paint_invalidate_overlay_tex(Scene *scene, ViewLayer *view_layer, const Tex *tex)
 {
-	FOREACH_OB_MODE_PAINT_ITER_BEGIN(scene, view_layer, object_mode, p)
-	{
-		Brush *br = p->brush;
-		if (br) {
-			if (br->mtex.tex == tex) {
-				overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
-			}
-			if (br->mask_mtex.tex == tex) {
-				overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
-			}
-		}
-	}
-	FOREACH_OB_MODE_PAINT_ITER_END;
+	Paint *p = BKE_paint_get_active(scene, view_layer);
+	Brush *br = p->brush;
+
+	if (!br)
+		return;
+
+	if (br->mtex.tex == tex)
+		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_PRIMARY;
+	if (br->mask_mtex.tex == tex)
+		overlay_flags |= PAINT_INVALID_OVERLAY_TEXTURE_SECONDARY;
 }
 
-void BKE_paint_invalidate_cursor_overlay(
-        Scene *scene, ViewLayer *view_layer, CurveMapping *curve, eObjectMode object_mode)
+void BKE_paint_invalidate_cursor_overlay(Scene *scene, ViewLayer *view_layer, CurveMapping *curve)
 {
-	FOREACH_OB_MODE_PAINT_ITER_BEGIN(scene, view_layer, object_mode, p)
-	{
-		Brush *br = p->brush;
-		if (br) {
-			if (br->curve == curve) {
-				overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
-				break;
-			}
-		}
-	}
-	FOREACH_OB_MODE_PAINT_ITER_END;
+	Paint *p = BKE_paint_get_active(scene, view_layer);
+	Brush *br = p->brush;
+
+	if (br && br->curve == curve)
+		overlay_flags |= PAINT_INVALID_OVERLAY_CURVE;
 }
 
 void BKE_paint_invalidate_overlay_all(void)
@@ -198,13 +158,13 @@ Paint *BKE_paint_get_active_from_paintmode(Scene *sce, ePaintMode mode)
 	return NULL;
 }
 
-Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer, const eObjectMode object_mode)
+Paint *BKE_paint_get_active(Scene *sce, ViewLayer *view_layer)
 {
 	if (sce && view_layer) {
 		ToolSettings *ts = sce->toolsettings;
 		
 		if (view_layer->basact && view_layer->basact->object) {
-			switch (object_mode) {
+			switch (view_layer->basact->object->mode) {
 				case OB_MODE_SCULPT:
 					return &ts->sculpt->paint;
 				case OB_MODE_VERTEX_PAINT:
@@ -236,7 +196,6 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 	SpaceImage *sima;
 
 	if (sce && view_layer) {
-		const WorkSpace *workspace = CTX_wm_workspace(C);
 		ToolSettings *ts = sce->toolsettings;
 		Object *obact = NULL;
 
@@ -244,7 +203,7 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 			obact = view_layer->basact->object;
 
 		if ((sima = CTX_wm_space_image(C)) != NULL) {
-			if (obact && workspace->object_mode == OB_MODE_EDIT) {
+			if (obact && obact->mode == OB_MODE_EDIT) {
 				if (sima->mode == SI_MODE_PAINT)
 					return &ts->imapaint.paint;
 				else if (ts->use_uv_sculpt)
@@ -255,7 +214,7 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 			}
 		}
 		else if (obact) {
-			switch (workspace->object_mode) {
+			switch (obact->mode) {
 				case OB_MODE_SCULPT:
 					return &ts->sculpt->paint;
 				case OB_MODE_VERTEX_PAINT:
@@ -288,7 +247,6 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 	SpaceImage *sima;
 
 	if (sce && view_layer) {
-		const WorkSpace *workspace = CTX_wm_workspace(C);
 		ToolSettings *ts = sce->toolsettings;
 		Object *obact = NULL;
 
@@ -296,7 +254,7 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 			obact = view_layer->basact->object;
 
 		if ((sima = CTX_wm_space_image(C)) != NULL) {
-			if (obact && workspace->object_mode == OB_MODE_EDIT) {
+			if (obact && obact->mode == OB_MODE_EDIT) {
 				if (sima->mode == SI_MODE_PAINT)
 					return ePaintTexture2D;
 				else if (ts->use_uv_sculpt)
@@ -307,7 +265,7 @@ ePaintMode BKE_paintmode_get_active_from_context(const bContext *C)
 			}
 		}
 		else if (obact) {
-			switch (workspace->object_mode) {
+			switch (obact->mode) {
 				case OB_MODE_SCULPT:
 					return ePaintSculpt;
 				case OB_MODE_VERTEX_PAINT:
@@ -498,24 +456,24 @@ bool BKE_palette_is_empty(const struct Palette *palette)
 
 
 /* are we in vertex paint or weight pain face select mode? */
-bool BKE_paint_select_face_test(Object *ob, eObjectMode object_mode)
+bool BKE_paint_select_face_test(Object *ob)
 {
 	return ( (ob != NULL) &&
 	         (ob->type == OB_MESH) &&
 	         (ob->data != NULL) &&
 	         (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_FACE_SEL) &&
-	         (object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))
+	         (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))
 	         );
 }
 
 /* are we in weight paint vertex select mode? */
-bool BKE_paint_select_vert_test(Object *ob, eObjectMode object_mode)
+bool BKE_paint_select_vert_test(Object *ob)
 {
 	return ( (ob != NULL) &&
 	         (ob->type == OB_MESH) &&
 	         (ob->data != NULL) &&
 	         (((Mesh *)ob->data)->editflag & ME_EDIT_PAINT_VERT_SEL) &&
-	         (object_mode & OB_MODE_WEIGHT_PAINT || object_mode & OB_MODE_VERTEX_PAINT)
+	         (ob->mode & OB_MODE_WEIGHT_PAINT || ob->mode & OB_MODE_VERTEX_PAINT)
 	         );
 }
 
@@ -523,10 +481,10 @@ bool BKE_paint_select_vert_test(Object *ob, eObjectMode object_mode)
  * used to check if selection is possible
  * (when we don't care if its face or vert)
  */
-bool BKE_paint_select_elem_test(Object *ob, eObjectMode object_mode)
+bool BKE_paint_select_elem_test(Object *ob)
 {
-	return (BKE_paint_select_vert_test(ob, object_mode) ||
-	        BKE_paint_select_face_test(ob, object_mode));
+	return (BKE_paint_select_vert_test(ob) ||
+	        BKE_paint_select_face_test(ob));
 }
 
 void BKE_paint_cavity_curve_preset(Paint *p, int preset)
@@ -829,7 +787,7 @@ void BKE_sculptsession_free(Object *ob)
 			BM_log_free(ss->bm_log);
 
 		if (dm && dm->getPBVH)
-			dm->getPBVH(NULL, dm, OB_MODE_OBJECT);  /* signal to clear */
+			dm->getPBVH(NULL, dm);  /* signal to clear */
 
 		if (ss->texcache)
 			MEM_freeN(ss->texcache);
@@ -966,7 +924,7 @@ void BKE_sculpt_update_mesh_elements(
 	dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
 
 	/* VWPaint require mesh info for loop lookup, so require sculpt mode here */
-	if (mmd && eval_ctx->object_mode & OB_MODE_SCULPT) {
+	if (mmd && ob->mode & OB_MODE_SCULPT) {
 		ss->multires = mmd;
 		ss->totvert = dm->getNumVerts(dm);
 		ss->totpoly = dm->getNumPolys(dm);
@@ -984,7 +942,7 @@ void BKE_sculpt_update_mesh_elements(
 		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
-	ss->pbvh = dm->getPBVH(ob, dm, eval_ctx->object_mode);
+	ss->pbvh = dm->getPBVH(ob, dm);
 	ss->pmap = (need_pmap && dm->getPolyMap) ? dm->getPolyMap(ob, dm) : NULL;
 
 	pbvh_show_diffuse_color_set(ss->pbvh, ss->show_diffuse_color);

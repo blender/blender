@@ -407,18 +407,17 @@ static void paint_undosys_step_decode_restore_ids(ImageUndoStep *us)
 
 static bool image_undosys_poll(bContext *C)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *obact = CTX_data_active_object(C);
 
 	ScrArea *sa = CTX_wm_area(C);
 	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
-		if ((obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->mode == SI_MODE_PAINT)) {
 			return true;
 		}
 	}
 	else if (sa && (sa->spacetype == SPACE_VIEW3D)) {
-		if (obact && (workspace->object_mode & OB_MODE_TEXTURE_PAINT)) {
+		if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) {
 			return true;
 		}
 	}

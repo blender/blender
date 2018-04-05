@@ -5941,9 +5941,9 @@ static int add_simple_uvs_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int add_simple_uvs_poll(bContext *C)
 {
-	const WorkSpace *workspace = CTX_wm_workspace(C);
 	Object *ob = CTX_data_active_object(C);
-	if (!ob || (ob->type != OB_MESH) || (workspace->object_mode != OB_MODE_TEXTURE_PAINT)) {
+
+	if (!ob || ob->type != OB_MESH || ob->mode != OB_MODE_TEXTURE_PAINT) {
 		return false;
 	}
 	return true;

@@ -101,9 +101,6 @@ typedef struct WorkSpace {
 	int pad;
 	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
 
-	short object_mode, object_mode_restore;
-	char _pad[4];
-
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
 	bToolDef tool;
 

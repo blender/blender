@@ -551,7 +551,7 @@ static void image_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Sc
 				{
 					ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
 					Object *ob = OBACT(view_layer);
-					if (ob && (ob == wmn->reference) && (workspace->object_mode & OB_MODE_EDIT)) {
+					if (ob && (ob == wmn->reference) && (ob->mode & OB_MODE_EDIT)) {
 						if (sima->lock && (sima->flag & SI_DRAWSHADOW)) {
 							ED_area_tag_refresh(sa);
 							ED_area_tag_redraw(sa);
@@ -725,9 +725,6 @@ static void image_main_region_init(wmWindowManager *wm, ARegion *ar)
 
 static void image_main_region_draw(const bContext *C, ARegion *ar)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	/* draw entirely, view changes should be handled here */
 	SpaceImage *sima = CTX_wm_space_image(C);
 	Object *obact = CTX_data_active_object(C);
@@ -762,7 +759,7 @@ static void image_main_region_draw(const bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
 
-	ED_uvedit_draw_main(sima, &eval_ctx, ar, scene, view_layer, obedit, obact, depsgraph);
+	ED_uvedit_draw_main(sima, ar, scene, view_layer, obedit, obact, depsgraph);
 
 	/* check for mask (delay draw) */
 	if (ED_space_image_show_uvedit(sima, obedit)) {

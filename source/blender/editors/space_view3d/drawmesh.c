@@ -59,8 +59,6 @@
 
 #include "UI_resources.h"
 
-#include "DEG_depsgraph.h"
-
 #include "GPU_draw.h"
 #include "GPU_material.h"
 #include "GPU_basic_shader.h"
@@ -327,10 +325,8 @@ void draw_mesh_paint_weight_edges(RegionView3D *rv3d, DerivedMesh *dm,
 	}
 }
 
-void draw_mesh_paint(
-        const EvaluationContext *eval_ctx,
-        View3D *v3d, RegionView3D *rv3d,
-        Object *ob, DerivedMesh *dm, const int draw_flags)
+void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
+                     Object *ob, DerivedMesh *dm, const int draw_flags)
 {
 	DMSetDrawOptions facemask = NULL;
 	Mesh *me = ob->data;
@@ -340,21 +336,21 @@ void draw_mesh_paint(
 	if (me->editflag & (ME_EDIT_PAINT_VERT_SEL | ME_EDIT_PAINT_FACE_SEL))
 		facemask = wpaint__setSolidDrawOptions_facemask;
 
-	if (eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT) {
+	if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 		draw_mesh_paint_weight_faces(dm, use_light, facemask, me);
 	}
-	else if (eval_ctx->object_mode & OB_MODE_VERTEX_PAINT) {
+	else if (ob->mode & OB_MODE_VERTEX_PAINT) {
 		draw_mesh_paint_vcolor_faces(dm, use_light, facemask, me, me);
 	}
 
 	/* draw face selection on top */
 	if (draw_flags & DRAW_FACE_SELECT) {
-		bool draw_select_edges = (eval_ctx->object_mode & OB_MODE_TEXTURE_PAINT) == 0;
+		bool draw_select_edges = (ob->mode & OB_MODE_TEXTURE_PAINT) == 0;
 		draw_mesh_face_select(rv3d, me, dm, draw_select_edges);
 	}
 	else if ((use_light == false) || (ob->dtx & OB_DRAWWIRE)) {
-		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(eval_ctx->object_mode & OB_MODE_WEIGHT_PAINT);
-		const bool use_alpha = (eval_ctx->object_mode & OB_MODE_VERTEX_PAINT) == 0;
+		const bool use_depth = (v3d->flag & V3D_ZBUF_SELECT) || !(ob->mode & OB_MODE_WEIGHT_PAINT);
+		const bool use_alpha = (ob->mode & OB_MODE_VERTEX_PAINT) == 0;
 
 		if (use_alpha == false) {
 			set_inverted_drawing(1);
