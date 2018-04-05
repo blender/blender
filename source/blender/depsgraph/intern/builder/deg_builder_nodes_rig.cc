@@ -49,6 +49,7 @@ extern "C" {
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
@@ -68,7 +69,11 @@ void DepsgraphNodeBuilder::build_pose_constraints(Object *object,
                                                   bPoseChannel *pchan,
                                                   int pchan_index)
 {
-	/* create node for constraint stack */
+	/* Pull indirect dependencies via constraints. */
+	BuilderWalkUserData data;
+	data.builder = this;
+	BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
+	/* Create node for constraint stack. */
 	add_operation_node(&object->id, DEG_NODE_TYPE_BONE, pchan->name,
 	                   function_bind(BKE_pose_constraints_evaluate,
 	                                 _1,
