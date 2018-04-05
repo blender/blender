@@ -715,15 +715,18 @@ static int arg_handle_background_mode_set(int UNUSED(argc), const char **UNUSED(
 static const char arg_handle_log_level_set_doc[] =
 "<level>\n"
 "\n"
-"\tSet the logging verbosity level (higher for more details) defaults to 1."
+"\tSet the logging verbosity level (higher for more details) defaults to 1, use -1 to log all levels."
 ;
 static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(data))
 {
 	const char *arg_id = "--log-level";
 	if (argc > 1) {
 		const char *err_msg = NULL;
-		if (!parse_int_clamp(argv[1], NULL, 0, INT_MAX, &G.log.level, &err_msg)) {
+		if (!parse_int_clamp(argv[1], NULL, -1, INT_MAX, &G.log.level, &err_msg)) {
 			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
+		}
+		if (G.log.level == -1) {
+			G.log.level = INT_MAX;
 		}
 		return 1;
 	}
