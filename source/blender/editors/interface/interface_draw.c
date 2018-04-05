@@ -64,6 +64,7 @@
 /* own include */
 #include "interface_intern.h"
 
+
 static int roundboxtype = UI_CNR_ALL;
 
 void UI_draw_roundbox_corner_set(int type)
@@ -101,12 +102,58 @@ void UI_draw_roundbox_3fvAlpha(bool filled, float minx, float miny, float maxx, 
 	UI_draw_roundbox_4fv(filled, minx, miny, maxx, maxy, rad, colv);
 }
 
+void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4])
+{
+	uiWidgetBaseParameters widget_params = {
+		.recti.xmin = minx, .recti.ymin = miny,
+		.recti.xmax = maxx, .recti.ymax = maxy,
+		.radi = rad,
+		.round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
+		.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
+		.color_inner1[0] = color[0], .color_inner2[0] = color[0],
+		.color_inner1[1] = color[1], .color_inner2[1] = color[1],
+		.color_inner1[2] = color[2], .color_inner2[2] = color[2],
+		.color_inner1[3] = color[3], .color_inner2[3] = color[3],
+	};
+
+	glEnable(GL_BLEND);
+
+	if (filled) {
+		/* plain antialiased filled box */
+		widget_params.color_inner1[3] *= 0.125f;
+		widget_params.color_inner2[3] *= 0.125f;
+
+		/* WATCH: This is assuming the ModelViewProjectionMatrix is area pixel space.
+		 * If it has been scaled, then it's no longer valid. */
+		Gwn_Batch *batch = ui_batch_roundbox_get(filled, true);
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
+		GWN_batch_draw(batch);
+	}
+	else {
+		/* plain antialiased unfilled box */
+		glEnable(GL_LINE_SMOOTH);
+
+		Gwn_Batch *batch = ui_batch_roundbox_get(filled, false);
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
+		GWN_batch_draw(batch);
+
+		glDisable(GL_LINE_SMOOTH);
+	}
+
+	glDisable(GL_BLEND);
+}
+
 void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4])
 {
+#if 0
 	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
 	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	int a;
-	
+
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
@@ -175,8 +222,29 @@ void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float
 	
 	immEnd();
 	immUnbindProgram();
+#endif
+
+	uiWidgetBaseParameters widget_params = {
+		.recti.xmin = minx, .recti.ymin = miny,
+		.recti.xmax = maxx, .recti.ymax = maxy,
+		.radi = rad,
+		.round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
+		.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
+		.color_inner1[0] = col[0], .color_inner2[0] = col[0],
+		.color_inner1[1] = col[1], .color_inner2[1] = col[1],
+		.color_inner1[2] = col[2], .color_inner2[2] = col[2],
+		.color_inner1[3] = col[3], .color_inner2[3] = col[3],
+	};
+
+	Gwn_Batch *batch = ui_batch_roundbox_get(filled, false);
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+	GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
+	GWN_batch_draw(batch);
 }
 
+#if 0
 static void round_box_shade_col(unsigned attrib, const float col1[3], float const col2[3], const float fac)
 {
 	float col[4] = {
@@ -187,6 +255,7 @@ static void round_box_shade_col(unsigned attrib, const float col1[3], float cons
 	};
 	immAttrib4fv(attrib, col);
 }
+#endif
 
 /* linear horizontal shade within button or in outline */
 /* view2d scrollers use it */
@@ -194,6 +263,7 @@ void UI_draw_roundbox_shade_x(
         bool filled, float minx, float miny, float maxx, float maxy,
         float rad, float shadetop, float shadedown, const float col[4])
 {
+#if 0
 	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
 	                   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
 	const float div = maxy - miny;
@@ -305,6 +375,30 @@ void UI_draw_roundbox_shade_x(
 
 	immEnd();
 	immUnbindProgram();
+#endif
+
+	uiWidgetBaseParameters widget_params = {
+		.recti.xmin = minx, .recti.ymin = miny,
+		.recti.xmax = maxx, .recti.ymax = maxy,
+		.radi = rad,
+		.round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
+		.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
+		.color_inner1[0] = min_ff(1.0f, col[0] + shadetop),
+		.color_inner2[0] = max_ff(0.0f, col[0] + shadedown),
+		.color_inner1[1] = min_ff(1.0f, col[1] + shadetop),
+		.color_inner2[1] = max_ff(0.0f, col[1] + shadedown),
+		.color_inner1[2] = min_ff(1.0f, col[2] + shadetop),
+		.color_inner2[2] = max_ff(0.0f, col[2] + shadedown),
+		.color_inner1[3] = 1.0f,
+		.color_inner2[3] = 1.0f,
+	};
+
+	Gwn_Batch *batch = ui_batch_roundbox_get(filled, false);
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+	GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&widget_params);
+	GWN_batch_draw(batch);
 }
 
 #if 0 /* unused */

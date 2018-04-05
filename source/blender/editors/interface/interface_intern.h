@@ -700,6 +700,34 @@ struct wmIMEData *ui_but_ime_data_get(uiBut *but);
 #endif
 
 /* interface_widgets.c */
+
+/* Widget shader parameters, must match the shader layout. */
+typedef struct uiWidgetBaseParameters {
+	rctf recti, rect;
+	float radi, rad;
+	float facxi, facyi;
+	float round_corners[4];
+	float color_inner1[4], color_inner2[4];
+	float color_outline[4], color_emboss[4];
+	float color_tria[4];
+	float tria1_center[2], tria2_center[2];
+	float tria1_size, tria2_size;
+	float shade_dir, clamp;
+} uiWidgetBaseParameters;
+
+enum {
+	ROUNDBOX_TRIA_NONE = 0,
+	ROUNDBOX_TRIA_ARROWS,
+	ROUNDBOX_TRIA_SCROLL,
+	ROUNDBOX_TRIA_MENU,
+	ROUNDBOX_TRIA_CHECK,
+
+	ROUNDBOX_TRIA_MAX, /* don't use */
+};
+
+struct Gwn_Batch *ui_batch_roundbox_get(bool filled, bool antialiased);
+struct Gwn_Batch *ui_batch_roundbox_widget_get(int tria);
+
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]);
 void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy,
                            float rad, bool use_alpha, const float color[4]);

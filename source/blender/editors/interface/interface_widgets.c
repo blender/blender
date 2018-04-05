@@ -126,18 +126,7 @@ typedef struct uiWidgetBase {
 	uiWidgetTrias tria2;
 
 	/* Widget shader parameters, must match the shader layout. */
-	struct {
-		rctf recti, rect;
-		float radi, rad;
-		float facxi, facyi;
-		float round_corners[4];
-		float color_inner1[4], color_inner2[4];
-		float color_outline[4], color_emboss[4];
-		float color_tria[4];
-		float tria1_center[2], tria2_center[2];
-		float tria1_size, tria2_size;
-		float shade_dir, clamp;
-	} uniform_params;
+	uiWidgetBaseParameters uniform_params;
 } uiWidgetBase;
 
 /** uiWidgetType: for time being only for visual appearance,
@@ -231,22 +220,16 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  * TODO: find a better place. Maybe it's own file?
  **/
 
-enum {
-	ROUNDBOX_TRIA_NONE = 0,
-	ROUNDBOX_TRIA_ARROWS,
-	ROUNDBOX_TRIA_SCROLL,
-	ROUNDBOX_TRIA_MENU,
-	ROUNDBOX_TRIA_CHECK,
-
-	ROUNDBOX_TRIA_MAX, /* don't use */
-};
-
 /* offset in triavec[] in shader per type */
 static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {0, 0, 6, 22, 28};
 static const int tria_vcount[ROUNDBOX_TRIA_MAX] = {0, 3, 16, 3, 6};
 
 static struct {
-	Gwn_Batch *roundbox[ROUNDBOX_TRIA_MAX];
+	Gwn_Batch *roundbox_widget[ROUNDBOX_TRIA_MAX];
+
+	Gwn_Batch *roundbox_simple;
+	Gwn_Batch *roundbox_simple_aa;
+	Gwn_Batch *roundbox_simple_outline;
 
 	Gwn_VertFormat format;
 	uint vflag_id;
@@ -318,9 +301,9 @@ static void roundbox_batch_add_tria(Gwn_VertBufRaw *vflag_step, int tria, uint32
 	}
 }
 
-static Gwn_Batch *ui_batch_roundbox_get(int tria)
+Gwn_Batch *ui_batch_roundbox_widget_get(int tria)
 {
-	if (g_ui_batch_cache.roundbox[tria] == NULL) {
+	if (g_ui_batch_cache.roundbox_widget[tria] == NULL) {
 		uint32_t last_data;
 		Gwn_VertBufRaw vflag_step;
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(vflag_format());
@@ -377,10 +360,80 @@ static Gwn_Batch *ui_batch_roundbox_get(int tria)
 		if (tria) {
 			roundbox_batch_add_tria(&vflag_step, tria, last_data);
 		}
-		g_ui_batch_cache.roundbox[tria] = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
-		gpu_batch_presets_register(g_ui_batch_cache.roundbox[tria]);
+		g_ui_batch_cache.roundbox_widget[tria] = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		gpu_batch_presets_register(g_ui_batch_cache.roundbox_widget[tria]);
 	}
-	return g_ui_batch_cache.roundbox[tria];
+	return g_ui_batch_cache.roundbox_widget[tria];
+}
+
+Gwn_Batch *ui_batch_roundbox_get(bool filled, bool antialiased)
+{
+	Gwn_Batch **batch = NULL;
+
+	if (filled) {
+		if (antialiased)
+			batch = &g_ui_batch_cache.roundbox_simple_aa;
+		else
+			batch = &g_ui_batch_cache.roundbox_simple;
+	}
+	else {
+		if (antialiased)
+			BLI_assert(0); /* Use GL_LINE_SMOOTH instead!!: */
+		else
+			batch = &g_ui_batch_cache.roundbox_simple_outline;
+	}
+
+	if (*batch == NULL) {
+		uint32_t last_data;
+		Gwn_VertBufRaw vflag_step;
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(vflag_format());
+		int vcount = WIDGET_SIZE_MAX;
+		vcount += (filled) ? 2 : 0;
+		vcount *= (antialiased) ? WIDGET_AA_JITTER : 1;
+		GWN_vertbuf_data_alloc(vbo, vcount);
+		GWN_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
+
+		if (filled) {
+			for (int j = 0; j < WIDGET_AA_JITTER; j++) {
+				if (!antialiased) {
+					j = NO_AA;
+				}
+				/* restart */
+				set_roundbox_vertex(&vflag_step, 0, 0, j, true, false, INNER);
+				for (int c1 = 0, c2 = 3; c1 < 2; c1++, c2--) {
+					for (int a1 = 0, a2 = WIDGET_CURVE_RESOLU -1; a2 >= 0; a1++, a2--) {
+						last_data = set_roundbox_vertex(&vflag_step, c1, a1, j, true, false, INNER);
+						last_data = set_roundbox_vertex(&vflag_step, c2, a2, j, true, false, INNER);
+					}
+				}
+				/* restart */
+				set_roundbox_vertex_data(&vflag_step, last_data);
+				if (!antialiased) {
+					break;
+				}
+			}
+			*batch = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		}
+		else {
+			for (int j = 0; j < WIDGET_AA_JITTER; j++) {
+				if (!antialiased) {
+					j = NO_AA;
+				}
+				for (int c = 0; c < 4; c++) {
+					for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
+						set_roundbox_vertex(&vflag_step, c, a, j, true, false, INNER);
+					}
+				}
+				if (!antialiased) {
+					break;
+				}
+			}
+			*batch = GWN_batch_create_ex(GWN_PRIM_LINE_LOOP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		}
+
+		gpu_batch_presets_register(*batch);
+	}
+	return *batch;
 }
 
 #undef INNER
@@ -417,32 +470,6 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	immEnd();
 
 	immUnbindProgram();
-
-	glDisable(GL_BLEND);
-}
-
-/* belongs in interface_draw.c, but needs WIDGET_AA_JITTER from this file */
-void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4])
-{
-	glEnable(GL_BLEND);
-
-	if (filled) {
-		/* plain antialiased filled box */
-		const float alpha = color[3] * 0.125f;
-		
-		for (int j = 0; j < WIDGET_AA_JITTER; j++) {
-			gpuPushMatrix();
-			gpuTranslate2fv(jit[j]);
-			UI_draw_roundbox_3fvAlpha(true, minx, miny, maxx, maxy, rad, color, alpha);
-			gpuPopMatrix();
-		}
-	}
-	else {
-		/* plain antialiased unfilled box */
-		glEnable(GL_LINE_SMOOTH);
-		UI_draw_roundbox_4fv(false, minx, miny, maxx, maxy, rad, color);
-		glDisable(GL_LINE_SMOOTH);
-	}
 
 	glDisable(GL_BLEND);
 }
@@ -1015,7 +1042,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3]) {
 		widgetbase_set_uniform_colors_ubv(wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col);
 
-		Gwn_Batch *roundbox_batch = ui_batch_roundbox_get(wtb->tria1.type);
+		Gwn_Batch *roundbox_batch = ui_batch_roundbox_widget_get(wtb->tria1.type);
 		draw_widgetbase_batch(roundbox_batch, wtb);
 	}
 
