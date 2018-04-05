@@ -45,97 +45,69 @@
 
 #include "IMB_metadata.h"
 
+#define METADATA_MAX_VALUE_LENGTH 1024
 
 
-void IMB_metadata_free(struct ImBuf *img)
+void IMB_metadata_ensure(struct IDProperty **metadata)
 {
-	if (!img)
-		return;
-	if (!img->metadata) {
+	if (*metadata != NULL) {
 		return;
 	}
 
-	IDP_FreeProperty(img->metadata);
-	MEM_freeN(img->metadata);
+	IDPropertyTemplate val;
+	*metadata = IDP_New(IDP_GROUP, &val, "metadata");
 }
 
-bool IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, const size_t len)
+void IMB_metadata_free(struct IDProperty *metadata)
+{
+	if (metadata == NULL) {
+		return;
+	}
+
+	IDP_FreeProperty(metadata);
+	MEM_freeN(metadata);
+}
+
+bool IMB_metadata_get_field(struct IDProperty *metadata, const char *key, char *field, const size_t len)
 {
 	IDProperty *prop;
 
-	bool retval = false;
-
-	if (!img)
+	if (metadata == NULL) {
 		return false;
-	if (!img->metadata)
-		return false;
+	}
 
-	prop = IDP_GetPropertyFromGroup(img->metadata, key);
+	prop = IDP_GetPropertyFromGroup(metadata, key);
 
 	if (prop && prop->type == IDP_STRING) {
 		BLI_strncpy(field, IDP_String(prop), len);
-		retval = true;
+		return true;
 	}
-	return retval;
+	return false;
 }
 
 void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb)
 {
 	BLI_assert(dimb != simb);
 	if (simb->metadata) {
-		IMB_metadata_free(dimb);
+		IMB_metadata_free(dimb->metadata);
 		dimb->metadata = IDP_CopyProperty(simb->metadata);
 	}
 }
 
-bool IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value)
+void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const char *value)
 {
-	IDProperty *prop;
+	BLI_assert(metadata);
+	IDProperty *prop = IDP_GetPropertyFromGroup(metadata, key);
 
-	if (!img)
-		return false;
-
-	if (!img->metadata) {
-		IDPropertyTemplate val;
-		img->metadata = IDP_New(IDP_GROUP, &val, "metadata");
+	if (prop != NULL && prop->type != IDP_STRING) {
+		IDP_FreeFromGroup(metadata, prop);
+		prop = NULL;
 	}
 
-	prop = IDP_NewString(value, key, 512);
-	return IDP_AddToGroup(img->metadata, prop);
-}
-
-bool IMB_metadata_del_field(struct ImBuf *img, const char *key)
-{
-	IDProperty *prop;
-
-	if ((!img) || (!img->metadata))
-		return false;
-
-	prop = IDP_GetPropertyFromGroup(img->metadata, key);
-
-	if (prop) {
-		IDP_FreeFromGroup(img->metadata, prop);
+	if (prop == NULL) {
+		prop = IDP_NewString(value, key, METADATA_MAX_VALUE_LENGTH);
+		IDP_AddToGroup(metadata, prop);
 	}
-	return false;
-}
 
-bool IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *field)
-{
-	IDProperty *prop;
-
-	if (!img)
-		return false;
-
-	prop = (img->metadata) ? IDP_GetPropertyFromGroup(img->metadata, key) : NULL;
-
-	if (!prop) {
-		return (IMB_metadata_add_field(img, key, field));
-	}
-	else if (prop->type == IDP_STRING) {
-		IDP_AssignString(prop, field, 1024);
-		return true;
-	}
-	else {
-		return false;
-	}
+	IDP_AssignString(prop, value, METADATA_MAX_VALUE_LENGTH);
 }

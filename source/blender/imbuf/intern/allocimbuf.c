@@ -219,7 +219,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
 			IMB_freezbufImBuf(ibuf);
 			IMB_freezbuffloatImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
-			IMB_metadata_free(ibuf);
+			IMB_metadata_free(ibuf->metadata);
 			colormanage_cache_free(ibuf);
 
 			if (ibuf->dds_data.data != NULL) {

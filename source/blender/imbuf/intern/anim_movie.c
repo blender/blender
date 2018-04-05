@@ -80,6 +80,7 @@
 
 #include "IMB_anim.h"
 #include "IMB_indexer.h"
+#include "IMB_metadata.h"
 
 #ifdef WITH_FFMPEG
 #  include "BKE_global.h"  /* ENDIAN_ORDER */
@@ -220,6 +221,7 @@ void IMB_free_anim(struct anim *anim)
 	free_anim_ffmpeg(anim);
 #endif
 	IMB_free_indices(anim);
+	IMB_metadata_free(anim->metadata);
 
 	MEM_freeN(anim);
 }
@@ -237,6 +239,26 @@ void IMB_close_anim_proxies(struct anim *anim)
 		return;
 
 	IMB_free_indices(anim);
+}
+
+struct IDProperty *IMB_anim_load_metadata(struct anim *anim)
+{
+#ifdef WITH_FFMPEG
+	AVDictionaryEntry *entry = NULL;
+
+	BLI_assert(anim->pFormatCtx != NULL);
+	av_log(anim->pFormatCtx, AV_LOG_DEBUG, "METADATA FETCH\n");
+
+	while (true) {
+		entry = av_dict_get(anim->pFormatCtx->metadata, "", entry, AV_DICT_IGNORE_SUFFIX);
+		if (entry == NULL) break;
+
+		/* Delay creation of the property group until there is actual metadata to put in there. */
+		IMB_metadata_ensure(&anim->metadata);
+		IMB_metadata_set_field(anim->metadata, entry->key, entry->value);
+	}
+#endif
+	return anim->metadata;
 }
 
 struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex, char colorspace[IM_MAX_SPACE])

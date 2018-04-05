@@ -67,6 +67,11 @@ void    BKE_image_init(struct Image *image);
 typedef void (StampCallback)(void *data, const char *propname, char *propvalue, int len);
 
 void    BKE_render_result_stamp_info(struct Scene *scene, struct Object *camera, struct RenderResult *rr, bool allocate_only);
+/**
+ * Fills in the static stamp data (i.e. everything except things that can change per frame).
+ * The caller is responsible for freeing the allocated memory.
+ */
+struct StampData *BKE_stamp_info_from_scene_static(struct Scene *scene);
 void    BKE_imbuf_stamp_info(struct RenderResult *rr, struct ImBuf *ibuf);
 void    BKE_stamp_info_from_imbuf(struct RenderResult *rr, struct ImBuf *ibuf);
 void    BKE_stamp_info_callback(void *data, struct StampData *stamp_data, StampCallback callback, bool noskip);

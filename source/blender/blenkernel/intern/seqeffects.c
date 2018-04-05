@@ -52,6 +52,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 #include "IMB_colormanagement.h"
+#include "IMB_metadata.h"
 
 #include "BLI_math_color_blend.h"
 

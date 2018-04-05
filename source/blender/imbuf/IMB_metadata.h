@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,7 +33,9 @@
 #ifndef __IMB_METADATA_H__
 #define __IMB_METADATA_H__
 
+struct anim;
 struct ImBuf;
+struct IDProperty;
 
 /** The metadata is a list of key/value pairs (both char *) that can me
  * saved in the header of several image formats.
@@ -41,26 +43,36 @@ struct ImBuf;
  * 'Software' and 'Description' (png standard) we'll use keys within the
  * Blender namespace, so should be called 'Blender::StampInfo' or 'Blender::FrameNum'
  * etc...
+ *
+ * The keys & values are stored in ID properties, in the group "metadata".
  */
 
+/** Ensure that the metadata property is a valid IDProperty object.
+ * This is a no-op when *metadata != NULL.
+ */
+void IMB_metadata_ensure(struct IDProperty **metadata);
+void IMB_metadata_free(struct IDProperty *metadata);
 
-/* free blender ImMetaData struct */
-void IMB_metadata_free(struct ImBuf *img);
+/** Read the field from the image info into the field.
+ *  \param metadata - the IDProperty that contains the metadata
+ *  \param key - the key of the field
+ *  \param value - the data in the field, first one found with key is returned,
+ *                 memory has to be allocated by user.
+ *  \param len - length of value buffer allocated by user.
+ *  \return    - 1 (true) if metadata is present and value for the key found, 0 (false) otherwise
+ */
+bool IMB_metadata_get_field(struct IDProperty *metadata, const char *key, char *value, const size_t len);
 
-/** set user data in the ImMetaData struct, which has to be allocated with IMB_metadata_create
- *  before calling this function.
- *  \param img - the ImBuf that contains the image data
+/** Set user data in the metadata.
+ * If the field already exists its value is overwritten, otherwise the field
+ * will be added with the given value.
+ *  \param metadata - the IDProperty that contains the metadata
  *  \param key - the key of the field
  *  \param value - the data to be written to the field. zero terminated string
- *  \return    - 1 (true) if ImageInfo present, 0 (false) otherwise
  */
-bool IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value);
+void IMB_metadata_set_field(struct IDProperty *metadata, const char *key, const char *value);
 
-/** delete the key/field par in the ImMetaData struct.
- * \param img - the ImBuf that contains the image data
- * \param key - the key of the field
- * \return - 1 (true) if delete the key/field, 0 (false) otherwise
- */
-bool IMB_metadata_del_field(struct ImBuf *img, const char *key);
+void IMB_metadata_copy(struct ImBuf *dimb, struct ImBuf *simb);
+struct IDProperty *IMB_anim_load_metadata(struct anim *anim);
 
 #endif /* __IMB_METADATA_H__ */
