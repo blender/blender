@@ -2125,16 +2125,40 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 	}
 	
 	glEnable(GL_BLEND);
-
 	const float dalpha = alpha * 2.0f / 255.0f;
 	float calpha = dalpha;
-	for (; i--; a -= aspect) {
+	float visibility = 1.0f;
+	for (; i--;) {
 		/* alpha ranges from 2 to 20 or so */
+#if 0 /* Old Method (pre 2.8) */
 		float color[4] = {0.0f, 0.0f, 0.0f, calpha};
 		UI_draw_roundbox_4fv(true, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a, color);
+#endif
+		/* Compute final visibility to match old method result. */
+		/* TODO we could just find a better fit function inside the shader instead of this. */
+		visibility = visibility * (1.0f - calpha);
 		calpha += dalpha;
 	}
 	
+	uiWidgetBaseParameters widget_params = {
+		.recti.xmin = rct->xmin, .recti.ymin = rct->ymin,
+		.recti.xmax = rct->xmax, .recti.ymax = rct->ymax - 10.0f,
+		.rect.xmin = rct->xmin - a, .rect.ymin = rct->ymin - a,
+		.rect.xmax = rct->xmax + a, .rect.ymax = rct->ymax - 10.0f + a,
+		.radi = rad,
+		.rad = rad + a,
+		.round_corners[0] = (roundboxtype & UI_CNR_BOTTOM_LEFT) ? 1.0f : 0.0f,
+		.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
+		.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
+	};
+
+	Gwn_Batch *batch = ui_batch_roundbox_shadow_get();
+	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_SHADOW);
+	GWN_batch_uniform_4fv_array(batch, "parameters", 4, (float *)&widget_params);
+	GWN_batch_uniform_1f(batch, "alpha", 1.0f - visibility);
+	GWN_batch_draw(batch);
+
 	/* outline emphasis */
 	glEnable(GL_LINE_SMOOTH);
 	float color[4] = {0.0f, 0.0f, 0.0f, 0.4f};

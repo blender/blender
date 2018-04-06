@@ -230,6 +230,7 @@ static struct {
 	Gwn_Batch *roundbox_simple;
 	Gwn_Batch *roundbox_simple_aa;
 	Gwn_Batch *roundbox_simple_outline;
+	Gwn_Batch *roundbox_shadow;
 
 	Gwn_VertFormat format;
 	uint vflag_id;
@@ -434,6 +435,41 @@ Gwn_Batch *ui_batch_roundbox_get(bool filled, bool antialiased)
 		gpu_batch_presets_register(*batch);
 	}
 	return *batch;
+}
+
+Gwn_Batch *ui_batch_roundbox_shadow_get(void)
+{
+	if (g_ui_batch_cache.roundbox_shadow == NULL) {
+		uint32_t last_data;
+		Gwn_VertBufRaw vflag_step;
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(vflag_format());
+		int vcount = (WIDGET_SIZE_MAX + 1) * 2 + 2 + WIDGET_SIZE_MAX;
+		GWN_vertbuf_data_alloc(vbo, vcount);
+		GWN_vertbuf_attr_get_raw_data(vbo, g_ui_batch_cache.vflag_id, &vflag_step);
+
+		for (int c = 0; c < 4; c++) {
+			for (int a = 0; a < WIDGET_CURVE_RESOLU; a++) {
+				set_roundbox_vertex(&vflag_step, c, a, NO_AA, true, false, INNER);
+				set_roundbox_vertex(&vflag_step, c, a, NO_AA, false, false, INNER);
+			}
+		}
+		/* close loop */
+		last_data = set_roundbox_vertex(&vflag_step, 0, 0, NO_AA, true, false, INNER);
+		last_data = set_roundbox_vertex(&vflag_step, 0, 0, NO_AA, false, false, INNER);
+		/* restart */
+		set_roundbox_vertex_data(&vflag_step, last_data);
+		set_roundbox_vertex(&vflag_step, 0, 0, NO_AA, true, false, INNER);
+		/* filled */
+		for (int c1 = 0, c2 = 3; c1 < 2; c1++, c2--) {
+			for (int a1 = 0, a2 = WIDGET_CURVE_RESOLU -1; a2 >= 0; a1++, a2--) {
+				set_roundbox_vertex(&vflag_step, c1, a1, NO_AA, true, false, INNER);
+				set_roundbox_vertex(&vflag_step, c2, a2, NO_AA, true, false, INNER);
+			}
+		}
+		g_ui_batch_cache.roundbox_shadow = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		gpu_batch_presets_register(g_ui_batch_cache.roundbox_shadow);
+	}
+	return g_ui_batch_cache.roundbox_shadow;
 }
 
 #undef INNER

@@ -68,6 +68,8 @@ extern char datatoc_gpu_shader_2D_image_vert_glsl[];
 extern char datatoc_gpu_shader_2D_image_rect_vert_glsl[];
 extern char datatoc_gpu_shader_2D_image_multi_rect_vert_glsl[];
 extern char datatoc_gpu_shader_2D_widget_base_vert_glsl[];
+extern char datatoc_gpu_shader_2D_widget_shadow_vert_glsl[];
+extern char datatoc_gpu_shader_2D_widget_shadow_frag_glsl[];
 extern char datatoc_gpu_shader_2D_nodelink_frag_glsl[];
 extern char datatoc_gpu_shader_2D_nodelink_vert_glsl[];
 
@@ -801,6 +803,8 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 		[GPU_SHADER_2D_WIDGET_BASE] = { datatoc_gpu_shader_2D_widget_base_vert_glsl,
 		                                datatoc_gpu_shader_2D_smooth_color_frag_glsl},
+		[GPU_SHADER_2D_WIDGET_SHADOW] = { datatoc_gpu_shader_2D_widget_shadow_vert_glsl,
+		                                  datatoc_gpu_shader_2D_widget_shadow_frag_glsl },
 		[GPU_SHADER_2D_NODELINK] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
 		                             datatoc_gpu_shader_2D_nodelink_frag_glsl },
 		[GPU_SHADER_2D_NODELINK_INST] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,

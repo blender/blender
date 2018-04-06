@@ -727,6 +727,7 @@ enum {
 
 struct Gwn_Batch *ui_batch_roundbox_get(bool filled, bool antialiased);
 struct Gwn_Batch *ui_batch_roundbox_widget_get(int tria);
+struct Gwn_Batch *ui_batch_roundbox_shadow_get(void);
 
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]);
 void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy,
