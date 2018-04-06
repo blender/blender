@@ -95,10 +95,12 @@ uniform vec4 parameters[11];
 #define tria1Size    parameters[gl_InstanceID * 11 + 10].x
 #define tria2Size    parameters[gl_InstanceID * 11 + 10].y
 #define shadeDir     parameters[gl_InstanceID * 11 + 10].z
+#define doAlphaCheck parameters[gl_InstanceID * 11 + 10].w
 
 in uint vflag;
 
 noperspective out vec4 finalColor;
+noperspective out float butCo;
 
 vec2 do_widget(void)
 {
@@ -128,13 +130,22 @@ vec2 do_widget(void)
 	if (color_id == COLOR_INNER) {
 		vec2 uv = faci * (v - recti.xz);
 		float fac = clamp((shadeDir > 0.0) ? uv.y : uv.x, 0.0, 1.0);
-		finalColor = mix(colorInner2, colorInner1, fac);
+		if (doAlphaCheck != 0.0) {
+			finalColor = colorInner1;
+			butCo = uv.x;
+		}
+		else {
+			finalColor = mix(colorInner2, colorInner1, fac);
+			butCo = -1.0;
+		}
 	}
 	else if (color_id == COLOR_EDGE) {
 		finalColor = colorEdge;
+		butCo = -1.0;
 	}
 	else /* (color_id == COLOR_EMBOSS) */ {
 		finalColor = colorEmboss;
+		butCo = -1.0;
 	}
 
 	bool is_emboss = (vflag & EMBOSS_FLAG) != 0u;
@@ -150,6 +161,7 @@ vec2 do_tria()
 	vec2 v = triavec[vofs];
 
 	finalColor = colorTria;
+	butCo = -1.0;
 
 	bool is_tria_first = (vflag & TRIA_FIRST) != 0u;
 

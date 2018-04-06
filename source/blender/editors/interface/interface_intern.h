@@ -712,7 +712,7 @@ typedef struct uiWidgetBaseParameters {
 	float color_tria[4];
 	float tria1_center[2], tria2_center[2];
 	float tria1_size, tria2_size;
-	float shade_dir, clamp;
+	float shade_dir, do_alpha_check;
 } uiWidgetBaseParameters;
 
 enum {

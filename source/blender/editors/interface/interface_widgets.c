@@ -964,8 +964,10 @@ static void widgetbase_set_uniform_colors_ubv(
         const unsigned char *col1, const unsigned char *col2,
         const unsigned char *outline,
         const unsigned char *emboss,
-        const unsigned char *tria)
+        const unsigned char *tria,
+        const bool alpha_check)
 {
+	wtb->uniform_params.do_alpha_check = (float)alpha_check;
 	rgba_float_args_set_ch(wtb->uniform_params.color_inner1, col1[0], col1[1], col1[2], col1[3]);
 	rgba_float_args_set_ch(wtb->uniform_params.color_inner2, col2[0], col2[1], col2[2], col2[3]);
 	rgba_float_args_set_ch(wtb->uniform_params.color_outline, outline[0], outline[1], outline[2], outline[3]);
@@ -985,6 +987,8 @@ struct {
 
 void UI_widgetbase_draw_cache_flush(void)
 {
+	float checker_params[3] = {UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
+
 	if (g_widget_base_batch.count == 0)
 		return;
 
@@ -993,11 +997,13 @@ void UI_widgetbase_draw_cache_flush(void)
 		/* draw single */
 		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
 		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)g_widget_base_batch.params);
+		GWN_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
 		GWN_batch_draw(batch);
 	}
 	else {
 		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE_INST);
 		GWN_batch_uniform_4fv_array(batch, "parameters", 11 * MAX_WIDGET_BASE_BATCH, (float *)g_widget_base_batch.params);
+		GWN_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
 		gpuBindMatrices(batch->interface);
 		GWN_batch_draw_range_ex(batch, 0, g_widget_base_batch.count, true);
 		GWN_batch_program_use_end(batch);
@@ -1057,75 +1063,35 @@ static void draw_widgetbase_batch(Gwn_Batch *batch, uiWidgetBase *wtb)
 		}
 	}
 	else {
+		float checker_params[3] = {UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 8.0f};
 		/* draw single */
 		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
 		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&wtb->uniform_params);
+		GWN_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
 		GWN_batch_draw(batch);
 	}
 }
 
 static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 {
-	int a;
 	unsigned char inner_col1[4] = {0};
 	unsigned char inner_col2[4] = {0};
 	unsigned char emboss_col[4] = {0};
 	unsigned char outline_col[4] = {0};
 	unsigned char tria_col[4] = {0};
+	/* For color widget. */
+	bool alpha_check = (wcol->alpha_check && (wcol->shaded == 0));
+
 	glEnable(GL_BLEND);
 
 	/* backdrop non AA */
 	if (wtb->draw_inner) {
-		BLI_assert(wtb->totvert != 0);
 		if (wcol->shaded == 0) {
-			if (wcol->alpha_check) {
-				float inner_v_half[WIDGET_SIZE_MAX][2];
-				float x_mid = 0.0f; /* used for dumb clamping of values */
-
-				unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-				immBindBuiltinProgram(GPU_SHADER_2D_CHECKER);
-
-				/* checkers */
-				immUniform4f("color1", UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_DARK / 255.0f, UI_ALPHA_CHECKER_DARK / 255.0f, 1.0f);
-				immUniform4f("color2", UI_ALPHA_CHECKER_LIGHT / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, UI_ALPHA_CHECKER_LIGHT / 255.0f, 1.0f);
-				immUniform1i("size", 8);
-
-				widget_draw_vertex_buffer(pos, 0, GL_TRIANGLE_FAN, wtb->inner_v, NULL, wtb->totvert);
-
-				immUnbindProgram();
-
-				/* alpha fill */
-				immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-				immUniformColor4ubv((unsigned char *)wcol->inner);
-
-				glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-
-				for (a = 0; a < wtb->totvert; a++) {
-					x_mid += wtb->inner_v[a][0];
-				}
-				x_mid /= wtb->totvert;
-
-				widget_draw_vertex_buffer(pos, 0, GL_TRIANGLE_FAN, wtb->inner_v, NULL, wtb->totvert);
-
-				/* 1/2 solid color */
-				immUniformColor3ubv((unsigned char *)wcol->inner);
-
-				for (a = 0; a < wtb->totvert; a++) {
-					inner_v_half[a][0] = MIN2(wtb->inner_v[a][0], x_mid);
-					inner_v_half[a][1] = wtb->inner_v[a][1];
-				}
-
-				widget_draw_vertex_buffer(pos, 0, GL_TRIANGLE_FAN, inner_v_half, NULL, wtb->totvert);
-
-				immUnbindProgram();
-			}
-			else {
-				/* simple fill */
-				inner_col1[0] = inner_col2[0] = (unsigned char)wcol->inner[0];
-				inner_col1[1] = inner_col2[1] = (unsigned char)wcol->inner[1];
-				inner_col1[2] = inner_col2[2] = (unsigned char)wcol->inner[2];
-				inner_col1[3] = inner_col2[3] = (unsigned char)wcol->inner[3];
-			}
+			/* simple fill */
+			inner_col1[0] = inner_col2[0] = (unsigned char)wcol->inner[0];
+			inner_col1[1] = inner_col2[1] = (unsigned char)wcol->inner[1];
+			inner_col1[2] = inner_col2[2] = (unsigned char)wcol->inner[2];
+			inner_col1[3] = inner_col2[3] = (unsigned char)wcol->inner[3];
 		}
 		else {
 			/* gradient fill */
@@ -1154,8 +1120,8 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 	}
 
 	/* Draw everything in one drawcall */
-	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3]) {
-		widgetbase_set_uniform_colors_ubv(wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col);
+	if (inner_col1[3] || inner_col2[3] || outline_col[3] || emboss_col[3] || tria_col[3] || alpha_check) {
+		widgetbase_set_uniform_colors_ubv(wtb, inner_col1, inner_col2, outline_col, emboss_col, tria_col, alpha_check);
 
 		Gwn_Batch *roundbox_batch = ui_batch_roundbox_widget_get(wtb->tria1.type);
 		draw_widgetbase_batch(roundbox_batch, wtb);
