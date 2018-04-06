@@ -58,6 +58,8 @@
 #include "BIF_gl.h"
 #include "BLF_api.h"
 
+#include "UI_interface.h"
+
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 #include "GPU_batch.h"
@@ -183,6 +185,9 @@ void blf_batch_draw(void)
 
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+	/* We need to flush widget base first to ensure correct ordering. */
+	UI_widgetbase_draw_cache_flush();
 
 	BLI_assert(g_batch.font->tex_bind_state != 0); /* must still be valid */
 	glActiveTexture(GL_TEXTURE0);

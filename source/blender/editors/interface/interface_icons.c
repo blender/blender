@@ -1009,6 +1009,9 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 		rect = ima->rect;
 	}
 
+	/* We need to flush widget base first to ensure correct ordering. */
+	UI_widgetbase_draw_cache_flush();
+
 	/* draw */
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
 	immDrawPixelsTex(&state, draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
@@ -1049,6 +1052,12 @@ static void icon_draw_cache_flush_ex(void)
 	if (g_icon_draw_cache.calls == 0)
 		return;
 
+	/* We need to flush widget base first to ensure correct ordering. */
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	UI_widgetbase_draw_cache_flush();
+
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, icongltex.id);
 
@@ -1078,7 +1087,6 @@ void UI_icon_draw_cache_end(void)
 		return;
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
 	icon_draw_cache_flush_ex();
 
@@ -1124,6 +1132,10 @@ static void icon_draw_texture(
 		icon_draw_texture_cached(x, y, w, h, ix, iy, iw, ih, alpha, rgb);
 		return;
 	}
+
+	/* We need to flush widget base first to ensure correct ordering. */
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	UI_widgetbase_draw_cache_flush();
 
 	float x1, x2, y1, y2;
 
