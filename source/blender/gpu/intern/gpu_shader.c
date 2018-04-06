@@ -803,6 +803,8 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 
 		[GPU_SHADER_2D_WIDGET_BASE] = { datatoc_gpu_shader_2D_widget_base_vert_glsl,
 		                                datatoc_gpu_shader_2D_smooth_color_frag_glsl},
+		[GPU_SHADER_2D_WIDGET_BASE_INST] = { datatoc_gpu_shader_2D_widget_base_vert_glsl,
+		                                     datatoc_gpu_shader_2D_smooth_color_frag_glsl},
 		[GPU_SHADER_2D_WIDGET_SHADOW] = { datatoc_gpu_shader_2D_widget_shadow_vert_glsl,
 		                                  datatoc_gpu_shader_2D_widget_shadow_frag_glsl },
 		[GPU_SHADER_2D_NODELINK] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
@@ -823,6 +825,7 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		/* just a few special cases */
 		const char *defines = NULL;
 		switch (shader) {
+			case GPU_SHADER_2D_WIDGET_BASE_INST:
 			case GPU_SHADER_2D_NODELINK_INST:
 				defines = "#define USE_INSTANCE;\n";
 				break;

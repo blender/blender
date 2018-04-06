@@ -71,24 +71,30 @@ const vec2 triavec[34] = vec2[34](
 
 uniform mat4 ModelViewProjectionMatrix;
 
+#ifdef USE_INSTANCE
+#define MAX_INSTANCE 6
+uniform vec4 parameters[11 * MAX_INSTANCE];
+#else
 uniform vec4 parameters[11];
-/* radi and rad per corner */
-#define recti        parameters[0]
-#define rect         parameters[1]
-#define radsi        parameters[2].x
-#define rads         parameters[2].y
-#define faci         parameters[2].zw
-#define roundCorners parameters[3]
-#define colorInner1  parameters[4]
-#define colorInner2  parameters[5]
-#define colorEdge    parameters[6]
-#define colorEmboss  parameters[7]
-#define colorTria    parameters[8]
-#define tria1Center  parameters[9].xy
-#define tria2Center  parameters[9].zw
-#define tria1Size    parameters[10].x
-#define tria2Size    parameters[10].y
-#define shadeDir     parameters[10].z
+#endif
+
+/* gl_InstanceID is 0 if not drawing instances. */
+#define recti        parameters[gl_InstanceID * 11 + 0]
+#define rect         parameters[gl_InstanceID * 11 + 1]
+#define radsi        parameters[gl_InstanceID * 11 + 2].x
+#define rads         parameters[gl_InstanceID * 11 + 2].y
+#define faci         parameters[gl_InstanceID * 11 + 2].zw
+#define roundCorners parameters[gl_InstanceID * 11 + 3]
+#define colorInner1  parameters[gl_InstanceID * 11 + 4]
+#define colorInner2  parameters[gl_InstanceID * 11 + 5]
+#define colorEdge    parameters[gl_InstanceID * 11 + 6]
+#define colorEmboss  parameters[gl_InstanceID * 11 + 7]
+#define colorTria    parameters[gl_InstanceID * 11 + 8]
+#define tria1Center  parameters[gl_InstanceID * 11 + 9].xy
+#define tria2Center  parameters[gl_InstanceID * 11 + 9].zw
+#define tria1Size    parameters[gl_InstanceID * 11 + 10].x
+#define tria2Size    parameters[gl_InstanceID * 11 + 10].y
+#define shadeDir     parameters[gl_InstanceID * 11 + 10].z
 
 in uint vflag;
 
