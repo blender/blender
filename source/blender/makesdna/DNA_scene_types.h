@@ -1950,7 +1950,7 @@ extern const char *RE_engine_id_CYCLES;
 #define OBEDIT_FROM_OBACT(ob) \
 	(((ob)->mode & OB_MODE_EDIT) ? ob : NULL)
 #define OBEDIT_FROM_VIEW_LAYER(view_layer) \
-	OBEDIT_FROM_OBACT(OBACT(view_layer))
+	OBEDIT_FROM_OBACT(OBACT(view_layer) ? OBACT(view_layer) : NULL)
 
 #define V3D_CAMERA_LOCAL(v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : NULL)
 #define V3D_CAMERA_SCENE(scene, v3d) ((!(v3d)->scenelock && (v3d)->camera) ? (v3d)->camera : (scene)->camera)
