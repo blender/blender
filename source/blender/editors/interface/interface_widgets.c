@@ -973,6 +973,56 @@ static void widgetbase_set_uniform_colors_ubv(
 	rgba_float_args_set_ch(wtb->uniform_params.color_tria, tria[0], tria[1], tria[2], tria[3]);
 }
 
+/* keep in sync with shader */
+#define MAX_WIDGET_BASE_BATCH 6
+
+struct {
+	Gwn_Batch *batch; /* Batch type */
+	uiWidgetBaseParameters params[MAX_WIDGET_BASE_BATCH];
+	int count;
+	bool enabled;
+} g_widget_base_batch = {0};
+
+void UI_widgetbase_draw_cache_flush(void)
+{
+	if (g_widget_base_batch.count == 0)
+		return;
+
+	Gwn_Batch *batch = g_widget_base_batch.batch;
+	if (g_widget_base_batch.count == 1) {
+		/* draw single */
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)g_widget_base_batch.params);
+		GWN_batch_draw(batch);
+	}
+	else {
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE_INST);
+		GWN_batch_uniform_4fv_array(batch, "parameters", 11 * MAX_WIDGET_BASE_BATCH, (float *)g_widget_base_batch.params);
+		gpuBindMatrices(batch->interface);
+		GWN_batch_draw_range_ex(batch, 0, g_widget_base_batch.count, true);
+		GWN_batch_program_use_end(batch);
+	}
+	g_widget_base_batch.count = 0;
+}
+
+void UI_widgetbase_draw_cache_begin(void)
+{
+	BLI_assert(g_widget_base_batch.enabled == false);
+	g_widget_base_batch.enabled = true;
+}
+
+void UI_widgetbase_draw_cache_end(void)
+{
+	BLI_assert(g_widget_base_batch.enabled == true);
+	g_widget_base_batch.enabled = false;
+
+	glEnable(GL_BLEND);
+
+	UI_widgetbase_draw_cache_flush();
+
+	glDisable(GL_BLEND);
+}
+
 static void draw_widgetbase_batch(Gwn_Batch *batch, uiWidgetBase *wtb)
 {
 	wtb->uniform_params.tria1_size = wtb->tria1.size;
@@ -980,9 +1030,38 @@ static void draw_widgetbase_batch(Gwn_Batch *batch, uiWidgetBase *wtb)
 	copy_v2_v2(wtb->uniform_params.tria1_center, wtb->tria1.center);
 	copy_v2_v2(wtb->uniform_params.tria2_center, wtb->tria2.center);
 
-	GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-	GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&wtb->uniform_params);
-	GWN_batch_draw(batch);
+	if (g_widget_base_batch.enabled) {
+		if (g_widget_base_batch.batch == NULL) {
+			g_widget_base_batch.batch = ui_batch_roundbox_widget_get(ROUNDBOX_TRIA_ARROWS);
+		}
+
+		/* draw multi */
+		if (batch != g_ui_batch_cache.roundbox_widget[ROUNDBOX_TRIA_NONE] &&
+		    batch != g_widget_base_batch.batch)
+		{
+			/* issue previous calls before changing batch type. */
+			UI_widgetbase_draw_cache_flush();
+			g_widget_base_batch.batch = batch;
+		}
+
+		/* No need to change batch if tria is not visible. Just scale it to 0. */
+		if (batch == g_ui_batch_cache.roundbox_widget[ROUNDBOX_TRIA_NONE]) {
+			wtb->uniform_params.tria1_size = wtb->uniform_params.tria2_size = 0;
+		}
+
+		g_widget_base_batch.params[g_widget_base_batch.count] = wtb->uniform_params;
+		g_widget_base_batch.count++;
+
+		if (g_widget_base_batch.count == MAX_WIDGET_BASE_BATCH) {
+			UI_widgetbase_draw_cache_flush();
+		}
+	}
+	else {
+		/* draw single */
+		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
+		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)&wtb->uniform_params);
+		GWN_batch_draw(batch);
+	}
 }
 
 static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
