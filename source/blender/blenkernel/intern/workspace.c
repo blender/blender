@@ -499,8 +499,7 @@ void BKE_workspace_use_scene_settings_set(WorkSpace *workspace, bool value)
 
 /* Update / evaluate */
 
-void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
-                                 Main *bmain,
+void BKE_workspace_update_tagged(Main *bmain,
                                  WorkSpace *workspace,
                                  Scene *scene)
 {
@@ -508,7 +507,7 @@ void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
 	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene,
 	                                                      view_layer,
 	                                                      true);
-	BKE_scene_graph_update_tagged(eval_ctx, depsgraph, bmain, scene, view_layer);
+	BKE_scene_graph_update_tagged(depsgraph, bmain);
 }
 
 

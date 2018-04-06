@@ -149,7 +149,7 @@ void ED_scene_change_update(
 
 	ED_screen_update_after_scene_change(screen, scene_new, layer_new);
 	ED_render_engine_changed(bmain);
-	ED_update_for_newframe(bmain, scene_new, layer_new, depsgraph);
+	ED_update_for_newframe(bmain, depsgraph);
 
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);

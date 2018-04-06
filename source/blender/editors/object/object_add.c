@@ -1769,7 +1769,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 		uint64_t customdata_mask_prev = scene->customdata_mask;
 		scene->customdata_mask |= CD_MASK_MESH;
-		BKE_scene_graph_update_tagged(bmain->eval_ctx, depsgraph, bmain, scene, view_layer);
+		BKE_scene_graph_update_tagged(depsgraph, bmain);
 		scene->customdata_mask = customdata_mask_prev;
 	}
 

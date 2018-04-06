@@ -126,20 +126,18 @@ void DEG_evaluation_context_free(EvaluationContext *eval_ctx)
 }
 
 /* Evaluate all nodes tagged for updating. */
-void DEG_evaluate_on_refresh(EvaluationContext *eval_ctx,
-                             Depsgraph *graph)
+void DEG_evaluate_on_refresh(Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	deg_graph->ctime = BKE_scene_frame_get(deg_graph->scene);
 	/* Update time on primary timesource. */
 	DEG::TimeSourceDepsNode *tsrc = deg_graph->find_time_source();
 	tsrc->cfra = deg_graph->ctime;
-	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph);
+	DEG::deg_evaluate_on_refresh(deg_graph);
 }
 
 /* Frame-change happened for root scene that graph belongs to. */
-void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
-                                 Main *bmain,
+void DEG_evaluate_on_framechange(Main *bmain,
                                  Depsgraph *graph,
                                  float ctime)
 {
@@ -151,7 +149,7 @@ void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
 	tsrc->tag_update(deg_graph);
 	DEG::deg_graph_flush_updates(bmain, deg_graph);
 	/* Perform recalculation updates. */
-	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph);
+	DEG::deg_evaluate_on_refresh(deg_graph);
 }
 
 bool DEG_needs_eval(Depsgraph *graph)

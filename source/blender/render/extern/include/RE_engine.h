@@ -137,9 +137,7 @@ typedef struct RenderEngine {
 	struct ReportList *reports;
 
 	/* Depsgraph */
-	struct EvaluationContext *eval_ctx;
 	struct Depsgraph *depsgraph;
-	struct ViewLayer *view_layer;
 
 	/* for blender internal only */
 	int update_flag;

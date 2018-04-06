@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_workspace_types.h"
 #include "DNA_userdef_types.h"
@@ -67,6 +68,8 @@
 #include "UI_interface.h"
 
 #include "WM_message.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "screen_intern.h"  /* own module include */
 
@@ -1707,8 +1710,10 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 }
 
 /* results in fully updated anim system */
-void ED_update_for_newframe(Main *bmain, Scene *scene, ViewLayer *view_layer, struct Depsgraph *depsgraph)
+void ED_update_for_newframe(Main *bmain, Depsgraph *depsgraph)
 {
+	Scene *scene = DEG_get_input_scene(depsgraph);
+
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera = BKE_scene_camera_switch_find(scene);
 	if (camera && scene->camera != camera) {
@@ -1724,7 +1729,7 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, ViewLayer *view_layer, st
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
-	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, depsgraph, bmain, scene, view_layer);
+	BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 
 	/* composite */
 	if (scene->use_nodes && scene->nodetree)

@@ -139,17 +139,11 @@ void  BKE_scene_frame_set(struct Scene *scene, double cfra);
 
 /* **  Scene evaluation ** */
 
-void BKE_scene_graph_update_tagged(struct EvaluationContext *eval_ctx,
-                                   struct Depsgraph *depsgraph,
-                                   struct Main *bmain,
-                                   struct Scene *scene,
-                                   struct ViewLayer *view_layer);
+void BKE_scene_graph_update_tagged(struct Depsgraph *depsgraph,
+                                   struct Main *bmain);
 
-void BKE_scene_graph_update_for_newframe(struct EvaluationContext *eval_ctx,
-                                         struct Depsgraph *depsgraph,
-                                         struct Main *bmain,
-                                         struct Scene *scene,
-                                         struct ViewLayer *view_layer);
+void BKE_scene_graph_update_for_newframe(struct Depsgraph *depsgraph,
+                                         struct Main *bmain);
 
 struct SceneRenderView *BKE_scene_add_render_view(struct Scene *sce, const char *name);
 bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *srv);

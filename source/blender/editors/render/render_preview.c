@@ -620,7 +620,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 		/* TODO(sergey): Use proper flag for tagging here. */
 		DEG_graph_id_tag_update(pr_main, depsgraph, &sce->id, 0);
 		DEG_relations_tag_update(pr_main);
-		BKE_scene_graph_update_tagged(pr_main->eval_ctx, depsgraph, pr_main, sce, view_layer);
+		BKE_scene_graph_update_tagged(depsgraph, pr_main);
 
 		return sce;
 	}

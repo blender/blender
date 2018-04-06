@@ -90,12 +90,7 @@ NodeGroup *BlenderFileLoader::Load()
 		_re->scene,
 		view_layer);
 
-	BKE_scene_graph_update_tagged(
-		eval_ctx,
-		depsgraph,
-		_re->main,
-		_re->scene,
-		view_layer);
+	BKE_scene_graph_update_tagged(depsgraph, _re->main);
 
 #if 0
 	if (G.debug & G_DEBUG_FREESTYLE) {

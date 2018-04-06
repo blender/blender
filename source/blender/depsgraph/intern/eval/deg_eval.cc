@@ -227,23 +227,23 @@ static void schedule_children(TaskPool *pool,
  *
  * \note Time sources should be all valid!
  */
-void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
-                             Depsgraph *graph)
+void deg_evaluate_on_refresh(Depsgraph *graph)
 {
 	/* Set time for the current graph evaluation context. */
 	TimeSourceDepsNode *time_src = graph->find_time_source();
-	eval_ctx->ctime = time_src->cfra;
-	eval_ctx->depsgraph = (::Depsgraph *)graph;
-	eval_ctx->view_layer = DEG_get_evaluated_view_layer((::Depsgraph *)graph);
 	/* Nothing to update, early out. */
 	if (BLI_gset_len(graph->entry_tags) == 0) {
 		return;
 	}
 	const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
 	const double start_time = do_time_debug ? PIL_check_seconds_timer() : 0;
-	/* Set up evaluation context for depsgraph itself. */
+	/* Set up evaluation context. */
+	EvaluationContext eval_ctx;
+	DEG_evaluation_context_init_from_depsgraph(&eval_ctx, (::Depsgraph*)graph, graph->mode);
+	eval_ctx.ctime = time_src->cfra;
+	/* Set up evaluation state. */
 	DepsgraphEvalState state;
-	state.eval_ctx = eval_ctx;
+	state.eval_ctx = &eval_ctx;
 	state.graph = graph;
 	state.do_stats = do_time_debug;
 	/* Set up task scheduler and pull for threaded evaluation. */

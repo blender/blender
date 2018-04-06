@@ -5421,7 +5421,7 @@ static void database_fromscene_vectors(EvaluationContext *eval_ctx,
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	BKE_scene_graph_update_for_newframe(eval_ctx, eval_ctx->depsgraph, re->main, re->scene, NULL);
+	BKE_scene_graph_update_for_newframe(eval_ctx->depsgraph, re->main);
 	
 	/* if no camera, viewmat should have been set! */
 	if (camera) {
@@ -5951,11 +5951,7 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, ViewLayer *view_l
 	Depsgraph *depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
 	DEG_evaluation_context_init_from_view_layer_for_render(eval_ctx, depsgraph, scene, view_layer);
 	DEG_graph_build_from_view_layer(depsgraph, bmain, scene, view_layer);
-	BKE_scene_graph_update_tagged(eval_ctx,
-	                              depsgraph,
-	                              bmain,
-	                              scene,
-	                              view_layer);
+	BKE_scene_graph_update_tagged(depsgraph, bmain);
 	
 	re->flag |= R_BAKING;
 	re->excludeob= actob;

@@ -533,32 +533,16 @@ static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
 	Main *bmain = engine->re->main;
 	Scene *scene = engine->re->scene;
 
-	engine->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 	engine->depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
-	engine->view_layer = view_layer;
 
-	DEG_evaluation_context_init_from_view_layer_for_render(
-		engine->eval_ctx,
-		engine->depsgraph,
-		scene,
-		view_layer);
-
-	BKE_scene_graph_update_tagged(
-		engine->eval_ctx,
-		engine->depsgraph,
-		bmain,
-		scene,
-		view_layer);
+	BKE_scene_graph_update_tagged(engine->depsgraph, bmain);
 }
 
 static void engine_depsgraph_free(RenderEngine *engine)
 {
 	DEG_graph_free(engine->depsgraph);
-	DEG_evaluation_context_free(engine->eval_ctx);
 
-	engine->eval_ctx = NULL;
 	engine->depsgraph = NULL;
-	engine->view_layer = NULL;
 }
 
 void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
@@ -572,11 +556,7 @@ void RE_engine_frame_set(RenderEngine *engine, int frame, float subframe)
 
 	CLAMP(cfra, MINAFRAME, MAXFRAME);
 	BKE_scene_frame_set(re->scene, cfra);
-	BKE_scene_graph_update_for_newframe(engine->eval_ctx,
-	                                    engine->depsgraph,
-	                                    re->main,
-	                                    re->scene,
-	                                    engine->view_layer);
+	BKE_scene_graph_update_for_newframe(engine->depsgraph, re->main);
 
 #ifdef WITH_PYTHON
 	BPy_BEGIN_ALLOW_THREADS;

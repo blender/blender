@@ -3564,7 +3564,6 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 	if (screen->animtimer && screen->animtimer == event->customdata) {
 		Main *bmain = CTX_data_main(C);
 		Scene *scene = CTX_data_scene(C);
-		ViewLayer *view_layer = CTX_data_view_layer(C);
 		struct Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		wmTimer *wt = screen->animtimer;
 		ScreenAnimData *sad = wt->customdata;
@@ -3676,7 +3675,7 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), const wmEv
 		}
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-		ED_update_for_newframe(bmain, scene, view_layer, depsgraph);
+		ED_update_for_newframe(bmain, depsgraph);
 
 		for (window = wm->windows.first; window; window = window->next) {
 			const bScreen *win_screen = WM_window_get_active_screen(window);

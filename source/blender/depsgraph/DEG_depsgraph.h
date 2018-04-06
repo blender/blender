@@ -240,16 +240,14 @@ void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);
  * < context_type: context to perform evaluation for
  * < ctime: (frame) new frame to evaluate values on
  */
-void DEG_evaluate_on_framechange(struct EvaluationContext *eval_ctx,
-                                 struct Main *bmain,
+void DEG_evaluate_on_framechange(struct Main *bmain,
                                  Depsgraph *graph,
                                  float ctime);
 
 /* Data changed recalculation entry point.
  * < context_type: context to perform evaluation for
  */
-void DEG_evaluate_on_refresh(struct EvaluationContext *eval_ctx,
-                             Depsgraph *graph);
+void DEG_evaluate_on_refresh(Depsgraph *graph);
 
 bool DEG_needs_eval(Depsgraph *graph);
 

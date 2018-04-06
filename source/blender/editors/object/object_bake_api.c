@@ -792,11 +792,7 @@ static int bake(
 
 	/* Make sure depsgraph is up to date. */
 	DEG_graph_build_from_view_layer(depsgraph, bmain, scene, view_layer);
-	BKE_scene_graph_update_tagged(eval_ctx,
-	                              depsgraph,
-	                              bmain,
-	                              scene,
-	                              view_layer);
+	BKE_scene_graph_update_tagged(depsgraph, bmain);
 
 	/* get the mesh as it arrives in the renderer */
 	me_low = bake_mesh_new_from_object(eval_ctx, bmain, scene, ob_low);

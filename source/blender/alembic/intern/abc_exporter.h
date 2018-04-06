@@ -95,7 +95,6 @@ class AbcExporter {
 
 	EvaluationContext *m_eval_ctx;
 	Scene *m_scene;
-	ViewLayer *m_view_layer;
 	Depsgraph *m_depsgraph;
 
 	ArchiveWriter *m_writer;
@@ -107,7 +106,7 @@ class AbcExporter {
 	std::vector<AbcObjectWriter *> m_shapes;
 
 public:
-	AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+	AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene,
 	            Depsgraph *depsgraph,
 	            const char *filename, ExportSettings &settings);
 	~AbcExporter();

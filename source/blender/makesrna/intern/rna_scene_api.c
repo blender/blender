@@ -90,11 +90,7 @@ static void rna_Scene_frame_set(Scene *scene, Main *bmain, int frame, float subf
 	     view_layer = view_layer->next)
 	{
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-		BKE_scene_graph_update_for_newframe(bmain->eval_ctx,
-		                                    depsgraph,
-		                                    bmain,
-		                                    scene,
-		                                    view_layer);
+		BKE_scene_graph_update_for_newframe(depsgraph, bmain);
 	}
 
 #ifdef WITH_PYTHON
@@ -140,11 +136,7 @@ static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 	     view_layer = view_layer->next)
 	{
 		Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-		BKE_scene_graph_update_tagged(bmain->eval_ctx,
-		                              depsgraph,
-		                              bmain,
-		                              scene,
-		                              view_layer);
+		BKE_scene_graph_update_tagged(depsgraph, bmain);
 	}
 
 #ifdef WITH_PYTHON
