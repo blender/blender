@@ -91,7 +91,8 @@ class COLLECTION_PT_object_mode_settings(CollectionButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.workspace.object_mode == 'OBJECT'
+        ob = context.object
+        return ob and ob.mode == 'OBJECT'
 
     def draw(self, context):
         layout = self.layout
@@ -109,7 +110,8 @@ class COLLECTION_PT_edit_mode_settings(CollectionButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.workspace.object_mode == 'EDIT'
+        ob = context.object
+        return ob and ob.mode == 'EDIT'
 
     def draw(self, context):
         layout = self.layout
@@ -132,7 +134,8 @@ class COLLECTION_PT_paint_weight_mode_settings(CollectionButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.workspace.object_mode == 'WEIGHT_PAINT'
+        ob = context.object
+        return ob and ob.mode == 'WEIGHT_PAINT'
 
     def draw(self, context):
         layout = self.layout
@@ -150,7 +153,8 @@ class COLLECTION_PT_paint_vertex_mode_settings(CollectionButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.workspace.object_mode == 'VERTEX_PAINT'
+        ob = context.object
+        return ob and ob.mode == 'VERTEX_PAINT'
 
     def draw(self, context):
         layout = self.layout
