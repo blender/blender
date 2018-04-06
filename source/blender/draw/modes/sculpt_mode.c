@@ -202,7 +202,7 @@ static void SCULPT_cache_populate(void *vedata, Object *ob)
 				 * but this avoids waiting on first stroke) */
 				Scene *scene = draw_ctx->scene;
 
-				BKE_sculpt_update_mesh_elements(&draw_ctx->eval_ctx, scene, scene->toolsettings->sculpt, ob, false, false);
+				BKE_sculpt_update_mesh_elements(draw_ctx->depsgraph, scene, scene->toolsettings->sculpt, ob, false, false);
 			}
 
 			PBVH *pbvh = ob->sculpt->pbvh;

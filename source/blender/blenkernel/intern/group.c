@@ -334,7 +334,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
  * you can draw everything, leaves tags in objects to signal it needs further updating */
 
 /* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
-void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx, Scene *scene, Object *UNUSED(parent), Group *group)
+void BKE_group_handle_recalc_and_update(struct Depsgraph *depsgraph, Scene *scene, Object *UNUSED(parent), Group *group)
 {
 #if 0 /* warning, isn't clearing the recalc flag on the object which causes it to run all the time,
 	   * not just on frame change.
@@ -354,7 +354,7 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 				go->ob->recalc = go->recalc;
 				
 				group_replaces_nla(parent, go->ob, 's');
-				BKE_object_handle_update(eval_ctx, scene, go->ob);
+				BKE_object_handle_update(depsgraph, scene, go->ob);
 				group_replaces_nla(parent, go->ob, 'e');
 				
 				/* leave recalc tags in case group members are in normal scene */
@@ -372,7 +372,7 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 		FOREACH_GROUP_OBJECT_BEGIN(group, object)
 		{
 			if (object->id.recalc & ID_RECALC_ALL) {
-				BKE_object_handle_update(eval_ctx, scene, object);
+				BKE_object_handle_update(depsgraph, scene, object);
 			}
 		}
 		FOREACH_GROUP_OBJECT_END;
@@ -381,9 +381,9 @@ void BKE_group_handle_recalc_and_update(const struct EvaluationContext *eval_ctx
 
 /* ******** Dependency graph evaluation ******** */
 
-void BKE_group_eval_view_layers(const struct EvaluationContext *eval_ctx,
+void BKE_group_eval_view_layers(struct Depsgraph *depsgraph,
                                 Group *group)
 {
 	DEG_debug_print_eval(__func__, group->id.name, group);
-	BKE_layer_eval_view_layer(eval_ctx, &group->id, group->view_layer);
+	BKE_layer_eval_view_layer(depsgraph, &group->id, group->view_layer);
 }

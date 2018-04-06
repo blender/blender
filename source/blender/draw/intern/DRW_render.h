@@ -507,7 +507,6 @@ typedef struct DRWContextState {
 
 	struct RenderEngineType *engine_type;
 
-	EvaluationContext eval_ctx;
 	struct Depsgraph *depsgraph;
 
 	eObjectMode object_mode;

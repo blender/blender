@@ -405,7 +405,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 	ListBase *tracksbase;
 	Object *object;
 	Object *camera = get_camera_with_movieclip(scene, clip);
-	EvaluationContext eval_ctx;
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int tot = 0;
 	float vec[3][3], mat[4][4], obmat[4][4], newmat[4][4], orig[3] = {0.0f, 0.0f, 0.0f};
 	int plane = RNA_enum_get(op->ptr, "plane");
@@ -429,8 +429,6 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_ERROR, "No object to apply orientation on");
 		return OPERATOR_CANCELLED;
 	}
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	BKE_tracking_get_camera_object_matrix(scene, camera, mat);
 
@@ -494,7 +492,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 		BKE_object_apply_mat4(object, mat, 0, 0);
 	}
 
-	BKE_object_where_is_calc(&eval_ctx, scene, object);
+	BKE_object_where_is_calc(depsgraph, scene, object);
 	set_axis(scene, object, clip, tracking_object, axis_track, 'X');
 
 	DEG_id_tag_update(&clip->id, 0);

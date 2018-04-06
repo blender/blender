@@ -40,11 +40,13 @@
 #include "BLI_math.h"
 
 #include "DNA_mask_types.h"
+#include "DNA_object_types.h"
 
 #include "BKE_curve.h"
 #include "BKE_mask.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 unsigned int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 {
@@ -896,24 +898,26 @@ void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
 	}
 }
 
-void BKE_mask_eval_animation(struct EvaluationContext *eval_ctx, Mask *mask)
+void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
 {
+	float ctime = DEG_get_ctime(depsgraph);
 	DEG_debug_print_eval(__func__, mask->id.name, mask);
 	for (MaskLayer *mask_layer = mask->masklayers.first;
 	     mask_layer != NULL;
 	     mask_layer = mask_layer->next)
 	{
-		BKE_mask_layer_evaluate_animation(mask_layer, eval_ctx->ctime);
+		BKE_mask_layer_evaluate_animation(mask_layer, ctime);
 	}
 }
 
-void BKE_mask_eval_update(struct EvaluationContext *eval_ctx, Mask *mask)
+void BKE_mask_eval_update(struct Depsgraph *depsgraph, Mask *mask)
 {
+	float ctime = DEG_get_ctime(depsgraph);
 	DEG_debug_print_eval(__func__, mask->id.name, mask);
 	for (MaskLayer *mask_layer = mask->masklayers.first;
 	     mask_layer != NULL;
 	     mask_layer = mask_layer->next)
 	{
-		BKE_mask_layer_evaluate_deform(mask_layer, eval_ctx->ctime);
+		BKE_mask_layer_evaluate_deform(mask_layer, ctime);
 	}
 }

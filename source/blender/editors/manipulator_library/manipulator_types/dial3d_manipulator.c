@@ -191,7 +191,7 @@ static void dial_ghostarc_draw(
 }
 
 static void dial_ghostarc_get_angles(
-        const struct Depsgraph *depsgraph,
+        struct Depsgraph *depsgraph,
         const wmManipulator *mpr,
         const wmEvent *event,
         const ARegion *ar, const View3D *v3d,

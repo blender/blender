@@ -34,8 +34,8 @@
 struct ID;
 struct BMeshCreateParams;
 struct BoundBox;
+struct Depsgraph;
 struct EdgeHash;
-struct EvaluationContext;
 struct ListBase;
 struct LinkNode;
 struct BLI_Stack;
@@ -119,7 +119,7 @@ void BKE_mesh_from_nurbs_displist(
         struct Object *ob, struct ListBase *dispbase, const bool use_orco_uv, const char *obdata_name);
 void BKE_mesh_from_nurbs(struct Object *ob);
 void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
-void BKE_mesh_to_curve(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void BKE_mesh_to_curve(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_mesh_material_index_remove(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
@@ -140,7 +140,7 @@ float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
 
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
 
-struct Mesh *BKE_mesh_new_from_object(const struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *sce, struct Object *ob,
+struct Mesh *BKE_mesh_new_from_object(struct Depsgraph *depsgraph, struct Main *bmain, struct Scene *sce, struct Object *ob,
                                       int apply_modifiers, int calc_tessface, int calc_undeformed);
 
 /* vertex level transformations & checks (no derived mesh) */
@@ -442,7 +442,7 @@ void BKE_mesh_calc_edges(struct Mesh *mesh, bool update, const bool select);
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mesh_eval_geometry(const struct EvaluationContext *eval_ctx,
+void BKE_mesh_eval_geometry(struct Depsgraph *depsgraph,
                             struct Mesh *mesh);
 
 /* Draw Cache */

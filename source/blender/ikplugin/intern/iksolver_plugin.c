@@ -252,7 +252,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[3][3])   // nr = 
 
 /* called from within the core BKE_pose_where_is loop, all animsystems and constraints
  * were executed & assigned. Now as last we do an IK pass */
-static void execute_posetree(const struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob, PoseTree *tree)
+static void execute_posetree(struct Depsgraph *depsgraph, struct Scene *scene, Object *ob, PoseTree *tree)
 {
 	float R_parmat[3][3], identity[3][3];
 	float iR_parmat[3][3];
@@ -394,7 +394,7 @@ static void execute_posetree(const struct EvaluationContext *eval_ctx, struct Sc
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
 		 * strictly speaking, it is a posechannel)
 		 */
-		BKE_constraint_target_matrix_get(eval_ctx, scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+		BKE_constraint_target_matrix_get(depsgraph, scene, target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 
 		/* and set and transform goal */
 		mul_m4_m4m4(goal, goalinv, rootmat);
@@ -405,7 +405,7 @@ static void execute_posetree(const struct EvaluationContext *eval_ctx, struct Sc
 
 		/* same for pole vector target */
 		if (data->poletar) {
-			BKE_constraint_target_matrix_get(eval_ctx, scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+			BKE_constraint_target_matrix_get(depsgraph, scene, target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 
 			if (data->flag & CONSTRAINT_IK_SETANGLE) {
 				/* don't solve IK when we are setting the pole angle */
@@ -534,7 +534,7 @@ static void free_posetree(PoseTree *tree)
 ///----------------------------------------
 /// Plugin API for legacy iksolver
 
-void iksolver_initialize_tree(const struct EvaluationContext *UNUSED(eval_ctx), struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
+void iksolver_initialize_tree(struct Depsgraph *UNUSED(depsgraph), struct Scene *UNUSED(scene), struct Object *ob, float UNUSED(ctime))
 {
 	bPoseChannel *pchan;
 
@@ -545,7 +545,7 @@ void iksolver_initialize_tree(const struct EvaluationContext *UNUSED(eval_ctx), 
 	ob->pose->flag &= ~POSE_WAS_REBUILT;
 }
 
-void iksolver_execute_tree(const struct EvaluationContext *eval_ctx, struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
+void iksolver_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, Object *ob,  bPoseChannel *pchan_root, float ctime)
 {
 	while (pchan_root->iktree.first) {
 		PoseTree *tree = pchan_root->iktree.first;
@@ -558,13 +558,13 @@ void iksolver_execute_tree(const struct EvaluationContext *eval_ctx, struct Scen
 		/* 4. walk over the tree for regular solving */
 		for (a = 0; a < tree->totchannel; a++) {
 			if (!(tree->pchan[a]->flag & POSE_DONE))    // successive trees can set the flag
-				BKE_pose_where_is_bone(eval_ctx, scene, ob, tree->pchan[a], ctime, 1);
+				BKE_pose_where_is_bone(depsgraph, scene, ob, tree->pchan[a], ctime, 1);
 			/* tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is() */
 			tree->pchan[a]->flag |= POSE_CHAIN;
 		}
 
 		/* 5. execute the IK solver */
-		execute_posetree(eval_ctx, scene, ob, tree);
+		execute_posetree(depsgraph, scene, ob, tree);
 
 		/* 6. apply the differences to the channels,
 		 *    we need to calculate the original differences first */

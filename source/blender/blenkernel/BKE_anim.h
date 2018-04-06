@@ -32,7 +32,7 @@
  *  \author nzc
  *  \since March 2001
  */
-struct EvaluationContext;
+struct Depsgraph;
 struct Path;
 struct Object;
 struct Scene;
@@ -54,7 +54,7 @@ void animviz_free_motionpath(struct bMotionPath *mpath);
 struct bMotionPath *animviz_verify_motionpaths(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan);
 
 void animviz_get_object_motionpaths(struct Object *ob, ListBase *targets);
-void animviz_calc_motionpaths(struct EvaluationContext *eval_ctx, struct Main *bmain, struct Scene *scene, ListBase *targets);
+void animviz_calc_motionpaths(struct Depsgraph *depsgraph, struct Main *bmain, struct Scene *scene, ListBase *targets);
 
 /* ---------------------------------------------------- */
 /* Curve Paths */
@@ -66,8 +66,8 @@ int where_on_path(struct Object *ob, float ctime, float vec[4], float dir[3], fl
 /* ---------------------------------------------------- */
 /* Dupli-Geometry */
 
-struct ListBase *object_duplilist_ex(const struct EvaluationContext *eval_ctx, struct Scene *sce, struct Object *ob, bool update);
-struct ListBase *object_duplilist(const struct EvaluationContext *eval_ctx, struct Scene *sce, struct Object *ob);
+struct ListBase *object_duplilist_ex(struct Depsgraph *depsgraph, struct Scene *sce, struct Object *ob, bool update);
+struct ListBase *object_duplilist(struct Depsgraph *depsgraph, struct Scene *sce, struct Object *ob);
 void free_object_duplilist(struct ListBase *lb);
 int count_duplilist(struct Object *ob);
 
@@ -81,7 +81,7 @@ typedef struct DupliApplyData {
 	DupliExtraData *extra;
 } DupliApplyData;
 
-DupliApplyData *duplilist_apply(const struct EvaluationContext *eval_ctx, struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
+DupliApplyData *duplilist_apply(struct Depsgraph *depsgraph, struct Object *ob, struct Scene *scene, struct ListBase *duplilist);
 void duplilist_restore(struct ListBase *duplilist, DupliApplyData *apply_data);
 void duplilist_free_apply_data(DupliApplyData *apply_data);
 

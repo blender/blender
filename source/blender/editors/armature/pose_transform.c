@@ -73,10 +73,8 @@
 /* helper for apply_armature_pose2bones - fixes parenting of objects that are bone-parented to armature */
 static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Object *armob)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object workob, *ob;
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	/* go through all objects in database */
 	for (ob = G.main->object.first; ob; ob = ob->id.next) {
@@ -87,7 +85,7 @@ static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Objec
 			 */
 			BKE_object_apply_mat4(ob, ob->obmat, false, false);
 			
-			BKE_object_workob_calc_parent(&eval_ctx, scene, ob, &workob);
+			BKE_object_workob_calc_parent(depsgraph, scene, ob, &workob);
 			invert_m4_m4(ob->parentinv, workob.obmat);
 		}
 	}
@@ -96,16 +94,14 @@ static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Objec
 /* set the current pose as the restpose */
 static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
-	EvaluationContext eval_ctx;
 	bArmature *arm = BKE_armature_from_object(ob);
 	bPose *pose;
 	bPoseChannel *pchan;
 	EditBone *curbone;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
-	
 	/* don't check if editmode (should be done by caller) */
 	if (ob->type != OB_ARMATURE)
 		return OPERATOR_CANCELLED;
@@ -196,7 +192,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	ED_armature_edit_free(arm);
 	
 	/* flush positions of posebones */
-	BKE_pose_where_is(&eval_ctx, scene, ob);
+	BKE_pose_where_is(depsgraph, scene, ob);
 	
 	/* fix parenting of objects which are bone-parented */
 	applyarmature_fix_boneparents(C, scene, ob);

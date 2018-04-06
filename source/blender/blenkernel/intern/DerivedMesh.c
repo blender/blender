@@ -1148,7 +1148,7 @@ DerivedMesh *mesh_create_derived(Mesh *me, float (*vertCos)[3])
 }
 
 DerivedMesh *mesh_create_derived_for_modifier(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         ModifierData *md, int build_shapekey_layers)
 {
 	Mesh *me = ob->data;
@@ -1174,7 +1174,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 		int numVerts;
 		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
-		modwrap_deformVerts(md, eval_ctx, ob, NULL, deformedVerts, numVerts, 0);
+		modwrap_deformVerts(md, depsgraph, ob, NULL, deformedVerts, numVerts, 0);
 		dm = mesh_create_derived(me, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -1188,7 +1188,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 		if (build_shapekey_layers)
 			add_shapekey_layers(tdm, me, ob);
 		
-		dm = modwrap_applyModifier(md, eval_ctx, ob, tdm, 0);
+		dm = modwrap_applyModifier(md, depsgraph, ob, tdm, 0);
 		ASSERT_IS_VALID_DM(dm);
 
 		if (tdm != dm) tdm->release(tdm);
@@ -1753,7 +1753,7 @@ static void dm_ensure_display_normals(DerivedMesh *dm)
  * - apply deform modifiers and input vertexco
  */
 static void mesh_calc_modifiers(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float (*inputVertexCos)[3],
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob, float (*inputVertexCos)[3],
         const bool useRenderParams, int useDeform,
         const bool need_mapping, CustomDataMask dataMask,
         const int index, const bool useCache, const bool build_shapekey_layers,
@@ -1864,7 +1864,7 @@ static void mesh_calc_modifiers(
 				if (!deformedVerts)
 					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 
-				modwrap_deformVerts(md, eval_ctx, ob, NULL, deformedVerts, numVerts, deform_app_flags);
+				modwrap_deformVerts(md, depsgraph, ob, NULL, deformedVerts, numVerts, deform_app_flags);
 			}
 			else {
 				break;
@@ -2005,7 +2005,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 
-			modwrap_deformVerts(md, eval_ctx, ob, dm, deformedVerts, numVerts, deform_app_flags);
+			modwrap_deformVerts(md, depsgraph, ob, dm, deformedVerts, numVerts, deform_app_flags);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -2080,7 +2080,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 
-			ndm = modwrap_applyModifier(md, eval_ctx, ob, dm, app_flags);
+			ndm = modwrap_applyModifier(md, depsgraph, ob, dm, app_flags);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
@@ -2107,7 +2107,7 @@ static void mesh_calc_modifiers(
 				                 (mti->requiredDataMask ?
 				                  mti->requiredDataMask(ob, md) : 0));
 
-				ndm = modwrap_applyModifier(md, eval_ctx, ob, orcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+				ndm = modwrap_applyModifier(md, depsgraph, ob, orcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
 				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
@@ -2125,7 +2125,7 @@ static void mesh_calc_modifiers(
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
 
-				ndm = modwrap_applyModifier(md, eval_ctx, ob, clothorcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+				ndm = modwrap_applyModifier(md, depsgraph, ob, clothorcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
 				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
@@ -2308,7 +2308,7 @@ bool editbmesh_modifier_is_enabled(Scene *scene, ModifierData *md, DerivedMesh *
 }
 
 static void editbmesh_calc_modifiers(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         BMEditMesh *em, CustomDataMask dataMask,
         /* return args */
         DerivedMesh **r_cage, DerivedMesh **r_final)
@@ -2396,9 +2396,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->deformVertsEM)
-				modwrap_deformVertsEM(md, eval_ctx, ob, em, dm, deformedVerts, numVerts);
+				modwrap_deformVertsEM(md, depsgraph, ob, em, dm, deformedVerts, numVerts);
 			else
-				modwrap_deformVerts(md, eval_ctx, ob, dm, deformedVerts, numVerts, 0);
+				modwrap_deformVerts(md, depsgraph, ob, dm, deformedVerts, numVerts, 0);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -2443,10 +2443,10 @@ static void editbmesh_calc_modifiers(
 				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
 				if (mti->applyModifierEM) {
-					ndm = modwrap_applyModifierEM(md, eval_ctx, ob, em, orcodm, MOD_APPLY_ORCO);
+					ndm = modwrap_applyModifierEM(md, depsgraph, ob, em, orcodm, MOD_APPLY_ORCO);
 				}
 				else {
-					ndm = modwrap_applyModifier(md, eval_ctx, ob, orcodm, MOD_APPLY_ORCO);
+					ndm = modwrap_applyModifier(md, depsgraph, ob, orcodm, MOD_APPLY_ORCO);
 				}
 				ASSERT_IS_VALID_DM(ndm);
 
@@ -2471,9 +2471,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->applyModifierEM)
-				ndm = modwrap_applyModifierEM(md, eval_ctx, ob, em, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
+				ndm = modwrap_applyModifierEM(md, depsgraph, ob, em, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
 			else
-				ndm = modwrap_applyModifier(md, eval_ctx, ob, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
+				ndm = modwrap_applyModifier(md, depsgraph, ob, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
@@ -2609,7 +2609,7 @@ static void editbmesh_calc_modifiers(
  * we'll be using GPU backend of OpenSubdiv. This is so
  * playback performance is kept as high as possible.
  */
-static bool calc_modifiers_skip_orco(const EvaluationContext *eval_ctx,
+static bool calc_modifiers_skip_orco(Depsgraph *depsgraph,
                                      Scene *scene,
                                      Object *ob,
                                      bool use_render_params)
@@ -2626,7 +2626,7 @@ static bool calc_modifiers_skip_orco(const EvaluationContext *eval_ctx,
 		else if ((ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) != 0) {
 			return false;
 		}
-		else if ((DEG_get_eval_flags_for_id(eval_ctx->depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
+		else if ((DEG_get_eval_flags_for_id(depsgraph, &ob->id) & DAG_EVAL_NEED_CPU) != 0) {
 			return false;
 		}
 		SubsurfModifierData *smd = (SubsurfModifierData *)last_md;
@@ -2638,7 +2638,7 @@ static bool calc_modifiers_skip_orco(const EvaluationContext *eval_ctx,
 #endif
 
 static void mesh_build_data(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, CustomDataMask dataMask,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask,
         const bool build_shapekey_layers, const bool need_mapping)
 {
 	BLI_assert(ob->type == OB_MESH);
@@ -2647,13 +2647,13 @@ static void mesh_build_data(
 	BKE_object_sculpt_modifiers_changed(ob);
 
 #ifdef WITH_OPENSUBDIV
-	if (calc_modifiers_skip_orco(eval_ctx, scene, ob, false)) {
+	if (calc_modifiers_skip_orco(depsgraph, scene, ob, false)) {
 		dataMask &= ~(CD_MASK_ORCO | CD_MASK_PREVIEW_MCOL);
 	}
 #endif
 
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, NULL, false, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
+	        depsgraph, scene, ob, NULL, false, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
 	        true,
 	        &ob->derivedDeform, &ob->derivedFinal);
 
@@ -2668,14 +2668,14 @@ static void mesh_build_data(
 		/* create PBVH immediately (would be created on the fly too,
 		 * but this avoids waiting on first stroke) */
 
-		BKE_sculpt_update_mesh_elements(eval_ctx, scene, scene->toolsettings->sculpt, ob, false, false);
+		BKE_sculpt_update_mesh_elements(depsgraph, scene, scene->toolsettings->sculpt, ob, false, false);
 	}
 
 	BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS));
 }
 
 static void editbmesh_build_data(
-        const struct EvaluationContext *eval_ctx, Scene *scene,
+        struct Depsgraph *depsgraph, Scene *scene,
         Object *obedit, BMEditMesh *em, CustomDataMask dataMask)
 {
 	BKE_object_free_derived_caches(obedit);
@@ -2684,13 +2684,13 @@ static void editbmesh_build_data(
 	BKE_editmesh_free_derivedmesh(em);
 
 #ifdef WITH_OPENSUBDIV
-	if (calc_modifiers_skip_orco(eval_ctx, scene, obedit, false)) {
+	if (calc_modifiers_skip_orco(depsgraph, scene, obedit, false)) {
 		dataMask &= ~(CD_MASK_ORCO | CD_MASK_PREVIEW_MCOL);
 	}
 #endif
 
 	editbmesh_calc_modifiers(
-	        eval_ctx, scene, obedit, em, dataMask,
+	        depsgraph, scene, obedit, em, dataMask,
 	        &em->derivedCage, &em->derivedFinal);
 
 	DM_set_object_boundbox(obedit, em->derivedFinal);
@@ -2702,10 +2702,9 @@ static void editbmesh_build_data(
 	BLI_assert(!(em->derivedFinal->dirty & DM_DIRTY_NORMALS));
 }
 
-static CustomDataMask object_get_datamask(const Scene *scene, Object *ob, bool *r_need_mapping)
+static CustomDataMask object_get_datamask(const Depsgraph *depsgraph, Object *ob, bool *r_need_mapping)
 {
-	/* TODO(sergey): Avoid this linear list lookup. */
-	ViewLayer *view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	Object *actob = view_layer->basact ? view_layer->basact->object : NULL;
 	CustomDataMask mask = ob->customdata_mask;
 
@@ -2743,85 +2742,85 @@ static CustomDataMask object_get_datamask(const Scene *scene, Object *ob, bool *
 }
 
 void makeDerivedMesh(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BMEditMesh *em,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob, BMEditMesh *em,
         CustomDataMask dataMask, const bool build_shapekey_layers)
 {
 	bool need_mapping;
-	dataMask |= object_get_datamask(scene, ob, &need_mapping);
+	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
 	if (em) {
-		editbmesh_build_data(eval_ctx, scene, ob, em, dataMask);
+		editbmesh_build_data(depsgraph, scene, ob, em, dataMask);
 	}
 	else {
-		mesh_build_data(eval_ctx, scene, ob, dataMask, build_shapekey_layers, need_mapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask, build_shapekey_layers, need_mapping);
 	}
 }
 
 /***/
 
 DerivedMesh *mesh_get_derived_final(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, CustomDataMask dataMask)
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
 	bool need_mapping;
-	dataMask |= object_get_datamask(scene, ob, &need_mapping);
+	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
 	if (!ob->derivedFinal ||
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
 	    (need_mapping != ob->lastNeedMapping))
 	{
-		mesh_build_data(eval_ctx, scene, ob, dataMask, false, need_mapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask, false, need_mapping);
 	}
 
 	if (ob->derivedFinal) { BLI_assert(!(ob->derivedFinal->dirty & DM_DIRTY_NORMALS)); }
 	return ob->derivedFinal;
 }
 
-DerivedMesh *mesh_get_derived_deform(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, CustomDataMask dataMask)
+DerivedMesh *mesh_get_derived_deform(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
 	bool need_mapping;
 
-	dataMask |= object_get_datamask(scene, ob, &need_mapping);
+	dataMask |= object_get_datamask(depsgraph, ob, &need_mapping);
 
 	if (!ob->derivedDeform ||
 	    ((dataMask & ob->lastDataMask) != dataMask) ||
 	    (need_mapping != ob->lastNeedMapping))
 	{
-		mesh_build_data(eval_ctx, scene, ob, dataMask, false, need_mapping);
+		mesh_build_data(depsgraph, scene, ob, dataMask, false, need_mapping);
 	}
 
 	return ob->derivedDeform;
 }
 
-DerivedMesh *mesh_create_derived_render(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, CustomDataMask dataMask)
+DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, NULL, true, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, true, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
 }
 
-DerivedMesh *mesh_create_derived_index_render(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, CustomDataMask dataMask, int index)
+DerivedMesh *mesh_create_derived_index_render(struct Depsgraph *depsgraph, Scene *scene, Object *ob, CustomDataMask dataMask, int index)
 {
 	DerivedMesh *final;
 
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, NULL, true, 1, false, dataMask, index, false, false, false,
+	        depsgraph, scene, ob, NULL, true, 1, false, dataMask, index, false, false, false,
 	        NULL, &final);
 
 	return final;
 }
 
 DerivedMesh *mesh_create_derived_view(
-        const struct EvaluationContext *eval_ctx, Scene *scene,
+        struct Depsgraph *depsgraph, Scene *scene,
         Object *ob, CustomDataMask dataMask)
 {
 	DerivedMesh *final;
@@ -2833,7 +2832,7 @@ DerivedMesh *mesh_create_derived_view(
 	ob->transflag |= OB_NO_PSYS_UPDATE;
 
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, NULL, false, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, false, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	ob->transflag &= ~OB_NO_PSYS_UPDATE;
@@ -2842,53 +2841,53 @@ DerivedMesh *mesh_create_derived_view(
 }
 
 DerivedMesh *mesh_create_derived_no_deform(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         float (*vertCos)[3], CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, vertCos, false, 0, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, vertCos, false, 0, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
 }
 
 DerivedMesh *mesh_create_derived_no_virtual(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         float (*vertCos)[3], CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, vertCos, false, -1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, vertCos, false, -1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
 }
 
 DerivedMesh *mesh_create_derived_physics(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         float (*vertCos)[3], CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, vertCos, false, -1, true, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, vertCos, false, -1, true, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
 }
 
 DerivedMesh *mesh_create_derived_no_deform_render(
-        const struct EvaluationContext *eval_ctx, Scene *scene,
+        struct Depsgraph *depsgraph, Scene *scene,
         Object *ob, float (*vertCos)[3],
         CustomDataMask dataMask)
 {
 	DerivedMesh *final;
 
 	mesh_calc_modifiers(
-	        eval_ctx, scene, ob, vertCos, true, 0, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, vertCos, true, 0, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -2897,7 +2896,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(
 /***/
 
 DerivedMesh *editbmesh_get_derived_cage_and_final(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *obedit, BMEditMesh *em,
+        struct Depsgraph *depsgraph, Scene *scene, Object *obedit, BMEditMesh *em,
         CustomDataMask dataMask,
         /* return args */
         DerivedMesh **r_final)
@@ -2905,12 +2904,12 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
-	dataMask |= object_get_datamask(scene, obedit, NULL);
+	dataMask |= object_get_datamask(depsgraph, obedit, NULL);
 
 	if (!em->derivedCage ||
 	    (em->lastDataMask & dataMask) != dataMask)
 	{
-		editbmesh_build_data(eval_ctx, scene, obedit, em, dataMask);
+		editbmesh_build_data(depsgraph, scene, obedit, em, dataMask);
 	}
 
 	*r_final = em->derivedFinal;
@@ -2919,18 +2918,18 @@ DerivedMesh *editbmesh_get_derived_cage_and_final(
 }
 
 DerivedMesh *editbmesh_get_derived_cage(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *obedit, BMEditMesh *em,
+        struct Depsgraph *depsgraph, Scene *scene, Object *obedit, BMEditMesh *em,
         CustomDataMask dataMask)
 {
 	/* if there's no derived mesh or the last data mask used doesn't include
 	 * the data we need, rebuild the derived mesh
 	 */
-	dataMask |= object_get_datamask(scene, obedit, NULL);
+	dataMask |= object_get_datamask(depsgraph, obedit, NULL);
 
 	if (!em->derivedCage ||
 	    (em->lastDataMask & dataMask) != dataMask)
 	{
-		editbmesh_build_data(eval_ctx, scene, obedit, em, dataMask);
+		editbmesh_build_data(depsgraph, scene, obedit, em, dataMask);
 	}
 
 	return em->derivedCage;

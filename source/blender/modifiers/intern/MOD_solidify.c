@@ -205,7 +205,7 @@ BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
 }
 
 static DerivedMesh *applyModifier(
-        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
+        ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
         Object *ob, DerivedMesh *dm,
         ModifierApplyFlag UNUSED(flag))
 {

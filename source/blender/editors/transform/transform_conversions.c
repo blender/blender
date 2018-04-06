@@ -2119,7 +2119,7 @@ void flushTransParticles(TransInfo *t)
 				point->flag |= PEP_EDIT_RECALC;
 		}
 
-		PE_update_object(&t->eval_ctx, scene, OBACT(view_layer), 1);
+		PE_update_object(t->depsgraph, scene, OBACT(view_layer), 1);
 	}
 }
 
@@ -2637,7 +2637,7 @@ static void createTransEditVerts(TransInfo *t)
 			if (modifiers_isCorrectableDeformed(t->scene, tc->obedit)) {
 				/* check if we can use deform matrices for modifier from the
 				 * start up to stack, they are more accurate than quats */
-				totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(&t->eval_ctx, t->scene, tc->obedit, em, &defmats, &defcos);
+				totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(t->depsgraph, t->scene, tc->obedit, em, &defmats, &defcos);
 			}
 
 			/* if we still have more modifiers, also do crazyspace
@@ -2650,7 +2650,7 @@ static void createTransEditVerts(TransInfo *t)
 			if (totleft > 0)
 	#endif
 			{
-				mappedcos = BKE_crazyspace_get_mapped_editverts(&t->eval_ctx, t->scene, tc->obedit);
+				mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph, t->scene, tc->obedit);
 				quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
 				BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
 				if (mappedcos)
@@ -5628,11 +5628,11 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	if (skip_invert == false && constinv == false) {
 		ob->transflag |= OB_NO_CONSTRAINTS;  /* BKE_object_where_is_calc_time checks this */
-		BKE_object_where_is_calc(&t->eval_ctx, t->scene, ob);
+		BKE_object_where_is_calc(t->depsgraph, t->scene, ob);
 		ob->transflag &= ~OB_NO_CONSTRAINTS;
 	}
 	else
-		BKE_object_where_is_calc(&t->eval_ctx, t->scene, ob);
+		BKE_object_where_is_calc(t->depsgraph, t->scene, ob);
 
 	td->ob = ob;
 
@@ -6629,7 +6629,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				 * we need to update the pose otherwise no updates get called during
 				 * transform and the auto-ik is not applied. see [#26164] */
 				struct Object *pose_ob = tc->poseobj;
-				BKE_pose_where_is(&t->eval_ctx, t->scene, pose_ob);
+				BKE_pose_where_is(t->depsgraph, t->scene, pose_ob);
 			}
 
 			/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */

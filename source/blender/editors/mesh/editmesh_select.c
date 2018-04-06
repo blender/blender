@@ -213,7 +213,7 @@ static BLI_bitmap *edbm_backbuf_alloc(const int size)
 /* reads rect, and builds selection array for quick lookup */
 /* returns if all is OK */
 bool EDBM_backbuf_border_init(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc, short xmin,
+        ViewContext *vc, short xmin,
         short ymin, short xmax, short ymax)
 {
 	struct ImBuf *buf;
@@ -224,7 +224,7 @@ bool EDBM_backbuf_border_init(
 		return false;
 	}
 
-	buf = ED_view3d_backbuf_read(eval_ctx, vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
 	if ((buf == NULL) || (bm_vertoffs == 0)) {
 		return false;
 	}
@@ -287,7 +287,7 @@ static void edbm_mask_lasso_px_cb(int x, int x_end, int y, void *user_data)
  * - grab again and compare
  * returns 'OK'
  */
-bool EDBM_backbuf_border_mask_init(const struct EvaluationContext *eval_ctx, ViewContext *vc, const int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
+bool EDBM_backbuf_border_mask_init(ViewContext *vc, const int mcords[][2], short tot, short xmin, short ymin, short xmax, short ymax)
 {
 	unsigned int *dr, *dr_mask, *dr_mask_arr;
 	struct ImBuf *buf;
@@ -304,7 +304,7 @@ bool EDBM_backbuf_border_mask_init(const struct EvaluationContext *eval_ctx, Vie
 		return false;
 	}
 
-	buf = ED_view3d_backbuf_read(eval_ctx, vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
 	if ((buf == NULL) || (bm_vertoffs == 0)) {
 		return false;
 	}
@@ -338,7 +338,7 @@ bool EDBM_backbuf_border_mask_init(const struct EvaluationContext *eval_ctx, Vie
 
 /* circle shaped sample area */
 bool EDBM_backbuf_circle_init(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         short xs, short ys, short rads)
 {
 	struct ImBuf *buf;
@@ -358,7 +358,7 @@ bool EDBM_backbuf_circle_init(
 
 	xmin = xs - rads; xmax = xs + rads;
 	ymin = ys - rads; ymax = ys + rads;
-	buf = ED_view3d_backbuf_read(eval_ctx, vc, xmin, ymin, xmax, ymax);
+	buf = ED_view3d_backbuf_read(vc, xmin, ymin, xmax, ymax);
 	if ((buf == NULL) || (bm_vertoffs == 0)) {
 		return false;
 	}
@@ -457,7 +457,7 @@ static void findnearestvert__doClosest(void *userData, BMVert *eve, const float 
  * \param use_cycle Cycle over elements within #FIND_NEAR_CYCLE_THRESHOLD_MIN in order of index.
  */
 BMVert *EDBM_vert_find_nearest_ex(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc, float *r_dist,
+        ViewContext *vc, float *r_dist,
         const bool use_select_bias, bool use_cycle)
 {
 	BMesh *bm = vc->em->bm;
@@ -469,10 +469,10 @@ BMVert *EDBM_vert_find_nearest_ex(
 		BMVert *eve;
 
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
-		ED_view3d_backbuf_validate(eval_ctx, vc);
+		ED_view3d_backbuf_validate(vc);
 
 		index = ED_view3d_backbuf_sample_rect(
-		        eval_ctx, vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &dist_test);
+		        vc, vc->mval, dist_px, bm_wireoffs, 0xFFFFFF, &dist_test);
 		eve = index ? BM_vert_at_index_find_or_table(bm, index - 1) : NULL;
 
 		if (eve) {
@@ -507,7 +507,7 @@ BMVert *EDBM_vert_find_nearest_ex(
 		data.cycle_index_prev = prev_select_index;
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-		mesh_foreachScreenVert(eval_ctx, vc, findnearestvert__doClosest, &data, clip_flag);
+		mesh_foreachScreenVert(vc, findnearestvert__doClosest, &data, clip_flag);
 
 		hit = (data.use_cycle && data.hit_cycle.vert) ? &data.hit_cycle : &data.hit;
 		*r_dist = hit->dist;
@@ -519,9 +519,9 @@ BMVert *EDBM_vert_find_nearest_ex(
 	}
 }
 
-BMVert *EDBM_vert_find_nearest(const struct EvaluationContext *eval_ctx, ViewContext *vc, float *r_dist)
+BMVert *EDBM_vert_find_nearest(ViewContext *vc, float *r_dist)
 {
-	return EDBM_vert_find_nearest_ex(eval_ctx, vc, r_dist, false, false);
+	return EDBM_vert_find_nearest_ex(vc, r_dist, false, false);
 }
 
 /* find the distance to the edge we already have */
@@ -643,7 +643,7 @@ static void find_nearest_edge__doClosest(
 }
 
 BMEdge *EDBM_edge_find_nearest_ex(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc, float *r_dist,
+        ViewContext *vc, float *r_dist,
         float *r_dist_center,
         const bool use_select_bias, const bool use_cycle,
         BMEdge **r_eed_zbuf)
@@ -662,12 +662,12 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		vc->scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
 
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
-		ED_view3d_backbuf_validate(eval_ctx, vc);
+		ED_view3d_backbuf_validate(vc);
 
 		/* restore `selectmode` */
 		vc->scene->toolsettings->selectmode = ts_selectmode;
 
-		index = ED_view3d_backbuf_sample_rect(eval_ctx, vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
+		index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
 		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;
 
 		if (r_eed_zbuf) {
@@ -685,7 +685,7 @@ BMEdge *EDBM_edge_find_nearest_ex(
 
 			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-			mesh_foreachScreenEdge(eval_ctx, vc, find_nearest_edge_center__doZBuf, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+			mesh_foreachScreenEdge(vc, find_nearest_edge_center__doZBuf, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 			*r_dist_center = data.dist;
 		}
@@ -725,7 +725,7 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		data.cycle_index_prev = prev_select_index;
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-		mesh_foreachScreenEdge(eval_ctx, vc, find_nearest_edge__doClosest, &data, clip_flag);
+		mesh_foreachScreenEdge(vc, find_nearest_edge__doClosest, &data, clip_flag);
 
 		hit = (data.use_cycle && data.hit_cycle.edge) ? &data.hit_cycle : &data.hit;
 		*r_dist = hit->dist;
@@ -741,9 +741,9 @@ BMEdge *EDBM_edge_find_nearest_ex(
 }
 
 BMEdge *EDBM_edge_find_nearest(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc, float *r_dist)
+        ViewContext *vc, float *r_dist)
 {
-	return EDBM_edge_find_nearest_ex(eval_ctx, vc, r_dist, NULL, false, false, NULL);
+	return EDBM_edge_find_nearest_ex(vc, r_dist, NULL, false, false, NULL);
 }
 
 /* find the distance to the face we already have */
@@ -817,7 +817,7 @@ static void findnearestface__doClosest(void *userData, BMFace *efa, const float 
 
 
 BMFace *EDBM_face_find_nearest_ex(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc, float *r_dist,
+        ViewContext *vc, float *r_dist,
         float *r_dist_center,
         const bool use_select_bias, const bool use_cycle,
         BMFace **r_efa_zbuf)
@@ -829,9 +829,9 @@ BMFace *EDBM_face_find_nearest_ex(
 		unsigned int index;
 		BMFace *efa;
 
-		ED_view3d_backbuf_validate(eval_ctx, vc);
+		ED_view3d_backbuf_validate(vc);
 
-		index = ED_view3d_backbuf_sample(eval_ctx, vc, vc->mval[0], vc->mval[1]);
+		index = ED_view3d_backbuf_sample(vc, vc->mval[0], vc->mval[1]);
 		efa = index ? BM_face_at_index_find_or_table(bm, index - 1) : NULL;
 
 		if (r_efa_zbuf) {
@@ -849,7 +849,7 @@ BMFace *EDBM_face_find_nearest_ex(
 
 			ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
-			mesh_foreachScreenFace(eval_ctx, vc, find_nearest_face_center__doZBuf, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
+			mesh_foreachScreenFace(vc, find_nearest_face_center__doZBuf, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 			*r_dist_center = data.dist;
 		}
@@ -887,7 +887,7 @@ BMFace *EDBM_face_find_nearest_ex(
 		data.cycle_index_prev = prev_select_index;
 
 		ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
-		mesh_foreachScreenFace(eval_ctx, vc, findnearestface__doClosest, &data, clip_flag);
+		mesh_foreachScreenFace(vc, findnearestface__doClosest, &data, clip_flag);
 
 		hit = (data.use_cycle && data.hit_cycle.face) ? &data.hit_cycle : &data.hit;
 		*r_dist = hit->dist;
@@ -902,9 +902,9 @@ BMFace *EDBM_face_find_nearest_ex(
 	}
 }
 
-BMFace *EDBM_face_find_nearest(const struct EvaluationContext *eval_ctx, ViewContext *vc, float *r_dist)
+BMFace *EDBM_face_find_nearest(ViewContext *vc, float *r_dist)
 {
-	return EDBM_face_find_nearest_ex(eval_ctx, vc, r_dist, NULL, false, false, NULL);
+	return EDBM_face_find_nearest_ex(vc, r_dist, NULL, false, false, NULL);
 }
 
 #undef FIND_NEAR_SELECT_BIAS
@@ -917,7 +917,7 @@ BMFace *EDBM_face_find_nearest(const struct EvaluationContext *eval_ctx, ViewCon
  * return 1 if found one
  */
 static int unified_findnearest(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         Base **r_base, BMVert **r_eve, BMEdge **r_eed, BMFace **r_efa)
 {
 	BMEditMesh *em = vc->em;
@@ -938,7 +938,7 @@ static int unified_findnearest(
 	/* TODO(campbell): perform selection as one pass
 	 * instead of many smaller passes (which doesn't work for zbuf occlusion). */
 	uint bases_len = 0;
-	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(eval_ctx->view_layer, &bases_len);
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode(vc->view_layer, &bases_len);
 
 	/* no afterqueue (yet), so we check it now, otherwise the em_xxxofs indices are bad */
 
@@ -950,9 +950,9 @@ static int unified_findnearest(
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
-			ED_view3d_backbuf_validate(eval_ctx, vc);
+			ED_view3d_backbuf_validate(vc);
 
-			BMFace *efa_test = EDBM_face_find_nearest_ex(eval_ctx, vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf);
+			BMFace *efa_test = EDBM_face_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &efa_zbuf);
 			if (efa && dist_center_p) {
 				dist = min_ff(dist_margin, dist_center);
 			}
@@ -971,8 +971,8 @@ static int unified_findnearest(
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
-			ED_view3d_backbuf_validate(eval_ctx, vc);
-			BMEdge *eed_test = EDBM_edge_find_nearest_ex(eval_ctx, vc, &dist, dist_center_p, true, use_cycle, &eed_zbuf);
+			ED_view3d_backbuf_validate(vc);
+			BMEdge *eed_test = EDBM_edge_find_nearest_ex(vc, &dist, dist_center_p, true, use_cycle, &eed_zbuf);
 			if (eed && dist_center_p) {
 				dist = min_ff(dist_margin, dist_center);
 			}
@@ -988,8 +988,8 @@ static int unified_findnearest(
 			Base *base_iter = bases[base_index];
 			Object *obedit = base_iter->object;
 			ED_view3d_viewcontext_init_object(vc, obedit);
-			ED_view3d_backbuf_validate(eval_ctx, vc);
-			BMVert *eve_test = EDBM_vert_find_nearest_ex(eval_ctx, vc, &dist, true, use_cycle);
+			ED_view3d_backbuf_validate(vc);
+			BMVert *eve_test = EDBM_vert_find_nearest_ex(vc, &dist, true, use_cycle);
 			if (eve_test) {
 				*r_base = base_iter;
 				eve = eve_test;
@@ -1640,7 +1640,6 @@ static void mouse_mesh_loop_edge(BMEditMesh *em, BMEdge *eed, bool select, bool 
 
 static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle, bool ring)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	BMEditMesh *em;
 	BMEdge *eed;
@@ -1650,7 +1649,6 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	float dist = ED_view3d_select_dist_px() * 0.6666f;
 	float mvalf[2];
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	em_setup_viewcontext(C, &vc);
 	mvalf[0] = (float)(vc.mval[0] = mval[0]);
 	mvalf[1] = (float)(vc.mval[1] = mval[1]);
@@ -1662,12 +1660,12 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	vc.scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
 
 	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
-	ED_view3d_backbuf_validate(&eval_ctx, &vc);
+	ED_view3d_backbuf_validate(&vc);
 
 	/* restore `selectmode` */
 	vc.scene->toolsettings->selectmode = ts_selectmode;
 
-	eed = EDBM_edge_find_nearest_ex(&eval_ctx, &vc, &dist, NULL, true, true, NULL);
+	eed = EDBM_edge_find_nearest_ex(&vc, &dist, NULL, true, true, NULL);
 	if (eed == NULL) {
 		return false;
 	}
@@ -1949,7 +1947,6 @@ void MESH_OT_select_interior_faces(wmOperatorType *ot)
 
 bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 
 	Base *basact = NULL;
@@ -1958,18 +1955,17 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 	BMFace *efa = NULL;
 
 	/* setup view context for argument to callbacks */
-	CTX_data_eval_ctx(C, &eval_ctx);
 	em_setup_viewcontext(C, &vc);
 	vc.mval[0] = mval[0];
 	vc.mval[1] = mval[1];
 
-	if (unified_findnearest(&eval_ctx, &vc, &basact, &eve, &eed, &efa)) {
+	if (unified_findnearest(&vc, &basact, &eve, &eed, &efa)) {
 		ED_view3d_viewcontext_init_object(&vc, basact->object);
 
 		/* Deselect everything */
 		if (extend == false && deselect == false && toggle == false) {
 			uint objects_len = 0;
-			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(eval_ctx.view_layer, &objects_len);
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
 
 			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 				Object *ob_iter = objects[ob_index];
@@ -2091,8 +2087,8 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 
 		/* Changing active object is handy since it allows us to
 		 * switch UV layers, vgroups for eg. */
-		if (eval_ctx.view_layer->basact != basact) {
-			eval_ctx.view_layer->basact = basact;
+		if (vc.view_layer->basact != basact) {
+			vc.view_layer->basact = basact;
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
 		}
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
@@ -2318,13 +2314,11 @@ bool EDBM_selectmode_toggle(
         bContext *C, const short selectmode_new,
         const int action, const bool use_extend, const bool use_expand)
 {
-	EvaluationContext eval_ctx;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = NULL;
 	bool ret = false;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (obedit && obedit->type == OB_MESH) {
 		em = BKE_editmesh_from_object(obedit);
@@ -2369,7 +2363,7 @@ bool EDBM_selectmode_toggle(
 	}
 
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(eval_ctx.view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *ob_iter = objects[ob_index];
@@ -3021,7 +3015,6 @@ static void edbm_select_linked_pick_ex(BMEditMesh *em, BMElem *ele, bool sel, in
 
 static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	Base *basact = NULL;
 	BMVert *eve;
@@ -3038,12 +3031,11 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	view3d_operator_needs_opengl(C);
 
 	/* setup view context for argument to callbacks */
-	CTX_data_eval_ctx(C, &eval_ctx);
 	em_setup_viewcontext(C, &vc);
 
 	{
 		uint objects_len = 0;
-		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(eval_ctx.view_layer, &objects_len);
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
 		bool has_edges = false;
 		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 			Object *ob_iter = objects[ob_index];
@@ -3062,7 +3054,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 	vc.mval[1] = event->mval[1];
 
 	/* return warning! */
-	if (unified_findnearest(&eval_ctx, &vc, &basact, &eve, &eed, &efa) == 0) {
+	if (unified_findnearest(&vc, &basact, &eve, &eed, &efa) == 0) {
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, basact->object->data);
 
 		return OPERATOR_CANCELLED;

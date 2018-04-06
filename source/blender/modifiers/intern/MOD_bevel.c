@@ -86,7 +86,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 /*
  * This calls the new bevel code (added since 2.64)
  */
-static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
+static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
                                   struct Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag UNUSED(flag))
 {

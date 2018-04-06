@@ -104,9 +104,9 @@ bool ControllerExporter::add_instance_controller(Object *ob)
 	return true;
 }
 
-void ControllerExporter::export_controllers(const struct EvaluationContext *eval_ctx, Scene *sce)
+void ControllerExporter::export_controllers(struct Depsgraph *depsgraph, Scene *sce)
 {
-	this->eval_ctx = eval_ctx;
+	this->depsgraph = depsgraph;
 	scene = sce;
 
 	openLibrary();
@@ -198,7 +198,7 @@ void ControllerExporter::export_skin_controller(Object *ob, Object *ob_arm)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	me = bc_get_mesh_copy(eval_ctx, scene,
+	me = bc_get_mesh_copy(depsgraph, scene,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
@@ -300,7 +300,7 @@ void ControllerExporter::export_morph_controller(Object *ob, Key *key)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	me = bc_get_mesh_copy(eval_ctx, scene,
+	me = bc_get_mesh_copy(depsgraph, scene,
 				ob,
 				this->export_settings->export_mesh_type,
 				this->export_settings->apply_modifiers,
@@ -495,7 +495,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 	// put armature in rest position
 	if (!(arm->flag & ARM_RESTPOS)) {
 		arm->flag |= ARM_RESTPOS;
-		BKE_pose_where_is(eval_ctx, scene, ob_arm);
+		BKE_pose_where_is(depsgraph, scene, ob_arm);
 	}
 
 	for (bDeformGroup *def = (bDeformGroup *)defbase->first; def; def = def->next) {
@@ -543,7 +543,7 @@ std::string ControllerExporter::add_inv_bind_mats_source(Object *ob_arm, ListBas
 	// back from rest positon
 	if (!(flag & ARM_RESTPOS)) {
 		arm->flag = flag;
-		BKE_pose_where_is(eval_ctx, scene, ob_arm);
+		BKE_pose_where_is(depsgraph, scene, ob_arm);
 	}
 
 	source.finish();

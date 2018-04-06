@@ -32,7 +32,7 @@ class AbcNurbsWriter : public AbcObjectWriter {
 	bool m_is_animated;
 
 public:
-	AbcNurbsWriter(EvaluationContext *eval_ctx,
+	AbcNurbsWriter(Depsgraph *depsgraph,
 	               Scene *scene,
 	               Object *ob,
 	               AbcTransformWriter *parent,

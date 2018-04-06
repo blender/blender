@@ -51,7 +51,6 @@ struct bPoseChannel;
 struct EditBone;
 struct wmEvent;
 struct wmKeyConfig;
-struct EvaluationContext;
 
 typedef enum TreeElementInsertType {
 	TE_INSERT_BEFORE,

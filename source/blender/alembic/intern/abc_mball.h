@@ -42,7 +42,7 @@ class AbcMBallWriter : public AbcObjectWriter {
 public:
 	AbcMBallWriter(
 	        Main *bmain,
-	        EvaluationContext *eval_ctx,
+	        Depsgraph *depsgraph,
 	        Scene *scene,
 	        Object *ob,
 	        AbcTransformWriter *parent,

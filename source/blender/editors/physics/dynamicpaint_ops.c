@@ -294,8 +294,6 @@ typedef struct DynamicPaintBakeJob {
 	DynamicPaintSurface *surface;
 	DynamicPaintCanvasSettings *canvas;
 
-	EvaluationContext *eval_ctx;
-
 	int success;
 	double start;
 } DynamicPaintBakeJob;
@@ -314,8 +312,6 @@ static void dpaint_bake_endjob(void *customdata)
 	canvas->flags &= ~MOD_DPAINT_BAKING;
 
 	dynamicPaint_freeSurfaceData(job->surface);
-
-	MEM_freeN(job->eval_ctx);
 
 	G.is_rendering = false;
 	BKE_spacedata_draw_locks(false);
@@ -391,7 +387,7 @@ static void dynamicPaint_bakeImageSequence(DynamicPaintBakeJob *job)
 		/* calculate a frame */
 		scene->r.cfra = (int)frame;
 		ED_update_for_newframe(job->bmain, job->depsgraph);
-		if (!dynamicPaint_calculateFrame(surface, job->eval_ctx, scene, cObject, frame)) {
+		if (!dynamicPaint_calculateFrame(surface, job->depsgraph, scene, cObject, frame)) {
 			job->success = 0;
 			return;
 		}
@@ -459,9 +455,6 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	DynamicPaintCanvasSettings *canvas;
 	Object *ob = ED_object_context(C);
 	Scene *scene = CTX_data_scene(C);
-	EvaluationContext *eval_ctx = MEM_mallocN(sizeof(*eval_ctx), "EvaluationContext");
-
-	CTX_data_eval_ctx(C, eval_ctx);
 
 	DynamicPaintSurface *surface;
 
@@ -493,7 +486,6 @@ static int dynamicpaint_bake_exec(struct bContext *C, struct wmOperator *op)
 	job->ob = ob;
 	job->canvas = canvas;
 	job->surface = surface;
-	job->eval_ctx = eval_ctx;
 
 	wmJob *wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene,
 	                            "Dynamic Paint Bake", WM_JOB_PROGRESS,

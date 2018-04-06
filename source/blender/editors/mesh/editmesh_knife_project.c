@@ -60,15 +60,13 @@
 
 static LinkNode *knifeproject_poly_from_object(const bContext *C, Scene *scene, Object *ob, LinkNode *polys)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ARegion *ar = CTX_wm_region(C);
-	EvaluationContext eval_ctx;
 	DerivedMesh *dm;
 	bool dm_needsFree;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	if (ob->type == OB_MESH || ob->derivedFinal) {
-		dm = ob->derivedFinal ? ob->derivedFinal : mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH);
+		dm = ob->derivedFinal ? ob->derivedFinal : mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
 		dm_needsFree = false;
 	}
 	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {

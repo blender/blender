@@ -242,27 +242,25 @@ void *get_nearest_bone(
         bContext *C, const int xy[2], bool findunsel,
         Base **r_base)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
 	short hits;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	ED_view3d_viewcontext_init(C, &vc);
 	
 	// rect.xmin = ... mouseco!
 	rect.xmin = rect.xmax = xy[0];
 	rect.ymin = rect.ymax = xy[1];
 	
-	hits = view3d_opengl_select(&eval_ctx, &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
 
 	*r_base = NULL;
 
 	if (hits > 0) {
 		uint bases_len = 0;
 		Base **bases = BKE_view_layer_array_from_bases_in_mode(
-		        eval_ctx.view_layer, &bases_len, {
+		        vc.view_layer, &bases_len, {
 		            .object_mode = vc.obedit ? OB_MODE_EDIT : OB_MODE_POSE,
 		            .no_dup_data = true});
 
@@ -382,7 +380,7 @@ static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits12, const
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
 static EditBone *get_nearest_editbonepoint(
-        const EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         bool findunsel, bool use_cycle,
         Base **r_base, int *r_selmask)
 {
@@ -436,7 +434,7 @@ static EditBone *get_nearest_editbonepoint(
 	view3d_opengl_select_cache_begin();
 
 	BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
-	hits12 = view3d_opengl_select(eval_ctx, vc, buffer, MAXPICKBUF, &rect, select_mode);
+	hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
 	if (hits12 == 1) {
 		hits = selectbuffer_ret_hits_12(buffer, hits12);
 		goto cache_end;
@@ -446,7 +444,7 @@ static EditBone *get_nearest_editbonepoint(
 
 		offs = 4 * hits12;
 		BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
-		hits5 = view3d_opengl_select(eval_ctx, vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
+		hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
 
 		if (hits5 == 1) {
 			hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);
@@ -461,7 +459,7 @@ cache_end:
 	view3d_opengl_select_cache_end();
 
 	uint bases_len;
-	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(eval_ctx->view_layer, &bases_len);
+	Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(vc->view_layer, &bases_len);
 
 	/* See if there are any selected bones in this group */
 	if (hits > 0) {
@@ -595,13 +593,11 @@ static int ebone_select_flag(EditBone *ebone)
 /* context: editmode armature in view3d */
 bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	EditBone *nearBone = NULL;
 	int selmask;
 	Base *basact = NULL;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	ED_view3d_viewcontext_init(C, &vc);
 	vc.mval[0] = mval[0];
 	vc.mval[1] = mval[1];
@@ -610,14 +606,14 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 		return true;
 	}
 
-	nearBone = get_nearest_editbonepoint(&eval_ctx, &vc, true, true, &basact, &selmask);
+	nearBone = get_nearest_editbonepoint(&vc, true, true, &basact, &selmask);
 	if (nearBone) {
 		ED_view3d_viewcontext_init_object(&vc, basact->object);
 		bArmature *arm = vc.obedit->data;
 
 		if (!extend && !deselect && !toggle) {
 			uint objects_len = 0;
-			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(eval_ctx.view_layer, &objects_len);
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(vc.view_layer, &objects_len);
 			ED_armature_edit_deselect_all_multi(objects, objects_len);
 			MEM_freeN(objects);
 		}
@@ -698,8 +694,8 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 				arm->act_edbone = nearBone;
 			}
 
-			if (eval_ctx.view_layer->basact != basact) {
-				eval_ctx.view_layer->basact = basact;
+			if (vc.view_layer->basact != basact) {
+				vc.view_layer->basact = basact;
 				WM_event_add_notifier(C, NC_SCENE | ND_OB_ACTIVE, vc.scene);
 			}
 		}

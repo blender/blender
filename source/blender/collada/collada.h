@@ -41,9 +41,9 @@ extern "C" {
 #include "RNA_types.h"
 
 struct bContext;
+struct Depsgraph;
 struct Scene;
 struct ViewLayer;
-struct EvaluationContext;
 
 /*
  * both return 1 on success, 0 on error
@@ -52,7 +52,7 @@ int collada_import(struct bContext *C,
 				   ImportSettings *import_settings);
 
 
-int collada_export(struct EvaluationContext *eval_ctx,
+int collada_export(struct Depsgraph *depsgraph,
                    struct Scene *sce,
                    ExportSettings *export_settings);
 

@@ -48,6 +48,7 @@
 
 #include "BKE_mball.h"
 #include "BKE_main.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 

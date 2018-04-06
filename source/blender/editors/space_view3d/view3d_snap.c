@@ -69,16 +69,14 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 
 static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	RegionView3D *rv3d = CTX_wm_region_data(C);
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
-	EvaluationContext eval_ctx;
 	float gridf, imat[3][3], bmat[3][3], vec[3];
 	int a;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	gridf = rv3d->gridview;
 
@@ -166,7 +164,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 				
 				if (ob->parent) {
 					float originmat[3][3];
-					BKE_object_where_is_calc_ex(&eval_ctx, scene, NULL, ob, originmat);
+					BKE_object_where_is_calc_ex(depsgraph, scene, NULL, ob, originmat);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
@@ -211,19 +209,17 @@ void VIEW3D_OT_snap_selected_to_grid(wmOperatorType *ot)
 
 static int snap_selected_to_location(bContext *C, const float snap_target_global[3], const bool use_offset)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *obact = CTX_data_active_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	TransVertStore tvs = {NULL};
 	TransVert *tv;
-	EvaluationContext eval_ctx;
 	float imat[3][3], bmat[3][3];
 	float center_global[3];
 	float offset_global[3];
 	int a;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (use_offset) {
 		if ((v3d && v3d->around == V3D_AROUND_ACTIVE) &&
@@ -377,7 +373,7 @@ static int snap_selected_to_location(bContext *C, const float snap_target_global
 
 				if (ob->parent) {
 					float originmat[3][3];
-					BKE_object_where_is_calc_ex(&eval_ctx, scene, NULL, ob, originmat);
+					BKE_object_where_is_calc_ex(depsgraph, scene, NULL, ob, originmat);
 
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, cursor_parent);

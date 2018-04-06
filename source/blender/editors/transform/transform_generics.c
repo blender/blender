@@ -929,7 +929,7 @@ static void recalcData_objects(TransInfo *t)
 				BIK_clear_data(ob->pose);
 			}
 			else {
-				BKE_pose_where_is(&t->eval_ctx, t->scene, ob);
+				BKE_pose_where_is(t->depsgraph, t->scene, ob);
 			}
 		}
 	}
@@ -1193,7 +1193,6 @@ void initTransDataContainers_FromObjectData(TransInfo *t)
  */
 void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *event)
 {
-	CTX_data_eval_ctx(C, &t->eval_ctx);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *sce = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);

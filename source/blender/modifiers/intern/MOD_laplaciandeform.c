@@ -724,7 +724,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
@@ -736,7 +736,7 @@ static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED
 }
 
 static void deformVertsEM(
-        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, false, false);

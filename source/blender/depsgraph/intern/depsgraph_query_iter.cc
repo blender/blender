@@ -187,7 +187,7 @@ static void DEG_iterator_objects_step(BLI_Iterator *iter, DEG::IDDepsNode *id_no
 	    (object->transflag & OB_DUPLI))
 	{
 		data->dupli_parent = object;
-		data->dupli_list = object_duplilist(&data->eval_ctx, data->scene, object);
+		data->dupli_list = object_duplilist(data->graph, data->scene, object);
 		data->dupli_object_next = (DupliObject *)data->dupli_list->first;
 		if (BKE_object_is_visible(object, (eObjectVisibilityCheck)data->visibility_check) == false) {
 			return;
@@ -209,13 +209,10 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 		return;
 	}
 
-	/* TODO(sergey): What evaluation type we want here? */
-	/* TODO(dfelinto): Get rid of evaluation context here, it's only used to do
-	 * direct dupli-objects update in group.c. Which is terribly bad, and all
-	 * objects are expected to be evaluated already. */
-	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_VIEWPORT);
-	data->eval_ctx.depsgraph = depsgraph;
-	data->eval_ctx.view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	/* TODO: Calling this forces the scene datablock to be expanded,
+	 * otherwise we get crashes on load with copy-on-write. There may
+	 * be a better solution for this. */
+	DEG_get_evaluated_view_layer(depsgraph);
 
 	iter->data = data;
 	data->dupli_parent = NULL;

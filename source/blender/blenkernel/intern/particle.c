@@ -252,7 +252,7 @@ struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData
 {
 	struct LatticeDeformData *lattice_deform_data = NULL;
 
-	if (psys_in_edit_mode(sim->eval_ctx->depsgraph, sim->psys) == 0) {
+	if (psys_in_edit_mode(sim->depsgraph, sim->psys) == 0) {
 		Object *lattice = NULL;
 		ModifierData *md = (ModifierData *)psys_get_modifier(sim->ob, sim->psys);
 		int mode = G.is_rendering ? eModifierMode_Render : eModifierMode_Realtime;
@@ -291,7 +291,7 @@ void psys_enable_all(Object *ob)
 
 bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 {
-	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 
 	return (view_layer->basact &&
@@ -1654,7 +1654,7 @@ void precalc_guides(ParticleSimulationData *sim, ListBase *effectors)
 	}
 }
 
-int do_guides(const EvaluationContext *eval_ctx, ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
+int do_guides(Depsgraph *depsgraph, ParticleSettings *part, ListBase *effectors, ParticleKey *state, int index, float time)
 {
 	CurveMapping *clumpcurve = (part->child_flag & PART_CHILD_USE_CLUMP_CURVE) ? part->clumpcurve : NULL;
 	CurveMapping *roughcurve = (part->child_flag & PART_CHILD_USE_ROUGH_CURVE) ? part->roughcurve : NULL;
@@ -1717,7 +1717,7 @@ int do_guides(const EvaluationContext *eval_ctx, ParticleSettings *part, ListBas
 		
 		/* curve taper */
 		if (cu->taperobj)
-			mul_v3_fl(vec_to_point, BKE_displist_calc_taper(eval_ctx, eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
+			mul_v3_fl(vec_to_point, BKE_displist_calc_taper(depsgraph, eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
 		
 		else { /* curve size*/
 			if (cu->flag & CU_PATH_RADIUS) {
@@ -1900,7 +1900,7 @@ static bool psys_thread_context_init_path(
 	psys_thread_context_init(ctx, sim);
 
 	/*---start figuring out what is actually wanted---*/
-	if (psys_in_edit_mode(sim->eval_ctx->depsgraph, psys)) {
+	if (psys_in_edit_mode(sim->depsgraph, psys)) {
 		ParticleEditSettings *pset = &scene->toolsettings->particle;
 
 		if ((use_render_params == 0) && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
@@ -1997,7 +1997,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey **cache = psys->childcache;
-	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.eval_ctx->depsgraph, psys) && psys->edit ? psys->edit->pathcache : psys->pathcache;
+	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.depsgraph, psys) && psys->edit ? psys->edit->pathcache : psys->pathcache;
 	ParticleCacheKey *child, *key[4];
 	ParticleTexture ptex;
 	float *cpa_fuv = 0, *par_rot = 0, rot[4];
@@ -2421,7 +2421,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 		return;
 
 #if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
-	if (psys_in_edit_mode(sim->eval_ctx->depsgraph, psys))
+	if (psys_in_edit_mode(sim->depsgraph, psys))
 		if ((psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
 			return;
 #endif
@@ -2542,7 +2542,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 			if (sim->psys->effectors && (psys->part->flag & PART_CHILD_EFFECT) == 0) {
 				for (k = 0, ca = cache[p]; k <= segments; k++, ca++)
 					/* ca is safe to cast, since only co and vel are used */
-					do_guides(sim->eval_ctx, sim->psys->part, sim->psys->effectors, (ParticleKey *)ca, p, (float)k / (float)segments);
+					do_guides(sim->depsgraph, sim->psys->part, sim->psys->effectors, (ParticleKey *)ca, p, (float)k / (float)segments);
 			}
 
 			/* lattices have to be calculated separately to avoid mixups between effector calculations */
@@ -2590,7 +2590,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	if (vg_length)
 		MEM_freeN(vg_length);
 }
-void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
+void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCacheEdit *edit, float cfra, const bool use_render_params)
 {
 	ParticleCacheKey *ca, **cache = edit->pathcache;
 	ParticleEditSettings *pset = &scene->toolsettings->particle;
@@ -2791,7 +2791,7 @@ void psys_cache_edit_paths(const EvaluationContext *eval_ctx, Scene *scene, Obje
 
 	if (psys) {
 		ParticleSimulationData sim = {0};
-		sim.eval_ctx = eval_ctx;
+		sim.depsgraph = depsgraph;
 		sim.scene = scene;
 		sim.ob = ob;
 		sim.psys = psys;
@@ -3631,7 +3631,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
 			/* pind.dm disabled in editmode means we don't get effectors taken into
 			 * account when subdividing for instance */
-			pind.dm = psys_in_edit_mode(sim->eval_ctx->depsgraph, psys) ? NULL : psys->hair_out_dm;
+			pind.dm = psys_in_edit_mode(sim->depsgraph, psys) ? NULL : psys->hair_out_dm;
 			init_particle_interpolation(sim->ob, psys, pa, &pind);
 			do_particle_interpolation(psys, p, pa, t, &pind, state);
 
@@ -3646,7 +3646,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 					mul_mat3_m4_v3(hairmat, state->vel);
 
 					if (sim->psys->effectors && (part->flag & PART_CHILD_GUIDE) == 0) {
-						do_guides(sim->eval_ctx, sim->psys->part, sim->psys->effectors, state, p, state->time);
+						do_guides(sim->depsgraph, sim->psys->part, sim->psys->effectors, state, p, state->time);
 						/* TODO: proper velocity handling */
 					}
 
@@ -4196,10 +4196,10 @@ void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3]
 	madd_v3_v3fl(center, yvec, bb->offset[1]);
 }
 
-void psys_apply_hair_lattice(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys)
+void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys)
 {
 	ParticleSimulationData sim = {0};
-	sim.eval_ctx = eval_ctx;
+	sim.depsgraph = depsgraph;
 	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;

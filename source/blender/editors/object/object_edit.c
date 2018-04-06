@@ -1135,8 +1135,7 @@ void OBJECT_OT_forcefield_toggle(wmOperatorType *ot)
 void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 {
 	struct Main *bmain = CTX_data_main(C);
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ListBase targets = {NULL, NULL};
 	
 	/* loop over objects in scene */
@@ -1149,7 +1148,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	CTX_DATA_END;
 	
 	/* recalculate paths, then free */
-	animviz_calc_motionpaths(&eval_ctx, bmain, scene, &targets);
+	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
 	BLI_freelistN(&targets);
 }
 

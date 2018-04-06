@@ -227,7 +227,7 @@ typedef struct ProjPaintState {
 	View3D *v3d;
 	RegionView3D *rv3d;
 	ARegion *ar;
-	const Depsgraph *depsgraph;
+	Depsgraph *depsgraph;
 	Scene *scene;
 	int source; /* PROJ_SRC_**** */
 
@@ -3426,13 +3426,12 @@ static void project_paint_bleed_add_face_user(
 /* Return true if DM can be painted on, false otherwise */
 static bool proj_paint_state_dm_init(const bContext *C, ProjPaintState *ps)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	/* Workaround for subsurf selection, try the display mesh first */
 	if (ps->source == PROJ_SRC_IMAGE_CAM) {
 		/* using render mesh, assume only camera was rendered from */
-		ps->dm = mesh_create_derived_render(&eval_ctx, ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
+		ps->dm = mesh_create_derived_render(depsgraph, ps->scene, ps->ob, ps->scene->customdata_mask | CD_MASK_MTFACE);
 		ps->dm_release = true;
 	}
 	else if (ps->ob->derivedFinal &&
@@ -3444,7 +3443,7 @@ static bool proj_paint_state_dm_init(const bContext *C, ProjPaintState *ps)
 	}
 	else {
 		ps->dm = mesh_get_derived_final(
-		        &eval_ctx, ps->scene, ps->ob,
+		        depsgraph, ps->scene, ps->ob,
 		        ps->scene->customdata_mask | CD_MASK_MTFACE | (ps->do_face_sel ? CD_ORIGINDEX : 0));
 		ps->dm_release = true;
 	}
@@ -5030,7 +5029,6 @@ void paint_proj_stroke(
 
 	/* clone gets special treatment here to avoid going through image initialization */
 	if (ps_handle->is_clone_cursor_pick) {
-		EvaluationContext eval_ctx;
 		Scene *scene = ps_handle->scene;
 		struct Depsgraph *graph = CTX_data_depsgraph(C);
 		View3D *v3d = CTX_wm_view3d(C);
@@ -5040,9 +5038,7 @@ void paint_proj_stroke(
 
 		view3d_operator_needs_opengl(C);
 
-		CTX_data_eval_ctx(C, &eval_ctx);
-
-		if (!ED_view3d_autodist(&eval_ctx, graph, ar, v3d, mval_i, cursor, false, NULL)) {
+		if (!ED_view3d_autodist(graph, ar, v3d, mval_i, cursor, false, NULL)) {
 			return;
 		}
 
@@ -5457,17 +5453,15 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	ImBuf *ibuf;
 	char filename[FILE_MAX];
 
+	struct RenderEngineType *engine_type = CTX_data_engine_type(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	struct RenderEngineType *engine_type = CTX_data_engine_type(C);
-	EvaluationContext eval_ctx;
 	ToolSettings *settings = scene->toolsettings;
 	int w = settings->imapaint.screen_grab_size[0];
 	int h = settings->imapaint.screen_grab_size[1];
 	int maxsize;
 	char err_out[256] = "unknown";
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	RNA_string_get(op->ptr, "filepath", filename);
 
@@ -5477,7 +5471,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (h > maxsize) h = maxsize;
 
 	ibuf = ED_view3d_draw_offscreen_imbuf(
-	        &eval_ctx, scene, view_layer, engine_type,
+	        depsgraph, scene, view_layer, engine_type,
 	        CTX_wm_view3d(C), CTX_wm_region(C),
 	        w, h, IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 	        NULL, err_out);

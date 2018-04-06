@@ -1481,7 +1481,7 @@ static void scale_point(float c1[3], const float p[3], const float s)
 }
 
 bool BMBVH_EdgeVisible(struct BMBVHTree *tree, BMEdge *e,
-                       const struct Depsgraph *depsgraph,
+                       struct Depsgraph *depsgraph,
                        ARegion *ar, View3D *v3d, Object *obedit)
 {
 	BMFace *f;

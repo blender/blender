@@ -1060,12 +1060,12 @@ void free_nodesystem(void);
 /* -------------------------------------------------------------------- */
 /* evaluation support, */
 
-struct EvaluationContext;
+struct Depsgraph;
 
 void BKE_nodetree_copy_default_values(struct bNodeTree *ntree_dst,
                                       const struct bNodeTree *ntree_src);
 
-void BKE_nodetree_shading_params_eval(const struct EvaluationContext *eval_ctx,
+void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
                                       struct bNodeTree *ntree_dst,
                                       const struct bNodeTree *ntree_src);
 

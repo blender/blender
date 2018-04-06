@@ -161,7 +161,7 @@ static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psy
 	return 0;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *eval_ctx,
+static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
                                   Object *ob, DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))
 {
@@ -207,7 +207,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 	if (totpart == 0)
 		return derivedData;
 
-	sim.eval_ctx = eval_ctx;
+	sim.depsgraph = depsgraph;
 	sim.scene = md->scene;
 	sim.ob = pimd->ob;
 	sim.psys = psys;

@@ -998,7 +998,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 	 * the ideal would be to call this function only at the beginning of the snap operation,
 	 * or at the beginning of the operator itself */
 	struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-	        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), 0,
+	        CTX_data_main(C), CTX_data_scene(C), 0,
 	        CTX_wm_region(C), CTX_wm_view3d(C));
 
 	float mvalf[2] = {UNPACK2(dd->mval)};
@@ -1486,7 +1486,7 @@ static int cmpIntersections(const void *i1, const void *i2)
 /* returns the maximum number of intersections per stroke */
 static int sk_getIntersections(bContext *C, ListBase *list, SK_Sketch *sketch, SK_Stroke *gesture)
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ARegion *ar = CTX_wm_region(C);
 	ScrArea *sa = CTX_wm_area(C);
 	View3D *v3d = sa->spacedata.first;
@@ -1925,18 +1925,16 @@ static void sk_applyGesture(bContext *C, SK_Sketch *sketch)
 
 static bool sk_selectStroke(bContext *C, SK_Sketch *sketch, const int mval[2], const bool extend)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	rcti rect;
 	unsigned int buffer[MAXPICKBUF];
 	short hits;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	ED_view3d_viewcontext_init(C, &vc);
 
 	BLI_rcti_init_pt_radius(&rect, mval, 5);
 
-	hits = view3d_opengl_select(&eval_ctx, &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
 
 	if (hits > 0) {
 		int besthitresult = -1;

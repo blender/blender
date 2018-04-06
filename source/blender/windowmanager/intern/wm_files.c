@@ -1025,10 +1025,6 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, ViewLayer *view_
 	ARegion *ar = NULL;
 	View3D *v3d = NULL;
 
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	/* In case we are given a valid thumbnail data, just generate image from it. */
 	if (*thumb_pt) {
 		thumb = *thumb_pt;
@@ -1052,18 +1048,19 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, ViewLayer *view_
 	}
 
 	/* gets scaled to BLEN_THUMB_SIZE */
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RenderEngineType *engine_type = CTX_data_engine_type(C);
 
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(
-		        &eval_ctx, scene, view_layer, engine_type, scene->camera,
+		        depsgraph, scene, view_layer, engine_type, scene->camera,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, OB_SOLID, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(
-		        &eval_ctx, scene, view_layer, engine_type, v3d, ar,
+		        depsgraph, scene, view_layer, engine_type, v3d, ar,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);

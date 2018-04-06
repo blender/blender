@@ -304,7 +304,7 @@ void applyProject(TransInfo *t)
 					mul_m4_v3(ob->obmat, iloc);
 				}
 				else if (t->flag & T_OBJECT) {
-					BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
+					BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
 					copy_v3_v3(iloc, td->ob->obmat[3]);
 				}
 
@@ -398,7 +398,7 @@ void applyGridAbsolute(TransInfo *t)
 				mul_m4_v3(obmat, iloc);
 			}
 			else if (t->flag & T_OBJECT) {
-				BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
+				BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 
@@ -593,7 +593,7 @@ static void initSnappingMode(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->tsnap.object_context == NULL) {
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, t->view_layer, 0, t->ar, t->view);
+			        G.main, t->scene, 0, t->ar, t->view);
 
 			ED_transform_snap_object_context_set_editmesh_callbacks(
 			        t->tsnap.object_context,

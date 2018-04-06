@@ -170,7 +170,7 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 		ComponentDepsNode *comp_cow =
 		        id_node->add_component(DEG_NODE_TYPE_COPY_ON_WRITE);
 		OperationDepsNode *op_cow = comp_cow->add_operation(
-		        function_bind(deg_evaluate_copy_on_write, _1, graph_, id_node),
+		        function_bind(deg_evaluate_copy_on_write, _1, id_node),
 		        DEG_OPCODE_COPY_ON_WRITE,
 		        "", -1);
 		graph_->operations.push_back(op_cow);

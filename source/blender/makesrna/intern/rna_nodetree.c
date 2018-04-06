@@ -3144,11 +3144,6 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 		return;
 	}
 
-	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init_from_depsgraph(&eval_ctx,
-	                                           depsgraph,
-	                                           DEG_get_mode(depsgraph));
-
 	/* Make sure there's no cached data. */
 	BKE_texture_pointdensity_free_data(pd);
 	RE_point_density_free(pd);
@@ -3177,8 +3172,7 @@ void rna_ShaderNodePointDensity_density_cache(bNode *self,
 	shader_point_density->cached_resolution = shader_point_density->resolution;
 
 	/* Single-threaded sampling of the voxel domain. */
-	RE_point_density_cache(&eval_ctx,
-	                       pd);
+	RE_point_density_cache(depsgraph, pd);
 }
 
 void rna_ShaderNodePointDensity_density_calc(bNode *self,
@@ -3195,11 +3189,6 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 		return;
 	}
 
-	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init_from_depsgraph(&eval_ctx,
-	                                           depsgraph,
-	                                           DEG_get_mode(depsgraph));
-
 	/* TODO(sergey): Will likely overflow, but how to pass size_t via RNA? */
 	*length = 4 * resolution * resolution * resolution;
 
@@ -3208,10 +3197,7 @@ void rna_ShaderNodePointDensity_density_calc(bNode *self,
 	}
 
 	/* Single-threaded sampling of the voxel domain. */
-	RE_point_density_sample(&eval_ctx,
-	                        pd,
-	                        resolution,
-	                        *values);
+	RE_point_density_sample(depsgraph, pd, resolution, *values);
 
 	/* We're done, time to clean up. */
 	BKE_texture_pointdensity_free_data(pd);
@@ -3233,12 +3219,7 @@ void rna_ShaderNodePointDensity_density_minmax(bNode *self,
 		return;
 	}
 
-	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init_from_depsgraph(&eval_ctx,
-	                                           depsgraph,
-	                                           DEG_get_mode(depsgraph));
-
-	RE_point_density_minmax(&eval_ctx, pd, r_min, r_max);
+	RE_point_density_minmax(depsgraph, pd, r_min, r_max);
 }
 
 #else

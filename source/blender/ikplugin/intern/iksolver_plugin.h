@@ -41,9 +41,9 @@ extern "C" {
 #endif
 
 void iksolver_initialize_tree(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime);
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime);
 void iksolver_execute_tree(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
         struct bPoseChannel *pchan_root, float ctime);
 
 #ifdef __cplusplus

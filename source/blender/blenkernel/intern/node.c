@@ -3869,7 +3869,7 @@ void BKE_nodetree_copy_default_values(bNodeTree *ntree_dst,
 	}
 }
 
-void BKE_nodetree_shading_params_eval(const struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_nodetree_shading_params_eval(struct Depsgraph *UNUSED(depsgraph),
                                       bNodeTree *ntree_dst,
                                       const bNodeTree *ntree_src)
 {

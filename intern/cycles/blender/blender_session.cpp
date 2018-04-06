@@ -1282,8 +1282,8 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 	else {
 		/* TODO: fix point density to work with new view layer depsgraph */
 #if 0
-		/* We originally were passing view_layer here but in reality we need a whole EvaluationContext or at the
-		 * very least a dpesgraph to pass to the RE_point_density_minmax() function.
+		/* We originally were passing view_layer here but in reality we need a
+		 * a depsgraph to pass to the RE_point_density_minmax() function.
 		 */
 		/* TODO(sergey): Check we're indeed in shader node tree. */
 		PointerRNA ptr;

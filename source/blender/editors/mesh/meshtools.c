@@ -80,7 +80,7 @@
  * return 0 if no join is made (error) and 1 if the join is done */
 
 static void join_mesh_single(
-        const EvaluationContext *eval_ctx, Main *bmain, Scene *scene,
+        Depsgraph *depsgraph, Main *bmain, Scene *scene,
         Object *ob_dst, Object *ob_src, float imat[4][4],
         MVert **mvert_pp, MEdge **medge_pp, MLoop **mloop_pp, MPoly **mpoly_pp,
         CustomData *vdata, CustomData *edata, CustomData *ldata, CustomData *pdata,
@@ -208,7 +208,7 @@ static void join_mesh_single(
 		if (ob_src != ob_dst) {
 			MultiresModifierData *mmd;
 
-			multiresModifier_prepare_join(eval_ctx, scene, ob_src, ob_dst);
+			multiresModifier_prepare_join(depsgraph, scene, ob_src, ob_dst);
 
 			if ((mmd = get_multires_modifier(scene, ob_src, true))) {
 				ED_object_iter_other(bmain, ob_src, true,
@@ -293,8 +293,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	/* count & check */
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
@@ -490,7 +489,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 * active mesh will remain first ones in new result of the merge, in same order for CD layers, etc. See also T50084.
 	 */
 	join_mesh_single(
-	            &eval_ctx, bmain, scene,
+	            depsgraph, bmain, scene,
 	            ob, ob, imat,
 	            &mvert, &medge, &mloop, &mpoly,
 	            &vdata, &edata, &ldata, &pdata,
@@ -507,7 +506,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 		/* only join if this is a mesh */
 		if (base->object->type == OB_MESH) {
 			join_mesh_single(
-			            &eval_ctx, bmain, scene,
+			            depsgraph, bmain, scene,
 			            ob, base->object, imat,
 			            &mvert, &medge, &mloop, &mpoly,
 			            &vdata, &edata, &ldata, &pdata,
@@ -607,7 +606,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	EvaluationContext eval_ctx;
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Mesh *me = (Mesh *)ob->data;
 	Mesh *selme = NULL;
 	DerivedMesh *dm = NULL;
@@ -615,8 +614,6 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 	KeyBlock *kb;
 	bool ok = false, nonequal_verts = false;
 	
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
 		if (base->object == ob) continue;
@@ -658,7 +655,7 @@ int join_mesh_shapes_exec(bContext *C, wmOperator *op)
 			selme = (Mesh *)base->object->data;
 			
 			if (selme->totvert == me->totvert) {
-				dm = mesh_get_derived_deform(&eval_ctx, scene, base->object, CD_MASK_BAREMESH);
+				dm = mesh_get_derived_deform(depsgraph, scene, base->object, CD_MASK_BAREMESH);
 				
 				if (!dm) continue;
 					
@@ -1009,7 +1006,6 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, DerivedMesh *dm)
  */
 bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	Mesh *me = ob->data;
 
@@ -1018,7 +1014,6 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 	if (!me || me->totpoly == 0)
 		return false;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	ED_view3d_viewcontext_init(C, &vc);
 
 	if (size) {
@@ -1026,11 +1021,11 @@ bool ED_mesh_pick_face(bContext *C, Object *ob, const int mval[2], unsigned int 
 		 * on an edge in the backbuf, we can still select a face */
 
 		float dummy_dist;
-		*index = ED_view3d_backbuf_sample_rect(&eval_ctx, &vc, mval, size, 1, me->totpoly + 1, &dummy_dist);
+		*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totpoly + 1, &dummy_dist);
 	}
 	else {
 		/* sample only on the exact position */
-		*index = ED_view3d_backbuf_sample(&eval_ctx, &vc, mval[0], mval[1]);
+		*index = ED_view3d_backbuf_sample(&vc, mval[0], mval[1]);
 	}
 
 	if ((*index) == 0 || (*index) > (unsigned int)me->totpoly)
@@ -1069,11 +1064,9 @@ static void ed_mesh_pick_face_vert__mpoly_find(
  */
 bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size)
 {
-	EvaluationContext eval_ctx;
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	unsigned int poly_index;
 	Mesh *me = ob->data;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	BLI_assert(me && GS(me->id.name) == ID_ME);
 
@@ -1082,7 +1075,7 @@ bool ED_mesh_pick_face_vert(bContext *C, Object *ob, const int mval[2], unsigned
 		struct ARegion *ar = CTX_wm_region(C);
 
 		/* derived mesh to find deformed locations */
-		DerivedMesh *dm = mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+		DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 		int v_idx_best = ORIGINDEX_NONE;
 
@@ -1179,11 +1172,8 @@ static void ed_mesh_pick_vert__mapFunc(void *userData, int index, const float co
 }
 bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int *index, int size, bool use_zbuf)
 {
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	Mesh *me = ob->data;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	BLI_assert(me && GS(me->id.name) == ID_ME);
 
@@ -1198,11 +1188,11 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 			 * on an face in the backbuf, we can still select a vert */
 
 			float dummy_dist;
-			*index = ED_view3d_backbuf_sample_rect(&eval_ctx, &vc, mval, size, 1, me->totvert + 1, &dummy_dist);
+			*index = ED_view3d_backbuf_sample_rect(&vc, mval, size, 1, me->totvert + 1, &dummy_dist);
 		}
 		else {
 			/* sample only on the exact position */
-			*index = ED_view3d_backbuf_sample(&eval_ctx, &vc, mval[0], mval[1]);
+			*index = ED_view3d_backbuf_sample(&vc, mval[0], mval[1]);
 		}
 
 		if ((*index) == 0 || (*index) > (unsigned int)me->totvert)
@@ -1212,7 +1202,7 @@ bool ED_mesh_pick_vert(bContext *C, Object *ob, const int mval[2], unsigned int 
 	}
 	else {
 		/* derived mesh to find deformed locations */
-		DerivedMesh *dm = mesh_get_derived_final(&eval_ctx, vc.scene, ob, CD_MASK_BAREMESH);
+		DerivedMesh *dm = mesh_get_derived_final(vc.depsgraph, vc.scene, ob, CD_MASK_BAREMESH);
 		ARegion *ar = vc.ar;
 		RegionView3D *rv3d = ar->regiondata;
 

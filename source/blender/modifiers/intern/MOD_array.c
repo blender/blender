@@ -754,7 +754,7 @@ static DerivedMesh *arrayModifier_doArray(
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md, const EvaluationContext *UNUSED(eval_ctx),
+static DerivedMesh *applyModifier(ModifierData *md, Depsgraph *UNUSED(depsgraph),
                                   Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {

@@ -352,7 +352,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	}
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3], int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
@@ -368,7 +368,7 @@ static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED
 		dm->release(dm);
 }
 
-static void deformVertsEM(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob, struct BMEditMesh *editData,
+static void deformVertsEM(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, struct BMEditMesh *editData,
                           DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *) md;

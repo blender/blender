@@ -302,13 +302,7 @@ Mesh *rna_Main_meshes_new_from_object(
         Main *bmain, ReportList *reports, Depsgraph *depsgraph,
         Object *ob, int apply_modifiers, int calc_tessface, int calc_undeformed)
 {
-	EvaluationContext eval_ctx;
 	Scene *sce = DEG_get_evaluated_scene(depsgraph);
-
-	DEG_evaluation_context_init(&eval_ctx, DEG_get_mode(depsgraph));
-	eval_ctx.ctime = DEG_get_ctime(depsgraph);
-	eval_ctx.view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	eval_ctx.depsgraph = depsgraph;
 
 	switch (ob->type) {
 		case OB_FONT:
@@ -322,7 +316,7 @@ Mesh *rna_Main_meshes_new_from_object(
 			return NULL;
 	}
 
-	return BKE_mesh_new_from_object(&eval_ctx, bmain, sce, ob, apply_modifiers, calc_tessface, calc_undeformed);
+	return BKE_mesh_new_from_object(depsgraph, bmain, sce, ob, apply_modifiers, calc_tessface, calc_undeformed);
 }
 
 static Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)

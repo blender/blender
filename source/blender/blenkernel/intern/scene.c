@@ -995,7 +995,7 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 
 /* Used by metaballs, return *all* objects (including duplis) existing in the scene (including scene's sets) */
 int BKE_scene_base_iter_next(
-        const EvaluationContext *eval_ctx, SceneBaseIter *iter,
+        Depsgraph *depsgraph, SceneBaseIter *iter,
         Scene **scene, int val, Base **base, Object **ob)
 {
 	bool run_again = true;
@@ -1014,7 +1014,9 @@ int BKE_scene_base_iter_next(
 
 			/* the first base */
 			if (iter->phase == F_START) {
-				ViewLayer *view_layer = eval_ctx->view_layer;
+				ViewLayer *view_layer = (depsgraph) ?
+					DEG_get_evaluated_view_layer(depsgraph) :
+					BKE_view_layer_from_scene_get(*scene);
 				*base = view_layer->object_bases.first;
 				if (*base) {
 					*ob = (*base)->object;
@@ -1062,12 +1064,12 @@ int BKE_scene_base_iter_next(
 			}
 			else {
 				if (iter->phase != F_DUPLI) {
-					if ( (*base)->object->transflag & OB_DUPLI) {
+					if (depsgraph && (*base)->object->transflag & OB_DUPLI) {
 						/* groups cannot be duplicated for mballs yet, 
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							iter->duplilist = object_duplilist_ex(eval_ctx, (*scene), (*base)->object, false);
+							iter->duplilist = object_duplilist_ex(depsgraph, (*scene), (*base)->object, false);
 							
 							iter->dupob = iter->duplilist->first;
 
@@ -1350,7 +1352,7 @@ static bool check_rendered_viewport_visible(Main *bmain)
 	return false;
 }
 
-/* TODO(campbell): shouldn't we be able to use 'eval_ctx->view_layer' here?
+/* TODO(campbell): shouldn't we be able to use 'DEG_get_view_layer' here?
  * Currently this is NULL on load, so don't. */
 static void prepare_mesh_for_viewport_render(
         Main *bmain, const ViewLayer *view_layer)

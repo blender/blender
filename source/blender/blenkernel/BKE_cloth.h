@@ -41,7 +41,7 @@ struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
 struct CollisionModifierData;
-struct EvaluationContext;
+struct Depsgraph;
 
 #define DO_INLINE MALWAYS_INLINE
 
@@ -227,7 +227,7 @@ void cloth_free_contacts(ColliderContacts *collider_contacts, int totcolliders);
 void cloth_free_modifier_extern (struct ClothModifierData *clmd );
 void cloth_free_modifier (struct ClothModifierData *clmd );
 void cloth_init (struct ClothModifierData *clmd );
-void clothModifier_do(struct ClothModifierData *clmd, const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3]);
+void clothModifier_do(struct ClothModifierData *clmd, struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3]);
 
 int cloth_uses_vgroup(struct ClothModifierData *clmd);
 

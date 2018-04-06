@@ -510,7 +510,6 @@ typedef struct TransInfo {
 
 	bool		remove_on_cancel; /* remove elements if operator is canceled */
 
-	EvaluationContext eval_ctx;
 	void		*view;
 	struct bContext *context; /* Only valid (non null) during an operator called function. */
 	struct ScrArea	*sa;

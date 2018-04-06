@@ -80,15 +80,7 @@ NodeGroup *BlenderFileLoader::Load()
 	}
 
 	ViewLayer *view_layer = (ViewLayer*)BLI_findstring(&_re->scene->view_layers, _view_layer->name, offsetof(ViewLayer, name));
-
-	EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
 	Depsgraph *depsgraph = DEG_graph_new(_re->scene, view_layer, DAG_EVAL_RENDER);
-
-	DEG_evaluation_context_init_from_view_layer_for_render(
-		eval_ctx,
-		depsgraph,
-		_re->scene,
-		view_layer);
 
 	BKE_scene_graph_update_tagged(depsgraph, _re->main);
 
@@ -116,7 +108,7 @@ NodeGroup *BlenderFileLoader::Load()
 		bool apply_modifiers = true;
 		bool calc_undeformed = false;
 		bool calc_tessface = false;
-		Mesh *mesh = BKE_mesh_new_from_object(eval_ctx,
+		Mesh *mesh = BKE_mesh_new_from_object(depsgraph,
 		                                      _re->main,
 		                                      _re->scene,
 		                                      ob,
@@ -132,7 +124,6 @@ NodeGroup *BlenderFileLoader::Load()
 	DEG_OBJECT_ITER_END;
 
 	DEG_graph_free(depsgraph);
-	DEG_evaluation_context_free(eval_ctx);
 
 	// Return the built scene.
 	return _Scene;

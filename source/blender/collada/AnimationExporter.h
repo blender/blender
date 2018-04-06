@@ -79,19 +79,19 @@ extern "C"
 #include <vector>
 #include <algorithm> // std::find
 
-struct EvaluationContext;
+struct Depsgraph;
 
 class AnimationExporter: COLLADASW::LibraryAnimations
 {
 private:
 	Scene *scene;
-	EvaluationContext *eval_ctx;
+	Depsgraph *depsgraph;
 	COLLADASW::StreamWriter *sw;
 
 public:
 
-	AnimationExporter(EvaluationContext *eval_ctx, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
-		eval_ctx(eval_ctx),
+	AnimationExporter(Depsgraph *depsgraph, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
+		depsgraph(depsgraph),
 		COLLADASW::LibraryAnimations(sw),
 		export_settings(export_settings)
 	{

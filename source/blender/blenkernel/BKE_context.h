@@ -75,7 +75,6 @@ struct SpaceText;
 struct SpaceImage;
 struct SpaceClip;
 struct ID;
-struct EvaluationContext;
 
 #include "DNA_object_enums.h"
 
@@ -324,8 +323,6 @@ int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 struct Depsgraph *CTX_data_depsgraph(const bContext *C);
-
-void CTX_data_eval_ctx(const bContext *C, struct EvaluationContext *eval_ctx);
 
 #ifdef __cplusplus
 }

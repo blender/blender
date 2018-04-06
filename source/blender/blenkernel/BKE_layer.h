@@ -42,7 +42,7 @@ extern "C" {
 #define ROOT_PROP "root"
 
 struct Base;
-struct EvaluationContext;
+struct Depsgraph;
 struct Group;
 struct ID;
 struct IDProperty;
@@ -169,11 +169,11 @@ void BKE_collection_engine_property_value_set_bool(struct IDProperty *props, con
 
 /* evaluation */
 
-void BKE_layer_eval_view_layer(const struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_view_layer(struct Depsgraph *depsgraph,
                                struct ID *owner_id,
                                struct ViewLayer *view_layer);
 
-void BKE_layer_eval_view_layer_indexed(const struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
                                        struct ID *owner_id,
                                        int view_layer_index);
 

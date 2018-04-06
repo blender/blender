@@ -58,14 +58,14 @@ using Alembic::AbcGeom::OPointsSchema;
 
 /* ************************************************************************** */
 
-AbcPointsWriter::AbcPointsWriter(EvaluationContext *eval_ctx,
+AbcPointsWriter::AbcPointsWriter(Depsgraph *depsgraph,
                                  Scene *scene,
                                  Object *ob,
 	                             AbcTransformWriter *parent,
 	                             uint32_t time_sampling,
 	                             ExportSettings &settings,
 	                             ParticleSystem *psys)
-    : AbcObjectWriter(eval_ctx, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
 {
 	m_psys = psys;
 
@@ -87,7 +87,7 @@ void AbcPointsWriter::do_write()
 	ParticleKey state;
 
 	ParticleSimulationData sim;
-	sim.eval_ctx = m_eval_ctx;
+	sim.depsgraph = m_depsgraph;
 	sim.scene = m_scene;
 	sim.ob = m_object;
 	sim.psys = m_psys;

@@ -32,7 +32,7 @@
  *  \author Sergey Sharybin
  */
 
-struct EvaluationContext;
+struct Depsgraph;
 struct ImBuf;
 struct Main;
 struct MovieClip;
@@ -85,7 +85,7 @@ bool BKE_movieclip_has_cached_frame(struct MovieClip *clip, struct MovieClipUser
 bool BKE_movieclip_put_frame_if_possible(struct MovieClip *clip, struct MovieClipUser *user, struct ImBuf *ibuf);
 
 /* Evaluaiton. */
-void BKE_movieclip_eval_update(struct EvaluationContext *eval_ctx, struct MovieClip *clip);
+void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, struct MovieClip *clip);
 
 /* cacheing flags */
 #define MOVIECLIP_CACHE_SKIP        (1 << 0)

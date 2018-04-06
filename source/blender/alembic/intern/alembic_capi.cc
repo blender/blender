@@ -230,7 +230,6 @@ static void find_iobject(const IObject &object, IObject &ret,
 }
 
 struct ExportJobData {
-	EvaluationContext eval_ctx;
 	Scene *scene;
 	ViewLayer *view_layer;
 	Depsgraph *depsgraph;
@@ -265,12 +264,13 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	try {
 		Scene *scene = data->scene;
-		AbcExporter exporter(data->bmain, &data->eval_ctx, scene, data->depsgraph, data->filename, data->settings);
+		ViewLayer *view_layer = data->view_layer;
+		AbcExporter exporter(data->bmain, scene, view_layer, data->depsgraph, data->filename, data->settings);
 
 		const int orig_frame = CFRA;
 
 		data->was_canceled = false;
-		exporter(data->bmain, *data->progress, data->was_canceled);
+		exporter(*data->progress, data->was_canceled);
 
 		if (CFRA != orig_frame) {
 			CFRA = orig_frame;
@@ -313,8 +313,6 @@ bool ABC_export(
         bool as_background_job)
 {
 	ExportJobData *job = static_cast<ExportJobData *>(MEM_mallocN(sizeof(ExportJobData), "ExportJobData"));
-
-	CTX_data_eval_ctx(C, &job->eval_ctx);
 
 	job->scene = scene;
 	job->view_layer = CTX_data_view_layer(C);

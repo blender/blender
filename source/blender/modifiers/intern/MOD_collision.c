@@ -98,7 +98,7 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx),
+static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
                         Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int UNUSED(numVerts),

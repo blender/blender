@@ -44,7 +44,7 @@ public:
 	Object *m_proxy_from;
 
 public:
-	AbcTransformWriter(EvaluationContext *eval_ctx,
+	AbcTransformWriter(Depsgraph *depsgraph,
 	                   Object *ob,
 	                   const Alembic::AbcGeom::OObject &abc_parent,
 	                   AbcTransformWriter *parent,

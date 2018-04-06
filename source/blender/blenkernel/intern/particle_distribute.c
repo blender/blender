@@ -774,7 +774,7 @@ static void distribute_invalid(ParticleSimulationData *sim, int from)
 {
 	Scene *scene = sim->scene;
 	ParticleSystem *psys = sim->psys;
-	const bool use_render_params = (DEG_get_mode(sim->eval_ctx->depsgraph) == DAG_EVAL_RENDER);
+	const bool use_render_params = (DEG_get_mode(sim->depsgraph) == DAG_EVAL_RENDER);
 
 	if (from == PART_FROM_CHILD) {
 		ChildParticle *cpa;
@@ -842,7 +842,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 	psys_thread_context_init(ctx, sim);
 
-	const bool use_render_params = (DEG_get_mode(sim->eval_ctx->depsgraph) == DAG_EVAL_RENDER);
+	const bool use_render_params = (DEG_get_mode(sim->depsgraph) == DAG_EVAL_RENDER);
 	
 	/* First handle special cases */
 	if (from == PART_FROM_CHILD) {

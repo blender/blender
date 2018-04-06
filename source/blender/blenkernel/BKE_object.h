@@ -36,7 +36,7 @@ extern "C" {
 #include "BLI_compiler_attrs.h"
 
 struct Base;
-struct EvaluationContext;
+struct Depsgraph;
 struct Scene;
 struct ViewLayer;
 struct Object;
@@ -53,7 +53,7 @@ struct ModifierData;
 #include "DNA_object_enums.h"
 
 void BKE_object_workob_clear(struct Object *workob);
-void BKE_object_workob_calc_parent(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct Object *workob);
+void BKE_object_workob_calc_parent(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct Object *workob);
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
 struct SoftBody *copy_softbody(const struct SoftBody *sb, const int flag);
@@ -146,14 +146,14 @@ void BKE_object_get_parent_matrix(
         struct Scene *scene, struct Object *ob,
         struct Object *par, float parentmat[4][4]);
 void BKE_object_where_is_calc(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void BKE_object_where_is_calc_ex(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct RigidBodyWorld *rbw,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct RigidBodyWorld *rbw,
         struct Object *ob, float r_originmat[3][3]);
 void BKE_object_where_is_calc_time(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime);
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime);
 void BKE_object_where_is_calc_time_ex(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime,
         struct RigidBodyWorld *rbw, float r_originmat[3][3]);
 void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float obmat[4][4]);
 
@@ -171,13 +171,15 @@ void BKE_object_empty_draw_type_set(struct Object *ob, const int value);
 void BKE_object_boundbox_flag(struct Object *ob, int flag, const bool set);
 void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3], const bool use_hidden);
 bool BKE_object_minmax_dupli(
-        struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3], const bool use_hidden);
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
+        float r_min[3], float r_max[3], const bool use_hidden);
 
 /* sometimes min-max isn't enough, we need to loop over each point */
 void BKE_object_foreach_display_point(
         struct Object *ob, float obmat[4][4],
         void (*func_cb)(const float[3], void *), void *user_data);
 void BKE_scene_foreach_display_point(
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct ViewLayer *view_layer,
         void (*func_cb)(const float[3], void *), void *user_data);
@@ -207,60 +209,60 @@ void BKE_object_tfm_protected_restore(
 
 /* Dependency graph evaluation callbacks. */
 void BKE_object_eval_local_transform(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Object *ob);
 void BKE_object_eval_parent(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
 void BKE_object_eval_constraints(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
-void BKE_object_eval_done(const struct EvaluationContext *eval_ctx, struct Object *ob);
+void BKE_object_eval_done(struct Depsgraph *depsgraph, struct Object *ob);
 
 bool BKE_object_eval_proxy_copy(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Object *object);
 void BKE_object_eval_uber_transform(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Object *ob);
 void BKE_object_eval_uber_data(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
 
 void BKE_object_eval_cloth(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *object);
 
 void BKE_object_eval_transform_all(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *object);
 
 void BKE_object_eval_update_shading(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Object *object);
 void BKE_object_data_select_update(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct ID *object_data);
 
 void BKE_object_eval_flush_base_flags(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Object *object, int base_index,
         const bool is_from_set);
 
 void BKE_object_handle_data_update(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene,
         struct Object *ob);
 void BKE_object_handle_update(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob);
 void BKE_object_handle_update_ex(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob,
         struct RigidBodyWorld *rbw,
         const bool do_proxy_update);
@@ -316,7 +318,7 @@ struct KDTree *BKE_object_as_kdtree(struct Object *ob, int *r_tot);
 bool BKE_object_modifier_use_time(struct Object *ob, struct ModifierData *md);
 
 bool BKE_object_modifier_update_subframe(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
         bool update_mesh, int parent_recursion, float frame, int type);
 
 #ifdef __cplusplus

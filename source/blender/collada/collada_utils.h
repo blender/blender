@@ -60,20 +60,20 @@ extern "C" {
 #include "ExportSettings.h"
 #include "collada_internal.h"
 
-struct EvaluationContext;
+struct Depsgraph;
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *> > TexIndexTextureArrayMap;
 
 extern Scene *bc_get_scene(bContext *C);
 extern Main *bc_get_main();
-extern EvaluationContext *bc_get_evaluation_context();
-extern void bc_update_scene(EvaluationContext *eval_ctx, Scene *scene, float ctime);
+extern Depsgraph *bc_get_depsgraph();
+extern void bc_update_scene(Depsgraph *depsgraph, Scene *scene, float ctime);
 
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
 extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);
 extern Object *bc_add_object(Scene *scene, ViewLayer *view_layer, int type, const char *name);
-extern Mesh *bc_get_mesh_copy(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate);
+extern Mesh *bc_get_mesh_copy(struct Depsgraph *depsgraph, Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type, bool apply_modifiers, bool triangulate);
 
 extern Object *bc_get_assigned_armature(Object *ob);
 extern Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob);

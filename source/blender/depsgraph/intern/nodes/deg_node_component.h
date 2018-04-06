@@ -39,8 +39,6 @@ struct ID;
 struct bPoseChannel;
 struct GHash;
 
-struct EvaluationContext;
-
 namespace DEG {
 
 struct Depsgraph;

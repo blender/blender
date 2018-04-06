@@ -139,12 +139,9 @@ void ED_manipulator_draw_preset_facemap(
 		GPU_select_load_id(select_id);
 	}
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	gpuPushMatrix();
 	gpuMultMatrix(ob->obmat);
-	ED_draw_object_facemap(&eval_ctx, scene, ob, color, facemap);
+	ED_draw_object_facemap(CTX_data_depsgraph(C), scene, ob, color, facemap);
 	gpuPopMatrix();
 
 	if (is_select) {

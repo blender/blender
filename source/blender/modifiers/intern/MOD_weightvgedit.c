@@ -155,7 +155,7 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,
-                                  const struct EvaluationContext *UNUSED(eval_ctx),
+                                  struct Depsgraph *UNUSED(depsgraph),
                                   Object *ob,
                                   DerivedMesh *derivedData,
                                   ModifierApplyFlag UNUSED(flag))

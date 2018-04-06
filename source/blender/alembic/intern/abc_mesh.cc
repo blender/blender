@@ -286,13 +286,13 @@ static ModifierData *get_liquid_sim_modifier(Scene *scene, Object *ob)
 
 /* ************************************************************************** */
 
-AbcMeshWriter::AbcMeshWriter(EvaluationContext *eval_ctx,
+AbcMeshWriter::AbcMeshWriter(Depsgraph *depsgraph,
                              Scene *scene,
                              Object *ob,
                              AbcTransformWriter *parent,
                              uint32_t time_sampling,
                              ExportSettings &settings)
-    : AbcObjectWriter(eval_ctx, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
 {
 	m_is_animated = isAnimated();
 	m_subsurf_mod = NULL;
@@ -525,7 +525,7 @@ DerivedMesh *AbcMeshWriter::getFinalMesh()
 		m_subsurf_mod->mode |= eModifierMode_DisableTemporary;
 	}
 
-	DerivedMesh *dm = mesh_create_derived_render(m_eval_ctx, m_scene, m_object, CD_MASK_MESH);
+	DerivedMesh *dm = mesh_create_derived_render(m_depsgraph, m_scene, m_object, CD_MASK_MESH);
 
 	if (m_subsurf_mod) {
 		m_subsurf_mod->mode &= ~eModifierMode_DisableTemporary;

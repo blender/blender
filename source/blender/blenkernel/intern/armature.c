@@ -1462,13 +1462,13 @@ void BKE_armature_loc_pose_to_bone(bPoseChannel *pchan, const float inloc[3], fl
 	copy_v3_v3(outloc, nLocMat[3]);
 }
 
-void BKE_armature_mat_pose_to_bone_ex(const struct EvaluationContext *eval_ctx, Object *ob, bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
+void BKE_armature_mat_pose_to_bone_ex(struct Depsgraph *depsgraph, Object *ob, bPoseChannel *pchan, float inmat[4][4], float outmat[4][4])
 {
 	bPoseChannel work_pchan = *pchan;
 
 	/* recalculate pose matrix with only parent transformations,
 	 * bone loc/sca/rot is ignored, scene and frame are not used. */
-	BKE_pose_where_is_bone(eval_ctx, NULL, ob, &work_pchan, 0.0f, false);
+	BKE_pose_where_is_bone(depsgraph, NULL, ob, &work_pchan, 0.0f, false);
 
 	/* find the matrix, need to remove the bone transforms first so this is
 	 * calculated as a matrix to set rather then a difference ontop of whats
@@ -2196,7 +2196,7 @@ void BKE_pose_where_is_bone_tail(bPoseChannel *pchan)
  * 'do_extra': when zero skips loc/size/rot, constraints and strip modifiers.
  */
 void BKE_pose_where_is_bone(
-        const struct EvaluationContext *eval_ctx, Scene *scene,
+        struct Depsgraph *depsgraph, Scene *scene,
         Object *ob, bPoseChannel *pchan, float ctime, bool do_extra)
 {
 	/* This gives a chan_mat with actions (ipos) results. */
@@ -2236,7 +2236,7 @@ void BKE_pose_where_is_bone(
 			cob = BKE_constraints_make_evalob(scene, ob, pchan, CONSTRAINT_OBTYPE_BONE);
 
 			/* Solve PoseChannel's Constraints */
-			BKE_constraints_solve(eval_ctx, &pchan->constraints, cob, ctime); /* ctime doesnt alter objects */
+			BKE_constraints_solve(depsgraph, &pchan->constraints, cob, ctime); /* ctime doesnt alter objects */
 
 			/* cleanup after Constraint Solving
 			 * - applies matrix back to pchan, and frees temporary struct used
@@ -2258,7 +2258,7 @@ void BKE_pose_where_is_bone(
 
 /* This only reads anim data from channels, and writes to channels */
 /* This is the only function adding poses */
-void BKE_pose_where_is(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_pose_where_is(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	bArmature *arm;
 	Bone *bone;
@@ -2297,7 +2297,7 @@ void BKE_pose_where_is(const struct EvaluationContext *eval_ctx, Scene *scene, O
 		}
 
 		/* 2a. construct the IK tree (standard IK) */
-		BIK_initialize_tree(eval_ctx, scene, ob, ctime);
+		BIK_initialize_tree(depsgraph, scene, ob, ctime);
 
 		/* 2b. construct the Spline IK trees
 		 *  - this is not integrated as an IK plugin, since it should be able
@@ -2309,15 +2309,15 @@ void BKE_pose_where_is(const struct EvaluationContext *eval_ctx, Scene *scene, O
 		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 			/* 4a. if we find an IK root, we handle it separated */
 			if (pchan->flag & POSE_IKTREE) {
-				BIK_execute_tree(eval_ctx, scene, ob, pchan, ctime);
+				BIK_execute_tree(depsgraph, scene, ob, pchan, ctime);
 			}
 			/* 4b. if we find a Spline IK root, we handle it separated too */
 			else if (pchan->flag & POSE_IKSPLINE) {
-				BKE_splineik_execute_tree(eval_ctx, scene, ob, pchan, ctime);
+				BKE_splineik_execute_tree(depsgraph, scene, ob, pchan, ctime);
 			}
 			/* 5. otherwise just call the normal solver */
 			else if (!(pchan->flag & POSE_DONE)) {
-				BKE_pose_where_is_bone(eval_ctx, scene, ob, pchan, ctime, 1);
+				BKE_pose_where_is_bone(depsgraph, scene, ob, pchan, ctime, 1);
 			}
 		}
 		/* 6. release the IK tree */

@@ -32,6 +32,7 @@
  *  \since March 2001
  *  \author nzc
  */
+struct Depsgraph;
 struct Main;
 struct MetaBall;
 struct Object;
@@ -71,9 +72,9 @@ void BKE_mball_select_swap(struct MetaBall *mb);
 
 /* **** Depsgraph evaluation **** */
 
-struct EvaluationContext;
+struct Depsgraph;
 
-void BKE_mball_eval_geometry(const struct EvaluationContext *eval_ctx,
+void BKE_mball_eval_geometry(struct Depsgraph *depsgraph,
                              struct MetaBall *mball);
 /* Draw Cache */
 

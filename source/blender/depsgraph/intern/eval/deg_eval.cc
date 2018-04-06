@@ -69,7 +69,6 @@ static void schedule_children(TaskPool *pool,
                               const int thread_id);
 
 struct DepsgraphEvalState {
-	EvaluationContext *eval_ctx;
 	Depsgraph *graph;
 	bool do_stats;
 };
@@ -86,11 +85,11 @@ static void deg_task_run_func(TaskPool *pool,
 	/* Perform operation. */
 	if (state->do_stats) {
 		const double start_time = PIL_check_seconds_timer();
-		node->evaluate(state->eval_ctx);
+		node->evaluate((::Depsgraph*)state->graph);
 		node->stats.current_time += PIL_check_seconds_timer() - start_time;
 	}
 	else {
-		node->evaluate(state->eval_ctx);
+		node->evaluate((::Depsgraph*)state->graph);
 	}
 	/* Schedule children. */
 	BLI_task_pool_delayed_push_begin(pool, thread_id);
@@ -229,21 +228,20 @@ static void schedule_children(TaskPool *pool,
  */
 void deg_evaluate_on_refresh(Depsgraph *graph)
 {
-	/* Set time for the current graph evaluation context. */
-	TimeSourceDepsNode *time_src = graph->find_time_source();
 	/* Nothing to update, early out. */
 	if (BLI_gset_len(graph->entry_tags) == 0) {
 		return;
 	}
 	const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
 	const double start_time = do_time_debug ? PIL_check_seconds_timer() : 0;
-	/* Set up evaluation context. */
-	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init_from_depsgraph(&eval_ctx, (::Depsgraph*)graph, graph->mode);
-	eval_ctx.ctime = time_src->cfra;
+
+	/* TODO: Calling this forces the scene datablock to be expanded,
+	 * otherwise we get crashes on load with copy-on-write. There may
+	 * be a better solution for this. */
+	DEG_get_evaluated_view_layer((const ::Depsgraph*)graph);
+
 	/* Set up evaluation state. */
 	DepsgraphEvalState state;
-	state.eval_ctx = &eval_ctx;
 	state.graph = graph;
 	state.do_stats = do_time_debug;
 	/* Set up task scheduler and pull for threaded evaluation. */

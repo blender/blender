@@ -2671,7 +2671,7 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				}
 				
 				/* get constraint targets if needed */
-				BKE_constraint_targets_for_solving_get(&t->eval_ctx, con, &cob, &targets, ctime);
+				BKE_constraint_targets_for_solving_get(t->depsgraph, con, &cob, &targets, ctime);
 				
 				/* do constraint */
 				cti->evaluate_constraint(con, &cob, &targets);

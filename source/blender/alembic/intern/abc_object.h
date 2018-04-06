@@ -44,7 +44,7 @@ protected:
 	Object *m_object;
 	ExportSettings &m_settings;
 
-	EvaluationContext *m_eval_ctx;
+	Depsgraph *m_depsgraph;
 	Scene *m_scene;
 	uint32_t m_time_sampling;
 
@@ -57,7 +57,7 @@ protected:
 	std::string m_name;
 
 public:
-	AbcObjectWriter(EvaluationContext *eval_ctx,
+	AbcObjectWriter(Depsgraph *depsgraph,
 	                Scene *scene,
 	                Object *ob,
 	                uint32_t time_sampling,

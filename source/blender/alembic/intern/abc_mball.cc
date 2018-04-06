@@ -42,13 +42,13 @@ extern "C" {
 
 AbcMBallWriter::AbcMBallWriter(
         Main *bmain,
-        EvaluationContext *eval_ctx,
+        Depsgraph *depsgraph,
         Scene *scene,
         Object *ob,
         AbcTransformWriter *parent,
         uint32_t time_sampling,
         ExportSettings &settings)
-    : AbcObjectWriter(eval_ctx, scene, ob, time_sampling, settings, parent)
+    : AbcObjectWriter(depsgraph, scene, ob, time_sampling, settings, parent)
     , m_bmain(bmain)
 {
 	m_is_animated = isAnimated();
@@ -58,7 +58,7 @@ AbcMBallWriter::AbcMBallWriter(
 	                             sizeof(CurveCache),
 	                             "CurveCache for AbcMBallWriter");
 
-	m_mesh_writer = new AbcMeshWriter(eval_ctx, scene, m_mesh_ob, parent,
+	m_mesh_writer = new AbcMeshWriter(depsgraph, scene, m_mesh_ob, parent,
 	                                  time_sampling, settings);
 	m_mesh_writer->setIsAnimated(m_is_animated);
 }
@@ -97,13 +97,11 @@ void AbcMBallWriter::do_write()
 	id_us_min(&tmpmesh->id);
 
 	ListBase disp = {NULL, NULL};
-	/* TODO(sergey): This is gonna to work for until EvaluationContext
+	/* TODO(sergey): This is gonna to work for until Depsgraph
 	 *               only contains for_render flag. As soon as CoW is
 	 *               implemented, this is to be rethinked.
 	 */
-	EvaluationContext eval_ctx;
-	DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_RENDER);
-	BKE_displist_make_mball_forRender(&eval_ctx, m_scene, m_object, &disp);
+	BKE_displist_make_mball_forRender(m_depsgraph, m_scene, m_object, &disp);
 	BKE_mesh_from_metaball(&disp, tmpmesh);
 	BKE_displist_free(&disp);
 

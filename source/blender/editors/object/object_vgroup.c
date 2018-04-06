@@ -1273,9 +1273,9 @@ static void dm_deform_clear(DerivedMesh *dm, Object *ob)
 }
 
 /* recalculate the deformation */
-static DerivedMesh *dm_deform_recalc(EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+static DerivedMesh *dm_deform_recalc(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
-	return mesh_get_derived_deform(eval_ctx, scene, ob, CD_MASK_BAREMESH);
+	return mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
 }
 
 /* by changing nonzero weights, try to move a vertex in me->mverts with index 'index' to
@@ -1288,7 +1288,7 @@ static DerivedMesh *dm_deform_recalc(EvaluationContext *eval_ctx, Scene *scene, 
  * coord is a point on the plane
  */
 static void moveCloserToDistanceFromPlane(
-        EvaluationContext *eval_ctx, Scene *scene, Object *ob, Mesh *me, int index, float norm[3],
+        Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *me, int index, float norm[3],
         float coord[3], float d, float distToBe, float strength, float cp)
 {
 	DerivedMesh *dm;
@@ -1315,7 +1315,7 @@ static void moveCloserToDistanceFromPlane(
 	float originalDistToBe = distToBe;
 	do {
 		wasChange = false;
-		dm = dm_deform_recalc(eval_ctx, scene, ob);
+		dm = dm_deform_recalc(depsgraph, scene, ob);
 		dm->getVert(dm, index, &m);
 		copy_v3_v3(oldPos, m.co);
 		distToStart = dot_v3v3(norm, oldPos) + d;
@@ -1353,7 +1353,7 @@ static void moveCloserToDistanceFromPlane(
 				if (dw->weight > 1) {
 					dw->weight = 1;
 				}
-				dm = dm_deform_recalc(eval_ctx, scene, ob);
+				dm = dm_deform_recalc(depsgraph, scene, ob);
 				dm->getVert(dm, index, &m);
 				getVerticalAndHorizontalChange(norm, d, coord, oldPos, distToStart, m.co, changes, dists, i);
 				dw->weight = oldw;
@@ -1465,10 +1465,8 @@ static void moveCloserToDistanceFromPlane(
  * but it could be used to raise or lower an existing 'bump.' */
 static void vgroup_fix(const bContext *C, Scene *scene, Object *ob, float distToBe, float strength, float cp)
 {
-	EvaluationContext eval_ctx;
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	int i;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	Mesh *me = ob->data;
 	MVert *mvert = me->mvert;
@@ -1483,7 +1481,7 @@ static void vgroup_fix(const bContext *C, Scene *scene, Object *ob, float distTo
 				MVert *p = MEM_callocN(sizeof(MVert) * (count), "deformedPoints");
 				int k;
 
-				DerivedMesh *dm = mesh_get_derived_deform(&eval_ctx, scene, ob, CD_MASK_BAREMESH);
+				DerivedMesh *dm = mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
 				k = count;
 				while (k--) {
 					dm->getVert(dm, verts[k], &m);
@@ -1501,7 +1499,7 @@ static void vgroup_fix(const bContext *C, Scene *scene, Object *ob, float distTo
 					if (mag) { /* zeros fix */
 						d = -dot_v3v3(norm, coord);
 						/* dist = (dot_v3v3(norm, m.co) + d); */ /* UNUSED */
-						moveCloserToDistanceFromPlane(&eval_ctx, scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
+						moveCloserToDistanceFromPlane(depsgraph, scene, ob, me, i, norm, coord, d, distToBe, strength, cp);
 					}
 				}
 

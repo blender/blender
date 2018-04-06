@@ -988,14 +988,14 @@ void psys_get_birth_coords(ParticleSimulationData *sim, ParticleData *pa, Partic
 }
 
 /* recursively evaluate emitter parent anim at cfra */
-static void evaluate_emitter_anim(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float cfra)
+static void evaluate_emitter_anim(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float cfra)
 {
 	if (ob->parent)
-		evaluate_emitter_anim(eval_ctx, scene, ob->parent, cfra);
+		evaluate_emitter_anim(depsgraph, scene, ob->parent, cfra);
 	
 	/* we have to force RECALC_ANIM here since where_is_objec_time only does drivers */
 	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, cfra, ADT_RECALC_ANIM);
-	BKE_object_where_is_calc_time(eval_ctx, scene, ob, cfra);
+	BKE_object_where_is_calc_time(depsgraph, scene, ob, cfra);
 }
 
 /* sets particle to the emitter surface with initial velocity & rotation */
@@ -1009,7 +1009,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 	
 	/* get precise emitter matrix if particle is born */
 	if (part->type != PART_HAIR && dtime > 0.f && pa->time < cfra && pa->time >= sim->psys->cfra) {
-		evaluate_emitter_anim(sim->eval_ctx, sim->scene, sim->ob, pa->time);
+		evaluate_emitter_anim(sim->depsgraph, sim->scene, sim->ob, pa->time);
 
 		psys->flag |= PSYS_OB_ANIM_RESTORE;
 	}
@@ -1143,7 +1143,7 @@ static void set_keyed_keys(ParticleSimulationData *sim)
 	int totpart = psys->totpart, k, totkeys = psys->totkeyed;
 	int keyed_flag = 0;
 
-	ksim.eval_ctx = sim->eval_ctx;
+	ksim.depsgraph = sim->depsgraph;
 	ksim.scene = sim->scene;
 	
 	/* no proper targets so let's clear and bail out */
@@ -1305,7 +1305,7 @@ void psys_update_particle_tree(ParticleSystem *psys, float cfra)
 static void psys_update_effectors(ParticleSimulationData *sim)
 {
 	pdEndEffectors(&sim->psys->effectors);
-	sim->psys->effectors = pdInitEffectors(sim->eval_ctx, sim->scene, sim->ob, sim->psys,
+	sim->psys->effectors = pdInitEffectors(sim->depsgraph, sim->scene, sim->ob, sim->psys,
 	                                       sim->psys->part->effector_weights, true);
 	precalc_guides(sim, sim->psys->effectors);
 }
@@ -2126,7 +2126,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 	tkey.time=pa->state.time;
 
 	if (part->type != PART_HAIR) {
-		if (do_guides(sim->eval_ctx, sim->psys->part, sim->psys->effectors, &tkey, p, time)) {
+		if (do_guides(sim->depsgraph, sim->psys->part, sim->psys->effectors, &tkey, p, time)) {
 			copy_v3_v3(pa->state.co,tkey.co);
 			/* guides don't produce valid velocity */
 			sub_v3_v3v3(pa->state.vel, tkey.co, pa->prev_state.co);
@@ -2945,7 +2945,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 			skip = 1; /* no need to cache paths while baking dynamics */
 
 #if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
-		else if (psys_in_edit_mode(sim->eval_ctx->depsgraph, psys)) {
+		else if (psys_in_edit_mode(sim->depsgraph, psys)) {
 			if ((pset->flag & PE_DRAW_PART)==0)
 				skip = 1;
 			else if (part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
@@ -3213,7 +3213,7 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->hair_out_dm = CDDM_copy(psys->hair_in_dm);
 	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
 	
-	clothModifier_do(psys->clmd, sim->eval_ctx, sim->scene, sim->ob, psys->hair_in_dm, deformedVerts);
+	clothModifier_do(psys->clmd, sim->depsgraph, sim->scene, sim->ob, psys->hair_in_dm, deformedVerts);
 	
 	CDDM_apply_vert_coords(psys->hair_out_dm, deformedVerts);
 	
@@ -4213,7 +4213,7 @@ static int hair_needs_recalc(ParticleSystem *psys)
 
 /* main particle update call, checks that things are ok on the large scale and
  * then advances in to actual particle calculations depending on particle type */
-void particle_system_update(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, ParticleSystem *psys, const bool use_render_params)
+void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *ob, ParticleSystem *psys, const bool use_render_params)
 {
 	ParticleSimulationData sim= {0};
 	ParticleSettings *part = psys->part;
@@ -4227,7 +4227,7 @@ void particle_system_update(const struct EvaluationContext *eval_ctx, Scene *sce
 
 	cfra= BKE_scene_frame_get(scene);
 
-	sim.eval_ctx = eval_ctx;
+	sim.depsgraph = depsgraph;
 	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;
@@ -4374,7 +4374,7 @@ void particle_system_update(const struct EvaluationContext *eval_ctx, Scene *sce
 
 	/* make sure emitter is left at correct time (particle emission can change this) */
 	if (psys->flag & PSYS_OB_ANIM_RESTORE) {
-		evaluate_emitter_anim(eval_ctx, scene, ob, cfra);
+		evaluate_emitter_anim(depsgraph, scene, ob, cfra);
 		psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 	}
 
@@ -4415,7 +4415,7 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_system_eval_init(const struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_particle_system_eval_init(struct Depsgraph *UNUSED(depsgraph),
                                    Scene *scene,
                                    Object *ob)
 {

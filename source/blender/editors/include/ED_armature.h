@@ -39,7 +39,7 @@ struct Base;
 struct bContext;
 struct Bone;
 struct bPoseChannel;
-struct EvaluationContext;
+struct Depsgraph;
 struct IDProperty;
 struct ListBase;
 struct MeshDeformModifierData;
@@ -192,7 +192,7 @@ void ED_armature_transform(struct bArmature *arm, float mat[4][4], const bool do
 #define ARM_GROUPS_AUTO     3
 
 void ED_object_vgroup_calc_from_armature(
-        struct ReportList *reports, const struct EvaluationContext *eval_ctx, struct Scene *scene,
+        struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, struct Object *par, const int mode, const bool mirror);
 
 /* if bone is already in list, pass it as param to ignore it */

@@ -115,7 +115,6 @@ typedef enum eGPencil_PaintFlags {
  *   "p" = op->customdata
  */
 typedef struct tGPsdata {
-	EvaluationContext eval_ctx;
 	Scene *scene;       /* current scene from context */
 	struct Depsgraph *graph;
 	
@@ -646,7 +645,7 @@ static short gp_stroke_addpoint(
 				
 				view3d_region_operator_needs_opengl(p->win, p->ar);
 				ED_view3d_autodist_init(
-				        &p->eval_ctx, p->graph, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+				        p->graph, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
 			}
 			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
@@ -1247,7 +1246,7 @@ static void gp_stroke_doeraser(tGPsdata *p)
 		if (p->flags & GP_PAINTFLAG_V3D_ERASER_DEPTH) {
 			View3D *v3d = p->sa->spacedata.first;
 			view3d_region_operator_needs_opengl(p->win, p->ar);
-			ED_view3d_autodist_init(&p->eval_ctx, p->graph, p->ar, v3d, 0);
+			ED_view3d_autodist_init(p->graph, p->ar, v3d, 0);
 		}
 	}
 	
@@ -1400,7 +1399,6 @@ static bool gp_session_initdata(bContext *C, tGPsdata *p)
 	}
 	
 	/* pass on current scene and window */
-	CTX_data_eval_ctx(C, &p->eval_ctx);
 	p->scene = CTX_data_scene(C);
 	p->graph = CTX_data_depsgraph(C);
 	p->win = CTX_wm_window(C);
@@ -1608,7 +1606,7 @@ static void gp_session_cleanup(tGPsdata *p)
 }
 
 /* init new stroke */
-static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, const Depsgraph *depsgraph)
+static void gp_paint_initstroke(tGPsdata *p, eGPencil_PaintModes paintmode, Depsgraph *depsgraph)
 {
 	Scene *scene = p->scene;
 	ToolSettings *ts = scene->toolsettings;
@@ -1815,7 +1813,7 @@ static void gp_paint_strokeend(tGPsdata *p)
 		
 		/* need to restore the original projection settings before packing up */
 		view3d_region_operator_needs_opengl(p->win, p->ar);
-		ED_view3d_autodist_init(&p->eval_ctx, p->graph, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
+		ED_view3d_autodist_init(p->graph, p->ar, v3d, (ts->gpencil_v3d_align & GP_PROJECT_DEPTH_STROKE) ? 1 : 0);
 	}
 	
 	/* check if doing eraser or not */
@@ -2055,7 +2053,7 @@ static void gpencil_draw_status_indicators(tGPsdata *p)
 /* ------------------------------- */
 
 /* create a new stroke point at the point indicated by the painting context */
-static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, const Depsgraph *depsgraph)
+static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, Depsgraph *depsgraph)
 {
 	/* handle drawing/erasing -> test for erasing first */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
@@ -2110,7 +2108,7 @@ static void gpencil_draw_apply(wmOperator *op, tGPsdata *p, const Depsgraph *dep
 }
 
 /* handle draw event */
-static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, const Depsgraph *depsgraph)
+static void gpencil_draw_apply_event(wmOperator *op, const wmEvent *event, Depsgraph *depsgraph)
 {
 	tGPsdata *p = op->customdata;
 	PointerRNA itemptr;

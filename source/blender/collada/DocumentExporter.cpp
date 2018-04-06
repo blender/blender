@@ -152,8 +152,8 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
-DocumentExporter::DocumentExporter(EvaluationContext *eval_ctx, const ExportSettings *export_settings) :
-	eval_ctx(eval_ctx),
+DocumentExporter::DocumentExporter(Depsgraph *depsgraph, const ExportSettings *export_settings) :
+	depsgraph(depsgraph),
 	export_settings(export_settings) {
 }
 
@@ -288,7 +288,7 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 	// <library_geometries>
 	if (bc_has_object_type(export_set, OB_MESH)) {
 		GeometryExporter ge(writer, this->export_settings);
-		ge.exportGeom(eval_ctx, sce);
+		ge.exportGeom(depsgraph, sce);
 	}
 
 	// <library_controllers>
@@ -296,7 +296,7 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 	ControllerExporter controller_exporter(writer, this->export_settings);
 	if (bc_has_object_type(export_set, OB_ARMATURE) || this->export_settings->include_shapekeys) 
 	{
-		controller_exporter.export_controllers(eval_ctx, sce);
+		controller_exporter.export_controllers(depsgraph, sce);
 	}
 
 	// <library_visual_scenes>
@@ -305,10 +305,10 @@ int DocumentExporter::exportCurrentScene(Scene *sce)
 
 	if (this->export_settings->include_animations) {
 		// <library_animations>
-		AnimationExporter ae(eval_ctx, writer, this->export_settings);
+		AnimationExporter ae(depsgraph, writer, this->export_settings);
 		ae.exportAnimations(sce);
 	}
-	se.exportScene(eval_ctx, sce);
+	se.exportScene(depsgraph, sce);
 	
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));

@@ -135,7 +135,7 @@ static bool wm_area_test_invalid_backbuf(ScrArea *sa)
 		return true;
 }
 
-static void wm_region_test_render_do_draw(const Scene *scene, const struct Depsgraph *depsgraph,
+static void wm_region_test_render_do_draw(const Scene *scene, struct Depsgraph *depsgraph,
                                           ScrArea *sa, ARegion *ar)
 {
 	/* tag region for redraw from render engine preview running inside of it */

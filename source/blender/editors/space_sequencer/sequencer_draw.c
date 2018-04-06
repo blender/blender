@@ -919,8 +919,8 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	recty = (render_size * (float)scene->r.ysch) / 100.0f + 0.5f;
 
 	BKE_sequencer_new_render_data(
-	        bmain->eval_ctx, bmain, scene,
-	        rectx, recty, proxy_size,
+	        bmain, scene,
+	        rectx, recty, proxy_size, false,
 	        &context);
 	context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 

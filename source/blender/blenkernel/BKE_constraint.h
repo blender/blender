@@ -40,7 +40,7 @@ struct ListBase;
 struct Object;
 struct Scene;
 struct bPoseChannel;
-struct EvaluationContext;
+struct Depsgraph;
 
 /* ---------------------------------------------------------------------------- */
 #ifdef __cplusplus
@@ -103,7 +103,7 @@ typedef struct bConstraintTypeInfo {
 	
 	/* evaluation */
 	/* set the ct->matrix for the given constraint target (at the given ctime) */
-	void (*get_target_matrix)(const struct EvaluationContext *eval_ctx, struct bConstraint *con, struct bConstraintOb *cob, struct bConstraintTarget *ct, float ctime);
+	void (*get_target_matrix)(struct Depsgraph *depsgraph, struct bConstraint *con, struct bConstraintOb *cob, struct bConstraintTarget *ct, float ctime);
 	/* evaluate the constraint for the given time */
 	void (*evaluate_constraint)(struct bConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
 } bConstraintTypeInfo;
@@ -148,10 +148,10 @@ void                  BKE_constraints_clear_evalob(struct bConstraintOb *cob);
 void BKE_constraint_mat_convertspace(
         struct Object *ob, struct bPoseChannel *pchan, float mat[4][4], short from, short to, const bool keep_scale);
 
-void BKE_constraint_target_matrix_get(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct bConstraint *con,
+void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph, struct Scene *scene, struct bConstraint *con,
                                       int n, short ownertype, void *ownerdata, float mat[4][4], float ctime);
-void BKE_constraint_targets_for_solving_get(const struct EvaluationContext *eval_ctx, struct bConstraint *con, struct bConstraintOb *ob, struct ListBase *targets, float ctime);
-void BKE_constraints_solve(const struct EvaluationContext *eval_ctx, struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
+void BKE_constraint_targets_for_solving_get(struct Depsgraph *depsgraph, struct bConstraint *con, struct bConstraintOb *ob, struct ListBase *targets, float ctime);
+void BKE_constraints_solve(struct Depsgraph *depsgraph, struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
 
 #ifdef __cplusplus
 }

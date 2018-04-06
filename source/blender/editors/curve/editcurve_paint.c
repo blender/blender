@@ -93,7 +93,7 @@ struct StrokeElem {
 };
 
 struct CurveDrawData {
-	const Depsgraph *depsgraph;
+	Depsgraph *depsgraph;
 
 	short init_event_type;
 	short curve_type;
@@ -1095,13 +1095,10 @@ static int curve_draw_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			if ((cps->depth_mode == CURVE_PAINT_PROJECT_SURFACE) &&
 			    (v3d->drawtype > OB_WIRE))
 			{
-				EvaluationContext eval_ctx;
-				CTX_data_eval_ctx(C, &eval_ctx);
-
 				/* needed or else the draw matrix can be incorrect */
 				view3d_operator_needs_opengl(C);
 
-				ED_view3d_autodist_init(&eval_ctx, cdd->vc.depsgraph, cdd->vc.ar, cdd->vc.v3d, 0);
+				ED_view3d_autodist_init(cdd->vc.depsgraph, cdd->vc.ar, cdd->vc.v3d, 0);
 
 				if (cdd->vc.rv3d->depths) {
 					cdd->vc.rv3d->depths->damaged = true;

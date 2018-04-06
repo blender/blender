@@ -178,8 +178,7 @@ static bool pose_has_protected_selected(Object *ob, short warn)
 void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 {
 	struct Main *bmain = CTX_data_main(C);
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	ListBase targets = {NULL, NULL};
 	
 	/* set flag to force recalc, then grab the relevant bones to target */
@@ -187,7 +186,7 @@ void ED_pose_recalculate_paths(bContext *C, Scene *scene, Object *ob)
 	animviz_get_object_motionpaths(ob, &targets);
 	
 	/* recalculate paths, then free */
-	animviz_calc_motionpaths(&eval_ctx, bmain, scene, &targets);
+	animviz_calc_motionpaths(depsgraph, bmain, scene, &targets);
 	BLI_freelistN(&targets);
 }
 

@@ -52,7 +52,7 @@
 
 #include "BLI_sys_types.h" // for intptr_t support
 
-struct EvaluationContext;
+struct Depsgraph;
 struct Object;
 struct MemArena;
 struct VertTableNode;

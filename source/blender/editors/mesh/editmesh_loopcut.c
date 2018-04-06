@@ -555,22 +555,19 @@ static void loopcut_update_edge(RingSelOpData *lcd, BMEdge *e, const int preview
 	}
 }
 
-static void loopcut_mouse_move(const struct EvaluationContext *eval_ctx, RingSelOpData *lcd, const int previewlines)
+static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
 {
 	float dist = ED_view3d_select_dist_px();
-	BMEdge *e = EDBM_edge_find_nearest(eval_ctx, &lcd->vc, &dist);
+	BMEdge *e = EDBM_edge_find_nearest(&lcd->vc, &dist);
 	loopcut_update_edge(lcd, e, previewlines);
 }
 
 /* called by both init() and exec() */
 static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	EvaluationContext eval_ctx;
 	const bool is_interactive = (event != NULL);
 	Object *obedit = CTX_data_edit_object(C);
 	RingSelOpData *lcd;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
 		BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
@@ -599,7 +596,7 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 
 	if (is_interactive) {
 		copy_v2_v2_int(lcd->vc.mval, event->mval);
-		loopcut_mouse_move(&eval_ctx, lcd, is_interactive ? 1 : 0);
+		loopcut_mouse_move(lcd, is_interactive ? 1 : 0);
 	}
 	else {
 		const int e_index = RNA_int_get(op->ptr, "edge_index");
@@ -672,14 +669,12 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
 
 static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	EvaluationContext eval_ctx;
 	RingSelOpData *lcd = op->customdata;
 	float cuts = lcd->cuts;
 	float smoothness = lcd->smoothness;
 	bool show_cuts = false;
 	const bool has_numinput = hasNumInput(&lcd->num);
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	em_setup_viewcontext(C, &lcd->vc);
 	lcd->ar = lcd->vc.ar;
 
@@ -773,7 +768,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				{
 					lcd->vc.mval[0] = event->mval[0];
 					lcd->vc.mval[1] = event->mval[1];
-					loopcut_mouse_move(&eval_ctx, lcd, (int)lcd->cuts);
+					loopcut_mouse_move(lcd, (int)lcd->cuts);
 
 					ED_region_tag_redraw(lcd->ar);
 					handled = true;

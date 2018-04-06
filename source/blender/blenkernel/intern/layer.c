@@ -44,8 +44,6 @@
 #include "BKE_workspace.h"
 #include "BKE_object.h"
 
-#include "DEG_depsgraph.h"
-
 #include "DNA_group_types.h"
 #include "DNA_ID.h"
 #include "DNA_layer_types.h"
@@ -54,6 +52,9 @@
 #include "DNA_scene_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_workspace_types.h"
+
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DRW_engine.h"
 
@@ -2342,13 +2343,13 @@ static const char *collection_type_lookup[] =
  * \note We can't use layer_collection->flag because of 3 level nesting (where parent is visible, but not grand-parent)
  * So layer_collection->flag_evaluated is expected to be up to date with layer_collection->flag.
  */
-static bool layer_collection_visible_get(const EvaluationContext *eval_ctx, LayerCollection *layer_collection)
+static bool layer_collection_visible_get(Depsgraph *depsgraph, LayerCollection *layer_collection)
 {
 	if (layer_collection->flag_evaluated & COLLECTION_DISABLED) {
 		return false;
 	}
 
-	if (eval_ctx->mode == DAG_EVAL_VIEWPORT) {
+	if (DEG_get_mode(depsgraph) == DAG_EVAL_VIEWPORT) {
 		return (layer_collection->flag_evaluated & COLLECTION_VIEWPORT) != 0;
 	}
 	else {
@@ -2356,7 +2357,7 @@ static bool layer_collection_visible_get(const EvaluationContext *eval_ctx, Laye
 	}
 }
 
-static void layer_eval_layer_collection(const EvaluationContext *eval_ctx,
+static void layer_eval_layer_collection(Depsgraph *depsgraph,
                                         LayerCollection *layer_collection,
                                         LayerCollection *parent_layer_collection)
 {
@@ -2377,7 +2378,7 @@ static void layer_eval_layer_collection(const EvaluationContext *eval_ctx,
 	layer_collection->flag_evaluated = layer_collection->flag;
 
 	if (parent_layer_collection != NULL) {
-		if (layer_collection_visible_get(eval_ctx, parent_layer_collection) == false) {
+		if (layer_collection_visible_get(depsgraph, parent_layer_collection) == false) {
 			layer_collection->flag_evaluated |= COLLECTION_DISABLED;
 		}
 
@@ -2388,7 +2389,7 @@ static void layer_eval_layer_collection(const EvaluationContext *eval_ctx,
 		}
 	}
 
-	const bool is_visible = layer_collection_visible_get(eval_ctx, layer_collection);
+	const bool is_visible = layer_collection_visible_get(depsgraph, layer_collection);
 	const bool is_selectable = is_visible && ((layer_collection->flag_evaluated & COLLECTION_SELECTABLE) != 0);
 
 	/* overrides */
@@ -2435,7 +2436,7 @@ static void layer_eval_layer_collection_post(ViewLayer *view_layer)
 	}
 }
 
-static void layer_eval_collections_recurse(const EvaluationContext *eval_ctx,
+static void layer_eval_collections_recurse(Depsgraph *depsgraph,
                                            ListBase *layer_collections,
                                            LayerCollection *parent_layer_collection)
 {
@@ -2443,27 +2444,27 @@ static void layer_eval_collections_recurse(const EvaluationContext *eval_ctx,
 	     layer_collection != NULL;
 	     layer_collection = layer_collection->next)
 	{
-		layer_eval_layer_collection(eval_ctx,
+		layer_eval_layer_collection(depsgraph,
 		                            layer_collection,
 		                            parent_layer_collection);
-		layer_eval_collections_recurse(eval_ctx,
+		layer_eval_collections_recurse(depsgraph,
 		                               &layer_collection->layer_collections,
 		                               layer_collection);
 	}
 }
 
-void BKE_layer_eval_view_layer(const struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_view_layer(struct Depsgraph *depsgraph,
                                struct ID *owner_id,
                                ViewLayer *view_layer)
 {
 	layer_eval_layer_collection_pre(owner_id, view_layer);
-	layer_eval_collections_recurse(eval_ctx,
+	layer_eval_collections_recurse(depsgraph,
 	                               &view_layer->layer_collections,
 	                               NULL);
 	layer_eval_layer_collection_post(view_layer);
 }
 
-void BKE_layer_eval_view_layer_indexed(const struct EvaluationContext *eval_ctx,
+void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
                                        struct ID *owner_id,
                                        int view_layer_index)
 {
@@ -2472,7 +2473,7 @@ void BKE_layer_eval_view_layer_indexed(const struct EvaluationContext *eval_ctx,
 	Scene *scene = (Scene *)owner_id;
 	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
 	BLI_assert(view_layer != NULL);
-	BKE_layer_eval_view_layer(eval_ctx, owner_id, view_layer);
+	BKE_layer_eval_view_layer(depsgraph, owner_id, view_layer);
 }
 
 /**

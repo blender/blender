@@ -32,8 +32,6 @@
 
 #pragma once
 
-struct EvaluationContext;
-
 namespace DEG {
 
 struct Depsgraph;

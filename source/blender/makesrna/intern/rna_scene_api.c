@@ -163,7 +163,7 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int previe
 }
 
 static void rna_Scene_ray_cast(
-        Scene *scene, ViewLayer *view_layer,
+        Scene *scene, ViewLayer *UNUSED(view_layer),
         float origin[3], float direction[3], float ray_dist,
         int *r_success, float r_location[3], float r_normal[3], int *r_index,
         Object **r_ob, float r_obmat[16])
@@ -171,7 +171,7 @@ static void rna_Scene_ray_cast(
 	normalize_v3(direction);
 
 	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
-	        G.main, scene, view_layer, 0);
+	        G.main, scene, 0);
 
 	bool ret = ED_transform_snap_object_project_ray_ex(
 	        sctx,

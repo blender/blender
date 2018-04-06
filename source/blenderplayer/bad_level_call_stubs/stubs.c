@@ -278,7 +278,7 @@ int	multitex_ext(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], i
 int multitex_ext_safe(struct Tex *tex, float texvec[3], struct TexResult *texres, struct ImagePool *pool, bool scene_color_manage, const bool skip_load_image) RET_ZERO
 int multitex_nodes(struct Tex *tex, float texvec[3], float dxt[3], float dyt[3], int osatex, struct TexResult *texres, const short thread, short which_output, struct ShadeInput *shi, struct MTex *mtex, struct ImagePool *pool) RET_ZERO
 
-struct Material *RE_sample_material_init(const struct EvaluationContext *eval_ctx, struct Material *orig_mat, struct Scene *scene) RET_NULL
+struct Material *RE_sample_material_init(struct Depsgraph *depsgraph, struct Material *orig_mat, struct Scene *scene) RET_NULL
 void RE_sample_material_free(struct Material *mat) RET_NONE
 void RE_sample_material_color(
         struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
@@ -483,7 +483,7 @@ char *ED_fsmenu_entry_get_name(struct FSMenuEntry *fsentry) RET_NULL
 void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name) RET_NONE
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob) RET_NULL
-void PE_current_changed(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob) RET_NONE
+void PE_current_changed(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob) RET_NONE
 
 /* rna keymap */
 struct wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap) RET_NULL
@@ -547,7 +547,7 @@ void ED_node_tree_pop(struct SpaceNode *snode) RET_NONE
 int ED_view3d_view_layer_set(int lay, const int *values, int *active) RET_ZERO
 void ED_view3d_quadview_update(struct ScrArea *sa, struct ARegion *ar, bool do_clip) RET_NONE
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist) RET_NONE
-void ED_view3d_update_viewmat(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
+void ED_view3d_update_viewmat(struct Depsgraph *depsgraph, struct Scene *scene, struct View3D *v3d, struct ARegion *ar, float viewmat[4][4], float winmat[4][4], const struct rcti *rect) RET_NONE
 float ED_view3d_grid_scale(struct Scene *scene, struct View3D *v3d, const char **grid_unit) RET_ZERO
 void ED_view3d_shade_update(struct Main *bmain, struct View3D *v3d, struct ScrArea *sa) RET_NONE
 void ED_node_shader_default(const struct bContext *C, struct ID *id) RET_NONE
@@ -617,9 +617,9 @@ bool ED_texture_context_check_others(const struct bContext *C) RET_ZERO
 bool ED_text_region_location_from_cursor(SpaceText *st, ARegion *ar, const int cursor_co[2], int r_pixel_co[2]) RET_ZERO
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, int flag) RET_NULL
+        struct Main *bmain, struct Scene *scene, int flag) RET_NULL
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, int flag,
+        struct Main *bmain, struct Scene *scene, int flag,
         const struct ARegion *ar, const struct View3D *v3d) RET_NULL
 void ED_transform_snap_object_context_destroy(SnapObjectContext *sctx) RET_NONE
 bool ED_transform_snap_object_project_ray_ex(
@@ -765,9 +765,9 @@ void RE_engine_update_memory_stats(struct RenderEngine *engine, float mem_used, 
 struct RenderEngine *RE_engine_create(struct RenderEngineType *type) RET_NULL
 void RE_engine_frame_set(struct RenderEngine *engine, int frame, float subframe) RET_NONE
 void RE_FreePersistentData(void) RET_NONE
-void RE_point_density_cache(const struct EvaluationContext *eval_ctx, struct PointDensity *pd) RET_NONE
-void RE_point_density_minmax(const struct EvaluationContext *eval_ctx, struct PointDensity *pd, float r_min[3], float r_max[3]) RET_NONE
-void RE_point_density_sample(const struct EvaluationContext *eval_ctx, struct PointDensity *pd, const int resolution, float *values) RET_NONE
+void RE_point_density_cache(struct Depsgraph *depsgraph, struct PointDensity *pd) RET_NONE
+void RE_point_density_minmax(struct Depsgraph *depsgraph, struct PointDensity *pd, float r_min[3], float r_max[3]) RET_NONE
+void RE_point_density_sample(struct Depsgraph *depsgraph, struct PointDensity *pd, const int resolution, float *values) RET_NONE
 void RE_point_density_free(struct PointDensity *pd) RET_NONE
 void RE_instance_get_particle_info(struct ObjectInstanceRen *obi, float *index, float *random, float *age, float *lifetime, float co[3], float *size, float vel[3], float angvel[3]) RET_NONE
 void RE_FreeAllPersistentData(void) RET_NONE
