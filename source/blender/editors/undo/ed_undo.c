@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/util/undo.c
+/** \file blender/editors/undo/ed_undo.c
  *  \ingroup edundo
  */
 

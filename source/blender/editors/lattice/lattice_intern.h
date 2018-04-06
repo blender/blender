@@ -21,7 +21,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/metaball/lattice_intern.h
+/** \file blender/editors/lattice/lattice_intern.h
  *  \ingroup edlattice
  */
 

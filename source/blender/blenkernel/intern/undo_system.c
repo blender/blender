@@ -18,8 +18,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/util/undo_system.c
- *  \ingroup edutil
+/** \file blender/blenkernel/intern/undo_system.c
+ *  \ingroup bke
  *
  * Used by ED_undo.h, internal implementation.
  */

@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/util/memfile_undo.c
+/** \file blender/editors/undo/memfile_undo.c
  *  \ingroup edundo
  *
  * Wrapper between 'ED_undo.h' and 'BKE_undo_system.h' API's.
