@@ -323,8 +323,12 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 {
 	int sel, b;
 
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+
+	immBeginAtMost(GWN_PRIM_LINES, 4 * 2 * fcu->totvert);
 
 	/* slightly hacky, but we want to draw unselected points before selected ones 
 	 * so that selected points are clearly visible
@@ -334,7 +338,7 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 		int basecol = (sel) ? TH_HANDLE_SEL_FREE : TH_HANDLE_FREE;
 		const float *fp;
 		unsigned char col[4];
-		
+
 		for (b = 0; b < fcu->totvert; b++, prevbezt = bezt, bezt++) {
 			/* if only selected keyframes can get their handles shown, 
 			 * check that keyframe is selected
@@ -352,24 +356,20 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 				if ((!prevbezt && (bezt->ipo == BEZT_IPO_BEZ)) || (prevbezt && (prevbezt->ipo == BEZT_IPO_BEZ))) {
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immUniformColor4ubv(col);
-
-					immBegin(GWN_PRIM_LINES, 2);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
-					immEnd();
 				}
 				
 				/* only draw second handle if this segment is bezier */
 				if (bezt->ipo == BEZT_IPO_BEZ) {
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immUniformColor4ubv(col);
-
-					immBegin(GWN_PRIM_LINES, 2);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp + 6);
-					immEnd();
 				}
 			}
 			else {
@@ -380,12 +380,10 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					fp = bezt->vec[0];
 					UI_GetThemeColor3ubv(basecol + bezt->h1, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immUniformColor4ubv(col);
-
-					immBegin(GWN_PRIM_LINES, 2);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
-					immEnd();
 				}
 				
 				/* only draw second handle if this segment is bezier, and selection is ok */
@@ -395,17 +393,16 @@ static void draw_fcurve_handles(SpaceIpo *sipo, FCurve *fcu)
 					fp = bezt->vec[1];
 					UI_GetThemeColor3ubv(basecol + bezt->h2, col);
 					col[3] = fcurve_display_alpha(fcu) * 255;
-					immUniformColor4ubv(col);
-
-					immBegin(GWN_PRIM_LINES, 2);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp);
+					immAttrib4ubv(color, col);
 					immVertex2fv(pos, fp + 3);
-					immEnd();
 				}
 			}
 		}
 	}
 
+	immEnd();
 	immUnbindProgram();
 }
 
