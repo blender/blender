@@ -321,14 +321,12 @@ typedef struct Object {
 
 	ListBase gpulamp;		/* runtime, for glsl lamp display only */
 	ListBase pc_ids;
-	ListBase *duplilist;	/* for temporary dupli list storage, only for use by RNA API */
 	
 	struct RigidBodyOb *rigidbody_object;		/* settings for Bullet rigid body */
 	struct RigidBodyCon *rigidbody_constraint;	/* settings for Bullet constraint */
 
 	float ima_ofs[2];		/* offset for image empties */
 	ImageUser *iuser;		/* must be non-null when oject is an empty image */
-	void *pad4;
 
 	ListBase lodlevels;		/* contains data for levels of detail */
 	LodLevel *currentlod;
