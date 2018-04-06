@@ -646,7 +646,7 @@ static int bake(
         const char *identifier, ScrArea *sa, const char *uv_layer)
 {
 	EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
-	Depsgraph *depsgraph = DEG_graph_new();
+	Depsgraph *depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
 	DEG_evaluation_context_init_from_view_layer_for_render(eval_ctx, depsgraph, scene, view_layer);
 
 	int op_result = OPERATOR_CANCELLED;

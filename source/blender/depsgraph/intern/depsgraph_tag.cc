@@ -425,20 +425,6 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 	id_tag_update_ntree_special(bmain, graph, id, flag);
 }
 
-/* TODO(sergey): Consider storing scene and view layer at depsgraph allocation
- * time.
- */
-void deg_ensure_scene_view_layer(Depsgraph *graph,
-                                 Scene *scene,
-                                 ViewLayer *view_layer)
-{
-	if (!graph->need_update) {
-		return;
-	}
-	graph->scene = scene;
-	graph->view_layer = view_layer;
-}
-
 void deg_id_tag_update(Main *bmain, ID *id, int flag)
 {
 	deg_graph_id_tag_update(bmain, NULL, id, flag);
@@ -449,11 +435,6 @@ void deg_id_tag_update(Main *bmain, ID *id, int flag)
 			                                             view_layer,
 			                                             false);
 			if (depsgraph != NULL) {
-				/* Make sure depsgraph is pointing to a correct scene and
-				 * view layer. This is mainly required in cases when depsgraph
-				 * was not built yet.
-				 */
-				deg_ensure_scene_view_layer(depsgraph, scene, view_layer);
 				deg_graph_id_tag_update(bmain, depsgraph, id, flag);
 			}
 		}

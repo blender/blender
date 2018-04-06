@@ -2193,7 +2193,7 @@ Depsgraph *BKE_scene_get_depsgraph(Scene *scene,
 		{
 			*key_ptr = MEM_mallocN(sizeof(DepsgraphKey), __func__);
 			**key_ptr = key;
-			*depsgraph_ptr = DEG_graph_new();
+			*depsgraph_ptr = DEG_graph_new(scene, view_layer, DAG_EVAL_VIEWPORT);
 		}
 		depsgraph = *depsgraph_ptr;
 	}

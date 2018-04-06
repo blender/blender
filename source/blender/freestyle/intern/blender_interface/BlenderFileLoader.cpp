@@ -79,10 +79,10 @@ NodeGroup *BlenderFileLoader::Load()
 		_z_offset = 0.f;
 	}
 
-	EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
-	Depsgraph *depsgraph = DEG_graph_new();
-
 	ViewLayer *view_layer = (ViewLayer*)BLI_findstring(&_re->scene->view_layers, _view_layer->name, offsetof(ViewLayer, name));
+
+	EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
+	Depsgraph *depsgraph = DEG_graph_new(_re->scene, view_layer, DAG_EVAL_RENDER);
 
 	DEG_evaluation_context_init_from_view_layer_for_render(
 		eval_ctx,

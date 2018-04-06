@@ -134,9 +134,10 @@ void DEG_evaluate_on_refresh(EvaluationContext *eval_ctx,
                              Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	deg_graph->ctime = BKE_scene_frame_get(deg_graph->scene);
 	/* Update time on primary timesource. */
 	DEG::TimeSourceDepsNode *tsrc = deg_graph->find_time_source();
-	tsrc->cfra = BKE_scene_frame_get(deg_graph->scene);
+	tsrc->cfra = deg_graph->ctime;
 	DEG::deg_evaluate_on_refresh(eval_ctx, deg_graph);
 }
 
@@ -147,6 +148,7 @@ void DEG_evaluate_on_framechange(EvaluationContext *eval_ctx,
                                  float ctime)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
+	deg_graph->ctime = ctime;
 	/* Update time on primary timesource. */
 	DEG::TimeSourceDepsNode *tsrc = deg_graph->find_time_source();
 	tsrc->cfra = ctime;

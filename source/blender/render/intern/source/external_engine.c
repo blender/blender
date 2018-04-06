@@ -530,21 +530,24 @@ RenderData *RE_engine_get_render_data(Render *re)
 /* Depsgraph */
 static void engine_depsgraph_init(RenderEngine *engine, ViewLayer *view_layer)
 {
+	Main *bmain = engine->re->main;
+	Scene *scene = engine->re->scene;
+
 	engine->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
-	engine->depsgraph = DEG_graph_new();
+	engine->depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
 	engine->view_layer = view_layer;
 
 	DEG_evaluation_context_init_from_view_layer_for_render(
 		engine->eval_ctx,
 		engine->depsgraph,
-		engine->re->scene,
+		scene,
 		view_layer);
 
 	BKE_scene_graph_update_tagged(
 		engine->eval_ctx,
 		engine->depsgraph,
-		engine->re->main,
-		engine->re->scene,
+		bmain,
+		scene,
 		view_layer);
 }
 
