@@ -83,13 +83,11 @@ void DEG_evaluation_context_init_from_scene(
         EvaluationContext *eval_ctx,
         Scene *scene,
         ViewLayer *view_layer,
-        RenderEngineType *engine_type,
         eEvaluationMode mode)
 {
 	DEG_evaluation_context_init(eval_ctx, mode);
 	eval_ctx->depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	eval_ctx->view_layer = view_layer;
-	eval_ctx->engine_type = engine_type;
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
 }
 
@@ -107,7 +105,6 @@ void DEG_evaluation_context_init_from_view_layer_for_render(
 	eval_ctx->ctime = BKE_scene_frame_get(scene);
 	eval_ctx->depsgraph = depsgraph;
 	eval_ctx->view_layer = view_layer_original;
-	eval_ctx->engine_type = NULL;
 }
 
 void DEG_evaluation_context_init_from_depsgraph(
@@ -120,7 +117,6 @@ void DEG_evaluation_context_init_from_depsgraph(
 	eval_ctx->ctime = (float)scene->r.cfra + scene->r.subframe;
 	eval_ctx->depsgraph = depsgraph;
 	eval_ctx->view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	eval_ctx->engine_type = NULL;
 }
 
 /* Free evaluation context. */

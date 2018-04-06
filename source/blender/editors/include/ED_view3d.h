@@ -383,10 +383,12 @@ void  ED_draw_object_facemap(const struct EvaluationContext *eval_ctx, struct Sc
 bool ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen_init(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
-        struct ViewLayer *view_layer, struct View3D *v3d);
+        struct ViewLayer *view_layer, struct RenderEngineType *engine_type,
+        struct View3D *v3d);
 void ED_view3d_draw_offscreen(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
-        struct ViewLayer *view_layer, struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
+        struct ViewLayer *view_layer, struct RenderEngineType *engine_type,
+        struct View3D *v3d, struct ARegion *ar, int winx, int winy, float viewmat[4][4],
         float winmat[4][4], bool do_bgpic, bool do_sky, bool is_persp, const char *viewname,
         struct GPUFXSettings *fx_settings,
         struct GPUOffScreen *ofs, struct GPUViewport *viewport);
@@ -408,13 +410,15 @@ enum {
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
-        struct ViewLayer *view_layer, struct View3D *v3d, struct ARegion *ar,
+        struct ViewLayer *view_layer, struct RenderEngineType *engine_type,
+        struct View3D *v3d, struct ARegion *ar,
         int sizex, int sizey, unsigned int flag, unsigned int draw_flags,
         int alpha_mode, int samples, const char *viewname,
         struct GPUOffScreen *ofs, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         const struct EvaluationContext *eval_ctx, struct Scene *scene,
-        struct ViewLayer *view_layer, struct Object *camera, int width, int height,
+        struct ViewLayer *view_layer, struct RenderEngineType *engine_type,
+        struct Object *camera, int width, int height,
         unsigned int flag, unsigned int draw_flags, int drawtype, int alpha_mode,
         int samples, const char *viewname,
         struct GPUOffScreen *ofs, char err_out[256]);

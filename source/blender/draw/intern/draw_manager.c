@@ -357,7 +357,6 @@ static void drw_state_eval_ctx_init(DRWManager *dst)
 	        &draw_ctx->eval_ctx,
 	        draw_ctx->scene,
 	        draw_ctx->view_layer,
-	        draw_ctx->engine_type,
 	        DST.options.is_scene_render ? DAG_EVAL_RENDER : DAG_EVAL_VIEWPORT);
 }
 

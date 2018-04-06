@@ -86,7 +86,6 @@ typedef struct EvaluationContext {
 
 	struct Depsgraph *depsgraph;
 	struct ViewLayer *view_layer;
-	struct RenderEngineType *engine_type;
 } EvaluationContext;
 
 /* DagNode->eval_flags */
@@ -219,7 +218,6 @@ void DEG_evaluation_context_init_from_scene(
         struct EvaluationContext *eval_ctx,
         struct Scene *scene,
         struct ViewLayer *view_layer,
-        struct RenderEngineType *engine_type,
         eEvaluationMode mode);
 
 void DEG_evaluation_context_init_from_view_layer_for_render(

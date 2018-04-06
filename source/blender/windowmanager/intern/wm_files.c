@@ -1052,16 +1052,18 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, ViewLayer *view_
 	}
 
 	/* gets scaled to BLEN_THUMB_SIZE */
+	RenderEngineType *engine_type = CTX_data_engine_type(C);
+
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(
-		        &eval_ctx, scene, view_layer, scene->camera,
+		        &eval_ctx, scene, view_layer, engine_type, scene->camera,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, OB_SOLID, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(
-		        &eval_ctx, scene, view_layer, v3d, ar,
+		        &eval_ctx, scene, view_layer, engine_type, v3d, ar,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);

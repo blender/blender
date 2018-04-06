@@ -5459,6 +5459,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
+	struct RenderEngineType *engine_type = CTX_data_engine_type(C);
 	EvaluationContext eval_ctx;
 	ToolSettings *settings = scene->toolsettings;
 	int w = settings->imapaint.screen_grab_size[0];
@@ -5476,7 +5477,8 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (h > maxsize) h = maxsize;
 
 	ibuf = ED_view3d_draw_offscreen_imbuf(
-	        &eval_ctx, scene, view_layer, CTX_wm_view3d(C), CTX_wm_region(C),
+	        &eval_ctx, scene, view_layer, engine_type,
+	        CTX_wm_view3d(C), CTX_wm_region(C),
 	        w, h, IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 	        NULL, err_out);
 	if (!ibuf) {

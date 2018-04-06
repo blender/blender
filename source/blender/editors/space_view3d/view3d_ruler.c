@@ -282,7 +282,7 @@ static void ruler_state_set(bContext *C, RulerInfo *ruler_info, int state)
 	}
 	else if (state == RULER_STATE_DRAG) {
 		ruler_info->snap_context = ED_transform_snap_object_context_create_view3d(
-		        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), CTX_data_engine_type(C), 0,
+		        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), 0,
 		        ruler_info->ar, CTX_wm_view3d(C));
 	}
 	else {
