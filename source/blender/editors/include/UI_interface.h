@@ -64,7 +64,6 @@ struct Image;
 struct ImageUser;
 struct wmKeyConfig;
 struct wmOperatorType;
-struct uiWidgetColors;
 struct MTex;
 struct ImBuf;
 struct bNodeTree;
