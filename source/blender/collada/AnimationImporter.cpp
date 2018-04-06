@@ -592,7 +592,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 	BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
 
 	const COLLADAFW::AnimationList *animlist = animlist_map[listid];
-	if (animlist == nullptr)
+	if (animlist == NULL)
 	{
 		fprintf(stderr, "Collada: No animlist found for ID: %s of type %s\n", listid.toAscii().c_str(), anim_type);
 		return;
