@@ -98,6 +98,7 @@ void BLF_matrix(int fontid, const float m[16]);
 /* Batch drawcalls together as long as
  * the modelview matrix and the font remain unchanged. */
 void BLF_batch_draw_begin(void);
+void BLF_batch_draw_flush(void);
 void BLF_batch_draw_end(void);
 
 /* Draw the string using the default font, size and dpi. */

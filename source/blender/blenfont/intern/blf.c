@@ -548,6 +548,13 @@ void BLF_batch_draw_begin(void)
 	g_batch.enabled = true;
 }
 
+void BLF_batch_draw_flush(void)
+{
+	if (g_batch.enabled) {
+		blf_batch_draw();
+	}
+}
+
 void BLF_batch_draw_end(void)
 {
 	BLI_assert(g_batch.enabled == true);
