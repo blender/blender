@@ -203,6 +203,7 @@ def find_next(ele_dst, ele_src):
     candidates = elems_depth_search(ele_dst, depth_src_a, other_edges_over_edge)
     candidates = elems_depth_search(ele_dst, depth_src_b, other_edges_over_face, candidates)
     candidates.discard(ele_src)
+    candidates.discard(ele_dst)
     if not candidates:
         return []
 
@@ -218,7 +219,7 @@ def find_next(ele_dst, ele_src):
         depth_test_a = elems_depth_measure(ele_dst, ele_test, other_edges_over_edge)
         depth_test_b = elems_depth_measure(ele_dst, ele_test, other_edges_over_face)
         if depth_test_a is None or depth_test_b is None:
-            return []
+            continue
         depth_test = tuple(zip(depth_test_a, depth_test_b))
         # square so a few high values win over many small ones
         diff_test = sum((abs(a[0] - b[0]) ** 2) +
@@ -242,7 +243,7 @@ def find_next(ele_dst, ele_src):
             depth_test_a = elems_depth_measure(ele_src, ele_test, other_edges_over_edge)
             depth_test_b = elems_depth_measure(ele_src, ele_test, other_edges_over_face)
             if depth_test_a is None or depth_test_b is None:
-                return []
+                continue
             depth_accum_test = (
                 sum(depth_test_a) + sum(depth_test_b))
 
