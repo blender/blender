@@ -150,9 +150,9 @@ GlyphCacheBLF *blf_glyph_cache_new(FontBLF *font)
 	gc->textures = (GLuint *)MEM_mallocN(sizeof(GLuint) * 256, __func__);
 	gc->textures_len = 256;
 	gc->texture_current = BLF_TEXTURE_UNSET;
-	gc->offset_x = 0;
-	gc->offset_y = 0;
-	gc->pad = 3;
+	gc->offset_x = 3; /* enough padding for blur */
+	gc->offset_y = 3; /* enough padding for blur */
+	gc->pad = 6;
 
 	gc->glyphs_len_max = (int)font->face->num_glyphs;
 	gc->glyphs_len_free = (int)font->face->num_glyphs;
@@ -375,7 +375,7 @@ void blf_glyph_free(GlyphBLF *g)
 	MEM_freeN(g);
 }
 
-static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture_draw(const unsigned char color[4], const float uv[2][2], float x1, float y1, float x2, float y2)
 {
 	/* Only one vertex per glyph, geometry shader expand it into a quad. */
 	/* TODO Get rid of Geom Shader because it's not optimal AT ALL for the GPU */
@@ -390,54 +390,34 @@ static void blf_texture_draw(const unsigned char color[4], float uv[2][2], float
 	}
 }
 
-static void blf_texture5_draw(const unsigned char color_in[4], float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture5_draw(const unsigned char color_in[4], int tex_w, int tex_h, const float uv[2][2],
+                              float x1, float y1, float x2, float y2)
 {
-	const float soft[25] = {1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f,
-	                        1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
-	                        2 / 60.0f, 5 / 60.0f, 8 / 60.0f, 5 / 60.0f, 2 / 60.0f,
-	                        1 / 60.0f, 3 / 60.0f, 5 / 60.0f, 3 / 60.0f, 1 / 60.0f,
-	                        1 / 60.0f, 1 / 60.0f, 2 / 60.0f, 1 / 60.0f, 1 / 60.0f};
+	float ofs[2] = { 2 / (float)tex_w, 2 / (float)tex_h };
+	float uv_flag[2][2];
+	copy_v4_v4((float *)uv_flag, (float *)uv);
+	/* flag the x and y component signs for 5x5 bluring */
+	uv_flag[0][0] = -(uv_flag[0][0] - ofs[0]);
+	uv_flag[0][1] = -(uv_flag[0][1] - ofs[1]);
+	uv_flag[1][0] = -(uv_flag[1][0] + ofs[0]);
+	uv_flag[1][1] = -(uv_flag[1][1] + ofs[1]);
 
-	const float *fp = soft;
-	unsigned char color[4];
-	float dx, dy;
-
-	color[0] = color_in[0];
-	color[1] = color_in[1];
-	color[2] = color_in[2];
-
-	const float alpha_in = (1 / 255.0f) * color_in[3];
-
-	for (dx = -2; dx < 3; dx++) {
-		for (dy = -2; dy < 3; dy++, fp++) {
-			color[3] = FTOCHAR(*fp * alpha_in);
-			blf_texture_draw(color, uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
-		}
-	}
+	blf_texture_draw(color_in, uv_flag, x1 - 2, y1 + 2, x2 + 2, y2 - 2);
 }
 
-static void blf_texture3_draw(const unsigned char color_in[4], float uv[2][2], float x1, float y1, float x2, float y2)
+static void blf_texture3_draw(const unsigned char color_in[4], int tex_w, int tex_h, const float uv[2][2],
+                              float x1, float y1, float x2, float y2)
 {
-	const float soft[9] = {1 / 16.0f, 2 / 16.0f, 1 / 16.0f,
-	                       2 / 16.0f, 4 / 16.0f, 2 / 16.0f,
-	                       1 / 16.0f, 2 / 16.0f, 1 / 16.0f};
+	float ofs[2] = { 1 / (float)tex_w, 1 / (float)tex_h };
+	float uv_flag[2][2];
+	copy_v4_v4((float *)uv_flag, (float *)uv);
+	/* flag the x component sign for 3x3 bluring */
+	uv_flag[0][0] = -(uv_flag[0][0] - ofs[0]);
+	uv_flag[0][1] =  (uv_flag[0][1] - ofs[1]);
+	uv_flag[1][0] = -(uv_flag[1][0] + ofs[0]);
+	uv_flag[1][1] =  (uv_flag[1][1] + ofs[1]);
 
-	const float *fp = soft;
-	unsigned char color[4];
-	float dx, dy;
-
-	color[0] = color_in[0];
-	color[1] = color_in[1];
-	color[2] = color_in[2];
-
-	const float alpha_in = (1 / 255.0f) * color_in[3];
-
-	for (dx = -1; dx < 2; dx++) {
-		for (dy = -1; dy < 2; dy++, fp++) {
-			color[3] = FTOCHAR(*fp * alpha_in);
-			blf_texture_draw(color, uv, x1 + dx, y1 + dy, x2 + dx, y2 + dy);
-		}
-	}
+	blf_texture_draw(color_in, uv_flag, x1 - 1, y1 + 1, x2 + 1, y2 - 1);
 }
 
 static void blf_glyph_calc_rect(rctf *rect, GlyphBLF *g, float x, float y)
@@ -466,7 +446,7 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		if (gc->texture_current == BLF_TEXTURE_UNSET) {
 			blf_glyph_cache_texture(font, gc);
 			gc->offset_x = gc->pad;
-			gc->offset_y = 0;
+			gc->offset_y = 3; /* enough padding for blur */
 		}
 
 		if (gc->offset_x > (gc->p2_width - gc->glyph_width_max)) {
@@ -474,7 +454,7 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			gc->offset_y += gc->glyph_height_max;
 
 			if (gc->offset_y > (gc->p2_height - gc->glyph_height_max)) {
-				gc->offset_y = 0;
+				gc->offset_y = 3; /* enough padding for blur */
 				blf_glyph_cache_texture(font, gc);
 			}
 		}
@@ -540,8 +520,6 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state = g->tex));
 	}
 
-	/* TODO: blur & shadow in shader, single quad per glyph */
-
 	if (font->flags & BLF_SHADOW) {
 		rctf rect_ofs;
 		blf_glyph_calc_rect(&rect_ofs, g,
@@ -552,20 +530,24 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 			blf_texture_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 		else if (font->shadow <= 4) {
-			blf_texture3_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+			blf_texture3_draw(font->shadow_color, font->glyph_cache->p2_width, font->glyph_cache->p2_height, g->uv,
+			                  rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 		else {
-			blf_texture5_draw(font->shadow_color, g->uv, rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
+			blf_texture5_draw(font->shadow_color, font->glyph_cache->p2_width, font->glyph_cache->p2_height, g->uv,
+			                  rect_ofs.xmin, rect_ofs.ymin, rect_ofs.xmax, rect_ofs.ymax);
 		}
 	}
 
 #if BLF_BLUR_ENABLE
 	switch (font->blur) {
 		case 3:
-			blf_texture3_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			blf_texture3_draw(font->color, font->glyph_cache->p2_width, font->glyph_cache->p2_height, g->uv,
+			                  rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 			break;
 		case 5:
-			blf_texture5_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
+			blf_texture5_draw(font->color, font->glyph_cache->p2_width, font->glyph_cache->p2_height, g->uv,
+			                  rect.xmin, rect.ymin, rect.xmax, rect.ymax);
 			break;
 		default:
 			blf_texture_draw(font->color, g->uv, rect.xmin, rect.ymin, rect.xmax, rect.ymax);
