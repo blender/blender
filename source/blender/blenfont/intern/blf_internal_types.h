@@ -45,6 +45,7 @@ typedef struct BatchBLF{
 	float ofs[2];    /* copy of font->pos */
 	float mat[4][4]; /* previous call modelmatrix. */
 	bool enabled, active, simple_shader;
+	unsigned int tex_bind_state;
 } BatchBLF;
 
 extern BatchBLF g_batch;

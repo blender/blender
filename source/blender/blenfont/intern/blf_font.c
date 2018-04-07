@@ -189,9 +189,9 @@ void blf_batch_draw(void)
 	/* We need to flush widget base first to ensure correct ordering. */
 	UI_widgetbase_draw_cache_flush();
 
-	BLI_assert(g_batch.font->tex_bind_state != 0); /* must still be valid */
+	BLI_assert(g_batch.tex_bind_state != 0); /* must still be valid */
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, g_batch.font->tex_bind_state);
+	glBindTexture(GL_TEXTURE_2D, g_batch.tex_bind_state);
 
 	GWN_vertbuf_vertex_count_set(g_batch.verts, g_batch.glyph_len);
 	GWN_vertbuf_use(g_batch.verts); /* send data */

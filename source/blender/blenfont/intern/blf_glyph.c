@@ -520,6 +520,8 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state = g->tex));
 	}
 
+	g_batch.tex_bind_state = g->tex;
+
 	if (font->flags & BLF_SHADOW) {
 		rctf rect_ofs;
 		blf_glyph_calc_rect(&rect_ofs, g,
