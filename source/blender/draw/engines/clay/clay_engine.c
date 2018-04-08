@@ -426,12 +426,6 @@ static void clay_engine_init(void *vedata)
 		e_data.copy_sh = DRW_shader_create_fullscreen(datatoc_clay_copy_glsl, NULL);
 	}
 
-	if (!e_data.hair_sh) {
-		e_data.hair_sh = DRW_shader_create(
-		        datatoc_clay_particle_vert_glsl, NULL, datatoc_clay_particle_strand_frag_glsl,
-		        "#define MAX_MATERIAL 512\n");
-	}
-
 	if (!stl->storage) {
 		stl->storage = MEM_callocN(sizeof(CLAY_Storage), "CLAY_Storage");
 	}
@@ -603,6 +597,12 @@ static DRWShadingGroup *CLAY_shgroup_deferred_shading_create(DRWPass *pass, CLAY
 static DRWShadingGroup *CLAY_hair_shgroup_create(DRWPass *pass, int id)
 {
 	CLAY_ViewLayerData *sldata = CLAY_view_layer_data_get();
+
+	if (!e_data.hair_sh) {
+		e_data.hair_sh = DRW_shader_create(
+		        datatoc_clay_particle_vert_glsl, NULL, datatoc_clay_particle_strand_frag_glsl,
+		        "#define MAX_MATERIAL 512\n");
+	}
 
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.hair_sh, pass);
 	DRW_shgroup_uniform_texture(grp, "matcaps", e_data.matcap_array);
