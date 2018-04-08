@@ -107,50 +107,6 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 	if (!e_data.shadow_sh) {
 		e_data.shadow_sh = DRW_shader_create(
 		        datatoc_shadow_vert_glsl, datatoc_shadow_geom_glsl, datatoc_shadow_frag_glsl, NULL);
-
-		DynStr *ds_frag = BLI_dynstr_new();
-		BLI_dynstr_append(ds_frag, datatoc_concentric_samples_lib_glsl);
-		BLI_dynstr_append(ds_frag, datatoc_shadow_store_frag_glsl);
-		char *store_shadow_shader_str = BLI_dynstr_get_cstring(ds_frag);
-		BLI_dynstr_free(ds_frag);
-
-		e_data.shadow_store_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
-		        store_shadow_shader_str,
-		        "#define ESM\n");
-		e_data.shadow_store_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
-		        store_shadow_shader_str,
-		        "#define ESM\n"
-		        "#define CSM\n");
-
-		e_data.shadow_store_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
-		        store_shadow_shader_str,
-		        "#define VSM\n");
-		e_data.shadow_store_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
-		        store_shadow_shader_str,
-		        "#define VSM\n"
-		        "#define CSM\n");
-
-		MEM_freeN(store_shadow_shader_str);
-
-		e_data.shadow_copy_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
-		        datatoc_shadow_copy_frag_glsl,
-		        "#define ESM\n"
-		        "#define COPY\n");
-		e_data.shadow_copy_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
-		        datatoc_shadow_copy_frag_glsl,
-		        "#define ESM\n"
-		        "#define COPY\n"
-		        "#define CSM\n");
-
-		e_data.shadow_copy_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
-		        datatoc_shadow_copy_frag_glsl,
-		        "#define VSM\n"
-		        "#define COPY\n");
-		e_data.shadow_copy_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
-		        datatoc_shadow_copy_frag_glsl,
-		        "#define VSM\n"
-		        "#define COPY\n"
-		        "#define CSM\n");
 	}
 
 	if (!sldata->lamps) {
@@ -203,6 +159,60 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 
 		linfo->shadow_cube_target_size = new_cube_target_size;
 		linfo->shadow_render_data.cube_texel_size = 1.0 / (float)linfo->shadow_cube_target_size;
+	}
+
+	/* only compile the ones needed. reduce startup time. */
+	if ((sh_method == SHADOW_ESM) && !e_data.shadow_store_cube_sh[SHADOW_ESM]) {
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_concentric_samples_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_shadow_store_frag_glsl);
+		char *store_shadow_shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		e_data.shadow_store_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
+		        store_shadow_shader_str,
+		        "#define ESM\n");
+		e_data.shadow_store_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
+		        store_shadow_shader_str,
+		        "#define ESM\n"
+		        "#define CSM\n");
+		MEM_freeN(store_shadow_shader_str);
+
+		e_data.shadow_copy_cube_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
+		        datatoc_shadow_copy_frag_glsl,
+		        "#define ESM\n"
+		        "#define COPY\n");
+		e_data.shadow_copy_cascade_sh[SHADOW_ESM] = DRW_shader_create_fullscreen(
+		        datatoc_shadow_copy_frag_glsl,
+		        "#define ESM\n"
+		        "#define COPY\n"
+		        "#define CSM\n");
+	}
+	else if ((sh_method == SHADOW_VSM) && !e_data.shadow_store_cube_sh[SHADOW_VSM]) {
+		DynStr *ds_frag = BLI_dynstr_new();
+		BLI_dynstr_append(ds_frag, datatoc_concentric_samples_lib_glsl);
+		BLI_dynstr_append(ds_frag, datatoc_shadow_store_frag_glsl);
+		char *store_shadow_shader_str = BLI_dynstr_get_cstring(ds_frag);
+		BLI_dynstr_free(ds_frag);
+
+		e_data.shadow_store_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
+		        store_shadow_shader_str,
+		        "#define VSM\n");
+		e_data.shadow_store_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
+		        store_shadow_shader_str,
+		        "#define VSM\n"
+		        "#define CSM\n");
+		MEM_freeN(store_shadow_shader_str);
+
+		e_data.shadow_copy_cube_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
+		        datatoc_shadow_copy_frag_glsl,
+		        "#define VSM\n"
+		        "#define COPY\n");
+		e_data.shadow_copy_cascade_sh[SHADOW_VSM] = DRW_shader_create_fullscreen(
+		        datatoc_shadow_copy_frag_glsl,
+		        "#define VSM\n"
+		        "#define COPY\n"
+		        "#define CSM\n");
 	}
 }
 
