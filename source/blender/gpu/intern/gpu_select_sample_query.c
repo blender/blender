@@ -44,6 +44,8 @@
 
 #include "BLI_utildefines.h"
 
+#include "PIL_time.h"
+
 #include "gpu_select_private.h"
 
 
@@ -96,7 +98,7 @@ void gpu_select_query_begin(
 	g_query_state.id = MEM_mallocN(g_query_state.num_of_queries * sizeof(*g_query_state.id), "gpu selection ids");
 	glGenQueries(g_query_state.num_of_queries, g_query_state.queries);
 
-	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT);
+	gpuPushAttrib(GPU_DEPTH_BUFFER_BIT | GPU_VIEWPORT_BIT | GPU_SCISSOR_BIT);
 	/* disable writing to the framebuffer */
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
@@ -114,6 +116,7 @@ void gpu_select_query_begin(
 		glDepthMask(GL_FALSE);
 	}
 	else if (mode == GPU_SELECT_NEAREST_FIRST_PASS) {
+		glDisable(GL_SCISSOR_TEST); /* allows fast clear */
 		glClear(GL_DEPTH_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 		glDepthMask(GL_TRUE);
@@ -172,8 +175,21 @@ uint gpu_select_query_end(void)
 		glEndQuery(GL_SAMPLES_PASSED);
 	}
 
+	/* We need to sync to get the results anyway.
+	 * If we don't do that the driver will do. */
+	glFinish();
+
 	for (i = 0; i < g_query_state.active_query; i++) {
-		uint result;
+		uint result = 0;
+		/* Wait until the result is available. This can happen even if glFinish() was called. */
+		while (result == 0) {
+			glGetQueryObjectuiv(g_query_state.queries[i], GL_QUERY_RESULT_AVAILABLE, &result);
+			if (result == 0) {
+				/* (fclem) Not sure if this is better than calling
+				 * glGetQueryObjectuiv() indefinitely. */
+				PIL_sleep_ms(1);
+			}
+		}
 		glGetQueryObjectuiv(g_query_state.queries[i], GL_QUERY_RESULT, &result);
 		if (result > 0) {
 			if (g_query_state.mode != GPU_SELECT_NEAREST_SECOND_PASS) {
