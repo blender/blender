@@ -420,15 +420,15 @@ static void blf_font_draw_ascii_ex(
         FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
         int pen_y)
 {
-	unsigned char c;
+	unsigned int c, c_prev = BLI_UTF8_ERR;
 	GlyphBLF *g, *g_prev = NULL;
-	FT_Vector delta;
 	int pen_x = 0;
 	GlyphBLF **glyph_ascii_table = font->glyph_cache->glyph_ascii_table;
 
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
+	blf_font_ensure_ascii_kerning(font, kern_mode);
 
 	blf_batch_draw_begin(font);
 
@@ -437,13 +437,14 @@ static void blf_font_draw_ascii_ex(
 		if ((g = glyph_ascii_table[c]) == NULL)
 			continue;
 		if (has_kerning)
-			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+			BLF_KERNING_STEP_FAST(font, kern_mode, g_prev, g, c_prev, c, pen_x);
 
 		/* do not return this loop if clipped, we want every character tested */
 		blf_glyph_render(font, g, (float)pen_x, (float)pen_y);
 
 		pen_x += g->advance_i;
 		g_prev = g;
+		c_prev = c;
 	}
 
 	blf_batch_draw_end();
@@ -501,9 +502,8 @@ static void blf_font_draw_buffer_ex(
         FontBLF *font, const char *str, size_t len, struct ResultBLF *r_info,
         int pen_y)
 {
-	unsigned int c;
+	unsigned int c, c_prev = BLI_UTF8_ERR;
 	GlyphBLF *g, *g_prev = NULL;
-	FT_Vector delta;
 	int pen_x = (int)font->pos[0];
 	int pen_y_basis = (int)font->pos[1] + pen_y;
 	size_t i = 0;
@@ -519,6 +519,7 @@ static void blf_font_draw_buffer_ex(
 	BLF_KERNING_VARS(font, has_kerning, kern_mode);
 
 	blf_font_ensure_ascii_table(font);
+	blf_font_ensure_ascii_kerning(font, kern_mode);
 
 	/* another buffer specific call for color conversion */
 
@@ -530,7 +531,7 @@ static void blf_font_draw_buffer_ex(
 		if (UNLIKELY(g == NULL))
 			continue;
 		if (has_kerning)
-			BLF_KERNING_STEP(font, kern_mode, g_prev, g, delta, pen_x);
+			BLF_KERNING_STEP_FAST(font, kern_mode, g_prev, g, c_prev, c, pen_x);
 
 		chx = pen_x + ((int)g->pos_x);
 		chy = pen_y_basis + g->height;
@@ -632,6 +633,7 @@ static void blf_font_draw_buffer_ex(
 
 		pen_x += g->advance_i;
 		g_prev = g;
+		c_prev = c;
 	}
 
 	if (r_info) {
