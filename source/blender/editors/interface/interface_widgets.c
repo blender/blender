@@ -1711,6 +1711,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			int selsta_draw, selwidth_draw;
 			
 			if (drawstr[0] != 0) {
+				/* We are drawing on top of widget bases. Flush cache. */
+				glEnable(GL_BLEND);
+				UI_widgetbase_draw_cache_flush();
+				glDisable(GL_BLEND);
 
 				if (but->selsta >= but->ofs) {
 					selsta_draw = BLF_width(fstyle->uifont_id, drawstr + but->ofs, but->selsta - but->ofs);
@@ -1752,6 +1756,10 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 			else {
 				t = 0;
 			}
+			/* We are drawing on top of widget bases. Flush cache. */
+			glEnable(GL_BLEND);
+			UI_widgetbase_draw_cache_flush();
+			glDisable(GL_BLEND);
 
 			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
