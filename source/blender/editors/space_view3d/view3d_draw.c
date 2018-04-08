@@ -1850,6 +1850,8 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 	view3d_draw_border(C, ar);
 	view3d_draw_grease_pencil(C);
 
+	BLF_batch_draw_begin();
+
 	if (U.uiflag & USER_SHOW_ROTVIEWICON) {
 		draw_view_axis(rv3d, &rect);
 	}
@@ -1866,6 +1868,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 		Object *ob = OBACT(view_layer);
 		draw_selected_name(scene, ob, &rect);
 	}
+
 #if 0 /* TODO */
 	if (grid_unit) { /* draw below the viewport name */
 		char numstr[32] = "";
@@ -1880,6 +1883,7 @@ void view3d_draw_region_info(const bContext *C, ARegion *ar, const int offset)
 		                       numstr[0] ? numstr : grid_unit, sizeof(numstr));
 	}
 #endif
+	BLF_batch_draw_end();
 }
 
 static void view3d_draw_view(const bContext *C, ARegion *ar)
