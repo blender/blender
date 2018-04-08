@@ -41,7 +41,7 @@ static bNodeSocketTemplate sh_node_volume_principled_in[] = {
 	{	SOCK_FLOAT, 1, N_("Blackbody Intensity"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	SOCK_RGBA, 1, N_("Blackbody Tint"),			1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 1, N_("Temperature"),			1000.0f, 0.0f, 0.0f, 0.0f, 0.0f, 6500.0f},
-	{	SOCK_STRING, 1, N_("Temperature Attribute"),0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_STRING, 1, N_("Temperature Attribute"), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

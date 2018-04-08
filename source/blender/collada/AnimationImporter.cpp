@@ -592,6 +592,12 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 	BLI_strncpy(rna_path, anim_type, sizeof(rna_path));
 
 	const COLLADAFW::AnimationList *animlist = animlist_map[listid];
+	if (animlist == NULL)
+	{
+		fprintf(stderr, "Collada: No animlist found for ID: %s of type %s\n", listid.toAscii().c_str(), anim_type);
+		return;
+	}
+
 	const COLLADAFW::AnimationList::AnimationBindings& bindings = animlist->getAnimationBindings();
 	//all the curves belonging to the current binding
 	std::vector<FCurve *> animcurves;
@@ -889,11 +895,22 @@ static const double get_aspect_ratio(const COLLADAFW::Camera *camera)
 	return aspect;
 }
 
+static ListBase &get_animation_curves(Material *ma)
+{
+	bAction *act;
+	if (!ma->adt || !ma->adt->action)
+		act = verify_adt_action((ID *)&ma->id, 1);
+	else
+		act = ma->adt->action;
+
+	return act->curves;
+}
 
 void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
                                              std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& root_map,
                                              std::multimap<COLLADAFW::UniqueId, Object *>& object_map,
-                                             std::map<COLLADAFW::UniqueId, const COLLADAFW::Object *> FW_object_map)
+                                             std::map<COLLADAFW::UniqueId, const COLLADAFW::Object *> FW_object_map,
+                                             std::map<COLLADAFW::UniqueId, Material*> uid_material_map)
 {
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	COLLADAFW::UniqueId uid = node->getUniqueId();
@@ -1071,11 +1088,6 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 		}
 	}
 	if (animType->material != 0) {
-		Material *ma = give_current_material(ob, 1);
-		if (!ma->adt || !ma->adt->action) act = verify_adt_action((ID *)&ma->id, 1);
-		else act = ma->adt->action;
-
-		ListBase *AnimCurves = &(act->curves);
 
 		const COLLADAFW::InstanceGeometryPointerArray& nodeGeoms = node->getInstanceGeometries();
 		for (unsigned int i = 0; i < nodeGeoms.getCount(); i++) {
@@ -1084,30 +1096,36 @@ void AnimationImporter::translate_Animations(COLLADAFW::Node *node,
 				const COLLADAFW::UniqueId & matuid = matBinds[j].getReferencedMaterial();
 				const COLLADAFW::Effect *ef = (COLLADAFW::Effect *) (FW_object_map[matuid]);
 				if (ef != NULL) { /* can be NULL [#28909] */
-					const COLLADAFW::CommonEffectPointerArray& commonEffects  =  ef->getCommonEffects();
+					Material *ma = uid_material_map[matuid];
+					if (!ma) {
+						fprintf(stderr, "Collada: Node %s refers to undefined material\n", node->getName().c_str());
+						continue;
+					}
+					ListBase &AnimCurves = get_animation_curves(ma);
+					const COLLADAFW::CommonEffectPointerArray& commonEffects = ef->getCommonEffects();
 					COLLADAFW::EffectCommon *efc = commonEffects[0];
 					if ((animType->material & MATERIAL_SHININESS) != 0) {
 						const COLLADAFW::FloatOrParam *shin = &(efc->getShininess());
-						const COLLADAFW::UniqueId& listid =  shin->getAnimationList();
-						Assign_float_animations(listid, AnimCurves, "specular_hardness");
+						const COLLADAFW::UniqueId& listid = shin->getAnimationList();
+						Assign_float_animations(listid, &AnimCurves, "specular_hardness");
 					}
 
 					if ((animType->material & MATERIAL_IOR) != 0) {
 						const COLLADAFW::FloatOrParam *ior = &(efc->getIndexOfRefraction());
-						const COLLADAFW::UniqueId& listid =  ior->getAnimationList();
-						Assign_float_animations(listid, AnimCurves, "raytrace_transparency.ior");
+						const COLLADAFW::UniqueId& listid = ior->getAnimationList();
+						Assign_float_animations(listid, &AnimCurves, "raytrace_transparency.ior");
 					}
 
 					if ((animType->material & MATERIAL_SPEC_COLOR) != 0) {
 						const COLLADAFW::ColorOrTexture *cot = &(efc->getSpecular());
-						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
-						Assign_color_animations(listid, AnimCurves, "specular_color");
+						const COLLADAFW::UniqueId& listid = cot->getColor().getAnimationList();
+						Assign_color_animations(listid, &AnimCurves, "specular_color");
 					}
 
 					if ((animType->material & MATERIAL_DIFF_COLOR) != 0) {
 						const COLLADAFW::ColorOrTexture *cot = &(efc->getDiffuse());
-						const COLLADAFW::UniqueId& listid =  cot->getColor().getAnimationList();
-						Assign_color_animations(listid, AnimCurves, "diffuse_color");
+						const COLLADAFW::UniqueId& listid = cot->getColor().getAnimationList();
+						Assign_color_animations(listid, &AnimCurves, "diffuse_color");
 					}
 				}
 			}

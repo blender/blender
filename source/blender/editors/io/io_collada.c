@@ -151,7 +151,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	include_animations       = RNA_boolean_get(op->ptr, "include_animations");
 	sample_animations        = RNA_boolean_get(op->ptr, "sample_animations");
-	sampling_rate            = (sample_animations)? RNA_int_get(op->ptr, "sampling_rate") : 0;
+	sampling_rate            = (sample_animations) ? RNA_int_get(op->ptr, "sampling_rate") : 0;
 
 	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 
@@ -490,8 +490,7 @@ static int wm_collada_import_exec(bContext *C, wmOperator *op)
 	import_settings.min_chain_length = min_chain_length;
 	import_settings.keep_bind_info = keep_bind_info != 0;
 
-	if (collada_import(C, &import_settings) )
-	{
+	if (collada_import(C, &import_settings)) {
 		DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_BASE_FLAGS_UPDATE);
 		return OPERATOR_FINISHED;
 	}

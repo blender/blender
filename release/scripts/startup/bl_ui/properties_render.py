@@ -460,11 +460,31 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
         split.prop(rd.ffmpeg, "format")
         split.prop(ffmpeg, "use_autosplit")
 
+        # Video:
         layout.separator()
+        self.draw_vcodec(context)
+
+        # Audio:
+        layout.separator()
+        if ffmpeg.format != 'MP3':
+            layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
+
+        if ffmpeg.audio_codec != 'NONE':
+            row = layout.row()
+            row.prop(ffmpeg, "audio_bitrate")
+            row.prop(ffmpeg, "audio_volume", slider=True)
+
+    def draw_vcodec(self, context):
+        """Video codec options."""
+        layout = self.layout
+        ffmpeg = context.scene.render.ffmpeg
 
         needs_codec = ffmpeg.format in {'AVI', 'QUICKTIME', 'MKV', 'OGG', 'MPEG4'}
         if needs_codec:
             layout.prop(ffmpeg, "codec")
+
+        if needs_codec and ffmpeg.codec == 'NONE':
+            return
 
         if ffmpeg.codec in {'DNXHD'}:
             layout.prop(ffmpeg, "use_lossless_output")
@@ -498,17 +518,6 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
             col.label(text="Mux:")
             col.prop(ffmpeg, "muxrate", text="Rate")
             col.prop(ffmpeg, "packetsize", text="Packet Size")
-
-        layout.separator()
-
-        # Audio:
-        if ffmpeg.format != 'MP3':
-            layout.prop(ffmpeg, "audio_codec", text="Audio Codec")
-
-        if ffmpeg.audio_codec != 'NONE':
-            row = layout.row()
-            row.prop(ffmpeg, "audio_bitrate")
-            row.prop(ffmpeg, "audio_volume", slider=True)
 
 
 class RENDER_PT_bake(RenderButtonsPanel, Panel):

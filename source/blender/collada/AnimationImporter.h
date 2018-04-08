@@ -156,7 +156,8 @@ public:
 	void translate_Animations(COLLADAFW::Node * Node,
 	                          std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& root_map,
 	                          std::multimap<COLLADAFW::UniqueId, Object*>& object_map,
-	                          std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map);
+	                          std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map,
+	                          std::map<COLLADAFW::UniqueId, Material*> uid_material_map);
 
 	AnimMix* get_animation_type( const COLLADAFW::Node * node, std::map<COLLADAFW::UniqueId, const COLLADAFW::Object*> FW_object_map );
 

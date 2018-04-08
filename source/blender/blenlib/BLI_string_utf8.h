@@ -77,6 +77,16 @@ size_t       BLI_str_partition_ex_utf8(
 #define      BLI_UTF8_WIDTH_MAX 2  /* columns */
 #define      BLI_UTF8_ERR ((unsigned int)-1)
 
+/** \name String Copy/Format Macros
+ * Avoid repeating destination with `sizeof(..)`.
+ * \note `ARRAY_SIZE` allows pointers on some platforms.
+ * \{ */
+#define STRNCPY_UTF8(dst, src) \
+    BLI_strncpy_utf8(dst, src, ARRAY_SIZE(dst))
+#define STRNCPY_UTF8_RLEN(dst, src) \
+    BLI_strncpy_utf8_rlen(dst, src, ARRAY_SIZE(dst))
+/** \} */
+
 #ifdef __cplusplus
 }
 #endif

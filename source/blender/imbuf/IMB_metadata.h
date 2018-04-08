@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/imbuf/intern/IMB_metadata.h
+/** \file blender/imbuf/IMB_metadata.h
  *  \ingroup imbuf
  */
 

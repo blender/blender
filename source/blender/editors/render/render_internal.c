@@ -643,7 +643,7 @@ static void render_image_restore_layer(RenderJob *rj)
 							/* For single layer renders keep the active layer
 							 * visible, or show the compositing result. */
 							RenderResult *rr = RE_AcquireResultRead(rj->re);
-							if(RE_HasCombinedLayer(rr)) {
+							if (RE_HasCombinedLayer(rr)) {
 								sima->iuser.layer = 0;
 							}
 							RE_ReleaseResult(rj->re);

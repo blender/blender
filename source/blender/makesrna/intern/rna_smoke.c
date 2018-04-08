@@ -907,7 +907,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0, 1.0);
 	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.1, 3);
 	RNA_def_property_ui_text(prop, "Clipping",
-							 "Value under which voxels are considered empty space to optimize caching or rendering");
+	                         "Value under which voxels are considered empty space to optimize caching or rendering");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
 }
 

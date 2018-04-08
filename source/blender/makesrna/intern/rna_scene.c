@@ -5230,7 +5230,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem ffmpeg_codec_items[] = {
-		{AV_CODEC_ID_NONE, "NONE", 0, "None", ""},
+		{AV_CODEC_ID_NONE, "NONE", 0, "No Video", "Disables video output, for audio-only renders"},
 		{AV_CODEC_ID_MPEG1VIDEO, "MPEG1", 0, "MPEG-1", ""},
 		{AV_CODEC_ID_MPEG2VIDEO, "MPEG2", 0, "MPEG-2", ""},
 		{AV_CODEC_ID_MPEG4, "MPEG4", 0, "MPEG-4(divx)", ""},
@@ -5260,8 +5260,8 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem ffmpeg_crf_items[] = {
-		{FFM_CRF_NONE, "NONE", 0, "None; use custom bitrate",
-		 "Use constant bit rate, rather than constant output quality"},
+		{FFM_CRF_NONE, "NONE", 0, "Constant Bitrate",
+		 "Configure constant bit rate, rather than constant output quality"},
 		{FFM_CRF_LOSSLESS, "LOSSLESS", 0, "Lossless", ""},
 		{FFM_CRF_PERC_LOSSLESS, "PERC_LOSSLESS", 0, "Perceptually lossless", ""},
 		{FFM_CRF_HIGH, "HIGH", 0, "High quality", ""},
@@ -5273,7 +5273,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem ffmpeg_audio_codec_items[] = {
-		{AV_CODEC_ID_NONE, "NONE", 0, "None", ""},
+		{AV_CODEC_ID_NONE, "NONE", 0, "No Audio", "Disables audio output, for video-only renders"},
 		{AV_CODEC_ID_MP2, "MP2", 0, "MP2", ""},
 		{AV_CODEC_ID_MP3, "MP3", 0, "MP3", ""},
 		{AV_CODEC_ID_AC3, "AC3", 0, "AC3", ""},
@@ -5312,7 +5312,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_codec_items);
 	RNA_def_property_enum_default(prop, AV_CODEC_ID_H264);
-	RNA_def_property_ui_text(prop, "Codec", "FFmpeg codec to use");
+	RNA_def_property_ui_text(prop, "Video Codec", "FFmpeg codec to use for video output");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_FFmpegSettings_codec_settings_update");
 
 	prop = RNA_def_property(srna, "video_bitrate", PROP_INT, PROP_NONE);

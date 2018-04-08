@@ -81,7 +81,7 @@ short IMB_saveiff(struct ImBuf *ibuf, const char *name, int flags)
 
 bool IMB_prepare_write_ImBuf(const bool isfloat, ImBuf *ibuf)
 {
-    bool changed = false;
+	bool changed = false;
 
 	if (isfloat) {
 		/* pass */
@@ -90,9 +90,9 @@ bool IMB_prepare_write_ImBuf(const bool isfloat, ImBuf *ibuf)
 		if (ibuf->rect == NULL && ibuf->rect_float) {
 			ibuf->rect_colorspace = colormanage_colorspace_get_roled(COLOR_ROLE_DEFAULT_BYTE);
 			IMB_rect_from_float(ibuf);
-            if (ibuf->rect != NULL) {
-                changed = true;
-            }
+			if (ibuf->rect != NULL) {
+				changed = true;
+			}
 		}
 	}
 

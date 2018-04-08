@@ -587,7 +587,7 @@ void BKE_pose_eval_init(const struct EvaluationContext *UNUSED(eval_ctx),
 
 	const int num_channels = BLI_listbase_count(&pose->chanbase);
 	pose->chan_array = MEM_malloc_arrayN(
-	        num_channels, sizeof(bPoseChannel*), "pose->chan_array");
+	        num_channels, sizeof(bPoseChannel *), "pose->chan_array");
 
 	/* clear flags */
 	int pchan_index = 0;

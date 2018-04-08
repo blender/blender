@@ -24,7 +24,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/metaball/lattice_ops.c
+/** \file blender/editors/lattice/lattice_ops.c
  *  \ingroup edlattice
  */
 
