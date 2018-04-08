@@ -474,35 +474,24 @@ void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
 	const float halfx = GLA_PIXEL_OFS / sizex;
 	const float halfy = GLA_PIXEL_OFS / sizey;
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-
 	const int activeTex = 7; /* arbitrary */
 	glActiveTexture(GL_TEXTURE0 + activeTex);
 	glBindTexture(GL_TEXTURE_2D, triple->bind);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
+	float x1 = halfx;
+	float x2 = ratiox + halfx;
+	float y1 = halfy;
+	float y2 = ratioy + halfy;
 
-	immUniform1f("alpha", alpha);
-	immUniform1i("image", activeTex);
+	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+	GPU_shader_bind(shader);
 
-	immBegin(GWN_PRIM_TRI_FAN, 4);
+	glUniform1i(GPU_shader_get_uniform(shader, "image"), activeTex);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), x1, y1, x2, y2);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), 0.0f, 0.0f, sizex, sizey);
+	glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
 
-	immAttrib2f(texcoord, halfx, halfy);
-	immVertex2f(pos, 0.0f, 0.0f);
-
-	immAttrib2f(texcoord, ratiox + halfx, halfy);
-	immVertex2f(pos, sizex, 0.0f);
-
-	immAttrib2f(texcoord, ratiox + halfx, ratioy + halfy);
-	immVertex2f(pos, sizex, sizey);
-
-	immAttrib2f(texcoord, halfx, ratioy + halfy);
-	immVertex2f(pos, 0.0f, sizey);
-
-	immEnd();
-	immUnbindProgram();
+	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
