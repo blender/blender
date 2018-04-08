@@ -521,35 +521,23 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 	BLI_assert(w == BLI_rcti_size_x(rect) + 1);
 	BLI_assert(h == BLI_rcti_size_y(rect) + 1);
 
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	float x1 = rect->xmin;
+	float x2 = rect->xmin + w;
+	float y1 = rect->ymin;
+	float y2 = rect->ymin + h;
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
+	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
+	GPU_shader_bind(shader);
+
 	GPU_texture_bind(color, 0);
+	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), 0.0f, 0.0f, 1.0f, 1.0f);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), x1, y1, x2, y2);
+	glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), 1.0f, 1.0f, 1.0f, 1.0f);
 
-	immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
-	immUniform1f("alpha", 1.0f);
-
-	immBegin(GWN_PRIM_TRI_STRIP, 4);
-
-	immAttrib2f(texcoord, 0.0f, 0.0f);
-	immVertex2f(pos, rect->xmin, rect->ymin);
-
-	immAttrib2f(texcoord, 1.0f, 0.0f);
-	immVertex2f(pos, rect->xmin + w, rect->ymin);
-
-	immAttrib2f(texcoord, 0.0f, 1.0f);
-	immVertex2f(pos, rect->xmin, rect->ymin + h);
-
-	immAttrib2f(texcoord, 1.0f, 1.0f);
-	immVertex2f(pos, rect->xmin + w, rect->ymin + h);
-
-	immEnd();
+	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
 
 	GPU_texture_unbind(color);
-
-	immUnbindProgram();
 }
 
 void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
