@@ -66,6 +66,7 @@
 #include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 /* Define for cases when you want extra validation of mesh
  * after certain modifications.
@@ -2428,12 +2429,12 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 /* settings: 1 - preview, 2 - render */
 Mesh *BKE_mesh_new_from_object(
         const EvaluationContext *eval_ctx, Main *bmain, Scene *sce, Object *ob,
-        int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
+        int apply_modifiers, int calc_tessface, int calc_undeformed)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
 	int i;
-	const bool render = (settings == eModifierMode_Render);
+	const bool render = (DEG_get_mode(eval_ctx->depsgraph) == DAG_EVAL_RENDER);
 	const bool cage = !apply_modifiers;
 	bool do_mat_id_data_us = true;
 

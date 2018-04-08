@@ -197,12 +197,12 @@ static void rna_Object_camera_fit_coords(
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
 static Mesh *rna_Object_to_mesh(
-        Object *ob, bContext *C, ReportList *reports, Scene *sce, ViewLayer *view_layer,
-        int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
+        Object *ob, bContext *C, ReportList *reports, Depsgraph *depsgraph,
+        int apply_modifiers, int calc_tessface, int calc_undeformed)
 {
 	Main *bmain = CTX_data_main(C);
 
-	return rna_Main_meshes_new_from_object(bmain, reports, sce, view_layer, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
+	return rna_Main_meshes_new_from_object(bmain, reports, depsgraph, ob, apply_modifiers, calc_tessface, calc_undeformed);
 }
 
 static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *reports,
@@ -547,13 +547,9 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh data-block with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_CONTEXT);
-	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Scene layer within which to evaluate modifiers");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph within wich to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "calc_tessface", true, "Calculate Tessellation", "Calculate tessellation faces");
 	RNA_def_boolean(func, "calc_undeformed", false, "Calculate Undeformed", "Calculate undeformed vertex coordinates");

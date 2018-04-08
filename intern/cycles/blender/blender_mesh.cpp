@@ -1188,10 +1188,8 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 
 		BL::Mesh b_mesh = object_to_mesh(b_data,
 		                                 b_ob,
-		                                 b_scene,
-		                                 b_depsgraph.view_layer(),
+		                                 b_depsgraph,
 		                                 true,
-		                                 !preview,
 		                                 need_undeformed,
 		                                 mesh->subdivision_type);
 
@@ -1207,7 +1205,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 			}
 
 			if(view_layer.use_hair && mesh->subdivision_type == Mesh::SUBDIVISION_NONE)
-				sync_curves(b_depsgraph, mesh, b_mesh, b_ob, false);
+				sync_curves(mesh, b_mesh, b_ob, false);
 
 			if(can_free_caches) {
 				b_ob.cache_release();
@@ -1278,10 +1276,8 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 		/* get derived mesh */
 		b_mesh = object_to_mesh(b_data,
 		                        b_ob,
-		                        b_scene,
-		                        b_depsgraph.view_layer(),
+		                        b_depsgraph,
 		                        true,
-		                        !preview,
 		                        false,
 		                        Mesh::SUBDIVISION_NONE);
 	}
@@ -1390,7 +1386,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 
 	/* hair motion */
 	if(numkeys)
-		sync_curves(b_depsgraph, mesh, b_mesh, b_ob, true, motion_step);
+		sync_curves(mesh, b_mesh, b_ob, true, motion_step);
 
 	/* free derived mesh */
 	b_data.meshes.remove(b_mesh, false, true, false);

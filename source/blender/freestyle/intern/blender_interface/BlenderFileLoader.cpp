@@ -121,7 +121,6 @@ NodeGroup *BlenderFileLoader::Load()
 		                                      _re->scene,
 		                                      ob,
 		                                      apply_modifiers,
-		                                      eModifierMode_Render,
 		                                      calc_tessface,
 		                                      calc_undeformed);
 

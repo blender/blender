@@ -188,11 +188,6 @@ typedef struct ParticleSettings {
 	/* draw color */
 	float color_vec_max;
 
-	/* simplification */
-	short simplify_flag, simplify_refsize;
-	float simplify_rate, simplify_transition;
-	float simplify_viewport;
-
 	/* time and emission */
 	float sta, end, lifetime, randlife;
 	float timetweak, courant_target;
@@ -312,9 +307,6 @@ typedef struct ParticleSystem {
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
 	short vgroup[13], vg_neg, rt3;			/* vertex groups, 0==disable, 1==starting index */
 	char pad[6];
-
-	/* temporary storage during render */
-	struct ParticleRenderData *renderdata;
 
 	/* point cache */
 	struct PointCache *pointcache;

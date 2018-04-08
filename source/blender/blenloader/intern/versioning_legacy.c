@@ -2770,13 +2770,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		for (part = main->particle.first; part; part = part->id.next) {
 			if (part->ren_child_nbr == 0)
 				part->ren_child_nbr = part->child_nbr;
-
-			if (part->simplify_refsize == 0) {
-				part->simplify_refsize = 1920;
-				part->simplify_rate = 1.0f;
-				part->simplify_transition = 0.1f;
-				part->simplify_viewport = 0.8f;
-			}
 		}
 
 		for (wrld = main->world.first; wrld; wrld = wrld->id.next) {

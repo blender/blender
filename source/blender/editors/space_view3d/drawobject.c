@@ -5937,7 +5937,7 @@ static void draw_new_particle_system(
 	if (pars == NULL) return;
 
 	/* don't draw normal paths in edit mode */
-	if (psys_in_edit_mode(eval_ctx->view_layer, psys) && (pset->flag & PE_DRAW_PART) == 0)
+	if (psys_in_edit_mode(eval_ctx->depsgraph, psys) && (pset->flag & PE_DRAW_PART) == 0)
 		return;
 
 	if (part->draw_as == PART_DRAW_REND)

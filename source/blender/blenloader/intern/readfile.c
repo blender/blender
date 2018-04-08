@@ -4526,7 +4526,6 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		BLI_listbase_clear(&psys->pathcachebufs);
 		BLI_listbase_clear(&psys->childcachebufs);
 		psys->pdd = NULL;
-		psys->renderdata = NULL;
 		
 		if (psys->clmd) {
 			psys->clmd = newdataadr(fd, psys->clmd);
