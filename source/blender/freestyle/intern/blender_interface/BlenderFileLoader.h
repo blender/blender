@@ -60,9 +60,9 @@ extern "C" {
 #include "BLI_iterator.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
+}
 
 #include "DEG_depsgraph_query.h"
-}
 
 #ifdef WITH_CXX_GUARDEDALLOC
 #include "MEM_guardedalloc.h"

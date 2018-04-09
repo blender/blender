@@ -86,11 +86,12 @@ typedef enum eDepsObjectIteratorMode {
 
 typedef struct DEGObjectIterData {
 	struct Depsgraph *graph;
+	eDepsObjectIteratorMode mode;
+	int flag;
+
 	struct Scene *scene;
 	struct EvaluationContext eval_ctx;
 
-	int flag;
-	eDepsObjectIteratorMode mode;
 	int visibility_check; /* eObjectVisibilityCheck. */
 
 	/* **** Iteration over dupli-list. *** */
@@ -127,9 +128,9 @@ void DEG_iterator_objects_end(struct BLI_Iterator *iter);
 #define DEG_OBJECT_ITER_BEGIN(graph_, instance_, mode_, flag_)                    \
 	{                                                                             \
 		DEGObjectIterData data_ = {                                               \
-			.graph = (graph_),                                                    \
-			.mode = (mode_),                                                      \
-			.flag = (flag_),                                                      \
+			graph_,                                                               \
+			mode_,                                                                \
+			flag_                                                                 \
 		};                                                                        \
                                                                                   \
 		ITER_BEGIN(DEG_iterator_objects_begin,                                    \
