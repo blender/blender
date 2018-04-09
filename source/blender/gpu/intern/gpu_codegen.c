@@ -2270,7 +2270,9 @@ void GPU_pass_release(GPUPass *pass)
 static void gpu_pass_free(GPUPass *pass)
 {
 	BLI_assert(pass->refcount == 0);
-	GPU_shader_free(pass->shader);
+	if (pass->shader) {
+		GPU_shader_free(pass->shader);
+	}
 	MEM_SAFE_FREE(pass->fragmentcode);
 	MEM_SAFE_FREE(pass->geometrycode);
 	MEM_SAFE_FREE(pass->vertexcode);
