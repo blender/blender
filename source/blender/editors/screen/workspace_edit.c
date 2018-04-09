@@ -193,7 +193,9 @@ bool ED_workspace_change(
 		WM_window_set_active_layout(win, workspace_new, layout_new);
 		WM_window_set_active_workspace(win, workspace_new);
 
-		/* update screen *after* changing workspace - which also causes the actual screen change */
+		/* update screen *after* changing workspace - which also causes the
+		 * actual screen change and updates context (including CTX_wm_workspace) */
+		screen_change_update(C, win, screen_new);
 		workspace_change_update(workspace_new, workspace_old, C, wm);
 
 		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);

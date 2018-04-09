@@ -93,7 +93,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
 	ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
 	Object *obact = (view_layer && view_layer->basact) ? view_layer->basact->object : NULL;
-	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
+	Object *obedit = view_layer ? OBEDIT_FROM_VIEW_LAYER(view_layer) : NULL;
 
 	if (CTX_data_dir(member)) {
 		CTX_data_dir_set(result, screen_context_dir);
