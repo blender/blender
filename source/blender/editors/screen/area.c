@@ -1939,15 +1939,29 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 		/* before setting the view */
 		if (vertical) {
 			/* we always keep the scroll offset - so the total view gets increased with the scrolled away part */
-			if (v2d->cur.ymax < - 0.001f)
-				y = min_ii(y, v2d->cur.ymin);
-			
+			if (v2d->cur.ymax < -FLT_EPSILON) {
+				/* Clamp to lower view boundary */
+				if (v2d->tot.ymin < -v2d->winy) {
+					y = min_ii(y, 0);
+				}
+				else {
+					y = min_ii(y, v2d->cur.ymin);
+				}
+			}
+
 			y = -y;
 		}
 		else {
 			/* don't jump back when panels close or hide */
-			if (!is_context_new)
-				x = max_ii(x, v2d->cur.xmax);
+			if (!is_context_new) {
+				if (v2d->tot.xmax > v2d->winx) {
+					x = max_ii(x, 0);
+				}
+				else {
+					x = max_ii(x, v2d->cur.xmax);
+				}
+			}
+
 			y = -y;
 		}
 		
