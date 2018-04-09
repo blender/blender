@@ -1,4 +1,4 @@
-#define BIT_RANGE(x) ((1u << x) - 1u)
+#define BIT_RANGE(x) uint((1 << x) - 1)
 
 /* 2 bits for corner */
 /* Attention! Not the same order as in UI_interface.h!
@@ -7,11 +7,11 @@
 #define BOTTOM_RIGHT 1u
 #define TOP_RIGHT 2u
 #define TOP_LEFT 3u
-#define CNR_FLAG_RANGE BIT_RANGE(2u)
+#define CNR_FLAG_RANGE BIT_RANGE(2)
 
 /* 4bits for corner id */
 #define CORNER_VEC_OFS 2u
-#define CORNER_VEC_RANGE BIT_RANGE(4u)
+#define CORNER_VEC_RANGE BIT_RANGE(4)
 const vec2 cornervec[36] = vec2[36](
 	vec2(0.0, 1.0), vec2(0.02, 0.805), vec2(0.067, 0.617), vec2(0.169, 0.45), vec2(0.293, 0.293), vec2(0.45, 0.169), vec2(0.617, 0.076), vec2(0.805, 0.02), vec2(1.0, 0.0),
 	vec2(-1.0, 0.0), vec2(-0.805, 0.02), vec2(-0.617, 0.067), vec2(-0.45, 0.169), vec2(-0.293, 0.293), vec2(-0.169, 0.45), vec2(-0.076, 0.617), vec2(-0.02, 0.805), vec2(0.0, 1.0),
@@ -21,7 +21,7 @@ const vec2 cornervec[36] = vec2[36](
 
 /* 4bits for jitter id */
 #define JIT_OFS 6u
-#define JIT_RANGE BIT_RANGE(4u)
+#define JIT_RANGE BIT_RANGE(4)
 const vec2 jit[9] = vec2[9](
 	vec2( 0.468813, -0.481430), vec2(-0.155755, -0.352820),
 	vec2( 0.219306, -0.238501), vec2(-0.393286, -0.110949),
@@ -31,22 +31,22 @@ const vec2 jit[9] = vec2[9](
 );
 
 /* 2bits for other flags */
-#define INNER_FLAG     (1u << 10u) /* is inner vert */
-#define EMBOSS_FLAG    (1u << 11u) /* is emboss vert */
+#define INNER_FLAG     uint(1 << 10) /* is inner vert */
+#define EMBOSS_FLAG    uint(1 << 11) /* is emboss vert */
 
 /* 2bits for color */
 #define COLOR_OFS 12u
-#define COLOR_RANGE BIT_RANGE(2u)
+#define COLOR_RANGE BIT_RANGE(2)
 #define COLOR_INNER    0u
 #define COLOR_EDGE     1u
 #define COLOR_EMBOSS   2u
 
 /* 2bits for trias type */
-#define TRIA_FLAG      (1u << 14u) /* is tria vert */
+#define TRIA_FLAG      uint(1 << 14) /* is tria vert */
 #define TRIA_FIRST     INNER_FLAG  /* is first tria (reuse INNER_FLAG) */
 
 /* We can reuse the CORNER_* bits for tria */
-#define TRIA_VEC_RANGE BIT_RANGE(6u)
+#define TRIA_VEC_RANGE BIT_RANGE(6)
 const vec2 triavec[34] = vec2[34](
 	/* horizontal tria */
 	vec2(-0.352077, 0.532607), vec2(-0.352077, -0.549313), vec2( 0.330000, -0.008353),

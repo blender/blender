@@ -25,7 +25,8 @@ void main()
 	fragColor = finalColor;
 
 	if (butCo > 0.5) {
-		fragColor = mix(do_checkerboard(), fragColor, fragColor.a);
+		vec4 checker = do_checkerboard();
+		fragColor = mix(checker, fragColor, fragColor.a);
 	}
 
 	if (butCo > 0.0) {
