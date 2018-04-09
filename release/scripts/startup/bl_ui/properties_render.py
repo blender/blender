@@ -490,7 +490,7 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
             layout.prop(ffmpeg, "use_lossless_output")
 
         # Output quality
-        use_crf = needs_codec and ffmpeg.codec in {'H264', 'MPEG4'}
+        use_crf = needs_codec and ffmpeg.codec in {'H264', 'MPEG4', 'WEBM'}
         if use_crf:
             layout.prop(ffmpeg, "constant_rate_factor")
 

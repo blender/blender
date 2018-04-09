@@ -5221,8 +5221,6 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{FFMPEG_AVI, "AVI", 0, "AVI", ""},
 		{FFMPEG_MOV, "QUICKTIME", 0, "Quicktime", ""},
 		{FFMPEG_DV, "DV", 0, "DV", ""},
-//		{FFMPEG_H264, "H264", 0, "H.264", ""},  not a container
-//		{FFMPEG_XVID, "XVID", 0, "Xvid", ""},   not a container
 		{FFMPEG_OGG, "OGG", 0, "Ogg", ""},
 		{FFMPEG_MKV, "MKV", 0, "Matroska", ""},
 		{FFMPEG_FLV, "FLASH", 0, "Flash", ""},
@@ -5243,19 +5241,18 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{AV_CODEC_ID_PNG, "PNG", 0, "PNG", ""},
 		{AV_CODEC_ID_QTRLE, "QTRLE", 0, "QT rle / QT Animation", ""},
 		{AV_CODEC_ID_THEORA, "THEORA", 0, "Theora", ""},
+		{AV_CODEC_ID_VP9, "WEBM", 0, "WEBM / VP9", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	/* Recommendations come from the FFmpeg wiki, https://trac.ffmpeg.org/wiki/Encode/VP9.
+	 * The label for BEST has been changed to "Slowest" so that it fits the "Encoding Speed"
+	 * property label in the UI. */
 	static const EnumPropertyItem ffmpeg_preset_items[] = {
-		{FFM_PRESET_ULTRAFAST, "ULTRAFAST", 0, "Ultra fast; biggest file", ""},
-		{FFM_PRESET_SUPERFAST, "SUPERFAST", 0, "Super fast", ""},
-		{FFM_PRESET_VERYFAST, "VERYFAST", 0, "Very fast", ""},
-		{FFM_PRESET_FASTER, "FASTER", 0, "Faster", ""},
-		{FFM_PRESET_FAST, "FAST", 0, "Fast", ""},
-		{FFM_PRESET_MEDIUM, "MEDIUM", 0, "Medium speed", ""},
-		{FFM_PRESET_SLOW, "SLOW", 0, "Slow", ""},
-		{FFM_PRESET_SLOWER, "SLOWER", 0, "Slower", ""},
-		{FFM_PRESET_VERYSLOW, "VERYSLOW", 0, "Very slow; smallest file", ""},
+		{FFM_PRESET_BEST, "BEST", 0, "Slowest",
+		 "Recommended if you have lots of time and want the best compression efficiency"},
+		{FFM_PRESET_GOOD, "GOOD", 0, "Good", "The default and recommended for most applications"},
+		{FFM_PRESET_REALTIME, "REALTIME", 0, "Realtime", "Recommended for fast encoding"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -5391,7 +5388,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "ffmpeg_preset");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, ffmpeg_preset_items);
-	RNA_def_property_enum_default(prop, FFM_PRESET_MEDIUM);
+	RNA_def_property_enum_default(prop, FFM_PRESET_GOOD);
 	RNA_def_property_ui_text(prop, "Encoding speed",
 	                         "Tradeoff between encoding speed and compression ratio");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);

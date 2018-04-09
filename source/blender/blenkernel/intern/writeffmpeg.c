@@ -582,23 +582,32 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	}
 
 	if (context->ffmpeg_preset) {
-		char const *preset_name;
+		/* 'preset' is used by h.264, 'deadline' is used by webm/vp9. I'm not
+		 * setting those properties conditionally based on the video codec,
+		 * as the FFmpeg encoder simply ignores unknown settings anyway. */
+		char const *preset_name = NULL;  /* used by h.264 */
+		char const *deadline_name = NULL; /* used by webm/vp9 */
 		switch (context->ffmpeg_preset) {
-			case FFM_PRESET_ULTRAFAST: preset_name = "ultrafast"; break;
-			case FFM_PRESET_SUPERFAST: preset_name = "superfast"; break;
-			case FFM_PRESET_VERYFAST: preset_name = "veryfast"; break;
-			case FFM_PRESET_FASTER: preset_name = "faster"; break;
-			case FFM_PRESET_FAST: preset_name = "fast"; break;
-			case FFM_PRESET_MEDIUM: preset_name = "medium"; break;
-			case FFM_PRESET_SLOW: preset_name = "slow"; break;
-			case FFM_PRESET_SLOWER: preset_name = "slower"; break;
-			case FFM_PRESET_VERYSLOW: preset_name = "veryslow"; break;
+			case FFM_PRESET_GOOD:
+				preset_name = "medium";
+				deadline_name = "good";
+				break;
+			case FFM_PRESET_BEST:
+				preset_name = "slower";
+				deadline_name = "best";
+				break;
+			case FFM_PRESET_REALTIME:
+				preset_name = "superfast";
+				deadline_name = "realtime";
+				break;
 			default:
 				printf("Unknown preset number %i, ignoring.\n", context->ffmpeg_preset);
-				preset_name = NULL;
 		}
 		if (preset_name != NULL) {
 			av_dict_set(&opts, "preset", preset_name, 0);
+		}
+		if (deadline_name != NULL) {
+			av_dict_set(&opts, "deadline", deadline_name, 0);
 		}
 	}
 
@@ -1676,7 +1685,7 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, ImageFormatData *imf)
 		{
 			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
 			rd->ffcodecdata.constant_rate_factor = FFM_CRF_MEDIUM;
-			rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_MEDIUM;
+			rd->ffcodecdata.ffmpeg_preset = FFM_PRESET_GOOD;
 			rd->ffcodecdata.type = FFMPEG_MKV;
 		}
 		if (rd->ffcodecdata.type == FFMPEG_OGG) {

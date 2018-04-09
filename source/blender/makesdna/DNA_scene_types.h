@@ -95,17 +95,28 @@ typedef struct AviCodecData {
 
 typedef enum eFFMpegPreset {
 	FFM_PRESET_NONE,
-	FFM_PRESET_ULTRAFAST,
-	FFM_PRESET_SUPERFAST,
-	FFM_PRESET_VERYFAST,
-	FFM_PRESET_FASTER,
-	FFM_PRESET_FAST,
-	FFM_PRESET_MEDIUM,
-	FFM_PRESET_SLOW,
-	FFM_PRESET_SLOWER,
-	FFM_PRESET_VERYSLOW,
-} eFFMpegPreset;
 
+#ifdef DNA_DEPRECATED
+	/* Previously used by h.264 to control encoding speed vs. file size. */
+	FFM_PRESET_ULTRAFAST, /* DEPRECATED */
+	FFM_PRESET_SUPERFAST, /* DEPRECATED */
+	FFM_PRESET_VERYFAST,  /* DEPRECATED */
+	FFM_PRESET_FASTER,    /* DEPRECATED */
+	FFM_PRESET_FAST,      /* DEPRECATED */
+	FFM_PRESET_MEDIUM,    /* DEPRECATED */
+	FFM_PRESET_SLOW,      /* DEPRECATED */
+	FFM_PRESET_SLOWER,    /* DEPRECATED */
+	FFM_PRESET_VERYSLOW,  /* DEPRECATED */
+#endif
+
+	/* Used by WEBM/VP9 and h.264 to control encoding speed vs. file size.
+	 * WEBM/VP9 use these values directly, whereas h.264 map those to
+	 * respectively the MEDIUM, SLOWER, and SUPERFAST presets.
+	*/
+	FFM_PRESET_GOOD = 10, /* the default and recommended for most applications */
+	FFM_PRESET_BEST, /* recommended if you have lots of time and want the best compression efficiency */
+	FFM_PRESET_REALTIME, /* recommended for live / fast encoding */
+} eFFMpegPreset;
 
 /* Mapping from easily-understandable descriptions to CRF values.
  * Assumes we output 8-bit video. Needs to be remapped if 10-bit
