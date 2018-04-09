@@ -230,7 +230,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	}
 
 	i = (int)((gc->p2_width - (gc->pad * 2)) / gc->glyph_width_max);
-	gc->p2_height = (int)blf_next_p2((unsigned int)(((gc->glyphs_len_max / i) + 1) * gc->glyph_height_max));
+	gc->p2_height = (int)blf_next_p2((unsigned int)(((gc->glyphs_len_max / i) + 1) * gc->glyph_height_max + (gc->pad * 2)));
 
 	if (gc->p2_height > font->tex_size_max) {
 		gc->p2_height = font->tex_size_max;
