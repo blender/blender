@@ -828,27 +828,27 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		switch (shader) {
 			case GPU_SHADER_2D_WIDGET_BASE_INST:
 			case GPU_SHADER_2D_NODELINK_INST:
-				defines = "#define USE_INSTANCE;\n";
+				defines = "#define USE_INSTANCE\n";
 				break;
 			case GPU_SHADER_SMOKE_COBA:
-				defines = "#define USE_COBA;\n";
+				defines = "#define USE_COBA\n";
 				break;
 			case GPU_SHADER_INSTANCE_VARIYING_COLOR_VARIYING_SIZE:
-				defines = "#define UNIFORM_SCALE;\n";
+				defines = "#define UNIFORM_SCALE\n";
 				break;
 			case GPU_SHADER_3D_INSTANCE_SCREEN_ALIGNED_AXIS:
-				defines = "#define AXIS_NAME;\n";
+				defines = "#define AXIS_NAME\n";
 				break;
 			case GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR:
 			case GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID:
-				defines = "#define USE_INSTANCE_COLOR;\n";
+				defines = "#define USE_INSTANCE_COLOR\n";
 				break;
 			case GPU_SHADER_3D_FLAT_COLOR_U32:
 			case GPU_SHADER_3D_UNIFORM_COLOR_U32:
-				defines = "#define USE_COLOR_U32;\n";
+				defines = "#define USE_COLOR_U32\n";
 				break;
 			case GPU_SHADER_SIMPLE_LIGHTING_FLAT_COLOR:
-				defines = "#define USE_FLAT_NORMAL;\n";
+				defines = "#define USE_FLAT_NORMAL\n";
 				break;
 			default:
 				break;
