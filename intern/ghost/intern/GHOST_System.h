@@ -177,6 +177,12 @@ public:
 	bool useNativePixel(void);
 	bool m_nativePixel;
 
+	/**
+	 * Focus window after opening, or put them in the background.
+	 */
+	void useWindowFocus(const bool use_focus);
+	bool m_windowFocus;
+
 	/***************************************************************************************
 	 * Event management functionality
 	 ***************************************************************************************/

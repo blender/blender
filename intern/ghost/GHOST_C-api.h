@@ -908,6 +908,11 @@ extern int GHOST_SupportsNativeDialogs(void);
 extern int GHOST_UseNativePixels(void);
 
 /**
+ * Focus window after opening, or put them in the background.
+ */
+extern void GHOST_UseWindowFocus(int use_focus);
+
+/**
  * If window was opened using native pixel size, it returns scaling factor.
  */
 extern float GHOST_GetNativePixelSize(GHOST_WindowHandle windowhandle);

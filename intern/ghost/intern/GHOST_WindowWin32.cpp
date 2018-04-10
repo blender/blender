@@ -201,6 +201,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 		// Store a pointer to this class in the window structure
 		::SetWindowLongPtr(m_hWnd, GWLP_USERDATA, (LONG_PTR) this);
 
+		if (!m_system->m_windowFocus) {
+			// Lower to bottom and don't activate if we don't want focus
+			::SetWindowPos(m_hWnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		}
+
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
 
@@ -214,11 +219,11 @@ GHOST_WindowWin32::GHOST_WindowWin32(GHOST_SystemWin32 *system,
 					nCmdShow = SW_SHOWMAXIMIZED;
 					break;
 				case GHOST_kWindowStateMinimized:
-					nCmdShow = SW_SHOWMINIMIZED;
+					nCmdShow = (m_system->m_windowFocus) ? SW_SHOWMINIMIZED : SW_SHOWMINNOACTIVE;
 					break;
 				case GHOST_kWindowStateNormal:
 				default:
-					nCmdShow = SW_SHOWNORMAL;
+					nCmdShow = (m_system->m_windowFocus) ? SW_SHOWNORMAL : SW_SHOWNOACTIVATE;
 					break;
 			}
 
