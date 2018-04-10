@@ -954,7 +954,7 @@ rbConstraint *RB_constraint_new_6dof_spring(float pivot[3], float orn[4], rbRigi
 	
 	make_constraint_transforms(transform1, transform2, body1, body2, pivot, orn);
 	
-	btTypedConstraint *con = new btGeneric6DofSpringConstraint(*body1, *body2, transform1, transform2, true);
+	btTypedConstraint *con = new btGeneric6DofSpring2Constraint(*body1, *body2, transform1, transform2);
 	
 	return (rbConstraint *)con;
 }
@@ -1034,32 +1034,38 @@ void RB_constraint_set_limits_6dof(rbConstraint *con, int axis, float lower, flo
 	constraint->setLimit(axis, lower, upper);
 }
 
+void RB_constraint_set_limits_6dof_spring(rbConstraint *con, int axis, float lower, float upper)
+{
+	btGeneric6DofSpring2Constraint *constraint = reinterpret_cast<btGeneric6DofSpring2Constraint*>(con);
+
+	constraint->setLimit(axis, lower, upper);
+}
+
 void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, int axis, float stiffness)
 {
-	btGeneric6DofSpringConstraint *constraint = reinterpret_cast<btGeneric6DofSpringConstraint*>(con);
-	
+	btGeneric6DofSpring2Constraint *constraint = reinterpret_cast<btGeneric6DofSpring2Constraint*>(con);
+
 	constraint->setStiffness(axis, stiffness);
 }
 
 void RB_constraint_set_damping_6dof_spring(rbConstraint *con, int axis, float damping)
 {
-	btGeneric6DofSpringConstraint *constraint = reinterpret_cast<btGeneric6DofSpringConstraint*>(con);
-	
-	// invert damping range so that 0 = no damping
-	constraint->setDamping(axis, 1.0f - damping);
+	btGeneric6DofSpring2Constraint *constraint = reinterpret_cast<btGeneric6DofSpring2Constraint*>(con);
+
+	constraint->setDamping(axis, damping);
 }
 
 void RB_constraint_set_spring_6dof_spring(rbConstraint *con, int axis, int enable)
 {
-	btGeneric6DofSpringConstraint *constraint = reinterpret_cast<btGeneric6DofSpringConstraint*>(con);
-	
+	btGeneric6DofSpring2Constraint *constraint = reinterpret_cast<btGeneric6DofSpring2Constraint*>(con);
+
 	constraint->enableSpring(axis, enable);
 }
 
 void RB_constraint_set_equilibrium_6dof_spring(rbConstraint *con)
 {
-	btGeneric6DofSpringConstraint *constraint = reinterpret_cast<btGeneric6DofSpringConstraint*>(con);
-	
+	btGeneric6DofSpring2Constraint *constraint = reinterpret_cast<btGeneric6DofSpring2Constraint*>(con);
+
 	constraint->setEquilibriumPoint();
 }
 

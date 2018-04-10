@@ -115,51 +115,6 @@ extern "C" {
 
 namespace DEG {
 
-namespace {
-
-struct BuilderWalkUserData {
-	DepsgraphRelationBuilder *builder;
-};
-
-void modifier_walk(void *user_data,
-                   struct Object * /*object*/,
-                   struct ID **idpoin,
-                   int /*cb_flag*/)
-{
-	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
-	ID *id = *idpoin;
-	if (id == NULL) {
-		return;
-	}
-	switch (GS(id->name)) {
-		case ID_OB:
-			data->builder->build_object(NULL, (Object *)id);
-			break;
-		case ID_TE:
-			data->builder->build_texture((Tex *)id);
-			break;
-		default:
-			/* pass */
-			break;
-	}
-}
-
-void constraint_walk(bConstraint * /*con*/,
-                     ID **idpoin,
-                     bool /*is_reference*/,
-                     void *user_data)
-{
-	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
-	if (*idpoin) {
-		ID *id = *idpoin;
-		if (GS(id->name) == ID_OB) {
-			data->builder->build_object(NULL, (Object *)id);
-		}
-	}
-}
-
-}  /* namespace */
-
 /* ***************** */
 /* Relations Builder */
 
@@ -2114,6 +2069,45 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		}
 		else {
 			BLI_assert(object->type == OB_EMPTY);
+		}
+	}
+}
+
+/* **** ID traversal callbacks functions **** */
+
+void DepsgraphRelationBuilder::modifier_walk(void *user_data,
+                                             struct Object * /*object*/,
+                                             struct ID **idpoin,
+                                             int /*cb_flag*/)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	ID *id = *idpoin;
+	if (id == NULL) {
+		return;
+	}
+	switch (GS(id->name)) {
+		case ID_OB:
+			data->builder->build_object(NULL, (Object *)id);
+			break;
+		case ID_TE:
+			data->builder->build_texture((Tex *)id);
+			break;
+		default:
+			/* pass */
+			break;
+	}
+}
+
+void DepsgraphRelationBuilder::constraint_walk(bConstraint * /*con*/,
+                                               ID **idpoin,
+                                               bool /*is_reference*/,
+                                               void *user_data)
+{
+	BuilderWalkUserData *data = (BuilderWalkUserData *)user_data;
+	if (*idpoin) {
+		ID *id = *idpoin;
+		if (GS(id->name) == ID_OB) {
+			data->builder->build_object(NULL, (Object *)id);
 		}
 	}
 }

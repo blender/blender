@@ -1864,7 +1864,7 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
 	else {
 		flag = prop->flag;
 		if ((flag & PROP_EDITABLE) == 0 || (flag & PROP_REGISTER)) {
-			*r_info = "This property is for internal use only and can't be edited.";
+			*r_info = N_("This property is for internal use only and can't be edited");
 		}
 	}
 
@@ -1872,13 +1872,13 @@ bool RNA_property_editable_info(PointerRNA *ptr, PropertyRNA *prop, const char *
 	if (id) {
 		if (ID_IS_LINKED(id) && (prop->flag & PROP_LIB_EXCEPTION) == 0) {
 			if (!(*r_info)[0]) {
-				*r_info = "Can't edit this property from a linked data-block.";
+				*r_info = N_("Can't edit this property from a linked data-block.");
 			}
 			return false;
 		}
 		if (id->override_static != NULL && !RNA_property_overridable(ptr, prop)) {
 			if (!(*r_info)[0]) {
-				*r_info = "Can't edit this property from an override data-block.";
+				*r_info = N_("Can't edit this property from an override data-block.");
 			}
 			return false;
 		}

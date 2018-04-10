@@ -51,6 +51,7 @@ extern "C" {
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 } /* extern "C" */
 
 #include "DEG_depsgraph.h"
@@ -406,6 +407,11 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 		}
 		/* Buil constraints. */
 		if (pchan->constraints.first != NULL) {
+			/* Build relations for indirectly linked objects. */
+			BuilderWalkUserData data;
+			data.builder = this;
+			BKE_constraints_id_loop(&pchan->constraints, constraint_walk, &data);
+
 			/* constraints stack and constraint dependencies */
 			build_constraints(&object->id, DEG_NODE_TYPE_BONE, pchan->name, &pchan->constraints, &root_map);
 

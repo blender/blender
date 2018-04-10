@@ -334,6 +334,20 @@ protected:
 	                                 const KeyTo& key_to);
 
 private:
+	struct BuilderWalkUserData {
+		DepsgraphRelationBuilder *builder;
+	};
+
+	static void modifier_walk(void *user_data,
+	                          struct Object *object,
+	                          struct ID **idpoin,
+	                          int cb_flag);
+
+	static void constraint_walk(bConstraint *con,
+	                            ID **idpoin,
+	                            bool is_reference,
+	                            void *user_data);
+
 	/* State which never changes, same for the whole builder time. */
 	Main *bmain_;
 	Depsgraph *graph_;

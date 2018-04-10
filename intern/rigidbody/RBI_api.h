@@ -299,6 +299,7 @@ void RB_constraint_set_limits_piston(rbConstraint *con, float lin_lower, float l
 void RB_constraint_set_limits_6dof(rbConstraint *con, int axis, float lower, float upper);
 
 /* 6dof spring specific */
+void RB_constraint_set_limits_6dof_spring(rbConstraint *con, int axis, float lower, float upper);
 void RB_constraint_set_stiffness_6dof_spring(rbConstraint *con, int axis, float stiffness);
 void RB_constraint_set_damping_6dof_spring(rbConstraint *con, int axis, float damping);
 void RB_constraint_set_spring_6dof_spring(rbConstraint *con, int axis, int enable);

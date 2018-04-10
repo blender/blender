@@ -704,6 +704,39 @@ static void rigidbody_validate_sim_object(RigidBodyWorld *rbw, Object *ob, bool 
 
 /* --------------------- */
 
+static void rigidbody_constraint_set_limits(RigidBodyCon *rbc, void (*set_limits)(rbConstraint*,int,float,float))
+{
+	if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
+		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);
+	else
+		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_X, 0.0f, -1.0f);
+
+	if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_Y)
+		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_Y, rbc->limit_lin_y_lower, rbc->limit_lin_y_upper);
+	else
+		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_Y, 0.0f, -1.0f);
+
+	if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_Z)
+		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->limit_lin_z_lower, rbc->limit_lin_z_upper);
+	else
+		set_limits(rbc->physics_constraint, RB_LIMIT_LIN_Z, 0.0f, -1.0f);
+
+	if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_X)
+		set_limits(rbc->physics_constraint, RB_LIMIT_ANG_X, rbc->limit_ang_x_lower, rbc->limit_ang_x_upper);
+	else
+		set_limits(rbc->physics_constraint, RB_LIMIT_ANG_X, 0.0f, -1.0f);
+
+	if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Y)
+		set_limits(rbc->physics_constraint, RB_LIMIT_ANG_Y, rbc->limit_ang_y_lower, rbc->limit_ang_y_upper);
+	else
+		set_limits(rbc->physics_constraint, RB_LIMIT_ANG_Y, 0.0f, -1.0f);
+
+	if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Z)
+		set_limits(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->limit_ang_z_lower, rbc->limit_ang_z_upper);
+	else
+		set_limits(rbc->physics_constraint, RB_LIMIT_ANG_Z, 0.0f, -1.0f);
+}
+
 /**
  * Create physics sim representation of constraint given rigid body constraint settings
  *
@@ -822,40 +855,13 @@ static void rigidbody_validate_sim_constraint(RigidBodyWorld *rbw, Object *ob, b
 					RB_constraint_set_damping_6dof_spring(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->spring_damping_ang_z);
 
 					RB_constraint_set_equilibrium_6dof_spring(rbc->physics_constraint);
-					ATTR_FALLTHROUGH;
+
+					rigidbody_constraint_set_limits(rbc, RB_constraint_set_limits_6dof_spring);
+					break;
 				case RBC_TYPE_6DOF:
-					if (rbc->type == RBC_TYPE_6DOF) /* a litte awkward but avoids duplicate code for limits */
-						rbc->physics_constraint = RB_constraint_new_6dof(loc, rot, rb1, rb2);
+					rbc->physics_constraint = RB_constraint_new_6dof(loc, rot, rb1, rb2);
 
-					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_X)
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_X, rbc->limit_lin_x_lower, rbc->limit_lin_x_upper);
-					else
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_X, 0.0f, -1.0f);
-
-					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_Y)
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Y, rbc->limit_lin_y_lower, rbc->limit_lin_y_upper);
-					else
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Y, 0.0f, -1.0f);
-
-					if (rbc->flag & RBC_FLAG_USE_LIMIT_LIN_Z)
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Z, rbc->limit_lin_z_lower, rbc->limit_lin_z_upper);
-					else
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_LIN_Z, 0.0f, -1.0f);
-
-					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_X)
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_X, rbc->limit_ang_x_lower, rbc->limit_ang_x_upper);
-					else
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_X, 0.0f, -1.0f);
-
-					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Y)
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Y, rbc->limit_ang_y_lower, rbc->limit_ang_y_upper);
-					else
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Y, 0.0f, -1.0f);
-
-					if (rbc->flag & RBC_FLAG_USE_LIMIT_ANG_Z)
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Z, rbc->limit_ang_z_lower, rbc->limit_ang_z_upper);
-					else
-						RB_constraint_set_limits_6dof(rbc->physics_constraint, RB_LIMIT_ANG_Z, 0.0f, -1.0f);
+					rigidbody_constraint_set_limits(rbc, RB_constraint_set_limits_6dof);
 					break;
 				case RBC_TYPE_MOTOR:
 					rbc->physics_constraint = RB_constraint_new_motor(loc, rot, rb1, rb2);

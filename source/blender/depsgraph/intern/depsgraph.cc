@@ -590,12 +590,14 @@ void DEG_debug_print_eval(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s %s(%p)%s\n",
-	       function_name,
-	       object_name,
-	       DEG::deg_color_for_pointer(object_address).c_str(),
-	       object_address,
-	       DEG::deg_color_end().c_str());
+	fprintf(stdout,
+	        "%s on %s %s(%p)%s\n",
+	        function_name,
+	        object_name,
+	        DEG::deg_color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::deg_color_end().c_str());
+	fflush(stdout);
 }
 
 void DEG_debug_print_eval_subdata(const char *function_name,
@@ -608,17 +610,19 @@ void DEG_debug_print_eval_subdata(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s %s(%p)%s %s %s %s(%p)%s\n",
-	       function_name,
-	       object_name,
-	       DEG::deg_color_for_pointer(object_address).c_str(),
-	       object_address,
-	       DEG::deg_color_end().c_str(),
-	       subdata_comment,
-	       subdata_name,
-	       DEG::deg_color_for_pointer(subdata_address).c_str(),
-	       subdata_address,
-	       DEG::deg_color_end().c_str());
+	fprintf(stdout,
+	        "%s on %s %s(%p)%s %s %s %s(%p)%s\n",
+	        function_name,
+	        object_name,
+	        DEG::deg_color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::deg_color_end().c_str(),
+	        subdata_comment,
+	        subdata_name,
+	        DEG::deg_color_for_pointer(subdata_address).c_str(),
+	        subdata_address,
+	        DEG::deg_color_end().c_str());
+	fflush(stdout);
 }
 
 void DEG_debug_print_eval_subdata_index(const char *function_name,
@@ -632,18 +636,20 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s %s(%p)^%s %s %s[%d] %s(%p)%s\n",
-	       function_name,
-	       object_name,
-	       DEG::deg_color_for_pointer(object_address).c_str(),
-	       object_address,
-	       DEG::deg_color_end().c_str(),
-	       subdata_comment,
-	       subdata_name,
-	       subdata_index,
-	       DEG::deg_color_for_pointer(subdata_address).c_str(),
-	       subdata_address,
-	       DEG::deg_color_end().c_str());
+	fprintf(stdout,
+	        "%s on %s %s(%p)^%s %s %s[%d] %s(%p)%s\n",
+	        function_name,
+	        object_name,
+	        DEG::deg_color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::deg_color_end().c_str(),
+	        subdata_comment,
+	        subdata_name,
+	        subdata_index,
+	        DEG::deg_color_for_pointer(subdata_address).c_str(),
+	        subdata_address,
+	        DEG::deg_color_end().c_str());
+	fflush(stdout);
 }
 
 void DEG_debug_print_eval_time(const char *function_name,
@@ -654,11 +660,13 @@ void DEG_debug_print_eval_time(const char *function_name,
 	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
-	printf("%s on %s %s(%p)%s at time %f\n",
-	       function_name,
-	       object_name,
-	       DEG::deg_color_for_pointer(object_address).c_str(),
-	       object_address,
-	       DEG::deg_color_end().c_str(),
-	       time);
+	fprintf(stdout,
+	        "%s on %s %s(%p)%s at time %f\n",
+	        function_name,
+	        object_name,
+	        DEG::deg_color_for_pointer(object_address).c_str(),
+	        object_address,
+	        DEG::deg_color_end().c_str(),
+	        time);
+	fflush(stdout);
 }
