@@ -640,6 +640,11 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 	if (ghostwin) {
 		GHOST_RectangleHandle bounds;
 
+		/* XXX Fix crash when a new window is created.
+		 * However this should be move somewhere else. (fclem) */
+		BLF_batch_reset();
+		gpu_batch_presets_reset();
+
 		win->gwnctx = GWN_context_create();
 		
 		/* the new window has already been made drawable upon creation */
