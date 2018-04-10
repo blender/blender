@@ -241,7 +241,7 @@ static eOLDrawState tree_element_set_active_object(
 	}
 	
 	if (ob != scene->obedit)
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 		
 	return OL_DRAWSEL_NORMAL;
 }
@@ -715,7 +715,7 @@ static eOLDrawState tree_element_active_pose(
 
 	if (set != OL_SETSEL_NONE) {
 		if (scene->obedit)
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 		
 		if (ob->mode & OB_MODE_POSE)
 			ED_armature_exit_posemode(C, base);
