@@ -3043,6 +3043,11 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	
 	widgetbase_draw(&wtb, &wcol_tmp);
 
+	/* We are drawing on top of widget bases. Flush cache. */
+	glEnable(GL_BLEND);
+	UI_widgetbase_draw_cache_flush();
+	glDisable(GL_BLEND);
+
 	/* cursor */
 	x = rect->xmin + 0.5f * BLI_rcti_size_x(rect);
 	y = rect->ymin + v    * BLI_rcti_size_y(rect);
@@ -3513,7 +3518,6 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	}
 
 	widgetbase_draw(&wtb, wcol);
-	
 	if (but->a1 == UI_PALETTE_COLOR && ((Palette *)but->rnapoin.id.data)->active_color == (int)but->a2) {
 		float width = rect->xmax - rect->xmin;
 		float height = rect->ymax - rect->ymin;
@@ -3521,6 +3525,11 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 		float bw = rgb_to_grayscale(col);
 
 		bw += (bw < 0.5f) ? 0.5f : -0.5f;
+
+		/* We are drawing on top of widget bases. Flush cache. */
+		glEnable(GL_BLEND);
+		UI_widgetbase_draw_cache_flush();
+		glDisable(GL_BLEND);
 
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
@@ -3878,6 +3887,11 @@ static void widget_tab(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	/* draw inner */
 	wtb.draw_outline = 0;
 	widgetbase_draw(&wtb, wcol);
+
+	/* We are drawing on top of widget bases. Flush cache. */
+	glEnable(GL_BLEND);
+	UI_widgetbase_draw_cache_flush();
+	glDisable(GL_BLEND);
 
 	/* draw outline (3d look) */
 	ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, (unsigned char *)wcol->inner);
