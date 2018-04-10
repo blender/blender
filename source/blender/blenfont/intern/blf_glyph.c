@@ -243,8 +243,7 @@ static void blf_glyph_cache_texture(FontBLF *font, GlyphCacheBLF *gc)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-	unsigned int pix_count = (unsigned int)(gc->p2_width * gc->p2_height);
-	unsigned char *pixels = MEM_callocN(pix_count * sizeof(*pixels), "BLF texture init");
+	unsigned char *pixels = MEM_callocN((size_t)gc->p2_width * (size_t)gc->p2_height, "BLF texture init");
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, gc->p2_width, gc->p2_height, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
 	MEM_freeN(pixels);
 }
@@ -345,8 +344,8 @@ GlyphBLF *blf_glyph_add(FontBLF *font, unsigned int index, unsigned int c)
 			}
 		}
 
-		g->bitmap = (unsigned char *)MEM_mallocN((size_t)(g->width * g->height), "glyph bitmap");
-		memcpy((void *)g->bitmap, (void *)bitmap.buffer, (size_t)(g->width * g->height));
+		g->bitmap = (unsigned char *)MEM_mallocN((size_t)g->width * (size_t)g->height, "glyph bitmap");
+		memcpy((void *)g->bitmap, (void *)bitmap.buffer, (size_t)g->width * (size_t)g->height);
 	}
 
 	g->advance = ((float)slot->advance.x) / 64.0f;
