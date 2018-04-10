@@ -858,7 +858,8 @@ static void import_endjob(void *user_data)
 			base = BKE_view_layer_base_find(view_layer, ob);
 			BKE_view_layer_base_select(view_layer, base);
 
-			DEG_id_tag_update_ex(data->bmain, &ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | DEG_TAG_BASE_FLAGS_UPDATE);
+			DEG_id_tag_update_ex(data->bmain, &ob->id,
+			                     OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | DEG_TAG_BASE_FLAGS_UPDATE);
 		}
 
 		DEG_id_tag_update(&data->scene->id, 0);
