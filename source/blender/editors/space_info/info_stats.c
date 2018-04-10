@@ -389,7 +389,7 @@ static void stats_update(ViewLayer *view_layer)
 		/* Pose Mode */
 		stats_object_pose(ob, &stats);
 	}
-	else if (stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
+	else if (ob && stats_is_object_dynamic_topology_sculpt(ob, ob->mode)) {
 		/* Dynamic-topology sculpt mode */
 		stats_object_sculpt_dynamic_topology(ob, &stats);
 	}
