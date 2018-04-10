@@ -169,14 +169,9 @@ void BKE_collection_engine_property_value_set_bool(struct IDProperty *props, con
 
 /* evaluation */
 
-void BKE_layer_eval_layer_collection_pre(const struct EvaluationContext *eval_ctx,
-                                         struct ID *owner_id,
-                                         struct ViewLayer *view_layer);
-void BKE_layer_eval_layer_collection(const struct EvaluationContext *eval_ctx,
-                                     struct LayerCollection *layer_collection,
-                                     struct LayerCollection *parent_layer_collection);
-void BKE_layer_eval_layer_collection_post(const struct EvaluationContext *eval_ctx,
-                                          struct ViewLayer *view_layer);
+void BKE_layer_eval_view_layer(const struct EvaluationContext *eval_ctx,
+                               struct ID *owner_id,
+                               struct ViewLayer *view_layer);
 
 /* iterators */
 

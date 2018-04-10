@@ -136,7 +136,7 @@ void depsgraph_select_tag_to_component_opcode(
 		 * road.
 		 */
 		*component_type = DEG_NODE_TYPE_LAYER_COLLECTIONS;
-		*operation_code = DEG_OPCODE_VIEW_LAYER_DONE;
+		*operation_code = DEG_OPCODE_VIEW_LAYER_EVAL;
 	}
 	else if (id_type == ID_OB) {
 		*component_type = DEG_NODE_TYPE_LAYER_COLLECTIONS;
@@ -156,7 +156,7 @@ void depsgraph_base_flags_tag_to_component_opcode(
 	const ID_Type id_type = GS(id->name);
 	if (id_type == ID_SCE) {
 		*component_type = DEG_NODE_TYPE_LAYER_COLLECTIONS;
-		*operation_code = DEG_OPCODE_VIEW_LAYER_INIT;
+		*operation_code = DEG_OPCODE_VIEW_LAYER_EVAL;
 	}
 	else if (id_type == ID_OB) {
 		*component_type = DEG_NODE_TYPE_LAYER_COLLECTIONS;

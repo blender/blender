@@ -414,7 +414,7 @@ void DepsgraphNodeBuilder::build_group(Group *group)
 	                   function_bind(BKE_group_eval_view_layers,
 	                                 _1,
 	                                 group_cow),
-	                   DEG_OPCODE_VIEW_LAYER_DONE);
+	                   DEG_OPCODE_VIEW_LAYER_EVAL);
 }
 
 void DepsgraphNodeBuilder::build_object(Base *base,

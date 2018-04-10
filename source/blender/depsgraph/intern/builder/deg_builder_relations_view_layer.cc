@@ -112,8 +112,6 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	LISTBASE_FOREACH (MovieClip *, clip, &bmain_->movieclip) {
 		build_movieclip(clip);
 	}
-	/* Collections. */
-	build_view_layer_collections(&scene_->id, view_layer);
 	/* TODO(sergey): Do this flush on CoW object? */
 	foreach (OperationDepsNode *node, graph_->operations) {
 		IDDepsNode *id_node = node->owner->owner;

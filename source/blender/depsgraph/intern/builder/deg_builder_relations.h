@@ -264,20 +264,6 @@ struct DepsgraphRelationBuilder
 	                              EffectorWeights *eff,
 	                              bool add_absorption, const char *name);
 
-	struct LayerCollectionState {
-		int index;
-		OperationKey init_key;
-		OperationKey done_key;
-		OperationKey prev_key;
-	};
-	void build_layer_collection(ID *owner_id,
-	                            LayerCollection *layer_collection,
-	                            LayerCollectionState *state);
-	void build_layer_collections(ID *owner_id,
-	                             ListBase *layer_collections,
-	                             LayerCollectionState *state);
-	void build_view_layer_collections(struct ID *owner_id, ViewLayer *view_layer);
-
 	void build_copy_on_write_relations();
 	void build_copy_on_write_relations(IDDepsNode *id_node);
 

@@ -127,9 +127,7 @@ static const char *stringify_opcode(eDepsOperation_Code opcode)
 		STRINGIFY_OPCODE(MASK_ANIMATION);
 		STRINGIFY_OPCODE(MASK_EVAL);
 		/* Collections. */
-		STRINGIFY_OPCODE(VIEW_LAYER_INIT);
 		STRINGIFY_OPCODE(VIEW_LAYER_EVAL);
-		STRINGIFY_OPCODE(VIEW_LAYER_DONE);
 		/* Copy on write. */
 		STRINGIFY_OPCODE(COPY_ON_WRITE);
 		/* Shading. */

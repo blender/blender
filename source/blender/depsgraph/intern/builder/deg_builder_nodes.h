@@ -214,17 +214,6 @@ struct DepsgraphNodeBuilder {
 	void build_movieclip(MovieClip *clip);
 	void build_lightprobe(Object *object);
 
-	struct LayerCollectionState {
-		int index;
-		LayerCollection *parent;
-	};
-	void build_layer_collection(ID *owner_id,
-	                            LayerCollection *layer_collection,
-	                            LayerCollectionState *state);
-	void build_layer_collections(ID *owner_id,
-	                             ListBase *layer_collections,
-	                             LayerCollectionState *state);
-	void build_view_layer_collections(ID *owner_id, ViewLayer *view_layer);
 protected:
 	struct SavedEntryTag {
 		ID *id;

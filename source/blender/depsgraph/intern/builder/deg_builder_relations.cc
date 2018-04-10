@@ -505,7 +505,7 @@ void DepsgraphRelationBuilder::build_object_flags(Base *base, Object *object)
 	}
 	OperationKey view_layer_done_key(&scene_->id,
 	                                 DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                                 DEG_OPCODE_VIEW_LAYER_DONE);
+	                                 DEG_OPCODE_VIEW_LAYER_EVAL);
 	OperationKey object_flags_key(&object->id,
 	                              DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                              DEG_OPCODE_OBJECT_BASE_FLAGS);

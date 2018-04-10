@@ -44,13 +44,11 @@ set(SRC
 	intern/builder/deg_builder_cycle.cc
 	intern/builder/deg_builder_map.cc
 	intern/builder/deg_builder_nodes.cc
-	intern/builder/deg_builder_nodes_layer_collection.cc
 	intern/builder/deg_builder_nodes_rig.cc
 	intern/builder/deg_builder_nodes_view_layer.cc
 	intern/builder/deg_builder_pchanmap.cc
 	intern/builder/deg_builder_relations.cc
 	intern/builder/deg_builder_relations_keys.cc
-	intern/builder/deg_builder_relations_layer_collection.cc
 	intern/builder/deg_builder_relations_rig.cc
 	intern/builder/deg_builder_relations_view_layer.cc
 	intern/builder/deg_builder_transitive.cc

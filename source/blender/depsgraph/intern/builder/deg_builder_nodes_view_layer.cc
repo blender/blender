@@ -157,7 +157,13 @@ void DepsgraphNodeBuilder::build_view_layer(
 		build_movieclip(clip);
 	}
 	/* Collections. */
-	build_view_layer_collections(&scene->id, view_layer_cow);
+	add_operation_node(&scene->id,
+	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
+	                   function_bind(BKE_layer_eval_view_layer,
+	                                 _1,
+	                                 &scene_cow->id,
+	                                 view_layer_cow),
+	                   DEG_OPCODE_VIEW_LAYER_EVAL);
 	/* Parameters evaluation for scene relations mainly. */
 	add_operation_node(&scene->id,
 	                   DEG_NODE_TYPE_PARAMETERS,
