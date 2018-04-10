@@ -2726,7 +2726,7 @@ static int mouse_anim_channels(bContext *C, bAnimContext *ac, int channel_index,
 
 				/* ensure we exit editmode on whatever object was active before to avoid getting stuck there - T48747 */
 				if (ob != CTX_data_edit_object(C))
-					ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);
+					ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 
 				notifierFlags |= (ND_ANIMCHAN | NA_SELECTED);
 			}

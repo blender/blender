@@ -432,7 +432,7 @@ Object *ED_object_add_type(
 
 	/* for as long scene has editmode... */
 	if (CTX_data_edit_object(C)) 
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_FREEUNDO | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);  /* freedata, and undo */
 
 	/* deselects all, sets scene->basact */
 	ob = BKE_object_add(bmain, scene, view_layer, type, name);

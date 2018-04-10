@@ -119,11 +119,12 @@ struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, st
 void ED_object_parent(struct Object *ob, struct Object *parent, const int type, const char *substr);
 
 /* bitflags for enter/exit editmode */
-#define EM_FREEDATA     1
-#define EM_FREEUNDO     2
-#define EM_WAITCURSOR   4
-#define EM_DO_UNDO      8
-#define EM_IGNORE_LAYER 16
+enum {
+	EM_FREEDATA         = (1 << 0),
+	EM_WAITCURSOR       = (1 << 1),
+	EM_DO_UNDO          = (1 << 2),
+	EM_IGNORE_LAYER     = (1 << 3),
+};
 void ED_object_editmode_exit_ex(
         struct bContext *C, struct Scene *scene, struct Object *obedit, int flag);
 void ED_object_editmode_exit(struct bContext *C, int flag);
