@@ -98,8 +98,9 @@ static void drw_deferred_shader_queue_free(ListBase *queue)
 static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop, short *do_update, float *progress)
 {
 	DRWShaderCompiler *comp = (DRWShaderCompiler *)custom_data;
+	void *ogl_context = comp->ogl_context;
 
-	WM_opengl_context_activate(comp->ogl_context);
+	WM_opengl_context_activate(ogl_context);
 
 	while (true) {
 		BLI_spin_lock(&comp->list_lock);
@@ -143,7 +144,7 @@ static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop,
 		drw_deferred_shader_free(comp->mat_compiling);
 	}
 
-	WM_opengl_context_release(comp->ogl_context);
+	WM_opengl_context_release(ogl_context);
 }
 
 static void drw_deferred_shader_compilation_free(void *custom_data)
@@ -155,7 +156,10 @@ static void drw_deferred_shader_compilation_free(void *custom_data)
 	BLI_spin_end(&comp->list_lock);
 	BLI_mutex_end(&comp->compilation_lock);
 
-	WM_opengl_context_dispose(comp->ogl_context);
+	if (comp->ogl_context) {
+		/* Only destroy if the job owns the context. */
+		WM_opengl_context_dispose(comp->ogl_context);
+	}
 
 	MEM_freeN(comp);
 }
@@ -199,13 +203,18 @@ static void drw_deferred_shader_add(
 		BLI_spin_lock(&old_comp->list_lock);
 		BLI_movelisttolist(&comp->queue, &old_comp->queue);
 		BLI_spin_unlock(&old_comp->list_lock);
+		/* Do not recreate context, just pass ownership. */
+		comp->ogl_context = old_comp->ogl_context;
+		old_comp->ogl_context = NULL;
 	}
 
 	BLI_addtail(&comp->queue, dsh);
 
-	/* Create one context per task. */
-	comp->ogl_context = WM_opengl_context_create();
-	WM_opengl_context_activate(DST.ogl_context);
+	/* Create only one context. */
+	if (comp->ogl_context == NULL) {
+		comp->ogl_context = WM_opengl_context_create();
+		WM_opengl_context_activate(DST.ogl_context);
+	}
 
 	WM_jobs_customdata_set(wm_job, comp, drw_deferred_shader_compilation_free);
 	WM_jobs_timer(wm_job, 0.1, NC_MATERIAL | ND_SHADING_DRAW, 0);
