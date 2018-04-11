@@ -2385,13 +2385,25 @@ static void layer_eval_collections_recurse(const EvaluationContext *eval_ctx,
 
 void BKE_layer_eval_view_layer(const struct EvaluationContext *eval_ctx,
                                struct ID *owner_id,
-                               struct ViewLayer *view_layer)
+                               ViewLayer *view_layer)
 {
 	layer_eval_layer_collection_pre(owner_id, view_layer);
 	layer_eval_collections_recurse(eval_ctx,
 	                               &view_layer->layer_collections,
 	                               NULL);
 	layer_eval_layer_collection_post(view_layer);
+}
+
+void BKE_layer_eval_view_layer_indexed(const struct EvaluationContext *eval_ctx,
+                                       struct ID *owner_id,
+                                       int view_layer_index)
+{
+	BLI_assert(GS(owner_id->name) == ID_SCE);
+	BLI_assert(view_layer_index >= 0);
+	Scene *scene = (Scene *)owner_id;
+	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
+	BLI_assert(view_layer != NULL);
+	BKE_layer_eval_view_layer(eval_ctx, owner_id, view_layer);
 }
 
 /**

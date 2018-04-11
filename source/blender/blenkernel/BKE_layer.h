@@ -173,6 +173,10 @@ void BKE_layer_eval_view_layer(const struct EvaluationContext *eval_ctx,
                                struct ID *owner_id,
                                struct ViewLayer *view_layer);
 
+void BKE_layer_eval_view_layer_indexed(const struct EvaluationContext *eval_ctx,
+                                       struct ID *owner_id,
+                                       int view_layer_index);
+
 /* iterators */
 
 void BKE_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in);
