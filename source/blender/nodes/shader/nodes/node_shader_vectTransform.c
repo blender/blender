@@ -202,7 +202,7 @@ void register_node_type_sh_vect_transform(void)
 {
 	static bNodeType ntype;
 
-	sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, "Vector Transform", NODE_CLASS_CONVERTOR, 0);
+	sh_node_type_base(&ntype, SH_NODE_VECT_TRANSFORM, "Vector Transform", NODE_CLASS_OP_VECTOR, 0);
 	node_type_compatibility(&ntype, NODE_OLD_SHADING | NODE_NEW_SHADING);
 	node_type_init(&ntype, node_shader_init_vect_transform);
 	node_type_socket_templates(&ntype, sh_node_vect_transform_in, sh_node_vect_transform_out);
