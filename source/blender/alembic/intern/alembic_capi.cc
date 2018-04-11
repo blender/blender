@@ -862,7 +862,7 @@ static void import_endjob(void *user_data)
 			                     OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | DEG_TAG_BASE_FLAGS_UPDATE);
 		}
 
-		DEG_id_tag_update(&data->scene->id, 0);
+		DEG_id_tag_update(&data->scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
 		DEG_relations_tag_update(data->bmain);
 	}
 
