@@ -597,7 +597,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 				int colorid = (file_selflag & FILE_SEL_SELECTED) ? TH_HILITE : TH_BACK;
 				int shade = (params->highlight_file == i) || (file_selflag & FILE_SEL_HIGHLIGHTED) ? 35 : 0;
 
-				BLI_assert(i > 0 || FILENAME_IS_CURRPAR(file->relpath));
+				BLI_assert(i == 0 || !FILENAME_IS_CURRPAR(file->relpath));
 
 				draw_tile(sx, sy - 1, layout->tile_w + 4, sfile->layout->tile_h + layout->tile_border_y, colorid, shade);
 			}
