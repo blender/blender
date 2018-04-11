@@ -155,6 +155,7 @@ BLI_INLINE void flush_handle_component_node(Depsgraph *graph,
 		ComponentDepsNode *cow_comp =
 		        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
 		cow_comp->tag_update(graph);
+		id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
 	}
 	/* Tag all required operations in component for update.  */
 	foreach (OperationDepsNode *op, comp_node->operations) {
@@ -168,7 +169,7 @@ BLI_INLINE void flush_handle_component_node(Depsgraph *graph,
 		}
 		op->flag |= DEPSOP_FLAG_NEEDS_UPDATE;
 	}
-	/* When some target changes bone, we might need to re-run the
+	/* when some target changes bone, we might need to re-run the
 	 * whole IK solver, otherwise result might be unpredictable.
 	 */
 	if (comp_node->type == DEG_NODE_TYPE_BONE) {
