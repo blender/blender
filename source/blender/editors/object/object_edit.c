@@ -527,10 +527,10 @@ static int posemode_exec(bContext *C, wmOperator *op)
 		}
 
 		if (is_mode_set) {
-			ED_object_posemode_exit(C, base);
+			ED_object_posemode_exit(C, ob);
 		}
 		else {
-			ED_object_posemode_enter(C, base);
+			ED_object_posemode_enter(C, ob);
 		}
 		return OPERATOR_FINISHED;
 	}
