@@ -671,9 +671,9 @@ static eOLDrawState tree_element_active_pose(
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
 		
 		if (ob->mode & OB_MODE_POSE)
-			ED_armature_exit_posemode(C, base);
+			ED_object_posemode_exit(C, base);
 		else 
-			ED_armature_enter_posemode(C, base);
+			ED_object_posemode_enter(C, base);
 	}
 	else {
 		if (ob->mode & OB_MODE_POSE) {
