@@ -195,8 +195,9 @@ void ED_armature_ebone_listbase_free(struct ListBase *lb);
 void ED_armature_ebone_listbase_copy(struct ListBase *lb_dst, struct ListBase *lb_src);
 
 /* poseobject.c */
-void ED_armature_exit_posemode(struct bContext *C, struct Base *base);
-void ED_armature_enter_posemode(struct bContext *C, struct Base *base);
+void ED_object_posemode_exit(struct bContext *C, struct Base *base);
+bool ED_object_posemode_enter_ex(struct Base *base);
+bool ED_object_posemode_enter(struct bContext *C, struct Base *base);
 void ED_pose_de_selectall(struct Object *ob, int select_mode, const bool ignore_visibility);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
 void ED_pose_recalculate_paths(struct Scene *scene, struct Object *ob);

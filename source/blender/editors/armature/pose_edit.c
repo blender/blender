@@ -81,33 +81,40 @@ Object *ED_pose_object_from_context(bContext *C)
 }
 
 /* This function is used to process the necessary updates for */
-void ED_armature_enter_posemode(bContext *C, Base *base)
+bool ED_object_posemode_enter_ex(Base *base)
 {
-	ReportList *reports = CTX_wm_reports(C);
 	Object *ob = base->object;
-	
-	if (ID_IS_LINKED(ob)) {
-		BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
-		return;
-	}
+	BLI_assert(!ID_IS_LINKED(ob));
+	bool ok = false;
 	
 	switch (ob->type) {
 		case OB_ARMATURE:
 			ob->restore_mode = ob->mode;
 			ob->mode |= OB_MODE_POSE;
-			
-			WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
-			
+			ok = true;
+
 			break;
 		default:
-			return;
+			break;
 	}
-	
-	/* XXX: disabled as this would otherwise cause a nasty loop... */
-	//ED_object_mode_toggle(C, ob->mode);
+
+	return ok;
+}
+bool ED_object_posemode_enter(bContext *C, Base *base)
+{
+	ReportList *reports = CTX_wm_reports(C);
+	if (ID_IS_LINKED(base->object)) {
+		BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
+		return false;
+	}
+	bool ok = ED_object_posemode_enter_ex(base);
+	if (ok) {
+		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
+	}
+	return ok;
 }
 
-void ED_armature_exit_posemode(bContext *C, Base *base)
+void ED_object_posemode_exit(bContext *C, Base *base)
 {
 	if (base) {
 		Object *ob = base->object;
