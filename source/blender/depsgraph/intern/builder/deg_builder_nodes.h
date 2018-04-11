@@ -171,10 +171,10 @@ struct DepsgraphNodeBuilder {
 	                       ViewLayer *view_layer,
 	                       eDepsNode_LinkedState_Type linked_state);
 	void build_group(Group *group);
-	void build_object(Base *base,
+	void build_object(int base_index,
 	                  Object *object,
 	                  eDepsNode_LinkedState_Type linked_state);
-	void build_object_flags(Base *base,
+	void build_object_flags(int base_index,
 	                        Object *object,
 	                        eDepsNode_LinkedState_Type linked_state);
 	void build_object_data(Object *object);
@@ -242,6 +242,7 @@ protected:
 
 	/* State which demotes currently built entities. */
 	Scene *scene_;
+	ViewLayer *view_layer_;
 
 	GHash *cow_id_hash_;
 	BuilderMap built_map_;

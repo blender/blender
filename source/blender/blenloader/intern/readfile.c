@@ -6217,6 +6217,7 @@ static void direct_link_view_layer(FileData *fd, ViewLayer *view_layer)
 	view_layer->properties_evaluated = NULL;
 
 	BLI_listbase_clear(&view_layer->drawdata);
+	view_layer->object_bases_array = NULL;
 }
 
 /**

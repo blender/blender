@@ -76,6 +76,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	add_time_source();
 	/* Setup currently building context. */
 	scene_ = scene;
+	view_layer_ = view_layer;
 	/* Expand Scene Cow datablock to get proper pointers to bases. */
 	Scene *scene_cow;
 	ViewLayer *view_layer_cow;
@@ -112,17 +113,19 @@ void DepsgraphNodeBuilder::build_view_layer(
 	 * but object is expected to be an original one. Hence we go into some
 	 * tricks here iterating over the view layer.
 	 */
+	int base_index = 0;
 	for (Base *base_orig = (Base *)view_layer->object_bases.first,
 	          *base_cow = (Base *)view_layer_cow->object_bases.first;
 	     base_orig != NULL;
 	     base_orig = base_orig->next, base_cow = base_cow->next)
 	{
 		/* object itself */
-		build_object(base_cow, base_orig->object, linked_state);
+		build_object(base_index, base_orig->object, linked_state);
 		base_orig->object->select_color = select_color++;
+		++base_index;
 	}
 	if (scene->camera != NULL) {
-		build_object(NULL, scene->camera, DEG_ID_LINKED_INDIRECTLY);
+		build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY);
 	}
 	/* Rigidbody. */
 	if (scene->rigidbody_world != NULL) {

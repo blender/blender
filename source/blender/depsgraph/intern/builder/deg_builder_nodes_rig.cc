@@ -313,7 +313,7 @@ void DepsgraphNodeBuilder::build_rig(Object *object)
 
 		/* Custom shape. */
 		if (pchan->custom != NULL) {
-			build_object(NULL, pchan->custom, DEG_ID_LINKED_INDIRECTLY);
+			build_object(-1, pchan->custom, DEG_ID_LINKED_INDIRECTLY);
 		}
 
 		pchan_index++;

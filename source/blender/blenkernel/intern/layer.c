@@ -216,6 +216,8 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 		MEM_freeN(view_layer->id_properties);
 	}
 
+	MEM_SAFE_FREE(view_layer->object_bases_array);
+
 	MEM_freeN(view_layer);
 }
 
@@ -503,6 +505,8 @@ void BKE_view_layer_copy_data(
 			view_layer_dst->basact = base_dst;
 		}
 	}
+
+	view_layer_dst->object_bases_array = NULL;
 }
 
 /**
@@ -2358,11 +2362,19 @@ static void layer_eval_layer_collection(const EvaluationContext *eval_ctx,
 static void layer_eval_layer_collection_post(ViewLayer *view_layer)
 {
 	DEG_debug_print_eval(__func__, view_layer->name, view_layer);
-	/* if base is not selectabled, clear select */
+	/* Create array of bases, for fast index-based lookup. */
+	const int num_object_bases = BLI_listbase_count(&view_layer->object_bases);
+	MEM_SAFE_FREE(view_layer->object_bases_array);
+	view_layer->object_bases_array = MEM_malloc_arrayN(
+	        num_object_bases, sizeof(Base *), "view_layer->object_bases_array");
+	int base_index = 0;
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		/* if base is not selectabled, clear select. */
 		if ((base->flag & BASE_SELECTABLED) == 0) {
 			base->flag &= ~BASE_SELECTED;
 		}
+		/* Store base in the array. */
+		view_layer->object_bases_array[base_index++] = base;
 	}
 }
 

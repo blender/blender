@@ -433,9 +433,16 @@ void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_object_eval_flush_base_flags(const EvaluationContext *UNUSED(eval_ctx),
-                                      Object *object, Base *base, bool is_from_set)
+void BKE_object_eval_flush_base_flags(const EvaluationContext *eval_ctx,
+                                      Object *object, int base_index, bool is_from_set)
 {
+	ViewLayer *view_layer = eval_ctx->view_layer;
+	BLI_assert(view_layer->object_bases_array != NULL);
+	BLI_assert(base_index >= 0);
+	BLI_assert(base_index < MEM_allocN_len(view_layer->object_bases_array) / sizeof(Base *));
+	Base *base = view_layer->object_bases_array[base_index];
+	BLI_assert(base->object == object);
+
 	DEG_debug_print_eval(__func__, object->id.name, object);
 
 	/* Make sure we have the base collection settings is already populated.

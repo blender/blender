@@ -97,6 +97,7 @@ typedef struct ViewLayer {
 
 	/* Runtime data */
 	ListBase drawdata;    /* ViewLayerEngineData */
+	struct Base **object_bases_array;
 } ViewLayer;
 
 typedef struct SceneCollection {
