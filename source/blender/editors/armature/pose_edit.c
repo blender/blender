@@ -81,9 +81,8 @@ Object *ED_pose_object_from_context(bContext *C)
 }
 
 /* This function is used to process the necessary updates for */
-bool ED_object_posemode_enter_ex(Base *base)
+bool ED_object_posemode_enter_ex(Object *ob)
 {
-	Object *ob = base->object;
 	BLI_assert(!ID_IS_LINKED(ob));
 	bool ok = false;
 	
@@ -100,30 +99,37 @@ bool ED_object_posemode_enter_ex(Base *base)
 
 	return ok;
 }
-bool ED_object_posemode_enter(bContext *C, Base *base)
+bool ED_object_posemode_enter(bContext *C, Object *ob)
 {
 	ReportList *reports = CTX_wm_reports(C);
-	if (ID_IS_LINKED(base->object)) {
+	if (ID_IS_LINKED(ob)) {
 		BKE_report(reports, RPT_WARNING, "Cannot pose libdata");
 		return false;
 	}
-	bool ok = ED_object_posemode_enter_ex(base);
+	bool ok = ED_object_posemode_enter_ex(ob);
 	if (ok) {
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_POSE, NULL);
 	}
 	return ok;
 }
 
-void ED_object_posemode_exit(bContext *C, Base *base)
+bool ED_object_posemode_exit_ex(Object *ob)
 {
-	if (base) {
-		Object *ob = base->object;
-		
+	bool ok = false;
+	if (ob) {
 		ob->restore_mode = ob->mode;
 		ob->mode &= ~OB_MODE_POSE;
-		
+		ok = true;
+	}
+	return ok;
+}
+bool ED_object_posemode_exit(bContext *C, Object *ob)
+{
+	bool ok = ED_object_posemode_exit_ex(ob);
+	if (ok) {
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, NULL);
 	}
+	return ok;
 }
 
 /* if a selected or active bone is protected, throw error (oonly if warn == 1) and return 1 */

@@ -714,13 +714,16 @@ static eOLDrawState tree_element_active_pose(
 	}
 
 	if (set != OL_SETSEL_NONE) {
-		if (scene->obedit)
+		if (scene->obedit) {
 			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
+		}
 		
-		if (ob->mode & OB_MODE_POSE)
-			ED_object_posemode_exit(C, base);
-		else 
-			ED_object_posemode_enter(C, base);
+		if (ob->mode & OB_MODE_POSE) {
+			ED_object_posemode_exit(C, ob);
+		}
+		else {
+			ED_object_posemode_enter(C, ob);
+		}
 	}
 	else {
 		if (ob->mode & OB_MODE_POSE) {
