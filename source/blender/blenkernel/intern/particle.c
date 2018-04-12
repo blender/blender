@@ -2618,7 +2618,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 
 	if (!cache || edit->totpoint != edit->totcached) {
 		/* clear out old and create new empty path cache */
-		psys_free_path_cache(edit->psys, edit);
+		psys_free_path_cache(NULL, edit);
 		cache = edit->pathcache = psys_alloc_path_cache_buffers(&edit->pathcachebufs, totpart, segments + 1);
 
 		/* set flag for update (child particles check this too) */
