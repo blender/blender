@@ -108,65 +108,45 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointCache *cache = (PointCache *)ptr->data;
-	PTCacheID *pid = NULL;
-	ListBase pidlist;
 
 	if (!ob)
 		return;
 
 	cache->flag |= PTCACHE_OUTDATED;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
-	for (pid = pidlist.first; pid; pid = pid->next) {
-		if (pid->cache == cache)
-			break;
-	}
-
-	if (pid) {
+	if (pid.cache) {
 		/* Just make sure this wasn't changed. */
-		if (pid->type == PTCACHE_TYPE_SMOKE_DOMAIN)
+		if (pid.type == PTCACHE_TYPE_SMOKE_DOMAIN)
 			cache->step = 1;
-		BKE_ptcache_update_info(pid);
+		BKE_ptcache_update_info(&pid);
 	}
-
-	BLI_freelistN(&pidlist);
 }
 
 static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointCache *cache = (PointCache *)ptr->data;
-	PTCacheID *pid = NULL;
-	ListBase pidlist;
 
 	if (!ob)
 		return;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
-
-	for (pid = pidlist.first; pid; pid = pid->next) {
-		if (pid->cache == cache)
-			break;
-	}
+	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 
 	/* smoke can only use disk cache */
-	if (pid && pid->type != PTCACHE_TYPE_SMOKE_DOMAIN)
-		BKE_ptcache_toggle_disk_cache(pid);
+	if (pid.cache && pid.type != PTCACHE_TYPE_SMOKE_DOMAIN)
+		BKE_ptcache_toggle_disk_cache(&pid);
 	else
 		cache->flag ^= PTCACHE_DISK_CACHE;
-
-	BLI_freelistN(&pidlist);
 }
 
 static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
 	PointCache *cache = (PointCache *)ptr->data;
-	PTCacheID *pid = NULL, *pid2 = NULL;
-	ListBase pidlist;
 	bool use_new_name = true;
 
 	if (!ob)
@@ -174,23 +154,22 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 
 	/* TODO: check for proper characters */
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
-
 	if (cache->flag & PTCACHE_EXTERNAL) {
-		for (pid = pidlist.first; pid; pid = pid->next) {
-			if (pid->cache == cache)
-				break;
+		PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
+
+		if (pid.cache) {
+			BKE_ptcache_load_external(&pid);
 		}
-
-		if (!pid)
-			return;
-
-		BKE_ptcache_load_external(pid);
 
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		WM_main_add_notifier(NC_OBJECT | ND_POINTCACHE, ob);
 	}
 	else {
+		PTCacheID *pid = NULL, *pid2 = NULL;
+		ListBase pidlist;
+
+		BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+
 		for (pid = pidlist.first; pid; pid = pid->next) {
 			if (pid->cache == cache)
 				pid2 = pid;
@@ -216,9 +195,9 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 
 			BLI_strncpy(cache->prev_name, cache->name, sizeof(cache->prev_name));
 		}
-	}
 
-	BLI_freelistN(&pidlist);
+		BLI_freelistN(&pidlist);
+	}
 }
 
 static void rna_Cache_list_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -239,42 +218,26 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache = ptr->data;
-	PTCacheID *pid;
-	ListBase pidlist;
-
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 	
 	*min = 0;
 	*max = 0;
 
-	for (pid = pidlist.first; pid; pid = pid->next) {
-		if (pid->cache == cache) {
-			*max = max_ii(0, BLI_listbase_count(pid->ptcaches) - 1);
-			break;
-		}
+	if (pid.cache) {
+		*max = max_ii(0, BLI_listbase_count(pid.ptcaches) - 1);
 	}
-
-	BLI_freelistN(&pidlist);
 }
 
 static int rna_Cache_active_point_cache_index_get(PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache = ptr->data;
-	PTCacheID *pid;
-	ListBase pidlist;
+	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 	int num = 0;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
-	
-	for (pid = pidlist.first; pid; pid = pid->next) {
-		if (pid->cache == cache) {
-			num = BLI_findindex(pid->ptcaches, cache);
-			break;
-		}
+	if (pid.cache) {
+		num = BLI_findindex(pid.ptcaches, cache);
 	}
-
-	BLI_freelistN(&pidlist);
 
 	return num;
 }
@@ -283,19 +246,11 @@ static void rna_Cache_active_point_cache_index_set(struct PointerRNA *ptr, int v
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache = ptr->data;
-	PTCacheID *pid;
-	ListBase pidlist;
-
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
+	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 	
-	for (pid = pidlist.first; pid; pid = pid->next) {
-		if (pid->cache == cache) {
-			*(pid->cache_ptr) = BLI_findlink(pid->ptcaches, value);
-			break;
-		}
+	if (pid.cache) {
+		*(pid.cache_ptr) = BLI_findlink(pid.ptcaches, value);
 	}
-
-	BLI_freelistN(&pidlist);
 }
 
 static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max,
@@ -303,22 +258,14 @@ static void rna_PointCache_frame_step_range(PointerRNA *ptr, int *min, int *max,
 {
 	Object *ob = ptr->id.data;
 	PointCache *cache = ptr->data;
-	PTCacheID *pid;
-	ListBase pidlist;
+	PTCacheID pid = BKE_ptcache_id_find(ob, NULL, cache);
 
 	*min = 1;
 	*max = 20;
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, NULL, 0);
-	
-	for (pid = pidlist.first; pid; pid = pid->next) {
-		if (pid->cache == cache) {
-			*max = pid->max_step;
-			break;
-		}
+	if (pid.cache) {
+		*max = pid.max_step;
 	}
-
-	BLI_freelistN(&pidlist);
 }
 
 static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))

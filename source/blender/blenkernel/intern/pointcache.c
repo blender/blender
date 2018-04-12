@@ -1646,6 +1646,25 @@ void BKE_ptcache_id_from_rigidbody(PTCacheID *pid, Object *ob, RigidBodyWorld *r
 	pid->file_type = PTCACHE_FILE_PTCACHE;
 }
 
+PTCacheID BKE_ptcache_id_find(Object *ob, Scene *scene, PointCache *cache)
+{
+	PTCacheID result = {0};
+
+	ListBase pidlist;
+	BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
+
+	for (PTCacheID *pid = pidlist.first; pid; pid = pid->next) {
+		if (pid->cache == cache) {
+			result = *pid;
+			break;
+		}
+	}
+
+	BLI_freelistN(&pidlist);
+
+	return result;
+}
+
 void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int duplis)
 {
 	PTCacheID *pid;

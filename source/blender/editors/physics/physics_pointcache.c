@@ -177,18 +177,7 @@ static PTCacheBaker *ptcache_baker_create(bContext *C, wmOperator *op, bool all)
 		PointerRNA ptr = CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 		Object *ob = ptr.id.data;
 		PointCache *cache = ptr.data;
-
-		ListBase pidlist;
-		BKE_ptcache_ids_from_object(&pidlist, ob, baker->scene, MAX_DUPLI_RECUR);
-
-		for (PTCacheID *pid = pidlist.first; pid; pid = pid->next) {
-			if (pid->cache == cache) {
-				baker->pid = *pid;
-				break;
-			}
-		}
-
-		BLI_freelistN(&pidlist);
+		baker->pid = BKE_ptcache_id_find(ob, baker->scene, cache);
 	}
 
 	return baker;
@@ -391,21 +380,13 @@ static int ptcache_add_new_exec(bContext *C, wmOperator *UNUSED(op))
 	PointerRNA ptr= CTX_data_pointer_get_type(C, "point_cache", &RNA_PointCache);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;
-	PTCacheID *pid;
-	ListBase pidlist;
+	PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
-	
-	for (pid=pidlist.first; pid; pid=pid->next) {
-		if (pid->cache == cache) {
-			PointCache *cache_new = BKE_ptcache_add(pid->ptcaches);
-			cache_new->step = pid->default_step;
-			*(pid->cache_ptr) = cache_new;
-			break;
-		}
+	if (pid.cache) {
+		PointCache *cache_new = BKE_ptcache_add(pid.ptcaches);
+		cache_new->step = pid.default_step;
+		*(pid.cache_ptr) = cache_new;
 	}
-
-	BLI_freelistN(&pidlist);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
@@ -418,26 +399,15 @@ static int ptcache_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene= CTX_data_scene(C);
 	Object *ob= ptr.id.data;
 	PointCache *cache= ptr.data;
-	PTCacheID *pid;
-	ListBase pidlist;
+	PTCacheID pid = BKE_ptcache_id_find(ob, scene, cache);
 
-	BKE_ptcache_ids_from_object(&pidlist, ob, scene, MAX_DUPLI_RECUR);
-	
-	for (pid=pidlist.first; pid; pid=pid->next) {
-		if (pid->cache == cache) {
-			if (pid->ptcaches->first == pid->ptcaches->last)
-				continue; /* don't delete last cache */
-
-			BLI_remlink(pid->ptcaches, pid->cache);
-			BKE_ptcache_free(pid->cache);
-			*(pid->cache_ptr) = pid->ptcaches->first;
-
-			break;
-		}
+	/* don't delete last cache */
+	if (pid.cache && pid.ptcaches->first != pid.ptcaches->last) {
+		BLI_remlink(pid.ptcaches, pid.cache);
+		BKE_ptcache_free(pid.cache);
+		*(pid.cache_ptr) = pid.ptcaches->first;
 	}
 
-	BLI_freelistN(&pidlist);
-	
 	WM_event_add_notifier(C, NC_OBJECT|ND_POINTCACHE, ob);
 
 	return OPERATOR_FINISHED;
