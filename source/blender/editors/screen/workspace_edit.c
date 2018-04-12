@@ -56,6 +56,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "RNA_access.h"
+#include "RNA_define.h"
 
 #include "DEG_depsgraph.h"
 
@@ -338,6 +339,66 @@ static void WORKSPACE_OT_workspace_delete(wmOperatorType *ot)
 	ot->exec = workspace_delete_exec;
 }
 
+static int workspace_append(bContext *C, const char *directory, const char *idname)
+{
+	wmOperatorType *ot = WM_operatortype_find("WM_OT_append", false);
+	PointerRNA opptr;
+	int retval;
+
+	WM_operator_properties_create_ptr(&opptr, ot);
+	RNA_string_set(&opptr, "directory", directory);
+	RNA_string_set(&opptr, "filename", idname);
+	RNA_boolean_set(&opptr, "autoselect", false);
+
+	retval = WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &opptr);
+
+	WM_operator_properties_free(&opptr);
+
+	return retval;
+}
+
+static int workspace_append_activate_exec(bContext *C, wmOperator *op)
+{
+	Main *bmain = CTX_data_main(C);
+	char idname[MAX_ID_NAME - 2], directory[FILE_MAX];
+
+	if (!RNA_struct_property_is_set(op->ptr, "idname") ||
+	    !RNA_struct_property_is_set(op->ptr, "directory"))
+	{
+		return OPERATOR_CANCELLED;
+	}
+	RNA_string_get(op->ptr, "idname", idname);
+	RNA_string_get(op->ptr, "directory", directory);
+
+	if (workspace_append(C, directory, idname) != OPERATOR_CANCELLED) {
+		WorkSpace *appended_workspace = BLI_findstring(&bmain->workspaces, idname, offsetof(ID, name) + 2);
+
+		BLI_assert(appended_workspace != NULL);
+		/* Changing workspace changes context. Do delayed! */
+		WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_SET, appended_workspace);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+static void WORKSPACE_OT_append_activate(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Append and Activate Workspace";
+	ot->description = "Append a workspace and make it the active one in the current window";
+	ot->idname = "WORKSPACE_OT_append_activate";
+
+	/* api callbacks */
+	ot->exec = workspace_append_activate_exec;
+
+	RNA_def_string(ot->srna, "idname", NULL, MAX_ID_NAME - 2, "Identifier",
+	               "Name of the workspace to append and activate");
+	RNA_def_string(ot->srna, "directory", NULL, FILE_MAX, "Directory",
+	               "Path to the library");
+}
+
 static void workspace_config_file_path_from_folder_id(
         const Main *bmain, int folder_id, char *r_path)
 {
@@ -383,13 +444,12 @@ static void workspace_append_button(
 	BLI_path_join(
 	        lib_path, sizeof(lib_path), from_main->name, BKE_idcode_to_name(GS(id->name)), NULL);
 
-	BLI_assert(STREQ(ot_append->idname, "WM_OT_append"));
+	BLI_assert(STREQ(ot_append->idname, "WORKSPACE_OT_append_activate"));
 	uiItemFullO_ptr(
 	        layout, ot_append, workspace->id.name + 2, ICON_NONE, NULL,
 	        WM_OP_EXEC_DEFAULT, 0, &opptr);
+	RNA_string_set(&opptr, "idname", id->name + 2);
 	RNA_string_set(&opptr, "directory", lib_path);
-	RNA_string_set(&opptr, "filename", id->name + 2);
-	RNA_boolean_set(&opptr, "autoselect", false);
 }
 
 ATTR_NONNULL(1, 2)
@@ -399,7 +459,7 @@ static void workspace_config_file_append_buttons(
 	WorkspaceConfigFileData *workspace_config = workspace_config_file_read(bmain, reports);
 
 	if (workspace_config) {
-		wmOperatorType *ot_append = WM_operatortype_find("WM_OT_append", true);
+		wmOperatorType *ot_append = WM_operatortype_find("WORKSPACE_OT_append_activate", true);
 
 		for (WorkSpace *workspace = workspace_config->workspaces.first; workspace; workspace = workspace->id.next) {
 			workspace_append_button(layout, ot_append, workspace, workspace_config->main);
@@ -442,6 +502,7 @@ void ED_operatortypes_workspace(void)
 	WM_operatortype_append(WORKSPACE_OT_workspace_duplicate);
 	WM_operatortype_append(WORKSPACE_OT_workspace_delete);
 	WM_operatortype_append(WORKSPACE_OT_workspace_add_menu);
+	WM_operatortype_append(WORKSPACE_OT_append_activate);
 }
 
 /** \} Workspace Operators */
