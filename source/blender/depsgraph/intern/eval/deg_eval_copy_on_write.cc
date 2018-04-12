@@ -311,15 +311,6 @@ BLI_INLINE bool check_datablock_expanded(const ID *id_cow)
 	return (id_cow->name[0] != '\0');
 }
 
-/* Check whether datablock was already expanded during depsgraph
- * construction.
- */
-static bool check_datablock_expanded_at_construction(const ID *id_orig)
-{
-	const ID_Type id_type = GS(id_orig->name);
-	return (id_type == ID_SCE);
-}
-
 /* Those are datablocks which are not covered by dependency graph and hence
  * does not need any remapping or anything.
  *
@@ -467,219 +458,6 @@ void update_special_pointers(const Depsgraph *depsgraph,
 	}
 }
 
-void update_copy_on_write_layer_collections(
-        ListBase *layer_collections_cow,
-        const ListBase *layer_collections_orig);
-
-void update_copy_on_write_layer_collection(
-        LayerCollection *layer_collection_cow,
-        const LayerCollection *layer_collection_orig)
-{
-	// Make a local copy of original layer collection, so we can start
-	// modifying it.
-	LayerCollection local = *layer_collection_orig;
-	// Copy all pointer data from original CoW version of layer collection.
-	local.next = layer_collection_cow->next;
-	local.prev = layer_collection_cow->prev;
-	local.scene_collection = layer_collection_cow->scene_collection;
-	local.object_bases = layer_collection_cow->object_bases;
-	local.overrides = layer_collection_cow->overrides;
-	local.layer_collections = layer_collection_cow->layer_collections;
-	local.properties = layer_collection_cow->properties;
-	local.properties_evaluated = layer_collection_cow->properties_evaluated;
-	// Synchronize pointer-related data.
-	IDP_Reset(local.properties, layer_collection_orig->properties);
-	// Copy synchronized version back.
-	*layer_collection_cow = local;
-	// Recurs into nested layer collections.
-	update_copy_on_write_layer_collections(
-	        &layer_collection_cow->layer_collections,
-	        &layer_collection_orig->layer_collections);
-}
-
-void update_copy_on_write_layer_collections(
-        ListBase *layer_collections_cow,
-        const ListBase *layer_collections_orig)
-{
-	const LayerCollection *layer_collection_orig =
-	        (const LayerCollection *)layer_collections_orig->first;
-	LayerCollection *layer_collection_cow =
-	        (LayerCollection *)layer_collections_cow->first;
-	while (layer_collection_orig != NULL) {
-		update_copy_on_write_layer_collection(layer_collection_cow,
-		                                      layer_collection_orig);
-		layer_collection_orig = layer_collection_orig->next;
-		layer_collection_cow = layer_collection_cow->next;
-	}
-}
-
-void update_copy_on_write_view_layer(const Depsgraph *depsgraph,
-                                     ViewLayer *view_layer_cow,
-                                     const ViewLayer *view_layer_orig)
-{
-	// Update pointers to active base.
-	if (view_layer_orig->basact == NULL) {
-		view_layer_cow->basact = NULL;
-	}
-	else {
-		const Object *obact_orig = view_layer_orig->basact->object;
-		Object *obact_cow = (Object *)depsgraph->get_cow_id(&obact_orig->id);
-		view_layer_cow->basact = BKE_view_layer_base_find(view_layer_cow, obact_cow);
-	}
-	// Update base flags.
-	//
-	// TODO(sergey): We should probably check visibled/selectabled.
-	// flag here?
-	const Base *base_orig = (Base *)view_layer_orig->object_bases.first;
-	Base *base_cow = (Base *)view_layer_cow->object_bases.first;;
-	while (base_orig != NULL) {
-		base_cow->flag = base_orig->flag;
-		base_orig = base_orig->next;
-		base_cow = base_cow->next;
-	}
-	// Synchronize settings.
-	view_layer_cow->active_collection = view_layer_orig->active_collection;
-	view_layer_cow->flag = view_layer_orig->flag;
-	view_layer_cow->layflag = view_layer_orig->layflag;
-	view_layer_cow->passflag = view_layer_orig->passflag;
-	view_layer_cow->pass_alpha_threshold = view_layer_orig->pass_alpha_threshold;
-	// Synchronize ID properties.
-	IDP_Reset(view_layer_cow->properties, view_layer_orig->properties);
-	IDP_Reset(view_layer_cow->id_properties, view_layer_orig->id_properties);
-	// Synchronize layer collections.
-	update_copy_on_write_layer_collections(
-	        &view_layer_cow->layer_collections,
-	        &view_layer_orig->layer_collections);
-}
-
-void update_copy_on_write_view_layers(const Depsgraph *depsgraph,
-                                      Scene *scene_cow,
-                                      const Scene *scene_orig)
-{
-	const ViewLayer *view_layer_orig = (const ViewLayer *)scene_orig->view_layers.first;
-	ViewLayer *view_layer_cow = (ViewLayer *)scene_cow->view_layers.first;
-	while (view_layer_orig != NULL) {
-		update_copy_on_write_view_layer(depsgraph,
-		                                view_layer_cow,
-		                                view_layer_orig);
-		view_layer_orig = view_layer_orig->next;
-		view_layer_cow = view_layer_cow->next;
-	}
-}
-
-void update_copy_on_write_scene_collections(
-        ListBase *collections_cow,
-        const ListBase *collections_orig);
-
-void update_copy_on_write_scene_collection(
-        SceneCollection *collection_cow,
-        const SceneCollection *collection_orig)
-{
-	collection_cow->active_object_index = collection_orig->active_object_index;
-	update_copy_on_write_scene_collections(
-	        &collection_cow->scene_collections,
-	        &collection_orig->scene_collections);
-}
-
-void update_copy_on_write_scene_collections(
-        ListBase *collections_cow,
-        const ListBase *collections_orig)
-{
-	const SceneCollection *nested_collection_orig =
-	        (const SceneCollection *)collections_orig->first;
-	SceneCollection *nested_collection_cow =
-	        (SceneCollection *)collections_cow->first;
-	while (nested_collection_orig != NULL) {
-		update_copy_on_write_scene_collection(
-		        nested_collection_cow,
-		        nested_collection_orig);
-		nested_collection_orig = nested_collection_orig->next;
-		nested_collection_cow = nested_collection_cow->next;
-	}
-}
-
-/* Update copy-on-write version of scene from original scene. */
-void update_copy_on_write_scene(const Depsgraph *depsgraph,
-                                Scene *scene_cow,
-                                const Scene *scene_orig)
-{
-	// Some non-pointer data sync, current frame for now.
-	// TODO(sergey): Are we missing something here?
-	scene_cow->r.cfra = scene_orig->r.cfra;
-	scene_cow->r.subframe = scene_orig->r.subframe;
-	// Update view layers and collections.
-	update_copy_on_write_view_layers(depsgraph, scene_cow, scene_orig);
-	update_copy_on_write_scene_collection(scene_cow->collection,
-	                                      scene_orig->collection);
-	/* Synchronize active render engine. */
-	BLI_strncpy(scene_cow->view_render.engine_id,
-	            scene_orig->view_render.engine_id,
-	            sizeof(scene_cow->view_render.engine_id));
-	BKE_toolsettings_free(scene_cow->toolsettings);
-	scene_cow->toolsettings = BKE_toolsettings_copy(scene_orig->toolsettings, 0);
-	/* TODO(sergey): What else do we need here? */
-}
-
-/* Update copy-on-write version of armature object from original scene. */
-void update_copy_on_write_object(const Depsgraph * /*depsgraph*/,
-                                 Object *object_cow,
-                                 const Object *object_orig)
-{
-	/* TODO(sergey): This function might be split into a smaller ones,
-	 * reused for different updates. And maybe even moved to BKE.
-	 */
-	/* Update armature/pose related flags. */
-	bPose *pose_cow = object_cow->pose;
-	const bPose *pose_orig = object_orig->pose;
-	extract_pose_from_pose(pose_cow, pose_orig);
-	/* Update object itself. */
-	BKE_object_transform_copy(object_cow, object_orig);
-	object_cow->mode = object_orig->mode;
-}
-
-/* Update copy-on-write version of datablock from it's original ID without re-building
- * the whole datablock from scratch.
- *
- * Used for such special cases as scene collections and armatures, which can not use full
- * re-alloc due to pointers used as function bindings.
- */
-void update_copy_on_write_datablock(const Depsgraph *depsgraph,
-                                    const ID *id_orig, ID *id_cow)
-{
-	bool ok = false;
-	const ID_Type id_type = GS(id_orig->name);
-	switch (id_type) {
-		case ID_SCE: {
-			const Scene *scene_orig = (const Scene *)id_orig;
-			Scene *scene_cow = (Scene *)id_cow;
-			update_copy_on_write_scene(depsgraph, scene_cow, scene_orig);
-			ok = true;
-			break;
-		}
-		case ID_OB: {
-			const Object *object_orig = (const Object *)id_orig;
-			Object *object_cow = (Object *)id_cow;
-			if (object_orig->type == OB_ARMATURE) {
-				update_copy_on_write_object(depsgraph,
-				                            object_cow,
-				                            object_orig);
-				ok = true;
-			}
-			break;
-		}
-		case ID_AR:
-			/* Nothing to do currently. */
-			ok = true;
-			break;
-		default:
-			break;
-	}
-	// TODO(sergey): Other ID types here.
-	if (!ok) {
-		BLI_assert(!"Missing update logic of expanded datablock");
-	}
-}
-
 /* This callback is used to validate that all nested ID datablocks are
  * properly expanded.
  */
@@ -710,8 +488,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        DepsgraphNodeBuilder *node_builder,
                                        bool create_placeholders)
 {
-	BLI_assert(!create_placeholders ||
-	           check_datablock_expanded_at_construction(id_node->id_orig));
 	const ID *id_orig = id_node->id_orig;
 	ID *id_cow = id_node->id_cow;
 	/* No need to expand such datablocks, their copied ID is same as original
@@ -831,15 +607,6 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	ID *id_cow = id_node->id_cow;
 	/* Similar to expansion, no need to do anything here. */
 	if (!deg_copy_on_write_is_needed(id_orig)) {
-		return id_cow;
-	}
-	/* Special case for datablocks which are expanded at the dependency graph
-	 * construction time. This datablocks must never change pointers of their
-	 * nested data since it is used for function bindings.
-	 */
-	if (check_datablock_expanded_at_construction(id_orig)) {
-		BLI_assert(check_datablock_expanded(id_cow) == true);
-		update_copy_on_write_datablock(depsgraph, id_orig, id_cow);
 		return id_cow;
 	}
 	/* For the rest if datablock types we use simple logic:
@@ -1019,6 +786,12 @@ void deg_evaluate_copy_on_write(const EvaluationContext * /*eval_ctx*/,
                                 const IDDepsNode *id_node)
 {
 	DEBUG_PRINT("%s on %s\n", __func__, id_node->id_orig->name);
+	if (id_node->id_orig == &depsgraph->scene->id) {
+		/* NOTE: This is handled by eval_ctx setup routines, which
+		 * ensures scene and view layer pointers are valid.
+		 */
+		return;
+	}
 	deg_update_copy_on_write_datablock(depsgraph, id_node);
 }
 

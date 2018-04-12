@@ -77,35 +77,13 @@ void DepsgraphNodeBuilder::build_view_layer(
 	/* Setup currently building context. */
 	scene_ = scene;
 	view_layer_ = view_layer;
-	/* Expand Scene Cow datablock to get proper pointers to bases. */
+	/* Get pointer to a CoW version of scene ID. */
 	Scene *scene_cow;
-	ViewLayer *view_layer_cow;
 	if (DEG_depsgraph_use_copy_on_write()) {
-		/* NOTE: We need to create ID nodes for all objects coming from bases,
-		 * otherwise remapping will not replace objects with their CoW versions
-		 * for CoW bases.
-		 */
-		LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
-			Object *object = base->object;
-			add_id_node(&object->id);
-		}
-		/* Create ID node for nested ID of nodetree as well, otherwise remapping
-		 * will not work correct either.
-		 */
-		if (scene->nodetree != NULL) {
-			add_id_node(&scene->nodetree->id);
-		}
-		/* Make sure we've got ID node, so we can get pointer to CoW datablock.
-		 */
-		scene_cow = expand_cow_datablock(scene);
-		view_layer_cow = (ViewLayer *)BLI_findstring(
-		        &scene_cow->view_layers,
-		        view_layer->name,
-		        offsetof(ViewLayer, name));
+		scene_cow = get_cow_datablock(scene);
 	}
 	else {
 		scene_cow = scene;
-		view_layer_cow = view_layer;
 	}
 	/* Scene objects. */
 	int select_color = 1;
@@ -114,14 +92,10 @@ void DepsgraphNodeBuilder::build_view_layer(
 	 * tricks here iterating over the view layer.
 	 */
 	int base_index = 0;
-	for (Base *base_orig = (Base *)view_layer->object_bases.first,
-	          *base_cow = (Base *)view_layer_cow->object_bases.first;
-	     base_orig != NULL;
-	     base_orig = base_orig->next, base_cow = base_cow->next)
-	{
+	LISTBASE_FOREACH(Base *, base, &view_layer->object_bases) {
 		/* object itself */
-		build_object(base_index, base_orig->object, linked_state);
-		base_orig->object->select_color = select_color++;
+		build_object(base_index, base->object, linked_state);
+		base->object->select_color = select_color++;
 		++base_index;
 	}
 	if (scene->camera != NULL) {

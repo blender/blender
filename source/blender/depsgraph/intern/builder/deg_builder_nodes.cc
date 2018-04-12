@@ -322,17 +322,6 @@ ID *DepsgraphNodeBuilder::ensure_cow_id(ID *id_orig)
 	return id_node->id_cow;
 }
 
-ID *DepsgraphNodeBuilder::expand_cow_id(IDDepsNode *id_node)
-{
-	return deg_expand_copy_on_write_datablock(graph_, id_node, this, true);
-}
-
-ID *DepsgraphNodeBuilder::expand_cow_id(ID *id_orig)
-{
-	IDDepsNode *id_node = add_id_node(id_orig);
-	return expand_cow_id(id_node);
-}
-
 /* **** Build functions for entity nodes **** */
 
 void DepsgraphNodeBuilder::begin_build() {

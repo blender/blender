@@ -89,16 +89,6 @@ struct DepsgraphNodeBuilder {
 		return (T *)get_cow_id(&orig->id);
 	}
 
-	/* Get fully expanded (ready for use) copy-on-write datablock for the given
-	 * original datablock.
-	 */
-	ID *expand_cow_id(IDDepsNode *id_node);
-	ID *expand_cow_id(ID *id_orig);
-	template<typename T>
-	T *expand_cow_datablock(T *orig) {
-		return (T *)expand_cow_id(&orig->id);
-	}
-
 	/* For a given COW datablock get corresponding original one. */
 	template<typename T>
 	T *get_orig_datablock(const T *cow) const {
