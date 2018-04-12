@@ -90,6 +90,7 @@ typedef void (*ErrorCallback)(const iTaSC::ConstraintValues *values, unsigned in
 
 // one structure for each target in the scene
 struct IK_Target {
+	const struct EvaluationContext *eval_ctx;
 	struct Scene			*blscene;
 	iTaSC::MovingFrame*		target;
 	iTaSC::ConstraintSet*	constraint;
@@ -107,6 +108,7 @@ struct IK_Target {
 	float					eeRest[4][4];	//end effector initial pose relative to armature
 
 	IK_Target() {
+		eval_ctx = NULL;
 		blscene = NULL;
 		target = NULL;
 		constraint = NULL;
@@ -157,6 +159,7 @@ struct IK_Channel {
 };
 
 struct IK_Scene {
+	const struct EvaluationContext *eval_ctx;
 	struct Scene		*blscene;
 	IK_Scene*			next;
 	int					numchan;	// number of channel in pchan
@@ -177,6 +180,7 @@ struct IK_Scene {
 	std::vector<IK_Target*>		targets;
 
 	IK_Scene() {
+		eval_ctx = NULL;
 		blscene = NULL;
 		next = NULL;
 		channels = NULL;
@@ -542,7 +546,7 @@ static void GetJointRotation(KDL::Rotation& boneRot, int type, double *rot)
 	}
 }
 
-static bool target_callback(const struct EvaluationContext *eval_ctx, const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
+static bool target_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
 {
 	IK_Target *target = (IK_Target *)param;
 	// compute next target position
@@ -550,7 +554,7 @@ static bool target_callback(const struct EvaluationContext *eval_ctx, const iTaS
 	bConstraint *constraint = (bConstraint *)target->blenderConstraint;
 	float tarmat[4][4];
 
-	BKE_constraint_target_matrix_get(eval_ctx, target->blscene, constraint, 0, CONSTRAINT_OBTYPE_OBJECT, target->owner, tarmat, 1.0);
+	BKE_constraint_target_matrix_get(target->eval_ctx, target->blscene, constraint, 0, CONSTRAINT_OBTYPE_OBJECT, target->owner, tarmat, 1.0);
 
 	// rootmat contains the target pose in world coordinate
 	// if enforce is != 1.0, blend the target position with the end effector position
@@ -577,7 +581,7 @@ static bool target_callback(const struct EvaluationContext *eval_ctx, const iTaS
 	return true;
 }
 
-static bool base_callback(const struct EvaluationContext *eval_ctx, const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
+static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame& current, iTaSC::Frame& next, void *param)
 {
 	IK_Scene *ikscene = (IK_Scene *)param;
 	// compute next armature base pose
@@ -619,7 +623,7 @@ static bool base_callback(const struct EvaluationContext *eval_ctx, const iTaSC:
 		IK_Channel &rootchan = ikscene->channels[0];
 
 		// get polar target matrix in world space
-		BKE_constraint_target_matrix_get(eval_ctx, ikscene->blscene, ikscene->polarConstraint, 1, CONSTRAINT_OBTYPE_OBJECT, ikscene->blArmature, mat, 1.0);
+		BKE_constraint_target_matrix_get(ikscene->eval_ctx, ikscene->blscene, ikscene->polarConstraint, 1, CONSTRAINT_OBTYPE_OBJECT, ikscene->blArmature, mat, 1.0);
 		// convert to armature space
 		mul_m4_m4m4(polemat, imat, mat);
 		// get the target in world space (was computed before as target object are defined before base object)
@@ -1082,6 +1086,7 @@ static IK_Scene *convert_tree(const struct EvaluationContext *eval_ctx, Scene *b
 
 	ikscene = new IK_Scene;
 	ikscene->blscene = blscene;
+	ikscene->eval_ctx = eval_ctx;
 	arm = new iTaSC::Armature();
 	scene = new iTaSC::Scene();
 	ikscene->channels = new IK_Channel[tree->totchannel];
@@ -1397,7 +1402,7 @@ static IK_Scene *convert_tree(const struct EvaluationContext *eval_ctx, Scene *b
 	// we can now add the armature
 	// the armature is based on a moving frame.
 	// initialize with the correct position in case there is no cache
-	base_callback(eval_ctx, iTaSC::Timestamp(), iTaSC::F_identity, initPose, ikscene);
+	base_callback(iTaSC::Timestamp(), iTaSC::F_identity, initPose, ikscene);
 	ikscene->base = new iTaSC::MovingFrame(initPose);
 	ikscene->base->setCallback(base_callback, ikscene);
 	std::string armname;
@@ -1439,6 +1444,7 @@ static IK_Scene *convert_tree(const struct EvaluationContext *eval_ctx, Scene *b
 	for (t = 0; t < ikscene->targets.size(); t++) {
 		IK_Target *iktarget = ikscene->targets[t];
 		iktarget->blscene = blscene;
+		iktarget->eval_ctx = eval_ctx;
 		condata = (bKinematicConstraint *)iktarget->blenderConstraint->data;
 		pchan = tree->pchan[iktarget->channel];
 		unsigned int controltype, bonecnt;
@@ -1458,7 +1464,7 @@ static IK_Scene *convert_tree(const struct EvaluationContext *eval_ctx, Scene *b
 		mul_m4_m4m4(iktarget->eeRest, invBaseFrame, mat);
 		iktarget->eeBlend = (!ikscene->polarConstraint && condata->type == CONSTRAINT_IK_COPYPOSE) ? true : false;
 		// use target_callback to make sure the initPose includes enforce coefficient
-		target_callback(eval_ctx, iTaSC::Timestamp(), iTaSC::F_identity, initPose, iktarget);
+		target_callback(iTaSC::Timestamp(), iTaSC::F_identity, initPose, iktarget);
 		iktarget->target = new iTaSC::MovingFrame(initPose);
 		iktarget->target->setCallback(target_callback, iktarget);
 		ret = scene->addObject(iktarget->targetName, iktarget->target);
@@ -1647,7 +1653,7 @@ static void execute_scene(const struct EvaluationContext *eval_ctx, Scene *blsce
 		}
 	}
 	// don't cache if we are reiterating because we don't want to destroy the cache unnecessarily
-	ikscene->scene->update(eval_ctx, timestamp, timestep, numstep, false, !reiterate, simulation);
+	ikscene->scene->update(timestamp, timestep, numstep, false, !reiterate, simulation);
 	if (reiterate) {
 		// how many times do we reiterate?
 		for (i = 0; i < ikparam->numiter; i++) {
@@ -1656,11 +1662,11 @@ static void execute_scene(const struct EvaluationContext *eval_ctx, Scene *blsce
 			{
 				break;
 			}
-			ikscene->scene->update(eval_ctx, timestamp, timestep, numstep, true, false, simulation);
+			ikscene->scene->update(timestamp, timestep, numstep, true, false, simulation);
 		}
 		if (simulation) {
 			// one more fake iteration to cache
-			ikscene->scene->update(eval_ctx, timestamp, 0.0, 1, true, true, true);
+			ikscene->scene->update(timestamp, 0.0, 1, true, true, true);
 		}
 	}
 	// compute constraint error

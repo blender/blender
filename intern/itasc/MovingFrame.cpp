@@ -90,7 +90,7 @@ bool MovingFrame::setCallback(MovingFrameCallback _function, void* _param)
 	return true;
 }
 
-void MovingFrame::updateCoordinates(const struct EvaluationContext *eval_ctx, const Timestamp& timestamp)
+void MovingFrame::updateCoordinates(const Timestamp& timestamp)
 {
 	// don't compute the velocity during substepping, it is assumed constant.
 	if (!timestamp.substep) {
@@ -98,7 +98,7 @@ void MovingFrame::updateCoordinates(const struct EvaluationContext *eval_ctx, co
 		if (!timestamp.reiterate) {
 			cacheAvail = popInternalFrame(timestamp.cacheTimestamp);
 			if (m_function)
-				(*m_function)(eval_ctx, timestamp, m_internalPose, m_nextPose, m_param);
+				(*m_function)(timestamp, m_internalPose, m_nextPose, m_param);
 		}
 		// only compute velocity if we have a previous pose
 		if (cacheAvail && timestamp.interpolate) {

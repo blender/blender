@@ -39,7 +39,7 @@ public:
     bool addSolver(Solver* _solver);
     bool addCache(Cache* _cache);
     bool initialize();
-    bool update(const struct EvaluationContext *eval_ctx, double timestamp, double timestep, unsigned int numsubstep=1, bool reiterate=false, bool cache=true, bool interpolate=true);
+    bool update(double timestamp, double timestep, unsigned int numsubstep=1, bool reiterate=false, bool cache=true, bool interpolate=true);
 	bool setParam(SceneParam paramId, double value);
 
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW

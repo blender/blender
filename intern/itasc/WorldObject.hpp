@@ -16,7 +16,7 @@ public:
     WorldObject();
     virtual ~WorldObject();
 
-	virtual void updateCoordinates(const struct EvaluationContext *eval_ctx, const Timestamp& timestamp) {};
+	virtual void updateCoordinates(const Timestamp& timestamp) {};
 	virtual void updateKinematics(const Timestamp& timestamp) {};
 	virtual void pushCache(const Timestamp& timestamp) {};
 	virtual void initCache(Cache *_cache) {};

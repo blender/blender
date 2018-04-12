@@ -21,7 +21,7 @@ public:
 
 	int addFrame(const std::string& name, const Frame& frame);
 
-	virtual void updateCoordinates(const struct EvaluationContext *eval_ctx, const Timestamp& timestamp) {};
+	virtual void updateCoordinates(const Timestamp& timestamp) {};
 	virtual int addEndEffector(const std::string& name);
 	virtual bool finalize();
 	virtual const Frame& getPose(const unsigned int frameIndex);

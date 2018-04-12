@@ -257,7 +257,7 @@ bool Scene::getConstraintPose(ConstraintSet* constraint, void *_param, KDL::Fram
 	return true;
 }
 
-bool Scene::update(const struct EvaluationContext *eval_ctx, double timestamp, double timestep, unsigned int numsubstep, bool reiterate, bool cache, bool interpolate)
+bool Scene::update(double timestamp, double timestep, unsigned int numsubstep, bool reiterate, bool cache, bool interpolate)
 {
 	// we must have valid timestep and timestamp
 	if (timestamp < KDL::epsilon || timestep < 0.0)
@@ -316,7 +316,7 @@ bool Scene::update(const struct EvaluationContext *eval_ctx, double timestamp, d
 				}
 			}
 			if (os->object->getType()==Object::UnControlled && ((UncontrolledObject*)os->object)->getNrOfCoordinates() != 0) {
-	            ((UncontrolledObject*)(os->object))->updateCoordinates(eval_ctx, ts);
+	            ((UncontrolledObject*)(os->object))->updateCoordinates(ts);
 				if (!ts.substep) {
 					// velocity of uncontrolled object remains constant during substepping
 					project(m_xdot,os->coordinaterange) = ((UncontrolledObject*)(os->object))->getXudot();
