@@ -38,6 +38,7 @@
 
 #include "DNA_ID.h"
 #include "DNA_dynamicpaint_types.h"
+#include "DNA_group_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force_types.h"
@@ -1733,22 +1734,19 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 		BLI_addtail(lb, pid);
 	}
 
-	if (scene && (duplis-- > 0) && (ob->transflag & OB_DUPLI)) {
-		ListBase *lb_dupli_ob;
-		/* don't update the dupli groups, we only want their pid's */
-		if ((lb_dupli_ob = object_duplilist_ex(G.main->eval_ctx, scene, ob, false))) {
-			DupliObject *dob;
-			for (dob= lb_dupli_ob->first; dob; dob= dob->next) {
-				if (dob->ob != ob) { /* avoids recursive loops with dupliframes: bug 22988 */
-					ListBase lb_dupli_pid;
-					BKE_ptcache_ids_from_object(&lb_dupli_pid, dob->ob, scene, duplis);
-					BLI_movelisttolist(lb, &lb_dupli_pid);
-					if (lb_dupli_pid.first)
-						printf("Adding Dupli\n");
-				}
-			}
+	/* Consider all object in dupli groups to be part of the same object,
+	 * for baking with linking dupligroups. Once we have better overrides
+	 * this can be revisited so users select the local objects directly. */
+	if (scene && (duplis-- > 0) && (ob->dup_group)) {
+		Group *group = ob->dup_group;
+		Base *base = group->view_layer->object_bases.first;
 
-			free_object_duplilist(lb_dupli_ob);	/* does restore */
+		for (; base; base = base->next) {
+			if (base->object != ob) {
+				ListBase lb_dupli_pid;
+				BKE_ptcache_ids_from_object(&lb_dupli_pid, base->object, scene, duplis);
+				BLI_movelisttolist(lb, &lb_dupli_pid);
+			}
 		}
 	}
 }
