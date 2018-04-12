@@ -135,10 +135,8 @@ BLI_INLINE void flush_handle_id_node(IDDepsNode *id_node)
 }
 
 /* TODO(sergey): We can reduce number of arguments here. */
-BLI_INLINE void flush_handle_component_node(Depsgraph *graph,
-                                            IDDepsNode *id_node,
+BLI_INLINE void flush_handle_component_node(IDDepsNode *id_node,
                                             ComponentDepsNode *comp_node,
-                                            bool use_copy_on_write,
                                             FlushQueue *queue)
 {
 	/* We only handle component once. */
@@ -146,17 +144,6 @@ BLI_INLINE void flush_handle_component_node(Depsgraph *graph,
 		return;
 	}
 	comp_node->done = COMPONENT_STATE_DONE;
-	/* Currently this is needed to get object->mesh to be replaced with
-	 * original mesh (rather than being evaluated_mesh).
-	 *
-	 * TODO(sergey): This is something we need to avoid.
-	 */
-	if (use_copy_on_write && comp_node->depends_on_cow()) {
-		ComponentDepsNode *cow_comp =
-		        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
-		cow_comp->tag_update(graph);
-		id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
-	}
 	/* Tag all required operations in component for update.  */
 	foreach (OperationDepsNode *op, comp_node->operations) {
 		/* We don't want to flush tags in "upstream" direction for
@@ -267,7 +254,6 @@ void flush_editors_id_update(Main *bmain,
  */
 void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 {
-	const bool use_copy_on_write = DEG_depsgraph_use_copy_on_write();
 	/* Sanity checks. */
 	BLI_assert(bmain != NULL);
 	BLI_assert(graph != NULL);
@@ -297,10 +283,8 @@ void deg_graph_flush_updates(Main *bmain, Depsgraph *graph)
 			ComponentDepsNode *comp_node = op_node->owner;
 			IDDepsNode *id_node = comp_node->owner;
 			flush_handle_id_node(id_node);
-			flush_handle_component_node(graph,
-			                            id_node,
+			flush_handle_component_node(id_node,
 			                            comp_node,
-			                            use_copy_on_write,
 			                            &queue);
 			/* Flush to nodes along links. */
 			op_node = flush_schedule_children(op_node, &queue);

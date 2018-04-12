@@ -280,6 +280,13 @@ void depsgraph_tag_component(Depsgraph *graph,
 			operation_node->tag_update(graph);
 		}
 	}
+	/* If component depends on copy-on-write, tag it as well. */
+	if (DEG_depsgraph_use_copy_on_write() && component_node->depends_on_cow()) {
+		ComponentDepsNode *cow_comp =
+		        id_node->find_component(DEG_NODE_TYPE_COPY_ON_WRITE);
+		cow_comp->tag_update(graph);
+		id_node->id_orig->recalc |= ID_RECALC_COPY_ON_WRITE;
+	}
 }
 
 /* This is a tag compatibility with legacy code.
