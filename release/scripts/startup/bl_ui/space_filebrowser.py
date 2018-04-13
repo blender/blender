@@ -28,8 +28,10 @@ class FILEBROWSER_HT_header(Header):
         layout = self.layout
 
         st = context.space_data
+        params = st.params
 
-        layout.template_header()
+        if st.active_operator is None:
+            layout.template_header()
 
         row = layout.row()
         row.separator()
@@ -46,7 +48,6 @@ class FILEBROWSER_HT_header(Header):
         layout.separator()
 
         layout.operator_context = 'INVOKE_DEFAULT'
-        params = st.params
 
         # can be None when save/reload with a file selector open
         if params:
