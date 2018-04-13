@@ -326,7 +326,7 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 	ED_view3d_init_mats_rv3d(obedit, ar->regiondata);
 
 	struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-	        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), CTX_data_engine_type(C), 0,
+	        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), 0,
 	        ar, CTX_wm_view3d(C));
 
 	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {

@@ -30,8 +30,6 @@
 #include "BKE_image.h"
 extern "C" {
 #  include "RE_pipeline.h"
-#  include "RE_shader_ext.h"
-#  include "RE_render_ext.h"
 #  include "MEM_guardedalloc.h"
 }
 
@@ -46,7 +44,7 @@ protected:
 	 * Reference to the scene object.
 	 */
 	Scene *m_scene;
-	
+
 	/**
 	 * layerId of the layer where this operation needs to get its data from
 	 */
@@ -61,24 +59,24 @@ protected:
 	 * cached instance to the float buffer inside the layer
 	 */
 	float *m_inputBuffer;
-	
+
 	/**
 	 * renderpass where this operation needs to get its data from
 	 */
 	std::string m_passName;
-	
+
 	int m_elementsize;
 
 	/**
 	 * @brief render data used for active rendering
 	 */
 	const RenderData *m_rd;
-	
+
 	/**
 	 * Determine the output resolution. The resolution is retrieved from the Renderer
 	 */
 	void determineResolution(unsigned int resolution[2], unsigned int preferredResolution[2]);
-	
+
 	/**
 	 * retrieve the reference to the float buffer of the renderer.
 	 */

@@ -127,8 +127,8 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 		build_view_layer(scene->set, set_view_layer);
 	}
 
-	graph_->scene = scene;
-	graph_->view_layer = view_layer;
+	BLI_assert(graph_->scene == scene);
+	BLI_assert(graph_->view_layer == view_layer);
 }
 
 }  // namespace DEG

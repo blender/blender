@@ -49,6 +49,22 @@ struct ViewLayer;
 extern "C" {
 #endif
 
+/* *********************** DEG input data ********************* */
+
+/* Get scene that depsgraph was built for. */
+struct Scene *DEG_get_input_scene(const Depsgraph *graph);
+
+/* Get view layer that depsgraph was built for. */
+struct ViewLayer *DEG_get_input_view_layer(const Depsgraph *graph);
+
+/* Get evaluation mode that depsgraph was built for. */
+eEvaluationMode DEG_get_mode(const Depsgraph *graph);
+
+/* Get time that depsgraph is being evaluated or was last evaluated at. */
+float DEG_get_ctime(const Depsgraph *graph);
+
+/* ********************* DEG evaluated data ******************* */
+
 /* Check if given ID type was tagged for update. */
 bool DEG_id_type_tagged(struct Main *bmain, short id_type);
 

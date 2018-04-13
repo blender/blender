@@ -298,27 +298,17 @@ static Mesh *rna_Main_meshes_new(Main *bmain, const char *name)
 }
 
 /* copied from Mesh_getFromObject and adapted to RNA interface */
-/* settings: 1 - preview, 2 - render */
 Mesh *rna_Main_meshes_new_from_object(
-        Main *bmain, ReportList *reports, Scene *sce, ViewLayer *view_layer,
-        Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
+        Main *bmain, ReportList *reports, Depsgraph *depsgraph,
+        Object *ob, int apply_modifiers, int calc_tessface, int calc_undeformed)
 {
 	EvaluationContext eval_ctx;
+	Scene *sce = DEG_get_evaluated_scene(depsgraph);
 
-	/* XXX: This should never happen, but render pipeline is not ready to give
-	 * proper view_layer, and will always pass NULL here. For until we port
-	 * pipeline form SceneRenderLayer to ViewLayer we have this stub to prevent
-	 * some obvious crashes.
-	 *                                                         - sergey -
-	 */
-	if (view_layer == NULL) {
-		view_layer = sce->view_layers.first;
-	}
-
-	DEG_evaluation_context_init(&eval_ctx, settings);
-	eval_ctx.ctime = (float)sce->r.cfra + sce->r.subframe;
-	eval_ctx.view_layer = view_layer;
-	eval_ctx.depsgraph = BKE_scene_get_depsgraph(sce, view_layer, false);
+	DEG_evaluation_context_init(&eval_ctx, DEG_get_mode(depsgraph));
+	eval_ctx.ctime = DEG_get_ctime(depsgraph);
+	eval_ctx.view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	eval_ctx.depsgraph = depsgraph;
 
 	switch (ob->type) {
 		case OB_FONT:
@@ -332,7 +322,7 @@ Mesh *rna_Main_meshes_new_from_object(
 			return NULL;
 	}
 
-	return BKE_mesh_new_from_object(&eval_ctx, bmain, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
+	return BKE_mesh_new_from_object(&eval_ctx, bmain, sce, ob, apply_modifiers, calc_tessface, calc_undeformed);
 }
 
 static Lamp *rna_Main_lamps_new(Main *bmain, const char *name, int type)
@@ -893,12 +883,6 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	PropertyRNA *parm;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem mesh_type_items[] = {
-		{eModifierMode_Realtime, "PREVIEW", 0, "Preview", "Apply modifier preview settings"},
-		{eModifierMode_Render, "RENDER", 0, "Render", "Apply modifier render settings"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	RNA_def_property_srna(cprop, "BlendDataMeshes");
 	srna = RNA_def_struct(brna, "BlendDataMeshes", NULL);
 	RNA_def_struct_sdna(srna, "Main");
@@ -915,15 +899,11 @@ void RNA_def_main_meshes(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "new_from_object", "rna_Main_meshes_new_from_object");
 	RNA_def_function_ui_description(func, "Add a new mesh created from object with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
-	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "view_layer", "ViewLayer", "", "Scene layer within which to evaluate modifiers");
+	parm = RNA_def_pointer(func, "depsgraph", "Depsgraph", "Dependency Graph", "Evaluated dependency graph within wich to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to create mesh from");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	RNA_def_boolean(func, "calc_tessface", true, "Calculate Tessellation", "Calculate tessellation faces");
 	RNA_def_boolean(func, "calc_undeformed", false, "Calculate Undeformed", "Calculate undeformed vertex coordinates");

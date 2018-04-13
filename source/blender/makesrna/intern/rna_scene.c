@@ -1507,8 +1507,10 @@ static void rna_Scene_editmesh_select_mode_update(bContext *C, PointerRNA *UNUSE
 			me = NULL;
 	}
 
-	WM_main_add_notifier(NC_GEOM | ND_SELECT, me);
-	WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+	if (me) {
+		DEG_id_tag_update(&me->id, DEG_TAG_SELECT_UPDATE);
+		WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+	}
 }
 
 static void object_simplify_update(Object *ob)

@@ -49,6 +49,31 @@ extern "C" {
 #include "intern/depsgraph_intern.h"
 #include "intern/nodes/deg_node_id.h"
 
+struct Scene *DEG_get_input_scene(const Depsgraph *graph)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	return deg_graph->scene;
+}
+
+struct ViewLayer *DEG_get_input_view_layer(const Depsgraph *graph)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	return deg_graph->view_layer;
+}
+
+eEvaluationMode DEG_get_mode(const Depsgraph *graph)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	return deg_graph->mode;
+}
+
+float DEG_get_ctime(const Depsgraph *graph)
+{
+	const DEG::Depsgraph *deg_graph = reinterpret_cast<const DEG::Depsgraph *>(graph);
+	return deg_graph->ctime;
+}
+
+
 bool DEG_id_type_tagged(Main *bmain, short id_type)
 {
 	return bmain->id_tag_update[BKE_idcode_to_index(id_type)] != 0;

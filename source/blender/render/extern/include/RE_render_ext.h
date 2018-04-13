@@ -65,9 +65,6 @@ void RE_sample_material_color(
 /* imagetexture.c */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
 
-/* zbuf.c */
-void antialias_tagbuf(int xsize, int ysize, char *rectmove);
-
 /* pointdensity.c */
 struct PointDensity;
 
@@ -89,4 +86,3 @@ void RE_point_density_sample(
 void RE_point_density_free(struct PointDensity *pd);
 
 #endif /* __RE_RENDER_EXT_H__ */
-

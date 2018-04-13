@@ -4526,7 +4526,6 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		BLI_listbase_clear(&psys->pathcachebufs);
 		BLI_listbase_clear(&psys->childcachebufs);
 		psys->pdd = NULL;
-		psys->renderdata = NULL;
 		
 		if (psys->clmd) {
 			psys->clmd = newdataadr(fd, psys->clmd);
@@ -4963,7 +4962,6 @@ static void lib_link_object(FileData *fd, Main *main)
 			}
 			
 			ob->gpd = newlibadr_us(fd, ob->id.lib, ob->gpd);
-			ob->duplilist = NULL;
 			
 			ob->id.tag &= ~LIB_TAG_NEED_LINK;
 			/* if id.us==0 a new base will be created later on */

@@ -125,8 +125,7 @@ bool BKE_workspace_use_scene_settings_get(const struct WorkSpace *workspace) GET
 void BKE_workspace_use_scene_settings_set(struct WorkSpace *workspace, bool value) SETTER_ATTRS;
 
 /* Update / evaluate */
-void BKE_workspace_update_tagged(struct EvaluationContext *eval_ctx,
-                                 struct Main *bmain,
+void BKE_workspace_update_tagged(struct Main *bmain,
                                  struct WorkSpace *workspace,
                                  struct Scene *scene);
 

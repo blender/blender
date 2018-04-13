@@ -11,12 +11,10 @@
 #include "UncontrolledObject.hpp"
 #include <vector>
 
-struct EvaluationContext;
 
 namespace iTaSC{
 
 typedef bool (*MovingFrameCallback)(
-        const struct EvaluationContext *eval_ctx,
         const Timestamp& timestamp,
         const Frame& _current,
         Frame& _next,
@@ -30,7 +28,7 @@ public:
 	bool setFrame(const Frame& frame);
 	bool setCallback(MovingFrameCallback _function, void* _param);
 
-	virtual void updateCoordinates(const struct EvaluationContext *eval_ctx, const Timestamp& timestamp);
+	virtual void updateCoordinates(const Timestamp& timestamp);
 	virtual void updateKinematics(const Timestamp& timestamp);
     virtual void pushCache(const Timestamp& timestamp);
 	virtual void initCache(Cache *_cache);

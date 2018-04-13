@@ -24,7 +24,6 @@ CCL_NAMESPACE_BEGIN
 
 void point_density_texture_space(BL::Depsgraph& b_depsgraph,
                                  BL::ShaderNodeTexPointDensity& b_point_density_node,
-                                 const int settings,
                                  float3& loc,
                                  float3& size);
 

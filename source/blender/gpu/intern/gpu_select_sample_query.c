@@ -175,13 +175,9 @@ uint gpu_select_query_end(void)
 		glEndQuery(GL_SAMPLES_PASSED);
 	}
 
-	/* We need to sync to get the results anyway.
-	 * If we don't do that the driver will do. */
-	glFinish();
-
 	for (i = 0; i < g_query_state.active_query; i++) {
 		uint result = 0;
-		/* Wait until the result is available. This can happen even if glFinish() was called. */
+		/* Wait until the result is available. */
 		while (result == 0) {
 			glGetQueryObjectuiv(g_query_state.queries[i], GL_QUERY_RESULT_AVAILABLE, &result);
 			if (result == 0) {

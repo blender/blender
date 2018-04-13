@@ -298,7 +298,7 @@ static void meshdeformModifier_do(
 	 *
 	 * We'll support this case once granular dependency graph is landed.
 	 */
-	if (mmd->object == OBEDIT_FROM_VIEW_LAYER(eval_ctx->view_layer)) {
+	if (mmd->object->mode & OB_MODE_EDIT) {
 		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
 		tmpdm = editbmesh_get_derived_cage_and_final(eval_ctx, md->scene, mmd->object, em, 0, &cagedm);
 		if (tmpdm)

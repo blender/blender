@@ -195,7 +195,7 @@ void ED_workspace_object_mode_sync_from_scene(
         struct wmWindowManager *wm, WorkSpace *workspace, struct Scene *scene);
 
 /* anim */
-void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, struct Depsgraph *depsgraph);
+void    ED_update_for_newframe(struct Main *bmain, struct Depsgraph *depsgraph);
 
 void    ED_refresh_viewport_fps(struct bContext *C);
 int		ED_screen_animation_play(struct bContext *C, int sync, int mode);

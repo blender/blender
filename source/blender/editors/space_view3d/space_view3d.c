@@ -911,11 +911,15 @@ static void view3d_main_region_listener(
 				{
 					WM_manipulatormap_tag_refresh(mmap);
 
-					ViewLayer *view_layer = WM_window_get_active_view_layer(wmn->window);
-					Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
-					if (obedit) {
+					ID *ob_data = wmn->reference;
+					if (ob_data == NULL) {
+						BLI_assert(wmn->window); // Use `WM_event_add_notifier` instead of `WM_main_add_notifier`
+						ViewLayer *view_layer = WM_window_get_active_view_layer(wmn->window);
+						ob_data = OBEDIT_FROM_VIEW_LAYER(view_layer)->data;
+					}
+					if (ob_data) {
 						/* TODO(sergey): Notifiers shouldn't really be doing DEG tags. */
-						DEG_id_tag_update((ID *)obedit->data, DEG_TAG_SELECT_UPDATE);
+						DEG_id_tag_update(ob_data, DEG_TAG_SELECT_UPDATE);
 					}
 					ATTR_FALLTHROUGH;
 				}

@@ -1420,9 +1420,12 @@ static void gpu_update_lamps_shadows_world(const EvaluationContext *eval_ctx, Sc
 		mul_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
+		RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
+
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
 		ED_view3d_draw_offscreen(
-		            eval_ctx, scene, eval_ctx->view_layer, v3d, &ar, winsize, winsize, viewmat, winmat,
+		            eval_ctx, scene, eval_ctx->view_layer, engine_type,
+		            v3d, &ar, winsize, winsize, viewmat, winmat,
 		            false, false, true,
 		            NULL, NULL, NULL, NULL);
 		GPU_lamp_shadow_buffer_unbind(shadow->lamp);

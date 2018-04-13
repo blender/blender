@@ -57,7 +57,7 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 
-static int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot);
+#include "DEG_depsgraph_query.h"
 
 static void alloc_child_particles(ParticleSystem *psys, int tot)
 {
@@ -80,12 +80,12 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
 	}
 }
 
-static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *finaldm, DerivedMesh *deformdm, ParticleSystem *psys)
+static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *finaldm, DerivedMesh *deformdm, ParticleSystem *psys, const bool use_render_params)
 {
 	ChildParticle *cpa = NULL;
 	int i, p;
-	int child_nbr= psys_get_child_number(scene, psys);
-	int totpart= psys_get_tot_child(scene, psys);
+	int child_nbr= psys_get_child_number(scene, psys, use_render_params);
+	int totpart= psys_get_tot_child(scene, psys, use_render_params);
 
 	alloc_child_particles(psys, totpart);
 
@@ -738,16 +738,10 @@ static void exec_distribute_child(TaskPool * __restrict UNUSED(pool), void *task
 	/* RNG skipping at the beginning */
 	cpa = psys->child;
 	for (p = 0; p < task->begin; ++p, ++cpa) {
-		if (task->ctx->skip) /* simplification skip */
-			BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP * task->ctx->skip[p]);
-		
 		BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP);
 	}
 		
 	for (; p < task->end; ++p, ++cpa) {
-		if (task->ctx->skip) /* simplification skip */
-			BLI_rng_skip(task->rng, PSYS_RND_DIST_SKIP * task->ctx->skip[p]);
-		
 		distribute_children_exec(task, cpa, p);
 	}
 }
@@ -774,11 +768,15 @@ static int distribute_compare_orig_index(const void *p1, const void *p2, void *u
 		return 1;
 }
 
-static void distribute_invalid(Scene *scene, ParticleSystem *psys, int from)
+static void distribute_invalid(ParticleSimulationData *sim, int from)
 {
+	Scene *scene = sim->scene;
+	ParticleSystem *psys = sim->psys;
+	const bool use_render_params = (DEG_get_mode(sim->eval_ctx->depsgraph) == DAG_EVAL_RENDER);
+
 	if (from == PART_FROM_CHILD) {
 		ChildParticle *cpa;
-		int p, totchild = psys_get_tot_child(scene, psys);
+		int p, totchild = psys_get_tot_child(scene, psys, use_render_params);
 
 		if (psys->child && totchild) {
 			for (p=0,cpa=psys->child; p<totchild; p++,cpa++) {
@@ -841,13 +839,15 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	 */
 
 	psys_thread_context_init(ctx, sim);
+
+	const bool use_render_params = (DEG_get_mode(sim->eval_ctx->depsgraph) == DAG_EVAL_RENDER);
 	
 	/* First handle special cases */
 	if (from == PART_FROM_CHILD) {
 		/* Simple children */
 		if (part->childtype != PART_CHILD_FACES) {
 			BLI_srandom(31415926 + psys->seed + psys->child_seed);
-			distribute_simple_children(scene, ob, finaldm, sim->psmd->dm_deformed, psys);
+			distribute_simple_children(scene, ob, finaldm, sim->psmd->dm_deformed, psys, use_render_params);
 			return 0;
 		}
 	}
@@ -895,7 +895,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 		BLI_kdtree_balance(tree);
 
-		totpart = psys_get_tot_child(scene, psys);
+		totpart = psys_get_tot_child(scene, psys, use_render_params);
 		cfrom = from = PART_FROM_FACE;
 	}
 	else {
@@ -938,7 +938,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	totelem = (from == PART_FROM_VERT) ? dm->getNumVerts(dm) : dm->getNumTessFaces(dm);
 
 	if (totelem == 0) {
-		distribute_invalid(scene, psys, children ? PART_FROM_CHILD : 0);
+		distribute_invalid(sim, children ? PART_FROM_CHILD : 0);
 
 		if (G.debug & G_DEBUG)
 			fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
@@ -1082,7 +1082,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	totmapped = i_mapped;
 
 	/* Finally assign elements to particles */
-	if ((part->flag & PART_TRAND) || (part->simplify_flag & PART_SIMPLIFY_ENABLE)) {
+	if (part->flag & PART_TRAND) {
 		for (p = 0; p < totpart; p++) {
 			/* In theory element_sum[totmapped - 1] should be 1.0,
 			 * but due to float errors this is not necessarily always true, so scale pos accordingly. */
@@ -1176,7 +1176,6 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	ctx->tpars= tpars;
 
 	if (children) {
-		totpart= psys_render_simplify_distribution(ctx, totpart);
 		alloc_child_particles(psys, totpart);
 	}
 
@@ -1235,7 +1234,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 /* ready for future use, to emit particles without geometry */
 static void distribute_particles_on_shape(ParticleSimulationData *sim, int UNUSED(from))
 {
-	distribute_invalid(sim->scene, sim->psys, 0);
+	distribute_invalid(sim, 0);
 
 	fprintf(stderr,"Shape emission not yet possible!\n");
 }
@@ -1255,250 +1254,8 @@ void distribute_particles(ParticleSimulationData *sim, int from)
 		distribute_particles_on_shape(sim, from);
 
 	if (distr_error) {
-		distribute_invalid(sim->scene, sim->psys, from);
+		distribute_invalid(sim, from);
 
 		fprintf(stderr,"Particle distribution error!\n");
 	}
-}
-
-/* ======== Simplify ======== */
-
-static float psys_render_viewport_falloff(double rate, float dist, float width)
-{
-	return pow(rate, dist / width);
-}
-
-static float psys_render_projected_area(ParticleSystem *psys, const float center[3], float area, double vprate, float *viewport)
-{
-	ParticleRenderData *data = psys->renderdata;
-	float co[4], view[3], ortho1[3], ortho2[3], w, dx, dy, radius;
-	
-	/* transform to view space */
-	copy_v3_v3(co, center);
-	co[3] = 1.0f;
-	mul_m4_v4(data->viewmat, co);
-	
-	/* compute two vectors orthogonal to view vector */
-	normalize_v3_v3(view, co);
-	ortho_basis_v3v3_v3(ortho1, ortho2, view);
-
-	/* compute on screen minification */
-	w = co[2] * data->winmat[2][3] + data->winmat[3][3];
-	dx = data->winx * ortho2[0] * data->winmat[0][0];
-	dy = data->winy * ortho2[1] * data->winmat[1][1];
-	w = sqrtf(dx * dx + dy * dy) / w;
-
-	/* w squared because we are working with area */
-	area = area * w * w;
-
-	/* viewport of the screen test */
-
-	/* project point on screen */
-	mul_m4_v4(data->winmat, co);
-	if (co[3] != 0.0f) {
-		co[0] = 0.5f * data->winx * (1.0f + co[0] / co[3]);
-		co[1] = 0.5f * data->winy * (1.0f + co[1] / co[3]);
-	}
-
-	/* screen space radius */
-	radius = sqrtf(area / (float)M_PI);
-
-	/* make smaller using fallof once over screen edge */
-	*viewport = 1.0f;
-
-	if (co[0] + radius < 0.0f)
-		*viewport *= psys_render_viewport_falloff(vprate, -(co[0] + radius), data->winx);
-	else if (co[0] - radius > data->winx)
-		*viewport *= psys_render_viewport_falloff(vprate, (co[0] - radius) - data->winx, data->winx);
-
-	if (co[1] + radius < 0.0f)
-		*viewport *= psys_render_viewport_falloff(vprate, -(co[1] + radius), data->winy);
-	else if (co[1] - radius > data->winy)
-		*viewport *= psys_render_viewport_falloff(vprate, (co[1] - radius) - data->winy, data->winy);
-	
-	return area;
-}
-
-/* BMESH_TODO, for orig face data, we need to use MPoly */
-static int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
-{
-	DerivedMesh *dm = ctx->dm;
-	Mesh *me = (Mesh *)(ctx->sim.ob->data);
-	MFace *mf, *mface;
-	MVert *mvert;
-	ParticleRenderData *data;
-	ParticleRenderElem *elems, *elem;
-	ParticleSettings *part = ctx->sim.psys->part;
-	float *facearea, (*facecenter)[3], size[3], fac, powrate, scaleclamp;
-	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
-	double vprate;
-	int *facetotvert;
-	int a, b, totorigface, totface, newtot, skipped;
-
-	/* double lookup */
-	const int *index_mf_to_mpoly;
-	const int *index_mp_to_orig;
-
-	if (part->ren_as != PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
-		return tot;
-	if (!ctx->sim.psys->renderdata)
-		return tot;
-
-	data = ctx->sim.psys->renderdata;
-	if (data->timeoffset)
-		return 0;
-	if (!(part->simplify_flag & PART_SIMPLIFY_ENABLE))
-		return tot;
-
-	mvert = dm->getVertArray(dm);
-	mface = dm->getTessFaceArray(dm);
-	totface = dm->getNumTessFaces(dm);
-	totorigface = me->totpoly;
-
-	if (totface == 0 || totorigface == 0)
-		return tot;
-
-	index_mf_to_mpoly = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
-	index_mp_to_orig  = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	if (index_mf_to_mpoly == NULL) {
-		index_mp_to_orig = NULL;
-	}
-
-	facearea = MEM_callocN(sizeof(float) * totorigface, "SimplifyFaceArea");
-	facecenter = MEM_callocN(sizeof(float[3]) * totorigface, "SimplifyFaceCenter");
-	facetotvert = MEM_callocN(sizeof(int) * totorigface, "SimplifyFaceArea");
-	elems = MEM_callocN(sizeof(ParticleRenderElem) * totorigface, "SimplifyFaceElem");
-
-	if (data->elems)
-		MEM_freeN(data->elems);
-
-	data->do_simplify = true;
-	data->elems = elems;
-	data->index_mf_to_mpoly = index_mf_to_mpoly;
-	data->index_mp_to_orig  = index_mp_to_orig;
-
-	/* compute number of children per original face */
-	for (a = 0; a < tot; a++) {
-		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
-		if (b != ORIGINDEX_NONE) {
-			elems[b].totchild++;
-		}
-	}
-
-	/* compute areas and centers of original faces */
-	for (mf = mface, a = 0; a < totface; a++, mf++) {
-		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, a) : a;
-
-		if (b != ORIGINDEX_NONE) {
-			copy_v3_v3(co1, mvert[mf->v1].co);
-			copy_v3_v3(co2, mvert[mf->v2].co);
-			copy_v3_v3(co3, mvert[mf->v3].co);
-
-			add_v3_v3(facecenter[b], co1);
-			add_v3_v3(facecenter[b], co2);
-			add_v3_v3(facecenter[b], co3);
-
-			if (mf->v4) {
-				copy_v3_v3(co4, mvert[mf->v4].co);
-				add_v3_v3(facecenter[b], co4);
-				facearea[b] += area_quad_v3(co1, co2, co3, co4);
-				facetotvert[b] += 4;
-			}
-			else {
-				facearea[b] += area_tri_v3(co1, co2, co3);
-				facetotvert[b] += 3;
-			}
-		}
-	}
-
-	for (a = 0; a < totorigface; a++)
-		if (facetotvert[a] > 0)
-			mul_v3_fl(facecenter[a], 1.0f / facetotvert[a]);
-
-	/* for conversion from BU area / pixel area to reference screen size */
-	BKE_mesh_texspace_get(me, 0, 0, size);
-	fac = ((size[0] + size[1] + size[2]) / 3.0f) / part->simplify_refsize;
-	fac = fac * fac;
-
-	powrate = log(0.5f) / log(part->simplify_rate * 0.5f);
-	if (part->simplify_flag & PART_SIMPLIFY_VIEWPORT)
-		vprate = pow(1.0f - part->simplify_viewport, 5.0);
-	else
-		vprate = 1.0;
-
-	/* set simplification parameters per original face */
-	for (a = 0, elem = elems; a < totorigface; a++, elem++) {
-		area = psys_render_projected_area(ctx->sim.psys, facecenter[a], facearea[a], vprate, &viewport);
-		arearatio = fac * area / facearea[a];
-
-		if ((arearatio < 1.0f || viewport < 1.0f) && elem->totchild) {
-			/* lambda is percentage of elements to keep */
-			lambda = (arearatio < 1.0f) ? powf(arearatio, powrate) : 1.0f;
-			lambda *= viewport;
-
-			lambda = MAX2(lambda, 1.0f / elem->totchild);
-
-			/* compute transition region */
-			t = part->simplify_transition;
-			elem->t = (lambda - t < 0.0f) ? lambda : (lambda + t > 1.0f) ? 1.0f - lambda : t;
-			elem->reduce = 1;
-
-			/* scale at end and beginning of the transition region */
-			elem->scalemax = (lambda + t < 1.0f) ? 1.0f / lambda : 1.0f / (1.0f - elem->t * elem->t / t);
-			elem->scalemin = (lambda + t < 1.0f) ? 0.0f : elem->scalemax * (1.0f - elem->t / t);
-
-			elem->scalemin = sqrtf(elem->scalemin);
-			elem->scalemax = sqrtf(elem->scalemax);
-
-			/* clamp scaling */
-			scaleclamp = (float)min_ii(elem->totchild, 10);
-			elem->scalemin = MIN2(scaleclamp, elem->scalemin);
-			elem->scalemax = MIN2(scaleclamp, elem->scalemax);
-
-			/* extend lambda to include transition */
-			lambda = lambda + elem->t;
-			if (lambda > 1.0f)
-				lambda = 1.0f;
-		}
-		else {
-			lambda = arearatio;
-
-			elem->scalemax = 1.0f; //sqrt(lambda);
-			elem->scalemin = 1.0f; //sqrt(lambda);
-			elem->reduce = 0;
-		}
-
-		elem->lambda = lambda;
-		elem->scalemin = sqrtf(elem->scalemin);
-		elem->scalemax = sqrtf(elem->scalemax);
-		elem->curchild = 0;
-	}
-
-	MEM_freeN(facearea);
-	MEM_freeN(facecenter);
-	MEM_freeN(facetotvert);
-
-	/* move indices and set random number skipping */
-	ctx->skip = MEM_callocN(sizeof(int) * tot, "SimplificationSkip");
-
-	skipped = 0;
-	for (a = 0, newtot = 0; a < tot; a++) {
-		b = (index_mf_to_mpoly) ? DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, ctx->index[a]) : ctx->index[a];
-
-		if (b != ORIGINDEX_NONE) {
-			if (elems[b].curchild++ < ceil(elems[b].lambda * elems[b].totchild)) {
-				ctx->index[newtot] = ctx->index[a];
-				ctx->skip[newtot] = skipped;
-				skipped = 0;
-				newtot++;
-			}
-			else skipped++;
-		}
-		else skipped++;
-	}
-
-	for (a = 0, elem = elems; a < totorigface; a++, elem++)
-		elem->curchild = 0;
-
-	return newtot;
 }

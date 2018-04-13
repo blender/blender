@@ -87,6 +87,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RE_render_ext.h"
 
@@ -251,7 +252,7 @@ struct LatticeDeformData *psys_create_lattice_deform_data(ParticleSimulationData
 {
 	struct LatticeDeformData *lattice_deform_data = NULL;
 
-	if (psys_in_edit_mode(sim->eval_ctx->view_layer, sim->psys) == 0) {
+	if (psys_in_edit_mode(sim->eval_ctx->depsgraph, sim->psys) == 0) {
 		Object *lattice = NULL;
 		ModifierData *md = (ModifierData *)psys_get_modifier(sim->ob, sim->psys);
 		int mode = G.is_rendering ? eModifierMode_Render : eModifierMode_Realtime;
@@ -288,13 +289,16 @@ void psys_enable_all(Object *ob)
 		psys->flag &= ~PSYS_DISABLED;
 }
 
-bool psys_in_edit_mode(ViewLayer *view_layer, ParticleSystem *psys)
+bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 {
+	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
+	const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+
 	return (view_layer->basact &&
 	        (view_layer->basact->object->mode & OB_MODE_PARTICLE_EDIT) &&
 	        psys == psys_get_current((view_layer->basact)->object) &&
 	        (psys->edit || psys->pointcache->edit) &&
-	        !psys->renderdata);
+			!use_render_params);
 }
 
 bool psys_check_enabled(Object *ob, ParticleSystem *psys, const bool use_render_params)
@@ -305,7 +309,7 @@ bool psys_check_enabled(Object *ob, ParticleSystem *psys, const bool use_render_
 		return 0;
 
 	psmd = psys_get_modifier(ob, psys);
-	if (psys->renderdata || use_render_params) {
+	if (use_render_params) {
 		if (!(psmd->modifier.mode & eModifierMode_Render))
 			return 0;
 	}
@@ -619,204 +623,6 @@ void psys_free(Object *ob, ParticleSystem *psys)
 
 		MEM_freeN(psys);
 	}
-}
-
-/************************************************/
-/*			Rendering							*/
-/************************************************/
-/* these functions move away particle data and bring it back after
- * rendering, to make different render settings possible without
- * removing the previous data. this should be solved properly once */
-
-void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[4][4], float winmat[4][4], int winx, int winy, int timeoffset)
-{
-	ParticleRenderData *data;
-	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-
-	if (psys->renderdata)
-		return;
-
-	data = MEM_callocN(sizeof(ParticleRenderData), "ParticleRenderData");
-
-	data->child = psys->child;
-	data->totchild = psys->totchild;
-	data->pathcache = psys->pathcache;
-	data->pathcachebufs.first = psys->pathcachebufs.first;
-	data->pathcachebufs.last = psys->pathcachebufs.last;
-	data->totcached = psys->totcached;
-	data->childcache = psys->childcache;
-	data->childcachebufs.first = psys->childcachebufs.first;
-	data->childcachebufs.last = psys->childcachebufs.last;
-	data->totchildcache = psys->totchildcache;
-
-	if (psmd->dm_final) {
-		data->dm = CDDM_copy_with_tessface(psmd->dm_final);
-	}
-	data->totdmvert = psmd->totdmvert;
-	data->totdmedge = psmd->totdmedge;
-	data->totdmface = psmd->totdmface;
-
-	psys->child = NULL;
-	psys->pathcache = NULL;
-	psys->childcache = NULL;
-	psys->totchild = psys->totcached = psys->totchildcache = 0;
-	BLI_listbase_clear(&psys->pathcachebufs);
-	BLI_listbase_clear(&psys->childcachebufs);
-
-	copy_m4_m4(data->winmat, winmat);
-	mul_m4_m4m4(data->viewmat, viewmat, ob->obmat);
-	mul_m4_m4m4(data->mat, winmat, data->viewmat);
-	data->winx = winx;
-	data->winy = winy;
-
-	data->timeoffset = timeoffset;
-
-	psys->renderdata = data;
-
-	/* Hair can and has to be recalculated if everything isn't displayed. */
-	if (psys->part->disp != 100 && ELEM(psys->part->type, PART_HAIR, PART_FLUID)) {
-		psys->recalc |= PSYS_RECALC_RESET;
-	}
-}
-
-void psys_render_restore(Object *ob, ParticleSystem *psys)
-{
-	ParticleRenderData *data;
-	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
-	float render_disp = psys_get_current_display_percentage(psys);
-	float disp;
-
-	data = psys->renderdata;
-	if (!data)
-		return;
-	
-	if (data->elems)
-		MEM_freeN(data->elems);
-
-	if (psmd->dm_final) {
-		psmd->dm_final->needsFree = 1;
-		psmd->dm_final->release(psmd->dm_final);
-	}
-	if (psmd->dm_deformed) {
-		psmd->dm_deformed->needsFree = 1;
-		psmd->dm_deformed->release(psmd->dm_deformed);
-		psmd->dm_deformed = NULL;
-	}
-
-	psys_free_path_cache(psys, NULL);
-
-	if (psys->child) {
-		MEM_freeN(psys->child);
-		psys->child = 0;
-		psys->totchild = 0;
-	}
-
-	psys->child = data->child;
-	psys->totchild = data->totchild;
-	psys->pathcache = data->pathcache;
-	psys->pathcachebufs.first = data->pathcachebufs.first;
-	psys->pathcachebufs.last = data->pathcachebufs.last;
-	psys->totcached = data->totcached;
-	psys->childcache = data->childcache;
-	psys->childcachebufs.first = data->childcachebufs.first;
-	psys->childcachebufs.last = data->childcachebufs.last;
-	psys->totchildcache = data->totchildcache;
-
-	psmd->dm_final = data->dm;
-	psmd->totdmvert = data->totdmvert;
-	psmd->totdmedge = data->totdmedge;
-	psmd->totdmface = data->totdmface;
-	psmd->flag &= ~eParticleSystemFlag_psys_updated;
-
-	if (psmd->dm_final) {
-		if (!psmd->dm_final->deformedOnly) {
-			if (ob->derivedDeform) {
-				psmd->dm_deformed = CDDM_copy(ob->derivedDeform);
-			}
-			else {
-				psmd->dm_deformed = CDDM_from_mesh((Mesh *)ob->data);
-			}
-			DM_ensure_tessface(psmd->dm_deformed);
-		}
-		psys_calc_dmcache(ob, psmd->dm_final, psmd->dm_deformed, psys);
-	}
-
-	MEM_freeN(data);
-	psys->renderdata = NULL;
-
-	/* restore particle display percentage */
-	disp = psys_get_current_display_percentage(psys);
-
-	if (disp != render_disp) {
-		/* Hair can and has to be recalculated if everything isn't displayed. */
-		if (ELEM(psys->part->type, PART_HAIR, PART_FLUID)) {
-			psys->recalc |= PSYS_RECALC_RESET;
-		}
-		else {
-			PARTICLE_P;
-
-			LOOP_PARTICLES {
-				if (psys_frand(psys, p) > disp)
-					pa->flag |= PARS_NO_DISP;
-				else
-					pa->flag &= ~PARS_NO_DISP;
-			}
-		}
-	}
-}
-
-bool psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float *params)
-{
-	ParticleRenderData *data;
-	ParticleRenderElem *elem;
-	float x, w, scale, alpha, lambda, t, scalemin, scalemax;
-	int b;
-
-	if (!(psys->renderdata && (psys->part->simplify_flag & PART_SIMPLIFY_ENABLE)))
-		return false;
-	
-	data = psys->renderdata;
-	if (!data->do_simplify)
-		return false;
-	b = (data->index_mf_to_mpoly) ? DM_origindex_mface_mpoly(data->index_mf_to_mpoly, data->index_mp_to_orig, cpa->num) : cpa->num;
-	if (b == ORIGINDEX_NONE) {
-		return false;
-	}
-
-	elem = &data->elems[b];
-
-	lambda = elem->lambda;
-	t = elem->t;
-	scalemin = elem->scalemin;
-	scalemax = elem->scalemax;
-
-	if (!elem->reduce) {
-		scale = scalemin;
-		alpha = 1.0f;
-	}
-	else {
-		x = (elem->curchild + 0.5f) / elem->totchild;
-		if (x < lambda - t) {
-			scale = scalemax;
-			alpha = 1.0f;
-		}
-		else if (x >= lambda + t) {
-			scale = scalemin;
-			alpha = 0.0f;
-		}
-		else {
-			w = (lambda + t - x) / (2.0f * t);
-			scale = scalemin + (scalemax - scalemin) * w;
-			alpha = w;
-		}
-	}
-
-	params[0] = scale;
-	params[1] = alpha;
-
-	elem->curchild++;
-
-	return 1;
 }
 
 /************************************************/
@@ -2050,7 +1856,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 	int from = PART_FROM_FACE;
 	totparent = (int)(totchild * part->parents * 0.3f);
 
-	if ((sim->psys->renderdata || use_render_params) && part->child_nbr && part->ren_child_nbr)
+	if (use_render_params && part->child_nbr && part->ren_child_nbr)
 		totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
 
 	/* hard limit, workaround for it being ignored above */
@@ -2094,10 +1900,10 @@ static bool psys_thread_context_init_path(
 	psys_thread_context_init(ctx, sim);
 
 	/*---start figuring out what is actually wanted---*/
-	if (psys_in_edit_mode(sim->eval_ctx->view_layer, psys)) {
+	if (psys_in_edit_mode(sim->eval_ctx->depsgraph, psys)) {
 		ParticleEditSettings *pset = &scene->toolsettings->particle;
 
-		if ((psys->renderdata == 0 && use_render_params == 0) && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
+		if ((use_render_params == 0) && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
 			totchild = 0;
 
 		segments = 1 << pset->draw_step;
@@ -2106,14 +1912,14 @@ static bool psys_thread_context_init_path(
 	if (totchild && part->childtype == PART_CHILD_FACES) {
 		totparent = (int)(totchild * part->parents * 0.3f);
 		
-		if ((psys->renderdata || use_render_params) && part->child_nbr && part->ren_child_nbr)
+		if (use_render_params && part->child_nbr && part->ren_child_nbr)
 			totparent *= (float)part->child_nbr / (float)part->ren_child_nbr;
 
 		/* part->parents could still be 0 so we can't test with totparent */
 		between = 1;
 	}
 
-	if (psys->renderdata || use_render_params)
+	if (use_render_params)
 		segments = 1 << part->ren_step;
 	else {
 		totchild = (int)((float)totchild * (float)part->disp / 100.0f);
@@ -2191,7 +1997,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey **cache = psys->childcache;
-	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.eval_ctx->view_layer, psys) && psys->edit ? psys->edit->pathcache : psys->pathcache;
+	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.eval_ctx->depsgraph, psys) && psys->edit ? psys->edit->pathcache : psys->pathcache;
 	ParticleCacheKey *child, *key[4];
 	ParticleTexture ptex;
 	float *cpa_fuv = 0, *par_rot = 0, rot[4];
@@ -2603,7 +2409,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	float prev_tangent[3] = {0.0f, 0.0f, 0.0f}, hairmat[4][4];
 	float rotmat[3][3];
 	int k;
-	int segments = (int)pow(2.0, (double)((psys->renderdata || use_render_params) ? part->ren_step : part->draw_step));
+	int segments = (int)pow(2.0, (double)((use_render_params) ? part->ren_step : part->draw_step));
 	int totpart = psys->totpart;
 	float length, vec[3];
 	float *vg_effector = NULL;
@@ -2615,8 +2421,8 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 		return;
 
 #if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
-	if (psys_in_edit_mode(sim->eval_ctx->view_layer, psys))
-		if (psys->renderdata == 0 && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
+	if (psys_in_edit_mode(sim->eval_ctx->depsgraph, psys))
+		if ((psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
 			return;
 #endif
 
@@ -3322,11 +3128,6 @@ static void default_particle_settings(ParticleSettings *part)
 	part->color_vec_max = 1.f;
 	part->draw_col = PART_DRAW_COL_MAT;
 
-	part->simplify_refsize = 1920;
-	part->simplify_rate = 1.0f;
-	part->simplify_transition = 0.1f;
-	part->simplify_viewport = 0.8;
-
 	if (!part->effector_weights)
 		part->effector_weights = BKE_add_effector_weights(NULL);
 
@@ -3830,7 +3631,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
 			/* pind.dm disabled in editmode means we don't get effectors taken into
 			 * account when subdividing for instance */
-			pind.dm = psys_in_edit_mode(sim->eval_ctx->view_layer, psys) ? NULL : psys->hair_out_dm;
+			pind.dm = psys_in_edit_mode(sim->eval_ctx->depsgraph, psys) ? NULL : psys->hair_out_dm;
 			init_particle_interpolation(sim->ob, psys, pa, &pind);
 			do_particle_interpolation(psys, p, pa, t, &pind, state);
 

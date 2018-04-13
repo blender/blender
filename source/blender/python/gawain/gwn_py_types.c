@@ -447,9 +447,9 @@ static PyObject *bpygwn_VertBuf_fill(BPyGwn_VertBuf *self, PyObject *args, PyObj
 		return NULL;
 	}
 
-	if (self->buf->vbo_id != 0) {
+	if (self->buf->data == NULL) {
 		PyErr_SetString(PyExc_ValueError,
-		                "Can't fill, buffer already in use");
+		                "Can't fill, static buffer already in use");
 		return NULL;
 	}
 

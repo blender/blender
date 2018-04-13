@@ -627,7 +627,7 @@ static Mesh *bake_mesh_new_from_object(EvaluationContext *eval_ctx, Main *bmain,
 {
 	ED_object_editmode_load(ob);
 
-	Mesh *me = BKE_mesh_new_from_object(eval_ctx, bmain, scene, ob, 1, 2, 0, 0);
+	Mesh *me = BKE_mesh_new_from_object(eval_ctx, bmain, scene, ob, 1, 0, 0);
 	if (me->flag & ME_AUTOSMOOTH) {
 		BKE_mesh_split_faces(me, true);
 	}
@@ -646,7 +646,7 @@ static int bake(
         const char *identifier, ScrArea *sa, const char *uv_layer)
 {
 	EvaluationContext *eval_ctx = DEG_evaluation_context_new(DAG_EVAL_RENDER);
-	Depsgraph *depsgraph = DEG_graph_new();
+	Depsgraph *depsgraph = DEG_graph_new(scene, view_layer, DAG_EVAL_RENDER);
 	DEG_evaluation_context_init_from_view_layer_for_render(eval_ctx, depsgraph, scene, view_layer);
 
 	int op_result = OPERATOR_CANCELLED;
@@ -792,11 +792,7 @@ static int bake(
 
 	/* Make sure depsgraph is up to date. */
 	DEG_graph_build_from_view_layer(depsgraph, bmain, scene, view_layer);
-	BKE_scene_graph_update_tagged(eval_ctx,
-	                              depsgraph,
-	                              bmain,
-	                              scene,
-	                              view_layer);
+	BKE_scene_graph_update_tagged(depsgraph, bmain);
 
 	/* get the mesh as it arrives in the renderer */
 	me_low = bake_mesh_new_from_object(eval_ctx, bmain, scene, ob_low);

@@ -77,7 +77,6 @@ const char *BlenderStrokeRenderer::uvNames[] = {"along_stroke", "along_stroke_ti
 BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : StrokeRenderer()
 {
 	freestyle_bmain = re->freestyle_bmain;
-	freestyle_depsgraph = DEG_graph_new();
 
 	// for stroke mesh generation
 	_width = re->winx;
@@ -142,7 +141,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	}
 
 	BKE_scene_set_background(freestyle_bmain, freestyle_scene);
-	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &freestyle_scene->id, 0);
 
 	// Scene layer.
 	ViewLayer *view_layer = (ViewLayer *)freestyle_scene->view_layers.first;
@@ -150,7 +148,6 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 
 	// Camera
 	Object *object_camera = BKE_object_add(freestyle_bmain, freestyle_scene, view_layer, OB_CAMERA, NULL);
-	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &object_camera->id, 0);
 
 	Camera *camera = (Camera *)object_camera->data;
 	camera->type = CAM_ORTHO;
@@ -179,7 +176,10 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	else
 		_nodetree_hash = NULL;
 
-	// New IDs were added, tag relations for update.
+	// Depsgraph
+	freestyle_depsgraph = DEG_graph_new(re->scene, view_layer, DAG_EVAL_RENDER);
+	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &freestyle_scene->id, 0);
+	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &object_camera->id, 0);
 	DEG_graph_tag_relations_update(freestyle_depsgraph);
 }
 

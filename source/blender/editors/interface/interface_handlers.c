@@ -3879,7 +3879,7 @@ static int ui_do_but_KEYEVT(
 static int ui_do_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
 {
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_RELEASE) {
+		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 			return WM_UI_HANDLER_CONTINUE;
 		}

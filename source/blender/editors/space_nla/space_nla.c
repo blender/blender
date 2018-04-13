@@ -517,12 +517,14 @@ static void nla_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scen
 static void nla_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, ID *new_id)
 {
 	SpaceNla *snla = (SpaceNla *)slink;
-
-	if ((ID *)snla->ads->filter_grp == old_id) {
-		snla->ads->filter_grp = (Group *)new_id;
-	}
-	if ((ID *)snla->ads->source == old_id) {
-		snla->ads->source = new_id;
+	
+	if (snla->ads) {
+		if ((ID *)snla->ads->filter_grp == old_id) {
+			snla->ads->filter_grp = (Group *)new_id;
+		}
+		if ((ID *)snla->ads->source == old_id) {
+			snla->ads->source = new_id;
+		}
 	}
 }
 

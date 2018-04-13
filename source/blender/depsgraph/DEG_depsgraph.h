@@ -86,7 +86,6 @@ typedef struct EvaluationContext {
 
 	struct Depsgraph *depsgraph;
 	struct ViewLayer *view_layer;
-	struct RenderEngineType *engine_type;
 } EvaluationContext;
 
 /* DagNode->eval_flags */
@@ -118,7 +117,9 @@ void DEG_depsgraph_enable_copy_on_write(void);
 
 /* Create new Depsgraph instance */
 // TODO: what args are needed here? What's the building-graph entry point?
-Depsgraph *DEG_graph_new(void);
+Depsgraph *DEG_graph_new(struct Scene *scene,
+                         struct ViewLayer *view_layer,
+                         eEvaluationMode mode);
 
 /* Free Depsgraph itself and all its data */
 void DEG_graph_free(Depsgraph *graph);
@@ -217,7 +218,6 @@ void DEG_evaluation_context_init_from_scene(
         struct EvaluationContext *eval_ctx,
         struct Scene *scene,
         struct ViewLayer *view_layer,
-        struct RenderEngineType *engine_type,
         eEvaluationMode mode);
 
 void DEG_evaluation_context_init_from_view_layer_for_render(
@@ -240,16 +240,14 @@ void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);
  * < context_type: context to perform evaluation for
  * < ctime: (frame) new frame to evaluate values on
  */
-void DEG_evaluate_on_framechange(struct EvaluationContext *eval_ctx,
-                                 struct Main *bmain,
+void DEG_evaluate_on_framechange(struct Main *bmain,
                                  Depsgraph *graph,
                                  float ctime);
 
 /* Data changed recalculation entry point.
  * < context_type: context to perform evaluation for
  */
-void DEG_evaluate_on_refresh(struct EvaluationContext *eval_ctx,
-                             Depsgraph *graph);
+void DEG_evaluate_on_refresh(Depsgraph *graph);
 
 bool DEG_needs_eval(Depsgraph *graph);
 

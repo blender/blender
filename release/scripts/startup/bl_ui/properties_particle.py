@@ -965,22 +965,6 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
             col.prop(part, "path_end", text="End", slider=not part.use_absolute_path_time)
             col.prop(part, "length_random", text="Random", slider=True)
 
-            row = layout.row()
-            col = row.column()
-
-            if part.type == 'HAIR' and part.use_strand_primitive is True and part.child_type == 'INTERPOLATED':
-                layout.prop(part, "use_simplify")
-                if part.use_simplify is True:
-                    row = layout.row()
-                    row.prop(part, "simplify_refsize")
-                    row.prop(part, "simplify_rate")
-                    row.prop(part, "simplify_transition")
-                    row = layout.row()
-                    row.prop(part, "use_simplify_viewport")
-                    sub = row.row()
-                    sub.active = part.use_simplify_viewport is True
-                    sub.prop(part, "simplify_viewport")
-
         elif part.render_type == 'OBJECT':
             col.prop(part, "dupli_object")
             sub = col.row()

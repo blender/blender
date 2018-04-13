@@ -138,7 +138,7 @@ static void drw_deferred_shader_compilation_exec(void *custom_data, short *stop,
 		*progress = (float)comp->shaders_done / (float)total;
 		*do_update = true;
 
-		glFinish();
+		glFlush();
 		BLI_mutex_unlock(&comp->compilation_lock);
 
 		drw_deferred_shader_free(comp->mat_compiling);

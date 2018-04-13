@@ -168,7 +168,7 @@ static bool export_object(const ExportSettings * const settings, const Base * co
 
 /* ************************************************************************** */
 
-AbcExporter::AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+AbcExporter::AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene,
                          Depsgraph *depsgraph,
                          const char *filename, ExportSettings &settings)
     : m_bmain(bmain)
@@ -178,7 +178,6 @@ AbcExporter::AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene,
     , m_shape_sampling_index(0)
     , m_eval_ctx(eval_ctx)
     , m_scene(scene)
-    , m_view_layer(view_layer)
     , m_depsgraph(depsgraph)
     , m_writer(NULL)
 {}
@@ -657,5 +656,5 @@ void AbcExporter::setCurrentFrame(Main *bmain, double t)
 {
 	m_scene->r.cfra = static_cast<int>(t);
 	m_scene->r.subframe = static_cast<float>(t) - m_scene->r.cfra;
-	BKE_scene_graph_update_for_newframe(bmain->eval_ctx, m_depsgraph, bmain, m_scene, m_view_layer);
+	BKE_scene_graph_update_for_newframe(m_depsgraph, bmain);
 }

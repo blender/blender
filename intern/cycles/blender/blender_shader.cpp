@@ -236,7 +236,6 @@ static ShaderNode *add_node(Scene *scene,
                             BL::BlendData& b_data,
                             BL::Depsgraph& b_depsgraph,
                             BL::Scene& b_scene,
-                            const bool background,
                             ShaderGraph *graph,
                             BL::ShaderNodeTree& b_ntree,
                             BL::ShaderNode& b_node)
@@ -843,12 +842,9 @@ static ShaderNode *add_node(Scene *scene,
 		point_density->interpolation = get_image_interpolation(b_point_density_node);
 		point_density->builtin_data = b_point_density_node.ptr.data;
 
-		/* 1 - render settings, 0 - vewport settings. */
-		int settings = background ? 1 : 0;
-
 		/* TODO(sergey): Use more proper update flag. */
 		if(true) {
-			b_point_density_node.cache_point_density(b_depsgraph, settings);
+			b_point_density_node.cache_point_density(b_depsgraph);
 			scene->image_manager->tag_reload_image(
 			        point_density->filename.string(),
 			        point_density->builtin_data,
@@ -868,7 +864,6 @@ static ShaderNode *add_node(Scene *scene,
 			float3 loc, size;
 			point_density_texture_space(b_depsgraph,
 			                            b_point_density_node,
-			                            settings,
 			                            loc,
 			                            size);
 			point_density->tfm =
@@ -1008,7 +1003,6 @@ static void add_nodes(Scene *scene,
                       BL::BlendData& b_data,
                       BL::Depsgraph& b_depsgraph,
                       BL::Scene& b_scene,
-                      const bool background,
                       ShaderGraph *graph,
                       BL::ShaderNodeTree& b_ntree,
                       const ProxyMap &proxy_input_map,
@@ -1095,7 +1089,6 @@ static void add_nodes(Scene *scene,
 				          b_data,
 				          b_depsgraph,
 				          b_scene,
-				          background,
 				          graph,
 				          b_group_ntree,
 				          group_proxy_input_map,
@@ -1143,7 +1136,6 @@ static void add_nodes(Scene *scene,
 				                b_data,
 				                b_depsgraph,
 				                b_scene,
-				                background,
 				                graph,
 				                b_ntree,
 				                b_shader_node);
@@ -1207,7 +1199,6 @@ static void add_nodes(Scene *scene,
                       BL::BlendData& b_data,
                       BL::Depsgraph& b_depsgraph,
                       BL::Scene& b_scene,
-                      const bool background,
                       ShaderGraph *graph,
                       BL::ShaderNodeTree& b_ntree)
 {
@@ -1217,7 +1208,6 @@ static void add_nodes(Scene *scene,
 	          b_data,
 	          b_depsgraph,
 	          b_scene,
-	          background,
 	          graph,
 	          b_ntree,
 	          empty_proxy_map,
@@ -1255,7 +1245,7 @@ void BlenderSync::sync_materials(BL::Depsgraph& b_depsgraph, bool update_all)
 			if(b_mat->use_nodes() && b_mat->node_tree()) {
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, !preview, graph, b_ntree);
+				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
 			}
 			else {
 				DiffuseBsdfNode *diffuse = new DiffuseBsdfNode();
@@ -1326,7 +1316,7 @@ void BlenderSync::sync_world(BL::Depsgraph& b_depsgraph, bool update_all)
 		if(b_world && b_world.use_nodes() && b_world.node_tree()) {
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, !preview, graph, b_ntree);
+			add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
 
 			/* volume */
 			PointerRNA cworld = RNA_pointer_get(&b_world.ptr, "cycles");
@@ -1428,7 +1418,7 @@ void BlenderSync::sync_lamps(BL::Depsgraph& b_depsgraph, bool update_all)
 
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, !preview, graph, b_ntree);
+				add_nodes(scene, b_engine, b_data, b_depsgraph, b_scene, graph, b_ntree);
 			}
 			else {
 				float strength = 1.0f;

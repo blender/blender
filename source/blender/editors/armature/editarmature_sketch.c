@@ -998,7 +998,7 @@ static int sk_getStrokeSnapPoint(bContext *C, SK_Point *pt, SK_Sketch *sketch, S
 	 * the ideal would be to call this function only at the beginning of the snap operation,
 	 * or at the beginning of the operator itself */
 	struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-	        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), CTX_data_engine_type(C), 0,
+	        CTX_data_main(C), CTX_data_scene(C), CTX_data_view_layer(C), 0,
 	        CTX_wm_region(C), CTX_wm_view3d(C));
 
 	float mvalf[2] = {UNPACK2(dd->mval)};

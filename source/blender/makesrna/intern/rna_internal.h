@@ -35,6 +35,7 @@
 
 #define RNA_MAGIC ((int)~0)
 
+struct Depsgraph;
 struct FreestyleSettings;
 struct ID;
 struct IDOverrideStatic;
@@ -473,8 +474,8 @@ PointerRNA rna_pointer_inherit_refine(struct PointerRNA *ptr, struct StructRNA *
 int rna_parameter_size(struct PropertyRNA *parm);
 
 struct Mesh *rna_Main_meshes_new_from_object(
-        struct Main *bmain, struct ReportList *reports, struct Scene *sce, struct ViewLayer *view_layer,
-        struct Object *ob, int apply_modifiers, int settings, int calc_tessface, int calc_undeformed);
+        struct Main *bmain, struct ReportList *reports, struct Depsgraph *depsgraph,
+        struct Object *ob, int apply_modifiers, int calc_tessface, int calc_undeformed);
 
 /* XXX, these should not need to be defined here~! */
 struct MTex *rna_mtex_texture_slots_add(struct ID *self, struct bContext *C, struct ReportList *reports);

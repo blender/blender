@@ -222,7 +222,7 @@ void BKE_object_handle_data_update(
 	}
 
 	/* particles */
-	if ((ob != OBEDIT_FROM_VIEW_LAYER(eval_ctx->view_layer)) && ob->particlesystem.first) {
+	if (!(ob->mode & OB_MODE_EDIT) && ob->particlesystem.first) {
 		ParticleSystem *tpsys, *psys;
 		DerivedMesh *dm;
 		ob->transflag &= ~OB_DUPLIPARTS;

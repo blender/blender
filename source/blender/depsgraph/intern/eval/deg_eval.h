@@ -45,7 +45,6 @@ struct Depsgraph;
  *
  * \note Time sources should be all valid!
  */
-void deg_evaluate_on_refresh(EvaluationContext *eval_ctx,
-                             Depsgraph *graph);
+void deg_evaluate_on_refresh(Depsgraph *graph);
 
 }  // namespace DEG

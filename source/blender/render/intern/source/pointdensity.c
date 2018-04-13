@@ -174,9 +174,6 @@ static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *sc
                                     PointDensity *pd,
                                     Object *ob,
                                     ParticleSystem *psys,
-                                    float viewmat[4][4],
-                                    float winmat[4][4],
-                                    int winx, int winy,
                                     const bool use_render_params)
 {
 	DerivedMesh *dm;
@@ -198,11 +195,6 @@ static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *sc
 
 	data_used = point_data_used(pd);
 
-	/* Just to create a valid rendering context for particles */
-	if (use_render_params) {
-		psys_render_set(ob, psys, viewmat, winmat, winx, winy, 0);
-	}
-
 	if (use_render_params) {
 		dm = mesh_create_derived_render(eval_ctx, scene,
 		                                ob,
@@ -215,7 +207,6 @@ static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *sc
 	}
 
 	if (!psys_check_enabled(ob, psys, use_render_params)) {
-		psys_render_restore(ob, psys);
 		return;
 	}
 
@@ -307,10 +298,6 @@ static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *sc
 	if (psys->lattice_deform_data) {
 		end_latt_deform(psys->lattice_deform_data);
 		psys->lattice_deform_data = NULL;
-	}
-
-	if (use_render_params) {
-		psys_render_restore(ob, psys);
 	}
 }
 
@@ -482,9 +469,6 @@ static void pointdensity_cache_object(const EvaluationContext *eval_ctx, Scene *
 static void cache_pointdensity_ex(const EvaluationContext *eval_ctx,
                                   Scene *scene,
                                   PointDensity *pd,
-                                  float viewmat[4][4],
-                                  float winmat[4][4],
-                                  int winx, int winy,
                                   const bool use_render_params)
 {
 	if (pd == NULL) {
@@ -514,8 +498,6 @@ static void cache_pointdensity_ex(const EvaluationContext *eval_ctx,
 		                        pd,
 		                        ob,
 		                        psys,
-		                        viewmat, winmat,
-		                        winx, winy,
 		                        use_render_params);
 	}
 	else if (pd->source == TEX_PD_OBJECT) {
@@ -530,8 +512,6 @@ void cache_pointdensity(const EvaluationContext *eval_ctx, Render *re, PointDens
 	cache_pointdensity_ex(eval_ctx,
 	                      re->scene,
 	                      pd,
-	                      re->viewmat, re->winmat,
-	                      re->winx, re->winy,
 	                      true);
 }
 
@@ -888,7 +868,6 @@ static void particle_system_minmax(const EvaluationContext *eval_ctx,
                                    Object *object,
                                    ParticleSystem *psys,
                                    float radius,
-                                   const bool use_render_params,
                                    float min[3], float max[3])
 {
 	const float size[3] = {radius, radius, radius};
@@ -907,9 +886,6 @@ static void particle_system_minmax(const EvaluationContext *eval_ctx,
 	}
 
 	unit_m4(mat);
-	if (use_render_params) {
-		psys_render_set(object, psys, mat, mat, 1, 1, 0);
-	}
 
 	sim.eval_ctx = eval_ctx;
 	sim.scene = scene;
@@ -939,26 +915,20 @@ static void particle_system_minmax(const EvaluationContext *eval_ctx,
 		end_latt_deform(psys->lattice_deform_data);
 		psys->lattice_deform_data = NULL;
 	}
-
-	if (use_render_params) {
-		psys_render_restore(object, psys);
-	}
 }
 
 void RE_point_density_cache(
         const struct EvaluationContext *eval_ctx,
         PointDensity *pd)
 {
-	float mat[4][4];
 	const bool use_render_params = (eval_ctx->mode == DAG_EVAL_RENDER);
 
 	Depsgraph *depsgraph = eval_ctx->depsgraph;
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
 	/* Same matricies/resolution as dupli_render_particle_set(). */
-	unit_m4(mat);
 	BLI_mutex_lock(&sample_mutex);
-	cache_pointdensity_ex(eval_ctx, scene, pd, mat, mat, 1, 1, use_render_params);
+	cache_pointdensity_ex(eval_ctx, scene, pd, use_render_params);
 	BLI_mutex_unlock(&sample_mutex);
 }
 
@@ -967,7 +937,6 @@ void RE_point_density_minmax(
         struct PointDensity *pd,
         float r_min[3], float r_max[3])
 {
-	const bool use_render_params = (eval_ctx->mode == DAG_EVAL_RENDER);
 	Depsgraph *depsgraph = eval_ctx->depsgraph;
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	Object *object = pd->object;
@@ -996,7 +965,6 @@ void RE_point_density_minmax(
 		                       object,
 		                       psys,
 		                       pd->radius,
-		                       use_render_params,
 		                       r_min, r_max);
 	}
 	else {

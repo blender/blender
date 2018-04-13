@@ -38,6 +38,8 @@
 
 #include "BLI_threads.h"  /* for SpinLock */
 
+#include "DEG_depsgraph.h"
+
 #include "intern/depsgraph_types.h"
 
 struct ID;
@@ -100,7 +102,9 @@ struct Depsgraph {
 	typedef vector<OperationDepsNode *> OperationNodes;
 	typedef vector<IDDepsNode *> IDDepsNodes;
 
-	Depsgraph();
+	Depsgraph(Scene *scene,
+	          ViewLayer *view_layer,
+	          eEvaluationMode mode);
 	~Depsgraph();
 
 	/**
@@ -187,9 +191,13 @@ struct Depsgraph {
 	 */
 	SpinLock lock;
 
-	/* Scene and layer this dependency graph is built for. */
+	/* Scene, layer, mode this dependency graph is built for. */
 	Scene *scene;
 	ViewLayer *view_layer;
+	eEvaluationMode mode;
+
+	/* Time at which dependency graph is being or was last evaluated. */
+	float ctime;
 };
 
 }  // namespace DEG
