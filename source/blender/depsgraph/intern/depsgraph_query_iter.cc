@@ -214,6 +214,7 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 	 * direct dupli-objects update in group.c. Which is terribly bad, and all
 	 * objects are expected to be evaluated already. */
 	DEG_evaluation_context_init(&data->eval_ctx, DAG_EVAL_VIEWPORT);
+	data->eval_ctx.depsgraph = depsgraph;
 	data->eval_ctx.view_layer = DEG_get_evaluated_view_layer(depsgraph);
 
 	iter->data = data;
