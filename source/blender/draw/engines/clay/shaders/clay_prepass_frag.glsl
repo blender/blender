@@ -19,7 +19,7 @@ vec2 normal_encode(vec3 n)
 
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
 #define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
-const mat4 dither_mat = mat4(
+const vec4 dither_mat[4] = vec4[4](
 	vec4( P(0.0),  P(8.0),  P(2.0), P(10.0)),
 	vec4(P(12.0),  P(4.0), P(14.0),  P(6.0)),
 	vec4( P(3.0), P(11.0),  P(1.0),  P(9.0)),
