@@ -75,6 +75,9 @@ void BKE_icon_changed(const int icon_id);
 /* free all icons */
 void BKE_icons_free(void);
 
+/* free all icons marked for deferred deletion */
+void BKE_icons_deferred_free(void);
+
 /* free the preview image for use in list */
 void BKE_previewimg_freefunc(void *link);
 
