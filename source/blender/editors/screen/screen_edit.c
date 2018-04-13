@@ -86,181 +86,18 @@ static ScrVert *screen_addvert(bScreen *sc, short x, short y)
 	return sv;
 }
 
-static void sortscrvert(ScrVert **v1, ScrVert **v2)
-{
-	ScrVert *tmp;
-	
-	if (*v1 > *v2) {
-		tmp = *v1;
-		*v1 = *v2;
-		*v2 = tmp;
-	}
-}
-
 static ScrEdge *screen_addedge(bScreen *sc, ScrVert *v1, ScrVert *v2)
 {
 	ScrEdge *se = MEM_callocN(sizeof(ScrEdge), "addscredge");
-	
-	sortscrvert(&v1, &v2);
+
+	BKE_screen_sort_scrvert(&v1, &v2);
 	se->v1 = v1;
 	se->v2 = v2;
-	
+
 	BLI_addtail(&sc->edgebase, se);
 	return se;
 }
 
-
-ScrEdge *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2)
-{
-	ScrEdge *se;
-	
-	sortscrvert(&v1, &v2);
-	for (se = sc->edgebase.first; se; se = se->next)
-		if (se->v1 == v1 && se->v2 == v2)
-			return se;
-	
-	return NULL;
-}
-
-void removedouble_scrverts(bScreen *sc)
-{
-	ScrVert *v1, *verg;
-	ScrEdge *se;
-	ScrArea *sa;
-	
-	verg = sc->vertbase.first;
-	while (verg) {
-		if (verg->newv == NULL) { /* !!! */
-			v1 = verg->next;
-			while (v1) {
-				if (v1->newv == NULL) {   /* !?! */
-					if (v1->vec.x == verg->vec.x && v1->vec.y == verg->vec.y) {
-						/* printf("doublevert\n"); */
-						v1->newv = verg;
-					}
-				}
-				v1 = v1->next;
-			}
-		}
-		verg = verg->next;
-	}
-
-	/* replace pointers in edges and faces */
-	se = sc->edgebase.first;
-	while (se) {
-		if (se->v1->newv) se->v1 = se->v1->newv;
-		if (se->v2->newv) se->v2 = se->v2->newv;
-		/* edges changed: so.... */
-		sortscrvert(&(se->v1), &(se->v2));
-		se = se->next;
-	}
-	sa = sc->areabase.first;
-	while (sa) {
-		if (sa->v1->newv) sa->v1 = sa->v1->newv;
-		if (sa->v2->newv) sa->v2 = sa->v2->newv;
-		if (sa->v3->newv) sa->v3 = sa->v3->newv;
-		if (sa->v4->newv) sa->v4 = sa->v4->newv;
-		sa = sa->next;
-	}
-
-	/* remove */
-	verg = sc->vertbase.first;
-	while (verg) {
-		v1 = verg->next;
-		if (verg->newv) {
-			BLI_remlink(&sc->vertbase, verg);
-			MEM_freeN(verg);
-		}
-		verg = v1;
-	}
-
-}
-
-void removenotused_scrverts(bScreen *sc)
-{
-	ScrVert *sv, *svn;
-	ScrEdge *se;
-	
-	/* we assume edges are ok */
-	
-	se = sc->edgebase.first;
-	while (se) {
-		se->v1->flag = 1;
-		se->v2->flag = 1;
-		se = se->next;
-	}
-	
-	sv = sc->vertbase.first;
-	while (sv) {
-		svn = sv->next;
-		if (sv->flag == 0) {
-			BLI_remlink(&sc->vertbase, sv);
-			MEM_freeN(sv);
-		}
-		else {
-			sv->flag = 0;
-		}
-		sv = svn;
-	}
-}
-
-void removedouble_scredges(bScreen *sc)
-{
-	ScrEdge *verg, *se, *sn;
-	
-	/* compare */
-	verg = sc->edgebase.first;
-	while (verg) {
-		se = verg->next;
-		while (se) {
-			sn = se->next;
-			if (verg->v1 == se->v1 && verg->v2 == se->v2) {
-				BLI_remlink(&sc->edgebase, se);
-				MEM_freeN(se);
-			}
-			se = sn;
-		}
-		verg = verg->next;
-	}
-}
-
-void removenotused_scredges(bScreen *sc)
-{
-	ScrEdge *se, *sen;
-	ScrArea *sa;
-	int a = 0;
-	
-	/* sets flags when edge is used in area */
-	sa = sc->areabase.first;
-	while (sa) {
-		se = screen_findedge(sc, sa->v1, sa->v2);
-		if (se == NULL) printf("error: area %d edge 1 doesn't exist\n", a);
-		else se->flag = 1;
-		se = screen_findedge(sc, sa->v2, sa->v3);
-		if (se == NULL) printf("error: area %d edge 2 doesn't exist\n", a);
-		else se->flag = 1;
-		se = screen_findedge(sc, sa->v3, sa->v4);
-		if (se == NULL) printf("error: area %d edge 3 doesn't exist\n", a);
-		else se->flag = 1;
-		se = screen_findedge(sc, sa->v4, sa->v1);
-		if (se == NULL) printf("error: area %d edge 4 doesn't exist\n", a);
-		else se->flag = 1;
-		sa = sa->next;
-		a++;
-	}
-	se = sc->edgebase.first;
-	while (se) {
-		sen = se->next;
-		if (se->flag == 0) {
-			BLI_remlink(&sc->edgebase, se);
-			MEM_freeN(se);
-		}
-		else {
-			se->flag = 0;
-		}
-		se = sen;
-	}
-}
 
 bool scredge_is_horizontal(ScrEdge *se)
 {
@@ -452,9 +289,9 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 	
 	/* remove double vertices en edges */
 	if (merge)
-		removedouble_scrverts(sc);
-	removedouble_scredges(sc);
-	removenotused_scredges(sc);
+		BKE_screen_remove_double_scrverts(sc);
+	BKE_screen_remove_double_scredges(sc);
+	BKE_screen_remove_unused_scredges(sc);
 	
 	return newa;
 }
@@ -509,7 +346,7 @@ void screen_data_copy(bScreen *to, bScreen *from)
 	for (se = to->edgebase.first; se; se = se->next) {
 		se->v1 = se->v1->newv;
 		se->v2 = se->v2->newv;
-		sortscrvert(&(se->v1), &(se->v2));
+		BKE_screen_sort_scrvert(&(se->v1), &(se->v2));
 	}
 	
 	saf = from->areabase.first;
@@ -618,8 +455,7 @@ int screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2)
 	}
 	
 	screen_delarea(C, scr, sa2);
-	removedouble_scrverts(scr);
-
+	BKE_screen_remove_double_scrverts(scr);
 	/* Update preview thumbnail */
 	BKE_icon_changed(scr->id.icon_id);
 
@@ -772,7 +608,7 @@ static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 			if (sa->temp == TEMP_TOP) {
 				/* lower edge */
 				const int yval = sa->v2->vec.y - headery_init;
-				se = screen_findedge(sc, sa->v4, sa->v1);
+				se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
 				if (se != NULL) {
 					select_connected_scredge(sc, se);
 				}
@@ -787,7 +623,7 @@ static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 			else {
 				/* upper edge */
 				const int yval = sa->v1->vec.y + headery_init;
-				se = screen_findedge(sc, sa->v2, sa->v3);
+				se = BKE_screen_find_edge(sc, sa->v2, sa->v3);
 				if (se != NULL) {
 					select_connected_scredge(sc, se);
 				}
@@ -823,7 +659,7 @@ static void screen_test_scale(bScreen *sc, int winsize_x, int winsize_y)
 		
 		if (sa->v2->vec.y - sa->v1->vec.y + 1 < headery) {
 			/* lower edge */
-			ScrEdge *se = screen_findedge(sc, sa->v4, sa->v1);
+			ScrEdge *se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
 			if (se && sa->v1 != sa->v2) {
 				int yval;
 				
@@ -1030,11 +866,12 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
 	screen->active_region = NULL;
 	
-	for (ar = screen->regionbase.first; ar; ar = ar->next)
+	for (ar = screen->regionbase.first; ar; ar = ar->next) {
 		ED_region_exit(C, ar);
-
-	for (sa = screen->areabase.first; sa; sa = sa->next)
+	}
+	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		ED_area_exit(C, sa);
+	}
 
 	/* mark it available for use for other windows */
 	screen->winid = 0;

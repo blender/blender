@@ -52,16 +52,11 @@ void        screen_data_copy(bScreen *to, bScreen *from);
 void        screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new);
 void        screen_change_update(struct bContext *C, wmWindow *win, bScreen *sc);
 bScreen    *screen_change_prepare(bScreen *screen_old, bScreen *screen_new, struct Main *bmain, struct bContext *C, wmWindow *win);
-ScrEdge    *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
 ScrArea    *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge);
 int         screen_area_join(struct bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2);
 int         area_getorientation(ScrArea *sa, ScrArea *sb);
 void        select_connected_scredge(bScreen *sc, ScrEdge *edge);
 
-void        removenotused_scrverts(bScreen *sc);
-void        removedouble_scrverts(bScreen *sc);
-void        removedouble_scredges(bScreen *sc);
-void        removenotused_scredges(bScreen *sc);
 bool        scredge_is_horizontal(ScrEdge *se);
 ScrEdge    *screen_find_active_scredge(const bScreen *sc,
                                        const int winsize_x, const int winsize_y,
