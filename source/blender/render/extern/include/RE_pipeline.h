@@ -344,10 +344,6 @@ void RE_current_scene_update_cb(struct Render *re, void *handle, void (*f)(void 
 
 /* should move to kernel once... still unsure on how/where */
 float RE_filter_value(int type, float x);
-/* vector blur zbuffer method */
-void RE_zbuf_accumulate_vecblur(
-        struct NodeBlurData *nbd, int xsize, int ysize, float *newrect,
-        const float *imgrect, float *vecbufrect, const float *zbufrect);
 
 int RE_seq_render_active(struct Scene *scene, struct RenderData *rd);
 
