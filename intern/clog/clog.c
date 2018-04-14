@@ -68,7 +68,8 @@ typedef struct CLogContext {
 	bool use_basename;
 
 	/** Borrowed, not owned. */
-	FILE *output;
+	int output;
+	FILE *output_file;
 
 	/** For new types. */
 	struct {
@@ -400,13 +401,12 @@ void CLG_log_str(
 	clg_str_append(&cstr, "\n");
 
 	/* could be optional */
-	fwrite(cstr.data, cstr.len, 1, lg->ctx->output);
-	fflush(lg->ctx->output);
+	write(lg->ctx->output, cstr.data, cstr.len);
 
 	clg_str_free(&cstr);
 
 	if (severity == CLG_SEVERITY_FATAL) {
-		clg_ctx_fatal_action(lg->ctx, lg->ctx->output);
+		clg_ctx_fatal_action(lg->ctx, lg->ctx->output_file);
 	}
 }
 
@@ -432,13 +432,12 @@ void CLG_logf(
 	clg_str_append(&cstr, "\n");
 
 	/* could be optional */
-	fwrite(cstr.data, cstr.len, 1, lg->ctx->output);
-	fflush(lg->ctx->output);
+	write(lg->ctx->output, cstr.data, cstr.len);
 
 	clg_str_free(&cstr);
 
 	if (severity == CLG_SEVERITY_FATAL) {
-		clg_ctx_fatal_action(lg->ctx, lg->ctx->output);
+		clg_ctx_fatal_action(lg->ctx, lg->ctx->output_file);
 	}
 }
 
@@ -450,9 +449,10 @@ void CLG_logf(
 
 static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
 {
-	ctx->output = file_handle;
+	ctx->output_file = file_handle;
+	ctx->output = fileno(file_handle);
 #if defined(__unix__)
-	ctx->use_color = isatty(fileno(file_handle));
+	ctx->use_color = isatty(ctx->output);
 #endif
 }
 
