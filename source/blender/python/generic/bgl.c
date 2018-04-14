@@ -1295,11 +1295,20 @@ BGL_Wrap(UniformMatrix4x3fv,        void,      (GLint, GLsizei, GLboolean, GLflo
 
 
 /* GL_VERSION_3_0 */
+BGL_Wrap(BindFramebuffer,           void,      (GLenum, GLuint))
+BGL_Wrap(BindRenderbuffer,          void,      (GLenum, GLuint))
 BGL_Wrap(BindVertexArray,           void,      (GLuint))
+BGL_Wrap(CheckFramebufferStatus,    GLenum,    (GLenum))
+BGL_Wrap(DeleteFramebuffers,        void,      (GLsizei, GLuintP))
+BGL_Wrap(DeleteRenderbuffers,       void,      (GLsizei, GLuintP))
 BGL_Wrap(DeleteVertexArrays,        void,      (GLsizei, GLuintP))
+BGL_Wrap(FramebufferRenderbuffer,   void,      (GLenum, GLenum, GLenum, GLuint))
+BGL_Wrap(GenFramebuffers,           void,      (GLsizei, GLuintP))
+BGL_Wrap(GenRenderbuffers,          void,      (GLsizei, GLuintP))
 BGL_Wrap(GenVertexArrays,           void,      (GLsizei, GLuintP))
 BGL_Wrap(GetStringi,                GLstring,  (GLenum, GLuint))
 BGL_Wrap(IsVertexArray,             GLboolean, (GLuint))
+BGL_Wrap(RenderbufferStorage,       void,      (GLenum, GLenum, GLsizei, GLsizei))
 
 
 /* GL_VERSION_3_1 */
@@ -1626,11 +1635,20 @@ PyObject *BPyInit_bgl(void)
 
 	/* GL_VERSION_3_0 */
 	{
+		PY_MOD_ADD_METHOD(BindFramebuffer);
+		PY_MOD_ADD_METHOD(BindRenderbuffer);
 		PY_MOD_ADD_METHOD(BindVertexArray);
+		PY_MOD_ADD_METHOD(CheckFramebufferStatus);
+		PY_MOD_ADD_METHOD(DeleteFramebuffers);
+		PY_MOD_ADD_METHOD(DeleteRenderbuffers);
 		PY_MOD_ADD_METHOD(DeleteVertexArrays);
+		PY_MOD_ADD_METHOD(FramebufferRenderbuffer);
+		PY_MOD_ADD_METHOD(GenFramebuffers);
+		PY_MOD_ADD_METHOD(GenRenderbuffers);
 		PY_MOD_ADD_METHOD(GenVertexArrays);
 		PY_MOD_ADD_METHOD(GetStringi);
 		PY_MOD_ADD_METHOD(IsVertexArray);
+		PY_MOD_ADD_METHOD(RenderbufferStorage);
 	}
 
 	/* GL_VERSION_3_1 */
