@@ -149,6 +149,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, struct bContext *C, cons
 bool BKE_undosys_step_push(UndoStack *ustack, struct bContext *C, const char *name);
 
 UndoStep *BKE_undosys_step_find_by_name_with_type(UndoStack *ustack, const char *name, const UndoType *ut);
+UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut);
 UndoStep *BKE_undosys_step_find_by_name(UndoStack *ustack, const char *name);
 
 bool BKE_undosys_step_undo_with_data_ex(UndoStack *ustack, struct bContext *C, UndoStep *us, bool use_skip);
