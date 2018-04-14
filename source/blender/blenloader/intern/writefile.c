@@ -196,8 +196,11 @@
 #define MYWRITE_BUFFER_SIZE (MEM_SIZE_OPTIMAL(1 << 17))  /* 128kb */
 #define MYWRITE_MAX_CHUNK   (MEM_SIZE_OPTIMAL(1 << 15))  /* ~32kb */
 
+/** Use if we want to store how many bytes have been written to the file. */
+// #define USE_WRITE_DATA_LEN
 
-/** \name Small API to handle compression.
+/* -------------------------------------------------------------------- */
+/** \name Internal Write Wrapper's (Abstracts Compression)
  * \{ */
 
 typedef enum {
@@ -301,14 +304,24 @@ static void ww_handle_init(eWriteWrapType ww_type, WriteWrap *r_ww)
 
 /** \} */
 
-
+/* -------------------------------------------------------------------- */
+/** \name Write Data Type & Functions
+ * \{ */
 
 typedef struct {
 	const struct SDNA *sdna;
 
 	/** Use for file and memory writing (fixed size of #MYWRITE_BUFFER_SIZE). */
 	uchar *buf;
-	int tot, count;
+	/** Number of bytes used in #WriteData.buf (flushed when exceeded). */
+	int buf_used_len;
+
+#ifdef USE_WRITE_DATA_LEN
+	/** Total number of bytes written. */
+	size_t write_len;
+#endif
+
+	/** Set on unlikely case of an error (ignores further file writing).  */
 	bool error;
 
 	/** #MemFile writing (used for undo). */
@@ -373,7 +386,11 @@ static void writedata_free(WriteData *wd)
 	MEM_freeN(wd);
 }
 
-/***/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Local Writing API 'mywrite'
+ * \{ */
 
 /**
  * Flush helps the de-duplicating memory for undo-save by logically segmenting data,
@@ -381,9 +398,9 @@ static void writedata_free(WriteData *wd)
  */
 static void mywrite_flush(WriteData *wd)
 {
-	if (wd->count) {
-		writedata_do_write(wd, wd->buf, wd->count);
-		wd->count = 0;
+	if (wd->buf_used_len) {
+		writedata_do_write(wd, wd->buf, wd->buf_used_len);
+		wd->buf_used_len = 0;
 	}
 }
 
@@ -391,7 +408,6 @@ static void mywrite_flush(WriteData *wd)
  * Low level WRITE(2) wrapper that buffers data
  * \param adr Pointer to new chunk of data
  * \param len Length of new chunk of data
- * \warning Talks to other functions with global parameters
  */
 static void mywrite(WriteData *wd, const void *adr, int len)
 {
@@ -399,19 +415,21 @@ static void mywrite(WriteData *wd, const void *adr, int len)
 		return;
 	}
 
-	if (adr == NULL) {
+	if (UNLIKELY(adr == NULL)) {
 		BLI_assert(0);
 		return;
 	}
 
-	wd->tot += len;
+#ifdef USE_WRITE_DATA_LEN
+	wd->write_len += len;
+#endif
 
 	/* if we have a single big chunk, write existing data in
 	 * buffer and write out big chunk in smaller pieces */
 	if (len > MYWRITE_MAX_CHUNK) {
-		if (wd->count) {
-			writedata_do_write(wd, wd->buf, wd->count);
-			wd->count = 0;
+		if (wd->buf_used_len) {
+			writedata_do_write(wd, wd->buf, wd->buf_used_len);
+			wd->buf_used_len = 0;
 		}
 
 		do {
@@ -425,14 +443,14 @@ static void mywrite(WriteData *wd, const void *adr, int len)
 	}
 
 	/* if data would overflow buffer, write out the buffer */
-	if (len + wd->count > MYWRITE_BUFFER_SIZE - 1) {
-		writedata_do_write(wd, wd->buf, wd->count);
-		wd->count = 0;
+	if (len + wd->buf_used_len > MYWRITE_BUFFER_SIZE - 1) {
+		writedata_do_write(wd, wd->buf, wd->buf_used_len);
+		wd->buf_used_len = 0;
 	}
 
 	/* append data at end of buffer */
-	memcpy(&wd->buf[wd->count], adr, len);
-	wd->count += len;
+	memcpy(&wd->buf[wd->buf_used_len], adr, len);
+	wd->buf_used_len += len;
 }
 
 /**
@@ -442,7 +460,7 @@ static void mywrite(WriteData *wd, const void *adr, int len)
  * \param current The current memory file (can be NULL).
  * \warning Talks to other functions with global parameters
  */
-static WriteData *bgnwrite(WriteWrap *ww, MemFile *compare, MemFile *current)
+static WriteData *mywrite_begin(WriteWrap *ww, MemFile *compare, MemFile *current)
 {
 	WriteData *wd = writedata_new(ww);
 
@@ -462,11 +480,11 @@ static WriteData *bgnwrite(WriteWrap *ww, MemFile *compare, MemFile *current)
  * \return unknown global variable otherwise
  * \warning Talks to other functions with global parameters
  */
-static bool endwrite(WriteData *wd)
+static bool mywrite_end(WriteData *wd)
 {
-	if (wd->count) {
-		writedata_do_write(wd, wd->buf, wd->count);
-		wd->count = 0;
+	if (wd->buf_used_len) {
+		writedata_do_write(wd, wd->buf, wd->buf_used_len);
+		wd->buf_used_len = 0;
 	}
 
 	const bool err = wd->error;
@@ -475,7 +493,11 @@ static bool endwrite(WriteData *wd)
 	return err;
 }
 
-/* ********** WRITE FILE ****************** */
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Generic DNA File Writing
+ * \{ */
 
 static void writestruct_at_address_nr(
         WriteData *wd, int filecode, const int struct_nr, int nr,
@@ -601,8 +623,14 @@ static void writelist_id(WriteData *wd, int filecode, const char *structname, co
 #define writelist(wd, filecode, struct_id, lb) \
 	writelist_nr(wd, filecode, SDNA_TYPE_FROM_STRUCT(struct_id), lb)
 
-/* *************** writing some direct data structs used in more code parts **************** */
-/*These functions are used by blender's .blend system for file saving/loading.*/
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Typed DNA File Writing
+ *
+ * These functions are used by blender's .blend system for file saving/loading.
+ * \{ */
+
 void IDP_WriteProperty_OnlyData(const IDProperty *prop, void *wd);
 void IDP_WriteProperty(const IDProperty *prop, void *wd);
 
@@ -3790,6 +3818,12 @@ static void write_thumb(WriteData *wd, const BlendThumbnail *thumb)
 	}
 }
 
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File Writing (Private)
+ * \{ */
+
 /* if MemFile * there's filesave to memory */
 static bool write_file_handle(
         Main *mainvar,
@@ -3804,7 +3838,7 @@ static bool write_file_handle(
 
 	blo_split_main(&mainlist, mainvar);
 
-	wd = bgnwrite(ww, compare, current);
+	wd = mywrite_begin(ww, compare, current);
 
 #ifdef USE_BMESH_SAVE_AS_COMPAT
 	wd->use_mesh_compat = (write_flags & G_FILE_MESH_COMPAT) != 0;
@@ -3994,7 +4028,7 @@ static bool write_file_handle(
 
 	blo_join_main(&mainlist);
 
-	return endwrite(wd);
+	return mywrite_end(wd);
 }
 
 /* do reverse file history: .blend1 -> .blend2, .blend -> .blend1 */
@@ -4038,6 +4072,12 @@ static bool do_history(const char *name, ReportList *reports)
 
 	return 0;
 }
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name File Writing (Public)
+ * \{ */
 
 /**
  * \return Success.
@@ -4152,3 +4192,5 @@ bool BLO_write_file_mem(Main *mainvar, MemFile *compare, MemFile *current, int w
 
 	return (err == 0);
 }
+
+/** \} */
