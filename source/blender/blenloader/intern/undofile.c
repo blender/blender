@@ -96,36 +96,26 @@ void BLO_memfile_merge(MemFile *first, MemFile *second)
 	BLO_memfile_free(first);
 }
 
-void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsigned int size)
+void memfile_chunk_add(
+        MemFile *memfile, const char *buf, unsigned int size,
+        MemFileChunk **compchunk_step)
 {
-	static MemFileChunk *compchunk = NULL;
-	MemFileChunk *curchunk;
-	
-	/* this function inits when compare != NULL or when current == NULL  */
-	if (compare) {
-		compchunk = compare->chunks.first;
-		return;
-	}
-	if (current == NULL) {
-		compchunk = NULL;
-		return;
-	}
-	
-	curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
+	MemFileChunk *curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
 	curchunk->size = size;
 	curchunk->buf = NULL;
 	curchunk->is_identical = false;
-	BLI_addtail(&current->chunks, curchunk);
-	
+	BLI_addtail(&memfile->chunks, curchunk);
+
 	/* we compare compchunk with buf */
-	if (compchunk) {
+	if (*compchunk_step != NULL) {
+		MemFileChunk *compchunk = *compchunk_step;
 		if (compchunk->size == curchunk->size) {
 			if (memcmp(compchunk->buf, buf, size) == 0) {
 				curchunk->buf = compchunk->buf;
 				curchunk->is_identical = true;
 			}
 		}
-		compchunk = compchunk->next;
+		*compchunk_step = compchunk->next;
 	}
 
 	/* not equal... */
@@ -133,7 +123,7 @@ void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsi
 		char *buf_new = MEM_mallocN(size, "Chunk buffer");
 		memcpy(buf_new, buf, size);
 		curchunk->buf = buf_new;
-		current->size += size;
+		memfile->size += size;
 	}
 }
 
