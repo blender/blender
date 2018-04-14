@@ -70,9 +70,10 @@ static bool memfile_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 
 	/* Important we only use 'main' from the context (see: BKE_undosys_stack_init_from_main). */
 	struct Main *bmain = CTX_data_main(C);
+	UndoStack *ustack = ED_undo_stack_get();
 
 	/* can be NULL, use when set. */
-	MemFileUndoStep *us_prev = (MemFileUndoStep *)BKE_undosys_step_same_type_prev(us_p);
+	MemFileUndoStep *us_prev = (MemFileUndoStep *)BKE_undosys_step_find_by_type(ustack, BKE_UNDOSYS_TYPE_MEMFILE);
 	us->data = BKE_memfile_undo_encode(bmain, us_prev ? us_prev->data : NULL);
 	us->step.data_size = us->data->undo_size;
 
