@@ -33,6 +33,9 @@
 #  include <unistd.h>
 #endif
 
+#if defined(_MSC_VER)
+#  include <io.h>
+#endif
 /* Only other dependency (could use regular malloc too). */
 #include "MEM_guardedalloc.h"
 
