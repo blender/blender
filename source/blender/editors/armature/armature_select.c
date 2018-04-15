@@ -291,8 +291,8 @@ static int selectbuffer_ret_hits_5(unsigned int *buffer, const int hits12, const
 /* does bones and points */
 /* note that BONE ROOT only gets drawn for root bones (or without IK) */
 static EditBone *get_nearest_editbonepoint(
-        ViewContext *vc, const int mval[2],
-        ListBase *edbo, bool findunsel, bool use_cycle, int *r_selmask)
+        ViewContext *vc,
+        bool findunsel, bool use_cycle, int *r_selmask)
 {
 	bArmature *arm = (bArmature *)vc->obedit->data;
 	EditBone *ebone_next_act = arm->act_edbone;
@@ -324,11 +324,11 @@ static EditBone *get_nearest_editbonepoint(
 	if (use_cycle) {
 		if (vc->v3d->drawtype > OB_WIRE) {
 			do_nearest = true;
-			if (len_manhattan_v2v2_int(mval, last_mval) < 3) {
+			if (len_manhattan_v2v2_int(vc->mval, last_mval) < 3) {
 				do_nearest = false;
 			}
 		}
-		copy_v2_v2_int(last_mval, mval);
+		copy_v2_v2_int(last_mval, vc->mval);
 	}
 	else {
 		if (vc->v3d->drawtype > OB_WIRE) {
@@ -343,7 +343,7 @@ static EditBone *get_nearest_editbonepoint(
 	/* we _must_ end cache before return, use 'goto cache_end' */
 	view3d_opengl_select_cache_begin();
 
-	BLI_rcti_init_pt_radius(&rect, mval, 12);
+	BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
 	hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
 	if (hits12 == 1) {
 		hits = selectbuffer_ret_hits_12(buffer, hits12);
@@ -353,7 +353,7 @@ static EditBone *get_nearest_editbonepoint(
 		int offs;
 
 		offs = 4 * hits12;
-		BLI_rcti_init_pt_radius(&rect, mval, 5);
+		BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
 		hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
 
 		if (hits5 == 1) {
@@ -381,7 +381,7 @@ cache_end:
 				if (!(hitresult & BONESEL_NOSEL)) {
 					int dep;
 					
-					ebone = BLI_findlink(edbo, hitresult & ~BONESEL_ANY);
+					ebone = BLI_findlink(arm->edbo, hitresult & ~BONESEL_ANY);
 					
 					/* clicks on bone points get advantage */
 					if (hitresult & (BONESEL_ROOT | BONESEL_TIP)) {
@@ -425,7 +425,7 @@ cache_end:
 		
 		if (!(besthitresult & BONESEL_NOSEL)) {
 			
-			ebone = BLI_findlink(edbo, besthitresult & ~BONESEL_ANY);
+			ebone = BLI_findlink(arm->edbo, besthitresult & ~BONESEL_ANY);
 			
 			*r_selmask = 0;
 			if (besthitresult & BONESEL_ROOT)
@@ -481,19 +481,21 @@ static int ebone_select_flag(EditBone *ebone)
 bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm = obedit->data;
 	ViewContext vc;
 	EditBone *nearBone = NULL;
 	int selmask;
 
 	ED_view3d_viewcontext_init(C, &vc);
-	
+	vc.mval[0] = mval[0];
+	vc.mval[1] = mval[1];
+
 	if (BIF_sk_selectStroke(C, mval, extend)) {
 		return true;
 	}
 
-	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, true, true, &selmask);
+	nearBone = get_nearest_editbonepoint(&vc, true, true, &selmask);
 	if (nearBone) {
+		bArmature *arm = obedit->data;
 
 		if (!extend && !deselect && !toggle) {
 			ED_armature_edit_deselect_all(obedit);
