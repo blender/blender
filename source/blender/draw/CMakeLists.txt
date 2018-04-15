@@ -181,7 +181,6 @@ data_to_c_simple(engines/eevee/shaders/lightprobe_planar_downsample_vert.glsl SR
 data_to_c_simple(engines/eevee/shaders/prepass_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/prepass_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_frag.glsl SRC)
-data_to_c_simple(engines/eevee/shaders/shadow_geom.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_vert.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_store_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/shadow_copy_frag.glsl SRC)

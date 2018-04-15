@@ -89,7 +89,6 @@ extern char datatoc_lit_surface_vert_glsl[];
 extern char datatoc_raytrace_lib_glsl[];
 extern char datatoc_ssr_lib_glsl[];
 extern char datatoc_shadow_vert_glsl[];
-extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_lightprobe_geom_glsl[];
 extern char datatoc_lightprobe_vert_glsl[];
 extern char datatoc_background_vert_glsl[];

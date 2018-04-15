@@ -312,8 +312,6 @@ typedef struct EEVEE_ShadowCascade {
 } EEVEE_ShadowCascade;
 
 typedef struct EEVEE_ShadowRender {
-	float shadowmat[6][4][4]; /* World->Lamp->NDC : used to render the shadow map. 6 frustum for cubemap shadow */
-	float viewmat[6][4][4]; /* World->Lamp : used to render the shadow map. 6 viewmat for cubemap shadow */
 	float position[3], pad;
 	float cube_texel_size;
 	float stored_texel_size;

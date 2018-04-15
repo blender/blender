@@ -44,7 +44,6 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_shadow_vert_glsl[];
-extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_store_frag_glsl[];
 extern char datatoc_shadow_copy_frag_glsl[];
