@@ -8,37 +8,6 @@
 
 #define LUT_SIZE 64
 
-#ifdef SHADOW_SHADER
-layout(std140) uniform shadow_render_block {
-	mat4 ShadowMatrix[6];
-	mat4 FaceViewMatrix[6];
-	vec4 lampPosition;
-	float cubeTexelSize;
-	float storedTexelSize;
-	float nearClip;
-	float farClip;
-	int shadowSampleCount;
-	float shadowInvSampleCount;
-};
-
-flat in int shFace; /* Shadow layer we are rendering to. */
-
-/* Replacing viewBlock */
-#define ViewMatrix              FaceViewMatrix[shFace]
-#define ViewProjectionMatrix    ShadowMatrix[shFace]
-/* TODO optimize */
-#define ProjectionMatrix       \
-mat4(vec4(1.0, 0.0, 0.0, 0.0), \
-     vec4(0.0, 1.0, 0.0, 0.0), \
-     vec4(0.0, 0.0, -(farClip + nearClip) / (farClip - nearClip), -1.0), \
-     vec4(0.0, 0.0, (-2.0 * farClip * nearClip) / (farClip - nearClip), 0.0))
-
-#define ViewMatrixInverse             inverse(ViewMatrix)
-#define ViewProjectionMatrixInverse   inverse(ViewProjectionMatrix)
-#define ProjectionMatrixInverse       inverse(ProjectionMatrix)
-#define CameraTexCoFactors            vec4(1.0f, 1.0f, 0.0f, 0.0f)
-#endif
-
 /* Buffers */
 uniform sampler2D colorBuffer;
 uniform sampler2D depthBuffer;

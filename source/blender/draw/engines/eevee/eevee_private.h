@@ -675,7 +675,8 @@ typedef struct EEVEE_ShadowCubeData {
 typedef struct EEVEE_ShadowCascadeData {
 	short light_id, shadow_id, cascade_id, layer_id;
 	float viewprojmat[MAX_CASCADE_NUM][4][4]; /* World->Lamp->NDC : used for rendering the shadow map. */
-	DRWMatrixState clipmat; /* Override matrices used for clipping. */
+	float projmat[MAX_CASCADE_NUM][4][4];
+	float viewmat[4][4], viewinv[4][4];
 	float radius[MAX_CASCADE_NUM];
 } EEVEE_ShadowCascadeData;
 
@@ -806,7 +807,7 @@ void EEVEE_lights_cache_shcaster_add(
 void EEVEE_lights_cache_shcaster_material_add(
         EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl,
         struct GPUMaterial *gpumat, struct Gwn_Batch *geom, struct Object *ob,
-        float (*obmat)[4], float *alpha_threshold);
+        float *alpha_threshold);
 void EEVEE_lights_cache_shcaster_object_add(EEVEE_ViewLayerData *sldata, struct Object *ob);
 void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata);
 void EEVEE_lights_update(EEVEE_ViewLayerData *sldata);
