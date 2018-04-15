@@ -530,7 +530,7 @@ float ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vert
 int ED_mesh_mirror_topo_table(struct Object *ob, struct DerivedMesh *dm, char mode) RET_ZERO
 int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, struct DerivedMesh *dm, const float co[3], char mode) RET_ZERO
 
-float ED_armature_ebone_roll_to_vector(EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
+float ED_armature_ebone_roll_to_vector(const EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
 bool ED_space_image_check_show_maskedit(struct Scene *scene, struct SpaceImage *sima) RET_ZERO
 

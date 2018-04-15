@@ -140,7 +140,7 @@ bool ED_armature_edit_select_pick(
         struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
 struct Bone *ED_armature_bone_find_index(struct Object *ob, int index);
-float ED_armature_ebone_roll_to_vector(EditBone *bone, const float new_up_axis[3], const bool axis_only);
+float ED_armature_ebone_roll_to_vector(const EditBone *bone, const float new_up_axis[3], const bool axis_only);
 EditBone *ED_armature_ebone_find_name(const struct ListBase *edbo, const char *name);
 EditBone *ED_armature_ebone_get_mirrored(const struct ListBase *edbo, EditBone *ebo);
 void ED_armature_edit_sync_selection(struct ListBase *edbo);
