@@ -500,7 +500,7 @@ bPoseChannel *BKE_pose_channel_active(Object *ob)
 }
 
 /**
- * \see #ED_armature_bone_get_mirrored (edit-mode, matching function)
+ * \see #ED_armature_ebone_get_mirrored (edit-mode, matching function)
  */
 bPoseChannel *BKE_pose_channel_get_mirrored(const bPose *pose, const char *name)
 {

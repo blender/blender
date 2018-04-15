@@ -64,7 +64,7 @@
 /* **************** PoseMode & EditMode Selection Buffer Queries *************************** */
 
 /* only for opengl selection indices */
-Bone *get_indexed_bone(Object *ob, int index)
+Bone *ED_armature_bone_find_index(Object *ob, int index)
 {
 	bPoseChannel *pchan;
 	if (ob->pose == NULL) return NULL;
@@ -100,7 +100,7 @@ void *get_bone_from_selectbuffer(
 				if (obedit == NULL || base->object != obedit) {
 					/* no singular posemode, so check for correct object */
 					if (base->object->select_color == (hitresult & 0xFFFF)) {
-						bone = get_indexed_bone(base->object, hitresult);
+						bone = ED_armature_bone_find_index(base->object, hitresult);
 						
 						if (findunsel)
 							sel = (bone->flag & BONE_SELECTED);
@@ -247,7 +247,7 @@ static int armature_select_linked_invoke(bContext *C, wmOperator *op, const wmEv
 			bone = NULL;
 	}
 	
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 	
@@ -444,7 +444,7 @@ cache_end:
 	return NULL;
 }
 
-void ED_armature_deselect_all(Object *obedit)
+void ED_armature_edit_deselect_all(Object *obedit)
 {
 	bArmature *arm = obedit->data;
 	EditBone *ebone;
@@ -454,7 +454,7 @@ void ED_armature_deselect_all(Object *obedit)
 	}
 }
 
-void ED_armature_deselect_all_visible(Object *obedit)
+void ED_armature_edit_deselect_all_visible(Object *obedit)
 {
 	bArmature *arm = obedit->data;
 	EditBone    *ebone;
@@ -466,7 +466,7 @@ void ED_armature_deselect_all_visible(Object *obedit)
 		}
 	}
 
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 }
 
 /* accounts for connected parents */
@@ -481,7 +481,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
+bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, bool deselect, bool toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
@@ -501,7 +501,7 @@ bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool d
 	if (nearBone) {
 
 		if (!extend && !deselect && !toggle) {
-			ED_armature_deselect_all(obedit);
+			ED_armature_edit_deselect_all(obedit);
 		}
 		
 		/* by definition the non-root connected bones have no root point drawn,
@@ -572,7 +572,7 @@ bool ED_armature_select_pick(bContext *C, const int mval[2], bool extend, bool d
 				nearBone->flag |= selmask;
 		}
 		
-		ED_armature_sync_selection(arm->edbo);
+		ED_armature_edit_sync_selection(arm->edbo);
 		
 		if (nearBone) {
 			/* then now check for active status */
@@ -716,7 +716,7 @@ static void armature_select_more_less(Object *ob, bool more)
 	EditBone *ebone;
 
 	/* XXX, eventually we shouldn't need this - campbell */
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 
 	/* count bones & store selection state */
 	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
@@ -746,7 +746,7 @@ static void armature_select_more_less(Object *ob, bool more)
 		ebone->temp.p = NULL;
 	}
 
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 }
 
 static int armature_de_select_more_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1151,7 +1151,7 @@ static int armature_select_hierarchy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 	
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
 	
@@ -1207,7 +1207,7 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 			EditBone *ebone_mirror;
 			int flag_new = extend ? EBONE_PREV_FLAG_GET(ebone) : 0;
 
-			if ((ebone_mirror = ED_armature_bone_get_mirrored(arm->edbo, ebone)) &&
+			if ((ebone_mirror = ED_armature_ebone_get_mirrored(arm->edbo, ebone)) &&
 			    (EBONE_VISIBLE(arm, ebone_mirror)))
 			{
 				const int flag_mirror = EBONE_PREV_FLAG_GET(ebone_mirror);
@@ -1231,7 +1231,7 @@ static int armature_select_mirror_exec(bContext *C, wmOperator *op)
 		arm->act_edbone = ebone_mirror_act;
 	}
 
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
@@ -1316,7 +1316,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 	else if (ED_armature_ebone_is_child_recursive(ebone_dst, ebone_src)) {
 		SWAP(EditBone *, ebone_src, ebone_dst);
 	}
-	else if ((ebone_isect_parent = ED_armature_bone_find_shared_parent(ebone_isect_child, 2))) {
+	else if ((ebone_isect_parent = ED_armature_ebone_find_shared_parent(ebone_isect_child, 2))) {
 		/* pass */
 	}
 	else {
@@ -1351,7 +1351,7 @@ static int armature_shortest_path_pick_invoke(bContext *C, wmOperator *op, const
 
 	if (changed) {
 		arm->act_edbone = ebone_dst;
-		ED_armature_sync_selection(arm->edbo);
+		ED_armature_edit_sync_selection(arm->edbo);
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
 		return OPERATOR_FINISHED;

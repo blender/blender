@@ -850,7 +850,7 @@ static int object_armature_add_exec(bContext *C, wmOperator *op)
 	}
 
 	dia = RNA_float_get(op->ptr, "radius");
-	ED_armature_edit_bone_add_primitive(obedit, dia, view_aligned);
+	ED_armature_ebone_add_primitive(obedit, dia, view_aligned);
 
 	/* userdef */
 	if (newob && !enter_editmode)

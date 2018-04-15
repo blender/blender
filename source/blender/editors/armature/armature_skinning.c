@@ -431,7 +431,7 @@ static void add_verts_to_dgroups(
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(
+void ED_object_vgroup_calc_from_armature(
         ReportList *reports, const EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *par,
         const int mode, const bool mirror)
 {

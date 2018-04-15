@@ -1358,7 +1358,7 @@ static void sk_convertStroke(bContext *C, SK_Stroke *stk)
 				}
 
 				if (bone == NULL) {
-					bone = ED_armature_edit_bone_add(arm, "Bone");
+					bone = ED_armature_ebone_add(arm, "Bone");
 
 					copy_v3_v3(bone->head, head->p);
 					copy_v3_v3(bone->tail, pt->p);

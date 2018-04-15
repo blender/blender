@@ -133,7 +133,7 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
-bool ED_do_pose_selectbuffer(
+bool ED_armature_pose_select_pick_with_buffer(
         ViewLayer *view_layer, Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest)
 {
@@ -166,7 +166,7 @@ bool ED_do_pose_selectbuffer(
 		}
 
 		if (!extend && !deselect && !toggle) {
-			ED_pose_de_selectall(ob, SEL_DESELECT, true);
+			ED_pose_deselect_all(ob, SEL_DESELECT, true);
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;
 		}
@@ -220,7 +220,7 @@ bool ED_do_pose_selectbuffer(
 
 /* 'select_mode' is usual SEL_SELECT/SEL_DESELECT/SEL_TOGGLE/SEL_INVERT.
  * When true, 'ignore_visibility' makes this func also affect invisible bones (hidden or on hidden layers). */
-void ED_pose_de_selectall(Object *ob, int select_mode, const bool ignore_visibility)
+void ED_pose_deselect_all(Object *ob, int select_mode, const bool ignore_visibility)
 {
 	bArmature *arm = ob->data;
 	bPoseChannel *pchan;

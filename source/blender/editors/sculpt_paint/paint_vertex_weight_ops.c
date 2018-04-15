@@ -135,7 +135,7 @@ static int weight_from_bones_exec(bContext *C, wmOperator *op)
 
 	CTX_data_eval_ctx(C, &eval_ctx);
 
-	create_vgroups_from_armature(op->reports, &eval_ctx, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
+	ED_object_vgroup_calc_from_armature(op->reports, &eval_ctx, scene, ob, armob, type, (me->editflag & ME_EDIT_MIRROR_X));
 
 	DEG_id_tag_update(&me->id, 0);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, me);

@@ -1673,7 +1673,7 @@ static void skin_armature_bone_create(Object *skin_ob,
 
 		v = (e->v1 == parent_v ? e->v2 : e->v1);
 
-		bone = ED_armature_edit_bone_add(arm, "Bone");
+		bone = ED_armature_ebone_add(arm, "Bone");
 
 		bone->parent = parent_bone;
 		bone->flag |= BONE_CONNECTED;
@@ -1746,7 +1746,7 @@ static Object *modifier_skin_armature_create(const EvaluationContext *eval_ctx, 
 			 * a fake root bone (have it going off in the Y direction
 			 * (arbitrary) */
 			if (emap[v].count > 1) {
-				bone = ED_armature_edit_bone_add(arm, "Bone");
+				bone = ED_armature_ebone_add(arm, "Bone");
 
 				copy_v3_v3(bone->head, me->mvert[v].co);
 				copy_v3_v3(bone->tail, me->mvert[v].co);
@@ -1953,7 +1953,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		int mode = mmd->modifier.mode;
 
 		/* force modifier to run, it will call binding routine */
-		mmd->bindfunc = mesh_deform_bind;
+		mmd->bindfunc = ED_mesh_deform_bind_callback;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
 		if (ob->type == OB_MESH) {

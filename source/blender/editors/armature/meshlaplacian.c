@@ -1636,7 +1636,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	free_bvhtree_from_mesh(&mdb->bvhdata);
 }
 
-void mesh_deform_bind(
+void ED_mesh_deform_bind_callback(
         Scene *scene, MeshDeformModifierData *mmd, DerivedMesh *cagedm,
         float *vertexcos, int totvert, float cagemat[4][4])
 {

@@ -575,7 +575,7 @@ static eOLDrawState tree_element_active_ebone(
 	if (set != OL_SETSEL_NONE) {
 		if (set == OL_SETSEL_NORMAL) {
 			if (!(ebone->flag & BONE_HIDDEN_A)) {
-				ED_armature_deselect_all(obedit);
+				ED_armature_edit_deselect_all(obedit);
 				tree_element_active_ebone__sel(C, obedit, arm, ebone, true);
 				status = OL_DRAWSEL_NORMAL;
 			}
