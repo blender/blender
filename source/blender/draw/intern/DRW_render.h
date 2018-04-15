@@ -404,7 +404,7 @@ typedef struct DRWMatrixState {
 void DRW_viewport_init(const bContext *C);
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type);
 void DRW_viewport_matrix_get_all(DRWMatrixState *state);
-void DRW_viewport_matrix_override_set(float mat[4][4], DRWViewportMatrixType type);
+void DRW_viewport_matrix_override_set(const float mat[4][4], DRWViewportMatrixType type);
 void DRW_viewport_matrix_override_set_all(DRWMatrixState *state);
 void DRW_viewport_matrix_override_unset(DRWViewportMatrixType type);
 void DRW_viewport_matrix_override_unset_all(void);
