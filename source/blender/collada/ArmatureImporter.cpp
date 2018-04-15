@@ -102,7 +102,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
 	if (it != finished_joints.end()) return chain_length;
 	
-	EditBone *bone = ED_armature_edit_bone_add(arm, (char *)bc_get_joint_name(node));
+	EditBone *bone = ED_armature_ebone_add(arm, (char *)bc_get_joint_name(node));
 	totbone++;
 
 	/*

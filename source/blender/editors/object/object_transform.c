@@ -534,7 +534,7 @@ static int apply_objects_internal(
 			BKE_mesh_calc_normals(me);
 		}
 		else if (ob->type == OB_ARMATURE) {
-			ED_armature_apply_transform(ob, mat, do_props);
+			ED_armature_transform_apply(ob, mat, do_props);
 		}
 		else if (ob->type == OB_LATTICE) {
 			Lattice *lt = ob->data;

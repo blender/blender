@@ -424,7 +424,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 	MEM_freeN(verts);
 }
 
-void create_vgroups_from_armature(ReportList *reports, Scene *scene, Object *ob, Object *par,
+void ED_object_vgroup_calc_from_armature(ReportList *reports, Scene *scene, Object *ob, Object *par,
                                   const int mode, const bool mirror)
 {
 	/* Lets try to create some vertex groups 

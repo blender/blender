@@ -67,7 +67,7 @@ void rigid_deform_end(int cancel);
 
 /* Harmonic Coordinates */
 
-/* mesh_deform_bind(...) defined in ED_armature.h */
+/* ED_mesh_deform_bind_callback(...) defined in ED_armature.h */
 
 #endif
 
