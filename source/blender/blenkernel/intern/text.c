@@ -174,18 +174,12 @@ static void txt_make_dirty(Text *text);
 
 /***/
 
-static unsigned char undoing;
-
-/* allow to switch off undoing externally */
-void txt_set_undostate(int u)
-{
-	undoing = u;
-}
-
-int txt_get_undostate(void)
-{
-	return undoing;
-}
+/**
+ * Set to true when undoing (so we don't generate undo steps while undoing).
+ *
+ * Also use to disable undo entirely.
+ */
+static bool undoing;
 
 /**
  * \note caller must handle `undo_buf` and `compiled` members.
@@ -525,29 +519,26 @@ void BKE_text_make_local(Main *bmain, Text *text, const bool lib_local)
 
 void BKE_text_clear(Text *text, TextUndoBuf *utxt) /* called directly from rna */
 {
-	int oldstate;
-
-	if (utxt) {
-		oldstate = txt_get_undostate();
-	}
-	txt_set_undostate(utxt != NULL);
+	const bool undoing_orig = undoing;
+	undoing = (utxt == NULL);
 
 	txt_sel_all(text);
 	txt_delete_sel(text, utxt);
 
-	txt_set_undostate(oldstate);
+	undoing = undoing_orig;
 
 	txt_make_dirty(text);
 }
 
 void BKE_text_write(Text *text, TextUndoBuf *utxt, const char *str) /* called directly from rna */
 {
-	int oldstate;
+	const bool undoing_orig = undoing;
+	undoing = (utxt == NULL);
 
-	oldstate = txt_get_undostate();
 	txt_insert_buf(text, utxt, str);
 	txt_move_eof(text, 0);
-	txt_set_undostate(oldstate);
+
+	undoing = undoing_orig;
 
 	txt_make_dirty(text);
 }
@@ -1395,7 +1386,8 @@ char *txt_sel_to_buf(Text *text)
 
 void txt_insert_buf(Text *text, TextUndoBuf *utxt, const char *in_buffer)
 {
-	int l = 0, u, len;
+	const bool undoing_orig = undoing;
+	int l = 0, len;
 	size_t i = 0, j;
 	TextLine *add;
 	char *buffer;
@@ -1408,41 +1400,44 @@ void txt_insert_buf(Text *text, TextUndoBuf *utxt, const char *in_buffer)
 	buffer = BLI_strdupn(in_buffer, len);
 	len += txt_extended_ascii_as_utf8(&buffer);
 	
-	if (!undoing) txt_undo_add_blockop(text, utxt, UNDO_IBLOCK, buffer);
-
-	u = undoing;
-	undoing = 1;
+	if (!undoing) {
+		txt_undo_add_blockop(text, utxt, UNDO_IBLOCK, buffer);
+	}
+	undoing = true;
 
 	/* Read the first line (or as close as possible */
-	while (buffer[i] && buffer[i] != '\n')
+	while (buffer[i] && buffer[i] != '\n') {
 		txt_add_raw_char(text, utxt, BLI_str_utf8_as_unicode_step(buffer, &i));
-	
-	if (buffer[i] == '\n') txt_split_curline(text, utxt);
-	else { undoing = u; MEM_freeN(buffer); return; }
-	i++;
-
-	while (i < len) {
-		l = 0;
-
-		while (buffer[i] && buffer[i] != '\n') {
-			i++; l++;
-		}
-	
-		if (buffer[i] == '\n') {
-			add = txt_new_linen(buffer + (i - l), l);
-			BLI_insertlinkbefore(&text->lines, text->curl, add);
-			i++;
-		}
-		else {
-			for (j = i - l; j < i && j < len; )
-				txt_add_raw_char(text, utxt, BLI_str_utf8_as_unicode_step(buffer, &j));
-			break;
-		}
 	}
 	
-	MEM_freeN(buffer);
+	if (buffer[i] == '\n') {
+		txt_split_curline(text, utxt);
+		i++;
 
-	undoing = u;
+		while (i < len) {
+			l = 0;
+
+			while (buffer[i] && buffer[i] != '\n') {
+				i++;
+				l++;
+			}
+
+			if (buffer[i] == '\n') {
+				add = txt_new_linen(buffer + (i - l), l);
+				BLI_insertlinkbefore(&text->lines, text->curl, add);
+				i++;
+			}
+			else {
+				for (j = i - l; j < i && j < len; ) {
+					txt_add_raw_char(text, utxt, BLI_str_utf8_as_unicode_step(buffer, &j));
+				}
+				break;
+			}
+		}
+	}
+
+	MEM_freeN(buffer);
+	undoing = undoing_orig;
 }
 
 /******************/
