@@ -1,8 +1,6 @@
 BL_ArmatureBone(PyObjectPlus)
 =============================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: BL_ArmatureBone(PyObjectPlus)

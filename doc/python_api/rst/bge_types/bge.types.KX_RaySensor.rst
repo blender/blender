@@ -1,8 +1,6 @@
 KX_RaySensor(SCA_ISensor)
 =========================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: KX_RaySensor(SCA_ISensor)
@@ -75,4 +73,3 @@ base class --- :class:`SCA_ISensor`
       * KX_RAY_AXIS_NEG_X
       * KX_RAY_AXIS_NEG_Y
       * KX_RAY_AXIS_NEG_Z
-

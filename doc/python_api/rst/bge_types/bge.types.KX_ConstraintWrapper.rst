@@ -1,8 +1,6 @@
 KX_ConstraintWrapper(PyObjectPlus)
 ==================================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: KX_ConstraintWrapper(PyObjectPlus)
@@ -140,4 +138,3 @@ base class --- :class:`PyObjectPlus`
          - :class:`~bge.constraints.CONETWIST_CONSTRAINT`
          - :class:`~bge.constraints.VEHICLE_CONSTRAINT`
          - :class:`~bge.constraints.GENERIC_6DOF_CONSTRAINT`
-

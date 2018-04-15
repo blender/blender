@@ -1,8 +1,6 @@
 KX_SteeringActuator(SCA_IActuator)
 ==================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_SteeringActuator(SCA_IActuator)
@@ -68,4 +66,3 @@ base class --- :class:`SCA_IActuator`
       Path update period
 
       :type: int
-

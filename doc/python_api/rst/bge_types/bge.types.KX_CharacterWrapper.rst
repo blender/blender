@@ -1,8 +1,6 @@
 KX_CharacterWrapper(PyObjectPlus)
 =================================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: KX_CharacterWrapper(PyObjectPlus)
@@ -42,4 +40,3 @@ base class --- :class:`PyObjectPlus`
    .. method:: jump()
 
       The character jumps based on it's jump speed.
-
