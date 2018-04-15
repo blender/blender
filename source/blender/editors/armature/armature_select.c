@@ -491,6 +491,8 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 
 	CTX_data_eval_ctx(C, &eval_ctx);
 	ED_view3d_viewcontext_init(C, &vc);
+	vc.mval[0] = mval[0];
+	vc.mval[1] = mval[1];
 
 	if (BIF_sk_selectStroke(C, mval, extend)) {
 		return true;
