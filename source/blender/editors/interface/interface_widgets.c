@@ -221,8 +221,22 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  **/
 
 /* offset in triavec[] in shader per type */
-static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {0, 0, 6, 22, 28, 34};
-static const int tria_vcount[ROUNDBOX_TRIA_MAX] = {0, 3, 16, 3, 6, 3};
+static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {
+	[ROUNDBOX_TRIA_NONE]              = 0,
+	[ROUNDBOX_TRIA_ARROWS]            = 0,
+	[ROUNDBOX_TRIA_SCROLL]            = 6,
+	[ROUNDBOX_TRIA_MENU]              = 22,
+	[ROUNDBOX_TRIA_CHECK]             = 28,
+	[ROUNDBOX_TRIA_HOLD_ACTION_ARROW] = 34,
+};
+static const int tria_vcount[ROUNDBOX_TRIA_MAX] = {
+	[ROUNDBOX_TRIA_NONE]              = 0,
+	[ROUNDBOX_TRIA_ARROWS]            = 3,
+	[ROUNDBOX_TRIA_SCROLL]            = 16,
+	[ROUNDBOX_TRIA_MENU]              = 3,
+	[ROUNDBOX_TRIA_CHECK]             = 6,
+	[ROUNDBOX_TRIA_HOLD_ACTION_ARROW] = 3,
+};
 
 static struct {
 	Gwn_Batch *roundbox_widget[ROUNDBOX_TRIA_MAX];
