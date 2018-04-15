@@ -1303,7 +1303,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	bArmature *arm;
 	EditBone *curBone, *ebone_next;
-	Object *obedit = CTX_data_edit_object(C); // XXX get from context
+	Object *obedit = CTX_data_edit_object(C);
 	bool changed = false;
 	arm = obedit->data;
 

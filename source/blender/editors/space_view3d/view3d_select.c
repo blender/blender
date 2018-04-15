@@ -1914,7 +1914,6 @@ static int do_meta_box_select(ViewContext *vc, rcti *rect, bool select, bool ext
 static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool extend)
 {
 	bArmature *arm = vc->obedit->data;
-	EditBone *ebone;
 	int a;
 
 	unsigned int buffer[MAXPICKBUF];
@@ -1923,7 +1922,7 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 	hits = view3d_opengl_select(vc, buffer, MAXPICKBUF, rect, VIEW3D_SELECT_ALL);
 	
 	/* clear flag we use to detect point was affected */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next)
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next)
 		ebone->flag &= ~BONE_DONE;
 	
 	if (extend == false && select)
@@ -1933,17 +1932,17 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 	for (a = 0; a < hits; a++) {
 		int index = buffer[(4 * a) + 3];
 		if (index != -1) {
-			ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 			if ((index & 0xFFFF0000) == 0) {
 				continue;
 			}
+			EditBone *ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 			if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
 				if (index & BONESEL_TIP) {
 					ebone->flag |= BONE_DONE;
 					if (select) ebone->flag |= BONE_TIPSEL;
 					else ebone->flag &= ~BONE_TIPSEL;
 				}
-				
+
 				if (index & BONESEL_ROOT) {
 					ebone->flag |= BONE_DONE;
 					if (select) ebone->flag |= BONE_ROOTSEL;
@@ -1952,27 +1951,30 @@ static int do_armature_box_select(ViewContext *vc, rcti *rect, bool select, bool
 			}
 		}
 	}
-	
+
 	/* now we have to flush tag from parents... */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-			if (ebone->parent->flag & BONE_DONE)
+			if (ebone->parent->flag & BONE_DONE) {
 				ebone->flag |= BONE_DONE;
+			}
 		}
 	}
-	
+
 	/* only select/deselect entire bones when no points where in the rect */
 	for (a = 0; a < hits; a++) {
 		int index = buffer[(4 * a) + 3];
 		if (index != -1) {
-			ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 			if (index & BONESEL_BONE) {
+				EditBone *ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 				if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
 					if (!(ebone->flag & BONE_DONE)) {
-						if (select)
+						if (select) {
 							ebone->flag |= (BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
-						else
+						}
+						else {
 							ebone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
+						}
 					}
 				}
 			}
