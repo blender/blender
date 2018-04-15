@@ -1,8 +1,6 @@
 KX_SoundActuator(SCA_IActuator)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_SoundActuator(SCA_IActuator)
@@ -112,4 +110,3 @@ base class --- :class:`SCA_IActuator`
       Stops the sound.
 
       :return: None
-

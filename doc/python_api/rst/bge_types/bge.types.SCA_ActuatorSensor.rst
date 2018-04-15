@@ -1,8 +1,6 @@
 SCA_ActuatorSensor(SCA_ISensor)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: SCA_ActuatorSensor(SCA_ISensor)
@@ -16,4 +14,3 @@ base class --- :class:`SCA_ISensor`
       the name of the actuator that the sensor is monitoring.
 
       :type: string
-

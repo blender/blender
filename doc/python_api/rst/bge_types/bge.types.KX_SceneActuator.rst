@@ -1,8 +1,6 @@
 KX_SceneActuator(SCA_IActuator)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_SceneActuator(SCA_IActuator)
@@ -46,4 +44,3 @@ base class --- :class:`SCA_IActuator`
       The mode of the actuator.
 
       :type: integer from 0 to 5.
-

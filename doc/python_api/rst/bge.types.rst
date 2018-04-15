@@ -35,4 +35,3 @@ Types
    :glob:
 
    bge.types.*
-

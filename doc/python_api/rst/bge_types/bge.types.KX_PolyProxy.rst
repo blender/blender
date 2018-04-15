@@ -1,8 +1,6 @@
 KX_PolyProxy(SCA_IObject)
 =========================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IObject`
 
 .. class:: KX_PolyProxy(SCA_IObject)
@@ -136,4 +134,3 @@ base class --- :class:`SCA_IObject`
 
       :return: mesh proxy
       :rtype: :class:`MeshProxy`
-
