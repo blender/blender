@@ -526,29 +526,26 @@ void BKE_text_make_local(Main *bmain, Text *text, const bool lib_local)
 
 void BKE_text_clear(Text *text, TextUndoBuf *utxt) /* called directly from rna */
 {
-	int oldstate;
-
-	if (utxt) {
-		oldstate = txt_get_undostate();
-	}
-	txt_set_undostate(utxt != NULL);
+	const bool undostate_orig = txt_get_undostate();
+	txt_set_undostate(utxt == NULL);
 
 	txt_sel_all(text);
 	txt_delete_sel(text, utxt);
 
-	txt_set_undostate(oldstate);
+	txt_set_undostate(undostate_orig);
 
 	txt_make_dirty(text);
 }
 
 void BKE_text_write(Text *text, TextUndoBuf *utxt, const char *str) /* called directly from rna */
 {
-	int oldstate;
+	const bool undostate_orig = txt_get_undostate();
+	txt_set_undostate(utxt == NULL);
 
-	oldstate = txt_get_undostate();
 	txt_insert_buf(text, utxt, str);
 	txt_move_eof(text, 0);
-	txt_set_undostate(oldstate);
+
+	txt_set_undostate(undostate_orig);
 
 	txt_make_dirty(text);
 }
