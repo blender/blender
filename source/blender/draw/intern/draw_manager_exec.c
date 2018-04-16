@@ -390,7 +390,8 @@ void DRW_state_clip_planes_reset(void)
  * BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
  * for (int i = 0; i < 8; i++) {mul_project_m4_v3(viewprojinv, bbox.vec[i]);}
  */
-static void draw_frustum_boundbox_calc(const float (*projmat)[4], const float (*viewinv)[4], BoundBox *r_bbox)
+static void UNUSED_FUNCTION(draw_frustum_boundbox_calc)(
+        const float (*projmat)[4], const float (*viewinv)[4], BoundBox *r_bbox)
 {
 	float screenvecs[3][3], loc[3], near, far, w_half, h_half;
 	bool is_persp = projmat[3][3] == 0.0f;
