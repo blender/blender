@@ -48,6 +48,7 @@ static const char* BuiltinUniform_name(Gwn_UniformBuiltin u)
 
 		[GWN_UNIFORM_COLOR] = "color",
 		[GWN_UNIFORM_EYE] = "eye",
+		[GWN_UNIFORM_CALLID] = "callId",
 
 		[GWN_UNIFORM_CUSTOM] = NULL,
 		[GWN_NUM_UNIFORMS] = NULL,

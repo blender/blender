@@ -1005,6 +1005,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	}
 	else {
 		bool prev_neg_scale = false;
+		int callid = 0;
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 
 			/* OPTI/IDEA(clem): Do this preparation in another thread. */
@@ -1012,6 +1013,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 			if ((call->state->flag & DRW_CALL_CULLED) != 0)
 				continue;
+
+			/* XXX small exception/optimisation for outline rendering. */
+			if (shgroup->callid != -1) {
+				GPU_shader_uniform_vector_int(shgroup->shader, shgroup->callid, 1, 1, &callid);
+				callid += 1;
+			}
 
 			/* Negative scale objects */
 			bool neg_scale = call->state->flag & DRW_CALL_NEGSCALE;
