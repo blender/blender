@@ -39,7 +39,7 @@ void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invma
 		copy_v3_v3(normal, no);
 		mul_m3_v3(tmat, normal);
 		
-		bone->roll = ED_rollBoneToVector(bone, normal, false);
+		bone->roll = ED_armature_ebone_roll_to_vector(bone, normal, false);
 	}
 }
 
@@ -252,7 +252,7 @@ EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *U
 	
 	IT_head(iter);
 	
-	parent = ED_armature_edit_bone_add(arm, "Bone");
+	parent = ED_armature_ebone_add(arm, "Bone");
 	copy_v3_v3(parent->head, iter->p);
 	
 	if (iter->size > FLT_EPSILON) {
@@ -265,7 +265,7 @@ EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *U
 	while (index != -1) {
 		IT_peek(iter, index);
 
-		child = ED_armature_edit_bone_add(arm, "Bone");
+		child = ED_armature_ebone_add(arm, "Bone");
 		copy_v3_v3(child->head, parent->tail);
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;

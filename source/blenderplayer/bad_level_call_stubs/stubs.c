@@ -428,7 +428,7 @@ struct wmTimer *WM_event_add_timer(struct wmWindowManager *wm, struct wmWindow *
 void WM_event_remove_timer(struct wmWindowManager *wm, struct wmWindow *win, struct wmTimer *timer) RET_NONE
 float WM_event_tablet_data(const struct wmEvent *event, int *pen_flip, float tilt[2]) RET_ZERO
 bool WM_event_is_tablet(const struct wmEvent *event) RET_ZERO
-void ED_armature_edit_bone_remove(struct bArmature *arm, struct EditBone *exBone) RET_NONE
+void ED_armature_ebone_remove(struct bArmature *arm, struct EditBone *exBone) RET_NONE
 void object_test_constraints(struct Object *owner) RET_NONE
 void ED_armature_ebone_to_mat4(struct EditBone *ebone, float mat[4][4]) RET_NONE
 void ED_armature_ebone_from_mat4(EditBone *ebone, float mat[4][4]) RET_NONE
@@ -447,8 +447,8 @@ bool UI_view2d_view_to_region_clip(struct View2D *v2d, float x, float y, int *re
 void UI_view2d_view_to_region(struct View2D *v2d, float x, float y, int *regionx, int *region_y) RET_NONE
 void UI_view2d_sync(struct bScreen *screen, struct ScrArea *sa, struct View2D *v2dcur, int flag) RET_NONE
 
-struct EditBone *ED_armature_bone_get_mirrored(const struct ListBase *edbo, EditBone *ebo) RET_NULL
-struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *name) RET_NULL
+struct EditBone *ED_armature_ebone_get_mirrored(const struct ListBase *edbo, EditBone *ebo) RET_NULL
+struct EditBone *ED_armature_ebone_add(struct bArmature *arm, const char *name) RET_NULL
 struct ListBase *get_active_constraints (struct Object *ob) RET_NULL
 struct ListBase *get_constraint_lb(struct Object *ob, struct bConstraint *con, struct bPoseChannel **r_pchan) RET_NULL
 
@@ -604,7 +604,7 @@ float ED_vgroup_vert_weight(struct Object *ob, struct bDeformGroup *dg, int vert
 int ED_mesh_mirror_topo_table(struct Object *ob, struct DerivedMesh *dm, char mode) RET_ZERO
 int ED_mesh_mirror_spatial_table(struct Object *ob, struct BMEditMesh *em, struct DerivedMesh *dm, const float co[3], char mode) RET_ZERO
 
-float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
+float ED_armature_ebone_roll_to_vector(const EditBone *bone, const float new_up_axis[3], const bool axis_only) RET_ZERO
 void ED_space_image_get_size(struct SpaceImage *sima, int *width, int *height) RET_NONE
 bool ED_space_image_check_show_maskedit(struct SpaceImage *sima, struct ViewLayer *view_layer) RET_ZERO
 

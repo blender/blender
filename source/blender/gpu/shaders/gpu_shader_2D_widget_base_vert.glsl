@@ -47,11 +47,11 @@ const vec2 jit[9] = vec2[9](
 
 /* We can reuse the CORNER_* bits for tria */
 #define TRIA_VEC_RANGE BIT_RANGE(6)
-const vec2 triavec[34] = vec2[34](
-	/* horizontal tria */
+const vec2 triavec[37] = vec2[37](
+	/* ROUNDBOX_TRIA_ARROWS */
 	vec2(-0.352077, 0.532607), vec2(-0.352077, -0.549313), vec2( 0.330000, -0.008353),
 	vec2( 0.352077, 0.532607), vec2( 0.352077, -0.549313), vec2(-0.330000, -0.008353),
-	/* circle tria (triangle strip) */
+	/* ROUNDBOX_TRIA_SCROLL - circle tria (triangle strip) */
 	vec2(0.000000, 1.000000),
 	vec2(0.382684, 0.923879), vec2(-0.382683, 0.923880),
 	vec2(0.707107, 0.707107), vec2(-0.707107, 0.707107),
@@ -61,12 +61,19 @@ const vec2 triavec[34] = vec2[34](
 	vec2(0.707107, -0.707107), vec2(-0.707107, -0.707107),
 	vec2(0.382684, -0.923879), vec2(-0.382683, -0.923880),
 	vec2(0.000000, -1.000000),
-	/* menu arrow */
+	/* ROUNDBOX_TRIA_MENU - menu arrows */
 	vec2(-0.33, 0.16), vec2(0.33, 0.16), vec2(0.0, 0.82),
 	vec2(0.0, -0.82), vec2(-0.33, -0.16), vec2(0.33, -0.16),
-	/* check mark */
+	/* ROUNDBOX_TRIA_CHECK - check mark */
 	vec2(-0.578579, 0.253369),  vec2(-0.392773, 0.412794),  vec2(-0.004241, -0.328551),
-	vec2(-0.003001, 0.034320),  vec2(1.055313, 0.864744),   vec2(0.866408, 1.026895)
+	vec2(-0.003001, 0.034320),  vec2(1.055313, 0.864744),   vec2(0.866408, 1.026895),
+	/* ROUNDBOX_TRIA_HOLD_ACTION_ARROW - hold action arrows */
+#define OY -0.2
+#define SC 0.35
+//	vec2(-0.5 + SC, 1.0 + OY),  vec2( 0.5, 1.0 + OY),  vec2( 0.5, 0.0 + OY + SC),
+	vec2( 0.5 - SC, 1.0 + OY),  vec2(-0.5, 1.0 + OY),  vec2(-0.5, 0.0 + OY + SC)
+#undef OY
+#undef SC
 );
 
 uniform mat4 ModelViewProjectionMatrix;

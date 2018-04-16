@@ -785,14 +785,14 @@ bool ED_object_parent_set(ReportList *reports, const bContext *C, Scene *scene, 
 			}
 			else if (pararm && (ob->type == OB_MESH) && (par->type == OB_ARMATURE)) {
 				if (partype == PAR_ARMATURE_NAME) {
-					create_vgroups_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_NAME, false);
+					ED_object_vgroup_calc_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_NAME, false);
 				}
 				else if (partype == PAR_ARMATURE_ENVELOPE) {
-					create_vgroups_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
+					ED_object_vgroup_calc_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_ENVELOPE, xmirror);
 				}
 				else if (partype == PAR_ARMATURE_AUTO) {
 					WM_cursor_wait(1);
-					create_vgroups_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
+					ED_object_vgroup_calc_from_armature(reports, &eval_ctx, scene, ob, par, ARM_GROUPS_AUTO, xmirror);
 					WM_cursor_wait(0);
 				}
 				/* get corrected inverse */

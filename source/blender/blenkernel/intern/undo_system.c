@@ -505,6 +505,16 @@ UndoStep *BKE_undosys_step_find_by_name(UndoStack *ustack, const char *name)
 	return BLI_rfindstring(&ustack->steps, name, offsetof(UndoStep, name));
 }
 
+UndoStep *BKE_undosys_step_find_by_type(UndoStack *ustack, const UndoType *ut)
+{
+	for (UndoStep *us = ustack->steps.last; us; us = us->prev) {
+		if (us->type == ut) {
+			return us;
+		}
+	}
+	return NULL;
+}
+
 bool BKE_undosys_step_undo_with_data_ex(
         UndoStack *ustack, bContext *C, UndoStep *us,
         bool use_skip)

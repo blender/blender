@@ -104,7 +104,7 @@ int ArmatureImporter::create_bone(SkinInfo *skin, COLLADAFW::Node *node, EditBon
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
 	if (it != finished_joints.end()) return chain_length;
 	
-	EditBone *bone = ED_armature_edit_bone_add(arm, (char *)bc_get_joint_name(node));
+	EditBone *bone = ED_armature_ebone_add(arm, bc_get_joint_name(node));
 	totbone++;
 
 	/*
@@ -636,8 +636,8 @@ Object *ArmatureImporter::create_armature_bones(SkinInfo& skin)
 }
 
 void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[4][4])
-{ 
-	char *bone_name = (char *) bc_get_joint_name(root_node);
+{
+	const char *bone_name = bc_get_joint_name(root_node);
 	float mat[4][4];
 	float obmat[4][4];
 

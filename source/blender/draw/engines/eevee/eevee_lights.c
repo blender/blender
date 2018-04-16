@@ -44,7 +44,6 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_shadow_vert_glsl[];
-extern char datatoc_shadow_geom_glsl[];
 extern char datatoc_shadow_frag_glsl[];
 extern char datatoc_shadow_store_frag_glsl[];
 extern char datatoc_shadow_copy_frag_glsl[];
@@ -106,7 +105,7 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 
 	if (!e_data.shadow_sh) {
 		e_data.shadow_sh = DRW_shader_create(
-		        datatoc_shadow_vert_glsl, datatoc_shadow_geom_glsl, datatoc_shadow_frag_glsl, NULL);
+		        datatoc_shadow_vert_glsl, NULL, datatoc_shadow_frag_glsl, NULL);
 	}
 
 	if (!sldata->lamps) {
@@ -287,8 +286,7 @@ void EEVEE_lights_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 		psl->shadow_pass = DRW_pass_create("Shadow Pass", state);
 
-		DRWShadingGroup *grp = stl->g_data->shadow_shgrp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
-		DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
+		stl->g_data->shadow_shgrp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
 	}
 }
 
@@ -387,30 +385,26 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 
 /* Add a shadow caster to the shadowpasses */
 void EEVEE_lights_cache_shcaster_add(
-        EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, struct Gwn_Batch *geom, Object *ob)
+        EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_StorageList *stl, struct Gwn_Batch *geom, Object *ob)
 {
-	DRW_shgroup_call_object_instances_add(
+	DRW_shgroup_call_object_add(
 	        stl->g_data->shadow_shgrp,
-	        geom, ob,
-	        &sldata->lamps->shadow_instance_count);
+	        geom, ob);
 }
 
 void EEVEE_lights_cache_shcaster_material_add(
-	EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl, struct GPUMaterial *gpumat,
-	struct Gwn_Batch *geom, struct Object *ob, float (*obmat)[4], float *alpha_threshold)
+	EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_PassList *psl, struct GPUMaterial *gpumat,
+	struct Gwn_Batch *geom, struct Object *ob, float *alpha_threshold)
 {
 	/* TODO / PERF : reuse the same shading group for objects with the same material */
 	DRWShadingGroup *grp = DRW_shgroup_material_create(gpumat, psl->shadow_pass);
 
 	if (grp == NULL) return;
 
-	DRW_shgroup_uniform_block(grp, "shadow_render_block", sldata->shadow_render_ubo);
-	DRW_shgroup_uniform_mat4(grp, "ShadowModelMatrix", (float *)obmat);
-
 	if (alpha_threshold != NULL)
 		DRW_shgroup_uniform_float(grp, "alphaThreshold", alpha_threshold, 1);
 
-	DRW_shgroup_call_object_instances_add(grp, geom, ob, &sldata->lamps->shadow_instance_count);
+	DRW_shgroup_call_object_add(grp, geom, ob);
 }
 
 /* Make that object update shadow casting lamps inside its influence bounding box. */
@@ -719,7 +713,6 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	}
 
 	/* Lamps Matrices */
-	float (*viewmat)[4], projmat[4][4];
 	int sh_nbr = 1; /* TODO : MSM */
 	int cascade_nbr = la->cascade_count;
 
@@ -730,10 +723,10 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 
 	/* obmat = Object Space > World Space */
 	/* viewmat = World Space > View Space */
-	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_VIEW], ob->obmat);
-	viewmat = sh_data->clipmat.mat[DRW_MAT_VIEW];
+	float (*viewmat)[4] = sh_data->viewmat;
+	invert_m4_m4(viewmat, ob->obmat);
 	normalize_m4(viewmat);
-	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_VIEWINV], viewmat);
+	invert_m4_m4(sh_data->viewinv, viewmat);
 
 	/* The technique consists into splitting
 	 * the view frustum into several sub-frustum
@@ -833,8 +826,8 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	cascade_data->split_start[0] = LERP(la->cascade_fade, cascade_data->split_end[cascade_nbr - 1], prev_split);
 
 	/* For each cascade */
-	rctf rect_clip, rect_cascade;
 	for (int c = 0; c < cascade_nbr; ++c) {
+		float (*projmat)[4] = sh_data->projmat[c];
 		/* Given 8 frustum corners */
 		float corners[8][3] = {
 			/* Near Cap */
@@ -877,31 +870,16 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		add_v2_v2(center, shadow_texco);
 
 		/* Expand the projection to cover frustum range */
+		rctf rect_cascade;
 		BLI_rctf_init_pt_radius(&rect_cascade, center, sh_data->radius[c]);
 		orthographic_m4(projmat,
 		                rect_cascade.xmin, rect_cascade.xmax,
 		                rect_cascade.ymin, rect_cascade.ymax,
 		                la->clipsta, la->clipend);
 
-		if (c == 0) {
-			memcpy(&rect_clip, &rect_cascade, sizeof(rect_clip));
-		}
-		else {
-			BLI_rctf_union(&rect_clip, &rect_cascade);
-		}
-
 		mul_m4_m4m4(sh_data->viewprojmat[c], projmat, viewmat);
 		mul_m4_m4m4(cascade_data->shadowmat[c], texcomat, sh_data->viewprojmat[c]);
 	}
-
-	/* Clipping mats */
-	orthographic_m4(sh_data->clipmat.mat[DRW_MAT_WIN],
-	                rect_clip.xmin, rect_clip.xmax,
-	                rect_clip.ymin, rect_clip.ymax,
-	                la->clipsta, la->clipend);
-	mul_m4_m4m4(sh_data->clipmat.mat[DRW_MAT_PERS], sh_data->clipmat.mat[DRW_MAT_WIN], viewmat);
-	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_WININV], sh_data->clipmat.mat[DRW_MAT_WIN]);
-	invert_m4_m4(sh_data->clipmat.mat[DRW_MAT_PERSINV], sh_data->clipmat.mat[DRW_MAT_PERS]);
 
 	ubo_data->bias = 0.05f * la->bias;
 	ubo_data->near = la->clipsta;
@@ -1004,37 +982,6 @@ void EEVEE_lights_update(EEVEE_ViewLayerData *sldata)
 	}
 }
 
-static void eevee_shadows_cube_culling_frustum(EEVEE_ShadowRender *srd)
-{
-	float persmat[4][4], persinv[4][4];
-	float viewmat[4][4], viewinv[4][4];
-	float winmat[4][4], wininv[4][4];
-	orthographic_m4(winmat, -srd->clip_far, srd->clip_far, -srd->clip_far, srd->clip_far, -srd->clip_far, srd->clip_far);
-	DRW_viewport_matrix_override_set(winmat, DRW_MAT_WIN);
-
-	invert_m4_m4(wininv, winmat);
-	DRW_viewport_matrix_override_set(wininv, DRW_MAT_WININV);
-
-	unit_m4(viewmat);
-	negate_v3_v3(viewmat[3], srd->position);
-	DRW_viewport_matrix_override_set(viewmat, DRW_MAT_VIEW);
-
-	unit_m4(viewinv);
-	copy_v3_v3(viewinv[3], srd->position);
-	DRW_viewport_matrix_override_set(viewinv, DRW_MAT_VIEWINV);
-
-	mul_m4_m4m4(persmat, winmat, viewmat);
-	DRW_viewport_matrix_override_set(persmat, DRW_MAT_PERS);
-
-	invert_m4_m4(persinv, persmat);
-	DRW_viewport_matrix_override_set(persinv, DRW_MAT_PERSINV);
-}
-
-static void eevee_shadows_cascade_culling_frustum(EEVEE_ShadowCascadeData *evscd)
-{
-	DRW_viewport_matrix_override_set_all(&evscd->clipmat);
-}
-
 /* this refresh lamps shadow buffers */
 void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 {
@@ -1058,32 +1005,45 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 			continue;
 		}
 
+		DRWMatrixState render_mats;
+		float (*winmat)[4] = render_mats.mat[DRW_MAT_WIN];
+		float (*viewmat)[4] = render_mats.mat[DRW_MAT_VIEW];
+		float (*persmat)[4] = render_mats.mat[DRW_MAT_PERS];
+
 		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 		EEVEE_ShadowCubeData *evscd = &led->data.scd;
 
-		float cube_projmat[4][4];
-		float cube_viewmat[4][4];
-		perspective_m4(cube_projmat, -la->clipsta, la->clipsta, -la->clipsta, la->clipsta, la->clipsta, la->clipend);
-		unit_m4(cube_viewmat);
+		perspective_m4(winmat, -la->clipsta, la->clipsta, -la->clipsta, la->clipsta, la->clipsta, la->clipend);
 
 		srd->clip_near = la->clipsta;
 		srd->clip_far = la->clipend;
 		copy_v3_v3(srd->position, ob->obmat[3]);
 
-		negate_v3_v3(cube_viewmat[3], srd->position);
-		for (int j = 0; j < 6; j++) {
-			mul_m4_m4m4(srd->viewmat[j], cubefacemat[j], cube_viewmat);
-			mul_m4_m4m4(srd->shadowmat[j], cube_projmat, srd->viewmat[j]);
-		}
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
 
-		eevee_shadows_cube_culling_frustum(srd);
-
 		/* Render shadow cube */
-		linfo->shadow_instance_count = 6;
-		GPU_framebuffer_bind(sldata->shadow_cube_target_fb);
-		GPU_framebuffer_clear_depth(sldata->shadow_cube_target_fb, 1.0f);
-		DRW_draw_pass(psl->shadow_pass);
+		/* Render 6 faces separatly: seems to be faster for the general case.
+		 * The only time it's more beneficial is when the CPU culling overhead
+		 * outweight the instancing overhead. which is rarelly the case. */
+		for (int j = 0; j < 6; j++) {
+			/* TODO optimize */
+			float tmp[4][4];
+			unit_m4(tmp);
+			negate_v3_v3(tmp[3], srd->position);
+			mul_m4_m4m4(viewmat, cubefacemat[j], tmp);
+			mul_m4_m4m4(persmat, winmat, viewmat);
+			invert_m4_m4(render_mats.mat[DRW_MAT_WININV], winmat);
+			invert_m4_m4(render_mats.mat[DRW_MAT_VIEWINV], viewmat);
+			invert_m4_m4(render_mats.mat[DRW_MAT_PERSINV], persmat);
+
+			DRW_viewport_matrix_override_set_all(&render_mats);
+
+			GPU_framebuffer_texture_cubeface_attach(sldata->shadow_cube_target_fb,
+			                                        sldata->shadow_cube_target, 0, j, 0);
+			GPU_framebuffer_bind(sldata->shadow_cube_target_fb);
+			GPU_framebuffer_clear_depth(sldata->shadow_cube_target_fb, 1.0f);
+			DRW_draw_pass(psl->shadow_pass);
+		}
 
 		/* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big. */
 		float filter_texture_size = la->soft * 0.001f;
@@ -1143,22 +1103,39 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		EEVEE_ShadowCascadeData *evscd = &led->data.scad;
 		EEVEE_ShadowRender *srd = &linfo->shadow_render_data;
 
+		DRWMatrixState render_mats;
+		float (*winmat)[4] = render_mats.mat[DRW_MAT_WIN];
+		float (*viewmat)[4] = render_mats.mat[DRW_MAT_VIEW];
+		float (*persmat)[4] = render_mats.mat[DRW_MAT_PERS];
+
 		eevee_shadow_cascade_setup(ob, linfo, led);
 
 		srd->clip_near = la->clipsta;
 		srd->clip_far = la->clipend;
-		for (int j = 0; j < la->cascade_count; ++j) {
-			copy_m4_m4(srd->shadowmat[j], evscd->viewprojmat[j]);
-		}
+
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, &linfo->shadow_render_data);
 
-		eevee_shadows_cascade_culling_frustum(evscd);
+		copy_m4_m4(viewmat, evscd->viewmat);
+		invert_m4_m4(render_mats.mat[DRW_MAT_VIEWINV], viewmat);
 
 		/* Render shadow cascades */
-		linfo->shadow_instance_count = la->cascade_count;
-		GPU_framebuffer_bind(sldata->shadow_cascade_target_fb);
-		GPU_framebuffer_clear_depth(sldata->shadow_cascade_target_fb, 1.0);
-		DRW_draw_pass(psl->shadow_pass);
+		/* Render cascade separatly: seems to be faster for the general case.
+		 * The only time it's more beneficial is when the CPU culling overhead
+		 * outweight the instancing overhead. which is rarelly the case. */
+		for (int j = 0; j < la->cascade_count; j++) {
+			copy_m4_m4(winmat, evscd->projmat[j]);
+			copy_m4_m4(persmat, evscd->viewprojmat[j]);
+			invert_m4_m4(render_mats.mat[DRW_MAT_WININV], winmat);
+			invert_m4_m4(render_mats.mat[DRW_MAT_PERSINV], persmat);
+
+			DRW_viewport_matrix_override_set_all(&render_mats);
+
+			GPU_framebuffer_texture_layer_attach(sldata->shadow_cascade_target_fb,
+			                                     sldata->shadow_cascade_target, 0, j, 0);
+			GPU_framebuffer_bind(sldata->shadow_cascade_target_fb);
+			GPU_framebuffer_clear_depth(sldata->shadow_cascade_target_fb, 1.0f);
+			DRW_draw_pass(psl->shadow_pass);
+		}
 
 		/* TODO: OPTI: Filter all cascade in one/two draw call */
 		for (linfo->current_shadow_cascade = 0;

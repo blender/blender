@@ -1,8 +1,6 @@
 KX_BlenderMaterial(PyObjectPlus)
 ================================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: KX_BlenderMaterial(PyObjectPlus)
@@ -182,4 +180,3 @@ base class --- :class:`PyObjectPlus`
 
       :return: the material's index
       :rtype: integer
-

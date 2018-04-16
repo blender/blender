@@ -221,8 +221,22 @@ static const uint g_shape_preset_hold_action_face[2][3] = {{2, 0, 1}, {3, 5, 4}}
  **/
 
 /* offset in triavec[] in shader per type */
-static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {0, 0, 6, 22, 28};
-static const int tria_vcount[ROUNDBOX_TRIA_MAX] = {0, 3, 16, 3, 6};
+static const int tria_ofs[ROUNDBOX_TRIA_MAX] = {
+	[ROUNDBOX_TRIA_NONE]              = 0,
+	[ROUNDBOX_TRIA_ARROWS]            = 0,
+	[ROUNDBOX_TRIA_SCROLL]            = 6,
+	[ROUNDBOX_TRIA_MENU]              = 22,
+	[ROUNDBOX_TRIA_CHECK]             = 28,
+	[ROUNDBOX_TRIA_HOLD_ACTION_ARROW] = 34,
+};
+static const int tria_vcount[ROUNDBOX_TRIA_MAX] = {
+	[ROUNDBOX_TRIA_NONE]              = 0,
+	[ROUNDBOX_TRIA_ARROWS]            = 3,
+	[ROUNDBOX_TRIA_SCROLL]            = 16,
+	[ROUNDBOX_TRIA_MENU]              = 3,
+	[ROUNDBOX_TRIA_CHECK]             = 6,
+	[ROUNDBOX_TRIA_HOLD_ACTION_ARROW] = 3,
+};
 
 static struct {
 	Gwn_Batch *roundbox_widget[ROUNDBOX_TRIA_MAX];
@@ -288,7 +302,7 @@ static uint32_t set_tria_vertex(
 
 static void roundbox_batch_add_tria(Gwn_VertBufRaw *vflag_step, int tria, uint32_t last_data)
 {
-	const int tria_num = (tria == ROUNDBOX_TRIA_CHECK) ? 1 : 2;
+	const int tria_num = ELEM(tria, ROUNDBOX_TRIA_CHECK, ROUNDBOX_TRIA_HOLD_ACTION_ARROW) ? 1 : 2;
 	/* for each tria */
 	for (int t = 0; t < tria_num; ++t) {
 		for (int j = 0; j < WIDGET_AA_JITTER; j++) {
@@ -315,7 +329,7 @@ Gwn_Batch *ui_batch_roundbox_widget_get(int tria)
 		vcount += ((WIDGET_CURVE_RESOLU * 2) * 2) * WIDGET_AA_JITTER; /* emboss */
 		if (tria) {
 			vcount += (tria_vcount[tria] + 2) * WIDGET_AA_JITTER; /* tria1 */
-			if (tria != ROUNDBOX_TRIA_CHECK) {
+			if (!ELEM(tria, ROUNDBOX_TRIA_CHECK, ROUNDBOX_TRIA_HOLD_ACTION_ARROW)) {
 				vcount += (tria_vcount[tria] + 2) * WIDGET_AA_JITTER; /* tria2 */
 			}
 		}
@@ -832,6 +846,12 @@ static void shape_preset_init_number_arrows(uiWidgetTrias *tria, const rcti *rec
 
 static void shape_preset_init_hold_action(uiWidgetTrias *tria, const rcti *rect, float triasize, char where)
 {
+	tria->type = ROUNDBOX_TRIA_HOLD_ACTION_ARROW;
+	/* With the current changes to use batches for widget drawing, the code
+	 * below is doing almost nothing effectively. 'where' doesn't work either,
+	 * shader is currently hardcoded to work for the button triangle pointing
+	 * at the lower right. The same limitation applies to other trias as well.
+	 * XXX Should be addressed. */
 	shape_preset_init_trias_ex(
 	        tria, rect, triasize, where,
 	        g_shape_preset_hold_action_vert, ARRAY_SIZE(g_shape_preset_hold_action_vert),

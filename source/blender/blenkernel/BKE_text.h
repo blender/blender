@@ -44,8 +44,6 @@ struct TextUndoBuf;
 
 void			BKE_text_free_lines	(struct Text *text);
 void			BKE_text_free		(struct Text *text);
-void 			txt_set_undostate	(int u);
-int 			txt_get_undostate	(void);
 void            BKE_text_init(struct Text *ta);
 struct Text    *BKE_text_add	(struct Main *bmain, const char *name);
 int				txt_extended_ascii_as_utf8(char **str);

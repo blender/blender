@@ -853,7 +853,7 @@ static void recalcData_objects(TransInfo *t)
 							mul_qt_v3(qrot, up_axis);
 
 							/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
-							roll = ED_rollBoneToVector(ebo, up_axis, false);
+							roll = ED_armature_ebone_roll_to_vector(ebo, up_axis, false);
 							ebo->roll = angle_compat_rad(roll, td->ival);
 						}
 					}
@@ -862,7 +862,7 @@ static void recalcData_objects(TransInfo *t)
 			
 			if (arm->flag & ARM_MIRROR_EDIT) {
 				if (t->state != TRANS_CANCEL)
-					transform_armature_mirror_update(t->obedit);
+					ED_armature_edit_transform_mirror_update(t->obedit);
 				else
 					restoreBones(t);
 			}

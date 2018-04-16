@@ -63,12 +63,12 @@
 
 /* default bone add, returns it selected, but without tail set */
 /* XXX should be used everywhere, now it mallocs bones still locally in functions */
-EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
+EditBone *ED_armature_ebone_add(bArmature *arm, const char *name)
 {
 	EditBone *bone = MEM_callocN(sizeof(EditBone), "eBone");
 	
 	BLI_strncpy(bone->name, name, sizeof(bone->name));
-	unique_editbone_name(arm->edbo, bone->name, NULL);
+	ED_armature_ebone_unique_name(arm->edbo, bone->name, NULL);
 	
 	BLI_addtail(arm->edbo, bone);
 	
@@ -97,15 +97,15 @@ EditBone *ED_armature_edit_bone_add(bArmature *arm, const char *name)
 	return bone;
 }
 
-EditBone *ED_armature_edit_bone_add_primitive(Object *obedit_arm, float length, bool view_aligned)
+EditBone *ED_armature_ebone_add_primitive(Object *obedit_arm, float length, bool view_aligned)
 {
 	bArmature *arm = obedit_arm->data;
 	EditBone *bone;
 
-	ED_armature_deselect_all(obedit_arm);
+	ED_armature_edit_deselect_all(obedit_arm);
 	
 	/* Create a bone */
-	bone = ED_armature_edit_bone_add(arm, "Bone");
+	bone = ED_armature_ebone_add(arm, "Bone");
 
 	arm->act_edbone = bone;
 
@@ -157,12 +157,12 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		to_root = 1;
 	}
 	
-	ED_armature_deselect_all(obedit);
+	ED_armature_edit_deselect_all(obedit);
 	
 	/* we re-use code for mirror editing... */
 	flipbone = NULL;
 	if (arm->flag & ARM_MIRROR_EDIT)
-		flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+		flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
 
 	for (a = 0; a < 2; a++) {
 		if (a == 1) {
@@ -173,7 +173,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 		
-		newbone = ED_armature_edit_bone_add(arm, ebone->name);
+		newbone = ED_armature_ebone_add(arm, ebone->name);
 		arm->act_edbone = newbone;
 		
 		if (to_root) {
@@ -205,7 +205,7 @@ static int armature_click_extrude_exec(bContext *C, wmOperator *UNUSED(op))
 		
 	}
 	
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 	
@@ -268,7 +268,7 @@ EditBone *add_points_bone(Object *obedit, float head[3], float tail[3])
 {
 	EditBone *ebo;
 	
-	ebo = ED_armature_edit_bone_add(obedit->data, "Bone");
+	ebo = ED_armature_ebone_add(obedit->data, "Bone");
 	
 	copy_v3_v3(ebo->head, head);
 	copy_v3_v3(ebo->tail, tail);
@@ -333,7 +333,7 @@ void postEditBoneDuplicate(struct ListBase *editbones, Object *ob)
 	for (EditBone *ebone_src = editbones->first; ebone_src; ebone_src = ebone_src->next) {
 		EditBone *ebone_dst = ebone_src->temp.ebone;
 		if (!ebone_dst) {
-			ebone_dst = ED_armature_bone_get_mirrored(editbones, ebone_src);
+			ebone_dst = ED_armature_ebone_get_mirrored(editbones, ebone_src);
 		}
 		if (ebone_dst) {
 			BLI_ghash_insert(name_map, ebone_src->name, ebone_dst->name);
@@ -438,7 +438,7 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 		BLI_strncpy(eBone->name, name, sizeof(eBone->name));
 	}
 
-	unique_editbone_name(editbones, eBone->name, NULL);
+	ED_armature_ebone_unique_name(editbones, eBone->name, NULL);
 	BLI_addtail(editbones, eBone);
 	
 	/* copy the ID property */
@@ -487,7 +487,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
 	const bool do_flip_names = RNA_boolean_get(op->ptr, "do_flip_names");
 
-	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
+	ED_armature_edit_sync_selection(arm->edbo); // XXX why is this needed?
 
 	preEditBoneDuplicate(arm->edbo);
 
@@ -499,7 +499,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 			{
 				EditBone *ebone;
 
-				ebone = ED_armature_bone_get_mirrored(arm->edbo, ebone_iter);
+				ebone = ED_armature_ebone_get_mirrored(arm->edbo, ebone_iter);
 				if (ebone) {
 					ebone->flag |= BONE_SELECTED;
 				}
@@ -522,7 +522,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
 				/* Only use flipped name if not yet in use. Otherwise we'd get again inconsistent namings
 				 * (different numbers), better keep default behavior in this case. */
-				if (ED_armature_bone_find_name(arm->edbo, new_bone_name_buff) == NULL) {
+				if (ED_armature_ebone_find_name(arm->edbo, new_bone_name_buff) == NULL) {
 					new_bone_name = new_bone_name_buff;
 				}
 			}
@@ -583,7 +583,7 @@ static int armature_duplicate_selected_exec(bContext *C, wmOperator *op)
 
 	postEditBoneDuplicate(arm->edbo, obedit);
 
-	ED_armature_validate_active(arm);
+	ED_armature_edit_validate_active(arm);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 	
@@ -630,7 +630,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 	if (CTX_DATA_COUNT(C, selected_bones) == 0)
 		return OPERATOR_CANCELLED;
 
-	ED_armature_sync_selection(arm->edbo); // XXX why is this needed?
+	ED_armature_edit_sync_selection(arm->edbo); // XXX why is this needed?
 
 	preEditBoneDuplicate(arm->edbo);
 
@@ -648,7 +648,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				ebone_iter->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			}
 			else {
-				EditBone *ebone = ED_armature_bone_find_name(arm->edbo, name_flip);
+				EditBone *ebone = ED_armature_ebone_find_name(arm->edbo, name_flip);
 
 				if (ebone) {
 					if ((ebone->flag & BONE_SELECTED) == 0) {
@@ -738,7 +738,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 				/* the parent may have been duplicated, if not lookup the mirror parent */
 				EditBone *ebone_parent =
 				        (ebone_iter->parent->temp.ebone ?
-				         ebone_iter->parent->temp.ebone : ED_armature_bone_get_mirrored(arm->edbo, ebone_iter->parent));
+				         ebone_iter->parent->temp.ebone : ED_armature_ebone_get_mirrored(arm->edbo, ebone_iter->parent));
 
 				if (ebone_parent == NULL) {
 					/* If the mirror lookup failed, (but the current bone has a parent)
@@ -759,7 +759,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	transform_armature_mirror_update(obedit);
+	ED_armature_edit_transform_mirror_update(obedit);
 
 	/* Selected bones now have their 'temp' pointer set,
 	 * so we don't need this anymore */
@@ -786,7 +786,7 @@ static int armature_symmetrize_exec(bContext *C, wmOperator *op)
 
 	postEditBoneDuplicate(arm->edbo, obedit);
 
-	ED_armature_validate_active(arm);
+	ED_armature_edit_validate_active(arm);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
@@ -870,7 +870,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 				/* we re-use code for mirror editing... */
 				flipbone = NULL;
 				if (arm->flag & ARM_MIRROR_EDIT) {
-					flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+					flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
 					if (flipbone) {
 						forked = 0;  // we extrude 2 different bones
 						if (flipbone->flag & (BONE_TIPSEL | BONE_ROOTSEL | BONE_SELECTED))
@@ -944,7 +944,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 							else strcat(newbone->name, "_R");
 						}
 					}
-					unique_editbone_name(arm->edbo, newbone->name, NULL);
+					ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);
 					
 					/* Add the new bone to the list */
 					BLI_addtail(arm->edbo, newbone);
@@ -974,7 +974,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 	}
 
 	/* Transform the endpoints */
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 
@@ -1027,10 +1027,10 @@ static int armature_bone_primitive_add_exec(bContext *C, wmOperator *op)
 	mul_m3_m3m3(totmat, obmat, viewmat);
 	invert_m3_m3(imat, totmat);
 	
-	ED_armature_deselect_all(obedit);
+	ED_armature_edit_deselect_all(obedit);
 	
 	/*	Create a bone */
-	bone = ED_armature_edit_bone_add(obedit->data, name);
+	bone = ED_armature_ebone_add(obedit->data, name);
 
 	copy_v3_v3(bone->head, curs);
 	
@@ -1118,7 +1118,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 
 			newbone->prop = NULL;
 
-			unique_editbone_name(arm->edbo, newbone->name, NULL);
+			ED_armature_ebone_unique_name(arm->edbo, newbone->name, NULL);
 			
 			/* correct parent bones */
 			for (tbone = arm->edbo->first; tbone; tbone = tbone->next) {

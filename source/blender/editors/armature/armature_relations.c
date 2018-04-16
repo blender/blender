@@ -312,10 +312,10 @@ int join_armature_exec(bContext *C, wmOperator *op)
 			/* Copy bones and posechannels from the object to the edit armature */
 			for (pchan = opose->chanbase.first; pchan; pchan = pchann) {
 				pchann = pchan->next;
-				curbone = ED_armature_bone_find_name(curarm->edbo, pchan->name);
+				curbone = ED_armature_ebone_find_name(curarm->edbo, pchan->name);
 				
 				/* Get new name */
-				unique_editbone_name(arm->edbo, curbone->name, NULL);
+				ED_armature_ebone_unique_name(arm->edbo, curbone->name, NULL);
 				BLI_ghash_insert(afd.names_map, BLI_strdup(pchan->name), curbone->name);
 				
 				/* Transform the bone */
@@ -528,7 +528,7 @@ static void separate_armature_bones(Object *ob, short sel)
 	/* go through pose-channels, checking if a bone should be removed */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchann) {
 		pchann = pchan->next;
-		curbone = ED_armature_bone_find_name(arm->edbo, pchan->name);
+		curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 		
 		/* check if bone needs to be removed */
 		if ( (sel && (curbone->flag & BONE_SELECTED)) ||
@@ -640,7 +640,7 @@ static int separate_armature_exec(bContext *C, wmOperator *op)
 	ED_armature_to_edit(obedit->data);
 	
 	/* parents tips remain selected when connected children are removed. */
-	ED_armature_deselect_all(obedit);
+	ED_armature_edit_deselect_all(obedit);
 
 	BKE_report(op->reports, RPT_INFO, "Separated bones");
 
@@ -760,7 +760,7 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 		 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
 		 *   then just use actbone. Useful when doing upper arm to spine.
 		 */
-		actmirb = ED_armature_bone_get_mirrored(arm->edbo, actbone);
+		actmirb = ED_armature_ebone_get_mirrored(arm->edbo, actbone);
 		if (actmirb == NULL) 
 			actmirb = actbone;
 	}
@@ -883,7 +883,7 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	}
 	CTX_DATA_END;
 	
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);

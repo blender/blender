@@ -56,7 +56,9 @@ typedef struct MemFileUndoData {
 } MemFileUndoData;
 
 /* actually only used writefile.c */
-extern void memfile_chunk_add(MemFile *compare, MemFile *current, const char *buf, unsigned int size);
+extern void memfile_chunk_add(
+        MemFile *memfile, const char *buf, unsigned int size,
+        MemFileChunk **compchunk_step);
 
 /* exports */
 extern void BLO_memfile_free(MemFile *memfile);

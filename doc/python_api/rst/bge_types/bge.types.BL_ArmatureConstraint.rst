@@ -1,8 +1,6 @@
 BL_ArmatureConstraint(PyObjectPlus)
 ===================================
 
-.. module:: bge.types
-
 base class --- :class:`PyObjectPlus`
 
 .. class:: BL_ArmatureConstraint(PyObjectPlus)
@@ -126,4 +124,3 @@ base class --- :class:`PyObjectPlus`
       Additional mode for IK constraint. Currently only used for Distance constraint:
 
       :type: integer
-

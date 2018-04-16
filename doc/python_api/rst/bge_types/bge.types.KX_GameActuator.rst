@@ -1,8 +1,6 @@
 KX_GameActuator(SCA_IActuator)
 ==============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_GameActuator(SCA_IActuator)
@@ -20,4 +18,3 @@ base class --- :class:`SCA_IActuator`
       The mode of this actuator. Can be on of :ref:`these constants <game-actuator>`
 
       :type: Int
-

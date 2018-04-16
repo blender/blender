@@ -1,8 +1,6 @@
 KX_RadarSensor(KX_NearSensor)
 =============================
 
-.. module:: bge.types
-
 base class --- :class:`KX_NearSensor`
 
 .. class:: KX_RadarSensor(KX_NearSensor)
@@ -41,4 +39,3 @@ base class --- :class:`KX_NearSensor`
 
       KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z, 
       KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
-

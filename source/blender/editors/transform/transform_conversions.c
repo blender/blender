@@ -1186,7 +1186,7 @@ static void createTransArmatureVerts(TransInfo *t)
 		}
 
 		if (mirror && (oldtot < t->total)) {
-			eboflip = ED_armature_bone_get_mirrored(arm->edbo, ebo);
+			eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
 			if (eboflip)
 				total_mirrored++;
 		}
@@ -1356,7 +1356,7 @@ static void createTransArmatureVerts(TransInfo *t)
 		}
 
 		if (mirror && (td_old != td)) {
-			eboflip = ED_armature_bone_get_mirrored(arm->edbo, ebo);
+			eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
 			if (eboflip) {
 				bid[i].bone = eboflip;
 				bid[i].dist = eboflip->dist;

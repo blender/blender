@@ -1,8 +1,6 @@
 KX_VisibilityActuator(SCA_IActuator)
 ====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_VisibilityActuator(SCA_IActuator)
@@ -26,4 +24,3 @@ base class --- :class:`SCA_IActuator`
       whether the visibility/occlusion should be propagated to all children of the object.
 
       :type: boolean
-

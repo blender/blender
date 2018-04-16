@@ -220,7 +220,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					 * bones will be operated on twice.
 					 */
 					if (arm->flag & ARM_MIRROR_EDIT)
-						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+						flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
 					
 					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
 					if (editable_bones) {
@@ -262,7 +262,7 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					 * bones will be operated on twice.
 					 */
 					if (arm->flag & ARM_MIRROR_EDIT)
-						flipbone = ED_armature_bone_get_mirrored(arm->edbo, ebone);
+						flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
 					
 					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
 					if (selected_editable_bones) {

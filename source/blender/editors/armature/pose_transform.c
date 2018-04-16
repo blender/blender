@@ -128,7 +128,7 @@ static int apply_armature_pose2bones_exec(bContext *C, wmOperator *op)
 	pose = ob->pose;
 	
 	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
-		curbone = ED_armature_bone_find_name(arm->edbo, pchan->name);
+		curbone = ED_armature_ebone_find_name(arm->edbo, pchan->name);
 		
 		/* simply copy the head/tail values from pchan over to curbone */
 		copy_v3_v3(curbone->head, pchan->pose_head);

@@ -657,14 +657,14 @@ static void do_lasso_select_armature(ViewContext *vc, const int mcords[][2], sho
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d);
 
 	if (extend == false && select)
-		ED_armature_deselect_all_visible(vc->obedit);
+		ED_armature_edit_deselect_all_visible(vc->obedit);
 
 	armature_foreachScreenBone(vc, do_lasso_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_changed) {
 		bArmature *arm = vc->obedit->data;
-		ED_armature_sync_selection(arm->edbo);
-		ED_armature_validate_active(arm);
+		ED_armature_edit_sync_selection(arm->edbo);
+		ED_armature_edit_validate_active(arm);
 		WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, vc->obedit);
 	}
 }
@@ -1500,7 +1500,7 @@ static bool ed_object_select_pick(
 						}
 					}
 				}
-				else if (ED_do_pose_selectbuffer(view_layer, basact, buffer, hits, extend, deselect, toggle, do_nearest)) {
+				else if (ED_armature_pose_select_pick_with_buffer(view_layer, basact, buffer, hits, extend, deselect, toggle, do_nearest)) {
 					/* then bone is found */
 				
 					/* we make the armature selected: 
@@ -1904,7 +1904,6 @@ static int do_armature_box_select(
         const rcti *rect, bool select, bool extend)
 {
 	bArmature *arm = vc->obedit->data;
-	EditBone *ebone;
 	int a;
 
 	unsigned int buffer[MAXPICKBUF];
@@ -1913,27 +1912,27 @@ static int do_armature_box_select(
 	hits = view3d_opengl_select(eval_ctx, vc, buffer, MAXPICKBUF, rect, VIEW3D_SELECT_ALL);
 	
 	/* clear flag we use to detect point was affected */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next)
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next)
 		ebone->flag &= ~BONE_DONE;
 	
 	if (extend == false && select)
-		ED_armature_deselect_all_visible(vc->obedit);
+		ED_armature_edit_deselect_all_visible(vc->obedit);
 
 	/* first we only check points inside the border */
 	for (a = 0; a < hits; a++) {
 		int index = buffer[(4 * a) + 3];
 		if (index != -1) {
-			ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 			if ((index & 0xFFFF0000) == 0) {
 				continue;
 			}
+			EditBone *ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 			if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
 				if (index & BONESEL_TIP) {
 					ebone->flag |= BONE_DONE;
 					if (select) ebone->flag |= BONE_TIPSEL;
 					else ebone->flag &= ~BONE_TIPSEL;
 				}
-				
+
 				if (index & BONESEL_ROOT) {
 					ebone->flag |= BONE_DONE;
 					if (select) ebone->flag |= BONE_ROOTSEL;
@@ -1942,34 +1941,37 @@ static int do_armature_box_select(
 			}
 		}
 	}
-	
+
 	/* now we have to flush tag from parents... */
-	for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+	for (EditBone *ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 		if (ebone->parent && (ebone->flag & BONE_CONNECTED)) {
-			if (ebone->parent->flag & BONE_DONE)
+			if (ebone->parent->flag & BONE_DONE) {
 				ebone->flag |= BONE_DONE;
+			}
 		}
 	}
-	
+
 	/* only select/deselect entire bones when no points where in the rect */
 	for (a = 0; a < hits; a++) {
 		int index = buffer[(4 * a) + 3];
 		if (index != -1) {
-			ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 			if (index & BONESEL_BONE) {
+				EditBone *ebone = BLI_findlink(arm->edbo, index & ~(BONESEL_ANY));
 				if ((select == false) || ((ebone->flag & BONE_UNSELECTABLE) == 0)) {
 					if (!(ebone->flag & BONE_DONE)) {
-						if (select)
+						if (select) {
 							ebone->flag |= (BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
-						else
+						}
+						else {
 							ebone->flag &= ~(BONE_ROOTSEL | BONE_TIPSEL | BONE_SELECTED);
+						}
 					}
 				}
 			}
 		}
 	}
 	
-	ED_armature_sync_selection(arm->edbo);
+	ED_armature_edit_sync_selection(arm->edbo);
 	
 	return hits > 0 ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -2056,7 +2058,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 			if (BASE_SELECTABLE(base)) {
 				while (base->object->select_color == (*col & 0xFFFF)) {   /* we got an object */
 					if (*col & 0xFFFF0000) {                    /* we got a bone */
-						bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
+						bone = ED_armature_bone_find_index(base->object, *col & ~(BONESEL_ANY));
 						if (bone) {
 							if (select) {
 								if ((bone->flag & BONE_UNSELECTABLE) == 0) {
@@ -2295,7 +2297,7 @@ static int view3d_select_exec(bContext *C, wmOperator *op)
 		if (obedit->type == OB_MESH)
 			retval = EDBM_select_pick(C, location, extend, deselect, toggle);
 		else if (obedit->type == OB_ARMATURE)
-			retval = ED_armature_select_pick(C, location, extend, deselect, toggle);
+			retval = ED_armature_edit_select_pick(C, location, extend, deselect, toggle);
 		else if (obedit->type == OB_LATTICE)
 			retval = ED_lattice_select_pick(C, location, extend, deselect, toggle);
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF))
@@ -2736,8 +2738,8 @@ static void armature_circle_select(ViewContext *vc, const bool select, const int
 	armature_foreachScreenBone(vc, do_circle_select_armature__doSelectBone, &data, V3D_PROJ_TEST_CLIP_DEFAULT);
 
 	if (data.is_changed) {
-		ED_armature_sync_selection(arm->edbo);
-		ED_armature_validate_active(arm);
+		ED_armature_edit_sync_selection(arm->edbo);
+		ED_armature_edit_validate_active(arm);
 		WM_main_add_notifier(NC_OBJECT | ND_BONE_SELECT, vc->obedit);
 	}
 }
