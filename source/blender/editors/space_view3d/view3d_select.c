@@ -55,6 +55,10 @@
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
+#ifdef __BIG_ENDIAN__
+#  include "BLI_endian_switch.h"
+#endif
+
 /* vertex box select */
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -1980,11 +1984,16 @@ static int do_armature_box_select(
  * Compare result of 'GPU_select': 'uint[4]',
  * needed for when we need to align with object draw-order.
  */
-static int opengl_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
+static int opengl_bone_select_buffer_cmp(const void *sel_a_p, const void *sel_b_p)
 {
 	/* 4th element is select id */
-	const uint sel_a = ((uint *)sel_a_p)[3];
-	const uint sel_b = ((uint *)sel_b_p)[3];
+	uint sel_a = ((uint *)sel_a_p)[3];
+	uint sel_b = ((uint *)sel_b_p)[3];
+
+#ifdef __BIG_ENDIAN__
+	BLI_endian_switch_uint32(&sel_a);
+	BLI_endian_switch_uint32(&sel_b);
+#endif
 
 	if (sel_a < sel_b) {
 		return -1;
@@ -2048,7 +2057,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 		col = vbuffer + 3;
 
 		/* The draw order doesn't always match the order we populate the engine, see: T51695. */
-		qsort(vbuffer, hits, sizeof(uint[4]), opengl_select_buffer_cmp);
+		qsort(vbuffer, hits, sizeof(uint[4]), opengl_bone_select_buffer_cmp);
 
 		/*
 		 * Even though 'DRW_draw_select_loop' uses 'DEG_OBJECT_ITER_BEGIN',
