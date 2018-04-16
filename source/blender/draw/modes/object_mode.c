@@ -346,7 +346,7 @@ static void OBJECT_engine_init(void *vedata)
 		            datatoc_common_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_detect_frag_glsl,
 		            datatoc_common_globals_lib_glsl,
-		            NULL);
+		            "#extension GL_ARB_texture_gather : enable\n");
 
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
 

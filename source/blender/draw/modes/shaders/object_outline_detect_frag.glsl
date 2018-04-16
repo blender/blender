@@ -34,25 +34,28 @@ vec4 convert_id_to_color(int id)
 	}
 }
 
-const ivec2 ofs[4] = ivec2[4](
-    ivec2( 1,  0), ivec2( 0,  1),
-    ivec2(-1,  0), ivec2( 0, -1)
-);
-
 void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
-	vec2 uv = gl_FragCoord.xy / vec2(textureSize(outlineId, 0).xy);
 
+#ifdef GL_ARB_texture_gather
+	vec2 texel_size = 1.0 / vec2(textureSize(outlineId, 0).xy);
+	vec2 uv1 = gl_FragCoord.xy * texel_size - texel_size;
+	vec2 uv2 = gl_FragCoord.xy * texel_size;
+
+	/* Samples order is CW starting from top left. */
+	uvec4 tmp1 = textureGather(outlineId, uv1);
+	uvec4 tmp2 = textureGather(outlineId, uv2);
+
+	uint ref_id = tmp1.y;
+	uvec4 id = uvec4(tmp1.xz, tmp2.xz);
+#else
 	uvec4 id;
 	uint ref_id = texelFetch(outlineId, texel, 0).r;
-#if 0 /* commented out until being tested */
-	id = textureGatherOffsets(outlineId, uv, ofs);
-#else
-	id.x = texelFetchOffset(outlineId, texel, 0, ofs[0]).r;
-	id.y = texelFetchOffset(outlineId, texel, 0, ofs[1]).r;
-	id.z = texelFetchOffset(outlineId, texel, 0, ofs[2]).r;
-	id.w = texelFetchOffset(outlineId, texel, 0, ofs[3]).r;
+	id.x = texelFetchOffset(outlineId, texel, 0, ivec2( 1,  0)).r;
+	id.y = texelFetchOffset(outlineId, texel, 0, ivec2( 0,  1)).r;
+	id.z = texelFetchOffset(outlineId, texel, 0, ivec2(-1,  0)).r;
+	id.w = texelFetchOffset(outlineId, texel, 0, ivec2( 0, -1)).r;
 #endif
 
 	float ref_depth = texelFetch(outlineDepth, texel, 0).r;
