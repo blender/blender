@@ -131,100 +131,100 @@ void getViewVector(TransInfo *t, float coord[3], float vec[3])
 static void clipMirrorModifier(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	Object *ob = tc->obedit;
-	ModifierData *md = ob->modifiers.first;
-	float tolerance[3] = {0.0f, 0.0f, 0.0f};
-	int axis = 0;
-	
-	for (; md; md = md->next) {
-		if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
-			MirrorModifierData *mmd = (MirrorModifierData *) md;
-			
-			if (mmd->flag & MOD_MIR_CLIPPING) {
-				axis = 0;
-				if (mmd->flag & MOD_MIR_AXIS_X) {
-					axis |= 1;
-					tolerance[0] = mmd->tolerance;
-				}
-				if (mmd->flag & MOD_MIR_AXIS_Y) {
-					axis |= 2;
-					tolerance[1] = mmd->tolerance;
-				}
-				if (mmd->flag & MOD_MIR_AXIS_Z) {
-					axis |= 4;
-					tolerance[2] = mmd->tolerance;
-				}
-				if (axis) {
-					float mtx[4][4], imtx[4][4];
-					int i;
-					
-					if (mmd->mirror_ob) {
-						float obinv[4][4];
-						
-						invert_m4_m4(obinv, mmd->mirror_ob->obmat);
-						mul_m4_m4m4(mtx, obinv, ob->obmat);
-						invert_m4_m4(imtx, mtx);
+		Object *ob = tc->obedit;
+		ModifierData *md = ob->modifiers.first;
+		float tolerance[3] = {0.0f, 0.0f, 0.0f};
+		int axis = 0;
+
+		for (; md; md = md->next) {
+			if ((md->type == eModifierType_Mirror) && (md->mode & eModifierMode_Realtime)) {
+				MirrorModifierData *mmd = (MirrorModifierData *) md;
+
+				if (mmd->flag & MOD_MIR_CLIPPING) {
+					axis = 0;
+					if (mmd->flag & MOD_MIR_AXIS_X) {
+						axis |= 1;
+						tolerance[0] = mmd->tolerance;
 					}
-					
-					TransData *td = tc->data;
-					for (i = 0; i < tc->data_len; i++, td++) {
-						int clip;
-						float loc[3], iloc[3];
-						
-						if (td->flag & TD_NOACTION)
-							break;
-						if (td->loc == NULL)
-							break;
-						
-						if (td->flag & TD_SKIP)
-							continue;
-						
-						copy_v3_v3(loc,  td->loc);
-						copy_v3_v3(iloc, td->iloc);
-						
+					if (mmd->flag & MOD_MIR_AXIS_Y) {
+						axis |= 2;
+						tolerance[1] = mmd->tolerance;
+					}
+					if (mmd->flag & MOD_MIR_AXIS_Z) {
+						axis |= 4;
+						tolerance[2] = mmd->tolerance;
+					}
+					if (axis) {
+						float mtx[4][4], imtx[4][4];
+						int i;
+
 						if (mmd->mirror_ob) {
-							mul_m4_v3(mtx, loc);
-							mul_m4_v3(mtx, iloc);
+							float obinv[4][4];
+
+							invert_m4_m4(obinv, mmd->mirror_ob->obmat);
+							mul_m4_m4m4(mtx, obinv, ob->obmat);
+							invert_m4_m4(imtx, mtx);
 						}
-						
-						clip = 0;
-						if (axis & 1) {
-							if (fabsf(iloc[0]) <= tolerance[0] ||
-							    loc[0] * iloc[0] < 0.0f)
-							{
-								loc[0] = 0.0f;
-								clip = 1;
-							}
-						}
-						
-						if (axis & 2) {
-							if (fabsf(iloc[1]) <= tolerance[1] ||
-							    loc[1] * iloc[1] < 0.0f)
-							{
-								loc[1] = 0.0f;
-								clip = 1;
-							}
-						}
-						if (axis & 4) {
-							if (fabsf(iloc[2]) <= tolerance[2] ||
-							    loc[2] * iloc[2] < 0.0f)
-							{
-								loc[2] = 0.0f;
-								clip = 1;
-							}
-						}
-						if (clip) {
+
+						TransData *td = tc->data;
+						for (i = 0; i < tc->data_len; i++, td++) {
+							int clip;
+							float loc[3], iloc[3];
+
+							if (td->flag & TD_NOACTION)
+								break;
+							if (td->loc == NULL)
+								break;
+
+							if (td->flag & TD_SKIP)
+								continue;
+
+							copy_v3_v3(loc,  td->loc);
+							copy_v3_v3(iloc, td->iloc);
+
 							if (mmd->mirror_ob) {
-								mul_m4_v3(imtx, loc);
+								mul_m4_v3(mtx, loc);
+								mul_m4_v3(mtx, iloc);
 							}
-							copy_v3_v3(td->loc, loc);
+
+							clip = 0;
+							if (axis & 1) {
+								if (fabsf(iloc[0]) <= tolerance[0] ||
+								    loc[0] * iloc[0] < 0.0f)
+								{
+									loc[0] = 0.0f;
+									clip = 1;
+								}
+							}
+
+							if (axis & 2) {
+								if (fabsf(iloc[1]) <= tolerance[1] ||
+								    loc[1] * iloc[1] < 0.0f)
+								{
+									loc[1] = 0.0f;
+									clip = 1;
+								}
+							}
+							if (axis & 4) {
+								if (fabsf(iloc[2]) <= tolerance[2] ||
+								    loc[2] * iloc[2] < 0.0f)
+								{
+									loc[2] = 0.0f;
+									clip = 1;
+								}
+							}
+							if (clip) {
+								if (mmd->mirror_ob) {
+									mul_m4_v3(imtx, loc);
+								}
+								copy_v3_v3(td->loc, loc);
+							}
 						}
 					}
+
 				}
-				
 			}
 		}
-	}
 	}
 }
 
@@ -232,29 +232,29 @@ static void clipMirrorModifier(TransInfo *t)
 static void editbmesh_apply_to_mirror(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	BMVert *eve;
-	int i;
+		TransData *td = tc->data;
+		BMVert *eve;
+		int i;
 
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		if (td->loc == NULL)
-			break;
-		if (td->flag & TD_SKIP)
-			continue;
-		
-		eve = td->extra;
-		if (eve) {
-			eve->co[0] = -td->loc[0];
-			eve->co[1] = td->loc[1];
-			eve->co[2] = td->loc[2];
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
+			if (td->loc == NULL)
+				break;
+			if (td->flag & TD_SKIP)
+				continue;
+
+			eve = td->extra;
+			if (eve) {
+				eve->co[0] = -td->loc[0];
+				eve->co[1] = td->loc[1];
+				eve->co[2] = td->loc[2];
+			}
+
+			if (td->flag & TD_MIRROR_EDGE) {
+				td->loc[0] = 0;
+			}
 		}
-		
-		if (td->flag & TD_MIRROR_EDGE) {
-			td->loc[0] = 0;
-		}
-	}
 	}
 }
 
@@ -737,26 +737,26 @@ static void recalcData_objects(TransInfo *t)
 			}
 
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			Curve *cu = tc->obedit->data;
-			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-			Nurb *nu = nurbs->first;
+				Curve *cu = tc->obedit->data;
+				ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+				Nurb *nu = nurbs->first;
 
-			DEG_id_tag_update(tc->obedit->data, 0);  /* sets recalc flags */
+				DEG_id_tag_update(tc->obedit->data, 0);  /* sets recalc flags */
 
-			if (t->state == TRANS_CANCEL) {
-				while (nu) {
-					BKE_nurb_handles_calc(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
-					nu = nu->next;
+				if (t->state == TRANS_CANCEL) {
+					while (nu) {
+						BKE_nurb_handles_calc(nu); /* Cant do testhandlesNurb here, it messes up the h1 and h2 flags */
+						nu = nu->next;
+					}
 				}
-			}
-			else {
-				/* Normal updating */
-				while (nu) {
-					BKE_nurb_test2D(nu);
-					BKE_nurb_handles_calc(nu);
-					nu = nu->next;
+				else {
+					/* Normal updating */
+					while (nu) {
+						BKE_nurb_test2D(nu);
+						BKE_nurb_handles_calc(nu);
+						nu = nu->next;
+					}
 				}
-			}
 			}
 		}
 		else if (t->obedit_type == OB_LATTICE) {
@@ -766,11 +766,11 @@ static void recalcData_objects(TransInfo *t)
 			}
 
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			Lattice *la = tc->obedit->data;
-			DEG_id_tag_update(tc->obedit->data, 0);  /* sets recalc flags */
-			if (la->editlatt->latt->flag & LT_OUTSIDE) {
-				outside_lattice(la->editlatt->latt);
-			}
+				Lattice *la = tc->obedit->data;
+				DEG_id_tag_update(tc->obedit->data, 0);  /* sets recalc flags */
+				if (la->editlatt->latt->flag & LT_OUTSIDE) {
+					outside_lattice(la->editlatt->latt);
+				}
 			}
 		}
 		else if (t->obedit_type == OB_MESH) {
@@ -791,10 +791,10 @@ static void recalcData_objects(TransInfo *t)
 			}
 
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			DEG_id_tag_update(tc->obedit->data, 0);  /* sets recalc flags */
-			BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-			EDBM_mesh_normals_update(em);
-			BKE_editmesh_tessface_calc(em);
+				DEG_id_tag_update(tc->obedit->data, 0);  /* sets recalc flags */
+				BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+				EDBM_mesh_normals_update(em);
+				BKE_editmesh_tessface_calc(em);
 			}
 		}
 		else if (t->obedit_type == OB_ARMATURE) { /* no recalc flag, does pose */
@@ -804,91 +804,91 @@ static void recalcData_objects(TransInfo *t)
 			}
 
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			bArmature *arm = tc->obedit->data;
-			ListBase *edbo = arm->edbo;
-			EditBone *ebo, *ebo_parent;
-			TransData *td = tc->data;
-			int i;
+				bArmature *arm = tc->obedit->data;
+				ListBase *edbo = arm->edbo;
+				EditBone *ebo, *ebo_parent;
+				TransData *td = tc->data;
+				int i;
 
-			/* Ensure all bones are correctly adjusted */
-			for (ebo = edbo->first; ebo; ebo = ebo->next) {
-				ebo_parent = (ebo->flag & BONE_CONNECTED) ? ebo->parent : NULL;
-
-				if (ebo_parent) {
-					/* If this bone has a parent tip that has been moved */
-					if (ebo_parent->flag & BONE_TIPSEL) {
-						copy_v3_v3(ebo->head, ebo_parent->tail);
-						if (t->mode == TFM_BONE_ENVELOPE) ebo->rad_head = ebo_parent->rad_tail;
-					}
-					/* If this bone has a parent tip that has NOT been moved */
-					else {
-						copy_v3_v3(ebo_parent->tail, ebo->head);
-						if (t->mode == TFM_BONE_ENVELOPE) ebo_parent->rad_tail = ebo->rad_head;
-					}
-				}
-				
-				/* on extrude bones, oldlength==0.0f, so we scale radius of points */
-				ebo->length = len_v3v3(ebo->head, ebo->tail);
-				if (ebo->oldlength == 0.0f) {
-					ebo->rad_head = 0.25f * ebo->length;
-					ebo->rad_tail = 0.10f * ebo->length;
-					ebo->dist = 0.25f * ebo->length;
-					if (ebo->parent) {
-						if (ebo->rad_head > ebo->parent->rad_tail)
-							ebo->rad_head = ebo->parent->rad_tail;
-					}
-				}
-				else if (t->mode != TFM_BONE_ENVELOPE) {
-					/* if bones change length, lets do that for the deform distance as well */
-					ebo->dist *= ebo->length / ebo->oldlength;
-					ebo->rad_head *= ebo->length / ebo->oldlength;
-					ebo->rad_tail *= ebo->length / ebo->oldlength;
-					ebo->oldlength = ebo->length;
+				/* Ensure all bones are correctly adjusted */
+				for (ebo = edbo->first; ebo; ebo = ebo->next) {
+					ebo_parent = (ebo->flag & BONE_CONNECTED) ? ebo->parent : NULL;
 
 					if (ebo_parent) {
-						ebo_parent->rad_tail = ebo->rad_head;
-					}
-				}
-			}
-			
-			if (!ELEM(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONE_ENVELOPE_DIST, TFM_BONESIZE)) {
-				/* fix roll */
-				for (i = 0; i < tc->data_len; i++, td++) {
-					if (td->extra) {
-						float vec[3], up_axis[3];
-						float qrot[4];
-						float roll;
-						
-						ebo = td->extra;
-
-						if (t->state == TRANS_CANCEL) {
-							/* restore roll */
-							ebo->roll = td->ival;
+						/* If this bone has a parent tip that has been moved */
+						if (ebo_parent->flag & BONE_TIPSEL) {
+							copy_v3_v3(ebo->head, ebo_parent->tail);
+							if (t->mode == TFM_BONE_ENVELOPE) ebo->rad_head = ebo_parent->rad_tail;
 						}
+						/* If this bone has a parent tip that has NOT been moved */
 						else {
-							copy_v3_v3(up_axis, td->axismtx[2]);
+							copy_v3_v3(ebo_parent->tail, ebo->head);
+							if (t->mode == TFM_BONE_ENVELOPE) ebo_parent->rad_tail = ebo->rad_head;
+						}
+					}
 
-							sub_v3_v3v3(vec, ebo->tail, ebo->head);
-							normalize_v3(vec);
-							rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
-							mul_qt_v3(qrot, up_axis);
+					/* on extrude bones, oldlength==0.0f, so we scale radius of points */
+					ebo->length = len_v3v3(ebo->head, ebo->tail);
+					if (ebo->oldlength == 0.0f) {
+						ebo->rad_head = 0.25f * ebo->length;
+						ebo->rad_tail = 0.10f * ebo->length;
+						ebo->dist = 0.25f * ebo->length;
+						if (ebo->parent) {
+							if (ebo->rad_head > ebo->parent->rad_tail)
+								ebo->rad_head = ebo->parent->rad_tail;
+						}
+					}
+					else if (t->mode != TFM_BONE_ENVELOPE) {
+						/* if bones change length, lets do that for the deform distance as well */
+						ebo->dist *= ebo->length / ebo->oldlength;
+						ebo->rad_head *= ebo->length / ebo->oldlength;
+						ebo->rad_tail *= ebo->length / ebo->oldlength;
+						ebo->oldlength = ebo->length;
 
-							/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
-							roll = ED_armature_ebone_roll_to_vector(ebo, up_axis, false);
-							ebo->roll = angle_compat_rad(roll, td->ival);
+						if (ebo_parent) {
+							ebo_parent->rad_tail = ebo->rad_head;
 						}
 					}
 				}
-			}
 
-			if (arm->flag & ARM_MIRROR_EDIT) {
-				if (t->state != TRANS_CANCEL) {
-					ED_armature_edit_transform_mirror_update(tc->obedit);
+				if (!ELEM(t->mode, TFM_BONE_ROLL, TFM_BONE_ENVELOPE, TFM_BONE_ENVELOPE_DIST, TFM_BONESIZE)) {
+					/* fix roll */
+					for (i = 0; i < tc->data_len; i++, td++) {
+						if (td->extra) {
+							float vec[3], up_axis[3];
+							float qrot[4];
+							float roll;
+
+							ebo = td->extra;
+
+							if (t->state == TRANS_CANCEL) {
+								/* restore roll */
+								ebo->roll = td->ival;
+							}
+							else {
+								copy_v3_v3(up_axis, td->axismtx[2]);
+
+								sub_v3_v3v3(vec, ebo->tail, ebo->head);
+								normalize_v3(vec);
+								rotation_between_vecs_to_quat(qrot, td->axismtx[1], vec);
+								mul_qt_v3(qrot, up_axis);
+
+								/* roll has a tendency to flip in certain orientations - [#34283], [#33974] */
+								roll = ED_armature_ebone_roll_to_vector(ebo, up_axis, false);
+								ebo->roll = angle_compat_rad(roll, td->ival);
+							}
+						}
+					}
 				}
-				else {
-					restoreBones(tc);
+
+				if (arm->flag & ARM_MIRROR_EDIT) {
+					if (t->state != TRANS_CANCEL) {
+						ED_armature_edit_transform_mirror_update(tc->obedit);
+					}
+					else {
+						restoreBones(tc);
+					}
 				}
-			}
 			}
 		}
 		else {
@@ -905,31 +905,32 @@ static void recalcData_objects(TransInfo *t)
 	}
 	else if (t->flag & T_POSE) {
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		Object *ob = tc->poseobj;
-		bArmature *arm = ob->data;
-		
-		/* if animtimer is running, and the object already has animation data,
-		 * check if the auto-record feature means that we should record 'samples'
-		 * (i.e. uneditable animation values)
-		 *
-		 * context is needed for keying set poll() functions.
-		 */
-		// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-		if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
-			int targetless_ik = (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
-			
-			animrecord_check_state(t->scene, &ob->id, t->animtimer);
-			autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-		}
-		
-		/* old optimize trick... this enforces to bypass the depgraph */
-		if (!(arm->flag & ARM_DELAYDEFORM)) {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
-			/* transformation of pose may affect IK tree, make sure it is rebuilt */
-			BIK_clear_data(ob->pose);
-		}
-		else
-			BKE_pose_where_is(&t->eval_ctx, t->scene, ob);
+			Object *ob = tc->poseobj;
+			bArmature *arm = ob->data;
+
+			/* if animtimer is running, and the object already has animation data,
+			 * check if the auto-record feature means that we should record 'samples'
+			 * (i.e. uneditable animation values)
+			 *
+			 * context is needed for keying set poll() functions.
+			 */
+			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+			if ((t->animtimer) && (t->context) && IS_AUTOKEY_ON(t->scene)) {
+				int targetless_ik = (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
+
+				animrecord_check_state(t->scene, &ob->id, t->animtimer);
+				autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+			}
+
+			/* old optimize trick... this enforces to bypass the depgraph */
+			if (!(arm->flag & ARM_DELAYDEFORM)) {
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
+				/* transformation of pose may affect IK tree, make sure it is rebuilt */
+				BIK_clear_data(ob->pose);
+			}
+			else {
+				BKE_pose_where_is(&t->eval_ctx, t->scene, ob);
+			}
 		}
 	}
 	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) &&
@@ -948,35 +949,35 @@ static void recalcData_objects(TransInfo *t)
 		}
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
+			TransData *td = tc->data;
 
-		for (i = 0; i < tc->data_len; i++, td++) {
-			Object *ob = td->ob;
-			
-			if (td->flag & TD_NOACTION)
-				break;
-			
-			if (td->flag & TD_SKIP)
-				continue;
-			
-			/* if animtimer is running, and the object already has animation data,
-			 * check if the auto-record feature means that we should record 'samples'
-			 * (i.e. uneditable animation values)
-			 */
-			// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
-			if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
-				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_ob_cb_func(t->context, t->scene, t->view_layer, (View3D *)t->view, ob, t->mode);
+			for (i = 0; i < tc->data_len; i++, td++) {
+				Object *ob = td->ob;
+
+				if (td->flag & TD_NOACTION)
+					break;
+
+				if (td->flag & TD_SKIP)
+					continue;
+
+				/* if animtimer is running, and the object already has animation data,
+				 * check if the auto-record feature means that we should record 'samples'
+				 * (i.e. uneditable animation values)
+				 */
+				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
+				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
+					animrecord_check_state(t->scene, &ob->id, t->animtimer);
+					autokeyframe_ob_cb_func(t->context, t->scene, t->view_layer, (View3D *)t->view, ob, t->mode);
+				}
+
+				/* sets recalc flags fully, instead of flushing existing ones
+				 * otherwise proxies don't function correctly
+				 */
+				DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+
+				if (t->flag & T_TEXTURE)
+					DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
-			
-			/* sets recalc flags fully, instead of flushing existing ones 
-			 * otherwise proxies don't function correctly
-			 */
-			DEG_id_tag_update(&ob->id, OB_RECALC_OB);
-
-			if (t->flag & T_TEXTURE)
-				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
 		}
 	}
 }
@@ -1117,16 +1118,16 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 void resetTransModal(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	if (t->mode == TFM_EDGE_SLIDE) {
-		freeEdgeSlideVerts(t, tc, &tc->custom.mode);
-	}
-	else if (t->mode == TFM_VERT_SLIDE) {
-		freeVertSlideVerts(t, tc, &tc->custom.mode);
-	}
-	else {
-		/* no need to keep looping... */
-		break;
-	}
+		if (t->mode == TFM_EDGE_SLIDE) {
+			freeEdgeSlideVerts(t, tc, &tc->custom.mode);
+		}
+		else if (t->mode == TFM_VERT_SLIDE) {
+			freeVertSlideVerts(t, tc, &tc->custom.mode);
+		}
+		else {
+			/* no need to keep looping... */
+			break;
+		}
 	}
 }
 
@@ -1696,25 +1697,25 @@ void restoreTransObjects(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	TransData *td;
-	TransData2D *td2d;
+		TransData *td;
+		TransData2D *td2d;
 
-	for (td = tc->data; td < tc->data + tc->data_len; td++) {
-		restoreElement(td);
-	}
-	
-	for (td2d = tc->data_2d; tc->data_2d && td2d < tc->data_2d + tc->data_len; td2d++) {
-		if (td2d->h1) {
-			td2d->h1[0] = td2d->ih1[0];
-			td2d->h1[1] = td2d->ih1[1];
+		for (td = tc->data; td < tc->data + tc->data_len; td++) {
+			restoreElement(td);
 		}
-		if (td2d->h2) {
-			td2d->h2[0] = td2d->ih2[0];
-			td2d->h2[1] = td2d->ih2[1];
-		}
-	}
 
-	unit_m3(t->mat);
+		for (td2d = tc->data_2d; tc->data_2d && td2d < tc->data_2d + tc->data_len; td2d++) {
+			if (td2d->h1) {
+				td2d->h1[0] = td2d->ih1[0];
+				td2d->h1[1] = td2d->ih1[1];
+			}
+			if (td2d->h2) {
+				td2d->h2[0] = td2d->ih2[0];
+				td2d->h2[1] = td2d->ih2[1];
+			}
+		}
+
+		unit_m3(t->mat);
 
 	}
 	
@@ -1831,23 +1832,23 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
 	int total = 0;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	Object *ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
-	int i;
-	for (i = 0; i < tc->data_len; i++) {
-		if (tc->data[i].flag & TD_SELECTED) {
-			if (!(tc->data[i].flag & TD_NOCENTER)) {
-				if (ob_xform) {
-					float v[3];
-					mul_v3_m4v3(v, ob_xform->obmat, tc->data[i].center);
-					add_v3_v3(partial, v);
+		Object *ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
+		int i;
+		for (i = 0; i < tc->data_len; i++) {
+			if (tc->data[i].flag & TD_SELECTED) {
+				if (!(tc->data[i].flag & TD_NOCENTER)) {
+					if (ob_xform) {
+						float v[3];
+						mul_v3_m4v3(v, ob_xform->obmat, tc->data[i].center);
+						add_v3_v3(partial, v);
+					}
+					else {
+						add_v3_v3(partial, tc->data[i].center);
+					}
+					total++;
 				}
-				else {
-					add_v3_v3(partial, tc->data[i].center);
-				}
-				total++;
 			}
 		}
-	}
 	}
 	if (total) {
 		mul_v3_fl(partial, 1.0f / (float)total);
@@ -1862,28 +1863,28 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
 	int i;
 	bool is_first = true;
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	Object *ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
-	for (i = 0; i < tc->data_len; i++) {
-		if (is_first == false) {
-			if (tc->data[i].flag & TD_SELECTED) {
-				if (!(tc->data[i].flag & TD_NOCENTER)) {
-					if (ob_xform) {
-						float v[3];
-						mul_v3_m4v3(v, ob_xform->obmat, tc->data[i].center);
-						minmax_v3v3_v3(min, max, v);
-					}
-					else {
-						minmax_v3v3_v3(min, max, tc->data[i].center);
+		Object *ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
+		for (i = 0; i < tc->data_len; i++) {
+			if (is_first == false) {
+				if (tc->data[i].flag & TD_SELECTED) {
+					if (!(tc->data[i].flag & TD_NOCENTER)) {
+						if (ob_xform) {
+							float v[3];
+							mul_v3_m4v3(v, ob_xform->obmat, tc->data[i].center);
+							minmax_v3v3_v3(min, max, v);
+						}
+						else {
+							minmax_v3v3_v3(min, max, tc->data[i].center);
+						}
 					}
 				}
+				is_first = false;
 			}
-			is_first = false;
+			else {
+				copy_v3_v3(max, tc->data[i].center);
+				copy_v3_v3(min, tc->data[i].center);
+			}
 		}
-		else {
-			copy_v3_v3(max, tc->data[i].center);
-			copy_v3_v3(min, tc->data[i].center);
-		}
-	}
 	}
 	mid_v3_v3v3(r_center, min, max);
 }
@@ -2058,76 +2059,76 @@ void calculatePropRatio(TransInfo *t)
 	if (t->flag & T_PROP_EDIT) {
 		const char *pet_id = NULL;
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
-		for (i = 0; i < tc->data_len; i++, td++) {
-			if (td->flag & TD_SELECTED) {
-				td->factor = 1.0f;
-			}
-			else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f) {
-				td->flag |= TD_SKIP;
-				td->factor = 0.0f;
-				restoreElement(td);
-			}
-			else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
-			         (connected == 0 && td->rdist > t->prop_size))
-			{
-				/*
-				 * The elements are sorted according to their dist member in the array,
-				 * that means we can stop when it finds one element outside of the propsize.
-				 * do not set 'td->flag |= TD_NOACTION', the prop circle is being changed.
-				 */
-				
-				td->factor = 0.0f;
-				restoreElement(td);
-			}
-			else {
-				/* Use rdist for falloff calculations, it is the real distance */
-				td->flag &= ~TD_NOACTION;
-				
-				if (connected)
-					dist = (t->prop_size - td->dist) / t->prop_size;
-				else
-					dist = (t->prop_size - td->rdist) / t->prop_size;
+			TransData *td = tc->data;
+			for (i = 0; i < tc->data_len; i++, td++) {
+				if (td->flag & TD_SELECTED) {
+					td->factor = 1.0f;
+				}
+				else if (t->flag & T_MIRROR && td->loc[0] * t->mirror < -0.00001f) {
+					td->flag |= TD_SKIP;
+					td->factor = 0.0f;
+					restoreElement(td);
+				}
+				else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
+				         (connected == 0 && td->rdist > t->prop_size))
+				{
+					/*
+					 * The elements are sorted according to their dist member in the array,
+					 * that means we can stop when it finds one element outside of the propsize.
+					 * do not set 'td->flag |= TD_NOACTION', the prop circle is being changed.
+					 */
 
-				/*
-				 * Clamp to positive numbers.
-				 * Certain corner cases with connectivity and individual centers
-				 * can give values of rdist larger than propsize.
-				 */
-				if (dist < 0.0f)
-					dist = 0.0f;
-				
-				switch (t->prop_mode) {
-					case PROP_SHARP:
-						td->factor = dist * dist;
-						break;
-					case PROP_SMOOTH:
-						td->factor = 3.0f * dist * dist - 2.0f * dist * dist * dist;
-						break;
-					case PROP_ROOT:
-						td->factor = sqrtf(dist);
-						break;
-					case PROP_LIN:
-						td->factor = dist;
-						break;
-					case PROP_CONST:
-						td->factor = 1.0f;
-						break;
-					case PROP_SPHERE:
-						td->factor = sqrtf(2 * dist - dist * dist);
-						break;
-					case PROP_RANDOM:
-						td->factor = BLI_frand() * dist;
-						break;
-					case PROP_INVSQUARE:
-						td->factor = dist * (2.0f - dist);
-						break;
-					default:
-						td->factor = 1;
-						break;
+					td->factor = 0.0f;
+					restoreElement(td);
+				}
+				else {
+					/* Use rdist for falloff calculations, it is the real distance */
+					td->flag &= ~TD_NOACTION;
+
+					if (connected)
+						dist = (t->prop_size - td->dist) / t->prop_size;
+					else
+						dist = (t->prop_size - td->rdist) / t->prop_size;
+
+					/*
+					 * Clamp to positive numbers.
+					 * Certain corner cases with connectivity and individual centers
+					 * can give values of rdist larger than propsize.
+					 */
+					if (dist < 0.0f)
+						dist = 0.0f;
+
+					switch (t->prop_mode) {
+						case PROP_SHARP:
+							td->factor = dist * dist;
+							break;
+						case PROP_SMOOTH:
+							td->factor = 3.0f * dist * dist - 2.0f * dist * dist * dist;
+							break;
+						case PROP_ROOT:
+							td->factor = sqrtf(dist);
+							break;
+						case PROP_LIN:
+							td->factor = dist;
+							break;
+						case PROP_CONST:
+							td->factor = 1.0f;
+							break;
+						case PROP_SPHERE:
+							td->factor = sqrtf(2 * dist - dist * dist);
+							break;
+						case PROP_RANDOM:
+							td->factor = BLI_frand() * dist;
+							break;
+						case PROP_INVSQUARE:
+							td->factor = dist * (2.0f - dist);
+							break;
+						default:
+							td->factor = 1;
+							break;
+					}
 				}
 			}
-		}
 		}
 
 		switch (t->prop_mode) {

@@ -2712,171 +2712,171 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
+		Object *obedit = objects[ob_index];
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMIter iter;
-	BMWalker walker;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		BMIter iter;
+		BMWalker walker;
 
-	int delimit = delimit_init;
+		int delimit = delimit_init;
 
-	select_linked_delimit_validate(bm, &delimit);
+		select_linked_delimit_validate(bm, &delimit);
 
-	if (delimit) {
-		select_linked_delimit_begin(em->bm, delimit);
-	}
-
-	if (em->selectmode & SCE_SELECT_VERTEX) {
-		BMVert *v;
-
-		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_set(v, BM_ELEM_TAG, BM_elem_flag_test(v, BM_ELEM_SELECT));
+		if (delimit) {
+			select_linked_delimit_begin(em->bm, delimit);
 		}
 
-		/* exclude all delimited verts */
-		if (delimit) {
+		if (em->selectmode & SCE_SELECT_VERTEX) {
+			BMVert *v;
+
+			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+				BM_elem_flag_set(v, BM_ELEM_TAG, BM_elem_flag_test(v, BM_ELEM_SELECT));
+			}
+
+			/* exclude all delimited verts */
+			if (delimit) {
+				BMEdge *e;
+				BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+					if (!BMO_edge_flag_test(bm, e, BMO_ELE_TAG)) {
+						BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
+						BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
+					}
+				}
+			}
+
+			BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
+			         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+			         BMW_FLAG_TEST_HIDDEN,
+			         BMW_NIL_LAY);
+
+			if (delimit) {
+				BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+					if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+						BMElem *ele_walk;
+						BMW_ITER (ele_walk, &walker, v) {
+							if (ele_walk->head.htype == BM_LOOP) {
+								BMVert *v_step = ((BMLoop *)ele_walk)->v;
+								BM_vert_select_set(em->bm, v_step, true);
+								BM_elem_flag_disable(v_step, BM_ELEM_TAG);
+							}
+							else {
+								BMEdge *e_step = (BMEdge *)ele_walk;
+								BLI_assert(ele_walk->head.htype == BM_EDGE);
+								BM_edge_select_set(em->bm, e_step, true);
+								BM_elem_flag_disable(e_step->v1, BM_ELEM_TAG);
+								BM_elem_flag_disable(e_step->v2, BM_ELEM_TAG);
+							}
+						}
+					}
+				}
+			}
+			else {
+				BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+					if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
+						BMEdge *e_walk;
+						BMW_ITER (e_walk, &walker, v) {
+							BM_edge_select_set(em->bm, e_walk, true);
+							BM_elem_flag_disable(e_walk, BM_ELEM_TAG);
+						}
+					}
+				}
+			}
+
+			BMW_end(&walker);
+
+			EDBM_selectmode_flush(em);
+		}
+		else if (em->selectmode & SCE_SELECT_EDGE) {
 			BMEdge *e;
-			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-				if (!BMO_edge_flag_test(bm, e, BMO_ELE_TAG)) {
-					BM_elem_flag_disable(e->v1, BM_ELEM_TAG);
-					BM_elem_flag_disable(e->v2, BM_ELEM_TAG);
+
+			if (delimit) {
+				BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+					BM_elem_flag_set(
+					        e, BM_ELEM_TAG,
+					        (BM_elem_flag_test(e, BM_ELEM_SELECT) && BMO_edge_flag_test(bm, e, BMO_ELE_TAG)));
 				}
 			}
-		}
+			else {
+				BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+					BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
+				}
+			}
 
-		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
-		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_TEST_HIDDEN,
-		         BMW_NIL_LAY);
+			BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
+			         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+			         BMW_FLAG_TEST_HIDDEN,
+			         BMW_NIL_LAY);
 
-		if (delimit) {
-			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-					BMElem *ele_walk;
-					BMW_ITER (ele_walk, &walker, v) {
-						if (ele_walk->head.htype == BM_LOOP) {
-							BMVert *v_step = ((BMLoop *)ele_walk)->v;
-							BM_vert_select_set(em->bm, v_step, true);
-							BM_elem_flag_disable(v_step, BM_ELEM_TAG);
-						}
-						else {
-							BMEdge *e_step = (BMEdge *)ele_walk;
-							BLI_assert(ele_walk->head.htype == BM_EDGE);
-							BM_edge_select_set(em->bm, e_step, true);
-							BM_elem_flag_disable(e_step->v1, BM_ELEM_TAG);
-							BM_elem_flag_disable(e_step->v2, BM_ELEM_TAG);
+			if (delimit) {
+				BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+					if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+						BMElem *ele_walk;
+						BMW_ITER (ele_walk, &walker, e) {
+							if (ele_walk->head.htype == BM_LOOP) {
+								BMLoop *l_step = (BMLoop *)ele_walk;
+								BM_edge_select_set(em->bm, l_step->e, true);
+								BM_edge_select_set(em->bm, l_step->prev->e, true);
+								BM_elem_flag_disable(l_step->e, BM_ELEM_TAG);
+							}
+							else {
+								BMEdge *e_step = (BMEdge *)ele_walk;
+								BLI_assert(ele_walk->head.htype == BM_EDGE);
+								BM_edge_select_set(em->bm, e_step, true);
+								BM_elem_flag_disable(e_step, BM_ELEM_TAG);
+							}
 						}
 					}
 				}
 			}
+			else {
+				BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+					if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
+						BMEdge *e_walk;
+						BMW_ITER (e_walk, &walker, e) {
+							BM_edge_select_set(em->bm, e_walk, true);
+							BM_elem_flag_disable(e_walk, BM_ELEM_TAG);
+						}
+					}
+				}
+			}
+
+			BMW_end(&walker);
+
+			EDBM_selectmode_flush(em);
 		}
 		else {
-			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-				if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
-					BMEdge *e_walk;
-					BMW_ITER (e_walk, &walker, v) {
-						BM_edge_select_set(em->bm, e_walk, true);
-						BM_elem_flag_disable(e_walk, BM_ELEM_TAG);
+			BMFace *f;
+
+			BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_set(f, BM_ELEM_TAG, BM_elem_flag_test(f, BM_ELEM_SELECT));
+			}
+
+			BMW_init(&walker, bm, BMW_ISLAND,
+			         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
+			         BMW_FLAG_TEST_HIDDEN,
+			         BMW_NIL_LAY);
+
+			BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
+					BMFace *f_walk;
+					BMW_ITER (f_walk, &walker, f) {
+						BM_face_select_set(bm, f_walk, true);
+						BM_elem_flag_disable(f_walk, BM_ELEM_TAG);
 					}
 				}
 			}
+
+			BMW_end(&walker);
 		}
-
-		BMW_end(&walker);
-
-		EDBM_selectmode_flush(em);
-	}
-	else if (em->selectmode & SCE_SELECT_EDGE) {
-		BMEdge *e;
 
 		if (delimit) {
-			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-				BM_elem_flag_set(
-				        e, BM_ELEM_TAG,
-				        (BM_elem_flag_test(e, BM_ELEM_SELECT) && BMO_edge_flag_test(bm, e, BMO_ELE_TAG)));
-			}
-		}
-		else {
-			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-				BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
-			}
+			select_linked_delimit_end(em);
 		}
 
-		BMW_init(&walker, em->bm, delimit ? BMW_LOOP_SHELL_WIRE : BMW_VERT_SHELL,
-		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_TEST_HIDDEN,
-		         BMW_NIL_LAY);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
-		if (delimit) {
-			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-					BMElem *ele_walk;
-					BMW_ITER (ele_walk, &walker, e) {
-						if (ele_walk->head.htype == BM_LOOP) {
-							BMLoop *l_step = (BMLoop *)ele_walk;
-							BM_edge_select_set(em->bm, l_step->e, true);
-							BM_edge_select_set(em->bm, l_step->prev->e, true);
-							BM_elem_flag_disable(l_step->e, BM_ELEM_TAG);
-						}
-						else {
-							BMEdge *e_step = (BMEdge *)ele_walk;
-							BLI_assert(ele_walk->head.htype == BM_EDGE);
-							BM_edge_select_set(em->bm, e_step, true);
-							BM_elem_flag_disable(e_step, BM_ELEM_TAG);
-						}
-					}
-				}
-			}
-		}
-		else {
-			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-				if (BM_elem_flag_test(e, BM_ELEM_TAG)) {
-					BMEdge *e_walk;
-					BMW_ITER (e_walk, &walker, e) {
-						BM_edge_select_set(em->bm, e_walk, true);
-						BM_elem_flag_disable(e_walk, BM_ELEM_TAG);
-					}
-				}
-			}
-		}
-
-		BMW_end(&walker);
-
-		EDBM_selectmode_flush(em);
 	}
-	else {
-		BMFace *f;
-
-		BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_elem_flag_set(f, BM_ELEM_TAG, BM_elem_flag_test(f, BM_ELEM_SELECT));
-		}
-
-		BMW_init(&walker, bm, BMW_ISLAND,
-		         BMW_MASK_NOP, delimit ? BMO_ELE_TAG : BMW_MASK_NOP, BMW_MASK_NOP,
-		         BMW_FLAG_TEST_HIDDEN,
-		         BMW_NIL_LAY);
-
-		BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(f, BM_ELEM_TAG)) {
-				BMFace *f_walk;
-				BMW_ITER (f_walk, &walker, f) {
-					BM_face_select_set(bm, f_walk, true);
-					BM_elem_flag_disable(f_walk, BM_ELEM_TAG);
-				}
-			}
-		}
-
-		BMW_end(&walker);
-	}
-
-	if (delimit) {
-		select_linked_delimit_end(em);
-	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-	} /* objects */
 
 	MEM_SAFE_FREE(objects);
 

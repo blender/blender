@@ -172,49 +172,49 @@ static int trans_data_compare_rdist(const void *a, const void *b)
 void sort_trans_data_dist(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *start = tc->data;
-	int i;
+		TransData *start = tc->data;
+		int i;
 
-	for (i = 0; i < tc->data_len && start->flag & TD_SELECTED; i++) {
-		start++;
-	}
+		for (i = 0; i < tc->data_len && start->flag & TD_SELECTED; i++) {
+			start++;
+		}
 
-	if (i < tc->data_len) {
-		if (t->flag & T_PROP_CONNECTED)
-			qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
-		else
-			qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
-	}
+		if (i < tc->data_len) {
+			if (t->flag & T_PROP_CONNECTED)
+				qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_dist);
+			else
+				qsort(start, tc->data_len - i, sizeof(TransData), trans_data_compare_rdist);
+		}
 	}
 }
 
 static void sort_trans_data(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *sel, *unsel;
-	TransData temp;
-	unsel = tc->data;
-	sel = tc->data;
-	sel += tc->data_len - 1;
-	while (sel > unsel) {
-		while (unsel->flag & TD_SELECTED) {
-			unsel++;
-			if (unsel == sel) {
-				return;
+		TransData *sel, *unsel;
+		TransData temp;
+		unsel = tc->data;
+		sel = tc->data;
+		sel += tc->data_len - 1;
+		while (sel > unsel) {
+			while (unsel->flag & TD_SELECTED) {
+				unsel++;
+				if (unsel == sel) {
+					return;
+				}
 			}
-		}
-		while (!(sel->flag & TD_SELECTED)) {
+			while (!(sel->flag & TD_SELECTED)) {
+				sel--;
+				if (unsel == sel) {
+					return;
+				}
+			}
+			temp = *unsel;
+			*unsel = *sel;
+			*sel = temp;
 			sel--;
-			if (unsel == sel) {
-				return;
-			}
+			unsel++;
 		}
-		temp = *unsel;
-		*unsel = *sel;
-		*sel = temp;
-		sel--;
-		unsel++;
-	}
 	}
 }
 
@@ -239,52 +239,52 @@ static void set_prop_dist(TransInfo *t, const bool with_dist)
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *tob = tc->data;
-	for (a = 0; a < tc->data_len; a++, tob++) {
+		TransData *tob = tc->data;
+		for (a = 0; a < tc->data_len; a++, tob++) {
 
-		tob->rdist = 0.0f; // init, it was mallocced
+			tob->rdist = 0.0f; // init, it was mallocced
 
-		if ((tob->flag & TD_SELECTED) == 0) {
-			TransData *td;
-			int i;
-			float dist_sq, vec[3];
+			if ((tob->flag & TD_SELECTED) == 0) {
+				TransData *td;
+				int i;
+				float dist_sq, vec[3];
 
-			tob->rdist = -1.0f; // signal for next loop
+				tob->rdist = -1.0f; // signal for next loop
 
-			for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
-				if (td->flag & TD_SELECTED) {
-					if (use_island) {
-						sub_v3_v3v3(vec, tob->iloc, td->iloc);
-					}
-					else {
-						sub_v3_v3v3(vec, tob->center, td->center);
-					}
-					mul_m3_v3(tob->mtx, vec);
-
-					if (proj_vec) {
-						float vec_p[3];
-						project_v3_v3v3(vec_p, vec, proj_vec);
-						sub_v3_v3(vec, vec_p);
-					}
-
-					dist_sq = len_squared_v3(vec);
-					if ((tob->rdist == -1.0f) || (dist_sq < SQUARE(tob->rdist))) {
-						tob->rdist = sqrtf(dist_sq);
+				for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+					if (td->flag & TD_SELECTED) {
 						if (use_island) {
-							copy_v3_v3(tob->center, td->center);
-							copy_m3_m3(tob->axismtx, td->axismtx);
+							sub_v3_v3v3(vec, tob->iloc, td->iloc);
+						}
+						else {
+							sub_v3_v3v3(vec, tob->center, td->center);
+						}
+						mul_m3_v3(tob->mtx, vec);
+
+						if (proj_vec) {
+							float vec_p[3];
+							project_v3_v3v3(vec_p, vec, proj_vec);
+							sub_v3_v3(vec, vec_p);
+						}
+
+						dist_sq = len_squared_v3(vec);
+						if ((tob->rdist == -1.0f) || (dist_sq < SQUARE(tob->rdist))) {
+							tob->rdist = sqrtf(dist_sq);
+							if (use_island) {
+								copy_v3_v3(tob->center, td->center);
+								copy_m3_m3(tob->axismtx, td->axismtx);
+							}
 						}
 					}
+					else {
+						break;  /* by definition transdata has selected items in beginning */
+					}
 				}
-				else {
-					break;  /* by definition transdata has selected items in beginning */
+				if (with_dist) {
+					tob->dist = tob->rdist;
 				}
-			}
-			if (with_dist) {
-				tob->dist = tob->rdist;
 			}
 		}
-	}
 	}
 }
 
@@ -355,76 +355,76 @@ static void createTransEdge(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-	TransData *td = NULL;
-	BMEdge *eed;
-	BMIter iter;
-	float mtx[3][3], smtx[3][3];
-	int count = 0, countsel = 0;
-	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-	int cd_edge_float_offset;
+		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+		TransData *td = NULL;
+		BMEdge *eed;
+		BMIter iter;
+		float mtx[3][3], smtx[3][3];
+		int count = 0, countsel = 0;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+		int cd_edge_float_offset;
 
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) countsel++;
-			if (is_prop_edit) count++;
+		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) countsel++;
+				if (is_prop_edit) count++;
+			}
 		}
-	}
 
-	if (countsel == 0) {
-		tc->data_len = 0;
-		continue;
-	}
-
-	if (is_prop_edit) {
-		tc->data_len = count;
-	}
-	else {
-		tc->data_len = countsel;
-	}
-
-	td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransCrease");
-
-	copy_m3_m4(mtx, tc->obedit->obmat);
-	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-	/* create data we need */
-	if (t->mode == TFM_BWEIGHT) {
-		BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
-		cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
-	}
-	else { //if (t->mode == TFM_CREASE) {
-		BLI_assert(t->mode == TFM_CREASE);
-		BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_CREASE);
-		cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
-	}
-
-	BLI_assert(cd_edge_float_offset != -1);
-
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || is_prop_edit)) {
-			float *fl_ptr;
-			/* need to set center for center calculations */
-			mid_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
-
-			td->loc = NULL;
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
-				td->flag = TD_SELECTED;
-			else
-				td->flag = 0;
-
-			copy_m3_m3(td->smtx, smtx);
-			copy_m3_m3(td->mtx, mtx);
-
-			td->ext = NULL;
-
-			fl_ptr = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_float_offset);
-			td->val  =  fl_ptr;
-			td->ival = *fl_ptr;
-
-			td++;
+		if (countsel == 0) {
+			tc->data_len = 0;
+			continue;
 		}
-	}
+
+		if (is_prop_edit) {
+			tc->data_len = count;
+		}
+		else {
+			tc->data_len = countsel;
+		}
+
+		td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransCrease");
+
+		copy_m3_m4(mtx, tc->obedit->obmat);
+		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+
+		/* create data we need */
+		if (t->mode == TFM_BWEIGHT) {
+			BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_BWEIGHT);
+			cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_BWEIGHT);
+		}
+		else { //if (t->mode == TFM_CREASE) {
+			BLI_assert(t->mode == TFM_CREASE);
+			BM_mesh_cd_flag_ensure(em->bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_EDGE_CREASE);
+			cd_edge_float_offset = CustomData_get_offset(&em->bm->edata, CD_CREASE);
+		}
+
+		BLI_assert(cd_edge_float_offset != -1);
+
+		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && (BM_elem_flag_test(eed, BM_ELEM_SELECT) || is_prop_edit)) {
+				float *fl_ptr;
+				/* need to set center for center calculations */
+				mid_v3_v3v3(td->center, eed->v1->co, eed->v2->co);
+
+				td->loc = NULL;
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT))
+					td->flag = TD_SELECTED;
+				else
+					td->flag = 0;
+
+				copy_m3_m3(td->smtx, smtx);
+				copy_m3_m3(td->mtx, mtx);
+
+				td->ext = NULL;
+
+				fl_ptr = BM_ELEM_CD_GET_VOID_P(eed, cd_edge_float_offset);
+				td->val  =  fl_ptr;
+				td->ival = *fl_ptr;
+
+				td++;
+			}
+		}
 	}
 }
 
@@ -851,14 +851,14 @@ void transform_autoik_update(TransInfo *t, short mode)
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	/* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
-	if (ELEM(NULL, tc->poseobj, tc->poseobj->pose)) {
-		continue;
-	}
+		/* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
+		if (ELEM(NULL, tc->poseobj, tc->poseobj->pose)) {
+			continue;
+		}
 
-	for (pchan = tc->poseobj->pose->chanbase.first; pchan; pchan = pchan->next) {
-		changed |= pchan_autoik_adjust(pchan, *chainlen);
-	}
+		for (pchan = tc->poseobj->pose->chanbase.first; pchan; pchan = pchan->next) {
+			changed |= pchan_autoik_adjust(pchan, *chainlen);
+		}
 	}
 
 	if (changed) {
@@ -1088,69 +1088,69 @@ static void createTransPose(TransInfo *t, Object **objects, uint objects_len)
 	t->data_len_all = 0;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	Object *ob = tc->poseobj;
+		Object *ob = tc->poseobj;
 
-	bArmature *arm;
-	bPoseChannel *pchan;
-	TransData *td;
-	TransDataExtension *tdx;
-	short ik_on = 0;
-	int i;
+		bArmature *arm;
+		bPoseChannel *pchan;
+		TransData *td;
+		TransDataExtension *tdx;
+		short ik_on = 0;
+		int i;
 
 
-	/* check validity of state */
-	arm = BKE_armature_from_object(tc->poseobj);
-	if ((arm == NULL) || (ob->pose == NULL)) {
-		continue;
-	}
-
-	if (arm->flag & ARM_RESTPOS) {
-		if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE) == 0) {
-			BKE_report(t->reports, RPT_ERROR, "Cannot change Pose when 'Rest Position' is enabled");
-			return;
+		/* check validity of state */
+		arm = BKE_armature_from_object(tc->poseobj);
+		if ((arm == NULL) || (ob->pose == NULL)) {
+			continue;
 		}
-	}
 
-	/* do we need to add temporal IK chains? */
-	if ((arm->flag & ARM_AUTO_IK) && t->mode == TFM_TRANSLATION) {
-		ik_on = pose_grab_with_ik(ob);
-		if (ik_on) t->flag |= T_AUTOIK;
-	}
-
-	/* set flags and count total (warning, can change transform to rotate) */
-	tc->data_len = count_set_pose_transflags(&t->mode, t->around, ob);
-
-	if (tc->data_len == 0) {
-		continue;
-	}
-
-	tc->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
-
-	/* init trans data */
-	td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransPoseBone");
-	tdx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransPoseBoneExt");
-	for (i = 0; i < tc->data_len; i++, td++, tdx++) {
-		td->ext = tdx;
-		td->val = NULL;
-	}
-
-	/* use pose channels to fill trans data */
-	td = tc->data;
-	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		if (pchan->bone->flag & BONE_TRANSFORM) {
-			add_pose_transdata(t, pchan, ob, tc, td);
-			td++;
+		if (arm->flag & ARM_RESTPOS) {
+			if (ELEM(t->mode, TFM_DUMMY, TFM_BONESIZE) == 0) {
+				BKE_report(t->reports, RPT_ERROR, "Cannot change Pose when 'Rest Position' is enabled");
+				return;
+			}
 		}
-	}
 
-	if (td != (tc->data + tc->data_len)) {
-		BKE_report(t->reports, RPT_DEBUG, "Bone selection count error");
-	}
+		/* do we need to add temporal IK chains? */
+		if ((arm->flag & ARM_AUTO_IK) && t->mode == TFM_TRANSLATION) {
+			ik_on = pose_grab_with_ik(ob);
+			if (ik_on) t->flag |= T_AUTOIK;
+		}
 
-	/* initialize initial auto=ik chainlen's? */
-	if (ik_on) {
-		transform_autoik_update(t, 0);
-	}
+		/* set flags and count total (warning, can change transform to rotate) */
+		tc->data_len = count_set_pose_transflags(&t->mode, t->around, ob);
+
+		if (tc->data_len == 0) {
+			continue;
+		}
+
+		tc->poseobj = ob; /* we also allow non-active objects to be transformed, in weightpaint */
+
+		/* init trans data */
+		td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransPoseBone");
+		tdx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransPoseBoneExt");
+		for (i = 0; i < tc->data_len; i++, td++, tdx++) {
+			td->ext = tdx;
+			td->val = NULL;
+		}
+
+		/* use pose channels to fill trans data */
+		td = tc->data;
+		for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+			if (pchan->bone->flag & BONE_TRANSFORM) {
+				add_pose_transdata(t, pchan, ob, tc, td);
+				td++;
+			}
+		}
+
+		if (td != (tc->data + tc->data_len)) {
+			BKE_report(t->reports, RPT_DEBUG, "Bone selection count error");
+		}
+
+		/* initialize initial auto=ik chainlen's? */
+		if (ik_on) {
+			transform_autoik_update(t, 0);
+		}
 	}
 
 	t->flag |= T_POSE;
@@ -1204,229 +1204,229 @@ void restoreBones(TransDataContainer *tc)
 static void createTransArmatureVerts(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	EditBone *ebo, *eboflip;
-	bArmature *arm = tc->obedit->data;
-	ListBase *edbo = arm->edbo;
-	TransData *td, *td_old;
-	float mtx[3][3], smtx[3][3], bonemat[3][3];
-	bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
-	int total_mirrored = 0, i;
-	int oldtot;
-	BoneInitData *bid;
-	
-	tc->data_len = 0;
-	for (ebo = edbo->first; ebo; ebo = ebo->next) {
-		oldtot = tc->data_len;
+		EditBone *ebo, *eboflip;
+		bArmature *arm = tc->obedit->data;
+		ListBase *edbo = arm->edbo;
+		TransData *td, *td_old;
+		float mtx[3][3], smtx[3][3], bonemat[3][3];
+		bool mirror = ((arm->flag & ARM_MIRROR_EDIT) != 0);
+		int total_mirrored = 0, i;
+		int oldtot;
+		BoneInitData *bid;
 
-		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
-			if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
-				if (ebo->flag & BONE_SELECTED)
-					tc->data_len++;
+		tc->data_len = 0;
+		for (ebo = edbo->first; ebo; ebo = ebo->next) {
+			oldtot = tc->data_len;
+
+			if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
+				if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
+					if (ebo->flag & BONE_SELECTED)
+						tc->data_len++;
+				}
+				else if (t->mode == TFM_BONE_ROLL) {
+					if (ebo->flag & BONE_SELECTED)
+						tc->data_len++;
+				}
+				else {
+					if (ebo->flag & BONE_TIPSEL)
+						tc->data_len++;
+					if (ebo->flag & BONE_ROOTSEL)
+						tc->data_len++;
+				}
 			}
-			else if (t->mode == TFM_BONE_ROLL) {
-				if (ebo->flag & BONE_SELECTED)
-					tc->data_len++;
-			}
-			else {
-				if (ebo->flag & BONE_TIPSEL)
-					tc->data_len++;
-				if (ebo->flag & BONE_ROOTSEL)
-					tc->data_len++;
+
+			if (mirror && (oldtot < tc->data_len)) {
+				eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
+				if (eboflip)
+					total_mirrored++;
 			}
 		}
 
-		if (mirror && (oldtot < tc->data_len)) {
-			eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
-			if (eboflip)
-				total_mirrored++;
+		if (!tc->data_len) {
+			continue;
 		}
-	}
 
-	if (!tc->data_len) {
-		continue;
-	}
+		transform_around_single_fallback(t);
 
-	transform_around_single_fallback(t);
+		copy_m3_m4(mtx, tc->obedit->obmat);
+		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
 
-	copy_m3_m4(mtx, tc->obedit->obmat);
-	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+		td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransEditBone");
 
-	td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransEditBone");
+		if (mirror) {
+			tc->custom.type.data = bid = MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData");
+			tc->custom.type.use_free = true;
+		}
 
-	if (mirror) {
-		tc->custom.type.data = bid = MEM_mallocN((total_mirrored + 1) * sizeof(BoneInitData), "BoneInitData");
-		tc->custom.type.use_free = true;
-	}
+		i = 0;
 
-	i = 0;
+		for (ebo = edbo->first; ebo; ebo = ebo->next) {
+			td_old = td;
+			ebo->oldlength = ebo->length;   // length==0.0 on extrude, used for scaling radius of bone points
 
-	for (ebo = edbo->first; ebo; ebo = ebo->next) {
-		td_old = td;
-		ebo->oldlength = ebo->length;   // length==0.0 on extrude, used for scaling radius of bone points
+			if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
+				if (t->mode == TFM_BONE_ENVELOPE) {
+					if (ebo->flag & BONE_ROOTSEL) {
+						td->val = &ebo->rad_head;
+						td->ival = *td->val;
 
-		if (EBONE_VISIBLE(arm, ebo) && !(ebo->flag & BONE_EDITMODE_LOCKED)) {
-			if (t->mode == TFM_BONE_ENVELOPE) {
-				if (ebo->flag & BONE_ROOTSEL) {
-					td->val = &ebo->rad_head;
-					td->ival = *td->val;
-
-					copy_v3_v3(td->center, ebo->head);
-					td->flag = TD_SELECTED;
-
-					copy_m3_m3(td->smtx, smtx);
-					copy_m3_m3(td->mtx, mtx);
-
-					td->loc = NULL;
-					td->ext = NULL;
-					td->ob = tc->obedit;
-
-					td++;
-				}
-				if (ebo->flag & BONE_TIPSEL) {
-					td->val = &ebo->rad_tail;
-					td->ival = *td->val;
-					copy_v3_v3(td->center, ebo->tail);
-					td->flag = TD_SELECTED;
-
-					copy_m3_m3(td->smtx, smtx);
-					copy_m3_m3(td->mtx, mtx);
-
-					td->loc = NULL;
-					td->ext = NULL;
-					td->ob = tc->obedit;
-
-					td++;
-				}
-
-			}
-			else if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
-				if (ebo->flag & BONE_SELECTED) {
-					if ((t->mode == TFM_BONE_ENVELOPE_DIST) || (arm->drawtype == ARM_ENVELOPE)) {
-						td->loc = NULL;
-						td->val = &ebo->dist;
-						td->ival = ebo->dist;
-					}
-					else {
-						// abusive storage of scale in the loc pointer :)
-						td->loc = &ebo->xwidth;
-						copy_v3_v3(td->iloc, td->loc);
-						td->val = NULL;
-					}
-					copy_v3_v3(td->center, ebo->head);
-					td->flag = TD_SELECTED;
-
-					/* use local bone matrix */
-					ED_armature_ebone_to_mat3(ebo, bonemat);
-					mul_m3_m3m3(td->mtx, mtx, bonemat);
-					invert_m3_m3(td->smtx, td->mtx);
-
-					copy_m3_m3(td->axismtx, td->mtx);
-					normalize_m3(td->axismtx);
-
-					td->ext = NULL;
-					td->ob = tc->obedit;
-
-					td++;
-				}
-			}
-			else if (t->mode == TFM_BONE_ROLL) {
-				if (ebo->flag & BONE_SELECTED) {
-					td->loc = NULL;
-					td->val = &(ebo->roll);
-					td->ival = ebo->roll;
-
-					copy_v3_v3(td->center, ebo->head);
-					td->flag = TD_SELECTED;
-
-					td->ext = NULL;
-					td->ob = tc->obedit;
-
-					td++;
-				}
-			}
-			else {
-				if (ebo->flag & BONE_TIPSEL) {
-					copy_v3_v3(td->iloc, ebo->tail);
-
-					/* Don't allow single selected tips to have a modified center,
-					 * causes problem with snapping (see T45974).
-					 * However, in rotation mode, we want to keep that 'rotate bone around root with
-					 * only its tip selected' behavior (see T46325). */
-					if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-					    ((t->mode == TFM_ROTATION) || (ebo->flag & BONE_ROOTSEL)))
-					{
 						copy_v3_v3(td->center, ebo->head);
+						td->flag = TD_SELECTED;
+
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
+
+						td->loc = NULL;
+						td->ext = NULL;
+						td->ob = tc->obedit;
+
+						td++;
 					}
-					else {
-						copy_v3_v3(td->center, td->iloc);
+					if (ebo->flag & BONE_TIPSEL) {
+						td->val = &ebo->rad_tail;
+						td->ival = *td->val;
+						copy_v3_v3(td->center, ebo->tail);
+						td->flag = TD_SELECTED;
+
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
+
+						td->loc = NULL;
+						td->ext = NULL;
+						td->ob = tc->obedit;
+
+						td++;
 					}
 
-					td->loc = ebo->tail;
-					td->flag = TD_SELECTED;
-					if (ebo->flag & BONE_EDITMODE_LOCKED)
-						td->protectflag = OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE;
+				}
+				else if (ELEM(t->mode, TFM_BONESIZE, TFM_BONE_ENVELOPE_DIST)) {
+					if (ebo->flag & BONE_SELECTED) {
+						if ((t->mode == TFM_BONE_ENVELOPE_DIST) || (arm->drawtype == ARM_ENVELOPE)) {
+							td->loc = NULL;
+							td->val = &ebo->dist;
+							td->ival = ebo->dist;
+						}
+						else {
+							// abusive storage of scale in the loc pointer :)
+							td->loc = &ebo->xwidth;
+							copy_v3_v3(td->iloc, td->loc);
+							td->val = NULL;
+						}
+						copy_v3_v3(td->center, ebo->head);
+						td->flag = TD_SELECTED;
 
-					copy_m3_m3(td->smtx, smtx);
-					copy_m3_m3(td->mtx, mtx);
+						/* use local bone matrix */
+						ED_armature_ebone_to_mat3(ebo, bonemat);
+						mul_m3_m3m3(td->mtx, mtx, bonemat);
+						invert_m3_m3(td->smtx, td->mtx);
 
-					ED_armature_ebone_to_mat3(ebo, td->axismtx);
+						copy_m3_m3(td->axismtx, td->mtx);
+						normalize_m3(td->axismtx);
 
-					if ((ebo->flag & BONE_ROOTSEL) == 0) {
-						td->extra = ebo;
+						td->ext = NULL;
+						td->ob = tc->obedit;
+
+						td++;
+					}
+				}
+				else if (t->mode == TFM_BONE_ROLL) {
+					if (ebo->flag & BONE_SELECTED) {
+						td->loc = NULL;
+						td->val = &(ebo->roll);
 						td->ival = ebo->roll;
+
+						copy_v3_v3(td->center, ebo->head);
+						td->flag = TD_SELECTED;
+
+						td->ext = NULL;
+						td->ob = tc->obedit;
+
+						td++;
 					}
-
-					td->ext = NULL;
-					td->val = NULL;
-					td->ob = tc->obedit;
-
-					td++;
 				}
-				if (ebo->flag & BONE_ROOTSEL) {
-					copy_v3_v3(td->iloc, ebo->head);
-					copy_v3_v3(td->center, td->iloc);
-					td->loc = ebo->head;
-					td->flag = TD_SELECTED;
-					if (ebo->flag & BONE_EDITMODE_LOCKED)
-						td->protectflag = OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE;
+				else {
+					if (ebo->flag & BONE_TIPSEL) {
+						copy_v3_v3(td->iloc, ebo->tail);
 
-					copy_m3_m3(td->smtx, smtx);
-					copy_m3_m3(td->mtx, mtx);
+						/* Don't allow single selected tips to have a modified center,
+						 * causes problem with snapping (see T45974).
+						 * However, in rotation mode, we want to keep that 'rotate bone around root with
+						 * only its tip selected' behavior (see T46325). */
+						if ((t->around == V3D_AROUND_LOCAL_ORIGINS) &&
+						    ((t->mode == TFM_ROTATION) || (ebo->flag & BONE_ROOTSEL)))
+						{
+							copy_v3_v3(td->center, ebo->head);
+						}
+						else {
+							copy_v3_v3(td->center, td->iloc);
+						}
 
-					ED_armature_ebone_to_mat3(ebo, td->axismtx);
+						td->loc = ebo->tail;
+						td->flag = TD_SELECTED;
+						if (ebo->flag & BONE_EDITMODE_LOCKED)
+							td->protectflag = OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE;
 
-					td->extra = ebo; /* to fix roll */
-					td->ival = ebo->roll;
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
 
-					td->ext = NULL;
-					td->val = NULL;
-					td->ob = tc->obedit;
+						ED_armature_ebone_to_mat3(ebo, td->axismtx);
 
-					td++;
+						if ((ebo->flag & BONE_ROOTSEL) == 0) {
+							td->extra = ebo;
+							td->ival = ebo->roll;
+						}
+
+						td->ext = NULL;
+						td->val = NULL;
+						td->ob = tc->obedit;
+
+						td++;
+					}
+					if (ebo->flag & BONE_ROOTSEL) {
+						copy_v3_v3(td->iloc, ebo->head);
+						copy_v3_v3(td->center, td->iloc);
+						td->loc = ebo->head;
+						td->flag = TD_SELECTED;
+						if (ebo->flag & BONE_EDITMODE_LOCKED)
+							td->protectflag = OB_LOCK_LOC | OB_LOCK_ROT | OB_LOCK_SCALE;
+
+						copy_m3_m3(td->smtx, smtx);
+						copy_m3_m3(td->mtx, mtx);
+
+						ED_armature_ebone_to_mat3(ebo, td->axismtx);
+
+						td->extra = ebo; /* to fix roll */
+						td->ival = ebo->roll;
+
+						td->ext = NULL;
+						td->val = NULL;
+						td->ob = tc->obedit;
+
+						td++;
+					}
+				}
+			}
+
+			if (mirror && (td_old != td)) {
+				eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
+				if (eboflip) {
+					bid[i].bone = eboflip;
+					bid[i].dist = eboflip->dist;
+					bid[i].rad_tail = eboflip->rad_tail;
+					bid[i].roll = eboflip->roll;
+					bid[i].xwidth = eboflip->xwidth;
+					bid[i].zwidth = eboflip->zwidth;
+					copy_v3_v3(bid[i].head, eboflip->head);
+					copy_v3_v3(bid[i].tail, eboflip->tail);
+					i++;
 				}
 			}
 		}
 
-		if (mirror && (td_old != td)) {
-			eboflip = ED_armature_ebone_get_mirrored(arm->edbo, ebo);
-			if (eboflip) {
-				bid[i].bone = eboflip;
-				bid[i].dist = eboflip->dist;
-				bid[i].rad_tail = eboflip->rad_tail;
-				bid[i].roll = eboflip->roll;
-				bid[i].xwidth = eboflip->xwidth;
-				bid[i].zwidth = eboflip->zwidth;
-				copy_v3_v3(bid[i].head, eboflip->head);
-				copy_v3_v3(bid[i].tail, eboflip->tail);
-				i++;
-			}
+		if (mirror) {
+			/* trick to terminate iteration */
+			bid[total_mirrored].bone = NULL;
 		}
-	}
-
-	if (mirror) {
-		/* trick to terminate iteration */
-		bid[total_mirrored].bone = NULL;
-	}
 	}
 }
 
@@ -1435,76 +1435,76 @@ static void createTransArmatureVerts(TransInfo *t)
 static void createTransMBallVerts(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	MetaBall *mb = (MetaBall *)tc->obedit->data;
-	MetaElem *ml;
-	TransData *td;
-	TransDataExtension *tx;
-	float mtx[3][3], smtx[3][3];
-	int count = 0, countsel = 0;
-	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+		MetaBall *mb = (MetaBall *)tc->obedit->data;
+		MetaElem *ml;
+		TransData *td;
+		TransDataExtension *tx;
+		float mtx[3][3], smtx[3][3];
+		int count = 0, countsel = 0;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
-	/* count totals */
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (ml->flag & SELECT) countsel++;
-		if (is_prop_edit) count++;
-	}
-
-	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) {
-		continue;
-	}
-
-	if (is_prop_edit) tc->data_len = count;
-	else tc->data_len = countsel;
-
-	td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(MBall EditMode)");
-	tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "MetaElement_TransExtension");
-
-	copy_m3_m4(mtx, tc->obedit->obmat);
-	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (is_prop_edit || (ml->flag & SELECT)) {
-			td->loc = &ml->x;
-			copy_v3_v3(td->iloc, td->loc);
-			copy_v3_v3(td->center, td->loc);
-
-			quat_to_mat3(td->axismtx, ml->quat);
-
-			if (ml->flag & SELECT) td->flag = TD_SELECTED | TD_USEQUAT | TD_SINGLESIZE;
-			else td->flag = TD_USEQUAT;
-
-			copy_m3_m3(td->smtx, smtx);
-			copy_m3_m3(td->mtx, mtx);
-
-			td->ext = tx;
-
-			/* Radius of MetaElem (mass of MetaElem influence) */
-			if (ml->flag & MB_SCALE_RAD) {
-				td->val = &ml->rad;
-				td->ival = ml->rad;
-			}
-			else {
-				td->val = &ml->s;
-				td->ival = ml->s;
-			}
-
-			/* expx/expy/expz determine "shape" of some MetaElem types */
-			tx->size = &ml->expx;
-			tx->isize[0] = ml->expx;
-			tx->isize[1] = ml->expy;
-			tx->isize[2] = ml->expz;
-
-			/* quat is used for rotation of MetaElem */
-			tx->quat = ml->quat;
-			copy_qt_qt(tx->iquat, ml->quat);
-
-			tx->rot = NULL;
-
-			td++;
-			tx++;
+		/* count totals */
+		for (ml = mb->editelems->first; ml; ml = ml->next) {
+			if (ml->flag & SELECT) countsel++;
+			if (is_prop_edit) count++;
 		}
-	}
+
+		/* note: in prop mode we need at least 1 selected */
+		if (countsel == 0) {
+			continue;
+		}
+
+		if (is_prop_edit) tc->data_len = count;
+		else tc->data_len = countsel;
+
+		td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(MBall EditMode)");
+		tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "MetaElement_TransExtension");
+
+		copy_m3_m4(mtx, tc->obedit->obmat);
+		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+
+		for (ml = mb->editelems->first; ml; ml = ml->next) {
+			if (is_prop_edit || (ml->flag & SELECT)) {
+				td->loc = &ml->x;
+				copy_v3_v3(td->iloc, td->loc);
+				copy_v3_v3(td->center, td->loc);
+
+				quat_to_mat3(td->axismtx, ml->quat);
+
+				if (ml->flag & SELECT) td->flag = TD_SELECTED | TD_USEQUAT | TD_SINGLESIZE;
+				else td->flag = TD_USEQUAT;
+
+				copy_m3_m3(td->smtx, smtx);
+				copy_m3_m3(td->mtx, mtx);
+
+				td->ext = tx;
+
+				/* Radius of MetaElem (mass of MetaElem influence) */
+				if (ml->flag & MB_SCALE_RAD) {
+					td->val = &ml->rad;
+					td->ival = ml->rad;
+				}
+				else {
+					td->val = &ml->s;
+					td->ival = ml->s;
+				}
+
+				/* expx/expy/expz determine "shape" of some MetaElem types */
+				tx->size = &ml->expx;
+				tx->isize[0] = ml->expx;
+				tx->isize[1] = ml->expy;
+				tx->isize[2] = ml->expz;
+
+				/* quat is used for rotation of MetaElem */
+				tx->quat = ml->quat;
+				copy_qt_qt(tx->iquat, ml->quat);
+
+				tx->rot = NULL;
+
+				td++;
+				tx++;
+			}
+		}
 	}
 }
 
@@ -1614,273 +1614,273 @@ static void createTransCurveVerts(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	Curve *cu = tc->obedit->data;
-	TransData *td = NULL;
-	Nurb *nu;
-	BezTriple *bezt;
-	BPoint *bp;
-	float mtx[3][3], smtx[3][3];
-	int a;
-	int count = 0, countsel = 0;
-	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
-	short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
-	ListBase *nurbs;
+		Curve *cu = tc->obedit->data;
+		TransData *td = NULL;
+		Nurb *nu;
+		BezTriple *bezt;
+		BPoint *bp;
+		float mtx[3][3], smtx[3][3];
+		int a;
+		int count = 0, countsel = 0;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+		short hide_handles = (cu->drawflag & CU_HIDE_HANDLES);
+		ListBase *nurbs;
 
-	/* to be sure */
-	if (cu->editnurb == NULL) return;
+		/* to be sure */
+		if (cu->editnurb == NULL) return;
 
-#define SEL_F1 (1 << 0)
-#define SEL_F2 (1 << 1)
-#define SEL_F3 (1 << 2)
+	#define SEL_F1 (1 << 0)
+	#define SEL_F2 (1 << 1)
+	#define SEL_F3 (1 << 2)
 
-	/* count total of vertices, check identical as in 2nd loop for making transdata! */
-	nurbs = BKE_curve_editNurbs_get(cu);
-	for (nu = nurbs->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
-				if (bezt->hide == 0) {
-					const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
-					if (bezt_tx & SEL_F1) { countsel++; }
-					if (bezt_tx & SEL_F2) { countsel++; }
-					if (bezt_tx & SEL_F3) { countsel++; }
-					if (is_prop_edit) count += 3;
+		/* count total of vertices, check identical as in 2nd loop for making transdata! */
+		nurbs = BKE_curve_editNurbs_get(cu);
+		for (nu = nurbs->first; nu; nu = nu->next) {
+			if (nu->type == CU_BEZIER) {
+				for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
+					if (bezt->hide == 0) {
+						const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+						if (bezt_tx & SEL_F1) { countsel++; }
+						if (bezt_tx & SEL_F2) { countsel++; }
+						if (bezt_tx & SEL_F3) { countsel++; }
+						if (is_prop_edit) count += 3;
 
-				}
-			}
-		}
-		else {
-			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
-				if (bp->hide == 0) {
-					if (is_prop_edit) count++;
-					if (bp->f1 & SELECT) countsel++;
-				}
-			}
-		}
-	}
-	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) {
-		tc->data_len = 0;
-		continue;
-	}
-
-	if (is_prop_edit) tc->data_len = count;
-	else tc->data_len = countsel;
-	tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Curve EditMode)");
-
-	transform_around_single_fallback(t);
-
-	copy_m3_m4(mtx, tc->obedit->obmat);
-	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-	td = tc->data;
-	for (nu = nurbs->first; nu; nu = nu->next) {
-		if (nu->type == CU_BEZIER) {
-			TransData *head, *tail;
-			head = tail = td;
-			for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
-				if (bezt->hide == 0) {
-					TransDataCurveHandleFlags *hdata = NULL;
-					float axismtx[3][3];
-
-					if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-						float normal[3], plane[3];
-
-						BKE_nurb_bezt_calc_normal(nu, bezt, normal);
-						BKE_nurb_bezt_calc_plane(nu, bezt, plane);
-
-						if (createSpaceNormalTangent(axismtx, normal, plane)) {
-							/* pass */
-						}
-						else {
-							normalize_v3(normal);
-							axis_dominant_v3_to_m3(axismtx, normal);
-							invert_m3(axismtx);
-						}
 					}
+				}
+			}
+			else {
+				for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
+					if (bp->hide == 0) {
+						if (is_prop_edit) count++;
+						if (bp->f1 & SELECT) countsel++;
+					}
+				}
+			}
+		}
+		/* note: in prop mode we need at least 1 selected */
+		if (countsel == 0) {
+			tc->data_len = 0;
+			continue;
+		}
 
-					/* Elements that will be transform (not always a match to selection). */
-					const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+		if (is_prop_edit) tc->data_len = count;
+		else tc->data_len = countsel;
+		tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Curve EditMode)");
 
-					if (is_prop_edit || bezt_tx & SEL_F1) {
-						copy_v3_v3(td->iloc, bezt->vec[0]);
-						td->loc = bezt->vec[0];
-						copy_v3_v3(td->center, bezt->vec[(hide_handles ||
-						                                  (t->around == V3D_AROUND_LOCAL_ORIGINS) ||
-						                                  (bezt->f2 & SELECT)) ? 1 : 0]);
-						if (hide_handles) {
+		transform_around_single_fallback(t);
+
+		copy_m3_m4(mtx, tc->obedit->obmat);
+		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+
+		td = tc->data;
+		for (nu = nurbs->first; nu; nu = nu->next) {
+			if (nu->type == CU_BEZIER) {
+				TransData *head, *tail;
+				head = tail = td;
+				for (a = 0, bezt = nu->bezt; a < nu->pntsu; a++, bezt++) {
+					if (bezt->hide == 0) {
+						TransDataCurveHandleFlags *hdata = NULL;
+						float axismtx[3][3];
+
+						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+							float normal[3], plane[3];
+
+							BKE_nurb_bezt_calc_normal(nu, bezt, normal);
+							BKE_nurb_bezt_calc_plane(nu, bezt, plane);
+
+							if (createSpaceNormalTangent(axismtx, normal, plane)) {
+								/* pass */
+							}
+							else {
+								normalize_v3(normal);
+								axis_dominant_v3_to_m3(axismtx, normal);
+								invert_m3(axismtx);
+							}
+						}
+
+						/* Elements that will be transform (not always a match to selection). */
+						const int bezt_tx = bezt_select_to_transform_triple_flag(bezt, hide_handles);
+
+						if (is_prop_edit || bezt_tx & SEL_F1) {
+							copy_v3_v3(td->iloc, bezt->vec[0]);
+							td->loc = bezt->vec[0];
+							copy_v3_v3(td->center, bezt->vec[(hide_handles ||
+							                                  (t->around == V3D_AROUND_LOCAL_ORIGINS) ||
+							                                  (bezt->f2 & SELECT)) ? 1 : 0]);
+							if (hide_handles) {
+								if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
+								else td->flag = 0;
+							}
+							else {
+								if (bezt->f1 & SELECT) td->flag = TD_SELECTED;
+								else td->flag = 0;
+							}
+							td->ext = NULL;
+							td->val = NULL;
+
+							hdata = initTransDataCurveHandles(td, bezt);
+
+							copy_m3_m3(td->smtx, smtx);
+							copy_m3_m3(td->mtx, mtx);
+							if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+								copy_m3_m3(td->axismtx, axismtx);
+							}
+
+							td++;
+							count++;
+							tail++;
+						}
+
+						/* This is the Curve Point, the other two are handles */
+						if (is_prop_edit || bezt_tx & SEL_F2) {
+							copy_v3_v3(td->iloc, bezt->vec[1]);
+							td->loc = bezt->vec[1];
+							copy_v3_v3(td->center, td->loc);
 							if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
 							else td->flag = 0;
-						}
-						else {
-							if (bezt->f1 & SELECT) td->flag = TD_SELECTED;
-							else td->flag = 0;
-						}
-						td->ext = NULL;
-						td->val = NULL;
+							td->ext = NULL;
 
-						hdata = initTransDataCurveHandles(td, bezt);
+							if (t->mode == TFM_CURVE_SHRINKFATTEN) { /* || t->mode==TFM_RESIZE) {*/ /* TODO - make points scale */
+								td->val = &(bezt->radius);
+								td->ival = bezt->radius;
+							}
+							else if (t->mode == TFM_TILT) {
+								td->val = &(bezt->alfa);
+								td->ival = bezt->alfa;
+							}
+							else {
+								td->val = NULL;
+							}
 
-						copy_m3_m3(td->smtx, smtx);
-						copy_m3_m3(td->mtx, mtx);
-						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-							copy_m3_m3(td->axismtx, axismtx);
+							copy_m3_m3(td->smtx, smtx);
+							copy_m3_m3(td->mtx, mtx);
+							if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+								copy_m3_m3(td->axismtx, axismtx);
+							}
+
+							if ((bezt_tx & SEL_F1) == 0 && (bezt_tx & SEL_F3) == 0)
+								/* If the middle is selected but the sides arnt, this is needed */
+								if (hdata == NULL) { /* if the handle was not saved by the previous handle */
+									hdata = initTransDataCurveHandles(td, bezt);
+								}
+
+							td++;
+							count++;
+							tail++;
 						}
-
-						td++;
-						count++;
-						tail++;
-					}
-
-					/* This is the Curve Point, the other two are handles */
-					if (is_prop_edit || bezt_tx & SEL_F2) {
-						copy_v3_v3(td->iloc, bezt->vec[1]);
-						td->loc = bezt->vec[1];
-						copy_v3_v3(td->center, td->loc);
-						if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
-						else td->flag = 0;
-						td->ext = NULL;
-
-						if (t->mode == TFM_CURVE_SHRINKFATTEN) { /* || t->mode==TFM_RESIZE) {*/ /* TODO - make points scale */
-							td->val = &(bezt->radius);
-							td->ival = bezt->radius;
-						}
-						else if (t->mode == TFM_TILT) {
-							td->val = &(bezt->alfa);
-							td->ival = bezt->alfa;
-						}
-						else {
+						if (is_prop_edit || bezt_tx & SEL_F3) {
+							copy_v3_v3(td->iloc, bezt->vec[2]);
+							td->loc = bezt->vec[2];
+							copy_v3_v3(td->center, bezt->vec[(hide_handles ||
+							                                  (t->around == V3D_AROUND_LOCAL_ORIGINS) ||
+							                                  (bezt->f2 & SELECT)) ? 1 : 2]);
+							if (hide_handles) {
+								if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
+								else td->flag = 0;
+							}
+							else {
+								if (bezt->f3 & SELECT) td->flag = TD_SELECTED;
+								else td->flag = 0;
+							}
+							td->ext = NULL;
 							td->val = NULL;
-						}
 
-						copy_m3_m3(td->smtx, smtx);
-						copy_m3_m3(td->mtx, mtx);
-						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-							copy_m3_m3(td->axismtx, axismtx);
-						}
-
-						if ((bezt_tx & SEL_F1) == 0 && (bezt_tx & SEL_F3) == 0)
-							/* If the middle is selected but the sides arnt, this is needed */
 							if (hdata == NULL) { /* if the handle was not saved by the previous handle */
 								hdata = initTransDataCurveHandles(td, bezt);
 							}
 
-						td++;
-						count++;
-						tail++;
-					}
-					if (is_prop_edit || bezt_tx & SEL_F3) {
-						copy_v3_v3(td->iloc, bezt->vec[2]);
-						td->loc = bezt->vec[2];
-						copy_v3_v3(td->center, bezt->vec[(hide_handles ||
-						                                  (t->around == V3D_AROUND_LOCAL_ORIGINS) ||
-						                                  (bezt->f2 & SELECT)) ? 1 : 2]);
-						if (hide_handles) {
-							if (bezt->f2 & SELECT) td->flag = TD_SELECTED;
-							else td->flag = 0;
-						}
-						else {
-							if (bezt->f3 & SELECT) td->flag = TD_SELECTED;
-							else td->flag = 0;
-						}
-						td->ext = NULL;
-						td->val = NULL;
-
-						if (hdata == NULL) { /* if the handle was not saved by the previous handle */
-							hdata = initTransDataCurveHandles(td, bezt);
-						}
-
-						copy_m3_m3(td->smtx, smtx);
-						copy_m3_m3(td->mtx, mtx);
-						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-							copy_m3_m3(td->axismtx, axismtx);
-						}
-
-						td++;
-						count++;
-						tail++;
-					}
-
-					(void)hdata;  /* quiet warning */
-				}
-				else if (is_prop_edit && head != tail) {
-					calc_distanceCurveVerts(head, tail - 1);
-					head = tail;
-				}
-			}
-			if (is_prop_edit && head != tail)
-				calc_distanceCurveVerts(head, tail - 1);
-
-			/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
-			 * but for now just don't change handle types */
-			if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
-				/* sets the handles based on their selection, do this after the data is copied to the TransData */
-				BKE_nurb_handles_test(nu, !hide_handles);
-			}
-		}
-		else {
-			TransData *head, *tail;
-			head = tail = td;
-			for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
-				if (bp->hide == 0) {
-					if (is_prop_edit || (bp->f1 & SELECT)) {
-						float axismtx[3][3];
-
-						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-							if (nu->pntsv == 1) {
-								float normal[3], plane[3];
-
-								BKE_nurb_bpoint_calc_normal(nu, bp, normal);
-								BKE_nurb_bpoint_calc_plane(nu, bp, plane);
-
-								if (createSpaceNormalTangent(axismtx, normal, plane)) {
-									/* pass */
-								}
-								else {
-									normalize_v3(normal);
-									axis_dominant_v3_to_m3(axismtx, normal);
-									invert_m3(axismtx);
-								}
-							}
-						}
-
-						copy_v3_v3(td->iloc, bp->vec);
-						td->loc = bp->vec;
-						copy_v3_v3(td->center, td->loc);
-						if (bp->f1 & SELECT) td->flag = TD_SELECTED;
-						else td->flag = 0;
-						td->ext = NULL;
-
-						if (t->mode == TFM_CURVE_SHRINKFATTEN || t->mode == TFM_RESIZE) {
-							td->val = &(bp->radius);
-							td->ival = bp->radius;
-						}
-						else {
-							td->val = &(bp->alfa);
-							td->ival = bp->alfa;
-						}
-
-						copy_m3_m3(td->smtx, smtx);
-						copy_m3_m3(td->mtx, mtx);
-						if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
-							if (nu->pntsv == 1) {
+							copy_m3_m3(td->smtx, smtx);
+							copy_m3_m3(td->mtx, mtx);
+							if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
 								copy_m3_m3(td->axismtx, axismtx);
 							}
+
+							td++;
+							count++;
+							tail++;
 						}
 
-						td++;
-						count++;
-						tail++;
+						(void)hdata;  /* quiet warning */
+					}
+					else if (is_prop_edit && head != tail) {
+						calc_distanceCurveVerts(head, tail - 1);
+						head = tail;
 					}
 				}
-				else if (is_prop_edit && head != tail) {
+				if (is_prop_edit && head != tail)
 					calc_distanceCurveVerts(head, tail - 1);
-					head = tail;
+
+				/* TODO - in the case of tilt and radius we can also avoid allocating the initTransDataCurveHandles
+				 * but for now just don't change handle types */
+				if (ELEM(t->mode, TFM_CURVE_SHRINKFATTEN, TFM_TILT, TFM_DUMMY) == 0) {
+					/* sets the handles based on their selection, do this after the data is copied to the TransData */
+					BKE_nurb_handles_test(nu, !hide_handles);
 				}
 			}
-			if (is_prop_edit && head != tail)
-				calc_distanceCurveVerts(head, tail - 1);
+			else {
+				TransData *head, *tail;
+				head = tail = td;
+				for (a = nu->pntsu * nu->pntsv, bp = nu->bp; a > 0; a--, bp++) {
+					if (bp->hide == 0) {
+						if (is_prop_edit || (bp->f1 & SELECT)) {
+							float axismtx[3][3];
+
+							if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+								if (nu->pntsv == 1) {
+									float normal[3], plane[3];
+
+									BKE_nurb_bpoint_calc_normal(nu, bp, normal);
+									BKE_nurb_bpoint_calc_plane(nu, bp, plane);
+
+									if (createSpaceNormalTangent(axismtx, normal, plane)) {
+										/* pass */
+									}
+									else {
+										normalize_v3(normal);
+										axis_dominant_v3_to_m3(axismtx, normal);
+										invert_m3(axismtx);
+									}
+								}
+							}
+
+							copy_v3_v3(td->iloc, bp->vec);
+							td->loc = bp->vec;
+							copy_v3_v3(td->center, td->loc);
+							if (bp->f1 & SELECT) td->flag = TD_SELECTED;
+							else td->flag = 0;
+							td->ext = NULL;
+
+							if (t->mode == TFM_CURVE_SHRINKFATTEN || t->mode == TFM_RESIZE) {
+								td->val = &(bp->radius);
+								td->ival = bp->radius;
+							}
+							else {
+								td->val = &(bp->alfa);
+								td->ival = bp->alfa;
+							}
+
+							copy_m3_m3(td->smtx, smtx);
+							copy_m3_m3(td->mtx, mtx);
+							if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
+								if (nu->pntsv == 1) {
+									copy_m3_m3(td->axismtx, axismtx);
+								}
+							}
+
+							td++;
+							count++;
+							tail++;
+						}
+					}
+					else if (is_prop_edit && head != tail) {
+						calc_distanceCurveVerts(head, tail - 1);
+						head = tail;
+					}
+				}
+				if (is_prop_edit && head != tail)
+					calc_distanceCurveVerts(head, tail - 1);
+			}
 		}
-	}
 	}
 #undef SEL_F1
 #undef SEL_F2
@@ -1892,62 +1892,62 @@ static void createTransCurveVerts(TransInfo *t)
 static void createTransLatticeVerts(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	
-	Lattice *latt = ((Lattice *)tc->obedit->data)->editlatt->latt;
-	TransData *td = NULL;
-	BPoint *bp;
-	float mtx[3][3], smtx[3][3];
-	int a;
-	int count = 0, countsel = 0;
-	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
-	bp = latt->def;
-	a  = latt->pntsu * latt->pntsv * latt->pntsw;
-	while (a--) {
-		if (bp->hide == 0) {
-			if (bp->f1 & SELECT) countsel++;
-			if (is_prop_edit) count++;
-		}
-		bp++;
-	}
+		Lattice *latt = ((Lattice *)tc->obedit->data)->editlatt->latt;
+		TransData *td = NULL;
+		BPoint *bp;
+		float mtx[3][3], smtx[3][3];
+		int a;
+		int count = 0, countsel = 0;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
-	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) return;
-
-	if (is_prop_edit) tc->data_len = count;
-	else tc->data_len = countsel;
-	tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Lattice EditMode)");
-
-	copy_m3_m4(mtx, tc->obedit->obmat);
-	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-	td = tc->data;
-	bp = latt->def;
-	a  = latt->pntsu * latt->pntsv * latt->pntsw;
-	while (a--) {
-		if (is_prop_edit || (bp->f1 & SELECT)) {
+		bp = latt->def;
+		a  = latt->pntsu * latt->pntsv * latt->pntsw;
+		while (a--) {
 			if (bp->hide == 0) {
-				copy_v3_v3(td->iloc, bp->vec);
-				td->loc = bp->vec;
-				copy_v3_v3(td->center, td->loc);
-				if (bp->f1 & SELECT) {
-					td->flag = TD_SELECTED;
-				}
-				else {
-					td->flag = 0;
-				}
-				copy_m3_m3(td->smtx, smtx);
-				copy_m3_m3(td->mtx, mtx);
-
-				td->ext = NULL;
-				td->val = NULL;
-
-				td++;
-				count++;
+				if (bp->f1 & SELECT) countsel++;
+				if (is_prop_edit) count++;
 			}
+			bp++;
 		}
-		bp++;
-	}
+
+		/* note: in prop mode we need at least 1 selected */
+		if (countsel == 0) return;
+
+		if (is_prop_edit) tc->data_len = count;
+		else tc->data_len = countsel;
+		tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Lattice EditMode)");
+
+		copy_m3_m4(mtx, tc->obedit->obmat);
+		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+
+		td = tc->data;
+		bp = latt->def;
+		a  = latt->pntsu * latt->pntsv * latt->pntsw;
+		while (a--) {
+			if (is_prop_edit || (bp->f1 & SELECT)) {
+				if (bp->hide == 0) {
+					copy_v3_v3(td->iloc, bp->vec);
+					td->loc = bp->vec;
+					copy_v3_v3(td->center, td->loc);
+					if (bp->f1 & SELECT) {
+						td->flag = TD_SELECTED;
+					}
+					else {
+						td->flag = 0;
+					}
+					copy_m3_m3(td->smtx, smtx);
+					copy_m3_m3(td->mtx, mtx);
+
+					td->ext = NULL;
+					td->val = NULL;
+
+					td++;
+					count++;
+				}
+			}
+			bp++;
+		}
 	}
 }
 
@@ -1956,120 +1956,120 @@ static void createTransParticleVerts(bContext *C, TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	TransData *td = NULL;
-	TransDataExtension *tx;
-	Object *ob = CTX_data_active_object(C);
-	ParticleEditSettings *pset = PE_settings(t->scene);
-	PTCacheEdit *edit = PE_get_current(t->scene, ob);
-	ParticleSystem *psys = NULL;
-	ParticleSystemModifierData *psmd = NULL;
-	PTCacheEditPoint *point;
-	PTCacheEditKey *key;
-	float mat[4][4];
-	int i, k, transformparticle;
-	int count = 0, hasselected = 0;
-	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+		TransData *td = NULL;
+		TransDataExtension *tx;
+		Object *ob = CTX_data_active_object(C);
+		ParticleEditSettings *pset = PE_settings(t->scene);
+		PTCacheEdit *edit = PE_get_current(t->scene, ob);
+		ParticleSystem *psys = NULL;
+		ParticleSystemModifierData *psmd = NULL;
+		PTCacheEditPoint *point;
+		PTCacheEditKey *key;
+		float mat[4][4];
+		int i, k, transformparticle;
+		int count = 0, hasselected = 0;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
-	if (edit == NULL || t->settings->particle.selectmode == SCE_SELECT_PATH) return;
+		if (edit == NULL || t->settings->particle.selectmode == SCE_SELECT_PATH) return;
 
-	psys = edit->psys;
+		psys = edit->psys;
 
-	if (psys)
-		psmd = psys_get_modifier(ob, psys);
+		if (psys)
+			psmd = psys_get_modifier(ob, psys);
 
-	for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
-		point->flag &= ~PEP_TRANSFORM;
-		transformparticle = 0;
+		for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
+			point->flag &= ~PEP_TRANSFORM;
+			transformparticle = 0;
 
-		if ((point->flag & PEP_HIDE) == 0) {
-			for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
-				if ((key->flag & PEK_HIDE) == 0) {
-					if (key->flag & PEK_SELECT) {
-						hasselected = 1;
-						transformparticle = 1;
+			if ((point->flag & PEP_HIDE) == 0) {
+				for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
+					if ((key->flag & PEK_HIDE) == 0) {
+						if (key->flag & PEK_SELECT) {
+							hasselected = 1;
+							transformparticle = 1;
+						}
+						else if (is_prop_edit)
+							transformparticle = 1;
 					}
-					else if (is_prop_edit)
-						transformparticle = 1;
 				}
 			}
-		}
 
-		if (transformparticle) {
-			count += point->totkey;
-			point->flag |= PEP_TRANSFORM;
-		}
-	}
-
-	/* note: in prop mode we need at least 1 selected */
-	if (hasselected == 0) return;
-
-	tc->data_len = count;
-	td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Particle Mode)");
-
-	if (t->mode == TFM_BAKE_TIME)
-		tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "Particle_TransExtension");
-	else
-		tx = tc->data_ext = NULL;
-
-	unit_m4(mat);
-
-	invert_m4_m4(ob->imat, ob->obmat);
-
-	for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
-		TransData *head, *tail;
-		head = tail = td;
-
-		if (!(point->flag & PEP_TRANSFORM)) continue;
-
-		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR))
-			psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, psys->particles + i, mat);
-
-		for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
-			if (key->flag & PEK_USE_WCO) {
-				copy_v3_v3(key->world_co, key->co);
-				mul_m4_v3(mat, key->world_co);
-				td->loc = key->world_co;
+			if (transformparticle) {
+				count += point->totkey;
+				point->flag |= PEP_TRANSFORM;
 			}
-			else
-				td->loc = key->co;
-
-			copy_v3_v3(td->iloc, td->loc);
-			copy_v3_v3(td->center, td->loc);
-
-			if (key->flag & PEK_SELECT)
-				td->flag |= TD_SELECTED;
-			else if (!is_prop_edit)
-				td->flag |= TD_SKIP;
-
-			unit_m3(td->mtx);
-			unit_m3(td->smtx);
-
-			/* don't allow moving roots */
-			if (k == 0 && pset->flag & PE_LOCK_FIRST && (!psys || !(psys->flag & PSYS_GLOBAL_HAIR)))
-				td->protectflag |= OB_LOCK_LOC;
-
-			td->ob = ob;
-			td->ext = tx;
-			if (t->mode == TFM_BAKE_TIME) {
-				td->val = key->time;
-				td->ival = *(key->time);
-				/* abuse size and quat for min/max values */
-				td->flag |= TD_NO_EXT;
-				if (k == 0) tx->size = NULL;
-				else tx->size = (key - 1)->time;
-
-				if (k == point->totkey - 1) tx->quat = NULL;
-				else tx->quat = (key + 1)->time;
-			}
-
-			td++;
-			if (tx)
-				tx++;
-			tail++;
 		}
-		if (is_prop_edit && head != tail)
-			calc_distanceCurveVerts(head, tail - 1);
-	}
+
+		/* note: in prop mode we need at least 1 selected */
+		if (hasselected == 0) return;
+
+		tc->data_len = count;
+		td = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Particle Mode)");
+
+		if (t->mode == TFM_BAKE_TIME)
+			tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "Particle_TransExtension");
+		else
+			tx = tc->data_ext = NULL;
+
+		unit_m4(mat);
+
+		invert_m4_m4(ob->imat, ob->obmat);
+
+		for (i = 0, point = edit->points; i < edit->totpoint; i++, point++) {
+			TransData *head, *tail;
+			head = tail = td;
+
+			if (!(point->flag & PEP_TRANSFORM)) continue;
+
+			if (psys && !(psys->flag & PSYS_GLOBAL_HAIR))
+				psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, psys->particles + i, mat);
+
+			for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
+				if (key->flag & PEK_USE_WCO) {
+					copy_v3_v3(key->world_co, key->co);
+					mul_m4_v3(mat, key->world_co);
+					td->loc = key->world_co;
+				}
+				else
+					td->loc = key->co;
+
+				copy_v3_v3(td->iloc, td->loc);
+				copy_v3_v3(td->center, td->loc);
+
+				if (key->flag & PEK_SELECT)
+					td->flag |= TD_SELECTED;
+				else if (!is_prop_edit)
+					td->flag |= TD_SKIP;
+
+				unit_m3(td->mtx);
+				unit_m3(td->smtx);
+
+				/* don't allow moving roots */
+				if (k == 0 && pset->flag & PE_LOCK_FIRST && (!psys || !(psys->flag & PSYS_GLOBAL_HAIR)))
+					td->protectflag |= OB_LOCK_LOC;
+
+				td->ob = ob;
+				td->ext = tx;
+				if (t->mode == TFM_BAKE_TIME) {
+					td->val = key->time;
+					td->ival = *(key->time);
+					/* abuse size and quat for min/max values */
+					td->flag |= TD_NO_EXT;
+					if (k == 0) tx->size = NULL;
+					else tx->size = (key - 1)->time;
+
+					if (k == point->totkey - 1) tx->quat = NULL;
+					else tx->quat = (key + 1)->time;
+				}
+
+				td++;
+				if (tx)
+					tx++;
+				tail++;
+			}
+			if (is_prop_edit && head != tail)
+				calc_distanceCurveVerts(head, tail - 1);
+		}
 	}
 }
 
@@ -2077,49 +2077,49 @@ void flushTransParticles(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	Scene *scene = t->scene;
-	ViewLayer *view_layer = t->view_layer;
-	Object *ob = OBACT(view_layer);
-	PTCacheEdit *edit = PE_get_current(scene, ob);
-	ParticleSystem *psys = edit->psys;
-	ParticleSystemModifierData *psmd = NULL;
-	PTCacheEditPoint *point;
-	PTCacheEditKey *key;
-	TransData *td;
-	float mat[4][4], imat[4][4], co[3];
-	int i, k;
-	const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
+		Scene *scene = t->scene;
+		ViewLayer *view_layer = t->view_layer;
+		Object *ob = OBACT(view_layer);
+		PTCacheEdit *edit = PE_get_current(scene, ob);
+		ParticleSystem *psys = edit->psys;
+		ParticleSystemModifierData *psmd = NULL;
+		PTCacheEditPoint *point;
+		PTCacheEditKey *key;
+		TransData *td;
+		float mat[4][4], imat[4][4], co[3];
+		int i, k;
+		const bool is_prop_edit = (t->flag & T_PROP_EDIT) != 0;
 
-	if (psys)
-		psmd = psys_get_modifier(ob, psys);
+		if (psys)
+			psmd = psys_get_modifier(ob, psys);
 
-	/* we do transform in world space, so flush world space position
-	 * back to particle local space (only for hair particles) */
-	td = tc->data;
-	for (i = 0, point = edit->points; i < edit->totpoint; i++, point++, td++) {
-		if (!(point->flag & PEP_TRANSFORM)) continue;
+		/* we do transform in world space, so flush world space position
+		 * back to particle local space (only for hair particles) */
+		td = tc->data;
+		for (i = 0, point = edit->points; i < edit->totpoint; i++, point++, td++) {
+			if (!(point->flag & PEP_TRANSFORM)) continue;
 
-		if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
-			psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, psys->particles + i, mat);
-			invert_m4_m4(imat, mat);
+			if (psys && !(psys->flag & PSYS_GLOBAL_HAIR)) {
+				psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, psys->particles + i, mat);
+				invert_m4_m4(imat, mat);
 
-			for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
-				copy_v3_v3(co, key->world_co);
-				mul_m4_v3(imat, co);
+				for (k = 0, key = point->keys; k < point->totkey; k++, key++) {
+					copy_v3_v3(co, key->world_co);
+					mul_m4_v3(imat, co);
 
 
-				/* optimization for proportional edit */
-				if (!is_prop_edit || !compare_v3v3(key->co, co, 0.0001f)) {
-					copy_v3_v3(key->co, co);
-					point->flag |= PEP_EDIT_RECALC;
+					/* optimization for proportional edit */
+					if (!is_prop_edit || !compare_v3v3(key->co, co, 0.0001f)) {
+						copy_v3_v3(key->co, co);
+						point->flag |= PEP_EDIT_RECALC;
+					}
 				}
 			}
+			else
+				point->flag |= PEP_EDIT_RECALC;
 		}
-		else
-			point->flag |= PEP_EDIT_RECALC;
-	}
 
-	PE_update_object(&t->eval_ctx, scene, OBACT(view_layer), 1);
+		PE_update_object(&t->eval_ctx, scene, OBACT(view_layer), 1);
 	}
 }
 
@@ -2532,246 +2532,246 @@ static void createTransEditVerts(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	TransData *tob = NULL;
-	TransDataExtension *tx = NULL;
-	BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-	Mesh *me = tc->obedit->data;
-	BMesh *bm = em->bm;
-	BMVert *eve;
-	BMIter iter;
-	float (*mappedcos)[3] = NULL, (*quats)[4] = NULL;
-	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
-	float *dists = NULL;
-	int a;
-	const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
-	int mirror = 0;
-	int cd_vert_bweight_offset = -1;
-	bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+		TransData *tob = NULL;
+		TransDataExtension *tx = NULL;
+		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+		Mesh *me = tc->obedit->data;
+		BMesh *bm = em->bm;
+		BMVert *eve;
+		BMIter iter;
+		float (*mappedcos)[3] = NULL, (*quats)[4] = NULL;
+		float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
+		float *dists = NULL;
+		int a;
+		const int prop_mode = (t->flag & T_PROP_EDIT) ? (t->flag & T_PROP_EDIT_ALL) : 0;
+		int mirror = 0;
+		int cd_vert_bweight_offset = -1;
+		bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-	struct TransIslandData *island_info = NULL;
-	int island_info_tot;
-	int *island_vert_map = NULL;
+		struct TransIslandData *island_info = NULL;
+		int island_info_tot;
+		int *island_vert_map = NULL;
 
-	/* Even for translation this is needed because of island-orientation, see: T51651. */
-	const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
-	/* Original index of our connected vertex when connected distances are calculated.
-	 * Optional, allocate if needed. */
-	int *dists_index = NULL;
+		/* Even for translation this is needed because of island-orientation, see: T51651. */
+		const bool is_island_center = (t->around == V3D_AROUND_LOCAL_ORIGINS);
+		/* Original index of our connected vertex when connected distances are calculated.
+		 * Optional, allocate if needed. */
+		int *dists_index = NULL;
 
-	if (t->flag & T_MIRROR) {
-		/* TODO(campbell): xform: We need support for many mirror objects at once! */
-		if (tc->is_active) {
-			EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
-			mirror = 1;
-		}
-	}
-
-	/**
-	 * Quick check if we can transform.
-	 *
-	 * \note ignore modes here, even in edge/face modes, transform data is created by selected vertices.
-	 * \note in prop mode we need at least 1 selected.
-	 */
-	if (bm->totvertsel == 0) {
-		goto cleanup;
-	}
-
-	if (t->mode == TFM_BWEIGHT) {
-		BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_BWEIGHT);
-		cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
-	}
-
-	if (prop_mode) {
-		unsigned int count = 0;
-		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-				count++;
+		if (t->flag & T_MIRROR) {
+			/* TODO(campbell): xform: We need support for many mirror objects at once! */
+			if (tc->is_active) {
+				EDBM_verts_mirror_cache_begin(em, 0, false, (t->flag & T_PROP_EDIT) == 0, use_topology);
+				mirror = 1;
 			}
 		}
 
-		tc->data_len = count;
+		/**
+		 * Quick check if we can transform.
+		 *
+		 * \note ignore modes here, even in edge/face modes, transform data is created by selected vertices.
+		 * \note in prop mode we need at least 1 selected.
+		 */
+		if (bm->totvertsel == 0) {
+			goto cleanup;
+		}
 
-		/* allocating scratch arrays */
+		if (t->mode == TFM_BWEIGHT) {
+			BM_mesh_cd_flag_ensure(bm, BKE_mesh_from_object(tc->obedit), ME_CDFLAG_VERT_BWEIGHT);
+			cd_vert_bweight_offset = CustomData_get_offset(&bm->vdata, CD_BWEIGHT);
+		}
+
+		if (prop_mode) {
+			unsigned int count = 0;
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+					count++;
+				}
+			}
+
+			tc->data_len = count;
+
+			/* allocating scratch arrays */
+			if (prop_mode & T_PROP_CONNECTED) {
+				dists = MEM_mallocN(em->bm->totvert * sizeof(float), __func__);
+				if (is_island_center) {
+					dists_index =  MEM_mallocN(em->bm->totvert * sizeof(int), __func__);
+				}
+			}
+		}
+		else {
+			tc->data_len = bm->totvertsel;
+		}
+
+		tob = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Mesh EditMode)");
+		if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
+			/* warning, this is overkill, we only need 2 extra floats,
+			 * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
+			 * since we may not use the 'alt' transform mode to maintain shell thickness,
+			 * but with generic transform code its hard to lazy init vars */
+			tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObData ext");
+		}
+
+		copy_m3_m4(mtx, tc->obedit->obmat);
+		/* we use a pseudoinverse so that when one of the axes is scaled to 0,
+		 * matrix inversion still works and we can still moving along the other */
+		pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
+
 		if (prop_mode & T_PROP_CONNECTED) {
-			dists = MEM_mallocN(em->bm->totvert * sizeof(float), __func__);
-			if (is_island_center) {
-				dists_index =  MEM_mallocN(em->bm->totvert * sizeof(int), __func__);
+			editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
+		}
+
+		if (is_island_center) {
+			/* In this specific case, near-by vertices will need to know the island of the nearest connected vertex. */
+			const bool calc_single_islands = (
+			        (prop_mode & T_PROP_CONNECTED) &&
+			        (t->around == V3D_AROUND_LOCAL_ORIGINS) &&
+			        (em->selectmode & SCE_SELECT_VERTEX));
+
+			island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map, calc_single_islands);
+		}
+
+		/* detect CrazySpace [tm] */
+		if (modifiers_getCageIndex(t->scene, tc->obedit, NULL, 1) != -1) {
+			int totleft = -1;
+			if (modifiers_isCorrectableDeformed(t->scene, tc->obedit)) {
+				/* check if we can use deform matrices for modifier from the
+				 * start up to stack, they are more accurate than quats */
+				totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(&t->eval_ctx, t->scene, tc->obedit, em, &defmats, &defcos);
+			}
+
+			/* if we still have more modifiers, also do crazyspace
+			 * correction with quats, relative to the coordinates after
+			 * the modifiers that support deform matrices (defcos) */
+
+	#if 0	/* TODO, fix crazyspace+extrude so it can be enabled for general use - campbell */
+			if ((totleft > 0) || (totleft == -1))
+	#else
+			if (totleft > 0)
+	#endif
+			{
+				mappedcos = BKE_crazyspace_get_mapped_editverts(&t->eval_ctx, t->scene, tc->obedit);
+				quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
+				BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
+				if (mappedcos)
+					MEM_freeN(mappedcos);
+			}
+
+			if (defcos) {
+				MEM_freeN(defcos);
 			}
 		}
-	}
-	else {
-		tc->data_len = bm->totvertsel;
-	}
 
-	tob = tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(Mesh EditMode)");
-	if (ELEM(t->mode, TFM_SKIN_RESIZE, TFM_SHRINKFATTEN)) {
-		/* warning, this is overkill, we only need 2 extra floats,
-		 * but this stores loads of extra stuff, for TFM_SHRINKFATTEN its even more overkill
-		 * since we may not use the 'alt' transform mode to maintain shell thickness,
-		 * but with generic transform code its hard to lazy init vars */
-		tx = tc->data_ext = MEM_callocN(tc->data_len * sizeof(TransDataExtension), "TransObData ext");
-	}
-
-	copy_m3_m4(mtx, tc->obedit->obmat);
-	/* we use a pseudoinverse so that when one of the axes is scaled to 0,
-	 * matrix inversion still works and we can still moving along the other */
-	pseudoinverse_m3_m3(smtx, mtx, PSEUDOINVERSE_EPSILON);
-
-	if (prop_mode & T_PROP_CONNECTED) {
-		editmesh_set_connectivity_distance(em->bm, mtx, dists, dists_index);
-	}
-
-	if (is_island_center) {
-		/* In this specific case, near-by vertices will need to know the island of the nearest connected vertex. */
-		const bool calc_single_islands = (
-		        (prop_mode & T_PROP_CONNECTED) &&
-		        (t->around == V3D_AROUND_LOCAL_ORIGINS) &&
-		        (em->selectmode & SCE_SELECT_VERTEX));
-
-		island_info = editmesh_islands_info_calc(em, &island_info_tot, &island_vert_map, calc_single_islands);
-	}
-
-	/* detect CrazySpace [tm] */
-	if (modifiers_getCageIndex(t->scene, tc->obedit, NULL, 1) != -1) {
-		int totleft = -1;
-		if (modifiers_isCorrectableDeformed(t->scene, tc->obedit)) {
-			/* check if we can use deform matrices for modifier from the
-			 * start up to stack, they are more accurate than quats */
-			totleft = BKE_crazyspace_get_first_deform_matrices_editbmesh(&t->eval_ctx, t->scene, tc->obedit, em, &defmats, &defcos);
-		}
-
-		/* if we still have more modifiers, also do crazyspace
-		 * correction with quats, relative to the coordinates after
-		 * the modifiers that support deform matrices (defcos) */
-
-#if 0	/* TODO, fix crazyspace+extrude so it can be enabled for general use - campbell */
-		if ((totleft > 0) || (totleft == -1))
-#else
-		if (totleft > 0)
-#endif
-		{
-			mappedcos = BKE_crazyspace_get_mapped_editverts(&t->eval_ctx, t->scene, tc->obedit);
-			quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
-			BKE_crazyspace_set_quats_editmesh(em, defcos, mappedcos, quats, !prop_mode);
-			if (mappedcos)
-				MEM_freeN(mappedcos);
-		}
-
-		if (defcos) {
-			MEM_freeN(defcos);
-		}
-	}
-
-	/* find out which half we do */
-	if (mirror) {
-		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve->co[0] != 0.0f) {
-				if (eve->co[0] < 0.0f) {
-					t->mirror = -1;
-					mirror = -1;
+		/* find out which half we do */
+		if (mirror) {
+			BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
+				if (BM_elem_flag_test(eve, BM_ELEM_SELECT) && eve->co[0] != 0.0f) {
+					if (eve->co[0] < 0.0f) {
+						t->mirror = -1;
+						mirror = -1;
+					}
+					break;
 				}
-				break;
 			}
 		}
-	}
 
-	BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
-		if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
-			if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				struct TransIslandData *v_island = NULL;
-				float *bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) : NULL;
+		BM_ITER_MESH_INDEX (eve, &iter, bm, BM_VERTS_OF_MESH, a) {
+			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN)) {
+				if (prop_mode || BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					struct TransIslandData *v_island = NULL;
+					float *bweight = (cd_vert_bweight_offset != -1) ? BM_ELEM_CD_GET_VOID_P(eve, cd_vert_bweight_offset) : NULL;
 
-				if (island_info) {
-					const int connected_index = (dists_index && dists_index[a] != -1) ? dists_index[a] : a;
-					v_island = (island_vert_map[connected_index] != -1) ?
-					           &island_info[island_vert_map[connected_index]] : NULL;
-				}
+					if (island_info) {
+						const int connected_index = (dists_index && dists_index[a] != -1) ? dists_index[a] : a;
+						v_island = (island_vert_map[connected_index] != -1) ?
+						           &island_info[island_vert_map[connected_index]] : NULL;
+					}
 
 
-				VertsToTransData(t, tob, tx, em, eve, bweight, v_island);
-				if (tx)
-					tx++;
+					VertsToTransData(t, tob, tx, em, eve, bweight, v_island);
+					if (tx)
+						tx++;
 
-				/* selected */
-				if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
-					tob->flag |= TD_SELECTED;
+					/* selected */
+					if (BM_elem_flag_test(eve, BM_ELEM_SELECT))
+						tob->flag |= TD_SELECTED;
 
-				if (prop_mode) {
-					if (prop_mode & T_PROP_CONNECTED) {
-						tob->dist = dists[a];
+					if (prop_mode) {
+						if (prop_mode & T_PROP_CONNECTED) {
+							tob->dist = dists[a];
+						}
+						else {
+							tob->flag |= TD_NOTCONNECTED;
+							tob->dist = FLT_MAX;
+						}
+					}
+
+					/* CrazySpace */
+					if (defmats || (quats && BM_elem_flag_test(eve, BM_ELEM_TAG))) {
+						float mat[3][3], qmat[3][3], imat[3][3];
+
+						/* use both or either quat and defmat correction */
+						if (quats && BM_elem_flag_test(eve, BM_ELEM_TAG)) {
+							quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
+
+							if (defmats)
+								mul_m3_series(mat, defmats[a], qmat, mtx);
+							else
+								mul_m3_m3m3(mat, mtx, qmat);
+						}
+						else
+							mul_m3_m3m3(mat, mtx, defmats[a]);
+
+						invert_m3_m3(imat, mat);
+
+						copy_m3_m3(tob->smtx, imat);
+						copy_m3_m3(tob->mtx, mat);
 					}
 					else {
-						tob->flag |= TD_NOTCONNECTED;
-						tob->dist = FLT_MAX;
+						copy_m3_m3(tob->smtx, smtx);
+						copy_m3_m3(tob->mtx, mtx);
 					}
-				}
 
-				/* CrazySpace */
-				if (defmats || (quats && BM_elem_flag_test(eve, BM_ELEM_TAG))) {
-					float mat[3][3], qmat[3][3], imat[3][3];
-
-					/* use both or either quat and defmat correction */
-					if (quats && BM_elem_flag_test(eve, BM_ELEM_TAG)) {
-						quat_to_mat3(qmat, quats[BM_elem_index_get(eve)]);
-
-						if (defmats)
-							mul_m3_series(mat, defmats[a], qmat, mtx);
-						else
-							mul_m3_m3m3(mat, mtx, qmat);
+					/* Mirror? */
+					if ((mirror > 0 && tob->iloc[0] > 0.0f) || (mirror < 0 && tob->iloc[0] < 0.0f)) {
+						BMVert *vmir = EDBM_verts_mirror_get(em, eve); //t->obedit, em, eve, tob->iloc, a);
+						if (vmir && vmir != eve) {
+							tob->extra = vmir;
+						}
 					}
-					else
-						mul_m3_m3m3(mat, mtx, defmats[a]);
-
-					invert_m3_m3(imat, mat);
-
-					copy_m3_m3(tob->smtx, imat);
-					copy_m3_m3(tob->mtx, mat);
+					tob++;
 				}
-				else {
-					copy_m3_m3(tob->smtx, smtx);
-					copy_m3_m3(tob->mtx, mtx);
-				}
-
-				/* Mirror? */
-				if ((mirror > 0 && tob->iloc[0] > 0.0f) || (mirror < 0 && tob->iloc[0] < 0.0f)) {
-					BMVert *vmir = EDBM_verts_mirror_get(em, eve); //t->obedit, em, eve, tob->iloc, a);
-					if (vmir && vmir != eve) {
-						tob->extra = vmir;
-					}
-				}
-				tob++;
 			}
 		}
-	}
-	
-	if (island_info) {
-		MEM_freeN(island_info);
-		MEM_freeN(island_vert_map);
-	}
 
-	if (mirror != 0) {
-		tob = tc->data;
-		for (a = 0; a < tc->data_len; a++, tob++) {
-			if (ABS(tob->loc[0]) <= 0.00001f) {
-				tob->flag |= TD_MIRROR_EDGE;
+		if (island_info) {
+			MEM_freeN(island_info);
+			MEM_freeN(island_vert_map);
+		}
+
+		if (mirror != 0) {
+			tob = tc->data;
+			for (a = 0; a < tc->data_len; a++, tob++) {
+				if (ABS(tob->loc[0]) <= 0.00001f) {
+					tob->flag |= TD_MIRROR_EDGE;
+				}
 			}
 		}
-	}
 
 cleanup:
-	/* crazy space free */
-	if (quats)
-		MEM_freeN(quats);
-	if (defmats)
-		MEM_freeN(defmats);
-	if (dists)
-		MEM_freeN(dists);
-	if (dists_index)
-		MEM_freeN(dists_index);
+		/* crazy space free */
+		if (quats)
+			MEM_freeN(quats);
+		if (defmats)
+			MEM_freeN(defmats);
+		if (dists)
+			MEM_freeN(dists);
+		if (dists_index)
+			MEM_freeN(dists_index);
 
-	if (t->flag & T_MIRROR) {
-		EDBM_verts_mirror_cache_end(em);
-	}
+		if (t->flag & T_MIRROR) {
+			EDBM_verts_mirror_cache_end(em);
+		}
 	}
 }
 
@@ -2781,40 +2781,40 @@ void flushTransNodes(TransInfo *t)
 	const float dpi_fac = UI_DPI_FAC;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	int a;
-	TransData *td;
-	TransData2D *td2d;
-	
-	applyGridAbsolute(t);
-	
-	/* flush to 2d vector from internally used 3d vector */
-	for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {
-		bNode *node = td->extra;
-		float locx, locy;
+		int a;
+		TransData *td;
+		TransData2D *td2d;
 
-		/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
-#ifdef USE_NODE_CENTER
-		locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
-		locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
-#else
-		locx = td2d->loc[0] / dpi_fac;
-		locy = td2d->loc[1] / dpi_fac;
-#endif
-		
-		/* account for parents (nested nodes) */
-		if (node->parent) {
-			nodeFromView(node->parent, locx, locy, &node->locx, &node->locy);
-		}
-		else {
-			node->locx = locx;
-			node->locy = locy;
-		}
-	}
+		applyGridAbsolute(t);
 
-	/* handle intersection with noodles */
-	if (tc->data_len == 1) {
-		ED_node_link_intersect_test(t->sa, 1);
-	}
+		/* flush to 2d vector from internally used 3d vector */
+		for (a = 0, td = tc->data, td2d = tc->data_2d; a < tc->data_len; a++, td++, td2d++) {
+			bNode *node = td->extra;
+			float locx, locy;
+
+			/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
+	#ifdef USE_NODE_CENTER
+			locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
+			locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
+	#else
+			locx = td2d->loc[0] / dpi_fac;
+			locy = td2d->loc[1] / dpi_fac;
+	#endif
+
+			/* account for parents (nested nodes) */
+			if (node->parent) {
+				nodeFromView(node->parent, locx, locy, &node->locx, &node->locy);
+			}
+			else {
+				node->locx = locx;
+				node->locy = locy;
+			}
+		}
+
+		/* handle intersection with noodles */
+		if (tc->data_len == 1) {
+			ED_node_link_intersect_test(t->sa, 1);
+		}
 	}
 }
 
@@ -3018,161 +3018,161 @@ static void createTransUVs(bContext *C, TransInfo *t)
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	TransData *td = NULL;
-	TransData2D *td2d = NULL;
-	BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-	BMFace *efa;
-	BMIter iter, liter;
-	UvElementMap *elementmap = NULL;
-	BLI_bitmap *island_enabled = NULL;
-	struct { float co[2]; int co_num; } *island_center = NULL;
-	int count = 0, countsel = 0, count_rejected = 0;
-	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+		TransData *td = NULL;
+		TransData2D *td2d = NULL;
+		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+		BMFace *efa;
+		BMIter iter, liter;
+		UvElementMap *elementmap = NULL;
+		BLI_bitmap *island_enabled = NULL;
+		struct { float co[2]; int co_num; } *island_center = NULL;
+		int count = 0, countsel = 0, count_rejected = 0;
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-	if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
-		continue;
-	}
-
-	/* count */
-	if (is_prop_connected || is_island_center) {
-		/* create element map with island information */
-		const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
-		elementmap = BM_uv_element_map_create(em->bm, use_facesel, false, true);
-		if (elementmap == NULL) {
-			return;
-		}
-
-		if (is_prop_connected) {
-			island_enabled = BLI_BITMAP_NEW(elementmap->totalIslands, "TransIslandData(UV Editing)");
-		}
-
-		if (is_island_center) {
-			island_center = MEM_callocN(sizeof(*island_center) * elementmap->totalIslands, __func__);
-		}
-	}
-
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BMLoop *l;
-
-		if (!uvedit_face_visible_test(scene, tc->obedit, ima, efa)) {
-			BM_elem_flag_disable(efa, BM_ELEM_TAG);
+		if (!ED_space_image_show_uvedit(sima, tc->obedit)) {
 			continue;
 		}
 
-		BM_elem_flag_enable(efa, BM_ELEM_TAG);
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-				countsel++;
+		/* count */
+		if (is_prop_connected || is_island_center) {
+			/* create element map with island information */
+			const bool use_facesel = (ts->uv_flag & UV_SYNC_SELECTION) == 0;
+			elementmap = BM_uv_element_map_create(em->bm, use_facesel, false, true);
+			if (elementmap == NULL) {
+				return;
+			}
 
-				if (is_prop_connected || island_center) {
-					UvElement *element = BM_uv_element_get(elementmap, efa, l);
+			if (is_prop_connected) {
+				island_enabled = BLI_BITMAP_NEW(elementmap->totalIslands, "TransIslandData(UV Editing)");
+			}
 
-					if (is_prop_connected) {
-						BLI_BITMAP_ENABLE(island_enabled, element->island);
-					}
+			if (is_island_center) {
+				island_center = MEM_callocN(sizeof(*island_center) * elementmap->totalIslands, __func__);
+			}
+		}
 
-					if (is_island_center) {
-						if (element->flag == false) {
-							MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-							add_v2_v2(island_center[element->island].co, luv->uv);
-							island_center[element->island].co_num++;
-							element->flag = true;
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BMLoop *l;
+
+			if (!uvedit_face_visible_test(scene, tc->obedit, ima, efa)) {
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
+				continue;
+			}
+
+			BM_elem_flag_enable(efa, BM_ELEM_TAG);
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					countsel++;
+
+					if (is_prop_connected || island_center) {
+						UvElement *element = BM_uv_element_get(elementmap, efa, l);
+
+						if (is_prop_connected) {
+							BLI_BITMAP_ENABLE(island_enabled, element->island);
+						}
+
+						if (is_island_center) {
+							if (element->flag == false) {
+								MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+								add_v2_v2(island_center[element->island].co, luv->uv);
+								island_center[element->island].co_num++;
+								element->flag = true;
+							}
 						}
 					}
 				}
-			}
 
-			if (is_prop_edit) {
-				count++;
+				if (is_prop_edit) {
+					count++;
+				}
 			}
 		}
-	}
 
-	/* note: in prop mode we need at least 1 selected */
-	if (countsel == 0) {
-		goto finally;
-	}
-
-	if (is_island_center) {
-		int i;
-
-		for (i = 0; i < elementmap->totalIslands; i++) {
-			mul_v2_fl(island_center[i].co, 1.0f / island_center[i].co_num);
-			mul_v2_v2(island_center[i].co, t->aspect);
+		/* note: in prop mode we need at least 1 selected */
+		if (countsel == 0) {
+			goto finally;
 		}
-	}
 
-	tc->data_len = (is_prop_edit) ? count : countsel;
-	tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(UV Editing)");
-	/* for each 2d uv coord a 3d vector is allocated, so that they can be
-	 * treated just as if they were 3d verts */
-	tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D), "TransObData2D(UV Editing)");
+		if (is_island_center) {
+			int i;
 
-	if (sima->flag & SI_CLIP_UV)
-		t->flag |= T_CLIP_UV;
+			for (i = 0; i < elementmap->totalIslands; i++) {
+				mul_v2_fl(island_center[i].co, 1.0f / island_center[i].co_num);
+				mul_v2_v2(island_center[i].co, t->aspect);
+			}
+		}
 
-	td = tc->data;
-	td2d = tc->data_2d;
+		tc->data_len = (is_prop_edit) ? count : countsel;
+		tc->data = MEM_callocN(tc->data_len * sizeof(TransData), "TransObData(UV Editing)");
+		/* for each 2d uv coord a 3d vector is allocated, so that they can be
+		 * treated just as if they were 3d verts */
+		tc->data_2d = MEM_callocN(tc->data_len * sizeof(TransData2D), "TransObData2D(UV Editing)");
 
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		BMLoop *l;
+		if (sima->flag & SI_CLIP_UV)
+			t->flag |= T_CLIP_UV;
 
-		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
-			continue;
+		td = tc->data;
+		td2d = tc->data_2d;
 
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			const bool selected = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
-			MLoopUV *luv;
-			const float *center = NULL;
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			BMLoop *l;
 
-			if (!is_prop_edit && !selected)
+			if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 				continue;
 
-			if (is_prop_connected || is_island_center) {
-				UvElement *element = BM_uv_element_get(elementmap, efa, l);
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				const bool selected = uvedit_uv_select_test(scene, l, cd_loop_uv_offset);
+				MLoopUV *luv;
+				const float *center = NULL;
 
-				if (is_prop_connected) {
-					if (!BLI_BITMAP_TEST(island_enabled, element->island)) {
-						count_rejected++;
-						continue;
+				if (!is_prop_edit && !selected)
+					continue;
+
+				if (is_prop_connected || is_island_center) {
+					UvElement *element = BM_uv_element_get(elementmap, efa, l);
+
+					if (is_prop_connected) {
+						if (!BLI_BITMAP_TEST(island_enabled, element->island)) {
+							count_rejected++;
+							continue;
+						}
+					}
+
+					if (is_island_center) {
+						center = island_center[element->island].co;
 					}
 				}
 
-				if (is_island_center) {
-					center = island_center[element->island].co;
-				}
+				BM_elem_flag_enable(l, BM_ELEM_TAG);
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				UVsToTransData(t->aspect, td++, td2d++, luv->uv, center, selected);
 			}
-			
-			BM_elem_flag_enable(l, BM_ELEM_TAG);
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			UVsToTransData(t->aspect, td++, td2d++, luv->uv, center, selected);
 		}
-	}
-
-	if (is_prop_connected) {
-		tc->data_len -= count_rejected;
-	}
-
-	if (sima->flag & SI_LIVE_UNWRAP) {
-		/* TODO(campbell): xform: Only active object currently!
-		 * it uses a static variable. */
-		if (tc->is_active) {
-			ED_uvedit_live_unwrap_begin(t->scene, tc->obedit);
-		}
-	}
-
-finally:
-	if (is_prop_connected || is_island_center) {
-		BM_uv_element_map_free(elementmap);
 
 		if (is_prop_connected) {
-			MEM_freeN(island_enabled);
+			tc->data_len -= count_rejected;
 		}
 
-		if (island_center) {
-			MEM_freeN(island_center);
+		if (sima->flag & SI_LIVE_UNWRAP) {
+			/* TODO(campbell): xform: Only active object currently!
+			 * it uses a static variable. */
+			if (tc->is_active) {
+				ED_uvedit_live_unwrap_begin(t->scene, tc->obedit);
+			}
 		}
-	}
+
+finally:
+		if (is_prop_connected || is_island_center) {
+			BM_uv_element_map_free(elementmap);
+
+			if (is_prop_connected) {
+				MEM_freeN(island_enabled);
+			}
+
+			if (island_center) {
+				MEM_freeN(island_center);
+			}
+		}
 	}
 }
 
@@ -3182,30 +3182,30 @@ void flushTransUVs(TransInfo *t)
 	const bool use_pixel_snap = ((sima->flag & SI_PIXELSNAP) && (t->state != TRANS_CANCEL));
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData2D *td;
-	int a;
-	float aspect_inv[2], size[2];
+		TransData2D *td;
+		int a;
+		float aspect_inv[2], size[2];
 
-	aspect_inv[0] = 1.0f / t->aspect[0];
-	aspect_inv[1] = 1.0f / t->aspect[1];
-
-	if (use_pixel_snap) {
-		int size_i[2];
-		ED_space_image_get_size(sima, &size_i[0], &size_i[1]);
-		size[0] = size_i[0];
-		size[1] = size_i[1];
-	}
-
-	/* flush to 2d vector from internally used 3d vector */
-	for (a = 0, td = tc->data_2d; a < tc->data_len; a++, td++) {
-		td->loc2d[0] = td->loc[0] * aspect_inv[0];
-		td->loc2d[1] = td->loc[1] * aspect_inv[1];
+		aspect_inv[0] = 1.0f / t->aspect[0];
+		aspect_inv[1] = 1.0f / t->aspect[1];
 
 		if (use_pixel_snap) {
-			td->loc2d[0] = roundf(td->loc2d[0] * size[0]) / size[0];
-			td->loc2d[1] = roundf(td->loc2d[1] * size[1]) / size[1];
+			int size_i[2];
+			ED_space_image_get_size(sima, &size_i[0], &size_i[1]);
+			size[0] = size_i[0];
+			size[1] = size_i[1];
 		}
-	}
+
+		/* flush to 2d vector from internally used 3d vector */
+		for (a = 0, td = tc->data_2d; a < tc->data_len; a++, td++) {
+			td->loc2d[0] = td->loc[0] * aspect_inv[0];
+			td->loc2d[1] = td->loc[1] * aspect_inv[1];
+
+			if (use_pixel_snap) {
+				td->loc2d[0] = roundf(td->loc2d[0] * size[0]) / size[0];
+				td->loc2d[1] = roundf(td->loc2d[1] * size[1]) / size[1];
+			}
+		}
 	}
 }
 
@@ -3220,43 +3220,43 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	TransData *td;
-	int a;
+		TransData *td;
+		int a;
 
-	for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
-		minmax_v2v2_v2(min, max, td->loc);
-	}
+		for (a = 0, td = tc->data; a < tc->data_len; a++, td++) {
+			minmax_v2v2_v2(min, max, td->loc);
+		}
 
-	if (resize) {
-		if (min[0] < 0.0f && t->center_global[0] > 0.0f && t->center_global[0] < t->aspect[0] * 0.5f)
-			vec[0] *= t->center_global[0] / (t->center_global[0] - min[0]);
-		else if (max[0] > t->aspect[0] && t->center_global[0] < t->aspect[0])
-			vec[0] *= (t->center_global[0] - t->aspect[0]) / (t->center_global[0] - max[0]);
-		else
-			clipx = 0;
+		if (resize) {
+			if (min[0] < 0.0f && t->center_global[0] > 0.0f && t->center_global[0] < t->aspect[0] * 0.5f)
+				vec[0] *= t->center_global[0] / (t->center_global[0] - min[0]);
+			else if (max[0] > t->aspect[0] && t->center_global[0] < t->aspect[0])
+				vec[0] *= (t->center_global[0] - t->aspect[0]) / (t->center_global[0] - max[0]);
+			else
+				clipx = 0;
 
-		if (min[1] < 0.0f && t->center_global[1] > 0.0f && t->center_global[1] < t->aspect[1] * 0.5f)
-			vec[1] *= t->center_global[1] / (t->center_global[1] - min[1]);
-		else if (max[1] > t->aspect[1] && t->center_global[1] < t->aspect[1])
-			vec[1] *= (t->center_global[1] - t->aspect[1]) / (t->center_global[1] - max[1]);
-		else
-			clipy = 0;
-	}
-	else {
-		if (min[0] < 0.0f)
-			vec[0] -= min[0];
-		else if (max[0] > t->aspect[0])
-			vec[0] -= max[0] - t->aspect[0];
-		else
-			clipx = 0;
+			if (min[1] < 0.0f && t->center_global[1] > 0.0f && t->center_global[1] < t->aspect[1] * 0.5f)
+				vec[1] *= t->center_global[1] / (t->center_global[1] - min[1]);
+			else if (max[1] > t->aspect[1] && t->center_global[1] < t->aspect[1])
+				vec[1] *= (t->center_global[1] - t->aspect[1]) / (t->center_global[1] - max[1]);
+			else
+				clipy = 0;
+		}
+		else {
+			if (min[0] < 0.0f)
+				vec[0] -= min[0];
+			else if (max[0] > t->aspect[0])
+				vec[0] -= max[0] - t->aspect[0];
+			else
+				clipx = 0;
 
-		if (min[1] < 0.0f)
-			vec[1] -= min[1];
-		else if (max[1] > t->aspect[1])
-			vec[1] -= max[1] - t->aspect[1];
-		else
-			clipy = 0;
-	}
+			if (min[1] < 0.0f)
+				vec[1] -= min[1];
+			else if (max[1] > t->aspect[1])
+				vec[1] -= max[1] - t->aspect[1];
+			else
+				clipy = 0;
+		}
 	}
 
 	return (clipx || clipy);
@@ -3265,17 +3265,17 @@ bool clipUVTransform(TransInfo *t, float vec[2], const bool resize)
 void clipUVData(TransInfo *t)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (int a = 0; a < tc->data_len; a++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (int a = 0; a < tc->data_len; a++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if ((td->flag & TD_SKIP) || (!td->loc))
-			continue;
+			if ((td->flag & TD_SKIP) || (!td->loc))
+				continue;
 
-		td->loc[0] = min_ff(max_ff(0.0f, td->loc[0]), t->aspect[0]);
-		td->loc[1] = min_ff(max_ff(0.0f, td->loc[1]), t->aspect[1]);
-	}
+			td->loc[0] = min_ff(max_ff(0.0f, td->loc[0]), t->aspect[0]);
+			td->loc[1] = min_ff(max_ff(0.0f, td->loc[1]), t->aspect[1]);
+		}
 	}
 }
 
@@ -6233,39 +6233,39 @@ static void special_aftertrans_update__mesh(bContext *UNUSED(C), TransInfo *t)
 	{
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-		BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
-		BMesh *bm = em->bm;
-		char hflag;
-		bool has_face_sel = (bm->totfacesel != 0);
+			BMEditMesh *em = BKE_editmesh_from_object(tc->obedit);
+			BMesh *bm = em->bm;
+			char hflag;
+			bool has_face_sel = (bm->totfacesel != 0);
 
-		if (t->flag & T_MIRROR) {
-			TransData *td;
-			int i;
+			if (t->flag & T_MIRROR) {
+				TransData *td;
+				int i;
 
-			/* rather then adjusting the selection (which the user would notice)
-			 * tag all mirrored verts, then automerge those */
-			BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
+				/* rather then adjusting the selection (which the user would notice)
+				 * tag all mirrored verts, then automerge those */
+				BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, false);
 
-			for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
-				if (td->extra) {
-					BM_elem_flag_enable((BMVert *)td->extra, BM_ELEM_TAG);
+				for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+					if (td->extra) {
+						BM_elem_flag_enable((BMVert *)td->extra, BM_ELEM_TAG);
+					}
 				}
+
+				hflag = BM_ELEM_SELECT | BM_ELEM_TAG;
+			}
+			else {
+				hflag = BM_ELEM_SELECT;
 			}
 
-			hflag = BM_ELEM_SELECT | BM_ELEM_TAG;
-		}
-		else {
-			hflag = BM_ELEM_SELECT;
-		}
+			EDBM_automerge(t->scene, tc->obedit, true, hflag);
 
-		EDBM_automerge(t->scene, tc->obedit, true, hflag);
-
-		/* Special case, this is needed or faces won't re-select.
-		 * Flush selected edges to faces. */
-		if (has_face_sel && (em->selectmode == SCE_SELECT_FACE)) {
-			EDBM_selectmode_flush_ex(em, SCE_SELECT_EDGE);
+			/* Special case, this is needed or faces won't re-select.
+			 * Flush selected edges to faces. */
+			if (has_face_sel && (em->selectmode == SCE_SELECT_FACE)) {
+				EDBM_selectmode_flush_ex(em, SCE_SELECT_EDGE);
+			}
 		}
-	}
 	}
 }
 
@@ -6300,19 +6300,19 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 					projectEdgeSlideData(t, true);
 
 					FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-					EdgeSlideData *sld = tc->custom.mode.data;
+						EdgeSlideData *sld = tc->custom.mode.data;
 
-					/* free temporary faces to avoid automerging and deleting
-					 * during cleanup - psy-fi */
-					freeEdgeSlideTempFaces(sld);
+						/* free temporary faces to avoid automerging and deleting
+						 * during cleanup - psy-fi */
+						freeEdgeSlideTempFaces(sld);
 					}
 				}
 				else if (t->mode == TFM_VERT_SLIDE) {
 					/* as above */
 					projectVertSlideData(t, true);
 					FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-					VertSlideData *sld = tc->custom.mode.data;
-					freeVertSlideTempFaces(sld);
+						VertSlideData *sld = tc->custom.mode.data;
+						freeVertSlideTempFaces(sld);
 					}
 				}
 
@@ -6617,55 +6617,55 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-		bArmature *arm;
-		bPoseChannel *pchan;
-		short targetless_ik = 0;
+			bArmature *arm;
+			bPoseChannel *pchan;
+			short targetless_ik = 0;
 
-		ob = tc->poseobj;
-		arm = ob->data;
+			ob = tc->poseobj;
+			arm = ob->data;
 
-		if ((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
-			/* when running transform non-interactively (operator exec),
-			 * we need to update the pose otherwise no updates get called during
-			 * transform and the auto-ik is not applied. see [#26164] */
-			struct Object *pose_ob = tc->poseobj;
-			BKE_pose_where_is(&t->eval_ctx, t->scene, pose_ob);
-		}
-
-		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
-		if (!canceled && (t->mode != TFM_DUMMY))
-			count_set_pose_transflags(&t->mode, t->around, ob);
-
-		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
-		if (!canceled && t->mode == TFM_TRANSLATION)
-			targetless_ik = apply_targetless_ik(ob);
-		else {
-			/* not forget to clear the auto flag */
-			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-				bKinematicConstraint *data = has_targetless_ik(pchan);
-				if (data) data->flag &= ~CONSTRAINT_IK_AUTO;
+			if ((t->flag & T_AUTOIK) && (t->options & CTX_AUTOCONFIRM)) {
+				/* when running transform non-interactively (operator exec),
+				 * we need to update the pose otherwise no updates get called during
+				 * transform and the auto-ik is not applied. see [#26164] */
+				struct Object *pose_ob = tc->poseobj;
+				BKE_pose_where_is(&t->eval_ctx, t->scene, pose_ob);
 			}
-		}
 
-		if (t->mode == TFM_TRANSLATION)
-			pose_grab_with_ik_clear(ob);
+			/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
+			if (!canceled && (t->mode != TFM_DUMMY))
+				count_set_pose_transflags(&t->mode, t->around, ob);
 
-		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
-		if (!canceled && (t->mode != TFM_DUMMY)) {
-			autokeyframe_pose_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-		else if (arm->flag & ARM_DELAYDEFORM) {
-			/* TODO(sergey): Armature is already updated by recalcData(), so we
-			 * might save some time by skipping re-evaluating it. But this isn't
-			 * possible yet within new dependency graph, and also other contexts
-			 * might need to update their CoW copies.
-			 */
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
-		else {
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		}
+			/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
+			if (!canceled && t->mode == TFM_TRANSLATION)
+				targetless_ik = apply_targetless_ik(ob);
+			else {
+				/* not forget to clear the auto flag */
+				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
+					bKinematicConstraint *data = has_targetless_ik(pchan);
+					if (data) data->flag &= ~CONSTRAINT_IK_AUTO;
+				}
+			}
+
+			if (t->mode == TFM_TRANSLATION)
+				pose_grab_with_ik_clear(ob);
+
+			/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
+			if (!canceled && (t->mode != TFM_DUMMY)) {
+				autokeyframe_pose_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
+			else if (arm->flag & ARM_DELAYDEFORM) {
+				/* TODO(sergey): Armature is already updated by recalcData(), so we
+				 * might save some time by skipping re-evaluating it. But this isn't
+				 * possible yet within new dependency graph, and also other contexts
+				 * might need to update their CoW copies.
+				 */
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
+			else {
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
 		}
 	}
 	else if (t->options & CTX_PAINT_CURVE) {

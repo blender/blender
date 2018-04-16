@@ -1203,170 +1203,127 @@ static void uv_select_linked_multi(
 {
 	/* loop over objects, or just use hit_final->ob */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	if (hit_final && ob_index != 0) {
-		break;
-	}
-	Object *obedit = hit_final ? hit_final->ob : objects[ob_index];
+		if (hit_final && ob_index != 0) {
+			break;
+		}
+		Object *obedit = hit_final ? hit_final->ob : objects[ob_index];
 
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MLoopUV *luv;
-	UvVertMap *vmap;
-	UvMapVert *vlist, *iterv, *startv;
-	int i, stacksize = 0, *stack;
-	unsigned int a;
-	char *flag;
+		BMFace *efa;
+		BMLoop *l;
+		BMIter iter, liter;
+		MLoopUV *luv;
+		UvVertMap *vmap;
+		UvMapVert *vlist, *iterv, *startv;
+		int i, stacksize = 0, *stack;
+		unsigned int a;
+		char *flag;
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-	BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
+		BM_mesh_elem_table_ensure(em->bm, BM_FACE); /* we can use this too */
 
-	/* Note, we had 'use winding' so we don't consider overlapping islands as connected, see T44320
-	 * this made *every* projection split the island into front/back islands.
-	 * Keep 'use_winding' to false, see: T50970.
-	 *
-	 * Better solve this by having a delimit option for select-linked operator,
-	 * keeping island-select working as is. */
-	vmap = BM_uv_vert_map_create(em->bm, limit, !select_faces, false);
+		/* Note, we had 'use winding' so we don't consider overlapping islands as connected, see T44320
+		 * this made *every* projection split the island into front/back islands.
+		 * Keep 'use_winding' to false, see: T50970.
+		 *
+		 * Better solve this by having a delimit option for select-linked operator,
+		 * keeping island-select working as is. */
+		vmap = BM_uv_vert_map_create(em->bm, limit, !select_faces, false);
 
-	if (vmap == NULL)
-		return;
+		if (vmap == NULL)
+			return;
 
-	stack = MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack");
-	flag = MEM_callocN(sizeof(*flag) * em->bm->totface, "UvLinkFlag");
+		stack = MEM_mallocN(sizeof(*stack) * (em->bm->totface + 1), "UvLinkStack");
+		flag = MEM_callocN(sizeof(*flag) * em->bm->totface, "UvLinkFlag");
 
-	if (hit_final == NULL) {
-		/* Use existing selection */
-		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-			if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
-				if (select_faces) {
-					if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-						stack[stacksize] = a;
-						stacksize++;
-						flag[a] = 1;
-					}
-				}
-				else {
-					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-						if (luv->flag & MLOOPUV_VERTSEL) {
+		if (hit_final == NULL) {
+			/* Use existing selection */
+			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
+					if (select_faces) {
+						if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 							stack[stacksize] = a;
 							stacksize++;
 							flag[a] = 1;
+						}
+					}
+					else {
+						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-							break;
+							if (luv->flag & MLOOPUV_VERTSEL) {
+								stack[stacksize] = a;
+								stacksize++;
+								flag[a] = 1;
+
+								break;
+							}
 						}
 					}
 				}
 			}
 		}
-	}
-	else {
-		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-			if (efa == hit_final->efa) {
-				stack[stacksize] = a;
-				stacksize++;
-				flag[a] = 1;
-				break;
-			}
-		}
-	}
-
-	while (stacksize > 0) {
-
-		stacksize--;
-		a = stack[stacksize];
-
-		efa = BM_face_at_index(em->bm, a);
-
-		BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
-
-			/* make_uv_vert_map_EM sets verts tmp.l to the indices */
-			vlist = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
-			
-			startv = vlist;
-
-			for (iterv = vlist; iterv; iterv = iterv->next) {
-				if (iterv->separate)
-					startv = iterv;
-				if (iterv->f == a)
-					break;
-			}
-
-			for (iterv = startv; iterv; iterv = iterv->next) {
-				if ((startv != iterv) && (iterv->separate))
-					break;
-				else if (!flag[iterv->f]) {
-					flag[iterv->f] = 1;
-					stack[stacksize] = iterv->f;
+		else {
+			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
+				if (efa == hit_final->efa) {
+					stack[stacksize] = a;
 					stacksize++;
-				}
-			}
-		}
-	}
-
-	if (!extend) {
-		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-			if (select_faces) {
-				if (flag[a])
-					BM_face_select_set(em->bm, efa, true);
-				else
-					BM_face_select_set(em->bm, efa, false);
-			}
-			else {
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-					if (flag[a])
-						luv->flag |= MLOOPUV_VERTSEL;
-					else
-						luv->flag &= ~MLOOPUV_VERTSEL;
-				}
-			}
-		}
-	}
-	else {
-		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-			if (!flag[a]) {
-				continue;
-			}
-
-			if (select_faces) {
-				if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+					flag[a] = 1;
 					break;
+				}
 			}
-			else {
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+		}
 
-					if (luv->flag & MLOOPUV_VERTSEL) {
+		while (stacksize > 0) {
+
+			stacksize--;
+			a = stack[stacksize];
+
+			efa = BM_face_at_index(em->bm, a);
+
+			BM_ITER_ELEM_INDEX (l, &liter, efa, BM_LOOPS_OF_FACE, i) {
+
+				/* make_uv_vert_map_EM sets verts tmp.l to the indices */
+				vlist = BM_uv_vert_map_at_index(vmap, BM_elem_index_get(l->v));
+
+				startv = vlist;
+
+				for (iterv = vlist; iterv; iterv = iterv->next) {
+					if (iterv->separate)
+						startv = iterv;
+					if (iterv->f == a)
 						break;
+				}
+
+				for (iterv = startv; iterv; iterv = iterv->next) {
+					if ((startv != iterv) && (iterv->separate))
+						break;
+					else if (!flag[iterv->f]) {
+						flag[iterv->f] = 1;
+						stack[stacksize] = iterv->f;
+						stacksize++;
 					}
 				}
-
-				if (l) {
-					break;
-				}
 			}
 		}
 
-		if (efa) {
+		if (!extend) {
 			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-				if (!flag[a]) {
-					continue;
-				}
-
 				if (select_faces) {
-					BM_face_select_set(em->bm, efa, false);
+					if (flag[a])
+						BM_face_select_set(em->bm, efa, true);
+					else
+						BM_face_select_set(em->bm, efa, false);
 				}
 				else {
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-						luv->flag &= ~MLOOPUV_VERTSEL;
+						if (flag[a])
+							luv->flag |= MLOOPUV_VERTSEL;
+						else
+							luv->flag &= ~MLOOPUV_VERTSEL;
 					}
 				}
 			}
@@ -1378,22 +1335,65 @@ static void uv_select_linked_multi(
 				}
 
 				if (select_faces) {
-					BM_face_select_set(em->bm, efa, true);
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
+						break;
 				}
 				else {
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
-						luv->flag |= MLOOPUV_VERTSEL;
+						if (luv->flag & MLOOPUV_VERTSEL) {
+							break;
+						}
+					}
+
+					if (l) {
+						break;
+					}
+				}
+			}
+
+			if (efa) {
+				BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
+					if (!flag[a]) {
+						continue;
+					}
+
+					if (select_faces) {
+						BM_face_select_set(em->bm, efa, false);
+					}
+					else {
+						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+							luv->flag &= ~MLOOPUV_VERTSEL;
+						}
+					}
+				}
+			}
+			else {
+				BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
+					if (!flag[a]) {
+						continue;
+					}
+
+					if (select_faces) {
+						BM_face_select_set(em->bm, efa, true);
+					}
+					else {
+						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+							luv->flag |= MLOOPUV_VERTSEL;
+						}
 					}
 				}
 			}
 		}
-	}
-	
-	MEM_freeN(stack);
-	MEM_freeN(flag);
-	BM_uv_vert_map_free(vmap);
+
+		MEM_freeN(stack);
+		MEM_freeN(flag);
+		BM_uv_vert_map_free(vmap);
 	}
 }
 
@@ -3058,82 +3058,82 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 
 	/* don't indent to avoid diff noise! */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	bool changed = false;
+		bool changed = false;
 
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-	if (!extend)
-		uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
+		if (!extend)
+			uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
 
-	/* do actual selection */
-	if (use_face_center && !pinned) {
-		/* handle face selection mode */
-		float cent[2];
+		/* do actual selection */
+		if (use_face_center && !pinned) {
+			/* handle face selection mode */
+			float cent[2];
 
-		changed = false;
+			changed = false;
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			/* assume not touched */
-			BM_elem_flag_disable(efa, BM_ELEM_TAG);
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				/* assume not touched */
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
 
-			if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
-				uv_poly_center(efa, cent, cd_loop_uv_offset);
-				if (BLI_rctf_isect_pt_v(&rectf, cent)) {
-					BM_elem_flag_enable(efa, BM_ELEM_TAG);
-					changed = true;
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
+					uv_poly_center(efa, cent, cd_loop_uv_offset);
+					if (BLI_rctf_isect_pt_v(&rectf, cent)) {
+						BM_elem_flag_enable(efa, BM_ELEM_TAG);
+						changed = true;
+					}
 				}
+			}
+
+			/* (de)selects all tagged faces and deals with sticky modes */
+			if (changed) {
+				uv_select_flush_from_tag_face(sima, scene, obedit, select);
+			}
+		}
+		else {
+			/* other selection modes */
+			changed = true;
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+					continue;
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+
+					if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION)) {
+
+						/* UV_SYNC_SELECTION - can't do pinned selection */
+						if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
+							uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+							BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+						}
+					}
+					else if (pinned) {
+						if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
+							uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+							BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+						}
+					}
+				}
+			}
+
+			if (sima->sticky == SI_STICKY_VERTEX) {
+				uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
 			}
 		}
 
-		/* (de)selects all tagged faces and deals with sticky modes */
 		if (changed) {
-			uv_select_flush_from_tag_face(sima, scene, obedit, select);
-		}
-	}
-	else {
-		/* other selection modes */
-		changed = true;
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+			uv_select_sync_flush(ts, em, select);
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-				continue;
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-				if (!pinned || (ts->uv_flag & UV_SYNC_SELECTION)) {
-
-					/* UV_SYNC_SELECTION - can't do pinned selection */
-					if (BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
-						uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-						BM_elem_flag_enable(l->v, BM_ELEM_TAG);
-					}
-				}
-				else if (pinned) {
-					if ((luv->flag & MLOOPUV_PINNED) && BLI_rctf_isect_pt_v(&rectf, luv->uv)) {
-						uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-						BM_elem_flag_enable(l->v, BM_ELEM_TAG);
-					}
-				}
+			if (ts->uv_flag & UV_SYNC_SELECTION) {
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			}
 		}
-
-		if (sima->sticky == SI_STICKY_VERTEX) {
-			uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
-		}
-	}
-
-	if (changed) {
-		uv_select_sync_flush(ts, em, select);
-
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-		}
-	}
-	changed_multi |= changed;
+		changed_multi |= changed;
 	}
 
 	MEM_SAFE_FREE(objects);
@@ -3326,79 +3326,79 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 
 	/* don't indent to avoid diff noise! */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
+		Object *obedit = objects[ob_index];
 
-	bool changed = false;
+		bool changed = false;
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+		const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
 
-	if (!extend && select) {
-		uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
-	}
+		if (!extend && select) {
+			uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
+		}
 
-	if (use_face_center) { /* Face Center Sel */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			BM_elem_flag_disable(efa, BM_ELEM_TAG);
-			/* assume not touched */
-			if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
-				float cent[2];
-				uv_poly_center(efa, cent, cd_loop_uv_offset);
+		if (use_face_center) { /* Face Center Sel */
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				BM_elem_flag_disable(efa, BM_ELEM_TAG);
+				/* assume not touched */
+				if (select != uvedit_face_select_test(scene, efa, cd_loop_uv_offset)) {
+					float cent[2];
+					uv_poly_center(efa, cent, cd_loop_uv_offset);
 
-				if (UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]) &&
-				    BLI_rcti_isect_pt_v(&rect, screen_uv) &&
-				    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
-				{
-					BM_elem_flag_enable(efa, BM_ELEM_TAG);
-					changed = true;
+					if (UI_view2d_view_to_region_clip(&ar->v2d, cent[0], cent[1], &screen_uv[0], &screen_uv[1]) &&
+					    BLI_rcti_isect_pt_v(&rect, screen_uv) &&
+					    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
+					{
+						BM_elem_flag_enable(efa, BM_ELEM_TAG);
+						changed = true;
+					}
 				}
 			}
-		}
 
-		/* (de)selects all tagged faces and deals with sticky modes */
-		if (changed) {
-			uv_select_flush_from_tag_face(sima, scene, obedit, select);
+			/* (de)selects all tagged faces and deals with sticky modes */
+			if (changed) {
+				uv_select_flush_from_tag_face(sima, scene, obedit, select);
+			}
 		}
-	}
-	else { /* Vert Sel */
-		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
+		else { /* Vert Sel */
+			BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT, BM_ELEM_TAG, false);
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
-				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-					if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
-						MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-						if (UI_view2d_view_to_region_clip(
-						            &ar->v2d,
-						            luv->uv[0], luv->uv[1],
-						            &screen_uv[0], &screen_uv[1]) &&
-						    BLI_rcti_isect_pt_v(&rect, screen_uv) &&
-						    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
-						{
-							uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
-							changed = true;
-							BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (uvedit_face_visible_test(scene, obedit, ima, efa)) {
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						if ((select) != (uvedit_uv_select_test(scene, l, cd_loop_uv_offset))) {
+							MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+							if (UI_view2d_view_to_region_clip(
+							            &ar->v2d,
+							            luv->uv[0], luv->uv[1],
+							            &screen_uv[0], &screen_uv[1]) &&
+							    BLI_rcti_isect_pt_v(&rect, screen_uv) &&
+							    BLI_lasso_is_point_inside(mcords, moves, screen_uv[0], screen_uv[1], V2D_IS_CLIPPED))
+							{
+								uvedit_uv_select_set(em, scene, l, select, false, cd_loop_uv_offset);
+								changed = true;
+								BM_elem_flag_enable(l->v, BM_ELEM_TAG);
+							}
 						}
 					}
 				}
 			}
+
+			if (sima->sticky == SI_STICKY_VERTEX) {
+				uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
+			}
 		}
 
-		if (sima->sticky == SI_STICKY_VERTEX) {
-			uvedit_vertex_select_tagged(em, scene, select, cd_loop_uv_offset);
+		if (changed) {
+			uv_select_sync_flush(scene->toolsettings, em, select);
+
+			if (ts->uv_flag & UV_SYNC_SELECTION) {
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+			}
 		}
-	}
 
-	if (changed) {
-		uv_select_sync_flush(scene->toolsettings, em, select);
-
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-		}
-	}
-
-	changed_multi |= changed;
+		changed_multi |= changed;
 	}
 
 	return changed_multi;

@@ -378,46 +378,46 @@ static ParamHandle *construct_param_handle_multi(
 	int offset = 0;
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+		const int cd_loop_uv_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
 
-	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
+		BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, i) {
 
-		if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
-			continue;
-		}
-
-		if (implicit) {
-			bool is_loopsel = false;
-
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-					is_loopsel = true;
-					break;
-				}
-			}
-			if (is_loopsel == false) {
+			if ((BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) || (sel && BM_elem_flag_test(efa, BM_ELEM_SELECT) == 0)) {
 				continue;
 			}
+
+			if (implicit) {
+				bool is_loopsel = false;
+
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+						is_loopsel = true;
+						break;
+					}
+				}
+				if (is_loopsel == false) {
+					continue;
+				}
+			}
+
+			construct_param_handle_face_add(handle, scene, efa, i + offset, cd_loop_uv_offset);
 		}
 
-		construct_param_handle_face_add(handle, scene, efa, i + offset, cd_loop_uv_offset);
-	}
-
-	if (!implicit) {
-		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
-				ParamKey vkeys[2];
-				vkeys[0] = (ParamKey)BM_elem_index_get(eed->v1);
-				vkeys[1] = (ParamKey)BM_elem_index_get(eed->v2);
-				param_edge_set_seam(handle, vkeys);
+		if (!implicit) {
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(eed, BM_ELEM_SEAM)) {
+					ParamKey vkeys[2];
+					vkeys[0] = (ParamKey)BM_elem_index_get(eed->v1);
+					vkeys[1] = (ParamKey)BM_elem_index_get(eed->v2);
+					param_edge_set_seam(handle, vkeys);
+				}
 			}
 		}
-	}
-	offset += bm->totface;
+		offset += bm->totface;
 	}
 
 	param_construct_end(handle, fill, implicit);
@@ -1479,74 +1479,75 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	bool changed = false;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		bool changed = false;
 
-	/* add uvs if they don't exist yet */
-	if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
-		continue;
-	}
-
-	const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-	if (RNA_boolean_get(op->ptr, "orthographic")) {
-		uv_map_rotation_matrix(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f);
-		
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
-				continue;
-
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				BLI_uvproject_from_view_ortho(luv->uv, l->v->co, rotmat);
-			}
-			changed = true;
+		/* add uvs if they don't exist yet */
+		if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+			continue;
 		}
-	}
-	else if (camera) {
-		const bool camera_bounds = RNA_boolean_get(op->ptr, "camera_bounds");
-		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat,
-		                                                       camera_bounds ? (scene->r.xsch * scene->r.xasp) : 1.0f,
-		                                                       camera_bounds ? (scene->r.ysch * scene->r.yasp) : 1.0f);
 
-		if (uci) {
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		if (RNA_boolean_get(op->ptr, "orthographic")) {
+			uv_map_rotation_matrix(rotmat, rv3d, obedit, 90.0f, 0.0f, 1.0f);
+
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
 					continue;
 
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-					BLI_uvproject_from_camera(luv->uv, l->v->co, uci);
+					BLI_uvproject_from_view_ortho(luv->uv, l->v->co, rotmat);
 				}
 				changed = true;
 			}
-			
-			MEM_freeN(uci);
 		}
-	}
-	else {
-		copy_m4_m4(rotmat, obedit->obmat);
+		else if (camera) {
+			const bool camera_bounds = RNA_boolean_get(op->ptr, "camera_bounds");
+			struct ProjCameraInfo *uci = BLI_uvproject_camera_info(
+			        v3d->camera, obedit->obmat,
+			        camera_bounds ? (scene->r.xsch * scene->r.xasp) : 1.0f,
+			        camera_bounds ? (scene->r.ysch * scene->r.yasp) : 1.0f);
 
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
-				continue;
+			if (uci) {
+				BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+					if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
+						continue;
 
-			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				BLI_uvproject_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+						BLI_uvproject_from_camera(luv->uv, l->v->co, uci);
+					}
+					changed = true;
+				}
+
+				MEM_freeN(uci);
 			}
-			changed = true;
 		}
-	}
+		else {
+			copy_m4_m4(rotmat, obedit->obmat);
 
-	if (changed) {
-		uv_map_clip_correct(scene, obedit, em, op);
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT))
+					continue;
 
-		DEG_id_tag_update(obedit->data, 0);
-		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-		changed_multi = true;
-	}
+				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					BLI_uvproject_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+				}
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			uv_map_clip_correct(scene, obedit, em, op);
+
+			DEG_id_tag_update(obedit->data, 0);
+			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+			changed_multi = true;
+		}
 	}
 	MEM_SAFE_FREE(objects);
 

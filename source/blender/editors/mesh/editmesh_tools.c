@@ -99,30 +99,30 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
+		Object *obedit = objects[ob_index];
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int cuts = RNA_int_get(op->ptr, "number_cuts");
-	float smooth = RNA_float_get(op->ptr, "smoothness");
-	const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
-	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		const int cuts = RNA_int_get(op->ptr, "number_cuts");
+		float smooth = RNA_float_get(op->ptr, "smoothness");
+		const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+		const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
-	if (RNA_boolean_get(op->ptr, "quadtri") &&
-	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
-	{
-		RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
-	}
+		if (RNA_boolean_get(op->ptr, "quadtri") &&
+		    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
+		{
+			RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
+		}
 
-	BM_mesh_esubdivide(
-	        em->bm, BM_ELEM_SELECT,
-	        smooth, SUBD_FALLOFF_LIN, false,
-	        fractal, along_normal,
-	        cuts,
-	        SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
-	        RNA_boolean_get(op->ptr, "quadtri"), true, false,
-	        RNA_int_get(op->ptr, "seed"));
+		BM_mesh_esubdivide(
+		        em->bm, BM_ELEM_SELECT,
+		        smooth, SUBD_FALLOFF_LIN, false,
+		        fractal, along_normal,
+		        cuts,
+		        SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
+		        RNA_boolean_get(op->ptr, "quadtri"), true, false,
+		        RNA_int_get(op->ptr, "seed"));
 
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 	}
 
 	MEM_SAFE_FREE(objects);
@@ -392,43 +392,43 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const int type = RNA_enum_get(op->ptr, "type");
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		const int type = RNA_enum_get(op->ptr, "type");
 
-	switch (type) {
-		case MESH_DELETE_VERT:
-			if (!EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS))  /* Erase Vertices */
-				return OPERATOR_CANCELLED;
-			break;
-		case MESH_DELETE_EDGE:
-			if (!EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES))  /* Erase Edges */
-				return OPERATOR_CANCELLED;
-			break;
-		case MESH_DELETE_FACE:
-			if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES))  /* Erase Faces */
-				return OPERATOR_CANCELLED;
-			break;
-		case MESH_DELETE_EDGE_FACE:
-			/* Edges and Faces */
-			if (!EDBM_op_callf(em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES))
-				return OPERATOR_CANCELLED;
-			break;
-		case MESH_DELETE_ONLY_FACE:
-			/* Only faces. */
-			if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES))
-				return OPERATOR_CANCELLED;
-			break;
-		default:
-			BLI_assert(0);
-			break;
+		switch (type) {
+			case MESH_DELETE_VERT:
+				if (!EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS))  /* Erase Vertices */
+					return OPERATOR_CANCELLED;
+				break;
+			case MESH_DELETE_EDGE:
+				if (!EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES))  /* Erase Edges */
+					return OPERATOR_CANCELLED;
+				break;
+			case MESH_DELETE_FACE:
+				if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES))  /* Erase Faces */
+					return OPERATOR_CANCELLED;
+				break;
+			case MESH_DELETE_EDGE_FACE:
+				/* Edges and Faces */
+				if (!EDBM_op_callf(em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES))
+					return OPERATOR_CANCELLED;
+				break;
+			case MESH_DELETE_ONLY_FACE:
+				/* Only faces. */
+				if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES))
+					return OPERATOR_CANCELLED;
+				break;
+			default:
+				BLI_assert(0);
+				break;
+		}
+
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+		EDBM_update_generic(em, true, true);
+
 	}
-
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	EDBM_update_generic(em, true, true);
-
-	} /* objects */
 
 	return OPERATOR_FINISHED;
 }
@@ -499,53 +499,53 @@ static int edbm_delete_loose_exec(bContext *C, wmOperator *op)
 	const bool use_faces = (RNA_boolean_get(op->ptr, "use_faces") && totelem_old_sel[2]);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
+		Object *obedit = objects[ob_index];
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMIter iter;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		BMIter iter;
 
-	BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
+		BM_mesh_elem_hflag_disable_all(bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_TAG, false);
 
-	if (use_faces) {
-		BMFace *f;
+		if (use_faces) {
+			BMFace *f;
 
-		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_elem_flag_set(f, BM_ELEM_TAG, bm_face_is_loose(f));
+			BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+					BM_elem_flag_set(f, BM_ELEM_TAG, bm_face_is_loose(f));
+				}
 			}
+
+			BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
 		}
 
-		BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_FACES);
-	}
+		if (use_edges) {
+			BMEdge *e;
 
-	if (use_edges) {
-		BMEdge *e;
-
-		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
-				BM_elem_flag_set(e, BM_ELEM_TAG, BM_edge_is_wire(e));
+			BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(e, BM_ELEM_SELECT)) {
+					BM_elem_flag_set(e, BM_ELEM_TAG, BM_edge_is_wire(e));
+				}
 			}
+
+			BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_EDGES);
 		}
 
-		BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_EDGES);
-	}
+		if (use_verts) {
+			BMVert *v;
 
-	if (use_verts) {
-		BMVert *v;
-
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-				BM_elem_flag_set(v, BM_ELEM_TAG, (v->e == NULL));
+			BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+					BM_elem_flag_set(v, BM_ELEM_TAG, (v->e == NULL));
+				}
 			}
+
+			BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_VERTS);
 		}
 
-		BM_mesh_delete_hflag_context(bm, BM_ELEM_TAG, DEL_VERTS);
-	}
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 	}
 
 	int totelem_new[3];
@@ -4136,34 +4136,34 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
+		Object *obedit = objects[ob_index];
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
-	BMOIter oiter;
-	BMFace *f;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMOperator bmop;
+		BMOIter oiter;
+		BMFace *f;
 
-	EDBM_op_init(em, &bmop, op, "triangulate faces=%hf quad_method=%i ngon_method=%i", BM_ELEM_SELECT, quad_method, ngon_method);
-	BMO_op_exec(em->bm, &bmop);
+		EDBM_op_init(em, &bmop, op, "triangulate faces=%hf quad_method=%i ngon_method=%i", BM_ELEM_SELECT, quad_method, ngon_method);
+		BMO_op_exec(em->bm, &bmop);
 
-	/* select the output */
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+		/* select the output */
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 
-	/* remove the doubles */
-	BMO_ITER (f, &oiter, bmop.slots_out, "face_map_double.out", BM_FACE) {
-		BM_face_kill(em->bm, f);
-	}
+		/* remove the doubles */
+		BMO_ITER (f, &oiter, bmop.slots_out, "face_map_double.out", BM_FACE) {
+			BM_face_kill(em->bm, f);
+		}
 
-	EDBM_selectmode_flush(em);
+		EDBM_selectmode_flush(em);
 
-	// XXX, TODO
-#if 0
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-#endif
+		// XXX, TODO
+	#if 0
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			return OPERATOR_CANCELLED;
+		}
+	#endif
 
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 	}
 
 	return OPERATOR_FINISHED;
@@ -4212,53 +4212,53 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	}
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
+		Object *obedit = objects[ob_index];
 
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	bool do_seam, do_sharp, do_uvs, do_vcols, do_materials;
-	float angle_face_threshold, angle_shape_threshold;
-	PropertyRNA *prop;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		bool do_seam, do_sharp, do_uvs, do_vcols, do_materials;
+		float angle_face_threshold, angle_shape_threshold;
+		PropertyRNA *prop;
 
-	/* When joining exactly 2 faces, no limit.
-	 * this is useful for one off joins while editing. */
-	prop = RNA_struct_find_property(op->ptr, "face_threshold");
-	if (is_face_pair &&
-	    (RNA_property_is_set(op->ptr, prop) == false))
-	{
-		angle_face_threshold = DEG2RADF(180.0f);
-	}
-	else {
-		angle_face_threshold = RNA_property_float_get(op->ptr, prop);
-	}
+		/* When joining exactly 2 faces, no limit.
+		 * this is useful for one off joins while editing. */
+		prop = RNA_struct_find_property(op->ptr, "face_threshold");
+		if (is_face_pair &&
+		    (RNA_property_is_set(op->ptr, prop) == false))
+		{
+			angle_face_threshold = DEG2RADF(180.0f);
+		}
+		else {
+			angle_face_threshold = RNA_property_float_get(op->ptr, prop);
+		}
 
-	prop = RNA_struct_find_property(op->ptr, "shape_threshold");
-	if (is_face_pair &&
-	    (RNA_property_is_set(op->ptr, prop) == false))
-	{
-		angle_shape_threshold = DEG2RADF(180.0f);
-	}
-	else {
-		angle_shape_threshold = RNA_property_float_get(op->ptr, prop);
-	}
+		prop = RNA_struct_find_property(op->ptr, "shape_threshold");
+		if (is_face_pair &&
+		    (RNA_property_is_set(op->ptr, prop) == false))
+		{
+			angle_shape_threshold = DEG2RADF(180.0f);
+		}
+		else {
+			angle_shape_threshold = RNA_property_float_get(op->ptr, prop);
+		}
 
-	do_seam = RNA_boolean_get(op->ptr, "seam");
-	do_sharp = RNA_boolean_get(op->ptr, "sharp");
-	do_uvs = RNA_boolean_get(op->ptr, "uvs");
-	do_vcols = RNA_boolean_get(op->ptr, "vcols");
-	do_materials = RNA_boolean_get(op->ptr, "materials");
+		do_seam = RNA_boolean_get(op->ptr, "seam");
+		do_sharp = RNA_boolean_get(op->ptr, "sharp");
+		do_uvs = RNA_boolean_get(op->ptr, "uvs");
+		do_vcols = RNA_boolean_get(op->ptr, "vcols");
+		do_materials = RNA_boolean_get(op->ptr, "materials");
 
-	if (!EDBM_op_call_and_selectf(
-	        em, op,
-	        "faces.out", true,
-	        "join_triangles faces=%hf angle_face_threshold=%f angle_shape_threshold=%f "
-	        "cmp_seam=%b cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
-	        BM_ELEM_SELECT, angle_face_threshold, angle_shape_threshold,
-	        do_seam, do_sharp, do_uvs, do_vcols, do_materials))
-	{
-		continue;
-	}
+		if (!EDBM_op_call_and_selectf(
+		        em, op,
+		        "faces.out", true,
+		        "join_triangles faces=%hf angle_face_threshold=%f angle_shape_threshold=%f "
+		        "cmp_seam=%b cmp_sharp=%b cmp_uvs=%b cmp_vcols=%b cmp_materials=%b",
+		        BM_ELEM_SELECT, angle_face_threshold, angle_shape_threshold,
+		        do_seam, do_sharp, do_uvs, do_vcols, do_materials))
+		{
+			continue;
+		}
 
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 	}
 
 	return OPERATOR_FINISHED;
@@ -4805,26 +4805,26 @@ static int edbm_dissolve_degenerate_exec(bContext *C, wmOperator *op)
 	const float thresh = RNA_float_get(op->ptr, "threshold");
 	
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	if (!EDBM_op_callf(
-	        em, op,
-	        "dissolve_degenerate edges=%he dist=%f",
-	        BM_ELEM_SELECT, thresh))
-	{
-		return OPERATOR_CANCELLED;
-	}
+		if (!EDBM_op_callf(
+		        em, op,
+		        "dissolve_degenerate edges=%he dist=%f",
+		        BM_ELEM_SELECT, thresh))
+		{
+			return OPERATOR_CANCELLED;
+		}
 
-	/* tricky to maintain correct selection here, so just flush up from verts */
-	EDBM_select_flush(em);
+		/* tricky to maintain correct selection here, so just flush up from verts */
+		EDBM_select_flush(em);
 
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 
-	totelem_new[0] += bm->totvert;
-	totelem_new[1] += bm->totedge;
-	totelem_new[2] += bm->totface;
+		totelem_new[0] += bm->totvert;
+		totelem_new[1] += bm->totedge;
+		totelem_new[2] += bm->totface;
 	}
 
 	edbm_report_delete_info(op->reports, totelem_old, totelem_new);

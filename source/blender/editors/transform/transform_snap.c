@@ -276,72 +276,74 @@ void applyProject(TransInfo *t)
 		int i;
 
 		FOREACH_TRANS_DATA_CONTAINER(t, tc) {
-		TransData *td = tc->data;
+			TransData *td = tc->data;
 
-		float imat[4][4];
-		if (t->flag & (T_EDIT | T_POSE)) {
-			Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-			invert_m4_m4(imat, ob->obmat);
-		}
-
-		for (i = 0; i < tc->data_len; i++, td++) {
-			float iloc[3], loc[3], no[3];
-			float mval_fl[2];
-			float dist_px = TRANSFORM_DIST_MAX_PX;
-			
-			if (td->flag & TD_NOACTION)
-				break;
-			
-			if (td->flag & TD_SKIP)
-				continue;
-
-			if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f))
-				continue;
-			
-			copy_v3_v3(iloc, td->loc);
+			float imat[4][4];
 			if (t->flag & (T_EDIT | T_POSE)) {
 				Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-				mul_m4_v3(ob->obmat, iloc);
+				invert_m4_m4(imat, ob->obmat);
 			}
-			else if (t->flag & T_OBJECT) {
-				BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
-				copy_v3_v3(iloc, td->ob->obmat[3]);
-			}
-			
-			if (ED_view3d_project_float_global(t->ar, iloc, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				if (snapObjectsTransform(
-				        t, mval_fl, &dist_px,
-				        loc, no))
-				{
-//					if (t->flag & (T_EDIT|T_POSE)) {
-//						mul_m4_v3(imat, loc);
-//					}
 
-					sub_v3_v3v3(tvec, loc, iloc);
+			for (i = 0; i < tc->data_len; i++, td++) {
+				float iloc[3], loc[3], no[3];
+				float mval_fl[2];
+				float dist_px = TRANSFORM_DIST_MAX_PX;
 
-					mul_m3_v3(td->smtx, tvec);
+				if (td->flag & TD_NOACTION)
+					break;
 
-					add_v3_v3(td->loc, tvec);
+				if (td->flag & TD_SKIP)
+					continue;
 
-					if (t->tsnap.align && (t->flag & T_OBJECT)) {
-						/* handle alignment as well */
-						const float *original_normal;
-						float mat[3][3];
+				if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f))
+					continue;
 
-						/* In pose mode, we want to align normals with Y axis of bones... */
-						original_normal = td->axismtx[2];
+				copy_v3_v3(iloc, td->loc);
+				if (t->flag & (T_EDIT | T_POSE)) {
+					Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
+					mul_m4_v3(ob->obmat, iloc);
+				}
+				else if (t->flag & T_OBJECT) {
+					BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
+					copy_v3_v3(iloc, td->ob->obmat[3]);
+				}
 
-						rotation_between_vecs_to_mat3(mat, original_normal, no);
+				if (ED_view3d_project_float_global(t->ar, iloc, mval_fl, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
+					if (snapObjectsTransform(
+					        t, mval_fl, &dist_px,
+					        loc, no))
+					{
+#if 0
+						if (t->flag & (T_EDIT | T_POSE)) {
+							mul_m4_v3(imat, loc);
+						}
+#endif
 
-						transform_data_ext_rotate(td, mat, true);
+						sub_v3_v3v3(tvec, loc, iloc);
 
-						/* TODO support constraints for rotation too? see ElementRotation */
+						mul_m3_v3(td->smtx, tvec);
+
+						add_v3_v3(td->loc, tvec);
+
+						if (t->tsnap.align && (t->flag & T_OBJECT)) {
+							/* handle alignment as well */
+							const float *original_normal;
+							float mat[3][3];
+
+							/* In pose mode, we want to align normals with Y axis of bones... */
+							original_normal = td->axismtx[2];
+
+							rotation_between_vecs_to_mat3(mat, original_normal, no);
+
+							transform_data_ext_rotate(td, mat, true);
+
+							/* TODO support constraints for rotation too? see ElementRotation */
+						}
 					}
 				}
+
+				//XXX constraintTransLim(t, td);
 			}
-			
-			//XXX constraintTransLim(t, td);
-		}
 		}
 	}
 }
@@ -371,45 +373,45 @@ void applyGridAbsolute(TransInfo *t)
 		return;
 	
 	FOREACH_TRANS_DATA_CONTAINER(t, tc) {
-	TransData *td;
+		TransData *td;
 
-	if (t->flag & (T_EDIT | T_POSE)) {
-		Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-		obmat = ob->obmat;
-		use_obmat = true;
-	}
-	
-	for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
-		float iloc[3], loc[3], tvec[3];
-		
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
-		
-		if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f))
-			continue;
-		
-		copy_v3_v3(iloc, td->loc);
-		if (use_obmat) {
-			mul_m4_v3(obmat, iloc);
+		if (t->flag & (T_EDIT | T_POSE)) {
+			Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
+			obmat = ob->obmat;
+			use_obmat = true;
 		}
-		else if (t->flag & T_OBJECT) {
-			BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
-			copy_v3_v3(iloc, td->ob->obmat[3]);
-		}
-		
-		mul_v3_v3fl(loc, iloc, 1.0f / grid_size);
-		loc[0] = roundf(loc[0]);
-		loc[1] = roundf(loc[1]);
-		loc[2] = roundf(loc[2]);
-		mul_v3_fl(loc, grid_size);
 
-		sub_v3_v3v3(tvec, loc, iloc);
-		mul_m3_v3(td->smtx, tvec);
-		add_v3_v3(td->loc, tvec);
-	}
+		for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
+			float iloc[3], loc[3], tvec[3];
+
+			if (td->flag & TD_NOACTION)
+				break;
+
+			if (td->flag & TD_SKIP)
+				continue;
+
+			if ((t->flag & T_PROP_EDIT) && (td->factor == 0.0f))
+				continue;
+
+			copy_v3_v3(iloc, td->loc);
+			if (use_obmat) {
+				mul_m4_v3(obmat, iloc);
+			}
+			else if (t->flag & T_OBJECT) {
+				BKE_object_eval_transform_all(G.main->eval_ctx, t->scene, td->ob);
+				copy_v3_v3(iloc, td->ob->obmat[3]);
+			}
+
+			mul_v3_v3fl(loc, iloc, 1.0f / grid_size);
+			loc[0] = roundf(loc[0]);
+			loc[1] = roundf(loc[1]);
+			loc[2] = roundf(loc[2]);
+			mul_v3_fl(loc, grid_size);
+
+			sub_v3_v3v3(tvec, loc, iloc);
+			mul_m3_v3(td->smtx, tvec);
+			add_v3_v3(td->loc, tvec);
+		}
 	}
 }
 
@@ -1130,21 +1132,39 @@ static void TargetSnapClosest(TransInfo *t)
 		if (t->flag & T_OBJECT) {
 			int i;
 			FOREACH_TRANS_DATA_CONTAINER(t, tc) {
-			TransData *td = tc->data;
-			for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
-				struct BoundBox *bb = BKE_object_boundbox_get(td->ob);
-				
-				/* use boundbox if possible */
-				if (bb) {
-					int j;
-					
-					for (j = 0; j < 8; j++) {
+				TransData *td = tc->data;
+				for (td = tc->data, i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
+					struct BoundBox *bb = BKE_object_boundbox_get(td->ob);
+
+					/* use boundbox if possible */
+					if (bb) {
+						int j;
+
+						for (j = 0; j < 8; j++) {
+							float loc[3];
+							float dist;
+
+							copy_v3_v3(loc, bb->vec[j]);
+							mul_m4_v3(td->ext->obmat, loc);
+
+							dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
+
+							if ((dist != TRANSFORM_DIST_INVALID) &&
+							    (closest == NULL || fabsf(dist) < fabsf(dist_closest)))
+							{
+								copy_v3_v3(t->tsnap.snapTarget, loc);
+								closest = td;
+								dist_closest = dist;
+							}
+						}
+					}
+					/* use element center otherwise */
+					else {
 						float loc[3];
 						float dist;
-						
-						copy_v3_v3(loc, bb->vec[j]);
-						mul_m4_v3(td->ext->obmat, loc);
-						
+
+						copy_v3_v3(loc, td->center);
+
 						dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 
 						if ((dist != TRANSFORM_DIST_INVALID) &&
@@ -1152,17 +1172,26 @@ static void TargetSnapClosest(TransInfo *t)
 						{
 							copy_v3_v3(t->tsnap.snapTarget, loc);
 							closest = td;
-							dist_closest = dist;
 						}
 					}
 				}
-				/* use element center otherwise */
-				else {
+			}
+		}
+		else {
+			FOREACH_TRANS_DATA_CONTAINER(t, tc) {
+				TransData *td = tc->data;
+				int i;
+				for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
 					float loc[3];
 					float dist;
-					
+
 					copy_v3_v3(loc, td->center);
-					
+
+					if (t->flag & (T_EDIT | T_POSE)) {
+						Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
+						mul_m4_v3(ob->obmat, loc);
+					}
+
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
 
 					if ((dist != TRANSFORM_DIST_INVALID) &&
@@ -1170,36 +1199,9 @@ static void TargetSnapClosest(TransInfo *t)
 					{
 						copy_v3_v3(t->tsnap.snapTarget, loc);
 						closest = td;
+						dist_closest = dist;
 					}
 				}
-			}
-			}
-		}
-		else {
-			FOREACH_TRANS_DATA_CONTAINER(t, tc) {
-			TransData *td = tc->data;
-			int i;
-			for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
-				float loc[3];
-				float dist;
-				
-				copy_v3_v3(loc, td->center);
-				
-				if (t->flag & (T_EDIT | T_POSE)) {
-					Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-					mul_m4_v3(ob->obmat, loc);
-				}
-				
-				dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
-				
-				if ((dist != TRANSFORM_DIST_INVALID) &&
-				    (closest == NULL || fabsf(dist) < fabsf(dist_closest)))
-				{
-					copy_v3_v3(t->tsnap.snapTarget, loc);
-					closest = td;
-					dist_closest = dist;
-				}
-			}
 			}
 		}
 		

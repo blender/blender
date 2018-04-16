@@ -860,31 +860,31 @@ static void view3d_lasso_select(
 	else { /* Edit Mode */
 
 		FOREACH_OBJECT_IN_MODE_BEGIN (eval_ctx.view_layer, ob->mode, ob_iter) {
-		ED_view3d_viewcontext_init_object(vc, ob_iter);
+			ED_view3d_viewcontext_init_object(vc, ob_iter);
 
-		switch (vc->obedit->type) {
-			case OB_MESH:
-				do_lasso_select_mesh(&eval_ctx, vc, mcords, moves, extend, select);
-				break;
-			case OB_CURVE:
-			case OB_SURF:
-				do_lasso_select_curve(vc, mcords, moves, extend, select);
-				break;
-			case OB_LATTICE:
-				do_lasso_select_lattice(vc, mcords, moves, extend, select);
-				break;
-			case OB_ARMATURE:
-				do_lasso_select_armature(vc, mcords, moves, extend, select);
-				break;
-			case OB_MBALL:
-				do_lasso_select_meta(vc, mcords, moves, extend, select);
-				break;
-			default:
-				assert(!"lasso select on incorrect object type");
-				break;
-		}
+			switch (vc->obedit->type) {
+				case OB_MESH:
+					do_lasso_select_mesh(&eval_ctx, vc, mcords, moves, extend, select);
+					break;
+				case OB_CURVE:
+				case OB_SURF:
+					do_lasso_select_curve(vc, mcords, moves, extend, select);
+					break;
+				case OB_LATTICE:
+					do_lasso_select_lattice(vc, mcords, moves, extend, select);
+					break;
+				case OB_ARMATURE:
+					do_lasso_select_armature(vc, mcords, moves, extend, select);
+					break;
+				case OB_MBALL:
+					do_lasso_select_meta(vc, mcords, moves, extend, select);
+					break;
+				default:
+					assert(!"lasso select on incorrect object type");
+					break;
+			}
 
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc->obedit->data);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc->obedit->data);
 		}
 		FOREACH_OBJECT_IN_MODE_END;
 	}
@@ -2209,45 +2209,45 @@ static int view3d_borderselect_exec(bContext *C, wmOperator *op)
 	if (vc.obedit) {
 
 		FOREACH_OBJECT_IN_MODE_BEGIN (eval_ctx.view_layer, vc.obedit->mode, ob_iter) {
-		ED_view3d_viewcontext_init_object(&vc, ob_iter);
+			ED_view3d_viewcontext_init_object(&vc, ob_iter);
 
-		switch (vc.obedit->type) {
-			case OB_MESH:
-				vc.em = BKE_editmesh_from_object(vc.obedit);
-				ret |= do_mesh_box_select(&eval_ctx, &vc, &rect, select, extend);
-				if (ret & OPERATOR_FINISHED) {
-					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
-				}
-				break;
-			case OB_CURVE:
-			case OB_SURF:
-				ret |= do_nurbs_box_select(&vc, &rect, select, extend);
-				if (ret & OPERATOR_FINISHED) {
-					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
-				}
-				break;
-			case OB_MBALL:
-				ret |= do_meta_box_select(&eval_ctx, &vc, &rect, select, extend);
-				if (ret & OPERATOR_FINISHED) {
-					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
-				}
-				break;
-			case OB_ARMATURE:
-				ret |= do_armature_box_select(&eval_ctx, &vc, &rect, select, extend);
-				if (ret & OPERATOR_FINISHED) {
-					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, vc.obedit);
-				}
-				break;
-			case OB_LATTICE:
-				ret |= do_lattice_box_select(&vc, &rect, select, extend);
-				if (ret & OPERATOR_FINISHED) {
-					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
-				}
-				break;
-			default:
-				assert(!"border select on incorrect object type");
-				break;
-		}
+			switch (vc.obedit->type) {
+				case OB_MESH:
+					vc.em = BKE_editmesh_from_object(vc.obedit);
+					ret |= do_mesh_box_select(&eval_ctx, &vc, &rect, select, extend);
+					if (ret & OPERATOR_FINISHED) {
+						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+					}
+					break;
+				case OB_CURVE:
+				case OB_SURF:
+					ret |= do_nurbs_box_select(&vc, &rect, select, extend);
+					if (ret & OPERATOR_FINISHED) {
+						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+					}
+					break;
+				case OB_MBALL:
+					ret |= do_meta_box_select(&eval_ctx, &vc, &rect, select, extend);
+					if (ret & OPERATOR_FINISHED) {
+						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+					}
+					break;
+				case OB_ARMATURE:
+					ret |= do_armature_box_select(&eval_ctx, &vc, &rect, select, extend);
+					if (ret & OPERATOR_FINISHED) {
+						WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, vc.obedit);
+					}
+					break;
+				case OB_LATTICE:
+					ret |= do_lattice_box_select(&vc, &rect, select, extend);
+					if (ret & OPERATOR_FINISHED) {
+						WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
+					}
+					break;
+				default:
+					assert(!"border select on incorrect object type");
+					break;
+			}
 		}
 		FOREACH_OBJECT_IN_MODE_END;
 	}
@@ -2936,29 +2936,29 @@ static int view3d_circle_select_exec(bContext *C, wmOperator *op)
 		view3d_operator_needs_opengl(C);
 
 		FOREACH_OBJECT_IN_MODE_BEGIN (eval_ctx.view_layer, obact->mode, ob_iter) {
-		ED_view3d_viewcontext_init_object(&vc, ob_iter);
+			ED_view3d_viewcontext_init_object(&vc, ob_iter);
 
-		obact = vc.obact;
-		obedit = vc.obedit;
+			obact = vc.obact;
+			obedit = vc.obedit;
 
-		if (CTX_data_edit_object(C)) {
-			obedit_circle_select(&eval_ctx, &vc, select, mval, (float)radius);
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
-		}
-		else if (BKE_paint_select_face_test(obact)) {
-			paint_facesel_circle_select(&eval_ctx, &vc, select, mval, (float)radius);
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
-		}
-		else if (BKE_paint_select_vert_test(obact)) {
-			paint_vertsel_circle_select(&eval_ctx, &vc, select, mval, (float)radius);
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
-		}
-		else if (obact->mode & OB_MODE_POSE) {
-			pose_circle_select(&vc, select, mval, (float)radius);
-		}
-		else {
-			return PE_circle_select(C, select, mval, (float)radius);
-		}
+			if (CTX_data_edit_object(C)) {
+				obedit_circle_select(&eval_ctx, &vc, select, mval, (float)radius);
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
+			}
+			else if (BKE_paint_select_face_test(obact)) {
+				paint_facesel_circle_select(&eval_ctx, &vc, select, mval, (float)radius);
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
+			}
+			else if (BKE_paint_select_vert_test(obact)) {
+				paint_vertsel_circle_select(&eval_ctx, &vc, select, mval, (float)radius);
+				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obact->data);
+			}
+			else if (obact->mode & OB_MODE_POSE) {
+				pose_circle_select(&vc, select, mval, (float)radius);
+			}
+			else {
+				return PE_circle_select(C, select, mval, (float)radius);
+			}
 		}
 		FOREACH_OBJECT_IN_MODE_END;
 	}

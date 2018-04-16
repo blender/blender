@@ -3030,72 +3030,72 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 
 	/* TODO(campbell): xform, compensate object center. */
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
+		TransData *td = tc->data;
 
-	float warp_sta_local[3];
-	float warp_end_local[3];
-	float warp_end_radius_local[3];
-	float pivot_local[3];
+		float warp_sta_local[3];
+		float warp_end_local[3];
+		float warp_end_radius_local[3];
+		float pivot_local[3];
 
-	if (t->flag & T_EDIT) {
-		sub_v3_v3v3(warp_sta_local, data->warp_sta, tc->obedit->obmat[3]);
-		sub_v3_v3v3(warp_end_local, data->warp_end, tc->obedit->obmat[3]);
-		sub_v3_v3v3(warp_end_radius_local, warp_end_radius_global, tc->obedit->obmat[3]);
-		sub_v3_v3v3(pivot_local, pivot_global, tc->obedit->obmat[3]);
-	}
-	else {
-		copy_v3_v3(warp_sta_local, data->warp_sta);
-		copy_v3_v3(warp_end_local, data->warp_end);
-		copy_v3_v3(warp_end_radius_local, warp_end_radius_global);
-		copy_v3_v3(pivot_local, pivot_global);
-	}
-
-	for (i = 0; i < tc->data_len; i++, td++) {
-		float mat[3][3];
-		float delta[3];
-		float fac, fac_scaled;
-
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
-
-		if (UNLIKELY(values.angle == 0.0f)) {
-			copy_v3_v3(td->loc, td->iloc);
-			continue;
+		if (t->flag & T_EDIT) {
+			sub_v3_v3v3(warp_sta_local, data->warp_sta, tc->obedit->obmat[3]);
+			sub_v3_v3v3(warp_end_local, data->warp_end, tc->obedit->obmat[3]);
+			sub_v3_v3v3(warp_end_radius_local, warp_end_radius_global, tc->obedit->obmat[3]);
+			sub_v3_v3v3(pivot_local, pivot_global, tc->obedit->obmat[3]);
+		}
+		else {
+			copy_v3_v3(warp_sta_local, data->warp_sta);
+			copy_v3_v3(warp_end_local, data->warp_end);
+			copy_v3_v3(warp_end_radius_local, warp_end_radius_global);
+			copy_v3_v3(pivot_local, pivot_global);
 		}
 
-		copy_v3_v3(vec, td->iloc);
-		mul_m3_v3(td->mtx, vec);
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float mat[3][3];
+			float delta[3];
+			float fac, fac_scaled;
 
-		fac = line_point_factor_v3(vec, warp_sta_local, warp_end_radius_local);
-		if (is_clamp) {
-			CLAMP(fac, 0.0f, 1.0f);
+			if (td->flag & TD_NOACTION)
+				break;
+
+			if (td->flag & TD_SKIP)
+				continue;
+
+			if (UNLIKELY(values.angle == 0.0f)) {
+				copy_v3_v3(td->loc, td->iloc);
+				continue;
+			}
+
+			copy_v3_v3(vec, td->iloc);
+			mul_m3_v3(td->mtx, vec);
+
+			fac = line_point_factor_v3(vec, warp_sta_local, warp_end_radius_local);
+			if (is_clamp) {
+				CLAMP(fac, 0.0f, 1.0f);
+			}
+
+			fac_scaled = fac * td->factor;
+			axis_angle_normalized_to_mat3(mat, data->warp_nor, values.angle * fac_scaled);
+			interp_v3_v3v3(delta, warp_sta_local, warp_end_radius_local, fac_scaled);
+			sub_v3_v3(delta, warp_sta_local);
+
+			/* delta is subtracted, rotation adds back this offset */
+			sub_v3_v3(vec, delta);
+
+			sub_v3_v3(vec, pivot_local);
+			mul_m3_v3(mat, vec);
+			add_v3_v3(vec, pivot_local);
+
+			mul_m3_v3(td->smtx, vec);
+
+			/* rotation */
+			if ((t->flag & T_POINTS) == 0) {
+				ElementRotation(t, tc, td, mat, V3D_AROUND_LOCAL_ORIGINS);
+			}
+
+			/* location */
+			copy_v3_v3(td->loc, vec);
 		}
-
-		fac_scaled = fac * td->factor;
-		axis_angle_normalized_to_mat3(mat, data->warp_nor, values.angle * fac_scaled);
-		interp_v3_v3v3(delta, warp_sta_local, warp_end_radius_local, fac_scaled);
-		sub_v3_v3(delta, warp_sta_local);
-
-		/* delta is subtracted, rotation adds back this offset */
-		sub_v3_v3(vec, delta);
-
-		sub_v3_v3(vec, pivot_local);
-		mul_m3_v3(mat, vec);
-		add_v3_v3(vec, pivot_local);
-
-		mul_m3_v3(td->smtx, vec);
-
-		/* rotation */
-		if ((t->flag & T_POINTS) == 0) {
-			ElementRotation(t, tc, td, mat, V3D_AROUND_LOCAL_ORIGINS);
-		}
-
-		/* location */
-		copy_v3_v3(td->loc, vec);
-	}
 	}
 
 	recalcData(t);
@@ -3211,45 +3211,45 @@ static void applyShear(TransInfo *t, const int UNUSED(mval[2]))
 	mul_m3_m3m3(totmat, persinv, tmat);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		const float *center, *co;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			const float *center, *co;
 
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (t->flag & T_EDIT) {
-			float mat3[3][3];
-			mul_m3_m3m3(mat3, totmat, td->mtx);
-			mul_m3_m3m3(tmat, td->smtx, mat3);
-		}
-		else {
-			copy_m3_m3(tmat, totmat);
-		}
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (is_local_center) {
-			center = td->center;
-			co = td->loc;
-		}
-		else {
-			center = tc->center_local;
-			co = td->center;
-		}
+			if (t->flag & T_EDIT) {
+				float mat3[3][3];
+				mul_m3_m3m3(mat3, totmat, td->mtx);
+				mul_m3_m3m3(tmat, td->smtx, mat3);
+			}
+			else {
+				copy_m3_m3(tmat, totmat);
+			}
 
-		sub_v3_v3v3(vec, co, center);
-		
-		mul_m3_v3(tmat, vec);
-		
-		add_v3_v3(vec, center);
-		sub_v3_v3(vec, co);
-		
-		mul_v3_fl(vec, td->factor);
-		
-		add_v3_v3v3(td->loc, td->iloc, vec);
-	}
+			if (is_local_center) {
+				center = td->center;
+				co = td->loc;
+			}
+			else {
+				center = tc->center_local;
+				co = td->center;
+			}
+
+			sub_v3_v3v3(vec, co, center);
+
+			mul_m3_v3(tmat, vec);
+
+			add_v3_v3(vec, center);
+			sub_v3_v3(vec, co);
+
+			mul_v3_fl(vec, td->factor);
+
+			add_v3_v3v3(td->loc, td->iloc, vec);
+		}
 	}
 
 	recalcData(t);
@@ -3496,16 +3496,16 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 	headerResize(t, t->values, str);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		ElementResize(t, tc, td, mat);
-	}
+			if (td->flag & TD_SKIP)
+				continue;
+
+			ElementResize(t, tc, td, mat);
+		}
 	}
 
 	/* evil hack - redo resize if cliping needed */
@@ -3517,17 +3517,17 @@ static void applyResize(TransInfo *t, const int UNUSED(mval[2]))
 
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
-		for (i = 0; i < tc->data_len; i++, td++)
-			ElementResize(t, tc, td, mat);
+			TransData *td = tc->data;
+			for (i = 0; i < tc->data_len; i++, td++)
+				ElementResize(t, tc, td, mat);
 
-		/* In proportional edit it can happen that */
-		/* vertices in the radius of the brush end */
-		/* outside the clipping area               */
-		/* XXX HACK - dg */
-		if (t->flag & T_PROP_EDIT_ALL) {
-			clipUVData(t);
-		}
+			/* In proportional edit it can happen that */
+			/* vertices in the radius of the brush end */
+			/* outside the clipping area               */
+			/* XXX HACK - dg */
+			if (t->flag & T_PROP_EDIT_ALL) {
+				clipUVData(t);
+			}
 		}
 	}
 	
@@ -3605,33 +3605,33 @@ static void applySkinResize(TransInfo *t, const int UNUSED(mval[2]))
 	headerResize(t, size, str);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		float tmat[3][3], smat[3][3];
-		float fsize[3];
-		
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float tmat[3][3], smat[3][3];
+			float fsize[3];
 
-		if (t->flag & T_EDIT) {
-			mul_m3_m3m3(smat, mat, td->mtx);
-			mul_m3_m3m3(tmat, td->smtx, smat);
-		}
-		else {
-			copy_m3_m3(tmat, mat);
-		}
-	
-		if (t->con.applySize) {
-			t->con.applySize(t, NULL, NULL, tmat);
-		}
+			if (td->flag & TD_NOACTION)
+				break;
 
-		mat3_to_size(fsize, tmat);
-		td->val[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
-		td->val[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
-	}
+			if (td->flag & TD_SKIP)
+				continue;
+
+			if (t->flag & T_EDIT) {
+				mul_m3_m3m3(smat, mat, td->mtx);
+				mul_m3_m3m3(tmat, td->smtx, smat);
+			}
+			else {
+				copy_m3_m3(tmat, mat);
+			}
+
+			if (t->con.applySize) {
+				t->con.applySize(t, NULL, NULL, tmat);
+			}
+
+			mat3_to_size(fsize, tmat);
+			td->val[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
+			td->val[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
+		}
 	}
 
 	recalcData(t);
@@ -3671,10 +3671,10 @@ static void initToSphere(TransInfo *t)
 
 	// Calculate average radius
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		t->val += len_v3v3(tc->center_local, td->iloc);
-	}
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			t->val += len_v3v3(tc->center_local, td->iloc);
+		}
 	}
 
 	t->val /= (float)t->data_len_all;
@@ -3711,25 +3711,25 @@ static void applyToSphere(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		float tratio;
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float tratio;
+			if (td->flag & TD_NOACTION)
+				break;
 
-		sub_v3_v3v3(vec, td->iloc, tc->center_local);
+			if (td->flag & TD_SKIP)
+				continue;
 
-		radius = normalize_v3(vec);
-		
-		tratio = ratio * td->factor;
-		
-		mul_v3_fl(vec, radius * (1.0f - tratio) + t->val * tratio);
+			sub_v3_v3v3(vec, td->iloc, tc->center_local);
 
-		add_v3_v3v3(td->loc, tc->center_local, vec);
-	}
+			radius = normalize_v3(vec);
+
+			tratio = ratio * td->factor;
+
+			mul_v3_fl(vec, radius * (1.0f - tratio) + t->val * tratio);
+
+			add_v3_v3v3(td->loc, tc->center_local, vec);
+		}
 	}
 
 	recalcData(t);
@@ -4029,25 +4029,25 @@ static void applyRotationValue(TransInfo *t, float angle, float axis[3])
 	axis_angle_normalized_to_mat3(mat, axis, angle);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
 
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
-		
-		if (t->con.applyRot) {
-			t->con.applyRot(t, tc, td, axis, NULL);
-			axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
-		}
-		else if (t->flag & T_PROP_EDIT) {
-			axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
-		}
+			if (td->flag & TD_NOACTION)
+				break;
 
-		ElementRotation(t, tc, td, mat, t->around);
-	}
+			if (td->flag & TD_SKIP)
+				continue;
+
+			if (t->con.applyRot) {
+				t->con.applyRot(t, tc, td, axis, NULL);
+				axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
+			}
+			else if (t->flag & T_PROP_EDIT) {
+				axis_angle_normalized_to_mat3(mat, axis, angle * td->factor);
+			}
+
+			ElementRotation(t, tc, td, mat, t->around);
+		}
 	}
 }
 
@@ -4143,20 +4143,20 @@ static void applyTrackballValue(TransInfo *t, const float axis1[3], const float 
 	axis_angle_normalized_to_mat3(mat, axis, angle);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (t->flag & T_PROP_EDIT) {
-			axis_angle_normalized_to_mat3(mat, axis, td->factor * angle);
+			if (t->flag & T_PROP_EDIT) {
+				axis_angle_normalized_to_mat3(mat, axis, td->factor * angle);
+			}
+
+			ElementRotation(t, tc, td, mat, t->around);
 		}
-
-		ElementRotation(t, tc, td, mat, t->around);
-	}
 	}
 }
 
@@ -4419,76 +4419,76 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 	 * but you need "handle snapping rotation before doing the translation" (really?) */
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
-	float pivot[3];
-	if (apply_snap_align_rotation) {
-		copy_v3_v3(pivot, t->tsnap.snapTarget);
-		/* The pivot has to be in local-space (see T49494) */
-		if (t->flag & (T_EDIT | T_POSE)) {
-			Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-			mul_m4_v3(ob->imat, pivot);
-		}
-	}
-
-	TransData *td = tc->data;
-	for (int i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
-
-		float rotate_offset[3] = {0};
-		bool use_rotate_offset = false;
-
-		/* handle snapping rotation before doing the translation */
+		float pivot[3];
 		if (apply_snap_align_rotation) {
-			float mat[3][3];
+			copy_v3_v3(pivot, t->tsnap.snapTarget);
+			/* The pivot has to be in local-space (see T49494) */
+			if (t->flag & (T_EDIT | T_POSE)) {
+				Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
+				mul_m4_v3(ob->imat, pivot);
+			}
+		}
 
-			if (validSnappingNormal(t)) {
-				const float *original_normal;
+		TransData *td = tc->data;
+		for (int i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-				/* In pose mode, we want to align normals with Y axis of bones... */
-				if (t->flag & T_POSE)
-					original_normal = td->axismtx[1];
-				else
-					original_normal = td->axismtx[2];
+			if (td->flag & TD_SKIP)
+				continue;
 
-				rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+			float rotate_offset[3] = {0};
+			bool use_rotate_offset = false;
+
+			/* handle snapping rotation before doing the translation */
+			if (apply_snap_align_rotation) {
+				float mat[3][3];
+
+				if (validSnappingNormal(t)) {
+					const float *original_normal;
+
+					/* In pose mode, we want to align normals with Y axis of bones... */
+					if (t->flag & T_POSE)
+						original_normal = td->axismtx[1];
+					else
+						original_normal = td->axismtx[2];
+
+					rotation_between_vecs_to_mat3(mat, original_normal, t->tsnap.snapNormal);
+				}
+				else {
+					unit_m3(mat);
+				}
+
+				ElementRotation_ex(t, tc, td, mat, pivot);
+
+				if (td->loc) {
+					use_rotate_offset = true;
+					sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
+				}
+			}
+
+			if (t->con.applyVec) {
+				float pvec[3];
+				t->con.applyVec(t, tc, td, vec, tvec, pvec);
 			}
 			else {
-				unit_m3(mat);
+				copy_v3_v3(tvec, vec);
 			}
 
-			ElementRotation_ex(t, tc, td, mat, pivot);
-
-			if (td->loc) {
-				use_rotate_offset = true;
-				sub_v3_v3v3(rotate_offset, td->loc, td->iloc);
+			if (use_rotate_offset) {
+				add_v3_v3(tvec, rotate_offset);
 			}
-		}
 
-		if (t->con.applyVec) {
-			float pvec[3];
-			t->con.applyVec(t, tc, td, vec, tvec, pvec);
-		}
-		else {
-			copy_v3_v3(tvec, vec);
-		}
+			mul_m3_v3(td->smtx, tvec);
+			mul_v3_fl(tvec, td->factor);
 
-		if (use_rotate_offset) {
-			add_v3_v3(tvec, rotate_offset);
-		}
-		
-		mul_m3_v3(td->smtx, tvec);
-		mul_v3_fl(tvec, td->factor);
-		
-		protectedTransBits(td->protectflag, tvec);
-		
-		if (td->loc)
-			add_v3_v3v3(td->loc, td->iloc, tvec);
+			protectedTransBits(td->protectflag, tvec);
 
-		constraintTransLim(t, td);
-	}
+			if (td->loc)
+				add_v3_v3v3(td->loc, td->iloc, tvec);
+
+			constraintTransLim(t, td);
+		}
 	}
 }
 
@@ -4625,23 +4625,23 @@ static void applyShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	/* done with header string */
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		float tdistance;  /* temp dist */
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float tdistance;  /* temp dist */
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		/* get the final offset */
-		tdistance = distance * td->factor;
-		if (td->ext && (t->flag & T_ALT_TRANSFORM)) {
-			tdistance *= td->ext->isize[0];  /* shell factor */
+			/* get the final offset */
+			tdistance = distance * td->factor;
+			if (td->ext && (t->flag & T_ALT_TRANSFORM)) {
+				tdistance *= td->ext->isize[0];  /* shell factor */
+			}
+
+			madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
 		}
-
-		madd_v3_v3v3fl(td->loc, td->iloc, td->axismtx[2], tdistance);
-	}
 	}
 
 	recalcData(t);
@@ -4709,18 +4709,18 @@ static void applyTilt(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (td->val) {
-			*td->val = td->ival + final * td->factor;
+			if (td->val) {
+				*td->val = td->ival + final * td->factor;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -4787,21 +4787,21 @@ static void applyCurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (td->val) {
-			*td->val = td->ival * ratio;
-			/* apply PET */
-			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
-			if (*td->val <= 0.0f) *td->val = 0.001f;
+			if (td->val) {
+				*td->val = td->ival * ratio;
+				/* apply PET */
+				*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+				if (*td->val <= 0.0f) *td->val = 0.001f;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -4873,41 +4873,41 @@ static void applyMaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		initial_feather = true;
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+			TransData *td = tc->data;
+			for (i = 0; i < tc->data_len; i++, td++) {
+				if (td->flag & TD_NOACTION)
+					break;
+
+				if (td->flag & TD_SKIP)
+					continue;
+
+				if (td->ival >= 0.001f)
+					initial_feather = false;
+			}
+		}
+	}
+
+	/* apply shrink/fatten */
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 		TransData *td = tc->data;
-		for (i = 0; i < tc->data_len; i++, td++) {
+		for (td = tc->data, i = 0; i < tc->data_len; i++, td++) {
 			if (td->flag & TD_NOACTION)
 				break;
 
 			if (td->flag & TD_SKIP)
 				continue;
 
-			if (td->ival >= 0.001f)
-				initial_feather = false;
+			if (td->val) {
+				if (initial_feather)
+					*td->val = td->ival + (ratio - 1.0f) * 0.01f;
+				else
+					*td->val = td->ival * ratio;
+
+				/* apply PET */
+				*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+				if (*td->val <= 0.0f) *td->val = 0.001f;
+			}
 		}
-		}
-	}
-
-	/* apply shrink/fatten */
-	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (td = tc->data, i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-
-		if (td->flag & TD_SKIP)
-			continue;
-
-		if (td->val) {
-			if (initial_feather)
-				*td->val = td->ival + (ratio - 1.0f) * 0.01f;
-			else
-				*td->val = td->ival * ratio;
-
-			/* apply PET */
-			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
-			if (*td->val <= 0.0f) *td->val = 0.001f;
-		}
-	}
 	}
 
 	recalcData(t);
@@ -4974,21 +4974,21 @@ static void applyGPShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (td->val) {
-			*td->val = td->ival * ratio;
-			/* apply PET */
-			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
-			if (*td->val <= 0.0f) *td->val = 0.001f;
+			if (td->val) {
+				*td->val = td->ival * ratio;
+				/* apply PET */
+				*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+				if (*td->val <= 0.0f) *td->val = 0.001f;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -5056,34 +5056,34 @@ static void applyPushPull(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		sub_v3_v3v3(vec, tc->center_local, td->center);
-		if (t->con.applyRot && t->con.mode & CON_APPLY) {
-			float axis[3];
-			copy_v3_v3(axis, axis_global);
-			t->con.applyRot(t, tc, td, axis, NULL);
+			sub_v3_v3v3(vec, tc->center_local, td->center);
+			if (t->con.applyRot && t->con.mode & CON_APPLY) {
+				float axis[3];
+				copy_v3_v3(axis, axis_global);
+				t->con.applyRot(t, tc, td, axis, NULL);
 
-			mul_m3_v3(td->smtx, axis);
-			if (isLockConstraint(t)) {
-				float dvec[3];
-				project_v3_v3v3(dvec, vec, axis);
-				sub_v3_v3(vec, dvec);
+				mul_m3_v3(td->smtx, axis);
+				if (isLockConstraint(t)) {
+					float dvec[3];
+					project_v3_v3v3(dvec, vec, axis);
+					sub_v3_v3(vec, dvec);
+				}
+				else {
+					project_v3_v3v3(vec, vec, axis);
+				}
 			}
-			else {
-				project_v3_v3v3(vec, vec, axis);
-			}
+			normalize_v3_length(vec, distance * td->factor);
+
+			add_v3_v3v3(td->loc, td->iloc, vec);
 		}
-		normalize_v3_length(vec, distance * td->factor);
-
-		add_v3_v3v3(td->loc, td->iloc, vec);
-	}
 	}
 
 	recalcData(t);
@@ -5155,17 +5155,17 @@ static void applyBevelWeight(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->val) {
-			*td->val = td->ival + weight * td->factor;
-			if (*td->val < 0.0f) *td->val = 0.0f;
-			if (*td->val > 1.0f) *td->val = 1.0f;
+			if (td->val) {
+				*td->val = td->ival + weight * td->factor;
+				if (*td->val < 0.0f) *td->val = 0.0f;
+				if (*td->val > 1.0f) *td->val = 1.0f;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -5237,20 +5237,20 @@ static void applyCrease(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (td->val) {
-			*td->val = td->ival + crease * td->factor;
-			if (*td->val < 0.0f) *td->val = 0.0f;
-			if (*td->val > 1.0f) *td->val = 1.0f;
+			if (td->val) {
+				*td->val = td->ival + crease * td->factor;
+				if (*td->val < 0.0f) *td->val = 0.0f;
+				if (*td->val > 1.0f) *td->val = 1.0f;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -5364,16 +5364,16 @@ static void applyBoneSize(TransInfo *t, const int UNUSED(mval[2]))
 	headerBoneSize(t, size, str);
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		ElementBoneSize(t, tc, td, mat);
-	}
+			if (td->flag & TD_SKIP)
+				continue;
+
+			ElementBoneSize(t, tc, td, mat);
+		}
 	}
 
 	recalcData(t);
@@ -5435,22 +5435,22 @@ static void applyBoneEnvelope(TransInfo *t, const int UNUSED(mval[2]))
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
-		
-		if (td->flag & TD_SKIP)
-			continue;
-		
-		if (td->val) {
-			/* if the old/original value was 0.0f, then just use ratio */
-			if (td->ival)
-				*td->val = td->ival * ratio;
-			else
-				*td->val = ratio;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
+
+			if (td->flag & TD_SKIP)
+				continue;
+
+			if (td->val) {
+				/* if the old/original value was 0.0f, then just use ratio */
+				if (td->ival)
+					*td->val = td->ival * ratio;
+				else
+					*td->val = ratio;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -6779,14 +6779,14 @@ static bool createEdgeSlideVerts_single_side(TransInfo *t, TransDataContainer *t
 void projectEdgeSlideData(TransInfo *t, bool is_final)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	EdgeSlideData *sld = tc->custom.mode.data;
-	SlideOrigData *sod = &sld->orig_data;
+		EdgeSlideData *sld = tc->custom.mode.data;
+		SlideOrigData *sod = &sld->orig_data;
 
-	if (sod->use_origfaces == false) {
-		return;
-	}
+		if (sod->use_origfaces == false) {
+			return;
+		}
 
-	slide_origdata_interp_data(tc->obedit, sod, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv, is_final);
+		slide_origdata_interp_data(tc->obedit, sod, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv, is_final);
 	}
 }
 
@@ -7067,32 +7067,32 @@ static void doEdgeSlide(TransInfo *t, float perc)
 			const int side_index = (perc < 0.0f);
 			const float perc_final = fabsf(perc);
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			EdgeSlideData *sld = tc->custom.mode.data;
-			TransDataEdgeSlideVert *sv = sld->sv;
-			for (int i = 0; i < sld->totsv; i++, sv++) {
-				madd_v3_v3v3fl(sv->v->co, sv->v_co_orig, sv->dir_side[side_index], perc_final);
-			}
-			sld->curr_side_unclamp = side_index;
+				EdgeSlideData *sld = tc->custom.mode.data;
+				TransDataEdgeSlideVert *sv = sld->sv;
+				for (int i = 0; i < sld->totsv; i++, sv++) {
+					madd_v3_v3v3fl(sv->v->co, sv->v_co_orig, sv->dir_side[side_index], perc_final);
+				}
+				sld->curr_side_unclamp = side_index;
 			}
 		}
 		else {
 			const float perc_init = fabsf(perc) * ((sld_active->curr_side_unclamp == (perc < 0.0f)) ? 1 : -1);
 			const int side_index = sld_active->curr_side_unclamp;
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			EdgeSlideData *sld = tc->custom.mode.data;
-			TransDataEdgeSlideVert *sv = sld->sv;
-			for (int i = 0; i < sld->totsv; i++, sv++) {
-				float dir_flip[3];
-				float perc_final = perc_init;
-				if (!is_zero_v3(sv->dir_side[side_index])) {
-					copy_v3_v3(dir_flip, sv->dir_side[side_index]);
+				EdgeSlideData *sld = tc->custom.mode.data;
+				TransDataEdgeSlideVert *sv = sld->sv;
+				for (int i = 0; i < sld->totsv; i++, sv++) {
+					float dir_flip[3];
+					float perc_final = perc_init;
+					if (!is_zero_v3(sv->dir_side[side_index])) {
+						copy_v3_v3(dir_flip, sv->dir_side[side_index]);
+					}
+					else {
+						copy_v3_v3(dir_flip, sv->dir_side[!side_index]);
+						perc_final *= -1;
+					}
+					madd_v3_v3v3fl(sv->v->co, sv->v_co_orig, dir_flip, perc_final);
 				}
-				else {
-					copy_v3_v3(dir_flip, sv->dir_side[!side_index]);
-					perc_final *= -1;
-				}
-				madd_v3_v3v3fl(sv->v->co, sv->v_co_orig, dir_flip, perc_final);
-			}
 			}
 		}
 	}
@@ -7112,23 +7112,23 @@ static void doEdgeSlide(TransInfo *t, float perc)
 		float co_b[3];
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		EdgeSlideData *sld = tc->custom.mode.data;
-		TransDataEdgeSlideVert *sv = sld->sv;
-		for (int i = 0; i < sld->totsv; i++, sv++) {
-			if (sv->edge_len > FLT_EPSILON) {
-				const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
+			EdgeSlideData *sld = tc->custom.mode.data;
+			TransDataEdgeSlideVert *sv = sld->sv;
+			for (int i = 0; i < sld->totsv; i++, sv++) {
+				if (sv->edge_len > FLT_EPSILON) {
+					const float fac = min_ff(sv->edge_len, curr_length_perc) / sv->edge_len;
 
-				add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
-				add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
+					add_v3_v3v3(co_a, sv->v_co_orig, sv->dir_side[0]);
+					add_v3_v3v3(co_b, sv->v_co_orig, sv->dir_side[1]);
 
-				if (slp->flipped) {
-					interp_line_v3_v3v3v3(sv->v->co, co_b, sv->v_co_orig, co_a, fac);
-				}
-				else {
-					interp_line_v3_v3v3v3(sv->v->co, co_a, sv->v_co_orig, co_b, fac);
+					if (slp->flipped) {
+						interp_line_v3_v3v3v3(sv->v->co, co_b, sv->v_co_orig, co_a, fac);
+					}
+					else {
+						interp_line_v3_v3v3v3(sv->v->co, co_a, sv->v_co_orig, co_b, fac);
+					}
 				}
 			}
-		}
 		}
 	}
 }
@@ -7411,11 +7411,11 @@ static bool createVertSlideVerts(TransInfo *t, TransDataContainer *tc)
 void projectVertSlideData(TransInfo *t, bool is_final)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	VertSlideData *sld = tc->custom.mode.data;
-	SlideOrigData *sod = &sld->orig_data;
-	if (sod->use_origfaces == true) {
-		slide_origdata_interp_data(tc->obedit, sod, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv, is_final);
-	}
+		VertSlideData *sld = tc->custom.mode.data;
+		SlideOrigData *sod = &sld->orig_data;
+		if (sod->use_origfaces == true) {
+			slide_origdata_interp_data(tc->obedit, sod, (TransDataGenericSlideVert *)sld->sv, sizeof(*sld->sv), sld->totsv, is_final);
+		}
 	}
 }
 
@@ -7687,43 +7687,43 @@ static void drawVertSlide(TransInfo *t)
 static void doVertSlide(TransInfo *t, float perc)
 {
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	VertSlideData *sld = tc->custom.mode.data;
-	TransDataVertSlideVert *svlist = sld->sv, *sv;
-	int i;
+		VertSlideData *sld = tc->custom.mode.data;
+		TransDataVertSlideVert *svlist = sld->sv, *sv;
+		int i;
 
-	sld->perc = perc;
-	sv = svlist;
+		sld->perc = perc;
+		sv = svlist;
 
-	if (sld->use_even == false) {
-		for (i = 0; i < sld->totsv; i++, sv++) {
-			interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
+		if (sld->use_even == false) {
+			for (i = 0; i < sld->totsv; i++, sv++) {
+				interp_v3_v3v3(sv->v->co, sv->co_orig_3d, sv->co_link_orig_3d[sv->co_link_curr], perc);
+			}
 		}
-	}
-	else {
-		TransDataVertSlideVert *sv_curr = &sld->sv[sld->curr_sv_index];
-		const float edge_len_curr = len_v3v3(sv_curr->co_orig_3d, sv_curr->co_link_orig_3d[sv_curr->co_link_curr]);
-		const float tperc = perc * edge_len_curr;
+		else {
+			TransDataVertSlideVert *sv_curr = &sld->sv[sld->curr_sv_index];
+			const float edge_len_curr = len_v3v3(sv_curr->co_orig_3d, sv_curr->co_link_orig_3d[sv_curr->co_link_curr]);
+			const float tperc = perc * edge_len_curr;
 
-		for (i = 0; i < sld->totsv; i++, sv++) {
-			float edge_len;
-			float dir[3];
+			for (i = 0; i < sld->totsv; i++, sv++) {
+				float edge_len;
+				float dir[3];
 
-			sub_v3_v3v3(dir, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
-			edge_len = normalize_v3(dir);
+				sub_v3_v3v3(dir, sv->co_link_orig_3d[sv->co_link_curr], sv->co_orig_3d);
+				edge_len = normalize_v3(dir);
 
-			if (edge_len > FLT_EPSILON) {
-				if (sld->flipped) {
-					madd_v3_v3v3fl(sv->v->co, sv->co_link_orig_3d[sv->co_link_curr], dir, -tperc);
+				if (edge_len > FLT_EPSILON) {
+					if (sld->flipped) {
+						madd_v3_v3v3fl(sv->v->co, sv->co_link_orig_3d[sv->co_link_curr], dir, -tperc);
+					}
+					else {
+						madd_v3_v3v3fl(sv->v->co, sv->co_orig_3d, dir, tperc);
+					}
 				}
 				else {
-					madd_v3_v3v3fl(sv->v->co, sv->co_orig_3d, dir, tperc);
+					copy_v3_v3(sv->v->co, sv->co_orig_3d);
 				}
 			}
-			else {
-				copy_v3_v3(sv->v->co, sv->co_orig_3d);
-			}
 		}
-	}
 	}
 }
 
@@ -7833,16 +7833,16 @@ static void applyBoneRoll(TransInfo *t, const int UNUSED(mval[2]))
 
 	/* set roll values */
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		*(td->val) = td->ival - final;
-	}
+			*(td->val) = td->ival - final;
+		}
 	}
 
 	recalcData(t);
@@ -7920,20 +7920,20 @@ static void applyBakeTime(TransInfo *t, const int mval[2])
 	}
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		if (td->val) {
-			*td->val = td->ival + time * td->factor;
-			if (td->ext->size && *td->val < *td->ext->size) *td->val = *td->ext->size;
-			if (td->ext->quat && *td->val > *td->ext->quat) *td->val = *td->ext->quat;
+			if (td->val) {
+				*td->val = td->ival + time * td->factor;
+				if (td->ext->size && *td->val < *td->ext->size) *td->val = *td->ext->size;
+				if (td->ext->quat && *td->val > *td->ext->quat) *td->val = *td->ext->quat;
+			}
 		}
-	}
 	}
 
 	recalcData(t);
@@ -7985,16 +7985,16 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
 		BLI_snprintf(str, sizeof(str), IFACE_("Mirror%s"), t->con.text);
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
-		for (i = 0; i < tc->data_len; i++, td++) {
-			if (td->flag & TD_NOACTION)
-				break;
+			TransData *td = tc->data;
+			for (i = 0; i < tc->data_len; i++, td++) {
+				if (td->flag & TD_NOACTION)
+					break;
 
-			if (td->flag & TD_SKIP)
-				continue;
+				if (td->flag & TD_SKIP)
+					continue;
 
-			ElementResize(t, tc, td, mat);
-		}
+				ElementResize(t, tc, td, mat);
+			}
 		}
 
 		recalcData(t);
@@ -8007,16 +8007,16 @@ static void applyMirror(TransInfo *t, const int UNUSED(mval[2]))
 		size_to_mat3(mat, size);
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
-		for (i = 0; i < tc->data_len; i++, td++) {
-			if (td->flag & TD_NOACTION)
-				break;
+			TransData *td = tc->data;
+			for (i = 0; i < tc->data_len; i++, td++) {
+				if (td->flag & TD_NOACTION)
+					break;
 
-			if (td->flag & TD_SKIP)
-				continue;
+				if (td->flag & TD_SKIP)
+					continue;
 
-			ElementResize(t, tc, td, mat);
-		}
+				ElementResize(t, tc, td, mat);
+			}
 		}
 
 		recalcData(t);
@@ -8052,36 +8052,36 @@ static void applyAlign(TransInfo *t, const int UNUSED(mval[2]))
 
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	/* saving original center */
-	copy_v3_v3(center, tc->center_local);
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		float mat[3][3], invmat[3][3];
+		/* saving original center */
+		copy_v3_v3(center, tc->center_local);
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float mat[3][3], invmat[3][3];
 
-		if (td->flag & TD_NOACTION)
-			break;
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		/* around local centers */
-		if (t->flag & (T_OBJECT | T_POSE)) {
-			copy_v3_v3(tc->center_local, td->center);
-		}
-		else {
-			if (t->settings->selectmode & SCE_SELECT_FACE) {
+			/* around local centers */
+			if (t->flag & (T_OBJECT | T_POSE)) {
 				copy_v3_v3(tc->center_local, td->center);
 			}
+			else {
+				if (t->settings->selectmode & SCE_SELECT_FACE) {
+					copy_v3_v3(tc->center_local, td->center);
+				}
+			}
+
+			invert_m3_m3(invmat, td->axismtx);
+
+			mul_m3_m3m3(mat, t->spacemtx, invmat);
+
+			ElementRotation(t, tc, td, mat, t->around);
 		}
-
-		invert_m3_m3(invmat, td->axismtx);
-
-		mul_m3_m3m3(mat, t->spacemtx, invmat);
-
-		ElementRotation(t, tc, td, mat, t->around);
-	}
-	/* restoring original center */
-	copy_v3_v3(tc->center_local, center);
+		/* restoring original center */
+		copy_v3_v3(tc->center_local, center);
 	}
 
 	recalcData(t);
@@ -8147,16 +8147,16 @@ static void applySeqSlideValue(TransInfo *t, const float val[2])
 	int i;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		if (td->flag & TD_NOACTION)
-			break;
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			if (td->flag & TD_NOACTION)
+				break;
 
-		if (td->flag & TD_SKIP)
-			continue;
+			if (td->flag & TD_SKIP)
+				continue;
 
-		madd_v2_v2v2fl(td->loc, td->iloc, val, td->factor);
-	}
+			madd_v2_v2v2fl(td->loc, td->iloc, val, td->factor);
+		}
 	}
 }
 
@@ -8398,49 +8398,49 @@ static void applyTimeTranslateValue(TransInfo *t)
 	float deltax, val /* , valprev */;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	TransData2D *td2d = tc->data_2d;
-	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
-	for (i = 0; i < tc->data_len; i++, td++, td2d++) {
-		/* it is assumed that td->extra is a pointer to the AnimData,
-		 * whose active action is where this keyframe comes from
-		 * (this is only valid when not in NLA)
-		 */
-		AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+		TransData *td = tc->data;
+		TransData2D *td2d = tc->data_2d;
+		/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
+		for (i = 0; i < tc->data_len; i++, td++, td2d++) {
+			/* it is assumed that td->extra is a pointer to the AnimData,
+			 * whose active action is where this keyframe comes from
+			 * (this is only valid when not in NLA)
+			 */
+			AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
 
-		/* valprev = *td->val; */ /* UNUSED */
+			/* valprev = *td->val; */ /* UNUSED */
 
-		/* check if any need to apply nla-mapping */
-		if (adt && (t->spacetype != SPACE_SEQ)) {
-			deltax = t->values[0];
+			/* check if any need to apply nla-mapping */
+			if (adt && (t->spacetype != SPACE_SEQ)) {
+				deltax = t->values[0];
 
-			if (autosnap == SACTSNAP_TSTEP) {
-				deltax = (float)(floor(((double)deltax / secf) + 0.5) * secf);
+				if (autosnap == SACTSNAP_TSTEP) {
+					deltax = (float)(floor(((double)deltax / secf) + 0.5) * secf);
+				}
+				else if (autosnap == SACTSNAP_STEP) {
+					deltax = floorf(deltax + 0.5f);
+				}
+
+				val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
+				val += deltax * td->factor;
+				*(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
 			}
-			else if (autosnap == SACTSNAP_STEP) {
-				deltax = floorf(deltax + 0.5f);
+			else {
+				deltax = val = t->values[0];
+
+				if (autosnap == SACTSNAP_TSTEP) {
+					val = (float)(floor(((double)deltax / secf) + 0.5) * secf);
+				}
+				else if (autosnap == SACTSNAP_STEP) {
+					val = floorf(val + 0.5f);
+				}
+
+				*(td->val) = td->ival + val;
 			}
 
-			val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
-			val += deltax * td->factor;
-			*(td->val) = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_UNMAP);
+			/* apply nearest snapping */
+			doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
 		}
-		else {
-			deltax = val = t->values[0];
-
-			if (autosnap == SACTSNAP_TSTEP) {
-				val = (float)(floor(((double)deltax / secf) + 0.5) * secf);
-			}
-			else if (autosnap == SACTSNAP_STEP) {
-				val = floorf(val + 0.5f);
-			}
-
-			*(td->val) = td->ival + val;
-		}
-
-		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
-	}
 	}
 }
 
@@ -8508,18 +8508,18 @@ static void initTimeSlide(TransInfo *t)
 		float min = 999999999.0f, max = -999999999.0f;
 		int i;
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		TransData *td = tc->data;
-		for (i = 0; i < tc->data_len; i++, td++) {
-			AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
-			float val = *(td->val);
-			
-			/* strip/action time to global (mapped) time */
-			if (adt)
-				val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_MAP);
-			
-			if (min > val) min = val;
-			if (max < val) max = val;
-		}
+			TransData *td = tc->data;
+			for (i = 0; i < tc->data_len; i++, td++) {
+				AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+				float val = *(td->val);
+
+				/* strip/action time to global (mapped) time */
+				if (adt)
+					val = BKE_nla_tweakedit_remap(adt, val, NLATIME_CONVERT_MAP);
+
+				if (min > val) min = val;
+				if (max < val) max = val;
+			}
 		}
 
 		if (min == max) {
@@ -8587,48 +8587,48 @@ static void applyTimeSlideValue(TransInfo *t, float sval)
 
 	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		/* it is assumed that td->extra is a pointer to the AnimData,
-		 * whose active action is where this keyframe comes from
-		 * (this is only valid when not in NLA)
-		 */
-		AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
-		float cval = t->values[0];
-		
-		/* only apply to data if in range */
-		if ((sval > minx) && (sval < maxx)) {
-			float cvalc = CLAMPIS(cval, minx, maxx);
-			float ival = td->ival;
-			float timefac;
-			
-			/* NLA mapping magic here works as follows:
-			 * - "ival" goes from strip time to global time
-			 * - calculation is performed into td->val in global time
-			 *   (since sval and min/max are all in global time)
-			 * - "td->val" then gets put back into strip time
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			/* it is assumed that td->extra is a pointer to the AnimData,
+			 * whose active action is where this keyframe comes from
+			 * (this is only valid when not in NLA)
 			 */
-			if (adt) {
-				/* strip to global */
-				ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);
-			}
-			
-			/* left half? */
-			if (ival < sval) {
-				timefac = (sval - ival) / (sval - minx);
-				*(td->val) = cvalc - timefac * (cvalc - minx);
-			}
-			else {
-				timefac = (ival - sval) / (maxx - sval);
-				*(td->val) = cvalc + timefac * (maxx - cvalc);
-			}
-			
-			if (adt) {
-				/* global to strip */
-				*(td->val) = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_UNMAP);
+			AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+			float cval = t->values[0];
+
+			/* only apply to data if in range */
+			if ((sval > minx) && (sval < maxx)) {
+				float cvalc = CLAMPIS(cval, minx, maxx);
+				float ival = td->ival;
+				float timefac;
+
+				/* NLA mapping magic here works as follows:
+				 * - "ival" goes from strip time to global time
+				 * - calculation is performed into td->val in global time
+				 *   (since sval and min/max are all in global time)
+				 * - "td->val" then gets put back into strip time
+				 */
+				if (adt) {
+					/* strip to global */
+					ival = BKE_nla_tweakedit_remap(adt, ival, NLATIME_CONVERT_MAP);
+				}
+
+				/* left half? */
+				if (ival < sval) {
+					timefac = (sval - ival) / (sval - minx);
+					*(td->val) = cvalc - timefac * (cvalc - minx);
+				}
+				else {
+					timefac = (ival - sval) / (maxx - sval);
+					*(td->val) = cvalc + timefac * (maxx - cvalc);
+				}
+
+				if (adt) {
+					/* global to strip */
+					*(td->val) = BKE_nla_tweakedit_remap(adt, *(td->val), NLATIME_CONVERT_UNMAP);
+				}
 			}
 		}
-	}
 	}
 }
 
@@ -8735,34 +8735,34 @@ static void applyTimeScaleValue(TransInfo *t)
 	const double secf = FPS;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	TransData2D *td2d = tc->data_2d;
-	for (i = 0; i < tc->data_len; i++, td++, td2d++) {
-		/* it is assumed that td->extra is a pointer to the AnimData,
-		 * whose active action is where this keyframe comes from
-		 * (this is only valid when not in NLA)
-		 */
-		AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
-		float startx = CFRA;
-		float fac = t->values[0];
+		TransData *td = tc->data;
+		TransData2D *td2d = tc->data_2d;
+		for (i = 0; i < tc->data_len; i++, td++, td2d++) {
+			/* it is assumed that td->extra is a pointer to the AnimData,
+			 * whose active action is where this keyframe comes from
+			 * (this is only valid when not in NLA)
+			 */
+			AnimData *adt = (t->spacetype != SPACE_NLA) ? td->extra : NULL;
+			float startx = CFRA;
+			float fac = t->values[0];
 
-		if (autosnap == SACTSNAP_TSTEP) {
-			fac = (float)(floor((double)fac / secf + 0.5) * secf);
+			if (autosnap == SACTSNAP_TSTEP) {
+				fac = (float)(floor((double)fac / secf + 0.5) * secf);
+			}
+			else if (autosnap == SACTSNAP_STEP) {
+				fac = floorf(fac + 0.5f);
+			}
+
+			/* check if any need to apply nla-mapping */
+			if (adt)
+				startx = BKE_nla_tweakedit_remap(adt, startx, NLATIME_CONVERT_UNMAP);
+
+			/* now, calculate the new value */
+			*(td->val) = ((td->ival - startx) * fac) + startx;
+
+			/* apply nearest snapping */
+			doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
 		}
-		else if (autosnap == SACTSNAP_STEP) {
-			fac = floorf(fac + 0.5f);
-		}
-
-		/* check if any need to apply nla-mapping */
-		if (adt)
-			startx = BKE_nla_tweakedit_remap(adt, startx, NLATIME_CONVERT_UNMAP);
-
-		/* now, calculate the new value */
-		*(td->val) = ((td->ival - startx) * fac) + startx;
-
-		/* apply nearest snapping */
-		doAnimEdit_SnapFrame(t, td, td2d, adt, autosnap);
-	}
 	}
 }
 

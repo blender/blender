@@ -1345,33 +1345,33 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
-	Object *obedit = objects[ob_index];
-	bArmature *arm = obedit->data;
-	bool changed = false;
+		Object *obedit = objects[ob_index];
+		bArmature *arm = obedit->data;
+		bool changed = false;
 
-	armature_select_mirrored(arm);
+		armature_select_mirrored(arm);
 
-	BKE_pose_channels_remove(obedit, armature_delete_ebone_cb, arm);
+		BKE_pose_channels_remove(obedit, armature_delete_ebone_cb, arm);
 
-	for (curBone = arm->edbo->first; curBone; curBone = ebone_next) {
-		ebone_next = curBone->next;
-		if (arm->layer & curBone->layer) {
-			if (curBone->flag & BONE_SELECTED) {
-				if (curBone == arm->act_edbone) arm->act_edbone = NULL;
-				ED_armature_ebone_remove(arm, curBone);
-				changed = true;
+		for (curBone = arm->edbo->first; curBone; curBone = ebone_next) {
+			ebone_next = curBone->next;
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					if (curBone == arm->act_edbone) arm->act_edbone = NULL;
+					ED_armature_ebone_remove(arm, curBone);
+					changed = true;
+				}
 			}
 		}
-	}
 
-	if (changed) {
-		changed_multi = true;
+		if (changed) {
+			changed_multi = true;
 
-		ED_armature_edit_sync_selection(arm->edbo);
-		BKE_pose_tag_recalc(CTX_data_main(C), obedit->pose);
+			ED_armature_edit_sync_selection(arm->edbo);
+			BKE_pose_tag_recalc(CTX_data_main(C), obedit->pose);
 
-		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
-	}
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
+		}
 	}
 
 	if (!changed_multi) {

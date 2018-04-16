@@ -848,55 +848,55 @@ static void drawObjectConstraint(TransInfo *t)
 	float tmp_axismtx[3][3];
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-	TransData *td = tc->data;
-	for (i = 0; i < tc->data_len; i++, td++) {
-		float co[3];
-		float (*axismtx)[3];
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float co[3];
+			float (*axismtx)[3];
 
-		if (t->flag & T_PROP_EDIT) {
-			/* we're sorted, so skip the rest */
-			if (td->factor == 0.0f) {
-				break;
+			if (t->flag & T_PROP_EDIT) {
+				/* we're sorted, so skip the rest */
+				if (td->factor == 0.0f) {
+					break;
+				}
 			}
-		}
 
-		if (t->options & CTX_GPENCIL_STROKES) {
-			/* only draw a constraint line for one point, otherwise we can't see anything */
-			if ((options & DRAWLIGHT) == 0) {
-				break;
+			if (t->options & CTX_GPENCIL_STROKES) {
+				/* only draw a constraint line for one point, otherwise we can't see anything */
+				if ((options & DRAWLIGHT) == 0) {
+					break;
+				}
 			}
-		}
 
-		if (t->flag & T_OBJECT) {
-			copy_v3_v3(co, td->ob->obmat[3]);
-			axismtx = td->axismtx;
-		}
-		else if (t->flag & T_EDIT) {
-			mul_v3_m4v3(co, tc->obedit->obmat, td->center);
+			if (t->flag & T_OBJECT) {
+				copy_v3_v3(co, td->ob->obmat[3]);
+				axismtx = td->axismtx;
+			}
+			else if (t->flag & T_EDIT) {
+				mul_v3_m4v3(co, tc->obedit->obmat, td->center);
 
-			mul_m3_m3m3(tmp_axismtx, tc->obedit_mat, td->axismtx);
-			axismtx = tmp_axismtx;
-		}
-		else if (t->flag & T_POSE) {
-			mul_v3_m4v3(co, tc->poseobj->obmat, td->center);
-			axismtx = td->axismtx;
-		}
-		else {
-			copy_v3_v3(co, td->center);
-			axismtx = td->axismtx;
-		}
+				mul_m3_m3m3(tmp_axismtx, tc->obedit_mat, td->axismtx);
+				axismtx = tmp_axismtx;
+			}
+			else if (t->flag & T_POSE) {
+				mul_v3_m4v3(co, tc->poseobj->obmat, td->center);
+				axismtx = td->axismtx;
+			}
+			else {
+				copy_v3_v3(co, td->center);
+				axismtx = td->axismtx;
+			}
 
-		if (t->con.mode & CON_AXIS0) {
-			drawLine(t, co, axismtx[0], 'X', options);
+			if (t->con.mode & CON_AXIS0) {
+				drawLine(t, co, axismtx[0], 'X', options);
+			}
+			if (t->con.mode & CON_AXIS1) {
+				drawLine(t, co, axismtx[1], 'Y', options);
+			}
+			if (t->con.mode & CON_AXIS2) {
+				drawLine(t, co, axismtx[2], 'Z', options);
+			}
+			options &= ~DRAWLIGHT;
 		}
-		if (t->con.mode & CON_AXIS1) {
-			drawLine(t, co, axismtx[1], 'Y', options);
-		}
-		if (t->con.mode & CON_AXIS2) {
-			drawLine(t, co, axismtx[2], 'Z', options);
-		}
-		options &= ~DRAWLIGHT;
-	}
 	}
 }
 

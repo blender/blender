@@ -213,41 +213,41 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			uint objects_len;
 			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 			for (uint i = 0; i < objects_len; i++) {
-			Object *ob = objects[i];
-			arm = ob->data;
+				Object *ob = objects[i];
+				arm = ob->data;
 
-			/* Attention: X-Axis Mirroring is also handled here... */
-			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-				/* first and foremost, bone must be visible and selected */
-				if (EBONE_VISIBLE(arm, ebone)) {
-					/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
-					 * so that most users of this data don't need to explicitly check for it themselves.
-					 * 
-					 * We need to make sure that these mirrored copies are not selected, otherwise some
-					 * bones will be operated on twice.
-					 */
-					if (arm->flag & ARM_MIRROR_EDIT)
-						flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
-					
-					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
-					if (editable_bones) {
-						/* only selected + editable */
-						if (EBONE_EDITABLE(ebone)) {
+				/* Attention: X-Axis Mirroring is also handled here... */
+				for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+					/* first and foremost, bone must be visible and selected */
+					if (EBONE_VISIBLE(arm, ebone)) {
+						/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
+						 * so that most users of this data don't need to explicitly check for it themselves.
+						 *
+						 * We need to make sure that these mirrored copies are not selected, otherwise some
+						 * bones will be operated on twice.
+						 */
+						if (arm->flag & ARM_MIRROR_EDIT)
+							flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+
+						/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
+						if (editable_bones) {
+							/* only selected + editable */
+							if (EBONE_EDITABLE(ebone)) {
+								CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
+
+								if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+									CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
+							}
+						}
+						else {
+							/* only include bones if visible */
 							CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
-						
-							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+
+							if ((flipbone) && EBONE_VISIBLE(arm, flipbone) == 0)
 								CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 						}
 					}
-					else {
-						/* only include bones if visible */
-						CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
-						
-						if ((flipbone) && EBONE_VISIBLE(arm, flipbone) == 0)
-							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
-					}
 				}
-			}
 			}
 			MEM_freeN(objects);
 
@@ -264,41 +264,41 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 			uint objects_len;
 			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 			for (uint i = 0; i < objects_len; i++) {
-			Object *ob = objects[i];
-			arm = ob->data;
+				Object *ob = objects[i];
+				arm = ob->data;
 
-			/* Attention: X-Axis Mirroring is also handled here... */
-			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-				/* first and foremost, bone must be visible and selected */
-				if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
-					/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
-					 * so that most users of this data don't need to explicitly check for it themselves.
-					 * 
-					 * We need to make sure that these mirrored copies are not selected, otherwise some
-					 * bones will be operated on twice.
-					 */
-					if (arm->flag & ARM_MIRROR_EDIT)
-						flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
-					
-					/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
-					if (selected_editable_bones) {
-						/* only selected + editable */
-						if (EBONE_EDITABLE(ebone)) {
+				/* Attention: X-Axis Mirroring is also handled here... */
+				for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
+					/* first and foremost, bone must be visible and selected */
+					if (EBONE_VISIBLE(arm, ebone) && (ebone->flag & BONE_SELECTED)) {
+						/* Get 'x-axis mirror equivalent' bone if the X-Axis Mirroring option is enabled
+						 * so that most users of this data don't need to explicitly check for it themselves.
+						 *
+						 * We need to make sure that these mirrored copies are not selected, otherwise some
+						 * bones will be operated on twice.
+						 */
+						if (arm->flag & ARM_MIRROR_EDIT)
+							flipbone = ED_armature_ebone_get_mirrored(arm->edbo, ebone);
+
+						/* if we're filtering for editable too, use the check for that instead, as it has selection check too */
+						if (selected_editable_bones) {
+							/* only selected + editable */
+							if (EBONE_EDITABLE(ebone)) {
+								CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
+
+								if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
+									CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
+							}
+						}
+						else {
+							/* only include bones if selected */
 							CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
-						
+
 							if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
 								CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
 						}
 					}
-					else {
-						/* only include bones if selected */
-						CTX_data_list_add(result, &arm->id, &RNA_EditBone, ebone);
-						
-						if ((flipbone) && !(flipbone->flag & BONE_SELECTED))
-							CTX_data_list_add(result, &arm->id, &RNA_EditBone, flipbone);
-					}
 				}
-			}
 			}
 			MEM_freeN(objects);
 
