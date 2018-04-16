@@ -382,6 +382,43 @@ void DepsgraphNodeBuilder::end_build()
 	}
 }
 
+void DepsgraphNodeBuilder::build_id(ID* id) {
+	if (id == NULL) {
+		return;
+	}
+	switch (GS(id->name)) {
+		case ID_GR:
+			build_group((Group *)id);
+			break;
+		case ID_OB:
+			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			break;
+		case ID_NT:
+			build_nodetree((bNodeTree *)id);
+			break;
+		case ID_MA:
+			build_material((Material *)id);
+			break;
+		case ID_TE:
+			build_texture((Tex *)id);
+			break;
+		case ID_IM:
+			build_image((Image *)id);
+			break;
+		case ID_WO:
+			build_world((World *)id);
+			break;
+		case ID_MSK:
+			build_mask((Mask *)id);
+			break;
+		case ID_MC:
+			build_movieclip((MovieClip *)id);
+			break;
+		default:
+			fprintf(stderr, "Unhandled ID %s\n", id->name);
+	}
+}
+
 void DepsgraphNodeBuilder::build_group(Group *group)
 {
 	if (built_map_.checkIsBuiltAndTag(group)) {
@@ -698,6 +735,7 @@ void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
 	LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
 		DRIVER_TARGETS_USED_LOOPER(dvar)
 		{
+			build_id(dtar->id);
 			build_driver_id_property(dtar->id, dtar->rna_path);
 		}
 		DRIVER_TARGETS_LOOPER_END
