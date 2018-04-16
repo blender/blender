@@ -2072,15 +2072,17 @@ static void OBJECT_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
+	int id_ct_select = g_data->id_ofs_select;
+	int id_ct_select_group = g_data->id_ofs_select_group;
+	int id_ct_active = g_data->id_ofs_active;
+	int id_ct_active_group = g_data->id_ofs_active_group;
+	int id_ct_transform = g_data->id_ofs_transform;
+	int outline_calls = id_ct_select + id_ct_select_group + id_ct_active + id_ct_active_group + id_ct_transform;
+
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	if (DRW_state_is_fbo()) {
+	if (DRW_state_is_fbo() && outline_calls > 0) {
 		DRW_stats_group_start("Outlines");
-
-		int id_ct_select = g_data->id_ofs_select;
-		int id_ct_select_group = g_data->id_ofs_select_group;
-		int id_ct_active = g_data->id_ofs_active;
-		int id_ct_active_group = g_data->id_ofs_active_group;
 
 		g_data->id_ofs_active = 1;
 		g_data->id_ofs_active_group = g_data->id_ofs_active + id_ct_active + 1;
@@ -2137,7 +2139,9 @@ static void OBJECT_draw_scene(void *vedata)
 		}
 
 		/* Combine with scene buffer last */
-		DRW_draw_pass(psl->outlines_resolve);
+		if (outline_calls > 0) {
+			DRW_draw_pass(psl->outlines_resolve);
+		}
 	}
 
 	/* This has to be freed only after drawing empties! */
