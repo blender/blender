@@ -73,6 +73,16 @@ static void workbench_engine_free(void)
 	workbench_materials_free();
 }
 
+static void workbench_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
+{
+	BLI_assert(props &&
+	           props->type == IDP_GROUP &&
+	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+	float default_object_color[3] = {1.0, 1.0, 1.0};
+	BKE_collection_engine_property_add_float_array(props, "object_color", default_object_color, 3);
+}
+
+
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
 DrawEngineType draw_engine_workbench_type = {
@@ -96,7 +106,7 @@ DrawEngineType draw_engine_workbench_type = {
 RenderEngineType DRW_engine_viewport_workbench_type = {
 	NULL, NULL,
 	WORKBENCH_ENGINE, N_("Workbench"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, &workbench_layer_collection_settings_create, NULL,
 	&draw_engine_workbench_type,
 	{NULL, NULL, NULL}
 };

@@ -77,6 +77,9 @@ void workbench_materials_cache_populate(WORKBENCH_Data* vedata, Object *ob)
 {
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_StorageList *stl = vedata->stl;
+	
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
+	const float* color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
 
 	if (!DRW_object_is_renderable(ob))
 		return;
@@ -89,7 +92,7 @@ void workbench_materials_cache_populate(WORKBENCH_Data* vedata, Object *ob)
 		
 		/* Silhouette */
 		grp = DRW_shgroup_create(e_data.silhouette_sh, psl->silhouette_pass);
-		DRW_shgroup_uniform_vec3(grp, "color", ob->col, 1);
+		DRW_shgroup_uniform_vec3(grp, "color", color, 1);
 		DRW_shgroup_call_add(grp, geom, ob->obmat);
 	}
 }

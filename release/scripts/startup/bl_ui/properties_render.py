@@ -912,6 +912,18 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
+class RENDER_PT_workbench_collection_settings(RenderButtonsPanel, Panel):
+    bl_label = "Workbench Collection Settings"
+    COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
+
+    def draw(self, context):
+        layout = self.layout
+        props = context.scene.collection_properties['BLENDER_WORKBENCH']
+
+        col = layout.column()
+        col.prop(props, "object_color")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -941,6 +953,7 @@ classes = (
     RENDER_PT_eevee_motion_blur,
     RENDER_PT_eevee_depth_of_field,
     RENDER_PT_eevee_bloom,
+    RENDER_PT_workbench_collection_settings,
 )
 
 if __name__ == "__main__":  # only for live edit.
