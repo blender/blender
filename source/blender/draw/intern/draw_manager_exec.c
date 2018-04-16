@@ -395,22 +395,23 @@ static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbo
 	bool is_persp = projmat[3][3] == 0.0f;
 
 	if (is_persp) {
-		near = projmat[3][2] / (projmat[2][2] - 1.0f);
-		far = projmat[3][2] / (projmat[2][2] + 1.0f);
-		float w_half = near / projmat[0][0];
-		float h_half = near / projmat[1][1];
+		float w_half, h_half;
+		near   = projmat[3][2] / (projmat[2][2] - 1.0f);
+		far    = projmat[3][2] / (projmat[2][2] + 1.0f);
+		w_half = near / projmat[0][0];
+		h_half = near / projmat[1][1];
 		left   = projmat[2][0] - w_half;
 		right  = projmat[2][0] + w_half;
 		bottom = projmat[2][1] - h_half;
 		top    = projmat[2][1] + h_half;
 	}
 	else {
-		near = (projmat[3][2] + 1.0f) / projmat[2][2];
-		far = (projmat[3][2] - 1.0f) / projmat[2][2];
-		left =   (-1.0f - projmat[3][0]) / projmat[0][0];
-		right =   (1.0f - projmat[3][0]) / projmat[0][0];
+		near   = (projmat[3][2] + 1.0f) / projmat[2][2];
+		far    = (projmat[3][2] - 1.0f) / projmat[2][2];
+		left   = (-1.0f - projmat[3][0]) / projmat[0][0];
+		right  =  (1.0f - projmat[3][0]) / projmat[0][0];
 		bottom = (-1.0f - projmat[3][1]) / projmat[1][1];
-		top =     (1.0f - projmat[3][1]) / projmat[1][1];
+		top    =  (1.0f - projmat[3][1]) / projmat[1][1];
 	}
 
 	r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
@@ -509,7 +510,6 @@ static void draw_clipping_setup_from_view(void)
 		float h_sq = len_squared_v3v3(mid_min, mid_max);
 
 		float fac = (4 * h_sq + b_sq - a_sq) / (8 * h_sq);
-		BLI_assert(fac >= 0.0f);
 
 		/* The goal is to get the smallest sphere,
 		 * not the sphere that passes through each corner */
