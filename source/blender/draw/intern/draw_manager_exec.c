@@ -486,9 +486,6 @@ static void draw_clipping_setup_from_view(void)
 		float *nearpoint = bbox.vec[0];
 		float *farpoint = bbox.vec[6];
 
-		mul_project_m4_v3(projinv, nearpoint);
-		mul_project_m4_v3(projinv, farpoint);
-
 		/* just use median point */
 		mid_v3_v3v3(bsphere->center, farpoint, nearpoint);
 		bsphere->radius = len_v3v3(bsphere->center, farpoint);
