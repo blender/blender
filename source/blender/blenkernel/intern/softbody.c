@@ -662,11 +662,13 @@ static void add_2nd_order_roller(Object *ob, float UNUSED(stiffness), int *count
 				notthis = bs->v2;
 			}
 			else {
-			if (v0 == bs->v2) {
-				bpo = sb->bpoint+bs->v1;
-				notthis = bs->v1;
-			}
-			else {printf("oops we should not get here -  add_2nd_order_springs");}
+				if (v0 == bs->v2) {
+					bpo = sb->bpoint+bs->v1;
+					notthis = bs->v1;
+				}
+				else {
+					printf("oops we should not get here -  add_2nd_order_springs");
+				}
 			}
 			if (bpo) {/* so now we have a 2nd order humpdidump */
 				for (c=bpo->nofsprings;c>0;c--) {
@@ -1955,12 +1957,12 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 
 	/* intitialize */
 	if (sb) {
-	/* check conditions for various options */
-	/* +++ could be done on object level to squeeze out the last bits of it */
-	do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
-	do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
-	do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
-	/* --- could be done on object level to squeeze out the last bits of it */
+		/* check conditions for various options */
+		/* +++ could be done on object level to squeeze out the last bits of it */
+		do_selfcollision=((ob->softflag & OB_SB_EDGES) && (sb->bspring)&& (ob->softflag & OB_SB_SELF));
+		do_springcollision=do_deflector && (ob->softflag & OB_SB_EDGES) &&(ob->softflag & OB_SB_EDGECOLL);
+		do_aero=((sb->aeroedge)&& (ob->softflag & OB_SB_EDGES));
+		/* --- could be done on object level to squeeze out the last bits of it */
 	}
 	else {
 		printf("Error expected a SB here\n");
@@ -2755,7 +2757,7 @@ static void apply_spring_memory(Object *ob)
 			l = len_v3v3(bp1->pos, bp2->pos);
 			r = bs->len/l;
 			if (( r > 1.05f) || (r < 0.95f)) {
-			bs->len = ((100.0f - b) * bs->len  + b*l)/100.0f;
+				bs->len = ((100.0f - b) * bs->len  + b*l)/100.0f;
 			}
 		}
 	}
@@ -2803,10 +2805,10 @@ static void springs_from_mesh(Object *ob)
 
 	sb= ob->soft;
 	if (me && sb) {
-	/* using bp->origS as a container for spring calcualtions here
-	 * will be overwritten sbObjectStep() to receive
-	 * actual modifier stack positions
-	 */
+		/* using bp->origS as a container for spring calcualtions here
+		 * will be overwritten sbObjectStep() to receive
+		 * actual modifier stack positions
+		 */
 		if (me->totvert) {
 			bp= ob->soft->bpoint;
 			for (a=0; a<me->totvert; a++, bp++) {
@@ -3469,16 +3471,16 @@ static void softbody_reset(Object *ob, SoftBody *sb, float (*vertexCos)[3], int 
 		SB_estimate_transform(ob, NULL, NULL, NULL);
 	}
 	switch (ob->type) {
-	case OB_MESH:
-		if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
-		break;
-	case OB_LATTICE:
-		break;
-	case OB_CURVE:
-	case OB_SURF:
-		break;
-	default:
-		break;
+		case OB_MESH:
+			if (ob->softflag & OB_SB_FACECOLL) mesh_faces_to_scratch(ob);
+			break;
+		case OB_LATTICE:
+			break;
+		case OB_CURVE:
+		case OB_SURF:
+			break;
+		default:
+			break;
 	}
 }
 

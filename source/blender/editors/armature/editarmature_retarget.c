@@ -911,6 +911,7 @@ static void RIG_reconnectControlBones(RigGraph *rg)
 			
 			/* if we haven't found one yet, look in control bones */
 			if (ctrl->tail_mode == TL_NONE) {
+				/* pass */
 			}
 		}
 	}

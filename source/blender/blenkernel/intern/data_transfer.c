@@ -107,7 +107,7 @@ bool BKE_object_data_transfer_get_dttypes_capacity(
 		}
 
 		switch (dtdata_type) {
-		/* Vertex data */
+			/* Vertex data */
 			case DT_TYPE_MDEFORMVERT:
 				*r_advanced_mixing = true;
 				*r_threshold = true;
@@ -120,7 +120,7 @@ bool BKE_object_data_transfer_get_dttypes_capacity(
 			case DT_TYPE_BWEIGHT_VERT:
 				ret = true;
 				break;
-		/* Edge data */
+			/* Edge data */
 			case DT_TYPE_SHARP_EDGE:
 				*r_threshold = true;
 				ret = true;
@@ -139,7 +139,7 @@ bool BKE_object_data_transfer_get_dttypes_capacity(
 				*r_threshold = true;
 				ret = true;
 				break;
-		/* Loop/Poly data */
+			/* Loop/Poly data */
 			case DT_TYPE_UV:
 				ret = true;
 				break;

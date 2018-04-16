@@ -555,9 +555,9 @@ public:
 	// operators
 	// operator corresponding to ++i.
 	inline Self& operator++()
-	{ 
-	increment();
-	return *this;
+	{
+		increment();
+		return *this;
 	}
 
 	// operator corresponding to i++, i.e. which returns the value *and then* increments it.

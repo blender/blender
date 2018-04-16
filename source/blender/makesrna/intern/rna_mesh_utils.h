@@ -85,7 +85,7 @@
 		}                                                                                       \
 		else {                                                                                  \
 			layer = NULL;                                                                       \
-			}                                                                                   \
+		}                                                                                       \
 		return rna_pointer_inherit_refine(ptr, &RNA_##layer_rna_type, layer);                   \
 	}                                                                                           \
 	                                                                                            \

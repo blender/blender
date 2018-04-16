@@ -507,28 +507,28 @@ float effector_falloff(EffectorCache *eff, EffectorData *efd, EffectedPoint *UNU
 		falloff=0.0f;
 	else {
 		switch (eff->pd->falloff) {
-		case PFIELD_FALL_SPHERE:
-			falloff*= falloff_func_dist(eff->pd, efd->distance);
-			break;
-
-		case PFIELD_FALL_TUBE:
-			falloff*= falloff_func_dist(eff->pd, ABS(fac));
-			if (falloff == 0.0f)
+			case PFIELD_FALL_SPHERE:
+				falloff*= falloff_func_dist(eff->pd, efd->distance);
 				break;
 
-			madd_v3_v3v3fl(temp, efd->vec_to_point2, efd->nor, -fac);
-			r_fac= len_v3(temp);
-			falloff*= falloff_func_rad(eff->pd, r_fac);
-			break;
-		case PFIELD_FALL_CONE:
-			falloff*= falloff_func_dist(eff->pd, ABS(fac));
-			if (falloff == 0.0f)
+			case PFIELD_FALL_TUBE:
+				falloff*= falloff_func_dist(eff->pd, ABS(fac));
+				if (falloff == 0.0f)
+					break;
+
+				madd_v3_v3v3fl(temp, efd->vec_to_point2, efd->nor, -fac);
+				r_fac= len_v3(temp);
+				falloff*= falloff_func_rad(eff->pd, r_fac);
 				break;
+			case PFIELD_FALL_CONE:
+				falloff*= falloff_func_dist(eff->pd, ABS(fac));
+				if (falloff == 0.0f)
+					break;
 
-			r_fac= RAD2DEGF(saacos(fac/len_v3(efd->vec_to_point)));
-			falloff*= falloff_func_rad(eff->pd, r_fac);
+				r_fac= RAD2DEGF(saacos(fac/len_v3(efd->vec_to_point)));
+				falloff*= falloff_func_rad(eff->pd, r_fac);
 
-			break;
+				break;
 		}
 	}
 

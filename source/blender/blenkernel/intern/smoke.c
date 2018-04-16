@@ -1107,8 +1107,9 @@ static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_mult
 
 				/* initialize with first input if in range */
 				if (x >= em1.min[0] && x < em1.max[0] &&
-					y >= em1.min[1] && y < em1.max[1] &&
-					z >= em1.min[2] && z < em1.max[2]) {
+				    y >= em1.min[1] && y < em1.max[1] &&
+				    z >= em1.min[2] && z < em1.max[2])
+				{
 					int index_in = smoke_get_index(x - em1.min[0], em1.res[0], y - em1.min[1], em1.res[1], z - em1.min[2]);
 
 					/* values */
@@ -1120,8 +1121,9 @@ static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_mult
 
 				/* apply second input if in range */
 				if (x >= em2->min[0] && x < em2->max[0] &&
-					y >= em2->min[1] && y < em2->max[1] &&
-					z >= em2->min[2] && z < em2->max[2]) {
+				    y >= em2->min[1] && y < em2->max[1] &&
+				    z >= em2->min[2] && z < em2->max[2])
+				{
 					int index_in = smoke_get_index(x - em2->min[0], em2->res[0], y - em2->min[1], em2->res[1], z - em2->min[2]);
 
 					/* values */
@@ -1151,8 +1153,9 @@ static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_mult
 
 					/* initialize with first input if in range */
 					if (x >= em1.hmin[0] && x < em1.hmax[0] &&
-						y >= em1.hmin[1] && y < em1.hmax[1] &&
-						z >= em1.hmin[2] && z < em1.hmax[2]) {
+					    y >= em1.hmin[1] && y < em1.hmax[1] &&
+					    z >= em1.hmin[2] && z < em1.hmax[2])
+					{
 						int index_in = smoke_get_index(x - em1.hmin[0], em1.hres[0], y - em1.hmin[1], em1.hres[1], z - em1.hmin[2]);
 						/* values */
 						output->influence_high[index_out] = em1.influence_high[index_in];
@@ -1160,8 +1163,9 @@ static void em_combineMaps(EmissionMap *output, EmissionMap *em2, int hires_mult
 
 					/* apply second input if in range */
 					if (x >= em2->hmin[0] && x < em2->hmax[0] &&
-						y >= em2->hmin[1] && y < em2->hmax[1] &&
-						z >= em2->hmin[2] && z < em2->hmax[2]) {
+					    y >= em2->hmin[1] && y < em2->hmax[1] &&
+					    z >= em2->hmin[2] && z < em2->hmax[2])
+					{
 						int index_in = smoke_get_index(x - em2->hmin[0], em2->hres[0], y - em2->hmin[1], em2->hres[1], z - em2->hmin[2]);
 
 						/* values */

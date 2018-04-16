@@ -2953,9 +2953,11 @@ void init_userdef_do_versions(void)
 
 	/**
 	 * Include next version bump.
-	 *
-	 * (keep this block even if it becomes empty).
 	 */
+	{
+		/* (keep this block even if it becomes empty). */
+	}
+
 	if (((bTheme *)U.themes.first)->tui.manipulator_hi[3] == 0) {
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			ui_theme_space_init_manipulator_colors(btheme);

@@ -441,9 +441,9 @@ static void ptcache_particle_extra_write(void *psys_v, PTCacheMem *pm, int UNUSE
 	PTCacheExtra *extra = NULL;
 
 	if (psys->part->phystype == PART_PHYS_FLUID &&
-		psys->part->fluid && psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS &&
-		psys->tot_fluidsprings && psys->fluid_springs) {
-
+	    psys->part->fluid && psys->part->fluid->flag & SPH_VISCOELASTIC_SPRINGS &&
+	    psys->tot_fluidsprings && psys->fluid_springs)
+	{
 		extra = MEM_callocN(sizeof(PTCacheExtra), "Point cache: fluid extra data");
 
 		extra->type = BPHYS_EXTRA_FLUID_SPRINGS;
@@ -790,8 +790,9 @@ static int ptcache_smoke_read(PTCacheFile *pf, void *smoke_v)
 
 	/* check if resolution has changed */
 	if (sds->res[0] != ch_res[0] ||
-		sds->res[1] != ch_res[1] ||
-		sds->res[2] != ch_res[2]) {
+	    sds->res[1] != ch_res[1] ||
+	    sds->res[2] != ch_res[2])
+	{
 		if (sds->flags & MOD_SMOKE_ADAPTIVE_DOMAIN)
 			reallocate = 1;
 		else
@@ -2214,8 +2215,8 @@ static void ptcache_data_copy(void *from[], void *to[])
 {
 	int i;
 	for (i=0; i<BPHYS_TOT_DATA; i++) {
-	/* note, durian file 03.4b_comp crashes if to[i] is not tested
-	 * its NULL, not sure if this should be fixed elsewhere but for now its needed */
+		/* note, durian file 03.4b_comp crashes if to[i] is not tested
+		 * its NULL, not sure if this should be fixed elsewhere but for now its needed */
 		if (from[i] && to[i])
 			memcpy(to[i], from[i], ptcache_data_size[i]);
 	}

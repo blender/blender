@@ -275,7 +275,7 @@ protected:
 	{
 		if (_Point != 0) {
 			delete _Point;
-		_Point = 0;
+			_Point = 0;
 		}
 		if ((_currentn == _n - 1) && (_t == 1.0f)) {
 			// we're setting the iterator to end

@@ -77,13 +77,13 @@
 	SWAP(typeof(stack_a), stack_a, stack_b); \
 	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
 	_STACK_SWAP_TOTALLOC(stack_a, stack_b); \
-	} ((void)0)
+} ((void)0)
 #else
 #define STACK_SWAP(stack_a, stack_b) { \
 	SWAP(void *, stack_a, stack_b); \
 	SWAP(unsigned int, _##stack_a##_index, _##stack_b##_index); \
 	_STACK_SWAP_TOTALLOC(stack_a, stack_b); \
-	} ((void)0)
+} ((void)0)
 #endif
 
 #endif  /* __BLI_UTILDEFINES_STACK_H__ */
