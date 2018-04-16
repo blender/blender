@@ -1228,7 +1228,7 @@ static void draw_armature_edit(Object *ob)
 
 	const bool show_text = DRW_state_show_text();
 
-	for (eBone = arm->edbo->first, index = 0; eBone; eBone = eBone->next, index++) {
+	for (eBone = arm->edbo->first, index = ob->select_color; eBone; eBone = eBone->next, index += 0x10000) {
 		if (eBone->layer & arm->layer) {
 			if ((eBone->flag & BONE_HIDDEN_A) == 0) {
 				const int select_id = is_select ? index : (unsigned int)-1;

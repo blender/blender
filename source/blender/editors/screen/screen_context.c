@@ -30,6 +30,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_object_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_gpencil_types.h"
@@ -41,7 +43,6 @@
 #include "DNA_workspace_types.h"
 
 #include "BLI_utildefines.h"
-
 
 #include "BKE_context.h"
 #include "BKE_object.h"
@@ -209,6 +210,12 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		const bool editable_bones = CTX_data_equals(member, "editable_bones");
 		
 		if (arm && arm->edbo) {
+			uint objects_len;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+			for (uint i = 0; i < objects_len; i++) {
+			Object *ob = objects[i];
+			arm = ob->data;
+
 			/* Attention: X-Axis Mirroring is also handled here... */
 			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 				/* first and foremost, bone must be visible and selected */
@@ -241,6 +248,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					}
 				}
 			}
+			}
+			MEM_freeN(objects);
+
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
@@ -251,6 +261,12 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		const bool selected_editable_bones = CTX_data_equals(member, "selected_editable_bones");
 		
 		if (arm && arm->edbo) {
+			uint objects_len;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+			for (uint i = 0; i < objects_len; i++) {
+			Object *ob = objects[i];
+			arm = ob->data;
+
 			/* Attention: X-Axis Mirroring is also handled here... */
 			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 				/* first and foremost, bone must be visible and selected */
@@ -283,6 +299,9 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 					}
 				}
 			}
+			}
+			MEM_freeN(objects);
+
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
 		}
@@ -293,11 +312,23 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bPoseChannel *pchan;
 		
 		if (obpose && obpose->pose && arm) {
-			for (pchan = obpose->pose->chanbase.first; pchan; pchan = pchan->next) {
-				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-				if (PBONE_VISIBLE(arm, pchan->bone)) {
-					CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
+			if (obpose != obact) {
+				for (pchan = obpose->pose->chanbase.first; pchan; pchan = pchan->next) {
+					/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+					if (PBONE_VISIBLE(arm, pchan->bone)) {
+						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
+					}
 				}
+			}
+			else if (obact->mode & OB_MODE_POSE) {
+				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obact->mode, ob_iter) {
+					for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+						/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+						if (PBONE_VISIBLE(arm, pchan->bone)) {
+							CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
+						}
+					}
+				} FOREACH_OBJECT_IN_MODE_END;
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;
@@ -309,12 +340,27 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 		bPoseChannel *pchan;
 		
 		if (obpose && obpose->pose && arm) {
-			for (pchan = obpose->pose->chanbase.first; pchan; pchan = pchan->next) {
-				/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-				if (PBONE_VISIBLE(arm, pchan->bone)) {
-					if (pchan->bone->flag & BONE_SELECTED)
-						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
+			if (obpose != obact) {
+				/* TODO(de-duplicate!) */
+				for (pchan = obpose->pose->chanbase.first; pchan; pchan = pchan->next) {
+					/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+					if (PBONE_VISIBLE(arm, pchan->bone)) {
+						if (pchan->bone->flag & BONE_SELECTED)
+							CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
+					}
 				}
+			}
+			else if (obact->mode & OB_MODE_POSE) {
+				/* TODO(de-duplicate!) */
+				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter) {
+					for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
+						/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
+						if (PBONE_VISIBLE(arm, pchan->bone)) {
+							if (pchan->bone->flag & BONE_SELECTED)
+								CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
+						}
+					}
+				} FOREACH_OBJECT_IN_MODE_END;
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
 			return 1;

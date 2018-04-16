@@ -60,6 +60,7 @@ void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle);
 void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
 void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);
 
+void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4]);
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
 void BM_mesh_elem_index_validate(
         BMesh *bm, const char *location, const char *func,

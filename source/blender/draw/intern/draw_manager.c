@@ -1554,7 +1554,14 @@ void DRW_draw_select_loop(
 		drw_engines_cache_init();
 
 		if (use_obedit) {
+#if 0
 			drw_engines_cache_populate(obact);
+#else
+			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obact->mode, ob_iter) {
+				drw_engines_cache_populate(ob_iter);
+			}
+			FOREACH_OBJECT_IN_MODE_END;
+#endif
 		}
 		else {
 			DEG_OBJECT_ITER_BEGIN(

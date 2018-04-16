@@ -1015,7 +1015,6 @@ static int armature_bone_layers_invoke(bContext *C, wmOperator *op, const wmEven
 static int armature_bone_layers_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = CTX_data_edit_object(C);
-	bArmature *arm = (ob) ? ob->data : NULL;
 	PointerRNA ptr;
 	int layers[32]; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
@@ -1023,7 +1022,7 @@ static int armature_bone_layers_exec(bContext *C, wmOperator *op)
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 	
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+	CTX_DATA_BEGIN_WITH_ID (C, EditBone *, ebone, selected_editable_bones, bArmature *, arm)
 	{
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);

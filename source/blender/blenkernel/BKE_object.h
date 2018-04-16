@@ -83,7 +83,9 @@ void BKE_object_copy_proxy_drivers(struct Object *ob, struct Object *target);
 bool BKE_object_exists_check(const struct Object *obtest);
 bool BKE_object_is_in_editmode(const struct Object *ob);
 bool BKE_object_is_in_editmode_vgroup(const struct Object *ob);
+bool BKE_object_is_in_editmode_and_selected(const struct Object *ob);
 bool BKE_object_is_in_wpaint_select_vert(const struct Object *ob);
+bool BKE_object_has_mode_data(const struct Object *ob, eObjectMode object_mode);
 
 typedef enum eObjectVisibilityCheck {
 	OB_VISIBILITY_CHECK_FOR_VIEWPORT,

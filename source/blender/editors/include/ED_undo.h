@@ -26,6 +26,7 @@
 #define __ED_UNDO_H__
 
 struct bContext;
+struct CLG_LogRef;
 struct wmOperator;
 struct wmOperatorType;
 struct UndoStack;
@@ -52,6 +53,10 @@ void    ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg
 bool    ED_undo_is_valid(const struct bContext *C, const char *undoname);
 
 struct UndoStack *ED_undo_stack_get(void);
+
+/* helpers */
+void ED_undo_object_set_active_or_warn(
+        struct ViewLayer *view_layer, struct Object *ob, const char *info, struct CLG_LogRef *log);
 
 /* undo_system_types.c */
 void ED_undosys_type_init(void);

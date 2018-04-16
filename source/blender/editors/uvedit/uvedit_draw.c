@@ -51,6 +51,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_material.h"
+#include "BKE_layer.h"
 
 #include "BKE_scene.h"
 
@@ -1100,12 +1101,21 @@ void ED_uvedit_draw_main(
 	draw_uv_shadows_get(sima, obact, obedit, &show_uvshadow, &show_texpaint_uvshadow);
 
 	if (show_uvedit || show_uvshadow || show_texpaint_uvshadow) {
-		if (show_uvshadow)
+		if (show_uvshadow) {
 			draw_uvs_shadow(obedit);
-		else if (show_uvedit)
-			draw_uvs(sima, scene, view_layer, obedit, depsgraph);
-		else
+		}
+		else if (show_uvedit) {
+			uint objects_len = 0;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
+			for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+				Object *ob_iter = objects[ob_index];
+				draw_uvs(sima, scene, view_layer, ob_iter, depsgraph);
+			}
+			MEM_SAFE_FREE(objects);
+		}
+		else {
 			draw_uvs_texpaint(sima, scene, view_layer, obact);
+		}
 
 		if (show_uvedit && !(toolsettings->use_uv_sculpt))
 			ED_image_draw_cursor(ar, sima->cursor);

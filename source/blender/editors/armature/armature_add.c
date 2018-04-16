@@ -1074,7 +1074,6 @@ void ARMATURE_OT_bone_primitive_add(wmOperatorType *ot)
 static int armature_subdivide_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	bArmature *arm = obedit->data;
 	EditBone *newbone, *tbone;
 	int cuts, i;
 	
@@ -1083,7 +1082,7 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	
 	/* loop over all editable bones */
 	// XXX the old code did this in reverse order though!
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones)
+	CTX_DATA_BEGIN_WITH_ID(C, EditBone *, ebone, selected_editable_bones, bArmature *, arm)
 	{
 		for (i = cuts + 1; i > 1; i--) {
 			/* compute cut ratio first */

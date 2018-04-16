@@ -340,6 +340,9 @@ struct MDeformVert *ED_mesh_active_dvert_get_em(struct Object *ob, struct BMVert
 struct MDeformVert *ED_mesh_active_dvert_get_ob(struct Object *ob, int *r_index);
 struct MDeformVert *ED_mesh_active_dvert_get_only(struct Object *ob);
 
+void EDBM_mesh_stats_multi(struct Object **objects, const uint objects_len, int totelem[3], int totelem_sel[3]);
+void EDBM_mesh_elem_index_ensure_multi(struct Object **objects, const uint objects_len, const char htype);
+
 #define ED_MESH_PICK_DEFAULT_VERT_SIZE 50
 #define ED_MESH_PICK_DEFAULT_FACE_SIZE 3
 

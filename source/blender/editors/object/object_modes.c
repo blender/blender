@@ -177,6 +177,9 @@ bool ED_object_mode_generic_enter(
         struct bContext *C, eObjectMode object_mode)
 {
 	Object *ob = CTX_data_active_object(C);
+	if (ob == NULL) {
+		return (object_mode == OB_MODE_OBJECT);
+	}
 	if (ob->mode == object_mode) {
 		return true;
 	}

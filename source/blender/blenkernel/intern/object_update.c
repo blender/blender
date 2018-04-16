@@ -172,7 +172,15 @@ void BKE_object_handle_data_update(
 	switch (ob->type) {
 		case OB_MESH:
 		{
+#if 0
 			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
+#else
+			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? ((Mesh *)ob->data)->edit_btmesh : NULL;
+			if (em && em->ob != ob) {
+				em = NULL;
+			}
+#endif
+
 			uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
 #ifdef WITH_FREESTYLE
 			/* make sure Freestyle edge/face marks appear in DM for render (see T40315) */

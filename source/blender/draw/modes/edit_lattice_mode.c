@@ -26,6 +26,8 @@
 #include "DRW_engine.h"
 #include "DRW_render.h"
 
+#include "BKE_object.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 
@@ -192,7 +194,7 @@ static void EDIT_LATTICE_cache_populate(void *vedata, Object *ob)
 	UNUSED_VARS(psl);
 
 	if (ob->type == OB_LATTICE) {
-		if (ob == draw_ctx->object_edit) {
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob)) {
 			/* Get geometry cache */
 			struct Gwn_Batch *geom;
 

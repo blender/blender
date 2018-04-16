@@ -26,6 +26,7 @@
 
 #include <string.h>
 
+#include "BLI_array.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_string_utf8.h"
@@ -41,6 +42,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_workspace.h"
+#include "BKE_object.h"
 
 #include "DEG_depsgraph.h"
 
@@ -2234,6 +2236,61 @@ void BKE_renderable_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* Do nothing - iter->data was static allocated, we can't free it. */
 }
+
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_objects_in_mode_iterator
+ * \{ */
+
+void BKE_view_layer_objects_in_mode_iterator_begin(BLI_Iterator *iter, void *data_in)
+{
+	struct ObjectsInModeIteratorData *data = data_in;
+	Base *base = data->base_active;
+
+	/* when there are no objects */
+	if (base == NULL) {
+		iter->valid = false;
+		return;
+	}
+	iter->data = data_in;
+	iter->current = base;
+}
+
+void BKE_view_layer_objects_in_mode_iterator_next(BLI_Iterator *iter)
+{
+	struct ObjectsInModeIteratorData *data = iter->data;
+	Base *base = iter->current;
+
+	if (base == data->base_active) {
+		/* first step */
+		base = data->view_layer->object_bases.first;
+		if (base == data->base_active) {
+			base = base->next;
+		}
+	}
+	else {
+		base = base->next;
+	}
+
+	while (base) {
+		if ((base->flag & BASE_SELECTED) != 0 &&
+		    (base->object->type == data->base_active->object->type) &&
+		    (base != data->base_active) &&
+		    (base->object->mode & data->object_mode))
+		{
+			iter->current = base;
+			return;
+		}
+		base = base->next;
+	}
+	iter->valid = false;
+}
+
+void BKE_view_layer_objects_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
+{
+	/* do nothing */
+}
+
+/** \} */
 
 /* Evaluation  */
 

@@ -248,10 +248,15 @@ void armature_select_mirrored_ex(struct bArmature *arm, const int flag);
 void armature_select_mirrored(struct bArmature *arm);
 void armature_tag_unselect(struct bArmature *arm);
 
-void *get_nearest_bone(struct bContext *C, const int xy[2], bool findunsel);
+void *get_nearest_bone(
+        struct bContext *C, const int xy[2], bool findunsel,
+        struct Base **r_base);
+
 void *get_bone_from_selectbuffer(
-        struct Base *base, struct Object *obedit, const unsigned int *buffer, short hits,
-        bool findunsel, bool do_nearest);
+        struct Base **bases, uint bases_len,
+        bool is_editmode, const unsigned int *buffer, short hits,
+        bool findunsel, bool do_nearest,
+        struct Base **r_base);
 
 int bone_looper(struct Object *ob, struct Bone *bone, void *data,
                 int (*bone_func)(struct Object *, struct Bone *, void *));

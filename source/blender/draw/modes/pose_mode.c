@@ -139,7 +139,9 @@ bool DRW_pose_mode_armature(Object *ob, Object *active_ob)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	/* Pode armature is handled by pose mode engine. */
-	if ((ob == active_ob) && ((draw_ctx->object_mode & OB_MODE_POSE) != 0)) {
+	if (((ob == active_ob) || (ob->base_flag & BASE_SELECTED)) &&
+	    ((draw_ctx->object_mode & OB_MODE_POSE) != 0))
+	{
 		return true;
 	}
 

@@ -530,6 +530,15 @@ bool BKE_object_is_in_editmode(const Object *ob)
 	return false;
 }
 
+bool BKE_object_is_in_editmode_and_selected(const Object *ob)
+{
+	if ((ob->flag & SELECT) && (BKE_object_is_in_editmode(ob))) {
+		return true;
+	}
+	return false;
+}
+
+
 bool BKE_object_is_in_editmode_vgroup(const Object *ob)
 {
 	return (OB_TYPE_SUPPORT_VGROUP(ob->type) &&
@@ -545,6 +554,36 @@ bool BKE_object_is_in_wpaint_select_vert(const Object *ob)
 		        (ME_EDIT_PAINT_SEL_MODE(me) == SCE_SELECT_VERTEX));
 	}
 
+	return false;
+}
+
+bool BKE_object_has_mode_data(const struct Object *ob, eObjectMode object_mode)
+{
+	if (object_mode & OB_MODE_EDIT) {
+		if (BKE_object_is_in_editmode(ob)) {
+			return true;
+		}
+	}
+	else if (object_mode & OB_MODE_VERTEX_PAINT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_VERTEX_PAINT)) {
+			return true;
+		}
+	}
+	else if (object_mode & OB_MODE_WEIGHT_PAINT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_WEIGHT_PAINT)) {
+			return true;
+		}
+	}
+	else if (object_mode & OB_MODE_SCULPT) {
+		if (ob->sculpt && (ob->sculpt->mode_type == OB_MODE_SCULPT)) {
+			return true;
+		}
+	}
+	else if (object_mode & OB_MODE_POSE) {
+		if (ob->pose != NULL) {
+			return true;
+		}
+	}
 	return false;
 }
 

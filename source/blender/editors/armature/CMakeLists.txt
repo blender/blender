@@ -28,6 +28,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/clog
 	../../../../intern/guardedalloc
 	../../../../intern/eigen
 	../../../../intern/glew-mx
