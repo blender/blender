@@ -7211,7 +7211,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 			sc->scrubbing = false;
 			
 			for (ScrArea *area = sc->areabase.first; area; area = area->next) {
-				lib_link_area(fd, &sc->id, area);
+				lib_link_area(fd, sc, area);
 			}
 			sc->id.tag &= ~LIB_TAG_NEED_LINK;
 		}
