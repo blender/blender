@@ -458,7 +458,8 @@ void clothModifier_do(ClothModifierData *clmd, const struct EvaluationContext *e
 	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe, can_simulate);
 
 	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
-	    (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+	    (!can_simulate && cache_result == PTCACHE_READ_OLD))
+	{
 		BKE_cloth_solver_set_positions(clmd);
 		cloth_to_object (ob, clmd, vertexCos);
 

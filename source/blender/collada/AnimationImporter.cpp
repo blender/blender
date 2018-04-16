@@ -1753,7 +1753,8 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 	if (type != COLLADAFW::Transformation::ROTATE &&
 	    type != COLLADAFW::Transformation::SCALE &&
 	    type != COLLADAFW::Transformation::TRANSLATE &&
-	    type != COLLADAFW::Transformation::MATRIX) {
+	    type != COLLADAFW::Transformation::MATRIX)
+	{
 		fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
 		return false;
 	}

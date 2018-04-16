@@ -123,12 +123,13 @@ void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
 	ep.setSpecular(cot, false, "specular");
 }
 
-void EffectsExporter::writeTextures(COLLADASW::EffectProfile &ep,
-									std::string &key,
-									COLLADASW::Sampler *sampler, 
-									MTex *t, Image *ima,
-									std::string &uvname ) {
-		
+void EffectsExporter::writeTextures(
+        COLLADASW::EffectProfile &ep,
+        std::string &key,
+        COLLADASW::Sampler *sampler, 
+        MTex *t, Image *ima,
+        std::string &uvname )
+{
 	// Image not set for texture
 	if (!ima) return;
 
