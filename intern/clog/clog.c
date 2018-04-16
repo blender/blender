@@ -29,7 +29,7 @@
 #include <assert.h>
 
 /* For 'isatty' to check for color. */
-#if defined(__unix__)
+#if defined(__unix__) || defined(__APPLE__)
 #  include <unistd.h>
 #endif
 
@@ -454,7 +454,7 @@ static void CLG_ctx_output_set(CLogContext *ctx, void *file_handle)
 {
 	ctx->output_file = file_handle;
 	ctx->output = fileno(file_handle);
-#if defined(__unix__)
+#if defined(__unix__) || defined(__APPLE__)
 	ctx->use_color = isatty(ctx->output);
 #endif
 }
