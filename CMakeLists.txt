@@ -165,7 +165,6 @@ option_defaults_init(
 	_init_OPENCOLORIO
 	_init_SDL
 	_init_FFTW3
-	_init_GAMEENGINE
 	_init_OPENSUBDIV
 )
 
@@ -235,13 +234,6 @@ option(WITH_FFTW3         "Enable FFTW3 support (Used for smoke, ocean sim, and 
 option(WITH_BULLET        "Enable Bullet (Physics Engine)" ON)
 option(WITH_SYSTEM_BULLET "Use the systems bullet library (currently unsupported due to missing features in upstream!)" )
 mark_as_advanced(WITH_SYSTEM_BULLET)
-option(WITH_GAMEENGINE    "Enable Game Engine" ${_init_GAMEENGINE})
-if(APPLE)
-	set(WITH_GAMEENGINE_DECKLINK OFF)
-else()
-	option(WITH_GAMEENGINE_DECKLINK "Support BlackMagicDesign DeckLink cards in the Game Engine" ON)
-endif()
-option(WITH_PLAYER        "Build Player" OFF)
 option(WITH_OPENCOLORIO   "Enable OpenColorIO color management" ${_init_OPENCOLORIO})
 
 option(WITH_CLAY_ENGINE    "Enable Clay engine" ON)
@@ -580,15 +572,11 @@ endif()
 #-----------------------------------------------------------------------------
 # Check for conflicting/unsupported configurations
 
-if(NOT WITH_BLENDER AND NOT WITH_PLAYER AND NOT WITH_CYCLES_STANDALONE)
+if(NOT WITH_BLENDER AND NOT WITH_CYCLES_STANDALONE)
 	message(FATAL_ERROR
-		"At least one of WITH_BLENDER or WITH_PLAYER or "
-		"WITH_CYCLES_STANDALONE must be enabled, nothing to do!"
+		"At least one of WITH_BLENDER or WITH_CYCLES_STANDALONE "
+		"must be enabled, nothing to do!"
 	)
-endif()
-
-if(NOT WITH_GAMEENGINE AND WITH_PLAYER)
-	message(FATAL_ERROR "WITH_PLAYER requires WITH_GAMEENGINE")
 endif()
 
 if(NOT WITH_CXX11)
@@ -604,18 +592,10 @@ if(NOT WITH_AUDASPACE)
 	if(WITH_JACK)
 		message(FATAL_ERROR "WITH_JACK requires WITH_AUDASPACE")
 	endif()
-	if(WITH_GAMEENGINE)
-		message(FATAL_ERROR "WITH_GAMEENGINE requires WITH_AUDASPACE")
-	endif()
 endif()
 
 if(NOT WITH_SDL AND WITH_GHOST_SDL)
 	message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL")
-endif()
-
-# python module, needs some different options
-if(WITH_PYTHON_MODULE AND WITH_PLAYER)
-	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PLAYER to be OFF")
 endif()
 
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
@@ -1583,7 +1563,7 @@ if(WITH_GTESTS)
 	include(GTestTesting)
 endif()
 
-if(WITH_BLENDER OR WITH_PLAYER)
+if(WITH_BLENDER)
 	add_subdirectory(intern)
 	add_subdirectory(extern)
 
@@ -1609,13 +1589,6 @@ endif()
 
 
 #-----------------------------------------------------------------------------
-# Blender Player
-if(WITH_PLAYER)
-	add_subdirectory(source/blenderplayer)
-endif()
-
-
-#-----------------------------------------------------------------------------
 # Testing
 add_subdirectory(tests)
 
@@ -1628,9 +1601,6 @@ include(build_files/cmake/packaging.cmake)
 # Use dynamic loading for OpenMP
 if(WITH_BLENDER)
 	openmp_delayload(blender)
-endif()
-if(WITH_PLAYER)
-	openmp_delayload(blenderplayer)
 endif()
 
 #-----------------------------------------------------------------------------
@@ -1665,8 +1635,6 @@ if(FIRST_RUN)
 	message(STATUS "C++ Compiler: \"${CMAKE_CXX_COMPILER_ID}\"")
 
 	info_cfg_text("Build Options:")
-	info_cfg_option(WITH_GAMEENGINE)
-	info_cfg_option(WITH_PLAYER)
 	info_cfg_option(WITH_BULLET)
 	info_cfg_option(WITH_IK_SOLVER)
 	info_cfg_option(WITH_IK_ITASC)
