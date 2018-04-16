@@ -159,7 +159,7 @@ void bc_update_scene(EvaluationContext *eval_ctx, Scene *scene, float ctime)
 {
 	BKE_scene_frame_set(scene, ctime);
 	Main *bmain = bc_get_main();
-	BKE_scene_graph_update_for_newframe(eval_ctx, eval_ctx->depsgraph, bmain, scene, eval_ctx->view_layer);
+	BKE_scene_graph_update_for_newframe(eval_ctx->depsgraph, bmain);
 }
 
 Object *bc_add_object(Scene *scene, ViewLayer *view_layer, int type, const char *name)

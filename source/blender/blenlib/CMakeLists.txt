@@ -50,6 +50,7 @@ set(SRC
 	intern/BLI_kdopbvh.c
 	intern/BLI_kdtree.c
 	intern/BLI_linklist.c
+	intern/BLI_linklist_lockfree.c
 	intern/BLI_memarena.c
 	intern/BLI_memiter.c
 	intern/BLI_mempool.c
@@ -165,7 +166,7 @@ set(SRC
 	BLI_kdtree.h
 	BLI_lasso_2d.h
 	BLI_link_utils.h
-	BLI_linklist.h
+	BLI_linklist_lockfree.h
 	BLI_linklist_stack.h
 	BLI_listbase.h
 	BLI_math.h

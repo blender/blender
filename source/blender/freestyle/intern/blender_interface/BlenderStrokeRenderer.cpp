@@ -177,7 +177,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 		_nodetree_hash = NULL;
 
 	// Depsgraph
-	freestyle_depsgraph = DEG_graph_new(re->scene, view_layer, DAG_EVAL_RENDER);
+	freestyle_depsgraph = DEG_graph_new(freestyle_scene, view_layer, DAG_EVAL_RENDER);
 	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &freestyle_scene->id, 0);
 	DEG_graph_id_tag_update(freestyle_bmain, freestyle_depsgraph, &object_camera->id, 0);
 	DEG_graph_tag_relations_update(freestyle_depsgraph);
