@@ -3720,8 +3720,8 @@ static void direct_link_text(FileData *fd, Text *text)
 #if 0
 	if (text->flags & TXT_ISEXT) {
 		BKE_text_reload(text);
-		}
-		/* else { */
+	}
+	/* else { */
 #endif
 	
 	link_list(fd, &text->lines);
