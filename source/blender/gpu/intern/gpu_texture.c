@@ -147,8 +147,14 @@ static GLenum gpu_texture_get_format(
 	}
 	else {
 		/* Integer formats */
-		if (ELEM(data_type, GPU_RG16I, GPU_R16I)) {
-			*data_format = GL_INT;
+		if (ELEM(data_type, GPU_RG16I, GPU_R16I, GPU_R16UI)) {
+			if (ELEM(data_type, GPU_R16UI)) {
+				*data_format = GL_UNSIGNED_INT;
+			}
+			else {
+				*data_format = GL_INT;
+			}
+
 			*format_flag |= GPU_FORMAT_INTEGER;
 
 			switch (components) {
@@ -224,6 +230,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_R32F: return GL_R32F;
 		case GPU_R16F: return GL_R16F;
 		case GPU_R16I: return GL_R16I;
+		case GPU_R16UI: return GL_R16UI;
 		case GPU_RG8: return GL_RG8;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
