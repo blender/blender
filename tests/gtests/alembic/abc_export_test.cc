@@ -18,7 +18,7 @@ public:
 	TestableAbcExporter(Main *bmain, EvaluationContext *eval_ctx,
 	                    Scene *scene, ViewLayer *view_layer, Depsgraph *depsgraph,
 	                    const char *filename, ExportSettings &settings)
-	    : AbcExporter(bmain, eval_ctx, scene, view_layer, depsgraph, filename, settings)
+	    : AbcExporter(bmain, eval_ctx, scene, depsgraph, filename, settings)
 	{
 	}
 
@@ -57,8 +57,9 @@ protected:
 		bmain = BKE_main_new();
 
 		/* TODO(sergey): Pass scene layer somehow? */
+		ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
 		DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_VIEWPORT);
-		depsgraph = DEG_graph_new();
+		depsgraph = DEG_graph_new(&scene, view_layer, DAG_EVAL_VIEWPORT);
 
 		exporter = NULL;
 	}
