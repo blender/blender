@@ -240,10 +240,12 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 						if (mface->v4 && (!intersects_tri || from==PART_FROM_VOLUME)) {
 							copy_v3_v3(v4, mvert[mface->v4].co);
 
-							if (isect_ray_tri_watertight_v3(co1,
-							                                &isect_precalc,
-							                                v1, v3, v4,
-							                                &lambda, NULL)) {
+							if (isect_ray_tri_watertight_v3(
+							            co1,
+							            &isect_precalc,
+							            v1, v3, v4,
+							            &lambda, NULL))
+							{
 								if (from==PART_FROM_FACE)
 									(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 								else

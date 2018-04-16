@@ -3722,7 +3722,8 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe, can_simulate);
 
 	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
-	    (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+	    (!can_simulate && cache_result == PTCACHE_READ_OLD))
+	{
 		softbody_to_object(ob, vertexCos, numVerts, sb->local);
 
 		BKE_ptcache_validate(cache, framenr);

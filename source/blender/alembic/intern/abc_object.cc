@@ -290,7 +290,8 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 
 	/* The archive's top object can be recognised by not having a parent. */
 	if (abc_parent.getParent()
-	        && IXform::matches(abc_parent.getMetaData())) {
+	        && IXform::matches(abc_parent.getMetaData()))
+	{
 		return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
 	}
 

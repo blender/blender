@@ -1093,7 +1093,8 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	// set texture face
 	if (color_texture &&
 	    strlen((color_texture)->uvname) &&
-	    !STREQ(layername, color_texture->uvname)) {
+	    !STREQ(layername, color_texture->uvname))
+	{
 		texture_face = (MTFace *)CustomData_get_layer_named(&me->fdata, CD_MTFACE,
 		                                                    color_texture->uvname);
 		strcpy(layername, color_texture->uvname);

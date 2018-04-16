@@ -252,8 +252,9 @@ void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
 		path = cache[p];
 
 		if (part->from == PART_FROM_FACE &&
-		        part->childtype != PART_CHILD_PARTICLES &&
-		        mtface) {
+		    part->childtype != PART_CHILD_PARTICLES &&
+		    mtface)
+		{
 			const int num = pc->num;
 			if (num < 0) {
 				ABC_LOG(m_settings.logger)
