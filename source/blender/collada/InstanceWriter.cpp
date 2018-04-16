@@ -51,8 +51,9 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 		std::set<Image *> uv_images = bc_getUVImages(ob, all_uv_layers);
 		std::set<Image *>::iterator uv_images_iter;
 		for (uv_images_iter = uv_images.begin();
-			uv_images_iter != uv_images.end();
-			uv_images_iter++) {
+		     uv_images_iter != uv_images.end();
+		     uv_images_iter++)
+		{
 			Image *ima = *uv_images_iter;
 			std::string matid(id_name(ima));
 			matid = get_material_id_from_id(matid);

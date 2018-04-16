@@ -2641,7 +2641,7 @@ static void distlimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 			/* if soft-distance is enabled, start fading once owner is dist+softdist from the target */
 			else if (data->flag & LIMITDIST_USESOFT) {
 				if (dist <= (data->dist + data->soft)) {
-					
+					/* pass */
 				}
 			}
 		}

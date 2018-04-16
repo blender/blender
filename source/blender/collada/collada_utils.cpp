@@ -755,17 +755,17 @@ float bc_get_property(Bone *bone, std::string key, float def)
 	IDProperty *property = bc_get_IDProperty(bone, key);
 	if (property) {
 		switch (property->type) {
-		case IDP_INT:
-			result = (float)(IDP_Int(property));
-			break;
-		case IDP_FLOAT:
-			result = (float)(IDP_Float(property));
-			break;
-		case IDP_DOUBLE:
-			result = (float)(IDP_Double(property));
-			break;
-		default:
-			result = def;
+			case IDP_INT:
+				result = (float)(IDP_Int(property));
+				break;
+			case IDP_FLOAT:
+				result = (float)(IDP_Float(property));
+				break;
+			case IDP_DOUBLE:
+				result = (float)(IDP_Double(property));
+				break;
+			default:
+				result = def;
 		}
 	}
 	return result;

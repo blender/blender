@@ -1945,7 +1945,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 
 			/* check if we're close enough and calculate 'lambda' */
 			if (kcd->is_angle_snapping) {
-			/* if snapping, check we're in bounds */
+				/* if snapping, check we're in bounds */
 				float sco_snap[2];
 				isect_line_line_v2_point(kfe->v1->sco, kfe->v2->sco, kcd->prev.mval, kcd->curr.mval, sco_snap);
 				lambda = line_point_factor_v2(sco_snap, kfe->v1->sco, kfe->v2->sco);

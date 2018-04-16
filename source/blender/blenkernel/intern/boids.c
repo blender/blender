@@ -161,8 +161,10 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 				copy_v3_v3(bbd->goal_nor, efd.nor);
 			}
 		}
-		else if (rule->type == eBoidRuleType_Avoid && bpa->data.mode == eBoidMode_Climbing &&
-			priority > 2.0f * gabr->fear_factor) {
+		else if ((rule->type == eBoidRuleType_Avoid) &&
+		         (bpa->data.mode == eBoidMode_Climbing) &&
+		         (priority > 2.0f * gabr->fear_factor))
+		{
 			/* detach from surface and try to fly away from danger */
 			negate_v3_v3(efd.vec_to_point, bpa->gravity);
 		}
@@ -1106,7 +1108,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
 			/* jump to go faster */
 			if (jump == 0 && val.jump_speed > val.max_speed && bbd->wanted_speed > val.max_speed) {
-				
+				/* pass */
 			}
 
 			if (jump) {

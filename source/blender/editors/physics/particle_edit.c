@@ -1347,28 +1347,28 @@ static void toggle_key_select(PEData *data, int point_index, int key_index)
 static void select_action_apply(PTCacheEditPoint *point, PTCacheEditKey *key, int action)
 {
 	switch (action) {
-	case SEL_SELECT:
-		if ((key->flag & PEK_SELECT) == 0) {
-			key->flag |= PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
-		}
-		break;
-	case SEL_DESELECT:
-		if (key->flag & PEK_SELECT) {
-			key->flag &= ~PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
-		}
-		break;
-	case SEL_INVERT:
-		if ((key->flag & PEK_SELECT) == 0) {
-			key->flag |= PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
-		}
-		else {
-			key->flag &= ~PEK_SELECT;
-			point->flag |= PEP_EDIT_RECALC;
-		}
-		break;
+		case SEL_SELECT:
+			if ((key->flag & PEK_SELECT) == 0) {
+				key->flag |= PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+			}
+			break;
+		case SEL_DESELECT:
+			if (key->flag & PEK_SELECT) {
+				key->flag &= ~PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+			}
+			break;
+		case SEL_INVERT:
+			if ((key->flag & PEK_SELECT) == 0) {
+				key->flag |= PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+			}
+			else {
+				key->flag &= ~PEK_SELECT;
+				point->flag |= PEP_EDIT_RECALC;
+			}
+			break;
 	}
 }
 

@@ -5552,7 +5552,7 @@ static void slide_origdata_interp_data_vert(
 		project_plane_normalized_v3_v3v3(v_proj[1], sv->co_orig_3d, v_proj_axis);
 	}
 
-	// BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT) {
+	// BM_ITER_ELEM (l, &liter, sv->v, BM_LOOPS_OF_VERT)
 	BM_iter_init(&liter, bm, BM_LOOPS_OF_VERT, sv->v);
 	l_num = liter.count;
 	loop_weights = do_loop_weight ? BLI_array_alloca(loop_weights, l_num) : NULL;

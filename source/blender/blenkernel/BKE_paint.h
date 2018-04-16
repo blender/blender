@@ -234,9 +234,8 @@ typedef struct SculptSession {
 			struct MDeformVert *dvert_prev;
 		} wpaint;
 
-		//struct {
-		//ToDo: identify sculpt-only fields
-		//} sculpt;
+		/* TODO: identify sculpt-only fields */
+		// struct { ... } sculpt;
 	} mode;
 	int mode_type;
 

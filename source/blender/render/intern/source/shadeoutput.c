@@ -979,18 +979,18 @@ static void add_to_diffuse(float diff[3], const ShadeInput *shi, const float is,
 
 			/* input */
 			switch (ma->rampin_col) {
-			case MA_RAMP_IN_ENERGY:
-				fac = IMB_colormanagement_get_luminance(rgb);
-				break;
-			case MA_RAMP_IN_SHADER:
-				fac = is;
-				break;
-			case MA_RAMP_IN_NOR:
-				fac = dot_v3v3(shi->view, shi->vn);
-				break;
-			default:
-				fac = 0.0f;
-				break;
+				case MA_RAMP_IN_ENERGY:
+					fac = IMB_colormanagement_get_luminance(rgb);
+					break;
+				case MA_RAMP_IN_SHADER:
+					fac = is;
+					break;
+				case MA_RAMP_IN_NOR:
+					fac = dot_v3v3(shi->view, shi->vn);
+					break;
+				default:
+					fac = 0.0f;
+					break;
 			}
 	
 			BKE_colorband_evaluate(ma->ramp_col, fac, col);

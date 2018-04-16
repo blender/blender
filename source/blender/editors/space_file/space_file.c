@@ -606,7 +606,7 @@ static void file_tools_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa),
 #if 0
 	/* context changes */
 	switch (wmn->category) {
-		
+		/* pass */
 	}
 #endif
 }

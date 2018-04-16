@@ -91,8 +91,9 @@ void EffectsExporter::exportEffects(Scene *sce)
 			openLibrary();
 			std::set<Image *>::iterator uv_images_iter;
 			for (uv_images_iter = uv_images.begin();
-				uv_images_iter != uv_images.end();
-				uv_images_iter++) {
+			     uv_images_iter != uv_images.end();
+			     uv_images_iter++)
+			{
 
 				Image *ima = *uv_images_iter;
 				std::string key(id_name(ima));

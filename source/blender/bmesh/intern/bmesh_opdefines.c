@@ -839,7 +839,7 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
 	/* slots_in */
 	{
-	/* pointer to a mesh structure to fill in */
+	 /* pointer to a mesh structure to fill in */
 	 {"mesh", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_MESH}},
 	/* pointer to an object structure */
 	 {"object", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_OBJECT}},
@@ -860,7 +860,7 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
 	"mesh_to_bmesh",
 	/* slots_in */
 	{
-	/* pointer to a Mesh structure */
+	 /* pointer to a Mesh structure */
 	 {"mesh", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_MESH}},
 	/* pointer to an Object structure */
 	 {"object", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_OBJECT}},

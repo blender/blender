@@ -566,14 +566,16 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 		}
 
 		case COLLADAFW::Transformation::MATRIX:
-			/*{
-			   COLLADAFW::Matrix *mat = (COLLADAFW::Matrix*)transform;
-			   COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
-			   switch (binding->animationClass) {
-			   case COLLADAFW::AnimationList::TRANSFORM:
+#if 0
+			{
+				COLLADAFW::Matrix *mat = (COLLADAFW::Matrix*)transform;
+				COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
+				switch (binding->animationClass) {
+					case COLLADAFW::AnimationList::TRANSFORM:
 
-			   }
-			   }*/
+				}
+			}
+#endif
 			unused_fcurve(curves);
 			break;
 		case COLLADAFW::Transformation::SKEW:

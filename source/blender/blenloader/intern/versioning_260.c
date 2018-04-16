@@ -944,7 +944,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 		{
-		/* Warn the user if he is using ["Text"] properties for Font objects */
+			/* Warn the user if he is using ["Text"] properties for Font objects */
 			Object *ob;
 			bProperty *prop;
 
