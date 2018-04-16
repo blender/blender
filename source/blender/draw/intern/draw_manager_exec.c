@@ -395,23 +395,20 @@ static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbo
 	bool is_persp = projmat[3][3] == 0.0f;
 
 	if (is_persp) {
-		float w_half, h_half;
 		near   = projmat[3][2] / (projmat[2][2] - 1.0f);
 		far    = projmat[3][2] / (projmat[2][2] + 1.0f);
-		w_half = near / projmat[0][0];
-		h_half = near / projmat[1][1];
-		left   = projmat[2][0] - w_half;
-		right  = projmat[2][0] + w_half;
-		bottom = projmat[2][1] - h_half;
-		top    = projmat[2][1] + h_half;
+		left   = near * (projmat[2][0] - 1.0f) / projmat[0][0];
+		right  = near * (projmat[2][0] + 1.0f) / projmat[0][0];
+		bottom = near * (projmat[2][1] - 1.0f) / projmat[1][1];
+		top    = near * (projmat[2][1] + 1.0f) / projmat[1][1];
 	}
 	else {
-		near   = (projmat[3][2] + 1.0f) / projmat[2][2];
-		far    = (projmat[3][2] - 1.0f) / projmat[2][2];
-		left   = (-1.0f - projmat[3][0]) / projmat[0][0];
-		right  =  (1.0f - projmat[3][0]) / projmat[0][0];
-		bottom = (-1.0f - projmat[3][1]) / projmat[1][1];
-		top    =  (1.0f - projmat[3][1]) / projmat[1][1];
+		near   = ( projmat[3][2] + 1.0f) / projmat[2][2];
+		far    = ( projmat[3][2] - 1.0f) / projmat[2][2];
+		left   = (-projmat[3][0] - 1.0f) / projmat[0][0];
+		right  = (-projmat[3][0] + 1.0f) / projmat[0][0];
+		bottom = (-projmat[3][1] - 1.0f) / projmat[1][1];
+		top    = (-projmat[3][1] + 1.0f) / projmat[1][1];
 	}
 
 	r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
