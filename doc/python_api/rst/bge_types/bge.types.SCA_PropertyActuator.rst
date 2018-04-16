@@ -1,8 +1,6 @@
 SCA_PropertyActuator(SCA_IActuator)
 ===================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: SCA_PropertyActuator(SCA_IActuator)
@@ -26,4 +24,3 @@ base class --- :class:`SCA_IActuator`
       TODO - add constants to game logic dict!.
 
       :type: integer
-

@@ -1,8 +1,6 @@
 BL_ArmatureActuator(SCA_IActuator)
 ==================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: BL_ArmatureActuator(SCA_IActuator)
@@ -58,4 +56,3 @@ base class --- :class:`SCA_IActuator`
       The influence this actuator will set on the constraint it controls.
 
       :type: float.
-

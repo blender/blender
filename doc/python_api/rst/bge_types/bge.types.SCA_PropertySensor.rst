@@ -1,8 +1,6 @@
 SCA_PropertySensor(SCA_ISensor)
 ===============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: SCA_PropertySensor(SCA_ISensor)
@@ -38,4 +36,3 @@ base class --- :class:`SCA_ISensor`
       the maximum value of the range used to evaluate the property when in interval mode.
 
       :type: string
-

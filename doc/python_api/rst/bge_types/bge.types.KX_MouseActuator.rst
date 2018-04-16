@@ -1,8 +1,6 @@
 KX_MouseActuator(SCA_IActuator)
 ====================================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_IActuator`
 
 .. class:: KX_MouseActuator(SCA_IActuator)
@@ -100,4 +98,3 @@ base class --- :class:`SCA_IActuator`
       The current rotational offset caused by the mouse actuator in degrees.
 
       :type: list (vector of 2 floats)
-

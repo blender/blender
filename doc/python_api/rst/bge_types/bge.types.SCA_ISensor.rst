@@ -1,8 +1,6 @@
 SCA_ISensor(SCA_ILogicBrick)
 ============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ILogicBrick`
 
 .. class:: SCA_ISensor(SCA_ILogicBrick)
@@ -98,4 +96,3 @@ base class --- :class:`SCA_ILogicBrick`
       Reset sensor internal state, effect depends on the type of sensor and settings.
 
       The sensor is put in its initial state as if it was just activated.
-

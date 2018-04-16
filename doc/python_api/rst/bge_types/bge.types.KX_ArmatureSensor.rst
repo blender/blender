@@ -1,8 +1,6 @@
 KX_ArmatureSensor(SCA_ISensor)
 ==============================
 
-.. module:: bge.types
-
 base class --- :class:`SCA_ISensor`
 
 .. class:: KX_ArmatureSensor(SCA_ISensor)
