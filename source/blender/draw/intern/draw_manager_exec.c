@@ -963,7 +963,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
 	_start = 0;                                                     \
-	_count = _shgroup->interface.instance_count;
+	_count = _shgroup->instance_count;
 
 #endif
 
