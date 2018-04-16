@@ -924,8 +924,8 @@ static void manipulator_ruler_exit(bContext *C, wmManipulator *mpr, const bool c
 					ruler_item->flag &= ~RULERITEM_USE_ANGLE;
 				}
 				else {
-				/* Not ideal, since the ruler isn't a mode and we don't want to override delete key
-				 * use dragging out of the view for removal. */
+					/* Not ideal, since the ruler isn't a mode and we don't want to override delete key
+					 * use dragging out of the view for removal. */
 					ruler_item_remove(C, mgroup, ruler_item);
 					ruler_item = NULL;
 					mpr = NULL;

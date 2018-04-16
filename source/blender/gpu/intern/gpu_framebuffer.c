@@ -87,7 +87,7 @@ static GLenum convert_attachment_type_to_gl(GPUAttachmentType type)
 		[GPU_FB_COLOR_ATTACHMENT2] = GL_COLOR_ATTACHMENT2,
 		[GPU_FB_COLOR_ATTACHMENT3] = GL_COLOR_ATTACHMENT3,
 		[GPU_FB_COLOR_ATTACHMENT4] = GL_COLOR_ATTACHMENT4
-		};
+	};
 	return table[type];
 }
 

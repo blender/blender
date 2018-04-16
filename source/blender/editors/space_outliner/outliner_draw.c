@@ -1423,7 +1423,7 @@ static void outliner_draw_tree_element(
 			/* Master collection can't expand/collapse. */
 		}
 		else if (te->subtree.first || (tselem->type == 0 && te->idcode == ID_SCE) || (te->flag & TE_LAZY_CLOSED)) {
-		/* open/close icon, only when sublevels, except for scene */
+			/* open/close icon, only when sublevels, except for scene */
 			int icon_x = startx;
 
 			// icons a bit higher
