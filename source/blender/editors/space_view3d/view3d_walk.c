@@ -249,9 +249,8 @@ typedef struct WalkInfo {
 	RegionView3D *rv3d;
 	View3D *v3d;
 	ARegion *ar;
-	const struct Depsgraph *depsgraph;
+	struct Depsgraph *depsgraph;
 	Scene *scene;
-	ViewLayer *view_layer;
 
 	wmTimer *timer; /* needed for redraws */
 
@@ -509,16 +508,12 @@ static float userdef_speed = -1.f;
 static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 {
 	wmWindow *win = CTX_wm_window(C);
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	walk->rv3d = CTX_wm_region_view3d(C);
 	walk->v3d = CTX_wm_view3d(C);
 	walk->ar = CTX_wm_region(C);
 	walk->depsgraph = CTX_data_depsgraph(C);
 	walk->scene = CTX_data_scene(C);
-	walk->view_layer = CTX_data_view_layer(C);
 
 #ifdef NDOF_WALK_DEBUG
 	puts("\n-- walk begin --");
@@ -607,11 +602,11 @@ static bool initWalkInfo(bContext *C, WalkInfo *walk, wmOperator *op)
 	walk->rv3d->rflag |= RV3D_NAVIGATING;
 
 	walk->snap_context = ED_transform_snap_object_context_create_view3d(
-	        CTX_data_main(C), walk->scene, walk->view_layer, 0,
+	        CTX_data_main(C), walk->scene, 0,
 	        walk->ar, walk->v3d);
 
 	walk->v3d_camera_control = ED_view3d_cameracontrol_acquire(
-	        &eval_ctx, walk->scene, walk->v3d, walk->rv3d,
+	        walk->depsgraph, walk->scene, walk->v3d, walk->rv3d,
 	        (U.uiflag & USER_CAM_LOCK_NO_PARENT) == 0);
 
 	/* center the mouse */

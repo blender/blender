@@ -273,7 +273,7 @@ static void meshdeform_vert_task(
 }
 
 static void meshdeformModifier_do(
-        ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob, DerivedMesh *dm,
+        ModifierData *md, struct Depsgraph *depsgraph, Object *ob, DerivedMesh *dm,
         float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
@@ -300,7 +300,7 @@ static void meshdeformModifier_do(
 	 */
 	if (mmd->object->mode & OB_MODE_EDIT) {
 		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
-		tmpdm = editbmesh_get_derived_cage_and_final(eval_ctx, md->scene, mmd->object, em, 0, &cagedm);
+		tmpdm = editbmesh_get_derived_cage_and_final(depsgraph, md->scene, mmd->object, em, 0, &cagedm);
 		if (tmpdm)
 			tmpdm->release(tmpdm);
 	}
@@ -409,7 +409,7 @@ static void meshdeformModifier_do(
 	cagedm->release(cagedm);
 }
 
-static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob,
+static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph, Object *ob,
                         DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
@@ -419,13 +419,13 @@ static void deformVerts(ModifierData *md, const struct EvaluationContext *eval_c
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	meshdeformModifier_do(md, eval_ctx, ob, dm, vertexCos, numVerts);
+	meshdeformModifier_do(md, depsgraph, ob, dm, vertexCos, numVerts);
 
 	if (dm && dm != derivedData)
 		dm->release(dm);
 }
 
-static void deformVertsEM(ModifierData *md, const struct EvaluationContext *eval_ctx, Object *ob,
+static void deformVertsEM(ModifierData *md, struct Depsgraph *depsgraph, Object *ob,
                           struct BMEditMesh *UNUSED(editData),
                           DerivedMesh *derivedData,
                           float (*vertexCos)[3],
@@ -433,7 +433,7 @@ static void deformVertsEM(ModifierData *md, const struct EvaluationContext *eval
 {
 	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 
-	meshdeformModifier_do(md, eval_ctx, ob, dm, vertexCos, numVerts);
+	meshdeformModifier_do(md, depsgraph, ob, dm, vertexCos, numVerts);
 
 	if (dm && dm != derivedData)
 		dm->release(dm);

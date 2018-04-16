@@ -704,11 +704,12 @@ void DDSHeader::setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask
 {
 	// Make sure the masks are correct.
 	if ((rmask & gmask) ||
-		(rmask & bmask) ||
-		(rmask & amask) ||
-		(gmask & bmask) ||
-		(gmask & amask) ||
-		(bmask & amask)) {
+	    (rmask & bmask) ||
+	    (rmask & amask) ||
+	    (gmask & bmask) ||
+	    (gmask & amask) ||
+	    (bmask & amask))
+	{
 		printf("DDS: bad RGBA masks, pixel format not set\n");
 		return;
 	}
@@ -1068,7 +1069,7 @@ bool DirectDrawSurface::isTexture3D() const
 	}
 	else
 	{
-	return (header.caps.caps2 & DDSCAPS2_VOLUME) != 0;
+		return (header.caps.caps2 & DDSCAPS2_VOLUME) != 0;
 	}
 }
 

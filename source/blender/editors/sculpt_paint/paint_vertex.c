@@ -940,14 +940,14 @@ static void do_weight_paint_vertex(
 
 
 /* Toggle operator for turning vertex paint mode on or off (copied from sculpt.c) */
-static void vertex_paint_init_session(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+static void vertex_paint_init_session(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	/* Create persistent sculpt mode data */
 	BKE_sculpt_toolsettings_data_ensure(scene);
 
 	if (ob->sculpt == NULL) {
 		ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
-		BKE_sculpt_update_mesh_elements(eval_ctx, scene, scene->toolsettings->sculpt, ob, 0, false);
+		BKE_sculpt_update_mesh_elements(depsgraph, scene, scene->toolsettings->sculpt, ob, 0, false);
 	}
 }
 
@@ -1034,7 +1034,7 @@ static void vertex_paint_init_session_data(const ToolSettings *ts, Object *ob)
  * \{ */
 
 static void ed_vwpaintmode_enter_generic(
-        const EvaluationContext *eval_ctx, wmWindowManager *wm, Scene *scene,
+        Depsgraph *depsgraph, wmWindowManager *wm, Scene *scene,
         Object *ob, const eObjectMode mode_flag)
 {
 	ob->mode |= mode_flag;
@@ -1080,41 +1080,39 @@ static void ed_vwpaintmode_enter_generic(
 		BKE_sculptsession_free(ob);
 	}
 
-	vertex_paint_init_session(eval_ctx, scene, ob);
+	vertex_paint_init_session(depsgraph, scene, ob);
 }
 
 void ED_object_vpaintmode_enter_ex(
-        const EvaluationContext *eval_ctx, wmWindowManager *wm,
+        Depsgraph *depsgraph, wmWindowManager *wm,
         Scene *scene, Object *ob)
 {
 	ed_vwpaintmode_enter_generic(
-	        eval_ctx, wm, scene, ob, OB_MODE_VERTEX_PAINT);
+	        depsgraph, wm, scene, ob, OB_MODE_VERTEX_PAINT);
 }
 void ED_object_vpaintmode_enter(struct bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	ED_object_vpaintmode_enter_ex(&eval_ctx, wm, scene, ob);
+	ED_object_vpaintmode_enter_ex(depsgraph, wm, scene, ob);
 }
 
 void ED_object_wpaintmode_enter_ex(
-        const EvaluationContext *eval_ctx, wmWindowManager *wm,
+        Depsgraph *depsgraph, wmWindowManager *wm,
         Scene *scene, Object *ob)
 {
 	ed_vwpaintmode_enter_generic(
-	        eval_ctx, wm, scene, ob, OB_MODE_WEIGHT_PAINT);
+	        depsgraph, wm, scene, ob, OB_MODE_WEIGHT_PAINT);
 }
 void ED_object_wpaintmode_enter(struct bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
-	ED_object_wpaintmode_enter_ex(&eval_ctx, wm, scene, ob);
+	ED_object_wpaintmode_enter_ex(depsgraph, wm, scene, ob);
 }
 
 /** \} */
@@ -1211,10 +1209,9 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		ED_object_wpaintmode_exit_ex(ob);
 	}
 	else {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
-		ED_object_wpaintmode_enter_ex(&eval_ctx, wm, scene, ob);
+		ED_object_wpaintmode_enter_ex(depsgraph, wm, scene, ob);
 	}
 
 	/* Weightpaint works by overriding colors in mesh,
@@ -1405,6 +1402,7 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 	bool *defbase_sel;
 	SculptSession *ss = ob->sculpt;
 	VPaint *vp = CTX_data_tool_settings(C)->wpaint;
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	if (ED_wpaint_ensure_data(C, op->reports, WPAINT_ENSURE_MIRROR, &vgroup_index) == false) {
 		return false;
@@ -1507,11 +1505,8 @@ static bool wpaint_stroke_test_start(bContext *C, wmOperator *op, const float mo
 		wpd->precomputed_weight = MEM_mallocN(sizeof(float) * me->totvert, __func__);
 	}
 
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	/* If not previously created, create vertex/weight paint mode session data */
-	vertex_paint_init_session(&eval_ctx, scene, ob);
+	vertex_paint_init_session(depsgraph, scene, ob);
 	vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
 	vertex_paint_init_session_data(ts, ob);
 
@@ -2347,10 +2342,9 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		ED_object_vpaintmode_exit_ex(ob);
 	}
 	else {
-		EvaluationContext eval_ctx;
-		CTX_data_eval_ctx(C, &eval_ctx);
+		Depsgraph *depsgraph = CTX_data_depsgraph(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
-		ED_object_vpaintmode_enter_ex(&eval_ctx, wm, scene, ob);
+		ED_object_vpaintmode_enter_ex(depsgraph, wm, scene, ob);
 	}
 
 	BKE_mesh_batch_cache_dirty(ob->data, BKE_MESH_BATCH_DIRTY_ALL);
@@ -2442,9 +2436,7 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	Object *ob = CTX_data_active_object(C);
 	Mesh *me;
 	SculptSession *ss = ob->sculpt;
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 
 	/* context checks could be a poll() */
 	me = BKE_mesh_from_object(ob);
@@ -2492,12 +2484,12 @@ static bool vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const f
 	/* Create projection handle */
 	if (vpd->is_texbrush) {
 		ob->sculpt->building_vp_handle = true;
-		vpd->vp_handle = ED_vpaint_proj_handle_create(&eval_ctx, scene, ob, &vpd->vertexcosnos);
+		vpd->vp_handle = ED_vpaint_proj_handle_create(depsgraph, scene, ob, &vpd->vertexcosnos);
 		ob->sculpt->building_vp_handle = false;
 	}
 
 	/* If not previously created, create vertex/weight paint mode session data */
-	vertex_paint_init_session(&eval_ctx, scene, ob);
+	vertex_paint_init_session(depsgraph, scene, ob);
 	vwpaint_update_cache_invariants(C, vp, ss, op, mouse);
 	vertex_paint_init_session_data(ts, ob);
 

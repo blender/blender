@@ -83,6 +83,7 @@
 #include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -2394,7 +2395,7 @@ static void drawlattice__point(Lattice *lt, DispList *dl, int u, int v, int w, i
 
 #ifdef SEQUENCER_DAG_WORKAROUND
 static void ensure_curve_cache(
-        const EvaluationContext *eval_ctx, Scene *scene, Object *object)
+        Depsgraph *depsgraph, Scene *scene, Object *object)
 {
 	bool need_recalc = object->curve_cache == NULL;
 	/* Render thread might have freed the curve cache if the
@@ -2423,13 +2424,13 @@ static void ensure_curve_cache(
 			case OB_CURVE:
 			case OB_SURF:
 			case OB_FONT:
-				BKE_displist_make_curveTypes(eval_ctx, scene, object, false);
+				BKE_displist_make_curveTypes(depsgraph, scene, object, false);
 				break;
 			case OB_MBALL:
-				BKE_displist_make_mball(eval_ctx, scene, object);
+				BKE_displist_make_mball(depsgraph, scene, object);
 				break;
 			case OB_LATTICE:
-				BKE_lattice_modifiers_calc(eval_ctx, scene, object);
+				BKE_lattice_modifiers_calc(depsgraph, scene, object);
 				break;
 		}
 	}
@@ -4296,7 +4297,7 @@ static bool object_is_halo(Scene *scene, Object *ob)
 }
 
 static void draw_mesh_fancy(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 #ifdef WITH_GAMEENGINE
@@ -4307,7 +4308,7 @@ static void draw_mesh_fancy(
 	Mesh *me = ob->data;
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF;
 	bool /* no_verts,*/ no_edges, no_faces;
-	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
+	DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, scene->customdata_mask);
 	const bool is_obact = (ob == OBACT(view_layer));
 	int draw_flags = (is_obact && BKE_paint_select_face_test(ob)) ? DRAW_FACE_SELECT : 0;
 
@@ -4561,7 +4562,7 @@ static void draw_mesh_fancy(
 
 /* returns true if nothing was drawn, for detecting to draw an object center */
 static bool draw_mesh_object(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
 	Object *ob = base->object;
@@ -4602,7 +4603,7 @@ static bool draw_mesh_object(
 		}
 		else {
 			cageDM = editbmesh_get_derived_cage_and_final(
-			        eval_ctx, scene, ob, em, scene->customdata_mask,
+			        depsgraph, scene, ob, em, scene->customdata_mask,
 			        &finalDM);
 		}
 
@@ -4643,7 +4644,7 @@ static bool draw_mesh_object(
 				}
 			}
 
-			draw_mesh_fancy(eval_ctx, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+			draw_mesh_fancy(depsgraph, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 
 			GPU_end_object_materials();
 			
@@ -4706,14 +4707,14 @@ static void make_color_variations(const unsigned char base_ubyte[4], float low[4
 }
 
 static void draw_mesh_fancy_new(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer,
         ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const unsigned char ob_wire_col[4], const short dflag, const bool other_obedit)
 {
 	if (dflag & (DRAW_PICKING | DRAW_CONSTCOLOR)) {
 		/* too complicated! use existing methods */
 		/* TODO: move this into a separate depth pre-pass */
-		draw_mesh_fancy(eval_ctx, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+		draw_mesh_fancy(depsgraph, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 		return;
 	}
 
@@ -4725,7 +4726,7 @@ static void draw_mesh_fancy_new(
 	Mesh *me = ob->data;
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF; /* could be bool draw_wire_overlay */
 	bool no_edges, no_faces;
-	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
+	DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, scene->customdata_mask);
 	const bool is_obact = (ob == OBACT(view_layer));
 	int draw_flags = (is_obact && BKE_paint_select_face_test(ob)) ? DRAW_FACE_SELECT : 0;
 
@@ -5026,9 +5027,10 @@ static void draw_mesh_fancy_new(
 }
 
 static bool UNUSED_FUNCTION(draw_mesh_object_new)(
-        const EvaluationContext *eval_ctx, Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	Object *ob = base->object;
 	Mesh *me = ob->data;
 	BMEditMesh *em = me->edit_btmesh;
@@ -5038,7 +5040,7 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(
 		/* TODO: handle shadow pass separately */
 		return true;
 	}
-	Object *obedit = OBEDIT_FROM_VIEW_LAYER(eval_ctx->view_layer);
+	Object *obedit = OBEDIT_FROM_VIEW_LAYER(view_layer);
 	
 	if (obedit && ob != obedit && ob->data == obedit->data) {
 		if (BKE_key_from_object(ob) || BKE_key_from_object(obedit)) {}
@@ -5064,7 +5066,7 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(
 		}
 		else {
 			cageDM = editbmesh_get_derived_cage_and_final(
-			        eval_ctx, scene, ob, em, scene->customdata_mask,
+			        depsgraph, scene, ob, em, scene->customdata_mask,
 			        &finalDM);
 		}
 
@@ -5083,9 +5085,9 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(
 				DM_update_materials(cageDM, ob);
 			}
 
-			const bool glsl = draw_glsl_material(scene, eval_ctx->view_layer, ob, v3d, dt);
+			const bool glsl = draw_glsl_material(scene, view_layer, ob, v3d, dt);
 
-			GPU_begin_object_materials(v3d, rv3d, scene, eval_ctx->view_layer, ob, glsl, NULL);
+			GPU_begin_object_materials(v3d, rv3d, scene, view_layer, ob, glsl, NULL);
 		}
 
 		draw_em_fancy_new(scene, ar, v3d, ob, me, em, cageDM, finalDM, dt);
@@ -5101,18 +5103,18 @@ static bool UNUSED_FUNCTION(draw_mesh_object_new)(
 		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
 		if (me->totpoly <= 4 || (!ob->bb || ED_view3d_boundbox_clip(rv3d, ob->bb))) {
 			if (solid) {
-				const bool glsl = draw_glsl_material(scene, eval_ctx->view_layer, ob, v3d, dt);
+				const bool glsl = draw_glsl_material(scene, view_layer, ob, v3d, dt);
 
 				if (dt == OB_SOLID || glsl) {
 					const bool check_alpha = check_alpha_pass(base);
-					GPU_begin_object_materials(v3d, rv3d, scene, eval_ctx->view_layer, ob, glsl,
+					GPU_begin_object_materials(v3d, rv3d, scene, view_layer, ob, glsl,
 					                           (check_alpha) ? &do_alpha_after : NULL);
 				}
 			}
 
 			const bool other_obedit = obedit && (obedit != ob);
 
-			draw_mesh_fancy_new(eval_ctx, scene, eval_ctx->view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
+			draw_mesh_fancy_new(depsgraph, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag, other_obedit);
 
 			GPU_end_object_materials();
 
@@ -5581,7 +5583,7 @@ static bool drawDispList_nobackface(Scene *scene, ViewLayer *view_layer, View3D 
 	return false;
 }
 static bool drawDispList(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	bool retval;
@@ -5594,7 +5596,7 @@ static bool drawDispList(
 	}
 
 #ifdef SEQUENCER_DAG_WORKAROUND
-	ensure_curve_cache(eval_ctx, scene, base->object);
+	ensure_curve_cache(depsgraph, scene, base->object);
 #endif
 
 	if (drawCurveDerivedMesh(scene, view_layer, v3d, rv3d, base, dt) == false) {
@@ -5904,7 +5906,7 @@ static void draw_particle_data(ParticleSystem *psys, RegionView3D *rv3d,
  * 7. clean up
  */
 static void draw_new_particle_system(
-        const EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, RegionView3D *rv3d,
+        Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d,
         Base *base, ParticleSystem *psys,
         const char ob_dt, const short dflag)
 {
@@ -5937,7 +5939,7 @@ static void draw_new_particle_system(
 	if (pars == NULL) return;
 
 	/* don't draw normal paths in edit mode */
-	if (psys_in_edit_mode(eval_ctx->depsgraph, psys) && (pset->flag & PE_DRAW_PART) == 0)
+	if (psys_in_edit_mode(depsgraph, psys) && (pset->flag & PE_DRAW_PART) == 0)
 		return;
 
 	if (part->draw_as == PART_DRAW_REND)
@@ -5957,7 +5959,7 @@ static void draw_new_particle_system(
 		curvemapping_changed_all(psys->part->twistcurve);
 
 /* 2. */
-	sim.eval_ctx = eval_ctx;
+	sim.depsgraph = depsgraph;
 	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;
@@ -6594,14 +6596,14 @@ static void draw_new_particle_system(
 }
 
 static void draw_update_ptcache_edit(
-        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, PTCacheEdit *edit)
+        Depsgraph *depsgraph, Scene *scene, Object *ob, PTCacheEdit *edit)
 {
 	if (edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED)
-		PE_update_object(eval_ctx, scene, ob, 0);
+		PE_update_object(depsgraph, scene, ob, 0);
 
 	/* create path and child path cache if it doesn't exist already */
 	if (edit->pathcache == NULL) {
-		psys_cache_edit_paths(eval_ctx, scene, ob, edit, CFRA, G.is_rendering);
+		psys_cache_edit_paths(depsgraph, scene, ob, edit, CFRA, G.is_rendering);
 	}
 }
 
@@ -7336,7 +7338,7 @@ static void draw_editnurb_splines(Object *ob, Nurb *nurb, const bool sel)
 }
 
 static void draw_editnurb(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, RegionView3D *rv3d, Base *base, Nurb *nurb,
         const char dt, const short dflag, const unsigned char UNUSED(ob_wire_col[4]))
 {
@@ -7351,7 +7353,7 @@ static void draw_editnurb(
 	/* DispList */
 	UI_GetThemeColor3ubv(TH_WIRE_EDIT, wire_col);
 
-	drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, wire_col);
+	drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, wire_col);
 
 	/* for shadows only show solid faces */
 	if (v3d->flag2 & V3D_RENDER_SHADOW)
@@ -7477,7 +7479,7 @@ static void draw_editfont_textcurs(RegionView3D *rv3d, float textcurs[4][2])
 }
 
 static void draw_editfont(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
@@ -7490,11 +7492,11 @@ static void draw_editfont(
 	if (cu->flag & CU_FAST) {
 		imm_cpack(0xFFFFFF);
 		set_inverted_drawing(1);
-		drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
+		drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, OB_WIRE, dflag, ob_wire_col);
 		set_inverted_drawing(0);
 	}
 	else {
-		drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+		drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 	}
 
 	if (cu->linewidth != 0.0f) {
@@ -7797,7 +7799,7 @@ static void imm_drawcone(const float vec[3], float radius, float height, float t
 
 /* return true if nothing was drawn */
 static bool drawmball(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const short dflag, const unsigned char ob_wire_col[4])
 {
 	Object *ob = base->object;
@@ -7811,13 +7813,13 @@ static bool drawmball(
 		if ((G.f & G_PICKSEL) == 0) {
 			unsigned char wire_col[4];
 			UI_GetThemeColor4ubv(TH_WIRE_EDIT, wire_col);
-			drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, wire_col);
+			drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, wire_col);
 		}
 		ml = mb->editelems->first;
 	}
 	else {
 		if ((base->flag_legacy & OB_FROMDUPLI) == 0) {
-			drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+			drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 		}
 		ml = mb->elems.first;
 	}
@@ -8266,7 +8268,7 @@ static void drawtexspace(Object *ob, const unsigned char ob_wire_col[3])
 
 /* draws wire outline */
 static void draw_object_selected_outline(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base,
         const unsigned char ob_wire_col[4])
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -8278,7 +8280,7 @@ static void draw_object_selected_outline(
 		bool has_faces = false;
 
 #ifdef SEQUENCER_DAG_WORKAROUND
-		ensure_curve_cache(eval_ctx, scene, ob);
+		ensure_curve_cache(depsgraph, scene, ob);
 #endif
 
 		DerivedMesh *dm = ob->derivedFinal;
@@ -8315,7 +8317,7 @@ static void draw_object_selected_outline(
 	else if (ob->type == OB_ARMATURE) {
 		if (!(ob->mode & OB_MODE_POSE && base == view_layer->basact)) {
 			glLineWidth(UI_GetThemeValuef(TH_OUTLINE_WIDTH) * 2.0f);
-			draw_armature(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, 0, ob_wire_col, true);
+			draw_armature(depsgraph, scene, view_layer, v3d, ar, base, OB_WIRE, 0, ob_wire_col, true);
 		}
 	}
 
@@ -8569,7 +8571,7 @@ void draw_rigidbody_shape(Object *ob, const unsigned char ob_wire_col[4])
  * \param dflag (draw flag) can be DRAW_PICKING and/or DRAW_CONSTCOLOR, DRAW_SCENESET
  */
 void draw_object(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d,
         Base *base, const short dflag)
 {
 	ModifierData *md = NULL;
@@ -8755,7 +8757,7 @@ void draw_object(
 		if ((v3d->flag & V3D_SELECT_OUTLINE) && !render_override && ob->type != OB_MESH) {
 			if (dt > OB_WIRE && (ob->mode & OB_MODE_EDIT) == 0 && (dflag & DRAW_SCENESET) == 0) {
 				if (!(ob->dtx & OB_DRAWWIRE) && (base->flag & BASE_SELECTED) && !(dflag & (DRAW_PICKING | DRAW_CONSTCOLOR))) {
-					draw_object_selected_outline(eval_ctx, scene, view_layer, v3d, ar, base, ob_wire_col);
+					draw_object_selected_outline(depsgraph, scene, view_layer, v3d, ar, base, ob_wire_col);
 				}
 			}
 		}
@@ -8769,7 +8771,7 @@ void draw_object(
 
 		switch (ob->type) {
 			case OB_MESH:
-				empty_object = draw_mesh_object(eval_ctx, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
+				empty_object = draw_mesh_object(depsgraph, scene, view_layer, ar, v3d, rv3d, base, dt, ob_wire_col, dflag);
 				if ((dflag & DRAW_CONSTCOLOR) == 0) {
 					/* mesh draws wire itself */
 					dtx &= ~OB_DRAWWIRE;
@@ -8779,18 +8781,18 @@ void draw_object(
 			case OB_FONT:
 				cu = ob->data;
 				if (cu->editfont) {
-					draw_editfont(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					draw_editfont(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && v3d->drawtype >= OB_WIRE) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(eval_ctx, scene, base->object);
+						ensure_curve_cache(depsgraph, scene, base->object);
 #endif
 						draw_bounding_volume(ob, ob->boundtype, ob_wire_col);
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-					empty_object = drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					empty_object = drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 
 				break;
@@ -8800,18 +8802,18 @@ void draw_object(
 
 				if (cu->editnurb) {
 					ListBase *nurbs = BKE_curve_editNurbs_get(cu);
-					draw_editnurb(eval_ctx, scene, view_layer, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
+					draw_editnurb(depsgraph, scene, view_layer, v3d, rv3d, base, nurbs->first, dt, dflag, ob_wire_col);
 				}
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(eval_ctx, scene, base->object);
+						ensure_curve_cache(depsgraph, scene, base->object);
 #endif
 						draw_bounding_volume(ob, ob->boundtype, ob_wire_col);
 					}
 				}
 				else if (ED_view3d_boundbox_clip(rv3d, ob->bb)) {
-					empty_object = drawDispList(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					empty_object = drawDispList(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				}
 				break;
 			case OB_MBALL:
@@ -8819,17 +8821,17 @@ void draw_object(
 				MetaBall *mb = ob->data;
 				
 				if (mb->editelems)
-					drawmball(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					drawmball(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				else if (dt == OB_BOUNDBOX) {
 					if ((render_override && (v3d->drawtype >= OB_WIRE)) == 0) {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(eval_ctx, scene, base->object);
+						ensure_curve_cache(depsgraph, scene, base->object);
 #endif
 						draw_bounding_volume(ob, ob->boundtype, ob_wire_col);
 					}
 				}
 				else
-					empty_object = drawmball(eval_ctx, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
+					empty_object = drawmball(depsgraph, scene, view_layer, v3d, rv3d, base, dt, dflag, ob_wire_col);
 				break;
 			}
 			case OB_EMPTY:
@@ -8868,7 +8870,7 @@ void draw_object(
 					}
 					else {
 #ifdef SEQUENCER_DAG_WORKAROUND
-						ensure_curve_cache(eval_ctx, scene, ob);
+						ensure_curve_cache(depsgraph, scene, ob);
 #endif
 						drawlattice(v3d, ob, dflag, ob_wire_col);
 					}
@@ -8893,7 +8895,7 @@ void draw_object(
 						else
 							copy_v4_v4_uchar(arm_col, ob_wire_col);
 
-						empty_object = draw_armature(eval_ctx, scene, view_layer, v3d, ar, base, dt, dflag, arm_col, false);
+						empty_object = draw_armature(depsgraph, scene, view_layer, v3d, ar, base, dt, dflag, arm_col, false);
 					}
 				}
 				break;
@@ -8946,12 +8948,12 @@ afterdraw:
 		for (psys = ob->particlesystem.first; psys; psys = psys->next) {
 			/* run this so that possible child particles get cached */
 			if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
-				PTCacheEdit *edit = PE_create_current(eval_ctx, scene, ob);
+				PTCacheEdit *edit = PE_create_current(depsgraph, scene, ob);
 				if (edit && edit->psys == psys)
-					draw_update_ptcache_edit(eval_ctx, scene, ob, edit);
+					draw_update_ptcache_edit(depsgraph, scene, ob, edit);
 			}
 
-			draw_new_particle_system(eval_ctx, scene, v3d, rv3d, base, psys, dt, dflag);
+			draw_new_particle_system(depsgraph, scene, v3d, rv3d, base, psys, dt, dflag);
 		}
 		invert_m4_m4(ob->imat, ob->obmat);
 		view3d_cached_text_draw_end(v3d, ar, 0);
@@ -8967,10 +8969,10 @@ afterdraw:
 	{
 
 		if (ob->mode & OB_MODE_PARTICLE_EDIT && is_obact) {
-			PTCacheEdit *edit = PE_create_current(eval_ctx, scene, ob);
+			PTCacheEdit *edit = PE_create_current(depsgraph, scene, ob);
 			if (edit) {
 				gpuLoadMatrix(rv3d->viewmat);
-				draw_update_ptcache_edit(eval_ctx, scene, ob, edit);
+				draw_update_ptcache_edit(depsgraph, scene, ob, edit);
 				draw_ptcache_edit(scene, v3d, edit);
 				gpuMultMatrix(ob->obmat);
 			}
@@ -9221,7 +9223,7 @@ afterdraw:
 
 		/* help lines and so */
 		if ((is_obedit == false) && ob->parent) {
-			const eObjectVisibilityCheck mode = eval_ctx->mode != DAG_EVAL_VIEWPORT ?
+			const eObjectVisibilityCheck mode = DEG_get_mode(depsgraph) != DAG_EVAL_VIEWPORT ?
 			                                                 OB_VISIBILITY_CHECK_FOR_RENDER :
 			                                                 OB_VISIBILITY_CHECK_FOR_VIEWPORT;
 			if (BKE_object_is_visible(ob->parent, mode)) {
@@ -9288,7 +9290,7 @@ afterdraw:
 						for (ct = targets.first; ct; ct = ct->next) {
 							/* calculate target's matrix */
 							if (cti->get_target_matrix)
-								cti->get_target_matrix(eval_ctx, curcon, cob, ct, BKE_scene_frame_get(scene));
+								cti->get_target_matrix(depsgraph, curcon, cob, ct, BKE_scene_frame_get(scene));
 							else
 								unit_m4(ct->matrix);
 
@@ -9338,11 +9340,11 @@ afterdraw:
  * caller must have called 'GPU_select_load_id(base->selcode)' first.
  */
 void draw_object_select(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d,
         Base *base, const short dflag)
 {
 	BLI_assert(dflag & DRAW_PICKING && dflag & DRAW_CONSTCOLOR);
-	draw_object(eval_ctx, scene, view_layer, ar, v3d, base, dflag);
+	draw_object(depsgraph, scene, view_layer, ar, v3d, base, dflag);
 
 	/* we draw duplicators for selection too */
 	if ((base->object->transflag & OB_DUPLI)) {
@@ -9351,7 +9353,7 @@ void draw_object_select(
 		Base tbase;
 
 		tbase.flag_legacy = OB_FROMDUPLI;
-		lb = object_duplilist(eval_ctx, scene, base->object);
+		lb = object_duplilist(depsgraph, scene, base->object);
 
 		for (dob = lb->first; dob; dob = dob->next) {
 			float omat[4][4];
@@ -9365,7 +9367,7 @@ void draw_object_select(
 			char dt = tbase.object->dt;    tbase.object->dt = MIN2(tbase.object->dt, base->object->dt);
 			short dtx = tbase.object->dtx; tbase.object->dtx = base->object->dtx;
 
-			draw_object(eval_ctx, scene, view_layer, ar, v3d, &tbase, dflag);
+			draw_object(depsgraph, scene, view_layer, ar, v3d, &tbase, dflag);
 
 			tbase.object->dt = dt;
 			tbase.object->dtx = dtx;
@@ -9691,10 +9693,10 @@ static DMDrawOption bbs_mesh_solid_hide2__setDrawOpts(void *userData, int index)
 	}
 }
 
-static void bbs_mesh_solid_verts(const EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+static void bbs_mesh_solid_verts(Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	Mesh *me = ob->data;
-	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, scene->customdata_mask);
+	DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, scene->customdata_mask);
 
 	DM_update_materials(dm, ob);
 
@@ -9711,7 +9713,7 @@ static void bbs_mesh_solid_verts(const EvaluationContext *eval_ctx, Scene *scene
 	dm->release(dm);
 }
 #else
-static void bbs_mesh_solid_verts(const EvaluationContext *UNUSED(eval_ctx), Scene *UNUSED(scene), Object *ob)
+static void bbs_mesh_solid_verts(Depsgraph *UNUSED(depsgraph), Scene *UNUSED(scene), Object *ob)
 {
 	Mesh *me = ob->data;
 
@@ -9752,7 +9754,7 @@ static void bbs_mesh_solid_faces(Scene *scene, Object *ob)
 }
 
 void draw_object_backbufsel(
-        const EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
+        Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	ToolSettings *ts = scene->toolsettings;
 
@@ -9767,7 +9769,7 @@ void draw_object_backbufsel(
 				Mesh *me = ob->data;
 				BMEditMesh *em = me->edit_btmesh;
 
-				DerivedMesh *dm = editbmesh_get_derived_cage(eval_ctx, scene, ob, em, CD_MASK_BAREMESH);
+				DerivedMesh *dm = editbmesh_get_derived_cage(depsgraph, scene, ob, em, CD_MASK_BAREMESH);
 
 				BM_mesh_elem_table_ensure(em->bm, BM_VERT | BM_EDGE | BM_FACE);
 
@@ -9811,7 +9813,7 @@ void draw_object_backbufsel(
 				    /* currently vertex select supports weight paint and vertex paint*/
 				    ((ob->mode & OB_MODE_WEIGHT_PAINT) || (ob->mode & OB_MODE_VERTEX_PAINT)))
 				{
-					bbs_mesh_solid_verts(eval_ctx, scene, ob);
+					bbs_mesh_solid_verts(depsgraph, scene, ob);
 				}
 				else {
 					bbs_mesh_solid_faces(scene, ob);
@@ -9832,7 +9834,7 @@ void draw_object_backbufsel(
 
 /* helper function for drawing object instances - meshes */
 static void draw_object_mesh_instance(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d,
         Object *ob, const short dt, int outline, const unsigned char ob_wire_col[4])
 {
 	Mesh *me = ob->data;
@@ -9843,7 +9845,7 @@ static void draw_object_mesh_instance(
 		DM_update_materials(edm, ob);
 	}
 	else {
-		dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
+		dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
 		DM_update_materials(dm, ob);
 	}
 
@@ -9879,7 +9881,7 @@ static void draw_object_mesh_instance(
 	if (dm) dm->release(dm);
 }
 
-void draw_object_instance(const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Object *ob, const char dt, int outline, const float wire_col[4])
+void draw_object_instance(Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Object *ob, const char dt, int outline, const float wire_col[4])
 {
 	if (ob == NULL)
 		return;
@@ -9889,7 +9891,7 @@ void draw_object_instance(const EvaluationContext *eval_ctx, Scene *scene, ViewL
 
 	switch (ob->type) {
 		case OB_MESH:
-			draw_object_mesh_instance(eval_ctx, scene, view_layer, v3d, rv3d, ob, dt, outline, bcol);
+			draw_object_mesh_instance(depsgraph, scene, view_layer, v3d, rv3d, ob, dt, outline, bcol);
 			break;
 		case OB_EMPTY:
 			if (ob->empty_drawtype == OB_EMPTY_IMAGE) {
@@ -9903,7 +9905,7 @@ void draw_object_instance(const EvaluationContext *eval_ctx, Scene *scene, ViewL
 }
 
 void ED_draw_object_facemap(
-        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, const float col[4], const int facemap)
+        Depsgraph *depsgraph, Scene *scene, Object *ob, const float col[4], const int facemap)
 {
 	DerivedMesh *dm = NULL;
 
@@ -9916,7 +9918,7 @@ void ED_draw_object_facemap(
 		return;
 	}
 
-	dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
+	dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
 	if (!dm || !CustomData_has_layer(&dm->polyData, CD_FACEMAP))
 		return;
 

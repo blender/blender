@@ -107,14 +107,14 @@ static void meshobject_foreachScreenVert__mapFunc(void *userData, int index, con
 }
 
 void meshobject_foreachScreenVert(
-        const EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         void (*func)(void *userData, MVert *eve, const float screen_co[2], int index),
         void *userData, eV3DProjTest clip_flag)
 {
 	foreachScreenObjectVert_userData data;
 	DerivedMesh *dm;
 
-	dm = mesh_get_derived_deform(eval_ctx, vc->scene, vc->obact, CD_MASK_BAREMESH);
+	dm = mesh_get_derived_deform(vc->depsgraph, vc->scene, vc->obact, CD_MASK_BAREMESH);
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -150,14 +150,14 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, const flo
 }
 
 void mesh_foreachScreenVert(
-        const EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         void (*func)(void *userData, BMVert *eve, const float screen_co[2], int index),
         void *userData, eV3DProjTest clip_flag)
 {
 	foreachScreenVert_userData data;
 	DerivedMesh *dm;
 
-	dm = editbmesh_get_derived_cage(eval_ctx, vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
+	dm = editbmesh_get_derived_cage(vc->depsgraph, vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -206,14 +206,14 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, const flo
 }
 
 void mesh_foreachScreenEdge(
-        const EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         void (*func)(void *userData, BMEdge *eed, const float screen_co_a[2], const float screen_co_b[2], int index),
         void *userData, eV3DProjTest clip_flag)
 {
 	foreachScreenEdge_userData data;
 	DerivedMesh *dm;
 
-	dm = editbmesh_get_derived_cage(eval_ctx, vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
+	dm = editbmesh_get_derived_cage(vc->depsgraph, vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);
 
@@ -254,14 +254,14 @@ static void mesh_foreachScreenFace__mapFunc(void *userData, int index, const flo
 }
 
 void mesh_foreachScreenFace(
-        const EvaluationContext *eval_ctx, ViewContext *vc,
+        ViewContext *vc,
         void (*func)(void *userData, BMFace *efa, const float screen_co_b[2], int index),
         void *userData, const eV3DProjTest clip_flag)
 {
 	foreachScreenFace_userData data;
 	DerivedMesh *dm;
 
-	dm = editbmesh_get_derived_cage(eval_ctx, vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
+	dm = editbmesh_get_derived_cage(vc->depsgraph, vc->scene, vc->obedit, vc->em, CD_MASK_BAREMESH);
 
 	ED_view3d_check_mats_rv3d(vc->rv3d);
 

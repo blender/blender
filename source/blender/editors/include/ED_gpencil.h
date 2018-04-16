@@ -153,7 +153,7 @@ void ED_gpencil_draw_view2d(const struct bContext *C, bool onlyv2d);
 void ED_gpencil_draw_view3d(struct wmWindowManager *wm,
                             struct Scene *scene,
                             struct ViewLayer *view_layer,
-                            const struct Depsgraph *depsgraph,
+                            struct Depsgraph *depsgraph,
                             struct View3D *v3d,
                             struct ARegion *ar,
                             bool only3d);

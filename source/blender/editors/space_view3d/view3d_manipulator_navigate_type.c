@@ -143,9 +143,10 @@ static void axis_geom_draw(
 				madd_v3_v3fl(
 				        center,
 				        (float [3]){
-				        mpr->matrix_offset[0][2],
-				        mpr->matrix_offset[1][2],
-				        mpr->matrix_offset[2][2]},
+				            mpr->matrix_offset[0][2],
+				            mpr->matrix_offset[1][2],
+				            mpr->matrix_offset[2][2],
+				        },
 				        0.08f);
 				imm_draw_cube_wire_3d(pos_id, center, size);
 				glDisable(GL_BLEND);

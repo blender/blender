@@ -39,7 +39,7 @@ struct Base;
 struct bContext;
 struct Bone;
 struct bPoseChannel;
-struct EvaluationContext;
+struct Depsgraph;
 struct IDProperty;
 struct ListBase;
 struct MeshDeformModifierData;
@@ -142,18 +142,28 @@ void ED_armature_edit_free(struct bArmature *arm);
 void ED_armature_edit_deselect_all(struct Object *obedit);
 void ED_armature_edit_deselect_all_visible(struct Object *obedit);
 
+void ED_armature_edit_deselect_all_multi(struct Object **objects, uint objects_len);
+void ED_armature_edit_deselect_all_visible_multi(struct Object **objects, uint objects_len);
+
 bool ED_armature_pose_select_pick_with_buffer(
         struct ViewLayer *view_layer, struct Base *base, const unsigned int *buffer, short hits,
         bool extend, bool deselect, bool toggle, bool do_nearest);
 bool ED_armature_edit_select_pick(
         struct bContext *C, const int mval[2], bool extend, bool deselect, bool toggle);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
-struct Bone *ED_armature_bone_find_index(struct Object *ob, int index);
 float ED_armature_ebone_roll_to_vector(const EditBone *bone, const float new_up_axis[3], const bool axis_only);
 EditBone *ED_armature_ebone_find_name(const struct ListBase *edbo, const char *name);
 EditBone *ED_armature_ebone_get_mirrored(const struct ListBase *edbo, EditBone *ebo);
 void ED_armature_edit_sync_selection(struct ListBase *edbo);
 void ED_armature_edit_validate_active(struct bArmature *arm);
+
+struct Base *ED_armature_base_and_ebone_from_select_buffer(
+        struct Base **bases, uint bases_len, int hit, struct EditBone **r_ebone);
+struct Object *ED_armature_object_and_ebone_from_select_buffer(
+        struct Object **objects, uint objects_len, int hit, struct EditBone **r_ebone);
+
+struct Base *ED_armature_base_and_bone_from_select_buffer(
+        struct Base **bases, uint bases_len, int hit, struct Bone **r_bone);
 
 EditBone *ED_armature_ebone_add_primitive(struct Object *obedit_arm, float length, bool view_aligned);
 EditBone *ED_armature_ebone_add(struct bArmature *arm, const char *name);
@@ -182,7 +192,7 @@ void ED_armature_transform(struct bArmature *arm, float mat[4][4], const bool do
 #define ARM_GROUPS_AUTO     3
 
 void ED_object_vgroup_calc_from_armature(
-        struct ReportList *reports, const struct EvaluationContext *eval_ctx, struct Scene *scene,
+        struct ReportList *reports, struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, struct Object *par, const int mode, const bool mirror);
 
 /* if bone is already in list, pass it as param to ignore it */
@@ -211,6 +221,7 @@ bool ED_object_posemode_exit(struct bContext *C, struct Object *ob);
 bool ED_object_posemode_enter_ex(struct Main *bmain, struct Object *ob);
 bool ED_object_posemode_enter(struct bContext *C, struct Object *ob);
 void ED_pose_deselect_all(struct Object *ob, int select_mode, const bool ignore_visibility);
+void ED_pose_deselect_all_multi(struct Object **objects, uint objects_len, int select_mode, const bool ignore_visibility);
 void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool select);
 void ED_pose_recalculate_paths(struct bContext *C, struct Scene *scene, struct Object *ob);
 struct Object *ED_pose_object_from_context(struct bContext *C);

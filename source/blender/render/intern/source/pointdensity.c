@@ -170,7 +170,7 @@ static void alloc_point_data(PointDensity *pd)
 	}
 }
 
-static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *scene,
+static void pointdensity_cache_psys(Depsgraph *depsgraph, Scene *scene,
                                     PointDensity *pd,
                                     Object *ob,
                                     ParticleSystem *psys,
@@ -196,12 +196,12 @@ static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *sc
 	data_used = point_data_used(pd);
 
 	if (use_render_params) {
-		dm = mesh_create_derived_render(eval_ctx, scene,
+		dm = mesh_create_derived_render(depsgraph, scene,
 		                                ob,
 		                                CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
 	}
 	else {
-		dm = mesh_get_derived_final(eval_ctx, scene,
+		dm = mesh_get_derived_final(depsgraph, scene,
 		                            ob,
 		                            CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
 	}
@@ -210,7 +210,7 @@ static void pointdensity_cache_psys(const EvaluationContext *eval_ctx, Scene *sc
 		return;
 	}
 
-	sim.eval_ctx = eval_ctx;
+	sim.depsgraph = depsgraph;
 	sim.scene = scene;
 	sim.ob = ob;
 	sim.psys = psys;
@@ -391,7 +391,7 @@ static void pointdensity_cache_vertex_normal(PointDensity *pd, Object *UNUSED(ob
 	}
 }
 
-static void pointdensity_cache_object(const EvaluationContext *eval_ctx, Scene *scene,
+static void pointdensity_cache_object(Depsgraph *depsgraph, Scene *scene,
                                       PointDensity *pd,
                                       Object *ob,
                                       const bool use_render_params)
@@ -412,10 +412,10 @@ static void pointdensity_cache_object(const EvaluationContext *eval_ctx, Scene *
 	}
 
 	if (use_render_params) {
-		dm = mesh_create_derived_render(eval_ctx, scene, ob, mask);
+		dm = mesh_create_derived_render(depsgraph, scene, ob, mask);
 	}
 	else {
-		dm = mesh_get_derived_final(eval_ctx, scene, ob, mask);
+		dm = mesh_get_derived_final(depsgraph, scene, ob, mask);
 	}
 
 	mvert = dm->getVertArray(dm);	/* local object space */
@@ -466,7 +466,7 @@ static void pointdensity_cache_object(const EvaluationContext *eval_ctx, Scene *
 
 }
 
-static void cache_pointdensity_ex(const EvaluationContext *eval_ctx,
+static void cache_pointdensity_ex(Depsgraph *depsgraph,
                                   Scene *scene,
                                   PointDensity *pd,
                                   const bool use_render_params)
@@ -493,7 +493,7 @@ static void cache_pointdensity_ex(const EvaluationContext *eval_ctx,
 			return;
 		}
 
-		pointdensity_cache_psys(eval_ctx,
+		pointdensity_cache_psys(depsgraph,
 		                        scene,
 		                        pd,
 		                        ob,
@@ -503,13 +503,13 @@ static void cache_pointdensity_ex(const EvaluationContext *eval_ctx,
 	else if (pd->source == TEX_PD_OBJECT) {
 		Object *ob = pd->object;
 		if (ob && ob->type == OB_MESH)
-			pointdensity_cache_object(eval_ctx, scene, pd, ob, use_render_params);
+			pointdensity_cache_object(depsgraph, scene, pd, ob, use_render_params);
 	}
 }
 
-void cache_pointdensity(const EvaluationContext *eval_ctx, Render *re, PointDensity *pd)
+void cache_pointdensity(Depsgraph *depsgraph, Render *re, PointDensity *pd)
 {
-	cache_pointdensity_ex(eval_ctx,
+	cache_pointdensity_ex(depsgraph,
 	                      re->scene,
 	                      pd,
 	                      true);
@@ -533,7 +533,7 @@ void free_pointdensity(PointDensity *pd)
 	pd->totpoints = 0;
 }
 
-void make_pointdensities(const EvaluationContext *eval_ctx, Render *re)
+void make_pointdensities(Depsgraph *depsgraph, Render *re)
 {
 	Tex *tex;
 
@@ -546,7 +546,7 @@ void make_pointdensities(const EvaluationContext *eval_ctx, Render *re)
 
 	for (tex = re->main->tex.first; tex != NULL; tex = tex->id.next) {
 		if (tex->id.us && tex->type == TEX_POINTDENSITY) {
-			cache_pointdensity(eval_ctx, re, tex->pd);
+			cache_pointdensity(depsgraph, re, tex->pd);
 		}
 	}
 
@@ -863,7 +863,7 @@ static void sample_dummy_point_density(int resolution, float *values)
 	memset(values, 0, sizeof(float) * 4 * resolution * resolution * resolution);
 }
 
-static void particle_system_minmax(const EvaluationContext *eval_ctx,
+static void particle_system_minmax(Depsgraph *depsgraph,
                                    Scene *scene,
                                    Object *object,
                                    ParticleSystem *psys,
@@ -887,7 +887,7 @@ static void particle_system_minmax(const EvaluationContext *eval_ctx,
 
 	unit_m4(mat);
 
-	sim.eval_ctx = eval_ctx;
+	sim.depsgraph = depsgraph;
 	sim.scene = scene;
 	sim.ob = object;
 	sim.psys = psys;
@@ -918,26 +918,24 @@ static void particle_system_minmax(const EvaluationContext *eval_ctx,
 }
 
 void RE_point_density_cache(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         PointDensity *pd)
 {
-	const bool use_render_params = (eval_ctx->mode == DAG_EVAL_RENDER);
+	const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 
-	Depsgraph *depsgraph = eval_ctx->depsgraph;
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 
 	/* Same matricies/resolution as dupli_render_particle_set(). */
 	BLI_mutex_lock(&sample_mutex);
-	cache_pointdensity_ex(eval_ctx, scene, pd, use_render_params);
+	cache_pointdensity_ex(depsgraph, scene, pd, use_render_params);
 	BLI_mutex_unlock(&sample_mutex);
 }
 
 void RE_point_density_minmax(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct PointDensity *pd,
         float r_min[3], float r_max[3])
 {
-	Depsgraph *depsgraph = eval_ctx->depsgraph;
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	Object *object = pd->object;
 	if (object == NULL) {
@@ -960,7 +958,7 @@ void RE_point_density_minmax(
 			return;
 		}
 
-		particle_system_minmax(eval_ctx,
+		particle_system_minmax(depsgraph,
 		                       scene,
 		                       object,
 		                       psys,
@@ -1032,7 +1030,7 @@ static void point_density_sample_func(
  * NOTE 2: Frees point density structure after sampling.
  */
 void RE_point_density_sample(
-        const EvaluationContext *eval_ctx,
+        Depsgraph *depsgraph,
         PointDensity *pd,
         const int resolution,
         float *values)
@@ -1050,7 +1048,7 @@ void RE_point_density_sample(
 	}
 
 	BLI_mutex_lock(&sample_mutex);
-	RE_point_density_minmax(eval_ctx,
+	RE_point_density_minmax(depsgraph,
 	                        pd,
 	                        min,
 	                        max);

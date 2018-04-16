@@ -587,7 +587,6 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 {
 	static MetaElem *startelem = NULL;
 	Object *obedit = CTX_data_edit_object(C);
-	EvaluationContext eval_ctx;
 	ViewContext vc;
 	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml, *ml_act = NULL;
@@ -595,12 +594,11 @@ bool ED_mball_select_pick(bContext *C, const int mval[2], bool extend, bool dese
 	unsigned int buffer[MAXPICKBUF];
 	rcti rect;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
 	ED_view3d_viewcontext_init(C, &vc);
 
 	BLI_rcti_init_pt_radius(&rect, mval, 12);
 
-	hits = view3d_opengl_select(&eval_ctx, &vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect, VIEW3D_SELECT_PICK_NEAREST);
 
 	/* does startelem exist? */
 	ml = mb->editelems->first;

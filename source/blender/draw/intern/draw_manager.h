@@ -222,6 +222,7 @@ struct DRWShadingGroup {
 	int normalworld;
 	int orcotexfac;
 	int eye;
+	int callid;
 	uint16_t matflag; /* Matrices needed, same as DRWCall.flag */
 
 #ifndef NDEBUG

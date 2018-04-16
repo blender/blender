@@ -112,7 +112,7 @@ static BMOpDefine bmo_smooth_vert_def = {
 	 {"use_axis_x", BMO_OP_SLOT_BOOL},      /* smooth vertices along X axis */
 	 {"use_axis_y", BMO_OP_SLOT_BOOL},      /* smooth vertices along Y axis */
 	 {"use_axis_z", BMO_OP_SLOT_BOOL},      /* smooth vertices along Z axis */
-	{{'\0'}},
+	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
 	bmo_smooth_vert_exec,
@@ -135,7 +135,7 @@ static BMOpDefine bmo_smooth_laplacian_vert_def = {
 	 {"use_y", BMO_OP_SLOT_BOOL},           /* Smooth object along Y axis */
 	 {"use_z", BMO_OP_SLOT_BOOL},           /* Smooth object along Z axis */
 	 {"preserve_volume", BMO_OP_SLOT_BOOL}, /* Apply volume preservation after smooth */
-	{{'\0'}},
+	 {{'\0'}},
 	},
 	{{{'\0'}}},  /* no output */
 	bmo_smooth_laplacian_vert_exec,
@@ -839,7 +839,7 @@ static BMOpDefine bmo_bmesh_to_mesh_def = {
 	"bmesh_to_mesh",
 	/* slots_in */
 	{
-	/* pointer to a mesh structure to fill in */
+	 /* pointer to a mesh structure to fill in */
 	 {"mesh", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_MESH}},
 	/* pointer to an object structure */
 	 {"object", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_OBJECT}},
@@ -860,7 +860,7 @@ static BMOpDefine bmo_mesh_to_bmesh_def = {
 	"mesh_to_bmesh",
 	/* slots_in */
 	{
-	/* pointer to a Mesh structure */
+	 /* pointer to a Mesh structure */
 	 {"mesh", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_MESH}},
 	/* pointer to an Object structure */
 	 {"object", BMO_OP_SLOT_PTR, {(int)BMO_OP_SLOT_SUBTYPE_PTR_OBJECT}},
@@ -1337,7 +1337,7 @@ static BMOpDefine bmo_duplicate_def = {
 	 {"face_map.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	 {"boundary_map.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
 	 {"isovert_map.out", BMO_OP_SLOT_MAPPING, {(int)BMO_OP_SLOT_SUBTYPE_MAP_ELEM}},
-	{{'\0'}},
+	 {{'\0'}},
 	},
 	bmo_duplicate_exec,
 	(BMO_OPTYPE_FLAG_NORMALS_CALC |

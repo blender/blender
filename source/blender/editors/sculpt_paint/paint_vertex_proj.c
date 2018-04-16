@@ -102,13 +102,13 @@ static void vpaint_proj_dm_map_cosnos_init__map_cb(
 }
 
 static void vpaint_proj_dm_map_cosnos_init(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         struct VertProjHandle *vp_handle)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *dm;
 
-	dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+	dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 	if (dm->foreachMappedVert) {
 		memset(vp_handle->vcosnos, 0, sizeof(DMCoNo) * me->totvert);
@@ -176,7 +176,7 @@ static void vpaint_proj_dm_map_cosnos_update__map_cb(
 }
 
 static void vpaint_proj_dm_map_cosnos_update(
-        const struct EvaluationContext *eval_ctx, struct VertProjHandle *vp_handle,
+        struct Depsgraph *depsgraph, struct VertProjHandle *vp_handle,
         ARegion *ar, const float mval_fl[2])
 {
 	struct VertProjUpdate vp_update = {vp_handle, ar, mval_fl};
@@ -189,7 +189,7 @@ static void vpaint_proj_dm_map_cosnos_update(
 	/* quick sanity check - we shouldn't have to run this if there are no modifiers */
 	BLI_assert(BLI_listbase_is_empty(&ob->modifiers) == false);
 
-	dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+	dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 	/* highly unlikely this will become unavailable once painting starts (perhaps with animated modifiers) */
 	if (LIKELY(dm->foreachMappedVert)) {
@@ -206,7 +206,7 @@ static void vpaint_proj_dm_map_cosnos_update(
 /* Public Functions */
 
 struct VertProjHandle *ED_vpaint_proj_handle_create(
-        const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob,
+        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
         DMCoNo **r_vcosnos)
 {
 	struct VertProjHandle *vp_handle = MEM_mallocN(sizeof(struct VertProjHandle), __func__);
@@ -217,7 +217,7 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(
 	vp_handle->use_update = false;
 
 	/* sets 'use_update' if needed */
-	vpaint_proj_dm_map_cosnos_init(eval_ctx, scene, ob, vp_handle);
+	vpaint_proj_dm_map_cosnos_init(depsgraph, scene, ob, vp_handle);
 
 	if (vp_handle->use_update) {
 		vp_handle->dists_sq = MEM_mallocN(sizeof(float) * me->totvert, __func__);
@@ -237,11 +237,11 @@ struct VertProjHandle *ED_vpaint_proj_handle_create(
 }
 
 void  ED_vpaint_proj_handle_update(
-        const struct EvaluationContext *eval_ctx, struct VertProjHandle *vp_handle,
+        struct Depsgraph *depsgraph, struct VertProjHandle *vp_handle,
         ARegion *ar, const float mval_fl[2])
 {
 	if (vp_handle->use_update) {
-		vpaint_proj_dm_map_cosnos_update(eval_ctx, vp_handle, ar, mval_fl);
+		vpaint_proj_dm_map_cosnos_update(depsgraph, vp_handle, ar, mval_fl);
 	}
 }
 

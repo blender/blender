@@ -1672,7 +1672,7 @@ void ED_gpencil_draw_view2d(const bContext *C, bool onlyv2d)
 void ED_gpencil_draw_view3d(wmWindowManager *wm,
                             Scene *scene,
                             ViewLayer *view_layer,
-                            const struct Depsgraph *depsgraph,
+                            struct Depsgraph *depsgraph,
                             View3D *v3d,
                             ARegion *ar,
                             bool only3d)

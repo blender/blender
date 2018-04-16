@@ -1026,7 +1026,7 @@ void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
 	}
 }
 
-void BKE_lattice_modifiers_calc(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	Lattice *lt = ob->data;
 	VirtualModifierData virtualModifierData;
@@ -1053,7 +1053,7 @@ void BKE_lattice_modifiers_calc(const struct EvaluationContext *eval_ctx, Scene 
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
-		mti->deformVerts(md, eval_ctx, ob, NULL, vertexCos, numVerts, 0);
+		mti->deformVerts(md, depsgraph, ob, NULL, vertexCos, numVerts, 0);
 	}
 
 	/* always displist to make this work like derivedmesh */
@@ -1227,7 +1227,7 @@ void BKE_lattice_translate(Lattice *lt, float offset[3], bool do_keys)
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_lattice_eval_geometry(const struct EvaluationContext *UNUSED(eval_ctx),
+void BKE_lattice_eval_geometry(struct Depsgraph *UNUSED(depsgraph),
                                Lattice *UNUSED(latt))
 {
 }

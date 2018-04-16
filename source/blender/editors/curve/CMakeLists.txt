@@ -28,6 +28,7 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
+	../../../../intern/clog
 	../../../../intern/guardedalloc
 	../../../../intern/glew-mx
 	../../../../extern/curve_fit_nd

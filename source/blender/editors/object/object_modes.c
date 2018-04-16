@@ -177,6 +177,9 @@ bool ED_object_mode_generic_enter(
         struct bContext *C, eObjectMode object_mode)
 {
 	Object *ob = CTX_data_active_object(C);
+	if (ob == NULL) {
+		return (object_mode == OB_MODE_OBJECT);
+	}
 	if (ob->mode == object_mode) {
 		return true;
 	}
@@ -194,7 +197,7 @@ bool ED_object_mode_generic_enter(
  * Caller can check #OB_MODE_ALL_MODE_DATA to test if this needs to be run.
  */
 static bool ed_object_mode_generic_exit_ex(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob,
         bool only_test)
 {
@@ -227,7 +230,7 @@ static bool ed_object_mode_generic_exit_ex(
 			if (only_test) {
 				return true;
 			}
-			ED_object_sculptmode_exit_ex(eval_ctx, scene, ob);
+			ED_object_sculptmode_exit_ex(depsgraph, scene, ob);
 		}
 	}
 	else {
@@ -241,17 +244,17 @@ static bool ed_object_mode_generic_exit_ex(
 }
 
 void ED_object_mode_generic_exit(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Scene *scene, struct Object *ob)
 {
-	ed_object_mode_generic_exit_ex(eval_ctx, scene, ob, false);
+	ed_object_mode_generic_exit_ex(depsgraph, scene, ob, false);
 }
 
 bool ED_object_mode_generic_has_data(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Object *ob)
 {
-	return ed_object_mode_generic_exit_ex(eval_ctx, NULL, ob, true);
+	return ed_object_mode_generic_exit_ex(depsgraph, NULL, ob, true);
 }
 
 /** \} */

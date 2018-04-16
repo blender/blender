@@ -39,20 +39,27 @@
 static void rna_RegionView3D_update(ID *id, RegionView3D *rv3d, bContext *C)
 {
 	bScreen *sc = (bScreen *)id;
-	EvaluationContext eval_ctx;
 
 	ScrArea *sa;
 	ARegion *ar;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	area_region_from_regiondata(sc, rv3d, &sa, &ar);
 
 	if (sa && ar && sa->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = sa->spacedata.first;
-		Scene *scene = ED_screen_scene_find(sc, G.main->wm.first);
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wmWindow *win;
 
-		ED_view3d_update_viewmat(&eval_ctx, scene, v3d, ar, NULL, NULL, NULL);
+		for (win = wm->windows.first; win; win = win->next) {
+			if (WM_window_get_active_screen(win) == sc) {
+				Scene *scene = WM_window_get_active_scene(win);
+				ViewLayer *view_layer = WM_window_get_active_view_layer(win);
+				Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
+
+				ED_view3d_update_viewmat(depsgraph, scene, v3d, ar, NULL, NULL, NULL);
+				break;
+			}
+		}
 	}
 }
 

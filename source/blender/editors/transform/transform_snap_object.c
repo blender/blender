@@ -54,6 +54,7 @@
 #include "BKE_context.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "ED_transform.h"
 #include "ED_transform_snap_object_context.h"
@@ -108,7 +109,7 @@ typedef struct SnapObjectData_EditMesh {
 struct SnapObjectContext {
 	Main *bmain;
 	Scene *scene;
-	EvaluationContext eval_ctx;
+	Depsgraph *depsgraph;
 
 	int flag;
 
@@ -162,8 +163,9 @@ static void iter_snap_objects(
         IterSnapObjsCallback sob_callback,
         void *data)
 {
-	Base *base_act = sctx->eval_ctx.view_layer->basact;
-	for (Base *base = sctx->eval_ctx.view_layer->object_bases.first; base != NULL; base = base->next) {
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(sctx->depsgraph);
+	Base *base_act = view_layer->basact;
+	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
 		if ((BASE_VISIBLE(base)) && (base->flag_legacy & BA_SNAP_FIX_DEPS_FIASCO) == 0 &&
 		    !((snap_select == SNAP_NOT_SELECTED && ((base->flag & BASE_SELECTED) || (base->flag_legacy & BA_WAS_SEL))) ||
 		      (snap_select == SNAP_NOT_ACTIVE && base == base_act)))
@@ -172,7 +174,7 @@ static void iter_snap_objects(
 			Object *obj = base->object;
 			if (obj->transflag & OB_DUPLI) {
 				DupliObject *dupli_ob;
-				ListBase *lb = object_duplilist(&sctx->eval_ctx, sctx->scene, obj);
+				ListBase *lb = object_duplilist(sctx->depsgraph, sctx->scene, obj);
 				for (dupli_ob = lb->first; dupli_ob; dupli_ob = dupli_ob->next) {
 					use_obedit = obedit && dupli_ob->ob->data == obedit->data;
 					sob_callback(sctx, use_obedit, use_obedit ? obedit : dupli_ob->ob, dupli_ob->mat, data);
@@ -729,10 +731,10 @@ static bool raycastObj(
 			DerivedMesh *dm;
 			em = BKE_editmesh_from_object(ob);
 			if (em) {
-				editbmesh_get_derived_cage_and_final(&sctx->eval_ctx, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
+				editbmesh_get_derived_cage_and_final(sctx->depsgraph, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
 			}
 			else {
-				dm = mesh_get_derived_final(&sctx->eval_ctx, sctx->scene, ob, CD_MASK_BAREMESH);
+				dm = mesh_get_derived_final(sctx->depsgraph, sctx->scene, ob, CD_MASK_BAREMESH);
 			}
 			retval = raycastDerivedMesh(
 			        sctx,
@@ -821,7 +823,8 @@ static bool raycastObjects(
         Object **r_ob, float r_obmat[4][4],
         ListBase *r_hit_list)
 {
-	Object *obedit = use_object_edit_cage ? OBEDIT_FROM_VIEW_LAYER(sctx->eval_ctx.view_layer) : NULL;
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(sctx->depsgraph);
+	Object *obedit = use_object_edit_cage ? OBEDIT_FROM_VIEW_LAYER(view_layer) : NULL;
 
 	struct RaycastObjUserData data = {
 		.ray_start = ray_start,
@@ -1936,10 +1939,10 @@ static bool snapObject(
 			DerivedMesh *dm;
 			em = BKE_editmesh_from_object(ob);
 			if (em) {
-				editbmesh_get_derived_cage_and_final(&sctx->eval_ctx, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
+				editbmesh_get_derived_cage_and_final(sctx->depsgraph, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
 			}
 			else {
-				dm = mesh_get_derived_final(&sctx->eval_ctx, sctx->scene, ob, CD_MASK_BAREMESH);
+				dm = mesh_get_derived_final(sctx->depsgraph, sctx->scene, ob, CD_MASK_BAREMESH);
 			}
 			retval = snapDerivedMesh(
 			        sctx, snapdata, ob, dm, obmat,
@@ -2054,7 +2057,8 @@ static bool snapObjectsRay(
         float r_loc[3], float r_no[3],
         Object **r_ob, float r_obmat[4][4])
 {
-	Object *obedit = use_object_edit_cage ? OBEDIT_FROM_VIEW_LAYER(sctx->eval_ctx.view_layer) : NULL;
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(sctx->depsgraph);
+	Object *obedit = use_object_edit_cage ? OBEDIT_FROM_VIEW_LAYER(view_layer) : NULL;
 
 	struct SnapObjUserData data = {
 		.snapdata = snapdata,
@@ -2079,7 +2083,7 @@ static bool snapObjectsRay(
  * \{ */
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        Main *bmain, Scene *scene, ViewLayer *view_layer, int flag)
+        Main *bmain, Scene *scene, int flag)
 {
 	SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
@@ -2088,9 +2092,6 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 	sctx->bmain = bmain;
 	sctx->scene = scene;
 
-	DEG_evaluation_context_init_from_scene(
-	        &sctx->eval_ctx, scene, view_layer, DAG_EVAL_VIEWPORT);
-
 	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
 	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
 
@@ -2098,11 +2099,11 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 }
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        Main *bmain, Scene *scene, ViewLayer *view_layer, int flag,
+        Main *bmain, Scene *scene, int flag,
         /* extra args for view3d */
         const ARegion *ar, const View3D *v3d)
 {
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, view_layer, flag);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
 
 	sctx->use_v3d = true;
 	sctx->v3d_data.ar = ar;
@@ -2365,7 +2366,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 	ED_view3d_win_to_vector(ar, mval, ray_normal);
 
 	ED_view3d_clip_range_get(
-	        sctx->eval_ctx.depsgraph,
+	        sctx->depsgraph,
 	        sctx->v3d_data.v3d, sctx->v3d_data.ar->regiondata,
 	        &depth_range[0], &depth_range[1], false);
 
@@ -2432,7 +2433,7 @@ bool ED_transform_snap_object_project_all_view3d_ex(
 	float ray_start[3], ray_normal[3];
 
 	if (!ED_view3d_win_to_ray_ex(
-	        sctx->eval_ctx.depsgraph,
+	        sctx->depsgraph,
 	        sctx->v3d_data.ar, sctx->v3d_data.v3d,
 	        mval, NULL, ray_normal, ray_start, true))
 	{

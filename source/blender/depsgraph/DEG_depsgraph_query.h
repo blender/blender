@@ -106,7 +106,6 @@ typedef struct DEGObjectIterData {
 	int flag;
 
 	struct Scene *scene;
-	struct EvaluationContext eval_ctx;
 
 	int visibility_check; /* eObjectVisibilityCheck. */
 

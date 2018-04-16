@@ -646,7 +646,7 @@ static void file_tools_region_listener(
 #if 0
 	/* context changes */
 	switch (wmn->category) {
-		
+		/* pass */
 	}
 #endif
 }

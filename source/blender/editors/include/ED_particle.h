@@ -47,15 +47,15 @@ int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
-struct PTCacheEdit *PE_create_current(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
-void PE_current_changed(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+struct PTCacheEdit *PE_create_current(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
+void PE_current_changed(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 int PE_minmax(struct Scene *scene, struct ViewLayer *view_layer, float min[3], float max[3]);
 struct ParticleEditSettings *PE_settings(struct Scene *scene);
 
 /* update calls */
 void PE_hide_keys_time(struct Scene *scene, struct PTCacheEdit *edit, float cfra);
 void PE_update_object(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene,
+        struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, int useflag);
 
 /* selection tools */

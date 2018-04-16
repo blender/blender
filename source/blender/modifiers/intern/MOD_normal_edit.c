@@ -517,7 +517,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
+static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
                                   DerivedMesh *dm, ModifierApplyFlag UNUSED(flag))
 {
 	return normalEditModifier_do((NormalEditModifierData *)md, ob, dm);

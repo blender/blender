@@ -1092,7 +1092,6 @@ typedef struct RenderPreview {
 	wmJob *job;
 	
 	Scene *scene;
-	EvaluationContext *eval_ctx;
 	Depsgraph *depsgraph;
 	ScrArea *sa;
 	ARegion *ar;
@@ -1108,7 +1107,7 @@ typedef struct RenderPreview {
 	bool has_freestyle;
 } RenderPreview;
 
-static int render_view3d_disprect(Scene *scene, const Depsgraph *depsgraph,
+static int render_view3d_disprect(Scene *scene, Depsgraph *depsgraph,
                                   ARegion *ar, View3D *v3d, RegionView3D *rv3d, rcti *disprect)
 {
 	/* copied code from view3d_draw.c */
@@ -1145,7 +1144,7 @@ static int render_view3d_disprect(Scene *scene, const Depsgraph *depsgraph,
 
 /* returns true if OK  */
 static bool render_view3d_get_rects(
-        const Depsgraph *depsgraph,
+        Depsgraph *depsgraph,
         ARegion *ar, View3D *v3d, RegionView3D *rv3d, rctf *viewplane, RenderEngine *engine,
         float *r_clipsta, float *r_clipend, float *r_pixsize, bool *r_ortho)
 {
@@ -1341,7 +1340,7 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		WM_job_main_thread_lock_release(rp->job);
 
 		/* do preprocessing like building raytree, shadows, volumes, SSS */
-		RE_Database_Preprocess(rp->eval_ctx, re);
+		RE_Database_Preprocess(rp->depsgraph, re);
 
 		/* conversion not completed, need to do it again */
 		if (!rstats->convertdone) {
@@ -1407,7 +1406,6 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 static void render_view3d_free(void *customdata)
 {
 	RenderPreview *rp = customdata;
-	DEG_evaluation_context_free(rp->eval_ctx);
 	
 	MEM_freeN(rp);
 }
@@ -1523,8 +1521,6 @@ static void render_view3d_do(RenderEngine *engine, const bContext *C)
 	/* customdata for preview thread */
 	rp->scene = scene;
 	rp->depsgraph = depsgraph;
-	rp->eval_ctx = DEG_evaluation_context_new(DAG_EVAL_PREVIEW);
-	CTX_data_eval_ctx(C, rp->eval_ctx);
 	rp->engine = engine;
 	rp->sa = CTX_wm_area(C);
 	rp->ar = CTX_wm_region(C);

@@ -114,7 +114,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationContext *eval_ctx,
+static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
                                   Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
@@ -122,7 +122,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const struct EvaluationConte
 
 	/* dont apply dynamic paint on orco dm stack */
 	if (!(flag & MOD_APPLY_ORCO)) {
-		return dynamicPaint_Modifier_do(pmd, eval_ctx, md->scene, ob, dm);
+		return dynamicPaint_Modifier_do(pmd, depsgraph, md->scene, ob, dm);
 	}
 	return dm;
 }

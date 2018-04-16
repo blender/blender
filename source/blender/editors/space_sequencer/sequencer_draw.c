@@ -919,8 +919,8 @@ ImBuf *sequencer_ibuf_get(struct Main *bmain, Scene *scene, SpaceSeq *sseq, int 
 	recty = (render_size * (float)scene->r.ysch) / 100.0f + 0.5f;
 
 	BKE_sequencer_new_render_data(
-	        bmain->eval_ctx, bmain, scene,
-	        rectx, recty, proxy_size,
+	        bmain, scene,
+	        rectx, recty, proxy_size, false,
 	        &context);
 	context.view_id = BKE_scene_multiview_view_id_get(&scene->r, viewname);
 
@@ -1454,7 +1454,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	/* NOTE: sequencer mask editing isnt finished, the draw code is working but editing not,
 	 * for now just disable drawing since the strip frame will likely be offset */
 
-	//if (sc->mode == SC_MODE_MASKEDIT) {
+	// if (sc->mode == SC_MODE_MASKEDIT)
 	if (0 && sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
 		Mask *mask = BKE_sequencer_mask_get(scene);
 

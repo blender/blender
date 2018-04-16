@@ -1611,7 +1611,7 @@ static void draw_bone(const short dt, int armflag, int boneflag, short constflag
 }
 
 static void draw_custom_bone(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         Scene *scene, ViewLayer *view_layer, View3D *v3d, RegionView3D *rv3d, Object *ob,
         const short dt, int armflag, int boneflag, unsigned int id, float length)
 {
@@ -1628,7 +1628,7 @@ static void draw_custom_bone(
 		GPU_select_load_id((GLuint) id | BONESEL_BONE);
 	}
 
-	draw_object_instance(eval_ctx, scene, view_layer, v3d, rv3d, ob, dt, armflag & ARM_POSEMODE, fcolor);
+	draw_object_instance(depsgraph, scene, view_layer, v3d, rv3d, ob, dt, armflag & ARM_POSEMODE, fcolor);
 }
 
 
@@ -1933,7 +1933,7 @@ static void bone_matrix_translate_y(float mat[4][4], float y)
 
 /* assumes object is Armature with pose */
 static void draw_pose_bones(
-        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base,
+        struct Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base,
         const short dt, const unsigned char ob_wire_col[4],
         const bool do_const_color, const bool is_outline)
 {
@@ -2060,7 +2060,7 @@ static void draw_pose_bones(
 								glDisable(GL_CULL_FACE);
 							}
 
-							draw_custom_bone(eval_ctx, scene, view_layer, v3d, rv3d, pchan->custom,
+							draw_custom_bone(depsgraph, scene, view_layer, v3d, rv3d, pchan->custom,
 							                 OB_SOLID, arm->flag, flag, index, PCHAN_CUSTOM_DRAW_SIZE(pchan));
 						}
 					}
@@ -2156,7 +2156,7 @@ static void draw_pose_bones(
 							if (bone == arm->act_bone)
 								flag |= BONE_DRAW_ACTIVE;
 							
-							draw_custom_bone(eval_ctx, scene, view_layer, v3d, rv3d, pchan->custom,
+							draw_custom_bone(depsgraph, scene, view_layer, v3d, rv3d, pchan->custom,
 							                 OB_WIRE, arm->flag, flag, index, PCHAN_CUSTOM_DRAW_SIZE(pchan));
 							
 							gpuPopMatrix();
@@ -2667,7 +2667,7 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
  *  note: object should be in posemode
  */
 static void draw_ghost_poses_range(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base)
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
 	AnimData *adt = BKE_animdata_from_id(&ob->id);
@@ -2711,8 +2711,8 @@ static void draw_ghost_poses_range(
 		UI_GetThemeColorShadeAlpha4ubv(TH_WIRE, 0, -128 - (int)(120.0f * sqrtf(colfac)), col);
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-		BKE_pose_where_is(eval_ctx, scene, ob);
-		draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+		BKE_pose_where_is(depsgraph, scene, ob);
+		draw_pose_bones(depsgraph, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2735,7 +2735,7 @@ static void draw_ghost_poses_range(
  *	- object should be in posemode 
  */
 static void draw_ghost_poses_keys(
-        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        struct Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
@@ -2794,8 +2794,8 @@ static void draw_ghost_poses_keys(
 		CFRA = (int)ak->cfra;
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-		BKE_pose_where_is(eval_ctx, scene, ob);
-		draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+		BKE_pose_where_is(depsgraph, scene, ob);
+		draw_pose_bones(depsgraph, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
@@ -2819,7 +2819,7 @@ static void draw_ghost_poses_keys(
  *  - object is supposed to be armature in posemode
  */
 static void draw_ghost_poses(
-        const struct EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer,
+        struct Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer,
         View3D *v3d, ARegion *ar, Base *base)
 {
 	Object *ob = base->object;
@@ -2874,8 +2874,8 @@ static void draw_ghost_poses(
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-				BKE_pose_where_is(eval_ctx, scene, ob);
-				draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+				BKE_pose_where_is(depsgraph, scene, ob);
+				draw_pose_bones(depsgraph, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 			}
 		}
 		
@@ -2889,8 +2889,8 @@ static void draw_ghost_poses(
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-				BKE_pose_where_is(eval_ctx, scene, ob);
-				draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
+				BKE_pose_where_is(depsgraph, scene, ob);
+				draw_pose_bones(depsgraph, scene, view_layer, v3d, ar, base, OB_WIRE, col, true, false);
 			}
 		}
 	}
@@ -2916,7 +2916,7 @@ static void draw_ghost_poses(
 /* called from drawobject.c, return true if nothing was drawn
  * (ob_wire_col == NULL) when drawing ghost */
 bool draw_armature(
-        const EvaluationContext *eval_ctx, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base,
+        Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, View3D *v3d, ARegion *ar, Base *base,
         const short dt, const short dflag, const unsigned char ob_wire_col[4],
         const bool is_outline)
 {
@@ -2976,14 +2976,14 @@ bool draw_armature(
 				}
 				else if (ob->mode & OB_MODE_POSE) {
 					if (arm->ghosttype == ARM_GHOST_RANGE) {
-						draw_ghost_poses_range(eval_ctx, scene, view_layer, v3d, ar, base);
+						draw_ghost_poses_range(depsgraph, scene, view_layer, v3d, ar, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_KEYS) {
-						draw_ghost_poses_keys(eval_ctx, scene, view_layer, v3d, ar, base);
+						draw_ghost_poses_keys(depsgraph, scene, view_layer, v3d, ar, base);
 					}
 					else if (arm->ghosttype == ARM_GHOST_CUR) {
 						if (arm->ghostep)
-							draw_ghost_poses(eval_ctx, scene, view_layer, v3d, ar, base);
+							draw_ghost_poses(depsgraph, scene, view_layer, v3d, ar, base);
 					}
 					if ((dflag & DRAW_SCENESET) == 0) {
 						if (ob == OBACT(view_layer))
@@ -2996,7 +2996,7 @@ bool draw_armature(
 					}
 				}
 			}
-			draw_pose_bones(eval_ctx, scene, view_layer, v3d, ar, base, dt, ob_wire_col, (dflag & DRAW_CONSTCOLOR), is_outline);
+			draw_pose_bones(depsgraph, scene, view_layer, v3d, ar, base, dt, ob_wire_col, (dflag & DRAW_CONSTCOLOR), is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
 		}
 		else {

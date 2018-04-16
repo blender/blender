@@ -340,7 +340,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
  *	- recalc: whether we need to
  */
 /* TODO: include reports pointer? */
- void animviz_calc_motionpaths(EvaluationContext *eval_ctx, Main *bmain, Scene *scene, ListBase *targets)
+ void animviz_calc_motionpaths(Depsgraph *depsgraph, Main *bmain, Scene *scene, ListBase *targets)
 {
 	MPathTarget *mpt;
 	int sfra, efra;
@@ -367,7 +367,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		/* update relevant data for new frame */
-		motionpaths_calc_update_scene(bmain, eval_ctx->depsgraph);
+		motionpaths_calc_update_scene(bmain, depsgraph);
 		
 		/* perform baking for targets */
 		motionpaths_calc_bake_targets(scene, targets);
@@ -375,7 +375,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	
 	/* reset original environment */
 	CFRA = cfra;
-	motionpaths_calc_update_scene(bmain, eval_ctx->depsgraph);
+	motionpaths_calc_update_scene(bmain, depsgraph);
 	
 	/* clear recalc flags from targets */
 	for (mpt = targets->first; mpt; mpt = mpt->next) {

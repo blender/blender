@@ -277,14 +277,14 @@ static MDisps *multires_mdisps_initialize_hidden(Mesh *me, int level)
 	return mdisps;
 }
 
-DerivedMesh *get_multires_dm(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd, Object *ob)
+DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd, Object *ob)
 {
 	ModifierData *md = (ModifierData *)mmd;
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	DerivedMesh *tdm = mesh_get_derived_deform(eval_ctx, scene, ob, CD_MASK_BAREMESH);
+	DerivedMesh *tdm = mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
 	DerivedMesh *dm;
 
-	dm = mti->applyModifier(md, eval_ctx, ob, tdm, MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY);
+	dm = mti->applyModifier(md, depsgraph, ob, tdm, MOD_APPLY_USECACHE | MOD_APPLY_IGNORE_SIMPLIFY);
 	if (dm == tdm) {
 		dm = CDDM_copy(tdm);
 	}
@@ -398,10 +398,10 @@ void multires_force_render_update(Object *ob)
 		multires_force_update(ob);
 }
 
-int multiresModifier_reshapeFromDM(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd,
+int multiresModifier_reshapeFromDM(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd,
                                    Object *ob, DerivedMesh *srcdm)
 {
-	DerivedMesh *mrdm = get_multires_dm(eval_ctx, scene, mmd, ob);
+	DerivedMesh *mrdm = get_multires_dm(depsgraph, scene, mmd, ob);
 
 	if (mrdm && srcdm && mrdm->getNumVerts(mrdm) == srcdm->getNumVerts(srcdm)) {
 		multires_mvert_to_ss(mrdm, srcdm->getVertArray(srcdm));
@@ -420,13 +420,13 @@ int multiresModifier_reshapeFromDM(const struct EvaluationContext *eval_ctx, Sce
 }
 
 /* Returns 1 on success, 0 if the src's totvert doesn't match */
-int multiresModifier_reshape(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd, Object *dst, Object *src)
+int multiresModifier_reshape(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd, Object *dst, Object *src)
 {
-	DerivedMesh *srcdm = mesh_get_derived_final(eval_ctx, scene, src, CD_MASK_BAREMESH);
-	return multiresModifier_reshapeFromDM(eval_ctx, scene, mmd, dst, srcdm);
+	DerivedMesh *srcdm = mesh_get_derived_final(depsgraph, scene, src, CD_MASK_BAREMESH);
+	return multiresModifier_reshapeFromDM(depsgraph, scene, mmd, dst, srcdm);
 }
 
-int multiresModifier_reshapeFromDeformMod(const struct EvaluationContext *eval_ctx, Scene *scene, MultiresModifierData *mmd,
+int multiresModifier_reshapeFromDeformMod(struct Depsgraph *depsgraph, Scene *scene, MultiresModifierData *mmd,
                                           Object *ob, ModifierData *md)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -438,12 +438,12 @@ int multiresModifier_reshapeFromDeformMod(const struct EvaluationContext *eval_c
 		return 0;
 
 	/* Create DerivedMesh for deformation modifier */
-	dm = get_multires_dm(eval_ctx, scene, mmd, ob);
+	dm = get_multires_dm(depsgraph, scene, mmd, ob);
 	numVerts = dm->getNumVerts(dm);
 	deformedVerts = MEM_malloc_arrayN(numVerts, sizeof(float[3]), "multiresReshape_deformVerts");
 
 	dm->getVertCos(dm, deformedVerts);
-	mti->deformVerts(md, eval_ctx, ob, dm, deformedVerts, numVerts, 0);
+	mti->deformVerts(md, depsgraph, ob, dm, deformedVerts, numVerts, 0);
 
 	ndm = CDDM_copy(dm);
 	CDDM_apply_vert_coords(ndm, deformedVerts);
@@ -452,7 +452,7 @@ int multiresModifier_reshapeFromDeformMod(const struct EvaluationContext *eval_c
 	dm->release(dm);
 
 	/* Reshaping */
-	result = multiresModifier_reshapeFromDM(eval_ctx, scene, mmd, ob, ndm);
+	result = multiresModifier_reshapeFromDM(depsgraph, scene, mmd, ob, ndm);
 
 	/* Cleanup */
 	ndm->release(ndm);
@@ -2275,7 +2275,7 @@ static void multires_apply_smat_cb(
 	}
 }
 
-static void multires_apply_smat(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, float smat[3][3])
+static void multires_apply_smat(struct Depsgraph *depsgraph, Scene *scene, Object *ob, float smat[3][3])
 {
 	DerivedMesh *dm = NULL, *cddm = NULL, *subdm = NULL;
 	CCGElem **gridData, **subGridData;
@@ -2300,10 +2300,10 @@ static void multires_apply_smat(const struct EvaluationContext *eval_ctx, Scene 
 	high_mmd.lvl = high_mmd.totlvl;
 
 	/* unscaled multires with applied displacement */
-	subdm = get_multires_dm(eval_ctx, scene, &high_mmd, ob);
+	subdm = get_multires_dm(depsgraph, scene, &high_mmd, ob);
 
 	/* prepare scaled CDDM to create ccgDN */
-	cddm = mesh_get_derived_deform(eval_ctx, scene, ob, CD_MASK_BAREMESH);
+	cddm = mesh_get_derived_deform(depsgraph, scene, ob, CD_MASK_BAREMESH);
 
 	totvert = cddm->getNumVerts(cddm);
 	vertCos = MEM_malloc_arrayN(totvert, sizeof(*vertCos), "multiresScale vertCos");
@@ -2364,17 +2364,17 @@ int multires_mdisp_corners(MDisps *s)
 	return 0;
 }
 
-void multiresModifier_scale_disp(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob)
+void multiresModifier_scale_disp(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	float smat[3][3];
 
 	/* object's scale matrix */
 	BKE_object_scale_to_mat3(ob, smat);
 
-	multires_apply_smat(eval_ctx, scene, ob, smat);
+	multires_apply_smat(depsgraph, scene, ob, smat);
 }
 
-void multiresModifier_prepare_join(const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, Object *to_ob)
+void multiresModifier_prepare_join(struct Depsgraph *depsgraph, Scene *scene, Object *ob, Object *to_ob)
 {
 	float smat[3][3], tmat[3][3], mat[3][3];
 	multires_sync_levels(scene, to_ob, ob);
@@ -2385,7 +2385,7 @@ void multiresModifier_prepare_join(const struct EvaluationContext *eval_ctx, Sce
 	BKE_object_scale_to_mat3(ob, smat);
 	mul_m3_m3m3(mat, smat, tmat);
 
-	multires_apply_smat(eval_ctx, scene, ob, mat);
+	multires_apply_smat(depsgraph, scene, ob, mat);
 }
 
 /* update multires data after topology changing */

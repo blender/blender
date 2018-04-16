@@ -39,7 +39,6 @@
 struct bMovieHandle;
 struct bNodeTree;
 struct Depsgraph;
-struct EvaluationContext;
 struct Image;
 struct ImageFormatData;
 struct Main;
@@ -122,8 +121,6 @@ typedef struct RenderLayer {
 
 	/* optional saved endresult on disk */
 	void *exrhandle;
-
-	struct EvaluationContext eval_ctx;
 
 	ListBase passes;
 	
@@ -274,7 +271,7 @@ void RE_Database_FromScene(
 void RE_Database_CameraOnly(
         struct Render *re, struct Main *bmain, struct Scene *scene,
         unsigned int lay, int use_camera_view);
-void RE_Database_Preprocess(struct EvaluationContext *eavl_ctx, struct Render *re);
+void RE_Database_Preprocess(struct Depsgraph *depsgraph, struct Render *re);
 void RE_Database_Free(struct Render *re);
 
 /* project dbase again, when viewplane/perspective changed */

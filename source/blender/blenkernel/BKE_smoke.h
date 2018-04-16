@@ -35,7 +35,7 @@
 
 typedef float (*bresenham_callback)(float *result, float *input, int res[3], int *pixel, float *tRay, float correct);
 
-struct DerivedMesh *smokeModifier_do(struct SmokeModifierData *smd, const struct EvaluationContext *eval_ctx,
+struct DerivedMesh *smokeModifier_do(struct SmokeModifierData *smd, struct Depsgraph *depsgraph,
                                      struct Scene *scene,
                                      struct Object *ob, struct DerivedMesh *dm);
 

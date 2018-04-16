@@ -157,10 +157,10 @@ void PAINT_OT_weight_sample_group(struct wmOperatorType *ot);
 /* paint_vertex_proj.c */
 struct VertProjHandle;
 struct VertProjHandle *ED_vpaint_proj_handle_create(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,
         struct DMCoNo **r_vcosnos);
 void  ED_vpaint_proj_handle_update(
-        const struct EvaluationContext *eval_ctx, struct VertProjHandle *vp_handle,
+        struct Depsgraph *depsgraph, struct VertProjHandle *vp_handle,
         /* runtime vars */
         struct ARegion *ar, const float mval_fl[2]);
 void  ED_vpaint_proj_handle_free(

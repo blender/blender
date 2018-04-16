@@ -36,7 +36,7 @@
 struct BezTriple;
 struct Curve;
 struct EditNurb;
-struct EvaluationContext;
+struct Depsgraph;
 struct GHash;
 struct ListBase;
 struct Main;
@@ -123,13 +123,13 @@ void BKE_curve_editNurb_keyIndex_free(struct GHash **keyindex);
 void BKE_curve_editNurb_free(struct Curve *cu);
 struct ListBase *BKE_curve_editNurbs_get(struct Curve *cu);
 
-float *BKE_curve_make_orco(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, int *r_numVerts);
+float *BKE_curve_make_orco(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, int *r_numVerts);
 float *BKE_curve_surf_make_orco(struct Object *ob);
 
 void BKE_curve_bevelList_free(struct ListBase *bev);
 void BKE_curve_bevelList_make(struct Object *ob, struct ListBase *nurbs, bool for_render);
 void BKE_curve_bevel_make(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob,  struct ListBase *disp,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob,  struct ListBase *disp,
         const bool for_render, const bool use_render_resolution);
 
 void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float *p, int it, int stride);
@@ -218,7 +218,7 @@ void BKE_nurb_handles_test(struct Nurb *nu, const bool use_handles);
 /* **** Depsgraph evaluation **** */
 
 void BKE_curve_eval_geometry(
-        const struct EvaluationContext *eval_ctx,
+        struct Depsgraph *depsgraph,
         struct Curve *curve);
 
 /* Draw Cache */

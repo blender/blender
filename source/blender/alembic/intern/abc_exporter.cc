@@ -168,7 +168,7 @@ static bool export_object(const ExportSettings * const settings, const Base * co
 
 /* ************************************************************************** */
 
-AbcExporter::AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene,
+AbcExporter::AbcExporter(Main *bmain, Scene *scene, ViewLayer *view_layer,
                          Depsgraph *depsgraph,
                          const char *filename, ExportSettings &settings)
     : m_bmain(bmain)
@@ -176,8 +176,8 @@ AbcExporter::AbcExporter(Main *bmain, EvaluationContext *eval_ctx, Scene *scene,
     , m_filename(filename)
     , m_trans_sampling_index(0)
     , m_shape_sampling_index(0)
-    , m_eval_ctx(eval_ctx)
     , m_scene(scene)
+    , m_view_layer(view_layer)
     , m_depsgraph(depsgraph)
     , m_writer(NULL)
 {}
@@ -253,13 +253,13 @@ void AbcExporter::getFrameSet(unsigned int nr_of_samples,
 	}
 }
 
-void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
+void AbcExporter::operator()(float &progress, bool &was_canceled)
 {
 	std::string scene_name;
 
-	if (bmain->name[0] != '\0') {
+	if (m_bmain->name[0] != '\0') {
 		char scene_file_name[FILE_MAX];
-		BLI_strncpy(scene_file_name, bmain->name, FILE_MAX);
+		BLI_strncpy(scene_file_name, m_bmain->name, FILE_MAX);
 		scene_name = scene_file_name;
 	}
 	else {
@@ -298,8 +298,8 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 
 	OBox3dProperty archive_bounds_prop = Alembic::AbcGeom::CreateOArchiveBounds(m_writer->archive(), m_trans_sampling_index);
 
-	createTransformWritersHierarchy(bmain->eval_ctx);
-	createShapeWriters(bmain->eval_ctx);
+	createTransformWritersHierarchy(m_depsgraph);
+	createShapeWriters(m_depsgraph);
 
 	/* Make a list of frames to export. */
 
@@ -332,7 +332,7 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 		const double frame = *begin;
 
 		/* 'frame' is offset by start frame, so need to cancel the offset. */
-		setCurrentFrame(bmain, frame);
+		setCurrentFrame(m_bmain, frame);
 
 		if (shape_frames.count(frame) != 0) {
 			for (int i = 0, e = m_shapes.size(); i != e; ++i) {
@@ -361,7 +361,7 @@ void AbcExporter::operator()(Main *bmain, float &progress, bool &was_canceled)
 	}
 }
 
-void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
+void AbcExporter::createTransformWritersHierarchy(Depsgraph *depsgraph)
 {
 	for (Base *base = static_cast<Base *>(m_settings.view_layer->object_bases.first); base; base = base->next) {
 		Object *ob = base->object;
@@ -374,13 +374,13 @@ void AbcExporter::createTransformWritersHierarchy(EvaluationContext *eval_ctx)
 					/* We do not export transforms for objects of these classes. */
 					break;
 				default:
-					exploreTransform(eval_ctx, base, ob->parent, NULL);
+					exploreTransform(depsgraph, base, ob->parent, NULL);
 			}
 		}
 	}
 }
 
-void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, Object *parent, Object *dupliObParent)
+void AbcExporter::exploreTransform(Depsgraph *depsgraph, Base *ob_base, Object *parent, Object *dupliObParent)
 {
 	Object *ob = ob_base->object;
 
@@ -391,10 +391,10 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, O
 	}
 
 	if (object_type_is_exportable(m_scene, ob)) {
-		createTransformWriter(eval_ctx, ob, parent, dupliObParent);
+		createTransformWriter(depsgraph, ob, parent, dupliObParent);
 	}
 
-	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
+	ListBase *lb = object_duplilist(depsgraph, m_scene, ob);
 
 	if (lb) {
 		Base fake_base = *ob_base;  // copy flags (like selection state) from the real object.
@@ -415,7 +415,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, O
 				dupli_parent = (dupli_ob->parent) ? dupli_ob->parent : ob;
 
 				fake_base.object = dupli_ob;
-				exploreTransform(eval_ctx, &fake_base, dupli_parent, ob);
+				exploreTransform(depsgraph, &fake_base, dupli_parent, ob);
 			}
 		}
 	}
@@ -423,7 +423,7 @@ void AbcExporter::exploreTransform(EvaluationContext *eval_ctx, Base *ob_base, O
 	free_object_duplilist(lb);
 }
 
-AbcTransformWriter * AbcExporter::createTransformWriter(EvaluationContext *eval_ctx, Object *ob, Object *parent, Object *dupliObParent)
+AbcTransformWriter * AbcExporter::createTransformWriter(Depsgraph *depsgraph, Object *ob, Object *parent, Object *dupliObParent)
 {
 	/* An object should not be its own parent, or we'll get infinite loops. */
 	BLI_assert(ob != parent);
@@ -458,29 +458,29 @@ AbcTransformWriter * AbcExporter::createTransformWriter(EvaluationContext *eval_
 		 * return the parent's AbcTransformWriter pointer. */
 		if (parent->parent) {
 			if (parent == dupliObParent) {
-				parent_writer = createTransformWriter(eval_ctx, parent, parent->parent, NULL);
+				parent_writer = createTransformWriter(depsgraph, parent, parent->parent, NULL);
 			}
 			else {
-				parent_writer = createTransformWriter(eval_ctx, parent, parent->parent, dupliObParent);
+				parent_writer = createTransformWriter(depsgraph, parent, parent->parent, dupliObParent);
 			}
 		}
 		else if (parent == dupliObParent) {
 			if (dupliObParent->parent == NULL) {
-				parent_writer = createTransformWriter(eval_ctx, parent, NULL, NULL);
+				parent_writer = createTransformWriter(depsgraph, parent, NULL, NULL);
 			}
 			else {
-				parent_writer = createTransformWriter(eval_ctx, parent, dupliObParent->parent, dupliObParent->parent);
+				parent_writer = createTransformWriter(depsgraph, parent, dupliObParent->parent, dupliObParent->parent);
 			}
 		}
 		else {
-			parent_writer = createTransformWriter(eval_ctx, parent, dupliObParent, dupliObParent);
+			parent_writer = createTransformWriter(depsgraph, parent, dupliObParent, dupliObParent);
 		}
 
 		BLI_assert(parent_writer);
 		alembic_parent = parent_writer->alembicXform();
 	}
 
-	my_writer = new AbcTransformWriter(eval_ctx, ob, alembic_parent, parent_writer,
+	my_writer = new AbcTransformWriter(depsgraph, ob, alembic_parent, parent_writer,
 	                                   m_trans_sampling_index, m_settings);
 
 	/* When flattening, the matrix of the dupliobject has to be added. */
@@ -492,14 +492,14 @@ AbcTransformWriter * AbcExporter::createTransformWriter(EvaluationContext *eval_
 	return my_writer;
 }
 
-void AbcExporter::createShapeWriters(EvaluationContext *eval_ctx)
+void AbcExporter::createShapeWriters(Depsgraph *depsgraph)
 {
 	for (Base *base = static_cast<Base *>(m_settings.view_layer->object_bases.first); base; base = base->next) {
-		exploreObject(eval_ctx, base, NULL);
+		exploreObject(depsgraph, base, NULL);
 	}
 }
 
-void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Object *dupliObParent)
+void AbcExporter::exploreObject(Depsgraph *depsgraph, Base *ob_base, Object *dupliObParent)
 {
 	/* If an object isn't exported itself, its duplilist shouldn't be
 	 * exported either. */
@@ -510,7 +510,7 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Obje
 	createShapeWriter(ob_base, dupliObParent);
 	
 	Object *ob = ob_base->object;
-	ListBase *lb = object_duplilist(eval_ctx, m_scene, ob);
+	ListBase *lb = object_duplilist(depsgraph, m_scene, ob);
 
 	if (lb) {
 		Base fake_base = *ob_base;  // copy flags (like selection state) from the real object.
@@ -525,7 +525,7 @@ void AbcExporter::exploreObject(EvaluationContext *eval_ctx, Base *ob_base, Obje
 			}
 			if (link->type == OB_DUPLIGROUP) {
 				fake_base.object = link->ob;
-				exploreObject(eval_ctx, &fake_base, ob);
+				exploreObject(depsgraph, &fake_base, ob);
 			}
 		}
 	}
@@ -548,10 +548,10 @@ void AbcExporter::createParticleSystemsWriters(Object *ob, AbcTransformWriter *x
 
 		if (m_settings.export_hair && psys->part->type == PART_HAIR) {
 			m_settings.export_child_hairs = true;
-			m_shapes.push_back(new AbcHairWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+			m_shapes.push_back(new AbcHairWriter(m_depsgraph, m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
 		}
 		else if (m_settings.export_particles && psys->part->type == PART_EMITTER) {
-			m_shapes.push_back(new AbcPointsWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
+			m_shapes.push_back(new AbcPointsWriter(m_depsgraph, m_scene, ob, xform, m_shape_sampling_index, m_settings, psys));
 		}
 	}
 }
@@ -591,7 +591,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcMeshWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
+			m_shapes.push_back(new AbcMeshWriter(m_depsgraph, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			break;
 		}
 		case OB_SURF:
@@ -602,7 +602,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcNurbsWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
+			m_shapes.push_back(new AbcNurbsWriter(m_depsgraph, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			break;
 		}
 		case OB_CURVE:
@@ -613,7 +613,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 				return;
 			}
 
-			m_shapes.push_back(new AbcCurveWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
+			m_shapes.push_back(new AbcCurveWriter(m_depsgraph, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			break;
 		}
 		case OB_CAMERA:
@@ -621,7 +621,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 			Camera *cam = static_cast<Camera *>(ob->data);
 
 			if (cam->type == CAM_PERSP) {
-				m_shapes.push_back(new AbcCameraWriter(m_eval_ctx, m_scene, ob, xform, m_shape_sampling_index, m_settings));
+				m_shapes.push_back(new AbcCameraWriter(m_depsgraph, m_scene, ob, xform, m_shape_sampling_index, m_settings));
 			}
 
 			break;
@@ -634,7 +634,7 @@ void AbcExporter::createShapeWriter(Base *ob_base, Object *dupliObParent)
 			}
 
 			m_shapes.push_back(new AbcMBallWriter(
-			                       m_bmain, m_eval_ctx, m_scene, ob, xform,
+			                       m_bmain, m_depsgraph, m_scene, ob, xform,
 			                       m_shape_sampling_index, m_settings));
 			break;
 		}

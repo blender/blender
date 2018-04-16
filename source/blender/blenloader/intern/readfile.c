@@ -3873,8 +3873,8 @@ static void direct_link_text(FileData *fd, Text *text)
 #if 0
 	if (text->flags & TXT_ISEXT) {
 		BKE_text_reload(text);
-		}
-		/* else { */
+	}
+	/* else { */
 #endif
 	
 	link_list(fd, &text->lines);
@@ -6516,6 +6516,588 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 	direct_link_workspace_link_scene_data(fd, sce, &bmain->workspaces);
 }
 
+/* ****************** READ GREASE PENCIL ***************** */
+
+/* relink's grease pencil data's refs */
+static void lib_link_gpencil(FileData *fd, Main *main)
+{
+	for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
+		if (gpd->id.tag & LIB_TAG_NEED_LINK) {
+			IDP_LibLinkProperty(gpd->id.properties, fd);
+			lib_link_animdata(fd, &gpd->id, gpd->adt);
+
+			gpd->id.tag &= ~LIB_TAG_NEED_LINK;
+		}
+	}
+}
+
+/* relinks grease-pencil data - used for direct_link and old file linkage */
+static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
+{
+	bGPDlayer *gpl;
+	bGPDframe *gpf;
+	bGPDstroke *gps;
+	bGPDpalette *palette;
+
+	/* we must firstly have some grease-pencil data to link! */
+	if (gpd == NULL)
+		return;
+	
+	/* relink animdata */
+	gpd->adt = newdataadr(fd, gpd->adt);
+	direct_link_animdata(fd, gpd->adt);
+
+	/* relink palettes */
+	link_list(fd, &gpd->palettes);
+	for (palette = gpd->palettes.first; palette; palette = palette->next) {
+		link_list(fd, &palette->colors);
+	}
+
+	/* relink layers */
+	link_list(fd, &gpd->layers);
+	
+	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
+		/* parent */
+		gpl->parent = newlibadr(fd, gpd->id.lib, gpl->parent);
+		/* relink frames */
+		link_list(fd, &gpl->frames);
+		gpl->actframe = newdataadr(fd, gpl->actframe);
+		
+		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
+			/* relink strokes (and their points) */
+			link_list(fd, &gpf->strokes);
+			
+			for (gps = gpf->strokes.first; gps; gps = gps->next) {
+				gps->points = newdataadr(fd, gps->points);
+				
+				/* the triangulation is not saved, so need to be recalculated */
+				gps->triangles = NULL;
+				gps->tot_triangles = 0;
+				gps->flag |= GP_STROKE_RECALC_CACHES;
+				/* the color pointer is not saved, so need to be recalculated using the color name */
+				gps->palcolor = NULL;
+				gps->flag |= GP_STROKE_RECALC_COLOR;
+			}
+		}
+	}
+}
+
+/* *********** READ AREA **************** */
+
+static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
+{
+	Panel *pa;
+	uiList *ui_list;
+
+	link_list(fd, &ar->panels);
+
+	for (pa = ar->panels.first; pa; pa = pa->next) {
+		pa->paneltab = newdataadr(fd, pa->paneltab);
+		pa->runtime_flag = 0;
+		pa->activedata = NULL;
+		pa->type = NULL;
+	}
+
+	link_list(fd, &ar->panels_category_active);
+
+	link_list(fd, &ar->ui_lists);
+
+	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
+		ui_list->type = NULL;
+		ui_list->dyn_data = NULL;
+		ui_list->properties = newdataadr(fd, ui_list->properties);
+		IDP_DirectLinkGroup_OrFree(&ui_list->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+	}
+
+	link_list(fd, &ar->ui_previews);
+
+	if (spacetype == SPACE_EMPTY) {
+		/* unkown space type, don't leak regiondata */
+		ar->regiondata = NULL;
+	}
+	else {
+		ar->regiondata = newdataadr(fd, ar->regiondata);
+		if (ar->regiondata) {
+			if (spacetype == SPACE_VIEW3D) {
+				RegionView3D *rv3d = ar->regiondata;
+
+				rv3d->localvd = newdataadr(fd, rv3d->localvd);
+				rv3d->clipbb = newdataadr(fd, rv3d->clipbb);
+
+				rv3d->depths = NULL;
+				rv3d->gpuoffscreen = NULL;
+				rv3d->render_engine = NULL;
+				rv3d->sms = NULL;
+				rv3d->smooth_timer = NULL;
+				rv3d->compositor = NULL;
+				rv3d->viewport = NULL;
+			}
+		}
+	}
+	
+	ar->v2d.tab_offset = NULL;
+	ar->v2d.tab_num = 0;
+	ar->v2d.tab_cur = 0;
+	ar->v2d.sms = NULL;
+	BLI_listbase_clear(&ar->panels_category);
+	BLI_listbase_clear(&ar->handlers);
+	BLI_listbase_clear(&ar->uiblocks);
+	ar->headerstr = NULL;
+	ar->visible = 0;
+	ar->type = NULL;
+	ar->swap = 0;
+	ar->do_draw = 0;
+	ar->manipulator_map = NULL;
+	ar->regiontimer = NULL;
+	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
+}
+
+static void direct_link_area(FileData *fd, ScrArea *area)
+{
+	SpaceLink *sl;
+	ARegion *ar;
+
+	link_list(fd, &(area->spacedata));
+	link_list(fd, &(area->regionbase));
+
+	BLI_listbase_clear(&area->handlers);
+	area->type = NULL;	/* spacetype callbacks */
+	area->region_active_win = -1;
+
+	/* if we do not have the spacetype registered (game player), we cannot
+	 * free it, so don't allocate any new memory for such spacetypes. */
+	if (!BKE_spacetype_exists(area->spacetype)) {
+		area->spacetype = SPACE_EMPTY;
+	}
+
+	for (ar = area->regionbase.first; ar; ar = ar->next) {
+		direct_link_region(fd, ar, area->spacetype);
+	}
+
+	/* accident can happen when read/save new file with older version */
+	/* 2.50: we now always add spacedata for info */
+	if (area->spacedata.first == NULL) {
+		SpaceInfo *sinfo= MEM_callocN(sizeof(SpaceInfo), "spaceinfo");
+		area->spacetype= sinfo->spacetype= SPACE_INFO;
+		BLI_addtail(&area->spacedata, sinfo);
+	}
+	/* add local view3d too */
+	else if (area->spacetype == SPACE_VIEW3D) {
+		blo_do_versions_view3d_split_250(area->spacedata.first, &area->regionbase);
+	}
+
+	/* incase we set above */
+	area->butspacetype = area->spacetype;
+
+	for (sl = area->spacedata.first; sl; sl = sl->next) {
+		link_list(fd, &(sl->regionbase));
+
+		/* if we do not have the spacetype registered (game player), we cannot
+		 * free it, so don't allocate any new memory for such spacetypes. */
+		if (!BKE_spacetype_exists(sl->spacetype))
+			sl->spacetype = SPACE_EMPTY;
+
+		for (ar = sl->regionbase.first; ar; ar = ar->next)
+			direct_link_region(fd, ar, sl->spacetype);
+
+		if (sl->spacetype == SPACE_VIEW3D) {
+			View3D *v3d= (View3D*) sl;
+
+			v3d->flag |= V3D_INVALID_BACKBUF;
+
+			if (v3d->gpd) {
+				v3d->gpd = newdataadr(fd, v3d->gpd);
+				direct_link_gpencil(fd, v3d->gpd);
+			}
+			v3d->localvd = newdataadr(fd, v3d->localvd);
+			BLI_listbase_clear(&v3d->afterdraw_transp);
+			BLI_listbase_clear(&v3d->afterdraw_xray);
+			BLI_listbase_clear(&v3d->afterdraw_xraytransp);
+			v3d->properties_storage = NULL;
+			v3d->defmaterial = NULL;
+
+			/* render can be quite heavy, set to solid on load */
+			if (v3d->drawtype == OB_RENDER)
+				v3d->drawtype = OB_SOLID;
+			v3d->prev_drawtype = OB_SOLID;
+
+			if (v3d->fx_settings.dof)
+				v3d->fx_settings.dof = newdataadr(fd, v3d->fx_settings.dof);
+			if (v3d->fx_settings.ssao)
+				v3d->fx_settings.ssao = newdataadr(fd, v3d->fx_settings.ssao);
+
+			blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
+		}
+		else if (sl->spacetype == SPACE_IPO) {
+			SpaceIpo *sipo = (SpaceIpo *)sl;
+
+			sipo->ads = newdataadr(fd, sipo->ads);
+			BLI_listbase_clear(&sipo->ghostCurves);
+		}
+		else if (sl->spacetype == SPACE_NLA) {
+			SpaceNla *snla = (SpaceNla *)sl;
+
+			snla->ads = newdataadr(fd, snla->ads);
+		}
+		else if (sl->spacetype == SPACE_OUTLINER) {
+			SpaceOops *soops = (SpaceOops *) sl;
+
+			/* use newdataadr_no_us and do not free old memory avoiding double
+			 * frees and use of freed memory. this could happen because of a
+			 * bug fixed in revision 58959 where the treestore memory address
+			 * was not unique */
+			TreeStore *ts = newdataadr_no_us(fd, soops->treestore);
+			soops->treestore = NULL;
+			if (ts) {
+				TreeStoreElem *elems = newdataadr_no_us(fd, ts->data);
+
+				soops->treestore = BLI_mempool_create(sizeof(TreeStoreElem), ts->usedelem,
+				                                      512, BLI_MEMPOOL_ALLOW_ITER);
+				if (ts->usedelem && elems) {
+					int i;
+					for (i = 0; i < ts->usedelem; i++) {
+						TreeStoreElem *new_elem = BLI_mempool_alloc(soops->treestore);
+						*new_elem = elems[i];
+					}
+				}
+				/* we only saved what was used */
+				soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
+			}
+			soops->treehash = NULL;
+			soops->tree.first = soops->tree.last= NULL;
+		}
+		else if (sl->spacetype == SPACE_IMAGE) {
+			SpaceImage *sima = (SpaceImage *)sl;
+
+			sima->iuser.scene = NULL;
+			sima->iuser.ok = 1;
+			sima->scopes.waveform_1 = NULL;
+			sima->scopes.waveform_2 = NULL;
+			sima->scopes.waveform_3 = NULL;
+			sima->scopes.vecscope = NULL;
+			sima->scopes.ok = 0;
+
+			/* WARNING: gpencil data is no longer stored directly in sima after 2.5 
+			 * so sacrifice a few old files for now to avoid crashes with new files!
+			 * committed: r28002 */
+#if 0
+			sima->gpd = newdataadr(fd, sima->gpd);
+			if (sima->gpd)
+				direct_link_gpencil(fd, sima->gpd);
+#endif
+		}
+		else if (sl->spacetype == SPACE_NODE) {
+			SpaceNode *snode = (SpaceNode *)sl;
+			
+			if (snode->gpd) {
+				snode->gpd = newdataadr(fd, snode->gpd);
+				direct_link_gpencil(fd, snode->gpd);
+			}
+			
+			link_list(fd, &snode->treepath);
+			snode->edittree = NULL;
+			snode->iofsd = NULL;
+			BLI_listbase_clear(&snode->linkdrag);
+		}
+		else if (sl->spacetype == SPACE_TEXT) {
+			SpaceText *st= (SpaceText *)sl;
+			
+			st->drawcache = NULL;
+			st->scroll_accum[0] = 0.0f;
+			st->scroll_accum[1] = 0.0f;
+		}
+		else if (sl->spacetype == SPACE_TIME) {
+			SpaceTime *stime = (SpaceTime *)sl;
+			BLI_listbase_clear(&stime->caches);
+		}
+		else if (sl->spacetype == SPACE_LOGIC) {
+			SpaceLogic *slogic = (SpaceLogic *)sl;
+			
+			/* XXX: this is new stuff, which shouldn't be directly linking to gpd... */
+			if (slogic->gpd) {
+				slogic->gpd = newdataadr(fd, slogic->gpd);
+				direct_link_gpencil(fd, slogic->gpd);
+			}
+		}
+		else if (sl->spacetype == SPACE_SEQ) {
+			SpaceSeq *sseq = (SpaceSeq *)sl;
+			
+			/* grease pencil data is not a direct data and can't be linked from direct_link*
+			 * functions, it should be linked from lib_link* functions instead
+			 *
+			 * otherwise it'll lead to lost grease data on open because it'll likely be
+			 * read from file after all other users of grease pencil and newdataadr would
+			 * simple return NULL here (sergey)
+			 */
+#if 0
+			if (sseq->gpd) {
+				sseq->gpd = newdataadr(fd, sseq->gpd);
+				direct_link_gpencil(fd, sseq->gpd);
+			}
+#endif
+			sseq->scopes.reference_ibuf = NULL;
+			sseq->scopes.zebra_ibuf = NULL;
+			sseq->scopes.waveform_ibuf = NULL;
+			sseq->scopes.sep_waveform_ibuf = NULL;
+			sseq->scopes.vector_ibuf = NULL;
+			sseq->scopes.histogram_ibuf = NULL;
+			sseq->compositor = NULL;
+		}
+		else if (sl->spacetype == SPACE_BUTS) {
+			SpaceButs *sbuts = (SpaceButs *)sl;
+
+			sbuts->path= NULL;
+			sbuts->texuser= NULL;
+			sbuts->mainbo = sbuts->mainb;
+			sbuts->mainbuser = sbuts->mainb;
+		}
+		else if (sl->spacetype == SPACE_CONSOLE) {
+			SpaceConsole *sconsole = (SpaceConsole *)sl;
+			ConsoleLine *cl, *cl_next;
+
+			link_list(fd, &sconsole->scrollback);
+			link_list(fd, &sconsole->history);
+
+			//for (cl= sconsole->scrollback.first; cl; cl= cl->next)
+			//	cl->line= newdataadr(fd, cl->line);
+
+			/* comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
+			 * from left to right.  the right-most expression sets the result of the comma
+			 * expression as a whole*/
+			for (cl = sconsole->history.first; cl; cl = cl_next) {
+				cl_next = cl->next;
+				cl->line = newdataadr(fd, cl->line);
+				if (cl->line) {
+					/* the allocted length is not written, so reset here */
+					cl->len_alloc = cl->len + 1;
+				}
+				else {
+					BLI_remlink(&sconsole->history, cl);
+					MEM_freeN(cl);
+				}
+			}
+		}
+		else if (sl->spacetype == SPACE_FILE) {
+			SpaceFile *sfile = (SpaceFile *)sl;
+
+			/* this sort of info is probably irrelevant for reloading...
+			 * plus, it isn't saved to files yet!
+			 */
+			sfile->folders_prev = sfile->folders_next = NULL;
+			sfile->files = NULL;
+			sfile->layout = NULL;
+			sfile->op = NULL;
+			sfile->previews_timer = NULL;
+			sfile->params = newdataadr(fd, sfile->params);
+		}
+		else if (sl->spacetype == SPACE_CLIP) {
+			SpaceClip *sclip = (SpaceClip *)sl;
+
+			sclip->scopes.track_search = NULL;
+			sclip->scopes.track_preview = NULL;
+			sclip->scopes.ok = 0;
+		}
+	}
+
+	BLI_listbase_clear(&area->actionzones);
+
+	area->v1 = newdataadr(fd, area->v1);
+	area->v2 = newdataadr(fd, area->v2);
+	area->v3 = newdataadr(fd, area->v3);
+	area->v4 = newdataadr(fd, area->v4);
+}
+
+static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
+{
+	area->full = newlibadr(fd, sc->id.lib, area->full);
+
+	for (SpaceLink *sl = area->spacedata.first; sl; sl= sl->next) {
+		switch (sl->spacetype) {
+			case SPACE_VIEW3D:
+			{
+				View3D *v3d = (View3D*) sl;
+
+				v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
+				v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
+
+				if (v3d->localvd) {
+					v3d->localvd->camera = newlibadr(fd, sc->id.lib, v3d->localvd->camera);
+				}
+				break;
+			}
+			case SPACE_IPO:
+			{
+				SpaceIpo *sipo = (SpaceIpo *)sl;
+				bDopeSheet *ads = sipo->ads;
+
+				if (ads) {
+					ads->source = newlibadr(fd, sc->id.lib, ads->source);
+					ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
+				}
+				break;
+			}
+			case SPACE_BUTS:
+			{
+				SpaceButs *sbuts = (SpaceButs *)sl;
+				sbuts->pinid = newlibadr(fd, sc->id.lib, sbuts->pinid);
+				if (sbuts->pinid == NULL) {
+					sbuts->flag &= ~SB_PIN_CONTEXT;
+				}
+				break;
+			}
+			case SPACE_FILE:
+				break;
+			case SPACE_ACTION:
+			{
+				SpaceAction *saction = (SpaceAction *)sl;
+				bDopeSheet *ads = &saction->ads;
+
+				if (ads) {
+					ads->source = newlibadr(fd, sc->id.lib, ads->source);
+					ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
+				}
+
+				saction->action = newlibadr(fd, sc->id.lib, saction->action);
+				break;
+			}
+			case SPACE_IMAGE:
+			{
+				SpaceImage *sima = (SpaceImage *)sl;
+
+				sima->image = newlibadr_real_us(fd, sc->id.lib, sima->image);
+				sima->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sima->mask_info.mask);
+
+				/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+				 * so fingers crossed this works fine!
+				 */
+				sima->gpd = newlibadr_us(fd, sc->id.lib, sima->gpd);
+				break;
+			}
+			case SPACE_SEQ:
+			{
+				SpaceSeq *sseq = (SpaceSeq *)sl;
+
+				/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+				 * so fingers crossed this works fine!
+				 */
+				sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+				break;
+			}
+			case SPACE_NLA:
+			{
+				SpaceNla *snla= (SpaceNla *)sl;
+				bDopeSheet *ads= snla->ads;
+
+				if (ads) {
+					ads->source = newlibadr(fd, sc->id.lib, ads->source);
+					ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
+				}
+				break;
+			}
+			case SPACE_TEXT:
+			{
+				SpaceText *st= (SpaceText *)sl;
+
+				st->text= newlibadr(fd, sc->id.lib, st->text);
+				break;
+			}
+			case SPACE_SCRIPT:
+			{
+				SpaceScript *scpt = (SpaceScript *)sl;
+				/*scpt->script = NULL; - 2.45 set to null, better re-run the script */
+				if (scpt->script) {
+					scpt->script = newlibadr(fd, sc->id.lib, scpt->script);
+					if (scpt->script) {
+						SCRIPT_SET_NULL(scpt->script);
+					}
+				}
+				break;
+			}
+			case SPACE_OUTLINER:
+			{
+				SpaceOops *so= (SpaceOops *)sl;
+				so->search_tse.id = newlibadr(fd, NULL, so->search_tse.id);
+
+				if (so->treestore) {
+					TreeStoreElem *tselem;
+					BLI_mempool_iter iter;
+
+					BLI_mempool_iternew(so->treestore, &iter);
+					while ((tselem = BLI_mempool_iterstep(&iter))) {
+						tselem->id = newlibadr(fd, NULL, tselem->id);
+					}
+					if (so->treehash) {
+						/* rebuild hash table, because it depends on ids too */
+						so->storeflag |= SO_TREESTORE_REBUILD;
+					}
+				}
+				break;
+			}
+			case SPACE_NODE:
+			{
+				SpaceNode *snode = (SpaceNode *)sl;
+				bNodeTreePath *path, *path_next;
+				bNodeTree *ntree;
+
+				/* node tree can be stored locally in id too, link this first */
+				snode->id = newlibadr(fd, sc->id.lib, snode->id);
+				snode->from = newlibadr(fd, sc->id.lib, snode->from);
+
+				ntree = snode->id ? ntreeFromID(snode->id) : NULL;
+				snode->nodetree = ntree ? ntree : newlibadr_us(fd, sc->id.lib, snode->nodetree);
+
+				for (path = snode->treepath.first; path; path = path->next) {
+					if (path == snode->treepath.first) {
+						/* first nodetree in path is same as snode->nodetree */
+						path->nodetree = snode->nodetree;
+					}
+					else
+						path->nodetree = newlibadr_us(fd, sc->id.lib, path->nodetree);
+
+					if (!path->nodetree)
+						break;
+				}
+
+				/* remaining path entries are invalid, remove */
+				for (; path; path = path_next) {
+					path_next = path->next;
+
+					BLI_remlink(&snode->treepath, path);
+					MEM_freeN(path);
+				}
+
+				/* edittree is just the last in the path,
+				 * set this directly since the path may have been shortened above */
+				if (snode->treepath.last) {
+					path = snode->treepath.last;
+					snode->edittree = path->nodetree;
+				}
+				else {
+					snode->edittree = NULL;
+				}
+				break;
+			}
+			case SPACE_CLIP:
+			{
+				SpaceClip *sclip = (SpaceClip *)sl;
+
+				sclip->clip = newlibadr_real_us(fd, sc->id.lib, sclip->clip);
+				sclip->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sclip->mask_info.mask);
+				break;
+			}
+			case SPACE_LOGIC:
+			{
+				SpaceLogic *slogic = (SpaceLogic *)sl;
+
+				slogic->gpd = newlibadr_us(fd, sc->id.lib, slogic->gpd);
+				break;
+			}
+			default:
+				break;
+		}
+	}
+}
+
 /* ************ READ WM ***************** */
 
 static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
@@ -6604,74 +7186,8 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 				/* deprecated, but needed for versioning (will be NULL'ed then) */
 				win->screen = newlibadr(fd, NULL, win->screen);
 			}
-			
+
 			wm->id.tag &= ~LIB_TAG_NEED_LINK;
-		}
-	}
-}
-
-/* ****************** READ GREASE PENCIL ***************** */
-
-/* relink's grease pencil data's refs */
-static void lib_link_gpencil(FileData *fd, Main *main)
-{
-	for (bGPdata *gpd = main->gpencil.first; gpd; gpd = gpd->id.next) {
-		if (gpd->id.tag & LIB_TAG_NEED_LINK) {
-			IDP_LibLinkProperty(gpd->id.properties, fd);
-			lib_link_animdata(fd, &gpd->id, gpd->adt);
-
-			gpd->id.tag &= ~LIB_TAG_NEED_LINK;
-		}
-	}
-}
-
-/* relinks grease-pencil data - used for direct_link and old file linkage */
-static void direct_link_gpencil(FileData *fd, bGPdata *gpd)
-{
-	bGPDlayer *gpl;
-	bGPDframe *gpf;
-	bGPDstroke *gps;
-	bGPDpalette *palette;
-
-	/* we must firstly have some grease-pencil data to link! */
-	if (gpd == NULL)
-		return;
-	
-	/* relink animdata */
-	gpd->adt = newdataadr(fd, gpd->adt);
-	direct_link_animdata(fd, gpd->adt);
-
-	/* relink palettes */
-	link_list(fd, &gpd->palettes);
-	for (palette = gpd->palettes.first; palette; palette = palette->next) {
-		link_list(fd, &palette->colors);
-	}
-
-	/* relink layers */
-	link_list(fd, &gpd->layers);
-	
-	for (gpl = gpd->layers.first; gpl; gpl = gpl->next) {
-		/* parent */
-		gpl->parent = newlibadr(fd, gpd->id.lib, gpl->parent);
-		/* relink frames */
-		link_list(fd, &gpl->frames);
-		gpl->actframe = newdataadr(fd, gpl->actframe);
-		
-		for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-			/* relink strokes (and their points) */
-			link_list(fd, &gpf->strokes);
-			
-			for (gps = gpf->strokes.first; gps; gps = gps->next) {
-				gps->points = newdataadr(fd, gps->points);
-				
-				/* the triangulation is not saved, so need to be recalculated */
-				gps->triangles = NULL;
-				gps->tot_triangles = 0;
-				gps->flag |= GP_STROKE_RECALC_CACHES;
-				/* the color pointer is not saved, so need to be recalculated using the color name */
-				gps->palcolor = NULL;
-				gps->flag |= GP_STROKE_RECALC_COLOR;
-			}
 		}
 	}
 }
@@ -6694,194 +7210,8 @@ static void lib_link_screen(FileData *fd, Main *main)
 			sc->tool_tip = NULL;
 			sc->scrubbing = false;
 			
-			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
-				sa->full = newlibadr(fd, sc->id.lib, sa->full);
-				
-				for (SpaceLink *sl = sa->spacedata.first; sl; sl= sl->next) {
-					switch (sl->spacetype) {
-						case SPACE_VIEW3D:
-						{
-							View3D *v3d = (View3D*) sl;
-
-							v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
-							v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
-
-							if (v3d->localvd) {
-								v3d->localvd->camera = newlibadr(fd, sc->id.lib, v3d->localvd->camera);
-							}
-							break;
-						}
-						case SPACE_IPO:
-						{
-							SpaceIpo *sipo = (SpaceIpo *)sl;
-							bDopeSheet *ads = sipo->ads;
-
-							if (ads) {
-								ads->source = newlibadr(fd, sc->id.lib, ads->source);
-								ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
-							}
-							break;
-						}
-						case SPACE_BUTS:
-						{
-							SpaceButs *sbuts = (SpaceButs *)sl;
-							sbuts->pinid = newlibadr(fd, sc->id.lib, sbuts->pinid);
-							if (sbuts->pinid == NULL) {
-								sbuts->flag &= ~SB_PIN_CONTEXT;
-							}
-							break;
-						}
-						case SPACE_FILE:
-							break;
-						case SPACE_ACTION:
-						{
-							SpaceAction *saction = (SpaceAction *)sl;
-							bDopeSheet *ads = &saction->ads;
-
-							if (ads) {
-								ads->source = newlibadr(fd, sc->id.lib, ads->source);
-								ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
-							}
-
-							saction->action = newlibadr(fd, sc->id.lib, saction->action);
-							break;
-						}
-						case SPACE_IMAGE:
-						{
-							SpaceImage *sima = (SpaceImage *)sl;
-
-							sima->image = newlibadr_real_us(fd, sc->id.lib, sima->image);
-							sima->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sima->mask_info.mask);
-
-							/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
-							 * so fingers crossed this works fine!
-							 */
-							sima->gpd = newlibadr_us(fd, sc->id.lib, sima->gpd);
-							break;
-						}
-						case SPACE_SEQ:
-						{
-							SpaceSeq *sseq = (SpaceSeq *)sl;
-
-							/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
-							 * so fingers crossed this works fine!
-							 */
-							sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
-							break;
-						}
-						case SPACE_NLA:
-						{
-							SpaceNla *snla= (SpaceNla *)sl;
-							bDopeSheet *ads= snla->ads;
-
-							if (ads) {
-								ads->source = newlibadr(fd, sc->id.lib, ads->source);
-								ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
-							}
-							break;
-						}
-						case SPACE_TEXT:
-						{
-							SpaceText *st= (SpaceText *)sl;
-
-							st->text= newlibadr(fd, sc->id.lib, st->text);
-							break;
-						}
-						case SPACE_SCRIPT:
-						{
-							SpaceScript *scpt = (SpaceScript *)sl;
-							/*scpt->script = NULL; - 2.45 set to null, better re-run the script */
-							if (scpt->script) {
-								scpt->script = newlibadr(fd, sc->id.lib, scpt->script);
-								if (scpt->script) {
-									SCRIPT_SET_NULL(scpt->script);
-								}
-							}
-							break;
-						}
-						case SPACE_OUTLINER:
-						{
-							SpaceOops *so= (SpaceOops *)sl;
-							so->search_tse.id = newlibadr(fd, NULL, so->search_tse.id);
-
-							if (so->treestore) {
-								TreeStoreElem *tselem;
-								BLI_mempool_iter iter;
-
-								BLI_mempool_iternew(so->treestore, &iter);
-								while ((tselem = BLI_mempool_iterstep(&iter))) {
-									tselem->id = newlibadr(fd, NULL, tselem->id);
-								}
-								if (so->treehash) {
-									/* rebuild hash table, because it depends on ids too */
-									so->storeflag |= SO_TREESTORE_REBUILD;
-								}
-							}
-							break;
-						}
-						case SPACE_NODE:
-						{
-							SpaceNode *snode = (SpaceNode *)sl;
-							bNodeTreePath *path, *path_next;
-							bNodeTree *ntree;
-
-							/* node tree can be stored locally in id too, link this first */
-							snode->id = newlibadr(fd, sc->id.lib, snode->id);
-							snode->from = newlibadr(fd, sc->id.lib, snode->from);
-
-							ntree = snode->id ? ntreeFromID(snode->id) : NULL;
-							snode->nodetree = ntree ? ntree : newlibadr_us(fd, sc->id.lib, snode->nodetree);
-
-							for (path = snode->treepath.first; path; path = path->next) {
-								if (path == snode->treepath.first) {
-									/* first nodetree in path is same as snode->nodetree */
-									path->nodetree = snode->nodetree;
-								}
-								else
-									path->nodetree = newlibadr_us(fd, sc->id.lib, path->nodetree);
-
-								if (!path->nodetree)
-									break;
-							}
-
-							/* remaining path entries are invalid, remove */
-							for (; path; path = path_next) {
-								path_next = path->next;
-
-								BLI_remlink(&snode->treepath, path);
-								MEM_freeN(path);
-							}
-
-							/* edittree is just the last in the path,
-							 * set this directly since the path may have been shortened above */
-							if (snode->treepath.last) {
-								path = snode->treepath.last;
-								snode->edittree = path->nodetree;
-							}
-							else {
-								snode->edittree = NULL;
-							}
-							break;
-						}
-						case SPACE_CLIP:
-						{
-							SpaceClip *sclip = (SpaceClip *)sl;
-
-							sclip->clip = newlibadr_real_us(fd, sc->id.lib, sclip->clip);
-							sclip->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sclip->mask_info.mask);
-							break;
-						}
-						case SPACE_LOGIC:
-						{
-							SpaceLogic *slogic = (SpaceLogic *)sl;
-
-							slogic->gpd = newlibadr_us(fd, sc->id.lib, slogic->gpd);
-							break;
-						}
-						default:
-							break;
-					}
-				}
+			for (ScrArea *area = sc->areabase.first; area; area = area->next) {
+				lib_link_area(fd, sc, area);
 			}
 			sc->id.tag &= ~LIB_TAG_NEED_LINK;
 		}
@@ -7286,74 +7616,6 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 	BKE_main_idmap_destroy(id_map);
 }
 
-static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
-{
-	Panel *pa;
-	uiList *ui_list;
-
-	link_list(fd, &ar->panels);
-
-	for (pa = ar->panels.first; pa; pa = pa->next) {
-		pa->paneltab = newdataadr(fd, pa->paneltab);
-		pa->runtime_flag = 0;
-		pa->activedata = NULL;
-		pa->type = NULL;
-	}
-
-	link_list(fd, &ar->panels_category_active);
-
-	link_list(fd, &ar->ui_lists);
-
-	for (ui_list = ar->ui_lists.first; ui_list; ui_list = ui_list->next) {
-		ui_list->type = NULL;
-		ui_list->dyn_data = NULL;
-		ui_list->properties = newdataadr(fd, ui_list->properties);
-		IDP_DirectLinkGroup_OrFree(&ui_list->properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-	}
-
-	link_list(fd, &ar->ui_previews);
-
-	if (spacetype == SPACE_EMPTY) {
-		/* unkown space type, don't leak regiondata */
-		ar->regiondata = NULL;
-	}
-	else {
-		ar->regiondata = newdataadr(fd, ar->regiondata);
-		if (ar->regiondata) {
-			if (spacetype == SPACE_VIEW3D) {
-				RegionView3D *rv3d = ar->regiondata;
-
-				rv3d->localvd = newdataadr(fd, rv3d->localvd);
-				rv3d->clipbb = newdataadr(fd, rv3d->clipbb);
-
-				rv3d->depths = NULL;
-				rv3d->gpuoffscreen = NULL;
-				rv3d->render_engine = NULL;
-				rv3d->sms = NULL;
-				rv3d->smooth_timer = NULL;
-				rv3d->compositor = NULL;
-				rv3d->viewport = NULL;
-			}
-		}
-	}
-	
-	ar->v2d.tab_offset = NULL;
-	ar->v2d.tab_num = 0;
-	ar->v2d.tab_cur = 0;
-	ar->v2d.sms = NULL;
-	BLI_listbase_clear(&ar->panels_category);
-	BLI_listbase_clear(&ar->handlers);
-	BLI_listbase_clear(&ar->uiblocks);
-	ar->headerstr = NULL;
-	ar->visible = 0;
-	ar->type = NULL;
-	ar->swap = 0;
-	ar->do_draw = 0;
-	ar->manipulator_map = NULL;
-	ar->regiontimer = NULL;
-	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
-}
-
 /* for the saved 2.50 files without regiondata */
 /* and as patch for 2.48 and older */
 void blo_do_versions_view3d_split_250(View3D *v3d, ListBase *regions)
@@ -7416,253 +7678,7 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 	
 	/* areas */
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		SpaceLink *sl;
-		ARegion *ar;
-		
-		link_list(fd, &(sa->spacedata));
-		link_list(fd, &(sa->regionbase));
-		
-		BLI_listbase_clear(&sa->handlers);
-		sa->type = NULL;	/* spacetype callbacks */
-		sa->region_active_win = -1;
-
-		/* if we do not have the spacetype registered (game player), we cannot
-		 * free it, so don't allocate any new memory for such spacetypes. */
-		if (!BKE_spacetype_exists(sa->spacetype))
-			sa->spacetype = SPACE_EMPTY;
-		
-		for (ar = sa->regionbase.first; ar; ar = ar->next)
-			direct_link_region(fd, ar, sa->spacetype);
-		
-		/* accident can happen when read/save new file with older version */
-		/* 2.50: we now always add spacedata for info */
-		if (sa->spacedata.first==NULL) {
-			SpaceInfo *sinfo= MEM_callocN(sizeof(SpaceInfo), "spaceinfo");
-			sa->spacetype= sinfo->spacetype= SPACE_INFO;
-			BLI_addtail(&sa->spacedata, sinfo);
-		}
-		/* add local view3d too */
-		else if (sa->spacetype == SPACE_VIEW3D)
-			blo_do_versions_view3d_split_250(sa->spacedata.first, &sa->regionbase);
-
-		/* incase we set above */
-		sa->butspacetype = sa->spacetype;
-
-		for (sl = sa->spacedata.first; sl; sl = sl->next) {
-			link_list(fd, &(sl->regionbase));
-
-			/* if we do not have the spacetype registered (game player), we cannot
-			 * free it, so don't allocate any new memory for such spacetypes. */
-			if (!BKE_spacetype_exists(sl->spacetype))
-				sl->spacetype = SPACE_EMPTY;
-
-			for (ar = sl->regionbase.first; ar; ar = ar->next)
-				direct_link_region(fd, ar, sl->spacetype);
-			
-			if (sl->spacetype == SPACE_VIEW3D) {
-				View3D *v3d= (View3D*) sl;
-				v3d->flag |= V3D_INVALID_BACKBUF;
-				
-				if (v3d->gpd) {
-					v3d->gpd = newdataadr(fd, v3d->gpd);
-					direct_link_gpencil(fd, v3d->gpd);
-				}
-				v3d->localvd = newdataadr(fd, v3d->localvd);
-				BLI_listbase_clear(&v3d->afterdraw_transp);
-				BLI_listbase_clear(&v3d->afterdraw_xray);
-				BLI_listbase_clear(&v3d->afterdraw_xraytransp);
-				v3d->properties_storage = NULL;
-				v3d->defmaterial = NULL;
-				
-				/* render can be quite heavy, set to solid on load */
-				if (v3d->drawtype == OB_RENDER)
-					v3d->drawtype = OB_SOLID;
-				v3d->prev_drawtype = OB_SOLID;
-
-				if (v3d->fx_settings.dof)
-					v3d->fx_settings.dof = newdataadr(fd, v3d->fx_settings.dof);
-				if (v3d->fx_settings.ssao)
-					v3d->fx_settings.ssao = newdataadr(fd, v3d->fx_settings.ssao);
-				
-				blo_do_versions_view3d_split_250(v3d, &sl->regionbase);
-			}
-			else if (sl->spacetype == SPACE_IPO) {
-				SpaceIpo *sipo = (SpaceIpo *)sl;
-				
-				sipo->ads = newdataadr(fd, sipo->ads);
-				BLI_listbase_clear(&sipo->ghostCurves);
-			}
-			else if (sl->spacetype == SPACE_NLA) {
-				SpaceNla *snla = (SpaceNla *)sl;
-				
-				snla->ads = newdataadr(fd, snla->ads);
-			}
-			else if (sl->spacetype == SPACE_OUTLINER) {
-				SpaceOops *soops = (SpaceOops *) sl;
-				
-				/* use newdataadr_no_us and do not free old memory avoiding double
-				 * frees and use of freed memory. this could happen because of a
-				 * bug fixed in revision 58959 where the treestore memory address
-				 * was not unique */
-				TreeStore *ts = newdataadr_no_us(fd, soops->treestore);
-				soops->treestore = NULL;
-				if (ts) {
-					TreeStoreElem *elems = newdataadr_no_us(fd, ts->data);
-					
-					soops->treestore = BLI_mempool_create(sizeof(TreeStoreElem), ts->usedelem,
-					                                      512, BLI_MEMPOOL_ALLOW_ITER);
-					if (ts->usedelem && elems) {
-						int i;
-						for (i = 0; i < ts->usedelem; i++) {
-							TreeStoreElem *new_elem = BLI_mempool_alloc(soops->treestore);
-							*new_elem = elems[i];
-						}
-					}
-					/* we only saved what was used */
-					soops->storeflag |= SO_TREESTORE_CLEANUP;	// at first draw
-				}
-				soops->treehash = NULL;
-				soops->tree.first = soops->tree.last= NULL;
-			}
-			else if (sl->spacetype == SPACE_IMAGE) {
-				SpaceImage *sima = (SpaceImage *)sl;
-
-				sima->iuser.scene = NULL;
-				sima->iuser.ok = 1;
-				sima->scopes.waveform_1 = NULL;
-				sima->scopes.waveform_2 = NULL;
-				sima->scopes.waveform_3 = NULL;
-				sima->scopes.vecscope = NULL;
-				sima->scopes.ok = 0;
-				
-				/* WARNING: gpencil data is no longer stored directly in sima after 2.5 
-				 * so sacrifice a few old files for now to avoid crashes with new files!
-				 * committed: r28002 */
-#if 0
-				sima->gpd = newdataadr(fd, sima->gpd);
-				if (sima->gpd)
-					direct_link_gpencil(fd, sima->gpd);
-#endif
-			}
-			else if (sl->spacetype == SPACE_NODE) {
-				SpaceNode *snode = (SpaceNode *)sl;
-				
-				if (snode->gpd) {
-					snode->gpd = newdataadr(fd, snode->gpd);
-					direct_link_gpencil(fd, snode->gpd);
-				}
-				
-				link_list(fd, &snode->treepath);
-				snode->edittree = NULL;
-				snode->iofsd = NULL;
-				BLI_listbase_clear(&snode->linkdrag);
-			}
-			else if (sl->spacetype == SPACE_TEXT) {
-				SpaceText *st= (SpaceText *)sl;
-				
-				st->drawcache = NULL;
-				st->scroll_accum[0] = 0.0f;
-				st->scroll_accum[1] = 0.0f;
-			}
-			else if (sl->spacetype == SPACE_TIME) {
-				SpaceTime *stime = (SpaceTime *)sl;
-				BLI_listbase_clear(&stime->caches);
-			}
-			else if (sl->spacetype == SPACE_LOGIC) {
-				SpaceLogic *slogic = (SpaceLogic *)sl;
-				
-				/* XXX: this is new stuff, which shouldn't be directly linking to gpd... */
-				if (slogic->gpd) {
-					slogic->gpd = newdataadr(fd, slogic->gpd);
-					direct_link_gpencil(fd, slogic->gpd);
-				}
-			}
-			else if (sl->spacetype == SPACE_SEQ) {
-				SpaceSeq *sseq = (SpaceSeq *)sl;
-				
-				/* grease pencil data is not a direct data and can't be linked from direct_link*
-				 * functions, it should be linked from lib_link* functions instead
-				 *
-				 * otherwise it'll lead to lost grease data on open because it'll likely be
-				 * read from file after all other users of grease pencil and newdataadr would
-				 * simple return NULL here (sergey)
-				 */
-#if 0
-				if (sseq->gpd) {
-					sseq->gpd = newdataadr(fd, sseq->gpd);
-					direct_link_gpencil(fd, sseq->gpd);
-				}
-#endif
-				sseq->scopes.reference_ibuf = NULL;
-				sseq->scopes.zebra_ibuf = NULL;
-				sseq->scopes.waveform_ibuf = NULL;
-				sseq->scopes.sep_waveform_ibuf = NULL;
-				sseq->scopes.vector_ibuf = NULL;
-				sseq->scopes.histogram_ibuf = NULL;
-				sseq->compositor = NULL;
-			}
-			else if (sl->spacetype == SPACE_BUTS) {
-				SpaceButs *sbuts = (SpaceButs *)sl;
-				
-				sbuts->path= NULL;
-				sbuts->texuser= NULL;
-				sbuts->mainbo = sbuts->mainb;
-				sbuts->mainbuser = sbuts->mainb;
-			}
-			else if (sl->spacetype == SPACE_CONSOLE) {
-				SpaceConsole *sconsole = (SpaceConsole *)sl;
-				ConsoleLine *cl, *cl_next;
-				
-				link_list(fd, &sconsole->scrollback);
-				link_list(fd, &sconsole->history);
-				
-				//for (cl= sconsole->scrollback.first; cl; cl= cl->next)
-				//	cl->line= newdataadr(fd, cl->line);
-				
-				/* comma expressions, (e.g. expr1, expr2, expr3) evaluate each expression,
-				 * from left to right.  the right-most expression sets the result of the comma
-				 * expression as a whole*/
-				for (cl = sconsole->history.first; cl; cl = cl_next) {
-					cl_next = cl->next;
-					cl->line = newdataadr(fd, cl->line);
-					if (cl->line) {
-						/* the allocted length is not written, so reset here */
-						cl->len_alloc = cl->len + 1;
-					}
-					else {
-						BLI_remlink(&sconsole->history, cl);
-						MEM_freeN(cl);
-					}
-				}
-			}
-			else if (sl->spacetype == SPACE_FILE) {
-				SpaceFile *sfile = (SpaceFile *)sl;
-				
-				/* this sort of info is probably irrelevant for reloading...
-				 * plus, it isn't saved to files yet!
-				 */
-				sfile->folders_prev = sfile->folders_next = NULL;
-				sfile->files = NULL;
-				sfile->layout = NULL;
-				sfile->op = NULL;
-				sfile->previews_timer = NULL;
-				sfile->params = newdataadr(fd, sfile->params);
-			}
-			else if (sl->spacetype == SPACE_CLIP) {
-				SpaceClip *sclip = (SpaceClip *)sl;
-				
-				sclip->scopes.track_search = NULL;
-				sclip->scopes.track_preview = NULL;
-				sclip->scopes.ok = 0;
-			}
-		}
-		
-		BLI_listbase_clear(&sa->actionzones);
-		
-		sa->v1 = newdataadr(fd, sa->v1);
-		sa->v2 = newdataadr(fd, sa->v2);
-		sa->v3 = newdataadr(fd, sa->v3);
-		sa->v4 = newdataadr(fd, sa->v4);
+		direct_link_area(fd, sa);
 	}
 	
 	return wrong_id;

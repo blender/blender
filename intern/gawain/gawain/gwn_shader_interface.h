@@ -36,6 +36,7 @@ typedef enum {
 
 	GWN_UNIFORM_COLOR, // vec4 color
 	GWN_UNIFORM_EYE, // vec3 eye
+	GWN_UNIFORM_CALLID, // int callId
 
 	GWN_UNIFORM_CUSTOM, // custom uniform, not one of the above built-ins
 

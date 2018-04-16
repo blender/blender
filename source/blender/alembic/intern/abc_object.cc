@@ -58,7 +58,7 @@ using Alembic::AbcGeom::OStringProperty;
 
 /* ************************************************************************** */
 
-AbcObjectWriter::AbcObjectWriter(EvaluationContext *eval_ctx,
+AbcObjectWriter::AbcObjectWriter(Depsgraph *depsgraph,
                                  Scene *scene,
                                  Object *ob,
                                  uint32_t time_sampling,
@@ -66,7 +66,7 @@ AbcObjectWriter::AbcObjectWriter(EvaluationContext *eval_ctx,
                                  AbcObjectWriter *parent)
     : m_object(ob)
     , m_settings(settings)
-    , m_eval_ctx(eval_ctx)
+    , m_depsgraph(depsgraph)
     , m_scene(scene)
     , m_time_sampling(time_sampling)
     , m_first_frame(true)
@@ -291,7 +291,8 @@ Alembic::AbcGeom::IXform AbcObjectReader::xform()
 
 	/* The archive's top object can be recognised by not having a parent. */
 	if (abc_parent.getParent()
-	        && IXform::matches(abc_parent.getMetaData())) {
+	        && IXform::matches(abc_parent.getMetaData()))
+	{
 		return IXform(abc_parent, Alembic::AbcGeom::kWrapExisting);
 	}
 

@@ -187,6 +187,7 @@ typedef enum {
 	DRW_TEX_R_8,
 	DRW_TEX_R_16,
 	DRW_TEX_R_16I,
+	DRW_TEX_R_16U,
 	DRW_TEX_R_32,
 	DRW_TEX_DEPTH_16,
 	DRW_TEX_DEPTH_24,
@@ -506,7 +507,6 @@ typedef struct DRWContextState {
 
 	struct RenderEngineType *engine_type;
 
-	EvaluationContext eval_ctx;
 	struct Depsgraph *depsgraph;
 
 	eObjectMode object_mode;

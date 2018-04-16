@@ -1266,15 +1266,3 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	return BKE_scene_get_depsgraph(scene, view_layer, true);
 }
-
-void CTX_data_eval_ctx(const bContext *C, EvaluationContext *eval_ctx)
-{
-	BLI_assert(C != NULL);
-
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	DEG_evaluation_context_init_from_scene(
-	        eval_ctx,
-	        scene, view_layer,
-	        DAG_EVAL_VIEWPORT);
-}

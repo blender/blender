@@ -15,10 +15,10 @@ extern "C" {
 
 class TestableAbcExporter : public AbcExporter {
 public:
-	TestableAbcExporter(Main *bmain, EvaluationContext *eval_ctx,
+	TestableAbcExporter(Main *bmain,
 	                    Scene *scene, ViewLayer *view_layer, Depsgraph *depsgraph,
 	                    const char *filename, ExportSettings &settings)
-	    : AbcExporter(bmain, eval_ctx, scene, view_layer, depsgraph, filename, settings)
+	    : AbcExporter(bmain, scene, view_layer, depsgraph, filename, settings)
 	{
 	}
 
@@ -40,7 +40,6 @@ class AlembicExportTest : public testing::Test
 protected:
 	ExportSettings settings;
 	Scene scene;
-	EvaluationContext eval_ctx;
 	Depsgraph *depsgraph;
 	TestableAbcExporter *exporter;
 	Main *bmain;
@@ -57,8 +56,8 @@ protected:
 		bmain = BKE_main_new();
 
 		/* TODO(sergey): Pass scene layer somehow? */
-		DEG_evaluation_context_init(&eval_ctx, DAG_EVAL_VIEWPORT);
-		depsgraph = DEG_graph_new();
+		ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
+		depsgraph = DEG_graph_new(&scene, view_layer, DAG_EVAL_VIEWPORT);
 
 		exporter = NULL;
 	}
@@ -74,7 +73,7 @@ protected:
 	void createExporter()
 	{
 		ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
-		exporter = new TestableAbcExporter(bmain, &eval_ctx, &scene, view_layer, depsgraph, "somefile.abc", settings);
+		exporter = new TestableAbcExporter(bmain, &scene, view_layer, depsgraph, "somefile.abc", settings);
 	}
 };
 

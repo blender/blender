@@ -2176,14 +2176,14 @@ static void cage_mapped_verts_callback(
 	}
 }
 
-float (*BKE_editmesh_vertexCos_get(const struct EvaluationContext *eval_ctx, BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
+float (*BKE_editmesh_vertexCos_get(struct Depsgraph *depsgraph, BMEditMesh *em, Scene *scene, int *r_numVerts))[3]
 {
 	DerivedMesh *cage, *final;
 	BLI_bitmap *visit_bitmap;
 	struct CageUserData data;
 	float (*cos_cage)[3];
 
-	cage = editbmesh_get_derived_cage_and_final(eval_ctx, scene, em->ob, em, CD_MASK_BAREMESH, &final);
+	cage = editbmesh_get_derived_cage_and_final(depsgraph, scene, em->ob, em, CD_MASK_BAREMESH, &final);
 	cos_cage = MEM_callocN(sizeof(*cos_cage) * em->bm->totvert, "bmbvh cos_cage");
 
 	/* when initializing cage verts, we only want the first cage coordinate for each vertex,

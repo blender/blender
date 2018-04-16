@@ -59,8 +59,6 @@
 
 #include "io_collada.h"
 
-#include "DEG_depsgraph.h"
-
 static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -83,7 +81,6 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, const wmEvent *
 /* function used for WM_OT_save_mainfile too */
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
-	EvaluationContext eval_ctx;
 	char filepath[FILE_MAX];
 	int apply_modifiers;
 	int export_mesh_type;
@@ -112,8 +109,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int keep_bind_info;
 
 	int export_count;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -173,7 +168,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	ED_object_editmode_load(CTX_data_edit_object(C));
 
 	Scene *scene = CTX_data_scene(C);
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	ExportSettings export_settings;
 
@@ -205,7 +199,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
 	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
 
-	export_count = collada_export(&eval_ctx,
+	export_count = collada_export(CTX_data_depsgraph(C),
 		scene,
 		&export_settings
 	);

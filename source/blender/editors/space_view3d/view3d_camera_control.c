@@ -138,7 +138,7 @@ Object *ED_view3d_cameracontrol_object_get(View3DCameraControl *vctrl)
  * the view for first-person style navigation.
  */
 struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
-        const EvaluationContext *eval_ctx, Scene *scene, View3D *v3d, RegionView3D *rv3d,
+        Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d,
         const bool use_parent_root)
 {
 	View3DCameraControl *vctrl;
@@ -178,7 +178,7 @@ struct View3DCameraControl *ED_view3d_cameracontrol_acquire(
 		/* store the original camera loc and rot */
 		vctrl->obtfm = BKE_object_tfm_backup(ob_back);
 
-		BKE_object_where_is_calc(eval_ctx, scene, v3d->camera);
+		BKE_object_where_is_calc(depsgraph, scene, v3d->camera);
 		negate_v3_v3(rv3d->ofs, v3d->camera->obmat[3]);
 
 		rv3d->dist = 0.0;

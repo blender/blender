@@ -152,31 +152,31 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 	const RenderData *rd = this->m_rd;
 
 	if (rd->mode & R_BORDER && rd->mode & R_CROP) {
-	/*!
-	   When using cropped render result, need to re-position area of interest,
-	   so it'll natch bounds of render border within frame. By default, canvas
-	   will be centered between full frame and cropped frame, so we use such
-	   scheme to map cropped coordinates to full-frame coordinates
-
-		   ^ Y
-		   |                      Width
-		   +------------------------------------------------+
-		   |                                                |
-		   |                                                |
-		   |  Centered canvas, we map coordinate from it    |
-		   |              +------------------+              |
-		   |              |                  |              |  H
-		   |              |                  |              |  e
-		   |  +------------------+ . Center  |              |  i
-		   |  |           |      |           |              |  g
-		   |  |           |      |           |              |  h
-		   |  |....dx.... +------|-----------+              |  t
-		   |  |           . dy   |                          |
-		   |  +------------------+                          |
-		   |  Render border, we map coordinates to it       |
-		   |                                                |    X
-		   +------------------------------------------------+---->
-		                        Full frame
+		/**
+		 * When using cropped render result, need to re-position area of interest,
+		 * so it'll natch bounds of render border within frame. By default, canvas
+		 * will be centered between full frame and cropped frame, so we use such
+		 * scheme to map cropped coordinates to full-frame coordinates
+		 *
+		 * ^ Y
+		 * |                      Width
+		 * +------------------------------------------------+
+		 * |                                                |
+		 * |                                                |
+		 * |  Centered canvas, we map coordinate from it    |
+		 * |              +------------------+              |
+		 * |              |                  |              |  H
+		 * |              |                  |              |  e
+		 * |  +------------------+ . Center  |              |  i
+		 * |  |           |      |           |              |  g
+		 * |  |           |      |           |              |  h
+		 * |  |....dx.... +------|-----------+              |  t
+		 * |  |           . dy   |                          |
+		 * |  +------------------+                          |
+		 * |  Render border, we map coordinates to it       |
+		 * |                                                |    X
+		 * +------------------------------------------------+---->
+		 *                      Full frame
 		 */
 
 		int full_width  = rd->xsch * rd->size / 100;

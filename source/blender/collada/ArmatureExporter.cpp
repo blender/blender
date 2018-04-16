@@ -62,7 +62,7 @@ ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSett
 }
 
 // write bone nodes
-void ArmatureExporter::add_armature_bones(const EvaluationContext *eval_ctx, Object *ob_arm,
+void ArmatureExporter::add_armature_bones(Depsgraph *depsgraph, Object *ob_arm,
                                           Scene *sce, SceneExporter *se,
                                           std::list<Object *>& child_objects)
 {
@@ -77,7 +77,7 @@ void ArmatureExporter::add_armature_bones(const EvaluationContext *eval_ctx, Obj
 	for (Bone *bone = (Bone *)armature->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
 		if (!bone->parent)
-			add_bone_node(eval_ctx, bone, ob_arm, sce, se, child_objects);
+			add_bone_node(depsgraph, bone, ob_arm, sce, se, child_objects);
 	}
 
 	if (!is_edited) {
@@ -157,7 +157,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 #endif
 
 // parent_mat is armature-space
-void ArmatureExporter::add_bone_node(const EvaluationContext *eval_ctx, Bone *bone, Object *ob_arm, Scene *sce,
+void ArmatureExporter::add_bone_node(Depsgraph *depsgraph, Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,
                                      std::list<Object *>& child_objects)
 {
@@ -231,7 +231,7 @@ void ArmatureExporter::add_bone_node(const EvaluationContext *eval_ctx, Bone *bo
 						mul_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
 					}
 
-					se->writeNodes(eval_ctx, *i, sce);
+					se->writeNodes(depsgraph, *i, sce);
 
 					copy_m4_m4((*i)->parentinv, backup_parinv);
 					child_objects.erase(i++);
@@ -240,13 +240,13 @@ void ArmatureExporter::add_bone_node(const EvaluationContext *eval_ctx, Bone *bo
 			}
 
 			for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-				add_bone_node(eval_ctx, child, ob_arm, sce, se, child_objects);
+				add_bone_node(depsgraph, child, ob_arm, sce, se, child_objects);
 			}
 			node.end();
 		}
 		else {
 			for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-				add_bone_node(eval_ctx, child, ob_arm, sce, se, child_objects);
+				add_bone_node(depsgraph, child, ob_arm, sce, se, child_objects);
 			}
 		}
 }

@@ -157,6 +157,7 @@ struct DepsgraphNodeBuilder {
 	                                       const char *name = "",
 	                                       int name_tag = -1);
 
+	void build_id(ID* id);
 	void build_view_layer(Scene *scene,
 	                       ViewLayer *view_layer,
 	                       eDepsNode_LinkedState_Type linked_state);

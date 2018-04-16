@@ -39,13 +39,13 @@ struct Scene;
 class DocumentExporter
 {
  public:
-	DocumentExporter(EvaluationContext *eval_ctx, const ExportSettings *export_settings);
+	DocumentExporter(Depsgraph *depsgraph, const ExportSettings *export_settings);
 	int  exportCurrentScene(Scene *sce);
 
 	void exportScenes(const char *filename);
 private:
 	const ExportSettings *export_settings;
-	EvaluationContext *eval_ctx;
+	Depsgraph *depsgraph;
 };
 
 #endif

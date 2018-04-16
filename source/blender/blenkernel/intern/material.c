@@ -1777,7 +1777,7 @@ bool BKE_object_material_edit_image_set(Object *ob, short mat_nr, Image *image)
 	return false;
 }
 
-void BKE_material_eval(const struct EvaluationContext *UNUSED(eval_ctx), Material *material)
+void BKE_material_eval(struct Depsgraph *UNUSED(depsgraph), Material *material)
 {
 	DEG_debug_print_eval(__func__, material->id.name, material);
 	if ((BLI_listbase_is_empty(&material->gpumaterial) == false)) {

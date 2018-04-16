@@ -53,6 +53,7 @@
 #include "BKE_mball_tessellate.h"  /* own include */
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "BLI_strict_flags.h"
 
@@ -1056,7 +1057,7 @@ static void polygonize(PROCESS *process)
  * Iterates over ALL objects in the scene and all of its sets, including
  * making all duplis(not only metas). Copies metas to mainb array.
  * Computes bounding boxes for building BVH. */
-static void init_meta(const EvaluationContext *eval_ctx, PROCESS *process, Scene *scene, Object *ob)
+static void init_meta(Depsgraph *depsgraph, PROCESS *process, Scene *scene, Object *ob)
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -1075,8 +1076,8 @@ static void init_meta(const EvaluationContext *eval_ctx, PROCESS *process, Scene
 	BLI_split_name_num(obname, &obnr, ob->id.name + 2, '.');
 
 	/* make main array */
-	BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 0, NULL, NULL);
-	while (BKE_scene_base_iter_next(eval_ctx, &iter, &sce_iter, 1, &base, &bob)) {
+	BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(depsgraph, &iter, &sce_iter, 1, &base, &bob)) {
 		if (bob->type == OB_MBALL) {
 			zero_size = 0;
 			ml = NULL;
@@ -1233,12 +1234,13 @@ static void init_meta(const EvaluationContext *eval_ctx, PROCESS *process, Scene
 	}
 }
 
-void BKE_mball_polygonize(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_mball_polygonize(Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *dispbase)
 {
 	MetaBall *mb;
 	DispList *dl;
 	unsigned int a;
 	PROCESS process = {0};
+	bool is_render = DEG_get_mode(depsgraph) == DAG_EVAL_RENDER;
 
 	mb = ob->data;
 
@@ -1249,10 +1251,10 @@ void BKE_mball_polygonize(const EvaluationContext *eval_ctx, Scene *scene, Objec
 	else if (process.thresh < 0.1f)   process.converge_res = 4;
 	else                              process.converge_res = 2;
 
-	if ((eval_ctx->mode != DAG_EVAL_RENDER) && (mb->flag == MB_UPDATE_NEVER)) return;
+	if (is_render && (mb->flag == MB_UPDATE_NEVER)) return;
 	if ((G.moving & (G_TRANSFORM_OBJ | G_TRANSFORM_EDIT)) && mb->flag == MB_UPDATE_FAST) return;
 
-	if (eval_ctx->mode == DAG_EVAL_RENDER) {
+	if (is_render) {
 		process.size = mb->rendersize;
 	}
 	else {
@@ -1267,7 +1269,7 @@ void BKE_mball_polygonize(const EvaluationContext *eval_ctx, Scene *scene, Objec
 	process.pgn_elements = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "Metaball memarena");
 
 	/* initialize all mainb (MetaElems) */
-	init_meta(eval_ctx, &process, scene, ob);
+	init_meta(depsgraph, &process, scene, ob);
 
 	if (process.totelem > 0) {
 		build_bvh_spatial(&process, &process.metaball_bvh, 0, process.totelem, &process.allbb);

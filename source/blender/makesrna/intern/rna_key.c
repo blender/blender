@@ -713,7 +713,7 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "relative_key", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ShapeKey");
-	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL | PROP_PTR_NO_OWNERSHIP);
 	RNA_def_property_pointer_funcs(prop, "rna_ShapeKey_relative_key_get",
 	                               "rna_ShapeKey_relative_key_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Relative Key", "Shape used as a relative key");

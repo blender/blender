@@ -1624,7 +1624,7 @@ float *BKE_curve_surf_make_orco(Object *ob)
 /* NOTE: This routine is tied to the order of vertex
  * built by displist and as passed to the renderer.
  */
-float *BKE_curve_make_orco(const EvaluationContext *eval_ctx, Scene *scene, Object *ob, int *r_numVerts)
+float *BKE_curve_make_orco(Depsgraph *depsgraph, Scene *scene, Object *ob, int *r_numVerts)
 {
 	Curve *cu = ob->data;
 	DispList *dl;
@@ -1632,7 +1632,7 @@ float *BKE_curve_make_orco(const EvaluationContext *eval_ctx, Scene *scene, Obje
 	float *fp, *coord_array;
 	ListBase disp = {NULL, NULL};
 
-	BKE_displist_make_curveTypes_forOrco(eval_ctx, scene, ob, &disp);
+	BKE_displist_make_curveTypes_forOrco(depsgraph, scene, ob, &disp);
 
 	numVerts = 0;
 	for (dl = disp.first; dl; dl = dl->next) {
@@ -1724,7 +1724,7 @@ float *BKE_curve_make_orco(const EvaluationContext *eval_ctx, Scene *scene, Obje
 /* ***************** BEVEL ****************** */
 
 void BKE_curve_bevel_make(
-        const EvaluationContext *eval_ctx, Scene *scene, Object *ob, ListBase *disp,
+        Depsgraph *depsgraph, Scene *scene, Object *ob, ListBase *disp,
         const bool for_render, const bool use_render_resolution)
 {
 	DispList *dl, *dlnew;
@@ -1749,7 +1749,7 @@ void BKE_curve_bevel_make(
 			facy = cu->bevobj->size[1];
 
 			if (for_render) {
-				BKE_displist_make_curveTypes_forRender(eval_ctx, scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution);
+				BKE_displist_make_curveTypes_forRender(depsgraph, scene, cu->bevobj, &bevdisp, NULL, false, use_render_resolution);
 				dl = bevdisp.first;
 			}
 			else if (cu->bevobj->curve_cache) {
@@ -5255,7 +5255,7 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *t
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_curve_eval_geometry(const EvaluationContext *UNUSED(eval_ctx),
+void BKE_curve_eval_geometry(Depsgraph *UNUSED(depsgraph),
                              Curve *curve)
 {
 	DEG_debug_print_eval(__func__, curve->id.name, curve);

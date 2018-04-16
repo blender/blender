@@ -71,7 +71,6 @@
 #include "UI_view2d.h"
 #include "UI_interface.h"
 
-
 /* own include */
 #include "sequencer_intern.h"
 

@@ -351,16 +351,6 @@ static void drw_viewport_cache_resize(void)
 	DRW_instance_data_list_resize(DST.idatalist);
 }
 
-static void drw_state_eval_ctx_init(DRWManager *dst)
-{
-	DRWContextState *draw_ctx = &dst->draw_ctx;
-	DEG_evaluation_context_init_from_scene(
-	        &draw_ctx->eval_ctx,
-	        draw_ctx->scene,
-	        draw_ctx->view_layer,
-	        DST.options.is_scene_render ? DAG_EVAL_RENDER : DAG_EVAL_VIEWPORT);
-}
-
 /* Not a viewport variable, we could split this out. */
 static void drw_context_state_init(void)
 {
@@ -389,8 +379,6 @@ static void drw_context_state_init(void)
 	else {
 		DST.draw_ctx.object_pose = NULL;
 	}
-
-	drw_state_eval_ctx_init(&DST);
 }
 
 /* It also stores viewport variable to an immutable place: DST
@@ -1123,15 +1111,14 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
  * for each relevant engine / mode engine. */
 void DRW_draw_view(const bContext *C)
 {
-	EvaluationContext eval_ctx;
-	CTX_data_eval_ctx(C, &eval_ctx);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
-	DRW_draw_render_loop_ex(eval_ctx.depsgraph, engine_type, ar, v3d, C);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, C);
 }
 
 /**
@@ -1555,7 +1542,14 @@ void DRW_draw_select_loop(
 		drw_engines_cache_init();
 
 		if (use_obedit) {
+#if 0
 			drw_engines_cache_populate(obact);
+#else
+			FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obact->mode, ob_iter) {
+				drw_engines_cache_populate(ob_iter);
+			}
+			FOREACH_OBJECT_IN_MODE_END;
+#endif
 		}
 		else {
 			DEG_OBJECT_ITER_BEGIN(

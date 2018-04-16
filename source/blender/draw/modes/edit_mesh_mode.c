@@ -37,6 +37,8 @@
 
 #include "edit_mesh_mode_intern.h" /* own include */
 
+#include "BKE_object.h"
+
 extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GlobalsUboStorage ts; /* draw_common.c */
 
@@ -448,7 +450,7 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	struct Gwn_Batch *geom;
 
 	if (ob->type == OB_MESH) {
-		if (ob == draw_ctx->object_edit) {
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob)) {
 			const Mesh *me = ob->data;
 			IDProperty *ces_mode_ed = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
 			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");

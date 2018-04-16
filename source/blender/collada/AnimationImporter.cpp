@@ -566,14 +566,16 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 		}
 
 		case COLLADAFW::Transformation::MATRIX:
-			/*{
-			   COLLADAFW::Matrix *mat = (COLLADAFW::Matrix*)transform;
-			   COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
-			   switch (binding->animationClass) {
-			   case COLLADAFW::AnimationList::TRANSFORM:
+#if 0
+			{
+				COLLADAFW::Matrix *mat = (COLLADAFW::Matrix*)transform;
+				COLLADABU::Math::Matrix4 mat4 = mat->getMatrix();
+				switch (binding->animationClass) {
+					case COLLADAFW::AnimationList::TRANSFORM:
 
-			   }
-			   }*/
+				}
+			}
+#endif
 			unused_fcurve(curves);
 			break;
 		case COLLADAFW::Transformation::SKEW:
@@ -1751,7 +1753,8 @@ bool AnimationImporter::evaluate_animation(COLLADAFW::Transformation *tm, float 
 	if (type != COLLADAFW::Transformation::ROTATE &&
 	    type != COLLADAFW::Transformation::SCALE &&
 	    type != COLLADAFW::Transformation::TRANSLATE &&
-	    type != COLLADAFW::Transformation::MATRIX) {
+	    type != COLLADAFW::Transformation::MATRIX)
+	{
 		fprintf(stderr, "animation of transformation %d is not supported yet\n", type);
 		return false;
 	}

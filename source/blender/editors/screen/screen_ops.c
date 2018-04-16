@@ -1328,8 +1328,8 @@ static void area_move_exit(bContext *C, wmOperator *op)
 	op->customdata = NULL;
 	
 	/* this makes sure aligned edges will result in aligned grabbing */
-	removedouble_scrverts(CTX_wm_screen(C));
-	removedouble_scredges(CTX_wm_screen(C));
+	BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
+	BKE_screen_remove_double_scredges(CTX_wm_screen(C));
 }
 
 static int area_move_exec(bContext *C, wmOperator *op)
@@ -1557,16 +1557,16 @@ static ScrEdge *area_findsharededge(bScreen *screen, ScrArea *sa, ScrArea *sb)
 	ScrVert *sbv4 = sb->v4;
 	
 	if (sav1 == sbv4 && sav2 == sbv3) { /* sa to right of sb = W */
-		return screen_findedge(screen, sav1, sav2);
+		return BKE_screen_find_edge(screen, sav1, sav2);
 	}
 	else if (sav2 == sbv1 && sav3 == sbv4) { /* sa to bottom of sb = N */
-		return screen_findedge(screen, sav2, sav3);
+		return BKE_screen_find_edge(screen, sav2, sav3);
 	}
 	else if (sav3 == sbv2 && sav4 == sbv1) { /* sa to left of sb = E */
-		return screen_findedge(screen, sav3, sav4);
+		return BKE_screen_find_edge(screen, sav3, sav4);
 	}
 	else if (sav1 == sbv2 && sav4 == sbv3) { /* sa on top of sb = S*/
-		return screen_findedge(screen, sav1, sav4);
+		return BKE_screen_find_edge(screen, sav1, sav4);
 	}
 	
 	return NULL;
@@ -1632,8 +1632,8 @@ static void area_split_exit(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
 	
 	/* this makes sure aligned edges will result in aligned grabbing */
-	removedouble_scrverts(CTX_wm_screen(C));
-	removedouble_scredges(CTX_wm_screen(C));
+	BKE_screen_remove_double_scrverts(CTX_wm_screen(C));
+	BKE_screen_remove_double_scredges(CTX_wm_screen(C));
 }
 
 static void area_split_preview_update_cursor(bContext *C, wmOperator *op)
@@ -1764,6 +1764,7 @@ static void area_split_cancel(bContext *C, wmOperator *op)
 	sAreaSplitData *sd = (sAreaSplitData *)op->customdata;
 	
 	if (sd->previewmode) {
+		/* pass */
 	}
 	else {
 		if (screen_area_join(C, CTX_wm_screen(C), sd->sarea, sd->narea)) {
@@ -2725,9 +2726,9 @@ static void area_join_exit(bContext *C, wmOperator *op)
 	}
 	
 	/* this makes sure aligned edges will result in aligned grabbing */
-	removedouble_scredges(CTX_wm_screen(C));
-	removenotused_scredges(CTX_wm_screen(C));
-	removenotused_scrverts(CTX_wm_screen(C));
+	BKE_screen_remove_double_scredges(CTX_wm_screen(C));
+	BKE_screen_remove_unused_scredges(CTX_wm_screen(C));
+	BKE_screen_remove_unused_scrverts(CTX_wm_screen(C));
 }
 
 static int area_join_exec(bContext *C, wmOperator *op)

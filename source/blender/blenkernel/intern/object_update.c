@@ -63,10 +63,12 @@
 #include "BKE_image.h"
 
 #include "MEM_guardedalloc.h"
+
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 
-void BKE_object_eval_local_transform(const EvaluationContext *UNUSED(eval_ctx),
+void BKE_object_eval_local_transform(Depsgraph *UNUSED(depsgraph),
                                      Object *ob)
 {
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
@@ -77,7 +79,7 @@ void BKE_object_eval_local_transform(const EvaluationContext *UNUSED(eval_ctx),
 
 /* Evaluate parent */
 /* NOTE: based on solve_parenting(), but with the cruft stripped out */
-void BKE_object_eval_parent(const EvaluationContext *UNUSED(eval_ctx),
+void BKE_object_eval_parent(Depsgraph *UNUSED(depsgraph),
                             Scene *scene,
                             Object *ob)
 {
@@ -109,7 +111,7 @@ void BKE_object_eval_parent(const EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_object_eval_constraints(const EvaluationContext *eval_ctx,
+void BKE_object_eval_constraints(Depsgraph *depsgraph,
                                  Scene *scene,
                                  Object *ob)
 {
@@ -128,11 +130,11 @@ void BKE_object_eval_constraints(const EvaluationContext *eval_ctx,
 	 *
 	 */
 	cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-	BKE_constraints_solve(eval_ctx, &ob->constraints, cob, ctime);
+	BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
 	BKE_constraints_clear_evalob(cob);
 }
 
-void BKE_object_eval_done(const EvaluationContext *UNUSED(eval_ctx), Object *ob)
+void BKE_object_eval_done(Depsgraph *UNUSED(depsgraph), Object *ob)
 {
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
 
@@ -142,7 +144,7 @@ void BKE_object_eval_done(const EvaluationContext *UNUSED(eval_ctx), Object *ob)
 }
 
 void BKE_object_handle_data_update(
-        const EvaluationContext *eval_ctx,
+        Depsgraph *depsgraph,
         Scene *scene,
         Object *ob)
 {
@@ -172,19 +174,27 @@ void BKE_object_handle_data_update(
 	switch (ob->type) {
 		case OB_MESH:
 		{
+#if 0
 			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? BKE_editmesh_from_object(ob) : NULL;
+#else
+			BMEditMesh *em = (ob->mode & OB_MODE_EDIT) ? ((Mesh *)ob->data)->edit_btmesh : NULL;
+			if (em && em->ob != ob) {
+				em = NULL;
+			}
+#endif
+
 			uint64_t data_mask = scene->customdata_mask | CD_MASK_BAREMESH;
 #ifdef WITH_FREESTYLE
 			/* make sure Freestyle edge/face marks appear in DM for render (see T40315) */
-			if (eval_ctx->mode != DAG_EVAL_VIEWPORT) {
+			if (DEG_get_mode(depsgraph) != DAG_EVAL_VIEWPORT) {
 				data_mask |= CD_MASK_FREESTYLE_EDGE | CD_MASK_FREESTYLE_FACE;
 			}
 #endif
 			if (em) {
-				makeDerivedMesh(eval_ctx, scene, ob, em,  data_mask, false); /* was CD_MASK_BAREMESH */
+				makeDerivedMesh(depsgraph, scene, ob, em,  data_mask, false); /* was CD_MASK_BAREMESH */
 			}
 			else {
-				makeDerivedMesh(eval_ctx, scene, ob, NULL, data_mask, false);
+				makeDerivedMesh(depsgraph, scene, ob, NULL, data_mask, false);
 			}
 			break;
 		}
@@ -196,22 +206,22 @@ void BKE_object_handle_data_update(
 				}
 			}
 			else {
-				BKE_pose_where_is(eval_ctx, scene, ob);
+				BKE_pose_where_is(depsgraph, scene, ob);
 			}
 			break;
 
 		case OB_MBALL:
-			BKE_displist_make_mball(eval_ctx, scene, ob);
+			BKE_displist_make_mball(depsgraph, scene, ob);
 			break;
 
 		case OB_CURVE:
 		case OB_SURF:
 		case OB_FONT:
-			BKE_displist_make_curveTypes(eval_ctx, scene, ob, 0);
+			BKE_displist_make_curveTypes(depsgraph, scene, ob, 0);
 			break;
 
 		case OB_LATTICE:
-			BKE_lattice_modifiers_calc(eval_ctx, scene, ob);
+			BKE_lattice_modifiers_calc(depsgraph, scene, ob);
 			break;
 
 		case OB_EMPTY:
@@ -223,6 +233,7 @@ void BKE_object_handle_data_update(
 
 	/* particles */
 	if (!(ob->mode & OB_MODE_EDIT) && ob->particlesystem.first) {
+		const bool use_render_params = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 		ParticleSystem *tpsys, *psys;
 		DerivedMesh *dm;
 		ob->transflag &= ~OB_DUPLIPARTS;
@@ -233,16 +244,16 @@ void BKE_object_handle_data_update(
 				psys_changed_type(ob, psys);
 			}
 
-			if (psys_check_enabled(ob, psys, eval_ctx->mode == DAG_EVAL_RENDER)) {
+			if (psys_check_enabled(ob, psys, use_render_params)) {
 				/* check use of dupli objects here */
-				if (psys->part && (psys->part->draw_as == PART_DRAW_REND || eval_ctx->mode == DAG_EVAL_RENDER) &&
+				if (psys->part && (psys->part->draw_as == PART_DRAW_REND || use_render_params) &&
 				    ((psys->part->ren_as == PART_DRAW_OB && psys->part->dup_ob) ||
 				     (psys->part->ren_as == PART_DRAW_GR && psys->part->dup_group)))
 				{
 					ob->transflag |= OB_DUPLIPARTS;
 				}
 
-				particle_system_update(eval_ctx, scene, ob, psys, (eval_ctx->mode == DAG_EVAL_RENDER));
+				particle_system_update(depsgraph, scene, ob, psys, use_render_params);
 				psys = psys->next;
 			}
 			else if (psys->flag & PSYS_DELETE) {
@@ -255,12 +266,12 @@ void BKE_object_handle_data_update(
 				psys = psys->next;
 		}
 
-		if (eval_ctx->mode == DAG_EVAL_RENDER && ob->transflag & OB_DUPLIPARTS) {
+		if (use_render_params && ob->transflag & OB_DUPLIPARTS) {
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
 			CustomDataMask data_mask = CD_MASK_BAREMESH | CD_MASK_MFACE | CD_MASK_MTFACE | CD_MASK_MCOL;
-			dm = mesh_create_derived_render(eval_ctx, scene, ob, data_mask);
+			dm = mesh_create_derived_render(depsgraph, scene, ob, data_mask);
 			dm->release(dm);
 
 			for (psys = ob->particlesystem.first; psys; psys = psys->next)
@@ -271,7 +282,7 @@ void BKE_object_handle_data_update(
 	/* quick cache removed */
 }
 
-bool BKE_object_eval_proxy_copy(const EvaluationContext *UNUSED(eval_ctx),
+bool BKE_object_eval_proxy_copy(Depsgraph *UNUSED(depsgraph),
                                 Object *object)
 {
 	/* Handle proxy copy for target, */
@@ -295,18 +306,18 @@ bool BKE_object_eval_proxy_copy(const EvaluationContext *UNUSED(eval_ctx),
 	return false;
 }
 
-void BKE_object_eval_uber_transform(const EvaluationContext *eval_ctx, Object *object)
+void BKE_object_eval_uber_transform(Depsgraph *depsgraph, Object *object)
 {
-	BKE_object_eval_proxy_copy(eval_ctx, object);
+	BKE_object_eval_proxy_copy(depsgraph, object);
 }
 
-void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
+void BKE_object_eval_uber_data(Depsgraph *depsgraph,
                                Scene *scene,
                                Object *ob)
 {
 	DEG_debug_print_eval(__func__, ob->id.name, ob);
 	BLI_assert(ob->type != OB_ARMATURE);
-	BKE_object_handle_data_update(eval_ctx, scene, ob);
+	BKE_object_handle_data_update(depsgraph, scene, ob);
 
 	switch (ob->type) {
 		case OB_MESH:
@@ -378,7 +389,7 @@ void BKE_object_eval_uber_data(const EvaluationContext *eval_ctx,
 	}
 }
 
-void BKE_object_eval_cloth(const EvaluationContext *UNUSED(eval_ctx),
+void BKE_object_eval_cloth(Depsgraph *UNUSED(depsgraph),
                            Scene *scene,
                            Object *object)
 {
@@ -386,23 +397,23 @@ void BKE_object_eval_cloth(const EvaluationContext *UNUSED(eval_ctx),
 	BKE_ptcache_object_reset(scene, object, PTCACHE_RESET_DEPSGRAPH);
 }
 
-void BKE_object_eval_transform_all(const EvaluationContext *eval_ctx,
+void BKE_object_eval_transform_all(Depsgraph *depsgraph,
                                    Scene *scene,
                                    Object *object)
 {
 	/* This mimics full transform update chain from new depsgraph. */
-	BKE_object_eval_local_transform(eval_ctx, object);
+	BKE_object_eval_local_transform(depsgraph, object);
 	if (object->parent != NULL) {
-		BKE_object_eval_parent(eval_ctx, scene, object);
+		BKE_object_eval_parent(depsgraph, scene, object);
 	}
 	if (!BLI_listbase_is_empty(&object->constraints)) {
-		BKE_object_eval_constraints(eval_ctx, scene, object);
+		BKE_object_eval_constraints(depsgraph, scene, object);
 	}
-	BKE_object_eval_uber_transform(eval_ctx, object);
-	BKE_object_eval_done(eval_ctx, object);
+	BKE_object_eval_uber_transform(depsgraph, object);
+	BKE_object_eval_done(depsgraph, object);
 }
 
-void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx),
+void BKE_object_eval_update_shading(Depsgraph *UNUSED(depsgraph),
                                     Object *object)
 {
 	DEG_debug_print_eval(__func__, object->id.name, object);
@@ -411,7 +422,7 @@ void BKE_object_eval_update_shading(const EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
+void BKE_object_data_select_update(Depsgraph *UNUSED(depsgraph),
                                    struct ID *object_data)
 {
 	DEG_debug_print_eval(__func__, object_data->name, object_data);
@@ -433,10 +444,10 @@ void BKE_object_data_select_update(const EvaluationContext *UNUSED(eval_ctx),
 	}
 }
 
-void BKE_object_eval_flush_base_flags(const EvaluationContext *eval_ctx,
+void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
                                       Object *object, int base_index, bool is_from_set)
 {
-	ViewLayer *view_layer = eval_ctx->view_layer;
+	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	BLI_assert(view_layer->object_bases_array != NULL);
 	BLI_assert(base_index >= 0);
 	BLI_assert(base_index < MEM_allocN_len(view_layer->object_bases_array) / sizeof(Base *));

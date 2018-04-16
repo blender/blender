@@ -42,7 +42,7 @@ struct bNodeTree;
 struct BakePixel;
 struct Depsgraph;
 struct Depsgraph;
-struct EvaluationContext;
+struct Depsgraph;
 struct IDProperty;
 struct Main;
 struct Object;

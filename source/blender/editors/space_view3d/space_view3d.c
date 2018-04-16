@@ -918,6 +918,7 @@ static void view3d_main_region_listener(
 						ob_data = OBEDIT_FROM_VIEW_LAYER(view_layer)->data;
 					}
 					if (ob_data) {
+						BLI_assert(OB_DATA_SUPPORT_ID(GS(ob_data->name)));
 						/* TODO(sergey): Notifiers shouldn't really be doing DEG tags. */
 						DEG_id_tag_update(ob_data, DEG_TAG_SELECT_UPDATE);
 					}

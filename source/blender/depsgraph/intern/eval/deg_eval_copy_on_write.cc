@@ -781,10 +781,10 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 	id_cow->name[0] = '\0';
 }
 
-void deg_evaluate_copy_on_write(const EvaluationContext * /*eval_ctx*/,
-                                const Depsgraph *depsgraph,
+void deg_evaluate_copy_on_write(struct ::Depsgraph *graph,
                                 const IDDepsNode *id_node)
 {
+	const DEG::Depsgraph *depsgraph = reinterpret_cast<const DEG::Depsgraph *>(graph);
 	DEBUG_PRINT("%s on %s\n", __func__, id_node->id_orig->name);
 	if (id_node->id_orig == &depsgraph->scene->id) {
 		/* NOTE: This is handled by eval_ctx setup routines, which

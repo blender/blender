@@ -132,7 +132,7 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 	if (eff == NULL && gabr->ob) {
 		memset(&temp_eff, 0, sizeof(EffectorCache));
 		temp_eff.ob = gabr->ob;
-		temp_eff.eval_ctx = bbd->sim->eval_ctx;
+		temp_eff.depsgraph = bbd->sim->depsgraph;
 		temp_eff.scene = bbd->sim->scene;
 		eff = &temp_eff;
 		get_effector_data(eff, &efd, &epoint, 0);
@@ -162,8 +162,10 @@ static int rule_goal_avoid(BoidRule *rule, BoidBrainData *bbd, BoidValues *val, 
 				copy_v3_v3(bbd->goal_nor, efd.nor);
 			}
 		}
-		else if (rule->type == eBoidRuleType_Avoid && bpa->data.mode == eBoidMode_Climbing &&
-			priority > 2.0f * gabr->fear_factor) {
+		else if ((rule->type == eBoidRuleType_Avoid) &&
+		         (bpa->data.mode == eBoidMode_Climbing) &&
+		         (priority > 2.0f * gabr->fear_factor))
+		{
 			/* detach from surface and try to fly away from danger */
 			negate_v3_v3(efd.vec_to_point, bpa->gravity);
 		}
@@ -1107,7 +1109,7 @@ void boid_brain(BoidBrainData *bbd, int p, ParticleData *pa)
 
 			/* jump to go faster */
 			if (jump == 0 && val.jump_speed > val.max_speed && bbd->wanted_speed > val.max_speed) {
-				
+				/* pass */
 			}
 
 			if (jump) {

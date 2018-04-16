@@ -40,6 +40,8 @@
 
 #include "BIF_gl.h"
 
+#include "BLI_string_utils.h"
+
 #include "BKE_anim.h"
 #include "BKE_camera.h"
 #include "BKE_curve.h"
@@ -69,6 +71,7 @@ extern struct GPUUniformBuffer *globals_ubo; /* draw_common.c */
 extern struct GPUTexture *globals_ramp; /* draw_common.c */
 extern GlobalsUboStorage ts;
 
+extern char datatoc_object_outline_prepass_frag_glsl[];
 extern char datatoc_object_outline_resolve_frag_glsl[];
 extern char datatoc_object_outline_detect_frag_glsl[];
 extern char datatoc_object_outline_expand_frag_glsl[];
@@ -223,6 +226,13 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *points_select;
 	DRWShadingGroup *points_select_group;
 	DRWShadingGroup *points_transform;
+
+	/* Outlines id offset */
+	int id_ofs_active;
+	int id_ofs_active_group;
+	int id_ofs_select;
+	int id_ofs_select_group;
+	int id_ofs_transform;
 } OBJECT_PrivateData; /* Transient data */
 
 static struct {
@@ -232,6 +242,7 @@ static struct {
 	struct Gwn_VertFormat *empty_image_wire_format;
 
 	/* fullscreen shaders */
+	GPUShader *outline_prepass_sh;
 	GPUShader *outline_resolve_sh;
 	GPUShader *outline_resolve_aa_sh;
 	GPUShader *outline_detect_sh;
@@ -259,6 +270,7 @@ static struct {
 	bool draw_grid;
 	/* Temp buffer textures */
 	struct GPUTexture *outlines_depth_tx;
+	struct GPUTexture *outlines_id_tx;
 	struct GPUTexture *outlines_color_tx;
 	struct GPUTexture *outlines_blur_tx;
 } e_data = {NULL}; /* Engine data */
@@ -288,13 +300,19 @@ static void OBJECT_engine_init(void *vedata)
 	if (DRW_state_is_fbo()) {
 		e_data.outlines_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_DEPTH_24,
 		                                                     &draw_engine_object_type);
-		e_data.outlines_color_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8,
-		                                                     &draw_engine_object_type);
+		/* XXX TODO DRW_TEX_R_16U can overflow, it would cause no harm
+		 * (only bad colored or missing outlines) but we should
+		 * use 32bits only if the scene have that many objects */
+		e_data.outlines_id_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_R_16U,
+		                                                  &draw_engine_object_type);
 
 		GPU_framebuffer_ensure_config(&fbl->outlines_fb, {
 			GPU_ATTACHMENT_TEXTURE(e_data.outlines_depth_tx),
-			GPU_ATTACHMENT_TEXTURE(e_data.outlines_color_tx)
+			GPU_ATTACHMENT_TEXTURE(e_data.outlines_id_tx)
 		});
+
+		e_data.outlines_color_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8,
+		                                                     &draw_engine_object_type);
 
 		GPU_framebuffer_ensure_config(&fbl->expand_fb, {
 			GPU_ATTACHMENT_NONE,
@@ -310,66 +328,58 @@ static void OBJECT_engine_init(void *vedata)
 		});
 	}
 
+	/* Shaders */
 	if (!e_data.outline_resolve_sh) {
-		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
-	}
+		/* Outline */
+		e_data.outline_prepass_sh = DRW_shader_create_3D(datatoc_object_outline_prepass_frag_glsl, NULL);
 
-	if (!e_data.outline_resolve_aa_sh) {
+		e_data.outline_resolve_sh = DRW_shader_create_fullscreen(datatoc_object_outline_resolve_frag_glsl, NULL);
+
 		e_data.outline_resolve_aa_sh = DRW_shader_create_with_lib(
 		            datatoc_common_fullscreen_vert_glsl, NULL,
 		            datatoc_object_outline_resolve_frag_glsl,
 		            datatoc_common_fxaa_lib_glsl,
 		            "#define FXAA_ALPHA\n"
 		            "#define USE_FXAA\n");
-	}
 
-	if (!e_data.outline_detect_sh) {
-		e_data.outline_detect_sh = DRW_shader_create_fullscreen(datatoc_object_outline_detect_frag_glsl, NULL);
-	}
+		e_data.outline_detect_sh = DRW_shader_create_with_lib(
+		            datatoc_common_fullscreen_vert_glsl, NULL,
+		            datatoc_object_outline_detect_frag_glsl,
+		            datatoc_common_globals_lib_glsl,
+		            NULL);
 
-	if (!e_data.outline_fade_sh) {
 		e_data.outline_fade_sh = DRW_shader_create_fullscreen(datatoc_object_outline_expand_frag_glsl, NULL);
-	}
 
-	if (!e_data.object_empty_image_sh) {
+		/* Empty images */
 		e_data.object_empty_image_sh = DRW_shader_create_with_lib(
 		           datatoc_object_empty_image_vert_glsl, NULL,
 		           datatoc_object_empty_image_frag_glsl,
 		           datatoc_common_globals_lib_glsl, NULL);
-	}
 
-	if (!e_data.object_empty_image_wire_sh) {
 		e_data.object_empty_image_wire_sh = DRW_shader_create_with_lib(
 		           datatoc_object_empty_image_vert_glsl, NULL,
 		           datatoc_object_empty_image_frag_glsl,
 		           datatoc_common_globals_lib_glsl,
 		           "#define USE_WIRE\n");
-	}
 
-	if (!e_data.grid_sh) {
+		/* Grid */
 		e_data.grid_sh = DRW_shader_create_with_lib(
 		        datatoc_object_grid_vert_glsl, NULL,
 		        datatoc_object_grid_frag_glsl,
 		        datatoc_common_globals_lib_glsl, NULL);
-	}
 
-	if (!e_data.part_prim_sh) {
+		/* Particles */
 		e_data.part_prim_sh = DRW_shader_create(
 		        datatoc_object_particle_prim_vert_glsl, NULL, datatoc_gpu_shader_flat_color_frag_glsl, NULL);
-	}
 
-	if (!e_data.part_axis_sh) {
 		e_data.part_axis_sh = DRW_shader_create(
 		        datatoc_object_particle_prim_vert_glsl, NULL, datatoc_gpu_shader_flat_color_frag_glsl,
 		        "#define USE_AXIS\n");
-	}
 
-	if (!e_data.part_dot_sh) {
 		e_data.part_dot_sh = DRW_shader_create(
 		        datatoc_object_particle_dot_vert_glsl, NULL, datatoc_object_particle_dot_frag_glsl, NULL);
-	}
 
-	if (!e_data.lightprobe_grid_sh) {
+		/* Lightprobes */
 		e_data.lightprobe_grid_sh = DRW_shader_create(
 		        datatoc_object_lightprobe_grid_vert_glsl, NULL, datatoc_gpu_shader_uniform_color_frag_glsl, NULL);
 	}
@@ -558,6 +568,7 @@ static void OBJECT_engine_free(void)
 	MEM_SAFE_FREE(e_data.particle_format);
 	MEM_SAFE_FREE(e_data.empty_image_format);
 	MEM_SAFE_FREE(e_data.empty_image_wire_format);
+	DRW_SHADER_FREE_SAFE(e_data.outline_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_resolve_aa_sh);
 	DRW_SHADER_FREE_SAFE(e_data.outline_detect_sh);
@@ -571,10 +582,10 @@ static void OBJECT_engine_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.lightprobe_grid_sh);
 }
 
-static DRWShadingGroup *shgroup_outline(DRWPass *pass, const float col[4], GPUShader *sh)
+static DRWShadingGroup *shgroup_outline(DRWPass *pass, const int *ofs, GPUShader *sh)
 {
 	DRWShadingGroup *grp = DRW_shgroup_create(sh, pass);
-	DRW_shgroup_uniform_vec4(grp, "color", col, 1);
+	DRW_shgroup_uniform_int(grp, "baseId", ofs, 1);
 
 	return grp;
 }
@@ -602,12 +613,19 @@ static DRWShadingGroup *shgroup_theme_id_to_outline_or(
 {
 	switch (theme_id) {
 		case TH_ACTIVE:
+			stl->g_data->id_ofs_active++;
 			return stl->g_data->outlines_active;
 		case TH_SELECT:
+			stl->g_data->id_ofs_select++;
 			return stl->g_data->outlines_select;
-		case TH_GROUP_ACTIVE:
+		case TH_GROUP:
+			stl->g_data->id_ofs_select_group++;
 			return stl->g_data->outlines_select_group;
+		case TH_GROUP_ACTIVE:
+			stl->g_data->id_ofs_active_group++;
+			return stl->g_data->outlines_active_group;
 		case TH_TRANSFORM:
+			stl->g_data->id_ofs_transform++;
 			return stl->g_data->outlines_transform;
 		default:
 			return fallback;
@@ -622,8 +640,10 @@ static DRWShadingGroup *shgroup_theme_id_to_wire_or(
 			return stl->g_data->wire_active;
 		case TH_SELECT:
 			return stl->g_data->wire_select;
-		case TH_GROUP_ACTIVE:
+		case TH_GROUP:
 			return stl->g_data->wire_select_group;
+		case TH_GROUP_ACTIVE:
+			return stl->g_data->wire_active_group;
 		case TH_TRANSFORM:
 			return stl->g_data->wire_transform;
 		default:
@@ -639,8 +659,10 @@ static DRWShadingGroup *shgroup_theme_id_to_point_or(
 			return stl->g_data->points_active;
 		case TH_SELECT:
 			return stl->g_data->points_select;
-		case TH_GROUP_ACTIVE:
+		case TH_GROUP:
 			return stl->g_data->points_select_group;
+		case TH_GROUP_ACTIVE:
+			return stl->g_data->points_active_group;
 		case TH_TRANSFORM:
 			return stl->g_data->points_transform;
 		default:
@@ -786,18 +808,24 @@ static void OBJECT_cache_init(void *vedata)
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
 		psl->outlines = DRW_pass_create("Outlines Depth Pass", state);
 
-		GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+		GPUShader *sh = e_data.outline_prepass_sh;
 
 		/* Select */
-		stl->g_data->outlines_select = shgroup_outline(psl->outlines, ts.colorSelect, sh);
-		stl->g_data->outlines_select_group = shgroup_outline(psl->outlines, ts.colorGroupActive, sh);
+		stl->g_data->outlines_select = shgroup_outline(psl->outlines, &stl->g_data->id_ofs_select, sh);
+		stl->g_data->outlines_select_group = shgroup_outline(psl->outlines, &stl->g_data->id_ofs_select_group, sh);
 
 		/* Transform */
-		stl->g_data->outlines_transform = shgroup_outline(psl->outlines, ts.colorTransform, sh);
+		stl->g_data->outlines_transform = shgroup_outline(psl->outlines, &stl->g_data->id_ofs_transform, sh);
 
 		/* Active */
-		stl->g_data->outlines_active = shgroup_outline(psl->outlines, ts.colorActive, sh);
-		stl->g_data->outlines_active_group = shgroup_outline(psl->outlines, ts.colorGroupActive, sh);
+		stl->g_data->outlines_active = shgroup_outline(psl->outlines, &stl->g_data->id_ofs_active, sh);
+		stl->g_data->outlines_active_group = shgroup_outline(psl->outlines, &stl->g_data->id_ofs_active_group, sh);
+
+		stl->g_data->id_ofs_select = 0;
+		stl->g_data->id_ofs_select_group = 0;
+		stl->g_data->id_ofs_active = 0;
+		stl->g_data->id_ofs_active_group = 0;
+		stl->g_data->id_ofs_transform = 0;
 	}
 
 	{
@@ -822,10 +850,12 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_search = DRW_pass_create("Outlines Detect Pass", state);
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_detect_sh, psl->outlines_search);
-		DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_color_tx);
+		DRW_shgroup_uniform_texture_ref(grp, "outlineId", &e_data.outlines_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineDepth", &e_data.outlines_depth_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "sceneDepth", &dtxl->depth);
+		DRW_shgroup_uniform_block(grp, "globalsBlock", globals_ubo);
 		DRW_shgroup_uniform_float(grp, "alphaOcclu", &alphaOcclu, 1);
+		DRW_shgroup_uniform_int(grp, "idOffsets", &stl->g_data->id_ofs_active, 5);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->outlines_expand = DRW_pass_create("Outlines Expand Pass", state);
@@ -2038,6 +2068,7 @@ static void OBJECT_draw_scene(void *vedata)
 	OBJECT_PassList *psl = ((OBJECT_Data *)vedata)->psl;
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
+	OBJECT_PrivateData *g_data = stl->g_data;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
@@ -2045,7 +2076,18 @@ static void OBJECT_draw_scene(void *vedata)
 
 	if (DRW_state_is_fbo()) {
 		DRW_stats_group_start("Outlines");
-		
+
+		int id_ct_select = g_data->id_ofs_select;
+		int id_ct_select_group = g_data->id_ofs_select_group;
+		int id_ct_active = g_data->id_ofs_active;
+		int id_ct_active_group = g_data->id_ofs_active_group;
+
+		g_data->id_ofs_active = 1;
+		g_data->id_ofs_active_group = g_data->id_ofs_active + id_ct_active + 1;
+		g_data->id_ofs_select = g_data->id_ofs_active_group + id_ct_active_group + 1;
+		g_data->id_ofs_select_group = g_data->id_ofs_select + id_ct_select + 1;
+		g_data->id_ofs_transform = g_data->id_ofs_select_group + id_ct_select_group + 1;
+
 		/* Render filled polygon on a separate framebuffer */
 		GPU_framebuffer_bind(fbl->outlines_fb);
 		GPU_framebuffer_clear_color_depth(fbl->outlines_fb, clearcol, 1.0f);

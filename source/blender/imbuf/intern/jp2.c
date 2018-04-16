@@ -119,7 +119,7 @@ static void info_callback(const char *msg, void *client_data)
 
 #   define PIXEL_LOOPER_END \
 	} \
-	} (void)0 \
+} (void)0 \
 
 struct ImBuf *imb_jp2_decode(const unsigned char *mem, size_t size, int flags, char colorspace[IM_MAX_SPACE])
 {

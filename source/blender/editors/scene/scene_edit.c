@@ -132,8 +132,6 @@ void ED_scene_change_update(
 
 #if 0
 	/* mode syncing */
-	EvaluationContext eval_ctx_old;
-	CTX_data_eval_ctx(C, &eval_ctx_old);
 	eObjectMode object_mode_old = workspace->object_mode;
 	ViewLayer *layer_old = BKE_view_layer_from_workspace_get(scene_old, workspace);
 	Object *obact_old = OBACT(layer_old);

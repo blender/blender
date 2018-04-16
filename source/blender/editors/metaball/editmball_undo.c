@@ -27,6 +27,8 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "CLG_log.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_array_utils.h"
@@ -36,16 +38,21 @@
 #include "DNA_object_types.h"
 
 #include "BKE_context.h"
+#include "BKE_layer.h"
 #include "BKE_undo_system.h"
 
 #include "DEG_depsgraph.h"
 
 #include "ED_object.h"
 #include "ED_mball.h"
+#include "ED_undo.h"
 #include "ED_util.h"
 
 #include "WM_types.h"
 #include "WM_api.h"
+
+/** We only need this locally. */
+static CLG_LogRef LOG = {"ed.undo.mball"};
 
 /* -------------------------------------------------------------------- */
 /** \name Undo Conversion
@@ -130,13 +137,19 @@ static Object *editmball_object_from_context(bContext *C)
 
 /* -------------------------------------------------------------------- */
 /** \name Implements ED Undo System
+ *
+ * \note This is similar for all edit-mode types.
  * \{ */
+
+typedef struct MBallUndoStep_Elem {
+	UndoRefID_Object obedit_ref;
+	UndoMBall data;
+} MBallUndoStep_Elem;
 
 typedef struct MBallUndoStep {
 	UndoStep step;
-	/* note: will split out into list for multi-object-editmode. */
-	UndoRefID_Object obedit_ref;
-	UndoMBall data;
+	MBallUndoStep_Elem *elems;
+	uint                elems_len;
 } MBallUndoStep;
 
 static bool mball_undosys_poll(bContext *C)
@@ -147,36 +160,74 @@ static bool mball_undosys_poll(bContext *C)
 static bool mball_undosys_step_encode(struct bContext *C, UndoStep *us_p)
 {
 	MBallUndoStep *us = (MBallUndoStep *)us_p;
-	us->obedit_ref.ptr = editmball_object_from_context(C);
-	MetaBall *mb = us->obedit_ref.ptr->data;
-	editmball_from_undomball(&us->data, mb);
-	us->step.data_size = us->data.undo_size;
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	us->elems = MEM_callocN(sizeof(*us->elems) * objects_len, __func__);
+	us->elems_len = objects_len;
+
+	for (uint i = 0; i < objects_len; i++) {
+		Object *ob = objects[i];
+		MBallUndoStep_Elem *elem = &us->elems[i];
+
+		elem->obedit_ref.ptr = ob;
+		MetaBall *mb = ob->data;
+		editmball_from_undomball(&elem->data, mb);
+		us->step.data_size += elem->data.undo_size;
+	}
+	MEM_freeN(objects);
 	return true;
 }
 
 static void mball_undosys_step_decode(struct bContext *C, UndoStep *us_p, int UNUSED(dir))
 {
+	/* TODO(campbell): undo_system: use low-level API to set mode. */
 	ED_object_mode_set(C, OB_MODE_EDIT);
+	BLI_assert(mball_undosys_poll(C));
 
 	MBallUndoStep *us = (MBallUndoStep *)us_p;
-	Object *obedit = us->obedit_ref.ptr;
-	MetaBall *mb = obedit->data;
-	undomball_to_editmball(&us->data, mb);
-	DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+
+	for (uint i = 0; i < us->elems_len; i++) {
+		MBallUndoStep_Elem *elem = &us->elems[i];
+		Object *obedit = elem->obedit_ref.ptr;
+		MetaBall *mb = obedit->data;
+		if (mb->editelems == NULL) {
+			/* Should never fail, may not crash but can give odd behavior. */
+			CLOG_ERROR(&LOG, "name='%s', failed to enter edit-mode for object '%s', undo state invalid", us_p->name, obedit->id.name);
+			continue;
+		}
+		undomball_to_editmball(&elem->data, mb);
+		DEG_id_tag_update(&obedit->id, OB_RECALC_DATA);
+	}
+
+	/* The first element is always active */
+	ED_undo_object_set_active_or_warn(CTX_data_view_layer(C), us->elems[0].obedit_ref.ptr, us_p->name, &LOG);
+
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 }
 
 static void mball_undosys_step_free(UndoStep *us_p)
 {
 	MBallUndoStep *us = (MBallUndoStep *)us_p;
-	undomball_free_data(&us->data);
+
+	for (uint i = 0; i < us->elems_len; i++) {
+		MBallUndoStep_Elem *elem = &us->elems[i];
+		undomball_free_data(&elem->data);
+	}
+	MEM_freeN(us->elems);
 }
 
 static void mball_undosys_foreach_ID_ref(
         UndoStep *us_p, UndoTypeForEachIDRefFn foreach_ID_ref_fn, void *user_data)
 {
 	MBallUndoStep *us = (MBallUndoStep *)us_p;
-	foreach_ID_ref_fn(user_data, ((UndoRefID *)&us->obedit_ref));
+
+	for (uint i = 0; i < us->elems_len; i++) {
+		MBallUndoStep_Elem *elem = &us->elems[i];
+		foreach_ID_ref_fn(user_data, ((UndoRefID *)&elem->obedit_ref));
+	}
 }
 
 /* Export for ED_undo_sys. */

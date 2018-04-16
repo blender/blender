@@ -167,6 +167,7 @@ set(SRC
 	intern/pointcache.c
 	intern/property.c
 	intern/layer.c
+	intern/layer_utils.c
 	intern/lightprobe.c
 	intern/report.c
 	intern/rigidbody.c

@@ -170,7 +170,7 @@ IDDepsNode *DepsgraphNodeBuilder::add_id_node(ID *id)
 		ComponentDepsNode *comp_cow =
 		        id_node->add_component(DEG_NODE_TYPE_COPY_ON_WRITE);
 		OperationDepsNode *op_cow = comp_cow->add_operation(
-		        function_bind(deg_evaluate_copy_on_write, _1, graph_, id_node),
+		        function_bind(deg_evaluate_copy_on_write, _1, id_node),
 		        DEG_OPCODE_COPY_ON_WRITE,
 		        "", -1);
 		graph_->operations.push_back(op_cow);
@@ -379,6 +379,43 @@ void DepsgraphNodeBuilder::end_build()
 			continue;
 		}
 		op_node->tag_update(graph_);
+	}
+}
+
+void DepsgraphNodeBuilder::build_id(ID* id) {
+	if (id == NULL) {
+		return;
+	}
+	switch (GS(id->name)) {
+		case ID_GR:
+			build_group((Group *)id);
+			break;
+		case ID_OB:
+			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
+			break;
+		case ID_NT:
+			build_nodetree((bNodeTree *)id);
+			break;
+		case ID_MA:
+			build_material((Material *)id);
+			break;
+		case ID_TE:
+			build_texture((Tex *)id);
+			break;
+		case ID_IM:
+			build_image((Image *)id);
+			break;
+		case ID_WO:
+			build_world((World *)id);
+			break;
+		case ID_MSK:
+			build_mask((Mask *)id);
+			break;
+		case ID_MC:
+			build_movieclip((MovieClip *)id);
+			break;
+		default:
+			fprintf(stderr, "Unhandled ID %s\n", id->name);
 	}
 }
 
@@ -698,6 +735,7 @@ void DepsgraphNodeBuilder::build_driver_variables(ID * id, FCurve *fcurve)
 	LISTBASE_FOREACH (DriverVar *, dvar, &fcurve->driver->variables) {
 		DRIVER_TARGETS_USED_LOOPER(dvar)
 		{
+			build_id(dtar->id);
 			build_driver_id_property(dtar->id, dtar->rna_path);
 		}
 		DRIVER_TARGETS_LOOPER_END

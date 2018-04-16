@@ -28,6 +28,7 @@
 
 #include "DNA_meta_types.h"
 
+#include "BKE_object.h"
 #include "BKE_mball.h"
 
 /* If builtin shaders are needed */
@@ -171,7 +172,7 @@ static void EDIT_METABALL_cache_populate(void *vedata, Object *ob)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		DRWShadingGroup *group = stl->g_data->group;
 
-		if (ob == draw_ctx->object_edit) {
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob)) {
 			MetaBall *mb = ob->data;
 
 			const bool is_select = DRW_state_is_select();

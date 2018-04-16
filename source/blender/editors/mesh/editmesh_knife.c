@@ -161,7 +161,6 @@ typedef struct KnifePosData {
 typedef struct KnifeTool_OpData {
 	ARegion *ar;        /* region that knifetool was activated in */
 	void *draw_handle;  /* for drawing preview loop */
-	EvaluationContext eval_ctx;
 	ViewContext vc;     /* note: _don't_ use 'mval', instead use the one we define below */
 	float mval[2];      /* mouse value with snapping applied */
 	//bContext *C;
@@ -1562,8 +1561,8 @@ static void knife_find_line_hits(KnifeTool_OpData *kcd)
 	}
 
 	/* unproject screen line */
-	ED_view3d_win_to_segment(kcd->eval_ctx.depsgraph, kcd->ar, kcd->vc.v3d, s1, v1, v3, true);
-	ED_view3d_win_to_segment(kcd->eval_ctx.depsgraph, kcd->ar, kcd->vc.v3d, s2, v2, v4, true);
+	ED_view3d_win_to_segment(kcd->vc.depsgraph, kcd->ar, kcd->vc.v3d, s1, v1, v3, true);
+	ED_view3d_win_to_segment(kcd->vc.depsgraph, kcd->ar, kcd->vc.v3d, s2, v2, v4, true);
 
 	mul_m4_v3(kcd->ob->imat, v1);
 	mul_m4_v3(kcd->ob->imat, v2);
@@ -1838,7 +1837,7 @@ static BMFace *knife_find_closest_face(KnifeTool_OpData *kcd, float co[3], float
 	if (!f) {
 		if (kcd->is_interactive) {
 			/* try to use backbuffer selection method if ray casting failed */
-			f = EDBM_face_find_nearest(&kcd->eval_ctx, &kcd->vc, &dist);
+			f = EDBM_face_find_nearest(&kcd->vc, &dist);
 
 			/* cheat for now; just put in the origin instead
 			 * of a true coordinate on the face.
@@ -1961,7 +1960,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 
 			/* check if we're close enough and calculate 'lambda' */
 			if (kcd->is_angle_snapping) {
-			/* if snapping, check we're in bounds */
+				/* if snapping, check we're in bounds */
 				float sco_snap[2];
 				isect_line_line_v2_point(kfe->v1->sco, kfe->v2->sco, kcd->prev.mval, kcd->curr.mval, sco_snap);
 				lambda = line_point_factor_v2(sco_snap, kfe->v1->sco, kfe->v2->sco);
@@ -2519,7 +2518,7 @@ static void knife_recalc_projmat(KnifeTool_OpData *kcd)
 	mul_v3_mat3_m4v3(kcd->proj_zaxis, kcd->ob->imat, kcd->vc.rv3d->viewinv[2]);
 	normalize_v3(kcd->proj_zaxis);
 
-	kcd->is_ortho = ED_view3d_clip_range_get(kcd->eval_ctx.depsgraph,
+	kcd->is_ortho = ED_view3d_clip_range_get(kcd->vc.depsgraph,
 	                                         kcd->vc.v3d, kcd->vc.rv3d,
 	                                         &kcd->clipsta, &kcd->clipend, true);
 }
@@ -2591,7 +2590,7 @@ static void knifetool_init_bmbvh(KnifeTool_OpData *kcd)
 {
 	BM_mesh_elem_index_ensure(kcd->em->bm, BM_VERT);
 
-	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(&kcd->eval_ctx, kcd->em, kcd->scene, NULL);
+	kcd->cagecos = (const float (*)[3])BKE_editmesh_vertexCos_get(kcd->vc.depsgraph, kcd->em, kcd->scene, NULL);
 
 	kcd->bmbvh = BKE_bmbvh_new_from_editmesh(
 	        kcd->em,
@@ -2625,7 +2624,6 @@ static void knifetool_init(bContext *C, KnifeTool_OpData *kcd,
 	kcd->ob = obedit;
 	kcd->ar = CTX_wm_region(C);
 
-	CTX_data_eval_ctx(C, &kcd->eval_ctx);
 	em_setup_viewcontext(C, &kcd->vc);
 
 	kcd->em = BKE_editmesh_from_object(kcd->ob);
@@ -2793,7 +2791,6 @@ static int knifetool_modal(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_FINISHED;
 	}
 
-	CTX_data_eval_ctx(C, &kcd->eval_ctx);
 	em_setup_viewcontext(C, &kcd->vc);
 	kcd->ar = kcd->vc.ar;
 

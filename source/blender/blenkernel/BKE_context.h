@@ -75,7 +75,6 @@ struct SpaceText;
 struct SpaceImage;
 struct SpaceClip;
 struct ID;
-struct EvaluationContext;
 
 #include "DNA_object_enums.h"
 
@@ -245,6 +244,10 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 		BLI_freelistN(&ctx_data_list);                                        \
 } (void)0
 
+#define CTX_DATA_BEGIN_WITH_ID(C, Type, instance, member, Type_id, instance_id)      \
+	CTX_DATA_BEGIN(C, Type, instance, member) \
+	Type_id instance_id = ctx_link->ptr.id.data; \
+
 int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
 
 #define CTX_DATA_COUNT(C, member) \
@@ -320,8 +323,6 @@ int CTX_data_editable_gpencil_layers(const bContext *C, ListBase *list);
 int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 struct Depsgraph *CTX_data_depsgraph(const bContext *C);
-
-void CTX_data_eval_ctx(const bContext *C, struct EvaluationContext *eval_ctx);
 
 #ifdef __cplusplus
 }

@@ -40,7 +40,7 @@ struct Mesh;
 struct Scene;
 struct DerivedMesh;
 struct MeshStatVis;
-struct EvaluationContext;
+struct Depsgraph;
 
 /**
  * This structure is used for mesh edit-mode.
@@ -100,6 +100,6 @@ void        BKE_editmesh_statvis_calc(BMEditMesh *em, struct DerivedMesh *dm,
                                       const struct MeshStatVis *statvis);
 
 float (*BKE_editmesh_vertexCos_get(
-           const struct EvaluationContext *eval_ctx, struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
+           struct Depsgraph *depsgraph, struct BMEditMesh *em, struct Scene *scene, int *r_numVerts))[3];
 
 #endif /* __BKE_EDITMESH_H__ */

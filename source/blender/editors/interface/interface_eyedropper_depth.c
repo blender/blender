@@ -179,9 +179,6 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 				    my - ar->winrct.ymin};
 				float co[3];
 
-				EvaluationContext eval_ctx;
-				CTX_data_eval_ctx(C, &eval_ctx);
-
 				CTX_wm_area_set(C, sa);
 				CTX_wm_region_set(C, ar);
 
@@ -190,7 +187,7 @@ static void depthdropper_depth_sample_pt(bContext *C, DepthDropper *ddr, int mx,
 
 				view3d_operator_needs_opengl(C);
 
-				if (ED_view3d_autodist(&eval_ctx, graph, ar, v3d, mval, co, true, NULL)) {
+				if (ED_view3d_autodist(graph, ar, v3d, mval, co, true, NULL)) {
 					const float mval_center_fl[2] = {
 					    (float)ar->winx / 2,
 					    (float)ar->winy / 2};

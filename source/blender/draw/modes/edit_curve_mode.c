@@ -28,6 +28,8 @@
 
 #include "DNA_curve_types.h"
 
+#include "BKE_object.h"
+
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
 #include "GPU_batch.h"
@@ -233,7 +235,12 @@ static void EDIT_CURVE_cache_populate(void *vedata, Object *ob)
 	UNUSED_VARS(psl, stl);
 
 	if (ob->type == OB_CURVE) {
-		if (ob == draw_ctx->object_edit) {
+#if 0
+		if (ob == draw_ctx->object_edit)
+#else
+		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob))
+#endif
+		{
 			Curve *cu = ob->data;
 			/* Get geometry cache */
 			struct Gwn_Batch *geom;

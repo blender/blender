@@ -274,9 +274,9 @@ static void imapaint_tri_weights(float matrix[4][4], GLint view[4],
 }
 
 /* compute uv coordinates of mouse in face */
-static void imapaint_pick_uv(EvaluationContext *eval_ctx, Scene *scene, Object *ob, unsigned int faceindex, const int xy[2], float uv[2])
+static void imapaint_pick_uv(Depsgraph *depsgraph, Scene *scene, Object *ob, unsigned int faceindex, const int xy[2], float uv[2])
 {
-	DerivedMesh *dm = mesh_get_derived_final(eval_ctx, scene, ob, CD_MASK_BAREMESH);
+	DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
 	const int tottri = dm->getNumLoopTri(dm);
 	int i, findex;
 	float p[2], w[3], absw, minabsw;
@@ -353,14 +353,14 @@ static void imapaint_pick_uv(EvaluationContext *eval_ctx, Scene *scene, Object *
 
 /* returns 0 if not found, otherwise 1 */
 static int imapaint_pick_face(
-        const struct EvaluationContext *eval_ctx, ViewContext *vc, const int mval[2],
+        ViewContext *vc, const int mval[2],
         unsigned int *r_index, unsigned int totpoly)
 {
 	if (totpoly == 0)
 		return 0;
 
 	/* sample only on the exact position */
-	*r_index = ED_view3d_backbuf_sample(eval_ctx, vc, mval[0], mval[1]);
+	*r_index = ED_view3d_backbuf_sample(vc, mval[0], mval[1]);
 
 	if ((*r_index) == 0 || (*r_index) > (unsigned int)totpoly) {
 		return 0;
@@ -426,15 +426,13 @@ void flip_qt_qt(float out[4], const float in[4], const char symm)
 void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_proj, bool use_palette)
 {
 	Scene *scene = CTX_data_scene(C);
-	EvaluationContext eval_ctx;
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Palette *palette = BKE_paint_palette(paint);
 	PaletteColor *color = NULL;
 	Brush *br = BKE_paint_brush(BKE_paint_get_active_from_context(C));
 	unsigned int col;
 	const unsigned char *cp;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	CLAMP(x, 0, ar->winx);
 	CLAMP(y, 0, ar->winy);
@@ -460,7 +458,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 		if (ob) {
 			Mesh *me = (Mesh *)ob->data;
-			DerivedMesh *dm = mesh_get_derived_final(&eval_ctx, scene, ob, CD_MASK_BAREMESH);
+			DerivedMesh *dm = mesh_get_derived_final(depsgraph, scene, ob, CD_MASK_BAREMESH);
 
 			ViewContext vc;
 			const int mval[2] = {x, y};
@@ -472,7 +470,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 
 				view3d_operator_needs_opengl(C);
 
-				if (imapaint_pick_face(&eval_ctx, &vc, mval, &faceindex, totpoly)) {
+				if (imapaint_pick_face(&vc, mval, &faceindex, totpoly)) {
 					Image *image;
 					
 					if (use_material) 
@@ -485,7 +483,7 @@ void paint_sample_color(bContext *C, ARegion *ar, int x, int y, bool texpaint_pr
 						if (ibuf && ibuf->rect) {
 							float uv[2];
 							float u, v;
-							imapaint_pick_uv(&eval_ctx, scene, ob, faceindex, mval, uv);
+							imapaint_pick_uv(depsgraph, scene, ob, faceindex, mval, uv);
 							sample_success = true;
 							
 							u = fmodf(uv[0], 1.0f);

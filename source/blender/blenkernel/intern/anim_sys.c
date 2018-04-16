@@ -70,14 +70,13 @@
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "RNA_access.h"
 
 #include "nla_private.h"
 
 #include "atomic_ops.h"
-
-#include "DEG_depsgraph.h"
 
 /* ***************************************** */
 /* AnimData API */
@@ -2881,14 +2880,15 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 /* ************** */
 /* Evaluation API */
 
-void BKE_animsys_eval_animdata(const EvaluationContext *eval_ctx, ID *id)
+void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
 {
+	float ctime = DEG_get_ctime(depsgraph);
 	AnimData *adt = BKE_animdata_from_id(id);
 	Scene *scene = NULL; /* XXX: this is only needed for flushing RNA updates,
 	                      * which should get handled as part of the dependency graph instead...
 	                      */
-	DEG_debug_print_eval_time(__func__, id->name, id, eval_ctx->ctime);
-	BKE_animsys_evaluate_animdata(scene, id, adt, eval_ctx->ctime, ADT_RECALC_ANIM);
+	DEG_debug_print_eval_time(__func__, id->name, id, ctime);
+	BKE_animsys_evaluate_animdata(scene, id, adt, ctime, ADT_RECALC_ANIM);
 }
 
 /* TODO(sergey): This is slow lookup of driver from CoW datablock.
@@ -2909,7 +2909,7 @@ static FCurve *find_driver_from_evaluated_id(ID *id, FCurve *fcu)
 	return BLI_findlink(&adt_cow->drivers, fcu_index);
 }
 
-void BKE_animsys_eval_driver(const EvaluationContext *eval_ctx,
+void BKE_animsys_eval_driver(Depsgraph *depsgraph,
                              ID *id,
                              FCurve *fcu)
 {
@@ -2937,7 +2937,8 @@ void BKE_animsys_eval_driver(const EvaluationContext *eval_ctx,
 
 			PathResolvedRNA anim_rna;
 			if (animsys_store_rna_setting(&id_ptr, NULL, fcu->rna_path, fcu->array_index, &anim_rna)) {
-				const float curval = calculate_fcurve(&anim_rna, fcu, eval_ctx->ctime);
+				const float ctime = DEG_get_ctime(depsgraph);
+				const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
 				ok = animsys_write_rna_setting(&anim_rna, curval);
 			}
 

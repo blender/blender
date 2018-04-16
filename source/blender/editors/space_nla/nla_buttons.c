@@ -72,7 +72,7 @@ static void do_nla_region_buttons(bContext *C, void *UNUSED(arg), int UNUSED(eve
 	//Scene *scene = CTX_data_scene(C);
 #if 0
 	switch (event) {
-
+		/* pass */
 	}
 #endif
 	/* default for now */

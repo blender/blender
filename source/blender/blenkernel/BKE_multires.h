@@ -33,8 +33,8 @@
  */
 
 enum MultiresModifiedFlags;
+struct Depsgraph;
 struct DerivedMesh;
-struct EvaluationContext;
 struct MDisps;
 struct Mesh;
 struct ModifierData;
@@ -81,18 +81,18 @@ struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,
 struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
                                                            struct ModifierData *lastmd);
 struct MultiresModifierData *get_multires_modifier(struct Scene *scene, struct Object *ob, bool use_first);
-struct DerivedMesh *get_multires_dm(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct MultiresModifierData *mmd,
+struct DerivedMesh *get_multires_dm(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                                     struct Object *ob);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_base_apply(struct MultiresModifierData *mmd, struct Object *ob);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob, int updateblock, int simple);
 void multiresModifier_sync_levels_ex(
         struct Object *ob_dst, struct MultiresModifierData *mmd_src, struct MultiresModifierData *mmd_dst);
-int multiresModifier_reshape(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct MultiresModifierData *mmd,
+int multiresModifier_reshape(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                              struct Object *dst, struct Object *src);
-int multiresModifier_reshapeFromDM(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct MultiresModifierData *mmd,
+int multiresModifier_reshapeFromDM(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                                    struct Object *ob, struct DerivedMesh *srcdm);
-int multiresModifier_reshapeFromDeformMod(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct MultiresModifierData *mmd,
+int multiresModifier_reshapeFromDeformMod(struct Depsgraph *depsgraph, struct Scene *scene, struct MultiresModifierData *mmd,
                                           struct Object *ob, struct ModifierData *md);
 
 void multires_stitch_grids(struct Object *);
@@ -110,8 +110,8 @@ void multires_free(struct Multires *mr);
 void multires_load_old(struct Object *ob, struct Mesh *me);
 void multires_load_old_250(struct Mesh *);
 
-void multiresModifier_scale_disp(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
-void multiresModifier_prepare_join(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct Object *to_ob);
+void multiresModifier_scale_disp(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
+void multiresModifier_prepare_join(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct Object *to_ob);
 
 int multires_mdisp_corners(struct MDisps *s);
 

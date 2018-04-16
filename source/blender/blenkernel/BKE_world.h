@@ -46,9 +46,9 @@ void BKE_world_make_local(struct Main *bmain, struct World *wrld, const bool lib
 
 /* Evaluation. */
 
-struct EvaluationContext;
+struct Depsgraph;
 
-void BKE_world_eval(const struct EvaluationContext *eval_ctx, struct World *world);
+void BKE_world_eval(struct Depsgraph *depsgraph, struct World *world);
 
 #endif
 

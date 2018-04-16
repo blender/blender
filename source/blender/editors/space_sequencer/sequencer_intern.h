@@ -36,6 +36,7 @@
 
 /* internal exports only */
 
+struct Depsgraph;
 struct Sequence;
 struct bContext;
 struct rctf;

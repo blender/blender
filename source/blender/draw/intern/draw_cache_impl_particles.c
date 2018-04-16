@@ -46,6 +46,8 @@
 
 #include "GPU_batch.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "draw_cache_impl.h"  /* own include */
 
 static void particle_batch_cache_clear(ParticleSystem *psys);
@@ -466,7 +468,7 @@ static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys
 	ParticleSimulationData sim = {NULL};
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	sim.eval_ctx = &draw_ctx->eval_ctx;
+	sim.depsgraph = draw_ctx->depsgraph;
 	sim.scene = draw_ctx->scene;
 	sim.ob = object;
 	sim.psys = psys;
@@ -494,7 +496,7 @@ static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys
 	GWN_vertbuf_data_alloc(cache->pos, psys->totpart);
 
 	for (curr_point = 0, i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
-		state.time = draw_ctx->eval_ctx.ctime;
+		state.time = DEG_get_ctime(draw_ctx->depsgraph);
 		if (!psys_get_particle_state(&sim, curr_point, &state, 0)) {
 			continue;
 		}

@@ -113,7 +113,7 @@ public:
 #endif
 
 	inline void setRenderMonitor(RenderMonitor *iRenderMonitor) {
-	_pRenderMonitor = iRenderMonitor;
+		_pRenderMonitor = iRenderMonitor;
 	}
 
 protected:

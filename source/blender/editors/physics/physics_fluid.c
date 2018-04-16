@@ -246,7 +246,7 @@ static void set_channel(float *channel, float time, float *value, int i, int siz
 	}
 }
 
-static void set_vertex_channel(EvaluationContext *eval_ctx, float *channel, float time, struct Scene *scene, struct FluidObject *fobj, int i)
+static void set_vertex_channel(Depsgraph *depsgraph, float *channel, float time, struct Scene *scene, struct FluidObject *fobj, int i)
 {
 	Object *ob = fobj->object;
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
@@ -259,7 +259,7 @@ static void set_vertex_channel(EvaluationContext *eval_ctx, float *channel, floa
 	if (channel == NULL)
 		return;
 	
-	initElbeemMesh(eval_ctx, scene, ob, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
+	initElbeemMesh(depsgraph, scene, ob, &numVerts, &verts, &numTris, &tris, 1, modifierIndex);
 	
 	/* don't allow mesh to change number of verts in anim sequence */
 	if (numVerts != fobj->numVerts) {
@@ -333,14 +333,11 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	EvaluationContext eval_ctx;
 	Base *base;
 	int i;
 	int length = channels->length;
 	float eval_time;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
-	
 	/* init time values (assuming that time moves at a constant speed; may be overridden later) */
 	init_time(domainSettings, channels);
 	
@@ -380,7 +377,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 				float *verts=NULL;
 				int *tris=NULL, modifierIndex = BLI_findindex(&ob->modifiers, (ModifierData *)fluidmd);
 
-				initElbeemMesh(&eval_ctx, scene, ob, &fobj->numVerts, &verts, &fobj->numTris, &tris, 0, modifierIndex);
+				initElbeemMesh(depsgraph, scene, ob, &fobj->numVerts, &verts, &fobj->numTris, &tris, 0, modifierIndex);
 				fobj->VertexCache = MEM_callocN(length *((fobj->numVerts*CHANNEL_VEC)+1) * sizeof(float), "fluidobject VertexCache");
 				
 				MEM_freeN(verts);
@@ -468,7 +465,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 			}
 			
 			if (fluid_is_animated_mesh(fluidmd->fss)) {
-				set_vertex_channel(&eval_ctx, fobj->VertexCache, timeAtFrame, scene, fobj, i);
+				set_vertex_channel(depsgraph, fobj->VertexCache, timeAtFrame, scene, fobj, i);
 			}
 		}
 	}
@@ -476,10 +473,8 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 
 static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *scene, int length)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	FluidObject *fobj;
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 	
 	for (fobj=fobjects->first; fobj; fobj=fobj->next) {
 		Object *ob = fobj->object;
@@ -501,7 +496,7 @@ static void export_fluid_objects(const bContext *C, ListBase *fobjects, Scene *s
 		fsmesh.type = fluidmd->fss->type;
 		fsmesh.name = ob->id.name;
 		
-		initElbeemMesh(&eval_ctx, scene, ob, &numVerts, &verts, &numTris, &tris, 0, modifierIndex);
+		initElbeemMesh(depsgraph, scene, ob, &numVerts, &verts, &numTris, &tris, 0, modifierIndex);
 		
 		fsmesh.numVertices   = numVerts;
 		fsmesh.numTriangles  = numTris;

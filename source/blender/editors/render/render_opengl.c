@@ -268,6 +268,7 @@ static void screen_opengl_views_setup(OGLRender *oglrender)
 
 static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, RenderResult *rr)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = oglrender->scene;
 	ViewLayer *view_layer = oglrender->view_layer;
 	ARegion *ar = oglrender->ar;
@@ -282,9 +283,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 	float *rectf = NULL;
 	const char *viewname = RE_GetActiveRenderView(oglrender->re);
 	ImBuf *ibuf_result = NULL;
-	EvaluationContext eval_ctx;
-
-	CTX_data_eval_ctx(C, &eval_ctx);
 
 	if (oglrender->is_sequencer) {
 		SpaceSeq *sseq = oglrender->sseq;
@@ -362,7 +360,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			draw_flags |= (draw_bgpic) ? V3D_OFSDRAW_USE_BACKGROUND : 0;
 
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
-			       &eval_ctx, scene, view_layer, engine_type,
+			       depsgraph, scene, view_layer, engine_type,
 			       v3d, ar, sizex, sizey,
 			       IB_rectfloat, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
 			       oglrender->ofs, err_out);
@@ -375,7 +373,7 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 		else {
 			draw_flags |= (V3D_OFSDRAW_USE_GPENCIL | V3D_OFSDRAW_USE_BACKGROUND);
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
-			        &eval_ctx, scene, view_layer, engine_type,
+			        depsgraph, scene, view_layer, engine_type,
 			        scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rectfloat, draw_flags, OB_SOLID,
 			        alpha_mode, oglrender->ofs_samples, viewname,
@@ -539,8 +537,8 @@ static void screen_opengl_render_apply(const bContext *C, OGLRender *oglrender)
 		int chanshown = sseq ? sseq->chanshown : 0;
 
 		BKE_sequencer_new_render_data(
-		        oglrender->bmain->eval_ctx, oglrender->bmain, scene,
-		        oglrender->sizex, oglrender->sizey, 100.0f,
+		        oglrender->bmain, scene,
+		        oglrender->sizex, oglrender->sizey, 100.0f, false,
 		        &context);
 
 		for (view_id = 0; view_id < oglrender->views_len; view_id++) {

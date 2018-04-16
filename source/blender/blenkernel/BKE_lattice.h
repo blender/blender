@@ -43,7 +43,7 @@ struct Scene;
 struct DerivedMesh;
 struct BPoint;
 struct MDeformVert;
-struct EvaluationContext;
+struct Depsgraph;
 
 void BKE_lattice_resize(struct Lattice *lt, int u, int v, int w, struct Object *ltOb);
 void BKE_lattice_init(struct Lattice *lt);
@@ -79,7 +79,7 @@ void armature_deform_verts(struct Object *armOb, struct Object *target,
 
 float (*BKE_lattice_vertexcos_get(struct Object *ob, int *r_numVerts))[3];
 void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
-void    BKE_lattice_modifiers_calc(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob);
+void    BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 
 struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
 struct BPoint *BKE_lattice_active_point_get(struct Lattice *lt);
@@ -101,9 +101,9 @@ void BKE_lattice_bitmap_from_flag(struct Lattice *lt, unsigned int *bitmap, cons
 
 /* **** Depsgraph evaluation **** */
 
-struct EvaluationContext;
+struct Depsgraph;
 
-void BKE_lattice_eval_geometry(const struct EvaluationContext *eval_ctx,
+void BKE_lattice_eval_geometry(struct Depsgraph *depsgraph,
                                struct Lattice *latt);
 
 /* Draw Cache */

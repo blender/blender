@@ -166,7 +166,7 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 }
 
 static DerivedMesh *applyModifier(
-        ModifierData *md, const struct EvaluationContext *UNUSED(eval_ctx), Object *ob,
+        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
         DerivedMesh *dm,
         ModifierApplyFlag flag)
 {

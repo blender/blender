@@ -347,7 +347,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	return 1;
 }
 
-static int do_step_cloth(const struct EvaluationContext *eval_ctx, Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -372,7 +372,7 @@ static int do_step_cloth(const struct EvaluationContext *eval_ctx, Object *ob, C
 		mul_m4_v3(ob->obmat, verts->xconst);
 	}
 
-	effectors = pdInitEffectors(eval_ctx, clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
+	effectors = pdInitEffectors(depsgraph, clmd->scene, ob, NULL, clmd->sim_parms->effector_weights, true);
 
 	if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH )
 		cloth_update_verts ( ob, clmd, result );
@@ -402,7 +402,7 @@ static int do_step_cloth(const struct EvaluationContext *eval_ctx, Object *ob, C
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
-void clothModifier_do(ClothModifierData *clmd, const struct EvaluationContext *eval_ctx, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
+void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;
@@ -458,7 +458,8 @@ void clothModifier_do(ClothModifierData *clmd, const struct EvaluationContext *e
 	cache_result = BKE_ptcache_read(&pid, (float)framenr+scene->r.subframe, can_simulate);
 
 	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED ||
-	    (!can_simulate && cache_result == PTCACHE_READ_OLD)) {
+	    (!can_simulate && cache_result == PTCACHE_READ_OLD))
+	{
 		BKE_cloth_solver_set_positions(clmd);
 		cloth_to_object (ob, clmd, vertexCos);
 
@@ -489,7 +490,7 @@ void clothModifier_do(ClothModifierData *clmd, const struct EvaluationContext *e
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if (!do_step_cloth(eval_ctx, ob, clmd, dm, framenr)) {
+	if (!do_step_cloth(depsgraph, ob, clmd, dm, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else

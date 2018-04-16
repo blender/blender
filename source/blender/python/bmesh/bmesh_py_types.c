@@ -933,7 +933,7 @@ PyDoc_STRVAR(bpy_bmesh_from_object_doc,
 );
 static PyObject *bpy_bmesh_from_object(BPy_BMesh *self, PyObject *args, PyObject *kw)
 {
-	/* TODO: This doesn't work currently because of eval_ctx. */
+	/* TODO: This doesn't work currently because of missing depsgraph. */
 #if 0
 	static const char *kwlist[] = {"object", "scene", "deform", "render", "cage", "face_normals", NULL};
 	PyObject *py_object;

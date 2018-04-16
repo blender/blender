@@ -43,7 +43,7 @@ struct bPoseChannel;
 struct bPose;
 struct Scene;
 struct bConstraint;
-struct EvaluationContext;
+struct Depsgraph;
 
 enum BIK_ParamType {
 	BIK_PARAM_TYPE_FLOAT = 0,
@@ -62,8 +62,8 @@ struct BIK_ParamValue {
 };
 typedef struct BIK_ParamValue BIK_ParamValue;
 
-void BIK_initialize_tree(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, float ctime);
-void BIK_execute_tree(const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime);
+void BIK_initialize_tree(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, float ctime);
+void BIK_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, struct bPoseChannel *pchan, float ctime);
 void BIK_release_tree(struct Scene *scene, struct Object *ob, float ctime);
 void BIK_clear_data(struct bPose *pose);
 void BIK_clear_cache(struct bPose *pose);

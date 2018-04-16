@@ -240,10 +240,12 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 						if (mface->v4 && (!intersects_tri || from==PART_FROM_VOLUME)) {
 							copy_v3_v3(v4, mvert[mface->v4].co);
 
-							if (isect_ray_tri_watertight_v3(co1,
-							                                &isect_precalc,
-							                                v1, v3, v4,
-							                                &lambda, NULL)) {
+							if (isect_ray_tri_watertight_v3(
+							            co1,
+							            &isect_precalc,
+							            v1, v3, v4,
+							            &lambda, NULL))
+							{
 								if (from==PART_FROM_FACE)
 									(pa+(int)(lambda*size[a])*a0mul)->flag &= ~PARS_UNEXIST;
 								else
@@ -772,7 +774,7 @@ static void distribute_invalid(ParticleSimulationData *sim, int from)
 {
 	Scene *scene = sim->scene;
 	ParticleSystem *psys = sim->psys;
-	const bool use_render_params = (DEG_get_mode(sim->eval_ctx->depsgraph) == DAG_EVAL_RENDER);
+	const bool use_render_params = (DEG_get_mode(sim->depsgraph) == DAG_EVAL_RENDER);
 
 	if (from == PART_FROM_CHILD) {
 		ChildParticle *cpa;
@@ -840,7 +842,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 
 	psys_thread_context_init(ctx, sim);
 
-	const bool use_render_params = (DEG_get_mode(sim->eval_ctx->depsgraph) == DAG_EVAL_RENDER);
+	const bool use_render_params = (DEG_get_mode(sim->depsgraph) == DAG_EVAL_RENDER);
 	
 	/* First handle special cases */
 	if (from == PART_FROM_CHILD) {

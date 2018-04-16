@@ -38,11 +38,11 @@ extern "C" {
 
 #include "BKE_customdata.h"
 
+struct Depsgraph;
 struct Object;
 struct Scene;
 struct SpaceTransform;
 struct ReportList;
-struct EvaluationContext;
 
 /* Warning, those def are stored in files (TransferData modifier), *DO NOT* modify those values. */
 enum {
@@ -130,12 +130,12 @@ enum {
 };
 
 void BKE_object_data_transfer_layout(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene, struct Object *ob_src,
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob_src,
         struct Object *ob_dst, const int data_types, const bool use_delete,
         const int fromlayers_select[DT_MULTILAYER_INDEX_MAX], const int tolayers_select[DT_MULTILAYER_INDEX_MAX]);
 
 bool BKE_object_data_transfer_mesh(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene,
+        struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob_src, struct Object *ob_dst, const int data_types, const bool use_create,
         const int map_vert_mode, const int map_edge_mode, const int map_loop_mode, const int map_poly_mode,
         struct SpaceTransform *space_transform, const bool auto_transform,
@@ -144,7 +144,7 @@ bool BKE_object_data_transfer_mesh(
         const int mix_mode, const float mix_factor, const char *vgroup_name, const bool invert_vgroup,
         struct ReportList *reports);
 bool BKE_object_data_transfer_dm(
-        const struct EvaluationContext *eval_ctx, struct Scene *scene,
+        struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob_src, struct Object *ob_dst, struct DerivedMesh *dm_dst,
         const int data_types, bool use_create,
         const int map_vert_mode, const int map_edge_mode, const int map_loop_mode, const int map_poly_mode,

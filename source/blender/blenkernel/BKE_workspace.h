@@ -28,7 +28,6 @@
 #include "BLI_compiler_attrs.h"
 
 struct bScreen;
-struct EvaluationContext;
 struct Main;
 struct Scene;
 struct TransformOrientation;

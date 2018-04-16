@@ -32,9 +32,9 @@
 #include "COLLADASWInstanceMaterial.h"
 
 extern "C" {
-	#include "BKE_customdata.h"
-	#include "BKE_material.h"
-	#include "DNA_mesh_types.h"
+#include "BKE_customdata.h"
+#include "BKE_material.h"
+#include "DNA_mesh_types.h"
 }
 
 #include "InstanceWriter.h"

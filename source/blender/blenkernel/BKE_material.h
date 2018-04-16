@@ -118,9 +118,9 @@ void paste_matcopybuf(struct Material *ma);
 
 /* Evaluation. */
 
-struct EvaluationContext;
+struct Depsgraph;
 
-void BKE_material_eval(const struct EvaluationContext *eval_ctx, struct Material *material);
+void BKE_material_eval(struct Depsgraph *depsgraph, struct Material *material);
 
 #ifdef __cplusplus
 }

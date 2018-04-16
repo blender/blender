@@ -5013,7 +5013,7 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			const float mval[2] = {UNPACK2(event->mval)};
 
 			struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-			        CTX_data_main(C), vc.scene, vc.view_layer, 0, vc.ar, vc.v3d);
+			        CTX_data_main(C), vc.scene, 0, vc.ar, vc.v3d);
 
 			ED_transform_snap_object_project_view3d_mixed(
 			        snap_context,
@@ -6237,17 +6237,15 @@ static int match_texture_space_poll(bContext *C)
 
 static int match_texture_space_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *object = CTX_data_active_object(C);
-	EvaluationContext eval_ctx;
 	Curve *curve = (Curve *) object->data;
 	float min[3], max[3], size[3], loc[3];
 	int a;
 
-	CTX_data_eval_ctx(C, &eval_ctx);
-
 	if (object->curve_cache == NULL) {
-		BKE_displist_make_curveTypes(&eval_ctx, scene, object, false);
+		BKE_displist_make_curveTypes(depsgraph, scene, object, false);
 	}
 
 	INIT_MINMAX(min, max);

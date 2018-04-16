@@ -384,100 +384,53 @@ void DRW_state_clip_planes_reset(void)
 /** \name Clipping (DRW_clipping)
  * \{ */
 
-/* Extract the 8 corners (world space).
+/* Extract the 8 corners from a Projection Matrix.
  * Although less accurate, this solution can be simplified as follows:
  * BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
- * for (int i = 0; i < 8; i++) {mul_project_m4_v3(viewprojinv, bbox.vec[i]);}
+ * for (int i = 0; i < 8; i++) {mul_project_m4_v3(projinv, bbox.vec[i]);}
  */
-static void draw_frustum_boundbox_calc(
-        const float (*projmat)[4], const float (*viewinv)[4], BoundBox *r_bbox)
+static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbox)
 {
-	float screenvecs[3][3], loc[3], near, far, w_half, h_half;
+	float near, far, left, right, bottom, top;
 	bool is_persp = projmat[3][3] == 0.0f;
-	copy_m3_m4(screenvecs, viewinv);
-	copy_v3_v3(loc, viewinv[3]);
 
-	/* get the values of the minimum and maximum clipping planes distances
-	 * and half the width and height of the nearplane rectangle. */
 	if (is_persp) {
-		near = projmat[3][2] / (projmat[2][2] - 1.0f);
-		far = projmat[3][2] / (projmat[2][2] + 1.0f);
-		w_half = near / projmat[0][0];
-		h_half = near / projmat[1][1];
+		near   = projmat[3][2] / (projmat[2][2] - 1.0f);
+		far    = projmat[3][2] / (projmat[2][2] + 1.0f);
+		left   = near * (projmat[2][0] - 1.0f) / projmat[0][0];
+		right  = near * (projmat[2][0] + 1.0f) / projmat[0][0];
+		bottom = near * (projmat[2][1] - 1.0f) / projmat[1][1];
+		top    = near * (projmat[2][1] + 1.0f) / projmat[1][1];
 	}
 	else {
-		near = (projmat[3][2] + 1.0f) / projmat[2][2];
-		far = (projmat[3][2] - 1.0f) / projmat[2][2];
-		w_half = 1.0f / projmat[0][0];
-		h_half = 1.0f / projmat[1][1];
+		near   = ( projmat[3][2] + 1.0f) / projmat[2][2];
+		far    = ( projmat[3][2] - 1.0f) / projmat[2][2];
+		left   = (-projmat[3][0] - 1.0f) / projmat[0][0];
+		right  = (-projmat[3][0] + 1.0f) / projmat[0][0];
+		bottom = (-projmat[3][1] - 1.0f) / projmat[1][1];
+		top    = (-projmat[3][1] + 1.0f) / projmat[1][1];
 	}
 
-	/* With vectors aligned to the screen, reconstruct
-	 * the near plane from the dimensions obtained earlier. */
-	float mid[3], hor[3], ver[3];
-	mul_v3_v3fl(hor, screenvecs[0], w_half);
-	mul_v3_v3fl(ver, screenvecs[1], h_half);
-	madd_v3_v3v3fl(mid, loc, screenvecs[2], -near);
-
-	/* The case below is for non-symmetric frustum. */
-	if (is_persp) {
-		madd_v3_v3fl(mid, hor, projmat[2][0]);
-		madd_v3_v3fl(mid, ver, projmat[2][1]);
-	}
-	else {
-		madd_v3_v3fl(mid, hor, -projmat[3][0]);
-		madd_v3_v3fl(mid, ver, -projmat[3][1]);
-	}
-
-	r_bbox->vec[0][0] = mid[0] - ver[0] - hor[0];
-	r_bbox->vec[0][1] = mid[1] - ver[1] - hor[1];
-	r_bbox->vec[0][2] = mid[2] - ver[2] - hor[2];
-
-	r_bbox->vec[3][0] = mid[0] + ver[0] - hor[0];
-	r_bbox->vec[3][1] = mid[1] + ver[1] - hor[1];
-	r_bbox->vec[3][2] = mid[2] + ver[2] - hor[2];
-
-	r_bbox->vec[7][0] = mid[0] + ver[0] + hor[0];
-	r_bbox->vec[7][1] = mid[1] + ver[1] + hor[1];
-	r_bbox->vec[7][2] = mid[2] + ver[2] + hor[2];
-
-	r_bbox->vec[4][0] = mid[0] - ver[0] + hor[0];
-	r_bbox->vec[4][1] = mid[1] - ver[1] + hor[1];
-	r_bbox->vec[4][2] = mid[2] - ver[2] + hor[2];
+	r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
+	r_bbox->vec[0][0] = r_bbox->vec[3][0] = left;
+	r_bbox->vec[4][0] = r_bbox->vec[7][0] = right;
+	r_bbox->vec[0][1] = r_bbox->vec[4][1] = bottom;
+	r_bbox->vec[7][1] = r_bbox->vec[3][1] = top;
 
 	/* Get the coordinates of the far plane. */
 	if (is_persp) {
 		float sca_far = far / near;
-		mid[0] = mid[0] + (mid[0] - loc[0]) * sca_far;
-		mid[1] = mid[1] + (mid[1] - loc[1]) * sca_far;
-		mid[2] = mid[2] + (mid[2] - loc[2]) * sca_far;
-
-		mul_v3_fl(hor, sca_far);
-		mul_v3_fl(ver, sca_far);
-	}
-	else {
-		madd_v3_v3v3fl(mid, loc, screenvecs[2], -far);
-
-		/* Non-symmetric frustum. */
-		madd_v3_v3fl(mid, hor, -projmat[3][0]);
-		madd_v3_v3fl(mid, ver, -projmat[3][1]);
+		left   *= sca_far;
+		bottom *= sca_far;
+		right  *= sca_far;
+		top    *= sca_far;
 	}
 
-	r_bbox->vec[1][0] = mid[0] - ver[0] - hor[0];
-	r_bbox->vec[1][1] = mid[1] - ver[1] - hor[1];
-	r_bbox->vec[1][2] = mid[2] - ver[2] - hor[2];
-
-	r_bbox->vec[2][0] = mid[0] + ver[0] - hor[0];
-	r_bbox->vec[2][1] = mid[1] + ver[1] - hor[1];
-	r_bbox->vec[2][2] = mid[2] + ver[2] - hor[2];
-
-	r_bbox->vec[6][0] = mid[0] + ver[0] + hor[0];
-	r_bbox->vec[6][1] = mid[1] + ver[1] + hor[1];
-	r_bbox->vec[6][2] = mid[2] + ver[2] + hor[2];
-
-	r_bbox->vec[5][0] = mid[0] - ver[0] + hor[0];
-	r_bbox->vec[5][1] = mid[1] - ver[1] + hor[1];
-	r_bbox->vec[5][2] = mid[2] - ver[2] + hor[2];
+	r_bbox->vec[1][2] = r_bbox->vec[2][2] = r_bbox->vec[6][2] = r_bbox->vec[5][2] = -far;
+	r_bbox->vec[1][0] = r_bbox->vec[2][0] = left;
+	r_bbox->vec[6][0] = r_bbox->vec[5][0] = right;
+	r_bbox->vec[1][1] = r_bbox->vec[5][1] = bottom;
+	r_bbox->vec[2][1] = r_bbox->vec[6][1] = top;
 }
 
 static void draw_clipping_setup_from_view(void)
@@ -495,11 +448,15 @@ static void draw_clipping_setup_from_view(void)
 #if 0 /* It has accuracy problems. */
 	BKE_boundbox_init_from_minmax(&bbox, (const float[3]){-1.0f, -1.0f, -1.0f}, (const float[3]){1.0f, 1.0f, 1.0f});
 	for (int i = 0; i < 8; i++) {
-		mul_project_m4_v3(DST.view_data.matstate.mat[DRW_MAT_PERSINV], bbox.vec[i]);
+		mul_project_m4_v3(projinv, bbox.vec[i]);
 	}
 #else
-	draw_frustum_boundbox_calc(projmat, viewinv, &bbox);
+	draw_frustum_boundbox_calc(projmat, &bbox);
 #endif
+	/* Transform into world space. */
+	for (int i = 0; i < 8; i++) {
+		mul_m4_v3(viewinv, bbox.vec[i]);
+	}
 
 	/* Compute clip planes using the world space frustum corners. */
 	for (int p = 0; p < 6; p++) {
@@ -527,9 +484,6 @@ static void draw_clipping_setup_from_view(void)
 		float *nearpoint = bbox.vec[0];
 		float *farpoint = bbox.vec[6];
 
-		mul_project_m4_v3(projinv, nearpoint);
-		mul_project_m4_v3(projinv, farpoint);
-
 		/* just use median point */
 		mid_v3_v3v3(bsphere->center, farpoint, nearpoint);
 		bsphere->radius = len_v3v3(bsphere->center, farpoint);
@@ -553,7 +507,6 @@ static void draw_clipping_setup_from_view(void)
 		float h_sq = len_squared_v3v3(mid_min, mid_max);
 
 		float fac = (4 * h_sq + b_sq - a_sq) / (8 * h_sq);
-		BLI_assert(fac >= 0.0f);
 
 		/* The goal is to get the smallest sphere,
 		 * not the sphere that passes through each corner */
@@ -1010,7 +963,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST_END(start, count)
 #  define GPU_SELECT_LOAD_IF_PICKSEL_LIST(_shgroup, _start, _count) \
 	_start = 0;                                                     \
-	_count = _shgroup->interface.instance_count;
+	_count = _shgroup->instance_count;
 
 #endif
 
@@ -1052,6 +1005,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	}
 	else {
 		bool prev_neg_scale = false;
+		int callid = 0;
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 
 			/* OPTI/IDEA(clem): Do this preparation in another thread. */
@@ -1059,6 +1013,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 
 			if ((call->state->flag & DRW_CALL_CULLED) != 0)
 				continue;
+
+			/* XXX small exception/optimisation for outline rendering. */
+			if (shgroup->callid != -1) {
+				GPU_shader_uniform_vector_int(shgroup->shader, shgroup->callid, 1, 1, &callid);
+				callid += 1;
+			}
 
 			/* Negative scale objects */
 			bool neg_scale = call->state->flag & DRW_CALL_NEGSCALE;

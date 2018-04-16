@@ -333,7 +333,8 @@ static void planeProjection(TransInfo *t, const float in[3], float out[3])
  *
  */
 
-static void applyAxisConstraintVec(TransInfo *t, TransData *td, const float in[3], float out[3], float pvec[3])
+static void applyAxisConstraintVec(
+        TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, const float in[3], float out[3], float pvec[3])
 {
 	copy_v3_v3(out, in);
 	if (!td && t->con.mode & CON_APPLY) {
@@ -380,7 +381,8 @@ static void applyAxisConstraintVec(TransInfo *t, TransData *td, const float in[3
  * Further down, that vector is mapped to each data's space.
  */
 
-static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in[3], float out[3], float pvec[3])
+static void applyObjectConstraintVec(
+        TransInfo *t, TransDataContainer *tc, TransData *td, const float in[3], float out[3], float pvec[3])
 {
 	copy_v3_v3(out, in);
 	if (t->con.mode & CON_APPLY) {
@@ -428,7 +430,7 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in
 
 			mul_m3_v3(td->axismtx, out);
 			if (t->flag & T_EDIT) {
-				mul_m3_v3(t->obedit_mat, out);
+				mul_m3_v3(tc->obedit_mat, out);
 			}
 		}
 	}
@@ -438,7 +440,8 @@ static void applyObjectConstraintVec(TransInfo *t, TransData *td, const float in
  * Generic callback for constant spatial constraints applied to resize motion
  */
 
-static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
+static void applyAxisConstraintSize(
+        TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, float smat[3][3])
 {
 	if (!td && t->con.mode & CON_APPLY) {
 		float tmat[3][3];
@@ -462,7 +465,8 @@ static void applyAxisConstraintSize(TransInfo *t, TransData *td, float smat[3][3
  * Callback for object based spatial constraints applied to resize motion
  */
 
-static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3][3])
+static void applyObjectConstraintSize(
+        TransInfo *t, TransDataContainer *tc, TransData *td, float smat[3][3])
 {
 	if (td && t->con.mode & CON_APPLY) {
 		float tmat[3][3];
@@ -482,7 +486,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
 
 		mul_m3_m3m3(tmat, smat, imat);
 		if (t->flag & T_EDIT) {
-			mul_m3_m3m3(smat, t->obedit_mat, smat);
+			mul_m3_m3m3(smat, tc->obedit_mat, smat);
 		}
 		mul_m3_m3m3(smat, td->axismtx, tmat);
 	}
@@ -502,7 +506,7 @@ static void applyObjectConstraintSize(TransInfo *t, TransData *td, float smat[3]
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], float *angle)
+static void applyAxisConstraintRot(TransInfo *t, TransDataContainer *UNUSED(tc), TransData *td, float vec[3], float *angle)
 {
 	if (!td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
@@ -544,7 +548,8 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], fl
  * (ie: not doing counterclockwise rotations when the mouse moves clockwise).
  */
 
-static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], float *angle)
+static void applyObjectConstraintRot(
+        TransInfo *t, TransDataContainer *tc, TransData *td, float vec[3], float *angle)
 {
 	if (t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0 | CON_AXIS1 | CON_AXIS2);
@@ -553,11 +558,11 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 
 		/* on setup call, use first object */
 		if (td == NULL) {
-			td = t->data;
+			td = tc->data;
 		}
 
 		if (t->flag & T_EDIT) {
-			mul_m3_m3m3(tmp_axismtx, t->obedit_mat, td->axismtx);
+			mul_m3_m3m3(tmp_axismtx, tc->obedit_mat, td->axismtx);
 			axismtx = tmp_axismtx;
 		}
 		else {
@@ -607,20 +612,21 @@ void setConstraint(TransInfo *t, float space[3][3], int mode, const char text[])
 /* applies individual td->axismtx constraints */
 void setAxisMatrixConstraint(TransInfo *t, int mode, const char text[])
 {
-	if (t->total == 1) {
+	TransDataContainer *tc = t->data_container;
+	if (t->data_len_all == 1) {
 		float axismtx[3][3];
 		if (t->flag & T_EDIT) {
-			mul_m3_m3m3(axismtx, t->obedit_mat, t->data->axismtx);
+			mul_m3_m3m3(axismtx, tc->obedit_mat, tc->data->axismtx);
 		}
 		else {
-			copy_m3_m3(axismtx, t->data->axismtx);
+			copy_m3_m3(axismtx, tc->data->axismtx);
 		}
 
 		setConstraint(t, axismtx, mode, text);
 	}
 	else {
 		BLI_strncpy(t->con.text + 1, text, sizeof(t->con.text) - 1);
-		copy_m3_m3(t->con.mtx, t->data->axismtx);
+		copy_m3_m3(t->con.mtx, tc->data->axismtx);
 		t->con.mode = mode;
 		getConstraintMatrix(t);
 
@@ -638,7 +644,9 @@ void setLocalConstraint(TransInfo *t, int mode, const char text[])
 {
 	/* edit-mode now allows local transforms too */
 	if (t->flag & T_EDIT) {
-		setConstraint(t, t->obedit_mat, mode, text);
+		/* Use the active (first) edit object. */
+		TransDataContainer *tc = t->data_container;
+		setConstraint(t, tc->obedit_mat, mode, text);
 	}
 	else {
 		setAxisMatrixConstraint(t, mode, text);
@@ -836,57 +844,59 @@ static void drawObjectConstraint(TransInfo *t)
 	 * Without drawing the first light, users have little clue what they are doing.
 	 */
 	short options = DRAWLIGHT;
-	TransData *td = t->data;
 	int i;
 	float tmp_axismtx[3][3];
 
-	for (i = 0; i < t->total; i++, td++) {
-		float co[3];
-		float (*axismtx)[3];
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		TransData *td = tc->data;
+		for (i = 0; i < tc->data_len; i++, td++) {
+			float co[3];
+			float (*axismtx)[3];
 
-		if (t->flag & T_PROP_EDIT) {
-			/* we're sorted, so skip the rest */
-			if (td->factor == 0.0f) {
-				break;
+			if (t->flag & T_PROP_EDIT) {
+				/* we're sorted, so skip the rest */
+				if (td->factor == 0.0f) {
+					break;
+				}
 			}
-		}
 
-		if (t->options & CTX_GPENCIL_STROKES) {
-			/* only draw a constraint line for one point, otherwise we can't see anything */
-			if ((options & DRAWLIGHT) == 0) {
-				break;
+			if (t->options & CTX_GPENCIL_STROKES) {
+				/* only draw a constraint line for one point, otherwise we can't see anything */
+				if ((options & DRAWLIGHT) == 0) {
+					break;
+				}
 			}
-		}
 
-		if (t->flag & T_OBJECT) {
-			copy_v3_v3(co, td->ob->obmat[3]);
-			axismtx = td->axismtx;
-		}
-		else if (t->flag & T_EDIT) {
-			mul_v3_m4v3(co, t->obedit->obmat, td->center);
+			if (t->flag & T_OBJECT) {
+				copy_v3_v3(co, td->ob->obmat[3]);
+				axismtx = td->axismtx;
+			}
+			else if (t->flag & T_EDIT) {
+				mul_v3_m4v3(co, tc->obedit->obmat, td->center);
 
-			mul_m3_m3m3(tmp_axismtx, t->obedit_mat, td->axismtx);
-			axismtx = tmp_axismtx;
-		}
-		else if (t->flag & T_POSE) {
-			mul_v3_m4v3(co, t->poseobj->obmat, td->center);
-			axismtx = td->axismtx;
-		}
-		else {
-			copy_v3_v3(co, td->center);
-			axismtx = td->axismtx;
-		}
+				mul_m3_m3m3(tmp_axismtx, tc->obedit_mat, td->axismtx);
+				axismtx = tmp_axismtx;
+			}
+			else if (t->flag & T_POSE) {
+				mul_v3_m4v3(co, tc->poseobj->obmat, td->center);
+				axismtx = td->axismtx;
+			}
+			else {
+				copy_v3_v3(co, td->center);
+				axismtx = td->axismtx;
+			}
 
-		if (t->con.mode & CON_AXIS0) {
-			drawLine(t, co, axismtx[0], 'X', options);
+			if (t->con.mode & CON_AXIS0) {
+				drawLine(t, co, axismtx[0], 'X', options);
+			}
+			if (t->con.mode & CON_AXIS1) {
+				drawLine(t, co, axismtx[1], 'Y', options);
+			}
+			if (t->con.mode & CON_AXIS2) {
+				drawLine(t, co, axismtx[2], 'Z', options);
+			}
+			options &= ~DRAWLIGHT;
 		}
-		if (t->con.mode & CON_AXIS1) {
-			drawLine(t, co, axismtx[1], 'Y', options);
-		}
-		if (t->con.mode & CON_AXIS2) {
-			drawLine(t, co, axismtx[2], 'Z', options);
-		}
-		options &= ~DRAWLIGHT;
 	}
 }
 

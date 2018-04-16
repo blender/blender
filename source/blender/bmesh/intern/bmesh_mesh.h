@@ -60,6 +60,7 @@ void BM_edges_sharp_from_angle_set(BMesh *bm, const float split_angle);
 void bmesh_edit_begin(BMesh *bm, const BMOpTypeFlag type_flag);
 void bmesh_edit_end(BMesh *bm, const BMOpTypeFlag type_flag);
 
+void BM_mesh_elem_index_ensure_ex(BMesh *bm, const char htype, int elem_offset[4]);
 void BM_mesh_elem_index_ensure(BMesh *bm, const char hflag);
 void BM_mesh_elem_index_validate(
         BMesh *bm, const char *location, const char *func,
@@ -119,7 +120,7 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 	(dm)->getNumEdges(dm),		\
 	(dm)->getNumLoops(dm),		\
 	(dm)->getNumPolys(dm),		\
-	}
+}
 #define _VA_BMALLOC_TEMPLATE_FROM_DM_2(dm_a, dm_b) { \
 	(CHECK_TYPE_INLINE(dm_a, DerivedMesh *), \
 	 CHECK_TYPE_INLINE(dm_b, DerivedMesh *), \
@@ -127,7 +128,7 @@ extern const BMAllocTemplate bm_mesh_chunksize_default;
 	(dm_a)->getNumEdges(dm_a)  + (dm_b)->getNumEdges(dm_b),	\
 	(dm_a)->getNumLoops(dm_a)  + (dm_b)->getNumLoops(dm_b),	\
 	(dm_a)->getNumPolys(dm_a)  + (dm_b)->getNumPolys(dm_b),	\
-	}
+}
 
 #define BMALLOC_TEMPLATE_FROM_DM(...) VA_NARGS_CALL_OVERLOAD(_VA_BMALLOC_TEMPLATE_FROM_DM_, __VA_ARGS__)
 

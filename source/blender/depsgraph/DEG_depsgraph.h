@@ -60,7 +60,6 @@ typedef struct Depsgraph Depsgraph;
 
 /* ------------------------------------------------ */
 
-struct EvaluationContext;
 struct Main;
 
 struct PointerRNA;
@@ -74,19 +73,6 @@ typedef enum eEvaluationMode {
 	DAG_EVAL_PREVIEW        = 1,    /* evaluate for render with preview settings */
 	DAG_EVAL_RENDER         = 2,    /* evaluate for render purposes */
 } eEvaluationMode;
-
-/* Dependency graph evaluation context
- *
- * This structure stores all the local dependency graph data,
- * which is needed for it's evaluation,
- */
-typedef struct EvaluationContext {
-	eEvaluationMode mode;
-	float ctime;
-
-	struct Depsgraph *depsgraph;
-	struct ViewLayer *view_layer;
-} EvaluationContext;
 
 /* DagNode->eval_flags */
 enum {
@@ -202,37 +188,6 @@ void DEG_ids_check_recalc(struct Main *bmain,
 
 /* ************************************************ */
 /* Evaluation Engine API */
-
-/* Evaluation Context ---------------------------- */
-
-/* Create new evaluation context. */
-struct EvaluationContext *DEG_evaluation_context_new(eEvaluationMode mode);
-
-/* Initialize evaluation context.
- * Used by the areas which currently overrides the context or doesn't have
- * access to a proper one.
- */
-void DEG_evaluation_context_init(struct EvaluationContext *eval_ctx,
-                                 eEvaluationMode mode);
-void DEG_evaluation_context_init_from_scene(
-        struct EvaluationContext *eval_ctx,
-        struct Scene *scene,
-        struct ViewLayer *view_layer,
-        eEvaluationMode mode);
-
-void DEG_evaluation_context_init_from_view_layer_for_render(
-        struct EvaluationContext *eval_ctx,
-        struct Depsgraph *depsgraph,
-        struct Scene *scene,
-        struct ViewLayer *view_layer);
-
-void DEG_evaluation_context_init_from_depsgraph(
-        struct EvaluationContext *eval_ctx,
-        struct Depsgraph *depsgraph,
-        eEvaluationMode mode);
-
-/* Free evaluation context. */
-void DEG_evaluation_context_free(struct EvaluationContext *eval_ctx);
 
 /* Graph Evaluation  ----------------------------- */
 

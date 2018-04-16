@@ -393,7 +393,7 @@ bool paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], b
 	return true;
 }
 
-int do_paintface_box_select(const struct EvaluationContext *eval_ctx, ViewContext *vc, rcti *rect, bool select, bool extend)
+int do_paintface_box_select(ViewContext *vc, rcti *rect, bool select, bool extend)
 {
 	Object *ob = vc->obact;
 	Mesh *me;
@@ -424,7 +424,7 @@ int do_paintface_box_select(const struct EvaluationContext *eval_ctx, ViewContex
 		}
 	}
 
-	ED_view3d_backbuf_validate(eval_ctx, vc);
+	ED_view3d_backbuf_validate(vc);
 
 	ibuf = IMB_allocImBuf(size[0], size[1], 32, IB_rect);
 	rt = ibuf->rect;

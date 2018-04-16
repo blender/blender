@@ -47,6 +47,7 @@
 
 struct Depsgraph;
 struct TransInfo;
+struct TransDataContainer;
 struct TransData;
 struct TransformOrientation;
 struct TransSnap;
@@ -109,7 +110,7 @@ typedef struct TransSnap {
 	 * \note Return value can be anything,
 	 * where the smallest absolute value defines whats closest.
 	 */
-	float  (*distance)(struct TransInfo *, const float p1[3], const float p2[3]);
+	float  (*distance)(struct TransInfo *t, const float p1[3], const float p2[3]);
 
 	/**
 	 * Re-usable snap context data.
@@ -127,14 +128,16 @@ typedef struct TransCon {
 	                     /* the one in TransInfo is not garanty to stay the same (Rotates change it)  */
 	int   mode;          /* Mode flags of the Constraint                                              */
 	void  (*drawExtra)(struct TransInfo *t);
+
+	                     /* Note: if 'tc' is NULL, 'td' must also be NULL. */
 	                     /* For constraints that needs to draw differently from the other
 	                      * uses this instead of the generic draw function                            */
-	void  (*applyVec)(struct TransInfo *t, struct TransData *td, const float in[3], float out[3], float pvec[3]);
+	void  (*applyVec)(struct TransInfo *t, struct TransDataContainer *tc, struct TransData *td, const float in[3], float out[3], float pvec[3]);
 	                     /* Apply function pointer for linear vectorial transformation                */
 	                     /* The last three parameters are pointers to the in/out/printable vectors    */
-	void  (*applySize)(struct TransInfo *t, struct TransData *td, float smat[3][3]);
+	void  (*applySize)(struct TransInfo *t, struct TransDataContainer *tc, struct TransData *td, float smat[3][3]);
 	                     /* Apply function pointer for size transformation */
-	void  (*applyRot)(struct TransInfo *t, struct TransData *td, float vec[3], float *angle);
+	void  (*applyRot)(struct TransInfo *t, struct TransDataContainer *tc, struct TransData *td, float vec[3], float *angle);
 	                     /* Apply function pointer for rotation transformation */
 } TransCon;
 
@@ -270,10 +273,6 @@ typedef struct EdgeSlideData {
 
 	SlideOrigData orig_data;
 
-	float perc;
-
-	bool use_even;
-	bool flipped;
 
 	int curr_sv_index;
 
@@ -281,6 +280,12 @@ typedef struct EdgeSlideData {
 	int curr_side_unclamp;
 } EdgeSlideData;
 
+typedef struct EdgeSlideParams {
+	float perc;
+
+	bool use_even;
+	bool flipped;
+} EdgeSlideParams;
 
 typedef struct TransDataVertSlideVert {
 	/* TransDataGenericSlideVert */
@@ -312,6 +317,13 @@ typedef struct VertSlideData {
 	/* result of ED_view3d_ob_project_mat_get */
 	float proj_mat[4][4];
 } VertSlideData;
+
+typedef struct VertSlideParams {
+	float perc;
+
+	bool use_even;
+	bool flipped;
+} VertSlideParams;
 
 typedef struct BoneInitData {
 	struct EditBone *bone;
@@ -373,16 +385,68 @@ typedef struct MouseInput {
 
 typedef struct TransCustomData {
 	void       *data;
-	void      (*free_cb)(struct TransInfo *, struct TransCustomData *);
+	void      (*free_cb)(struct TransInfo *, struct TransDataContainer *tc, struct TransCustomData *custom_data);
 	unsigned int use_free : 1;
 } TransCustomData;
 
 typedef struct TransCenterData {
-	float local[3], global[3];
+	float global[3];
 	unsigned int is_set : 1;
 } TransCenterData;
 
+/**
+ * Rule of thumb for choosing between mode/type:
+ * - If transform mode uses the data, assign to `mode`
+ *   (typically in transform.c).
+ * - If conversion uses the data as an extension to the #TransData, assign to `type`
+ *   (typically in transform_conversion.c).
+ */
+typedef struct TransCustomDataContainer {
+	/** Owned by the mode (grab, scale, bend... ).*/
+	union {
+		TransCustomData mode, first_elem;
+	};
+	TransCustomData type;
+} TransCustomDataContainer;
+#define TRANS_CUSTOM_DATA_ELEM_MAX (sizeof(TransCustomDataContainer) / sizeof(TransCustomData))
+
+typedef struct TransDataContainer {
+	/**
+	 * Use for cases we care about the active, eg: active vert of active mesh.
+	 * if set this will _always_ be the first item in the array.
+	 */
+	bool is_active;
+
+	/** Transformed data (array). */
+	TransData *data;
+	/** Total number of transformed data. */
+	int data_len;
+
+	/** Transformed data extension (array). */
+	TransDataExtension *data_ext;
+	/** Transformed data for 2d (array). */
+	TransData2D *data_2d;
+
+	struct Object *obedit;
+	/** Normalized editmode matrix ('T_EDIT' only). */
+	float          obedit_mat[3][3];
+
+	/** if 't->flag & T_POSE', this denotes pose object */
+	struct Object *poseobj;
+
+	/** Center of transformation (in local-space), Calculated from #TransInfo.center_global. */
+	float center_local[3];
+
+	TransCustomDataContainer custom;
+} TransDataContainer;
+
 typedef struct TransInfo {
+	TransDataContainer *data_container;
+	int                 data_container_len;
+	/** Combine length of all #TransDataContainer.data_len
+	 * Use to check if nothing is selected or if we have a single selection. */
+	int data_len_all;
+
 	int         mode;           /* current mode                         */
 	int	        flag;           /* generic flags for special behaviors  */
 	int			modifiers;		/* special modifiers, by function, not key */
@@ -393,10 +457,6 @@ typedef struct TransInfo {
 								/* transform function pointer           */
 	eRedrawFlag (*handleEvent)(struct TransInfo *, const struct wmEvent *);
 								/* event handler function pointer  RETURN 1 if redraw is needed */
-	int         total;          /* total number of transformed data     */
-	TransData  *data;           /* transformed data (array)             */
-	TransDataExtension *ext;	/* transformed data extension (array)   */
-	TransData2D *data2d;		/* transformed data for 2d (array)      */
 	TransCon    con;            /* transformed constraint               */
 	TransSnap	tsnap;
 	NumInput    num;            /* numerical input                      */
@@ -406,7 +466,6 @@ typedef struct TransInfo {
 	char		proptext[20];	/* proportional falloff text			*/
 	float       aspect[3];      /* spaces using non 1:1 aspect, (uv's, f-curve, movie-clip... etc)
 	                             * use for conversion and snapping. */
-	float       center[3];      /* center of transformation (in local-space) */
 	float       center_global[3];  /* center of transformation (in global-space) */
 	float       center2d[2];    /* center in screen coordinates         */
 	/* Lazy initialize center data for when we need other center values.
@@ -425,31 +484,13 @@ typedef struct TransInfo {
 	short		around;
 	char		spacetype;		/* spacetype where transforming is      */
 	char		helpline;		/* helpline modes (not to be confused with hotline) */
+	short		obedit_type;	/* Avoid looking inside TransDataContainer obedit. */
 
 	float		vec[3];			/* translation, to show for widget   	*/
 	float		mat[3][3];		/* rot/rescale, to show for widget   	*/
 
 	float		spacemtx[3][3];	/* orientation matrix of the current space	*/
 	char		spacename[64];	/* name of the current space, MAX_NAME		*/
-
-	struct Object *poseobj;		/* if t->flag & T_POSE, this denotes pose object */
-
-	/**
-	 * Rule of thumb for choosing between mode/type:
-	 * - If transform mode uses the data, assign to `mode`
-	 *   (typically in transform.c).
-	 * - If conversion uses the data as an extension to the #TransData, assign to `type`
-	 *   (typically in transform_conversion.c).
-	 */
-	struct {
-		/* owned by the mode (grab, scale, bend... )*/
-		union {
-			TransCustomData mode, first_elem;
-		};
-		/* owned by the type (mesh, armature, nla...) */
-		TransCustomData type;
-	} custom;
-#define TRANS_CUSTOM_DATA_ELEM_MAX (sizeof(((TransInfo *)NULL)->custom) / sizeof(TransCustomData))
 
 	/*************** NEW STUFF *********************/
 	short		launch_event; 	/* event type used to launch transform */
@@ -469,7 +510,6 @@ typedef struct TransInfo {
 
 	bool		remove_on_cancel; /* remove elements if operator is canceled */
 
-	EvaluationContext eval_ctx;
 	void		*view;
 	struct bContext *context; /* Only valid (non null) during an operator called function. */
 	struct ScrArea	*sa;
@@ -484,12 +524,13 @@ typedef struct TransInfo {
 	struct ReportList *reports;  /* assign from the operator, or can be NULL */
 	int         mval[2];        /* current mouse position               */
 	float       zfac;           /* use for 3d view */
-	struct Object *obedit;
-	float          obedit_mat[3][3]; /* normalized editmode matrix (T_EDIT only) */
 	void		*draw_handle_apply;
 	void		*draw_handle_view;
 	void		*draw_handle_pixel;
 	void		*draw_handle_cursor;
+
+	/** Typically for mode settings. */
+	TransCustomDataContainer custom;
 } TransInfo;
 
 
@@ -648,7 +689,7 @@ void flushTransSeq(TransInfo *t);
 void flushTransTracking(TransInfo *t);
 void flushTransMasking(TransInfo *t);
 void flushTransPaintCurve(TransInfo *t);
-void restoreBones(TransInfo *t);
+void restoreBones(TransDataContainer *tc);
 
 /*********************** transform_manipulator.c ********** */
 
@@ -758,6 +799,7 @@ void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *t, float val
 
 /*********************** Generics ********************************/
 
+void initTransDataContainers_FromObjectData(TransInfo *t);
 void initTransInfo(struct bContext *C, TransInfo *t, struct wmOperator *op, const struct wmEvent *event);
 void postTrans(struct bContext *C, TransInfo *t);
 void resetTransModal(TransInfo *t);
@@ -773,9 +815,7 @@ void restoreTransObjects(TransInfo *t);
 void recalcData(TransInfo *t);
 
 void calculateCenter2D(TransInfo *t);
-void calculateCenterGlobal(
-        TransInfo *t, const float center_local[3],
-        float r_center_global[3]);
+void calculateCenterLocal(TransInfo *t, const float center_global[3]);
 
 const TransCenterData *transformCenter_from_type(TransInfo *t, int around);
 void calculateCenter(TransInfo *t);
@@ -816,11 +856,11 @@ int getTransformOrientation_ex(const struct bContext *C, float normal[3], float 
 int getTransformOrientation(const struct bContext *C, float normal[3], float plane[3]);
 
 void freeEdgeSlideTempFaces(EdgeSlideData *sld);
-void freeEdgeSlideVerts(TransInfo *t, TransCustomData *custom_data);
+void freeEdgeSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 void projectEdgeSlideData(TransInfo *t, bool is_final);
 
 void freeVertSlideTempFaces(VertSlideData *sld);
-void freeVertSlideVerts(TransInfo *t, TransCustomData *custom_data);
+void freeVertSlideVerts(TransInfo *t, TransDataContainer *tc, TransCustomData *custom_data);
 void projectVertSlideData(TransInfo *t, bool is_final);
 
 
@@ -830,5 +870,23 @@ bool checkUseAxisMatrix(TransInfo *t);
 #define TRANSFORM_DIST_MAX_PX 1000.0f
 #define TRANSFORM_SNAP_MAX_PX 100.0f
 #define TRANSFORM_DIST_INVALID -FLT_MAX
+
+/* Temp macros. */
+
+/* This is to be replaced, just to get things compiling early on. */
+#define TRANS_DATA_CONTAINER_FIRST_EVIL(t) (&(t)->data_container[0])
+#define TRANS_DATA_CONTAINER_FIRST_OK(t) (&(t)->data_container[0])
+/* For cases we _know_ there is only one handle. */
+#define TRANS_DATA_CONTAINER_FIRST_SINGLE(t) (BLI_assert((t)->data_container_len == 1), (&(t)->data_container[0]))
+
+#define FOREACH_TRANS_DATA_CONTAINER(t, th) \
+	for (TransDataContainer *tc = t->data_container, *tc_end = t->data_container + t->data_container_len; \
+	     th != tc_end; \
+	     th++)
+
+#define FOREACH_TRANS_DATA_CONTAINER_INDEX(t, th, i) \
+	for (TransDataContainer *tc = ((i = 0), t->data_container), *tc_end = t->data_container + t->data_container_len; \
+	     th != tc_end; \
+	     th++, i++)
 
 #endif
