@@ -2157,9 +2157,15 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 					if ((base->object->select_color & 0x0000FFFF) != (col[4] & 0x0000FFFF)) {
 						break;
 					}
-					const uint hit_bone = (col[4] & ~BONESEL_ANY) >> 16;
-					bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);;
-					bone = pchan ? pchan->bone : NULL;
+
+					if ((base->object->pose != NULL) && bone_only) {
+						const uint hit_bone = (col[4] & ~BONESEL_ANY) >> 16;
+						bPoseChannel *pchan = BLI_findlink(&base->object->pose->chanbase, hit_bone);;
+						bone = pchan ? pchan->bone : NULL;
+					}
+					else {
+						bone = NULL;
+					}
 				}
 			}
 
