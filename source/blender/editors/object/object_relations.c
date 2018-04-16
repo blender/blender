@@ -2417,40 +2417,47 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		Base *base = BLI_findlink(&obact->dup_group->view_layer->object_bases, RNA_enum_get(op->ptr, "object"));
 		Object *obgroup = obact;
 		obact = base->object;
+		Group *group = obgroup->dup_group;
 
 		/* First, we make a static override of the linked group itself. */
-		obgroup->dup_group->id.tag |= LIB_TAG_DOIT;
+		group->id.tag |= LIB_TAG_DOIT;
 
-		/* Then, we tag our 'main' object and its detected dependencies to be also overridden. */
-		obact->id.tag |= LIB_TAG_DOIT;
-
-		FOREACH_GROUP_OBJECT_BEGIN(obgroup->dup_group, ob)
+		/* Then, we make static override of the whole set of objects in the group. */
+		FOREACH_GROUP_OBJECT_BEGIN(group, ob)
 		{
-			make_override_static_tag_object(obact, ob);
+			ob->id.tag |= LIB_TAG_DOIT;
 		}
 		FOREACH_GROUP_OBJECT_END;
 
 		success = BKE_override_static_create_from_tag(bmain);
 
-		/* Intantiate our 'main' newly overridden object in scene, if not yet done. */
+		/* Intantiate our newly overridden objects in scene, if not yet done. */
 		Scene *scene = CTX_data_scene(C);
 		ViewLayer *view_layer = CTX_data_view_layer(C);
-		Object *new_obact = (Object *)obact->id.newid;
-		if (new_obact != NULL && (base = BKE_view_layer_base_find(view_layer, new_obact)) == NULL) {
-			BKE_collection_object_add_from(scene, obgroup, new_obact);
-			base = BKE_view_layer_base_find(view_layer, new_obact);
-			BKE_view_layer_base_select(view_layer, base);
+		Group *new_group = (Group *)group->id.newid;
+		FOREACH_GROUP_OBJECT_BEGIN(new_group, new_ob)
+		{
+			if (new_ob != NULL && (base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL) {
+				BKE_collection_object_add_from(scene, obgroup, new_ob);
+				DEG_id_tag_update_ex(bmain, &new_ob->id, OB_RECALC_OB | DEG_TAG_BASE_FLAGS_UPDATE);
+				/* parent to 'group' empty */
+				if (new_ob->parent == NULL) {
+					new_ob->parent = obgroup;
+				}
+				if (new_ob == (Object *)obact->id.newid) {
+					base = BKE_view_layer_base_find(view_layer, new_ob);
+					BKE_view_layer_base_select(view_layer, base);
+				}
+			}
 		}
+		FOREACH_GROUP_OBJECT_END;
 
-		/* Parent the group instantiating object to the new overridden one, or vice-versa, if possible. */
-		if (obgroup->parent == NULL) {
-			obgroup->parent = new_obact;
-		}
-		else if (new_obact->parent == NULL) {
-			new_obact->parent = obgroup;
-		}
+		/* obgroup is no more dupligroup-ing, it merely parents whole group of overriding instantiated objects. */
+		obgroup->dup_group = NULL;
 
 		/* Also, we'd likely want to lock by default things like transformations of implicitly overriden objects? */
+
+		DEG_id_tag_update(&scene->id, 0);
 
 		/* Cleanup. */
 		BKE_main_id_clear_newpoins(bmain);
@@ -2474,7 +2481,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		BKE_main_id_clear_newpoins(bmain);
 		BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, false);
 	}
-	/* TODO: probably more cases where we want ot do automated smart things in the future! */
+	/* TODO: probably more cases where we want to do automated smart things in the future! */
 	else {
 		success = (BKE_override_static_create_from_id(bmain, &obact->id) != NULL);
 	}
