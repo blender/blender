@@ -399,10 +399,10 @@ static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbo
 		far = projmat[3][2] / (projmat[2][2] + 1.0f);
 		float w_half = near / projmat[0][0];
 		float h_half = near / projmat[1][1];
-		left = projmat[2][0] - w_half;
-		right = projmat[2][0] + w_half;
+		left   = projmat[2][0] - w_half;
+		right  = projmat[2][0] + w_half;
 		bottom = projmat[2][1] - h_half;
-		top = projmat[2][1] + h_half;
+		top    = projmat[2][1] + h_half;
 	}
 	else {
 		near = (projmat[3][2] + 1.0f) / projmat[2][2];
@@ -414,7 +414,6 @@ static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbo
 	}
 
 	r_bbox->vec[0][2] = r_bbox->vec[3][2] = r_bbox->vec[7][2] = r_bbox->vec[4][2] = -near;
-	r_bbox->vec[1][2] = r_bbox->vec[2][2] = r_bbox->vec[6][2] = r_bbox->vec[5][2] = -far;
 	r_bbox->vec[0][0] = r_bbox->vec[3][0] = left;
 	r_bbox->vec[4][0] = r_bbox->vec[7][0] = right;
 	r_bbox->vec[0][1] = r_bbox->vec[4][1] = bottom;
@@ -423,12 +422,13 @@ static void draw_frustum_boundbox_calc(const float(*projmat)[4], BoundBox *r_bbo
 	/* Get the coordinates of the far plane. */
 	if (is_persp) {
 		float sca_far = far / near;
-		left *= sca_far;
+		left   *= sca_far;
 		bottom *= sca_far;
-		right *= sca_far;
-		top *= sca_far;
+		right  *= sca_far;
+		top    *= sca_far;
 	}
 
+	r_bbox->vec[1][2] = r_bbox->vec[2][2] = r_bbox->vec[6][2] = r_bbox->vec[5][2] = -far;
 	r_bbox->vec[1][0] = r_bbox->vec[2][0] = left;
 	r_bbox->vec[6][0] = r_bbox->vec[5][0] = right;
 	r_bbox->vec[1][1] = r_bbox->vec[5][1] = bottom;
