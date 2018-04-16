@@ -84,13 +84,6 @@ if(WITH_PYTHON)
 	add_definitions(-DWITH_PYTHON)
 endif()
 
-if(WITH_GAMEENGINE)
-	list(APPEND INC
-		../../../gameengine/BlenderRoutines
-	)
-	add_definitions(-DWITH_GAMEENGINE)
-endif()
-
 add_definitions(${GL_DEFINITIONS})
 
 if(WITH_INTERNATIONAL)

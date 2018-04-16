@@ -18,8 +18,7 @@ Intro
 =====
 
 Module to provide functions concerning the GPU implementation in Blender, in particular
-the GLSL shaders that blender generates automatically to render materials in the 3D view
-and in the game engine.
+the GLSL shaders that blender generates automatically to render materials in the 3D view.
 
 .. warning::
 

@@ -180,10 +180,6 @@ if(WITH_FREESTYLE)
 	add_definitions(-DWITH_FREESTYLE)
 endif()
 
-if(WITH_GAMEENGINE)
-	add_definitions(-DWITH_GAMEENGINE)
-endif()
-
 if(WITH_IMAGE_CINEON)
 	add_definitions(-DWITH_CINEON)
 endif()
@@ -304,10 +300,6 @@ if(WITH_OPENSUBDIV)
 	list(APPEND INC
 		../../../../intern/opensubdiv
 	)
-endif()
-
-if(WITH_PLAYER)
-	add_definitions(-DWITH_PLAYER)
 endif()
 
 add_definitions(${GL_DEFINITIONS})

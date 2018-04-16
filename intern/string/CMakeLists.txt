@@ -34,7 +34,6 @@ set(INC_SYS
 set(SRC
 	intern/STR_String.cpp
 
-	STR_HashedString.h
 	STR_String.h
 )
 

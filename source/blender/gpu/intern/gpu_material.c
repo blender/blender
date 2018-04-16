@@ -1049,7 +1049,7 @@ static void ramp_diffuse_result(GPUShadeInput *shi, GPUNodeLink **diff)
 	Material *ma = shi->mat;
 	GPUMaterial *mat = shi->gpumat;
 
-	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS)) {
+	{
 		if (ma->ramp_col) {
 			if (ma->rampin_col == MA_RAMP_IN_RESULT) {
 				GPUNodeLink *fac;
@@ -1068,9 +1068,7 @@ static void add_to_diffuse(
 {
 	GPUNodeLink *fac, *tmp, *addcol;
 	
-	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
-	    ma->ramp_col && (ma->mode & MA_RAMP_COL))
-	{
+	if (ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
 		/* MA_RAMP_IN_RESULT is exceptional */
 		if (ma->rampin_col == MA_RAMP_IN_RESULT) {
 			addcol = shi->rgb;
@@ -1108,9 +1106,7 @@ static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
 	Material *ma = shi->mat;
 	GPUMaterial *mat = shi->gpumat;
 
-	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
-	    ma->ramp_spec && ma->rampin_spec == MA_RAMP_IN_RESULT)
-	{
+	if (ma->ramp_spec && ma->rampin_spec == MA_RAMP_IN_RESULT) {
 		GPUNodeLink *fac;
 		GPU_link(mat, "ramp_rgbtobw", *spec, &fac);
 		
@@ -1224,7 +1220,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 
 		is = inp; /* Lambert */
 
-		if (!(mat->scene->gm.flag & GAME_GLSL_NO_SHADERS)) {
+		{
 			if (ma->diff_shader == MA_DIFF_ORENNAYAR)
 				GPU_link(mat, "shade_diffuse_oren_nayer", inp, vn, lv, view,
 				         GPU_uniform(&ma->roughness), &is);
@@ -1240,10 +1236,9 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 
-	if (!(mat->scene->gm.flag & GAME_GLSL_NO_SHADERS))
-		if (ma->shade_flag & MA_CUBIC)
-			GPU_link(mat, "shade_cubic", is, &is);
-	
+	if (ma->shade_flag & MA_CUBIC)
+		GPU_link(mat, "shade_cubic", is, &is);
+
 	i = is;
 	GPU_link(mat, "shade_visifac", i, visifac, shi->refl, &i);
 	
@@ -1260,8 +1255,8 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	/* this replaces if (i > 0.0) conditional until that is supported */
 	/* done in shade_visifac now, GPU_link(mat, "mtex_value_clamp_positive", i, &i); */
 
-	if ((ma->mode & MA_SHADOW) && GPU_lamp_has_shadow_buffer(lamp)) {
-		if (!(mat->scene->gm.flag & GAME_GLSL_NO_SHADOWS)) {
+	if (ma->mode & MA_SHADOW) {
+		{
 			mat->dynproperty |= DYN_LAMP_PERSMAT;
 			
 			if (lamp->la->shadowmap_type == LA_SHADMAP_VARIANCE) {
@@ -1300,7 +1295,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			}
 		}
 	}
-	else if ((mat->scene->gm.flag & GAME_GLSL_NO_SHADOWS) && (lamp->mode & LA_ONLYSHADOW)) {
+	else if (lamp->mode & LA_ONLYSHADOW) {
 		add_user_list(&mat->lamps, lamp);
 		return;
 	}
@@ -1318,10 +1313,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 		}
 	}
 
-	if (mat->scene->gm.flag & GAME_GLSL_NO_SHADERS) {
-		/* pass */
-	}
-	else if (!(lamp->mode & LA_NO_SPEC) && !(lamp->mode & LA_ONLYSHADOW) &&
+	if (!(lamp->mode & LA_NO_SPEC) && !(lamp->mode & LA_ONLYSHADOW) &&
 	         (GPU_link_changed(shi->spec) || ma->spec != 0.0f))
 	{
 		if (lamp->type == LA_HEMI) {
@@ -1674,7 +1666,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					texture_rgb_blend(mat, tcol, shi->rgb, tin, colfac, mtex->blendtype, &shi->rgb);
 				}
 				
-				if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_COLSPEC)) {
+				if (mtex->mapto & MAP_COLSPEC) {
 					GPUNodeLink *colspecfac;
 
 					if (mtex->colspecfac == 1.0f) colspecfac = stencil;
@@ -1698,7 +1690,7 @@ static void do_material_tex(GPUShadeInput *shi)
 				}
 			}
 
-			if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && (mtex->mapto & MAP_NORM)) {
+			if (mtex->mapto & MAP_NORM) {
 				if (tex->type == TEX_IMAGE) {
 					found_deriv_map = tex->imaflag & TEX_DERIVATIVEMAP;
 
@@ -1905,7 +1897,7 @@ static void do_material_tex(GPUShadeInput *shi)
 						GPU_link(mat, "mtex_rgbtoint", trgb, &tin);
 				}
 
-				if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_REF) {
+				if (mtex->mapto & MAP_REF) {
 					GPUNodeLink *difffac;
 
 					if (mtex->difffac == 1.0f) difffac = stencil;
@@ -1916,7 +1908,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					        mtex->blendtype, &shi->refl);
 					GPU_link(mat, "mtex_value_clamp_positive", shi->refl, &shi->refl);
 				}
-				if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_SPEC) {
+				if (mtex->mapto & MAP_SPEC) {
 					GPUNodeLink *specfac;
 
 					if (mtex->specfac == 1.0f) specfac = stencil;
@@ -1927,7 +1919,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					        mtex->blendtype, &shi->spec);
 					GPU_link(mat, "mtex_value_clamp_positive", shi->spec, &shi->spec);
 				}
-				if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_EMIT) {
+				if (mtex->mapto & MAP_EMIT) {
 					GPUNodeLink *emitfac;
 
 					if (mtex->emitfac == 1.0f) emitfac = stencil;
@@ -1938,7 +1930,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					        mtex->blendtype, &shi->emit);
 					GPU_link(mat, "mtex_value_clamp_positive", shi->emit, &shi->emit);
 				}
-				if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_HAR) {
+				if (mtex->mapto & MAP_HAR) {
 					GPUNodeLink *hardfac;
 
 					if (mtex->hardfac == 1.0f) hardfac = stencil;
@@ -1961,7 +1953,7 @@ static void do_material_tex(GPUShadeInput *shi)
 					        mtex->blendtype, &shi->alpha);
 					GPU_link(mat, "mtex_value_clamp", shi->alpha, &shi->alpha);
 				}
-				if (!(mat->scene->gm.flag & GAME_GLSL_NO_EXTRA_TEX) && mtex->mapto & MAP_AMB) {
+				if (mtex->mapto & MAP_AMB) {
 					GPUNodeLink *ambfac;
 
 					if (mtex->ambfac == 1.0f) ambfac = stencil;
@@ -2056,7 +2048,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 
 	do_material_tex(shi);
 
-	if ((mat->scene->gm.flag & GAME_GLSL_NO_LIGHTS) || (ma->mode & MA_SHLESS)) {
+	if (ma->mode & MA_SHLESS) {
 		GPU_link(mat, "set_rgb", shi->rgb, &shr->diff);
 		GPU_link(mat, "set_rgb_zero", &shr->spec);
 		GPU_link(mat, "set_value", shi->alpha, &shr->alpha);
@@ -2098,8 +2090,7 @@ void GPU_shaderesult_set(GPUShadeInput *shi, GPUShadeResult *shr)
 			}
 
 			/* environment lighting */
-			if (!(mat->scene->gm.flag & GAME_GLSL_NO_ENV_LIGHTING) &&
-			    (world->mode & WO_ENV_LIGHT) &&
+			if ((world->mode & WO_ENV_LIGHT) &&
 			    (mat->scene->r.mode & R_SHADOW) &&
 			    !BKE_scene_use_new_shading_nodes(mat->scene))
 			{
@@ -2608,7 +2599,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma, bool use_open
 	else if (new_shading_nodes && ma->alpha < 1.0f)
 		GPU_material_enable_alpha(mat);
 
-	if (!(scene->gm.flag & GAME_GLSL_NO_NODES) && ma->nodetree && ma->use_nodes) {
+	if (ma->nodetree && ma->use_nodes) {
 		/* create nodes */
 		if (new_shading_nodes)
 			ntreeGPUMaterialNodes(ma->nodetree, mat, NODE_NEW_SHADING);

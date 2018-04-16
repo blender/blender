@@ -48,7 +48,7 @@ class VIEWLAYER_UL_viewlayers(UIList):
 class VIEWLAYER_PT_layers(ViewLayerButtonsPanel, Panel):
     bl_label = "Layer List"
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -56,10 +56,6 @@ class VIEWLAYER_PT_layers(ViewLayerButtonsPanel, Panel):
         scene = context.scene
         rd = scene.render
         view_render = scene.view_render
-
-        if view_render.engine == 'BLENDER_GAME':
-            layout.label("Not available in the Game Engine")
-            return
 
         row = layout.row()
         col = row.column()

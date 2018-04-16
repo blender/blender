@@ -670,9 +670,7 @@ static int check_mode_full_sample(RenderData *rd, ViewRender *view_render)
 	const char *engine_id = view_render->engine_id;
 	int scemode = rd->scemode;
 
-	if (!STREQ(engine_id, RE_engine_id_BLENDER_RENDER) &&
-	    !STREQ(engine_id, RE_engine_id_BLENDER_GAME))
-	{
+	if (!STREQ(engine_id, RE_engine_id_BLENDER_RENDER)) {
 		scemode &= ~R_FULL_SAMPLE;
 	}
 

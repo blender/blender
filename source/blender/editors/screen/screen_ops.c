@@ -288,11 +288,6 @@ int ED_operator_nla_active(bContext *C)
 	return ed_spacetype_test(C, SPACE_NLA);
 }
 
-int ED_operator_logic_active(bContext *C)
-{
-	return ed_spacetype_test(C, SPACE_LOGIC);
-}
-
 int ED_operator_info_active(bContext *C)
 {
 	return ed_spacetype_test(C, SPACE_INFO);

@@ -91,7 +91,6 @@ void		WM_exit				(struct bContext *C) ATTR_NORETURN;
 
 void		WM_main				(struct bContext *C) ATTR_NORETURN;
 
-bool 		WM_init_game		(struct bContext *C);
 void		WM_init_splash		(struct bContext *C);
 
 

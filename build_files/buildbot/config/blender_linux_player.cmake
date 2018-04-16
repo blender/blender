@@ -9,4 +9,3 @@ set(WITH_OPENSUBDIV          OFF CACHE BOOL "" FORCE)
 set(WITH_LIBMV               OFF CACHE BOOL "" FORCE)
 
 set(WITH_BLENDER             OFF CACHE BOOL "" FORCE)
-set(WITH_PLAYER              ON  CACHE BOOL "" FORCE)

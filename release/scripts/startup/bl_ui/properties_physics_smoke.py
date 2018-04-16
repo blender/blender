@@ -364,7 +364,7 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
     def poll(cls, context):
         md = context.smoke
         view_render = context.scene.view_render
-        return md and (md.smoke_type == 'DOMAIN') and (not view_render.use_game_engine)
+        return md and (md.smoke_type == 'DOMAIN')
 
     def draw(self, context):
         domain = context.smoke.domain_settings

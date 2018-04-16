@@ -6,7 +6,6 @@
 
 # disable Blender
 set(WITH_BLENDER             OFF  CACHE BOOL "" FORCE)
-set(WITH_PLAYER              OFF  CACHE BOOL "" FORCE)
 set(WITH_CYCLES_BLENDER      OFF  CACHE BOOL "" FORCE)
 
 # build Cycles

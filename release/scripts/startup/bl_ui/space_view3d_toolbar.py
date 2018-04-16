@@ -1199,7 +1199,7 @@ class TEXTURE_UL_texpaintslots(UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
-            if (not mat.use_nodes) and context.engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
+            if (not mat.use_nodes) and context.engine == 'BLENDER_RENDER':
                 mtex_index = mat.texture_paint_slots[index].index
                 layout.prop(mat, "use_textures", text="", index=mtex_index)
         elif self.layout_type == 'GRID':
@@ -1262,7 +1262,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 else:
                     slot = None
 
-                if (not mat.use_nodes) and context.engine in {'BLENDER_RENDER', 'BLENDER_GAME'}:
+                if (not mat.use_nodes) and context.engine == 'BLENDER_RENDER':
                     row = col.row(align=True)
                     row.operator_menu_enum("paint.add_texture_paint_slot", "type")
                     row.operator("paint.delete_texture_paint_slot", text="", icon='X')

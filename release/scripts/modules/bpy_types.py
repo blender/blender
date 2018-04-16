@@ -517,15 +517,6 @@ class Text(bpy_types.ID):
         self.clear()
         self.write(string)
 
-    @property
-    def users_logic(self):
-        """Logic bricks that use this text"""
-        import bpy
-        return tuple(obj for obj in bpy.data.objects
-                     if self in [cont.text for cont in obj.game.controllers
-                                 if cont.type == 'PYTHON']
-                     )
-
 
 # values are module: [(cls, path, line), ...]
 TypeMap = {}

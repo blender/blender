@@ -270,9 +270,6 @@ struct uiBut {
 	uiButHandleHoldFunc hold_func;
 	void *hold_argN;
 
-	uiLink *link;
-	short linkto[2];  /* region relative coords */
-	
 	const char *tip;
 	uiButToolTipFunc tip_func;
 	void *tip_argN;
@@ -450,8 +447,6 @@ typedef struct uiSafetyRct {
 } uiSafetyRct;
 
 /* interface.c */
-
-extern void ui_linkline_remove(uiLinkLine *line, uiBut *but);
 
 void ui_fontscale(short *points, float aspect);
 

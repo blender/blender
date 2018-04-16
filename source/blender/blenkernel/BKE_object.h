@@ -43,7 +43,6 @@ struct Object;
 struct BoundBox;
 struct View3D;
 struct SoftBody;
-struct BulletSoftBody;
 struct MovieClip;
 struct Main;
 struct RigidBodyWorld;
@@ -57,13 +56,11 @@ void BKE_object_workob_calc_parent(struct Depsgraph *depsgraph, struct Scene *sc
 
 void BKE_object_transform_copy(struct Object *ob_tar, const struct Object *ob_src);
 struct SoftBody *copy_softbody(const struct SoftBody *sb, const int flag);
-struct BulletSoftBody *copy_bulletsoftbody(const struct BulletSoftBody *sb, const int flag);
 struct ParticleSystem *BKE_object_copy_particlesystem(struct ParticleSystem *psys, const int flag);
 void BKE_object_copy_particlesystems(struct Object *ob_dst, const struct Object *ob_src, const int flag);
 void BKE_object_copy_softbody(struct Object *ob_dst, const struct Object *ob_src);
 void BKE_object_free_particlesystems(struct Object *ob);
 void BKE_object_free_softbody(struct Object *ob);
-void BKE_object_free_bulletsoftbody(struct Object *ob);
 void BKE_object_free_curve_cache(struct Object *ob);
 
 void BKE_object_free(struct Object *ob);
@@ -112,14 +109,6 @@ void *BKE_object_obdata_add_from_type(
         struct Main *bmain,
         int type, const char *name)
         ATTR_NONNULL(1);
-
-void BKE_object_lod_add(struct Object *ob);
-void BKE_object_lod_sort(struct Object *ob);
-bool BKE_object_lod_remove(struct Object *ob, int level);
-void BKE_object_lod_update(struct Object *ob, const float camera_position[3]);
-bool BKE_object_lod_is_usable(struct Object *ob, struct ViewLayer *view_layer);
-struct Object *BKE_object_lod_meshob_get(struct Object *ob, struct ViewLayer *view_layer);
-struct Object *BKE_object_lod_matob_get(struct Object *ob, struct ViewLayer *view_layer);
 
 void BKE_object_copy_data(struct Main *bmain, struct Object *ob_dst, const struct Object *ob_src, const int flag);
 struct Object *BKE_object_copy(struct Main *bmain, const struct Object *ob);

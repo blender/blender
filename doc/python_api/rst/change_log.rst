@@ -54,19 +54,6 @@ Removed
 
 * **network_render**
 
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.use_material_physics_fh`
-
-Removed
-^^^^^^^
-
-* **use_material_physics**
-
 bpy.types.SplinePoints
 ----------------------
 
@@ -218,15 +205,6 @@ Renamed
 ^^^^^^^
 
 * **viscosity_omega** -> :class:`bpy.types.SPHFluidSettings.linear_viscosity`
-
-bpy.types.ConstraintActuator
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.ConstraintActuator.direction_axis_pos`
-* :class:`bpy.types.ConstraintActuator.fh_force`
 
 Removed
 ^^^^^^^
@@ -679,14 +657,6 @@ Removed
 * **use_branching**
 * **use_symmetric_branching**
 
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.show_mouse`
-
 bpy.types.MaterialPhysics
 -------------------------
 
@@ -863,14 +833,6 @@ Added
 
 * :class:`bpy.types.SpaceTextEditor.use_match_case`
 
-bpy.types.CameraActuator
-------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.CameraActuator.damping`
-
 bpy.types.Property
 ------------------
 
@@ -902,15 +864,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.Image.resolution`
-
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.use_glsl_color_management`
-
 
 2.58 to 2.59
 ============
@@ -1070,20 +1023,6 @@ Removed
 * **use_object_color**
 * **use_blend_shared**
 
-Moved
-^^^^^
-
-* **hide** -> :class:`bpy.types.Material.game_settings.invisible`
-* **use_collision** -> :class:`bpy.types.Material.game_settings.physics`
-* **use_light** -> :class:`bpy.types.Material.game_settings.use_shadeless`
-* **use_twoside** -> :class:`bpy.types.Material.game_settings.backface_culling`
-* **use_bitmap_text** -> :class:`bpy.types.Material.game_settings.text`
-* **blend_type** -> :class:`bpy.types.Material.game_settings.alpha_blend`
-* **use_alpha_sort** -> :class:`bpy.types.Material.game_settings.alpha_blend`
-* **use_billboard** -> :class:`bpy.types.Material.game_settings.face_orientation`
-* **use_halo** -> :class:`bpy.types.Material.game_settings.face_orientation`
-* **use_shadow_cast** -> :class:`bpy.types.Material.game_settings.face_orientation`
-
 .. Automatically Generated, 2.59 -> r40804!
 
 bpy.types.RenderSettings
@@ -1147,15 +1086,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.Armature.deform_method`
-
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.obstacle_radius`
-* :class:`bpy.types.GameObjectSettings.use_obstacle_create`
 
 bpy.types.BlendData
 -------------------
@@ -1360,14 +1290,6 @@ Added
 
 * :class:`bpy.types.MovieSequence.stream_index`
 
-bpy.types.Material
-------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Material.game_settings`
-
 bpy.types.Object
 ----------------
 
@@ -1408,19 +1330,6 @@ Added
 
 * :class:`bpy.types.DopeSheet.show_datablock_filters`
 * :class:`bpy.types.DopeSheet.show_speakers`
-
-bpy.types.ActionActuator
-------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.ActionActuator.apply_to_children`
-* :class:`bpy.types.ActionActuator.layer`
-* :class:`bpy.types.ActionActuator.layer_weight`
-* :class:`bpy.types.ActionActuator.use_additive`
-* :class:`bpy.types.ActionActuator.use_force`
-* :class:`bpy.types.ActionActuator.use_local`
 
 bpy.types.VertexGroup
 ---------------------
@@ -1469,19 +1378,6 @@ Added
 
 * :class:`bpy.types.ParticleSettings.adaptive_subframes`
 * :class:`bpy.types.ParticleSettings.courant_target`
-
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.level_height`
-* :class:`bpy.types.SceneGameData.obstacle_simulation`
-* :class:`bpy.types.SceneGameData.recast_data`
-* :class:`bpy.types.SceneGameData.restrict_animation_updates`
-* :class:`bpy.types.SceneGameData.show_obstacle_simulation`
-
 
 2.60 to 2.61
 ============
@@ -2156,24 +2052,6 @@ Added
 * :class:`bpy.types.DomainFluidSettings.frame_offset`
 * :class:`bpy.types.DomainFluidSettings.simulation_rate`
 
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.exit_key`
-* :class:`bpy.types.SceneGameData.samples`
-* :class:`bpy.types.SceneGameData.use_desktop`
-
-bpy.types.Sensor
-----------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Sensor.controllers`
-
 bpy.types.Scene
 ---------------
 
@@ -2181,14 +2059,6 @@ Removed
 ^^^^^^^
 
 * **collada_export**
-
-bpy.types.Controller
---------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Controller.actuators`
 
 bpy.types.SceneRenderLayer
 --------------------------
@@ -2498,14 +2368,6 @@ Added
 
 * :class:`bpy.types.ParticleSettings.use_rotations`
 
-bpy.types.SceneGameData
------------------------
-
-Renamed
-^^^^^^^
-
-* **dome_tesselation** -> :class:`bpy.types.SceneGameData.dome_tessellation`
-
 bpy.types.RegionView3D
 ----------------------
 
@@ -2634,14 +2496,6 @@ Renamed
 ^^^^^^^
 
 * **location** -> :class:`bpy.types.TexMapping.translation`
-
-bpy.types.ArmatureActuator
---------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.ArmatureActuator.influence`
 
 bpy.types.ThemeTextEditor
 -------------------------
@@ -2779,17 +2633,6 @@ Added
 
 * :class:`bpy.types.ThemeView3D.bone_pose_active`
 * :class:`bpy.types.ThemeView3D.skin_root`
-
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.fall_speed`
-* :class:`bpy.types.GameObjectSettings.jump_speed`
-* :class:`bpy.types.GameObjectSettings.step_height`
-
 
 bpy.types.BlendData
 -------------------
@@ -3064,16 +2907,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.ParticleSettings.use_scale_dupli`
-
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.deactivation_angular_threshold`
-* :class:`bpy.types.SceneGameData.deactivation_linear_threshold`
-* :class:`bpy.types.SceneGameData.deactivation_time`
 
 bpy.types.SoundSequence
 -----------------------
@@ -3518,14 +3351,6 @@ Added
 
 * :class:`bpy.types.GlowSequence.input_1`
 * :class:`bpy.types.GlowSequence.input_count`
-
-bpy.types.MouseSensor
----------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.MouseSensor.use_pulse`
 
 bpy.types.MovieSequence
 -----------------------
@@ -4116,15 +3941,6 @@ Removed
 
 * **use_outflow**
 
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.collision_group`
-* :class:`bpy.types.GameObjectSettings.collision_mask`
-
 bpy.types.SpaceView3D
 ---------------------
 
@@ -4660,15 +4476,6 @@ Function Arguments
 
 * :class:`bpy.types.Object.to_mesh` (scene, apply_modifiers, settings, calc_tessface), *was (scene, apply_modifiers, settings)*
 
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.raster_storage`
-* :class:`bpy.types.SceneGameData.use_material_caching`
-
 bpy.types.CyclesRenderSettings
 ------------------------------
 
@@ -4759,15 +4566,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.CompositorNodeTree.use_groupnode_buffer`
-
-bpy.types.ObjectActuator
-------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.ObjectActuator.use_add_character_location`
-* :class:`bpy.types.ObjectActuator.use_character_jump`
 
 bpy.types.Bone
 --------------
@@ -5101,14 +4899,6 @@ Added
 ^^^^^
 
 * :class:`bpy.types.LoopColors.remove`
-
-bpy.types.SceneGameData
------------------------
-
-Renamed
-^^^^^^^
-
-* **restrict_animation_updates** -> :class:`bpy.types.SceneGameData.use_restrict_animation_updates`
 
 bpy.types.NodeSocket
 --------------------
@@ -5943,14 +5733,6 @@ Added
 2.68 to 2.69
 ============
 
-bpy.types.ActionActuator
-------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.ActionActuator.blend_mode`
-
 bpy.types.ColorManagedViewSettings
 ----------------------------------
 
@@ -6180,14 +5962,6 @@ Added
 * :class:`bpy.types.RenderLayer.use_pass_subsurface_direct`
 * :class:`bpy.types.RenderLayer.use_pass_subsurface_indirect`
 
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.vsync`
-
 bpy.types.SceneRenderLayer
 --------------------------
 
@@ -6343,14 +6117,6 @@ Removed
 ^^^^^^^
 
 * **raycasting_algorithm**
-
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.use_record_animation`
 
 bpy.types.Armature
 ------------------
@@ -6963,14 +6729,6 @@ Removed
 2.70 to 2.71
 ============
 
-bpy.types.Actuator
-------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Actuator.active`
-
 bpy.types.BlendDataLineStyles
 -----------------------------
 
@@ -7009,14 +6767,6 @@ Added
 * :class:`bpy.types.TransformConstraint.to_min_y_scale`
 * :class:`bpy.types.TransformConstraint.to_min_z_rot`
 * :class:`bpy.types.TransformConstraint.to_min_z_scale`
-
-bpy.types.Controller
---------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Controller.active`
 
 bpy.types.FCurve
 ----------------
@@ -7225,14 +6975,6 @@ Added
 
 * :class:`bpy.types.RenderSettings.bake`
 
-bpy.types.Sensor
-----------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Sensor.active`
-
 bpy.types.SequenceElements
 --------------------------
 
@@ -7342,15 +7084,6 @@ Function Arguments
 
 2.71 to 2.72
 ============
-
-bpy.types.EditObjectActuator
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.EditObjectActuator.track_axis`
-* :class:`bpy.types.EditObjectActuator.up_axis`
 
 bpy.types.BlendData
 -------------------
@@ -7642,17 +7375,6 @@ Added
 
 * :class:`bpy.types.RenderSettings.preview_start_resolution`
 * :class:`bpy.types.RenderSettings.use_render_cache`
-
-bpy.types.MouseSensor
----------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.MouseSensor.material`
-* :class:`bpy.types.MouseSensor.property`
-* :class:`bpy.types.MouseSensor.use_material`
-* :class:`bpy.types.MouseSensor.use_x_ray`
 
 bpy.types.SpaceUVEditor
 -----------------------
@@ -8008,14 +7730,6 @@ Added
 
 2.73 to 2.74
 ============
-
-bpy.types.SteeringActuator
---------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SteeringActuator.lock_z_velocity`
 
 bpy.types.BackgroundImage
 -------------------------
@@ -8847,28 +8561,6 @@ Function Arguments
 
 * :class:`bpy.types.RenderSettings.frame_path` (frame, preview, view), *was (frame)*
 
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.scene_hysteresis_percentage`
-* :class:`bpy.types.SceneGameData.use_scene_hysteresis`
-
-bpy.types.Sensor
-----------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.Sensor.tick_skip`
-
-Removed
-^^^^^^^
-
-* **frequency**
-
 bpy.types.EffectSequence
 ------------------------
 
@@ -9076,15 +8768,6 @@ Added
 * :class:`bpy.types.FileSelectParams.recursion_level`
 * :class:`bpy.types.FileSelectParams.use_filter_blendid`
 * :class:`bpy.types.FileSelectParams.use_library_browsing`
-
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.angular_velocity_max`
-* :class:`bpy.types.GameObjectSettings.angular_velocity_min`
 
 bpy.types.ID
 ------------
@@ -9353,14 +9036,6 @@ Removed
 ^^^^^^^
 
 * **thumbnail_size**
-
-bpy.types.GameObjectSettings
-----------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.GameObjectSettings.jump_max`
 
 bpy.types.ID
 ------------
@@ -10522,22 +10197,6 @@ Added
 * :class:`bpy.types.RenderSettings.use_stamp_labels`
 * :class:`bpy.types.RenderSettings.use_stamp_memory`
 * :class:`bpy.types.RenderSettings.use_world_space_shading`
-
-bpy.types.SceneGameData
------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameData.use_glsl_environment_lighting`
-
-bpy.types.SceneGameRecastData
------------------------------
-
-Added
-^^^^^
-
-* :class:`bpy.types.SceneGameRecastData.partitioning`
 
 bpy.types.TextSequence
 ----------------------

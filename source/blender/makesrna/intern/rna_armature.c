@@ -989,11 +989,6 @@ static void rna_def_armature(BlenderRNA *brna)
 		{ARM_WIRE, "WIRE", 0, "Wire", "Display bones as thin wires, showing subdivision and B-Splines"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static const EnumPropertyItem prop_vdeformer[] = {
-		{ARM_VDEF_BLENDER, "BLENDER", 0, "Blender", "Use Blender's armature vertex deformation"},
-		{ARM_VDEF_BGE_CPU, "BGE_CPU", 0, "BGE", "Use vertex deformation code optimized for the BGE"},
-		{0, NULL, 0, NULL, NULL}
-	};
 	static const EnumPropertyItem prop_ghost_type_items[] = {
 		{ARM_GHOST_CUR, "CURRENT_FRAME", 0, "Around Frame",
 		                "Display Ghosts of poses within a fixed number of frames around the current frame"},
@@ -1050,13 +1045,6 @@ static void rna_def_armature(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 
-	prop = RNA_def_property(srna, "deform_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "gevertdeformer");
-	RNA_def_property_enum_items(prop, prop_vdeformer);
-	RNA_def_property_ui_text(prop, "Vertex Deformer", "Vertex Deformer Method (Game Engine only)");
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
-	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
-	
 /* XXX deprecated ....... old animviz for armatures only */
 	prop = RNA_def_property(srna, "ghost_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ghosttype");

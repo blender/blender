@@ -48,7 +48,6 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_vfont_types.h"
-#include "DNA_actuator_types.h"
 #include "DNA_gpencil_types.h"
 
 #include "BLI_utildefines.h"
@@ -88,7 +87,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_report.h"
-#include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
 #include "BKE_speaker.h"
@@ -439,12 +437,6 @@ Object *ED_object_add_type(
 
 	/* more editor stuff */
 	ED_object_base_init_transform(C, view_layer->basact, loc, rot);
-
-	/* Ignore collisions by default for non-mesh objects */
-	if (type != OB_MESH) {
-		ob->body_type = OB_BODY_TYPE_NO_COLLISION;
-		ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH); /* copied from rna_object.c */
-	}
 
 	/* TODO(sergey): This is weird to manually tag objects for update, better to
 	 * use DEG_id_tag_update here perhaps.
@@ -1347,8 +1339,6 @@ static void copy_object_set_idnew(bContext *C)
 	}
 	CTX_DATA_END;
 
-	set_sca_new_poins();
-
 	BKE_main_id_clear_newpoins(bmain);
 }
 
@@ -1502,7 +1492,6 @@ static void make_object_duplilist_real(bContext *C, Scene *scene, Base *base,
 
 		/* Remap new object to itself, and clear again newid pointer of orig object. */
 		BKE_libblock_relink_to_newid(&ob_dst->id);
-		set_sca_new_poins_ob(ob_dst);
 
 		DEG_id_tag_update(&ob_dst->id, OB_RECALC_DATA);
 
@@ -1659,10 +1648,6 @@ static void curvetomesh(Depsgraph *depsgraph, Scene *scene, Object *ob)
 
 	if (ob->type == OB_MESH) {
 		BKE_object_free_modifiers(ob, 0);
-
-		/* Game engine defaults for mesh objects */
-		ob->body_type = OB_BODY_TYPE_STATIC;
-		ob->gameflag = OB_PROP | OB_COLLISION;
 	}
 }
 
@@ -2277,24 +2262,9 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, ViewLayer 
 			}
 
 			if (dupflag & USER_DUP_ACT) {
-				bActuator *act;
-
 				BKE_animdata_copy_id_action((ID *)obn->data, true);
 				if (key) {
 					BKE_animdata_copy_id_action((ID *)key, true);
-				}
-
-				/* Update the duplicated action in the action actuators */
-				/* XXX TODO this code is all wrong! actact->act is user-refcounted (see readfile.c),
-				 * and what about other ID pointers of other BGE logic bricks,
-				 * and since this is object-level, why is it only ran if obdata was duplicated??? -mont29 */
-				for (act = obn->actuators.first; act; act = act->next) {
-					if (act->type == ACT_ACTION) {
-						bActionActuator *actact = (bActionActuator *) act->data;
-						if (ob->adt && actact->act == ob->adt->action) {
-							actact->act = obn->adt->action;
-						}
-					}
 				}
 			}
 
@@ -2331,8 +2301,6 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, ViewLayer *view_layer, 
 	Base *basen;
 	Object *ob;
 
-	clear_sca_new_poins();  /* BGE logic */
-
 	basen = object_add_duplicate_internal(bmain, scene, view_layer, base->object, dupflag);
 	if (basen == NULL) {
 		return NULL;
@@ -2342,7 +2310,6 @@ Base *ED_object_add_duplicate(Main *bmain, Scene *scene, ViewLayer *view_layer, 
 
 	/* link own references to the newly duplicated data [#26816] */
 	BKE_libblock_relink_to_newid(&ob->id);
-	set_sca_new_poins_ob(ob);
 
 	/* DAG_relations_tag_update(bmain); */ /* caller must do */
 
@@ -2363,8 +2330,6 @@ static int duplicate_exec(bContext *C, wmOperator *op)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool linked = RNA_boolean_get(op->ptr, "linked");
 	int dupflag = (linked) ? 0 : U.dupflag;
-
-	clear_sca_new_poins();  /* BGE logic */
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
@@ -2449,8 +2414,6 @@ static int add_named_exec(bContext *C, wmOperator *op)
 	}
 
 	/* prepare dupli */
-	clear_sca_new_poins();  /* BGE logic */
-
 	basen = object_add_duplicate_internal(bmain, scene, view_layer, ob, dupflag);
 
 	if (basen == NULL) {

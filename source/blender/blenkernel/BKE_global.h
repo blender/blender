@@ -102,7 +102,6 @@ typedef struct Global {
 /* G.f */
 #define G_RENDER_OGL    (1 <<  0)
 #define G_SWAP_EXCHANGE (1 <<  1)
-/* also uses G_FILE_AUTOPLAY */
 /* #define G_RENDER_SHADOW	(1 <<  3) */ /* temp flag, removed */
 #define G_BACKBUFSEL    (1 <<  4)
 #define G_PICKSEL       (1 <<  5)
@@ -154,16 +153,6 @@ enum {
 
 #define G_AUTOPACK               (1 << 0)
 #define G_FILE_COMPRESS          (1 << 1)
-#define G_FILE_AUTOPLAY          (1 << 2)
-
-#ifdef DNA_DEPRECATED_ALLOW
-#define G_FILE_ENABLE_ALL_FRAMES (1 << 3)               /* deprecated */
-#define G_FILE_SHOW_DEBUG_PROPS  (1 << 4)               /* deprecated */
-#define G_FILE_SHOW_FRAMERATE    (1 << 5)               /* deprecated */
-/* #define G_FILE_SHOW_PROFILE   (1 << 6) */            /* deprecated */
-/* #define G_FILE_LOCK           (1 << 7) */            /* deprecated */
-/* #define G_FILE_SIGN           (1 << 8) */            /* deprecated */
-#endif  /* DNA_DEPRECATED_ALLOW */
 
 #define G_FILE_USERPREFS         (1 << 9)
 #define G_FILE_NO_UI             (1 << 10)

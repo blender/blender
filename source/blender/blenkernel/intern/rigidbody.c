@@ -1024,8 +1024,8 @@ RigidBodyOb *BKE_rigidbody_create_object(Scene *scene, Object *ob, short type)
 	rbo->lin_sleep_thresh = 0.4f; /* 0.4 is half of Bullet default */
 	rbo->ang_sleep_thresh = 0.5f; /* 0.5 is half of Bullet default */
 
-	rbo->lin_damping = 0.04f; /* 0.04 is game engine default */
-	rbo->ang_damping = 0.1f; /* 0.1 is game engine default */
+	rbo->lin_damping = 0.04f;
+	rbo->ang_damping = 0.1f;
 
 	rbo->col_groups = 1;
 

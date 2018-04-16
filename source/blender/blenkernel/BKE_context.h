@@ -173,7 +173,6 @@ struct SpaceOops *CTX_wm_space_outliner(const bContext *C);
 struct SpaceNla *CTX_wm_space_nla(const bContext *C);
 struct SpaceTime *CTX_wm_space_time(const bContext *C);
 struct SpaceNode *CTX_wm_space_node(const bContext *C);
-struct SpaceLogic *CTX_wm_space_logic(const bContext *C);
 struct SpaceIpo *CTX_wm_space_graph(const bContext *C);
 struct SpaceAction *CTX_wm_space_action(const bContext *C);
 struct SpaceInfo *CTX_wm_space_info(const bContext *C);

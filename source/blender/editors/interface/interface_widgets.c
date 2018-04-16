@@ -3177,36 +3177,6 @@ bool ui_link_bezier_points(const rcti *rect, float coord_array[][2], int resol)
 	return true;
 }
 
-#define LINK_RESOL  24
-void ui_draw_link_bezier(const rcti *rect, const float color[4])
-{
-	float coord_array[LINK_RESOL + 1][2];
-
-	if (ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-#if 0 /* unused */
-		/* we can reuse the dist variable here to increment the GL curve eval amount*/
-		const float dist = 1.0f / (float)LINK_RESOL;
-#endif
-		glEnable(GL_BLEND);
-		glEnable(GL_LINE_SMOOTH);
-
-		immUniformColor4fv(color);
-
-		immBegin(GWN_PRIM_LINE_STRIP, LINK_RESOL + 1);
-		for (int i = 0; i <= LINK_RESOL; ++i)
-			immVertex2fv(pos, coord_array[i]);
-		immEnd();
-
-		glDisable(GL_BLEND);
-		glDisable(GL_LINE_SMOOTH);
-
-		immUnbindProgram();
-	}
-}
-
 /* function in use for buttons and for view2d sliders */
 void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *slider, int state)
 {
@@ -3378,24 +3348,6 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 	/* raise text a bit */
 	rect->xmin += (BLI_rcti_size_x(&rect_prog) / 2);
 	rect->xmax += (BLI_rcti_size_x(&rect_prog) / 2);
-}
-
-static void widget_link(uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *rect, int UNUSED(state), int UNUSED(roundboxalign))
-{
-	
-	if (but->flag & UI_SELECT) {
-		rcti rectlink;
-		float color[4];
-		
-		UI_GetThemeColor4fv(TH_TEXT_HI, color);
-		
-		rectlink.xmin = BLI_rcti_cent_x(rect);
-		rectlink.ymin = BLI_rcti_cent_y(rect);
-		rectlink.xmax = but->linkto[0];
-		rectlink.ymax = but->linkto[1];
-		
-		ui_draw_link_bezier(&rectlink, color);
-	}
 }
 
 static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
@@ -4342,14 +4294,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case UI_BTYPE_LISTBOX:
 				wt = widget_type(UI_WTYPE_BOX);
 				break;
-				
-			case UI_BTYPE_LINK:
-			case UI_BTYPE_INLINK:
-				wt = widget_type(UI_WTYPE_ICON);
-				wt->custom = widget_link;
-				
-				break;
-			
+
 			case UI_BTYPE_EXTRA:
 				widget_draw_extra_mask(C, but, widget_type(UI_WTYPE_BOX), rect);
 				break;

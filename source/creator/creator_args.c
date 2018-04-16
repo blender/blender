@@ -76,13 +76,6 @@
 
 #include "GPU_draw.h"
 
-/* for passing information between creator and gameengine */
-#ifdef WITH_GAMEENGINE
-#  include "BL_System.h"
-#else /* dummy */
-#  define SYS_SystemHandle int
-#endif
-
 #ifdef WITH_LIBMV
 #  include "libmv-capi.h"
 #endif
@@ -511,11 +504,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--start-console");
 	BLI_argsPrintArgDoc(ba, "--no-native-pixels");
 
-
-	printf("\n");
-	printf("Game Engine Specific Options:\n");
-	BLI_argsPrintArgDoc(ba, "-g");
-
 	printf("\n");
 	printf("Python Options:\n");
 	BLI_argsPrintArgDoc(ba, "--enable-autoexec");
@@ -581,7 +569,6 @@ static int arg_handle_print_help(int UNUSED(argc), const char **UNUSED(argv), vo
 	BLI_argsPrintArgDoc(ba, "--env-system-scripts");
 	BLI_argsPrintArgDoc(ba, "--env-system-python");
 	printf("\n");
-	BLI_argsPrintArgDoc(ba, "-nojoystick");
 	BLI_argsPrintArgDoc(ba, "-noaudio");
 	BLI_argsPrintArgDoc(ba, "-setaudio");
 
@@ -1125,27 +1112,6 @@ static int arg_handle_register_extension(int UNUSED(argc), const char **UNUSED(a
 	return 0;
 }
 
-static const char arg_handle_joystick_disable_doc[] =
-"\n\tDisable joystick support."
-;
-static int arg_handle_joystick_disable(int UNUSED(argc), const char **UNUSED(argv), void *data)
-{
-#ifndef WITH_GAMEENGINE
-	(void)data;
-#else
-	SYS_SystemHandle *syshandle = data;
-
-	/**
-	 * don't initialize joysticks if user doesn't want to use joysticks
-	 * failed joystick initialization delays over 5 seconds, before game engine start
-	 */
-	SYS_WriteCommandLineInt(*syshandle, "nojoystick", 1);
-	if (G.debug & G_DEBUG) printf("disabling nojoystick\n");
-#endif
-
-	return 0;
-}
-
 static const char arg_handle_audio_disable_doc[] =
 "\n\tForce sound system to None."
 ;
@@ -1377,76 +1343,6 @@ static int arg_handle_extension_set(int argc, const char **argv, void *data)
 		printf("\nError: you must specify a path after '- '.\n");
 		return 0;
 	}
-}
-
-static const char arg_handle_ge_parameters_set_doc[] =
-"Game Engine specific options\n"
-"\n"
-"\t'fixedtime'\n"
-"\t\tRun on 50 hertz without dropping frames.\n"
-"\t'vertexarrays'\n"
-"\t\tUse Vertex Arrays for rendering (usually faster).\n"
-"\t'nomipmap'\n"
-"\t\tNo Texture Mipmapping.\n"
-"\t'linearmipmap'\n"
-"\t\tLinear Texture Mipmapping instead of Nearest (default)."
-;
-static int arg_handle_ge_parameters_set(int argc, const char **argv, void *data)
-{
-	int a = 0;
-#ifdef WITH_GAMEENGINE
-	SYS_SystemHandle syshandle = *(SYS_SystemHandle *)data;
-#else
-	(void)data;
-#endif
-
-	/**
-	 * gameengine parameters are automatically put into system
-	 * -g [paramname = value]
-	 * -g [boolparamname]
-	 * example:
-	 * -g novertexarrays
-	 * -g maxvertexarraysize = 512
-	 */
-
-	if (argc >= 1) {
-		const char *paramname = argv[a];
-		/* check for single value versus assignment */
-		if (a + 1 < argc && (*(argv[a + 1]) == '=')) {
-			a++;
-			if (a + 1 < argc) {
-				a++;
-				/* assignment */
-#ifdef WITH_GAMEENGINE
-				SYS_WriteCommandLineString(syshandle, paramname, argv[a]);
-#endif
-			}
-			else {
-				printf("Error: argument assignment (%s) without value.\n", paramname);
-				return 0;
-			}
-			/* name arg eaten */
-
-		}
-		else {
-#ifdef WITH_GAMEENGINE
-			SYS_WriteCommandLineInt(syshandle, argv[a], 1);
-#endif
-			/* doMipMap */
-			if (STREQ(argv[a], "nomipmap")) {
-				GPU_set_mipmap(0); //doMipMap = 0;
-			}
-			/* linearMipMap */
-			if (STREQ(argv[a], "linearmipmap")) {
-				GPU_set_mipmap(1);
-				GPU_set_linear_mipmap(1); //linearMipMap = 1;
-			}
-
-
-		} /* if (*(argv[a + 1]) == '=') */
-	}
-
-	return a;
 }
 
 static const char arg_handle_render_frame_doc[] =
@@ -1890,7 +1786,7 @@ static int arg_handle_load_file(int UNUSED(argc), const char **argv, void *data)
 }
 
 
-void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
+void main_args_setup(bContext *C, bArgs *ba)
 {
 
 #define CB(a) a##_doc, a
@@ -2004,12 +1900,10 @@ void main_args_setup(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 2, NULL, "--no-native-pixels", CB(arg_handle_native_pixels_set), ba);
 
 	/* third pass: disabling things and forcing settings */
-	BLI_argsAddCase(ba, 3, "-nojoystick", 1, NULL, 0, CB(arg_handle_joystick_disable), syshandle);
 	BLI_argsAddCase(ba, 3, "-noaudio", 1, NULL, 0, CB(arg_handle_audio_disable), NULL);
 	BLI_argsAddCase(ba, 3, "-setaudio", 1, NULL, 0, CB(arg_handle_audio_set), NULL);
 
 	/* fourth pass: processing arguments */
-	BLI_argsAdd(ba, 4, "-g", NULL, CB(arg_handle_ge_parameters_set), syshandle);
 	BLI_argsAdd(ba, 4, "-f", "--render-frame", CB(arg_handle_render_frame), C);
 	BLI_argsAdd(ba, 4, "-a", "--render-anim", CB(arg_handle_render_animation), C);
 	BLI_argsAdd(ba, 4, "-S", "--scene", CB(arg_handle_scene_set), C);

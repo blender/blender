@@ -271,7 +271,7 @@ class EEVEE_WORLD_PT_mist(WorldButtonsPanel, Panel):
 
 
 class WORLD_PT_custom_props(WorldButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
     _context_path = "world"
     _property_type = bpy.types.World
 

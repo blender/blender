@@ -745,13 +745,6 @@ typedef struct RenderData {
 	short jp2_preset  DNA_DEPRECATED, jp2_depth  DNA_DEPRECATED;  /*deprecated*/
 	int rpad3;
 
-	/* Dome variables */ //  XXX deprecated since 2.5
-	short domeres  DNA_DEPRECATED, domemode  DNA_DEPRECATED;	//  XXX deprecated since 2.5
-	short domeangle  DNA_DEPRECATED, dometilt  DNA_DEPRECATED;	//  XXX deprecated since 2.5
-	float domeresbuf  DNA_DEPRECATED;	//  XXX deprecated since 2.5
-	float pad2;
-	struct Text *dometext  DNA_DEPRECATED;	//  XXX deprecated since 2.5
-
 	/* Freestyle line thickness options */
 	int line_thickness_mode;
 	float unit_line_thickness; /* in pixels */
@@ -802,180 +795,6 @@ typedef struct RenderProfile {
 	float ao_error, pad2;
 	
 } RenderProfile;
-
-/* *************************************************************** */
-/* Game Engine - Dome */
-
-typedef struct GameDome {
-	short res, mode;
-	short angle, tilt;
-	float resbuf, pad2;
-	struct Text *warptext;
-} GameDome;
-
-/* GameDome.mode */
-#define DOME_FISHEYE			1
-#define DOME_TRUNCATED_FRONT	2
-#define DOME_TRUNCATED_REAR		3
-#define DOME_ENVMAP				4
-#define DOME_PANORAM_SPH		5
-#define DOME_NUM_MODES			6
-
-/* *************************************************************** */
-/* Game Engine */
-
-typedef struct GameFraming {
-	float col[3];
-	char type, pad1, pad2, pad3;
-} GameFraming;
-
-/* GameFraming.type */
-#define SCE_GAMEFRAMING_BARS   0
-#define SCE_GAMEFRAMING_EXTEND 1
-#define SCE_GAMEFRAMING_SCALE  2
-
-typedef struct RecastData {
-	float cellsize;
-	float cellheight;
-	float agentmaxslope;
-	float agentmaxclimb;
-	float agentheight;
-	float agentradius;
-	float edgemaxlen;
-	float edgemaxerror;
-	float regionminsize;
-	float regionmergesize;
-	int vertsperpoly;
-	float detailsampledist;
-	float detailsamplemaxerror;
-	char partitioning;
-	char pad1;
-	short pad2;
-} RecastData;
-
-/* RecastData.partitioning */
-#define RC_PARTITION_WATERSHED 0
-#define RC_PARTITION_MONOTONE 1
-#define RC_PARTITION_LAYERS 2
-
-typedef struct GameData {
-
-	/* standalone player */
-	struct GameFraming framing;
-	short playerflag, xplay, yplay, freqplay;
-	short depth, attrib, rt1, rt2;
-	short aasamples, pad4[3];
-
-	/* stereo/dome mode */
-	struct GameDome dome;
-	short stereoflag, stereomode;
-	float eyeseparation;
-	RecastData recastData;
-
-
-	/* physics (it was in world)*/
-	float gravity; /*Gravitation constant for the game world*/
-
-	/*
-	 * Radius of the activity bubble, in Manhattan length. Objects
-	 * outside the box are activity-culled. */
-	float activityBoxRadius;
-
-	/*
-	 * bit 3: (gameengine): Activity culling is enabled.
-	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling
-	 */
-	int flag;
-	short mode, matmode;
-	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */
-	short physicsEngine;
-	short exitkey;
-	short vsync; /* Controls vsync: off, on, or adaptive (if supported) */
-	short ticrate, maxlogicstep, physubstep, maxphystep;
-	short obstacleSimulation;
-	short raster_storage;
-	float levelHeight;
-	float deactivationtime, lineardeactthreshold, angulardeactthreshold;
-
-	/* Scene LoD */
-	short lodflag, pad2;
-	int scehysteresis, pad5;
-
-} GameData;
-
-/* GameData.stereoflag */
-#define STEREO_NOSTEREO		1
-#define STEREO_ENABLED		2
-#define STEREO_DOME			3
-
-/* GameData.stereomode */
-//#define STEREO_NOSTEREO		 1
-#define STEREO_QUADBUFFERED 2
-#define STEREO_ABOVEBELOW	 3
-#define STEREO_INTERLACED	 4
-#define STEREO_ANAGLYPH		5
-#define STEREO_SIDEBYSIDE	6
-#define STEREO_VINTERLACE	7
-//#define STEREO_DOME		8
-#define STEREO_3DTVTOPBOTTOM 9
-
-/* GameData.physicsEngine */
-#define WOPHY_NONE		0
-#define WOPHY_BULLET	5
-
-/* obstacleSimulation */
-#define OBSTSIMULATION_NONE		0
-#define OBSTSIMULATION_TOI_rays		1
-#define OBSTSIMULATION_TOI_cells	2
-
-/* GameData.raster_storage */
-#define RAS_STORE_AUTO		0
-/* #define RAS_STORE_IMMEDIATE	1 */  /* DEPRECATED */
-#define RAS_STORE_VA		2
-#define RAS_STORE_VBO		3
-
-/* GameData.vsync */
-#define VSYNC_ON	0
-#define VSYNC_OFF	1
-#define VSYNC_ADAPTIVE	2
-
-/* GameData.flag */
-#define GAME_RESTRICT_ANIM_UPDATES			(1 << 0)
-#define GAME_ENABLE_ALL_FRAMES				(1 << 1)
-#define GAME_SHOW_DEBUG_PROPS				(1 << 2)
-#define GAME_SHOW_FRAMERATE					(1 << 3)
-#define GAME_SHOW_PHYSICS					(1 << 4)
-// #define GAME_DISPLAY_LISTS					(1 << 5)   /* deprecated */
-#define GAME_GLSL_NO_LIGHTS					(1 << 6)
-#define GAME_GLSL_NO_SHADERS				(1 << 7)
-#define GAME_GLSL_NO_SHADOWS				(1 << 8)
-#define GAME_GLSL_NO_RAMPS					(1 << 9)
-#define GAME_GLSL_NO_NODES					(1 << 10)
-#define GAME_GLSL_NO_EXTRA_TEX				(1 << 11)
-#define GAME_IGNORE_DEPRECATION_WARNINGS	(1 << 12)
-#define GAME_ENABLE_ANIMATION_RECORD		(1 << 13)
-#define GAME_SHOW_MOUSE						(1 << 14)
-#define GAME_GLSL_NO_COLOR_MANAGEMENT		(1 << 15)
-#define GAME_SHOW_OBSTACLE_SIMULATION		(1 << 16)
-#define GAME_NO_MATERIAL_CACHING			(1 << 17)
-#define GAME_GLSL_NO_ENV_LIGHTING			(1 << 18)
-/* Note: GameData.flag is now an int (max 32 flags). A short could only take 16 flags */
-
-/* GameData.playerflag */
-#define GAME_PLAYER_FULLSCREEN				(1 << 0)
-#define GAME_PLAYER_DESKTOP_RESOLUTION		(1 << 1)
-
-/* GameData.matmode */
-enum {
-#ifdef DNA_DEPRECATED
-	GAME_MAT_TEXFACE    = 0, /* deprecated */
-#endif
-	GAME_MAT_MULTITEX   = 1,
-	GAME_MAT_GLSL       = 2,
-};
-
-/* GameData.lodflag */
-#define SCE_LOD_USE_HYST		(1 << 0)
 
 /* UV Paint */
 /* ToolSettings.uv_sculpt_settings */
@@ -1678,10 +1497,6 @@ typedef struct Scene {
 	/* User-Defined KeyingSets */
 	int active_keyingset;			/* index of the active KeyingSet. first KeyingSet has index 1, 'none' active is 0, 'add new' is -1 */
 	ListBase keyingsets;			/* KeyingSets for this scene */
-	
-	/* Game Settings */
-	struct GameFraming framing  DNA_DEPRECATED; // XXX  deprecated since 2.5
-	struct GameData gm;
 
 	/* Units */
 	struct UnitSettings unit;
@@ -1715,8 +1530,6 @@ typedef struct Scene {
 
 	IDProperty *collection_properties;  /* settings to be overriden by layer collections */
 	IDProperty *layer_properties;  /* settings to be override by workspaces */
-
-	int pad5[2];
 
 	ViewRender view_render;
 } Scene;
@@ -1910,7 +1723,6 @@ enum {
 
 /* RenderData.engine (scene.c) */
 extern const char *RE_engine_id_BLENDER_RENDER;
-extern const char *RE_engine_id_BLENDER_GAME;
 extern const char *RE_engine_id_BLENDER_CLAY;
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;

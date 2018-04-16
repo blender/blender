@@ -38,6 +38,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_constraint_types.h"
 #include "DNA_gpu_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
@@ -53,6 +54,7 @@
 #include "DNA_workspace_types.h"
 
 #include "BKE_collection.h"
+#include "BKE_constraint.h"
 #include "BKE_customdata.h"
 #include "BKE_freestyle.h"
 #include "BKE_group.h"
@@ -314,7 +316,7 @@ void do_versions_after_linking_280(Main *main)
 				scene->active_view_layer = 0;
 
 				/* Handle legacy render layers. */
-				if (!BKE_scene_uses_blender_game(scene)) {
+				{
 					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
 
 						ViewLayer *view_layer = BKE_view_layer_add(scene, srl->name);
@@ -417,15 +419,6 @@ void do_versions_after_linking_280(Main *main)
 
 					if (BLI_findlink(&scene->view_layers, scene->r.actlay)) {
 						scene->active_view_layer = scene->r.actlay;
-					}
-				}
-				else {
-					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
-						if (srl->prop) {
-							IDP_FreeProperty(srl->prop);
-							MEM_freeN(srl->prop);
-						}
-						BKE_freestyle_config_free(&srl->freestyleConfig, true);
 					}
 				}
 				BLI_freelistN(&scene->r.layers);
@@ -900,7 +893,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
 		if (DNA_struct_elem_find(fd->filesdna, "SpaceOops", "int", "filter") == false) {
 			bScreen *sc;
 			ScrArea *sa;
@@ -932,10 +925,26 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
 			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
 				probe->intensity = 1.0f;
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
+		for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+			bConstraint *con, *con_next;
+			con = ob->constraints.first;
+			while (con) {
+				con_next = con->next;
+				if (con->type == 17) { /* CONSTRAINT_TYPE_RIGIDBODYJOINT */
+					BLI_remlink(&ob->constraints, con);
+					BKE_constraint_free_data(con);
+					MEM_freeN(con);
+				}
+				con = con_next;
 			}
 		}
 	}

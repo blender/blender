@@ -29,13 +29,11 @@
 
 #include "DNA_action_types.h"
 #include "DNA_customdata_types.h"
-#include "DNA_controller_types.h"
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_object_force_types.h"
 #include "DNA_object_types.h"
-#include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_workspace_types.h"
@@ -121,18 +119,6 @@ static EnumPropertyItem dupli_items_nogroup[] = {
 #undef DUPLI_ITEMS_SHARED
 #undef DUPLI_ITEM_GROUP
 
-static const EnumPropertyItem collision_bounds_items[] = {
-	{OB_BOUND_BOX, "BOX", ICON_MESH_CUBE, "Box", ""},
-	{OB_BOUND_SPHERE, "SPHERE", ICON_MESH_UVSPHERE, "Sphere", ""},
-	{OB_BOUND_CYLINDER, "CYLINDER", ICON_MESH_CYLINDER, "Cylinder", ""},
-	{OB_BOUND_CONE, "CONE", ICON_MESH_CONE, "Cone", ""},
-	{OB_BOUND_CONVEX_HULL, "CONVEX_HULL", ICON_MESH_ICOSPHERE, "Convex Hull", ""},
-	{OB_BOUND_TRIANGLE_MESH, "TRIANGLE_MESH", ICON_MESH_MONKEY, "Triangle Mesh", ""},
-	{OB_BOUND_CAPSULE, "CAPSULE", ICON_MESH_CAPSULE, "Capsule", ""},
-	/*{OB_DYN_MESH, "DYNAMIC_MESH", 0, "Dynamic Mesh", ""}, */
-	{0, NULL, 0, NULL, NULL}
-};
-
 const EnumPropertyItem rna_enum_metaelem_type_items[] = {
 	{MB_BALL, "BALL", ICON_META_BALL, "Ball", ""},
 	{MB_TUBE, "CAPSULE", ICON_META_CAPSULE, "Capsule", ""},
@@ -192,7 +178,6 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #include "DNA_node_types.h"
 
 #include "BKE_armature.h"
-#include "BKE_bullet.h"
 #include "BKE_constraint.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
@@ -467,32 +452,6 @@ static void rna_Object_empty_draw_type_set(PointerRNA *ptr, int value)
 	Object *ob = (Object *)ptr->data;
 
 	BKE_object_empty_draw_type_set(ob, value);
-}
-
-static const EnumPropertyItem *rna_Object_collision_bounds_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                           PropertyRNA *UNUSED(prop), bool *r_free)
-{
-	Object *ob = (Object *)ptr->data;
-	EnumPropertyItem *item = NULL;
-	int totitem = 0;
-
-	if (ob->body_type != OB_BODY_TYPE_CHARACTER) {
-		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_TRIANGLE_MESH);
-	}
-	RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CONVEX_HULL);
-
-	if (ob->body_type != OB_BODY_TYPE_SOFT) {
-		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CONE);
-		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CYLINDER);
-		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_SPHERE);
-		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_BOX);
-		RNA_enum_items_add_value(&item, &totitem, collision_bounds_items, OB_BOUND_CAPSULE);
-	}
-
-	RNA_enum_item_end(&item, &totitem);
-	*r_free = true;
-
-	return item;
 }
 
 static void rna_Object_parent_bone_set(PointerRNA *ptr, const char *value)
@@ -1047,122 +1006,6 @@ static char *rna_MaterialSlot_path(PointerRNA *ptr)
  *
  * logic from check_body_type()
  *  */
-static int rna_GameObjectSettings_physics_type_get(PointerRNA *ptr)
-{
-	Object *ob = (Object *)ptr->id.data;
-
-	/* determine the body_type setting based on flags */
-	if (!(ob->gameflag & OB_COLLISION)) {
-		if (ob->gameflag & OB_OCCLUDER) {
-			ob->body_type = OB_BODY_TYPE_OCCLUDER;
-		}
-		else if (ob->gameflag & OB_NAVMESH) {
-			ob->body_type = OB_BODY_TYPE_NAVMESH;
-		}
-		else {
-			ob->body_type = OB_BODY_TYPE_NO_COLLISION;
-		}
-	}
-	else if (ob->gameflag & OB_CHARACTER) {
-		ob->body_type = OB_BODY_TYPE_CHARACTER;
-	}
-	else if (ob->gameflag & OB_SENSOR) {
-		ob->body_type = OB_BODY_TYPE_SENSOR;
-	}
-	else if (!(ob->gameflag & OB_DYNAMIC)) {
-		ob->body_type = OB_BODY_TYPE_STATIC;
-	}
-	else if (!(ob->gameflag & (OB_RIGID_BODY | OB_SOFT_BODY))) {
-		ob->body_type = OB_BODY_TYPE_DYNAMIC;
-	}
-	else if (ob->gameflag & OB_RIGID_BODY) {
-		ob->body_type = OB_BODY_TYPE_RIGID;
-	}
-	else {
-		ob->body_type = OB_BODY_TYPE_SOFT;
-		/* create the structure here because we display soft body buttons in the main panel */
-		if (!ob->bsoft)
-			ob->bsoft = bsbNew();
-	}
-
-	return ob->body_type;
-}
-
-static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
-{
-	Object *ob = (Object *)ptr->id.data;
-	const int gameflag_prev = ob->gameflag;
-	ob->body_type = value;
-
-	switch (ob->body_type) {
-		case OB_BODY_TYPE_SENSOR:
-			ob->gameflag |= OB_SENSOR | OB_COLLISION;
-			ob->gameflag &= ~(OB_OCCLUDER | OB_CHARACTER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
-			                  OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
-			break;
-		case OB_BODY_TYPE_OCCLUDER:
-			ob->gameflag |= OB_OCCLUDER;
-			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_DYNAMIC | OB_NAVMESH);
-			break;
-		case OB_BODY_TYPE_NAVMESH:
-			ob->gameflag |= OB_NAVMESH;
-			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_DYNAMIC | OB_OCCLUDER);
-
-			if (ob->type == OB_MESH) {
-				/* could be moved into mesh UI but for now ensure mesh data layer */
-				BKE_mesh_ensure_navmesh(ob->data);
-			}
-
-			break;
-		case OB_BODY_TYPE_NO_COLLISION:
-			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH);
-			break;
-		case OB_BODY_TYPE_CHARACTER:
-			ob->gameflag |= OB_COLLISION | OB_CHARACTER;
-			ob->gameflag &= ~(OB_SENSOR | OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
-			                  OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
-			/* When we switch to character physics and the collision bounds is set to triangle mesh
-			 * we have to change collision bounds because triangle mesh is not supported by Characters */
-			if ((ob->gameflag & OB_BOUNDS) && ob->collision_boundtype == OB_BOUND_TRIANGLE_MESH) {
-				ob->boundtype = ob->collision_boundtype = OB_BOUND_BOX;
-			}
-			break;
-		case OB_BODY_TYPE_STATIC:
-			ob->gameflag |= OB_COLLISION;
-			ob->gameflag &= ~(OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
-			break;
-		case OB_BODY_TYPE_DYNAMIC:
-			ob->gameflag |= OB_COLLISION | OB_DYNAMIC | OB_ACTOR;
-			ob->gameflag &= ~(OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
-			break;
-		case OB_BODY_TYPE_RIGID:
-			ob->gameflag |= OB_COLLISION | OB_DYNAMIC | OB_RIGID_BODY | OB_ACTOR;
-			ob->gameflag &= ~(OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
-			break;
-		default:
-		case OB_BODY_TYPE_SOFT:
-			ob->gameflag |= OB_COLLISION | OB_DYNAMIC | OB_SOFT_BODY | OB_ACTOR;
-			ob->gameflag &= ~(OB_RIGID_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
-
-			/* assume triangle mesh, if no bounds chosen for soft body */
-			if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype < OB_BOUND_TRIANGLE_MESH)) {
-				ob->boundtype = OB_BOUND_TRIANGLE_MESH;
-			}
-			/* create a BulletSoftBody structure if not already existing */
-			if (!ob->bsoft)
-				ob->bsoft = bsbNew();
-			break;
-	}
-
-	if ((gameflag_prev & OB_NAVMESH) != (ob->gameflag & OB_NAVMESH)) {
-		if (ob->type == OB_MESH) {
-			/* this is needed to refresh the derived meshes draw func */
-			DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
-		}
-	}
-
-	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ptr->id.data);
-}
 
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
 {
@@ -1170,117 +1013,6 @@ static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
 	ParticleSystem *psys = psys_get_current(ob);
 	return rna_pointer_inherit_refine(ptr, &RNA_ParticleSystem, psys);
 }
-
-static PointerRNA rna_Object_game_settings_get(PointerRNA *ptr)
-{
-	return rna_pointer_inherit_refine(ptr, &RNA_GameObjectSettings, ptr->id.data);
-}
-
-static void rna_GameObjectSettings_state_get(PointerRNA *ptr, int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	int i;
-	int all_states = (ob->scaflag & OB_ALLSTATE) ? 1 : 0;
-
-	memset(values, 0, sizeof(int) * OB_MAX_STATES);
-	for (i = 0; i < OB_MAX_STATES; i++) {
-		values[i] = (ob->state & (1 << i)) ? 1 : 0 | all_states;
-	}
-}
-
-static void rna_GameObjectSettings_state_set(PointerRNA *ptr, const int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	int i, tot = 0;
-
-	/* ensure we always have some state selected */
-	for (i = 0; i < OB_MAX_STATES; i++)
-		if (values[i])
-			tot++;
-	
-	if (tot == 0)
-		return;
-
-	for (i = 0; i < OB_MAX_STATES; i++) {
-		if (values[i]) ob->state |= (1 << i);
-		else ob->state &= ~(1 << i);
-	}
-}
-
-static void rna_GameObjectSettings_used_state_get(PointerRNA *ptr, int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	bController *cont;
-
-	memset(values, 0, sizeof(int) * OB_MAX_STATES);
-	for (cont = ob->controllers.first; cont; cont = cont->next) {
-		int i;
-
-		for (i = 0; i < OB_MAX_STATES; i++) {
-			if (cont->state_mask & (1 << i))
-				values[i] = 1;
-		}
-	}
-}
-
-static void rna_GameObjectSettings_col_group_get(PointerRNA *ptr, int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	int i;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		values[i] = (ob->col_group & (1 << i)) != 0;
-	}
-}
-
-static void rna_GameObjectSettings_col_group_set(PointerRNA *ptr, const int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	int i, tot = 0;
-
-	/* ensure we always have some group selected */
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		if (values[i])
-			tot++;
-
-	if (tot == 0)
-		return;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		if (values[i]) ob->col_group |=  (1 << i);
-		else           ob->col_group &= ~(1 << i);
-	}
-}
-
-static void rna_GameObjectSettings_col_mask_get(PointerRNA *ptr, int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	int i;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		values[i] = (ob->col_mask & (1 << i)) != 0;
-	}
-}
-
-static void rna_GameObjectSettings_col_mask_set(PointerRNA *ptr, const int *values)
-{
-	Object *ob = (Object *)ptr->data;
-	int i, tot = 0;
-
-	/* ensure we always have some mask selected */
-	for (i = 0; i < OB_MAX_COL_MASKS; i++)
-		if (values[i])
-			tot++;
-
-	if (tot == 0)
-		return;
-
-	for (i = 0; i < OB_MAX_COL_MASKS; i++) {
-		if (values[i]) ob->col_mask |=  (1 << i);
-		else           ob->col_mask &= ~(1 << i);
-	}
-}
-
 
 static void rna_Object_active_shape_key_index_range(PointerRNA *ptr, int *min, int *max,
                                                     int *UNUSED(softmin), int *UNUSED(softmax))
@@ -1617,16 +1349,6 @@ int rna_Object_use_dynamic_topology_sculpting_get(PointerRNA *ptr)
 	return (ss && ss->bm);
 }
 
-static void rna_Object_lod_distance_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	Object *ob = (Object *)ptr->id.data;
-
-#ifdef WITH_GAMEENGINE
-	BKE_object_lod_sort(ob);
-#else
-	(void)ob;
-#endif
-}
 #else
 
 static void rna_def_vertex_group(BlenderRNA *brna)
@@ -1775,313 +1497,6 @@ static void rna_def_material_slot(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	RNA_def_struct_path_func(srna, "rna_MaterialSlot_path");
-}
-
-static void rna_def_object_game_settings(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static const EnumPropertyItem body_type_items[] = {
-		{OB_BODY_TYPE_NO_COLLISION, "NO_COLLISION", 0, "No Collision", "Disable collision for this object"},
-		{OB_BODY_TYPE_STATIC, "STATIC", 0, "Static", "Stationary object"},
-		{OB_BODY_TYPE_DYNAMIC, "DYNAMIC", 0, "Dynamic", "Linear physics"},
-		{OB_BODY_TYPE_RIGID, "RIGID_BODY", 0, "Rigid Body", "Linear and angular physics"},
-		{OB_BODY_TYPE_SOFT, "SOFT_BODY", 0, "Soft Body", "Soft body"},
-		{OB_BODY_TYPE_OCCLUDER, "OCCLUDER", 0, "Occluder", "Occluder for optimizing scene rendering"},
-		{OB_BODY_TYPE_SENSOR, "SENSOR", 0, "Sensor",
-		                      "Collision Sensor, detects static and dynamic objects but not the other "
-		                      "collision sensor objects"},
-		{OB_BODY_TYPE_NAVMESH, "NAVMESH", 0, "Navigation Mesh", "Navigation mesh"},
-		{OB_BODY_TYPE_CHARACTER, "CHARACTER", 0, "Character",
-		                         "Simple kinematic physics appropriate for game characters"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	srna = RNA_def_struct(brna, "GameObjectSettings", NULL);
-	RNA_def_struct_sdna(srna, "Object");
-	RNA_def_struct_nested(brna, srna, "Object");
-	RNA_def_struct_ui_text(srna, "Game Object Settings", "Game engine related settings for the object");
-	RNA_def_struct_ui_icon(srna, ICON_GAME);
-
-	/* logic */
-
-	prop = RNA_def_property(srna, "sensors", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Sensor");
-	RNA_def_property_ui_text(prop, "Sensors", "Game engine sensor to detect events");
-
-	prop = RNA_def_property(srna, "controllers", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Controller");
-	RNA_def_property_ui_text(prop, "Controllers",
-	                         "Game engine controllers to process events, connecting sensors to actuators");
-
-	prop = RNA_def_property(srna, "actuators", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Actuator");
-	RNA_def_property_ui_text(prop, "Actuators", "Game engine actuators to act on events");
-
-	prop = RNA_def_property(srna, "properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "prop", NULL);
-	RNA_def_property_struct_type(prop, "GameProperty"); /* rna_property.c */
-	RNA_def_property_ui_text(prop, "Properties", "Game engine properties");
-
-	prop = RNA_def_property(srna, "show_sensors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_SHOWSENS);
-	RNA_def_property_ui_text(prop, "Show Sensors", "Shows sensors for this object in the user interface");
-
-	prop = RNA_def_property(srna, "show_controllers", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_SHOWCONT);
-	RNA_def_property_ui_text(prop, "Show Controllers", "Shows controllers for this object in the user interface");
-
-	prop = RNA_def_property(srna, "show_actuators", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_SHOWACT);
-	RNA_def_property_ui_text(prop, "Show Actuators", "Shows actuators for this object in the user interface");
-
-	/* physics */
-
-	prop = RNA_def_property(srna, "physics_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "body_type");
-	RNA_def_property_enum_items(prop, body_type_items);
-	RNA_def_property_enum_default(prop, OB_BODY_TYPE_STATIC);
-	RNA_def_property_enum_funcs(prop, "rna_GameObjectSettings_physics_type_get",
-	                            "rna_GameObjectSettings_physics_type_set", NULL);
-	RNA_def_property_ui_text(prop, "Physics Type", "Select the type of physical representation");
-	RNA_def_property_update(prop, NC_LOGIC, NULL);
-
-	prop = RNA_def_property(srna, "use_record_animation", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_RECORD_ANIMATION);
-	RNA_def_property_ui_text(prop, "Record Animation", "Record animation objects without physics");
-
-	prop = RNA_def_property(srna, "use_actor", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ACTOR);
-	RNA_def_property_ui_text(prop, "Actor", "Object is detected by the Near and Radar sensor");
-
-	prop = RNA_def_property(srna, "use_ghost", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_GHOST);
-	RNA_def_property_ui_text(prop, "Ghost", "Object does not react to collisions, like a ghost");
-
-	prop = RNA_def_property(srna, "mass", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_range(prop, 0.01, 10000.0);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Mass", "Mass of the object");
-
-	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
-	RNA_def_property_float_sdna(prop, NULL, "inertia");
-	RNA_def_property_range(prop, 0.01f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 1, 3);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Radius", "Radius of bounding sphere and material physics");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-
-	prop = RNA_def_property(srna, "use_sleep", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_COLLISION_RESPONSE);
-	RNA_def_property_ui_text(prop, "No Sleeping", "Disable auto (de)activation in physics simulation");
-
-	prop = RNA_def_property(srna, "damping", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "damping");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_float_default(prop, 0.04f);
-	RNA_def_property_ui_text(prop, "Damping", "General movement damping");
-
-	prop = RNA_def_property(srna, "rotation_damping", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "rdamping");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_float_default(prop, 0.1f);
-	RNA_def_property_ui_text(prop, "Rotation Damping", "General rotation damping");
-
-	prop = RNA_def_property(srna, "velocity_min", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "min_vel");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Velocity Min", "Clamp velocity to this minimum speed (except when totally still), "
-	                         "in distance per second");
-
-	prop = RNA_def_property(srna, "velocity_max", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "max_vel");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed, "
-	                         "in distance per second");
-	
-	prop = RNA_def_property(srna, "angular_velocity_min", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "min_angvel");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Angular Velocity Min",
-	                         "Clamp angular velocity to this minimum speed (except when totally still), "
-	                         "in angle per second");
-
-	prop = RNA_def_property(srna, "angular_velocity_max", PROP_FLOAT, PROP_ANGLE);
-	RNA_def_property_float_sdna(prop, NULL, "max_angvel");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Angular Velocity Max", "Clamp angular velocity to this maximum speed, "
-	                         "in angle per second");
-
-	/* Character physics */
-	prop = RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "step_height");
-	RNA_def_property_range(prop, 0.01, 1.0);
-	RNA_def_property_float_default(prop, 0.15f);
-	RNA_def_property_ui_text(prop, "Step Height", "Maximum height of steps the character can run over");
-
-	prop = RNA_def_property(srna, "jump_speed", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "jump_speed");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_float_default(prop, 10.0f);
-	RNA_def_property_ui_text(prop, "Jump Force", "Upward velocity applied to the character when jumping");
-
-	prop = RNA_def_property(srna, "fall_speed", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "fall_speed");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_float_default(prop, 55.0f);
-	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
-
-	prop = RNA_def_property(srna, "jump_max", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "max_jumps");
-	RNA_def_property_range(prop, 1, CHAR_MAX);
-	RNA_def_property_ui_range(prop, 1, 10, 1, 1);
-	RNA_def_property_int_default(prop, 1);
-	RNA_def_property_ui_text(prop, "Max Jumps",
-	                         "The maximum number of jumps the character can make before it hits the ground");
-
-	/* Collision Masks */
-	prop = RNA_def_property(srna, "collision_group", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "col_group", 1);
-	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
-	RNA_def_property_ui_text(prop, "Collision Group", "The collision group of the object");
-	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_col_group_get", "rna_GameObjectSettings_col_group_set");
-
-	prop = RNA_def_property(srna, "collision_mask", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "col_mask", 1);
-	RNA_def_property_array(prop, OB_MAX_COL_MASKS);
-	RNA_def_property_ui_text(prop, "Collision Mask", "The groups this object can collide with");
-	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_col_mask_get", "rna_GameObjectSettings_col_mask_set");
-
-	/* lock position */
-	prop = RNA_def_property(srna, "lock_location_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_AXIS);
-	RNA_def_property_ui_text(prop, "Lock X Axis", "Disable simulation of linear motion along the X axis");
-	
-	prop = RNA_def_property(srna, "lock_location_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_AXIS);
-	RNA_def_property_ui_text(prop, "Lock Y Axis", "Disable simulation of linear motion along the Y axis");
-	
-	prop = RNA_def_property(srna, "lock_location_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_AXIS);
-	RNA_def_property_ui_text(prop, "Lock Z Axis", "Disable simulation of linear motion along the Z axis");
-	
-	
-	/* lock rotation */
-	prop = RNA_def_property(srna, "lock_rotation_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_X_ROT_AXIS);
-	RNA_def_property_ui_text(prop, "Lock X Rotation Axis", "Disable simulation of angular motion along the X axis");
-	
-	prop = RNA_def_property(srna, "lock_rotation_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Y_ROT_AXIS);
-	RNA_def_property_ui_text(prop, "Lock Y Rotation Axis", "Disable simulation of angular motion along the Y axis");
-	
-	prop = RNA_def_property(srna, "lock_rotation_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag2", OB_LOCK_RIGID_BODY_Z_ROT_AXIS);
-	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular motion along the Z axis");
-	
-	/* is this used anywhere ? */
-	prop = RNA_def_property(srna, "use_activity_culling", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "gameflag2", OB_NEVER_DO_ACTIVITY_CULLING);
-	RNA_def_property_ui_text(prop, "Lock Z Rotation Axis", "Disable simulation of angular motion along the Z axis");
-	
-
-	prop = RNA_def_property(srna, "use_material_physics_fh", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_DO_FH);
-	RNA_def_property_ui_text(prop, "Use Material Force Field", "React to force field physics settings in materials");
-
-	prop = RNA_def_property(srna, "use_rotate_from_normal", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ROT_FH);
-	RNA_def_property_ui_text(prop, "Rotate From Normal",
-	                         "Use face normal to rotate object, so that it points away from the surface");
-
-	prop = RNA_def_property(srna, "form_factor", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "formfactor");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_float_default(prop, 0.4f);
-	RNA_def_property_ui_text(prop, "Form Factor", "Form factor scales the inertia tensor");
-
-	prop = RNA_def_property(srna, "use_anisotropic_friction", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_ANISOTROPIC_FRICTION);
-	RNA_def_property_ui_text(prop, "Anisotropic Friction", "Enable anisotropic friction");
-
-	prop = RNA_def_property(srna, "friction_coefficients", PROP_FLOAT, PROP_XYZ);
-	RNA_def_property_float_sdna(prop, NULL, "anisotropicFriction");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_ui_text(prop, "Friction Coefficients",
-	                         "Relative friction coefficients in the in the X, Y and Z directions, "
-	                         "when anisotropic friction is enabled");
-
-	prop = RNA_def_property(srna, "use_collision_bounds", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_BOUNDS);
-	RNA_def_property_ui_text(prop, "Use Collision Bounds", "Specify a collision bounds type other than the default");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-
-	prop = RNA_def_property(srna, "collision_bounds_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "collision_boundtype");
-	RNA_def_property_enum_items(prop, collision_bounds_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Object_collision_bounds_itemf");
-	RNA_def_property_ui_text(prop, "Collision Shape",  "Select the collision shape that better fits the object");
-	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
-
-	prop = RNA_def_property(srna, "use_collision_compound", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_CHILD);
-	RNA_def_property_ui_text(prop, "Collision Compound", "Add children to form a compound collision object");
-
-	prop = RNA_def_property(srna, "collision_margin", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
-	RNA_def_property_float_sdna(prop, NULL, "margin");
-	RNA_def_property_range(prop, 0.0, 1.0);
-	RNA_def_property_float_default(prop, 0.04f);
-	RNA_def_property_ui_text(prop, "Collision Margin",
-	                         "Extra margin around object for collision detection, small amount required "
-	                         "for stability");
-
-	prop = RNA_def_property(srna, "soft_body", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "bsoft");
-	RNA_def_property_ui_text(prop, "Soft Body Settings", "Settings for Bullet soft body simulation");
-
-	prop = RNA_def_property(srna, "use_obstacle_create", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gameflag", OB_HASOBSTACLE);
-	RNA_def_property_ui_text(prop, "Create obstacle", "Create representation for obstacle simulation");
-
-	prop = RNA_def_property(srna, "obstacle_radius", PROP_FLOAT, PROP_NONE | PROP_UNIT_LENGTH);
-	RNA_def_property_float_sdna(prop, NULL, "obstacleRad");
-	RNA_def_property_range(prop, 0.0, 1000.0);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_ui_text(prop, "Obstacle Radius", "Radius of object representation in obstacle simulation");
-	
-	/* state */
-
-	prop = RNA_def_property(srna, "states_visible", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_boolean_sdna(prop, NULL, "state", 1);
-	RNA_def_property_array(prop, OB_MAX_STATES);
-	RNA_def_property_ui_text(prop, "State", "State determining which controllers are displayed");
-	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_state_get", "rna_GameObjectSettings_state_set");
-
-	prop = RNA_def_property(srna, "used_states", PROP_BOOLEAN, PROP_LAYER_MEMBER);
-	RNA_def_property_array(prop, OB_MAX_STATES);
-	RNA_def_property_ui_text(prop, "Used State", "States which are being used by controllers");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_GameObjectSettings_used_state_get", NULL);
-	
-	prop = RNA_def_property(srna, "states_initial", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "init_state", 1);
-	RNA_def_property_array(prop, OB_MAX_STATES);
-	RNA_def_property_ui_text(prop, "Initial State", "Initial state when the game starts");
-
-	prop = RNA_def_property(srna, "show_debug_state", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_DEBUGSTATE);
-	RNA_def_property_ui_text(prop, "Debug State", "Print state debug info in the game engine");
-	RNA_def_property_ui_icon(prop, ICON_INFO, 0);
-
-	prop = RNA_def_property(srna, "use_all_states", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_ALLSTATE);
-	RNA_def_property_ui_text(prop, "All", "Set all state bits");
-
-	prop = RNA_def_property(srna, "show_state_panel", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "scaflag", OB_SHOWSTATE);
-	RNA_def_property_ui_text(prop, "States", "Show state panel");
-	RNA_def_property_ui_icon(prop, ICON_DISCLOSURE_TRI_RIGHT, 1);
 }
 
 static void rna_def_object_constraints(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2311,54 +1726,6 @@ static void rna_def_object_face_maps(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "clear", "rna_Object_fmap_clear");
 	RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
-
-static void rna_def_object_lodlevel(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "LodLevel", NULL);
-	RNA_def_struct_sdna(srna, "LodLevel");
-
-	prop = RNA_def_property(srna, "distance", PROP_FLOAT, PROP_DISTANCE);
-	RNA_def_property_float_sdna(prop, NULL, "distance");
-	RNA_def_property_range(prop, 0.0, FLT_MAX);
-	RNA_def_property_ui_text(prop, "Distance", "Distance to begin using this level of detail");
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, "rna_Object_lod_distance_update");
-
-	prop = RNA_def_property(srna, "object_hysteresis_percentage", PROP_INT, PROP_PERCENTAGE);
-	RNA_def_property_int_sdna(prop, NULL, "obhysteresis");
-	RNA_def_property_range(prop, 0, 100);
-	RNA_def_property_ui_range(prop, 0, 100, 10, 1);
-	RNA_def_property_ui_text(prop, "Hysteresis %",
-	                         "Minimum distance change required to transition to the previous level of detail");
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
-
-	prop = RNA_def_property(srna, "object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "source");
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Object", "Object to use for this level of detail");
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
-
-	prop = RNA_def_property(srna, "use_mesh", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", OB_LOD_USE_MESH);
-	RNA_def_property_ui_text(prop, "Use Mesh", "Use the mesh from this object at this level of detail");
-	RNA_def_property_ui_icon(prop, ICON_MESH_DATA, 0);
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
-
-	prop = RNA_def_property(srna, "use_material", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", OB_LOD_USE_MAT);
-	RNA_def_property_ui_text(prop, "Use Material", "Use the material from this object at this level of detail");
-	RNA_def_property_ui_icon(prop, ICON_MATERIAL, 0);
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
-
-	prop = RNA_def_property(srna, "use_object_hysteresis", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", OB_LOD_USE_HYST);
-	RNA_def_property_ui_text(prop, "Hysteresis Override", "Override LoD Hysteresis scene setting for this LoD level");
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
-}
-
 
 static void rna_def_object(BlenderRNA *brna)
 {
@@ -2710,13 +2077,6 @@ static void rna_def_object(BlenderRNA *brna)
 /*	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "constraints__add", "constraints__remove"); */
 	rna_def_object_constraints(brna, prop);
 
-	/* game engine */
-	prop = RNA_def_property(srna, "game", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "GameObjectSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Object_game_settings_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Game Settings", "Game engine related settings for the object");
-
 	/* vertex groups */
 	prop = RNA_def_property(srna, "vertex_groups", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "defbase", NULL);
@@ -3040,13 +2400,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Dynamic Topology Sculpting", NULL);
 
-	/* Levels of Detail */
-	prop = RNA_def_property(srna, "lod_levels", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "lodlevels", NULL);
-	RNA_def_property_struct_type(prop, "LodLevel");
-	RNA_def_property_ui_text(prop, "Level of Detail Levels", "A collection of detail levels to automatically switch between");
-	RNA_def_property_update(prop, NC_OBJECT | ND_LOD, NULL);
-
 	/* Base Settings */
 	prop = RNA_def_property(srna, "is_from_duplicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "base_flag", BASE_FROMDUPLI);
@@ -3124,13 +2477,11 @@ void RNA_def_object(BlenderRNA *brna)
 	rna_def_object(brna);
 
 	RNA_define_animate_sdna(false);
-	rna_def_object_game_settings(brna);
 	rna_def_vertex_group(brna);
 	rna_def_face_map(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);
 	RNA_define_animate_sdna(true);
-	rna_def_object_lodlevel(brna);
 }
 
 #endif

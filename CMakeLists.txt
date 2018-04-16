@@ -598,6 +598,7 @@ if(NOT WITH_SDL AND WITH_GHOST_SDL)
 	message(FATAL_ERROR "WITH_GHOST_SDL requires WITH_SDL")
 endif()
 
+# python module, needs some different options
 if(WITH_PYTHON_MODULE AND WITH_PYTHON_INSTALL)
 	message(FATAL_ERROR "WITH_PYTHON_MODULE requires WITH_PYTHON_INSTALL to be OFF")
 endif()

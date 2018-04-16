@@ -80,25 +80,11 @@ static RenderEngineType internal_render_type = {
 	{NULL, NULL, NULL}
 };
 
-#ifdef WITH_GAMEENGINE
-
-static RenderEngineType internal_game_type = {
-	NULL, NULL,
-	"BLENDER_GAME", N_("Blender Game"), RE_INTERNAL | RE_GAME | RE_USE_LEGACY_PIPELINE,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	{NULL, NULL, NULL}
-};
-
-#endif
-
 ListBase R_engines = {NULL, NULL};
 
 void RE_engines_init(void)
 {
 	RE_engines_register(NULL, &internal_render_type);
-#ifdef WITH_GAMEENGINE
-	RE_engines_register(NULL, &internal_game_type);
-#endif
 	DRW_engines_register();
 }
 

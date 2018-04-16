@@ -76,7 +76,7 @@ PyObject *      PyC_UnicodeFromByteAndSize(const char *str, Py_ssize_t size);
 const char *    PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce); /* coerce must be NULL */
 const char *    PyC_UnicodeAsByteAndSize(PyObject *py_str, Py_ssize_t *size, PyObject **coerce);
 
-/* name namespace function for bpy & bge */
+/* name namespace function for bpy */
 PyObject *		PyC_DefaultNameSpace(const char *filename);
 void			PyC_RunQuicky(const char *filepath, int n, ...);
 

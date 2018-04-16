@@ -146,7 +146,7 @@ typedef struct SpaceButs {
 #define CONTEXT_SHADING 3
 #define CONTEXT_EDITING 4
 #define CONTEXT_SCRIPT  5
-#define CONTEXT_LOGIC   6
+//#define CONTEXT_LOGIC   6
 
 /* sbuts->mainb old (deprecated) */
 #ifdef DNA_DEPRECATED_ALLOW
@@ -158,7 +158,7 @@ typedef struct SpaceButs {
 #define BUTS_WORLD          5
 #define BUTS_RENDER         6
 #define BUTS_EDIT           7
-#define BUTS_GAME           8
+// #define BUTS_GAME           8
 #define BUTS_FPAINT         9
 #define BUTS_RADIO          10
 #define BUTS_SCRIPT         11
@@ -1243,23 +1243,6 @@ enum {
 	SNODE_INSERTOFS_DIR_LEFT  = 1,
 };
 
-/* Game Logic Editor ===================================== */
-
-/* Logic Editor */
-typedef struct SpaceLogic {
-	SpaceLink *next, *prev;
-	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	
-	short blockhandler[8]  DNA_DEPRECATED;
-	
-	short flag, scaflag;
-	int pad;
-	
-	struct bGPdata *gpd;        /* grease-pencil data */
-} SpaceLogic;
-
 /* Console ================================================ */
 
 /* Console content */
@@ -1432,7 +1415,7 @@ typedef enum eSpace_Type {
 	SPACE_SCRIPT   = 14, /* Deprecated */
 	SPACE_TIME     = 15,
 	SPACE_NODE     = 16,
-	SPACE_LOGIC    = 17,
+	SPACE_LOGIC    = 17, /* deprecated */
 	SPACE_CONSOLE  = 18,
 	SPACE_USERPREF = 19,
 	SPACE_CLIP     = 20,

@@ -21,8 +21,6 @@
 # run this script in the game engine.
 # or on the command line with...
 #  ./blender.bin --background -noaudio --python tests/python/bl_rst_completeness.py
-
-# Paste this into the bge and run on an always actuator.
 '''
 filepath = "/src/blender/tests/python/bl_rst_completeness.py"
 exec(compile(open(filepath).read(), filepath, 'exec'))
@@ -38,20 +36,9 @@ sys.path.append(THIS_DIR)
 
 import rst_to_doctree_mini
 
-try:
-    import bge
-except:
-    bge = None
 
 # (file, module)
 modules = (
-    ("bge.constraints.rst", "bge.constraints", False),
-    ("bge.events.rst", "bge.events", False),
-    ("bge.logic.rst", "bge.logic", False),
-    ("bge.render.rst", "bge.render", False),
-    ("bge.texture.rst", "bge.texture", False),
-    ("bge.types.rst", "bge.types", False),
-
     ("bgl.rst", "bgl", True),
     ("gpu.rst", "gpu", False),
 )
@@ -137,13 +124,7 @@ def module_validate(filepath, mod, mod_name, doctree, partial_ok):
 
 def main():
 
-    if bge is None:
-        print("Skipping BGE modules!")
-
     for filename, modname, partial_ok in modules:
-        if bge is None and modname.startswith("bge"):
-            continue
-
         filepath = os.path.join(RST_DIR, filename)
         if not os.path.exists(filepath):
             raise Exception("%r not found" % filepath)

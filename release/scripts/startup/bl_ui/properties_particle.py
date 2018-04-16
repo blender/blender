@@ -66,7 +66,7 @@ def particle_get_settings(context):
 
 class PARTICLE_MT_specials(Menu):
     bl_label = "Particle Specials"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -86,7 +86,7 @@ class PARTICLE_MT_hair_dynamics_presets(Menu):
     bl_label = "Hair Dynamics Presets"
     preset_subdir = "hair_dynamics"
     preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     draw = Menu.draw_preset
 
 
@@ -131,7 +131,7 @@ class PARTICLE_UL_particle_systems(bpy.types.UIList):
 class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -140,10 +140,6 @@ class PARTICLE_PT_context_particles(ParticleButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-
-        if context.engine == 'BLENDER_GAME':
-            layout.label("Not available in the Game Engine")
-            return
 
         ob = context.object
         psys = context.particle_system

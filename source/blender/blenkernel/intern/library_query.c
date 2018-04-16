@@ -31,13 +31,11 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "DNA_actuator_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_constraint_types.h"
-#include "DNA_controller_types.h"
 #include "DNA_group_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_key_types.h"
@@ -55,7 +53,6 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_sensor_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_speaker_types.h"
@@ -84,7 +81,6 @@
 #include "BKE_node.h"
 #include "BKE_particle.h"
 #include "BKE_rigidbody.h"
-#include "BKE_sca.h"
 #include "BKE_sequencer.h"
 #include "BKE_tracking.h"
 #include "BKE_workspace.h"
@@ -212,33 +208,6 @@ static void library_foreach_constraintObjectLooper(bConstraint *UNUSED(con), ID 
 
 static void library_foreach_particlesystemsObjectLooper(
         ParticleSystem *UNUSED(psys), ID **id_pointer, void *user_data, int cb_flag)
-{
-	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-	FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_sensorsObjectLooper(
-        bSensor *UNUSED(sensor), ID **id_pointer, void *user_data, int cb_flag)
-{
-	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-	FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_controllersObjectLooper(
-        bController *UNUSED(controller), ID **id_pointer, void *user_data, int cb_flag)
-{
-	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
-	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
-
-	FOREACH_FINALIZE_VOID;
-}
-
-static void library_foreach_actuatorsObjectLooper(
-        bActuator *UNUSED(actuator), ID **id_pointer, void *user_data, int cb_flag)
 {
 	LibraryForeachIDData *data = (LibraryForeachIDData *) user_data;
 	FOREACH_CALLBACK_INVOKE_ID_PP(data, id_pointer, cb_flag);
@@ -506,8 +475,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					BKE_rigidbody_world_id_loop(scene->rigidbody_world, library_foreach_rigidbodyworldSceneLooper, &data);
 				}
 
-				CALLBACK_INVOKE(scene->gm.dome.warptext, IDWALK_CB_NOP);
-
 				break;
 			}
 
@@ -605,10 +572,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 						CALLBACK_INVOKE(object->soft->effector_weights->group, IDWALK_CB_NOP);
 					}
 				}
-
-				BKE_sca_sensors_id_loop(&object->sensors, library_foreach_sensorsObjectLooper, &data);
-				BKE_sca_controllers_id_loop(&object->controllers, library_foreach_controllersObjectLooper, &data);
-				BKE_sca_actuators_id_loop(&object->actuators, library_foreach_actuatorsObjectLooper, &data);
 				break;
 			}
 
@@ -1084,7 +1047,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 #if 0
 			return ELEM(id_type_used, ID_ME, ID_CU, ID_MB, ID_LT, ID_SPK, ID_AR, ID_LA, ID_CA,  /* obdata */
 			                          ID_OB, ID_MA, ID_GD, ID_GR, ID_TE, ID_PA, ID_TXT, ID_SO, ID_MC, ID_IM, ID_AC
-			                          /* + constraints, modifiers and game logic ID types... */);
+			                          /* + constraints and modifiers ... */);
 #else
 			return true;
 #endif

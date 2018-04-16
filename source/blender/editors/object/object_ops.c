@@ -212,14 +212,6 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(TRANSFORM_OT_vertex_warp);
 
-	WM_operatortype_append(OBJECT_OT_game_property_new);
-	WM_operatortype_append(OBJECT_OT_game_property_remove);
-	WM_operatortype_append(OBJECT_OT_game_property_copy);
-	WM_operatortype_append(OBJECT_OT_game_property_clear);
-	WM_operatortype_append(OBJECT_OT_game_property_move);
-	WM_operatortype_append(OBJECT_OT_logic_bricks_copy);
-	WM_operatortype_append(OBJECT_OT_game_physics_copy);
-
 	WM_operatortype_append(OBJECT_OT_move_to_collection);
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
@@ -248,9 +240,6 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_drop_named_material);
 	WM_operatortype_append(OBJECT_OT_unlink_data);
 	WM_operatortype_append(OBJECT_OT_laplaciandeform_bind);
-
-	WM_operatortype_append(OBJECT_OT_lod_add);
-	WM_operatortype_append(OBJECT_OT_lod_remove);
 
 	WM_operatortype_append(TRANSFORM_OT_vertex_random);
 
@@ -326,9 +315,6 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	/* object mode supports PET now */
 	ED_keymap_proportional_cycle(keyconf, keymap);
 	ED_keymap_proportional_obmode(keyconf, keymap);
-
-	/* game-engine only, leave free for users to define */
-	WM_keymap_add_item(keymap, "VIEW3D_OT_game_start", PKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);

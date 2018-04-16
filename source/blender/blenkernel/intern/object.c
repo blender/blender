@@ -59,7 +59,6 @@
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 #include "DNA_lightprobe_types.h"
-#include "DNA_property_types.h"
 #include "DNA_rigidbody_types.h"
 
 #include "BLI_blenlib.h"
@@ -77,7 +76,6 @@
 #include "BKE_idprop.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
-#include "BKE_bullet.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_animsys.h"
@@ -109,9 +107,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_lightprobe.h"
-#include "BKE_property.h"
 #include "BKE_rigidbody.h"
-#include "BKE_sca.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
 #include "BKE_speaker.h"
@@ -173,14 +169,6 @@ void BKE_object_free_softbody(Object *ob)
 	if (ob->soft) {
 		sbFree(ob->soft);
 		ob->soft = NULL;
-	}
-}
-
-void BKE_object_free_bulletsoftbody(Object *ob)
-{
-	if (ob->bsoft) {
-		bsbFree(ob->bsoft);
-		ob->bsoft = NULL;
 	}
 }
 
@@ -436,11 +424,6 @@ void BKE_object_free(Object *ob)
 		animviz_free_motionpath(ob->mpath);
 		ob->mpath = NULL;
 	}
-	BKE_bproperty_free_list(&ob->prop);
-
-	free_sensors(&ob->sensors);
-	free_controllers(&ob->controllers);
-	free_actuators(&ob->actuators);
 	
 	BKE_constraints_free_ex(&ob->constraints, false);
 	
@@ -451,10 +434,6 @@ void BKE_object_free(Object *ob)
 	if (ob->soft) {
 		sbFree(ob->soft);
 		ob->soft = NULL;
-	}
-	if (ob->bsoft) {
-		bsbFree(ob->bsoft);
-		ob->bsoft = NULL;
 	}
 	GPU_lamp_free(ob);
 
@@ -722,23 +701,6 @@ void BKE_object_init(Object *ob)
 	ob->dupsta = 1; ob->dupend = 100;
 	ob->dupfacesca = 1.0;
 
-	/* Game engine defaults*/
-	ob->mass = ob->inertia = 1.0f;
-	ob->formfactor = 0.4f;
-	ob->damping = 0.04f;
-	ob->rdamping = 0.1f;
-	ob->anisotropicFriction[0] = 1.0f;
-	ob->anisotropicFriction[1] = 1.0f;
-	ob->anisotropicFriction[2] = 1.0f;
-	ob->gameflag = OB_PROP | OB_COLLISION;
-	ob->margin = 0.04f;
-	ob->init_state = 1;
-	ob->state = 1;
-	ob->obstacleRad = 1.0f;
-	ob->step_height = 0.15f;
-	ob->jump_speed = 10.0f;
-	ob->fall_speed = 55.0f;
-	ob->max_jumps = 1;
 	ob->col_group = 0x01;
 	ob->col_mask = 0xffff;
 	ob->preview = NULL;
@@ -834,139 +796,6 @@ Object *BKE_object_add_from(
 	return ob;
 }
 
-#ifdef WITH_GAMEENGINE
-
-void BKE_object_lod_add(Object *ob)
-{
-	LodLevel *lod = MEM_callocN(sizeof(LodLevel), "LoD Level");
-	LodLevel *last = ob->lodlevels.last;
-
-	/* If the lod list is empty, initialize it with the base lod level */
-	if (!last) {
-		LodLevel *base = MEM_callocN(sizeof(LodLevel), "Base LoD Level");
-		BLI_addtail(&ob->lodlevels, base);
-		base->flags = OB_LOD_USE_MESH | OB_LOD_USE_MAT;
-		base->source = ob;
-		base->obhysteresis = 10;
-		last = ob->currentlod = base;
-	}
-	
-	lod->distance = last->distance + 25.0f;
-	lod->obhysteresis = 10;
-	lod->flags = OB_LOD_USE_MESH | OB_LOD_USE_MAT;
-
-	BLI_addtail(&ob->lodlevels, lod);
-}
-
-static int lod_cmp(const void *a, const void *b)
-{
-	const LodLevel *loda = a;
-	const LodLevel *lodb = b;
-
-	if (loda->distance < lodb->distance) return -1;
-	return loda->distance > lodb->distance;
-}
-
-void BKE_object_lod_sort(Object *ob)
-{
-	BLI_listbase_sort(&ob->lodlevels, lod_cmp);
-}
-
-bool BKE_object_lod_remove(Object *ob, int level)
-{
-	LodLevel *rem;
-
-	if (level < 1 || level > BLI_listbase_count(&ob->lodlevels) - 1)
-		return false;
-
-	rem = BLI_findlink(&ob->lodlevels, level);
-
-	if (rem == ob->currentlod) {
-		ob->currentlod = rem->prev;
-	}
-
-	BLI_remlink(&ob->lodlevels, rem);
-	MEM_freeN(rem);
-
-	/* If there are no user defined lods, remove the base lod as well */
-	if (BLI_listbase_is_single(&ob->lodlevels)) {
-		LodLevel *base = ob->lodlevels.first;
-		BLI_remlink(&ob->lodlevels, base);
-		MEM_freeN(base);
-		ob->currentlod = NULL;
-	}
-
-	return true;
-}
-
-static LodLevel *lod_level_select(Object *ob, const float camera_position[3])
-{
-	LodLevel *current = ob->currentlod;
-	float dist_sq;
-
-	if (!current) return NULL;
-
-	dist_sq = len_squared_v3v3(ob->obmat[3], camera_position);
-
-	if (dist_sq < SQUARE(current->distance)) {
-		/* check for higher LoD */
-		while (current->prev && dist_sq < SQUARE(current->distance)) {
-			current = current->prev;
-		}
-	}
-	else {
-		/* check for lower LoD */
-		while (current->next && dist_sq > SQUARE(current->next->distance)) {
-			current = current->next;
-		}
-	}
-
-	return current;
-}
-
-bool BKE_object_lod_is_usable(Object *ob, ViewLayer *view_layer)
-{
-	bool active = (view_layer) ? ob == OBACT(view_layer) : false;
-	return (ob->mode == OB_MODE_OBJECT || !active);
-}
-
-void BKE_object_lod_update(Object *ob, const float camera_position[3])
-{
-	LodLevel *cur_level = ob->currentlod;
-	LodLevel *new_level = lod_level_select(ob, camera_position);
-
-	if (new_level != cur_level) {
-		ob->currentlod = new_level;
-	}
-}
-
-static Object *lod_ob_get(Object *ob, ViewLayer *view_layer, int flag)
-{
-	LodLevel *current = ob->currentlod;
-
-	if (!current || !BKE_object_lod_is_usable(ob, view_layer))
-		return ob;
-
-	while (current->prev && (!(current->flags & flag) || !current->source || current->source->type != OB_MESH)) {
-		current = current->prev;
-	}
-
-	return current->source;
-}
-
-struct Object *BKE_object_lod_meshob_get(Object *ob, ViewLayer *view_layer)
-{
-	return lod_ob_get(ob, view_layer, OB_LOD_USE_MESH);
-}
-
-struct Object *BKE_object_lod_matob_get(Object *ob, ViewLayer *view_layer)
-{
-	return lod_ob_get(ob, view_layer, OB_LOD_USE_MAT);
-}
-
-#endif  /* WITH_GAMEENGINE */
-
-
 SoftBody *copy_softbody(const SoftBody *sb, const int flag)
 {
 	SoftBody *sbn;
@@ -1010,17 +839,6 @@ SoftBody *copy_softbody(const SoftBody *sb, const int flag)
 		sbn->effector_weights = MEM_dupallocN(sb->effector_weights);
 
 	return sbn;
-}
-
-BulletSoftBody *copy_bulletsoftbody(const BulletSoftBody *bsb, const int UNUSED(flag))
-{
-	BulletSoftBody *bsbn;
-
-	if (bsb == NULL)
-		return NULL;
-	bsbn = MEM_dupallocN(bsb);
-	/* no pointer in this structure yet */
-	return bsbn;
 }
 
 ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int flag)
@@ -1356,11 +1174,6 @@ void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_
 		BLI_addtail(&ob_dst->modifiers, nmd);
 	}
 
-	BLI_listbase_clear(&ob_dst->prop);
-	BKE_bproperty_copy_list(&ob_dst->prop, &ob_src->prop);
-
-	BKE_sca_logic_copy(ob_dst, ob_src, flag_subdata);
-
 	if (ob_src->pose) {
 		copy_object_pose(ob_dst, ob_src, flag_subdata);
 		/* backwards compat... non-armatures can get poses in older files? */
@@ -1381,7 +1194,6 @@ void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_
 		}
 	}
 	ob_dst->soft = copy_softbody(ob_src->soft, flag_subdata);
-	ob_dst->bsoft = copy_bulletsoftbody(ob_src->bsoft, flag_subdata);
 	ob_dst->rigidbody_object = BKE_rigidbody_copy_object(ob_src, flag_subdata);
 	ob_dst->rigidbody_constraint = BKE_rigidbody_copy_constraint(ob_src, flag_subdata);
 
@@ -2756,7 +2568,7 @@ typedef struct ObTfmBack {
 	float obmat[4][4];      /* final worldspace matrix with constraints & animsys applied */
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
-	float imat[4][4];   /* inverse matrix of 'obmat' for during render, old game engine, temporally: ipokeys of transform  */
+	float imat[4][4];   /* inverse matrix of 'obmat' for during render, temporally: ipokeys of transform  */
 } ObTfmBack;
 
 void *BKE_object_tfm_backup(Object *ob)

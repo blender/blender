@@ -6,7 +6,6 @@
 #
 
 set(WITH_HEADLESS            ON  CACHE BOOL "" FORCE) 
-set(WITH_GAMEENGINE          OFF CACHE BOOL "" FORCE)
 
 # disable audio, its possible some devs may want this but for now disable
 # so the python module doesnt hold the audio device and loads quickly.

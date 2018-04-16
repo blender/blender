@@ -70,11 +70,6 @@
 #include "BKE_deform.h"
 #include "BKE_global.h" /* For debug flag, DM_update_tessface_data() func. */
 
-#ifdef WITH_GAMEENGINE
-#include "BKE_navmesh_conversion.h"
-static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
-#endif
-
 #include "BLI_sys_types.h" /* for intptr_t support */
 
 #include "GPU_buffers.h"
@@ -1746,13 +1741,6 @@ static void dm_ensure_display_normals(DerivedMesh *dm)
 	}
 }
 
-/**
- * new value for useDeform -1  (hack for the gameengine):
- *
- * - apply only the modifier stack of the object, skipping the virtual modifiers,
- * - don't apply the key
- * - apply deform modifiers and input vertexco
- */
 static void mesh_calc_modifiers(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, float (*inputVertexCos)[3],
         const bool useRenderParams, int useDeform,
@@ -1772,7 +1760,6 @@ static void mesh_calc_modifiers(
 	int numVerts = me->totvert;
 	const int required_mode = useRenderParams ? eModifierMode_Render : eModifierMode_Realtime;
 	bool isPrevDeform = false;
-	const bool skipVirtualArmature = (useDeform < 0);
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
 	const bool has_multires = (mmd && mmd->sculptlvl != 0);
 	bool multires_applied = false;
@@ -1806,17 +1793,7 @@ static void mesh_calc_modifiers(
 	if (useDeform)
 		deform_app_flags |= MOD_APPLY_USECACHE;
 
-	if (!skipVirtualArmature) {
-		firstmd = modifiers_getVirtualModifierList(ob, &virtualModifierData);
-	}
-	else {
-		/* game engine exception */
-		firstmd = ob->modifiers.first;
-		if (firstmd && firstmd->type == eModifierType_Armature)
-			firstmd = firstmd->next;
-	}
-
-	md = firstmd;
+	md = firstmd = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	modifiers_clearErrors(ob);
 
@@ -2245,20 +2222,6 @@ static void mesh_calc_modifiers(
 	if (!do_loop_normals && CustomData_has_layer(&finaldm->loopData, CD_NORMAL)) {
 		CustomData_free_layers(&finaldm->loopData, CD_NORMAL, finaldm->numLoopData);
 	}
-
-#ifdef WITH_GAMEENGINE
-	/* NavMesh - this is a hack but saves having a NavMesh modifier */
-	if ((ob->gameflag & OB_NAVMESH) && (finaldm->type == DM_TYPE_CDDM)) {
-		DerivedMesh *tdm;
-		tdm = navmesh_dm_createNavMeshForVisualization(finaldm);
-		if (finaldm != tdm) {
-			finaldm->release(finaldm);
-			finaldm = tdm;
-		}
-
-		DM_ensure_tessface(finaldm);
-	}
-#endif /* WITH_GAMEENGINE */
 
 	*r_final = finaldm;
 
@@ -2849,32 +2812,6 @@ DerivedMesh *mesh_create_derived_no_deform(
 	
 	mesh_calc_modifiers(
 	        depsgraph, scene, ob, vertCos, false, 0, false, dataMask, -1, false, false, false,
-	        NULL, &final);
-
-	return final;
-}
-
-DerivedMesh *mesh_create_derived_no_virtual(
-        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
-        float (*vertCos)[3], CustomDataMask dataMask)
-{
-	DerivedMesh *final;
-	
-	mesh_calc_modifiers(
-	        depsgraph, scene, ob, vertCos, false, -1, false, dataMask, -1, false, false, false,
-	        NULL, &final);
-
-	return final;
-}
-
-DerivedMesh *mesh_create_derived_physics(
-        struct Depsgraph *depsgraph, Scene *scene, Object *ob,
-        float (*vertCos)[3], CustomDataMask dataMask)
-{
-	DerivedMesh *final;
-	
-	mesh_calc_modifiers(
-	        depsgraph, scene, ob, vertCos, false, -1, true, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3519,178 +3456,6 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 
 	ob->bb->flag &= ~BOUNDBOX_DIRTY;
 }
-
-/* --- NAVMESH (begin) --- */
-#ifdef WITH_GAMEENGINE
-
-/* BMESH_TODO, navmesh is not working right currently
- * All tools set this as MPoly data, but derived mesh currently draws from MFace (tessface)
- *
- * Proposed solution, rather then copy CD_RECAST into the MFace array,
- * use ORIGINDEX to get the original poly index and then get the CD_RECAST
- * data from the original me->mpoly layer. - campbell
- */
-
-
-BLI_INLINE int navmesh_bit(int a, int b)
-{
-	return (a & (1 << b)) >> b;
-}
-
-BLI_INLINE void navmesh_intToCol(int i, float col[3])
-{
-	int r = navmesh_bit(i, 0) + navmesh_bit(i, 3) * 2 + 1;
-	int g = navmesh_bit(i, 1) + navmesh_bit(i, 4) * 2 + 1;
-	int b = navmesh_bit(i, 2) + navmesh_bit(i, 5) * 2 + 1;
-	col[0] = 1 - r * 63.0f / 255.0f;
-	col[1] = 1 - g * 63.0f / 255.0f;
-	col[2] = 1 - b * 63.0f / 255.0f;
-}
-
-static void navmesh_drawColored(DerivedMesh *dm)
-{
-	MVert *mvert = (MVert *)CustomData_get_layer(&dm->vertData, CD_MVERT);
-	MFace *mface = (MFace *)CustomData_get_layer(&dm->faceData, CD_MFACE);
-	int *polygonIdx = (int *)CustomData_get_layer(&dm->polyData, CD_RECAST);
-	float col[3];
-
-	if (!polygonIdx)
-		return;
-
-#if 0
-	//UI_ThemeColor(TH_WIRE);
-	glLineWidth(2.0);
-	dm->drawEdges(dm, 0, 1);
-#endif
-
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_3D_FLAT_COLOR);
-
-	/* Note: batch drawing API would let us share vertices */
-	immBeginAtMost(GWN_PRIM_TRIS, dm->numTessFaceData * 6);
-	for (int a = 0; a < dm->numTessFaceData; a++, mface++) {
-		int pi = polygonIdx[a];
-		if (pi <= 0) {
-			zero_v3(col);
-		}
-		else {
-			navmesh_intToCol(pi, col);
-		}
-
-		immSkipAttrib(color);
-		immVertex3fv(pos, mvert[mface->v1].co);
-		immSkipAttrib(color);
-		immVertex3fv(pos, mvert[mface->v2].co);
-		immAttrib3fv(color, col);
-		immVertex3fv(pos, mvert[mface->v3].co);
-
-		if (mface->v4) {
-			/* this tess face is a quad, so draw the other triangle */
-			immSkipAttrib(color);
-			immVertex3fv(pos, mvert[mface->v1].co);
-			immSkipAttrib(color);
-			immVertex3fv(pos, mvert[mface->v3].co);
-			immAttrib3fv(color, col);
-			immVertex3fv(pos, mvert[mface->v4].co);
-		}
-	}
-	immEnd();
-	immUnbindProgram();
-}
-
-static void navmesh_DM_drawFacesSolid(
-        DerivedMesh *dm,
-        float (*partial_redraw_planes)[4],
-        bool UNUSED(fast), DMSetMaterial UNUSED(setMaterial))
-{
-	UNUSED_VARS(partial_redraw_planes);
-
-	//drawFacesSolid_original(dm, partial_redraw_planes, fast, setMaterial);
-	navmesh_drawColored(dm);
-}
-
-static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm)
-{
-	DerivedMesh *result;
-	int maxFaces = dm->getNumPolys(dm);
-	int *recastData;
-	int vertsPerPoly = 0, nverts = 0, ndtris = 0, npolys = 0;
-	float *verts = NULL;
-	unsigned short *dtris = NULL, *dmeshes = NULL, *polys = NULL;
-	int *dtrisToPolysMap = NULL, *dtrisToTrisMap = NULL, *trisToFacesMap = NULL;
-	int res;
-
-	result = CDDM_copy(dm);
-	if (!CustomData_has_layer(&result->polyData, CD_RECAST)) {
-		int *sourceRecastData = (int *)CustomData_get_layer(&dm->polyData, CD_RECAST);
-		if (sourceRecastData) {
-			CustomData_add_layer_named(&result->polyData, CD_RECAST, CD_DUPLICATE,
-			                           sourceRecastData, maxFaces, "recastData");
-		}
-	}
-	recastData = (int *)CustomData_get_layer(&result->polyData, CD_RECAST);
-
-	/* note: This is not good design! - really should not be doing this */
-	result->drawFacesSolid = navmesh_DM_drawFacesSolid;
-
-
-	/* process mesh */
-	res  = buildNavMeshDataByDerivedMesh(dm, &vertsPerPoly, &nverts, &verts, &ndtris, &dtris,
-	                                     &npolys, &dmeshes, &polys, &dtrisToPolysMap, &dtrisToTrisMap,
-	                                     &trisToFacesMap);
-	if (res) {
-		size_t polyIdx;
-
-		/* invalidate concave polygon */
-		for (polyIdx = 0; polyIdx < (size_t)npolys; polyIdx++) {
-			unsigned short *poly = &polys[polyIdx * 2 * vertsPerPoly];
-			if (!polyIsConvex(poly, vertsPerPoly, verts)) {
-				/* set negative polygon idx to all faces */
-				unsigned short *dmesh = &dmeshes[4 * polyIdx];
-				unsigned short tbase = dmesh[2];
-				unsigned short tnum = dmesh[3];
-				unsigned short ti;
-
-				for (ti = 0; ti < tnum; ti++) {
-					unsigned short triidx = dtrisToTrisMap[tbase + ti];
-					unsigned short faceidx = trisToFacesMap[triidx];
-					if (recastData[faceidx] > 0) {
-						recastData[faceidx] = -recastData[faceidx];
-					}
-				}
-			}
-		}
-	}
-	else {
-		printf("Navmesh: Unable to generate valid Navmesh");
-	}
-
-	/* clean up */
-	if (verts != NULL)
-		MEM_freeN(verts);
-	if (dtris != NULL)
-		MEM_freeN(dtris);
-	if (dmeshes != NULL)
-		MEM_freeN(dmeshes);
-	if (polys != NULL)
-		MEM_freeN(polys);
-	if (dtrisToPolysMap != NULL)
-		MEM_freeN(dtrisToPolysMap);
-	if (dtrisToTrisMap != NULL)
-		MEM_freeN(dtrisToTrisMap);
-	if (trisToFacesMap != NULL)
-		MEM_freeN(trisToFacesMap);
-
-	return result;
-}
-
-#endif /* WITH_GAMEENGINE */
-
-/* --- NAVMESH (end) --- */
-
 
 void DM_init_origspace(DerivedMesh *dm)
 {

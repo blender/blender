@@ -37,7 +37,6 @@
 #include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_modifier_types.h"
-#include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_lamp_types.h"
@@ -59,7 +58,6 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_paint.h"
-#include "BKE_property.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
@@ -504,9 +502,8 @@ enum {
 	OBJECT_GRPSEL_HOOK               =  7,
 	OBJECT_GRPSEL_PASS               =  8,
 	OBJECT_GRPSEL_COLOR              =  9,
-	OBJECT_GRPSEL_PROPERTIES         = 10,
-	OBJECT_GRPSEL_KEYINGSET          = 11,
-	OBJECT_GRPSEL_LAMP_TYPE          = 12,
+	OBJECT_GRPSEL_KEYINGSET          = 10,
+	OBJECT_GRPSEL_LAMP_TYPE          = 11,
 };
 
 static const EnumPropertyItem prop_select_grouped_types[] = {
@@ -520,7 +517,6 @@ static const EnumPropertyItem prop_select_grouped_types[] = {
 	{OBJECT_GRPSEL_HOOK, "HOOK", 0, "Hook", ""},
 	{OBJECT_GRPSEL_PASS, "PASS", 0, "Pass", "Render pass Index"},
 	{OBJECT_GRPSEL_COLOR, "COLOR", 0, "Color", "Object Color"},
-	{OBJECT_GRPSEL_PROPERTIES, "PROPERTIES", 0, "Properties", "Game Properties"},
 	{OBJECT_GRPSEL_KEYINGSET, "KEYINGSET", 0, "Keying Set", "Objects included in active Keying Set"},
 	{OBJECT_GRPSEL_LAMP_TYPE, "LAMP_TYPE", 0, "Lamp Type", "Matching lamp types"},
 	{0, NULL, 0, NULL, NULL}
@@ -773,33 +769,6 @@ static bool select_grouped_color(bContext *C, Object *ob)
 	return changed;
 }
 
-static bool objects_share_gameprop(Object *a, Object *b)
-{
-	bProperty *prop;
-
-	for (prop = a->prop.first; prop; prop = prop->next) {
-		if (BKE_bproperty_object_get(b, prop->name)) {
-			return 1;
-		}
-	}
-	return 0;
-}
-
-static bool select_grouped_gameprops(bContext *C, Object *ob)
-{
-	bool changed = false;
-
-	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
-	{
-		if (((base->flag & BASE_SELECTED) == 0) && (objects_share_gameprop(base->object, ob))) {
-			ED_object_base_select(base, BA_SELECT);
-			changed = true;
-		}
-	}
-	CTX_DATA_END;
-	return changed;
-}
-
 static bool select_grouped_keyingset(bContext *C, Object *UNUSED(ob), ReportList *reports)
 {
 	KeyingSet *ks = ANIM_scene_get_active_keyingset(CTX_data_scene(C));
@@ -906,9 +875,6 @@ static int object_select_grouped_exec(bContext *C, wmOperator *op)
 			break;
 		case OBJECT_GRPSEL_COLOR:
 			changed |= select_grouped_color(C, ob);
-			break;
-		case OBJECT_GRPSEL_PROPERTIES:
-			changed |= select_grouped_gameprops(C, ob);
 			break;
 		case OBJECT_GRPSEL_KEYINGSET:
 			changed |= select_grouped_keyingset(C, ob, op->reports);

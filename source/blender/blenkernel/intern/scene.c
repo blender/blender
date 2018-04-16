@@ -112,7 +112,6 @@
 #include "bmesh.h"
 
 const char *RE_engine_id_BLENDER_RENDER = "BLENDER_RENDER";
-const char *RE_engine_id_BLENDER_GAME = "BLENDER_GAME";
 const char *RE_engine_id_BLENDER_CLAY = "BLENDER_CLAY";
 const char *RE_engine_id_BLENDER_EEVEE = "BLENDER_EEVEE";
 const char *RE_engine_id_BLENDER_WORKBENCH = "BLENDER_WORKBENCH";
@@ -351,7 +350,6 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 		sce_copy->r.views = rv;
 		sce_copy->unit = sce->unit;
 		sce_copy->physics_settings = sce->physics_settings;
-		sce_copy->gm = sce->gm;
 		sce_copy->audio = sce->audio;
 
 		if (sce->id.properties)
@@ -766,59 +764,6 @@ void BKE_scene_init(Scene *sce)
 	BKE_scene_add_render_view(sce, STEREO_RIGHT_NAME);
 	srv = sce->r.views.last;
 	BLI_strncpy(srv->suffix, STEREO_RIGHT_SUFFIX, sizeof(srv->suffix));
-
-	/* game data */
-	sce->gm.stereoflag = STEREO_NOSTEREO;
-	sce->gm.stereomode = STEREO_ANAGLYPH;
-	sce->gm.eyeseparation = 0.10;
-
-	sce->gm.dome.angle = 180;
-	sce->gm.dome.mode = DOME_FISHEYE;
-	sce->gm.dome.res = 4;
-	sce->gm.dome.resbuf = 1.0f;
-	sce->gm.dome.tilt = 0;
-
-	sce->gm.xplay = 640;
-	sce->gm.yplay = 480;
-	sce->gm.freqplay = 60;
-	sce->gm.depth = 32;
-
-	sce->gm.gravity = 9.8f;
-	sce->gm.physicsEngine = WOPHY_BULLET;
-	sce->gm.mode = 32; //XXX ugly harcoding, still not sure we should drop mode. 32 == 1 << 5 == use_occlusion_culling 
-	sce->gm.occlusionRes = 128;
-	sce->gm.ticrate = 60;
-	sce->gm.maxlogicstep = 5;
-	sce->gm.physubstep = 1;
-	sce->gm.maxphystep = 5;
-	sce->gm.lineardeactthreshold = 0.8f;
-	sce->gm.angulardeactthreshold = 1.0f;
-	sce->gm.deactivationtime = 0.0f;
-
-	sce->gm.flag = 0;
-	sce->gm.matmode = GAME_MAT_MULTITEX;
-
-	sce->gm.obstacleSimulation = OBSTSIMULATION_NONE;
-	sce->gm.levelHeight = 2.f;
-
-	sce->gm.recastData.cellsize = 0.3f;
-	sce->gm.recastData.cellheight = 0.2f;
-	sce->gm.recastData.agentmaxslope = M_PI_4;
-	sce->gm.recastData.agentmaxclimb = 0.9f;
-	sce->gm.recastData.agentheight = 2.0f;
-	sce->gm.recastData.agentradius = 0.6f;
-	sce->gm.recastData.edgemaxlen = 12.0f;
-	sce->gm.recastData.edgemaxerror = 1.3f;
-	sce->gm.recastData.regionminsize = 8.f;
-	sce->gm.recastData.regionmergesize = 20.f;
-	sce->gm.recastData.vertsperpoly = 6;
-	sce->gm.recastData.detailsampledist = 6.0f;
-	sce->gm.recastData.detailsamplemaxerror = 1.0f;
-
-	sce->gm.lodflag = SCE_LOD_USE_HYST;
-	sce->gm.scehysteresis = 10;
-
-	sce->gm.exitkey = 218; // Blender key code for ESC
 
 	BKE_sound_create_scene(sce);
 
@@ -1605,11 +1550,6 @@ bool BKE_scene_uses_blender_internal(const Scene *scene)
 	return BKE_viewrender_uses_blender_internal(&scene->view_render);
 }
 
-bool BKE_scene_uses_blender_game(const Scene *scene)
-{
-	return BKE_viewrender_uses_blender_game(&scene->view_render);
-}
-
 bool BKE_scene_uses_blender_eevee(const Scene *scene)
 {
 	return BKE_viewrender_uses_blender_eevee(&scene->view_render);
@@ -1776,12 +1716,6 @@ bool BKE_viewrender_uses_blender_internal(const ViewRender *view_render)
 {
 	const char *engine_id = view_render->engine_id;
 	return STREQ(engine_id, RE_engine_id_BLENDER_RENDER);
-}
-
-bool BKE_viewrender_uses_blender_game(const ViewRender *view_render)
-{
-	const char *engine_id = view_render->engine_id;
-	return STREQ(engine_id, RE_engine_id_BLENDER_GAME);
 }
 
 bool BKE_viewrender_uses_blender_eevee(const ViewRender *view_render)

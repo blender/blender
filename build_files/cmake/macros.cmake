@@ -760,10 +760,6 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		list_insert_after(BLENDER_SORTED_LIBS "ge_logic_ngnetwork" "extern_bullet")
 	endif()
 
-	if(WITH_GAMEENGINE_DECKLINK)
-		list(APPEND BLENDER_SORTED_LIBS bf_intern_decklink)
-	endif()
-
 	if(WIN32)
 		list(APPEND BLENDER_SORTED_LIBS bf_intern_gpudirect)
 	endif()

@@ -589,7 +589,6 @@ class SpellChecker:
         "yuv", "yuva",
 
         # Blender acronyms
-        "bge",
         "bli",
         "bpy",
         "bvh",

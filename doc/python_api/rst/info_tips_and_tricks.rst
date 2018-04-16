@@ -231,7 +231,7 @@ There are 2 ways around this:
   you could also copy the entire Python installation into Blenders sub-directory,
   replacing the one Blender comes with.
   This works as long as the Python versions match and the paths are created in the same relative locations.
-  Doing this has the advantage that you can redistribute this bundle to others with Blender and/or the game player,
+  Doing this has the advantage that you can redistribute this bundle to others with Blender
   including any extensions you rely on.
 
 
@@ -279,11 +279,6 @@ The IPython prompt has auto-complete and some useful features that the standard 
 
 
 Admittedly this highlights the lack of any Python debugging support built into Blender, but its still handy to know.
-
-.. note::
-
-   This works in the game engine as well, it can be handy to inspect the state of a running game.
-
 
 Advanced
 ========

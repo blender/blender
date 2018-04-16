@@ -33,7 +33,7 @@ struct bContext;
 #ifndef WITH_PYTHON_MODULE
 
 /* creator_args.c */
-void main_args_setup(struct bContext *C, struct bArgs *ba, SYS_SystemHandle *syshandle);
+void main_args_setup(struct bContext *C, struct bArgs *ba);
 void main_args_setup_post(struct bContext *C, struct bArgs *ba);
 
 

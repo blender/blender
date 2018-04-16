@@ -76,12 +76,6 @@ if(WITH_HEADLESS)
 	add_definitions(-DWITH_HEADLESS)
 endif()
 
-if(WITH_GAMEENGINE)
-	blender_include_dirs(../gameengine/BlenderRoutines)
-
-	add_definitions(-DWITH_GAMEENGINE)
-endif()
-
 if(WITH_SDL)
 	if(WITH_SDL_DYNLOAD)
 		add_definitions(-DWITH_SDL_DYNLOAD)
@@ -929,53 +923,6 @@ elseif(APPLE)
 			DESTINATION ${TARGETDIR_VER}/python/include/${_py_inc_suffix}
 		)
 		unset(_py_inc_suffix)
-	endif()
-	
-	# install blenderplayer bundle - copy of blender.app above. re-using macros et al
-	# note we are using OSX Bundle as base and copying Blender dummy bundle on top of it
-	if(WITH_GAMEENGINE AND WITH_PLAYER)
-		set(OSX_APP_PLAYER_SOURCEDIR ${CMAKE_SOURCE_DIR}/release/darwin/blenderplayer.app)
-		set(PLAYER_SOURCEINFO ${OSX_APP_PLAYER_SOURCEDIR}/Contents/Info.plist)
-		set(PLAYER_TARGETDIR_VER blenderplayer.app/Contents/Resources/${BLENDER_VERSION})
-
-
-		# important to make a clean  install each time else old scripts get loaded.
-		install(
-			CODE
-			"file(REMOVE_RECURSE ${PLAYER_TARGETDIR_VER})"
-		)
-
-		# Give the bundle actual creation/modification date
-		execute_process(COMMAND SetFile -d ${SETFILE_DATE} -m ${SETFILE_DATE}
-		                ${EXECUTABLE_OUTPUT_PATH}/blenderplayer.app)
-
-		install(
-			FILES ${OSX_APP_PLAYER_SOURCEDIR}/Contents/PkgInfo
-			DESTINATION blenderplayer.app/Contents
-		)
-
-		install_dir(
-			${OSX_APP_PLAYER_SOURCEDIR}/Contents/Resources
-			blenderplayer.app/Contents/
-		)
-
-		if(WITH_OPENMP AND CMAKE_C_COMPILER_ID MATCHES "Clang" AND NOT ${CMAKE_C_COMPILER_VERSION} VERSION_LESS '3.4')
-			install(
-				FILES ${LIBDIR}/openmp/lib/libiomp5.dylib
-				DESTINATION blenderplayer.app/Contents/Resources/lib/
-			)
-		endif()
-
-
-		# python
-		if(WITH_PYTHON AND NOT WITH_PYTHON_FRAMEWORK)
-			# Copy the python libs into the install directory
-			install_dir(
-				${PYTHON_LIBPATH}
-				${PLAYER_TARGETDIR_VER}/python/lib
-			)
-		endif()
-
 	endif()
 
 endif()

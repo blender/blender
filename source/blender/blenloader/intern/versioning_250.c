@@ -39,7 +39,6 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
-#include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_cloth_types.h"
@@ -84,7 +83,6 @@
 #include "BKE_sequencer.h"
 #include "BKE_texture.h"
 #include "BKE_sound.h"
-#include "BKE_sca.h"
 
 #include "NOD_socket.h"
 
@@ -610,13 +608,7 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 	bConstraint *con;
 
 	for (con = lb->first; con; con = con->next) {
-		if (con->type == CONSTRAINT_TYPE_RIGIDBODYJOINT) {
-			bRigidBodyJointConstraint *data = con->data;
-			data->axX *= (float)(M_PI / 180.0);
-			data->axY *= (float)(M_PI / 180.0);
-			data->axZ *= (float)(M_PI / 180.0);
-		}
-		else if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
 			bKinematicConstraint *data = con->data;
 			data->poleangle *= (float)(M_PI / 180.0);
 		}
@@ -750,40 +742,12 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 		bSound *sound;
 		Sequence *seq;
-		bActuator *act;
 		int a;
 
 		for (sound = main->sound.first; sound; sound = sound->id.next) {
 			if (sound->newpackedfile) {
 				sound->packedfile = sound->newpackedfile;
 				sound->newpackedfile = NULL;
-			}
-		}
-
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			for (act = ob->actuators.first; act; act = act->next) {
-				if (act->type == ACT_SOUND) {
-					bSoundActuator *sAct = (bSoundActuator*) act->data;
-					if (sAct->sound) {
-						sound = blo_do_versions_newlibadr(fd, lib, sAct->sound);
-						sAct->flag = (sound->flags & SOUND_FLAGS_3D) ? ACT_SND_3D_SOUND : 0;
-						sAct->pitch = sound->pitch;
-						sAct->volume = sound->volume;
-						sAct->sound3D.reference_distance = sound->distance;
-						sAct->sound3D.max_gain = sound->max_gain;
-						sAct->sound3D.min_gain = sound->min_gain;
-						sAct->sound3D.rolloff_factor = sound->attenuation;
-					}
-					else {
-						sAct->sound3D.reference_distance = 1.0f;
-						sAct->volume = 1.0f;
-						sAct->sound3D.max_gain = 1.0f;
-						sAct->sound3D.rolloff_factor = 1.0f;
-					}
-					sAct->sound3D.cone_inner_angle = 360.0f;
-					sAct->sound3D.cone_outer_angle = 360.0f;
-					sAct->sound3D.max_distance = FLT_MAX;
-				}
 			}
 		}
 
@@ -1034,92 +998,11 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				ts->uv_selectmode = UV_SELECT_VERTEX;
 				ts->vgroup_weight = 1.0f;
 			}
-
-			/* Game Settings */
-			/* Dome */
-			sce->gm.dome.angle = sce->r.domeangle;
-			sce->gm.dome.mode = sce->r.domemode;
-			sce->gm.dome.res = sce->r.domeres;
-			sce->gm.dome.resbuf = sce->r.domeresbuf;
-			sce->gm.dome.tilt = sce->r.dometilt;
-			sce->gm.dome.warptext = sce->r.dometext;
-
-			/* Stand Alone */
-			sce->gm.playerflag |= (sce->r.fullscreen ? GAME_PLAYER_FULLSCREEN : 0);
-			sce->gm.xplay = sce->r.xplay;
-			sce->gm.yplay = sce->r.yplay;
-			sce->gm.freqplay = sce->r.freqplay;
-			sce->gm.depth = sce->r.depth;
-			sce->gm.attrib = sce->r.attrib;
-
-			/* Stereo */
-			sce->gm.stereomode = sce->r.stereomode;
-			/* reassigning stereomode NO_STEREO and DOME to a separeted flag*/
-			if (sce->gm.stereomode == 1) { // 1 = STEREO_NOSTEREO
-				sce->gm.stereoflag = STEREO_NOSTEREO;
-				sce->gm.stereomode = STEREO_ANAGLYPH;
-			}
-			else if (sce->gm.stereomode == 8) { // 8 = STEREO_DOME
-				sce->gm.stereoflag = STEREO_DOME;
-				sce->gm.stereomode = STEREO_ANAGLYPH;
-			}
-			else
-				sce->gm.stereoflag = STEREO_ENABLED;
-
-			/* Framing */
-			sce->gm.framing = sce->framing;
-			sce->gm.xplay = sce->r.xplay;
-			sce->gm.yplay = sce->r.yplay;
-			sce->gm.freqplay = sce->r.freqplay;
-			sce->gm.depth = sce->r.depth;
-
-			/* Physic (previously stored in world) */
-			sce->gm.gravity =9.8f;
-			sce->gm.physicsEngine = WOPHY_BULLET; /* Bullet by default */
-			sce->gm.mode = WO_DBVT_CULLING;	/* DBVT culling by default */
-			sce->gm.occlusionRes = 128;
-			sce->gm.ticrate = 60;
-			sce->gm.maxlogicstep = 5;
-			sce->gm.physubstep = 1;
-			sce->gm.maxphystep = 5;
 		}
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 2)) {
-		Scene *sce;
 		Object *ob;
-
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			if (fd->fileflags & G_FILE_ENABLE_ALL_FRAMES)
-				sce->gm.flag |= GAME_ENABLE_ALL_FRAMES;
-			if (fd->fileflags & G_FILE_SHOW_DEBUG_PROPS)
-				sce->gm.flag |= GAME_SHOW_DEBUG_PROPS;
-			if (fd->fileflags & G_FILE_SHOW_FRAMERATE)
-				sce->gm.flag |= GAME_SHOW_FRAMERATE;
-			if (fd->fileflags & G_FILE_SHOW_PHYSICS)
-				sce->gm.flag |= GAME_SHOW_PHYSICS;
-			if (fd->fileflags & G_FILE_GLSL_NO_SHADOWS)
-				sce->gm.flag |= GAME_GLSL_NO_SHADOWS;
-			if (fd->fileflags & G_FILE_GLSL_NO_SHADERS)
-				sce->gm.flag |= GAME_GLSL_NO_SHADERS;
-			if (fd->fileflags & G_FILE_GLSL_NO_RAMPS)
-				sce->gm.flag |= GAME_GLSL_NO_RAMPS;
-			if (fd->fileflags & G_FILE_GLSL_NO_NODES)
-				sce->gm.flag |= GAME_GLSL_NO_NODES;
-			if (fd->fileflags & G_FILE_GLSL_NO_EXTRA_TEX)
-				sce->gm.flag |= GAME_GLSL_NO_EXTRA_TEX;
-			if (fd->fileflags & G_FILE_GLSL_NO_ENV_LIGHTING)
-				sce->gm.flag |= GAME_GLSL_NO_ENV_LIGHTING;
-			if (fd->fileflags & G_FILE_IGNORE_DEPRECATION_WARNINGS)
-				sce->gm.flag |= GAME_IGNORE_DEPRECATION_WARNINGS;
-
-			if (fd->fileflags & G_FILE_GAME_MAT_GLSL)
-				sce->gm.matmode = GAME_MAT_GLSL;
-			else if (fd->fileflags & G_FILE_GAME_MAT)
-				sce->gm.matmode = GAME_MAT_MULTITEX;
-			else
-				sce->gm.matmode = GAME_MAT_TEXFACE;
-		}
 
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			if (ob->flag & 8192) // OB_POSEMODE = 8192
@@ -1565,15 +1448,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12)) {
-		Scene *sce;
 		Object *ob;
 		Brush *brush;
 		Material *ma;
-
-		/* game engine changes */
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			sce->gm.eyeseparation = 0.10f;
-		}
 
 		/* anim viz changes */
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -2195,7 +2072,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		Brush *br;
 		ParticleSettings *part;
 		bScreen *sc;
-		Object *ob;
 
 		for (br = main->brush.first; br; br = br->id.next) {
 			if (br->ob_mode == 0)
@@ -2230,41 +2106,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 								ar->v2d.keeptot = V2D_KEEPTOT_BOUNDS;
 								ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
 							}
-						}
-					}
-				}
-			}
-		}
-
-		/* fix rotation actuators for objects so they use real angles (radians)
-		 * since before blender went opensource this strange scalar was used: (1 / 0.02) * 2 * math.pi/360 */
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			bActuator *act = ob->actuators.first;
-			while (act) {
-				if (act->type == ACT_OBJECT) {
-					/* multiply velocity with 50 in old files */
-					bObjectActuator *oa = act->data;
-					mul_v3_fl(oa->drot, 0.8726646259971648f);
-				}
-				act = act->next;
-			}
-		}
-	}
-
-	/* init facing axis property of steering actuators */
-	{
-		Object *ob;
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			bActuator *act;
-			for (act = ob->actuators.first; act; act = act->next) {
-				if (act->type == ACT_STEERING) {
-					bSteeringActuator *stact = act->data;
-					if (stact == NULL) {//HG1
-						init_actuator(act);
-					}
-					else {
-						if (stact->facingaxis == 0) {
-							stact->facingaxis = 1;
 						}
 					}
 				}
@@ -2562,21 +2403,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		}
 
 		{
-			/* add default value for behind strength of camera actuator */
-			Object *ob;
-			bActuator *act;
-			for (ob = main->object.first; ob; ob = ob->id.next) {
-				for (act = ob->actuators.first; act; act = act->next) {
-					if (act->type == ACT_CAMERA) {
-						bCameraActuator *ba = act->data;
-
-						ba->damping = 1.0/32.0;
-					}
-				}
-			}
-		}
-
-		{
 			ParticleSettings *part;
 			for (part = main->particle.first; part; part = part->id.next) {
 				/* Initialize particle billboard scale */
@@ -2667,50 +2493,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-
-		{
-			/* convert fcurve and shape action actuators to action actuators */
-			Object *ob;
-			bActuator *act;
-			bIpoActuator *ia;
-			bActionActuator *aa;
-
-			for (ob = main->object.first; ob; ob = ob->id.next) {
-				for (act = ob->actuators.first; act; act = act->next) {
-					if (act->type == ACT_IPO) {
-						/* Create the new actuator */
-						ia = act->data;
-						aa = MEM_callocN(sizeof(bActionActuator), "fcurve -> action actuator do_version");
-
-						/* Copy values */
-						aa->type = ia->type;
-						aa->flag = ia->flag;
-						aa->sta = ia->sta;
-						aa->end = ia->end;
-						BLI_strncpy(aa->name, ia->name, sizeof(aa->name));
-						BLI_strncpy(aa->frameProp, ia->frameProp, sizeof(aa->frameProp));
-						if (ob->adt)
-							aa->act = ob->adt->action;
-
-						/* Get rid of the old actuator */
-						MEM_freeN(ia);
-
-						/* Assign the new actuator */
-						act->data = aa;
-						act->type = act->otype = ACT_ACTION;
-
-						/* Fix for converting 2.4x files: if we don't have an action, but we have an
-						 * object IPO, then leave the actuator as an IPO actuator for now and let the
-						 * IPO conversion code handle it */
-						if (ob->ipo && !aa->act)
-							act->type = ACT_IPO;
-					}
-					else if (act->type == ACT_SHAPEACTION) {
-						act->type = act->otype = ACT_ACTION;
-					}
-				}
-			}
-		}
 	}
 
 	if (main->versionfile < 259 || (main->versionfile == 259 && main->subversionfile < 2)) {
@@ -2756,42 +2538,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			for (part = main->particle.first; part; part = part->id.next) {
 				part->courant_target = 0.2f;
 				part->time_flag &= ~PART_TIME_AUTOSF;
-			}
-		}
-
-		{
-			/* set defaults for obstacle avoidance, recast data */
-			Scene *sce;
-			for (sce = main->scene.first; sce; sce = sce->id.next) {
-				if (sce->gm.levelHeight == 0.f)
-					sce->gm.levelHeight = 2.f;
-
-				if (sce->gm.recastData.cellsize == 0.0f)
-					sce->gm.recastData.cellsize = 0.3f;
-				if (sce->gm.recastData.cellheight == 0.0f)
-					sce->gm.recastData.cellheight = 0.2f;
-				if (sce->gm.recastData.agentmaxslope == 0.0f)
-					sce->gm.recastData.agentmaxslope = (float)M_PI/4;
-				if (sce->gm.recastData.agentmaxclimb == 0.0f)
-					sce->gm.recastData.agentmaxclimb = 0.9f;
-				if (sce->gm.recastData.agentheight == 0.0f)
-					sce->gm.recastData.agentheight = 2.0f;
-				if (sce->gm.recastData.agentradius == 0.0f)
-					sce->gm.recastData.agentradius = 0.6f;
-				if (sce->gm.recastData.edgemaxlen == 0.0f)
-					sce->gm.recastData.edgemaxlen = 12.0f;
-				if (sce->gm.recastData.edgemaxerror == 0.0f)
-					sce->gm.recastData.edgemaxerror = 1.3f;
-				if (sce->gm.recastData.regionminsize == 0.0f)
-					sce->gm.recastData.regionminsize = 8.f;
-				if (sce->gm.recastData.regionmergesize == 0.0f)
-					sce->gm.recastData.regionmergesize = 20.f;
-				if (sce->gm.recastData.vertsperpoly<3)
-					sce->gm.recastData.vertsperpoly = 6;
-				if (sce->gm.recastData.detailsampledist == 0.0f)
-					sce->gm.recastData.detailsampledist = 6.0f;
-				if (sce->gm.recastData.detailsamplemaxerror == 0.0f)
-					sce->gm.recastData.detailsamplemaxerror = 1.0f;
 			}
 		}
 	}

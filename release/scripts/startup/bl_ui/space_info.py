@@ -100,12 +100,7 @@ class INFO_MT_editor_menus(Menu):
         view_render = context.view_render
 
         layout.menu("INFO_MT_file")
-
-        if view_render.use_game_engine:
-            layout.menu("INFO_MT_game")
-        else:
-            layout.menu("INFO_MT_render")
-
+        layout.menu("INFO_MT_render")
         layout.menu("INFO_MT_window")
         layout.menu("INFO_MT_help")
 
@@ -243,27 +238,6 @@ class INFO_MT_file_previews(Menu):
         layout.operator("wm.previews_batch_clear")
 
 
-class INFO_MT_game(Menu):
-    bl_label = "Game"
-
-    def draw(self, context):
-        layout = self.layout
-
-        gs = context.scene.game_settings
-
-        layout.operator("view3d.game_start")
-
-        layout.separator()
-
-        layout.prop(gs, "show_debug_properties")
-        layout.prop(gs, "show_framerate_profile")
-        layout.prop(gs, "show_physics_visualization")
-        layout.prop(gs, "use_deprecation_warnings")
-        layout.prop(gs, "use_animation_record")
-        layout.separator()
-        layout.prop(gs, "use_auto_start")
-
-
 class INFO_MT_render(Menu):
     bl_label = "Render"
 
@@ -377,7 +351,6 @@ classes = (
     INFO_MT_file_export,
     INFO_MT_file_external_data,
     INFO_MT_file_previews,
-    INFO_MT_game,
     INFO_MT_render,
     INFO_MT_opengl_render,
     INFO_MT_window,

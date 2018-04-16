@@ -855,39 +855,6 @@ void BKE_pose_free(bPose *pose)
 	BKE_pose_free_ex(pose, true);
 }
 
-static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan)
-{
-	bConstraint *pcon, *con;
-	
-	copy_v3_v3(pchan->loc, chan->loc);
-	copy_v3_v3(pchan->size, chan->size);
-	copy_v3_v3(pchan->eul, chan->eul);
-	copy_v3_v3(pchan->rotAxis, chan->rotAxis);
-	pchan->rotAngle = chan->rotAngle;
-	copy_qt_qt(pchan->quat, chan->quat);
-	pchan->rotmode = chan->rotmode;
-	copy_m4_m4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
-	copy_m4_m4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
-	pchan->flag = chan->flag;
-	
-	pchan->roll1 = chan->roll1;
-	pchan->roll2 = chan->roll2;
-	pchan->curveInX = chan->curveInX;
-	pchan->curveInY = chan->curveInY;
-	pchan->curveOutX = chan->curveOutX;
-	pchan->curveOutY = chan->curveOutY;
-	pchan->ease1 = chan->ease1;
-	pchan->ease2 = chan->ease2;
-	pchan->scaleIn = chan->scaleIn;
-	pchan->scaleOut = chan->scaleOut;
-	
-	con = chan->constraints.first;
-	for (pcon = pchan->constraints.first; pcon && con; pcon = pcon->next, con = con->next) {
-		pcon->enforce = con->enforce;
-		pcon->headtail = con->headtail;
-	}
-}
-
 /**
  * Copy the internal members of each pose channel including constraints
  * and ID-Props, used when duplicating bones in editmode.
@@ -1328,25 +1295,6 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 }
 
 /* ************** Pose Management Tools ****************** */
-
-/* Copy the data from the action-pose (src) into the pose */
-/* both args are assumed to be valid */
-/* exported to game engine */
-/* Note! this assumes both poses are aligned, this isn't always true when dealing with user poses */
-void extract_pose_from_pose(bPose *pose, const bPose *src)
-{
-	const bPoseChannel *schan;
-	bPoseChannel *pchan = pose->chanbase.first;
-
-	if (pose == src) {
-		printf("extract_pose_from_pose source and target are the same\n");
-		return;
-	}
-
-	for (schan = src->chanbase.first; (schan && pchan); schan = schan->next, pchan = pchan->next) {
-		copy_pose_channel_data(pchan, schan);
-	}
-}
 
 /* for do_all_pose_actions, clears the pose. Now also exported for proxy and tools */
 void BKE_pose_rest(bPose *pose)

@@ -345,11 +345,9 @@ void GPU_lamp_free(Object *ob)
 	BLI_freelistN(&ob->gpulamp);
 }
 
-bool GPU_lamp_has_shadow_buffer(GPULamp *lamp)
+bool GPU_lamp_has_shadow_buffer(GPULamp *UNUSED(lamp))
 {
-	return (!(lamp->scene->gm.flag & GAME_GLSL_NO_SHADOWS) &&
-	        !(lamp->scene->gm.flag & GAME_GLSL_NO_LIGHTS) &&
-	        lamp->tex && lamp->fb);
+	return false;
 }
 
 void GPU_lamp_update_buffer_mats(GPULamp *lamp)

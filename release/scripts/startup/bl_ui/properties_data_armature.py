@@ -65,11 +65,6 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         col.label(text="Protected Layers:")
         col.prop(arm, "layers_protected", text="")
 
-        if context.engine == 'BLENDER_GAME':
-            col = layout.column()
-            col.label(text="Deform:")
-            col.prop(arm, "deform_method", expand=True)
-
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):
     bl_label = "Display"
@@ -328,7 +323,7 @@ class DATA_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from
 
 
 class DATA_PT_custom_props_arm(ArmatureButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     _context_path = "object.data"
     _property_type = bpy.types.Armature
 

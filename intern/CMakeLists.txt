@@ -36,10 +36,6 @@ add_subdirectory(glew-mx)
 add_subdirectory(eigen)
 add_subdirectory(gawain)
 
-if(WITH_GAMEENGINE_DECKLINK)
-	add_subdirectory(decklink)
-endif()
-
 if(WITH_AUDASPACE)
 	add_subdirectory(audaspace)
 endif()
@@ -62,10 +58,6 @@ endif()
 
 if(WITH_IK_ITASC)
 	add_subdirectory(itasc)
-endif()
-
-if(WITH_GAMEENGINE)
-	add_subdirectory(moto)
 endif()
 
 if(WITH_CYCLES)

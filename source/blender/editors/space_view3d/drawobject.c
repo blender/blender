@@ -328,7 +328,7 @@ bool draw_glsl_material(Scene *scene, ViewLayer *view_layer, Object *ob, View3D 
 		return true;
 
 	if (v3d->drawtype == OB_TEXTURE)
-		return (scene->gm.matmode == GAME_MAT_GLSL && !BKE_scene_use_new_shading_nodes(scene));
+		return !BKE_scene_use_new_shading_nodes(scene);
 	else if (v3d->drawtype == OB_MATERIAL && dt > OB_SOLID)
 		return true;
 	else
@@ -1189,51 +1189,6 @@ static void draw_transp_spot_volume(Lamp *la, float x, float z, unsigned pos)
 	glDisable(GL_CULL_FACE);
 }
 
-#ifdef WITH_GAMEENGINE
-static void draw_transp_sun_volume(Lamp *la, unsigned pos)
-{
-	float box[8][3];
-
-	/* construct box */
-	box[0][0] = box[1][0] = box[2][0] = box[3][0] = -la->shadow_frustum_size;
-	box[4][0] = box[5][0] = box[6][0] = box[7][0] = +la->shadow_frustum_size;
-	box[0][1] = box[1][1] = box[4][1] = box[5][1] = -la->shadow_frustum_size;
-	box[2][1] = box[3][1] = box[6][1] = box[7][1] = +la->shadow_frustum_size;
-	box[0][2] = box[3][2] = box[4][2] = box[7][2] = -la->clipend;
-	box[1][2] = box[2][2] = box[5][2] = box[6][2] = -la->clipsta;
-
-	/* draw edges */
-	imm_draw_box(box, false, pos);
-
-	/* draw faces */
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glDepthMask(GL_FALSE);
-
-	/* draw backside darkening */
-	glCullFace(GL_FRONT);
-
-	glBlendFunc(GL_ZERO, GL_SRC_ALPHA);
-	immUniformColor4f(0.0f, 0.0f, 0.0f, 0.4f);
-
-	imm_draw_box(box, true, pos);
-
-	/* draw front side lighting */
-	glCullFace(GL_BACK);
-
-	glBlendFunc(GL_ONE, GL_ONE);
-	immUniformColor3f(0.2f, 0.2f, 0.2f);
-
-	imm_draw_box(box, true, pos);
-
-	/* restore state */
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_BLEND);
-	glDepthMask(GL_TRUE);
-	glDisable(GL_CULL_FACE);
-}
-#endif
-
 void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
               const char dt, const short dflag, const unsigned char ob_wire_col[4], const bool is_obact)
 {
@@ -1253,22 +1208,7 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 	                       !(base->flag_legacy & OB_FROMDUPLI) &&
 	                       !is_view);
 
-#ifdef WITH_GAMEENGINE
-	const bool drawshadowbox = (
-	        (rv3d->rflag & RV3D_IS_GAME_ENGINE) &&
-	        (dt > OB_WIRE) &&
-	        !(G.f & G_PICKSEL) &&
-	        (la->type == LA_SUN) &&
-	        ((la->mode & LA_SHAD_BUF) || 
-	        (la->mode & LA_SHAD_RAY)) &&
-	        (la->mode & LA_SHOW_SHADOW_BOX) &&
-	        !(base->flag_legacy & OB_FROMDUPLI) &&
-	        !is_view);
-#else
-	const bool drawshadowbox = false;
-#endif
-
-	if ((drawcone || drawshadowbox) && !v3d->transp) {
+	if (drawcone && !v3d->transp) {
 		/* in this case we need to draw delayed */
 		ED_view3d_after_add(&v3d->afterdraw_transp, base, dflag);
 		return;
@@ -1576,11 +1516,6 @@ void drawlamp(View3D *v3d, RegionView3D *rv3d, Base *base,
 			}
 		}
 
-#ifdef WITH_GAMEENGINE
-		if (drawshadowbox) {
-			draw_transp_sun_volume(la, pos);
-		}
-#endif
 	}
 	else if (la->type == LA_AREA) {
 		setlinestyle(3);
@@ -4300,11 +4235,7 @@ static void draw_mesh_fancy(
         Depsgraph *depsgraph, Scene *scene, ViewLayer *view_layer, ARegion *ar, View3D *v3d, RegionView3D *rv3d, Base *base,
         const char dt, const unsigned char ob_wire_col[4], const short dflag)
 {
-#ifdef WITH_GAMEENGINE
-	Object *ob = (rv3d->rflag & RV3D_IS_GAME_ENGINE) ? BKE_object_lod_meshob_get(base->object, view_layer) : base->object;
-#else
 	Object *ob = base->object;
-#endif
 	Mesh *me = ob->data;
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF;
 	bool /* no_verts,*/ no_edges, no_faces;
@@ -4718,11 +4649,7 @@ static void draw_mesh_fancy_new(
 		return;
 	}
 
-#ifdef WITH_GAMEENGINE
-	Object *ob = (rv3d->rflag & RV3D_IS_GAME_ENGINE) ? BKE_object_lod_meshob_get(base->object, view_layer) : base->object;
-#else
 	Object *ob = base->object;
-#endif
 	Mesh *me = ob->data;
 	eWireDrawMode draw_wire = OBDRAW_WIRE_OFF; /* could be bool draw_wire_overlay */
 	bool no_edges, no_faces;
@@ -8177,33 +8104,7 @@ void draw_bounding_volume(Object *ob, char type, const unsigned char ob_wire_col
 	if (bb == NULL)
 		return;
 
-	if (ob->gameflag & OB_BOUNDS) { /* bounds need to be drawn around origin for game engine */
-
-		if (type == OB_BOUND_BOX) {
-			float vec[8][3], size[3];
-
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-			if (ob_wire_col) immUniformColor3ubv(ob_wire_col);
-
-			BKE_boundbox_calc_size_aabb(bb, size);
-			
-			vec[0][0] = vec[1][0] = vec[2][0] = vec[3][0] = -size[0];
-			vec[4][0] = vec[5][0] = vec[6][0] = vec[7][0] = +size[0];
-			vec[0][1] = vec[1][1] = vec[4][1] = vec[5][1] = -size[1];
-			vec[2][1] = vec[3][1] = vec[6][1] = vec[7][1] = +size[1];
-			vec[0][2] = vec[3][2] = vec[4][2] = vec[7][2] = -size[2];
-			vec[1][2] = vec[2][2] = vec[5][2] = vec[6][2] = +size[2];
-			
-			imm_draw_box(vec, false, pos);
-
-			immUnbindProgram();
-		}
-		else {
-			imm_draw_bb(bb, type, true, ob_wire_col);
-		}
-	}
-	else {
+	{
 		if (type == OB_BOUND_BOX) {
 			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
@@ -8382,48 +8283,6 @@ static void draw_hooks(Object *ob, unsigned int pos)
 			immEnd();
 		}
 	}
-}
-
-static void draw_rigid_body_pivot(bRigidBodyJointConstraint *data,
-                                  const short dflag, const unsigned char ob_wire_col[4])
-{
-	const char *axis_str[3] = {"px", "py", "pz"};
-	float mat[4][4];
-
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-	if (ob_wire_col) immUniformColor3ubv(ob_wire_col);
-
-	eul_to_mat4(mat, &data->axX);
-	glLineWidth(4.0f);
-	setlinestyle(2);
-
-	immBegin(GWN_PRIM_LINES, 6);
-	for (int axis = 0; axis < 3; axis++) {
-		float dir[3] = {0, 0, 0};
-		float v[3];
-
-		copy_v3_v3(v, &data->pivX);
-
-		dir[axis] = 1.0f;
-		mul_m4_v3(mat, dir);
-		add_v3_v3(v, dir);
-		immVertex3fv(pos, &data->pivX);
-		immVertex3fv(pos, v);
-
-		/* when const color is set wirecolor is NULL - we could get the current color but
-		 * with selection and group instancing its not needed to draw the text */
-		if ((dflag & DRAW_CONSTCOLOR) == 0) {
-			view3d_cached_text_draw_add(v, axis_str[axis], 2, 0, V3D_CACHE_TEXT_ASCII, ob_wire_col);
-		}
-	}
-	immEnd();
-
-	setlinestyle(0);
-	glLineWidth(1.0f);
-
-	immUnbindProgram();
 }
 
 void draw_object_wire_color(ViewLayer *view_layer, Base *base, unsigned char r_ob_wire_col[4])
@@ -9059,23 +8918,6 @@ afterdraw:
 	}
 
 	if (!render_override) {
-		bConstraint *con;
-
-		for (con = ob->constraints.first; con; con = con->next) {
-			if (con->type == CONSTRAINT_TYPE_RIGIDBODYJOINT) {
-				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)con->data;
-				if (data->flag & CONSTRAINT_DRAW_PIVOT)
-					draw_rigid_body_pivot(data, dflag, ob_wire_col);
-			}
-		}
-
-		if ((ob->gameflag & OB_BOUNDS) && (ob->mode == OB_MODE_OBJECT)) {
-			if (ob->boundtype != ob->collision_boundtype || (dtx & OB_DRAWBOUNDOX) == 0) {
-				setlinestyle(2);
-				draw_bounding_volume(ob, ob->collision_boundtype, ob_wire_col);
-				setlinestyle(0);
-			}
-		}
 		if (ob->rigidbody_object) {
 			draw_rigidbody_shape(ob, ob_wire_col);
 		}
@@ -9120,33 +8962,6 @@ afterdraw:
 		}
 	}
 
-	if ((dt <= OB_SOLID) && !render_override) {
-		if (((ob->gameflag & OB_DYNAMIC) &&
-		     ((ob->gameflag & OB_BOUNDS) == 0)) ||
-
-		    ((ob->gameflag & OB_BOUNDS) &&
-		     (ob->collision_boundtype == OB_BOUND_SPHERE)))
-		{
-			float imat[4][4], vec[3] = {0.0f, 0.0f, 0.0f};
-
-			unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-			immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-			invert_m4_m4(imat, rv3d->viewmatob);
-
-			if ((dflag & DRAW_CONSTCOLOR) == 0) {
-				/* prevent random colors being used */
-				immUniformColor3ubv(ob_wire_col);
-			}
-
-			setlinestyle(2);
-			imm_drawcircball(vec, ob->inertia, imat, pos);
-			setlinestyle(0);
-
-			immUnbindProgram();
-		}
-	}
-	
 	/* return warning, this is cached text draw */
 	invert_m4_m4(ob->imat, ob->obmat);
 	view3d_cached_text_draw_end(v3d, ar, 1);

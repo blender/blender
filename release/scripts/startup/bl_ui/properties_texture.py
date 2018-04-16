@@ -38,7 +38,7 @@ from .properties_paint_common import brush_texture_settings
 
 class TEXTURE_MT_specials(Menu):
     bl_label = "Texture Specials"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -49,7 +49,7 @@ class TEXTURE_MT_specials(Menu):
 
 class TEXTURE_MT_envmap_specials(Menu):
     bl_label = "Environment Map Specials"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -131,7 +131,7 @@ class TextureButtonsPanel:
 class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
     bl_label = ""
     bl_options = {'HIDE_HEADER'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -230,7 +230,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
 
 class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
     bl_label = "Preview"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -252,7 +252,7 @@ class TEXTURE_PT_preview(TextureButtonsPanel, Panel):
 class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
     bl_label = "Colors"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -285,7 +285,7 @@ class TEXTURE_PT_colors(TextureButtonsPanel, Panel):
 
 
 class TextureSlotPanel(TextureButtonsPanel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -311,7 +311,7 @@ class TextureTypePanel(TextureButtonsPanel):
 class TEXTURE_PT_clouds(TextureTypePanel, Panel):
     bl_label = "Clouds"
     tex_type = 'CLOUDS'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -335,7 +335,7 @@ class TEXTURE_PT_clouds(TextureTypePanel, Panel):
 class TEXTURE_PT_wood(TextureTypePanel, Panel):
     bl_label = "Wood"
     tex_type = 'WOOD'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -364,7 +364,7 @@ class TEXTURE_PT_wood(TextureTypePanel, Panel):
 class TEXTURE_PT_marble(TextureTypePanel, Panel):
     bl_label = "Marble"
     tex_type = 'MARBLE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -391,7 +391,7 @@ class TEXTURE_PT_marble(TextureTypePanel, Panel):
 class TEXTURE_PT_magic(TextureTypePanel, Panel):
     bl_label = "Magic"
     tex_type = 'MAGIC'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -406,7 +406,7 @@ class TEXTURE_PT_magic(TextureTypePanel, Panel):
 class TEXTURE_PT_blend(TextureTypePanel, Panel):
     bl_label = "Blend"
     tex_type = 'BLEND'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -424,7 +424,7 @@ class TEXTURE_PT_blend(TextureTypePanel, Panel):
 class TEXTURE_PT_stucci(TextureTypePanel, Panel):
     bl_label = "Stucci"
     tex_type = 'STUCCI'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -444,7 +444,7 @@ class TEXTURE_PT_stucci(TextureTypePanel, Panel):
 class TEXTURE_PT_image(TextureTypePanel, Panel):
     bl_label = "Image"
     tex_type = 'IMAGE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -471,15 +471,9 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
     bl_label = "Image Sampling"
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
-        if context.engine == 'BLENDER_GAME':
-            self.draw_bge(context)
-        else:
-            self.draw_bi(context)
-
-    def draw_bi(self, context):
         layout = self.layout
 
         idblock = context_tex_datablock(context)
@@ -519,39 +513,12 @@ class TEXTURE_PT_image_sampling(TextureTypePanel, Panel):
 
         texture_filter_common(tex, col)
 
-    def draw_bge(self, context):
-        layout = self.layout
-
-        idblock = context_tex_datablock(context)
-        tex = context.texture
-        slot = getattr(context, "texture_slot", None)
-
-        split = layout.split()
-
-        col = split.column()
-        col.label(text="Alpha:")
-        col.prop(tex, "use_calculate_alpha", text="Calculate")
-        col.prop(tex, "invert_alpha", text="Invert")
-
-        col = split.column()
-
-        # Only for Material based textures, not for Lamp/World...
-        if slot and isinstance(idblock, Material):
-            col.prop(tex, "use_normal_map")
-            row = col.row()
-            row.active = tex.use_normal_map
-            row.prop(slot, "normal_map_space", text="")
-
-            row = col.row()
-            row.active = not tex.use_normal_map
-            row.prop(tex, "use_derivative_map")
-
 
 class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
     bl_label = "Image Mapping"
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'IMAGE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -606,7 +573,7 @@ class TEXTURE_PT_image_mapping(TextureTypePanel, Panel):
 class TEXTURE_PT_envmap(TextureTypePanel, Panel):
     bl_label = "Environment Map"
     tex_type = 'ENVIRONMENT_MAP'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -645,7 +612,7 @@ class TEXTURE_PT_envmap_sampling(TextureTypePanel, Panel):
     bl_label = "Environment Map Sampling"
     bl_options = {'DEFAULT_CLOSED'}
     tex_type = 'ENVIRONMENT_MAP'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -658,7 +625,7 @@ class TEXTURE_PT_envmap_sampling(TextureTypePanel, Panel):
 class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
     bl_label = "Musgrave"
     tex_type = 'MUSGRAVE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -694,7 +661,7 @@ class TEXTURE_PT_musgrave(TextureTypePanel, Panel):
 class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
     bl_label = "Voronoi"
     tex_type = 'VORONOI'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -730,7 +697,7 @@ class TEXTURE_PT_voronoi(TextureTypePanel, Panel):
 class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
     bl_label = "Distorted Noise"
     tex_type = 'DISTORTED_NOISE'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -751,7 +718,7 @@ class TEXTURE_PT_distortednoise(TextureTypePanel, Panel):
 
 class TEXTURE_PT_voxeldata(TextureButtonsPanel, Panel):
     bl_label = "Voxel Data"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -794,7 +761,7 @@ class TEXTURE_PT_voxeldata(TextureButtonsPanel, Panel):
 
 class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
     bl_label = "Point Density"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -869,7 +836,7 @@ class TEXTURE_PT_pointdensity(TextureButtonsPanel, Panel):
 
 class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, Panel):
     bl_label = "Turbulence"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -907,7 +874,7 @@ class TEXTURE_PT_pointdensity_turbulence(TextureButtonsPanel, Panel):
 class TEXTURE_PT_ocean(TextureTypePanel, Panel):
     bl_label = "Ocean"
     tex_type = 'OCEAN'
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     def draw(self, context):
         layout = self.layout
@@ -922,7 +889,7 @@ class TEXTURE_PT_ocean(TextureTypePanel, Panel):
 
 class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
     bl_label = "Mapping"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -1025,7 +992,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
 
 class TEXTURE_PT_influence(TextureSlotPanel, Panel):
     bl_label = "Influence"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):
@@ -1233,7 +1200,7 @@ class TEXTURE_PT_influence(TextureSlotPanel, Panel):
 
 
 class TEXTURE_PT_custom_props(TextureButtonsPanel, PropertyPanel, Panel):
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
     _context_path = "texture"
     _property_type = Texture
 

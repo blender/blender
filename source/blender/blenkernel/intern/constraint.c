@@ -3028,66 +3028,6 @@ static bConstraintTypeInfo CTI_MINMAX = {
 	minmax_evaluate /* evaluate */
 };
 
-/* ------- RigidBody Joint ---------- */
-
-static void rbj_new_data(void *cdata)
-{
-	bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint *)cdata;
-	
-	/* removed code which set target of this constraint */
-	data->type = 1;
-}
-
-static void rbj_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
-{
-	bRigidBodyJointConstraint *data = con->data;
-	
-	/* target only */
-	func(con, (ID **)&data->tar, false, userdata);
-	func(con, (ID **)&data->child, false, userdata);
-}
-
-static int rbj_get_tars(bConstraint *con, ListBase *list)
-{
-	if (con && list) {
-		bRigidBodyJointConstraint *data = con->data;
-		bConstraintTarget *ct;
-		
-		/* standard target-getting macro for single-target constraints without subtargets */
-		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
-		
-		return 1;
-	}
-	
-	return 0;
-}
-
-static void rbj_flush_tars(bConstraint *con, ListBase *list, bool no_copy)
-{
-	if (con && list) {
-		bRigidBodyJointConstraint *data = con->data;
-		bConstraintTarget *ct = list->first;
-		
-		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, no_copy);
-	}
-}
-
-static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
-	CONSTRAINT_TYPE_RIGIDBODYJOINT, /* type */
-	sizeof(bRigidBodyJointConstraint), /* size */
-	"Rigid Body Joint", /* name */
-	"bRigidBodyJointConstraint", /* struct name */
-	NULL, /* free data */
-	rbj_id_looper, /* id looper */
-	NULL, /* copy data */
-	rbj_new_data, /* new data */
-	rbj_get_tars, /* get constraint targets */
-	rbj_flush_tars, /* flush constraint targets */
-	default_get_tarmat, /* get target matrix */
-	NULL /* evaluate - this is not solved here... is just an interface for game-engine */
-};
-
 /* -------- Clamp To ---------- */
 
 static void clampto_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
@@ -4438,7 +4378,7 @@ static void constraints_init_typeinfo(void)
 	constraintsTypeInfo[14] = &CTI_DISTLIMIT;        /* Limit Distance Constraint */
 	constraintsTypeInfo[15] = &CTI_STRETCHTO;        /* StretchTo Constaint */
 	constraintsTypeInfo[16] = &CTI_MINMAX;           /* Floor Constraint */
-	constraintsTypeInfo[17] = &CTI_RIGIDBODYJOINT;   /* RigidBody Constraint */
+	/* constraintsTypeInfo[17] = &CTI_RIGIDBODYJOINT; */  /* RigidBody Constraint - Deprecated */
 	constraintsTypeInfo[18] = &CTI_CLAMPTO;          /* ClampTo Constraint */
 	constraintsTypeInfo[19] = &CTI_TRANSFORM;        /* Transformation Constraint */
 	constraintsTypeInfo[20] = &CTI_SHRINKWRAP;       /* Shrinkwrap Constraint */

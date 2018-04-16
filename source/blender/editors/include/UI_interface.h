@@ -268,8 +268,6 @@ typedef enum {
 	UI_BTYPE_SCROLL                 = (18 << 9),
 	UI_BTYPE_BLOCK                  = (19 << 9),
 	UI_BTYPE_LABEL                  = (20 << 9),
-	UI_BTYPE_LINK                   = (22 << 9),
-	UI_BTYPE_INLINK                 = (23 << 9),
 	UI_BTYPE_KEY_EVENT              = (24 << 9),
 	UI_BTYPE_HSVCUBE                = (26 << 9),
 	UI_BTYPE_PULLDOWN               = (27 << 9),  /* menu (often used in headers), **_MENU /w different draw-type */
@@ -704,16 +702,6 @@ uiBut *uiDefSearchButO_ptr(uiBlock *block, struct wmOperatorType *ot, struct IDP
 uiBut *uiDefAutoButR(uiBlock *block, struct PointerRNA *ptr, struct PropertyRNA *prop, int index, const char *name, int icon, int x1, int y1, int x2, int y2);
 int uiDefAutoButsRNA(uiLayout *layout, struct PointerRNA *ptr, bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *), const char label_align);
 
-/* Links
- *
- * Game engine logic brick links. Non-functional currently in 2.5,
- * code to handle and draw these is disabled internally. */
-
-void UI_but_link_set(struct uiBut *but,  void **poin,  void ***ppoin,  short *tot,  int from, int to);
-
-void UI_block_links_compose(uiBlock *block);
-uiBut *UI_block_links_find_inlink(uiBlock *block, void *poin);
-
 /* use inside searchfunc to add items */
 bool    UI_search_item_add(uiSearchItems *items, const char *name, void *poin, int iconid);
 /* bfunc gets search item *poin as arg2, or if NULL the old string */
@@ -973,8 +961,6 @@ void uiTemplateColorPicker(uiLayout *layout, struct PointerRNA *ptr, const char 
 void uiTemplatePalette(uiLayout *layout, struct PointerRNA *ptr, const char *propname, int color);
 void uiTemplateLayers(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
                       PointerRNA *used_ptr, const char *used_propname, int active_layer);
-void uiTemplateGameStates(uiLayout *layout, struct PointerRNA *ptr, const char *propname,
-                      PointerRNA *used_ptr, const char *used_propname, int active_state);
 void uiTemplateImage(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr, const char *propname, struct PointerRNA *userptr, int compact, int multiview);
 void uiTemplateImageSettings(uiLayout *layout, struct PointerRNA *imfptr, int color_management);
 void uiTemplateImageStereo3d(uiLayout *layout, struct PointerRNA *stereo3d_format_ptr);

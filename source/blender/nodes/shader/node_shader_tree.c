@@ -75,7 +75,6 @@ static int shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 	/* allow empty engine string too, this is from older versions that didn't have registerable engines yet */
 	return (engine_id[0] == '\0' ||
 	        STREQ(engine_id, RE_engine_id_BLENDER_RENDER) ||
-	        STREQ(engine_id, RE_engine_id_BLENDER_GAME) ||
 	        STREQ(engine_id, RE_engine_id_CYCLES) ||
 	        !BKE_viewrender_use_shading_nodes_custom(view_render));
 }

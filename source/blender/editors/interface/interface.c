@@ -510,87 +510,6 @@ static int ui_but_calc_float_precision(uiBut *but, double value)
 	return UI_calc_float_precision(prec, value);
 }
 
-/* ************** LINK LINE DRAWING  ************* */
-
-/* link line drawing is not part of buttons or theme.. so we stick with it here */
-
-static void ui_draw_linkline(uiLinkLine *line, int highlightActiveLines, int dashInactiveLines)
-{
-	rcti rect;
-	float color[4] = {1.0f};
-
-	if (line->from == NULL || line->to == NULL) return;
-	
-	rect.xmin = BLI_rctf_cent_x(&line->from->rect);
-	rect.ymin = BLI_rctf_cent_y(&line->from->rect);
-	rect.xmax = BLI_rctf_cent_x(&line->to->rect);
-	rect.ymax = BLI_rctf_cent_y(&line->to->rect);
-	
-	if (dashInactiveLines)
-		UI_GetThemeColor4fv(TH_GRID, color);
-	else if (line->flag & UI_SELECT)
-		rgba_float_args_set_ch(color, 100, 100, 100, 255);
-	else if (highlightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE)))
-		UI_GetThemeColor4fv(TH_TEXT_HI, color);
-	else
-		rgba_float_args_set_ch(color, 0, 0, 0, 255);
-
-	ui_draw_link_bezier(&rect, color);
-}
-
-static void ui_draw_links(uiBlock *block)
-{
-	uiBut *but;
-	uiLinkLine *line;
-
-	/* Draw the gray out lines. Do this first so they appear at the
-	 * bottom of inactive or active lines.
-	 * As we go, remember if we see any active or selected lines. */
-	bool found_selectline = false;
-	bool found_activeline = false;
-
-	for (but = block->buttons.first; but; but = but->next) {
-		if (but->type == UI_BTYPE_LINK && but->link) {
-			for (line = but->link->lines.first; line; line = line->next) {
-				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE)) {
-					if (line->deactive)
-						ui_draw_linkline(line, 0, true);
-				}
-				else
-					found_activeline = true;
-
-				if ((line->from->flag & UI_SELECT) || (line->to->flag & UI_SELECT))
-					found_selectline = true;
-			}
-		}
-	}
-
-	/* Draw the inactive lines (lines with neither button being hovered over) */
-	for (but = block->buttons.first; but; but = but->next) {
-		if (but->type == UI_BTYPE_LINK && but->link) {
-			for (line = but->link->lines.first; line; line = line->next) {
-				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE)) {
-					if (!line->deactive)
-						ui_draw_linkline(line, 0, false);
-				}
-			}
-		}
-	}
-
-	/* Draw any active lines (lines with either button being hovered over).
-	 * Do this last so they appear on top of inactive and gray out lines. */
-	if (found_activeline) {
-		for (but = block->buttons.first; but; but = but->next) {
-			if (but->type == UI_BTYPE_LINK && but->link) {
-				for (line = but->link->lines.first; line; line = line->next) {
-					if ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE))
-						ui_draw_linkline(line, !found_selectline, false);
-				}
-			}
-		}
-	}
-}
-
 /* ************** BLOCK ENDING FUNCTION ************* */
 
 /* NOTE: if but->poin is allocated memory for every defbut, things fail... */
@@ -631,38 +550,6 @@ uiBut *ui_but_find_new(uiBlock *block_new, const uiBut *but_old)
 		}
 	}
 	return but_new;
-}
-
-/* oldbut is being inserted in new block, so we use the lines from new button, and replace button pointers */
-static void ui_but_update_linklines(uiBlock *block, uiBut *oldbut, uiBut *newbut)
-{
-	uiLinkLine *line;
-	uiBut *but;
-	
-	/* if active button is UI_BTYPE_LINK */
-	if (newbut->type == UI_BTYPE_LINK && newbut->link) {
-		
-		SWAP(uiLink *, oldbut->link, newbut->link);
-		
-		for (line = oldbut->link->lines.first; line; line = line->next) {
-			if (line->to == newbut)
-				line->to = oldbut;
-			if (line->from == newbut)
-				line->from = oldbut;
-		}
-	}
-	
-	/* check all other button links */
-	for (but = block->buttons.first; but; but = but->next) {
-		if (but != newbut && but->type == UI_BTYPE_LINK && but->link) {
-			for (line = but->link->lines.first; line; line = line->next) {
-				if (line->to == newbut)
-					line->to = oldbut;
-				if (line->from == newbut)
-					line->from = oldbut;
-			}
-		}
-	}
 }
 
 /**
@@ -763,8 +650,6 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 		if (ELEM(oldbut->type, UI_BTYPE_PROGRESS_BAR)) {
 			oldbut->a1 = but->a1;
 		}
-
-		ui_but_update_linklines(block, oldbut, but);
 
 		if (!BLI_listbase_is_empty(&block->butstore)) {
 			UI_butstore_register_update(block, oldbut, but);
@@ -1453,8 +1338,6 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	/* restore matrix */
 	gpuPopProjectionMatrix();
 	gpuPopMatrix();
-
-	ui_draw_links(block);
 }
 
 static void ui_block_message_subscribe(ARegion *ar, struct wmMsgBus *mbus, uiBlock *block)
@@ -1573,83 +1456,6 @@ static void ui_but_update_select_flag(uiBut *but, double *value)
 	}
 }
 
-static uiBut *ui_linkline_find_inlink(uiBlock *block, void *poin)
-{
-	uiBut *but;
-	
-	but = block->buttons.first;
-	while (but) {
-		if (but->type == UI_BTYPE_INLINK) {
-			if (but->poin == poin) return but;
-		}
-		but = but->next;
-	}
-	return NULL;
-}
-
-static void ui_linkline_add(ListBase *listb, uiBut *but, uiBut *bt, short deactive)
-{
-	uiLinkLine *line;
-	
-	line = MEM_callocN(sizeof(uiLinkLine), "linkline");
-	BLI_addtail(listb, line);
-	line->from = but;
-	line->to = bt;
-	line->deactive = deactive;
-}
-
-uiBut *UI_block_links_find_inlink(uiBlock *block, void *poin)
-{
-	return ui_linkline_find_inlink(block, poin);
-}
-
-void UI_block_links_compose(uiBlock *block)
-{
-	uiBut *but, *bt;
-	uiLink *link;
-	void ***ppoin;
-	int a;
-	
-	but = block->buttons.first;
-	while (but) {
-		if (but->type == UI_BTYPE_LINK) {
-			link = but->link;
-			
-			/* for all pointers in the array */
-			if (link) {
-				if (link->ppoin) {
-					ppoin = link->ppoin;
-					for (a = 0; a < *(link->totlink); a++) {
-						bt = ui_linkline_find_inlink(block, (*ppoin)[a]);
-						if (bt) {
-							if ((but->flag & UI_BUT_SCA_LINK_GREY) || (bt->flag & UI_BUT_SCA_LINK_GREY)) {
-								ui_linkline_add(&link->lines, but, bt, true);
-							}
-							else {
-								ui_linkline_add(&link->lines, but, bt, false);
-							}
-
-						}
-					}
-				}
-				else if (link->poin) {
-					bt = ui_linkline_find_inlink(block, *link->poin);
-					if (bt) {
-						if ((but->flag & UI_BUT_SCA_LINK_GREY) || (bt->flag & UI_BUT_SCA_LINK_GREY)) {
-							ui_linkline_add(&link->lines, but, bt, true);
-						}
-						else {
-							ui_linkline_add(&link->lines, but, bt, false);
-						}
-					}
-				}
-			}
-		}
-		but = but->next;
-	}
-}
-
-
 /* ************************************************ */
 
 void UI_block_lock_set(uiBlock *block, bool val, const char *lockstr)
@@ -1664,44 +1470,6 @@ void UI_block_lock_clear(uiBlock *block)
 {
 	block->lock = false;
 	block->lockstr = NULL;
-}
-
-/* *************************************************************** */
-
-void ui_linkline_remove(uiLinkLine *line, uiBut *but)
-{
-	uiLink *link;
-	int a, b;
-	
-	BLI_remlink(&but->link->lines, line);
-
-	link = line->from->link;
-
-	/* are there more pointers allowed? */
-	if (link->ppoin) {
-		
-		if (*(link->totlink) == 1) {
-			*(link->totlink) = 0;
-			MEM_freeN(*(link->ppoin));
-			*(link->ppoin) = NULL;
-		}
-		else {
-			b = 0;
-			for (a = 0; a < (*(link->totlink)); a++) {
-				if ((*(link->ppoin))[a] != line->to->poin) {
-					(*(link->ppoin))[b] = (*(link->ppoin))[a];
-					b++;
-				}
-			}
-			(*(link->totlink))--;
-		}
-	}
-	else {
-		*(link->poin) = NULL;
-	}
-
-	MEM_freeN(line);
-	//REDRAW
 }
 
 /* *********************** data get/set ***********************
@@ -2788,14 +2556,6 @@ static void ui_set_but_soft_range(uiBut *but)
 
 /* ******************* Free ********************/
 
-static void ui_free_link(uiLink *link)
-{
-	if (link) {
-		BLI_freelistN(&link->lines);
-		MEM_freeN(link);
-	}
-}
-
 /* can be called with C==NULL */
 static void ui_but_free(const bContext *C, uiBut *but)
 {
@@ -2836,7 +2596,6 @@ static void ui_but_free(const bContext *C, uiBut *but)
 	if (but->str && but->str != but->strdata) {
 		MEM_freeN(but->str);
 	}
-	ui_free_link(but->link);
 
 	if ((but->type == UI_BTYPE_IMAGE) && but->poin) {
 		IMB_freeImBuf((struct ImBuf *)but->poin);
@@ -4112,19 +3871,6 @@ uiBut *uiDefIconTextButO(uiBlock *block, int type, const char *opname, int opcon
 }
 
 /* END Button containing both string label and icon */
-
-void UI_but_link_set(uiBut *but, void **poin, void ***ppoin, short *tot, int from, int to)
-{
-	uiLink *link;
-	
-	link = but->link = MEM_callocN(sizeof(uiLink), "new uilink");
-	
-	link->poin = poin;
-	link->ppoin = ppoin;
-	link->totlink = tot;
-	link->fromcode = from;
-	link->tocode = to;
-}
 
 /* cruft to make uiBlock and uiBut private */
 

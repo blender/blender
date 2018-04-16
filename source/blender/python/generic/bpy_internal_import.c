@@ -116,16 +116,6 @@ void bpy_import_main_set(struct Main *maggie)
 	bpy_import_main = maggie;
 }
 
-void bpy_import_main_extra_add(struct Main *maggie)
-{
-	BLI_addhead(&bpy_import_main_list, maggie);
-}
-
-void bpy_import_main_extra_remove(struct Main *maggie)
-{
-	BLI_remlink_safe(&bpy_import_main_list, maggie);
-}
-
 /* returns a dummy filename for a textblock so we can tell what file a text block comes from */
 void bpy_text_filename_get(char *fn, size_t fn_len, Text *text)
 {

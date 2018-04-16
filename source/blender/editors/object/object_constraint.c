@@ -1615,11 +1615,6 @@ static bool get_new_constraint_target(bContext *C, int con_type, Object **tar_ob
 			only_ob = true;
 			add = false;
 			break;
-			
-		/* object only - add here is ok? */
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			only_ob = true;
-			break;
 	}
 	
 	/* if the active Object is Armature, and we can search for bones, do so... */
@@ -1746,10 +1741,6 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	}
 	/* check if constraint to be added is valid for the given constraints stack */
 	if (type == CONSTRAINT_TYPE_NULL) {
-		return OPERATOR_CANCELLED;
-	}
-	if ((type == CONSTRAINT_TYPE_RIGIDBODYJOINT) && (list != &ob->constraints)) {
-		BKE_report(op->reports, RPT_ERROR, "Rigid Body Joint constraint can only be added to objects");
 		return OPERATOR_CANCELLED;
 	}
 	if ((type == CONSTRAINT_TYPE_KINEMATIC) && ((!pchan) || (list != &pchan->constraints))) {

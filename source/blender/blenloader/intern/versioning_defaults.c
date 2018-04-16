@@ -210,9 +210,6 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 			pset->brush[PE_BRUSH_CUT].strength = 1.0f;
 		}
 
-		scene->gm.lodflag |= SCE_LOD_USE_HYST;
-		scene->gm.scehysteresis = 10;
-
 		scene->r.ffcodecdata.audio_mixrate = 48000;
 	}
 

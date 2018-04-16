@@ -47,8 +47,7 @@ struct MTex;
 
 /**
  * World defines general modeling data such as a background fill,
- * gravity, color model etc. It mixes game-data, rendering
- * data and modeling data. */
+ * gravity, color model etc. It mixes rendering data and modeling data. */
 typedef struct World {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -67,16 +66,6 @@ typedef struct World {
 	 */
 	float exposure, exp, range;
 	float linfac, logfac;
-
-	/**
-	 * Gravitation constant for the game world
-	 */
-	float gravity; // XXX moved to scene->gamedata in 2.5
-
-	/**
-	 * Radius of the activity bubble, in Manhattan length. Objects
-	 * outside the box are activity-culled. */
-	float activityBoxRadius; // XXX moved to scene->gamedata in 2.5
 	
 	short skytype;
 	/**
@@ -89,16 +78,10 @@ typedef struct World {
 	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling 
 	 */
 	short mode;												// partially moved to scene->gamedata in 2.5
-	short occlusionRes;		/* resolution of occlusion Z buffer in pixel */	// XXX moved to scene->gamedata in 2.5
-	short physicsEngine;	/* here it's aligned */					// XXX moved to scene->gamedata in 2.5
-	short ticrate, maxlogicstep, physubstep, maxphystep;	// XXX moved to scene->gamedata in 2.5
-	
+	short pad2[2];
+
 	float misi, miststa, mistdist, misthi;
-	
-	float starr  DNA_DEPRECATED, starg  DNA_DEPRECATED, starb  DNA_DEPRECATED, stark  DNA_DEPRECATED; /* Deprecated */
-	float starsize DNA_DEPRECATED, starmindist DNA_DEPRECATED;
-	float stardist DNA_DEPRECATED, starcolnoise DNA_DEPRECATED;
-	
+
 	/* unused now: DOF */
 	short dofsta, dofend, dofmin, dofmax;
 	
@@ -147,9 +130,9 @@ typedef struct World {
 #define WO_MIST	               1
 //#define WO_STARS               2 /* deprecated */
 /*#define WO_DOF                 4*/
-#define WO_ACTIVITY_CULLING	   8
+//#define WO_ACTIVITY_CULLING	   8 /* deprecated */
 #define WO_ENV_LIGHT   		  16
-#define WO_DBVT_CULLING		  32
+//#define WO_DBVT_CULLING		  32 /* deprecated */
 #define WO_AMB_OCC   		  64
 #define WO_INDIRECT_LIGHT	  128
 

@@ -1000,18 +1000,6 @@ static int rna_ViewRenderSettings_use_spherical_stereo_get(PointerRNA *ptr)
 	return BKE_viewrender_use_spherical_stereo(view_render);
 }
 
-static int rna_ViewRenderSettings_use_game_engine_get(PointerRNA *ptr)
-{
-	ViewRender *view_render = (ViewRender *)ptr->data;
-	RenderEngineType *type;
-
-	for (type = R_engines.first; type; type = type->next)
-		if (STREQ(type->idname, view_render->engine_id))
-			return (type->flag & RE_GAME) != 0;
-
-	return 0;
-}
-
 #else
 
 static void rna_def_scene_collections(BlenderRNA *brna, PropertyRNA *cprop)
@@ -2233,11 +2221,6 @@ static void rna_def_scene_view_render(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_ViewRenderSettings_use_spherical_stereo_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Use Spherical Stereo", "Active render engine supports spherical stereo rendering");
-
-	prop = RNA_def_property(srna, "use_game_engine", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_ViewRenderSettings_use_game_engine_get", NULL);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Use Game Engine", "Current rendering engine is a game engine");
 }
 
 void RNA_def_view_layer(BlenderRNA *brna)

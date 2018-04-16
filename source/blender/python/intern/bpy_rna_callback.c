@@ -170,7 +170,6 @@ static eSpace_Type rna_Space_refine_reverse(StructRNA *srna)
 	if (srna == &RNA_SpaceNLA)              return SPACE_NLA;
 	if (srna == &RNA_SpaceTimeline)         return SPACE_TIME;
 	if (srna == &RNA_SpaceNodeEditor)       return SPACE_NODE;
-	if (srna == &RNA_SpaceLogicEditor)      return SPACE_LOGIC;
 	if (srna == &RNA_SpaceConsole)          return SPACE_CONSOLE;
 	if (srna == &RNA_SpaceUserPreferences)  return SPACE_USERPREF;
 	if (srna == &RNA_SpaceClipEditor)       return SPACE_CLIP;

@@ -52,7 +52,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_linestyle_types.h"
-#include "DNA_actuator_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_smoke_types.h"
 #include "DNA_rigidbody_types.h"
@@ -554,29 +553,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 271, 2)) {
-		/* init up & track axis property of trackto actuators */
-		Object *ob;
-
-		for (ob = main->object.first; ob; ob = ob->id.next) {
-			bActuator *act;
-			for (act = ob->actuators.first; act; act = act->next) {
-				if (act->type == ACT_EDIT_OBJECT) {
-					bEditObjectActuator *eoact = act->data;
-					eoact->trackflag = ob->trackflag;
-					/* if trackflag is pointing +-Z axis then upflag should point Y axis.
-					 * Rest of trackflag cases, upflag should be point z axis */
-					if ((ob->trackflag == OB_POSZ) || (ob->trackflag == OB_NEGZ)) {
-						eoact->upflag = 1;
-					}
-					else {
-						eoact->upflag = 2;
-					}
-				}
-			}
-		}
-	}
-
 	if (!MAIN_VERSION_ATLEAST(main, 271, 3)) {
 		Brush *br;
 
@@ -857,13 +833,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-
-		if (!DNA_struct_elem_find(fd->filesdna, "GameData", "int", "scehysteresis")) {
-			Scene *scene;
-			for (scene = main->scene.first; scene; scene = scene->id.next) {
-				scene->gm.scehysteresis = 10;
-			}
-		}
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 274, 2)) {
@@ -1092,16 +1061,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 #undef LA_YF_PHOTON
 		}
-
-		{
-			Object *ob;
-			for (ob = main->object.first; ob; ob = ob->id.next) {
-				if (ob->body_type == OB_BODY_TYPE_CHARACTER && (ob->gameflag & OB_BOUNDS) && ob->collision_boundtype == OB_BOUND_TRIANGLE_MESH) {
-					ob->boundtype = ob->collision_boundtype = OB_BOUND_BOX;
-				}
-			}
-		}
-
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 276, 3)) {
@@ -1211,12 +1170,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				gpd->flag |= GP_DATA_SHOW_ONIONSKINS;
 			else
 				gpd->flag &= ~GP_DATA_SHOW_ONIONSKINS;
-		}
-
-		if (!DNA_struct_elem_find(fd->filesdna, "Object", "unsigned char", "max_jumps")) {
-			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
-				ob->max_jumps = 1;
-			}
 		}
 	}
 	if (!MAIN_VERSION_ATLEAST(main, 276, 5)) {

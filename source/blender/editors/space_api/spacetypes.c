@@ -95,7 +95,6 @@ void ED_spacetypes_init(void)
 	ED_spacetype_script();
 	ED_spacetype_text();
 	ED_spacetype_sequencer();
-	ED_spacetype_logic();
 	ED_spacetype_console();
 	ED_spacetype_userpref();
 	ED_spacetype_clip();
@@ -121,7 +120,6 @@ void ED_spacetypes_init(void)
 	ED_operatortypes_metaball();
 	ED_operatortypes_sound();
 	ED_operatortypes_render();
-	ED_operatortypes_logic();
 	ED_operatortypes_mask();
 	ED_operatortypes_io();
 	

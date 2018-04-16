@@ -31,8 +31,8 @@
  * Utility functions for dealing with OpenGL texture & material context,
  * mipmap generation and light objects.
  *
- * These are some obscure rendering functions shared between the
- * game engine and the blender, in this module to avoid duplication
+ * These are some obscure rendering functions shared between the game engine (not anymore)
+ * and the blender, in this module to avoid duplication
  * and abstract them away from the rest a bit.
  */
 
@@ -70,9 +70,6 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_DerivedMesh.h"
-#ifdef WITH_GAMEENGINE
-#  include "BKE_object.h"
-#endif
 
 #include "GPU_basic_shader.h"
 #include "GPU_buffers.h"
@@ -98,131 +95,7 @@
 
 extern Material defmaterial; /* from material.c */
 
-/* Text Rendering */
-
-static void gpu_mcol(unsigned int ucol)
-{
-	/* mcol order is swapped */
-	const char *cp = (char *)&ucol;
-	glColor3ub(cp[3], cp[2], cp[1]);
-}
-
-void GPU_render_text(
-        int mode, const char *textstr, int textlen, unsigned int *col,
-        const float *v_quad[4], const float *uv_quad[4],
-        int glattrib)
-{
-	/* XXX, 2.8 removes texface */
-#if 0
-	Image *ima = mtexpoly->tpage;
-#else
-	Image *ima = NULL;
-#endif
-	if ((mode & GEMAT_TEXT) && (textlen > 0) && ima) {
-		const float *v1 = v_quad[0];
-		const float *v2 = v_quad[1];
-		const float *v3 = v_quad[2];
-		const float *v4 = v_quad[3];
-		const size_t textlen_st = textlen;
-		float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-
-		/* multiline */
-		float line_start = 0.0f, line_height;
-
-		if (v4)
-			line_height = max_ffff(v1[1], v2[1], v3[1], v4[2]) - min_ffff(v1[1], v2[1], v3[1], v4[2]);
-		else
-			line_height = max_fff(v1[1], v2[1], v3[1]) - min_fff(v1[1], v2[1], v3[1]);
-		line_height *= 1.2f; /* could be an option? */
-		/* end multiline */
-
-
-		/* color has been set */
-		if (!col)
-			glColor3f(1.0f, 1.0f, 1.0f);
-
-		gpuPushMatrix();
-
-		/* get the tab width */
-		ImBuf *first_ibuf = BKE_image_get_first_ibuf(ima);
-		matrixGlyph(first_ibuf, ' ', &centerx, &centery,
-		    &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-
-		float advance_tab = advance * 4; /* tab width could also be an option */
-
-
-		for (size_t index = 0; index < textlen_st; ) {
-			unsigned int character;
-			float uv[4][2];
-
-			/* lets calculate offset stuff */
-			character = BLI_str_utf8_as_unicode_and_size_safe(textstr + index, &index);
-
-			if (character == '\n') {
-				gpuTranslate2f(line_start, -line_height);
-				line_start = 0.0f;
-				continue;
-			}
-			else if (character == '\t') {
-				gpuTranslate2f(advance_tab, 0.0f);
-				line_start -= advance_tab; /* so we can go back to the start of the line */
-				continue;
-
-			}
-			else if (character > USHRT_MAX) {
-				/* not much we can do here bmfonts take ushort */
-				character = '?';
-			}
-
-			/* space starts at offset 1 */
-			/* character = character - ' ' + 1; */
-			matrixGlyph(first_ibuf, character, & centerx, &centery,
-			    &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-
-			uv[0][0] = (uv_quad[0][0] - centerx) * sizex + transx;
-			uv[0][1] = (uv_quad[0][1] - centery) * sizey + transy;
-			uv[1][0] = (uv_quad[1][0] - centerx) * sizex + transx;
-			uv[1][1] = (uv_quad[1][1] - centery) * sizey + transy;
-			uv[2][0] = (uv_quad[2][0] - centerx) * sizex + transx;
-			uv[2][1] = (uv_quad[2][1] - centery) * sizey + transy;
-
-			glBegin(GL_POLYGON);
-			if (glattrib >= 0) glVertexAttrib2fv(glattrib, uv[0]);
-			else glTexCoord2fv(uv[0]);
-			if (col) gpu_mcol(col[0]);
-			glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
-
-			if (glattrib >= 0) glVertexAttrib2fv(glattrib, uv[1]);
-			else glTexCoord2fv(uv[1]);
-			if (col) gpu_mcol(col[1]);
-			glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
-
-			if (glattrib >= 0) glVertexAttrib2fv(glattrib, uv[2]);
-			else glTexCoord2fv(uv[2]);
-			if (col) gpu_mcol(col[2]);
-			glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
-
-			if (v4) {
-				uv[3][0] = (uv_quad[3][0] - centerx) * sizex + transx;
-				uv[3][1] = (uv_quad[3][1] - centery) * sizey + transy;
-
-				if (glattrib >= 0) glVertexAttrib2fv(glattrib, uv[3]);
-				else glTexCoord2fv(uv[3]);
-				if (col) gpu_mcol(col[3]);
-				glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
-			}
-			glEnd();
-
-			gpuTranslate2f(advance, 0.0f);
-			line_start -= advance; /* so we can go back to the start of the line */
-		}
-		gpuPopMatrix();
-
-		BKE_image_release_ibuf(ima, first_ibuf, NULL);
-	}
-}
-
-/* Checking powers of two for images since OpenGL ES requires it */
+//* Checking powers of two for images since OpenGL ES requires it */
 #ifdef WITH_DDS
 static bool is_power_of_2_resolution(int w, int h)
 {
@@ -1553,7 +1426,7 @@ void GPU_end_dupli_object(void)
 }
 
 void GPU_begin_object_materials(
-        View3D *v3d, RegionView3D *rv3d, Scene *scene, ViewLayer *view_layer, Object *ob,
+        View3D *v3d, RegionView3D *rv3d, Scene *scene, ViewLayer *UNUSED(view_layer), Object *ob,
         bool glsl, bool *do_alpha_after)
 {
 	Material *ma;
@@ -1588,14 +1461,6 @@ void GPU_begin_object_materials(
 			use_opensubdiv = ccgdm->useGpuBackend;
 		}
 	}
-#endif
-
-#ifdef WITH_GAMEENGINE
-	if (rv3d->rflag & RV3D_IS_GAME_ENGINE) {
-		ob = BKE_object_lod_matob_get(ob, view_layer);
-	}
-#else
-	UNUSED_VARS(view_layer);
 #endif
 
 	/* initialize state */
@@ -1843,18 +1708,10 @@ int GPU_object_material_bind(int nr, void *attribs)
 			GPU_material_bind_uniforms(gpumat, GMS.gob->obmat, GMS.gviewmat, GMS.gob->col, auto_bump_scale, &partile_info, object_info);
 			GMS.gboundmat = mat;
 
-			/* for glsl use alpha blend mode, unless it's set to solid and
-			 * we are already drawing in an alpha pass */
-			if (mat->game.alpha_blend != GPU_BLEND_SOLID)
-				alphablend = mat->game.alpha_blend;
-
 			if (GMS.is_alpha_pass) glDepthMask(1);
 
 			if (GMS.backface_culling) {
-				if (mat->game.flag)
-					glEnable(GL_CULL_FACE);
-				else
-					glDisable(GL_CULL_FACE);
+				glDisable(GL_CULL_FACE);
 			}
 
 			if (GMS.use_matcaps)
@@ -2120,8 +1977,8 @@ static void gpu_disable_multisample(void)
 
 /* Default OpenGL State
  *
- * This is called on startup, for opengl offscreen render and to restore state
- * for the game engine. Generally we should always return to this state when
+ * This is called on startup, for opengl offscreen render.
+ * Generally we should always return to this state when
  * temporarily modifying the state for drawing, though that are (undocumented)
  * exceptions that we should try to get rid of. */
 

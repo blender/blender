@@ -1072,12 +1072,11 @@ static IK_Scene *convert_tree(struct Depsgraph *depsgraph, Scene *blscene, Objec
 	IK_Scene *ikscene;
 	IK_Channel *ikchan;
 	KDL::Frame initPose;
-	KDL::Rotation boneRot;
 	Bone *bone;
 	int a, numtarget;
 	unsigned int t;
 	float length;
-	bool ret = true, ingame;
+	bool ret = true;
 	double *rot;
 	float start[3];
 
@@ -1094,26 +1093,13 @@ static IK_Scene *convert_tree(struct Depsgraph *depsgraph, Scene *blscene, Objec
 	ikscene->armature = arm;
 	ikscene->scene = scene;
 	ikparam = (bItasc *)ob->pose->ikparam;
-	ingame = (ob->pose->flag & POSE_GAME_ENGINE);
+
 	if (!ikparam) {
 		// you must have our own copy
 		ikparam = &DefIKParam;
 	}
-	else if (ingame) {
-		// tweak the param when in game to have efficient stepping
-		// using fixed substep is not effecient since frames in the GE are often
-		// shorter than in animation => move to auto step automatically and set
-		// the target substep duration via min/max
-		if (!(ikparam->flag & ITASC_AUTO_STEP)) {
-			float timestep = blscene->r.frs_sec_base / blscene->r.frs_sec;
-			if (ikparam->numstep > 0)
-				timestep /= ikparam->numstep;
-			// with equal min and max, the algorythm will take this step and the indicative substep most of the time
-			ikparam->minstep = ikparam->maxstep = timestep;
-			ikparam->flag |= ITASC_AUTO_STEP;
-		}
-	}
-	if ((ikparam->flag & ITASC_SIMULATION) && !ingame)
+
+	if (ikparam->flag & ITASC_SIMULATION)
 		// no cache in animation mode
 		ikscene->cache = new iTaSC::Cache();
 
@@ -1140,15 +1126,8 @@ static IK_Scene *convert_tree(struct Depsgraph *depsgraph, Scene *blscene, Objec
 	double weight[3];
 	// build the array of joints corresponding to the IK chain
 	convert_channels(depsgraph, ikscene, tree, ctime);
-	if (ingame) {
-		// in the GE, set the initial joint angle to match the current pose
-		// this will update the jointArray in ikscene
-		convert_pose(ikscene);
-	}
-	else {
-		// in Blender, the rest pose is always 0 for joints
-		BKE_pose_rest(ikscene);
-	}
+	// in Blender, the rest pose is always 0 for joints
+	BKE_pose_rest(ikscene);
 	rot = ikscene->jointArray(0);
 
 	for (a = 0, ikchan = ikscene->channels; a < tree->totchannel; ++a, ++ikchan) {
@@ -1787,12 +1766,6 @@ void itasc_execute_tree(struct Depsgraph *depsgraph, struct Scene *scene, Object
 		for (IK_Scene *ikscene = ikdata->first; ikscene; ikscene = ikscene->next) {
 			if (ikscene->channels[0].pchan == pchan_root) {
 				float timestep = scene->r.frs_sec_base / scene->r.frs_sec;
-				if (ob->pose->flag & POSE_GAME_ENGINE) {
-					timestep = ob->pose->ctime;
-					// limit the timestep to avoid excessive number of iteration
-					if (timestep > 0.2f)
-						timestep = 0.2f;
-				}
 				execute_scene(depsgraph, scene, ikscene, ikparam, ctime, timestep);
 				break;
 			}

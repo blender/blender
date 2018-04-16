@@ -434,8 +434,7 @@ typedef enum ePose_Flags {
 	POSE_RECALCPATHS = (1 << 4),
 	/* set by BKE_pose_rebuild to give a chance to the IK solver to rebuild IK tree */
 	POSE_WAS_REBUILT = (1 << 5),
-	/* set by game_copy_pose to indicate that this pose is used in the game engine */
-	POSE_GAME_ENGINE = (1 << 6),
+	POSE_FLAG_DEPRECATED = (1 << 6), /* deprecated. */
 	/* pose constraint flags needs to be updated */
 	POSE_CONSTRAINTS_NEED_UPDATE_FLAGS = (1 << 7),
 } ePose_Flags;
