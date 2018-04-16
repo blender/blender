@@ -230,6 +230,10 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 		BLI_freelistN(&ctx_data_list);                                        \
 } (void)0
 
+#define CTX_DATA_BEGIN_WITH_ID(C, Type, instance, member, Type_id, instance_id)      \
+	CTX_DATA_BEGIN(C, Type, instance, member) \
+	Type_id instance_id = ctx_link->ptr.id.data; \
+
 int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
 
 #define CTX_DATA_COUNT(C, member) \
