@@ -21,7 +21,7 @@ else()
 	message(FATAL_ERROR "Unknown build environment")
 endif()
 
-# Default to only build Blender, not the player
+# Default to only build Blender
 set(WITH_BLENDER             ON  CACHE BOOL "" FORCE)
 
 # ######## Linux-specific build options ########

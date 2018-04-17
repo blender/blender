@@ -126,7 +126,6 @@ if builder.find('cmake') != -1:
 
     elif builder.startswith('linux_'):
         blender = os.path.join(install_dir, 'blender')
-        blenderplayer = os.path.join(install_dir, 'blenderplayer')
 
         buildinfo_h = os.path.join(build_dir, "source", "creator", "buildinfo.h")
         blender_h = os.path.join(blender_dir, "source", "blender", "blenkernel", "BKE_blender_version.h")
@@ -149,7 +148,7 @@ if builder.find('cmake') != -1:
         # Strip all unused symbols from the binaries
         print("Stripping binaries...")
         chroot_prefix = ['schroot', '-c', chroot_name, '--']
-        subprocess.call(chroot_prefix + ['strip', '--strip-all', blender, blenderplayer])
+        subprocess.call(chroot_prefix + ['strip', '--strip-all', blender])
 
         print("Stripping python...")
         py_target = os.path.join(install_dir, blender_version)
