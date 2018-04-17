@@ -171,8 +171,6 @@ void BKE_workspace_free(WorkSpace *workspace)
 
 	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
-
-	BKE_viewrender_free(&workspace->view_render);
 }
 
 /**
@@ -440,14 +438,6 @@ void BKE_workspace_hook_layout_for_workspace_set(
 {
 	hook->act_layout = layout;
 	workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, layout);
-}
-
-/**
- * Get the render engine of a workspace, to be used in the viewport.
- */
-ViewRender *BKE_workspace_view_render_get(WorkSpace *workspace)
-{
-	return &workspace->view_render;
 }
 
 /* Flags */

@@ -1417,11 +1417,9 @@ static void gpu_update_lamps_shadows_world(Depsgraph *depsgraph, Scene *scene, V
 		mul_m4_m4m4(rv3d.persmat, rv3d.winmat, rv3d.viewmat);
 		invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
-		RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
-
 		/* no need to call ED_view3d_draw_offscreen_init since shadow buffers were already updated */
 		ED_view3d_draw_offscreen(
-		            depsgraph, scene, view_layer, engine_type,
+		            depsgraph, scene, view_layer, v3d->drawtype,
 		            v3d, &ar, winsize, winsize, viewmat, winmat,
 		            false, false, true,
 		            NULL, NULL, NULL, NULL);
@@ -1758,7 +1756,7 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 
 static bool view3d_main_region_do_render_draw(const Scene *scene)
 {
-	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	return (type && type->view_update && type->render_to_view);
 }
 
@@ -1819,7 +1817,7 @@ static bool view3d_main_region_draw_engine(
 	/* create render engine */
 	if (!rv3d->render_engine) {
 		RenderEngine *engine;
-		type = RE_engines_find(scene->view_render.engine_id);
+		type = RE_engines_find(scene->r.engine);
 
 		if (!(type->view_update && type->render_to_view))
 			return false;

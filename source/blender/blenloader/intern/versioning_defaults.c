@@ -104,7 +104,6 @@ static void update_defaults_startup_workspaces(Main *bmain)
 		if (STREQ(workspace->id.name + 2, "Default")) {
 			/* don't rename within iterator, renaming causes listbase to be re-sorted */
 			workspace_default = workspace;
-			BKE_viewrender_init(&workspace->view_render);
 		}
 		else {
 			BKE_workspace_remove(bmain, workspace);
@@ -122,7 +121,7 @@ static void update_defaults_startup_workspaces(Main *bmain)
 void BLO_update_defaults_startup_blend(Main *bmain)
 {
 	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-		BLI_strncpy(scene->view_render.engine_id, RE_engine_id_BLENDER_EEVEE, sizeof(scene->view_render.engine_id));
+		BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 
 		scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 		scene->r.im_format.compress = 15;

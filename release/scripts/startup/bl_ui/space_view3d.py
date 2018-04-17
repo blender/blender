@@ -1547,7 +1547,7 @@ class VIEW3D_MT_object_specials(Menu):
             lamp = obj.data
 
             layout.operator_context = 'INVOKE_REGION_WIN'
-            use_shading_nodes = context.view_render.use_shading_nodes
+            use_shading_nodes = scene.render.use_shading_nodes
 
             if use_shading_nodes:
                 emission_node = None

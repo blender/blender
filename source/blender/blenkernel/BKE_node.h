@@ -283,7 +283,7 @@ typedef struct bNodeTreeType {
 	/* callbacks */
 	void (*free_cache)(struct bNodeTree *ntree);
 	void (*free_node_cache)(struct bNodeTree *ntree, struct bNode *node);
-	void (*foreach_nodeclass)(struct ViewRender *view_render, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
+	void (*foreach_nodeclass)(struct Scene *scene, void *calldata, bNodeClassCallback func);	/* iteration over all node classes */
 	/* Check visibility in the node editor */
 	int (*poll)(const struct bContext *C, struct bNodeTreeType *ntreetype);
 	/* Select a node tree from the context */

@@ -45,8 +45,7 @@ class PhysicButtonsPanel:
     @classmethod
     def poll(cls, context):
         ob = context.object
-        view_render = context.scene.view_render
-        return (ob and ob.type == 'MESH') and (view_render.engine in cls.COMPAT_ENGINES) and (context.cloth)
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.cloth)
 
 
 class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):

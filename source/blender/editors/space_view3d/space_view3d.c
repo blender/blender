@@ -1062,7 +1062,7 @@ static void view3d_main_region_listener(
 
 static void view3d_main_region_message_subscribe(
         const struct bContext *UNUSED(C),
-        struct WorkSpace *workspace, struct Scene *scene,
+        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
         struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
@@ -1071,7 +1071,6 @@ static void view3d_main_region_message_subscribe(
 	 * accepting some redundant redraws.
 	 *
 	 * For other space types we might try avoid this, keep the 3D view as an exceptional case! */
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
 	wmMsgParams_RNA msg_key_params = {{{0}}};
 
 	/* Only subscribe to types. */
@@ -1089,7 +1088,6 @@ static void view3d_main_region_message_subscribe(
 		&RNA_Object,
 		&RNA_UnitSettings,  /* grid-floor */
 
-		&RNA_ViewRenderSettings,
 		&RNA_World,
 	};
 
@@ -1111,6 +1109,7 @@ static void view3d_main_region_message_subscribe(
 	/* Subscribe to a handful of other properties. */
 	RegionView3D *rv3d = ar->regiondata;
 
+	WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, engine, &msg_sub_value_region_tag_redraw);
 	WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_x, &msg_sub_value_region_tag_redraw);
 	WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, resolution_y, &msg_sub_value_region_tag_redraw);
 	WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, pixel_aspect_x, &msg_sub_value_region_tag_redraw);
@@ -1121,12 +1120,12 @@ static void view3d_main_region_message_subscribe(
 
 	/* Each engine could be responsible for its own engine data types.
 	 * For now this is simplest. */
-	if (STREQ(view_render->engine_id, RE_engine_id_BLENDER_EEVEE)) {
+	if (STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE)) {
 		extern StructRNA RNA_ViewLayerEngineSettingsEevee;
 		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsEevee, &msg_sub_value_region_tag_redraw);
 	}
 #ifdef WITH_CLAY_ENGINE
-	else if (STREQ(view_render->engine_id, RE_engine_id_BLENDER_CLAY)) {
+	else if (STREQ(scene->r.engine, RE_engine_id_BLENDER_CLAY)) {
 		extern StructRNA RNA_ViewLayerEngineSettingsClay;
 		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsClay, &msg_sub_value_region_tag_redraw);
 	}

@@ -157,8 +157,7 @@ struct WorkSpace *ED_workspace_add(
         struct Main *bmain,
         const char *name,
         Scene *scene,
-        ViewLayer *act_render_layer,
-        struct ViewRender *view_render) ATTR_NONNULL();
+        ViewLayer *act_render_layer) ATTR_NONNULL();
 bool ED_workspace_change(
         struct WorkSpace *workspace_new,
         struct bContext *C,

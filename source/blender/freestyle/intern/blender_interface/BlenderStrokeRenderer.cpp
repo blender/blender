@@ -116,9 +116,9 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 	freestyle_scene->r.filtertype = old_scene->r.filtertype;
 	freestyle_scene->r.gauss = old_scene->r.gauss;
 	freestyle_scene->r.dither_intensity = old_scene->r.dither_intensity;
-	BKE_viewrender_copy(&freestyle_scene->view_render, &old_scene->view_render);
+	STRNCPY(freestyle_scene->r.engine, old_scene->r.engine);
 	if (G.debug & G_DEBUG_FREESTYLE) {
-		cout << "Stroke rendering engine : " << freestyle_scene->view_render.engine_id << endl;
+		cout << "Stroke rendering engine : " << freestyle_scene->r.engine << endl;
 	}
 	freestyle_scene->r.im_format.planes = R_IMF_PLANES_RGBA;
 	freestyle_scene->r.im_format.imtype = R_IMF_IMTYPE_PNG;
@@ -128,7 +128,7 @@ BlenderStrokeRenderer::BlenderStrokeRenderer(Render *re, int render_count) : Str
 		freestyle_scene->id.properties = IDP_CopyProperty_ex(old_scene->id.properties, 0);
 	}
 
-	if (STREQ(freestyle_scene->view_render.engine_id, RE_engine_id_CYCLES)) {
+	if (STREQ(freestyle_scene->r.engine, RE_engine_id_CYCLES)) {
 		/* Render with transparent background. */
 		PointerRNA freestyle_scene_ptr;
 		RNA_id_pointer_create(&freestyle_scene->id, &freestyle_scene_ptr);

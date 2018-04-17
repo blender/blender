@@ -1190,7 +1190,7 @@ static int arg_handle_engine_set(int argc, const char **argv, void *data)
 			Scene *scene = CTX_data_scene(C);
 			if (scene) {
 				if (BLI_findstring(&R_engines, argv[1], offsetof(RenderEngineType, idname))) {
-					BLI_strncpy_utf8(scene->view_render.engine_id, argv[1], sizeof(scene->view_render.engine_id));
+					BLI_strncpy_utf8(scene->r.engine, argv[1], sizeof(scene->r.engine));
 				}
 				else {
 					printf("\nError: engine not found '%s'\n", argv[1]);

@@ -3035,7 +3035,7 @@ static void rna_ShaderNodeScript_update(Main *bmain, Scene *scene, PointerRNA *p
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
 	bNode *node = (bNode *)ptr->data;
-	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
 
 	if (engine_type && engine_type->update_script_node) {
 		/* auto update node */

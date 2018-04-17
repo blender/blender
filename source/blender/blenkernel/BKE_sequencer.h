@@ -437,9 +437,9 @@ enum {
 
 typedef struct ImBuf *(*SequencerDrawView)(
         struct Depsgraph *depsgraph, struct Scene *scene,
-        struct ViewLayer *view_layer, struct RenderEngineType *engine_type,
+        struct ViewLayer *view_layer, int drawtype,
         struct Object *camera, int width, int height,
-        unsigned int flag, unsigned int draw_flags, int drawtype, int alpha_mode,
+        unsigned int flag, unsigned int draw_flags, int alpha_mode,
         int samples, const char *viewname,
         struct GPUOffScreen *ofs, char err_out[256]);
 extern SequencerDrawView sequencer_view3d_cb;

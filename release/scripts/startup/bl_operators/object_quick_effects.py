@@ -365,7 +365,7 @@ class QuickSmoke(Operator):
         # Setup material
 
         # Cycles
-        if context.scene.view_render.use_shading_nodes or context.view_render.use_shading_nodes:
+        if context.scene.render.use_shading_nodes or context.render.use_shading_nodes:
             bpy.ops.object.material_slot_add()
 
             mat = bpy.data.materials.new("Smoke Domain Material")

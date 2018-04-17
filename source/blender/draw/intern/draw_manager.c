@@ -895,33 +895,27 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int draw_mode,
-                                           int UNUSED(draw_mode_wireframe), int draw_mode_solid, int UNUSED(draw_mode_texture))
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype,
+                                           int UNUSED(drawtype_wireframe), int drawtype_solid, int UNUSED(drawtype_texture))
 {
-	switch (draw_mode) {
+	switch (drawtype) {
 		case OB_WIRE:
 			break;
 
 		case OB_SOLID:
-			if (draw_mode_solid == OB_LIGHTING_FLAT) {
+			if (drawtype_solid == OB_LIGHTING_FLAT) {
 				use_drw_engine(&draw_engine_workbench_solid_flat);
 
-			} else if (draw_mode_solid == OB_LIGHTING_STUDIO) {
+			} else if (drawtype_solid == OB_LIGHTING_STUDIO) {
 				use_drw_engine(&draw_engine_workbench_solid_studio);
 
 			}
 			break;
 
 		case OB_TEXTURE:
-			break;
-
 		case OB_MATERIAL:
-			engine_type = RE_engines_find("BLENDER_EEVEE");
-			use_drw_engine(engine_type->draw_engine);
-			break;
-
-		default:
 		case OB_RENDER:
+		default:
 			/* TODO layers */
 			if (engine_type->draw_engine != NULL) {
 				use_drw_engine(engine_type->draw_engine);
@@ -1003,12 +997,12 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	Object *obact = OBACT(view_layer);
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
 	View3D * v3d = DST.draw_ctx.v3d;
-	const int draw_mode = v3d->drawtype;
-	const int draw_mode_wireframe = v3d->drawtype_wireframe;
-	const int draw_mode_solid = v3d->drawtype_solid;
-	const int draw_mode_texture = v3d->drawtype_texture;
+	const int drawtype = v3d->drawtype;
+	const int drawtype_wireframe = v3d->drawtype_wireframe;
+	const int drawtype_solid = v3d->drawtype_solid;
+	const int drawtype_texture = v3d->drawtype_texture;
 
-	drw_engines_enable_from_engine(engine_type, draw_mode, draw_mode_wireframe, draw_mode_solid, draw_mode_texture);
+	drw_engines_enable_from_engine(engine_type, drawtype, drawtype_wireframe, drawtype_solid, drawtype_texture);
 
 	if (DRW_state_draw_support()) {
 		drw_engines_enable_from_object_mode();
@@ -1144,9 +1138,10 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
 void DRW_draw_view(const bContext *C)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = DEG_get_evaluated_scene(depsgraph);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
@@ -1311,7 +1306,7 @@ void DRW_draw_render_loop(
 	drw_state_prepare_clean_for_draw(&DST);
 
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
 
 	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
 }
@@ -1506,7 +1501,7 @@ void DRW_draw_select_loop(
         DRW_SelectPassFn select_pass_fn, void *select_pass_user_data)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	Object *obact = OBACT(view_layer);
 	Object *obedit = OBEDIT_FROM_OBACT(obact);
@@ -1698,7 +1693,7 @@ void DRW_draw_depth_loop(
         ARegion *ar, View3D *v3d)
 {
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
-	RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
 	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	RegionView3D *rv3d = ar->regiondata;
 

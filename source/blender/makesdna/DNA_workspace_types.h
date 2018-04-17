@@ -102,7 +102,6 @@ typedef struct WorkSpace {
 	bToolDef tool;
 
 	struct ViewLayer *view_layer DNA_DEPRECATED;
-	struct ViewRender view_render;
 } WorkSpace;
 
 /* internal struct, but exported for read/write */

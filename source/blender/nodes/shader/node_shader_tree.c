@@ -68,28 +68,24 @@
 static int shader_tree_poll(const bContext *C, bNodeTreeType *UNUSED(treetype))
 {
 	Scene *scene = CTX_data_scene(C);
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
-	const char *engine_id = view_render->engine_id;
+	const char *engine_id = scene->r.engine;
 
 	/* allow empty engine string too, this is from older versions that didn't have registerable engines yet */
 	return (engine_id[0] == '\0' ||
 	        STREQ(engine_id, RE_engine_id_BLENDER_RENDER) ||
 	        STREQ(engine_id, RE_engine_id_CYCLES) ||
-	        !BKE_viewrender_use_shading_nodes_custom(view_render));
+	        !BKE_scene_use_shading_nodes_custom(scene));
 }
 
 static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(treetype), bNodeTree **r_ntree, ID **r_id, ID **r_from)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	Scene *scene = CTX_data_scene(C);
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
 	
 	if ((snode->shaderfrom == SNODE_SHADER_OBJECT) ||
-	    (BKE_viewrender_use_new_shading_nodes(view_render) == false))
+	    (BKE_scene_use_new_shading_nodes(scene) == false))
 	{
 		if (ob) {
 			*r_from = &ob->id;
@@ -125,12 +121,12 @@ static void shader_get_from_context(const bContext *C, bNodeTreeType *UNUSED(tre
 	}
 }
 
-static void foreach_nodeclass(ViewRender *view_render, void *calldata, bNodeClassCallback func)
+static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback func)
 {
 	func(calldata, NODE_CLASS_INPUT, N_("Input"));
 	func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
 
-	if (BKE_viewrender_use_new_shading_nodes(view_render)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		func(calldata, NODE_CLASS_SHADER, N_("Shader"));
 		func(calldata, NODE_CLASS_TEXTURE, N_("Texture"));
 	}

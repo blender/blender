@@ -930,24 +930,10 @@ ViewLayer *CTX_data_view_layer(const bContext *C)
 	}
 }
 
-ViewRender *CTX_data_view_render(const bContext *C)
-{
-	ViewRender *view_render;
-
-	if (ctx_data_pointer_verify(C, "view_render", (void *)&view_render)) {
-		return view_render;
-	}
-	else {
-		Scene *scene = CTX_data_scene(C);
-		WorkSpace *workspace = CTX_wm_workspace(C);
-		return BKE_viewrender_get(scene, workspace);
-	}
-}
-
 RenderEngineType *CTX_data_engine_type(const bContext *C)
 {
-	ViewRender *view_render = CTX_data_view_render(C);
-	return RE_engines_find(view_render->engine_id);
+	Scene *scene = CTX_data_scene(C);
+	return RE_engines_find(scene->r.engine);
 }
 
 /**

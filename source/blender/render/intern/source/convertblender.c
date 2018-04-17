@@ -4829,8 +4829,6 @@ void RE_Database_Free(Render *re)
 		BLI_memarena_free(re->memArena);
 		re->memArena = NULL;
 	}
-
-	BKE_viewrender_free(&re->view_render);
 }
 
 static int allow_render_object(Render *re, Object *ob, int nolamps, int onlyselected, Object *actob)
@@ -5151,7 +5149,6 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	re->i.infostr= "Preparing Scene data";
 	re->i.cfra= scene->r.cfra;
 	BLI_strncpy(re->i.scene_name, scene->id.name + 2, sizeof(re->i.scene_name));
-	re->view_render = scene->view_render;
 	
 	/* XXX add test if dbase was filled already? */
 	
@@ -5868,7 +5865,6 @@ void RE_Database_Baking(Render *re, Main *bmain, Scene *scene, ViewLayer *view_l
 
 	/* renderdata setup and exceptions */
 	render_copy_renderdata(&re->r, &scene->r);
-	render_copy_viewrender(&re->view_render, &scene->view_render);
 
 	RE_init_threadcount(re);
 

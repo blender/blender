@@ -193,7 +193,6 @@ struct Render {
 	ListBase view_layers;
 	int active_view_layer;
 	World wrld;
-	ViewRender view_render;
 	struct Object *camera_override;
 	unsigned int lay, layer_override;
 	

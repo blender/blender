@@ -1538,7 +1538,7 @@ def process(layer_name, lineset_name):
             raise RuntimeError("No Thickness modifier with type", type(m), m)
     # -- Textures -- #
     has_tex = False
-    if scene.view_render.use_shading_nodes:
+    if scene.render.use_shading_nodes:
         if linestyle.use_nodes and linestyle.node_tree:
             shaders_list.append(BlenderTextureShader(linestyle.node_tree))
             has_tex = True

@@ -383,13 +383,12 @@ static void node_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 }
 
 static void node_area_listener(bScreen *UNUSED(sc), ScrArea *sa, wmNotifier *wmn, Scene *scene,
-                               WorkSpace *workspace)
+                               WorkSpace *UNUSED(workspace))
 {
 	/* note, ED_area_tag_refresh will re-execute compositor */
 	SpaceNode *snode = sa->spacedata.first;
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
 	/* shaderfrom is only used for new shading nodes, otherwise all shaders are from objects */
-	short shader_type = BKE_viewrender_use_new_shading_nodes(view_render) ? snode->shaderfrom : SNODE_SHADER_OBJECT;
+	short shader_type = BKE_scene_use_new_shading_nodes(scene) ? snode->shaderfrom : SNODE_SHADER_OBJECT;
 
 	/* preview renders */
 	switch (wmn->category) {

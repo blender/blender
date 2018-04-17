@@ -139,12 +139,6 @@ static PointerRNA rna_Context_view_layer_get(PointerRNA *ptr)
 	return rna_pointer_inherit_refine(&scene_ptr, &RNA_ViewLayer, CTX_data_view_layer(C));
 }
 
-static PointerRNA rna_Context_view_render_get(PointerRNA *ptr)
-{
-	bContext *C = (bContext *)ptr->data;
-	return rna_pointer_inherit_refine(ptr, &RNA_ViewRenderSettings, CTX_data_view_render(C));
-}
-
 static void rna_Context_engine_get(PointerRNA *ptr, char *value)
  {
 	bContext *C = (bContext *)ptr->data;
@@ -288,11 +282,6 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "ViewLayer");
 	RNA_def_property_pointer_funcs(prop, "rna_Context_view_layer_get", NULL, NULL, NULL);
-
-	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "ViewRenderSettings");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_view_render_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "engine", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

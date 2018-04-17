@@ -33,8 +33,7 @@ class PhysicButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        view_render = context.scene.view_render
-        return (context.object) and (view_render.engine in cls.COMPAT_ENGINES)
+        return (context.object) and (context.engine in cls.COMPAT_ENGINES)
 
 
 class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
@@ -44,8 +43,7 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        view_render = context.scene.view_render
-        return (view_render.engine in cls.COMPAT_ENGINES) and (ob.field) and (ob.field.type != 'NONE')
+        return (context.engine in cls.COMPAT_ENGINES) and (ob.field) and (ob.field.type != 'NONE')
 
     def draw(self, context):
         layout = self.layout
@@ -182,8 +180,7 @@ class PHYSICS_PT_collision(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         ob = context.object
-        view_render = context.scene.view_render
-        return (ob and ob.type == 'MESH') and (view_render.engine in cls.COMPAT_ENGINES) and (context.collision)
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.collision)
 
     def draw(self, context):
         layout = self.layout

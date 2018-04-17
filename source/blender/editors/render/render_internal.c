@@ -298,7 +298,7 @@ static void screen_render_view_layer_set(wmOperator *op, Main *mainp, Scene **sc
 static int screen_render_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	RenderEngineType *re_type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *re_type = RE_engines_find(scene->r.engine);
 	ViewLayer *view_layer = NULL;
 	Render *re;
 	Image *ima;
@@ -863,7 +863,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	Main *mainp;
 	ViewLayer *view_layer = NULL;
 	Scene *scene = CTX_data_scene(C);
-	RenderEngineType *re_type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *re_type = RE_engines_find(scene->r.engine);
 	Render *re;
 	wmJob *wm_job;
 	RenderJob *rj;
@@ -1310,10 +1310,10 @@ static void render_view3d_startjob(void *customdata, short *stop, short *do_upda
 		/* initalize always */
 		if (use_border) {
 			rdata.mode |= R_BORDER;
-			RE_InitState(re, NULL, &rdata, &rp->scene->view_layers, rp->scene->active_view_layer, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
+			RE_InitState(re, NULL, &rdata, &rp->scene->view_layers, rp->scene->active_view_layer, NULL, rp->ar->winx, rp->ar->winy, &cliprct);
 		}
 		else
-			RE_InitState(re, NULL, &rdata, &rp->scene->view_layers, rp->scene->active_view_layer, &rp->scene->view_render, NULL, rp->ar->winx, rp->ar->winy, NULL);
+			RE_InitState(re, NULL, &rdata, &rp->scene->view_layers, rp->scene->active_view_layer, NULL, rp->ar->winx, rp->ar->winy, NULL);
 	}
 
 	if (orth)

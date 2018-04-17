@@ -665,9 +665,9 @@ void RE_FreePersistentData(void)
 /* ********* initialize state ******** */
 
 /* clear full sample and tile flags if needed */
-static int check_mode_full_sample(RenderData *rd, ViewRender *view_render)
+static int check_mode_full_sample(RenderData *rd)
 {
-	const char *engine_id = view_render->engine_id;
+	const char *engine_id = rd->engine;
 	int scemode = rd->scemode;
 
 	if (!STREQ(engine_id, RE_engine_id_BLENDER_RENDER)) {
@@ -740,16 +740,11 @@ void render_copy_renderdata(RenderData *to, RenderData *from)
 	curvemapping_copy_data(&to->mblur_shutter_curve, &from->mblur_shutter_curve);
 }
 
-void render_copy_viewrender(ViewRender *to, ViewRender *from)
-{
-	BKE_viewrender_copy(to, from);
-}
-
 /* what doesn't change during entire render sequence */
 /* disprect is optional, if NULL it assumes full window render */
 void RE_InitState(Render *re, Render *source, RenderData *rd,
                   ListBase *render_layers, const int active_layer,
-                  ViewRender *view_render, ViewLayer *view_layer,
+                  ViewLayer *view_layer,
                   int winx, int winy, rcti *disprect)
 {
 	bool had_freestyle = (re->r.mode & R_EDGE_FRS) != 0;
@@ -760,7 +755,6 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 
 	/* copy render data and render layers for thread safety */
 	render_copy_renderdata(&re->r, rd);
-	render_copy_viewrender(&re->view_render, view_render);
 	BLI_freelistN(&re->view_layers);
 	BLI_duplicatelist(&re->view_layers, render_layers);
 	re->active_view_layer = active_layer;
@@ -793,7 +787,7 @@ void RE_InitState(Render *re, Render *source, RenderData *rd,
 		return;
 	}
 
-	re->r.scemode = check_mode_full_sample(&re->r, &re->view_render);
+	re->r.scemode = check_mode_full_sample(&re->r);
 	
 	/* fullsample wants uniform osa levels */
 	if (source && (re->r.scemode & R_FULL_SAMPLE)) {
@@ -1903,7 +1897,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	}
 	
 	/* initial setup */
-	RE_InitState(resc, re, &sce->r, &sce->view_layers, sce->active_view_layer, &sce->view_render, NULL, winx, winy, &re->disprect);
+	RE_InitState(resc, re, &sce->r, &sce->view_layers, sce->active_view_layer, NULL, winx, winy, &re->disprect);
 
 	/* We still want to use 'rendercache' setting from org (main) scene... */
 	resc->r.scemode = (resc->r.scemode & ~R_EXR_CACHE_FILE) | (re->r.scemode & R_EXR_CACHE_FILE);
@@ -2869,7 +2863,7 @@ static void do_render_all_options(Render *re)
 
 bool RE_force_single_renderlayer(Scene *scene)
 {
-	int scemode = check_mode_full_sample(&scene->r, &scene->view_render);
+	int scemode = check_mode_full_sample(&scene->r);
 	if (scemode & R_SINGLE_LAYER) {
 		ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
 		/* force layer to be enabled */
@@ -3018,7 +3012,7 @@ static int check_composite_output(Scene *scene)
 
 bool RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
 {
-	int scemode = check_mode_full_sample(&scene->r, &scene->view_render);
+	int scemode = check_mode_full_sample(&scene->r);
 	
 	if (scene->r.mode & R_BORDER) {
 		if (scene->r.border.xmax <= scene->r.border.xmin ||
@@ -3158,13 +3152,8 @@ const char *RE_GetActiveRenderView(Render *re)
 	return re->viewname;
 }
 
-void RE_SetEngineByID(Render *re, const char *engine_id)
-{
-	BLI_strncpy(re->view_render.engine_id, engine_id, sizeof(re->view_render.engine_id));
-}
-
 /* evaluating scene options for general Blender render */
-static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, Scene *scene, ViewRender *view_render,
+static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, Scene *scene,
                                        ViewLayer *view_layer, Object *camera_override, unsigned int lay_override,
                                        int anim, int anim_init)
 {
@@ -3200,7 +3189,6 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 	re->layer_override = lay_override;
 	re->i.localview = (re->lay & 0xFF000000) != 0;
 	re->viewname[0] = '\0';
-	RE_SetEngineByID(re, view_render->engine_id);
 
 	/* not too nice, but it survives anim-border render */
 	if (anim) {
@@ -3234,7 +3222,7 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 		BLI_rw_mutex_unlock(&re->resultmutex);
 	}
 	
-	RE_InitState(re, NULL, &scene->r, &scene->view_layers, scene->active_view_layer, &scene->view_render, view_layer, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, &scene->view_layers, scene->active_view_layer, view_layer, winx, winy, &disprect);
 	if (!re->ok)  /* if an error was printed, abort */
 		return 0;
 	
@@ -3265,7 +3253,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *view_laye
 	
 	scene->r.cfra = frame;
 	
-	if (render_initialize_from_main(re, &scene->r, bmain, scene, &scene->view_render, view_layer,
+	if (render_initialize_from_main(re, &scene->r, bmain, scene, view_layer,
 	                                camera_override, lay_override, 0, 0))
 	{
 		MEM_reset_peak_memory();
@@ -3306,7 +3294,7 @@ void RE_BlenderFrame(Render *re, Main *bmain, Scene *scene, ViewLayer *view_laye
 void RE_RenderFreestyleStrokes(Render *re, Main *bmain, Scene *scene, int render)
 {
 	re->result_ok= 0;
-	if (render_initialize_from_main(re, &scene->r, bmain, scene, &scene->view_render, NULL, NULL, scene->lay, 0, 0)) {
+	if (render_initialize_from_main(re, &scene->r, bmain, scene, NULL, NULL, scene->lay, 0, 0)) {
 		if (render)
 			do_render_fields_blur_3d(re);
 	}
@@ -3600,7 +3588,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	BLI_callback_exec(re->main, (ID *)scene, BLI_CB_EVT_RENDER_INIT);
 
 	/* do not fully call for each frame, it initializes & pops output window */
-	if (!render_initialize_from_main(re, &rd, bmain, scene, &scene->view_render, NULL, camera_override, lay_override, 0, 1))
+	if (!render_initialize_from_main(re, &rd, bmain, scene, NULL, camera_override, lay_override, 0, 1))
 		return;
 
 	/* MULTIVIEW_TODO:
@@ -3690,7 +3678,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 			}
 
 			/* only border now, todo: camera lens. (ton) */
-			render_initialize_from_main(re, &rd, bmain, scene, &scene->view_render,
+			render_initialize_from_main(re, &rd, bmain, scene,
 			                            NULL, camera_override, lay_override, 1, 0);
 
 			if (nfra != scene->r.cfra) {
@@ -3840,7 +3828,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 	G.is_rendering = false;
 }
 
-void RE_PreviewRender(Render *re, Main *bmain, Scene *sce, ViewRender *view_render)
+void RE_PreviewRender(Render *re, Main *bmain, Scene *sce)
 {
 	Object *camera;
 	int winx, winy;
@@ -3848,7 +3836,7 @@ void RE_PreviewRender(Render *re, Main *bmain, Scene *sce, ViewRender *view_rend
 	winx = (sce->r.size * sce->r.xsch) / 100;
 	winy = (sce->r.size * sce->r.ysch) / 100;
 
-	RE_InitState(re, NULL, &sce->r, &sce->view_layers, sce->active_view_layer, view_render, NULL, winx, winy, NULL);
+	RE_InitState(re, NULL, &sce->r, &sce->view_layers, sce->active_view_layer, NULL, winx, winy, NULL);
 
 	re->pool = BKE_image_pool_new();
 
@@ -3901,7 +3889,7 @@ bool RE_ReadRenderResult(Scene *scene, Scene *scenode)
 	re = RE_GetSceneRender(scene);
 	if (re == NULL)
 		re = RE_NewSceneRender(scene);
-	RE_InitState(re, NULL, &scene->r, &scene->view_layers, scene->active_view_layer, &scene->view_render, NULL, winx, winy, &disprect);
+	RE_InitState(re, NULL, &scene->r, &scene->view_layers, scene->active_view_layer, NULL, winx, winy, &disprect);
 	re->scene = scene;
 	re->scene_color_manage = BKE_scene_check_color_management_enabled(scene);
 	

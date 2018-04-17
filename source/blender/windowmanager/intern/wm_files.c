@@ -443,9 +443,8 @@ void wm_file_read_report(bContext *C)
 	Scene *sce;
 
 	for (sce = G.main->scene.first; sce; sce = sce->id.next) {
-		ViewRender *view_render = &sce->view_render;
-		if (view_render->engine_id[0] &&
-		    BLI_findstring(&R_engines, view_render->engine_id, offsetof(RenderEngineType, idname)) == NULL)
+		if (sce->r.engine[0] &&
+		    BLI_findstring(&R_engines, sce->r.engine, offsetof(RenderEngineType, idname)) == NULL)
 		{
 			if (reports == NULL) {
 				reports = CTX_wm_reports(C);
@@ -453,7 +452,7 @@ void wm_file_read_report(bContext *C)
 
 			BKE_reportf(reports, RPT_ERROR,
 			            "Engine '%s' not available for scene '%s' (an add-on may need to be installed or enabled)",
-			            view_render->engine_id, sce->id.name + 2);
+			            sce->r.engine, sce->id.name + 2);
 		}
 	}
 
@@ -1047,18 +1046,17 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, ViewLayer *view_
 
 	/* gets scaled to BLEN_THUMB_SIZE */
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	RenderEngineType *engine_type = CTX_data_engine_type(C);
 
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(
-		        depsgraph, scene, view_layer, engine_type, scene->camera,
+		        depsgraph, scene, view_layer, OB_SOLID, scene->camera,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
-		        IB_rect, V3D_OFSDRAW_NONE, OB_SOLID, R_ALPHAPREMUL, 0, NULL,
+		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(
-		        depsgraph, scene, view_layer, engine_type, v3d, ar,
+		        depsgraph, scene, view_layer, OB_SOLID, v3d, ar,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);

@@ -3333,14 +3333,14 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 			context->scene->r.seq_prev_type = 3 /* == OB_SOLID */;
 
 		/* opengl offscreen render */
-		RenderEngineType *engine_type = RE_engines_find(scene->view_render.engine_id);
 		depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 		BKE_scene_graph_update_for_newframe(depsgraph, context->bmain);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
-		        depsgraph, scene, view_layer, engine_type,
+		        depsgraph, scene, view_layer,
+		        context->scene->r.seq_prev_type,
 		        camera, width, height, IB_rect,
-		        draw_flags, context->scene->r.seq_prev_type,
+		        draw_flags,
 		        scene->r.alphamode, context->gpu_samples, viewname,
 		        context->gpu_offscreen, err_out);
 		if (ibuf == NULL) {

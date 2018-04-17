@@ -41,8 +41,7 @@ class PhysicButtonsPanel:
     @classmethod
     def poll(cls, context):
         ob = context.object
-        view_render = context.scene.view_render
-        return ob and ob.type in COMPAT_OB_TYPES and view_render.engine in cls.COMPAT_ENGINES and context.soft_body
+        return ob and ob.type in COMPAT_OB_TYPES and context.engine in cls.COMPAT_ENGINES and context.soft_body
 
 
 class PHYSICS_PT_softbody(PhysicButtonsPanel, Panel):

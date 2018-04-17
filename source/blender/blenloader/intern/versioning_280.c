@@ -107,14 +107,6 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		}
 		BKE_workspace_layout_add(workspace, screen, screen->id.name + 2);
 		BKE_workspace_view_layer_set(workspace, layer, scene);
-
-#ifdef WITH_CLAY_ENGINE
-		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_CLAY,
-		            sizeof(workspace->view_render.engine_id));
-#else
-		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_EEVEE,
-		            sizeof(workspace->view_render.engine_id));
-#endif
 	}
 }
 
@@ -828,17 +820,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			printf("You need to combine transparency and emission shaders to the converted Principled shader nodes.\n");
 		}
 
-		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "ViewRender", "view_render")) {
-			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				BLI_strncpy_utf8(scene->view_render.engine_id, scene->r.engine,
-				                 sizeof(scene->view_render.engine_id));
-			}
-
-			for (WorkSpace *workspace = main->workspaces.first; workspace; workspace = workspace->id.next) {
-				BKE_viewrender_init(&workspace->view_render);
-			}
-		}
-
 		if ((DNA_struct_elem_find(fd->filesdna, "ViewLayer", "FreestyleConfig", "freestyle_config") == false) &&
 		    DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "view_layers"))
 		{
@@ -942,6 +923,17 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 						}
 					}
 				}
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 7)) {
+		/* Render engine storage moved elsewhere and back during 2.8
+		 * development, we assume any files saved in 2.8 had Eevee set
+		 * as scene render engine. */
+		if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 			}
 		}
 	}

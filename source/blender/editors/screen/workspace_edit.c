@@ -76,12 +76,11 @@
 
 WorkSpace *ED_workspace_add(
         Main *bmain, const char *name, Scene *scene,
-        ViewLayer *act_view_layer, ViewRender *view_render)
+        ViewLayer *act_view_layer)
 {
 	WorkSpace *workspace = BKE_workspace_add(bmain, name);
 
 	BKE_workspace_view_layer_set(workspace, act_view_layer, scene);
-	BKE_viewrender_copy(&workspace->view_render, view_render);
 
 	return workspace;
 }
@@ -223,8 +222,7 @@ WorkSpace *ED_workspace_duplicate(
 	Scene *scene = WM_window_get_active_scene(win);
 	WorkSpace *workspace_new = ED_workspace_add(
 	        bmain, workspace_old->id.name + 2, scene,
-	        BKE_workspace_view_layer_get(workspace_old, scene),
-	        &workspace_old->view_render);
+	        BKE_workspace_view_layer_get(workspace_old, scene));
 
 	workspace_new->tool = workspace_old->tool;
 

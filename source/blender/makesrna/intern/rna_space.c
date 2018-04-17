@@ -670,7 +670,7 @@ static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 {
 	bScreen *screen = ptr->id.data;
 	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, screen);
-	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	View3D *v3d = (View3D *)ptr->data;
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
@@ -702,7 +702,7 @@ static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(
 {
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = WM_window_get_active_scene(win);
-	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
 
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;

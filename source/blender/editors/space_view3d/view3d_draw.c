@@ -1893,14 +1893,26 @@ static void view3d_draw_view(const bContext *C, ARegion *ar)
 	DRW_draw_view(C);
 }
 
+RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
+{
+	/* Tempory viewport draw modes until we have a proper system. */
+	if (drawtype == OB_RENDER) {
+		return RE_engines_find(scene->r.engine);
+	}
+	else if (drawtype == OB_MATERIAL) {
+		return RE_engines_find(RE_engine_id_BLENDER_EEVEE);
+	}
+	else {
+		return RE_engines_find(RE_engine_id_BLENDER_WORKBENCH);
+	}
+}
+
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
-	WorkSpace *workspace = CTX_wm_workspace(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = ar->regiondata;
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
-	RenderEngineType *type = RE_engines_find(view_render->engine_id);
+	RenderEngineType *type = ED_view3d_engine_type(scene, v3d->drawtype);
 
 	/* Provisory Blender Internal drawing */
 	if (type->flag & RE_USE_LEGACY_PIPELINE) {
@@ -1956,12 +1968,14 @@ static void view3d_stereo3d_setup_offscreen(
 void ED_view3d_draw_offscreen_init(Depsgraph *depsgraph,
                                    Scene *scene,
                                    ViewLayer *view_layer,
-                                   RenderEngineType *engine_type,
-                                   View3D *v3d)
+                                   View3D *v3d,
+                                   int drawtype)
 {
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, drawtype);
+
 	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
 		/* shadow buffers, before we setup matrices */
-		if (draw_glsl_material(scene, view_layer, NULL, v3d, v3d->drawtype)) {
+		if (draw_glsl_material(scene, view_layer, NULL, v3d, drawtype)) {
 			VP_deprecated_gpu_update_lamps_shadows_world(depsgraph, scene, v3d);
 		}
 	}
@@ -1987,7 +2001,7 @@ static void view3d_main_region_clear(Scene *scene, View3D *v3d, ARegion *ar)
  */
 void ED_view3d_draw_offscreen(
         Depsgraph *depsgraph, Scene *scene,
-        ViewLayer *view_layer, RenderEngineType *engine_type,
+        ViewLayer *view_layer, int drawtype,
         View3D *v3d, ARegion *ar, int winx, int winy,
         float viewmat[4][4], float winmat[4][4],
         bool do_bgpic, bool do_sky, bool UNUSED(is_persp), const char *viewname,
@@ -2032,6 +2046,8 @@ void ED_view3d_draw_offscreen(
 		view3d_main_region_setup_view(depsgraph, scene, v3d, ar, viewmat, winmat, NULL);
 
 	/* main drawing call */
+	RenderEngineType *engine_type = ED_view3d_engine_type(scene, drawtype);
+
 	if (engine_type->flag & RE_USE_LEGACY_PIPELINE) {
 		VP_deprecated_view3d_draw_objects(NULL, depsgraph, scene, v3d, ar, NULL, do_bgpic, true);
 
@@ -2075,7 +2091,7 @@ void ED_view3d_draw_offscreen(
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf(
         Depsgraph *depsgraph, Scene *scene,
-        ViewLayer *view_layer, RenderEngineType *engine_type,
+        ViewLayer *view_layer, int drawtype,
         View3D *v3d, ARegion *ar, int sizex, int sizey,
         unsigned int flag, unsigned int draw_flags,
         int alpha_mode, int samples, const char *viewname,
@@ -2109,7 +2125,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 		}
 	}
 
-	ED_view3d_draw_offscreen_init(depsgraph, scene, view_layer, engine_type, v3d);
+	ED_view3d_draw_offscreen_init(depsgraph, scene, view_layer, v3d, drawtype);
 
 	GPU_offscreen_bind(ofs, true);
 
@@ -2151,7 +2167,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 	if ((samples && use_full_sample) == 0) {
 		/* Single-pass render, common case */
 		ED_view3d_draw_offscreen(
-		        depsgraph, scene, view_layer, engine_type,
+		        depsgraph, scene, view_layer, drawtype,
 		        v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
 		        &fx_settings, ofs, NULL);
@@ -2176,7 +2192,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 
 		/* first sample buffer, also initializes 'rv3d->persmat' */
 		ED_view3d_draw_offscreen(
-		        depsgraph, scene, view_layer, engine_type,
+		        depsgraph, scene, view_layer, drawtype,
 		        v3d, ar, sizex, sizey, NULL, winmat,
 		        draw_background, draw_sky, !is_ortho, viewname,
 		        &fx_settings, ofs, viewport);
@@ -2191,7 +2207,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
 			        (jit_ofs[j][1] * 2.0f) / sizey);
 
 			ED_view3d_draw_offscreen(
-			        depsgraph, scene, view_layer, engine_type,
+			        depsgraph, scene, view_layer, drawtype,
 			        v3d, ar, sizex, sizey, NULL, winmat_jitter,
 			        draw_background, draw_sky, !is_ortho, viewname,
 			        &fx_settings, ofs, viewport);
@@ -2256,9 +2272,9 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(
  */
 ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
         Depsgraph *depsgraph, Scene *scene,
-        ViewLayer *view_layer, RenderEngineType *engine_type,
+        ViewLayer *view_layer, int drawtype,
         Object *camera, int width, int height,
-        unsigned int flag, unsigned int draw_flags, int drawtype,
+        unsigned int flag, unsigned int draw_flags,
         int alpha_mode, int samples, const char *viewname,
         GPUOffScreen *ofs, char err_out[256])
 {
@@ -2318,7 +2334,7 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(
 	invert_m4_m4(rv3d.persinv, rv3d.viewinv);
 
 	return ED_view3d_draw_offscreen_imbuf(
-	        depsgraph, scene, view_layer, engine_type,
+	        depsgraph, scene, view_layer, drawtype,
 	        &v3d, &ar, width, height, flag,
 	        draw_flags, alpha_mode, samples, viewname, ofs, err_out);
 }

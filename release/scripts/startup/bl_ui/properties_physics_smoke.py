@@ -34,8 +34,7 @@ class PhysicButtonsPanel:
     @classmethod
     def poll(cls, context):
         ob = context.object
-        view_render = context.scene.view_render
-        return (ob and ob.type == 'MESH') and (view_render.engine in cls.COMPAT_ENGINES) and (context.smoke)
+        return (ob and ob.type == 'MESH') and (context.engine in cls.COMPAT_ENGINES) and (context.smoke)
 
 
 class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
@@ -242,8 +241,7 @@ class PHYSICS_PT_smoke_highres(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.smoke
-        view_render = context.scene.view_render
-        return md and (md.smoke_type == 'DOMAIN') and (view_render.engine in cls.COMPAT_ENGINES)
+        return md and (md.smoke_type == 'DOMAIN') and (context.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         md = context.smoke.domain_settings
@@ -282,8 +280,7 @@ class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.smoke
-        view_render = context.scene.view_render
-        return md and (md.smoke_type == 'DOMAIN') and (view_render.engine in cls.COMPAT_ENGINES)
+        return md and (md.smoke_type == 'DOMAIN') and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -311,8 +308,7 @@ class PHYSICS_PT_smoke_cache(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.smoke
-        view_render = context.scene.view_render
-        return md and (md.smoke_type == 'DOMAIN') and (view_render.engine in cls.COMPAT_ENGINES)
+        return md and (md.smoke_type == 'DOMAIN') and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout
@@ -348,8 +344,7 @@ class PHYSICS_PT_smoke_field_weights(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.smoke
-        view_render = context.scene.view_render
-        return md and (md.smoke_type == 'DOMAIN') and (view_render.engine in cls.COMPAT_ENGINES)
+        return md and (md.smoke_type == 'DOMAIN') and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         domain = context.smoke.domain_settings
@@ -363,7 +358,6 @@ class PHYSICS_PT_smoke_display_settings(PhysicButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         md = context.smoke
-        view_render = context.scene.view_render
         return md and (md.smoke_type == 'DOMAIN')
 
     def draw(self, context):

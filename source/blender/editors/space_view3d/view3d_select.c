@@ -119,7 +119,6 @@ void ED_view3d_viewcontext_init(bContext *C, ViewContext *vc)
 	vc->depsgraph = CTX_data_depsgraph(C);
 	vc->scene = CTX_data_scene(C);
 	vc->view_layer = CTX_data_view_layer(C);
-	vc->engine_type = CTX_data_engine_type(C);
 	vc->v3d = CTX_wm_view3d(C);
 	vc->win = CTX_wm_window(C);
 	vc->rv3d = CTX_wm_region_view3d(C);

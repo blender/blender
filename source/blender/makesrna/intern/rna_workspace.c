@@ -203,12 +203,6 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mode", "Object interaction mode used in this window");
 #endif
 
-	/* View Render */
-	prop = RNA_def_property(srna, "view_render", PROP_POINTER, PROP_NONE);
-	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_struct_type(prop, "ViewRenderSettings");
-	RNA_def_property_ui_text(prop, "View Render", "");
-
 	/* Flags */
 	prop = RNA_def_property(srna, "use_scene_settings", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

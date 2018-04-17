@@ -32,7 +32,6 @@ class INFO_HT_header(Header):
         screen = context.screen
         scene = context.scene
         layer = context.view_layer
-        view_render = workspace.view_render
 
         row = layout.row(align=True)
         row.template_header()
@@ -56,9 +55,6 @@ class INFO_HT_header(Header):
         row.active = not workspace.use_scene_settings
         # Active workspace view-layer is retrieved through window, not through workspace.
         row.template_search(window, "view_layer", scene, "view_layers")
-
-        if view_render.has_multiple_engines:
-            row.prop(view_render, "engine", text="")
 
         layout.separator()
 
@@ -97,8 +93,6 @@ class INFO_MT_editor_menus(Menu):
 
     @staticmethod
     def draw_menus(layout, context):
-        view_render = context.view_render
-
         layout.menu("INFO_MT_file")
         layout.menu("INFO_MT_render")
         layout.menu("INFO_MT_window")

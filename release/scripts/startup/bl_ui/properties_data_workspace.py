@@ -51,14 +51,10 @@ class WORKSPACE_PT_workspace(WorkSpaceButtonsPanel, Panel):
         window = context.window
         workspace = context.workspace
         scene = context.scene
-        view_render = workspace.view_render
 
         layout.enabled = not workspace.use_scene_settings
 
         layout.template_search(window, "view_layer", scene, "view_layers")
-
-        if view_render.has_multiple_engines:
-            layout.prop(view_render, "engine", text="")
 
 
 class WORKSPACE_PT_owner_ids(WorkSpaceButtonsPanel, Panel):

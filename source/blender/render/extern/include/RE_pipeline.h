@@ -51,7 +51,6 @@ struct Scene;
 struct ViewLayer;
 struct EnvMap;
 struct StampData;
-struct ViewRender;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 /* this include is what is exposed of render to outside world */
@@ -243,7 +242,7 @@ struct RenderPass *RE_create_gp_pass(struct RenderResult *rr, const char *layern
 /* obligatory initialize call, disprect is optional */
 void RE_InitState(struct Render *re, struct Render *source, struct RenderData *rd,
                   struct ListBase *render_layers, const int active_layer,
-                  struct ViewRender *view_render, struct ViewLayer *view_layer,
+                  struct ViewLayer *view_layer,
                   int winx, int winy, rcti *disprect);
 void RE_ChangeResolution(struct Render *re, int winx, int winy, rcti *disprect);
 void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
@@ -306,13 +305,11 @@ void RE_RenderFreestyleExternal(struct Render *re);
 void RE_SetActiveRenderView(struct Render *re, const char *viewname);
 const char *RE_GetActiveRenderView(struct Render *re);
 
-void RE_SetEngineByID(struct Render *re, const char *engine_id);
-
 /* error reporting */
 void RE_SetReports(struct Render *re, struct ReportList *reports);
 
 /* main preview render call */
-void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene, struct ViewRender *render_view);
+void RE_PreviewRender(struct Render *re, struct Main *bmain, struct Scene *scene);
 
 bool RE_ReadRenderResult(struct Scene *scene, struct Scene *scenode);
 bool RE_WriteRenderResult(

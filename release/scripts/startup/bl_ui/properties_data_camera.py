@@ -147,11 +147,11 @@ class DATA_PT_camera_stereoscopy(CameraButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        view_render = context.scene.view_render
+        render = context.scene.render
         st = context.camera.stereo
         cam = context.camera
 
-        is_spherical_stereo = cam.type != 'ORTHO' and view_render.use_spherical_stereo
+        is_spherical_stereo = cam.type != 'ORTHO' and render.use_spherical_stereo
         use_spherical_stereo = is_spherical_stereo and st.use_spherical_stereo
 
         col = layout.column()

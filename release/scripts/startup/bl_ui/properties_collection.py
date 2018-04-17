@@ -65,7 +65,7 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        return context.view_render.engine in cls.COMPAT_ENGINES
+        return context.engine in cls.COMPAT_ENGINES
 
     def draw(self, context):
         layout = self.layout

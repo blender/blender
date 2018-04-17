@@ -383,7 +383,7 @@ bool ED_node_is_texture(struct SpaceNode *snode)
 /* called from shading buttons or header */
 void ED_node_shader_default(const bContext *C, ID *id)
 {
-	ViewRender *view_render = CTX_data_view_render(C);
+	Scene *scene = CTX_data_scene(C);
 	bNode *in, *out;
 	bNodeSocket *fromsock, *tosock, *sock;
 	bNodeTree *ntree;
@@ -398,11 +398,11 @@ void ED_node_shader_default(const bContext *C, ID *id)
 			Material *ma = (Material *)id;
 			ma->nodetree = ntree;
 
-			if (BKE_viewrender_uses_blender_eevee(view_render)) {
+			if (BKE_scene_uses_blender_eevee(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_BSDF_PRINCIPLED;
 			}
-			else if (BKE_viewrender_use_new_shading_nodes(view_render)) {
+			else if (BKE_scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_BSDF_DIFFUSE;
 			}
@@ -460,7 +460,7 @@ void ED_node_shader_default(const bContext *C, ID *id)
 	nodeAddLink(ntree, in, fromsock, out, tosock);
 
 	/* default values */
-	if (BKE_viewrender_use_new_shading_nodes(view_render)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		PointerRNA sockptr;
 		sock = in->inputs.first;
 		RNA_pointer_create((ID *)ntree, &RNA_NodeSocket, sock, &sockptr);
@@ -2353,7 +2353,7 @@ void NODE_OT_tree_socket_move(wmOperatorType *ot)
 static int node_shader_script_update_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
+	RenderEngineType *type = RE_engines_find(scene->r.engine);
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
 	Text *text;
@@ -2423,7 +2423,7 @@ static int node_shader_script_update_exec(bContext *C, wmOperator *op)
 	bool found = false;
 
 	/* setup render engine */
-	type = RE_engines_find(scene->view_render.engine_id);
+	type = RE_engines_find(scene->r.engine);
 	engine = RE_engine_create(type);
 	engine->reports = op->reports;
 

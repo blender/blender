@@ -51,7 +51,7 @@ class NODE_HT_header(Header):
         NODE_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.prop(snode, "tree_type", text="", expand=True)
-        use_shading_nodes = scene.view_render.use_shading_nodes or context.view_render.use_shading_nodes
+        use_shading_nodes = scene.render.use_shading_nodes
 
         if snode.tree_type == 'ShaderNodeTree':
             if use_shading_nodes:

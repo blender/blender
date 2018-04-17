@@ -41,8 +41,7 @@ class WORLD_PT_context_world(WorldButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        view_render = context.scene.view_render
-        return view_render.engine in cls.COMPAT_ENGINES
+        return (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         layout = self.layout

@@ -120,8 +120,6 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 		ARegion *ar;
 		
 		CTX_wm_window_set(C, win);
-		WorkSpace *workspace = BKE_workspace_active_get(win->workspace_hook);
-		ViewRender *view_render = BKE_viewrender_get(win->scene, workspace);
 
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
 			if (sa->spacetype != SPACE_VIEW3D)
@@ -147,7 +145,7 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
 				}
 				else {
-					RenderEngineType *engine_type = RE_engines_find(view_render->engine_id);
+					RenderEngineType *engine_type = RE_engines_find(win->scene->r.engine);
 					if ((engine_type->flag & RE_USE_LEGACY_PIPELINE) == 0) {
 						if (updated) {
 							DRW_notify_view_update(

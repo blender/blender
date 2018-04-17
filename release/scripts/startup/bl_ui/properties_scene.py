@@ -60,8 +60,7 @@ class SceneButtonsPanel:
 
     @classmethod
     def poll(cls, context):
-        view_render = context.scene.view_render
-        return context.scene and (view_render.engine in cls.COMPAT_ENGINES)
+        return (context.engine in cls.COMPAT_ENGINES)
 
 
 class SCENE_PT_scene(SceneButtonsPanel, Panel):
@@ -330,8 +329,7 @@ class SCENE_PT_rigid_body_world(SceneButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        scene = context.scene
-        return scene and (scene.view_render.engine in cls.COMPAT_ENGINES)
+        return (context.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         scene = context.scene
@@ -377,8 +375,7 @@ class SCENE_PT_rigid_body_cache(SceneButtonsPanel, Panel):
     @classmethod
     def poll(cls, context):
         scene = context.scene
-        view_render = scene.view_render
-        return scene and scene.rigidbody_world and (view_render.engine in cls.COMPAT_ENGINES)
+        return scene and scene.rigidbody_world and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         scene = context.scene
@@ -394,9 +391,8 @@ class SCENE_PT_rigid_body_field_weights(SceneButtonsPanel, Panel):
 
     @classmethod
     def poll(cls, context):
-        view_render = context.scene.view_render
         scene = context.scene
-        return scene and scene.rigidbody_world and (view_render.engine in cls.COMPAT_ENGINES)
+        return scene and scene.rigidbody_world and (context.engine in cls.COMPAT_ENGINES)
 
     def draw(self, context):
         scene = context.scene

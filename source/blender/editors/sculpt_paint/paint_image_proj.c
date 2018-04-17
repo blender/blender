@@ -5436,11 +5436,12 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	ImBuf *ibuf;
 	char filename[FILE_MAX];
 
-	struct RenderEngineType *engine_type = CTX_data_engine_type(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *settings = scene->toolsettings;
+	View3D *v3d = CTX_wm_view3d(C);
+	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	int w = settings->imapaint.screen_grab_size[0];
 	int h = settings->imapaint.screen_grab_size[1];
 	int maxsize;
@@ -5454,8 +5455,8 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (h > maxsize) h = maxsize;
 
 	ibuf = ED_view3d_draw_offscreen_imbuf(
-	        depsgraph, scene, view_layer, engine_type,
-	        CTX_wm_view3d(C), CTX_wm_region(C),
+	        depsgraph, scene, view_layer, v3d->drawtype,
+	        v3d, CTX_wm_region(C),
 	        w, h, IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 	        NULL, err_out);
 	if (!ibuf) {
@@ -5473,9 +5474,6 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 	if (image) {
 		/* now for the trickiness. store the view projection here!
 		 * re-projection will reuse this */
-		View3D *v3d = CTX_wm_view3d(C);
-		RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
 		IDPropertyTemplate val;
 		IDProperty *idgroup = IDP_GetProperties(&image->id, 1);
 		IDProperty *view_data;

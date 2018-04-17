@@ -65,7 +65,7 @@ static void composite_get_from_context(const bContext *C, bNodeTreeType *UNUSED(
 	*r_ntree = scene->nodetree;
 }
 
-static void foreach_nodeclass(ViewRender *UNUSED(view_render), void *calldata, bNodeClassCallback func)
+static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
 {
 	func(calldata, NODE_CLASS_INPUT, N_("Input"));
 	func(calldata, NODE_CLASS_OUTPUT, N_("Output"));

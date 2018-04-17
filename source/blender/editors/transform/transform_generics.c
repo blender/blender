@@ -1204,13 +1204,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	ScrArea *sa = CTX_wm_area(C);
 
 	bGPdata *gpd = CTX_data_gpencil_data(C);
-	RenderEngineType *engine_type = CTX_data_engine_type(C);
 	PropertyRNA *prop;
 
 	t->depsgraph = depsgraph;
 	t->scene = sce;
 	t->view_layer = view_layer;
-	t->engine_type = engine_type;
 	t->sa = sa;
 	t->ar = ar;
 	t->settings = ts;
