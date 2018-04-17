@@ -104,7 +104,6 @@ set(SRC
 	engines/eevee/eevee_subsurface.c
 	engines/eevee/eevee_temporal_sampling.c
 	engines/eevee/eevee_volumes.c
-	engines/workbench/workbench_materials_solid.c
 	engines/workbench/workbench_engine.c
 	engines/workbench/solid_flat_mode.c
 	engines/external/external_engine.c
@@ -206,7 +205,7 @@ data_to_c_simple(engines/eevee/shaders/volumetric_resolve_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_scatter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_integration_frag.glsl SRC)
 
-data_to_c_simple(engines/workbench/shaders/solid_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/solid_flat_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_vert.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)

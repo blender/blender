@@ -913,8 +913,8 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
 
 
 class RENDER_PT_workbench_collection_settings(RenderButtonsPanel, Panel):
-    bl_label = "Workbench Collection Settings"
-    COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
+    bl_label = "Workbench Settings"
+    COMPAT_ENGINES = {'BLENDER_WORKBENCH', 'BLENDER_EEVEE', 'CYCLES'}
 
     def draw(self, context):
         layout = self.layout

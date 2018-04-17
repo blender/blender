@@ -238,8 +238,12 @@ typedef struct View3D {
 	 * Runtime-only, set in the rendered viewport toggle operator.
 	 */
 	short prev_drawtype;
-	short pad1;
-	float pad2;
+	/* drawtype subtype (visibility) used when drawtype == OB_WIRE */
+	short drawtype_wireframe;
+	/* drawtype subtype (lighting) used when drawtype == OB_SOLID */
+	short drawtype_solid;
+	/* drawtype subtype (lighting) used when drawtype == OB_TEXTURE */
+	short drawtype_texture;
 	View3DDebug debug;
 } View3D;
 

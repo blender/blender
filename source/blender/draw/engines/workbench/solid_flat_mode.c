@@ -19,7 +19,7 @@
  *
  */
 
-/** \file workbench_engine.c
+/** \file solid_flat_mode.c
  *  \ingroup draw_engine
  *
  * Simple engine for drawing color and/or depth.
@@ -28,49 +28,112 @@
 
 #include "DRW_render.h"
 
-#include "BKE_icons.h"
-#include "BKE_idprop.h"
-#include "BKE_main.h"
-
 #include "GPU_shader.h"
 
-#include "workbench_engine.h"
 #include "workbench_private.h"
 /* Shaders */
 
-#define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
+extern char datatoc_solid_flat_frag_glsl[];
+extern char datatoc_workbench_vert_glsl[];
+
+/* *********** STATIC *********** */
+static struct {
+	struct GPUShader *depth_sh;
+
+	/* Shading Pass */
+	struct GPUShader *solid_sh;
+
+} e_data = {NULL};
 
 
 /* Functions */
 
-static void workbench_engine_init(void *UNUSED(vedata))
+static void workbench_solid_flat_engine_init(void *UNUSED(vedata))
 {
-	workbench_solid_materials_init();
+	if (!e_data.depth_sh) {
+		/* Depth pass */
+		e_data.depth_sh = DRW_shader_create_3D_depth_only();
+
+		/* Shading pass */
+		e_data.solid_sh = DRW_shader_create(
+						datatoc_workbench_vert_glsl, NULL, datatoc_solid_flat_frag_glsl, "\n");
+	}
 }
 
-static void workbench_cache_init(void *vedata)
+static void workbench_solid_flat_cache_init(void *vedata)
 {
-	workbench_solid_materials_cache_init((WORKBENCH_Data *)vedata);
+
+	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_PassList *psl = data->psl;
+	WORKBENCH_StorageList *stl = data->stl;
+
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+	}
+
+	/* Depth Pass */
+	{
+		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->depth_pass = DRW_pass_create("Depth Pass", state);
+		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+	}
+
+	/* Solid Pass */
+	{
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		psl->solid_pass = DRW_pass_create("Solid Pass", state);
+	}
+
+	/* Flat Lighting Pass */
+	{
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		psl->lighting_pass = DRW_pass_create("Lighting Pass", state);
+	}
 }
 
-static void workbench_cache_populate(void *vedata, Object *ob)
+static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 {
-	workbench_solid_materials_cache_populate((WORKBENCH_Data *)vedata, ob);
+	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+
+	WORKBENCH_PassList *psl = data->psl;
+	WORKBENCH_StorageList *stl = data->stl;
+
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
+	const float* color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
+
+	if (!DRW_object_is_renderable(ob))
+		return;
+
+	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+	DRWShadingGroup *grp;
+	if (geom) {
+		/* Depth */
+		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
+
+		/* Solid */
+		grp = DRW_shgroup_create(e_data.solid_sh, psl->solid_pass);
+		DRW_shgroup_uniform_vec3(grp, "color", color, 1);
+		DRW_shgroup_call_add(grp, geom, ob->obmat);
+	}
 }
 
-static void workbench_cache_finish(void *vedata)
+static void workbench_solid_flat_cache_finish(void *UNUSED(vedata))
 {
-	workbench_solid_materials_cache_finish((WORKBENCH_Data *)vedata);
 }
 
-static void workbench_draw_scene(void *vedata)
+static void workbench_solid_flat_draw_scene(void *vedata)
 {
-	workbench_solid_materials_draw_scene((WORKBENCH_Data *)vedata);
+	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_PassList *psl = ((WORKBENCH_Data *)vedata)->psl;
+
+	DRW_draw_pass(psl->depth_pass);
+	DRW_draw_pass(psl->solid_pass);
 }
 
-static void workbench_engine_free(void)
+static void workbench_solid_flat_engine_free(void)
 {
-	workbench_solid_materials_free();
+	DRW_SHADER_FREE_SAFE(e_data.solid_sh);
 }
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
@@ -79,17 +142,14 @@ DrawEngineType draw_engine_workbench_solid_flat = {
 	NULL, NULL,
 	N_("Workbench"),
 	&workbench_data_size,
-	&workbench_engine_init,
-	&workbench_engine_free,
-	&workbench_cache_init,
-	&workbench_cache_populate,
-	&workbench_cache_finish,
+	&workbench_solid_flat_engine_init,
+	&workbench_solid_flat_engine_free,
+	&workbench_solid_flat_cache_init,
+	&workbench_solid_flat_cache_populate,
+	&workbench_solid_flat_cache_finish,
 	NULL,
-	&workbench_draw_scene,
+	&workbench_solid_flat_draw_scene,
 	NULL,
 	NULL,
 	NULL,
 };
-
-
-#undef WORKBENCH_ENGINE

@@ -895,11 +895,20 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int draw_mode)
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int draw_mode,
+                                           int UNUSED(draw_mode_wireframe), int draw_mode_solid, int UNUSED(draw_mode_texture))
 {
 	switch (draw_mode) {
+		case OB_WIRE:
+			break;
+
 		case OB_SOLID:
-			use_drw_engine(&draw_engine_workbench_solid_flat);
+			if (draw_mode_solid == OB_LIGHTING_FLAT) {
+				use_drw_engine(&draw_engine_workbench_solid_flat);
+			}
+			break;
+
+		case OB_TEXTURE:
 			break;
 
 		default:
@@ -984,9 +993,13 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 {
 	Object *obact = OBACT(view_layer);
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
-	const int draw_mode = DST.draw_ctx.v3d->drawtype;
+	View3D * v3d = DST.draw_ctx.v3d;
+	const int draw_mode = v3d->drawtype;
+	const int draw_mode_wireframe = v3d->drawtype_wireframe;
+	const int draw_mode_solid = v3d->drawtype_solid;
+	const int draw_mode_texture = v3d->drawtype_texture;
 
-	drw_engines_enable_from_engine(engine_type, draw_mode);
+	drw_engines_enable_from_engine(engine_type, draw_mode, draw_mode_wireframe, draw_mode_solid, draw_mode_texture);
 
 	if (DRW_state_draw_support()) {
 		drw_engines_enable_from_object_mode();

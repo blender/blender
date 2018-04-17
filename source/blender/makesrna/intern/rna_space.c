@@ -194,6 +194,19 @@ const EnumPropertyItem rna_enum_viewport_shade_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+const EnumPropertyItem rna_enum_viewport_shade_solid_items[] = {
+	{OB_LIGHTING_FLAT, "FLAT", ICON_SOLID, "Flat Lighting", "Display using flat lighting"},
+	{OB_LIGHTING_STUDIO, "STUDIO", ICON_SOLID, "Studio Lighting", "Display using studio lighting"},
+	// {OB_LIGHTING_SCENE, "SCENE", ICON_SOLID, "Scene Lighting", "Display using scene lighting"},
+	{0, NULL, 0, NULL, NULL}
+};
+const EnumPropertyItem rna_enum_viewport_shade_texture_items[] = {
+	{OB_LIGHTING_FLAT, "FLAT", ICON_POTATO, "Flat Lighting", "Display using flat lighting"},
+	{OB_LIGHTING_STUDIO, "STUDIO", ICON_POTATO, "Studio Lighting", "Display using studio lighting"},
+	// {OB_LIGHTING_SCENE, "SCENE", ICON_POTATO, "Scene Lighting", "Display using scene lighting"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
 	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
@@ -2371,6 +2384,18 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_funcs(prop, "rna_SpaceView3D_viewport_shade_get", "rna_SpaceView3D_viewport_shade_set",
 	                            "rna_SpaceView3D_viewport_shade_itemf");
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+
+	prop = RNA_def_property(srna, "viewport_shade_solid", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype_solid");
+	RNA_def_property_enum_items(prop, rna_enum_viewport_shade_solid_items);
+	RNA_def_property_ui_text(prop, "Viewport Lighting (Solid)", "Lighting Method for Solid Viewport Shading");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+
+	prop = RNA_def_property(srna, "viewport_shade_texture", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype_texture");
+	RNA_def_property_enum_items(prop, rna_enum_viewport_shade_texture_items);
+	RNA_def_property_ui_text(prop, "Viewport Lighting (Texture)", "Lighting Method for Texture Viewport Shading");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
 	prop = RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);

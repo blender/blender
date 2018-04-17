@@ -87,12 +87,7 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
 
 
 class COLLECTION_PT_workbench_settings(CollectionButtonsPanel, Panel):
-    bl_label = "Render Settings"
-    COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
-
-    @classmethod
-    def poll(cls, context):
-        return context.view_render.engine in cls.COMPAT_ENGINES
+    bl_label = "Workbench Settings"
 
     def draw(self, context):
         layout = self.layout
