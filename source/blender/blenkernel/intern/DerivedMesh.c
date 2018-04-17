@@ -81,9 +81,10 @@ static DerivedMesh *navmesh_dm_createNavMeshForVisualization(DerivedMesh *dm);
 #include "GPU_shader.h"
 #include "GPU_immediate.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_OPENSUBDIV
-#  include "DEG_depsgraph.h"
-#  include "DEG_depsgraph_query.h"
 #  include "DNA_userdef_types.h"
 #endif
 

@@ -171,7 +171,7 @@ bool ED_armature_pose_select_pick_with_buffer(
 		if (!extend && !deselect && !toggle) {
 			{
 				uint objects_len = 0;
-				Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+				Object **objects = BKE_object_pose_array_get_unique(view_layer, &objects_len);
 				ED_pose_deselect_all_multi(objects, objects_len, SEL_DESELECT, true);
 				MEM_SAFE_FREE(objects);
 			}

@@ -11,6 +11,11 @@ uniform vec3 increment_x;
 uniform vec3 increment_y;
 uniform vec3 increment_z;
 
+uniform int call_id; /* we don't want the builtin callId which would be 0. */
+uniform int baseId;
+
+flat out uint finalId;
+
 void main()
 {
 	vec3 ls_cell_location;
@@ -25,4 +30,6 @@ void main()
 	     increment_z * ls_cell_location.z);
 
 	gl_Position = ViewProjectionMatrix * vec4(pos * 0.02 * sphere_size + ws_cell_location, 1.0);
+
+	finalId = uint(baseId + call_id);
 }

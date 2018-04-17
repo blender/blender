@@ -31,6 +31,7 @@ set(INC
 	../blentranslation
 	../depsgraph
 	../draw
+	../editors/include
 	../gpu
 	../ikplugin
 	../imbuf

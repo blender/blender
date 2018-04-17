@@ -91,8 +91,8 @@ private:
 public:
 
 	AnimationExporter(Depsgraph *depsgraph, COLLADASW::StreamWriter *sw, const ExportSettings *export_settings):
-		depsgraph(depsgraph),
 		COLLADASW::LibraryAnimations(sw),
+		depsgraph(depsgraph),
 		export_settings(export_settings)
 	{
 		this->sw = sw;

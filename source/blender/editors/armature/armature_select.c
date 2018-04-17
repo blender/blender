@@ -41,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_action.h"
+#include "BKE_object.h"
 #include "BKE_report.h"
 #include "BKE_layer.h"
 
@@ -259,10 +260,16 @@ void *get_nearest_bone(
 
 	if (hits > 0) {
 		uint bases_len = 0;
-		Base **bases = BKE_view_layer_array_from_bases_in_mode(
-		        vc.view_layer, &bases_len, {
-		            .object_mode = vc.obedit ? OB_MODE_EDIT : OB_MODE_POSE,
-		            .no_dup_data = true});
+		Base **bases;
+
+		if (vc.obedit != NULL) {
+			bases = BKE_view_layer_array_from_bases_in_mode(
+			        vc.view_layer, &bases_len, {
+			            .object_mode = OB_MODE_EDIT});
+		}
+		else {
+			bases = BKE_object_pose_base_array_get(vc.view_layer, &bases_len);
+		}
 
 		void *bone = get_bone_from_selectbuffer(
 		        bases, bases_len, vc.obedit != NULL, buffer, hits, findunsel, true, r_base);

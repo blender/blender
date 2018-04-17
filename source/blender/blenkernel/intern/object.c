@@ -1233,6 +1233,83 @@ Object *BKE_object_pose_armature_get_visible(Object *ob, ViewLayer *view_layer)
 	}
 	return NULL;
 }
+
+/**
+ * Access pose array with special check to get pose object when in weight paint mode.
+ */
+Object **BKE_object_pose_array_get_ex(ViewLayer *view_layer, uint *r_objects_len, bool unique)
+{
+	Object *ob_active = OBACT(view_layer);
+	Object *ob_pose = BKE_object_pose_armature_get(ob_active);
+	Object **objects = NULL;
+	if (ob_pose == ob_active) {
+		objects = BKE_view_layer_array_from_objects_in_mode(
+		        view_layer, r_objects_len, {
+		            .object_mode = OB_MODE_POSE,
+		            .no_dup_data = unique});
+	}
+	else if (ob_pose != NULL) {
+		*r_objects_len = 1;
+		objects = MEM_mallocN(sizeof(*objects), __func__);
+		objects[0] = ob_pose;
+	}
+	else {
+		*r_objects_len = 0;
+		objects = MEM_mallocN(0, __func__);
+	}
+	return objects;
+}
+Object **BKE_object_pose_array_get_unique(ViewLayer *view_layer, uint *r_objects_len)
+{
+	return BKE_object_pose_array_get_ex(view_layer, r_objects_len, true);
+}
+Object **BKE_object_pose_array_get(ViewLayer *view_layer, uint *r_objects_len)
+{
+	return BKE_object_pose_array_get_ex(view_layer, r_objects_len, false);
+}
+
+Base **BKE_object_pose_base_array_get_ex(ViewLayer *view_layer, uint *r_bases_len, bool unique)
+{
+	Base *base_active = BASACT(view_layer);
+	Object *ob_pose = base_active ? BKE_object_pose_armature_get(base_active->object) : NULL;
+	Base *base_pose = NULL;
+	Base **bases = NULL;
+
+	if (base_active) {
+		if (ob_pose == base_active->object) {
+			base_pose = base_active;
+		}
+		else {
+			base_pose = BKE_view_layer_base_find(view_layer, ob_pose);
+		}
+	}
+
+	if (base_active && (base_pose == base_active)) {
+		bases = BKE_view_layer_array_from_bases_in_mode(
+		        view_layer, r_bases_len, {
+		            .object_mode = OB_MODE_POSE,
+		            .no_dup_data = unique});
+	}
+	else if (base_pose != NULL) {
+		*r_bases_len = 1;
+		bases = MEM_mallocN(sizeof(*bases), __func__);
+		bases[0] = base_pose;
+	}
+	else {
+		*r_bases_len = 0;
+		bases = MEM_mallocN(0, __func__);
+	}
+	return bases;
+}
+Base **BKE_object_pose_base_array_get_unique(ViewLayer *view_layer, uint *r_bases_len)
+{
+	return BKE_object_pose_base_array_get_ex(view_layer, r_bases_len, true);
+}
+Base **BKE_object_pose_base_array_get(ViewLayer *view_layer, uint *r_bases_len)
+{
+	return BKE_object_pose_base_array_get_ex(view_layer, r_bases_len, false);
+}
+
 void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 {
 	copy_v3_v3(ob_tar->loc, ob_src->loc);

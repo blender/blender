@@ -332,6 +332,22 @@ DRWShadingGroup *shgroup_instance(DRWPass *pass, struct Gwn_Batch *geom)
 	return grp;
 }
 
+DRWShadingGroup *shgroup_instance_outline(DRWPass *pass, struct Gwn_Batch *geom, int *baseid)
+{
+	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_INSTANCE_VARIYING_ID_VARIYING_SIZE);
+
+	DRW_shgroup_instance_format(g_formats.instance_sized, {
+		{"callId"             , DRW_ATTRIB_INT,   1},
+		{"size"               , DRW_ATTRIB_FLOAT, 1},
+		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh_inst, pass, geom, g_formats.instance_sized);
+	DRW_shgroup_uniform_int(grp, "baseId", baseid, 1);
+
+	return grp;
+}
+
 DRWShadingGroup *shgroup_camera_instance(DRWPass *pass, struct Gwn_Batch *geom)
 {
 	GPUShader *sh_inst = GPU_shader_get_builtin_shader(GPU_SHADER_CAMERA);

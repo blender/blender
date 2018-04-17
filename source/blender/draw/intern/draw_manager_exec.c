@@ -873,7 +873,12 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			case DRW_UNIFORM_SHORT_TO_INT:
 				val = (int)*((short *)uni->value);
 				GPU_shader_uniform_vector_int(
-				        shgroup->shader, uni->location, uni->length, uni->arraysize, (int *)&val);
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, &val);
+				break;
+			case DRW_UNIFORM_INT_COPY:
+				val = GET_INT_FROM_POINTER(uni->value);
+				GPU_shader_uniform_vector_int(
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, &val);
 				break;
 			case DRW_UNIFORM_SHORT_TO_FLOAT:
 				fval = (float)*((short *)uni->value);

@@ -96,6 +96,8 @@
 
 #include "RE_shader_ext.h"
 
+#include "ED_particle.h"
+
 /* fluid sim particle import */
 #ifdef WITH_MOD_FLUID
 #include "DNA_object_fluidsim_types.h"
@@ -2906,9 +2908,7 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-#if 0
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
-#endif
 	int distr=0, alloc=0, skip=0;
 
 	if ((psys->part->childtype && psys->totchild != psys_get_tot_child(sim->scene, psys, use_render_params)) || psys->recalc&PSYS_RECALC_RESET)
@@ -2944,14 +2944,14 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 		else if (psys->pointcache->flag & PTCACHE_BAKING)
 			skip = 1; /* no need to cache paths while baking dynamics */
 
-#if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
 		else if (psys_in_edit_mode(sim->depsgraph, psys)) {
 			if ((pset->flag & PE_DRAW_PART)==0)
 				skip = 1;
+#if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
 			else if (part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
 				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
-		}
 #endif
+		}
 	}
 
 
@@ -4383,6 +4383,22 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	invert_m4_m4(psys->imat, ob->obmat);
+
+	if (ob->mode & OB_MODE_PARTICLE_EDIT && ob == OBACT(DEG_get_evaluated_view_layer(depsgraph))) {
+		PTCacheEdit *edit = PE_create_current(depsgraph, scene, ob);
+
+		if (edit && edit->psys == psys) {
+			if (edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED) {
+				PE_update_object(depsgraph, scene, ob, 0);
+			}
+
+			/* create path and child path cache if it doesn't exist already */
+			if (edit->pathcache == NULL) {
+				psys_cache_edit_paths(depsgraph, scene, ob, edit, DEG_get_ctime(depsgraph), DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+
+			}
+		}
+	}
 
 	BKE_particle_batch_cache_dirty(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 }

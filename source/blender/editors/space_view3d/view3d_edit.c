@@ -2842,10 +2842,17 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 		ok = WM_manipulatormap_minmax(ar->manipulator_map, true, true, min, max);
 	}
 	else if (obedit) {
-		ok = ED_view3d_minmax_verts(obedit, min, max);    /* only selected */
+		/* only selected */
+		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obedit->mode, ob_iter) {
+			ok |= ED_view3d_minmax_verts(ob_iter, min, max);
+		}
+		FOREACH_OBJECT_IN_MODE_END;
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		ok = BKE_pose_minmax(ob, min, max, true, true);
+		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, ob->mode, ob_iter) {
+			ok |= BKE_pose_minmax(ob_iter, min, max, true, true);
+		}
+		FOREACH_OBJECT_IN_MODE_END;
 	}
 	else if (BKE_paint_select_face_test(ob)) {
 		ok = paintface_minmax(ob, min, max);
