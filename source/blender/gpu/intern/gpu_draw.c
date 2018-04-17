@@ -128,10 +128,6 @@ static int smaller_power_of_2_limit(int num)
 /* Current OpenGL state caching for GPU_set_tpage */
 
 static struct GPUTextureState {
-	int curtile, tile;
-	int curtilemode, tilemode;
-	int curtileXRep, tileXRep;
-	int curtileYRep, tileYRep;
 	Image *ima, *curima;
 
 	/* also controls min/mag filtering */
@@ -144,7 +140,7 @@ static struct GPUTextureState {
 	int alphablend;
 	float anisotropic;
 	int gpu_mipmap;
-} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.0f, 0};
+} GTS = {NULL, NULL, 1, 0, 0, -1, 1.0f, 0};
 
 /* Mipmap settings */
 
@@ -231,28 +227,6 @@ float GPU_get_anisotropic(void)
 }
 
 /* Set OpenGL state for an MTFace */
-
-static void gpu_make_repbind(Image *ima)
-{
-	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-	if (ibuf == NULL)
-		return;
-
-	if (ima->repbind) {
-		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
-		MEM_freeN(ima->repbind);
-		ima->repbind = NULL;
-		ima->tpageflag &= ~IMA_MIPMAP_COMPLETE;
-	}
-
-	ima->totbind = ima->xrep * ima->yrep;
-
-	if (ima->totbind > 1) {
-		ima->repbind = MEM_callocN(sizeof(int) * ima->totbind, "repbind");
-	}
-
-	BKE_image_release_ibuf(ima, ibuf, NULL);
-}
 
 static unsigned int *gpu_get_image_bindcode(Image *ima, GLenum textarget)
 {
@@ -350,7 +324,7 @@ static void gpu_verify_high_bit_srgb_buffer(float *srgb_frect,
 
 int GPU_verify_image(
         Image *ima, ImageUser *iuser,
-        int textarget, int tftile, bool compare, bool mipmap, bool is_data)
+        int textarget, bool compare, bool mipmap, bool is_data)
 {
 	unsigned int *bind = NULL;
 	int tpx = 0, tpy = 0;
@@ -360,30 +334,9 @@ int GPU_verify_image(
 	/* flag to determine whether deep format is used */
 	bool use_high_bit_depth = false, do_color_management = false;
 
-	/* initialize tile mode and number of repeats */
 	GTS.ima = ima;
-	GTS.tilemode = (ima && (ima->tpageflag & (IMA_TILES | IMA_TWINANIM)));
-	GTS.tileXRep = 0;
-	GTS.tileYRep = 0;
 
-	/* setting current tile according to frame */
-	if (ima && (ima->tpageflag & IMA_TWINANIM))
-		GTS.tile = ima->lastframe;
-	else
-		GTS.tile = tftile;
-
-	GTS.tile = MAX2(0, GTS.tile);
-
-	if (ima) {
-		GTS.tileXRep = ima->xrep;
-		GTS.tileYRep = ima->yrep;
-	}
-
-	/* if same image & tile, we're done */
-	if (compare && ima == GTS.curima && GTS.curtile == GTS.tile &&
-	    GTS.tilemode == GTS.curtilemode && GTS.curtileXRep == GTS.tileXRep &&
-	    GTS.curtileYRep == GTS.tileYRep)
-	{
+	if (compare && ima == GTS.curima) {
 		return (ima != NULL);
 	}
 
@@ -423,47 +376,7 @@ int GPU_verify_image(
 		ima->tpageflag &= ~IMA_TPAGE_REFRESH;
 	}
 
-	if (GTS.tilemode) {
-		/* tiled mode */
-		if (ima->repbind == NULL) gpu_make_repbind(ima);
-		if (GTS.tile >= ima->totbind) GTS.tile = 0;
-
-		/* this happens when you change repeat buttons */
-		if (ima->repbind && textarget == GL_TEXTURE_2D) bind = &ima->repbind[GTS.tile];
-		else bind = gpu_get_image_bindcode(ima, textarget);
-
-		if (*bind == 0) {
-			short texwindx = ibuf->x / ima->xrep;
-			short texwindy = ibuf->y / ima->yrep;
-
-			if (GTS.tile >= ima->xrep * ima->yrep)
-				GTS.tile = ima->xrep * ima->yrep - 1;
-
-			short texwinsy = GTS.tile / ima->xrep;
-			short texwinsx = GTS.tile - texwinsy * ima->xrep;
-
-			texwinsx *= texwindx;
-			texwinsy *= texwindy;
-
-			tpx = texwindx;
-			tpy = texwindy;
-
-			if (use_high_bit_depth) {
-				if (do_color_management) {
-					srgb_frect = MEM_mallocN(ibuf->x * ibuf->y * sizeof(float) * 4, "floar_buf_col_cor");
-					gpu_verify_high_bit_srgb_buffer(srgb_frect, ibuf);
-					frect = srgb_frect + (4 * (texwinsy * ibuf->x + texwinsx));
-				}
-				else {
-					frect = ibuf->rect_float + (ibuf->channels * (texwinsy * ibuf->x + texwinsx));
-				}
-			}
-			else {
-				rect = ibuf->rect + texwinsy * ibuf->x + texwinsx;
-			}
-		}
-	}
-	else {
+	{
 		/* regular image mode */
 		bind = gpu_get_image_bindcode(ima, textarget);
 
@@ -492,37 +405,6 @@ int GPU_verify_image(
 	const int rectw = tpx;
 	const int recth = tpy;
 
-	unsigned *tilerect = NULL;
-	float *ftilerect = NULL;
-
-	/* for tiles, copy only part of image into buffer */
-	if (GTS.tilemode) {
-		if (use_high_bit_depth) {
-			ftilerect = MEM_mallocN(rectw * recth * sizeof(*ftilerect), "tilerect");
-
-			for (int y = 0; y < recth; y++) {
-				const float *frectrow = &frect[y * ibuf->x];
-				float *ftilerectrow = &ftilerect[y * rectw];
-
-				memcpy(ftilerectrow, frectrow, tpx * sizeof(*frectrow));
-			}
-
-			frect = ftilerect;
-		}
-		else {
-			tilerect = MEM_mallocN(rectw * recth * sizeof(*tilerect), "tilerect");
-
-			for (int y = 0; y < recth; y++) {
-				const unsigned *rectrow = &rect[y * ibuf->x];
-				unsigned *tilerectrow = &tilerect[y * rectw];
-
-				memcpy(tilerectrow, rectrow, tpx * sizeof(*rectrow));
-			}
-
-			rect = tilerect;
-		}
-	}
-
 #ifdef WITH_DDS
 	if (ibuf->ftype == IMB_FTYPE_DDS)
 		GPU_create_gl_tex_compressed(bind, rect, rectw, recth, textarget, mipmap, ima, ibuf);
@@ -539,10 +421,6 @@ int GPU_verify_image(
 	}
 
 	/* clean up */
-	if (tilerect)
-		MEM_freeN(tilerect);
-	if (ftilerect)
-		MEM_freeN(ftilerect);
 	if (srgb_frect)
 		MEM_freeN(srgb_frect);
 
@@ -965,8 +843,7 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 {
 	ImBuf *ibuf = BKE_image_acquire_ibuf(ima, iuser, NULL);
 
-	if (ima->repbind ||
-	    (!GTS.gpu_mipmap && GPU_get_mipmap()) ||
+	if ((!GTS.gpu_mipmap && GPU_get_mipmap()) ||
 	    (ima->bindcode[TEXTARGET_TEXTURE_2D] == 0) ||
 	    (ibuf == NULL) ||
 	    (w == 0) || (h == 0))
@@ -1042,61 +919,6 @@ void GPU_paint_update_image(Image *ima, ImageUser *iuser, int x, int y, int w, i
 
 	BKE_image_release_ibuf(ima, ibuf, NULL);
 }
-
-void GPU_update_images_framechange(void)
-{
-	for (Image *ima = G.main->image.first; ima; ima = ima->id.next) {
-		if (ima->tpageflag & IMA_TWINANIM) {
-			if (ima->twend >= ima->xrep * ima->yrep)
-				ima->twend = ima->xrep * ima->yrep - 1;
-
-			/* check: is bindcode not in the array? free. (to do) */
-
-			ima->lastframe++;
-			if (ima->lastframe > ima->twend)
-				ima->lastframe = ima->twsta;
-		}
-	}
-}
-
-int GPU_update_image_time(Image *ima, double time)
-{
-	if (!ima)
-		return 0;
-
-	if (ima->lastupdate < 0)
-		ima->lastupdate = 0;
-
-	if (ima->lastupdate > (float)time)
-		ima->lastupdate = (float)time;
-
-	int inc = 0;
-
-	if (ima->tpageflag & IMA_TWINANIM) {
-		if (ima->twend >= ima->xrep * ima->yrep) ima->twend = ima->xrep * ima->yrep - 1;
-
-		/* check: is the bindcode not in the array? Then free. (still to do) */
-
-		float diff = (float)((float)time - ima->lastupdate);
-		inc = (int)(diff * (float)ima->animspeed);
-
-		ima->lastupdate += ((float)inc / (float)ima->animspeed);
-
-		int newframe = ima->lastframe + inc;
-
-		if (newframe > (int)ima->twend) {
-			if (ima->twend - ima->twsta != 0)
-				newframe = (int)ima->twsta - 1 + (newframe - ima->twend) % (ima->twend - ima->twsta);
-			else
-				newframe = ima->twsta;
-		}
-
-		ima->lastframe = newframe;
-	}
-
-	return inc;
-}
-
 
 void GPU_free_smoke(SmokeModifierData *smd)
 {
@@ -1242,14 +1064,6 @@ void GPU_free_image(Image *ima)
 		}
 	}
 
-	/* free repeated image binding */
-	if (ima->repbind) {
-		glDeleteTextures(ima->totbind, (GLuint *)ima->repbind);
-
-		MEM_freeN(ima->repbind);
-		ima->repbind = NULL;
-	}
-
 	ima->tpageflag &= ~(IMA_MIPMAP_COMPLETE | IMA_GLBIND_IS_DATA);
 }
 
@@ -1293,7 +1107,7 @@ void GPU_free_images_old(void)
 		if ((ima->flag & IMA_NOCOLLECT) == 0 && ctime - ima->lastused > U.textimeout) {
 			/* If it's in GL memory, deallocate and set time tag to current time
 			 * This gives textures a "second chance" to be used before dying. */
-			if (BKE_image_has_bindcode(ima) || ima->repbind) {
+			if (BKE_image_has_bindcode(ima)) {
 				GPU_free_image(ima);
 				ima->lastused = ctime;
 			}

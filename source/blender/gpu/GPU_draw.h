@@ -121,11 +121,9 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap);
  * - these deal with images bound as opengl textures */
 
 void GPU_paint_update_image(struct Image *ima, struct ImageUser *iuser, int x, int y, int w, int h);
-void GPU_update_images_framechange(void);
-int GPU_update_image_time(struct Image *ima, double time);
 int GPU_verify_image(
         struct Image *ima, struct ImageUser *iuser,
-        int textarget, int tftile, bool compare, bool mipmap, bool is_data);
+        int textarget, bool compare, bool mipmap, bool is_data);
 void GPU_create_gl_tex(
         unsigned int *bind, unsigned int *rect, float *frect, int rectw, int recth,
         int textarget, bool mipmap, bool use_hight_bit_depth, struct Image *ima);

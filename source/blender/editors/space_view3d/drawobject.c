@@ -671,7 +671,7 @@ static void draw_empty_image(Object *ob, const short dflag, const unsigned char 
 		}
 
 		if (ob_alpha > 0.0f) {
-			bindcode = GPU_verify_image(ima, &iuser, GL_TEXTURE_2D, 0, false, false, false);
+			bindcode = GPU_verify_image(ima, &iuser, GL_TEXTURE_2D, false, false, false);
 			/* don't bother drawing the image if alpha = 0 */
 		}
 

@@ -548,118 +548,6 @@ static void draw_image_buffer(const bContext *C, SpaceImage *sima, ARegion *ar, 
 	}
 }
 
-static unsigned int *get_part_from_buffer(unsigned int *buffer, int width, short startx, short starty, short endx, short endy)
-{
-	unsigned int *rt, *rp, *rectmain;
-	short y, heigth, len;
-
-	/* the right offset in rectot */
-
-	rt = buffer + (starty * width + startx);
-
-	len = (endx - startx);
-	heigth = (endy - starty);
-
-	rp = rectmain = MEM_mallocN(heigth * len * sizeof(int), "rect");
-	
-	for (y = 0; y < heigth; y++) {
-		memcpy(rp, rt, len * 4);
-		rt += width;
-		rp += len;
-	}
-	return rectmain;
-}
-
-static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float fx, float fy, float zoomx, float zoomy)
-{
-	unsigned char *display_buffer;
-	unsigned int *rect;
-	int dx, dy, sx, sy, x, y;
-	void *cache_handle;
-	float shuffle[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
-	/* verify valid values, just leave this a while */
-	if (ima->xrep < 1) return;
-	if (ima->yrep < 1) return;
-
-	if (ima->flag & IMA_VIEW_AS_RENDER)
-		display_buffer = IMB_display_buffer_acquire(ibuf, &scene->view_settings, &scene->display_settings, &cache_handle);
-	else
-		display_buffer = IMB_display_buffer_acquire(ibuf, NULL, &scene->display_settings, &cache_handle);
-
-	if (!display_buffer)
-		return;
-
-	if (sima->curtile >= ima->xrep * ima->yrep)
-		sima->curtile = ima->xrep * ima->yrep - 1;
-	
-	/* retrieve part of image buffer */
-	dx = max_ii(ibuf->x / ima->xrep, 1);
-	dy = max_ii(ibuf->y / ima->yrep, 1);
-	sx = (sima->curtile % ima->xrep) * dx;
-	sy = (sima->curtile / ima->xrep) * dy;
-	rect = get_part_from_buffer((unsigned int *)display_buffer, ibuf->x, sx, sy, sx + dx, sy + dy);
-	
-	/* draw repeated */
-	if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) != 0) {
-		if (sima->flag & SI_SHOW_R)
-			shuffle[0] = 1.0f;
-		else if (sima->flag & SI_SHOW_G)
-			shuffle[1] = 1.0f;
-		else if (sima->flag & SI_SHOW_B)
-			shuffle[2] = 1.0f;
-		else if (sima->flag & SI_SHOW_ALPHA)
-			shuffle[3] = 1.0f;
-	}
-
-	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
-		for (sx = 0; sx + dx <= ibuf->x; sx += dx) {
-			UI_view2d_view_to_region(&ar->v2d, fx + (float)sx / (float)ibuf->x, fy + (float)sy / (float)ibuf->y, &x, &y);
-
-			if ((sima->flag & (SI_SHOW_R | SI_SHOW_G | SI_SHOW_B | SI_SHOW_ALPHA)) == 0) {
-				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
-				immDrawPixelsTex(&state, x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
-			}
-			else {
-				IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR);
-				GPU_shader_uniform_vector(state.shader, GPU_shader_get_uniform(state.shader, "shuffle"), 4, 1, shuffle);
-
-				immDrawPixelsTex(&state, x, y, dx, dy, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect, zoomx, zoomy, NULL);
-			}
-		}
-	}
-
-	IMB_display_buffer_release(cache_handle);
-
-	MEM_freeN(rect);
-}
-
-static void draw_image_buffer_repeated(const bContext *C, SpaceImage *sima, ARegion *ar, Scene *scene, Image *ima, ImBuf *ibuf, float zoomx, float zoomy)
-{
-	const double time_current = PIL_check_seconds_timer();
-
-	const int xmax = ceil(ar->v2d.cur.xmax);
-	const int ymax = ceil(ar->v2d.cur.ymax);
-	const int xmin = floor(ar->v2d.cur.xmin);
-	const int ymin = floor(ar->v2d.cur.ymin);
-
-	int x;
-
-	for (x = xmin; x < xmax; x++) {
-		int y;
-		for (y = ymin; y < ymax; y++) {
-			if (ima && (ima->tpageflag & IMA_TILES))
-				draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, x, y, zoomx, zoomy);
-			else
-				draw_image_buffer(C, sima, ar, scene, ibuf, x, y, zoomx, zoomy);
-
-			/* only draw until running out of time */
-			if ((PIL_check_seconds_timer() - time_current) > 0.25)
-				return;
-		}
-	}
-}
-
 /* draw uv edit */
 
 /* draw grease pencil */
@@ -810,14 +698,8 @@ void draw_image_main(const bContext *C, ARegion *ar)
 		ED_region_grid_draw(ar, zoomx, zoomy);
 	}
 	else {
+		draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
 
-		if (sima->flag & SI_DRAW_TILE)
-			draw_image_buffer_repeated(C, sima, ar, scene, ima, ibuf, zoomx, zoomy);
-		else if (ima && (ima->tpageflag & IMA_TILES))
-			draw_image_buffer_tiled(sima, ar, scene, ima, ibuf, 0.0f, 0.0, zoomx, zoomy);
-		else
-			draw_image_buffer(C, sima, ar, scene, ibuf, 0.0f, 0.0f, zoomx, zoomy);
-		
 		if (sima->flag & SI_DRAW_METADATA) {
 			int x, y;
 			rctf frame;

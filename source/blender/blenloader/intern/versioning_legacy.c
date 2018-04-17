@@ -917,17 +917,10 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 223) {
 		VFont *vf;
-		Image *ima;
-
 		for (vf = main->vfont.first; vf; vf = vf->id.next) {
 			if (STREQ(vf->name + strlen(vf->name) - 6, ".Bfont")) {
 				strcpy(vf->name, FO_BUILTIN_NAME);
 			}
-		}
-
-		/* Old textures animate at 25 FPS */
-		for (ima = main->image.first; ima; ima = ima->id.next) {
-			ima->animspeed = 25;
 		}
 	}
 

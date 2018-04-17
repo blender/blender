@@ -2492,8 +2492,7 @@ static bool IsectPoly2Df_twoside(const float pt[2], float uv[][2], const int tot
 static void project_paint_face_init(
         const ProjPaintState *ps,
         const int thread_index, const int bucket_index, const int tri_index, const int image_index,
-        const rctf *clip_rect, const rctf *bucket_bounds, ImBuf *ibuf, ImBuf **tmpibuf,
-        const bool clamp_u, const bool clamp_v)
+        const rctf *clip_rect, const rctf *bucket_bounds, ImBuf *ibuf, ImBuf **tmpibuf)
 {
 	/* Projection vars, to get the 3D locations into screen space  */
 	MemArena *arena = ps->arena_mt[thread_index];
@@ -2600,17 +2599,6 @@ static void project_paint_face_init(
 #endif
 
 		if (pixel_bounds_array(uv_clip, &bounds_px, ibuf->x, ibuf->y, uv_clip_tot)) {
-
-			if (clamp_u) {
-				CLAMP(bounds_px.xmin, 0, ibuf->x);
-				CLAMP(bounds_px.xmax, 0, ibuf->x);
-			}
-
-			if (clamp_v) {
-				CLAMP(bounds_px.ymin, 0, ibuf->y);
-				CLAMP(bounds_px.ymax, 0, ibuf->y);
-			}
-
 #if 0
 			project_paint_undo_tiles_init(&bounds_px, ps->projImages + image_index, tmpibuf,
 			                              tile_width, threaded, ps->do_masking);
@@ -2927,19 +2915,16 @@ static void project_bucket_init(
 	int tri_index, image_index = 0;
 	ImBuf *ibuf = NULL;
 	Image *tpage_last = NULL, *tpage;
-	Image *ima = NULL;
 	ImBuf *tmpibuf = NULL;
 
 	if (ps->image_tot == 1) {
 		/* Simple loop, no context switching */
 		ibuf = ps->projImages[0].ibuf;
-		ima = ps->projImages[0].ima;
 
 		for (node = ps->bucketFaces[bucket_index]; node; node = node->next) {
 			project_paint_face_init(
 			        ps, thread_index, bucket_index, GET_INT_FROM_POINTER(node->link), 0,
-			        clip_rect, bucket_bounds, ibuf, &tmpibuf,
-			        (ima->tpageflag & IMA_CLAMP_U) != 0, (ima->tpageflag & IMA_CLAMP_V) != 0);
+			        clip_rect, bucket_bounds, ibuf, &tmpibuf);
 		}
 	}
 	else {
@@ -2956,7 +2941,6 @@ static void project_bucket_init(
 				for (image_index = 0; image_index < ps->image_tot; image_index++) {
 					if (ps->projImages[image_index].ima == tpage_last) {
 						ibuf = ps->projImages[image_index].ibuf;
-						ima = ps->projImages[image_index].ima;
 						break;
 					}
 				}
@@ -2965,8 +2949,7 @@ static void project_bucket_init(
 
 			project_paint_face_init(
 			        ps, thread_index, bucket_index, tri_index, image_index,
-			        clip_rect, bucket_bounds, ibuf, &tmpibuf,
-			        (ima->tpageflag & IMA_CLAMP_U) != 0, (ima->tpageflag & IMA_CLAMP_V) != 0);
+			        clip_rect, bucket_bounds, ibuf, &tmpibuf);
 		}
 	}
 
