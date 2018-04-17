@@ -26,7 +26,7 @@
 #ifndef __WORKBENCH_ENGINE_H__
 #define __WORKBENCH_ENGINE_H__
 
-extern DrawEngineType draw_engine_workbench_type;
+extern DrawEngineType draw_engine_workbench_solid_flat;
 extern RenderEngineType DRW_engine_viewport_workbench_type;
 
 #endif /* __WORKBENCH_ENGINE_H__ */

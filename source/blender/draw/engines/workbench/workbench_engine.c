@@ -82,10 +82,9 @@ static void workbench_layer_collection_settings_create(RenderEngine *UNUSED(engi
 	BKE_collection_engine_property_add_float_array(props, "object_color", default_object_color, 3);
 }
 
-
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
-DrawEngineType draw_engine_workbench_type = {
+DrawEngineType draw_engine_workbench_solid_flat = {
 	NULL, NULL,
 	N_("Workbench"),
 	&workbench_data_size,
@@ -107,7 +106,7 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
 	NULL, NULL,
 	WORKBENCH_ENGINE, N_("Workbench"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, &workbench_layer_collection_settings_create, NULL,
-	&draw_engine_workbench_type,
+	&draw_engine_workbench_solid_flat,
 	{NULL, NULL, NULL}
 };
 

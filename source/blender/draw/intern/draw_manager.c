@@ -895,15 +895,24 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type)
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int draw_mode)
 {
-	/* TODO layers */
-	if (engine_type->draw_engine != NULL) {
-		use_drw_engine(engine_type->draw_engine);
-	}
+	switch (draw_mode) {
+		case OB_SOLID:
+			use_drw_engine(&draw_engine_workbench_solid_flat);
+			break;
 
-	if ((engine_type->flag & RE_INTERNAL) == 0) {
-		drw_engines_enable_external();
+		default:
+		case OB_RENDER:
+			/* TODO layers */
+			if (engine_type->draw_engine != NULL) {
+				use_drw_engine(engine_type->draw_engine);
+			}
+
+			if ((engine_type->flag & RE_INTERNAL) == 0) {
+				drw_engines_enable_external();
+			}
+			break;
 	}
 }
 
@@ -975,8 +984,9 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 {
 	Object *obact = OBACT(view_layer);
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
+	const int draw_mode = DST.draw_ctx.v3d->drawtype;
 
-	drw_engines_enable_from_engine(engine_type);
+	drw_engines_enable_from_engine(engine_type, draw_mode);
 
 	if (DRW_state_draw_support()) {
 		drw_engines_enable_from_object_mode();
@@ -1919,6 +1929,8 @@ void DRW_engines_register(void)
 #endif
 	RE_engines_register(NULL, &DRW_engine_viewport_eevee_type);
 	RE_engines_register(NULL, &DRW_engine_viewport_workbench_type);
+
+	DRW_engine_register(&draw_engine_workbench_solid_flat);
 
 	DRW_engine_register(&draw_engine_object_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);

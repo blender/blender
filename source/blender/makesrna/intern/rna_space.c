@@ -743,20 +743,8 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 
 static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 {
-	bScreen *screen = ptr->id.data;
-
-	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, screen);
-	WorkSpace *workspace = WM_windows_workspace_get_from_screen(G.main->wm.first, screen);
-
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
-	RenderEngineType *type = RE_engines_find(view_render->engine_id);
-
 	View3D *v3d = (View3D *)ptr->data;
 	int drawtype = v3d->drawtype;
-
-	if (drawtype == OB_RENDER && !(type && type->render_to_view))
-		return OB_SOLID;
-
 	return drawtype;
 }
 
@@ -772,23 +760,11 @@ static void rna_SpaceView3D_viewport_shade_set(PointerRNA *ptr, int value)
 static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *C, PointerRNA *UNUSED(ptr),
                                                               PropertyRNA *UNUSED(prop), bool *r_free)
 {
-	wmWindow *win = CTX_wm_window(C);
-	Scene *scene = WM_window_get_active_scene(win);
-	WorkSpace *workspace = WM_window_get_active_workspace(win);
-	ViewRender *view_render = BKE_viewrender_get(scene, workspace);
-	RenderEngineType *type = RE_engines_find(view_render->engine_id);
-
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_BOUNDBOX);
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_WIRE);
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_SOLID);
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_TEXTURE);
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_MATERIAL);
-
-	if (type && type->render_to_view)
-		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
