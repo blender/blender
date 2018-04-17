@@ -109,6 +109,9 @@ enum {
 
 /*->flag*/
 enum {
+	/* This IDProp may be statically overridden. Should only be used/be relevant for custom properties. */
+	IDP_FLAG_OVERRIDABLE_STATIC = 1 << 0,
+
 	IDP_FLAG_GHOST       = 1 << 7,  /* this means the property is set but RNA will return false when checking
 	                                 * 'RNA_property_is_set', currently this is a runtime flag */
 };
