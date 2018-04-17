@@ -752,8 +752,9 @@ static void rna_SpaceView3D_viewport_shade_set(PointerRNA *ptr, int value)
 	v3d->drawtype = value;
 }
 
-static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                              PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -767,8 +768,9 @@ static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *C,
 	return item;
 }
 
-static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                               PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	Scene *scene = CTX_data_scene(C);
 
@@ -871,8 +873,9 @@ static void rna_SpaceImageEditor_mask_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_image_set_mask(NULL, sima, (Mask *)value.data);
 }
 
-static const EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                                  PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_SpaceImageEditor_draw_channels_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	SpaceImage *sima = (SpaceImage *)ptr->data;
 	EnumPropertyItem *item = NULL;
@@ -993,8 +996,9 @@ static void rna_SpaceImageEditor_scopes_update(struct bContext *C, struct Pointe
 	ED_space_image_release_buffer(sima, ibuf, lock);
 }
 
-static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                          PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+static const EnumPropertyItem *rna_SpaceImageEditor_pivot_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
 {
 	static const EnumPropertyItem pivot_items[] = {
 		{V3D_AROUND_CENTER_BOUNDS, "CENTER", ICON_ROTATE, "Bounding Box Center", ""},
@@ -1096,8 +1100,9 @@ static void rna_SpaceProperties_context_set(PointerRNA *ptr, int value)
 	sbuts->mainbuser = value;
 }
 
-static const EnumPropertyItem *rna_SpaceProperties_context_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                           PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_SpaceProperties_context_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr,
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	SpaceButs *sbuts = (SpaceButs *)(ptr->data);
 	EnumPropertyItem *item = NULL;
@@ -1191,8 +1196,9 @@ static void rna_SpaceProperties_align_set(PointerRNA *ptr, int value)
 	sbuts->re_align = 1;
 }
 
-static const EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                                   PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_SpaceProperties_texture_context_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
@@ -1491,8 +1497,9 @@ static int rna_SpaceNodeEditor_tree_type_poll(void *Cv, bNodeTreeType *type)
 	else
 		return true;
 }
-static const EnumPropertyItem *rna_SpaceNodeEditor_tree_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),
-                                                             PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *rna_SpaceNodeEditor_tree_type_itemf(
+        bContext *C, PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	return rna_node_tree_type_itemf(C, rna_SpaceNodeEditor_tree_type_poll, r_free);
 }

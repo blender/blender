@@ -560,7 +560,6 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 {
 	const float icon_sz = U.widget_unit * 0.5f * yscale_fac;
 	const float half_icon_sz = 0.5f * icon_sz;
-	const float smaller_sz = 0.35f * icon_sz;
 	
 	glEnable(GL_BLEND);
 	

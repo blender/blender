@@ -2184,7 +2184,6 @@ static void OBJECT_draw_scene(void *vedata)
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 	OBJECT_PrivateData *g_data = stl->g_data;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	int id_ct_select =       g_data->id_ofs_select;
 	int id_ct_select_group = g_data->id_ofs_select_group;

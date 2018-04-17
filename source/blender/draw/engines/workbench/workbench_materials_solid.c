@@ -120,8 +120,8 @@ void workbench_solid_materials_draw_scene(WORKBENCH_Data *vedata)
 {
 
 	WORKBENCH_PassList *psl = ((WORKBENCH_Data *)vedata)->psl;
-	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-	
+//	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+
 	DRW_draw_pass(psl->depth_pass);
 //	if (studio lighting) {
 //		DRW_draw_pass(psl->lighting_pass);
