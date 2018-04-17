@@ -146,6 +146,10 @@ struct Object **BKE_object_pose_array_get_ex(struct ViewLayer *view_layer, uint 
 struct Object **BKE_object_pose_array_get_unique(struct ViewLayer *view_layer, uint *r_objects_len);
 struct Object **BKE_object_pose_array_get(struct ViewLayer *view_layer, uint *r_objects_len);
 
+struct Base **BKE_object_pose_base_array_get_ex(struct ViewLayer *view_layer, uint *r_bases_len, bool unique);
+struct Base **BKE_object_pose_base_array_get_unique(struct ViewLayer *view_layer, uint *r_bases_len);
+struct Base **BKE_object_pose_base_array_get(struct ViewLayer *view_layer, uint *r_bases_len);
+
 void BKE_object_get_parent_matrix(
         struct Scene *scene, struct Object *ob,
         struct Object *par, float parentmat[4][4]);
