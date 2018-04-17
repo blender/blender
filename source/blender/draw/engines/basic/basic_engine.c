@@ -31,6 +31,9 @@
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_main.h"
+#include "BKE_particle.h"
+
+#include "DNA_particle_types.h"
 
 #include "GPU_shader.h"
 
@@ -81,6 +84,7 @@ typedef struct BASIC_PrivateData {
 #ifdef USE_DEPTH
 	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *depth_shgrp_cull;
+	DRWShadingGroup *depth_shgrp_hair;
 #endif
 	DRWShadingGroup *color_shgrp;
 } BASIC_PrivateData; /* Transient data */
@@ -115,7 +119,7 @@ static void basic_cache_init(void *vedata)
 #ifdef USE_DEPTH
 	/* Depth Pass */
 	{
-		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
 		psl->depth_pass_cull = DRW_pass_create(
@@ -138,6 +142,26 @@ static void basic_cache_populate(void *vedata, Object *ob)
 
 	if (!DRW_object_is_renderable(ob))
 		return;
+
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
+	if (ob != draw_ctx->object_edit) {
+		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+			if (psys_check_enabled(ob, psys, false)) {
+				ParticleSettings *part = psys->part;
+				int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+				if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+					draw_as = PART_DRAW_DOT;
+				}
+
+				if (draw_as == PART_DRAW_PATH) {
+					struct Gwn_Batch *hairs = DRW_cache_particles_get_hair(psys, NULL);
+					DRW_shgroup_call_add(stl->g_data->depth_shgrp, hairs, NULL);
+				}
+			}
+		}
+	}
 
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
