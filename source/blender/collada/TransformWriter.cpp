@@ -26,8 +26,10 @@
  */
 
 
-#include "BKE_object.h"
 #include "BLI_math.h"
+#include "BLI_sys_types.h"
+
+#include "BKE_object.h"
 
 #include "TransformWriter.h"
 

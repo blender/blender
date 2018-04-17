@@ -484,6 +484,8 @@ void ED_fsmenu_entry_set_name(struct FSMenuEntry *fsentry, const char *name) RET
 
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob) RET_NULL
 void PE_current_changed(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob) RET_NONE
+struct PTCacheEdit *PE_create_current(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob) RET_NULL
+void PE_update_object( struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, int useflag) RET_NONE
 
 /* rna keymap */
 struct wmKeyMap *WM_keymap_active(struct wmWindowManager *wm, struct wmKeyMap *keymap) RET_NULL
