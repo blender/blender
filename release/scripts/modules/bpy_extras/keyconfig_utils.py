@@ -99,7 +99,6 @@ KM_HIERARCHY = [
         ('SequencerCommon', 'SEQUENCE_EDITOR', 'WINDOW', []),
         ('SequencerPreview', 'SEQUENCE_EDITOR', 'WINDOW', []),
     ]),
-    ('Logic Editor', 'LOGIC_EDITOR', 'WINDOW', []),
 
     ('File Browser', 'FILE_BROWSER', 'WINDOW', [
         ('File Browser Main', 'FILE_BROWSER', 'WINDOW', []),
