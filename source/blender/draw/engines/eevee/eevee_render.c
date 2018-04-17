@@ -288,6 +288,7 @@ static void eevee_render_result_z(
 	if ((view_layer->passflag & SCE_PASS_Z) != 0) {
 		RenderPass *rp = RE_pass_find_by_name(rl, RE_PASSNAME_Z, viewname);
 
+		GPU_framebuffer_bind(vedata->fbl->main_fb);
 		GPU_framebuffer_read_depth(vedata->fbl->main_fb,
 		                           rect->xmin, rect->ymin,
 		                           BLI_rcti_size_x(rect), BLI_rcti_size_y(rect),
