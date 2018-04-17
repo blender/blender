@@ -1089,6 +1089,11 @@ rna_use_soft_limits = BoolProperty(
         name="Use Soft Limits",
         )
 
+rna_is_overridable_static = BoolProperty(
+        name="Is Statically Overridable",
+        default=False,
+        )
+
 
 class WM_OT_properties_edit(Operator):
     bl_idname = "wm.properties_edit"
@@ -1102,6 +1107,7 @@ class WM_OT_properties_edit(Operator):
     min = rna_min
     max = rna_max
     use_soft_limits = rna_use_soft_limits
+    is_overridable_static = rna_is_overridable_static
     soft_min = rna_min
     soft_max = rna_max
     description = StringProperty(
@@ -1152,6 +1158,9 @@ class WM_OT_properties_edit(Operator):
         # Reassign
         exec_str = "item[%r] = %s" % (prop, repr(value_eval))
         # print(exec_str)
+        exec(exec_str)
+
+        exec_str = "item.property_overridable_static_set('[\"%s\"]', %s)" % (prop, self.is_overridable_static)
         exec(exec_str)
 
         rna_idprop_ui_prop_update(item, prop)
@@ -1281,7 +1290,9 @@ class WM_OT_properties_edit(Operator):
         row.prop(self, "min")
         row.prop(self, "max")
 
-        layout.prop(self, "use_soft_limits")
+        row = layout.row()
+        row.prop(self, "use_soft_limits")
+        row.prop(self, "is_overridable_static")
 
         row = layout.row(align=True)
         row.enabled = self.use_soft_limits
