@@ -114,6 +114,7 @@ struct DRWShadingGroup *shgroup_instance_axis_names(struct DRWPass *pass, struct
 struct DRWShadingGroup *shgroup_instance_image_plane(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_instance_scaled(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
+struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct Gwn_Batch *geom, int *baseid);
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
