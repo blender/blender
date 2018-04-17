@@ -410,7 +410,7 @@ void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 		}
 		deg_graph_id_tag_legacy_compat(bmain, id, (eDepsgraph_Tag)0);
 	}
-	id->recalc |= flag;
+	id->recalc |= (flag & PSYS_RECALC);
 	int current_flag = flag;
 	while (current_flag != 0) {
 		eDepsgraph_Tag tag =
