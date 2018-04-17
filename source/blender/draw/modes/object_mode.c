@@ -2263,7 +2263,6 @@ static void OBJECT_draw_scene(void *vedata)
 		if (e_data.draw_grid) {
 			GPU_framebuffer_bind(dfbl->color_only_fb);
 			DRW_draw_pass(psl->grid);
-			GPU_framebuffer_texture_attach(dfbl->default_fb, dtxl->depth, 0, 0);
 		}
 
 		/* Combine with scene buffer last */
