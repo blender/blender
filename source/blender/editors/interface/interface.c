@@ -51,6 +51,7 @@
 
 #include "BLI_utildefines.h"
 
+#include "BKE_animsys.h"
 #include "BKE_context.h"
 #include "BKE_unit.h"
 #include "BKE_scene.h"
@@ -79,6 +80,8 @@
 #include "ED_screen.h"
 
 #include "IMB_colormanagement.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "interface_intern.h"
 
@@ -1705,6 +1708,74 @@ void ui_linkline_remove(uiLinkLine *line, uiBut *but)
  * this either works with the pointed to data, or can work with
  * an edit override pointer while dragging for example */
 
+/* Get PointerRNA which will point to a data inside of an evaluated
+ * ID datablock.
+ */
+static PointerRNA ui_but_evaluated_rnapoin_get(uiBut *but)
+{
+	BLI_assert(but->rnaprop != NULL);
+	/* TODO(sergey): evil_C sounds.. EVIL! Any clear way to avoid this? */
+	PointerRNA rnapoin_eval = but->rnapoin;
+	/* If there is no animation or drivers, it doesn't matter if we read value
+	 * from evaluated datablock or from original one.
+	 *
+	 * Reading from original one is much faster, since we don't need to do any
+	 * PointerRNA remapping or hash lookup.
+	 */
+	if (BKE_animdata_from_id(but->rnapoin.id.data) == NULL) {
+		return rnapoin_eval;
+	}
+	/* Same goes for the properties which can not be animated. */
+	if (!RNA_property_animateable(&but->rnapoin, but->rnaprop)) {
+		return rnapoin_eval;
+	}
+	Depsgraph *depsgraph = CTX_data_depsgraph(but->block->evil_C);
+	/* ID pointer we can always remap, they are inside of depsgraph. */
+	rnapoin_eval.id.data =
+	        DEG_get_evaluated_id(depsgraph, rnapoin_eval.id.data);
+	/* Some of ID datablocks do not have their evaluated copy inside
+	 * of dependency graph. If it's such datablock, no need to worry about
+	 * data pointer.
+	 */
+	if (rnapoin_eval.id.data == but->rnapoin.id.data) {
+		return rnapoin_eval;
+	}
+	/* For the data pointer it's getting a bit more involved, since it can
+	 * whether be and ID, or can be a property deep inside of ID.
+	 *
+	 * We start from checking if it's an ID, since that is the less involved
+	 * code path, and probably is executed in most of the cases.
+	 */
+	if (but->rnapoin.data == but->rnapoin.id.data) {
+		rnapoin_eval.data = DEG_get_evaluated_id(depsgraph, rnapoin_eval.data);
+		return rnapoin_eval;
+	}
+	/* We aren't as lucky as we thought we are :(
+	 *
+	 * Since we don't know what the property is, we get it's RNA path
+	 * relative to the original ID, and then we decent down from evaluated
+	 * ID to the same property.
+	 *
+	 * This seems to be most straightforward way to get sub-data pointers
+	 * which can be buried deep inside of ID block.
+	 */
+	const char *rna_path =
+	       RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
+	if (rna_path != NULL) {
+		PointerRNA id_ptr;
+		RNA_id_pointer_create(rnapoin_eval.id.data, &id_ptr);
+		if (!RNA_path_resolve_full(&id_ptr,
+		                           rna_path,
+		                           &rnapoin_eval,
+		                           NULL, NULL))
+		{
+			/* TODO(sergey): Anything to do here to recover? */
+		}
+		MEM_freeN((void *)rna_path);
+	}
+	return rnapoin_eval;
+}
+
 /* for buttons pointing to color for example */
 void ui_but_v3_get(uiBut *but, float vec[3])
 {
@@ -1720,16 +1791,18 @@ void ui_but_v3_get(uiBut *but, float vec[3])
 
 		zero_v3(vec);
 
+		PointerRNA rnapoin_eval = ui_but_evaluated_rnapoin_get(but);
+
 		if (RNA_property_type(prop) == PROP_FLOAT) {
-			int tot = RNA_property_array_length(&but->rnapoin, prop);
+			int tot = RNA_property_array_length(&rnapoin_eval, prop);
 			BLI_assert(tot > 0);
 			if (tot == 3) {
-				RNA_property_float_get_array(&but->rnapoin, prop, vec);
+				RNA_property_float_get_array(&rnapoin_eval, prop, vec);
 			}
 			else {
 				tot = min_ii(tot, 3);
 				for (a = 0; a < tot; a++) {
-					vec[a] = RNA_property_float_get_index(&but->rnapoin, prop, a);
+					vec[a] = RNA_property_float_get_index(&rnapoin_eval, prop, a);
 				}
 			}
 		}
@@ -1909,27 +1982,29 @@ double ui_but_value_get(uiBut *but)
 
 		BLI_assert(but->rnaindex != -1);
 
+		PointerRNA rnapoin_eval = ui_but_evaluated_rnapoin_get(but);
+
 		switch (RNA_property_type(prop)) {
 			case PROP_BOOLEAN:
 				if (RNA_property_array_check(prop))
-					value = RNA_property_boolean_get_index(&but->rnapoin, prop, but->rnaindex);
+					value = RNA_property_boolean_get_index(&rnapoin_eval, prop, but->rnaindex);
 				else
-					value = RNA_property_boolean_get(&but->rnapoin, prop);
+					value = RNA_property_boolean_get(&rnapoin_eval, prop);
 				break;
 			case PROP_INT:
 				if (RNA_property_array_check(prop))
-					value = RNA_property_int_get_index(&but->rnapoin, prop, but->rnaindex);
+					value = RNA_property_int_get_index(&rnapoin_eval, prop, but->rnaindex);
 				else
-					value = RNA_property_int_get(&but->rnapoin, prop);
+					value = RNA_property_int_get(&rnapoin_eval, prop);
 				break;
 			case PROP_FLOAT:
 				if (RNA_property_array_check(prop))
-					value = RNA_property_float_get_index(&but->rnapoin, prop, but->rnaindex);
+					value = RNA_property_float_get_index(&rnapoin_eval, prop, but->rnaindex);
 				else
-					value = RNA_property_float_get(&but->rnapoin, prop);
+					value = RNA_property_float_get(&rnapoin_eval, prop);
 				break;
 			case PROP_ENUM:
-				value = RNA_property_enum_get(&but->rnapoin, prop);
+				value = RNA_property_enum_get(&rnapoin_eval, prop);
 				break;
 			default:
 				value = 0.0;
