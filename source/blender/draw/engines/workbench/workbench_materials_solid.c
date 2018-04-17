@@ -26,7 +26,8 @@
 #include "workbench_private.h"
 #include "GPU_shader.h"
 
-extern char datatoc_silhouette_frag_glsl[];
+extern char datatoc_solid_frag_glsl[];
+extern char datatoc_flat_lighting_frag_glsl[];
 extern char datatoc_workbench_vert_glsl[];
 
 /* *********** STATIC *********** */
@@ -34,22 +35,23 @@ static struct {
 	struct GPUShader *depth_sh;
 
 	/* Shading Pass */
-	struct GPUShader *silhouette_sh;
+	struct GPUShader *solid_sh;
+	
 } e_data = {NULL};
 
 
-void workbench_materials_init() {
+void workbench_solid_materials_init() {
 	if (!e_data.depth_sh) {
 		/* Depth pass */
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 
 		/* Shading pass */
-		e_data.silhouette_sh = DRW_shader_create(
-		        datatoc_workbench_vert_glsl, NULL, datatoc_silhouette_frag_glsl, "\n");
+		e_data.solid_sh = DRW_shader_create(
+		        datatoc_workbench_vert_glsl, NULL, datatoc_solid_frag_glsl, "\n");
 	}
 }
 
-void workbench_materials_cache_init(WORKBENCH_Data* vedata)
+void workbench_solid_materials_cache_init(WORKBENCH_Data* vedata)
 {
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_StorageList *stl = vedata->stl;
@@ -66,14 +68,20 @@ void workbench_materials_cache_init(WORKBENCH_Data* vedata)
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 	}
 
-	/* Shadeless Pass */
+	/* Solid Pass */
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
-		psl->silhouette_pass = DRW_pass_create("Silhouette Pass", state);
+		psl->solid_pass = DRW_pass_create("Solid Pass", state);
+	}
+	
+	/* Flat Lighting Pass */
+	{	
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		psl->lighting_pass = DRW_pass_create("Lighting Pass", state);
 	}
 }
 
-void workbench_materials_cache_populate(WORKBENCH_Data* vedata, Object *ob)
+	void workbench_solid_materials_cache_populate(WORKBENCH_Data* vedata, Object *ob)
 {
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_StorageList *stl = vedata->stl;
@@ -90,32 +98,45 @@ void workbench_materials_cache_populate(WORKBENCH_Data* vedata, Object *ob)
 		/* Depth */
 		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
 		
-		/* Silhouette */
-		grp = DRW_shgroup_create(e_data.silhouette_sh, psl->silhouette_pass);
+		/* Solid */
+		grp = DRW_shgroup_create(e_data.solid_sh, psl->solid_pass);
 		DRW_shgroup_uniform_vec3(grp, "color", color, 1);
 		DRW_shgroup_call_add(grp, geom, ob->obmat);
+		
+		/* Lighting */
+		// if studio lighting
+		
 	}
 }
 
-void workbench_materials_cache_finish(WORKBENCH_Data *vedata)
+void workbench_solid_materials_cache_finish(WORKBENCH_Data *vedata)
 {
 	WORKBENCH_StorageList *stl = ((WORKBENCH_Data *)vedata)->stl;
 
 	UNUSED_VARS(stl);
 }
 
-void workbench_materials_draw_scene(WORKBENCH_Data *vedata)
+void workbench_solid_materials_draw_scene(WORKBENCH_Data *vedata)
 {
 
 	WORKBENCH_PassList *psl = ((WORKBENCH_Data *)vedata)->psl;
+	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	
 	DRW_draw_pass(psl->depth_pass);
-	DRW_draw_pass(psl->silhouette_pass);
+//	if (studio lighting) {
+//		DRW_draw_pass(psl->lighting_pass);
+//		DRW_draw_pass(psl->solid_pass);
+// TODO: COMPOSITE
+// 	}
+	
+// 	if (flat lighting) {
+		DRW_draw_pass(psl->solid_pass);
+// 	}
 }
 
-void workbench_materials_free(void)
+void workbench_solid_materials_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.silhouette_sh);
+	DRW_SHADER_FREE_SAFE(e_data.solid_sh);
 }
 
 

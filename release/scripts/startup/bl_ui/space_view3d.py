@@ -46,6 +46,7 @@ class VIEW3D_HT_header(Header):
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row = layout
         layout.template_header_3D()
+        row.prop(view, "viewport_shade")
 
         if obj:
             mode = obj.mode

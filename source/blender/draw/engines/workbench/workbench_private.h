@@ -29,6 +29,8 @@
 
 #include "DRW_render.h"
 
+#define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
+
 
 typedef struct WORKBENCH_StorageList {
 	struct WORKBENCH_PrivateData *g_data;
@@ -37,7 +39,8 @@ typedef struct WORKBENCH_StorageList {
 typedef struct WORKBENCH_PassList {
 	struct DRWPass *depth_pass;
 
-	struct DRWPass *silhouette_pass;
+	struct DRWPass *solid_pass;
+	struct DRWPass *lighting_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_FrameBufferList {
@@ -59,16 +62,19 @@ typedef struct WORKBENCH_PrivateData {
 	DRWShadingGroup *depth_shgrp;
 	
 	DRWShadingGroup *shadeless_shgrp;
+	
+	// Lighting passes
+	DRWShadingGroup *flat_lighting_shgrp;
 } WORKBENCH_PrivateData; /* Transient data */
 
 
 /* workbench_materials.c */
-void workbench_materials_init(void);
-void workbench_materials_cache_init(WORKBENCH_Data* vedata);
-void workbench_materials_cache_populate(WORKBENCH_Data* vedata, Object* ob);
-void workbench_materials_cache_finish(WORKBENCH_Data* vedata);
-void workbench_materials_draw_scene(WORKBENCH_Data* vedata);
-void workbench_materials_free(void);
+void workbench_solid_materials_init(void);
+void workbench_solid_materials_cache_init(WORKBENCH_Data* vedata);
+void workbench_solid_materials_cache_populate(WORKBENCH_Data* vedata, Object* ob);
+void workbench_solid_materials_cache_finish(WORKBENCH_Data* vedata);
+void workbench_solid_materials_draw_scene(WORKBENCH_Data* vedata);
+void workbench_solid_materials_free(void);
 
 
 #endif
