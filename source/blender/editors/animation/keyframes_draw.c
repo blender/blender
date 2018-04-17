@@ -585,24 +585,39 @@ static void draw_keylist(View2D *v2d, DLRBT_Tree *keys, DLRBT_Tree *blocks, floa
 		copy_v4_v4(unsel_mhcol, unsel_color);
 		unsel_mhcol[3] *= 0.8f;
 
-		unsigned int pos_id = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		/* NOTE: the tradeoff for changing colors between each draw is dwarfed by the cost of checking validity */
+		unsigned int block_ct = 0;
 		for (ActKeyBlock *ab = blocks->first; ab; ab = ab->next) {
 			if (actkeyblock_is_valid(ab, keys)) {
-				if (ab->flag & ACTKEYBLOCK_FLAG_MOVING_HOLD) {
-					/* draw "moving hold" long-keyframe block - slightly smaller */
-					immUniformColor4fv(ab->sel ? sel_mhcol : unsel_mhcol);
-					immRectf(pos_id, ab->start, ypos - smaller_sz, ab->end, ypos + smaller_sz);
-				}
-				else {
-					/* draw standard long-keyframe block */
-					immUniformColor4fv(ab->sel ? sel_color : unsel_color);
-					immRectf(pos_id, ab->start, ypos - half_icon_sz, ab->end, ypos + half_icon_sz);
-				}
+				block_ct++;
 			}
 		}
-		immUnbindProgram();
+
+		if (block_ct > 0) {
+			Gwn_VertFormat *format = immVertexFormat();
+			unsigned int pos_id = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			unsigned int color_id = GWN_vertformat_attr_add(format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+
+			immBegin(GWN_PRIM_TRIS, 6 * block_ct);
+			for (ActKeyBlock *ab = blocks->first; ab; ab = ab->next) {
+				if (actkeyblock_is_valid(ab, keys)) {
+					if (ab->flag & ACTKEYBLOCK_FLAG_MOVING_HOLD) {
+						/* draw "moving hold" long-keyframe block - slightly smaller */
+						immRectf_fast_with_color(pos_id, color_id,
+						                         ab->start, ypos - half_icon_sz, ab->end, ypos + half_icon_sz,
+						                         (ab->sel) ? sel_mhcol : unsel_mhcol);
+					}
+					else {
+						/* draw standard long-keyframe block */
+						immRectf_fast_with_color(pos_id, color_id,
+						                         ab->start, ypos - half_icon_sz, ab->end, ypos + half_icon_sz,
+						                         (ab->sel) ? sel_color : unsel_color);
+					}
+				}
+			}
+			immEnd();
+			immUnbindProgram();
+		}
 	}
 	
 	if (keys) {
