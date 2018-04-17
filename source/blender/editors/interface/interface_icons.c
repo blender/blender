@@ -1211,6 +1211,8 @@ static void icon_draw_size(
 	h = (int)(fdraw_size / aspect + 0.5f);
 	
 	if (di->type == ICON_TYPE_VECTOR) {
+		/* We need to flush widget base first to ensure correct ordering. */
+		UI_widgetbase_draw_cache_flush();
 		/* vector icons use the uiBlock transformation, they are not drawn
 		 * with untransformed coordinates like the other icons */
 		di->data.vector.func((int)x, (int)y, w, h, 1.0f);

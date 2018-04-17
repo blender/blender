@@ -423,7 +423,7 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
 	/* Save the final texture and framebuffer for final transformation or read. */
 	effects->final_tx = effects->source_buffer;
-	effects->final_fb = (effects->target_buffer != fbl->main_fb) ? fbl->main_fb : fbl->effect_fb;
+	effects->final_fb = (effects->target_buffer != fbl->main_color_fb) ? fbl->main_fb : fbl->effect_fb;
 
 	/* If no post processes is enabled, buffers are still not swapped, do it now. */
 	SWAP_DOUBLE_BUFFERS();
