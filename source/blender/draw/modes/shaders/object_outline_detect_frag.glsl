@@ -40,8 +40,8 @@ void main()
 
 #ifdef GL_ARB_texture_gather
 	vec2 texel_size = 1.0 / vec2(textureSize(outlineId, 0).xy);
-	vec2 uv1 = gl_FragCoord.xy * texel_size - texel_size;
-	vec2 uv2 = gl_FragCoord.xy * texel_size;
+	vec2 uv1 = floor(gl_FragCoord.xy) * texel_size - texel_size;
+	vec2 uv2 = floor(gl_FragCoord.xy) * texel_size;
 
 	/* Samples order is CW starting from top left. */
 	uvec4 tmp1 = textureGather(outlineId, uv1);
