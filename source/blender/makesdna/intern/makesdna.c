@@ -464,7 +464,7 @@ static int preprocess_include(char *maindata, int len)
 		if (cp[0] == '/' && cp[1] == '/') {
 			comment = 1;
 		}
-		else if (*cp < 32) {
+		else if (*cp == '\n') {
 			comment = 0;
 		}
 		if (comment || *cp < 32 || *cp > 128) *cp = 32;
