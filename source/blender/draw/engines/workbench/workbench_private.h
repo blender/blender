@@ -58,10 +58,10 @@ typedef struct WORKBENCH_PrivateData {
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_MaterialData {
-	// Solid color
+	/* Solid color */
 	float color[3];
 	
-	// Linked shgroup for drawing
+	/* Linked shgroup for drawing */
 	DRWShadingGroup * shgrp;
 } WORKBENCH_MaterialData;
 
