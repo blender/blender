@@ -79,14 +79,14 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *)md;
 	ParticleSystem *psys;
 	ModifierData *ob_md;
-	
+
 	if (!pimd->ob)
 		return true;
-	
+
 	psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
 	if (psys == NULL)
 		return true;
-	
+
 	/* If the psys modifier is disabled we cannot use its data.
 	 * First look up the psys modifier from the object, then check if it is enabled.
 	 */
@@ -95,18 +95,18 @@ static bool isDisabled(ModifierData *md, int useRenderParams)
 			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)ob_md;
 			if (psmd->psys == psys) {
 				int required_mode;
-				
+
 				if (useRenderParams) required_mode = eModifierMode_Render;
 				else required_mode = eModifierMode_Realtime;
-				
+
 				if (!modifier_isEnabled(md->scene, ob_md, required_mode))
 					return true;
-				
+
 				break;
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -115,6 +115,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 	if (pimd->ob != NULL) {
 		DEG_add_object_relation(ctx->node, pimd->ob, DEG_OB_COMP_TRANSFORM, "Particle Instance Modifier");
+		DEG_add_object_relation(ctx->node, pimd->ob, DEG_OB_COMP_GEOMETRY, "Particle Instance Modifier");
 	}
 }
 
@@ -157,7 +158,7 @@ static int particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *psy
 		if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0) return 1;
 		if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) return 1;
 	}
-	
+
 	return 0;
 }
 
@@ -273,7 +274,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	for (p = 0, p_skip = 0; p < totpart; p++) {
 		float prev_dir[3];
 		float frame[4]; /* frame orientation quaternion */
-		
+
 		/* skip particle? */
 		if (particle_skip(pimd, psys, p))
 			continue;
@@ -323,7 +324,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 				if (k == 0) {
 					float hairmat[4][4];
 					float mat[3][3];
-					
+
 					if (first_particle + p < psys->totpart)
 						pa = psys->particles + first_particle + p;
 					else {
@@ -334,7 +335,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 					copy_m3_m4(mat, hairmat);
 					/* to quaternion */
 					mat3_to_quat(frame, mat);
-					
+
 					/* note: direction is same as normal vector currently,
 					 * but best to keep this separate so the frame can be
 					 * rotated later if necessary
@@ -343,14 +344,14 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 				}
 				else {
 					float rot[4];
-					
+
 					/* incrementally rotate along bend direction */
 					rotation_between_vecs_to_quat(rot, prev_dir, state.vel);
 					mul_qt_qtqt(frame, rot, frame);
-					
+
 					copy_v3_v3(prev_dir, state.vel);
 				}
-				
+
 				copy_qt_qt(state.rot, frame);
 #if 0
 				/* Absolute Frame (Frenet Frame) */
@@ -361,9 +362,9 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 					float cross[3];
 					float temp[3] = {0.0f, 0.0f, 0.0f};
 					temp[axis] = 1.0f;
-					
+
 					cross_v3_v3v3(cross, temp, state.vel);
-					
+
 					/* state.vel[axis] is the only component surviving from a dot product with the axis */
 					axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
 				}
