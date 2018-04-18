@@ -132,7 +132,7 @@ typedef struct MeshRenderData {
 	MEdge *medge;
 	MLoop *mloop;
 	MPoly *mpoly;
-	float (*orco)[3];
+	float (*orco)[3];  /* vertex coordinates normalized to bounding box */
 	MDeformVert *dvert;
 	MLoopUV *mloopuv;
 	MLoopCol *mloopcol;
