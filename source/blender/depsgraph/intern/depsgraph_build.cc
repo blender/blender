@@ -272,6 +272,19 @@ void DEG_graph_tag_relations_update(Depsgraph *graph)
 {
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	deg_graph->need_update = true;
+	/* NOTE: When relations are updated, it's quite possible that
+	 * we've got new bases in the scene. This means, we need to
+	 * re-create flat array of bases in view layer.
+	 *
+	 * TODO(sergey): Try to make it so we don't flush updates
+	 * to the whole depsgraph.
+	 */
+	{
+		DEG::IDDepsNode *id_node = deg_graph->find_id_node(&deg_graph->scene->id);
+		if (id_node != NULL) {
+			id_node->tag_update(deg_graph);
+		}
+	}
 }
 
 /* Create or update relations in the specified graph. */
