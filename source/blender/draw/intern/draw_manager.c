@@ -915,6 +915,11 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 		case OB_TEXTURE:
 			break;
 
+		case OB_MATERIAL:
+			engine_type = RE_engines_find("BLENDER_EEVEE");
+			use_drw_engine(engine_type->draw_engine);
+			break;
+
 		default:
 		case OB_RENDER:
 			/* TODO layers */

@@ -668,9 +668,23 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 
 static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 {
+	bScreen *screen = ptr->id.data;
+	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, screen);
+	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
 	View3D *v3d = (View3D *)ptr->data;
-	int drawtype = v3d->drawtype;
-	return drawtype;
+
+	if (BKE_scene_uses_blender_eevee(scene)) {
+		if (v3d->drawtype == OB_MATERIAL) {
+			return OB_RENDER;
+		}
+	}
+	else if (v3d->drawtype == OB_RENDER) {
+		if (!(type && type->render_to_view)) {
+			return OB_MATERIAL;
+		}
+	}
+
+	return v3d->drawtype;
 }
 
 static void rna_SpaceView3D_viewport_shade_set(PointerRNA *ptr, int value)
@@ -683,14 +697,27 @@ static void rna_SpaceView3D_viewport_shade_set(PointerRNA *ptr, int value)
 }
 
 static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(
-        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        bContext *C, PointerRNA *UNUSED(ptr),
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	wmWindow *win = CTX_wm_window(C);
+	Scene *scene = WM_window_get_active_scene(win);
+	RenderEngineType *type = RE_engines_find(scene->view_render.engine_id);
+
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_SOLID);
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
+
+	if (BKE_scene_uses_blender_eevee(scene)) {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
+	}
+	else {
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_MATERIAL);
+		if (type && type->render_to_view) {
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
+		}
+	}
 
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;

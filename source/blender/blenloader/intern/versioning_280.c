@@ -934,6 +934,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 						View3D *v3d = (View3D *)sl;
 						v3d->drawtype_solid = OB_LIGHTING_STUDIO;
 						v3d->drawtype_wireframe = OB_LIGHTING_STUDIO;
+
+						/* Assume (demo) files written with 2.8 want to show
+						 * Eevee renders in the viewport. */
+						if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
+							v3d->drawtype = OB_MATERIAL;
+						}
 					}
 				}
 			}
