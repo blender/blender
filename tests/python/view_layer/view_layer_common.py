@@ -69,7 +69,7 @@ def get_layer(scene, layer):
     name = layer.get(b'name')
 
     data['name'] = name
-    data['engine'] = scene.get((b'view_render', b'engine_id'))
+    data['engine'] = scene.get((b'r', b'engine'))
 
     active_base = layer.get_pointer(b'basact')
     if active_base:
