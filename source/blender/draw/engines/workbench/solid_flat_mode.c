@@ -31,38 +31,15 @@
 #include "GPU_shader.h"
 
 #include "workbench_private.h"
-/* Shaders */
-
-extern char datatoc_solid_flat_frag_glsl[];
-extern char datatoc_workbench_vert_glsl[];
-
-/* *********** STATIC *********** */
-static struct {
-	struct GPUShader *depth_sh;
-
-	/* Shading Pass */
-	struct GPUShader *solid_sh;
-
-} e_data = {NULL};
-
-
 /* Functions */
 
 static void workbench_solid_flat_engine_init(void *UNUSED(vedata))
 {
-	if (!e_data.depth_sh) {
-		/* Depth pass */
-		e_data.depth_sh = DRW_shader_create_3D_depth_only();
-
-		/* Shading pass */
-		e_data.solid_sh = DRW_shader_create(
-						datatoc_workbench_vert_glsl, NULL, datatoc_solid_flat_frag_glsl, "\n");
-	}
+	workbench_materials_engine_init();
 }
 
 static void workbench_solid_flat_cache_init(void *vedata)
 {
-
 	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
 	WORKBENCH_PassList *psl = data->psl;
 	WORKBENCH_StorageList *stl = data->stl;
@@ -76,7 +53,6 @@ static void workbench_solid_flat_cache_init(void *vedata)
 	{
 		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 		psl->depth_pass = DRW_pass_create("Depth Pass", state);
-		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 	}
 
 	/* Solid Pass */
@@ -84,13 +60,14 @@ static void workbench_solid_flat_cache_init(void *vedata)
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
 		psl->solid_pass = DRW_pass_create("Solid Pass", state);
 	}
+
+	workbench_materials_cache_init(data);
 }
+
 
 static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 {
 	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
-
-	WORKBENCH_PassList *psl = data->psl;
 	WORKBENCH_StorageList *stl = data->stl;
 
 	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
@@ -100,26 +77,26 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 		return;
 
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
-	DRWShadingGroup *grp;
+	WORKBENCH_MaterialData *material;
 	if (geom) {
 		/* Depth */
 		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
 
 		/* Solid */
-		grp = DRW_shgroup_create(e_data.solid_sh, psl->solid_pass);
-		DRW_shgroup_uniform_vec3(grp, "color", color, 1);
-		DRW_shgroup_call_add(grp, geom, ob->obmat);
+		material = workbench_get_or_create_solid_flat_material_data(data, color);
+		DRW_shgroup_call_add(material->shgrp, geom, ob->obmat);
 	}
 }
 
-static void workbench_solid_flat_cache_finish(void *UNUSED(vedata))
+static void workbench_solid_flat_cache_finish(void *vedata)
 {
+	workbench_materials_cache_finish((WORKBENCH_Data*)vedata);
 }
 
 static void workbench_solid_flat_draw_scene(void *vedata)
 {
-	// WORKBENCH_Data *data = (WORKBENCH_Data *)vedata;
-	WORKBENCH_PassList *psl = ((WORKBENCH_Data *)vedata)->psl;
+	WORKBENCH_Data *data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_PassList *psl = data->psl;
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->solid_pass);
@@ -127,7 +104,7 @@ static void workbench_solid_flat_draw_scene(void *vedata)
 
 static void workbench_solid_flat_engine_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.solid_sh);
+	workbench_materials_engine_finish();
 }
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);

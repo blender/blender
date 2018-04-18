@@ -6,7 +6,6 @@ in vec3 nor;
 
 out vec3 normal;
 
-
 void main()
 {
 	normal = normalize(NormalMatrix * nor);
