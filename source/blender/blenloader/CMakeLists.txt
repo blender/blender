@@ -46,6 +46,7 @@ set(INC_SYS
 )
 
 set(SRC
+	intern/blend_validate.c
 	intern/readblenentry.c
 	intern/readfile.c
 	intern/runtime.c
