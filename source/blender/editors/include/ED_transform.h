@@ -130,7 +130,7 @@ void BIF_createTransformOrientation(struct bContext *C, struct ReportList *repor
                                     const char *name, const bool use_view,
                                     const bool activate, const bool overwrite);
 void BIF_selectTransformOrientation(struct bContext *C, struct TransformOrientation *ts);
-void BIF_selectTransformOrientationValue(struct View3D *v3d, int orientation);
+void BIF_selectTransformOrientationValue(struct Scene *scene, int orientation);
 
 void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[3][3], const short around);
 

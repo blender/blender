@@ -812,26 +812,6 @@ void BKE_screen_view3d_scene_sync(bScreen *sc, Scene *scene)
 	}
 }
 
-void BKE_screen_transform_orientation_remove(
-        const bScreen *screen, const WorkSpace *workspace, const TransformOrientation *orientation)
-{
-	const int orientation_index = BKE_workspace_transform_orientation_get_index(workspace, orientation);
-
-	for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-		for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
-			if (sl->spacetype == SPACE_VIEW3D) {
-				View3D *v3d = (View3D *)sl;
-
-				if (v3d->custom_orientation_index == orientation_index) {
-					/* could also use orientation_index-- */
-					v3d->twmode = V3D_MANIP_GLOBAL;
-					v3d->custom_orientation_index = -1;
-				}
-			}
-		}
-	}
-}
-
 /* magic zoom calculation, no idea what
  * it signifies, if you find out, tell me! -zr
  */

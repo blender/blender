@@ -3734,11 +3734,11 @@ class VIEW3D_PT_transform_orientations(Panel):
     def draw(self, context):
         layout = self.layout
 
-        view = context.space_data
-        orientation = view.current_orientation
+        scene = context.scene
+        orientation = scene.current_orientation
 
         row = layout.row(align=True)
-        row.prop(view, "transform_orientation", text="")
+        row.prop(scene, "transform_orientation", text="")
         row.operator("transform.create_orientation", text="", icon='ZOOMIN')
 
         if orientation:

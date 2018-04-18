@@ -272,6 +272,7 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	}
 
 	BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
+	BLI_duplicatelist(&(sce_dst->transform_spaces), &(sce_src->transform_spaces));
 	BLI_duplicatelist(&(sce_dst->r.views), &(sce_src->r.views));
 	BKE_keyingsets_copy(&(sce_dst->keyingsets), &(sce_src->keyingsets));
 
@@ -492,6 +493,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	}
 
 	BLI_freelistN(&sce->markers);
+	BLI_freelistN(&sce->transform_spaces);
 	BLI_freelistN(&sce->r.views);
 	
 	BKE_toolsettings_free(sce->toolsettings);
@@ -834,6 +836,8 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->gpencil_v2d_align = GP_PROJECT_VIEWSPACE;
 	sce->toolsettings->gpencil_seq_align = GP_PROJECT_VIEWSPACE;
 	sce->toolsettings->gpencil_ima_align = GP_PROJECT_VIEWSPACE;
+
+	sce->orientation_index_custom = -1;
 
 	/* Master Collection */
 	sce->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
@@ -2134,3 +2138,36 @@ Depsgraph *BKE_scene_get_depsgraph(Scene *scene,
 	}
 	return depsgraph;
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Scene Orientation
+ * \{ */
+
+void BKE_scene_transform_orientation_remove(
+        Scene *scene, TransformOrientation *orientation)
+{
+	const int orientation_index = BKE_scene_transform_orientation_get_index(scene, orientation);
+	if (scene->orientation_index_custom == orientation_index) {
+		/* could also use orientation_index-- */
+		scene->orientation_type = V3D_MANIP_GLOBAL;
+		scene->orientation_index_custom = -1;
+	}
+	BLI_freelinkN(&scene->transform_spaces, orientation);
+}
+
+TransformOrientation *BKE_scene_transform_orientation_find(
+        const Scene *scene, const int index)
+{
+	return BLI_findlink(&scene->transform_spaces, index);
+}
+
+/**
+ * \return the index that \a orientation has within \a scene's transform-orientation list or -1 if not found.
+ */
+int BKE_scene_transform_orientation_get_index(
+        const Scene *scene, const TransformOrientation *orientation)
+{
+	return BLI_findindex(&scene->transform_spaces, orientation);
+}
+
+/** \} */

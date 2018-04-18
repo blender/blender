@@ -83,6 +83,7 @@
 #include "BKE_mask.h"
 #include "BKE_workspace.h"
 #include "BKE_layer.h"
+#include "BKE_scene.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1328,9 +1329,9 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			t->around = V3D_AROUND_CURSOR;
 		}
 
-		t->current_orientation = v3d->twmode;
-		t->custom_orientation = BKE_workspace_transform_orientation_find(
-		                            CTX_wm_workspace(C), v3d->custom_orientation_index);
+		t->current_orientation = t->scene->orientation_type;
+		t->custom_orientation = BKE_scene_transform_orientation_find(
+		        t->scene, t->scene->orientation_index_custom);
 
 		/* exceptional case */
 		if (t->around == V3D_AROUND_LOCAL_ORIGINS) {
@@ -1429,8 +1430,8 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 				orientation = V3D_MANIP_GLOBAL;
 			}
 			else {
-				custom_orientation = BKE_workspace_transform_orientation_find(
-				                         CTX_wm_workspace(C), orientation - V3D_MANIP_CUSTOM);
+				custom_orientation = BKE_scene_transform_orientation_find(
+				        t->scene, orientation - V3D_MANIP_CUSTOM);
 				orientation = V3D_MANIP_CUSTOM;
 			}
 		}

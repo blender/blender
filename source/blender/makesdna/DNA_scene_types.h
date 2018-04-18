@@ -1481,7 +1481,10 @@ typedef struct Scene {
 	struct AudioData audio;
 
 	ListBase markers;
-	ListBase transform_spaces DNA_DEPRECATED;
+	ListBase transform_spaces;
+
+	int orientation_index_custom;
+	int orientation_type;
 
 	void *sound_scene;
 	void *playback_handle;

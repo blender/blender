@@ -160,12 +160,12 @@ const EnumPropertyItem rna_enum_transform_mode_types[] =
 
 static int select_orientation_exec(bContext *C, wmOperator *op)
 {
-	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
 	int orientation = RNA_enum_get(op->ptr, "orientation");
 
-	BIF_selectTransformOrientationValue(v3d, orientation);
-	
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+	BIF_selectTransformOrientationValue(scene, orientation);
+
+	WM_event_add_notifier(C, NC_SCENE | ND_TOOLSETTINGS, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -206,12 +206,10 @@ static void TRANSFORM_OT_select_orientation(struct wmOperatorType *ot)
 
 static int delete_orientation_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	BIF_removeTransformOrientationIndex(C, scene->orientation_index_custom);
 
-	BIF_removeTransformOrientationIndex(C, v3d->custom_orientation_index);
-
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
-	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, CTX_data_scene(C));
+	WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
 
 	return OPERATOR_FINISHED;
 }
@@ -223,12 +221,12 @@ static int delete_orientation_invoke(bContext *C, wmOperator *op, const wmEvent 
 
 static int delete_orientation_poll(bContext *C)
 {
-	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
 
 	if (ED_operator_areaactive(C) == 0)
 		return 0;
 
-	return (v3d->twmode >= V3D_MANIP_CUSTOM) && (v3d->custom_orientation_index != -1);
+	return (scene->orientation_type >= V3D_MANIP_CUSTOM) && (scene->orientation_index_custom != -1);
 }
 
 static void TRANSFORM_OT_delete_orientation(struct wmOperatorType *ot)
