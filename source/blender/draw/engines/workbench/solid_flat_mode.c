@@ -124,7 +124,7 @@ static void workbench_solid_flat_cache_finish(void *UNUSED(vedata))
 
 static void workbench_solid_flat_draw_scene(void *vedata)
 {
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	// WORKBENCH_Data *data = (WORKBENCH_Data *)vedata;
 	WORKBENCH_PassList *psl = ((WORKBENCH_Data *)vedata)->psl;
 
 	DRW_draw_pass(psl->depth_pass);
