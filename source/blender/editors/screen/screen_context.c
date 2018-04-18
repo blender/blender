@@ -308,26 +308,17 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "visible_pose_bones")) {
 		Object *obpose = BKE_object_pose_armature_get(obact);
-		bArmature *arm = (obpose) ? obpose->data : NULL;
-		bPoseChannel *pchan;
-		
-		if (obpose && obpose->pose && arm) {
+		if (obpose && obpose->pose && obpose->data) {
 			if (obpose != obact) {
-				for (pchan = obpose->pose->chanbase.first; pchan; pchan = pchan->next) {
-					/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-					if (PBONE_VISIBLE(arm, pchan->bone)) {
-						CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
-					}
-				}
+				FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN (obpose, pchan) {
+					CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
+				} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 			}
 			else if (obact->mode & OB_MODE_POSE) {
-				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obact->mode, ob_iter) {
-					for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
-						/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-						if (PBONE_VISIBLE(arm, pchan->bone)) {
-							CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
-						}
-					}
+				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter) {
+					FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN (ob_iter, pchan) {
+						CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
+					} FOREACH_PCHAN_VISIBLE_IN_OBJECT_END;
 				} FOREACH_OBJECT_IN_MODE_END;
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
@@ -336,30 +327,17 @@ int ed_screen_context(const bContext *C, const char *member, bContextDataResult 
 	}
 	else if (CTX_data_equals(member, "selected_pose_bones")) {
 		Object *obpose = BKE_object_pose_armature_get(obact);
-		bArmature *arm = (obpose) ? obpose->data : NULL;
-		bPoseChannel *pchan;
-		
-		if (obpose && obpose->pose && arm) {
+		if (obpose && obpose->pose && obpose->data) {
 			if (obpose != obact) {
-				/* TODO(de-duplicate!) */
-				for (pchan = obpose->pose->chanbase.first; pchan; pchan = pchan->next) {
-					/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-					if (PBONE_VISIBLE(arm, pchan->bone)) {
-						if (pchan->bone->flag & BONE_SELECTED)
-							CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
-					}
-				}
+				FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (obpose, pchan) {
+					CTX_data_list_add(result, &obpose->id, &RNA_PoseBone, pchan);
+				} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 			}
 			else if (obact->mode & OB_MODE_POSE) {
-				/* TODO(de-duplicate!) */
 				FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter) {
-					for (pchan = ob_iter->pose->chanbase.first; pchan; pchan = pchan->next) {
-						/* ensure that PoseChannel is on visible layer and is not hidden in PoseMode */
-						if (PBONE_VISIBLE(arm, pchan->bone)) {
-							if (pchan->bone->flag & BONE_SELECTED)
-								CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
-						}
-					}
+					FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
+						CTX_data_list_add(result, &ob_iter->id, &RNA_PoseBone, pchan);
+					} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 				} FOREACH_OBJECT_IN_MODE_END;
 			}
 			CTX_data_type_set(result, CTX_DATA_TYPE_COLLECTION);
