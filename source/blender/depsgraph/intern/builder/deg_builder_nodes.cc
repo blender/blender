@@ -300,7 +300,8 @@ void DepsgraphNodeBuilder::build_id(ID* id) {
 			build_movieclip((MovieClip *)id);
 			break;
 		default:
-			fprintf(stderr, "Unhandled ID %s\n", id->name);
+			/* fprintf(stderr, "Unhandled ID %s\n", id->name); */
+			break;
 	}
 }
 
