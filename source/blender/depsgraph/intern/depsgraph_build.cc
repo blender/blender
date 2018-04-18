@@ -206,6 +206,9 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
 
+	BLI_assert(deg_graph->scene == scene);
+	BLI_assert(deg_graph->view_layer == view_layer);
+
 	/* TODO(sergey): This is a bit tricky, but ensures that all the data
 	 * is evaluated properly when depsgraph is becoming "visible".
 	 *
