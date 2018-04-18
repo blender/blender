@@ -58,13 +58,30 @@ void main()
 	id.w = texelFetchOffset(outlineId, texel, 0, ivec2( 1,  0)).r;
 #endif
 
-	float ref_depth = texelFetch(outlineDepth, texel, 0).r;
-	float scene_depth = texelFetch(sceneDepth, texel, 0).r;
+	bool outline = any(notEqual(id, uvec4(ref_id)));
+
+	ivec2 depth_texel = texel;
+	/* If texel is an outline but has no valid id ...
+	 * replace id and depth texel by a valid one.
+	 * This keeps the outline thickness consistent everywhere. */
+	if (ref_id == 0u && outline) {
+		depth_texel = (id.x != 0u) ? texel + ivec2(-1,  0) : depth_texel;
+		depth_texel = (id.y != 0u) ? texel + ivec2( 0, -1) : depth_texel;
+		depth_texel = (id.z != 0u) ? texel + ivec2( 0,  1) : depth_texel;
+		depth_texel = (id.w != 0u) ? texel + ivec2( 1,  0) : depth_texel;
+
+		ref_id = (id.x != 0u) ? id.x : ref_id;
+		ref_id = (id.y != 0u) ? id.y : ref_id;
+		ref_id = (id.z != 0u) ? id.z : ref_id;
+		ref_id = (id.w != 0u) ? id.w : ref_id;
+	}
+
+	float ref_depth = texelFetch(outlineDepth, depth_texel, 0).r;
+	float scene_depth = texelFetch(sceneDepth, depth_texel, 0).r;
 
 	/* Avoid bad cases of zfighting for occlusion only. */
 	const float epsilon = 3.0 / 8388608.0;
 	bool occluded = (ref_depth > scene_depth + epsilon);
-	bool outline = any(notEqual(id, uvec4(ref_id)));
 
 	FragColor = convert_id_to_color(int(ref_id));
 	FragColor.a *= (occluded) ? alphaOcclu : 1.0;
