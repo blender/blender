@@ -333,6 +333,8 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->gridlines = 16;
 	v3d->gridsubdiv = 10;
 	v3d->drawtype = OB_SOLID;
+	v3d->drawtype_solid = OB_LIGHTING_STUDIO;
+	v3d->drawtype_texture = OB_LIGHTING_STUDIO;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 	

@@ -19,11 +19,11 @@
  *
  */
 
-/** \file solid_flat_mode.c
+/** \file solid_studio_mode.c
  *  \ingroup draw_engine
  *
  * Simple engine for drawing color and/or depth.
- * When we only need simple flat shaders.
+ * When we only need simple studio shaders.
  */
 
 #include "DRW_render.h"
@@ -33,8 +33,8 @@
 #include "workbench_private.h"
 /* Shaders */
 
-extern char datatoc_solid_flat_frag_glsl[];
-extern char datatoc_workbench_vert_glsl[];
+extern char datatoc_solid_studio_frag_glsl[];
+extern char datatoc_workbench_studio_vert_glsl[];
 
 /* *********** STATIC *********** */
 static struct {
@@ -48,7 +48,7 @@ static struct {
 
 /* Functions */
 
-static void workbench_solid_flat_engine_init(void *UNUSED(vedata))
+static void workbench_solid_studio_engine_init(void *UNUSED(vedata))
 {
 	if (!e_data.depth_sh) {
 		/* Depth pass */
@@ -56,11 +56,11 @@ static void workbench_solid_flat_engine_init(void *UNUSED(vedata))
 
 		/* Shading pass */
 		e_data.solid_sh = DRW_shader_create(
-						datatoc_workbench_vert_glsl, NULL, datatoc_solid_flat_frag_glsl, "\n");
+						datatoc_workbench_studio_vert_glsl, NULL, datatoc_solid_studio_frag_glsl, "\n");
 	}
 }
 
-static void workbench_solid_flat_cache_init(void *vedata)
+static void workbench_solid_studio_cache_init(void *vedata)
 {
 
 	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
@@ -86,7 +86,7 @@ static void workbench_solid_flat_cache_init(void *vedata)
 	}
 }
 
-static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
+static void workbench_solid_studio_cache_populate(void *vedata, Object *ob)
 {
 	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
 
@@ -112,37 +112,37 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 	}
 }
 
-static void workbench_solid_flat_cache_finish(void *UNUSED(vedata))
+static void workbench_solid_studio_cache_finish(void *UNUSED(vedata))
 {
 }
 
-static void workbench_solid_flat_draw_scene(void *vedata)
+static void workbench_solid_studio_draw_scene(void *vedata)
 {
-	// WORKBENCH_Data *data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
 	WORKBENCH_PassList *psl = ((WORKBENCH_Data *)vedata)->psl;
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->solid_pass);
 }
 
-static void workbench_solid_flat_engine_free(void)
+static void workbench_solid_studio_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.solid_sh);
 }
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
-DrawEngineType draw_engine_workbench_solid_flat = {
+DrawEngineType draw_engine_workbench_solid_studio = {
 	NULL, NULL,
 	N_("Workbench"),
 	&workbench_data_size,
-	&workbench_solid_flat_engine_init,
-	&workbench_solid_flat_engine_free,
-	&workbench_solid_flat_cache_init,
-	&workbench_solid_flat_cache_populate,
-	&workbench_solid_flat_cache_finish,
+	&workbench_solid_studio_engine_init,
+	&workbench_solid_studio_engine_free,
+	&workbench_solid_studio_cache_init,
+	&workbench_solid_studio_cache_populate,
+	&workbench_solid_studio_cache_finish,
 	NULL,
-	&workbench_solid_flat_draw_scene,
+	&workbench_solid_studio_draw_scene,
 	NULL,
 	NULL,
 	NULL,

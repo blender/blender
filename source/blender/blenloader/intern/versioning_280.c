@@ -948,4 +948,22 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
+		bScreen *sc;
+		ScrArea *sa;
+		SpaceLink *sl;
+
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->drawtype_solid = OB_LIGHTING_STUDIO;
+						v3d->drawtype_wireframe = OB_LIGHTING_STUDIO;
+					}
+				}
+			}
+		}
+	}
 }
