@@ -4064,16 +4064,26 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 
 static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
 
 	const float offset = RNA_float_get(op->ptr, "offset");
 	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const int center_mode = RNA_enum_get(op->ptr, "center_mode");
 
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
+	{
+	Object *obedit = objects[ob_index];
+	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	if (em->bm->totfacesel == 0) {
+		continue;
+	}
+
+	BMOperator bmop;
 	EDBM_op_init(em, &bmop, op, "poke faces=%hf offset=%f use_relative_offset=%b center_mode=%i",
-	             BM_ELEM_SELECT, offset, use_relative_offset, center_mode);
+				 BM_ELEM_SELECT, offset, use_relative_offset, center_mode);
 	BMO_op_exec(em->bm, &bmop);
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -4082,12 +4092,14 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 
 	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		continue;
 	}
 
 	EDBM_mesh_normals_update(em);
 
 	EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 
