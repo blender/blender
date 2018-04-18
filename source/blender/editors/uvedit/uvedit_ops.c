@@ -3127,21 +3127,19 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
+			changed_multi = true;
+
 			uv_select_sync_flush(ts, em, select);
 
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			}
 		}
-		changed_multi |= changed;
 	}
 
 	MEM_SAFE_FREE(objects);
 
-	if (changed_multi) {
-		return OPERATOR_FINISHED;
-	}
-	return OPERATOR_CANCELLED;
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 static void UV_OT_select_border(wmOperatorType *ot)
@@ -3391,14 +3389,14 @@ static bool do_lasso_select_mesh_uv(bContext *C, const int mcords[][2], short mo
 		}
 
 		if (changed) {
+			changed_multi = true;
+
 			uv_select_sync_flush(scene->toolsettings, em, select);
 
 			if (ts->uv_flag & UV_SYNC_SELECTION) {
 				WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 			}
 		}
-
-		changed_multi |= changed;
 	}
 
 	return changed_multi;

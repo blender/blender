@@ -1542,11 +1542,11 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 		}
 
 		if (changed) {
+			changed_multi = true;
 			uv_map_clip_correct(scene, obedit, em, op);
 
 			DEG_id_tag_update(obedit->data, 0);
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-			changed_multi = true;
 		}
 	}
 	MEM_SAFE_FREE(objects);
