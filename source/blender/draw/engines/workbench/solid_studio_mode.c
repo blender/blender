@@ -44,6 +44,7 @@ static struct {
 	struct GPUShader *solid_sh;
 
 } e_data = {NULL};
+const float SOLID_STUDIO_DEFAULT_COLOR[3] = {1.0, 1.0, 1.0};
 
 
 /* Functions */
@@ -107,7 +108,7 @@ static void workbench_solid_studio_cache_populate(void *vedata, Object *ob)
 
 		/* Solid */
 		grp = DRW_shgroup_create(e_data.solid_sh, psl->solid_pass);
-		DRW_shgroup_uniform_vec3(grp, "color", color, 1);
+		DRW_shgroup_uniform_vec3(grp, "color", SOLID_STUDIO_DEFAULT_COLOR, 1);
 		DRW_shgroup_call_add(grp, geom, ob->obmat);
 	}
 }

@@ -44,6 +44,7 @@ static struct {
 	struct GPUShader *solid_sh;
 
 } e_data = {NULL};
+const float SOLID_FLAT_DEFAULT_COLOR[3] = {1.0, 1.0, 1.0};
 
 
 /* Functions */
@@ -94,7 +95,7 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 	WORKBENCH_StorageList *stl = data->stl;
 
 	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
-	const float* color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
+	// const float* color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
 
 	if (!DRW_object_is_renderable(ob))
 		return;
@@ -107,7 +108,7 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 
 		/* Solid */
 		grp = DRW_shgroup_create(e_data.solid_sh, psl->solid_pass);
-		DRW_shgroup_uniform_vec3(grp, "color", color, 1);
+		DRW_shgroup_uniform_vec3(grp, "color", SOLID_FLAT_DEFAULT_COLOR, 1);
 		DRW_shgroup_call_add(grp, geom, ob->obmat);
 	}
 }
