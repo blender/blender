@@ -2035,8 +2035,13 @@ void BKE_view_layer_engine_settings_validate_layer(ViewLayer *view_layer)
 	IDP_MergeGroup(view_layer->properties, root_reference.view_layer, false);
 }
 
-/* ---------------------------------------------------------------------- */
+/** \} */
+
 /* Iterators */
+
+/* -------------------------------------------------------------------- */
+/** \name Private Iterator Helpers
+ * \{ */
 
 static void object_bases_iterator_begin(BLI_Iterator *iter, void *data_in, const int flag)
 {
@@ -2093,67 +2098,96 @@ static void objects_iterator_next(BLI_Iterator *iter, const int flag)
 	}
 }
 
-void BKE_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_selected_objects_iterator
+ * See: #FOREACH_SELECTED_OBJECT_BEGIN
+ * \{ */
+
+void BKE_view_layer_selected_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	objects_iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
-void BKE_selected_objects_iterator_next(BLI_Iterator *iter)
+void BKE_view_layer_selected_objects_iterator_next(BLI_Iterator *iter)
 {
 	objects_iterator_next(iter, BASE_SELECTED);
 }
 
-void BKE_selected_objects_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_selected_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_visible_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_selected_objects_iterator
+ * \{ */
+
+void BKE_view_layer_visible_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	objects_iterator_begin(iter, data_in, BASE_VISIBLED);
 }
 
-void BKE_visible_objects_iterator_next(BLI_Iterator *iter)
+void BKE_view_layer_visible_objects_iterator_next(BLI_Iterator *iter)
 {
 	objects_iterator_next(iter, BASE_VISIBLED);
 }
 
-void BKE_visible_objects_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_visible_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_selected_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_selected_bases_iterator
+ * \{ */
+
+void BKE_view_layer_selected_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	object_bases_iterator_begin(iter, data_in, BASE_SELECTED);
 }
 
-void BKE_selected_bases_iterator_next(BLI_Iterator *iter)
+void BKE_view_layer_selected_bases_iterator_next(BLI_Iterator *iter)
 {
 	object_bases_iterator_next(iter, BASE_SELECTED);
 }
 
-void BKE_selected_bases_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_selected_bases_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_visible_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_visible_bases_iterator
+ * \{ */
+
+void BKE_view_layer_visible_bases_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	object_bases_iterator_begin(iter, data_in, BASE_VISIBLED);
 }
 
-void BKE_visible_bases_iterator_next(BLI_Iterator *iter)
+void BKE_view_layer_visible_bases_iterator_next(BLI_Iterator *iter)
 {
 	object_bases_iterator_next(iter, BASE_VISIBLED);
 }
 
-void BKE_visible_bases_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
 
-void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_renderable_objects_iterator
+ * \{ */
+
+void BKE_view_layer_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	struct ObjectsRenderableIteratorData *data = data_in;
 
@@ -2175,10 +2209,10 @@ void BKE_renderable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
 	data->iter.set = NULL;
 
 	iter->data = data_in;
-	BKE_renderable_objects_iterator_next(iter);
+	BKE_view_layer_renderable_objects_iterator_next(iter);
 }
 
-void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
+void BKE_view_layer_renderable_objects_iterator_next(BLI_Iterator *iter)
 {
 	/* Set it early in case we need to exit and we are running from within a loop. */
 	iter->skip = true;
@@ -2233,16 +2267,18 @@ void BKE_renderable_objects_iterator_next(BLI_Iterator *iter)
 	iter->valid = false;
 }
 
-void BKE_renderable_objects_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_renderable_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* Do nothing - iter->data was static allocated, we can't free it. */
 }
 
+/** \} */
+
 /* -------------------------------------------------------------------- */
-/** \name BKE_view_layer_objects_in_mode_iterator
+/** \name BKE_view_layer_bases_in_mode_iterator
  * \{ */
 
-void BKE_view_layer_objects_in_mode_iterator_begin(BLI_Iterator *iter, void *data_in)
+void BKE_view_layer_bases_in_mode_iterator_begin(BLI_Iterator *iter, void *data_in)
 {
 	struct ObjectsInModeIteratorData *data = data_in;
 	Base *base = data->base_active;
@@ -2256,7 +2292,7 @@ void BKE_view_layer_objects_in_mode_iterator_begin(BLI_Iterator *iter, void *dat
 	iter->current = base;
 }
 
-void BKE_view_layer_objects_in_mode_iterator_next(BLI_Iterator *iter)
+void BKE_view_layer_bases_in_mode_iterator_next(BLI_Iterator *iter)
 {
 	struct ObjectsInModeIteratorData *data = iter->data;
 	Base *base = iter->current;
@@ -2286,7 +2322,7 @@ void BKE_view_layer_objects_in_mode_iterator_next(BLI_Iterator *iter)
 	iter->valid = false;
 }
 
-void BKE_view_layer_objects_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
+void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }
