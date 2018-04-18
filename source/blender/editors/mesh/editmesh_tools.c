@@ -93,24 +93,30 @@
 
 static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 {
-	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const int cuts = RNA_int_get(op->ptr, "number_cuts");
+	const float smooth = RNA_float_get(op->ptr, "smoothness");
+	const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+	const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
+	if (RNA_boolean_get(op->ptr, "quadtri") &&
+	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
+	{
+		RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
+	}
+	const int quad_corner_type = RNA_enum_get(op->ptr, "quadcorner");
+	const bool use_quad_tri = RNA_boolean_get(op->ptr, "quadtri");
+	const int seed = RNA_int_get(op->ptr, "seed");
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
-
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		const int cuts = RNA_int_get(op->ptr, "number_cuts");
-		float smooth = RNA_float_get(op->ptr, "smoothness");
-		const float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
-		const float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
-		if (RNA_boolean_get(op->ptr, "quadtri") &&
-		    RNA_enum_get(op->ptr, "quadcorner") == SUBD_CORNER_STRAIGHT_CUT)
-		{
-			RNA_enum_set(op->ptr, "quadcorner", SUBD_CORNER_INNERVERT);
+		if (!(em->bm->totedgesel || em->bm->totfacesel)) {
+			continue;
 		}
 
 		BM_mesh_esubdivide(
@@ -118,9 +124,9 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 		        smooth, SUBD_FALLOFF_LIN, false,
 		        fractal, along_normal,
 		        cuts,
-		        SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
-		        RNA_boolean_get(op->ptr, "quadtri"), true, false,
-		        RNA_int_get(op->ptr, "seed"));
+		        SUBDIV_SELECT_ORIG, quad_corner_type,
+		        use_quad_tri, true, false,
+		        seed);
 
 		EDBM_update_generic(em, true, true);
 	}
