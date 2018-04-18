@@ -1053,7 +1053,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
-		mti->deformVerts(md, depsgraph, ob, NULL, vertexCos, numVerts, 0);
+		modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, vertexCos, numVerts, 0);
 	}
 
 	/* always displist to make this work like derivedmesh */

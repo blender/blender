@@ -84,12 +84,21 @@ ModifierTypeInfo modifierType_Softbody = {
 	                        eModifierTypeFlag_Single,
 
 	/* copyData */          NULL,
-	/* deformVerts */       deformVerts,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  NULL,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          NULL,
 	/* requiredDataMask */  NULL,
 	/* freeData */          NULL,

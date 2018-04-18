@@ -128,12 +128,21 @@ ModifierTypeInfo modifierType_ShapeKey = {
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          NULL,
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    deformMatrices,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  deformMatricesEM,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformMatrices_DM */ deformMatrices,
+	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformMatricesEM_DM*/deformMatricesEM,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          NULL,
 	/* requiredDataMask */  NULL,
 	/* freeData */          NULL,

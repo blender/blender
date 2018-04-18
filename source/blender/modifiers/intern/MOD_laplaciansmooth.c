@@ -551,12 +551,21 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copy_data */         copy_data,
-	/* deformVerts */       deformVerts,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     deformVertsEM,
+	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          init_data,
 	/* requiredDataMask */  required_data_mask,
 	/* freeData */          NULL,

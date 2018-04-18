@@ -276,7 +276,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 		if (!editbmesh_modifier_is_enabled(scene, md, dm))
 			continue;
 
-		if (mti->type == eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
+		if (mti->type == eModifierTypeType_OnlyDeform && (mti->deformMatricesEM || mti->deformMatricesEM_DM)) {
 			if (!defmats) {
 				const int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 				CustomDataMask data_mask = CD_MASK_BAREMESH;
@@ -292,8 +292,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 					unit_m3(defmats[a]);
 			}
 
-			mti->deformMatricesEM(md, depsgraph, ob, em, dm, deformedVerts, defmats,
-			                      numVerts);
+			modifier_deformMatricesEM_DM_deprecated(md, depsgraph, ob, em, dm, deformedVerts, defmats, numVerts);
 		}
 		else
 			break;
@@ -350,7 +349,9 @@ int BKE_sculpt_get_first_deform_matrices(
 					unit_m3(defmats[a]);
 			}
 
-			if (mti->deformMatrices) mti->deformMatrices(md, depsgraph, ob, dm, deformedVerts, defmats, numVerts);
+			if (mti->deformMatrices || mti->deformMatrices_DM) {
+				modifier_deformMatrices_DM_deprecated(md, depsgraph, ob, dm, deformedVerts, defmats, numVerts);
+			}
 			else break;
 		}
 	}
@@ -397,10 +398,10 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph, Scene *scene, Obje
 			if (mti->type == eModifierTypeType_OnlyDeform) {
 				/* skip leading modifiers which have been already
 				 * handled in sculpt_get_first_deform_matrices */
-				if (mti->deformMatrices && !deformed)
+				if ((mti->deformMatrices || mti->deformMatrices_DM) && !deformed)
 					continue;
 
-				mti->deformVerts(md, depsgraph, ob, NULL, deformedVerts, me->totvert, 0);
+				modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, deformedVerts, me->totvert, 0);
 				deformed = 1;
 			}
 		}

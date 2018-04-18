@@ -225,12 +225,21 @@ ModifierTypeInfo modifierType_Cloth = {
 	                        eModifierTypeFlag_Single,
 
 	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  NULL,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,

@@ -749,12 +749,21 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     deformVertsEM,
+	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,

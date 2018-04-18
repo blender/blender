@@ -221,12 +221,21 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 	                        eModifierTypeFlag_EnableInEditmode */,
 
 	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
-	/* deformVertsEM */     NULL,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformVertsEM_DM */  NULL,
+	/* deformMatrices_DM */ NULL,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          freeData,

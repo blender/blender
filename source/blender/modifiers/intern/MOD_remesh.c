@@ -224,12 +224,21 @@ ModifierTypeInfo modifierType_Remesh = {
 	                        eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
+
+	/* deformVerts_DM */    NULL,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  NULL,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  applyModifier,
+	/* applyModifierEM_DM */NULL,
+
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
+	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,
 	/* freeData */          NULL,

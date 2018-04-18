@@ -860,7 +860,7 @@ static void curve_calc_modifiers_pre(
 				deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
 			}
 
-			mti->deformVerts(md, depsgraph, ob, NULL, deformedVerts, numVerts, app_flag);
+			modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, deformedVerts, numVerts, app_flag);
 
 			if (md == pretessellatePoint)
 				break;
@@ -969,14 +969,14 @@ static void curve_calc_modifiers_post(
 					dm->getVertCos(dm, vertCos);
 				}
 
-				mti->deformVerts(md, depsgraph, ob, dm, vertCos, totvert, appf);
+				modifier_deformVerts_DM_deprecated(md, depsgraph, ob, dm, vertCos, totvert, appf);
 			}
 			else {
 				if (!vertCos) {
 					vertCos = displist_get_allverts(dispbase, &totvert);
 				}
 
-				mti->deformVerts(md, depsgraph, ob, NULL, vertCos, totvert, appf);
+				modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, vertCos, totvert, appf);
 			}
 		}
 		else {

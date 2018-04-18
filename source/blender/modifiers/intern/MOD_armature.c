@@ -189,12 +189,21 @@ ModifierTypeInfo modifierType_Armature = {
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    deformMatrices,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  deformMatricesEM,
+
+	/* deformVerts_DM */    deformVerts,
+	/* deformMatrices_DM */ deformMatrices,
+	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformMatricesEM_DM*/deformMatricesEM,
+	/* applyModifier_DM */  NULL,
+	/* applyModifierEM_DM */NULL,
+
+	/* deformVerts */       NULL,
+	/* deformMatrices */    NULL,
+	/* deformVertsEM */     NULL,
+	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
+
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
 	/* freeData */          NULL,

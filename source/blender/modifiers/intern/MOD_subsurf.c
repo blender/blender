@@ -209,12 +209,21 @@ ModifierTypeInfo modifierType_Subsurf = {
 	                        eModifierTypeFlag_AcceptsCVs,
 
 	/* copyData */          copyData,
+
+	/* deformVerts_DM */    NULL,
+	/* deformMatrices_DM */ NULL,
+	/* deformVertsEM_DM */  NULL,
+	/* deformMatricesEM_DM*/NULL,
+	/* applyModifier_DM */  applyModifier,
+	/* applyModifierEM_DM */applyModifierEM,
+
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   applyModifierEM,
+	/* applyModifier */     NULL,
+	/* applyModifierEM */   NULL,
+
 	/* initData */          initData,
 	/* requiredDataMask */  NULL,
 	/* freeData */          freeData,
