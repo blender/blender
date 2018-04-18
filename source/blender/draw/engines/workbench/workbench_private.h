@@ -41,17 +41,10 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *solid_pass;
 } WORKBENCH_PassList;
 
-typedef struct WORKBENCH_FrameBufferList {
-} WORKBENCH_FrameBufferList;
-
-typedef struct WORKBENCH_TextureList {
-} WORKBENCH_TextureList;
-
-
 typedef struct WORKBENCH_Data {
 	void *engine_type;
-	WORKBENCH_FrameBufferList *fbl;
-	WORKBENCH_TextureList *txl;
+	DRWViewportEmptyList *fbl;
+	DRWViewportEmptyList *txl;
 	WORKBENCH_PassList *psl;
 	WORKBENCH_StorageList *stl;
 } WORKBENCH_Data;
