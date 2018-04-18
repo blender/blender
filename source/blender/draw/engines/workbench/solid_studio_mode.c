@@ -57,7 +57,7 @@ static void workbench_solid_studio_engine_init(void *UNUSED(vedata))
 
 		/* Shading pass */
 		e_data.solid_sh = DRW_shader_create(
-						datatoc_workbench_studio_vert_glsl, NULL, datatoc_solid_studio_frag_glsl, "\n");
+		        datatoc_workbench_studio_vert_glsl, NULL, datatoc_solid_studio_frag_glsl, "\n");
 	}
 }
 
