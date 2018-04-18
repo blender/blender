@@ -511,13 +511,13 @@ bool BKE_override_static_status_check_reference(ID *local)
  * are much cheaper.
  *
  * \return true is new overriding op was created, or some local data was reset. */
-bool BKE_override_static_operations_create(ID *local)
+bool BKE_override_static_operations_create(ID *local, const bool force_auto)
 {
 	BLI_assert(local->override_static != NULL);
 	const bool is_template = (local->override_static->reference == NULL);
 	bool ret = false;
 
-	if (!is_template && local->flag & LIB_OVERRIDE_STATIC_AUTO) {
+	if (!is_template && (force_auto || local->flag & LIB_OVERRIDE_STATIC_AUTO)) {
 		PointerRNA rnaptr_local, rnaptr_reference;
 		RNA_id_pointer_create(local, &rnaptr_local);
 		RNA_id_pointer_create(local->override_static->reference, &rnaptr_reference);
@@ -545,7 +545,7 @@ bool BKE_override_static_operations_create(ID *local)
 }
 
 /** Check all overrides from given \a bmain and create/update overriding operations as needed. */
-void BKE_main_override_static_operations_create(Main *bmain)
+void BKE_main_override_static_operations_create(Main *bmain, const bool force_auto)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int base_count, i;
@@ -557,8 +557,10 @@ void BKE_main_override_static_operations_create(Main *bmain)
 		ID *id;
 
 		for (id = lb->first; id; id = id->next) {
-			if (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH)) {
-				BKE_override_static_operations_create(id);
+			if (force_auto ||
+			    (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH)))
+			{
+				BKE_override_static_operations_create(id, force_auto);
 				id->tag &= ~LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;
 			}
 		}
@@ -686,7 +688,7 @@ ID *BKE_override_static_operations_store_start(OverrideStaticStorage *override_s
 	}
 
 	/* Forcefully ensure we know about all needed override operations. */
-	BKE_override_static_operations_create(local);
+	BKE_override_static_operations_create(local, false);
 
 	ID *storage_id;
 #ifdef DEBUG_OVERRIDE_TIMEIT
