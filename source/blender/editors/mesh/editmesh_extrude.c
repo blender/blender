@@ -35,6 +35,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 
+#include "BKE_layer.h"
 #include "BKE_context.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
@@ -481,12 +482,24 @@ void MESH_OT_extrude_verts_indiv(wmOperatorType *ot)
 
 static int edbm_extrude_edges_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT);
 
-	EDBM_update_generic(em, true, true);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
+	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		if (em->bm->totedgesel == 0) {
+			continue;
+		}
+
+		edbm_extrude_edges_indiv(em, op, BM_ELEM_SELECT);
+
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
