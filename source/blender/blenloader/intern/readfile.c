@@ -2902,7 +2902,6 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 	link_list(fd, BKE_workspace_layouts_get(workspace));
 	link_list(fd, &workspace->hook_layout_relations);
 	link_list(fd, &workspace->scene_viewlayer_relations);
-	link_list(fd, BKE_workspace_transform_orientations_get(workspace));
 	link_list(fd, &workspace->owner_ids);
 
 	for (WorkSpaceDataRelation *relation = workspace->hook_layout_relations.first;
@@ -6258,7 +6257,7 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 	}
 	
 	link_list(fd, &(sce->markers));
-	link_list(fd, &(sce->transform_spaces)); /* only for old files */
+	link_list(fd, &(sce->transform_spaces));
 	link_list(fd, &(sce->r.layers));
 	link_list(fd, &(sce->r.views));
 

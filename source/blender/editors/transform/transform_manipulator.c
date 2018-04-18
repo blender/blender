@@ -59,6 +59,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_gpencil.h"
+#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "BIF_gl.h"
@@ -619,7 +620,7 @@ static int calc_manipulator_stats(
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
 	if (ob && !is_gp_edit) {
 
-		switch (v3d->twmode) {
+		switch (scene->orientation_type) {
 
 			case V3D_MANIP_GLOBAL:
 			{
@@ -672,8 +673,8 @@ static int calc_manipulator_stats(
 			}
 			case V3D_MANIP_CUSTOM:
 			{
-				TransformOrientation *custom_orientation = BKE_workspace_transform_orientation_find(
-				        CTX_wm_workspace(C), v3d->custom_orientation_index);
+				TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
+				        scene, scene->orientation_index_custom);
 				float mat[3][3];
 
 				if (applyTransformOrientation(custom_orientation, mat, NULL)) {
@@ -1133,9 +1134,9 @@ static void manipulator_xform_message_subscribe(
 	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, sa->spacedata.first, &space_ptr);
 
 	{
-		extern PropertyRNA rna_SpaceView3D_transform_orientation;
+		extern PropertyRNA rna_Scene_transform_orientation;
 		const PropertyRNA *props[] = {
-			&rna_SpaceView3D_transform_orientation,
+			&rna_Scene_transform_orientation,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
 			WM_msg_subscribe_rna(mbus, &space_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);

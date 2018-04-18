@@ -53,6 +53,7 @@
 #include "BKE_report.h"
 #include "BKE_main.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 #include "BKE_workspace.h"
 
 #include "BLT_translation.h"
@@ -65,16 +66,15 @@
 
 void BIF_clearTransformOrientation(bContext *C)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ListBase *transform_orientations = BKE_workspace_transform_orientations_get(workspace);
+	Scene *scene = CTX_data_scene(C);
+	ListBase *transform_orientations = &scene->transform_spaces;
 	View3D *v3d = CTX_wm_view3d(C);
 
 	BLI_freelistN(transform_orientations);
-	
-	// Need to loop over all view3d
-	if (v3d && v3d->twmode == V3D_MANIP_CUSTOM) {
-		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global */
-		v3d->custom_orientation_index = -1;
+
+	if (v3d && scene->orientation_type == V3D_MANIP_CUSTOM) {
+		scene->orientation_type = V3D_MANIP_GLOBAL; /* fallback to global */
+		scene->orientation_index_custom = -1;
 	}
 }
 
@@ -323,8 +323,8 @@ TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3],
                                      const char *name, const bool overwrite)
 {
 	TransformOrientation *ts = NULL;
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ListBase *transform_orientations = BKE_workspace_transform_orientations_get(workspace);
+	Scene *scene = CTX_data_scene(C);
+	ListBase *transform_orientations = &scene->transform_spaces;
 	char name_unique[sizeof(ts->name)];
 
 	if (overwrite) {
@@ -351,24 +351,24 @@ TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3],
 
 void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target)
 {
-	BKE_workspace_transform_orientation_remove(CTX_wm_workspace(C), target);
+	BKE_scene_transform_orientation_remove(CTX_data_scene(C), target);
 }
 
 void BIF_removeTransformOrientationIndex(bContext *C, int index)
 {
-	TransformOrientation *target = BKE_workspace_transform_orientation_find(CTX_wm_workspace(C), index);
+	TransformOrientation *target = BKE_scene_transform_orientation_find(CTX_data_scene(C), index);
 	BIF_removeTransformOrientation(C, target);
 }
 
 void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target)
 {
-	int index = BKE_workspace_transform_orientation_get_index(CTX_wm_workspace(C), target);
-	View3D *v3d = CTX_wm_view3d(C);
+	Scene *scene = CTX_data_scene(C);
+	int index = BKE_scene_transform_orientation_get_index(scene, target);
 
 	BLI_assert(index != -1);
 
-	v3d->twmode = V3D_MANIP_CUSTOM;
-	v3d->custom_orientation_index = index;
+	scene->orientation_type = V3D_MANIP_CUSTOM;
+	scene->orientation_index_custom = index;
 }
 
 /**
@@ -377,18 +377,17 @@ void BIF_selectTransformOrientation(bContext *C, TransformOrientation *target)
  * \param orientation: If this is #V3D_MANIP_CUSTOM or greater, the custom transform orientation
  *                     with index \a orientation - #V3D_MANIP_CUSTOM gets activated.
  */
-void BIF_selectTransformOrientationValue(View3D *v3d, int orientation)
+void BIF_selectTransformOrientationValue(Scene *scene, int orientation)
 {
 	const bool is_custom = orientation >= V3D_MANIP_CUSTOM;
-
-	v3d->twmode = is_custom ? V3D_MANIP_CUSTOM : orientation;
-	v3d->custom_orientation_index = is_custom ? (orientation - V3D_MANIP_CUSTOM) : -1;
+	scene->orientation_type = is_custom ? V3D_MANIP_CUSTOM : orientation;
+	scene->orientation_index_custom = is_custom ? (orientation - V3D_MANIP_CUSTOM) : -1;
 }
 
 int BIF_countTransformOrientation(const bContext *C)
 {
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	ListBase *transform_orientations = BKE_workspace_transform_orientations_get(workspace);
+	Scene *scene = CTX_data_scene(C);
+	ListBase *transform_orientations = &scene->transform_spaces;
 	return BLI_listbase_count(transform_orientations);
 }
 

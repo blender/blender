@@ -325,9 +325,6 @@ void BKE_screen_manipulator_tag_refresh(struct bScreen *sc);
 
 void BKE_screen_view3d_sync(struct View3D *v3d, struct Scene *scene);
 void BKE_screen_view3d_scene_sync(struct bScreen *sc, struct Scene *scene);
-void BKE_screen_transform_orientation_remove(
-        const struct bScreen *screen, const struct WorkSpace *workspace,
-        const struct TransformOrientation *orientation) ATTR_NONNULL();
 bool BKE_screen_is_fullscreen_area(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 bool BKE_screen_is_used(const struct bScreen *screen) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL();
 

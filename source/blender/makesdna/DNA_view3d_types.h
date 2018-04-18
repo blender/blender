@@ -197,7 +197,7 @@ typedef struct View3D {
 	char gridflag;
 
 	/* transform manipulator info */
-	char twtype, twmode, twflag;
+	char twtype, _pad5, twflag;
 	
 	short flag3;
 	
@@ -211,9 +211,7 @@ typedef struct View3D {
 
 	char multiview_eye;				/* multiview current eye - for internal use */
 
-	/* The active custom transform orientation of this 3D view. */
-	short custom_orientation_index;
-	char pad3[2];
+	char pad3[4];
 
 	/* note, 'fx_settings.dof' is currently _not_ allocated,
 	 * instead set (temporarily) from camera */
@@ -363,7 +361,7 @@ enum {
 #define V3D_MANIP_ROTATE		2
 #define V3D_MANIP_SCALE			4
 
-/* View3d->twmode */
+/* Scene.orientation_type */
 #define V3D_MANIP_GLOBAL		0
 #define V3D_MANIP_LOCAL			1
 #define V3D_MANIP_NORMAL		2

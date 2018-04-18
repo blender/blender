@@ -62,6 +62,7 @@
 #include "BKE_constraint.h"
 #include "BKE_particle.h"
 #include "BKE_unit.h"
+#include "BKE_scene.h"
 #include "BKE_mask.h"
 #include "BKE_report.h"
 #include "BKE_workspace.h"
@@ -2009,13 +2010,10 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			if ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
 			    !RNA_property_is_set(op->ptr, prop))
 			{
-				View3D *v3d = t->view;
-
-				v3d->twmode = t->current_orientation;
-
-				BLI_assert(((v3d->custom_orientation_index == -1) && (t->custom_orientation == NULL)) ||
-				           (BKE_workspace_transform_orientation_get_index(
-				                    CTX_wm_workspace(C), t->custom_orientation) == v3d->custom_orientation_index));
+				t->scene->orientation_type = t->current_orientation;
+				BLI_assert(((t->scene->orientation_index_custom == -1) && (t->custom_orientation == NULL)) ||
+				           (BKE_scene_transform_orientation_get_index(
+				                    t->scene, t->custom_orientation) == t->scene->orientation_index_custom));
 			}
 		}
 	}
@@ -2040,12 +2038,11 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		short orientation = (t->con.mode & CON_APPLY) ? t->con.orientation : t->current_orientation;
 
 		if (orientation == V3D_MANIP_CUSTOM) {
-			WorkSpace *workspace = CTX_wm_workspace(C);
-			const int custom_orientation_index = BKE_workspace_transform_orientation_get_index(
-			                                       workspace, t->custom_orientation);
+			const int orientation_index_custom = BKE_scene_transform_orientation_get_index(
+			        t->scene, t->custom_orientation);
 
 			/* Maybe we need a t->con.custom_orientation? Seems like it would always match t->custom_orientation. */
-			orientation = V3D_MANIP_CUSTOM + custom_orientation_index;
+			orientation = V3D_MANIP_CUSTOM + orientation_index_custom;
 			BLI_assert(orientation >= V3D_MANIP_CUSTOM);
 		}
 		RNA_enum_set(op->ptr, "constraint_orientation", orientation);
