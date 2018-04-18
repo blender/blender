@@ -96,7 +96,8 @@
 
 #include "RE_shader_ext.h"
 
-#include "ED_particle.h"
+/* FIXME: BAD LEVEL CALL. */
+#include "../../editors/include/ED_particle.h"
 
 /* fluid sim particle import */
 #ifdef WITH_MOD_FLUID
