@@ -4354,10 +4354,6 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 
 static int edbm_decimate_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-
 	const float ratio = RNA_float_get(op->ptr, "ratio");
 	bool use_vertex_group = RNA_boolean_get(op->ptr, "use_vertex_group");
 	const float vertex_group_factor = RNA_float_get(op->ptr, "vertex_group_factor");
@@ -4371,95 +4367,109 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 	}
 
-	float *vweights = MEM_mallocN(sizeof(*vweights) * bm->totvert, __func__);
-	{
-		const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
-		const int defbase_act = obedit->actdef - 1;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-		if (use_vertex_group && (cd_dvert_offset == -1)) {
-			BKE_report(op->reports, RPT_WARNING, "No active vertex group");
-			use_vertex_group = false;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
+	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		if (bm->totedgesel == 0) {
+			continue;
 		}
 
-		BMIter iter;
-		BMVert *v;
-		int i;
-		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
-			float weight = 0.0f;
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-				if (use_vertex_group) {
-					const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
-					weight = defvert_find_weight(dv, defbase_act);
-					if (invert_vertex_group) {
-						weight = 1.0f - weight;
-					}
-				}
-				else {
-					weight = 1.0f;
-				}
+		float *vweights = MEM_mallocN(sizeof(*vweights) * bm->totvert, __func__);
+		{
+			const int cd_dvert_offset = CustomData_get_offset(&bm->vdata, CD_MDEFORMVERT);
+			const int defbase_act = obedit->actdef - 1;
+
+			if (use_vertex_group && (cd_dvert_offset == -1)) {
+				BKE_report(op->reports, RPT_WARNING, "No active vertex group");
+				use_vertex_group = false;
 			}
 
-			vweights[i] = weight;
-			BM_elem_index_set(v, i); /* set_inline */
-		}
-		bm->elem_index_dirty &= ~BM_VERT;
-	}
-
-	float ratio_adjust;
-
-	if ((bm->totface == bm->totfacesel) || (ratio == 0.0f)) {
-		ratio_adjust = ratio;
-	}
-	else {
-		/**
-		 * Calculate a new ratio based on faces that could be remoevd during decimation.
-		 * needed so 0..1 has a meaningful range when operating on the selection.
-		 *
-		 * This doesn't have to be totally accurate,
-		 * but needs to be greater than the number of selected faces
-		 */
-
-		int totface_basis = 0;
-		int totface_adjacent = 0;
-		BMIter iter;
-		BMFace *f;
-		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			/* count faces during decimation, ngons are triangulated */
-			const int f_len = f->len > 4 ? (f->len - 2) : 1;
-			totface_basis += f_len;
-
-			BMLoop *l_iter, *l_first;
-			l_iter = l_first = BM_FACE_FIRST_LOOP(f);
-			do {
-				if (vweights[BM_elem_index_get(l_iter->v)] != 0.0f) {
-					totface_adjacent += f_len;
-					break;
+			BMIter iter;
+			BMVert *v;
+			int i;
+			BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
+				float weight = 0.0f;
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+					if (use_vertex_group) {
+						const MDeformVert *dv = BM_ELEM_CD_GET_VOID_P(v, cd_dvert_offset);
+						weight = defvert_find_weight(dv, defbase_act);
+						if (invert_vertex_group) {
+							weight = 1.0f - weight;
+						}
+					}
+					else {
+						weight = 1.0f;
+					}
 				}
-			} while ((l_iter = l_iter->next) != l_first);
+
+				vweights[i] = weight;
+				BM_elem_index_set(v, i); /* set_inline */
+			}
+			bm->elem_index_dirty &= ~BM_VERT;
 		}
 
-		ratio_adjust = ratio;
-		ratio_adjust = 1.0f - ratio_adjust;
-		ratio_adjust *= (float)totface_adjacent / (float)totface_basis;
-		ratio_adjust = 1.0f - ratio_adjust;
-	}
+		float ratio_adjust;
 
-	BM_mesh_decimate_collapse(
-	        em->bm, ratio_adjust, vweights, vertex_group_factor, false,
-	        symmetry_axis, symmetry_eps);
-
-	MEM_freeN(vweights);
-
-	{
-		short selectmode = em->selectmode;
-		if ((selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0) {
-			/* ensure we flush edges -> faces */
-			selectmode |= SCE_SELECT_EDGE;
+		if ((bm->totface == bm->totfacesel) || (ratio == 0.0f)) {
+			ratio_adjust = ratio;
 		}
-		EDBM_selectmode_flush_ex(em, selectmode);
-	}
+		else {
+			/**
+			 * Calculate a new ratio based on faces that could be remoevd during decimation.
+			 * needed so 0..1 has a meaningful range when operating on the selection.
+			 *
+			 * This doesn't have to be totally accurate,
+			 * but needs to be greater than the number of selected faces
+			 */
 
-	EDBM_update_generic(em, true, true);
+			int totface_basis = 0;
+			int totface_adjacent = 0;
+			BMIter iter;
+			BMFace *f;
+			BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+				/* count faces during decimation, ngons are triangulated */
+				const int f_len = f->len > 4 ? (f->len - 2) : 1;
+				totface_basis += f_len;
+
+				BMLoop *l_iter, *l_first;
+				l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+				do {
+					if (vweights[BM_elem_index_get(l_iter->v)] != 0.0f) {
+						totface_adjacent += f_len;
+						break;
+					}
+				} while ((l_iter = l_iter->next) != l_first);
+			}
+
+			ratio_adjust = ratio;
+			ratio_adjust = 1.0f - ratio_adjust;
+			ratio_adjust *= (float)totface_adjacent / (float)totface_basis;
+			ratio_adjust = 1.0f - ratio_adjust;
+		}
+
+		BM_mesh_decimate_collapse(
+				em->bm, ratio_adjust, vweights, vertex_group_factor, false,
+				symmetry_axis, symmetry_eps);
+
+		MEM_freeN(vweights);
+
+		{
+			short selectmode = em->selectmode;
+			if ((selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0) {
+				/* ensure we flush edges -> faces */
+				selectmode |= SCE_SELECT_EDGE;
+			}
+			EDBM_selectmode_flush_ex(em, selectmode);
+		}
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
