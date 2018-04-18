@@ -593,7 +593,7 @@ static void initSnappingMode(TransInfo *t)
 	if (t->spacetype == SPACE_VIEW3D) {
 		if (t->tsnap.object_context == NULL) {
 			t->tsnap.object_context = ED_transform_snap_object_context_create_view3d(
-			        G.main, t->scene, 0, t->ar, t->view);
+			        G.main, t->scene, t->depsgraph, 0, t->ar, t->view);
 
 			ED_transform_snap_object_context_set_editmesh_callbacks(
 			        t->tsnap.object_context,

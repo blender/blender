@@ -2083,7 +2083,7 @@ static bool snapObjectsRay(
  * \{ */
 
 SnapObjectContext *ED_transform_snap_object_context_create(
-        Main *bmain, Scene *scene, int flag)
+        Main *bmain, Scene *scene, Depsgraph *depsgraph, int flag)
 {
 	SnapObjectContext *sctx = MEM_callocN(sizeof(*sctx), __func__);
 
@@ -2091,6 +2091,7 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 
 	sctx->bmain = bmain;
 	sctx->scene = scene;
+	sctx->depsgraph = depsgraph;
 
 	sctx->cache.object_map = BLI_ghash_ptr_new(__func__);
 	sctx->cache.mem_arena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, __func__);
@@ -2099,11 +2100,11 @@ SnapObjectContext *ED_transform_snap_object_context_create(
 }
 
 SnapObjectContext *ED_transform_snap_object_context_create_view3d(
-        Main *bmain, Scene *scene, int flag,
+        Main *bmain, Scene *scene, Depsgraph *depsgraph, int flag,
         /* extra args for view3d */
         const ARegion *ar, const View3D *v3d)
 {
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, flag);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, depsgraph, flag);
 
 	sctx->use_v3d = true;
 	sctx->v3d_data.ar = ar;
