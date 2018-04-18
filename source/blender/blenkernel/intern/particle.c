@@ -3540,10 +3540,17 @@ float psys_get_child_size(ParticleSystem *psys, ChildParticle *cpa, float UNUSED
 	ParticleSettings *part = psys->part;
 	float size; // time XXX
 	
-	if (part->childtype == PART_CHILD_FACES)
-		size = part->size;
-	else
+	if (part->childtype == PART_CHILD_FACES) {
+		int w = 0;
+		size = 0.0;
+		while (w < 4 && cpa->pa[w] >= 0) {
+			size += cpa->w[w] * (psys->particles + cpa->pa[w])->size;
+			w++;
+		}
+	}
+	else {
 		size = psys->particles[cpa->parent].size;
+	}
 
 	size *= part->childsize;
 
