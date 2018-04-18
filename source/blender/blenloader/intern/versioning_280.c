@@ -900,17 +900,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
 			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
 				probe->intensity = 1.0f;
 			}
 		}
-	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
 		for (Object *ob = main->object.first; ob; ob = ob->id.next) {
 			bConstraint *con, *con_next;
 			con = ob->constraints.first;
@@ -930,16 +926,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				scene->orientation_index_custom = -1;
 			}
 		}
-	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
-		bScreen *sc;
-		ScrArea *sa;
-		SpaceLink *sl;
-
-		for (sc = main->screen.first; sc; sc = sc->id.next) {
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+		for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
+			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *)sl;
 						v3d->drawtype_solid = OB_LIGHTING_STUDIO;
