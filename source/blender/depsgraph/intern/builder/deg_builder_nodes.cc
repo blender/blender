@@ -533,6 +533,7 @@ void DepsgraphNodeBuilder::build_object_flags(
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                   function_bind(BKE_object_eval_flush_base_flags,
 	                                 _1,
+	                                 view_layer_,
 	                                 object_cow, base_index,
 	                                 is_from_set),
 	                   DEG_OPCODE_OBJECT_BASE_FLAGS);

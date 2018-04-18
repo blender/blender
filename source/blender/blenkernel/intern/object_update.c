@@ -444,10 +444,10 @@ void BKE_object_data_select_update(Depsgraph *UNUSED(depsgraph),
 	}
 }
 
-void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
+void BKE_object_eval_flush_base_flags(Depsgraph *UNUSED(depsgraph),
+                                      ViewLayer *view_layer,
                                       Object *object, int base_index, bool is_from_set)
 {
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
 	BLI_assert(view_layer->object_bases_array != NULL);
 	BLI_assert(base_index >= 0);
 	BLI_assert(base_index < MEM_allocN_len(view_layer->object_bases_array) / sizeof(Base *));

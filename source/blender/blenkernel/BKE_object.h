@@ -248,6 +248,7 @@ void BKE_object_data_select_update(
 
 void BKE_object_eval_flush_base_flags(
         struct Depsgraph *depsgraph,
+        struct ViewLayer *view_layer,
         struct Object *object, int base_index,
         const bool is_from_set);
 
