@@ -2824,6 +2824,8 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 						break;
 			}
 		}
+		if (base)
+			ob = base->object;
 	}
 
 	if (is_gp_edit) {
