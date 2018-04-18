@@ -51,7 +51,7 @@ static uint get_material_hash(const float color[3]) {
 	uint g = (uint)(color[1] * 512);
 	uint b = (uint)(color[2] * 512);
 	
-	return r + g * 4096 + b * 4096*4096;
+	return r + g * 4096 + b * 4096 * 4096;
 }
 
 WORKBENCH_MaterialData* workbench_get_or_create_solid_flat_material_data(WORKBENCH_Data *vedata, const float color[3]) {
@@ -62,7 +62,7 @@ WORKBENCH_MaterialData* workbench_get_or_create_solid_flat_material_data(WORKBEN
 	uint hash = get_material_hash(color);
 	WORKBENCH_MaterialData *material;
 	
-	material = BLI_ghash_lookup(wpd->material_hash, (void *)hash);
+	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), "WORKBENCH_MaterialData");
 		material->shgrp = DRW_shgroup_create(e_data.solid_flat_sh, psl->solid_pass);
@@ -70,7 +70,7 @@ WORKBENCH_MaterialData* workbench_get_or_create_solid_flat_material_data(WORKBEN
 		material->color[1] = color[1];
 		material->color[2] = color[2];
 		DRW_shgroup_uniform_vec3(material->shgrp, "color", material->color, 1);
-		BLI_ghash_insert(wpd->material_hash, (void *)hash, material);
+		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 	}
 	return material;
 }
@@ -83,7 +83,7 @@ WORKBENCH_MaterialData* workbench_get_or_create_solid_studio_material_data(WORKB
 	uint hash = get_material_hash(color);
 	WORKBENCH_MaterialData *material;
 	
-	material = BLI_ghash_lookup(wpd->material_hash, (void *)hash);
+	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), "WORKBENCH_MaterialData");
 		material->shgrp = DRW_shgroup_create(e_data.solid_studio_sh, psl->solid_pass);
@@ -91,7 +91,7 @@ WORKBENCH_MaterialData* workbench_get_or_create_solid_studio_material_data(WORKB
 		material->color[1] = color[1];
 		material->color[2] = color[2];
 		DRW_shgroup_uniform_vec3(material->shgrp, "color", material->color, 1);
-		BLI_ghash_insert(wpd->material_hash, (void *)hash, material);
+		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 	}
 	return material;
 }
