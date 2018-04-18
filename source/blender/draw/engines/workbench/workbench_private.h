@@ -38,9 +38,7 @@ typedef struct WORKBENCH_StorageList {
 
 typedef struct WORKBENCH_PassList {
 	struct DRWPass *depth_pass;
-
 	struct DRWPass *solid_pass;
-	struct DRWPass *lighting_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_FrameBufferList {
