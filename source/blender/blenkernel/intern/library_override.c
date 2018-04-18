@@ -557,9 +557,9 @@ void BKE_main_override_static_operations_create(Main *bmain)
 		ID *id;
 
 		for (id = lb->first; id; id = id->next) {
-			/* TODO Maybe we could also add an 'override update' tag e.g. when tagging for DEG update? */
-			if (id->lib == NULL && id->override_static != NULL && id->override_static->reference != NULL && (id->flag & LIB_OVERRIDE_STATIC_AUTO)) {
+			if (ID_IS_STATIC_OVERRIDE_AUTO(id) && (id->tag & LIB_TAG_OVERRIDESTATIC_AUTOREFRESH)) {
 				BKE_override_static_operations_create(id);
+				id->tag &= ~LIB_TAG_OVERRIDESTATIC_AUTOREFRESH;
 			}
 		}
 	}
