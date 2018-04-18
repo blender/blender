@@ -54,6 +54,7 @@ struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
 
+#include "DNA_anim_types.h"
 #include "RNA_types.h"
 
 /* ************ Keyframing Management **************** */
@@ -91,14 +92,14 @@ void update_autoflags_fcurve(struct FCurve *fcu, struct bContext *C, struct Repo
  *  Use this when validation of necessary animation data isn't necessary as it already
  *  exists, and there is a beztriple that can be directly copied into the array.
  */
-int insert_bezt_fcurve(struct FCurve *fcu, const struct BezTriple *bezt, short flag);
+int insert_bezt_fcurve(struct FCurve *fcu, const struct BezTriple *bezt, eInsertKeyFlags flag);
 
 /* Main Keyframing API call: 
  *  Use this when validation of necessary animation data isn't necessary as it
  *  already exists. It will insert a keyframe using the current value being keyframed.
  *  Returns the index at which a keyframe was added (or -1 if failed)
  */
-int insert_vert_fcurve(struct FCurve *fcu, float x, float y, char keytype, short flag);
+int insert_vert_fcurve(struct FCurve *fcu, float x, float y, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
 /* -------- */
 
@@ -106,7 +107,7 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, char keytype, short
  *	Use this to insert a keyframe using the current value being keyframed, in the 
  *	nominated F-Curve (no creation of animation data performed). Returns success.
  */
-bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, char keytype, short flag);
+bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
 /* -------- */
 
@@ -114,12 +115,12 @@ bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, s
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, char keytype, short flag);
+short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
 /* Main Keyframing API call: 
  *  Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.
  */
-short delete_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short flag);
+short delete_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eInsertKeyFlags flag);
 
 /* ************ Keying Sets ********************** */
 

@@ -840,6 +840,7 @@ typedef enum eKS_Settings {
 
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
+	INSERTKEY_NOFLAGS   = 0,
 	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
 	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */

@@ -81,7 +81,7 @@ void AnimationImporter::add_bezt(FCurve *fcu, float frame, float value, eBezTrip
 	bez.ipo = ipo; /* use default interpolation mode here... */
 	bez.f1 = bez.f2 = bez.f3 = SELECT;
 	bez.h1 = bez.h2 = HD_AUTO;
-	insert_bezt_fcurve(fcu, &bez, 0);
+	insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
 	calchandles_fcurve(fcu);
 }
 
@@ -148,7 +148,7 @@ void AnimationImporter::animation_to_fcurves(COLLADAFW::AnimationCurve *curve)
 					// bez.ipo = U.ipo_new; /* use default interpolation mode here... */
 					bez.f1 = bez.f2 = bez.f3 = SELECT;
 
-					insert_bezt_fcurve(fcu, &bez, 0);
+					insert_bezt_fcurve(fcu, &bez, INSERTKEY_NOFLAGS);
 				}
 
 				calchandles_fcurve(fcu);
