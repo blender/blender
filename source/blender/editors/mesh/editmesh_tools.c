@@ -4081,7 +4081,6 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 
 static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 {
-
 	const float offset = RNA_float_get(op->ptr, "offset");
 	const bool use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
 	const int center_mode = RNA_enum_get(op->ptr, "center_mode");
@@ -4091,30 +4090,30 @@ static int edbm_poke_face_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
 	{
-	Object *obedit = objects[ob_index];
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	if (em->bm->totfacesel == 0) {
-		continue;
-	}
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	BMOperator bmop;
-	EDBM_op_init(em, &bmop, op, "poke faces=%hf offset=%f use_relative_offset=%b center_mode=%i",
-				 BM_ELEM_SELECT, offset, use_relative_offset, center_mode);
-	BMO_op_exec(em->bm, &bmop);
+		BMOperator bmop;
+		EDBM_op_init(em, &bmop, op, "poke faces=%hf offset=%f use_relative_offset=%b center_mode=%i",
+		             BM_ELEM_SELECT, offset, use_relative_offset, center_mode);
+		BMO_op_exec(em->bm, &bmop);
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, true);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "verts.out", BM_VERT, BM_ELEM_SELECT, true);
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		continue;
-	}
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
 
-	EDBM_mesh_normals_update(em);
+		EDBM_mesh_normals_update(em);
 
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
 	}
 	MEM_freeN(objects);
 
