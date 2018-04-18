@@ -2648,6 +2648,11 @@ static void write_scene(WriteData *wd, Scene *sce)
 		writestruct(wd, DATA, TimeMarker, 1, marker);
 	}
 
+	/* writing dynamic list of TransformOrientations to the blend file */
+	for (TransformOrientation *ts = sce->transform_spaces.first; ts; ts = ts->next) {
+		writestruct(wd, DATA, TransformOrientation, 1, ts);
+	}
+
 	/* writing MultiView to the blend file */
 	for (SceneRenderView *srv = sce->r.views.first; srv; srv = srv->next) {
 		writestruct(wd, DATA, SceneRenderView, 1, srv);
@@ -3625,14 +3630,12 @@ static void write_cachefile(WriteData *wd, CacheFile *cache_file)
 static void write_workspace(WriteData *wd, WorkSpace *workspace)
 {
 	ListBase *layouts = BKE_workspace_layouts_get(workspace);
-	ListBase *transform_orientations = BKE_workspace_transform_orientations_get(workspace);
 
 	writestruct(wd, ID_WS, WorkSpace, 1, workspace);
 	writelist(wd, DATA, WorkSpaceLayout, layouts);
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->scene_viewlayer_relations);
 	writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
-	writelist(wd, DATA, TransformOrientation, transform_orientations);
 }
 
 /* Keep it last of write_foodata functions. */

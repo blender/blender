@@ -95,7 +95,6 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		Scene *scene = screen->scene;
 		WorkSpace *workspace;
 		ViewLayer *layer = BKE_view_layer_from_scene_get(scene);
-		ListBase *transform_orientations;
 
 		if (screen_parent) {
 			/* fullscreen with "Back to Previous" option, don't create
@@ -116,9 +115,6 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		BLI_strncpy(workspace->view_render.engine_id, RE_engine_id_BLENDER_EEVEE,
 		            sizeof(workspace->view_render.engine_id));
 #endif
-
-		transform_orientations = BKE_workspace_transform_orientations_get(workspace);
-		BLI_duplicatelist(transform_orientations, &scene->transform_spaces);
 	}
 }
 
@@ -750,25 +746,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 280, 2)) {
-		if (!DNA_struct_elem_find(fd->filesdna, "View3D", "short", "custom_orientation_index")) {
-			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
-				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
-					for (SpaceLink *sl = area->spacedata.first; sl; sl = sl->next) {
-						if (sl->spacetype == SPACE_VIEW3D) {
-							View3D *v3d = (View3D *)sl;
-							if (v3d->twmode >= V3D_MANIP_CUSTOM) {
-								v3d->custom_orientation_index = v3d->twmode - V3D_MANIP_CUSTOM;
-								v3d->twmode = V3D_MANIP_CUSTOM;
-							}
-							else {
-								v3d->custom_orientation_index = -1;
-							}
-						}
-					}
-				}
-			}
-		}
-
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "cascade_max_dist")) {
 			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
 				la->cascade_max_dist = 1000.0f;
@@ -923,17 +900,13 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
 		if (!DNA_struct_elem_find(fd->filesdna, "LightProbe", "float", "intensity")) {
 			for (LightProbe *probe = main->lightprobe.first; probe; probe = probe->id.next) {
 				probe->intensity = 1.0f;
 			}
 		}
-	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
 		for (Object *ob = main->object.first; ob; ob = ob->id.next) {
 			bConstraint *con, *con_next;
 			con = ob->constraints.first;
@@ -947,16 +920,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				con = con_next;
 			}
 		}
-	}
 
-	if (!MAIN_VERSION_ATLEAST(main, 280, 6)) {
-		bScreen *sc;
-		ScrArea *sa;
-		SpaceLink *sl;
+		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "int", "orientation_index_custom")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				scene->orientation_index_custom = -1;
+			}
+		}
 
-		for (sc = main->screen.first; sc; sc = sc->id.next) {
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+		for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
+			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *)sl;
 						v3d->drawtype_solid = OB_LIGHTING_STUDIO;

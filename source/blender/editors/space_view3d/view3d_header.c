@@ -333,7 +333,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 		if (v3d->twflag & V3D_MANIPULATOR_DRAW) {
 			uiItemR(row, &v3dptr, "transform_manipulators", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		}
-		uiItemR(row, &v3dptr, "transform_orientation", 0, "", ICON_NONE);
+		uiItemR(row, &sceneptr, "transform_orientation", 0, "", ICON_NONE);
 	}
 
 	if (obedit == NULL && v3d->localvd == NULL) {

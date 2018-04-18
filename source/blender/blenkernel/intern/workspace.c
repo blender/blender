@@ -171,7 +171,6 @@ void BKE_workspace_free(WorkSpace *workspace)
 
 	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
-	BLI_freelistN(&workspace->transform_orientations);
 
 	BKE_viewrender_free(&workspace->view_render);
 }
@@ -270,31 +269,6 @@ void BKE_workspace_view_layer_remove_references(
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
 		workspace_relation_remove_from_value(&workspace->scene_viewlayer_relations, view_layer);
 	}
-}
-
-void BKE_workspace_transform_orientation_remove(
-        WorkSpace *workspace, TransformOrientation *orientation)
-{
-	for (WorkSpaceLayout *layout = workspace->layouts.first; layout; layout = layout->next) {
-		BKE_screen_transform_orientation_remove(BKE_workspace_layout_screen_get(layout), workspace, orientation);
-	}
-
-	BLI_freelinkN(&workspace->transform_orientations, orientation);
-}
-
-TransformOrientation *BKE_workspace_transform_orientation_find(
-        const WorkSpace *workspace, const int index)
-{
-	return BLI_findlink(&workspace->transform_orientations, index);
-}
-
-/**
- * \return the index that \a orientation has within \a workspace's transform-orientation list or -1 if not found.
- */
-int BKE_workspace_transform_orientation_get_index(
-        const WorkSpace *workspace, const TransformOrientation *orientation)
-{
-	return BLI_findindex(&workspace->transform_orientations, orientation);
 }
 
 WorkSpaceLayout *BKE_workspace_layout_find(
@@ -421,11 +395,6 @@ Base *BKE_workspace_active_base_get(const WorkSpace *workspace, const Scene *sce
 {
 	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
 	return view_layer->basact;
-}
-
-ListBase *BKE_workspace_transform_orientations_get(WorkSpace *workspace)
-{
-	return &workspace->transform_orientations;
 }
 
 ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace, const Scene *scene)

@@ -71,18 +71,6 @@ static PointerRNA rna_workspace_screens_item_get(CollectionPropertyIterator *ite
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Screen, screen);
 }
 
-void rna_workspace_transform_orientations_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	WorkSpace *workspace = ptr->id.data;
-	rna_iterator_listbase_begin(iter, BKE_workspace_transform_orientations_get(workspace), NULL);
-}
-
-static PointerRNA rna_workspace_transform_orientations_item_get(CollectionPropertyIterator *iter)
-{
-	TransformOrientation *transform_orientation = rna_iterator_listbase_get(iter);
-	return rna_pointer_inherit_refine(&iter->parent, &RNA_TransformOrientation, transform_orientation);
-}
-
 /* workspace.owner_ids */
 
 static wmOwnerID *rna_WorkSpace_owner_ids_new(
@@ -204,13 +192,6 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Tool Index", "Tool group index");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
-	prop = RNA_def_property(srna, "orientations", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "transform_orientations", NULL);
-	RNA_def_property_struct_type(prop, "TransformOrientation");
-	RNA_def_property_collection_funcs(prop, "rna_workspace_transform_orientations_begin", NULL, NULL,
-	                                  "rna_workspace_transform_orientations_item_get", NULL, NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Transform Orientations", "");
-
 	prop = RNA_def_property(srna, "owner_ids", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "wmOwnerID");
 	RNA_def_property_ui_text(prop, "UI Tags", "");
@@ -244,29 +225,10 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_window_update_all");
 }
 
-static void rna_def_transform_orientation(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "TransformOrientation", NULL);
-
-	prop = RNA_def_property(srna, "matrix", PROP_FLOAT, PROP_MATRIX);
-	RNA_def_property_float_sdna(prop, NULL, "mat");
-	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_3x3);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_ui_text(prop, "Name", "Name of the custom transform orientation");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-}
-
 void RNA_def_workspace(BlenderRNA *brna)
 {
 	rna_def_workspace_owner(brna);
 	rna_def_workspace(brna);
-	rna_def_transform_orientation(brna);
 }
 
 #endif /* RNA_RUNTIME */

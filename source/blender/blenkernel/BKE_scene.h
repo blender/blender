@@ -48,6 +48,7 @@ struct ViewLayer;
 struct UnitSettings;
 struct ViewRender;
 struct WorkSpace;
+struct TransformOrientation;
 
 typedef enum eSceneCopyMethod {
 	SCE_COPY_NEW       = 0,
@@ -210,6 +211,13 @@ void BKE_scene_ensure_depsgraph_hash(struct Scene *scene);
 void BKE_scene_free_depsgraph_hash(struct Scene *scene);
 
 struct Depsgraph *BKE_scene_get_depsgraph(struct Scene *scene, struct ViewLayer *view_layer, bool allocate);
+
+void BKE_scene_transform_orientation_remove(
+        struct Scene *scene, struct TransformOrientation *orientation);
+struct TransformOrientation *BKE_scene_transform_orientation_find(
+        const struct Scene *scene, const int index);
+int BKE_scene_transform_orientation_get_index(
+        const struct Scene *scene, const struct TransformOrientation *orientation);
 
 #ifdef __cplusplus
 }

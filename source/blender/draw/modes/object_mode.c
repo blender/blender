@@ -886,6 +886,8 @@ static void OBJECT_cache_init(void *vedata)
 	OBJECT_StorageList *stl = ((OBJECT_Data *)vedata)->stl;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	OBJECT_PrivateData *g_data;
+	/* TODO : use dpi setting for enabling the second pass */
+	const bool do_outline_expand = false;
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -968,15 +970,17 @@ static void OBJECT_cache_init(void *vedata)
 
 		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_expand);
 		DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_blur_tx);
-		DRW_shgroup_uniform_bool(grp, "doExpand", &bTrue, 1);
+		DRW_shgroup_uniform_bool(grp, "doExpand", (do_outline_expand) ? &bTrue : &bFalse, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 
 		psl->outlines_bleed = DRW_pass_create("Outlines Bleed Pass", state);
 
-		grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_bleed);
-		DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_color_tx);
-		DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
-		DRW_shgroup_call_add(grp, quad, NULL);
+		if (do_outline_expand) {
+			grp = DRW_shgroup_create(e_data.outline_fade_sh, psl->outlines_bleed);
+			DRW_shgroup_uniform_texture_ref(grp, "outlineColor", &e_data.outlines_color_tx);
+			DRW_shgroup_uniform_bool(grp, "doExpand", &bFalse, 1);
+			DRW_shgroup_call_add(grp, quad, NULL);
+		}
 	}
 
 	{
@@ -984,9 +988,10 @@ static void OBJECT_cache_init(void *vedata)
 		psl->outlines_resolve = DRW_pass_create("Outlines Resolve Pass", state);
 
 		struct Gwn_Batch *quad = DRW_cache_fullscreen_quad_get();
+		GPUTexture **outline_tx = (do_outline_expand) ? &e_data.outlines_blur_tx : &e_data.outlines_color_tx;
 
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.outline_resolve_aa_sh, psl->outlines_resolve);
-		DRW_shgroup_uniform_texture_ref(grp, "outlineBluredColor", &e_data.outlines_blur_tx);
+		DRW_shgroup_uniform_texture_ref(grp, "outlineBluredColor", outline_tx);
 		DRW_shgroup_uniform_vec2(grp, "rcpDimensions", e_data.inv_viewport_size, 1);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}

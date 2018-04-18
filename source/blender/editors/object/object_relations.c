@@ -2437,6 +2437,12 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 					base = BKE_view_layer_base_find(view_layer, new_ob);
 					BKE_view_layer_base_select(view_layer, base);
 				}
+				else {
+					/* Disable auto-override tags for non-active objects, will help with performaces... */
+					new_ob->id.flag &= ~LIB_OVERRIDE_STATIC_AUTO;
+				}
+				/* We still want to store all objects' current override status (i.e. change of parent). */
+				BKE_override_static_operations_create(&new_ob->id, true);
 			}
 		}
 		FOREACH_GROUP_OBJECT_END;
