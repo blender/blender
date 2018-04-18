@@ -1626,18 +1626,29 @@ void MESH_OT_duplicate(wmOperatorType *ot)
  * \{ */
 static int edbm_flip_normals_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	if (!EDBM_op_callf(
-	        em, op, "reverse_faces faces=%hf flip_multires=%b",
-	        BM_ELEM_SELECT, true))
-	{
-		return OPERATOR_CANCELLED;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		if (!EDBM_op_callf(
+		        em, op, "reverse_faces faces=%hf flip_multires=%b",
+		        BM_ELEM_SELECT, true))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, false);
 	}
 
-	EDBM_update_generic(em, true, false);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
