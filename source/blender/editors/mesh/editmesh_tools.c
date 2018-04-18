@@ -1562,33 +1562,44 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 
 static int edbm_duplicate_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMesh *bm = em->bm;
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	EDBM_op_init(
-	        em, &bmop, op,
-	        "duplicate geom=%hvef use_select_history=%b",
-	        BM_ELEM_SELECT, true);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
+	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
 
-	BMO_op_exec(bm, &bmop);
+		BMOperator bmop;
+		BMesh *bm = em->bm;
 
-	/* de-select all would clear otherwise */
-	BM_SELECT_HISTORY_BACKUP(bm);
+		EDBM_op_init(
+				em, &bmop, op,
+				"duplicate geom=%hvef use_select_history=%b",
+				BM_ELEM_SELECT, true);
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_op_exec(bm, &bmop);
 
-	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+		/* de-select all would clear otherwise */
+		BM_SELECT_HISTORY_BACKUP(bm);
 
-	/* rebuild editselection */
-	BM_SELECT_HISTORY_RESTORE(bm);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+		/* rebuild editselection */
+		BM_SELECT_HISTORY_RESTORE(bm);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+		EDBM_update_generic(em, true, true);
 	}
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
