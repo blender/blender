@@ -86,7 +86,7 @@ IDOverrideStatic *BKE_override_static_init(ID *local_id, ID *reference_id)
 	local_id->override_static = MEM_callocN(sizeof(*local_id->override_static), __func__);
 	local_id->override_static->reference = reference_id;
 	id_us_plus(local_id->override_static->reference);
-	local_id->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+	local_id->tag &= ~LIB_TAG_OVERRIDESTATIC_REFOK;
 	/* TODO do we want to add tag or flag to referee to mark it as such? */
 	return local_id->override_static;
 }
@@ -125,7 +125,7 @@ void BKE_override_static_copy(ID *dst_id, const ID *src_id)
 		bke_override_property_copy(op_dst, op_src);
 	}
 
-	dst_id->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+	dst_id->tag &= ~LIB_TAG_OVERRIDESTATIC_REFOK;
 }
 
 /** Clear any overriding data from given \a override. */
@@ -445,7 +445,7 @@ bool BKE_override_static_status_check_local(ID *local)
 	        &rnaptr_local, &rnaptr_reference, NULL, local->override_static,
 	        RNA_OVERRIDE_COMPARE_IGNORE_NON_OVERRIDABLE | RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN, NULL))
 	{
-		local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+		local->tag &= ~LIB_TAG_OVERRIDESTATIC_REFOK;
 		return false;
 	}
 
@@ -474,12 +474,12 @@ bool BKE_override_static_status_check_reference(ID *local)
 
 	BLI_assert(GS(local->name) == GS(reference->name));
 
-	if (reference->override_static && (reference->tag & LIB_TAG_OVERRIDESTATIC_OK) == 0) {
+	if (reference->override_static && (reference->tag & LIB_TAG_OVERRIDESTATIC_REFOK) == 0) {
 		if (!BKE_override_static_status_check_reference(reference)) {
 			/* If reference is also override of another data-block, and its status is not OK,
 			 * then this override is not OK either.
 			 * Note that this should only happen when reloading libraries... */
-			local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+			local->tag &= ~LIB_TAG_OVERRIDESTATIC_REFOK;
 			return false;
 		}
 	}
@@ -492,7 +492,7 @@ bool BKE_override_static_status_check_reference(ID *local)
 	        &rnaptr_local, &rnaptr_reference, NULL, local->override_static,
 	        RNA_OVERRIDE_COMPARE_IGNORE_OVERRIDDEN, NULL))
 	{
-		local->tag &= ~LIB_TAG_OVERRIDESTATIC_OK;
+		local->tag &= ~LIB_TAG_OVERRIDESTATIC_REFOK;
 		return false;
 	}
 
@@ -573,7 +573,7 @@ void BKE_override_static_update(Main *bmain, ID *local)
 	}
 
 	/* Recursively do 'ancestors' overrides first, if any. */
-	if (local->override_static->reference->override_static && (local->override_static->reference->tag & LIB_TAG_OVERRIDESTATIC_OK) == 0) {
+	if (local->override_static->reference->override_static && (local->override_static->reference->tag & LIB_TAG_OVERRIDESTATIC_REFOK) == 0) {
 		BKE_override_static_update(bmain, local->override_static->reference);
 	}
 
@@ -624,7 +624,7 @@ void BKE_override_static_update(Main *bmain, ID *local)
 		local->override_static->storage = NULL;
 	}
 
-	local->tag |= LIB_TAG_OVERRIDESTATIC_OK;
+	local->tag |= LIB_TAG_OVERRIDESTATIC_REFOK;
 
 	/* Full rebuild of Depsgraph! */
 	DEG_on_visible_update(bmain, true);  /* XXX Is this actual valid replacement for old DAG_relations_tag_update(bmain) ? */

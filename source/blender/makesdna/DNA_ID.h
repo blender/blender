@@ -435,7 +435,7 @@ enum {
 	LIB_TAG_MISSING         = 1 << 6,
 
 	/* RESET_NEVER tag datablock as being up-to-date regarding its reference. */
-	LIB_TAG_OVERRIDESTATIC_OK = 1 << 9,
+	LIB_TAG_OVERRIDESTATIC_REFOK = 1 << 9,
 
 	/* tag datablock has having an extra user. */
 	LIB_TAG_EXTRAUSER       = 1 << 2,
