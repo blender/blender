@@ -41,12 +41,14 @@
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_deform.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -1195,27 +1197,34 @@ void POSE_OT_reveal(wmOperatorType *ot)
 static int pose_flip_quats_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOC_ROT_SCALE_ID);
-	
-	/* loop through all selected pchans, flipping and keying (as needed) */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
-	{
-		/* only if bone is using quaternion rotation */
-		if (pchan->rotmode == ROT_MODE_QUAT) {
-			/* quaternions have 720 degree range */
-			negate_v4(pchan->quat);
 
-			ED_autokeyframe_pchan(C, scene, ob, pchan, ks);
+	bool changed_multi = false;
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter) {
+		bool changed = false;
+		/* loop through all selected pchans, flipping and keying (as needed) */
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
+			/* only if bone is using quaternion rotation */
+			if (pchan->rotmode == ROT_MODE_QUAT) {
+				changed = true;
+				/* quaternions have 720 degree range */
+				negate_v4(pchan->quat);
+
+				ED_autokeyframe_pchan(C, scene, ob_iter, pchan, ks);
+			}
+		} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+
+		if (changed) {
+			changed_multi = true;
+			/* notifiers and updates */
+			DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
 		}
-	}
-	CTX_DATA_END;
-	
-	/* notifiers and updates */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
-	
-	return OPERATOR_FINISHED;
+	} FOREACH_OBJECT_IN_MODE_END;
+
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void POSE_OT_quaternions_flip(wmOperatorType *ot)
