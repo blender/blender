@@ -71,8 +71,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
-#endif
 	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
+#endif
 
 	modifier_copyData_generic(md, target);
 }
@@ -100,7 +100,9 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 static void foreachIDLink(ModifierData *md, Object *ob,
                           IDWalkFunc walk, void *userData)
 {
+#if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
+#endif
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }

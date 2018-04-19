@@ -1666,7 +1666,6 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsWorkbench", "LayerCollectionSettings");
 	RNA_def_struct_ui_text(srna, "Collections Workbench Engine Settings", "Workbench specific settings for this collection");
