@@ -932,13 +932,13 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 				immUnbindProgram();
 			}
 		}
-
-		GWN_vertbuf_discard(loop_vbo);
-		GWN_batch_discard(loop_batch);
 	}
 	else {
 		immUnbindProgram();
 	}
+
+	GWN_vertbuf_discard(loop_vbo);
+	GWN_batch_discard(loop_batch);
 
 	if (sima->flag & SI_SMOOTH_UV) {
 		glDisable(GL_LINE_SMOOTH);
