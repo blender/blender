@@ -77,12 +77,12 @@ void BLI_linklist_lockfree_insert(LockfreeLinkList *list,
 	do {
 		tail_node = list->tail;
 		keep_working =
-			(atomic_cas_ptr((void**)&tail_node->next, NULL, node) != NULL);
+			(atomic_cas_ptr((void **)&tail_node->next, NULL, node) != NULL);
 		if (keep_working) {
-			atomic_cas_ptr((void**)&list->tail, tail_node, tail_node->next);
+			atomic_cas_ptr((void **)&list->tail, tail_node, tail_node->next);
 		}
 	} while (keep_working);
-	atomic_cas_ptr((void**)&list->tail, tail_node, node);
+	atomic_cas_ptr((void **)&list->tail, tail_node, node);
 }
 
 LockfreeLinkNode *BLI_linklist_lockfree_begin(LockfreeLinkList *list)
