@@ -474,14 +474,6 @@ typedef enum eSpaceNla_Flag {
 
 /* Timeline =============================================== */
 
-/* Pointcache drawing data */
-# /* Only store the data array in the cache to avoid constant reallocation. */
-# /* No need to store when saved. */
-typedef struct SpaceTimeCache {
-	struct SpaceTimeCache *next, *prev;
-	float *array;
-} SpaceTimeCache;
-
 /* Timeline View */
 typedef struct SpaceTime {
 	SpaceLink *next, *prev;
@@ -490,8 +482,6 @@ typedef struct SpaceTime {
 	float blockscale DNA_DEPRECATED;
 	
 	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
-
-	ListBase caches;
 
 	int cache_display;
 	int flag;

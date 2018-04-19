@@ -406,8 +406,7 @@ void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	/* iterate over pointcaches on the active object, 
-	 * add spacetimecache and vertex array for each */
+	/* iterate over pointcaches on the active object, and draw each one's range */
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		float col[4];
 

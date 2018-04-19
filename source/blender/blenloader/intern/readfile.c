@@ -6540,10 +6540,6 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 			st->scroll_accum[0] = 0.0f;
 			st->scroll_accum[1] = 0.0f;
 		}
-		else if (sl->spacetype == SPACE_TIME) {
-			SpaceTime *stime = (SpaceTime *)sl;
-			BLI_listbase_clear(&stime->caches);
-		}
 		else if (sl->spacetype == SPACE_SEQ) {
 			SpaceSeq *sseq = (SpaceSeq *)sl;
 			

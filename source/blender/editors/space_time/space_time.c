@@ -132,8 +132,7 @@ static void time_draw_cache(SpaceTime *stime, Object *ob, Scene *scene)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	/* iterate over pointcaches on the active object, 
-	 * add spacetimecache and vertex array for each */
+	/* iterate over pointcaches on the active object, drawing */
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		float col[4];
 
@@ -810,8 +809,6 @@ static SpaceLink *time_duplicate(SpaceLink *sl)
 {
 	SpaceTime *stime = (SpaceTime *)sl;
 	SpaceTime *stimen = MEM_dupallocN(stime);
-	
-	BLI_listbase_clear(&stimen->caches);
 	
 	return (SpaceLink *)stimen;
 }
