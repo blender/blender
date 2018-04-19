@@ -143,7 +143,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
 	new_icon->obj = NULL; /* icon is not for library object */
-	new_icon->type = 0;
+	new_icon->id_type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type = type;
@@ -195,7 +195,7 @@ static void def_internal_vicon(int icon_id, VectorDrawFunc drawFunc)
 	new_icon = MEM_callocN(sizeof(Icon), "texicon");
 
 	new_icon->obj = NULL; /* icon is not for library object */
-	new_icon->type = 0;
+	new_icon->id_type = 0;
 
 	di = MEM_callocN(sizeof(DrawInfo), "drawinfo");
 	di->type = ICON_TYPE_VECTOR;
@@ -874,7 +874,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 			switch (di->type) {
 				case ICON_TYPE_PREVIEW:
 				{
-					ID *id = (icon->type != 0) ? icon->obj : NULL;
+					ID *id = (icon->id_type != 0) ? icon->obj : NULL;
 					PreviewImage *prv = id ? BKE_previewimg_id_ensure(id) : icon->obj;
 					/* Using jobs for screen previews crashes due to offscreen rendering.
 					 * XXX would be nicer if PreviewImage could store if it supports jobs */
@@ -933,7 +933,7 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 		DrawInfo *di = (DrawInfo *)icon->drawinfo;
 		if (di) {
 			if (di->type == ICON_TYPE_PREVIEW) {
-				PreviewImage *prv = (icon->type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
+				PreviewImage *prv = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
 
 				if (prv) {
 					return BKE_previewimg_copy(prv);
@@ -1237,7 +1237,7 @@ static void icon_draw_size(
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_PREVIEW) {
-		PreviewImage *pi = (icon->type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
+		PreviewImage *pi = (icon->id_type != 0) ? BKE_previewimg_id_ensure((ID *)icon->obj) : icon->obj;
 
 		if (pi) {
 			/* no create icon on this level in code */

@@ -39,7 +39,8 @@ typedef void (*DrawInfoFreeFP)(void *drawinfo);
 struct Icon {
 	void *drawinfo;
 	void *obj;
-	short type;
+	/** #ID_Type or 0 when not used for ID preview. */
+	short id_type;
 	DrawInfoFreeFP drawinfo_free;
 };
 

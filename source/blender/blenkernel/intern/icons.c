@@ -477,7 +477,7 @@ void BKE_icon_changed(const int icon_id)
 	
 	if (icon) {
 		/* We *only* expect ID-tied icons here, not non-ID icon/preview! */
-		BLI_assert(icon->type != 0);
+		BLI_assert(icon->id_type != 0);
 
 		/* Do not enforce creation of previews for valid ID types using BKE_previewimg_id_ensure() here ,
 		 * we only want to ensure *existing* preview images are properly tagged as changed/invalid, that's all. */
@@ -503,7 +503,7 @@ static int icon_id_ensure_create_icon(struct ID *id)
 	new_icon = MEM_mallocN(sizeof(Icon), __func__);
 
 	new_icon->obj = id;
-	new_icon->type = GS(id->name);
+	new_icon->id_type = GS(id->name);
 
 	/* next two lines make sure image gets created */
 	new_icon->drawinfo = NULL;
@@ -579,7 +579,7 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 	new_icon = MEM_mallocN(sizeof(Icon), __func__);
 
 	new_icon->obj = preview;
-	new_icon->type = 0;  /* Special, tags as non-ID icon/preview. */
+	new_icon->id_type = 0;  /* Special, tags as non-ID icon/preview. */
 
 	/* next two lines make sure image gets created */
 	new_icon->drawinfo = NULL;
@@ -656,7 +656,7 @@ void BKE_icon_delete(const int icon_id)
 	icon = BLI_ghash_popkey(gIcons, SET_INT_IN_POINTER(icon_id), NULL);
 
 	if (icon) {
-		if (icon->type) {
+		if (icon->id_type != 0) {
 			((ID *)(icon->obj))->icon_id = 0;
 		}
 		else {
