@@ -1769,7 +1769,7 @@ static void ccgDM_foreachMappedLoop(
 	}
 }
 
-static void ccgdm_pbvh_update(CCGDerivedMesh *ccgdm)
+static void UNUSED_FUNCTION(ccgdm_pbvh_update)(CCGDerivedMesh *ccgdm)
 {
 	if (ccgdm->pbvh && ccgDM_use_grid_pbvh(ccgdm)) {
 		CCGFace **faces;

@@ -59,8 +59,6 @@
 
 #include "MEM_guardedalloc.h"
 
-static void bmdm_get_tri_colpreview(BMLoop *ls[3], MLoopCol *lcol[3], unsigned char(*color_vert_array)[4]);
-
 typedef struct EditDerivedBMesh {
 	DerivedMesh dm;
 
