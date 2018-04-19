@@ -1320,6 +1320,15 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 		else
 			saction->action = NULL;
 	}
+	
+	/* Collapse summary channel and hide channel list for timeline */
+	if (saction->mode == SACTCONT_TIMELINE) {
+		saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
+		/* TODO: Set flags to hide the region */
+	}
+	else {
+		/* TODO: Set flags to unhide the region */
+	}
 
 	/* recalculate extents of channel list */
 	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
