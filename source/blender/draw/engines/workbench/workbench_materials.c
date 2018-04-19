@@ -82,11 +82,21 @@ void workbench_materials_engine_init(void)
 	}
 }
 
-void workbench_materials_engine_finish(void)
+void workbench_materials_engine_free()
 {
 	DRW_SHADER_FREE_SAFE(e_data.solid_flat_sh);
 	DRW_SHADER_FREE_SAFE(e_data.solid_studio_sh);
+
 }
+
+void workbench_materials_draw_scene_finish(WORKBENCH_Data *vedata)
+{
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+
+	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
+}
+
 
 void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 {
@@ -123,9 +133,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		if (material == NULL) {
 			material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), "WORKBENCH_MaterialData");
 			material->shgrp = DRW_shgroup_create(shader, psl->solid_pass);
-			material->color[0] = color[0];
-			material->color[1] = color[1];
-			material->color[2] = color[2];
+			copy_v3_v3(material->color, color);
 			DRW_shgroup_uniform_vec3(material->shgrp, "color", material->color, 1);
 			BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 		}
@@ -133,11 +141,4 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		DRW_shgroup_call_add(material->shgrp, geom, ob->obmat);
 	}
 
-}
-
-void workbench_materials_cache_finish(WORKBENCH_Data *vedata)
-{
-	WORKBENCH_StorageList *stl = vedata->stl;
-	WORKBENCH_PrivateData *wpd = stl->g_data;
-	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
 }

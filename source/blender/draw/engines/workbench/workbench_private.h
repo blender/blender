@@ -77,10 +77,9 @@ void workbench_solid_materials_free(void);
 
 /* workbench_materials.c */
 void workbench_materials_engine_init(void);
-void workbench_materials_engine_finish(void);
+void workbench_materials_engine_free(void);
+void workbench_materials_draw_scene_finish(WORKBENCH_Data *vedata);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
 void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob, int lighting_mode);
-void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
-
 
 #endif

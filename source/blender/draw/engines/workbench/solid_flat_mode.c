@@ -71,9 +71,8 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 	workbench_materials_solid_cache_populate(data, ob, V3D_LIGHTING_FLAT);
 }
 
-static void workbench_solid_flat_cache_finish(void *vedata)
+static void workbench_solid_flat_cache_finish(void *UNUSED(vedata))
 {
-	workbench_materials_cache_finish((WORKBENCH_Data *)vedata);
 }
 
 static void workbench_solid_flat_draw_scene(void *vedata)
@@ -83,11 +82,13 @@ static void workbench_solid_flat_draw_scene(void *vedata)
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->solid_pass);
+	
+	workbench_materials_draw_scene_finish(data);
 }
 
 static void workbench_solid_flat_engine_free(void)
 {
-	workbench_materials_engine_finish();
+	workbench_materials_engine_free();
 }
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
