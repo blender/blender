@@ -526,14 +526,16 @@ void DepsgraphNodeBuilder::build_object_flags(
 	if (base_index == -1) {
 		return;
 	}
-	/* TODO(sergey): Is this really best component to be used? */
+	Scene *scene_cow = get_cow_datablock(scene_);
 	Object *object_cow = get_cow_datablock(object);
 	const bool is_from_set = (linked_state == DEG_ID_LINKED_VIA_SET);
+	/* TODO(sergey): Is this really best component to be used? */
 	add_operation_node(&object->id,
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                   function_bind(BKE_object_eval_flush_base_flags,
 	                                 _1,
-	                                 view_layer_,
+	                                 scene_cow,
+	                                 view_layer_index_,
 	                                 object_cow, base_index,
 	                                 is_from_set),
 	                   DEG_OPCODE_OBJECT_BASE_FLAGS);

@@ -445,9 +445,14 @@ void BKE_object_data_select_update(Depsgraph *UNUSED(depsgraph),
 }
 
 void BKE_object_eval_flush_base_flags(Depsgraph *UNUSED(depsgraph),
-                                      ViewLayer *view_layer,
-                                      Object *object, int base_index, bool is_from_set)
+                                      Scene *scene, const int view_layer_index,
+                                      Object *object, int base_index,
+                                      const bool is_from_set)
 {
+	/* TODO(sergey): Avoid list lookup. */
+	BLI_assert(view_layer_index >= 0);
+	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
+	BLI_assert(view_layer != NULL);
 	BLI_assert(view_layer->object_bases_array != NULL);
 	BLI_assert(base_index >= 0);
 	BLI_assert(base_index < MEM_allocN_len(view_layer->object_bases_array) / sizeof(Base *));

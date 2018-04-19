@@ -70,6 +70,8 @@ void DepsgraphNodeBuilder::build_view_layer(
         ViewLayer *view_layer,
         eDepsNode_LinkedState_Type linked_state)
 {
+	view_layer_index_ = BLI_findindex(&scene->view_layers, view_layer);
+	BLI_assert(view_layer_index_ != -1);
 	/* Scene ID block. */
 	add_id_node(&scene->id);
 	/* Time source. */
@@ -134,14 +136,12 @@ void DepsgraphNodeBuilder::build_view_layer(
 		build_movieclip(clip);
 	}
 	/* Collections. */
-	int view_layer_index = BLI_findindex(&scene->view_layers, view_layer);
-	BLI_assert(view_layer_index != -1);
 	add_operation_node(&scene->id,
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                   function_bind(BKE_layer_eval_view_layer_indexed,
 	                                 _1,
 	                                 &scene_cow->id,
-	                                 view_layer_index),
+	                                 view_layer_index_),
 	                   DEG_OPCODE_VIEW_LAYER_EVAL);
 	/* Parameters evaluation for scene relations mainly. */
 	add_operation_node(&scene->id,
