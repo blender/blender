@@ -719,7 +719,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 			immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
 
-			immBegin(GWN_PRIM_TRIS, tri_count * 3);
+			Gwn_Batch *face_batch = immBeginBatch(GWN_PRIM_TRIS, tri_count * 3);
 			for (unsigned int i = 0; i < em->tottri; i++) {
 				efa = em->looptris[i][0]->f;
 				if (BM_elem_flag_test(efa, BM_ELEM_TAG)) {
@@ -739,6 +739,11 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 				}
 			}
 			immEnd();
+
+			/* XXX performance: we should not create and throw away result. */
+			GWN_batch_draw(face_batch);
+			GWN_batch_program_use_end(face_batch);
+			GWN_batch_discard(face_batch);
 
 			immUnbindProgram();
 
@@ -930,6 +935,9 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 		GWN_vertbuf_discard(uv_vbo);
 		GWN_batch_discard(uv_batch);
+	}
+	else {
+		immUnbindProgram();
 	}
 
 	if (sima->flag & SI_SMOOTH_UV) {
