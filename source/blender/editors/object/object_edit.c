@@ -468,9 +468,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
-					if (ob->flag & SELECT) {
-						ED_object_editmode_enter_ex(scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
-					}
+					ED_object_editmode_enter_ex(scene, ob, EM_WAITCURSOR | EM_NO_CONTEXT);
 				}
 			}
 			FOREACH_SELECTED_OBJECT_END;
@@ -482,9 +480,7 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
 			{
 				if ((ob != obact) && (ob->type == obact->type)) {
-					if (ob->flag & SELECT) {
-						ED_object_editmode_exit_ex(NULL, scene, ob, EM_FREEDATA | EM_WAITCURSOR);
-					}
+					ED_object_editmode_exit_ex(NULL, scene, ob, EM_FREEDATA | EM_WAITCURSOR);
 				}
 			}
 			FOREACH_SELECTED_OBJECT_END;
@@ -560,9 +556,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 					    (ob->type == OB_ARMATURE) &&
 					    (ob->mode & mode_flag))
 					{
-						if (ob->flag & SELECT) {
-							ED_object_posemode_exit_ex(bmain, ob);
-						}
+						ED_object_posemode_exit_ex(bmain, ob);
 					}
 				}
 				FOREACH_SELECTED_OBJECT_END;
@@ -580,9 +574,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 					    (ob->mode == OB_MODE_OBJECT) &&
 					    (!ID_IS_LINKED(ob)))
 					{
-						if (ob->flag & SELECT) {
-							ED_object_posemode_enter_ex(bmain, ob);
-						}
+						ED_object_posemode_enter_ex(bmain, ob);
 					}
 				}
 				FOREACH_SELECTED_OBJECT_END;
