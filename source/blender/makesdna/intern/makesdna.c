@@ -573,9 +573,10 @@ static int convert_include(const char *filename)
 	/* read include file, skip structs with a '#' before it.
 	 * store all data in temporal arrays.
 	 */
-	int filelen, count, overslaan, slen, type, name, strct;
+	int filelen, count, slen, type, name, strct;
 	short *structpoin, *sp;
 	char *maindata, *mainend, *md, *md1;
+	bool skip_struct;
 	
 	md = maindata = read_file_data(filename, &filelen);
 	if (filelen == -1) {
@@ -588,18 +589,18 @@ static int convert_include(const char *filename)
 
 	/* we look for '{' and then back to 'struct' */
 	count = 0;
-	overslaan = 0;
+	skip_struct = false;
 	while (count < filelen) {
 		
 		/* code for skipping a struct: two hashes on 2 lines. (preprocess added a space) */
 		if (md[0] == '#' && md[1] == ' ' && md[2] == '#') {
-			overslaan = 1;
+			skip_struct = true;
 		}
 		
 		if (md[0] == '{') {
 			md[0] = 0;
-			if (overslaan) {
-				overslaan = 0;
+			if (skip_struct) {
+				skip_struct = false;
 			}
 			else {
 				if (md[-1] == ' ') md[-1] = 0;

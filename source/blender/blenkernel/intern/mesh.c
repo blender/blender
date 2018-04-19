@@ -1142,7 +1142,7 @@ int BKE_mesh_nurbs_displist_to_mdata(
 	MLoopUV *mloopuv = NULL;
 	MEdge *medge;
 	const float *data;
-	int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totvlak = 0;
+	int a, b, ofs, vertcount, startvert, totvert = 0, totedge = 0, totloop = 0, totpoly = 0;
 	int p1, p2, p3, p4, *index;
 	const bool conv_polys = ((CU_DO_2DFILL(cu) == false) ||  /* 2d polys are filled with DL_INDEX3 displists */
 	                         (ob->type == OB_SURF));  /* surf polys are never filled */
@@ -1164,14 +1164,14 @@ int BKE_mesh_nurbs_displist_to_mdata(
 			int tot;
 			totvert += dl->parts * dl->nr;
 			tot = (dl->parts - 1 + ((dl->flag & DL_CYCL_V) == 2)) * (dl->nr - 1 + (dl->flag & DL_CYCL_U));
-			totvlak += tot;
+			totpoly += tot;
 			totloop += tot * 4;
 		}
 		else if (dl->type == DL_INDEX3) {
 			int tot;
 			totvert += dl->nr;
 			tot = dl->parts;
-			totvlak += tot;
+			totpoly += tot;
 			totloop += tot * 3;
 		}
 		dl = dl->next;
@@ -1185,11 +1185,11 @@ int BKE_mesh_nurbs_displist_to_mdata(
 
 	*r_allvert = mvert = MEM_calloc_arrayN(totvert, sizeof(MVert), "nurbs_init mvert");
 	*r_alledge = medge = MEM_calloc_arrayN(totedge, sizeof(MEdge), "nurbs_init medge");
-	*r_allloop = mloop = MEM_calloc_arrayN(totvlak, 4 * sizeof(MLoop), "nurbs_init mloop"); // totloop
-	*r_allpoly = mpoly = MEM_calloc_arrayN(totvlak, sizeof(MPoly), "nurbs_init mloop");
+	*r_allloop = mloop = MEM_calloc_arrayN(totpoly, 4 * sizeof(MLoop), "nurbs_init mloop"); // totloop
+	*r_allpoly = mpoly = MEM_calloc_arrayN(totpoly, sizeof(MPoly), "nurbs_init mloop");
 
 	if (r_alluv)
-		*r_alluv = mloopuv = MEM_calloc_arrayN(totvlak, 4 * sizeof(MLoopUV), "nurbs_init mloopuv");
+		*r_alluv = mloopuv = MEM_calloc_arrayN(totpoly, 4 * sizeof(MLoopUV), "nurbs_init mloopuv");
 	
 	/* verts and faces */
 	vertcount = 0;
@@ -1368,13 +1368,14 @@ int BKE_mesh_nurbs_displist_to_mdata(
 
 		dl = dl->next;
 	}
-	
-	if (totvlak) {
-		make_edges_mdata_extend(r_alledge, &totedge,
-		                        *r_allpoly, *r_allloop, totvlak);
+
+	if (totpoly) {
+		make_edges_mdata_extend(
+		        r_alledge, &totedge,
+		        *r_allpoly, *r_allloop, totpoly);
 	}
 
-	*r_totpoly = totvlak;
+	*r_totpoly = totpoly;
 	*r_totloop = totloop;
 	*r_totedge = totedge;
 	*r_totvert = totvert;
