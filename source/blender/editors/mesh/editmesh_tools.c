@@ -4206,6 +4206,8 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 		EDBM_update_generic(em, true, true);
 	}
 
+	MEM_freeN(objects);
+
 	return OPERATOR_FINISHED;
 }
 
