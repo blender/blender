@@ -2951,6 +2951,18 @@ void init_userdef_do_versions(void)
 			copy_v4_v4_char(btheme->ttopbar.back, tmp);
 		}
 	}
+	
+	if (!USER_VERSION_ATLEAST(280, 9)) {
+		/* Timeline removal */
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tipo.anim_active[3] == 0) {
+				rgba_char_args_set(btheme->tipo.anim_active,    204, 112, 26, 102);
+			}
+			if (btheme->tseq.anim_active[3] == 0) {
+				rgba_char_args_set(btheme->tseq.anim_active,    204, 112, 26, 102);	
+			}
+		}
+	}
 
 	/**
 	 * Include next version bump.
