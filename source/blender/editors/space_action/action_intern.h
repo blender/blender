@@ -39,6 +39,7 @@ struct SpaceAction;
 struct ScrArea;
 struct ARegion;
 struct ARegionType;
+struct View2D;
 struct wmOperatorType;
 
 /* internal exports only */

@@ -34,6 +34,7 @@
 
 #include "DNA_action_types.h"
 #include "DNA_group_types.h"
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -212,6 +213,8 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceAction *saction = CTX_wm_space_action(C);
+	Scene *scene = CTX_data_scene(C);
+	Object *obact = CTX_data_active_object(C);
 	bAnimContext ac;
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
@@ -231,7 +234,10 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
-
+	
+	/* start and end frame */
+	ANIM_draw_framerange(scene, v2d);
+	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		draw_channel_strips(&ac, saction, ar);
@@ -250,11 +256,10 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	
 	/* caches */
 	if (saction->mode == SACTCONT_TIMELINE) {
-		timeline_draw_cache(saction, ac.obact, ac.scene);
+		timeline_draw_cache(saction, obact, scene);
 	}
 	
 	/* preview range */
-	// XXX: we should always draw the range
 	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d, 0);
 

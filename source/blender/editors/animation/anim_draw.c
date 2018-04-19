@@ -185,6 +185,48 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 }
 
 /* *************************************************** */
+/* SCENE FRAME RANGE */
+
+/* Draw frame range guides (for scene frame range) in background */
+// TODO: Should we still show these when preview range is enabled?
+void ANIM_draw_framerange(Scene *scene, View2D *v2d)
+{	
+	/* draw darkened area outside of active timeline frame range */
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformThemeColorShadeAlpha(TH_BACK, -25, -100);
+
+	if (SFRA < EFRA) {
+		immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, (float)SFRA, v2d->cur.ymax);
+		immRectf(pos, (float)EFRA, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	}
+	else {
+		immRectf(pos, v2d->cur.xmin, v2d->cur.ymin, v2d->cur.xmax, v2d->cur.ymax);
+	}
+
+	glDisable(GL_BLEND);
+
+	/* thin lines where the actual frames are */
+	immUniformThemeColorShade(TH_BACK, -60);
+
+	immBegin(GWN_PRIM_LINES, 4);
+
+	immVertex2f(pos, (float)SFRA, v2d->cur.ymin);
+	immVertex2f(pos, (float)SFRA, v2d->cur.ymax);
+
+	immVertex2f(pos, (float)EFRA, v2d->cur.ymin);
+	immVertex2f(pos, (float)EFRA, v2d->cur.ymax);
+
+	immEnd();
+	immUnbindProgram();
+}
+
+/* *************************************************** */
 /* NLA-MAPPING UTILITIES (required for drawing and also editing keyframes)  */
 
 /* Obtain the AnimData block providing NLA-mapping for the given channel (if applicable) */

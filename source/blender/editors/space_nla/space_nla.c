@@ -268,6 +268,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
 	SpaceNla *snla = CTX_wm_space_nla(C);
+	Scene *scene = CTX_data_scene(C);
 	bAnimContext ac;
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
@@ -287,7 +288,10 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_grid_free(grid);
 	
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_PRE_VIEW);
-
+	
+	/* start and end frame */
+	ANIM_draw_framerange(scene, v2d);
+	
 	/* data */
 	if (ANIM_animdata_get_context(C, &ac)) {
 		/* strips and backdrops */
