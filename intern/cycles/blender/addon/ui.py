@@ -1307,10 +1307,6 @@ class CYCLES_MATERIAL_PT_viewport(CyclesButtonsPanel, Panel):
         col.prop(mat, "diffuse_color", text="")
         col.prop(mat, "alpha")
 
-        col.separator()
-        col.label("Alpha:")
-        col.prop(mat.game_settings, "alpha_blend", text="")
-
         col = split.column(align=True)
         col.label("Specular:")
         col.prop(mat, "specular_color", text="")
