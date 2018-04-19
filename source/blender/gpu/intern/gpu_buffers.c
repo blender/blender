@@ -1734,7 +1734,7 @@ void GPU_pbvh_bmesh_buffers_update(
 					int i;
 
 #if 0
-					BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void**)v, 3);
+					BM_iter_as_array(bm, BM_VERTS_OF_FACE, f, (void **)v, 3);
 #endif
 					BM_face_as_array_vert_tri(f, v);
 

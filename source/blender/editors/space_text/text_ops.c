@@ -2063,6 +2063,9 @@ void TEXT_OT_delete(wmOperatorType *ot)
 	ot->exec = text_delete_exec;
 	ot->poll = text_edit_poll;
 
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
 	/* properties */
 	RNA_def_enum(ot->srna, "type", delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
 }
