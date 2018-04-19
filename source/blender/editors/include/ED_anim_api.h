@@ -102,7 +102,8 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_DRIVERS   = 6, /* drivers (bDopesheet) */
 	ANIMCONT_NLA       = 7, /* nla (bDopesheet) */
 	ANIMCONT_CHANNEL   = 8, /* animation channel (bAnimListElem) */
-	ANIMCONT_MASK      = 9  /* mask dopesheet */
+	ANIMCONT_MASK      = 9, /* mask dopesheet */
+	ANIMCONT_TIMELINE  = 10, /* "timeline" editor (bDopeSheet) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */

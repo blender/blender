@@ -724,6 +724,8 @@ typedef enum eAnimEdit_Context {
 	SACTCONT_MASK = 4,
 	/* cache file */
 	SACTCONT_CACHEFILE = 5,
+	/* timeline - replacement for the standalone "timeline editor" */
+	SACTCONT_TIMELINE = 6,
 } eAnimEdit_Context;
 
 /* SpaceAction AutoSnap Settings (also used by other Animation Editors) */

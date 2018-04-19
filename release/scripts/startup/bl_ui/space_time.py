@@ -27,15 +27,29 @@ class TIME_HT_header(Header):
     def draw(self, context):
         layout = self.layout
 
-        scene = context.scene
-        toolsettings = context.tool_settings
-        screen = context.screen
-        userprefs = context.user_preferences
-
         row = layout.row(align=True)
         row.template_header()
 
         TIME_MT_editor_menus.draw_collapsible(context, layout)
+        TIME_HT_editor_buttons.draw_header(context, layout)
+
+
+# Header buttons for actual timeline editor header
+# XXX: Temporary, until we have editor submodes in the actual editors menu
+class TIME_HT_editor_buttons(Header):
+    bl_idname = "TIME_HT_editor_buttons"
+    bl_space_type = 'TIMELINE' # XXX: Change this to 'DOPESHEET_EDITOR'
+    bl_label = ""
+
+    def draw(self, context):
+        pass
+
+    @staticmethod
+    def draw_header(context, layout):
+        scene = context.scene
+        toolsettings = context.tool_settings
+        screen = context.screen
+        userprefs = context.user_preferences
 
         row = layout.row(align=True)
         row.prop(scene, "use_preview_range", text="", toggle=True)
@@ -272,6 +286,7 @@ def marker_menu_generic(layout):
 
 classes = (
     TIME_HT_header,
+    TIME_HT_editor_buttons,
     TIME_MT_editor_menus,
     TIME_MT_marker,
     TIME_MT_view,

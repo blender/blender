@@ -230,11 +230,22 @@ static bool actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return true;
 		}
+		
 		case SACTCONT_DOPESHEET: /* DopeSheet */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
 			
 			ac->datatype = ANIMCONT_DOPESHEET;
+			ac->data = &saction->ads;
+			
+			ac->mode = saction->mode;
+			return true;
+		
+		case SACTCONT_TIMELINE: /* Timeline */
+			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
+			saction->ads.source = (ID *)ac->scene;
+			
+			ac->datatype = ANIMCONT_TIMELINE;
 			ac->data = &saction->ads;
 			
 			ac->mode = saction->mode;
@@ -3243,6 +3254,15 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, eAnimFilter_F
 				break;
 			}
 			
+			
+			/* Timeline Mode - Basically the same as dopesheet, except we only have the summary for now */
+			case ANIMCONT_TIMELINE:
+			{
+				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */
+				if (animdata_filter_dopesheet_summary(ac, anim_data, filter_mode, &items))
+					items += animdata_filter_dopesheet(ac, anim_data, data, filter_mode);
+				break;
+			}
 			
 			/* Special/Internal Use */
 			case ANIMCONT_CHANNEL: /* animation channel */

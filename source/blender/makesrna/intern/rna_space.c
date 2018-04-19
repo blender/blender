@@ -3180,6 +3180,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 
 	/* XXX: action-editor is currently for object-level only actions, so show that using object-icon hint */
 	static EnumPropertyItem mode_items[] = {
+		{SACTCONT_TIMELINE, "TIMELINE", ICON_TIME, "Timeline", "Timeline and playback controls"},
 		{SACTCONT_DOPESHEET, "DOPESHEET", ICON_OOPS, "Dope Sheet", "Edit all keyframes in scene"},
 		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Edit keyframes in active object's Object-level action"},
 		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "Shape Key Editor", "Edit keyframes in active object's Shape Keys action"},
