@@ -47,93 +47,6 @@
 
 #include "time_intern.h"
 
-/* ****************** Start/End Frame Operators *******************************/
-static int time_set_sfra_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Scene *scene = CTX_data_scene(C);
-	int frame;
-
-	if (scene == NULL)
-		return OPERATOR_CANCELLED;
-
-	frame = CFRA;
-
-	/* if Preview Range is defined, set the 'start' frame for that */
-	if (PRVRANGEON)
-		scene->r.psfra = frame;
-	else
-		scene->r.sfra = frame;
-	
-	if (PEFRA < frame) {
-		if (PRVRANGEON)
-			scene->r.pefra = frame;
-		else
-			scene->r.efra = frame;
-	}
-	
-	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void TIME_OT_start_frame_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Set Start Frame";
-	ot->idname = "TIME_OT_start_frame_set";
-	ot->description = "Set the start frame";
-	
-	/* api callbacks */
-	ot->exec = time_set_sfra_exec;
-	ot->poll = ED_operator_timeline_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}	
-
-
-static int time_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Scene *scene = CTX_data_scene(C);
-	int frame;
-
-	if (scene == NULL)
-		return OPERATOR_CANCELLED;
-
-	frame = CFRA;
-
-	/* if Preview Range is defined, set the 'end' frame for that */
-	if (PRVRANGEON)
-		scene->r.pefra = frame;
-	else
-		scene->r.efra = frame;
-
-	if (PSFRA > frame) {
-		if (PRVRANGEON)
-			scene->r.psfra = frame;
-		else
-			scene->r.sfra = frame;
-	}
-	
-	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
-	return OPERATOR_FINISHED;
-}
-
-static void TIME_OT_end_frame_set(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Set End Frame";
-	ot->idname = "TIME_OT_end_frame_set";
-	ot->description = "Set the end frame";
-	
-	/* api callbacks */
-	ot->exec = time_set_efra_exec;
-	ot->poll = ED_operator_timeline_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
 
 /* ************************ View All Operator *******************************/
 
@@ -206,8 +119,6 @@ static void TIME_OT_view_frame(wmOperatorType *ot)
 
 void time_operatortypes(void)
 {
-	WM_operatortype_append(TIME_OT_start_frame_set);
-	WM_operatortype_append(TIME_OT_end_frame_set);
 	WM_operatortype_append(TIME_OT_view_all);
 	WM_operatortype_append(TIME_OT_view_frame);
 }
@@ -216,8 +127,8 @@ void time_keymap(wmKeyConfig *keyconf)
 {
 	wmKeyMap *keymap = WM_keymap_find(keyconf, "Timeline", SPACE_TIME, 0);
 	
-	WM_keymap_add_item(keymap, "TIME_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "TIME_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_start_frame_set", SKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "ANIM_OT_end_frame_set", EKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "TIME_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 #ifdef WITH_INPUT_NDOF
 	WM_keymap_add_item(keymap, "TIME_OT_view_all", NDOF_BUTTON_FIT, KM_PRESS, 0, 0);
