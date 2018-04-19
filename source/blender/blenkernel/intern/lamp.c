@@ -72,35 +72,14 @@ void BKE_lamp_init(Lamp *la)
 	la->samp = 3;
 	la->bias = 1.0f;
 	la->soft = 3.0f;
-	la->compressthresh = 0.05f;
-	la->ray_samp = la->ray_sampy = la->ray_sampz = 1;
 	la->area_size = la->area_sizey = la->area_sizez = 0.1f;
 	la->buffers = 1;
-	la->buftype = LA_SHADBUF_HALFWAY;
-	la->ray_samp_method = LA_SAMP_HALTON;
-	la->adapt_thresh = 0.001f;
 	la->preview = NULL;
 	la->falloff_type = LA_FALLOFF_INVSQUARE;
 	la->coeff_const = 1.0f;
 	la->coeff_lin = 0.0f;
 	la->coeff_quad = 0.0f;
 	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-	la->sun_effect_type = 0;
-	la->horizon_brightness = 1.0;
-	la->spread = 1.0;
-	la->sun_brightness = 1.0;
-	la->sun_size = 1.0;
-	la->backscattered_light = 1.0f;
-	la->atm_turbidity = 2.0f;
-	la->atm_inscattering_factor = 1.0f;
-	la->atm_extinction_factor = 1.0f;
-	la->atm_distance_factor = 1.0f;
-	la->sun_intensity = 1.0f;
-	la->skyblendtype = MA_RAMP_ADD;
-	la->skyblendfac = 1.0f;
-	la->sky_colorspace = BLI_XYZ_CIE;
-	la->sky_exposure = 1.0f;
-	la->shadow_frustum_size = 10.0f;
 	la->cascade_max_dist = 1000.0f;
 	la->cascade_count = 4;
 	la->cascade_exponent = 0.8f;
@@ -134,13 +113,6 @@ Lamp *BKE_lamp_add(Main *bmain, const char *name)
  */
 void BKE_lamp_copy_data(Main *bmain, Lamp *la_dst, const Lamp *la_src, const int flag)
 {
-	for (int a = 0; a < MAX_MTEX; a++) {
-		if (la_dst->mtex[a]) {
-			la_dst->mtex[a] = MEM_mallocN(sizeof(*la_dst->mtex[a]), __func__);
-			*la_dst->mtex[a] = *la_src->mtex[a];
-		}
-	}
-
 	la_dst->curfalloff = curvemapping_copy(la_src->curfalloff);
 
 	if (la_src->nodetree) {
@@ -173,18 +145,8 @@ Lamp *BKE_lamp_localize(Lamp *la)
 	 *
 	 * ... Once f*** nodes are fully converted to that too :( */
 
-	Lamp *lan;
-	int a;
-	
-	lan = BKE_libblock_copy_nolib(&la->id, false);
+	Lamp *lan = BKE_libblock_copy_nolib(&la->id, false);
 
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (lan->mtex[a]) {
-			lan->mtex[a] = MEM_mallocN(sizeof(MTex), __func__);
-			memcpy(lan->mtex[a], la->mtex[a], sizeof(MTex));
-		}
-	}
-	
 	lan->curfalloff = curvemapping_copy(la->curfalloff);
 
 	if (la->nodetree)
@@ -202,12 +164,6 @@ void BKE_lamp_make_local(Main *bmain, Lamp *la, const bool lib_local)
 
 void BKE_lamp_free(Lamp *la)
 {
-	int a;
-
-	for (a = 0; a < MAX_MTEX; a++) {
-		MEM_SAFE_FREE(la->mtex[a]);
-	}
-	
 	BKE_animdata_free((ID *)la, false);
 
 	curvemapping_free(la->curfalloff);

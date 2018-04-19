@@ -1547,54 +1547,40 @@ class VIEW3D_MT_object_specials(Menu):
             lamp = obj.data
 
             layout.operator_context = 'INVOKE_REGION_WIN'
-            use_shading_nodes = scene.render.use_shading_nodes
 
-            if use_shading_nodes:
-                emission_node = None
-                if lamp.node_tree:
-                    for node in lamp.node_tree.nodes:
-                        if getattr(node, "type", None) == 'EMISSION':
-                            emission_node = node
-                            break
+            emission_node = None
+            if lamp.node_tree:
+                for node in lamp.node_tree.nodes:
+                    if getattr(node, "type", None) == 'EMISSION':
+                        emission_node = node
+                        break
 
-                if emission_node is not None:
-                    props = layout.operator("wm.context_modal_mouse", text="Strength")
-                    props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.node_tree" \
-                                           ".nodes[\"" + emission_node.name + "\"]" \
-                                           ".inputs[\"Strength\"].default_value"
-                    props.header_text = "Lamp Strength: %.3f"
-                    props.input_scale = 0.1
-
-                if lamp.type == 'AREA':
-                    props = layout.operator("wm.context_modal_mouse", text="Size X")
-                    props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.size"
-                    props.header_text = "Lamp Size X: %.3f"
-
-                    if lamp.shape == 'RECTANGLE':
-                        props = layout.operator("wm.context_modal_mouse", text="Size Y")
-                        props.data_path_iter = "selected_editable_objects"
-                        props.data_path_item = "data.size_y"
-                        props.header_text = "Lamp Size Y: %.3f"
-
-                elif lamp.type in {'SPOT', 'POINT', 'SUN'}:
-                    props = layout.operator("wm.context_modal_mouse", text="Size")
-                    props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.shadow_soft_size"
-                    props.header_text = "Lamp Size: %.3f"
-            else:
-                props = layout.operator("wm.context_modal_mouse", text="Energy")
+            if emission_node is not None:
+                props = layout.operator("wm.context_modal_mouse", text="Strength")
                 props.data_path_iter = "selected_editable_objects"
-                props.data_path_item = "data.energy"
-                props.header_text = "Lamp Energy: %.3f"
+                props.data_path_item = "data.node_tree" \
+                                       ".nodes[\"" + emission_node.name + "\"]" \
+                                       ".inputs[\"Strength\"].default_value"
+                props.header_text = "Lamp Strength: %.3f"
+                props.input_scale = 0.1
 
-                if lamp.type in {'SPOT', 'AREA', 'POINT'}:
-                    props = layout.operator("wm.context_modal_mouse", text="Falloff Distance")
+            if lamp.type == 'AREA':
+                props = layout.operator("wm.context_modal_mouse", text="Size X")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.size"
+                props.header_text = "Lamp Size X: %.3f"
+
+                if lamp.shape == 'RECTANGLE':
+                    props = layout.operator("wm.context_modal_mouse", text="Size Y")
                     props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.distance"
-                    props.input_scale = 0.1
-                    props.header_text = "Lamp Falloff Distance: %.1f"
+                    props.data_path_item = "data.size_y"
+                    props.header_text = "Lamp Size Y: %.3f"
+
+            elif lamp.type in {'SPOT', 'POINT', 'SUN'}:
+                props = layout.operator("wm.context_modal_mouse", text="Size")
+                props.data_path_iter = "selected_editable_objects"
+                props.data_path_item = "data.shadow_soft_size"
+                props.header_text = "Lamp Size: %.3f"
 
             if lamp.type == 'SPOT':
                 layout.separator()
@@ -1609,19 +1595,6 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_item = "data.spot_blend"
                 props.input_scale = -0.01
                 props.header_text = "Spot Blend: %.2f"
-
-                if not use_shading_nodes:
-                    props = layout.operator("wm.context_modal_mouse", text="Clip Start")
-                    props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.shadow_buffer_clip_start"
-                    props.input_scale = 0.05
-                    props.header_text = "Clip Start: %.2f"
-
-                    props = layout.operator("wm.context_modal_mouse", text="Clip End")
-                    props.data_path_iter = "selected_editable_objects"
-                    props.data_path_item = "data.shadow_buffer_clip_end"
-                    props.input_scale = 0.05
-                    props.header_text = "Clip End: %.2f"
 
         layout.separator()
 

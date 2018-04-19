@@ -87,7 +87,6 @@ typedef struct TexCallData {
 	short which_output;
 	int cfra;
 
-	ShadeInput *shi;
 	MTex *mtex;
 } TexCallData;
 
@@ -100,7 +99,6 @@ typedef struct TexParams {
 
 	/* optional. we don't really want these here, but image
 	 * textures need to do mapping & color correction */
-	ShadeInput *shi;
 	MTex *mtex;
 } TexParams;
 

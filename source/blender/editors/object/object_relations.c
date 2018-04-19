@@ -1773,7 +1773,6 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 	Mesh *me;
 	Lattice *lat;
 	ID *id;
-	int a;
 
 	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
 	{
@@ -1786,11 +1785,6 @@ static void single_obdata_users(Main *bmain, Scene *scene, ViewLayer *view_layer
 				switch (ob->type) {
 					case OB_LAMP:
 						ob->data = la = ID_NEW_SET(ob->data, BKE_lamp_copy(bmain, ob->data));
-						for (a = 0; a < MAX_MTEX; a++) {
-							if (la->mtex[a]) {
-								ID_NEW_REMAP(la->mtex[a]->object);
-							}
-						}
 						break;
 					case OB_CAMERA:
 						ob->data = ID_NEW_SET(ob->data, BKE_camera_copy(bmain, ob->data));
@@ -1870,11 +1864,10 @@ static void single_object_action_users(Scene *scene, ViewLayer *view_layer, cons
 	FOREACH_OBJECT_FLAG_END;
 }
 
-static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag, const bool do_textures)
+static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, const int flag)
 {
 	Material *ma, *man;
-	Tex *tex;
-	int a, b;
+	int a;
 
 	FOREACH_OBJECT_FLAG_BEGIN(scene, view_layer, flag, ob)
 	{
@@ -1890,85 +1883,12 @@ static void single_mat_users(Main *bmain, Scene *scene, ViewLayer *view_layer, c
 
 						man->id.us = 0;
 						assign_material(ob, man, a, BKE_MAT_ASSIGN_USERPREF);
-
-						if (do_textures) {
-							for (b = 0; b < MAX_MTEX; b++) {
-								if (ma->mtex[b] && (tex = ma->mtex[b]->tex)) {
-									if (tex->id.us > 1) {
-										id_us_min(&tex->id);
-										tex = BKE_texture_copy(bmain, tex);
-										BKE_animdata_copy_id_action(&tex->id, false);
-										man->mtex[b]->tex = tex;
-									}
-								}
-							}
-						}
 					}
 				}
 			}
 		}
 	}
 	FOREACH_OBJECT_FLAG_END;
-}
-
-static void do_single_tex_user(Main *bmain, Tex **from)
-{
-	Tex *tex, *texn;
-
-	tex = *from;
-	if (tex == NULL) return;
-
-	if (tex->id.newid) {
-		*from = (Tex *)tex->id.newid;
-		id_us_plus(tex->id.newid);
-		id_us_min(&tex->id);
-	}
-	else if (tex->id.us > 1) {
-		texn = ID_NEW_SET(tex, BKE_texture_copy(bmain, tex));
-		BKE_animdata_copy_id_action(&texn->id, false);
-		tex->id.newid = (ID *)texn;
-		id_us_min(&tex->id);
-		*from = texn;
-	}
-}
-
-static void single_tex_users_expand(Main *bmain)
-{
-	/* only when 'parent' blocks are LIB_TAG_NEW */
-	Material *ma;
-	Lamp *la;
-	World *wo;
-	int b;
-
-	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
-		if (ma->id.tag & LIB_TAG_NEW) {
-			for (b = 0; b < MAX_MTEX; b++) {
-				if (ma->mtex[b] && ma->mtex[b]->tex) {
-					do_single_tex_user(bmain, &(ma->mtex[b]->tex));
-				}
-			}
-		}
-	}
-
-	for (la = bmain->lamp.first; la; la = la->id.next) {
-		if (la->id.tag & LIB_TAG_NEW) {
-			for (b = 0; b < MAX_MTEX; b++) {
-				if (la->mtex[b] && la->mtex[b]->tex) {
-					do_single_tex_user(bmain, &(la->mtex[b]->tex));
-				}
-			}
-		}
-	}
-
-	for (wo = bmain->world.first; wo; wo = wo->id.next) {
-		if (wo->id.tag & LIB_TAG_NEW) {
-			for (b = 0; b < MAX_MTEX; b++) {
-				if (wo->mtex[b] && wo->mtex[b]->tex) {
-					do_single_tex_user(bmain, &(wo->mtex[b]->tex));
-				}
-			}
-		}
-	}
 }
 
 static void single_mat_users_expand(Main *bmain)
@@ -1978,8 +1898,6 @@ static void single_mat_users_expand(Main *bmain)
 	Mesh *me;
 	Curve *cu;
 	MetaBall *mb;
-	Material *ma;
-	int a;
 
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->id.tag & LIB_TAG_NEW)
@@ -1996,13 +1914,6 @@ static void single_mat_users_expand(Main *bmain)
 	for (mb = bmain->mball.first; mb; mb = mb->id.next)
 		if (mb->id.tag & LIB_TAG_NEW)
 			new_id_matar(bmain, mb->mat, mb->totcol);
-
-	/* material imats  */
-	for (ma = bmain->mat.first; ma; ma = ma->id.next)
-		if (ma->id.tag & LIB_TAG_NEW)
-			for (a = 0; a < MAX_MTEX; a++)
-				if (ma->mtex[a])
-					ID_NEW_REMAP(ma->mtex[a]->object);
 }
 
 /* used for copying scenes */
@@ -2014,7 +1925,6 @@ void ED_object_single_users(Main *bmain, Scene *scene, const bool full, const bo
 		single_obdata_users(bmain, scene, NULL, 0);
 		single_object_action_users(scene, NULL, 0);
 		single_mat_users_expand(bmain);
-		single_tex_users_expand(bmain);
 	}
 
 	/* Relink nodetrees' pointers that have been duplicated. */
@@ -2201,12 +2111,6 @@ static void make_local_material_tag(Material *ma)
 		make_local_animdata_tag(BKE_animdata_from_id(&ma->id));
 
 		/* About nodetrees: root one is made local together with material, others we keep linked for now... */
-
-		for (int a = 0; a < MAX_MTEX; a++) {
-			if (ma->mtex[a] && ma->mtex[a]->tex) {
-				ma->mtex[a]->tex->id.tag &= ~LIB_TAG_PRE_EXISTING;
-			}
-		}
 	}
 }
 
@@ -2216,7 +2120,6 @@ static int make_local_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	ParticleSystem *psys;
 	Material *ma, ***matarar;
-	Lamp *la;
 	const int mode = RNA_enum_get(op->ptr, "type");
 	int a;
 
@@ -2264,16 +2167,6 @@ static int make_local_exec(bContext *C, wmOperator *op)
 						ma = (*matarar)[a];
 						if (ma) {
 							make_local_material_tag(ma);
-						}
-					}
-				}
-
-				if (ob->type == OB_LAMP) {
-					BLI_assert(ob->data != NULL);
-					la = ob->data;
-					for (a = 0; a < MAX_MTEX; a++) {
-						if (la->mtex[a] && la->mtex[a]->tex) {
-							la->id.tag &= ~LIB_TAG_PRE_EXISTING;
 						}
 					}
 				}
@@ -2553,13 +2446,9 @@ static int make_single_user_exec(bContext *C, wmOperator *op)
 	}
 
 	if (RNA_boolean_get(op->ptr, "material")) {
-		single_mat_users(bmain, scene, view_layer, flag, RNA_boolean_get(op->ptr, "texture"));
+		single_mat_users(bmain, scene, view_layer, flag);
 	}
 
-#if 0 /* can't do this separate from materials */
-	if (RNA_boolean_get(op->ptr, "texture"))
-		single_mat_users(scene, flag, true);
-#endif
 	if (RNA_boolean_get(op->ptr, "animation")) {
 		single_object_action_users(scene, view_layer, flag);
 	}
@@ -2601,8 +2490,6 @@ void OBJECT_OT_make_single_user(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Make single user objects");
 	RNA_def_boolean(ot->srna, "obdata", 0, "Object Data", "Make single user object data");
 	RNA_def_boolean(ot->srna, "material", 0, "Materials", "Make materials local to each data-block");
-	RNA_def_boolean(ot->srna, "texture", 0, "Textures",
-	                "Make textures local to each material (needs 'Materials' to be set too)");
 	RNA_def_boolean(ot->srna, "animation", 0, "Object Animation", "Make animation data local to each object");
 }
 

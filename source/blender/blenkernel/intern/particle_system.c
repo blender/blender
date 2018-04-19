@@ -705,9 +705,9 @@ void psys_get_birth_coords(ParticleSimulationData *sim, ParticleData *pa, Partic
 
 	/* get birth location from object		*/
 	if (use_tangents)
-		psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
+		psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0);
 	else
-		psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0,0);
+		psys_particle_on_emitter(sim->psmd, part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,0,0,0);
 		
 	/* get possible textural influence */
 	psys_get_texture(sim, pa, &ptex, PAMAP_IVEL, cfra);

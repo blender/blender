@@ -30,6 +30,7 @@
  */
 
 #include "BLI_sys_types.h"
+#include "GPU_buffers.h"
 #include "GPU_init_exit.h"  /* interface */
 #include "GPU_immediate.h"
 #include "GPU_batch.h"
@@ -63,6 +64,8 @@ void GPU_init(void)
 	gpu_batch_init();
 
 	immInit();
+
+	GPU_pbvh_fix_linking();
 }
 
 

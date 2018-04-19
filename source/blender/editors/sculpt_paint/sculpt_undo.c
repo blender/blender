@@ -66,8 +66,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "GPU_buffers.h"
-
 #include "ED_paint.h"
 #include "ED_object.h"
 #include "ED_sculpt.h"
@@ -585,9 +583,6 @@ static void sculpt_undo_restore_list(bContext *C, ListBase *lb)
 		else {
 			sculpt_update_object_bounding_box(ob);
 		}
-
-		/* for non-PBVH drawing, need to recreate VBOs */
-		GPU_drawobject_free(ob->derivedFinal);
 	}
 }
 

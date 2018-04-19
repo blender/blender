@@ -52,68 +52,8 @@ static void node_shader_init_vect_transform(bNodeTree *UNUSED(ntree), bNode *nod
 	node->storage = vect;
 }
 
-static const float (* get_matrix_from_to(ShaderCallData *scd, short from, short to))[4]
+static void node_shader_exec_vect_transform(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
-	switch (from) {
-		case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-			switch (to) {
-				case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-					return NULL;
-				case SHD_VECT_TRANSFORM_SPACE_WORLD:
-					return RE_object_instance_get_matrix(scd->shi->obi, RE_OBJECT_INSTANCE_MATRIX_OB);
-				case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-					return RE_object_instance_get_matrix(scd->shi->obi, RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEW);
-			}
-			break;
-		case SHD_VECT_TRANSFORM_SPACE_WORLD:
-			switch (to) {
-				case SHD_VECT_TRANSFORM_SPACE_WORLD:
-					return NULL;
-				case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-					return RE_render_current_get_matrix(RE_VIEW_MATRIX);
-				case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-					return RE_object_instance_get_matrix(scd->shi->obi, RE_OBJECT_INSTANCE_MATRIX_OBINV);
-			}
-			break;
-		case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-			switch (to) {
-				case SHD_VECT_TRANSFORM_SPACE_CAMERA:
-					return NULL;
-				case SHD_VECT_TRANSFORM_SPACE_WORLD:
-					return RE_render_current_get_matrix(RE_VIEWINV_MATRIX);
-				case SHD_VECT_TRANSFORM_SPACE_OBJECT:
-					return RE_object_instance_get_matrix(scd->shi->obi, RE_OBJECT_INSTANCE_MATRIX_LOCALTOVIEWINV);
-			}
-			break;
-	}
-	return NULL;
-}
-
-static void node_shader_exec_vect_transform(void *data, int UNUSED(thread), bNode *node, bNodeExecData *UNUSED(execdata), bNodeStack **in, bNodeStack **out)
-{
-	float vec[4];
-	const float (*mat)[4];
-
-	if (data) {
-		NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
-
-		nodestack_get_vec(vec, SOCK_VECTOR, in[0]);
-
-		if (nodeprop->type == SHD_VECT_TRANSFORM_TYPE_POINT)
-			vec[3] = 1.0f;
-		else
-			vec[3] = 0.0f;
-
-		mat = get_matrix_from_to((ShaderCallData *)data, nodeprop->convert_from, nodeprop->convert_to);
-		if (mat) {
-			mul_m4_v4((float(*)[4])mat, vec);
-		}
-
-		if (nodeprop->type == SHD_VECT_TRANSFORM_TYPE_NORMAL)
-			normalize_v3(vec);
-
-		copy_v4_v4(out[0]->vec, vec);
-	}
 }
 
 static GPUNodeLink *get_gpulink_matrix_from_to(short from, short to)
@@ -161,8 +101,6 @@ static int gpu_shader_vect_transform(GPUMaterial *mat, bNode *node, bNodeExecDat
 	const char *ptransform = "point_transform_m4v3";
 	const char *func_name = 0;
 
-	bool new_shading = GPU_material_use_new_shading_nodes(mat);
-
 	NodeShaderVectTransform *nodeprop = (NodeShaderVectTransform *)node->storage;
 
 	if (in[0].hasinput)
@@ -174,19 +112,14 @@ static int gpu_shader_vect_transform(GPUMaterial *mat, bNode *node, bNodeExecDat
 
 	func_name = (nodeprop->type == SHD_VECT_TRANSFORM_TYPE_POINT) ? ptransform : vtransform;
 	if (fromto) {
-		if (new_shading) {
-			/* For cycles we have inverted Z */
-			/* TODO: pass here the correct matrices */
-			if (nodeprop->convert_from == SHD_VECT_TRANSFORM_SPACE_CAMERA && nodeprop->convert_to != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
-				GPU_link(mat, "invert_z", inputlink, &inputlink);
-			}
-			GPU_link(mat, func_name, inputlink, fromto,  &out[0].link);
-			if (nodeprop->convert_to == SHD_VECT_TRANSFORM_SPACE_CAMERA && nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
-				GPU_link(mat, "invert_z", out[0].link, &out[0].link);
-			}
+		/* For cycles we have inverted Z */
+		/* TODO: pass here the correct matrices */
+		if (nodeprop->convert_from == SHD_VECT_TRANSFORM_SPACE_CAMERA && nodeprop->convert_to != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
+			GPU_link(mat, "invert_z", inputlink, &inputlink);
 		}
-		else {
-			GPU_link(mat, func_name, inputlink, fromto,  &out[0].link);
+		GPU_link(mat, func_name, inputlink, fromto,  &out[0].link);
+		if (nodeprop->convert_to == SHD_VECT_TRANSFORM_SPACE_CAMERA && nodeprop->convert_from != SHD_VECT_TRANSFORM_SPACE_CAMERA) {
+			GPU_link(mat, "invert_z", out[0].link, &out[0].link);
 		}
 	}
 	else

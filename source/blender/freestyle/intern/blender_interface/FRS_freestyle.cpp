@@ -58,12 +58,12 @@ extern "C" {
 
 #include "BLI_blenlib.h"
 #include "BLI_math.h"
+#include "BLI_math_color_blend.h"
 #include "BLI_callbacks.h"
 
 #include "BPY_extern.h"
 
 #include "renderpipeline.h"
-#include "pixelblending.h"
 
 #include "FRS_freestyle.h"
 
@@ -530,7 +530,7 @@ void FRS_composite_result(Render *re, ViewLayer *view_layer, Render *freestyle_r
 			pixSrc = src + 4 * (rectx * y + x);
 			if (pixSrc[3] > 0.0) {
 				pixDest = dest + 4 * (rectx * y + x);
-				addAlphaOverFloat(pixDest, pixSrc);
+				blend_color_mix_float(pixDest, pixDest, pixSrc);
 			}
 		}
 	}

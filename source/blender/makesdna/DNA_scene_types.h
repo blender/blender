@@ -571,29 +571,14 @@ typedef struct RenderData {
 
 	float framelen, blurfac;
 
-	/** For UR edge rendering: give the edges this color */
-	float edgeR, edgeG, edgeB;
-
-
-	/* standalone player */  //  XXX deprecated since 2.5
-	short fullscreen  DNA_DEPRECATED, xplay  DNA_DEPRECATED, yplay  DNA_DEPRECATED;
-	short freqplay  DNA_DEPRECATED;
-	/* standalone player */  //  XXX deprecated since 2.5
-	short depth  DNA_DEPRECATED, attrib  DNA_DEPRECATED;
-
-
 	int frame_step;		/* frames to jump during render/playback */
 
 	short stereomode  DNA_DEPRECATED;	/* standalone player stereo settings */  //  XXX deprecated since 2.5
 	
 	short dimensionspreset;		/* for the dimensions presets menu */
 
-	short filtertype;	/* filter is box, tent, gauss, mitch, etc */
-
 	short size; /* size in % */
 	
-	short maximsize DNA_DEPRECATED; /* max in Kb */
-
 	short pad6;
 
 	/* from buttons: */
@@ -605,15 +590,6 @@ typedef struct RenderData {
 	 * The desired number of pixels in the y direction
 	 */
 	int ysch;
-
-	/**
-	 * The number of part to use in the x direction
-	 */
-	short xparts DNA_DEPRECATED;
-	/**
-	 * The number of part to use in the y direction
-	 */
-	short yparts DNA_DEPRECATED;
 
 	/**
 	 * render tile dimensions
@@ -640,22 +616,6 @@ typedef struct RenderData {
 	int mode;
 
 	/**
-	 * Flags for raytrace settings. Use bit-masking to access the settings.
-	 */
-	int raytrace_options;
-	
-	/**
-	 * Raytrace acceleration structure
-	 */
-	short raytrace_structure;
-
-	short pad1;
-
-	/* octree resolution */
-	short ocres;
-	short pad4;
-	
-	/**
 	 * What to do with the sky/background. Picks sky/premul/key
 	 * blending for the background
 	 */
@@ -666,7 +626,7 @@ typedef struct RenderData {
 	 */
 	short osa;
 
-	short frs_sec, edgeint;
+	short frs_sec, pad[7];
 
 	
 	/* safety, border and display rect */
@@ -676,9 +636,7 @@ typedef struct RenderData {
 	/* information on different layers to be rendered */
 	ListBase layers DNA_DEPRECATED; /* Converted to Scene->view_layers. */
 	short actlay DNA_DEPRECATED; /* Converted to Scene->active_layer. */
-	
-	/* number of mblur samples */
-	short mblur_samples;
+	short pad1;
 	
 	/**
 	 * Adjustment factors for the aspect ratio in the x direction, was a short in 2.45
@@ -695,18 +653,13 @@ typedef struct RenderData {
 	/* color management settings - color profiles, gamma correction, etc */
 	int color_mgt_flag;
 	
-	/** post-production settings. deprecated, but here for upwards compat (initialized to 1) */
-	float postgamma, posthue, postsat;
-	
 	 /* Dither noise intensity */
 	float dither_intensity;
 	
 	/* Bake Render options */
-	short bake_osa, bake_filter, bake_mode, bake_flag;
-	short bake_normal_space, bake_quad_split;
-	float bake_maxdist, bake_biasdist;
-	short bake_samples, bake_pad;
-	float bake_user_scale, bake_pad1;
+	short bake_mode, bake_flag;
+	short bake_filter, bake_samples;
+	float bake_biasdist, bake_user_scale;
 
 	/* path to render output */
 	char pic[1024]; /* 1024 = FILE_MAX */
@@ -729,21 +682,11 @@ typedef struct RenderData {
 	char pad5[5];
 
 	/* render simplify */
-	int simplify_flag;
 	short simplify_subsurf;
 	short simplify_subsurf_render;
-	short simplify_shadowsamples, pad9;
+	short pad9, pad10;
 	float simplify_particles;
 	float simplify_particles_render;
-	float simplify_aosss;
-
-	/* cineon */
-	short cineonwhite  DNA_DEPRECATED, cineonblack  DNA_DEPRECATED;  /*deprecated*/
-	float cineongamma  DNA_DEPRECATED;  /*deprecated*/
-	
-	/* jpeg2000 */
-	short jp2_preset  DNA_DEPRECATED, jp2_depth  DNA_DEPRECATED;  /*deprecated*/
-	int rpad3;
 
 	/* Freestyle line thickness options */
 	int line_thickness_mode;
@@ -751,6 +694,7 @@ typedef struct RenderData {
 
 	/* render engine */
 	char engine[32];
+	int pad2;
 
 	/* Cycles baking */
 	struct BakeData bake;
@@ -1540,25 +1484,25 @@ typedef struct Scene {
 
 /* RenderData.mode */
 #define R_OSA			0x0001
-#define R_SHADOW		0x0002
-#define R_GAMMA			0x0004
-#define R_ORTHO			0x0008
-#define R_ENVMAP		0x0010
-#define R_EDGE			0x0020
-#define R_FIELDS		0x0040
-#define R_FIELDSTILL	0x0080
+/* #define R_SHADOW		0x0002 */
+/* #define R_GAMMA			0x0004 */
+#define R_ORTHO			0x0008 
+/* #define R_ENVMAP		0x0010 */
+/* #define R_EDGE			0x0020 */
+/* #define R_FIELDS		0x0040 */
+/*#define R_FIELDSTILL	0x0080 */
 /*#define R_RADIO			0x0100 */ /* deprecated */
 #define R_BORDER		0x0200
-#define R_PANORAMA		0x0400	/* deprecated as scene option, still used in renderer */
+#define R_PANORAMA		0x0400
 #define R_CROP			0x0800
 		/* Disable camera switching: runtime (DURIAN_CAMERA_SWITCH) */
 #define R_NO_CAMERA_SWITCH	0x1000
-#define R_ODDFIELD		0x2000
+/* #define R_ODDFIELD		0x2000 */
 #define R_MBLUR			0x4000
 		/* unified was here */
-#define R_RAYTRACE      0x10000
+/* #define R_RAYTRACE      0x10000 */
 		/* R_GAUSS is obsolete, but used to retrieve setting from old files */
-#define R_GAUSS      	0x20000
+/* #define R_GAUSS      	0x20000 */
 		/* fbuf obsolete... */
 /*#define R_FBUF			0x40000*/
 		/* threads obsolete... is there for old files, now use for autodetect threads */
@@ -1566,14 +1510,14 @@ typedef struct Scene {
 		/* Use the same flag for autothreads */
 #define R_FIXED_THREADS		0x80000 
 
-#define R_SPEED				0x100000
-#define R_SSS				0x200000
+/* #define R_SPEED				0x100000 */
+/* #define R_SSS				0x200000 */
 #define R_NO_OVERWRITE		0x400000  /* skip existing files */
 #define R_TOUCH				0x800000  /* touch files before rendering */
 #define R_SIMPLIFY			0x1000000
 #define R_EDGE_FRS			0x2000000 /* R_EDGE reserved for Freestyle */
 #define R_PERSISTENT_DATA	0x4000000 /* keep data around for re-render */
-#define R_USE_WS_SHADING	0x8000000 /* use world space interpretation of lighting data */
+/* #define R_USE_WS_SHADING	0x8000000 */ /* use world space interpretation of lighting data */
 
 /* RenderData.seq_flag */
 enum {
@@ -1590,7 +1534,7 @@ enum {
 #define R_OUTPUT_NONE	3
 /*#define R_OUTPUT_FORKED	4*/
 
-/* RenderData.filtertype */
+/* RenderData.filtertype (used for nodes) */
 #define R_FILTER_BOX	0
 #define R_FILTER_TENT	1
 #define R_FILTER_QUAD	2
@@ -1598,19 +1542,7 @@ enum {
 #define R_FILTER_CATROM	4
 #define R_FILTER_GAUSS	5
 #define R_FILTER_MITCH	6
-#define R_FILTER_FAST_GAUSS	7 /* note, this is only used for nodes at the moment */
-
-/* RenderData.raytrace_structure */
-#define R_RAYSTRUCTURE_AUTO				0
-#define R_RAYSTRUCTURE_OCTREE			1
-#define R_RAYSTRUCTURE_BLIBVH			2	/* removed */
-#define R_RAYSTRUCTURE_VBVH				3
-#define R_RAYSTRUCTURE_SIMD_SVBVH		4	/* needs SIMD */
-#define R_RAYSTRUCTURE_SIMD_QBVH		5	/* needs SIMD */
-
-/* RenderData.raytrace_options */
-#define R_RAYTRACE_USE_LOCAL_COORDS		0x0001
-#define R_RAYTRACE_USE_INSTANCES		0x0002
+#define R_FILTER_FAST_GAUSS	7
 
 /* RenderData.scemode (int now) */
 #define R_DOSEQ				0x0001
@@ -1622,12 +1554,12 @@ enum {
 #define R_MATNODE_PREVIEW	0x0020
 #define R_DOCOMP			0x0040
 #define R_COMP_CROP			0x0080
-#define R_FREE_IMAGE		0x0100
+/* #define R_FREE_IMAGE		0x0100 */
 #define R_SINGLE_LAYER		0x0200
 #define R_EXR_TILE_FILE		0x0400
 /* #define R_COMP_FREE			0x0800 */
 #define R_NO_IMAGE_LOAD		0x1000
-#define R_NO_TEX			0x2000
+/* #define R_NO_TEX			0x2000 */
 #define R_NO_FRAME_UPDATE	0x4000
 #define R_FULL_SAMPLE		0x8000
 /* #define R_DEPRECATED		0x10000 */
@@ -1690,12 +1622,12 @@ enum {
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* RenderData.bake_flag */
 #define R_BAKE_CLEAR		1
-#define R_BAKE_OSA			2
+/* #define R_BAKE_OSA		2 */ /* deprecated */
 #define R_BAKE_TO_ACTIVE	4
-#define R_BAKE_NORMALIZE	8
+/* #define R_BAKE_NORMALIZE	8 */ /* deprecated */
 #define R_BAKE_MULTIRES		16
 #define R_BAKE_LORES_MESH	32
-#define R_BAKE_VCOL			64
+/* #define R_BAKE_VCOL		64 */ /* deprecated */
 #define R_BAKE_USERSCALE	128
 #define R_BAKE_CAGE			256
 #define R_BAKE_SPLIT_MAT	512
@@ -1707,9 +1639,6 @@ enum {
 #define R_BAKE_SPACE_OBJECT	 2
 #define R_BAKE_SPACE_TANGENT 3
 
-/* RenderData.simplify_flag */
-#define R_SIMPLE_NO_TRIANGULATE		1
-
 /* RenderData.line_thickness_mode */
 #define R_LINE_THICKNESS_ABSOLUTE 1
 #define R_LINE_THICKNESS_RELATIVE 2
@@ -1717,7 +1646,6 @@ enum {
 /* sequencer seq_prev_type seq_rend_type */
 
 /* RenderData.engine (scene.c) */
-extern const char *RE_engine_id_BLENDER_RENDER;
 extern const char *RE_engine_id_BLENDER_CLAY;
 extern const char *RE_engine_id_BLENDER_EEVEE;
 extern const char *RE_engine_id_BLENDER_WORKBENCH;

@@ -50,8 +50,6 @@ struct wmKeyConfig;
 void ED_operatortypes_uvedit(void);
 void ED_keymap_uvedit(struct wmKeyConfig *keyconf);
 
-void ED_uvedit_assign_image(
-        struct Main *bmain, struct Scene *scene, struct Object *obedit, struct Image *ima, struct Image *previma);
 bool ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obedit, float min[2], float max[2]);
 bool ED_uvedit_center(Scene *scene, Image *ima, struct Object *obedit, float cent[2], char mode);
 void ED_uvedit_select_all(struct BMesh *bm);

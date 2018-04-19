@@ -68,32 +68,7 @@ static void texture_get_from_context(
 	Object *ob = OBACT(view_layer);
 	Tex *tx = NULL;
 
-	if (snode->texfrom == SNODE_TEX_OBJECT) {
-		if (ob) {
-			tx = give_current_object_texture(ob);
-			if (tx) {
-				if (ob->type == OB_LAMP)
-					*r_from = (ID *)ob->data;
-				else
-					*r_from = (ID *)give_current_material(ob, ob->actcol);
-				
-				/* from is not set fully for material nodes, should be ID + Node then */
-				*r_id = &tx->id;
-				*r_ntree = tx->nodetree;
-			}
-		}
-	}
-	else if (snode->texfrom == SNODE_TEX_WORLD) {
-		if (scene->world) {
-			*r_from = (ID *)scene->world;
-			tx = give_current_world_texture(scene->world);
-			if (tx) {
-				*r_id = &tx->id;
-				*r_ntree = tx->nodetree;
-			}
-		}
-	}
-	else if (snode->texfrom == SNODE_TEX_BRUSH) {
+	if (snode->texfrom == SNODE_TEX_BRUSH) {
 		struct Brush *brush = NULL;
 		
 		if (ob && (ob->mode & OB_MODE_SCULPT))
@@ -324,7 +299,6 @@ int ntreeTexExecTree(
         short which_output,
         int cfra,
         int preview,
-        ShadeInput *shi,
         MTex *mtex)
 {
 	TexCallData data;
@@ -339,12 +313,11 @@ int ntreeTexExecTree(
 	data.osatex = osatex;
 	data.target = texres;
 	data.do_preview = preview;
-	data.do_manage = (shi) ? shi->do_manage : true;
+	data.do_manage = true;
 	data.thread = thread;
 	data.which_output = which_output;
 	data.cfra = cfra;
 	data.mtex = mtex;
-	data.shi = shi;
 	
 	/* ensure execdata is only initialized once */
 	if (!exec) {

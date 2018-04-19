@@ -49,7 +49,6 @@ extern "C" {
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "renderdatabase.h"
 #include "render_types.h"
 
 #include "BKE_customdata.h"

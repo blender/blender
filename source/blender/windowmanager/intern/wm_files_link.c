@@ -76,8 +76,6 @@
 
 #include "ED_screen.h"
 
-#include "GPU_material.h"
-
 #include "RNA_access.h"
 #include "RNA_define.h"
 

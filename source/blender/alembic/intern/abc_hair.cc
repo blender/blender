@@ -165,7 +165,7 @@ void AbcHairWriter::write_hair_sample(DerivedMesh *dm,
 					psys_interpolate_uvs(tface, face->v4, pa->fuv, r_uv);
 					uv_values.push_back(Imath::V2f(r_uv[0], r_uv[1]));
 
-					psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, normal, NULL, NULL, NULL, NULL);
+					psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, normal, NULL, NULL, NULL);
 
 					copy_yup_from_zup(tmp_nor.getValue(), normal);
 					norm_values.push_back(tmp_nor);
@@ -273,7 +273,7 @@ void AbcHairWriter::write_hair_child_sample(DerivedMesh *dm,
 			psys_interpolate_uvs(tface, face->v4, pc->fuv, r_uv);
 			uv_values.push_back(Imath::V2f(r_uv[0], r_uv[1]));
 
-			psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, tmpnor, NULL, NULL, NULL, NULL);
+			psys_interpolate_face(mverts, face, tface, NULL, mapfw, vec, tmpnor, NULL, NULL, NULL);
 
 			/* Convert Z-up to Y-up. */
 			norm_values.push_back(Imath::V3f(tmpnor[0], tmpnor[2], -tmpnor[1]));

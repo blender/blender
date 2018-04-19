@@ -95,7 +95,6 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_insert_offset);
 	
 	WM_operatortype_append(NODE_OT_read_viewlayers);
-	WM_operatortype_append(NODE_OT_read_fullsamplelayers);
 	WM_operatortype_append(NODE_OT_render_changed);
 	
 	WM_operatortype_append(NODE_OT_backimage_move);
@@ -336,7 +335,6 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "exit", true);
 
 	WM_keymap_add_item(keymap, "NODE_OT_read_viewlayers", RKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "NODE_OT_read_fullsamplelayers", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_render_changed", ZKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_clipboard_copy", CKEY, KM_PRESS, KM_CTRL, 0);

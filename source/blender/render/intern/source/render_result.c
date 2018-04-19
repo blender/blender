@@ -408,7 +408,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 	}
 	FOREACH_VIEW_LAYER_TO_RENDER_END;
 
-	/* sss, previewrender and envmap don't do layers, so we make a default one */
+	/* previewrender doesn't do layers, so we make a default one */
 	if (BLI_listbase_is_empty(&rr->layers) && !(layername && layername[0])) {
 		rl = MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
@@ -503,23 +503,6 @@ void render_result_add_pass(RenderResult *rr, const char *name, int channels, co
 			}
 		}
 	}
-}
-
-/* allocate osa new results for samples */
-RenderResult *render_result_new_full_sample(Render *re, ListBase *lb, rcti *partrct, int crop, int savebuffers, const char *viewname)
-{
-	int a;
-	
-	if (re->osa == 0)
-		return render_result_new(re, partrct, crop, savebuffers, RR_ALL_LAYERS, viewname);
-	
-	for (a = 0; a < re->osa; a++) {
-		RenderResult *rr = render_result_new(re, partrct, crop, savebuffers, RR_ALL_LAYERS, viewname);
-		BLI_addtail(lb, rr);
-		rr->sample_nr = a;
-	}
-	
-	return lb->first;
 }
 
 static int passtype_from_name(const char *name)
@@ -1090,8 +1073,8 @@ void render_result_save_empty_result_tiles(Render *re)
 		for (rl = rr->layers.first; rl; rl = rl->next) {
 			for (pa = re->parts.first; pa; pa = pa->next) {
 				if (pa->status != PART_STATUS_MERGED) {
-					int party = pa->disprect.ymin - re->disprect.ymin + pa->crop;
-					int partx = pa->disprect.xmin - re->disprect.xmin + pa->crop;
+					int party = pa->disprect.ymin - re->disprect.ymin;
+					int partx = pa->disprect.xmin - re->disprect.xmin;
 					IMB_exrtile_write_channels(rl->exrhandle, partx, party, 0, re->viewname, true);
 				}
 			}

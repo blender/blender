@@ -147,9 +147,6 @@ void ED_spacetypes_init(void)
 			type->operatortypes();
 		}
 	}
-
-	/* register internal render callbacks */
-	ED_render_internal_init();
 }
 
 void ED_spacemacros_init(void)

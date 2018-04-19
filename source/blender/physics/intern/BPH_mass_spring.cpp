@@ -1091,24 +1091,3 @@ int BPH_cloth_solve(Object *ob, float frame, ClothModifierData *clmd, ListBase *
 	
 	return 1;
 }
-
-bool BPH_cloth_solver_get_texture_data(Object *UNUSED(ob), ClothModifierData *clmd, VoxelData *vd)
-{
-	Cloth *cloth = clmd->clothObject;
-	HairGrid *grid;
-	float gmin[3], gmax[3];
-	
-	if (!clmd->clothObject || !clmd->clothObject->implicit)
-		return false;
-	
-	hair_get_boundbox(clmd, gmin, gmax);
-	
-	grid = BPH_hair_volume_create_vertex_grid(clmd->sim_parms->voxel_cell_size, gmin, gmax);
-	cloth_continuum_fill_grid(grid, cloth);
-	
-	BPH_hair_volume_get_texture_data(grid, vd);
-	
-	BPH_hair_volume_free_vertex_grid(grid);
-	
-	return true;
-}

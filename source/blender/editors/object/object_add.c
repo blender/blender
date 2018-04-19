@@ -115,8 +115,6 @@
 
 #include "UI_resources.h"
 
-#include "GPU_lamp.h"
-
 #include "object_intern.h"
 
 /* this is an exact copy of the define in rna_lamp.c
@@ -1019,7 +1017,7 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 	la = (Lamp *)ob->data;
 	la->type = type;
 
-	if (BKE_scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_uses_cycles(scene)) {
 		ED_node_shader_default(C, &la->id);
 		la->use_nodes = true;
 	}
@@ -1184,17 +1182,6 @@ void OBJECT_OT_speaker_add(wmOperatorType *ot)
 
 /**************************** Delete Object *************************/
 
-static void object_delete_check_glsl_update(Object *ob)
-{
-	/* some objects could affect on GLSL shading, make sure GLSL settings
-	 * are being tagged to be updated when object is removing from scene
-	 */
-	if (ob->type == OB_LAMP) {
-		if (ob->gpulamp.first)
-			GPU_lamp_free(ob);
-	}
-}
-
 /* remove base from a specific scene */
 /* note: now unlinks constraints as well */
 void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
@@ -1210,7 +1197,6 @@ void ED_object_base_free_and_unlink(Main *bmain, Scene *scene, Object *ob)
 
 	DEG_id_tag_update_ex(bmain, &ob->id, DEG_TAG_BASE_FLAGS_UPDATE);
 
-	object_delete_check_glsl_update(ob);
 	BKE_collections_object_remove(bmain, &scene->id, ob, true);
 }
 

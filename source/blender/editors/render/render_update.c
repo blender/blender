@@ -59,9 +59,7 @@
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
-#include "GPU_lamp.h"
 #include "GPU_material.h"
-#include "GPU_buffers.h"
 
 #include "RE_engine.h"
 #include "RE_pipeline.h"
@@ -145,20 +143,18 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
 				}
 				else {
-					RenderEngineType *engine_type = RE_engines_find(win->scene->r.engine);
-					if ((engine_type->flag & RE_USE_LEGACY_PIPELINE) == 0) {
-						if (updated) {
-							DRW_notify_view_update(
-							        (&(DRWUpdateContext){
-							            .bmain = bmain,
-							            .depsgraph = update_ctx->depsgraph,
-							            .scene = scene,
-							            .view_layer = view_layer,
-							            .ar = ar,
-							            .v3d = (View3D *)sa->spacedata.first,
-							            .engine_type = engine_type
-							        }));
-						}
+					RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+					if (updated) {
+						DRW_notify_view_update(
+						        (&(DRWUpdateContext){
+						            .bmain = bmain,
+						            .depsgraph = update_ctx->depsgraph,
+						            .scene = scene,
+						            .view_layer = view_layer,
+						            .ar = ar,
+						            .v3d = (View3D *)sa->spacedata.first,
+						            .engine_type = engine_type
+						        }));
 					}
 				}
 			}
@@ -243,69 +239,8 @@ static void render_engine_flag_changed(Main *bmain, int update_flag)
 	}
 }
 
-static int mtex_use_tex(MTex **mtex, int tot, Tex *tex)
+static void material_changed(Main *UNUSED(bmain), Material *ma)
 {
-	int a;
-
-	if (!mtex)
-		return 0;
-
-	for (a = 0; a < tot; a++)
-		if (mtex[a] && mtex[a]->tex == tex)
-			return 1;
-	
-	return 0;
-}
-
-static int nodes_use_tex(bNodeTree *ntree, Tex *tex)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id) {
-			if (node->id == (ID *)tex) {
-				return 1;
-			}
-			else if (GS(node->id->name) == ID_MA) {
-				if (mtex_use_tex(((Material *)node->id)->mtex, MAX_MTEX, tex))
-					return 1;
-			}
-			else if (node->type == NODE_GROUP) {
-				if (nodes_use_tex((bNodeTree *)node->id, tex))
-					return 1;
-			}
-		}
-	}
-
-	return 0;
-}
-
-static int nodes_use_material(bNodeTree *ntree, Material *ma)
-{
-	bNode *node;
-
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->id) {
-			if (node->id == (ID *)ma) {
-				return 1;
-			}
-			else if (node->type == NODE_GROUP) {
-				if (nodes_use_material((bNodeTree *)node->id, ma))
-					return 1;
-			}
-		}
-	}
-
-	return 0;
-}
-
-static void material_changed(Main *bmain, Material *ma)
-{
-	Material *parent;
-	Object *ob;
-	Scene *scene;
-	int texture_draw = false;
-
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
 
@@ -315,86 +250,22 @@ static void material_changed(Main *bmain, Material *ma)
 			GPU_material_free(&ma->gpumaterial);
 		}
 	}
-
-	/* find node materials using this */
-	for (parent = bmain->mat.first; parent; parent = parent->id.next) {
-		if (parent->use_nodes && parent->nodetree && nodes_use_material(parent->nodetree, ma)) {
-			/* pass */
-		}
-		else {
-			continue;
-		}
-
-		BKE_icon_changed(BKE_icon_id_ensure(&parent->id));
-
-		if (parent->gpumaterial.first)
-			GPU_material_free(&parent->gpumaterial);
-	}
-
-	/* find if we have a scene with textured display */
-	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		if (scene->customdata_mask & CD_MASK_MTFACE) {
-			texture_draw = true;
-			break;
-		}
-	}
-
-	/* find textured objects */
-	if (texture_draw) {
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			DerivedMesh *dm = ob->derivedFinal;
-			Material ***material = give_matarar(ob);
-			short a, *totmaterial = give_totcolp(ob);
-
-			if (dm && totmaterial && material) {
-				for (a = 0; a < *totmaterial; a++) {
-					if ((*material)[a] == ma) {
-						GPU_drawobject_free(dm);
-						break;
-					}
-				}
-			}
-		}
-	}
-
 }
 
-static void lamp_changed(Main *bmain, Lamp *la)
+static void lamp_changed(Main *UNUSED(bmain), Lamp *la)
 {
-	Object *ob;
-
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&la->id));
-
-	/* glsl */
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
-		if (ob->data == la && ob->gpulamp.first)
-			GPU_lamp_free(ob);
 
 	if (defmaterial.gpumaterial.first)
 		GPU_material_free(&defmaterial.gpumaterial);
 }
 
-static int material_uses_texture(Material *ma, Tex *tex)
-{
-	if (mtex_use_tex(ma->mtex, MAX_MTEX, tex))
-		return true;
-	else if (ma->use_nodes && ma->nodetree && nodes_use_tex(ma->nodetree, tex))
-		return true;
-	
-	return false;
-}
-
 static void texture_changed(Main *bmain, Tex *tex)
 {
-	Material *ma;
-	Lamp *la;
-	World *wo;
 	Scene *scene;
 	ViewLayer *view_layer;
-	Object *ob;
 	bNode *node;
-	bool texture_draw = false;
 
 	/* icons */
 	BKE_icon_changed(BKE_icon_id_ensure(&tex->id));
@@ -406,80 +277,12 @@ static void texture_changed(Main *bmain, Tex *tex)
 		}
 	}
 
-	/* find materials */
-	for (ma = bmain->mat.first; ma; ma = ma->id.next) {
-		if (!material_uses_texture(ma, tex))
-			continue;
-
-		BKE_icon_changed(BKE_icon_id_ensure(&ma->id));
-
-		if (ma->gpumaterial.first)
-			GPU_material_free(&ma->gpumaterial);
-	}
-
-	/* find lamps */
-	for (la = bmain->lamp.first; la; la = la->id.next) {
-		if (mtex_use_tex(la->mtex, MAX_MTEX, tex)) {
-			lamp_changed(bmain, la);
-		}
-		else if (la->nodetree && nodes_use_tex(la->nodetree, tex)) {
-			lamp_changed(bmain, la);
-		}
-		else {
-			continue;
-		}
-	}
-
-	/* find worlds */
-	for (wo = bmain->world.first; wo; wo = wo->id.next) {
-		if (mtex_use_tex(wo->mtex, MAX_MTEX, tex)) {
-			/* pass */
-		}
-		else if (wo->nodetree && nodes_use_tex(wo->nodetree, tex)) {
-			/* pass */
-		}
-		else {
-			continue;
-		}
-
-		BKE_icon_changed(BKE_icon_id_ensure(&wo->id));
-		
-		if (wo->gpumaterial.first)
-			GPU_material_free(&wo->gpumaterial);		
-	}
-
 	/* find compositing nodes */
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
 		if (scene->use_nodes && scene->nodetree) {
 			for (node = scene->nodetree->nodes.first; node; node = node->next) {
 				if (node->id == &tex->id)
 					ED_node_tag_update_id(&scene->id);
-			}
-		}
-
-		if (scene->customdata_mask & CD_MASK_MTFACE)
-			texture_draw = true;
-	}
-
-	/* find textured objects */
-	if (texture_draw) {
-		for (ob = bmain->object.first; ob; ob = ob->id.next) {
-			DerivedMesh *dm = ob->derivedFinal;
-			Material ***material = give_matarar(ob);
-			short a, *totmaterial = give_totcolp(ob);
-
-			if (dm && totmaterial && material) {
-				for (a = 0; a < *totmaterial; a++) {
-					if (ob->matbits && ob->matbits[a])
-						ma = ob->mat[a];
-					else
-						ma = (*material)[a];
-
-					if (ma && material_uses_texture(ma, tex)) {
-						GPU_drawobject_free(dm);
-						break;
-					}
-				}
 			}
 		}
 	}
@@ -526,7 +329,6 @@ static void scene_changed(Main *bmain, Scene *scene)
 		if (ob->mode & OB_MODE_TEXTURE_PAINT) {
 			BKE_texpaint_slots_refresh_object(scene, ob);
 			BKE_paint_proj_mesh_data_check(scene, ob, NULL, NULL, NULL, NULL);
-			GPU_drawobject_free(ob->derivedFinal);
 		}
 	}
 }
@@ -568,12 +370,3 @@ void ED_render_id_flush_update(const DEGEditorUpdateContext *update_ctx, ID *id)
 	}
 }
 
-
-void ED_render_internal_init(void)
-{
-	RenderEngineType *ret = RE_engines_find(RE_engine_id_BLENDER_RENDER);
-	
-	ret->view_update = render_view3d_update;
-	ret->render_to_view = render_view3d_draw;
-	
-}

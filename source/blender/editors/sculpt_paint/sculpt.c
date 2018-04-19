@@ -87,9 +87,6 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "GPU_buffers.h"
-#include "GPU_extensions.h"
-
 #include "UI_interface.h"
 #include "UI_resources.h"
 
@@ -4866,8 +4863,6 @@ static void sculpt_flush_update(bContext *C)
 
 	if (mmd)
 		multires_mark_as_modified(ob, MULTIRES_COORDS_MODIFIED);
-	if (ob->derivedFinal) /* VBO no longer valid */
-		GPU_drawobject_free(ob->derivedFinal);
 
 	if (ss->kb || ss->modifiers_active) {
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -5734,11 +5729,6 @@ void ED_object_sculptmode_enter_ex(
 	}
 
 	// ED_workspace_object_mode_sync_from_object(G.main->wm.first, workspace, ob);
-
-	/* VBO no longer valid */
-	if (ob->derivedFinal) {
-		GPU_drawobject_free(ob->derivedFinal);
-	}
 }
 
 void ED_object_sculptmode_enter(struct bContext *C, ReportList *reports)
@@ -5791,11 +5781,6 @@ void ED_object_sculptmode_exit_ex(
 	BKE_sculptsession_free(ob);
 
 	paint_cursor_delete_textures();
-
-	/* VBO no longer valid */
-	if (ob->derivedFinal) {
-		GPU_drawobject_free(ob->derivedFinal);
-	}
 }
 
 void ED_object_sculptmode_exit(bContext *C)

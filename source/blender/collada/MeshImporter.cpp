@@ -879,48 +879,6 @@ std::string *MeshImporter::get_geometry_name(const std::string &mesh_name)
 	return NULL;
 }
 
-MTex *MeshImporter::assign_textures_to_uvlayer(COLLADAFW::TextureCoordinateBinding &ctexture,
-                                               Mesh *me, TexIndexTextureArrayMap& texindex_texarray_map,
-                                               MTex *color_texture)
-{
-	const COLLADAFW::TextureMapId texture_index = ctexture.getTextureMapId();
-	size_t setindex = ctexture.getSetIndex();
-	std::string uvname = ctexture.getSemantic();
-	
-	if (setindex == -1) return NULL;
-	
-	const CustomData *data = &me->fdata;
-	int layer_index = CustomData_get_layer_index(data, CD_MTFACE);
-
-	if (layer_index == -1) return NULL;
-
-	CustomDataLayer *cdl = &data->layers[layer_index + setindex];
-	
-	/* set uvname to bind_vertex_input semantic */
-	BLI_strncpy(cdl->name, uvname.c_str(), sizeof(cdl->name));
-
-	if (texindex_texarray_map.find(texture_index) == texindex_texarray_map.end()) {
-		
-		fprintf(stderr, "Cannot find texture array by texture index.\n");
-		return color_texture;
-	}
-	
-	std::vector<MTex *> textures = texindex_texarray_map[texture_index];
-	
-	std::vector<MTex *>::iterator it;
-	
-	for (it = textures.begin(); it != textures.end(); it++) {
-		
-		MTex *texture = *it;
-		
-		if (texture) {
-			BLI_strncpy(texture->uvname, uvname.c_str(), sizeof(texture->uvname));
-			if (texture->mapto == MAP_COL) color_texture = texture;
-		}
-	}
-	return color_texture;
-}
-
 /**
  * this function checks if both objects have the same
  * materials assigned to Object (in the same order)
@@ -1058,10 +1016,8 @@ void MeshImporter::assign_material_to_geom(
         COLLADAFW::MaterialBinding cmaterial,
         std::map<COLLADAFW::UniqueId, Material *>& uid_material_map,
         Object *ob, const COLLADAFW::UniqueId *geom_uid,
-        std::map<Material *, TexIndexTextureArrayMap>& material_texture_mapping_map, short mat_index)
+        short mat_index)
 {
-	MTex *color_texture = NULL;
-	Mesh *me = (Mesh *)ob->data;
 	const COLLADAFW::UniqueId& ma_uid = cmaterial.getReferencedMaterial();
 	
 	// do we know this material?
@@ -1081,17 +1037,6 @@ void MeshImporter::assign_material_to_geom(
 	ob->actcol=0;
 	assign_material(ob, ma, mat_index + 1, BKE_MAT_ASSIGN_OBJECT); 
 	
-	COLLADAFW::TextureCoordinateBindingArray& tex_array = 
-	    cmaterial.getTextureCoordinateBindingArray();
-	TexIndexTextureArrayMap texindex_texarray_map = material_texture_mapping_map[ma];
-	unsigned int i;
-	// loop through <bind_vertex_inputs>
-	for (i = 0; i < tex_array.getCount(); i++) {
-		
-		color_texture = assign_textures_to_uvlayer(tex_array[i], me, texindex_texarray_map,
-		                                            color_texture);
-	}
-	
 	MaterialIdPrimitiveArrayMap& mat_prim_map = geom_uid_mat_mapping_map[*geom_uid];
 	COLLADAFW::MaterialId mat_id = cmaterial.getMaterialId();
 	
@@ -1106,7 +1051,7 @@ void MeshImporter::assign_material_to_geom(
 			Primitive& prim = *it;
 			MPoly *mpoly = prim.mpoly;
 
-			for (i = 0; i < prim.totpoly; i++, mpoly++) {
+			for (int i = 0; i < prim.totpoly; i++, mpoly++) {
 				mpoly->mat_nr = mat_index;
 			}
 		}
@@ -1115,8 +1060,7 @@ void MeshImporter::assign_material_to_geom(
 
 Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
                                          bool isController,
-                                         std::map<COLLADAFW::UniqueId, Material *>& uid_material_map,
-                                         std::map<Material *, TexIndexTextureArrayMap>& material_texture_mapping_map)
+                                         std::map<COLLADAFW::UniqueId, Material *>& uid_material_map)
 {
 	const COLLADAFW::UniqueId *geom_uid = &geom->getInstanciatedObjectId();
 	
@@ -1173,7 +1117,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 		if (mat_array[i].getReferencedMaterial().isValid()) {
 			assign_material_to_geom(
 			        mat_array[i], uid_material_map, ob, geom_uid,
-			        material_texture_mapping_map, i);
+			        i);
 		}
 		else {
 			fprintf(stderr, "invalid referenced material for %s\n", mat_array[i].getName().c_str());

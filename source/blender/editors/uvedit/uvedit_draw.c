@@ -436,43 +436,8 @@ static void draw_uvs_lineloop_mpoly(Mesh *me, MPoly *mpoly, unsigned int pos)
 	immEnd();
 }
 
-static void draw_uvs_other_mesh_texface(Object *ob, const Image *curimage, const int other_uv_filter, unsigned int pos)
-{
-	Mesh *me = ob->data;
-	MPoly *mpoly = me->mpoly;
-	int a;
-
-	if (me->mloopuv == NULL) {
-		return;
-	}
-
-	Image **image_array = NULL;
-
-	if (other_uv_filter == SI_FILTER_SAME_IMAGE) {
-		image_array = BKE_object_material_edit_image_get_array(ob);
-	}
-
-	for (a = me->totpoly; a != 0; a--, mpoly++) {
-		if (other_uv_filter == SI_FILTER_ALL) {
-			/* Nothing to compare, all UV faces are visible. */
-		}
-		else if (other_uv_filter == SI_FILTER_SAME_IMAGE) {
-			if (mpoly[a].mat_nr >= ob->totcol) {
-				continue;
-			}
-			if (image_array[mpoly[a].mat_nr] != curimage) {
-				continue;
-			}
-		}
-
-		draw_uvs_lineloop_mpoly(me, mpoly, pos);
-	}
-
-	if (image_array) {
-		MEM_freeN(image_array);
-	}
-}
-static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage, const int other_uv_filter, unsigned int pos)
+static void draw_uvs_other_mesh(Object *ob, const Image *curimage,
+                                const int other_uv_filter, unsigned int pos)
 {
 	Mesh *me = ob->data;
 	MPoly *mpoly = me->mpoly;
@@ -527,18 +492,8 @@ static void draw_uvs_other_mesh_new_shading(Object *ob, const Image *curimage, c
 		draw_uvs_lineloop_mpoly(me, mpoly, pos);
 	}
 }
-static void draw_uvs_other_mesh(Object *ob, const Image *curimage, const bool new_shading_nodes,
-                                const int other_uv_filter, unsigned int pos)
-{
-	if (new_shading_nodes) {
-		draw_uvs_other_mesh_new_shading(ob, curimage, other_uv_filter, pos);
-	}
-	else {
-		draw_uvs_other_mesh_texface(ob, curimage, other_uv_filter, pos);
-	}
-}
 
-static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *curimage, const bool new_shading_nodes,
+static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *curimage,
                            const int other_uv_filter)
 {
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -553,7 +508,7 @@ static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *c
 		{
 			Object *ob = base->object;
 			if ((ob->type == OB_MESH) && (ob != obedit) && ((Mesh *)ob->data)->mloopuv) {
-				draw_uvs_other_mesh(ob, curimage, new_shading_nodes, other_uv_filter, pos);
+				draw_uvs_other_mesh(ob, curimage, other_uv_filter, pos);
 			}
 		}
 	}
@@ -562,13 +517,12 @@ static void draw_uvs_other(ViewLayer *view_layer, Object *obedit, const Image *c
 
 static void draw_uvs_texpaint(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Object *ob)
 {
-	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	Image *curimage = ED_space_image(sima);
 	Mesh *me = ob->data;
 	Material *ma;
 
 	if (sima->flag & SI_DRAW_OTHER) {
-		draw_uvs_other(view_layer, ob, curimage, new_shading_nodes, sima->other_uv_filter);
+		draw_uvs_other(view_layer, ob, curimage, sima->other_uv_filter);
 	}
 
 	ma = give_current_material(ob, ob->actcol);
@@ -627,7 +581,6 @@ static void draw_uvs_looptri(BMEditMesh *em, unsigned int *r_loop_index, const i
 /* draws uv's in the image space */
 static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Object *obedit, Depsgraph *depsgraph)
 {
-	const bool new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	ToolSettings *ts;
 	Mesh *me = obedit->data;
 	BMEditMesh *em = me->edit_btmesh;
@@ -658,19 +611,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	if (sima->flag & SI_DRAW_OTHER) {
 		Image *curimage;
 
-		if (new_shading_nodes) {
-			if (efa_act) {
-				ED_object_get_active_image(obedit, efa_act->mat_nr + 1, &curimage, NULL, NULL, NULL);
-			}
-			else {
-				curimage = ima;
-			}
+		if (efa_act) {
+			ED_object_get_active_image(obedit, efa_act->mat_nr + 1, &curimage, NULL, NULL, NULL);
 		}
 		else {
-			curimage = (efa_act) ? BKE_object_material_edit_image_get(obedit, efa_act->mat_nr) : ima;
+			curimage = ima;
 		}
 
-		draw_uvs_other(view_layer, obedit, curimage, new_shading_nodes, sima->other_uv_filter);
+		draw_uvs_other(view_layer, obedit, curimage, sima->other_uv_filter);
 	}
 
 	/* 1. draw shadow mesh */

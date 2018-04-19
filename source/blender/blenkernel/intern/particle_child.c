@@ -39,40 +39,6 @@
 
 #include "particle_private.h"
 
-struct Material;
-
-static void get_strand_normal(Material *ma, const float surfnor[3], float surfdist, float nor[3])
-{
-	float cross[3], nstrand[3], vnor[3], blend;
-
-	if (!((ma->mode & MA_STR_SURFDIFF) || (ma->strand_surfnor > 0.0f)))
-		return;
-
-	if (ma->mode & MA_STR_SURFDIFF) {
-		cross_v3_v3v3(cross, surfnor, nor);
-		cross_v3_v3v3(nstrand, nor, cross);
-
-		blend = dot_v3v3(nstrand, surfnor);
-		CLAMP(blend, 0.0f, 1.0f);
-
-		interp_v3_v3v3(vnor, nstrand, surfnor, blend);
-		normalize_v3(vnor);
-	}
-	else {
-		copy_v3_v3(vnor, nor);
-	}
-
-	if (ma->strand_surfnor > 0.0f) {
-		if (ma->strand_surfnor > surfdist) {
-			blend = (ma->strand_surfnor - surfdist) / ma->strand_surfnor;
-			interp_v3_v3v3(vnor, vnor, surfnor, blend);
-			normalize_v3(vnor);
-		}
-	}
-
-	copy_v3_v3(nor, vnor);
-}
-
 /* ------------------------------------------------------------------------- */
 
 typedef struct ParticlePathIterator {
@@ -320,7 +286,7 @@ static bool check_path_length(int k, ParticleCacheKey *keys, ParticleCacheKey *k
 }
 
 void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *modifiers,
-                                ChildParticle *cpa, ParticleTexture *ptex, const float orco[3], const float ornor[3], float hairmat[4][4],
+                                ChildParticle *cpa, ParticleTexture *ptex, const float orco[3], float hairmat[4][4],
                                 ParticleCacheKey *keys, ParticleCacheKey *parent_keys, const float parent_orco[3])
 {
 	struct ParticleSettings *part = ctx->sim.psys->part;
@@ -389,9 +355,6 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 			if (k >= 2) {
 				sub_v3_v3v3((key-1)->vel, key->co, (key-2)->co);
 				mul_v3_fl((key-1)->vel, 0.5);
-
-				if (ma && draw_col_ma)
-					get_strand_normal(ma, ornor, cur_length, (key-1)->vel);
 			}
 
 			if (use_length_check && k > 0) {
@@ -413,7 +376,6 @@ void psys_apply_child_modifiers(ParticleThreadContext *ctx, struct ListBase *mod
 
 			if (ma && draw_col_ma) {
 				copy_v3_v3(key->col, &ma->r);
-				get_strand_normal(ma, ornor, cur_length, key->vel);
 			}
 		}
 	}

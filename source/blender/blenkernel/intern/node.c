@@ -3120,77 +3120,6 @@ void nodeUpdateInternalLinks(bNodeTree *ntree, bNode *node)
 }
 
 
-/* nodes that use ID data get synced with local data */
-void nodeSynchronizeID(bNode *node, bool copy_to_id)
-{
-	if (node->id == NULL) return;
-	
-	if (ELEM(node->type, SH_NODE_MATERIAL, SH_NODE_MATERIAL_EXT)) {
-		bNodeSocket *sock;
-		Material *ma = (Material *)node->id;
-		int a;
-		short check_flags = SOCK_UNAVAIL;
-
-		if (!copy_to_id)
-			check_flags |= SOCK_HIDDEN;
-		
-		/* hrmf, case in loop isn't super fast, but we don't edit 100s of material at same time either! */
-		for (a = 0, sock = node->inputs.first; sock; sock = sock->next, a++) {
-			if (!(sock->flag & check_flags)) {
-				if (copy_to_id) {
-					switch (a) {
-						case MAT_IN_COLOR:
-							copy_v3_v3(&ma->r, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
-						case MAT_IN_SPEC:
-							copy_v3_v3(&ma->specr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
-						case MAT_IN_REFL:
-							ma->ref = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_MIR:
-							copy_v3_v3(&ma->mirr, ((bNodeSocketValueRGBA *)sock->default_value)->value); break;
-						case MAT_IN_AMB:
-							ma->amb = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_EMIT:
-							ma->emit = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_SPECTRA:
-							ma->spectra = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_RAY_MIRROR:
-							ma->ray_mirror = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_ALPHA:
-							ma->alpha = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-						case MAT_IN_TRANSLUCENCY:
-							ma->translucency = ((bNodeSocketValueFloat *)sock->default_value)->value; break;
-					}
-				}
-				else {
-					switch (a) {
-						case MAT_IN_COLOR:
-							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->r); break;
-						case MAT_IN_SPEC:
-							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->specr); break;
-						case MAT_IN_REFL:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->ref; break;
-						case MAT_IN_MIR:
-							copy_v3_v3(((bNodeSocketValueRGBA *)sock->default_value)->value, &ma->mirr); break;
-						case MAT_IN_AMB:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->amb; break;
-						case MAT_IN_EMIT:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->emit; break;
-						case MAT_IN_SPECTRA:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->spectra; break;
-						case MAT_IN_RAY_MIRROR:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->ray_mirror; break;
-						case MAT_IN_ALPHA:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->alpha; break;
-						case MAT_IN_TRANSLUCENCY:
-							((bNodeSocketValueFloat *)sock->default_value)->value = ma->translucency; break;
-					}
-				}
-			}
-		}
-	}
-}
-
-
 /* ************* node type access ********** */
 
 void nodeLabel(bNodeTree *ntree, bNode *node, char *label, int maxlen)
@@ -3555,10 +3484,7 @@ static void registerShaderNodes(void)
 {
 	register_node_type_sh_group();
 
-	register_node_type_sh_output();
-	register_node_type_sh_material();
 	register_node_type_sh_camera();
-	register_node_type_sh_lamp();
 	register_node_type_sh_gamma();
 	register_node_type_sh_brightcontrast();
 	register_node_type_sh_value();
@@ -3569,9 +3495,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_mix_rgb();
 	register_node_type_sh_valtorgb();
 	register_node_type_sh_rgbtobw();
-	register_node_type_sh_texture();
 	register_node_type_sh_normal();
-	register_node_type_sh_geom();
 	register_node_type_sh_mapping();
 	register_node_type_sh_curve_vec();
 	register_node_type_sh_curve_rgb();
@@ -3579,7 +3503,6 @@ static void registerShaderNodes(void)
 	register_node_type_sh_vect_math();
 	register_node_type_sh_vect_transform();
 	register_node_type_sh_squeeze();
-	register_node_type_sh_material_ext();
 	register_node_type_sh_invert();
 	register_node_type_sh_seprgb();
 	register_node_type_sh_combrgb();

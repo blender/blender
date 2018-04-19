@@ -316,10 +316,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 	switch (snode->nodetree->type) {
 		case NTREE_SHADER:
-			if (BKE_scene_use_new_shading_nodes(CTX_data_scene(C)))
-				type = SH_NODE_TEX_IMAGE;
-			else
-				type = SH_NODE_TEXTURE;
+			type = SH_NODE_TEX_IMAGE;
 			break;
 		case NTREE_TEXTURE:
 			type = TEX_NODE_IMAGE;
@@ -340,14 +337,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 	
-	if (type == SH_NODE_TEXTURE) {
-		Tex *tex = BKE_texture_add(CTX_data_main(C), DATA_(ima->id.name));
-		tex->ima = ima;
-		node->id = (ID *)tex;
-		WM_event_add_notifier(C, NC_TEXTURE | NA_ADDED, node->id);
-	}
-	else
-		node->id = (ID *)ima;
+	node->id = (ID *)ima;
 
 	/* When adding new image file via drag-drop we need to load imbuf in order
 	 * to get proper image source.

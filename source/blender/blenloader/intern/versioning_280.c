@@ -667,16 +667,6 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 {
 
 	if (!MAIN_VERSION_ATLEAST(main, 280, 0)) {
-		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-			if (STREQ(scene->r.engine, RE_engine_id_BLENDER_RENDER)) {
-#ifdef WITH_CLAY_ENGINE
-				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_CLAY, sizeof(scene->r.engine));
-#else
-				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
-#endif
-			}
-		}
-
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "ListBase", "view_layers")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				/* Master Collection */
@@ -934,6 +924,25 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		if (MAIN_VERSION_ATLEAST(main, 280, 0)) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 8)) {
+		/* Blender Internal removal */
+		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+			if (STREQ(scene->r.engine, "BLENDER_RENDER") ||
+			    STREQ(scene->r.engine, "BLENDER_GAME")) {
+				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
+			}
+
+			scene->r.bake_mode = 0;
+		}
+
+		for (Tex *tex = main->tex.first; tex; tex = tex->id.next) {
+			/* Removed envmap, pointdensity, voxeldata, ocean textures. */
+			if (ELEM(tex->type, 10, 14, 15, 16)) {
+				tex->type = 0;
 			}
 		}
 	}

@@ -1156,14 +1156,8 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 4)) {
-		Lamp *la;
 		Camera *cam;
 		Curve *cu;
-
-		for (la = main->lamp.first; la; la = la->id.next) {
-			if (la->shadow_frustum_size == 0.0f)
-				la->shadow_frustum_size = 10.0f;
-		}
 
 		for (cam = main->camera.first; cam; cam = cam->id.next) {
 			if (cam->flag & CAM_PANORAMA) {
@@ -1341,14 +1335,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 12)) {
-		Material *ma;
-
-		for (ma = main->mat.first; ma; ma = ma->id.next)
-			if (ma->strand_widthfade == 2.0f)
-				ma->strand_widthfade = 0.0f;
-	}
-
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 13)) {
 		FOREACH_NODETREE(main, ntree, id) {
 			if (ntree->type == NTREE_COMPOSIT) {
@@ -1495,20 +1481,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	/* remove texco */
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 21)) {
-		Material *ma;
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			int a;
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ma->mtex[a]) {
-					if (ma->mtex[a]->texco == TEXCO_STICKY_) {
-						ma->mtex[a]->texco = TEXCO_UV;
-					}
-				}
-			}
-		}
-
 		{
 			Mesh *me;
 			for (me = main->mesh.first; me; me = me->id.next) {
@@ -1666,17 +1639,7 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 			for (scene = main->scene.first; scene; scene = scene->id.next) {
 				if (scene->r.tilex == 0 || scene->r.tiley == 1) {
-					if (scene->r.xparts && scene->r.yparts) {
-						/* scene could be set for panoramic rendering, so clamp with the
-						 * lowest possible tile size value
-						 */
-						scene->r.tilex = max_ii(scene->r.xsch * scene->r.size / scene->r.xparts / 100, 8);
-						scene->r.tiley = max_ii(scene->r.ysch * scene->r.size / scene->r.yparts / 100, 8);
-					}
-					else {
-						/* happens when mixing using current trunk and previous release */
-						scene->r.tilex = scene->r.tiley = 64;
-					}
+					scene->r.tilex = scene->r.tiley = 64;
 				}
 			}
 		}
@@ -1762,7 +1725,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			Sequence *seq;
-			bool set_premul = false;
 
 			SEQ_BEGIN (scene->ed, seq)
 			{
@@ -1777,24 +1739,6 @@ void blo_do_versions_260(FileData *fd, Library *UNUSED(lib), Main *main)
 
 			if (scene->r.bake_samples == 0)
 				scene->r.bake_samples = 256;
-
-			if (scene->world) {
-				World *world = blo_do_versions_newlibadr(fd, scene->id.lib, scene->world);
-
-				if (world && is_zero_v3(&world->horr)) {
-					if ((world->skytype & WO_SKYBLEND) == 0 || is_zero_v3(&world->zenr)) {
-						set_premul = true;
-					}
-				}
-			}
-			else
-				set_premul = true;
-
-			if (set_premul) {
-				printf("2.66 versioning fix: replacing black sky with premultiplied alpha for scene %s\n",
-				       scene->id.name + 2);
-				scene->r.alphamode = R_ALPHAPREMUL;
-			}
 		}
 
 		for (Image *image = main->image.first; image; image = image->id.next) {

@@ -243,7 +243,6 @@ struct DepsgraphRelationBuilder
 	void build_nodetree(bNodeTree *ntree);
 	void build_material(Material *ma);
 	void build_texture(Tex *tex);
-	void build_texture_stack(MTex **texture_stack);
 	void build_compositor(Scene *scene);
 	void build_gpencil(bGPdata *gpd);
 	void build_cachefile(CacheFile *cache_file);

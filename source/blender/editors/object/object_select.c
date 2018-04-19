@@ -203,7 +203,6 @@ enum {
 	OBJECT_SELECT_LINKED_IPO = 1,
 	OBJECT_SELECT_LINKED_OBDATA,
 	OBJECT_SELECT_LINKED_MATERIAL,
-	OBJECT_SELECT_LINKED_TEXTURE,
 	OBJECT_SELECT_LINKED_DUPGROUP,
 	OBJECT_SELECT_LINKED_PARTICLE,
 	OBJECT_SELECT_LINKED_LIBRARY,
@@ -214,7 +213,6 @@ static const EnumPropertyItem prop_select_linked_types[] = {
 	//{OBJECT_SELECT_LINKED_IPO, "IPO", 0, "Object IPO", ""}, // XXX deprecated animation system stuff...
 	{OBJECT_SELECT_LINKED_OBDATA, "OBDATA", 0, "Object Data", ""},
 	{OBJECT_SELECT_LINKED_MATERIAL, "MATERIAL", 0, "Material", ""},
-	{OBJECT_SELECT_LINKED_TEXTURE, "TEXTURE", 0, "Texture", ""},
 	{OBJECT_SELECT_LINKED_DUPGROUP, "DUPGROUP", 0, "Dupligroup", ""},
 	{OBJECT_SELECT_LINKED_PARTICLE, "PARTICLE", 0, "Particle System", ""},
 	{OBJECT_SELECT_LINKED_LIBRARY, "LIBRARY", 0, "Library", ""},
@@ -240,7 +238,7 @@ static bool object_select_all_by_obdata(bContext *C, void *obdata)
 	return changed;
 }
 
-static bool object_select_all_by_material_texture(bContext *C, int use_texture, Material *mat, Tex *tex)
+static bool object_select_all_by_material(bContext *C, Material *mat)
 {
 	bool changed = false;
 
@@ -249,27 +247,14 @@ static bool object_select_all_by_material_texture(bContext *C, int use_texture, 
 		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
 			Object *ob = base->object;
 			Material *mat1;
-			int a, b;
+			int a;
 
 			for (a = 1; a <= ob->totcol; a++) {
 				mat1 = give_current_material(ob, a);
 
-				if (!use_texture) {
-					if (mat1 == mat) {
-						ED_object_base_select(base, BA_SELECT);
-						changed = true;
-					}
-				}
-				else if (mat1 && use_texture) {
-					for (b = 0; b < MAX_MTEX; b++) {
-						if (mat1->mtex[b]) {
-							if (tex == mat1->mtex[b]->tex) {
-								ED_object_base_select(base, BA_SELECT);
-								changed = true;
-								break;
-							}
-						}
-					}
+				if (mat1 == mat) {
+					ED_object_base_select(base, BA_SELECT);
+					changed = true;
 				}
 			}
 		}
@@ -373,7 +358,7 @@ void ED_object_select_linked_by_id(bContext *C, ID *id)
 		changed = object_select_all_by_obdata(C, id);
 	}
 	else if (idtype == ID_MA) {
-		changed = object_select_all_by_material_texture(C, false, (Material *)id, NULL);
+		changed = object_select_all_by_material(C, (Material *)id);
 	}
 	else if (idtype == ID_LI) {
 		changed = object_select_all_by_library(C, (Library *) id);
@@ -420,21 +405,13 @@ static int object_select_linked_exec(bContext *C, wmOperator *op)
 
 		changed = object_select_all_by_obdata(C, ob->data);
 	}
-	else if (nr == OBJECT_SELECT_LINKED_MATERIAL || nr == OBJECT_SELECT_LINKED_TEXTURE) {
+	else if (nr == OBJECT_SELECT_LINKED_MATERIAL) {
 		Material *mat = NULL;
-		Tex *tex = NULL;
-		bool use_texture = false;
 
 		mat = give_current_material(ob, ob->actcol);
 		if (mat == NULL) return OPERATOR_CANCELLED;
-		if (nr == OBJECT_SELECT_LINKED_TEXTURE) {
-			use_texture = true;
 
-			if (mat->mtex[(int)mat->texact]) tex = mat->mtex[(int)mat->texact]->tex;
-			if (tex == NULL) return OPERATOR_CANCELLED;
-		}
-
-		changed = object_select_all_by_material_texture(C, use_texture, mat, tex);
+		changed = object_select_all_by_material(C, mat);
 	}
 	else if (nr == OBJECT_SELECT_LINKED_DUPGROUP) {
 		if (ob->dup_group == NULL)

@@ -324,7 +324,7 @@ void copy_particle_key(struct ParticleKey *to, struct ParticleKey *from, int tim
 CustomDataMask psys_emitter_customdata_mask(struct ParticleSystem *psys);
 void psys_particle_on_emitter(struct ParticleSystemModifierData *psmd, int distr, int index, int index_dmcache,
                               float fuv[4], float foffset, float vec[3], float nor[3],
-                              float utan[3], float vtan[3], float orco[3], float ornor[3]);
+                              float utan[3], float vtan[3], float orco[3]);
 struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct ParticleSystem *psys);
 
 struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, const char *name);
@@ -356,7 +356,7 @@ void BKE_particlesettings_clump_curve_init(struct ParticleSettings *part);
 void BKE_particlesettings_rough_curve_init(struct ParticleSettings *part);
 void BKE_particlesettings_twist_curve_init(struct ParticleSettings *part);
 void psys_apply_child_modifiers(struct ParticleThreadContext *ctx, struct ListBase *modifiers,
-                                struct ChildParticle *cpa, struct ParticleTexture *ptex, const float orco[3], const float ornor[3], float hairmat[4][4],
+                                struct ChildParticle *cpa, struct ParticleTexture *ptex, const float orco[3], float hairmat[4][4],
                                 struct ParticleCacheKey *keys, struct ParticleCacheKey *parent_keys, const float parent_orco[3]);
 
 void psys_sph_init(struct ParticleSimulationData *sim, struct SPHData *sphdata);
@@ -422,7 +422,7 @@ float *psys_cache_vgroup(struct DerivedMesh *dm, struct ParticleSystem *psys, in
 void psys_get_texture(struct ParticleSimulationData *sim, struct ParticleData *pa, struct ParticleTexture *ptex, int event, float cfra);
 void psys_interpolate_face(struct MVert *mvert, struct MFace *mface, struct MTFace *tface,
                            float (*orcodata)[3], float w[4], float vec[3], float nor[3], float utan[3], float vtan[3],
-                           float orco[3], float ornor[3]);
+                           float orco[3]);
 float psys_particle_value_from_verts(struct DerivedMesh *dm, short from, struct ParticleData *pa, float *values);
 void psys_get_from_key(struct ParticleKey *key, float loc[3], float vel[3], float rot[4], float *time);
 
@@ -430,7 +430,7 @@ void psys_get_from_key(struct ParticleKey *key, float loc[3], float vel[3], floa
 void BKE_psys_collision_neartest_cb(void *userdata, int index, const struct BVHTreeRay *ray, struct BVHTreeRayHit *hit);
 void psys_particle_on_dm(struct DerivedMesh *dm_final, int from, int index, int index_dmcache,
                          const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
-                         float orco[3], float ornor[3]);
+                         float orco[3]);
 
 /* particle_system.c */
 void distribute_particles(struct ParticleSimulationData *sim, int from);

@@ -129,10 +129,6 @@ bool BKE_pbvh_node_find_nearest_to_ray(
 
 /* Drawing */
 
-void BKE_pbvh_node_draw(PBVHNode *node, void *data);
-void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-                   int (*setMaterial)(int matnr, void *attribs), bool wireframe, bool fast);
-void BKE_pbvh_draw_BB(PBVH *bvh);
 void BKE_pbvh_draw_cb(
         PBVH *bvh, float (*planes)[4], float (*fnors)[3], bool fast,
         void (*draw_fn)(void *user_data, struct Gwn_Batch *batch), void *user_data);
@@ -225,7 +221,7 @@ struct GSet *BKE_pbvh_bmesh_node_faces(PBVHNode *node);
 void BKE_pbvh_bmesh_node_save_orig(PBVHNode *node);
 void BKE_pbvh_bmesh_after_stroke(PBVH *bvh);
 
-/* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
+/* Update Normals/Bounding Box/Redraw and clear flags */
 
 void BKE_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BKE_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);

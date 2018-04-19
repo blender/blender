@@ -151,16 +151,12 @@ bool BKE_scene_remove_render_view(struct Scene *scene, struct SceneRenderView *s
 /* render profile */
 int get_render_subsurf_level(const struct RenderData *r, int level, bool for_render);
 int get_render_child_particle_number(const struct RenderData *r, int num, bool for_render);
-int get_render_shadow_samples(const struct RenderData *r, int samples);
-float get_render_aosss_error(const struct RenderData *r, float error);
 
-bool BKE_scene_use_new_shading_nodes(const struct Scene *scene);
 bool BKE_scene_use_shading_nodes_custom(struct Scene *scene);
-bool BKE_scene_use_world_space_shading(struct Scene *scene);
 bool BKE_scene_use_spherical_stereo(struct Scene *scene);
 
-bool BKE_scene_uses_blender_internal(const struct Scene *scene);
 bool BKE_scene_uses_blender_eevee(const struct Scene *scene);
+bool BKE_scene_uses_cycles(const struct Scene *scene);
 
 void BKE_scene_disable_color_management(struct Scene *scene);
 bool BKE_scene_check_color_management_enabled(const struct Scene *scene);

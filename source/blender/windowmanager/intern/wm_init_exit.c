@@ -118,7 +118,6 @@
 #include "BLT_lang.h"
 
 #include "GPU_material.h"
-#include "GPU_buffers.h"
 #include "GPU_draw.h"
 #include "GPU_init_exit.h"
 
@@ -467,7 +466,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 		BKE_subsurf_osd_cleanup();
 #endif
 
-		GPU_global_buffer_pool_free();
 		GPU_free_unused_buffers();
 
 		GPU_exit();

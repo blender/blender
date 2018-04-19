@@ -326,10 +326,6 @@ static int write_video_frame(FFMpegContext *context, RenderData *rd, int cfra, A
 
 	frame->pts = cfra;
 
-	if (rd->mode & R_FIELDS) {
-		frame->top_field_first = ((rd->mode & R_ODDFIELD) != 0);
-	}
-
 	ret = avcodec_encode_video2(c, &packet, frame, &got_output);
 
 	if (ret >= 0 && got_output) {
@@ -685,13 +681,6 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
 	
-	/* Determine whether we are encoding interlaced material or not */
-	if (rd->mode & R_FIELDS) {
-		PRINT("Encoding interlaced video\n");
-		c->flags |= CODEC_FLAG_INTERLACED_DCT;
-		c->flags |= CODEC_FLAG_INTERLACED_ME;
-	}
-
 	/* xasp & yasp got float lately... */
 
 	st->sample_aspect_ratio = c->sample_aspect_ratio = av_d2q(((double) rd->xasp / (double) rd->yasp), 255);

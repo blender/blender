@@ -58,12 +58,7 @@ public:
 	
 	COLLADASW::ColorOrTexture getcol(float r, float g, float b, float a);
 private:
-	/** Fills the array of mtex indices which have image. Used for exporting images. */
-	void createTextureIndices(Material *ma, std::vector<int> &indices);
-	
-	void writeBlinn(COLLADASW::EffectProfile &ep, Material *ma);
 	void writeLambert(COLLADASW::EffectProfile &ep, Material *ma);
-	void writePhong(COLLADASW::EffectProfile &ep, Material *ma);
 	void writeTextures(COLLADASW::EffectProfile &ep,
 			std::string &key,
 			COLLADASW::Sampler *sampler, 

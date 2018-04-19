@@ -180,8 +180,7 @@ GPUPass *GPU_generate_pass(
         ListBase *nodes, ListBase *inputs, struct GPUNodeLink *outlink,
         struct GPUVertexAttribs *attribs, int *builtin,
         const GPUMatType type, const char *name,
-        const bool use_opensubdiv,
-        const bool use_new_shading);
+        const bool use_opensubdiv);
 
 struct GPUShader *GPU_pass_shader(GPUPass *pass);
 

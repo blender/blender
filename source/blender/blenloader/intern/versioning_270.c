@@ -405,7 +405,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 270, 1)) {
-		Scene *sce;
 		Object *ob;
 
 		/* Update Transform constraint (another deg -> rad stuff). */
@@ -418,12 +417,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					do_version_constraints_radians_degrees_270_1(&pchan->constraints);
 				}
-			}
-		}
-
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			if (sce->r.raytrace_structure == R_RAYSTRUCTURE_BLIBVH) {
-				sce->r.raytrace_structure = R_RAYSTRUCTURE_AUTO;
 			}
 		}
 	}
@@ -488,13 +481,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 271, 0)) {
-		if (!DNA_struct_elem_find(fd->filesdna, "Material", "int", "mode2")) {
-			Material *ma;
-
-			for (ma = main->mat.first; ma; ma = ma->id.next)
-				ma->mode2 = MA_CASTSHADOW;
-		}
-
 		if (!DNA_struct_elem_find(fd->filesdna, "RenderData", "BakeData", "bake")) {
 			Scene *sce;
 
@@ -833,33 +819,6 @@ void blo_do_versions_270(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 			}
 		}
-	}
-
-	if (!MAIN_VERSION_ATLEAST(main, 274, 2)) {
-		FOREACH_NODETREE(main, ntree, id) {
-			bNode *node;
-			bNodeSocket *sock;
-
-			for (node = ntree->nodes.first; node; node = node->next) {
-				if (node->type == SH_NODE_MATERIAL) {
-					for (sock = node->inputs.first; sock; sock = sock->next) {
-						if (STREQ(sock->name, "Refl")) {
-							BLI_strncpy(sock->name, "DiffuseIntensity", sizeof(sock->name));
-						}
-					}
-				}
-				else if (node->type == SH_NODE_MATERIAL_EXT) {
-					for (sock = node->outputs.first; sock; sock = sock->next) {
-						if (STREQ(sock->name, "Refl")) {
-							BLI_strncpy(sock->name, "DiffuseIntensity", sizeof(sock->name));
-						}
-						else if (STREQ(sock->name, "Ray Mirror")) {
-							BLI_strncpy(sock->name, "Reflectivity", sizeof(sock->name));
-						}
-					}
-				}
-			}
-		} FOREACH_NODETREE_END
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 274, 4)) {

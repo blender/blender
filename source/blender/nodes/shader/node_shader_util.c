@@ -91,53 +91,6 @@ void nodestack_get_vec(float *in, short type_in, bNodeStack *ns)
 }
 
 
-/* go over all used Geometry and Texture nodes, and return a texco flag */
-/* no group inside needed, this function is called for groups too */
-void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mode)
-{
-	bNode *node;
-	bNodeSocket *sock;
-	int a;
-	
-	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == SH_NODE_TEXTURE) {
-			if ((r_mode & R_OSA) && node->id) {
-				Tex *tex = (Tex *)node->id;
-				if (ELEM(tex->type, TEX_IMAGE, TEX_ENVMAP)) {
-					*texco |= TEXCO_OSA | NEED_UV;
-				}
-			}
-			/* usability exception... without input we still give the node orcos */
-			sock = node->inputs.first;
-			if (sock == NULL || sock->link == NULL)
-				*texco |= TEXCO_ORCO | NEED_UV;
-		}
-		else if (node->type == SH_NODE_GEOMETRY) {
-			/* note; sockets always exist for the given type! */
-			for (a = 0, sock = node->outputs.first; sock; sock = sock->next, a++) {
-				if (sock->flag & SOCK_IN_USE) {
-					switch (a) {
-						case GEOM_OUT_GLOB: 
-							*texco |= TEXCO_GLOB | NEED_UV; break;
-						case GEOM_OUT_VIEW: 
-							*texco |= TEXCO_VIEW | NEED_UV; break;
-						case GEOM_OUT_ORCO: 
-							*texco |= TEXCO_ORCO | NEED_UV; break;
-						case GEOM_OUT_UV: 
-							*texco |= TEXCO_UV | NEED_UV; break;
-						case GEOM_OUT_NORMAL: 
-							*texco |= TEXCO_NORM | NEED_UV; break;
-						case GEOM_OUT_VCOL:
-							*texco |= NEED_UV; *mode |= MA_VERTEXCOL; break;
-						case GEOM_OUT_VCOL_ALPHA:
-							*texco |= NEED_UV; *mode |= MA_VERTEXCOL; break;
-					}
-				}
-			}
-		}
-	}
-}
-
 void node_gpu_stack_from_data(struct GPUNodeStack *gs, int type, bNodeStack *ns)
 {
 	memset(gs, 0, sizeof(*gs));

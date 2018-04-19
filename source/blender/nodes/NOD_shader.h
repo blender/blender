@@ -44,20 +44,15 @@ void register_node_tree_type_sh(void);
 
 void register_node_type_sh_group(void);
 
-void register_node_type_sh_output(void);
-void register_node_type_sh_material(void);
 void register_node_type_sh_camera(void);
-void register_node_type_sh_lamp(void);
 void register_node_type_sh_value(void);
 void register_node_type_sh_rgb(void);
 void register_node_type_sh_mix_rgb(void);
 void register_node_type_sh_valtorgb(void);
 void register_node_type_sh_rgbtobw(void);
-void register_node_type_sh_texture(void);
 void register_node_type_sh_normal(void);
 void register_node_type_sh_gamma(void);
 void register_node_type_sh_brightcontrast(void);
-void register_node_type_sh_geom(void);
 void register_node_type_sh_mapping(void);
 void register_node_type_sh_curve_vec(void);
 void register_node_type_sh_curve_rgb(void);
@@ -65,7 +60,6 @@ void register_node_type_sh_math(void);
 void register_node_type_sh_vect_math(void);
 void register_node_type_sh_squeeze(void);
 void register_node_type_sh_dynamic(void);
-void register_node_type_sh_material_ext(void);
 void register_node_type_sh_invert(void);
 void register_node_type_sh_seprgb(void);
 void register_node_type_sh_combrgb(void);

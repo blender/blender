@@ -290,8 +290,6 @@ void ED_view3d_stop_render_preview(wmWindowManager *wm, ARegion *ar)
 		BPy_END_ALLOW_THREADS;
 #endif
 
-		if (rv3d->render_engine->re)
-			RE_Database_Free(rv3d->render_engine->re);
 		RE_engine_free(rv3d->render_engine);
 		rv3d->render_engine = NULL;
 	}

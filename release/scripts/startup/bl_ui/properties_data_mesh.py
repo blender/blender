@@ -241,7 +241,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
 
 class DATA_PT_face_maps(MeshButtonsPanel, Panel):
     bl_label = "Face Maps"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):

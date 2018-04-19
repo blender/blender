@@ -60,7 +60,7 @@ class PhysicButtonsPanel:
 
 class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     def draw(self, context):
         layout = self.layout
@@ -108,7 +108,6 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
 
         elif md.ui_type == 'BRUSH':
             brush = md.brush_settings
-            use_shading_nodes = context.scene.render.use_shading_nodes
 
             if brush is None:
                 layout.operator("dpaint.type_toggle", text="Add Brush").type = 'BRUSH'
@@ -123,21 +122,13 @@ class PHYSICS_PT_dynamic_paint(PhysicButtonsPanel, Panel):
                 col.prop(brush, "paint_wetness", text="Wetness")
 
                 col = split.column()
-                if not use_shading_nodes:
-                    sub = col.column()
-                    sub.active = (brush.paint_source != 'PARTICLE_SYSTEM')
-                    sub.prop(brush, "use_material")
-                if brush.use_material and brush.paint_source != 'PARTICLE_SYSTEM' and not use_shading_nodes:
-                    col.prop(brush, "material", text="")
-                    col.prop(brush, "paint_alpha", text="Alpha Factor")
-                else:
-                    col.prop(brush, "paint_color", text="")
-                    col.prop(brush, "paint_alpha", text="Alpha")
+                col.prop(brush, "paint_color", text="")
+                col.prop(brush, "paint_alpha", text="Alpha")
 
 
 class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Advanced"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -213,7 +204,7 @@ class PHYSICS_PT_dp_advanced_canvas(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Output"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -306,7 +297,7 @@ class PHYSICS_PT_dp_canvas_output(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Initial Color"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -342,7 +333,7 @@ class PHYSICS_PT_dp_canvas_initial_color(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Effects"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -391,7 +382,7 @@ class PHYSICS_PT_dp_effects(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Cache"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -412,7 +403,7 @@ class PHYSICS_PT_dp_cache(PhysicButtonsPanel, Panel):
 
 class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Source"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -465,7 +456,7 @@ class PHYSICS_PT_dp_brush_source(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Velocity"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -501,7 +492,7 @@ class PHYSICS_PT_dp_brush_velocity(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_dp_brush_wave(PhysicButtonsPanel, Panel):
     bl_label = "Dynamic Paint Waves"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):

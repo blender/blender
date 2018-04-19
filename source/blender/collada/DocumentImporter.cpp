@@ -62,7 +62,6 @@ extern "C" {
 #include "BKE_layer.h"
 #include "BKE_lamp.h"
 #include "BKE_library.h"
-#include "BKE_texture.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
 #include "BKE_global.h"
@@ -544,8 +543,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		// maybe join multiple <instance_...> meshes into 1, and link object with it? not sure...
 		// <instance_geometry>
 		while (geom_done < geom.getCount()) {
-			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
-			                                      material_texture_mapping_map);
+			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map);
 			if (ob == NULL) {
 				report_unknown_reference(*node, "instance_mesh");
 			}
@@ -585,7 +583,7 @@ std::vector<Object *> *DocumentImporter::write_node(COLLADAFW::Node *node, COLLA
 		}
 		while (controller_done < controller.getCount()) {
 			COLLADAFW::InstanceGeometry *geometry = (COLLADAFW::InstanceGeometry *)controller[controller_done];
-			ob = mesh_importer.create_mesh_object(node, geometry, true, uid_material_map, material_texture_mapping_map);
+			ob = mesh_importer.create_mesh_object(node, geometry, true, uid_material_map);
 			if (ob == NULL) {
 				report_unknown_reference(*node, "instance_controller");
 			}
@@ -765,102 +763,74 @@ bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 	return true;
 }
 
-// create mtex, create texture, set texture image
-MTex *DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture &ctex, Material *ma,
-                                       int i, TexIndexTextureArrayMap &texindex_texarray_map)
-{
-	COLLADAFW::SamplerPointerArray& samp_array = ef->getSamplerPointerArray();
-	COLLADAFW::Sampler *sampler = samp_array[ctex.getSamplerId()];
-		
-	const COLLADAFW::UniqueId& ima_uid = sampler->getSourceImage();
-	
-	if (uid_image_map.find(ima_uid) == uid_image_map.end()) {
-		fprintf(stderr, "Couldn't find an image by UID.\n");
-		return NULL;
-	}
-	
-	ma->mtex[i] = BKE_texture_mtex_add();
-	ma->mtex[i]->texco = TEXCO_UV;
-	ma->mtex[i]->tex = BKE_texture_add(G.main, "Texture");
-	ma->mtex[i]->tex->type = TEX_IMAGE;
-	ma->mtex[i]->tex->ima = uid_image_map[ima_uid];
-	
-	texindex_texarray_map[ctex.getTextureMapId()].push_back(ma->mtex[i]);
-	
-	return ma->mtex[i];
-}
-
 void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Material *ma)
 {
 	COLLADAFW::EffectCommon::ShaderType shader = ef->getShaderType();
+
+	// TODO: add back texture and extended material parameter support
 	
 	// blinn
 	if (shader == COLLADAFW::EffectCommon::SHADER_BLINN) {
+#if 0
 		ma->spec_shader = MA_SPEC_BLINN;
 		ma->spec = ef->getShininess().getFloatValue();
+#endif
 	}
 	// phong
 	else if (shader == COLLADAFW::EffectCommon::SHADER_PHONG) {
+#if 0
 		ma->spec_shader = MA_SPEC_PHONG;
 		ma->har = ef->getShininess().getFloatValue();
+#endif
 	}
 	// lambert
 	else if (shader == COLLADAFW::EffectCommon::SHADER_LAMBERT) {
+#if 0
 		ma->diff_shader = MA_DIFF_LAMBERT;
+#endif
 	}
 	// default - lambert
 	else {
+#if 0
 		ma->diff_shader = MA_DIFF_LAMBERT;
 		fprintf(stderr, "Current shader type is not supported, default to lambert.\n");
+#endif
 	}
 	// reflectivity
 	ma->ray_mirror = ef->getReflectivity().getFloatValue();
 	// index of refraction
+#if 0
 	ma->ang = ef->getIndexOfRefraction().getFloatValue();
+#endif
 	
-	int i = 0;
 	COLLADAFW::Color col;
-	MTex *mtex = NULL;
-	TexIndexTextureArrayMap texindex_texarray_map;
 	
 	// DIFFUSE
 	// color
 	if (ef->getDiffuse().isColor()) {
-		/* too high intensity can create artefacts (fireflies)
-		   So here we take care that intensity is set to 0.8 wherever possible
-		*/
 		col = ef->getDiffuse().getColor();
-		ma->ref = max_ffff(col.getRed(), col.getGreen(), col.getBlue(), 0.8);
-		ma->r = col.getRed()   / ma->ref;
-		ma->g = col.getGreen() / ma->ref;
-		ma->b = col.getBlue()  / ma->ref;
+		ma->r = col.getRed();
+		ma->g = col.getGreen();
+		ma->b = col.getBlue();
 	}
 	// texture
 	else if (ef->getDiffuse().isTexture()) {
+#if 0
 		COLLADAFW::Texture ctex = ef->getDiffuse().getTexture(); 
-		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if (mtex != NULL) {
-			mtex->mapto = MAP_COL;
-			ma->texact = (int)i;
-			i++;
-		}
+#endif
 	}
 	// AMBIENT
 	// color
 	if (ef->getAmbient().isColor()) {
+#if 0
 		col = ef->getAmbient().getColor();
-		ma->ambr = col.getRed();
-		ma->ambg = col.getGreen();
-		ma->ambb = col.getBlue();
+#endif
 	}
 	// texture
 	else if (ef->getAmbient().isTexture()) {
+#if 0
 		COLLADAFW::Texture ctex = ef->getAmbient().getTexture(); 
-		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if (mtex != NULL) {
-			mtex->mapto = MAP_AMB; 
-			i++;
-		}
+#endif
 	}
 	// SPECULAR
 	// color
@@ -872,29 +842,22 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 	}
 	// texture
 	else if (ef->getSpecular().isTexture()) {
+#if 0
 		COLLADAFW::Texture ctex = ef->getSpecular().getTexture(); 
-		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if (mtex != NULL) {
-			mtex->mapto = MAP_SPEC; 
-			i++;
-		}
+#endif
 	}
 	// REFLECTIVE
 	// color
 	if (ef->getReflective().isColor()) {
+#if 0
 		col = ef->getReflective().getColor();
-		ma->mirr = col.getRed();
-		ma->mirg = col.getGreen();
-		ma->mirb = col.getBlue();
+#endif
 	}
 	// texture
 	else if (ef->getReflective().isTexture()) {
+#if 0
 		COLLADAFW::Texture ctex = ef->getReflective().getTexture(); 
-		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if (mtex != NULL) {
-			mtex->mapto = MAP_REF; 
-			i++;
-		}
+#endif
 	}
 
 	// EMISSION
@@ -905,40 +868,31 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 	}
 	// texture
 	else if (ef->getEmission().isTexture()) {
+#if 0
 		COLLADAFW::Texture ctex = ef->getEmission().getTexture(); 
-		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if (mtex != NULL) {
-			mtex->mapto = MAP_EMIT; 
-			i++;
-		}
+#endif
 	}
 
 	// TRANSPARENT
 	// color
 	if (ef->getOpacity().isColor()) {
+#if 0
 		col = ef->getTransparent().getColor();
 		float alpha = ef->getTransparency().getFloatValue();
 		if (col.isValid()) {
 			alpha *= col.getAlpha(); // Assuming A_ONE opaque mode
 		}
 		if (col.isValid() || alpha < 1.0) {
-			ma->alpha = alpha;
-			ma->mode |= MA_ZTRANSP | MA_TRANSP;
+			...
 		}
+#endif
 	}
 	// texture
 	else if (ef->getOpacity().isTexture()) {
+#if 0
 		COLLADAFW::Texture ctex = ef->getOpacity().getTexture();
-		mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-		if (mtex != NULL) {
-			mtex->mapto = MAP_ALPHA;
-			i++;
-			ma->spectra = ma->alpha = 0;
-			ma->mode |= MA_ZTRANSP | MA_TRANSP;
-		}
+#endif
 	}
-
-	material_texture_mapping_map[ma] = texindex_texarray_map;
 }
 
 /** When this method is called, the writer must write the effect.
@@ -1185,7 +1139,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		et->setData("spotsize", &(lamp->spotsize));
 		lamp->spotsize = DEG2RADF(lamp->spotsize);
 		et->setData("spotblend", &(lamp->spotblend));
-		et->setData("halo_intensity", &(lamp->haint));
 		et->setData("att1", &(lamp->att1));
 		et->setData("att2", &(lamp->att2));
 		et->setData("falloff_type", &(lamp->falloff_type));
@@ -1193,38 +1146,12 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 		et->setData("clipend", &(lamp->clipend));
 		et->setData("bias", &(lamp->bias));
 		et->setData("soft", &(lamp->soft));
-		et->setData("compressthresh", &(lamp->compressthresh));
 		et->setData("bufsize", &(lamp->bufsize));
-		et->setData("samp", &(lamp->samp));
 		et->setData("buffers", &(lamp->buffers));
-		et->setData("filtertype", &(lamp->filtertype));
-		et->setData("bufflag", &(lamp->bufflag));
-		et->setData("buftype", &(lamp->buftype));
-		et->setData("ray_samp", &(lamp->ray_samp));
-		et->setData("ray_sampy", &(lamp->ray_sampy));
-		et->setData("ray_sampz", &(lamp->ray_sampz));
-		et->setData("ray_samp_type", &(lamp->ray_samp_type));
 		et->setData("area_shape", &(lamp->area_shape));
 		et->setData("area_size", &(lamp->area_size));
 		et->setData("area_sizey", &(lamp->area_sizey));
 		et->setData("area_sizez", &(lamp->area_sizez));
-		et->setData("adapt_thresh", &(lamp->adapt_thresh));
-		et->setData("ray_samp_method", &(lamp->ray_samp_method));
-		et->setData("shadhalostep", &(lamp->shadhalostep));
-		et->setData("sun_effect_type", &(lamp->shadhalostep));
-		et->setData("skyblendtype", &(lamp->skyblendtype));
-		et->setData("horizon_brightness", &(lamp->horizon_brightness));
-		et->setData("spread", &(lamp->spread));
-		et->setData("sun_brightness", &(lamp->sun_brightness));
-		et->setData("sun_size", &(lamp->sun_size));
-		et->setData("backscattered_light", &(lamp->backscattered_light));
-		et->setData("sun_intensity", &(lamp->sun_intensity));
-		et->setData("atm_turbidity", &(lamp->atm_turbidity));
-		et->setData("atm_extinction_factor", &(lamp->atm_extinction_factor));
-		et->setData("atm_distance_factor", &(lamp->atm_distance_factor));
-		et->setData("skyblendfac", &(lamp->skyblendfac));
-		et->setData("sky_exposure", &(lamp->sky_exposure));
-		et->setData("sky_colorspace", &(lamp->sky_colorspace));
 	}
 	else {
 		float constatt = light->getConstantAttenuation().getValue();
@@ -1288,7 +1215,6 @@ bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 			{
 				/* our sun is very strong, so pick a smaller energy level */
 				lamp->type = LA_SUN;
-				lamp->mode |= LA_NO_SPEC;
 			}
 			break;
 			case COLLADAFW::Light::POINT_LIGHT:

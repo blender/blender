@@ -1014,17 +1014,10 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
 
     def UV_PROJECT(self, layout, ob, md):
         split = layout.split()
-
         col = split.column()
-        col.label(text="Image:")
-        col.prop(md, "image", text="")
+        col.prop_search(md, "uv_layer", ob.data, "uv_layers")
+        col.separator()
 
-        col = split.column()
-        col.label(text="UV Map:")
-        col.prop_search(md, "uv_layer", ob.data, "uv_layers", text="")
-
-        split = layout.split()
-        col = split.column()
         col.prop(md, "projector_count", text="Projectors")
         for proj in md.projectors:
             col.prop(proj, "object", text="")

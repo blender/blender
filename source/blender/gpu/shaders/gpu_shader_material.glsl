@@ -41,11 +41,7 @@ Closure nodetree_exec(void); /* Prototype */
 
 float convert_rgba_to_float(vec4 color)
 {
-#ifdef USE_NEW_SHADING
 	return dot(color.rgb, vec3(0.2126, 0.7152, 0.0722));
-#else
-	return (color.r + color.g + color.b) * 0.333333;
-#endif
 }
 
 float exp_blender(float f)
@@ -866,11 +862,7 @@ void valtorgb(float fac, sampler2D colormap, out vec4 outcol, out float outalpha
 
 void rgbtobw(vec4 color, out float outval)
 {
-#ifdef USE_NEW_SHADING
 	vec3 factors = vec3(0.2126, 0.7152, 0.0722);
-#else
-	vec3 factors = vec3(0.35, 0.45, 0.2); /* keep these factors in sync with texture.h:RGBTOBW */
-#endif
 	outval = dot(color.rgb, factors);
 }
 

@@ -460,7 +460,6 @@ void OBJECT_OT_material_slot_move(wmOperatorType *ot)
 
 static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C);
 	Material *ma = CTX_data_pointer_get_type(C, "material", &RNA_Material).data;
 	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr, idptr;
@@ -472,11 +471,8 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else {
 		ma = BKE_material_add(bmain, DATA_("Material"));
-
-		if (BKE_scene_use_new_shading_nodes(scene)) {
-			ED_node_shader_default(C, &ma->id);
-			ma->use_nodes = true;
-		}
+		ED_node_shader_default(C, &ma->id);
+		ma->use_nodes = true;
 	}
 
 	/* hook into UI */
@@ -536,14 +532,6 @@ static int new_texture_exec(bContext *C, wmOperator *UNUSED(op))
 		 * pointer use also increases user, so this compensates it */
 		id_us_min(&tex->id);
 
-		if (ptr.id.data && GS(((ID *)ptr.id.data)->name) == ID_MA &&
-		    RNA_property_pointer_get(&ptr, prop).id.data == NULL)
-		{
-			/* In case we are assigning new texture to a material, and active slot was empty, reset 'use' flag. */
-			Material *ma = (Material *)ptr.id.data;
-			ma->septex &= ~(1 << ma->texact);
-		}
-
 		RNA_id_pointer_create(&tex->id, &idptr);
 		RNA_property_pointer_set(&ptr, prop, idptr);
 		RNA_property_update(C, &ptr, prop);
@@ -572,7 +560,6 @@ void TEXTURE_OT_new(wmOperatorType *ot)
 
 static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C);
 	World *wo = CTX_data_pointer_get_type(C, "world", &RNA_World).data;
 	Main *bmain = CTX_data_main(C);
 	PointerRNA ptr, idptr;
@@ -584,11 +571,8 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 	else {
 		wo = BKE_world_add(bmain, DATA_("World"));
-
-		if (BKE_scene_use_new_shading_nodes(scene)) {
-			ED_node_shader_default(C, &wo->id);
-			wo->use_nodes = true;
-		}
+		ED_node_shader_default(C, &wo->id);
+		wo->use_nodes = true;
 	}
 
 	/* hook into UI */
@@ -1457,15 +1441,6 @@ static int texture_slot_move_exec(bContext *C, wmOperator *op)
 				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act - 1, -1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act, act - 1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, -1, act, 0);
-
-				if (GS(id->name) == ID_MA) {
-					Material *ma = (Material *)id;
-					int mtexuse = ma->septex & (1 << act);
-					ma->septex &= ~(1 << act);
-					ma->septex |= (ma->septex & (1 << (act - 1))) << 1;
-					ma->septex &= ~(1 << (act - 1));
-					ma->septex |= mtexuse >> 1;
-				}
 				
 				set_active_mtex(id, act - 1);
 			}
@@ -1479,15 +1454,6 @@ static int texture_slot_move_exec(bContext *C, wmOperator *op)
 				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act + 1, -1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, act, act + 1, 0);
 				BKE_animdata_fix_paths_rename(id, adt, NULL, "texture_slots", NULL, NULL, -1, act, 0);
-
-				if (GS(id->name) == ID_MA) {
-					Material *ma = (Material *)id;
-					int mtexuse = ma->septex & (1 << act);
-					ma->septex &= ~(1 << act);
-					ma->septex |= (ma->septex & (1 << (act + 1))) >> 1;
-					ma->septex &= ~(1 << (act + 1));
-					ma->septex |= mtexuse << 1;
-				}
 				
 				set_active_mtex(id, act + 1);
 			}
@@ -1523,180 +1489,6 @@ void TEXTURE_OT_slot_move(wmOperatorType *ot)
 }
 
 
-
-/********************** environment map operators *********************/
-
-static int save_envmap(wmOperator *op, Scene *scene, EnvMap *env, char *path, const char imtype)
-{
-	PropertyRNA *prop;
-	float layout[12];
-
-	if ((prop = RNA_struct_find_property(op->ptr, "layout"))) {
-		RNA_property_float_get_array(op->ptr, prop, layout);
-	}
-	else {
-		memcpy(layout, default_envmap_layout, sizeof(layout));
-	}
-
-	if (RE_WriteEnvmapResult(op->reports, scene, env, path, imtype, layout)) {
-		return OPERATOR_FINISHED;
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-
-}
-
-static int envmap_save_exec(bContext *C, wmOperator *op)
-{
-	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-	Scene *scene = CTX_data_scene(C);
-	//int imtype = RNA_enum_get(op->ptr, "file_type");
-	char imtype = scene->r.im_format.imtype;
-	char path[FILE_MAX];
-	
-	RNA_string_get(op->ptr, "filepath", path);
-	
-	if (scene->r.scemode & R_EXTENSION) {
-		BKE_image_path_ensure_ext_from_imformat(path, &scene->r.im_format);
-	}
-	
-	WM_cursor_wait(1);
-	
-	save_envmap(op, scene, tex->env, path, imtype);
-	
-	WM_cursor_wait(0);
-	
-	WM_event_add_notifier(C, NC_TEXTURE, tex);
-	
-	return OPERATOR_FINISHED;
-}
-
-static int envmap_save_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	//Scene *scene= CTX_data_scene(C);
-	
-	if (RNA_struct_property_is_set(op->ptr, "filepath"))
-		return envmap_save_exec(C, op);
-
-	//RNA_enum_set(op->ptr, "file_type", scene->r.im_format.imtype);
-	RNA_string_set(op->ptr, "filepath", G.main->name);
-	WM_event_add_fileselect(C, op);
-	
-	return OPERATOR_RUNNING_MODAL;
-}
-
-static int envmap_save_poll(bContext *C)
-{
-	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-
-	if (!tex) 
-		return 0;
-	if (!tex->env || !tex->env->ok)
-		return 0;
-	if (tex->env->cube[1] == NULL)
-		return 0;
-	
-	return 1;
-}
-
-void TEXTURE_OT_envmap_save(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-	/* identifiers */
-	ot->name = "Save Environment Map";
-	ot->idname = "TEXTURE_OT_envmap_save";
-	ot->description = "Save the current generated Environment map to an image file";
-	
-	/* api callbacks */
-	ot->exec = envmap_save_exec;
-	ot->invoke = envmap_save_invoke;
-	ot->poll = envmap_save_poll;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_INTERNAL; /* no undo since this doesnt modify the env-map */
-	
-	/* properties */
-	prop = RNA_def_float_array(ot->srna, "layout", 12, default_envmap_layout, 0.0f, 0.0f,
-	                           "File layout",
-	                           "Flat array describing the X,Y position of each cube face in the output image, "
-	                           "where 1 is the size of a face - order is [+Z -Z +Y -X -Y +X] "
-	                           "(use -1 to skip a face)", 0.0f, 0.0f);
-	RNA_def_property_flag(prop, PROP_HIDDEN);
-
-	WM_operator_properties_filesel(
-	        ot, FILE_TYPE_FOLDER | FILE_TYPE_IMAGE | FILE_TYPE_MOVIE, FILE_SPECIAL, FILE_SAVE,
-	        WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY, FILE_SORT_ALPHA);
-}
-
-static int envmap_clear_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-	
-	BKE_texture_envmap_free_data(tex->env);
-	
-	WM_event_add_notifier(C, NC_TEXTURE | NA_EDITED, tex);
-	
-	return OPERATOR_FINISHED;
-}
-
-static int envmap_clear_poll(bContext *C)
-{
-	Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
-	
-	if (!tex) 
-		return 0;
-	if (!tex->env || !tex->env->ok)
-		return 0;
-	if (tex->env->cube[1] == NULL)
-		return 0;
-	
-	return 1;
-}
-
-void TEXTURE_OT_envmap_clear(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Clear Environment Map";
-	ot->idname = "TEXTURE_OT_envmap_clear";
-	ot->description = "Discard the environment map and free it from memory";
-	
-	/* api callbacks */
-	ot->exec = envmap_clear_exec;
-	ot->poll = envmap_clear_poll;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
-}
-
-static int envmap_clear_all_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	Main *bmain = CTX_data_main(C);
-	Tex *tex;
-	
-	for (tex = bmain->tex.first; tex; tex = tex->id.next)
-		if (tex->env)
-			BKE_texture_envmap_free_data(tex->env);
-	
-	WM_event_add_notifier(C, NC_TEXTURE | NA_EDITED, tex);
-	
-	return OPERATOR_FINISHED;
-}
-
-void TEXTURE_OT_envmap_clear_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Clear All Environment Maps";
-	ot->idname = "TEXTURE_OT_envmap_clear_all";
-	ot->description = "Discard all environment maps in the .blend file and free them from memory";
-	
-	/* api callbacks */
-	ot->exec = envmap_clear_all_exec;
-	ot->poll = envmap_clear_poll;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
 
 /********************** material operators *********************/
 
@@ -1769,17 +1561,6 @@ static void copy_mtex_copybuf(ID *id)
 	MTex **mtex = NULL;
 	
 	switch (GS(id->name)) {
-		case ID_MA:
-			mtex = &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
-			break;
-		case ID_LA:
-			mtex = &(((Lamp *)id)->mtex[(int)((Lamp *)id)->texact]);
-			// la->mtex[(int)la->texact] // TODO
-			break;
-		case ID_WO:
-			mtex = &(((World *)id)->mtex[(int)((World *)id)->texact]);
-			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
-			break;
 		case ID_PA:
 			mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
 			break;
@@ -1807,17 +1588,6 @@ static void paste_mtex_copybuf(ID *id)
 		return;
 	
 	switch (GS(id->name)) {
-		case ID_MA:
-			mtex = &(((Material *)id)->mtex[(int)((Material *)id)->texact]);
-			break;
-		case ID_LA:
-			mtex = &(((Lamp *)id)->mtex[(int)((Lamp *)id)->texact]);
-			// la->mtex[(int)la->texact] // TODO
-			break;
-		case ID_WO:
-			mtex = &(((World *)id)->mtex[(int)((World *)id)->texact]);
-			// mtex= wrld->mtex[(int)wrld->texact]; // TODO
-			break;
 		case ID_PA:
 			mtex = &(((ParticleSettings *)id)->mtex[(int)((ParticleSettings *)id)->texact]);
 			break;

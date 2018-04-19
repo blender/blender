@@ -871,13 +871,6 @@ int wm_homefile_read(
 
 	G.main->name[0] = '\0';
 
-	if (use_userdef) {
-		/* When loading factory settings, the reset solid OpenGL lights need to be applied. */
-		if (!G.background) {
-			GPU_default_lights();
-		}
-	}
-
 	/* start with save preference untitled.blend */
 	G.save_over = 0;
 
@@ -1010,7 +1003,7 @@ static void wm_history_file_update(void)
 
 
 /* screen can be NULL */
-static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, ViewLayer *view_layer, bScreen *screen, BlendThumbnail **thumb_pt)
+static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, bScreen *screen, BlendThumbnail **thumb_pt)
 {
 	/* will be scaled down, but gives some nice oversampling */
 	ImBuf *ibuf;
@@ -1049,14 +1042,14 @@ static ImBuf *blend_file_thumb(const bContext *C, Scene *scene, ViewLayer *view_
 
 	if (scene->camera) {
 		ibuf = ED_view3d_draw_offscreen_imbuf_simple(
-		        depsgraph, scene, view_layer, OB_SOLID, scene->camera,
+		        depsgraph, scene, OB_SOLID, scene->camera,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);
 	}
 	else {
 		ibuf = ED_view3d_draw_offscreen_imbuf(
-		        depsgraph, scene, view_layer, OB_SOLID, v3d, ar,
+		        depsgraph, scene, OB_SOLID, v3d, ar,
 		        BLEN_THUMB_SIZE * 2, BLEN_THUMB_SIZE * 2,
 		        IB_rect, V3D_OFSDRAW_NONE, R_ALPHAPREMUL, 0, NULL,
 		        NULL, err_out);
@@ -1152,7 +1145,7 @@ static int wm_file_write(bContext *C, const char *filepath, int fileflags, Repor
 	/* Main now can store a .blend thumbnail, usefull for background mode or thumbnail customization. */
 	main_thumb = thumb = CTX_data_main(C)->blen_thumb;
 	if ((U.flag & USER_SAVE_PREVIEWS) && BLI_thread_is_main()) {
-		ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_data_view_layer(C), CTX_wm_screen(C), &thumb);
+		ibuf_thumb = blend_file_thumb(C, CTX_data_scene(C), CTX_wm_screen(C), &thumb);
 	}
 
 	/* operator now handles overwrite checks */

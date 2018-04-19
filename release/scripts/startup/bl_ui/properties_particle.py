@@ -1396,6 +1396,38 @@ class PARTICLE_PT_vertexgroups(ParticleButtonsPanel, Panel):
         # row.prop(psys, "invert_vertex_group_field", text="")
 
 
+class PARTICLE_PT_textures(ParticleButtonsPanel, Panel):
+    bl_label = "Textures"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+
+    @classmethod
+    def poll(cls, context):
+        if context.particle_system is None:
+            return False
+        return particle_panel_poll(cls, context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        psys = context.particle_system
+        part = psys.settings
+
+        row = layout.row()
+        row.template_list("TEXTURE_UL_texslots", "", part, "texture_slots", part, "active_texture_index", rows=2)
+
+        col = row.column(align=True)
+        col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
+        col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
+        col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
+
+        if not part.active_texture:
+            layout.template_ID(part, "active_texture", new="texture.new")
+        else:
+            slot = part.texture_slots[part.active_texture_index]
+            layout.template_ID(slot, "texture", new="texture.new")
+
+
 class PARTICLE_PT_custom_props(ParticleButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
     _context_path = "particle_system.settings"
@@ -1420,6 +1452,7 @@ classes = (
     PARTICLE_PT_field_weights,
     PARTICLE_PT_force_fields,
     PARTICLE_PT_vertexgroups,
+    PARTICLE_PT_textures,
     PARTICLE_PT_custom_props,
 )
 

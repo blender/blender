@@ -56,12 +56,6 @@ float texture_value_blend(float tex, float out, float fact, float facg, int blen
 void RE_texture_rng_init(void);
 void RE_texture_rng_exit(void);
 
-struct Material *RE_sample_material_init(struct Depsgraph *depsgraph, struct Material *orig_mat, struct Scene *scene);
-void RE_sample_material_free(struct Material *mat);
-void RE_sample_material_color(
-        struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
-        int tri_index, struct DerivedMesh *orcoDm, struct Object *ob);
-
 /* imagetexture.c */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float result[4]);
 
@@ -84,5 +78,7 @@ void RE_point_density_sample(
         float *values);
 
 void RE_point_density_free(struct PointDensity *pd);
+
+void RE_point_density_fix_linking(void);
 
 #endif /* __RE_RENDER_EXT_H__ */

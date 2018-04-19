@@ -177,7 +177,7 @@ typedef struct DynamicPaintCanvasSettings {
 /* flags */
 enum {
 	MOD_DPAINT_PART_RAD           = 1 << 0,  /* use particle radius */
-	MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* use object material */
+	//MOD_DPAINT_USE_MATERIAL       = 1 << 1,  /* DNA_DEPRECATED */
 	MOD_DPAINT_ABS_ALPHA          = 1 << 2,  /* don't increase alpha unless paint alpha is higher than existing */
 	MOD_DPAINT_ERASE              = 1 << 3,  /* removes paint */
 
@@ -231,7 +231,6 @@ typedef struct DynamicPaintBrushSettings {
 	struct DynamicPaintModifierData *pmd; /* for fast RNA access */
 	struct DerivedMesh *dm;
 	struct ParticleSystem *psys;
-	struct Material *mat;
 
 	int flags;
 	int collision;

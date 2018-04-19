@@ -2339,14 +2339,6 @@ static void rna_NodeSocketStandard_value_update(struct bContext *C, PointerRNA *
 		/* fall back to searching node in the tree */
 		nodeFindNode(ntree, sock, &node, NULL);
 	}
-	
-	if (node) {
-		nodeSynchronizeID(node, true);
-
-		/* extra update for sockets that get synced to material */
-		if (node->id && ELEM(node->type, SH_NODE_MATERIAL, SH_NODE_MATERIAL_EXT))
-			WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, node->id);
-	}
 }
 
 
@@ -2500,17 +2492,6 @@ static void rna_Node_tex_image_update(Main *bmain, Scene *UNUSED(scene), Pointer
 
 	ED_node_tag_update_nodetree(bmain, ntree, node);
 	WM_main_add_notifier(NC_IMAGE, NULL);
-}
-
-static void rna_Node_material_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	bNodeTree *ntree = (bNodeTree *)ptr->id.data;
-	bNode *node = (bNode *)ptr->data;
-
-	if (node->id)
-		nodeSetActive(ntree, node);
-
-	ED_node_tag_update_nodetree(bmain, ntree, node);
 }
 
 static void rna_NodeGroup_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
@@ -3548,33 +3529,6 @@ static void def_sh_output_linestyle(StructRNA *srna)
 	def_mix_rgb(srna);
 }
 
-static void def_sh_material(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_property(srna, "material", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "Material");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Material", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_material_update");
-
-	prop = RNA_def_property(srna, "use_diffuse", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", SH_NODE_MAT_DIFF);
-	RNA_def_property_ui_text(prop, "Diffuse", "Material Node outputs Diffuse");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-
-	prop = RNA_def_property(srna, "use_specular", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", SH_NODE_MAT_SPEC);
-	RNA_def_property_ui_text(prop, "Specular", "Material Node outputs Specular");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "invert_normal", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "custom1", SH_NODE_MAT_NEG);
-	RNA_def_property_ui_text(prop, "Invert Normal", "Material Node uses inverted normal");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
 static void def_sh_mapping(StructRNA *srna)
 {
 	static const EnumPropertyItem prop_vect_type_items[] = {
@@ -3635,36 +3589,6 @@ static void def_sh_mapping(StructRNA *srna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", TEXMAP_CLIP_MAX);
 	RNA_def_property_ui_text(prop, "Has Maximum", "Whether to use maximum clipping value");
 	RNA_def_property_update(prop, 0, "rna_Mapping_Node_update");
-}
-
-static void def_sh_geometry(StructRNA *srna)
-{
-	PropertyRNA *prop;
-	
-	RNA_def_struct_sdna_from(srna, "NodeGeometry", "storage");
-	
-	prop = RNA_def_property(srna, "uv_layer", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "uvname");
-	RNA_def_property_ui_text(prop, "UV Map", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "color_layer", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "colname");
-	RNA_def_property_ui_text(prop, "Vertex Color Layer", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-}
-
-static void def_sh_lamp(StructRNA *srna)
-{
-	PropertyRNA *prop;
-	
-	prop = RNA_def_property(srna, "lamp_object", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
-	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Lamp_object_poll");
-	RNA_def_property_ui_text(prop, "Lamp Object", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_sh_attribute(StructRNA *srna)

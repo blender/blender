@@ -2062,24 +2062,6 @@ static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data,
 		return 0;
 	
 	switch (GS(owner_id->name)) {
-		case ID_MA:
-		{
-			Material *ma = (Material *)owner_id;
-			mtex = (MTex **)(&ma->mtex);
-			break;
-		}
-		case ID_LA:
-		{
-			Lamp *la = (Lamp *)owner_id;
-			mtex = (MTex **)(&la->mtex);
-			break;
-		}
-		case ID_WO:
-		{
-			World *wo = (World *)owner_id;
-			mtex = (MTex **)(&wo->mtex);
-			break;
-		}
 		case ID_PA:
 		{
 			ParticleSettings *part = (ParticleSettings *)owner_id;

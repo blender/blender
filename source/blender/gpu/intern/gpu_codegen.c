@@ -780,7 +780,7 @@ static void codegen_call_functions(DynStr *ds, ListBase *nodes, GPUOutput *final
 	BLI_dynstr_append(ds, ";\n");
 }
 
-static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUOutput *output, bool use_new_shading)
+static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUOutput *output)
 {
 	DynStr *ds = BLI_dynstr_new();
 	char *code;
@@ -806,38 +806,20 @@ static char *code_generate_fragment(GPUMaterial *material, ListBase *nodes, GPUO
 
 	BLI_dynstr_append(ds, "Closure nodetree_exec(void)\n{\n");
 
-	if (use_new_shading) {
-		if (builtins & GPU_VIEW_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 viewmat = ViewMatrix;\n");
-		if (builtins & GPU_CAMERA_TEXCO_FACTORS)
-			BLI_dynstr_append(ds, "\tvec4 camtexfac = CameraTexCoFactors;\n");
-		if (builtins & GPU_OBJECT_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 objmat = ModelMatrix;\n");
-		if (builtins & GPU_INVERSE_OBJECT_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 objinv = ModelMatrixInverse;\n");
-		if (builtins & GPU_INVERSE_VIEW_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 viewinv = ViewMatrixInverse;\n");
-		if (builtins & GPU_VIEW_NORMAL)
-			BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
-		if (builtins & GPU_VIEW_POSITION)
-			BLI_dynstr_append(ds, "\tvec3 viewposition = viewPosition;\n");
-	}
-	else {
-		if (builtins & GPU_VIEW_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 viewmat = unfviewmat;\n");
-		if (builtins & GPU_CAMERA_TEXCO_FACTORS)
-			BLI_dynstr_append(ds, "\tvec4 camtexfac = unfcameratexfactors;\n");
-		if (builtins & GPU_OBJECT_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 objmat = unfobmat;\n");
-		if (builtins & GPU_INVERSE_OBJECT_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 objinv = unfinvobmat;\n");
-		if (builtins & GPU_INVERSE_VIEW_MATRIX)
-			BLI_dynstr_append(ds, "\tmat4 viewinv = unfinvviewmat;\n");
-		if (builtins & GPU_VIEW_NORMAL)
-			BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? varnormal: -varnormal;\n");
-		if (builtins & GPU_VIEW_POSITION)
-			BLI_dynstr_append(ds, "\tvec3 viewposition = varposition;\n");
-	}
+	if (builtins & GPU_VIEW_MATRIX)
+		BLI_dynstr_append(ds, "\tmat4 viewmat = ViewMatrix;\n");
+	if (builtins & GPU_CAMERA_TEXCO_FACTORS)
+		BLI_dynstr_append(ds, "\tvec4 camtexfac = CameraTexCoFactors;\n");
+	if (builtins & GPU_OBJECT_MATRIX)
+		BLI_dynstr_append(ds, "\tmat4 objmat = ModelMatrix;\n");
+	if (builtins & GPU_INVERSE_OBJECT_MATRIX)
+		BLI_dynstr_append(ds, "\tmat4 objinv = ModelMatrixInverse;\n");
+	if (builtins & GPU_INVERSE_VIEW_MATRIX)
+		BLI_dynstr_append(ds, "\tmat4 viewinv = ViewMatrixInverse;\n");
+	if (builtins & GPU_VIEW_NORMAL)
+		BLI_dynstr_append(ds, "\tvec3 facingnormal = gl_FrontFacing? viewNormal: -viewNormal;\n");
+	if (builtins & GPU_VIEW_POSITION)
+		BLI_dynstr_append(ds, "\tvec3 viewposition = viewPosition;\n");
 
 	/* Calculate tangent space. */
 #ifdef WITH_OPENSUBDIV
@@ -906,7 +888,7 @@ static const char *attrib_prefix_get(CustomDataType type)
 	}
 }
 
-static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code, bool use_geom)
+static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool use_geom)
 {
 	DynStr *ds = BLI_dynstr_new();
 	GPUNode *node;
@@ -983,115 +965,7 @@ static char *code_generate_vertex_new(ListBase *nodes, const char *vert_code, bo
 	return code;
 }
 
-static char *code_generate_vertex(ListBase *nodes, const GPUMatType type)
-{
-	DynStr *ds = BLI_dynstr_new();
-	GPUNode *node;
-	GPUInput *input;
-	char *code;
-	char *vertcode = NULL;
-	
-	for (node = nodes->first; node; node = node->next) {
-		for (input = node->inputs.first; input; input = input->next) {
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-#ifdef WITH_OPENSUBDIV
-				bool skip_opensubdiv = ELEM(input->attribtype, CD_MTFACE, CD_TANGENT);
-				if (skip_opensubdiv) {
-					BLI_dynstr_appendf(ds, "#ifndef USE_OPENSUBDIV\n");
-				}
-#endif
-				BLI_dynstr_appendf(ds, "%s %s att%d;\n",
-					GLEW_VERSION_3_0 ? "in" : "attribute",
-					GPU_DATATYPE_STR[input->type], input->attribid);
-				BLI_dynstr_appendf(ds, "uniform int att%d_info;\n",  input->attribid);
-				BLI_dynstr_appendf(ds, "%s %s var%d;\n",
-					GLEW_VERSION_3_0 ? "out" : "varying",
-					GPU_DATATYPE_STR[input->type], input->attribid);
-#ifdef WITH_OPENSUBDIV
-				if (skip_opensubdiv) {
-					BLI_dynstr_appendf(ds, "#endif\n");
-				}
-#endif
-			}
-		}
-	}
-
-	BLI_dynstr_append(ds, "\n");
-
-	switch (type) {
-		case GPU_MATERIAL_TYPE_MESH:
-			vertcode = datatoc_gpu_shader_vertex_glsl;
-			break;
-		case GPU_MATERIAL_TYPE_WORLD:
-			vertcode = datatoc_gpu_shader_vertex_world_glsl;
-			break;
-		default:
-			fprintf(stderr, "invalid material type, set one after GPU_material_construct_begin\n");
-			break;
-	}
-
-	BLI_dynstr_append(ds, vertcode);
-	
-	for (node = nodes->first; node; node = node->next)
-		for (input = node->inputs.first; input; input = input->next)
-			if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-				if (input->attribtype == CD_TANGENT) { /* silly exception */
-#ifdef WITH_OPENSUBDIV
-					BLI_dynstr_appendf(ds, "#ifndef USE_OPENSUBDIV\n");
-#endif
-					BLI_dynstr_appendf(
-					        ds, "\tvar%d.xyz = normalize(NormalMatrix * att%d.xyz);\n",
-					        input->attribid, input->attribid);
-					BLI_dynstr_appendf(
-					        ds, "\tvar%d.w = att%d.w;\n",
-					        input->attribid, input->attribid);
-#ifdef WITH_OPENSUBDIV
-					BLI_dynstr_appendf(ds, "#endif\n");
-#endif
-				}
-				else {
-#ifdef WITH_OPENSUBDIV
-					bool is_mtface = input->attribtype == CD_MTFACE;
-					if (is_mtface) {
-						BLI_dynstr_appendf(ds, "#ifndef USE_OPENSUBDIV\n");
-					}
-#endif
-					BLI_dynstr_appendf(ds, "\tset_var_from_attr(att%d, att%d_info, var%d);\n",
-					                   input->attribid, input->attribid, input->attribid);
-#ifdef WITH_OPENSUBDIV
-					if (is_mtface) {
-						BLI_dynstr_appendf(ds, "#endif\n");
-					}
-#endif
-				}
-			}
-			/* unfortunately special handling is needed here because we abuse gl_Color/gl_SecondaryColor flat shading */
-			else if (input->source == GPU_SOURCE_OPENGL_BUILTIN) {
-				if (input->oglbuiltin == GPU_MATCAP_NORMAL) {
-					/* remap to 0.0 - 1.0 range. This is done because OpenGL 2.0 clamps colors
-					 * between shader stages and we want the full range of the normal */
-					BLI_dynstr_appendf(ds, "\tvec3 matcapcol = vec3(0.5) * varnormal + vec3(0.5);\n");
-					BLI_dynstr_appendf(ds, "\tgl_FrontSecondaryColor = vec4(matcapcol, 1.0);\n");
-				}
-				else if (input->oglbuiltin == GPU_COLOR) {
-					BLI_dynstr_appendf(ds, "\tgl_FrontColor = gl_Color;\n");
-				}
-			}
-
-	BLI_dynstr_append(ds, "}\n");
-
-	code = BLI_dynstr_get_cstring(ds);
-
-	BLI_dynstr_free(ds);
-
-#if 0
-	if (G.debug & G_DEBUG) printf("%s\n", code);
-#endif
-
-	return code;
-}
-
-static char *code_generate_geometry_new(ListBase *nodes, const char *geom_code)
+static char *code_generate_geometry(ListBase *nodes, const char *geom_code)
 {
 	DynStr *ds = BLI_dynstr_new();
 	GPUNode *node;
@@ -1136,67 +1010,6 @@ static char *code_generate_geometry_new(ListBase *nodes, const char *geom_code)
 	return code;
 }
 
-static char *code_generate_geometry(ListBase *nodes, bool use_opensubdiv)
-{
-#ifdef WITH_OPENSUBDIV
-	if (use_opensubdiv) {
-		DynStr *ds = BLI_dynstr_new();
-		GPUNode *node;
-		GPUInput *input;
-		char *code;
-
-		/* Generate varying declarations. */
-		for (node = nodes->first; node; node = node->next) {
-			for (input = node->inputs.first; input; input = input->next) {
-				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-					if (input->attribtype == CD_MTFACE) {
-						/* NOTE: For now we are using varying on purpose,
-						 * otherwise we are not able to write to the varying.
-						 */
-						BLI_dynstr_appendf(ds, "%s %s var%d%s;\n",
-						                   "varying",
-						                   GPU_DATATYPE_STR[input->type],
-						                   input->attribid,
-						                   "");
-						BLI_dynstr_appendf(ds, "uniform int fvar%d_offset;\n",
-						                   input->attribid);
-					}
-				}
-			}
-		}
-
-		BLI_dynstr_append(ds, datatoc_gpu_shader_geometry_glsl);
-
-		/* Generate varying assignments. */
-		for (node = nodes->first; node; node = node->next) {
-			for (input = node->inputs.first; input; input = input->next) {
-				if (input->source == GPU_SOURCE_ATTRIB && input->attribfirst) {
-					if (input->attribtype == CD_MTFACE) {
-						BLI_dynstr_appendf(
-						        ds,
-						        "\tINTERP_FACE_VARYING_ATT_2(var%d, "
-						        "int(texelFetch(FVarDataOffsetBuffer, fvar%d_offset).r), st);\n",
-						        input->attribid,
-						        input->attribid);
-					}
-				}
-			}
-		}
-
-		BLI_dynstr_append(ds, "}\n");
-		code = BLI_dynstr_get_cstring(ds);
-		BLI_dynstr_free(ds);
-
-		//if (G.debug & G_DEBUG) printf("%s\n", code);
-
-		return code;
-	}
-#else
-	UNUSED_VARS(nodes, use_opensubdiv);
-#endif
-	return NULL;
-}
-
 void GPU_code_generate_glsl_lib(void)
 {
 	DynStr *ds;
@@ -1223,65 +1036,6 @@ GPUShader *GPU_pass_shader(GPUPass *pass)
 	return pass->shader;
 }
 
-static void gpu_nodes_extract_dynamic_inputs_new(GPUShader *shader, ListBase *inputs, ListBase *nodes)
-{
-	GPUNode *node;
-	GPUInput *next, *input;
-	int extract, z;
-
-	BLI_listbase_clear(inputs);
-
-	if (!shader)
-		return;
-
-	GPU_shader_bind(shader);
-
-	for (node = nodes->first; node; node = node->next) {
-		z = 0;
-		for (input = node->inputs.first; input; input = next, z++) {
-			next = input->next;
-
-			/* attributes don't need to be bound, they already have
-			 * an id that the drawing functions will use */
-			if (input->source == GPU_SOURCE_ATTRIB) {
-				continue;
-			}
-
-			if (input->source == GPU_SOURCE_BUILTIN ||
-			    input->source == GPU_SOURCE_OPENGL_BUILTIN)
-			{
-				continue;
-			}
-
-			if (input->ima || input->tex || input->prv)
-				BLI_snprintf(input->shadername, sizeof(input->shadername), "samp%d", input->texid);
-			else
-				BLI_snprintf(input->shadername, sizeof(input->shadername), "unf%d", input->id);
-
-			/* pass non-dynamic uniforms to opengl */
-			extract = 0;
-
-			if (input->ima || input->tex || input->prv) {
-				if (input->bindtex)
-					extract = 1;
-			}
-			else if (input->dynamicvec)
-				extract = 1;
-
-			if (extract)
-				input->shaderloc = GPU_shader_get_uniform(shader, input->shadername);
-
-			/* extract nodes */
-			if (extract) {
-				BLI_remlink(&node->inputs, input);
-				BLI_addtail(inputs, input);
-			}
-		}
-	}
-
-	GPU_shader_unbind();
-}
-
 static void gpu_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs, ListBase *nodes)
 {
 	GPUNode *node;
@@ -1303,26 +1057,9 @@ static void gpu_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs
 			/* attributes don't need to be bound, they already have
 			 * an id that the drawing functions will use */
 			if (input->source == GPU_SOURCE_ATTRIB) {
-#ifdef WITH_OPENSUBDIV
-				/* We do need mtface attributes for later, so we can
-				 * update face-varuing variables offset in the texture
-				 * buffer for proper sampling from the shader.
-				 *
-				 * We don't do anything about attribute itself, we
-				 * only use it to learn which uniform name is to be
-				 * updated.
-				 *
-				 * TODO(sergey): We can add ad extra uniform input
-				 * for the offset, which will be purely internal and
-				 * which would avoid having such an exceptions.
-				 */
-				if (input->attribtype != CD_MTFACE) {
-					continue;
-				}
-#else
 				continue;
-#endif
 			}
+
 			if (input->source == GPU_SOURCE_BUILTIN ||
 			    input->source == GPU_SOURCE_OPENGL_BUILTIN)
 			{
@@ -1346,14 +1083,6 @@ static void gpu_nodes_extract_dynamic_inputs(GPUShader *shader, ListBase *inputs
 
 			if (extract)
 				input->shaderloc = GPU_shader_get_uniform(shader, input->shadername);
-
-#ifdef WITH_OPENSUBDIV
-			if (input->source == GPU_SOURCE_ATTRIB &&
-			    input->attribtype == CD_MTFACE)
-			{
-				extract = 1;
-			}
-#endif
 
 			/* extract nodes */
 			if (extract) {
@@ -1802,19 +1531,6 @@ void GPU_nodes_get_vertex_attributes(ListBase *nodes, GPUVertexAttribs *attribs)
 	}
 }
 
-static void gpu_nodes_get_builtin_flag(ListBase *nodes, int *builtin)
-{
-	GPUNode *node;
-	GPUInput *input;
-	
-	*builtin = 0;
-
-	for (node = nodes->first; node; node = node->next)
-		for (input = node->inputs.first; input; input = input->next)
-			if (input->source == GPU_SOURCE_BUILTIN)
-				*builtin |= input->builtin;
-}
-
 /* varargs linking  */
 
 GPUNodeLink *GPU_attribute(const CustomDataType type, const char *name)
@@ -2129,11 +1845,11 @@ GPUPass *GPU_generate_pass_new(
 	GPU_nodes_get_vertex_attributes(nodes, attribs);
 
 	/* generate code */
-	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output, true);
+	char *fragmentgen = code_generate_fragment(material, nodes, frag_outlink->output);
 	char *tmp = BLI_strdupcat(frag_lib, glsl_material_library);
 
-	vertexcode = code_generate_vertex_new(nodes, vert_code, (geom_code != NULL));
-	geometrycode = (geom_code) ? code_generate_geometry_new(nodes, geom_code) : NULL;
+	vertexcode = code_generate_vertex(nodes, vert_code, (geom_code != NULL));
+	geometrycode = (geom_code) ? code_generate_geometry(nodes, geom_code) : NULL;
 	fragmentcode = BLI_strdupcat(tmp, fragmentgen);
 
 	MEM_freeN(fragmentgen);
@@ -2182,83 +1898,9 @@ GPUPass *GPU_generate_pass_new(
 		return NULL;
 	}
 	else {
-		gpu_nodes_extract_dynamic_inputs_new(shader, inputs, nodes);
+		gpu_nodes_extract_dynamic_inputs(shader, inputs, nodes);
 		return pass;
 	}
-}
-
-/* TODO(fclem) Remove for 2.8 */
-GPUPass *GPU_generate_pass(
-        ListBase *nodes, ListBase *inputs, GPUNodeLink *outlink,
-        GPUVertexAttribs *attribs, int *builtins,
-        const GPUMatType type, const char *UNUSED(name),
-        const bool use_opensubdiv,
-        const bool use_new_shading)
-{
-	GPUShader *shader;
-	GPUPass *pass;
-	char *vertexcode, *geometrycode, *fragmentcode;
-
-#if 0
-	if (!FUNCTION_LIB) {
-		GPU_nodes_free(nodes);
-		return NULL;
-	}
-#endif
-
-	/* prune unused nodes */
-	GPU_nodes_prune(nodes, outlink);
-
-	GPU_nodes_get_vertex_attributes(nodes, attribs);
-	gpu_nodes_get_builtin_flag(nodes, builtins);
-
-	/* generate code and compile with opengl */
-	fragmentcode = code_generate_fragment(NULL, nodes, outlink->output, false);
-	vertexcode = code_generate_vertex(nodes, type);
-	geometrycode = code_generate_geometry(nodes, use_opensubdiv);
-
-	int flags = GPU_SHADER_FLAGS_NONE;
-	if (use_opensubdiv) {
-		flags |= GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV;
-	}
-	if (use_new_shading) {
-		flags |= GPU_SHADER_FLAGS_NEW_SHADING;
-	}
-	shader = GPU_shader_create_ex(vertexcode,
-	                              fragmentcode,
-	                              geometrycode,
-	                              glsl_material_library,
-	                              NULL,
-	                              flags);
-
-	/* failed? */
-	if (!shader) {
-		if (fragmentcode)
-			MEM_freeN(fragmentcode);
-		if (vertexcode)
-			MEM_freeN(vertexcode);
-		memset(attribs, 0, sizeof(*attribs));
-		memset(builtins, 0, sizeof(*builtins));
-		gpu_nodes_free(nodes);
-		return NULL;
-	}
-	
-	/* create pass */
-	pass = MEM_callocN(sizeof(GPUPass), "GPUPass");
-	pass->refcount = 1;
-	pass->shader = shader;
-	pass->fragmentcode = fragmentcode;
-	pass->geometrycode = geometrycode;
-	pass->vertexcode = vertexcode;
-	pass->libcode = glsl_material_library;
-
-	BLI_linklist_prepend(&pass_cache, pass);
-
-	/* extract dynamic inputs and throw away nodes */
-	gpu_nodes_extract_dynamic_inputs(shader, inputs, nodes);
-	gpu_nodes_free(nodes);
-
-	return pass;
 }
 
 void GPU_pass_release(GPUPass *pass)

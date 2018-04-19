@@ -212,12 +212,6 @@ static void ntree_version_242(bNodeTree *ntree)
 			}
 		}
 	}
-	else if (ntree->type == NTREE_SHADER) {
-		for (node = ntree->nodes.first; node; node = node->next)
-			if (node->type == SH_NODE_GEOMETRY && node->storage == NULL)
-				node->storage = MEM_callocN(sizeof(NodeGeometry), "NodeGeometry");
-	}
-
 }
 
 static void ntree_version_245(FileData *fd, Library *lib, bNodeTree *ntree)
@@ -525,15 +519,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile <= 102) {
-		/* init halo's at 1.0 */
-		Material *ma = main->mat.first;
-		while (ma) {
-			ma->add = 1.0;
-			ma = ma->id.next;
-		}
-	}
-
 	if (main->versionfile <= 103) {
 		/* new variable in object: colbits */
 		Object *ob = main->object.first;
@@ -585,11 +570,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 107) {
 		Object *ob;
-		Scene *sce = main->scene.first;
-		while (sce) {
-			sce->r.mode |= R_GAMMA;
-			sce = sce->id.next;
-		}
 		ob = main->object.first;
 		while (ob) {
 			if (ob->dt == 0)
@@ -618,17 +598,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				sa = sa->next;
 			}
 			sc = sc->id.next;
-		}
-	}
-
-	if (main->versionfile <= 113) {
-		Material *ma = main->mat.first;
-		while (ma) {
-			if (ma->flaresize == 0.0f)
-				ma->flaresize = 1.0f;
-			ma->subsize = 1.0f;
-			ma->flareboost = 1.0f;
-			ma = ma->id.next;
 		}
 	}
 
@@ -796,17 +765,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile <= 191) {
-		Material *ma = main->mat.first;
-
-		/* let faces have default add factor of 0.0 */
-		while (ma) {
-			if (!(ma->mode & MA_HALO))
-				ma->add = 0.0;
-			ma = ma->id.next;
-		}
-	}
-
 	if (main->versionfile <= 204) {
 		bSound *sound;
 
@@ -890,31 +848,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile <= 221) {
-		Scene *sce = main->scene.first;
-
-		/* new variables for std-alone player and runtime */
-		while (sce) {
-			sce->r.xplay = 640;
-			sce->r.yplay = 480;
-			sce->r.freqplay = 60;
-
-			sce = sce->id.next;
-		}
-
-	}
-
-	if (main->versionfile <= 222) {
-		Scene *sce = main->scene.first;
-
-		/* new variables for std-alone player and runtime */
-		while (sce) {
-			sce->r.depth = 32;
-
-			sce = sce->id.next;
-		}
-	}
-
 	if (main->versionfile <= 223) {
 		VFont *vf;
 		for (vf = main->vfont.first; vf; vf = vf->id.next) {
@@ -967,7 +900,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 227) {
 		Scene *sce;
-		Material *ma;
 		bScreen *sc;
 		Object *ob;
 
@@ -1020,17 +952,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			sce->audio.mixrate = 48000;
 			sce->audio.flag |= AUDIO_SCRUB;
-			sce->r.mode |= R_ENVMAP;
-		}
-
-		/* init new shader vars */
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			ma->refrac = 4.0f;
-			ma->roughness = 0.5f;
-			ma->param[0] = 0.5f;
-			ma->param[1] = 0.1f;
-			ma->param[2] = 0.1f;
-			ma->param[3] = 0.05f;
 		}
 
 		/* patch for old wrong max view2d settings, allows zooming out more */
@@ -1055,7 +976,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 228) {
-		Scene *sce;
 		bScreen *sc;
 		Object *ob;
 
@@ -1099,10 +1019,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			}
 
 			ob = ob->id.next;
-		}
-
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			sce->r.mode |= R_ENVMAP;
 		}
 
 		/* convert old mainb values for new button panels */
@@ -1224,57 +1140,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 231) {
-		Material *ma = main->mat.first;
 		bScreen *sc = main->screen.first;
-		Scene *sce;
-		Lamp *la;
-		World *wrld;
-
-		/* introduction of raytrace */
-		while (ma) {
-			if (ma->fresnel_tra_i == 0.0f)
-				ma->fresnel_tra_i = 1.25f;
-			if (ma->fresnel_mir_i == 0.0f)
-				ma->fresnel_mir_i = 1.25f;
-
-			ma->ang = 1.0;
-			ma->ray_depth = 2;
-			ma->ray_depth_tra = 2;
-			ma->fresnel_tra = 0.0;
-			ma->fresnel_mir = 0.0;
-
-			ma = ma->id.next;
-		}
-		sce = main->scene.first;
-		while (sce) {
-			if (sce->r.gauss == 0.0f)
-				sce->r.gauss = 1.0f;
-			sce = sce->id.next;
-		}
-		la = main->lamp.first;
-		while (la) {
-			if (la->k == 0.0f) la->k = 1.0;
-			if (la->ray_samp == 0)
-				la->ray_samp = 1;
-			if (la->ray_sampy == 0)
-				la->ray_sampy = 1;
-			if (la->ray_sampz == 0)
-				la->ray_sampz = 1;
-			if (la->area_size == 0.0f)
-				la->area_size = 1.0f;
-			if (la->area_sizey == 0.0f)
-				la->area_sizey = 1.0f;
-			if (la->area_sizez == 0.0f)
-				la->area_sizez = 1.0f;
-			la = la->id.next;
-		}
-		wrld = main->world.first;
-		while (wrld) {
-			if (wrld->range == 0.0f) {
-				wrld->range = 1.0f / wrld->exposure;
-			}
-			wrld = wrld->id.next;
-		}
 
 		/* new bit flags for showing/hiding grid floor and axes */
 
@@ -1305,7 +1171,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Tex *tex = main->tex.first;
 		World *wrld = main->world.first;
 		bScreen *sc;
-		Scene *sce;
 
 		while (tex) {
 			if ((tex->flag & (TEX_CHECKER_ODD+TEX_CHECKER_EVEN))==0) {
@@ -1332,10 +1197,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		while (wrld) {
 			if (wrld->aodist == 0.0f) {
 				wrld->aodist = 10.0f;
-				wrld->aobias = 0.05f;
 			}
-			if (wrld->aosamp == 0)
-				wrld->aosamp = 5;
 			if (wrld->aoenergy == 0.0f)
 				wrld->aoenergy = 1.0f;
 			wrld = wrld->id.next;
@@ -1360,13 +1222,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		sce = main->scene.first;
-		while (sce) {
-			if (sce->r.ocres == 0)
-				sce->r.ocres = 64;
-			sce = sce->id.next;
-		}
-
 	}
 
 	if (main->versionfile <= 233) {
@@ -1375,10 +1230,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		/* Object *ob = main->object.first; */
 
 		while (ma) {
-			if (ma->rampfac_col == 0.0f)
-				ma->rampfac_col = 1.0;
-			if (ma->rampfac_spec == 0.0f)
-				ma->rampfac_spec = 1.0;
 			if (ma->pr_lamp == 0)
 				ma->pr_lamp = 3;
 			ma = ma->id.next;
@@ -1449,7 +1300,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 236) {
 		Object *ob;
 		Camera *cam = main->camera.first;
-		Material *ma;
 		bScreen *sc;
 
 		while (cam) {
@@ -1474,13 +1324,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 							v3d->twtype = V3D_MANIP_TRANSLATE;
 					}
 				}
-			}
-		}
-		/* init new shader vars */
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			if (ma->darkness == 0.0f) {
-				ma->rms = 0.1f;
-				ma->darkness = 1.0f;
 			}
 		}
 
@@ -1711,7 +1554,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Object *ob;
 		Scene *sce = main->scene.first;
 		Camera *cam = main->camera.first;
-		Material *ma = main->mat.first;
 		int set_passepartout = 0;
 
 		/* deformflag is local in modifier now */
@@ -1744,11 +1586,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				set_passepartout = 1;
 				sce->r.scemode &= ~R_PASSEPARTOUT;
 			}
-			/* gauss is filter variable now */
-			if (sce->r.mode & R_GAUSS) {
-				sce->r.filtertype = R_FILTER_GAUSS;
-				sce->r.mode &= ~R_GAUSS;
-			}
 		}
 
 		for (; cam; cam = cam->id.next) {
@@ -1763,31 +1600,14 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			if (!(cam->passepartalpha))
 				cam->passepartalpha = 0.2f;
 		}
-
-		for (; ma; ma = ma->id.next) {
-			if (ma->strand_sta == 0.0f) {
-				ma->strand_sta = ma->strand_end = 1.0f;
-				ma->mode |= MA_TANGENT_STR;
-			}
-			if (ma->mode & MA_TRACEBLE)
-				ma->mode |= MA_SHADBUF;
-		}
 	}
 
 	if (main->versionfile <= 241) {
 		Object *ob;
-		Tex *tex;
 		Scene *sce;
-		World *wo;
 		Lamp *la;
-		Material *ma;
 		bArmature *arm;
 		bNodeTree *ntree;
-
-		for (wo = main->world.first; wo; wo = wo->id.next) {
-			if (WO_AODIST == wo->aomode)
-				wo->aocolor = WO_AOPLAIN;
-		}
 
 		/* updating layers still */
 		for (arm = main->armature.first; arm; arm = arm->id.next) {
@@ -1798,11 +1618,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->audio.mixrate == 0)
 				sce->audio.mixrate = 48000;
-
-			if (sce->r.xparts <2 )
-				sce->r.xparts = 4;
-			if (sce->r.yparts < 2)
-				sce->r.yparts = 4;
 
 			/* We don't add default layer since blender2.8 because the layers
 			 * are now in Scene->view_layers and a default layer is created in
@@ -1825,20 +1640,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->uvcalc_flag = UVCALC_FILLHOLES;
 				sce->toolsettings->unwrapper = 1;
 			}
-
-			if (sce->r.mode & R_PANORAMA) {
-				/* all these checks to ensure saved files between released versions keep working... */
-				if (sce->r.xsch < sce->r.ysch) {
-					Object *obc = blo_do_versions_newlibadr(fd, lib, sce->camera);
-					if (obc && obc->type == OB_CAMERA) {
-						Camera *cam = blo_do_versions_newlibadr(fd, lib, obc->data);
-						if (cam->lens >= 10.0f) {
-							sce->r.xsch *= sce->r.xparts;
-							cam->lens *= (float)sce->r.ysch / (float)sce->r.xsch;
-						}
-					}
-				}
-			}
 		}
 
 		for (ntree = main->nodetree.first; ntree; ntree = ntree->id.next)
@@ -1848,33 +1649,12 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			if (la->buffers == 0)
 				la->buffers = 1;
 
-		for (tex = main->tex.first; tex; tex = tex->id.next) {
-			if (tex->env && tex->env->viewscale == 0.0f)
-				tex->env->viewscale = 1.0f;
-			//tex->imaflag |= TEX_GAUSS_MIP;
-		}
-
 		/* for empty drawsize and drawtype */
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			if (ob->empty_drawsize == 0.0f) {
 				ob->empty_drawtype = OB_ARROWS;
 				ob->empty_drawsize = 1.0;
 			}
-		}
-
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			/* stucci returns intensity from now on */
-			int a;
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ma->mtex[a] && ma->mtex[a]->tex) {
-					tex = blo_do_versions_newlibadr(fd, lib, ma->mtex[a]->tex);
-					if (tex && tex->type == TEX_STUCCI)
-						ma->mtex[a]->mapto &= ~(MAP_COL|MAP_SPEC|MAP_REF);
-				}
-			}
-			/* transmissivity defaults */
-			if (ma->tx_falloff == 0.0f)
-				ma->tx_falloff = 1.0f;
 		}
 
 		/* during 2.41 images with this name were used for viewer node output, lets fix that */
@@ -2046,8 +1826,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			if (ma->shad_alpha == 0.0f)
-				ma->shad_alpha = 1.0f;
 			if (ma->nodetree)
 				ntree_version_242(ma->nodetree);
 		}
@@ -2125,7 +1903,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			for (sce = main->scene.first; sce; sce = sce->id.next) {
 				sce->r.bake_mode = 1;	/* prevent to include render stuff here */
 				sce->r.bake_filter = 16;
-				sce->r.bake_osa = 5;
 				sce->r.bake_flag = R_BAKE_CLEAR;
 			}
 		}
@@ -2133,32 +1910,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile <= 243) {
 		Object *ob = main->object.first;
-		Material *ma;
-
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			if (ma->sss_scale == 0.0f) {
-				ma->sss_radius[0] = 1.0f;
-				ma->sss_radius[1] = 1.0f;
-				ma->sss_radius[2] = 1.0f;
-				ma->sss_col[0] = 0.8f;
-				ma->sss_col[1] = 0.8f;
-				ma->sss_col[2] = 0.8f;
-				ma->sss_error = 0.05f;
-				ma->sss_scale = 0.1f;
-				ma->sss_ior = 1.3f;
-				ma->sss_colfac = 1.0f;
-				ma->sss_texfac = 0.0f;
-			}
-			if (ma->sss_front == 0 && ma->sss_back == 0) {
-				ma->sss_front = 1.0f;
-				ma->sss_back = 1.0f;
-			}
-			if (ma->sss_col[0] == 0 && ma->sss_col[1] == 0 && ma->sss_col[2] == 0) {
-				ma->sss_col[0] = ma->r;
-				ma->sss_col[1] = ma->g;
-				ma->sss_col[2] = ma->b;
-			}
-		}
 
 		for (; ob; ob = ob->id.next) {
 			bDeformGroup *curdef;
@@ -2206,15 +1957,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	}
 
 	if (main->versionfile <= 244) {
-		Scene *sce;
 		bScreen *sc;
-		Lamp *la;
-		World *wrld;
 
 		if (main->versionfile != 244 || main->subversionfile < 2) {
-			for (sce = main->scene.first; sce; sce = sce->id.next)
-				sce->r.mode |= R_SSS;
-
 			/* correct older action editors - incorrect scrolling */
 			for (sc = main->screen.first; sc; sc = sc->id.next) {
 				ScrArea *sa;
@@ -2237,28 +1982,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-
-		if (main->versionfile != 244 || main->subversionfile < 3) {
-			/* constraints recode version patch used to be here. Moved to 245 now... */
-
-			for (wrld = main->world.first; wrld; wrld = wrld->id.next) {
-				if (wrld->mode & WO_AMB_OCC)
-					wrld->ao_samp_method = WO_AOSAMP_CONSTANT;
-				else
-					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
-
-				wrld->ao_adapt_thresh = 0.005f;
-			}
-
-			for (la = main->lamp.first; la; la = la->id.next) {
-				if (la->type == LA_AREA)
-					la->ray_samp_method = LA_SAMP_CONSTANT;
-				else
-					la->ray_samp_method = LA_SAMP_HALTON;
-
-				la->adapt_thresh = 0.001f;
-			}
-		}
 	}
 
 	if (main->versionfile <= 245) {
@@ -2268,7 +1991,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 		Material *ma;
 		ParticleSettings *part;
-		World *wrld;
 		Mesh *me;
 		bNodeTree *ntree;
 		Tex *tex;
@@ -2400,10 +2122,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 		if (main->versionfile != 245 || main->subversionfile < 1) {
 			for (la = main->lamp.first; la; la = la->id.next) {
-				if (la->mode & LA_QUAD)
-					la->falloff_type = LA_FALLOFF_SLIDERS;
-				else
-					la->falloff_type = LA_FALLOFF_INVLINEAR;
+				la->falloff_type = LA_FALLOFF_INVLINEAR;
 
 				if (la->curfalloff == NULL) {
 					la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
@@ -2413,17 +2132,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 
 		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			if (ma->samp_gloss_mir == 0) {
-				ma->gloss_mir = ma->gloss_tra = 1.0f;
-				ma->aniso_gloss_mir = 1.0f;
-				ma->samp_gloss_mir = ma->samp_gloss_tra = 18;
-				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005f;
-				ma->dist_mir = 0.0f;
-				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+			if (ma->gloss_mir == 0.0f) {
+				ma->gloss_mir = 1.0f;
 			}
-
-			if (ma->strand_min == 0.0f)
-				ma->strand_min = 1.0f;
 		}
 
 		for (part = main->particle.first; part; part = part->id.next) {
@@ -2431,26 +2142,13 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				part->ren_child_nbr = part->child_nbr;
 		}
 
-		for (wrld = main->world.first; wrld; wrld = wrld->id.next) {
-			if (wrld->ao_approx_error == 0.0f)
-				wrld->ao_approx_error = 0.25f;
-		}
-
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->nodetree)
 				ntree_version_245(fd, lib, sce->nodetree);
 
-			if (sce->r.simplify_shadowsamples == 0) {
+			if (sce->r.simplify_subsurf == 0) {
 				sce->r.simplify_subsurf = 6;
 				sce->r.simplify_particles = 1.0f;
-				sce->r.simplify_shadowsamples = 16;
-				sce->r.simplify_aosss = 1.0f;
-			}
-
-			if (sce->r.cineongamma == 0) {
-				sce->r.cineonblack = 95;
-				sce->r.cineonwhite = 685;
-				sce->r.cineongamma = 1.7f;
 			}
 		}
 
@@ -2730,16 +2428,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 9)) {
-		Material *ma;
-		int a;
-
-		for (ma = main->mat.first; ma; ma = ma->id.next)
-			if (ma->mode & MA_NORMAP_TANG)
-				for (a = 0; a < MAX_MTEX; a++)
-					if (ma->mtex[a] && ma->mtex[a]->tex)
-						ma->mtex[a]->normapspace = MTEX_NSPACE_TANGENT;
-	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 10)) {
 		Object *ob;
@@ -2851,14 +2539,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 5)) {
-		Lamp *la = main->lamp.first;
-		for (; la; la = la->id.next) {
-			la->skyblendtype = MA_RAMP_ADD;
-			la->skyblendfac = 1.0f;
-		}
-	}
-
 	/* set the curve radius interpolation to 2.47 default - easy */
 	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 6)) {
 		Curve *cu;
@@ -2878,33 +2558,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 						nu->resolv = MAX2( 1, (int)(((float)nu->resolv / (float)nu->pntsv)+0.5f) );
 					}
 				}
-			}
-		}
-	}
-
-	if (main->versionfile < 247 || (main->versionfile == 247 && main->subversionfile < 9)) {
-		Lamp *la = main->lamp.first;
-		for (; la; la = la->id.next) {
-			la->sky_exposure = 1.0f;
-		}
-	}
-
-	if (main->versionfile < 248) {
-		Lamp *la;
-
-		for (la = main->lamp.first; la; la = la->id.next) {
-			if (la->atm_turbidity == 0.0f) {
-				la->sun_effect_type = 0;
-				la->horizon_brightness = 1.0f;
-				la->spread = 1.0f;
-				la->sun_brightness = 1.0f;
-				la->sun_size = 1.0f;
-				la->backscattered_light = 1.0f;
-				la->atm_turbidity = 2.0f;
-				la->atm_inscattering_factor = 1.0f;
-				la->atm_extinction_factor = 1.0f;
-				la->atm_distance_factor = 1.0f;
-				la->sun_intensity = 1.0f;
 			}
 		}
 	}

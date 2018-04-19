@@ -1186,20 +1186,6 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 	}
 }
 
-void BKE_pbvh_draw_BB(PBVH *bvh)
-{
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
-	immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
-
-	for (int a = 0; a < bvh->totnode; a++) {
-		PBVHNode *node = &bvh->nodes[a];
-
-		GPU_pbvh_BB_draw(node->vb.bmin, node->vb.bmax, ((node->flag & PBVH_Leaf) != 0), pos);
-	}
-
-	immUnbindProgram();
-}
-
 static int pbvh_flush_bb(PBVH *bvh, PBVHNode *node, int flag)
 {
 	int update = 0;
@@ -2008,24 +1994,6 @@ bool BKE_pbvh_node_find_nearest_to_ray(
 	return hit;
 }
 
-typedef struct {
-	DMSetMaterial setMaterial;
-	bool wireframe;
-	bool fast;
-} PBVHNodeDrawData;
-
-void BKE_pbvh_node_draw(PBVHNode *node, void *data_v)
-{
-	PBVHNodeDrawData *data = data_v;
-
-	if (!(node->flag & PBVH_FullyHidden)) {
-		GPU_pbvh_buffers_draw(node->draw_buffers,
-		                 data->setMaterial,
-		                 data->wireframe,
-		                 data->fast);
-	}
-}
-
 typedef enum {
 	ISECT_INSIDE,
 	ISECT_OUTSIDE,
@@ -2094,6 +2062,8 @@ static void pbvh_node_check_diffuse_changed(PBVH *bvh, PBVHNode *node)
 		node->flag |= PBVH_UpdateDrawBuffers;
 }
 
+/* TODO: not needed anymore in 2.8? */
+#if 0
 static void pbvh_node_check_mask_changed(PBVH *bvh, PBVHNode *node)
 {
 	if (!node->draw_buffers) {
@@ -2103,38 +2073,7 @@ static void pbvh_node_check_mask_changed(PBVH *bvh, PBVHNode *node)
 		node->flag |= PBVH_UpdateDrawBuffers;
 	}
 }
-
-void BKE_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*fnors)[3],
-                   DMSetMaterial setMaterial, bool wireframe, bool fast)
-{
-	PBVHNodeDrawData draw_data = {setMaterial, wireframe, fast};
-	PBVHNode **nodes;
-	int totnode;
-
-	for (int a = 0; a < bvh->totnode; a++) {
-		pbvh_node_check_diffuse_changed(bvh, &bvh->nodes[a]);
-		pbvh_node_check_mask_changed(bvh, &bvh->nodes[a]);
-	}
-
-	BKE_pbvh_search_gather(bvh, update_search_cb, SET_INT_IN_POINTER(PBVH_UpdateNormals | PBVH_UpdateDrawBuffers),
-	                       &nodes, &totnode);
-
-	pbvh_update_normals(bvh, nodes, totnode, fnors);
-	pbvh_update_draw_buffers(bvh, nodes, totnode);
-
-	if (nodes) MEM_freeN(nodes);
-
-	if (planes) {
-		BKE_pbvh_search_callback(bvh, BKE_pbvh_node_planes_contain_AABB,
-		                         planes, BKE_pbvh_node_draw, &draw_data);
-	}
-	else {
-		BKE_pbvh_search_callback(bvh, NULL, NULL, BKE_pbvh_node_draw, &draw_data);
-	}
-
-	if (G.debug_value == 14)
-		BKE_pbvh_draw_BB(bvh);
-}
+#endif
 
 struct PBVHNodeDrawCallbackData {
 

@@ -47,6 +47,7 @@
 #include "BKE_global.h"
 #include "BKE_colortools.h"
 #include "BKE_layer.h"
+#include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
 
@@ -69,22 +70,13 @@
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "render_result.h"
-#include "rendercore.h"
 
 /* Render Engine Types */
-
-static RenderEngineType internal_render_type = {
-	NULL, NULL,
-	"BLENDER_RENDER", N_("Blender Render"), RE_INTERNAL | RE_USE_LEGACY_PIPELINE,
-	NULL, NULL, NULL, NULL, NULL, NULL, render_internal_update_passes, NULL, NULL, NULL,
-	{NULL, NULL, NULL}
-};
 
 ListBase R_engines = {NULL, NULL};
 
 void RE_engines_init(void)
 {
-	RE_engines_register(NULL, &internal_render_type);
 	DRW_engines_register();
 }
 
@@ -133,7 +125,7 @@ RenderEngineType *RE_engines_find(const char *idname)
 	
 	type = BLI_findstring(&R_engines, idname, offsetof(RenderEngineType, idname));
 	if (!type)
-		type = &internal_render_type;
+		type = BLI_findstring(&R_engines, "BLENDER_EEVEE", offsetof(RenderEngineType, idname));
 	
 	return type;
 }
@@ -493,13 +485,6 @@ rcti* RE_engine_get_current_tiles(Render *re, int *r_total_tiles, bool *r_needs_
 			}
 			tiles[total_tiles] = pa->disprect;
 
-			if (pa->crop) {
-				tiles[total_tiles].xmin += pa->crop;
-				tiles[total_tiles].ymin += pa->crop;
-				tiles[total_tiles].xmax -= pa->crop;
-				tiles[total_tiles].ymax -= pa->crop;
-			}
-
 			total_tiles++;
 		}
 	}
@@ -601,7 +586,7 @@ bool RE_bake_engine(
 	engine->resolution_x = re->winx;
 	engine->resolution_y = re->winy;
 
-	RE_parts_init(re, false);
+	RE_parts_init(re);
 	engine->tile_x = re->r.tilex;
 	engine->tile_y = re->r.tiley;
 
@@ -733,7 +718,7 @@ int RE_engine_render(Render *re, int do_all)
 	engine->resolution_x = re->winx;
 	engine->resolution_y = re->winy;
 
-	RE_parts_init(re, false);
+	RE_parts_init(re);
 	engine->tile_x = re->partx;
 	engine->tile_y = re->party;
 

@@ -270,7 +270,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = oglrender->scene;
-	ViewLayer *view_layer = oglrender->view_layer;
 	ARegion *ar = oglrender->ar;
 	View3D *v3d = oglrender->v3d;
 	RegionView3D *rv3d = oglrender->rv3d;
@@ -278,7 +277,6 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 	int sizex = oglrender->sizex;
 	int sizey = oglrender->sizey;
 	const short view_context = (v3d != NULL);
-	bool draw_bgpic = true;
 	bool draw_sky = (scene->r.alphamode == R_ADDSKY);
 	float *rectf = NULL;
 	const char *viewname = RE_GetActiveRenderView(oglrender->re);
@@ -356,10 +354,8 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 		draw_flags |= (oglrender->ofs_full_samples) ? V3D_OFSDRAW_USE_FULL_SAMPLE : 0;
 
 		if (view_context) {
-			draw_flags |= (draw_bgpic) ? V3D_OFSDRAW_USE_BACKGROUND : 0;
-
 			ibuf_view = ED_view3d_draw_offscreen_imbuf(
-			       depsgraph, scene, view_layer, v3d->drawtype,
+			       depsgraph, scene, v3d->drawtype,
 			       v3d, ar, sizex, sizey,
 			       IB_rectfloat, draw_flags, alpha_mode, oglrender->ofs_samples, viewname,
 			       oglrender->ofs, err_out);
@@ -370,9 +366,9 @@ static void screen_opengl_render_doit(const bContext *C, OGLRender *oglrender, R
 			}
 		}
 		else {
-			draw_flags |= (V3D_OFSDRAW_USE_GPENCIL | V3D_OFSDRAW_USE_BACKGROUND);
+			draw_flags |= V3D_OFSDRAW_USE_GPENCIL;
 			ibuf_view = ED_view3d_draw_offscreen_imbuf_simple(
-			        depsgraph, scene, view_layer, OB_SOLID,
+			        depsgraph, scene, OB_SOLID,
 			        scene->camera, oglrender->sizex, oglrender->sizey,
 			        IB_rectfloat, draw_flags,
 			        alpha_mode, oglrender->ofs_samples, viewname,

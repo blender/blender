@@ -51,7 +51,6 @@
 #include "WM_types.h"
 
 #include "GPU_draw.h"
-#include "GPU_buffers.h"
 
 /* own include */
 
@@ -97,11 +96,6 @@ void paintface_flush_flags(Object *ob, short flag)
 
 			}
 		}
-	}
-
-	if (flag & ME_HIDE) {
-		/* draw-object caches hidden faces, force re-generation T46867 */
-		GPU_drawobject_free(dm);
 	}
 
 	BKE_mesh_batch_cache_dirty(me, BKE_MESH_BATCH_DIRTY_ALL);

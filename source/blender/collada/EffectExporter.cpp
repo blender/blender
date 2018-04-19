@@ -41,7 +41,6 @@
 
 extern "C" {
 	#include "DNA_mesh_types.h"
-	#include "DNA_texture_types.h"
 	#include "DNA_world_types.h"
 
 	#include "BKE_collection.h"
@@ -95,128 +94,27 @@ void EffectsExporter::exportEffects(Scene *sce)
 	}
 }
 
-void EffectsExporter::writeBlinn(COLLADASW::EffectProfile &ep, Material *ma)
-{
-	COLLADASW::ColorOrTexture cot;
-	ep.setShaderType(COLLADASW::EffectProfile::BLINN);
-	// shininess
-	ep.setShininess(ma->har, false, "shininess");
-	// specular
-	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-	ep.setSpecular(cot, false, "specular");
-}
-
 void EffectsExporter::writeLambert(COLLADASW::EffectProfile &ep, Material *ma)
 {
 	COLLADASW::ColorOrTexture cot;
 	ep.setShaderType(COLLADASW::EffectProfile::LAMBERT);
 }
 
-void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
-{
-	COLLADASW::ColorOrTexture cot;
-	ep.setShaderType(COLLADASW::EffectProfile::PHONG);
-	// shininess
-	ep.setShininess(ma->har, false, "shininess");
-	// specular
-	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-	ep.setSpecular(cot, false, "specular");
-}
-
-void EffectsExporter::writeTextures(
-        COLLADASW::EffectProfile &ep,
-        std::string &key,
-        COLLADASW::Sampler *sampler, 
-        MTex *t, Image *ima,
-        std::string &uvname )
-{
-	// Image not set for texture
-	if (!ima) return;
-
-	// color
-	if (t->mapto & MAP_COL) {
-		ep.setDiffuse(createTexture(ima, uvname, sampler), false, "diffuse");
-	}
-	// ambient
-	if (t->mapto & MAP_AMB) {
-		ep.setAmbient(createTexture(ima, uvname, sampler), false, "ambient");
-	}
-	// specular
-	if (t->mapto & (MAP_SPEC | MAP_COLSPEC)) {
-		ep.setSpecular(createTexture(ima, uvname, sampler), false, "specular");
-	}
-	// emission
-	if (t->mapto & MAP_EMIT) {
-		ep.setEmission(createTexture(ima, uvname, sampler), false, "emission");
-	}
-	// reflective
-	if (t->mapto & MAP_REF) {
-		ep.setReflective(createTexture(ima, uvname, sampler));
-	}
-	// alpha
-	if (t->mapto & MAP_ALPHA) {
-		ep.setTransparent(createTexture(ima, uvname, sampler));
-	}
-	// extension:
-	// Normal map --> Must be stored with <extra> tag as different technique, 
-	// since COLLADA doesn't support normal maps, even in current COLLADA 1.5.
-	if (t->mapto & MAP_NORM) {
-		COLLADASW::Texture texture(key);
-		texture.setTexcoord(uvname);
-		texture.setSampler(*sampler);
-		// technique FCOLLADA, with the <bump> tag, is most likely the best understood,
-		// most widespread de-facto standard.
-		texture.setProfileName("FCOLLADA");
-		texture.setChildElementName("bump");
-		ep.addExtraTechniqueColorOrTexture(COLLADASW::ColorOrTexture(texture));
-	}
-}
-
 void EffectsExporter::operator()(Material *ma, Object *ob)
 {
-	// create a list of indices to textures of type TEX_IMAGE
-	std::vector<int> tex_indices;
-	if (this->export_settings->include_material_textures)
-		createTextureIndices(ma, tex_indices);
+	// TODO: add back texture and extended material parameter support
 
 	openEffect(translate_id(id_name(ma)) + "-effect");
 	
 	COLLADASW::EffectProfile ep(mSW);
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
-	// set shader type - one of three blinn, phong or lambert
-	if (ma->spec > 0.0f) {
-		if (ma->spec_shader == MA_SPEC_BLINN) {
-			writeBlinn(ep, ma);
-		}
-		else {
-			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
-			// for now set phong in case spec shader is not blinn
-			writePhong(ep, ma);
-		}
-	}
-	else {
-		if (ma->diff_shader == MA_DIFF_LAMBERT) {
-			writeLambert(ep, ma);
-		}
-		else {
-			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
-			writePhong(ep, ma);
-		}
-	}
+	writeLambert(ep, ma);
 	
-	// index of refraction
-	if (ma->mode & MA_RAYTRANSP) {
-		ep.setIndexOfRefraction(ma->ang, false, "index_of_refraction");
-	}
-	else {
-		ep.setIndexOfRefraction(1.0f, false, "index_of_refraction");
-	}
-
 	COLLADASW::ColorOrTexture cot;
 
 	// transparency
-	if (ma->mode & MA_TRANSP) {
+	if (ma->alpha != 1.0f) {
 		// Tod: because we are in A_ONE mode transparency is calculated like this:
 		cot = getcol(1.0f, 1.0f, 1.0f, ma->alpha);
 		ep.setTransparent(cot);
@@ -224,33 +122,13 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	}
 
 	// emission
+#if 0
 	cot = getcol(ma->emit, ma->emit, ma->emit, 1.0f);
-	ep.setEmission(cot, false, "emission");
+#endif
 
-	// diffuse multiplied by diffuse intensity
-	cot = getcol(ma->r * ma->ref, ma->g * ma->ref, ma->b * ma->ref, 1.0f);
+	// diffuse
+	cot = getcol(ma->r, ma->g, ma->b, 1.0f);
 	ep.setDiffuse(cot, false, "diffuse");
-
-	// ambient
-	/* ma->ambX is calculated only on render, so lets do it here manually and not rely on ma->ambX. */
-	if (this->scene->world)
-		cot = getcol(this->scene->world->ambr * ma->amb, this->scene->world->ambg * ma->amb, this->scene->world->ambb * ma->amb, 1.0f);
-	else
-		cot = getcol(ma->amb, ma->amb, ma->amb, 1.0f);
-
-	ep.setAmbient(cot, false, "ambient");
-
-	// reflective, reflectivity
-	if (ma->mode & MA_RAYMIRROR) {
-		cot = getcol(ma->mirr, ma->mirg, ma->mirb, 1.0f);
-		ep.setReflective(cot);
-		ep.setReflectivity(ma->ray_mirror);
-	}
-	// else {
-	//  cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-	//  ep.setReflective(cot);
-	//  ep.setReflectivity(ma->spec);
-	// }
 
 	// specular
 	if (ep.getShaderType() != COLLADASW::EffectProfile::LAMBERT) {
@@ -260,6 +138,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// XXX make this more readable if possible
 
+#if 0
 	// create <sampler> and <surface> for each image
 	COLLADASW::Sampler samplers[MAX_MTEX];
 	//COLLADASW::Surface surfaces[MAX_MTEX];
@@ -310,6 +189,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			b++;
 		}
 	}
+#endif
 
 	// used as fallback when MTex->uvname is "" (this is pretty common)
 	// it is indeed the correct value to use in that case
@@ -317,6 +197,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 
 	// write textures
 	// XXX very slow
+#if 0
 	for (a = 0; a < tex_indices.size(); a++) {
 		MTex *t = ma->mtex[tex_indices[a]];
 		Image *ima = t->tex->ima;
@@ -332,6 +213,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i];
 		writeTextures(ep, key, sampler, t, ima, uvname);
 	}
+#endif
 
 	// performs the actual writing
 	ep.addProfileElements();
@@ -371,21 +253,4 @@ COLLADASW::ColorOrTexture EffectsExporter::getcol(float r, float g, float b, flo
 	COLLADASW::Color color(r, g, b, a);
 	COLLADASW::ColorOrTexture cot(color);
 	return cot;
-}
-
-//returns the array of mtex indices which have image 
-//need this for exporting textures
-void EffectsExporter::createTextureIndices(Material *ma, std::vector<int> &indices)
-{
-	indices.clear();
-
-	for (int a = 0; a < MAX_MTEX; a++) {
-		if (ma->mtex[a] &&
-		    ma->mtex[a]->tex &&
-		    ma->mtex[a]->tex->type == TEX_IMAGE &&
-		    ma->mtex[a]->texco == TEXCO_UV)
-		{
-			indices.push_back(a);
-		}
-	}
 }

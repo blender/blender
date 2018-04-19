@@ -73,7 +73,6 @@
 #include "DEG_depsgraph.h"
 
 #include "GPU_draw.h"
-#include "GPU_buffers.h"
 
 #include "IMB_colormanagement.h"
 #include "IMB_imbuf.h"
@@ -2445,7 +2444,6 @@ static int image_new_exec(bContext *C, wmOperator *op)
 		bScreen *sc;
 		Object *ob = CTX_data_active_object(C);
 		
-		GPU_drawobject_free(ob->derivedFinal);	
 		if (scene->toolsettings->imapaint.canvas)
 			id_us_min(&scene->toolsettings->imapaint.canvas->id);
 		scene->toolsettings->imapaint.canvas = ima;

@@ -574,7 +574,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 	/* experimental */
 	tot=dm->getNumTessFaces(dm);
 	
-	psys_interpolate_face(mvert,mface,0,0,pa->fuv,co,nor,0,0,0,0);
+	psys_interpolate_face(mvert,mface,0,0,pa->fuv,co,nor,0,0,0);
 	
 	normalize_v3(nor);
 	negate_v3(nor);
@@ -661,7 +661,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
 		int parent[10];
 		float pweight[10];
 		
-		psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1,NULL);
+		psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1);
 		BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
 		maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 		
@@ -890,7 +890,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		tree=BLI_kdtree_new(totpart);
 
 		for (p=0,pa=psys->particles; p<totpart; p++,pa++) {
-			psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,NULL);
+			psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco);
 			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco, 1, 1);
 			BLI_kdtree_insert(tree, p, orco);
 		}

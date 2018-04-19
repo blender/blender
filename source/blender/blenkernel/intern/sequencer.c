@@ -2758,17 +2758,12 @@ static ImBuf *seq_render_effect_strip_impl(
 
 	if (seq->flag & SEQ_USE_EFFECT_DEFAULT_FADE) {
 		sh.get_default_fac(seq, cfra, &fac, &facf);
-		
-		if ((scene->r.mode & R_FIELDS) == 0)
-			facf = fac;
+		facf = fac;
 	}
 	else {
 		fcu = id_data_find_fcurve(&scene->id, seq, &RNA_Sequence, "effect_fader", 0, NULL);
 		if (fcu) {
 			fac = facf = evaluate_fcurve(fcu, cfra);
-			if (scene->r.mode & R_FIELDS) {
-				facf = evaluate_fcurve(fcu, cfra + 0.5f);
-			}
 		}
 		else {
 			fac = facf = seq->effect_fader;
@@ -3337,7 +3332,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 		BKE_scene_graph_update_for_newframe(depsgraph, context->bmain);
 		ibuf = sequencer_view3d_cb(
 		        /* set for OpenGL render (NULL when scrubbing) */
-		        depsgraph, scene, view_layer,
+		        depsgraph, scene,
 		        context->scene->r.seq_prev_type,
 		        camera, width, height, IB_rect,
 		        draw_flags,

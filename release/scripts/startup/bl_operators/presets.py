@@ -318,34 +318,6 @@ class AddPresetSafeAreas(AddPresetBase, Operator):
     preset_subdir = "safe_areas"
 
 
-class AddPresetSSS(AddPresetBase, Operator):
-    """Add or remove a Subsurface Scattering Preset"""
-    bl_idname = "material.sss_preset_add"
-    bl_label = "Add SSS Preset"
-    preset_menu = "MATERIAL_MT_sss_presets"
-
-    preset_defines = [
-        ("material = "
-         "bpy.context.material.active_node_material "
-         "if bpy.context.material.active_node_material "
-         "else bpy.context.material")
-    ]
-
-    preset_values = [
-        "material.subsurface_scattering.back",
-        "material.subsurface_scattering.color",
-        "material.subsurface_scattering.color_factor",
-        "material.subsurface_scattering.error_threshold",
-        "material.subsurface_scattering.front",
-        "material.subsurface_scattering.ior",
-        "material.subsurface_scattering.radius",
-        "material.subsurface_scattering.scale",
-        "material.subsurface_scattering.texture_factor",
-    ]
-
-    preset_subdir = "sss"
-
-
 class AddPresetCloth(AddPresetBase, Operator):
     """Add or remove a Cloth Preset"""
     bl_idname = "cloth.preset_add"
@@ -695,7 +667,6 @@ classes = (
     AddPresetNodeColor,
     AddPresetOperator,
     AddPresetRender,
-    AddPresetSSS,
     AddPresetSafeAreas,
     AddPresetSunSky,
     AddPresetTrackingCamera,

@@ -147,7 +147,7 @@ static void createFacepa(ExplodeModifierData *emd,
 	/* make tree of emitter locations */
 	tree = BLI_kdtree_new(totpart);
 	for (p = 0, pa = psys->particles; p < totpart; p++, pa++) {
-		psys_particle_on_emitter(psmd, psys->part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, NULL, NULL, NULL, NULL, NULL);
+		psys_particle_on_emitter(psmd, psys->part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, co, NULL, NULL, NULL, NULL);
 		BLI_kdtree_insert(tree, p, co);
 	}
 	BLI_kdtree_balance(tree);

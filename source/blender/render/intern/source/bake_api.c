@@ -84,18 +84,10 @@
 
 /* local include */
 #include "render_types.h"
-#include "shading.h"
 #include "zbuf.h"
 
 /* Remove when Cycles moves from MFace to MLoopTri */
 #define USE_MFACE_WORKAROUND
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
-/* only to be used here in this file, it's for speed */
-extern struct Render R;
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-
 
 typedef struct BakeDataZSpan {
 	BakePixel *pixel_array;
@@ -261,6 +253,36 @@ static void calc_point_from_barycentric_extrusion(
 
 	copy_v3_v3(r_co, coord);
 	copy_v3_v3(r_dir, dir);
+}
+
+static void barycentric_differentials_from_position(
+	const float co[3], const float v1[3], const float v2[3], const float v3[3],
+	const float dxco[3], const float dyco[3], const float facenor[3], const bool differentials,
+	float *u, float *v, float *dx_u, float *dx_v, float *dy_u, float *dy_v)
+{
+	/* find most stable axis to project */
+	int axis1, axis2;
+	axis_dominant_v3(&axis1, &axis2, facenor);
+
+	/* compute u,v and derivatives */
+	float t00 = v3[axis1] - v1[axis1];
+	float t01 = v3[axis2] - v1[axis2];
+	float t10 = v3[axis1] - v2[axis1];
+	float t11 = v3[axis2] - v2[axis2];
+
+	float detsh = (t00 * t11 - t10 * t01);
+	detsh = (detsh != 0.0f) ? 1.0f / detsh : 0.0f;
+	t00 *= detsh; t01 *= detsh;
+	t10 *= detsh; t11 *= detsh;
+
+	*u = (v3[axis1] - co[axis1]) * t11 - (v3[axis2] - co[axis2]) * t10;
+	*v = (v3[axis2] - co[axis2]) * t00 - (v3[axis1] - co[axis1]) * t01;
+	if (differentials) {
+		*dx_u =  dxco[axis1] * t11 - dxco[axis2] * t10;
+		*dx_v =  dxco[axis2] * t00 - dxco[axis1] * t01;
+		*dy_u =  dyco[axis1] * t11 - dyco[axis2] * t10;
+		*dy_v =  dyco[axis2] * t00 - dyco[axis1] * t01;
+	}
 }
 
 /**
@@ -665,7 +687,7 @@ void RE_bake_pixels_populate(
 	}
 
 	for (i = 0; i < bake_images->size; i++) {
-		zbuf_alloc_span(&bd.zspan[i], bake_images->data[i].width, bake_images->data[i].height, R.clipcrop);
+		zbuf_alloc_span(&bd.zspan[i], bake_images->data[i].width, bake_images->data[i].height);
 	}
 
 	looptri = MEM_mallocN(sizeof(*looptri) * tottri, __func__);
@@ -957,36 +979,6 @@ void RE_bake_ibuf_clear(Image *image, const bool is_tangent)
 }
 
 /* ************************************************************* */
-
-/**
- * not the real UV, but the internal per-face UV instead
- * I'm using it to test if everything is correct */
-static bool bake_uv(const BakePixel pixel_array[], const size_t num_pixels, const int depth, float result[])
-{
-	size_t i;
-
-	for (i=0; i < num_pixels; i++) {
-		size_t offset = i * depth;
-		copy_v2_v2(&result[offset], pixel_array[i].uv);
-	}
-
-	return true;
-}
-
-bool RE_bake_internal(
-        Render *UNUSED(re), Object *UNUSED(object), const BakePixel pixel_array[],
-        const size_t num_pixels, const int depth, const eScenePassType pass_type, float result[])
-{
-	switch (pass_type) {
-		case SCE_PASS_UV:
-		{
-			return bake_uv(pixel_array, num_pixels, depth, result);
-		}
-		default:
-			break;
-	}
-	return false;
-}
 
 int RE_pass_depth(const eScenePassType pass_type)
 {

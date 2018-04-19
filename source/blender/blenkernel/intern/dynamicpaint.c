@@ -531,11 +531,6 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, const ViewLayer *
 	return flags;
 }
 
-static int brush_usesMaterial(const DynamicPaintBrushSettings *brush, const Scene *scene)
-{
-	return ((brush->flags & MOD_DPAINT_USE_MATERIAL) && (!BKE_scene_use_new_shading_nodes(scene)));
-}
-
 /* check whether two bounds intersect */
 static bool boundsIntersect(Bounds3D *b1, Bounds3D *b2)
 {
@@ -1096,7 +1091,6 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 			brush->flags = MOD_DPAINT_ABS_ALPHA | MOD_DPAINT_RAMP_ALPHA;
 			brush->collision = MOD_DPAINT_COL_VOLUME;
 
-			brush->mat = NULL;
 			brush->r = 0.15f;
 			brush->g = 0.4f;
 			brush->b = 0.8f;
@@ -1236,7 +1230,6 @@ void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct Dyn
 		t_brush->flags = brush->flags;
 		t_brush->collision = brush->collision;
 
-		t_brush->mat = brush->mat;
 		t_brush->r = brush->r;
 		t_brush->g = brush->g;
 		t_brush->b = brush->b;
@@ -3336,91 +3329,6 @@ void dynamicPaint_outputSurfaceImage(DynamicPaintSurface *surface, char *filenam
 }
 
 
-/***************************** Material / Texture Sampling ******************************/
-
-/* stores a copy of required materials to allow doing adjustments
- *  without interfering the render/preview */
-typedef struct BrushMaterials {
-	Material *mat;
-	Material **ob_mats;
-	int tot;
-} BrushMaterials;
-
-/* Initialize materials for brush object:
- *  Calculates inverse matrices for linked objects, updates
- *  volume caches etc. */
-static void dynamicPaint_updateBrushMaterials(Depsgraph *depsgraph, Object *brushOb, Material *ui_mat, Scene *scene, BrushMaterials *bMats)
-{
-	/* Calculate inverse transformation matrix
-	 *  for this object */
-	invert_m4_m4(brushOb->imat, brushOb->obmat);
-	copy_m4_m4(brushOb->imat_ren, brushOb->imat);
-
-	/* Now process every material linked to this brush object */
-	if ((ui_mat == NULL) && brushOb->mat && brushOb->totcol) {
-		int i, tot = (*give_totcolp(brushOb));
-
-		/* allocate material pointer array */
-		if (tot) {
-			bMats->ob_mats = MEM_callocN(sizeof(Material *) * (tot), "BrushMaterials");
-			for (i = 0; i < tot; i++) {
-				bMats->ob_mats[i] = RE_sample_material_init(depsgraph, give_current_material(brushOb, (i + 1)), scene);
-			}
-		}
-		bMats->tot = tot;
-	}
-	else {
-		bMats->mat = RE_sample_material_init(depsgraph, ui_mat, scene);
-	}
-}
-
-/* free all data allocated by dynamicPaint_updateBrushMaterials() */
-static void dynamicPaint_freeBrushMaterials(BrushMaterials *bMats)
-{
-	/* Now process every material linked to this brush object */
-	if (bMats->ob_mats) {
-		int i;
-		for (i = 0; i < bMats->tot; i++) {
-			RE_sample_material_free(bMats->ob_mats[i]);
-		}
-		MEM_freeN(bMats->ob_mats);
-	}
-	else if (bMats->mat) {
-		RE_sample_material_free(bMats->mat);
-	}
-}
-
-/*
- *	Get material diffuse color and alpha (including linked textures) in given coordinates
- */
-static void dynamicPaint_doMaterialTex(
-        const BrushMaterials *bMats, float color[3], float *alpha, Object *brushOb,
-        const float volume_co[3], const float surface_co[3],
-        int triIndex, DerivedMesh *orcoDm)
-{
-	Material *mat = bMats->mat;
-
-	const MLoopTri *mlooptri = orcoDm->getLoopTriArray(orcoDm);
-	const MPoly *mpoly = orcoDm->getPolyArray(orcoDm);
-
-	/* If no material defined, use the one assigned to the mesh face */
-	if (mat == NULL) {
-		if (bMats->ob_mats) {
-			int mat_nr = mpoly[mlooptri[triIndex].poly].mat_nr;
-			if (mat_nr >= (*give_totcolp(brushOb)))
-				return;
-			mat = bMats->ob_mats[mat_nr];
-			if (mat == NULL)
-				return;    /* No material assigned */
-		}
-		else {
-			return;
-		}
-	}
-	RE_sample_material_color(mat, color, alpha, volume_co, surface_co, triIndex, orcoDm, brushOb);
-}
-
-
 /***************************** Ray / Nearest Point Utils ******************************/
 
 
@@ -3846,7 +3754,6 @@ typedef struct DynamicPaintPaintData {
 	const DynamicPaintSurface *surface;
 	const DynamicPaintBrushSettings *brush;
 	Object *brushOb;
-	const BrushMaterials *bMats;
 	const Scene *scene;
 	const float timescale;
 	const int c_index;
@@ -3883,14 +3790,10 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 	VolumeGrid *grid = bData->grid;
 
 	const DynamicPaintBrushSettings *brush = data->brush;
-	Object *brushOb = data->brushOb;
-	const BrushMaterials *bMats = data->bMats;
 
-	const Scene *scene = data->scene;
 	const float timescale = data->timescale;
 	const int c_index = data->c_index;
 
-	DerivedMesh *dm = data->dm;
 	const MVert *mvert = data->mvert;
 	const MLoop *mloop = data->mloop;
 	const MLoopTri *mlooptri = data->mlooptri;
@@ -4150,13 +4053,6 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 			sampleColor[1] = brush->g;
 			sampleColor[2] = brush->b;
 
-			/* Get material+textures color on hit point if required	*/
-			if (brush_usesMaterial(brush, scene)) {
-				dynamicPaint_doMaterialTex(bMats, sampleColor, &alpha_factor, brushOb,
-				                           bData->realCoord[bData->s_pos[index] + ss].v,
-				                           hitCoord, hitTri, dm);
-			}
-
 			/* Sample proximity colorband if required	*/
 			if ((hit_found == HIT_PROXIMITY) &&
 			    (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP))
@@ -4207,7 +4103,6 @@ static void dynamic_paint_paint_mesh_cell_point_cb_ex(
 static int dynamicPaint_paintMesh(struct Depsgraph *depsgraph, DynamicPaintSurface *surface,
                                   DynamicPaintBrushSettings *brush,
                                   Object *brushOb,
-                                  BrushMaterials *bMats,
                                   Scene *scene,
                                   float timescale)
 {
@@ -4285,7 +4180,7 @@ static int dynamicPaint_paintMesh(struct Depsgraph *depsgraph, DynamicPaintSurfa
 					/* loop through cell points and process brush */
 					DynamicPaintPaintData data = {
 					    .surface = surface,
-					    .brush = brush, .brushOb = brushOb, .bMats = bMats,
+					    .brush = brush, .brushOb = brushOb,
 					    .scene = scene, .timescale = timescale, .c_index = c_index,
 					    .dm = dm, .mvert = mvert, .mloop = mloop, .mlooptri = mlooptri,
 					    .brush_radius = brush_radius, .avg_brushNor = avg_brushNor, .brushVelocity = brushVelocity,
@@ -4610,13 +4505,9 @@ static void dynamic_paint_paint_single_point_cb_ex(
 	const PaintBakeData *bData = sData->bData;
 
 	const DynamicPaintBrushSettings *brush = data->brush;
-	Object *brushOb = data->brushOb;
-	const BrushMaterials *bMats = data->bMats;
 
-	const Scene *scene = data->scene;
 	const float timescale = data->timescale;
 
-	const MVert *mvert = data->mvert;
 	const float brush_radius = data->brush_radius;
 	const Vec3f *brushVelocity = data->brushVelocity;
 
@@ -4644,17 +4535,6 @@ static void dynamic_paint_paint_single_point_cb_ex(
 		float paintColor[3] = {0.0f};
 		float depth = 0.0f;
 		float velocity_val = 0.0f;
-
-		/* material */
-		if (brush_usesMaterial(brush, scene)) {
-			float alpha_factor = 1.0f;
-			float hit_coord[3];
-			/* use dummy coord of first vertex */
-			mul_v3_m4v3(hit_coord, brushOb->obmat, mvert[0].co);
-
-			dynamicPaint_doMaterialTex(bMats, paintColor, &alpha_factor, brushOb,
-			                           bData->realCoord[bData->s_pos[index]].v, hit_coord, 0, brush->dm);
-		}
 
 		/* color ramp */
 		if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP &&
@@ -4693,11 +4573,9 @@ static void dynamic_paint_paint_single_point_cb_ex(
 				paintColor[2] = colorband[2];
 			}
 			else {
-				if (!brush_usesMaterial(brush, scene)) {
-					paintColor[0] = brush->r;
-					paintColor[1] = brush->g;
-					paintColor[2] = brush->b;
-				}
+				paintColor[0] = brush->r;
+				paintColor[1] = brush->g;
+				paintColor[2] = brush->b;
 			}
 		}
 		else if (ELEM(surface->type, MOD_DPAINT_SURFACE_T_DISPLACE, MOD_DPAINT_SURFACE_T_WAVE)) {
@@ -4711,7 +4589,7 @@ static void dynamic_paint_paint_single_point_cb_ex(
 
 static int dynamicPaint_paintSinglePoint(
         struct Depsgraph *depsgraph, DynamicPaintSurface *surface, float *pointCoord, DynamicPaintBrushSettings *brush,
-        Object *brushOb, BrushMaterials *bMats, Scene *scene, float timescale)
+        Object *brushOb, Scene *scene, float timescale)
 {
 	PaintSurfaceData *sData = surface->data;
 	float brush_radius = brush->paint_distance * surface->radius_scale;
@@ -4727,7 +4605,7 @@ static int dynamicPaint_paintSinglePoint(
 	 */
 	DynamicPaintPaintData data = {
 	    .surface = surface,
-	    .brush = brush, .brushOb = brushOb, .bMats = bMats,
+	    .brush = brush, .brushOb = brushOb,
 	    .scene = scene, .timescale = timescale,
 	    .mvert = mvert,
 	    .brush_radius = brush_radius, .brushVelocity = &brushVel,
@@ -6068,7 +5946,6 @@ static int dynamicPaint_doStep(struct Depsgraph *depsgraph, Scene *scene, Object
 				/* make sure we're dealing with a brush	*/
 				if (pmd2->brush) {
 					DynamicPaintBrushSettings *brush = pmd2->brush;
-					BrushMaterials bMats = {NULL};
 
 					/* calculate brush speed vectors if required */
 					if (surface->type == MOD_DPAINT_SURFACE_T_PAINT && brush->flags & MOD_DPAINT_DO_SMUDGE) {
@@ -6086,32 +5963,27 @@ static int dynamicPaint_doStep(struct Depsgraph *depsgraph, Scene *scene, Object
 						BKE_object_modifier_update_subframe(depsgraph, scene, brushObj, true, SUBFRAME_RECURSION,
 						                                    BKE_scene_frame_get(scene), eModifierType_DynamicPaint);
 					}
-					/* Prepare materials if required	*/
-					if (brush_usesMaterial(brush, scene))
-						dynamicPaint_updateBrushMaterials(depsgraph, brushObj, brush->mat, scene, &bMats);
+
 
 					/* Apply brush on the surface depending on it's collision type */
-						if (brush->psys && brush->psys->part &&
-						    ELEM(brush->psys->part->type, PART_EMITTER, PART_FLUID) &&
-						    psys_check_enabled(brushObj, brush->psys, G.is_rendering))
-						{
-							/* Paint a particle system */
-							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt,
-							                              BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
-							dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
-						}
+					if (brush->psys && brush->psys->part &&
+						ELEM(brush->psys->part->type, PART_EMITTER, PART_FLUID) &&
+						psys_check_enabled(brushObj, brush->psys, G.is_rendering))
+					{
+						/* Paint a particle system */
+						BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt,
+													  BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
+						dynamicPaint_paintParticles(surface, brush->psys, brush, timescale);
+					}
 					/* Object center distance: */
 					if (brush->collision == MOD_DPAINT_COL_POINT && brushObj != ob) {
-						dynamicPaint_paintSinglePoint(depsgraph, surface, brushObj->loc, brush, brushObj, &bMats, scene, timescale);
+						dynamicPaint_paintSinglePoint(depsgraph, surface, brushObj->loc, brush, brushObj, scene, timescale);
 					}
 					/* Mesh volume/proximity: */
 					else if (brushObj != ob) {
-						dynamicPaint_paintMesh(depsgraph, surface, brush, brushObj, &bMats, scene, timescale);
+						dynamicPaint_paintMesh(depsgraph, surface, brush, brushObj, scene, timescale);
 					}
 
-					/* free temp material data */
-					if (brush_usesMaterial(brush, scene))
-						dynamicPaint_freeBrushMaterials(&bMats);
 					/* reset object to it's original state */
 					if (subframe) {
 						scene->r.cfra = scene_frame;

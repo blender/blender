@@ -103,9 +103,8 @@ static void modifier_unwrap_state(Object *obedit, Scene *scene, bool *r_use_subs
 	*r_use_subsurf = subsurf;
 }
 
-static bool ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
+static bool ED_uvedit_ensure_uvs(bContext *C, Scene *UNUSED(scene), Object *obedit)
 {
-	Main *bmain = CTX_data_main(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMIter iter;
@@ -148,9 +147,6 @@ static bool ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 			}
 		}
 	}
-	
-	if (ima)
-		ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
 	
 	/* select new UV's (ignore UV_SYNC_SELECTION in this case) */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -218,7 +214,7 @@ static bool uvedit_have_selection_multi(
 	return have_select;
 }
 
-void ED_uvedit_get_aspect(Scene *scene, Object *ob, BMesh *bm, float *aspx, float *aspy)
+void ED_uvedit_get_aspect(Scene *UNUSED(scene), Object *ob, BMesh *bm, float *aspx, float *aspy)
 {
 	bool sloppy = true;
 	bool selected = false;
@@ -228,12 +224,7 @@ void ED_uvedit_get_aspect(Scene *scene, Object *ob, BMesh *bm, float *aspx, floa
 	efa = BM_mesh_active_face_get(bm, sloppy, selected);
 
 	if (efa) {
-		if (BKE_scene_use_new_shading_nodes(scene)) {
-			ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
-		}
-		else {
-			ima = BKE_object_material_edit_image_get(ob, efa->mat_nr);
-		}
+		ED_object_get_active_image(ob, efa->mat_nr + 1, &ima, NULL, NULL, NULL);
 
 		ED_image_get_uv_aspect(ima, NULL, aspx, aspy);
 	}

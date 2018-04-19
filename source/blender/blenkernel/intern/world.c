@@ -58,13 +58,7 @@
 /** Free (or release) any data used by this world (does not free the world itself). */
 void BKE_world_free(World *wrld)
 {
-	int a;
-
 	BKE_animdata_free((ID *)wrld, false);
-
-	for (a = 0; a < MAX_MTEX; a++) {
-		MEM_SAFE_FREE(wrld->mtex[a]);
-	}
 
 	/* is no lib link block, but world extension */
 	if (wrld->nodetree) {
@@ -86,23 +80,9 @@ void BKE_world_init(World *wrld)
 	wrld->horr = 0.05f;
 	wrld->horg = 0.05f;
 	wrld->horb = 0.05f;
-	wrld->zenr = 0.01f;
-	wrld->zeng = 0.01f;
-	wrld->zenb = 0.01f;
-	wrld->skytype = 0;
-
-	wrld->exp = 0.0f;
-	wrld->exposure = wrld->range = 1.0f;
 
 	wrld->aodist = 10.0f;
-	wrld->aosamp = 5;
 	wrld->aoenergy = 1.0f;
-	wrld->ao_env_energy = 1.0f;
-	wrld->ao_indirect_energy = 1.0f;
-	wrld->ao_indirect_bounces = 1;
-	wrld->aobias = 0.05f;
-	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
-	wrld->ao_approx_error = 0.25f;
 	
 	wrld->preview = NULL;
 	wrld->miststa = 5.0f;
@@ -130,12 +110,6 @@ World *BKE_world_add(Main *bmain, const char *name)
  */
 void BKE_world_copy_data(Main *bmain, World *wrld_dst, const World *wrld_src, const int flag)
 {
-	for (int a = 0; a < MAX_MTEX; a++) {
-		if (wrld_src->mtex[a]) {
-			wrld_dst->mtex[a] = MEM_dupallocN(wrld_src->mtex[a]);
-		}
-	}
-
 	if (wrld_src->nodetree) {
 		/* Note: nodetree is *not* in bmain, however this specific case is handled at lower level
 		 *       (see BKE_libblock_copy_ex()). */
@@ -169,17 +143,9 @@ World *BKE_world_localize(World *wrld)
 	 * ... Once f*** nodes are fully converted to that too :( */
 
 	World *wrldn;
-	int a;
 	
 	wrldn = BKE_libblock_copy_nolib(&wrld->id, false);
 	
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (wrld->mtex[a]) {
-			wrldn->mtex[a] = MEM_mallocN(sizeof(MTex), __func__);
-			memcpy(wrldn->mtex[a], wrld->mtex[a], sizeof(MTex));
-		}
-	}
-
 	if (wrld->nodetree)
 		wrldn->nodetree = ntreeLocalize(wrld->nodetree);
 	

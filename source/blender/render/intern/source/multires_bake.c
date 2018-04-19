@@ -36,6 +36,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 #include "BLI_listbase.h"
@@ -58,10 +59,6 @@
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
-#include "rayintersection.h"
-#include "rayobject.h"
-#include "rendercore.h"
 
 typedef void (*MPassKnownData)(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void *thread_data,
                                void *bake_data, ImBuf *ibuf, const int face_index, const int lvl,
@@ -114,19 +111,6 @@ typedef struct {
 typedef struct {
 	const int *orig_index_mp_to_orig;
 } MNormalBakeData;
-
-typedef struct {
-	int number_of_rays;
-	float bias;
-
-	unsigned short *permutation_table_1;
-	unsigned short *permutation_table_2;
-
-	RayObject *raytree;
-	RayFace *rayfaces;
-
-	const int *orig_index_mp_to_orig;
-} MAOBakeData;
 
 static void multiresbake_get_normal(const MResolvePixelData *data, float norm[],const int tri_num, const int vert_index)
 {
@@ -884,6 +868,8 @@ static void apply_tangmat_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	}
 }
 
+/* TODO: restore ambient occlusion baking support, using BLI BVH? */
+#if 0
 /* **************** Ambient Occlusion Baker **************** */
 
 // must be a power of two
@@ -1176,6 +1162,68 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 		rrgb[3] = 255;
 	}
 }
+#endif
+
+/* ******$***************** Post processing ************************* */
+
+static void bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
+{
+	/* must check before filtering */
+	const bool is_new_alpha = (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(ibuf);
+
+	/* Margin */
+	if (filter) {
+		IMB_filter_extend(ibuf, mask, filter);
+	}
+
+	/* if the bake results in new alpha then change the image setting */
+	if (is_new_alpha) {
+		ibuf->planes = R_IMF_PLANES_RGBA;
+	}
+	else {
+		if (filter && ibuf->planes != R_IMF_PLANES_RGBA) {
+			/* clear alpha added by filtering */
+			IMB_rectfill_alpha(ibuf, 1.0f);
+		}
+	}
+}
+
+static void bake_ibuf_normalize_displacement(ImBuf *ibuf, float *displacement, char *mask, float displacement_min, float displacement_max)
+{
+	int i;
+	const float *current_displacement = displacement;
+	const char *current_mask = mask;
+	float max_distance;
+
+	max_distance = max_ff(fabsf(displacement_min), fabsf(displacement_max));
+
+	for (i = 0; i < ibuf->x * ibuf->y; i++) {
+		if (*current_mask == FILTER_MASK_USED) {
+			float normalized_displacement;
+
+			if (max_distance > 1e-5f)
+				normalized_displacement = (*current_displacement + max_distance) / (max_distance * 2);
+			else
+				normalized_displacement = 0.5f;
+
+			if (ibuf->rect_float) {
+				/* currently baking happens to RGBA only */
+				float *fp = ibuf->rect_float + i * 4;
+				fp[0] = fp[1] = fp[2] = normalized_displacement;
+				fp[3] = 1.0f;
+			}
+
+			if (ibuf->rect) {
+				unsigned char *cp = (unsigned char *) (ibuf->rect + i);
+				cp[0] = cp[1] = cp[2] = FTOCHAR(normalized_displacement);
+				cp[3] = 255;
+			}
+		}
+
+		current_displacement++;
+		current_mask++;
+	}
+}
 
 /* **************** Common functions public API relates on **************** */
 
@@ -1229,12 +1277,14 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 					do_multires_bake(bkr, ima, true, apply_tangmat_callback, init_normal_data, free_normal_data, result);
 					break;
 				case RE_BAKE_DISPLACEMENT:
-				case RE_BAKE_DERIVATIVE:
 					do_multires_bake(bkr, ima, false, apply_heights_callback, init_heights_data, free_heights_data, result);
 					break;
+/* TODO: restore ambient occlusion baking support. */
+#if 0
 				case RE_BAKE_AO:
 					do_multires_bake(bkr, ima, false, apply_ao_callback, init_ao_data, free_ao_data, result);
 					break;
+#endif
 			}
 		}
 
@@ -1247,7 +1297,7 @@ static void bake_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 {
 	LinkData *link;
-	bool use_displacement_buffer = ELEM(bkr->mode, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE);
+	bool use_displacement_buffer = bkr->mode == RE_BAKE_DISPLACEMENT;
 
 	for (link = bkr->image.first; link; link = link->next) {
 		Image *ima = (Image *)link->data;
@@ -1258,17 +1308,11 @@ static void finish_images(MultiresBakeRender *bkr, MultiresBakeResult *result)
 			continue;
 
 		if (use_displacement_buffer) {
-			if (bkr->mode == RE_BAKE_DERIVATIVE) {
-				RE_bake_make_derivative(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
-				                        result->height_min, result->height_max, bkr->user_scale);
-			}
-			else {
-				RE_bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
-				                                    result->height_min, result->height_max);
-			}
+			bake_ibuf_normalize_displacement(ibuf, userdata->displacement_buffer, userdata->mask_buffer,
+		                                     result->height_min, result->height_max);
 		}
 
-		RE_bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
+		bake_ibuf_filter(ibuf, userdata->mask_buffer, bkr->bake_filter);
 
 		ibuf->userflags |= IB_BITMAPDIRTY | IB_DISPLAY_BUFFER_INVALID;
 

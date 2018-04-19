@@ -625,17 +625,10 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_MA:
 			{
 				Material *material = (Material *) id;
-				for (i = 0; i < MAX_MTEX; i++) {
-					if (material->mtex[i]) {
-						library_foreach_mtex(&data, material->mtex[i]);
-					}
-				}
 				if (material->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
 					library_foreach_ID_as_subdata_link((ID **)&material->nodetree, callback, user_data, flag, &data);
 				}
-				CALLBACK_INVOKE(material->group, IDWALK_CB_USER);
-				CALLBACK_INVOKE(material->edit_image, IDWALK_CB_USER);
 				if (material->texpaintslot != NULL) {
 					CALLBACK_INVOKE(material->texpaintslot->ima, IDWALK_CB_NOP);
 				}
@@ -650,16 +643,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 					library_foreach_ID_as_subdata_link((ID **)&texture->nodetree, callback, user_data, flag, &data);
 				}
 				CALLBACK_INVOKE(texture->ima, IDWALK_CB_USER);
-				if (texture->env) {
-					CALLBACK_INVOKE(texture->env->object, IDWALK_CB_NOP);
-					CALLBACK_INVOKE(texture->env->ima, IDWALK_CB_USER);
-				}
-				if (texture->pd)
-					CALLBACK_INVOKE(texture->pd->object, IDWALK_CB_NOP);
-				if (texture->vd)
-					CALLBACK_INVOKE(texture->vd->object, IDWALK_CB_NOP);
-				if (texture->ot)
-					CALLBACK_INVOKE(texture->ot->object, IDWALK_CB_NOP);
 				break;
 			}
 
@@ -673,11 +656,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_LA:
 			{
 				Lamp *lamp = (Lamp *) id;
-				for (i = 0; i < MAX_MTEX; i++) {
-					if (lamp->mtex[i]) {
-						library_foreach_mtex(&data, lamp->mtex[i]);
-					}
-				}
 				if (lamp->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
 					library_foreach_ID_as_subdata_link((ID **)&lamp->nodetree, callback, user_data, flag, &data);
@@ -702,11 +680,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			case ID_WO:
 			{
 				World *world = (World *) id;
-				for (i = 0; i < MAX_MTEX; i++) {
-					if (world->mtex[i]) {
-						library_foreach_mtex(&data, world->mtex[i]);
-					}
-				}
 				if (world->nodetree) {
 					/* nodetree **are owned by IDs**, treat them as mere sub-data and not real ID! */
 					library_foreach_ID_as_subdata_link((ID **)&world->nodetree, callback, user_data, flag, &data);

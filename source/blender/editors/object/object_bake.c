@@ -79,8 +79,25 @@
 
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_uvedit.h"
 
 #include "object_intern.h"
+
+static Image *bake_object_image_get(Object *ob, int mat_nr)
+{
+	Image *image = NULL;
+	ED_object_get_active_image(ob, mat_nr + 1, &image, NULL, NULL, NULL);
+	return image;
+}
+
+static Image **bake_object_image_get_array(Object *ob)
+{
+	Image **image_array = MEM_mallocN(sizeof(Material *) * ob->totcol, __func__);
+	for (int i = 0; i < ob->totcol; i++) {
+		image_array[i] = bake_object_image_get(ob, i);
+	}
+	return image_array;
+}
 
 /* ****************** multires BAKING ********************** */
 
@@ -108,8 +125,6 @@ typedef struct {
 	bool use_lores_mesh;  /* Use low-resolution mesh when baking displacement maps */
 	int number_of_rays;   /* Number of rays to be cast when doing AO baking */
 	float bias;           /* Bias between object and start ray point when doing AO baking */
-	int raytrace_structure;  /* Optimization structure to be used for AO baking */
-	int octree_resolution;   /* Reslution of octotree when using octotree optimization structure */
 	int threads;             /* Number of threads to be used for baking */
 	float user_scale;          /* User scale used to scale displacement when baking derivative map. */
 } MultiresBakeJob;
@@ -167,7 +182,7 @@ static bool multiresbake_check(bContext *C, wmOperator *op)
 		else {
 			a = me->totpoly;
 			while (ok && a--) {
-				Image *ima = BKE_object_material_edit_image_get(ob, me->mpoly[a].mat_nr);
+				Image *ima = bake_object_image_get(ob, me->mpoly[a].mat_nr);
 
 				if (!ima) {
 					BKE_report(op->reports, RPT_ERROR, "You should have active texture to use multires baker");
@@ -334,12 +349,12 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 			if (scene->r.bake_mode == RE_BAKE_NORMALS) {
 				clear_flag = CLEAR_TANGENT_NORMAL;
 			}
-			else if (ELEM(scene->r.bake_mode, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE)) {
+			else if (scene->r.bake_mode == RE_BAKE_DISPLACEMENT) {
 				clear_flag = CLEAR_DISPLACEMENT;
 			}
 
 			{
-				Image **ob_image_array = BKE_object_material_edit_image_get_array(ob);
+				Image **ob_image_array = bake_object_image_get_array(ob);
 				clear_images_poly(ob_image_array, ob->totcol, clear_flag);
 				MEM_freeN(ob_image_array);
 			}
@@ -361,14 +376,12 @@ static int multiresbake_image_exec_locked(bContext *C, wmOperator *op)
 		bkr.use_lores_mesh = scene->r.bake_flag & R_BAKE_LORES_MESH;
 		bkr.bias = scene->r.bake_biasdist;
 		bkr.number_of_rays = scene->r.bake_samples;
-		bkr.raytrace_structure = scene->r.raytrace_structure;
-		bkr.octree_resolution = scene->r.ocres;
 		bkr.threads = BKE_scene_num_threads(scene);
 		bkr.user_scale = (scene->r.bake_flag & R_BAKE_USERSCALE) ? scene->r.bake_user_scale : -1.0f;
 		//bkr.reports= op->reports;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
-		bkr.ob_image.array = BKE_object_material_edit_image_get_array(ob);
+		bkr.ob_image.array = bake_object_image_get_array(ob);
 		bkr.ob_image.len = ob->totcol;
 
 		bkr.hires_dm = multiresbake_create_hiresdm(scene, ob, &bkr.tot_lvl, &bkr.simple);
@@ -406,8 +419,6 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 	bkj->bake_clear = scene->r.bake_flag & R_BAKE_CLEAR;
 	bkj->bias = scene->r.bake_biasdist;
 	bkj->number_of_rays = scene->r.bake_samples;
-	bkj->raytrace_structure = scene->r.raytrace_structure;
-	bkj->octree_resolution = scene->r.ocres;
 	bkj->threads = BKE_scene_num_threads(scene);
 	bkj->user_scale = (scene->r.bake_flag & R_BAKE_USERSCALE) ? scene->r.bake_user_scale : -1.0f;
 	//bkj->reports = op->reports;
@@ -423,7 +434,7 @@ static void init_multiresbake_job(bContext *C, MultiresBakeJob *bkj)
 
 		data = MEM_callocN(sizeof(MultiresBakerJobData), "multiresBaker derivedMesh_data");
 
-		data->ob_image.array = BKE_object_material_edit_image_get_array(ob);
+		data->ob_image.array = bake_object_image_get_array(ob);
 		data->ob_image.len = ob->totcol;
 
 		/* create low-resolution DM (to bake to) and hi-resolution DM (to bake from) */
@@ -451,7 +462,7 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 			if (bkj->mode == RE_BAKE_NORMALS) {
 				clear_flag = CLEAR_TANGENT_NORMAL;
 			}
-			else if (ELEM(bkj->mode, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE)) {
+			else if (bkj->mode == RE_BAKE_DISPLACEMENT) {
 				clear_flag = CLEAR_DISPLACEMENT;
 			}
 
@@ -488,8 +499,6 @@ static void multiresbake_startjob(void *bkv, short *stop, short *do_update, floa
 
 		bkr.bias = bkj->bias;
 		bkr.number_of_rays = bkj->number_of_rays;
-		bkr.raytrace_structure = bkj->raytrace_structure;
-		bkr.octree_resolution = bkj->octree_resolution;
 		bkr.threads = bkj->threads;
 
 		RE_multires_bake_images(&bkr);
@@ -566,203 +575,6 @@ static int multiresbake_image_exec(bContext *C, wmOperator *op)
 
 /* ****************** render BAKING ********************** */
 
-/* threaded break test */
-static int thread_break(void *UNUSED(arg))
-{
-	return G.is_break;
-}
-
-typedef struct BakeRender {
-	Render *re;
-	Main *main;
-	Scene *scene;
-	ViewLayer *view_layer;
-	struct Object *actob;
-	int result, ready;
-
-	ReportList *reports;
-
-	short *stop;
-	short *do_update;
-	float *progress;
-	
-	ListBase threads;
-
-	/* backup */
-	short prev_wo_amb_occ;
-	short prev_r_raytrace;
-
-	/* for redrawing */
-	ScrArea *sa;
-} BakeRender;
-
-/* use by exec and invoke */
-static int test_bake_internal(bContext *C, ReportList *reports)
-{
-	Scene *scene = CTX_data_scene(C);
-
-	if ((scene->r.bake_flag & R_BAKE_TO_ACTIVE) && CTX_data_active_object(C) == NULL) {
-		BKE_report(reports, RPT_ERROR, "No active object");
-	}
-	else if (scene->r.bake_mode == RE_BAKE_AO && scene->world == NULL) {
-		BKE_report(reports, RPT_ERROR, "No world set up");
-	}
-	else {
-		return 1;
-	}
-
-	return 0;
-}
-
-static void init_bake_internal(BakeRender *bkr, bContext *C)
-{
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	bScreen *sc = CTX_wm_screen(C);
-
-	/* get editmode results */
-	ED_object_editmode_load(CTX_data_edit_object(C));
-
-	bkr->sa = sc ? BKE_screen_find_big_area(sc, SPACE_IMAGE, 10) : NULL; /* can be NULL */
-	bkr->main = CTX_data_main(C);
-	bkr->scene = scene;
-	bkr->view_layer = view_layer;
-	bkr->actob = (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(view_layer) : NULL;
-	bkr->re = RE_NewRender("_Bake View_");
-
-	if (scene->r.bake_mode == RE_BAKE_AO) {
-		/* If raytracing or AO is disabled, switch it on temporarily for baking. */
-		bkr->prev_wo_amb_occ = (scene->world->mode & WO_AMB_OCC) != 0;
-		scene->world->mode |= WO_AMB_OCC;
-	}
-	if (scene->r.bake_mode == RE_BAKE_AO || bkr->actob) {
-		bkr->prev_r_raytrace = (scene->r.mode & R_RAYTRACE) != 0;
-		scene->r.mode |= R_RAYTRACE;
-	}
-}
-
-static void finish_bake_internal(BakeRender *bkr)
-{
-	Image *ima;
-
-	RE_Database_Free(bkr->re);
-
-	/* restore raytrace and AO */
-	if (bkr->scene->r.bake_mode == RE_BAKE_AO)
-		if (bkr->prev_wo_amb_occ == 0)
-			bkr->scene->world->mode &= ~WO_AMB_OCC;
-
-	if (bkr->scene->r.bake_mode == RE_BAKE_AO || bkr->actob)
-		if (bkr->prev_r_raytrace == 0)
-			bkr->scene->r.mode &= ~R_RAYTRACE;
-
-	/* force OpenGL reload and mipmap recalc */
-	if ((bkr->scene->r.bake_flag & R_BAKE_VCOL) == 0) {
-		for (ima = G.main->image.first; ima; ima = ima->id.next) {
-			ImBuf *ibuf = BKE_image_acquire_ibuf(ima, NULL, NULL);
-
-			/* some of the images could have been changed during bake,
-			 * so recreate mipmaps regardless bake result status
-			 */
-			if (ima->ok == IMA_OK_LOADED) {
-				if (ibuf) {
-					if (ibuf->userflags & IB_BITMAPDIRTY) {
-						GPU_free_image(ima);
-						imb_freemipmapImBuf(ibuf);
-					}
-
-					/* invalidate display buffers for changed images */
-					if (ibuf->userflags & IB_BITMAPDIRTY)
-						ibuf->userflags |= IB_DISPLAY_BUFFER_INVALID;
-				}
-			}
-
-			/* freed when baking is done, but if its canceled we need to free here */
-			if (ibuf) {
-				if (ibuf->userdata) {
-					BakeImBufuserData *userdata = (BakeImBufuserData *) ibuf->userdata;
-					if (userdata->mask_buffer)
-						MEM_freeN(userdata->mask_buffer);
-					if (userdata->displacement_buffer)
-						MEM_freeN(userdata->displacement_buffer);
-					MEM_freeN(userdata);
-					ibuf->userdata = NULL;
-				}
-			}
-
-			BKE_image_release_ibuf(ima, ibuf, NULL);
-			DEG_id_tag_update(&ima->id, 0);			
-		}
-	}
-
-	if (bkr->scene->r.bake_flag & R_BAKE_VCOL) {
-		/* update all tagged meshes */
-		Mesh *me;
-		BLI_assert(BLI_thread_is_main());
-		for (me = G.main->mesh.first; me; me = me->id.next) {
-			if (me->id.tag & LIB_TAG_DOIT) {
-				DEG_id_tag_update(&me->id, OB_RECALC_DATA);
-				BKE_mesh_tessface_clear(me);
-			}
-		}
-	}
-
-}
-
-static void *do_bake_render(void *bake_v)
-{
-	BakeRender *bkr = bake_v;
-
-	bkr->result = RE_bake_shade_all_selected(bkr->re, bkr->scene->r.bake_mode, bkr->actob, NULL, bkr->progress);
-	bkr->ready = 1;
-
-	return NULL;
-}
-
-static void bake_startjob(void *bkv, short *stop, short *do_update, float *progress)
-{
-	BakeRender *bkr = bkv;
-	Scene *scene = bkr->scene;
-	Main *bmain = bkr->main;
-
-	bkr->stop = stop;
-	bkr->do_update = do_update;
-	bkr->progress = progress;
-
-	RE_test_break_cb(bkr->re, NULL, thread_break);
-	G.is_break = false;   /* BKE_blender_test_break uses this global */
-
-	RE_Database_Baking(bkr->re, bmain, scene, bkr->view_layer, scene->lay, scene->r.bake_mode, bkr->actob);
-
-	/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
-	bkr->result = RE_bake_shade_all_selected(bkr->re, scene->r.bake_mode, bkr->actob, bkr->do_update, bkr->progress);
-}
-
-static void bake_update(void *bkv)
-{
-	BakeRender *bkr = bkv;
-
-	if (bkr->sa && bkr->sa->spacetype == SPACE_IMAGE) { /* in case the user changed while baking */
-		SpaceImage *sima = bkr->sa->spacedata.first;
-		if (sima)
-			sima->image = RE_bake_shade_get_image();
-	}
-}
-
-static void bake_freejob(void *bkv)
-{
-	BakeRender *bkr = bkv;
-	finish_bake_internal(bkr);
-
-	if (bkr->result == BAKE_RESULT_NO_OBJECTS)
-		BKE_report(bkr->reports, RPT_ERROR, "No objects or images found to bake to");
-	else if (bkr->result == BAKE_RESULT_FEEDBACK_LOOP)
-		BKE_report(bkr->reports, RPT_WARNING, "Circular reference in texture stack");
-
-	MEM_freeN(bkr);
-	G.is_rendering = false;
-}
-
 /* catch esc */
 static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const wmEvent *event)
 {
@@ -780,7 +592,7 @@ static int objects_bake_render_modal(bContext *C, wmOperator *UNUSED(op), const 
 
 static bool is_multires_bake(Scene *scene)
 {
-	if (ELEM(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_DERIVATIVE, RE_BAKE_AO))
+	if (ELEM(scene->r.bake_mode, RE_BAKE_NORMALS, RE_BAKE_DISPLACEMENT, RE_BAKE_AO))
 		return scene->r.bake_flag & R_BAKE_MULTIRES;
 
 	return 0;
@@ -791,44 +603,7 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, const wmEvent
 	Scene *scene = CTX_data_scene(C);
 	int result = OPERATOR_CANCELLED;
 
-	if (is_multires_bake(scene)) {
-		result = multiresbake_image_exec(C, op);
-	}
-	else {
-		/* only one render job at a time */
-		if (WM_jobs_test(CTX_wm_manager(C), scene, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE))
-			return OPERATOR_CANCELLED;
-
-		if (test_bake_internal(C, op->reports) == 0) {
-			return OPERATOR_CANCELLED;
-		}
-		else {
-			BakeRender *bkr = MEM_callocN(sizeof(BakeRender), "render bake");
-			wmJob *wm_job;
-
-			init_bake_internal(bkr, C);
-			bkr->reports = op->reports;
-
-			/* setup job */
-			wm_job = WM_jobs_get(CTX_wm_manager(C), CTX_wm_window(C), scene, "Texture Bake",
-			                     WM_JOB_EXCL_RENDER | WM_JOB_PRIORITY | WM_JOB_PROGRESS, WM_JOB_TYPE_OBJECT_BAKE_TEXTURE);
-			WM_jobs_customdata_set(wm_job, bkr, bake_freejob);
-			WM_jobs_timer(wm_job, 0.5, NC_IMAGE, 0); /* TODO - only draw bake image, can we enforce this */
-			WM_jobs_callbacks(wm_job, bake_startjob, NULL, bake_update, NULL);
-
-			G.is_break = false;
-			G.is_rendering = true;
-
-			WM_jobs_start(CTX_wm_manager(C), wm_job);
-
-			WM_cursor_wait(0);
-
-			/* add modal handler for ESC */
-			WM_event_add_modal_handler(C, op);
-		}
-
-		result = OPERATOR_RUNNING_MODAL;
-	}
+	result = multiresbake_image_exec(C, op);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 
@@ -838,56 +613,11 @@ static int objects_bake_render_invoke(bContext *C, wmOperator *op, const wmEvent
 
 static int bake_image_exec(bContext *C, wmOperator *op)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	int result = OPERATOR_CANCELLED;
 
-	if (is_multires_bake(scene)) {
-		result = multiresbake_image_exec_locked(C, op);
-	}
-	else {
-		if (test_bake_internal(C, op->reports) == 0) {
-			return OPERATOR_CANCELLED;
-		}
-		else {
-			ListBase threads;
-			BakeRender bkr = {NULL};
-
-			init_bake_internal(&bkr, C);
-			bkr.reports = op->reports;
-
-			RE_test_break_cb(bkr.re, NULL, thread_break);
-			G.is_break = false;   /* BKE_blender_test_break uses this global */
-
-			RE_Database_Baking(bkr.re, bmain, scene, bkr.view_layer, scene->lay, scene->r.bake_mode,
-			                   (scene->r.bake_flag & R_BAKE_TO_ACTIVE) ? OBACT(bkr.view_layer) : NULL);
-
-			/* baking itself is threaded, cannot use test_break in threads  */
-			BLI_threadpool_init(&threads, do_bake_render, 1);
-			bkr.ready = 0;
-			BLI_threadpool_insert(&threads, &bkr);
-
-			while (bkr.ready == 0) {
-				PIL_sleep_ms(50);
-				if (bkr.ready)
-					break;
-
-				/* used to redraw in 2.4x but this is just for exec in 2.5 */
-				if (!G.background)
-					BKE_blender_test_break();
-			}
-			BLI_threadpool_end(&threads);
-
-			if (bkr.result == BAKE_RESULT_NO_OBJECTS)
-				BKE_report(op->reports, RPT_ERROR, "No valid images found to bake to");
-			else if (bkr.result == BAKE_RESULT_FEEDBACK_LOOP)
-				BKE_report(op->reports, RPT_ERROR, "Circular reference in texture stack");
-
-			finish_bake_internal(&bkr);
-
-			result = OPERATOR_FINISHED;
-		}
-	}
+	BLI_assert(is_multires_bake(scene));
+	result = multiresbake_image_exec_locked(C, op);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);
 

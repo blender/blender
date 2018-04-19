@@ -69,7 +69,7 @@ static void do_proc(float *result, TexParams *p, const float col1[4], const floa
 		texres.nor = NULL;
 	
 	textype = multitex_nodes(tex, p->co, p->dxt, p->dyt, p->osatex,
-	                         &texres, thread, 0, p->shi, p->mtex, NULL);
+	                         &texres, thread, 0, p->mtex, NULL);
 	
 	if (is_normal)
 		return;

@@ -44,9 +44,7 @@
 
 #include "DNA_key_types.h"
 #include "DNA_object_types.h"
-#include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
-#include "DNA_world_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_node_types.h"
 #include "DNA_color_types.h"
@@ -213,22 +211,6 @@ void BKE_texture_free(Tex *tex)
 	}
 
 	MEM_SAFE_FREE(tex->coba);
-	if (tex->env) {
-		BKE_texture_envmap_free(tex->env);
-		tex->env = NULL;
-	}
-	if (tex->pd) {
-		BKE_texture_pointdensity_free(tex->pd);
-		tex->pd = NULL;
-	}
-	if (tex->vd) {
-		BKE_texture_voxeldata_free(tex->vd);
-		tex->vd = NULL;
-	}
-	if (tex->ot) {
-		BKE_texture_ocean_free(tex->ot);
-		tex->ot = NULL;
-	}
 	
 	BKE_icon_id_delete((ID *)tex);
 	BKE_previewimg_free(&tex->preview);
@@ -285,30 +267,6 @@ void BKE_texture_default(Tex *tex)
 	tex->vn_distm = 0;
 	tex->vn_coltype = 0;
 
-	if (tex->env) {
-		tex->env->stype = ENV_ANIM;
-		tex->env->clipsta = 0.1;
-		tex->env->clipend = 100;
-		tex->env->cuberes = 512;
-		tex->env->depth = 0;
-	}
-
-	if (tex->pd) {
-		tex->pd->radius = 0.3f;
-		tex->pd->falloff_type = TEX_PD_FALLOFF_STD;
-	}
-	
-	if (tex->vd) {
-		tex->vd->resol[0] = tex->vd->resol[1] = tex->vd->resol[2] = 0;
-		tex->vd->interp_type = TEX_VD_LINEAR;
-		tex->vd->file_format = TEX_VD_SMOKE;
-	}
-	
-	if (tex->ot) {
-		tex->ot->output = TEX_OCN_DISPLACEMENT;
-		tex->ot->object = NULL;
-	}
-	
 	tex->iuser.fie_ima = 2;
 	tex->iuser.ok = 1;
 	tex->iuser.frames = 100;
@@ -319,26 +277,6 @@ void BKE_texture_default(Tex *tex)
 
 void BKE_texture_type_set(Tex *tex, int type)
 {
-	switch (type) {
-			
-		case TEX_VOXELDATA:
-			if (tex->vd == NULL)
-				tex->vd = BKE_texture_voxeldata_add();
-			break;
-		case TEX_POINTDENSITY:
-			if (tex->pd == NULL)
-				tex->pd = BKE_texture_pointdensity_add();
-			break;
-		case TEX_ENVMAP:
-			if (tex->env == NULL)
-				tex->env = BKE_texture_envmap_add();
-			break;
-		case TEX_OCEAN:
-			if (tex->ot == NULL)
-				tex->ot = BKE_texture_ocean_add();
-			break;
-	}
-	
 	tex->type = type;
 }
 
@@ -476,10 +414,6 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
 		MEM_freeN(mtex_ar[slot]);
 		mtex_ar[slot] = NULL;
 	}
-	else if (GS(id->name) == ID_MA) {
-		/* Reset this slot's ON/OFF toggle, for materials, when slot was empty. */
-		((Material *)id)->septex &= ~(1 << slot);
-	}
 
 	mtex_ar[slot] = BKE_texture_mtex_add();
 
@@ -498,9 +432,6 @@ MTex *BKE_texture_mtex_add_id(ID *id, int slot)
  */
 void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const int flag)
 {
-	/* We never handle usercount here for own data. */
-	const int flag_subdata = flag | LIB_ID_CREATE_NO_USER_REFCOUNT;
-
 	if (!BKE_texture_is_image_user(tex_src)) {
 		tex_dst->ima = NULL;
 	}
@@ -508,19 +439,6 @@ void BKE_texture_copy_data(Main *bmain, Tex *tex_dst, const Tex *tex_src, const 
 	if (tex_dst->coba) {
 		tex_dst->coba = MEM_dupallocN(tex_dst->coba);
 	}
-	if (tex_dst->env) {
-		tex_dst->env = BKE_texture_envmap_copy(tex_dst->env, flag_subdata);
-	}
-	if (tex_dst->pd) {
-		tex_dst->pd = BKE_texture_pointdensity_copy(tex_dst->pd, flag_subdata);
-	}
-	if (tex_dst->vd) {
-		tex_dst->vd = MEM_dupallocN(tex_dst->vd);
-	}
-	if (tex_dst->ot) {
-		tex_dst->ot = BKE_texture_ocean_copy(tex_dst->ot, flag_subdata);
-	}
-
 	if (tex_src->nodetree) {
 		if (tex_src->nodetree->execdata) {
 			ntreeTexEndExecTree(tex_src->nodetree->execdata);
@@ -562,19 +480,6 @@ Tex *BKE_texture_localize(Tex *tex)
 	/* image texture: BKE_texture_free also doesn't decrease */
 	
 	if (texn->coba) texn->coba = MEM_dupallocN(texn->coba);
-	if (texn->env) {
-		texn->env = BKE_texture_envmap_copy(texn->env, LIB_ID_CREATE_NO_USER_REFCOUNT);
-		id_us_min(&texn->env->ima->id);
-	}
-	if (texn->pd) texn->pd = BKE_texture_pointdensity_copy(texn->pd, LIB_ID_CREATE_NO_USER_REFCOUNT);
-	if (texn->vd) {
-		texn->vd = MEM_dupallocN(texn->vd);
-		if (texn->vd->dataset)
-			texn->vd->dataset = MEM_dupallocN(texn->vd->dataset);
-	}
-	if (texn->ot) {
-		texn->ot = BKE_texture_ocean_copy(tex->ot, LIB_ID_CREATE_NO_USER_REFCOUNT);
-	}
 	
 	texn->preview = NULL;
 	
@@ -591,64 +496,6 @@ Tex *BKE_texture_localize(Tex *tex)
 void BKE_texture_make_local(Main *bmain, Tex *tex, const bool lib_local)
 {
 	BKE_id_make_local_generic(bmain, &tex->id, true, lib_local);
-}
-
-Tex *give_current_object_texture(Object *ob)
-{
-	Material *ma, *node_ma;
-	Tex *tex = NULL;
-	
-	if (ob == NULL) return NULL;
-	if (ob->totcol == 0 && !(ob->type == OB_LAMP)) return NULL;
-	
-	if (ob->type == OB_LAMP) {
-		tex = give_current_lamp_texture(ob->data);
-	}
-	else {
-		ma = give_current_material(ob, ob->actcol);
-
-		if ((node_ma = give_node_material(ma)))
-			ma = node_ma;
-
-		tex = give_current_material_texture(ma);
-	}
-	
-	return tex;
-}
-
-Tex *give_current_lamp_texture(Lamp *la)
-{
-	MTex *mtex = NULL;
-	Tex *tex = NULL;
-
-	if (la) {
-		mtex = la->mtex[(int)(la->texact)];
-		if (mtex) tex = mtex->tex;
-	}
-
-	return tex;
-}
-
-void set_current_lamp_texture(Lamp *la, Tex *newtex)
-{
-	int act = la->texact;
-
-	if (la->mtex[act] && la->mtex[act]->tex)
-		id_us_min(&la->mtex[act]->tex->id);
-
-	if (newtex) {
-		if (!la->mtex[act]) {
-			la->mtex[act] = BKE_texture_mtex_add();
-			la->mtex[act]->texco = TEXCO_GLOB;
-		}
-		
-		la->mtex[act]->tex = newtex;
-		id_us_plus(&newtex->id);
-	}
-	else if (la->mtex[act]) {
-		MEM_freeN(la->mtex[act]);
-		la->mtex[act] = NULL;
-	}
 }
 
 Tex *give_current_linestyle_texture(FreestyleLineStyle *linestyle)
@@ -686,55 +533,9 @@ void set_current_linestyle_texture(FreestyleLineStyle *linestyle, Tex *newtex)
 	}
 }
 
-bNode *give_current_material_texture_node(Material *ma)
-{
-	if (ma && ma->use_nodes && ma->nodetree)
-		return nodeGetActiveID(ma->nodetree, ID_TE);
-	
-	return NULL;
-}
-
-Tex *give_current_material_texture(Material *ma)
-{
-	MTex *mtex = NULL;
-	Tex *tex = NULL;
-	bNode *node;
-	
-	if (ma && ma->use_nodes && ma->nodetree) {
-		/* first check texture, then material, this works together
-		 * with a hack that clears the active ID flag for textures on
-		 * making a material node active */
-		node = nodeGetActiveID(ma->nodetree, ID_TE);
-
-		if (node) {
-			tex = (Tex *)node->id;
-			ma = NULL;
-		}
-	}
-
-	if (ma) {
-		mtex = ma->mtex[(int)(ma->texact)];
-		if (mtex) tex = mtex->tex;
-	}
-	
-	return tex;
-}
-
 bool give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 {
 	switch (GS(id->name)) {
-		case ID_MA:
-			*mtex_ar =       ((Material *)id)->mtex;
-			if (act) *act =  (((Material *)id)->texact);
-			break;
-		case ID_WO:
-			*mtex_ar =       ((World *)id)->mtex;
-			if (act) *act =  (((World *)id)->texact);
-			break;
-		case ID_LA:
-			*mtex_ar =       ((Lamp *)id)->mtex;
-			if (act) *act =  (((Lamp *)id)->texact);
-			break;
 		case ID_LS:
 			*mtex_ar =       ((FreestyleLineStyle *)id)->mtex;
 			if (act) *act =  (((FreestyleLineStyle *)id)->texact);
@@ -758,15 +559,6 @@ void set_active_mtex(ID *id, short act)
 	else if (act >= MAX_MTEX) act = MAX_MTEX - 1;
 
 	switch (GS(id->name)) {
-		case ID_MA:
-			((Material *)id)->texact = act;
-			break;
-		case ID_WO:
-			((World *)id)->texact = act;
-			break;
-		case ID_LA:
-			((Lamp *)id)->texact = act;
-			break;
 		case ID_LS:
 			((FreestyleLineStyle *)id)->texact = act;
 			break;
@@ -775,100 +567,6 @@ void set_active_mtex(ID *id, short act)
 			break;
 		default:
 			break;
-	}
-}
-
-void set_current_material_texture(Material *ma, Tex *newtex)
-{
-	Tex *tex = NULL;
-	bNode *node;
-
-	if ((ma->use_nodes && ma->nodetree) &&
-	    (node = nodeGetActiveID(ma->nodetree, ID_TE)))
-	{
-		tex = (Tex *)node->id;
-		id_us_min(&tex->id);
-		if (newtex) {
-			node->id = &newtex->id;
-			id_us_plus(&newtex->id);
-		}
-		else {
-			node->id = NULL;
-		}
-	}
-	else {
-		int act = (int)ma->texact;
-
-		tex = (ma->mtex[act]) ? ma->mtex[act]->tex : NULL;
-		id_us_min(&tex->id);
-
-		if (newtex) {
-			if (!ma->mtex[act]) {
-				ma->mtex[act] = BKE_texture_mtex_add();
-				/* Reset this slot's ON/OFF toggle, for materials, when slot was empty. */
-				ma->septex &= ~(1 << act);
-				/* For volumes the default UV texture coordinates are not available. */
-				if (ma->material_type == MA_TYPE_VOLUME) {
-					ma->mtex[act]->texco = TEXCO_ORCO;
-				}
-			}
-			
-			ma->mtex[act]->tex = newtex;
-			id_us_plus(&newtex->id);
-		}
-		else if (ma->mtex[act]) {
-			MEM_freeN(ma->mtex[act]);
-			ma->mtex[act] = NULL;
-		}
-	}
-}
-
-bool has_current_material_texture(Material *ma)
-{
-	bNode *node;
-
-	if (ma && ma->use_nodes && ma->nodetree) {
-		node = nodeGetActiveID(ma->nodetree, ID_TE);
-
-		if (node)
-			return true;
-	}
-
-	return (ma != NULL);
-}
-
-Tex *give_current_world_texture(World *world)
-{
-	MTex *mtex = NULL;
-	Tex *tex = NULL;
-	
-	if (!world) return NULL;
-	
-	mtex = world->mtex[(int)(world->texact)];
-	if (mtex) tex = mtex->tex;
-	
-	return tex;
-}
-
-void set_current_world_texture(World *wo, Tex *newtex)
-{
-	int act = wo->texact;
-
-	if (wo->mtex[act] && wo->mtex[act]->tex)
-		id_us_min(&wo->mtex[act]->tex->id);
-
-	if (newtex) {
-		if (!wo->mtex[act]) {
-			wo->mtex[act] = BKE_texture_mtex_add();
-			wo->mtex[act]->texco = TEXCO_VIEW;
-		}
-		
-		wo->mtex[act]->tex = newtex;
-		id_us_plus(&newtex->id);
-	}
-	else if (wo->mtex[act]) {
-		MEM_freeN(wo->mtex[act]);
-		wo->mtex[act] = NULL;
 	}
 }
 
@@ -926,65 +624,6 @@ void set_current_particle_texture(ParticleSettings *part, Tex *newtex)
 
 /* ------------------------------------------------------------------------- */
 
-EnvMap *BKE_texture_envmap_add(void)
-{
-	EnvMap *env;
-	
-	env = MEM_callocN(sizeof(EnvMap), "envmap");
-	env->type = ENV_CUBE;
-	env->stype = ENV_ANIM;
-	env->clipsta = 0.1;
-	env->clipend = 100.0;
-	env->cuberes = 512;
-	env->viewscale = 0.5;
-	
-	return env;
-} 
-
-/* ------------------------------------------------------------------------- */
-
-EnvMap *BKE_texture_envmap_copy(const EnvMap *env, const int flag)
-{
-	EnvMap *envn;
-	int a;
-	
-	envn = MEM_dupallocN(env);
-	envn->ok = 0;
-	for (a = 0; a < 6; a++) {
-		envn->cube[a] = NULL;
-	}
-	if ((flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-		id_us_plus((ID *)envn->ima);
-	}
-
-	return envn;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void BKE_texture_envmap_free_data(EnvMap *env)
-{
-	unsigned int part;
-	
-	for (part = 0; part < 6; part++) {
-		if (env->cube[part])
-			IMB_freeImBuf(env->cube[part]);
-		env->cube[part] = NULL;
-	}
-	env->ok = 0;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void BKE_texture_envmap_free(EnvMap *env)
-{
-	
-	BKE_texture_envmap_free_data(env);
-	MEM_freeN(env);
-	
-}
-
-/* ------------------------------------------------------------------------- */
 
 void BKE_texture_pointdensity_init_data(PointDensity *pd)
 {
@@ -1057,76 +696,7 @@ void BKE_texture_pointdensity_free(PointDensity *pd)
 	BKE_texture_pointdensity_free_data(pd);
 	MEM_freeN(pd);
 }
-
 /* ------------------------------------------------------------------------- */
-
-void BKE_texture_voxeldata_free_data(VoxelData *vd)
-{
-	if (vd->dataset) {
-		MEM_freeN(vd->dataset);
-		vd->dataset = NULL;
-	}
-
-}
- 
-void BKE_texture_voxeldata_free(VoxelData *vd)
-{
-	BKE_texture_voxeldata_free_data(vd);
-	MEM_freeN(vd);
-}
- 
-VoxelData *BKE_texture_voxeldata_add(void)
-{
-	VoxelData *vd;
-
-	vd = MEM_callocN(sizeof(VoxelData), "voxeldata");
-	vd->dataset = NULL;
-	vd->resol[0] = vd->resol[1] = vd->resol[2] = 1;
-	vd->interp_type = TEX_VD_LINEAR;
-	vd->file_format = TEX_VD_SMOKE;
-	vd->int_multiplier = 1.0;
-	vd->extend = TEX_CLIP;
-	vd->object = NULL;
-	vd->cachedframe = -1;
-	vd->ok = 0;
-	
-	return vd;
-}
- 
-VoxelData *BKE_texture_voxeldata_copy(VoxelData *vd)
-{
-	VoxelData *vdn;
-
-	vdn = MEM_dupallocN(vd);
-	vdn->dataset = NULL;
-
-	return vdn;
-}
-
-/* ------------------------------------------------------------------------- */
-
-OceanTex *BKE_texture_ocean_add(void)
-{
-	OceanTex *ot;
-	
-	ot = MEM_callocN(sizeof(struct OceanTex), "ocean texture");
-	ot->output = TEX_OCN_DISPLACEMENT;
-	ot->object = NULL;
-	
-	return ot;
-}
-
-OceanTex *BKE_texture_ocean_copy(const OceanTex *ot, const int UNUSED(flag))
-{
-	OceanTex *otn = MEM_dupallocN(ot);
-	
-	return otn;
-}
-
-void BKE_texture_ocean_free(struct OceanTex *ot)
-{
-	MEM_freeN(ot);
-}
 
 /**
  * \returns true if this texture can use its #Texture.ima (even if its NULL)
@@ -1137,15 +707,6 @@ bool BKE_texture_is_image_user(const struct Tex *tex)
 		case TEX_IMAGE:
 		{
 			return true;
-		}
-		case TEX_ENVMAP:
-		{
-			if (tex->env) {
-				if (tex->env->stype == ENV_LOAD) {
-					return true;
-				}
-			}
-			break;
 		}
 	}
 

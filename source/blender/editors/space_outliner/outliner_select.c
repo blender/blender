@@ -253,93 +253,6 @@ static eOLDrawState tree_element_active_material(
 	return OL_DRAWSEL_NONE;
 }
 
-static eOLDrawState tree_element_active_texture(
-        bContext *C, Scene *scene, ViewLayer *view_layer, SpaceOops *UNUSED(soops),
-        TreeElement *te, const eOLSetState set)
-{
-	TreeElement *tep;
-	TreeStoreElem /* *tselem,*/ *tselemp;
-	Object *ob = OBACT(view_layer);
-	SpaceButs *sbuts = NULL;
-	
-	if (ob == NULL) {
-		/* no active object */
-		return OL_DRAWSEL_NONE;
-	}
-	
-	/*tselem = TREESTORE(te);*/ /*UNUSED*/
-	
-	/* find buttons region (note, this is undefined really still, needs recode in blender) */
-	/* XXX removed finding sbuts */
-	
-	/* where is texture linked to? */
-	tep = te->parent;
-	tselemp = TREESTORE(tep);
-	
-	if (tep->idcode == ID_WO) {
-		World *wrld = (World *)tselemp->id;
-
-		if (set != OL_SETSEL_NONE) {
-			if (sbuts) {
-				// XXX sbuts->tabo = TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				// XXX sbuts->texfrom = 1;
-			}
-// XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
-			wrld->texact = te->index;
-		}
-		else if (tselemp->id == (ID *)(scene->world)) {
-			if (wrld->texact == te->index) {
-				return OL_DRAWSEL_NORMAL;
-			}
-		}
-	}
-	else if (tep->idcode == ID_LA) {
-		Lamp *la = (Lamp *)tselemp->id;
-		if (set != OL_SETSEL_NONE) {
-			if (sbuts) {
-				// XXX sbuts->tabo = TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				// XXX sbuts->texfrom = 2;
-			}
-// XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
-			la->texact = te->index;
-		}
-		else {
-			if (tselemp->id == ob->data) {
-				if (la->texact == te->index) {
-					return OL_DRAWSEL_NORMAL;
-				}
-			}
-		}
-	}
-	else if (tep->idcode == ID_MA) {
-		Material *ma = (Material *)tselemp->id;
-		if (set != OL_SETSEL_NONE) {
-			if (sbuts) {
-				//sbuts->tabo = TAB_SHADING_TEX;	// hack from header_buttonswin.c
-				// XXX sbuts->texfrom = 0;
-			}
-// XXX			extern_set_butspace(F6KEY, 0);	// force shading buttons texture
-			ma->texact = (char)te->index;
-			
-			/* also set active material */
-			ob->actcol = tep->index + 1;
-		}
-		else if (tep->flag & TE_ACTIVE) {   // this is active material
-			if (ma->texact == te->index) {
-				return OL_DRAWSEL_NORMAL;
-			}
-		}
-	}
-	
-	if (set != OL_SETSEL_NONE) {
-		WM_event_add_notifier(C, NC_TEXTURE, NULL);
-	}
-
-	/* no active object */
-	return OL_DRAWSEL_NONE;
-}
-
-
 static eOLDrawState tree_element_active_lamp(
         bContext *UNUSED(C), Scene *UNUSED(scene), ViewLayer *view_layer, SpaceOops *soops,
         TreeElement *te, const eOLSetState set)
@@ -827,8 +740,6 @@ eOLDrawState tree_element_active(bContext *C, Scene *scene, ViewLayer *view_laye
 			return tree_element_active_world(C, scene, view_layer, soops, te, set);
 		case ID_LA:
 			return tree_element_active_lamp(C, scene, view_layer, soops, te, set);
-		case ID_TE:
-			return tree_element_active_texture(C, scene, view_layer, soops, te, set);
 		case ID_TXT:
 			return tree_element_active_text(C, scene, view_layer, soops, te, set);
 		case ID_CA:

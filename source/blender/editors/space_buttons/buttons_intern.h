@@ -64,7 +64,6 @@ typedef struct ButsContextPath {
 	PointerRNA ptr[8];
 	int len;
 	int flag;
-	int tex_ctx;
 	int collection_ctx;
 } ButsContextPath;
 
