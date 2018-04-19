@@ -57,6 +57,9 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
+
+#include "RNA_access.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -433,6 +436,7 @@ static void graph_region_listener(
 				case ND_RENDER_OPTIONS:
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_MARKERS:
 					ED_region_tag_redraw(ar);
 					break;
@@ -477,6 +481,46 @@ static void graph_region_listener(
 				ED_region_tag_redraw(ar);
 			break;
 				
+	}
+}
+
+static void graph_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	PointerRNA ptr;
+	RNA_pointer_create(&screen->id, &RNA_SpaceTimeline, sa->spacedata.first, &ptr);
+
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+
+	/* Timeline depends on scene properties. */
+	{
+		bool use_preview = (scene->r.flag & SCER_PRV_RANGE);
+		extern PropertyRNA rna_Scene_frame_start;
+		extern PropertyRNA rna_Scene_frame_end;
+		extern PropertyRNA rna_Scene_frame_preview_start;
+		extern PropertyRNA rna_Scene_frame_preview_end;
+		extern PropertyRNA rna_Scene_use_preview_range;
+		extern PropertyRNA rna_Scene_frame_current;
+		const PropertyRNA *props[] = {
+			use_preview ? &rna_Scene_frame_preview_start : &rna_Scene_frame_start,
+			use_preview ? &rna_Scene_frame_preview_end   : &rna_Scene_frame_end,
+			&rna_Scene_use_preview_range,
+			&rna_Scene_frame_current,
+		};
+
+		PointerRNA idptr;
+		RNA_id_pointer_create(&scene->id, &idptr);
+
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
+		}
 	}
 }
 
@@ -741,6 +785,7 @@ void ED_spacetype_ipo(void)
 	art->init = graph_main_region_init;
 	art->draw = graph_main_region_draw;
 	art->listener = graph_region_listener;
+	art->message_subscribe = graph_region_message_subscribe;
 	art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_MARKERS | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
