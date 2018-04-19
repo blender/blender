@@ -511,7 +511,7 @@ bool BKE_object_is_in_editmode(const Object *ob)
 
 bool BKE_object_is_in_editmode_and_selected(const Object *ob)
 {
-	if ((ob->flag & SELECT) && (BKE_object_is_in_editmode(ob))) {
+	if ((ob->base_flag & BASE_SELECTED) && (BKE_object_is_in_editmode(ob))) {
 		return true;
 	}
 	return false;

@@ -4175,11 +4175,18 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
 		BMOperator bmop;
 		BMOIter oiter;
 		BMFace *f;
 
-		EDBM_op_init(em, &bmop, op, "triangulate faces=%hf quad_method=%i ngon_method=%i", BM_ELEM_SELECT, quad_method, ngon_method);
+		EDBM_op_init(
+		        em, &bmop, op,
+		        "triangulate faces=%hf quad_method=%i ngon_method=%i",
+		        BM_ELEM_SELECT, quad_method, ngon_method);
 		BMO_op_exec(em->bm, &bmop);
 
 		/* select the output */
@@ -4192,12 +4199,9 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 
 		EDBM_selectmode_flush(em);
 
-		// XXX, TODO
-#if 0
 		if (!EDBM_op_finish(em, &bmop, op, true)) {
-			return OPERATOR_CANCELLED;
+			continue;
 		}
-#endif
 
 		EDBM_update_generic(em, true, true);
 	}
