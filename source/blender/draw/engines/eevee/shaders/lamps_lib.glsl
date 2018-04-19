@@ -204,7 +204,6 @@ float light_visibility(LightData ld, vec3 W,
 			make_orthonormal_basis(L.xyz / L.w, T, B);
 
 			vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
-			/* WATCH THIS : This still seems to have correlation artifacts for low samples. */
 			rand.zw *= fast_sqrt(rand.y) * data.sh_contact_spread;
 
 			/* We use the full l_vector.xyz so that the spread is minimize
@@ -309,7 +308,6 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 		make_orthonormal_basis(L.xyz / L.w, T, B);
 
 		vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
-		/* WATCH THIS : This still seems to have correlation artifacts for low samples. */
 		rand.zw *= fast_sqrt(rand.y) * data.sh_blur;
 
 		/* We use the full l_vector.xyz so that the spread is minimize

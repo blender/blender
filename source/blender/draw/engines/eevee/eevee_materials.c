@@ -449,7 +449,7 @@ static void eevee_init_util_texture(void)
 	/* Copy blue noise in 3rd layer  */
 	for (int i = 0; i < 64 * 64; i++) {
 		texels_layer[i][0] = blue_noise[i][0];
-		texels_layer[i][1] = blue_noise[i][1];
+		texels_layer[i][1] = blue_noise[i][2];
 		texels_layer[i][2] = cosf(blue_noise[i][1] * 2.0f * M_PI);
 		texels_layer[i][3] = sinf(blue_noise[i][1] * 2.0f * M_PI);
 	}
