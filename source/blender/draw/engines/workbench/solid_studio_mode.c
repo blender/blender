@@ -71,9 +71,8 @@ static void workbench_solid_studio_cache_populate(void *vedata, Object *ob)
 	workbench_materials_solid_cache_populate(data, ob, V3D_LIGHTING_STUDIO);
 }
 
-static void workbench_solid_studio_cache_finish(void *vedata)
+static void workbench_solid_studio_cache_finish(void *UNUSED(vedata))
 {
-	workbench_materials_cache_finish((WORKBENCH_Data *)vedata);
 }
 
 static void workbench_solid_studio_draw_scene(void *vedata)
@@ -83,6 +82,8 @@ static void workbench_solid_studio_draw_scene(void *vedata)
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->solid_pass);
+
+	workbench_materials_cache_finish((WORKBENCH_Data *)vedata);
 }
 
 static void workbench_solid_studio_engine_free(void)
