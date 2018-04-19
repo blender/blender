@@ -147,6 +147,7 @@ static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 {
 	ID *id = ptr->id.data;
 	
+	DEG_id_tag_update(id, DEG_TAG_COPY_ON_WRITE);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
