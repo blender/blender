@@ -41,8 +41,13 @@
 #include "BLI_ghash.h"
 
 #include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_object_types.h"
+
+#include "DEG_depsgraph_query.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -75,12 +80,11 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *UNUSED(ob), DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static Mesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
+                           Object *UNUSED(ob), struct Mesh *mesh,
+                           ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = derivedData;
-	DerivedMesh *result;
+	Mesh *result;
 	BuildModifierData *bmd = (BuildModifierData *) md;
 	int i, j, k;
 	int numFaces_dst, numEdges_dst, numLoops_dst = 0;
@@ -93,16 +97,16 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	GHash *vertHash = BLI_ghash_int_new("build ve apply gh");
 	/* maps edge indices in new mesh to indices in old mesh */
 	GHash *edgeHash = BLI_ghash_int_new("build ed apply gh");
+	/* maps edge indices in old mesh to indices in new mesh */
 	GHash *edgeHash2 = BLI_ghash_int_new("build ed apply gh");
 
-	const int numVert_src = dm->getNumVerts(dm);
-	const int numEdge_src = dm->getNumEdges(dm);
-	const int numPoly_src = dm->getNumPolys(dm);
-	MPoly *mpoly_src = dm->getPolyArray(dm);
-	MLoop *mloop_src = dm->getLoopArray(dm);
-	MEdge *medge_src = dm->getEdgeArray(dm);
-	MVert *mvert_src = dm->getVertArray(dm);
-
+	const int numVert_src = mesh->totvert;
+	const int numEdge_src = mesh->totedge;
+	const int numPoly_src = mesh->totpoly;
+	MPoly *mpoly_src = mesh->mpoly;
+	MLoop *mloop_src = mesh->mloop;
+	MEdge *medge_src = mesh->medge;
+	MVert *mvert_src = mesh->mvert;
 
 	vertMap = MEM_malloc_arrayN(numVert_src, sizeof(*vertMap), "build modifier vertMap");
 	edgeMap = MEM_malloc_arrayN(numEdge_src, sizeof(*edgeMap), "build modifier edgeMap");
@@ -112,13 +116,13 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	range_vn_i(edgeMap, numEdge_src, 0);
 	range_vn_i(faceMap, numPoly_src, 0);
 
-	frac = (BKE_scene_frame_get(md->scene) - bmd->start) / bmd->length;
+	struct Scene *scene = DEG_get_input_scene(depsgraph);
+	frac = (BKE_scene_frame_get(scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
-	
 	if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {
 		frac = 1.0f - frac;
 	}
-	
+
 	numFaces_dst = numPoly_src * frac;
 	numEdges_dst = numEdge_src * frac;
 
@@ -126,7 +130,6 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	if (numFaces_dst) {
 		MPoly *mpoly, *mp;
 		MLoop *ml, *mloop;
-		MEdge *medge;
 		uintptr_t hash_num, hash_num_alt;
 		
 		if (bmd->flag & MOD_BUILD_FLAG_RANDOMIZE) {
@@ -159,11 +162,10 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 		/* get the set of edges that will be in the new mesh (i.e. all edges
 		 * that have both verts in the new mesh)
 		 */
-		medge = medge_src;
 		hash_num = 0;
 		hash_num_alt = 0;
 		for (i = 0; i < numEdge_src; i++, hash_num_alt++) {
-			MEdge *me = medge + i;
+			MEdge *me = medge_src + i;
 
 			if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
 			    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
@@ -173,6 +175,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 				hash_num++;
 			}
 		}
+		BLI_assert(hash_num == BLI_ghash_len(edgeHash));
 	}
 	else if (numEdges_dst) {
 		MEdge *medge, *me;
@@ -206,7 +209,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 		/* get the set of edges that will be in the new mesh */
 		for (i = 0; i < numEdges_dst; i++) {
 			j = BLI_ghash_len(edgeHash);
-			
+
 			BLI_ghash_insert(edgeHash, SET_INT_IN_POINTER(j),
 			                 SET_INT_IN_POINTER(edgeMap[i]));
 			BLI_ghash_insert(edgeHash2,  SET_INT_IN_POINTER(edgeMap[i]),
@@ -229,11 +232,9 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 		}
 	}
 
-	/* now we know the number of verts, edges and faces, we can create
-	 * the mesh
-	 */
-	result = CDDM_from_template(dm, BLI_ghash_len(vertHash),
-	                            BLI_ghash_len(edgeHash), 0, numLoops_dst, numFaces_dst);
+	/* now we know the number of verts, edges and faces, we can create the mesh. */
+	result = BKE_mesh_from_template(mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash),
+	                                0, numLoops_dst, numFaces_dst);
 
 	/* copy the vertices across */
 	GHASH_ITER (gh_iter, vertHash) {
@@ -243,45 +244,44 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(&gh_iter));
 
 		source = mvert_src[oldIndex];
-		dest = CDDM_get_vert(result, newIndex);
+		dest = &result->mvert[newIndex];
 
-		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
+		CustomData_copy_data(&mesh->vdata, &result->vdata, oldIndex, newIndex, 1);
 		*dest = source;
 	}
-	
+
 	/* copy the edges across, remapping indices */
 	for (i = 0; i < BLI_ghash_len(edgeHash); i++) {
 		MEdge source;
 		MEdge *dest;
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash, SET_INT_IN_POINTER(i)));
-		
+
 		source = medge_src[oldIndex];
-		dest = CDDM_get_edge(result, i);
-		
+		dest = &result->medge[i];
+
 		source.v1 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v1)));
 		source.v2 = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(source.v2)));
-		
-		DM_copy_edge_data(dm, result, oldIndex, i, 1);
+
+		CustomData_copy_data(&mesh->edata, &result->edata, oldIndex, i, 1);
 		*dest = source;
 	}
 
-	mpoly_dst = CDDM_get_polys(result);
-	/* mloop_dst = */ ml_dst = CDDM_get_loops(result);
+	mpoly_dst = result->mpoly;
+	ml_dst = result->mloop;
 	
 	/* copy the faces across, remapping indices */
 	k = 0;
 	for (i = 0; i < numFaces_dst; i++) {
 		MPoly *source;
 		MPoly *dest;
-		
+
 		source = mpoly_src + faceMap[i];
 		dest = mpoly_dst + i;
-		DM_copy_poly_data(dm, result, faceMap[i], i, 1);
-		
+		CustomData_copy_data(&mesh->pdata, &result->pdata, faceMap[i], i, 1);
+
 		*dest = *source;
 		dest->loopstart = k;
-		
-		DM_copy_loop_data(dm, result, source->loopstart, dest->loopstart, dest->totloop);
+		CustomData_copy_data(&mesh->ldata, &result->ldata, source->loopstart, dest->loopstart, dest->totloop);
 
 		ml_src = mloop_src + source->loopstart;
 		for (j = 0; j < source->totloop; j++, k++, ml_src++, ml_dst++) {
@@ -298,10 +298,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	MEM_freeN(edgeMap);
 	MEM_freeN(faceMap);
 
-	if (dm->dirty & DM_DIRTY_NORMALS) {
-		result->dirty |= DM_DIRTY_NORMALS;
-	}
-
+	/* TODO(sybren): also copy flags & tags? */
 	return result;
 }
 
@@ -319,14 +316,14 @@ ModifierTypeInfo modifierType_Build = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

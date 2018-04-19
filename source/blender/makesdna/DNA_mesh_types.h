@@ -52,6 +52,19 @@ struct Material;
 struct Mesh;
 struct Multires;
 
+#
+#
+typedef struct EditMeshData {
+	/** when set, \a vertexNos, polyNos are lazy initialized */
+	const float (*vertexCos)[3];
+
+	/** lazy initialize (when \a vertexCos is set) */
+	float const (*vertexNos)[3];
+	float const (*polyNos)[3];
+	/** also lazy init but dont depend on \a vertexCos */
+	const float (*polyCos)[3];
+} EditMeshData;
+
 typedef struct Mesh {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
@@ -87,6 +100,7 @@ typedef struct Mesh {
 
 	/* When the object is available, the preferred access method is: BKE_editmesh_from_object(ob) */
 	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
+	struct EditMeshData *emd; /* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 

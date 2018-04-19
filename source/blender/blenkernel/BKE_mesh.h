@@ -93,6 +93,14 @@ struct Mesh *BKE_mesh_copy(struct Main *bmain, const struct Mesh *me);
 void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
+struct Mesh * BKE_mesh_from_template(
+        struct Mesh *me_src,
+        int numVerts, int numEdges, int numTessFaces,
+        int numLoops, int numPolys);
+
+bool BKE_mesh_ensure_edit_data(struct Mesh *me);
+bool BKE_mesh_clear_edit_data(struct Mesh *me);
+
 bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
 bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
 

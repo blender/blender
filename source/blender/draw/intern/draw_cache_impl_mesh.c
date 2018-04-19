@@ -128,6 +128,8 @@ typedef struct MeshRenderData {
 	int loose_edge_len;
 
 	BMEditMesh *edit_bmesh;
+	struct EditMeshData *edit_data;
+
 	MVert *mvert;
 	MEdge *medge;
 	MLoop *mloop;
@@ -389,6 +391,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		BMesh *bm = embm->bm;
 
 		rdata->edit_bmesh = embm;
+		rdata->edit_data = me->emd;
 
 		int bm_ensure_types = 0;
 		if (types & (MR_DATATYPE_VERT)) {
@@ -424,6 +427,9 @@ static MeshRenderData *mesh_render_data_create_ex(
 			rdata->cd.offset.bweight = CustomData_get_offset(&bm->edata, CD_BWEIGHT);
 		}
 		if (types & (MR_DATATYPE_DVERT)) {
+			bm_ensure_types |= BM_VERT;
+		}
+		if (rdata->edit_data != NULL) {
 			bm_ensure_types |= BM_VERT;
 		}
 
@@ -1359,9 +1365,19 @@ static void add_overlay_tri(
 	unsigned char vflag;
 
 	if (vbo_pos) {
-		for (uint i = 0; i < 3; i++) {
-			const float *pos = bm_looptri[i]->v->co;
-			GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+		/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
+		if (rdata->edit_data && rdata->edit_data->vertexCos) {
+			for (uint i = 0; i < 3; i++) {
+				int vidx = BM_elem_index_get(bm_looptri[i]->v);
+				const float *pos = rdata->edit_data->vertexCos[vidx];
+				GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+			}
+		}
+		else {
+			for (uint i = 0; i < 3; i++) {
+				const float *pos = bm_looptri[i]->v->co;
+				GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+			}
 		}
 	}
 
@@ -1399,9 +1415,19 @@ static void add_overlay_loose_edge(
         const BMEdge *eed, const int base_vert_idx)
 {
 	if (vbo_pos) {
-		for (int i = 0; i < 2; ++i) {
-			const float *pos = (&eed->v1)[i]->co;
-			GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+		/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
+		if (rdata->edit_data && rdata->edit_data->vertexCos) {
+			for (uint i = 0; i < 2; i++) {
+				int vidx = BM_elem_index_get((&eed->v1)[i]);
+				const float *pos = rdata->edit_data->vertexCos[vidx];
+				GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+			}
+		}
+		else {
+			for (int i = 0; i < 2; ++i) {
+				const float *pos = (&eed->v1)[i]->co;
+				GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx + i, pos);
+			}
 		}
 	}
 
@@ -1428,8 +1454,16 @@ static void add_overlay_loose_vert(
         const BMVert *eve, const int base_vert_idx)
 {
 	if (vbo_pos) {
-		const float *pos = eve->co;
-		GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx, pos);
+		/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
+		if (rdata->edit_data && rdata->edit_data->vertexCos) {
+			int vidx = BM_elem_index_get(eve);
+			const float *pos = rdata->edit_data->vertexCos[vidx];
+			GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx, pos);
+		}
+		else {
+			const float *pos = eve->co;
+			GWN_vertbuf_attr_set(vbo_pos, pos_id, base_vert_idx, pos);
+		}
 	}
 
 	if (vbo_nor) {
@@ -2095,8 +2129,18 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_pos_and_normals_ex(
 					}
 				}
 
-				for (uint t = 0; t < 3; t++) {
-					copy_v3_v3(GWN_vertbuf_raw_step(&pos_step), bm_looptri[t]->v->co);
+				/* TODO(sybren): deduplicate this and all the other places it's pasted to in this file. */
+				if (rdata->edit_data && rdata->edit_data->vertexCos) {
+					for (uint t = 0; t < 3; t++) {
+						int vidx = BM_elem_index_get(bm_looptri[t]->v);
+						const float *pos = rdata->edit_data->vertexCos[vidx];
+						copy_v3_v3(GWN_vertbuf_raw_step(&pos_step), pos);
+					}
+				}
+				else {
+					for (uint t = 0; t < 3; t++) {
+						copy_v3_v3(GWN_vertbuf_raw_step(&pos_step), bm_looptri[t]->v->co);
+					}
 				}
 			}
 		}

@@ -863,11 +863,16 @@ void modifier_deformVerts(struct ModifierData *md, struct Depsgraph *depsgraph,
 		mti->deformVerts(md, depsgraph, ob, mesh, vertexCos, numVerts, flag);
 	}
 	else {
-		DerivedMesh *dm = CDDM_from_mesh(mesh);
+		DerivedMesh *dm = NULL;
+		if (mesh) {
+			dm = CDDM_from_mesh(mesh);
+		}
 
 		mti->deformVerts_DM(md, depsgraph, ob, dm, vertexCos, numVerts, flag);
 
-		dm->release(dm);
+		if (dm) {
+			dm->release(dm);
+		}
 	}
 }
 
@@ -881,11 +886,16 @@ void modifier_deformMatrices(struct ModifierData *md, struct Depsgraph *depsgrap
 		mti->deformMatrices(md, depsgraph, ob, mesh, vertexCos, defMats, numVerts);
 	}
 	else {
-		DerivedMesh *dm = CDDM_from_mesh(mesh);
+		DerivedMesh *dm = NULL;
+		if (mesh) {
+			dm = CDDM_from_mesh(mesh);
+		}
 
 		mti->deformMatrices_DM(md, depsgraph, ob, dm, vertexCos, defMats, numVerts);
 
-		dm->release(dm);
+		if (dm) {
+			dm->release(dm);
+		}
 	}
 }
 
@@ -899,11 +909,16 @@ void modifier_deformVertsEM(struct ModifierData *md, struct Depsgraph *depsgraph
 		mti->deformVertsEM(md, depsgraph, ob, editData, mesh, vertexCos, numVerts);
 	}
 	else {
-		DerivedMesh *dm = CDDM_from_mesh(mesh);
+		DerivedMesh *dm = NULL;
+		if (mesh) {
+			dm = CDDM_from_mesh(mesh);
+		}
 
 		mti->deformVertsEM_DM(md, depsgraph, ob, editData, dm, vertexCos, numVerts);
 
-		dm->release(dm);
+		if (dm) {
+			dm->release(dm);
+		}
 	}
 }
 
@@ -917,11 +932,16 @@ void modifier_deformMatricesEM(struct ModifierData *md, struct Depsgraph *depsgr
 		mti->deformMatricesEM(md, depsgraph, ob, editData, mesh, vertexCos, defMats, numVerts);
 	}
 	else {
-		DerivedMesh *dm = CDDM_from_mesh(mesh);
+		DerivedMesh *dm = NULL;
+		if (mesh) {
+			dm = CDDM_from_mesh(mesh);
+		}
 
 		mti->deformMatricesEM_DM(md, depsgraph, ob, editData, dm, vertexCos, defMats, numVerts);
 
-		dm->release(dm);
+		if (dm) {
+			dm->release(dm);
+		}
 	}
 }
 
@@ -985,14 +1005,20 @@ void modifier_deformVerts_DM_deprecated(struct ModifierData *md, struct Depsgrap
 		mti->deformVerts_DM(md, depsgraph, ob, dm, vertexCos, numVerts, flag);
 	}
 	else {
-		struct Mesh mesh;
-		BKE_mesh_init(&mesh);
+		/* TODO(sybren): deduplicate all the copies of this code in this file. */
+		Mesh *mesh = NULL;
+		if (dm != NULL) {
+			mesh = BKE_libblock_alloc_notest(ID_ME);
+			BKE_mesh_init(mesh);
+			DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 
-		DM_to_mesh(dm, &mesh, ob, CD_MASK_EVERYTHING, false);
+		mti->deformVerts(md, depsgraph, ob, mesh, vertexCos, numVerts, flag);
 
-		mti->deformVerts(md, depsgraph, ob, &mesh, vertexCos, numVerts, flag);
-
-		BKE_mesh_free(&mesh);
+		if (mesh != NULL) {
+			BKE_mesh_free(mesh);
+			MEM_freeN(mesh);
+		}
 	}
 }
 
@@ -1028,14 +1054,19 @@ void modifier_deformVertsEM_DM_deprecated(struct ModifierData *md, struct Depsgr
 		mti->deformVertsEM_DM(md, depsgraph, ob, editData, dm, vertexCos, numVerts);
 	}
 	else {
-		struct Mesh mesh;
-		BKE_mesh_init(&mesh);
+		Mesh *mesh = NULL;
+		if (dm != NULL) {
+			mesh = BKE_libblock_alloc_notest(ID_ME);
+			BKE_mesh_init(mesh);
+			DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 
-		DM_to_mesh(dm, &mesh, ob, CD_MASK_EVERYTHING, false);
+		mti->deformVertsEM(md, depsgraph, ob, editData, mesh, vertexCos, numVerts);
 
-		mti->deformVertsEM(md, depsgraph, ob, editData, &mesh, vertexCos, numVerts);
-
-		BKE_mesh_free(&mesh);
+		if (mesh != NULL) {
+			BKE_mesh_free(mesh);
+			MEM_freeN(mesh);
+		}
 	}
 }
 
@@ -1069,19 +1100,30 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 		return mti->applyModifier_DM(md, depsgraph, ob, dm, flag);
 	}
 	else {
-		struct Mesh mesh;
-		BKE_mesh_init(&mesh);
+		/* TODO(sybren): deduplicate all the copies of this code in this file. */
+		Mesh *mesh = NULL;
+		if (dm != NULL) {
+			mesh = BKE_libblock_alloc_notest(ID_ME);
+			BKE_mesh_init(mesh);
+			DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 
-		DM_to_mesh(dm, &mesh, ob, CD_MASK_EVERYTHING, false);
-
-		struct Mesh *new_mesh = mti->applyModifier(md, depsgraph, ob, &mesh, flag);
+		struct Mesh *new_mesh = mti->applyModifier(md, depsgraph, ob, mesh, flag);
 
 		DerivedMesh *ndm = CDDM_from_mesh(new_mesh);
+		if(new_mesh != mesh) {
+			/* Make a DM that doesn't reference new_mesh so we can free the latter. */
+			/* TODO(sybren): create CDDM_from_mesh_ex() that creates a copy directly. */
+			DerivedMesh *nonref_dm = CDDM_copy(ndm);
+			ndm->release(ndm);
+			ndm = nonref_dm;
 
-		if(new_mesh != &mesh) {
-			BKE_mesh_free(&mesh);
-
-			/* XXX free new_mesh? */
+			BKE_mesh_free(new_mesh);
+			MEM_freeN(new_mesh);
+		}
+		if (mesh != NULL) {
+			BKE_mesh_free(mesh);
+			MEM_freeN(mesh);
 		}
 
 		return ndm;

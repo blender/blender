@@ -32,6 +32,7 @@
  *  \ingroup modifiers
  */
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -39,6 +40,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_mesh.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
@@ -180,11 +182,10 @@ static void simpleDeform_bend(const float factor, const int axis, const float dc
 
 
 /* simple deform modifier */
-static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
+static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct Mesh *mesh,
                                     float (*vertexCos)[3], int numVerts)
 {
 	const float base_limit[2] = {0.0f, 0.0f};
-
 	int i;
 	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
@@ -281,7 +282,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		}
 	}
 
-	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
+	modifier_get_vgroup_mesh(ob, mesh, smd->vgroup_name, &dvert, &vgroup);
 	const bool invert_vgroup = (smd->flag & MOD_SIMPLEDEFORM_FLAG_INVERT_VGROUP) != 0;
 	const uint *axis_map = axis_map_table[(smd->mode != MOD_SIMPLEDEFORM_MODE_BEND) ? deform_axis : 2];
 
@@ -384,43 +385,21 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 }
 
 static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, DerivedMesh *derivedData,
+                        Object *ob, struct Mesh *mesh,
                         float (*vertexCos)[3],
                         int numVerts,
                         ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm = derivedData;
-	CustomDataMask dataMask = requiredDataMask(ob, md);
-
-	/* we implement requiredDataMask but thats not really useful since
-	 * mesh_calc_modifiers pass a NULL derivedData */
-	if (dataMask)
-		dm = get_dm(ob, NULL, dm, NULL, false, false);
-
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, dm, vertexCos, numVerts);
-
-	if (dm != derivedData)
-		dm->release(dm);
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, mesh, vertexCos, numVerts);
 }
 
 static void deformVertsEM(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                          Object *ob, struct BMEditMesh *editData,
-                          DerivedMesh *derivedData,
+                          Object *ob, struct BMEditMesh *UNUSED(editData),
+                          struct Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-	DerivedMesh *dm = derivedData;
-	CustomDataMask dataMask = requiredDataMask(ob, md);
-
-	/* we implement requiredDataMask but thats not really useful since
-	 * mesh_calc_modifiers pass a NULL derivedData */
-	if (dataMask)
-		dm = get_dm(ob, editData, dm, NULL, false, false);
-
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, dm, vertexCos, numVerts);
-
-	if (dm != derivedData)
-		dm->release(dm);
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, mesh, vertexCos, numVerts);
 }
 
 
@@ -438,16 +417,16 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,

@@ -388,6 +388,36 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
 	}
 }
 
+bool BKE_mesh_ensure_edit_data(struct Mesh *me)
+{
+	if (me->emd != NULL) {
+		return false;
+	}
+
+	me->emd = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
+	return true;
+}
+
+bool BKE_mesh_clear_edit_data(struct Mesh *me)
+{
+	if (me->emd == NULL) {
+		return false;
+	}
+
+	if (me->emd->polyCos != NULL)
+		MEM_freeN((void *)me->emd->polyCos);
+	if (me->emd->polyNos != NULL)
+		MEM_freeN((void *)me->emd->polyNos);
+	if (me->emd->vertexCos != NULL)
+		MEM_freeN((void *)me->emd->vertexCos);
+	if (me->emd->vertexNos != NULL)
+		MEM_freeN((void *)me->emd->vertexNos);
+
+	MEM_SAFE_FREE(me->emd);
+	return true;
+}
+
+
 bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me)
 {
 	BMesh *bm = me->edit_btmesh ? me->edit_btmesh->bm : NULL;
@@ -481,6 +511,7 @@ void BKE_mesh_free(Mesh *me)
 	BKE_animdata_free(&me->id, false);
 
 	BKE_mesh_batch_cache_free(me);
+	BKE_mesh_clear_edit_data(me);
 
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
@@ -578,6 +609,52 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	if (me_src->key) {
 		BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag, false);
 	}
+}
+
+static Mesh *mesh_from_template_ex(
+        Mesh *me_src,
+        int numVerts, int numEdges, int numTessFaces,
+        int numLoops, int numPolys,
+        CustomDataMask mask)
+{
+	const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0)); /* only do tessface if we have no polys */
+
+	Mesh *me_dst = MEM_callocN(sizeof(struct Mesh), "Mesh");
+	BKE_mesh_init(me_dst);
+
+	me_dst->mat = MEM_dupallocN(me_src->mat);
+	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
+
+	me_dst->totvert = numVerts;
+	me_dst->totedge = numEdges;
+	me_dst->totloop = numLoops;
+	me_dst->totpoly = numPolys;
+
+	CustomData_copy(&me_src->vdata, &me_dst->vdata, mask, CD_CALLOC, numVerts);
+	CustomData_copy(&me_src->edata, &me_dst->edata, mask, CD_CALLOC, numEdges);
+	CustomData_copy(&me_src->ldata, &me_dst->ldata, mask, CD_CALLOC, numLoops);
+	CustomData_copy(&me_src->pdata, &me_dst->pdata, mask, CD_CALLOC, numPolys);
+	if (do_tessface) {
+		CustomData_copy(&me_src->fdata, &me_dst->fdata, mask, CD_CALLOC, numTessFaces);
+	}
+	else {
+		mesh_tessface_clear_intern(me_dst, false);
+	}
+
+	BKE_mesh_update_customdata_pointers(me_dst, false);
+
+	return me_dst;
+}
+
+Mesh * BKE_mesh_from_template(Mesh *me_src,
+                              int numVerts, int numEdges, int numTessFaces,
+                              int numLoops, int numPolys)
+{
+	return mesh_from_template_ex(
+	            me_src,
+	            numVerts, numEdges, numTessFaces,
+	            numLoops, numPolys,
+	            CD_MASK_EVERYTHING);
 }
 
 Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
