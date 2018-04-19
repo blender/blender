@@ -57,16 +57,7 @@ static uint get_material_hash(const float color[3])
 
 static const float* get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob)
 {
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
-	switch (wpd->drawtype_object_color)
-	{
-		default:
-		case V3D_OBJECT_COLOR_COLLECTION:
-			return BKE_collection_engine_property_value_get_float_array(props, "object_color");
-
-		case V3D_OBJECT_COLOR_OBJECT:
-			return ob->col;
-	}
+	return ob->col;
 }
 
 void workbench_materials_engine_init(void)
@@ -110,7 +101,6 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 
 	View3D *v3d = DCS->v3d;
 	if (v3d) {
-		wpd->drawtype_object_color = v3d->drawtype_object_color;
 #if 0
 		/* TODO: switch implementation when OB_TEXTURE is implemented */
 		switch (v3d->drawtype) {
@@ -124,7 +114,6 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 #endif
 	}
 	else {
-		wpd->drawtype_object_color = V3D_OBJECT_COLOR_COLLECTION;
 		wpd->drawtype_lighting = V3D_LIGHTING_STUDIO;
 	}
 }

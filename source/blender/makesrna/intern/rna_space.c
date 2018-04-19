@@ -189,12 +189,6 @@ const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-const EnumPropertyItem rna_enum_viewport_object_color_type_items[] = {
-	{V3D_OBJECT_COLOR_COLLECTION, "COLLECTION", 0, "Collection", ""},
-	{V3D_OBJECT_COLOR_OBJECT,     "OBJECT",     0, "Object",     ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
 	{SC_MODE_MASKEDIT, "MASK", ICON_MOD_MASK, "Mask", "Show mask editing tools"},
@@ -2334,12 +2328,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "drawtype_solid");
 	RNA_def_property_enum_items(prop, rna_enum_viewport_lighting_items);
 	RNA_def_property_ui_text(prop, "Viewport Lighting (Solid)", "Lighting Method for Solid Viewport Shading");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
-
-	prop = RNA_def_property(srna, "viewport_object_color_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "drawtype_object_color");
-	RNA_def_property_enum_items(prop, rna_enum_viewport_object_color_type_items);
-	RNA_def_property_ui_text(prop, "Viewport Color", "Type of Color Distribution for Objects");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
 	prop = RNA_def_property(srna, "viewport_shade_texture", PROP_ENUM, PROP_NONE);

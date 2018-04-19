@@ -56,7 +56,6 @@ typedef struct WORKBENCH_PrivateData {
 	DRWShadingGroup *shadeless_shgrp;
 
 	struct GHash *material_hash;
-	short drawtype_object_color;
 	short drawtype_lighting;
 } WORKBENCH_PrivateData; /* Transient data */
 

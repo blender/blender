@@ -360,10 +360,6 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 #endif /* WITH_CLAY_ENGINE */
 
-/* workbench engine */
-/* LayerCollection settings. */
-RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(object_color, 3)
-
 /* eevee engine */
 /* ViewLayer settings. */
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(gtao_enable)
@@ -1676,14 +1672,6 @@ static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Collections Workbench Engine Settings", "Workbench specific settings for this collection");
 
 	RNA_define_verify_sdna(0); /* not in sdna */
-
-	prop = RNA_def_property(srna, "object_color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_object_color_get",
-	                             "rna_LayerEngineSettings_Workbench_object_color_set", NULL);
-	RNA_def_property_ui_text(prop, "Collection Color", "Color for Drawing Objects in this Collection");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 }
 
 static void rna_def_layer_collection_mode_settings_object(BlenderRNA *brna)
