@@ -68,7 +68,7 @@ static void workbench_solid_studio_cache_init(void *vedata)
 static void workbench_solid_studio_cache_populate(void *vedata, Object *ob)
 {
 	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
-	workbench_materials_solid_cache_populate(data, ob, V3D_LIGHTING_STUDIO);
+	workbench_materials_solid_cache_populate(data, ob);
 }
 
 static void workbench_solid_studio_cache_finish(void *UNUSED(vedata))

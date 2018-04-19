@@ -87,7 +87,7 @@ class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
 
 
 class COLLECTION_PT_workbench_settings(CollectionButtonsPanel, Panel):
-    bl_label = "Workbench Settings"
+    bl_label = "Collection Settings"
 
     def draw(self, context):
         layout = self.layout
@@ -96,7 +96,6 @@ class COLLECTION_PT_workbench_settings(CollectionButtonsPanel, Panel):
         collection_props = collection.engine_overrides['BLENDER_WORKBENCH']
 
         col = layout.column()
-        col.template_override_property(collection_props, scene_props, "object_color_type")
         col.template_override_property(collection_props, scene_props, "object_color")
 
 

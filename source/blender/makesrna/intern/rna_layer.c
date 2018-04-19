@@ -363,7 +363,6 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 /* workbench engine */
 /* LayerCollection settings. */
 RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(object_color, 3)
-RNA_LAYER_ENGINE_WORKBENCH_GET_SET_INT(object_color_type)
 
 /* eevee engine */
 /* ViewLayer settings. */
@@ -1673,23 +1672,10 @@ static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem object_color_type_items[] = {
-		{V3D_OBJECT_COLOR_COLLECTION, "COLLECTION", 0, "Collection", ""},
-		{V3D_OBJECT_COLOR_OBJECT,     "OBJECT",     0, "Object",     ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsWorkbench", "LayerCollectionSettings");
 	RNA_def_struct_ui_text(srna, "Collections Workbench Engine Settings", "Workbench specific settings for this collection");
 
 	RNA_define_verify_sdna(0); /* not in sdna */
-
-	prop = RNA_def_property(srna, "object_color_type", PROP_ENUM, PROP_COLOR);
-	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Workbench_object_color_type_get", "rna_LayerEngineSettings_Workbench_object_color_type_set", NULL);
-	RNA_def_property_enum_items(prop, object_color_type_items);
-	RNA_def_property_ui_text(prop, "Object Color", "Way colors are given to the Object");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "object_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);

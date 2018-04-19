@@ -52,10 +52,12 @@ typedef struct WORKBENCH_Data {
 
 typedef struct WORKBENCH_PrivateData {
 	DRWShadingGroup *depth_shgrp;
-	
+
 	DRWShadingGroup *shadeless_shgrp;
-	
+
 	struct GHash *material_hash;
+	short drawtype_object_color;
+	short drawtype_lighting;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_MaterialData {
@@ -80,6 +82,6 @@ void workbench_materials_engine_init(void);
 void workbench_materials_engine_free(void);
 void workbench_materials_draw_scene_finish(WORKBENCH_Data *vedata);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
-void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob, int lighting_mode);
+void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 
 #endif

@@ -55,11 +55,10 @@ static uint get_material_hash(const float color[3])
 	return r + g * 4096 + b * 4096 * 4096;
 }
 
-static const float* get_material_solid_color(Object *ob)
+static const float* get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob)
 {
 	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
-	int object_color_option = BKE_collection_engine_property_value_get_int(props, "object_color_type");
-	switch (object_color_option)
+	switch (wpd->drawtype_object_color)
 	{
 		default:
 		case V3D_OBJECT_COLOR_COLLECTION:
@@ -104,11 +103,33 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 
+	const DRWContextState *DCS = DRW_context_state_get();
+
 	wpd->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 	wpd->material_hash = BLI_ghash_ptr_new("Workbench material_hash");
+
+	View3D *v3d = DCS->v3d;
+	if (v3d) {
+		wpd->drawtype_object_color = v3d->drawtype_object_color;
+#if 0
+		/* TODO: switch implementation when OB_TEXTURE is implemented */
+		switch (v3d->drawtype) {
+			default:
+			case OB_SOLID:
+				wpd->drawtype_lighting = v3d->drawtype_solid;
+				break;
+		}
+#else
+		wpd->drawtype_lighting = v3d->drawtype_solid;
+#endif
+	}
+	else {
+		wpd->drawtype_object_color = V3D_OBJECT_COLOR_COLLECTION;
+		wpd->drawtype_lighting = V3D_LIGHTING_STUDIO;
+	}
 }
 
-void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob, int lighting_mode)
+void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -124,9 +145,9 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
 
 		/* Solid */
-		GPUShader *shader = lighting_mode == V3D_LIGHTING_FLAT?e_data.solid_flat_sh:e_data.solid_studio_sh;
+		GPUShader *shader = wpd->drawtype_lighting == V3D_LIGHTING_FLAT?e_data.solid_flat_sh:e_data.solid_studio_sh;
 
-		const float *color = get_material_solid_color(ob);
+		const float *color = get_material_solid_color(wpd, ob);
 		uint hash = get_material_hash(color);
 
 		material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));

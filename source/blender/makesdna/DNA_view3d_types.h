@@ -252,6 +252,9 @@ typedef struct View3D {
 	short drawtype_solid;
 	/* drawtype subtype (lighting) used when drawtype == OB_TEXTURE */
 	short drawtype_texture;
+	/* how to draw objects when drawtype == OB_SOLID */
+	short drawtype_object_color;
+	char pad5[6];
 	View3DDebug debug;
 } View3D;
 
