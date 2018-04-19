@@ -680,6 +680,9 @@ typedef struct SpaceAction {
 	char mode, autosnap;        /* mode: editing context; autosnap: automatic keyframe snapping mode   */
 	short flag;                 /* flag: bitmapped settings; */
 	float timeslide;            /* for Time-Slide transform mode drawing - current frame? */
+	
+	int cache_display;          /* (eTimeline_Cache_Flag) */
+	int pad;
 } SpaceAction;
 
 /* SpaceAction flag */
@@ -743,6 +746,17 @@ typedef enum eAnimEdit_AutoSnap {
 	/* snap to 1.0 second increments */
 	SACTSNAP_TSTEP = 5
 } eAnimEdit_AutoSnap;
+
+/* SAction->cache_display */
+typedef enum eTimeline_Cache_Flag {
+	TIME_CACHE_DISPLAY       = (1 << 0),
+	TIME_CACHE_SOFTBODY      = (1 << 1),
+	TIME_CACHE_PARTICLES     = (1 << 2),
+	TIME_CACHE_CLOTH         = (1 << 3),
+	TIME_CACHE_SMOKE         = (1 << 4),
+	TIME_CACHE_DYNAMICPAINT  = (1 << 5),
+	TIME_CACHE_RIGIDBODY     = (1 << 6),
+} eTimeline_Cache_Flag;
 
 
 /* ************************************************ */

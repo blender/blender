@@ -170,7 +170,14 @@ static void action_free(SpaceLink *UNUSED(sl))
 static void action_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
 	SpaceAction *saction = sa->spacedata.first;
+	
 	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+	
+	/* enable all cache display */
+	saction->cache_display |= TIME_CACHE_DISPLAY;
+	saction->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
+	saction->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
+	saction->cache_display |= TIME_CACHE_RIGIDBODY;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
@@ -238,7 +245,13 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) | DRAW_MARKERS_MARGIN;
 	ED_markers_draw(C, flag);
 	
+	/* caches */
+	if (saction->mode == SACTCONT_TIMELINE) {
+		timeline_draw_cache(saction, ac.obact, ac.scene);
+	}
+	
 	/* preview range */
+	// XXX: we should always draw the range
 	UI_view2d_view_ortho(v2d);
 	ANIM_draw_previewrange(C, v2d, 0);
 

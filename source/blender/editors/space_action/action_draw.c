@@ -43,15 +43,22 @@
 /* Types --------------------------------------------------------------- */
 
 #include "DNA_anim_types.h"
+#include "DNA_cachefile_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_action.h"
 #include "BKE_context.h"
+#include "BKE_pointcache.h"
 
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
 
 #include "BIF_gl.h"
+
+#include "GPU_immediate.h"
+#include "GPU_matrix.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -61,7 +68,6 @@
 #include "ED_keyframes_draw.h"
 
 #include "action_intern.h"
-#include "GPU_immediate.h"
 
 /* ************************************************************************* */
 /* Channel List */
@@ -381,3 +387,139 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 	/* free temporary channels used for drawing */
 	ANIM_animdata_freelist(&anim_data);
 }
+
+/* ************************************************************************* */
+/* Timeline - Caches */
+
+void timeline_draw_cache(SpaceAction *saction, Object *ob, Scene *scene)
+{
+	PTCacheID *pid;
+	ListBase pidlist;
+	const float cache_draw_height = (4.0f * UI_DPI_FAC * U.pixelsize);
+	float yoffs = 0.f;
+	
+	if (!(saction->cache_display & TIME_CACHE_DISPLAY) || (!ob))
+		return;
+
+	BKE_ptcache_ids_from_object(&pidlist, ob, scene, 0);
+
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	/* iterate over pointcaches on the active object, 
+	 * add spacetimecache and vertex array for each */
+	for (pid = pidlist.first; pid; pid = pid->next) {
+		float col[4];
+
+		switch (pid->type) {
+			case PTCACHE_TYPE_SOFTBODY:
+				if (!(saction->cache_display & TIME_CACHE_SOFTBODY)) continue;
+				break;
+			case PTCACHE_TYPE_PARTICLES:
+				if (!(saction->cache_display & TIME_CACHE_PARTICLES)) continue;
+				break;
+			case PTCACHE_TYPE_CLOTH:
+				if (!(saction->cache_display & TIME_CACHE_CLOTH)) continue;
+				break;
+			case PTCACHE_TYPE_SMOKE_DOMAIN:
+			case PTCACHE_TYPE_SMOKE_HIGHRES:
+				if (!(saction->cache_display & TIME_CACHE_SMOKE)) continue;
+				break;
+			case PTCACHE_TYPE_DYNAMICPAINT:
+				if (!(saction->cache_display & TIME_CACHE_DYNAMICPAINT)) continue;
+				break;
+			case PTCACHE_TYPE_RIGIDBODY:
+				if (!(saction->cache_display & TIME_CACHE_RIGIDBODY)) continue;
+				break;
+		}
+
+		if (pid->cache->cached_frames == NULL)
+			continue;
+
+		gpuPushMatrix();
+		gpuTranslate2f(0.0, (float)V2D_SCROLL_HEIGHT + yoffs);
+		gpuScale2f(1.0, cache_draw_height);
+		
+		switch (pid->type) {
+			case PTCACHE_TYPE_SOFTBODY:
+				col[0] = 1.0;   col[1] = 0.4;   col[2] = 0.02;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_PARTICLES:
+				col[0] = 1.0;   col[1] = 0.1;   col[2] = 0.02;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_CLOTH:
+				col[0] = 0.1;   col[1] = 0.1;   col[2] = 0.75;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_SMOKE_DOMAIN:
+			case PTCACHE_TYPE_SMOKE_HIGHRES:
+				col[0] = 0.2;   col[1] = 0.2;   col[2] = 0.2;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_DYNAMICPAINT:
+				col[0] = 1.0;   col[1] = 0.1;   col[2] = 0.75;
+				col[3] = 0.1;
+				break;
+			case PTCACHE_TYPE_RIGIDBODY:
+				col[0] = 1.0;   col[1] = 0.6;   col[2] = 0.0;
+				col[3] = 0.1;
+				break;
+			default:
+				col[0] = 1.0;   col[1] = 0.0;   col[2] = 1.0;
+				col[3] = 0.1;
+				BLI_assert(0);
+				break;
+		}
+
+		const int sta = pid->cache->startframe, end = pid->cache->endframe;
+		const int len = (end - sta + 1) * 6;
+
+		glEnable(GL_BLEND);
+
+		immUniformColor4fv(col);
+		immRectf(pos, (float)sta, 0.0, (float)end, 1.0);
+
+		col[3] = 0.4f;
+		if (pid->cache->flag & PTCACHE_BAKED) {
+			col[0] -= 0.4f; col[1] -= 0.4f; col[2] -= 0.4f;
+		}
+		else if (pid->cache->flag & PTCACHE_OUTDATED) {
+			col[0] += 0.4f; col[1] += 0.4f; col[2] += 0.4f;
+		}
+
+		immUniformColor4fv(col);
+
+		if (len > 0) {
+			immBeginAtMost(GWN_PRIM_TRIS, len);
+
+			/* draw a quad for each cached frame */
+			for (int i = sta; i <= end; i++) {
+				if (pid->cache->cached_frames[i - sta]) {
+					immVertex2f(pos, (float)i - 0.5f, 0.0f);
+					immVertex2f(pos, (float)i - 0.5f, 1.0f);
+					immVertex2f(pos, (float)i + 0.5f, 1.0f);
+
+					immVertex2f(pos, (float)i - 0.5f, 0.0f);
+					immVertex2f(pos, (float)i + 0.5f, 1.0f);
+					immVertex2f(pos, (float)i + 0.5f, 0.0f);
+				}
+			}
+
+			immEnd();
+		}
+
+		glDisable(GL_BLEND);
+
+		gpuPopMatrix();
+
+		yoffs += cache_draw_height;
+	}
+
+	immUnbindProgram();
+
+	BLI_freelistN(&pidlist);
+}
+
+/* ************************************************************************* */
