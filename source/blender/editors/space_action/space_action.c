@@ -45,10 +45,13 @@
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
-#include "BIF_gl.h"
+#include "RNA_access.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
+
+#include "BIF_gl.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -380,6 +383,7 @@ static void action_main_region_listener(
 				case ND_RENDER_OPTIONS:
 				case ND_OB_ACTIVE:
 				case ND_FRAME:
+				case ND_FRAME_RANGE:
 				case ND_MARKERS:
 					ED_region_tag_redraw(ar);
 					break;
@@ -417,6 +421,46 @@ static void action_main_region_listener(
 			if (wmn->data == ND_KEYS)
 				ED_region_tag_redraw(ar);
 			break;
+	}
+}
+
+static void saction_main_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
+        struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	PointerRNA ptr;
+	RNA_pointer_create(&screen->id, &RNA_SpaceTimeline, sa->spacedata.first, &ptr);
+
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+
+	/* Timeline depends on scene properties. */
+	{
+		bool use_preview = (scene->r.flag & SCER_PRV_RANGE);
+		extern PropertyRNA rna_Scene_frame_start;
+		extern PropertyRNA rna_Scene_frame_end;
+		extern PropertyRNA rna_Scene_frame_preview_start;
+		extern PropertyRNA rna_Scene_frame_preview_end;
+		extern PropertyRNA rna_Scene_use_preview_range;
+		extern PropertyRNA rna_Scene_frame_current;
+		const PropertyRNA *props[] = {
+			use_preview ? &rna_Scene_frame_preview_start : &rna_Scene_frame_start,
+			use_preview ? &rna_Scene_frame_preview_end   : &rna_Scene_frame_end,
+			&rna_Scene_use_preview_range,
+			&rna_Scene_frame_current,
+		};
+
+		PointerRNA idptr;
+		RNA_id_pointer_create(&scene->id, &idptr);
+
+		for (int i = 0; i < ARRAY_SIZE(props); i++) {
+			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
+		}
 	}
 }
 
@@ -463,16 +507,43 @@ static void action_listener(
 			}
 			break;
 		case NC_SCENE:
-			switch (wmn->data) {
-				case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing) */
-				case ND_OB_SELECT:
-					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
-					ED_area_tag_refresh(sa);
-					break;
-					
-				default: /* just redrawing the view will do */
-					ED_area_tag_redraw(sa);
-					break;
+			if (saction->mode == SACTCONT_TIMELINE) {
+				switch (wmn->data) {
+					case ND_RENDER_RESULT:
+						ED_area_tag_redraw(sa);
+						break;
+					case ND_OB_ACTIVE:
+					case ND_FRAME:
+						ED_area_tag_refresh(sa);
+						break;
+					case ND_FRAME_RANGE:
+					{
+						ARegion *ar;
+						Scene *scene = wmn->reference;
+
+						for (ar = sa->regionbase.first; ar; ar = ar->next) {
+							if (ar->regiontype == RGN_TYPE_WINDOW) {
+								ar->v2d.tot.xmin = (float)(SFRA - 4);
+								ar->v2d.tot.xmax = (float)(EFRA + 4);
+								break;
+							}
+						}
+						break;
+					}
+				}
+			}
+			else {
+				switch (wmn->data) {
+					case ND_OB_ACTIVE:  /* selection changed, so force refresh to flush (needs flag set to do syncing) */
+					case ND_OB_SELECT:
+						saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
+						ED_area_tag_refresh(sa);
+						break;
+						
+					default: /* just redrawing the view will do */
+						ED_area_tag_redraw(sa);
+						break;
+				}
 			}
 			break;
 		case NC_OBJECT:
@@ -484,6 +555,15 @@ static void action_listener(
 					break;
 				case ND_TRANSFORM:
 					/* moving object shouldn't need to redraw action */
+					break;
+				case ND_POINTCACHE:
+				case ND_MODIFIER:
+				case ND_PARTICLE:
+					/* only needed in timeline mode */
+					if (saction->mode == SACTCONT_TIMELINE) {
+						ED_area_tag_refresh(sa);
+						ED_area_tag_redraw(sa);
+					}
 					break;
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);
@@ -527,22 +607,49 @@ static void action_listener(
 				ED_area_tag_refresh(sa);
 			}
 			break;
+		case NC_WM:
+			switch (wmn->data) {
+				case ND_FILEREAD:
+					ED_area_tag_refresh(sa);
+					break;
+			}
+			break;
 	}
 }
 
 static void action_header_region_listener(
-        bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+        bScreen *UNUSED(sc), ScrArea *sa, ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
 {
-	// SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
+	SpaceAction *saction = (SpaceAction *)sa->spacedata.first;
 
 	/* context changes */
 	switch (wmn->category) {
-		case NC_SCENE:
-			switch (wmn->data) {
-				case ND_OB_ACTIVE:
+		case NC_SCREEN:
+			if (saction->mode == SACTCONT_TIMELINE) {
+				if (wmn->data == ND_ANIMPLAY)
 					ED_region_tag_redraw(ar);
-					break;
+			}
+			break;
+		case NC_SCENE:
+			if (saction->mode == SACTCONT_TIMELINE) {
+				switch (wmn->data) {
+					case ND_RENDER_RESULT:
+					case ND_OB_SELECT:
+					case ND_FRAME:
+					case ND_FRAME_RANGE:
+					case ND_KEYINGSET:
+					case ND_RENDER_OPTIONS:
+						ED_region_tag_redraw(ar);
+						break;
+				}
+			}
+			else {
+				switch (wmn->data) {
+					case ND_OB_ACTIVE:
+						ED_region_tag_redraw(ar);
+						break;
+				}
 			}
 			break;
 		case NC_ID:
@@ -689,6 +796,7 @@ void ED_spacetype_action(void)
 	art->init = action_main_region_init;
 	art->draw = action_main_region_draw;
 	art->listener = action_main_region_listener;
+	art->message_subscribe = saction_main_region_message_subscribe;
 	art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_MARKERS | ED_KEYMAP_ANIMATION | ED_KEYMAP_FRAMES;
 
 	BLI_addhead(&st->regiontypes, art);
