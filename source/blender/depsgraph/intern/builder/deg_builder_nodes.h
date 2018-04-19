@@ -234,6 +234,7 @@ protected:
 	/* State which demotes currently built entities. */
 	Scene *scene_;
 	ViewLayer *view_layer_;
+	int view_layer_index_;
 
 	GHash *cow_id_hash_;
 	BuilderMap built_map_;

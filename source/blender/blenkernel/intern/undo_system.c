@@ -387,6 +387,9 @@ UndoStep *BKE_undosys_step_push_init(UndoStack *ustack, bContext *C, const char 
 	return BKE_undosys_step_push_init_with_type(ustack, C, name, ut);
 }
 
+/**
+ * \param C: Can be NULL from some callers if their encoding function doesn't need it
+ */
 bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char *name, const UndoType *ut)
 {
 	UNDO_NESTED_ASSERT(false);
@@ -395,7 +398,7 @@ bool BKE_undosys_step_push_with_type(UndoStack *ustack, bContext *C, const char 
 
 	/* Might not be final place for this to be called - probably only want to call it from some
 	 * undo handlers, not all of them? */
-	BKE_main_override_static_operations_create(CTX_data_main(C), false);
+	BKE_main_override_static_operations_create(G.main, false);
 
 	/* Remove all undos after (also when 'ustack->step_active == NULL'). */
 	while (ustack->steps.last != ustack->step_active) {

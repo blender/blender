@@ -391,34 +391,39 @@ static EditBone *get_nearest_editbonepoint(
         bool findunsel, bool use_cycle,
         Base **r_base, int *r_selmask)
 {
-	bArmature *arm = (bArmature *)vc->obedit->data;
-	EditBone *ebone_next_act = arm->act_edbone;
-
-	EditBone *ebone;
-	rcti rect;
-	unsigned int buffer[MAXPICKBUF];
-	unsigned int hitresult, besthitresult = BONESEL_NOSEL;
-	int i, mindep = 5;
-	int hits12, hits5 = 0;
-
-	static int last_mval[2] = {-100, -100};
+	uint buffer[MAXPICKBUF];
+	struct {
+		uint hitresult;
+		Base *base;
+		EditBone *ebone;
+	} best = {
+		.hitresult = BONESEL_NOSEL,
+		.base = NULL,
+		.ebone = NULL,
+	};
 
 	/* find the bone after the current active bone, so as to bump up its chances in selection.
 	 * this way overlapping bones will cycle selection state as with objects. */
-	if (ebone_next_act &&
-	    EBONE_VISIBLE(arm, ebone_next_act) &&
-	    ebone_next_act->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL))
+	EditBone *ebone_next_act = ((bArmature *)vc->obedit->data)->act_edbone;
 	{
-		ebone_next_act = ebone_next_act->next ? ebone_next_act->next : arm->edbo->first;
-	}
-	else {
-		ebone_next_act = NULL;
+		bArmature *arm = (bArmature *)vc->obedit->data;
+		if (ebone_next_act &&
+		    EBONE_VISIBLE(arm, ebone_next_act) &&
+		    ebone_next_act->flag & (BONE_SELECTED | BONE_ROOTSEL | BONE_TIPSEL))
+		{
+			ebone_next_act = ebone_next_act->next ? ebone_next_act->next : arm->edbo->first;
+		}
+		else {
+			ebone_next_act = NULL;
+		}
 	}
 
 	bool do_nearest = false;
 
 	/* define if we use solid nearest select or not */
 	if (use_cycle) {
+		static int last_mval[2] = {-100, -100};
+
 		if (vc->v3d->drawtype > OB_WIRE) {
 			do_nearest = true;
 			if (len_manhattan_v2v2_int(vc->mval, last_mval) < 3) {
@@ -434,32 +439,35 @@ static EditBone *get_nearest_editbonepoint(
 	}
 
 	/* matching logic from 'mixed_bones_object_selectbuffer' */
-	const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
 	int hits = 0;
 
 	/* we _must_ end cache before return, use 'goto cache_end' */
 	view3d_opengl_select_cache_begin();
 
-	BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
-	hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
-	if (hits12 == 1) {
-		hits = selectbuffer_ret_hits_12(buffer, hits12);
-		goto cache_end;
-	}
-	else if (hits12 > 0) {
-		int offs;
-
-		offs = 4 * hits12;
-		BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
-		hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
-
-		if (hits5 == 1) {
-			hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);
+	{
+		const int select_mode = (do_nearest ? VIEW3D_SELECT_PICK_NEAREST : VIEW3D_SELECT_PICK_ALL);
+		rcti rect;
+		BLI_rcti_init_pt_radius(&rect, vc->mval, 12);
+		const int hits12 = view3d_opengl_select(vc, buffer, MAXPICKBUF, &rect, select_mode);
+		if (hits12 == 1) {
+			hits = selectbuffer_ret_hits_12(buffer, hits12);
 			goto cache_end;
 		}
+		else if (hits12 > 0) {
+			int offs;
 
-		if      (hits5 > 0) { hits = selectbuffer_ret_hits_5(buffer,  hits12, hits5); goto cache_end; }
-		else                { hits = selectbuffer_ret_hits_12(buffer, hits12); goto cache_end; }
+			offs = 4 * hits12;
+			BLI_rcti_init_pt_radius(&rect, vc->mval, 5);
+			const int hits5 = view3d_opengl_select(vc, buffer + offs, MAXPICKBUF - offs, &rect, select_mode);
+
+			if (hits5 == 1) {
+				hits = selectbuffer_ret_hits_5(buffer, hits12, hits5);
+				goto cache_end;
+			}
+
+			if      (hits5 > 0) { hits = selectbuffer_ret_hits_5(buffer,  hits12, hits5); goto cache_end; }
+			else                { hits = selectbuffer_ret_hits_12(buffer, hits12); goto cache_end; }
+		}
 	}
 
 cache_end:
@@ -471,16 +479,20 @@ cache_end:
 	/* See if there are any selected bones in this group */
 	if (hits > 0) {
 		if (hits == 1) {
-			if (!(buffer[3] & BONESEL_NOSEL))
-				besthitresult = buffer[3];
+			if (!(buffer[3] & BONESEL_NOSEL)) {
+				best.hitresult = buffer[3];
+				best.base = ED_armature_base_and_ebone_from_select_buffer(
+				        bases, bases_len, best.hitresult, &best.ebone);
+			}
 		}
 		else {
-			for (i = 0; i < hits; i++) {
-				hitresult = buffer[3 + (i * 4)];
+			int dep_min = 5;
+			for (int i = 0; i < hits; i++) {
+				const uint hitresult = buffer[3 + (i * 4)];
 				if (!(hitresult & BONESEL_NOSEL)) {
 					Base *base = NULL;
+					EditBone *ebone;
 					base = ED_armature_base_and_ebone_from_select_buffer(bases, bases_len, hitresult, &ebone);
-					arm = base->object->data;
 
 					int dep;
 					/* clicks on bone points get advantage */
@@ -515,32 +527,36 @@ cache_end:
 						dep -= 1;
 					}
 
-					if (dep < mindep) {
-						mindep = dep;
-						besthitresult = hitresult;
+					if (dep < dep_min) {
+						dep_min = dep;
+						best.hitresult = hitresult;
+						best.base = base;
+						best.ebone = ebone;
 					}
 				}
 			}
 		}
 
-		if (!(besthitresult & BONESEL_NOSEL)) {
-			Base *base = NULL;
-			base = ED_armature_base_and_ebone_from_select_buffer(bases, bases_len, hitresult, &ebone);
-			arm = base->object->data;
-			*r_base = base;
+		if (!(best.hitresult & BONESEL_NOSEL)) {
+			*r_base = best.base;
 
 			*r_selmask = 0;
-			if (besthitresult & BONESEL_ROOT)
+			if (best.hitresult & BONESEL_ROOT) {
 				*r_selmask |= BONE_ROOTSEL;
-			if (besthitresult & BONESEL_TIP)
+			}
+			if (best.hitresult & BONESEL_TIP) {
 				*r_selmask |= BONE_TIPSEL;
-			if (besthitresult & BONESEL_BONE)
+			}
+			if (best.hitresult & BONESEL_BONE) {
 				*r_selmask |= BONE_SELECTED;
-			return ebone;
+			}
+			MEM_freeN(bases);
+			return best.ebone;
 		}
 	}
 	*r_selmask = 0;
 	*r_base = NULL;
+	MEM_freeN(bases);
 	return NULL;
 }
 
