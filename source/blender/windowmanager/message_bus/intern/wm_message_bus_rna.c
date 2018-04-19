@@ -18,9 +18,10 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/windowmanager/intern/wm_message_bus_rna.c
+/** \file blender/windowmanager/message_bus/intern/wm_message_bus_rna.c
  *  \ingroup wm
  */
+
 
 #include <stdio.h>
 #include "DNA_ID.h"

@@ -826,10 +826,10 @@ static void DRW_shgroup_empty_image(
 
 		if (tex) {
 			DRW_shgroup_instance_format(e_data.empty_image_format, {
-				{"objectColor"         , DRW_ATTRIB_FLOAT, 4},
-				{"size"                , DRW_ATTRIB_FLOAT, 1},
-				{"offset"              , DRW_ATTRIB_FLOAT, 2},
-				{"InstanceModelMatrix" , DRW_ATTRIB_FLOAT, 16},
+				{"objectColor",         DRW_ATTRIB_FLOAT, 4},
+				{"size",                DRW_ATTRIB_FLOAT, 1},
+				{"offset",              DRW_ATTRIB_FLOAT, 2},
+				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
 			});
 
 			struct Gwn_Batch *geom = DRW_cache_image_plane_get();
@@ -846,10 +846,10 @@ static void DRW_shgroup_empty_image(
 
 		{
 			DRW_shgroup_instance_format(e_data.empty_image_wire_format, {
-				{"objectColor"         , DRW_ATTRIB_FLOAT, 4},
-				{"size"                , DRW_ATTRIB_FLOAT, 1},
-				{"offset"              , DRW_ATTRIB_FLOAT, 2},
-				{"InstanceModelMatrix" , DRW_ATTRIB_FLOAT, 16}
+				{"objectColor",         DRW_ATTRIB_FLOAT, 4},
+				{"size",                DRW_ATTRIB_FLOAT, 1},
+				{"offset",              DRW_ATTRIB_FLOAT, 2},
+				{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16}
 			});
 
 			struct Gwn_Batch *geom = DRW_cache_image_plane_wire_get();

@@ -62,24 +62,24 @@ typedef struct WORKBENCH_MaterialData {
 	float color[3];
 	
 	/* Linked shgroup for drawing */
-	DRWShadingGroup * shgrp;
+	DRWShadingGroup *shgrp;
 } WORKBENCH_MaterialData;
 
 
 /* workbench_engine.c */
 void workbench_solid_materials_init(void);
-void workbench_solid_materials_cache_init(WORKBENCH_Data* vedata);
-void workbench_solid_materials_cache_populate(WORKBENCH_Data* vedata, Object* ob);
-void workbench_solid_materials_cache_finish(WORKBENCH_Data* vedata);
-void workbench_solid_materials_draw_scene(WORKBENCH_Data* vedata);
+void workbench_solid_materials_cache_init(WORKBENCH_Data *vedata);
+void workbench_solid_materials_cache_populate(WORKBENCH_Data *vedata, Object *ob);
+void workbench_solid_materials_cache_finish(WORKBENCH_Data *vedata);
+void workbench_solid_materials_draw_scene(WORKBENCH_Data *vedata);
 void workbench_solid_materials_free(void);
 
 /* workbench_materials.c */
 void workbench_materials_engine_init(void);
 void workbench_materials_engine_finish(void);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
-WORKBENCH_MaterialData* workbench_get_or_create_solid_flat_material_data(WORKBENCH_Data *vedata, const float color[3]);
-WORKBENCH_MaterialData* workbench_get_or_create_solid_studio_material_data(WORKBENCH_Data *vedata, const float color[3]);
+WORKBENCH_MaterialData *workbench_get_or_create_solid_flat_material_data(WORKBENCH_Data *vedata, const float color[3]);
+WORKBENCH_MaterialData *workbench_get_or_create_solid_studio_material_data(WORKBENCH_Data *vedata, const float color[3]);
 void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
 
 

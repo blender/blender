@@ -360,7 +360,7 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_boolean(func, "export_hair", 1, "Export Hair", "Exports hair particle systems as animated curves");
 	RNA_def_boolean(func, "export_particles", 1, "Export Particles", "Exports non-hair particle systems");
 	RNA_def_enum(func, "compression_type", rna_enum_abc_compression_items, 0, "Compression", "");
-	RNA_def_boolean(func, "packuv"		, 0, "Export with packed UV islands", "Export with packed UV islands");
+	RNA_def_boolean(func, "packuv", 0, "Export with packed UV islands", "Export with packed UV islands");
 	RNA_def_float(func, "scale", 1.0f, 0.0001f, 1000.0f, "Scale", "Value by which to enlarge or shrink the objects with respect to the world's origin", 0.0001f, 1000.0f);
 	RNA_def_boolean(func, "triangulate", 0, "Triangulate", "Export Polygons (Quads & NGons) as Triangles");
 	RNA_def_enum(func, "quad_method", rna_enum_modifier_triangulate_quad_method_items, 0, "Quad Method", "Method for splitting the quads into triangles");

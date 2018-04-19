@@ -3441,7 +3441,7 @@ static void nodelink_batch_init(void)
 	Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format_ex(&format, GWN_USAGE_STATIC);
 	int vcount = LINK_RESOL * 2; /* curve */
 	vcount += 2; /* restart strip */
-	vcount += 3*2; /* arrow */
+	vcount += 3 * 2; /* arrow */
 	vcount *= 2; /* shadow */
 	vcount += 2; /* restart strip */
 	GWN_vertbuf_data_alloc(vbo, vcount);
@@ -3458,7 +3458,7 @@ static void nodelink_batch_init(void)
 
 		/* curve strip */
 		for (int i = 0; i < LINK_RESOL; ++i) {
-			uv[0] = 255 * (i / (float)(LINK_RESOL-1));
+			uv[0] = 255 * (i / (float)(LINK_RESOL - 1));
 			uv[1] = 0;
 			set_nodelink_vertex(vbo, uv_id, pos_id, expand_id, v++, uv, pos, exp);
 			uv[1] = 255;

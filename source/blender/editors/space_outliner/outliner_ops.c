@@ -288,7 +288,8 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
  * It will fail when there is no next/prev TreeElement, or when the
  * element is an Override or something else in the future.
  */
-static bool tree_element_is_collection_get(const TreeElement *te) {
+static bool tree_element_is_collection_get(const TreeElement *te)
+{
 	if (te == NULL) {
 		return false;
 	}

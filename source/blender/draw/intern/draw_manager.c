@@ -496,7 +496,7 @@ static void drw_viewport_var_init(void)
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 {
 	BLI_assert(type >= 0 && type < DRW_MAT_COUNT);
-	BLI_assert(((DST.override_mat & (1 << type)) != 0)|| DST.draw_ctx.rv3d != NULL); /* Can't use this in render mode. */
+	BLI_assert(((DST.override_mat & (1 << type)) != 0) || DST.draw_ctx.rv3d != NULL); /* Can't use this in render mode. */
 
 	copy_m4_m4(mat, DST.view_data.matstate.mat[type]);
 }
@@ -905,8 +905,8 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 		case OB_SOLID:
 			if (drawtype_solid == OB_LIGHTING_FLAT) {
 				use_drw_engine(&draw_engine_workbench_solid_flat);
-
-			} else if (drawtype_solid == OB_LIGHTING_STUDIO) {
+			}
+			else if (drawtype_solid == OB_LIGHTING_STUDIO) {
 				use_drw_engine(&draw_engine_workbench_solid_studio);
 
 			}
@@ -1465,8 +1465,8 @@ static void draw_select_framebuffer_setup(const rcti *rect)
 
 	/* If size mismatch recreate the texture. */
 	if ((g_select_buffer.texture_depth != NULL) &&
-		((GPU_texture_width(g_select_buffer.texture_depth) != BLI_rcti_size_x(rect)) ||
-		(GPU_texture_height(g_select_buffer.texture_depth) != BLI_rcti_size_y(rect))))
+	    ((GPU_texture_width(g_select_buffer.texture_depth) != BLI_rcti_size_x(rect)) ||
+	     (GPU_texture_height(g_select_buffer.texture_depth) != BLI_rcti_size_y(rect))))
 	{
 		GPU_texture_free(g_select_buffer.texture_depth);
 		g_select_buffer.texture_depth = NULL;

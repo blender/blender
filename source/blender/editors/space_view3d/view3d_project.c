@@ -400,7 +400,7 @@ bool ED_view3d_win_to_ray(
         const ARegion *ar, const View3D *v3d, const float mval[2],
         float r_ray_start[3], float r_ray_normal[3], const bool do_clip)
 {
-	return ED_view3d_win_to_ray_ex(depsgraph,ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
+	return ED_view3d_win_to_ray_ex(depsgraph, ar, v3d, mval, NULL, r_ray_normal, r_ray_start, do_clip);
 }
 
 /**

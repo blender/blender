@@ -2558,7 +2558,7 @@ GPUMaterial *GPU_material_from_nodetree(
 
 /* Calls this function if /a mat was created with deferred compilation.  */
 void GPU_material_generate_pass(
-		GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
+        GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines)
 {
 	BLI_assert(mat->pass == NULL); /* Only run once! */
 	if (mat->outlink) {

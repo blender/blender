@@ -71,7 +71,7 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 	WORKBENCH_StorageList *stl = data->stl;
 
 	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
-	const float* color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
+	const float *color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
 
 	if (!DRW_object_is_renderable(ob))
 		return;
@@ -90,7 +90,7 @@ static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 
 static void workbench_solid_flat_cache_finish(void *vedata)
 {
-	workbench_materials_cache_finish((WORKBENCH_Data*)vedata);
+	workbench_materials_cache_finish((WORKBENCH_Data *)vedata);
 }
 
 static void workbench_solid_flat_draw_scene(void *vedata)

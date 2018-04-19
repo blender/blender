@@ -84,7 +84,6 @@
 #include "BKE_editlattice.h"
 #include "BKE_editmesh.h"
 #include "BKE_report.h"
-#include "BKE_object.h"
 #include "BKE_workspace.h"
 #include "BKE_layer.h"
 
@@ -1704,16 +1703,16 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
 	MoveToCollectionData *menu = menu_v;
 
 	uiItemIntO(layout,
-			   menu->collection->name,
-			   ICON_NONE,
-			   "OBJECT_OT_move_to_collection",
-			   "collection_index",
-			   menu->index);
+	           menu->collection->name,
+	           ICON_NONE,
+	           "OBJECT_OT_move_to_collection",
+	           "collection_index",
+	           menu->index);
 	uiItemS(layout);
 
 	for (MoveToCollectionData *submenu = menu->submenus.first;
-		 submenu != NULL;
-		 submenu = submenu->next)
+	     submenu != NULL;
+	     submenu = submenu->next)
 	{
 		move_to_collection_menus_items(layout, submenu);
 	}

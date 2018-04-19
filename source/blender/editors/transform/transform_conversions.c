@@ -1612,6 +1612,11 @@ static int bezt_select_to_transform_triple_flag(
 
 static void createTransCurveVerts(TransInfo *t)
 {
+
+#define SEL_F1 (1 << 0)
+#define SEL_F2 (1 << 1)
+#define SEL_F3 (1 << 2)
+
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 
 		Curve *cu = tc->obedit->data;
@@ -1628,10 +1633,6 @@ static void createTransCurveVerts(TransInfo *t)
 
 		/* to be sure */
 		if (cu->editnurb == NULL) return;
-
-	#define SEL_F1 (1 << 0)
-	#define SEL_F2 (1 << 1)
-	#define SEL_F3 (1 << 2)
 
 		/* count total of vertices, check identical as in 2nd loop for making transdata! */
 		nurbs = BKE_curve_editNurbs_get(cu);
@@ -2644,11 +2645,11 @@ static void createTransEditVerts(TransInfo *t)
 			 * correction with quats, relative to the coordinates after
 			 * the modifiers that support deform matrices (defcos) */
 
-	#if 0	/* TODO, fix crazyspace+extrude so it can be enabled for general use - campbell */
+#if 0	/* TODO, fix crazyspace+extrude so it can be enabled for general use - campbell */
 			if ((totleft > 0) || (totleft == -1))
-	#else
+#else
 			if (totleft > 0)
-	#endif
+#endif
 			{
 				mappedcos = BKE_crazyspace_get_mapped_editverts(t->depsgraph, t->scene, tc->obedit);
 				quats = MEM_mallocN(em->bm->totvert * sizeof(*quats), "crazy quats");
@@ -2793,13 +2794,13 @@ void flushTransNodes(TransInfo *t)
 			float locx, locy;
 
 			/* weirdo - but the node system is a mix of free 2d elements and dpi sensitive UI */
-	#ifdef USE_NODE_CENTER
+#ifdef USE_NODE_CENTER
 			locx = (td2d->loc[0] - (BLI_rctf_size_x(&node->totr)) * +0.5f) / dpi_fac;
 			locy = (td2d->loc[1] - (BLI_rctf_size_y(&node->totr)) * -0.5f) / dpi_fac;
-	#else
+#else
 			locx = td2d->loc[0] / dpi_fac;
 			locy = td2d->loc[1] / dpi_fac;
-	#endif
+#endif
 
 			/* account for parents (nested nodes) */
 			if (node->parent) {

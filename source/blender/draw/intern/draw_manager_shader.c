@@ -90,7 +90,7 @@ static void drw_deferred_shader_free(DRWDeferredShader *dsh)
 static void drw_deferred_shader_queue_free(ListBase *queue)
 {
 	DRWDeferredShader *dsh;
-	while((dsh = BLI_pophead(queue))) {
+	while ((dsh = BLI_pophead(queue))) {
 		drw_deferred_shader_free(dsh);
 	}
 }

@@ -1028,7 +1028,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
  * efficient than simple glUniform calls. */
 #define ICON_DRAW_CACHE_SIZE 16
 
-typedef struct IconDrawCall{
+typedef struct IconDrawCall {
 	rctf pos;
 	rctf tex;
 	float color[4];

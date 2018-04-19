@@ -22,7 +22,7 @@
 /** \file workbench_materials.c
  *  \ingroup draw_engine
  */
- 
+
 #include "workbench_private.h"
 #include "GPU_shader.h"
 
@@ -32,7 +32,7 @@ static struct {
 
 	/* Solid flat mode */
 	struct GPUShader *solid_flat_sh;
-	
+
 	/* Solid studio mode */
 	struct GPUShader *solid_studio_sh;
 
@@ -46,22 +46,24 @@ extern char datatoc_workbench_studio_vert_glsl[];
 extern char datatoc_workbench_diffuse_lib_glsl[];
 
 /* Functions */
-static uint get_material_hash(const float color[3]) {
+static uint get_material_hash(const float color[3])
+{
 	uint r = (uint)(color[0] * 512);
 	uint g = (uint)(color[1] * 512);
 	uint b = (uint)(color[2] * 512);
-	
+
 	return r + g * 4096 + b * 4096 * 4096;
 }
 
-WORKBENCH_MaterialData* workbench_get_or_create_solid_flat_material_data(WORKBENCH_Data *vedata, const float color[3]) {
+WORKBENCH_MaterialData *workbench_get_or_create_solid_flat_material_data(WORKBENCH_Data *vedata, const float color[3])
+{
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
-	WORKBENCH_PrivateData* wpd = stl->g_data;
-	
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+
 	uint hash = get_material_hash(color);
 	WORKBENCH_MaterialData *material;
-	
+
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), "WORKBENCH_MaterialData");
@@ -75,14 +77,15 @@ WORKBENCH_MaterialData* workbench_get_or_create_solid_flat_material_data(WORKBEN
 	return material;
 }
 
-WORKBENCH_MaterialData* workbench_get_or_create_solid_studio_material_data(WORKBENCH_Data *vedata, const float color[3]) {
+WORKBENCH_MaterialData *workbench_get_or_create_solid_studio_material_data(WORKBENCH_Data *vedata, const float color[3])
+{
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
-	WORKBENCH_PrivateData* wpd = stl->g_data;
-	
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+
 	uint hash = get_material_hash(color);
 	WORKBENCH_MaterialData *material;
-	
+
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), "WORKBENCH_MaterialData");
@@ -96,7 +99,8 @@ WORKBENCH_MaterialData* workbench_get_or_create_solid_studio_material_data(WORKB
 	return material;
 }
 
-void workbench_materials_engine_init(void) {
+void workbench_materials_engine_init(void)
+{
 	if (!e_data.depth_sh) {
 		/* Depth pass */
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
@@ -107,22 +111,25 @@ void workbench_materials_engine_init(void) {
 	}
 }
 
-void workbench_materials_engine_finish(void) {
+void workbench_materials_engine_finish(void)
+{
 	DRW_SHADER_FREE_SAFE(e_data.solid_flat_sh);
 	DRW_SHADER_FREE_SAFE(e_data.solid_studio_sh);
 }
 
-void workbench_materials_cache_init(WORKBENCH_Data *vedata) {
-	WORKBENCH_StorageList* stl = vedata->stl;
-	WORKBENCH_PassList* psl = vedata->psl;
-	WORKBENCH_PrivateData* wpd = stl->g_data;
-	
+void workbench_materials_cache_init(WORKBENCH_Data *vedata)
+{
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PassList *psl = vedata->psl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+
 	wpd->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 	wpd->material_hash = BLI_ghash_ptr_new("Workbench material_hash");
 }
 
-void workbench_materials_cache_finish(WORKBENCH_Data *vedata) {
-	WORKBENCH_StorageList* stl = vedata->stl;
-	WORKBENCH_PrivateData* wpd = stl->g_data;
+void workbench_materials_cache_finish(WORKBENCH_Data *vedata)
+{
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
 	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
 }

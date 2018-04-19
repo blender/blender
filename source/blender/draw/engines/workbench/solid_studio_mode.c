@@ -90,7 +90,7 @@ static void workbench_solid_studio_cache_populate(void *vedata, Object *ob)
 
 static void workbench_solid_studio_cache_finish(void *vedata)
 {
-	workbench_materials_cache_finish((WORKBENCH_Data*)vedata);
+	workbench_materials_cache_finish((WORKBENCH_Data *)vedata);
 }
 
 static void workbench_solid_studio_draw_scene(void *vedata)

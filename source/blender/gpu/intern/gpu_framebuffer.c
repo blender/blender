@@ -210,8 +210,8 @@ static void gpu_framebuffer_texture_attach_ex(GPUFrameBuffer *fb, GPUTexture *te
 	GPUAttachment *attachment = &fb->attachments[type];
 
 	if ((attachment->tex == tex) &&
-		(attachment->mip == mip) &&
-		(attachment->layer == layer))
+	    (attachment->mip == mip) &&
+	    (attachment->layer == layer))
 	{
 		return; /* Exact same texture already bound here. */
 	}
@@ -543,7 +543,7 @@ void GPU_framebuffer_blit(
 		BLI_assert(GPU_texture_format(read_tex) == GPU_texture_format(write_tex));
 	}
 	if (GPU_texture_samples(write_tex) != 0 ||
-		GPU_texture_samples(read_tex) != 0)
+	    GPU_texture_samples(read_tex) != 0)
 	{
 		/* Can only blit multisample textures to another texture of the same size. */
 		BLI_assert((fb_read->width == fb_write->width) &&

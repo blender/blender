@@ -2066,7 +2066,7 @@ static bool outliner_element_visible_get(ViewLayer *view_layer, TreeElement *te,
 		}
 	}
 	else if (te->parent != NULL &&
-	    TREESTORE(te->parent)->type == 0 && te->parent->idcode == ID_OB)
+	         TREESTORE(te->parent)->type == 0 && te->parent->idcode == ID_OB)
 	{
 		if (exclude_filter & SO_FILTER_NO_OB_CONTENT) {
 			return false;

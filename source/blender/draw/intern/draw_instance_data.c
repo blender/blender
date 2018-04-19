@@ -297,13 +297,13 @@ static DRWInstanceData *drw_instance_data_create(
 	BLI_assert(attrib_size > 0);
 
 	/* Push to linked list. */
-	if (idatalist->idata_head[attrib_size-1] == NULL) {
-		idatalist->idata_head[attrib_size-1] = idata;
+	if (idatalist->idata_head[attrib_size - 1] == NULL) {
+		idatalist->idata_head[attrib_size - 1] = idata;
 	}
 	else {
-		idatalist->idata_tail[attrib_size-1]->next = idata;
+		idatalist->idata_tail[attrib_size - 1]->next = idata;
 	}
-	idatalist->idata_tail[attrib_size-1] = idata;
+	idatalist->idata_tail[attrib_size - 1] = idata;
 
 	return idata;
 }

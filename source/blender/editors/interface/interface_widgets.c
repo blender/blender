@@ -1131,8 +1131,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 		}
 	}
 
-	if (wtb->tria1.type != ROUNDBOX_TRIA_NONE)
-	{
+	if (wtb->tria1.type != ROUNDBOX_TRIA_NONE) {
 		tria_col[0] = wcol->item[0];
 		tria_col[1] = wcol->item[1];
 		tria_col[2] = wcol->item[2];
@@ -1162,7 +1161,7 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 		/* for each AA step */
 		immBegin(GWN_PRIM_TRIS, (wtb->tria1.tot + wtb->tria2.tot) * 3 * WIDGET_AA_JITTER);
-		if (wtb->tria1.tot){
+		if (wtb->tria1.tot) {
 			shape_preset_draw_trias_aa(&wtb->tria1, pos);
 		}
 		if (wtb->tria2.tot) {

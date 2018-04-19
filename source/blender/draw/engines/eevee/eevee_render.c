@@ -256,8 +256,8 @@ static void eevee_render_result_normal(
 			}
 
 			float fenc[2];
-			fenc[0] = rp->rect[i+0] * 4.0f - 2.0f;
-			fenc[1] = rp->rect[i+1] * 4.0f - 2.0f;
+			fenc[0] = rp->rect[i + 0] * 4.0f - 2.0f;
+			fenc[1] = rp->rect[i + 1] * 4.0f - 2.0f;
 
 			float f = dot_v2v2(fenc, fenc);
 			float g = sqrtf(1.0f - f / 4.0f);
@@ -360,7 +360,7 @@ static void eevee_render_result_occlusion(
 
 		/* This is the accumulated color. Divide by the number of samples. */
 		for (int i = 0; i < rp->rectx * rp->recty * 3; i += 3) {
-			rp->rect[i] = rp->rect[i + 1] = rp->rect[i+2] = min_ff(1.0f, rp->rect[i] / (float)render_samples);
+			rp->rect[i] = rp->rect[i + 1] = rp->rect[i + 2] = min_ff(1.0f, rp->rect[i] / (float)render_samples);
 		}
 	}
 }
@@ -483,7 +483,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 		char info[42];
-		BLI_snprintf(info, sizeof(info), "Rendering %u / %u samples", render_samples+1, tot_sample);
+		BLI_snprintf(info, sizeof(info), "Rendering %u / %u samples", render_samples + 1, tot_sample);
 		RE_engine_update_stats(engine, NULL, info);
 
 		/* Refresh Shadows */

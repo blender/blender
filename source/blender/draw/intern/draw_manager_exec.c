@@ -462,12 +462,12 @@ static void draw_clipping_setup_from_view(void)
 	for (int p = 0; p < 6; p++) {
 		int q, r;
 		switch (p) {
-			case 0:  q=1; r=2; break;
-			case 1:  q=0; r=5; break;
-			case 2:  q=1; r=5; break;
-			case 3:  q=2; r=6; break;
-			case 4:  q=0; r=3; break;
-			default: q=4; r=7; break;
+			case 0:  q = 1; r = 2; break;
+			case 1:  q = 0; r = 5; break;
+			case 2:  q = 1; r = 5; break;
+			case 3:  q = 2; r = 6; break;
+			case 4:  q = 0; r = 3; break;
+			default: q = 4; r = 7; break;
 		}
 		if (DST.frontface == GL_CW) {
 			SWAP(int, q, r);
@@ -573,8 +573,8 @@ static void draw_clipping_setup_from_view(void)
 		/* the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case */
 		z = (F-N) / (2.0f * (e-s + c*(f-n)));
 
-		bsphere->center[0] = farcenter[0] * z/e;
-		bsphere->center[1] = farcenter[1] * z/e;
+		bsphere->center[0] = farcenter[0] * z / e;
+		bsphere->center[1] = farcenter[1] * z / e;
 		bsphere->center[2] = z;
 		bsphere->radius = len_v3v3(bsphere->center, farpoint);
 

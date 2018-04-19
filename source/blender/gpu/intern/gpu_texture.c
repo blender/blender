@@ -471,8 +471,8 @@ static GPUTexture *GPU_texture_create_nD(
 
 	/* Texture Parameters */
 	if (GPU_texture_stencil(tex) || /* Does not support filtering */
-		GPU_texture_integer(tex) || /* Does not support filtering */
-		GPU_texture_depth(tex))
+	    GPU_texture_integer(tex) || /* Does not support filtering */
+	    GPU_texture_depth(tex))
 	{
 		glTexParameteri(tex->target_base, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(tex->target_base, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/gpu/intern/gpu_basic_shader.c
+/** \file blender/gpu/intern/gpu_batch.c
  *  \ingroup gpu
  */
 
