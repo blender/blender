@@ -898,6 +898,11 @@ void texco_norm(vec3 normal, out vec3 outnormal)
 	outnormal = normalize(normal);
 }
 
+vec3 mtex_2d_mapping(vec3 vec)
+{
+	return vec3(vec.xy * 0.5 + vec2(0.5), vec.z);
+}
+
 /** helper method to extract the upper left 3x3 matrix from a 4x4 matrix */
 mat3 to_mat3(mat4 m4)
 {
@@ -1204,6 +1209,9 @@ void node_subsurface_scattering(
 	result.sss_data.rgb *= mix(vec3(1.0), color.rgb, texture_blur);
 #else
 	result.sss_data.rgb *= color.rgb;
+#endif
+#else
+	node_bsdf_diffuse(color, 0.0, N, result);
 #endif
 }
 
