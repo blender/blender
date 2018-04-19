@@ -520,7 +520,6 @@ class USERPREF_PT_system(Panel):
         col = colsplit.column()
         col.label(text="OpenGL:")
         col.prop(system, "gl_clip_alpha", slider=True)
-        col.prop(system, "use_mipmaps")
         col.prop(system, "use_gpu_mipmap")
         col.prop(system, "use_16bit_textures")
 
