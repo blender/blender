@@ -903,10 +903,11 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			break;
 
 		case OB_SOLID:
-			if (drawtype_solid == OB_LIGHTING_FLAT) {
+			if (drawtype_solid == V3D_LIGHTING_FLAT) {
 				use_drw_engine(&draw_engine_workbench_solid_flat);
-			}
-			else if (drawtype_solid == OB_LIGHTING_STUDIO) {
+
+			} 
+			else if (drawtype_solid == V3D_LIGHTING_STUDIO) {
 				use_drw_engine(&draw_engine_workbench_solid_studio);
 
 			}
@@ -1948,6 +1949,7 @@ void DRW_engines_register(void)
 	RE_engines_register(NULL, &DRW_engine_viewport_workbench_type);
 
 	DRW_engine_register(&draw_engine_workbench_solid_flat);
+	DRW_engine_register(&draw_engine_workbench_solid_studio);
 
 	DRW_engine_register(&draw_engine_object_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);

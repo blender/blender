@@ -74,6 +74,16 @@ typedef struct View3DDebug {
 } View3DDebug;
 
 /* ********************************* */
+enum {
+	V3D_LIGHTING_FLAT   = 0,
+	V3D_LIGHTING_STUDIO = 1,
+	V3D_LIGHTING_SCENE  = 2
+};
+
+enum {
+	V3D_OBJECT_COLOR_COLLECTION = 0,
+	V3D_OBJECT_COLOR_OBJECT     = 1,
+};
 
 typedef struct RegionView3D {
 	

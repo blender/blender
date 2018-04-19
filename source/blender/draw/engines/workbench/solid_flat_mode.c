@@ -68,24 +68,7 @@ static void workbench_solid_flat_cache_init(void *vedata)
 static void workbench_solid_flat_cache_populate(void *vedata, Object *ob)
 {
 	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
-	WORKBENCH_StorageList *stl = data->stl;
-
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
-	const float *color = BKE_collection_engine_property_value_get_float_array(props, "object_color");
-
-	if (!DRW_object_is_renderable(ob))
-		return;
-
-	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
-	WORKBENCH_MaterialData *material;
-	if (geom) {
-		/* Depth */
-		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
-
-		/* Solid */
-		material = workbench_get_or_create_solid_flat_material_data(data, color);
-		DRW_shgroup_call_add(material->shgrp, geom, ob->obmat);
-	}
+	workbench_materials_solid_cache_populate(data, ob, V3D_LIGHTING_FLAT);
 }
 
 static void workbench_solid_flat_cache_finish(void *vedata)

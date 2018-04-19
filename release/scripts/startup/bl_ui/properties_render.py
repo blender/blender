@@ -907,7 +907,9 @@ class RENDER_PT_workbench_collection_settings(RenderButtonsPanel, Panel):
         props = context.scene.collection_properties['BLENDER_WORKBENCH']
 
         col = layout.column()
-        col.prop(props, "object_color")
+        col.prop(props, "object_color_type")
+        if props.object_color_type == 'COLLECTION':
+            col.prop(props, "object_color")
 
 
 classes = (

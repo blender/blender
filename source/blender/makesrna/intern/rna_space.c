@@ -183,15 +183,15 @@ const EnumPropertyItem rna_enum_viewport_shade_items[] = {
 };
 
 const EnumPropertyItem rna_enum_viewport_shade_solid_items[] = {
-	{OB_LIGHTING_FLAT, "FLAT", ICON_SOLID, "Flat Lighting", "Display using flat lighting"},
-	{OB_LIGHTING_STUDIO, "STUDIO", ICON_SOLID, "Studio Lighting", "Display using studio lighting"},
-	// {OB_LIGHTING_SCENE, "SCENE", ICON_SOLID, "Scene Lighting", "Display using scene lighting"},
+	{V3D_LIGHTING_FLAT, "FLAT", ICON_SOLID, "Flat Lighting", "Display using flat lighting"},
+	{V3D_LIGHTING_STUDIO, "STUDIO", ICON_SOLID, "Studio Lighting", "Display using studio lighting"},
+	/* {V3D_LIGHTING_SCENE, "SCENE", ICON_SOLID, "Scene Lighting", "Display using scene lighting"}, */
 	{0, NULL, 0, NULL, NULL}
 };
 const EnumPropertyItem rna_enum_viewport_shade_texture_items[] = {
-	{OB_LIGHTING_FLAT, "FLAT", ICON_POTATO, "Flat Lighting", "Display using flat lighting"},
-	{OB_LIGHTING_STUDIO, "STUDIO", ICON_POTATO, "Studio Lighting", "Display using studio lighting"},
-	// {OB_LIGHTING_SCENE, "SCENE", ICON_POTATO, "Scene Lighting", "Display using scene lighting"},
+	{V3D_LIGHTING_FLAT, "FLAT", ICON_POTATO, "Flat Lighting", "Display using flat lighting"},
+	{V3D_LIGHTING_STUDIO, "STUDIO", ICON_POTATO, "Studio Lighting", "Display using studio lighting"},
+	/* {V3D_LIGHTING_SCENE, "SCENE", ICON_POTATO, "Scene Lighting", "Display using scene lighting"}, */
 	{0, NULL, 0, NULL, NULL}
 };
 

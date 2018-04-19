@@ -446,12 +446,6 @@ enum {
 	OB_PAINT     = 100,  /* temporary used in draw code */
 };
 
-enum {
-	OB_LIGHTING_FLAT   = 0,
-	OB_LIGHTING_STUDIO = 1,
-	OB_LIGHTING_SCENE  = 2
-};
-
 /* dtx: flags (short) */
 enum {
 	OB_DRAWBOUNDOX    = 1 << 0,

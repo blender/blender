@@ -28,6 +28,7 @@
 
 
 #include "DRW_render.h"
+#include "DNA_view3d_types.h"
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 
@@ -78,8 +79,7 @@ void workbench_solid_materials_free(void);
 void workbench_materials_engine_init(void);
 void workbench_materials_engine_finish(void);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
-WORKBENCH_MaterialData *workbench_get_or_create_solid_flat_material_data(WORKBENCH_Data *vedata, const float color[3]);
-WORKBENCH_MaterialData *workbench_get_or_create_solid_studio_material_data(WORKBENCH_Data *vedata, const float color[3]);
+void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob, int lighting_mode);
 void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
 
 

@@ -26,6 +26,7 @@
 
 #include "DNA_scene_types.h"
 #include "DNA_layer_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BLI_math.h"
 #include "BLI_string_utils.h"
@@ -312,6 +313,9 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 #define RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(_NAME_, _LEN_) \
 	RNA_LAYER_ENGINE_GET_SET_ARRAY(float, Workbench, COLLECTION_MODE_NONE, _NAME_, _LEN_)
 
+#define RNA_LAYER_ENGINE_WORKBENCH_GET_SET_INT(_NAME_) \
+	RNA_LAYER_ENGINE_GET_SET(int, Workbench, COLLECTION_MODE_NONE, _NAME_)
+
 /* mode engines */
 
 #define RNA_LAYER_MODE_OBJECT_GET_SET_FLOAT(_NAME_) \
@@ -359,6 +363,7 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 /* workbench engine */
 /* LayerCollection settings. */
 RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(object_color, 3)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_INT(object_color_type)
 
 /* eevee engine */
 /* ViewLayer settings. */
@@ -1662,21 +1667,35 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 }
 #endif /* WITH_CLAY_ENGINE */
 
+/* Workbench engine */
 static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
-	
+
+	static const EnumPropertyItem object_color_type_items[] = {
+		{V3D_OBJECT_COLOR_COLLECTION, "COLLECTION", 0, "Collection", ""},
+		{V3D_OBJECT_COLOR_OBJECT,     "OBJECT",     0, "Object",     ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsWorkbench", "LayerCollectionSettings");
-	RNA_def_struct_ui_text(srna, "Collections Workbench Engine Settings", "Engine specific settings for this collection");
+	RNA_def_struct_ui_text(srna, "Collections Workbench Engine Settings", "Workbench specific settings for this collection");
 
 	RNA_define_verify_sdna(0); /* not in sdna */
+
+	prop = RNA_def_property(srna, "object_color_type", PROP_ENUM, PROP_COLOR);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Workbench_object_color_type_get", "rna_LayerEngineSettings_Workbench_object_color_type_set", NULL);
+	RNA_def_property_enum_items(prop, object_color_type_items);
+	RNA_def_property_ui_text(prop, "Object Color", "Way colors are given to the Object");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 
 	prop = RNA_def_property(srna, "object_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_object_color_get",
 	                             "rna_LayerEngineSettings_Workbench_object_color_set", NULL);
-	RNA_def_property_ui_text(prop, "Object Color", "Color for Drawing Objects");
+	RNA_def_property_ui_text(prop, "Collection Color", "Color for Drawing Objects in this Collection");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 }

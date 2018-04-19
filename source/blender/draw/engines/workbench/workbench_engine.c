@@ -49,6 +49,7 @@ static void workbench_layer_collection_settings_create(RenderEngine *UNUSED(engi
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
 	float default_object_color[3] = {1.0, 1.0, 1.0};
+	BKE_collection_engine_property_add_int(props, "object_color_type", V3D_OBJECT_COLOR_COLLECTION);
 	BKE_collection_engine_property_add_float_array(props, "object_color", default_object_color, 3);
 }
 
