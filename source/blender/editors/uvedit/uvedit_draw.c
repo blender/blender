@@ -414,8 +414,6 @@ static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, co
 		index += efa->len;
 	}
 	GWN_batch_program_use_end(loop_batch);
-
-	GWN_vertbuf_discard(loop_batch->verts[0]);
 	GWN_batch_discard(loop_batch);
 
 	immUnbindProgram();
@@ -908,7 +906,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 					immEnd();
 
 					GWN_batch_draw(flat_edges_batch);
-					GWN_vertbuf_discard(flat_edges_batch->verts[0]);
 					GWN_batch_discard(flat_edges_batch);
 
 					immUnbindProgram();
@@ -937,7 +934,6 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 		immUnbindProgram();
 	}
 
-	GWN_vertbuf_discard(loop_vbo);
 	GWN_batch_discard(loop_batch);
 
 	if (sima->flag & SI_SMOOTH_UV) {
