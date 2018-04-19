@@ -743,6 +743,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 			/* XXX performance: we should not create and throw away result. */
 			GWN_batch_draw(face_batch);
 			GWN_batch_program_use_end(face_batch);
+			GWN_vertbuf_discard(face_batch->verts[0]);
 			GWN_batch_discard(face_batch);
 
 			immUnbindProgram();
