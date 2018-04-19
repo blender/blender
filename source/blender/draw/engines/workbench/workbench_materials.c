@@ -118,7 +118,6 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 
 		const float *color = get_material_solid_color(ob);
 		uint hash = get_material_hash(color);
-		WORKBENCH_MaterialData *material;
 
 		material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 		if (material == NULL) {
