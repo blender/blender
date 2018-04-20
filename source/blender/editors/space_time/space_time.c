@@ -752,6 +752,12 @@ static SpaceLink *time_new(const bContext *C)
 
 	stime->spacetype = SPACE_TIME;
 	stime->flag |= TIME_DRAWFRAMES;
+	
+	/* enable all cache display */
+	stime->cache_display |= TIME_CACHE_DISPLAY;
+	stime->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
+	stime->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
+	stime->cache_display |= TIME_CACHE_RIGIDBODY;
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for time");
@@ -796,13 +802,7 @@ static SpaceLink *time_new(const bContext *C)
 /* validate spacedata, add own area level handlers */
 static void time_init(wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
-	SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
-	
-	/* enable all cache display */
-	stime->cache_display |= TIME_CACHE_DISPLAY;
-	stime->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
-	stime->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
-	stime->cache_display |= TIME_CACHE_RIGIDBODY;
+	//SpaceTime *stime = (SpaceTime *)sa->spacedata.first;
 }
 
 static SpaceLink *time_duplicate(SpaceLink *sl)

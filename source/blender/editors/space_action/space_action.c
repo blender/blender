@@ -107,6 +107,12 @@ static SpaceLink *action_new(const bContext *C)
 	
 	saction->ads.filterflag |= ADS_FILTER_SUMMARY;
 	
+	/* enable all cache display */
+	saction->cache_display |= TIME_CACHE_DISPLAY;
+	saction->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
+	saction->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
+	saction->cache_display |= TIME_CACHE_RIGIDBODY;
+	
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for action");
 	
@@ -176,12 +182,6 @@ static void action_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 	SpaceAction *saction = sa->spacedata.first;
 	
 	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
-	
-	/* enable all cache display */
-	saction->cache_display |= TIME_CACHE_DISPLAY;
-	saction->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
-	saction->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
-	saction->cache_display |= TIME_CACHE_RIGIDBODY;
 }
 
 static SpaceLink *action_duplicate(SpaceLink *sl)
