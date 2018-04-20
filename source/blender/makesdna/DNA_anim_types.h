@@ -840,18 +840,18 @@ typedef enum eKS_Settings {
 
 /* Flags for use by keyframe creation/deletion calls */
 typedef enum eInsertKeyFlags {
-	INSERTKEY_NOFLAGS   = 0,
+	INSERTKEY_NOFLAGS       = 0,
 	INSERTKEY_NEEDED 	= (1<<0),	/* only insert keyframes where they're needed */
 	INSERTKEY_MATRIX 	= (1<<1),	/* insert 'visual' keyframes where possible/needed */
 	INSERTKEY_FAST 		= (1<<2),	/* don't recalculate handles,etc. after adding key */
 	INSERTKEY_FASTR		= (1<<3),	/* don't realloc mem (or increase count, as array has already been set out) */
 	INSERTKEY_REPLACE 	= (1<<4),	/* only replace an existing keyframe (this overrides INSERTKEY_NEEDED) */
 	INSERTKEY_XYZ2RGB	= (1<<5),	/* transform F-Curves should have XYZ->RGB color mode */
-	INSERTKEY_NO_USERPREF	= (1 << 6),	/* ignore user-prefs (needed for predictable API use) */
+	INSERTKEY_NO_USERPREF	= (1<<6),	/* ignore user-prefs (needed for predictable API use) */
 	/* Allow to make a full copy of new key into existing one, if any, instead of 'reusing' existing handles.
 	 * Used by copy/paste code. */
 	INSERTKEY_OVERWRITE_FULL = (1<<7),
-	INSERTKEY_DRIVER    = (1<<8),	/* for driver FCurves, use driver's "input" value - for easier corrective driver setup */
+	INSERTKEY_DRIVER         = (1<<8),	/* for driver FCurves, use driver's "input" value - for easier corrective driver setup */
 } eInsertKeyFlags;
 
 /* ************************************************ */
