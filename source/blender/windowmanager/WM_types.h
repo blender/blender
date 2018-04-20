@@ -278,6 +278,7 @@ typedef struct wmNotifier {
 #define ND_LAYOUTSET		(7<<16)
 #define ND_SKETCH			(8<<16)
 #define ND_WORKSPACE_SET	(9<<16)
+#define ND_WORKSPACE_DELETE (10<<16)
 
 	/* NC_SCENE Scene */
 #define ND_SCENEBROWSE		(1<<16)

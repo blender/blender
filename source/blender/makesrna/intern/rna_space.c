@@ -87,6 +87,8 @@ const EnumPropertyItem rna_enum_space_type_items[] = {
 	                "advanced editing and script development"},
 	{SPACE_INFO, "INFO", ICON_INFO, "Info", "Main menu bar and list of error messages "
 	             "(drag down to expand and display)"},
+	/* Special case: Top-bar isn't supposed to be a regular editor for the user. */
+	{SPACE_TOPBAR, "TOPBAR", ICON_NONE, "Top Bar", "Global bar at the top of the screen for global per-window settings"},
 
 	/* Data */
 	{0, "", ICON_NONE, "Data", ""},
@@ -1806,6 +1808,7 @@ static void rna_def_space(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spacetype");
 	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
+	/* When making this editable, take care for the special case of global areas (see rna_Area_type_set). */
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Type", "Space data type");
 

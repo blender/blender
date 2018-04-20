@@ -96,9 +96,11 @@ void		WM_init_splash		(struct bContext *C);
 
 void		WM_check			(struct bContext *C);
 
-int			WM_window_pixels_x		(struct wmWindow *win);
-int			WM_window_pixels_y		(struct wmWindow *win);
-bool		WM_window_is_fullscreen	(struct wmWindow *win);
+int WM_window_pixels_x(const struct wmWindow *win);
+int WM_window_pixels_y(const struct wmWindow *win);
+int WM_window_screen_pixels_x(const struct wmWindow *win);
+int WM_window_screen_pixels_y(const struct wmWindow *win);
+bool WM_window_is_fullscreen(struct wmWindow *win);
 
 void WM_windows_scene_data_sync(const ListBase *win_lb, struct Scene *scene) ATTR_NONNULL();
 struct Scene *WM_windows_scene_get_from_screen(const struct wmWindowManager *wm, const struct bScreen *screen) ATTR_NONNULL() ATTR_WARN_UNUSED_RESULT;

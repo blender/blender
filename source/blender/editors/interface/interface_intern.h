@@ -330,6 +330,11 @@ struct uiBut {
 	uiBlock *block;
 };
 
+typedef struct uiButTab {
+	uiBut but;
+	struct wmOperatorType *unlink_ot;
+} uiButTab;
+
 typedef struct ColorPicker {
 	struct ColorPicker *next, *prev;
 	float color_data[3]; /* colr data may be HSV or HSL for now */
@@ -773,7 +778,7 @@ void ui_layout_list_set_labels_active(uiLayout *layout);
 
 /* interface_align.c */
 bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;
-void ui_block_align_calc(uiBlock *block);
+void ui_block_align_calc(uiBlock *block, const ARegion *region);
 
 /* interface_anim.c */
 void ui_but_anim_flag(uiBut *but, float cfra);

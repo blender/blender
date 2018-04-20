@@ -32,6 +32,7 @@
 #include <string.h>
 
 #include "DNA_windowmanager_types.h"
+#include "DNA_workspace_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -118,19 +119,30 @@ void CLIP_OT_properties(wmOperatorType *ot)
 
 static ARegion *clip_has_tools_region(ScrArea *sa)
 {
-	ARegion *ar, *artool = NULL, *arprops = NULL, *arhead;
+	ARegion *ar, *artool = NULL, *arhead;
+#ifndef WITH_REDO_REGION_REMOVAL
+	ARegion *arprops = NULL;
+#endif
 
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
 		if (ar->regiontype == RGN_TYPE_TOOLS)
 			artool = ar;
 
+#ifndef WITH_REDO_REGION_REMOVAL
 		if (ar->regiontype == RGN_TYPE_TOOL_PROPS)
 			arprops = ar;
+#endif
 	}
 
 	/* tool region hide/unhide also hides props */
-	if (arprops && artool)
+	if (artool
+#ifndef WITH_REDO_REGION_REMOVAL
+	    && arprops
+#endif
+	    )
+	{
 		return artool;
+	}
 
 	if (artool == NULL) {
 		/* add subdiv level; after header */
@@ -149,6 +161,7 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
 
+#ifndef WITH_REDO_REGION_REMOVAL
 	if (arprops == NULL) {
 		/* add extra subdivided region for tool properties */
 		arprops = MEM_callocN(sizeof(ARegion), "tool props for clip");
@@ -157,6 +170,7 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 		arprops->regiontype = RGN_TYPE_TOOL_PROPS;
 		arprops->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 	}
+#endif
 
 	return artool;
 }
@@ -189,11 +203,13 @@ void CLIP_OT_tools(wmOperatorType *ot)
 	ot->poll = tools_poll;
 }
 
+#ifndef WITH_REDO_REGION_REMOVAL
+
 /************************** redo panel ******************************/
 
 static void clip_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
-	uiTemplateOperatorPropertyButs(C, pa->layout, op, NULL, 'V', 0);
+	uiTemplateOperatorPropertyButs(C, pa->layout, op, NULL, UI_BUT_LABEL_ALIGN_COLUMN, 0);
 }
 
 static void clip_panel_operator_redo_header(const bContext *C, Panel *pa)
@@ -263,3 +279,4 @@ void ED_clip_tool_props_register(ARegionType *art)
 	pt->draw = clip_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }
+#endif

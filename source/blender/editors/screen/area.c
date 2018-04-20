@@ -1168,7 +1168,7 @@ static bool region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
 	return 0;
 }
 
-static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti *remainder, int quad)
+static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti *remainder, int quad, bool add_azones)
 {
 	rcti *remainder_prev = remainder;
 	int prefsizex, prefsizey;
@@ -1195,12 +1195,16 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	/* user errors */
 	if (ar->next == NULL && alignment != RGN_ALIGN_QSPLIT)
 		alignment = RGN_ALIGN_NONE;
-	
+
 	/* prefsize, for header we stick to exception (prevent dpi rounding error) */
-	prefsizex = UI_DPI_FAC * (ar->sizex > 1 ? ar->sizex + 0.5f : ar->type->prefsizex);
-	
+	const float sizex_dpi_fac = (ar->flag & RGN_SIZEX_DPI_APPLIED) ? 1.0f : UI_DPI_FAC;
+	prefsizex = sizex_dpi_fac * ((ar->sizex > 1) ? ar->sizex + 0.5f : ar->type->prefsizex);
+
 	if (ar->regiontype == RGN_TYPE_HEADER) {
 		prefsizey = ED_area_headersize();
+	}
+	else if (ED_area_is_global(sa)) {
+		prefsizey = ED_region_global_size_y();
 	}
 	else if (ar->regiontype == RGN_TYPE_UI && sa->spacetype == SPACE_FILE) {
 		prefsizey = UI_UNIT_Y * 2 + (UI_UNIT_Y / 2);
@@ -1397,7 +1401,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		 * but accounts for small common rounding problems when scaling the UI,
 		 * must be minimum '4' */
 	}
-	else {
+	else if (add_azones) {
 		const bScreen *screen = WM_window_get_active_screen(win);
 
 		if (ELEM(screen->state, SCREENNORMAL, SCREENMAXIMIZED)) {
@@ -1409,23 +1413,36 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		}
 	}
 
-	region_rect_recursive(win, sa, ar->next, remainder, quad);
+	region_rect_recursive(win, sa, ar->next, remainder, quad, add_azones);
 }
 
-static void area_calc_totrct(ScrArea *sa, int sizex, int sizey)
+static void area_calc_totrct(ScrArea *sa, int window_size_x, int window_size_y)
 {
-	short rt = (short) U.pixelsize;
+	short px = (short)U.pixelsize;
 
-	if (sa->v1->vec.x > 0) sa->totrct.xmin = sa->v1->vec.x + rt;
-	else sa->totrct.xmin = sa->v1->vec.x;
-	if (sa->v4->vec.x < sizex - 1) sa->totrct.xmax = sa->v4->vec.x - rt;
-	else sa->totrct.xmax = sa->v4->vec.x;
-	
-	if (sa->v1->vec.y > 0) sa->totrct.ymin = sa->v1->vec.y + rt;
-	else sa->totrct.ymin = sa->v1->vec.y;
-	if (sa->v2->vec.y < sizey - 1) sa->totrct.ymax = sa->v2->vec.y - rt;
-	else sa->totrct.ymax = sa->v2->vec.y;
-	
+	sa->totrct.xmin = sa->v1->vec.x;
+	sa->totrct.xmax = sa->v4->vec.x;
+	sa->totrct.ymin = sa->v1->vec.y;
+	sa->totrct.ymax = sa->v2->vec.y;
+
+	/* scale down totrct by 1 pixel on all sides not matching window borders */
+	if (sa->totrct.xmin > 0) {
+		sa->totrct.xmin += px;
+	}
+	if (sa->totrct.xmax < (window_size_x - 1)) {
+		sa->totrct.xmax -= px;
+	}
+	if (sa->totrct.ymin > 0) {
+		sa->totrct.ymin += px;
+	}
+	if (sa->totrct.ymax < (window_size_y - 1)) {
+		sa->totrct.ymax -= px;
+	}
+	BLI_assert(sa->totrct.xmin >= 0);
+	BLI_assert(sa->totrct.xmax >= 0);
+	BLI_assert(sa->totrct.ymin >= 0);
+	BLI_assert(sa->totrct.ymax >= 0);
+
 	/* for speedup */
 	sa->winx = BLI_rcti_size_x(&sa->totrct) + 1;
 	sa->winy = BLI_rcti_size_y(&sa->totrct) + 1;
@@ -1510,11 +1527,36 @@ static void ed_default_handlers(wmWindowManager *wm, ScrArea *sa, ListBase *hand
 	}
 }
 
+void screen_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *area)
+{
+	const int size_x = WM_window_pixels_x(win);
+	const int size_y = WM_window_pixels_y(win);
+	rcti rect;
+
+	area_calc_totrct(area, size_x, size_y);
+
+	/* region rect sizes */
+	rect = area->totrct;
+	region_rect_recursive(win, area, area->regionbase.first, &rect, 0, false);
+
+	for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
+		region_subwindow(ar);
+
+		/* region size may have changed, init does necessary adjustments */
+		if (ar->type->init) {
+			ar->type->init(wm, ar);
+		}
+	}
+
+	area->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
+}
 
 /* called in screen_refresh, or screens_init, also area size changes */
 void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 {
 	const bScreen *screen = WM_window_get_active_screen(win);
+	const int window_size_x = WM_window_pixels_x(win);
+	const int window_size_y = WM_window_pixels_y(win);
 	ARegion *ar;
 	rcti rect;
 	
@@ -1528,16 +1570,17 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
 		ar->type = BKE_regiontype_from_id(sa->type, ar->regiontype);
-	
+
 	/* area sizes */
-	area_calc_totrct(sa, WM_window_pixels_x(win), WM_window_pixels_y(win));
-	
+	area_calc_totrct(sa, window_size_x, window_size_y);
+
 	/* clear all azones, add the area triange widgets */
 	area_azone_initialize(win, screen, sa);
 
 	/* region rect sizes */
 	rect = sa->totrct;
-	region_rect_recursive(win, sa, sa->regionbase.first, &rect, 0);
+	region_rect_recursive(win, sa, sa->regionbase.first, &rect, 0, true);
+	sa->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 	
 	/* default area handlers */
 	ed_default_handlers(wm, sa, &sa->handlers, sa->type->keymapflag);
@@ -1832,6 +1875,18 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 
 /************************ standard UI regions ************************/
 
+static ThemeColorID region_background_color_id(const bContext *C, const ARegion *region)
+{
+	switch (region->regiontype) {
+		case RGN_TYPE_HEADER:
+			return ED_screen_area_active(C) ? TH_HEADER : TH_HEADERDESEL;
+		case RGN_TYPE_PREVIEW:
+			return TH_PREVIEW_BACK;
+		default:
+			return TH_BACK;
+	}
+}
+
 void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int contextnr, const bool vertical)
 {
 	const WorkSpace *workspace = CTX_wm_workspace(C);
@@ -2117,16 +2172,24 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	Header header = {NULL};
 	int maxco, xco, yco;
 	int headery = ED_area_headersize();
+	const int start_ofs = 0.4f * UI_UNIT_X;
+	bool region_layout_based = ar->flag & RGN_FLAG_DYNAMIC_SIZE;
 
 	/* clear */
-	UI_ThemeClearColor((ED_screen_area_active(C)) ? TH_HEADER : TH_HEADERDESEL);
+	UI_ThemeClearColor(region_background_color_id(C, ar));
 	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/* set view2d view matrix for scrolling (without scrollers) */
 	UI_view2d_view_ortho(&ar->v2d);
 
-	xco = maxco = 0.4f * UI_UNIT_X;
+	xco = maxco = start_ofs;
 	yco = headery - floor(0.2f * UI_UNIT_Y);
+
+	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
+	if (CTX_wm_area(C)->spacetype == SPACE_TOPBAR) {
+		xco += 1;
+		yco += 1;
+	}
 
 	/* draw all headers types */
 	for (ht = ar->type->headertypes.first; ht; ht = ht->next) {
@@ -2149,13 +2212,23 @@ void ED_region_header(const bContext *C, ARegion *ar)
 		/* for view2d */
 		if (xco > maxco)
 			maxco = xco;
-		
+
+		if (region_layout_based && (ar->sizex != (maxco + start_ofs))) {
+			/* region size is layout based and needs to be updated */
+			ScrArea *sa = CTX_wm_area(C);
+
+			ar->sizex = maxco + start_ofs;
+			UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_HEADER, ar->sizex, ar->winy);
+
+			sa->flag |= AREA_FLAG_REGION_SIZE_UPDATE;
+			ar->flag |= RGN_SIZEX_DPI_APPLIED;
+		}
 		UI_block_end(C, block);
 		UI_block_draw(C, block);
 	}
 
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, maxco + UI_UNIT_X + 80, headery);
+	UI_view2d_totRect_set(&ar->v2d, maxco + (region_layout_based ? 0 : UI_UNIT_X + 80), headery);
 
 	/* restore view matrix? */
 	UI_view2d_view_restore(C);
@@ -2170,6 +2243,31 @@ void ED_region_header_init(ARegion *ar)
 int ED_area_headersize(void)
 {
 	return (int)(HEADERY * UI_DPI_FAC);
+}
+
+/**
+ * \return the final height of a global \a area, accounting for DPI.
+ */
+int ED_area_global_size_y(const ScrArea *area)
+{
+	BLI_assert(ED_area_is_global(area));
+	return round_fl_to_int(area->global->cur_fixed_height * UI_DPI_FAC);
+}
+
+bool ED_area_is_global(const ScrArea *area)
+{
+	return area->global != NULL;
+}
+
+/**
+ * For now we just assume all global areas are made up out of horizontal bars
+ * with the same size. A fixed size could be stored in ARegion instead if needed.
+ *
+ * \return the DPI aware height of a single bar/region in global areas.
+ */
+int ED_region_global_size_y(void)
+{
+	return ED_area_headersize(); /* same size as header */
 }
 
 void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float fill_color[4], const bool full_redraw)

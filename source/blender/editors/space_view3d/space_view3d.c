@@ -113,18 +113,30 @@ ARegion *view3d_has_buttons_region(ScrArea *sa)
 
 ARegion *view3d_has_tools_region(ScrArea *sa)
 {
-	ARegion *ar, *artool = NULL, *arprops = NULL, *arhead;
-	
+	ARegion *ar, *artool = NULL, *arhead;
+#ifndef WITH_REDO_REGION_REMOVAL
+	ARegion *arprops = NULL;
+#endif
+
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
 		if (ar->regiontype == RGN_TYPE_TOOLS)
 			artool = ar;
+#ifndef WITH_REDO_REGION_REMOVAL
 		if (ar->regiontype == RGN_TYPE_TOOL_PROPS)
 			arprops = ar;
+#endif
 	}
-	
+
 	/* tool region hide/unhide also hides props */
-	if (arprops && artool) return artool;
-	
+	if (artool
+#ifndef WITH_REDO_REGION_REMOVAL
+	    && arprops
+#endif
+	    )
+	{
+		return artool;
+	}
+
 	if (artool == NULL) {
 		/* add subdiv level; after header */
 		for (arhead = sa->regionbase.first; arhead; arhead = arhead->next)
@@ -142,15 +154,17 @@ ARegion *view3d_has_tools_region(ScrArea *sa)
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
 
+#ifndef WITH_REDO_REGION_REMOVAL
 	if (arprops == NULL) {
 		/* add extra subdivided region for tool properties */
 		arprops = MEM_callocN(sizeof(ARegion), "tool props for view3d");
-		
+
 		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
 		arprops->regiontype = RGN_TYPE_TOOL_PROPS;
 		arprops->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 	}
-	
+#endif
+
 	return artool;
 }
 
@@ -369,15 +383,17 @@ static SpaceLink *view3d_new(const bContext *C)
 	ar->regiontype = RGN_TYPE_TOOLS;
 	ar->alignment = RGN_ALIGN_LEFT;
 	ar->flag = RGN_FLAG_HIDDEN;
-	
+
+#ifndef WITH_REDO_REGION_REMOVAL
 	/* tool properties */
 	ar = MEM_callocN(sizeof(ARegion), "tool properties for view3d");
-	
+
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype = RGN_TYPE_TOOL_PROPS;
 	ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 	ar->flag = RGN_FLAG_HIDDEN;
-	
+#endif
+
 	/* buttons/list view */
 	ar = MEM_callocN(sizeof(ARegion), "buttons for view3d");
 	
@@ -1312,6 +1328,7 @@ static void view3d_tools_region_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, CTX_data_mode_string(C), -1, true);
 }
 
+#ifndef WITH_REDO_REGION_REMOVAL
 static void view3d_props_region_listener(
         bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
         wmNotifier *wmn, const Scene *UNUSED(scene))
@@ -1332,6 +1349,7 @@ static void view3d_props_region_listener(
 			break;
 	}
 }
+#endif
 
 /* area (not region) level listener */
 static void space_view3d_listener(
@@ -1523,6 +1541,7 @@ void ED_spacetype_view3d(void)
 	view3d_toolshelf_register(art);
 #endif
 
+#ifndef WITH_REDO_REGION_REMOVAL
 	/* regions: tool properties */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d tool properties region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
@@ -1533,10 +1552,10 @@ void ED_spacetype_view3d(void)
 	art->init = view3d_tools_region_init;
 	art->draw = view3d_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);
-	
+
 	view3d_tool_props_register(art);
-	
-	
+#endif
+
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype view3d header region");
 	art->regionid = RGN_TYPE_HEADER;

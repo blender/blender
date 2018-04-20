@@ -63,11 +63,12 @@
 #include "view3d_intern.h"  /* own include */
 
 
+#ifndef WITH_REDO_REGION_REMOVAL
 /* ******************* view3d space & buttons ************** */
 
 static void view3d_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
 {
-	uiTemplateOperatorPropertyButs(C, pa->layout, op, NULL, 'V', 0);
+	uiTemplateOperatorPropertyButs(C, pa->layout, op, NULL, UI_BUT_LABEL_ALIGN_COLUMN, 0);
 }
 
 static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
@@ -125,6 +126,8 @@ static void view3d_panel_operator_redo(const bContext *C, Panel *pa)
 	/* set region back */
 	CTX_wm_region_set((bContext *)C, ar);
 }
+
+#endif
 
 /* ******************* */
 
@@ -239,10 +242,11 @@ void view3d_toolshelf_register(ARegionType *art)
 	BLI_addtail(&art->paneltypes, pt);
 }
 
+#ifndef WITH_REDO_REGION_REMOVAL
 void view3d_tool_props_register(ARegionType *art)
 {
 	PanelType *pt;
-	
+
 	pt = MEM_callocN(sizeof(PanelType), "spacetype view3d panel last operator");
 	strcpy(pt->idname, "VIEW3D_PT_last_operator");
 	strcpy(pt->label, N_("Operator"));
@@ -251,6 +255,7 @@ void view3d_tool_props_register(ARegionType *art)
 	pt->draw = view3d_panel_operator_redo;
 	BLI_addtail(&art->paneltypes, pt);
 }
+#endif
 
 /* ********** operator to open/close toolshelf region */
 

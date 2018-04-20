@@ -51,7 +51,7 @@ typedef enum {
 /* use to denote intentionally unset theme color */
 #define TH_UNDEFINED -1
 
-enum {
+typedef enum ThemeColorID {
 	TH_REDALERT,
 
 	TH_THEMEUI,
@@ -308,7 +308,7 @@ enum {
 
 	TH_EDGE_BEVEL,
 	TH_VERTEX_BEVEL
-};
+} ThemeColorID;
 
 /* specific defines per space should have higher define values */
 

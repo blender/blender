@@ -275,7 +275,7 @@ static void screenshot_draw(bContext *UNUSED(C), wmOperator *op)
 
 	/* main draw call */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-	uiDefAutoButsRNA(layout, &ptr, screenshot_draw_check_prop, '\0');
+	uiDefAutoButsRNA(layout, &ptr, screenshot_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 
 static int screenshot_poll(bContext *C)

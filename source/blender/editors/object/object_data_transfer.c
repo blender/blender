@@ -528,7 +528,7 @@ static void data_transfer_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call */
-	uiDefAutoButsRNA(layout, &ptr, data_transfer_draw_check_prop, '\0');
+	uiDefAutoButsRNA(layout, &ptr, data_transfer_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 
 /* transfers weight from active to selected */

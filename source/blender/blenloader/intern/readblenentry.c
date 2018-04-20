@@ -282,7 +282,7 @@ LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh)
 		else if (BKE_idcode_is_valid(bhead->code)) {
 			if (BKE_idcode_is_linkable(bhead->code)) {
 				const char *str = BKE_idcode_to_name(bhead->code);
-				
+
 				if (BLI_gset_add(gathered, (void *)str)) {
 					BLI_linklist_prepend(&names, strdup(str));
 				}

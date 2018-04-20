@@ -213,7 +213,7 @@ typedef struct View3D {
 	char twtype, _pad5, twflag;
 	
 	short flag3;
-	
+
 	/* afterdraw, for xray & transparent */
 	struct ListBase afterdraw_transp;
 	struct ListBase afterdraw_xray;

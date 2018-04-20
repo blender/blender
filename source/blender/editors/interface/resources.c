@@ -165,6 +165,9 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case SPACE_CLIP:
 					ts = &btheme->tclip;
 					break;
+				case SPACE_TOPBAR:
+					ts = &btheme->ttopbar;
+					break;
 				default:
 					ts = &btheme->tv3d;
 					break;
@@ -1225,6 +1228,14 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
 	btheme->tclip.handle_vertex_size = 5;
 	ui_theme_space_init_handles_color(&btheme->tclip);
+
+	/* space topbar */
+	char tmp[4];
+	btheme->ttopbar = btheme->tv3d;
+	/* swap colors */
+	copy_v4_v4_char(tmp, btheme->ttopbar.header);
+	copy_v4_v4_char(btheme->ttopbar.header, btheme->ttopbar.tab_inactive);
+	copy_v4_v4_char(btheme->ttopbar.back, tmp);
 }
 
 void ui_style_init_default(void)
@@ -2914,10 +2925,10 @@ void init_userdef_do_versions(void)
 		U.uiflag |= USER_LOCK_CURSOR_ADJUST;
 	}
 
-	if (!USER_VERSION_ATLEAST(280, 1)) {
+	if (!USER_VERSION_ATLEAST(280, 9)) {
 		/* interface_widgets.c */
 		struct uiWidgetColors wcol_tab = {
-			{255, 255, 255, 255},
+			{60, 60, 60, 255},
 			{83, 83, 83, 255},
 			{114, 114, 114, 255},
 			{90, 90, 90, 255},
@@ -2930,7 +2941,14 @@ void init_userdef_do_versions(void)
 		};
 
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			char tmp[4];
+
 			btheme->tui.wcol_tab = wcol_tab;
+			btheme->ttopbar = btheme->tv3d;
+			/* swap colors */
+			copy_v4_v4_char(tmp, btheme->ttopbar.header);
+			copy_v4_v4_char(btheme->ttopbar.header, btheme->ttopbar.tab_inactive);
+			copy_v4_v4_char(btheme->ttopbar.back, tmp);
 		}
 	}
 

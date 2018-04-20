@@ -111,6 +111,11 @@ int     ED_area_header_switchbutton(const struct bContext *C, struct uiBlock *bl
 void    ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
 void    ED_area_exit(struct bContext *C, struct ScrArea *sa);
 int     ED_screen_area_active(const struct bContext *C);
+void    ED_screen_global_topbar_area_create(
+            struct wmWindow *win,
+            const struct bScreen *screen);
+void    ED_screen_global_areas_create(
+            struct wmWindow *win);
 void    ED_area_do_listen(struct bScreen *sc, ScrArea *sa, struct wmNotifier *note, Scene *scene,
                           struct WorkSpace *workspace);
 void    ED_area_tag_redraw(ScrArea *sa);
@@ -123,6 +128,23 @@ void    ED_area_newspace(struct bContext *C, ScrArea *sa, int type, const bool s
 void    ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void    ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 int     ED_area_headersize(void);
+int     ED_area_global_size_y(const ScrArea *area);
+bool    ED_area_is_global(const ScrArea *area);
+int     ED_region_global_size_y(void);
+
+/** Iterate over all areas visible in the screen (screen as in everything visible in the window, not just bScreen) */
+#define ED_screen_areas_iter(win, screen, area_name)                       \
+	for (ScrArea *area_name = (win)->global_areas.areabase.first ?         \
+	                                  (win)->global_areas.areabase.first : \
+	                                  screen->areabase.first;              \
+	     area_name != NULL;                                                \
+	     area_name = (area_name == (win)->global_areas.areabase.last) ? (screen)->areabase.first : area_name->next)
+#define ED_screen_verts_iter(win, screen, vert_name)                       \
+	for (ScrVert *vert_name = (win)->global_areas.vertbase.first ?         \
+	                                  (win)->global_areas.vertbase.first : \
+	                                  screen->vertbase.first;              \
+	     vert_name != NULL;                                                \
+	     vert_name = (vert_name == (win)->global_areas.vertbase.last) ? (screen)->vertbase.first : vert_name->next)
 
 /* screens */
 void    ED_screens_initialize(struct wmWindowManager *wm);
@@ -130,6 +152,7 @@ void    ED_screen_draw_edges(struct wmWindow *win);
 void    ED_screen_draw_join_shape(struct ScrArea *sa1, struct ScrArea *sa2);
 void    ED_screen_draw_split_preview(struct ScrArea *sa, const int dir, const float fac);
 void    ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
+void    ED_screen_ensure_updated(struct wmWindowManager *wm, struct wmWindow *win, struct bScreen *screen);
 void    ED_screen_do_listen(struct bContext *C, struct wmNotifier *note);
 bool    ED_screen_change(struct bContext *C, struct bScreen *sc);
 void    ED_screen_update_after_scene_change(

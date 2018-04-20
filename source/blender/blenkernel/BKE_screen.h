@@ -58,6 +58,7 @@ struct wmWindowManager;
 struct WorkSpace;
 struct GPUFXSettings;
 struct wmMsgBus;
+struct ScrAreaMap;
 
 #include "BLI_compiler_attrs.h"
 
@@ -244,6 +245,7 @@ typedef struct HeaderType {
 
 	char idname[BKE_ST_MAXNAME];        /* unique name */
 	int space_type;
+	int region_type;
 
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *, struct Header *);
@@ -334,6 +336,7 @@ float BKE_screen_view3d_zoom_from_fac(float zoomfac);
 
 /* screen */
 void BKE_screen_free(struct bScreen *sc); 
+void BKE_screen_area_map_free(struct ScrAreaMap *area_map) ATTR_NONNULL();
 unsigned int BKE_screen_visible_layers(struct bScreen *screen, struct Scene *scene);
 
 struct ScrEdge *BKE_screen_find_edge(struct bScreen *sc, struct ScrVert *v1, struct ScrVert *v2);

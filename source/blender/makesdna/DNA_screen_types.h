@@ -48,12 +48,19 @@ struct wmTimer;
 struct wmTooltipState;
 
 
+/* TODO Doing this is quite ugly :)
+ * Once the top-bar is merged bScreen should be refactored to use ScrAreaMap. */
+#define AREAMAP_FROM_SCREEN(screen) ((ScrAreaMap *)&(screen)->vertbase)
+
 typedef struct bScreen {
 	ID id;
-	
+
+	/* TODO Should become ScrAreaMap now.
+	 * ** NOTE: KEEP ORDER IN SYNC WITH ScrAreaMap! (see AREAMAP_FROM_SCREEN macro above) ** */
 	ListBase vertbase;					/* screens have vertices/edges to define areas */
 	ListBase edgebase;
 	ListBase areabase;
+
 	ListBase regionbase;				/* screen level regions (menus), runtime only */
 
 	struct Scene *scene DNA_DEPRECATED;
@@ -97,6 +104,14 @@ typedef struct ScrEdge {
 	short flag;
 	int pad;
 } ScrEdge;
+
+typedef struct ScrAreaMap {
+	/* ** NOTE: KEEP ORDER IN SYNC WITH LISTBASES IN bScreen! ** */
+
+	ListBase vertbase;  /* ScrVert - screens have vertices/edges to define areas */
+	ListBase edgebase;  /* ScrEdge */
+	ListBase areabase;  /* ScrArea */
+} ScrAreaMap;
 
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
@@ -211,6 +226,23 @@ typedef struct uiPreview {           /* some preview UI data need to be saved in
 	short pad1[3];
 } uiPreview;
 
+/* These two lines with # tell makesdna this struct can be excluded.
+ * Should be: #ifndef WITH_TOPBAR_WRITING */
+#
+#
+typedef struct ScrGlobalAreaData {
+	/* Global areas have a non-dynamic size. That means, changing the window
+	 * size doesn't affect their size at all. However, they can still be
+	 * 'collapsed', by changing this value. Ignores DPI (ED_area_global_size_y
+	 * and winx/winy don't) */
+	short cur_fixed_height;
+	/* For global areas, this is the min and max size they can use depending on
+	 * if they are 'collapsed' or not. Value is set on area creation and not
+	 * touched afterwards. */
+	short size_min, size_max;
+	short pad;
+} ScrGlobalAreaData;
+
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	
@@ -221,7 +253,7 @@ typedef struct ScrArea {
 
 	char spacetype, butspacetype;	/* SPACE_..., butspacetype is button arg  */
 	short winx, winy;				/* size */
-	
+
 	short headertype;				/* OLD! 0=no header, 1= down, 2= up */
 	short do_refresh;				/* private, for spacetype refresh callback */
 	short flag;
@@ -230,6 +262,9 @@ typedef struct ScrArea {
 	char temp, pad;
 	
 	struct SpaceType *type;		/* callbacks for this space type */
+
+	/* Non-NULL if this area is global. */
+	ScrGlobalAreaData *global;
 
 	/* A list of space links (editors) that were open in this area before. When
 	 * changing the editor type, we try to reuse old editor data from this list.
@@ -295,7 +330,11 @@ enum {
 	HEADER_NO_PULLDOWN           = (1 << 0),
 //	AREA_FLAG_DEPRECATED_1       = (1 << 1),
 //	AREA_FLAG_DEPRECATED_2       = (1 << 2),
-	AREA_TEMP_INFO               = (1 << 3),
+#ifdef DNA_DEPRECATED_ALLOW
+	AREA_TEMP_INFO               = (1 << 3), /* versioned to make slot reusable */
+#endif
+	/* update size of regions within the area */
+	AREA_FLAG_REGION_SIZE_UPDATE = (1 << 3),
 //	AREA_FLAG_DEPRECATED_4       = (1 << 4),
 //	AREA_FLAG_DEPRECATED_5       = (1 << 5),
 	/* used to check if we should switch back to prevspace (of a different type) */
@@ -413,8 +452,19 @@ enum {
 #define RGN_SPLIT_PREV		32
 
 /* region flag */
-#define RGN_FLAG_HIDDEN		1
-#define RGN_FLAG_TOO_SMALL	2
+enum {
+	RGN_FLAG_HIDDEN             = (1 << 0),
+	RGN_FLAG_TOO_SMALL          = (1 << 1),
+	/* Force delayed reinit of region size data, so that region size is calculated
+	 * just big enough to show all its content (if enough space is available).
+	 * Note that only ED_region_header supports this right now. */
+	RGN_FLAG_DYNAMIC_SIZE     = (1 << 2),
+	/* The region width stored in ARegion.sizex already has the DPI
+	 * factor applied, skip applying it again (in region_rect_recursive).
+	 * XXX Not nice at all. Leaving for now as temporary solution, but
+	 * it might cause issues if we change how ARegion.sizex is used... */
+	RGN_SIZEX_DPI_APPLIED       = (1 << 3),
+};
 
 /* region do_draw */
 #define RGN_DRAW			1

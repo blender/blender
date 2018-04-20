@@ -256,12 +256,14 @@ static SpaceLink *clip_new(const bContext *C)
 	ar->regiontype = RGN_TYPE_TOOLS;
 	ar->alignment = RGN_ALIGN_LEFT;
 
-	/* tool properties */
+#ifndef WITH_REDO_REGION_REMOVAL
+	/* tools view */
 	ar = MEM_callocN(sizeof(ARegion), "tool properties for clip");
 
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype = RGN_TYPE_TOOL_PROPS;
 	ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+#endif
 
 	/* properties view */
 	ar = MEM_callocN(sizeof(ARegion), "properties for clip");
@@ -889,20 +891,25 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 	SpaceClip *sc = (SpaceClip *)sa->spacedata.first;
 	ARegion *ar_main = BKE_area_find_region_type(sa, RGN_TYPE_WINDOW);
 	ARegion *ar_tools = BKE_area_find_region_type(sa, RGN_TYPE_TOOLS);
-	ARegion *ar_tool_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
 	ARegion *ar_preview = ED_clip_has_preview_region(C, sa);
 	ARegion *ar_properties = ED_clip_has_properties_region(sa);
 	ARegion *ar_channels = ED_clip_has_channels_region(sa);
 	bool main_visible = false, preview_visible = false, tools_visible = false;
-	bool tool_props_visible = false, properties_visible = false, channels_visible = false;
+	bool properties_visible = false, channels_visible = false;
 	bool view_changed = false;
+#ifndef WITH_REDO_REGION_REMOVAL
+	ARegion *ar_tool_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
+	bool tool_props_visible = false;
+#endif
 
 	switch (sc->view) {
 		case SC_VIEW_CLIP:
 			main_visible = true;
 			preview_visible = false;
 			tools_visible = true;
+#ifndef WITH_REDO_REGION_REMOVAL
 			tool_props_visible = true;
+#endif
 			properties_visible = true;
 			channels_visible = false;
 			break;
@@ -910,7 +917,9 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			main_visible = false;
 			preview_visible = true;
 			tools_visible = false;
+#ifndef WITH_REDO_REGION_REMOVAL
 			tool_props_visible = false;
+#endif
 			properties_visible = false;
 			channels_visible = false;
 
@@ -920,7 +929,9 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			main_visible = false;
 			preview_visible = true;
 			tools_visible = false;
+#ifndef WITH_REDO_REGION_REMOVAL
 			tool_props_visible = false;
+#endif
 			properties_visible = false;
 			channels_visible = true;
 
@@ -1001,6 +1012,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 		}
 	}
 
+#ifndef WITH_REDO_REGION_REMOVAL
 	if (tool_props_visible) {
 		if (ar_tool_props && (ar_tool_props->flag & RGN_FLAG_HIDDEN)) {
 			ar_tool_props->flag &= ~RGN_FLAG_HIDDEN;
@@ -1024,6 +1036,7 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			view_changed = true;
 		}
 	}
+#endif
 
 	if (preview_visible) {
 		if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
@@ -1607,6 +1620,7 @@ void ED_spacetype_clip(void)
 
 	BLI_addhead(&st->regiontypes, art);
 
+#ifndef WITH_REDO_REGION_REMOVAL
 	/* tool properties */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip tool properties region");
 	art->regionid = RGN_TYPE_TOOL_PROPS;
@@ -1619,6 +1633,7 @@ void ED_spacetype_clip(void)
 	ED_clip_tool_props_register(art);
 
 	BLI_addhead(&st->regiontypes, art);
+#endif
 
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip region");

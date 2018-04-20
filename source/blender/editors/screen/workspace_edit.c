@@ -313,11 +313,9 @@ static void WORKSPACE_OT_workspace_duplicate(wmOperatorType *ot)
 
 static int workspace_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Main *bmain = CTX_data_main(C);
-	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 
-	ED_workspace_delete(WM_window_get_active_workspace(win), bmain, C, wm);
+	WM_event_add_notifier(C, NC_SCREEN | ND_WORKSPACE_DELETE, WM_window_get_active_workspace(win));
 
 	return OPERATOR_FINISHED;
 }

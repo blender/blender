@@ -32,6 +32,7 @@
 #define __DNA_WINDOWMANAGER_TYPES_H__
 
 #include "DNA_listBase.h"
+#include "DNA_screen_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
 
@@ -189,6 +190,10 @@ typedef struct wmWindow {
 	struct Scene *new_scene; /* temporary when switching */
 
 	struct WorkSpaceInstanceHook *workspace_hook;
+
+	/** Global areas aren't part of the screen, but part of the window directly.
+	 * \note Code assumes global areas with fixed height, fixed width not supported yet */
+	ScrAreaMap global_areas;
 
 	struct bScreen *screen DNA_DEPRECATED;
 
@@ -376,6 +381,10 @@ typedef struct wmOperator {
 	struct uiLayout *layout;      /* runtime for drawing */
 	short flag, pad[3];
 
+	/* Screen context the operator was finished in. It gets temporarily
+	 * restored during operator repeat. Only set for registered operators. */
+	struct ScrArea *execution_area;
+	struct ARegion *execution_region;
 } wmOperator;
 
 /* operator type return flags: exec(), invoke() modal(), return values */

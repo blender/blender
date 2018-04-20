@@ -583,6 +583,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_space_sequencer
 		bf_editor_space_text
 		bf_editor_space_time
+		bf_editor_space_topbar
 		bf_editor_space_userpref
 		bf_editor_space_view3d
 		bf_editor_space_clip

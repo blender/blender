@@ -635,7 +635,7 @@ static void sound_mixdown_draw(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* main draw call */
-	uiDefAutoButsRNA(layout, &ptr, sound_mixdown_draw_check_prop, '\0');
+	uiDefAutoButsRNA(layout, &ptr, sound_mixdown_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 #endif // WITH_AUDASPACE
 

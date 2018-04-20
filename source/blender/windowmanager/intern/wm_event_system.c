@@ -386,6 +386,13 @@ void wm_event_do_notifiers(bContext *C)
 						if (G.debug & G_DEBUG_EVENTS)
 							printf("%s: Workspace set %p\n", __func__, note->reference);
 					}
+					else if (note->data == ND_WORKSPACE_DELETE) {
+						WorkSpace *workspace = note->reference;
+
+						ED_workspace_delete(workspace, CTX_data_main(C), C, wm);   // XXX hrms, think this over!
+						if (G.debug & G_DEBUG_EVENTS)
+							printf("%s: Workspace delete %p\n", __func__, workspace);
+					}
 					else if (note->data == ND_LAYOUTBROWSE) {
 						bScreen *ref_screen = BKE_workspace_layout_screen_get(note->reference);
 
@@ -455,7 +462,6 @@ void wm_event_do_notifiers(bContext *C)
 				/* pass */
 			}
 			else {
-				ScrArea *sa;
 				ARegion *ar;
 
 				/* XXX context in notifiers? */
@@ -467,8 +473,8 @@ void wm_event_do_notifiers(bContext *C)
 				for (ar = screen->regionbase.first; ar; ar = ar->next) {
 					ED_region_do_listen(screen, NULL, ar, note, scene);
 				}
-				
-				for (sa = screen->areabase.first; sa; sa = sa->next) {
+
+				ED_screen_areas_iter(win, screen, sa) {
 					ED_area_do_listen(screen, sa, note, scene, workspace);
 					for (ar = sa->regionbase.first; ar; ar = ar->next) {
 						ED_region_do_listen(screen, sa, ar, note, scene);
@@ -938,7 +944,18 @@ int WM_operator_call_notest(bContext *C, wmOperator *op)
  */
 int WM_operator_repeat(bContext *C, wmOperator *op)
 {
+#ifdef WITH_REDO_REGION_REMOVAL
+	const OperatorRepeatContextHandle *context_info;
+	int retval;
+
+	context_info = ED_operator_repeat_prepare_context(C, op);
+	retval = wm_operator_exec(C, op, true, true);
+	ED_operator_repeat_reset_context(C, context_info);
+
+	return retval;
+#else
 	return wm_operator_exec(C, op, true, true);
+#endif
 }
 /**
  * \return true if #WM_operator_repeat can run
@@ -1528,17 +1545,22 @@ void wm_event_free_handler(wmEventHandler *handler)
 /* only set context when area/region is part of screen */
 static void wm_handler_op_context(bContext *C, wmEventHandler *handler, const wmEvent *event)
 {
+	wmWindow *win = CTX_wm_window(C);
 	bScreen *screen = CTX_wm_screen(C);
 	
 	if (screen && handler->op) {
 		if (handler->op_area == NULL)
 			CTX_wm_area_set(C, NULL);
 		else {
-			ScrArea *sa;
-			
-			for (sa = screen->areabase.first; sa; sa = sa->next)
-				if (sa == handler->op_area)
+			ScrArea *sa = NULL;
+
+			ED_screen_areas_iter(win, screen, sa_iter) {
+				if (sa_iter == handler->op_area) {
+					sa = sa_iter;
 					break;
+				}
+			}
+
 			if (sa == NULL) {
 				/* when changing screen layouts with running modal handlers (like render display), this
 				 * is not an error to print */
@@ -2493,13 +2515,15 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 
 static ScrArea *area_event_inside(bContext *C, const int xy[2])
 {
+	wmWindow *win = CTX_wm_window(C);
 	bScreen *screen = CTX_wm_screen(C);
-	ScrArea *sa;
 	
-	if (screen)
-		for (sa = screen->areabase.first; sa; sa = sa->next)
+	if (screen) {
+		ED_screen_areas_iter(win, screen, sa) {
 			if (BLI_rcti_isect_pt_v(&sa->totrct, xy))
 				return sa;
+		}
+	}
 	return NULL;
 }
 
@@ -2739,7 +2763,6 @@ void wm_event_do_handlers(bContext *C)
 			wm_tweakevent_test(C, event, action);
 
 			if ((action & WM_HANDLER_BREAK) == 0) {
-				ScrArea *sa;
 				ARegion *ar;
 	
 				/* Note: setting subwin active should be done here, after modal handlers have been done */
@@ -2755,7 +2778,7 @@ void wm_event_do_handlers(bContext *C)
 				}
 #endif
 
-				for (sa = screen->areabase.first; sa; sa = sa->next) {
+				ED_screen_areas_iter(win, screen, sa) {
 					/* after restoring a screen from SCREENMAXIMIZED we have to wait
 					 * with the screen handling till the region coordinates are updated */
 					if (screen->skip_handling == true) {
@@ -2935,24 +2958,26 @@ void WM_event_add_fileselect(bContext *C, wmOperator *op)
 		
 		if (handler->type == WM_HANDLER_FILESELECT) {
 			bScreen *screen = CTX_wm_screen(C);
-			ScrArea *sa;
+			bool cancel_handler = true;
 
 			/* find the area with the file selector for this handler */
-			for (sa = screen->areabase.first; sa; sa = sa->next) {
+			ED_screen_areas_iter(win, screen, sa) {
 				if (sa->spacetype == SPACE_FILE) {
 					SpaceFile *sfile = sa->spacedata.first;
 
 					if (sfile->op == handler->op) {
 						CTX_wm_area_set(C, sa);
 						wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_CANCEL);
+						cancel_handler = false;
 						break;
 					}
 				}
 			}
 
 			/* if not found we stop the handler without changing the screen */
-			if (!sa)
+			if (cancel_handler) {
 				wm_handler_fileselect_do(C, &win->modalhandlers, handler, EVT_FILESELECT_EXTERNAL_CANCEL);
+			}
 		}
 	}
 	

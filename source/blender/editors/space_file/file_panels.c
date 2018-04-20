@@ -88,7 +88,8 @@ static void file_panel_operator(const bContext *C, Panel *pa)
 
 	UI_block_func_set(uiLayoutGetBlock(pa->layout), file_draw_check_cb, NULL, NULL);
 
-	uiTemplateOperatorPropertyButs(C, pa->layout, op, file_panel_check_prop, '\0', UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
+	uiTemplateOperatorPropertyButs(C, pa->layout, op, file_panel_check_prop, UI_BUT_LABEL_ALIGN_NONE,
+	                               UI_TEMPLATE_OP_PROPS_SHOW_EMPTY);
 
 	UI_block_func_set(uiLayoutGetBlock(pa->layout), NULL, NULL, NULL);
 }

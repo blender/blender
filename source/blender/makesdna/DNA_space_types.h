@@ -67,6 +67,14 @@ struct MovieClipScopes;
 struct Mask;
 struct BLI_mempool;
 
+/* TODO 2.8: Remove the operator redo panel/region from the 3D View and Clip
+ * Editor toolshelf. Leaving this ifdef'ed out for until new tool system and
+ * topbar design is more clear. */
+//#define WITH_REDO_REGION_REMOVAL
+/* TODO 2.8: We don't write the topbar to files currently. Uncomment this
+ * define to enable writing (should become the default in a bit). */
+//#define WITH_TOPBAR_WRITING
+
 
 /* SpaceLink (Base) ==================================== */
 
@@ -1330,6 +1338,7 @@ typedef struct SpaceClip {
 	MaskSpaceInfo mask_info;
 } SpaceClip;
 
+
 /* SpaceClip->flag */
 typedef enum eSpaceClip_Flag {
 	SC_SHOW_MARKER_PATTERN      = (1 << 0),
@@ -1378,6 +1387,22 @@ typedef enum eSpaceClip_GPencil_Source {
 	SC_GPENCIL_SRC_TRACK = 1,
 } eSpaceClip_GPencil_Source;
 
+
+/* Top Bar ======================================= */
+
+/* These two lines with # tell makesdna this struct can be excluded.
+ * Should be: #ifndef WITH_TOPBAR_WRITING */
+#
+#
+typedef struct SpaceTopBar {
+	SpaceLink *next, *prev;
+	ListBase regionbase;        /* storage of regions for inactive spaces */
+	int spacetype;
+
+	int pad;
+} SpaceTopBar;
+
+
 /* **************** SPACE DEFINES ********************* */
 
 /* space types, moved from DNA_screen_types.h */
@@ -1407,8 +1432,9 @@ typedef enum eSpace_Type {
 	SPACE_CONSOLE  = 18,
 	SPACE_USERPREF = 19,
 	SPACE_CLIP     = 20,
-	
-	SPACEICONMAX = SPACE_CLIP
+	SPACE_TOPBAR   = 21,
+
+	SPACEICONMAX = SPACE_TOPBAR
 } eSpace_Type;
 
 /* use for function args */

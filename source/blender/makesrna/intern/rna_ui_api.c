@@ -715,6 +715,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	api_ui_item_common_text(func);
 
+	func = RNA_def_function(srna, "template_ID_tabs", "uiTemplateIDTabs");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	api_ui_item_rna_common(func);
+	RNA_def_string(func, "new", NULL, 0, "", "Operator identifier to create a new ID block");
+	RNA_def_string(func, "open", NULL, 0, "", "Operator identifier to open a file for creating a new ID block");
+	RNA_def_string(func, "unlink", NULL, 0, "", "Operator identifier to unlink the ID block");
+	RNA_def_enum(func, "filter", id_template_filter_items, UI_TEMPLATE_ID_FILTER_ALL,
+	             "", "Optionally limit the items which can be selected");
+
 	func = RNA_def_function(srna, "template_search", "uiTemplateSearch");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
@@ -755,6 +764,12 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
+
+#ifdef WITH_REDO_REGION_REMOVAL
+	func = RNA_def_function(srna, "template_operator_redo_props", "uiTemplateOperatorRedoProperties");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "Adds properties of the last executed operator using redo");
+#endif
 
 	func = RNA_def_function(srna, "template_constraint", "uiTemplateConstraint");
 	RNA_def_function_ui_description(func, "Generates the UI layout for constraints");

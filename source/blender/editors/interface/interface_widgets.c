@@ -2289,7 +2289,7 @@ static struct uiWidgetColors wcol_list_item = {
 };
 
 struct uiWidgetColors wcol_tab = {
-	{255, 255, 255, 255},
+	{60, 60, 60, 255},
 	{83, 83, 83, 255},
 	{114, 114, 114, 255},
 	{90, 90, 90, 255},
@@ -3832,16 +3832,20 @@ static void widget_roundbut_exec(uiWidgetColors *wcol, rcti *rect, int state, in
 	widgetbase_draw(&wtb, wcol);
 }
 
-static void widget_tab(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
+static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	const uiStyle *style = UI_style_get();
-	const float rad = 0.15f * U.widget_unit;
+	const float rad = 0.25f * U.widget_unit;
 	const int fontid = style->widget.uifont_id;
-	const bool is_active = (but->flag & UI_SELECT);
+	const bool is_active = (state & UI_SELECT);
+
+/* Draw shaded outline - Disabled for now, seems incorrect and also looks nicer without it imho ;) */
+//#define USE_TAB_SHADED_HIGHLIGHT
 
 	uiWidgetBase wtb;
 	unsigned char theme_col_tab_highlight[3];
 
+#ifdef USE_TAB_SHADED_HIGHLIGHT
 	/* create outline highlight colors */
 	if (is_active) {
 		interp_v3_v3v3_uchar(theme_col_tab_highlight, (unsigned char *)wcol->inner_sel,
@@ -3851,6 +3855,7 @@ static void widget_tab(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 		interp_v3_v3v3_uchar(theme_col_tab_highlight, (unsigned char *)wcol->inner,
 		                     (unsigned char *)wcol->outline, 0.12f);
 	}
+#endif
 
 	widget_init(&wtb);
 
@@ -3858,7 +3863,9 @@ static void widget_tab(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	/* draw inner */
+#ifdef USE_TAB_SHADED_HIGHLIGHT
 	wtb.draw_outline = 0;
+#endif
 	widgetbase_draw(&wtb, wcol);
 
 	/* We are drawing on top of widget bases. Flush cache. */
@@ -3866,13 +3873,19 @@ static void widget_tab(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 	UI_widgetbase_draw_cache_flush();
 	glDisable(GL_BLEND);
 
+#ifdef USE_TAB_SHADED_HIGHLIGHT
 	/* draw outline (3d look) */
 	ui_draw_but_TAB_outline(rect, rad, theme_col_tab_highlight, (unsigned char *)wcol->inner);
+#endif
 
 	/* text shadow */
 	BLF_enable(fontid, BLF_SHADOW);
 	BLF_shadow(fontid, 3, (const float[4]){1.0f, 1.0f, 1.0f, 0.25f});
 	BLF_shadow_offset(fontid, 0, -1);
+
+#ifndef USE_TAB_SHADED_HIGHLIGHT
+	UNUSED_VARS(is_active, theme_col_tab_highlight);
+#endif
 }
 
 static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
@@ -3963,8 +3976,8 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			break;
 
 		case UI_WTYPE_TAB:
-			wt.custom = widget_tab;
 			wt.wcol_theme = &btheme->tui.wcol_tab;
+			wt.draw = widget_tab;
 			break;
 
 		case UI_WTYPE_TOOLTIP:

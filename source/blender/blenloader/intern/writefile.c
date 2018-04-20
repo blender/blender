@@ -2878,8 +2878,12 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
 				writedata(wd, DATA, cl->len + 1, cl->line);
 			}
 			writestruct(wd, DATA, SpaceConsole, 1, sl);
-
 		}
+#ifdef WITH_TOPBAR_WRITING
+		else if (sl->spacetype == SPACE_TOPBAR) {
+			writestruct(wd, DATA, SpaceTopBar, 1, sl);
+		}
+#endif
 		else if (sl->spacetype == SPACE_USERPREF) {
 			writestruct(wd, DATA, SpaceUserPref, 1, sl);
 		}
@@ -2890,7 +2894,21 @@ static void write_area_regions(WriteData *wd, ScrArea *area)
 			writestruct(wd, DATA, SpaceInfo, 1, sl);
 		}
 	}
+}
 
+static void write_area_map(WriteData *wd, ScrAreaMap *area_map)
+{
+	writelist(wd, DATA, ScrVert, &area_map->vertbase);
+	writelist(wd, DATA, ScrEdge, &area_map->edgebase);
+	for (ScrArea *area = area_map->areabase.first; area; area = area->next) {
+		writestruct(wd, DATA, ScrArea, 1, area);
+
+#ifdef WITH_TOPBAR_WRITING
+		writestruct(wd, DATA, ScrGlobalAreaData, 1, area->global);
+#endif
+
+		write_area_regions(wd, area);
+	}
 }
 
 static void write_windowmanager(WriteData *wd, wmWindowManager *wm)
@@ -2899,6 +2917,11 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm)
 	write_iddata(wd, &wm->id);
 
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
+#ifndef WITH_TOPBAR_WRITING
+		/* Don't write global areas yet, while we make changes to them. */
+		ScrAreaMap global_areas = win->global_areas;
+		memset(&win->global_areas, 0, sizeof(win->global_areas));
+#endif
 
 		/* update deprecated screen member (for so loading in 2.7x uses the correct screen) */
 		win->screen = BKE_workspace_active_screen_get(win->workspace_hook);
@@ -2906,6 +2929,12 @@ static void write_windowmanager(WriteData *wd, wmWindowManager *wm)
 		writestruct(wd, DATA, wmWindow, 1, win);
 		writestruct(wd, DATA, WorkSpaceInstanceHook, 1, win->workspace_hook);
 		writestruct(wd, DATA, Stereo3dFormat, 1, win->stereo3d_format);
+
+#ifdef WITH_TOPBAR_WRITING
+		write_area_map(wd, &win->global_areas);
+#else
+		win->global_areas = global_areas;
+#endif
 
 		/* data is written, clear deprecated data again */
 		win->screen = NULL;
@@ -2922,19 +2951,7 @@ static void write_screen(WriteData *wd, bScreen *sc)
 	write_previews(wd, sc->preview);
 
 	/* direct data */
-	for (ScrVert *sv = sc->vertbase.first; sv; sv = sv->next) {
-		writestruct(wd, DATA, ScrVert, 1, sv);
-	}
-
-	for (ScrEdge *se = sc->edgebase.first; se; se = se->next) {
-		writestruct(wd, DATA, ScrEdge, 1, se);
-	}
-
-	for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
-		writestruct(wd, DATA, ScrArea, 1, sa);
-
-		write_area_regions(wd, sa);
-	}
+	write_area_map(wd, AREAMAP_FROM_SCREEN(sc));
 }
 
 static void write_bone(WriteData *wd, Bone *bone)

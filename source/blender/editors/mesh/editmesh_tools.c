@@ -5584,7 +5584,7 @@ static void edbm_sort_elements_ui(bContext *C, wmOperator *op)
 	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
 
 	/* Main auto-draw call. */
-	uiDefAutoButsRNA(layout, &ptr, edbm_sort_elements_draw_check_prop, '\0');
+	uiDefAutoButsRNA(layout, &ptr, edbm_sort_elements_draw_check_prop, UI_BUT_LABEL_ALIGN_NONE, false);
 }
 
 void MESH_OT_sort_elements(wmOperatorType *ot)

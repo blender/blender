@@ -31,11 +31,10 @@
 #ifndef __ED_UTIL_H__
 #define __ED_UTIL_H__
 
+#include "BLI_compiler_attrs.h"
+
 struct bContext;
 struct wmOperatorType;
-struct ScrArea;
-struct SpaceLink;
-struct PackedFile;
 
 /* ed_util.c */
 

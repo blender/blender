@@ -931,6 +931,20 @@ static void ui_apply_but_TEX(bContext *C, uiBut *but, uiHandleButtonData *data)
 	data->applied = true;
 }
 
+static void ui_apply_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data)
+{
+	if (data->str) {
+		ui_but_string_set(C, but, data->str);
+		ui_but_update_edited(but);
+	}
+	else {
+		ui_apply_but_func(C, but);
+	}
+
+	data->retval = but->retval;
+	data->applied = true;
+}
+
 static void ui_apply_but_NUM(bContext *C, uiBut *but, uiHandleButtonData *data)
 {
 	if (data->str) {
@@ -1892,8 +1906,10 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 			break;
 		case UI_BTYPE_ROW:
 		case UI_BTYPE_LISTROW:
-		case UI_BTYPE_TAB:
 			ui_apply_but_ROW(C, block, but, data);
+			break;
+		case UI_BTYPE_TAB:
+			ui_apply_but_TAB(C, but, data);
 			break;
 		case UI_BTYPE_SCROLL:
 		case UI_BTYPE_GRIP:
@@ -3649,18 +3665,6 @@ static int ui_do_but_KEYEVT(
 	return WM_UI_HANDLER_CONTINUE;
 }
 
-static int ui_do_but_TAB(bContext *C, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
-{
-	if (data->state == BUTTON_STATE_HIGHLIGHT) {
-		if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && event->val == KM_PRESS) {
-			button_activate_state(C, but, BUTTON_STATE_EXIT);
-			return WM_UI_HANDLER_CONTINUE;
-		}
-	}
-
-	return WM_UI_HANDLER_CONTINUE;
-}
-
 static bool ui_but_is_mouse_over_icon_extra(const ARegion *region, uiBut *but, const int mouse_xy[2])
 {
 	int x = mouse_xy[0], y = mouse_xy[1];
@@ -3674,6 +3678,43 @@ static bool ui_but_is_mouse_over_icon_extra(const ARegion *region, uiBut *but, c
 	icon_rect.xmin = icon_rect.xmax - (BLI_rcti_size_y(&icon_rect));
 
 	return BLI_rcti_isect_pt(&icon_rect, x, y);
+}
+
+static int ui_do_but_TAB(bContext *C, uiBlock *block, uiBut *but, uiHandleButtonData *data, const wmEvent *event)
+{
+	if (data->state == BUTTON_STATE_HIGHLIGHT) {
+		if ((event->type == LEFTMOUSE) &&
+		    ((event->val == KM_DBL_CLICK) || event->ctrl))
+		{
+			button_activate_state(C, but, BUTTON_STATE_TEXT_EDITING);
+			return WM_UI_HANDLER_BREAK;
+		}
+		else if (ELEM(event->type, LEFTMOUSE, PADENTER, RETKEY) && (event->val == KM_CLICK)) {
+			const bool has_icon_extra = ui_but_icon_extra_get(but) == UI_BUT_ICONEXTRA_CLEAR;
+
+			if (has_icon_extra && ui_but_is_mouse_over_icon_extra(data->region, but, &event->x)) {
+				uiButTab *tab = (uiButTab *)but;
+				wmOperatorType *ot_backup = but->optype;
+
+				but->optype = tab->unlink_ot;
+				/* Force calling unlink/delete operator. */
+				ui_apply_but(C, block, but, data, true);
+				but->optype = ot_backup;
+			}
+			button_activate_state(C, but, BUTTON_STATE_EXIT);
+			return WM_UI_HANDLER_BREAK;
+		}
+	}
+	else if (data->state == BUTTON_STATE_TEXT_EDITING) {
+		ui_do_but_textedit(C, block, but, data, event);
+		return WM_UI_HANDLER_BREAK;
+	}
+	else if (data->state == BUTTON_STATE_TEXT_SELECTING) {
+		ui_do_but_textedit_select(C, block, but, data, event);
+		return WM_UI_HANDLER_BREAK;
+	}
+
+	return WM_UI_HANDLER_CONTINUE;
 }
 
 static int ui_do_but_TEX(
@@ -6946,7 +6987,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			retval = ui_do_but_HOTKEYEVT(C, but, data, event);
 			break;
 		case UI_BTYPE_TAB:
-			retval = ui_do_but_TAB(C, but, data, event);
+			retval = ui_do_but_TAB(C, block, but, data, event);
 			break;
 		case UI_BTYPE_BUT_TOGGLE:
 		case UI_BTYPE_TOGGLE:
@@ -7216,15 +7257,14 @@ bool ui_but_is_active(ARegion *ar)
 /* is called by notifier */
 void UI_screen_free_active_but(const bContext *C, bScreen *screen)
 {
-	ScrArea *sa = screen->areabase.first;
-	
-	for (; sa; sa = sa->next) {
-		ARegion *ar = sa->regionbase.first;
-		for (; ar; ar = ar->next) {
-			uiBut *but = ui_but_find_active_in_region(ar);
+	wmWindow *win = CTX_wm_window(C);
+
+	ED_screen_areas_iter(win, screen, area) {
+		for (ARegion *region = area->regionbase.first; region; region = region->next) {
+			uiBut *but = ui_but_find_active_in_region(region);
 			if (but) {
 				uiHandleButtonData *data = but->active;
-				
+
 				if (data->menu == NULL && data->searchbox == NULL)
 					if (data->state == BUTTON_STATE_HIGHLIGHT)
 						ui_but_active_free(C, but);

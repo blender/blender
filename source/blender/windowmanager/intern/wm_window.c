@@ -208,6 +208,8 @@ void wm_window_free(bContext *C, wmWindowManager *wm, wmWindow *win)
 			CTX_wm_window_set(C, NULL);
 	}
 
+	BKE_screen_area_map_free(&win->global_areas);
+
 	/* end running jobs, a job end also removes its timer */
 	for (wt = wm->timers.first; wt; wt = wtnext) {
 		wtnext = wt->next;
@@ -302,6 +304,7 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	WM_window_set_active_workspace(win_dst, workspace);
 	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(workspace, layout_old, win_dst) : layout_old;
 	WM_window_set_active_layout(win_dst, workspace, layout_new);
+	ED_screen_global_areas_create(win_dst);
 
 	win_dst->drawmethod = U.wmdrawmethod;
 
@@ -782,6 +785,11 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 			WM_event_add_dropbox_handler(&win->handlers, lb);
 		}
 		wm_window_title(wm, win);
+
+		/* add topbar */
+		if (BLI_listbase_is_empty(&win->global_areas.areabase)) {
+			ED_screen_global_areas_create(win);
+		}
 	}
 }
 
@@ -1008,6 +1016,8 @@ int wm_window_new_exec(bContext *C, wmOperator *op)
 		win_dst->scene = win_src->scene;
 		screen_new->winid = win_dst->winid;
 		CTX_wm_window_set(C, win_dst);
+
+		ED_screen_global_areas_create(win_dst);
 		ED_screen_refresh(CTX_wm_manager(C), win_dst);
 	}
 
@@ -2074,19 +2084,35 @@ float WM_cursor_pressure(const struct wmWindow *win)
 
 /* support for native pixel size */
 /* mac retina opens window in size X, but it has up to 2 x more pixels */
-int WM_window_pixels_x(wmWindow *win)
+int WM_window_pixels_x(const wmWindow *win)
 {
 	float f = GHOST_GetNativePixelSize(win->ghostwin);
 	
 	return (int)(f * (float)win->sizex);
 }
-
-int WM_window_pixels_y(wmWindow *win)
+int WM_window_pixels_y(const wmWindow *win)
 {
 	float f = GHOST_GetNativePixelSize(win->ghostwin);
 	
 	return (int)(f * (float)win->sizey);
-	
+}
+
+/**
+ * Get the total pixels that are usable by the screen-layouts, excluding global areas.
+ */
+int WM_window_screen_pixels_x(const wmWindow *win)
+{
+	return WM_window_pixels_x(win);
+}
+int WM_window_screen_pixels_y(const wmWindow *win)
+{
+	short screen_size_y = WM_window_pixels_y(win);
+
+	for (ScrArea *sa = win->global_areas.areabase.first; sa; sa = sa->next) {
+		screen_size_y -= ED_area_global_size_y(sa);
+	}
+
+	return screen_size_y;
 }
 
 bool WM_window_is_fullscreen(wmWindow *win)

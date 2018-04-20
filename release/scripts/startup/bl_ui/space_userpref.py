@@ -853,6 +853,9 @@ class USERPREF_PT_theme(Panel):
             col.label(text="List Item:")
             self._theme_widget_style(col, ui.wcol_list_item)
 
+            col.label(text="Tab:")
+            self._theme_widget_style(col, ui.wcol_tab)
+
             ui_state = theme.user_interface.wcol_state
             col.label(text="State:")
 

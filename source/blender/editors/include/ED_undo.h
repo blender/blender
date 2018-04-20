@@ -25,6 +25,8 @@
 #ifndef __ED_UNDO_H__
 #define __ED_UNDO_H__
 
+#include "BLI_compiler_attrs.h"
+
 struct bContext;
 struct CLG_LogRef;
 struct wmOperator;
@@ -49,6 +51,16 @@ int     ED_undo_operator_repeat(struct bContext *C, struct wmOperator *op);
 /* convenience since UI callbacks use this mostly*/
 void    ED_undo_operator_repeat_cb(struct bContext *C, void *arg_op, void *arg_unused);
 void    ED_undo_operator_repeat_cb_evt(struct bContext *C, void *arg_op, int arg_unused);
+
+#ifdef WITH_REDO_REGION_REMOVAL
+/* Context sanity helpers for operator repeat. */
+typedef struct OperatorRepeatContextHandle OperatorRepeatContextHandle;
+
+const OperatorRepeatContextHandle *ED_operator_repeat_prepare_context(
+        struct bContext *C, struct wmOperator *op) ATTR_WARN_UNUSED_RESULT;
+void ED_operator_repeat_reset_context(
+        struct bContext *C, const OperatorRepeatContextHandle *context_info);
+#endif
 
 bool    ED_undo_is_valid(const struct bContext *C, const char *undoname);
 

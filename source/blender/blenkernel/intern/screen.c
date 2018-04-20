@@ -397,6 +397,7 @@ void BKE_screen_area_free(ScrArea *sa)
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
 		BKE_area_region_free(st, ar);
 
+	MEM_SAFE_FREE(sa->global);
 	BLI_freelistN(&sa->regionbase);
 	
 	BKE_spacedata_freelist(&sa->spacedata);
@@ -404,10 +405,21 @@ void BKE_screen_area_free(ScrArea *sa)
 	BLI_freelistN(&sa->actionzones);
 }
 
+void BKE_screen_area_map_free(ScrAreaMap *area_map)
+{
+	for (ScrArea *area = area_map->areabase.first, *area_next; area; area = area_next) {
+		area_next = area->next;
+		BKE_screen_area_free(area);
+	}
+
+	BLI_freelistN(&area_map->vertbase);
+	BLI_freelistN(&area_map->edgebase);
+	BLI_freelistN(&area_map->areabase);
+}
+
 /** Free (or release) any data used by this screen (does not free the screen itself). */
 void BKE_screen_free(bScreen *sc)
 {
-	ScrArea *sa, *san;
 	ARegion *ar;
 
 	/* No animdata here. */
@@ -416,18 +428,11 @@ void BKE_screen_free(bScreen *sc)
 		BKE_area_region_free(NULL, ar);
 
 	BLI_freelistN(&sc->regionbase);
-	
-	for (sa = sc->areabase.first; sa; sa = san) {
-		san = sa->next;
-		BKE_screen_area_free(sa);
-	}
-	
-	BLI_freelistN(&sc->vertbase);
-	BLI_freelistN(&sc->edgebase);
-	BLI_freelistN(&sc->areabase);
+
+	BKE_screen_area_map_free(AREAMAP_FROM_SCREEN(sc));
 
 	BKE_previewimg_free(&sc->preview);
-	
+
 	/* Region and timer are freed by the window manager. */
 	MEM_SAFE_FREE(sc->tool_tip);
 }

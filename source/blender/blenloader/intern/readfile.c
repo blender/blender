@@ -6396,6 +6396,8 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 	area->type = NULL;	/* spacetype callbacks */
 	area->region_active_win = -1;
 
+	area->global = newdataadr(fd, area->global);
+
 	/* if we do not have the spacetype registered we cannot
 	 * free it, so don't allocate any new memory for such spacetypes. */
 	if (!BKE_spacetype_exists(area->spacetype)) {
@@ -6630,9 +6632,9 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 	area->v4 = newdataadr(fd, area->v4);
 }
 
-static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
+static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
 {
-	area->full = newlibadr(fd, sc->id.lib, area->full);
+	area->full = newlibadr(fd, parent_id->lib, area->full);
 
 	for (SpaceLink *sl = area->spacedata.first; sl; sl= sl->next) {
 		switch (sl->spacetype) {
@@ -6640,11 +6642,11 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 			{
 				View3D *v3d = (View3D*) sl;
 
-				v3d->camera= newlibadr(fd, sc->id.lib, v3d->camera);
-				v3d->ob_centre= newlibadr(fd, sc->id.lib, v3d->ob_centre);
+				v3d->camera= newlibadr(fd, parent_id->lib, v3d->camera);
+				v3d->ob_centre= newlibadr(fd, parent_id->lib, v3d->ob_centre);
 
 				if (v3d->localvd) {
-					v3d->localvd->camera = newlibadr(fd, sc->id.lib, v3d->localvd->camera);
+					v3d->localvd->camera = newlibadr(fd, parent_id->lib, v3d->localvd->camera);
 				}
 				break;
 			}
@@ -6654,15 +6656,15 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 				bDopeSheet *ads = sipo->ads;
 
 				if (ads) {
-					ads->source = newlibadr(fd, sc->id.lib, ads->source);
-					ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
+					ads->source = newlibadr(fd, parent_id->lib, ads->source);
+					ads->filter_grp = newlibadr(fd, parent_id->lib, ads->filter_grp);
 				}
 				break;
 			}
 			case SPACE_BUTS:
 			{
 				SpaceButs *sbuts = (SpaceButs *)sl;
-				sbuts->pinid = newlibadr(fd, sc->id.lib, sbuts->pinid);
+				sbuts->pinid = newlibadr(fd, parent_id->lib, sbuts->pinid);
 				if (sbuts->pinid == NULL) {
 					sbuts->flag &= ~SB_PIN_CONTEXT;
 				}
@@ -6676,24 +6678,24 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 				bDopeSheet *ads = &saction->ads;
 
 				if (ads) {
-					ads->source = newlibadr(fd, sc->id.lib, ads->source);
-					ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
+					ads->source = newlibadr(fd, parent_id->lib, ads->source);
+					ads->filter_grp = newlibadr(fd, parent_id->lib, ads->filter_grp);
 				}
 
-				saction->action = newlibadr(fd, sc->id.lib, saction->action);
+				saction->action = newlibadr(fd, parent_id->lib, saction->action);
 				break;
 			}
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = (SpaceImage *)sl;
 
-				sima->image = newlibadr_real_us(fd, sc->id.lib, sima->image);
-				sima->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sima->mask_info.mask);
+				sima->image = newlibadr_real_us(fd, parent_id->lib, sima->image);
+				sima->mask_info.mask = newlibadr_real_us(fd, parent_id->lib, sima->mask_info.mask);
 
 				/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 				 * so fingers crossed this works fine!
 				 */
-				sima->gpd = newlibadr_us(fd, sc->id.lib, sima->gpd);
+				sima->gpd = newlibadr_us(fd, parent_id->lib, sima->gpd);
 				break;
 			}
 			case SPACE_SEQ:
@@ -6703,7 +6705,7 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 				/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
 				 * so fingers crossed this works fine!
 				 */
-				sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+				sseq->gpd = newlibadr_us(fd, parent_id->lib, sseq->gpd);
 				break;
 			}
 			case SPACE_NLA:
@@ -6712,8 +6714,8 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 				bDopeSheet *ads= snla->ads;
 
 				if (ads) {
-					ads->source = newlibadr(fd, sc->id.lib, ads->source);
-					ads->filter_grp = newlibadr(fd, sc->id.lib, ads->filter_grp);
+					ads->source = newlibadr(fd, parent_id->lib, ads->source);
+					ads->filter_grp = newlibadr(fd, parent_id->lib, ads->filter_grp);
 				}
 				break;
 			}
@@ -6721,7 +6723,7 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 			{
 				SpaceText *st= (SpaceText *)sl;
 
-				st->text= newlibadr(fd, sc->id.lib, st->text);
+				st->text= newlibadr(fd, parent_id->lib, st->text);
 				break;
 			}
 			case SPACE_SCRIPT:
@@ -6729,7 +6731,7 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 				SpaceScript *scpt = (SpaceScript *)sl;
 				/*scpt->script = NULL; - 2.45 set to null, better re-run the script */
 				if (scpt->script) {
-					scpt->script = newlibadr(fd, sc->id.lib, scpt->script);
+					scpt->script = newlibadr(fd, parent_id->lib, scpt->script);
 					if (scpt->script) {
 						SCRIPT_SET_NULL(scpt->script);
 					}
@@ -6763,11 +6765,11 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 				bNodeTree *ntree;
 
 				/* node tree can be stored locally in id too, link this first */
-				snode->id = newlibadr(fd, sc->id.lib, snode->id);
-				snode->from = newlibadr(fd, sc->id.lib, snode->from);
+				snode->id = newlibadr(fd, parent_id->lib, snode->id);
+				snode->from = newlibadr(fd, parent_id->lib, snode->from);
 
 				ntree = snode->id ? ntreeFromID(snode->id) : NULL;
-				snode->nodetree = ntree ? ntree : newlibadr_us(fd, sc->id.lib, snode->nodetree);
+				snode->nodetree = ntree ? ntree : newlibadr_us(fd, parent_id->lib, snode->nodetree);
 
 				for (path = snode->treepath.first; path; path = path->next) {
 					if (path == snode->treepath.first) {
@@ -6775,7 +6777,7 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 						path->nodetree = snode->nodetree;
 					}
 					else
-						path->nodetree = newlibadr_us(fd, sc->id.lib, path->nodetree);
+						path->nodetree = newlibadr_us(fd, parent_id->lib, path->nodetree);
 
 					if (!path->nodetree)
 						break;
@@ -6803,15 +6805,42 @@ static void lib_link_area(FileData *fd, bScreen *sc, ScrArea *area)
 			case SPACE_CLIP:
 			{
 				SpaceClip *sclip = (SpaceClip *)sl;
-
-				sclip->clip = newlibadr_real_us(fd, sc->id.lib, sclip->clip);
-				sclip->mask_info.mask = newlibadr_real_us(fd, sc->id.lib, sclip->mask_info.mask);
+				sclip->clip = newlibadr_real_us(fd, parent_id->lib, sclip->clip);
+				sclip->mask_info.mask = newlibadr_real_us(fd, parent_id->lib, sclip->mask_info.mask);
 				break;
 			}
 			default:
 				break;
 		}
 	}
+}
+
+/**
+ * \return false on error.
+ */
+static bool direct_link_area_map(FileData *fd, ScrAreaMap *area_map)
+{
+	link_list(fd, &area_map->vertbase);
+	link_list(fd, &area_map->edgebase);
+	link_list(fd, &area_map->areabase);
+	for (ScrArea *area = area_map->areabase.first; area; area = area->next) {
+		direct_link_area(fd, area);
+	}
+
+	/* edges */
+	for (ScrEdge *se = area_map->edgebase.first; se; se = se->next) {
+		se->v1 = newdataadr(fd, se->v1);
+		se->v2 = newdataadr(fd, se->v2);
+		BKE_screen_sort_scrvert(&se->v1, &se->v2);
+
+		if (se->v1 == NULL) {
+			BLI_remlink(&area_map->edgebase, se);
+
+			return false;
+		}
+	}
+
+	return true;
 }
 
 /* ************ READ WM ***************** */
@@ -6829,6 +6858,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 		win->workspace_hook = newdataadr(fd, hook);
 		/* we need to restore a pointer to this later when reading workspaces, so store in global oldnew-map */
 		oldnewmap_insert(fd->globmap, hook, win->workspace_hook, 0);
+
+		direct_link_area_map(fd, &win->global_areas);
 
 		win->ghostwin = NULL;
 		win->gwnctx = NULL;
@@ -6901,6 +6932,10 @@ static void lib_link_windowmanager(FileData *fd, Main *main)
 				win->scene = newlibadr(fd, wm->id.lib, win->scene);
 				/* deprecated, but needed for versioning (will be NULL'ed then) */
 				win->screen = newlibadr(fd, NULL, win->screen);
+	
+				for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+					lib_link_area(fd, &wm->id, area);
+				}
 			}
 
 			wm->id.tag &= ~LIB_TAG_NEED_LINK;
@@ -6927,7 +6962,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 			sc->scrubbing = false;
 			
 			for (ScrArea *area = sc->areabase.first; area; area = area->next) {
-				lib_link_area(fd, sc, area);
+				lib_link_area(fd, &sc->id, area);
 			}
 			sc->id.tag &= ~LIB_TAG_NEED_LINK;
 		}
@@ -7353,14 +7388,8 @@ void blo_do_versions_view3d_split_250(View3D *v3d, ListBase *regions)
 
 static bool direct_link_screen(FileData *fd, bScreen *sc)
 {
-	ScrArea *sa;
-	ScrVert *sv;
-	ScrEdge *se;
 	bool wrong_id = false;
 	
-	link_list(fd, &(sc->vertbase));
-	link_list(fd, &(sc->edgebase));
-	link_list(fd, &(sc->areabase));
 	sc->regionbase.first = sc->regionbase.last= NULL;
 	sc->context = NULL;
 	sc->active_region = NULL;
@@ -7368,28 +7397,11 @@ static bool direct_link_screen(FileData *fd, bScreen *sc)
 
 	sc->preview = direct_link_preview_image(fd, sc->preview);
 
-	/* edges */
-	for (se = sc->edgebase.first; se; se = se->next) {
-		se->v1 = newdataadr(fd, se->v1);
-		se->v2 = newdataadr(fd, se->v2);
-		if ((intptr_t)se->v1 > (intptr_t)se->v2) {
-			sv = se->v1;
-			se->v1 = se->v2;
-			se->v2 = sv;
-		}
-		
-		if (se->v1 == NULL) {
-			printf("Error reading Screen %s... removing it.\n", sc->id.name+2);
-			BLI_remlink(&sc->edgebase, se);
-			wrong_id = true;
-		}
+	if (!direct_link_area_map(fd, AREAMAP_FROM_SCREEN(sc))) {
+		printf("Error reading Screen %s... removing it.\n", sc->id.name + 2);
+		wrong_id = true;
 	}
-	
-	/* areas */
-	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		direct_link_area(fd, sa);
-	}
-	
+
 	return wrong_id;
 }
 
