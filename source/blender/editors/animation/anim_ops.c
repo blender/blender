@@ -331,7 +331,7 @@ static void ANIM_OT_start_frame_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Start Frame";
-	ot->idname = "anim_OT_start_frame_set";
+	ot->idname = "ANIM_OT_start_frame_set";
 	ot->description = "Set the start frame";
 	
 	/* api callbacks */
@@ -375,7 +375,7 @@ static void ANIM_OT_end_frame_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set End Frame";
-	ot->idname = "anim_OT_end_frame_set";
+	ot->idname = "ANIM_OT_end_frame_set";
 	ot->description = "Set the end frame";
 	
 	/* api callbacks */
