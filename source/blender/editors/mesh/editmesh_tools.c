@@ -6077,30 +6077,42 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	const float thresh = RNA_float_get(op->ptr, "threshold");
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	EDBM_op_init(
-	        em, &bmop, op,
-	        "symmetrize input=%hvef direction=%i dist=%f",
-	        BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
-	BMO_op_exec(em->bm, &bmop);
+		if (em->bm->totvertsel == 0 ) {
+			continue;
+		}
+		BMOperator bmop;
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		const float thresh = RNA_float_get(op->ptr, "threshold");
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+		EDBM_op_init(
+				em, &bmop, op,
+				"symmetrize input=%hvef direction=%i dist=%f",
+				BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
+		BMO_op_exec(em->bm, &bmop);
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+		else {
+			EDBM_update_generic(em, true, true);
+			EDBM_selectmode_flush(em);
+		}
 	}
-	else {
-		EDBM_update_generic(em, true, true);
-		EDBM_selectmode_flush(em);
-		return OPERATOR_FINISHED;
-	}
+	MEM_freeN(objects);
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_symmetrize(struct wmOperatorType *ot)
