@@ -78,7 +78,6 @@
 #include "RNA_define.h"
 
 #include "GPU_draw.h"
-#include "GPU_buffers.h"
 #include "GPU_immediate.h"
 
 #include "BIF_gl.h"
@@ -1121,7 +1120,6 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 
 	// ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
-	GPU_drawobject_free(ob->derivedFinal);
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
 	return OPERATOR_FINISHED;

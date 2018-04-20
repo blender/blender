@@ -42,11 +42,8 @@ static bNodeSocketTemplate outputs[] = {
 	{ SOCK_VECTOR,  0, "Angular Velocity" },
 	{ -1, 0, "" }
 };
-static void node_shader_exec_particle_info(void *data, int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **out)
+static void node_shader_exec_particle_info(void *UNUSED(data), int UNUSED(thread), bNode *UNUSED(node), bNodeExecData *UNUSED(execdata), bNodeStack **UNUSED(in), bNodeStack **UNUSED(out))
 {
-	ShadeInput *shi = ((ShaderCallData *)data)->shi;
-
-	RE_instance_get_particle_info(shi->obi, out[0]->vec, out[1]->vec, out[2]->vec, out[3]->vec, out[4]->vec, out[5]->vec, out[6]->vec, out[7]->vec);
 }
 
 static int gpu_shader_particle_info(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)

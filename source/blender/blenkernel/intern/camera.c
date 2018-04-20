@@ -304,10 +304,7 @@ void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int win
 	float pixsize, viewfac, sensor_size, dx, dy;
 	int sensor_fit;
 
-	/* fields rendering */
 	params->ycor = yasp / xasp;
-	if (params->use_fields)
-		params->ycor *= 2.0f;
 
 	if (params->is_ortho) {
 		/* orthographic camera */
@@ -348,18 +345,6 @@ void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int win
 	viewplane.ymin += dy;
 	viewplane.xmax += dx;
 	viewplane.ymax += dy;
-
-	/* fields offset */
-	if (params->field_second) {
-		if (params->field_odd) {
-			viewplane.ymin -= 0.5f * params->ycor;
-			viewplane.ymax -= 0.5f * params->ycor;
-		}
-		else {
-			viewplane.ymin += 0.5f * params->ycor;
-			viewplane.ymax += 0.5f * params->ycor;
-		}
-	}
 
 	/* the window matrix is used for clipping, and not changed during OSA steps */
 	/* using an offset of +0.5 here would give clip errors on edges */

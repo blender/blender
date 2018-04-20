@@ -858,7 +858,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float (*obmat)[4];
 	int a, b, hair = 0;
 	int totpart, totchild, totgroup = 0 /*, pa_num */;
-	const bool dupli_type_hack = !BKE_scene_use_new_shading_nodes(scene);
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -1132,10 +1131,6 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				dob->particle_system = psys;
 				if (use_texcoords)
 					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
-				/* XXX blender internal needs this to be set to dupligroup to render
-				 * groups correctly, but we don't want this hack for cycles */
-				if (dupli_type_hack && ctx->group)
-					dob->type = OB_DUPLIGROUP;
 			}
 		}
 

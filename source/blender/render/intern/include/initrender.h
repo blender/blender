@@ -33,16 +33,11 @@
 #ifndef __INITRENDER_H__
 #define __INITRENDER_H__ 
 
-
 /* Functions */
 
-void free_sample_tables(Render *re);
-void make_sample_tables(Render *re);
-
-void RE_parts_init(Render *re, bool do_crop);
+void RE_parts_init(Render *re);
 void RE_parts_free(Render *re);
 void RE_parts_clamp(Render *re);
-
 
 #endif /* __INITRENDER_H__ */
 

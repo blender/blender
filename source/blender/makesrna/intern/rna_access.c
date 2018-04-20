@@ -7503,15 +7503,25 @@ bool RNA_struct_override_matches(
 			continue;
 		}
 
+#define RNA_PATH_BUFFSIZE 8192
+#define RNA_PATH_PRINTF(_str, ...) \
+	if (BLI_snprintf(rna_path, RNA_PATH_BUFFSIZE, \
+	                  (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE) \
+	{ rna_path = BLI_sprintfN((_str), __VA_ARGS__); }(void)0
+#define RNA_PATH_FREE \
+	if (rna_path != rna_path_buffer) MEM_freeN(rna_path)
+
+		char rna_path_buffer[RNA_PATH_BUFFSIZE];
+		char *rna_path = rna_path_buffer;
+
 		/* XXX TODO this will have to be refined to handle collections insertions, and array items */
-		char *rna_path;
 		if (root_path) {
 			/* Inlined building, much much more efficient. */
 			if (prop_local->magic == RNA_MAGIC) {
-				rna_path = BLI_sprintfN("%s.%s", root_path, RNA_property_identifier(prop_local));
+				RNA_PATH_PRINTF("%s.%s", root_path, RNA_property_identifier(prop_local));
 			}
 			else {
-				rna_path = BLI_sprintfN("%s[\"%s\"]", root_path, RNA_property_identifier(prop_local));
+				RNA_PATH_PRINTF("%s[\"%s\"]", root_path, RNA_property_identifier(prop_local));
 			}
 		}
 		else {
@@ -7524,7 +7534,7 @@ bool RNA_struct_override_matches(
 //		printf("Override Checking %s\n", rna_path);
 
 		if (ignore_overridden && BKE_override_static_property_find(override, rna_path) != NULL) {
-			MEM_SAFE_FREE(rna_path);
+			RNA_PATH_FREE;
 			continue;
 		}
 
@@ -7577,7 +7587,11 @@ bool RNA_struct_override_matches(
 			}
 		}
 
-		MEM_SAFE_FREE(rna_path);
+		RNA_PATH_FREE;
+
+#undef RNA_PATH_BUFFSIZE
+#undef RNA_PATH_PRINTF
+#undef RNA_PATH_FREE
 	}
 	RNA_property_collection_end(&iter);
 

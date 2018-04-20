@@ -193,129 +193,6 @@ class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
         subrow.prop(rd, "frame_map_new", text="New")
 
 
-class RENDER_PT_antialiasing(RenderButtonsPanel, Panel):
-    bl_label = "Anti-Aliasing"
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-
-        self.layout.prop(rd, "use_antialiasing", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-        layout.active = rd.use_antialiasing
-
-        split = layout.split()
-
-        col = split.column()
-        col.row().prop(rd, "antialiasing_samples", expand=True)
-        sub = col.row()
-        sub.prop(rd, "use_full_sample")
-
-        col = split.column()
-        col.prop(rd, "pixel_filter_type", text="")
-        col.prop(rd, "filter_size", text="Size")
-
-
-class RENDER_PT_motion_blur(RenderButtonsPanel, Panel):
-    bl_label = "Sampled Motion Blur"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    @classmethod
-    def poll(cls, context):
-        rd = context.scene.render
-        return not rd.use_full_sample and (context.engine in cls.COMPAT_ENGINES)
-
-    def draw_header(self, context):
-        rd = context.scene.render
-
-        self.layout.prop(rd, "use_motion_blur", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-        layout.active = rd.use_motion_blur
-
-        row = layout.row()
-        row.prop(rd, "motion_blur_samples")
-        row.prop(rd, "motion_blur_shutter")
-
-
-class RENDER_PT_shading(RenderButtonsPanel, Panel):
-    bl_label = "Shading"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-
-        split = layout.split()
-
-        col = split.column()
-        col.prop(rd, "use_textures", text="Textures")
-        col.prop(rd, "use_shadows", text="Shadows")
-        col.prop(rd, "use_sss", text="Subsurface Scattering")
-        col.prop(rd, "use_envmaps", text="Environment Map")
-
-        col = split.column()
-        col.prop(rd, "use_raytrace", text="Ray Tracing")
-        col.prop(rd, "alpha_mode", text="Alpha")
-        col.prop(rd, "use_world_space_shading", text="World Space Shading")
-
-
-class RENDER_PT_performance(RenderButtonsPanel, Panel):
-    bl_label = "Performance"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-
-        split = layout.split()
-
-        col = split.column(align=True)
-        col.label(text="Threads:")
-        col.row(align=True).prop(rd, "threads_mode", expand=True)
-        sub = col.column(align=True)
-        sub.enabled = rd.threads_mode == 'FIXED'
-        sub.prop(rd, "threads")
-
-        col.label(text="Tile Size:")
-        col.prop(rd, "tile_x", text="X")
-        col.prop(rd, "tile_y", text="Y")
-
-        col.separator()
-        col.prop(rd, "preview_start_resolution")
-        col.prop(rd, "preview_pixel_size", text="")
-
-        col = split.column()
-        col.label(text="Memory:")
-        sub = col.column()
-        sub.enabled = not rd.use_full_sample
-        sub.prop(rd, "use_save_buffers")
-        sub = col.column()
-        sub.active = rd.use_compositing
-        sub.prop(rd, "use_free_image_textures")
-        sub = col.column()
-        sub.active = rd.use_raytrace
-        sub.label(text="Acceleration Structure:")
-        sub.prop(rd, "raytrace_method", text="")
-        if rd.raytrace_method == 'OCTREE':
-            sub.prop(rd, "octree_resolution", text="Resolution")
-        else:
-            sub.prop(rd, "use_instances", text="Instances")
-        sub.prop(rd, "use_local_coords", text="Local Coordinates")
-
-
 class RENDER_PT_post_processing(RenderButtonsPanel, Panel):
     bl_label = "Post Processing"
     bl_options = {'DEFAULT_CLOSED'}
@@ -438,7 +315,7 @@ class RENDER_PT_output(RenderButtonsPanel, Panel):
 class RENDER_PT_encoding(RenderButtonsPanel, Panel):
     bl_label = "Encoding"
     bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
     @classmethod
     def poll(cls, context):
@@ -515,77 +392,6 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
             col.label(text="Mux:")
             col.prop(ffmpeg, "muxrate", text="Rate")
             col.prop(ffmpeg, "packetsize", text="Packet Size")
-
-
-class RENDER_PT_bake(RenderButtonsPanel, Panel):
-    bl_label = "Bake"
-    bl_options = {'DEFAULT_CLOSED'}
-    COMPAT_ENGINES = {'BLENDER_RENDER'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-
-        layout.operator("object.bake_image", icon='RENDER_STILL')
-
-        layout.prop(rd, "bake_type")
-
-        multires_bake = False
-        if rd.bake_type in ['NORMALS', 'DISPLACEMENT', 'DERIVATIVE', 'AO']:
-            layout.prop(rd, "use_bake_multires")
-            multires_bake = rd.use_bake_multires
-
-        if not multires_bake:
-            if rd.bake_type == 'NORMALS':
-                layout.prop(rd, "bake_normal_space")
-            elif rd.bake_type in {'DISPLACEMENT', 'AO'}:
-                layout.prop(rd, "use_bake_normalize")
-
-            # col.prop(rd, "bake_aa_mode")
-            # col.prop(rd, "use_bake_antialiasing")
-
-            layout.separator()
-
-            split = layout.split()
-
-            col = split.column()
-            col.prop(rd, "use_bake_to_vertex_color")
-            sub = col.column()
-            sub.active = not rd.use_bake_to_vertex_color
-            sub.prop(rd, "use_bake_clear")
-            sub.prop(rd, "bake_margin")
-            sub.prop(rd, "bake_quad_split", text="Split")
-
-            col = split.column()
-            col.prop(rd, "use_bake_selected_to_active")
-            sub = col.column()
-            sub.active = rd.use_bake_selected_to_active
-            sub.prop(rd, "bake_distance")
-            sub.prop(rd, "bake_bias")
-        else:
-            split = layout.split()
-
-            col = split.column()
-            col.prop(rd, "use_bake_clear")
-            col.prop(rd, "bake_margin")
-
-            if rd.bake_type == 'DISPLACEMENT':
-                col = split.column()
-                col.prop(rd, "use_bake_lores_mesh")
-
-            if rd.bake_type == 'AO':
-                col = split.column()
-                col.prop(rd, "bake_bias")
-                col.prop(rd, "bake_samples")
-
-        if rd.bake_type == 'DERIVATIVE':
-            row = layout.row()
-            row.prop(rd, "use_bake_user_scale", text="")
-
-            sub = row.column()
-            sub.active = rd.use_bake_user_scale
-            sub.prop(rd, "bake_user_scale", text="User Scale")
 
 
 class RENDER_PT_clay_layer_settings(RenderButtonsPanel, Panel):
@@ -905,15 +711,10 @@ classes = (
     RENDER_PT_context,
     RENDER_PT_render,
     RENDER_PT_dimensions,
-    RENDER_PT_antialiasing,
-    RENDER_PT_motion_blur,
-    RENDER_PT_shading,
-    RENDER_PT_performance,
     RENDER_PT_post_processing,
     RENDER_PT_stamp,
     RENDER_PT_output,
     RENDER_PT_encoding,
-    RENDER_PT_bake,
     RENDER_PT_clay_layer_settings,
     RENDER_PT_clay_collection_settings,
     RENDER_PT_eevee_sampling,

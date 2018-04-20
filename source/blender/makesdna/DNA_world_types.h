@@ -56,8 +56,6 @@ typedef struct World {
 	short texact, mistype;
 
 	float horr, horg, horb;
-	float zenr, zeng, zenb;
-	float ambr, ambg, ambb;
 
 	/**
 	 * Exposure= mult factor. unused now, but maybe back later. Kept in to be upward compat.
@@ -67,42 +65,22 @@ typedef struct World {
 	float exposure, exp, range;
 	float linfac, logfac;
 	
-	short skytype;
 	/**
 	 * Some world modes
 	 * bit 0: Do mist
-	 * bit 1: Do stars
-	 * bit 2: (reserved) depth of field
-	 * bit 3: (gameengine): Activity culling is enabled.
-	 * bit 4: ambient occlusion
-	 * bit 5: (gameengine) : enable Bullet DBVT tree for view frustum culling 
 	 */
 	short mode;												// partially moved to scene->gamedata in 2.5
-	short pad2[2];
+	short pad2[3];
 
 	float misi, miststa, mistdist, misthi;
 
-	/* unused now: DOF */
-	short dofsta, dofend, dofmin, dofmax;
-	
 	/* ambient occlusion */
-	float aodist, aodistfac, aoenergy, aobias;
-	short aomode, aosamp, aomix, aocolor;
-	float ao_adapt_thresh, ao_adapt_speed_fac;
-	float ao_approx_error, ao_approx_correction;
-	float ao_indirect_energy, ao_env_energy, ao_pad2;
-	short ao_indirect_bounces, ao_pad;
-	short ao_samp_method, ao_gather_method, ao_approx_passes;
+	float aodist, aoenergy;
 	
-	/* assorted settings (in the middle of ambient occlusion settings for padding reasons) */
-	short flag;
-	
-	/* ambient occlusion (contd...) */
-	float *aosphere, *aotables;
-	
+	/* assorted settings  */
+	short flag, pad3[3];
 	
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
-	struct MTex *mtex[18];		/* MAX_MTEX */
 	short pr_texture, use_nodes, pad;
 	short update_flag;          /* XXX temporary flag waiting for depsgraph proper tagging */
 
@@ -118,71 +96,21 @@ typedef struct World {
 
 /* **************** WORLD ********************* */
 
-/* skytype */
-#define WO_SKYBLEND		1
-#define WO_SKYREAL		2
-#define WO_SKYPAPER		4
-/* while render: */
-#define WO_SKYTEX		8
-#define WO_ZENUP		16
-
 /* mode */
 #define WO_MIST	               1
 //#define WO_STARS               2 /* deprecated */
 /*#define WO_DOF                 4*/
 //#define WO_ACTIVITY_CULLING	   8 /* deprecated */
-#define WO_ENV_LIGHT   		  16
+//#define WO_ENV_LIGHT   		  16
 //#define WO_DBVT_CULLING		  32 /* deprecated */
 #define WO_AMB_OCC   		  64
-#define WO_INDIRECT_LIGHT	  128
-
-/* aomix */
-enum {
-	WO_AOADD    = 0,
-#ifdef DNA_DEPRECATED
-	WO_AOSUB    = 1,  /* deprecated */
-	WO_AOADDSUB = 2,  /* deprecated */
-#endif
-	WO_AOMUL    = 3,
-};
+//#define WO_INDIRECT_LIGHT	  128
 
 enum {
 	WO_MIST_QUADRATIC          = 0,
 	WO_MIST_LINEAR             = 1,
 	WO_MIST_INVERSE_QUADRATIC  = 2,
 };
-
-/* ao_samp_method - methods for sampling the AO hemi */
-#define WO_AOSAMP_CONSTANT			0
-#define WO_AOSAMP_HALTON			1
-#define WO_AOSAMP_HAMMERSLEY		2
-
-/* aomode (use distances & random sampling modes) */
-#define WO_AODIST		1
-#define WO_AORNDSMP		2
-#define WO_AOCACHE		4
-
-/* aocolor */
-#define WO_AOPLAIN	0
-#define WO_AOSKYCOL	1
-#define WO_AOSKYTEX	2
-
-/* ao_gather_method */
-#define WO_AOGATHER_RAYTRACE	0
-#define WO_AOGATHER_APPROX		1
-
-/* texco (also in DNA_material_types.h) */
-#define TEXCO_ANGMAP	64
-#define TEXCO_H_SPHEREMAP	256
-#define TEXCO_H_TUBEMAP	1024
-#define TEXCO_EQUIRECTMAP 2048
-
-/* mapto */
-#define WOMAP_BLEND		1
-#define WOMAP_HORIZ		2
-#define WOMAP_ZENUP		4
-#define WOMAP_ZENDOWN	8
-// #define WOMAP_MIST		16 /* Deprecated */
 
 /* flag */
 #define WO_DS_EXPAND	(1<<0)

@@ -124,7 +124,6 @@ void params_from_cdata(TexParams *out, TexCallData *in)
 	out->previewco = in->co;
 	out->osatex = in->osatex;
 	out->cfra = in->cfra;
-	out->shi = in->shi;
 	out->mtex = in->mtex;
 }
 

@@ -679,21 +679,6 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *ptr,
 	}
 }
 
-static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-	bNode *node = ptr->data;
-	uiLayout *col;
-	
-	uiTemplateID(layout, C, ptr, "material", "MATERIAL_OT_new", NULL, NULL, UI_TEMPLATE_ID_FILTER_ALL);
-	
-	if (!node->id) return;
-	
-	col = uiLayoutColumn(layout, false);
-	uiItemR(col, ptr, "use_diffuse", 0, NULL, ICON_NONE);
-	uiItemR(col, ptr, "use_specular", 0, NULL, ICON_NONE);
-	uiItemR(col, ptr, "invert_normal", 0, NULL, ICON_NONE);
-}
-
 static void node_shader_buts_mapping(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *row, *col, *sub;
@@ -739,30 +724,6 @@ static void node_shader_buts_vect_transform(uiLayout *layout, bContext *UNUSED(C
 	uiItemR(layout, ptr, "vector_type", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "convert_from", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "convert_to", 0, "", ICON_NONE);
-}
-
-static void node_shader_buts_geometry(uiLayout *layout, bContext *C, PointerRNA *ptr)
-{
-	PointerRNA obptr = CTX_data_pointer_get(C, "active_object");
-	uiLayout *col;
-
-	col = uiLayoutColumn(layout, false);
-
-	if (obptr.data && RNA_enum_get(&obptr, "type") == OB_MESH) {
-		PointerRNA dataptr = RNA_pointer_get(&obptr, "data");
-
-		uiItemPointerR(col, ptr, "uv_layer", &dataptr, "uv_layers", "", ICON_NONE);
-		uiItemPointerR(col, ptr, "color_layer", &dataptr, "vertex_colors", "", ICON_NONE);
-	}
-	else {
-		uiItemR(col, ptr, "uv_layer", 0, IFACE_("UV"), ICON_NONE);
-		uiItemR(col, ptr, "color_layer", 0, IFACE_("VCol"), ICON_NONE);
-	}
-}
-
-static void node_shader_buts_lamp(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
-{
-	uiItemR(layout, ptr, "lamp_object", 0, IFACE_("Lamp Object"), ICON_NONE);
 }
 
 static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1108,13 +1069,6 @@ static void node_shader_buts_bevel(uiLayout *layout, bContext *UNUSED(C), Pointe
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
-		case SH_NODE_MATERIAL:
-		case SH_NODE_MATERIAL_EXT:
-			ntype->draw_buttons = node_shader_buts_material;
-			break;
-		case SH_NODE_TEXTURE:
-			ntype->draw_buttons = node_buts_texture;
-			break;
 		case SH_NODE_NORMAL:
 			ntype->draw_buttons = node_buts_normal;
 			break;
@@ -1148,12 +1102,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		case SH_NODE_VECT_TRANSFORM: 
 			ntype->draw_buttons = node_shader_buts_vect_transform;
 			break; 
-		case SH_NODE_GEOMETRY:
-			ntype->draw_buttons = node_shader_buts_geometry;
-			break;
-		case SH_NODE_LAMP:
-			ntype->draw_buttons = node_shader_buts_lamp;
-			break;
 		case SH_NODE_ATTRIBUTE:
 			ntype->draw_buttons = node_shader_buts_attribute;
 			break;

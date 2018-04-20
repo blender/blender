@@ -419,7 +419,6 @@ typedef struct UVProjectModifierData {
 
 	/* the objects which do the projecting */
 	struct Object *projectors[10]; /* MOD_UVPROJECT_MAXPROJECTORS */
-	struct Image *image;           /* the image to project */
 	int pad2;
 	int num_projectors;
 	float aspectx, aspecty;

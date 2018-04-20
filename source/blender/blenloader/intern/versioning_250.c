@@ -515,70 +515,6 @@ static void do_versions_gpencil_2_50(Main *main, bScreen *screen)
 	}
 }
 
-static void do_version_mtex_factor_2_50(MTex **mtex_array, short idtype)
-{
-	MTex *mtex;
-	float varfac, colfac;
-	int a, neg;
-
-	if (!mtex_array)
-		return;
-
-	for (a = 0; a < MAX_MTEX; a++) {
-		if (mtex_array[a]) {
-			mtex = mtex_array[a];
-
-			neg = mtex->maptoneg;
-			varfac = mtex->varfac;
-			colfac = mtex->colfac;
-
-			if (neg & MAP_DISP) mtex->dispfac = -mtex->dispfac;
-			if (neg & MAP_NORM) mtex->norfac = -mtex->norfac;
-			if (neg & MAP_WARP) mtex->warpfac = -mtex->warpfac;
-
-			mtex->colspecfac = (neg & MAP_COLSPEC)? -colfac: colfac;
-			mtex->mirrfac = (neg & MAP_COLMIR)? -colfac: colfac;
-			mtex->alphafac = (neg & MAP_ALPHA)? -varfac: varfac;
-			mtex->difffac = (neg & MAP_REF)? -varfac: varfac;
-			mtex->specfac = (neg & MAP_SPEC)? -varfac: varfac;
-			mtex->emitfac = (neg & MAP_EMIT)? -varfac: varfac;
-			mtex->hardfac = (neg & MAP_HAR)? -varfac: varfac;
-			mtex->raymirrfac = (neg & MAP_RAYMIRR)? -varfac: varfac;
-			mtex->translfac = (neg & MAP_TRANSLU)? -varfac: varfac;
-			mtex->ambfac = (neg & MAP_AMB)? -varfac: varfac;
-			mtex->colemitfac = (neg & MAP_EMISSION_COL)? -colfac: colfac;
-			mtex->colreflfac = (neg & MAP_REFLECTION_COL)? -colfac: colfac;
-			mtex->coltransfac = (neg & MAP_TRANSMISSION_COL)? -colfac: colfac;
-			mtex->densfac = (neg & MAP_DENSITY)? -varfac: varfac;
-			mtex->scatterfac = (neg & MAP_SCATTERING)? -varfac: varfac;
-			mtex->reflfac = (neg & MAP_REFLECTION)? -varfac: varfac;
-
-			mtex->timefac = (neg & MAP_PA_TIME)? -varfac: varfac;
-			mtex->lengthfac = (neg & MAP_PA_LENGTH)? -varfac: varfac;
-			mtex->clumpfac = (neg & MAP_PA_CLUMP)? -varfac: varfac;
-			mtex->kinkfac = (neg & MAP_PA_KINK)? -varfac: varfac;
-			mtex->roughfac = (neg & MAP_PA_ROUGH)? -varfac: varfac;
-			mtex->padensfac = (neg & MAP_PA_DENS)? -varfac: varfac;
-			mtex->lifefac = (neg & MAP_PA_LIFE)? -varfac: varfac;
-			mtex->sizefac = (neg & MAP_PA_SIZE)? -varfac: varfac;
-			mtex->ivelfac = (neg & MAP_PA_IVEL)? -varfac: varfac;
-
-			mtex->shadowfac = (neg & LAMAP_SHAD)? -colfac: colfac;
-
-			mtex->zenupfac = (neg & WOMAP_ZENUP)? -colfac: colfac;
-			mtex->zendownfac = (neg & WOMAP_ZENDOWN)? -colfac: colfac;
-			mtex->blendfac = (neg & WOMAP_BLEND)? -varfac: varfac;
-
-			if (idtype == ID_MA)
-				mtex->colfac = (neg & MAP_COL)? -colfac: colfac;
-			else if (idtype == ID_LA)
-				mtex->colfac = (neg & LAMAP_COL)? -colfac: colfac;
-			else if (idtype == ID_WO)
-				mtex->colfac = (neg & WOMAP_HORIZ)? -colfac: colfac;
-		}
-	}
-}
-
 static void do_version_mdef_250(Main *main)
 {
 	Object *ob;
@@ -742,7 +678,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 		bSound *sound;
 		Sequence *seq;
-		int a;
 
 		for (sound = main->sound.first; sound; sound = sound->id.next) {
 			if (sound->newpackedfile) {
@@ -787,15 +722,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		for (ma = main->mat.first; ma; ma = ma->id.next) {
 			if (ma->nodetree && ma->nodetree->id.name[0] == '\0')
 				strcpy(ma->nodetree->id.name, "NTShader Nodetree");
-
-			/* which_output 0 is now "not specified" */
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ma->mtex[a]) {
-					tx = blo_do_versions_newlibadr(fd, lib, ma->mtex[a]->tex);
-					if (tx && tx->use_nodes)
-						ma->mtex[a]->which_output++;
-				}
-			}
 		}
 
 		/* and composite trees */
@@ -881,7 +807,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 1)) {
 		Object *ob;
-		Material *ma;
 		Tex *tex;
 		Scene *sce;
 		ToolSettings *ts;
@@ -927,61 +852,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				tex->afmax = 8;
 		}
 
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			int a;
-
-			if (ma->mode & MA_WIRE) {
-				ma->material_type = MA_TYPE_WIRE;
-				ma->mode &= ~MA_WIRE;
-			}
-
-			if (ma->mode & MA_HALO) {
-				ma->material_type = MA_TYPE_HALO;
-				ma->mode &= ~MA_HALO;
-			}
-
-			if (ma->mode & (MA_ZTRANSP|MA_RAYTRANSP)) {
-				ma->mode |= MA_TRANSP;
-			}
-			else {
-				/* ma->mode |= MA_ZTRANSP; */ /* leave ztransp as is even if its not used [#28113] */
-				ma->mode &= ~MA_TRANSP;
-			}
-
-			/* set new bump for unused slots */
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ma->mtex[a]) {
-					tex = ma->mtex[a]->tex;
-					if (!tex) {
-						ma->mtex[a]->texflag |= MTEX_3TAP_BUMP;
-						ma->mtex[a]->texflag |= MTEX_BUMP_OBJECTSPACE;
-					}
-					else {
-						tex = (Tex*) blo_do_versions_newlibadr(fd, ma->id.lib, tex);
-						if (tex && tex->type == 0) { /* invalid type */
-							ma->mtex[a]->texflag |= MTEX_3TAP_BUMP;
-							ma->mtex[a]->texflag |= MTEX_BUMP_OBJECTSPACE;
-						}
-					}
-				}
-			}
-
-			/* volume rendering settings */
-			if (ma->vol.stepsize < 0.0001f) {
-				ma->vol.density = 1.0f;
-				ma->vol.emission = 0.0f;
-				ma->vol.scattering = 1.0f;
-				ma->vol.emission_col[0] = ma->vol.emission_col[1] = ma->vol.emission_col[2] = 1.0f;
-				ma->vol.density_scale = 1.0f;
-				ma->vol.depth_cutoff = 0.01f;
-				ma->vol.stepsize_type = MA_VOL_STEP_RANDOMIZED;
-				ma->vol.stepsize = 0.2f;
-				ma->vol.shade_type = MA_VOL_SHADE_SHADED;
-				ma->vol.shadeflag |= MA_VOL_PRECACHESHADING;
-				ma->vol.precache_resolution = 50;
-			}
-		}
-
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			ts = sce->toolsettings;
 			if (ts->normalsize == 0.0f || !ts->uv_selectmode || ts->vgroup_weight == 0.0f) {
@@ -1013,10 +883,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 4)) {
 		Scene *sce;
 		Object *ob;
-		Material *ma;
-		Lamp *la;
-		World *wo;
-		Tex *tex;
 		ParticleSettings *part;
 		bool do_gravity = false;
 
@@ -1033,27 +899,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			/* rotation modes were added, but old objects would now default to being 'quaternion based' */
 			ob->rotmode = ROT_MODE_EUL;
 		}
-
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			if (ma->vol.reflection == 0.f) {
-				ma->vol.reflection = 1.f;
-				ma->vol.transmission_col[0] = ma->vol.transmission_col[1] = ma->vol.transmission_col[2] = 1.0f;
-				ma->vol.reflection_col[0] = ma->vol.reflection_col[1] = ma->vol.reflection_col[2] = 1.0f;
-			}
-
-			do_version_mtex_factor_2_50(ma->mtex, ID_MA);
-		}
-
-		for (la = main->lamp.first; la; la = la->id.next)
-			do_version_mtex_factor_2_50(la->mtex, ID_LA);
-
-		for (wo = main->world.first; wo; wo = wo->id.next)
-			do_version_mtex_factor_2_50(wo->mtex, ID_WO);
-
-		for (tex = main->tex.first; tex; tex = tex->id.next)
-			if (tex->vd)
-				if (tex->vd->extend == 0)
-					tex->vd->extend = TEX_CLIP;
 
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			if (sce->audio.main == 0.0f)
@@ -1115,7 +960,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 6)) {
 		Object *ob;
-		Lamp *la;
 
 		/* New variables for axis-angle rotations and/or quaternion rotations were added, and need proper initialization */
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -1133,9 +977,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-
-		for (la = main->lamp.first; la; la = la->id.next)
-			la->compressthresh = 0.05f;
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 7)) {
@@ -1204,8 +1045,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			while (sce) {
 				if (sce->r.frame_step == 0)
 					sce->r.frame_step = 1;
-				if (sce->r.mblur_samples == 0)
-					sce->r.mblur_samples = sce->r.osa;
 
 				if (sce->ed && sce->ed->seqbase.first) {
 					do_versions_seq_unique_name_all_strips(sce, &sce->ed->seqbase);
@@ -1262,7 +1101,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		if (main->versionfile == 250) {
 			Scene *sce = main->scene.first;
 			Material *ma = main->mat.first;
-			World *wo = main->world.first;
 			Tex *tex = main->tex.first;
 			int i, convert = 0;
 
@@ -1280,26 +1118,8 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 			if (convert) {
 				while (ma) {
-					if (ma->ramp_col) {
-						ColorBand *band = (ColorBand *)ma->ramp_col;
-						for (i = 0; i < band->tot; i++) {
-							CBData *data = band->data + i;
-							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
-						}
-					}
-
-					if (ma->ramp_spec) {
-						ColorBand *band = (ColorBand *)ma->ramp_spec;
-						for (i = 0; i < band->tot; i++) {
-							CBData *data = band->data + i;
-							srgb_to_linearrgb_v3_v3(&data->r, &data->r);
-						}
-					}
-
 					srgb_to_linearrgb_v3_v3(&ma->r, &ma->r);
 					srgb_to_linearrgb_v3_v3(&ma->specr, &ma->specr);
-					srgb_to_linearrgb_v3_v3(&ma->mirr, &ma->mirr);
-					srgb_to_linearrgb_v3_v3(ma->sss_col, ma->sss_col);
 					ma = ma->id.next;
 				}
 
@@ -1312,13 +1132,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 						}
 					}
 					tex = tex->id.next;
-				}
-
-				while (wo) {
-					srgb_to_linearrgb_v3_v3(&wo->ambr, &wo->ambr);
-					srgb_to_linearrgb_v3_v3(&wo->horr, &wo->horr);
-					srgb_to_linearrgb_v3_v3(&wo->zenr, &wo->zenr);
-					wo = wo->id.next;
 				}
 			}
 		}
@@ -1450,7 +1263,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12)) {
 		Object *ob;
 		Brush *brush;
-		Material *ma;
 
 		/* anim viz changes */
 		for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -1532,14 +1344,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			BKE_texture_mtex_default(&brush->mtex);
 			BKE_texture_mtex_default(&brush->mask_mtex);
 		}
-
-		for (ma = main->mat.first; ma; ma = ma->id.next) {
-			if (ma->vol.ms_spread < 0.0001f) {
-				ma->vol.ms_spread = 0.2f;
-				ma->vol.ms_diff = 1.f;
-				ma->vol.ms_intensity = 1.f;
-			}
-		}
 	}
 
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 13)) {
@@ -1598,41 +1402,9 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 15)) {
-		World *wo;
-		Material *ma;
-
-		/* ambient default from 0.5f to 1.0f */
-		for (ma = main->mat.first; ma; ma = ma->id.next)
-			ma->amb *= 2.0f;
-
-		for (wo = main->world.first; wo; wo = wo->id.next) {
-			/* ao splitting into ao/env/indirect */
-			wo->ao_env_energy = wo->aoenergy;
-			wo->aoenergy = 1.0f;
-
-			if (wo->ao_indirect_bounces == 0)
-				wo->ao_indirect_bounces = 1;
-			else
-				wo->mode |= WO_INDIRECT_LIGHT;
-
-			if (wo->aomix == WO_AOSUB)
-				wo->ao_env_energy = -wo->ao_env_energy;
-			else if (wo->aomix == WO_AOADDSUB)
-				wo->mode |= WO_AMB_OCC;
-
-			wo->aomix = WO_AOMUL;
-
-			/* ambient default from 0.5f to 1.0f */
-			mul_v3_fl(&wo->ambr, 0.5f);
-			wo->ao_env_energy *= 0.5f;
-		}
-	}
-
 	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 17)) {
 		Scene *sce;
 		Sequence *seq;
-		Material *ma;
 
 		/* initialize to sane default so toggling on border shows something */
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
@@ -1663,10 +1435,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			for (a = 0; a < ARRAY_SIZE(pset->brush); a++)
 				pset->brush[a].strength /= 100.0f;
 		}
-
-		for (ma = main->mat.first; ma; ma = ma->id.next)
-			if (ma->mode & MA_TRACEBLE)
-				ma->shade_flag |= MA_APPROX_OCCLUSION;
 
 		/* sequencer changes */
 		{
@@ -2269,27 +2037,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		Brush *brush;
 		Object *ob;
 		ParticleSettings *part;
-		Material *mat;
-		int tex_nr, transp_tex;
-
-		for (mat = main->mat.first; mat; mat = mat->id.next) {
-			if (!(mat->mode & MA_TRANSP) && !(mat->material_type & MA_TYPE_VOLUME)) {
-				transp_tex = 0;
-
-				for (tex_nr = 0; tex_nr < MAX_MTEX; tex_nr++) {
-					if (!mat->mtex[tex_nr])
-						continue;
-					if (mat->mtex[tex_nr]->mapto & MAP_ALPHA)
-						transp_tex = 1;
-				}
-
-				/* weak! material alpha could be animated */
-				if (mat->alpha < 1.0f || mat->fresnel_tra > 0.0f || transp_tex) {
-					mat->mode |= MA_TRANSP;
-					mat->mode &= ~(MA_ZTRANSP|MA_RAYTRANSP);
-				}
-			}
-		}
 
 		/* redraws flag in SpaceTime has been moved to Screen level */
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
@@ -2377,26 +2124,6 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 								v2d->minzoom = v2d->maxzoom = v2d->scroll = v2d->keeptot = v2d->keepzoom = v2d->keepofs = v2d->align = 0;
 							}
 						}
-					}
-				}
-			}
-		}
-
-		{
-			/* Initialize texture point density curve falloff */
-			Tex *tex;
-			for (tex = main->tex.first; tex; tex = tex->id.next) {
-				if (tex->pd) {
-					if (tex->pd->falloff_speed_scale == 0.0f)
-						tex->pd->falloff_speed_scale = 100.0f;
-
-					if (!tex->pd->falloff_curve) {
-						tex->pd->falloff_curve = curvemapping_add(1, 0, 0, 1, 1);
-
-						tex->pd->falloff_curve->preset = CURVE_PRESET_LINE;
-						tex->pd->falloff_curve->cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
-						curvemap_reset(tex->pd->falloff_curve->cm, &tex->pd->falloff_curve->clipr, tex->pd->falloff_curve->preset, CURVEMAP_SLOPE_POSITIVE);
-						curvemapping_changed(tex->pd->falloff_curve, false);
 					}
 				}
 			}

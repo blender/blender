@@ -77,7 +77,6 @@ public:
 	Object* create_instance_node(Object*, COLLADAFW::Node*, COLLADAFW::Node*, Scene*, bool);
 	void create_constraints(ExtraTags *et, Object *ob);
 	std::vector<Object *> *write_node(COLLADAFW::Node*, COLLADAFW::Node*, Scene*, Object*, bool);
-	MTex* create_texture(COLLADAFW::EffectCommon*, COLLADAFW::Texture&, Material*, int, TexIndexTextureArrayMap&);
 	void write_profile_COMMON(COLLADAFW::EffectCommon*, Material*);
 	
 	void translate_anim_recursive(COLLADAFW::Node*, COLLADAFW::Node*, Object*);

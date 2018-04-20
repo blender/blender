@@ -135,22 +135,17 @@ set(SRC
 	shader/nodes/node_shader_curves.c
 	shader/nodes/node_shader_gamma.c
 	shader/nodes/node_shader_brightness.c
-	shader/nodes/node_shader_geom.c
 	shader/nodes/node_shader_hueSatVal.c
 	shader/nodes/node_shader_invert.c
-	shader/nodes/node_shader_lamp.c
 	shader/nodes/node_shader_mapping.c
-	shader/nodes/node_shader_material.c
 	shader/nodes/node_shader_math.c
 	shader/nodes/node_shader_mixRgb.c
 	shader/nodes/node_shader_normal.c
-	shader/nodes/node_shader_output.c
 	shader/nodes/node_shader_rgb.c
 	shader/nodes/node_shader_sepcombRGB.c
 	shader/nodes/node_shader_sepcombHSV.c
 	shader/nodes/node_shader_sepcombXYZ.c
 	shader/nodes/node_shader_squeeze.c
-	shader/nodes/node_shader_texture.c
 	shader/nodes/node_shader_valToRgb.c
 	shader/nodes/node_shader_value.c
 	shader/nodes/node_shader_wireframe.c

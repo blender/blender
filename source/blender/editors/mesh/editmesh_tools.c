@@ -1475,19 +1475,32 @@ void MESH_OT_vert_connect_nonplanar(wmOperatorType *ot)
 
 static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
 	const int repeat = RNA_int_get(op->ptr, "repeat");
 	const float fac = RNA_float_get(op->ptr, "factor");
 
-	if (!EDBM_op_callf(
-	        em, op, "planar_faces faces=%hf iterations=%i factor=%f",
-	        BM_ELEM_SELECT, repeat, fac))
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
 	{
-		return OPERATOR_CANCELLED;
-	}
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	EDBM_update_generic(em, true, true);
+		if (!EDBM_op_callf(
+				em, op, "planar_faces faces=%hf iterations=%i factor=%f",
+				BM_ELEM_SELECT, repeat, fac))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2563,60 +2576,79 @@ void MESH_OT_merge(wmOperatorType *ot)
 
 static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
 	const float threshold = RNA_float_get(op->ptr, "threshold");
 	const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
-	const int totvert_orig = em->bm->totvert;
-	int count;
-	char htype_select;
+	int count_multi = 0;
 
-	/* avoid loosing selection state (select -> tags) */
-	if      (em->selectmode & SCE_SELECT_VERTEX) htype_select = BM_VERT;
-	else if (em->selectmode & SCE_SELECT_EDGE)   htype_select = BM_EDGE;
-	else                                         htype_select = BM_FACE;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	/* store selection as tags */
-	BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_TAG, true, true, BM_ELEM_SELECT);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		/* Selection used as target with 'use_unselected'. */
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+
+		BMOperator bmop;
+		const int totvert_orig = em->bm->totvert;
+
+		/* avoid loosing selection state (select -> tags) */
+		char htype_select;
+		if      (em->selectmode & SCE_SELECT_VERTEX) htype_select = BM_VERT;
+		else if (em->selectmode & SCE_SELECT_EDGE)   htype_select = BM_EDGE;
+		else                                         htype_select = BM_FACE;
+
+		/* store selection as tags */
+		BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_TAG, true, true, BM_ELEM_SELECT);
 
 
-	if (use_unselected) {
-		EDBM_op_init(
-		        em, &bmop, op,
-		        "automerge verts=%hv dist=%f",
-		        BM_ELEM_SELECT, threshold);
-		BMO_op_exec(em->bm, &bmop);
+		if (use_unselected) {
+			EDBM_op_init(
+			        em, &bmop, op,
+			        "automerge verts=%hv dist=%f",
+			        BM_ELEM_SELECT, threshold);
+			BMO_op_exec(em->bm, &bmop);
 
-		if (!EDBM_op_finish(em, &bmop, op, true)) {
-			return OPERATOR_CANCELLED;
+			if (!EDBM_op_finish(em, &bmop, op, true)) {
+				continue;
+			}
+		}
+		else {
+			EDBM_op_init(
+			        em, &bmop, op,
+			        "find_doubles verts=%hv dist=%f",
+			        BM_ELEM_SELECT, threshold);
+
+			BMO_op_exec(em->bm, &bmop);
+
+			if (!EDBM_op_callf(em, op, "weld_verts targetmap=%S", &bmop, "targetmap.out")) {
+				BMO_op_finish(em->bm, &bmop);
+				continue;
+			}
+
+			if (!EDBM_op_finish(em, &bmop, op, true)) {
+				continue;
+			}
+		}
+
+		const int count = (totvert_orig - em->bm->totvert);
+
+		/* restore selection from tags */
+		BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
+		EDBM_selectmode_flush(em);
+
+		if (count) {
+			count_multi += count;
+			EDBM_update_generic(em, true, true);
 		}
 	}
-	else {
-		EDBM_op_init(
-		        em, &bmop, op,
-		        "find_doubles verts=%hv dist=%f",
-		        BM_ELEM_SELECT, threshold);
-		BMO_op_exec(em->bm, &bmop);
+	MEM_freeN(objects);
 
-		if (!EDBM_op_callf(em, op, "weld_verts targetmap=%S", &bmop, "targetmap.out")) {
-			BMO_op_finish(em->bm, &bmop);
-			return OPERATOR_CANCELLED;
-		}
-
-		if (!EDBM_op_finish(em, &bmop, op, true)) {
-			return OPERATOR_CANCELLED;
-		}
-	}
-
-	count = totvert_orig - em->bm->totvert;
-	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
-
-	/* restore selection from tags */
-	BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
-	EDBM_selectmode_flush(em);
-
-	EDBM_update_generic(em, true, true);
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count_multi);
 
 	return OPERATOR_FINISHED;
 }
@@ -4206,6 +4238,8 @@ static int edbm_quads_convert_to_tris_exec(bContext *C, wmOperator *op)
 		EDBM_update_generic(em, true, true);
 	}
 
+	MEM_freeN(objects);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -5605,84 +5639,6 @@ void MESH_OT_sort_elements(wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name Noise (Deform Vertices) Operator
- * \{ */
-
-static int edbm_noise_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	Material *ma;
-	Tex *tex;
-	BMVert *eve;
-	BMIter iter;
-	const float fac = RNA_float_get(op->ptr, "factor");
-
-	if (em == NULL) {
-		return OPERATOR_FINISHED;
-	}
-
-	if ((ma  = give_current_material(obedit, obedit->actcol)) == NULL ||
-	    (tex = give_current_material_texture(ma)) == NULL)
-	{
-		BKE_report(op->reports, RPT_WARNING, "Mesh has no material or texture assigned");
-		return OPERATOR_FINISHED;
-	}
-
-	if (tex->type == TEX_STUCCI) {
-		float b2, vec[3];
-		float ofs = tex->turbul / 200.0f;
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				b2 = BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
-				if (tex->stype) ofs *= (b2 * b2);
-				vec[0] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0] + ofs, eve->co[1], eve->co[2]));
-				vec[1] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1] + ofs, eve->co[2]));
-				vec[2] = fac * (b2 - BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2] + ofs));
-
-				add_v3_v3(eve->co, vec);
-			}
-		}
-	}
-	else {
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				float tin = 0.0f, dum;
-				if (ma->mtex[ma->texact] != NULL) {
-					externtex(ma->mtex[ma->texact], eve->co, &tin, &dum, &dum, &dum, &dum, 0, NULL, false, false);
-				}
-				eve->co[2] += fac * tin;
-			}
-		}
-	}
-
-	EDBM_mesh_normals_update(em);
-
-	EDBM_update_generic(em, true, false);
-
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_noise(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Noise";
-	ot->description = "Use vertex coordinate as texture coordinate";
-	ot->idname = "MESH_OT_noise";
-
-	/* api callbacks */
-	ot->exec = edbm_noise_exec;
-	ot->poll = ED_operator_editmesh;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	RNA_def_float(ot->srna, "factor", 0.1f, -1e4f, 1e4f, "Factor", "", 0.0f, 1.0f);
-}
-
-/** \} */
-
-/* -------------------------------------------------------------------- */
 /** \name Bridge Operator
  * \{ */
 
@@ -6121,30 +6077,42 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	const float thresh = RNA_float_get(op->ptr, "threshold");
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	EDBM_op_init(
-	        em, &bmop, op,
-	        "symmetrize input=%hvef direction=%i dist=%f",
-	        BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
-	BMO_op_exec(em->bm, &bmop);
+		if (em->bm->totvertsel == 0 ) {
+			continue;
+		}
+		BMOperator bmop;
 
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		const float thresh = RNA_float_get(op->ptr, "threshold");
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+		EDBM_op_init(
+				em, &bmop, op,
+				"symmetrize input=%hvef direction=%i dist=%f",
+				BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
+		BMO_op_exec(em->bm, &bmop);
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+		else {
+			EDBM_update_generic(em, true, true);
+			EDBM_selectmode_flush(em);
+		}
 	}
-	else {
-		EDBM_update_generic(em, true, true);
-		EDBM_selectmode_flush(em);
-		return OPERATOR_FINISHED;
-	}
+	MEM_freeN(objects);
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_symmetrize(struct wmOperatorType *ot)

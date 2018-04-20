@@ -145,17 +145,6 @@ static AdrBit2Path ob_layer_bits[] = {
 	{(1 << 19), "layers", 19}
 };
 
-/* Material mode */
-static AdrBit2Path ma_mode_bits[] = {
-//	{MA_TRACEBLE, "traceable", 0},
-//  {MA_SHADOW, "shadow", 0},
-//	{MA_SHLESS, "shadeless", 0},
-//  ...
-	{MA_RAYTRANSP, "transparency", 0},
-	{MA_RAYMIRROR, "raytrace_mirror.enabled", 0},
-//	{MA_HALO, "type", MA_TYPE_HALO}
-};
-
 /* ----------------- */
 
 /* quick macro for returning the appropriate array for adrcode_bitmaps_to_paths() */
@@ -171,9 +160,6 @@ static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *to
 	/* Object layers */
 	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) {
 		RET_ABP(ob_layer_bits);
-	}
-	else if ((blocktype == ID_MA) && (adrcode == MA_MODE)) {
-		RET_ABP(ma_mode_bits);
 	}
 	// XXX TODO: add other types...
 	

@@ -653,11 +653,6 @@ typedef struct NodeTwoFloats {
 	float x, y;
 } NodeTwoFloats;
 
-typedef struct NodeGeometry {
-	char uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	char colname[64];
-} NodeGeometry;
-
 typedef struct NodeVertexCol {
 	char name[64];
 } NodeVertexCol;

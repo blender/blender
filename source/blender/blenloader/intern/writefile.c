@@ -186,6 +186,7 @@
 
 #include "BLO_writefile.h"
 #include "BLO_readfile.h"
+#include "BLO_runtime.h"
 #include "BLO_undofile.h"
 #include "BLO_blend_defs.h"
 
@@ -2277,24 +2278,6 @@ static void write_texture(WriteData *wd, Tex *tex)
 		if (tex->coba) {
 			writestruct(wd, DATA, ColorBand, 1, tex->coba);
 		}
-		if (tex->type == TEX_ENVMAP && tex->env) {
-			writestruct(wd, DATA, EnvMap, 1, tex->env);
-		}
-		if (tex->type == TEX_POINTDENSITY && tex->pd) {
-			writestruct(wd, DATA, PointDensity, 1, tex->pd);
-			if (tex->pd->coba) {
-				writestruct(wd, DATA, ColorBand, 1, tex->pd->coba);
-			}
-			if (tex->pd->falloff_curve) {
-				write_curvemapping(wd, tex->pd->falloff_curve);
-			}
-		}
-		if (tex->type == TEX_VOXELDATA) {
-			writestruct(wd, DATA, VoxelData, 1, tex->vd);
-		}
-		if (tex->type == TEX_OCEAN && tex->ot) {
-			writestruct(wd, DATA, OceanTex, 1, tex->ot);
-		}
 
 		/* nodetree is integral part of texture, no libdata */
 		if (tex->nodetree) {
@@ -2315,19 +2298,6 @@ static void write_material(WriteData *wd, Material *ma)
 
 		if (ma->adt) {
 			write_animdata(wd, ma->adt);
-		}
-
-		for (int a = 0; a < MAX_MTEX; a++) {
-			if (ma->mtex[a]) {
-				writestruct(wd, DATA, MTex, 1, ma->mtex[a]);
-			}
-		}
-
-		if (ma->ramp_col) {
-			writestruct(wd, DATA, ColorBand, 1, ma->ramp_col);
-		}
-		if (ma->ramp_spec) {
-			writestruct(wd, DATA, ColorBand, 1, ma->ramp_spec);
 		}
 
 		/* nodetree is integral part of material, no libdata */
@@ -2351,12 +2321,6 @@ static void write_world(WriteData *wd, World *wrld)
 			write_animdata(wd, wrld->adt);
 		}
 
-		for (int a = 0; a < MAX_MTEX; a++) {
-			if (wrld->mtex[a]) {
-				writestruct(wd, DATA, MTex, 1, wrld->mtex[a]);
-			}
-		}
-
 		/* nodetree is integral part of world, no libdata */
 		if (wrld->nodetree) {
 			writestruct(wd, DATA, bNodeTree, 1, wrld->nodetree);
@@ -2376,13 +2340,6 @@ static void write_lamp(WriteData *wd, Lamp *la)
 
 		if (la->adt) {
 			write_animdata(wd, la->adt);
-		}
-
-		/* direct data */
-		for (int a = 0; a < MAX_MTEX; a++) {
-			if (la->mtex[a]) {
-				writestruct(wd, DATA, MTex, 1, la->mtex[a]);
-			}
 		}
 
 		if (la->curfalloff) {
@@ -4067,6 +4024,11 @@ bool BLO_write_file(
 	void     *path_list_backup = NULL;
 	const int path_list_flag = (BKE_BPATH_TRAVERSE_SKIP_LIBRARY | BKE_BPATH_TRAVERSE_SKIP_MULTIFILE);
 
+	if (G.debug & G_DEBUG_IO && mainvar->lock != NULL) {
+		BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *BEFORE* save to disk.");
+		BLO_main_validate_libraries(mainvar, reports);
+	}
+
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
@@ -4149,6 +4111,11 @@ bool BLO_write_file(
 	if (BLI_rename(tempname, filepath) != 0) {
 		BKE_report(reports, RPT_ERROR, "Cannot change old file (file saved with @)");
 		return 0;
+	}
+
+	if (G.debug & G_DEBUG_IO && mainvar->lock != NULL) {
+		BKE_report(reports, RPT_INFO, "Checking sanity of current .blend file *AFTER* save to disk.");
+		BLO_main_validate_libraries(mainvar, reports);
 	}
 
 	return 1;

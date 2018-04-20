@@ -184,6 +184,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	export_settings.sampling_rate = sampling_rate;
 
 	export_settings.active_uv_only = active_uv_only != 0;
+	export_settings.include_material_textures = include_material_textures != 0;
 	export_settings.use_texture_copies = use_texture_copies != 0;
 
 	export_settings.triangulate = triangulate != 0;

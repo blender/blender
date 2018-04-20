@@ -85,8 +85,6 @@ static void memfile_undosys_step_decode(struct bContext *C, UndoStep *us_p, int 
 	/* Loading the content will correctly switch into compatible non-object modes. */
 	ED_object_mode_set(C, OB_MODE_OBJECT);
 
-	/* This is needed so undoing/redoing doesn't crash with threaded previews going */
-	ED_viewport_render_kill_jobs(CTX_wm_manager(C), CTX_data_main(C), true);
 	MemFileUndoStep *us = (MemFileUndoStep *)us_p;
 	BKE_memfile_undo_decode(us->data, C);
 

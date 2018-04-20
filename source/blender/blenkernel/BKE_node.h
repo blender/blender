@@ -498,7 +498,6 @@ struct bNode   *nodeGetActiveTexture(struct bNodeTree *ntree);
 void            nodeUpdate(struct bNodeTree *ntree, struct bNode *node);
 bool            nodeUpdateID(struct bNodeTree *ntree, struct ID *id);
 void            nodeUpdateInternalLinks(struct bNodeTree *ntree, struct bNode *node);
-void            nodeSynchronizeID(struct bNode *node, bool copy_to_id);
 
 int             nodeSocketIsHidden(struct bNodeSocket *sock);
 void            ntreeTagUsedSockets(struct bNodeTree *ntree);
@@ -702,24 +701,22 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 /* -------------------------------------------------------------------- */
 /** \name Shader Nodes
  * \{ */
-struct ShadeInput;
-struct ShadeResult;
 
 /* note: types are needed to restore callbacks, don't change values */
 /* range 1 - 100 is reserved for common nodes */
 /* using toolbox, we add node groups by assuming the values below don't exceed NODE_GROUP_MENU for now */
 
-#define SH_NODE_OUTPUT		1
+//#define SH_NODE_OUTPUT		1
 
-#define SH_NODE_MATERIAL	100
+//#define SH_NODE_MATERIAL	100
 #define SH_NODE_RGB			101
 #define SH_NODE_VALUE		102
 #define SH_NODE_MIX_RGB		103
 #define SH_NODE_VALTORGB	104
 #define SH_NODE_RGBTOBW		105
-#define SH_NODE_TEXTURE		106
+//#define SH_NODE_TEXTURE		106
 #define SH_NODE_NORMAL		107
-#define SH_NODE_GEOMETRY	108
+//#define SH_NODE_GEOMETRY	108
 #define SH_NODE_MAPPING		109
 #define SH_NODE_CURVE_VEC	110
 #define SH_NODE_CURVE_RGB	111
@@ -727,7 +724,7 @@ struct ShadeResult;
 #define SH_NODE_MATH		115
 #define SH_NODE_VECT_MATH	116
 #define SH_NODE_SQUEEZE		117
-#define SH_NODE_MATERIAL_EXT	118
+//#define SH_NODE_MATERIAL_EXT	118
 #define SH_NODE_INVERT		119
 #define SH_NODE_SEPRGB		120
 #define SH_NODE_COMBRGB		121
@@ -813,12 +810,7 @@ struct ShadeResult;
 
 struct bNodeTreeExec *ntreeShaderBeginExecTree(struct bNodeTree *ntree);
 void            ntreeShaderEndExecTree(struct bNodeTreeExec *exec);
-bool            ntreeShaderExecTree(struct bNodeTree *ntree, struct ShadeInput *shi, struct ShadeResult *shr);
-void            ntreeShaderGetTexcoMode(struct bNodeTree *ntree, int osa, short *texco, int *mode);
-
-/* switch material render loop */
-extern void (*node_shader_lamp_loop)(struct ShadeInput *, struct ShadeResult *);
-void            set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, struct ShadeResult *));
+bool            ntreeShaderExecTree(struct bNodeTree *ntree, int thread);
 
 void            ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat, short compatibility);
 void            ntreeGPUMaterialDomain(struct bNodeTree *ntree, bool *has_surface_output, bool *has_volume_output);
@@ -1051,7 +1043,7 @@ struct bNodeTreeExec *ntreeTexBeginExecTree(struct bNodeTree *ntree);
 void ntreeTexEndExecTree(struct bNodeTreeExec *exec);
 int ntreeTexExecTree(struct bNodeTree *ntree, struct TexResult *target,
                      float coord[3], float dxt[3], float dyt[3], int osatex, const short thread,
-                     struct Tex *tex, short which_output, int cfra, int preview, struct ShadeInput *shi, struct MTex *mtex);
+                     struct Tex *tex, short which_output, int cfra, int preview, struct MTex *mtex);
 /** \} */
 
 void init_nodesystem(void);

@@ -1259,8 +1259,6 @@ void DepsgraphRelationBuilder::build_world(World *world)
 	}
 	build_animdata(&world->id);
 	/* TODO: other settings? */
-	/* textures */
-	build_texture_stack(world->mtex);
 	/* world's nodetree */
 	if (world->nodetree != NULL) {
 		build_nodetree(world->nodetree);
@@ -1799,8 +1797,6 @@ void DepsgraphRelationBuilder::build_lamp(Object *object)
 		ComponentKey nodetree_key(&lamp->nodetree->id, DEG_NODE_TYPE_SHADING);
 		add_relation(nodetree_key, lamp_parameters_key, "NTree->Lamp Parameters");
 	}
-	/* textures */
-	build_texture_stack(lamp->mtex);
 
 	if (DEG_depsgraph_use_copy_on_write()) {
 		/* Make sure copy on write of lamp data is always properly updated for
@@ -1882,8 +1878,6 @@ void DepsgraphRelationBuilder::build_material(Material *material)
 	}
 	/* animation */
 	build_animdata(&material->id);
-	/* textures */
-	build_texture_stack(material->mtex);
 	/* material's nodetree */
 	if (material->nodetree != NULL) {
 		build_nodetree(material->nodetree);
@@ -1907,17 +1901,6 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
 	build_animdata(&texture->id);
 	/* texture's nodetree */
 	build_nodetree(texture->nodetree);
-}
-
-/* Texture-stack attached to some shading datablock */
-void DepsgraphRelationBuilder::build_texture_stack(MTex **texture_stack)
-{
-	/* for now assume that all texture-stacks have same number of max items */
-	for (int i = 0; i < MAX_MTEX; i++) {
-		MTex *mtex = texture_stack[i];
-		if (mtex && mtex->tex)
-			build_texture(mtex->tex);
-	}
 }
 
 void DepsgraphRelationBuilder::build_compositor(Scene *scene)

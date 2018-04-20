@@ -55,7 +55,7 @@ static uint get_material_hash(const float color[3])
 	return r + g * 4096 + b * 4096 * 4096;
 }
 
-static const float* get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob)
+static const float* get_material_solid_color(WORKBENCH_PrivateData *UNUSED(wpd), Object *ob)
 {
 	return ob->col;
 }

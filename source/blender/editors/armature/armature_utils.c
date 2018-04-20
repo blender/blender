@@ -716,8 +716,6 @@ void ED_armature_to_edit(bArmature *arm)
 	ED_armature_edit_free(arm);
 	arm->edbo = MEM_callocN(sizeof(ListBase), "edbo armature");
 	arm->act_edbone = make_boneList(arm->edbo, &arm->bonebase, NULL, arm->act_bone);
-
-//	BIF_freeTemplates(); /* force template update when entering editmode */
 }
 
 /* *************************************************************** */

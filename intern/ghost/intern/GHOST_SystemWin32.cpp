@@ -396,12 +396,12 @@ GHOST_TSuccess GHOST_SystemWin32::disposeContext(GHOST_IContext *context)
 bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 {
 	MSG msg;
-	bool anyProcessed = false;
+	bool hasEventHandled = false;
 
 	do {
 		GHOST_TimerManager *timerMgr = getTimerManager();
 
-		if (waitForEvent && !::PeekMessage(&msg, 0, 0, 0, PM_NOREMOVE)) {
+		if (waitForEvent && !::PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)) {
 #if 1
 			::Sleep(1);
 #else
@@ -420,20 +420,26 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 		}
 
 		if (timerMgr->fireTimers(getMilliSeconds())) {
-			anyProcessed = true;
+			hasEventHandled = true;
 		}
 
 		// Process all the events waiting for us
-		while (::PeekMessageW(&msg, 0, 0, 0, PM_REMOVE) != 0) {
+		while (::PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE) != 0) {
 			// TranslateMessage doesn't alter the message, and doesn't change our raw keyboard data.
 			// Needed for MapVirtualKey or if we ever need to get chars from wm_ime_char or similar.
 			::TranslateMessage(&msg);
 			::DispatchMessageW(&msg);
-			anyProcessed = true;
 		}
-	} while (waitForEvent && !anyProcessed);
 
-	return anyProcessed;
+		if (hasEventHandled == false) {
+			// Check if we have events handled by the system
+			// (for example the `GHOST_kEventWindowClose`).
+			hasEventHandled = m_eventManager->getNumEvents() != 0;
+		}
+
+	} while (waitForEvent && !hasEventHandled);
+
+	return hasEventHandled;
 }
 
 

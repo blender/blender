@@ -164,12 +164,7 @@ bool ImagesExporter::hasImages(Scene *sce)
 
 			// no material, but check all of the slots
 			if (!ma) continue;
-			int b;
-			for (b = 0; b < MAX_MTEX; b++) {
-				MTex *mtex = ma->mtex[b];
-				if (mtex && mtex->tex && mtex->tex->ima) return true;
-			}
-
+			// TODO: find image textures in shader nodes
 		}
 	}
 	return false;
@@ -191,13 +186,6 @@ void ImagesExporter::exportImages(Scene *sce)
 
 void ImagesExporter::operator()(Material *ma, Object *ob)
 {
-	int a;
-	bool use_texture_copies = this->export_settings->use_texture_copies;
-	for (a = 0; a < MAX_MTEX; a++) {
-		MTex *mtex = ma->mtex[a];
-		if (mtex && mtex->tex && mtex->tex->ima) {
-			Image *image = mtex->tex->ima;
-			export_UV_Image(image, use_texture_copies);
-		}
-	}
+	// bool use_texture_copies = this->export_settings->use_texture_copies;
+	// TODO call export_UV_Image for every image in shader nodes
 }

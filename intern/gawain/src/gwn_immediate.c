@@ -275,7 +275,7 @@ Gwn_Batch* immBeginBatch(Gwn_PrimType prim_type, unsigned vertex_ct)
 	imm.buffer_bytes_mapped = GWN_vertbuf_size_get(verts);
 	imm.vertex_data = verts->data;
 
-	imm.batch = GWN_batch_create(prim_type, verts, NULL);
+	imm.batch = GWN_batch_create_ex(prim_type, verts, NULL, GWN_BATCH_OWNS_VBO);
 	imm.batch->phase = GWN_BATCH_BUILDING;
 
 	return imm.batch;

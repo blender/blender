@@ -408,11 +408,6 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 		outliner_add_element(soops, lb, sce, te, TSE_ANIM_DATA, 0);
 		
 	outliner_add_element(soops, lb, sce->gpd, te, 0, 0);
-	
-#ifdef WITH_FREESTYLE
-	if (STREQ(sce->view_render->engine_id, RE_engine_id_BLENDER_RENDER) && (sce->r.mode & R_EDGE_FRS))
-		outliner_add_line_styles(soops, lb, sce, te);
-#endif
 }
 
 TreeTraversalAction outliner_find_selected_objects(TreeElement *te, void *customdata)
@@ -750,14 +745,9 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		case ID_MA:
 		{
 			Material *ma = (Material *)id;
-			int a;
 			
 			if (outliner_animdata_test(ma->adt))
 				outliner_add_element(soops, &te->subtree, ma, te, TSE_ANIM_DATA, 0);
-			
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (ma->mtex[a]) outliner_add_element(soops, &te->subtree, ma->mtex[a]->tex, te, 0, a);
-			}
 			break;
 		}
 		case ID_TE:
@@ -791,14 +781,9 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		case ID_LA:
 		{
 			Lamp *la = (Lamp *)id;
-			int a;
 			
 			if (outliner_animdata_test(la->adt))
 				outliner_add_element(soops, &te->subtree, la, te, TSE_ANIM_DATA, 0);
-			
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (la->mtex[a]) outliner_add_element(soops, &te->subtree, la->mtex[a]->tex, te, 0, a);
-			}
 			break;
 		}
 		case ID_SPK:
@@ -820,14 +805,9 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		case ID_WO:
 		{
 			World *wrld = (World *)id;
-			int a;
 			
 			if (outliner_animdata_test(wrld->adt))
 				outliner_add_element(soops, &te->subtree, wrld, te, TSE_ANIM_DATA, 0);
-			
-			for (a = 0; a < MAX_MTEX; a++) {
-				if (wrld->mtex[a]) outliner_add_element(soops, &te->subtree, wrld->mtex[a]->tex, te, 0, a);
-			}
 			break;
 		}
 		case ID_KE:

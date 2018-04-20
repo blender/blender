@@ -69,7 +69,6 @@ struct ViewLayer;
 #define RE_USE_TEXTURE_PREVIEW		128
 #define RE_USE_SHADING_NODES_CUSTOM 	256
 #define RE_USE_SPHERICAL_STEREO 512
-#define RE_USE_LEGACY_PIPELINE	1024 /* XXX Temporary flag, to be removed once draw manager is finished. */
 
 /* RenderEngine.flag */
 #define RE_ENGINE_ANIMATION		1

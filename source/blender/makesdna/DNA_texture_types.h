@@ -45,13 +45,11 @@ extern "C" {
 struct AnimData;
 struct Ipo;
 struct ColorBand;
-struct EnvMap;
 struct Object;
 struct Tex;
 struct Image;
 struct PreviewImage;
 struct ImBuf;
-struct Ocean;
 struct CurveMapping;
 
 typedef struct MTex {
@@ -121,21 +119,6 @@ typedef struct ColorBand {
 	CBData data[32];
 } ColorBand;
 
-typedef struct EnvMap {
-	struct Object *object;
-	struct Image *ima;		/* type ENV_LOAD */
-	struct ImBuf *cube[6];		/* these images are dynamic, not part of the main struct */
-	float imat[4][4];
-	float obimat[3][3];
-	short type, stype;
-	float clipsta, clipend;
-	float viewscale;	/* viewscale is for planar envmaps to zoom in or out */
-	unsigned int notlay;
-	short cuberes, depth;
-	int ok, lastframe;
-	short recalc, lastsize;
-} EnvMap;
-
 typedef struct PointDensity {
 	short flag;
 
@@ -172,38 +155,6 @@ typedef struct PointDensity {
 	struct CurveMapping *falloff_curve; /* falloff density curve */
 } PointDensity;
 
-typedef struct VoxelData {
-	int resol[3];
-	int interp_type;
-	short file_format;
-	short flag;
-	short extend;
-	short smoked_type;
-	short hair_type;
-	short data_type;
-	int _pad;
-	
-	struct Object *object; /* for rendering smoke sims */
-	float int_multiplier;
-	int still_frame;
-	char source_path[1024];  /* 1024 = FILE_MAX */
-
-	/* temporary data */
-	float *dataset;
-	int cachedframe;
-	int ok;
-	
-} VoxelData;
-
-typedef struct OceanTex {
-	struct Object *object;
-	char oceanmod[64];
-	
-	int output;
-	int pad;
-	
-} OceanTex;
-	
 typedef struct Tex {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
@@ -254,11 +205,7 @@ typedef struct Tex {
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Image *ima;
 	struct ColorBand *coba;
-	struct EnvMap *env;
 	struct PreviewImage *preview;
-	struct PointDensity *pd;
-	struct VoxelData *vd;
-	struct OceanTex *ot;
 	
 	char use_nodes;
 	char pad[7];
@@ -316,13 +263,13 @@ typedef struct ColorMapping {
 #define TEX_NOISE		7
 #define TEX_IMAGE		8
 //#define TEX_PLUGIN		9 /* Deprecated */
-#define TEX_ENVMAP		10
+//#define TEX_ENVMAP		10 /* Deprecated */
 #define TEX_MUSGRAVE	11
 #define TEX_VORONOI		12
 #define TEX_DISTNOISE	13
-#define TEX_POINTDENSITY	14
-#define TEX_VOXELDATA		15
-#define TEX_OCEAN		16
+//#define TEX_POINTDENSITY	14 /* Deprecated */
+//#define TEX_VOXELDATA		15 /* Deprecated */
+//#define TEX_OCEAN			16 /* Deprecated */
 
 /* musgrave stype */
 #define TEX_MFRACTAL		0
@@ -549,22 +496,6 @@ enum {
 	COLBAND_HUE_CCW     = 3,
 };
 
-/* **************** EnvMap ********************* */
-
-/* type */
-#define ENV_CUBE	0
-#define ENV_PLANE	1
-#define ENV_SPHERE	2
-
-/* stype */
-#define ENV_STATIC	0
-#define ENV_ANIM	1
-#define ENV_LOAD	2
-
-/* ok */
-#define ENV_NORMAL	1
-#define ENV_OSA		2
-
 /* **************** PointDensity ********************* */
 
 /* source */
@@ -592,9 +523,9 @@ enum {
 
 /* noise_influence */
 #define TEX_PD_NOISE_STATIC		0
-#define TEX_PD_NOISE_VEL		1
-#define TEX_PD_NOISE_AGE		2
-#define TEX_PD_NOISE_TIME		3
+/* #define TEX_PD_NOISE_VEL		1 */ /* Deprecated */
+/* #define TEX_PD_NOISE_AGE		2 */ /* Deprecated */
+/* #define TEX_PD_NOISE_TIME	3 */ /* Deprecated */
 
 /* color_source */
 enum {
@@ -613,55 +544,6 @@ enum {
 #define POINT_DATA_LIFE		2
 #define POINT_DATA_COLOR	4
 
-/******************** Voxel Data *****************************/
-/* flag */
-#define TEX_VD_STILL			1
-
-/* interpolation */
-#define TEX_VD_NEARESTNEIGHBOR		0
-#define TEX_VD_LINEAR				1
-#define TEX_VD_QUADRATIC        2
-#define TEX_VD_TRICUBIC_CATROM  3
-#define TEX_VD_TRICUBIC_BSPLINE 4
-#define TEX_VD_TRICUBIC_SLOW    5
-
-/* file format */
-#define TEX_VD_BLENDERVOXEL		0
-#define TEX_VD_RAW_8BIT			1
-#define TEX_VD_RAW_16BIT		2
-#define TEX_VD_IMAGE_SEQUENCE	3
-#define TEX_VD_SMOKE			4
-#define TEX_VD_HAIR				5
-/* for voxels which use VoxelData->source_path */
-#define TEX_VD_IS_SOURCE_PATH(_format) (ELEM(_format, TEX_VD_BLENDERVOXEL, TEX_VD_RAW_8BIT, TEX_VD_RAW_16BIT))
-
-/* smoke data types */
-#define TEX_VD_SMOKEDENSITY		0
-#define TEX_VD_SMOKEHEAT		1
-#define TEX_VD_SMOKEVEL			2
-#define TEX_VD_SMOKEFLAME		3
-
-#define TEX_VD_HAIRDENSITY		0
-#define TEX_VD_HAIRVELOCITY		1
-#define TEX_VD_HAIRENERGY		2
-#define TEX_VD_HAIRRESTDENSITY	3
-
-/* data_type */
-#define TEX_VD_INTENSITY		0
-#define TEX_VD_RGBA_PREMUL		1
-
-/******************** Ocean *****************************/
-/* output */
-#define TEX_OCN_DISPLACEMENT	1
-#define TEX_OCN_FOAM			2
-#define TEX_OCN_JPLUS			3
-#define TEX_OCN_EMINUS			4	
-#define TEX_OCN_EPLUS			5
-
-/* flag */
-#define TEX_OCN_GENERATE_NORMALS	1	
-#define TEX_OCN_XZ				2	
-	
 #ifdef __cplusplus
 }
 #endif

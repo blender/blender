@@ -71,12 +71,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 {
 #if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
-#endif
 	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
+#endif
 
 	modifier_copyData_generic(md, target);
-
-	id_us_plus((ID *)tumd->image);
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
@@ -102,9 +100,9 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 static void foreachIDLink(ModifierData *md, Object *ob,
                           IDWalkFunc walk, void *userData)
 {
+#if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
-
-	walk(userData, ob, (ID **)&umd->image, IDWALK_CB_USER);
+#endif
 
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
@@ -133,7 +131,6 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	float (*coords)[3], (*co)[3];
 	MLoopUV *mloop_uv;
 	int i, numVerts, numPolys, numLoops;
-	Image *image = umd->image;
 	MPoly *mpoly, *mp;
 	MLoop *mloop;
 	Projector projectors[MOD_UVPROJECT_MAXPROJECTORS];
@@ -238,84 +235,73 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	mpoly = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);
 
-	Image **ob_image_array = NULL;
-	if (image) {
-		ob_image_array = BKE_object_material_edit_image_get_array(ob);
-	}
-
-	/* apply coords as UVs, and apply image if tfaces are new */
+	/* apply coords as UVs */
 	for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
-		if (!image || (mp->mat_nr < ob->totcol ? ob_image_array[mp->mat_nr] : NULL) == image) {
-			if (num_projectors == 1) {
-				if (projectors[0].uci) {
-					unsigned int fidx = mp->totloop - 1;
-					do {
-						unsigned int lidx = mp->loopstart + fidx;
-						unsigned int vidx = mloop[lidx].v;
-						BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
-					} while (fidx--);
-				}
-				else {
-					/* apply transformed coords as UVs */
-					unsigned int fidx = mp->totloop - 1;
-					do {
-						unsigned int lidx = mp->loopstart + fidx;
-						unsigned int vidx = mloop[lidx].v;
-						copy_v2_v2(mloop_uv[lidx].uv, coords[vidx]);
-					} while (fidx--);
-				}
+		if (num_projectors == 1) {
+			if (projectors[0].uci) {
+				unsigned int fidx = mp->totloop - 1;
+				do {
+					unsigned int lidx = mp->loopstart + fidx;
+					unsigned int vidx = mloop[lidx].v;
+					BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], projectors[0].uci);
+				} while (fidx--);
 			}
 			else {
-				/* multiple projectors, select the closest to face normal direction */
-				float face_no[3];
-				int j;
-				Projector *best_projector;
-				float best_dot;
+				/* apply transformed coords as UVs */
+				unsigned int fidx = mp->totloop - 1;
+				do {
+					unsigned int lidx = mp->loopstart + fidx;
+					unsigned int vidx = mloop[lidx].v;
+					copy_v2_v2(mloop_uv[lidx].uv, coords[vidx]);
+				} while (fidx--);
+			}
+		}
+		else {
+			/* multiple projectors, select the closest to face normal direction */
+			float face_no[3];
+			int j;
+			Projector *best_projector;
+			float best_dot;
 
-				/* get the untransformed face normal */
-				BKE_mesh_calc_poly_normal_coords(mp, mloop + mp->loopstart, (const float (*)[3])coords, face_no);
+			/* get the untransformed face normal */
+			BKE_mesh_calc_poly_normal_coords(mp, mloop + mp->loopstart, (const float (*)[3])coords, face_no);
 
-				/* find the projector which the face points at most directly
-				 * (projector normal with largest dot product is best)
-				 */
-				best_dot = dot_v3v3(projectors[0].normal, face_no);
-				best_projector = &projectors[0];
+			/* find the projector which the face points at most directly
+			 * (projector normal with largest dot product is best)
+			 */
+			best_dot = dot_v3v3(projectors[0].normal, face_no);
+			best_projector = &projectors[0];
 
-				for (j = 1; j < num_projectors; ++j) {
-					float tmp_dot = dot_v3v3(projectors[j].normal,
-					                         face_no);
-					if (tmp_dot > best_dot) {
-						best_dot = tmp_dot;
-						best_projector = &projectors[j];
-					}
+			for (j = 1; j < num_projectors; ++j) {
+				float tmp_dot = dot_v3v3(projectors[j].normal,
+										 face_no);
+				if (tmp_dot > best_dot) {
+					best_dot = tmp_dot;
+					best_projector = &projectors[j];
 				}
+			}
 
-				if (best_projector->uci) {
-					unsigned int fidx = mp->totloop - 1;
-					do {
-						unsigned int lidx = mp->loopstart + fidx;
-						unsigned int vidx = mloop[lidx].v;
-						BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
-					} while (fidx--);
-				}
-				else {
-					unsigned int fidx = mp->totloop - 1;
-					do {
-						unsigned int lidx = mp->loopstart + fidx;
-						unsigned int vidx = mloop[lidx].v;
-						mul_v2_project_m4_v3(mloop_uv[lidx].uv, best_projector->projmat, coords[vidx]);
-					} while (fidx--);
-				}
+			if (best_projector->uci) {
+				unsigned int fidx = mp->totloop - 1;
+				do {
+					unsigned int lidx = mp->loopstart + fidx;
+					unsigned int vidx = mloop[lidx].v;
+					BLI_uvproject_from_camera(mloop_uv[lidx].uv, coords[vidx], best_projector->uci);
+				} while (fidx--);
+			}
+			else {
+				unsigned int fidx = mp->totloop - 1;
+				do {
+					unsigned int lidx = mp->loopstart + fidx;
+					unsigned int vidx = mloop[lidx].v;
+					mul_v2_project_m4_v3(mloop_uv[lidx].uv, best_projector->projmat, coords[vidx]);
+				} while (fidx--);
 			}
 		}
 	}
 
 	MEM_freeN(coords);
 
-	if (ob_image_array) {
-		MEM_freeN(ob_image_array);
-	}
-	
 	if (free_uci) {
 		int j;
 		for (j = 0; j < num_projectors; ++j) {

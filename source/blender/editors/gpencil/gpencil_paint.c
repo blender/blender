@@ -679,7 +679,7 @@ static short gp_stroke_addpoint(
 
 /* simplify a stroke (in buffer) before storing it
  *	- applies a reverse Chaikin filter
- *	- code adapted from etch-a-ton branch (editarmature_sketch.c)
+ *	- code adapted from etch-a-ton branch
  */
 static void gp_stroke_simplify(tGPsdata *p)
 {

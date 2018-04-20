@@ -68,9 +68,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 			id_us_plus((ID *)surface->init_texture);
 		}
 	}
-	if (tpmd->brush) {
-		id_us_plus((ID *)tpmd->brush->mat);
-	}
 }
 
 static void freeData(ModifierData *md)
@@ -103,12 +100,6 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 			if (surface->type == MOD_DPAINT_SURFACE_T_WEIGHT) {
 				dataMask |= CD_MASK_MDEFORMVERT;
 			}
-		}
-	}
-
-	if (pmd->brush) {
-		if (pmd->brush->flags & MOD_DPAINT_USE_MATERIAL) {
-			dataMask |= CD_MASK_MLOOPUV;
 		}
 	}
 	return dataMask;
@@ -168,9 +159,6 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 				walk(userData, ob, (ID **)&surface->effector_weights->group, IDWALK_CB_NOP);
 			}
 		}
-	}
-	if (pmd->brush) {
-		walk(userData, ob, (ID **)&pmd->brush->mat, IDWALK_CB_USER);
 	}
 }
 

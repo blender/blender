@@ -49,7 +49,6 @@ struct RenderResult;
 struct ReportList;
 struct Scene;
 struct ViewLayer;
-struct EnvMap;
 struct StampData;
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -251,10 +250,8 @@ void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
 struct Object *RE_GetCamera(struct Render *re); /* return camera override if set */
 void RE_SetOverrideCamera(struct Render *re, struct Object *camera);
 void RE_SetCamera(struct Render *re, struct Object *camera);
-void RE_SetEnvmapCamera(struct Render *re, struct Object *cam_ob, float viewscale, float clipsta, float clipend);
 void RE_SetWindow(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho(struct Render *re, const rctf *viewplane, float clipsta, float clipend);
-void RE_SetPixelSize(struct Render *re, float pixsize);
 
 /* option to set viewmatrix before making dbase */
 void RE_SetView(struct Render *re, float mat[4][4]);
@@ -264,25 +261,12 @@ void RE_GetView(struct Render *re, float mat[4][4]);
 void RE_GetViewPlane(struct Render *re, rctf *r_viewplane, rcti *r_disprect);
 
 /* make or free the dbase */
-void RE_Database_FromScene(
-        struct Render *re, struct Main *bmain, struct Scene *scene,
-        unsigned int lay, int use_camera_view);
 void RE_Database_CameraOnly(
         struct Render *re, struct Main *bmain, struct Scene *scene,
         unsigned int lay, int use_camera_view);
-void RE_Database_Preprocess(struct Depsgraph *depsgraph, struct Render *re);
-void RE_Database_Free(struct Render *re);
-
-/* project dbase again, when viewplane/perspective changed */
-void RE_DataBase_ApplyWindow(struct Render *re);
-/* rotate scene again, for incremental render */
-void RE_DataBase_IncrementalView(struct Render *re, float viewmat[4][4], int restore);
 
 /* set the render threads based on the commandline and autothreads setting */
 void RE_init_threadcount(Render *re);
-
-/* the main processor, assumes all was set OK! */
-void RE_TileProcessor(struct Render *re);
 
 bool RE_WriteRenderViewsImage(
         struct ReportList *reports, struct RenderResult *rr, struct Scene *scene, const bool stamp, char *name);
@@ -318,14 +302,6 @@ bool RE_WriteRenderResult(
 struct RenderResult *RE_MultilayerConvert(
         void *exrhandle, const char *colorspace, bool predivide, int rectx, int recty);
 
-extern const float default_envmap_layout[];
-bool RE_WriteEnvmapResult(
-        struct ReportList *reports, struct Scene *scene, struct EnvMap *env,
-        const char *relpath, const char imtype, float layout[12]);
-
-/* do a full sample buffer compo */
-void RE_MergeFullSample(struct Render *re, struct Main *bmain, struct Scene *sce, struct bNodeTree *ntree);
-
 /* display and event callbacks */
 void RE_display_init_cb	(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));
 void RE_display_clear_cb(struct Render *re, void *handle, void (*f)(void *handle, RenderResult *rr));
@@ -348,27 +324,10 @@ struct RenderPass *RE_pass_find_by_name(volatile struct RenderLayer *rl, const c
 struct RenderPass *RE_pass_find_by_type(volatile struct RenderLayer *rl, int passtype, const char *viewname);
 
 /* shaded view or baking options */
-#define RE_BAKE_LIGHT				0	/* not listed in rna_scene.c -> can't be enabled! */
-#define RE_BAKE_ALL					1
+#define RE_BAKE_NORMALS				0
+#define RE_BAKE_DISPLACEMENT		1
 #define RE_BAKE_AO					2
-#define RE_BAKE_NORMALS				3
-#define RE_BAKE_TEXTURE				4
-#define RE_BAKE_DISPLACEMENT		5
-#define RE_BAKE_SHADOW				6
-#define RE_BAKE_SPEC_COLOR			7
-#define RE_BAKE_SPEC_INTENSITY		8
-#define RE_BAKE_MIRROR_COLOR		9
-#define RE_BAKE_MIRROR_INTENSITY	10
-#define RE_BAKE_ALPHA				11
-#define RE_BAKE_EMIT				12
-#define RE_BAKE_DERIVATIVE			13
-#define RE_BAKE_VERTEX_COLORS		14
 
-void RE_Database_Baking(
-        struct Render *re, struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer,
-        unsigned int lay, const int type, struct Object *actob);
-
-void RE_DataBase_GetView(struct Render *re, float mat[4][4]);
 void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[4][4]);
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_mat[4][4]);
 struct Scene *RE_GetScene(struct Render *re);
@@ -377,13 +336,6 @@ bool RE_force_single_renderlayer(struct Scene *scene);
 bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
 
 bool RE_allow_render_generic_object(struct Object *ob);
-
-/* RE_updateRenderInstances flag */
-enum {
-	RE_OBJECT_INSTANCES_UPDATE_VIEW  = (1 << 0),
-	RE_OBJECT_INSTANCES_UPDATE_OBMAT = (1 << 1)
-};
-void RE_updateRenderInstances(Render *re, int flag);
 
 /******* defined in render_result.c *********/
 

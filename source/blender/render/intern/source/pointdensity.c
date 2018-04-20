@@ -63,15 +63,9 @@
 
 #include "render_types.h"
 #include "texture.h"
-#include "pointdensity.h"
 
 #include "RE_render_ext.h"
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
-/* defined in pipeline.c, is hardcopy of active dynamic allocated Render */
-/* only to be used here in this file, it's for speed */
-extern struct Render R;
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+#include "RE_shader_ext.h"
 
 static ThreadMutex sample_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -80,15 +74,13 @@ static int point_data_used(PointDensity *pd)
 	int pd_bitflag = 0;
 
 	if (pd->source == TEX_PD_PSYS) {
-		if ((pd->noise_influence == TEX_PD_NOISE_VEL) ||
-		    (pd->falloff_type == TEX_PD_FALLOFF_PARTICLE_VEL) ||
+		if ((pd->falloff_type == TEX_PD_FALLOFF_PARTICLE_VEL) ||
 		    (pd->color_source == TEX_PD_COLOR_PARTVEL) ||
 		    (pd->color_source == TEX_PD_COLOR_PARTSPEED))
 		{
 			pd_bitflag |= POINT_DATA_VEL;
 		}
-		if ((pd->noise_influence == TEX_PD_NOISE_AGE) ||
-		    (pd->color_source == TEX_PD_COLOR_PARTAGE) ||
+		if ((pd->color_source == TEX_PD_COLOR_PARTAGE) ||
 		    (pd->falloff_type == TEX_PD_FALLOFF_PARTICLE_AGE))
 		{
 			pd_bitflag |= POINT_DATA_LIFE;
@@ -466,10 +458,10 @@ static void pointdensity_cache_object(Depsgraph *depsgraph, Scene *scene,
 
 }
 
-static void cache_pointdensity_ex(Depsgraph *depsgraph,
-                                  Scene *scene,
-                                  PointDensity *pd,
-                                  const bool use_render_params)
+static void cache_pointdensity(Depsgraph *depsgraph,
+                               Scene *scene,
+                               PointDensity *pd,
+                               const bool use_render_params)
 {
 	if (pd == NULL) {
 		return;
@@ -507,15 +499,7 @@ static void cache_pointdensity_ex(Depsgraph *depsgraph,
 	}
 }
 
-void cache_pointdensity(Depsgraph *depsgraph, Render *re, PointDensity *pd)
-{
-	cache_pointdensity_ex(depsgraph,
-	                      re->scene,
-	                      pd,
-	                      true);
-}
-
-void free_pointdensity(PointDensity *pd)
+static void free_pointdensity(PointDensity *pd)
 {
 	if (pd == NULL) {
 		return;
@@ -531,41 +515,6 @@ void free_pointdensity(PointDensity *pd)
 		pd->point_data = NULL;
 	}
 	pd->totpoints = 0;
-}
-
-void make_pointdensities(Depsgraph *depsgraph, Render *re)
-{
-	Tex *tex;
-
-	if (re->scene->r.scemode & R_BUTS_PREVIEW) {
-		return;
-	}
-
-	re->i.infostr = IFACE_("Caching Point Densities");
-	re->stats_draw(re->sdh, &re->i);
-
-	for (tex = re->main->tex.first; tex != NULL; tex = tex->id.next) {
-		if (tex->id.us && tex->type == TEX_POINTDENSITY) {
-			cache_pointdensity(depsgraph, re, tex->pd);
-		}
-	}
-
-	re->i.infostr = NULL;
-	re->stats_draw(re->sdh, &re->i);
-}
-
-void free_pointdensities(Render *re)
-{
-	Tex *tex;
-
-	if (re->scene->r.scemode & R_BUTS_PREVIEW)
-		return;
-
-	for (tex = re->main->tex.first; tex != NULL; tex = tex->id.next) {
-		if (tex->id.us && tex->type == TEX_POINTDENSITY) {
-			free_pointdensity(tex->pd);
-		}
-	}
 }
 
 typedef struct PointDensityRangeData {
@@ -678,7 +627,7 @@ static int pointdensity(PointDensity *pd,
 {
 	int retval = TEX_INT;
 	PointDensityRangeData pdr;
-	float density = 0.0f, age = 0.0f, time = 0.0f;
+	float density = 0.0f, age = 0.0f;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, col[3] = {0.0f, 0.0f, 0.0f}, co[3];
 	float turb, noise_fac;
 	int num = 0;
@@ -712,21 +661,8 @@ static int pointdensity(PointDensity *pd,
 	}
 
 	if (pd->flag & TEX_PD_TURBULENCE) {
-
-		if (pd->noise_influence == TEX_PD_NOISE_AGE) {
-			turb = BLI_gTurbulence(pd->noise_size, texvec[0] + age, texvec[1] + age, texvec[2] + age,
-			                       pd->noise_depth, 0, pd->noise_basis);
-		}
-		else if (pd->noise_influence == TEX_PD_NOISE_TIME) {
-			time = R.r.cfra / (float)R.r.efra;
-			turb = BLI_gTurbulence(pd->noise_size, texvec[0] + time, texvec[1] + time, texvec[2] + time,
-			                       pd->noise_depth, 0, pd->noise_basis);
-			//turb = BLI_turbulence(pd->noise_size, texvec[0]+time, texvec[1]+time, texvec[2]+time, pd->noise_depth);
-		}
-		else {
-			turb = BLI_gTurbulence(pd->noise_size, texvec[0] + vec[0], texvec[1] + vec[1], texvec[2] + vec[2],
-			                       pd->noise_depth, 0, pd->noise_basis);
-		}
+		turb = BLI_gTurbulence(pd->noise_size, texvec[0] + vec[0], texvec[1] + vec[1], texvec[2] + vec[2],
+		                       pd->noise_depth, 0, pd->noise_basis);
 
 		turb -= 0.5f;	/* re-center 0.0-1.0 range around 0 to prevent offsetting result */
 
@@ -838,26 +774,6 @@ static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, co
 	return retval;
 }
 
-int pointdensitytex(Tex *tex, const float texvec[3], TexResult *texres)
-{
-	PointDensity *pd = tex->pd;
-	float age = 0.0f;
-	float vec[3] = {0.0f, 0.0f, 0.0f};
-	float col[3] = {0.0f, 0.0f, 0.0f};
-	int retval = pointdensity(pd, texvec, texres, vec, &age, col);
-
-	retval |= pointdensity_color(pd, texres, age, vec, col);
-	BRICONTRGB;
-	
-	return retval;
-
-#if 0
-	if (texres->nor!=NULL) {
-		texres->nor[0] = texres->nor[1] = texres->nor[2] = 0.0f;
-	}
-#endif
-}
-
 static void sample_dummy_point_density(int resolution, float *values)
 {
 	memset(values, 0, sizeof(float) * 4 * resolution * resolution * resolution);
@@ -927,7 +843,7 @@ void RE_point_density_cache(
 
 	/* Same matricies/resolution as dupli_render_particle_set(). */
 	BLI_mutex_lock(&sample_mutex);
-	cache_pointdensity_ex(depsgraph, scene, pd, use_render_params);
+	cache_pointdensity(depsgraph, scene, pd, use_render_params);
 	BLI_mutex_unlock(&sample_mutex);
 }
 
@@ -1017,11 +933,15 @@ static void point_density_sample_func(
 			texvec[1] += dim[1] * (float)y / (float)resolution;
 			texvec[2] += dim[2] * (float)z / (float)resolution;
 
-			pointdensity(pd, texvec, &texres, vec, &age, col);
-			pointdensity_color(pd, &texres, age, vec, col);
+			if (pointdensity(pd, texvec, &texres, vec, &age, col)) {
+				pointdensity_color(pd, &texres, age, vec, col);
 
-			copy_v3_v3(&values[index*4 + 0], &texres.tr);
-			values[index*4 + 3] = texres.tin;
+				copy_v3_v3(&values[index*4 + 0], &texres.tr);
+				values[index*4 + 3] = texres.tin;
+			}
+			else {
+				zero_v4(&values[index*4]);
+			}
 		}
 	}
 }
@@ -1081,3 +1001,8 @@ void RE_point_density_free(struct PointDensity *pd)
 {
 	free_pointdensity(pd);
 }
+
+void RE_point_density_fix_linking(void)
+{
+}
+

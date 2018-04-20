@@ -87,10 +87,6 @@ short BKE_object_material_slot_find_index(struct Object *ob, struct Material *ma
 bool  BKE_object_material_slot_add(struct Object *ob);
 bool  BKE_object_material_slot_remove(struct Object *ob);
 
-struct Image  *BKE_object_material_edit_image_get(struct Object *ob, short mat_nr);
-struct Image **BKE_object_material_edit_image_get_array(struct Object *ob);
-bool           BKE_object_material_edit_image_set(struct Object *ob, short mat_nr, struct Image *image);
-
 void BKE_texpaint_slot_refresh_cache(struct Scene *scene, struct Material *ma);
 void BKE_texpaint_slots_refresh_object(struct Scene *scene, struct Object *ob);
 
@@ -100,13 +96,6 @@ void BKE_material_append_id(struct Main *bmain, struct ID *id, struct Material *
 struct Material *BKE_material_pop_id(struct Main *bmain, struct ID *id, int index, bool update_data); /* index is an int because of RNA */
 void BKE_material_clear_id(struct Main *bmain, struct ID *id, bool update_data);
 /* rendering */
-
-void init_render_material(struct Material *, int, float *);
-void init_render_materials(struct Main *, int r_mode, float *amd, bool do_default_material);
-void end_render_material(struct Material *);
-void end_render_materials(struct Main *);
-
-bool material_in_material(struct Material *parmat, struct Material *mat);
 
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3]);
 

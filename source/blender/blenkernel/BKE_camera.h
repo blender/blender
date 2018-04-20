@@ -93,11 +93,6 @@ typedef struct CameraParams {
 	float clipsta;
 	float clipend;
 
-	/* fields */
-	int use_fields;
-	int field_second;
-	int field_odd;
-
 	/* computed viewplane */
 	float ycor;
 	float viewdx;

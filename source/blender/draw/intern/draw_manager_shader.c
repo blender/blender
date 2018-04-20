@@ -352,8 +352,7 @@ GPUMaterial *DRW_shader_create_from_world(
 
 	if (mat == NULL) {
 		mat = GPU_material_from_nodetree(
-		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options,
-		        vert, geom, frag_lib, defines, true);
+		        scene, wo->nodetree, &wo->gpumaterial, engine_type, options);
 	}
 
 	drw_deferred_shader_add(mat, vert, geom, frag_lib, defines);
@@ -372,8 +371,7 @@ GPUMaterial *DRW_shader_create_from_material(
 
 	if (mat == NULL) {
 		mat = GPU_material_from_nodetree(
-		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options,
-		        vert, geom, frag_lib, defines, true);
+		        scene, ma->nodetree, &ma->gpumaterial, engine_type, options);
 	}
 
 	drw_deferred_shader_add(mat, vert, geom, frag_lib, defines);

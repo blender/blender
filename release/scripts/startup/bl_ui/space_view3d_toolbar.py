@@ -341,7 +341,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         row = col.row(align=True)
         row.operator("transform.edge_slide", text="Slide Edge")
         row.operator("transform.vert_slide", text="Vertex")
-        col.operator("mesh.noise")
         col.operator("mesh.vertices_smooth")
         col.operator("transform.vertex_random")
 
@@ -1199,9 +1198,6 @@ class TEXTURE_UL_texpaintslots(UIList):
 
         if self.layout_type in {'DEFAULT', 'COMPACT'}:
             layout.prop(item, "name", text="", emboss=False, icon_value=icon)
-            if (not mat.use_nodes) and context.engine == 'BLENDER_RENDER':
-                mtex_index = mat.texture_paint_slots[index].index
-                layout.prop(mat, "use_textures", text="", index=mtex_index)
         elif self.layout_type == 'GRID':
             layout.alignment = 'CENTER'
             layout.label(text="")
@@ -1262,16 +1258,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 else:
                     slot = None
 
-                if (not mat.use_nodes) and context.engine == 'BLENDER_RENDER':
-                    row = col.row(align=True)
-                    row.operator_menu_enum("paint.add_texture_paint_slot", "type")
-                    row.operator("paint.delete_texture_paint_slot", text="", icon='X')
-
-                    if slot:
-                        col.prop(mat.texture_slots[slot.index], "blend_type")
-                        col.separator()
-
-                if slot and slot.index != -1:
+                if slot and slot.valid:
                     col.label("UV Map:")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
 

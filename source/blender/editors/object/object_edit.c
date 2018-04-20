@@ -1295,68 +1295,6 @@ void OBJECT_OT_shade_smooth(wmOperatorType *ot)
 
 /* ********************** */
 
-static void UNUSED_FUNCTION(image_aspect) (Scene *scene, ViewLayer *view_layer, Object *obedit)
-{
-	/* all selected objects with an image map: scale in image aspect */
-	Base *base;
-	Object *ob;
-	Material *ma;
-	Tex *tex;
-	float x, y, space;
-	int a, b, done;
-	
-	if (obedit) return;
-	if (ID_IS_LINKED(scene)) return;
-	
-	for (base = FIRSTBASE(view_layer); base; base = base->next) {
-		if (TESTBASELIB(base)) {
-			ob = base->object;
-			done = false;
-			
-			for (a = 1; a <= ob->totcol; a++) {
-				ma = give_current_material(ob, a);
-				if (ma) {
-					for (b = 0; b < MAX_MTEX; b++) {
-						if (ma->mtex[b] && ma->mtex[b]->tex) {
-							tex = ma->mtex[b]->tex;
-							if (tex->type == TEX_IMAGE && tex->ima) {
-								ImBuf *ibuf = BKE_image_acquire_ibuf(tex->ima, NULL, NULL);
-								
-								/* texturespace */
-								space = 1.0;
-								if (ob->type == OB_MESH) {
-									float size[3];
-									BKE_mesh_texspace_get(ob->data, NULL, NULL, size);
-									space = size[0] / size[1];
-								}
-								else if (ELEM(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
-									float size[3];
-									BKE_curve_texspace_get(ob->data, NULL, NULL, size);
-									space = size[0] / size[1];
-								}
-							
-								x = ibuf->x / space;
-								y = ibuf->y;
-								
-								if (x > y) ob->size[0] = ob->size[1] * x / y;
-								else ob->size[1] = ob->size[0] * y / x;
-								
-								done = true;
-								DEG_id_tag_update(&ob->id, OB_RECALC_OB);
-
-								BKE_image_release_ibuf(tex->ima, ibuf, NULL);
-							}
-						}
-						if (done) break;
-					}
-				}
-				if (done) break;
-			}
-		}
-	}
-	
-}
-
 static const EnumPropertyItem *object_mode_set_itemsf(
         bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {

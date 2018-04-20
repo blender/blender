@@ -166,3 +166,19 @@ ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
 	return id_node->id_cow;
 }
 
+Object *DEG_get_original_object(Object *object)
+{
+	return (Object *)DEG_get_original_id(&object->id);
+}
+
+ID *DEG_get_original_id(ID *id)
+{
+	if (id == NULL) {
+		return NULL;
+	}
+	if (id->orig_id == NULL) {
+		return id;
+	}
+	BLI_assert((id->tag & LIB_TAG_COPY_ON_WRITE) != 0);
+	return (ID *)id->orig_id;
+}

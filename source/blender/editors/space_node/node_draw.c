@@ -879,10 +879,6 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	char showname[128]; /* 128 used below */
 	View2D *v2d = &ar->v2d;
 	
-	/* XXX hack: copy values from linked ID data where displayed as sockets */
-	if (node->block)
-		nodeSynchronizeID(node, false);
-	
 	/* skip if out of view */
 	if (BLI_rctf_isect(&node->totr, &v2d->cur, NULL) == false) {
 		UI_block_end(C, node->block);

@@ -45,30 +45,6 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
-static void save_envmap(struct EnvMap *env, bContext *C, ReportList *reports, const char *filepath,
-                        struct Scene *scene, float layout[12])
-{
-	if (scene == NULL) {
-		scene = CTX_data_scene(C);
-	}
-
-	RE_WriteEnvmapResult(reports, scene, env, filepath, scene->r.im_format.imtype, layout);
-}
-
-static void clear_envmap(struct EnvMap *env, bContext *C)
-{
-	Main *bmain = CTX_data_main(C);
-	Tex *tex;
-
-	BKE_texture_envmap_free_data(env);
-	
-	for (tex = bmain->tex.first; tex; tex = tex->id.next)
-		if (tex->env == env) {
-			WM_event_add_notifier(C, NC_TEXTURE | NA_EDITED, tex);
-			break;
-		}
-}
-
 static void texture_evaluate(struct Tex *tex, float value[3], float r_color[4])
 {
 	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
@@ -100,33 +76,6 @@ void RNA_api_texture(StructRNA *srna)
 	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0);
 	RNA_def_function_output(func, parm);
 
-}
-
-void RNA_api_environment_map(StructRNA *srna)
-{
-	FunctionRNA *func;
-	PropertyRNA *parm;
-
-	static const float default_layout[] = {0, 0, 1, 0, 2, 0, 0, 1, 1, 1, 2, 1};
-
-	func = RNA_def_function(srna, "clear", "clear_envmap");
-	RNA_def_function_ui_description(func, "Discard the environment map and free it from memory");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
-
-
-	func = RNA_def_function(srna, "save", "save_envmap");
-	RNA_def_function_ui_description(func, "Save the environment map to disc using the scene render settings");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
-
-	parm = RNA_def_string_file_name(func, "filepath", NULL, FILE_MAX, "File path", "Location of the output file");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-
-	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken");
-
-	RNA_def_float_array(func, "layout", 12, default_layout, 0.0f, 1000.0f, "File layout",
-	                    "Flat array describing the X,Y position of each cube face in the "
-	                    "output image, where 1 is the size of a face - order is [+Z -Z +Y -X -Y +X] "
-	                    "(use -1 to skip a face)", 0.0f, 1000.0f);
 }
 
 #endif

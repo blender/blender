@@ -171,8 +171,6 @@ void BPH_hair_volume_vertex_grid_forces(struct HairGrid *grid, const float x[3],
                                         float smoothfac, float pressurefac, float minpressure,
                                         float f[3], float dfdx[3][3], float dfdv[3][3]);
 
-bool BPH_hair_volume_get_texture_data(struct HairGrid *grid, struct VoxelData *vd);
-
 #ifdef __cplusplus
 }
 #endif

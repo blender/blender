@@ -160,17 +160,6 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 		ID *id = ptr->id.data;
 		
 		switch (GS(id->name)) {
-			case ID_MA: /* material has 2 cases - diffuse and specular */
-			{
-				Material *ma = (Material *)id;
-				
-				if (ptr->data == ma->ramp_col)
-					path = BLI_strdup("diffuse_ramp");
-				else if (ptr->data == ma->ramp_spec)
-					path = BLI_strdup("specular_ramp");
-				break;
-			}
-			
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
@@ -245,22 +234,6 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 		ID *id = ptr->id.data;
 		
 		switch (GS(id->name)) {
-			case ID_MA: /* 2 cases for material - diffuse and spec */
-			{
-				Material *ma = (Material *)id;
-				
-				/* try diffuse first */
-				if (ma->ramp_col) {
-					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_col, &ramp_ptr);
-					COLRAMP_GETPATH;
-				}
-				/* try specular if not diffuse */
-				if (!path && ma->ramp_spec) {
-					RNA_pointer_create(id, &RNA_ColorRamp, ma->ramp_spec, &ramp_ptr);
-					COLRAMP_GETPATH;
-				}
-				break;
-			}
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;

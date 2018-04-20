@@ -196,19 +196,7 @@ static void unlink_texture_cb(
 	MTex **mtex = NULL;
 	int a;
 	
-	if (GS(tsep->id->name) == ID_MA) {
-		Material *ma = (Material *)tsep->id;
-		mtex = ma->mtex;
-	}
-	else if (GS(tsep->id->name) == ID_LA) {
-		Lamp *la = (Lamp *)tsep->id;
-		mtex = la->mtex;
-	}
-	else if (GS(tsep->id->name) == ID_WO) {
-		World *wrld = (World *)tsep->id;
-		mtex = wrld->mtex;
-	}
-	else if (GS(tsep->id->name) == ID_LS) {
+	if (GS(tsep->id->name) == ID_LS) {
 		FreestyleLineStyle *ls = (FreestyleLineStyle *)tsep->id;
 		mtex = ls->mtex;
 	}

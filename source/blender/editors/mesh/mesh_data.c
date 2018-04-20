@@ -538,7 +538,6 @@ void MESH_OT_uv_texture_add(wmOperatorType *ot)
 
 static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Base *base;
@@ -578,8 +577,6 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, const wmEvent *e
 	if (me->edit_btmesh == NULL)
 		return OPERATOR_CANCELLED;
 	
-	ED_uvedit_assign_image(bmain, scene, obedit, ima, NULL);
-
 	if (exitmode) {
 		EDBM_mesh_load(obedit);
 		EDBM_mesh_free(me->edit_btmesh);

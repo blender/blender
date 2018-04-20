@@ -51,14 +51,12 @@ class NODE_HT_header(Header):
         NODE_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.prop(snode, "tree_type", text="", expand=True)
-        use_shading_nodes = scene.render.use_shading_nodes
 
         if snode.tree_type == 'ShaderNodeTree':
-            if use_shading_nodes:
-                layout.prop(snode, "shader_type", text="", expand=True)
+            layout.prop(snode, "shader_type", text="", expand=True)
 
             ob = context.object
-            if (not use_shading_nodes or snode.shader_type == 'OBJECT') and ob:
+            if snode.shader_type == 'OBJECT' and ob:
                 row = layout.row()
                 # disable material slot buttons when pinned, cannot find correct slot within id_from (#36589)
                 row.enabled = not snode.pin
@@ -69,18 +67,18 @@ class NODE_HT_header(Header):
                 if id_from and ob.type != 'LAMP':
                     row.template_ID(id_from, "active_material", new="material.new")
 
-                # Don't show "Use Nodes" Button when Engine is BI for Lamps
-                if snode_id and not (use_shading_nodes == 0 and ob.type == 'LAMP'):
+                # No shader nodes for Eevee lamps
+                if snode_id and not (context.engine == 'BLENDER_EEVEE' and ob.type == 'LAMP'):
                     layout.prop(snode_id, "use_nodes")
 
-            if use_shading_nodes and snode.shader_type == 'WORLD':
+            if snode.shader_type == 'WORLD':
                 row = layout.row()
                 row.enabled = not snode.pin
                 row.template_ID(scene, "world", new="world.new")
                 if snode_id:
                     row.prop(snode_id, "use_nodes")
 
-            if use_shading_nodes and snode.shader_type == 'LINESTYLE':
+            if snode.shader_type == 'LINESTYLE':
                 view_layer = context.scene.view_layers.active
                 lineset = view_layer.freestyle_settings.linesets.active
                 if lineset is not None:

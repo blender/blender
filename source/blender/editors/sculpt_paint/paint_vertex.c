@@ -3100,10 +3100,6 @@ static void vpaint_stroke_update_step(bContext *C, struct PaintStroke *stroke, P
 		 * avoid this if we can! */
 		DEG_id_tag_update(ob->data, 0);
 	}
-	else {
-		/* If using new VBO drawing, mark mcol as dirty to force colors gpu buffer refresh! */
-		ob->derivedFinal->dirty |= DM_DIRTY_MCOL_UPDATE_DRAW;
-	}
 }
 
 static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)

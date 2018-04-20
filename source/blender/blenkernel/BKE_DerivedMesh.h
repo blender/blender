@@ -97,7 +97,6 @@ struct MCol;
 struct ColorBand;
 struct Depsgraph;
 struct GPUVertexAttribs;
-struct GPUDrawObject;
 struct PBVH;
 
 /* number of sub-elements each mesh element has (for interpolation) */
@@ -127,34 +126,6 @@ typedef enum DerivedMeshType {
 	DM_TYPE_CCGDM
 } DerivedMeshType;
 
-typedef enum DMDrawOption {
-	/* the element is hidden or otherwise non-drawable */
-	DM_DRAW_OPTION_SKIP = 0,
-	/* normal drawing */
-	DM_DRAW_OPTION_NORMAL = 1,
-	/* draw, but don't set the color from mcol */
-	DM_DRAW_OPTION_NO_MCOL = 2,
-	/* used in drawMappedFaces, use GL stipple for the face */
-	DM_DRAW_OPTION_STIPPLE = 3,
-} DMDrawOption;
-
-/* Drawing callback types */
-typedef int (*DMSetMaterial)(int mat_nr, void *attribs);
-typedef int (*DMCompareDrawOptions)(void *userData, int cur_index, int next_index);
-typedef void (*DMSetDrawInterpOptions)(void *userData, int index, float t);
-typedef DMDrawOption (*DMSetDrawOptions)(void *userData, int index);
-
-typedef enum DMDrawFlag {
-	DM_DRAW_USE_COLORS          = (1 << 0),
-	DM_DRAW_ALWAYS_SMOOTH       = (1 << 1),
-	DM_DRAW_USE_ACTIVE_UV       = (1 << 2),
-	DM_DRAW_USE_TEXPAINT_UV     = (1 << 3),
-	DM_DRAW_SKIP_HIDDEN         = (1 << 4),
-	DM_DRAW_SKIP_SELECT         = (1 << 5),
-	DM_DRAW_SELECT_USE_EDITMODE = (1 << 6),
-	DM_DRAW_NEED_NORMALS        = (1 << 7)
-} DMDrawFlag;
-
 typedef enum DMForeachFlag {
 	DM_FOREACH_NOP = 0,
 	DM_FOREACH_USE_NORMAL = (1 << 0),  /* foreachMappedVert, foreachMappedLoop, foreachMappedFaceCenter */
@@ -163,14 +134,9 @@ typedef enum DMForeachFlag {
 typedef enum DMDirtyFlag {
 	/* dm has valid tessellated faces, but tessellated CDDATA need to be updated. */
 	DM_DIRTY_TESS_CDLAYERS = 1 << 0,
-	/* One of the MCOL layers have been updated, force updating of GPUDrawObject's colors buffer.
-	 * This is necessary with modern, VBO draw code, as e.g. in vpaint mode me->mcol may be updated
-	 * without actually rebuilding dm (hence by default keeping same GPUDrawObject, and same colors
-	 * buffer, which prevents update during a stroke!). */
-	DM_DIRTY_MCOL_UPDATE_DRAW = 1 << 1,
 
 	/* check this with modifier dependsOnNormals callback to see if normals need recalculation */
-	DM_DIRTY_NORMALS = 1 << 2,
+	DM_DIRTY_NORMALS = 1 << 1,
 }  DMDirtyFlag;
 
 typedef struct DerivedMesh DerivedMesh;
@@ -181,9 +147,7 @@ struct DerivedMesh {
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
 	int deformedOnly; /* set by modifier stack if only deformed from original */
 	BVHCache *bvhCache;
-	struct GPUDrawObject *drawObject;
 	DerivedMeshType type;
-	float auto_bump_scale;
 	DMDirtyFlag dirty;
 	int totmat; /* total materials. Will be valid only before object drawing. */
 	struct Material **mat; /* material array. Will be valid only before object drawing */
@@ -382,98 +346,6 @@ struct DerivedMesh {
 	/** Get the BVH used for paint modes
 	 */
 	struct PBVH *(*getPBVH)(struct Object *ob, DerivedMesh *dm);
-
-	/* Drawing Operations */
-
-	/** Draw all vertices as bgl points (no options) */
-	void (*drawVerts)(DerivedMesh *dm);
-
-	/** Draw all edges as lines (no options)
-	 *
-	 * Also called for *final* editmode DerivedMeshes
-	 */
-	void (*drawEdges)(DerivedMesh *dm, bool drawLooseEdges, bool drawAllEdges);
-	
-	/** Draw all loose edges (edges w/ no adjoining faces) */
-	void (*drawLooseEdges)(DerivedMesh *dm);
-
-	/** Draw all faces
-	 *  o Set face normal or vertex normal based on inherited face flag
-	 *  o Use inherited face material index to call setMaterial
-	 *  o Only if setMaterial returns true
-	 *
-	 * Also called for *final* editmode DerivedMeshes
-	 */
-	void (*drawFacesSolid)(DerivedMesh *dm, float (*partial_redraw_planes)[4],
-	                       bool fast, DMSetMaterial setMaterial);
-
-	/** Draw all faces with GLSL materials
-	 *  o setMaterial is called for every different material nr
-	 *  o Only if setMaterial returns true
-	 */
-	void (*drawFacesGLSL)(DerivedMesh *dm, DMSetMaterial setMaterial);
-
-	/** Draw mapped faces (no color, or texture)
-	 * - Only if !setDrawOptions or
-	 *   setDrawOptions(userData, mapped-face-index, r_drawSmooth)
-	 *   returns true
-	 *
-	 * If drawSmooth is set to true then vertex normals should be set and
-	 * glShadeModel called with GL_SMOOTH. Otherwise the face normal should
-	 * be set and glShadeModel called with GL_FLAT.
-	 *
-	 * The setDrawOptions is allowed to not set drawSmooth (for example, when
-	 * lighting is disabled), in which case the implementation should draw as
-	 * smooth shaded.
-	 */
-	void (*drawMappedFaces)(DerivedMesh *dm,
-	                        DMSetDrawOptions setDrawOptions,
-	                        DMSetMaterial setMaterial,
-	                        DMCompareDrawOptions compareDrawOptions,
-	                        void *userData,
-	                        DMDrawFlag flag);
-
-	/** Draw mapped faces with GLSL materials
-	 * - setMaterial is called for every different material nr
-	 * - setDrawOptions is called for every face
-	 * - Only if setMaterial and setDrawOptions return true
-	 */
-	void (*drawMappedFacesGLSL)(DerivedMesh *dm,
-	                            DMSetMaterial setMaterial,
-	                            DMSetDrawOptions setDrawOptions,
-	                            void *userData);
-
-	/** Draw mapped edges as lines
-	 * - Only if !setDrawOptions or setDrawOptions(userData, mapped-edge)
-	 *   returns true
-	 */
-	void (*drawMappedEdges)(DerivedMesh *dm,
-	                        DMSetDrawOptions setDrawOptions,
-	                        void *userData);
-
-	/** Draw mapped edges as lines with interpolation values
-	 * - Only if !setDrawOptions or
-	 *   setDrawOptions(userData, mapped-edge, mapped-v0, mapped-v1, t)
-	 *   returns true
-	 *
-	 * NOTE: This routine is optional!
-	 */
-	void (*drawMappedEdgesInterp)(DerivedMesh *dm, 
-	                              DMSetDrawOptions setDrawOptions,
-	                              DMSetDrawInterpOptions setDrawInterpOptions,
-	                              void *userData);
-
-	/** Draw all faces with materials
-	 * - setMaterial is called for every different material nr
-	 * - setFace is called to verify if a face must be hidden
-	 */
-	void (*drawMappedFacesMat)(DerivedMesh *dm,
-	                           void (*setMaterial)(void *userData, int matnr, void *attribs),
-	                           bool (*setFace)(void *userData, int index), void *userData);
-
-	struct GPUDrawObject *(*gpuObjectNew)(DerivedMesh *dm);
-	void (*copy_gpu_data)(DerivedMesh *dm, int type, void *varray_p,
-	                      const int *mat_orig_to_new, const void *user_data);
 
 	/** Release reference to the DerivedMesh. This function decides internally
 	 * if the DerivedMesh will be freed, or cached for later use. */
@@ -755,9 +627,6 @@ typedef struct DMVertexAttribs {
 void DM_vertex_attributes_from_gpu(
         DerivedMesh *dm,
         struct GPUVertexAttribs *gattribs, DMVertexAttribs *attribs);
-
-void DM_draw_attrib_vertex(DMVertexAttribs *attribs, int a, int index, int vert, int loop);
-void DM_draw_attrib_vertex_uniforms(const DMVertexAttribs *attribs);
 
 void DM_calc_tangents_names_from_gpu(
         const struct GPUVertexAttribs *gattribs,

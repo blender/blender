@@ -124,11 +124,9 @@ typedef struct SpaceButs {
 	short mainb, mainbo, mainbuser; /* context tabs */
 	short re_align, align;          /* align for panels */
 	short preview;                  /* preview is signal to refresh */
-	/* texture context selector (material, lamp, particles, world, other) */
-	short texture_context, texture_context_prev;
 	char flag;
 	char collection_context;
-	char pad[6];
+	char pad[2];
 	
 	void *path;                     /* runtime */
 	int pathflag, dataicon;         /* runtime */
@@ -199,16 +197,6 @@ typedef enum eSpaceButtons_Flag {
 	SB_TEX_USER_LIMITED = (1 << 3), /* Do not add materials, particles, etc. in TemplateTextureUser list. */
 	SB_SHADING_CONTEXT = (1 << 4),
 } eSpaceButtons_Flag;
-
-/* sbuts->texture_context */
-typedef enum eSpaceButtons_Texture_Context {
-	SB_TEXC_MATERIAL = 0,
-	SB_TEXC_WORLD = 1,
-	SB_TEXC_LAMP = 2,
-	SB_TEXC_PARTICLES = 3,
-	SB_TEXC_OTHER = 4,
-	SB_TEXC_LINESTYLE = 5,
-} eSpaceButtons_Texture_Context;
 
 /* sbuts->collection_context */
 typedef enum eSpaceButtons_Collection_Context {
@@ -1217,14 +1205,14 @@ typedef enum eSpaceNode_Flag {
 	SNODE_AUTO_RENDER    = (1 << 5),
 //	SNODE_SHOW_HIGHLIGHT = (1 << 6), DNA_DEPRECATED
 //	SNODE_USE_HIDDEN_PREVIEW = (1 << 10), DNA_DEPRECATED December2013 
-	SNODE_NEW_SHADERS    = (1 << 11),
+//	SNODE_NEW_SHADERS    = (1 << 11), DNA_DEPRECATED
 	SNODE_PIN            = (1 << 12),
 	SNODE_SKIP_INSOFFSET = (1 << 13), /* automatically offset following nodes in a chain on insertion */
 } eSpaceNode_Flag;
 
 /* snode->texfrom */
 typedef enum eSpaceNode_TexFrom {
-	SNODE_TEX_OBJECT   = 0,
+	/* SNODE_TEX_OBJECT   = 0, */
 	SNODE_TEX_WORLD    = 1,
 	SNODE_TEX_BRUSH    = 2,
 	SNODE_TEX_LINESTYLE = 3,

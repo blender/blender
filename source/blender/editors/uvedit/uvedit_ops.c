@@ -195,93 +195,6 @@ void ED_object_assign_active_image(Main *bmain, Object *ob, int mat_nr, Image *i
 
 //#define USE_SWITCH_ASPECT
 
-void ED_uvedit_assign_image(Main *UNUSED(bmain), Scene *scene, Object *obedit, Image *ima, Image *previma)
-{
-	BMEditMesh *em;
-	BMIter iter;
-	bool update = false;
-	const bool selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION);
-	
-	/* skip assigning these procedural images... */
-	if (ima && (ima->type == IMA_TYPE_R_RESULT || ima->type == IMA_TYPE_COMPOSITE))
-		return;
-
-	/* verify we have a mesh we can work with */
-	if (!obedit || (obedit->type != OB_MESH))
-		return;
-
-	em = BKE_editmesh_from_object(obedit);
-	if (!em || !em->bm->totface) {
-		return;
-	}
-
-	if (BKE_scene_use_new_shading_nodes(scene)) {
-		/* new shading system, do not assign anything */
-	}
-	else {
-		BMFace *efa;
-
-		int cd_loop_uv_offset;
-		/* old shading system, assign image to selected faces */
-#ifdef USE_SWITCH_ASPECT
-		float prev_aspect[2], fprev_aspect;
-		float aspect[2], faspect;
-
-		ED_image_get_uv_aspect(previma, prev_aspect, prev_aspect + 1);
-		ED_image_get_uv_aspect(ima, aspect, aspect + 1);
-
-		fprev_aspect = prev_aspect[0] / prev_aspect[1];
-		faspect = aspect[0] / aspect[1];
-#endif
-
-		/* ensure we have a uv map */
-		if (!CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
-			BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
-			/* make UVs all nice 0-1 */
-			ED_mesh_uv_loop_reset_ex(obedit->data, CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPUV));
-			update = true;
-		}
-
-		cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
-		/* now assign to all visible faces */
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (uvedit_face_visible_test(scene, obedit, previma, efa) &&
-			    (selected == true || uvedit_face_select_test(scene, efa, cd_loop_uv_offset)))
-			{
-#ifdef USE_SWITCH_ASPECT
-				if (ima) {
-					/* we also need to correct the aspect of uvs */
-					if (scene->toolsettings->uvcalc_flag & UVCALC_NO_ASPECT_CORRECT) {
-						/* do nothing */
-					}
-					else {
-						BMIter liter;
-						BMLoop *l;
-
-						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							MLoopUV *luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-							luv->uv[0] *= fprev_aspect;
-							luv->uv[0] /= faspect;
-						}
-					}
-				}
-#endif
-				BKE_object_material_edit_image_set(obedit, efa->mat_nr, ima);
-
-				update = true;
-			}
-		}
-
-		/* and update depdency graph */
-		if (update) {
-			DEG_id_tag_update(obedit->data, 0);
-		}
-	}
-
-}
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -340,7 +253,8 @@ bool uvedit_face_visible_test(Scene *scene, Object *obedit, Image *ima, BMFace *
 	ToolSettings *ts = scene->toolsettings;
 
 	if (ts->uv_flag & UV_SHOW_SAME_IMAGE) {
-		const Image *face_image = BKE_object_material_edit_image_get(obedit, efa->mat_nr);
+		Image *face_image;
+		ED_object_get_active_image(obedit, efa->mat_nr + 1, &face_image, NULL, NULL, NULL);
 		return (face_image == ima) ? uvedit_face_visible_nolocal(scene, efa) : false;
 	}
 	else {

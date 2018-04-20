@@ -336,8 +336,6 @@ int ED_undo_operator_repeat(bContext *C, struct wmOperator *op)
 		{
 			int retval;
 
-			ED_viewport_render_kill_jobs(wm, CTX_data_main(C), true);
-
 			if (G.debug & G_DEBUG)
 				printf("redo_cb: operator redo %s\n", op->type->name);
 

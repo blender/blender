@@ -510,7 +510,7 @@ bool BKE_override_static_status_check_reference(ID *local)
  * all properties in depth (all overridable ones at least). Generating diff values and applying overrides
  * are much cheaper.
  *
- * \return true is new overriding op was created, or some local data was reset. */
+ * \return true if new overriding op was created, or some local data was reset. */
 bool BKE_override_static_operations_create(ID *local, const bool force_auto)
 {
 	BLI_assert(local->override_static != NULL);

@@ -197,8 +197,6 @@ static PyObject *pygpu_offscreen_draw_view3d(BPy_GPUOffScreen *self, PyObject *a
 
 	fx_settings = v3d->fx_settings;  /* full copy */
 
-	ED_view3d_draw_offscreen_init(scene, view_layer, v3d);
-
 	rv3d_mats = ED_view3d_mats_rv3d_backup(ar->regiondata);
 
 	GPU_offscreen_bind(self->ofs, true); /* bind */

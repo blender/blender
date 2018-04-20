@@ -602,36 +602,8 @@ char *BKE_animdata_driver_path_hack(bContext *C, PointerRNA *ptr, PropertyRNA *p
 		Object *ob = CTX_data_active_object(C);
 
 		if (ob && id) {
-			/* only id-types which can be remapped to go through objects should be considered */
-			switch (GS(id->name)) {
-				case ID_TE: /* textures */
-				{
-					Material *ma = give_current_material(ob, ob->actcol);
-					Tex *tex = give_current_material_texture(ma);
-
-					/* assumes: texture will only be shown if it is active material's active texture it's ok */
-					if ((ID *)tex == id) {
-						char name_esc_ma[(sizeof(ma->id.name) - 2) * 2];
-						char name_esc_tex[(sizeof(tex->id.name) - 2) * 2];
-
-						BLI_strescape(name_esc_ma, ma->id.name + 2, sizeof(name_esc_ma));
-						BLI_strescape(name_esc_tex, tex->id.name + 2, sizeof(name_esc_tex));
-
-						/* create new path */
-						// TODO: use RNA path functions to construct step by step instead?
-						// FIXME: maybe this isn't even needed anymore...
-						path = BLI_sprintfN("material_slots[\"%s\"].material.texture_slots[\"%s\"].texture.%s",
-						                    name_esc_ma, name_esc_tex, basepath);
-
-						/* free old one */
-						if (basepath != base_path)
-							MEM_freeN(basepath);
-					}
-					break;
-				}
-				default:
-					break;
-			}
+			/* TODO: after material textures were removed, this function serves
+			 * no purpose anymore, but could be used again so was not removed. */
 
 			/* fix RNA pointer, as we've now changed the ID root by changing the paths */
 			if (basepath != path) {

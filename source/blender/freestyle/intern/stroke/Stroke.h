@@ -44,8 +44,7 @@
 #endif
 
 extern "C" {
-#include "DNA_material_types.h"
-
+struct MTex;
 struct bNodeTree;
 }
 

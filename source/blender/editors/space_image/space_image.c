@@ -410,7 +410,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceImage *sima = sa->spacedata.first;
-	Object *obedit = CTX_data_edit_object(C);
 	Image *ima;
 
 	ima = ED_space_image(sima);
@@ -423,32 +422,6 @@ static void image_refresh(const bContext *C, ScrArea *sa)
 			Mask *mask = ED_space_image_get_mask(sima);
 			if (mask) {
 				ED_node_composite_job(C, scene->nodetree, scene);
-			}
-		}
-	}
-	else if (ima && (ima->source == IMA_SRC_VIEWER || sima->pin)) {
-		/* pass */
-	}
-	else if (obedit && obedit->type == OB_MESH) {
-		Mesh *me = (Mesh *)obedit->data;
-		struct BMEditMesh *em = me->edit_btmesh;
-		bool sloppy = true; /* partially selected face is ok */
-		bool selected = !(scene->toolsettings->uv_flag & UV_SYNC_SELECTION); /* only selected active face? */
-
-		if (BKE_scene_use_new_shading_nodes(scene)) {
-			/* new shading system does not alter image */
-		}
-		else {
-			/* old shading system, we set texface */
-			if (em && EDBM_uv_check(em)) {
-				BMFace *efa = BM_mesh_active_face_get(em->bm, sloppy, selected);
-
-				if (efa) {
-					/* don't need to check for pin here, see above */
-					Image *image = BKE_object_material_edit_image_get(obedit, efa->mat_nr);
-
-					sima->image = image;
-				}
 			}
 		}
 	}

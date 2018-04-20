@@ -40,45 +40,17 @@
 #define MAX_MTEX	18
 #endif
 
-struct MTex;
 struct Image;
-struct ColorBand;
-struct Group;
 struct bNodeTree;
 struct AnimData;
 struct Ipo;
 
 /* WATCH IT: change type? also make changes in ipo.h  */
 
-typedef struct VolumeSettings {
-	float density;
-	float emission;
-	float scattering;
-	float reflection;
-
-	float emission_col[3];
-	float transmission_col[3];
-	float reflection_col[3];
-
-	float density_scale;
-	float depth_cutoff;
-	float asymmetry;
-	
-	short stepsize_type;
-	short shadeflag;
-	short shade_type;
-	short precache_resolution;
-
-	float stepsize;
-	float ms_diff;
-	float ms_intensity;
-	float ms_spread;
-} VolumeSettings;
-
 typedef struct TexPaintSlot {
 	struct Image *ima; /* image to be painted on */
 	char *uvname;      /* customdata index for uv layer, MAX_NAME*/
-	int index;         /* index for mtex slot in material for blender internal */
+	int valid;         /* do we have a valid image and UV map */
 	int pad;
 } TexPaintSlot;
 
@@ -96,127 +68,49 @@ typedef struct Material {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
-	short material_type, flag;
-	/* note, keep this below synced with render_types.h */
+	short flag, pad1[7];
+
+	/* Colors from Blender Internal that we are still using. */
 	float r, g, b;
 	float specr, specg, specb;
-	float mirr, mirg, mirb;
-	float ambr, ambb, ambg;
-	float amb, emit, ang, spectra, ray_mirror;
-	float alpha, ref, spec, zoffs, add;
-	float translucency;
-	/* end synced with render_types.h */
-	
-	struct VolumeSettings vol;
+	float alpha, ray_mirror, spec, gloss_mir;
 
-	float fresnel_mir, fresnel_mir_i;
-	float fresnel_tra, fresnel_tra_i;
-	float filter;		/* filter added, for raytrace transparency and transmissivity */
-	float tx_limit, tx_falloff;
-	short ray_depth, ray_depth_tra;
-	short har;
-	char seed1, seed2;
-	
-	float gloss_mir, gloss_tra;
-	short samp_gloss_mir, samp_gloss_tra;
-	float adapt_thresh_mir, adapt_thresh_tra;
-	float aniso_gloss_mir;
-	float dist_mir;
-	short fadeto_mir;
-	short shade_flag;		/* like Cubic interpolation */
-		
-	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
-	int mode2, mode2_l;		/* additional mode flags */
-	short flarec, starc, linec, ringc;
-	float hasize, flaresize, subsize, flareboost;
-	float strand_sta, strand_end, strand_ease, strand_surfnor;
-	float strand_min, strand_widthfade;
-	char strand_uvname[64];	/* MAX_CUSTOMDATA_LAYER_NAME */
-	
-	float sbias;			/* shadow bias to prevent terminator prob */
-	float lbias;			/* factor to multiply lampbias with (0.0 = no mult) */
-	float shad_alpha;		/* in use for irregular shadowbuffer */
-	int	septex;
-	
-	/* for buttons and render*/
-	char rgbsel, texact, pr_type, use_nodes;
-	short pr_lamp, pr_texture, ml_flag;	/* ml_flag is for disable base material */
-	
-	/* mapping */
-	char mapflag, pad;
+	/* Ror buttons and render. */
+	char pr_type, use_nodes;
+	short pr_lamp, pr_texture;
 
-	/* shaders */
-	short diff_shader, spec_shader;
-	float roughness, refrac;
-	/* XXX param[4] needs review and improvement (shader system as whole anyway)
-	 * This is nasty reused variable for different goals and not easy to RNAify nicely. -jesterKing */
-	float param[4];		/* size, smooth, size, smooth, for toonshader, 0 (fac) and 1 (fresnel) also for fresnel shader */
-	float rms;
-	float darkness;
+	/* Index for render passes. */
+	short index;
 
-	/* runtime - OR'd from 'mtex' */
-	short texco, mapto;
-	
-	/* ramp colors */
-	struct ColorBand *ramp_col;
-	struct ColorBand *ramp_spec;
-	char rampin_col, rampin_spec;
-	char rampblend_col, rampblend_spec;
-	short ramp_show, pad3;
-	float rampfac_col, rampfac_spec;
-
-	struct MTex *mtex[18];		/* MAX_MTEX */
 	struct bNodeTree *nodetree;
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
-	struct Group *group;	/* light group */
 	struct PreviewImage *preview;
 
-	/* dynamic properties */
-	float friction, fh, reflect;
-	float fhdist, xyfrict;
-	short dynamode, pad2;
-
-	/* subsurface scattering */
-	float sss_radius[3], sss_col[3];
-	float sss_error, sss_scale, sss_ior;
-	float sss_colfac, sss_texfac;
-	float sss_front, sss_back;
-	short sss_flag, sss_preset;
-
-	int mapto_textured;	/* render-time cache to optimize texture lookups */
-	short shadowonly_flag;  /* "shadowsonly" type */
-	short index;            /* custom index for render passes */
-
-	/* Freestyle line settings */
+	/* Freestyle line settings. */
 	float line_col[4];
 	short line_priority;
 	short vcol_alpha;
 
-	/* texture painting */
+	/* Texture painting slots. */
 	short paint_active_slot;
 	short paint_clone_slot;
 	short tot_slots;
-	short pad4[3];
+	short pad2[3];
 
-	/* multiple tangent (Normal Map node) */
-	char nmap_tangent_names[9][64]; /* [MAX_MTFACE+1][MAX_NAME]; +1 for empty name */
-	int nmap_tangent_names_count, pad5;
-
-	/* Transparency */
+	/* Transparency. */
 	float alpha_threshold;
 	float refract_depth;
 	char blend_method;
 	char blend_shadow;
 	char blend_flag;
-	char pad6[5];
+	char pad3[5];
 
-	/* image to use for image/uv space, also bake target
-	 * (not to be used shading/rendering pipeline, this is editor featyure only!). */
-	struct Image *edit_image;
+	/* Cached slots for texture painting, must be refreshed in
+	 * refresh_texpaint_image_cache before using. */
+	struct TexPaintSlot *texpaintslot;
 
-	struct TexPaintSlot *texpaintslot; /* cached slot for painting. Make sure to recalculate before use
-	                                    * with refresh_texpaint_image_cache */
-	ListBase gpumaterial;		/* runtime */
+	/* Runtime cache for GLSL materials. */
+	ListBase gpumaterial;
 } Material;
 
 /* **************** MATERIAL ********************* */
@@ -226,12 +120,6 @@ typedef struct Material {
  * short mat_nr in verts, faces.
  * -1 because for active material we store the index + 1 */
 #define MAXMAT			(32767-1)
-
-/* material_type */
-#define MA_TYPE_SURFACE	0
-#define MA_TYPE_HALO	1
-#define MA_TYPE_VOLUME	2
-#define MA_TYPE_WIRE	3
 
 /* flag */
 		/* for render */
@@ -244,101 +132,7 @@ typedef struct Material {
 		 */
 #define MA_DS_SHOW_TEXS	4
 
-/* mode (is int) */
-#define MA_TRACEBLE		1
-#define MA_SHADOW		2
-#define MA_SHLESS		4
-#define MA_WIRE			8			/* deprecated */
-#define MA_VERTEXCOL	16
-#define MA_HALO_SOFT	16
-#define MA_HALO			32			/* deprecated */
-#define MA_ZTRANSP		64
-#define MA_VERTEXCOLP	128
-#define MA_ZINV			256
-#define MA_HALO_RINGS	256
-#define MA_ENV			512
-#define MA_HALO_LINES	512
-#define MA_ONLYSHADOW	1024
-#define MA_HALO_XALPHA	1024
-#define MA_STAR			0x800
-// #define MA_FACETEXTURE	0x800	/* deprecated */
-#define MA_HALOTEX		0x1000
-#define MA_HALOPUNO		0x2000
-#define MA_ONLYCAST		0x2000
-#define MA_NOMIST		0x4000
-#define MA_HALO_SHADE	0x4000
-#define MA_HALO_FLARE	0x8000
-#define MA_TRANSP		0x10000
-#define MA_RAYTRANSP	0x20000
-#define MA_RAYMIRROR	0x40000
-#define MA_SHADOW_TRA	0x80000
-#define MA_RAMP_COL		0x100000
-#define MA_RAMP_SPEC	0x200000
-#define MA_RAYBIAS		0x400000
-#define MA_FULL_OSA		0x800000
-#define MA_TANGENT_STR	0x1000000
-#define MA_SHADBUF		0x2000000
-		/* note; we drop MA_TANGENT_STR later to become tangent_u */
-#define MA_TANGENT_V	0x4000000
-/* qdn: a bit clumsy this, tangents needed for normal maps separated from shading */
-#define MA_NORMAP_TANG	0x8000000
-#define MA_GROUP_NOLAY	0x10000000
-// #define MA_FACETEXTURE_ALPHA	0x20000000	/* deprecated */
-#define MA_STR_B_UNITS	0x40000000
-#define MA_STR_SURFDIFF 0x80000000
-
-#define	MA_MODE_MASK	0x6fffffff	/* all valid mode bits */
-#define MA_MODE_PIPELINE	(MA_TRANSP | MA_ZTRANSP | MA_RAYTRANSP \
-				 | MA_TRACEBLE | MA_FULL_OSA | MA_ENV | MA_ZINV \
-				 | MA_ONLYCAST | MA_SHADBUF)
-
-/* mode2 (is int) */
-#define MA_CASTSHADOW		(1 << 0)
-#define MA_MODE2_PIPELINE	(MA_CASTSHADOW)
-#define MA_TANGENT_CONCRETE	(1 << 1)
-
-/* mapflag */
-#define MA_MAPFLAG_UVPROJECT (1 << 0)
-
-/* ray mirror fadeout */
-#define MA_RAYMIR_FADETOSKY	0
-#define MA_RAYMIR_FADETOMAT	1
-
-/* shadowonly_flag */
-#define MA_SO_OLD			0
-#define MA_SO_SHADOW		1
-#define MA_SO_SHADED		2
-
-/* shade_flag */
-#define MA_CUBIC			1
-#define MA_OBCOLOR			2
-#define MA_APPROX_OCCLUSION	4
-#define MA_GROUP_LOCAL      8
-
-/* diff_shader */
-#define MA_DIFF_LAMBERT		0
-#define MA_DIFF_ORENNAYAR	1
-#define MA_DIFF_TOON		2
-#define MA_DIFF_MINNAERT    3
-#define MA_DIFF_FRESNEL     4
-
-/* spec_shader */
-#define MA_SPEC_COOKTORR	0
-#define MA_SPEC_PHONG		1
-#define MA_SPEC_BLINN		2
-#define MA_SPEC_TOON		3
-#define MA_SPEC_WARDISO		4
-
-/* dynamode */
-// #define MA_DRAW_DYNABUTS    1		/* deprecated */
-#define MA_FH_NOR	        2
-
 /* ramps */
-#define MA_RAMP_IN_SHADER	0
-#define MA_RAMP_IN_ENERGY	1
-#define MA_RAMP_IN_NOR		2
-#define MA_RAMP_IN_RESULT	3
-
 #define MA_RAMP_BLEND		0
 #define MA_RAMP_ADD			1
 #define MA_RAMP_MULT		2
@@ -380,38 +174,7 @@ typedef struct Material {
 
 /* mapto */
 #define MAP_COL			1
-#define MAP_NORM		2
-#define MAP_COLSPEC		4
-#define MAP_COLMIR		8
-#define MAP_VARS		(0xFFF0)
-#define MAP_REF			16
-#define MAP_SPEC		32
-#define MAP_EMIT		64
 #define MAP_ALPHA		128
-#define MAP_HAR			256
-#define MAP_RAYMIRR		512
-#define MAP_TRANSLU		1024
-#define MAP_AMB			2048
-#define MAP_DISPLACE	4096
-#define MAP_WARP		8192
-// #define MAP_LAYER		16384		/* unused */
-
-/* volume mapto - reuse definitions for now - a bit naughty! */
-#define MAP_DENSITY				128
-#define MAP_EMISSION			64
-#define MAP_EMISSION_COL		1
-#define MAP_SCATTERING			16
-#define MAP_TRANSMISSION_COL	8
-#define MAP_REFLECTION_COL		4
-#define MAP_REFLECTION			32
-
-
-/* mapto for halo */
-//#define MAP_HA_COL		1
-//#define MAP_HA_ALPHA	128
-//#define MAP_HA_HAR		256
-//#define MAP_HA_SIZE		2
-//#define MAP_HA_ADD		64
 
 /* pmapto */
 /* init */
@@ -443,25 +206,6 @@ typedef struct Material {
 #define MA_SKY			7
 #define MA_HAIR			10
 #define MA_ATMOS		11
-
-/* sss_flag */
-#define MA_DIFF_SSS		1
-
-/* vol_stepsize_type */
-#define MA_VOL_STEP_RANDOMIZED	0
-#define MA_VOL_STEP_CONSTANT	1
-#define MA_VOL_STEP_ADAPTIVE	2
-
-/* vol_shadeflag */
-#define MA_VOL_RECV_EXT_SHADOW	1
-#define MA_VOL_PRECACHESHADING	8
-
-/* vol_shading_type */
-#define MA_VOL_SHADE_SHADELESS					0
-#define MA_VOL_SHADE_SHADOWED					2
-#define MA_VOL_SHADE_SHADED						1
-#define MA_VOL_SHADE_MULTIPLE					3
-#define MA_VOL_SHADE_SHADEDPLUSMULTIPLE			4
 
 /* blend_method */
 enum {
