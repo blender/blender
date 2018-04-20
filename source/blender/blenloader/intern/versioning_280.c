@@ -903,8 +903,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *)sl;
-						v3d->drawtype_solid = V3D_LIGHTING_STUDIO;
-						v3d->drawtype_wireframe = V3D_LIGHTING_STUDIO;
+						v3d->drawtype_lighting = V3D_LIGHTING_STUDIO;
 
 						/* Assume (demo) files written with 2.8 want to show
 						 * Eevee renders in the viewport. */

@@ -106,11 +106,11 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		switch (v3d->drawtype) {
 			default:
 			case OB_SOLID:
-				wpd->drawtype_lighting = v3d->drawtype_solid;
+				wpd->drawtype_lighting = v3d->drawtype_lighting;
 				break;
 		}
 #else
-		wpd->drawtype_lighting = v3d->drawtype_solid;
+		wpd->drawtype_lighting = v3d->drawtype_lighting;
 #endif
 	}
 	else {

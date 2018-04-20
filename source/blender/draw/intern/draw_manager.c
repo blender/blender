@@ -895,19 +895,18 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype,
-                                           int UNUSED(drawtype_wireframe), int drawtype_solid, int UNUSED(drawtype_texture))
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, int drawtype_lighting)
 {
 	switch (drawtype) {
 		case OB_WIRE:
 			break;
 
 		case OB_SOLID:
-			if (drawtype_solid == V3D_LIGHTING_FLAT) {
+			if (drawtype_lighting == V3D_LIGHTING_FLAT) {
 				use_drw_engine(&draw_engine_workbench_solid_flat);
 
 			} 
-			else if (drawtype_solid == V3D_LIGHTING_STUDIO) {
+			else if (drawtype_lighting == V3D_LIGHTING_STUDIO) {
 				use_drw_engine(&draw_engine_workbench_solid_studio);
 
 			}
@@ -1004,11 +1003,9 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
 	View3D * v3d = DST.draw_ctx.v3d;
 	const int drawtype = v3d->drawtype;
-	const int drawtype_wireframe = v3d->drawtype_wireframe;
-	const int drawtype_solid = v3d->drawtype_solid;
-	const int drawtype_texture = v3d->drawtype_texture;
+	const int drawtype_lighting = v3d->drawtype_lighting;
 
-	drw_engines_enable_from_engine(engine_type, drawtype, drawtype_wireframe, drawtype_solid, drawtype_texture);
+	drw_engines_enable_from_engine(engine_type, drawtype, drawtype_lighting);
 
 	if (DRW_state_draw_support()) {
 		drw_engines_enable_from_overlays(v3d->overlays);

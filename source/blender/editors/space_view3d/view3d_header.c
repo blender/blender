@@ -306,7 +306,7 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* Draw type */
 	uiItemR(layout, &v3dptr, "viewport_shade", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	if (v3d->drawtype == OB_SOLID) {
-		uiItemR(layout, &v3dptr, "viewport_shade_solid", 0, "", ICON_NONE);
+		uiItemR(layout, &v3dptr, "viewport_lighting", 0, "", ICON_NONE);
 	}
 
 	row = uiLayoutRow(layout, true);
