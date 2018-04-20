@@ -1245,16 +1245,15 @@ static void view3d_draw_view(const bContext *C, ARegion *ar)
 
 RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
 {
-	/* Tempory viewport draw modes until we have a proper system. */
-	if (drawtype == OB_RENDER) {
-		return RE_engines_find(scene->r.engine);
-	}
-	else if (drawtype == OB_MATERIAL) {
+	/*
+	 * Tempory viewport draw modes until we have a proper system. 
+	 * all modes are done in the draw manager, except
+	 * cycles material as it is an external render engine.
+	 */
+	if (strcmp(scene->r.engine, RE_engine_id_CYCLES) == 0 && drawtype == OB_MATERIAL) {
 		return RE_engines_find(RE_engine_id_BLENDER_EEVEE);
 	}
-	else {
-		return RE_engines_find(RE_engine_id_BLENDER_WORKBENCH);
-	}
+	return RE_engines_find(scene->r.engine);
 }
 
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
