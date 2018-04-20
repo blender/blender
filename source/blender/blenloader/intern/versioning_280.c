@@ -29,6 +29,7 @@
 #define DNA_DEPRECATED_ALLOW
 
 #include <string.h>
+#include <float.h>
 
 #include "BLI_listbase.h"
 #include "BLI_mempool.h"
@@ -621,6 +622,119 @@ void do_versions_after_linking_280(Main *main)
 			}
 			else {
 				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
+			}
+		}
+	}
+	
+	if (!MAIN_VERSION_ATLEAST(main, 280, 9)) {
+		/* Timeline Editor -> Dopesheet Timeline subeditor-mode */
+		/* XXX: The code here is hacky, as the editor manipulation API's 
+		 * were only ever meant to be called from the UI (e.g. ED_area_newspace())
+		 */
+		SpaceType *st = BKE_spacetype_from_id(SPACE_ACTION);
+		
+		for (bScreen *sc = main->screen.first; sc; sc = sc->id.next) {
+			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
+				/* Convert timelines to dopesheet editors with timelines */
+				if (sa->spacetype == SPACE_TIME) {
+					SpaceTime *stime = sa->spacedata.first;
+					ARegion *main_region = NULL;
+					ARegion *ar = NULL;
+					
+					/* manually init spaceaction settings
+					 * NOTE: This duplicates action_new(), but it prevents compatability problems later
+					 * XXX: We assume it's ok to just create another action edit instance, even if one existed
+					 */
+					SpaceAction *saction = MEM_callocN(sizeof(SpaceAction), "converted timeline");
+					
+					saction->spacetype = SPACE_ACTION;
+					saction->mode = SACTCONT_TIMELINE;
+					
+					saction->autosnap = SACTSNAP_FRAME;
+					
+					saction->ads.filterflag |= ADS_FILTER_SUMMARY;
+					saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
+					
+					/* - enable all the cache settings */
+					saction->cache_display |= TIME_CACHE_DISPLAY;
+					saction->cache_display |= (TIME_CACHE_SOFTBODY | TIME_CACHE_PARTICLES);
+					saction->cache_display |= (TIME_CACHE_CLOTH | TIME_CACHE_SMOKE | TIME_CACHE_DYNAMICPAINT);
+					saction->cache_display |= TIME_CACHE_RIGIDBODY;
+					
+					/* fix region settings */
+					for (ar = sa->regionbase.first; ar; ar = ar->next) {
+						if (ar->regiontype == RGN_TYPE_WINDOW) {
+							main_region = ar;
+							break;
+						}
+					}
+					
+					if (ar) {
+						/* set normal view2D settings on the view2d bounds, so that dopesheet drawing works */
+						/* see space_action.c::action_new() */
+						BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
+						
+						ar->v2d.tot.ymin = ar->v2d.cur.ymin = (float)(-sa->winy) / 3.0f;
+						ar->v2d.tot.ymax = ar->v2d.cur.ymax = 0.0f;
+						
+						ar->v2d.min[0] = 0.0f;
+						ar->v2d.min[1] = 0.0f;
+						
+						ar->v2d.max[0] = MAXFRAMEF;
+						ar->v2d.max[1] = FLT_MAX;
+						
+						ar->v2d.minzoom = 0.01f;
+						ar->v2d.maxzoom = 50;
+						ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
+						ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
+						ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
+						ar->v2d.keepofs = V2D_KEEPOFS_Y;
+						ar->v2d.align = V2D_ALIGN_NO_POS_Y;
+						ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+						
+						/* add channel list region (see space_action.c) */
+						ar = MEM_callocN(sizeof(ARegion), "channel region for action (versionpatch)");
+						BLI_insertlinkbefore(&sa->regionbase, main_region, ar);
+						ar->regiontype = RGN_TYPE_CHANNELS;
+						ar->flag = RGN_FLAG_HIDDEN;
+						ar->alignment = RGN_ALIGN_LEFT;
+						ar->v2d.scroll = V2D_SCROLL_BOTTOM;
+						ar->v2d.flag = V2D_VIEWSYNC_AREA_VERTICAL;
+						
+						/* ui buttons (see space_action.c) */
+						ar = MEM_callocN(sizeof(ARegion), "buttons region for action");
+						BLI_insertlinkbefore(&sa->regionbase, main_region, ar);
+						ar->regiontype = RGN_TYPE_UI;
+						ar->alignment = RGN_ALIGN_RIGHT;
+						ar->flag = RGN_FLAG_HIDDEN;
+					}
+					
+					/* swap out action for time */
+					/* NOTE: it should be fine to just free time spacedata,
+					 * as all regions are currently hooked to action anyway
+					 */
+					BLI_freelinkN(&sa->spacedata, stime);
+					BLI_addhead(&sa->spacedata, saction);
+					
+					sa->spacetype = SPACE_ACTION;
+					sa->butspacetype = SPACE_ACTION;
+					
+					sa->type = st;
+				}
+				
+				/* Delete all saved spaces too */
+				SpaceLink *sl_first = sa->spacedata.first;
+				SpaceLink *sl_next;
+				for (SpaceLink *sl = sl_first->next; sl; sl = sl_next) {
+					sl_next = sl->next;
+					if (sl->spacetype == SPACE_TIME) {
+						/* free regions for pushed spaces */
+						BLI_freelistN(&sl->regionbase);
+						
+						/* free this stored space */
+						BLI_freelinkN(&sa->spacedata, sl);
+					}
+				}
 			}
 		}
 	}
