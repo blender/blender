@@ -95,6 +95,30 @@ vec3 project_point(mat4 m, vec3 v) {
 	return tmp.xyz / tmp.w;
 }
 
+#define min3(a, b, c)                   min(a, min(b, c))
+#define min4(a, b, c, d)                min(a, min3(b, c, d))
+#define min5(a, b, c, d, e)             min(a, min4(b, c, d, e))
+#define min6(a, b, c, d, e, f)          min(a, min5(b, c, d, e, f))
+#define min7(a, b, c, d, e, f, g)       min(a, min6(b, c, d, e, f, g))
+#define min8(a, b, c, d, e, f, g, h)    min(a, min7(b, c, d, e, f, g, h))
+#define min9(a, b, c, d, e, f, g, h, i) min(a, min8(b, c, d, e, f, g, h, i))
+
+#define max3(a, b, c)                   max(a, max(b, c))
+#define max4(a, b, c, d)                max(a, max3(b, c, d))
+#define max5(a, b, c, d, e)             max(a, max4(b, c, d, e))
+#define max6(a, b, c, d, e, f)          max(a, max5(b, c, d, e, f))
+#define max7(a, b, c, d, e, f, g)       max(a, max6(b, c, d, e, f, g))
+#define max8(a, b, c, d, e, f, g, h)    max(a, max7(b, c, d, e, f, g, h))
+#define max9(a, b, c, d, e, f, g, h, i) max(a, max8(b, c, d, e, f, g, h, i))
+
+#define avg3(a, b, c)                   (a + b + c) * (1.0 / 3.0)
+#define avg4(a, b, c, d)                (a + b + c + d) * (1.0 / 4.0)
+#define avg5(a, b, c, d, e)             (a + b + c + d + e) * (1.0 / 5.0)
+#define avg6(a, b, c, d, e, f)          (a + b + c + d + e + f) * (1.0 / 6.0)
+#define avg7(a, b, c, d, e, f, g)       (a + b + c + d + e + f + g) * (1.0 / 7.0)
+#define avg8(a, b, c, d, e, f, g, h)    (a + b + c + d + e + f + g + h) * (1.0 / 8.0)
+#define avg9(a, b, c, d, e, f, g, h, i) (a + b + c + d + e + f + g + h + i) * (1.0 / 9.0)
+
 float min_v2(vec2 v) { return min(v.x, v.y); }
 float min_v3(vec3 v) { return min(v.x, min(v.y, v.z)); }
 float max_v2(vec2 v) { return max(v.x, v.y); }
@@ -252,6 +276,7 @@ void make_orthonormal_basis(vec3 N, out vec3 T, out vec3 B)
 }
 
 /* ---- Opengl Depth conversion ---- */
+
 float linear_depth(bool is_persp, float z, float zf, float zn)
 {
 	if (is_persp) {

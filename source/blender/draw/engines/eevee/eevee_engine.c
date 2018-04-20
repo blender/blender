@@ -204,12 +204,18 @@ static void eevee_draw_background(void *vedata)
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
 
+		bool taa_use_reprojection = (stl->effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0;
+
 		if (DRW_state_is_image_render() ||
+			taa_use_reprojection ||
 		    ((stl->effects->enabled_effects & EFFECT_TAA) != 0))
 		{
-			BLI_halton_3D(primes, offset, stl->effects->taa_current_sample, r);
+			int samp = taa_use_reprojection
+			            ? stl->effects->taa_reproject_sample + 1
+			            : stl->effects->taa_current_sample;
+			BLI_halton_3D(primes, offset, samp, r);
 			EEVEE_update_noise(psl, fbl, r);
-			EEVEE_volumes_set_jitter(sldata, stl->effects->taa_current_sample - 1);
+			EEVEE_volumes_set_jitter(sldata, samp - 1);
 			EEVEE_materials_init(sldata, stl, fbl);
 		}
 		/* Copy previous persmat to UBO data */
@@ -217,7 +223,8 @@ static void eevee_draw_background(void *vedata)
 
 		if (((stl->effects->enabled_effects & EFFECT_TAA) != 0) &&
 		    (stl->effects->taa_current_sample > 1) &&
-		    !DRW_state_is_image_render())
+		    !DRW_state_is_image_render() &&
+		    !taa_use_reprojection)
 		{
 			DRW_viewport_matrix_override_set(stl->effects->overide_persmat, DRW_MAT_PERS);
 			DRW_viewport_matrix_override_set(stl->effects->overide_persinv, DRW_MAT_PERSINV);

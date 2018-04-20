@@ -27,7 +27,10 @@
 
 #include "DRW_render.h"
 
+#include "ED_screen.h"
+
 #include "BLI_rand.h"
+#include "BLI_string_utils.h"
 
 #include "eevee_private.h"
 #include "GPU_texture.h"
@@ -37,16 +40,29 @@
 static struct {
 	/* Temporal Anti Aliasing */
 	struct GPUShader *taa_resolve_sh;
+	struct GPUShader *taa_resolve_reproject_sh;
 
 	/* Pixel filter table: Only blackman-harris for now. */
 	float inverted_cdf[FILTER_CDF_TABLE_SIZE];
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_common_uniforms_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
+extern char datatoc_bsdf_common_lib_glsl[];
 extern char datatoc_effect_temporal_aa_glsl[];
 
 static void eevee_create_shader_temporal_sampling(void)
 {
-	e_data.taa_resolve_sh = DRW_shader_create_fullscreen(datatoc_effect_temporal_aa_glsl, NULL);
+	char *frag_str = BLI_string_joinN(
+	        datatoc_common_uniforms_lib_glsl,
+	        datatoc_common_view_lib_glsl,
+	        datatoc_bsdf_common_lib_glsl,
+	        datatoc_effect_temporal_aa_glsl);
+
+	e_data.taa_resolve_sh = DRW_shader_create_fullscreen(frag_str, NULL);
+	e_data.taa_resolve_reproject_sh = DRW_shader_create_fullscreen(frag_str, "#define USE_REPROJECTION\n");
+
+	MEM_freeN(frag_str);
 }
 
 static float UNUSED_FUNCTION(filter_box)(float UNUSED(x))
@@ -163,6 +179,11 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
+	if (!e_data.taa_resolve_sh) {
+		eevee_create_shader_temporal_sampling();
+		eevee_create_cdf_table_temporal_sampling();
+	}
+
 	/* Reset for each "redraw". When rendering using ogl render,
 	 * we accumulate the redraw inside the drawing loop in eevee_draw_background().
 	 * But we do NOT accumulate between "redraw" (as in full draw manager drawloop)
@@ -173,6 +194,14 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
+	int repro_flag = 0;
+	if (!DRW_state_is_image_render() &&
+		BKE_collection_engine_property_value_get_bool(props, "taa_reprojection"))
+	{
+		repro_flag = EFFECT_TAA_REPROJECT | EFFECT_VELOCITY_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
+		effects->taa_reproject_sample = ((effects->taa_reproject_sample + 1) % 16);
+	}
+
 	if ((BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1 &&
 	    /* FIXME the motion blur camera evaluation is tagging view_updated
 	     * thus making the TAA always reset and never stopping rendering. */
@@ -181,16 +210,16 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	{
 		float persmat[4][4], viewmat[4][4];
 
-		if (!e_data.taa_resolve_sh) {
-			eevee_create_shader_temporal_sampling();
-			eevee_create_cdf_table_temporal_sampling();
-		}
-
 		/* Until we support reprojection, we need to make sure
 		 * that the history buffer contains correct information. */
 		bool view_is_valid = stl->g_data->valid_double_buffer;
 
 		view_is_valid = view_is_valid && (stl->g_data->view_updated == false);
+
+		if (draw_ctx->evil_C != NULL) {
+			struct wmWindowManager *wm = CTX_wm_manager(draw_ctx->evil_C);
+			view_is_valid = view_is_valid && (ED_screen_animation_no_scrub(wm) == NULL);
+		}
 
 		effects->taa_total_sample = BKE_collection_engine_property_value_get_int(props, "taa_samples");
 		MAX2(effects->taa_total_sample, 0);
@@ -215,6 +244,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 				/* OGL render already jitter the camera. */
 				if (!DRW_state_is_image_render()) {
 					effects->taa_current_sample += 1;
+					repro_flag = 0;
 
 					double ht_point[2];
 					double ht_offset[2] = {0.0, 0.0};
@@ -238,41 +268,53 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 			effects->taa_current_sample = 1;
 		}
 
-		DRW_texture_ensure_fullscreen_2D(&txl->depth_double_buffer, DRW_TEX_DEPTH_24_STENCIL_8, 0);
-
-		GPU_framebuffer_ensure_config(&fbl->double_buffer_depth_fb, {
-			GPU_ATTACHMENT_TEXTURE(txl->depth_double_buffer)
-		});
-
-		return EFFECT_TAA | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
+		return repro_flag | EFFECT_TAA | EFFECT_DOUBLE_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
 	}
 
 	effects->taa_current_sample = 1;
 
-	/* Cleanup to release memory */
-	DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
-	GPU_FRAMEBUFFER_FREE_SAFE(fbl->double_buffer_depth_fb);
-
-	return 0;
+	return repro_flag;
 }
 
-void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
+void EEVEE_temporal_sampling_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
-	if ((effects->enabled_effects & EFFECT_TAA) != 0) {
-		psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR);
-		DRWShadingGroup *grp = DRW_shgroup_create(e_data.taa_resolve_sh, psl->taa_resolve);
+	if ((effects->enabled_effects & (EFFECT_TAA | EFFECT_TAA_REPROJECT)) != 0) {
+		struct GPUShader *sh = (effects->enabled_effects & EFFECT_TAA_REPROJECT)
+		                        ? e_data.taa_resolve_reproject_sh
+		                        : e_data.taa_resolve_sh;
 
-		DRW_shgroup_uniform_texture_ref(grp, "historyBuffer", &txl->color_double_buffer);
+		psl->taa_resolve = DRW_pass_create("Temporal AA Resolve", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(sh, psl->taa_resolve);
+
+		DRW_shgroup_uniform_texture_ref(grp, "colorHistoryBuffer", &txl->color_double_buffer);
 		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &txl->color);
-		DRW_shgroup_uniform_float(grp, "alpha", &effects->taa_alpha, 1);
+
+		if (effects->enabled_effects & EFFECT_TAA_REPROJECT) {
+			DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+			DRW_shgroup_uniform_texture_ref(grp, "velocityBuffer", &effects->velocity_tx);
+			DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+		}
+		else {
+			DRW_shgroup_uniform_float(grp, "alpha", &effects->taa_alpha, 1);
+		}
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
 }
+
+/* Special Swap */
+#define SWAP_BUFFER_TAA() do { \
+	SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer_fb); \
+	SWAP(struct GPUFrameBuffer *, fbl->effect_color_fb, fbl->double_buffer_color_fb); \
+	SWAP(GPUTexture *, txl->color_post, txl->color_double_buffer); \
+	effects->swap_double_buffer = false; \
+	effects->source_buffer = txl->color_double_buffer; \
+	effects->target_buffer = fbl->main_color_fb; \
+} while (0);
 
 void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 {
@@ -282,8 +324,8 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
 
-	if ((effects->enabled_effects & EFFECT_TAA) != 0) {
-		if (effects->taa_current_sample != 1) {
+	if ((effects->enabled_effects & (EFFECT_TAA | EFFECT_TAA_REPROJECT)) != 0) {
+		if ((effects->enabled_effects & EFFECT_TAA) != 0 && effects->taa_current_sample != 1) {
 			if (DRW_state_is_image_render()) {
 				/* See EEVEE_temporal_sampling_init() for more details. */
 				effects->taa_alpha = 1.0f / (float)(effects->taa_render_sample);
@@ -300,19 +342,24 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 				GPU_framebuffer_blit(fbl->double_buffer_depth_fb, 0, fbl->main_fb, 0, GPU_DEPTH_BIT);
 			}
 
-			/* Special Swap */
-			SWAP(struct GPUFrameBuffer *, fbl->effect_fb, fbl->double_buffer_fb);
-			SWAP(struct GPUFrameBuffer *, fbl->effect_color_fb, fbl->double_buffer_color_fb);
-			SWAP(GPUTexture *, txl->color_post, txl->color_double_buffer);
-			effects->swap_double_buffer = false;
-			effects->source_buffer = txl->color_double_buffer;
-			effects->target_buffer = fbl->main_color_fb;
+			SWAP_BUFFER_TAA();
 		}
 		else {
-			/* Save the depth buffer for the next frame.
-			 * This saves us from doing anything special
-			 * in the other mode engines. */
 			if (!DRW_state_is_image_render()) {
+				/* Do reprojection for noise reduction */
+				/* TODO : do AA jitter if in only render view. */
+				if ((effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0 &&
+				    stl->g_data->valid_double_buffer)
+				{
+					GPU_framebuffer_bind(fbl->effect_color_fb);
+					DRW_draw_pass(psl->taa_resolve);
+
+					SWAP_BUFFER_TAA();
+				}
+
+				/* Save the depth buffer for the next frame.
+				 * This saves us from doing anything special
+				 * in the other mode engines. */
 				GPU_framebuffer_blit(fbl->main_fb, 0, fbl->double_buffer_depth_fb, 0, GPU_DEPTH_BIT);
 			}
 		}
@@ -330,10 +377,10 @@ void EEVEE_temporal_sampling_draw(EEVEE_Data *vedata)
 			}
 		}
 	}
-
 }
 
 void EEVEE_temporal_sampling_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.taa_resolve_sh);
+	DRW_SHADER_FREE_SAFE(e_data.taa_resolve_reproject_sh);
 }

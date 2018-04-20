@@ -251,6 +251,22 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	}
 
 	/**
+	 * Setup depth double buffer.
+	 */
+	if ((effects->enabled_effects & EFFECT_DEPTH_DOUBLE_BUFFER) != 0) {
+		DRW_texture_ensure_fullscreen_2D(&txl->depth_double_buffer, DRW_TEX_DEPTH_24_STENCIL_8, 0);
+
+		GPU_framebuffer_ensure_config(&fbl->double_buffer_depth_fb, {
+			GPU_ATTACHMENT_TEXTURE(txl->depth_double_buffer)
+		});
+	}
+	else {
+		/* Cleanup to release memory */
+		DRW_TEXTURE_FREE_SAFE(txl->depth_double_buffer);
+		GPU_FRAMEBUFFER_FREE_SAFE(fbl->double_buffer_depth_fb);
+	}
+
+	/**
 	 * Setup double buffer so we can access last frame as it was before post processes.
 	 */
 	if ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0) {
