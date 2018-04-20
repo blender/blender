@@ -912,6 +912,10 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			}
 			break;
 
+		case OB_CLAY:
+			use_drw_engine(&draw_engine_clay_type);
+			break;
+
 		case OB_TEXTURE:
 		case OB_MATERIAL:
 		case OB_RENDER:

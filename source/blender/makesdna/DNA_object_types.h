@@ -442,6 +442,7 @@ enum {
 	OB_MATERIAL  = 4,
 	OB_TEXTURE   = 5,
 	OB_RENDER    = 6,
+	OB_CLAY    = 7,
 };
 
 /* dtx: flags (short) */
