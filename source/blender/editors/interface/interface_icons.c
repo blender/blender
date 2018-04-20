@@ -35,6 +35,7 @@
 
 #include "GPU_draw.h"
 #include "GPU_matrix.h"
+#include "GPU_batch.h"
 #include "GPU_immediate.h"
 
 #include "BLI_blenlib.h"
@@ -98,6 +99,7 @@ typedef void (*VectorDrawFunc)(int x, int y, int w, int h, float alpha);
 #define ICON_TYPE_TEXTURE   1
 #define ICON_TYPE_BUFFER    2
 #define ICON_TYPE_VECTOR    3
+#define ICON_TYPE_GEOM      4
 
 typedef struct DrawInfo {
 	int type;
@@ -107,6 +109,9 @@ typedef struct DrawInfo {
 		struct {
 			VectorDrawFunc func;
 		} vector;
+		struct {
+			Gwn_Batch *batch;
+		} geom;
 		struct {
 			IconImage *image;
 		} buffer;
@@ -742,18 +747,61 @@ void UI_icons_free_drawinfo(void *drawinfo)
 				MEM_freeN(di->data.buffer.image);
 			}
 		}
+		else if (di->type == ICON_TYPE_GEOM) {
+			if (di->data.geom.batch) {
+				GWN_BATCH_DISCARD_SAFE(di->data.geom.batch);
+			}
+		}
 
 		MEM_freeN(di);
 	}
 }
 
-static DrawInfo *icon_create_drawinfo(void)
+/**
+ * #Icon.data_type and #Icon.obj
+ */
+static DrawInfo *icon_create_drawinfo(int icon_data_type, void *icon_obj)
 {
 	DrawInfo *di = NULL;
 
 	di = MEM_callocN(sizeof(DrawInfo), "di_icon");
-	di->type = ICON_TYPE_PREVIEW;
 
+	if (ELEM(icon_data_type, ICON_DATA_ID, ICON_DATA_PREVIEW)) {
+		di->type = ICON_TYPE_PREVIEW;
+	}
+	else if (icon_data_type == ICON_DATA_GEOM) {
+		di->type = ICON_TYPE_GEOM;
+
+		struct Icon_Geom *geom = icon_obj;
+		static Gwn_VertFormat format = {0};
+		static struct { uint pos, color; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_U8, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
+			attr_id.color = GWN_vertformat_attr_add(&format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
+		}
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, geom->coords_len * 3);
+		GWN_vertbuf_attr_fill(vbo, attr_id.pos, geom->coords);
+		GWN_vertbuf_attr_fill(vbo, attr_id.color, geom->colors);
+
+		Gwn_Batch *batch = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		di->data.geom.batch = batch;
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	return di;
+}
+
+static DrawInfo *icon_ensure_drawinfo(Icon *icon)
+{
+	if (icon->drawinfo) {
+		return icon->drawinfo;
+	}
+	DrawInfo *di = icon_create_drawinfo(icon->obj_type, icon->obj);
+	icon->drawinfo = di;
+	icon->drawinfo_free = UI_icons_free_drawinfo;
 	return di;
 }
 
@@ -771,40 +819,27 @@ int UI_icon_get_width(int icon_id)
 		return 0;
 	}
 	
-	di = (DrawInfo *)icon->drawinfo;
-	if (!di) {
-		di = icon_create_drawinfo();
-		icon->drawinfo = di;
-	}
-
-	if (di)
+	di = icon_ensure_drawinfo(icon);
+	if (di) {
 		return ICON_DEFAULT_WIDTH;
+	}
 
 	return 0;
 }
 
 int UI_icon_get_height(int icon_id)
 {
-	Icon *icon = NULL;
-	DrawInfo *di = NULL;
-
-	icon = BKE_icon_get(icon_id);
-	
+	Icon *icon = BKE_icon_get(icon_id);
 	if (icon == NULL) {
 		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
-	
-	di = (DrawInfo *)icon->drawinfo;
 
-	if (!di) {
-		di = icon_create_drawinfo();
-		icon->drawinfo = di;
-	}
-	
-	if (di)
+	DrawInfo *di = icon_ensure_drawinfo(icon);
+	if (di) {
 		return ICON_DEFAULT_HEIGHT;
+	}
 
 	return 0;
 }
@@ -861,14 +896,7 @@ void ui_icon_ensure_deferred(const bContext *C, const int icon_id, const bool bi
 	Icon *icon = BKE_icon_get(icon_id);
 
 	if (icon) {
-		DrawInfo *di = (DrawInfo *)icon->drawinfo;
-
-		if (!di) {
-			di = icon_create_drawinfo();
-
-			icon->drawinfo = di;
-			icon->drawinfo_free = UI_icons_free_drawinfo;
-		}
+		DrawInfo *di = icon_ensure_drawinfo(icon);
 
 		if (di) {
 			switch (di->type) {
@@ -1183,7 +1211,6 @@ static void icon_draw_size(
 {
 	bTheme *btheme = UI_GetTheme();
 	Icon *icon = NULL;
-	DrawInfo *di = NULL;
 	IconImage *iimg;
 	const float fdraw_size = (float)draw_size;
 	int w, h;
@@ -1197,25 +1224,41 @@ static void icon_draw_size(
 		return;
 	}
 
-	di = (DrawInfo *)icon->drawinfo;
-	
-	if (!di) {
-		di = icon_create_drawinfo();
-	
-		icon->drawinfo = di;
-		icon->drawinfo_free = UI_icons_free_drawinfo;
-	}
-	
 	/* scale width and height according to aspect */
 	w = (int)(fdraw_size / aspect + 0.5f);
 	h = (int)(fdraw_size / aspect + 0.5f);
-	
+
+	DrawInfo *di = icon_ensure_drawinfo(icon);
+
 	if (di->type == ICON_TYPE_VECTOR) {
 		/* We need to flush widget base first to ensure correct ordering. */
 		UI_widgetbase_draw_cache_flush();
 		/* vector icons use the uiBlock transformation, they are not drawn
 		 * with untransformed coordinates like the other icons */
 		di->data.vector.func((int)x, (int)y, w, h, 1.0f);
+	}
+	else if (di->type == ICON_TYPE_GEOM) {
+		/* We need to flush widget base first to ensure correct ordering. */
+		UI_widgetbase_draw_cache_flush();
+
+		gpuPushMatrix();
+		gpuTranslate2f(x, y);
+		gpuScale2f(w, h);
+
+		{
+			struct Gwn_Batch *batch = di->data.geom.batch;
+			GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_SMOOTH_COLOR_UNIFORM_ALPHA);
+			GWN_batch_uniform_1f(batch, "alpha", 1.0f / UI_PIXEL_AA_JITTER);
+
+			for (uint i = 0; i < UI_PIXEL_AA_JITTER; i += 1) {
+				gpuTranslate2f(ui_pixel_jitter[i][0] / w, ui_pixel_jitter[i][1] / h);
+				GWN_batch_draw(batch);
+				gpuTranslate2f(-ui_pixel_jitter[i][0] / w, -ui_pixel_jitter[i][1] / h);
+			}
+			GWN_batch_program_use_end(batch);
+		}
+
+		gpuPopMatrix();
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
 		/* texture image use premul alpha for correct scaling */

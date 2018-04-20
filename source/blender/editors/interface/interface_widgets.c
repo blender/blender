@@ -157,13 +157,15 @@ static const float cornervec[WIDGET_CURVE_RESOLU][2] = {
 	{0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}
 };
 
-#define WIDGET_AA_JITTER 8
-static const float jit[WIDGET_AA_JITTER][2] = {
+
+const float ui_pixel_jitter[UI_PIXEL_AA_JITTER][2] = {
 	{ 0.468813, -0.481430}, {-0.155755, -0.352820},
 	{ 0.219306, -0.238501}, {-0.393286, -0.110949},
 	{-0.024699,  0.013908}, { 0.343805,  0.147431},
 	{-0.272855,  0.269918}, { 0.095909,  0.388710}
 };
+#define WIDGET_AA_JITTER UI_PIXEL_AA_JITTER
+#define jit ui_pixel_jitter
 
 /* -------------------------------------------------------------------- */
 /** \name Shape Preset Data
