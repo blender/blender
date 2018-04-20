@@ -1300,7 +1300,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 	if (main->versionfile <= 236) {
 		Object *ob;
 		Camera *cam = main->camera.first;
-		bScreen *sc;
 
 		while (cam) {
 			if (cam->ortho_scale == 0.0f) {
@@ -1310,22 +1309,8 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			}
 			cam = cam->id.next;
 		}
-		/* set manipulator type */
 		/* force oops draw if depgraph was set*/
 		/* set time line var */
-		for (sc = main->screen.first; sc; sc = sc->id.next) {
-			ScrArea *sa;
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				SpaceLink *sl;
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D *) sl;
-						if (v3d->twtype == 0)
-							v3d->twtype = V3D_MANIP_TRANSLATE;
-					}
-				}
-			}
-		}
 
 		/* softbody init new vars */
 		for (ob = main->object.first; ob; ob = ob->id.next) {

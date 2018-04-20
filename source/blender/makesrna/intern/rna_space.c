@@ -2148,16 +2148,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem manipulators_items[] = {
-		{V3D_MANIP_TRANSLATE, "TRANSLATE", ICON_MAN_TRANS, "Translate",
-		                      "Use the manipulator for movement transformations"},
-		{V3D_MANIP_ROTATE, "ROTATE", ICON_MAN_ROT, "Rotate",
-		                   "Use the manipulator for rotation transformations"},
-		{V3D_MANIP_SCALE, "SCALE", ICON_MAN_SCALE, "Scale",
-		                  "Use the manipulator for scale transformations"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	static const EnumPropertyItem rv3d_persp_items[] = {
 		{RV3D_PERSP, "PERSP", 0, "Perspective", ""},
 		{RV3D_ORTHO, "ORTHO", 0, "Orthographic", ""},
@@ -2452,13 +2442,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "twflag", V3D_MANIPULATOR_DRAW);
 	RNA_def_property_ui_text(prop, "Manipulator", "Use a 3D manipulator widget for controlling transforms");
 	RNA_def_property_ui_icon(prop, ICON_MANIPUL, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "transform_manipulators", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "twtype");
-	RNA_def_property_enum_items(prop, manipulators_items);
-	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
-	RNA_def_property_ui_text(prop, "Transform Manipulators", "Transformation manipulators");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "lock_camera_and_layers", PROP_BOOLEAN, PROP_NONE);

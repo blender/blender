@@ -371,11 +371,6 @@ enum {
 #define V3D_SHOW_Y				4
 #define V3D_SHOW_Z				8
 
-/* View3d->twtype (bits, we can combine them) */
-#define V3D_MANIP_TRANSLATE		1
-#define V3D_MANIP_ROTATE		2
-#define V3D_MANIP_SCALE			4
-
 /* Scene.orientation_type */
 #define V3D_MANIP_GLOBAL		0
 #define V3D_MANIP_LOCAL			1

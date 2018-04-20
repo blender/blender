@@ -53,11 +53,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        ("Translate", None,
+        ("Translate", "TRANSFORM_WGT_manipulator",
          (("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
-        ("Rotate", None,
+        ("Rotate", "TRANSFORM_WGT_manipulator",
          (("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
-        ("Scale", None,
+        ("Scale", "TRANSFORM_WGT_manipulator",
          (("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
         ("Scale Cage", "VIEW3D_WGT_xform_cage", None),
         None,
