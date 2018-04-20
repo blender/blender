@@ -333,6 +333,9 @@ static void eevee_draw_background(void *vedata)
 		case 8:
 			if (effects->sss_data) DRW_transform_to_display(effects->sss_data);
 			break;
+		case 9:
+			if (effects->velocity_tx) DRW_transform_to_display(effects->velocity_tx);
+			break;
 		default:
 			break;
 	}

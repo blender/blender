@@ -27,6 +27,10 @@
 
 #include "DRW_render.h"
 
+#include "BKE_global.h" /* for G.debug_value */
+
+#include "BLI_string_utils.h"
+
 #include "eevee_private.h"
 #include "GPU_texture.h"
 #include "GPU_extensions.h"
@@ -46,6 +50,9 @@ static struct {
 	struct GPUShader *downsample_sh;
 	struct GPUShader *downsample_cube_sh;
 
+	/* Velocity Resolve */
+	struct GPUShader *velocity_resolve_sh;
+
 	/* Theses are just references, not actually allocated */
 	struct GPUTexture *depth_src;
 	struct GPUTexture *color_src;
@@ -54,6 +61,10 @@ static struct {
 	float cube_texel_size;
 } e_data = {NULL}; /* Engine data */
 
+extern char datatoc_common_uniforms_lib_glsl[];
+extern char datatoc_common_view_lib_glsl[];
+extern char datatoc_bsdf_common_lib_glsl[];
+extern char datatoc_effect_velocity_resolve_frag_glsl[];
 extern char datatoc_effect_minmaxz_frag_glsl[];
 extern char datatoc_effect_downsample_frag_glsl[];
 extern char datatoc_effect_downsample_cube_frag_glsl[];
@@ -62,6 +73,16 @@ extern char datatoc_lightprobe_geom_glsl[];
 
 static void eevee_create_shader_downsample(void)
 {
+	char *frag_str = BLI_string_joinN(
+	    datatoc_common_uniforms_lib_glsl,
+	    datatoc_common_view_lib_glsl,
+	    datatoc_bsdf_common_lib_glsl,
+	    datatoc_effect_velocity_resolve_frag_glsl);
+
+	e_data.velocity_resolve_sh = DRW_shader_create_fullscreen(frag_str, NULL);
+
+	MEM_freeN(frag_str);
+
 	e_data.downsample_sh = DRW_shader_create_fullscreen(datatoc_effect_downsample_frag_glsl, NULL);
 	e_data.downsample_cube_sh = DRW_shader_create(
 	        datatoc_lightprobe_vert_glsl,
@@ -110,6 +131,8 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	ViewLayer *view_layer = draw_ctx->view_layer;
 
 	const float *viewport_size = DRW_viewport_size_get();
+	int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
+
 	/* Shaders */
 	if (!e_data.downsample_sh) {
 		eevee_create_shader_downsample();
@@ -122,6 +145,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	effects = stl->effects;
 
 	effects->enabled_effects = 0;
+	effects->enabled_effects |= (G.debug_value == 9) ? EFFECT_VELOCITY_BUFFER : 0;
 	effects->enabled_effects |= EEVEE_motion_blur_init(sldata, vedata, camera);
 	effects->enabled_effects |= EEVEE_bloom_init(sldata, vedata);
 	effects->enabled_effects |= EEVEE_depth_of_field_init(sldata, vedata, camera);
@@ -163,9 +187,9 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	/**
 	 * MinMax Pyramid
 	 */
-	int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-	size[0] = max_ii(size[0] / 2, 1);
-	size[1] = max_ii(size[1] / 2, 1);
+	int size[2];
+	size[0] = max_ii(size_fs[0] / 2, 1);
+	size[1] = max_ii(size_fs[1] / 2, 1);
 
 	if (GPU_type_matches(GPU_DEVICE_INTEL, GPU_OS_ANY, GPU_DRIVER_ANY)) {
 		/* Intel gpu seems to have problem rendering to only depth format */
@@ -197,8 +221,6 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Normal buffer for deferred passes.
 	 */
 	if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0)	{
-		int size_fs[2] = {(int)viewport_size[0], (int)viewport_size[1]};
-
 		effects->ssr_normal_input = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], DRW_TEX_RG_16,
 		                                                      &draw_engine_eevee_type);
 
@@ -206,6 +228,26 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	}
 	else {
 		effects->ssr_normal_input = NULL;
+	}
+
+	/**
+	 * Motion vector buffer for correct TAA / motion blur.
+	 */
+	if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
+		/* TODO use RG16_UNORM */
+		effects->velocity_tx = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], DRW_TEX_RG_32,
+		                                                 &draw_engine_eevee_type);
+
+		/* TODO output objects velocity during the mainpass. */
+		// GPU_framebuffer_texture_attach(fbl->main_fb, effects->velocity_tx, 1, 0);
+
+		GPU_framebuffer_ensure_config(&fbl->velocity_resolve_fb, {
+			GPU_ATTACHMENT_NONE,
+			GPU_ATTACHMENT_TEXTURE(effects->velocity_tx)
+		});
+	}
+	else {
+		effects->velocity_tx = NULL;
 	}
 
 	/**
@@ -235,6 +277,8 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_TextureList *txl = vedata->txl;
+	EEVEE_StorageList *stl = vedata->stl;
+	EEVEE_EffectsInfo *effects = stl->effects;
 	int downsample_write = DRW_STATE_WRITE_DEPTH;
 
 	/* Intel gpu seems to have problem rendering to only depth format.
@@ -289,6 +333,17 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		psl->maxz_copydepth_ps = DRW_pass_create("HiZ Max Copy Depth Fullres", downsample_write | DRW_STATE_DEPTH_ALWAYS);
 		grp = DRW_shgroup_create(e_data.maxz_copydepth_sh, psl->maxz_copydepth_ps);
 		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_call_add(grp, quad, NULL);
+	}
+
+	if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
+		/* This pass compute camera motions to the non moving objects. */
+		psl->velocity_resolve = DRW_pass_create("Velocity Resolve", DRW_STATE_WRITE_COLOR);
+		DRWShadingGroup *grp = DRW_shgroup_create(e_data.velocity_resolve_sh, psl->velocity_resolve);
+		DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &e_data.depth_src);
+		DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
+		DRW_shgroup_uniform_mat4(grp, "currPersinv", effects->velocity_curr_persinv);
+		DRW_shgroup_uniform_mat4(grp, "pastPersmat", effects->velocity_past_persmat);
 		DRW_shgroup_call_add(grp, quad, NULL);
 	}
 }
@@ -401,10 +456,20 @@ void EEVEE_downsample_cube_buffer(EEVEE_Data *vedata, GPUTexture *texture_src, i
 
 void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 {
+	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_EffectsInfo *effects = stl->effects;
+
+	/* First resolve the velocity. */
+	if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
+		DRW_viewport_matrix_get(effects->velocity_curr_persinv, DRW_MAT_PERSINV);
+
+		GPU_framebuffer_bind(fbl->velocity_resolve_fb);
+		DRW_draw_pass(psl->velocity_resolve);
+	}
+	DRW_viewport_matrix_get(effects->velocity_past_persmat, DRW_MAT_PERS);
 
 	/* only once per frame after the first post process */
 	effects->swap_double_buffer = ((effects->enabled_effects & EFFECT_DOUBLE_BUFFER) != 0);
@@ -448,6 +513,8 @@ void EEVEE_draw_effects(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 
 void EEVEE_effects_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.velocity_resolve_sh);
+
 	DRW_SHADER_FREE_SAFE(e_data.downsample_sh);
 	DRW_SHADER_FREE_SAFE(e_data.downsample_cube_sh);
 
