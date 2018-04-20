@@ -95,10 +95,10 @@ class TOPBAR_HT_lower_bar(Header):
     def draw_left(self, context):
         layout = self.layout
         layer = context.view_layer
-
-        act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[layer.objects.active.mode]
+        object = layer.objects.active
+        object_mode = 'OBJECT' if object is None else object.mode
+        act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[object_mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
-
 
     def draw_right(self, context):
         layout = self.layout
