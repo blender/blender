@@ -87,7 +87,7 @@ typedef struct {
 	float mcenter[2];
 	BMBackup mesh_backup;
 	void *draw_handle_pixel;
-	short twtype;
+	short twflag;
 	short value_mode;  /* Which value does mouse movement and numeric input affect? */
 	float segments;     /* Segments as float so smooth mouse pan works in small increments */
 } BevelData;
@@ -180,8 +180,8 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		G.moving = G_TRANSFORM_EDIT;
 
 		if (v3d) {
-			opdata->twtype = v3d->twtype;
-			v3d->twtype = 0;
+			opdata->twflag = v3d->twflag;
+			v3d->twflag = 0;
 		}
 	}
 
@@ -254,7 +254,7 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 		EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
 		if (v3d) {
-			v3d->twtype = opdata->twtype;
+			v3d->twflag = opdata->twflag;
 		}
 		G.moving = 0;
 	}

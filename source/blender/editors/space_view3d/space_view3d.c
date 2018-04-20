@@ -343,7 +343,6 @@ static SpaceLink *view3d_new(const bContext *C)
 	v3d->far = 1000.0f;
 
 	v3d->twflag |= U.manipulator_flag & V3D_MANIPULATOR_DRAW;
-	v3d->twtype = V3D_MANIP_TRANSLATE;
 	v3d->around = V3D_AROUND_CENTER_MEAN;
 	scene->orientation_index_custom = -1;
 	
@@ -707,7 +706,6 @@ static void view3d_widgets(void)
 	wmManipulatorMapType *mmap_type = WM_manipulatormaptype_ensure(
 	        &(const struct wmManipulatorMapType_Params){SPACE_VIEW3D, RGN_TYPE_WINDOW});
 
-	WM_manipulatorgrouptype_append_and_link(mmap_type, TRANSFORM_WGT_manipulator);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_spot);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_area);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_lamp_target);
@@ -717,6 +715,7 @@ static void view3d_widgets(void)
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_empty_image);
 	WM_manipulatorgrouptype_append_and_link(mmap_type, VIEW3D_WGT_armature_spline);
 
+	WM_manipulatorgrouptype_append(TRANSFORM_WGT_manipulator);
 	WM_manipulatorgrouptype_append(VIEW3D_WGT_xform_cage);
 
 	WM_manipulatorgrouptype_append(VIEW3D_WGT_ruler);
