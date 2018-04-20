@@ -2281,6 +2281,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Face Orientation", "Show the Face Orientation Overlay");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
+	prop = RNA_def_property(srna, "show_random_object_colors", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_RANDOMIZE);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Random Colors", "Show random object colors");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+
 	prop = RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View",

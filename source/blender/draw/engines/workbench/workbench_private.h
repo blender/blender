@@ -57,6 +57,7 @@ typedef struct WORKBENCH_PrivateData {
 
 	struct GHash *material_hash;
 	short drawtype_lighting;
+	short drawtype_options;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_MaterialData {

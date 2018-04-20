@@ -55,9 +55,15 @@ static uint get_material_hash(const float color[3])
 	return r + g * 4096 + b * 4096 * 4096;
 }
 
-static const float* get_material_solid_color(WORKBENCH_PrivateData *UNUSED(wpd), Object *ob)
+static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, float *color)
 {
-	return ob->col;
+	if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
+		unsigned int obhash = BLI_ghashutil_strhash(ob->id.name);
+		cpack_to_rgb(obhash, &color[0], &color[1], &color[2]);
+
+	} else {
+		copy_v3_v3(color, ob->col);
+	}
 }
 
 void workbench_materials_engine_init(void)
@@ -111,10 +117,12 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		}
 #else
 		wpd->drawtype_lighting = v3d->drawtype_lighting;
+		wpd->drawtype_options = v3d->drawtype_options;
 #endif
 	}
 	else {
 		wpd->drawtype_lighting = V3D_LIGHTING_STUDIO;
+		wpd->drawtype_options = 0;
 	}
 }
 
@@ -136,8 +144,9 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		/* Solid */
 		GPUShader *shader = wpd->drawtype_lighting == V3D_LIGHTING_FLAT?e_data.solid_flat_sh:e_data.solid_studio_sh;
 
-		const float *color = get_material_solid_color(wpd, ob);
-		uint hash = get_material_hash(color);
+		float color[3];
+		get_material_solid_color(wpd, ob, color);
+		unsigned int hash = get_material_hash(color);
 
 		material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 		if (material == NULL) {

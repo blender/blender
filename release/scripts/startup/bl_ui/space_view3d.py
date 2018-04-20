@@ -3447,6 +3447,7 @@ class VIEW3D_PT_view3d_display(Panel):
         col.prop(view, "show_all_objects_origin")
         col.prop(view, "show_relationship_lines")
         col.prop(view, "show_face_orientation_overlay")
+        col.prop(view, "show_random_object_colors")
 
         col = layout.column()
         col.active = display_all

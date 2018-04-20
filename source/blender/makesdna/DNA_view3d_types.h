@@ -81,6 +81,10 @@ enum {
 };
 
 enum {
+	V3D_DRAWOPTION_RANDOMIZE = (1<<0),
+};
+
+enum {
 	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
 };
 
