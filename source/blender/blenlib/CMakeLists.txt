@@ -71,7 +71,6 @@ set(SRC
 	intern/fileops.c
 	intern/fnmatch.c
 	intern/freetypefont.c
-	intern/graph.c
 	intern/gsqueue.c
 	intern/hash_md5.c
 	intern/hash_mm2a.c
@@ -154,7 +153,6 @@ set(SRC
 	BLI_fileops_types.h
 	BLI_fnmatch.h
 	BLI_ghash.h
-	BLI_graph.h
 	BLI_gsqueue.h
 	BLI_hash.h
 	BLI_hash_md5.h

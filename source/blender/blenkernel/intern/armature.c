@@ -73,7 +73,6 @@
 #include "BKE_scene.h"
 
 #include "BIK_api.h"
-#include "BKE_sketch.h"
 
 /* **************** Generic Functions, data level *************** */
 
@@ -134,12 +133,6 @@ void BKE_armature_free(bArmature *arm)
 
 		MEM_freeN(arm->edbo);
 		arm->edbo = NULL;
-	}
-
-	/* free sketch */
-	if (arm->sketch) {
-		freeSketch(arm->sketch);
-		arm->sketch = NULL;
 	}
 }
 
@@ -204,7 +197,6 @@ void BKE_armature_copy_data(Main *UNUSED(bmain), bArmature *arm_dst, const bArma
 
 	arm_dst->edbo = NULL;
 	arm_dst->act_edbone = NULL;
-	arm_dst->sketch = NULL;
 }
 
 bArmature *BKE_armature_copy(Main *bmain, const bArmature *arm)

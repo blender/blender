@@ -226,26 +226,6 @@ void ED_pose_bone_select(struct Object *ob, struct bPoseChannel *pchan, bool sel
 void ED_pose_recalculate_paths(struct bContext *C, struct Scene *scene, struct Object *ob);
 struct Object *ED_pose_object_from_context(struct bContext *C);
 
-/* sketch */
-
-int ED_operator_sketch_mode_active_stroke(struct bContext *C);
-int ED_operator_sketch_full_mode(struct bContext *C);
-int ED_operator_sketch_mode(const struct bContext *C);
-
-void BIF_convertSketch(struct bContext *C);
-void BIF_deleteSketch(struct bContext *C);
-void BIF_selectAllSketch(struct bContext *C, int mode); /* -1: deselect, 0: select, 1: toggle */
-
-void  BIF_makeListTemplates(const struct bContext *C);
-int   BIF_currentTemplate(const struct bContext *C);
-void  BIF_freeTemplates(struct bContext *C);
-void  BIF_setTemplate(struct bContext *C, int index);
-int   BIF_nbJointsTemplate(const struct bContext *C);
-const char *BIF_nameBoneTemplate(const struct bContext *C);
-
-void BDR_drawSketch(const struct bContext *vc);
-int BDR_drawSketchNames(struct ViewContext *vc);
-
 /* meshlaplacian.c */
 void ED_mesh_deform_bind_callback(
         struct Scene *scene,

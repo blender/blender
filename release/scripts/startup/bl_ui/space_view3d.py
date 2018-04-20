@@ -3716,63 +3716,6 @@ class VIEW3D_PT_transform_orientations(Panel):
             row.operator("transform.delete_orientation", text="", icon='X')
 
 
-class VIEW3D_PT_etch_a_ton(Panel):
-    bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
-    bl_label = "Skeleton Sketching"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        scene = context.space_data
-        ob = context.active_object
-        return scene and ob and ob.type == 'ARMATURE' and ob.mode == 'EDIT'
-
-    def draw_header(self, context):
-        layout = self.layout
-        toolsettings = context.scene.tool_settings
-
-        layout.prop(toolsettings, "use_bone_sketching", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        toolsettings = context.scene.tool_settings
-
-        col = layout.column()
-
-        col.prop(toolsettings, "use_etch_quick")
-        col.prop(toolsettings, "use_etch_overdraw")
-
-        col.separator()
-
-        col.prop(toolsettings, "etch_convert_mode")
-
-        if toolsettings.etch_convert_mode == 'LENGTH':
-            col.prop(toolsettings, "etch_length_limit")
-        elif toolsettings.etch_convert_mode == 'ADAPTIVE':
-            col.prop(toolsettings, "etch_adaptive_limit")
-        elif toolsettings.etch_convert_mode == 'FIXED':
-            col.prop(toolsettings, "etch_subdivision_number")
-        elif toolsettings.etch_convert_mode == 'RETARGET':
-            col.prop(toolsettings, "etch_template")
-            col.prop(toolsettings, "etch_roll_mode")
-
-            col.separator()
-
-            colsub = col.column(align=True)
-            colsub.prop(toolsettings, "use_etch_autoname")
-            sub = colsub.column(align=True)
-            sub.enabled = not toolsettings.use_etch_autoname
-            sub.prop(toolsettings, "etch_number")
-            sub.prop(toolsettings, "etch_side")
-
-        col.separator()
-
-        col.operator("sketch.convert", text="Convert to Bones")
-        col.operator("sketch.delete", text="Delete Strokes")
-
-
 class VIEW3D_PT_context_properties(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -3948,7 +3891,6 @@ classes = (
     VIEW3D_PT_view3d_meshstatvis,
     VIEW3D_PT_view3d_curvedisplay,
     VIEW3D_PT_transform_orientations,
-    VIEW3D_PT_etch_a_ton,
     VIEW3D_PT_context_properties,
 )
 

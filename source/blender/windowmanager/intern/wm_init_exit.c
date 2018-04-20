@@ -434,11 +434,6 @@ void WM_exit_ext(bContext *C, const bool do_python)
 
 	ED_undosys_type_free();
 
-//	XXX	
-//	BIF_GlobalReebFree();
-//	BIF_freeRetarget();
-	BIF_freeTemplates(C);
-
 	free_openrecent();
 	
 	BKE_mball_cubeTable_free();

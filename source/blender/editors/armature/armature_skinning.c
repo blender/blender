@@ -60,10 +60,6 @@
 #include "armature_intern.h"
 #include "meshlaplacian.h"
 
-#if 0
-#include "reeb.h"
-#endif
-
 /* ********************************** Bone Skinning *********************************************** */
 
 static int bone_skinnable_cb(Object *UNUSED(ob), Bone *bone, void *datap)

@@ -1262,37 +1262,10 @@ typedef struct ToolSettings {
 	/* Multires */
 	char multires_subdiv_type;
 
-	/* Skeleton generation */
-	short skgen_resolution;
-	float skgen_threshold_internal;
-	float skgen_threshold_external;
-	float skgen_length_ratio;
-	float skgen_length_limit;
-	float skgen_angle_limit;
-	float skgen_correlation_limit;
-	float skgen_symmetry_limit;
-	float skgen_retarget_angle_weight;
-	float skgen_retarget_length_weight;
-	float skgen_retarget_distance_weight;
-	short skgen_options;
-	char  skgen_postpro;
-	char  skgen_postpro_passes;
-	char  skgen_subdivisions[3];
-	char  skgen_multi_level;
-
-	/* Skeleton Sketching */
-	struct Object *skgen_template;
-	char bone_sketching;
-	char bone_sketching_convert;
-	char skgen_subdivision_number;
-	char skgen_retarget_options;
-	char skgen_retarget_roll;
-	char skgen_side_string[8];
-	char skgen_num_string[8];
-	
 	/* Alt+RMB option */
 	char edge_mode;
 	char edge_mode_live_unwrap;
+	char _pad1;
 
 	/* Transform */
 	char snap_mode, snap_node_mode;
@@ -1312,10 +1285,11 @@ typedef struct ToolSettings {
 	char vgroupsubset; /* subset selection filter in wpaint */
 
 	/* UV painting */
-	int use_uv_sculpt;
-	int uv_sculpt_settings;
-	int uv_sculpt_tool;
-	int uv_relax_method;
+	char _pad2[2];
+	char use_uv_sculpt;
+	char uv_sculpt_settings;
+	char uv_sculpt_tool;
+	char uv_relax_method;
 	/* XXX: these sculpt_paint_* fields are deprecated, use the
 	 * unified_paint_settings field instead! */
 	short sculpt_paint_settings DNA_DEPRECATED;	short pad5;
@@ -2027,15 +2001,6 @@ typedef enum eGPencil_Placement_Flags {
 #define BONE_SKETCHING			1
 #define BONE_SKETCHING_QUICK	2
 #define BONE_SKETCHING_ADJUST	4
-
-/* ToolSettings.bone_sketching_convert */
-#define	SK_CONVERT_CUT_FIXED			0
-#define	SK_CONVERT_CUT_LENGTH			1
-#define	SK_CONVERT_CUT_ADAPTATIVE		2
-#define	SK_CONVERT_RETARGET				3
-
-/* ToolSettings.skgen_retarget_options */
-#define	SK_RETARGET_AUTONAME			1
 
 /* ToolSettings.skgen_retarget_roll */
 #define	SK_RETARGET_ROLL_NONE			0

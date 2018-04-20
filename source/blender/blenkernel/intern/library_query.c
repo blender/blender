@@ -445,8 +445,6 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 				}
 
 				if (toolsett) {
-					CALLBACK_INVOKE(toolsett->skgen_template, IDWALK_CB_NOP);
-
 					CALLBACK_INVOKE(toolsett->particle.scene, IDWALK_CB_NOP);
 					CALLBACK_INVOKE(toolsett->particle.object, IDWALK_CB_NOP);
 					CALLBACK_INVOKE(toolsett->particle.shape_object, IDWALK_CB_NOP);

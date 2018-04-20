@@ -85,16 +85,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_armature_layers);
 	WM_operatortype_append(ARMATURE_OT_bone_layers);
 
-	/* SKETCH */
-	WM_operatortype_append(SKETCH_OT_gesture);
-	WM_operatortype_append(SKETCH_OT_delete);
-	WM_operatortype_append(SKETCH_OT_draw_stroke);
-	WM_operatortype_append(SKETCH_OT_draw_preview);
-	WM_operatortype_append(SKETCH_OT_finish_stroke);
-	WM_operatortype_append(SKETCH_OT_cancel_stroke);
-	WM_operatortype_append(SKETCH_OT_convert);
-	WM_operatortype_append(SKETCH_OT_select);
-
 	/* POSE */
 	WM_operatortype_append(POSE_OT_hide);
 	WM_operatortype_append(POSE_OT_reveal);
@@ -203,23 +193,6 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	/* Armature ------------------------ */
 	keymap = WM_keymap_find(keyconf, "Armature", 0, 0);
 	keymap->poll = ED_operator_editarmature;
-	
-	/* Armature -> Etch-A-Ton ------------------------ */
-	WM_keymap_add_item(keymap, "SKETCH_OT_delete", XKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_delete", DELKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_finish_stroke", RIGHTMOUSE, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_cancel_stroke", ESCKEY, KM_PRESS, 0, 0);
-	/* Already part of view3d select */
-	//WM_keymap_add_item(keymap, "SKETCH_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-
-	/* sketch poll checks mode */
-	WM_keymap_add_item(keymap, "SKETCH_OT_gesture", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", LEFTMOUSE, KM_PRESS, 0, 0);
-	kmi = WM_keymap_add_item(keymap, "SKETCH_OT_draw_stroke", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "snap", true);
-	WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, 0, 0);
-	kmi = WM_keymap_add_item(keymap, "SKETCH_OT_draw_preview", MOUSEMOVE, KM_ANY, KM_CTRL, 0);
-	RNA_boolean_set(kmi->ptr, "snap", true);
 
 	/* only set in editmode armature, by space_view3d listener */
 	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_hide", HKEY, KM_PRESS, 0, 0);

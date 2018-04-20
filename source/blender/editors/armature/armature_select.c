@@ -625,10 +625,6 @@ bool ED_armature_edit_select_pick(bContext *C, const int mval[2], bool extend, b
 	vc.mval[0] = mval[0];
 	vc.mval[1] = mval[1];
 
-	if (BIF_sk_selectStroke(C, mval, extend)) {
-		return true;
-	}
-
 	nearBone = get_nearest_editbonepoint(&vc, true, true, &basact, &selmask);
 	if (nearBone) {
 		ED_view3d_viewcontext_init_object(&vc, basact->object);

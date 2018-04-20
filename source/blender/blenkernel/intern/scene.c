@@ -659,21 +659,6 @@ void BKE_scene_init(Scene *sce)
 
 	sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
 
-	sce->toolsettings->skgen_resolution = 100;
-	sce->toolsettings->skgen_threshold_internal     = 0.01f;
-	sce->toolsettings->skgen_threshold_external     = 0.01f;
-	sce->toolsettings->skgen_angle_limit            = 45.0f;
-	sce->toolsettings->skgen_length_ratio           = 1.3f;
-	sce->toolsettings->skgen_length_limit           = 1.5f;
-	sce->toolsettings->skgen_correlation_limit      = 0.98f;
-	sce->toolsettings->skgen_symmetry_limit         = 0.1f;
-	sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
-	sce->toolsettings->skgen_postpro_passes = 1;
-	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL | SKGEN_FILTER_EXTERNAL | SKGEN_FILTER_SMART | SKGEN_HARMONIC | SKGEN_SUB_CORRELATION | SKGEN_STICK_TO_EMBEDDING;
-	sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
-	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
-	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
-
 	sce->toolsettings->curve_paint_settings.curve_type = CU_BEZIER;
 	sce->toolsettings->curve_paint_settings.flag |= CURVE_PAINT_FLAG_CORNERS_DETECT;
 	sce->toolsettings->curve_paint_settings.error_threshold = 8;

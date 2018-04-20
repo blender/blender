@@ -99,8 +99,6 @@ typedef struct bArmature {
 	Bone       *act_bone;               /* active bone */
 	struct EditBone *act_edbone;        /* active editbone (in editmode) */
 
-	void       *sketch;                 /* sketch struct for etch-a-ton */
-
 	int         flag;
 	int         drawtype;
 	int         gevertdeformer;         /* how vertex deformation is handled in the ge */

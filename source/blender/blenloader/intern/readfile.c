@@ -3556,7 +3556,6 @@ static void direct_link_armature(FileData *fd, bArmature *arm)
 	
 	link_list(fd, &arm->bonebase);
 	arm->edbo = NULL;
-	arm->sketch = NULL;
 	
 	arm->adt = newdataadr(fd, arm->adt);
 	direct_link_animdata(fd, arm->adt);
@@ -5679,8 +5678,6 @@ static void lib_link_scene(FileData *fd, Main *main)
 			if (sce->toolsettings->imapaint.canvas)
 				sce->toolsettings->imapaint.canvas =
 				        newlibadr_us(fd, sce->id.lib, sce->toolsettings->imapaint.canvas);
-			
-			sce->toolsettings->skgen_template = newlibadr(fd, sce->id.lib, sce->toolsettings->skgen_template);
 			
 			sce->toolsettings->particle.shape_object = newlibadr(fd, sce->id.lib, sce->toolsettings->particle.shape_object);
 			

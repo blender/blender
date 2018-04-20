@@ -176,7 +176,6 @@ set(SRC
 	intern/seqmodifier.c
 	intern/sequencer.c
 	intern/shrinkwrap.c
-	intern/sketch.c
 	intern/smoke.c
 	intern/softbody.c
 	intern/sound.c
@@ -296,7 +295,6 @@ set(SRC
 	BKE_screen.h
 	BKE_sequencer.h
 	BKE_shrinkwrap.h
-	BKE_sketch.h
 	BKE_smoke.h
 	BKE_softbody.h
 	BKE_sound.h

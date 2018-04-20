@@ -2176,22 +2176,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	/* sanity check for skgen */
-	{
-		Scene *sce;
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			if (sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[1] ||
-			    sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[2] ||
-			    sce->toolsettings->skgen_subdivisions[1] == sce->toolsettings->skgen_subdivisions[2])
-			{
-				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
-				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
-				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
-			}
-		}
-	}
-
-
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
 		Image *ima;
 
@@ -2569,31 +2553,6 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			sce->toolsettings->imapaint.seam_bleed = 2;
 			sce->toolsettings->imapaint.normal_angle = 80;
-
-			/* initialize skeleton generation toolsettings */
-			sce->toolsettings->skgen_resolution = 250;
-			sce->toolsettings->skgen_threshold_internal 	= 0.1f;
-			sce->toolsettings->skgen_threshold_external 	= 0.1f;
-			sce->toolsettings->skgen_angle_limit			= 30.0f;
-			sce->toolsettings->skgen_length_ratio			= 1.3f;
-			sce->toolsettings->skgen_length_limit			= 1.5f;
-			sce->toolsettings->skgen_correlation_limit		= 0.98f;
-			sce->toolsettings->skgen_symmetry_limit			= 0.1f;
-			sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
-			sce->toolsettings->skgen_postpro_passes = 3;
-			sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_SUB_CORRELATION|SKGEN_HARMONIC;
-			sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
-			sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
-			sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
-
-
-			sce->toolsettings->skgen_retarget_angle_weight = 1.0f;
-			sce->toolsettings->skgen_retarget_length_weight = 1.0f;
-			sce->toolsettings->skgen_retarget_distance_weight = 1.0f;
-
-			/* Skeleton Sketching */
-			sce->toolsettings->bone_sketching = 0;
-			sce->toolsettings->skgen_retarget_roll = SK_RETARGET_ROLL_VIEW;
 		}
 	}
 
