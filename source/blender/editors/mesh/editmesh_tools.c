@@ -1475,19 +1475,32 @@ void MESH_OT_vert_connect_nonplanar(wmOperatorType *ot)
 
 static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
 	const int repeat = RNA_int_get(op->ptr, "repeat");
 	const float fac = RNA_float_get(op->ptr, "factor");
 
-	if (!EDBM_op_callf(
-	        em, op, "planar_faces faces=%hf iterations=%i factor=%f",
-	        BM_ELEM_SELECT, repeat, fac))
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
 	{
-		return OPERATOR_CANCELLED;
-	}
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
 
-	EDBM_update_generic(em, true, true);
+		if (!EDBM_op_callf(
+				em, op, "planar_faces faces=%hf iterations=%i factor=%f",
+				BM_ELEM_SELECT, repeat, fac))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
+
 	return OPERATOR_FINISHED;
 }
 
