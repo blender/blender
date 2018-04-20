@@ -98,8 +98,11 @@ static void overlay_cache_init(void *vedata)
 	if (v3d) {
 		stl->g_data->overlays = v3d->overlays;
 
-		if (v3d->drawtype == OB_SOLID && v3d->drawtype_solid == V3D_LIGHTING_FLAT) {
-			bm_face_orientation = DRW_STATE_MULTIPLY;
+		/*
+		    Solid flat/studio lighting gives strange results when blending with the defaults. 
+		*/
+		if (v3d->drawtype == OB_SOLID) {
+			bm_face_orientation = DRW_STATE_BLEND;
 		}
 	}
 	else {
