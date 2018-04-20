@@ -2578,18 +2578,18 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 {
 	const float threshold = RNA_float_get(op->ptr, "threshold");
 	const bool use_unselected = RNA_boolean_get(op->ptr, "use_unselected");
-	int count;
-	char htype_select;
+	int count_multi = 0;
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
-	{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		if ((em->bm->totvertsel == 0) && (!use_unselected)) {
+
+		/* Selection used as target with 'use_unselected'. */
+		if (em->bm->totvertsel == 0) {
 			continue;
 		}
 
@@ -2597,6 +2597,7 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 		const int totvert_orig = em->bm->totvert;
 
 		/* avoid loosing selection state (select -> tags) */
+		char htype_select;
 		if      (em->selectmode & SCE_SELECT_VERTEX) htype_select = BM_VERT;
 		else if (em->selectmode & SCE_SELECT_EDGE)   htype_select = BM_EDGE;
 		else                                         htype_select = BM_FACE;
@@ -2607,9 +2608,9 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 
 		if (use_unselected) {
 			EDBM_op_init(
-					em, &bmop, op,
-					"automerge verts=%hv dist=%f",
-					BM_ELEM_SELECT, threshold);
+			        em, &bmop, op,
+			        "automerge verts=%hv dist=%f",
+			        BM_ELEM_SELECT, threshold);
 			BMO_op_exec(em->bm, &bmop);
 
 			if (!EDBM_op_finish(em, &bmop, op, true)) {
@@ -2618,9 +2619,10 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 		}
 		else {
 			EDBM_op_init(
-					em, &bmop, op,
-					"find_doubles verts=%hv dist=%f",
-					BM_ELEM_SELECT, threshold);
+			        em, &bmop, op,
+			        "find_doubles verts=%hv dist=%f",
+			        BM_ELEM_SELECT, threshold);
+
 			BMO_op_exec(em->bm, &bmop);
 
 			if (!EDBM_op_callf(em, op, "weld_verts targetmap=%S", &bmop, "targetmap.out")) {
@@ -2633,17 +2635,21 @@ static int edbm_remove_doubles_exec(bContext *C, wmOperator *op)
 			}
 		}
 
-		count = totvert_orig - em->bm->totvert;
-		BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count);
+		const int count = (totvert_orig - em->bm->totvert);
 
 		/* restore selection from tags */
 		BM_mesh_elem_hflag_enable_test(em->bm, htype_select, BM_ELEM_SELECT, true, true, BM_ELEM_TAG);
 		EDBM_selectmode_flush(em);
 
-		EDBM_update_generic(em, true, true);
+		if (count) {
+			count_multi += count;
+			EDBM_update_generic(em, true, true);
+		}
 	}
-
 	MEM_freeN(objects);
+
+	BKE_reportf(op->reports, RPT_INFO, "Removed %d vertices", count_multi);
+
 	return OPERATOR_FINISHED;
 }
 
