@@ -600,6 +600,9 @@ static void action_listener(
 				case ND_SPACE_DOPESHEET:
 					ED_area_tag_redraw(sa);
 					break;
+				case ND_SPACE_TIME:
+					ED_area_tag_redraw(sa);
+					break;
 				case ND_SPACE_CHANGED:
 					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 					ED_area_tag_refresh(sa);
