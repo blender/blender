@@ -1643,6 +1643,18 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
 	}
 }
 
+/* for use after changing visiblity of regions */
+void ED_region_visibility_change_update(bContext *C, ARegion *ar)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	
+	if (ar->flag & RGN_FLAG_HIDDEN)
+		WM_event_remove_handlers(C, &ar->handlers);
+	
+	ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+	ED_area_tag_redraw(sa);
+}
+
 /* for quick toggle, can skip fades */
 void region_toggle_hidden(bContext *C, ARegion *ar, const bool do_fade)
 {
@@ -1655,11 +1667,7 @@ void region_toggle_hidden(bContext *C, ARegion *ar, const bool do_fade)
 		region_blend_start(C, sa, ar);
 	}
 	else {
-		if (ar->flag & RGN_FLAG_HIDDEN)
-			WM_event_remove_handlers(C, &ar->handlers);
-		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
-		ED_area_tag_redraw(sa);
+		ED_region_visibility_change_update(C, ar);
 	}
 }
 
