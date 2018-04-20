@@ -1767,12 +1767,13 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 			if (output != output) output = 1;
 			if (wipe->forward) output = 1 - output;
 			break;
-			/* BOX WIPE IS NOT WORKING YET */
+      /* BOX WIPE IS NOT WORKING YET */
 			/* case DO_CROSS_WIPE: */
 			/* BOX WIPE IS NOT WORKING YET */
 #if 0
 		case DO_BOX_WIPE: 
-			if (invert) facf0 = 1 - facf0;
+      if (!wipe->forward)
+        facf0 = 1.0f - facf0;  /* Go the other direction */
 
 			width = (int)(wipe->edgeWidth * ((xo + yo) / 2.0));
 			hwidth = (float)width / 2.0;
@@ -1790,22 +1791,23 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
 			if (b2 < b1 && b2 < b3) {
 				if (hwidth < pointdist)
-					output = in_band(wipezone, hwidth, hyp, facf0, 0, 1);
+					output = in_band(hwidth, hyp, 0, 1);
 			}
 			else if (b2 > b1 && b2 > b3) {
 				if (hwidth < pointdist)
-					output = in_band(wipezone, hwidth, hyp2, facf0, 0, 1);
+					output = in_band(hwidth, hyp2, 0, 1);
 			}
 			else {
 				if (hyp < hwidth && hyp2 > hwidth)
-					output = in_band(wipezone, hwidth, hyp, facf0, 1, 1);
+					output = in_band(hwidth, hyp, 1, 1);
 				else if (hyp > hwidth && hyp2 < hwidth)
-					output = in_band(wipezone, hwidth, hyp2, facf0, 1, 1);
+					output = in_band(hwidth, hyp2, 1, 1);
 				else
-					output = in_band(wipezone, hwidth, hyp2, facf0, 1, 1) * in_band(wipezone, hwidth, hyp, facf0, 1, 1);
+					output = in_band(hwidth, hyp2, 1, 1) * in_band(hwidth, hyp, 1, 1);
 			}
 
-			if (invert) facf0 = 1 - facf0;
+      if (!wipe->forward)
+        facf0 = 1.0f - facf0;  /* Go the other direction */
 			angle = -1 / angle;
 			b1 = posy / 2 - (-angle) * posx / 2;
 			b3 = (yo - posy / 2) - (-angle) * (xo - posx / 2);
@@ -1816,19 +1818,19 @@ static float check_zone(WipeZone *wipezone, int x, int y, Sequence *seq, float f
 
 			if (b2 < b1 && b2 < b3) {
 				if (hwidth < pointdist)
-					output *= in_band(wipezone, hwidth, hyp, facf0, 0, 1);
+					output *= in_band(hwidth, hyp, 0, 1);
 			}
 			else if (b2 > b1 && b2 > b3) {
 				if (hwidth < pointdist)
-					output *= in_band(wipezone, hwidth, hyp2, facf0, 0, 1);
+					output *= in_band(hwidth, hyp2, 0, 1);
 			}
 			else {
 				if (hyp < hwidth && hyp2 > hwidth)
-					output *= in_band(wipezone, hwidth, hyp, facf0, 1, 1);
+					output *= in_band(hwidth, hyp, 1, 1);
 				else if (hyp > hwidth && hyp2 < hwidth)
-					output *= in_band(wipezone, hwidth, hyp2, facf0, 1, 1);
+					output *= in_band(hwidth, hyp2, 1, 1);
 				else
-					output *= in_band(wipezone, hwidth, hyp2, facf0, 1, 1) * in_band(wipezone, hwidth, hyp, facf0, 1, 1);
+					output *= in_band(hwidth, hyp2, 1, 1) * in_band(hwidth, hyp, 1, 1);
 			}
 
 			break;
