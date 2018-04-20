@@ -41,7 +41,6 @@ void ED_spacemacros_init(void);
 
 /* calls for registering default spaces */
 void ED_spacetype_outliner(void);
-void ED_spacetype_time(void);
 void ED_spacetype_view3d(void);
 void ED_spacetype_ipo(void);
 void ED_spacetype_image(void);

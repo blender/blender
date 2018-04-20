@@ -34,7 +34,7 @@ defs = """
     SPACE_ACTION,
     SPACE_NLA,
     SPACE_SCRIPT, #Deprecated
-    SPACE_TIME,
+    SPACE_TIME, #Deprecated
     SPACE_NODE,
     SPACEICONMAX
 """

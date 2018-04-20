@@ -21,24 +21,10 @@ import bpy
 from bpy.types import Header, Menu
 
 
-class TIME_HT_header(Header):
-    bl_space_type = 'TIMELINE'
-
-    def draw(self, context):
-        layout = self.layout
-
-        row = layout.row(align=True)
-        row.template_header()
-
-        TIME_MT_editor_menus.draw_collapsible(context, layout)
-        TIME_HT_editor_buttons.draw_header(context, layout)
-
-
-# Header buttons for actual timeline editor header
-# XXX: Temporary, until we have editor submodes in the actual editors menu
+# Header buttons for timeline header (play, etc.)
 class TIME_HT_editor_buttons(Header):
     bl_idname = "TIME_HT_editor_buttons"
-    bl_space_type = 'TIMELINE' # XXX: Change this to 'DOPESHEET_EDITOR'
+    bl_space_type = 'DOPESHEET_EDITOR'
     bl_label = ""
 
     def draw(self, context):
@@ -285,7 +271,6 @@ def marker_menu_generic(layout):
 
 
 classes = (
-    TIME_HT_header,
     TIME_HT_editor_buttons,
     TIME_MT_editor_menus,
     TIME_MT_marker,

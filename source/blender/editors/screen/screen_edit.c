@@ -1608,7 +1608,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 		if (sa)
 			spacetype = sa->spacetype;
 
-		sad->from_anim_edit = (ELEM(spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_TIME));
+		sad->from_anim_edit = (ELEM(spacetype, SPACE_IPO, SPACE_ACTION, SPACE_NLA));
 
 		screen->animtimer->customdata = sad;
 		

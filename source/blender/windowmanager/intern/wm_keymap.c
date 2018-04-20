@@ -1817,10 +1817,6 @@ wmKeyMap *WM_keymap_guess_opname(const bContext *C, const char *opname)
 				break;
 		}
 	}
-	/* Timeline */
-	else if (STRPREFIX(opname, "TIME_OT")) {
-		km = WM_keymap_find_all(C, "Timeline", sl->spacetype, 0);
-	}
 	/* Image Editor */
 	else if (STRPREFIX(opname, "IMAGE_OT")) {
 		km = WM_keymap_find_all(C, "Image", sl->spacetype, 0);

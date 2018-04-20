@@ -474,30 +474,6 @@ typedef enum eSpaceNla_Flag {
 
 /* Timeline =============================================== */
 
-/* Timeline View */
-typedef struct SpaceTime {
-	SpaceLink *next, *prev;
-	ListBase regionbase;        /* storage of regions for inactive spaces */
-	int spacetype;
-	float blockscale DNA_DEPRECATED;
-	
-	View2D v2d DNA_DEPRECATED;  /* deprecated, copied to region */
-
-	int cache_display;
-	int flag;
-} SpaceTime;
-
-
-/* time->flag */
-typedef enum eTimeline_Flag {
-	/* show timing in frames instead of in seconds */
-	TIME_DRAWFRAMES    = (1 << 0),
-	/* show time indicator box beside the frame number */
-	TIME_CFRA_NUM      = (1 << 1),
-	/* only keyframes from active/selected channels get shown */
-	TIME_ONLYACTSEL    = (1 << 2),
-} eTimeline_Flag;
-
 /* time->redraws (now screen->redraws_flag) */
 typedef enum eScreen_Redraws_Flag {
 	TIME_REGION            = (1 << 0),
@@ -513,8 +489,6 @@ typedef enum eScreen_Redraws_Flag {
 
 	TIME_FOLLOW            = (1 << 15),
 } eScreen_Redraws_Flag;
-
-
 
 /* Sequence Editor ======================================= */
 
@@ -1406,7 +1380,7 @@ typedef enum eSpace_Type {
 	SPACE_NLA      = 13,
 	/* TODO: fully deprecate */
 	SPACE_SCRIPT   = 14, /* Deprecated */
-	SPACE_TIME     = 15,
+	SPACE_TIME     = 15, /* Deprecated */
 	SPACE_NODE     = 16,
 	SPACE_LOGIC    = 17, /* deprecated */
 	SPACE_CONSOLE  = 18,

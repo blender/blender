@@ -637,7 +637,8 @@ void do_versions_after_linking_280(Main *main)
 			for (ScrArea *sa = sc->areabase.first; sa; sa = sa->next) {
 				/* Convert timelines to dopesheet editors with timelines */
 				if (sa->spacetype == SPACE_TIME) {
-					SpaceTime *stime = sa->spacedata.first;
+					//SpaceTime *stime = sa->spacedata.first;
+					SpaceLink *stime = sa->spacedata.first;
 					ARegion *main_region = NULL;
 					ARegion *ar = NULL;
 					

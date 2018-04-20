@@ -156,9 +156,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case SPACE_CONSOLE:
 					ts = &btheme->tconsole;
 					break;
-				case SPACE_TIME:
-					ts = &btheme->ttime;
-					break;
 				case SPACE_NODE:
 					ts = &btheme->tnode;
 					break;
@@ -2144,8 +2141,6 @@ void init_userdef_do_versions(void)
 				strcpy(km->idname, "3D View Generic");
 			else if (STREQ(km->idname, "EditMesh"))
 				strcpy(km->idname, "Mesh");
-			else if (STREQ(km->idname, "TimeLine"))
-				strcpy(km->idname, "Timeline");
 			else if (STREQ(km->idname, "UVEdit"))
 				strcpy(km->idname, "UV Editor");
 			else if (STREQ(km->idname, "Animation_Channels"))
@@ -2788,10 +2783,6 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tnode.gp_vertex, 0, 0, 0, 255);
 			rgba_char_args_set(btheme->tnode.gp_vertex_select, 255, 133, 0, 255);
 			btheme->tnode.gp_vertex_size = 3;
-			
-			/* Timeline Keyframe Indicators */
-			rgba_char_args_set(btheme->ttime.time_keyframe, 0xDD, 0xD7, 0x00, 0xFF);
-			rgba_char_args_set(btheme->ttime.time_gp_keyframe, 0xB5, 0xE6, 0x1D, 0xFF);
 		}
 	}
 

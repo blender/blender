@@ -583,12 +583,10 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, const wm
 	else
 		BKE_report(op->reports, RPT_ERROR, "Programming error: operator does not actually have code to do anything!");
 		
-	/* return status modifications - for now, make this spacetype dependent as above */
-	if (sa->spacetype != SPACE_TIME) {
-		/* unless successful, must add "pass-through" to let normal operator's have a chance at tackling this event */
-		if ((retval & (OPERATOR_FINISHED | OPERATOR_INTERFACE)) == 0) {
-			retval |= OPERATOR_PASS_THROUGH;
-		}
+	
+	/* unless successful, must add "pass-through" to let normal operator's have a chance at tackling this event */
+	if ((retval & (OPERATOR_FINISHED | OPERATOR_INTERFACE)) == 0) {
+		retval |= OPERATOR_PASS_THROUGH;
 	}
 	
 	return retval;
@@ -690,8 +688,7 @@ typedef struct MarkerMove {
 
 static bool ed_marker_move_use_time(MarkerMove *mm)
 {
-	if (((mm->slink->spacetype == SPACE_TIME) && !(((SpaceTime *)mm->slink)->flag & TIME_DRAWFRAMES)) ||
-	    ((mm->slink->spacetype == SPACE_SEQ) && !(((SpaceSeq *)mm->slink)->flag & SEQ_DRAWFRAMES)) ||
+	if (((mm->slink->spacetype == SPACE_SEQ) && !(((SpaceSeq *)mm->slink)->flag & SEQ_DRAWFRAMES)) ||
 	    ((mm->slink->spacetype == SPACE_ACTION) && (((SpaceAction *)mm->slink)->flag & SACTION_DRAWTIME)) ||
 	    ((mm->slink->spacetype == SPACE_IPO) && !(((SpaceIpo *)mm->slink)->flag & SIPO_DRAWTIME)) ||
 	    ((mm->slink->spacetype == SPACE_NLA) && !(((SpaceNla *)mm->slink)->flag & SNLA_DRAWTIME)))
@@ -935,10 +932,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, const wmEvent *even
 						mm->evtx = event->x;
 						fac = ((float)(event->x - mm->firstx) * dx);
 
-						if (mm->slink->spacetype == SPACE_TIME)
-							apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, FPS, 0.1 * FPS, 0);
-						else
-							apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, 1.0, 0.1, 0 /*was: U.flag & USER_AUTOGRABGRID*/);
+						apply_keyb_grid(event->shift, event->ctrl, &fac, 0.0, 1.0, 0.1, 0 /*was: U.flag & USER_AUTOGRABGRID*/);
 
 						RNA_int_set(op->ptr, "frames", (int)fac);
 						ed_marker_move_apply(C, op);
