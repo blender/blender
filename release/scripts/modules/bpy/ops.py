@@ -145,10 +145,10 @@ class BPyOpsSubModOp:
         return C_dict, C_exec, C_undo
 
     @staticmethod
-    def _scene_update(context):
-        scene = context.scene
-        if scene:  # None in background mode
-            scene.update()
+    def _view_layer_update(context):
+        view_layer = context.view_layer
+        if view_layer:  # None in background mode
+            view_layer.update()
         else:
             import bpy
             for scene in bpy.data.scenes:
@@ -180,7 +180,10 @@ class BPyOpsSubModOp:
         wm = context.window_manager
 
         # run to account for any rna values the user changes.
-        BPyOpsSubModOp._scene_update(context)
+        # NOTE: We only update active vew layer, since that's what
+        # operators are supposed to operate on. There might be some
+        # corner cases when operator need a full scene update though.
+        BPyOpsSubModOp._view_layer_update(context)
 
         if args:
             C_dict, C_exec, C_undo = BPyOpsSubModOp._parse_args(args)
@@ -189,7 +192,7 @@ class BPyOpsSubModOp:
             ret = op_call(self.idname_py(), None, kw)
 
         if 'FINISHED' in ret and context.window_manager == wm:
-            BPyOpsSubModOp._scene_update(context)
+            BPyOpsSubModOp._view_layer_update(context)
 
         return ret
 
