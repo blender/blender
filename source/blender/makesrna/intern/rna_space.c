@@ -1292,6 +1292,7 @@ static void rna_SpaceDopeSheetEditor_action_update(bContext *C, PointerRNA *ptr)
 static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 {
 	SpaceAction *saction = (SpaceAction *)(ptr->data);
+	ScrArea *sa = CTX_wm_area(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obact = OBACT(view_layer);
 
@@ -1324,12 +1325,21 @@ static void rna_SpaceDopeSheetEditor_mode_update(bContext *C, PointerRNA *ptr)
 	/* Collapse summary channel and hide channel list for timeline */
 	if (saction->mode == SACTCONT_TIMELINE) {
 		saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
-		/* TODO: Set flags to hide the region */
 	}
-	else {
-		/* TODO: Set flags to unhide the region */
+	
+	if (sa && sa->spacedata.first == saction) {
+		ARegion *channels_region = BKE_area_find_region_type(sa, RGN_TYPE_CHANNELS);
+		if (channels_region) {
+			if (saction->mode == SACTCONT_TIMELINE) {
+				channels_region->flag |= RGN_FLAG_HIDDEN;
+			}
+			else {
+				channels_region->flag &= ~RGN_FLAG_HIDDEN;
+			}
+			ED_region_visibility_change_update(C, channels_region);
+		}
 	}
-
+	
 	/* recalculate extents of channel list */
 	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 }
