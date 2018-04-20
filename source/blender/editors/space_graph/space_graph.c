@@ -491,7 +491,7 @@ static void graph_region_message_subscribe(
         struct wmMsgBus *mbus)
 {
 	PointerRNA ptr;
-	RNA_pointer_create(&screen->id, &RNA_SpaceTimeline, sa->spacedata.first, &ptr);
+	RNA_pointer_create(&screen->id, &RNA_SpaceGraphEditor, sa->spacedata.first, &ptr);
 
 	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
 		.owner = ar,
