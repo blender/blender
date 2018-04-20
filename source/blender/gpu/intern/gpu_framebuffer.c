@@ -664,11 +664,13 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 		ofs->depth = GPU_texture_create_depth_with_stencil_multisample(width, height, samples, err_out);
 	}
 
-	if (!ofs->depth || !ofs->color) {
+	if ((depth && !ofs->depth) || !ofs->color) {
 		GPU_offscreen_free(ofs);
 		return NULL;
 	}
-	
+
+	gpuPushAttrib(GPU_VIEWPORT_BIT);
+
 	GPU_framebuffer_ensure_config(&ofs->fb, {
 		GPU_ATTACHMENT_TEXTURE(ofs->depth),
 		GPU_ATTACHMENT_TEXTURE(ofs->color)
@@ -677,10 +679,13 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 	/* check validity at the very end! */
 	if (!GPU_framebuffer_check_valid(ofs->fb, err_out)) {
 		GPU_offscreen_free(ofs);
+		gpuPopAttrib();
 		return NULL;		
 	}
 
 	GPU_framebuffer_restore();
+
+	gpuPopAttrib();
 
 	return ofs;
 }
