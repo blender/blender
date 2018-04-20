@@ -92,7 +92,7 @@
 /* Get the active settings for keyframing settings from context (specifically the given scene) */
 short ANIM_get_keyframing_flags(Scene *scene, short incl_mode)
 {
-	short flag = 0;
+	eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
 	
 	/* standard flags */
 	{
@@ -304,7 +304,7 @@ void update_autoflags_fcurve(FCurve *fcu, bContext *C, ReportList *reports, Poin
  * NOTE: any recalculate of the F-Curve that needs to be done will need to 
  *      be done by the caller.
  */
-int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, short flag)
+int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, eInsertKeyFlags flag)
 {
 	int i = 0;
 	
@@ -391,11 +391,11 @@ int insert_bezt_fcurve(FCurve *fcu, const BezTriple *bezt, short flag)
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere else yet. 
  * It returns the index at which the keyframe was added.
  *
- * \param keyframe_type: The type of keyframe (eBezTriple_KeyframeTypes)
+ * \param keyframe_type: The type of keyframe (eBezTriple_KeyframeType)
  * \param flag: Optional flags (eInsertKeyFlags) for controlling how keys get added 
  *              and/or whether updates get done
  */
-int insert_vert_fcurve(FCurve *fcu, float x, float y, char keyframe_type, short flag)
+int insert_vert_fcurve(FCurve *fcu, float x, float y, eBezTriple_KeyframeType keyframe_type, eInsertKeyFlags flag)
 {
 	BezTriple beztr = {{{0}}};
 	unsigned int oldTot = fcu->totvert;
@@ -883,13 +883,13 @@ static float visualkey_get_value(PointerRNA *ptr, PropertyRNA *prop, int array_i
  *  Use this when validation of necessary animation data is not necessary, since an RNA-pointer to the necessary
  *	data being keyframed, and a pointer to the F-Curve to use have both been provided.
  *
- *  keytype is the "keyframe type" (eBezTriple_KeyframeTypes), as shown in the Dope Sheet.
+ *  keytype is the "keyframe type" (eBezTriple_KeyframeType), as shown in the Dope Sheet.
  *
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe insertion. These include the 'visual' keyframing modes, quick refresh,
  *	and extra keyframe filtering.
  */
-bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, char keytype, short flag)
+bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
 {
 	float curval = 0.0f;
 	
@@ -1008,7 +1008,7 @@ bool insert_keyframe_direct(ReportList *reports, PointerRNA ptr, PropertyRNA *pr
  *
  *	index of -1 keys all array indices
  */
-short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, char keytype, short flag)
+short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag)
 {	
 	PointerRNA id_ptr, ptr;
 	PropertyRNA *prop = NULL;
@@ -1131,7 +1131,7 @@ static bool delete_keyframe_fcurve(AnimData *adt, FCurve *fcu, float cfra)
 	return false;
 }
 
-short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, short UNUSED(flag))
+short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eInsertKeyFlags UNUSED(flag))
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -1220,7 +1220,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
  *	The flag argument is used for special settings that alter the behavior of
  *	the keyframe deletion. These include the quick refresh options.
  */
-static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, short UNUSED(flag))
+static short clear_keyframe(ReportList *reports, ID *id, bAction *act, const char group[], const char rna_path[], int array_index, eInsertKeyFlags UNUSED(flag))
 {
 	AnimData *adt = BKE_animdata_from_id(id);
 	PointerRNA id_ptr, ptr;
@@ -1769,7 +1769,8 @@ static int insert_key_button_exec(bContext *C, wmOperator *op)
 	short success = 0;
 	int index;
 	const bool all = RNA_boolean_get(op->ptr, "all");
-	short flag = 0;
+	eInsertKeyFlags flag = INSERTKEY_NOFLAGS;
+
 	
 	/* flags for inserting keyframes */
 	flag = ANIM_get_keyframing_flags(scene, 1);
