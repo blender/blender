@@ -3,8 +3,8 @@ uniform vec3 color_outwards = vec3(1.0, 0.0, 0.0);
 
 out vec4 fragColor;
 
-flat in float facing;
+
 void main()
 {
-	fragColor = vec4((facing < 0.0 ? color_towards: color_outwards)*abs(facing), 1.0);
+	fragColor = vec4(gl_FrontFacing ? color_towards: color_outwards, 1.0);
 }

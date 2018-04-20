@@ -34,7 +34,6 @@ typedef struct OVERLAY_StorageList {
 } OVERLAY_StorageList;
 
 typedef struct OVERLAY_PassList {
-	struct DRWPass *depth_pass;
 	struct DRWPass *face_orientation_pass;
 } OVERLAY_PassList;
 
@@ -47,7 +46,6 @@ typedef struct OVERLAY_Data {
 } OVERLAY_Data;
 
 typedef struct OVERLAY_PrivateData {
-	DRWShadingGroup *depth_shgrp;
 	DRWShadingGroup *face_orientation_shgrp;
 	int overlays;
 } OVERLAY_PrivateData; /* Transient data */
@@ -62,9 +60,7 @@ typedef struct OVERLAY_MaterialData {
 
 /* *********** STATIC *********** */
 static struct {
-	struct GPUShader *depth_sh;
-
-	/* Solid flat mode */
+	/* Face orientation shader */
 	struct GPUShader *face_orientation_sh;
 
 } e_data = {NULL};
@@ -77,11 +73,8 @@ extern char datatoc_overlay_face_orientation_vert_glsl[];
 /* Functions */
 static void overlay_engine_init(void *UNUSED(vedata))
 {
-	if (!e_data.depth_sh) {
-		/* Depth pass */
-		e_data.depth_sh = DRW_shader_create_3D_depth_only();
-
-		/* Solid flat */
+	if (!e_data.face_orientation_sh) {
+		/* Face orientation */
 		e_data.face_orientation_sh = DRW_shader_create(datatoc_overlay_face_orientation_vert_glsl, NULL, datatoc_overlay_face_orientation_frag_glsl, "\n");
 	}
 }
@@ -101,25 +94,22 @@ static void overlay_cache_init(void *vedata)
 	}
 
 	View3D *v3d = DCS->v3d;
+	int bm_face_orientation = DRW_STATE_ADDITIVE;
 	if (v3d) {
 		stl->g_data->overlays = v3d->overlays;
+
+		if (v3d->drawtype == OB_SOLID && v3d->drawtype_solid == V3D_LIGHTING_FLAT) {
+			bm_face_orientation = DRW_STATE_MULTIPLY;
+		}
 	}
 	else {
 		stl->g_data->overlays = 0;
 	}
 
-
-	/* Depth Pass */
-	{
-		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-		psl->depth_pass = DRW_pass_create("Depth Pass", state);
-		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-	}
-
 	/* Face Orientation Pass */
 	if (stl->g_data->overlays & V3D_OVERLAY_FACE_ORIENTATION)
 	{
-		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL;
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | bm_face_orientation;
 		psl->face_orientation_pass = DRW_pass_create("Face Orientation", state);
 		stl->g_data->face_orientation_shgrp = DRW_shgroup_create(e_data.face_orientation_sh, psl->face_orientation_pass);
 	}
@@ -136,15 +126,11 @@ static void overlay_cache_populate(void *vedata, Object *ob)
 
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
-		/* Depth */
-		DRW_shgroup_call_add(pd->depth_shgrp, geom, ob->obmat);
-
 		/* Face Orientation */
 		if (stl->g_data->overlays & V3D_OVERLAY_FACE_ORIENTATION) {
 			DRW_shgroup_call_add(pd->face_orientation_shgrp, geom, ob->obmat);
 		}
 	}
-
 }
 
 static void overlay_cache_finish(void *UNUSED(vedata))
@@ -156,7 +142,6 @@ static void overlay_draw_scene(void *vedata)
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
 	OVERLAY_PassList *psl = data->psl;
 
-	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->face_orientation_pass);
 }
 
