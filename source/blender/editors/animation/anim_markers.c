@@ -570,11 +570,10 @@ static int ed_markers_poll_markers_exist(bContext *C)
 static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, const wmEvent *event,
                                            int (*invoke_func)(bContext *, wmOperator *, const wmEvent *))
 {
-	ScrArea *sa = CTX_wm_area(C);
 	int retval = OPERATOR_PASS_THROUGH;
-	
+
 	/* removed check for Y coord of event, keymap has bounbox now */
-	
+
 	/* allow operator to run now */
 	if (invoke_func)
 		retval = invoke_func(C, op, event);
@@ -582,13 +581,13 @@ static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, const wm
 		retval = op->type->exec(C, op);
 	else
 		BKE_report(op->reports, RPT_ERROR, "Programming error: operator does not actually have code to do anything!");
-		
-	
+
+
 	/* unless successful, must add "pass-through" to let normal operator's have a chance at tackling this event */
 	if ((retval & (OPERATOR_FINISHED | OPERATOR_INTERFACE)) == 0) {
 		retval |= OPERATOR_PASS_THROUGH;
 	}
-	
+
 	return retval;
 }
 
