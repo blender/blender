@@ -47,6 +47,9 @@
 #include "bpy_app_handlers.h"
 #include "bpy_driver.h"
 
+/* modules */
+#include "bpy_app_icons.h"
+
 #include "BLI_utildefines.h"
 
 #include "BKE_appdir.h"
@@ -117,6 +120,9 @@ static PyStructSequence_Field app_info_fields[] = {
 	{(char *)"build_options", (char *)"A set containing most important enabled optional build features"},
 	{(char *)"handlers", (char *)"Application handler callbacks"},
 	{(char *)"translations", (char *)"Application and addons internationalization API"},
+
+	/* Modules (not struct sequence). */
+	{(char *)"icons", (char *)"Manage custom icons"},
 	{NULL},
 };
 
@@ -129,6 +135,7 @@ PyDoc_STRVAR(bpy_app_doc,
 "   :maxdepth: 1\n"
 "\n"
 "   bpy.app.handlers.rst\n"
+"   bpy.app.icons.rst\n"
 "   bpy.app.translations.rst\n"
 );
 
@@ -209,6 +216,9 @@ static PyObject *make_app_info(void)
 	SetObjItem(BPY_app_build_options_struct());
 	SetObjItem(BPY_app_handlers_struct());
 	SetObjItem(BPY_app_translations_struct());
+
+	/* modules */
+	SetObjItem(BPY_app_icons_module());
 
 #undef SetIntItem
 #undef SetStrItem
