@@ -81,7 +81,8 @@ bool BLO_main_validate_libraries(struct Main *bmain, struct ReportList *reports)
 			continue;
 		}
 
-		BlendHandle *bh = BLO_blendhandle_from_file(curlib->name, reports);
+		BKE_library_filepath_set(curlib, curlib->name);
+		BlendHandle *bh = BLO_blendhandle_from_file(curlib->filepath, reports);
 
 		if (bh == NULL) {
 			continue;
