@@ -478,7 +478,7 @@ void EEVEE_volumes_cache_object_add(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 	BKE_mesh_texspace_get_reference((struct Mesh *)ob->data, NULL, &texcoloc, NULL, &texcosize);
 
 	DRW_shgroup_uniform_block(grp, "common_block", sldata->common_ubo);
-	DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", (float *)ob->imat);
+	DRW_shgroup_uniform_mat4(grp, "volumeObjectMatrix", ob->imat);
 	DRW_shgroup_uniform_vec3(grp, "volumeOrcoLoc", texcoloc, 1);
 	DRW_shgroup_uniform_vec3(grp, "volumeOrcoSize", texcosize, 1);
 

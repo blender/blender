@@ -201,14 +201,14 @@ void DRW_shgroup_uniform_ivec3(DRWShadingGroup *shgroup, const char *name, const
 	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT, value, 3, arraysize);
 }
 
-void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const float *value)
+void DRW_shgroup_uniform_mat3(DRWShadingGroup *shgroup, const char *name, const float (*value)[3])
 {
-	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 9, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, (float *)value, 9, 1);
 }
 
-void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float *value)
+void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const float (*value)[4])
 {
-	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, value, 16, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT, (float *)value, 16, 1);
 }
 
 /* Stores the int instead of a pointer. */
@@ -637,10 +637,10 @@ static DRWShadingGroup *drw_shgroup_material_inputs(DRWShadingGroup *grp, struct
 					/* Should already be in the material ubo. */
 					break;
 				case GPU_MAT3:
-					DRW_shgroup_uniform_mat3(grp, input->shadername, (float *)input->dynamicvec);
+					DRW_shgroup_uniform_mat3(grp, input->shadername, (float (*)[3])input->dynamicvec);
 					break;
 				case GPU_MAT4:
-					DRW_shgroup_uniform_mat4(grp, input->shadername, (float *)input->dynamicvec);
+					DRW_shgroup_uniform_mat4(grp, input->shadername, (float (*)[4])input->dynamicvec);
 					break;
 				default:
 					break;

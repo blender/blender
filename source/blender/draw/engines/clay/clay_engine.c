@@ -587,7 +587,7 @@ static DRWShadingGroup *CLAY_shgroup_deferred_shading_create(DRWPass *pass, CLAY
 	DRW_shgroup_uniform_block(grp, "material_block", sldata->mat_ubo);
 	DRW_shgroup_uniform_block(grp, "matcaps_block", sldata->matcaps_ubo);
 	/* TODO put in ubo */
-	DRW_shgroup_uniform_mat4(grp, "WinMatrix", (float *)g_data->winmat);
+	DRW_shgroup_uniform_mat4(grp, "WinMatrix", g_data->winmat);
 	DRW_shgroup_uniform_vec2(grp, "invscreenres", DRW_viewport_invert_size_get(), 1);
 	DRW_shgroup_uniform_vec4(grp, "viewvecs[0]", (float *)g_data->viewvecs, 3);
 	DRW_shgroup_uniform_vec4(grp, "ssao_params", g_data->ssao_params, 1);
