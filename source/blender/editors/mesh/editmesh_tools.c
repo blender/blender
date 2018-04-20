@@ -1486,7 +1486,7 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 	{
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		if (em->bm->totvertsel == 0) {
+		if (em->bm->totfacesel == 0) {
 			continue;
 		}
 
