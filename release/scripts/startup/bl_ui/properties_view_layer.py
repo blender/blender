@@ -409,6 +409,7 @@ class VIEWLAYER_PT_eevee_sampling(ViewLayerButtonsPanel, Panel):
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "taa_samples")
         col.template_override_property(layer_props, scene_props, "taa_render_samples")
+        col.template_override_property(layer_props, scene_props, "taa_reprojection")
 
 
 class VIEWLAYER_PT_eevee_indirect_lighting(ViewLayerButtonsPanel, Panel):

@@ -437,6 +437,7 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 
 	BKE_collection_engine_property_add_int(props, "taa_samples", 16);
 	BKE_collection_engine_property_add_int(props, "taa_render_samples", 64);
+	BKE_collection_engine_property_add_bool(props, "taa_reprojection", true);
 
 	BKE_collection_engine_property_add_bool(props, "sss_enable", false);
 	BKE_collection_engine_property_add_int(props, "sss_samples", 7);

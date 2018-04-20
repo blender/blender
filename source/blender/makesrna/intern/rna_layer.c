@@ -409,6 +409,7 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(shadow_high_bitdepth)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_render_samples)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(taa_reprojection)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_diffuse_bounces)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_cubemap_resolution)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(gi_visibility_resolution)
@@ -1181,6 +1182,14 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	                               "rna_LayerEngineSettings_Eevee_taa_render_samples_set", NULL);
 	RNA_def_property_ui_text(prop, "Render Samples", "Number of samples per pixels for rendering");
 	RNA_def_property_range(prop, 1, INT_MAX);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "taa_reprojection", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_LayerEngineSettings_Eevee_taa_reprojection_get",
+	                                     "rna_LayerEngineSettings_Eevee_taa_reprojection_set");
+	RNA_def_property_ui_text(prop, "Viewport Denoising", "Denoise image using temporal reprojection "
+	                                                     "(can leave some ghosting)");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 
