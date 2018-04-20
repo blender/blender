@@ -80,6 +80,10 @@ enum {
 	V3D_LIGHTING_SCENE  = 2
 };
 
+enum {
+	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
+};
+
 typedef struct RegionView3D {
 	
 	float winmat[4][4];			/* GL_PROJECTION matrix */
@@ -247,6 +251,9 @@ typedef struct View3D {
 	short drawtype_solid;
 	/* drawtype subtype (lighting) used when drawtype == OB_TEXTURE */
 	short drawtype_texture;
+
+	int overlays;
+	int pad5;
 
 	View3DDebug debug;
 } View3D;

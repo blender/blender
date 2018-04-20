@@ -985,6 +985,11 @@ static void drw_engines_enable_from_mode(int mode)
 	}
 }
 
+static void drw_engines_enable_from_overlays(int draw_overlays) {
+	if (draw_overlays) {
+		use_drw_engine(&draw_engine_overlay_type);
+	}
+}
 /**
  * Use for select and depth-drawing.
  */
@@ -1006,6 +1011,7 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	drw_engines_enable_from_engine(engine_type, drawtype, drawtype_wireframe, drawtype_solid, drawtype_texture);
 
 	if (DRW_state_draw_support()) {
+		drw_engines_enable_from_overlays(v3d->overlays);
 		drw_engines_enable_from_object_mode();
 		drw_engines_enable_from_mode(mode);
 	}
@@ -1959,6 +1965,7 @@ void DRW_engines_register(void)
 	DRW_engine_register(&draw_engine_edit_metaball_type);
 	DRW_engine_register(&draw_engine_edit_surface_type);
 	DRW_engine_register(&draw_engine_edit_text_type);
+	DRW_engine_register(&draw_engine_overlay_type);
 	DRW_engine_register(&draw_engine_paint_texture_type);
 	DRW_engine_register(&draw_engine_paint_vertex_type);
 	DRW_engine_register(&draw_engine_paint_weight_type);

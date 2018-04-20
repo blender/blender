@@ -40,5 +40,6 @@ extern DrawEngineType draw_engine_paint_weight_type;
 extern DrawEngineType draw_engine_particle_type;
 extern DrawEngineType draw_engine_pose_type;
 extern DrawEngineType draw_engine_sculpt_type;
+extern DrawEngineType draw_engine_overlay_type;
 
 #endif /* __DRAW_MODE_ENGINES_H__ */
