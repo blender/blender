@@ -1784,6 +1784,7 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
 void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exit)
 {
 	if (sa->spacetype != type) {
+		wmWindow *win = CTX_wm_window(C);
 		SpaceType *st;
 		SpaceLink *slold;
 		SpaceLink *sl;
@@ -1809,7 +1810,11 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		sa->spacetype = type;
 		sa->butspacetype = type;
 		sa->type = st;
-		
+
+		/* If st->new may be called, don't use context until then. The
+		 * sa->type->context() callback has changed but data may be invalid
+		 * (e.g. with properties editor) until space-data is properly created */
+
 		/* check previously stored space */
 		for (sl = sa->spacedata.first; sl; sl = sl->next)
 			if (sl->spacetype == type)
@@ -1838,7 +1843,9 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		else {
 			/* new space */
 			if (st) {
-				sl = st->new(sa, CTX_data_scene(C));
+				/* Don't get scene from context here which may depend on space-data. */
+				Scene *scene = WM_window_get_active_scene(win);
+				sl = st->new(sa, scene);
 				BLI_addhead(&sa->spacedata, sl);
 				
 				/* swap regions */
@@ -1849,7 +1856,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 			}
 		}
 		
-		ED_area_initialize(CTX_wm_manager(C), CTX_wm_window(C), sa);
+		ED_area_initialize(CTX_wm_manager(C), win, sa);
 		
 		/* tell WM to refresh, cursor types etc */
 		WM_event_add_mousemove(C);
