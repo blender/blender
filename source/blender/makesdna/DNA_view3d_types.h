@@ -81,7 +81,7 @@ enum {
 };
 
 enum {
-	V3D_DRAWOPTION_RANDOMIZE = (1<<0),
+	V3D_DRAWOPTION_RANDOMIZE = (1 << 0),
 };
 
 enum {

@@ -1597,7 +1597,7 @@ static void WIDGETGROUP_xform_cage_setup(const bContext *UNUSED(C), wmManipulato
 	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_TRANSLATE);
 
 	mpr->color[0] = 1;
-	mpr->color_hi[0] =1;
+	mpr->color_hi[0] = 1;
 
 	mgroup->customdata = xmgroup;
 

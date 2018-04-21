@@ -196,7 +196,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 
 	int repro_flag = 0;
 	if (!DRW_state_is_image_render() &&
-		BKE_collection_engine_property_value_get_bool(props, "taa_reprojection"))
+	    BKE_collection_engine_property_value_get_bool(props, "taa_reprojection"))
 	{
 		repro_flag = EFFECT_TAA_REPROJECT | EFFECT_VELOCITY_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
 		effects->taa_reproject_sample = ((effects->taa_reproject_sample + 1) % 16);

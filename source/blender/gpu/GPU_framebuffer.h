@@ -43,7 +43,7 @@ typedef struct GPUAttachment {
 	int mip, layer;
 } GPUAttachment;
 
-typedef enum GPUFrameBufferBits{
+typedef enum GPUFrameBufferBits {
 	GPU_COLOR_BIT    = (1 << 0),
 	GPU_DEPTH_BIT    = (1 << 1),
 	GPU_STENCIL_BIT  = (1 << 2),

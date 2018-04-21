@@ -693,22 +693,22 @@ static const float blackbody_table_b[6][4] = {
 
 static void blackbody_temperature_to_rgb(float rgb[3], float t)
 {
-	if(t >= 12000.0f) {
+	if (t >= 12000.0f) {
 		rgb[0] = 0.826270103f;
 		rgb[1] = 0.994478524f;
 		rgb[2] = 1.56626022f;
 	}
-	else if(t < 965.0f) {
+	else if (t < 965.0f) {
 		rgb[0] = 4.70366907f;
 		rgb[1] = 0.0f;
 		rgb[2] = 0.0f;
 	}
 	else {
-		int i = (t >= 6365.0f)? 5:
-		        (t >= 3315.0f)? 4:
-		        (t >= 1902.0f)? 3:
-		        (t >= 1449.0f)? 2:
-		        (t >= 1167.0f)? 1: 0;
+		int i = (t >= 6365.0f) ? 5 :
+		        (t >= 3315.0f) ? 4 :
+		        (t >= 1902.0f) ? 3 :
+		        (t >= 1449.0f) ? 2 :
+		        (t >= 1167.0f) ? 1 : 0;
 
 		const float *r = blackbody_table_r[i];
 		const float *g = blackbody_table_g[i];

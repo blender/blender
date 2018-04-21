@@ -753,7 +753,7 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 
 	/* For more efficiency first transfer the entire buffer to vram. */
 	Gwn_Batch *loop_batch = immBeginBatchAtMost(GWN_PRIM_LINE_LOOP, bm->totloop);
-	Gwn_VertBuf* loop_vbo = loop_batch->verts[0];
+	Gwn_VertBuf *loop_vbo = loop_batch->verts[0];
 	BM_ITER_MESH(efa, &iter, bm, BM_FACES_OF_MESH) {
 		if (!BM_elem_flag_test(efa, BM_ELEM_TAG))
 			continue;

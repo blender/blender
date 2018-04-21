@@ -296,11 +296,11 @@ typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_NO_OB_CAMERA     = (1 << 10),
 	SO_FILTER_NO_OB_OTHERS     = (1 << 11),
 
-	SO_FILTER_OB_STATE         = (1 << 12),
-	SO_FILTER_OB_STATE_VISIBLE = (1 << 13), /* Not set via DNA. */
-	SO_FILTER_OB_STATE_SELECTED= (1 << 14), /* Not set via DNA. */
-	SO_FILTER_OB_STATE_ACTIVE  = (1 << 15), /* Not set via DNA. */
-	SO_FILTER_NO_COLLECTION    = (1 << 16),
+	SO_FILTER_OB_STATE          = (1 << 12),
+	SO_FILTER_OB_STATE_VISIBLE  = (1 << 13), /* Not set via DNA. */
+	SO_FILTER_OB_STATE_SELECTED = (1 << 14), /* Not set via DNA. */
+	SO_FILTER_OB_STATE_ACTIVE   = (1 << 15), /* Not set via DNA. */
+	SO_FILTER_NO_COLLECTION     = (1 << 16),
 } eSpaceOutliner_Filter;
 
 #define SO_FILTER_NO_OB_ALL (SO_FILTER_NO_OB_MESH | \

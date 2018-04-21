@@ -533,8 +533,8 @@ void do_versions_after_linking_280(Main *main)
 		/* Due to several changes to particle RNA and draw code particles from older files may no longer
 		 * be visible. Here we correct this by setting a default draw size for those files. */
 		for (Object *object = main->object.first; object; object = object->id.next) {
-			for (ParticleSystem *psys = object->particlesystem.first; psys; psys=psys->next) {
-				if(psys->part->draw_size == 0.0f) {
+			for (ParticleSystem *psys = object->particlesystem.first; psys; psys = psys->next) {
+				if (psys->part->draw_size == 0.0f) {
 					psys->part->draw_size = 0.1f;
 				}
 			}
@@ -617,7 +617,7 @@ void do_versions_after_linking_280(Main *main)
 					}
 				}
 			}
-			else if (object->transflag & OB_DUPLI){
+			else if (object->transflag & OB_DUPLI) {
 				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT;
 			}
 			else {
@@ -837,7 +837,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 
 		for (Group *group = main->group.first; group; group = group->id.next) {
-			if (group->view_layer != NULL){
+			if (group->view_layer != NULL) {
 				do_version_view_layer_visibility(group->view_layer);
 			}
 		}
@@ -933,7 +933,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		/* Blender Internal removal */
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			if (STREQ(scene->r.engine, "BLENDER_RENDER") ||
-			    STREQ(scene->r.engine, "BLENDER_GAME")) {
+			    STREQ(scene->r.engine, "BLENDER_GAME"))
+			{
 				BLI_strncpy(scene->r.engine, RE_engine_id_BLENDER_EEVEE, sizeof(scene->r.engine));
 			}
 

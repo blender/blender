@@ -1482,8 +1482,7 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 	const int repeat = RNA_int_get(op->ptr, "repeat");
 	const float fac = RNA_float_get(op->ptr, "factor");
 
-	for (uint ob_index = 0; ob_index < objects_len; ob_index++)
-	{
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 		if (em->bm->totfacesel == 0) {
@@ -1491,8 +1490,8 @@ static int edbm_face_make_planar_exec(bContext *C, wmOperator *op)
 		}
 
 		if (!EDBM_op_callf(
-				em, op, "planar_faces faces=%hf iterations=%i factor=%f",
-				BM_ELEM_SELECT, repeat, fac))
+		            em, op, "planar_faces faces=%hf iterations=%i factor=%f",
+		            BM_ELEM_SELECT, repeat, fac))
 		{
 			continue;
 		}
@@ -4488,8 +4487,8 @@ static int edbm_decimate_exec(bContext *C, wmOperator *op)
 		}
 
 		BM_mesh_decimate_collapse(
-				em->bm, ratio_adjust, vweights, vertex_group_factor, false,
-				symmetry_axis, symmetry_eps);
+		        em->bm, ratio_adjust, vweights, vertex_group_factor, false,
+		        symmetry_axis, symmetry_eps);
 
 		MEM_freeN(vweights);
 
@@ -6093,9 +6092,9 @@ static int mesh_symmetrize_exec(bContext *C, wmOperator *op)
 		const float thresh = RNA_float_get(op->ptr, "threshold");
 
 		EDBM_op_init(
-				em, &bmop, op,
-				"symmetrize input=%hvef direction=%i dist=%f",
-				BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
+		        em, &bmop, op,
+		        "symmetrize input=%hvef direction=%i dist=%f",
+		        BM_ELEM_SELECT, RNA_enum_get(op->ptr, "direction"), thresh);
 		BMO_op_exec(em->bm, &bmop);
 
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);

@@ -207,7 +207,7 @@ static void eevee_draw_background(void *vedata)
 		bool taa_use_reprojection = (stl->effects->enabled_effects & EFFECT_TAA_REPROJECT) != 0;
 
 		if (DRW_state_is_image_render() ||
-			taa_use_reprojection ||
+		    taa_use_reprojection ||
 		    ((stl->effects->enabled_effects & EFFECT_TAA) != 0))
 		{
 			int samp = taa_use_reprojection

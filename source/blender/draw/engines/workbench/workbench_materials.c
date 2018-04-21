@@ -61,7 +61,8 @@ static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, flo
 		unsigned int obhash = BLI_ghashutil_strhash(ob->id.name);
 		cpack_to_rgb(obhash, &color[0], &color[1], &color[2]);
 
-	} else {
+	}
+	else {
 		copy_v3_v3(color, ob->col);
 	}
 }
@@ -142,7 +143,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		DRW_shgroup_call_add(stl->g_data->depth_shgrp, geom, ob->obmat);
 
 		/* Solid */
-		GPUShader *shader = wpd->drawtype_lighting == V3D_LIGHTING_FLAT?e_data.solid_flat_sh:e_data.solid_studio_sh;
+		GPUShader *shader = wpd->drawtype_lighting == V3D_LIGHTING_FLAT ? e_data.solid_flat_sh : e_data.solid_studio_sh;
 
 		float color[3];
 		get_material_solid_color(wpd, ob, color);

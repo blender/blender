@@ -273,8 +273,7 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 			best_projector = &projectors[0];
 
 			for (j = 1; j < num_projectors; ++j) {
-				float tmp_dot = dot_v3v3(projectors[j].normal,
-										 face_no);
+				float tmp_dot = dot_v3v3(projectors[j].normal, face_no);
 				if (tmp_dot > best_dot) {
 					best_dot = tmp_dot;
 					best_projector = &projectors[j];

@@ -35,7 +35,7 @@
 
 #define BLF_BATCH_DRAW_LEN_MAX 2048 /* in glyph */
 
-typedef struct BatchBLF{
+typedef struct BatchBLF {
 	struct FontBLF *font; /* can only batch glyph from the same font */
 	struct Gwn_Batch *batch;
 	struct Gwn_VertBuf *verts;

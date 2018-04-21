@@ -565,13 +565,13 @@ static void draw_clipping_setup_from_view(void)
 		/* distance to view Z axis */
 		f = len_v2(farpoint);
 		/* get corresponding point on the near plane */
-		mul_v2_v2fl(farxy, farpoint, s/e);
+		mul_v2_v2fl(farxy, farpoint, s / e);
 		/* this formula preserve the sign of n */
 		sub_v2_v2(nearpoint, farxy);
 		n = f * s / e - len_v2(nearpoint);
 		c = len_v2(farcenter) / e;
 		/* the big formula, it simplifies to (F-N)/(2(e-s)) for the symmetric case */
-		z = (F-N) / (2.0f * (e-s + c*(f-n)));
+		z = (F - N) / (2.0f * (e - s + c * (f - n)));
 
 		bsphere->center[0] = farcenter[0] * z / e;
 		bsphere->center[1] = farcenter[1] * z / e;

@@ -248,7 +248,7 @@ GPUMaterial *GPU_material_from_nodetree_find(
 GPUMaterial *GPU_material_from_nodetree(
         struct Scene *scene, struct bNodeTree *ntree, struct ListBase *gpumaterials, const void *engine_type, int options);
 void GPU_material_generate_pass(
-		GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
+        GPUMaterial *mat, const char *vert_code, const char *geom_code, const char *frag_lib, const char *defines);
 void GPU_material_free(struct ListBase *gpumaterial);
 
 void GPU_materials_free(void);

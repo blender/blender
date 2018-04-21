@@ -2221,7 +2221,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(&ar->v2d);
 
 	xco = maxco = start_ofs;
-	yco = headery + (ar->winy - headery)/2 - floor(0.2f * UI_UNIT_Y);
+	yco = headery + (ar->winy - headery) / 2 - floor(0.2f * UI_UNIT_Y);
 
 	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
 	if (CTX_wm_area(C)->spacetype == SPACE_TOPBAR) {
