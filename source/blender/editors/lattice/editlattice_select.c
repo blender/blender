@@ -50,6 +50,7 @@
 #include "BKE_context.h"
 #include "BKE_lattice.h"
 #include "BKE_report.h"
+#include "BKE_layer.h"
 
 #include "ED_screen.h"
 #include "ED_lattice.h"
@@ -84,36 +85,43 @@ static void bpoint_select_set(BPoint *bp, bool select)
 
 static int lattice_select_random_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
-
 	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
 	const int seed = WM_operator_properties_select_random_seed_increment_get(op);
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 
-	RNG *rng = BLI_rng_new_srandom(seed);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 
-	int tot;
-	BPoint *bp;
+		RNG *rng = BLI_rng_new_srandom(seed);
 
-	tot = lt->pntsu * lt->pntsv * lt->pntsw;
-	bp = lt->def;
-	while (tot--) {
-		if (!bp->hide) {
-			if (BLI_rng_get_float(rng) < randfac) {
-				bpoint_select_set(bp, select);
+		int tot;
+		BPoint *bp;
+
+		tot = lt->pntsu * lt->pntsv * lt->pntsw;
+		bp = lt->def;
+		while (tot--) {
+			if (!bp->hide) {
+				if (BLI_rng_get_float(rng) < randfac) {
+					bpoint_select_set(bp, select);
+				}
 			}
+			bp++;
 		}
-		bp++;
+
+		if (select == false) {
+			lt->actbp = LT_ACTBP_NONE;
+		}
+
+		BLI_rng_free(rng);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
 	}
-
-	if (select == false) {
-		lt->actbp = LT_ACTBP_NONE;
-	}
-
-	BLI_rng_free(rng);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -183,18 +191,27 @@ static void ed_lattice_select_mirrored(Lattice *lt, const int axis, const bool e
 
 static int lattice_select_mirror_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
 	const int axis_flag = RNA_enum_get(op->ptr, "axis");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
 
-	for (int axis = 0; axis < 3; axis++) {
-		if ((1 << axis) & axis_flag) {
-			ed_lattice_select_mirrored(lt, axis, extend);
-		}
-	}
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Lattice *lt = ((Lattice *)obedit->data)->editlatt->latt;
+
+		for (int axis = 0; axis < 3; axis++) {
+			if ((1 << axis) & axis_flag) {
+				ed_lattice_select_mirrored(lt, axis, extend);
+			}
+		}
+
+		/* TODO, only notify changes */
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
