@@ -1123,7 +1123,7 @@ void ED_screen_global_topbar_area_create(wmWindow *win, const bScreen *screen)
 		SpaceType *st = BKE_spacetype_from_id(SPACE_TOPBAR);
 		SpaceLink *sl = st->new(NULL);
 		ScrArea *sa;
-		const short size_y = 2 * HEADERY;
+		const short size_y = 2.25 * HEADERY;
 		const int minx = 0, maxx = WM_window_pixels_x(win) - 1;
 		const int maxy = WM_window_pixels_y(win) - 1, miny = maxy - size_y;
 

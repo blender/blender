@@ -753,6 +753,10 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 		return;
 	}
 
+	if (ED_area_is_global(sa)) {
+		return;
+	}
+
 	/* can't click on bottom corners on OS X, already used for resizing */
 #ifdef __APPLE__
 	if (!(sa->totrct.xmin == 0 && sa->totrct.ymin == 0) || WM_window_is_fullscreen(win))
@@ -1881,9 +1885,16 @@ int ED_area_header_switchbutton(const bContext *C, uiBlock *block, int yco)
 
 static ThemeColorID region_background_color_id(const bContext *C, const ARegion *region)
 {
+	ScrArea *area = CTX_wm_area(C);
+
 	switch (region->regiontype) {
 		case RGN_TYPE_HEADER:
-			return ED_screen_area_active(C) ? TH_HEADER : TH_HEADERDESEL;
+			if (ED_screen_area_active(C) || ED_area_is_global(area)) {
+				return TH_HEADER;
+			}
+			else {
+				return TH_HEADERDESEL;
+			}
 		case RGN_TYPE_PREVIEW:
 			return TH_PREVIEW_BACK;
 		default:
@@ -2187,7 +2198,7 @@ void ED_region_header(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(&ar->v2d);
 
 	xco = maxco = start_ofs;
-	yco = headery - floor(0.2f * UI_UNIT_Y);
+	yco = headery + (ar->winy - headery)/2 - floor(0.2f * UI_UNIT_Y);
 
 	/* XXX workaround for 1 px alignment issue. Not sure what causes it... Would prefer a proper fix - Julian */
 	if (CTX_wm_area(C)->spacetype == SPACE_TOPBAR) {

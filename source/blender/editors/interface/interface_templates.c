@@ -574,7 +574,8 @@ static const char *template_id_context(StructRNA *type)
 
 static uiBut *template_id_def_new_but(
         uiBlock *block, const ID *id, const TemplateID *template_ui, StructRNA *type,
-        const char * const newop, const bool editable, const bool id_open, const bool use_tab_but)
+        const char * const newop, const bool editable, const bool id_open, const bool use_tab_but,
+        int but_height)
 {
 	ID *idfrom = template_ui->ptr.id.data;
 	uiBut *but;
@@ -613,12 +614,12 @@ static uiBut *template_id_def_new_but(
 
 	if (newop) {
 		but = uiDefIconTextButO(block, but_type, newop, WM_OP_INVOKE_DEFAULT, ICON_ZOOMIN,
-		                        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, UI_UNIT_Y, NULL);
+		                        (id) ? "" : CTX_IFACE_(template_id_context(type), "New"), 0, 0, w, but_height, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 	}
 	else {
 		but = uiDefIconTextBut(block, but_type, 0, ICON_ZOOMIN, (id) ? "" : CTX_IFACE_(template_id_context(type), "New"),
-		                       0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, NULL);
+		                       0, 0, w, but_height, NULL, 0, 0, 0, 0, NULL);
 		UI_but_funcN_set(but, template_id_cb, MEM_dupallocN(template_ui), SET_INT_IN_POINTER(UI_ID_ADD_NEW));
 	}
 
@@ -735,7 +736,7 @@ static void template_ID(
 	}
 	
 	if (flag & UI_ID_ADD_NEW) {
-		template_id_def_new_but(block, id, template_ui, type, newop, editable, flag & UI_ID_OPEN, false);
+		template_id_def_new_but(block, id, template_ui, type, newop, editable, flag & UI_ID_OPEN, false, UI_UNIT_X);
 	}
 
 	/* Due to space limit in UI - skip the "open" icon for packed data, and allow to unpack.
@@ -811,6 +812,7 @@ static void template_ID_tabs(
 	const ARegion *region = CTX_wm_region(C);
 	const PointerRNA active_ptr = RNA_property_pointer_get(&template->ptr, template->prop);
 	const int but_align = (region->alignment == RGN_ALIGN_TOP) ? UI_BUT_ALIGN_DOWN : UI_BUT_ALIGN_TOP;
+	const int but_height = UI_UNIT_Y * 1.1;
 
 	uiBlock *block = uiLayoutGetBlock(layout);
 	uiStyle *style = UI_style_get_dpi();
@@ -824,7 +826,7 @@ static void template_ID_tabs(
 		uiButTab *tab;
 
 		tab = (uiButTab *)uiDefButR_prop(
-		        block, UI_BTYPE_TAB, 0, "", 0, 0, but_width, UI_UNIT_Y,
+		        block, UI_BTYPE_TAB, 0, "", 0, 0, but_width, UI_UNIT_Y * 1.1,
 		        &template->ptr, template->prop, 0, 0.0f,
 		        sizeof(id->name) - 2, 0.0f, 0.0f, "");
 		UI_but_funcN_set(&tab->but, template_ID_set_property_cb, MEM_dupallocN(template), id);
@@ -845,7 +847,7 @@ static void template_ID_tabs(
 			type = active_ptr.type;
 		}
 
-		but = template_id_def_new_but(block, active_ptr.data, template, type, newop, editable, flag & UI_ID_OPEN, true);
+		but = template_id_def_new_but(block, active_ptr.data, template, type, newop, editable, flag & UI_ID_OPEN, true, but_height);
 		UI_but_drawflag_enable(but, but_align);
 	}
 }
@@ -896,7 +898,7 @@ static void ui_template_id(
 	 */
 	if (template_ui->idlb) {
 		if (use_tabs) {
-			uiLayoutRow(layout, false);
+			uiLayoutRow(layout, true);
 			template_ID_tabs(C, layout, template_ui, type, flag, newop, openop, unlinkop);
 		}
 		else {
