@@ -1532,7 +1532,7 @@ static int edbm_edge_split_exec(bContext *C, wmOperator *op)
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	uint objects_len = 0;
-	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
