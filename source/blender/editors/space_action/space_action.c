@@ -92,10 +92,8 @@ ARegion *action_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for action space ***************** */
 
-static SpaceLink *action_new(const bContext *C)
+static SpaceLink *action_new(const ScrArea *sa, const Scene *scene)
 {
-	Scene *scene = CTX_data_scene(C);
-	ScrArea *sa = CTX_wm_area(C);
 	SpaceAction *saction;
 	ARegion *ar;
 	

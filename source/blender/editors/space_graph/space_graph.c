@@ -95,9 +95,8 @@ ARegion *graph_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for ipo space ***************** */
 
-static SpaceLink *graph_new(const bContext *C)
+static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar;
 	SpaceIpo *sipo;
 	

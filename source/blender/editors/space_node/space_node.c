@@ -291,7 +291,7 @@ ARegion *node_has_tools_region(ScrArea *sa)
 
 /* ******************** default callbacks for node space ***************** */
 
-static SpaceLink *node_new(const bContext *UNUSED(C))
+static SpaceLink *node_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceNode *snode;

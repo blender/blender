@@ -325,9 +325,8 @@ void ED_view3d_shade_update(Main *bmain, View3D *v3d, ScrArea *sa)
 
 /* ******************** default callbacks for view3d space ***************** */
 
-static SpaceLink *view3d_new(const bContext *C)
+static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar;
 	View3D *v3d;
 	RegionView3D *rv3d;

@@ -68,7 +68,7 @@
 
 /* ******************** default callbacks for file space ***************** */
 
-static SpaceLink *file_new(const bContext *UNUSED(C))
+static SpaceLink *file_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceFile *sfile;

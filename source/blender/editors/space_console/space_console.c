@@ -52,7 +52,7 @@
 
 /* ******************** default callbacks for console space ***************** */
 
-static SpaceLink *console_new(const bContext *UNUSED(C))
+static SpaceLink *console_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceConsole *sconsole;

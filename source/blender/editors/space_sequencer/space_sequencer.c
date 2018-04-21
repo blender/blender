@@ -113,9 +113,8 @@ static ARegion *sequencer_find_region(ScrArea *sa, short type)
 
 /* ******************** default callbacks for sequencer space ***************** */
 
-static SpaceLink *sequencer_new(const bContext *C)
+static SpaceLink *sequencer_new(const ScrArea *UNUSED(sa), const Scene *scene)
 {
-	Scene *scene = CTX_data_scene(C);
 	ARegion *ar;
 	SpaceSeq *sseq;
 	

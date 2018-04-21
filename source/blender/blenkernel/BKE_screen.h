@@ -77,8 +77,9 @@ typedef struct SpaceType {
 	int spaceid;                                /* unique space identifier */
 	int iconid;                                 /* icon lookup for menus */
 	
-	/* initial allocation, after this WM will call init() too */
-	struct SpaceLink    *(*new)(const struct bContext *C);
+	/* Initial allocation, after this WM will call init() too. Some editors need
+	 * area and scene data (e.g. frame range) to set their initial scrolling. */
+	struct SpaceLink    *(*new)(const struct ScrArea *, const struct Scene *);
 	/* not free spacelink itself */
 	void (*free)(struct SpaceLink *);
 	

@@ -1838,7 +1838,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		else {
 			/* new space */
 			if (st) {
-				sl = st->new(C);
+				sl = st->new(sa, CTX_data_scene(C));
 				BLI_addhead(&sa->spacedata, sl);
 				
 				/* swap regions */

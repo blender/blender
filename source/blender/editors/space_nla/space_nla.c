@@ -94,10 +94,8 @@ ARegion *nla_has_buttons_region(ScrArea *sa)
 
 /* ******************** default callbacks for nla space ***************** */
 
-static SpaceLink *nla_new(const bContext *C)
+static SpaceLink *nla_new(const ScrArea *sa, const Scene *scene)
 {
-	Scene *scene = CTX_data_scene(C);
-	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar;
 	SpaceNla *snla;
 	

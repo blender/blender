@@ -75,12 +75,8 @@
 
 #include "clip_intern.h"  /* own include */
 
-static void init_preview_region(const bContext *C, ARegion *ar)
+static void init_preview_region(const Scene *scene, const ScrArea *sa, const SpaceClip *sc, ARegion *ar)
 {
-	Scene *scene = CTX_data_scene(C);
-	ScrArea *sa = CTX_wm_area(C);
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
 	ar->regiontype = RGN_TYPE_PREVIEW;
 	ar->alignment = RGN_ALIGN_TOP;
 	ar->flag |= RGN_FLAG_HIDDEN;
@@ -138,15 +134,17 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 
 static void reinit_preview_region(const bContext *C, ARegion *ar)
 {
+	Scene *scene = CTX_data_scene(C);
+	ScrArea *sa = CTX_wm_area(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc->view == SC_VIEW_DOPESHEET) {
 		if ((ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL) == 0)
-			init_preview_region(C, ar);
+			init_preview_region(scene, sa, sc, ar);
 	}
 	else {
 		if (ar->v2d.flag & V2D_VIEWSYNC_AREA_VERTICAL)
-			init_preview_region(C, ar);
+			init_preview_region(scene, sa, sc, ar);
 	}
 }
 
@@ -168,7 +166,7 @@ static ARegion *ED_clip_has_preview_region(const bContext *C, ScrArea *sa)
 	arnew = MEM_callocN(sizeof(ARegion), "clip preview region");
 
 	BLI_insertlinkbefore(&sa->regionbase, ar, arnew);
-	init_preview_region(C, arnew);
+	init_preview_region(CTX_data_scene(C), sa, CTX_wm_space_clip(C), arnew);
 
 	return arnew;
 }
@@ -228,7 +226,7 @@ static void clip_scopes_check_gpencil_change(ScrArea *sa)
 
 /* ******************** default callbacks for clip space ***************** */
 
-static SpaceLink *clip_new(const bContext *C)
+static SpaceLink *clip_new(const ScrArea *sa, const Scene *scene)
 {
 	ARegion *ar;
 	SpaceClip *sc;
@@ -286,7 +284,7 @@ static SpaceLink *clip_new(const bContext *C)
 	ar = MEM_callocN(sizeof(ARegion), "preview for clip");
 
 	BLI_addtail(&sc->regionbase, ar);
-	init_preview_region(C, ar);
+	init_preview_region(scene, sa, sc, ar);
 
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for clip");

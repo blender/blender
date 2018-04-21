@@ -56,7 +56,7 @@
 
 /* ******************** default callbacks for topbar space ***************** */
 
-static SpaceLink *topbar_new(const bContext *UNUSED(C))
+static SpaceLink *topbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceTopBar *stopbar;

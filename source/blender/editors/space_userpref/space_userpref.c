@@ -51,7 +51,7 @@
 
 /* ******************** default callbacks for userpref space ***************** */
 
-static SpaceLink *userpref_new(const bContext *UNUSED(C))
+static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceUserPref *spref;

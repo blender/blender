@@ -479,7 +479,7 @@ static void outliner_header_region_listener(
 
 /* ******************** default callbacks for outliner space ***************** */
 
-static SpaceLink *outliner_new(const bContext *UNUSED(C))
+static SpaceLink *outliner_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceOops *soutliner;

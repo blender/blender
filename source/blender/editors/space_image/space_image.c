@@ -162,7 +162,7 @@ ARegion *image_has_tools_region(ScrArea *sa)
 
 /* ******************** default callbacks for image space ***************** */
 
-static SpaceLink *image_new(const bContext *UNUSED(C))
+static SpaceLink *image_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scene))
 {
 	ARegion *ar;
 	SpaceImage *simage;

@@ -1117,27 +1117,42 @@ int ED_screen_area_active(const bContext *C)
 	return 0;
 }
 
+/**
+ * Add an area and geometry (screen-edges and -vertices) for it to \a area_map,
+ * with coordinates/dimensions matching \a rect.
+ */
+static ScrArea *screen_area_create_with_geometry(
+        ScrAreaMap *area_map, const rcti *rect,
+        short headertype, short spacetype)
+{
+	ScrVert *bottom_left  = screen_addvert_ex(area_map, rect->xmin, rect->ymin);
+	ScrVert *top_left     = screen_addvert_ex(area_map, rect->xmin, rect->ymax);
+	ScrVert *top_right    = screen_addvert_ex(area_map, rect->xmax, rect->ymax);
+	ScrVert *bottom_right = screen_addvert_ex(area_map, rect->xmax, rect->ymin);
+
+	screen_addedge_ex(area_map, bottom_left, top_left);
+	screen_addedge_ex(area_map, top_left, top_right);
+	screen_addedge_ex(area_map, top_right, bottom_right);
+	screen_addedge_ex(area_map, bottom_right, bottom_left);
+
+	return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, headertype, spacetype);
+}
+
 void ED_screen_global_topbar_area_create(wmWindow *win, const bScreen *screen)
 {
 	if (screen->temp == 0) {
-		SpaceType *st = BKE_spacetype_from_id(SPACE_TOPBAR);
-		SpaceLink *sl = st->new(NULL);
-		ScrArea *sa;
 		const short size_y = 2.25 * HEADERY;
-		const int minx = 0, maxx = WM_window_pixels_x(win) - 1;
-		const int maxy = WM_window_pixels_y(win) - 1, miny = maxy - size_y;
+		SpaceType *st;
+		SpaceLink *sl;
+		ScrArea *sa;
+		rcti rect;
 
-		ScrVert *bottom_left  = screen_addvert_ex(&win->global_areas, minx, miny);
-		ScrVert *top_left     = screen_addvert_ex(&win->global_areas, minx, maxy);
-		ScrVert *top_right    = screen_addvert_ex(&win->global_areas, maxx, maxy);
-		ScrVert *bottom_right = screen_addvert_ex(&win->global_areas, maxx, miny);
-		screen_addedge_ex(&win->global_areas, bottom_left, top_left);
-		screen_addedge_ex(&win->global_areas, top_left, top_right);
-		screen_addedge_ex(&win->global_areas, top_right, bottom_right);
-		screen_addedge_ex(&win->global_areas, bottom_right, bottom_left);
+		BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
+		rect.ymin = rect.ymax - size_y;
 
-		sa = screen_addarea_ex(&win->global_areas, bottom_left, top_left, top_right, bottom_right,
-		                       HEADERTOP, SPACE_TOPBAR);
+		sa = screen_area_create_with_geometry(&win->global_areas, &rect, HEADERTOP, SPACE_TOPBAR);
+		st = BKE_spacetype_from_id(SPACE_TOPBAR);
+		sl = st->new(sa, WM_window_get_active_scene(win));
 		sa->regionbase = sl->regionbase;
 
 		/* Data specific to global areas. */
