@@ -579,7 +579,7 @@ void DRW_draw_background(void)
 		gpuLoadIdentity();
 		gpuLoadProjectionMatrix(m);
 
-		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_SMOOTH_COLOR_DITHER);
 
 		UI_GetThemeColor3ubv(TH_LOW_GRAD, col_lo);
 		UI_GetThemeColor3ubv(TH_HIGH_GRAD, col_hi);
