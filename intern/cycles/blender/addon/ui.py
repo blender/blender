@@ -1553,7 +1553,9 @@ def draw_device(self, context):
         from . import engine
         cscene = scene.cycles
 
-        layout.prop(cscene, "feature_set")
+        split = layout.split(percentage=1 / 3)
+        split.label("Feature Set:")
+        split.prop(cscene, "feature_set", text="")
 
         split = layout.split(percentage=1 / 3)
         split.label("Device:")
