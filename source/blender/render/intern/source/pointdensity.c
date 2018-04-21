@@ -933,15 +933,11 @@ static void point_density_sample_func(
 			texvec[1] += dim[1] * (float)y / (float)resolution;
 			texvec[2] += dim[2] * (float)z / (float)resolution;
 
-			if (pointdensity(pd, texvec, &texres, vec, &age, col)) {
-				pointdensity_color(pd, &texres, age, vec, col);
+			pointdensity(pd, texvec, &texres, vec, &age, col);
+			pointdensity_color(pd, &texres, age, vec, col);
 
-				copy_v3_v3(&values[index*4 + 0], &texres.tr);
-				values[index*4 + 3] = texres.tin;
-			}
-			else {
-				zero_v4(&values[index*4]);
-			}
+			copy_v3_v3(&values[index*4 + 0], &texres.tr);
+			values[index*4 + 3] = texres.tin;
 		}
 	}
 }

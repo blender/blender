@@ -57,6 +57,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
   b_userpref(b_userpref),
   b_data(b_data),
   b_render(b_engine.render()),
+  b_depsgraph(PointerRNA_NULL),
   b_scene(b_scene),
   b_v3d(PointerRNA_NULL),
   b_rv3d(PointerRNA_NULL),
@@ -84,6 +85,7 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
   b_userpref(b_userpref),
   b_data(b_data),
   b_render(b_scene.render()),
+  b_depsgraph(PointerRNA_NULL),
   b_scene(b_scene),
   b_v3d(b_v3d),
   b_rv3d(b_rv3d),
@@ -357,8 +359,10 @@ void BlenderSession::update_render_tile(RenderTile& rtile, bool highlight)
 		do_write_update_render_tile(rtile, false, false);
 }
 
-void BlenderSession::render(BL::Depsgraph& b_depsgraph)
+void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 {
+	b_depsgraph = b_depsgraph_;
+
 	/* set callback to write out render results */
 	session->write_render_tile_cb = function_bind(&BlenderSession::write_render_tile, this, _1);
 	session->update_render_tile_cb = function_bind(&BlenderSession::update_render_tile, this, _1, _2);
@@ -539,7 +543,7 @@ static int bake_pass_filter_get(const int pass_filter)
 	return flag;
 }
 
-void BlenderSession::bake(BL::Depsgraph& b_depsgraph,
+void BlenderSession::bake(BL::Depsgraph& b_depsgraph_,
                           BL::Object& b_object,
                           const string& pass_type,
                           const int pass_filter,
@@ -549,6 +553,8 @@ void BlenderSession::bake(BL::Depsgraph& b_depsgraph,
                           const int /*depth*/,
                           float result[])
 {
+	b_depsgraph = b_depsgraph_;
+
 	ShaderEvalType shader_type = get_shader_type(pass_type);
 
 	/* Set baking flag in advance, so kernel loading can check if we need
@@ -719,7 +725,7 @@ void BlenderSession::update_render_result(BL::RenderResult& b_rr,
 	do_write_update_render_result(b_rr, b_rlay, rtile, true);
 }
 
-void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph)
+void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph_)
 {
 	/* only used for viewport render */
 	if(!b_v3d)
@@ -760,6 +766,8 @@ void BlenderSession::synchronize(BL::Depsgraph& b_depsgraph)
 	}
 
 	/* data and camera synchronize */
+	b_depsgraph = b_depsgraph_;
+
 	BL::Object b_camera_override(b_engine.camera_override());
 	sync->sync_data(b_render,
 	                b_depsgraph,
@@ -1280,8 +1288,6 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 		fprintf(stderr, "Cycles error: unexpected smoke volume resolution, skipping\n");
 	}
 	else {
-		/* TODO: fix point density to work with new view layer depsgraph */
-#if 0
 		/* We originally were passing view_layer here but in reality we need a
 		 * a depsgraph to pass to the RE_point_density_minmax() function.
 		 */
@@ -1292,10 +1298,8 @@ bool BlenderSession::builtin_image_float_pixels(const string &builtin_name,
 		if(b_node.is_a(&RNA_ShaderNodeTexPointDensity)) {
 			BL::ShaderNodeTexPointDensity b_point_density_node(b_node);
 			int length;
-			int settings = background ? 1 : 0;  /* 1 - render settings, 0 - vewport settings. */
-			b_point_density_node.calc_point_density(b_depsgraph, settings, &length, &pixels);
+			b_point_density_node.calc_point_density(b_depsgraph, &length, &pixels);
 		}
-#endif
 	}
 
 	return false;
