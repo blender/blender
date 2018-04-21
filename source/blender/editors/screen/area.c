@@ -77,9 +77,17 @@
 
 extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]); /* xxx temp */
 
+enum RegionEmbossSide {
+	REGION_EMBOSS_LEFT   = (1 << 0),
+	REGION_EMBOSS_TOP    = (1 << 1),
+	REGION_EMBOSS_BOTTOM = (1 << 2),
+	REGION_EMBOSS_RIGHT  = (1 << 3),
+	REGION_EMBOSS_ALL    = REGION_EMBOSS_LEFT | REGION_EMBOSS_TOP | REGION_EMBOSS_RIGHT | REGION_EMBOSS_BOTTOM,
+};
+
 /* general area and region code */
 
-static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
+static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
 {
 	rcti rect;
 	
@@ -98,26 +106,36 @@ static void region_draw_emboss(const ARegion *ar, const rcti *scirct)
 	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
 	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GWN_PRIM_LINE_STRIP, 5);
-	
-	/* right  */
-	immAttrib4ub(color, 0, 0, 0, 30);
-	immVertex2f(pos, rect.xmax, rect.ymax);
-	immAttrib4ub(color, 0, 0, 0, 30);
-	immVertex2f(pos, rect.xmax, rect.ymin);
-	
-	/* bottom  */
-	immAttrib4ub(color, 0, 0, 0, 30);
-	immVertex2f(pos, rect.xmin, rect.ymin);
-	
-	/* left  */
-	immAttrib4ub(color, 255, 255, 255, 30);
-	immVertex2f(pos, rect.xmin, rect.ymax);
+	immBeginAtMost(GWN_PRIM_LINES, 8);
 
-	/* top  */
-	immAttrib4ub(color, 255, 255, 255, 30);
-	immVertex2f(pos, rect.xmax, rect.ymax);
-	
+	/* right */
+	if (sides & REGION_EMBOSS_RIGHT) {
+		immAttrib4ub(color, 0, 0, 0, 30);
+		immVertex2f(pos, rect.xmax, rect.ymax);
+		immVertex2f(pos, rect.xmax, rect.ymin);
+	}
+
+	/* bottom */
+	if (sides & REGION_EMBOSS_BOTTOM) {
+		immAttrib4ub(color, 0, 0, 0, 30);
+		immVertex2f(pos, rect.xmax, rect.ymin);
+		immVertex2f(pos, rect.xmin, rect.ymin);
+	}
+
+	/* left */
+	if (sides & REGION_EMBOSS_LEFT) {
+		immAttrib4ub(color, 255, 255, 255, 30);
+		immVertex2f(pos, rect.xmin, rect.ymin);
+		immVertex2f(pos, rect.xmin, rect.ymax);
+	}
+
+	/* top */
+	if (sides & REGION_EMBOSS_TOP) {
+		immAttrib4ub(color, 255, 255, 255, 30);
+		immVertex2f(pos, rect.xmin, rect.ymax);
+		immVertex2f(pos, rect.xmax, rect.ymax);
+	}
+
 	immEnd();
 	immUnbindProgram();
 	
@@ -594,7 +612,12 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 		/* disable emboss when the area is full,
 		 * unless we need to see division between regions (quad-split for eg) */
 		if (((screen->state == SCREENFULL) && (ar->alignment == RGN_ALIGN_NONE)) == 0) {
-			region_draw_emboss(ar, &ar->winrct);
+			/* Don't draw horizontal separators in the top-bar to make the tabs
+			 * look nice with the lower sub-bar. Obviously, a more generic
+			 * solution would be preferable, e.g. a dedicated RGN_TYPE_TABS
+			 * region type, but for now keeping it simple. */
+			int emboss_sides = ED_area_is_global(sa) ? (REGION_EMBOSS_LEFT | REGION_EMBOSS_RIGHT) : REGION_EMBOSS_ALL;
+			region_draw_emboss(ar, &ar->winrct, emboss_sides);
 		}
 	}
 
