@@ -71,6 +71,7 @@ struct Icon_Geom {
 
 typedef struct Icon Icon;
 
+struct ImBuf;
 struct PreviewImage;
 struct ID;
 
@@ -147,6 +148,10 @@ struct PreviewImage *BKE_previewimg_cached_thumbnail_read(
 
 void BKE_previewimg_cached_release(const char *name);
 void BKE_previewimg_cached_release_pointer(struct PreviewImage *prv);
+
+struct ImBuf *BKE_icon_geom_rasterize(
+        const struct Icon_Geom *geom,
+        const unsigned int size_x, const unsigned int size_y);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
 

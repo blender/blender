@@ -116,6 +116,7 @@ set(SRC
 	intern/gpencil.c
 	intern/group.c
 	intern/icons.c
+	intern/icons_rasterize.c
 	intern/idcode.c
 	intern/idprop.c
 	intern/image.c

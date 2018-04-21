@@ -110,7 +110,7 @@ typedef struct DrawInfo {
 			VectorDrawFunc func;
 		} vector;
 		struct {
-			Gwn_Batch *batch;
+			ImBuf *image_cache;
 		} geom;
 		struct {
 			IconImage *image;
@@ -748,8 +748,8 @@ void UI_icons_free_drawinfo(void *drawinfo)
 			}
 		}
 		else if (di->type == ICON_TYPE_GEOM) {
-			if (di->data.geom.batch) {
-				GWN_BATCH_DISCARD_SAFE(di->data.geom.batch);
+			if (di->data.geom.image_cache) {
+				IMB_freeImBuf(di->data.geom.image_cache);
 			}
 		}
 
@@ -760,7 +760,7 @@ void UI_icons_free_drawinfo(void *drawinfo)
 /**
  * #Icon.data_type and #Icon.obj
  */
-static DrawInfo *icon_create_drawinfo(int icon_data_type, void *icon_obj)
+static DrawInfo *icon_create_drawinfo(int icon_data_type)
 {
 	DrawInfo *di = NULL;
 
@@ -771,21 +771,6 @@ static DrawInfo *icon_create_drawinfo(int icon_data_type, void *icon_obj)
 	}
 	else if (icon_data_type == ICON_DATA_GEOM) {
 		di->type = ICON_TYPE_GEOM;
-
-		struct Icon_Geom *geom = icon_obj;
-		static Gwn_VertFormat format = {0};
-		static struct { uint pos, color; } attr_id;
-		if (format.attrib_ct == 0) {
-			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_U8, 2, GWN_FETCH_INT_TO_FLOAT_UNIT);
-			attr_id.color = GWN_vertformat_attr_add(&format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
-		}
-		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, geom->coords_len * 3);
-		GWN_vertbuf_attr_fill(vbo, attr_id.pos, geom->coords);
-		GWN_vertbuf_attr_fill(vbo, attr_id.color, geom->colors);
-
-		Gwn_Batch *batch = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
-		di->data.geom.batch = batch;
 	}
 	else {
 		BLI_assert(0);
@@ -799,7 +784,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
 	if (icon->drawinfo) {
 		return icon->drawinfo;
 	}
-	DrawInfo *di = icon_create_drawinfo(icon->obj_type, icon->obj);
+	DrawInfo *di = icon_create_drawinfo(icon->obj_type);
 	icon->drawinfo = di;
 	icon->drawinfo_free = UI_icons_free_drawinfo;
 	return di;
@@ -1241,24 +1226,22 @@ static void icon_draw_size(
 		/* We need to flush widget base first to ensure correct ordering. */
 		UI_widgetbase_draw_cache_flush();
 
-		gpuPushMatrix();
-		gpuTranslate2f(x, y);
-		gpuScale2f(w, h);
-
+		/* This could re-generate often if rendered at different sizes in the one interface.
+		 * TODO(campbell): support caching multiple sizes. */
+		ImBuf *ibuf = di->data.geom.image_cache;
+		if ((ibuf == NULL) ||
+		    (ibuf->x != w) ||
+		    (ibuf->y != h))
 		{
-			struct Gwn_Batch *batch = di->data.geom.batch;
-			GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_SMOOTH_COLOR_UNIFORM_ALPHA);
-			GWN_batch_uniform_1f(batch, "alpha", 1.0f / UI_PIXEL_AA_JITTER);
-
-			for (uint i = 0; i < UI_PIXEL_AA_JITTER; i += 1) {
-				gpuTranslate2f(ui_pixel_jitter[i][0] / w, ui_pixel_jitter[i][1] / h);
-				GWN_batch_draw(batch);
-				gpuTranslate2f(-ui_pixel_jitter[i][0] / w, -ui_pixel_jitter[i][1] / h);
+			if (ibuf) {
+				IMB_freeImBuf(ibuf);
 			}
-			GWN_batch_program_use_end(batch);
+			ibuf = BKE_icon_geom_rasterize(icon->obj, w, h);
+			di->data.geom.image_cache = ibuf;
 		}
-
-		gpuPopMatrix();
+		glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+		icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, is_preview);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
 		/* texture image use premul alpha for correct scaling */
