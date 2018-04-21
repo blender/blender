@@ -1167,20 +1167,25 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 static bool region_is_overlap(ScrArea *sa, ARegion *ar)
 {
 	if (U.uiflag2 & USER_REGION_OVERLAP) {
-		if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ)) {
+		if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ, SPACE_IMAGE)) {
 			if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
 				return 1;
-		}
-		else if (sa->spacetype == SPACE_IMAGE) {
-			if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_PREVIEW))
-				return 1;
+
+			if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_IMAGE)) {
+				if (ar->regiontype == RGN_TYPE_HEADER)
+					return 1;
+			}
+			else if(sa->spacetype == SPACE_SEQ) {
+				if (ar->regiontype == RGN_TYPE_PREVIEW)
+					return 1;
+			}
 		}
 	}
 
 	return 0;
 }
 
-static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti *remainder, int quad, bool add_azones)
+static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti *remainder, rcti *overlap_remainder, int quad, bool add_azones)
 {
 	rcti *remainder_prev = remainder;
 	int prefsizex, prefsizey;
@@ -1241,50 +1246,50 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		BLI_rcti_init(remainder, 0, 0, 0, 0);
 	}
 	else if (alignment == RGN_ALIGN_TOP || alignment == RGN_ALIGN_BOTTOM) {
+		rcti *winrct = (ar->overlap) ? overlap_remainder : remainder;
 		
-		if (rct_fits(remainder, 'v', prefsizey) < 0) {
+		if (rct_fits(winrct, 'v', prefsizey) < 0) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
 		}
 		else {
-			int fac = rct_fits(remainder, 'v', prefsizey);
+			int fac = rct_fits(winrct, 'v', prefsizey);
 
 			if (fac < 0)
 				prefsizey += fac;
 			
-			ar->winrct = *remainder;
+			ar->winrct = *winrct;
 			
 			if (alignment == RGN_ALIGN_TOP) {
 				ar->winrct.ymin = ar->winrct.ymax - prefsizey + 1;
-				remainder->ymax = ar->winrct.ymin - 1;
+				winrct->ymax = ar->winrct.ymin - 1;
 			}
 			else {
 				ar->winrct.ymax = ar->winrct.ymin + prefsizey - 1;
-				remainder->ymin = ar->winrct.ymax + 1;
+				winrct->ymin = ar->winrct.ymax + 1;
 			}
 		}
 	}
 	else if (ELEM(alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+		rcti *winrct = (ar->overlap) ? overlap_remainder : remainder;
 		
-		if (rct_fits(remainder, 'h', prefsizex) < 0) {
+		if (rct_fits(winrct, 'h', prefsizex) < 0) {
 			ar->flag |= RGN_FLAG_TOO_SMALL;
 		}
 		else {
-			int fac = rct_fits(remainder, 'h', prefsizex);
+			int fac = rct_fits(winrct, 'h', prefsizex);
 			
 			if (fac < 0)
 				prefsizex += fac;
 			
-			ar->winrct = *remainder;
+			ar->winrct = *winrct;
 			
 			if (alignment == RGN_ALIGN_RIGHT) {
 				ar->winrct.xmin = ar->winrct.xmax - prefsizex + 1;
-				if (ar->overlap == 0)
-					remainder->xmax = ar->winrct.xmin - 1;
+				winrct->xmax = ar->winrct.xmin - 1;
 			}
 			else {
 				ar->winrct.xmax = ar->winrct.xmin + prefsizex - 1;
-				if (ar->overlap == 0)
-					remainder->xmin = ar->winrct.xmax + 1;
+				winrct->xmin = ar->winrct.xmax + 1;
 			}
 		}
 	}
@@ -1368,12 +1373,13 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	if (ar->winy > 1) ar->sizey = (ar->winy + 0.5f) /  UI_DPI_FAC;
 		
 	/* exception for multiple overlapping regions on same spot */
-	if (ar->overlap)
+	if (ar->overlap) {
 		region_overlap_fix(sa, ar);
+	}
 
 	/* set winrect for azones */
 	if (ar->flag & (RGN_FLAG_HIDDEN | RGN_FLAG_TOO_SMALL)) {
-		ar->winrct = *remainder;
+		ar->winrct = (ar->overlap) ? *overlap_remainder : *remainder;
 		
 		switch (alignment) {
 			case RGN_ALIGN_TOP:
@@ -1401,6 +1407,12 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 			ar->prev->winy = BLI_rcti_size_y(&ar->prev->winrct) + 1;
 		}
 	}
+
+	/* After non-overlapping region, all following overlapping regions
+	 * fit within the remaining space again. */
+	if (!ar->overlap) {
+		*overlap_remainder = *remainder;
+	}
 	
 	/* in end, add azones, where appropriate */
 	if (ar->regiontype == RGN_TYPE_HEADER && ar->winy + 6 > sa->winy) {
@@ -1424,7 +1436,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 		}
 	}
 
-	region_rect_recursive(win, sa, ar->next, remainder, quad, add_azones);
+	region_rect_recursive(win, sa, ar->next, remainder, overlap_remainder, quad, add_azones);
 }
 
 static void area_calc_totrct(ScrArea *sa, int window_size_x, int window_size_y)
@@ -1547,13 +1559,14 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
 
 	const int size_x = WM_window_pixels_x(win);
 	const int size_y = WM_window_pixels_y(win);
-	rcti rect;
+	rcti rect, overlap_rect;
 
 	area_calc_totrct(area, size_x, size_y);
 
 	/* region rect sizes */
 	rect = area->totrct;
-	region_rect_recursive(win, area, area->regionbase.first, &rect, 0, false);
+	overlap_rect = rect;
+	region_rect_recursive(win, area, area->regionbase.first, &rect, &overlap_rect, 0, false);
 
 	for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
 		region_subwindow(ar);
@@ -1574,7 +1587,7 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	const int window_size_x = WM_window_pixels_x(win);
 	const int window_size_y = WM_window_pixels_y(win);
 	ARegion *ar;
-	rcti rect;
+	rcti rect, overlap_rect;
 
 	if (ED_area_is_global(sa) && (sa->global->flag & GLOBAL_AREA_IS_HIDDEN)) {
 		return;
@@ -1599,7 +1612,8 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 
 	/* region rect sizes */
 	rect = sa->totrct;
-	region_rect_recursive(win, sa, sa->regionbase.first, &rect, 0, true);
+	overlap_rect = rect;
+	region_rect_recursive(win, sa, sa->regionbase.first, &rect, &overlap_rect, 0, true);
 	sa->flag &= ~AREA_FLAG_REGION_SIZE_UPDATE;
 	
 	/* default area handlers */

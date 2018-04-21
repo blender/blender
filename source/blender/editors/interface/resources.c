@@ -230,6 +230,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					headerdesel[0] = cp[0] > 10 ? cp[0] - 10 : 0;
 					headerdesel[1] = cp[1] > 10 ? cp[1] - 10 : 0;
 					headerdesel[2] = cp[2] > 10 ? cp[2] - 10 : 0;
+					headerdesel[3] = cp[3];
 					cp = headerdesel;
 					break;
 				case TH_HEADER_TEXT:
