@@ -960,6 +960,7 @@ void wm_draw_update(bContext *C)
 			wm_window_make_drawable(wm, win);
 
 			/* notifiers for screen redraw */
+			ED_screen_set_active_region(C, &win->eventstate->x);
 			ED_screen_ensure_updated(wm, win, screen);
 
 			int drawmethod = wm_automatic_draw_method(win);

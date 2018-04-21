@@ -986,14 +986,14 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 /* *********************************** */
 
 /* case when on area-edge or in azones, or outside window */
-static void screen_cursor_set(wmWindow *win, const wmEvent *event)
+static void screen_cursor_set(wmWindow *win, const int xy[2])
 {
 	const bScreen *screen = WM_window_get_active_screen(win);
 	AZone *az = NULL;
 	ScrArea *sa;
 	
 	for (sa = screen->areabase.first; sa; sa = sa->next)
-		if ((az = is_in_area_actionzone(sa, &event->x)))
+		if ((az = is_in_area_actionzone(sa, xy)))
 			break;
 	
 	if (sa) {
@@ -1007,7 +1007,7 @@ static void screen_cursor_set(wmWindow *win, const wmEvent *event)
 		}
 	}
 	else {
-		ScrEdge *actedge = screen_find_active_scredge(win, screen, event->x, event->y);
+		ScrEdge *actedge = screen_find_active_scredge(win, screen, xy[0], xy[1]);
 
 		if (actedge) {
 			if (scredge_is_horizontal(actedge))
@@ -1023,7 +1023,7 @@ static void screen_cursor_set(wmWindow *win, const wmEvent *event)
 
 /* called in wm_event_system.c. sets state vars in screen, cursors */
 /* event type is mouse move */
-void ED_screen_set_active_region(bContext *C, const wmEvent *event)
+void ED_screen_set_active_region(bContext *C, const int xy[2])
 {
 	wmWindow *win = CTX_wm_window(C);
 	bScreen *scr = WM_window_get_active_screen(win);
@@ -1034,9 +1034,9 @@ void ED_screen_set_active_region(bContext *C, const wmEvent *event)
 		ARegion *old_ar = scr->active_region;
 
 		ED_screen_areas_iter(win, scr, area_iter) {
-			if (event->x > area_iter->totrct.xmin && event->x < area_iter->totrct.xmax) {
-				if (event->y > area_iter->totrct.ymin && event->y < area_iter->totrct.ymax) {
-					if (is_in_area_actionzone(area_iter, &event->x) == NULL) {
+			if (xy[0] > area_iter->totrct.xmin && xy[0] < area_iter->totrct.xmax) {
+				if (xy[1] > area_iter->totrct.ymin && xy[1] < area_iter->totrct.ymax) {
+					if (is_in_area_actionzone(area_iter, xy) == NULL) {
 						sa = area_iter;
 						break;
 					}
@@ -1046,7 +1046,7 @@ void ED_screen_set_active_region(bContext *C, const wmEvent *event)
 		if (sa) {
 			/* make overlap active when mouse over */
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (BLI_rcti_isect_pt_v(&ar->winrct, &event->x)) {
+				if (BLI_rcti_isect_pt_v(&ar->winrct, xy)) {
 					scr->active_region = ar;
 					break;
 				}
@@ -1079,7 +1079,7 @@ void ED_screen_set_active_region(bContext *C, const wmEvent *event)
 		
 		/* cursors, for time being set always on edges, otherwise aregion doesnt switch */
 		if (scr->active_region == NULL) {
-			screen_cursor_set(win, event);
+			screen_cursor_set(win, xy);
 		}
 		else {
 			/* notifier invokes freeing the buttons... causing a bit too much redraws */
