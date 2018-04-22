@@ -156,6 +156,14 @@ void DRW_globals_update(void)
 
 /* ********************************* SHGROUP ************************************* */
 
+extern char datatoc_armature_shape_outline_vert_glsl[];
+extern char datatoc_armature_shape_outline_geom_glsl[];
+extern char datatoc_gpu_shader_flat_color_frag_glsl[];
+
+static struct {
+	struct GPUShader *shape_outline;
+} g_armature_shaders = {NULL};
+
 static struct {
 	struct Gwn_VertFormat *instance_screenspace;
 	struct Gwn_VertFormat *instance_color;
@@ -177,6 +185,11 @@ void DRW_globals_free(void)
 	struct Gwn_VertFormat **format = &g_formats.instance_screenspace;
 	for (int i = 0; i < sizeof(g_formats) / sizeof(void *); ++i, ++format) {
 		MEM_SAFE_FREE(*format);
+	}
+
+	struct GPUShader **shader = &g_armature_shaders.shape_outline;
+	for (int i = 0; i < sizeof(g_armature_shaders) / sizeof(void *); ++i, ++shader) {
+		DRW_SHADER_FREE_SAFE(*shader);
 	}
 }
 
@@ -453,6 +466,32 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, struct Gwn_Batch 
 
 	return grp;
 }
+
+/* Only works with batches with adjacency infos. */
+DRWShadingGroup *shgroup_instance_armature_shape_outline(DRWPass *pass, struct Gwn_Batch *geom)
+{
+	if (g_armature_shaders.shape_outline == NULL) {
+		g_armature_shaders.shape_outline = DRW_shader_create(
+		            datatoc_armature_shape_outline_vert_glsl,
+		            datatoc_armature_shape_outline_geom_glsl,
+		            datatoc_gpu_shader_flat_color_frag_glsl,
+		            NULL);
+	}
+
+	/* TODO own format? */
+	DRW_shgroup_instance_format(g_formats.instance_color, {
+		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
+		{"color"              , DRW_ATTRIB_FLOAT, 4}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_armature_shaders.shape_outline,
+	                                                   pass, geom, g_formats.instance_color);
+	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+
+	return grp;
+}
+
+
 
 
 /* ******************************************** COLOR UTILS *********************************************** */

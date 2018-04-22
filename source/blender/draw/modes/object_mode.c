@@ -101,6 +101,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *outlines_resolve;
 	struct DRWPass *grid;
 	struct DRWPass *bone_solid;
+	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *particle;
@@ -1040,6 +1041,7 @@ static void OBJECT_cache_init(void *vedata)
 		/* Solid bones */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
+		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
 	}
 
 	{
@@ -2141,7 +2143,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (arm->edbo == NULL) {
 				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 					DRW_shgroup_armature_object(
-					        ob, view_layer, psl->bone_solid, psl->bone_wire, psl->bone_envelope,
+					        ob, view_layer, psl->bone_solid, psl->bone_outline, psl->bone_wire, psl->bone_envelope,
 					        stl->g_data->relationship_lines);
 				}
 			}

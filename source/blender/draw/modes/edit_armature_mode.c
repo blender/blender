@@ -38,6 +38,7 @@ extern GlobalsUboStorage ts;
 typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
+	struct DRWPass *bone_outline;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *relationship;
 } EDIT_ARMATURE_PassList;
@@ -79,6 +80,12 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 	}
 
 	{
+		/* Bones Outline */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
+	}
+
+	{
 		/* Wire bones */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		psl->bone_wire = DRW_pass_create("Bone Wire Pass", state);
@@ -112,7 +119,8 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 	if (ob->type == OB_ARMATURE) {
 		if (arm->edbo) {
 			DRW_shgroup_armature_edit(
-			            ob, psl->bone_solid, psl->bone_wire, psl->bone_envelope, stl->g_data->relationship_lines);
+			            ob, psl->bone_solid, psl->bone_outline, psl->bone_wire,
+			            psl->bone_envelope, stl->g_data->relationship_lines);
 		}
 	}
 }
@@ -125,6 +133,7 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	MULTISAMPLE_SYNC_ENABLE(dfbl)
 
 	DRW_draw_pass(psl->bone_envelope);
+	DRW_draw_pass(psl->bone_outline);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->relationship);

@@ -44,6 +44,7 @@ extern GlobalsUboStorage ts;
 
 typedef struct POSE_PassList {
 	struct DRWPass *bone_solid;
+	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *relationship;
@@ -88,6 +89,12 @@ static void POSE_cache_init(void *vedata)
 	}
 
 	{
+		/* Bones Outline */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
+	}
+
+	{
 		/* Wire bones */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		psl->bone_wire = DRW_pass_create("Bone Wire Pass", state);
@@ -125,7 +132,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 	if (ob->type == OB_ARMATURE) {
 		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 			DRW_shgroup_armature_pose(
-			        ob, psl->bone_solid, psl->bone_wire, psl->bone_envelope,
+			        ob, psl->bone_solid, psl->bone_outline, psl->bone_wire, psl->bone_envelope,
 			        stl->g_data->relationship_lines);
 		}
 	}
@@ -161,6 +168,7 @@ static void POSE_draw_scene(void *vedata)
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
 
 	DRW_draw_pass(psl->bone_envelope);
+	DRW_draw_pass(psl->bone_outline);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->relationship);
