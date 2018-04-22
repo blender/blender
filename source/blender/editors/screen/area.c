@@ -660,13 +660,6 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 		return;
 	}
 
-	/* can't click on bottom corners on OS X, already used for resizing */
-#ifdef __APPLE__
-	if (!(sa->totrct.xmin == 0 && sa->totrct.ymin == 0) || WM_window_is_fullscreen(win))
-#else
-	(void)win;
-#endif
-
 	float coords[4][4] = {
 	    /* Bottom-left. */
 	    {sa->totrct.xmin,
@@ -690,6 +683,17 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 	     sa->totrct.ymax - (AZONESPOT - 1)}};
 
 	for (int i = 0; i < 4; i++) {
+		/* can't click on bottom corners on OS X, already used for resizing */
+#ifdef __APPLE__
+		if (!WM_window_is_fullscreen(win) &&
+		    ((coords[i][0] == 0 && coords[i][1] == 0) ||
+		     (coords[i][0] == WM_window_pixels_x(win) && coords[i][1] == 0))) {
+			continue;
+		}
+#else
+		(void)win;
+#endif
+
 		/* set area action zones */
 		az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&(sa->actionzones), az);
