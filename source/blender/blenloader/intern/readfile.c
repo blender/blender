@@ -6402,6 +6402,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 	/* if we do not have the spacetype registered we cannot
 	 * free it, so don't allocate any new memory for such spacetypes. */
 	if (!BKE_spacetype_exists(area->spacetype)) {
+		area->butspacetype = area->spacetype; /* Hint for versioning code to replace deprecated space types. */
 		area->spacetype = SPACE_EMPTY;
 	}
 

@@ -112,6 +112,31 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 	}
 }
 
+static void do_version_area_change_space_to_space_action(ScrArea *area, const Scene *scene)
+{
+	SpaceType *stype = BKE_spacetype_from_id(SPACE_ACTION);
+	SpaceAction *saction = (SpaceAction *)stype->new(area, scene);
+	ARegion *region_channels;
+
+	/* Properly free current regions */
+	for (ARegion *region = area->regionbase.first; region; region = region->next) {
+		BKE_area_region_free(area->type, region);
+	}
+	BLI_freelistN(&area->regionbase);
+
+	area->type = stype;
+	area->spacetype = stype->spaceid;
+
+	BLI_addhead(&area->spacedata, saction);
+	area->regionbase = saction->regionbase;
+	BLI_listbase_clear(&saction->regionbase);
+
+	/* Different defaults for timeline */
+	region_channels = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
+	region_channels->flag |= RGN_FLAG_HIDDEN;
+	saction->mode = SACTCONT_TIMELINE;
+}
+
 /**
  * \brief After lib-link versioning for new workspace design.
  *
@@ -622,6 +647,40 @@ void do_versions_after_linking_280(Main *main)
 			}
 			else {
 				object->duplicator_visibility_flag = OB_DUPLI_FLAG_VIEWPORT | OB_DUPLI_FLAG_RENDER;
+			}
+		}
+	}
+
+	/* SpaceTime & SpaceLogic removal/replacing */
+	if (!MAIN_VERSION_ATLEAST(main, 280, 9)) {
+		const wmWindowManager *wm = main->wm.first;
+		const Scene *scene = main->scene.first;
+
+		/* Action editors need a scene for creation. First, update active
+		 * screens using the active scene of the window they're displayed in.
+		 * Next, update remaining screens using first scene in main listbase. */
+
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+				if (ELEM(area->butspacetype, SPACE_TIME, SPACE_LOGIC)) {
+					do_version_area_change_space_to_space_action(area, win->scene);
+
+					/* Don't forget to unset! */
+					area->butspacetype = SPACE_EMPTY;
+				}
+			}
+		}
+
+		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *area = screen->areabase.first; area; area = area->next) {
+				if (ELEM(area->butspacetype, SPACE_TIME, SPACE_LOGIC)) {
+					/* Areas that were already handled won't be handled again */
+					do_version_area_change_space_to_space_action(area, scene);
+
+					/* Don't forget to unset! */
+					area->butspacetype = SPACE_EMPTY;
+				}
 			}
 		}
 	}
