@@ -316,6 +316,8 @@ typedef enum {
  * Functions to draw various shapes, taking theme settings into account.
  * Used for code that draws its own UI style elements. */
 
+void UI_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]);
+
 void UI_draw_roundbox_corner_set(int type);
 void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float color[4]);
 void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float maxy, float rad, const float col[4]);

@@ -494,7 +494,7 @@ Gwn_Batch *ui_batch_roundbox_shadow_get(void)
 
 /* ************************************************* */
 
-void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3,
+void UI_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3,
                        const float color[4])
 {
 	float tri_arr[3][2] = {{x1, y1}, {x2, y2}, {x3, y3}};

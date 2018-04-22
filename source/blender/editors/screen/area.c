@@ -75,8 +75,6 @@
 
 #include "screen_intern.h"
 
-extern void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3, const float color[4]); /* xxx temp */
-
 enum RegionEmbossSide {
 	REGION_EMBOSS_LEFT   = (1 << 0),
 	REGION_EMBOSS_TOP    = (1 << 1),
@@ -443,19 +441,19 @@ static void region_draw_azone_tria(AZone *az)
 	/* add code to draw region hidden as 'too small' */
 	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
-			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y1, (float)(az->x1 + az->x2) / 2, (float)az->y2, color);
+			UI_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y1, (float)(az->x1 + az->x2) / 2, (float)az->y2, color);
 			break;
 			
 		case AE_BOTTOM_TO_TOPLEFT:
-			ui_draw_anti_tria((float)az->x1, (float)az->y2, (float)az->x2, (float)az->y2, (float)(az->x1 + az->x2) / 2, (float)az->y1, color);
+			UI_draw_anti_tria((float)az->x1, (float)az->y2, (float)az->x2, (float)az->y2, (float)(az->x1 + az->x2) / 2, (float)az->y1, color);
 			break;
 
 		case AE_LEFT_TO_TOPRIGHT:
-			ui_draw_anti_tria((float)az->x2, (float)az->y1, (float)az->x2, (float)az->y2, (float)az->x1, (float)(az->y1 + az->y2) / 2, color);
+			UI_draw_anti_tria((float)az->x2, (float)az->y1, (float)az->x2, (float)az->y2, (float)az->x1, (float)(az->y1 + az->y2) / 2, color);
 			break;
 			
 		case AE_RIGHT_TO_TOPLEFT:
-			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x1, (float)az->y2, (float)az->x2, (float)(az->y1 + az->y2) / 2, color);
+			UI_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x1, (float)az->y2, (float)az->x2, (float)(az->y1 + az->y2) / 2, color);
 			break;
 			
 	}
