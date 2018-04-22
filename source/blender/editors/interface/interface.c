@@ -1308,6 +1308,8 @@ void UI_block_draw(const bContext *C, uiBlock *block)
 	/* back */
 	if (block->flag & UI_BLOCK_RADIAL)
 		ui_draw_pie_center(block);
+	else if (block->flag & UI_BLOCK_POPOVER)
+		ui_draw_popover_back(&style, block, &rect);
 	else if (block->flag & UI_BLOCK_LOOP)
 		ui_draw_menu_back(&style, block, &rect);
 	else if (block->panel)

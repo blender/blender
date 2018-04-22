@@ -108,7 +108,8 @@ enum {
 	UI_DIR_DOWN         = (1 << 1),
 	UI_DIR_LEFT         = (1 << 2),
 	UI_DIR_RIGHT        = (1 << 3),
-	UI_DIR_CENTER_Y     = (1 << 4),
+	UI_DIR_CENTER_X     = (1 << 4),
+	UI_DIR_CENTER_Y     = (1 << 5),
 
 	UI_DIR_ALL          = (UI_DIR_UP | UI_DIR_DOWN | UI_DIR_LEFT | UI_DIR_RIGHT),
 };
@@ -140,6 +141,7 @@ enum {
 #define UI_BLOCK_POPUP_HOLD  (1 << 18)
 #define UI_BLOCK_LIST_ITEM   (1 << 19)
 #define UI_BLOCK_RADIAL      (1 << 20)
+#define UI_BLOCK_POPOVER     (1 << 21)
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL     (1 << 0)   /* cancel all menus cascading */

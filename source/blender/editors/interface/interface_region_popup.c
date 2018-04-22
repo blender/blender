@@ -138,11 +138,12 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		const int win_y = WM_window_pixels_y(window);
 		// wm_window_get_size(window, &win_x, &win_y);
 
+		const int center_x = (block->direction & UI_DIR_CENTER_X) ? size_x / 2 : 0;
 		const int center_y = (block->direction & UI_DIR_CENTER_Y) ? size_y / 2 : 0;
 
 		/* check if there's space at all */
-		if (butrct.xmin - size_x > 0.0f) left = 1;
-		if (butrct.xmax + size_x < win_x) right = 1;
+		if (butrct.xmin - size_x + center_x > 0.0f) left = 1;
+		if (butrct.xmax + size_x - center_x < win_x) right = 1;
 		if (butrct.ymin - size_y + center_y > 0.0f) down = 1;
 		if (butrct.ymax + size_y - center_y < win_y) top = 1;
 
@@ -193,8 +194,8 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 		else if (dir1 == UI_DIR_UP) {
 			offset_y = butrct.ymax - block->rect.ymin;
-			if (dir2 == UI_DIR_RIGHT) offset_x = butrct.xmax - block->rect.xmax;
-			else                      offset_x = butrct.xmin - block->rect.xmin;
+			if (dir2 == UI_DIR_RIGHT) offset_x = butrct.xmax - block->rect.xmax + center_x;
+			else                      offset_x = butrct.xmin - block->rect.xmin - center_x;
 			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
 				UI_block_order_flip(block);
@@ -202,12 +203,17 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 		else if (dir1 == UI_DIR_DOWN) {
 			offset_y = butrct.ymin - block->rect.ymax;
-			if (dir2 == UI_DIR_RIGHT) offset_x = butrct.xmax - block->rect.xmax;
-			else                      offset_x = butrct.xmin - block->rect.xmin;
+			if (dir2 == UI_DIR_RIGHT) offset_x = butrct.xmax - block->rect.xmax + center_x;
+			else                      offset_x = butrct.xmin - block->rect.xmin - center_x;
 			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
 				UI_block_order_flip(block);
 			}
+		}
+
+		/* Center over popovers for eg. */
+		if (block->direction & UI_DIR_CENTER_X) {
+			offset_x += BLI_rctf_size_x(&butrct) / ((dir2 == UI_DIR_LEFT) ? 2 : - 2);
 		}
 
 		/* and now we handle the exception; no space below or to top */

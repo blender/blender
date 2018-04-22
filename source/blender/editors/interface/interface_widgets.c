@@ -4597,6 +4597,19 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	}
 }
 
+void ui_draw_popover_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+{
+	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
+
+	wt->state(wt, 0);
+	if (block) {
+		wt->draw(&wt->wcol, rect, block->flag, block->direction);
+	}
+	else {
+		wt->draw(&wt->wcol, rect, 0, 0);
+	}
+}
+
 static void draw_disk_shaded(
         float start, float angle,
         float radius_int, float radius_ext, int subd,
