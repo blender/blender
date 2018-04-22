@@ -212,6 +212,9 @@ static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	}
 }
 
+/* This color is used for the internal area embossing and their round corners. */
+float edge_colors[4] = {0.25f, 0.25f, 0.25f, 1.0f};
+
 #define CORNER_RESOLUTION 10
 static void drawscredge_corner_geometry(
         int sizex, int sizey,
@@ -220,7 +223,6 @@ static void drawscredge_corner_geometry(
         double angle_offset)
 {
 	const int radius = ABS(corner_x - center_x);
-	const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 	const int line_thickness = U.pixelsize;
 
 	if (corner_x < center_x) {
@@ -270,7 +272,7 @@ static void drawscredge_corner_geometry(
 		tri_array[i + 1][0] = x;
 		tri_array[i + 1][1] = y;
 	}
-	UI_draw_anti_fan(tri_array, CORNER_RESOLUTION + 1, color);
+	UI_draw_anti_fan(tri_array, CORNER_RESOLUTION + 1, edge_colors);
 }
 
 #undef CORNER_RESOLUTION
@@ -310,6 +312,34 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 	                            sa->v4->vec.x - size,
 	                            sa->v4->vec.y + size,
 	                            M_PI_2 * 3.0f);
+
+	/* Wrap up the corners with a nice embossing. */
+	rcti rect = sa->totrct;
+
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4fv(edge_colors);
+	immBeginAtMost(GWN_PRIM_LINES, 8);
+
+	/* Right. */
+	immVertex2f(pos, rect.xmax, rect.ymax);
+	immVertex2f(pos, rect.xmax, rect.ymin);
+
+	/* Bottom. */
+	immVertex2f(pos, rect.xmax, rect.ymin);
+	immVertex2f(pos, rect.xmin, rect.ymin);
+
+	/* Left. */
+	immVertex2f(pos, rect.xmin, rect.ymin);
+	immVertex2f(pos, rect.xmin, rect.ymax);
+
+	/* Top. */
+	immVertex2f(pos, rect.xmin, rect.ymax);
+	immVertex2f(pos, rect.xmax, rect.ymax);
+
+	immEnd();
+	immUnbindProgram();
 }
 
 /**
@@ -411,7 +441,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	if (U.pixelsize > 1.0f) {
 		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
 		glLineWidth((2.0f * U.pixelsize) - 1);
-		immUniformColor3ub(0, 0, 0);
+		immUniformColor3fv(edge_colors);
 
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			drawscredge_area(sa, winsize_x, winsize_y, pos);
@@ -419,7 +449,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	}
 
 	glLineWidth(1);
-	immUniformColor3ub(0, 0, 0);
+	immUniformColor3fv(edge_colors);
 
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		drawscredge_area(sa, winsize_x, winsize_y, pos);
