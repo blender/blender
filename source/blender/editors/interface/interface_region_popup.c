@@ -90,7 +90,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	uiSafetyRct *saferct;
 	rctf butrct;
 	/*float aspect;*/ /*UNUSED*/
-	int xsize, ysize, xof = 0, yof = 0, center;
+	int size_x, size_y, offset_x = 0, offset_y = 0;
 	short dir1 = 0, dir2 = 0;
 
 	/* transform to window coordinates, using the source button region/block */
@@ -126,34 +126,28 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	//block->rect.xmin -= 2.0; block->rect.ymin -= 2.0;
 	//block->rect.xmax += 2.0; block->rect.ymax += 2.0;
 
-	xsize = BLI_rctf_size_x(&block->rect) + 0.2f * UI_UNIT_X;  /* 4 for shadow */
-	ysize = BLI_rctf_size_y(&block->rect) + 0.2f * UI_UNIT_Y;
-	/* aspect /= (float)xsize;*/ /*UNUSED*/
+	size_x = BLI_rctf_size_x(&block->rect) + 0.2f * UI_UNIT_X;  /* 4 for shadow */
+	size_y = BLI_rctf_size_y(&block->rect) + 0.2f * UI_UNIT_Y;
+	/* aspect /= (float)size_x;*/ /*UNUSED*/
 
 	{
 		bool left = 0, right = 0, top = 0, down = 0;
-		int winx, winy;
 		// int offscreen;
 
-		winx = WM_window_pixels_x(window);
-		winy = WM_window_pixels_y(window);
-		// wm_window_get_size(window, &winx, &winy);
+		const int win_x = WM_window_pixels_x(window);
+		const int win_y = WM_window_pixels_y(window);
+		// wm_window_get_size(window, &win_x, &win_y);
 
-		if (block->direction & UI_DIR_CENTER_Y) {
-			center = ysize / 2;
-		}
-		else {
-			center = 0;
-		}
+		const int center_y = (block->direction & UI_DIR_CENTER_Y) ? size_y / 2 : 0;
 
 		/* check if there's space at all */
-		if (butrct.xmin - xsize > 0.0f) left = 1;
-		if (butrct.xmax + xsize < winx) right = 1;
-		if (butrct.ymin - ysize + center > 0.0f) down = 1;
-		if (butrct.ymax + ysize - center < winy) top = 1;
+		if (butrct.xmin - size_x > 0.0f) left = 1;
+		if (butrct.xmax + size_x < win_x) right = 1;
+		if (butrct.ymin - size_y + center_y > 0.0f) down = 1;
+		if (butrct.ymax + size_y - center_y < win_y) top = 1;
 
 		if (top == 0 && down == 0) {
-			if (butrct.ymin - ysize < winy - butrct.ymax - ysize)
+			if (butrct.ymin - size_y < win_y - butrct.ymax - size_y)
 				top = 1;
 			else
 				down = 1;
@@ -161,7 +155,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 
 		dir1 = (block->direction & UI_DIR_ALL);
 
-		/* secundary directions */
+		/* Secondary directions. */
 		if (dir1 & (UI_DIR_UP | UI_DIR_DOWN)) {
 			if      (dir1 & UI_DIR_LEFT)  dir2 = UI_DIR_LEFT;
 			else if (dir1 & UI_DIR_RIGHT) dir2 = UI_DIR_RIGHT;
@@ -188,28 +182,28 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 
 		if (dir1 == UI_DIR_LEFT) {
-			xof = butrct.xmin - block->rect.xmax;
-			if (dir2 == UI_DIR_UP) yof = butrct.ymin - block->rect.ymin - center - MENU_PADDING;
-			else                   yof = butrct.ymax - block->rect.ymax + center + MENU_PADDING;
+			offset_x = butrct.xmin - block->rect.xmax;
+			if (dir2 == UI_DIR_UP) offset_y = butrct.ymin - block->rect.ymin - center_y - MENU_PADDING;
+			else                   offset_y = butrct.ymax - block->rect.ymax + center_y + MENU_PADDING;
 		}
 		else if (dir1 == UI_DIR_RIGHT) {
-			xof = butrct.xmax - block->rect.xmin;
-			if (dir2 == UI_DIR_UP) yof = butrct.ymin - block->rect.ymin - center - MENU_PADDING;
-			else                   yof = butrct.ymax - block->rect.ymax + center + MENU_PADDING;
+			offset_x = butrct.xmax - block->rect.xmin;
+			if (dir2 == UI_DIR_UP) offset_y = butrct.ymin - block->rect.ymin - center_y - MENU_PADDING;
+			else                   offset_y = butrct.ymax - block->rect.ymax + center_y + MENU_PADDING;
 		}
 		else if (dir1 == UI_DIR_UP) {
-			yof = butrct.ymax - block->rect.ymin;
-			if (dir2 == UI_DIR_RIGHT) xof = butrct.xmax - block->rect.xmax;
-			else                      xof = butrct.xmin - block->rect.xmin;
+			offset_y = butrct.ymax - block->rect.ymin;
+			if (dir2 == UI_DIR_RIGHT) offset_x = butrct.xmax - block->rect.xmax;
+			else                      offset_x = butrct.xmin - block->rect.xmin;
 			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
 				UI_block_order_flip(block);
 			}
 		}
 		else if (dir1 == UI_DIR_DOWN) {
-			yof = butrct.ymin - block->rect.ymax;
-			if (dir2 == UI_DIR_RIGHT) xof = butrct.xmax - block->rect.xmax;
-			else                      xof = butrct.xmin - block->rect.xmin;
+			offset_y = butrct.ymin - block->rect.ymax;
+			if (dir2 == UI_DIR_RIGHT) offset_x = butrct.xmax - block->rect.xmax;
+			else                      offset_x = butrct.xmin - block->rect.xmin;
 			/* changed direction? */
 			if ((dir1 & block->direction) == 0) {
 				UI_block_order_flip(block);
@@ -220,7 +214,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if (top == 0 && down == 0) {
 			if (dir1 == UI_DIR_LEFT || dir1 == UI_DIR_RIGHT) {
 				/* align with bottom of screen */
-				// yof = ysize; (not with menu scrolls)
+				// offset_y = size_y; (not with menu scrolls)
 			}
 		}
 
@@ -229,17 +223,17 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		if (left == 0 && right == 0) {
 			if (dir1 == UI_DIR_UP || dir1 == UI_DIR_DOWN) {
 				/* align with left size of screen */
-				xof = -block->rect.xmin + 5;
+				offset_x = -block->rect.xmin + 5;
 			}
 		}
 #endif
 
 #if 0
 		/* clamp to window bounds, could be made into an option if its ever annoying */
-		if (     (offscreen = (block->rect.ymin + yof)) < 0) yof -= offscreen;   /* bottom */
-		else if ((offscreen = (block->rect.ymax + yof) - winy) > 0) yof -= offscreen;  /* top */
-		if (     (offscreen = (block->rect.xmin + xof)) < 0) xof -= offscreen;   /* left */
-		else if ((offscreen = (block->rect.xmax + xof) - winx) > 0) xof -= offscreen;  /* right */
+		if (     (offscreen = (block->rect.ymin + offset_y)) < 0) offset_y -= offscreen;   /* bottom */
+		else if ((offscreen = (block->rect.ymax + offset_y) - winy) > 0) offset_y -= offscreen;  /* top */
+		if (     (offscreen = (block->rect.xmin + offset_x)) < 0) offset_x -= offscreen;   /* left */
+		else if ((offscreen = (block->rect.xmax + offset_x) - winx) > 0) offset_x -= offscreen;  /* right */
 #endif
 	}
 
@@ -248,13 +242,13 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 	for (bt = block->buttons.first; bt; bt = bt->next) {
 		ui_block_to_window_rctf(butregion, but->block, &bt->rect, &bt->rect);
 
-		BLI_rctf_translate(&bt->rect, xof, yof);
+		BLI_rctf_translate(&bt->rect, offset_x, offset_y);
 
 		/* ui_but_update recalculates drawstring size in pixels */
 		ui_but_update(bt);
 	}
 
-	BLI_rctf_translate(&block->rect, xof, yof);
+	BLI_rctf_translate(&block->rect, offset_x, offset_y);
 
 	/* safety calculus */
 	{
