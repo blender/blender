@@ -501,7 +501,8 @@ void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	float draw_color[4];
 
 	copy_v4_v4(draw_color, color);
-	draw_color[3] *= 0.125f;
+	/* Note: This won't give back the original color. */
+	draw_color[3] *= 1.0f / WIDGET_AA_JITTER;
 
 	glEnable(GL_BLEND);
 
