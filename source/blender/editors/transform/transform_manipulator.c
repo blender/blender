@@ -1191,17 +1191,14 @@ static ManipulatorGroup *manipulatorgroup_init(wmManipulatorGroup *mgroup)
 #define MANIPULATOR_NEW_ARROW(v, draw_style) { \
 	man->manipulators[v] = WM_manipulator_new_ptr(wt_arrow, mgroup, NULL); \
 	RNA_enum_set(man->manipulators[v]->ptr, "draw_style", draw_style); \
-	WM_manipulator_set_flag(man->manipulators[v], WM_MANIPULATOR_GRAB_CURSOR, true); \
 } ((void)0)
 #define MANIPULATOR_NEW_DIAL(v, draw_options) { \
 	man->manipulators[v] = WM_manipulator_new_ptr(wt_dial, mgroup, NULL); \
 	RNA_enum_set(man->manipulators[v]->ptr, "draw_options", draw_options); \
-	WM_manipulator_set_flag(man->manipulators[v], WM_MANIPULATOR_GRAB_CURSOR, true); \
 } ((void)0)
 #define MANIPULATOR_NEW_PRIM(v, draw_style) { \
 	man->manipulators[v] = WM_manipulator_new_ptr(wt_prim, mgroup, NULL); \
 	RNA_enum_set(man->manipulators[v]->ptr, "draw_style", draw_style); \
-	WM_manipulator_set_flag(man->manipulators[v], WM_MANIPULATOR_GRAB_CURSOR, true); \
 } ((void)0)
 
 	/* add/init widgets - order matters! */

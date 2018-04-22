@@ -30,10 +30,13 @@
 
 #include "DNA_screen_types.h"
 
+#include "BKE_context.h"
+
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "WM_types.h"
+#include "WM_api.h"
 
 #include "transform.h"
 
@@ -339,6 +342,25 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 		default:
 			mi->apply = NULL;
 			break;
+	}
+
+	/* setup for the mouse cursor: either set a custom one,
+	 * or hide it if it will be drawn with the helpline */
+	wmWindow *win = CTX_wm_window(t->context);
+	switch(t->helpline) {
+        case HLP_NONE:
+                /* INPUT_VECTOR, INPUT_CUSTOM_RATIO, INPUT_CUSTOM_RATIO_FLIP */
+                WM_cursor_set(win, BC_HANDCURSOR);
+                break;
+        case HLP_SPRING:
+        case HLP_ANGLE:
+        case HLP_TRACKBALL:
+        case HLP_HARROW:
+        case HLP_VARROW:
+                WM_cursor_set(win, CURSOR_NONE);
+                break;
+        default:
+                break;
 	}
 
 	/* if we've allocated new data, free the old data

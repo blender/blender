@@ -1903,7 +1903,10 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 				/* remove modal handler, operator itself should have been canceled and freed */
 				if (retval & (OPERATOR_CANCELLED | OPERATOR_FINISHED)) {
-					WM_cursor_grab_disable(CTX_wm_window(C), NULL);
+					/* set cursor back to the default for the region */
+					wmWindow *win = CTX_wm_window(C);
+					WM_cursor_grab_disable(win, NULL);
+					ED_region_cursor_set(win, CTX_wm_area(C), CTX_wm_region(C));
 
 					BLI_remlink(handlers, handler);
 					wm_event_free_handler(handler);
