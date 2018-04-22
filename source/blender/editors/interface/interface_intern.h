@@ -91,6 +91,7 @@ typedef enum {
 	UI_WTYPE_MENU_ITEM,
 	UI_WTYPE_MENU_ITEM_RADIAL,
 	UI_WTYPE_MENU_BACK,
+	UI_WTYPE_POPOVER_BACK,
 
 	/* specials */
 	UI_WTYPE_ICON,
@@ -112,6 +113,9 @@ typedef enum {
 /* panel limits */
 #define UI_PANEL_MINX   100
 #define UI_PANEL_MINY   70
+
+/* popover width (multiplied by 'U.widget_unit') */
+#define UI_POPOVER_WIDTH_UNITS 10
 
 /* uiBut->flag */
 enum {

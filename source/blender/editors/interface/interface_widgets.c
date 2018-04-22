@@ -2730,6 +2730,31 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	glDisable(GL_BLEND);
 }
 
+static void widget_popover_back(uiWidgetColors *wcol, rcti *rect, int flag, int direction)
+{
+	/* tsk, this isn't nice. */
+	const float unit_half = (BLI_rcti_size_x(rect) / UI_POPOVER_WIDTH_UNITS) / 2;
+	const float cent_x = BLI_rcti_cent_x(rect);
+	rect->ymax -= unit_half;
+	rect->ymin += unit_half;
+
+	widget_menu_back(wcol, rect, flag, direction);
+
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4ubv((unsigned char *)wcol->inner);
+
+	glEnable(GL_BLEND);
+	immBegin(GWN_PRIM_TRIS, 3);
+	immVertex2f(pos, cent_x - unit_half, rect->ymax);
+	immVertex2f(pos, cent_x + unit_half, rect->ymax);
+	immVertex2f(pos, cent_x, rect->ymax + unit_half);
+	immEnd();
+	glDisable(GL_BLEND);
+	immUnbindProgram();
+}
 
 static void ui_hsv_cursor(float x, float y)
 {
@@ -4164,7 +4189,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme = &btheme->tui.wcol_menu_back;
 			wt.draw = widget_menu_back;
 			break;
-			
+		case UI_WTYPE_POPOVER_BACK:
+			wt.wcol_theme = &btheme->tui.wcol_menu_back;
+			wt.draw = widget_popover_back;
+			break;
+
 		/* specials */
 		case UI_WTYPE_ICON:
 			wt.custom = widget_icon_has_anim;
@@ -4599,7 +4628,7 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 
 void ui_draw_popover_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
-	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
+	uiWidgetType *wt = widget_type(UI_WTYPE_POPOVER_BACK);
 
 	wt->state(wt, 0);
 	if (block) {

@@ -125,24 +125,24 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 	if (BLI_findindex(&handle->region->uiblocks, block) == -1)
 		UI_block_region_set(block, handle->region);
 
-	block->direction = UI_DIR_DOWN;
-
 	UI_block_layout_resolve(block, &width, &height);
 
 	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
 
 	UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
+	const int block_margin = U.widget_unit / 2;
+
 	if (pup->popover) {
 		UI_block_flag_enable(block, UI_BLOCK_LOOP);
 		UI_block_direction_set(block, block->direction);
 		block->minbounds = minwidth;
-		UI_block_bounds_set_popup(block, 1, offset[0], offset[1]);
+		UI_block_bounds_set_popup(block, block_margin, offset[0], offset[1]);
 	}
 	else {
 		/* for a header menu we set the direction automatic */
 		block->minbounds = minwidth;
-		UI_block_bounds_set_normal(block, 1);
+		UI_block_bounds_set_normal(block, block_margin);
 	}
 
 	/* if menu slides out of other menu, override direction */
@@ -165,7 +165,8 @@ uiPopupBlockHandle *ui_popover_panel_create(
 	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
 	UI_block_emboss_set(pup->block, UI_EMBOSS);
 	pup->layout = UI_block_layout(
-	        pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, U.widget_unit * 10, 0, MENU_PADDING, style);
+	        pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0,
+	        U.widget_unit * UI_POPOVER_WIDTH_UNITS, 0, MENU_PADDING, style);
 	pup->slideout = false; // but ? ui_block_is_menu(but->block) : false;
 	pup->but = but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);
