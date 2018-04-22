@@ -85,61 +85,6 @@ enum RegionEmbossSide {
 
 /* general area and region code */
 
-static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
-{
-	rcti rect;
-	
-	/* translate scissor rect to region space */
-	rect.xmin = scirct->xmin - ar->winrct.xmin;
-	rect.ymin = scirct->ymin - ar->winrct.ymin;
-	rect.xmax = scirct->xmax - ar->winrct.xmin;
-	rect.ymax = scirct->ymax - ar->winrct.ymin;
-	
-	/* set transp line */
-	glEnable(GL_BLEND);
-	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBeginAtMost(GWN_PRIM_LINES, 8);
-
-	/* right */
-	if (sides & REGION_EMBOSS_RIGHT) {
-		immAttrib4ub(color, 0, 0, 0, 30);
-		immVertex2f(pos, rect.xmax, rect.ymax);
-		immVertex2f(pos, rect.xmax, rect.ymin);
-	}
-
-	/* bottom */
-	if (sides & REGION_EMBOSS_BOTTOM) {
-		immAttrib4ub(color, 0, 0, 0, 30);
-		immVertex2f(pos, rect.xmax, rect.ymin);
-		immVertex2f(pos, rect.xmin, rect.ymin);
-	}
-
-	/* left */
-	if (sides & REGION_EMBOSS_LEFT) {
-		immAttrib4ub(color, 255, 255, 255, 30);
-		immVertex2f(pos, rect.xmin, rect.ymin);
-		immVertex2f(pos, rect.xmin, rect.ymax);
-	}
-
-	/* top */
-	if (sides & REGION_EMBOSS_TOP) {
-		immAttrib4ub(color, 255, 255, 255, 30);
-		immVertex2f(pos, rect.xmin, rect.ymax);
-		immVertex2f(pos, rect.xmax, rect.ymax);
-	}
-
-	immEnd();
-	immUnbindProgram();
-	
-	glDisable(GL_BLEND);
-}
-
 void ED_region_pixelspace(ARegion *ar)
 {
 	wmOrtho2_region_pixelspace(ar);
@@ -555,21 +500,6 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	UI_blocklist_free_inactive(C, &ar->uiblocks);
-
-	if (sa) {
-		const bScreen *screen = WM_window_get_active_screen(win);
-
-		/* disable emboss when the area is full,
-		 * unless we need to see division between regions (quad-split for eg) */
-		if (((screen->state == SCREENFULL) && (ar->alignment == RGN_ALIGN_NONE)) == 0) {
-			/* Don't draw horizontal separators in the top-bar to make the tabs
-			 * look nice with the lower sub-bar. Obviously, a more generic
-			 * solution would be preferable, e.g. a dedicated RGN_TYPE_TABS
-			 * region type, but for now keeping it simple. */
-			int emboss_sides = ED_area_is_global(sa) ? (REGION_EMBOSS_LEFT | REGION_EMBOSS_RIGHT) : REGION_EMBOSS_ALL;
-			region_draw_emboss(ar, &ar->winrct, emboss_sides);
-		}
-	}
 
 	/* We may want to detach message-subscriptions from drawing. */
 	{
