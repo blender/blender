@@ -93,19 +93,20 @@ static unsigned int memory_usage;
 
 static unsigned int gpu_texture_memory_footprint_compute(GPUTexture *tex)
 {
+	int samp = max_ii(tex->samples, 1);
 	switch (tex->target) {
 		case GL_TEXTURE_1D:
-			return tex->bytesize * tex->w;
+			return tex->bytesize * tex->w * samp;
 		case GL_TEXTURE_1D_ARRAY:
 		case GL_TEXTURE_2D:
-			return tex->bytesize * tex->w * tex->h;
+			return tex->bytesize * tex->w * tex->h * samp;
 		case GL_TEXTURE_2D_ARRAY:
 		case GL_TEXTURE_3D:
-			return tex->bytesize * tex->w * tex->h * tex->d;
+			return tex->bytesize * tex->w * tex->h * tex->d * samp;
 		case GL_TEXTURE_CUBE_MAP:
-			return tex->bytesize * 6 * tex->w * tex->h;
+			return tex->bytesize * 6 * tex->w * tex->h * samp;
 		case GL_TEXTURE_CUBE_MAP_ARRAY:
-			return tex->bytesize * 6 * tex->w * tex->h * tex->d;
+			return tex->bytesize * 6 * tex->w * tex->h * tex->d * samp;
 		default:
 			return 0;
 	}
