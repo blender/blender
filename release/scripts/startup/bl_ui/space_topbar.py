@@ -45,9 +45,17 @@ class TOPBAR_HT_upper_bar(Header):
         layout.separator()
 
         if not screen.show_fullscreen:
-            layout.template_ID_tabs(window, "workspace", new="workspace.workspace_add_menu", unlink="workspace.workspace_delete")
+            layout.template_ID_tabs(
+                window, "workspace",
+                new="workspace.workspace_add_menu",
+                unlink="workspace.workspace_delete",
+            )
         else:
-            layout.operator("screen.back_to_previous", icon='SCREEN_BACK', text="Back to Previous")
+            layout.operator(
+                "screen.back_to_previous",
+                icon='SCREEN_BACK',
+                text="Back to Previous",
+            )
 
         layout.separator()
 
@@ -108,7 +116,7 @@ class TOPBAR_HT_lower_bar(Header):
     def draw_right(self, context):
         layout = self.layout
 
-		# Placeholder
+        # Placeholder
         layout.operator("ed.undo_history", text="...")
 
 
@@ -339,34 +347,34 @@ class INFO_MT_help(Menu):
         layout = self.layout
 
         layout.operator(
-                "wm.url_open", text="Manual", icon='HELP',
-                ).url = "https://docs.blender.org/manual/en/dev/"
+            "wm.url_open", text="Manual", icon='HELP',
+        ).url = "https://docs.blender.org/manual/en/dev/"
         layout.operator(
-                "wm.url_open", text="Release Log", icon='URL',
-                ).url = "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/%d.%d" % bpy.app.version[:2]
+            "wm.url_open", text="Release Log", icon='URL',
+        ).url = "http://wiki.blender.org/index.php/Dev:Ref/Release_Notes/%d.%d" % bpy.app.version[:2]
         layout.separator()
 
         layout.operator(
-                "wm.url_open", text="Blender Website", icon='URL',
-                ).url = "https://www.blender.org"
+            "wm.url_open", text="Blender Website", icon='URL',
+        ).url = "https://www.blender.org"
         layout.operator(
-                "wm.url_open", text="Blender Store", icon='URL',
-                ).url = "https://store.blender.org"
+            "wm.url_open", text="Blender Store", icon='URL',
+        ).url = "https://store.blender.org"
         layout.operator(
-                "wm.url_open", text="Developer Community", icon='URL',
-                ).url = "https://www.blender.org/get-involved/"
+            "wm.url_open", text="Developer Community", icon='URL',
+        ).url = "https://www.blender.org/get-involved/"
         layout.operator(
-                "wm.url_open", text="User Community", icon='URL',
-                ).url = "https://www.blender.org/support/user-community"
+            "wm.url_open", text="User Community", icon='URL',
+        ).url = "https://www.blender.org/support/user-community"
         layout.separator()
         layout.operator(
-                "wm.url_open", text="Report a Bug", icon='URL',
-                ).url = "https://developer.blender.org/maniphest/task/edit/form/1"
+            "wm.url_open", text="Report a Bug", icon='URL',
+        ).url = "https://developer.blender.org/maniphest/task/edit/form/1"
         layout.separator()
 
         layout.operator(
-                "wm.url_open", text="Python API Reference", icon='URL',
-                ).url = bpy.types.WM_OT_doc_view._prefix
+            "wm.url_open", text="Python API Reference", icon='URL',
+        ).url = bpy.types.WM_OT_doc_view._prefix
 
         layout.operator("wm.operator_cheat_sheet", icon='TEXT')
         layout.operator("wm.sysinfo", icon='TEXT')
