@@ -6,5 +6,5 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = vec4(gl_FrontFacing ? color_towards: color_outwards, 1.0);
+	fragColor = vec4(gl_FrontFacing ? color_towards: color_outwards, 0.7);
 }

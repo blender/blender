@@ -94,16 +94,8 @@ static void overlay_cache_init(void *vedata)
 	}
 
 	View3D *v3d = DCS->v3d;
-	int bm_face_orientation = DRW_STATE_ADDITIVE;
 	if (v3d) {
 		stl->g_data->overlays = v3d->overlays;
-
-		/*
-		    Solid flat/studio lighting gives strange results when blending with the defaults.
-		*/
-		if (v3d->drawtype == OB_SOLID) {
-			bm_face_orientation = DRW_STATE_BLEND;
-		}
 	}
 	else {
 		stl->g_data->overlays = 0;
@@ -111,7 +103,7 @@ static void overlay_cache_init(void *vedata)
 
 	/* Face Orientation Pass */
 	if (stl->g_data->overlays & V3D_OVERLAY_FACE_ORIENTATION) {
-		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | bm_face_orientation;
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND;
 		psl->face_orientation_pass = DRW_pass_create("Face Orientation", state);
 		stl->g_data->face_orientation_shgrp = DRW_shgroup_create(e_data.face_orientation_sh, psl->face_orientation_pass);
 	}
