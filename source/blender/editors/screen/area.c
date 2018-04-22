@@ -265,57 +265,9 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 /**
  * \brief Corner widgets use for dragging and splitting the view.
  */
-static void area_draw_azone(short x1, short y1, short x2, short y2)
+static void area_draw_azone(short UNUSED(x1), short UNUSED(y1), short UNUSED(x2), short UNUSED(y2))
 {
-	int dx = x2 - x1;
-	int dy = y2 - y1;
-
-	dx = copysign(ceilf(0.3f * abs(dx)), dx);
-	dy = copysign(ceilf(0.3f * abs(dy)), dy);
-
-	glEnable(GL_LINE_SMOOTH);
-
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int col = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
-	immBegin(GWN_PRIM_LINES, 12);
-
-	immAttrib4ub(col, 255, 255, 255, 180);
-	immVertex2f(pos, x1, y2);
-	immAttrib4ub(col, 255, 255, 255, 180);
-	immVertex2f(pos, x2, y1);
-
-	immAttrib4ub(col, 255, 255, 255, 130);
-	immVertex2f(pos, x1, y2 - dy);
-	immAttrib4ub(col, 255, 255, 255, 130);
-	immVertex2f(pos, x2 - dx, y1);
-
-	immAttrib4ub(col, 255, 255, 255, 80);
-	immVertex2f(pos, x1, y2 - 2 * dy);
-	immAttrib4ub(col, 255, 255, 255, 80);
-	immVertex2f(pos, x2 - 2 * dx, y1);
-	
-	immAttrib4ub(col, 0, 0, 0, 210);
-	immVertex2f(pos, x1, y2 + 1);
-	immAttrib4ub(col, 0, 0, 0, 210);
-	immVertex2f(pos, x2 + 1, y1);
-
-	immAttrib4ub(col, 0, 0, 0, 180);
-	immVertex2f(pos, x1, y2 - dy + 1);
-	immAttrib4ub(col, 0, 0, 0, 180);
-	immVertex2f(pos, x2 - dx + 1, y1);
-
-	immAttrib4ub(col, 0, 0, 0, 150);
-	immVertex2f(pos, x1, y2 - 2 * dy + 1);
-	immAttrib4ub(col, 0, 0, 0, 150);
-	immVertex2f(pos, x2 - 2 * dx + 1, y1);
-
-	immEnd();
-	immUnbindProgram();
-
-	glDisable(GL_LINE_SMOOTH);
+	/* No drawing needed since all corners are action zone, and visually distinguishable. */
 }
 
 static void region_draw_azone_icon(AZone *az)
