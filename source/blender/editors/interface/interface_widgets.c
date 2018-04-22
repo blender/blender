@@ -4414,7 +4414,7 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 		wt->draw(&wt->wcol, rect, block->flag, block->direction);
 	else
 		wt->draw(&wt->wcol, rect, 0, 0);
-	
+
 	if (block) {
 		float draw_color[4];
 		unsigned char *color = (unsigned char *)wt->wcol.text;

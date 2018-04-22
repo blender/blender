@@ -3431,6 +3431,7 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 	uiBlockCreateFunc func = NULL;
 	uiBlockHandleCreateFunc handlefunc = NULL;
 	uiMenuCreateFunc menufunc = NULL;
+	uiMenuCreateFunc popoverfunc = NULL;
 	void *arg = NULL;
 
 	switch (but->type) {
@@ -3448,6 +3449,11 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 		case UI_BTYPE_MENU:
 			BLI_assert(but->menu_create_func);
 			menufunc = but->menu_create_func;
+			arg = but->poin;
+			break;
+		case UI_BTYPE_POPOVER:
+			BLI_assert(but->menu_create_func);
+			popoverfunc = but->menu_create_func;
 			arg = but->poin;
 			break;
 		case UI_BTYPE_COLOR:
@@ -3471,6 +3477,11 @@ static void ui_block_open_begin(bContext *C, uiBut *but, uiHandleButtonData *dat
 	}
 	else if (menufunc) {
 		data->menu = ui_popup_menu_create(C, data->region, but, menufunc, arg);
+		if (but->block->handle)
+			data->menu->popup = but->block->handle->popup;
+	}
+	else if (popoverfunc) {
+		data->menu = ui_popover_panel_create(C, data->region, but, popoverfunc, arg);
 		if (but->block->handle)
 			data->menu->popup = but->block->handle->popup;
 	}
@@ -7046,6 +7057,7 @@ static int ui_do_button(bContext *C, uiBlock *block, uiBut *but, const wmEvent *
 			retval = ui_do_but_TEX(C, block, but, data, event);
 			break;
 		case UI_BTYPE_MENU:
+		case UI_BTYPE_POPOVER:
 		case UI_BTYPE_BLOCK:
 		case UI_BTYPE_PULLDOWN:
 			retval = ui_do_but_BLOCK(C, but, data, event);

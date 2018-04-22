@@ -268,6 +268,29 @@ static void rna_uiItemM(uiLayout *layout, bContext *C, const char *menuname, con
 	uiItemM(layout, C, menuname, name, icon);
 }
 
+static void rna_uiItemPopoverPanel(
+        uiLayout *layout, bContext *C,
+        int space_type, int region_type, const char *panel_type,
+        const char *name, const char *text_ctxt,
+        int translate, int icon, int icon_value)
+{
+	/* Get translated name (label). */
+	name = rna_translate_ui_text(name, text_ctxt, NULL, NULL, translate);
+
+	if (icon_value && !icon) {
+		icon = icon_value;
+	}
+
+	uiItemPopoverPanel(layout, C, space_type, region_type, panel_type, name, icon);
+}
+
+static void rna_uiItemPopoverPanelFromGroup(
+        uiLayout *layout, bContext *C,
+        int space_id, int region_id, const char *context, const char *category)
+{
+	uiItemPopoverPanelFromGroup(layout, C, space_id, region_id, context, category);
+}
+
 static void rna_uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, const char *proptypename,
                                 const char *name, const char *text_ctxt, int translate)
 {
@@ -669,6 +692,29 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+
+	func = RNA_def_function(srna, "popover", "rna_uiItemPopoverPanel");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm = RNA_def_enum(func, "space_type", rna_enum_space_type_items, 0, "Space Type", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string(func, "panel_type", NULL, 0, "", "Identifier of the panel");
+	api_ui_item_common(func);
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_property(func, "icon_value", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_ui_text(parm, "Icon Value", "Override automatic icon of the item");
+
+	func = RNA_def_function(srna, "popover_group", "rna_uiItemPopoverPanelFromGroup");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm = RNA_def_enum(func, "space_type", rna_enum_space_type_items, 0, "Space Type", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_enum(func, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string(func, "context", NULL, 0, "", "panel type context");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_string(func, "category", NULL, 0, "", "panel type category");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	func = RNA_def_function(srna, "separator", "uiItemS");
 	RNA_def_function_ui_description(func, "Item. Inserts empty space into the layout between items");

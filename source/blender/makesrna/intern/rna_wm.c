@@ -629,6 +629,17 @@ static PointerRNA rna_PopupMenu_layout_get(PointerRNA *ptr)
 	return rptr;
 }
 
+static PointerRNA rna_PopoverMenu_layout_get(PointerRNA *ptr)
+{
+	struct uiPopover *pup = ptr->data;
+	uiLayout *layout = UI_popover_layout(pup);
+
+	PointerRNA rptr;
+	RNA_pointer_create(ptr->id.data, &RNA_UILayout, layout, &rptr);
+
+	return rptr;
+}
+
 static PointerRNA rna_PieMenu_layout_get(PointerRNA *ptr)
 {
 	struct uiPieMenu *pie = ptr->data;
@@ -1978,6 +1989,11 @@ static void rna_def_popupmenu(BlenderRNA *brna)
 	rna_def_popup_menu_wrapper(brna, "UIPopupMenu", "uiPopupMenu", "rna_PopupMenu_layout_get");
 }
 
+static void rna_def_popovermenu(BlenderRNA *brna)
+{
+	rna_def_popup_menu_wrapper(brna, "UIPopover", "uiPopover", "rna_PopoverMenu_layout_get");
+}
+
 static void rna_def_piemenu(BlenderRNA *brna)
 {
 	rna_def_popup_menu_wrapper(brna, "UIPieMenu", "uiPieMenu", "rna_PieMenu_layout_get");
@@ -2415,6 +2431,7 @@ void RNA_def_wm(BlenderRNA *brna)
 	rna_def_event(brna);
 	rna_def_timer(brna);
 	rna_def_popupmenu(brna);
+	rna_def_popovermenu(brna);
 	rna_def_piemenu(brna);
 	rna_def_window(brna);
 	rna_def_windowmanager(brna);

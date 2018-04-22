@@ -615,6 +615,18 @@ uiPopupBlockHandle *ui_popup_menu_create(
         struct bContext *C, struct ARegion *butregion, uiBut *but,
         uiMenuCreateFunc create_func, void *arg);
 
+/* interface_region_popover.c */
+uiBlock *ui_popover_block_refresh(
+        struct bContext *C, uiPopupBlockHandle *handle,
+        ARegion *butregion, uiBut *but);
+uiPopupBlockHandle *ui_popover_block_create(
+        struct bContext *C, struct ARegion *butregion, uiBut *but,
+        uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
+        void *arg);
+uiPopupBlockHandle *ui_popover_panel_create(
+        struct bContext *C, struct ARegion *butregion, uiBut *but,
+        uiMenuCreateFunc create_func, void *arg);
+
 /* interface_region_menu_pie.c */
 void ui_pie_menu_level_create(
         uiBlock *block, struct wmOperatorType *ot, const char *propname, IDProperty *properties,

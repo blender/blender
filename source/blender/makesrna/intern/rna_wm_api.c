@@ -348,6 +348,24 @@ static void rna_PopMenuEnd(bContext *C, PointerRNA *handle)
 	UI_popup_menu_end(C, handle->data);
 }
 
+/* popover wrapper */
+static PointerRNA rna_PopoverBegin(bContext *C)
+{
+	PointerRNA r_ptr;
+	void *data;
+
+	data = (void *)UI_popover_begin(C);
+
+	RNA_pointer_create(NULL, &RNA_UIPopover, data, &r_ptr);
+
+	return r_ptr;
+}
+
+static void rna_PopoverEnd(bContext *C, PointerRNA *handle)
+{
+	UI_popover_end(C, handle->data);
+}
+
 /* pie menu wrapper */
 static PointerRNA rna_PieMenuBegin(bContext *C, const char *title, int icon, PointerRNA *event)
 {
@@ -540,6 +558,22 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPopupMenu", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+
+
+	/* wrap UI_popover_panel_begin */
+	func = RNA_def_function(srna, "popover_begin__internal", "rna_PopoverBegin");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	/* return */
+	parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
+
+	/* wrap UI_popover_panel_end */
+	func = RNA_def_function(srna, "popover_end__internal", "rna_PopoverEnd");
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
+	parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+
 
 	/* wrap uiPieMenuBegin */
 	func = RNA_def_function(srna, "piemenu_begin__internal", "rna_PieMenuBegin");

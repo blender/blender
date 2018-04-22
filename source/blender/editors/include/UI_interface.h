@@ -265,6 +265,7 @@ typedef enum {
 	UI_BTYPE_CHECKBOX_N             = (14 << 9),
 	UI_BTYPE_COLOR                  = (15 << 9),
 	UI_BTYPE_TAB                    = (16 << 9),
+	UI_BTYPE_POPOVER                = (17 << 9),
 	UI_BTYPE_SCROLL                 = (18 << 9),
 	UI_BTYPE_BLOCK                  = (19 << 9),
 	UI_BTYPE_LABEL                  = (20 << 9),
@@ -408,6 +409,17 @@ int UI_popup_menu_invoke(struct bContext *C, const char *idname, struct ReportLi
 
 void UI_popup_menu_retval_set(const uiBlock *block, const int retval, const bool enable);
 void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *but);
+
+/* interface_region_popover.c */
+
+typedef struct uiPopover uiPopover;
+
+uiPopover *UI_popover_begin(
+        struct bContext *C) ATTR_NONNULL();
+uiPopover *UI_popover_begin_ex(
+        struct bContext *C, const char *block_name) ATTR_NONNULL();
+void UI_popover_end(struct bContext *C, struct uiPopover *head);
+struct uiLayout *UI_popover_layout(uiPopover *head);
 
 /* interface_region_menu_pie.c */
 /* Pie menus */
@@ -911,6 +923,7 @@ void uiLayoutSetContextPointer(uiLayout *layout, const char *name, struct Pointe
 void uiLayoutContextCopy(uiLayout *layout, struct bContextStore *context);
 const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 struct MenuType *UI_but_menutype_get(uiBut *but);
+struct PanelType *UI_but_paneltype_get(uiBut *but);
 void UI_menutype_draw(struct bContext *C, struct MenuType *mt, struct uiLayout *layout);
 
 /* Only for convenience. */
@@ -1089,6 +1102,19 @@ void uiItemLDrag(uiLayout *layout, struct PointerRNA *ptr, const char *name, int
 void uiItemM(uiLayout *layout, struct bContext *C, const char *menuname, const char *name, int icon); /* menu */
 void uiItemV(uiLayout *layout, const char *name, int icon, int argval); /* value */
 void uiItemS(uiLayout *layout); /* separator */
+
+void uiItemPopoverPanel_ptr(
+        uiLayout *layout, struct bContext *C,
+        struct PanelType *pt,
+        const char *name, int icon);
+void uiItemPopoverPanel(
+        uiLayout *layout, struct bContext *C,
+        int space_id, int region_id, const char *panelname,
+        const char *name, int icon);
+void uiItemPopoverPanelFromGroup(
+        uiLayout *layout, struct bContext *C,
+        int space_id, int region_id,
+        const char *context, const char *category);
 
 void uiItemMenuF(uiLayout *layout, const char *name, int icon, uiMenuCreateFunc func, void *arg);
 void uiItemMenuEnumO_ptr(uiLayout *layout, struct bContext *C, struct wmOperatorType *ot, const char *propname, const char *name, int icon);

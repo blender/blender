@@ -113,11 +113,36 @@ class TOPBAR_HT_lower_bar(Header):
         act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[object_mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
 
+        mode = context.mode
+
+        # Example of how toolsettings can be accessed as pop-overs.
+        if mode == 'SCULPT':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+        elif mode == 'PAINT_VERTEX':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+        elif mode == 'PAINT_WEIGHT':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+        elif mode == 'PAINT_TEXTURE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+
     def draw_right(self, context):
         layout = self.layout
 
         # Placeholder
         layout.operator("ed.undo_history", text="...")
+
+        # Last Action (redo)
+        layout.label("Last Action:")
+        operators = context.window_manager.operators
+        op = operators[-1] if operators else None
+        row = layout.row()
+        row.enabled = op is not None
+        row.popover(
+            space_type='VIEW_3D',
+            region_type='TOOL_PROPS',
+            panel_type="VIEW3D_PT_last_operator",
+            text=op.name if op else "Last Action...",
+        )
 
 
 class INFO_MT_editor_menus(Menu):
