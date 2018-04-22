@@ -701,8 +701,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                               datatoc_gpu_shader_flat_color_frag_glsl },
 		[GPU_SHADER_2D_SMOOTH_COLOR] = { datatoc_gpu_shader_2D_smooth_color_vert_glsl,
 		                                 datatoc_gpu_shader_2D_smooth_color_frag_glsl },
-		[GPU_SHADER_2D_SMOOTH_COLOR_UNIFORM_ALPHA] = { datatoc_gpu_shader_2D_smooth_color_uniform_alpha_vert_glsl,
-		                                               datatoc_gpu_shader_2D_smooth_color_frag_glsl },
 		[GPU_SHADER_2D_SMOOTH_COLOR_DITHER] = { datatoc_gpu_shader_2D_smooth_color_vert_glsl,
 		                                        datatoc_gpu_shader_2D_smooth_color_dithered_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_LINEAR_TO_SRGB] = { datatoc_gpu_shader_2D_image_vert_glsl,
