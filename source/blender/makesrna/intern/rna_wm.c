@@ -1951,44 +1951,36 @@ static void rna_def_timer(BlenderRNA *brna)
 	RNA_define_verify_sdna(1); /* not in sdna */
 }
 
-static void rna_def_popupmenu(BlenderRNA *brna)
+static void rna_def_popup_menu_wrapper(
+        BlenderRNA *brna, const char *rna_type, const char *c_type, const char *layout_get_fn)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "UIPopupMenu", NULL);
-	RNA_def_struct_ui_text(srna, "PopupMenu", "");
-	RNA_def_struct_sdna(srna, "uiPopupMenu");
+	srna = RNA_def_struct(brna, rna_type, NULL);
+	/* UI name isn't visible, name same as type. */
+	RNA_def_struct_ui_text(srna, rna_type, "");
+	RNA_def_struct_sdna(srna, c_type);
 
 	RNA_define_verify_sdna(0); /* not in sdna */
 
 	/* could wrap more, for now this is enough */
 	prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_pointer_funcs(prop, "rna_PopupMenu_layout_get",
+	RNA_def_property_pointer_funcs(prop, layout_get_fn,
 	                               NULL, NULL, NULL);
 
 	RNA_define_verify_sdna(1); /* not in sdna */
 }
 
+static void rna_def_popupmenu(BlenderRNA *brna)
+{
+	rna_def_popup_menu_wrapper(brna, "UIPopupMenu", "uiPopupMenu", "rna_PopupMenu_layout_get");
+}
+
 static void rna_def_piemenu(BlenderRNA *brna)
 {
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "UIPieMenu", NULL);
-	RNA_def_struct_ui_text(srna, "PieMenu", "");
-	RNA_def_struct_sdna(srna, "uiPieMenu");
-
-	RNA_define_verify_sdna(0); /* not in sdna */
-
-	/* could wrap more, for now this is enough */
-	prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "UILayout");
-	RNA_def_property_pointer_funcs(prop, "rna_PieMenu_layout_get",
-	                               NULL, NULL, NULL);
-
-	RNA_define_verify_sdna(1); /* not in sdna */
+	rna_def_popup_menu_wrapper(brna, "UIPieMenu", "uiPieMenu", "rna_PieMenu_layout_get");
 }
 
 static void rna_def_window_stereo3d(BlenderRNA *brna)

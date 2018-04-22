@@ -52,7 +52,7 @@
  */
 void BLI_bitmap_draw_2d_line_v2v2i(
         const int p1[2], const int p2[2],
-        bool (*callback)(int, int, void *), void *userData)
+        bool (*callback)(int, int, void *), void *user_data)
 {
 	/* Bresenham's line algorithm. */
 	int x1 = p1[0];
@@ -60,7 +60,7 @@ void BLI_bitmap_draw_2d_line_v2v2i(
 	int x2 = p2[0];
 	int y2 = p2[1];
 
-	if (callback(x1, y1, userData) == 0) {
+	if (callback(x1, y1, user_data) == 0) {
 		return;
 	}
 
@@ -91,7 +91,7 @@ void BLI_bitmap_draw_2d_line_v2v2i(
 			x1 += sign_x;
 			error += delta_y_step;
 
-			if (callback(x1, y1, userData) == 0) {
+			if (callback(x1, y1, user_data) == 0) {
 				return;
 			}
 		}
@@ -113,7 +113,7 @@ void BLI_bitmap_draw_2d_line_v2v2i(
 			y1 += sign_y;
 			error += delta_x_step;
 
-			if (callback(x1, y1, userData) == 0) {
+			if (callback(x1, y1, user_data) == 0) {
 				return;
 			}
 		}
@@ -353,16 +353,16 @@ static int draw_poly_v2i_n__span_y_sort(const void *a_p, const void *b_p, void *
  */
 void BLI_bitmap_draw_2d_poly_v2i_n(
         const int xmin, const int ymin, const int xmax, const int ymax,
-        const int verts[][2], const int nr,
-        void (*callback)(int x, int x_end, int y, void *), void *userData)
+        const int verts[][2], const int verts_len,
+        void (*callback)(int x, int x_end, int y, void *), void *user_data)
 {
 	/* Originally by Darel Rex Finley, 2007.
 	 * Optimized by Campbell Barton, 2016 to track sorted intersections. */
 
-	int (*span_y)[2] = MEM_mallocN(sizeof(*span_y) * (size_t)nr, __func__);
+	int (*span_y)[2] = MEM_mallocN(sizeof(*span_y) * (size_t)verts_len, __func__);
 	int span_y_len = 0;
 
-	for (int i_curr = 0, i_prev = nr - 1; i_curr < nr; i_prev = i_curr++) {
+	for (int i_curr = 0, i_prev = verts_len - 1; i_curr < verts_len; i_prev = i_curr++) {
 		const int *co_prev = verts[i_prev];
 		const int *co_curr = verts[i_curr];
 
@@ -391,7 +391,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(
 	struct NodeX {
 		int span_y_index;
 		int x;
-	} *node_x = MEM_mallocN(sizeof(*node_x) * (size_t)(nr + 1), __func__);
+	} *node_x = MEM_mallocN(sizeof(*node_x) * (size_t)(verts_len + 1), __func__);
 	int node_x_len = 0;
 
 	int span_y_index = 0;
@@ -472,7 +472,7 @@ void BLI_bitmap_draw_2d_poly_v2i_n(
 				}
 				/* for single call per x-span */
 				if (x_src < x_dst) {
-					callback(x_src - xmin, x_dst - xmin, pixel_y - ymin, userData);
+					callback(x_src - xmin, x_dst - xmin, pixel_y - ymin, user_data);
 				}
 			}
 		}
