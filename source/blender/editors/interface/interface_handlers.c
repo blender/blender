@@ -9953,7 +9953,7 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 
 		if ((data->state == BUTTON_STATE_MENU_OPEN) &&
 		    (is_inside_menu == false) && /* make sure mouse isn't inside another menu (see T43247) */
-		    (but->type == UI_BTYPE_PULLDOWN) &&
+		    (ELEM(but->type, UI_BTYPE_PULLDOWN, UI_BTYPE_POPOVER)) &&
 		    (but_other = ui_but_find_mouse_over(ar, event)) &&
 		    (but != but_other) &&
 		    (but->type == but_other->type))
