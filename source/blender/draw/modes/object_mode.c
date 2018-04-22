@@ -2207,6 +2207,19 @@ static void OBJECT_draw_scene(void *vedata)
 
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
+	MULTISAMPLE_SYNC_ENABLE(dfbl)
+
+	/* This needs to be drawn after the oultine */
+//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
+	DRW_draw_pass(psl->bone_solid);
+	DRW_draw_pass(psl->bone_wire);
+	DRW_draw_pass(psl->bone_outline);
+	DRW_draw_pass(psl->non_meshes);
+	DRW_draw_pass(psl->particle);
+	DRW_draw_pass(psl->reference_image);
+
+	MULTISAMPLE_SYNC_DISABLE(dfbl)
+
 	if (DRW_state_is_fbo() && outline_calls > 0) {
 		DRW_stats_group_start("Outlines");
 
@@ -2248,18 +2261,6 @@ static void OBJECT_draw_scene(void *vedata)
 		/* Render probes spheres/planes so we can select them. */
 		DRW_draw_pass(psl->lightprobes);
 	}
-
-	MULTISAMPLE_SYNC_ENABLE(dfbl)
-
-	/* This needs to be drawn after the oultine */
-//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
-	DRW_draw_pass(psl->bone_wire);
-	DRW_draw_pass(psl->bone_solid);
-	DRW_draw_pass(psl->non_meshes);
-	DRW_draw_pass(psl->particle);
-	DRW_draw_pass(psl->reference_image);
-
-	MULTISAMPLE_SYNC_DISABLE(dfbl)
 
 	DRW_draw_pass(psl->ob_center);
 
