@@ -162,7 +162,8 @@ uiPopupBlockHandle *ui_popover_panel_create(
 	pup = MEM_callocN(sizeof(uiPopover), __func__);
 	pup->block = UI_block_begin(C, NULL, __func__, UI_EMBOSS);
 	UI_block_emboss_set(pup->block, UI_EMBOSS);
-	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 0, MENU_PADDING, style);
+	pup->layout = UI_block_layout(
+	        pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, U.widget_unit * 10, 0, MENU_PADDING, style);
 	pup->slideout = false; // but ? ui_block_is_menu(but->block) : false;
 	pup->but = but;
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_INVOKE_REGION_WIN);

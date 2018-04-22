@@ -4266,7 +4266,11 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					}
 				}
 				break;
-				
+
+			case UI_BTYPE_POPOVER:
+				wt = widget_type(UI_WTYPE_PULLDOWN);
+				break;
+
 			case UI_BTYPE_PULLDOWN:
 				wt = widget_type(UI_WTYPE_PULLDOWN);
 				break;
