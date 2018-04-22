@@ -2091,7 +2091,9 @@ static struct uiWidgetColors wcol_num = {
 	{255, 255, 255, 255},
 	
 	1,
-	-20, 0
+	-20, 0,
+	0,
+	0.5f,
 };
 
 static struct uiWidgetColors wcol_numslider = {
@@ -2104,7 +2106,9 @@ static struct uiWidgetColors wcol_numslider = {
 	{255, 255, 255, 255},
 	
 	1,
-	-20, 0
+	-20, 0,
+	0,
+	0.5f,
 };
 
 static struct uiWidgetColors wcol_text = {
@@ -2117,7 +2121,9 @@ static struct uiWidgetColors wcol_text = {
 	{255, 255, 255, 255},
 	
 	1,
-	0, 25
+	0, 25,
+	0,
+	0.2f,
 };
 
 static struct uiWidgetColors wcol_option = {
@@ -2130,7 +2136,9 @@ static struct uiWidgetColors wcol_option = {
 	{255, 255, 255, 255},
 	
 	1,
-	15, -15
+	15, -15,
+	0,
+	0.3333333f,
 };
 
 /* button that shows popup */
@@ -2144,7 +2152,9 @@ static struct uiWidgetColors wcol_menu = {
 	{204, 204, 204, 255},
 	
 	1,
-	15, -15
+	15, -15,
+	0,
+	0.2f,
 };
 
 /* button that starts pulldown */
@@ -2158,7 +2168,9 @@ static struct uiWidgetColors wcol_pulldown = {
 	{0, 0, 0, 255},
 	
 	0,
-	25, -20
+	25, -20,
+	0,
+	0.2f,
 };
 
 /* button inside menu */
@@ -2172,7 +2184,9 @@ static struct uiWidgetColors wcol_menu_item = {
 	{0, 0, 0, 255},
 	
 	1,
-	38, 0
+	38, 0,
+	0,
+	0.2f,
 };
 
 /* backdrop menu + title text color */
@@ -2186,7 +2200,9 @@ static struct uiWidgetColors wcol_menu_back = {
 	{255, 255, 255, 255},
 	
 	0,
-	25, -20
+	25, -20,
+	0,
+	0.25f,
 };
 
 /* pie menus */
@@ -2200,7 +2216,9 @@ static struct uiWidgetColors wcol_pie_menu = {
 	{255, 255, 255, 255},
 
 	1,
-	10, -10
+	10, -10,
+	0,
+	0.5f,
 };
 
 
@@ -2215,7 +2233,9 @@ static struct uiWidgetColors wcol_tooltip = {
 	{255, 255, 255, 255},
 
 	0,
-	25, -20
+	25, -20,
+	0,
+	0.25f,
 };
 
 static struct uiWidgetColors wcol_radio = {
@@ -2228,7 +2248,9 @@ static struct uiWidgetColors wcol_radio = {
 	{0, 0, 0, 255},
 	
 	1,
-	15, -15
+	15, -15,
+	0,
+	0.2f,
 };
 
 static struct uiWidgetColors wcol_regular = {
@@ -2241,7 +2263,9 @@ static struct uiWidgetColors wcol_regular = {
 	{255, 255, 255, 255},
 	
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.25f,
 };
 
 static struct uiWidgetColors wcol_tool = {
@@ -2254,7 +2278,9 @@ static struct uiWidgetColors wcol_tool = {
 	{255, 255, 255, 255},
 	
 	1,
-	15, -15
+	15, -15,
+	0,
+	0.2f,
 };
 
 static struct uiWidgetColors wcol_box = {
@@ -2267,7 +2293,9 @@ static struct uiWidgetColors wcol_box = {
 	{255, 255, 255, 255},
 	
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.2f,
 };
 
 static struct uiWidgetColors wcol_toggle = {
@@ -2280,7 +2308,9 @@ static struct uiWidgetColors wcol_toggle = {
 	{255, 255, 255, 255},
 	
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.25f,
 };
 
 static struct uiWidgetColors wcol_scroll = {
@@ -2293,7 +2323,9 @@ static struct uiWidgetColors wcol_scroll = {
 	{255, 255, 255, 255},
 	
 	1,
-	5, -5
+	5, -5,
+	0,
+	0.5f,
 };
 
 static struct uiWidgetColors wcol_progress = {
@@ -2306,7 +2338,9 @@ static struct uiWidgetColors wcol_progress = {
 	{255, 255, 255, 255},
 	
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.25f,
 };
 
 static struct uiWidgetColors wcol_list_item = {
@@ -2319,7 +2353,9 @@ static struct uiWidgetColors wcol_list_item = {
 	{255, 255, 255, 255},
 	
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.2f,
 };
 
 struct uiWidgetColors wcol_tab = {
@@ -2332,7 +2368,9 @@ struct uiWidgetColors wcol_tab = {
 	{0, 0, 0, 255},
 
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.25f,
 };
 
 /* free wcol struct to play with */
@@ -2346,7 +2384,9 @@ static struct uiWidgetColors wcol_tmp = {
 	{255, 255, 255, 255},
 	
 	0,
-	0, 0
+	0, 0,
+	0,
+	0.25f,
 };
 
 
@@ -2666,9 +2706,9 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	}
 	
 	glEnable(GL_BLEND);
-	widget_softshadow(rect, roundboxalign, 0.25f * U.widget_unit);
+	widget_softshadow(rect, roundboxalign, wcol->roundness * U.widget_unit);
 	
-	round_box_edges(&wtb, roundboxalign, rect, 0.25f * U.widget_unit);
+	round_box_edges(&wtb, roundboxalign, rect, wcol->roundness * U.widget_unit);
 	wtb.draw_emboss = false;
 	widgetbase_draw(&wtb, wcol);
 	
@@ -3055,8 +3095,10 @@ static void ui_draw_but_HSVCUBE(uiBut *but, const rcti *rect)
 /* vertical 'value' slider, using new widget code */
 static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 {
+	bTheme *btheme = UI_GetTheme();
+	uiWidgetColors *wcol = &btheme->tui.wcol_numslider;
 	uiWidgetBase wtb;
-	const float rad = 0.5f * BLI_rcti_size_x(rect);
+	const float rad = wcol->roundness * BLI_rcti_size_x(rect);
 	float x, y;
 	float rgb[3], hsv[3], v;
 	bool color_profile = but->block->color_profile;
@@ -3144,8 +3186,7 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, bool emboss)
 {
 	uiWidgetBase wtb;
-	const float rad = 0.5f * BLI_rcti_size_y(rect);
-	float textofs = rad * 0.85f;
+	const float rad = wcol->roundness * BLI_rcti_size_y(rect);
 
 	if (state & UI_SELECT)
 		SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -3169,6 +3210,8 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 	widgetbase_draw(&wtb, wcol);
 	
 	if (!(state & UI_STATE_TEXT_INPUT)) {
+		const float textofs = 0.425f * BLI_rcti_size_y(rect);
+
 		/* text space */
 		rect->xmin += textofs;
 		rect->xmax -= textofs;
@@ -3202,9 +3245,9 @@ void UI_draw_widget_scroll(uiWidgetColors *wcol, const rcti *rect, const rcti *s
 	horizontal = (BLI_rcti_size_x(rect) > BLI_rcti_size_y(rect));
 
 	if (horizontal)
-		rad = 0.5f * BLI_rcti_size_y(rect);
+		rad = wcol->roundness * BLI_rcti_size_y(rect);
 	else
-		rad = 0.5f * BLI_rcti_size_x(rect);
+		rad = wcol->roundness * BLI_rcti_size_x(rect);
 	
 	wtb.uniform_params.shade_dir = (horizontal) ? 1.0f : 0.0;
 	
@@ -3338,7 +3381,7 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 
 	/* round corners */
 	float value = but->a1;
-	float offs = 0.25f * BLI_rcti_size_y(&rect_prog);
+	float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
 	float w = value * BLI_rcti_size_x(&rect_prog);
 
 	/* ensure minimium size */
@@ -3374,8 +3417,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 	/* backdrop first */
 	
-	/* fully rounded */
-	offs = 0.5f * BLI_rcti_size_y(rect);
+	offs = wcol->roundness * BLI_rcti_size_y(rect);
 	toffs = offs * 0.75f;
 	round_box_edges(&wtb, roundboxalign, rect, offs);
 
@@ -3464,8 +3506,7 @@ static void widget_swatch(uiBut *but, uiWidgetColors *wcol, rcti *rect, int stat
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.25f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 		
 	ui_but_v3_get(but, col);
@@ -3542,8 +3583,7 @@ static void widget_icon_has_anim(uiBut *but, uiWidgetColors *wcol, rcti *rect, i
 		widget_init(&wtb);
 		wtb.draw_outline = false;
 		
-		/* rounded */
-		rad = 0.5f * BLI_rcti_size_y(rect);
+		rad = wcol->roundness * BLI_rcti_size_y(rect);
 		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -3565,8 +3605,7 @@ static void widget_textbut(uiWidgetColors *wcol, rcti *rect, int state, int roun
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
@@ -3580,8 +3619,7 @@ static void widget_menubut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), 
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	/* decoration */
@@ -3602,8 +3640,7 @@ static void widget_menuiconbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	/* decoration */
@@ -3619,8 +3656,7 @@ static void widget_menunodebut(uiWidgetColors *wcol, rcti *rect, int UNUSED(stat
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 
 	wcol->inner[0] = min_ii(wcol->inner[0] + 15, 255);
@@ -3639,7 +3675,7 @@ static void widget_pulldownbut(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	if (state & UI_ACTIVE) {
 		uiWidgetBase wtb;
-		const float rad = 0.2f * U.widget_unit;
+		const float rad = wcol->roundness * U.widget_unit;
 
 		widget_init(&wtb);
 
@@ -3673,7 +3709,7 @@ static void widget_menu_radial_itembut(uiBut *but, uiWidgetColors *wcol, rcti *r
 
 	wtb.draw_emboss = false;
 
-	rad = 0.5f * BLI_rcti_size_y(rect);
+	rad = wcol->roundness * BLI_rcti_size_y(rect);
 	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 
 	wcol->inner[3] *= fac;
@@ -3693,9 +3729,9 @@ static void widget_list_itembut(uiWidgetColors *wcol, rcti *rect, int UNUSED(sta
 	
 	widget_init(&wtb);
 	
-	/* rounded, but no outline */
+	/* no outline */
 	wtb.draw_outline = false;
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
@@ -3720,8 +3756,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	recttemp.xmax -= delta;
 	recttemp.ymax -= delta;
 	
-	/* half rounded */
-	rad = BLI_rcti_size_y(&recttemp) / 3;
+	rad = wcol->roundness * BLI_rcti_size_y(&recttemp);
 	round_box_edges(&wtb, UI_CNR_ALL, &recttemp, rad);
 	
 	/* decoration */
@@ -3762,8 +3797,7 @@ static void widget_radiobut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state),
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
@@ -3786,8 +3820,7 @@ static void widget_box(uiBut *but, uiWidgetColors *wcol, rcti *rect, int UNUSED(
 		wcol->inner[2] = but->col[2];
 	}
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
@@ -3802,8 +3835,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int 
 	
 	widget_init(&wtb);
 	
-	/* half rounded */
-	rad = 0.2f * U.widget_unit;
+	rad = wcol->roundness * U.widget_unit;
 	round_box_edges(&wtb, roundboxalign, rect, rad);
 	
 	widgetbase_draw(&wtb, wcol);
@@ -3813,7 +3845,7 @@ static void widget_but(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int 
 static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state), int roundboxalign)
 {
 	uiWidgetBase wtb;
-	const float rad = 0.25f * U.widget_unit;
+	const float rad = wcol->roundness * U.widget_unit;
 	
 	widget_init(&wtb);
 	
@@ -3827,7 +3859,7 @@ static void widget_roundbut(uiWidgetColors *wcol, rcti *rect, int UNUSED(state),
 static void widget_roundbut_exec(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	uiWidgetBase wtb;
-	const float rad = 0.25f * U.widget_unit;
+	const float rad = wcol->roundness * U.widget_unit;
 
 	widget_init(&wtb);
 
@@ -3845,7 +3877,7 @@ static void widget_roundbut_exec(uiWidgetColors *wcol, rcti *rect, int state, in
 static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign)
 {
 	const uiStyle *style = UI_style_get();
-	const float rad = 0.25f * U.widget_unit;
+	const float rad = wcol->roundness * U.widget_unit;
 	const int fontid = style->widget.uifont_id;
 	const bool is_active = (state & UI_SELECT);
 
@@ -3900,8 +3932,10 @@ static void widget_tab(uiWidgetColors *wcol, rcti *rect, int state, int roundbox
 
 static void widget_draw_extra_mask(const bContext *C, uiBut *but, uiWidgetType *wt, rcti *rect)
 {
+	bTheme *btheme = UI_GetTheme();
+	uiWidgetColors *wcol = &btheme->tui.wcol_radio;
 	uiWidgetBase wtb;
-	const float rad = 0.25f * U.widget_unit;
+	const float rad = wcol->roundness * U.widget_unit;
 	unsigned char col[4];
 
 	/* state copy! */

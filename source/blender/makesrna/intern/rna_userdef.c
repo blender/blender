@@ -640,6 +640,19 @@ static StructRNA *rna_AddonPref_refine(PointerRNA *ptr)
 	return (ptr->type) ? ptr->type : &RNA_AddonPreferences;
 }
 
+static float rna_ThemeUI_roundness_get(PointerRNA *ptr)
+{
+	/* Remap from relative radius to 0..1 range. */
+	uiWidgetColors *tui = (uiWidgetColors *)ptr->data;
+	return tui->roundness * 2.0f;
+}
+
+static void rna_ThemeUI_roundness_set(PointerRNA *ptr, float value)
+{
+	uiWidgetColors *tui = (uiWidgetColors *)ptr->data;
+	tui->roundness = value * 0.5f;
+}
+
 #else
 
 /* TODO(sergey): This technically belongs to blenlib, but we don't link
@@ -809,6 +822,11 @@ static void rna_def_userdef_theme_ui_wcol(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "shadedown", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Shade Down", "");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
+	prop = RNA_def_property(srna, "roundness", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_funcs(prop, "rna_ThemeUI_roundness_get", "rna_ThemeUI_roundness_set", NULL);
+	RNA_def_property_ui_text(prop, "Roundness", "Amount of edge rounding");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 

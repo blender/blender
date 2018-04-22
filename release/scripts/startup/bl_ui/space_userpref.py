@@ -726,6 +726,7 @@ class USERPREF_PT_theme(Panel):
         colsub.row().prop(widget_style, "item", slider=True)
         colsub.row().prop(widget_style, "inner", slider=True)
         colsub.row().prop(widget_style, "inner_sel", slider=True)
+        colsub.row().prop(widget_style, "roundness")
 
         subsplit = row.split(percentage=0.85)
 
