@@ -784,26 +784,40 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 #else
 	(void)win;
 #endif
-	{
+
+	float coords[4][4] = {
+	    /* Bottom-left. */
+	    {sa->totrct.xmin,
+	     sa->totrct.ymin,
+	     sa->totrct.xmin + (AZONESPOT - 1),
+	     sa->totrct.ymin + (AZONESPOT - 1)},
+	    /* Bottom-right. */
+	    {sa->totrct.xmax,
+	     sa->totrct.ymin,
+	     sa->totrct.xmax - (AZONESPOT - 1),
+	     sa->totrct.ymin + (AZONESPOT - 1)},
+	    /* Top-left. */
+	    {sa->totrct.xmin,
+	     sa->totrct.ymax,
+	     sa->totrct.xmin + (AZONESPOT - 1),
+	     sa->totrct.ymax - (AZONESPOT - 1)},
+	    /* Top-right. */
+	    {sa->totrct.xmax,
+	     sa->totrct.ymax,
+	     sa->totrct.xmax - (AZONESPOT - 1),
+	     sa->totrct.ymax - (AZONESPOT - 1)}};
+
+	for (int i = 0; i < 4; i++) {
 		/* set area action zones */
 		az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
 		BLI_addtail(&(sa->actionzones), az);
 		az->type = AZONE_AREA;
-		az->x1 = sa->totrct.xmin;
-		az->y1 = sa->totrct.ymin;
-		az->x2 = sa->totrct.xmin + (AZONESPOT - 1);
-		az->y2 = sa->totrct.ymin + (AZONESPOT - 1);
+		az->x1 = coords[i][0];
+		az->y1 = coords[i][1];
+		az->x2 = coords[i][2];
+		az->y2 = coords[i][3];
 		BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 	}
-	
-	az = (AZone *)MEM_callocN(sizeof(AZone), "actionzone");
-	BLI_addtail(&(sa->actionzones), az);
-	az->type = AZONE_AREA;
-	az->x1 = sa->totrct.xmax;
-	az->y1 = sa->totrct.ymax;
-	az->x2 = sa->totrct.xmax - (AZONESPOT - 1);
-	az->y2 = sa->totrct.ymax - (AZONESPOT - 1);
-	BLI_rcti_init(&az->rect, az->x1, az->x2, az->y1, az->y2);
 }
 
 static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
