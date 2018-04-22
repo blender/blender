@@ -1535,6 +1535,22 @@ static const float bone_octahedral_verts[6][3] = {
 	{ 0.0f, 1.0f,  0.0f}
 };
 
+static const float bone_octahedral_smooth_normals[6][3] = {
+	{ 0.0f, -1.0f,  0.0f},
+#if 0 /* creates problems for outlines when scaled */
+	{ 0.943608f * M_SQRT1_2, -0.331048f,  0.943608f * M_SQRT1_2},
+	{ 0.943608f * M_SQRT1_2, -0.331048f, -0.943608f * M_SQRT1_2},
+	{-0.943608f * M_SQRT1_2, -0.331048f, -0.943608f * M_SQRT1_2},
+	{-0.943608f * M_SQRT1_2, -0.331048f,  0.943608f * M_SQRT1_2},
+#else
+	{ M_SQRT1_2, 0.0f,  M_SQRT1_2},
+	{ M_SQRT1_2, 0.0f, -M_SQRT1_2},
+	{-M_SQRT1_2, 0.0f, -M_SQRT1_2},
+	{-M_SQRT1_2, 0.0f,  M_SQRT1_2},
+#endif
+	{ 0.0f,  1.0f,  0.0f}
+};
+
 static const unsigned int bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
@@ -1561,6 +1577,29 @@ static const unsigned int bone_octahedral_solid_tris[8][3] = {
 	{5, 4, 1}
 };
 
+/**
+ * Store indices of generated verts from bone_octahedral_solid_tris to define adjacency infos.
+ * Example: triangle {2, 1, 0} is adjacent to {3, 2, 0}, {1, 4, 0} and {5, 1, 2}.
+ * {2, 1, 0} becomes {0, 1, 2}
+ * {3, 2, 0} becomes {3, 4, 5}
+ * {1, 4, 0} becomes {9, 10, 11}
+ * {5, 1, 2} becomes {12, 13, 14}
+ * According to opengl specification it becomes (starting from
+ * the first vertex of the first face aka. vertex 2):
+ * {0, 12, 1, 10, 2, 3}
+ **/
+static const unsigned int bone_octahedral_solid_tris_adjacency[8][6] = {
+	{ 0, 12,  1, 10,  2,  3},
+	{ 3, 15,  4,  1,  5,  6},
+	{ 6, 18,  7,  4,  8,  9},
+	{ 9, 21, 10,  7, 11,  0},
+
+	{12, 22, 13,  2, 14, 17},
+	{15, 13, 16,  5, 17, 20},
+	{18, 16, 19,  8, 20, 23},
+	{21, 19, 22, 11, 23, 14},
+};
+
 /* aligned with bone_octahedral_solid_tris */
 static const float bone_octahedral_solid_normals[8][3] = {
 	{ M_SQRT1_2,   -M_SQRT1_2,    0.00000000f},
@@ -1579,26 +1618,37 @@ Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
-		static struct { uint pos, nor; } attr_id;
+		static struct { uint pos, nor, snor; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.snor = GWN_vertformat_attr_add(&format, "snor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 24);
 
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 8, 24, false);
+
 		for (int i = 0; i < 8; i++) {
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][0]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][1]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][2]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
+			for (int j = 0; j < 6; ++j) {
+				GWN_indexbuf_add_generic_vert(&elb, bone_octahedral_solid_tris_adjacency[i][j]);
+			}
 		}
 
-		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
+		                                              GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}
 	return SHC.drw_bone_octahedral;
 }
@@ -1646,6 +1696,17 @@ static const float bone_box_verts[8][3] = {
 	{-1.0f, 1.0f,  1.0f}
 };
 
+static const float bone_box_smooth_normals[8][3] = {
+	{ M_SQRT3, -M_SQRT3,  M_SQRT3},
+	{ M_SQRT3, -M_SQRT3, -M_SQRT3},
+	{-M_SQRT3, -M_SQRT3, -M_SQRT3},
+	{-M_SQRT3, -M_SQRT3,  M_SQRT3},
+	{ M_SQRT3,  M_SQRT3,  M_SQRT3},
+	{ M_SQRT3,  M_SQRT3, -M_SQRT3},
+	{-M_SQRT3,  M_SQRT3, -M_SQRT3},
+	{-M_SQRT3,  M_SQRT3,  M_SQRT3},
+};
+
 static const unsigned int bone_box_wire[24] = {
 	0, 1,  1, 2,  2, 3,  3, 0,
 	4, 5,  5, 6,  6, 7,  7, 4,
@@ -1680,7 +1741,31 @@ static const unsigned int bone_box_solid_tris[12][3] = {
 	{4, 6, 7},
 };
 
-/* aligned with bone_octahedral_solid_tris */
+/**
+ * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
+ * See bone_octahedral_solid_tris for more infos.
+ **/
+static const unsigned int bone_box_solid_tris_adjacency[12][6] = {
+	{ 0,  8,  1, 14,  2,  5},
+	{ 3,  1,  4, 20,  5, 26},
+
+	{ 6,  2,  7, 16,  8, 11},
+	{ 9,  7, 10, 32, 11, 24},
+
+	{12,  0, 13, 22, 14, 17},
+	{15, 13, 16, 30, 17,  6},
+
+	{18,  3, 19, 28, 20, 23},
+	{21, 19, 22, 33, 23, 12},
+
+	{24,  4, 25, 10, 26, 29},
+	{27, 25, 28, 34, 29, 18},
+
+	{30,  9, 31, 15, 32, 35},
+	{33, 31, 34, 21, 35, 27},
+};
+
+/* aligned with bone_box_solid_tris */
 static const float bone_box_solid_normals[12][3] = {
 	{ 0.0f, -1.0f,  0.0f},
 	{ 0.0f, -1.0f,  0.0f},
@@ -1707,24 +1792,33 @@ Gwn_Batch *DRW_cache_bone_box_get(void)
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
-		static struct { uint pos, nor; } attr_id;
+		static struct { uint pos, nor, snor; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.snor = GWN_vertformat_attr_add(&format, "snor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 36);
 
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 12, 36, false);
+
 		for (int i = 0; i < 12; i++) {
 			for (int j = 0; j < 3; j++) {
 				GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_box_solid_normals[i]);
+				GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_box_smooth_normals[bone_box_solid_tris[i][j]]);
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_box_verts[bone_box_solid_tris[i][j]]);
+			}
+			for (int j = 0; j < 6; ++j) {
+				GWN_indexbuf_add_generic_vert(&elb, bone_box_solid_tris_adjacency[i][j]);
 			}
 		}
 
-		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
+		                                       GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}
 	return SHC.drw_bone_box;
 }
