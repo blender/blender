@@ -101,7 +101,7 @@ GPUUniformBuffer *GPU_uniformbuffer_create(int size, const void *data, char err_
 
 	/* Generate Buffer object */
 	glGenBuffers(1, &ubo->bindcode);
-	
+
 	if (!ubo->bindcode) {
 		if (err_out)
 			BLI_snprintf(err_out, 256, "GPUUniformBuffer: UBO create failed");

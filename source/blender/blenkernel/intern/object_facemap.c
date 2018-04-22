@@ -5,7 +5,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -19,7 +19,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -57,7 +57,7 @@
 static bool fmap_unique_check(void *arg, const char *name)
 {
 	struct {Object *ob; void *fm; } *data = arg;
-	
+
 	bFaceMap *fmap;
 
 	for (fmap = data->ob->fmaps.first; fmap; fmap = fmap->next) {
@@ -67,7 +67,7 @@ static bool fmap_unique_check(void *arg, const char *name)
 			}
 		}
 	}
-	
+
 	return false;
 }
 
@@ -112,18 +112,18 @@ void BKE_object_facemap_unique_name(Object *ob, bFaceMap *fmap)
 bFaceMap *BKE_object_facemap_add_name(Object *ob, const char *name)
 {
 	bFaceMap *fmap;
-	
+
 	if (!ob || ob->type != OB_MESH)
 		return NULL;
-	
+
 	fmap = MEM_callocN(sizeof(bFaceMap), __func__);
 
 	BLI_strncpy(fmap->name, name, sizeof(fmap->name));
 
 	BLI_addtail(&ob->fmaps, fmap);
-	
+
 	ob->actfmap = BLI_listbase_count(&ob->fmaps);
-	
+
 	BKE_object_facemap_unique_name(ob, fmap);
 
 	return fmap;
@@ -138,24 +138,24 @@ bFaceMap *BKE_object_facemap_add(Object *ob)
 static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_selected, bool purge)
 {
 	const int fmap_nr = BLI_findindex(&ob->fmaps, fmap);
-	
+
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
-		
+
 		if (me->edit_btmesh) {
 			BMEditMesh *em = me->edit_btmesh;
 			const int cd_fmap_offset = CustomData_get_offset(&em->bm->pdata, CD_FACEMAP);
-			
+
 			if (cd_fmap_offset != -1) {
 				BMFace *efa;
 				BMIter iter;
 				int *map;
-				
+
 				if (purge) {
 					BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 						map = BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset);
-						
-						if (map) { 
+
+						if (map) {
 							if (*map == fmap_nr)
 								*map = -1;
 							else if (*map > fmap_nr)
@@ -166,7 +166,7 @@ static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_sel
 				else {
 					BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 						map = BM_ELEM_CD_GET_VOID_P(efa, cd_fmap_offset);
-						
+
 						if (map && *map == fmap_nr && (!do_selected || BM_elem_flag_test(efa, BM_ELEM_SELECT))) {
 							*map = -1;
 						}
@@ -176,7 +176,7 @@ static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_sel
 
 			if (ob->actfmap == BLI_listbase_count(&ob->fmaps))
 				ob->actfmap--;
-			
+
 			BLI_remlink(&ob->fmaps, fmap);
 			MEM_freeN(fmap);
 		}
@@ -186,14 +186,14 @@ static void object_fmap_remove_edit_mode(Object *ob, bFaceMap *fmap, bool do_sel
 static void object_fmap_remove_object_mode(Object *ob, bFaceMap *fmap, bool purge)
 {
 	const int fmap_nr = BLI_findindex(&ob->fmaps, fmap);
-	
+
 	if (ob->type == OB_MESH) {
 		Mesh *me = ob->data;
-		
+
 		if (CustomData_has_layer(&me->pdata, CD_FACEMAP)) {
 			int *map = CustomData_get_layer(&me->pdata, CD_FACEMAP);
 			int i;
-			
+
 			if (map) {
 				for (i = 0; i < me->totpoly; i++) {
 					if (map[i] == fmap_nr)
@@ -206,7 +206,7 @@ static void object_fmap_remove_object_mode(Object *ob, bFaceMap *fmap, bool purg
 
 		if (ob->actfmap == BLI_listbase_count(&ob->fmaps))
 			ob->actfmap--;
-		
+
 		BLI_remlink(&ob->fmaps, fmap);
 		MEM_freeN(fmap);
 	}

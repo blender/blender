@@ -99,7 +99,7 @@ static void overlay_cache_init(void *vedata)
 		stl->g_data->overlays = v3d->overlays;
 
 		/*
-		    Solid flat/studio lighting gives strange results when blending with the defaults. 
+		    Solid flat/studio lighting gives strange results when blending with the defaults.
 		*/
 		if (v3d->drawtype == OB_SOLID) {
 			bm_face_orientation = DRW_STATE_BLEND;

@@ -17,7 +17,7 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
- 
+
 #ifndef __BLI_MEMITER_H__
 #define __BLI_MEMITER_H__
 

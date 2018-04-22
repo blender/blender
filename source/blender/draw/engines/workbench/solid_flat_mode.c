@@ -82,7 +82,7 @@ static void workbench_solid_flat_draw_scene(void *vedata)
 
 	DRW_draw_pass(psl->depth_pass);
 	DRW_draw_pass(psl->solid_pass);
-	
+
 	workbench_materials_draw_scene_finish(data);
 }
 

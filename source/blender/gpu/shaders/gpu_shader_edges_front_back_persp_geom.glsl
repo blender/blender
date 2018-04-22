@@ -45,7 +45,7 @@ void main()
 	if (finalEdgeClass > 0.0f) {
 		// front-facing edge
 		if (drawFront)
-			emitLine(frontColor);	
+			emitLine(frontColor);
 	}
 	else if (finalEdgeClass < 0.0f) {
 		// back-facing edge

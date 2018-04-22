@@ -905,7 +905,7 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			if (drawtype_lighting == V3D_LIGHTING_FLAT) {
 				use_drw_engine(&draw_engine_workbench_solid_flat);
 
-			} 
+			}
 			else if (drawtype_lighting == V3D_LIGHTING_STUDIO) {
 				use_drw_engine(&draw_engine_workbench_solid_studio);
 

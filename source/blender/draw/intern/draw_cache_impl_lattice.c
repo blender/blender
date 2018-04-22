@@ -538,7 +538,7 @@ static void lattice_batch_cache_create_overlay_batches(Lattice *lt)
 		}
 
 		cache->overlay_verts = GWN_batch_create_ex(GWN_PRIM_POINTS, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	}	
+	}
 
 	lattice_render_data_free(rdata);
 }

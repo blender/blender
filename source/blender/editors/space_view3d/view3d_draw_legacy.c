@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,7 +18,7 @@
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
- * 
+ *
  * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -208,7 +208,7 @@ static void backdrawview3d(
 #endif
 
 	if (v3d->drawtype > OB_WIRE) v3d->zbuf = true;
-	
+
 	/* dithering and AA break color coding, so disable */
 	glDisable(GL_DITHER);
 
@@ -254,10 +254,10 @@ static void backdrawview3d(
 		glClear(GL_COLOR_BUFFER_BIT);
 		glDisable(GL_DEPTH_TEST);
 	}
-	
+
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(rv3d);
-	
+
 	G.f |= G_BACKBUFSEL;
 
 	if (obact && ((obact->base_flag & BASE_VISIBLED) != 0)) {
@@ -369,7 +369,7 @@ ImBuf *ED_view3d_backbuf_read(
 	}
 
 	GPU_select_to_index_array(ibuf_clip->rect, size_clip[0] * size_clip[1]);
-	
+
 	if ((clip.xmin == xmin) &&
 	    (clip.xmax == xmax) &&
 	    (clip.ymin == ymin) &&
@@ -411,17 +411,17 @@ unsigned int ED_view3d_backbuf_sample_rect(
 
 	unsigned index = 0;
 	int rc = 0;
-	
+
 	dirvec[0][0] = 1; dirvec[0][1] = 0;
 	dirvec[1][0] = 0; dirvec[1][1] = -size;
 	dirvec[2][0] = -1; dirvec[2][1] = 0;
 	dirvec[3][0] = 0; dirvec[3][1] = size;
-	
+
 	const unsigned *bufmin = buf->rect;
 	const unsigned *tbuf = buf->rect;
 	const unsigned *bufmax = buf->rect + size * size;
 	tbuf += amount * size + amount;
-	
+
 	for (int nr = 1; nr <= size; nr++) {
 		for (int a = 0; a < 2; a++) {
 			for (int b = 0; b < nr; b++) {
@@ -438,9 +438,9 @@ unsigned int ED_view3d_backbuf_sample_rect(
 					index = (*tbuf - min) + 1;
 					goto exit;
 				}
-				
+
 				tbuf += (dirvec[rc][0] + dirvec[rc][1]);
-				
+
 				if (tbuf < bufmin || tbuf >= bufmax) {
 					goto exit;
 				}
@@ -802,7 +802,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 			MEM_freeN(d->depths);
 
 		d->depths = MEM_mallocN(sizeof(float) * d->w * d->h, "View depths Subset");
-		
+
 		d->damaged = true;
 	}
 
@@ -818,7 +818,7 @@ void view3d_update_depths_rect(ARegion *ar, ViewDepths *d, rcti *rect)
 void ED_view3d_depth_update(ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
-	
+
 	/* Create storage for, and, if necessary, copy depth buffer */
 	if (!rv3d->depths) rv3d->depths = MEM_callocN(sizeof(ViewDepths), "ViewDepths");
 	if (rv3d->depths) {
@@ -834,11 +834,11 @@ void ED_view3d_depth_update(ARegion *ar)
 			d->depths = MEM_mallocN(sizeof(float) * d->w * d->h, "View depths");
 			d->damaged = true;
 		}
-		
+
 		if (d->damaged) {
 			view3d_opengl_read_pixels(ar, 0, 0, d->w, d->h, GL_DEPTH_COMPONENT, GL_FLOAT, d->depths);
 			glGetDoublev(GL_DEPTH_RANGE, d->depth_range);
-			
+
 			d->damaged = false;
 		}
 	}
@@ -913,7 +913,7 @@ CustomDataMask ED_view3d_datamask(const Scene *UNUSED(scene), const View3D *v3d)
 CustomDataMask ED_view3d_screen_datamask(const Scene *scene, const bScreen *screen)
 {
 	CustomDataMask mask = CD_MASK_BAREMESH;
-	
+
 	/* check if we need tfaces & mcols due to view mode */
 	for (const ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		if (sa->spacetype == SPACE_VIEW3D) {
@@ -973,18 +973,18 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 {
 	ScreenFrameRateInfo *fpsi = scene->fps_info;
 	char printable[16];
-	
+
 	if (!fpsi || !fpsi->lredrawtime || !fpsi->redrawtime)
 		return;
-	
+
 	printable[0] = '\0';
-	
+
 #if 0
 	/* this is too simple, better do an average */
 	fps = (float)(1.0 / (fpsi->lredrawtime - fpsi->redrawtime))
 #else
 	fpsi->redrawtimes_fps[fpsi->redrawtime_index] = (float)(1.0 / (fpsi->lredrawtime - fpsi->redrawtime));
-	
+
 	float fps = 0.0f;
 	int tot = 0;
 	for (int i = 0; i < REDRAW_FRAME_AVERAGE; i++) {
@@ -995,11 +995,11 @@ void ED_scene_draw_fps(Scene *scene, const rcti *rect)
 	}
 	if (tot) {
 		fpsi->redrawtime_index = (fpsi->redrawtime_index + 1) % REDRAW_FRAME_AVERAGE;
-		
+
 		//fpsi->redrawtime_index++;
 		//if (fpsi->redrawtime >= REDRAW_FRAME_AVERAGE)
 		//	fpsi->redrawtime = 0;
-		
+
 		fps = fps / tot;
 	}
 #endif
@@ -1043,7 +1043,7 @@ bool ED_view3d_calc_render_border(const Scene *scene, Depsgraph *depsgraph, View
 		use_border = (scene->r.mode & R_BORDER) != 0;
 	else
 		use_border = (v3d->flag2 & V3D_RENDER_BORDER) != 0;
-	
+
 	if (!use_border)
 		return false;
 

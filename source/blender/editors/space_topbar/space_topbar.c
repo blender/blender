@@ -93,14 +93,14 @@ static SpaceLink *topbar_new(const ScrArea *UNUSED(area), const Scene *UNUSED(sc
 /* not spacelink itself */
 static void topbar_free(SpaceLink *UNUSED(sl))
 {
-	
+
 }
 
 
 /* spacetype; init callback */
 static void topbar_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 {
-	
+
 }
 
 static SpaceLink *topbar_duplicate(SpaceLink *sl)
@@ -136,12 +136,12 @@ static void topbar_main_region_draw(const bContext *C, ARegion *region)
 
 static void topbar_operatortypes(void)
 {
-	
+
 }
 
 static void topbar_keymap(struct wmKeyConfig *UNUSED(keyconf))
 {
-	
+
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

@@ -502,7 +502,7 @@ void main()
 	if (weight_acc > 0.0) {
 		ssr_accum /= weight_acc;
 		/* fade between 0.5 and 1.0 roughness */
-		ssr_accum.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness); 
+		ssr_accum.a *= smoothstep(ssrMaxRoughness + 0.2, ssrMaxRoughness, roughness);
 		accumulate_light(ssr_accum.rgb, ssr_accum.a, spec_accum);
 	}
 
