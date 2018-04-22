@@ -2898,6 +2898,8 @@ static void write_area_map(WriteData *wd, ScrAreaMap *area_map)
 	writelist(wd, DATA, ScrVert, &area_map->vertbase);
 	writelist(wd, DATA, ScrEdge, &area_map->edgebase);
 	for (ScrArea *area = area_map->areabase.first; area; area = area->next) {
+		area->butspacetype = area->spacetype; /* Just for compatibility, will be reset below. */
+
 		writestruct(wd, DATA, ScrArea, 1, area);
 
 #ifdef WITH_TOPBAR_WRITING
@@ -2905,6 +2907,8 @@ static void write_area_map(WriteData *wd, ScrAreaMap *area_map)
 #endif
 
 		write_area_regions(wd, area);
+
+		area->butspacetype = SPACE_EMPTY; /* Unset again, was changed above. */
 	}
 }
 

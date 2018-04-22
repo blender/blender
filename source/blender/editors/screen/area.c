@@ -1481,10 +1481,10 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	sa->type = BKE_spacetype_from_id(sa->spacetype);
 	
 	if (sa->type == NULL) {
-		sa->butspacetype = sa->spacetype = SPACE_VIEW3D;
+		sa->spacetype = SPACE_VIEW3D;
 		sa->type = BKE_spacetype_from_id(sa->spacetype);
 	}
-	
+
 	for (ar = sa->regionbase.first; ar; ar = ar->next)
 		ar->type = BKE_regiontype_from_id(sa->type, ar->regiontype);
 
@@ -1607,7 +1607,6 @@ void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
 	sa_dst->headertype = sa_src->headertype;
 	sa_dst->spacetype = sa_src->spacetype;
 	sa_dst->type = sa_src->type;
-	sa_dst->butspacetype = sa_src->butspacetype;
 
 	sa_dst->flag = (sa_dst->flag & ~flag_copy) | (sa_src->flag & flag_copy);
 
@@ -1638,7 +1637,6 @@ void ED_area_data_swap(ScrArea *sa_dst, ScrArea *sa_src)
 	SWAP(short, sa_dst->headertype, sa_src->headertype);
 	SWAP(char, sa_dst->spacetype, sa_src->spacetype);
 	SWAP(SpaceType *, sa_dst->type, sa_src->type);
-	SWAP(char, sa_dst->butspacetype, sa_src->butspacetype);
 
 
 	SWAP(ListBase, sa_dst->spacedata, sa_src->spacedata);
@@ -1677,8 +1675,9 @@ void ED_area_swapspace(bContext *C, ScrArea *sa1, ScrArea *sa2)
  */
 void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exit)
 {
+	wmWindow *win = CTX_wm_window(C);
+
 	if (sa->spacetype != type) {
-		wmWindow *win = CTX_wm_window(C);
 		SpaceType *st;
 		SpaceLink *slold;
 		SpaceLink *sl;
@@ -1702,7 +1701,6 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		slold = sa->spacedata.first;
 
 		sa->spacetype = type;
-		sa->butspacetype = type;
 		sa->type = st;
 
 		/* If st->new may be called, don't use context until then. The

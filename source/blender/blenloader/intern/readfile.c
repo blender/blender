@@ -6394,6 +6394,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 
 	BLI_listbase_clear(&area->handlers);
 	area->type = NULL;	/* spacetype callbacks */
+	area->butspacetype = SPACE_EMPTY; /* Should always be unset so that rna_Area_type_get works correctly */
 	area->region_active_win = -1;
 
 	area->global = newdataadr(fd, area->global);
@@ -6419,9 +6420,6 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 	else if (area->spacetype == SPACE_VIEW3D) {
 		blo_do_versions_view3d_split_250(area->spacedata.first, &area->regionbase);
 	}
-
-	/* incase we set above */
-	area->butspacetype = area->spacetype;
 
 	for (sl = area->spacedata.first; sl; sl = sl->next) {
 		link_list(fd, &(sl->regionbase));

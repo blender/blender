@@ -179,7 +179,7 @@ static ScrArea *screen_addarea_ex(
 	sa->v3 = top_right;
 	sa->v4 = bottom_right;
 	sa->headertype = headertype;
-	sa->spacetype = sa->butspacetype = spacetype;
+	sa->spacetype = spacetype;
 
 	BLI_addtail(&area_map->areabase, sa);
 
