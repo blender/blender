@@ -526,6 +526,40 @@ void UI_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y
 	glDisable(GL_BLEND);
 }
 
+void UI_draw_anti_fan(float tri_array[][2], unsigned int length, const float color[4])
+{
+	float draw_color[4];
+
+	copy_v4_v4(draw_color, color);
+	draw_color[3] *= 2.0f / WIDGET_AA_JITTER;
+
+	glEnable(GL_BLEND);
+
+	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+	immUniformColor4fv(draw_color);
+
+	/* for each AA step */
+	for (int j = 0; j < WIDGET_AA_JITTER; j++) {
+		immBegin(GWN_PRIM_TRI_FAN, length);
+		immVertex2f(pos, tri_array[0][0], tri_array[0][1]);
+		immVertex2f(pos, tri_array[1][0], tri_array[1][1]);
+
+		/* We jitter only the middle of the fan, the extremes are pinned. */
+		for (int i = 2; i < length - 1; i++) {
+			immVertex2f(pos, tri_array[i][0] + jit[j][0], tri_array[i][1] + jit[j][1]);
+		}
+
+		immVertex2f(pos, tri_array[length - 1][0], tri_array[length - 1][1]);
+		immEnd();
+	}
+
+	immUnbindProgram();
+
+	glDisable(GL_BLEND);
+}
+
 static void widget_init(uiWidgetBase *wtb)
 {
 	wtb->totvert = wtb->halfwayvert = 0;

@@ -28,8 +28,12 @@
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
 
+#include "BLI_math.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
+
+#include "UI_interface.h"
 
 #include "screen_intern.h"
 
@@ -208,6 +212,106 @@ static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	}
 }
 
+#define CORNER_RESOLUTION 10
+static void drawscredge_corner_geometry(
+        int sizex, int sizey,
+        int corner_x, int corner_y,
+        int center_x, int center_y,
+        double angle_offset)
+{
+	const int radius = ABS(corner_x - center_x);
+	const float color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+	const int line_thickness = U.pixelsize;
+
+	if (corner_x < center_x) {
+		if (corner_x > 0.0f) {
+			/* Left (internal) edge. */
+			corner_x += line_thickness;
+			center_x += line_thickness;
+		}
+	}
+	else {
+		/* Right (internal) edge. */
+		if (corner_x < sizex - 1) {
+			corner_x += 1 - line_thickness;
+			center_x += 1 - line_thickness;
+		}
+		else {
+			/* Corner case, extreme right edge. */
+			corner_x += 1;
+			center_x += 1;
+		}
+	}
+
+	if (corner_y < center_y) {
+		if (corner_y > 0.0f) {
+			/* Bottom (internal) edge. */
+			corner_y += line_thickness;
+			center_y += line_thickness;
+		}
+	}
+	else {
+		/* Top (internal) edge. */
+		if (corner_y < sizey) {
+			corner_y += 1 - line_thickness;
+			center_y += 1 - line_thickness;
+		}
+	}
+
+	float tri_array[CORNER_RESOLUTION + 1][2];
+
+	tri_array[0][0] = corner_x;
+	tri_array[0][1] = corner_y;
+
+	for (int i = 0; i < CORNER_RESOLUTION; i++) {
+		double angle = angle_offset + (M_PI_2 * ((float)i / (CORNER_RESOLUTION - 1)));
+		float x = center_x + (radius * cos(angle));
+		float y = center_y + (radius * sin(angle));
+		tri_array[i + 1][0] = x;
+		tri_array[i + 1][1] = y;
+	}
+	UI_draw_anti_fan(tri_array, CORNER_RESOLUTION + 1, color);
+}
+
+#undef CORNER_RESOLUTION
+
+static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
+{
+	int size = 10 * U.pixelsize;
+
+	/* Bottom-Left. */
+	drawscredge_corner_geometry(sizex, sizey,
+	                            sa->v1->vec.x,
+					            sa->v1->vec.y,
+					            sa->v1->vec.x + size,
+					            sa->v1->vec.y + size,
+	                            M_PI_2 * 2.0f);
+
+	/* Top-Left. */
+	drawscredge_corner_geometry(sizex, sizey,
+	                            sa->v2->vec.x,
+	                            sa->v2->vec.y,
+	                            sa->v2->vec.x + size,
+	                            sa->v2->vec.y - size,
+	                            M_PI_2);
+
+	/* Top-Right. */
+	drawscredge_corner_geometry(sizex, sizey,
+	                            sa->v3->vec.x,
+	                            sa->v3->vec.y,
+	                            sa->v3->vec.x - size,
+	                            sa->v3->vec.y - size,
+	                            0.0f);
+
+	/* Bottom-Right. */
+	drawscredge_corner_geometry(sizex, sizey,
+	                            sa->v4->vec.x,
+	                            sa->v4->vec.y,
+	                            sa->v4->vec.x - size,
+	                            sa->v4->vec.y + size,
+	                            M_PI_2 * 3.0f);
+}
+
 /**
  * Draw screen area darker with arrow (visualization of future joining).
  */
@@ -307,7 +411,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	if (U.pixelsize > 1.0f) {
 		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
 		glLineWidth((2.0f * U.pixelsize) - 1);
-		immUniformColor3ub(0x50, 0x50, 0x50);
+		immUniformColor3ub(0, 0, 0);
 
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			drawscredge_area(sa, winsize_x, winsize_y, pos);
@@ -322,6 +426,10 @@ void ED_screen_draw_edges(wmWindow *win)
 	}
 
 	immUnbindProgram();
+
+	for (sa = screen->areabase.first; sa; sa = sa->next) {
+		drawscredge_corner(sa, winsize_x, winsize_y);
+	}
 
 	screen->do_draw = false;
 }
