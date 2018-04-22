@@ -608,8 +608,6 @@ static bool ui_but_update_from_old_block(const bContext *C, uiBlock *block, uiBu
 		but->selend = oldbut->selend;
 		but->softmin = oldbut->softmin;
 		but->softmax = oldbut->softmax;
-		but->linkto[0] = oldbut->linkto[0];
-		but->linkto[1] = oldbut->linkto[1];
 		oldbut->active = NULL;
 #endif
 
