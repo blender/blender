@@ -5001,7 +5001,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Dither Intensity",
 	                         "Amount of dithering noise added to the rendered image to break up banding");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
-	
+
+	prop = RNA_def_property(srna, "filter_size", PROP_FLOAT, PROP_PIXEL);
+	RNA_def_property_float_sdna(prop, NULL, "gauss");
+	RNA_def_property_range(prop, 0.0f, 500.0f);
+	RNA_def_property_ui_range(prop, 0.01f, 10.0f, 1, 2);
+	RNA_def_property_ui_text(prop, "Filter Size", "Width over which the reconstruction filter combines samples");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "alpha_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "alphamode");
 	RNA_def_property_enum_items(prop, alpha_mode_items);
