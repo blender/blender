@@ -1327,7 +1327,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 			case MAN_AXIS_SCALE_YZ:
 			case MAN_AXIS_SCALE_ZX:
 			{
-				const float ofs_ax = 11.0f;
+				const float ofs_ax = 7.0f;
 				const float ofs[3] = {ofs_ax, ofs_ax, 0.0f};
 				WM_manipulator_set_scale(axis, 0.07f);
 				WM_manipulator_set_matrix_offset_location(axis, ofs);
