@@ -72,8 +72,13 @@ enum {
 	/* Show that holding the button opens a menu. */
 	UI_STATE_HOLD_ACTION = UI_BUT_UPDATE_DELAY,
 	UI_STATE_TEXT_INPUT  = UI_BUT_UNDO,
+	UI_STATE_ACTIVE_LEFT  = UI_BUT_VALUE_CLEAR,
+	UI_STATE_ACTIVE_RIGHT = UI_BUT_TEXTEDIT_UPDATE,
 
-	UI_STATE_FLAGS_ALL = (UI_STATE_HOLD_ACTION | UI_STATE_TEXT_INPUT),
+	UI_STATE_FLAGS_ALL = (UI_STATE_HOLD_ACTION |
+	                      UI_STATE_TEXT_INPUT |
+	                      UI_STATE_ACTIVE_LEFT |
+	                      UI_STATE_ACTIVE_RIGHT),
 };
 /* Prevent accidental use. */
 #define UI_BUT_UPDATE_DELAY ((void)0)
@@ -836,7 +841,12 @@ static void shape_preset_init_trias_ex(
 	float centx, centy, sizex, sizey, minsize;
 	int a, i1 = 0, i2 = 1;
 
-	minsize = min_ii(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect));
+	if (where == 'r' || where == 'l') {
+		minsize = BLI_rcti_size_y(rect);
+	}
+	else {
+		minsize = BLI_rcti_size_x(rect);
+	}
 
 	/* center position and size */
 	centx = (float)rect->xmin + 0.4f * minsize;
@@ -2444,6 +2454,13 @@ static void ui_widget_color_disabled(uiWidgetType *wt)
 	wt->wcol_theme = &wcol_theme_s;
 }
 
+static void widget_active_color(char cp[3])
+{
+	cp[0] = cp[0] >= 240 ? 255 : cp[0] + 15;
+	cp[1] = cp[1] >= 240 ? 255 : cp[1] + 15;
+	cp[2] = cp[2] >= 240 ? 255 : cp[2] + 15;
+}
+
 /* copy colors from theme, and set changes in it based on state */
 static void widget_state(uiWidgetType *wt, int state)
 {
@@ -2489,9 +2506,7 @@ static void widget_state(uiWidgetType *wt, int state)
 			widget_state_blend(wt->wcol.inner, wcol_state->inner_overridden, wcol_state->blend);
 
 		if (state & UI_ACTIVE) { /* mouse over? */
-			wt->wcol.inner[0] = wt->wcol.inner[0] >= 240 ? 255 : wt->wcol.inner[0] + 15;
-			wt->wcol.inner[1] = wt->wcol.inner[1] >= 240 ? 255 : wt->wcol.inner[1] + 15;
-			wt->wcol.inner[2] = wt->wcol.inner[2] >= 240 ? 255 : wt->wcol.inner[2] + 15;
+			widget_active_color(wt->wcol.inner);
 		}
 	}
 
@@ -3187,6 +3202,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 {
 	uiWidgetBase wtb;
 	const float rad = wcol->roundness * BLI_rcti_size_y(rect);
+	const int handle_width = min_ii(BLI_rcti_size_x(rect) / 3, BLI_rcti_size_y(rect) * 0.7f);
 
 	if (state & UI_SELECT)
 		SWAP(short, wcol->shadetop, wcol->shadedown);
@@ -3202,12 +3218,76 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 	}
 
 	/* decoration */
-	if (!(state & UI_STATE_TEXT_INPUT)) {
-		shape_preset_init_number_arrows(&wtb.tria1, rect, 0.6f, 'l');
-		shape_preset_init_number_arrows(&wtb.tria2, rect, 0.6f, 'r');
-	}
+	if ((state & UI_ACTIVE) && !(state & UI_STATE_TEXT_INPUT)) {
+		uiWidgetColors wcol_zone;
+		uiWidgetBase wtb_zone;
+		rcti rect_zone;
+		int roundboxalign_zone;
 
-	widgetbase_draw(&wtb, wcol);
+		/* left arrow zone */
+		widget_init(&wtb_zone);
+		wtb_zone.draw_outline = false;
+		wtb_zone.draw_emboss = false;
+
+		wcol_zone = *wcol;
+		copy_v3_v3_char(wcol_zone.item, wcol->text);
+		if (state & UI_STATE_ACTIVE_LEFT) {
+			widget_active_color(wcol_zone.inner);
+		}
+
+		rect_zone = *rect;
+		rect_zone.xmax = rect->xmin + handle_width + U.pixelsize;
+		roundboxalign_zone = roundboxalign & ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
+		round_box_edges(&wtb_zone, roundboxalign_zone, &rect_zone, rad);
+
+		shape_preset_init_number_arrows(&wtb_zone.tria1, &rect_zone, 0.6f, 'l');
+		widgetbase_draw(&wtb_zone, &wcol_zone);
+
+		/* right arrow zone */
+		widget_init(&wtb_zone);
+		wtb_zone.draw_outline = false;
+		wtb_zone.draw_emboss = false;
+		wtb_zone.tria1.type = ROUNDBOX_TRIA_ARROWS;
+
+		wcol_zone = *wcol;
+		copy_v3_v3_char(wcol_zone.item, wcol->text);
+		if (state & UI_STATE_ACTIVE_RIGHT) {
+			widget_active_color(wcol_zone.inner);
+		}
+
+		rect_zone = *rect;
+		rect_zone.xmin = rect->xmax - handle_width - U.pixelsize;
+		roundboxalign_zone = roundboxalign & ~(UI_CNR_TOP_LEFT | UI_CNR_BOTTOM_LEFT);
+		round_box_edges(&wtb_zone, roundboxalign_zone, &rect_zone, rad);
+
+		shape_preset_init_number_arrows(&wtb_zone.tria2, &rect_zone, 0.6f, 'r');
+		widgetbase_draw(&wtb_zone, &wcol_zone);
+
+		/* middle highlight zone */
+		widget_init(&wtb_zone);
+		wtb_zone.draw_outline = false;
+		wtb_zone.draw_emboss = false;
+
+		wcol_zone = *wcol;
+		copy_v3_v3_char(wcol_zone.item, wcol->text);
+		if (!(state & (UI_STATE_ACTIVE_LEFT|UI_STATE_ACTIVE_RIGHT))) {
+			widget_active_color(wcol_zone.inner);
+		}
+
+		rect_zone = *rect;
+		rect_zone.xmin = rect->xmin + handle_width - U.pixelsize;
+		rect_zone.xmax = rect->xmax - handle_width + U.pixelsize;
+		round_box_edges(&wtb_zone, 0, &rect_zone, 0);
+		widgetbase_draw(&wtb_zone, &wcol_zone);
+
+		/* outline */
+		wtb.draw_inner = false;
+		widgetbase_draw(&wtb, wcol);
+	}
+	else {
+		/* inner and outline */
+		widgetbase_draw(&wtb, wcol);
+	}
 	
 	if (!(state & UI_STATE_TEXT_INPUT)) {
 		const float textofs = 0.425f * BLI_rcti_size_y(rect);
@@ -4451,6 +4531,15 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 		if (but->hold_func) {
 			state |= UI_STATE_HOLD_ACTION;
+		}
+
+		if (state & UI_ACTIVE) {
+			if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
+				state |= UI_STATE_ACTIVE_LEFT;
+			}
+			else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
+				state |= UI_STATE_ACTIVE_RIGHT;
+			}
 		}
 
 		if (state & (UI_BUT_DISABLED | UI_BUT_INACTIVE))

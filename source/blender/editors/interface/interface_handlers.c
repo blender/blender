@@ -4167,6 +4167,36 @@ static bool ui_numedit_but_NUM(
 	return changed;
 }
 
+static void ui_numedit_set_active(uiBut *but)
+{
+	int oldflag = but->drawflag;
+	but->drawflag &= ~(UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT);
+
+	uiHandleButtonData *data = but->active;
+	if (!data) {
+		return;
+	}
+
+	/* we can click on the side arrows to increment/decrement,
+	 * or click inside to edit the value directly */
+	int mx = data->window->eventstate->x;
+	int my = data->window->eventstate->x;
+	ui_window_to_block(data->region, but->block, &mx, &my);
+
+	float handle_width = min_ff(BLI_rctf_size_x(&but->rect) / 3, BLI_rctf_size_y(&but->rect) * 0.7f);
+
+	if (mx < (but->rect.xmin + handle_width)) {
+		but->drawflag |= UI_BUT_ACTIVE_LEFT;
+	}
+	else if (mx > (but->rect.xmax - handle_width)) {
+		but->drawflag |= UI_BUT_ACTIVE_RIGHT;
+	}
+
+	if (but->drawflag != oldflag) {
+		ED_region_tag_redraw(data->region);
+	}
+}
+
 static int ui_do_but_NUM(
         bContext *C, uiBlock *block, uiBut *but,
         uiHandleButtonData *data, const wmEvent *event)
@@ -4180,6 +4210,7 @@ static int ui_do_but_NUM(
 	my = screen_my = event->y;
 
 	ui_window_to_block(data->region, block, &mx, &my);
+	ui_numedit_set_active(but);
 
 	if (data->state == BUTTON_STATE_HIGHLIGHT) {
 		int type = event->type, val = event->val;
@@ -4289,16 +4320,13 @@ static int ui_do_but_NUM(
 		/* we can click on the side arrows to increment/decrement,
 		 * or click inside to edit the value directly */
 		float tempf, softmin, softmax;
-		float handlewidth;
 		int temp;
 
 		softmin = but->softmin;
 		softmax = but->softmax;
 
-		handlewidth = min_ff(BLI_rctf_size_x(&but->rect) / 3, BLI_rctf_size_y(&but->rect));
-
 		if (!ui_but_is_float(but)) {
-			if (mx < (but->rect.xmin + handlewidth)) {
+			if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp = (int)data->value - 1;
@@ -4309,7 +4337,7 @@ static int ui_do_but_NUM(
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
-			else if (mx > (but->rect.xmax - handlewidth)) {
+			else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				temp = (int)data->value + 1;
@@ -4325,7 +4353,7 @@ static int ui_do_but_NUM(
 			}
 		}
 		else {
-			if (mx < (but->rect.xmin + handlewidth)) {
+			if (but->drawflag & UI_BUT_ACTIVE_LEFT) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf = (float)data->value - (UI_PRECISION_FLOAT_SCALE * but->a1);
@@ -4334,7 +4362,7 @@ static int ui_do_but_NUM(
 
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 			}
-			else if (mx > but->rect.xmax - handlewidth) {
+			else if (but->drawflag & UI_BUT_ACTIVE_RIGHT) {
 				button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
 
 				tempf = (float)data->value + (UI_PRECISION_FLOAT_SCALE * but->a1);
@@ -7792,6 +7820,9 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 		const bool horizontal = (BLI_rctf_size_x(&but->rect) < BLI_rctf_size_y(&but->rect));
 		WM_cursor_modal_set(data->window, horizontal ? CURSOR_X_MOVE : CURSOR_Y_MOVE);
 	}
+	else if (but->type == UI_BTYPE_NUM) {
+		ui_numedit_set_active(but);
+	}
 }
 
 static void button_activate_exit(
@@ -8229,7 +8260,6 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 			case EVT_BUT_CANCEL:
 				data->cancel = true;
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
-				retval = WM_UI_HANDLER_CONTINUE;
 				break;
 			case MOUSEMOVE:
 			{
@@ -8269,7 +8299,6 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 						button_activate_state(C, but, BUTTON_STATE_MENU_OPEN);
 				}
 
-				retval = WM_UI_HANDLER_CONTINUE;
 				break;
 			}
 			/* XXX hardcoded keymap check... but anyway, while view changes, tooltips should be removed */
@@ -8280,10 +8309,11 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				UI_but_tooltip_timer_remove(C, but);
 				ATTR_FALLTHROUGH;
 			default:
-				/* handle button type specific events */
-				retval = ui_do_button(C, block, but, event);
 				break;
 		}
+
+		/* handle button type specific events */
+		retval = ui_do_button(C, block, but, event);
 	}
 	else if (data->state == BUTTON_STATE_WAIT_RELEASE) {
 		switch (event->type) {
