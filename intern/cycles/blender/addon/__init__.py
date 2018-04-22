@@ -52,7 +52,7 @@ from . import (
 
 class CyclesRender(bpy.types.RenderEngine):
     bl_idname = 'CYCLES'
-    bl_label = "Cycles Render"
+    bl_label = "Cycles"
     bl_use_shading_nodes = True
     bl_use_preview = True
     bl_use_exclude_layers = True
