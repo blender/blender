@@ -896,6 +896,8 @@ class USERPREF_PT_theme(Panel):
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui, "menu_shadow_fac")
+            colsub.row().prop(ui, "icon_alpha")
+            colsub.row().prop(ui, "editor_outline")
 
             subsplit = row.split(percentage=0.85)
 
@@ -903,21 +905,6 @@ class USERPREF_PT_theme(Panel):
             colsub = padding.column()
             colsub = padding.column()
             colsub.row().prop(ui, "menu_shadow_width")
-
-            row = col.row()
-
-            subsplit = row.split(percentage=0.95)
-
-            padding = subsplit.split(percentage=0.15)
-            colsub = padding.column()
-            colsub = padding.column()
-            colsub.row().prop(ui, "icon_alpha")
-
-            subsplit = row.split(percentage=0.85)
-
-            padding = subsplit.split(percentage=0.15)
-            colsub = padding.column()
-            colsub = padding.column()
             colsub.row().prop(ui, "widget_emboss")
 
             col.separator()

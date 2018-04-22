@@ -275,6 +275,8 @@ typedef enum ThemeColorID {
 	
 	TH_WIDGET_EMBOSS,
 
+	TH_EDITOR_OUTLINE,
+
 	TH_AXIS_X,		/* X/Y/Z Axis */
 	TH_AXIS_Y,
 	TH_AXIS_Z,

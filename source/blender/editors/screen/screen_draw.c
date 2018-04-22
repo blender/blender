@@ -34,6 +34,7 @@
 #include "WM_types.h"
 
 #include "UI_interface.h"
+#include "UI_resources.h"
 
 #include "screen_intern.h"
 
@@ -212,15 +213,13 @@ static void draw_join_shape(ScrArea *sa, char dir, unsigned int pos)
 	}
 }
 
-/* This color is used for the internal area embossing and their round corners. */
-float edge_colors[4] = {0.25f, 0.25f, 0.25f, 1.0f};
-
 #define CORNER_RESOLUTION 10
 static void drawscredge_corner_geometry(
         int sizex, int sizey,
         int corner_x, int corner_y,
         int center_x, int center_y,
-        double angle_offset)
+        double angle_offset,
+        const float *color)
 {
 	const int radius = ABS(corner_x - center_x);
 	const int line_thickness = U.pixelsize;
@@ -272,7 +271,8 @@ static void drawscredge_corner_geometry(
 		tri_array[i + 1][0] = x;
 		tri_array[i + 1][1] = y;
 	}
-	UI_draw_anti_fan(tri_array, CORNER_RESOLUTION + 1, edge_colors);
+
+	UI_draw_anti_fan(tri_array, CORNER_RESOLUTION + 1, color);
 }
 
 #undef CORNER_RESOLUTION
@@ -280,6 +280,8 @@ static void drawscredge_corner_geometry(
 static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 {
 	int size = 10 * U.pixelsize;
+	float color[4] = {0};
+	UI_GetThemeColor4fv(TH_EDITOR_OUTLINE, color);
 
 	/* Bottom-Left. */
 	drawscredge_corner_geometry(sizex, sizey,
@@ -287,7 +289,8 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 					            sa->v1->vec.y,
 					            sa->v1->vec.x + size,
 					            sa->v1->vec.y + size,
-	                            M_PI_2 * 2.0f);
+	                            M_PI_2 * 2.0f,
+	                            color);
 
 	/* Top-Left. */
 	drawscredge_corner_geometry(sizex, sizey,
@@ -295,7 +298,8 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 	                            sa->v2->vec.y,
 	                            sa->v2->vec.x + size,
 	                            sa->v2->vec.y - size,
-	                            M_PI_2);
+	                            M_PI_2,
+	                            color);
 
 	/* Top-Right. */
 	drawscredge_corner_geometry(sizex, sizey,
@@ -303,7 +307,8 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 	                            sa->v3->vec.y,
 	                            sa->v3->vec.x - size,
 	                            sa->v3->vec.y - size,
-	                            0.0f);
+	                            0.0f,
+	                            color);
 
 	/* Bottom-Right. */
 	drawscredge_corner_geometry(sizex, sizey,
@@ -311,7 +316,8 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 	                            sa->v4->vec.y,
 	                            sa->v4->vec.x - size,
 	                            sa->v4->vec.y + size,
-	                            M_PI_2 * 3.0f);
+	                            M_PI_2 * 3.0f,
+	                            color);
 
 	/* Wrap up the corners with a nice embossing. */
 	rcti rect = sa->totrct;
@@ -319,7 +325,7 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
-	immUniformColor4fv(edge_colors);
+	immUniformColor4fv(color);
 	immBeginAtMost(GWN_PRIM_LINES, 8);
 
 	/* Right. */
@@ -441,7 +447,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	if (U.pixelsize > 1.0f) {
 		/* FIXME: doesn't our glLineWidth already scale by U.pixelsize? */
 		glLineWidth((2.0f * U.pixelsize) - 1);
-		immUniformColor3fv(edge_colors);
+		immUniformThemeColor(TH_EDITOR_OUTLINE);
 
 		for (sa = screen->areabase.first; sa; sa = sa->next) {
 			drawscredge_area(sa, winsize_x, winsize_y, pos);
@@ -449,7 +455,7 @@ void ED_screen_draw_edges(wmWindow *win)
 	}
 
 	glLineWidth(1);
-	immUniformColor3fv(edge_colors);
+	immUniformThemeColor(TH_EDITOR_OUTLINE);
 
 	for (sa = screen->areabase.first; sa; sa = sa->next) {
 		drawscredge_area(sa, winsize_x, winsize_y, pos);

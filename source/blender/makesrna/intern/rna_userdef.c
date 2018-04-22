@@ -1078,6 +1078,12 @@ static void rna_def_userdef_theme_ui(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Widget Emboss", "Color of the 1px shadow line underlying widgets");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
+	prop = RNA_def_property(srna, "editor_outline", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "editor_outline");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Editor Outline", "Color of the outline of the editors and their round corners");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+
 	/* axis */
 	prop = RNA_def_property(srna, "axis_x", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "xaxis");
