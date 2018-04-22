@@ -137,12 +137,12 @@ class WindowManager(bpy_types.ID):
 
     def popup_menu(self, draw_func, title="", icon='NONE'):
         import bpy
-        popup = self.pupmenu_begin__internal(title, icon)
+        popup = self.popmenu_begin__internal(title, icon)
 
         try:
             draw_func(popup, bpy.context)
         finally:
-            self.pupmenu_end__internal(popup)
+            self.popmenu_end__internal(popup)
 
     def popup_menu_pie(self, event, draw_func, title="", icon='NONE'):
         import bpy
