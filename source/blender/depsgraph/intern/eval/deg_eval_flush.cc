@@ -182,6 +182,9 @@ BLI_INLINE OperationDepsNode *flush_schedule_children(
 {
 	OperationDepsNode *result = NULL;
 	foreach (DepsRelation *rel, op_node->outlinks) {
+		if (rel->flag & DEPSREL_FLAG_NO_FLUSH) {
+			continue;
+		}
 		OperationDepsNode *to_node = (OperationDepsNode *)rel->to;
 		if (to_node->scheduled == false) {
 			if (result != NULL) {
