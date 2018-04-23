@@ -2730,7 +2730,7 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	glDisable(GL_BLEND);
 }
 
-static void widget_popover_back(uiWidgetColors *wcol, rcti *rect, int flag, int direction)
+static void widget_popover_back(uiWidgetColors *wcol, rcti *rect, int UNUSED(flag), int direction)
 {
 	/* tsk, this isn't nice. */
 	const float unit_half = (BLI_rcti_size_x(rect) / UI_POPOVER_WIDTH_UNITS) / 2;
@@ -2738,22 +2738,46 @@ static void widget_popover_back(uiWidgetColors *wcol, rcti *rect, int flag, int 
 	rect->ymax -= unit_half;
 	rect->ymin += unit_half;
 
-	widget_menu_back(wcol, rect, flag, direction);
-
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-	immUniformColor4ubv((unsigned char *)wcol->inner);
 
 	glEnable(GL_BLEND);
-	immBegin(GWN_PRIM_TRIS, 3);
-	immVertex2f(pos, cent_x - unit_half, rect->ymax);
-	immVertex2f(pos, cent_x + unit_half, rect->ymax);
-	immVertex2f(pos, cent_x, rect->ymax + unit_half);
-	immEnd();
+
+	/* Extracted from 'widget_menu_back', keep separate to avoid menu changes breaking popovers */
+	{
+		uiWidgetBase wtb;
+		widget_init(&wtb);
+
+		const int roundboxalign = UI_CNR_ALL;
+		widget_softshadow(rect, roundboxalign, wcol->roundness * U.widget_unit);
+
+		round_box_edges(&wtb, roundboxalign, rect, wcol->roundness * U.widget_unit);
+		wtb.draw_emboss = false;
+		widgetbase_draw(&wtb, wcol);
+	}
+
+	/* Draw popover arrow (top/bottom) */
+	if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor4ubv((unsigned char *)wcol->inner);
+		glEnable(GL_BLEND);
+		immBegin(GWN_PRIM_TRIS, 3);
+		if (direction == UI_DIR_DOWN) {
+			const float y = rect->ymax;
+			immVertex2f(pos, cent_x - unit_half, y);
+			immVertex2f(pos, cent_x + unit_half, y);
+			immVertex2f(pos, cent_x, y + unit_half);
+		}
+		else {
+			const float y = rect->ymin;
+			immVertex2f(pos, cent_x - unit_half, y);
+			immVertex2f(pos, cent_x + unit_half, rect->ymin);
+			immVertex2f(pos, cent_x, y - unit_half);
+		}
+		immEnd();
+		immUnbindProgram();
+	}
+
 	glDisable(GL_BLEND);
-	immUnbindProgram();
 }
 
 static void ui_hsv_cursor(float x, float y)
@@ -4293,7 +4317,7 @@ static int widget_roundbox_set(uiBut *but, rcti *rect)
 	}
 
 	/* align with open menu */
-	if (but->active) {
+	if (but->active && (but->type != UI_BTYPE_POPOVER)) {
 		int direction = ui_but_menu_direction(but);
 
 		if      (direction == UI_DIR_UP)    roundbox &= ~(UI_CNR_TOP_RIGHT    | UI_CNR_TOP_LEFT);
