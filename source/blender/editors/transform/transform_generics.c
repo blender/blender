@@ -266,6 +266,7 @@ static void animrecord_check_state(Scene *scene, ID *id, wmTimer *animtimer)
 		/* if playback has just looped around, we need to add a new NLA track+strip to allow a clean pass to occur */
 		if ((sad) && (sad->flag & ANIMPLAY_FLAG_JUMPED)) {
 			AnimData *adt = BKE_animdata_from_id(id);
+			const bool is_first = (adt) && (adt->nla_tracks.first == NULL);
 			
 			/* perform push-down manually with some differences 
 			 * NOTE: BKE_nla_action_pushdown() sync warning...
@@ -285,6 +286,29 @@ static void animrecord_check_state(Scene *scene, ID *id, wmTimer *animtimer)
 					/* adjust blending + extend so that they will behave correctly */
 					strip->extendmode = NLASTRIP_EXTEND_NOTHING;
 					strip->flag &= ~(NLASTRIP_FLAG_AUTO_BLENDS | NLASTRIP_FLAG_SELECT | NLASTRIP_FLAG_ACTIVE);
+					
+					/* copy current "action blending" settings from adt to the strip,
+					 * as it was keyframed with these settings, so omitting them will
+					 * change the effect  [T54766]
+					 */
+					if (is_first == false) {
+						strip->blendmode = adt->act_blendmode;
+						strip->influence = adt->act_influence;
+						
+						if (adt->act_influence < 1.0f) {
+							/* enable "user-controlled" influence (which will insert a default keyframe)
+							 * so that the influence doesn't get lost on the new update
+							 *
+							 * NOTE: An alternative way would have been to instead hack the influence
+							 * to not get always get reset to full strength if NLASTRIP_FLAG_USR_INFLUENCE
+							 * is disabled but auto-blending isn't being used. However, that approach
+							 * is a bit hacky/hard to discover, and may cause backwards compatability issues,
+							 * so it's better to just do it this way.
+							 */
+							strip->flag |= NLASTRIP_FLAG_USR_INFLUENCE;
+							BKE_nlastrip_validate_fcurves(strip);
+						}
+					}
 					
 					/* also, adjust the AnimData's action extend mode to be on 
 					 * 'nothing' so that previous result still play 
