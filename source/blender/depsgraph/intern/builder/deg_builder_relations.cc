@@ -419,6 +419,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	build_object_flags(base, object);
 	/* Parenting. */
 	if (object->parent != NULL) {
+		/* Make sure parent object's relations are built. */
+		build_object(NULL, object->parent);
 		/* Parent relationship. */
 		build_object_parent(object);
 		/* Local -> parent. */
