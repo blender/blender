@@ -7506,11 +7506,13 @@ bool RNA_struct_override_matches(
 			continue;
 		}
 
+#if 0  /* This actually makes things slower, since it has to check for animation paths etc! */
 		if (RNA_property_animated(ptr_local, prop_local)) {
 			/* We cannot do anything here really, animation is some kind of dynamic overrides that has
 			 * precedence over static one... */
 			continue;
 		}
+#endif
 
 #define RNA_PATH_BUFFSIZE 8192
 #define RNA_PATH_PRINTF(_str, ...) \
