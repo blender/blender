@@ -87,7 +87,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 {
 	uiBlock *block;
 	uiPopover *pup = arg_pup;
-	int offset[2], minwidth, width, height;
+	int minwidth, width, height;
 
 	if (pup->menu_func) {
 		pup->block->handle = handle;
@@ -119,6 +119,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 	const int block_margin = U.widget_unit / 2;
 
 	if (pup->popover) {
+		int offset[2] = {0, 0};  /* Dummy. */
 		UI_block_flag_enable(block, UI_BLOCK_LOOP);
 		UI_block_direction_set(block, block->direction);
 		block->minbounds = minwidth;
@@ -167,8 +168,9 @@ uiPopupBlockHandle *ui_popover_panel_create(
 	 * reverse some enum's but not others, so reverse all so the first menu
 	 * items are always close to the mouse cursor */
 	else {
-		if (but->context)
+		if (but->context) {
 			uiLayoutContextCopy(pup->layout, but->context);
+		}
 	}
 
 	/* menu is created from a callback */
