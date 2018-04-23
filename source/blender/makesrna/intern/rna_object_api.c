@@ -97,7 +97,7 @@ static void rna_Object_select_set(Object *ob, bContext *C, ReportList *reports, 
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 
 	if (!base) {
-		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in Render Layer '%s'!", ob->id.name + 2, view_layer->name);
+		BKE_reportf(reports, RPT_ERROR, "Object '%s' not in View Layer '%s'!", ob->id.name + 2, view_layer->name);
 		return;
 	}
 
