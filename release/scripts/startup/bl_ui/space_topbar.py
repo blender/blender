@@ -133,8 +133,7 @@ class TOPBAR_HT_lower_bar(Header):
 
         # Last Action (redo)
         layout.label("Last Action:")
-        operators = context.window_manager.operators
-        op = operators[-1] if operators else None
+        op = context.active_operator
         row = layout.row()
         row.enabled = op is not None
         row.popover(
