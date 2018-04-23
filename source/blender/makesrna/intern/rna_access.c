@@ -7516,11 +7516,11 @@ bool RNA_struct_override_matches(
 
 #define RNA_PATH_BUFFSIZE 8192
 #define RNA_PATH_PRINTF(_str, ...) \
-	if (BLI_snprintf(rna_path, RNA_PATH_BUFFSIZE, \
-	                  (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE) \
-	{ rna_path = BLI_sprintfN((_str), __VA_ARGS__); }(void)0
+		if (BLI_snprintf(rna_path, RNA_PATH_BUFFSIZE, \
+		                  (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE) \
+		{ rna_path = BLI_sprintfN((_str), __VA_ARGS__); }(void)0
 #define RNA_PATH_FREE \
-	if (rna_path != rna_path_buffer) MEM_freeN(rna_path)
+		if (rna_path != rna_path_buffer) MEM_freeN(rna_path)
 
 		char rna_path_buffer[RNA_PATH_BUFFSIZE];
 		char *rna_path = rna_path_buffer;
