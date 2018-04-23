@@ -313,6 +313,9 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 #define RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(_NAME_, _LEN_) \
 	RNA_LAYER_ENGINE_GET_SET_ARRAY(float, Workbench, COLLECTION_MODE_NONE, _NAME_, _LEN_)
 
+#define RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT(_NAME_) \
+	RNA_LAYER_ENGINE_GET_SET(float, Workbench, COLLECTION_MODE_NONE, _NAME_)
+
 #define RNA_LAYER_ENGINE_WORKBENCH_GET_SET_INT(_NAME_) \
 	RNA_LAYER_ENGINE_GET_SET(int, Workbench, COLLECTION_MODE_NONE, _NAME_)
 
@@ -359,6 +362,10 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
 RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 #endif /* WITH_CLAY_ENGINE */
+
+/* workbench engine */
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT(random_object_color_saturation)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT(random_object_color_value)
 
 /* eevee engine */
 /* ViewLayer settings. */
@@ -1675,11 +1682,26 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsWorkbench", "LayerCollectionSettings");
 	RNA_def_struct_ui_text(srna, "Collections Workbench Engine Settings", "Workbench specific settings for this collection");
 
 	RNA_define_verify_sdna(0); /* not in sdna */
+
+	prop = RNA_def_property(srna, "random_object_color_saturation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_random_object_color_saturation_get", "rna_LayerEngineSettings_Workbench_random_object_color_saturation_set", NULL);
+	RNA_def_property_ui_text(prop, "Random Saturation", "Random Object Color Saturation");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
+
+	prop = RNA_def_property(srna, "random_object_color_value", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_random_object_color_value_get", "rna_LayerEngineSettings_Workbench_random_object_color_value_set", NULL);
+	RNA_def_property_ui_text(prop, "Random Value", "Random Object Color Value");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
 }
 
 static void rna_def_layer_collection_mode_settings_object(BlenderRNA *brna)

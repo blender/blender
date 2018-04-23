@@ -31,7 +31,7 @@
 #include "DNA_view3d_types.h"
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
-
+#define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 
 typedef struct WORKBENCH_StorageList {
 	struct WORKBENCH_PrivateData *g_data;
@@ -68,6 +68,16 @@ typedef struct WORKBENCH_MaterialData {
 	DRWShadingGroup *shgrp;
 } WORKBENCH_MaterialData;
 
+typedef struct WORKBENCH_ObjectData {
+	struct ObjectEngineData *next, *prev;
+	struct DrawEngineType *engine_type;
+	/* Only nested data, NOT the engine data itself. */
+	ObjectEngineDataFreeCb free;
+	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
+	int recalc;
+
+	uint random_color_offset;
+} WORKBENCH_ObjectData;
 
 /* workbench_engine.c */
 void workbench_solid_materials_init(void);
