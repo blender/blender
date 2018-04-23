@@ -806,6 +806,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* Bone Constraints */
 	prop = RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel");
 
 	rna_def_pose_channel_constraints(brna, prop);
