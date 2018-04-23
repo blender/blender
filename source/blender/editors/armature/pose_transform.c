@@ -223,38 +223,38 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	/* don't check if editmode (should be done by caller) */
-	if (ob->type != OB_ARMATURE)
-		return OPERATOR_CANCELLED;
-
-	/* loop over all selected pchans
-	 *
-	 * TODO, loop over children before parents if multiple bones
-	 * at once are to be predictable*/
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
+	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob)
 	{
-		float delta_mat[4][4];
+		/* loop over all selected pchans
+		 *
+		 * TODO, loop over children before parents if multiple bones
+		 * at once are to be predictable*/
+		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
+		{
+			float delta_mat[4][4];
+			
+			/* chan_mat already contains the delta transform from rest pose to pose-mode pose
+			 * as that is baked into there so that B-Bones will work. Once we've set this as the
+			 * new raw-transform components, don't recalc the poses yet, otherwise IK result will 
+			 * change, thus changing the result we may be trying to record.
+			 */
+			/* XXX For some reason, we can't use pchan->chan_mat here, gives odd rotation/offset (see T38251).
+			 *     Using pchan->pose_mat and bringing it back in bone space seems to work as expected!
+			 */
+			BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, delta_mat);
+			
+			BKE_pchan_apply_mat4(pchan, delta_mat, true);
+		}
+		CTX_DATA_END;
 		
-		/* chan_mat already contains the delta transform from rest pose to pose-mode pose
-		 * as that is baked into there so that B-Bones will work. Once we've set this as the
-		 * new raw-transform components, don't recalc the poses yet, otherwise IK result will 
-		 * change, thus changing the result we may be trying to record.
-		 */
-		/* XXX For some reason, we can't use pchan->chan_mat here, gives odd rotation/offset (see T38251).
-		 *     Using pchan->pose_mat and bringing it back in bone space seems to work as expected!
-		 */
-		BKE_armature_mat_pose_to_bone(pchan, pchan->pose_mat, delta_mat);
-		
-		BKE_pchan_apply_mat4(pchan, delta_mat, true);
-	}
-	CTX_DATA_END;
-	
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		/* note, notifier might evolve */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	}
+	FOREACH_OBJECT_IN_MODE_END;
 
 	return OPERATOR_FINISHED;
 }
