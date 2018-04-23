@@ -136,9 +136,11 @@ static uiBut *ui_popup_menu_memory__internal(uiBlock *block, uiBut *but)
 	}
 	else {
 		/* get */
-		for (but = block->buttons.first; but; but = but->next)
-			if (ui_popup_string_hash(but->str) == mem[hash_mod])
+		for (but = block->buttons.first; but; but = but->next) {
+			if (ui_popup_string_hash(but->str) == mem[hash_mod]) {
 				return but;
+			}
+		}
 
 		return NULL;
 	}
@@ -176,9 +178,8 @@ struct uiPopupMenu {
 static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)
 {
 	uiBlock *block;
-	uiBut *bt;
 	uiPopupMenu *pup = arg_pup;
-	int offset[2], minwidth, width, height;
+	int minwidth, width, height;
 	char direction;
 	bool flip;
 
@@ -218,8 +219,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 
 	/* in some cases we create the block before the region,
 	 * so we set it delayed here if necessary */
-	if (BLI_findindex(&handle->region->uiblocks, block) == -1)
+	if (BLI_findindex(&handle->region->uiblocks, block) == -1) {
 		UI_block_region_set(block, handle->region);
+	}
 
 	block->direction = direction;
 
@@ -228,6 +230,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT);
 
 	if (pup->popup) {
+		uiBut *bt;
+		int offset[2];
+
 		uiBut *but_activate = NULL;
 		UI_block_flag_enable(block, UI_BLOCK_LOOP | UI_BLOCK_NUMSELECT);
 		UI_block_direction_set(block, direction);
@@ -251,8 +256,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 			/* position mouse at 0.8*width of the button and below the tile
 			 * on the first item */
 			offset[0] = 0;
-			for (bt = block->buttons.first; bt; bt = bt->next)
+			for (bt = block->buttons.first; bt; bt = bt->next) {
 				offset[0] = min_ii(offset[0], -(bt->rect.xmin + 0.8f * BLI_rctf_size_x(&bt->rect)));
+			}
 
 			offset[1] = 2.1 * UI_UNIT_Y;
 
@@ -292,8 +298,9 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	}
 
 	/* if menu slides out of other menu, override direction */
-	if (pup->slideout)
+	if (pup->slideout) {
 		UI_block_direction_set(block, UI_DIR_RIGHT);
+	}
 
 	return pup->block;
 }
@@ -334,8 +341,9 @@ uiPopupBlockHandle *ui_popup_menu_create(
 			pup->block->flag |= UI_BLOCK_NO_FLIP;
 		}
 #endif
-		if (but->context)
+		if (but->context) {
 			uiLayoutContextCopy(pup->layout, but->context);
+		}
 	}
 
 	/* menu is created from a callback */
