@@ -151,6 +151,7 @@ void BKE_previewimg_cached_release(const char *name);
 void BKE_previewimg_cached_release_pointer(struct PreviewImage *prv);
 
 int BKE_icon_geom_ensure(struct Icon_Geom *geom);
+struct Icon_Geom *BKE_icon_geom_from_memory(const uchar *data, size_t data_len);
 struct Icon_Geom *BKE_icon_geom_from_file(const char *filename);
 
 struct ImBuf *BKE_icon_geom_rasterize(
