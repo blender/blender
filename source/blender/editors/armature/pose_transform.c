@@ -795,7 +795,8 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 					pchan->bone->flag |= BONE_UNKEYED;
 				}
 			}
-		} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+		}
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 
 		if (changed) {
 			changed_multi = true;
@@ -821,7 +822,8 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 			/* note, notifier might evolve */
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
 		}
-	} FOREACH_OBJECT_IN_MODE_END;
+	}
+	FOREACH_OBJECT_IN_MODE_END;
 
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
