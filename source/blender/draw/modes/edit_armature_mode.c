@@ -129,8 +129,9 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 {
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
 	DRW_draw_pass(psl->bone_envelope);
 	DRW_draw_pass(psl->bone_outline);
@@ -138,7 +139,7 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->relationship);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
 }
 
 #if 0

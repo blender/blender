@@ -2189,6 +2189,7 @@ static void OBJECT_draw_scene(void *vedata)
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 	OBJECT_PrivateData *g_data = stl->g_data;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	int id_ct_select =       g_data->id_ofs_select;
 	int id_ct_select_group = g_data->id_ofs_select_group;
@@ -2207,7 +2208,7 @@ static void OBJECT_draw_scene(void *vedata)
 
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
 	/* This needs to be drawn after the oultine */
 //	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
@@ -2218,7 +2219,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->particle);
 	DRW_draw_pass(psl->reference_image);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
 
 	if (DRW_state_is_fbo() && outline_calls > 0) {
 		DRW_stats_group_start("Outlines");

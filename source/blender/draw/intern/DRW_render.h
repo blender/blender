@@ -102,20 +102,21 @@ typedef char DRWViewportEmptyList;
 }
 
 /* Use of multisample framebuffers. */
-#define MULTISAMPLE_SYNC_ENABLE(dfbl) { \
+#define MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Blit"); \
-		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT); \
 		GPU_framebuffer_bind(dfbl->multisample_fb); \
+		/* TODO clear only depth but need to do alpha to coverage for transparencies. */ \
+		GPU_framebuffer_clear_color_depth(dfbl->multisample_fb, (const float[4]){0.0f}, 1.0f); \
 		DRW_stats_query_end(); \
 	} \
 }
 
-#define MULTISAMPLE_SYNC_DISABLE(dfbl) { \
+#define MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Resolve"); \
-		GPU_framebuffer_blit(dfbl->multisample_fb, 0, dfbl->default_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT); \
 		GPU_framebuffer_bind(dfbl->default_fb); \
+		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color); \
 		DRW_stats_query_end(); \
 	} \
 }
