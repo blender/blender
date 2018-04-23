@@ -241,13 +241,14 @@ bool DepsgraphRelationBuilder::has_node(const OperationKey &key) const
 	return find_node(key) != NULL;
 }
 
-void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
-                                                 DepsNode *node_to,
-                                                 const char *description,
-                                                 bool check_unique)
+DepsRelation *DepsgraphRelationBuilder::add_time_relation(
+        TimeSourceDepsNode *timesrc,
+        DepsNode *node_to,
+        const char *description,
+        bool check_unique)
 {
 	if (timesrc && node_to) {
-		graph_->add_new_relation(timesrc, node_to, description, check_unique);
+		return graph_->add_new_relation(timesrc, node_to, description, check_unique);
 	}
 	else {
 		DEG_DEBUG_PRINTF(BUILD, "add_time_relation(%p = %s, %p = %s, %s) Failed\n",
@@ -255,16 +256,20 @@ void DepsgraphRelationBuilder::add_time_relation(TimeSourceDepsNode *timesrc,
 		                 node_to,   (node_to) ? node_to->identifier().c_str() : "<None>",
 		                 description);
 	}
+	return NULL;
 }
 
-void DepsgraphRelationBuilder::add_operation_relation(
+DepsRelation *DepsgraphRelationBuilder::add_operation_relation(
         OperationDepsNode *node_from,
         OperationDepsNode *node_to,
         const char *description,
         bool check_unique)
 {
 	if (node_from && node_to) {
-		graph_->add_new_relation(node_from, node_to, description, check_unique);
+		return graph_->add_new_relation(node_from,
+		                                node_to,
+		                                description,
+		                                check_unique);
 	}
 	else {
 		DEG_DEBUG_PRINTF(BUILD, "add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
@@ -272,6 +277,7 @@ void DepsgraphRelationBuilder::add_operation_relation(
 		                 node_to,   (node_to)   ? node_to->identifier().c_str() : "<None>",
 		                 description);
 	}
+	return NULL;
 }
 
 void DepsgraphRelationBuilder::add_collision_relations(
@@ -419,6 +425,8 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	build_object_flags(base, object);
 	/* Parenting. */
 	if (object->parent != NULL) {
+		/* Make sure parent object's relations are built. */
+		build_object(NULL, object->parent);
 		/* Parent relationship. */
 		build_object_parent(object);
 		/* Local -> parent. */
@@ -2007,6 +2015,9 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		/* All dangling operations should also be executed after copy-on-write. */
 		GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, comp_node->operations_map)
 		{
+			if (op_node == op_entry) {
+				continue;
+			}
 			if (op_node->inlinks.size() == 0) {
 				graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
 			}

@@ -259,6 +259,18 @@ static void deg_debug_graphviz_relation_color(const DebugContext &ctx,
 	deg_debug_fprintf(ctx, "%s", color);
 }
 
+static void deg_debug_graphviz_relation_style(const DebugContext &ctx,
+                                              const DepsRelation *rel)
+{
+	const char *style_default = "solid";
+	const char *style_no_flush = "dashed";
+	const char *style = style_default;
+	if (rel->flag & DEPSREL_FLAG_NO_FLUSH) {
+		style = style_no_flush;
+	}
+	deg_debug_fprintf(ctx, "%s", style);
+}
+
 static void deg_debug_graphviz_node_style(const DebugContext &ctx, const DepsNode *node)
 {
 	const char *base_style = "filled"; /* default style */
@@ -468,16 +480,23 @@ static void deg_debug_graphviz_node_relations(const DebugContext &ctx,
 		/* Note: without label an id seem necessary to avoid bugs in graphviz/dot */
 		deg_debug_fprintf(ctx, "id=\"%s\"", rel->name);
 		// deg_debug_fprintf(ctx, "label=\"%s\"", rel->name);
-		deg_debug_fprintf(ctx, ",color="); deg_debug_graphviz_relation_color(ctx, rel);
+		deg_debug_fprintf(ctx, ",color=");
+		deg_debug_graphviz_relation_color(ctx, rel);
+		deg_debug_fprintf(ctx, ",style=");
+		deg_debug_graphviz_relation_style(ctx, rel);
 		deg_debug_fprintf(ctx, ",penwidth=\"%f\"", penwidth);
 		/* NOTE: edge from node to own cluster is not possible and gives graphviz
 		 * warning, avoid this here by just linking directly to the invisible
 		 * placeholder node
 		 */
-		if (deg_debug_graphviz_is_cluster(tail) && !deg_debug_graphviz_is_owner(head, tail)) {
+		if (deg_debug_graphviz_is_cluster(tail) &&
+		    !deg_debug_graphviz_is_owner(head, tail))
+		{
 			deg_debug_fprintf(ctx, ",ltail=\"cluster_%p\"", tail);
 		}
-		if (deg_debug_graphviz_is_cluster(head) && !deg_debug_graphviz_is_owner(tail, head)) {
+		if (deg_debug_graphviz_is_cluster(head) &&
+		    !deg_debug_graphviz_is_owner(tail, head))
+		{
 			deg_debug_fprintf(ctx, ",lhead=\"cluster_%p\"", head);
 		}
 		deg_debug_fprintf(ctx, "];" NL);

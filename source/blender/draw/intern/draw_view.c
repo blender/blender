@@ -652,19 +652,24 @@ void DRW_draw_cursor(void)
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_FALSE);
 	glDisable(GL_DEPTH_TEST);
-	glLineWidth(1.0f);
 
 	if (is_cursor_visible(draw_ctx, scene, view_layer)) {
 		int co[2];
 		if (ED_view3d_project_int_global(ar, ED_view3d_cursor3d_get(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
 
 			ED_region_pixelspace(ar);
-			gpuTranslate2f(co[0], co[1]);
+			gpuTranslate2f(co[0] + 0.5f, co[1] + 0.5f);
 			gpuScale2f(U.widget_unit, U.widget_unit);
 
 			Gwn_Batch *cursor_batch = DRW_cache_cursor_get();
 			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
 			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+
+			/* Draw nice Anti Aliased cursor. */
+			glLineWidth(1.0f);
+			glEnable(GL_BLEND);
+			glEnable(GL_LINE_SMOOTH);
+
 			GWN_batch_draw(cursor_batch);
 		}
 	}

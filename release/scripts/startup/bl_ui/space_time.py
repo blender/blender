@@ -146,8 +146,9 @@ class TIME_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("time.view_all")
-        layout.operator("time.view_frame")
+        # NOTE: "action" now, since timeline is in the dopesheet editor, instead of as own editor
+        layout.operator("action.view_all")
+        layout.operator("action.view_frame")
 
         layout.separator()
 

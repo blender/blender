@@ -6777,6 +6777,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 
 			if (but->flag & UI_BUT_OVERRIDEN) {
 				if (is_array_component) {
+#if 0  /* Disabled for now. */
 					ot = WM_operatortype_find("UI_OT_override_type_set_button", false);
 					uiItemFullO_ptr(layout, ot, "Overrides Type", ICON_NONE,
 					                NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
@@ -6784,17 +6785,18 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 					uiItemFullO_ptr(layout, ot, "Single Override Type", ICON_NONE,
 					                NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
 					RNA_boolean_set(&op_ptr, "all", false);
-
+#endif
 					uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Overrides"),
 					               ICON_X, "UI_OT_override_remove_button", "all", true);
 					uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Single Override"),
 					               ICON_X, "UI_OT_override_remove_button", "all", false);
 				}
 				else {
+#if 0  /* Disabled for now. */
 					uiItemFullO(layout, "UI_OT_override_type_set_button", "Override Type", ICON_NONE,
 					            NULL, WM_OP_INVOKE_DEFAULT, 0, &op_ptr);
 					RNA_boolean_set(&op_ptr, "all", false);
-
+#endif
 					uiItemBooleanO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Override"),
 					               ICON_X, "UI_OT_override_remove_button", "all", true);
 				}

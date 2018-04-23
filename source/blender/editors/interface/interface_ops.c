@@ -540,7 +540,12 @@ static int override_type_set_button_exec(bContext *C, wmOperator *op)
 
 static int override_type_set_button_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
 {
+#if 0  /* Disabled for now */
 	return WM_menu_invoke_ex(C, op, WM_OP_INVOKE_DEFAULT);
+#else
+	RNA_enum_set(op->ptr, "type", IDOVERRIDESTATIC_OP_REPLACE);
+	return override_type_set_button_exec(C, op);
+#endif
 }
 
 static void UI_OT_override_type_set_button(wmOperatorType *ot)
@@ -562,7 +567,7 @@ static void UI_OT_override_type_set_button(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "all", 1, "All", "Reset to default values all elements of the array");
 	ot->prop = RNA_def_enum(ot->srna, "type", override_type_items, UIOverride_Type_Replace,
 	                        "Type", "Type of override operation");
-	/* TODO: add itemf callback, not all aoptions are available for all data types... */
+	/* TODO: add itemf callback, not all options are available for all data types... */
 }
 
 

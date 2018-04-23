@@ -123,6 +123,7 @@ static void rna_Pose_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRN
 	/* XXX when to use this? ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK); */
 
 	DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
 }
 
 static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -805,6 +806,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	/* Bone Constraints */
 	prop = RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Constraint");
+	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel");
 
 	rna_def_pose_channel_constraints(brna, prop);
