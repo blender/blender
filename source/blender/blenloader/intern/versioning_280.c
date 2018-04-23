@@ -654,9 +654,9 @@ void do_versions_after_linking_280(Main *main)
 	/* SpaceTime & SpaceLogic removal/replacing */
 	if (!MAIN_VERSION_ATLEAST(main, 280, 9)) {
 		const wmWindowManager *wm = main->wm.first;
-		if (wm != NULL) {
-			const Scene *scene = main->scene.first;
+		const Scene *scene = main->scene.first;
 
+		if (wm != NULL) {
 			/* Action editors need a scene for creation. First, update active
 			 * screens using the active scene of the window they're displayed in.
 			 * Next, update remaining screens using first scene in main listbase. */
@@ -672,7 +672,8 @@ void do_versions_after_linking_280(Main *main)
 					}
 				}
 			}
-
+		}
+		if (scene != NULL) {
 			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 				for (ScrArea *area = screen->areabase.first; area; area = area->next) {
 					if (ELEM(area->butspacetype, SPACE_TIME, SPACE_LOGIC)) {
