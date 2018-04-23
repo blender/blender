@@ -341,8 +341,7 @@ typedef enum eSpaceOutliner_Mode {
 	/* SO_USERDEF        = 12, */  /* deprecated! */
 	/* SO_KEYMAP      = 13, */    /* deprecated! */
 	SO_ID_ORPHANS     = 14,
-	SO_VIEW_LAYER     = 15,
-	SO_COLLECTIONS    = 16,
+	SO_COLLECTIONS    = 15,
 } eSpaceOutliner_Mode;
 
 /* SpaceOops->storeflag */

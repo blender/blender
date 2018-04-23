@@ -2007,10 +2007,8 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem display_mode_items[] = {
-		{SO_VIEW_LAYER, "VIEW_LAYER", 0, "View Layer", "Display the collections of the active view layer"},
-		{SO_COLLECTIONS, "COLLECTIONS", 0, "Collections", "Display all collections based on the "
-		                 "master collection hierarchy"},
-		{SO_SCENES, "SCENES", 0, "Scenes", "Display composition related data in all scenes"},
+		{SO_COLLECTIONS, "COLLECTIONS", 0, "Collections", "Display collections in the view layer"},
+		{SO_SCENES, "SCENES", 0, "Scenes", "Display scenes and their view layers, collections and objects"},
 		{SO_GROUPS, "GROUPS", 0, "Groups", "Display groups and their data-blocks"},
 		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", "Display sequence data-blocks"},
 		{SO_LIBRARIES, "LIBRARIES", 0, "Blender File", "Display data of current file and linked libraries"},

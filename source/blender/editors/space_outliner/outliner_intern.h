@@ -161,7 +161,7 @@ typedef enum {
 
 /* The outliner display modes that support the filter system.
  * Note: keep it synced with space_outliner.py */
-#define SUPPORT_FILTER_OUTLINER(soops_) ELEM((soops_)->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS)
+#define SUPPORT_FILTER_OUTLINER(soops_) ((soops_)->outlinevis == SO_COLLECTIONS)
 
 /* Outliner Searching --
  *

@@ -163,7 +163,7 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-	if (!ELEM(soops->outlinevis, SO_SCENES, SO_GROUPS, SO_VIEW_LAYER, SO_COLLECTIONS)) {
+	if (!ELEM(soops->outlinevis, SO_SCENES, SO_GROUPS, SO_COLLECTIONS)) {
 		return false;
 	}
 
@@ -176,7 +176,7 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 					switch (te->idcode) {
 						case ID_SCE:
-							return (ELEM(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER, TSE_R_PASS));
+							return (ELEM(tselem->type, TSE_R_LAYER_BASE, TSE_R_LAYER));
 						case ID_OB:
 							return (ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE));
 						/* Other codes to ignore? */
@@ -437,7 +437,7 @@ static void outliner_main_region_message_subscribe(
 		.notify = ED_region_do_msg_notify_tag_redraw,
 	};
 
-	if (ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS)) {
+	if (soops->outlinevis == SO_COLLECTIONS) {
 		WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
 	}
 }

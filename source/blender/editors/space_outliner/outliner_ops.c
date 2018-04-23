@@ -67,7 +67,7 @@ static int outliner_item_drag_drop_poll(bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	return ED_operator_outliner_active(C) &&
 	       /* Only collection display modes supported for now. Others need more design work */
-	       ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS, SO_GROUPS);
+	       ELEM(soops->outlinevis, SO_COLLECTIONS, SO_GROUPS);
 }
 
 static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *ar, const wmEvent *event)

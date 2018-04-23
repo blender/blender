@@ -86,17 +86,6 @@ static int collections_editor_poll(bContext *C)
 	return (so != NULL) && (so->outlinevis == SO_COLLECTIONS);
 }
 
-static int view_layer_editor_poll(bContext *C)
-{
-	SpaceOops *so = CTX_wm_space_outliner(C);
-	return (so != NULL) && (so->outlinevis == SO_VIEW_LAYER);
-}
-
-static int outliner_either_collection_editor_poll(bContext *C)
-{
-	SpaceOops *so = CTX_wm_space_outliner(C);
-	return (so != NULL) && (ELEM(so->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS));
-}
 
 static int outliner_objects_collection_poll(bContext *C)
 {
@@ -113,7 +102,7 @@ static int outliner_objects_collection_poll(bContext *C)
 		return 0;
 	}
 
-	return ELEM(so->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS, SO_GROUPS);
+	return ELEM(so->outlinevis, SO_COLLECTIONS, SO_GROUPS);
 }
 
 /* -------------------------------------------------------------------- */
@@ -279,7 +268,7 @@ void OUTLINER_OT_collection_link(wmOperatorType *ot)
  */
 static int collection_unlink_poll(bContext *C)
 {
-	if (view_layer_editor_poll(C) == 0) {
+	if (collections_editor_poll(C) == 0) {
 		return 0;
 	}
 
@@ -973,7 +962,7 @@ void OUTLINER_OT_collection_objects_select(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_objects_select_exec;
-	ot->poll = view_layer_editor_poll;
+	ot->poll = collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1023,10 +1012,10 @@ static int collection_duplicate_exec(bContext *C, wmOperator *op)
 	}
 
 	switch (soops->outlinevis) {
-		case SO_COLLECTIONS:
+		case SO_SCENES:
 			BKE_collection_duplicate(TREESTORE(te)->id, (SceneCollection *)te->directdata);
 			break;
-		case SO_VIEW_LAYER:
+		case SO_COLLECTIONS:
 		case SO_GROUPS:
 			BKE_layer_collection_duplicate(TREESTORE(te)->id, (LayerCollection *)te->directdata);
 			break;
@@ -1047,7 +1036,7 @@ void OUTLINER_OT_collection_duplicate(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = collection_duplicate_exec;
-	ot->poll = outliner_either_collection_editor_poll;
+	ot->poll = collections_editor_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

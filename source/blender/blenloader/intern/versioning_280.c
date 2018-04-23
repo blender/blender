@@ -513,7 +513,7 @@ void do_versions_after_linking_280(Main *main)
 					if (view_layer->spacetype == SPACE_OUTLINER) {
 						SpaceOops *soutliner = (SpaceOops *)view_layer;
 
-						soutliner->outlinevis = SO_VIEW_LAYER;
+						soutliner->outlinevis = SO_COLLECTIONS;
 
 						if (BLI_listbase_count_at_most(&layer->layer_collections, 2) == 1) {
 							if (soutliner->treestore == NULL) {
@@ -927,10 +927,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							          SO_SEQUENCE,
 							          SO_DATABLOCKS,
 							          SO_ID_ORPHANS,
-							          SO_VIEW_LAYER,
 							          SO_COLLECTIONS))
 							{
-								so->outlinevis = SO_VIEW_LAYER;
+								so->outlinevis = SO_COLLECTIONS;
 							}
 						}
 					}
