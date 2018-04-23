@@ -45,6 +45,8 @@ extern char datatoc_workbench_vert_glsl[];
 extern char datatoc_workbench_studio_vert_glsl[];
 extern char datatoc_workbench_diffuse_lib_glsl[];
 
+extern DrawEngineType draw_engine_workbench_solid_studio;
+
 /* Functions */
 static uint get_material_hash(const float color[3])
 {
@@ -54,13 +56,20 @@ static uint get_material_hash(const float color[3])
 
 	return r + g * 4096 + b * 4096 * 4096;
 }
+static uint NEXT_RANDOM_COLOR_OFFSET = 0;
+static void workbench_init_object_data(ObjectEngineData *engine_data) {
+	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData*)engine_data;
+	data->random_color_offset = NEXT_RANDOM_COLOR_OFFSET++;
+}
 
-static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, float *color)
+static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, float *color, float hsv_saturation, float hsv_value)
 {
 	if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
-		unsigned int obhash = BLI_ghashutil_strhash(ob->id.name);
-		cpack_to_rgb(obhash, &color[0], &color[1], &color[2]);
-
+		ObjectEngineData *engine_data = DRW_object_engine_data_ensure(ob, &draw_engine_workbench_solid_studio, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+		WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData*)engine_data;
+		float offset = fmodf(data->random_color_offset * M_GOLDEN_RATION_CONJUGATE, 1.0);
+		float hsv[3] = {offset, hsv_saturation, hsv_value};
+		hsv_to_rgb_v(hsv, color);
 	}
 	else {
 		copy_v3_v3(color, ob->col);
@@ -137,6 +146,8 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		return;
 
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
+
 	WORKBENCH_MaterialData *material;
 	if (geom) {
 		/* Depth */
@@ -146,7 +157,9 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		GPUShader *shader = wpd->drawtype_lighting == V3D_LIGHTING_FLAT ? e_data.solid_flat_sh : e_data.solid_studio_sh;
 
 		float color[3];
-		get_material_solid_color(wpd, ob, color);
+		const float hsv_saturation = BKE_collection_engine_property_value_get_float(props, "random_object_color_saturation");
+		const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
+		get_material_solid_color(wpd, ob, color, hsv_saturation, hsv_value);
 		unsigned int hash = get_material_hash(color);
 
 		material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));

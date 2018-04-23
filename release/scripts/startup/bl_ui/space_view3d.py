@@ -3437,6 +3437,9 @@ class VIEW3D_PT_view3d_display(Panel):
         col.prop(view, "show_only_render")
         col.prop(view, "show_world")
 
+        if view.viewport_shade == "SOLID":
+            col.prop(view, "show_random_object_colors")
+
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             col.prop(view, "show_mode_shade_override")
 
@@ -3447,7 +3450,7 @@ class VIEW3D_PT_view3d_display(Panel):
         col.prop(view, "show_all_objects_origin")
         col.prop(view, "show_relationship_lines")
         col.prop(view, "show_face_orientation_overlay")
-        col.prop(view, "show_random_object_colors")
+        col.prop(view, "show_object_overlap_overlay")
 
         col = layout.column()
         col.active = display_all

@@ -48,6 +48,9 @@ static void workbench_layer_collection_settings_create(RenderEngine *UNUSED(engi
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
+
+	BKE_collection_engine_property_add_float(props, "random_object_color_saturation", 0.5f);
+	BKE_collection_engine_property_add_float(props, "random_object_color_value", 0.9f);
 }
 
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */
