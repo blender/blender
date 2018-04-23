@@ -261,10 +261,6 @@ void OBJECT_OT_grouped_select(struct wmOperatorType *ot);
 void OBJECT_OT_bake_image(wmOperatorType *ot);
 void OBJECT_OT_bake(wmOperatorType *ot);
 
-/* object_lod.c */
-void OBJECT_OT_lod_add(struct wmOperatorType *ot);
-void OBJECT_OT_lod_remove(struct wmOperatorType *ot);
-
 /* object_random.c */
 void TRANSFORM_OT_vertex_random(struct wmOperatorType *ot);
 
