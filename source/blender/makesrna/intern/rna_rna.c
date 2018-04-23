@@ -1300,7 +1300,6 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 		case PROP_FLOAT:
 		{
-			const bool is_proportional = (prop_a->flag & PROP_PROPORTIONAL) != 0;
 			if (len_a) {
 				float array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
 				float *array_a, *array_b;
@@ -1320,7 +1319,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 					if (op != NULL && created) {
 						BKE_override_static_property_operation_get(
-						            op, is_proportional ? IDOVERRIDESTATIC_OP_MULTIPLY : IDOVERRIDESTATIC_OP_REPLACE,
+						            op, IDOVERRIDESTATIC_OP_REPLACE,
 						            NULL, NULL, -1, -1, true, NULL, NULL);
 						if (r_override_changed) {
 							*r_override_changed = created;
@@ -1347,7 +1346,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 					if (op != NULL && created) {  /* If not yet overridden... */
 						BKE_override_static_property_operation_get(
-						            op, is_proportional ? IDOVERRIDESTATIC_OP_MULTIPLY : IDOVERRIDESTATIC_OP_REPLACE,
+						            op, IDOVERRIDESTATIC_OP_REPLACE,
 						            NULL, NULL, -1, -1, true, NULL, NULL);
 						if (r_override_changed) {
 							*r_override_changed = created;
