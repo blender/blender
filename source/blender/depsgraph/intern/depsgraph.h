@@ -63,6 +63,8 @@ typedef enum eDepsRelation_Flag {
 	 * which triggers a cyclic relationship to exist in the graph.
 	 */
 	DEPSREL_FLAG_CYCLIC     = (1 << 0),
+	/* Update flush will not go through this relation. */
+	DEPSREL_FLAG_NO_FLUSH   = (1 << 1),
 } eDepsRelation_Flag;
 
 /* B depends on A (A -> B) */
