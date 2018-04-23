@@ -2009,6 +2009,9 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		/* All dangling operations should also be executed after copy-on-write. */
 		GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, comp_node->operations_map)
 		{
+			if (op_node == op_entry) {
+				continue;
+			}
 			if (op_node->inlinks.size() == 0) {
 				graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
 			}
