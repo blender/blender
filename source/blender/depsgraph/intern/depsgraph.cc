@@ -214,6 +214,11 @@ static bool pointer_to_component_node_criteria(
 		*subdata = seq->name; // xxx?
 		return true;
 	}
+	else if (ptr->type == &RNA_Curve) {
+		*id = (ID *)ptr->id.data;
+		*type = DEG_NODE_TYPE_GEOMETRY;
+		return true;
+	}
 	if (prop != NULL) {
 		/* All unknown data effectively falls under "parameter evaluation". */
 		if (RNA_property_is_idprop(prop)) {
