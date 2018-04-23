@@ -36,7 +36,7 @@
  * - UI is not constrained to a list.
  * - Pressing a button won't close the pop-over.
  * - Different draw style (to show this is has different behavior from a menu).
- * - #PanelType are used insetead of #MenuType.
+ * - #PanelType are used instead of #MenuType.
  * - No menu flipping support.
  * - No moving the menu to fit the mouse cursor.
  * - No key accelerators to access menu items
@@ -46,37 +46,22 @@
  * - No title.
  */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
-#include <assert.h>
-
 #include "MEM_guardedalloc.h"
 
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
 #include "BLI_listbase.h"
 
-#include "BLI_string.h"
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
-#include "BLI_ghash.h"
 
 #include "BKE_context.h"
-#include "BKE_screen.h"
-#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "RNA_access.h"
 
 #include "UI_interface.h"
-
-#include "BLT_translation.h"
-
-#include "ED_screen.h"
 
 #include "interface_intern.h"
 #include "interface_regions_intern.h"
@@ -221,7 +206,9 @@ uiPopover *UI_popover_begin_ex(bContext *C, const char *block_name)
 	uiPopover *pup = MEM_callocN(sizeof(uiPopover), "popover menu");
 
 	pup->block = UI_block_begin(C, NULL, block_name, UI_EMBOSS);
-	pup->layout = UI_block_layout(pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0, 200, 0, MENU_PADDING, style);
+	pup->layout = UI_block_layout(
+	        pup->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, 0, 0,
+	        U.widget_unit * UI_POPOVER_WIDTH_UNITS, 0, MENU_PADDING, style);
 
 	/* Copied from menus, change if needed. */
 	uiLayoutSetOperatorContext(pup->layout, WM_OP_EXEC_REGION_WIN);
@@ -282,6 +269,6 @@ uiLayout *UI_popover_layout(uiPopover *pup)
 
 /** \} */
 
-/* We may want to support this in futurew */
+/* We may want to support this in future */
 /* Similar to UI_popup_menu_invoke */
 // int UI_popover_panel_invoke(bContext *C, const char *idname, ReportList *reports);
