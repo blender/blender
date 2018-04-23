@@ -134,7 +134,9 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
 	/* Different defaults for timeline */
 	region_channels = BKE_area_find_region_type(area, RGN_TYPE_CHANNELS);
 	region_channels->flag |= RGN_FLAG_HIDDEN;
+
 	saction->mode = SACTCONT_TIMELINE;
+	saction->ads.flag |= ADS_FLAG_SUMMARY_COLLAPSED;
 }
 
 /**
