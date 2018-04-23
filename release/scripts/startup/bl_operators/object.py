@@ -123,6 +123,7 @@ class SelectCamera(Operator):
 
     def execute(self, context):
         scene = context.scene
+        view_layer = context.view_layer
         view = context.space_data
         if view.type == 'VIEW_3D' and not view.lock_camera_and_layers:
             camera = view.camera
@@ -136,8 +137,8 @@ class SelectCamera(Operator):
         else:
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
-            scene.objects.active = camera
-            camera.hide = False
+            view_layer.objects.active = camera
+            # camera.hide = False  # XXX TODO where is this now?
             camera.select_set(action='SELECT')
             return {'FINISHED'}
 
@@ -171,6 +172,7 @@ class SelectHierarchy(Operator):
 
     def execute(self, context):
         scene = context.scene
+        view_layer = context.view_layer
         select_new = []
         act_new = None
 
@@ -206,7 +208,7 @@ class SelectHierarchy(Operator):
             for obj in select_new:
                 obj.select_set(action='SELECT')
 
-            scene.objects.active = act_new
+            view_layer.objects.active = act_new
             return {'FINISHED'}
 
         return {'CANCELLED'}
