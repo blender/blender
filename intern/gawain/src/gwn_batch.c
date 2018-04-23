@@ -503,6 +503,12 @@ void GWN_batch_uniform_4fv_array(Gwn_Batch* batch, const char* name, const int l
 	glUniform4fv(uniform->location, len, data);
 	}
 
+void GWN_batch_uniform_mat4(Gwn_Batch* batch, const char* name, const float data[4][4])
+	{
+	GET_UNIFORM
+	glUniformMatrix4fv(uniform->location, 1, GL_FALSE, (const float *)data);
+	}
+
 static void primitive_restart_enable(const Gwn_IndexBuf *el)
 {
 	// TODO(fclem) Replace by GL_PRIMITIVE_RESTART_FIXED_INDEX when we have ogl 4.3
