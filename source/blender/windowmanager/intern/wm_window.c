@@ -304,7 +304,6 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *win_src, const bool duplicate_la
 	WM_window_set_active_workspace(win_dst, workspace);
 	layout_new = duplicate_layout ? ED_workspace_layout_duplicate(workspace, layout_old, win_dst) : layout_old;
 	WM_window_set_active_layout(win_dst, workspace, layout_new);
-	ED_screen_global_areas_create(win_dst);
 
 	win_dst->drawmethod = U.wmdrawmethod;
 
@@ -1017,7 +1016,6 @@ int wm_window_new_exec(bContext *C, wmOperator *op)
 		screen_new->winid = win_dst->winid;
 		CTX_wm_window_set(C, win_dst);
 
-		ED_screen_global_areas_create(win_dst);
 		ED_screen_refresh(CTX_wm_manager(C), win_dst);
 	}
 

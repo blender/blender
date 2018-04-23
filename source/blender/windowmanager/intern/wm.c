@@ -470,7 +470,6 @@ void wm_add_default(Main *bmain, bContext *C)
 	WM_window_set_active_workspace(win, workspace);
 	WM_window_set_active_layout(win, workspace, layout);
 	screen->winid = win->winid;
-	ED_screen_global_areas_create(win);
 
 	wm->winactive = win;
 	wm->file_saved = 1;
