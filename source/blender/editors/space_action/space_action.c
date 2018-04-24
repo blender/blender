@@ -217,7 +217,9 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
-	short unit = 0, flag = 0;
+	short marker_flag = 0;
+	short cfra_flag = 0;
+	short unit = 0;
 	
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
@@ -242,15 +244,14 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	}
 	
 	/* current frame */
-	if (saction->flag & SACTION_DRAWTIME) flag |= DRAWCFRA_UNIT_SECONDS;
-	if ((saction->flag & SACTION_NODRAWCFRANUM) == 0) flag |= DRAWCFRA_SHOW_NUMBOX;
-	ANIM_draw_cfra(C, v2d, flag);
+	if (saction->flag & SACTION_DRAWTIME) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	ANIM_draw_cfra(C, v2d, cfra_flag);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
 	
-	flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) | DRAW_MARKERS_MARGIN;
-	ED_markers_draw(C, flag);
+	marker_flag = ((ac.markers && (ac.markers != &ac.scene->markers)) ? DRAW_MARKERS_LOCAL : 0) | DRAW_MARKERS_MARGIN;
+	ED_markers_draw(C, marker_flag);
 	
 	/* caches */
 	if (saction->mode == SACTCONT_TIMELINE) {
@@ -272,6 +273,12 @@ static void action_main_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+	
+	/* draw current frame number-indicator on top of scrollers */
+	if ((saction->flag & SACTION_NODRAWCFRANUM) == 0) {
+		UI_view2d_view_orthoSpecial(ar, v2d, 1);
+		ANIM_draw_cfra_number(C, v2d, cfra_flag);
+	}
 }
 
 /* add handlers, stuff you only do once or on area/region changes */

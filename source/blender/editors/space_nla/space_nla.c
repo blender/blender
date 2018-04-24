@@ -274,7 +274,7 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
-	short unit = 0, flag = 0;
+	short unit = 0, cfra_flag = 0;
 	
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
@@ -305,9 +305,8 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_ortho(v2d);
 	
 	/* current frame */
-	if (snla->flag & SNLA_DRAWTIME) flag |= DRAWCFRA_UNIT_SECONDS;
-	if ((snla->flag & SNLA_NODRAWCFRANUM) == 0) flag |= DRAWCFRA_SHOW_NUMBOX;
-	ANIM_draw_cfra(C, v2d, flag);
+	if (snla->flag & SNLA_DRAWTIME) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	ANIM_draw_cfra(C, v2d, cfra_flag);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
@@ -328,6 +327,12 @@ static void nla_main_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+	
+	/* draw current frame number-indicator on top of scrollers */
+	if ((snla->flag & SNLA_NODRAWCFRANUM) == 0) {
+		UI_view2d_view_orthoSpecial(ar, v2d, 1);
+		ANIM_draw_cfra_number(C, v2d, cfra_flag);
+	}
 }
 
 
