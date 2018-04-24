@@ -958,6 +958,12 @@ delayed_do_install(${TARGETDIR_VER})
 unset(BLENDER_TEXT_FILES)
 unset(BLENDER_TEXT_FILES_DESTINATION)
 
+# Geometry icons.
+install(
+	DIRECTORY
+		${CMAKE_SOURCE_DIR}/release/datafiles/icons
+	DESTINATION ${TARGETDIR_VER}/datafiles
+)
 
 # -----------------------------------------------------------------------------
 # Setup link libs

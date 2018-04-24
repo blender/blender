@@ -123,7 +123,7 @@ def write_mesh_data_lists(me):
     return (tris_coords, tris_colors)
 
 
-def write_mesh_to_py(fh, me):
+def write_mesh_to_py(fh, ob):
 
     def float_as_byte(f):
         # -1..1 -> 0..255
@@ -131,14 +131,24 @@ def write_mesh_to_py(fh, me):
         f = int(round(f * 255))
         return min(max(f, 0), 255)
 
-    tris_coords, tris_colors = write_mesh_data_lists(me)
+    with TriMesh(ob) as me:
+        tris_coords, tris_colors = write_mesh_data_lists(me)
+
+    # pixel size needs to be increased since a pixel needs one extra geom coordinate
+    coords_range = (
+        ob.get("size_x") or 255,
+        ob.get("size_y") or 255,
+    )
+
+
+    print("Writing:", fh.name, coords_range)
 
     fw = fh.write
 
     # Header (version 0).
     fw(b'VCO\x00')
     # Width, Height
-    fw(bytes((255, 255)))
+    fw(bytes(coords_range))
     # X, Y
     fw(bytes((0, 0)))
 
@@ -197,10 +207,8 @@ def main():
 
     for name, ob in objects:
         filename = os.path.join(args.output_dir, name + ".dat")
-        print("Writing:", filename)
         with open(filename, 'wb') as fh:
-            with TriMesh(ob) as me:
-                write_mesh_to_py(fh, me)
+            write_mesh_to_py(fh, ob)
 
 
 if __name__ == "__main__":

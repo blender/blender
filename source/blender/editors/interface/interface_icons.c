@@ -1226,6 +1226,15 @@ static void icon_draw_size(
 		/* We need to flush widget base first to ensure correct ordering. */
 		UI_widgetbase_draw_cache_flush();
 
+		/* TODO(campbell): scale icons up for toolbar, we need a way to detect larger buttons and do this automatic. */
+		{
+			/* Icons are currently 38 aligned, scale from 16 -> 38. */
+			float scale = 2.375f;
+			y = (y + (h / 2)) - ((h * scale) / 2);
+			w *= scale;
+			h *= scale;
+		}
+
 		/* This could re-generate often if rendered at different sizes in the one interface.
 		 * TODO(campbell): support caching multiple sizes. */
 		ImBuf *ibuf = di->data.geom.image_cache;
