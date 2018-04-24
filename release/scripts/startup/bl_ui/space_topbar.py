@@ -128,11 +128,7 @@ class TOPBAR_HT_lower_bar(Header):
     def draw_right(self, context):
         layout = self.layout
 
-        # Placeholder
-        layout.operator("ed.undo_history", text="...")
-
-        # Last Action (redo)
-        layout.label("Last Action:")
+        # Command Settings (redo)
         op = context.active_operator
         row = layout.row()
         row.enabled = op is not None
@@ -140,7 +136,7 @@ class TOPBAR_HT_lower_bar(Header):
             space_type='VIEW_3D',
             region_type='TOOL_PROPS',
             panel_type="VIEW3D_PT_last_operator",
-            text=op.name if op else "Last Action...",
+            text=op.name + " Settings" if op else "Command Settings",
         )
 
 
