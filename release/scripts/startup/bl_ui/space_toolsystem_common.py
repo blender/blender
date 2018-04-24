@@ -181,6 +181,15 @@ class ToolSelectPanelHelper:
 
         scale_y = 2.0
 
+        # TODO(campbell): expose ui_scale.
+        view2d = context.region.view2d
+        ui_scale = (
+            view2d.region_to_view(1.0, 0.0)[0] -
+            view2d.region_to_view(0.0, 0.0)[0]
+        )
+        show_text = (context.region.width / ui_scale) > 100.0
+        del view2d, ui_scale
+
         for tool_items in self.tools_from_context(context):
             if tool_items:
                 col = layout.column(align=True)
@@ -222,7 +231,7 @@ class ToolSelectPanelHelper:
                     if use_menu:
                         props = col.operator_menu_hold(
                             "wm.tool_set",
-                            text=item[0],
+                            text=item[0] if show_text else "",
                             depress=is_active,
                             menu="WM_MT_toolsystem_submenu",
                             icon_value=icon_value,
@@ -230,7 +239,7 @@ class ToolSelectPanelHelper:
                     else:
                         props = col.operator(
                             "wm.tool_set",
-                            text=item[0],
+                            text=item[0] if show_text else "",
                             depress=is_active,
                             icon_value=icon_value,
                         )
