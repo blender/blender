@@ -67,23 +67,6 @@ def draw_vpaint_symmetry(layout, vpaint):
 # ********** default tools for object-mode ****************
 
 
-class VIEW3D_PT_tools_transform(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "objectmode"
-    bl_label = "Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-
-        col = layout.column(align=True)
-        col.operator("transform.mirror", text="Mirror")
-
-
 class VIEW3D_PT_tools_object(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "objectmode"
@@ -216,21 +199,6 @@ class VIEW3D_PT_tools_rigid_body(View3DPanel, Panel):
 
 
 # ********** default tools for editmode_mesh ****************
-
-class VIEW3D_PT_tools_transform_mesh(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "mesh_edit"
-    bl_label = "Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-        col.operator("transform.shrink_fatten", text="Shrink/Fatten")
-        col.operator("transform.push_pull", text="Push/Pull")
 
 
 class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
@@ -366,24 +334,6 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 # ********** default tools for editmode_curve ****************
 
 
-class VIEW3D_PT_tools_transform_curve(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "curve_edit"
-    bl_label = "Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-
-        col = layout.column(align=True)
-        col.operator("transform.tilt", text="Tilt")
-        col.operator("transform.transform", text="Shrink/Fatten").mode = 'CURVE_SHRINKFATTEN'
-
-
 class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "curve_edit"
@@ -477,19 +427,6 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
 
 # ********** default tools for editmode_surface ****************
 
-class VIEW3D_PT_tools_transform_surface(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "surface_edit"
-    bl_label = "Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-
 
 class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
     bl_category = "Tools"
@@ -543,20 +480,6 @@ class VIEW3D_PT_tools_textedit(View3DPanel, Panel):
 # ********** default tools for editmode_armature ****************
 
 
-class VIEW3D_PT_tools_armatureedit_transform(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "armature_edit"
-    bl_label = "Transform"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-
-
 class VIEW3D_PT_tools_armatureedit(View3DPanel, Panel):
     bl_category = "Tools"
     bl_context = "armature_edit"
@@ -571,15 +494,6 @@ class VIEW3D_PT_tools_armatureedit(View3DPanel, Panel):
         col.operator("armature.duplicate_move", text="Duplicate")
         col.operator("armature.delete", text="Delete")
 
-        col = layout.column(align=True)
-        col.label(text="Modeling:")
-        col.operator("armature.extrude_move")
-        col.operator("armature.subdivide", text="Subdivide")
-
-        col = layout.column(align=True)
-        col.label(text="Deform:")
-        col.operator("transform.vertex_random")
-
 
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
     bl_category = "Options"
@@ -590,53 +504,6 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
         arm = context.active_object.data
 
         self.layout.prop(arm, "use_mirror_x")
-
-
-# ********** default tools for editmode_mball ****************
-
-
-class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "mball_edit"
-    bl_label = "Meta Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Transform:")
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-
-        col = layout.column(align=True)
-        col.label(text="Deform:")
-        col.operator("transform.vertex_random")
-
-
-# ********** default tools for editmode_lattice ****************
-
-
-class VIEW3D_PT_tools_latticeedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "lattice_edit"
-    bl_label = "Lattice Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Transform:")
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
-
-        col = layout.column(align=True)
-        col.operator("lattice.make_regular")
-
-        col = layout.column(align=True)
-        col.label(text="Deform:")
-        col.operator("transform.vertex_random")
 
 
 # ********** default tools for pose-mode ****************
@@ -651,10 +518,6 @@ class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
         layout = self.layout
 
         col = layout.column(align=True)
-        col.label(text="Transform:")
-        col.operator("transform.translate")
-        col.operator("transform.rotate")
-        col.operator("transform.resize", text="Scale")
 
         col = layout.column(align=True)
         col.label(text="In-Between:")
@@ -1860,27 +1723,20 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 
 
 classes = (
-    VIEW3D_PT_tools_transform,
     VIEW3D_PT_tools_object,
     VIEW3D_PT_tools_relations,
     VIEW3D_PT_tools_animation,
     VIEW3D_PT_tools_rigid_body,
-    VIEW3D_PT_tools_transform_mesh,
     VIEW3D_PT_tools_meshedit,
     VIEW3D_PT_tools_shading,
     VIEW3D_PT_tools_uvs,
     VIEW3D_PT_tools_meshedit_options,
-    VIEW3D_PT_tools_transform_curve,
     VIEW3D_PT_tools_curveedit,
     VIEW3D_PT_tools_curveedit_options_stroke,
-    VIEW3D_PT_tools_transform_surface,
     VIEW3D_PT_tools_surfaceedit,
     VIEW3D_PT_tools_textedit,
     VIEW3D_PT_tools_armatureedit,
-    VIEW3D_PT_tools_armatureedit_transform,
     VIEW3D_PT_tools_armatureedit_options,
-    VIEW3D_PT_tools_mballedit,
-    VIEW3D_PT_tools_latticeedit,
     VIEW3D_PT_tools_posemode,
     VIEW3D_PT_tools_posemode_options,
     VIEW3D_PT_imapaint_tools_missing,
