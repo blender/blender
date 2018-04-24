@@ -211,7 +211,7 @@ float light_visibility(LightData ld, vec3 W,
 			vec3 ray_dir = L.xyz + T * rand.z + B * rand.w;
 			ray_dir = transform_direction(ViewMatrix, ray_dir);
 			ray_dir = normalize(ray_dir);
-			vec3 ray_origin = viewPosition + viewNormal * data.sh_contact_offset;
+			vec3 ray_origin = viewPosition + viewNormal * (gl_FrontFacing ? data.sh_contact_offset : -data.sh_contact_offset);
 			vec3 hit_pos = raycast(-1, ray_origin, ray_dir * trace_distance, data.sh_contact_thickness, rand.x,
 			                       0.75, 0.01, false);
 
