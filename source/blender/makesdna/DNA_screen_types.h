@@ -240,8 +240,13 @@ typedef struct ScrGlobalAreaData {
 	 * if they are 'collapsed' or not. Value is set on area creation and not
 	 * touched afterwards. */
 	short size_min, size_max;
-	short pad;
+
+	short flag; /* GlobalAreaFlag */
 } ScrGlobalAreaData;
+
+enum GlobalAreaFlag {
+	GLOBAL_AREA_IS_HIDDEN = (1 << 0),
+};
 
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;

@@ -133,13 +133,17 @@ int     ED_area_global_size_y(const ScrArea *area);
 bool    ED_area_is_global(const ScrArea *area);
 int     ED_region_global_size_y(void);
 
-/** Iterate over all areas visible in the screen (screen as in everything visible in the window, not just bScreen) */
+ScrArea *ED_screen_areas_iter_first(const struct wmWindow *win, const bScreen *screen);
+ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area);
+/**
+ * Iterate over all areas visible in the screen (screen as in everything
+ * visible in the window, not just bScreen).
+ * \note Skips global areas with flag GLOBAL_AREA_IS_HIDDEN.
+ */
 #define ED_screen_areas_iter(win, screen, area_name)                       \
-	for (ScrArea *area_name = (win)->global_areas.areabase.first ?         \
-	                                  (win)->global_areas.areabase.first : \
-	                                  screen->areabase.first;              \
+	for (ScrArea *area_name = ED_screen_areas_iter_first(win, screen);     \
 	     area_name != NULL;                                                \
-	     area_name = (area_name == (win)->global_areas.areabase.last) ? (screen)->areabase.first : area_name->next)
+	     area_name = ED_screen_areas_iter_next(screen, area_name))
 #define ED_screen_verts_iter(win, screen, vert_name)                       \
 	for (ScrVert *vert_name = (win)->global_areas.vertbase.first ?         \
 	                                  (win)->global_areas.vertbase.first : \

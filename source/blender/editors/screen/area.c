@@ -710,7 +710,7 @@ static void fullscreen_azone_initialize(ScrArea *sa, ARegion *ar)
 {
 	AZone *az;
 
-	if (ar->regiontype != RGN_TYPE_WINDOW)
+	if (ED_area_is_global(sa) || (ar->regiontype != RGN_TYPE_WINDOW))
 		return;
 
 	az = (AZone *)MEM_callocN(sizeof(AZone), "fullscreen action zone");
@@ -1480,7 +1480,11 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 	const int window_size_y = WM_window_pixels_y(win);
 	ARegion *ar;
 	rcti rect;
-	
+
+	if (ED_area_is_global(sa) && (sa->global->flag & GLOBAL_AREA_IS_HIDDEN)) {
+		return;
+	}
+
 	/* set typedefinitions */
 	sa->type = BKE_spacetype_from_id(sa->spacetype);
 	
@@ -2198,6 +2202,34 @@ int ED_area_global_size_y(const ScrArea *area)
 bool ED_area_is_global(const ScrArea *area)
 {
 	return area->global != NULL;
+}
+
+ScrArea *ED_screen_areas_iter_first(const wmWindow *win, const bScreen *screen)
+{
+	ScrArea *global_area = win->global_areas.areabase.first;
+
+	if (!global_area) {
+		return screen->areabase.first;
+	}
+	else if ((global_area->global->flag & GLOBAL_AREA_IS_HIDDEN) == 0) {
+		return global_area;
+	}
+	/* Find next visible area. */
+	return ED_screen_areas_iter_next(screen, global_area);
+}
+ScrArea *ED_screen_areas_iter_next(const bScreen *screen, const ScrArea *area)
+{
+	if (area->global) {
+		for (ScrArea *area_iter = area->next; area_iter; area_iter = area_iter->next) {
+			if ((area_iter->global->flag & GLOBAL_AREA_IS_HIDDEN) == 0) {
+				return area_iter;
+			}
+		}
+		/* No visible next global area found, start iterating over layout areas. */
+		return screen->areabase.first;
+	}
+
+	return area->next;
 }
 
 /**
