@@ -108,34 +108,6 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
                 row.operator("object.datalayout_transfer", text="Data Layout")
 
 
-class VIEW3D_PT_tools_animation(View3DPanel, Panel):
-    bl_category = "Animation"
-    bl_context = "objectmode"
-    bl_label = "Animation"
-
-    def draw(self, context):
-        layout = self.layout
-
-        ob = context.active_object
-        mpath = ob.motion_path if ob else None
-
-        draw_keyframing_tools(context, layout)
-
-        col = layout.column(align=True)
-        col.label(text="Motion Paths:")
-        if mpath:
-            row = col.row(align=True)
-            row.operator("object.paths_update", text="Update")
-            row.operator("object.paths_clear", text="", icon='X')
-        else:
-            col.operator("object.paths_calculate", text="Calculate")
-
-        col.separator()
-
-        col.label(text="Action:")
-        col.operator("nla.bake", text="Bake Action")
-
-
 class VIEW3D_PT_tools_rigid_body(View3DPanel, Panel):
     bl_category = "Physics"
     bl_context = "objectmode"
@@ -1689,7 +1661,6 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 
 classes = (
     VIEW3D_PT_tools_object,
-    VIEW3D_PT_tools_animation,
     VIEW3D_PT_tools_rigid_body,
     VIEW3D_PT_tools_meshedit,
     VIEW3D_PT_tools_shading,
