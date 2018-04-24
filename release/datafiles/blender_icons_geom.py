@@ -125,21 +125,29 @@ def write_mesh_data_lists(me):
 
 def write_mesh_to_py(fh, ob):
 
-    def float_as_byte(f):
+    def float_as_byte(f, axis_range):
+        assert(axis_range <= 255)
         # -1..1 -> 0..255
         f = (f + 1.0) * 0.5
-        f = int(round(f * 255))
-        return min(max(f, 0), 255)
+        f = int(round(f * axis_range))
+        return min(max(f, 0), axis_range)
+
+    def vert_as_byte_pair(v):
+        return (
+            float_as_byte(v[0], coords_range_align[0]),
+            float_as_byte(v[1], coords_range_align[1]),
+        )
 
     with TriMesh(ob) as me:
         tris_coords, tris_colors = write_mesh_data_lists(me)
 
-    # pixel size needs to be increased since a pixel needs one extra geom coordinate
     coords_range = (
         ob.get("size_x") or 255,
         ob.get("size_y") or 255,
     )
-
+    # Pixel size needs to be increased since a pixel needs one extra geom coordinate,
+    # if we're writing 32 pixel, align verts to 33.
+    coords_range_align = tuple(min(c + 1, 255) for c in coords_range)
 
     print("Writing:", fh.name, coords_range)
 
@@ -154,7 +162,7 @@ def write_mesh_to_py(fh, ob):
 
     for tri_coords in tris_coords:
         for vert in tri_coords:
-            fw(bytes([float_as_byte(c) for c in vert]))
+            fw(bytes(vert_as_byte_pair(vert)))
     for tri_color in tris_colors:
         for color in tri_color:
             fw(bytes(color))
