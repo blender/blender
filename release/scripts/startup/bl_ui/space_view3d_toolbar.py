@@ -108,41 +108,6 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
                 row.operator("object.datalayout_transfer", text="Data Layout")
 
 
-class VIEW3D_PT_tools_relations(View3DPanel, Panel):
-    bl_category = "Relations"
-    bl_context = "objectmode"
-    bl_label = "Relations"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        col.label(text="Group:")
-        col.operator("group.create", text="New Group")
-        col.operator("group.objects_add_active", text="Add to Active")
-        col.operator("group.objects_remove", text="Remove from Group")
-
-        col.separator()
-
-        col.label(text="Parent:")
-        row = col.row(align=True)
-        row.operator("object.parent_set", text="Set")
-        row.operator("object.parent_clear", text="Clear")
-
-        col.separator()
-
-        col.label(text="Object Data:")
-        col.operator("object.make_links_data")
-        col.operator("object.make_single_user")
-
-        col.separator()
-
-        col.label(text="Linked Objects:")
-        col.operator("object.make_local")
-        col.operator("object.proxy_make")
-
-
 class VIEW3D_PT_tools_animation(View3DPanel, Panel):
     bl_category = "Animation"
     bl_context = "objectmode"
@@ -1724,7 +1689,6 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 
 classes = (
     VIEW3D_PT_tools_object,
-    VIEW3D_PT_tools_relations,
     VIEW3D_PT_tools_animation,
     VIEW3D_PT_tools_rigid_body,
     VIEW3D_PT_tools_meshedit,
