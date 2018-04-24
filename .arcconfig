@@ -2,5 +2,6 @@
 	"project_id" : "Blender",
 	"conduit_uri" : "https://developer.blender.org/",
 	"git.default-relative-commit" : "origin/blender2.8",
-	"arc.land.update.default" : "rebase"
+	"arc.land.update.default" : "rebase",
+	"arc.land.onto.default" : "blender2.8"
 }
