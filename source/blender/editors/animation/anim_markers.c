@@ -336,7 +336,7 @@ void debug_markers_print_list(ListBase *markers)
 /* ************* Marker Drawing ************ */
 
 static void draw_marker_name(
-        View2D *v2d, const uiFontStyle *fstyle, TimeMarker *marker, const char *name,
+        const uiFontStyle *fstyle, TimeMarker *marker, const char *name,
         int cfra, const float xpos, const float ypixels)
 {
 	unsigned char text_col[4];
@@ -447,14 +447,14 @@ static void draw_marker(
 	/* and the marker name too, shifted slightly to the top-right */
 #ifdef DURIAN_CAMERA_SWITCH
 	if (marker->camera) {
-		draw_marker_name(v2d, fstyle, marker, marker->camera->id.name + 2, cfra, xpos, ypixels);
+		draw_marker_name(fstyle, marker, marker->camera->id.name + 2, cfra, xpos, ypixels);
 	}
 	else if (marker->name[0]) {
-		draw_marker_name(v2d, fstyle, marker, marker->name, cfra, xpos, ypixels);
+		draw_marker_name(fstyle, marker, marker->name, cfra, xpos, ypixels);
 	}
 #else
 	if (marker->name[0]) {
-		draw_marker_name(v2d, fstyle, marker, marker->name, cfra, xpos, ypixels);
+		draw_marker_name(fstyle, marker, marker->name, cfra, xpos, ypixels);
 
 	}
 #endif
