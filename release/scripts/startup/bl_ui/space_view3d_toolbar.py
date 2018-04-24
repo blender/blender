@@ -100,14 +100,6 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
                 row.operator("object.shade_smooth", text="Smooth")
                 row.operator("object.shade_flat", text="Flat")
 
-            if obj_type == 'MESH':
-                col = layout.column(align=True)
-                col.label(text="Data Transfer:")
-                row = col.row(align=True)
-                row.operator("object.data_transfer", text="Data")
-                row.operator("object.datalayout_transfer", text="Data Layout")
-
-
 
 # ********** default tools for editmode_mesh ****************
 
@@ -159,52 +151,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.menu("VIEW3D_MT_edit_mesh_delete")
         col.operator_menu_enum("mesh.merge", "type")
         col.operator("mesh.remove_doubles")
-
-
-class VIEW3D_PT_tools_shading(View3DPanel, Panel):
-    bl_category = "Shading / UVs"
-    bl_context = "mesh_edit"
-    bl_label = "Shading"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Faces:")
-        row = col.row(align=True)
-        row.operator("mesh.faces_shade_smooth", text="Smooth")
-        row.operator("mesh.faces_shade_flat", text="Flat")
-        col.label(text="Edges:")
-        row = col.row(align=True)
-        row.operator("mesh.mark_sharp", text="Smooth").clear = True
-        row.operator("mesh.mark_sharp", text="Sharp")
-        col.label(text="Vertices:")
-        row = col.row(align=True)
-        props = row.operator("mesh.mark_sharp", text="Smooth")
-        props.use_verts = True
-        props.clear = True
-        row.operator("mesh.mark_sharp", text="Sharp").use_verts = True
-
-        col = layout.column(align=True)
-        col.label(text="Normals:")
-        col.operator("mesh.normals_make_consistent", text="Recalculate")
-        col.operator("mesh.flip_normals", text="Flip Direction")
-        col.operator("mesh.set_normals_from_faces", text="Set From Faces")
-
-
-class VIEW3D_PT_tools_uvs(View3DPanel, Panel):
-    bl_category = "Shading / UVs"
-    bl_context = "mesh_edit"
-    bl_label = "UVs"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="UV Mapping:")
-        col.menu("VIEW3D_MT_uv_map", text="Unwrap")
-        col.operator("mesh.mark_seam").clear = False
-        col.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
@@ -1636,8 +1582,6 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 classes = (
     VIEW3D_PT_tools_object,
     VIEW3D_PT_tools_meshedit,
-    VIEW3D_PT_tools_shading,
-    VIEW3D_PT_tools_uvs,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_curveedit,
     VIEW3D_PT_tools_curveedit_options_stroke,

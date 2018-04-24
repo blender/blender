@@ -2495,6 +2495,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_mesh_normals")
+        layout.menu("VIEW3D_MT_edit_mesh_shading")
         layout.menu("VIEW3D_MT_edit_mesh_weights")
         layout.menu("VIEW3D_MT_edit_mesh_clean")
 
@@ -2800,6 +2801,26 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.separator()
 
         layout.operator("mesh.flip_normals")
+        layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
+
+
+class VIEW3D_MT_edit_mesh_shading(Menu):
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text="Faces:")
+        layout.operator("mesh.faces_shade_smooth", text="Smooth")
+        layout.operator("mesh.faces_shade_flat", text="Flat")
+        layout.label(text="Edges:")
+        layout.operator("mesh.mark_sharp", text="Smooth").clear = True
+        layout.operator("mesh.mark_sharp", text="Sharp")
+        layout.label(text="Vertices:")
+        props = layout.operator("mesh.mark_sharp", text="Smooth")
+        props.use_verts = True
+        props.clear = True
+        layout.operator("mesh.mark_sharp", text="Sharp").use_verts = True
 
 
 class VIEW3D_MT_edit_mesh_weights(Menu):
@@ -3922,6 +3943,7 @@ classes = (
     VIEW3D_MT_edit_mesh_edges_data,
     VIEW3D_MT_edit_mesh_faces,
     VIEW3D_MT_edit_mesh_normals,
+    VIEW3D_MT_edit_mesh_shading,
     VIEW3D_MT_edit_mesh_weights,
     VIEW3D_MT_edit_mesh_clean,
     VIEW3D_MT_edit_mesh_delete,
