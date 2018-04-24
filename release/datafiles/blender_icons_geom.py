@@ -219,7 +219,7 @@ def main():
     if args.group:
         group = bpy.data.groups.get(args.group)
         if group is None:
-            print(f"Group {group!r} not found!")
+            print(f"Group {args.group!r} not found!")
             return
         objects_source = group.objects
         del group
