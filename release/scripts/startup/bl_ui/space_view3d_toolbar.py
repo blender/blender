@@ -108,32 +108,6 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
                 row.operator("object.datalayout_transfer", text="Data Layout")
 
 
-class VIEW3D_PT_tools_rigid_body(View3DPanel, Panel):
-    bl_category = "Physics"
-    bl_context = "objectmode"
-    bl_label = "Rigid Body Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Add/Remove:")
-        row = col.row(align=True)
-        row.operator("rigidbody.objects_add", text="Add Active").type = 'ACTIVE'
-        row.operator("rigidbody.objects_add", text="Add Passive").type = 'PASSIVE'
-        row = col.row(align=True)
-        row.operator("rigidbody.objects_remove", text="Remove")
-
-        col = layout.column(align=True)
-        col.label(text="Object Tools:")
-        col.operator("rigidbody.shape_change", text="Change Shape")
-        col.operator("rigidbody.mass_calculate", text="Calculate Mass")
-        col.operator("rigidbody.object_settings_copy", text="Copy from Active")
-        col.operator("object.visual_transform_apply", text="Apply Transformation")
-        col.operator("rigidbody.bake_to_keyframes", text="Bake To Keyframes")
-        col.label(text="Constraints:")
-        col.operator("rigidbody.connect", text="Connect")
-
 
 # ********** default tools for editmode_mesh ****************
 
@@ -1661,7 +1635,6 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 
 classes = (
     VIEW3D_PT_tools_object,
-    VIEW3D_PT_tools_rigid_body,
     VIEW3D_PT_tools_meshedit,
     VIEW3D_PT_tools_shading,
     VIEW3D_PT_tools_uvs,
