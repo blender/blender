@@ -192,13 +192,6 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 // TODO: Should we still show these when preview range is enabled?
 void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 {
-	/* Don't draw frame range when preview range is enabled.
-	 * Otherwise we get nasty/confusing visual conflicts
-	 */
-	if (PRVRANGEON) {
-		return;
-	}
-	
 	/* draw darkened area outside of active timeline frame range */
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
