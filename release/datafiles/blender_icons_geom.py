@@ -141,10 +141,22 @@ def write_mesh_to_py(fh, ob):
     with TriMesh(ob) as me:
         tris_coords, tris_colors = write_mesh_data_lists(me)
 
-    coords_range = (
-        ob.get("size_x") or 255,
-        ob.get("size_y") or 255,
-    )
+    if 0:
+        # make as large as we can, keeping alignment
+        def size_scale_up(size):
+            assert(size != 0)
+            while size * 2 <= 255:
+                size *= 2
+            return size
+
+        coords_range = (
+            size_scale_up(ob.get("size_x")) or 255,
+            size_scale_up(ob.get("size_y")) or 255,
+        )
+    else:
+        # disable for now
+        coords_range = 255, 255
+
     # Pixel size needs to be increased since a pixel needs one extra geom coordinate,
     # if we're writing 32 pixel, align verts to 33.
     coords_range_align = tuple(min(c + 1, 255) for c in coords_range)
