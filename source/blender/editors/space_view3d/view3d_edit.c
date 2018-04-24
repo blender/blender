@@ -84,6 +84,8 @@
 
 #include "view3d_intern.h"  /* own include */
 
+#include "DEG_depsgraph_query.h"
+
 /* -------------------------------------------------------------------- */
 /** \name Generic View Operator Properties
  * \{ */
@@ -2793,12 +2795,12 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
+	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	const bool is_face_map = ((is_gp_edit == false) && ar->manipulator_map &&
 	                          WM_manipulatormap_is_any_selected(ar->manipulator_map));
-	Object *ob = OBACT(view_layer);
+	Object *ob_eval = OBACT(view_layer_eval);
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	bool ok = false, ok_dist = true;
@@ -2810,25 +2812,26 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 
 	INIT_MINMAX(min, max);
 	if (is_gp_edit || is_face_map) {
-		ob = NULL;
+		ob_eval = NULL;
 	}
 
-	if (ob && (ob->mode & OB_MODE_WEIGHT_PAINT)) {
+	if (ob_eval && (ob_eval->mode & OB_MODE_WEIGHT_PAINT)) {
 		/* hard-coded exception, we look for the one selected armature */
 		/* this is weak code this way, we should make a generic active/selection callback interface once... */
-		Base *base;
-		for (base = view_layer->object_bases.first; base; base = base->next) {
-			if (TESTBASELIB(base)) {
-				if (base->object->type == OB_ARMATURE)
-					if (base->object->mode & OB_MODE_POSE)
+		Base *base_eval;
+		for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
+			if (TESTBASELIB(base_eval)) {
+				if (base_eval->object->type == OB_ARMATURE)
+					if (base_eval->object->mode & OB_MODE_POSE)
 						break;
 			}
 		}
-		if (base)
-			ob = base->object;
+		if (base_eval)
+			ob_eval = base_eval->object;
 	}
 
 	if (is_gp_edit) {
+		/* TODO(sergey): Check on this after gpencil merge. */
 		CTX_DATA_BEGIN(C, bGPDstroke *, gps, editable_gpencil_strokes)
 		{
 			/* we're only interested in selected points here... */
@@ -2845,43 +2848,43 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 	else if (obedit) {
 		/* only selected */
-		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, obedit->mode, ob_iter) {
-			ok |= ED_view3d_minmax_verts(ob_iter, min, max);
+		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer_eval, obedit->mode, ob_eval_iter) {
+			ok |= ED_view3d_minmax_verts(ob_eval_iter, min, max);
 		}
 		FOREACH_OBJECT_IN_MODE_END;
 	}
-	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, ob->mode, ob_iter) {
-			ok |= BKE_pose_minmax(ob_iter, min, max, true, true);
+	else if (ob_eval && (ob_eval->mode & OB_MODE_POSE)) {
+		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer_eval, ob_eval->mode, ob_eval_iter) {
+			ok |= BKE_pose_minmax(ob_eval_iter, min, max, true, true);
 		}
 		FOREACH_OBJECT_IN_MODE_END;
 	}
-	else if (BKE_paint_select_face_test(ob)) {
-		ok = paintface_minmax(ob, min, max);
+	else if (BKE_paint_select_face_test(ob_eval)) {
+		ok = paintface_minmax(ob_eval, min, max);
 	}
-	else if (ob && (ob->mode & OB_MODE_PARTICLE_EDIT)) {
-		ok = PE_minmax(scene, view_layer, min, max);
+	else if (ob_eval && (ob_eval->mode & OB_MODE_PARTICLE_EDIT)) {
+		ok = PE_minmax(scene, view_layer_eval, min, max);
 	}
-	else if (ob &&
-	         (ob->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
+	else if (ob_eval &&
+	         (ob_eval->mode & (OB_MODE_SCULPT | OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)))
 	{
-		BKE_paint_stroke_get_average(scene, ob, min);
+		BKE_paint_stroke_get_average(scene, ob_eval, min);
 		copy_v3_v3(max, min);
 		ok = true;
 		ok_dist = 0; /* don't zoom */
 	}
 	else {
-		Base *base;
-		for (base = FIRSTBASE(view_layer); base; base = base->next) {
-			if (TESTBASE(base)) {
+		Base *base_eval;
+		for (base_eval = FIRSTBASE(view_layer_eval); base_eval; base_eval = base_eval->next) {
+			if (TESTBASE(base_eval)) {
 
-				if (skip_camera && base->object == v3d->camera) {
+				if (skip_camera && base_eval->object == v3d->camera) {
 					continue;
 				}
 
 				/* account for duplis */
-				if (BKE_object_minmax_dupli(depsgraph, scene, base->object, min, max, false) == 0)
-					BKE_object_minmax(base->object, min, max, false);  /* use if duplis not found */
+				if (BKE_object_minmax_dupli(depsgraph, scene, base_eval->object, min, max, false) == 0)
+					BKE_object_minmax(base_eval->object, min, max, false);  /* use if duplis not found */
 
 				ok = 1;
 			}
