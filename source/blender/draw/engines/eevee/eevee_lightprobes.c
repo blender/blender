@@ -1252,12 +1252,16 @@ static void render_scene_to_probe(
 	txl->planar_pool = e_data.planar_pool_placeholder;
 	txl->maxzbuffer = e_data.depth_placeholder;
 
+	DRW_stats_group_start("Cubemap Render");
+
 	/* Update common uniforms */
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 	for (int i = 0; i < 6; ++i) {
 		/* Recompute only on 1st drawloop. */
 		pinfo->vis_data.cached = (i != 0);
+
+		DRW_stats_group_start("Cubemap Face");
 
 		/* Setup custom matrices */
 		mul_m4_m4m4(viewmat, cubefacemat[i], posmat);
@@ -1289,7 +1293,11 @@ static void render_scene_to_probe(
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
+
+		DRW_stats_group_end();
 	}
+
+	DRW_stats_group_end();
 
 	/* Make sure no aditionnal visibility check runs after this. */
 	pinfo->vis_data.group = NULL;
@@ -1318,6 +1326,8 @@ static void render_scene_to_planar(
 	invert_m4_m4(viewinv, viewmat);
 	invert_m4_m4(persinv, persmat);
 	invert_m4_m4(wininv, winmat);
+
+	DRW_stats_group_start("Planar Reflection");
 
 	DRW_viewport_matrix_override_set_all(&ped->mats);
 
@@ -1385,6 +1395,8 @@ static void render_scene_to_planar(
 
 	DRW_state_invert_facing();
 	DRW_state_clip_planes_reset();
+
+	DRW_stats_group_end();
 
 	/* Make sure no aditionnal visibility check runs after this. */
 	pinfo->vis_data.group = NULL;
