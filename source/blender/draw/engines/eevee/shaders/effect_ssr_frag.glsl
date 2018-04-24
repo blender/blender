@@ -511,6 +511,11 @@ void main()
 		fallback_cubemap(N, V, worldPosition, viewPosition, roughness, roughnessSquared, spec_accum);
 	}
 
+	/* XXX TODO FIXME (fclem): Something else produces NANs and is not handled before. */
+	if (any(isnan(spec_accum))) {
+		spec_accum = vec4(0.0);
+	}
+
 	fragColor = vec4(spec_accum.rgb * speccol_roughness.rgb, 1.0);
 }
 
