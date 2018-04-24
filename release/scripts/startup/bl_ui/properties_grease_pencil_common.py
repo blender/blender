@@ -97,6 +97,11 @@ class GreasePencilDrawingToolsPanel:
     bl_category = "Grease Pencil"
     bl_region_type = 'TOOLS'
 
+    @classmethod
+    def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
     @staticmethod
     def draw(self, context):
         layout = self.layout
@@ -171,6 +176,9 @@ class GreasePencilStrokeEditPanel:
 
     @classmethod
     def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
         if context.gpencil_data is None:
             return False
 
@@ -260,6 +268,9 @@ class GreasePencilInterpolatePanel:
 
     @classmethod
     def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
         if context.gpencil_data is None:
             return False
         elif context.space_data.type != 'VIEW_3D':
@@ -307,6 +318,11 @@ class GreasePencilBrushPanel:
     bl_label = "Drawing Brushes"
     bl_category = "Grease Pencil"
     bl_region_type = 'TOOLS'
+
+    @classmethod
+    def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
 
     @staticmethod
     def draw(self, context):
@@ -377,6 +393,9 @@ class GreasePencilStrokeSculptPanel:
 
     @classmethod
     def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
         if context.gpencil_data is None:
             return False
 
@@ -437,6 +456,9 @@ class GreasePencilBrushCurvesPanel:
 
     @classmethod
     def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
         if context.active_gpencil_brush is None:
             return False
 
@@ -1027,6 +1049,9 @@ class GreasePencilPaletteColorPanel:
 
     @classmethod
     def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
         if context.gpencil_data is None:
             return False
 
@@ -1129,6 +1154,9 @@ class GreasePencilToolsPanel:
 
     @classmethod
     def poll(cls, context):
+        # XXX - disabled in 2.8 branch.
+        return False
+
         return (context.gpencil_data is not None)
 
     @staticmethod
