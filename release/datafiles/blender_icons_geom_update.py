@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
-# This script updates icons from the SVG file
+# This script updates icons from the BLEND file
 import os
 import subprocess
-import sys
 
 def run(cmd):
     print("   ", " ".join(cmd))
@@ -20,7 +19,7 @@ icons_blend = (
     os.path.join(ROOTDIR, "..", "lib", "resources", "icon_geom.blend"),
 )
 
-# create .dat pixmaps (which are stored in git)
+# create .dat geometry (which are stored in git)
 for blend in icons_blend:
     cmd = (
         blender_bin, "--background", "--factory-startup", "-noaudio",
