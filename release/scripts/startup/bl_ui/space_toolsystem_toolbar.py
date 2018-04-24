@@ -100,6 +100,19 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'POSE': [
             *_tools_transform,
         ],
+        'PAINT_WEIGHT': [
+            # TODO, override brush events
+            (
+                ("Linear Gradient", None, None, (
+                    ("paint.weight_gradient", dict(type='LINEAR'),
+                     dict(type='EVT_TWEAK_A', value='ANY')),
+                )),
+                ("Radial Gradient", None, None, (
+                    ("paint.weight_gradient", dict(type='RADIAL'),
+                     dict(type='EVT_TWEAK_A', value='ANY')),
+                )),
+            ),
+        ],
         'EDIT_ARMATURE': [
             *_tools_transform,
             ("Roll", None, None, (

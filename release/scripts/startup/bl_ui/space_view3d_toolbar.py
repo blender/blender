@@ -282,32 +282,6 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         col.operator("mesh.remove_doubles")
 
 
-class VIEW3D_PT_tools_meshweight(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "mesh_edit"
-    bl_label = "Weight Tools"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    # Used for Weight-Paint mode and Edit-Mode
-    @staticmethod
-    def draw_generic(layout):
-        col = layout.column()
-        col.operator("object.vertex_group_normalize_all", text="Normalize All")
-        col.operator("object.vertex_group_normalize", text="Normalize")
-        col.operator("object.vertex_group_mirror", text="Mirror")
-        col.operator("object.vertex_group_invert", text="Invert")
-        col.operator("object.vertex_group_clean", text="Clean")
-        col.operator("object.vertex_group_quantize", text="Quantize")
-        col.operator("object.vertex_group_levels", text="Levels")
-        col.operator("object.vertex_group_smooth", text="Smooth")
-        col.operator("object.vertex_group_limit_total", text="Limit Total")
-        col.operator("object.vertex_group_fix", text="Fix Deforms")
-
-    def draw(self, context):
-        layout = self.layout
-        self.draw_generic(layout)
-
-
 class VIEW3D_PT_tools_shading(View3DPanel, Panel):
     bl_category = "Shading / UVs"
     bl_context = "mesh_edit"
@@ -1579,22 +1553,6 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
 # ********** default tools for weight-paint ****************
 
 
-class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "weightpaint"
-    bl_label = "Weight Tools"
-
-    def draw(self, context):
-        layout = self.layout
-        VIEW3D_PT_tools_meshweight.draw_generic(layout)
-
-        col = layout.column()
-        col.operator("paint.weight_gradient")
-        props = col.operator("object.data_transfer", text="Transfer Weights")
-        props.use_reverse_transfer = True
-        props.data_type = 'VGROUP_WEIGHTS'
-
-
 class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
     bl_category = "Tools"
     bl_context = "weightpaint"
@@ -1909,7 +1867,6 @@ classes = (
     VIEW3D_PT_tools_rigid_body,
     VIEW3D_PT_tools_transform_mesh,
     VIEW3D_PT_tools_meshedit,
-    VIEW3D_PT_tools_meshweight,
     VIEW3D_PT_tools_shading,
     VIEW3D_PT_tools_uvs,
     VIEW3D_PT_tools_meshedit_options,
@@ -1941,7 +1898,6 @@ classes = (
     VIEW3D_PT_sculpt_options,
     VIEW3D_PT_sculpt_symmetry,
     VIEW3D_PT_tools_brush_appearance,
-    VIEW3D_PT_tools_weightpaint,
     VIEW3D_PT_tools_weightpaint_symmetry,
     VIEW3D_PT_tools_weightpaint_options,
     VIEW3D_PT_tools_vertexpaint,

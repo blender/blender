@@ -1956,17 +1956,18 @@ class VIEW3D_MT_vertex_group(Menu):
 class VIEW3D_MT_paint_weight(Menu):
     bl_label = "Weights"
 
-    def draw(self, context):
-        layout = self.layout
+    @staticmethod
+    def draw_generic(layout, is_editmode=False):
 
-        layout.menu("VIEW3D_MT_undo_redo")
+        if not is_editmode:
+            layout.menu("VIEW3D_MT_undo_redo")
 
-        layout.separator()
+            layout.separator()
 
-        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
-        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+            layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
+            layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
 
-        layout.separator()
+            layout.separator()
 
         layout.operator("object.vertex_group_normalize_all", text="Normalize All")
         layout.operator("object.vertex_group_normalize", text="Normalize")
@@ -1983,16 +1984,22 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_levels", text="Levels")
         layout.operator("object.vertex_group_smooth", text="Smooth")
 
-        props = layout.operator("object.data_transfer", text="Transfer Weights")
-        props.use_reverse_transfer = True
-        props.data_type = 'VGROUP_WEIGHTS'
+        if not is_editmode:
+            props = layout.operator("object.data_transfer", text="Transfer Weights")
+            props.use_reverse_transfer = True
+            props.data_type = 'VGROUP_WEIGHTS'
 
         layout.operator("object.vertex_group_limit_total", text="Limit Total")
         layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
-        layout.separator()
 
-        layout.operator("paint.weight_set")
+        if not is_editmode:
+            layout.separator()
+
+            layout.operator("paint.weight_set")
+
+    def draw(self, context):
+        self.draw_generic(self.layout, is_editmode=False);
 
 
 class VIEW3D_MT_sculpt(Menu):
@@ -2468,6 +2475,7 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_mesh_normals")
+        layout.menu("VIEW3D_MT_edit_mesh_weights")
         layout.menu("VIEW3D_MT_edit_mesh_clean")
 
         layout.separator()
@@ -2772,6 +2780,13 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.separator()
 
         layout.operator("mesh.flip_normals")
+
+
+class VIEW3D_MT_edit_mesh_weights(Menu):
+    bl_label = "Weights"
+
+    def draw(self, context):
+        VIEW3D_MT_paint_weight.draw_generic(self.layout, is_editmode=True)
 
 
 class VIEW3D_MT_edit_mesh_clean(Menu):
@@ -3886,6 +3901,7 @@ classes = (
     VIEW3D_MT_edit_mesh_edges_data,
     VIEW3D_MT_edit_mesh_faces,
     VIEW3D_MT_edit_mesh_normals,
+    VIEW3D_MT_edit_mesh_weights,
     VIEW3D_MT_edit_mesh_clean,
     VIEW3D_MT_edit_mesh_delete,
     VIEW3D_MT_edit_mesh_showhide,
