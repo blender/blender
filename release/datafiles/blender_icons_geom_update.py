@@ -26,6 +26,7 @@ for blend in icons_blend:
         blend,
         "--python", os.path.join(BASEDIR, "blender_icons_geom.py"),
         "--",
+        "--group", "Export",
         "--output-dir", os.path.join(BASEDIR, "icons"),
     )
     run(cmd)

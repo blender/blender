@@ -190,6 +190,16 @@ def create_argparse():
         type=str,
         metavar="DIR",
         required=False,
+        help="Directory to write icons to.",
+    )
+    parser.add_argument(
+        "--group",
+        dest="group",
+        default="",
+        type=str,
+        metavar="GROUP",
+        required=False,
+        help="Group name to export from (otherwise export all objects).",
     )
     return parser
 
@@ -206,7 +216,17 @@ def main():
 
     objects = []
 
-    for ob in bpy.data.objects:
+    if args.group:
+        group = bpy.data.groups.get(args.group)
+        if group is None:
+            print(f"Group {group!r} not found!")
+            return
+        objects_source = group.objects
+        del group
+    else:
+        objects_source = bpy.data.objects
+
+    for ob in objects_source:
 
         # Skip non-mesh objects
         if ob.type != 'MESH':
