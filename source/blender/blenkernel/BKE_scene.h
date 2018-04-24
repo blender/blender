@@ -60,7 +60,7 @@ typedef enum eSceneCopyMethod {
 
 /* Use as the contents of a 'for' loop: for (SETLOOPER(...)) { ... */
 #define SETLOOPER(_sce_basis, _sce_iter, _base)                               \
-	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, BKE_view_layer_from_scene_get(_sce_basis), NULL); \
+	_sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, BKE_view_layer_context_active_PLACEHOLDER(_sce_basis), NULL); \
 	_base;                                                                    \
 	_base = _setlooper_base_step(&_sce_iter, NULL, _base)
 

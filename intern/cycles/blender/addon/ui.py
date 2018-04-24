@@ -436,8 +436,8 @@ class CYCLES_RENDER_PT_performance(CyclesButtonsPanel, Panel):
         split.prop(cscene, "preview_start_resolution")
 
 
-class CYCLES_RENDER_PT_layer_options(CyclesButtonsPanel, Panel):
-    bl_label = "Layer"
+class CYCLES_RENDER_PT_filter(CyclesButtonsPanel, Panel):
+    bl_label = "Filter"
     bl_context = "view_layer"
 
     def draw(self, context):
@@ -446,7 +446,7 @@ class CYCLES_RENDER_PT_layer_options(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        view_layer = scene.view_layers.active
+        view_layer = context.view_layer
 
         col = layout.column()
         col.prop(view_layer, "use_sky", "Use Environment")
@@ -471,7 +471,7 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        view_layer = scene.view_layers.active
+        view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
 
         split = layout.split()
@@ -545,7 +545,7 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
 
     def draw_header(self, context):
         scene = context.scene
-        view_layer = scene.view_layers.active
+        view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
         cscene = scene.cycles
         layout = self.layout
@@ -557,7 +557,7 @@ class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
 
         scene = context.scene
         cscene = scene.cycles
-        view_layer = scene.view_layers.active
+        view_layer = context.view_layer
         cycles_view_layer = view_layer.cycles
 
         layout.active = cycles_view_layer.use_denoising
@@ -1545,7 +1545,7 @@ def get_panels():
         'DATA_PT_spot',
         'MATERIAL_PT_context_material',
         'MATERIAL_PT_preview',
-        'VIEWLAYER_PT_layer_options',
+        'VIEWLAYER_PT_filter',
         'VIEWLAYER_PT_layer_passes',
         'RENDER_PT_post_processing',
         'SCENE_PT_simplify',
@@ -1569,7 +1569,7 @@ classes = (
     CYCLES_RENDER_PT_motion_blur,
     CYCLES_RENDER_PT_film,
     CYCLES_RENDER_PT_performance,
-    CYCLES_RENDER_PT_layer_options,
+    CYCLES_RENDER_PT_filter,
     CYCLES_RENDER_PT_layer_passes,
     CYCLES_RENDER_PT_denoising,
     CYCLES_PT_post_processing,

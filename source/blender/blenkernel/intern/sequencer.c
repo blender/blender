@@ -3269,7 +3269,7 @@ static ImBuf *seq_render_scene_strip(const SeqRenderData *context, Sequence *seq
 	have_comp = (scene->r.scemode & R_DOCOMP) && scene->use_nodes && scene->nodetree;
 
 	/* Get view layer for the strip. */
-	ViewLayer *view_layer = BKE_view_layer_from_scene_get(scene);
+	ViewLayer *view_layer = BKE_view_layer_default_render(scene);
 	/* Depsgraph will be NULL when doing rendering. */
 	Depsgraph *depsgraph = NULL;
 

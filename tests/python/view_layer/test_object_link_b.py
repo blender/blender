@@ -19,7 +19,6 @@ class UnitTesting(ViewLayerTesting):
         See if we can link objects via bpy.context.scene_collection
         """
         import bpy
-        bpy.context.scene.view_layers.active_index = len(bpy.context.scene.view_layers) - 1
         bpy.context.window.view_layer = bpy.context.scene.view_layers['Viewport']
         master_collection = bpy.context.scene_collection
         self.do_object_link(master_collection)

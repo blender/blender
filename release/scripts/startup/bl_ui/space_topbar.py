@@ -85,7 +85,13 @@ class TOPBAR_HT_upper_bar(Header):
 
         # Active workspace view-layer is retrieved through window, not through workspace.
         layout.template_ID(window, "scene", new="scene.new", unlink="scene.delete")
-        layout.template_search(window, "view_layer", scene, "view_layers")
+
+        row = layout.row(align=True)
+        row.template_search(
+            window, "view_layer",
+            scene, "view_layers",
+            new="scene.view_layer_add",
+            unlink="scene.view_layer_remove")
 
 
 class TOPBAR_HT_lower_bar(Header):

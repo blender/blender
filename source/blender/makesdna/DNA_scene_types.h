@@ -1440,8 +1440,6 @@ typedef struct Scene {
 
 	ListBase view_layers;
 	struct SceneCollection *collection;
-	int active_view_layer;
-	int pad4;
 
 	IDProperty *collection_properties;  /* settings to be overriden by layer collections */
 	IDProperty *layer_properties;  /* settings to be override by workspaces */

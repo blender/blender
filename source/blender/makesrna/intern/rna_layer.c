@@ -864,6 +864,15 @@ static void rna_LayerObjects_active_object_set(PointerRNA *ptr, PointerRNA value
 		view_layer->basact = NULL;
 }
 
+static char *rna_ViewLayer_path(PointerRNA *ptr)
+{
+	ViewLayer *srl = (ViewLayer *)ptr->data;
+	char name_esc[sizeof(srl->name) * 2];
+
+	BLI_strescape(name_esc, srl->name, sizeof(name_esc));
+	return BLI_sprintfN("view_layers[\"%s\"]", name_esc);
+}
+
 static IDProperty *rna_ViewLayer_idprops(PointerRNA *ptr, bool create)
 {
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
@@ -1017,6 +1026,7 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "SceneCollection", NULL);
 	RNA_def_struct_ui_text(srna, "Scene Collection", "Collection");
+	RNA_def_struct_ui_icon(srna, ICON_COLLAPSEMENU);
 	RNA_def_struct_refine_func(srna, "rna_SceneCollection_refine");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -2020,6 +2030,7 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LayerCollection", NULL);
 	RNA_def_struct_ui_text(srna, "Layer Collection", "Layer collection");
+	RNA_def_struct_ui_icon(srna, ICON_COLLAPSEMENU);
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_LayerCollection_name_get", "rna_LayerCollection_name_length", "rna_LayerCollection_name_set");
@@ -2217,7 +2228,8 @@ void RNA_def_view_layer(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ViewLayer", NULL);
 	RNA_def_struct_ui_text(srna, "Render Layer", "Render layer");
-	RNA_def_struct_ui_icon(srna, ICON_RENDERLAYERS);
+	RNA_def_struct_ui_icon(srna, ICON_RENDER_RESULT);
+	RNA_def_struct_path_func(srna, "rna_ViewLayer_path");
 	RNA_def_struct_idprops_func(srna, "rna_ViewLayer_idprops");
 
 	rna_def_view_layer_common(srna, 1);

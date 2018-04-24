@@ -41,7 +41,6 @@ class UnitTesting(ViewLayerTesting):
             layer = scene.view_layers.new('Fresh new Layer')
             layer.collections.link(subzero)
 
-            scene.view_layers.active_index = len(scene.view_layers) - 1
             bpy.context.window.view_layer = bpy.context.scene.view_layers['Fresh new Layer']
 
             if mode == 'DUPLICATE':

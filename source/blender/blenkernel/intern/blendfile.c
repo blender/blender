@@ -194,7 +194,7 @@ static void setup_app_data(
 		}
 		if (cur_view_layer == NULL) {
 			/* fallback to scene layer */
-			cur_view_layer = BKE_view_layer_from_scene_get(curscene);
+			cur_view_layer = BKE_view_layer_default_view(curscene);
 		}
 
 		if (track_undo_scene) {

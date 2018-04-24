@@ -62,6 +62,7 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
+#include "BKE_workspace.h"
 #include "BKE_world.h"
 #include "BKE_editmesh.h"
 
@@ -611,10 +612,13 @@ void WORLD_OT_new(wmOperatorType *ot)
 
 static int view_layer_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	WorkSpace *workspace = CTX_wm_workspace(C);
 	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = BKE_view_layer_add(scene, NULL);
 
-	BKE_view_layer_add(scene, NULL);
-	scene->active_view_layer = BLI_listbase_count(&scene->view_layers) - 1;
+	if (workspace) {
+		BKE_workspace_view_layer_set(workspace, view_layer, scene);
+	}
 
 	DEG_id_tag_update(&scene->id, 0);
 	DEG_relations_tag_update(CTX_data_main(C));
@@ -641,7 +645,7 @@ static int view_layer_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BKE_view_layer_from_scene_get(scene);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (!ED_scene_view_layer_delete(bmain, scene, view_layer, NULL)) {
 		return OPERATOR_CANCELLED;
@@ -757,7 +761,7 @@ static int freestyle_active_module_poll(bContext *C)
 static int freestyle_module_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	BKE_freestyle_module_add(&view_layer->freestyle_config);
 
@@ -783,7 +787,7 @@ void SCENE_OT_freestyle_module_add(wmOperatorType *ot)
 static int freestyle_module_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module = ptr.data;
 
@@ -813,7 +817,7 @@ void SCENE_OT_freestyle_module_remove(wmOperatorType *ot)
 static int freestyle_module_move_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "freestyle_module", &RNA_FreestyleModuleSettings);
 	FreestyleModuleConfig *module = ptr.data;
 	int dir = RNA_enum_get(op->ptr, "direction");
@@ -855,7 +859,7 @@ static int freestyle_lineset_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	BKE_freestyle_lineset_add(bmain, &view_layer->freestyle_config, NULL);
 
@@ -881,8 +885,7 @@ void SCENE_OT_freestyle_lineset_add(wmOperatorType *ot)
 
 static int freestyle_active_lineset_poll(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (!view_layer) {
 		return false;
@@ -893,8 +896,7 @@ static int freestyle_active_lineset_poll(bContext *C)
 
 static int freestyle_lineset_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	FRS_copy_active_lineset(&view_layer->freestyle_config);
 
@@ -919,7 +921,7 @@ void SCENE_OT_freestyle_lineset_copy(wmOperatorType *ot)
 static int freestyle_lineset_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	FRS_paste_active_lineset(&view_layer->freestyle_config);
 
@@ -947,7 +949,7 @@ void SCENE_OT_freestyle_lineset_paste(wmOperatorType *ot)
 static int freestyle_lineset_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	FRS_delete_active_lineset(&view_layer->freestyle_config);
 
@@ -975,7 +977,7 @@ void SCENE_OT_freestyle_lineset_remove(wmOperatorType *ot)
 static int freestyle_lineset_move_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	int dir = RNA_enum_get(op->ptr, "direction");
 
 	if (FRS_move_active_lineset(&view_layer->freestyle_config, dir)) {
@@ -1014,8 +1016,7 @@ void SCENE_OT_freestyle_lineset_move(wmOperatorType *ot)
 static int freestyle_linestyle_new_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 
 	if (!lineset) {
@@ -1052,8 +1053,7 @@ void SCENE_OT_freestyle_linestyle_new(wmOperatorType *ot)
 
 static int freestyle_color_modifier_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	int type = RNA_enum_get(op->ptr, "type");
 
@@ -1092,8 +1092,7 @@ void SCENE_OT_freestyle_color_modifier_add(wmOperatorType *ot)
 
 static int freestyle_alpha_modifier_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	int type = RNA_enum_get(op->ptr, "type");
 
@@ -1132,8 +1131,7 @@ void SCENE_OT_freestyle_alpha_modifier_add(wmOperatorType *ot)
 
 static int freestyle_thickness_modifier_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	int type = RNA_enum_get(op->ptr, "type");
 
@@ -1172,8 +1170,7 @@ void SCENE_OT_freestyle_thickness_modifier_add(wmOperatorType *ot)
 
 static int freestyle_geometry_modifier_add_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	int type = RNA_enum_get(op->ptr, "type");
 
@@ -1225,8 +1222,7 @@ static int freestyle_get_modifier_type(PointerRNA *ptr)
 
 static int freestyle_modifier_remove_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
 	LineStyleModifier *modifier = ptr.data;
@@ -1275,8 +1271,7 @@ void SCENE_OT_freestyle_modifier_remove(wmOperatorType *ot)
 
 static int freestyle_modifier_copy_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
 	LineStyleModifier *modifier = ptr.data;
@@ -1325,8 +1320,7 @@ void SCENE_OT_freestyle_modifier_copy(wmOperatorType *ot)
 
 static int freestyle_modifier_move_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	FreestyleLineSet *lineset = BKE_freestyle_lineset_get_active(&view_layer->freestyle_config);
 	PointerRNA ptr = CTX_data_pointer_get_type(C, "modifier", &RNA_LineStyleModifier);
 	LineStyleModifier *modifier = ptr.data;
@@ -1391,8 +1385,8 @@ void SCENE_OT_freestyle_modifier_move(wmOperatorType *ot)
 static int freestyle_stroke_material_create_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
-	FreestyleLineStyle *linestyle = BKE_linestyle_active_from_scene(scene);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(view_layer);
 
 	if (!linestyle) {
 		BKE_report(op->reports, RPT_ERROR, "No active line style in the current scene");

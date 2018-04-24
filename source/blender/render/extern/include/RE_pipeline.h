@@ -240,8 +240,7 @@ struct RenderPass *RE_create_gp_pass(struct RenderResult *rr, const char *layern
 
 /* obligatory initialize call, disprect is optional */
 void RE_InitState(struct Render *re, struct Render *source, struct RenderData *rd,
-                  struct ListBase *render_layers, const int active_layer,
-                  struct ViewLayer *view_layer,
+                  struct ListBase *render_layers, struct ViewLayer *single_layer,
                   int winx, int winy, rcti *disprect);
 void RE_ChangeResolution(struct Render *re, int winx, int winy, rcti *disprect);
 void RE_ChangeModeFlag(struct Render *re, int flag, bool clear);
@@ -277,7 +276,7 @@ bool RE_WriteRenderViewsMovie(
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Main *bmain, struct Scene *scene,
-                     struct ViewLayer *view_layer, struct Object *camera_override,
+                     struct ViewLayer *single_layer, struct Object *camera_override,
                      unsigned int lay_override, int frame, const bool write_still);
 void RE_BlenderAnim(struct Render *re, struct Main *bmain, struct Scene *scene, struct Object *camera_override,
                     unsigned int lay_override, int sfra, int efra, int tfra);
@@ -332,8 +331,7 @@ void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, flo
 void RE_GetCameraModelMatrix(struct Render *re, struct Object *camera, float r_mat[4][4]);
 struct Scene *RE_GetScene(struct Render *re);
 
-bool RE_force_single_renderlayer(struct Scene *scene);
-bool RE_is_rendering_allowed(struct Scene *scene, struct Object *camera_override, struct ReportList *reports);
+bool RE_is_rendering_allowed(struct Scene *scene, struct ViewLayer *single_layer, struct Object *camera_override, struct ReportList *reports);
 
 bool RE_allow_render_generic_object(struct Object *ob);
 

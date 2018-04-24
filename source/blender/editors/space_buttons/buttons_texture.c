@@ -58,6 +58,7 @@
 #include "BKE_paint.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
+#include "BKE_workspace.h"
 #ifdef WITH_FREESTYLE
 #  include "BKE_freestyle.h"
 #endif
@@ -152,7 +153,6 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 {
 	Scene *scene = NULL;
 	Object *ob = NULL;
-	WorkSpace *workspace = NULL;
 	FreestyleLineStyle *linestyle = NULL;
 	Brush *brush = NULL;
 	ID *pinid = sbuts->pinid;
@@ -168,8 +168,6 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 			brush = (Brush *)pinid;
 		else if (GS(pinid->name) == ID_LS)
 			linestyle = (FreestyleLineStyle *)pinid;
-		else if (GS(pinid->name) == ID_WS)
-			workspace = (WorkSpace *)workspace;
 	}
 
 	if (!scene) {
@@ -177,15 +175,12 @@ static void buttons_texture_users_from_context(ListBase *users, const bContext *
 	}
 
 	const ID_Type id_type = pinid != NULL ? GS(pinid->name) : -1;
-	if (!pinid || ELEM(id_type, ID_SCE, ID_WS)) {
+	if (!pinid || id_type == ID_SCE) {
+		WorkSpace *workspace = CTX_wm_workspace(C);
+		ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+
 		brush = BKE_paint_brush(BKE_paint_get_active_from_context(C));
-
-		if (workspace == NULL) {
-			linestyle = BKE_linestyle_active_from_scene(scene);
-			workspace = CTX_wm_workspace(C);
-		}
-
-		ViewLayer *view_layer = BKE_view_layer_from_workspace_get(scene, workspace);
+		linestyle = BKE_linestyle_active_from_view_layer(view_layer);
 		ob = OBACT(view_layer);
 	}
 

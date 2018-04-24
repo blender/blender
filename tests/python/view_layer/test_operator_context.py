@@ -90,8 +90,6 @@ class UnitTesting(ViewLayerTesting):
 
         # Change active scene layer (do it for window too just to don't get mangled in window bugs)
         scene = bpy.context.scene
-        scene.view_layers.active_index = len(scene.view_layers) - 2
-        self.assertEqual(scene.view_layers.active.name, "Viewport")
         bpy.context.window.view_layer = bpy.context.scene.view_layers['Viewport']
 
         # old layer

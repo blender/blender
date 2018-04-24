@@ -675,22 +675,6 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 				/* addnode() doesnt link this yet... */
 				node->id = (ID *)BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 			}
-			else if (node->type == CMP_NODE_R_LAYERS) {
-				Scene *scene;
-
-				for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-					if (scene->nodetree && scene->use_nodes && ntreeHasTree(scene->nodetree, ntree)) {
-						if (node->id == NULL || node->id == (ID *)scene) {
-							int num_layers = BLI_listbase_count(&scene->view_layers);
-							scene->active_view_layer = node->custom1;
-							/* Clamp the value, because it might have come from a different
-							 * scene which could have more render layers than new one.
-							 */
-							scene->active_view_layer = min_ff(scene->active_view_layer, num_layers - 1);
-						}
-					}
-				}
-			}
 			else if (node->type == CMP_NODE_COMPOSITE) {
 				if (was_output == 0) {
 					bNode *tnode;

@@ -26,7 +26,6 @@ class UnitTesting(ViewLayerTesting):
 
         layer = scene.view_layers.new('Visibility Test')
         layer.collections.unlink(layer.collections[0])
-        scene.view_layers.active = layer
         window.view_layer = layer
 
         scene_collection_mom = scene.master_collection.collections.new("Mom")

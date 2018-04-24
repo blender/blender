@@ -401,7 +401,7 @@ void BKE_tracking_get_camera_object_matrix(Scene *scene, Object *ob, float mat[4
 		if (scene->camera)
 			ob = scene->camera;
 		else
-			ob = BKE_view_layer_camera_find(BKE_view_layer_from_scene_get(scene));
+			ob = BKE_view_layer_camera_find(BKE_view_layer_context_active_PLACEHOLDER(scene));
 	}
 
 	if (ob)

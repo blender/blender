@@ -178,16 +178,20 @@ static void topbar_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa)
 	}
 }
 
-static void topbar_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *UNUSED(ar),
-                                   wmNotifier *UNUSED(wmn), const Scene *UNUSED(scene))
+static void topbar_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
+                                   wmNotifier *wmn, const Scene *UNUSED(scene))
 {
 	/* context changes */
-#if 0
 	switch (wmn->category) {
-		default:
+		case NC_SCREEN:
+			if (wmn->data == ND_LAYER)
+				ED_region_tag_redraw(ar);
+			break;
+		case NC_SCENE:
+			if (wmn->data == ND_SCENEBROWSE)
+				ED_region_tag_redraw(ar);
 			break;
 	}
-#endif
 }
 
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)

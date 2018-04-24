@@ -47,14 +47,14 @@ class SCENE_OT_freestyle_fill_range_by_selection(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        view_layer = context.scene.view_layers.active
+        view_layer = context.view_layer
         return view_layer and view_layer.freestyle_settings.linesets.active
 
     def execute(self, context):
         import sys
 
         scene = context.scene
-        view_layer = scene.view_layers.active
+        view_layer = context.view_layer
         lineset = view_layer.freestyle_settings.linesets.active
         linestyle = lineset.linestyle
         # Find the modifier to work on
@@ -207,7 +207,7 @@ class SCENE_OT_freestyle_module_open(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        view_layer = context.scene.view_layers.active
+        view_layer = context.view_layer
         return view_layer and view_layer.freestyle_settings.mode == 'SCRIPT'
 
     def invoke(self, context, event):

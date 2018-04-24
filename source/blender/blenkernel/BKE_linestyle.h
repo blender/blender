@@ -48,6 +48,7 @@ struct Main;
 struct Object;
 struct ColorBand;
 struct bContext;
+struct ViewLayer;
 
 void BKE_linestyle_init(struct FreestyleLineStyle *linestyle);
 FreestyleLineStyle *BKE_linestyle_new(struct Main *bmain, const char *name);
@@ -59,7 +60,7 @@ FreestyleLineStyle *BKE_linestyle_copy(struct Main *bmain, const FreestyleLineSt
 
 void BKE_linestyle_make_local(struct Main *bmain, struct FreestyleLineStyle *linestyle, const bool lib_local);
 
-FreestyleLineStyle *BKE_linestyle_active_from_scene(struct Scene *scene);
+FreestyleLineStyle *BKE_linestyle_active_from_view_layer(struct ViewLayer *view_layer);
 
 LineStyleModifier *BKE_linestyle_color_modifier_add(FreestyleLineStyle *linestyle, const char *name, int type);
 LineStyleModifier *BKE_linestyle_alpha_modifier_add(FreestyleLineStyle *linestyle, const char *name, int type);

@@ -151,7 +151,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	                   "Scene Eval");
 	/* Build all set scenes. */
 	if (scene->set != NULL) {
-		ViewLayer *set_view_layer = BKE_view_layer_from_scene_get(scene->set);
+		ViewLayer *set_view_layer = BKE_view_layer_default_render(scene->set);
 		build_view_layer(scene->set, set_view_layer, DEG_ID_LINKED_VIA_SET);
 	}
 }

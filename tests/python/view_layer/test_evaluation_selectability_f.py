@@ -17,10 +17,11 @@ class UnitTesting(ViewLayerTesting):
     def test_selectability(self):
         import bpy
         scene = bpy.context.scene
+        view_layer = bpy.context.view_layer
 
         cube = bpy.data.objects.new('guinea pig', bpy.data.meshes.new('mesh'))
         scene_collection = scene.master_collection.collections.new('collection')
-        layer_collection = scene.view_layers.active.collections.link(scene_collection)
+        layer_collection = view_layer.collections.link(scene_collection)
 
         bpy.context.scene.update()  # update depsgraph
 

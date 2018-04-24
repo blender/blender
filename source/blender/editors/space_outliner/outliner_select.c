@@ -43,13 +43,14 @@
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 
+#include "BKE_armature.h"
 #include "BKE_context.h"
 #include "BKE_group.h"
-#include "BKE_object.h"
 #include "BKE_layer.h"
+#include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sequencer.h"
-#include "BKE_armature.h"
+#include "BKE_workspace.h"
 
 #include "DEG_depsgraph.h"
 
@@ -75,7 +76,7 @@
 /* ****************************************************** */
 /* Outliner Element Selection/Activation on Click */
 
-static eOLDrawState tree_element_active_renderlayer(
+static eOLDrawState active_viewlayer(
         bContext *C, Scene *UNUSED(scene), ViewLayer *UNUSED(sl), TreeElement *te, TreeStoreElem *tselem, const eOLSetState set)
 {
 	Scene *sce;
@@ -85,12 +86,15 @@ static eOLDrawState tree_element_active_renderlayer(
 		return OL_DRAWSEL_NONE;
 	sce = (Scene *)tselem->id;
 	
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	ViewLayer *view_layer = te->directdata;
+
 	if (set != OL_SETSEL_NONE) {
-		sce->active_view_layer = tselem->nr;
-		WM_event_add_notifier(C, NC_SCENE | ND_RENDER_OPTIONS, sce);
+		BKE_workspace_view_layer_set(workspace, view_layer, sce);
+		WM_event_add_notifier(C, NC_SCREEN | ND_LAYER, NULL);
 	}
 	else {
-		return sce->active_view_layer == tselem->nr;
+		return BKE_workspace_view_layer_get(workspace, sce) == view_layer;
 	}
 	return OL_DRAWSEL_NONE;
 }
@@ -782,7 +786,7 @@ eOLDrawState tree_element_type_active(
 			return tree_element_active_constraint(C, scene, view_layer, te, tselem, set);
 		case TSE_R_LAYER:
 			if (soops->outlinevis == SO_SCENES) {
-				return tree_element_active_renderlayer(C, scene, view_layer, te, tselem, set);
+				return active_viewlayer(C, scene, view_layer, te, tselem, set);
 			}
 			else {
 				return OL_DRAWSEL_NONE;

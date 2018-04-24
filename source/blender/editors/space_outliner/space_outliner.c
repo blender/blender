@@ -332,6 +332,7 @@ static void outliner_main_region_listener(
 				case ND_LAYER:
 				case ND_LAYER_CONTENT:
 				case ND_WORLD:
+				case ND_SCENEBROWSE:
 					ED_region_tag_redraw(ar);
 					break;
 			}

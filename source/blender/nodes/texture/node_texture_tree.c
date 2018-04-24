@@ -86,7 +86,7 @@ static void texture_get_from_context(
 		}
 	}
 	else if (snode->texfrom == SNODE_TEX_LINESTYLE) {
-		FreestyleLineStyle *linestyle = BKE_linestyle_active_from_scene(scene);
+		FreestyleLineStyle *linestyle = BKE_linestyle_active_from_view_layer(view_layer);
 		if (linestyle) {
 			*r_from = (ID *)linestyle;
 			tx = give_current_linestyle_texture(linestyle);

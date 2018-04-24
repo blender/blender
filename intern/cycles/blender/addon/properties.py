@@ -1195,7 +1195,7 @@ class CyclesCurveRenderSettings(bpy.types.PropertyGroup):
 def update_render_passes(self, context):
     scene = context.scene
     rd = scene.render
-    view_layer = scene.view_layers.active
+    view_layer = context.view_layer
     view_layer.update_render_passes()
 
 class CyclesRenderLayerSettings(bpy.types.PropertyGroup):

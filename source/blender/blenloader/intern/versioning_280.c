@@ -96,7 +96,10 @@ static void do_version_workspaces_create_from_screens(Main *bmain)
 		const bScreen *screen_parent = screen_parent_find(screen);
 		Scene *scene = screen->scene;
 		WorkSpace *workspace;
-		ViewLayer *layer = BKE_view_layer_from_scene_get(scene);
+		ViewLayer *layer = BLI_findlink(&scene->view_layers, scene->r.actlay);
+		if (!layer) {
+			layer = BKE_view_layer_default_view(scene);
+		}
 
 		if (screen_parent) {
 			/* fullscreen with "Back to Previous" option, don't create
@@ -330,8 +333,6 @@ void do_versions_after_linking_280(Main *main)
 				}
 				BLI_assert(scene_collection_parent == NULL);
 
-				scene->active_view_layer = 0;
-
 				/* Handle legacy render layers. */
 				{
 					for (SceneRenderLayer *srl = scene->r.layers.first; srl; srl = srl->next) {
@@ -433,10 +434,6 @@ void do_versions_after_linking_280(Main *main)
 							}
 						}
 					}
-
-					if (BLI_findlink(&scene->view_layers, scene->r.actlay)) {
-						scene->active_view_layer = scene->r.actlay;
-					}
 				}
 				BLI_freelistN(&scene->r.layers);
 
@@ -483,7 +480,7 @@ void do_versions_after_linking_280(Main *main)
 				}
 
 				/* convert selected bases */
-				for (Base *base = scene->base.first; base; base = base->next) {
+				for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 					if ((base->flag & BASE_SELECTABLED) && (base->object->flag & SELECT)) {
 						base->flag |= BASE_SELECTED;
 					}

@@ -75,15 +75,37 @@ static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
 /* RenderLayer */
 
-/**
- * Returns the ViewLayer to be used for rendering
- * Most of the time BKE_view_layer_from_workspace_get should be used instead
- */
-ViewLayer *BKE_view_layer_from_scene_get(const Scene *scene)
+/* Returns the default view layer to view in workspaces if there is
+ * none linked to the workspace yet. */
+ViewLayer *BKE_view_layer_default_view(const Scene *scene)
 {
-	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, scene->active_view_layer);
-	BLI_assert(view_layer);
-	return view_layer;
+	/* TODO: it makes more sense to have the Viewport layer as the default,
+	 * but this breaks view layer tests so change it later. */
+#if 0
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		if (!(view_layer->flag & VIEW_LAYER_RENDER)) {
+			return view_layer;
+		}
+	}
+
+	BLI_assert(scene->view_layers.first);
+	return scene->view_layers.first;
+#else
+	return BKE_view_layer_default_render(scene);
+#endif
+}
+
+/* Returns the default view layer to render if we need to render just one. */
+ViewLayer *BKE_view_layer_default_render(const Scene *scene)
+{
+	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
+		if (view_layer->flag & VIEW_LAYER_RENDER) {
+			return view_layer;
+		}
+	}
+
+	BLI_assert(scene->view_layers.first);
+	return scene->view_layers.first;
 }
 
 /**
@@ -100,7 +122,8 @@ ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const st
  */
 ViewLayer *BKE_view_layer_context_active_PLACEHOLDER(const Scene *scene)
 {
-	return BKE_view_layer_from_scene_get(scene);
+	BLI_assert(scene->view_layers.first);
+	return scene->view_layers.first;
 }
 
 static ViewLayer *view_layer_add(const char *name, SceneCollection *master_scene_collection)
@@ -2253,7 +2276,7 @@ void BKE_view_layer_renderable_objects_iterator_next(BLI_Iterator *iter)
 
 	/* Look for an object in the next set. */
 	while ((data->iter.set = data->iter.set->set)) {
-		ViewLayer *view_layer = BKE_view_layer_from_scene_get(data->iter.set);
+		ViewLayer *view_layer = BKE_view_layer_default_render(data->iter.set);
 		data->base_temp.next = view_layer->object_bases.first;
 		data->iter.base = &data->base_temp;
 		return;

@@ -32,21 +32,8 @@ class ViewLayerButtonsPanel:
         return (context.engine in cls.COMPAT_ENGINES)
 
 
-class VIEWLAYER_UL_viewlayers(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, bpy.types.SceneLayer)
-        layer = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            layout.prop(layer, "name", text="", icon_value=icon, emboss=False)
-            layout.prop(layer, "use", text="", index=index)
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon)
-
-
-class VIEWLAYER_PT_layers(ViewLayerButtonsPanel, Panel):
-    bl_label = "Layer List"
-    bl_options = {'HIDE_HEADER'}
+class VIEWLAYER_PT_layer(ViewLayerButtonsPanel, Panel):
+    bl_label = "View Layer"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     def draw(self, context):
@@ -54,16 +41,10 @@ class VIEWLAYER_PT_layers(ViewLayerButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
+        layer = bpy.context.view_layer
 
-        row = layout.row()
-        col = row.column()
-        col.template_list("VIEWLAYER_UL_viewlayers", "", scene, "view_layers", scene.view_layers, "active_index", rows=2)
-
-        col = row.column()
-        sub = col.column(align=True)
-        sub.operator("scene.view_layer_add", icon='ZOOMIN', text="")
-        sub.operator("scene.view_layer_remove", icon='ZOOMOUT', text="")
-        col.prop(rd, "use_single_layer", icon_only=True)
+        layout.prop(layer, "use", text="Use for Rendering");
+        layout.prop(rd, "use_single_layer", text="Render Single Layer")
 
 
 class VIEWLAYER_PT_clay_settings(ViewLayerButtonsPanel, Panel):
@@ -385,7 +366,7 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 
         scene = context.scene
         rd = scene.render
-        view_layer = scene.view_layers.active
+        view_layer = context.view_layer
 
         split = layout.split()
 
@@ -405,8 +386,7 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 
 
 classes = (
-    VIEWLAYER_UL_viewlayers,
-    VIEWLAYER_PT_layers,
+    VIEWLAYER_PT_layer,
     VIEWLAYER_PT_clay_settings,
     VIEWLAYER_PT_eevee_sampling,
     VIEWLAYER_PT_eevee_shadows,

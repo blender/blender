@@ -297,11 +297,10 @@ static void outliner_add_scene_contents(SpaceOops *soops, ListBase *lb, Scene *s
 	tenla->name = IFACE_("View Layers");
 
 	ViewLayer *view_layer;
-	int a;
-	for (a = 0, view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next, a++) {
-		TreeElement *tenlay = outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, a);
+	for (view_layer = sce->view_layers.first; view_layer; view_layer = view_layer->next) {
+		TreeElement *tenlay = outliner_add_element(soops, &tenla->subtree, sce, te, TSE_R_LAYER, 0);
 		tenlay->name = view_layer->name;
-		tenlay->directdata = &view_layer->flag;
+		tenlay->directdata = view_layer;
 	}
 
 	/* Collections */
@@ -2198,10 +2197,9 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 		outliner_add_orphaned_datablocks(mainvar, soops);
 	}
 	else if (soops->outlinevis == SO_COLLECTIONS) {
-		int a = BLI_findindex(&scene->view_layers, view_layer);
-		TreeElement *tenlay = outliner_add_element(soops, &soops->tree, scene, te, TSE_R_LAYER, a);
+		TreeElement *tenlay = outliner_add_element(soops, &soops->tree, scene, te, TSE_R_LAYER, 0);
 		tenlay->name = view_layer->name;
-		tenlay->directdata = &view_layer->flag;
+		tenlay->directdata = view_layer;
 		TREESTORE(tenlay)->flag &= ~TSE_CLOSED;
 
 		if ((soops->filter & SO_FILTER_ENABLE) && (soops->filter & SO_FILTER_NO_COLLECTION)) {
