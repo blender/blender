@@ -125,101 +125,6 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
                 row.operator("object.datalayout_transfer", text="Data Layout")
 
 
-class VIEW3D_PT_tools_add_object(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "objectmode"
-    bl_label = "Add Primitive"
-
-    @staticmethod
-    def draw_add_mesh(layout, label=False):
-        if label:
-            layout.label(text="Primitives:")
-        layout.operator("mesh.primitive_plane_add", text="Plane", icon='MESH_PLANE')
-        layout.operator("mesh.primitive_cube_add", text="Cube", icon='MESH_CUBE')
-        layout.operator("mesh.primitive_circle_add", text="Circle", icon='MESH_CIRCLE')
-        layout.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon='MESH_UVSPHERE')
-        layout.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon='MESH_ICOSPHERE')
-        layout.operator("mesh.primitive_cylinder_add", text="Cylinder", icon='MESH_CYLINDER')
-        layout.operator("mesh.primitive_cone_add", text="Cone", icon='MESH_CONE')
-        layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
-
-        if label:
-            layout.label(text="Special:")
-        else:
-            layout.separator()
-        layout.operator("mesh.primitive_grid_add", text="Grid", icon='MESH_GRID')
-        layout.operator("mesh.primitive_monkey_add", text="Monkey", icon='MESH_MONKEY')
-
-    @staticmethod
-    def draw_add_curve(layout, label=False):
-
-        if label:
-            layout.label(text="Bezier:")
-        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
-        layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
-
-        if label:
-            layout.label(text="Nurbs:")
-        else:
-            layout.separator()
-        layout.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon='CURVE_NCURVE')
-        layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
-        layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
-
-        layout.separator()
-
-        layout.operator("curve.draw", icon='LINE_DATA')
-
-    @staticmethod
-    def draw_add_surface(layout):
-        layout.operator("surface.primitive_nurbs_surface_curve_add", text="Nurbs Curve", icon='SURFACE_NCURVE')
-        layout.operator("surface.primitive_nurbs_surface_circle_add", text="Nurbs Circle", icon='SURFACE_NCIRCLE')
-        layout.operator("surface.primitive_nurbs_surface_surface_add", text="Nurbs Surface", icon='SURFACE_NSURFACE')
-        layout.operator("surface.primitive_nurbs_surface_cylinder_add", text="Nurbs Cylinder", icon='SURFACE_NCYLINDER')
-        layout.operator("surface.primitive_nurbs_surface_sphere_add", text="Nurbs Sphere", icon='SURFACE_NSPHERE')
-        layout.operator("surface.primitive_nurbs_surface_torus_add", text="Nurbs Torus", icon='SURFACE_NTORUS')
-
-    @staticmethod
-    def draw_add_mball(layout):
-        layout.operator_enum("object.metaball_add", "type")
-
-    @staticmethod
-    def draw_add_lamp(layout):
-        layout.operator_enum("object.lamp_add", "type")
-
-    @staticmethod
-    def draw_add_other(layout):
-        layout.operator("object.text_add", text="Text", icon='OUTLINER_OB_FONT')
-        layout.operator("object.armature_add", text="Armature", icon='OUTLINER_OB_ARMATURE')
-        layout.operator("object.add", text="Lattice", icon='OUTLINER_OB_LATTICE').type = 'LATTICE'
-        layout.operator("object.empty_add", text="Empty", icon='OUTLINER_OB_EMPTY').type = 'PLAIN_AXES'
-        layout.operator("object.speaker_add", text="Speaker", icon='OUTLINER_OB_SPEAKER')
-        layout.operator("object.camera_add", text="Camera", icon='OUTLINER_OB_CAMERA')
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Mesh:")
-        self.draw_add_mesh(col)
-
-        col = layout.column(align=True)
-        col.label(text="Curve:")
-        self.draw_add_curve(col)
-
-        # not used here:
-        # draw_add_surface
-        # draw_add_mball
-
-        col = layout.column(align=True)
-        col.label(text="Lamp:")
-        self.draw_add_lamp(col)
-
-        col = layout.column(align=True)
-        col.label(text="Other:")
-        self.draw_add_other(col)
-
-
 class VIEW3D_PT_tools_relations(View3DPanel, Panel):
     bl_category = "Relations"
     bl_context = "objectmode"
@@ -403,19 +308,6 @@ class VIEW3D_PT_tools_meshweight(View3DPanel, Panel):
         self.draw_generic(layout)
 
 
-class VIEW3D_PT_tools_add_mesh_edit(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "mesh_edit"
-    bl_label = "Add Meshes"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        VIEW3D_PT_tools_add_object.draw_add_mesh(col, label=True)
-
-
 class VIEW3D_PT_tools_shading(View3DPanel, Panel):
     bl_category = "Shading / UVs"
     bl_context = "mesh_edit"
@@ -555,19 +447,6 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
         col.operator("transform.vertex_random")
 
 
-class VIEW3D_PT_tools_add_curve_edit(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "curve_edit"
-    bl_label = "Add Curves"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        VIEW3D_PT_tools_add_object.draw_add_curve(col, label=True)
-
-
 class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
     bl_category = "Options"
     bl_context = "curve_edit"
@@ -662,19 +541,6 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
         col = layout.column(align=True)
         col.label(text="Deform:")
         col.operator("transform.vertex_random")
-
-
-class VIEW3D_PT_tools_add_surface_edit(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "surface_edit"
-    bl_label = "Add Surfaces"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        VIEW3D_PT_tools_add_object.draw_add_surface(col)
 
 
 # ********** default tools for editmode_text ****************
@@ -772,19 +638,6 @@ class VIEW3D_PT_tools_mballedit(View3DPanel, Panel):
         col = layout.column(align=True)
         col.label(text="Deform:")
         col.operator("transform.vertex_random")
-
-
-class VIEW3D_PT_tools_add_mball_edit(View3DPanel, Panel):
-    bl_category = "Create"
-    bl_context = "mball_edit"
-    bl_label = "Add Metaball"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        VIEW3D_PT_tools_add_object.draw_add_mball(col)
 
 
 # ********** default tools for editmode_lattice ****************
@@ -2051,30 +1904,25 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 classes = (
     VIEW3D_PT_tools_transform,
     VIEW3D_PT_tools_object,
-    VIEW3D_PT_tools_add_object,
     VIEW3D_PT_tools_relations,
     VIEW3D_PT_tools_animation,
     VIEW3D_PT_tools_rigid_body,
     VIEW3D_PT_tools_transform_mesh,
     VIEW3D_PT_tools_meshedit,
     VIEW3D_PT_tools_meshweight,
-    VIEW3D_PT_tools_add_mesh_edit,
     VIEW3D_PT_tools_shading,
     VIEW3D_PT_tools_uvs,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_transform_curve,
     VIEW3D_PT_tools_curveedit,
-    VIEW3D_PT_tools_add_curve_edit,
     VIEW3D_PT_tools_curveedit_options_stroke,
     VIEW3D_PT_tools_transform_surface,
     VIEW3D_PT_tools_surfaceedit,
-    VIEW3D_PT_tools_add_surface_edit,
     VIEW3D_PT_tools_textedit,
     VIEW3D_PT_tools_armatureedit,
     VIEW3D_PT_tools_armatureedit_transform,
     VIEW3D_PT_tools_armatureedit_options,
     VIEW3D_PT_tools_mballedit,
-    VIEW3D_PT_tools_add_mball_edit,
     VIEW3D_PT_tools_latticeedit,
     VIEW3D_PT_tools_posemode,
     VIEW3D_PT_tools_posemode_options,

@@ -1184,13 +1184,23 @@ class INFO_MT_mesh_add(Menu):
     bl_label = "Mesh"
 
     def draw(self, context):
-        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
-
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        VIEW3D_PT_tools_add_object.draw_add_mesh(layout)
+        layout.operator("mesh.primitive_plane_add", text="Plane", icon='MESH_PLANE')
+        layout.operator("mesh.primitive_cube_add", text="Cube", icon='MESH_CUBE')
+        layout.operator("mesh.primitive_circle_add", text="Circle", icon='MESH_CIRCLE')
+        layout.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon='MESH_UVSPHERE')
+        layout.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon='MESH_ICOSPHERE')
+        layout.operator("mesh.primitive_cylinder_add", text="Cylinder", icon='MESH_CYLINDER')
+        layout.operator("mesh.primitive_cone_add", text="Cone", icon='MESH_CONE')
+        layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
+
+        layout.separator()
+
+        layout.operator("mesh.primitive_grid_add", text="Grid", icon='MESH_GRID')
+        layout.operator("mesh.primitive_monkey_add", text="Monkey", icon='MESH_MONKEY')
 
 
 class INFO_MT_curve_add(Menu):
@@ -1198,12 +1208,22 @@ class INFO_MT_curve_add(Menu):
     bl_label = "Curve"
 
     def draw(self, context):
-        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        VIEW3D_PT_tools_add_object.draw_add_curve(layout)
+        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
+        layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
+
+        layout.separator()
+
+        layout.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon='CURVE_NCURVE')
+        layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
+        layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
+
+        layout.separator()
+
+        layout.operator("curve.draw", icon='LINE_DATA')
 
 
 class INFO_MT_surface_add(Menu):
@@ -1211,12 +1231,22 @@ class INFO_MT_surface_add(Menu):
     bl_label = "Surface"
 
     def draw(self, context):
-        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        VIEW3D_PT_tools_add_object.draw_add_surface(layout)
+        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
+        layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
+
+        layout.separator()
+
+        layout.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon='CURVE_NCURVE')
+        layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
+        layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
+
+        layout.separator()
+
+        layout.operator("curve.draw", icon='LINE_DATA')
 
 
 class INFO_MT_metaball_add(Menu):
