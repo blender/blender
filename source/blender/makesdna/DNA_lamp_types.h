@@ -113,7 +113,7 @@ typedef struct Lamp {
 #define LA_AREA			4
 
 /* mode */
-#define LA_SHAD_BUF		(1 << 0)
+#define LA_SHADOW		(1 << 0)
 /* #define LA_HALO		(1 << 1) */ /* not used anymore */
 /* #define LA_LAYER		(1 << 2) */ /* not used anymore */
 /* #define LA_QUAD		(1 << 3) */ /* not used anymore */
@@ -126,7 +126,7 @@ typedef struct Lamp {
 /* #define LA_DEEP_SHADOW	(1 << 10) */ /* not used anywhere */
 /* #define LA_NO_DIFF		(1 << 11) */ /* not used anywhere */
 /* #define LA_NO_SPEC		(1 << 12) */ /* not used anywhere */
-#define LA_SHAD_RAY		(1 << 13)
+/* #define LA_SHAD_RAY		(1 << 13) */ /* not used anywhere - cleaned */
 /* yafray: lamp shadowbuffer flag, softlight */
 /* Since it is used with LOCAL lamp, can't use LA_SHAD */
 /* #define LA_YF_SOFT		(1 << 14) */ /* not used anymore */

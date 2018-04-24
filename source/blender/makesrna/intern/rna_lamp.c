@@ -63,27 +63,6 @@ static void rna_Lamp_buffer_size_set(PointerRNA *ptr, int value)
 	la->bufsize &= (~15); /* round to multiple of 16 */
 }
 
-static int rna_use_shadow_get(PointerRNA *ptr)
-{
-	Lamp *la = (Lamp *)ptr->data;
-
-	if (la->type == LA_SPOT) {
-		return (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY)) != 0;
-	}
-	else {
-		return (la->mode & LA_SHAD_RAY) != 0;
-	}
-}
-
-static void rna_use_shadow_set(PointerRNA *ptr, int value)
-{
-	Lamp *la = (Lamp *)ptr->data;
-	la->mode &= ~(LA_SHAD_BUF | LA_SHAD_RAY);
-	if (value) {
-		la->mode |= LA_SHAD_RAY;
-	}
-}
-
 static StructRNA *rna_Lamp_refine(struct PointerRNA *ptr)
 {
 	Lamp *la = (Lamp *)ptr->data;
@@ -255,7 +234,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int sun)
 	PropertyRNA *prop;
 
 	prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_funcs(prop, "rna_use_shadow_get", "rna_use_shadow_set");
+	RNA_def_property_boolean_sdna(prop, NULL, "mode", LA_SHADOW);
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
 	prop = RNA_def_property(srna, "shadow_buffer_size", PROP_INT, PROP_NONE);

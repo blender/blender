@@ -1013,7 +1013,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!DNA_struct_find(fd->filesdna, "SpaceTopBar")) {
+	if (!MAIN_VERSION_ATLEAST(main, 280, 11)) {
+
 		/* Remove info editor, but only if at the top of the window. */
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			/* Calculate window width/height from screen vertices */
@@ -1041,6 +1042,15 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				}
 				/* AREA_TEMP_INFO is deprecated from now on, it should only be set for info areas
 				 * which are deleted above, so don't need to unset it. Its slot/bit can be reused */
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 11)) {
+		for (Lamp *lamp = main->lamp.first; lamp; lamp = lamp->id.next) {
+			if (lamp->mode & (1 << 13)) { /* LA_SHAD_RAY */
+				lamp->mode |= LA_SHADOW;
+				lamp->mode &= ~(1 << 13);
 			}
 		}
 	}

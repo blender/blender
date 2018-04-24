@@ -318,7 +318,7 @@ void EEVEE_lights_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
 		led->data.ld.shadow_id = -1;
 		led->prev_cube_shadow_id = -1;
 
-		if (la->mode & (LA_SHAD_BUF | LA_SHAD_RAY)) {
+		if (la->mode & LA_SHADOW) {
 			if (la->type == LA_SUN) {
 				int sh_nbr = 1; /* TODO : MSM */
 				int cascade_nbr = MAX_CASCADE_NUM; /* TODO : Custom cascade number */
