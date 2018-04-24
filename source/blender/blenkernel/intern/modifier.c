@@ -901,6 +901,19 @@ void modifier_deformVerts(struct ModifierData *md, const ModifierEvalContext *ct
 	}
 }
 
+void modifier_deformVerts_ensure_normals(struct ModifierData *md, const ModifierEvalContext *ctx,
+	struct Mesh *mesh,
+	float (*vertexCos)[3], int numVerts)
+{
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(!mesh || CustomData_has_layer(&mesh->pdata, CD_NORMAL) == false);
+
+	if (mesh && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		BKE_mesh_calc_normals(mesh);
+	}
+	modifier_deformVerts(md, ctx, mesh, vertexCos, numVerts);
+}
+
 void modifier_deformMatrices(struct ModifierData *md, const ModifierEvalContext *ctx,
 	struct Mesh *mesh,
 	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
@@ -991,6 +1004,18 @@ struct Mesh *modifier_applyModifier(struct ModifierData *md, const ModifierEvalC
 
 		return mesh;
 	}
+}
+
+struct Mesh *modifier_applyModifier_ensure_normals(struct ModifierData *md, const ModifierEvalContext *ctx,
+	struct Mesh *mesh)
+{
+	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	BLI_assert(CustomData_has_layer(&mesh->pdata, CD_NORMAL) == false);
+
+	if (mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+		BKE_mesh_calc_normals(mesh);
+	}
+	return modifier_applyModifier(md, ctx, mesh);
 }
 
 struct Mesh *modifier_applyModifierEM(struct ModifierData *md, const ModifierEvalContext *ctx,
