@@ -104,10 +104,16 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
         if probe.type == 'GRID':
             col.separator()
 
-            col.label("Visibily:")
+            col.label("Visibility:")
             col.prop(probe, "visibility_buffer_bias", "Bias")
             col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
             col.prop(probe, "visibility_blur", "Blur")
+
+
+        col.label("Visibility Group:")
+        row = col.row(align=True)
+        row.prop(probe, "visibility_group", text="")
+        row.prop(probe, "invert_visibility_group", text="", icon='ARROW_LEFTRIGHT')
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):

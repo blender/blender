@@ -66,6 +66,7 @@ typedef struct LightProbe {
 
 	struct Object *parallax_ob;    /* Object to use as a parallax origin */
 	struct Image *image;           /* Image to use on as lighting data */
+	struct Group *visibility_grp;  /* Object visibility group, inclusive or exclusive */
 
 	float data_draw_size;
 
@@ -88,6 +89,7 @@ enum {
 	LIGHTPROBE_FLAG_SHOW_PARALLAX   = (1 << 2),
 	LIGHTPROBE_FLAG_SHOW_CLIP_DIST  = (1 << 3),
 	LIGHTPROBE_FLAG_SHOW_DATA       = (1 << 4),
+	LIGHTPROBE_FLAG_INVERT_GROUP    = (1 << 5),
 };
 
 /* Probe->display */

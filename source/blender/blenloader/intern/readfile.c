@@ -7492,10 +7492,12 @@ static void fix_relpaths_library(const char *basepath, Main *main)
 
 static void lib_link_lightprobe(FileData *fd, Main *main)
 {
-	for (LightProbe *prb = main->speaker.first; prb; prb = prb->id.next) {
+	for (LightProbe *prb = main->lightprobe.first; prb; prb = prb->id.next) {
 		if (prb->id.tag & LIB_TAG_NEED_LINK) {
 			IDP_LibLinkProperty(prb->id.properties, fd);
 			lib_link_animdata(fd, &prb->id, prb->adt);
+
+			prb->visibility_grp = newlibadr(fd, prb->id.lib, prb->visibility_grp);
 
 			prb->id.tag &= ~LIB_TAG_NEED_LINK;
 		}
