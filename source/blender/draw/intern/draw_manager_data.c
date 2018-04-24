@@ -274,6 +274,7 @@ static DRWCallState *drw_call_state_create(DRWShadingGroup *shgroup, float (*obm
 	DRWCallState *state = BLI_mempool_alloc(DST.vmempool->states);
 	state->flag = 0;
 	state->cache_id = 0;
+	state->visibility_cb = NULL;
 	state->matflag = shgroup->matflag;
 
 	/* Matrices */
@@ -348,6 +349,26 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Obje
 
 	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
 	call->state = drw_call_state_object(shgroup, ob->obmat, ob);
+	call->type = DRW_CALL_SINGLE;
+	call->single.geometry = geom;
+#ifdef USE_GPU_SELECT
+	call->select_id = DST.select_id;
+#endif
+
+	BLI_LINKS_APPEND(&shgroup->calls, call);
+}
+
+void DRW_shgroup_call_object_add_with_callback(
+        DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob,
+        DRWCallVisibilityFn *callback, void *user_data)
+{
+	BLI_assert(geom != NULL);
+	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
+
+	DRWCall *call = BLI_mempool_alloc(DST.vmempool->calls);
+	call->state = drw_call_state_object(shgroup, ob->obmat, ob);
+	call->state->visibility_cb = callback;
+	call->state->user_data = user_data;
 	call->type = DRW_CALL_SINGLE;
 	call->single.geometry = geom;
 #ifdef USE_GPU_SELECT

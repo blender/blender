@@ -336,11 +336,19 @@ typedef void (DRWCallGenerateFn)(
         void (*draw_fn)(DRWShadingGroup *shgroup, struct Gwn_Batch *geom),
         void *user_data);
 
+/* return final visibility */
+typedef bool (DRWCallVisibilityFn)(
+        bool vis_in,
+        void *user_data);
+
 void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batch);
 
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4]);
 void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob);
+void DRW_shgroup_call_object_add_with_callback(
+        DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob,
+        DRWCallVisibilityFn *callback, void *user_data);
 /* Used for drawing a batch with instancing without instance attribs. */
 void DRW_shgroup_call_instances_add(
         DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4], unsigned int *count);
