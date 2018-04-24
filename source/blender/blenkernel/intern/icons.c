@@ -51,6 +51,7 @@
 #include "BLI_ghash.h"
 #include "BLI_linklist_lockfree.h"
 #include "BLI_string.h"
+#include "BLI_fileops.h"
 #include "BLI_threads.h"
 
 #include "BKE_icons.h"
@@ -96,8 +97,14 @@ static void icon_free(void *val)
 	if (icon) {
 		if (icon->obj_type == ICON_DATA_GEOM) {
 			struct Icon_Geom *obj = icon->obj;
-			MEM_freeN((void *)obj->coords);
-			MEM_freeN((void *)obj->colors);
+			if (obj->mem) {
+				/* coords & colors are part of this memory. */
+				MEM_freeN((void *)obj->mem);
+			}
+			else {
+				MEM_freeN((void *)obj->coords);
+				MEM_freeN((void *)obj->colors);
+			}
 			MEM_freeN(icon->obj);
 		}
 
@@ -621,22 +628,6 @@ int BKE_icon_preview_ensure(ID *id, PreviewImage *preview)
 	return preview->icon_id;
 }
 
-int BKE_icon_geom_ensure(struct Icon_Geom *geom)
-{
-	BLI_assert(BLI_thread_is_main());
-
-	if (geom->icon_id) {
-		return geom->icon_id;
-	}
-
-	geom->icon_id = get_next_free_id();
-
-	icon_create(geom->icon_id, ICON_DATA_GEOM, geom);
-	/* Not managed for now, we may want this to be configurable per icon). */
-
-	return geom->icon_id;
-}
-
 Icon *BKE_icon_get(const int icon_id)
 {
 	BLI_assert(BLI_thread_is_main());
@@ -735,3 +726,73 @@ bool BKE_icon_delete_unmanaged(const int icon_id)
 		return false;
 	}
 }
+
+/* -------------------------------------------------------------------- */
+/** \name Geometry Icon
+ * \{ */
+
+int BKE_icon_geom_ensure(struct Icon_Geom *geom)
+{
+	BLI_assert(BLI_thread_is_main());
+
+	if (geom->icon_id) {
+		return geom->icon_id;
+	}
+
+	geom->icon_id = get_next_free_id();
+
+	icon_create(geom->icon_id, ICON_DATA_GEOM, geom);
+	/* Not managed for now, we may want this to be configurable per icon). */
+
+	return geom->icon_id;
+}
+
+struct Icon_Geom *BKE_icon_geom_from_memory(const uchar *data, size_t data_len)
+{
+	BLI_assert(BLI_thread_is_main());
+	if (data_len <= 8) {
+		goto fail;
+	}
+	const int div = 3 * 2 * 3;
+	const int coords_len = (data_len - 8) / div;
+	if (coords_len * div != data_len) {
+		goto fail;
+	}
+
+	const uchar header[4] = {'V', 'C', 'O', 0};
+	const uchar *p = data;
+	if (memcmp(p, header, ARRAY_SIZE(header)) != 0) {
+		goto fail;
+	}
+	p += 4;
+
+	struct Icon_Geom *geom = MEM_mallocN(sizeof(*geom), __func__);
+	geom->coords_range[0] = (int)*p++;
+	geom->coords_range[1] = (int)*p++;
+	/* x, y ignored for now */
+	p += 2;
+
+	geom->coords_len = coords_len;
+	geom->coords = (const void *)p;
+	geom->colors = (const void *)(p + (data_len / 3));
+	geom->icon_id = 0;
+	geom->mem = data;
+	return geom;
+
+fail:
+	MEM_freeN((void *)data);
+	return NULL;
+}
+
+struct Icon_Geom *BKE_icon_geom_from_file(const char *filename)
+{
+	BLI_assert(BLI_thread_is_main());
+	size_t data_len;
+	uchar *data = BLI_file_read_binary_as_mem(filename, 0, &data_len);
+	if (data == NULL) {
+		return NULL;
+	}
+	return BKE_icon_geom_from_memory(data, data_len);
+}
+
+/** \} */

@@ -156,6 +156,9 @@ typedef enum eDepsgraph_Tag {
 	/* Only inform editors about the change. Don't modify datablock itself. */
 	DEG_TAG_EDITORS_UPDATE = (1 << 12),
 } eDepsgraph_Tag;
+
+const char *DEG_update_tag_as_string(eDepsgraph_Tag flag);
+
 void DEG_id_tag_update(struct ID *id, int flag);
 void DEG_id_tag_update_ex(struct Main *bmain, struct ID *id, int flag);
 

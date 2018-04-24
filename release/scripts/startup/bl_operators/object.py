@@ -123,6 +123,7 @@ class SelectCamera(Operator):
 
     def execute(self, context):
         scene = context.scene
+        view_layer = context.view_layer
         view = context.space_data
         if view.type == 'VIEW_3D' and not view.lock_camera_and_layers:
             camera = view.camera
@@ -136,8 +137,8 @@ class SelectCamera(Operator):
         else:
             if not self.extend:
                 bpy.ops.object.select_all(action='DESELECT')
-            scene.objects.active = camera
-            camera.hide = False
+            view_layer.objects.active = camera
+            # camera.hide = False  # XXX TODO where is this now?
             camera.select_set(action='SELECT')
             return {'FINISHED'}
 
@@ -171,6 +172,7 @@ class SelectHierarchy(Operator):
 
     def execute(self, context):
         scene = context.scene
+        view_layer = context.view_layer
         select_new = []
         act_new = None
 
@@ -206,7 +208,7 @@ class SelectHierarchy(Operator):
             for obj in select_new:
                 obj.select_set(action='SELECT')
 
-            scene.objects.active = act_new
+            view_layer.objects.active = act_new
             return {'FINISHED'}
 
         return {'CANCELLED'}
@@ -881,171 +883,11 @@ class DupliOffsetFromCursor(Operator):
         return {'FINISHED'}
 
 
-class LodByName(Operator):
-    """Add levels of detail to this object based on object names"""
-    bl_idname = "object.lod_by_name"
-    bl_label = "Setup Levels of Detail By Name"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None)
-
-    def execute(self, context):
-        ob = context.active_object
-
-        prefix = ""
-        suffix = ""
-        name = ""
-        if ob.name.lower().startswith("lod0"):
-            prefix = ob.name[:4]
-            name = ob.name[4:]
-        elif ob.name.lower().endswith("lod0"):
-            name = ob.name[:-4]
-            suffix = ob.name[-4:]
-        else:
-            return {'CANCELLED'}
-
-        level = 0
-        while True:
-            level += 1
-
-            if prefix:
-                prefix = prefix[:3] + str(level)
-            if suffix:
-                suffix = suffix[:3] + str(level)
-
-            lod = None
-            try:
-                lod = bpy.data.objects[prefix + name + suffix]
-            except KeyError:
-                break
-
-            try:
-                ob.lod_levels[level]
-            except IndexError:
-                bpy.ops.object.lod_add()
-
-            ob.lod_levels[level].object = lod
-
-        return {'FINISHED'}
-
-
-class LodClearAll(Operator):
-    """Remove all levels of detail from this object"""
-    bl_idname = "object.lod_clear_all"
-    bl_label = "Clear All Levels of Detail"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None)
-
-    def execute(self, context):
-        ob = context.active_object
-
-        if ob.lod_levels:
-            while 'CANCELLED' not in bpy.ops.object.lod_remove():
-                pass
-
-        return {'FINISHED'}
-
-
-class LodGenerate(Operator):
-    """Generate levels of detail using the decimate modifier"""
-    bl_idname = "object.lod_generate"
-    bl_label = "Generate Levels of Detail"
-    bl_options = {'REGISTER', 'UNDO'}
-
-    count = IntProperty(
-            name="Count",
-            default=3,
-            )
-    target = FloatProperty(
-            name="Target Size",
-            min=0.0, max=1.0,
-            default=0.1,
-            )
-    package = BoolProperty(
-            name="Package into Group",
-            default=False,
-            )
-
-    @classmethod
-    def poll(cls, context):
-        return (context.active_object is not None)
-
-    def execute(self, context):
-        scene = context.scene
-        ob = scene.objects.active
-
-        lod_name = ob.name
-        lod_suffix = "lod"
-        lod_prefix = ""
-        if lod_name.lower().endswith("lod0"):
-            lod_suffix = lod_name[-3:-1]
-            lod_name = lod_name[:-3]
-        elif lod_name.lower().startswith("lod0"):
-            lod_suffix = ""
-            lod_prefix = lod_name[:3]
-            lod_name = lod_name[4:]
-
-        group_name = lod_name.strip(' ._')
-        if self.package:
-            try:
-                bpy.ops.object.group_link(group=group_name)
-            except TypeError:
-                bpy.ops.group.create(name=group_name)
-
-        step = (1.0 - self.target) / (self.count - 1)
-        for i in range(1, self.count):
-            scene.objects.active = ob
-            bpy.ops.object.duplicate()
-            lod = context.selected_objects[0]
-
-            scene.objects.active = ob
-            bpy.ops.object.lod_add()
-            scene.objects.active = lod
-
-            if lod_prefix:
-                lod.name = lod_prefix + str(i) + lod_name
-            else:
-                lod.name = lod_name + lod_suffix + str(i)
-
-            lod.location.y = ob.location.y + 3.0 * i
-
-            if i == 1:
-                modifier = lod.modifiers.new("lod_decimate", 'DECIMATE')
-            else:
-                modifier = lod.modifiers[-1]
-
-            modifier.ratio = 1.0 - step * i
-
-            ob.lod_levels[i].object = lod
-
-            if self.package:
-                bpy.ops.object.group_link(group=group_name)
-                lod.parent = ob
-
-        if self.package:
-            for level in ob.lod_levels[1:]:
-                level.object.hide = level.object.hide_render = True
-
-        lod.select_set(action='DESELECT')
-        ob.select_set(action='SELECT')
-        scene.objects.active = ob
-
-        return {'FINISHED'}
-
-
 classes = (
     ClearAllRestrictRender,
     DupliOffsetFromCursor,
     IsolateTypeRender,
     JoinUVs,
-    LodByName,
-    LodClearAll,
-    LodGenerate,
     MakeDupliFace,
     SelectCamera,
     SelectHierarchy,

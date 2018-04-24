@@ -307,9 +307,6 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
 	if (!(bone->flag & BONE_CONNECTED) || (bone->flag & BONE_UNSELECTABLE))
 		return;
 	
-	/* XXX old cruft! use notifiers instead */
-	//select_actionchannel_by_name (ob->action, bone->name, !(shift));
-	
 	if (extend)
 		bone->flag &= ~BONE_SELECTED;
 	else
@@ -381,7 +378,7 @@ void POSE_OT_select_linked(wmOperatorType *ot)
 	ot->idname = "POSE_OT_select_linked";
 	ot->description = "Select bones related to selected ones by parent/child relationships";
 	
-	/* api callbacks */
+	/* callbacks */
 	/* leave 'exec' unset */
 	ot->invoke = pose_select_connected_invoke;
 	ot->poll = pose_select_linked_poll;

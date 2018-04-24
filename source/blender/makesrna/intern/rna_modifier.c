@@ -4922,12 +4922,13 @@ void RNA_def_modifier(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_viewport", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Realtime);
 	RNA_def_property_ui_text(prop, "Realtime", "Display modifier in viewport");
-	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
+	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION | PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_VIEW_OFF, 0);
 	
 	prop = RNA_def_property(srna, "show_render", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Render);
+	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Render", "Use modifier during render");
 	RNA_def_property_ui_icon(prop, ICON_SCENE, 0);
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, NULL);
@@ -4946,6 +4947,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "show_expanded", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", eModifierMode_Expanded);
+	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Expanded", "Set modifier expanded in the user interface");
 	RNA_def_property_ui_icon(prop, ICON_TRIA_RIGHT, 1);
 

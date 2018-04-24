@@ -758,6 +758,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
                                              void (*clear_func)(bPoseChannel *), const char default_ksName[])
 {
 	Scene *scene = CTX_data_scene(C);
+	bool changed_multi = false;
 
 	/* sanity checks */
 	if (ELEM(NULL, clear_func, default_ksName)) {
@@ -765,17 +766,15 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 		return OPERATOR_CANCELLED;
 	}
 
-	bool changed_multi = false;
-
 	/* only clear relevant transforms for selected bones */
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter) {
-
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter)
+	{
 		ListBase dsources = {NULL, NULL};
-
 		bool changed = false;
-		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan) {
 
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan)
+		{
 			/* run provided clearing function */
 			clear_func(pchan);
 			changed = true;
@@ -795,7 +794,8 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 					pchan->bone->flag |= BONE_UNKEYED;
 				}
 			}
-		} FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+		}
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 
 		if (changed) {
 			changed_multi = true;
@@ -821,7 +821,8 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 			/* note, notifier might evolve */
 			WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob_iter);
 		}
-	} FOREACH_OBJECT_IN_MODE_END;
+	}
+	FOREACH_OBJECT_IN_MODE_END;
 
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -916,57 +917,61 @@ void POSE_OT_transforms_clear(wmOperatorType *ot)
 
 static int pose_clear_user_transforms_exec(bContext *C, wmOperator *op)
 {
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	float cframe = (float)CFRA;
 	const bool only_select = RNA_boolean_get(op->ptr, "only_selected");
 	
-	if ((ob->adt) && (ob->adt->action)) {
-		/* XXX: this is just like this to avoid contaminating anything else; 
-		 * just pose values should change, so this should be fine 
-		 */
-		bPose *dummyPose = NULL;
-		Object workob = {{NULL}};
-		bPoseChannel *pchan;
-		
-		/* execute animation step for current frame using a dummy copy of the pose */
-		BKE_pose_copy_data(&dummyPose, ob->pose, 0);
-		
-		BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));
-		workob.type = OB_ARMATURE;
-		workob.data = ob->data;
-		workob.adt = ob->adt;
-		workob.pose = dummyPose;
-		
-		BKE_animsys_evaluate_animdata(scene, &workob.id, workob.adt, cframe, ADT_RECALC_ANIM);
-		
-		/* copy back values, but on selected bones only  */
-		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
-			pose_bone_do_paste(ob, pchan, only_select, 0);
-		}
-		
-		/* free temp data - free manually as was copied without constraints */
-		for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
-			if (pchan->prop) {
-				IDP_FreeProperty(pchan->prop);
-				MEM_freeN(pchan->prop);
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob)
+	{
+		if ((ob->adt) && (ob->adt->action)) {
+			/* XXX: this is just like this to avoid contaminating anything else;
+			 * just pose values should change, so this should be fine
+			 */
+			bPose *dummyPose = NULL;
+			Object workob = {{NULL}};
+			bPoseChannel *pchan;
+			
+			/* execute animation step for current frame using a dummy copy of the pose */
+			BKE_pose_copy_data(&dummyPose, ob->pose, 0);
+			
+			BLI_strncpy(workob.id.name, "OB<ClearTfmWorkOb>", sizeof(workob.id.name));
+			workob.type = OB_ARMATURE;
+			workob.data = ob->data;
+			workob.adt = ob->adt;
+			workob.pose = dummyPose;
+			
+			BKE_animsys_evaluate_animdata(scene, &workob.id, workob.adt, cframe, ADT_RECALC_ANIM);
+			
+			/* copy back values, but on selected bones only  */
+			for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
+				pose_bone_do_paste(ob, pchan, only_select, 0);
 			}
+			
+			/* free temp data - free manually as was copied without constraints */
+			for (pchan = dummyPose->chanbase.first; pchan; pchan = pchan->next) {
+				if (pchan->prop) {
+					IDP_FreeProperty(pchan->prop);
+					MEM_freeN(pchan->prop);
+				}
+			}
+			
+			/* was copied without constraints */
+			BLI_freelistN(&dummyPose->chanbase);
+			MEM_freeN(dummyPose);
+		}
+		else {
+			/* no animation, so just reset whole pose to rest pose
+			 * (cannot just restore for selected though)
+			 */
+			BKE_pose_rest(ob->pose);
 		}
 		
-		/* was copied without constraints */
-		BLI_freelistN(&dummyPose->chanbase);
-		MEM_freeN(dummyPose);
+		/* notifiers and updates */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
 	}
-	else {
-		/* no animation, so just reset whole pose to rest pose 
-		 * (cannot just restore for selected though)
-		 */
-		BKE_pose_rest(ob->pose);
-	}
-	
-	/* notifiers and updates */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, ob);
+	FOREACH_OBJECT_IN_MODE_END;
 	
 	return OPERATOR_FINISHED;
 }

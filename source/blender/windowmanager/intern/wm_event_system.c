@@ -1953,13 +1953,14 @@ static int wm_handler_fileselect_do(bContext *C, ListBase *handlers, wmEventHand
 	int action = WM_HANDLER_CONTINUE;
 
 	switch (val) {
-		case EVT_FILESELECT_FULL_OPEN: 
+		case EVT_FILESELECT_FULL_OPEN:
 		{
 			ScrArea *sa;
-				
-			/* sa can be null when window A is active, but mouse is over window B */
-			/* in this case, open file select in original window A */
-			if (handler->op_area == NULL) {
+
+			/* sa can be null when window A is active, but mouse is over window B
+			 * in this case, open file select in original window A. Also don't
+			 * use global areas. */
+			if (handler->op_area == NULL || ED_area_is_global(handler->op_area)) {
 				bScreen *screen = CTX_wm_screen(C);
 				sa = (ScrArea *)screen->areabase.first;
 			}

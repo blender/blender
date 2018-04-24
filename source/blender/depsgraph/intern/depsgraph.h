@@ -64,13 +64,12 @@ struct OperationDepsNode;
 
 /* Settings/Tags on Relationship */
 typedef enum eDepsRelation_Flag {
-	/* "touched" tag is used when filtering, to know which to collect */
-	DEPSREL_FLAG_TEMP_TAG   = (1 << 0),
-
 	/* "cyclic" link - when detecting cycles, this relationship was the one
-	 * which triggers a cyclic relationship to exist in the graph
+	 * which triggers a cyclic relationship to exist in the graph.
 	 */
-	DEPSREL_FLAG_CYCLIC     = (1 << 1),
+	DEPSREL_FLAG_CYCLIC     = (1 << 0),
+	/* Update flush will not go through this relation. */
+	DEPSREL_FLAG_NO_FLUSH   = (1 << 1),
 } eDepsRelation_Flag;
 
 /* B depends on A (A -> B) */

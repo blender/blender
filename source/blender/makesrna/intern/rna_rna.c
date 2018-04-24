@@ -1160,14 +1160,6 @@ static int rna_property_override_diff_propptr(
 	}
 }
 
-static char *rna_path_collection_prop_item_extend(const char *rna_path_prop, const char *item_name)
-{
-	const size_t esc_item_name_len = strlen(item_name) * 2;
-	char *esc_item_name = alloca(sizeof(*esc_item_name) * esc_item_name_len);
-	BLI_strescape(esc_item_name, item_name, esc_item_name_len);
-	return BLI_sprintfN("%s[\"%s\"]", rna_path_prop, esc_item_name);
-}
-
 int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
         PropertyRNA *prop_a, PropertyRNA *prop_b,
         const int len_a, const int len_b,
@@ -1300,7 +1292,6 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 		case PROP_FLOAT:
 		{
-			const bool is_proportional = (prop_a->flag & PROP_PROPORTIONAL) != 0;
 			if (len_a) {
 				float array_stack_a[RNA_STACK_ARRAY], array_stack_b[RNA_STACK_ARRAY];
 				float *array_a, *array_b;
@@ -1320,7 +1311,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 					if (op != NULL && created) {
 						BKE_override_static_property_operation_get(
-						            op, is_proportional ? IDOVERRIDESTATIC_OP_MULTIPLY : IDOVERRIDESTATIC_OP_REPLACE,
+						            op, IDOVERRIDESTATIC_OP_REPLACE,
 						            NULL, NULL, -1, -1, true, NULL, NULL);
 						if (r_override_changed) {
 							*r_override_changed = created;
@@ -1347,7 +1338,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 					if (op != NULL && created) {  /* If not yet overridden... */
 						BKE_override_static_property_operation_get(
-						            op, is_proportional ? IDOVERRIDESTATIC_OP_MULTIPLY : IDOVERRIDESTATIC_OP_REPLACE,
+						            op, IDOVERRIDESTATIC_OP_REPLACE,
 						            NULL, NULL, -1, -1, true, NULL, NULL);
 						if (r_override_changed) {
 							*r_override_changed = created;
@@ -1437,8 +1428,6 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 			for (; iter_a.valid && iter_b.valid;
 			     RNA_property_collection_next(&iter_a), RNA_property_collection_next(&iter_b), idx++)
 			{
-				char *extended_rna_path = NULL;
-
 				if (iter_a.ptr.type != iter_b.ptr.type) {
 					/* nothing we can do (for until we support adding/removing from collections), skip it. */
 					equals = false;
@@ -1459,6 +1448,18 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 					propname_a = RNA_property_string_get_alloc(&iter_a.ptr, propname, propname_buff_a, sizeof(propname_buff_a), NULL);
 					propname_b = RNA_property_string_get_alloc(&iter_b.ptr, propname, propname_buff_b, sizeof(propname_buff_b), NULL);
 				}
+
+#define RNA_PATH_BUFFSIZE 8192
+#define RNA_PATH_PRINTF(_str, ...) \
+				if (BLI_snprintf(extended_rna_path_buffer, RNA_PATH_BUFFSIZE, \
+				                 (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE) \
+				{ extended_rna_path = BLI_sprintfN((_str), __VA_ARGS__); }(void)0
+#define RNA_PATH_FREE \
+				if (extended_rna_path != extended_rna_path_buffer) MEM_freeN(extended_rna_path)
+
+				char extended_rna_path_buffer[RNA_PATH_BUFFSIZE];
+				char *extended_rna_path = extended_rna_path_buffer;
+
 				/* There may be a propname defined in some cases, while no actual name set
 				 * (e.g. happens with point cache), in that case too we want to fall back to index. */
 				if ((propname_a != NULL && propname_a[0] != '\0') || (propname_b != NULL && propname_b[0] != '\0')) {
@@ -1467,12 +1468,14 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 						equals = false;
 					}
 					else if (rna_path) {
-						extended_rna_path = rna_path_collection_prop_item_extend(rna_path, propname_a);
+						char esc_item_name[RNA_PATH_BUFFSIZE];
+						BLI_strescape(esc_item_name, propname_a, RNA_PATH_BUFFSIZE);
+						RNA_PATH_PRINTF("%s[\"%s\"]", rna_path, esc_item_name);
 					}
 				}
 				else {  /* Based on index... */
 					if (rna_path) {
-						extended_rna_path = BLI_sprintfN("%s[%d]", rna_path, idx);
+						RNA_PATH_PRINTF("%s[%d]", rna_path, idx);
 					}
 				}
 
@@ -1490,11 +1493,15 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 				if (propname_b != propname_buff_b) {
 					MEM_SAFE_FREE(propname_b);
 				}
-				MEM_SAFE_FREE(extended_rna_path);
+				RNA_PATH_FREE;
 
 				if (!rna_path && !equals) {
 					break;  /* Early out in case we do not want to loop over whole collection. */
 				}
+
+#undef RNA_PATH_BUFFSIZE
+#undef RNA_PATH_PRINTF
+#undef RNA_PATH_FREE
 			}
 
 			equals = equals && !(iter_a.valid || iter_b.valid);  /* Not same number of items in both collections... */

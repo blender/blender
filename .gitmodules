@@ -3,22 +3,18 @@
 	url = ../blender-addons.git
 	branch = blender2.8
 	ignore = all
-	branch = master
 [submodule "release/scripts/addons_contrib"]
 	path = release/scripts/addons_contrib
 	url = ../blender-addons-contrib.git
 	branch = master
 	ignore = all
-	branch = master
 [submodule "release/datafiles/locale"]
 	path = release/datafiles/locale
 	url = ../blender-translations.git
 	branch = master
 	ignore = all
-	branch = master
 [submodule "source/tools"]
 	path = source/tools
 	url = ../blender-dev-tools.git
 	branch = master
 	ignore = all
-	branch = master

@@ -286,9 +286,9 @@ static void drawscredge_corner(ScrArea *sa, int sizex, int sizey)
 	/* Bottom-Left. */
 	drawscredge_corner_geometry(sizex, sizey,
 	                            sa->v1->vec.x,
-					            sa->v1->vec.y,
-					            sa->v1->vec.x + size,
-					            sa->v1->vec.y + size,
+	                            sa->v1->vec.y,
+	                            sa->v1->vec.x + size,
+	                            sa->v1->vec.y + size,
 	                            M_PI_2 * 2.0f,
 	                            color);
 
