@@ -420,7 +420,15 @@ static void manipulators_draw_list(const wmManipulatorMap *mmap, const bContext 
 			is_depth_prev = is_depth;
 		}
 
+		/* XXX force AntiAlias Manipulators. */
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_POLYGON_SMOOTH);
+
 		mpr->type->draw(C, mpr);
+
+		glDisable(GL_LINE_SMOOTH);
+		glDisable(GL_POLYGON_SMOOTH);
+
 		/* free/remove manipulator link after drawing */
 		BLI_freelinkN(draw_manipulators, link);
 	}
