@@ -5015,22 +5015,33 @@ void MESH_OT_delete_edgeloop(wmOperatorType *ot)
 
 static int edbm_split_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, false);
-	BMO_op_exec(em->bm, &bmop);
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		BMOperator bmop;
+		EDBM_op_init(em, &bmop, op, "split geom=%hvef use_only_faces=%b", BM_ELEM_SELECT, false);
+		BMO_op_exec(em->bm, &bmop);
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		/* Geometry has changed, need to recalc normals and looptris */
+		EDBM_mesh_normals_update(em);
+
+		EDBM_update_generic(em, true, true);
 	}
-
-	/* Geometry has changed, need to recalc normals and looptris */
-	EDBM_mesh_normals_update(em);
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
