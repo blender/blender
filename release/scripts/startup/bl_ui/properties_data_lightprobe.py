@@ -117,7 +117,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
-    bl_label = "Parallax"
+    bl_label = "Custom Parallax"
     COMPAT_ENGINES = {'BLENDER_CLAY', 'BLENDER_EEVEE'}
 
     @classmethod
@@ -125,13 +125,14 @@ class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):
         engine = context.engine
         return context.lightprobe and context.lightprobe.type == 'CUBEMAP' and (engine in cls.COMPAT_ENGINES)
 
+    def draw_header(self, context):
+        probe = context.lightprobe
+        self.layout.prop(probe, "use_custom_parallax", text="")
+
     def draw(self, context):
         layout = self.layout
 
-        ob = context.object
         probe = context.lightprobe
-
-        layout.prop(probe, "use_custom_parallax")
 
         col = layout.column()
         col.active = probe.use_custom_parallax
