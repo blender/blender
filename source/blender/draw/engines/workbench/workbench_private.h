@@ -31,46 +31,73 @@
 #include "DNA_view3d_types.h"
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
+#define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 
+typedef struct WORKBENCH_FramebufferList {
+	struct GPUFrameBuffer *prepass_fb;
+} WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_StorageList {
 	struct WORKBENCH_PrivateData *g_data;
 } WORKBENCH_StorageList;
 
 typedef struct WORKBENCH_PassList {
-	struct DRWPass *depth_pass;
-	struct DRWPass *solid_pass;
+	struct DRWPass *prepass_pass;
+	struct DRWPass *composite_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_Data {
 	void *engine_type;
-	DRWViewportEmptyList *fbl;
+	WORKBENCH_FramebufferList *fbl;
 	DRWViewportEmptyList *txl;
 	WORKBENCH_PassList *psl;
 	WORKBENCH_StorageList *stl;
 } WORKBENCH_Data;
 
+typedef struct WORKBENCH_UBO_World {
+	float diffuse_light_xp[4];
+	float diffuse_light_xn[4];
+	float diffuse_light_yp[4];
+	float diffuse_light_yn[4];
+	float diffuse_light_zp[4];
+	float diffuse_light_zn[4];
+	float background_color_low[4];
+	float background_color_high[4];
+} WORKBENCH_UBO_World;
+BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
+
 typedef struct WORKBENCH_PrivateData {
-	DRWShadingGroup *depth_shgrp;
-
-	DRWShadingGroup *shadeless_shgrp;
-
 	struct GHash *material_hash;
+	struct GPUShader *prepass_sh;
+	struct GPUShader *composite_sh;
 	short drawtype_lighting;
 	short drawtype_options;
+	struct GPUUniformBuffer *world_ubo;
+	WORKBENCH_UBO_World world_data;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_MaterialData {
 	/* Solid color */
 	float color[3];
+	int object_id;
 
 	/* Linked shgroup for drawing */
 	DRWShadingGroup *shgrp;
 } WORKBENCH_MaterialData;
 
+typedef struct WORKBENCH_ObjectData {
+	struct ObjectEngineData *next, *prev;
+	struct DrawEngineType *engine_type;
+	/* Only nested data, NOT the engine data itself. */
+	ObjectEngineDataFreeCb free;
+	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
+	int recalc;
+
+	int object_id;
+} WORKBENCH_ObjectData;
 
 /* workbench_engine.c */
-void workbench_solid_materials_init(void);
+void workbench_solid_materials_init(WORKBENCH_Data *vedata);
 void workbench_solid_materials_cache_init(WORKBENCH_Data *vedata);
 void workbench_solid_materials_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_solid_materials_cache_finish(WORKBENCH_Data *vedata);
@@ -78,10 +105,11 @@ void workbench_solid_materials_draw_scene(WORKBENCH_Data *vedata);
 void workbench_solid_materials_free(void);
 
 /* workbench_materials.c */
-void workbench_materials_engine_init(void);
+void workbench_materials_engine_init(WORKBENCH_Data *vedata);
 void workbench_materials_engine_free(void);
-void workbench_materials_draw_scene_finish(WORKBENCH_Data *vedata);
+void workbench_materials_draw_scene(WORKBENCH_Data *vedata);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
 void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);
+void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
 
 #endif

@@ -107,8 +107,7 @@ set(SRC
 	engines/eevee/eevee_volumes.c
 	engines/workbench/workbench_engine.c
 	engines/workbench/workbench_materials.c
-	engines/workbench/solid_flat_mode.c
-	engines/workbench/solid_studio_mode.c
+	engines/workbench/solid_mode.c
 	engines/external/external_engine.c
 
 	DRW_engine.h
@@ -209,11 +208,13 @@ data_to_c_simple(engines/eevee/shaders/volumetric_resolve_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_scatter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_integration_frag.glsl SRC)
 
-data_to_c_simple(engines/workbench/shaders/solid_flat_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/solid_studio_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_diffuse_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_vert.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_studio_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_prepass_vert.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_prepass_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_composite_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_background_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_object_overlap_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_world_light_lib.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)
 data_to_c_simple(modes/shaders/common_view_lib.glsl SRC)

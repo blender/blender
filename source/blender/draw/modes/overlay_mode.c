@@ -23,10 +23,12 @@
  *  \ingroup draw_engine
  */
 
-#include "DRW_render.h"
+ #include "DNA_view3d_types.h"
 
 #include "GPU_shader.h"
-#include "DNA_view3d_types.h"
+#include "DRW_render.h"
+
+#include "draw_mode_engines.h"
 
 /* Structures */
 typedef struct OVERLAY_StorageList {
@@ -50,19 +52,10 @@ typedef struct OVERLAY_PrivateData {
 	int overlays;
 } OVERLAY_PrivateData; /* Transient data */
 
-typedef struct OVERLAY_MaterialData {
-	/* Solid color */
-	float color[3];
-
-	/* Linked shgroup for drawing */
-	DRWShadingGroup *shgrp;
-} OVERLAY_MaterialData;
-
 /* *********** STATIC *********** */
 static struct {
 	/* Face orientation shader */
 	struct GPUShader *face_orientation_sh;
-
 } e_data = {NULL};
 
 /* Shaders */
@@ -71,8 +64,17 @@ extern char datatoc_overlay_face_orientation_vert_glsl[];
 
 
 /* Functions */
-static void overlay_engine_init(void *UNUSED(vedata))
+static void overlay_engine_init(void *vedata)
 {
+	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_StorageList *stl = data->stl;
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+
+	if (!stl->g_data) {
+		/* Alloc transient pointers */
+		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
+	}
+
 	if (!e_data.face_orientation_sh) {
 		/* Face orientation */
 		e_data.face_orientation_sh = DRW_shader_create(datatoc_overlay_face_orientation_vert_glsl, NULL, datatoc_overlay_face_orientation_frag_glsl, "\n");
@@ -87,11 +89,8 @@ static void overlay_cache_init(void *vedata)
 	OVERLAY_StorageList *stl = data->stl;
 
 	const DRWContextState *DCS = DRW_context_state_get();
+	DRWShadingGroup *grp;
 
-	if (!stl->g_data) {
-		/* Alloc transient pointers */
-		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
-	}
 
 	View3D *v3d = DCS->v3d;
 	if (v3d) {
@@ -112,6 +111,7 @@ static void overlay_cache_init(void *vedata)
 static void overlay_cache_populate(void *vedata, Object *ob)
 {
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
+	OVERLAY_PassList *psl = data->psl;
 	OVERLAY_StorageList *stl = data->stl;
 	OVERLAY_PrivateData *pd = stl->g_data;
 
@@ -135,8 +135,12 @@ static void overlay_draw_scene(void *vedata)
 {
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
 	OVERLAY_PassList *psl = data->psl;
+	OVERLAY_StorageList *stl = data->stl;
+	OVERLAY_PrivateData *pd = stl->g_data;
 
-	DRW_draw_pass(psl->face_orientation_pass);
+	if (pd->overlays & V3D_OVERLAY_FACE_ORIENTATION) {
+		DRW_draw_pass(psl->face_orientation_pass);
+	}
 }
 
 static void overlay_engine_free(void)

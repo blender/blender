@@ -38,6 +38,7 @@ void drw_texture_get_format(
 			case DRW_TEX_R_16I:
 			case DRW_TEX_R_16U:
 			case DRW_TEX_R_32:
+			case DRW_TEX_R_32U:
 			case DRW_TEX_RG_8:
 			case DRW_TEX_RG_16:
 			case DRW_TEX_RG_16I:
@@ -75,6 +76,7 @@ void drw_texture_get_format(
 		case DRW_TEX_R_16I: *r_data_type = GPU_R16I; break;
 		case DRW_TEX_R_16U: *r_data_type = GPU_R16UI; break;
 		case DRW_TEX_R_32: *r_data_type = GPU_R32F; break;
+		case DRW_TEX_R_32U: *r_data_type = GPU_R32UI; break;
 #if 0
 		case DRW_TEX_RGB_8: *r_data_type = GPU_RGB8; break;
 		case DRW_TEX_RGB_32: *r_data_type = GPU_RGB32F; break;
