@@ -2061,7 +2061,9 @@ static size_t animdata_filter_ds_texture(bAnimContext *ac, ListBase *anim_data, 
 	return items;
 }
 
-/* NOTE: owner_id is either material, lamp, or world block, which is the direct owner of the texture stack in question */
+/* NOTE: owner_id is the direct owner of the texture stack in question
+ *       It used to be Material/Lamp/World before the Blender Internal removal for 2.8
+ */
 static size_t animdata_filter_ds_textures(bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, ID *owner_id, int filter_mode)
 {
 	MTex **mtex = NULL;
@@ -2116,10 +2118,6 @@ static size_t animdata_filter_ds_material(bAnimContext *ac, ListBase *anim_data,
 	{
 		/* material's animation data */
 		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ma, filter_mode);
-			
-		/* textures */
-		if (!(ads->filterflag & ADS_FILTER_NOTEX))
-			tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
 			
 		/* nodes */
 		if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
@@ -2439,10 +2437,6 @@ static size_t animdata_filter_ds_obdata(bAnimContext *ac, ListBase *anim_data, b
 				/* nodetree */
 				if ((ntree) && !(ads->filterflag & ADS_FILTER_NONTREE))
 					tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, &la->id, ntree, filter_mode);
-				
-				/* textures */
-				if (!(ads->filterflag & ADS_FILTER_NOTEX))
-					tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, &la->id, filter_mode);
 				break;
 			}
 		}
@@ -2647,10 +2641,6 @@ static size_t animdata_filter_ds_world(bAnimContext *ac, ListBase *anim_data, bD
 		/* animation data filtering */
 		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)wo, filter_mode);
 		
-		/* textures for world */
-		if (!(ads->filterflag & ADS_FILTER_NOTEX))
-			tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)wo, filter_mode);
-			
 		/* nodes */
 		if ((wo->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
 			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)wo, wo->nodetree, filter_mode);
