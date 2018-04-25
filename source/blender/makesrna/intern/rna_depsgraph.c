@@ -244,16 +244,37 @@ static PointerRNA rna_Depsgraph_duplis_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_DepsgraphIter, iterator);
 }
 
-static ID *rna_Depsgraph_evaluated_id_get(Depsgraph *depsgraph, ID *id_orig)
+static ID *rna_Depsgraph_id_eval_get(Depsgraph *depsgraph, ID *id_orig)
 {
 	return DEG_get_evaluated_id(depsgraph, id_orig);
+}
+
+static PointerRNA rna_Depsgraph_scene_get(PointerRNA *ptr)
+{
+	Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+	Scene *scene = DEG_get_input_scene(depsgraph);
+	return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene);
 }
 
 static PointerRNA rna_Depsgraph_view_layer_get(PointerRNA *ptr)
 {
 	Depsgraph *depsgraph = (Depsgraph *)ptr->data;
-	ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+	ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
 	return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer);
+}
+
+static PointerRNA rna_Depsgraph_scene_eval_get(PointerRNA *ptr)
+{
+	Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+	Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	return rna_pointer_inherit_refine(ptr, &RNA_Scene, scene_eval);
+}
+
+static PointerRNA rna_Depsgraph_view_layer_eval_get(PointerRNA *ptr)
+{
+	Depsgraph *depsgraph = (Depsgraph *)ptr->data;
+	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
+	return rna_pointer_inherit_refine(ptr, &RNA_ViewLayer, view_layer_eval);
 }
 
 #else
@@ -334,6 +355,8 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Depsgraph", NULL);
 	RNA_def_struct_ui_text(srna, "Dependency Graph", "");
 
+	/* Debug helpers. */
+
 	func = RNA_def_function(srna, "debug_relations_graphviz", "rna_Depsgraph_debug_relations_graphviz");
 	parm = RNA_def_string_file_path(func, "filename", NULL, FILE_MAX, "File Name",
 	                                "File in which to store graphviz debug output");
@@ -356,6 +379,42 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	RNA_def_parameter_flags(parm, PROP_THICK_WRAP, 0); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 
+	/* Queries for original datablockls (the ones depsgraph is built for). */
+
+	prop = RNA_def_property(srna, "scene", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Scene");
+	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_scene_get", NULL, NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Scene", "Original scene dependency graph is built for");
+
+	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ViewLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_view_layer_get", NULL, NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "View Layer", "Original view layer dependency graph is built for");
+
+	/* Queries for evaluated datablockls (the ones depsgraph is evaluating). */
+
+	func = RNA_def_function(srna, "id_eval_get", "rna_Depsgraph_id_eval_get");
+	parm = RNA_def_pointer(func, "id", "ID", "", "Original ID to get evaluated complementary part for");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_pointer(func, "id_eval", "ID", "", "Evaluated ID for the given original one");
+	RNA_def_function_return(func, parm);
+
+	prop = RNA_def_property(srna, "scene_eval", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Scene");
+	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_scene_eval_get", NULL, NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Scene", "Original scene dependency graph is built for");
+
+	prop = RNA_def_property(srna, "view_layer_eval", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "ViewLayer");
+	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_view_layer_eval_get", NULL, NULL, NULL);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "View Layer", "Original view layer dependency graph is built for");
+
+	/* Iterators. */
+
 	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
 	RNA_def_property_collection_funcs(prop,
@@ -364,12 +423,6 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                  "rna_Depsgraph_objects_end",
 	                                  "rna_Depsgraph_objects_get",
 	                                  NULL, NULL, NULL, NULL);
-
-	func = RNA_def_function(srna, "evaluated_id_get", "rna_Depsgraph_evaluated_id_get");
-	parm = RNA_def_pointer(func, "id", "ID", "", "Original ID to get evaluated complementary part for");
-	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-	parm = RNA_def_pointer(func, "evaluated_id", "ID", "", "Evaluated ID for the given original one");
-	RNA_def_function_return(func, parm);
 
 	/* TODO(sergey): Find a better name. */
 	prop = RNA_def_property(srna, "duplis", PROP_COLLECTION, PROP_NONE);
@@ -380,11 +433,6 @@ static void rna_def_depsgraph(BlenderRNA *brna)
 	                                  "rna_Depsgraph_duplis_end",
 	                                  "rna_Depsgraph_duplis_get",
 	                                  NULL, NULL, NULL, NULL);
-
-	prop = RNA_def_property(srna, "view_layer", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "ViewLayer");
-	RNA_def_property_pointer_funcs(prop, "rna_Depsgraph_view_layer_get", NULL, NULL, NULL);
-	RNA_def_property_ui_text(prop, "Scene layer", "");
 }
 
 void RNA_def_depsgraph(BlenderRNA *brna)

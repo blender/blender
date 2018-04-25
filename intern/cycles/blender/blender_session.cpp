@@ -372,7 +372,7 @@ void BlenderSession::render(BL::Depsgraph& b_depsgraph_)
 	BufferParams buffer_params = BlenderSync::get_buffer_params(b_render, b_v3d, b_rv3d, scene->camera, width, height);
 
 	/* render each layer */
-	BL::ViewLayer b_view_layer = b_depsgraph.view_layer();
+	BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 
 	/* We do some special meta attributes when we only have single layer. */
 	const bool is_single_layer = (b_scene.view_layers.length() == 1);

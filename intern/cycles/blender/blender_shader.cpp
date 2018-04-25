@@ -1229,7 +1229,7 @@ void BlenderSync::sync_materials(BL::Depsgraph& b_depsgraph, bool update_all)
 	    ++b_mat_orig)
 	{
 		/* TODO(sergey): Iterate over evaluated data rather than using mapping. */
-		BL::Material b_mat_(b_depsgraph.evaluated_id_get(*b_mat_orig));
+		BL::Material b_mat_(b_depsgraph.id_eval_get(*b_mat_orig));
 		BL::Material *b_mat = &b_mat_;
 		Shader *shader;
 
@@ -1403,7 +1403,7 @@ void BlenderSync::sync_lamps(BL::Depsgraph& b_depsgraph, bool update_all)
 	    ++b_lamp_orig)
 	{
 		/* TODO(sergey): Iterate over evaluated data rather than using mapping. */
-		BL::Lamp b_lamp_(b_depsgraph.evaluated_id_get(*b_lamp_orig));
+		BL::Lamp b_lamp_(b_depsgraph.id_eval_get(*b_lamp_orig));
 		BL::Lamp *b_lamp = &b_lamp_;
 		Shader *shader;
 

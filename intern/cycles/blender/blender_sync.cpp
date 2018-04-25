@@ -195,7 +195,7 @@ void BlenderSync::sync_data(BL::RenderSettings& b_render,
                             int width, int height,
                             void **python_thread_state)
 {
-	BL::ViewLayer b_view_layer = b_depsgraph.view_layer();
+	BL::ViewLayer b_view_layer = b_depsgraph.view_layer_eval();
 
 	sync_view_layer(b_v3d, b_view_layer);
 	sync_integrator();
