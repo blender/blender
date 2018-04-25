@@ -429,7 +429,7 @@ icons_geom: .FORCE
 	    "$(BLENDER_DIR)/release/datafiles/blender_icons_geom_update.py"
 
 update: .FORCE
-	if [ "$(OS_NCASE)" == "darwin" ] && [ ! -d "../lib/$(OS_NCASE)" ]; then \
+	if [ "$(OS_NCASE)" = "darwin" ] && [ ! -d "../lib/$(OS_NCASE)" ]; then \
 		svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/$(OS_NCASE) ../lib/$(OS_NCASE) ; \
 	fi
 	if [ -d "../lib" ]; then \
