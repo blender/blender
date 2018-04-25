@@ -27,8 +27,9 @@ def edit_text_file(filename, marker_begin, marker_end, content):
         return
     marker_begin_index += len(marker_begin) + 1
     data_update = data[:marker_begin_index] + content + data[marker_end_index:]
-    with open(filename, 'w', encoding='utf-8') as f:
-        f.write(data_update)
+    if data != data_update:
+        with open(filename, 'w', encoding='utf-8') as f:
+            f.write(data_update)
 
 
 BASEDIR = os.path.abspath(os.path.dirname(__file__))
