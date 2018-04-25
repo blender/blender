@@ -152,8 +152,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	DM_copy_poly_data(dm, result, 0, 0, maxPolys);
 
 
-	/* subsurf for eg wont have mesh data in the */
-	/* now add mvert/medge/mface layers */
+	/* Subsurf for eg wont have mesh data in the custom data arrays.
+	 * now add mvert/medge/mpoly layers. */
 
 	if (!CustomData_has_layer(&dm->vertData, CD_MVERT)) {
 		dm->copyVertArray(dm, CDDM_get_verts(result));
