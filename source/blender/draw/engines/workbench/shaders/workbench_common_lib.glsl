@@ -15,7 +15,7 @@ float bayer_dither_noise() {
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-vec3 normal_decode(vec3 enc)
+vec3 normal_decode(vec2 enc)
 {
 	vec2 fenc = enc.xy * 4.0 - 2.0;
 	float f = dot(fenc, fenc);
@@ -23,19 +23,13 @@ vec3 normal_decode(vec3 enc)
 	vec3 n;
 	n.xy = fenc*g;
 	n.z = 1 - f / 2;
-
-	if (enc.z > 0.5) {
-		n = -n;
-	}
 	return n;
 }
 
 /* From http://aras-p.info/texts/CompactNormalStorage.html
  * Using Method #4: Spheremap Transform */
-vec3 normal_encode(vec3 n)
+vec2 normal_encode(vec3 n)
 {
 	float p = sqrt(n.z * 8.0 + 8.0);
-	vec3 result = vec3(n.xyz / p + 0.5);
-	result.z = (gl_FrontFacing)? 0.0: 1.0;
-	return result;
+	return vec2(n.xy / p + 0.5);
 }
