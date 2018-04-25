@@ -82,7 +82,6 @@ static void overlay_engine_init(void *vedata)
 
 static void overlay_cache_init(void *vedata)
 {
-
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
 	OVERLAY_PassList *psl = data->psl;
 	OVERLAY_StorageList *stl = data->stl;
