@@ -2004,12 +2004,26 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 	/* Icons on the left with optional text label on the right */
 	else if (but->flag & UI_HAS_ICON || show_menu_icon) {
+		const bool is_tool = UI_but_is_tool(but);
+
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
-		const float icon_size = ICON_DEFAULT_WIDTH_SCALE;
+		int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
+		const float icon_size = icon_size_init / (but->block->aspect / UI_DPI_FAC);
+
+#ifdef USE_TOOLBAR_HACK
+		if (is_tool) {
+			/* pass (even if its a menu toolbar) */
+			but->drawflag |= UI_BUT_TEXT_LEFT;
+			but->drawflag |= UI_BUT_ICON_LEFT;
+		}
+#endif
 
 		/* menu item - add some more padding so menus don't feel cramped. it must
 		 * be part of the button so that this area is still clickable */
-		if (ui_block_is_pie_menu(but->block)) {
+		if (is_tool) {
+			/* pass (even if its a menu toolbar) */
+		}
+		else if (ui_block_is_pie_menu(but->block)) {
 			if (but->dt == UI_EMBOSS_RADIAL)
 				rect->xmin += 0.3f * U.widget_unit;
 		}
