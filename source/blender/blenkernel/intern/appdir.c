@@ -298,22 +298,36 @@ static bool get_path_system_dev_build_exception(
         char *targetpath, size_t targetpath_len, const char *relfolder)
 {
 	char cwd[FILE_MAX];
+	char tmp_path[FILE_MAX];
+	bool ret = false;
 
 	/* Try EXECUTABLE_DIR/release/folder_name. Allows symlinking release folder from source dir. */
 	if (test_path(targetpath, targetpath_len, bprogdir, "release", relfolder)) {
-		return true;
+		ret = true;
 	}
 	/* Try CWD/release/folder_name. Allows executing Blender from any directory
 	 * (usually source dir), even without a release dir in bprogdir. */
 	if (BLI_current_working_dir(cwd, sizeof(cwd))) {
 		if (test_path(targetpath, targetpath_len, cwd, "release", relfolder)) {
-			return true;
+			ret = true;
 		}
 	}
-	/* never use if not existing. */
-	targetpath[0] = '\0';
 
-	return false;
+	/* Ensure we are in source dir, not in another one that happens to have a release folder. */
+	if (ret) {
+		BLI_join_dirfile(tmp_path, sizeof(tmp_path), bprogdir,
+		                 "source" SEP_STR "blender" SEP_STR "blenkernel" SEP_STR "BKE_blender_version.h");
+		if (!BLI_is_file(tmp_path)) {
+			ret = false;
+		}
+	}
+
+	/* never use if not existing. */
+	if (!ret) {
+		targetpath[0] = '\0';
+	}
+
+	return ret;
 }
 
 /**
@@ -362,10 +376,19 @@ static bool get_path_system(
 		}
 	}
 
-	system_base_path = (const char *)GHOST_getSystemDir(ver, blender_version_decimal(ver));
+	const char *blender_version_str = blender_version_decimal(ver);
+	system_base_path = (const char *)GHOST_getSystemDir(ver, blender_version_str);
 	if (system_base_path)
 		BLI_strncpy(system_path, system_base_path, FILE_MAX);
-	
+
+	/* GHOST_getSystemDir returns nothing in case of portable install, so we try binary directory itself. */
+	if (!system_path[0]) {
+		const char *prog_dir = BKE_appdir_program_dir();
+		if (prog_dir != NULL) {
+			BLI_join_dirfile(system_path, sizeof(system_path), prog_dir, blender_version_str);
+		}
+	}
+
 	if (!system_path[0])
 		return false;
 	
