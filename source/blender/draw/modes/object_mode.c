@@ -2276,6 +2276,7 @@ static void OBJECT_draw_scene(void *vedata)
 	/* This has to be freed only after drawing empties! */
 	if (stl->g_data->image_plane_map) {
 		BLI_ghash_free(stl->g_data->image_plane_map, NULL, MEM_freeN);
+		stl->g_data->image_plane_map = NULL;
 	}
 }
 
