@@ -233,6 +233,9 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DRWShadingGroup *grp;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
 
 	const DRWContextState *DCS = DRW_context_state_get();
 
@@ -252,14 +255,14 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	/* Deferred Mix Pass */
 	{
 		WORKBENCH_UBO_World *wd = &wpd->world_data;
-		wd->diffuse_light_xp[0] = 0.8; wd->diffuse_light_xp[1] = 0.8; wd->diffuse_light_xp[2] = 1.0;
-		wd->diffuse_light_xn[0] = 0.8; wd->diffuse_light_xn[1] = 0.8; wd->diffuse_light_xn[2] = 1.0;
-		wd->diffuse_light_yp[0] = 0.8; wd->diffuse_light_yp[1] = 0.8; wd->diffuse_light_yp[2] = 1.0;
-		wd->diffuse_light_yn[0] = 0.8; wd->diffuse_light_yn[1] = 0.8; wd->diffuse_light_yn[2] = 1.0;
-		wd->diffuse_light_zp[0] = 1.0; wd->diffuse_light_zp[1] = 1.0; wd->diffuse_light_zp[2] = 1.0;
-		wd->diffuse_light_zn[0] = 0.0; wd->diffuse_light_zn[1] = 0.0; wd->diffuse_light_zn[2] = 0.0;
 		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD)?TH_LOW_GRAD:TH_HIGH_GRAD, wd->background_color_low);
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
+		copy_v3_v3(wd->diffuse_light_x_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_x_pos"));
+		copy_v3_v3(wd->diffuse_light_x_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_x_neg"));
+		copy_v3_v3(wd->diffuse_light_y_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_y_pos"));
+		copy_v3_v3(wd->diffuse_light_y_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_y_neg"));
+		copy_v3_v3(wd->diffuse_light_z_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_z_pos"));
+		copy_v3_v3(wd->diffuse_light_z_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_z_neg"));
 
 		psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);

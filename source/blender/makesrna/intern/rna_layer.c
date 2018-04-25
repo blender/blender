@@ -364,8 +364,16 @@ RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
 #endif /* WITH_CLAY_ENGINE */
 
 /* workbench engine */
+/* Collection settings */
 RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT(random_object_color_saturation)
 RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT(random_object_color_value)
+/* View Layer settings */
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(diffuse_light_x_pos, 3)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(diffuse_light_x_neg, 3)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(diffuse_light_y_pos, 3)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(diffuse_light_y_neg, 3)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(diffuse_light_z_pos, 3)
+RNA_LAYER_ENGINE_WORKBENCH_GET_SET_FLOAT_ARRAY(diffuse_light_z_neg, 3)
 
 /* eevee engine */
 /* ViewLayer settings. */
@@ -531,6 +539,9 @@ static StructRNA *rna_ViewLayerSettings_refine(PointerRNA *ptr)
 #endif
 			if (STREQ(props->name, RE_engine_id_BLENDER_EEVEE)) {
 				return &RNA_ViewLayerEngineSettingsEevee;
+			}
+			else if (STREQ(props->name, RE_engine_id_BLENDER_WORKBENCH)) {
+				return &RNA_ViewLayerEngineSettingsWorkbench;
 			}
 			break;
 		case IDP_GROUP_SUB_MODE_OBJECT:
@@ -1679,6 +1690,67 @@ static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
 #endif /* WITH_CLAY_ENGINE */
 
 /* Workbench engine */
+static void rna_def_view_layer_engine_settings_workbench(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ViewLayerEngineSettingsWorkbench", "ViewLayerSettings");
+	RNA_def_struct_ui_text(srna, "Workbench Scene Layer Settings", "Workbench Engine settings");
+
+	RNA_define_verify_sdna(0); /* not in sdna */
+
+	prop = RNA_def_property(srna, "diffuse_light_x_pos", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_diffuse_light_x_pos_get", "rna_LayerEngineSettings_Workbench_diffuse_light_x_pos_set", NULL);
+	RNA_def_property_ui_text(prop, "Diffuse +X Light", "Diffuse light color in positive X direction");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "diffuse_light_x_neg", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_diffuse_light_x_neg_get", "rna_LayerEngineSettings_Workbench_diffuse_light_x_neg_set", NULL);
+	RNA_def_property_ui_text(prop, "Diffuse -X Light", "Diffuse light color in negative X direction");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "diffuse_light_y_pos", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_diffuse_light_y_pos_get", "rna_LayerEngineSettings_Workbench_diffuse_light_y_pos_set", NULL);
+	RNA_def_property_ui_text(prop, "Diffuse +Y Light", "Diffuse light color in positive Y direction");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "diffuse_light_y_neg", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_diffuse_light_y_neg_get", "rna_LayerEngineSettings_Workbench_diffuse_light_y_neg_set", NULL);
+	RNA_def_property_ui_text(prop, "Diffuse -Y Light", "Diffuse light color in negative Y direction");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "diffuse_light_z_pos", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_diffuse_light_z_pos_get", "rna_LayerEngineSettings_Workbench_diffuse_light_z_pos_set", NULL);
+	RNA_def_property_ui_text(prop, "Diffuse +Z Light", "Diffuse light color in positive Z direction");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "diffuse_light_z_neg", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Workbench_diffuse_light_z_neg_get", "rna_LayerEngineSettings_Workbench_diffuse_light_z_neg_set", NULL);
+	RNA_def_property_ui_text(prop, "Diffuse -Z Light", "Diffuse light color in negative Z direction");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	RNA_define_verify_sdna(1); /* not in sdna */
+}
+
 static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1702,6 +1774,8 @@ static void rna_def_layer_collection_engine_settings_workbench(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
+
+	RNA_define_verify_sdna(1); /* not in sdna */
 }
 
 static void rna_def_layer_collection_mode_settings_object(BlenderRNA *brna)
@@ -1877,6 +1951,7 @@ static void rna_def_view_layer_settings(BlenderRNA *brna)
 #ifdef WITH_CLAY_ENGINE
 	rna_def_view_layer_engine_settings_clay(brna);
 #endif
+	rna_def_view_layer_engine_settings_workbench(brna);
 	rna_def_view_layer_engine_settings_eevee(brna);
 
 #if 0
