@@ -1528,29 +1528,100 @@ static bool animsys_store_rna_setting(
 /* less than 1.0 evaluates to false, use epsilon to avoid float error */
 #define ANIMSYS_FLOAT_AS_BOOL(value) ((value) > ((1.0f - FLT_EPSILON)))
 
-/* Write the given value to a setting using RNA, and return success */
-static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
+static bool animsys_read_rna_setting(PathResolvedRNA *anim_rna, float *r_value)
 {
 	PropertyRNA *prop = anim_rna->prop;
 	PointerRNA *ptr = &anim_rna->ptr;
 	int array_index = anim_rna->prop_index;
-	
+	float orig_value;
+
 	/* caller must ensure this is animatable */
 	BLI_assert(RNA_property_animateable(ptr, prop) || ptr->id.data == NULL);
 
 	switch (RNA_property_type(prop)) {
 		case PROP_BOOLEAN:
 		{
-			const int value_coerce = ANIMSYS_FLOAT_AS_BOOL(value);
 			if (array_index != -1) {
-				if (RNA_property_boolean_get_index(ptr, prop, array_index) != value_coerce) {
-					RNA_property_boolean_set_index(ptr, prop, array_index, value_coerce);
-				}
+				const int orig_value_coerce = RNA_property_boolean_get_index(ptr, prop, array_index);
+				orig_value = (float)orig_value_coerce;
 			}
 			else {
-				if (RNA_property_boolean_get(ptr, prop) != value_coerce) {
-					RNA_property_boolean_set(ptr, prop, value_coerce);
-				}
+				const int orig_value_coerce = RNA_property_boolean_get(ptr, prop);
+				orig_value = (float)orig_value_coerce;
+			}
+			break;
+		}
+		case PROP_INT:
+		{
+			if (array_index != -1) {
+				const int orig_value_coerce = RNA_property_int_get_index(ptr, prop, array_index);
+				orig_value = (float)orig_value_coerce;
+			}
+			else {
+				const int orig_value_coerce = RNA_property_int_get(ptr, prop);
+				orig_value = (float)orig_value_coerce;
+			}
+			break;
+		}
+		case PROP_FLOAT:
+		{
+			if (array_index != -1) {
+				const float orig_value_coerce = RNA_property_float_get_index(ptr, prop, array_index);
+				orig_value = (float)orig_value_coerce;
+			}
+			else {
+				const float orig_value_coerce = RNA_property_float_get(ptr, prop);
+				orig_value = (float)orig_value_coerce;
+			}
+			break;
+		}
+		case PROP_ENUM:
+		{
+			const int orig_value_coerce = RNA_property_enum_get(ptr, prop);
+			orig_value = (float)orig_value_coerce;
+			break;
+		}
+		default:
+			/* nothing can be done here... so it is unsuccessful? */
+			return false;
+	}
+
+	if (r_value != NULL) {
+		*r_value = orig_value;
+	}
+
+	/* successful */
+	return true;
+}
+
+/* Write the given value to a setting using RNA, and return success */
+static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float value)
+{
+	PropertyRNA *prop = anim_rna->prop;
+	PointerRNA *ptr = &anim_rna->ptr;
+	int array_index = anim_rna->prop_index;
+
+	/* caller must ensure this is animatable */
+	BLI_assert(RNA_property_animateable(ptr, prop) || ptr->id.data == NULL);
+
+	/* Check whether value is new. Otherwise we skip all the updates. */
+	float old_value;
+	if (!animsys_read_rna_setting(anim_rna, &old_value)) {
+		return false;
+	}
+	if (old_value == value) {
+		return true;
+	}
+
+	switch (RNA_property_type(prop)) {
+		case PROP_BOOLEAN:
+		{
+			const int value_coerce = ANIMSYS_FLOAT_AS_BOOL(value);
+			if (array_index != -1) {
+				RNA_property_boolean_set_index(ptr, prop, array_index, value_coerce);
+			}
+			else {
+				RNA_property_boolean_set(ptr, prop, value_coerce);
 			}
 			break;
 		}
@@ -1559,14 +1630,10 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 			int value_coerce = (int)value;
 			RNA_property_int_clamp(ptr, prop, &value_coerce);
 			if (array_index != -1) {
-				if (RNA_property_int_get_index(ptr, prop, array_index) != value_coerce) {
-					RNA_property_int_set_index(ptr, prop, array_index, value_coerce);
-				}
+				RNA_property_int_set_index(ptr, prop, array_index, value_coerce);
 			}
 			else {
-				if (RNA_property_int_get(ptr, prop) != value_coerce) {
-					RNA_property_int_set(ptr, prop, value_coerce);
-				}
+				RNA_property_int_set(ptr, prop, value_coerce);
 			}
 			break;
 		}
@@ -1575,23 +1642,17 @@ static bool animsys_write_rna_setting(PathResolvedRNA *anim_rna, const float val
 			float value_coerce = value;
 			RNA_property_float_clamp(ptr, prop, &value_coerce);
 			if (array_index != -1) {
-				if (RNA_property_float_get_index(ptr, prop, array_index) != value_coerce) {
-					RNA_property_float_set_index(ptr, prop, array_index, value_coerce);
-				}
+				RNA_property_float_set_index(ptr, prop, array_index, value_coerce);
 			}
 			else {
-				if (RNA_property_float_get(ptr, prop) != value_coerce) {
-					RNA_property_float_set(ptr, prop, value_coerce);
-				}
+				RNA_property_float_set(ptr, prop, value_coerce);
 			}
 			break;
 		}
 		case PROP_ENUM:
 		{
 			const int value_coerce = (int)value;
-			if (RNA_property_enum_get(ptr, prop) != value_coerce) {
-				RNA_property_enum_set(ptr, prop, value_coerce);
-			}
+			RNA_property_enum_set(ptr, prop, value_coerce);
 			break;
 		}
 		default:
