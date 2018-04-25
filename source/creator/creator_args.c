@@ -843,7 +843,7 @@ static const char arg_handle_debug_mode_generic_set_doc_events[] =
 static const char arg_handle_debug_mode_generic_set_doc_handlers[] =
 "\n\tEnable debug messages for event handling.";
 static const char arg_handle_debug_mode_generic_set_doc_wm[] =
-"\n\tEnable debug messages for the window manager, also prints every operator call.";
+"\n\tEnable debug messages for the window manager, shows all operators in search, shows keymap errors.";
 static const char arg_handle_debug_mode_generic_set_doc_jobs[] =
 "\n\tEnable time profiling for background jobs.";
 static const char arg_handle_debug_mode_generic_set_doc_gpu[] =
