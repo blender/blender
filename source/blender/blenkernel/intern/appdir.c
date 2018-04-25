@@ -290,33 +290,6 @@ static bool get_path_user(
 }
 
 /**
- * Special convenience exception for dev builds to allow overrides to the system path.
- * With this, need for running 'make install' can be avoided, e.g. by symlinking SOURCE_DIR/release
- * to EXECUTABLE_DIR/release, or by running Blender from source directory directly.
- */
-static bool get_path_system_dev_build_exception(
-        char *targetpath, size_t targetpath_len, const char *relfolder)
-{
-	char cwd[FILE_MAX];
-
-	/* Try EXECUTABLE_DIR/release/folder_name. Allows symlinking release folder from source dir. */
-	if (test_path(targetpath, targetpath_len, bprogdir, "release", relfolder)) {
-		return true;
-	}
-	/* Try CWD/release/folder_name. Allows executing Blender from any directory
-	 * (usually source dir), even without a release dir in bprogdir. */
-	if (BLI_current_working_dir(cwd, sizeof(cwd))) {
-		if (test_path(targetpath, targetpath_len, cwd, "release", relfolder)) {
-			return true;
-		}
-	}
-	/* never use if not existing. */
-	targetpath[0] = '\0';
-
-	return false;
-}
-
-/**
  * Returns the path of a folder within the Blender installation directory.
  *
  * \param targetpath  String to return path
@@ -344,10 +317,6 @@ static bool get_path_system(
 	}
 	else {
 		relfolder[0] = '\0';
-	}
-
-	if (get_path_system_dev_build_exception(targetpath, targetpath_len, relfolder)) {
-		return true;
 	}
 
 	system_path[0] = '\0';
