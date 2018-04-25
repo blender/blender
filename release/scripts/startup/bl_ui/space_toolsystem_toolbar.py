@@ -121,7 +121,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                  dict(type='EVT_TWEAK_A', value='ANY')),
             )),
             None,
-            ("Extrude Cursor", None, None,
+            ("Extrude Cursor", "ops.armature.extrude", None,
              (("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),)),
         ],
         'EDIT_MESH': [
