@@ -1123,11 +1123,8 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 
 		struct Mesh *new_mesh = mti->applyModifier(md, depsgraph, ob, mesh, flag);
 
-		DerivedMesh *ndm = CDDM_from_mesh(new_mesh);
 		/* Make a DM that doesn't reference new_mesh so we can free the latter. */
-		/* TODO(sybren): create CDDM_from_mesh_ex() that creates a copy directly. */
-		DerivedMesh *nonref_dm = CDDM_copy(ndm);
-		ndm->release(ndm);
+		DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE);
 
 		if(new_mesh != mesh) {
 			BKE_mesh_free(new_mesh);
@@ -1138,7 +1135,7 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 			MEM_freeN(mesh);
 		}
 
-		return nonref_dm;
+		return ndm;
 	}
 }
 
@@ -1162,14 +1159,10 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 
 		struct Mesh *new_mesh = mti->applyModifierEM(md, depsgraph, ob, editData, mesh, flag);
 
-		DerivedMesh *ndm = CDDM_from_mesh(new_mesh);
-		if(new_mesh != mesh) {
-			/* Make a DM that doesn't reference new_mesh so we can free the latter. */
-			/* TODO(sybren): create CDDM_from_mesh_ex() that creates a copy directly. */
-			DerivedMesh *nonref_dm = CDDM_copy(ndm);
-			ndm->release(ndm);
-			ndm = nonref_dm;
+		/* Make a DM that doesn't reference new_mesh so we can free the latter. */
+		DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE);
 
+		if(new_mesh != mesh) {
 			BKE_mesh_free(new_mesh);
 			MEM_freeN(new_mesh);
 		}
