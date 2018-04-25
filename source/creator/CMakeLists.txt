@@ -958,12 +958,27 @@ delayed_do_install(${TARGETDIR_VER})
 unset(BLENDER_TEXT_FILES)
 unset(BLENDER_TEXT_FILES_DESTINATION)
 
+
+# -----------------------------------------------------------------------------
+# Geometry Icons
+
 # Geometry icons.
+get_property(_icon_names GLOBAL PROPERTY ICON_GEOM_NAMES)
+set(_icon_files)
+foreach(_f ${_icon_names})
+	list(APPEND _icon_files
+		"${CMAKE_SOURCE_DIR}/release/datafiles/icons/${_f}.dat"
+	)
+endforeach()
 install(
-	DIRECTORY
-		${CMAKE_SOURCE_DIR}/release/datafiles/icons
-	DESTINATION ${TARGETDIR_VER}/datafiles
+	FILES ${_icon_files}
+	DESTINATION ${TARGETDIR_VER}/datafiles/icons
 )
+
+unset(_icon_names)
+unset(_icon_files)
+unset(_f)
+
 
 # -----------------------------------------------------------------------------
 # Setup link libs
