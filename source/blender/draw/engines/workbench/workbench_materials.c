@@ -75,6 +75,10 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd)
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
 	}
 
+#ifdef WORKBENCH_ENCODE_NORMALS
+	BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
+#endif
+
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;
@@ -201,7 +205,11 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_R_32U, &draw_engine_workbench_solid);
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8, &draw_engine_workbench_solid);
-		e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RG_8, &draw_engine_workbench_solid);
+#ifdef WORKBENCH_ENCODE_NORMALS
+		e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8, &draw_engine_workbench_solid);
+#else
+		e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_32, &draw_engine_workbench_solid);
+#endif
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),

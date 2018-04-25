@@ -43,7 +43,11 @@ void main()
 	vec3 diffuse_color = texelFetch(colorBuffer, texel, 0).rgb;
 
 #ifdef V3D_LIGHTING_STUDIO
+#ifdef WORKBENCH_ENCODE_NORMALS
+	vec3 normal_viewport = normal_decode(texelFetch(normalBuffer, texel, 0).rgb);
+#else
 	vec3 normal_viewport = texelFetch(normalBuffer, texel, 0).rgb;
+#endif
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_viewport);
 	vec3 shaded_color = diffuse_light * diffuse_color;
 

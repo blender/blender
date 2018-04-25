@@ -32,6 +32,7 @@
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
+#define WORKBENCH_ENCODE_NORMALS
 
 typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *prepass_fb;

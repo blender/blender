@@ -5,11 +5,16 @@ in vec3 normal_viewport;
 
 out uint objectId;
 out vec3 diffuseColor;
-out vec2 normalViewport;
+out vec3 normalViewport;
+
 
 void main()
 {
 	objectId = uint(object_id);
 	diffuseColor = object_color;
+#ifdef WORKBENCH_ENCODE_NORMALS
 	normalViewport = normal_encode(normal_viewport);
+#else
+	normalViewport = normal_viewport;
+#endif
 }
