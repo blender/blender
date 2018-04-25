@@ -149,7 +149,9 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 		    (glXChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC)glXGetProcAddressARB(
 		             (const GLubyte *)"glXChooseFBConfig")) == NULL ||
 		    (glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
-		             (const GLubyte *)"glXCreateContextAttribsARB")) == NULL)
+		             (const GLubyte *)"glXCreateContextAttribsARB")) == NULL ||
+		    (glXCreatePbuffer = (PFNGLXCREATEPBUFFERPROC)glXGetProcAddressARB(
+		             (const GLubyte *)"glXCreatePbuffer")) == NULL)
 		{
 			extStart = (GLubyte *)"";
 		}
