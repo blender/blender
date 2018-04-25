@@ -1299,7 +1299,8 @@ void CDDM_calc_normals_tessface(DerivedMesh *dm)
 }
 
 #if 1
-
+/* TODO(sybren): Delete everything in this #if block after we have ported the modifiers
+ * to use Mesh instead of DerivedMesh. The code has been copied to mesh_merge.c and ported. */
 /**
  * Poly compare with vtargetmap
  * Function used by #CDDM_merge_verts.
@@ -1501,6 +1502,7 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
  */
 DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int tot_vtargetmap, const int merge_mode)
 {
+// This was commented out back in 2013, see commit f45d8827bafe6b9eaf9de42f4054e9d84a21955d.
 // #define USE_LOOPS
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
 	CDDerivedMesh *cddm2 = NULL;

@@ -44,12 +44,14 @@
 #include "BLI_memarena.h"
 #include "BLI_edgehash.h"
 #include "BLI_string.h"
+#include "BLI_utildefines_stack.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_mesh_mapping.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -612,7 +614,7 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 }
 
 static Mesh *mesh_from_template_ex(
-        Mesh *me_src,
+        const Mesh *me_src,
         int numVerts, int numEdges, int numTessFaces,
         int numLoops, int numPolys,
         CustomDataMask mask)
@@ -646,7 +648,7 @@ static Mesh *mesh_from_template_ex(
 	return me_dst;
 }
 
-Mesh * BKE_mesh_from_template(Mesh *me_src,
+Mesh * BKE_mesh_from_template(const Mesh *me_src,
                               int numVerts, int numEdges, int numTessFaces,
                               int numLoops, int numPolys)
 {
@@ -2716,6 +2718,7 @@ Mesh *BKE_mesh_new_from_object(
 
 	return tmpmesh;
 }
+
 
 /* **** Depsgraph evaluation **** */
 

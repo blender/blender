@@ -140,6 +140,7 @@ set(SRC
 	intern/mesh.c
 	intern/mesh_evaluate.c
 	intern/mesh_mapping.c
+	intern/mesh_merge.c
 	intern/mesh_remap.c
 	intern/mesh_tangent.c
 	intern/mesh_validate.c

@@ -94,7 +94,7 @@ void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_t
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
 struct Mesh * BKE_mesh_from_template(
-        struct Mesh *me_src,
+        const struct Mesh *me_src,
         int numVerts, int numEdges, int numTessFaces,
         int numLoops, int numPolys);
 
@@ -379,6 +379,19 @@ void BKE_mesh_polygon_flip_ex(
         float (*lnors)[3], struct MDisps *mdisp, const bool use_loop_mdisp_flip);
 void BKE_mesh_polygon_flip(struct MPoly *mpoly, struct MLoop *mloop, struct CustomData *ldata);
 void BKE_mesh_polygons_flip(struct MPoly *mpoly, struct MLoop *mloop, struct CustomData *ldata, int totpoly);
+
+/* merge verts  */
+/* Enum for merge_mode of CDDM_merge_verts.
+ * Refer to mesh.c for details. */
+enum {
+	MESH_MERGE_VERTS_DUMP_IF_MAPPED,
+	MESH_MERGE_VERTS_DUMP_IF_EQUAL,
+};
+struct Mesh *BKE_mesh_merge_verts(
+        struct Mesh *mesh,
+        const int *vtargetmap, const int tot_vtargetmap,
+        const int merge_mode);
+
 
 /* flush flags */
 void BKE_mesh_flush_hidden_from_verts_ex(
