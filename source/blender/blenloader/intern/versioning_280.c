@@ -1054,8 +1054,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-#ifdef WITH_REDO_REGION_REMOVAL
-	if (!MAIN_VERSION_ATLEAST(main, 280, TO_BE_DETERMINED)) {
+	if (!MAIN_VERSION_ATLEAST(main, 280, 12)) {
 		/* Remove tool property regions. */
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -1076,5 +1075,4 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
-#endif
 }

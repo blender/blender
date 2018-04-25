@@ -67,10 +67,6 @@ struct MovieClipScopes;
 struct Mask;
 struct BLI_mempool;
 
-/* TODO 2.8: Remove the operator redo panel/region from the 3D View and Clip
- * Editor toolshelf. Leaving this ifdef'ed out for until new tool system and
- * topbar design is more clear. */
-//#define WITH_REDO_REGION_REMOVAL
 /* TODO 2.8: We don't write the topbar to files currently. Uncomment this
  * define to enable writing (should become the default in a bit). */
 //#define WITH_TOPBAR_WRITING

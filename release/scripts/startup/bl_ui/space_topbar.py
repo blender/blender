@@ -101,8 +101,7 @@ class TOPBAR_HT_lower_bar(Header):
         elif region.alignment == 'RIGHT':
             self.draw_right(context)
         else:
-            # WITH_REDO_REGION_REMOVAL:
-            # layout.template_operator_redo_props()
+            # 'NONE' currently not used
             pass
 
     def draw_left(self, context):
@@ -133,11 +132,21 @@ class TOPBAR_HT_lower_bar(Header):
         row = layout.row()
         row.enabled = op is not None
         row.popover(
-            space_type='VIEW_3D',
-            region_type='TOOL_PROPS',
-            panel_type="VIEW3D_PT_last_operator",
+            space_type='TOPBAR',
+            region_type='WINDOW',
+            panel_type="TOPBAR_PT_redo",
             text=op.name + " Settings" if op else "Command Settings",
         )
+
+
+class TOPBAR_PT_redo(Panel):
+    bl_label = "Redo"
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'WINDOW'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.column().template_operator_redo_props()
 
 
 class INFO_MT_editor_menus(Menu):
@@ -406,6 +415,7 @@ class INFO_MT_help(Menu):
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
+    TOPBAR_PT_redo,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,
