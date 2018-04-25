@@ -140,6 +140,10 @@ set(ZLIB_LIBRARY        "/usr/lib${MULTILIB}/libz.a"     CACHE STRING "" FORCE)
 # OpenVDB
 set(OPENVDB_LIBRARY
 	/opt/lib/openvdb/lib/libopenvdb.a
+	CACHE BOOL "" FORCE
+)
+
+set(BLOSC_LIBRARY
 	/opt/lib/blosc/lib/libblosc.a
 	CACHE BOOL "" FORCE
 )
