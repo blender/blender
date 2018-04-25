@@ -109,6 +109,7 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
             col.prop(probe, "visibility_bleed_bias", "Bleed Bias")
             col.prop(probe, "visibility_blur", "Blur")
 
+        col.separator()
 
         col.label("Visibility Group:")
         row = col.row(align=True)
