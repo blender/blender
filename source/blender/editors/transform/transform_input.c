@@ -350,14 +350,18 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	switch(t->helpline) {
 		case HLP_NONE:
 			/* INPUT_VECTOR, INPUT_CUSTOM_RATIO, INPUT_CUSTOM_RATIO_FLIP */
-			WM_cursor_set(win, BC_HANDCURSOR);
+			if (t->flag & T_MODAL) {
+				WM_cursor_set(win, BC_HANDCURSOR);
+			}
 			break;
 		case HLP_SPRING:
 		case HLP_ANGLE:
 		case HLP_TRACKBALL:
 		case HLP_HARROW:
 		case HLP_VARROW:
-			WM_cursor_set(win, CURSOR_NONE);
+			if (t->flag & T_MODAL) {
+				WM_cursor_set(win, CURSOR_NONE);
+			}
 			break;
 		default:
 			break;
