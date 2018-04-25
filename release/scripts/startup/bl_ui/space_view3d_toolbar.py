@@ -64,42 +64,6 @@ def draw_vpaint_symmetry(layout, vpaint):
     col = layout.column()
     col.prop(vpaint, "radial_symmetry", text="Radial")
 
-# ********** default tools for object-mode ****************
-
-
-class VIEW3D_PT_tools_object(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "objectmode"
-    bl_label = "Edit"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.operator("object.duplicate_move", text="Duplicate")
-        col.operator("object.duplicate_move_linked", text="Duplicate Linked")
-
-        col.operator("object.delete")
-
-        obj = context.active_object
-        if obj:
-            obj_type = obj.type
-
-            if obj_type in {'MESH', 'CURVE', 'SURFACE', 'ARMATURE'}:
-                col = layout.column(align=True)
-                col.operator("object.join")
-
-            if obj_type in {'MESH', 'CURVE', 'SURFACE', 'ARMATURE', 'FONT', 'LATTICE'}:
-                col = layout.column(align=True)
-                col.operator_menu_enum("object.origin_set", "type", text="Set Origin")
-
-            if obj_type in {'MESH', 'CURVE', 'SURFACE'}:
-                col = layout.column(align=True)
-                col.label(text="Shading:")
-                row = col.row(align=True)
-                row.operator("object.shade_smooth", text="Smooth")
-                row.operator("object.shade_flat", text="Flat")
-
 
 # ********** default tools for editmode_mesh ****************
 
@@ -1505,33 +1469,7 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Pa
     bl_space_type = 'VIEW_3D'
 
 
-# Note: moved here so that it's always in last position in 'Tools' panels!
-class VIEW3D_PT_tools_history(View3DPanel, Panel):
-    bl_category = "Tools"
-    # No bl_context, we are always available!
-    bl_label = "History"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        obj = context.object
-
-        col = layout.column(align=True)
-        row = col.row(align=True)
-        row.operator("ed.undo")
-        row.operator("ed.redo")
-        if obj is None or obj.mode != 'SCULPT':
-            # Sculpt mode does not generate an undo menu it seems...
-            col.operator("ed.undo_history")
-
-        col = layout.column(align=True)
-        col.label(text="Repeat:")
-        col.operator("screen.repeat_last")
-        col.operator("screen.repeat_history", text="History...")
-
-
 classes = (
-    VIEW3D_PT_tools_object,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_curveedit,
     VIEW3D_PT_tools_curveedit_options_stroke,
@@ -1571,7 +1509,6 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_sculpt,
     VIEW3D_PT_tools_grease_pencil_brush,
     VIEW3D_PT_tools_grease_pencil_brushcurves,
-    VIEW3D_PT_tools_history,
 )
 
 if __name__ == "__main__":  # only for live edit.

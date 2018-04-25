@@ -1434,6 +1434,7 @@ class VIEW3D_MT_object(Menu):
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
+        layout.menu("VIEW3D_MT_object_shading")
 
         layout.separator()
 
@@ -1650,6 +1651,16 @@ class VIEW3D_MT_object_specials(Menu):
 
         props = layout.operator("object.isolate_type_render")
         props = layout.operator("object.hide_render_clear_all")
+
+
+class VIEW3D_MT_object_shading(Menu):
+    # XXX, this menu is a place to store shading operator in object mode
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.shade_smooth", text="Smooth")
+        layout.operator("object.shade_flat", text="Flat")
 
 
 class VIEW3D_MT_object_apply(Menu):
@@ -3899,6 +3910,7 @@ classes = (
     VIEW3D_MT_object_rigid_body,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_specials,
+    VIEW3D_MT_object_shading,
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_parent,
     VIEW3D_MT_object_track,
