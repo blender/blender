@@ -66,65 +66,6 @@ class VIEWLAYER_PT_layers(ViewLayerButtonsPanel, Panel):
         col.prop(rd, "use_single_layer", icon_only=True)
 
 
-class VIEWLAYER_UL_renderviews(UIList):
-    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
-        # assert(isinstance(item, bpy.types.SceneRenderView)
-        view = item
-        if self.layout_type in {'DEFAULT', 'COMPACT'}:
-            if view.name in {'left', 'right'}:
-                layout.label(view.name, icon_value=icon + (not view.use))
-            else:
-                layout.prop(view, "name", text="", index=index, icon_value=icon, emboss=False)
-            layout.prop(view, "use", text="", index=index)
-
-        elif self.layout_type == 'GRID':
-            layout.alignment = 'CENTER'
-            layout.label("", icon_value=icon + (not view.use))
-
-
-class VIEWLAYER_PT_views(ViewLayerButtonsPanel, Panel):
-    bl_label = "Views"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-        self.layout.prop(rd, "use_multiview", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-        rv = rd.views.active
-
-        layout.active = rd.use_multiview
-        basic_stereo = rd.views_format == 'STEREO_3D'
-
-        row = layout.row()
-        row.prop(rd, "views_format", expand=True)
-
-        if basic_stereo:
-            row = layout.row()
-            row.template_list("VIEWLAYER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
-
-            row = layout.row()
-            row.label(text="File Suffix:")
-            row.prop(rv, "file_suffix", text="")
-
-        else:
-            row = layout.row()
-            row.template_list("VIEWLAYER_UL_renderviews", "name", rd, "views", rd.views, "active_index", rows=2)
-
-            col = row.column(align=True)
-            col.operator("scene.render_view_add", icon='ZOOMIN', text="")
-            col.operator("scene.render_view_remove", icon='ZOOMOUT', text="")
-
-            row = layout.row()
-            row.label(text="Camera Suffix:")
-            row.prop(rv, "camera_suffix", text="")
-
-
 class VIEWLAYER_PT_clay_settings(ViewLayerButtonsPanel, Panel):
     bl_label = "Render Settings"
     COMPAT_ENGINES = {'BLENDER_CLAY'}
@@ -466,8 +407,6 @@ class VIEWLAYER_PT_eevee_layer_passes(ViewLayerButtonsPanel, Panel):
 classes = (
     VIEWLAYER_UL_viewlayers,
     VIEWLAYER_PT_layers,
-    VIEWLAYER_UL_renderviews,
-    VIEWLAYER_PT_views,
     VIEWLAYER_PT_clay_settings,
     VIEWLAYER_PT_eevee_sampling,
     VIEWLAYER_PT_eevee_shadows,

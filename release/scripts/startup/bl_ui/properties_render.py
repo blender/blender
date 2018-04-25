@@ -19,7 +19,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Menu, Panel
+from bpy.types import Menu, Panel, UIList
 
 
 class RENDER_MT_presets(Menu):
@@ -394,6 +394,64 @@ class RENDER_PT_encoding(RenderButtonsPanel, Panel):
             col.prop(ffmpeg, "packetsize", text="Packet Size")
 
 
+class RENDER_UL_renderviews(UIList):
+    def draw_item(self, context, layout, data, item, icon, active_data, active_propname, index):
+        view = item
+        if self.layout_type in {'DEFAULT', 'COMPACT'}:
+            if view.name in {'left', 'right'}:
+                layout.label(view.name, icon_value=icon + (not view.use))
+            else:
+                layout.prop(view, "name", text="", index=index, icon_value=icon, emboss=False)
+            layout.prop(view, "use", text="", index=index)
+
+        elif self.layout_type == 'GRID':
+            layout.alignment = 'CENTER'
+            layout.label("", icon_value=icon + (not view.use))
+
+
+class RENDER_PT_stereoscopy(RenderButtonsPanel, Panel):
+    bl_label = "Stereoscopy"
+    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_CLAY', 'BLENDER_EEVEE'}
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw_header(self, context):
+        rd = context.scene.render
+        self.layout.prop(rd, "use_multiview", text="")
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        rd = scene.render
+        rv = rd.views.active
+
+        layout.active = rd.use_multiview
+        basic_stereo = rd.views_format == 'STEREO_3D'
+
+        row = layout.row()
+        row.prop(rd, "views_format", expand=True)
+
+        if basic_stereo:
+            row = layout.row()
+            row.template_list("RENDER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
+
+            row = layout.row()
+            row.label(text="File Suffix:")
+            row.prop(rv, "file_suffix", text="")
+
+        else:
+            row = layout.row()
+            row.template_list("RENDER_UL_renderviews", "name", rd, "views", rd.views, "active_index", rows=2)
+
+            col = row.column(align=True)
+            col.operator("scene.render_view_add", icon='ZOOMIN', text="")
+            col.operator("scene.render_view_remove", icon='ZOOMOUT', text="")
+
+            row = layout.row()
+            row.label(text="Camera Suffix:")
+            row.prop(rv, "camera_suffix", text="")
+
+
 class RENDER_PT_clay_layer_settings(RenderButtonsPanel, Panel):
     bl_label = "Clay Layer Settings"
     COMPAT_ENGINES = {'BLENDER_CLAY'}
@@ -716,6 +774,8 @@ classes = (
     RENDER_PT_stamp,
     RENDER_PT_output,
     RENDER_PT_encoding,
+    RENDER_UL_renderviews,
+    RENDER_PT_stereoscopy,
     RENDER_PT_clay_layer_settings,
     RENDER_PT_clay_collection_settings,
     RENDER_PT_eevee_sampling,

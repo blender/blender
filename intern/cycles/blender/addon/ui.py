@@ -538,49 +538,6 @@ class CYCLES_RENDER_PT_layer_passes(CyclesButtonsPanel, Panel):
             col.prop(cycles_view_layer, "pass_debug_ray_bounces")
 
 
-class CYCLES_RENDER_PT_views(CyclesButtonsPanel, Panel):
-    bl_label = "Views"
-    bl_context = "view_layer"
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw_header(self, context):
-        rd = context.scene.render
-        self.layout.prop(rd, "use_multiview", text="")
-
-    def draw(self, context):
-        layout = self.layout
-
-        scene = context.scene
-        rd = scene.render
-        rv = rd.views.active
-
-        layout.active = rd.use_multiview
-        basic_stereo = (rd.views_format == 'STEREO_3D')
-
-        row = layout.row()
-        row.prop(rd, "views_format", expand=True)
-
-        if basic_stereo:
-            row = layout.row()
-            row.template_list("VIEWLAYER_UL_renderviews", "name", rd, "stereo_views", rd.views, "active_index", rows=2)
-
-            row = layout.row()
-            row.label(text="File Suffix:")
-            row.prop(rv, "file_suffix", text="")
-
-        else:
-            row = layout.row()
-            row.template_list("VIEWLAYER_UL_renderviews", "name", rd, "views", rd.views, "active_index", rows=2)
-
-            col = row.column(align=True)
-            col.operator("scene.render_view_add", icon='ZOOMIN', text="")
-            col.operator("scene.render_view_remove", icon='ZOOMOUT', text="")
-
-            row = layout.row()
-            row.label(text="Camera Suffix:")
-            row.prop(rv, "camera_suffix", text="")
-
-
 class CYCLES_RENDER_PT_denoising(CyclesButtonsPanel, Panel):
     bl_label = "Denoising"
     bl_context = "view_layer"
@@ -1590,7 +1547,6 @@ def get_panels():
         'MATERIAL_PT_preview',
         'VIEWLAYER_PT_layer_options',
         'VIEWLAYER_PT_layer_passes',
-        'VIEWLAYER_PT_views',
         'RENDER_PT_post_processing',
         'SCENE_PT_simplify',
         }
@@ -1615,7 +1571,6 @@ classes = (
     CYCLES_RENDER_PT_performance,
     CYCLES_RENDER_PT_layer_options,
     CYCLES_RENDER_PT_layer_passes,
-    CYCLES_RENDER_PT_views,
     CYCLES_RENDER_PT_denoising,
     CYCLES_PT_post_processing,
     CYCLES_CAMERA_PT_dof,
