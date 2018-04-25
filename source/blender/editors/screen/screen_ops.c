@@ -1045,7 +1045,6 @@ static int area_dupli_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	layout_new = ED_workspace_layout_add(workspace, newwin, BKE_workspace_layout_name_get(layout_old));
 	newsc = BKE_workspace_layout_screen_get(layout_new);
 	WM_window_set_active_layout(newwin, workspace, layout_new);
-	ED_screen_global_areas_create(newwin);
 
 	/* copy area to new screen */
 	ED_area_data_copy((ScrArea *)newsc->areabase.first, sa, true);

@@ -425,7 +425,7 @@ function(setup_liblinks
 			target_link_libraries(${target} ${OPENSUBDIV_LIBRARIES})
 	endif()
 	if(WITH_OPENVDB)
-		target_link_libraries(${target} ${OPENVDB_LIBRARIES} ${TBB_LIBRARIES})
+		target_link_libraries(${target} ${OPENVDB_LIBRARIES} ${TBB_LIBRARIES} ${BLOSC_LIBRARIES})
 	endif()
 	if(WITH_CYCLES_OSL)
 		target_link_libraries(${target} ${OSL_LIBRARIES})

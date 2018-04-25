@@ -232,13 +232,6 @@ class VIEW3D_MT_transform_base(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("transform.translate", text="Grab/Move")
-        # TODO: sub-menu for grab per axis
-        layout.operator("transform.rotate", text="Rotate")
-        # TODO: sub-menu for rot per axis
-        layout.operator("transform.resize", text="Scale")
-        # TODO: sub-menu for scale per axis
-
         layout.separator()
 
         layout.operator("transform.tosphere", text="To Sphere")
@@ -1184,13 +1177,23 @@ class INFO_MT_mesh_add(Menu):
     bl_label = "Mesh"
 
     def draw(self, context):
-        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
-
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        VIEW3D_PT_tools_add_object.draw_add_mesh(layout)
+        layout.operator("mesh.primitive_plane_add", text="Plane", icon='MESH_PLANE')
+        layout.operator("mesh.primitive_cube_add", text="Cube", icon='MESH_CUBE')
+        layout.operator("mesh.primitive_circle_add", text="Circle", icon='MESH_CIRCLE')
+        layout.operator("mesh.primitive_uv_sphere_add", text="UV Sphere", icon='MESH_UVSPHERE')
+        layout.operator("mesh.primitive_ico_sphere_add", text="Ico Sphere", icon='MESH_ICOSPHERE')
+        layout.operator("mesh.primitive_cylinder_add", text="Cylinder", icon='MESH_CYLINDER')
+        layout.operator("mesh.primitive_cone_add", text="Cone", icon='MESH_CONE')
+        layout.operator("mesh.primitive_torus_add", text="Torus", icon='MESH_TORUS')
+
+        layout.separator()
+
+        layout.operator("mesh.primitive_grid_add", text="Grid", icon='MESH_GRID')
+        layout.operator("mesh.primitive_monkey_add", text="Monkey", icon='MESH_MONKEY')
 
 
 class INFO_MT_curve_add(Menu):
@@ -1198,12 +1201,22 @@ class INFO_MT_curve_add(Menu):
     bl_label = "Curve"
 
     def draw(self, context):
-        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        VIEW3D_PT_tools_add_object.draw_add_curve(layout)
+        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
+        layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
+
+        layout.separator()
+
+        layout.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon='CURVE_NCURVE')
+        layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
+        layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
+
+        layout.separator()
+
+        layout.operator("curve.draw", icon='LINE_DATA')
 
 
 class INFO_MT_surface_add(Menu):
@@ -1211,12 +1224,22 @@ class INFO_MT_surface_add(Menu):
     bl_label = "Surface"
 
     def draw(self, context):
-        from .space_view3d_toolbar import VIEW3D_PT_tools_add_object
         layout = self.layout
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        VIEW3D_PT_tools_add_object.draw_add_surface(layout)
+        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
+        layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
+
+        layout.separator()
+
+        layout.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon='CURVE_NCURVE')
+        layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
+        layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
+
+        layout.separator()
+
+        layout.operator("curve.draw", icon='LINE_DATA')
 
 
 class INFO_MT_metaball_add(Menu):
@@ -1411,6 +1434,7 @@ class VIEW3D_MT_object(Menu):
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
+        layout.menu("VIEW3D_MT_object_shading")
 
         layout.separator()
 
@@ -1432,6 +1456,7 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_object_animation")
+        layout.menu("VIEW3D_MT_object_rigid_body")
 
         layout.separator()
 
@@ -1456,6 +1481,32 @@ class VIEW3D_MT_object_animation(Menu):
         layout.separator()
 
         layout.operator("nla.bake", text="Bake Action...")
+
+
+class VIEW3D_MT_object_rigid_body(Menu):
+    bl_label = "Rigid Body"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("rigidbody.objects_add", text="Add Active").type = 'ACTIVE'
+        layout.operator("rigidbody.objects_add", text="Add Passive").type = 'PASSIVE'
+
+        layout.separator()
+
+        layout.operator("rigidbody.objects_remove", text="Remove")
+
+        layout.separator()
+
+        layout.operator("rigidbody.shape_change", text="Change Shape")
+        layout.operator("rigidbody.mass_calculate", text="Calculate Mass")
+        layout.operator("rigidbody.object_settings_copy", text="Copy from Active")
+        layout.operator("object.visual_transform_apply", text="Apply Transformation")
+        layout.operator("rigidbody.bake_to_keyframes", text="Bake To Keyframes")
+
+        layout.separator()
+
+        layout.operator("rigidbody.connect", text="Connect")
 
 
 class VIEW3D_MT_object_clear(Menu):
@@ -1600,6 +1651,16 @@ class VIEW3D_MT_object_specials(Menu):
 
         props = layout.operator("object.isolate_type_render")
         props = layout.operator("object.hide_render_clear_all")
+
+
+class VIEW3D_MT_object_shading(Menu):
+    # XXX, this menu is a place to store shading operator in object mode
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("object.shade_smooth", text="Smooth")
+        layout.operator("object.shade_flat", text="Flat")
 
 
 class VIEW3D_MT_object_apply(Menu):
@@ -1926,17 +1987,18 @@ class VIEW3D_MT_vertex_group(Menu):
 class VIEW3D_MT_paint_weight(Menu):
     bl_label = "Weights"
 
-    def draw(self, context):
-        layout = self.layout
+    @staticmethod
+    def draw_generic(layout, is_editmode=False):
 
-        layout.menu("VIEW3D_MT_undo_redo")
+        if not is_editmode:
+            layout.menu("VIEW3D_MT_undo_redo")
 
-        layout.separator()
+            layout.separator()
 
-        layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
-        layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
+            layout.operator("paint.weight_from_bones", text="Assign Automatic From Bones").type = 'AUTOMATIC'
+            layout.operator("paint.weight_from_bones", text="Assign From Bone Envelopes").type = 'ENVELOPES'
 
-        layout.separator()
+            layout.separator()
 
         layout.operator("object.vertex_group_normalize_all", text="Normalize All")
         layout.operator("object.vertex_group_normalize", text="Normalize")
@@ -1953,16 +2015,22 @@ class VIEW3D_MT_paint_weight(Menu):
         layout.operator("object.vertex_group_levels", text="Levels")
         layout.operator("object.vertex_group_smooth", text="Smooth")
 
-        props = layout.operator("object.data_transfer", text="Transfer Weights")
-        props.use_reverse_transfer = True
-        props.data_type = 'VGROUP_WEIGHTS'
+        if not is_editmode:
+            props = layout.operator("object.data_transfer", text="Transfer Weights")
+            props.use_reverse_transfer = True
+            props.data_type = 'VGROUP_WEIGHTS'
 
         layout.operator("object.vertex_group_limit_total", text="Limit Total")
         layout.operator("object.vertex_group_fix", text="Fix Deforms")
 
-        layout.separator()
 
-        layout.operator("paint.weight_set")
+        if not is_editmode:
+            layout.separator()
+
+            layout.operator("paint.weight_set")
+
+    def draw(self, context):
+        self.draw_generic(self.layout, is_editmode=False);
 
 
 class VIEW3D_MT_sculpt(Menu):
@@ -2438,6 +2506,8 @@ class VIEW3D_MT_edit_mesh(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_mesh_normals")
+        layout.menu("VIEW3D_MT_edit_mesh_shading")
+        layout.menu("VIEW3D_MT_edit_mesh_weights")
         layout.menu("VIEW3D_MT_edit_mesh_clean")
 
         layout.separator()
@@ -2742,6 +2812,33 @@ class VIEW3D_MT_edit_mesh_normals(Menu):
         layout.separator()
 
         layout.operator("mesh.flip_normals")
+        layout.operator("mesh.set_normals_from_faces", text="Set From Faces")
+
+
+class VIEW3D_MT_edit_mesh_shading(Menu):
+    bl_label = "Shading"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.label(text="Faces:")
+        layout.operator("mesh.faces_shade_smooth", text="Smooth")
+        layout.operator("mesh.faces_shade_flat", text="Flat")
+        layout.label(text="Edges:")
+        layout.operator("mesh.mark_sharp", text="Smooth").clear = True
+        layout.operator("mesh.mark_sharp", text="Sharp")
+        layout.label(text="Vertices:")
+        props = layout.operator("mesh.mark_sharp", text="Smooth")
+        props.use_verts = True
+        props.clear = True
+        layout.operator("mesh.mark_sharp", text="Sharp").use_verts = True
+
+
+class VIEW3D_MT_edit_mesh_weights(Menu):
+    bl_label = "Weights"
+
+    def draw(self, context):
+        VIEW3D_MT_paint_weight.draw_generic(self.layout, is_editmode=True)
 
 
 class VIEW3D_MT_edit_mesh_clean(Menu):
@@ -3439,6 +3536,7 @@ class VIEW3D_PT_view3d_display(Panel):
 
         if view.viewport_shade == "SOLID":
             col.prop(view, "show_random_object_colors")
+            col.prop(view, "show_object_overlap")
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             col.prop(view, "show_mode_shade_override")
@@ -3450,7 +3548,6 @@ class VIEW3D_PT_view3d_display(Panel):
         col.prop(view, "show_all_objects_origin")
         col.prop(view, "show_relationship_lines")
         col.prop(view, "show_face_orientation_overlay")
-        col.prop(view, "show_object_overlap_overlay")
 
         col = layout.column()
         col.active = display_all
@@ -3813,8 +3910,10 @@ classes = (
     VIEW3D_MT_object_relations,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
+    VIEW3D_MT_object_rigid_body,
     VIEW3D_MT_object_clear,
     VIEW3D_MT_object_specials,
+    VIEW3D_MT_object_shading,
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_parent,
     VIEW3D_MT_object_track,
@@ -3859,6 +3958,8 @@ classes = (
     VIEW3D_MT_edit_mesh_edges_data,
     VIEW3D_MT_edit_mesh_faces,
     VIEW3D_MT_edit_mesh_normals,
+    VIEW3D_MT_edit_mesh_shading,
+    VIEW3D_MT_edit_mesh_weights,
     VIEW3D_MT_edit_mesh_clean,
     VIEW3D_MT_edit_mesh_delete,
     VIEW3D_MT_edit_mesh_showhide,

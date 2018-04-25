@@ -335,6 +335,44 @@ void debug_markers_print_list(ListBase *markers)
 
 /* ************* Marker Drawing ************ */
 
+static void draw_marker_name(
+        const uiFontStyle *fstyle, TimeMarker *marker, const char *name,
+        int cfra, const float xpos, const float ypixels)
+{
+	unsigned char text_col[4];
+	float x, y;
+
+	/* minimal y coordinate which wouldn't be occluded by scroll */
+	int min_y = 17.0f * UI_DPI_FAC;
+	
+	if (marker->flag & SELECT) {
+		UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
+		x = xpos + 4.0f * UI_DPI_FAC;
+		y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
+		y = max_ii(y, min_y);
+	}
+	else {
+		UI_GetThemeColor4ubv(TH_TEXT, text_col);
+		if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
+			x = xpos + 8.0f * UI_DPI_FAC;
+			y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
+			y = max_ii(y, min_y);
+		}
+		else {
+			x = xpos + 8.0f * UI_DPI_FAC;
+			y = 17.0f * UI_DPI_FAC;
+		}
+	}
+
+#ifdef DURIAN_CAMERA_SWITCH
+	if (marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
+		text_col[3] = 100;
+	}
+#endif
+
+	UI_fontstyle_draw_simple(fstyle, x, y, name, text_col);
+}
+
 /* function to draw markers */
 static void draw_marker(
         View2D *v2d, const uiFontStyle *fstyle, TimeMarker *marker, int cfra, int flag,
@@ -342,11 +380,16 @@ static void draw_marker(
         const float ypixels, const float xscale, const float yscale)
 {
 	const float xpos = marker->frame * xscale;
+#ifdef DURIAN_CAMERA_SWITCH
+	const float yoffs = (marker->camera) ?  0.2f * UI_DPI_ICON_SIZE : 0.0f;
+#else
+	const float yoffs = 0.0f;
+#endif
 	int icon_id;
 
 	glEnable(GL_BLEND);
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	/* vertical line - dotted */
 #ifdef DURIAN_CAMERA_SWITCH
 	if ((marker->camera) || (flag & DRAW_MARKERS_LINES))
@@ -386,50 +429,35 @@ static void draw_marker(
 		          (marker->flag & SELECT) ? ICON_PMARKER_SEL :
 		          ICON_PMARKER;
 	}
+#ifdef DURIAN_CAMERA_SWITCH
+	else if (marker->camera) {
+		icon_id = (marker->flag & SELECT) ? ICON_OUTLINER_OB_CAMERA :
+		          ICON_OUTLINER_DATA_CAMERA;
+	}
+#endif
 	else {
 		icon_id = (marker->flag & SELECT) ? ICON_MARKER_HLT :
 		          ICON_MARKER;
 	}
 	
-	UI_icon_draw(xpos - 0.45f * UI_DPI_ICON_SIZE, UI_DPI_ICON_SIZE, icon_id);
+	UI_icon_draw(xpos - 0.45f * UI_DPI_ICON_SIZE, yoffs + UI_DPI_ICON_SIZE, icon_id);
 	
 	glDisable(GL_BLEND);
 	
 	/* and the marker name too, shifted slightly to the top-right */
-	if (marker->name[0]) {
-		unsigned char text_col[4];
-		float x, y;
-
-		/* minimal y coordinate which wouldn't be occluded by scroll */
-		int min_y = 17.0f * UI_DPI_FAC;
-		
-		if (marker->flag & SELECT) {
-			UI_GetThemeColor4ubv(TH_TEXT_HI, text_col);
-			x = xpos + 4.0f * UI_DPI_FAC;
-			y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
-			y = max_ii(y, min_y);
-		}
-		else {
-			UI_GetThemeColor4ubv(TH_TEXT, text_col);
-			if ((marker->frame <= cfra) && (marker->frame + 5 > cfra)) {
-				x = xpos + 8.0f * UI_DPI_FAC;
-				y = (ypixels <= 39.0f * UI_DPI_FAC) ? (ypixels - 10.0f * UI_DPI_FAC) : 29.0f * UI_DPI_FAC;
-				y = max_ii(y, min_y);
-			}
-			else {
-				x = xpos + 8.0f * UI_DPI_FAC;
-				y = 17.0f * UI_DPI_FAC;
-			}
-		}
-
 #ifdef DURIAN_CAMERA_SWITCH
-		if (marker->camera && (marker->camera->restrictflag & OB_RESTRICT_RENDER)) {
-			text_col[3] = 100;
-		}
-#endif
-
-		UI_fontstyle_draw_simple(fstyle, x, y, marker->name, text_col);
+	if (marker->camera) {
+		draw_marker_name(fstyle, marker, marker->camera->id.name + 2, cfra, xpos, ypixels);
 	}
+	else if (marker->name[0]) {
+		draw_marker_name(fstyle, marker, marker->name, cfra, xpos, ypixels);
+	}
+#else
+	if (marker->name[0]) {
+		draw_marker_name(fstyle, marker, marker->name, cfra, xpos, ypixels);
+
+	}
+#endif
 }
 
 /* Draw Scene-Markers in time window */
@@ -1529,7 +1557,7 @@ static void MARKER_OT_make_links_scene(wmOperatorType *ot)
 #ifdef DURIAN_CAMERA_SWITCH
 /* ******************************* camera bind marker ***************** */
 
-static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
+static int ed_marker_camera_bind_exec(bContext *C, wmOperator *op)
 {
 	bScreen *sc = CTX_wm_screen(C);
 	Scene *scene = CTX_data_scene(C);
@@ -1537,10 +1565,32 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 	ListBase *markers = ED_context_get_markers(C);
 	TimeMarker *marker;
 
-	marker = ED_markers_get_first_selected(markers);
-	if (marker == NULL)
+	/* Don't do anything if we don't have a camera selected */
+	if (ob == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Select a camera to bind to a marker on this frame");
+		return OPERATOR_CANCELLED;
+	}
+
+	/* add new marker, unless we already have one on this frame, in which case, replace it */
+	if (markers == NULL)
 		return OPERATOR_CANCELLED;
 
+	marker = ED_markers_find_nearest_marker(markers, CFRA);
+	if ((marker == NULL) || (marker->frame != CFRA)) {
+		marker = MEM_callocN(sizeof(TimeMarker), "Camera TimeMarker");
+		marker->flag = SELECT;
+		marker->frame = CFRA;
+		BLI_addtail(markers, marker);
+
+		/* deselect all others, so that the user can then move it without problems */
+		for (TimeMarker *m = markers->first; m; m = m->next) {
+			if (m != marker) {
+				m->flag &= ~SELECT;
+			}
+		}
+	}
+
+	/* bind to the nominated camera (as set in operator props) */
 	marker->camera = ob;
 
 	/* camera may have changes */
@@ -1558,13 +1608,13 @@ static void MARKER_OT_camera_bind(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bind Camera to Markers";
-	ot->description = "Bind the active camera to selected marker(s)";
+	ot->description = "Bind the selected camera to a marker on the current frame";
 	ot->idname = "MARKER_OT_camera_bind";
 
 	/* api callbacks */
 	ot->exec = ed_marker_camera_bind_exec;
 	ot->invoke = ed_markers_opwrap_invoke;
-	ot->poll = ed_markers_poll_selected_no_locked_markers;
+	ot->poll = ED_operator_animview_active;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

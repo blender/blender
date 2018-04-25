@@ -218,7 +218,7 @@ static bool ensureCurveMappingAllocated(OCIO_GLSLDrawState *state, OCIO_CurveMap
 	/* clean glError buffer */
 	while (glGetError() != GL_NO_ERROR) {}
 
-	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16F_ARB, curve_mapping_settings->lut_size,
+	glTexImage1D(GL_TEXTURE_1D, 0, GL_RGBA16F, curve_mapping_settings->lut_size,
 	             0, GL_RGBA, GL_FLOAT, curve_mapping_settings->lut);
 
 	state->curve_mapping_texture_allocated = true;

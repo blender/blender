@@ -59,7 +59,7 @@ RenderEngineType DRW_engine_viewport_workbench_type = {
 	NULL, NULL,
 	WORKBENCH_ENGINE, N_("Workbench"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL, &workbench_layer_collection_settings_create, NULL,
-	&draw_engine_workbench_solid_flat,
+	&draw_engine_workbench_solid,
 	{NULL, NULL, NULL}
 };
 

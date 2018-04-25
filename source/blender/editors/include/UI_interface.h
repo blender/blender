@@ -1001,9 +1001,9 @@ void uiTemplateSearchPreview(
 void uiTemplatePathBuilder(uiLayout *layout, struct PointerRNA *ptr, const char *propname, 
                            struct PointerRNA *root_ptr, const char *text);
 uiLayout *uiTemplateModifier(uiLayout *layout, struct bContext *C, struct PointerRNA *ptr);
-#ifdef WITH_REDO_REGION_REMOVAL
+
 void uiTemplateOperatorRedoProperties(uiLayout *layout, struct bContext *C);
-#endif
+
 uiLayout *uiTemplateConstraint(uiLayout *layout, struct PointerRNA *ptr);
 void uiTemplatePreview(uiLayout *layout, struct bContext *C, struct ID *id, int show_buttons, struct ID *parent,
                        struct MTex *slot, const char *preview_id);

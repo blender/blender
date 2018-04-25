@@ -234,7 +234,7 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
 	float col[3];
-	short unitx = 0, unity = V2D_UNIT_VALUES, flag = 0;
+	short unitx = 0, unity = V2D_UNIT_VALUES, cfra_flag = 0;
 	
 	/* clear and setup matrix */
 	UI_GetThemeColor3fv(TH_BACK, col);
@@ -281,7 +281,6 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
 		/* horizontal component of value-cursor (value line before the current frame line) */
 		if ((sipo->flag & SIPO_NODRAWCURSOR) == 0) {
-
 			float y = sipo->cursorVal;
 
 			/* Draw a green line to indicate the cursor value */
@@ -320,9 +319,8 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 
 	if (sipo->mode != SIPO_MODE_DRIVERS) {
 		/* current frame */
-		if (sipo->flag & SIPO_DRAWTIME) flag |= DRAWCFRA_UNIT_SECONDS;
-		if ((sipo->flag & SIPO_NODRAWCFRANUM) == 0) flag |= DRAWCFRA_SHOW_NUMBOX;
-		ANIM_draw_cfra(C, v2d, flag);
+		if (sipo->flag & SIPO_DRAWTIME) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+		ANIM_draw_cfra(C, v2d, cfra_flag);
 	}
 	
 	/* markers */
@@ -345,6 +343,12 @@ static void graph_main_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+	
+	/* draw current frame number-indicator on top of scrollers */
+	if ((sipo->mode != SIPO_MODE_DRIVERS) && ((sipo->flag & SIPO_NODRAWCFRANUM) == 0)) {
+		UI_view2d_view_orthoSpecial(ar, v2d, 1);
+		ANIM_draw_cfra_number(C, v2d, cfra_flag);
+	}
 }
 
 static void graph_channel_region_init(wmWindowManager *wm, ARegion *ar)

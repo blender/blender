@@ -152,10 +152,6 @@ class TIME_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("marker.camera_bind")
-
-        layout.separator()
-
         layout.operator("screen.area_dupli")
         layout.operator("screen.screen_full_area")
         layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
@@ -260,6 +256,10 @@ def marker_menu_generic(layout):
 
     layout.operator("marker.rename", text="Rename Marker")
     layout.operator("marker.move", text="Grab/Move Marker")
+
+    layout.separator()
+
+    layout.operator("marker.camera_bind")
 
     layout.separator()
 

@@ -696,6 +696,7 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 			{
 				LightProbe *probe = (LightProbe *) id;
 				CALLBACK_INVOKE(probe->image, IDWALK_CB_USER);
+				CALLBACK_INVOKE(probe->visibility_grp, IDWALK_CB_NOP);
 				break;
 			}
 

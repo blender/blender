@@ -27,6 +27,9 @@ __all__ = (
 )
 
 
+# (filename -> icon_value) map
+_icon_cache = {}
+
 class ToolSelectPanelHelper:
     """
     Generic Class, can be used for any toolbar.
@@ -52,6 +55,31 @@ class ToolSelectPanelHelper:
     """
 
     @staticmethod
+    def _icon_value_from_icon_handle(icon_name):
+        import os
+        if icon_name is not None:
+            assert(type(icon_name) is str)
+            icon_value = _icon_cache.get(icon_name)
+            if icon_value is None:
+                dirname = bpy.utils.resource_path('SYSTEM')
+                if not dirname:
+                    # TODO(campbell): use a better way of finding datafiles.
+                    dirname = bpy.utils.resource_path('LOCAL')
+                filename = os.path.join(dirname, "datafiles", "icons", icon_name + ".dat")
+                try:
+                    icon_value = bpy.app.icons.new_triangles_from_file(filename)
+                except Exception as ex:
+                    if os.path.exists(filename):
+                        print("Missing icons:", filename, ex)
+                    else:
+                        print("Corrupt icon:", filename, ex)
+                    icon_value = 0
+                _icon_cache[icon_name] = icon_value
+            return icon_value
+        else:
+            return 0
+
+    @staticmethod
     def _tool_is_group(tool):
         return type(tool[0]) is not str
 
@@ -68,9 +96,9 @@ class ToolSelectPanelHelper:
 
     @classmethod
     def _tool_vars_from_def(cls, item):
-        text, mp_idname, actions = item
+        text, icon_name, mp_idname, actions = item
         km, km_idname = (None, None) if actions is None else cls._tool_keymap[text]
-        return (km_idname, mp_idname)
+        return (km_idname, mp_idname), icon_name
 
     @staticmethod
     def _tool_vars_from_active_with_index(context):
@@ -89,7 +117,7 @@ class ToolSelectPanelHelper:
         )
 
     @classmethod
-    def _km_actionmouse_simple(cls, kc, text, actions):
+    def _km_actionmouse_simple(cls, kc, text, icon_name, actions):
 
         # standalone
         def props_assign_recursive(rna_props, py_props):
@@ -135,9 +163,9 @@ class ToolSelectPanelHelper:
             return
 
         for item in ToolSelectPanelHelper._tools_flatten(cls.tools_all()):
-            text, mp_idname, actions = item
+            text, icon_name, mp_idname, actions = item
             if actions is not None:
-                km, km_idname = cls._km_actionmouse_simple(kc, text, actions)
+                km, km_idname = cls._km_actionmouse_simple(kc, text, icon_name, actions)
                 cls._tool_keymap[text] = km, km_idname
 
     def draw(self, context):
@@ -151,12 +179,25 @@ class ToolSelectPanelHelper:
         tool_def_active, index_active = self._tool_vars_from_active_with_index(context)
         layout = self.layout
 
+        scale_y = 2.0
+
+        # TODO(campbell): expose ui_scale.
+        view2d = context.region.view2d
+        ui_scale = (
+            view2d.region_to_view(1.0, 0.0)[0] -
+            view2d.region_to_view(0.0, 0.0)[0]
+        )
+        show_text = (context.region.width / ui_scale) > 100.0
+        del view2d, ui_scale
+
         for tool_items in self.tools_from_context(context):
             if tool_items:
                 col = layout.column(align=True)
+                col.scale_y = scale_y
                 for item in tool_items:
                     if item is None:
                         col = layout.column(align=True)
+                        col.scale_y = scale_y
                         continue
 
                     if self._tool_is_group(item):
@@ -165,7 +206,7 @@ class ToolSelectPanelHelper:
                         for i, sub_item in enumerate(item):
                             if sub_item is None:
                                 continue
-                            tool_def = self._tool_vars_from_def(sub_item)
+                            tool_def, icon_name = self._tool_vars_from_def(sub_item)
                             is_active = (tool_def == tool_def_active)
                             if is_active:
                                 index = i
@@ -184,21 +225,23 @@ class ToolSelectPanelHelper:
                         index = -1
                         use_menu = False
 
-                    tool_def = self._tool_vars_from_def(item)
+                    tool_def, icon_name = self._tool_vars_from_def(item)
                     is_active = (tool_def == tool_def_active)
-
+                    icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
                     if use_menu:
                         props = col.operator_menu_hold(
                             "wm.tool_set",
-                            text=item[0],
+                            text=item[0] if show_text else "",
                             depress=is_active,
                             menu="WM_MT_toolsystem_submenu",
+                            icon_value=icon_value,
                         )
                     else:
                         props = col.operator(
                             "wm.tool_set",
-                            text=item[0],
+                            text=item[0] if show_text else "",
                             depress=is_active,
+                            icon_value=icon_value,
                         )
 
                     props.keymap = tool_def[0] or ""
@@ -231,7 +274,7 @@ class WM_MT_toolsystem_submenu(Menu):
                     if (item_group is not None) and ToolSelectPanelHelper._tool_is_group(item_group):
                         if index_button < len(item_group):
                             item = item_group[index_button]
-                            tool_def = cls._tool_vars_from_def(item)
+                            tool_def, icon_name = cls._tool_vars_from_def(item)
                             is_active = (tool_def == tool_def_button)
                             if is_active:
                                 return cls, item_group, index_button
@@ -239,6 +282,8 @@ class WM_MT_toolsystem_submenu(Menu):
 
     def draw(self, context):
         layout = self.layout
+        layout.scale_y = 2.0
+
         cls, item_group, index_active = self._tool_group_from_button(context)
         if item_group is None:
             # Should never happen, just in case
@@ -250,10 +295,12 @@ class WM_MT_toolsystem_submenu(Menu):
             if item is None:
                 layout.separator()
                 continue
-            tool_def = cls._tool_vars_from_def(item)
+            tool_def, icon_name = cls._tool_vars_from_def(item)
+            icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
             props = layout.operator(
                 "wm.tool_set",
                 text=item[0],
+                icon_value=icon_value,
             )
             props.keymap = tool_def[0] or ""
             props.manipulator_group = tool_def[1] or ""

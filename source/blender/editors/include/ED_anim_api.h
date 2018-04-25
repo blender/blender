@@ -535,16 +535,17 @@ void ANIM_fcurve_delete_from_animdata(bAnimContext *ac, struct AnimData *adt, st
 enum eAnimEditDraw_CurrentFrame {
 	/* plain time indicator with no special indicators */
 	DRAWCFRA_PLAIN          = 0,
-	/* draw box indicating current frame number */
-	DRAWCFRA_SHOW_NUMBOX    = (1 << 0),
 	/* time indication in seconds or frames */
-	DRAWCFRA_UNIT_SECONDS   = (1 << 1),
+	DRAWCFRA_UNIT_SECONDS   = (1 << 0),
 	/* draw indicator extra wide (for timeline) */
-	DRAWCFRA_WIDE           = (1 << 2)
+	DRAWCFRA_WIDE           = (1 << 1)
 };
 
 /* main call to draw current-frame indicator in an Animation Editor */
 void ANIM_draw_cfra(const struct bContext *C, struct View2D *v2d, short flag);
+
+/* main call to draw "number box" in scrollbar for current frame indicator */
+void ANIM_draw_cfra_number(const struct bContext *C, struct View2D *v2d, short flag);
 
 /* ------------- Preview Range Drawing -------------- */
 

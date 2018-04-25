@@ -261,11 +261,11 @@ static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, Tre
 	bool add_textbut = false;
 
 	/* can't rename rna datablocks entries or listbases */
-	if (ELEM(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE)) {
+	if (ELEM(tselem->type, TSE_RNA_STRUCT, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE, TSE_SCENE_OBJECTS_BASE)) {
 		/* do nothing */;
 	}
 	else if (ELEM(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE,
-	              TSE_DRIVER_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_R_PASS))
+	              TSE_DRIVER_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE))
 	{
 		BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
 	}
@@ -2084,7 +2084,14 @@ static int outliner_parenting_poll(bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 
 	if (soops) {
-		return ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_COLLECTIONS, SO_GROUPS);
+		if (soops->outlinevis == SO_SCENES) {
+			return true;
+		}
+
+		if (soops->outlinevis == SO_COLLECTIONS) {
+			return ((soops->filter & SO_FILTER_ENABLE) &&
+			        (soops->filter & SO_FILTER_NO_COLLECTION));
+		}
 	}
 
 	return false;

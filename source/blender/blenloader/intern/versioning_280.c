@@ -513,7 +513,7 @@ void do_versions_after_linking_280(Main *main)
 					if (view_layer->spacetype == SPACE_OUTLINER) {
 						SpaceOops *soutliner = (SpaceOops *)view_layer;
 
-						soutliner->outlinevis = SO_VIEW_LAYER;
+						soutliner->outlinevis = SO_COLLECTIONS;
 
 						if (BLI_listbase_count_at_most(&layer->layer_collections, 2) == 1) {
 							if (soutliner->treestore == NULL) {
@@ -927,10 +927,9 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							          SO_SEQUENCE,
 							          SO_DATABLOCKS,
 							          SO_ID_ORPHANS,
-							          SO_VIEW_LAYER,
 							          SO_COLLECTIONS))
 							{
-								so->outlinevis = SO_VIEW_LAYER;
+								so->outlinevis = SO_COLLECTIONS;
 							}
 						}
 					}
@@ -1013,7 +1012,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-	if (!DNA_struct_find(fd->filesdna, "SpaceTopBar")) {
+	if (!MAIN_VERSION_ATLEAST(main, 280, 11)) {
+
 		/* Remove info editor, but only if at the top of the window. */
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			/* Calculate window width/height from screen vertices */
@@ -1045,8 +1045,16 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		}
 	}
 
-#ifdef WITH_REDO_REGION_REMOVAL
-	if (!MAIN_VERSION_ATLEAST(main, 280, TO_BE_DETERMINED)) {
+	if (!MAIN_VERSION_ATLEAST(main, 280, 11)) {
+		for (Lamp *lamp = main->lamp.first; lamp; lamp = lamp->id.next) {
+			if (lamp->mode & (1 << 13)) { /* LA_SHAD_RAY */
+				lamp->mode |= LA_SHADOW;
+				lamp->mode &= ~(1 << 13);
+			}
+		}
+	}
+
+	if (!MAIN_VERSION_ATLEAST(main, 280, 12)) {
 		/* Remove tool property regions. */
 		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
 			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
@@ -1067,5 +1075,4 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
-#endif
 }

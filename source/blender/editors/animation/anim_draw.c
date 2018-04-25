@@ -69,14 +69,20 @@
 /* CURRENT FRAME DRAWING */
 
 /* Draw current frame number in a little green box beside the current frame indicator */
-static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const bool time)
+void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 {
+	Scene *scene = CTX_data_scene(C);
+	const float time = scene->r.cfra + scene->r.subframe;
+	const float cfra = (float)(time * scene->r.framelen);
+	const bool show_time = (flag & DRAWCFRA_UNIT_SECONDS) != 0;
+	
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned char col[4];
 	float xscale, x, y;
-	char numstr[32] = "    t";  /* t is the character to start replacing from */
+	char numstr[32] = "  t  ";  /* t is the character to start replacing from */
+	float hlen;
 	int slen;
 	
 	/* because the frame number text is subject to the same scaling as the contents of the view */
@@ -86,33 +92,39 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, const float cfra, const 
 	
 	/* get timecode string 
 	 *	- padding on str-buf passed so that it doesn't sit on the frame indicator
-	 *	- power = 0, gives 'standard' behavior for time
-	 *	  but power = 1 is required for frames (to get integer frames)
 	 */
-	if (time) {
-		BLI_timecode_string_from_time(&numstr[4], sizeof(numstr) - 4, 0, FRA2TIME(cfra), FPS, U.timecode_style);
+	if (show_time) {
+		BLI_timecode_string_from_time(&numstr[2], sizeof(numstr) - 2, 0, FRA2TIME(cfra), FPS, U.timecode_style);
 	}
 	else {
-		BLI_timecode_string_from_time_seconds(&numstr[4], sizeof(numstr) - 4, 1, cfra);
+		BLI_timecode_string_from_time_seconds(&numstr[2], sizeof(numstr) - 2, 1, cfra);
 	}
 
 	slen = UI_fontstyle_string_width(fstyle, numstr) - 1;
+	hlen = slen * 0.5f;
 	
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;
-	y = 0.9f * U.widget_unit;
+	y = 0.02f * U.widget_unit;
 
 	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 
 	/* draw green box around/behind text */
 	immUniformThemeColorShade(TH_CFRAME, 0);
 
-	immRectf(pos, x, y,  x + slen,  y + 0.75f * U.widget_unit);
+	immRectf(pos,
+	         x - hlen - 0.20f * U.widget_unit,
+	         y,
+	         x + hlen + 0.2f * U.widget_unit,
+	         y        +        U.widget_unit);
 	immUnbindProgram();
 
 	/* draw current frame number */
-	UI_GetThemeColor4ubv(TH_TEXT, col);
-	UI_fontstyle_draw_simple(fstyle, x - 0.25f * U.widget_unit, y + 0.15f * U.widget_unit, numstr, col);
+	UI_GetThemeColor4ubv(TH_TEXT_HI, col);
+	UI_fontstyle_draw_simple(fstyle,
+	                         x - hlen - 0.15f * U.widget_unit,
+	                         y        + 0.28f * U.widget_unit,
+	                         numstr, col);
 
 	/* restore view transform */
 	gpuPopMatrix();
@@ -141,12 +153,6 @@ void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 	immVertex2f(pos, x, v2d->cur.ymax);
 	immEnd();
 	immUnbindProgram();
-
-	/* Draw current frame number in a little box */
-	if (flag & DRAWCFRA_SHOW_NUMBOX) {
-		UI_view2d_view_orthoSpecial(CTX_wm_region(C), v2d, 1);
-		draw_cfra_number(scene, v2d, x, (flag & DRAWCFRA_UNIT_SECONDS) != 0);
-	}
 }
 
 /* *************************************************** */
@@ -192,13 +198,6 @@ void ANIM_draw_previewrange(const bContext *C, View2D *v2d, int end_frame_width)
 // TODO: Should we still show these when preview range is enabled?
 void ANIM_draw_framerange(Scene *scene, View2D *v2d)
 {
-	/* Don't draw frame range when preview range is enabled.
-	 * Otherwise we get nasty/confusing visual conflicts
-	 */
-	if (PRVRANGEON) {
-		return;
-	}
-	
 	/* draw darkened area outside of active timeline frame range */
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);

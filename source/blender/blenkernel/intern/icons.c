@@ -753,8 +753,10 @@ struct Icon_Geom *BKE_icon_geom_from_memory(const uchar *data, size_t data_len)
 	if (data_len <= 8) {
 		goto fail;
 	}
+	/* Skip the header. */
+	data_len -= 8;
 	const int div = 3 * 2 * 3;
-	const int coords_len = (data_len - 8) / div;
+	const int coords_len = data_len / div;
 	if (coords_len * div != data_len) {
 		goto fail;
 	}

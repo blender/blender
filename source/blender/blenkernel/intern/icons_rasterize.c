@@ -97,7 +97,7 @@ ImBuf *BKE_icon_geom_rasterize(
 
 	/* TODO(campbell): Currently rasterizes to fixed size, then scales.
 	 * Should rasterize to double size for eg instead. */
-	const int rect_size[2] = {256, 256};
+	const int rect_size[2] = {max_ii(256, (int)size_x * 2), max_ii(256, (int)size_y * 2)};
 
 	ImBuf *ibuf = IMB_allocImBuf((uint)rect_size[0], (uint)rect_size[1], 32, IB_rect);
 
@@ -108,10 +108,25 @@ ImBuf *BKE_icon_geom_rasterize(
 
 	data.rect = ibuf->rect;
 
+	float scale[2];
+	const bool use_scale = (rect_size[0] != 256) || (rect_size[1] != 256);
+
+	if (use_scale) {
+		scale[0] = ((float)rect_size[0] / 256.0f);
+		scale[1] = ((float)rect_size[1] / 256.0f);
+	}
+
 	for (int t = 0; t < coords_len; t += 1, pos += 3, col += 3) {
-		ARRAY_SET_ITEMS(data.pt[0], UNPACK2(pos[0]));
-		ARRAY_SET_ITEMS(data.pt[1], UNPACK2(pos[1]));
-		ARRAY_SET_ITEMS(data.pt[2], UNPACK2(pos[2]));
+		if (use_scale) {
+			ARRAY_SET_ITEMS(data.pt[0], (int)(pos[0][0] * scale[0]), (int)(pos[0][1] * scale[1]));
+			ARRAY_SET_ITEMS(data.pt[1], (int)(pos[1][0] * scale[0]), (int)(pos[1][1] * scale[1]));
+			ARRAY_SET_ITEMS(data.pt[2], (int)(pos[2][0] * scale[0]), (int)(pos[2][1] * scale[1]));
+		}
+		else {
+			ARRAY_SET_ITEMS(data.pt[0], UNPACK2(pos[0]));
+			ARRAY_SET_ITEMS(data.pt[1], UNPACK2(pos[1]));
+			ARRAY_SET_ITEMS(data.pt[2], UNPACK2(pos[2]));
+		}
 		data.color = col;
 		if ((col[0] == col[1]) && (col[0] == col[2])) {
 			BLI_bitmap_draw_2d_tri_v2i(UNPACK3(data.pt), tri_fill_flat, &data);

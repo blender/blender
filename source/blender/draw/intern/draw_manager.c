@@ -895,21 +895,14 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, int drawtype_lighting)
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, int UNUSED(drawtype_lighting))
 {
 	switch (drawtype) {
 		case OB_WIRE:
 			break;
 
 		case OB_SOLID:
-			if (drawtype_lighting == V3D_LIGHTING_FLAT) {
-				use_drw_engine(&draw_engine_workbench_solid_flat);
-
-			}
-			else if (drawtype_lighting == V3D_LIGHTING_STUDIO) {
-				use_drw_engine(&draw_engine_workbench_solid_studio);
-
-			}
+			use_drw_engine(&draw_engine_workbench_solid);
 			break;
 
 		case OB_TEXTURE:
@@ -1952,8 +1945,7 @@ void DRW_engines_register(void)
 	RE_engines_register(NULL, &DRW_engine_viewport_eevee_type);
 	RE_engines_register(NULL, &DRW_engine_viewport_workbench_type);
 
-	DRW_engine_register(&draw_engine_workbench_solid_flat);
-	DRW_engine_register(&draw_engine_workbench_solid_studio);
+	DRW_engine_register(&draw_engine_workbench_solid);
 
 	DRW_engine_register(&draw_engine_object_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);

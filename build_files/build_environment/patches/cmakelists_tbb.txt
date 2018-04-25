@@ -88,6 +88,14 @@ elseif(WIN32)
   set(DISABLE_RTTI "/EHs- /GR- ")
 endif()
 
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag("-flifetime-dse=1" SUPPORTS_FLIFETIME)
+  if (SUPPORTS_FLIFETIME)
+    add_definitions(-flifetime-dse=1)
+  endif()
+endif()
+
 # Linker export definitions
 if (WIN32)
   add_custom_command(OUTPUT tbb.def

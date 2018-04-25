@@ -236,9 +236,10 @@ help: .FORCE
 	@echo "  * check_descriptions   - check for duplicate/invalid descriptions"
 	@echo ""
 	@echo "Utilities (not associated with building blender)"
-	@echo "  * icons    - updates PNG icons from SVG files."
-	@echo "  * tgz      - create a compressed archive of the source code."
-	@echo "  * update   - updates git and all submodules"
+	@echo "  * icons      - updates PNG icons from SVG files."
+	@echo "  * icons_geom - updates Geometry icons from BLEND file."
+	@echo "  * tgz        - create a compressed archive of the source code."
+	@echo "  * update     - updates git and all submodules"
 	@echo ""
 	@echo "Environment Variables"
 	@echo "  * BUILD_CMAKE_ARGS    - arguments passed to CMake."
@@ -423,8 +424,12 @@ icons: .FORCE
 	"$(BLENDER_DIR)/release/datafiles/blender_icons_update.py"
 	"$(BLENDER_DIR)/release/datafiles/prvicons_update.py"
 
+icons_geom: .FORCE
+	BLENDER_BIN="$(BUILD_DIR)/bin/blender" \
+	    "$(BLENDER_DIR)/release/datafiles/blender_icons_geom_update.py"
+
 update: .FORCE
-	if [ "$(OS_NCASE)" == "darwin" ] && [ ! -d "../lib/$(OS_NCASE)" ]; then \
+	if [ "$(OS_NCASE)" = "darwin" ] && [ ! -d "../lib/$(OS_NCASE)" ]; then \
 		svn checkout https://svn.blender.org/svnroot/bf-blender/trunk/lib/$(OS_NCASE) ../lib/$(OS_NCASE) ; \
 	fi
 	if [ -d "../lib" ]; then \

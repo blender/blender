@@ -240,7 +240,7 @@ void BLI_bitmap_draw_2d_tri_v2i(
 		float inv_slope1 = inv_slope(p2, p1);
 		float inv_slope2 = inv_slope(p3, p1);
 		ORDER_VARS2(float, inv_slope1, inv_slope2);
-		BLI_assert(inv_slope1 <= inv_slope2);
+		BLI_assert(!(inv_slope1 > inv_slope2));
 		draw_tri_flat_max(
 		        p1, p2[1],
 		        inv_slope1, inv_slope2,
@@ -251,7 +251,7 @@ void BLI_bitmap_draw_2d_tri_v2i(
 		float inv_slope1 = inv_slope(p3, p1);
 		float inv_slope2 = inv_slope(p3, p2);
 		ORDER_VARS2(float, inv_slope2, inv_slope1);
-		BLI_assert(inv_slope1 >= inv_slope2);
+		BLI_assert(!(inv_slope1 < inv_slope2));
 		draw_tri_flat_min(
 		        p3, p2[1] + 1, /* avoid overlap */
 		        inv_slope1, inv_slope2,

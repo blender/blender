@@ -2007,10 +2007,8 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem display_mode_items[] = {
-		{SO_VIEW_LAYER, "VIEW_LAYER", 0, "View Layer", "Display the collections of the active view layer"},
-		{SO_COLLECTIONS, "COLLECTIONS", 0, "Collections", "Display all collections based on the "
-		                 "master collection hierarchy"},
-		{SO_SCENES, "SCENES", 0, "Scenes", "Display composition related data in all scenes"},
+		{SO_COLLECTIONS, "COLLECTIONS", 0, "Collections", "Display collections in the view layer"},
+		{SO_SCENES, "SCENES", 0, "Scenes", "Display scenes and their view layers, collections and objects"},
 		{SO_GROUPS, "GROUPS", 0, "Groups", "Display groups and their data-blocks"},
 		{SO_SEQUENCE, "SEQUENCE", 0, "Sequence", "Display sequence data-blocks"},
 		{SO_LIBRARIES, "LIBRARIES", 0, "Blender File", "Display data of current file and linked libraries"},
@@ -2301,6 +2299,12 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_RANDOMIZE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Random Colors", "Show random object colors");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+
+	prop = RNA_def_property(srna, "show_object_overlap", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_OBJECT_OVERLAP);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Object Overlap", "Show Object Overlap");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
 
 	prop = RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);

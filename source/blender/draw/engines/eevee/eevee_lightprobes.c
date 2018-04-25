@@ -36,6 +36,7 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_object.h"
+#include "BKE_group.h"
 #include "MEM_guardedalloc.h"
 
 #include "GPU_material.h"
@@ -386,6 +387,9 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 	EEVEE_StorageList *stl = vedata->stl;
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
+	/* Make sure no aditionnal visibility check runs by default. */
+	pinfo->vis_data.group = NULL;
+
 	pinfo->do_cube_update = false;
 	pinfo->num_cube = 1; /* at least one for the world */
 	pinfo->num_grid = 1;
@@ -569,6 +573,30 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
 		DRW_shgroup_call_instances_add(grp, DRW_cache_fullscreen_quad_get(), NULL, (unsigned int *)&pinfo->num_planar);
 	}
+}
+
+bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
+{
+	EEVEE_ObjectEngineData *oed = (EEVEE_ObjectEngineData *)user_data;
+
+	/* test disabled if group is NULL */
+	if (oed->test_data->group == NULL)
+		return vis_in;
+
+	if (oed->test_data->cached == false)
+		oed->ob_vis_dirty = true;
+
+	/* early out, don't need to compute ob_vis yet. */
+	if (vis_in == false)
+		return vis_in;
+
+	if (oed->ob_vis_dirty) {
+		oed->ob_vis_dirty = false;
+		oed->ob_vis = BKE_group_object_exists(oed->test_data->group, oed->ob);
+		oed->ob_vis = (oed->test_data->invert) ? !oed->ob_vis : oed->ob_vis;
+	}
+
+	return vis_in && oed->ob_vis;
 }
 
 void EEVEE_lightprobes_cache_add(EEVEE_ViewLayerData *sldata, Object *ob)
@@ -1224,10 +1252,17 @@ static void render_scene_to_probe(
 	txl->planar_pool = e_data.planar_pool_placeholder;
 	txl->maxzbuffer = e_data.depth_placeholder;
 
+	DRW_stats_group_start("Cubemap Render");
+
 	/* Update common uniforms */
 	DRW_uniformbuffer_update(sldata->common_ubo, &sldata->common_data);
 
 	for (int i = 0; i < 6; ++i) {
+		/* Recompute only on 1st drawloop. */
+		pinfo->vis_data.cached = (i != 0);
+
+		DRW_stats_group_start("Cubemap Face");
+
 		/* Setup custom matrices */
 		mul_m4_m4m4(viewmat, cubefacemat[i], posmat);
 		mul_m4_m4m4(persmat, winmat, viewmat);
@@ -1258,7 +1293,14 @@ static void render_scene_to_probe(
 		EEVEE_draw_default_passes(psl);
 		DRW_draw_pass(psl->material_pass);
 		DRW_draw_pass(psl->sss_pass); /* Only output standard pass */
+
+		DRW_stats_group_end();
 	}
+
+	DRW_stats_group_end();
+
+	/* Make sure no aditionnal visibility check runs after this. */
+	pinfo->vis_data.group = NULL;
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
@@ -1269,6 +1311,7 @@ static void render_scene_to_planar(
         EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, int layer,
         EEVEE_LightProbeEngineData *ped)
 {
+	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 	EEVEE_FramebufferList *fbl = vedata->fbl;
 	EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_PassList *psl = vedata->psl;
@@ -1284,7 +1327,12 @@ static void render_scene_to_planar(
 	invert_m4_m4(persinv, persmat);
 	invert_m4_m4(wininv, winmat);
 
+	DRW_stats_group_start("Planar Reflection");
+
 	DRW_viewport_matrix_override_set_all(&ped->mats);
+
+	/* Don't reuse previous visibility. */
+	pinfo->vis_data.cached = false;
 
 	/* Be sure that cascaded shadow maps are updated. */
 	EEVEE_draw_shadows(sldata, psl);
@@ -1347,6 +1395,11 @@ static void render_scene_to_planar(
 
 	DRW_state_invert_facing();
 	DRW_state_clip_planes_reset();
+
+	DRW_stats_group_end();
+
+	/* Make sure no aditionnal visibility check runs after this. */
+	pinfo->vis_data.group = NULL;
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
@@ -1499,6 +1552,9 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
+		LightProbe *prb = (LightProbe *)ob->data;
+		pinfo->vis_data.group = prb->visibility_grp;
+		pinfo->vis_data.invert = prb->flag & LIGHTPROBE_FLAG_INVERT_GROUP;
 		render_scene_to_planar(sldata, vedata, i, ped);
 	}
 
@@ -1546,6 +1602,8 @@ static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 			continue;
 		}
 		LightProbe *prb = (LightProbe *)ob->data;
+		pinfo->vis_data.group = prb->visibility_grp;
+		pinfo->vis_data.invert = prb->flag & LIGHTPROBE_FLAG_INVERT_GROUP;
 		render_scene_to_probe(sldata, vedata, ob->obmat[3], prb->clipsta, prb->clipend);
 		glossy_filter_probe(sldata, vedata, psl, i, prb->intensity);
 		ped->need_update = false;
@@ -1652,6 +1710,8 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 					egrid->level_bias = (float)(1 << 0);
 					DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 				}
+				pinfo->vis_data.group = prb->visibility_grp;
+				pinfo->vis_data.invert = prb->flag & LIGHTPROBE_FLAG_INVERT_GROUP;
 				render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
 				diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id,
 				                     prb->clipsta, prb->clipend, egrid->visibility_range, prb->vis_blur,

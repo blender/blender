@@ -480,7 +480,7 @@ void GPU_create_gl_tex(
 	if (textarget == GL_TEXTURE_2D) {
 		if (use_high_bit_depth) {
 			if (GLEW_ARB_texture_float)
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 			else
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 		}
@@ -509,7 +509,7 @@ void GPU_create_gl_tex(
 					ImBuf *mip = ibuf->mipmap[i - 1];
 					if (use_high_bit_depth) {
 						if (GLEW_ARB_texture_float)
-							glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16F_ARB, mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
+							glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16F, mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
 						else
 							glTexImage2D(GL_TEXTURE_2D, i, GL_RGBA16, mip->x, mip->y, 0, GL_RGBA, GL_FLOAT, mip->rect_float);
 					}
@@ -531,7 +531,7 @@ void GPU_create_gl_tex(
 
 		if (h == w && is_power_of_2_i(h) && !is_over_resolution_limit(textarget, h, w)) {
 			void **cube_map = gpu_gen_cube_map(rect, frect, rectw, recth, use_high_bit_depth);
-			GLenum informat = use_high_bit_depth ? (GLEW_ARB_texture_float ? GL_RGBA16F_ARB : GL_RGBA16) : GL_RGBA8;
+			GLenum informat = use_high_bit_depth ? (GLEW_ARB_texture_float ? GL_RGBA16F : GL_RGBA16) : GL_RGBA8;
 			GLenum type = use_high_bit_depth ? GL_FLOAT : GL_UNSIGNED_BYTE;
 
 			if (cube_map)

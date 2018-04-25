@@ -483,7 +483,7 @@ typedef struct TransInfo {
 	short		persp;
 	short		around;
 	char		spacetype;		/* spacetype where transforming is      */
-	char		helpline;		/* choice of custom cursor with or without a help line from the gizmo to the mouse pos */
+	char		helpline;		/* Choice of custom cursor with or without a help line from the manipulator to the mouse position. */
 	short		obedit_type;	/* Avoid looking inside TransDataContainer obedit. */
 
 	float		vec[3];			/* translation, to show for widget   	*/

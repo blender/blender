@@ -1316,7 +1316,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	if (type == GL_FLOAT)
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F_ARB, ibuf->x, ibuf->y, 0, format, type, display_buffer);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, ibuf->x, ibuf->y, 0, format, type, display_buffer);
 	else
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, ibuf->x, ibuf->y, 0, format, type, display_buffer);
 
@@ -1668,7 +1668,7 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
-	short unit = 0, flag = 0;
+	short unit = 0, cfra_flag = 0;
 	float col[3];
 	
 	/* clear and setup matrix */
@@ -1715,9 +1715,8 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	
 	/* current frame */
 	UI_view2d_view_ortho(v2d);
-	if ((sseq->flag & SEQ_DRAWFRAMES) == 0)      flag |= DRAWCFRA_UNIT_SECONDS;
-	if ((sseq->flag & SEQ_NO_DRAW_CFRANUM) == 0) flag |= DRAWCFRA_SHOW_NUMBOX;
-	ANIM_draw_cfra(C, v2d, flag);
+	if ((sseq->flag & SEQ_DRAWFRAMES) == 0)      cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	ANIM_draw_cfra(C, v2d, cfra_flag);
 	
 	/* markers */
 	UI_view2d_view_orthoSpecial(ar, v2d, 1);
@@ -1755,6 +1754,12 @@ void draw_timeline_seq(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_UNIT_VALUES, V2D_GRID_CLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+	
+	/* draw current frame number-indicator on top of scrollers */
+	if ((sseq->flag & SEQ_NO_DRAW_CFRANUM) == 0) {
+		UI_view2d_view_orthoSpecial(ar, v2d, 1);
+		ANIM_draw_cfra_number(C, v2d, cfra_flag);
+	}
 }
 
 

@@ -254,15 +254,6 @@ static SpaceLink *clip_new(const ScrArea *sa, const Scene *scene)
 	ar->regiontype = RGN_TYPE_TOOLS;
 	ar->alignment = RGN_ALIGN_LEFT;
 
-#ifndef WITH_REDO_REGION_REMOVAL
-	/* tools view */
-	ar = MEM_callocN(sizeof(ARegion), "tool properties for clip");
-
-	BLI_addtail(&sc->regionbase, ar);
-	ar->regiontype = RGN_TYPE_TOOL_PROPS;
-	ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-#endif
-
 	/* properties view */
 	ar = MEM_callocN(sizeof(ARegion), "properties for clip");
 
@@ -895,19 +886,12 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 	bool main_visible = false, preview_visible = false, tools_visible = false;
 	bool properties_visible = false, channels_visible = false;
 	bool view_changed = false;
-#ifndef WITH_REDO_REGION_REMOVAL
-	ARegion *ar_tool_props = BKE_area_find_region_type(sa, RGN_TYPE_TOOL_PROPS);
-	bool tool_props_visible = false;
-#endif
 
 	switch (sc->view) {
 		case SC_VIEW_CLIP:
 			main_visible = true;
 			preview_visible = false;
 			tools_visible = true;
-#ifndef WITH_REDO_REGION_REMOVAL
-			tool_props_visible = true;
-#endif
 			properties_visible = true;
 			channels_visible = false;
 			break;
@@ -915,9 +899,6 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			main_visible = false;
 			preview_visible = true;
 			tools_visible = false;
-#ifndef WITH_REDO_REGION_REMOVAL
-			tool_props_visible = false;
-#endif
 			properties_visible = false;
 			channels_visible = false;
 
@@ -927,9 +908,6 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			main_visible = false;
 			preview_visible = true;
 			tools_visible = false;
-#ifndef WITH_REDO_REGION_REMOVAL
-			tool_props_visible = false;
-#endif
 			properties_visible = false;
 			channels_visible = true;
 
@@ -1009,32 +987,6 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			view_changed = true;
 		}
 	}
-
-#ifndef WITH_REDO_REGION_REMOVAL
-	if (tool_props_visible) {
-		if (ar_tool_props && (ar_tool_props->flag & RGN_FLAG_HIDDEN)) {
-			ar_tool_props->flag &= ~RGN_FLAG_HIDDEN;
-			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
-			view_changed = true;
-		}
-		if (ar_tool_props && (ar_tool_props->alignment != (RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV))) {
-			ar_tool_props->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-			view_changed = true;
-		}
-	}
-	else {
-		if (ar_tool_props && !(ar_tool_props->flag & RGN_FLAG_HIDDEN)) {
-			ar_tool_props->flag |= RGN_FLAG_HIDDEN;
-			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
-			WM_event_remove_handlers((bContext *)C, &ar_tool_props->handlers);
-			view_changed = true;
-		}
-		if (ar_tool_props && ar_tool_props->alignment != RGN_ALIGN_NONE) {
-			ar_tool_props->alignment = RGN_ALIGN_NONE;
-			view_changed = true;
-		}
-	}
-#endif
 
 	if (preview_visible) {
 		if (ar_preview && (ar_preview->flag & RGN_FLAG_HIDDEN)) {
@@ -1617,21 +1569,6 @@ void ED_spacetype_clip(void)
 	art->draw = clip_tools_region_draw;
 
 	BLI_addhead(&st->regiontypes, art);
-
-#ifndef WITH_REDO_REGION_REMOVAL
-	/* tool properties */
-	art = MEM_callocN(sizeof(ARegionType), "spacetype clip tool properties region");
-	art->regionid = RGN_TYPE_TOOL_PROPS;
-	art->prefsizex = 0;
-	art->prefsizey = 120;
-	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
-	art->listener = clip_props_region_listener;
-	art->init = clip_tools_region_init;
-	art->draw = clip_tools_region_draw;
-	ED_clip_tool_props_register(art);
-
-	BLI_addhead(&st->regiontypes, art);
-#endif
 
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip region");

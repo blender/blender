@@ -35,8 +35,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
     bl_category = "Tools"
-    bl_label = "Active Tool (Test)"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_label = "Tools"  # not visible
+    bl_options = {'HIDE_HEADER'}
 
     # Satisfy the 'ToolSelectPanelHelper' API.
     keymap_prefix = "3D View Tool: "
@@ -53,34 +53,39 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        ("Translate", "TRANSFORM_WGT_manipulator",
+        ("Translate", "ops.transform.translate", "TRANSFORM_WGT_manipulator",
          (("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
-        ("Rotate", "TRANSFORM_WGT_manipulator",
+        ("Rotate", "ops.transform.rotate", "TRANSFORM_WGT_manipulator",
          (("transform.rotate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
-        ("Scale", "TRANSFORM_WGT_manipulator",
-         (("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
-        ("Scale Cage", "VIEW3D_WGT_xform_cage", None),
+        (
+            ("Scale", "ops.transform.resize", "TRANSFORM_WGT_manipulator",
+             (("transform.resize", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),)),
+            ("Scale Cage", "ops.transform.resize.cage", "VIEW3D_WGT_xform_cage", None),
+        ),
         None,
-        ("Ruler/Protractor", "VIEW3D_WGT_ruler",
+        ("Ruler/Protractor", "ops.view3d.ruler", "VIEW3D_WGT_ruler",
          (("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),)),
+
+        # DEBUGGING ONLY
+        # ("Pixel Test", "tool_icon.pixeltest", None, (("wm.splash", dict(), dict(type='ACTIONMOUSE', value='PRESS')),)),
     )
 
     _tools = {
         None: [
-            ("Cursor", None,
+            ("Cursor", "ops.generic.cursor", None,
              (("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),)),
 
             # 'Select' Group
             (
-                ("Select Border", None, (
+                ("Select Border", "ops.generic.select_border", None, (
                     ("view3d.select_border", dict(deselect=False), dict(type='EVT_TWEAK_A', value='ANY')),
                     ("view3d.select_border", dict(deselect=True), dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
                 )),
-                ("Select Circle", None, (
+                ("Select Circle", "ops.generic.select_circle", None, (
                     ("view3d.select_circle", dict(deselect=False), dict(type='ACTIONMOUSE', value='PRESS')),
                     ("view3d.select_circle", dict(deselect=True), dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
                 )),
-                ("Select Lasso", None, (
+                ("Select Lasso", "ops.generic.select_lasso", None, (
                     ("view3d.select_lasso",
                      dict(deselect=False), dict(type='EVT_TWEAK_A', value='ANY')),
                     ("view3d.select_lasso",
@@ -95,30 +100,45 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'POSE': [
             *_tools_transform,
         ],
+        'PAINT_WEIGHT': [
+            # TODO, override brush events
+            (
+                ("Linear Gradient", None, None, (
+                    ("paint.weight_gradient", dict(type='LINEAR'),
+                     dict(type='EVT_TWEAK_A', value='ANY')),
+                )),
+                ("Radial Gradient", None, None, (
+                    ("paint.weight_gradient", dict(type='RADIAL'),
+                     dict(type='EVT_TWEAK_A', value='ANY')),
+                )),
+            ),
+        ],
         'EDIT_ARMATURE': [
             *_tools_transform,
-            ("Roll", None, (
+            ("Roll", None, None, (
                 ("transform.transform",
                  dict(release_confirm=True, mode='BONE_ROLL'),
                  dict(type='EVT_TWEAK_A', value='ANY')),
             )),
             None,
-            ("Extrude Cursor", None,
+            ("Extrude Cursor", "ops.armature.extrude", None,
              (("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),)),
         ],
         'EDIT_MESH': [
             *_tools_transform,
             None,
-            ("Rip Region", None, (
-                ("mesh.rip_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            )),
-            ("Rip Edge", None, (
-                ("mesh.rip_edge_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
-            )),
+            (
+                ("Rip Region", "ops.mesh.rip", None, (
+                    ("mesh.rip_move", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+                ("Rip Edge", "ops.mesh.rip_edge", None, (
+                    ("mesh.rip_edge_edge_move", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+            ),
 
-            ("Poly Build", None, (
+            ("Poly Build", "ops.mesh.polybuild_hover", None, (
                 ("mesh.polybuild_face_at_cursor_move",
                  dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='ACTIONMOUSE', value='PRESS')),
@@ -130,32 +150,92 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 ("mesh.polybuild_hover", dict(use_boundary=True), dict(type='MOUSEMOVE', value='ANY', any=True)),
             )),
 
+
+            # 'Slide' Group
+            (
+                ("Edge Slide", "ops.transform.edge_slide", None, (
+                    ("transform.edge_slide", dict(release_confirm=True),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+                ("Vertex Slide", "ops.transform.edge_slide", None, (
+                    ("transform.vert_slide", dict(release_confirm=True),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+            ),
+            # End group.
+
+            (
+                ("Spin", "ops.mesh.spin", None, (
+                    ("mesh.spin", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+                ("Spin (Duplicate)", "ops.mesh.spin.duplicate", None, (
+                    ("mesh.spin", dict(dupli=True),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+            ),
+
+
+            ("Inset Faces", "ops.mesh.inset", None, (
+                ("mesh.inset", dict(),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+            )),
+
+            (
+                ("Extrude Region", "ops.view3d.edit_mesh_extrude", None, (
+                    ("view3d.edit_mesh_extrude", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+                ("Extrude Individual", "ops.view3d.edit_mesh_extrude_individual", None, (
+                    ("mesh.extrude_faces_move", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+            ),
+
+            (
+                ("Randomize", "ops.transform.vertex_random", None, (
+                    ("transform.vertex_random", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+                ("Smooth", "ops.mesh.vertices_smooth", None, (
+                    ("mesh.vertices_smooth", dict(),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+            ),
+
+            (
+                ("Shrink/Fatten", "ops.transform.shrink_fatten", None, (
+                    ("transform.shrink_fatten", dict(release_confirm=True),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+                ("Push/Pull", "ops.transform.push_pull", None, (
+                    ("transform.push_pull", dict(release_confirm=True),
+                     dict(type='ACTIONMOUSE', value='PRESS')),
+                )),
+            ),
+
             # Knife Group
             (
-                ("Knife", None, (
+                ("Knife", "ops.mesh.knife_tool", None, (
                     ("mesh.knife_tool",
                      dict(wait_for_input=False, use_occlude_geometry=True, only_selected=False),
                      dict(type='ACTIONMOUSE', value='PRESS')),)),
-                ("Knife (Selected)", None, (
-                    ("mesh.knife_tool",
-                     dict(wait_for_input=False, use_occlude_geometry=False, only_selected=True),
-                     dict(type='ACTIONMOUSE', value='PRESS')),)),
                 None,
-                ("Bisect", None, (
+                ("Bisect", "ops.mesh.bisect", None, (
                     ("mesh.bisect",
                      dict(),
                      dict(type='EVT_TWEAK_A', value='ANY')),)),
             ),
             # End group.
-            ("Extrude Cursor", None,
+            ("Extrude Cursor", None, None,
              (("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),)),
         ],
         'EDIT_CURVE': [
             *_tools_transform,
             None,
-            ("Draw", None,
+            ("Draw", None, None,
              (("curve.draw", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),)),
-            ("Extrude Cursor", None,
+            ("Extrude Cursor", None, None,
              (("curve.vertex_add", dict(), dict(type='ACTIONMOUSE', value='PRESS')),)),
         ],
     }

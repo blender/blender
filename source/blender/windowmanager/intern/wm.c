@@ -165,10 +165,8 @@ void wm_operator_register(bContext *C, wmOperator *op)
 	wmWindowManager *wm = CTX_wm_manager(C);
 	int tot = 0;
 
-#ifdef WITH_REDO_REGION_REMOVAL
 	op->execution_area = CTX_wm_area(C);
 	op->execution_region = CTX_wm_region(C);
-#endif
 
 	BLI_addtail(&wm->operators, op);
 
@@ -470,7 +468,6 @@ void wm_add_default(Main *bmain, bContext *C)
 	WM_window_set_active_workspace(win, workspace);
 	WM_window_set_active_layout(win, workspace, layout);
 	screen->winid = win->winid;
-	ED_screen_global_areas_create(win);
 
 	wm->winactive = win;
 	wm->file_saved = 1;

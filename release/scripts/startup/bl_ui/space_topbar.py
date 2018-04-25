@@ -101,8 +101,7 @@ class TOPBAR_HT_lower_bar(Header):
         elif region.alignment == 'RIGHT':
             self.draw_right(context)
         else:
-            # WITH_REDO_REGION_REMOVAL:
-            # layout.template_operator_redo_props()
+            # 'NONE' currently not used
             pass
 
     def draw_left(self, context):
@@ -116,32 +115,52 @@ class TOPBAR_HT_lower_bar(Header):
         mode = context.mode
 
         # Example of how toolsettings can be accessed as pop-overs.
+
+        # TODO(campbell): editing options should be after active tool options
+        # (obviously separated for from the users POV)
+
         if mode == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+
+        elif mode == 'EDIT_ARMATURE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".armature_edit", category="")
+        elif mode == 'EDIT_CURVE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".curve_edit", category="")
+        elif mode == 'EDIT_MESH':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".mesh_edit", category="")
+
+        elif mode == 'POSE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
 
     def draw_right(self, context):
         layout = self.layout
 
-        # Placeholder
-        layout.operator("ed.undo_history", text="...")
-
-        # Last Action (redo)
-        layout.label("Last Action:")
+        # Command Settings (redo)
         op = context.active_operator
         row = layout.row()
         row.enabled = op is not None
         row.popover(
-            space_type='VIEW_3D',
-            region_type='TOOL_PROPS',
-            panel_type="VIEW3D_PT_last_operator",
-            text=op.name if op else "Last Action...",
+            space_type='TOPBAR',
+            region_type='WINDOW',
+            panel_type="TOPBAR_PT_redo",
+            text=op.name + " Settings" if op else "Command Settings",
         )
+
+
+class TOPBAR_PT_redo(Panel):
+    bl_label = "Redo"
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'WINDOW'
+
+    def draw(self, context):
+        layout = self.layout
+        layout.column().template_operator_redo_props()
 
 
 class INFO_MT_editor_menus(Menu):
@@ -410,6 +429,7 @@ class INFO_MT_help(Menu):
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
+    TOPBAR_PT_redo,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,

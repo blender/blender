@@ -781,7 +781,12 @@ eOLDrawState tree_element_type_active(
 		case TSE_CONSTRAINT:
 			return tree_element_active_constraint(C, scene, view_layer, te, tselem, set);
 		case TSE_R_LAYER:
-			return tree_element_active_renderlayer(C, scene, view_layer, te, tselem, set);
+			if (soops->outlinevis == SO_SCENES) {
+				return tree_element_active_renderlayer(C, scene, view_layer, te, tselem, set);
+			}
+			else {
+				return OL_DRAWSEL_NONE;
+			}
 		case TSE_POSEGRP:
 			return tree_element_active_posegroup(C, scene, view_layer, te, tselem, set);
 		case TSE_SEQUENCE:

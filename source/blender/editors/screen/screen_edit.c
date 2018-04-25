@@ -721,6 +721,9 @@ static void screen_vertices_scale(
 	/* Global areas have a fixed size that only changes with the DPI. Here we ensure that exactly this size is set.
 	 * TODO Assumes global area to be top-aligned. Should be made more generic */
 	for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
+		if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
+			continue;
+		}
 		/* width */
 		area->v1->vec.x = area->v2->vec.x = 0;
 		area->v3->vec.x = area->v4->vec.x = window_size_x - 1;
@@ -1464,6 +1467,10 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		}
 
 		if (state == SCREENFULL) {
+			/* unhide global areas */
+			for (ScrArea *glob_area = win->global_areas.areabase.first; glob_area; glob_area = glob_area->next) {
+				glob_area->global->flag &= ~GLOBAL_AREA_IS_HIDDEN;
+			}
 			/* restore the old side panels/header visibility */
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				ar->flag = ar->flagfullscreen;
@@ -1523,6 +1530,10 @@ ScrArea *ED_screen_state_toggle(bContext *C, wmWindow *win, ScrArea *sa, const s
 		newa->flag = sa->flag; /* mostly for AREA_FLAG_WASFULLSCREEN */
 
 		if (state == SCREENFULL) {
+			/* temporarily hide global areas */
+			for (ScrArea *glob_area = win->global_areas.areabase.first; glob_area; glob_area = glob_area->next) {
+				glob_area->global->flag |= GLOBAL_AREA_IS_HIDDEN;
+			}
 			/* temporarily hide the side panels/header */
 			for (ar = newa->regionbase.first; ar; ar = ar->next) {
 				ar->flagfullscreen = ar->flag;

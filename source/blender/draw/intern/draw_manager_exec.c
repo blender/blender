@@ -644,22 +644,35 @@ bool DRW_culling_box_test(BoundBox *bbox)
 /** \name Draw (DRW_draw)
  * \{ */
 
+static void draw_visibility_eval(DRWCallState *st)
+{
+	bool culled = st->flag & DRW_CALL_CULLED;
+
+	if (st->cache_id != DST.state_cache_id) {
+		/* Update culling result for this view. */
+		culled = !DRW_culling_sphere_test(&st->bsphere);
+	}
+
+	if (st->visibility_cb) {
+		culled = !st->visibility_cb(!culled, st->user_data);
+	}
+
+	SET_FLAG_FROM_TEST(st->flag, culled, DRW_CALL_CULLED);
+}
+
 static void draw_matrices_model_prepare(DRWCallState *st)
 {
 	if (st->cache_id == DST.state_cache_id) {
-		return; /* Values are already updated for this view. */
+		/* Values are already updated for this view. */
+		return;
 	}
 	else {
 		st->cache_id = DST.state_cache_id;
 	}
 
-	if (DRW_culling_sphere_test(&st->bsphere)) {
-		st->flag &= ~DRW_CALL_CULLED;
-	}
-	else {
-		st->flag |= DRW_CALL_CULLED;
-		return; /* No need to go further the call will not be used. */
-	}
+	/* No need to go further the call will not be used. */
+	if (st->flag & DRW_CALL_CULLED)
+		return;
 
 	/* Order matters */
 	if (st->matflag & (DRW_CALL_MODELVIEW | DRW_CALL_MODELVIEWINVERSE |
@@ -1014,6 +1027,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		for (DRWCall *call = shgroup->calls.first; call; call = call->next) {
 
 			/* OPTI/IDEA(clem): Do this preparation in another thread. */
+			draw_visibility_eval(call->state);
 			draw_matrices_model_prepare(call->state);
 
 			if ((call->state->flag & DRW_CALL_CULLED) != 0)

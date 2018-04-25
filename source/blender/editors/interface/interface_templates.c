@@ -1533,7 +1533,6 @@ uiLayout *uiTemplateModifier(uiLayout *layout, bContext *C, PointerRNA *ptr)
 
 /************************ Redo Buttons Template *************************/
 
-#ifdef WITH_REDO_REGION_REMOVAL
 static bool template_operator_redo_property_buts_poll(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
 {
 	return (RNA_property_tags(prop) & OP_PROP_TAG_ADVANCED) == 0;
@@ -1552,10 +1551,12 @@ static void template_operator_redo_property_buts_draw(
 	else {
 		/* Might want to make label_align adjustable somehow. */
 		eAutoPropButsReturn return_info = uiTemplateOperatorPropertyButs(
-		                                          C, layout, op, template_operator_redo_property_buts_poll,
-		                                          UI_BUT_LABEL_ALIGN_NONE, layout_flags);
+		        C, layout, op, r_has_advanced ? template_operator_redo_property_buts_poll : NULL,
+		        UI_BUT_LABEL_ALIGN_NONE, layout_flags);
 		if (return_info & UI_PROP_BUTS_ANY_FAILED_CHECK) {
-			*r_has_advanced = true;
+			if (r_has_advanced) {
+				*r_has_advanced = true;
+			}
 		}
 	}
 }
@@ -1569,23 +1570,29 @@ void uiTemplateOperatorRedoProperties(uiLayout *layout, bContext *C)
 		return;
 	}
 
+	/* Disable for now, doesn't fit well in popover. */
+#if 0
 	/* Repeat button with operator name as text. */
 	uiItemFullO(layout, "SCREEN_OT_repeat_last", RNA_struct_ui_name(op->type->srna),
 	            ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0, NULL);
+#endif
 
 	if (WM_operator_repeat_check(C, op)) {
+#if 0
 		bool has_advanced = false;
+#endif
 
 		UI_block_func_set(block, ED_undo_operator_repeat_cb, op, NULL);
-		template_operator_redo_property_buts_draw(C, op, layout, UI_TEMPLATE_OP_PROPS_COMPACT, &has_advanced);
+		template_operator_redo_property_buts_draw(C, op, layout, UI_TEMPLATE_OP_PROPS_COMPACT, NULL /* &has_advanced */ );
 		UI_block_func_set(block, NULL, NULL, NULL); /* may want to reset to old state instead of NULLing all */
 
+#if 0
 		if (has_advanced) {
 			uiItemO(layout, IFACE_("More..."), ICON_NONE, "SCREEN_OT_redo_last");
 		}
+#endif
 	}
 }
-#endif
 
 /************************ Constraint Template *************************/
 

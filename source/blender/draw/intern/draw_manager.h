@@ -102,6 +102,9 @@ enum {
 };
 
 typedef struct DRWCallState {
+	DRWCallVisibilityFn *visibility_cb;
+	void *user_data;
+
 	unsigned char flag;
 	unsigned char cache_id;   /* Compared with DST.state_cache_id to see if matrices are still valid. */
 	uint16_t matflag;         /* Which matrices to compute. */

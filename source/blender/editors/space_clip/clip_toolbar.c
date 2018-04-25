@@ -120,27 +120,14 @@ void CLIP_OT_properties(wmOperatorType *ot)
 static ARegion *clip_has_tools_region(ScrArea *sa)
 {
 	ARegion *ar, *artool = NULL, *arhead;
-#ifndef WITH_REDO_REGION_REMOVAL
-	ARegion *arprops = NULL;
-#endif
 
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
 		if (ar->regiontype == RGN_TYPE_TOOLS)
 			artool = ar;
-
-#ifndef WITH_REDO_REGION_REMOVAL
-		if (ar->regiontype == RGN_TYPE_TOOL_PROPS)
-			arprops = ar;
-#endif
 	}
 
 	/* tool region hide/unhide also hides props */
-	if (artool
-#ifndef WITH_REDO_REGION_REMOVAL
-	    && arprops
-#endif
-	    )
-	{
+	if (artool) {
 		return artool;
 	}
 
@@ -160,17 +147,6 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 
 		artool->flag = RGN_FLAG_HIDDEN;
 	}
-
-#ifndef WITH_REDO_REGION_REMOVAL
-	if (arprops == NULL) {
-		/* add extra subdivided region for tool properties */
-		arprops = MEM_callocN(sizeof(ARegion), "tool props for clip");
-
-		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
-		arprops->regiontype = RGN_TYPE_TOOL_PROPS;
-		arprops->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
-	}
-#endif
 
 	return artool;
 }
@@ -202,81 +178,3 @@ void CLIP_OT_tools(wmOperatorType *ot)
 	ot->exec = tools_exec;
 	ot->poll = tools_poll;
 }
-
-#ifndef WITH_REDO_REGION_REMOVAL
-
-/************************** redo panel ******************************/
-
-static void clip_panel_operator_redo_buts(const bContext *C, Panel *pa, wmOperator *op)
-{
-	uiTemplateOperatorPropertyButs(C, pa->layout, op, NULL, UI_BUT_LABEL_ALIGN_COLUMN, 0);
-}
-
-static void clip_panel_operator_redo_header(const bContext *C, Panel *pa)
-{
-	wmOperator *op = WM_operator_last_redo(C);
-
-	if (op)
-		BLI_strncpy(pa->drawname, RNA_struct_ui_name(op->type->srna), sizeof(pa->drawname));
-	else
-		BLI_strncpy(pa->drawname, IFACE_("Operator"), sizeof(pa->drawname));
-}
-
-static void clip_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
-{
-	if (op->type->flag & OPTYPE_MACRO) {
-		for (op = op->macro.first; op; op = op->next) {
-			uiItemL(pa->layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
-			clip_panel_operator_redo_operator(C, pa, op);
-		}
-	}
-	else {
-		clip_panel_operator_redo_buts(C, pa, op);
-	}
-}
-
-/* TODO de-duplicate redo panel functions - campbell */
-static void clip_panel_operator_redo(const bContext *C, Panel *pa)
-{
-	wmOperator *op = WM_operator_last_redo(C);
-	ARegion *ar;
-	ARegion *ar1;
-
-	if (op == NULL)
-		return;
-
-	/* keep in sync with logic in ED_undo_operator_repeat() */
-	ar = CTX_wm_region(C);
-	ar1 = BKE_area_find_region_type(CTX_wm_area(C), RGN_TYPE_WINDOW);
-	if (ar1)
-		CTX_wm_region_set((bContext *)C, ar1);
-
-	if (WM_operator_poll((bContext *)C, op->type)) {
-		uiBlock *block = uiLayoutGetBlock(pa->layout);
-
-		if (!WM_operator_check_ui_enabled(C, op->type->name))
-			uiLayoutSetEnabled(pa->layout, false);
-
-		/* note, blockfunc is a default but->func, use Handle func to allow button callbacks too */
-		UI_block_func_handle_set(block, ED_undo_operator_repeat_cb_evt, op);
-
-		clip_panel_operator_redo_operator(C, pa, op);
-	}
-
-	/* set region back */
-	CTX_wm_region_set((bContext *)C, ar);
-}
-
-void ED_clip_tool_props_register(ARegionType *art)
-{
-	PanelType *pt;
-
-	pt = MEM_callocN(sizeof(PanelType), "spacetype clip panel last operator");
-	strcpy(pt->idname, "CLIP_PT_last_operator");
-	strcpy(pt->label, N_("Operator"));
-	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
-	pt->draw_header = clip_panel_operator_redo_header;
-	pt->draw = clip_panel_operator_redo;
-	BLI_addtail(&art->paneltypes, pt);
-}
-#endif

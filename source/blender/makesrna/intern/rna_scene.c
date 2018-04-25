@@ -2109,14 +2109,14 @@ const EnumPropertyItem *rna_TransformOrientation_itemf(
 
 	RNA_enum_items_add(&item, &totitem, transform_orientation_items);
 
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene;
 	if (ptr->type == &RNA_Scene) {
 		scene = ptr->data;
 	}
 	else {
 		scene = CTX_data_scene(C);
 	}
-	const ListBase *transform_orientations = &scene->transform_spaces;
+	const ListBase *transform_orientations = scene ? &scene->transform_spaces : NULL;
 
 	if (transform_orientations && (BLI_listbase_is_empty(transform_orientations) == false)) {
 		RNA_enum_item_add_separator(&item, &totitem);
