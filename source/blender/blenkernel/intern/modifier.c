@@ -1033,14 +1033,20 @@ void modifier_deformMatrices_DM_deprecated(struct ModifierData *md, struct Depsg
 		mti->deformMatrices_DM(md, depsgraph, ob, dm, vertexCos, defMats, numVerts);
 	}
 	else {
-		struct Mesh mesh;
-		BKE_mesh_init(&mesh);
+		/* TODO(sybren): deduplicate all the copies of this code in this file. */
+		Mesh *mesh = NULL;
+		if (dm != NULL) {
+			mesh = BKE_libblock_alloc_notest(ID_ME);
+			BKE_mesh_init(mesh);
+			DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 
-		DM_to_mesh(dm, &mesh, ob, CD_MASK_EVERYTHING, false);
+		mti->deformMatrices(md, depsgraph, ob, mesh, vertexCos, defMats, numVerts);
 
-		mti->deformMatrices(md, depsgraph, ob, &mesh, vertexCos, defMats, numVerts);
-
-		BKE_mesh_free(&mesh);
+		if (mesh != NULL) {
+			BKE_mesh_free(mesh);
+			MEM_freeN(mesh);
+		}
 	}
 }
 
@@ -1054,6 +1060,7 @@ void modifier_deformVertsEM_DM_deprecated(struct ModifierData *md, struct Depsgr
 		mti->deformVertsEM_DM(md, depsgraph, ob, editData, dm, vertexCos, numVerts);
 	}
 	else {
+		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
 			mesh = BKE_libblock_alloc_notest(ID_ME);
@@ -1080,14 +1087,20 @@ void modifier_deformMatricesEM_DM_deprecated(struct ModifierData *md, struct Dep
 		mti->deformMatricesEM_DM(md, depsgraph, ob, editData, dm, vertexCos, defMats, numVerts);
 	}
 	else {
-		struct Mesh mesh;
-		BKE_mesh_init(&mesh);
+		/* TODO(sybren): deduplicate all the copies of this code in this file. */
+		Mesh *mesh = NULL;
+		if (dm != NULL) {
+			mesh = BKE_libblock_alloc_notest(ID_ME);
+			BKE_mesh_init(mesh);
+			DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 
-		DM_to_mesh(dm, &mesh, ob, CD_MASK_EVERYTHING, false);
+		mti->deformMatricesEM(md, depsgraph, ob, editData, mesh, vertexCos, defMats, numVerts);
 
-		mti->deformMatricesEM(md, depsgraph, ob, editData, &mesh, vertexCos, defMats, numVerts);
-
-		BKE_mesh_free(&mesh);
+		if (mesh != NULL) {
+			BKE_mesh_free(mesh);
+			MEM_freeN(mesh);
+		}
 	}
 }
 
@@ -1140,19 +1153,30 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 		return mti->applyModifierEM_DM(md, depsgraph, ob, editData, dm, flag);
 	}
 	else {
-		struct Mesh mesh;
-		BKE_mesh_init(&mesh);
+		/* TODO(sybren): deduplicate all the copies of this code in this file. */
+		Mesh *mesh = NULL;
+		if (dm != NULL) {
+			mesh = BKE_libblock_alloc_notest(ID_ME);
+			BKE_mesh_init(mesh);
+			DM_to_mesh(dm, mesh, ob, CD_MASK_EVERYTHING, false);
+		}
 
-		DM_to_mesh(dm, &mesh, ob, CD_MASK_EVERYTHING, false);
-
-		struct Mesh *new_mesh = mti->applyModifierEM(md, depsgraph, ob, editData, &mesh, flag);
+		struct Mesh *new_mesh = mti->applyModifierEM(md, depsgraph, ob, editData, mesh, flag);
 
 		DerivedMesh *ndm = CDDM_from_mesh(new_mesh);
+		if(new_mesh != mesh) {
+			/* Make a DM that doesn't reference new_mesh so we can free the latter. */
+			/* TODO(sybren): create CDDM_from_mesh_ex() that creates a copy directly. */
+			DerivedMesh *nonref_dm = CDDM_copy(ndm);
+			ndm->release(ndm);
+			ndm = nonref_dm;
 
-		if(new_mesh != &mesh) {
-			BKE_mesh_free(&mesh);
-
-			/* XXX free new_mesh? */
+			BKE_mesh_free(new_mesh);
+			MEM_freeN(new_mesh);
+		}
+		if (mesh != NULL) {
+			BKE_mesh_free(mesh);
+			MEM_freeN(mesh);
 		}
 
 		return ndm;

@@ -963,7 +963,7 @@ static void armature_bbone_defmats_cb(void *userdata, Link *iter, int index)
 	}
 }
 
-void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
+void armature_deform_verts(Object *armOb, Object *target, const Mesh * mesh, float (*vertexCos)[3],
                            float (*defMats)[3][3], int numVerts, int deformflag,
                            float (*prevCos)[3], const char *defgrp_name)
 {
@@ -1039,9 +1039,9 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	/* get a vertex-deform-index to posechannel array */
 	if (deformflag & ARM_DEF_VGROUP) {
 		if (ELEM(target->type, OB_MESH, OB_LATTICE)) {
-			/* if we have a DerivedMesh, only use dverts if it has them */
-			if (dm) {
-				use_dverts = (dm->getVertDataArray(dm, CD_MDEFORMVERT) != NULL);
+			/* if we have a Mesh, only use dverts if it has them */
+			if (mesh) {
+				use_dverts = (mesh->dvert != NULL);
 			}
 			else if (dverts) {
 				use_dverts = true;
@@ -1103,8 +1103,10 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 		}
 
 		if (use_dverts || armature_def_nr != -1) {
-			if (dm)
-				dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
+			if (mesh) {
+				BLI_assert(i < mesh->totvert);
+				dvert = mesh->dvert + i;
+			}
 			else if (dverts && i < target_totvert)
 				dvert = dverts + i;
 			else
