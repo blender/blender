@@ -1530,7 +1530,7 @@ DerivedMesh *CDDM_merge_verts(DerivedMesh *dm, const int *vtargetmap, const int 
 	MLoop *ml, *mloop = MEM_malloc_arrayN(totloop, sizeof(*mloop), __func__);
 	int *oldl         = MEM_malloc_arrayN(totloop, sizeof(*oldl), __func__);
 #ifdef USE_LOOPS
-	int newl          = MEM_malloc_arrayN(totloop, sizeof(*newl), __func__);
+	int *newl         = MEM_malloc_arrayN(totloop, sizeof(*newl), __func__);
 #endif
 	STACK_DECLARE(mloop);
 	STACK_DECLARE(oldl);

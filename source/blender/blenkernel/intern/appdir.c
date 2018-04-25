@@ -290,47 +290,6 @@ static bool get_path_user(
 }
 
 /**
- * Special convenience exception for dev builds to allow overrides to the system path.
- * With this, need for running 'make install' can be avoided, e.g. by symlinking SOURCE_DIR/release
- * to EXECUTABLE_DIR/release, or by running Blender from source directory directly.
- */
-static bool get_path_system_dev_build_exception(
-        char *targetpath, size_t targetpath_len, const char *relfolder)
-{
-	char cwd[FILE_MAX];
-	char tmp_path[FILE_MAX];
-	bool ret = false;
-
-	/* Try EXECUTABLE_DIR/release/folder_name. Allows symlinking release folder from source dir. */
-	if (test_path(targetpath, targetpath_len, bprogdir, "release", relfolder)) {
-		ret = true;
-	}
-	/* Try CWD/release/folder_name. Allows executing Blender from any directory
-	 * (usually source dir), even without a release dir in bprogdir. */
-	if (BLI_current_working_dir(cwd, sizeof(cwd))) {
-		if (test_path(targetpath, targetpath_len, cwd, "release", relfolder)) {
-			ret = true;
-		}
-	}
-
-	/* Ensure we are in source dir, not in another one that happens to have a release folder. */
-	if (ret) {
-		BLI_join_dirfile(tmp_path, sizeof(tmp_path), bprogdir,
-		                 "source" SEP_STR "blender" SEP_STR "blenkernel" SEP_STR "BKE_blender_version.h");
-		if (!BLI_is_file(tmp_path)) {
-			ret = false;
-		}
-	}
-
-	/* never use if not existing. */
-	if (!ret) {
-		targetpath[0] = '\0';
-	}
-
-	return ret;
-}
-
-/**
  * Returns the path of a folder within the Blender installation directory.
  *
  * \param targetpath  String to return path
@@ -360,10 +319,6 @@ static bool get_path_system(
 		relfolder[0] = '\0';
 	}
 
-	if (get_path_system_dev_build_exception(targetpath, targetpath_len, relfolder)) {
-		return true;
-	}
-
 	system_path[0] = '\0';
 
 	if (test_env_path(system_path, envvar)) {
@@ -376,19 +331,10 @@ static bool get_path_system(
 		}
 	}
 
-	const char *blender_version_str = blender_version_decimal(ver);
-	system_base_path = (const char *)GHOST_getSystemDir(ver, blender_version_str);
+	system_base_path = (const char *)GHOST_getSystemDir(ver, blender_version_decimal(ver));
 	if (system_base_path)
 		BLI_strncpy(system_path, system_base_path, FILE_MAX);
-
-	/* GHOST_getSystemDir returns nothing in case of portable install, so we try binary directory itself. */
-	if (!system_path[0]) {
-		const char *prog_dir = BKE_appdir_program_dir();
-		if (prog_dir != NULL) {
-			BLI_join_dirfile(system_path, sizeof(system_path), prog_dir, blender_version_str);
-		}
-	}
-
+	
 	if (!system_path[0])
 		return false;
 	
