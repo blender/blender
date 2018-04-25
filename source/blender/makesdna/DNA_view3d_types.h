@@ -87,7 +87,6 @@ enum {
 
 enum {
 	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
-	V3D_OVERLAY_OBJECT_OVERLAP   = (2 << 0),
 };
 
 typedef struct RegionView3D {
