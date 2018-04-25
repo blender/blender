@@ -112,7 +112,7 @@ static void POSE_cache_init(void *vedata)
 	}
 }
 
-/* Add geometry to shadingGroups. Execute for each objects */
+/* Add geometry to shading groups. Execute for each objects */
 static void POSE_cache_populate(void *vedata, Object *ob)
 {
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
@@ -138,7 +138,7 @@ bool DRW_pose_mode_armature(Object *ob, Object *active_ob)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
-	/* Pode armature is handled by pose mode engine. */
+	/* Pose armature is handled by pose mode engine. */
 	if (((ob == active_ob) || (ob->base_flag & BASE_SELECTED)) &&
 	    ((draw_ctx->object_mode & OB_MODE_POSE) != 0))
 	{

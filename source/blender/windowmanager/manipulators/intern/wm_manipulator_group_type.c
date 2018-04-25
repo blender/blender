@@ -176,9 +176,9 @@ bool WM_manipulatorgrouptype_free(const char *idname)
 	return true;
 }
 
-static void wm_manipulatorgrouptype_ghash_free_cb(wmManipulatorGroupType *mt)
+static void wm_manipulatorgrouptype_ghash_free_cb(wmManipulatorGroupType *wgt)
 {
-	manipulatorgrouptype_free(mt);
+	manipulatorgrouptype_free(wgt);
 }
 
 void wm_manipulatorgrouptype_free(void)
