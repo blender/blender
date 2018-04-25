@@ -78,6 +78,8 @@
 
 #include "atomic_ops.h"
 
+#include "DEG_depsgraph_query.h"
+
 /* ***************************************** */
 /* AnimData API */
 
@@ -1701,10 +1703,15 @@ bool BKE_animsys_execute_fcurve(PointerRNA *ptr, AnimMapper *remap, FCurve *fcu,
 /* Evaluate all the F-Curves in the given list 
  * This performs a set of standard checks. If extra checks are required, separate code should be used
  */
-static void animsys_evaluate_fcurves(PointerRNA *ptr, ListBase *list, AnimMapper *remap, float ctime)
+static void animsys_evaluate_fcurves(PointerRNA *ptr, ListBase *list, AnimMapper *remap, float ctime, short recalc)
 {
 	FCurve *fcu;
-	
+
+	/* Pointer is expected to be an ID pointer, if it's not -- we are doomed. */
+	PointerRNA orig_ptr = *ptr;
+	orig_ptr.id.data = ((ID*)orig_ptr.id.data)->orig_id;
+	orig_ptr.data = orig_ptr.id.data;
+
 	/* calculate then execute each curve */
 	for (fcu = list->first; fcu; fcu = fcu->next) {
 		/* check if this F-Curve doesn't belong to a muted group */
@@ -1712,9 +1719,28 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr, ListBase *list, AnimMapper
 			/* check if this curve should be skipped */
 			if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
 				PathResolvedRNA anim_rna;
+				/* Read current value from original datablock. */
+				float dna_val;
+				if (animsys_store_rna_setting(&orig_ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
+					if (!animsys_read_rna_setting(&anim_rna, &dna_val)) {
+						continue;
+					}
+				}
+				else {
+					continue;
+				}
 				if (animsys_store_rna_setting(ptr, remap, fcu->rna_path, fcu->array_index, &anim_rna)) {
+					const bool check_orig_dna = ((recalc & ADT_RECALC_CHECK_ORIG_DNA) != 0);
+					/* If we are tweaking DNA without changing frame, we don't write f-curves,
+					 * since otherwise we will not be able to change properties which has animation.
+					 */
+					if (check_orig_dna && fcu->orig_dna_val != dna_val) {
+						continue;
+					}
 					const float curval = calculate_fcurve(&anim_rna, fcu, ctime);
 					animsys_write_rna_setting(&anim_rna, curval);
+					/* Store original DNA value f-curve was written for. */
+					fcu->orig_dna_val = dna_val;
 				}
 			}
 		}
@@ -1827,7 +1853,7 @@ void animsys_evaluate_action_group(PointerRNA *ptr, bAction *act, bActionGroup *
 }
 
 /* Evaluate Action (F-Curve Bag) */
-void animsys_evaluate_action(PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
+static void animsys_evaluate_action_ex(PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime, short recalc)
 {
 	/* check if mapper is appropriate for use here (we set to NULL if it's inappropriate) */
 	if (act == NULL) return;
@@ -1836,7 +1862,12 @@ void animsys_evaluate_action(PointerRNA *ptr, bAction *act, AnimMapper *remap, f
 	action_idcode_patch_check(ptr->id.data, act);
 	
 	/* calculate then execute each curve */
-	animsys_evaluate_fcurves(ptr, &act->curves, remap, ctime);
+	animsys_evaluate_fcurves(ptr, &act->curves, remap, ctime, recalc);
+}
+
+void animsys_evaluate_action(PointerRNA *ptr, bAction *act, AnimMapper *remap, float ctime)
+{
+	animsys_evaluate_action_ex(ptr, act, remap, ctime, 0);
 }
 
 /* ***************************************** */
@@ -1875,7 +1906,7 @@ static void nlastrip_evaluate_controls(NlaStrip *strip, float ctime)
 		RNA_pointer_create(NULL, &RNA_NlaStrip, strip, &strip_ptr);
 		
 		/* execute these settings as per normal */
-		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime);
+		animsys_evaluate_fcurves(&strip_ptr, &strip->fcurves, NULL, ctime, 0);
 	}
 	
 	/* analytically generate values for influence and time (if applicable)
@@ -2742,7 +2773,7 @@ void BKE_animsys_evaluate_animdata(Scene *scene, ID *id, AnimData *adt, float ct
 		}
 		/* evaluate Active Action only */
 		else if (adt->action)
-			animsys_evaluate_action(&id_ptr, adt->action, adt->remap, ctime);
+			animsys_evaluate_action_ex(&id_ptr, adt->action, adt->remap, ctime, recalc);
 		
 		/* reset tag */
 		adt->recalc &= ~ADT_RECALC_ANIM;
@@ -2921,7 +2952,15 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
 	                      * which should get handled as part of the dependency graph instead...
 	                      */
 	DEG_debug_print_eval_time(__func__, id->name, id, ctime);
-	BKE_animsys_evaluate_animdata(scene, id, adt, ctime, ADT_RECALC_ANIM);
+	short recalc = ADT_RECALC_ANIM;
+	const Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
+	/* If animation component is directly tagged for update, we always apply f-curves. */
+	if (((scene_eval->id.recalc & ID_RECALC_TIME) == 0) &&
+	    (id->recalc & ID_RECALC_TIME) == 0)
+	{
+		recalc |= ADT_RECALC_CHECK_ORIG_DNA;
+	}
+	BKE_animsys_evaluate_animdata(scene, id, adt, ctime, recalc);
 }
 
 /* TODO(sergey): This is slow lookup of driver from CoW datablock.

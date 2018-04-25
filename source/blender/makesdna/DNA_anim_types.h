@@ -488,11 +488,13 @@ typedef struct FCurve {
 	
 		/* value cache + settings */
 	float curval;			/* value stored from last time curve was evaluated (not threadsafe, debug display only!) */
+	/* Value which comes from original DNA ddatablock at a time f-curve was evaluated. */
+	float orig_dna_val;
 	short flag;				/* user-editable settings for this curve */
 	short extend;			/* value-extending mode for this curve (does not cover  */
 	char auto_smoothing;	/* auto-handle smoothing mode */
 	
-	char pad[7];
+	char pad[3];
 
 		/* RNA - data link */
 	int array_index;		/* if applicable, the index of the RNA-array item to get */
@@ -960,6 +962,8 @@ typedef enum eAnimData_Flag {
 typedef enum eAnimData_Recalc {
 	ADT_RECALC_DRIVERS      = (1 << 0),
 	ADT_RECALC_ANIM         = (1 << 1),
+	/* Only apply f-curve value if its original DNA value matches current DNA value. */
+	ADT_RECALC_CHECK_ORIG_DNA = (1 << 2),
 	ADT_RECALC_ALL          = (ADT_RECALC_DRIVERS | ADT_RECALC_ANIM)
 } eAnimData_Recalc;
 
