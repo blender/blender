@@ -405,18 +405,23 @@ static bool edbm_extrude_mesh(Object *obedit, BMEditMesh *em, wmOperator *op)
 /* extrude without transform */
 static int edbm_extrude_region_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	edbm_extrude_mesh(obedit, em, op);
+		edbm_extrude_mesh(obedit, em, op);
 
-	/* This normally happens when pushing undo but modal operators
-	 * like this one don't push undo data until after modal mode is
-	 * done.*/
-	EDBM_mesh_normals_update(em);
+		/* This normally happens when pushing undo but modal operators
+		 * like this one don't push undo data until after modal mode is
+		 * done.*/
+		EDBM_mesh_normals_update(em);
 
-	EDBM_update_generic(em, true, true);
-
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
