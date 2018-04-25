@@ -104,55 +104,6 @@ class VIEW3D_PT_tools_object(View3DPanel, Panel):
 # ********** default tools for editmode_mesh ****************
 
 
-class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "mesh_edit"
-    bl_label = "Mesh Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Deform:")
-        row = col.row(align=True)
-        row.operator("transform.edge_slide", text="Slide Edge")
-        row.operator("transform.vert_slide", text="Vertex")
-        col.operator("mesh.vertices_smooth")
-        col.operator("transform.vertex_random")
-
-        col = layout.column(align=True)
-        col.label(text="Add:")
-
-        col.menu("VIEW3D_MT_edit_mesh_extrude")
-        col.operator("view3d.edit_mesh_extrude_move_normal", text="Extrude Region")
-        col.operator("view3d.edit_mesh_extrude_individual_move", text="Extrude Individual")
-        col.operator("mesh.inset", text="Inset Faces")
-        col.operator("mesh.edge_face_add")
-        col.operator("mesh.subdivide")
-        col.operator("mesh.loopcut_slide")
-        col.operator("mesh.offset_edge_loops_slide")
-        col.operator("mesh.duplicate_move", text="Duplicate")
-        row = col.row(align=True)
-        row.operator("mesh.spin")
-        row.operator("mesh.screw")
-
-        row = col.row(align=True)
-        props = row.operator("mesh.knife_tool", text="Knife")
-        props.use_occlude_geometry = True
-        props.only_selected = False
-        props = row.operator("mesh.knife_tool", text="Select")
-        props.use_occlude_geometry = False
-        props.only_selected = True
-        col.operator("mesh.knife_project")
-        col.operator("mesh.bisect")
-
-        col = layout.column(align=True)
-        col.label(text="Remove:")
-        col.menu("VIEW3D_MT_edit_mesh_delete")
-        col.operator_menu_enum("mesh.merge", "type")
-        col.operator("mesh.remove_doubles")
-
-
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
     bl_category = "Options"
     bl_context = "mesh_edit"
@@ -1581,7 +1532,6 @@ class VIEW3D_PT_tools_history(View3DPanel, Panel):
 
 classes = (
     VIEW3D_PT_tools_object,
-    VIEW3D_PT_tools_meshedit,
     VIEW3D_PT_tools_meshedit_options,
     VIEW3D_PT_tools_curveedit,
     VIEW3D_PT_tools_curveedit_options_stroke,
