@@ -501,8 +501,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	memset(path, 0, sizeof(*path));
 	path->flag = flag;
 
-	const bool use_scene_settings = BKE_workspace_use_scene_settings_get(workspace);
-
 	/* If some ID datablock is pinned, set the root pointer. */
 	if (sbuts->pinid) {
 		id = sbuts->pinid;
@@ -512,8 +510,8 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 	}
 	/* No pinned root, use scene or workspace as initial root. */
 	else {
-		if ((mainb != BCONTEXT_WORKSPACE) && (use_scene_settings ||
-		    ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD)))
+		if ((mainb != BCONTEXT_WORKSPACE) &&
+		    ELEM(mainb, BCONTEXT_SCENE, BCONTEXT_RENDER, BCONTEXT_VIEW_LAYER, BCONTEXT_WORLD))
 		{
 			RNA_id_pointer_create(&scene->id, &path->ptr[0]);
 			path->len++;

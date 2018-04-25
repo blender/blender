@@ -155,7 +155,6 @@ typedef struct WorkSpaceInstanceHook {
 } WorkSpaceInstanceHook;
 
 typedef enum eWorkSpaceFlags {
-	WORKSPACE_USE_SCENE_SETTINGS = (1 << 0),
 	WORKSPACE_USE_FILTER_BY_ORIGIN = (1 << 1),
 } eWorkSpaceFlags;
 

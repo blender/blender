@@ -168,7 +168,7 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "WorkSpace");
 	RNA_def_struct_ui_text(srna, "Workspace", "Workspace data-block, defining the working environment for the user");
 	/* TODO: real icon, just to show something */
-	RNA_def_struct_ui_icon(srna, ICON_RENDER_RESULT);
+	RNA_def_struct_ui_icon(srna, ICON_SPLITSCREEN);
 
 	prop = RNA_def_property(srna, "screens", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "layouts", NULL);
@@ -204,13 +204,6 @@ static void rna_def_workspace(BlenderRNA *brna)
 #endif
 
 	/* Flags */
-	prop = RNA_def_property(srna, "use_scene_settings", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flags", WORKSPACE_USE_SCENE_SETTINGS);
-	RNA_def_property_ui_text(prop, "Scene Settings",
-	                         "Use scene settings instead of workspace settings");
-	RNA_def_property_update(prop, NC_SCREEN | ND_LAYER, NULL);
-
 	prop = RNA_def_property(srna, "use_filter_by_owner", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", WORKSPACE_USE_FILTER_BY_ORIGIN);

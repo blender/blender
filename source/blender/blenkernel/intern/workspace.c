@@ -440,22 +440,6 @@ void BKE_workspace_hook_layout_for_workspace_set(
 	workspace_relation_ensure_updated(&workspace->hook_layout_relations, hook, layout);
 }
 
-/* Flags */
-bool BKE_workspace_use_scene_settings_get(const WorkSpace *workspace)
-{
-	return (workspace->flags & WORKSPACE_USE_SCENE_SETTINGS) != 0;
-}
-
-void BKE_workspace_use_scene_settings_set(WorkSpace *workspace, bool value)
-{
-	if (value) {
-		workspace->flags |= WORKSPACE_USE_SCENE_SETTINGS;
-	}
-	else {
-		workspace->flags &= ~WORKSPACE_USE_SCENE_SETTINGS;
-	}
-}
-
 /* Update / evaluate */
 
 void BKE_workspace_update_tagged(Main *bmain,
