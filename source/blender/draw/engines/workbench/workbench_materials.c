@@ -48,6 +48,7 @@ extern char datatoc_workbench_prepass_frag_glsl[];
 extern char datatoc_workbench_composite_frag_glsl[];
 
 extern char datatoc_workbench_background_lib_glsl[];
+extern char datatoc_workbench_common_lib_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_object_overlap_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
@@ -82,6 +83,7 @@ static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 	DynStr *ds = BLI_dynstr_new();
 
 	BLI_dynstr_append(ds, datatoc_workbench_data_lib_glsl);
+	BLI_dynstr_append(ds, datatoc_workbench_common_lib_glsl);
 	BLI_dynstr_append(ds, datatoc_workbench_background_lib_glsl);
 
 	if (wpd->drawtype_lighting & V3D_LIGHTING_STUDIO) {
