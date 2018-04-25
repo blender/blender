@@ -100,7 +100,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 		minwidth = BLI_rctf_size_x(&pup->but->rect);
 	}
 	else {
-		minwidth = 50;
+		minwidth = UI_MENU_WIDTH_MIN;
 	}
 
 	block = pup->block;
