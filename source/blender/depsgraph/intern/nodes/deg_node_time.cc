@@ -33,10 +33,13 @@
 #include "intern/depsgraph_intern.h"
 #include "util/deg_util_foreach.h"
 
+#include "DNA_scene_types.h"
+
 namespace DEG {
 
 void TimeSourceDepsNode::tag_update(Depsgraph *graph)
 {
+	graph->scene_cow->id.recalc |= ID_RECALC_TIME;
 	foreach (DepsRelation *rel, outlinks) {
 		DepsNode *node = rel->to;
 		node->tag_update(graph);

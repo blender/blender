@@ -483,6 +483,7 @@ enum {
 	ID_RECALC_TRANSFORM   = 1 << 5,
 	ID_RECALC_COLLECTIONS = 1 << 6,
 	ID_RECALC_COPY_ON_WRITE = 1 << 7,
+	ID_RECALC_TIME          = 1 << 8,
 	/* Special flag to check if SOMETHING was changed. */
 	ID_RECALC_ALL   = (~(int)0),
 };
