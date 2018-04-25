@@ -1279,8 +1279,11 @@ static void add_orco_dm(
 		else
 			dm->getVertCos(dm, orco);
 	}
-	else
+	else {
+		/* TODO(sybren): totvert should potentially change here, as ob->data
+		 * or em may have a different number of vertices than dm. */
 		orco = get_orco_coords_dm(ob, em, layer, &free);
+	}
 
 	if (orco) {
 		if (layer == CD_ORCO)
