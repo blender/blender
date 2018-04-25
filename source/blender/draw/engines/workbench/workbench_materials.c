@@ -26,8 +26,12 @@
 #include "workbench_private.h"
 
 #include "BLI_dynstr.h"
-#include "UI_resources.h"
+
+#include "BKE_particle.h"
+
 #include "GPU_shader.h"
+
+#include "UI_resources.h"
 
 /* *********** STATIC *********** */
 #define MAX_SHADERS 255
@@ -277,47 +281,82 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 
 
 }
-
-void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
+static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedata, IDProperty *props, Object *ob)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
+	WORKBENCH_MaterialData *material;
+	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData*)DRW_object_engine_data_ensure(ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+	WORKBENCH_MaterialData material_template;
+	float color[3];
+	const float hsv_saturation = BKE_collection_engine_property_value_get_float(props, "random_object_color_saturation");
+	const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
 
+	/* Solid */
+	get_material_solid_color(wpd, engine_object_data, ob, color, hsv_saturation, hsv_value);
+	copy_v3_v3(material_template.color, color);
+	material_template.object_id = engine_object_data->object_id;
+	unsigned int hash = get_material_hash(wpd, &material_template);
+
+	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
+	if (material == NULL) {
+		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
+		material->shgrp = DRW_shgroup_create(wpd->prepass_sh, psl->prepass_pass);
+		material->object_id = engine_object_data->object_id;
+		copy_v3_v3(material->color, material_template.color);
+		DRW_shgroup_uniform_vec3(material->shgrp, "object_color", material->color, 1);
+		DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
+		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
+	}
+	return material;
+}
+
+static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, IDProperty *props, Object *ob)
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+
+	if (ob != draw_ctx->object_edit) {
+		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+			if (psys_check_enabled(ob, psys, false)) {
+				ParticleSettings *part = psys->part;
+				int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+				if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+					draw_as = PART_DRAW_DOT;
+				}
+
+				static float mat[4][4];
+				unit_m4(mat);
+
+				if (draw_as == PART_DRAW_PATH) {
+					struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
+					WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, props, ob);
+					DRW_shgroup_call_add(material->shgrp, geom, mat);
+				}
+			}
+		}
+	}
+}
+
+void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
+{
 	if (!DRW_object_is_renderable(ob))
 		return;
 
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
+	if (ob->type == OB_MESH) {
+		workbench_cache_populate_particles(vedata, props, ob);
+	}
 
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
 
 	WORKBENCH_MaterialData *material;
 	if (geom) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
-		WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData*)DRW_object_engine_data_ensure(ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
-		WORKBENCH_MaterialData material_template;
-		float color[3];
-		const float hsv_saturation = BKE_collection_engine_property_value_get_float(props, "random_object_color_saturation");
-		const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
 
-		/* Solid */
-		get_material_solid_color(wpd, engine_object_data, ob, color, hsv_saturation, hsv_value);
-		copy_v3_v3(material_template.color, color);
-		material_template.object_id = engine_object_data->object_id;
-		unsigned int hash = get_material_hash(wpd, &material_template);
-
-		material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
-		if (material == NULL) {
-			material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
-			material->shgrp = DRW_shgroup_create(wpd->prepass_sh, psl->prepass_pass);
-			material->object_id = engine_object_data->object_id;
-			copy_v3_v3(material->color, material_template.color);
-			DRW_shgroup_uniform_vec3(material->shgrp, "object_color", material->color, 1);
-			DRW_shgroup_uniform_int(material->shgrp, "object_id", &material->object_id, 1);
-			BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
-		}
-
+		material = get_or_create_material_data(vedata, props, ob);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		if(is_sculpt_mode) {
 			DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
