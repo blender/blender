@@ -1477,7 +1477,7 @@ static bool poly_gset_compare_fn(const void *k1, const void *k2)
  * \param vtargetmap  The table that maps vertices to target vertices.  a value of -1
  * indicates a vertex is a target, and is to be kept.
  * This array is aligned with 'dm->numVertData'
- * \warning \a vtergatmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.), this is not supported
+ * \warning \a vtargetmap must **not** contain any chained mapping (v1 -> v2 -> v3 etc.), this is not supported
  * and will likely generate corrupted geometry.
  *
  * \param tot_vtargetmap  The number of non '-1' values in vtargetmap. (not the size)
