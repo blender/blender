@@ -120,13 +120,13 @@ class TOPBAR_HT_lower_bar(Header):
         # (obviously separated for from the users POV)
 
         if mode == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
 
         elif mode == 'EDIT_ARMATURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".armature_edit", category="")
