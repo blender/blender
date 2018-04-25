@@ -2966,7 +2966,7 @@ void init_userdef_do_versions(void)
 			btheme->tui.wcol_tool.roundness = 0.2f;
 			btheme->tui.wcol_text.roundness = 0.2f;
 			btheme->tui.wcol_radio.roundness = 0.2f;
-			btheme->tui.wcol_option.roundness = 0.2f;
+			btheme->tui.wcol_option.roundness = 0.333333f;
 			btheme->tui.wcol_toggle.roundness = 0.25f;
 			btheme->tui.wcol_num.roundness = 0.5f;
 			btheme->tui.wcol_numslider.roundness = 0.5f;
