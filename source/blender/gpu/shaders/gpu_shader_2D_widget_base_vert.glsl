@@ -68,8 +68,8 @@ const vec2 triavec[37] = vec2[37](
 	vec2(-0.578579, 0.253369),  vec2(-0.392773, 0.412794),  vec2(-0.004241, -0.328551),
 	vec2(-0.003001, 0.034320),  vec2(1.055313, 0.864744),   vec2(0.866408, 1.026895),
 	/* ROUNDBOX_TRIA_HOLD_ACTION_ARROW - hold action arrows */
-#define OY -0.2
-#define SC 0.35
+#define OY (-0.2 / 2)
+#define SC (0.35 * 2)
 //	vec2(-0.5 + SC, 1.0 + OY),  vec2( 0.5, 1.0 + OY),  vec2( 0.5, 0.0 + OY + SC),
 	vec2( 0.5 - SC, 1.0 + OY),  vec2(-0.5, 1.0 + OY),  vec2(-0.5, 0.0 + OY + SC)
 #undef OY

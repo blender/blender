@@ -208,8 +208,8 @@ static const uint g_shape_preset_checkmark_face[4][3] = {
 	{3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}
 };
 
-#define OY -0.2 
-#define SC 0.35
+#define OY (-0.2 / 2)
+#define SC (0.35 * 2)
 static const float g_shape_preset_hold_action_vert[6][2] = {
 	{-0.5 + SC, 1.0 + OY},  {0.5, 1.0 + OY},  {0.5, 0.0 + OY + SC},
 };
