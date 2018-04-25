@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -275,8 +276,8 @@ static void dm_mvert_map_doubles(
 }
 
 
-static void dm_merge_transform(
-        DerivedMesh *result, DerivedMesh *cap_dm, float cap_offset[4][4],
+static void mesh_merge_transform(
+        Mesh *result, Mesh *cap_mesh, float cap_offset[4][4],
         unsigned int cap_verts_index, unsigned int cap_edges_index, int cap_loops_index, int cap_polys_index,
         int cap_nverts, int cap_nedges, int cap_nloops, int cap_npolys, int *remap, int remap_len)
 {
@@ -288,18 +289,12 @@ static void dm_merge_transform(
 	MPoly *mp;
 	MDeformVert *dvert;
 
-	/* needed for subsurf so arrays are allocated */
-	cap_dm->getVertArray(cap_dm);
-	cap_dm->getEdgeArray(cap_dm);
-	cap_dm->getLoopArray(cap_dm);
-	cap_dm->getPolyArray(cap_dm);
+	CustomData_copy_data(&cap_mesh->vdata, &result->vdata, 0, cap_verts_index, cap_nverts);
+	CustomData_copy_data(&cap_mesh->edata, &result->edata, 0, cap_edges_index, cap_nedges);
+	CustomData_copy_data(&cap_mesh->ldata, &result->ldata, 0, cap_loops_index, cap_nloops);
+	CustomData_copy_data(&cap_mesh->pdata, &result->pdata, 0, cap_polys_index, cap_npolys);
 
-	DM_copy_vert_data(cap_dm, result, 0, cap_verts_index, cap_nverts);
-	DM_copy_edge_data(cap_dm, result, 0, cap_edges_index, cap_nedges);
-	DM_copy_loop_data(cap_dm, result, 0, cap_loops_index, cap_nloops);
-	DM_copy_poly_data(cap_dm, result, 0, cap_polys_index, cap_npolys);
-
-	mv = CDDM_get_verts(result) + cap_verts_index;
+	mv = result->mvert + cap_verts_index;
 
 	for (i = 0; i < cap_nverts; i++, mv++) {
 		mul_m4_v3(cap_offset, mv->co);
@@ -308,55 +303,55 @@ static void dm_merge_transform(
 	}
 
 	/* remap the vertex groups if necessary */
-	dvert = DM_get_vert_data(result, cap_verts_index, CD_MDEFORMVERT);
+	dvert = result->dvert + cap_verts_index;
 	if (dvert != NULL) {
 		BKE_object_defgroup_index_map_apply(dvert, cap_nverts, remap, remap_len);
 	}
 
 	/* adjust cap edge vertex indices */
-	me = CDDM_get_edges(result) + cap_edges_index;
+	me = result->medge + cap_edges_index;
 	for (i = 0; i < cap_nedges; i++, me++) {
 		me->v1 += cap_verts_index;
 		me->v2 += cap_verts_index;
 	}
 
 	/* adjust cap poly loopstart indices */
-	mp = CDDM_get_polys(result) + cap_polys_index;
+	mp = result->mpoly + cap_polys_index;
 	for (i = 0; i < cap_npolys; i++, mp++) {
 		mp->loopstart += cap_loops_index;
 	}
 
 	/* adjust cap loop vertex and edge indices */
-	ml = CDDM_get_loops(result) + cap_loops_index;
+	ml = result->mloop + cap_loops_index;
 	for (i = 0; i < cap_nloops; i++, ml++) {
 		ml->v += cap_verts_index;
 		ml->e += cap_edges_index;
 	}
 
 	/* set origindex */
-	index_orig = result->getVertDataArray(result, CD_ORIGINDEX);
+	index_orig = CustomData_get_layer(&result->vdata, CD_ORIGINDEX);
 	if (index_orig) {
 		copy_vn_i(index_orig + cap_verts_index, cap_nverts, ORIGINDEX_NONE);
 	}
 
-	index_orig = result->getEdgeDataArray(result, CD_ORIGINDEX);
+	index_orig = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
 	if (index_orig) {
 		copy_vn_i(index_orig + cap_edges_index, cap_nedges, ORIGINDEX_NONE);
 	}
 
-	index_orig = result->getPolyDataArray(result, CD_ORIGINDEX);
+	index_orig = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 	if (index_orig) {
 		copy_vn_i(index_orig + cap_polys_index, cap_npolys, ORIGINDEX_NONE);
 	}
 
-	index_orig = result->getLoopDataArray(result, CD_ORIGINDEX);
+	index_orig = CustomData_get_layer(&result->ldata, CD_ORIGINDEX);
 	if (index_orig) {
 		copy_vn_i(index_orig + cap_loops_index, cap_nloops, ORIGINDEX_NONE);
 	}
 }
 
-static DerivedMesh *arrayModifier_doArray(
-        ArrayModifierData *amd, Object *ob, DerivedMesh *dm,
+static Mesh *arrayModifier_doArray(
+        ArrayModifierData *amd, Object *ob, Mesh *mesh,
         ModifierApplyFlag flag)
 {
 	const float eps = 1e-6f;
@@ -378,7 +373,7 @@ static DerivedMesh *arrayModifier_doArray(
 	int tot_doubles;
 
 	const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
-	const bool use_recalc_normals = (dm->dirty & DM_DIRTY_NORMALS) || use_merge;
+	const bool use_recalc_normals = /* (dm->dirty & DM_DIRTY_NORMALS) || */ use_merge;
 	const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob);
 
 	int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
@@ -387,47 +382,47 @@ static DerivedMesh *arrayModifier_doArray(
 	int chunk_nverts, chunk_nedges, chunk_nloops, chunk_npolys;
 	int first_chunk_start, first_chunk_nverts, last_chunk_start, last_chunk_nverts;
 
-	DerivedMesh *result, *start_cap_dm = NULL, *end_cap_dm = NULL;
+	Mesh *result, *start_cap_mesh = NULL, *end_cap_mesh = NULL;
 
 	int *vgroup_start_cap_remap = NULL;
 	int vgroup_start_cap_remap_len = 0;
 	int *vgroup_end_cap_remap = NULL;
 	int vgroup_end_cap_remap_len = 0;
 
-	chunk_nverts = dm->getNumVerts(dm);
-	chunk_nedges = dm->getNumEdges(dm);
-	chunk_nloops = dm->getNumLoops(dm);
-	chunk_npolys = dm->getNumPolys(dm);
+	chunk_nverts = mesh->totvert;
+	chunk_nedges = mesh->totedge;
+	chunk_nloops = mesh->totloop;
+	chunk_npolys = mesh->totpoly;
 
 	count = amd->count;
 
 	if (amd->start_cap && amd->start_cap != ob && amd->start_cap->type == OB_MESH) {
 		vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(amd->start_cap, ob, &vgroup_start_cap_remap_len);
 
-		start_cap_dm = get_dm_for_modifier(amd->start_cap, flag);
-		if (start_cap_dm) {
-			start_cap_nverts = start_cap_dm->getNumVerts(start_cap_dm);
-			start_cap_nedges = start_cap_dm->getNumEdges(start_cap_dm);
-			start_cap_nloops = start_cap_dm->getNumLoops(start_cap_dm);
-			start_cap_npolys = start_cap_dm->getNumPolys(start_cap_dm);
+		start_cap_mesh = get_mesh_eval_for_modifier(amd->start_cap, flag);
+		if (start_cap_mesh) {
+			start_cap_nverts = start_cap_mesh->totvert;
+			start_cap_nedges = start_cap_mesh->totedge;
+			start_cap_nloops = start_cap_mesh->totloop;
+			start_cap_npolys = start_cap_mesh->totpoly;
 		}
 	}
 	if (amd->end_cap && amd->end_cap != ob && amd->end_cap->type == OB_MESH) {
 		vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(amd->end_cap, ob, &vgroup_end_cap_remap_len);
 
-		end_cap_dm = get_dm_for_modifier(amd->end_cap, flag);
-		if (end_cap_dm) {
-			end_cap_nverts = end_cap_dm->getNumVerts(end_cap_dm);
-			end_cap_nedges = end_cap_dm->getNumEdges(end_cap_dm);
-			end_cap_nloops = end_cap_dm->getNumLoops(end_cap_dm);
-			end_cap_npolys = end_cap_dm->getNumPolys(end_cap_dm);
+		end_cap_mesh = get_mesh_eval_for_modifier(amd->end_cap, flag);
+		if (end_cap_mesh) {
+			end_cap_nverts = end_cap_mesh->totvert;
+			end_cap_nedges = end_cap_mesh->totedge;
+			end_cap_nloops = end_cap_mesh->totloop;
+			end_cap_npolys = end_cap_mesh->totpoly;
 		}
 	}
 
 	/* Build up offset array, cumulating all settings options */
 
 	unit_m4(offset);
-	src_mvert = dm->getVertArray(dm);
+	src_mvert = mesh->mvert;
 
 	if (amd->offset_type & MOD_ARR_OFF_CONST) {
 		add_v3_v3(offset[3], amd->offset);
@@ -501,8 +496,8 @@ static DerivedMesh *arrayModifier_doArray(
 	result_npolys = chunk_npolys * count + start_cap_npolys + end_cap_npolys;
 
 	/* Initialize a result dm */
-	result = CDDM_from_template(dm, result_nverts, result_nedges, 0, result_nloops, result_npolys);
-	result_dm_verts = CDDM_get_verts(result);
+	result = BKE_mesh_from_template(mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+	result_dm_verts = result->mvert;
 
 	if (use_merge) {
 		/* Will need full_doubles_map for handling merge */
@@ -511,23 +506,22 @@ static DerivedMesh *arrayModifier_doArray(
 	}
 
 	/* copy customdata to original geometry */
-	DM_copy_vert_data(dm, result, 0, 0, chunk_nverts);
-	DM_copy_edge_data(dm, result, 0, 0, chunk_nedges);
-	DM_copy_loop_data(dm, result, 0, 0, chunk_nloops);
-	DM_copy_poly_data(dm, result, 0, 0, chunk_npolys);
+	CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, chunk_nverts);
+	CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, chunk_nedges);
+	CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, chunk_nloops);
+	CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, chunk_npolys);
 
 	/* Subsurf for eg wont have mesh data in the custom data arrays.
 	 * now add mvert/medge/mpoly layers. */
-
-	if (!CustomData_has_layer(&dm->vertData, CD_MVERT)) {
-		dm->copyVertArray(dm, result_dm_verts);
+	if (!CustomData_has_layer(&mesh->vdata, CD_MVERT)) {
+		memcpy(result->mvert, mesh->mvert, sizeof(*result->mvert) * mesh->totvert);
 	}
-	if (!CustomData_has_layer(&dm->edgeData, CD_MEDGE)) {
-		dm->copyEdgeArray(dm, CDDM_get_edges(result));
+	if (!CustomData_has_layer(&mesh->edata, CD_MEDGE)) {
+		memcpy(result->medge, mesh->medge, sizeof(*result->medge) * mesh->totedge);
 	}
-	if (!CustomData_has_layer(&dm->polyData, CD_MPOLY)) {
-		dm->copyLoopArray(dm, CDDM_get_loops(result));
-		dm->copyPolyArray(dm, CDDM_get_polys(result));
+	if (!CustomData_has_layer(&mesh->pdata, CD_MPOLY)) {
+		memcpy(result->mloop, mesh->mloop, sizeof(*result->mloop) * mesh->totloop);
+		memcpy(result->mpoly, mesh->mpoly, sizeof(*result->mpoly) * mesh->totpoly);
 	}
 
 	/* Remember first chunk, in case of cap merge */
@@ -537,10 +531,10 @@ static DerivedMesh *arrayModifier_doArray(
 	unit_m4(current_offset);
 	for (c = 1; c < count; c++) {
 		/* copy customdata to new geometry */
-		DM_copy_vert_data(result, result, 0, c * chunk_nverts, chunk_nverts);
-		DM_copy_edge_data(result, result, 0, c * chunk_nedges, chunk_nedges);
-		DM_copy_loop_data(result, result, 0, c * chunk_nloops, chunk_nloops);
-		DM_copy_poly_data(result, result, 0, c * chunk_npolys, chunk_npolys);
+		CustomData_copy_data(&mesh->vdata, &result->vdata, 0, c * chunk_nverts, chunk_nverts);
+		CustomData_copy_data(&mesh->edata, &result->edata, 0, c * chunk_nedges, chunk_nedges);
+		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, c * chunk_nloops, chunk_nloops);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, c * chunk_npolys, chunk_npolys);
 
 		mv_prev = result_dm_verts;
 		mv = mv_prev + c * chunk_nverts;
@@ -563,19 +557,19 @@ static DerivedMesh *arrayModifier_doArray(
 		}
 
 		/* adjust edge vertex indices */
-		me = CDDM_get_edges(result) + c * chunk_nedges;
+		me = result->medge + c * chunk_nedges;
 		for (i = 0; i < chunk_nedges; i++, me++) {
 			me->v1 += c * chunk_nverts;
 			me->v2 += c * chunk_nverts;
 		}
 
-		mp = CDDM_get_polys(result) + c * chunk_npolys;
+		mp = result->mpoly + c * chunk_npolys;
 		for (i = 0; i < chunk_npolys; i++, mp++) {
 			mp->loopstart += c * chunk_nloops;
 		}
 
 		/* adjust loop vertex and edge indices */
-		ml = CDDM_get_loops(result) + c * chunk_nloops;
+		ml = result->mloop + c * chunk_nloops;
 		for (i = 0; i < chunk_nloops; i++, ml++) {
 			ml->v += c * chunk_nverts;
 			ml->e += c * chunk_nedges;
@@ -625,9 +619,9 @@ static DerivedMesh *arrayModifier_doArray(
 
 	/* handle UVs */
 	if (chunk_nloops > 0 && is_zero_v2(amd->uv_offset) == false) {
-		const int totuv = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
+		const int totuv = CustomData_number_of_layers(&result->ldata, CD_MLOOPUV);
 		for (i = 0; i < totuv; i++) {
-			MLoopUV *dmloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, i);
+			MLoopUV *dmloopuv = CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, i);
 			dmloopuv += chunk_nloops;
 			for (c = 1; c < count; c++) {
 				const float uv_offset[2] = {
@@ -661,12 +655,12 @@ static DerivedMesh *arrayModifier_doArray(
 	}
 
 	/* start capping */
-	if (start_cap_dm) {
+	if (start_cap_mesh) {
 		float start_offset[4][4];
 		int start_cap_start = result_nverts - start_cap_nverts - end_cap_nverts;
 		invert_m4_m4(start_offset, offset);
-		dm_merge_transform(
-		        result, start_cap_dm, start_offset,
+		mesh_merge_transform(
+		        result, start_cap_mesh, start_offset,
 		        result_nverts - start_cap_nverts - end_cap_nverts,
 		        result_nedges - start_cap_nedges - end_cap_nedges,
 		        result_nloops - start_cap_nloops - end_cap_nloops,
@@ -686,12 +680,12 @@ static DerivedMesh *arrayModifier_doArray(
 		}
 	}
 
-	if (end_cap_dm) {
+	if (end_cap_mesh) {
 		float end_offset[4][4];
 		int end_cap_start = result_nverts - end_cap_nverts;
 		mul_m4_m4m4(end_offset, current_offset, offset);
-		dm_merge_transform(
-		        result, end_cap_dm, end_offset,
+		mesh_merge_transform(
+		        result, end_cap_mesh, end_offset,
 		        result_nverts - end_cap_nverts,
 		        result_nedges - end_cap_nedges,
 		        result_nloops - end_cap_nloops,
@@ -733,16 +727,13 @@ static DerivedMesh *arrayModifier_doArray(
 			}
 		}
 		if (tot_doubles > 0) {
-			result = CDDM_merge_verts(result, full_doubles_map, tot_doubles, CDDM_MERGE_VERTS_DUMP_IF_EQUAL);
+			result = BKE_mesh_merge_verts(result, full_doubles_map, tot_doubles, MESH_MERGE_VERTS_DUMP_IF_EQUAL);
 		}
 		MEM_freeN(full_doubles_map);
 	}
 
-	/* In case org dm has dirty normals, or we made some merging, mark normals as dirty in new dm!
-	 * TODO: we may need to set other dirty flags as well?
-	 */
 	if (use_recalc_normals) {
-		result->dirty |= DM_DIRTY_NORMALS;
+		BKE_mesh_calc_normals(result);
 	}
 
 	if (vgroup_start_cap_remap) {
@@ -756,12 +747,12 @@ static DerivedMesh *arrayModifier_doArray(
 }
 
 
-static DerivedMesh *applyModifier(ModifierData *md, Depsgraph *UNUSED(depsgraph),
-                                  Object *ob, DerivedMesh *dm,
-                                  ModifierApplyFlag flag)
+static Mesh *applyModifier(ModifierData *md, Depsgraph *UNUSED(depsgraph),
+                           Object *ob, Mesh *mesh,
+                           ModifierApplyFlag flag)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
-	return arrayModifier_doArray(amd, ob, dm, flag);
+	return arrayModifier_doArray(amd, ob, mesh, flag);
 }
 
 
@@ -782,14 +773,14 @@ ModifierTypeInfo modifierType_Array = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
