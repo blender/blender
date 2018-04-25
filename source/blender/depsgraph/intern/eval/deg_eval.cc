@@ -39,12 +39,14 @@
 #include "BLI_ghash.h"
 
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
 #include "atomic_ops.h"
 
+#include "intern/eval/deg_eval_copy_on_write.h"
 #include "intern/eval/deg_eval_flush.h"
 #include "intern/eval/deg_eval_stats.h"
 #include "intern/nodes/deg_node.h"
@@ -219,6 +221,25 @@ static void schedule_children(TaskPool *pool,
 	}
 }
 
+static void depsgraph_ensure_view_layer(Depsgraph *graph)
+{
+	/* We update copy-on-write scene in the following cases:
+	 * - It was not expanded yet.
+	 * - It was tagged for update of CoW component.
+	 * This allows us to have proper view layer pointer.
+	 */
+	if (!DEG_depsgraph_use_copy_on_write()) {
+		return;
+	}
+	Scene *scene_cow = graph->scene_cow;
+	if (!deg_copy_on_write_is_expanded(&scene_cow->id) ||
+	     scene_cow->id.recalc & ID_RECALC_COPY_ON_WRITE)
+	{
+		const IDDepsNode *id_node = graph->find_id_node(&graph->scene->id);
+		deg_update_copy_on_write_datablock(graph, id_node);
+	}
+}
+
 /**
  * Evaluate all nodes tagged for updating,
  * \warning This is usually done as part of main loop, but may also be
@@ -234,12 +255,7 @@ void deg_evaluate_on_refresh(Depsgraph *graph)
 	}
 	const bool do_time_debug = ((G.debug & G_DEBUG_DEPSGRAPH_TIME) != 0);
 	const double start_time = do_time_debug ? PIL_check_seconds_timer() : 0;
-
-	/* TODO: Calling this forces the scene datablock to be expanded,
-	 * otherwise we get crashes on load with copy-on-write. There may
-	 * be a better solution for this. */
-	DEG_get_evaluated_view_layer((const ::Depsgraph*)graph);
-
+	depsgraph_ensure_view_layer(graph);
 	/* Set up evaluation state. */
 	DepsgraphEvalState state;
 	state.graph = graph;
