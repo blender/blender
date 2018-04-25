@@ -182,7 +182,7 @@ def compare_files(file_a, file_b):
 
         if DUMP_DIFF:
             import subprocess
-            subprocess.call(["diff", "-u", file_a, file_b])
+            subprocess.call(["diff", "-u", file_b, file_a])
 
         if UPDATE_DIFF:
             import subprocess
@@ -191,7 +191,7 @@ def compare_files(file_a, file_b):
 
         if PDB:
             import pdb
-            print("Files differ:", file_a, file_b)
+            print("Files differ:", file_b, file_a)
             pdb.set_trace()
 
         return False
