@@ -63,7 +63,9 @@ void GPU_init(void)
 
 	gpu_batch_init();
 
-	immInit();
+	if (!G.background) {
+		immInit();
+	}
 
 	GPU_pbvh_fix_linking();
 }
@@ -72,7 +74,9 @@ void GPU_init(void)
 
 void GPU_exit(void)
 {
-	immDestroy();
+	if (!G.background) {
+		immDestroy();
+	}
 
 	gpu_batch_exit();
 

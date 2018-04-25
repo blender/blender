@@ -1735,13 +1735,22 @@ void wm_window_testbreak(void)
 
 /* **************** init ********************** */
 
+/* bContext can be null in background mode because we don't
+ * need to event handling. */
 void wm_ghost_init(bContext *C)
 {
 	if (!g_system) {
-		GHOST_EventConsumerHandle consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
+		GHOST_EventConsumerHandle consumer;
+
+		if (C != NULL) {
+			consumer = GHOST_CreateEventConsumer(ghost_event_proc, C);
+		}
 		
 		g_system = GHOST_CreateSystem();
-		GHOST_AddEventConsumer(g_system, consumer);
+
+		if (C != NULL) {
+			GHOST_AddEventConsumer(g_system, consumer);
+		}
 		
 		if (wm_init_state.native_pixels) {
 			GHOST_UseNativePixels();

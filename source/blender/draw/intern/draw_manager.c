@@ -1361,6 +1361,11 @@ void DRW_render_to_image(RenderEngine *engine, struct Depsgraph *depsgraph)
 	DrawEngineType *draw_engine_type = engine_type->draw_engine;
 	RenderData *r = &scene->r;
 	Render *render = engine->re;
+
+	if (G.background && DST.ogl_context == NULL) {
+		WM_init_opengl();
+	}
+
 	/* Changing Context */
 	DRW_opengl_context_enable();
 	/* IMPORTANT: We dont support immediate mode in render mode!
@@ -2049,13 +2054,16 @@ void DRW_opengl_context_create(void)
 	BLI_assert(DST.ogl_context == NULL); /* Ensure it's called once */
 
 	BLI_mutex_init(&DST.ogl_context_mutex);
-
-	immDeactivate();
+	if (!G.background) {
+		immDeactivate();
+	}
 	/* This changes the active context. */
 	DST.ogl_context = WM_opengl_context_create();
 	/* Be sure to create gawain.context too. */
 	DST.gwn_context = GWN_context_create();
-	immActivate();
+	if (!G.background) {
+		immActivate();
+	}
 	/* Set default Blender OpenGL state */
 	GPU_state_init();
 	/* So we activate the window's one afterwards. */
@@ -2082,12 +2090,16 @@ void DRW_opengl_context_enable(void)
 		 * multiple threads. */
 		BLI_mutex_lock(&DST.ogl_context_mutex);
 		if (BLI_thread_is_main()) {
-			immDeactivate();
+			if (!G.background) {
+				immDeactivate();
+			}
 		}
 		WM_opengl_context_activate(DST.ogl_context);
 		GWN_context_active_set(DST.gwn_context);
 		if (BLI_thread_is_main()) {
-			immActivate();
+			if (!G.background) {
+				immActivate();
+			}
 			BLF_batch_reset();
 		}
 	}
