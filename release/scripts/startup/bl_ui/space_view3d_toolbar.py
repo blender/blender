@@ -69,8 +69,8 @@ def draw_vpaint_symmetry(layout, vpaint):
 
 
 class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
-    bl_category = "Options"
-    bl_context = "mesh_edit"
+    bl_category = ""
+    bl_context = ".mesh_edit" # dot on purpose (access from topbar)
     bl_label = "Mesh Options"
 
     @classmethod
@@ -105,47 +105,9 @@ class VIEW3D_PT_tools_meshedit_options(View3DPanel, Panel):
 
 # ********** default tools for editmode_curve ****************
 
-
-class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "curve_edit"
-    bl_label = "Curve Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Curve:")
-        col.operator("curve.duplicate_move", text="Duplicate")
-        col.operator("curve.delete")
-        col.operator("curve.cyclic_toggle")
-        col.operator("curve.switch_direction")
-        col.operator("curve.spline_type_set")
-        col.operator("curve.radius_set")
-
-        col = layout.column(align=True)
-        col.label(text="Handles:")
-        row = col.row(align=True)
-        row.operator("curve.handle_type_set", text="Auto").type = 'AUTOMATIC'
-        row.operator("curve.handle_type_set", text="Vector").type = 'VECTOR'
-        row = col.row(align=True)
-        row.operator("curve.handle_type_set", text="Align").type = 'ALIGNED'
-        row.operator("curve.handle_type_set", text="Free").type = 'FREE_ALIGN'
-
-        col = layout.column(align=True)
-        col.operator("curve.normals_make_consistent")
-
-        col = layout.column(align=True)
-        col.label(text="Modeling:")
-        col.operator("curve.extrude_move", text="Extrude")
-        col.operator("curve.subdivide")
-        col.operator("curve.smooth")
-        col.operator("transform.vertex_random")
-
-
 class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = "curve_edit"
+    bl_context = ".curve_edit" # dot on purpose (access from topbar)
     bl_label = "Curve Stroke"
 
     def draw(self, context):
@@ -197,79 +159,14 @@ class VIEW3D_PT_tools_curveedit_options_stroke(View3DPanel, Panel):
                 colsub.prop(cps, "surface_plane", expand=True)
 
 
-# ********** default tools for editmode_surface ****************
-
-
-class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "surface_edit"
-    bl_label = "Surface Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Curve:")
-        col.operator("curve.duplicate_move", text="Duplicate")
-        col.operator("curve.delete")
-        col.operator("curve.cyclic_toggle")
-        col.operator("curve.switch_direction")
-
-        col = layout.column(align=True)
-        col.label(text="Modeling:")
-        col.operator("curve.extrude", text="Extrude")
-        col.operator("curve.spin")
-        col.operator("curve.subdivide")
-
-        col = layout.column(align=True)
-        col.label(text="Deform:")
-        col.operator("transform.vertex_random")
-
-
-# ********** default tools for editmode_text ****************
-
-
-class VIEW3D_PT_tools_textedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "text_edit"
-    bl_label = "Text Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Set Case:")
-        col.operator("font.case_set", text="To Upper").case = 'UPPER'
-        col.operator("font.case_set", text="To Lower").case = 'LOWER'
-
-        col = layout.column(align=True)
-        col.label(text="Style:")
-        col.operator("font.style_toggle", text="Bold").style = 'BOLD'
-        col.operator("font.style_toggle", text="Italic").style = 'ITALIC'
-        col.operator("font.style_toggle", text="Underline").style = 'UNDERLINE'
 
 
 # ********** default tools for editmode_armature ****************
 
 
-class VIEW3D_PT_tools_armatureedit(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "armature_edit"
-    bl_label = "Armature Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-        col.label(text="Bones:")
-        col.operator("armature.bone_primitive_add", text="Add")
-        col.operator("armature.duplicate_move", text="Duplicate")
-        col.operator("armature.delete", text="Delete")
-
-
 class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = "armature_edit"
+    bl_context = ".armature_edit"  # dot on purpose (access from topbar)
     bl_label = "Armature Options"
 
     def draw(self, context):
@@ -280,55 +177,9 @@ class VIEW3D_PT_tools_armatureedit_options(View3DPanel, Panel):
 
 # ********** default tools for pose-mode ****************
 
-
-class VIEW3D_PT_tools_posemode(View3DPanel, Panel):
-    bl_category = "Tools"
-    bl_context = "posemode"
-    bl_label = "Pose Tools"
-
-    def draw(self, context):
-        layout = self.layout
-
-        col = layout.column(align=True)
-
-        col = layout.column(align=True)
-        col.label(text="In-Between:")
-        row = col.row(align=True)
-        row.operator("pose.push", text="Push")
-        row.operator("pose.relax", text="Relax")
-        col.operator("pose.breakdown", text="Breakdowner")
-
-        col = layout.column(align=True)
-        col.label(text="Pose:")
-        row = col.row(align=True)
-        row.operator("pose.copy", text="Copy")
-        row.operator("pose.paste", text="Paste")
-
-        row = layout.row(align=True)
-        row.operator("pose.propagate", text="Propagate")
-        row.menu("VIEW3D_MT_pose_propagate", icon='TRIA_RIGHT', text="")
-
-        col = layout.column(align=True)
-        col.operator("poselib.pose_add", text="Add To Library")
-
-        draw_keyframing_tools(context, layout)
-
-        ob = context.object
-        avs = ob.pose.animation_visualization
-
-        col = layout.column(align=True)
-        col.label(text="Motion Paths:")
-        if avs.motion_path.has_motion_paths:
-            row = col.row(align=True)
-            row.operator("pose.paths_update", text="Update")
-            row.operator("pose.paths_clear", text="", icon='X')
-        else:
-            col.operator("pose.paths_calculate", text="Calculate")
-
-
 class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
     bl_category = "Options"
-    bl_context = "posemode"
+    bl_context = ".posemode" # dot on purpose (access from topbar)
     bl_label = "Pose Options"
 
     def draw(self, context):
@@ -1471,13 +1322,8 @@ class VIEW3D_PT_tools_grease_pencil_brushcurves(GreasePencilBrushCurvesPanel, Pa
 
 classes = (
     VIEW3D_PT_tools_meshedit_options,
-    VIEW3D_PT_tools_curveedit,
     VIEW3D_PT_tools_curveedit_options_stroke,
-    VIEW3D_PT_tools_surfaceedit,
-    VIEW3D_PT_tools_textedit,
-    VIEW3D_PT_tools_armatureedit,
     VIEW3D_PT_tools_armatureedit_options,
-    VIEW3D_PT_tools_posemode,
     VIEW3D_PT_tools_posemode_options,
     VIEW3D_PT_imapaint_tools_missing,
     VIEW3D_PT_tools_brush,

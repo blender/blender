@@ -115,6 +115,10 @@ class TOPBAR_HT_lower_bar(Header):
         mode = context.mode
 
         # Example of how toolsettings can be accessed as pop-overs.
+
+        # TODO(campbell): editing options should be after active tool options
+        # (obviously separated for from the users POV)
+
         if mode == 'SCULPT':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
         elif mode == 'PAINT_VERTEX':
@@ -123,6 +127,16 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
         elif mode == 'PAINT_TEXTURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="Tools")
+
+        elif mode == 'EDIT_ARMATURE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".armature_edit", category="")
+        elif mode == 'EDIT_CURVE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".curve_edit", category="")
+        elif mode == 'EDIT_MESH':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".mesh_edit", category="")
+
+        elif mode == 'POSE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
 
     def draw_right(self, context):
         layout = self.layout
