@@ -12,3 +12,24 @@ float bayer_dither_noise() {
 	ivec2 tx2 = ivec2(gl_FragCoord.xy) % 2;
 	return dither_mat4x4[tx1.x][tx1.y];
 }
+
+/* From http://aras-p.info/texts/CompactNormalStorage.html
+ * Using Method #4: Spheremap Transform */
+vec3 normal_decode(vec2 enc)
+{
+	vec2 fenc = enc * 4.0 - 2.0;
+	float f = dot(fenc, fenc);
+	float g = sqrt(1.0 - f / 4.0);
+	vec3 n;
+	n.xy = fenc*g;
+	n.z = 1 - f / 2;
+	return n;
+}
+
+/* From http://aras-p.info/texts/CompactNormalStorage.html
+ * Using Method #4: Spheremap Transform */
+vec2 normal_encode(vec3 n)
+{
+	float p = sqrt(n.z * 8.0 + 8.0);
+	return n.xy / p + 0.5;
+}

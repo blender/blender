@@ -1,9 +1,10 @@
 out vec4 fragColor;
 
 uniform usampler2D objectId;
-uniform sampler2D depth;
-uniform sampler2D diffuseColor;
-uniform sampler2D normalViewport;
+uniform sampler2D depthBuffer;
+uniform sampler2D colorBuffer;
+uniform sampler2D normalBuffer;
+/* normalBuffer contains viewport normals */
 uniform vec2 invertedViewportSize;
 
 uniform vec3 objectOverlapColor = vec3(0.0);
@@ -16,12 +17,12 @@ layout(std140) uniform world_block {
 void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
-	vec2 uvViewport = gl_FragCoord.xy * invertedViewportSize;
-	float depth = texelFetch(depth, texel, 0).r;
+	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
+	float depth = texelFetch(depthBuffer, texel, 0).r;
 
 #ifndef V3D_DRAWOPTION_OBJECT_OVERLAP
 	if (depth == 1.0) {
-		fragColor = vec4(background_color(world_data, uvViewport.y), 0.0);
+		fragColor = vec4(background_color(world_data, uv_viewport.y), 0.0);
 		return;
 	}
 #else /* !V3D_DRAWOPTION_OBJECT_OVERLAP */
@@ -29,7 +30,7 @@ void main()
 	float object_overlap = calculate_object_overlap(objectId, texel, object_id);
 	
 	if (object_id == NO_OBJECT_ID) {
-		vec3 background = background_color(world_data, uvViewport.y);
+		vec3 background = background_color(world_data, uv_viewport.y);
 		if (object_overlap == 0.0) {
 			fragColor = vec4(background, 0.0);
 		} else {
@@ -39,10 +40,10 @@ void main()
 	}
 #endif /* !V3D_DRAWOPTION_OBJECT_OVERLAP */
 
-	vec3 diffuse_color = texelFetch(diffuseColor, texel, 0).rgb;
+	vec3 diffuse_color = texelFetch(colorBuffer, texel, 0).rgb;
 
 #ifdef V3D_LIGHTING_STUDIO
-	vec3 normal_viewport = texelFetch(normalViewport, texel, 0).rgb;
+	vec3 normal_viewport = texelFetch(normalBuffer, texel, 0).rgb;
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_viewport);
 	vec3 shaded_color = diffuse_light * diffuse_color;
 

@@ -5,11 +5,11 @@ in vec3 normal_viewport;
 
 out uint objectId;
 out vec3 diffuseColor;
-out vec3 normalViewport;
+out vec2 normalViewport;
 
 void main()
 {
 	objectId = uint(object_id);
 	diffuseColor = object_color;
-	normalViewport = normal_viewport;
+	normalViewport = normal_encode(normal_viewport);
 }
