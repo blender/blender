@@ -28,7 +28,7 @@ void main()
 #else /* !V3D_DRAWOPTION_OBJECT_OVERLAP */
 	uint object_id = depth == 1.0? NO_OBJECT_ID: texelFetch(objectId, texel, 0).r;
 	float object_overlap = calculate_object_overlap(objectId, texel, object_id);
-	
+
 	if (object_id == NO_OBJECT_ID) {
 		vec3 background = background_color(world_data, uv_viewport.y);
 		if (object_overlap == 0.0) {

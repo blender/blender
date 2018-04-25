@@ -68,7 +68,7 @@ static void overlay_engine_init(void *vedata)
 {
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
 	OVERLAY_StorageList *stl = data->stl;
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+	// DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	if (!stl->g_data) {
 		/* Alloc transient pointers */
@@ -89,8 +89,6 @@ static void overlay_cache_init(void *vedata)
 	OVERLAY_StorageList *stl = data->stl;
 
 	const DRWContextState *DCS = DRW_context_state_get();
-	DRWShadingGroup *grp;
-
 
 	View3D *v3d = DCS->v3d;
 	if (v3d) {
@@ -111,7 +109,7 @@ static void overlay_cache_init(void *vedata)
 static void overlay_cache_populate(void *vedata, Object *ob)
 {
 	OVERLAY_Data * data = (OVERLAY_Data *)vedata;
-	OVERLAY_PassList *psl = data->psl;
+	// OVERLAY_PassList *psl = data->psl;
 	OVERLAY_StorageList *stl = data->stl;
 	OVERLAY_PrivateData *pd = stl->g_data;
 
