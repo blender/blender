@@ -105,9 +105,7 @@ Scene *DEG_get_evaluated_scene(const Depsgraph *graph)
 {
 	const DEG::Depsgraph *deg_graph =
 	        reinterpret_cast<const DEG::Depsgraph *>(graph);
-	Scene *scene_orig = deg_graph->scene;
-	Scene *scene_cow =
-	        reinterpret_cast<Scene *>(deg_graph->get_cow_id(&scene_orig->id));
+	Scene *scene_cow = deg_graph->scene_cow;
 	/* TODO(sergey): Shall we expand datablock here? Or is it OK to assume
 	 * that calleer is OK with just a pointer in case scene is not up[dated
 	 * yet?
