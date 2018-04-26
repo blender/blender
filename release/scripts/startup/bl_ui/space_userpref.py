@@ -806,6 +806,9 @@ class USERPREF_PT_theme(Panel):
             col.label(text="Tool:")
             self._theme_widget_style(col, ui.wcol_tool)
 
+            col.label(text="Toolbar Item:")
+            self._theme_widget_style(col, ui.wcol_toolbar_item)
+
             col.label(text="Radio Buttons:")
             self._theme_widget_style(col, ui.wcol_radio)
 

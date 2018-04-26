@@ -2985,6 +2985,27 @@ void init_userdef_do_versions(void)
 		}
 	}
 
+	if (((bTheme *)U.themes.first)->tui.wcol_toolbar_item.text[3] == 0) {
+		struct uiWidgetColors wcol_toolbar_item = {
+			.outline = {0x19, 0x19, 0x19, 0xff},
+			.inner = {0x46, 0x46, 0x46, 0xff},
+			.inner_sel = {0xb4, 0xb4, 0xb4, 0xff},
+			.item = {0x19, 0x19, 0x19, 0xff},
+
+			.text = {0xff, 0xff, 0xff, 0xff},
+			.text_sel = {0x33, 0x33, 0x33, 0xff},
+
+			.shaded = 0,
+			.shadetop = 0,
+			.shadedown = 0,
+			.alpha_check = 0,
+			.roundness = 0.3f,
+		};
+		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
+			btheme->tui.wcol_toolbar_item = wcol_toolbar_item;
+		}
+	}
+
 	/**
 	 * Include next version bump.
 	 */

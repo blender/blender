@@ -2317,6 +2317,22 @@ static struct uiWidgetColors wcol_tool = {
 	0.2f,
 };
 
+static struct uiWidgetColors wcol_toolbar_item = {
+	.outline = {0x19, 0x19, 0x19, 0xff},
+	.inner = {0x46, 0x46, 0x46, 0xff},
+	.inner_sel = {0xb4, 0xb4, 0xb4, 0xff},
+	.item = {0x19, 0x19, 0x19, 0xff},
+
+	.text = {0xff, 0xff, 0xff, 0xff},
+	.text_sel = {0x33, 0x33, 0x33, 0xff},
+
+	.shaded = 0,
+	.shadetop = 0,
+	.shadedown = 0,
+	.alpha_check = 0,
+	.roundness = 0.3f,
+};
+
 static struct uiWidgetColors wcol_box = {
 	{25, 25, 25, 255},
 	{128, 128, 128, 255},
@@ -2429,6 +2445,7 @@ void ui_widget_color_init(ThemeUI *tui)
 {
 	tui->wcol_regular = wcol_regular;
 	tui->wcol_tool = wcol_tool;
+	tui->wcol_toolbar_item = wcol_toolbar_item;
 	tui->wcol_text = wcol_text;
 	tui->wcol_radio = wcol_radio;
 	tui->wcol_tab = wcol_tab;
@@ -4172,6 +4189,11 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.draw = widget_roundbut_exec;
 			break;
 
+		case UI_WTYPE_TOOLBAR_ITEM:
+			wt.wcol_theme = &btheme->tui.wcol_toolbar_item;
+			wt.draw = widget_roundbut_exec;
+			break;
+			
 		case UI_WTYPE_TAB:
 			wt.wcol_theme = &btheme->tui.wcol_tab;
 			wt.draw = widget_tab;
@@ -4415,7 +4437,16 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				break;
 				
 			case UI_BTYPE_BUT:
+#ifdef USE_TOOLBAR_HACK
+				if (UI_but_is_tool(but)) {
+					wt = widget_type(UI_WTYPE_TOOLBAR_ITEM);
+				}
+				else {
+					wt = widget_type(UI_WTYPE_EXEC);
+				}
+#else
 				wt = widget_type(UI_WTYPE_EXEC);
+#endif
 				break;
 
 			case UI_BTYPE_NUM:
