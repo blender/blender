@@ -5,13 +5,13 @@ uniform vec3 object_color = vec3(1.0, 0.0, 1.0);
 in vec3 normal_viewport;
 #endif /* V3D_LIGHTING_STUDIO */
 
-out uint objectId;
-out vec4 diffuseColor;
+layout(location=0) out uint objectId;
+layout(location=1) out vec4 diffuseColor;
 #ifdef V3D_LIGHTING_STUDIO
 #ifdef WORKBENCH_ENCODE_NORMALS
-out vec2 normalViewport;
+layout(location=2) out vec2 normalViewport;
 #else /* WORKBENCH_ENCODE_NORMALS */
-out vec3 normalViewport;
+layout(location=2) out vec3 normalViewport;
 #endif /* WORKBENCH_ENCODE_NORMALS */
 #endif /* V3D_LIGHTING_STUDIO */
 

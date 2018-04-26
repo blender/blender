@@ -1,7 +1,7 @@
 out vec4 fragColor;
 
-uniform usampler2D objectId;
 uniform sampler2D depthBuffer;
+uniform usampler2D objectId;
 uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
