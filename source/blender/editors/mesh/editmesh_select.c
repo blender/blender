@@ -3690,6 +3690,13 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 		}
 	}
 
+	if ((em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0) {
+		/* Since we can't select individual edges, select faces connected to them. */
+		EDBM_selectmode_convert(em, SCE_SELECT_EDGE, SCE_SELECT_FACE);
+	}
+	else {
+		EDBM_selectmode_flush(em);
+	}
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 
 	return OPERATOR_FINISHED;
