@@ -67,90 +67,101 @@ typedef struct View2D {
 	/* animated smooth view */
 	struct SmoothView2DStore *sms;
 	struct wmTimer *smooth_timer;
-
 } View2D;
 
 /* ---------------------------------- */
 
 /* view zooming restrictions, per axis (v2d->keepzoom) */
+enum {
 	/* zoom is clamped to lie within limits set by minzoom and maxzoom */
-#define V2D_LIMITZOOM		0x0001
+	V2D_LIMITZOOM     = (1 << 0),
 	/* aspect ratio is maintained on view resize */
-#define V2D_KEEPASPECT		0x0002
+	V2D_KEEPASPECT    = (1 << 1),
 	/* zoom is kept when the window resizes */
-#define V2D_KEEPZOOM		0x0004
+	V2D_KEEPZOOM      = (1 << 2),
 	/* zooming on x-axis is not allowed */
-#define V2D_LOCKZOOM_X		0x0100
+	V2D_LOCKZOOM_X    = (1 << 8),
 	/* zooming on y-axis is not allowed */
-#define V2D_LOCKZOOM_Y		0x0200
+	V2D_LOCKZOOM_Y    = (1 << 9),
+};
 
 /* view panning restrictions, per axis (v2d->keepofs) */
+enum {
 	/* panning on x-axis is not allowed */
-#define V2D_LOCKOFS_X	(1<<1)
+	V2D_LOCKOFS_X  = (1 << 1),
 	/* panning on y-axis is not allowed */
-#define V2D_LOCKOFS_Y	(1<<2)
+	V2D_LOCKOFS_Y  = (1 << 2),
 	/* on resize, keep the x offset */
-#define V2D_KEEPOFS_X	(1<<3)
+	V2D_KEEPOFS_X  = (1 << 3),
 	/* on resize, keep the y offset */
-#define V2D_KEEPOFS_Y	(1<<4)
+	V2D_KEEPOFS_Y  = (1 << 4),
+};
 
 /* view extent restrictions (v2d->keeptot) */
+enum {
 	/* 'cur' view can be out of extents of 'tot' */
-#define V2D_KEEPTOT_FREE		0
+	V2D_KEEPTOT_FREE      = 0,
 	/* 'cur' rect is adjusted so that it satisfies the extents of 'tot', with some compromises */
-#define V2D_KEEPTOT_BOUNDS		1
+	V2D_KEEPTOT_BOUNDS    = 1,
 	/* 'cur' rect is moved so that the 'minimum' bounds of the 'tot' rect are always respected (particularly in x-axis) */
-#define V2D_KEEPTOT_STRICT		2
+	V2D_KEEPTOT_STRICT    = 2,
+};
 
 /* general refresh settings (v2d->flag) */
+enum {
 	/* global view2d horizontal locking (for showing same time interval) */
 	/* TODO: this flag may be set in old files but is not accessible currently, should be exposed from RNA - Campbell */
-#define V2D_VIEWSYNC_SCREEN_TIME	(1<<0)
+	V2D_VIEWSYNC_SCREEN_TIME      = (1 << 0),
 	/* within area (i.e. between regions) view2d vertical locking */
-#define V2D_VIEWSYNC_AREA_VERTICAL	(1<<1)
+	V2D_VIEWSYNC_AREA_VERTICAL    = (1 << 1),
 	/* apply pixel offsets on x-axis when setting view matrices */
-#define V2D_PIXELOFS_X				(1<<2)
+	V2D_PIXELOFS_X                = (1 << 2),
 	/* apply pixel offsets on y-axis when setting view matrices */
-#define V2D_PIXELOFS_Y				(1<<3)
+	V2D_PIXELOFS_Y                = (1 << 3),
 	/* view settings need to be set still... */
-#define V2D_IS_INITIALISED			(1<<10)
+	V2D_IS_INITIALISED            = (1 << 10),
+};
 
 /* scroller flags for View2D (v2d->scroll) */
+enum {
 	/* left scrollbar */
-#define V2D_SCROLL_LEFT 			(1<<0)		
-#define V2D_SCROLL_RIGHT 			(1<<1)
-#define V2D_SCROLL_VERTICAL 		(V2D_SCROLL_LEFT|V2D_SCROLL_RIGHT)
+	V2D_SCROLL_LEFT              = (1 << 0),
+	V2D_SCROLL_RIGHT             = (1 << 1),
+	V2D_SCROLL_VERTICAL          = (V2D_SCROLL_LEFT | V2D_SCROLL_RIGHT),
 	/* horizontal scrollbar */
-#define V2D_SCROLL_TOP 				(1<<2)
-#define V2D_SCROLL_BOTTOM 			(1<<3)
-
-/* UNUSED							(1<<4) */
-#define V2D_SCROLL_HORIZONTAL  		(V2D_SCROLL_TOP|V2D_SCROLL_BOTTOM)
+	V2D_SCROLL_TOP               = (1 << 2),
+	V2D_SCROLL_BOTTOM            = (1 << 3),
+	/* UNUSED                    = (1 << 4), */
+	V2D_SCROLL_HORIZONTAL        = (V2D_SCROLL_TOP | V2D_SCROLL_BOTTOM),
 	/* scale markings - vertical */
-#define V2D_SCROLL_SCALE_VERTICAL	(1<<5)
+	V2D_SCROLL_SCALE_VERTICAL    = (1 << 5),
 	/* scale markings - horizontal */
-#define V2D_SCROLL_SCALE_HORIZONTAL	(1<<6)
+	V2D_SCROLL_SCALE_HORIZONTAL  = (1 << 6),
 	/* induce hiding of scrollbars - set by region drawing in response to size of region */
-#define V2D_SCROLL_VERTICAL_HIDE	(1<<7)		
-#define V2D_SCROLL_HORIZONTAL_HIDE	(1<<8)
+	V2D_SCROLL_VERTICAL_HIDE     = (1 << 7),
+	V2D_SCROLL_HORIZONTAL_HIDE   = (1 << 8),
 	/* scrollbar extends beyond its available window - set when calculating scrollbars for drawing */
-#define V2D_SCROLL_VERTICAL_FULLR 	(1<<9)	
-#define V2D_SCROLL_HORIZONTAL_FULLR (1<<10)	
+	V2D_SCROLL_VERTICAL_FULLR    = (1 << 9),
+	V2D_SCROLL_HORIZONTAL_FULLR  = (1 << 10),
+};
 
 /* scroll_ui, activate flag for drawing */
-#define V2D_SCROLL_H_ACTIVE			(1<<0)
-#define V2D_SCROLL_V_ACTIVE			(1<<1)
+enum {
+	V2D_SCROLL_H_ACTIVE       = (1 << 0),
+	V2D_SCROLL_V_ACTIVE       = (1 << 1),
+};
 
 /* alignment flags for totrect, flags use 'shading-out' convention (v2d->align) */
+enum {
 	/* all quadrants free */
-#define V2D_ALIGN_FREE			0
+	V2D_ALIGN_FREE        = 0,
 	/* horizontal restrictions */
-#define V2D_ALIGN_NO_POS_X		(1<<0)
-#define V2D_ALIGN_NO_NEG_X		(1<<1)
+	V2D_ALIGN_NO_POS_X    = (1 << 0),
+	V2D_ALIGN_NO_NEG_X    = (1 << 1),
 	/* vertical restrictions */
-#define V2D_ALIGN_NO_POS_Y		(1<<2)
-#define V2D_ALIGN_NO_NEG_Y		(1<<3)
-
+	V2D_ALIGN_NO_POS_Y    = (1 << 2),
+	V2D_ALIGN_NO_NEG_Y    = (1 << 3),
+};
 
 #endif
 
