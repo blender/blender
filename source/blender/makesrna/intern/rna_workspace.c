@@ -192,6 +192,12 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Tool Index", "Tool group index");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	prop = RNA_def_property(srna, "tool_space_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tool.spacetype");
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
+	RNA_def_property_ui_text(prop, "Active Tool Space", "Tool space type");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop = RNA_def_property(srna, "owner_ids", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "wmOwnerID");
 	RNA_def_property_ui_text(prop, "UI Tags", "");
