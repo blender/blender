@@ -10232,3 +10232,18 @@ void ui_but_clipboard_free(void)
 {
 	curvemapping_free_data(&but_copypaste_curve);
 }
+
+bool UI_but_is_tool(const uiBut *but)
+{
+	/* very evil! */
+	if (but->optype != NULL) {
+		static wmOperatorType *ot = NULL;
+		if (ot == NULL) {
+			ot = WM_operatortype_find("WM_OT_tool_set", false);
+		}
+		if (but->optype == ot) {
+			return true;
+		}
+	}
+	return false;
+}

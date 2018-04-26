@@ -56,6 +56,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_multires.h"
+#include "BKE_object.h"
 #include "BKE_packedFile.h"
 #include "BKE_paint.h"
 #include "BKE_screen.h"
@@ -113,7 +114,8 @@ void ED_editors_init(bContext *C)
 			if (mode == OB_MODE_OBJECT) {
 				/* pass */
 			}
-			else {
+			else if (!BKE_object_has_mode_data(ob, mode)) {
+				/* For multi-edit mode we may already have mode data. */
 				ID *data = ob->data;
 				ob->mode = OB_MODE_OBJECT;
 				if ((ob == obact) && !ID_IS_LINKED(ob) && !(data && ID_IS_LINKED(data))) {

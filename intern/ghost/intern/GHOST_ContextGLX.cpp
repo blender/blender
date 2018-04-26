@@ -149,7 +149,9 @@ GHOST_TSuccess GHOST_ContextGLX::initializeDrawingContext()
 		    (glXChooseFBConfig = (PFNGLXCHOOSEFBCONFIGPROC)glXGetProcAddressARB(
 		             (const GLubyte *)"glXChooseFBConfig")) == NULL ||
 		    (glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)glXGetProcAddressARB(
-		             (const GLubyte *)"glXCreateContextAttribsARB")) == NULL)
+		             (const GLubyte *)"glXCreateContextAttribsARB")) == NULL ||
+		    (glXCreatePbuffer = (PFNGLXCREATEPBUFFERPROC)glXGetProcAddressARB(
+		             (const GLubyte *)"glXCreatePbuffer")) == NULL)
 		{
 			extStart = (GLubyte *)"";
 		}
@@ -325,14 +327,8 @@ const bool GLXEW_ARB_create_context_robustness =
 
 		version = glGetString(GL_VERSION);
 
-#if 0 // enable this when Blender switches to 3.3 core profile
 		if (!version || version[0] < '3' || ((version[0] == '3') && (version[2] < '3'))) {
 			fprintf(stderr, "Error! Blender requires OpenGL 3.3 to run. Try updating your drivers.\n");
-#else
-		// with Mesa, the closest thing to 3.3 compatibility profile is 3.0
-		if (!version || version[0] < '3') {
-			fprintf(stderr, "Error! Blender requires OpenGL 3.0 (soon 3.3) to run. Try updating your drivers.\n");
-#endif
 			fflush(stderr);
 			/* ugly, but we get crashes unless a whole bunch of systems are patched. */
 			exit(0);

@@ -902,7 +902,23 @@ static void ui_item_menu_hold(struct bContext *C, ARegion *butregion, uiBut *but
 
 	block->flag |= UI_BLOCK_POPUP_HOLD;
 	block->flag |= UI_BLOCK_IS_FLIP;
-	UI_block_direction_set(block, UI_DIR_DOWN);
+
+	char direction = UI_DIR_DOWN;
+	if (!but->drawstr[0]) {
+		if (butregion->alignment == RGN_ALIGN_LEFT) {
+			direction = UI_DIR_RIGHT;
+		}
+		else if (butregion->alignment == RGN_ALIGN_RIGHT) {
+			direction = UI_DIR_LEFT;
+		}
+		else if (butregion->alignment == RGN_ALIGN_BOTTOM) {
+			direction = UI_DIR_UP;
+		}
+		else {
+			direction = UI_DIR_DOWN;
+		}
+	}
+	UI_block_direction_set(block, direction);
 
 	const char *menu_id = but->hold_argN;
 	MenuType *mt = WM_menutype_find(menu_id, true);

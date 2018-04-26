@@ -260,6 +260,9 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 	/* Relations are up to date. */
 	deg_graph->need_update = false;
 
+	/* Store pointers to commonly used valuated datablocks. */
+	deg_graph->scene_cow = (Scene *)deg_graph->get_cow_id(&deg_graph->scene->id);
+
 	if (need_on_visible_update) {
 		DEG_graph_on_visible_update(bmain, graph);
 	}

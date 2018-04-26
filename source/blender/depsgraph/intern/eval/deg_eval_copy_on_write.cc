@@ -289,7 +289,6 @@ bool scene_copy_inplace_no_main(const Scene *scene, Scene *new_scene)
 	bool result = BKE_id_copy_ex(NULL,
 	                             id_for_copy,
 	                             (ID **)&new_scene,
-	                             LIB_ID_COPY_ACTIONS |
 	                             LIB_ID_CREATE_NO_MAIN |
 	                             LIB_ID_CREATE_NO_USER_REFCOUNT |
 	                             LIB_ID_CREATE_NO_ALLOCATE |
@@ -490,6 +489,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 {
 	const ID *id_orig = id_node->id_orig;
 	ID *id_cow = id_node->id_cow;
+	const int id_cow_recalc = id_cow->recalc;
 	/* No need to expand such datablocks, their copied ID is same as original
 	 * one already.
 	 */
@@ -582,6 +582,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	if (newid != NULL) {
 		MEM_freeN(newid);
 	}
+	id_cow->recalc = id_orig->recalc | id_cow_recalc;
 	return id_cow;
 }
 

@@ -61,10 +61,10 @@ class ToolSelectPanelHelper:
             assert(type(icon_name) is str)
             icon_value = _icon_cache.get(icon_name)
             if icon_value is None:
-                dirname = bpy.utils.resource_path('SYSTEM')
+                dirname = bpy.utils.resource_path('LOCAL')
                 if not dirname:
                     # TODO(campbell): use a better way of finding datafiles.
-                    dirname = bpy.utils.resource_path('LOCAL')
+                    dirname = bpy.utils.resource_path('SYSTEM')
                 filename = os.path.join(dirname, "datafiles", "icons", icon_name + ".dat")
                 try:
                     icon_value = bpy.app.icons.new_triangles_from_file(filename)
@@ -81,7 +81,7 @@ class ToolSelectPanelHelper:
 
     @staticmethod
     def _tool_is_group(tool):
-        return type(tool[0]) is not str
+        return type(tool) is not dict
 
     @staticmethod
     def _tools_flatten(tools):
@@ -96,7 +96,10 @@ class ToolSelectPanelHelper:
 
     @classmethod
     def _tool_vars_from_def(cls, item):
-        text, icon_name, mp_idname, actions = item
+        text = item["text"]
+        icon_name = item["icon"]
+        mp_idname = item["widget"]
+        actions = item["keymap"]
         km, km_idname = (None, None) if actions is None else cls._tool_keymap[text]
         return (km_idname, mp_idname), icon_name
 
@@ -163,8 +166,10 @@ class ToolSelectPanelHelper:
             return
 
         for item in ToolSelectPanelHelper._tools_flatten(cls.tools_all()):
-            text, icon_name, mp_idname, actions = item
+            actions = item["keymap"]
             if actions is not None:
+                text = item["text"]
+                icon_name = item["icon"]
                 km, km_idname = cls._km_actionmouse_simple(kc, text, icon_name, actions)
                 cls._tool_keymap[text] = km, km_idname
 
@@ -215,9 +220,9 @@ class ToolSelectPanelHelper:
 
                         if is_active:
                             # not ideal, write this every time :S
-                            self._tool_group_active[item[0][0]] = index
+                            self._tool_group_active[item[0]["text"]] = index
                         else:
-                            index = self._tool_group_active.get(item[0][0], 0)
+                            index = self._tool_group_active.get(item[0]["text"], 0)
 
                         item = item[index]
                         use_menu = True
@@ -299,7 +304,7 @@ class WM_MT_toolsystem_submenu(Menu):
             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
             props = layout.operator(
                 "wm.tool_set",
-                text=item[0],
+                text=item["text"],
                 icon_value=icon_value,
             )
             props.keymap = tool_def[0] or ""

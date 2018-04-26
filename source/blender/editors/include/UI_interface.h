@@ -1229,4 +1229,9 @@ void UI_widgetbase_draw_cache_begin(void);
 void UI_widgetbase_draw_cache_flush(void);
 void UI_widgetbase_draw_cache_end(void);
 
+/* Special drawing for toolbar, mainly workarounds for inflexible icon sizing. */
+#define USE_TOOLBAR_HACK
+
+bool UI_but_is_tool(const uiBut *but);
+
 #endif  /* __UI_INTERFACE_H__ */

@@ -197,6 +197,11 @@ struct Depsgraph {
 
 	/* Time at which dependency graph is being or was last evaluated. */
 	float ctime;
+
+	/* Evaluated version of datablocks we access a lot.
+	 * Stored here to save us form doing hash lookup.
+	 */
+	Scene *scene_cow;
 };
 
 }  // namespace DEG

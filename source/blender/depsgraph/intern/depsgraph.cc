@@ -102,7 +102,8 @@ Depsgraph::Depsgraph(Scene *scene,
     scene(scene),
     view_layer(view_layer),
     mode(mode),
-    ctime(BKE_scene_frame_get(scene))
+    ctime(BKE_scene_frame_get(scene)),
+    scene_cow(NULL)
 {
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");

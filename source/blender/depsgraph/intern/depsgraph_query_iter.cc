@@ -209,11 +209,6 @@ void DEG_iterator_objects_begin(BLI_Iterator *iter, DEGObjectIterData *data)
 		return;
 	}
 
-	/* TODO: Calling this forces the scene datablock to be expanded,
-	 * otherwise we get crashes on load with copy-on-write. There may
-	 * be a better solution for this. */
-	DEG_get_evaluated_view_layer(depsgraph);
-
 	iter->data = data;
 	data->dupli_parent = NULL;
 	data->dupli_list = NULL;

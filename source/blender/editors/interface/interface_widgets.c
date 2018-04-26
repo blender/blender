@@ -208,8 +208,8 @@ static const uint g_shape_preset_checkmark_face[4][3] = {
 	{3, 2, 4}, {3, 4, 5}, {1, 0, 3}, {0, 2, 3}
 };
 
-#define OY -0.2 
-#define SC 0.35
+#define OY (-0.2 / 2)
+#define SC (0.35 * 2)
 static const float g_shape_preset_hold_action_vert[6][2] = {
 	{-0.5 + SC, 1.0 + OY},  {0.5, 1.0 + OY},  {0.5, 0.0 + OY + SC},
 };
@@ -1255,9 +1255,9 @@ static int ui_but_draw_menu_icon(const uiBut *but)
 
 /* icons have been standardized... and this call draws in untransformed coordinates */
 
-static void widget_draw_icon(
-        const uiBut *but, BIFIconID icon, float alpha, const rcti *rect,
-        const bool show_menu_icon)
+static void widget_draw_icon_ex(
+        const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const bool show_menu_icon,
+        const int icon_size)
 {
 	float xs = 0.0f, ys = 0.0f;
 	float aspect, height;
@@ -1273,7 +1273,7 @@ static void widget_draw_icon(
 	if (icon == ICON_BLANK1 && (but->flag & UI_BUT_ICON_SUBMENU) == 0) return;
 	
 	aspect = but->block->aspect / UI_DPI_FAC;
-	height = ICON_DEFAULT_HEIGHT / aspect;
+	height = icon_size / aspect;
 
 	/* calculate blend color */
 	if (ELEM(but->type, UI_BTYPE_TOGGLE, UI_BTYPE_ROW, UI_BTYPE_TOGGLE_N, UI_BTYPE_LISTROW)) {
@@ -1335,6 +1335,12 @@ static void widget_draw_icon(
 	}
 	
 	glDisable(GL_BLEND);
+}
+
+static void widget_draw_icon(
+        const uiBut *but, BIFIconID icon, float alpha, const rcti *rect, const bool show_menu_icon)
+{
+	widget_draw_icon_ex(but, icon, alpha, rect, show_menu_icon, ICON_DEFAULT_HEIGHT);
 }
 
 static void ui_text_clip_give_prev_off(uiBut *but, const char *str)
@@ -1998,12 +2004,26 @@ static void widget_draw_text_icon(uiFontStyle *fstyle, uiWidgetColors *wcol, uiB
 	}
 	/* Icons on the left with optional text label on the right */
 	else if (but->flag & UI_HAS_ICON || show_menu_icon) {
+		const bool is_tool = UI_but_is_tool(but);
+
 		const BIFIconID icon = (but->flag & UI_HAS_ICON) ? but->icon + but->iconadd : ICON_NONE;
-		const float icon_size = ICON_DEFAULT_WIDTH_SCALE;
+		int icon_size_init = is_tool ? ICON_DEFAULT_HEIGHT_TOOLBAR : ICON_DEFAULT_HEIGHT;
+		const float icon_size = icon_size_init / (but->block->aspect / UI_DPI_FAC);
+
+#ifdef USE_TOOLBAR_HACK
+		if (is_tool) {
+			/* pass (even if its a menu toolbar) */
+			but->drawflag |= UI_BUT_TEXT_LEFT;
+			but->drawflag |= UI_BUT_ICON_LEFT;
+		}
+#endif
 
 		/* menu item - add some more padding so menus don't feel cramped. it must
 		 * be part of the button so that this area is still clickable */
-		if (ui_block_is_pie_menu(but->block)) {
+		if (is_tool) {
+			/* pass (even if its a menu toolbar) */
+		}
+		else if (ui_block_is_pie_menu(but->block)) {
 			if (but->dt == UI_EMBOSS_RADIAL)
 				rect->xmin += 0.3f * U.widget_unit;
 		}
@@ -2148,7 +2168,7 @@ static struct uiWidgetColors wcol_option = {
 	1,
 	15, -15,
 	0,
-	0.2f,
+	0.3333333f,
 };
 
 /* button that shows popup */
@@ -3162,7 +3182,7 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	bTheme *btheme = UI_GetTheme();
 	uiWidgetColors *wcol = &btheme->tui.wcol_numslider;
 	uiWidgetBase wtb;
-	const float rad = wcol->roundness * U.widget_unit;
+	const float rad = wcol->roundness * BLI_rcti_size_x(rect);
 	float x, y;
 	float rgb[3], hsv[3], v;
 	bool color_profile = but->block->color_profile;
@@ -3250,7 +3270,7 @@ static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
 static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int roundboxalign, bool emboss)
 {
 	uiWidgetBase wtb;
-	const float rad = wcol->roundness * U.widget_unit;
+	const float rad = wcol->roundness * BLI_rcti_size_y(rect);
 	const int handle_width = min_ii(BLI_rcti_size_x(rect) / 3, BLI_rcti_size_y(rect) * 0.7f);
 
 	if (state & UI_SELECT)
@@ -3510,7 +3530,7 @@ static void widget_progressbar(uiBut *but, uiWidgetColors *wcol, rcti *rect, int
 
 	/* round corners */
 	float value = but->a1;
-	float offs = wcol->roundness * U.widget_unit;
+	float offs = wcol->roundness * BLI_rcti_size_y(&rect_prog);
 	float w = value * BLI_rcti_size_x(&rect_prog);
 
 	/* ensure minimium size */
@@ -3546,7 +3566,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 	
 	/* backdrop first */
 	
-	offs = wcol->roundness * U.widget_unit;
+	offs = wcol->roundness * BLI_rcti_size_y(rect);
 	toffs = offs * 0.75f;
 	round_box_edges(&wtb, roundboxalign, rect, offs);
 
@@ -3712,7 +3732,7 @@ static void widget_icon_has_anim(uiBut *but, uiWidgetColors *wcol, rcti *rect, i
 		widget_init(&wtb);
 		wtb.draw_outline = false;
 		
-		rad = wcol->roundness * U.widget_unit;
+		rad = wcol->roundness * BLI_rcti_size_y(rect);
 		round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
 		widgetbase_draw(&wtb, wcol);
 	}
@@ -3885,7 +3905,7 @@ static void widget_optionbut(uiWidgetColors *wcol, rcti *rect, int state, int UN
 	recttemp.xmax -= delta;
 	recttemp.ymax -= delta;
 	
-	rad = wcol->roundness * U.widget_unit;
+	rad = wcol->roundness * BLI_rcti_size_y(&recttemp);
 	round_box_edges(&wtb, UI_CNR_ALL, &recttemp, rad);
 	
 	/* decoration */
