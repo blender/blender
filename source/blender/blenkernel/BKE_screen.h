@@ -140,6 +140,8 @@ typedef struct ARegionType {
 	void (*exit)(struct wmWindowManager *, struct ARegion *);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *, struct ARegion *);
+	/* snap the size of the region (can be NULL for no snapping). */
+	int (*snap_size)(const struct ARegion *ar, int size, int axis);
 	/* contextual changes should be handled here */
 	void (*listener)(struct bScreen *, struct ScrArea *, struct ARegion *,
 	                 struct wmNotifier *, const struct Scene *scene);

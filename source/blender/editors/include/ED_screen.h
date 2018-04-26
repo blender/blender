@@ -91,6 +91,9 @@ void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
 float	ED_region_blend_factor(struct ARegion *ar);
 void	ED_region_visible_rect(struct ARegion *ar, struct rcti *rect);
 
+int     ED_region_snap_size_test(const struct ARegion *ar);
+bool    ED_region_snap_size_apply(struct ARegion *ar, int snap_flag);
+
 /* message_bus callbacks */
 void ED_region_do_msg_notify_tag_redraw(
         struct bContext *C, struct wmMsgSubscribeKey *msg_key, struct wmMsgSubscribeValue *msg_val);

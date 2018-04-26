@@ -2741,3 +2741,36 @@ void ED_region_message_subscribe(
 		ar->type->message_subscribe(C, workspace, scene, screen, sa, ar, mbus);
 	}
 }
+
+int ED_region_snap_size_test(const ARegion *ar)
+{
+	/* Use a larger value because toggling scrollbars can jump in size. */
+	const int snap_match_threshold = 16;
+	if (ar->type->snap_size != NULL) {
+		return ((((ar->sizex - ar->type->snap_size(ar, ar->sizex, 0)) <= snap_match_threshold) << 0) |
+		        (((ar->sizey - ar->type->snap_size(ar, ar->sizey, 1)) <= snap_match_threshold) << 1));
+	}
+	return 0;
+}
+
+bool ED_region_snap_size_apply(ARegion *ar, int snap_flag)
+{
+	bool changed = false;
+	if (ar->type->snap_size != NULL) {
+		if (snap_flag & (1 << 0)) {
+			short snap_size = ar->type->snap_size(ar, ar->sizex, 0);
+			if (snap_size != ar->sizex) {
+				ar->sizex = snap_size;
+				changed = true;
+			}
+		}
+		if (snap_flag & (1 << 1)) {
+			short snap_size = ar->type->snap_size(ar, ar->sizey, 1);
+			if (snap_size != ar->sizey) {
+				ar->sizey = snap_size;
+				changed = true;
+			}
+		}
+	}
+	return changed;
+}

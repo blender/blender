@@ -641,6 +641,7 @@ static void view_zoomstep_apply_ex(
 	View2D *v2d = &ar->v2d;
 	const rctf cur_old = v2d->cur;
 	float dx, dy;
+	const int snap_test = ED_region_snap_size_test(ar);
 
 	/* calculate amount to move view by, ensuring symmetry so the
 	 * old zoom level is restored after zooming back the same amount 
@@ -724,6 +725,12 @@ static void view_zoomstep_apply_ex(
 
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
+
+	if (ED_region_snap_size_apply(ar, snap_test)) {
+		ScrArea *sa = CTX_wm_area(C);
+		ED_area_tag_redraw(sa);
+		WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+	}
 
 	/* request updates to be done... */
 	ED_region_tag_redraw(vzd->ar);
@@ -898,7 +905,8 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	v2dViewZoomData *vzd = op->customdata;
 	View2D *v2d = vzd->v2d;
 	float dx, dy;
-	
+	const int snap_test = ED_region_snap_size_test(vzd->ar);
+
 	/* get amount to move view by */
 	dx = RNA_float_get(op->ptr, "deltax");
 	dy = RNA_float_get(op->ptr, "deltay");
@@ -961,7 +969,13 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
+	if (ED_region_snap_size_apply(vzd->ar, snap_test)) {
+		ScrArea *sa = CTX_wm_area(C);
+		ED_area_tag_redraw(sa);
+		WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+	}
+
 	/* request updates to be done... */
 	ED_region_tag_redraw(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
@@ -2000,6 +2014,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	int winx, winy;
+	const int snap_test = ED_region_snap_size_test(ar);
 
 	/* zoom 1.0 */
 	winx = (float)(BLI_rcti_size_x(&v2d->mask) + 1);
@@ -2033,7 +2048,13 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
+	if (ED_region_snap_size_apply(ar, snap_test)) {
+		ScrArea *sa = CTX_wm_area(C);
+		ED_area_tag_redraw(sa);
+		WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);
+	}
+
 	/* request updates to be done... */
 	ED_region_tag_redraw(ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);

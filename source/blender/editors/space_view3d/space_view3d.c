@@ -1277,6 +1277,18 @@ static void view3d_buttons_region_listener(
 	}
 }
 
+static int view3d_tools_region_snap_size(const ARegion *ar, int size, int axis)
+{
+	if (axis == 0) {
+		/* Note, this depends on the icon size: see #ICON_DEFAULT_HEIGHT_TOOLBAR. */
+		const float snap_units = 3.25f;
+		const float aspect = BLI_rctf_size_x(&ar->v2d.cur) / (BLI_rcti_size_x(&ar->v2d.mask) + 1);
+		const int snap_size = (snap_units * U.widget_unit) / aspect;
+		return snap_size;
+	}
+	return size;
+}
+
 /* add handlers, stuff you only do once or on area/region changes */
 static void view3d_tools_region_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -1474,6 +1486,7 @@ void ED_spacetype_view3d(void)
 	art->prefsizey = 50; /* XXX */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_FRAMES;
 	art->listener = view3d_buttons_region_listener;
+	art->snap_size = view3d_tools_region_snap_size;
 	art->init = view3d_tools_region_init;
 	art->draw = view3d_tools_region_draw;
 	BLI_addhead(&st->regiontypes, art);
