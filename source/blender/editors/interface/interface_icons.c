@@ -977,7 +977,7 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh,
-                           unsigned int *rect, float alpha, const float rgb[3], const bool UNUSED(is_preview))
+                           unsigned int *rect, float alpha, const float rgb[3], const bool desaturate)
 {
 	ImBuf *ima = NULL;
 	int draw_w = w;
@@ -1026,7 +1026,8 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	UI_widgetbase_draw_cache_flush();
 
 	/* draw */
-	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(GPU_SHADER_2D_IMAGE_COLOR);
+	GPUBuiltinShader shader = (desaturate) ? GPU_SHADER_2D_IMAGE_DESATURATE_COLOR : GPU_SHADER_2D_IMAGE_COLOR;
+	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
 	immDrawPixelsTex(&state, draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
 	                 1.0f, 1.0f, col);
 
@@ -1192,7 +1193,7 @@ static int get_draw_size(enum eIconSizes size)
 
 static void icon_draw_size(
         float x, float y, int icon_id, float aspect, float alpha, const float rgb[3],
-        enum eIconSizes size, int draw_size, const bool UNUSED(nocreate), const bool is_preview)
+        enum eIconSizes size, int draw_size, const bool desaturate)
 {
 	bTheme *btheme = UI_GetTheme();
 	Icon *icon = NULL;
@@ -1250,7 +1251,7 @@ static void icon_draw_size(
 			di->data.geom.image_cache = ibuf;
 		}
 		glBlendFuncSeparate(GL_ONE, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, is_preview);
+		icon_draw_rect(x, y, w, h, aspect, w, h, ibuf->rect, alpha, rgb, desaturate);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_TEXTURE) {
@@ -1269,7 +1270,7 @@ static void icon_draw_size(
 		if (!iimg->rect) return;  /* something has gone wrong! */
 
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, is_preview);
+		icon_draw_rect(x, y, w, h, aspect, iimg->w, iimg->h, iimg->rect, alpha, rgb, desaturate);
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	}
 	else if (di->type == ICON_TYPE_PREVIEW) {
@@ -1282,7 +1283,7 @@ static void icon_draw_size(
 			/* preview images use premul alpha ... */
 			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, rgb, is_preview);
+			icon_draw_rect(x, y, w, h, aspect, pi->w[size], pi->h[size], pi->rect[size], alpha, rgb, desaturate);
 			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 		}
 	}
@@ -1528,21 +1529,26 @@ int UI_idcode_icon_get(const int idcode)
 
 static void icon_draw_at_size(
         float x, float y, int icon_id, float aspect, float alpha,
-        enum eIconSizes size, const bool nocreate)
+        enum eIconSizes size, const bool desaturate)
 {
 	int draw_size = get_draw_size(size);
-	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, nocreate, false);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, desaturate);
 }
 
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha)
 {
-	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, 0);
+	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, false);
 }
 
 void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, const float rgb[3])
 {
 	int draw_size = get_draw_size(ICON_SIZE_ICON);
-	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, false, false);
+	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, false);
+}
+
+void UI_icon_draw_desaturate(float x, float y, int icon_id, float aspect, float alpha)
+{
+	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, true);
 }
 
 /* draws icon with dpi scale factor */
@@ -1558,21 +1564,21 @@ void UI_icon_draw_alpha(float x, float y, int icon_id, float alpha)
 
 void UI_icon_draw_size(float x, float y, int size, int icon_id, float alpha)
 {
-	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, true, false);
+	icon_draw_size(x, y, icon_id, 1.0f, alpha, NULL, ICON_SIZE_ICON, size, false);
 }
 
 void UI_icon_draw_preview(float x, float y, int icon_id)
 {
-	icon_draw_at_size(x, y, icon_id, 1.0f, 1.0f, ICON_SIZE_PREVIEW, 0);
+	icon_draw_at_size(x, y, icon_id, 1.0f, 1.0f, ICON_SIZE_PREVIEW, false);
 }
 
 void UI_icon_draw_preview_aspect(float x, float y, int icon_id, float aspect)
 {
-	icon_draw_at_size(x, y, icon_id, aspect, 1.0f, ICON_SIZE_PREVIEW, 0);
+	icon_draw_at_size(x, y, icon_id, aspect, 1.0f, ICON_SIZE_PREVIEW, false);
 }
 
 void UI_icon_draw_preview_aspect_size(float x, float y, int icon_id, float aspect, float alpha, int size)
 {
-	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, ICON_SIZE_PREVIEW, size, false, true);
+	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, ICON_SIZE_PREVIEW, size, false);
 }
 

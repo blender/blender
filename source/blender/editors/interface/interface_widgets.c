@@ -1317,14 +1317,18 @@ static void widget_draw_icon_ex(
 			xs = (int)(xs + 0.1f);
 			ys = (int)(ys + 0.1f);
 		}
-		
+
 		/* to indicate draggable */
 		if (but->dragpoin && (but->flag & UI_ACTIVE)) {
 			float rgb[3] = {1.25f, 1.25f, 1.25f};
 			UI_icon_draw_aspect_color(xs, ys, icon, aspect, rgb);
 		}
-		else
+		else if ((but->flag & (UI_ACTIVE | UI_SELECT | UI_SELECT_DRAW)) || !UI_but_is_tool(but)) {
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
+		}
+		else {
+			UI_icon_draw_desaturate(xs, ys, icon, aspect, alpha);
+		}
 	}
 
 	if (show_menu_icon) {
