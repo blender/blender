@@ -147,7 +147,7 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 	
 	scroll = view2d_scroll_mapped(v2d->scroll);
 	
-	/* scrollers shrink mask area, but should be based off regionsize 
+	/* scrollers are based off regionsize
 	 *	- they can only be on one to two edges of the region they define
 	 *	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
 	 */
@@ -162,14 +162,12 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 			/* on left-hand edge of region */
 			v2d->vert = v2d->mask;
 			v2d->vert.xmax = scroll_width;
-			v2d->mask.xmin = v2d->vert.xmax + 1;
 		}
 		else if (scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert = v2d->mask;
 			v2d->vert.xmax++; /* one pixel extra... was leaving a minor gap... */
 			v2d->vert.xmin = v2d->vert.xmax - scroll_width;
-			v2d->mask.xmax = v2d->vert.xmin - 1;
 		}
 		
 		/* horizontal scroller */
@@ -177,25 +175,22 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 			/* on bottom edge of region */
 			v2d->hor = v2d->mask;
 			v2d->hor.ymax = scroll_height;
-			v2d->mask.ymin = v2d->hor.ymax + 1;
 		}
 		else if (scroll & V2D_SCROLL_TOP) {
 			/* on upper edge of region */
 			v2d->hor = v2d->mask;
 			v2d->hor.ymin = v2d->hor.ymax - scroll_height;
-			v2d->mask.ymax = v2d->hor.ymin - 1;
 		}
 		
 		/* adjust vertical scroller if there's a horizontal scroller, to leave corner free */
 		if (scroll & V2D_SCROLL_VERTICAL) {
-			/* just set y min/max for vertical scroller to y min/max of mask as appropriate */
 			if (scroll & (V2D_SCROLL_BOTTOM)) {
 				/* on bottom edge of region */
-				v2d->vert.ymin = v2d->mask.ymin;
+				v2d->vert.ymin = v2d->hor.ymax;
 			}
 			else if (scroll & V2D_SCROLL_TOP) {
 				/* on upper edge of region */
-				v2d->vert.ymax = v2d->mask.ymax;
+				v2d->vert.ymax = v2d->hor.ymin;
 			}
 		}
 	}
@@ -1650,7 +1645,7 @@ View2DScrollers *UI_view2d_scrollers_calc(
 	hor = v2d->hor;
 	
 	/* slider rects need to be smaller than region */
-	smaller = (int)(0.2f * U.widget_unit);
+	smaller = (int)(0.1f * U.widget_unit);
 	hor.xmin += smaller;
 	hor.xmax -= smaller;
 	if (scroll & V2D_SCROLL_BOTTOM)
@@ -1848,20 +1843,7 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		{
 			state |= UI_SCROLL_ARROWS;
 		}
-		
-		/* clean rect behind slider, but not with transparent background */
-		if (scrollers_back_color[3] == 255) {
-			Gwn_VertFormat *format = immVertexFormat();
-			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
 
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-			immUniformColor3ubv(scrollers_back_color);
-			immRecti(pos, v2d->hor.xmin, v2d->hor.ymin, v2d->hor.xmax, v2d->hor.ymax);
-
-			immUnbindProgram();
-		}
-		
 		UI_draw_widget_scroll(&wcol, &hor, &slider, state);
 		
 		/* scale indicators */
@@ -1958,19 +1940,6 @@ void UI_view2d_scrollers_draw(const bContext *C, View2D *v2d, View2DScrollers *v
 		    (BLI_rcti_size_y(&slider) > V2D_SCROLLER_HANDLE_SIZE))
 		{
 			state |= UI_SCROLL_ARROWS;
-		}
-		
-		/* clean rect behind slider, but not with transparent background */
-		if (scrollers_back_color[3] == 255) {
-			Gwn_VertFormat *format = immVertexFormat();
-			unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
-
-			immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-
-			immUniformColor3ubv(scrollers_back_color);
-			immRecti(pos, v2d->vert.xmin, v2d->vert.ymin, v2d->vert.xmax, v2d->vert.ymax);
-
-			immUnbindProgram();
 		}
 		
 		UI_draw_widget_scroll(&wcol, &vert, &slider, state);
@@ -2427,9 +2396,8 @@ void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac)
  * - 'v' = in vertical scroller.
  * - 0 = not in scroller.
  */
-short UI_view2d_mouse_in_scrollers(const bContext *C, View2D *v2d, int x, int y)
+short UI_view2d_mouse_in_scrollers(const ARegion *ar, View2D *v2d, int x, int y)
 {
-	ARegion *ar = CTX_wm_region(C);
 	int co[2];
 	int scroll = view2d_scroll_mapped(v2d->scroll);
 	

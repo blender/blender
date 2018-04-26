@@ -1908,7 +1908,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 	short in_scroller = 0;
 		
 	/* check if mouse in scrollbars, if they're enabled */
-	in_scroller = UI_view2d_mouse_in_scrollers(C, v2d, event->x, event->y);
+	in_scroller = UI_view2d_mouse_in_scrollers(ar, v2d, event->x, event->y);
 	
 	/* if in a scroller, init customdata then set modal handler which will catch mousedown to start doing useful stuff */
 	if (in_scroller) {

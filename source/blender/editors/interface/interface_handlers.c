@@ -75,6 +75,7 @@
 #include "ED_keyframing.h"
 
 #include "UI_interface.h"
+#include "UI_view2d.h"
 
 #include "BLF_api.h"
 
@@ -7411,8 +7412,9 @@ static bool ui_region_contains_point_px(ARegion *ar, int x, int y)
 		ui_window_to_region(ar, &mx, &my);
 
 		/* check if in the rect */
-		if (!BLI_rcti_isect_pt(&v2d->mask, mx, my))
+		if (!BLI_rcti_isect_pt(&v2d->mask, mx, my) || UI_view2d_mouse_in_scrollers(ar, &ar->v2d, x, y)) {
 			return false;
+		}
 	}
 	
 	return true;

@@ -103,11 +103,11 @@ enum eView2D_Gridlines {
 /* ------ Defines for Scrollers ----- */
 
 /* scroller area */
-#define V2D_SCROLL_HEIGHT      (0.55f * U.widget_unit)
-#define V2D_SCROLL_WIDTH       (0.55f * U.widget_unit)
+#define V2D_SCROLL_HEIGHT      (0.45f * U.widget_unit)
+#define V2D_SCROLL_WIDTH       (0.45f * U.widget_unit)
 /* For scrollers with scale markings (text written onto them) */
-#define V2D_SCROLL_HEIGHT_TEXT (0.85f * U.widget_unit)
-#define V2D_SCROLL_WIDTH_TEXT  (0.85f * U.widget_unit)
+#define V2D_SCROLL_HEIGHT_TEXT (0.79f * U.widget_unit)
+#define V2D_SCROLL_WIDTH_TEXT  (0.79f * U.widget_unit)
 
 /* scroller 'handles' hotspot radius for mouse */
 #define V2D_SCROLLER_HANDLE_SIZE    (0.6f * U.widget_unit)
@@ -222,7 +222,7 @@ void UI_view2d_center_set(struct View2D *v2d, float x, float y);
 
 void UI_view2d_offset(struct View2D *v2d, float xfac, float yfac);
 
-short UI_view2d_mouse_in_scrollers(const struct bContext *C, struct View2D *v2d, int x, int y);
+short UI_view2d_mouse_in_scrollers(const struct ARegion *ar, struct View2D *v2d, int x, int y);
 
 /* cached text drawing in v2d, to allow pixel-aligned draw as post process */
 void UI_view2d_text_cache_add(struct View2D *v2d, float x, float y,

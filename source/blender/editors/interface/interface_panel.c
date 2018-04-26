@@ -2017,6 +2017,11 @@ int ui_handler_panel_region(bContext *C, const wmEvent *event, ARegion *ar, cons
 
 	retval = WM_UI_HANDLER_CONTINUE;
 
+	/* Scrollbars can overlap panels now, they have handling priority. */
+	if (UI_view2d_mouse_in_scrollers(ar, &ar->v2d, event->x, event->y)) {
+		return retval;
+	}
+
 	/* handle category tabs */
 	if (has_category_tabs) {
 		if (event->val == KM_PRESS) {
