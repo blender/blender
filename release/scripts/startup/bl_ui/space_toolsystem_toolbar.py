@@ -261,7 +261,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 ),
                 dict(
                     text="Vertex Slide",
-                    icon="ops.transform.edge_slide",
+                    icon="ops.transform.vert_slide",
                     widget=None,
                     keymap=(
                         ("transform.vert_slide", dict(release_confirm=True),
@@ -375,7 +375,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                     keymap=(
                         ("mesh.knife_tool",
                          dict(wait_for_input=False, use_occlude_geometry=True, only_selected=False),
-                         dict(type='ACTIONMOUSE', value='PRESS')),),
+                         dict(type='ACTIONMOUSE', value='PRESS')),
+                    ),
                 ),
                 None,
                 dict(
@@ -385,7 +386,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                     keymap=(
                         ("mesh.bisect",
                          dict(),
-                         dict(type='EVT_TWEAK_A', value='ANY')),),
+                         dict(type='EVT_TWEAK_A', value='ANY')),
+                    ),
                 ),
             ),
             # End group.
