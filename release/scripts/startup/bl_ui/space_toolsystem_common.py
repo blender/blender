@@ -26,6 +26,13 @@ __all__ = (
     "ToolSelectPanelHelper",
 )
 
+# Support reloading icons.
+if "_icon_cache" in locals():
+    release = bpy.app.icons.release
+    for icon_value in _icon_cache.values():
+        release(icon_value)
+    del release
+
 
 # (filename -> icon_value) map
 _icon_cache = {}
