@@ -141,9 +141,9 @@ class ToolSelectPanelHelper:
                 else:
                     setattr(rna_props, prop_id, value)
 
-        if mode is None:
-            mode = "All"
-        km_idname = f"{cls.keymap_prefix} {mode}, {text}"
+        if context_mode is None:
+            context_mode = "All"
+        km_idname = f"{cls.keymap_prefix} {context_mode}, {text}"
         km = kc.keymaps.get(km_idname)
         if km is not None:
             return km, km_idname
@@ -165,7 +165,7 @@ class ToolSelectPanelHelper:
         # This needs some careful consideration.
         kc = wm.keyconfigs.user
 
-        # {mode: {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}, ...}
+        # {context_mode: {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}, ...}
         cls._tool_keymap = {}
 
         # Track which tool-group was last used for non-active groups.
