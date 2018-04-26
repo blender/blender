@@ -519,6 +519,7 @@ void blf_glyph_render(FontBLF *font, GlyphBLF *g, float x, float y)
 	}
 
 	if (font->tex_bind_state != g->tex) {
+		blf_batch_draw();
 		glBindTexture(GL_TEXTURE_2D, (font->tex_bind_state = g->tex));
 	}
 
