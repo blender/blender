@@ -376,6 +376,15 @@ void deg_graph_id_tag_update_single_flag(Main *bmain,
 	DepsNodeFactory *factory = deg_type_get_factory(component_type);
 	BLI_assert(factory != NULL);
 	id->recalc |= factory->id_recalc_tag();
+	/* NOTE: This way we clearly separate direct animation recalc flag from
+	 * a flushed one. Needed for auto-keyframe hack feature.
+	 *
+	 * TODO(sergey): Find a more generic way to set/access direct tagged ID
+	 * recalc flags.
+	 */
+	if (tag == DEG_TAG_TIME) {
+		id->recalc |= ID_RECALC_TIME;
+	}
 	/* Some sanity checks before moving forward. */
 	if (id_node == NULL) {
 		/* Happens when object is tagged for update and not yet in the
