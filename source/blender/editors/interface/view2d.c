@@ -152,18 +152,23 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 	 *	- if they overlap, they must not occupy the corners (which are reserved for other widgets)
 	 */
 	if (scroll) {
+		const int scroll_width = (v2d->scroll & V2D_SCROLL_SCALE_VERTICAL) ?
+		                             V2D_SCROLL_WIDTH_TEXT : V2D_SCROLL_WIDTH;
+		const int scroll_height = (v2d->scroll & V2D_SCROLL_SCALE_HORIZONTAL) ?
+		                              V2D_SCROLL_HEIGHT_TEXT : V2D_SCROLL_HEIGHT;
+
 		/* vertical scroller */
 		if (scroll & V2D_SCROLL_LEFT) {
 			/* on left-hand edge of region */
 			v2d->vert = v2d->mask;
-			v2d->vert.xmax = V2D_SCROLL_WIDTH;
+			v2d->vert.xmax = scroll_width;
 			v2d->mask.xmin = v2d->vert.xmax + 1;
 		}
 		else if (scroll & V2D_SCROLL_RIGHT) {
 			/* on right-hand edge of region */
 			v2d->vert = v2d->mask;
 			v2d->vert.xmax++; /* one pixel extra... was leaving a minor gap... */
-			v2d->vert.xmin = v2d->vert.xmax - V2D_SCROLL_WIDTH;
+			v2d->vert.xmin = v2d->vert.xmax - scroll_width;
 			v2d->mask.xmax = v2d->vert.xmin - 1;
 		}
 		
@@ -171,13 +176,13 @@ static void view2d_masks(View2D *v2d, bool check_scrollers)
 		if (scroll & (V2D_SCROLL_BOTTOM)) {
 			/* on bottom edge of region */
 			v2d->hor = v2d->mask;
-			v2d->hor.ymax = V2D_SCROLL_HEIGHT;
+			v2d->hor.ymax = scroll_height;
 			v2d->mask.ymin = v2d->hor.ymax + 1;
 		}
 		else if (scroll & V2D_SCROLL_TOP) {
 			/* on upper edge of region */
 			v2d->hor = v2d->mask;
-			v2d->hor.ymin = v2d->hor.ymax - V2D_SCROLL_HEIGHT;
+			v2d->hor.ymin = v2d->hor.ymax - scroll_height;
 			v2d->mask.ymax = v2d->hor.ymin - 1;
 		}
 		
