@@ -41,13 +41,15 @@ class ToolSelectPanelHelper:
     - tools_from_context(context):
       Returns tools available in this context.
 
-    Each tool is a triplet:
-      ``(tool_name, manipulator_group_idname, keymap_actions)``
+    Each tool is a dict:
+      ``(text=tool_name, icon=icon_name, widget=manipulator_group_idname, keymap=keymap_actions)``
     For a separator in the toolbar, use ``None``.
 
       Where:
       ``tool_name``
         is the name to display in the interface.
+      ``icon_name``
+        is the name of the icon to use (found in ``release/datafiles/icons``).
       ``manipulator_group_idname``
         is an optional manipulator group to activate when the tool is set.
       ``keymap_actions``
@@ -96,6 +98,9 @@ class ToolSelectPanelHelper:
 
     @classmethod
     def _tool_vars_from_def(cls, item):
+        # For now be strict about whats in this dict
+        # prevent accidental adding unknown keys.
+        assert(len(item) == 4)
         text = item["text"]
         icon_name = item["icon"]
         mp_idname = item["widget"]
