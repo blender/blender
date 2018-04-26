@@ -37,7 +37,7 @@ class ToolSelectPanelHelper:
     - keymap_prefix:
       The text prefix for each key-map for this spaces tools.
     - tools_all():
-      Returns all tools defined.
+      Returns (context_mode, tools) tuple pair for all tools defined.
     - tools_from_context(context):
       Returns tools available in this context.
 
@@ -178,7 +178,7 @@ class ToolSelectPanelHelper:
         if kc is None:
             return
 
-        for context_mode, tools in cls._tools.items():
+        for context_mode, tools in cls.tools_all():
             for item_parent in tools:
                 if item_parent is None:
                     continue

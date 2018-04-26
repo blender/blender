@@ -47,7 +47,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     @classmethod
     def tools_all(cls):
-        return [t for t_list in cls._tools.values() for t in t_list]
+        yield from cls._tools.items()
 
     # Internal Data
 
