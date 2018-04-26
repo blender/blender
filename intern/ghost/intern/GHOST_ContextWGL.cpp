@@ -323,6 +323,33 @@ static HWND clone_window(HWND hWnd, LPVOID lpParam)
 	return hwndCloned;
 }
 
+/* It can happen that glew has not been init yet but we need some wgl functions.
+ * This create a dummy context on the screen window and init glew to have correct
+ * functions pointers. */
+static GHOST_TSuccess forceInitWGLEW(int iPixelFormat, PIXELFORMATDESCRIPTOR &chosenPFD)
+{
+	HDC   dummyHDC = GetDC(NULL);
+
+	if (!WIN32_CHK(::SetPixelFormat(dummyHDC, iPixelFormat, &chosenPFD)))
+		return GHOST_kFailure;
+
+	HGLRC dummyHGLRC = ::wglCreateContext(dummyHDC);
+
+	if (!WIN32_CHK(dummyHGLRC != NULL))
+		return GHOST_kFailure;
+
+	if (!WIN32_CHK(::wglMakeCurrent(dummyHDC, dummyHGLRC)))
+		return GHOST_kFailure;
+
+	if (GLEW_CHK(glewInit()) != GLEW_OK)
+		return GHOST_kFailure;
+
+	WIN32_CHK(::wglDeleteContext(dummyHGLRC));
+
+	WIN32_CHK(ReleaseDC(NULL, dummyHDC));
+
+	return GHOST_kSuccess;
+}
 
 void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 {
@@ -364,6 +391,14 @@ void GHOST_ContextWGL::initContextWGLEW(PIXELFORMATDESCRIPTOR &preferredPFD)
 	}
 	else {
 		int iAttribList[] = {0};
+
+		if (wglCreatePbufferARB == NULL) {
+			/* This should only happen in background mode when rendering with opengl engine. */
+			if (forceInitWGLEW(iPixelFormat, chosenPFD) != GHOST_kSuccess) {
+				goto finalize;
+			}
+		}
+
 		dummyhBuffer = wglCreatePbufferARB(m_hDC, iPixelFormat, 1, 1, iAttribList);
 		dummyHDC = wglGetPbufferDCARB(dummyhBuffer);
 	}
