@@ -97,7 +97,7 @@ class ToolSelectPanelHelper:
                     yield item
 
     @classmethod
-    def _tool_vars_from_def(cls, item):
+    def _tool_vars_from_def(cls, item, context_mode):
         # For now be strict about whats in this dict
         # prevent accidental adding unknown keys.
         assert(len(item) == 4)
@@ -105,7 +105,13 @@ class ToolSelectPanelHelper:
         icon_name = item["icon"]
         mp_idname = item["widget"]
         actions = item["keymap"]
-        km, km_idname = (None, None) if actions is None else cls._tool_keymap[text]
+        if actions is None:
+            km, km_idname = (None, None)
+        else:
+            km_test = cls._tool_keymap.get((context_mode, text))
+            if km_test is None and context_mode is not None:
+                km_test = cls._tool_keymap[None, text]
+            km, km_idname = km_test
         return (km_idname, mp_idname), icon_name
 
     @staticmethod
@@ -125,7 +131,7 @@ class ToolSelectPanelHelper:
         )
 
     @classmethod
-    def _km_actionmouse_simple(cls, kc, text, icon_name, actions):
+    def _km_action_simple(cls, kc, context_mode, text, actions):
 
         # standalone
         def props_assign_recursive(rna_props, py_props):
@@ -135,7 +141,9 @@ class ToolSelectPanelHelper:
                 else:
                     setattr(rna_props, prop_id, value)
 
-        km_idname = cls.keymap_prefix + text
+        if mode is None:
+            mode = "All"
+        km_idname = f"{cls.keymap_prefix} {mode}, {text}"
         km = kc.keymaps.get(km_idname)
         if km is not None:
             return km, km_idname
@@ -157,7 +165,7 @@ class ToolSelectPanelHelper:
         # This needs some careful consideration.
         kc = wm.keyconfigs.user
 
-        # {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}
+        # {mode: {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}, ...}
         cls._tool_keymap = {}
 
         # Track which tool-group was last used for non-active groups.
@@ -170,13 +178,19 @@ class ToolSelectPanelHelper:
         if kc is None:
             return
 
-        for item in ToolSelectPanelHelper._tools_flatten(cls.tools_all()):
-            actions = item["keymap"]
-            if actions is not None:
-                text = item["text"]
-                icon_name = item["icon"]
-                km, km_idname = cls._km_actionmouse_simple(kc, text, icon_name, actions)
-                cls._tool_keymap[text] = km, km_idname
+        for context_mode, tools in cls._tools.items():
+            for item_parent in tools:
+                if item_parent is None:
+                    continue
+                for item in item_parent if (cls._tool_is_group(item_parent)) else (item_parent,):
+                    if item is None:
+                        continue
+                    actions = item["keymap"]
+                    if actions is not None:
+                        text = item["text"]
+                        icon_name = item["icon"]
+                        km, km_idname = cls._km_action_simple(kc, context_mode, text, actions)
+                        cls._tool_keymap[context_mode, text] = km, km_idname
 
     def draw(self, context):
         # XXX, this UI isn't very nice.
@@ -185,7 +199,7 @@ class ToolSelectPanelHelper:
         # - tool-tips that include multiple key shortcuts.
         # - ability to click and hold to expose sub-tools.
 
-        workspace = context.workspace
+        context_mode = context.mode
         tool_def_active, index_active = self._tool_vars_from_active_with_index(context)
         layout = self.layout
 
@@ -216,7 +230,7 @@ class ToolSelectPanelHelper:
                         for i, sub_item in enumerate(item):
                             if sub_item is None:
                                 continue
-                            tool_def, icon_name = self._tool_vars_from_def(sub_item)
+                            tool_def, icon_name = self._tool_vars_from_def(sub_item, context_mode)
                             is_active = (tool_def == tool_def_active)
                             if is_active:
                                 index = i
@@ -235,7 +249,7 @@ class ToolSelectPanelHelper:
                         index = -1
                         use_menu = False
 
-                    tool_def, icon_name = self._tool_vars_from_def(item)
+                    tool_def, icon_name = self._tool_vars_from_def(item, context_mode)
                     is_active = (tool_def == tool_def_active)
                     icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
                     if use_menu:
@@ -269,6 +283,7 @@ class WM_MT_toolsystem_submenu(Menu):
 
     @staticmethod
     def _tool_group_from_button(context):
+        context_mode = context.mode
         # Lookup the tool definitions based on the space-type.
         space_type = context.space_data.type
         cls = next(
@@ -284,13 +299,14 @@ class WM_MT_toolsystem_submenu(Menu):
                     if (item_group is not None) and ToolSelectPanelHelper._tool_is_group(item_group):
                         if index_button < len(item_group):
                             item = item_group[index_button]
-                            tool_def, icon_name = cls._tool_vars_from_def(item)
+                            tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
                             is_active = (tool_def == tool_def_button)
                             if is_active:
                                 return cls, item_group, index_button
         return None, None, -1
 
     def draw(self, context):
+        context_mode = context.mode
         layout = self.layout
         layout.scale_y = 2.0
 
@@ -305,7 +321,7 @@ class WM_MT_toolsystem_submenu(Menu):
             if item is None:
                 layout.separator()
                 continue
-            tool_def, icon_name = cls._tool_vars_from_def(item)
+            tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
             props = layout.operator(
                 "wm.tool_set",
