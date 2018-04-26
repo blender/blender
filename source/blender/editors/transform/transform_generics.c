@@ -1142,18 +1142,7 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
  */
 void resetTransModal(TransInfo *t)
 {
-	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		if (t->mode == TFM_EDGE_SLIDE) {
-			freeEdgeSlideVerts(t, tc, &tc->custom.mode);
-		}
-		else if (t->mode == TFM_VERT_SLIDE) {
-			freeVertSlideVerts(t, tc, &tc->custom.mode);
-		}
-		else {
-			/* no need to keep looping... */
-			break;
-		}
-	}
+	freeTransCustomDataForMode(t);
 }
 
 void resetTransRestrictions(TransInfo *t)
@@ -1577,19 +1566,41 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	initNumInput(&t->num);
 }
 
+
+static void freeTransCustomData(
+        TransInfo *t, TransDataContainer *tc,
+        TransCustomData *custom_data)
+{
+	if (custom_data->free_cb) {
+		/* Can take over freeing t->data and data_2d etc... */
+		custom_data->free_cb(t, tc, custom_data);
+		BLI_assert(custom_data->data == NULL);
+	}
+	else if ((custom_data->data != NULL) && custom_data->use_free) {
+		MEM_freeN(custom_data->data);
+		custom_data->data = NULL;
+	}
+	/* In case modes are switched in the same transform session. */
+	custom_data->free_cb = false;
+	custom_data->use_free = false;
+}
+
 static void freeTransCustomDataContainer(TransInfo *t, TransDataContainer *tc, TransCustomDataContainer *tcdc)
 {
 	TransCustomData *custom_data = &tcdc->first_elem;
 	for (int i = 0; i < TRANS_CUSTOM_DATA_ELEM_MAX; i++, custom_data++) {
-		if (custom_data->free_cb) {
-			/* Can take over freeing t->data and data_2d etc... */
-			custom_data->free_cb(t, tc, custom_data);
-			BLI_assert(custom_data->data == NULL);
-		}
-		else if ((custom_data->data != NULL) && custom_data->use_free) {
-			MEM_freeN(custom_data->data);
-			custom_data->data = NULL;
-		}
+		freeTransCustomData(t, tc, custom_data);
+	}
+}
+
+/**
+ * Needed for mode switching.
+ */
+void freeTransCustomDataForMode(TransInfo *t)
+{
+	freeTransCustomData(t, NULL, &t->custom.mode);
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		freeTransCustomData(t, tc, &tc->custom.mode);
 	}
 }
 
