@@ -103,16 +103,10 @@ def add_uvs(mesh, minor_seg, major_seg):
         v_next = v_prev + v_step
         for minor_index in range(minor_seg):
             loops = polygons[vertex_index].loop_indices
-            if minor_index == minor_seg - 1 and major_index == 0:
-                uv_data[loops[1]].uv = u_prev, v_prev
-                uv_data[loops[2]].uv = u_next, v_prev
-                uv_data[loops[0]].uv = u_prev, v_next
-                uv_data[loops[3]].uv = u_next, v_next
-            else:
-                uv_data[loops[0]].uv = u_prev, v_prev
-                uv_data[loops[1]].uv = u_next, v_prev
-                uv_data[loops[3]].uv = u_prev, v_next
-                uv_data[loops[2]].uv = u_next, v_next
+            uv_data[loops[0]].uv = u_prev, v_prev
+            uv_data[loops[1]].uv = u_next, v_prev
+            uv_data[loops[3]].uv = u_prev, v_next
+            uv_data[loops[2]].uv = u_next, v_next
 
             if v_next > v_wrap:
                 v_prev = v_next - 1.0
