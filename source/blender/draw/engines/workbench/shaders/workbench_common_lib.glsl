@@ -17,7 +17,7 @@ float bayer_dither_noise() {
  * Using Method #4: Spheremap Transform */
 vec3 normal_decode(vec2 enc)
 {
-	vec2 fenc = enc * 4.0 - 2.0;
+	vec2 fenc = enc.xy * 4.0 - 2.0;
 	float f = dot(fenc, fenc);
 	float g = sqrt(1.0 - f / 4.0);
 	vec3 n;
@@ -31,5 +31,5 @@ vec3 normal_decode(vec2 enc)
 vec2 normal_encode(vec3 n)
 {
 	float p = sqrt(n.z * 8.0 + 8.0);
-	return n.xy / p + 0.5;
+	return vec2(n.xy / p + 0.5);
 }

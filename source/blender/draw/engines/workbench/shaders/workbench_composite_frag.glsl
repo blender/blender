@@ -40,14 +40,22 @@ void main()
 	}
 #endif /* !V3D_DRAWOPTION_OBJECT_OVERLAP */
 
-	vec3 diffuse_color = texelFetch(colorBuffer, texel, 0).rgb;
 
 #ifdef V3D_LIGHTING_STUDIO
+	vec4 diffuse_color = texelFetch(colorBuffer, texel, 0);
+#ifdef WORKBENCH_ENCODE_NORMALS
+	vec3 normal_viewport = normal_decode(texelFetch(normalBuffer, texel, 0).rg);
+	if (diffuse_color.a == 1.0) {
+		normal_viewport = - normal_viewport;
+	}
+#else /* WORKBENCH_ENCODE_NORMALS */
 	vec3 normal_viewport = texelFetch(normalBuffer, texel, 0).rgb;
+#endif /* WORKBENCH_ENCODE_NORMALS */
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_viewport);
-	vec3 shaded_color = diffuse_light * diffuse_color;
+	vec3 shaded_color = diffuse_light * diffuse_color.rgb;
 
 #else /* V3D_LIGHTING_STUDIO */
+	vec3 diffuse_color = texelFetch(colorBuffer, texel, 0).rgb;
 	vec3 shaded_color = diffuse_color;
 #endif /* V3D_LIGHTING_STUDIO */
 

@@ -32,6 +32,7 @@
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
+#define WORKBENCH_ENCODE_NORMALS
 
 typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *prepass_fb;
@@ -55,12 +56,12 @@ typedef struct WORKBENCH_Data {
 } WORKBENCH_Data;
 
 typedef struct WORKBENCH_UBO_World {
-	float diffuse_light_xp[4];
-	float diffuse_light_xn[4];
-	float diffuse_light_yp[4];
-	float diffuse_light_yn[4];
-	float diffuse_light_zp[4];
-	float diffuse_light_zn[4];
+	float diffuse_light_x_pos[4];
+	float diffuse_light_x_neg[4];
+	float diffuse_light_y_pos[4];
+	float diffuse_light_y_neg[4];
+	float diffuse_light_z_pos[4];
+	float diffuse_light_z_neg[4];
 	float background_color_low[4];
 	float background_color_high[4];
 } WORKBENCH_UBO_World;

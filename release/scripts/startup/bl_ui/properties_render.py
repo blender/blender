@@ -763,6 +763,32 @@ class RENDER_PT_eevee_film(RenderButtonsPanel, Panel):
         col.prop(rd, "alpha_mode", text="Alpha")
 
 
+class RENDER_PT_workbench_environment_light(RenderButtonsPanel, Panel):
+    bl_label = "Workbench Environment Light"
+    bl_options = {'DEFAULT_CLOSED'}
+    COMPAT_ENGINES = {'BLENDER_WORKBENCH'}
+
+    @classmethod
+    def poll(cls, context):
+        return (context.engine in cls.COMPAT_ENGINES)
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        props = scene.layer_properties['BLENDER_WORKBENCH']
+
+        row = layout.row(align=True)
+        col = row.column(align=True)
+        col.prop(props, "diffuse_light_x_neg", text="Left/Right")
+        col.prop(props, "diffuse_light_x_pos", text="")
+        col = row.column(align=True)
+        col.prop(props, "diffuse_light_y_pos", text="Up/Down")
+        col.prop(props, "diffuse_light_y_neg", text="")
+        col = row.column(align=True)
+        col.prop(props, "diffuse_light_z_pos", text="Front/Back")
+        col.prop(props, "diffuse_light_z_neg", text="")
+
+
 classes = (
     RENDER_MT_presets,
     RENDER_MT_ffmpeg_presets,
@@ -789,6 +815,7 @@ classes = (
     RENDER_PT_eevee_motion_blur,
     RENDER_PT_eevee_depth_of_field,
     RENDER_PT_eevee_bloom,
+	RENDER_PT_workbench_environment_light,
 )
 
 if __name__ == "__main__":  # only for live edit.
