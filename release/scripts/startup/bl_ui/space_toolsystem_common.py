@@ -255,7 +255,7 @@ class ToolSelectPanelHelper:
                     if use_menu:
                         props = col.operator_menu_hold(
                             "wm.tool_set",
-                            text=item[0] if show_text else "",
+                            text=item["text"] if show_text else "",
                             depress=is_active,
                             menu="WM_MT_toolsystem_submenu",
                             icon_value=icon_value,
@@ -263,7 +263,7 @@ class ToolSelectPanelHelper:
                     else:
                         props = col.operator(
                             "wm.tool_set",
-                            text=item[0] if show_text else "",
+                            text=item["text"] if show_text else "",
                             depress=is_active,
                             icon_value=icon_value,
                         )
