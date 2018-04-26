@@ -51,13 +51,16 @@ PyDoc_STRVAR(bpy_app_icons_new_triangles_doc,
 "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
 "   :rtype: int\n"
 );
-static PyObject *bpy_app_icons_new_triangles(PyObject *UNUSED(self), PyObject *args)
+static PyObject *bpy_app_icons_new_triangles(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	/* bytes */
 	uchar coords_range[2];
 	PyObject *py_coords, *py_colors;
-	if (!PyArg_ParseTuple(
-	            args, "(BB)SS:new_triangles",
+
+	static const char *_keywords[] = {"range", "coords", "colors", NULL};
+	static _PyArg_Parser _parser = {"(BB)SS:new_triangles", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	            args, kw, &_parser,
 	            &coords_range[0], &coords_range[1], &py_coords, &py_colors))
 	{
 		return NULL;
@@ -103,12 +106,15 @@ PyDoc_STRVAR(bpy_app_icons_new_triangles_from_file_doc,
 "   :return: Unique icon value (pass to interface ``icon_value`` argument).\n"
 "   :rtype: int\n"
 );
-static PyObject *bpy_app_icons_new_triangles_from_file(PyObject *UNUSED(self), PyObject *args)
+static PyObject *bpy_app_icons_new_triangles_from_file(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	/* bytes */
 	char *filename;
-	if (!PyArg_ParseTuple(
-	            args, "s:new_triangles_from_file",
+
+	static const char *_keywords[] = {"filename", NULL};
+	static _PyArg_Parser _parser = {"s:new_triangles_from_file", _keywords, 0};
+	if (!_PyArg_ParseTupleAndKeywordsFast(
+	            args, kw, &_parser,
 	            &filename))
 	{
 		return NULL;
@@ -128,13 +134,14 @@ PyDoc_STRVAR(bpy_app_icons_release_doc,
 "\n"
 "   Release the icon.\n"
 );
-static PyObject *bpy_app_icons_release(PyObject *UNUSED(self), PyObject *args)
+static PyObject *bpy_app_icons_release(PyObject *UNUSED(self), PyObject *args, PyObject *kw)
 {
 	int icon_id;
-	static _PyArg_Parser _parser = {"i:release", NULL, 0};
+	static const char *_keywords[] = {"icon_id", NULL};
+	static _PyArg_Parser _parser = {"i:release", _keywords, 0};
 	if (!_PyArg_ParseTupleAndKeywordsFast(
-	        args, NULL, &_parser,
-	        &icon_id))
+	            args, kw, &_parser,
+	            &icon_id))
 	{
 		return NULL;
 	}
@@ -147,9 +154,12 @@ static PyObject *bpy_app_icons_release(PyObject *UNUSED(self), PyObject *args)
 }
 
 static struct PyMethodDef M_AppIcons_methods[] = {
-	{"new_triangles", (PyCFunction)bpy_app_icons_new_triangles, METH_VARARGS, bpy_app_icons_new_triangles_doc},
-	{"new_triangles_from_file", (PyCFunction)bpy_app_icons_new_triangles_from_file, METH_VARARGS, bpy_app_icons_new_triangles_from_file_doc},
-	{"release", (PyCFunction)bpy_app_icons_release, METH_VARARGS, bpy_app_icons_release_doc},
+	{"new_triangles", (PyCFunction)bpy_app_icons_new_triangles,
+	 METH_VARARGS | METH_KEYWORDS, bpy_app_icons_new_triangles_doc},
+	{"new_triangles_from_file", (PyCFunction)bpy_app_icons_new_triangles_from_file,
+	 METH_VARARGS | METH_KEYWORDS, bpy_app_icons_new_triangles_from_file_doc},
+	{"release", (PyCFunction)bpy_app_icons_release,
+	 METH_VARARGS | METH_KEYWORDS, bpy_app_icons_release_doc},
 	{NULL, NULL, 0, NULL}
 };
 
