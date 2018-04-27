@@ -972,7 +972,7 @@ bool BKE_mesh_validate_all_customdata(CustomData *vdata, CustomData *edata,
 }
 
 /**
- * \see  #DM_is_valid to call on derived meshes
+ * Validates and corrects a Mesh.
  *
  * \returns true if a change is made.
  */
@@ -1009,6 +1009,42 @@ int BKE_mesh_validate(Mesh *me, const int do_verbose, const int cddata_check_mas
 	else {
 		return false;
 	}
+}
+
+/**
+ * Checks if a Mesh is valid without any modification. This is always verbose.
+ *
+ * \see  #DM_is_valid to call on derived meshes
+ *
+ * \returns is_valid.
+ */
+bool BKE_mesh_is_valid(Mesh *me)
+{
+	const bool do_verbose = true;
+	const bool do_fixes = false;
+
+	bool is_valid = true;
+	bool changed = true;
+
+	is_valid &= BKE_mesh_validate_all_customdata(
+	        &me->vdata, &me->edata, &me->ldata, &me->pdata,
+	        false,  /* setting mask here isn't useful, gives false positives */
+	        do_verbose, do_fixes, &changed);
+
+	is_valid &= BKE_mesh_validate_arrays(
+	        me,
+	        me->mvert, me->totvert,
+	        me->medge, me->totedge,
+	        me->mface, me->totface,
+	        me->mloop, me->totloop,
+	        me->mpoly, me->totpoly,
+	        me->dvert,
+	        do_verbose, do_fixes,
+	        &changed);
+
+	BLI_assert(changed == false);
+
+	return is_valid;
 }
 
 /**
