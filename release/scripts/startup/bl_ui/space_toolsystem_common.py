@@ -125,7 +125,7 @@ class ToolSelectPanelHelper:
                 try:
                     icon_value = bpy.app.icons.new_triangles_from_file(filename)
                 except Exception as ex:
-                    if os.path.exists(filename):
+                    if not os.path.exists(filename):
                         print("Missing icons:", filename, ex)
                     else:
                         print("Corrupt icon:", filename, ex)
