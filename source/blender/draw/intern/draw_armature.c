@@ -250,8 +250,12 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float
 static void drw_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_solid == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_point_get();
+#if 0 /* old style geometry sphere */
+		struct Gwn_Batch *geom = DRW_cache_bone_point_get()
 		g_data.bone_point_solid = shgroup_instance_solid(g_data.pass_bone_solid, geom);
+#else /* new style raytraced sphere */
+		g_data.bone_point_solid = shgroup_instance_armature_sphere(g_data.pass_bone_solid);
+#endif
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -261,8 +265,12 @@ static void drw_shgroup_bone_point_solid(const float (*bone_mat)[4], const float
 static void drw_shgroup_bone_point_wire(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_wire == NULL) {
+#if 0 /* old style 3 axis circles */
 		struct Gwn_Batch *geom = DRW_cache_bone_point_wire_outline_get();
 		g_data.bone_point_wire = shgroup_instance_wire(g_data.pass_bone_wire, geom);
+#else /* new style contour outline */
+		g_data.bone_point_wire = shgroup_instance_armature_sphere_outline(g_data.pass_bone_wire);
+#endif
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);

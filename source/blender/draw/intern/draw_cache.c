@@ -2082,6 +2082,7 @@ Gwn_Batch *DRW_cache_bone_envelope_head_wire_outline_get(void)
 Gwn_Batch *DRW_cache_bone_point_get(void)
 {
 	if (!SHC.drw_bone_point) {
+#if 0 /* old style geometry sphere */
 		const int lon_res = 16;
 		const int lat_res = 8;
 		const float rad = 0.05f;
@@ -2119,6 +2120,30 @@ Gwn_Batch *DRW_cache_bone_point_get(void)
 		}
 
 		SHC.drw_bone_point = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#else
+#  define CIRCLE_RESOL 64
+		float v[2];
+		const float radius = 0.05f;
+
+		/* Position Only 2D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
+
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a, v);
+		}
+
+		SHC.drw_bone_point = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#  undef CIRCLE_RESOL
+#endif
 	}
 	return SHC.drw_bone_point;
 }
@@ -2126,8 +2151,48 @@ Gwn_Batch *DRW_cache_bone_point_get(void)
 Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 {
 	if (!SHC.drw_bone_point_wire) {
+#if 0 /* old style geometry sphere */
 		Gwn_VertBuf *vbo = sphere_wire_vbo(0.05f);
 		SHC.drw_bone_point_wire = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#else
+#  define CIRCLE_RESOL 64
+		float v0[2], v1[2];
+		const float radius = 0.05f;
+
+		/* Position Only 2D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos0, pos1; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos0 = GWN_vertformat_attr_add(&format, "pos0", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.pos1 = GWN_vertformat_attr_add(&format, "pos1", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, (CIRCLE_RESOL + 1) * 2);
+
+		v0[0] = radius * sinf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+		v0[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+
+		unsigned int v = 0;
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v1[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v1[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+			copy_v2_v2(v0, v1);
+		}
+		v1[0] = 0.0f;
+		v1[1] = radius;
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+
+		SHC.drw_bone_point_wire = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#  undef CIRCLE_RESOL
+#endif
 	}
 	return SHC.drw_bone_point_wire;
 }
