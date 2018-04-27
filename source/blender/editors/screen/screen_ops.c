@@ -2157,7 +2157,8 @@ static int region_scale_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	switch (event->type) {
 		case MOUSEMOVE:
 		{
-			const int snap_size_threshold = U.widget_unit * 3;
+			const float aspect = BLI_rctf_size_x(&rmd->ar->v2d.cur) / (BLI_rcti_size_x(&rmd->ar->v2d.mask) + 1);
+			const int snap_size_threshold = (U.widget_unit * 3) / aspect;
 			if (rmd->edge == AE_LEFT_TO_TOPRIGHT || rmd->edge == AE_RIGHT_TO_TOPLEFT) {
 				delta = event->x - rmd->origx;
 				if (rmd->edge == AE_LEFT_TO_TOPRIGHT) delta = -delta;

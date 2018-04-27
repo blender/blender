@@ -1268,10 +1268,19 @@ static int view3d_tools_region_snap_size(const ARegion *ar, int size, int axis)
 {
 	if (axis == 0) {
 		/* Note, this depends on the icon size: see #ICON_DEFAULT_HEIGHT_TOOLBAR. */
-		const float snap_units = 3.25f;
+		const float snap_units[3] = {3 + 0.25f, 5 + 0.25, 7 + 0.25};
 		const float aspect = BLI_rctf_size_x(&ar->v2d.cur) / (BLI_rcti_size_x(&ar->v2d.mask) + 1);
-		const int snap_size = (snap_units * U.widget_unit) / aspect;
-		return snap_size;
+		int best_diff = INT_MAX;
+		int best_size = size;
+		for (uint i = 0; i < ARRAY_SIZE(snap_units); i += 1) {
+			const int test_size = (snap_units[i] * U.widget_unit) / aspect;
+			const int test_diff = ABS(test_size - size);
+			if (test_diff < best_diff) {
+				best_size = test_size;
+				best_diff = test_diff;
+			}
+		}
+		return best_size;
 	}
 	return size;
 }

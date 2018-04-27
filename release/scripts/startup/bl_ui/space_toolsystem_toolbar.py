@@ -337,7 +337,7 @@ class _defs_edit_mesh:
 
     class extrude_cursor(ToolDef):
         text = "Extrude Cursor"
-        icon = None
+        icon = "ops.mesh.bisect"  # placeholder
         widget = None
         keymap = (
             ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),

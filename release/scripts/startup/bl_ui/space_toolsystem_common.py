@@ -248,17 +248,39 @@ class ToolSelectPanelHelper:
             view2d.region_to_view(1.0, 0.0)[0] -
             view2d.region_to_view(0.0, 0.0)[0]
         )
-        show_text = (context.region.width / ui_scale) > 100.0
+        width_scale = context.region.width * ui_scale
         del view2d, ui_scale
+
+        empty_text = ""
+        if width_scale > 200.0:
+            show_text = True
+            use_columns = False
+        else:
+            show_text = False
+            if width_scale > 120.0:
+                column_count = 3
+                use_columns = True
+                empty_text = " "  # needed for alignment, grr
+            elif width_scale > 80.0:
+                column_count = 2
+                use_columns = True
+                empty_text = " "  # needed for alignment, grr
+            else:
+                use_columns = False
+
+        # Could support 3x columns.
+        column_index = 0
 
         for tool_items in self.tools_from_context(context):
             if tool_items:
                 col = layout.column(align=True)
-                col.scale_y = scale_y
+                if not use_columns:
+                    col.scale_y = scale_y
                 for item in tool_items:
                     if item is None:
                         col = layout.column(align=True)
-                        col.scale_y = scale_y
+                        if not use_columns:
+                            col.scale_y = scale_y
                         continue
 
                     if type(item) is tuple:
@@ -289,25 +311,40 @@ class ToolSelectPanelHelper:
                     tool_def, icon_name = self._tool_vars_from_def(item, context_mode)
                     is_active = (tool_def == tool_def_active)
                     icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
+
+                    if use_columns:
+                        col.scale_y = scale_y
+                        if column_index == 0:
+                            row = col.row(align=True)
+                            row.scale_y = scale_y
+                        sub = row
+                    else:
+                        sub = col
+
                     if use_menu:
-                        props = col.operator_menu_hold(
+                        props = sub.operator_menu_hold(
                             "wm.tool_set",
-                            text=item.text if show_text else "",
+                            text=item.text if show_text else empty_text,
                             depress=is_active,
                             menu="WM_MT_toolsystem_submenu",
                             icon_value=icon_value,
                         )
                     else:
-                        props = col.operator(
+                        props = sub.operator(
                             "wm.tool_set",
-                            text=item.text if show_text else "",
+                            text=item.text if show_text else empty_text,
                             depress=is_active,
                             icon_value=icon_value,
                         )
-
                     props.keymap = tool_def[0] or ""
                     props.manipulator_group = tool_def[1] or ""
                     props.index = index
+
+                    if use_columns:
+                        col.scale_y = 1.0
+                        column_index += 1
+                        if column_index == column_count:
+                            column_index = 0
 
     def tools_from_context(cls, context):
         return (cls._tools[None], cls._tools.get(context.mode, ()))
