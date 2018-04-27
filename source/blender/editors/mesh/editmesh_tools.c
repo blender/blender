@@ -4036,20 +4036,28 @@ void MESH_OT_fill_grid(wmOperatorType *ot)
 
 static int edbm_fill_holes_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const int sides = RNA_int_get(op->ptr, "sides");
 
-	if (!EDBM_op_call_and_selectf(
-	        em, op,
-	        "faces.out", true,
-	        "holes_fill edges=%he sides=%i",
-	        BM_ELEM_SELECT, sides))
-	{
-		return OPERATOR_CANCELLED;
-	}
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	EDBM_update_generic(em, true, true);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (!EDBM_op_call_and_selectf(
+				em, op,
+				"faces.out", true,
+				"holes_fill edges=%he sides=%i",
+				BM_ELEM_SELECT, sides))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 
