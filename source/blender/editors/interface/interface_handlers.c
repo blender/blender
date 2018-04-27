@@ -635,11 +635,8 @@ PointerRNA *ui_handle_afterfunc_add_operator(wmOperatorType *ot, int opcontext, 
 
 static void popup_check(bContext *C, wmOperator *op)
 {
-	if (op && op->type->check && op->type->check(C, op)) {
-		/* check for popup and re-layout buttons */
-		ARegion *ar_menu = CTX_wm_menu(C);
-		if (ar_menu)
-			ED_region_tag_refresh_ui(ar_menu);
+	if (op && op->type->check) {
+		op->type->check(C, op);
 	}
 }
 
@@ -779,7 +776,7 @@ static void ui_apply_but_funcs_after(bContext *C)
 
 		if (after.popup_op)
 			popup_check(C, after.popup_op);
-		
+
 		if (after.opptr) {
 			/* free in advance to avoid leak on exit */
 			opptr = *after.opptr;
@@ -7936,8 +7933,9 @@ static void button_activate_exit(
 		WM_cursor_modal_restore(data->window);
 	}
 
-	/* redraw (data is but->active!) */
+	/* redraw and refresh (for popups) */
 	ED_region_tag_redraw(data->region);
+	ED_region_tag_refresh_ui(data->region);
 
 	/* clean up button */
 	if (but->active) {
@@ -8589,13 +8587,8 @@ static int ui_handle_list_event(bContext *C, const wmEvent *event, ARegion *ar, 
 	}
 
 	if (redraw) {
-		if (listbox->block->flag & UI_BLOCK_POPUP) {
-			/* popups need special refreshing */
-			ED_region_tag_refresh_ui(ar);
-		}
-		else {
-			ED_region_tag_redraw(ar);
-		}
+		ED_region_tag_redraw(ar);
+		ED_region_tag_refresh_ui(ar);
 	}
 
 	return retval;

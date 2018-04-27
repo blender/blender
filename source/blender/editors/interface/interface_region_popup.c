@@ -314,9 +314,11 @@ static void ui_block_region_refresh(const bContext *C, ARegion *ar)
 		ar->do_draw &= ~RGN_DRAW_REFRESH_UI;
 		for (block = ar->uiblocks.first; block; block = block_next) {
 			block_next = block->next;
-			if (block->handle->can_refresh) {
-				handle_ctx_area = block->handle->ctx_area;
-				handle_ctx_region = block->handle->ctx_region;
+			uiPopupBlockHandle *handle = block->handle;
+
+			if (handle->can_refresh) {
+				handle_ctx_area = handle->ctx_area;
+				handle_ctx_region = handle->ctx_region;
 
 				if (handle_ctx_area) {
 					CTX_wm_area_set((bContext *)C, handle_ctx_area);
@@ -324,7 +326,10 @@ static void ui_block_region_refresh(const bContext *C, ARegion *ar)
 				if (handle_ctx_region) {
 					CTX_wm_region_set((bContext *)C, handle_ctx_region);
 				}
-				ui_popup_block_refresh((bContext *)C, block->handle, NULL, NULL);
+
+				uiBut *but = handle->popup_create_vars.but;
+				ARegion *butregion = handle->popup_create_vars.butregion;
+				ui_popup_block_refresh((bContext *)C, handle, butregion, but);
 			}
 		}
 	}
@@ -654,6 +659,7 @@ uiPopupBlockHandle *ui_popup_block_create(
 	handle->popup_create_vars.create_func = create_func;
 	handle->popup_create_vars.handle_create_func = handle_create_func;
 	handle->popup_create_vars.arg = arg;
+	handle->popup_create_vars.but = but;
 	handle->popup_create_vars.butregion = but ? butregion : NULL;
 	copy_v2_v2_int(handle->popup_create_vars.event_xy, &window->eventstate->x);
 	/* caller may free vars used to create this popup, in that case this variable should be disabled. */
@@ -684,6 +690,10 @@ uiPopupBlockHandle *ui_popup_block_create(
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
+	if (handle->popup_create_vars.free_func) {
+		handle->popup_create_vars.free_func(handle, handle->popup_create_vars.arg);
+	}
+
 	ui_popup_block_remove(C, handle);
 
 	MEM_freeN(handle);

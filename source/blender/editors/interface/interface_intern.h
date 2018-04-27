@@ -519,16 +519,19 @@ struct uiKeyNavLock {
 };
 
 typedef uiBlock * (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
+typedef void (*uiBlockHandleFreeFunc)(struct uiPopupBlockHandle *handle, void *arg1);
 
 struct uiPopupBlockCreate {
-	uiBlockCreateFunc              create_func;
+	uiBlockCreateFunc       create_func;
 	uiBlockHandleCreateFunc handle_create_func;
+	uiBlockHandleFreeFunc   free_func;
 	void *arg;
 
 	int event_xy[2];
 
 	/* when popup is initialized from a button */
 	ARegion *butregion;
+	uiBut *but;
 };
 
 struct uiPopupBlockHandle {
