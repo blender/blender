@@ -540,7 +540,11 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.gpencil.draw.eraser
 	ops.gpencil.draw.line
 	ops.gpencil.draw.poly
+	ops.mesh.bevel
 	ops.mesh.bisect
+	ops.mesh.dupli_extrude_cursor
+	ops.mesh.extrude_faces_move
+	ops.mesh.extrude_region_move
 	ops.mesh.inset
 	ops.mesh.knife_tool
 	ops.mesh.loopcut_slide
@@ -564,12 +568,10 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.transform.resize
 	ops.transform.rotate
 	ops.transform.shrink_fatten
+	ops.transform.transform
 	ops.transform.translate
 	ops.transform.vert_slide
 	ops.transform.vertex_random
-	ops.view3d.edit_mesh_extrude
-	ops.view3d.edit_mesh_extrude_cursor
-	ops.view3d.edit_mesh_extrude_individual
 	ops.view3d.ruler
 	# END ICON_GEOM_NAMES
 )

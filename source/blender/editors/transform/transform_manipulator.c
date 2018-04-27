@@ -1289,7 +1289,10 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 		/* Weak, check first event */
 		wmKeyMapItem *kmi = km->items.first;
 
-		if (STREQ(kmi->idname, "TRANSFORM_OT_translate")) {
+		if (kmi == NULL) {
+			man->twtype |= V3D_MANIP_TRANSLATE | V3D_MANIP_ROTATE | V3D_MANIP_SCALE;
+		}
+		else if (STREQ(kmi->idname, "TRANSFORM_OT_translate")) {
 			man->twtype |= V3D_MANIP_TRANSLATE;
 		}
 		else if (STREQ(kmi->idname, "TRANSFORM_OT_rotate")) {

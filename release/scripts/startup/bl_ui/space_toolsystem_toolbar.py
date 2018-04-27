@@ -55,7 +55,7 @@ class _defs_view3d_generic:
 class _defs_transform:
 
     class translate(ToolDef):
-        text = "Translate"
+        text = "Move"
         icon = "ops.transform.translate"
         widget = "TRANSFORM_WGT_manipulator"
         keymap = (
@@ -83,6 +83,13 @@ class _defs_transform:
         icon = "ops.transform.resize.cage"
         widget = "VIEW3D_WGT_xform_cage"
         keymap = None
+
+    class transform(ToolDef):
+        text = "Transform"
+        icon = "ops.transform.transform"
+        widget = "TRANSFORM_WGT_manipulator"
+        # No favorites, only for manipulators!
+        keymap = ()
 
 
 class _defs_view3d_select:
@@ -261,9 +268,18 @@ class _defs_edit_mesh:
              dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
+    class bevel(ToolDef):
+        text = "Bevel"
+        icon = "ops.mesh.bevel"
+        widget = None
+        keymap = (
+            ("mesh.bevel", dict(),
+             dict(type='ACTIONMOUSE', value='PRESS')),
+        )
+
     class extrude(ToolDef):
         text = "Extrude Region"
-        icon = "ops.view3d.edit_mesh_extrude"
+        icon = "ops.mesh.extrude_region_move"
         widget = None
         keymap = (
             ("mesh.extrude_region_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
@@ -272,11 +288,19 @@ class _defs_edit_mesh:
 
     class extrude_individual(ToolDef):
         text = "Extrude Individual"
-        icon = "ops.view3d.edit_mesh_extrude_individual"
+        icon = "ops.mesh.extrude_faces_move"
         widget = None
         keymap = (
             ("mesh.extrude_faces_move", dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
              dict(type='ACTIONMOUSE', value='PRESS')),
+        )
+
+    class extrude_cursor(ToolDef):
+        text = "Extrude to Cursor"
+        icon = "ops.mesh.dupli_extrude_cursor"
+        widget = None
+        keymap = (
+            ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
     class vertex_smooth(ToolDef):
@@ -342,14 +366,6 @@ class _defs_edit_mesh:
              dict(type='EVT_TWEAK_A', value='ANY')),
         )
 
-    class extrude_cursor(ToolDef):
-        text = "Extrude to Cursor"
-        icon = "ops.view3d.edit_mesh_extrude_cursor"
-        widget = None
-        keymap = (
-            ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
-        )
-
 
 class _defs_edit_curve:
 
@@ -396,6 +412,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_transform.scale,
             _defs_transform.scale_cage,
         ),
+        _defs_transform.transform,
         None,
         _defs_view3d_generic.ruler,
     )
@@ -456,6 +473,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
 
             _defs_edit_mesh.inset,
+            _defs_edit_mesh.bevel,
 
             (
                 _defs_edit_mesh.extrude,
