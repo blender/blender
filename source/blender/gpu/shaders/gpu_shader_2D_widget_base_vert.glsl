@@ -78,31 +78,32 @@ const vec2 triavec[37] = vec2[37](
 
 uniform mat4 ModelViewProjectionMatrix;
 
+#define MAX_PARAM 11
 #ifdef USE_INSTANCE
 #define MAX_INSTANCE 6
-uniform vec4 parameters[11 * MAX_INSTANCE];
+uniform vec4 parameters[MAX_PARAM * MAX_INSTANCE];
 #else
-uniform vec4 parameters[11];
+uniform vec4 parameters[MAX_PARAM];
 #endif
 
 /* gl_InstanceID is 0 if not drawing instances. */
-#define recti        parameters[gl_InstanceID * 11 + 0]
-#define rect         parameters[gl_InstanceID * 11 + 1]
-#define radsi        parameters[gl_InstanceID * 11 + 2].x
-#define rads         parameters[gl_InstanceID * 11 + 2].y
-#define faci         parameters[gl_InstanceID * 11 + 2].zw
-#define roundCorners parameters[gl_InstanceID * 11 + 3]
-#define colorInner1  parameters[gl_InstanceID * 11 + 4]
-#define colorInner2  parameters[gl_InstanceID * 11 + 5]
-#define colorEdge    parameters[gl_InstanceID * 11 + 6]
-#define colorEmboss  parameters[gl_InstanceID * 11 + 7]
-#define colorTria    parameters[gl_InstanceID * 11 + 8]
-#define tria1Center  parameters[gl_InstanceID * 11 + 9].xy
-#define tria2Center  parameters[gl_InstanceID * 11 + 9].zw
-#define tria1Size    parameters[gl_InstanceID * 11 + 10].x
-#define tria2Size    parameters[gl_InstanceID * 11 + 10].y
-#define shadeDir     parameters[gl_InstanceID * 11 + 10].z
-#define doAlphaCheck parameters[gl_InstanceID * 11 + 10].w
+#define recti         parameters[gl_InstanceID * MAX_PARAM + 0]
+#define rect          parameters[gl_InstanceID * MAX_PARAM + 1]
+#define radsi         parameters[gl_InstanceID * MAX_PARAM + 2].x
+#define rads          parameters[gl_InstanceID * MAX_PARAM + 2].y
+#define faci          parameters[gl_InstanceID * MAX_PARAM + 2].zw
+#define roundCorners  parameters[gl_InstanceID * MAX_PARAM + 3]
+#define colorInner1   parameters[gl_InstanceID * MAX_PARAM + 4]
+#define colorInner2   parameters[gl_InstanceID * MAX_PARAM + 5]
+#define colorEdge     parameters[gl_InstanceID * MAX_PARAM + 6]
+#define colorEmboss   parameters[gl_InstanceID * MAX_PARAM + 7]
+#define colorTria     parameters[gl_InstanceID * MAX_PARAM + 8]
+#define tria1Center   parameters[gl_InstanceID * MAX_PARAM + 9].xy
+#define tria2Center   parameters[gl_InstanceID * MAX_PARAM + 9].zw
+#define tria1Size     parameters[gl_InstanceID * MAX_PARAM + 10].x
+#define tria2Size     parameters[gl_InstanceID * MAX_PARAM + 10].y
+#define shadeDir      parameters[gl_InstanceID * MAX_PARAM + 10].z
+#define doAlphaCheck  parameters[gl_InstanceID * MAX_PARAM + 10].w
 
 in uint vflag;
 

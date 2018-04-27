@@ -1032,6 +1032,7 @@ static void widgetbase_set_uniform_colors_ubv(
 
 /* keep in sync with shader */
 #define MAX_WIDGET_BASE_BATCH 6
+#define MAX_WIDGET_PARAMETERS 11
 
 struct {
 	Gwn_Batch *batch; /* Batch type */
@@ -1051,13 +1052,14 @@ void UI_widgetbase_draw_cache_flush(void)
 	if (g_widget_base_batch.count == 1) {
 		/* draw single */
 		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE);
-		GWN_batch_uniform_4fv_array(batch, "parameters", 11, (float *)g_widget_base_batch.params);
+		GWN_batch_uniform_4fv_array(batch, "parameters", MAX_WIDGET_PARAMETERS, (float *)g_widget_base_batch.params);
 		GWN_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
 		GWN_batch_draw(batch);
 	}
 	else {
 		GWN_batch_program_set_builtin(batch, GPU_SHADER_2D_WIDGET_BASE_INST);
-		GWN_batch_uniform_4fv_array(batch, "parameters", 11 * MAX_WIDGET_BASE_BATCH, (float *)g_widget_base_batch.params);
+		GWN_batch_uniform_4fv_array(batch, "parameters", MAX_WIDGET_PARAMETERS * MAX_WIDGET_BASE_BATCH,
+		                            (float *)g_widget_base_batch.params);
 		GWN_batch_uniform_3fv(batch, "checkerColorAndSize", checker_params);
 		gpuBindMatrices(batch->interface);
 		GWN_batch_draw_range_ex(batch, 0, g_widget_base_batch.count, true);
