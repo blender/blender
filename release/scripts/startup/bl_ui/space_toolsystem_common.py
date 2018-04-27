@@ -252,16 +252,13 @@ class ToolSelectPanelHelper:
         del view2d, ui_scale
 
         empty_text = ""
-        if width_scale > 200.0:
+        if width_scale > 120.0:
             show_text = True
             use_columns = False
         else:
             show_text = False
-            if width_scale > 120.0:
-                column_count = 3
-                use_columns = True
-                empty_text = " "  # needed for alignment, grr
-            elif width_scale > 80.0:
+            # 2 column layout, disabled
+            if width_scale > 80.0:
                 column_count = 2
                 use_columns = True
                 empty_text = " "  # needed for alignment, grr
