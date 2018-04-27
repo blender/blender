@@ -257,7 +257,7 @@ class _defs_edit_mesh:
         icon = "ops.mesh.inset"
         widget = None
         keymap = (
-            ("mesh.inset", dict(),
+            ("mesh.inset", dict(release_confirm=True),
              dict(type='ACTIONMOUSE', value='PRESS')),
         )
 

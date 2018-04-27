@@ -378,7 +378,9 @@ static int edbm_inset_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			case LEFTMOUSE:
 			case PADENTER:
 			case RETKEY:
-				if (event->val == KM_PRESS) {
+				if ((event->val == KM_PRESS) ||
+				    ((event->val == KM_RELEASE) && RNA_boolean_get(op->ptr, "release_confirm")))
+				{
 					edbm_inset_calc(op);
 					edbm_inset_exit(C, op);
 					return OPERATOR_FINISHED;
@@ -540,4 +542,7 @@ void MESH_OT_inset(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "use_select_inset", false, "Select Outer", "Select the new inset faces");
 	RNA_def_boolean(ot->srna, "use_individual", false, "Individual", "Individual Face Inset");
 	RNA_def_boolean(ot->srna, "use_interpolate", true, "Interpolate", "Blend face data across the inset");
+
+	prop = RNA_def_boolean(ot->srna, "release_confirm", 0, "Confirm on Release", "");
+	RNA_def_property_flag(prop, PROP_HIDDEN | PROP_SKIP_SAVE);
 }
