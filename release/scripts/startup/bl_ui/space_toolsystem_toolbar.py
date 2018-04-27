@@ -266,7 +266,7 @@ class _defs_edit_mesh:
         icon = "ops.view3d.edit_mesh_extrude"
         widget = None
         keymap = (
-            ("mesh.extrude_region_move", dict(),
+            ("mesh.extrude_region_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
              dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
@@ -275,7 +275,7 @@ class _defs_edit_mesh:
         icon = "ops.view3d.edit_mesh_extrude_individual"
         widget = None
         keymap = (
-            ("mesh.extrude_faces_move", dict(),
+            ("mesh.extrude_faces_move", dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
              dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
