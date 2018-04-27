@@ -107,8 +107,7 @@ class TOPBAR_HT_lower_bar(Header):
         elif region.alignment == 'RIGHT':
             self.draw_right(context)
         else:
-            # 'NONE' currently not used
-            pass
+            self.draw_center(context)
 
     def draw_left(self, context):
         layout = self.layout
@@ -122,9 +121,9 @@ class TOPBAR_HT_lower_bar(Header):
         act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[object_mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
 
+    def draw_center(self, context):
+        layout = self.layout
         mode = context.mode
-
-        layout.separator()
 
         # Active Tool
         # -----------
