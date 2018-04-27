@@ -87,8 +87,13 @@ class ToolDef:
     icon = None
     # An optional manipulator group to activate when the tool is set or None for no widget.
     widget = None
-    # An optional triple of: ``(operator_id, operator_properties, keymap_item_args)``.
+    # Optional keymap for tool, either:
+    # - A function that populates a keymaps passed in as an argument.
+    # - A tuple filled with triple's of:
+    #   ``(operator_id, operator_properties, keymap_item_args)``.
     keymap = None
+    # Optional draw settings (operator options, toolsettings).
+    draw_settings = None
 
 
 class ToolSelectPanelHelper:
@@ -343,6 +348,10 @@ class ToolSelectPanelHelper:
             return
         # Indent until we have better icon scaling.
         layout.label("      " + item.text, icon_value=icon_value)
+
+        draw_settings = item.draw_settings
+        if draw_settings is not None:
+            draw_settings(context, layout)
 
 
 # The purpose of this menu is to be a generic popup to select between tools

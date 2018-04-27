@@ -314,9 +314,16 @@ class _defs_edit_mesh:
         widget = None
         keymap = (
             ("mesh.knife_tool",
-             dict(wait_for_input=False, use_occlude_geometry=True, only_selected=False),
+             dict(wait_for_input=False),
              dict(type='ACTIONMOUSE', value='PRESS')),
         )
+
+        @classmethod
+        def draw_settings(cls, context, layout):
+            wm = context.window_manager
+            props = wm.operator_properties_last("mesh.knife_tool")
+            layout.prop(props, "use_occlude_geometry")
+            layout.prop(props, "only_selected")
 
     class bisect(ToolDef):
         text = "Bisect"
@@ -373,8 +380,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     @classmethod
     def tools_all(cls):
         yield from cls._tools.items()
-
-    # Internal Data
 
     # for reuse
     _tools_transform = (
