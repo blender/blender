@@ -4174,7 +4174,7 @@ static void ui_numedit_set_active(uiBut *but)
 	but->drawflag &= ~(UI_BUT_ACTIVE_LEFT | UI_BUT_ACTIVE_RIGHT);
 
 	uiHandleButtonData *data = but->active;
-	if (!data) {
+	if (!data || (data->state == BUTTON_STATE_NUM_EDITING)) {
 		return;
 	}
 
