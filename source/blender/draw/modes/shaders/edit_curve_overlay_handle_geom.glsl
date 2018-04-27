@@ -22,7 +22,7 @@ void main()
 
 	if (is_active_nurb != 0) {
 		/* draw the outline. */
-		vec2 v1_2 = v2.xy - v1.xy;
+		vec2 v1_2 = (v2.xy/v2.w - v1.xy/v1.w);
 		vec2 offset;
 
 		if (abs(v1_2.x * viewportSize.x) < abs(v1_2.y * viewportSize.y)) {
