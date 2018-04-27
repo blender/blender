@@ -303,6 +303,22 @@ class _defs_edit_mesh:
             ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
+    class loopcut_slide(ToolDef):
+        text = "Loop Cut"
+        icon = "ops.mesh.loopcut_slide"
+        widget = None
+        keymap = (
+            ("mesh.loopcut_slide", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+        )
+
+    class offset_edge_loops_slide(ToolDef):
+        text = "Offset Edge Loop Cut"
+        icon = "ops.mesh.offset_edge_loops_slide"
+        widget = None
+        keymap = (
+            ("mesh.offset_edge_loops_slide", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+        )
+
     class vertex_smooth(ToolDef):
         text = "Smooth"
         icon = "ops.mesh.vertices_smooth"
@@ -474,7 +490,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
             _defs_edit_mesh.inset,
             _defs_edit_mesh.bevel,
-
+            (
+                _defs_edit_mesh.loopcut_slide,
+                _defs_edit_mesh.offset_edge_loops_slide,
+            ),
             (
                 _defs_edit_mesh.extrude,
                 _defs_edit_mesh.extrude_individual,

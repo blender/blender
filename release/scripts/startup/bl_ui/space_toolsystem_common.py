@@ -278,7 +278,8 @@ class ToolSelectPanelHelper:
                         if not use_columns:
                             col.scale_y = scale_y
                         else:
-                            row.label("")
+                            if column_index != 0:
+                                row.label("")
                             row = col.row(align=True)
                             row.scale_x = scale_x
                             row.scale_y = scale_y
