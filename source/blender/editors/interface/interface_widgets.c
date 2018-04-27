@@ -913,17 +913,6 @@ static void shape_preset_init_scroll_circle(uiWidgetTrias *tria, const rcti *rec
 	        g_shape_preset_scroll_circle_face, ARRAY_SIZE(g_shape_preset_scroll_circle_face));
 }
 
-static void shape_preset_draw_trias_aa(uiWidgetTrias *tria, uint pos)
-{
-	for (int k = 0; k < WIDGET_AA_JITTER; k++) {
-		for (int i = 0; i < tria->tot; ++i)
-			for (int j = 0; j < 3; ++j)
-				immVertex2f(pos,
-				            tria->vec[tria->index[i][j]][0] + jit[k][0],
-				            tria->vec[tria->index[i][j]][1] + jit[k][1]);
-	}
-}
-
 static void widget_draw_vertex_buffer(unsigned int pos, unsigned int col, int mode,
                                       const float quads_pos[WIDGET_SIZE_MAX][2],
                                       const unsigned char quads_col[WIDGET_SIZE_MAX][4],
@@ -1190,32 +1179,6 @@ static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
 
 		Gwn_Batch *roundbox_batch = ui_batch_roundbox_widget_get(wtb->tria1.type);
 		draw_widgetbase_batch(roundbox_batch, wtb);
-	}
-
-	/* DEPRECATED: should be removed at some point. */
-	if ((wtb->tria1.type == ROUNDBOX_TRIA_NONE) &&
-	    (wtb->tria1.tot || wtb->tria2.tot))
-	{
-		const unsigned char tcol[4] = {wcol->item[0],
-		                               wcol->item[1],
-		                               wcol->item[2],
-		                               (unsigned char)((float)wcol->item[3] / WIDGET_AA_JITTER)};
-
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformColor4ubv(tcol);
-
-		/* for each AA step */
-		immBegin(GWN_PRIM_TRIS, (wtb->tria1.tot + wtb->tria2.tot) * 3 * WIDGET_AA_JITTER);
-		if (wtb->tria1.tot) {
-			shape_preset_draw_trias_aa(&wtb->tria1, pos);
-		}
-		if (wtb->tria2.tot) {
-			shape_preset_draw_trias_aa(&wtb->tria2, pos);
-		}
-		immEnd();
-
-		immUnbindProgram();
 	}
 
 	glDisable(GL_BLEND);
