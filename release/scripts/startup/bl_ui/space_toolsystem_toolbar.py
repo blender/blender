@@ -155,7 +155,7 @@ class _defs_edit_armature:
 
     class roll(ToolDef):
         text = "Roll"
-        icon = None
+        icon = "ops.armature.bone.roll",
         widget = None
         keymap = (
             ("transform.transform",
@@ -163,14 +163,21 @@ class _defs_edit_armature:
              dict(type='EVT_TWEAK_A', value='ANY'),),
         )
 
-    class extrude_cursor(ToolDef):
-        text = "Extrude Cursor",
-        icon = "ops.armature.extrude",
+    class extrude(ToolDef):
+        text = "Extrude",
+        icon = "ops.armature.extrude_move",
         widget = None,
         keymap = (
             ("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
+    class extrude_cursor(ToolDef):
+        text = "Extrude to Cursor",
+        icon = "ops.armature.extrude_cursor",
+        widget = None,
+        keymap = (
+            ("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+        )
 
 class _defs_edit_mesh:
 
@@ -259,7 +266,7 @@ class _defs_edit_mesh:
         icon = "ops.view3d.edit_mesh_extrude"
         widget = None
         keymap = (
-            ("view3d.edit_mesh_extrude", dict(),
+            ("mesh.extrude_region_move", dict(),
              dict(type='ACTIONMOUSE', value='PRESS')),
         )
 
@@ -336,8 +343,8 @@ class _defs_edit_mesh:
         )
 
     class extrude_cursor(ToolDef):
-        text = "Extrude Cursor"
-        icon = "ops.mesh.bisect"  # placeholder
+        text = "Extrude to Cursor"
+        icon = "ops.view3d.edit_mesh_extrude_cursor"
         widget = None
         keymap = (
             ("mesh.dupli_extrude_cursor", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
@@ -422,7 +429,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_transform,
             _defs_edit_armature.roll,
             None,
-            _defs_edit_armature.extrude_cursor,
+            (
+                _defs_edit_armature.extrude,
+                _defs_edit_armature.extrude_cursor,
+            )
         ],
         'EDIT_MESH': [
             *_tools_transform,
@@ -450,6 +460,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             (
                 _defs_edit_mesh.extrude,
                 _defs_edit_mesh.extrude_individual,
+                _defs_edit_mesh.extrude_cursor,
             ),
 
             (
@@ -466,7 +477,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_edit_mesh.knife,
                 _defs_edit_mesh.bisect,
             ),
-            _defs_edit_mesh.extrude_cursor,
         ],
         'EDIT_CURVE': [
             *_tools_transform,
