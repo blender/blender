@@ -528,6 +528,8 @@ set(ICON_NAMES
 # This section is maintained by the updating script, keep BEGIN/END comments.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	# BEGIN ICON_GEOM_NAMES
+	none
+	ops.armature.bone.roll
 	ops.armature.extrude.cursor
 	ops.armature.extrude
 	ops.generic.cursor
@@ -566,6 +568,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.transform.vert_slide
 	ops.transform.vertex_random
 	ops.view3d.edit_mesh_extrude
+	ops.view3d.edit_mesh_extrude_cursor
 	ops.view3d.edit_mesh_extrude_individual
 	ops.view3d.ruler
 	# END ICON_GEOM_NAMES
