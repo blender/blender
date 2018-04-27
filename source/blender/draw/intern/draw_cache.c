@@ -130,6 +130,7 @@ const float n1[3], const float n2[3])
 	GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, co2);
 }
 
+#if 0 /* UNUSED */
 static void add_lat_lon_vert(
         Gwn_VertBuf *vbo, unsigned int pos_id, unsigned int nor_id,
         unsigned int *v_idx, const float rad, const float lat, const float lon)
@@ -143,6 +144,7 @@ static void add_lat_lon_vert(
 	GWN_vertbuf_attr_set(vbo, nor_id, *v_idx, nor);
 	GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, pos);
 }
+#endif
 
 static Gwn_VertBuf *fill_arrows_vbo(const float scale)
 {
@@ -347,7 +349,7 @@ Gwn_Batch *DRW_cache_cube_get(void)
 
 Gwn_Batch *DRW_cache_circle_get(void)
 {
-#define CIRCLE_RESOL 32
+#define CIRCLE_RESOL 64
 	if (!SHC.drw_circle) {
 		float v[3] = {0.0f, 0.0f, 0.0f};
 
@@ -359,21 +361,16 @@ Gwn_Batch *DRW_cache_circle_get(void)
 		}
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL * 2);
+		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
 
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[2] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[1] = 0.0f;
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2, v);
-
-			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			v[2] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			v[1] = 0.0f;
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2 + 1, v);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a, v);
 		}
 
-		SHC.drw_circle = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_circle = GWN_batch_create_ex(GWN_PRIM_LINE_LOOP, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_circle;
 #undef CIRCLE_RESOL
