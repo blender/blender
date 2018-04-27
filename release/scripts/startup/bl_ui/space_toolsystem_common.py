@@ -283,6 +283,44 @@ class ToolSelectPanelHelper:
         return (cls._tools[None], cls._tools.get(context.mode, ()))
 
 
+    @staticmethod
+    def _active_tool(context, with_icon=False):
+        """
+        Return the active Python tool definition and icon name.
+        """
+
+        workspace = context.workspace
+        space_type = workspace.tool_space_type
+        cls = next(
+            (cls for cls in ToolSelectPanelHelper.__subclasses__()
+             if cls.bl_space_type == space_type),
+            None
+        )
+        if cls is not None:
+            tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
+
+            context_mode = context.mode
+            for tool_items in cls.tools_from_context(context):
+                for item in cls._tools_flatten(tool_items):
+                    tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
+                    if (tool_def == tool_def_active):
+                        if with_icon:
+                            icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
+                        else:
+                            icon_value = 0
+                        return (item, icon_value)
+        return None, 0
+
+    @staticmethod
+    def draw_active_tool_header(context, layout):
+        item, icon_value = ToolSelectPanelHelper._active_tool(context, with_icon=True)
+        if item is None:
+            layout.label("No Tool Found")
+            return
+        # Indent until we have better icon scaling.
+        layout.label("      " + item["text"], icon_value=icon_value)
+
+
 # The purpose of this menu is to be a generic popup to select between tools
 # in cases when a single tool allows to select alternative tools.
 class WM_MT_toolsystem_submenu(Menu):

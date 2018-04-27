@@ -114,11 +114,28 @@ class TOPBAR_HT_lower_bar(Header):
         layout = self.layout
         layer = context.view_layer
         object = layer.objects.active
+
+        # Object Mode
+        # -----------
+
         object_mode = 'OBJECT' if object is None else object.mode
         act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[object_mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
 
         mode = context.mode
+
+        layout.separator()
+
+        # Active Tool
+        # -----------
+
+        from .space_toolsystem_common import ToolSelectPanelHelper
+        ToolSelectPanelHelper.draw_active_tool_header(context, layout)
+
+        layout.separator()
+
+        # Object Mode Options
+        # -------------------
 
         # Example of how toolsettings can be accessed as pop-overs.
 
