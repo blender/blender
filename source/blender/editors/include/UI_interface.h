@@ -225,7 +225,7 @@ enum {
 	UI_BUT_BOX_ITEM          = (1 << 20), /* This but is "inside" a box item (currently used to change theme colors). */
 
 	UI_BUT_ACTIVE_LEFT       = (1 << 21), /* Active left part of number button */
-	UI_BUT_ACTIVE_RIGHT      = (1 << 22), /* Active left part of number button */
+	UI_BUT_ACTIVE_RIGHT      = (1 << 22), /* Active right part of number button */
 };
 
 /* scale fixed button widths by this to account for DPI */

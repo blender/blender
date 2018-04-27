@@ -276,6 +276,7 @@ typedef struct uiHandleButtonData {
 	/* booleans (could be made into flags) */
 	bool cancel, escapecancel;
 	bool applied, applied_interactive;
+	bool changed_cursor;
 	wmTimer *flashtimer;
 
 	/* edited value */
@@ -4192,6 +4193,19 @@ static void ui_numedit_set_active(uiBut *but)
 		but->drawflag |= UI_BUT_ACTIVE_RIGHT;
 	}
 
+	if ((but->drawflag & (UI_BUT_ACTIVE_LEFT)) || (but->drawflag & (UI_BUT_ACTIVE_RIGHT))) {
+		if (data->changed_cursor) {
+			WM_cursor_modal_restore(data->window);
+			data->changed_cursor = false;
+		}
+	}
+	else {
+		if (data->changed_cursor == false) {
+			WM_cursor_modal_set(data->window, CURSOR_X_MOVE);
+			data->changed_cursor = true;
+		}
+	}
+
 	if (but->drawflag != oldflag) {
 		ED_region_tag_redraw(data->region);
 	}
@@ -7917,6 +7931,10 @@ static void button_activate_exit(
 #ifdef USE_ALLSELECT
 	ui_selectcontext_end(but, &data->select_others);
 #endif
+
+	if (data->changed_cursor) {
+		WM_cursor_modal_restore(data->window);
+	}
 
 	/* redraw (data is but->active!) */
 	ED_region_tag_redraw(data->region);
