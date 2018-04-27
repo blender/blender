@@ -25,6 +25,8 @@
 #ifndef __WM_MESSAGE_BUS_H__
 #define __WM_MESSAGE_BUS_H__
 
+#include <stdio.h>
+
 struct GSet;
 struct ID;
 struct bContext;
