@@ -1265,6 +1265,9 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 	GPU_free_images_old();
 	GPU_pass_cache_garbage_collect();
 
+	/* No depth test for drawing action zones afterwards. */
+	glDisable(GL_DEPTH_TEST);
+
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
 
