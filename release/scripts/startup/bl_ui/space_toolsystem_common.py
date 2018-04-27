@@ -240,6 +240,7 @@ class ToolSelectPanelHelper:
         tool_def_active, index_active = self._tool_vars_from_active_with_index(context)
         layout = self.layout
 
+        scale_x = 4.0  # only for rows, maximum scale is clamped so this can be a big value
         scale_y = 2.0
 
         # TODO(campbell): expose ui_scale.
@@ -251,7 +252,6 @@ class ToolSelectPanelHelper:
         width_scale = context.region.width * ui_scale
         del view2d, ui_scale
 
-        empty_text = ""
         if width_scale > 120.0:
             show_text = True
             use_columns = False
@@ -261,11 +261,10 @@ class ToolSelectPanelHelper:
             if width_scale > 80.0:
                 column_count = 2
                 use_columns = True
-                empty_text = " "  # needed for alignment, grr
             else:
                 use_columns = False
 
-        # Could support 3x columns.
+        # Currently support 2x columns, more can be easily supported.
         column_index = 0
 
         for tool_items in self.tools_from_context(context):
@@ -278,6 +277,11 @@ class ToolSelectPanelHelper:
                         col = layout.column(align=True)
                         if not use_columns:
                             col.scale_y = scale_y
+                        else:
+                            row.label("")
+                            row = col.row(align=True)
+                            row.scale_x = scale_x
+                            row.scale_y = scale_y
                         continue
 
                     if type(item) is tuple:
@@ -313,6 +317,7 @@ class ToolSelectPanelHelper:
                         col.scale_y = scale_y
                         if column_index == 0:
                             row = col.row(align=True)
+                            row.scale_x = scale_x
                             row.scale_y = scale_y
                         sub = row
                     else:
@@ -321,7 +326,7 @@ class ToolSelectPanelHelper:
                     if use_menu:
                         props = sub.operator_menu_hold(
                             "wm.tool_set",
-                            text=item.text if show_text else empty_text,
+                            text=item.text if show_text else "",
                             depress=is_active,
                             menu="WM_MT_toolsystem_submenu",
                             icon_value=icon_value,
@@ -329,7 +334,7 @@ class ToolSelectPanelHelper:
                     else:
                         props = sub.operator(
                             "wm.tool_set",
-                            text=item.text if show_text else empty_text,
+                            text=item.text if show_text else "",
                             depress=is_active,
                             icon_value=icon_value,
                         )
@@ -342,6 +347,10 @@ class ToolSelectPanelHelper:
                         column_index += 1
                         if column_index == column_count:
                             column_index = 0
+        if use_columns:
+            if column_index == 1:
+                row.label("")
+
 
     def tools_from_context(cls, context):
         return (cls._tools[None], cls._tools.get(context.mode, ()))
