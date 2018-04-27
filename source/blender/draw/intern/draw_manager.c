@@ -1295,7 +1295,14 @@ void DRW_draw_render_loop_ex(
 		glEnable(GL_DEPTH_TEST);
 	}
 
-	GPU_framebuffer_restore();
+	if (WM_draw_region_get_bound_viewport(ar)) {
+		/* Don't unbind the framebuffer yet in this case and let
+		 * GPU_viewport_unbind do it, so that we can still do further
+		 * drawing of action zones on top. */
+	}
+	else {
+		GPU_framebuffer_restore();
+	}
 
 	DRW_state_reset();
 	drw_engines_disable();

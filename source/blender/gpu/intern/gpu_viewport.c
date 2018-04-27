@@ -548,6 +548,7 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 
 void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
 {
+	GPU_framebuffer_restore();
 	DRW_opengl_context_disable();
 }
 
