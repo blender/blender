@@ -4046,11 +4046,15 @@ static int edbm_fill_holes_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+		if (em->bm->totedgesel == 0) {
+			continue;
+		}
+
 		if (!EDBM_op_call_and_selectf(
-				em, op,
-				"faces.out", true,
-				"holes_fill edges=%he sides=%i",
-				BM_ELEM_SELECT, sides))
+		            em, op,
+		            "faces.out", true,
+		            "holes_fill edges=%he sides=%i",
+		            BM_ELEM_SELECT, sides))
 		{
 			continue;
 		}
