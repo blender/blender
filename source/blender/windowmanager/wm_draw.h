@@ -34,29 +34,27 @@
 
 #include "GPU_glew.h"
 
-typedef struct wmDrawTriple {
-	GLuint bind;
-} wmDrawTriple;
+struct GPUOffScreen;
+struct GPUViewport;
+struct GPUTexture;
 
-typedef struct wmDrawData {
-	struct wmDrawData *next, *prev;
-	wmDrawTriple *triple;
-} wmDrawData;
+typedef struct wmDrawBuffer {
+	struct GPUOffScreen *offscreen[2];
+	struct GPUViewport *viewport[2];
+	bool stereo;
+	int bound_view;
+} wmDrawBuffer;
 
 struct bContext;
 struct wmWindow;
 struct ARegion;
 
 /* wm_draw.c */
-void		wm_draw_update			(struct bContext *C);
-void		wm_draw_window_clear	(struct wmWindow *win);
-void		wm_draw_region_clear	(struct wmWindow *win, struct ARegion *ar);
+void wm_draw_update(struct bContext *C);
+void wm_draw_region_clear(struct wmWindow *win, struct ARegion *ar);
+void wm_draw_region_blend(struct ARegion *ar, int view, bool blend);
 
-void		wm_tag_redraw_overlay	(struct wmWindow *win, struct ARegion *ar);
-
-void		wm_triple_draw_textures	(struct wmWindow *win, struct wmDrawTriple *triple, float alpha);
-
-void		wm_draw_data_free		(struct wmWindow *win);
+struct GPUTexture *wm_draw_region_texture(struct ARegion *ar, int view);
 
 #endif /* __WM_DRAW_H__ */
 

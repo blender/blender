@@ -908,7 +908,7 @@ void ED_region_exit(bContext *C, ARegion *ar)
 
 	WM_event_remove_handlers(C, &ar->handlers);
 	WM_event_modal_handler_region_replace(win, ar, NULL);
-	ar->visible = 0;
+	WM_draw_region_free(ar);
 	
 	if (ar->headerstr) {
 		MEM_freeN(ar->headerstr);

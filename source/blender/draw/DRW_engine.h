@@ -102,10 +102,12 @@ void DRW_draw_render_loop_ex(
         struct Depsgraph *depsgraph,
         struct RenderEngineType *engine_type,
         struct ARegion *ar, struct View3D *v3d,
+        struct GPUViewport *viewport,
         const struct bContext *evil_C);
 void DRW_draw_render_loop(
         struct Depsgraph *depsgraph,
-        struct ARegion *ar, struct View3D *v3d);
+        struct ARegion *ar, struct View3D *v3d,
+        struct GPUViewport *viewport);
 void DRW_draw_render_loop_offscreen(
         struct Depsgraph *depsgraph,
         struct RenderEngineType *engine_type,

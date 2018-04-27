@@ -222,9 +222,6 @@ typedef struct wmWindow {
 	 * Currently WIN32, runtime-only data */
 	struct wmIMEData *ime_data;
 
-	int drawmethod, drawfail;     /* internal for wm_draw.c only */
-	ListBase drawdata;            /* internal for wm_draw.c only */
-
 	ListBase queue;               /* all events (ghost level events were handled) */
 	ListBase handlers;            /* window+screen handlers, handled last */
 	ListBase modalhandlers;       /* priority handlers, handled first */

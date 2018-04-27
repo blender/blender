@@ -515,9 +515,8 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short manipulator_flag, manipulator_size;
-	int pad6;
+	short pad6[3];
 	short textimeout, texcollectrate;
-	short wmdrawmethod; /* eWM_DrawMethod */
 	short dragthreshold;
 	int memcachelimit;
 	int prefetchframes;
@@ -796,16 +795,6 @@ typedef enum eOpenGL_SelectOptions {
 	USER_SELECT_USE_OCCLUSION_QUERY = 1,
 	USER_SELECT_USE_SELECT_RENDERMODE = 2
 } eOpenGL_SelectOptions;
-
-/* wm draw method.
- * UserDef.wmdrawmethod */
-typedef enum eWM_DrawMethod {
-	USER_DRAW_TRIPLE		= 0,
-	USER_DRAW_OVERLAP		= 1,
-	USER_DRAW_FULL			= 2,
-	USER_DRAW_AUTOMATIC		= 3,
-	USER_DRAW_OVERLAP_FLIP	= 4,
-} eWM_DrawMethod;
 
 /* text draw options
  * UserDef.text_render */

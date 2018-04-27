@@ -447,12 +447,8 @@ void wm_gesture_draw(wmWindow *win)
 
 void wm_gesture_tag_redraw(bContext *C)
 {
-	wmWindow *win = CTX_wm_window(C);
 	bScreen *screen = CTX_wm_screen(C);
-	ARegion *ar = CTX_wm_region(C);
 	
 	if (screen)
 		screen->do_draw_gesture = true;
-
-	wm_tag_redraw_overlay(win, ar);
 }

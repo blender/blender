@@ -50,6 +50,7 @@
 
 #include "BKE_context.h"
 #include "BKE_image.h"
+#include "BKE_screen.h"
 #include "BKE_scene.h"
 #include "BKE_workspace.h"
 
@@ -61,7 +62,10 @@
 
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
+#include "GPU_framebuffer.h"
 #include "GPU_immediate.h"
+#include "GPU_matrix.h"
+#include "GPU_texture.h"
 #include "GPU_viewport.h"
 
 #include "RE_engine.h"
@@ -77,49 +81,98 @@
 #  include "BKE_subsurf.h"
 #endif
 
-/* swap */
-#define WIN_NONE_OK     0
-#define WIN_BACK_OK     1
-#define WIN_FRONT_OK    2
-#define WIN_BOTH_OK     3
 
-/* ******************* drawing, overlays *************** */
-
+/* ******************* paint cursor *************** */
 
 static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
-	
-	if (wm->paintcursors.first) {
-		wmWindow *win = CTX_wm_window(C);
-		bScreen *screen = WM_window_get_active_screen(win);
-		wmPaintCursor *pc;
+	wmWindow *win = CTX_wm_window(C);
+	bScreen *screen = WM_window_get_active_screen(win);
+	wmPaintCursor *pc;
 
-		if (ar->visible && ar == screen->active_region) {
-			for (pc = wm->paintcursors.first; pc; pc = pc->next) {
-				if (pc->poll == NULL || pc->poll(C)) {
-					ARegion *ar_other = CTX_wm_region(C);
-					if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
-						int x = 0, y = 0;
-						wm_get_cursor_position(win, &x, &y);
-						pc->draw(C,
-						         x - ar_other->winrct.xmin,
-						         y - ar_other->winrct.ymin,
-						         pc->customdata);
-					}
-					else {
-						pc->draw(C,
-						         win->eventstate->x - ar_other->winrct.xmin,
-						         win->eventstate->y - ar_other->winrct.ymin,
-						         pc->customdata);
-					}
+	if (ar->visible && ar == screen->active_region) {
+		for (pc = wm->paintcursors.first; pc; pc = pc->next) {
+			if (pc->poll == NULL || pc->poll(C)) {
+				/* Prevent drawing outside region. */
+				GLint scissor[4];
+				glGetIntegerv(GL_SCISSOR_BOX, scissor);
+				glScissor(ar->winrct.xmin,
+				          ar->winrct.ymin,
+				          BLI_rcti_size_x(&ar->winrct) + 1,
+				          BLI_rcti_size_y(&ar->winrct) + 1);
+
+				if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
+					int x = 0, y = 0;
+					wm_get_cursor_position(win, &x, &y);
+					pc->draw(C,
+							 x,
+							 y,
+							 pc->customdata);
 				}
+				else {
+					pc->draw(C,
+							 win->eventstate->x,
+							 win->eventstate->y,
+							 pc->customdata);
+				}
+
+				glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
 			}
 		}
 	}
 }
 
-/* ********************* drawing, swap ****************** */
+
+static bool wm_draw_region_stereo_set(ScrArea *sa, ARegion *ar, eStereoViews sview)
+{
+	/* We could detect better when stereo is actually needed, by inspecting the
+	 * image in the image editor and sequencer. */
+	if (ar->regiontype != RGN_TYPE_WINDOW) {
+		return false;
+	}
+
+	switch (sa->spacetype) {
+		case SPACE_IMAGE:
+		{
+			SpaceImage *sima = sa->spacedata.first;
+			sima->iuser.multiview_eye = sview;
+			return true;
+		}
+		case SPACE_VIEW3D:
+		{
+			View3D *v3d = sa->spacedata.first;
+			if (v3d->camera && v3d->camera->type == OB_CAMERA) {
+				Camera *cam = v3d->camera->data;
+				CameraBGImage *bgpic = cam->bg_images.first;
+				v3d->multiview_eye = sview;
+				if (bgpic) bgpic->iuser.multiview_eye = sview;
+				return true;
+			}
+			return false;
+		}
+		case SPACE_NODE:
+		{
+			SpaceNode *snode = sa->spacedata.first;
+			if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
+				Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
+				ima->eye = sview;
+				return true;
+			}
+			return false;
+		}
+		case SPACE_SEQ:
+		{
+			SpaceSeq *sseq = sa->spacedata.first;
+			sseq->multiview_eye = sview;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/* ********************* drawing ****************** */
 
 static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 {
@@ -127,22 +180,14 @@ static void wm_area_mark_invalid_backbuf(ScrArea *sa)
 		((View3D *)sa->spacedata.first)->flag |= V3D_INVALID_BACKBUF;
 }
 
-static bool wm_area_test_invalid_backbuf(ScrArea *sa)
-{
-	if (sa->spacetype == SPACE_VIEW3D)
-		return (((View3D *)sa->spacedata.first)->flag & V3D_INVALID_BACKBUF) != 0;
-	else
-		return true;
-}
-
 static void wm_region_test_render_do_draw(const Scene *scene, struct Depsgraph *depsgraph,
                                           ScrArea *sa, ARegion *ar)
 {
 	/* tag region for redraw from render engine preview running inside of it */
-	if (sa->spacetype == SPACE_VIEW3D) {
+	if (sa->spacetype == SPACE_VIEW3D && ar->regiontype == RGN_TYPE_WINDOW) {
 		RegionView3D *rv3d = ar->regiondata;
-		RenderEngine *engine = (rv3d) ? rv3d->render_engine : NULL;
-		GPUViewport *viewport = (rv3d) ? rv3d->viewport : NULL;
+		RenderEngine *engine = rv3d->render_engine;
+		GPUViewport *viewport = WM_draw_region_get_viewport(ar, 0);
 
 		if (engine && (engine->flag & RE_ENGINE_DO_DRAW)) {
 			View3D *v3d = sa->spacedata.first;
@@ -162,12 +207,9 @@ static void wm_region_test_render_do_draw(const Scene *scene, struct Depsgraph *
 	}
 }
 
-static void wm_draw_region(bContext *C, ARegion *ar)
+static bool wm_region_use_viewport(ScrArea *sa, ARegion *ar)
 {
-	CTX_wm_region_set(C, ar);
-	ED_region_do_draw(C, ar);
-	ar->do_draw = false;
-	CTX_wm_region_set(C, NULL);
+	return (sa->spacetype == SPACE_VIEW3D && ar->regiontype == RGN_TYPE_WINDOW);
 }
 
 /********************** draw all **************************/
@@ -213,376 +255,284 @@ static void wm_draw_callbacks(wmWindow *win)
 	}
 }
 
-static void wm_method_draw_full(bContext *C, wmWindow *win)
+
+/************************* Region drawing. ********************************
+ * 
+ * Each region draws into its own framebuffer, which is then blit on the
+ * window draw buffer. This helps with fast redrawing if only some regions
+ * change. It also means we can share a single context for multiple windows,
+ * so that for example VAOs can be shared between windows. */
+
+static void wm_draw_region_buffer_free(ARegion *ar)
 {
-	bScreen *screen = WM_window_get_active_screen(win);
-	ARegion *ar;
-
-	/* draw area regions */
-	ED_screen_areas_iter(win, screen, sa) {
-		CTX_wm_area_set(C, sa);
-
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->visible) {
-				CTX_wm_region_set(C, ar);
-				ED_region_do_draw(C, ar);
-				ar->do_draw = false;
-				wm_paintcursor_draw(C, ar);
-				CTX_wm_region_set(C, NULL);
+	if (ar->draw_buffer) {
+		for (int view = 0; view < 2; view++) {
+			if (ar->draw_buffer->offscreen[view]) {
+				GPU_offscreen_free(ar->draw_buffer->offscreen[view]);
 			}
-		}
-		
-		wm_area_mark_invalid_backbuf(sa);
-		CTX_wm_area_set(C, NULL);
-	}
-
-	ED_screen_draw_edges(win);
-	screen->do_draw = false;
-	wm_draw_callbacks(win);
-
-	/* draw overlapping regions */
-	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->visible) {
-			CTX_wm_menu_set(C, ar);
-			ED_region_do_draw(C, ar);
-			ar->do_draw = false;
-			CTX_wm_menu_set(C, NULL);
-		}
-	}
-
-	if (screen->do_draw_gesture)
-		wm_gesture_draw(win);
-}
-
-/****************** draw overlap all **********************/
-/* - redraw marked areas, and anything that overlaps it   */
-/* - it also handles swap exchange optionally, assuming   */
-/*   that on swap no clearing happens and we get back the */
-/*   same buffer as we swapped to the front               */
-
-/* mark area-regions to redraw if overlapped with rect */
-static void wm_flush_regions_down(wmWindow *win, bScreen *screen, rcti *dirty)
-{
-	ARegion *ar;
-
-	ED_screen_areas_iter(win, screen, sa) {
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (BLI_rcti_isect(dirty, &ar->winrct, NULL)) {
-				ar->do_draw = RGN_DRAW;
-				memset(&ar->drawrct, 0, sizeof(ar->drawrct));
-				ar->swap = WIN_NONE_OK;
-			}
-		}
-	}
-}
-
-/* mark menu-regions to redraw if overlapped with rect */
-static void wm_flush_regions_up(bScreen *screen, rcti *dirty)
-{
-	ARegion *ar;
-	
-	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (BLI_rcti_isect(dirty, &ar->winrct, NULL)) {
-			ar->do_draw = RGN_DRAW;
-			memset(&ar->drawrct, 0, sizeof(ar->drawrct));
-			ar->swap = WIN_NONE_OK;
-		}
-	}
-}
-
-static void wm_method_draw_overlap_all(bContext *C, wmWindow *win, int exchange)
-{
-	wmWindowManager *wm = CTX_wm_manager(C);
-	bScreen *screen = WM_window_get_active_screen(win);
-	ARegion *ar;
-	static rcti rect = {0, 0, 0, 0};
-
-	/* after backbuffer selection draw, we need to redraw */
-	ED_screen_areas_iter(win, screen, sa) {
-		for (ar = sa->regionbase.first; ar; ar = ar->next)
-			if (ar->visible && !wm_area_test_invalid_backbuf(sa))
-				ED_region_tag_redraw(ar);
-	}
-
-	/* flush overlapping regions */
-	if (screen->regionbase.first) {
-		/* flush redraws of area regions up to overlapping regions */
-		ED_screen_areas_iter(win, screen, sa) {
-			for (ar = sa->regionbase.first; ar; ar = ar->next)
-				if (ar->visible && ar->do_draw)
-					wm_flush_regions_up(screen, &ar->winrct);
-		}
-
-		/* flush between overlapping regions */
-		for (ar = screen->regionbase.last; ar; ar = ar->prev)
-			if (ar->visible && ar->do_draw)
-				wm_flush_regions_up(screen, &ar->winrct);
-		
-		/* flush redraws of overlapping regions down to area regions */
-		for (ar = screen->regionbase.last; ar; ar = ar->prev)
-			if (ar->visible && ar->do_draw)
-				wm_flush_regions_down(win, screen, &ar->winrct);
-	}
-
-	/* flush drag item */
-	if (rect.xmin != rect.xmax) {
-		wm_flush_regions_down(win, screen, &rect);
-		rect.xmin = rect.xmax = 0;
-	}
-	if (wm->drags.first) {
-		/* doesnt draw, fills rect with boundbox */
-		wm_drags_draw(C, win, &rect);
-	}
-	
-	/* draw marked area regions */
-	ED_screen_areas_iter(win, screen, sa) {
-		CTX_wm_area_set(C, sa);
-
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->visible) {
-				if (ar->do_draw) {
-					CTX_wm_region_set(C, ar);
-					ED_region_do_draw(C, ar);
-					ar->do_draw = false;
-					wm_paintcursor_draw(C, ar);
-					CTX_wm_region_set(C, NULL);
-
-					if (exchange)
-						ar->swap = WIN_FRONT_OK;
-				}
-				else if (exchange) {
-					if (ar->swap == WIN_FRONT_OK) {
-						CTX_wm_region_set(C, ar);
-						ED_region_do_draw(C, ar);
-						ar->do_draw = false;
-						wm_paintcursor_draw(C, ar);
-						CTX_wm_region_set(C, NULL);
-
-						ar->swap = WIN_BOTH_OK;
-					}
-					else if (ar->swap == WIN_BACK_OK)
-						ar->swap = WIN_FRONT_OK;
-					else if (ar->swap == WIN_BOTH_OK)
-						ar->swap = WIN_BOTH_OK;
-				}
+			if (ar->draw_buffer->viewport[view]) {
+				GPU_viewport_free(ar->draw_buffer->viewport[view]);
 			}
 		}
 
-		wm_area_mark_invalid_backbuf(sa);
-		CTX_wm_area_set(C, NULL);
-	}
-
-	/* after area regions so we can do area 'overlay' drawing */
-	if (screen->do_draw) {
-		ED_screen_draw_edges(win);
-		screen->do_draw = false;
-		wm_draw_callbacks(win);
-
-		if (exchange)
-			screen->swap = WIN_FRONT_OK;
-	}
-	else if (exchange) {
-		if (screen->swap == WIN_FRONT_OK) {
-			ED_screen_draw_edges(win);
-			screen->do_draw = false;
-			screen->swap = WIN_BOTH_OK;
-			wm_draw_callbacks(win);
-		}
-		else if (screen->swap == WIN_BACK_OK)
-			screen->swap = WIN_FRONT_OK;
-		else if (screen->swap == WIN_BOTH_OK)
-			screen->swap = WIN_BOTH_OK;
-	}
-
-	/* draw marked overlapping regions */
-	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->visible && ar->do_draw) {
-			CTX_wm_menu_set(C, ar);
-			ED_region_do_draw(C, ar);
-			ar->do_draw = false;
-			CTX_wm_menu_set(C, NULL);
-		}
-	}
-
-	if (screen->do_draw_gesture)
-		wm_gesture_draw(win);
-	
-	/* needs pixel coords in screen */
-	if (wm->drags.first) {
-		wm_drags_draw(C, win, NULL);
+		MEM_freeN(ar->draw_buffer);
+		ar->draw_buffer = NULL;
 	}
 }
 
-/****************** draw triple buffer ********************/
-/* - area regions are written into a texture, without any */
-/*   of the overlapping menus, brushes, gestures. these   */
-/*   are redrawn each time.                               */
-
-static void wm_draw_triple_free(wmDrawTriple *triple)
+static void wm_draw_offscreen_texture_parameters(GPUOffScreen *offscreen)
 {
-	if (triple) {
-		glDeleteTextures(1, &triple->bind);
-		MEM_freeN(triple);
-	}
-}
+	/* Setup offscreen color texture for drawing. */
+	GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
 
-static void wm_draw_triple_fail(bContext *C, wmWindow *win)
-{
-	wm_draw_window_clear(win);
+	/* We don't support multisample textures here. */
+	BLI_assert(GPU_texture_target(texture) == GL_TEXTURE_2D);
 
-	win->drawfail = true;
-	wm_method_draw_overlap_all(C, win, 0);
-}
+	glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
 
-static bool wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
-{
-	/* compute texture sizes */
-	const int sizex = WM_window_pixels_x(win);
-	const int sizey = WM_window_pixels_y(win);
-
-	/* generate texture names */
-	glGenTextures(1, &triple->bind);
-
-	/* proxy texture is only guaranteed to test for the cases that
-	 * there is only one texture in use, which may not be the case */
-	const GLint maxsize = GPU_max_texture_size();
-
-	if (sizex > maxsize || sizey > maxsize) {
-		printf("WM: failed to allocate texture for triple buffer drawing "
-		       "(texture too large for graphics card).\n");
-		return false;
-	}
-
-	/* setup actual texture */
-	glBindTexture(GL_TEXTURE_2D, triple->bind);
-
-	/* no mipmaps */
+	/* No mipmaps or filtering. */
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	/* GL_TEXTURE_BASE_LEVEL = 0 by default */
-
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, sizex, sizey, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
 	glBindTexture(GL_TEXTURE_2D, 0);
-
-	return true;
 }
 
-void wm_triple_draw_textures(wmWindow *win, wmDrawTriple *triple, float alpha)
+static void wm_draw_region_buffer_create(ARegion *ar, bool stereo, bool use_viewport)
 {
-	const int sizex = WM_window_pixels_x(win);
-	const int sizey = WM_window_pixels_y(win);
+	if (ar->draw_buffer) {
+		if (ar->draw_buffer->stereo != stereo) {
+			/* Free draw buffer on stereo changes. */
+			wm_draw_region_buffer_free(ar);
+		}
+		else {
+			/* Free offscreen buffer on size changes. Viewport auto resizes. */
+			GPUOffScreen *offscreen = ar->draw_buffer->offscreen[0];
+			if (offscreen && (GPU_offscreen_width(offscreen) != ar->winx ||
+				              GPU_offscreen_height(offscreen) != ar->winy))
+			{
+				wm_draw_region_buffer_free(ar);
+			}
+		}
+	}
+
+	if (!ar->draw_buffer) {
+		if (use_viewport) {
+			/* Allocate viewport which includes an offscreen buffer with depth
+			 * multisample, etc. */
+			ar->draw_buffer = MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer");
+			ar->draw_buffer->viewport[0] = GPU_viewport_create();
+			ar->draw_buffer->viewport[1] = (stereo) ? GPU_viewport_create() : NULL;
+		}
+		else {
+			/* Allocate offscreen buffer if it does not exist. This one has no
+			 * depth or multisample buffers. 3D view creates own buffers with
+			 * the data it needs. */
+			GPUOffScreen *offscreen = GPU_offscreen_create(ar->winx, ar->winy, 0, false, false, NULL);
+			if (!offscreen) {
+				return;
+			}
+
+			wm_draw_offscreen_texture_parameters(offscreen);
+
+			GPUOffScreen *offscreen_right = NULL;
+			if (stereo) {
+				offscreen_right = GPU_offscreen_create(ar->winx, ar->winy, 0, false, false, NULL);
+
+				if (!offscreen_right) {
+					GPU_offscreen_free(offscreen);
+					return;
+				}
+
+				wm_draw_offscreen_texture_parameters(offscreen_right);
+			}
+
+			ar->draw_buffer = MEM_callocN(sizeof(wmDrawBuffer), "wmDrawBuffer");
+			ar->draw_buffer->offscreen[0] = offscreen;
+			ar->draw_buffer->offscreen[1] = offscreen_right;
+		}
+
+		ar->draw_buffer->bound_view = -1;
+		ar->draw_buffer->stereo = stereo;
+	}
+}
+
+static void wm_draw_region_bind(ARegion *ar, int view)
+{
+	if (!ar->draw_buffer) {
+		return;
+	}
+
+	if (ar->draw_buffer->viewport[view]) {
+		GPU_viewport_bind(ar->draw_buffer->viewport[view], &ar->winrct);
+	}
+	else {
+		GPU_offscreen_bind(ar->draw_buffer->offscreen[view], false);
+	}
+
+	ar->draw_buffer->bound_view = view;
+
+	/* For now scissor is expected by region drawing, we could disable it
+	 * and do the enable/disable in the specific cases that setup scissor. */
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(0, 0, ar->winx, ar->winy);
+}
+
+static void wm_draw_region_unbind(ARegion *ar, int view)
+{
+	if (!ar->draw_buffer) {
+		return;
+	}
+
+	glDisable(GL_SCISSOR_TEST);
+
+	ar->draw_buffer->bound_view = -1;
+
+	if (ar->draw_buffer->viewport[view]) {
+		GPU_viewport_unbind(ar->draw_buffer->viewport[view]);
+	}
+	else {
+		GPU_offscreen_unbind(ar->draw_buffer->offscreen[view], false);
+	}
+}
+
+static void wm_draw_region_blit(ARegion *ar, int view)
+{
+	if (!ar->draw_buffer) {
+		return;
+	}
+
+	if (ar->draw_buffer->viewport[view]) {
+		GPU_viewport_draw_to_screen(ar->draw_buffer->viewport[view], &ar->winrct);
+	}
+	else {
+		GPU_offscreen_draw_to_screen(ar->draw_buffer->offscreen[view], ar->winrct.xmin, ar->winrct.ymin);
+	}
+}
+
+GPUTexture *wm_draw_region_texture(ARegion *ar, int view)
+{
+	if (!ar->draw_buffer) {
+		return NULL;
+	}
+
+	if (ar->draw_buffer->viewport[view]) {
+		return GPU_viewport_color_texture(ar->draw_buffer->viewport[view]);
+	}
+	else {
+		return GPU_offscreen_color_texture(ar->draw_buffer->offscreen[view]);
+	}
+}
+
+void wm_draw_region_blend(ARegion *ar, int view, bool blend)
+{
+	if (!ar->draw_buffer) {
+		return;
+	}
+
+	/* Alpha is always 1, except when blend timer is running. */
+	float alpha = ED_region_blend_alpha(ar);
+	if (alpha <= 0.0f) {
+		return;
+	}
+
+	if (!blend) {
+		alpha = 1.0f;
+	}
+
+	/* setup actual texture */
+	GPUTexture *texture = wm_draw_region_texture(ar, view);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
 
 	/* wmOrtho for the screen has this same offset */
-	const float ratiox = 1.0f;
-	const float ratioy = 1.0f;
-	const float halfx = GLA_PIXEL_OFS / sizex;
-	const float halfy = GLA_PIXEL_OFS / sizey;
+	const float halfx = GLA_PIXEL_OFS / (BLI_rcti_size_x(&ar->winrct) + 1);
+	const float halfy = GLA_PIXEL_OFS / (BLI_rcti_size_y(&ar->winrct) + 1);
 
-	const int activeTex = 7; /* arbitrary */
-	glActiveTexture(GL_TEXTURE0 + activeTex);
-	glBindTexture(GL_TEXTURE_2D, triple->bind);
-
-	float x1 = halfx;
-	float x2 = ratiox + halfx;
-	float y1 = halfy;
-	float y2 = ratioy + halfy;
+	if (blend) {
+		/* GL_ONE because regions drawn offscreen have premultiplied alpha. */
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	}
 
 	GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_IMAGE_RECT_COLOR);
 	GPU_shader_bind(shader);
 
-	glUniform1i(GPU_shader_get_uniform(shader, "image"), activeTex);
-	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), x1, y1, x2, y2);
-	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), 0.0f, 0.0f, sizex, sizey);
+	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), halfx, halfy, 1.0f + halfx, 1.0f + halfy);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), ar->winrct.xmin, ar->winrct.ymin, ar->winrct.xmax + 1, ar->winrct.ymax + 1);
 	glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), alpha, alpha, alpha, alpha);
 
 	GWN_draw_primitive(GWN_PRIM_TRI_STRIP, 4);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
-}
 
-static void wm_triple_copy_textures(wmWindow *win, wmDrawTriple *triple)
-{
-	const int sizex = WM_window_pixels_x(win);
-	const int sizey = WM_window_pixels_y(win);
-
-	glBindTexture(GL_TEXTURE_2D, triple->bind);
-	/* what is GL_READ_BUFFER right now? */
-	glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, sizex, sizey);
-	glBindTexture(GL_TEXTURE_2D, 0);
-}
-
-static void wm_draw_region_blend(wmWindow *win, ARegion *ar, wmDrawTriple *triple)
-{
-	float fac = ED_region_blend_factor(ar);
-	
-	/* region blend always is 1, except when blend timer is running */
-	if (fac < 1.0f) {
-		wmViewport(&ar->winrct);
-
-		glEnable(GL_BLEND);
-		wm_triple_draw_textures(win, triple, 1.0f - fac);
+	if (blend) {
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_BLEND);
 	}
 }
 
-static void wm_method_draw_triple(bContext *C, wmWindow *win)
+GPUViewport *WM_draw_region_get_viewport(ARegion *ar, int view)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	wmDrawData *dd, *dd_next, *drawdata = win->drawdata.first;
+	if (!ar->draw_buffer) {
+		return NULL;
+	}
+
+	return ar->draw_buffer->viewport[view];
+}
+
+GPUViewport *WM_draw_region_get_bound_viewport(ARegion *ar)
+{
+	if (!ar->draw_buffer || ar->draw_buffer->bound_view == -1) {
+		return NULL;
+	}
+
+	int view = ar->draw_buffer->bound_view;
+	return ar->draw_buffer->viewport[view];
+}
+
+static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
+{
 	bScreen *screen = WM_window_get_active_screen(win);
-	ARegion *ar;
-	bool copytex = false;
 
-	if (drawdata && drawdata->triple) {
-#if 0 /* why do we need to clear before overwriting? */
-		glClearColor(1, 1, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
-
-		wmWindowViewport(win);
-
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
-	}
-	else {
-		/* we run it when we start OR when we turn stereo on */
-		if (drawdata == NULL) {
-			drawdata = MEM_callocN(sizeof(wmDrawData), "wmDrawData");
-			BLI_addhead(&win->drawdata, drawdata);
-		}
-
-		drawdata->triple = MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");
-
-		if (!wm_triple_gen_textures(win, drawdata->triple)) {
-			wm_draw_triple_fail(C, win);
-			return;
-		}
-	}
-
-	/* it means stereo was just turned off */
-	/* note: we are removing all drawdatas that are not the first */
-	for (dd = drawdata->next; dd; dd = dd_next) {
-		dd_next = dd->next;
-
-		BLI_remlink(&win->drawdata, dd);
-		wm_draw_triple_free(dd->triple);
-		MEM_freeN(dd);
-	}
-
-	wmDrawTriple *triple = drawdata->triple;
-
-	/* draw marked area regions (also global ones) */
+	/* Draw screen areas into own frame buffer. */
 	ED_screen_areas_iter(win, screen, sa) {
 		CTX_wm_area_set(C, sa);
 
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->visible && ar->do_draw) {
-				if (ar->overlap == false) {
-					wm_draw_region(C, ar);
-					copytex = true;
+				CTX_wm_region_set(C, ar);
+				bool use_viewport = wm_region_use_viewport(sa, ar);
+
+				if (stereo && wm_draw_region_stereo_set(sa, ar, STEREO_LEFT_ID)) {
+					wm_draw_region_buffer_create(ar, true, use_viewport);
+
+					for (int view = 0; view < 2; view++) {
+						eStereoViews sview;
+						if (view == 0) {
+							sview = STEREO_LEFT_ID;
+						}
+						else {
+							sview = STEREO_RIGHT_ID;
+							wm_draw_region_stereo_set(sa, ar, sview);
+						}
+
+						wm_draw_region_bind(ar, view);
+						ED_region_do_draw(C, ar);
+						wm_draw_region_unbind(ar, view);
+					}
 				}
+				else {
+					wm_draw_region_buffer_create(ar, false, use_viewport);
+					wm_draw_region_bind(ar, 0);
+					ED_region_do_draw(C, ar);
+					wm_draw_region_unbind(ar, 0);
+				}
+
+				ar->do_draw = false;
+				CTX_wm_region_set(C, NULL);
 			}
 		}
 
@@ -590,21 +540,71 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		CTX_wm_area_set(C, NULL);
 	}
 
-	if (copytex) {
-		wmWindowViewport(win);
+	/* Draw menus into their own framebuffer. */
+	for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
+		if (ar->visible) {
+			CTX_wm_menu_set(C, ar);
 
-		wm_triple_copy_textures(win, triple);
+			if (ar->type && ar->type->refresh) {
+				/* UI code reads the OpenGL state, but we have to
+				 * refresh beforehand in case the menu size changes. */
+				wmViewport(&ar->winrct);
+				ar->type->refresh(C, ar);
+			}
+
+			wm_draw_region_buffer_create(ar, false, false);
+			wm_draw_region_bind(ar, 0);
+			glClearColor(0, 0, 0, 0);
+			glClear(GL_COLOR_BUFFER_BIT);
+			ED_region_do_draw(C, ar);
+			wm_draw_region_unbind(ar, 0);
+
+			ar->do_draw = false;
+			CTX_wm_menu_set(C, NULL);
+		}
+	}
+}
+
+static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	bScreen *screen = WM_window_get_active_screen(win);
+
+	/* Draw into the window framebuffer, in full window coordinates. */
+	wmWindowViewport(win);
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	/* Blit non-overlapping area regions. */
+	ED_screen_areas_iter(win, screen, sa) {
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+			if (ar->visible && ar->overlap == false) {
+				if (view == -1 && ar->draw_buffer && ar->draw_buffer->stereo) {
+					/* Stereo drawing from textures. */
+					if(win->stereo3d_format->display_mode == S3D_DISPLAY_ANAGLYPH) {
+						wm_stereo3d_draw_anaglyph(win, ar);
+					}
+					else {
+						wm_stereo3d_draw_interlace(win, ar);
+					}
+				}
+				else {
+					/* Blit from offscreen buffer. */
+					wm_draw_region_blit(ar, 0);
+				}
+			}
+		}
 	}
 
+	/* Draw paint cursors. */
 	if (wm->paintcursors.first) {
 		ED_screen_areas_iter(win, screen, sa) {
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
+			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 				if (ar->visible && ar == screen->active_region) {
 					CTX_wm_area_set(C, sa);
 					CTX_wm_region_set(C, ar);
 
 					/* make region ready for draw, scissor, pixelspace */
-					wmViewport(&ar->winrct);
 					wm_paintcursor_draw(C, ar);
 
 					CTX_wm_region_set(C, NULL);
@@ -616,32 +616,23 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 		wmWindowViewport(win);
 	}
 
-	/* draw overlapping area regions (always like popups) */
+	/* Blend in overlapping area regions */
 	ED_screen_areas_iter(win, screen, sa) {
-		CTX_wm_area_set(C, sa);
-
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->visible && ar->overlap) {
-				wm_draw_region(C, ar);
-				wm_draw_region_blend(win, ar, triple);
+				wm_draw_region_blend(ar, 0, true);
 			}
 		}
-
-		CTX_wm_area_set(C, NULL);
 	}
 
-	/* after area regions so we can do area 'overlay' drawing */
+	/* After area regions so we can do area 'overlay' drawing. */
 	ED_screen_draw_edges(win);
-	WM_window_get_active_screen(win)->do_draw = false;
 	wm_draw_callbacks(win);
 
-	/* draw floating regions (menus) */
-	for (ar = screen->regionbase.first; ar; ar = ar->next) {
+	/* Blend in floating regions (menus). */
+	for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
 		if (ar->visible) {
-			CTX_wm_menu_set(C, ar);
-			ED_region_do_draw(C, ar);
-			ar->do_draw = false;
-			CTX_wm_menu_set(C, NULL);
+			wm_draw_region_blend(ar, 0, true);
 		}
 	}
 
@@ -655,186 +646,74 @@ static void wm_method_draw_triple(bContext *C, wmWindow *win)
 	}
 }
 
-static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoViews sview)
+static void wm_draw_window(bContext *C, wmWindow *win)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
-	wmDrawData *drawdata;
-	wmDrawTriple *triple_data, *triple_all;
 	bScreen *screen = WM_window_get_active_screen(win);
-	ARegion *ar;
-	int copytex = false;
-	int id;
+	bool stereo = WM_stereo3d_enabled(win, false);
 
-	/* we store the triple_data in sequence to triple_all */
-	for (id = 0; id < 2; id++) {
-		drawdata = BLI_findlink(&win->drawdata, (sview * 2) + id);
+	/* Draw area regions into their own framebuffer. This way we can redraw
+	 * the areas that need it, and blit the rest from existing framebuffers. */
+	wm_draw_window_offscreen(C, win, stereo);
 
-		if (drawdata && drawdata->triple) {
-			if (id == 0) {
-#if 0 /* why do we need to clear before overwriting? */
-				glClearColor(0, 0, 0, 0);
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-#endif
+	/* Now we draw into the window framebuffer, in full window coordinates. */
+	if (!stereo) {
+		/* Regular mono drawing. */
+		wm_draw_window_onscreen(C, win, -1);
+	}
+	else if(win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
+		/* For pageflip we simply draw to both back buffers. */
+		glDrawBuffer(GL_BACK_LEFT);
+		wm_draw_window_onscreen(C, win, 0);
+		glDrawBuffer(GL_BACK_RIGHT);
+		wm_draw_window_onscreen(C, win, 1);
+		glDrawBuffer(GL_BACK);
+	}
+	else if(ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
+		/* For anaglyph and interlace, we draw individual regions with
+		 * stereo framebuffers using different shaders. */
+		wm_draw_window_onscreen(C, win, -1);
+	}
+	else {
+		/* For side-by-side and top-bottom, we need to render each view to an
+		 * an offscreen texture and then draw it. This used to happen for all
+		 * stereo methods, but it's less efficient than drawing directly. */
+		const int width = WM_window_pixels_x(win);
+		const int height = WM_window_pixels_y(win);
+		GPUOffScreen *offscreen = GPU_offscreen_create(width, height, 0, false, false, NULL);
 
-				wmWindowViewport(win);
+		if (offscreen) {
+			GPUTexture *texture = GPU_offscreen_color_texture(offscreen);
+			wm_draw_offscreen_texture_parameters(offscreen);
 
-				wm_triple_draw_textures(win, drawdata->triple, 1.0f);
+			for (int view = 0; view < 2; view++) {
+				/* Draw view into offscreen buffer. */
+				GPU_offscreen_bind(offscreen, false);
+				wm_draw_window_onscreen(C, win, view);
+				GPU_offscreen_unbind(offscreen, false);
+
+				/* Draw offscreen buffer to screen. */
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
+
+				if (win->stereo3d_format->display_mode == S3D_DISPLAY_SIDEBYSIDE) {
+					wm_stereo3d_draw_sidebyside(win, view);
+				}
+				else {
+					wm_stereo3d_draw_topbottom(win, view);
+				}
+
+				glBindTexture(GL_TEXTURE_2D, 0);
 			}
+
+			GPU_offscreen_free(offscreen);
 		}
 		else {
-			/* we run it when we start OR when we turn stereo on */
-			if (drawdata == NULL) {
-				drawdata = MEM_callocN(sizeof(wmDrawData), "wmDrawData");
-				BLI_addtail(&win->drawdata, drawdata);
-			}
-
-			drawdata->triple = MEM_callocN(sizeof(wmDrawTriple), "wmDrawTriple");
-
-			if (!wm_triple_gen_textures(win, drawdata->triple)) {
-				wm_draw_triple_fail(C, win);
-				return;
-			}
+			/* Still draw something in case of allocation failure. */
+			wm_draw_window_onscreen(C, win, 0);
 		}
 	}
 
-	triple_data = ((wmDrawData *) BLI_findlink(&win->drawdata, sview * 2))->triple;
-	triple_all  = ((wmDrawData *) BLI_findlink(&win->drawdata, (sview * 2) + 1))->triple;
-
-	/* draw marked area regions */
-	ED_screen_areas_iter(win, screen, sa) {
-		CTX_wm_area_set(C, sa);
-
-		switch (sa->spacetype) {
-			case SPACE_IMAGE:
-			{
-				SpaceImage *sima = sa->spacedata.first;
-				sima->iuser.multiview_eye = sview;
-				break;
-			}
-			case SPACE_VIEW3D:
-			{
-				View3D *v3d = sa->spacedata.first;
-				if (v3d->camera && v3d->camera->type == OB_CAMERA) {
-					Camera *cam = v3d->camera->data;
-					CameraBGImage *bgpic = cam->bg_images.first;
-					v3d->multiview_eye = sview;
-					if (bgpic) bgpic->iuser.multiview_eye = sview;
-				}
-				break;
-			}
-			case SPACE_NODE:
-			{
-				SpaceNode *snode = sa->spacedata.first;
-				if ((snode->flag & SNODE_BACKDRAW) && ED_node_is_compositor(snode)) {
-					Image *ima = BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
-					ima->eye = sview;
-				}
-				break;
-			}
-			case SPACE_SEQ:
-			{
-				SpaceSeq *sseq = sa->spacedata.first;
-				sseq->multiview_eye = sview;
-				break;
-			}
-		}
-
-		/* draw marked area regions */
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->visible && ar->do_draw) {
-
-				if (ar->overlap == false) {
-					CTX_wm_region_set(C, ar);
-					ED_region_do_draw(C, ar);
-
-					if (sview == STEREO_RIGHT_ID)
-						ar->do_draw = false;
-
-					CTX_wm_region_set(C, NULL);
-					copytex = true;
-				}
-			}
-		}
-
-		wm_area_mark_invalid_backbuf(sa);
-		CTX_wm_area_set(C, NULL);
-	}
-
-	if (copytex) {
-		wmWindowViewport(win);
-
-		wm_triple_copy_textures(win, triple_data);
-	}
-
-	if (wm->paintcursors.first) {
-		ED_screen_areas_iter(win, screen, sa) {
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar->visible && ar == screen->active_region) {
-					CTX_wm_area_set(C, sa);
-					CTX_wm_region_set(C, ar);
-
-					/* make region ready for draw, scissor, pixelspace */
-					wmViewport(&ar->winrct);
-					wm_paintcursor_draw(C, ar);
-
-					CTX_wm_region_set(C, NULL);
-					CTX_wm_area_set(C, NULL);
-				}
-			}
-		}
-
-		wmWindowViewport(win);
-	}
-
-	/* draw overlapping area regions (always like popups) */
-	ED_screen_areas_iter(win, screen, sa) {
-		CTX_wm_area_set(C, sa);
-
-		for (ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->visible && ar->overlap) {
-				CTX_wm_region_set(C, ar);
-				ED_region_do_draw(C, ar);
-				if (sview == STEREO_RIGHT_ID)
-					ar->do_draw = false;
-				CTX_wm_region_set(C, NULL);
-
-				wm_draw_region_blend(win, ar, triple_data);
-			}
-		}
-
-		CTX_wm_area_set(C, NULL);
-	}
-
-	/* after area regions so we can do area 'overlay' drawing */
-	ED_screen_draw_edges(win);
-	if (sview == STEREO_RIGHT_ID)
-		screen->do_draw = false;
-
-	wm_draw_callbacks(win);
-
-	/* draw floating regions (menus) */
-	for (ar = screen->regionbase.first; ar; ar = ar->next) {
-		if (ar->visible) {
-			CTX_wm_menu_set(C, ar);
-			ED_region_do_draw(C, ar);
-			if (sview == STEREO_RIGHT_ID)
-				ar->do_draw = false;
-			CTX_wm_menu_set(C, NULL);
-		}
-	}
-
-	/* always draw, not only when screen tagged */
-	if (win->gesture.first)
-		wm_gesture_draw(win);
-
-	/* needs pixel coords in screen */
-	if (wm->drags.first) {
-		wm_drags_draw(C, win, NULL);
-	}
-
-	/* copy the ui + overlays */
-	wmWindowViewport(win);
-	wm_triple_copy_textures(win, triple_all);
+	screen->do_draw = false;
 }
 
 /****************** main update call **********************/
@@ -842,17 +721,17 @@ static void wm_method_draw_triple_multiview(bContext *C, wmWindow *win, eStereoV
 /* quick test to prevent changing window drawable */
 static bool wm_draw_update_test_window(wmWindow *win)
 {
-	/*const*/ struct WorkSpace *workspace = WM_window_get_active_workspace(win);
-	/*const*/ Scene *scene = WM_window_get_active_scene(win);
-	/*const*/ ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+	struct WorkSpace *workspace = WM_window_get_active_workspace(win);
+	Scene *scene = WM_window_get_active_scene(win);
+	ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
 	struct Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
-	const bScreen *screen = WM_window_get_active_screen(win);
+	bScreen *screen = WM_window_get_active_screen(win);
 	ARegion *ar;
 	bool do_draw = false;
 
 	for (ar = screen->regionbase.first; ar; ar = ar->next) {
 		if (ar->do_draw_overlay) {
-			wm_tag_redraw_overlay(win, ar);
+			screen->do_draw_paintcursor = true;
 			ar->do_draw_overlay = false;
 		}
 		if (ar->visible && ar->do_draw)
@@ -885,42 +764,12 @@ static bool wm_draw_update_test_window(wmWindow *win)
 	return false;
 }
 
-static int wm_automatic_draw_method(wmWindow *win)
+void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion *UNUSED(ar))
 {
-	/* We assume all supported GPUs now support triple buffer well. */
-	if (win->drawmethod == USER_DRAW_AUTOMATIC) {
-		return USER_DRAW_TRIPLE;
-	}
-	else {
-		return win->drawmethod;
-	}
-}
-
-bool WM_is_draw_triple(wmWindow *win)
-{
-	/* function can get called before this variable is set in drawing code below */
-	if (win->drawmethod != U.wmdrawmethod)
-		win->drawmethod = U.wmdrawmethod;
-	return (USER_DRAW_TRIPLE == wm_automatic_draw_method(win));
-}
-
-void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)
-{
-	/* for draw triple gestures, paint cursors don't need region redraw */
-	if (ar && win) {
+	if (win) {
 		bScreen *screen = WM_window_get_active_screen(win);
-
-		if (wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
-			ED_region_tag_redraw(ar);
 		screen->do_draw_paintcursor = true;
 	}
-}
-
-void WM_paint_cursor_tag_redraw(wmWindow *win, ARegion *ar)
-{
-	bScreen *screen = WM_window_get_active_screen(win);
-	screen->do_draw_paintcursor = true;
-	wm_tag_redraw_overlay(win, ar);
 }
 
 void wm_draw_update(bContext *C)
@@ -946,10 +795,6 @@ void wm_draw_update(bContext *C)
 			continue;
 		}
 #endif
-		if (win->drawmethod != U.wmdrawmethod) {
-			wm_draw_window_clear(win);
-			win->drawmethod = U.wmdrawmethod;
-		}
 
 		if (wm_draw_update_test_window(win)) {
 			bScreen *screen = WM_window_get_active_screen(win);
@@ -963,26 +808,7 @@ void wm_draw_update(bContext *C)
 			ED_screen_set_active_region(C, &win->eventstate->x);
 			ED_screen_ensure_updated(wm, win, screen);
 
-			int drawmethod = wm_automatic_draw_method(win);
-
-			if (win->drawfail)
-				wm_method_draw_overlap_all(C, win, 0);
-			else if (drawmethod == USER_DRAW_FULL)
-				wm_method_draw_full(C, win);
-			else if (drawmethod == USER_DRAW_OVERLAP)
-				wm_method_draw_overlap_all(C, win, 0);
-			else if (drawmethod == USER_DRAW_OVERLAP_FLIP)
-				wm_method_draw_overlap_all(C, win, 1);
-			else { /* USER_DRAW_TRIPLE */
-				if ((WM_stereo3d_enabled(win, false)) == false) {
-					wm_method_draw_triple(C, win);
-				}
-				else {
-					wm_method_draw_triple_multiview(C, win, STEREO_LEFT_ID);
-					wm_method_draw_triple_multiview(C, win, STEREO_RIGHT_ID);
-					wm_method_draw_stereo3d(C, win);
-				}
-			}
+			wm_draw_window(C, win);
 
 			screen->do_draw_gesture = false;
 			screen->do_draw_paintcursor = false;
@@ -995,44 +821,16 @@ void wm_draw_update(bContext *C)
 	}
 }
 
-void wm_draw_data_free(wmWindow *win)
-{
-	wmDrawData *dd;
-
-	for (dd = win->drawdata.first; dd; dd = dd->next) {
-		wm_draw_triple_free(dd->triple);
-	}
-	BLI_freelistN(&win->drawdata);
-}
-
-void wm_draw_window_clear(wmWindow *win)
+void wm_draw_region_clear(wmWindow *win, ARegion *UNUSED(ar))
 {
 	bScreen *screen = WM_window_get_active_screen(win);
-	ARegion *ar;
-
-	wm_draw_data_free(win);
-
-	/* clear screen swap flags */
-	if (screen) {
-		ED_screen_areas_iter(win, screen, sa) {
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				ar->swap = WIN_NONE_OK;
-			}
-		}
-
-		screen->swap = WIN_NONE_OK;
-	}
-}
-
-void wm_draw_region_clear(wmWindow *win, ARegion *ar)
-{
-	bScreen *screen = WM_window_get_active_screen(win);
-	int drawmethod = wm_automatic_draw_method(win);
-
-	if (ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
-		wm_flush_regions_down(win, screen, &ar->winrct);
-
 	screen->do_draw = true;
+}
+
+void WM_draw_region_free(ARegion *ar)
+{
+	wm_draw_region_buffer_free(ar);
+	ar->visible = 0;
 }
 
 void WM_redraw_windows(bContext *C)

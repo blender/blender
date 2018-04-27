@@ -4207,7 +4207,7 @@ typedef struct RegionAlphaInfo {
 #define TIMEOUT		0.2f
 #define TIMESTEP	0.04f
 
-float ED_region_blend_factor(ARegion *ar)
+float ED_region_blend_alpha(ARegion *ar)
 {
 	/* check parent too */
 	if (ar->regiontimer == NULL && (ar->alignment & RGN_SPLIT_PREV) && ar->prev) {

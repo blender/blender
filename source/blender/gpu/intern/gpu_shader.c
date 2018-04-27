@@ -714,8 +714,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                                           datatoc_gpu_shader_image_desaturate_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_ALPHA_COLOR] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                      datatoc_gpu_shader_image_alpha_color_frag_glsl },
-		[GPU_SHADER_2D_IMAGE_ALPHA] = { datatoc_gpu_shader_2D_image_vert_glsl,
-		                                datatoc_gpu_shader_image_modulate_alpha_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_SHUFFLE_COLOR] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                        datatoc_gpu_shader_image_shuffle_color_frag_glsl },
 		[GPU_SHADER_2D_IMAGE_RECT_COLOR] = { datatoc_gpu_shader_2D_image_rect_vert_glsl,

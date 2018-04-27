@@ -266,8 +266,6 @@ static void backdrawview3d(
 
 	if (rv3d->gpuoffscreen)
 		GPU_offscreen_unbind(rv3d->gpuoffscreen, true);
-	else
-		ar->swap = 0; /* mark invalid backbuf for wm draw */
 
 	v3d->flag &= ~V3D_INVALID_BACKBUF;
 

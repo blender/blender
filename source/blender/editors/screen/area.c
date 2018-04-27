@@ -1075,18 +1075,16 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 }
 
 /* overlapping regions only in the following restricted cases */
-static bool region_is_overlap(wmWindow *win, ScrArea *sa, ARegion *ar)
+static bool region_is_overlap(ScrArea *sa, ARegion *ar)
 {
 	if (U.uiflag2 & USER_REGION_OVERLAP) {
-		if (WM_is_draw_triple(win)) {
-			if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ)) {
-				if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
-					return 1;
-			}
-			else if (sa->spacetype == SPACE_IMAGE) {
-				if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_PREVIEW))
-					return 1;
-			}
+		if (ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ)) {
+			if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS))
+				return 1;
+		}
+		else if (sa->spacetype == SPACE_IMAGE) {
+			if (ELEM(ar->regiontype, RGN_TYPE_TOOLS, RGN_TYPE_UI, RGN_TYPE_TOOL_PROPS, RGN_TYPE_PREVIEW))
+				return 1;
 		}
 	}
 
@@ -1113,7 +1111,7 @@ static void region_rect_recursive(wmWindow *win, ScrArea *sa, ARegion *ar, rcti 
 	alignment = ar->alignment & ~RGN_SPLIT_PREV;
 	
 	/* set here, assuming userpref switching forces to call this again */
-	ar->overlap = region_is_overlap(win, sa, ar);
+	ar->overlap = region_is_overlap(sa, ar);
 
 	/* clear state flags first */
 	ar->flag &= ~RGN_FLAG_TOO_SMALL;
@@ -2062,14 +2060,11 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 	if (ar->overlap) {
 		/* view should be in pixelspace */
 		UI_view2d_view_restore(C);
-		glEnable(GL_BLEND);
-		Gwn_VertFormat *format = immVertexFormat();
-		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_I32, 2, GWN_FETCH_INT_TO_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformThemeColor((ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
-		immRecti(pos, 0, 0, BLI_rcti_size_x(&ar->winrct), BLI_rcti_size_y(&ar->winrct) + 1);
-		immUnbindProgram();
-		glDisable(GL_BLEND);
+
+		float back[4];
+		UI_GetThemeColor4fv((ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK, back);
+		glClearColor(back[3] * back[0], back[3] * back[1], back[3] * back[2], back[3]);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
 	else {
 		UI_ThemeClearColor((ar->type->regionid == RGN_TYPE_PREVIEW) ? TH_PREVIEW_BACK : TH_BACK);
@@ -2278,7 +2273,7 @@ void ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float 
 
 	/* setup scissor */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor);
-	glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin,
+	glScissor(rect.xmin, rect.ymin,
 	          BLI_rcti_size_x(&rect) + 1, BLI_rcti_size_y(&rect) + 1);
 
 	glEnable(GL_BLEND);

@@ -88,7 +88,7 @@ void    ED_region_info_draw(struct ARegion *ar, const char *text, float fill_col
 void    ED_region_info_draw_multiline(ARegion *ar, const char *text_array[], float fill_color[4], const bool full_redraw);
 void    ED_region_image_metadata_draw(int x, int y, struct ImBuf *ibuf, const rctf *frame, float zoomx, float zoomy);
 void    ED_region_grid_draw(struct ARegion *ar, float zoomx, float zoomy);
-float	ED_region_blend_factor(struct ARegion *ar);
+float	ED_region_blend_alpha(struct ARegion *ar);
 void	ED_region_visible_rect(struct ARegion *ar, struct rcti *rect);
 
 int     ED_region_snap_size_test(const struct ARegion *ar);

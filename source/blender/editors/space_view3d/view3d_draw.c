@@ -1259,26 +1259,14 @@ RenderEngineType *ED_view3d_engine_type(Scene *scene, int drawtype)
 void view3d_main_region_draw(const bContext *C, ARegion *ar)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	RegionView3D *rv3d = ar->regiondata;
 
-	if (!rv3d->viewport) {
-		rv3d->viewport = GPU_viewport_create();
-	}
-
-	GPU_viewport_bind(rv3d->viewport, &ar->winrct);
 	view3d_draw_view(C, ar);
-	GPU_viewport_unbind(rv3d->viewport);
-
-	rcti rect = ar->winrct;
-	BLI_rcti_translate(&rect, -ar->winrct.xmin, -ar->winrct.ymin);
-	GPU_viewport_draw_to_screen(rv3d->viewport, &rect);
 
 	GPU_free_images_old();
 	GPU_pass_cache_garbage_collect();
 
 	v3d->flag |= V3D_INVALID_BACKBUF;
 }
-
 
 /* -------------------------------------------------------------------- */
 

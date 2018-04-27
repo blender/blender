@@ -300,7 +300,7 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 /** \name Menu Block Creation
  * \{ */
 
-static void ui_block_region_draw(const bContext *C, ARegion *ar)
+static void ui_block_region_refresh(const bContext *C, ARegion *ar)
 {
 	ScrArea *ctx_area = CTX_wm_area(C);
 	ARegion *ctx_region = CTX_wm_region(C);
@@ -331,6 +331,11 @@ static void ui_block_region_draw(const bContext *C, ARegion *ar)
 
 	CTX_wm_area_set((bContext *)C, ctx_area);
 	CTX_wm_region_set((bContext *)C, ctx_region);
+}
+
+static void ui_block_region_draw(const bContext *C, ARegion *ar)
+{
+	uiBlock *block;
 
 	for (block = ar->uiblocks.first; block; block = block->next)
 		UI_block_draw(C, block);
@@ -660,6 +665,7 @@ uiPopupBlockHandle *ui_popup_block_create(
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw = ui_block_region_draw;
+	type.refresh = ui_block_region_refresh;
 	type.regionid = RGN_TYPE_TEMPORARY;
 	ar->type = &type;
 

@@ -44,6 +44,7 @@ struct ARegionType;
 struct PanelType;
 struct Scene;
 struct uiLayout;
+struct wmDrawBuffer;
 struct wmTimer;
 struct wmTooltipState;
 
@@ -75,10 +76,9 @@ typedef struct bScreen {
 	char do_draw_gesture;				/* notifier for gesture draw. */
 	char do_draw_paintcursor;			/* notifier for paint cursor draw. */
 	char do_draw_drag;					/* notifier for dragging draw. */
-	char swap;							/* indicator to survive swap-exchange systems */
 	char skip_handling;					/* set to delay screen handling after switching back from maximized area */
 	char scrubbing;						/* set when scrubbing to avoid some costly updates */
-	char pad[2];
+	char pad[3];
 	
 	struct ARegion *active_region;		/* active region that has mouse focus */
 
@@ -308,10 +308,9 @@ typedef struct ARegion {
 	
 	short do_draw;				/* private, cached notifier events */
 	short do_draw_overlay;		/* private, cached notifier events */
-	short swap;					/* private, indicator to survive swap-exchange */
 	short overlap;				/* private, set for indicate drawing overlapped */
 	short flagfullscreen;		/* temporary copy of flag settings for clean fullscreen */
-	short pad;
+	short pad1, pad2;
 	
 	struct ARegionType *type;	/* callbacks for this region type */
 	
@@ -325,15 +324,11 @@ typedef struct ARegion {
 
 	struct wmManipulatorMap *manipulator_map; /* manipulator-map of this region */
 	struct wmTimer *regiontimer; /* blend in/out */
+	struct wmDrawBuffer *draw_buffer;
 
 	char *headerstr;			/* use this string to draw info */
 	void *regiondata;			/* XXX 2.50, need spacedata equivalent? */
 } ARegion;
-
-/* swap */
-#define WIN_BACK_OK		1
-#define WIN_FRONT_OK	2
-// #define WIN_EQUAL		3  // UNUSED
 
 /* area->flag */
 enum {

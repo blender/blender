@@ -535,8 +535,6 @@ class USERPREF_PT_system(Panel):
 
         col.separator()
 
-        col.label(text="Window Draw Method:")
-        col.prop(system, "window_draw_method", text="")
         col.prop(system, "multi_sample", text="")
         if sys.platform == "linux" and system.multi_sample != 'NONE':
             col.label(text="Might fail for Mesh editing selection!")

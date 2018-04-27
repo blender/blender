@@ -2614,12 +2614,6 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 		/* restore cursor (disabled, see wm_dragdrop.c) */
 		// WM_cursor_modal_restore(win);
 	}
-	
-	/* overlap fails otherwise */
-	if (screen->do_draw_drag)
-		if (win->drawmethod == USER_DRAW_OVERLAP)
-			screen->do_draw = true;
-	
 }
 
 /* filter out all events of the pie that spawned the last pie unless it's a release event */

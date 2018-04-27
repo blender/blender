@@ -545,13 +545,6 @@ static void view3d_main_region_exit(wmWindowManager *wm, ARegion *ar)
 		GPU_offscreen_free(rv3d->gpuoffscreen);
 		rv3d->gpuoffscreen = NULL;
 	}
-	
-	if (rv3d->viewport) {
-		DRW_opengl_context_enable();
-		GPU_viewport_free(rv3d->viewport);
-		DRW_opengl_context_disable();
-		rv3d->viewport = NULL;
-	}
 }
 
 static int view3d_ob_drop_poll(bContext *UNUSED(C), wmDrag *drag, const wmEvent *UNUSED(event))
@@ -729,11 +722,6 @@ static void view3d_main_region_free(ARegion *ar)
 		if (rv3d->gpuoffscreen) {
 			GPU_offscreen_free(rv3d->gpuoffscreen);
 		}
-		if (rv3d->viewport) {
-			DRW_opengl_context_enable();
-			GPU_viewport_free(rv3d->viewport);
-			DRW_opengl_context_disable();
-		}
 
 		MEM_freeN(rv3d);
 		ar->regiondata = NULL;
@@ -758,7 +746,6 @@ static void *view3d_main_region_duplicate(void *poin)
 		new->sms = NULL;
 		new->smooth_timer = NULL;
 		new->compositor = NULL;
-		new->viewport = NULL;
 		
 		return new;
 	}

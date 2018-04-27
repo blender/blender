@@ -38,6 +38,8 @@
 #include "BLI_string.h"
 #include "BLI_mempool.h"
 
+#include "BIF_gl.h"
+
 #include "DNA_vec_types.h"
 #include "DNA_userdef_types.h"
 
@@ -521,6 +523,10 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 	BLI_assert(w == BLI_rcti_size_x(rect) + 1);
 	BLI_assert(h == BLI_rcti_size_y(rect) + 1);
 
+	/* wmOrtho for the screen has this same offset */
+	const float halfx = GLA_PIXEL_OFS / w;
+	const float halfy = GLA_PIXEL_OFS / h;
+
 	float x1 = rect->xmin;
 	float x2 = rect->xmin + w;
 	float y1 = rect->ymin;
@@ -531,7 +537,7 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 
 	GPU_texture_bind(color, 0);
 	glUniform1i(GPU_shader_get_uniform(shader, "image"), 0);
-	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), 0.0f, 0.0f, 1.0f, 1.0f);
+	glUniform4f(GPU_shader_get_uniform(shader, "rect_icon"), halfx, halfy, 1.0f + halfx, 1.0f + halfy);
 	glUniform4f(GPU_shader_get_uniform(shader, "rect_geom"), x1, y1, x2, y2);
 	glUniform4f(GPU_shader_get_builtin_uniform(shader, GWN_UNIFORM_COLOR), 1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -543,6 +549,19 @@ void GPU_viewport_draw_to_screen(GPUViewport *viewport, const rcti *rect)
 void GPU_viewport_unbind(GPUViewport *UNUSED(viewport))
 {
 	DRW_opengl_context_disable();
+}
+
+
+GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport)
+{
+	DefaultFramebufferList *dfbl = viewport->fbl;
+
+	if (dfbl->default_fb) {
+		DefaultTextureList *dtxl = viewport->txl;
+		return dtxl->color;
+	}
+
+	return NULL;
 }
 
 static void gpu_viewport_buffers_free(

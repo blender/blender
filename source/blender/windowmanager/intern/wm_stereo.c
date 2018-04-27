@@ -53,34 +53,17 @@
 #include "ED_screen.h"
 
 #include "GPU_immediate.h"
+#include "GPU_framebuffer.h"
+#include "GPU_texture.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
-#include "wm_draw.h" /* wmDrawTriple */
+#include "wm_draw.h"
 #include "wm_window.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
-
-static void wm_method_draw_stereo3d_pageflip(wmWindow *win)
-{
-	wmDrawData *drawdata;
-	int view;
-
-	for (view = 0; view < 2; view ++) {
-		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
-
-		if (view == STEREO_LEFT_ID)
-			glDrawBuffer(GL_BACK_LEFT);
-		else //STEREO_RIGHT_ID
-			glDrawBuffer(GL_BACK_RIGHT);
-
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
-	}
-
-	glDrawBuffer(GL_BACK);
-}
 
 static GPUInterlaceShader interlace_gpu_id_from_type(eStereo3dInterlaceType interlace_type)
 {
@@ -95,75 +78,60 @@ static GPUInterlaceShader interlace_gpu_id_from_type(eStereo3dInterlaceType inte
 	}
 }
 
-static void wm_method_draw_stereo3d_interlace(wmWindow *win)
+void wm_stereo3d_draw_interlace(wmWindow *win, ARegion *ar)
 {
 	bool swap = (win->stereo3d_format->flag & S3D_INTERLACE_SWAP) != 0;
 	enum eStereo3dInterlaceType interlace_type = win->stereo3d_format->interlace_type;
 
-	wmDrawData *drawdata[2];
-	for (int eye = 0; eye < 2; eye++) {
-		int view = swap ? !eye : eye;
-		drawdata[eye] = BLI_findlink(&win->drawdata, (view * 2) + 1);
-	}
-
-	const int sizex = WM_window_pixels_x(win);
-	const int sizey = WM_window_pixels_y(win);
-
 	/* wmOrtho for the screen has this same offset */
-	float ratiox = 1.0f;
-	float ratioy = 1.0f;
-	float halfx = GLA_PIXEL_OFS / sizex;
-	float halfy = GLA_PIXEL_OFS / sizex;
+	float halfx = GLA_PIXEL_OFS / ar->winx;
+	float halfy = GLA_PIXEL_OFS / ar->winy;
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_INTERLACE);
-
-	/* leave GL_TEXTURE0 as the latest bind texture */
-	for (int eye = 1; eye >= 0; eye--) {
-		glActiveTexture(GL_TEXTURE0 + eye);
-		glBindTexture(GL_TEXTURE_2D, drawdata[eye]->triple->bind);
+	/* leave GL_TEXTURE0 as the latest active texture */
+	for (int view = 1; view >= 0; view--) {
+		GPUTexture *texture = wm_draw_region_texture(ar, view);
+		glActiveTexture(GL_TEXTURE0 + view);
+		glBindTexture(GL_TEXTURE_2D, GPU_texture_opengl_bindcode(texture));
 	}
 
-	immUniform1i("image_a", 0);
-	immUniform1i("image_b", 1);
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_INTERLACE);
+	immUniform1i("image_a", (swap)? 1: 0);
+	immUniform1i("image_b", (swap)? 0: 1);
 
 	immUniform1i("interlace_id", interlace_gpu_id_from_type(interlace_type));
 
 	immBegin(GWN_PRIM_TRI_FAN, 4);
 
 	immAttrib2f(texcoord, halfx, halfy);
-	immVertex2f(pos, 0.0f, 0.0f);
+	immVertex2f(pos, ar->winrct.xmin, ar->winrct.ymin);
 
-	immAttrib2f(texcoord, ratiox + halfx, halfy);
-	immVertex2f(pos, sizex, 0.0f);
+	immAttrib2f(texcoord, 1.0f + halfx, halfy);
+	immVertex2f(pos, ar->winrct.xmax + 1, ar->winrct.ymin);
 
-	immAttrib2f(texcoord, ratiox + halfx, ratioy + halfy);
-	immVertex2f(pos, sizex, sizey);
+	immAttrib2f(texcoord, 1.0f + halfx, 1.0f + halfy);
+	immVertex2f(pos, ar->winrct.xmax + 1, ar->winrct.ymax + 1);
 
-	immAttrib2f(texcoord, halfx, ratioy + halfy);
-	immVertex2f(pos, 0.0f, sizey);
+	immAttrib2f(texcoord, halfx, 1.0f + halfy);
+	immVertex2f(pos, ar->winrct.xmin, ar->winrct.ymax + 1);
 
 	immEnd();
 	immUnbindProgram();
 
-	for (int eye = 1; eye >= 0; eye--) {
-		glActiveTexture(GL_TEXTURE0 + eye);
+	for (int view = 1; view >= 0; view--) {
+		glActiveTexture(GL_TEXTURE0 + view);
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
-static void wm_method_draw_stereo3d_anaglyph(wmWindow *win)
+void wm_stereo3d_draw_anaglyph(wmWindow *win, ARegion *ar)
 {
-	wmDrawData *drawdata;
-	int view, bit;
+	for (int view = 0; view < 2; view ++) {
+		int bit = view + 1;
 
-	for (view = 0; view < 2; view ++) {
-		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
-
-		bit = view + 1;
 		switch (win->stereo3d_format->anaglyph_type) {
 			case S3D_ANAGLYPH_REDCYAN:
 				glColorMask((1&bit) ? GL_TRUE : GL_FALSE,
@@ -185,158 +153,104 @@ static void wm_method_draw_stereo3d_anaglyph(wmWindow *win)
 				break;
 		}
 
-		wm_triple_draw_textures(win, drawdata->triple, 1.0f);
-
-		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		wm_draw_region_blend(ar, view, false);
 	}
+
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
 
-static void wm_method_draw_stereo3d_sidebyside(wmWindow *win)
+void wm_stereo3d_draw_sidebyside(wmWindow *win, int view)
 {
-	wmDrawData *drawdata;
-	wmDrawTriple *triple;
-	int view;
-	int soffx;
 	bool cross_eyed = (win->stereo3d_format->flag & S3D_SIDEBYSIDE_CROSSEYED) != 0;
 
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
-	glActiveTexture(GL_TEXTURE0);
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE);
 
-	for (view = 0; view < 2; view ++) {
-		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
-		triple = drawdata->triple;
-
-		soffx = WM_window_pixels_x(win) * 0.5f;
-		if (view == STEREO_LEFT_ID) {
-			if (!cross_eyed)
-				soffx = 0;
-		}
-		else { //RIGHT_LEFT_ID
-			if (cross_eyed)
-				soffx = 0;
-		}
-
-		const int sizex = WM_window_pixels_x(win);
-		const int sizey = WM_window_pixels_y(win);
-
-		/* wmOrtho for the screen has this same offset */
-		const float ratiox = 1.0f;
-		const float ratioy = 1.0f;
-		const float halfx = GLA_PIXEL_OFS / sizex;
-		const float halfy = GLA_PIXEL_OFS / sizey;
-
-		glBindTexture(GL_TEXTURE_2D, triple->bind);
-
-		immUniform1f("alpha", 1.0f);
-		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
-
-		immBegin(GWN_PRIM_TRI_FAN, 4);
-
-		immAttrib2f(texcoord, halfx, halfy);
-		immVertex2f(pos, soffx, 0.0f);
-
-		immAttrib2f(texcoord, ratiox + halfx, halfy);
-		immVertex2f(pos, soffx + (sizex * 0.5f), 0.0f);
-
-		immAttrib2f(texcoord, ratiox + halfx, ratioy + halfy);
-		immVertex2f(pos, soffx + (sizex * 0.5f), sizey);
-
-		immAttrib2f(texcoord, halfx, ratioy + halfy);
-		immVertex2f(pos, soffx, sizey);
-
-		immEnd();
+	int soffx = WM_window_pixels_x(win) * 0.5f;
+	if (view == STEREO_LEFT_ID) {
+		if (!cross_eyed)
+			soffx = 0;
+	}
+	else { //RIGHT_LEFT_ID
+		if (cross_eyed)
+			soffx = 0;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, 0);
+	const int sizex = WM_window_pixels_x(win);
+	const int sizey = WM_window_pixels_y(win);
+
+	/* wmOrtho for the screen has this same offset */
+	const float halfx = GLA_PIXEL_OFS / sizex;
+	const float halfy = GLA_PIXEL_OFS / sizex;
+
+	immUniform1i("image", 0); /* texture is already bound to GL_TEXTURE0 unit */
+
+	immBegin(GWN_PRIM_TRI_FAN, 4);
+
+	immAttrib2f(texcoord, halfx, halfy);
+	immVertex2f(pos, soffx, 0.0f);
+
+	immAttrib2f(texcoord, 1.0f + halfx, halfy);
+	immVertex2f(pos, soffx + (sizex * 0.5f), 0.0f);
+
+	immAttrib2f(texcoord, 1.0f + halfx, 1.0f + halfy);
+	immVertex2f(pos, soffx + (sizex * 0.5f), sizey);
+
+	immAttrib2f(texcoord, halfx, 1.0f + halfy);
+	immVertex2f(pos, soffx, sizey);
+
+	immEnd();
+
 	immUnbindProgram();
 }
 
-static void wm_method_draw_stereo3d_topbottom(wmWindow *win)
+void wm_stereo3d_draw_topbottom(wmWindow *win, int view)
 {
-	wmDrawData *drawdata;
-	wmDrawTriple *triple;
-	int view;
-	int soffy;
-
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
-	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_ALPHA);
-	glActiveTexture(GL_TEXTURE0);
+	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE);
 
-	for (view = 0; view < 2; view ++) {
-		drawdata = BLI_findlink(&win->drawdata, (view * 2) + 1);
-		triple = drawdata->triple;
-
-		if (view == STEREO_LEFT_ID) {
-			soffy = WM_window_pixels_y(win) * 0.5f;
-		}
-		else { /* STEREO_RIGHT_ID */
-			soffy = 0;
-		}
-
-		const int sizex = WM_window_pixels_x(win);
-		const int sizey = WM_window_pixels_y(win);
-
-		/* wmOrtho for the screen has this same offset */
-		const float ratiox = 1.0f;
-		const float ratioy = 1.0f;
-		const float halfx = GLA_PIXEL_OFS / sizex;
-		const float halfy = GLA_PIXEL_OFS / sizey;
-
-		glBindTexture(GL_TEXTURE_2D, triple->bind);
-
-		immUniform1f("alpha", 1.0f);
-		immUniform1i("image", 0); /* default GL_TEXTURE0 unit */
-
-		immBegin(GWN_PRIM_TRI_FAN, 4);
-
-		immAttrib2f(texcoord, halfx, halfy);
-		immVertex2f(pos, 0.0f, soffy);
-
-		immAttrib2f(texcoord, ratiox + halfx, halfy);
-		immVertex2f(pos, sizex, soffy);
-
-		immAttrib2f(texcoord, ratiox + halfx, ratioy + halfy);
-		immVertex2f(pos, sizex, soffy + (sizey * 0.5f));
-
-		immAttrib2f(texcoord, halfx, ratioy + halfy);
-		immVertex2f(pos, 0.0f, soffy + (sizey * 0.5f));
-
-		immEnd();
+	int soffy;
+	if (view == STEREO_LEFT_ID) {
+		soffy = WM_window_pixels_y(win) * 0.5f;
 	}
+	else { /* STEREO_RIGHT_ID */
+		soffy = 0;
+	}
+
+	const int sizex = WM_window_pixels_x(win);
+	const int sizey = WM_window_pixels_y(win);
+
+	/* wmOrtho for the screen has this same offset */
+	const float halfx = GLA_PIXEL_OFS / sizex;
+	const float halfy = GLA_PIXEL_OFS / sizex;
+
+	immUniform1i("image", 0); /* texture is already bound to GL_TEXTURE0 unit */
+
+	immBegin(GWN_PRIM_TRI_FAN, 4);
+
+	immAttrib2f(texcoord, halfx, halfy);
+	immVertex2f(pos, 0.0f, soffy);
+
+	immAttrib2f(texcoord, 1.0f + halfx, halfy);
+	immVertex2f(pos, sizex, soffy);
+
+	immAttrib2f(texcoord, 1.0f + halfx, 1.0f + halfy);
+	immVertex2f(pos, sizex, soffy + (sizey * 0.5f));
+
+	immAttrib2f(texcoord, halfx, 1.0f + halfy);
+	immVertex2f(pos, 0.0f, soffy + (sizey * 0.5f));
+
+	immEnd();
 
 	immUnbindProgram();
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void wm_method_draw_stereo3d(const bContext *UNUSED(C), wmWindow *win)
-{
-	switch (win->stereo3d_format->display_mode) {
-		case S3D_DISPLAY_ANAGLYPH:
-			wm_method_draw_stereo3d_anaglyph(win);
-			break;
-		case S3D_DISPLAY_INTERLACE:
-			wm_method_draw_stereo3d_interlace(win);
-			break;
-		case S3D_DISPLAY_PAGEFLIP:
-			wm_method_draw_stereo3d_pageflip(win);
-			break;
-		case S3D_DISPLAY_SIDEBYSIDE:
-			wm_method_draw_stereo3d_sidebyside(win);
-			break;
-		case S3D_DISPLAY_TOPBOTTOM:
-			wm_method_draw_stereo3d_topbottom(win);
-			break;
-		default:
-			break;
-	}
-}
 
 static bool wm_stereo3d_quadbuffer_supported(void)
 {

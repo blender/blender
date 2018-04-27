@@ -1788,7 +1788,7 @@ static void outliner_draw_tree(
 		CLAMP_MIN(mask_x, 0);
 
 		glGetFloatv(GL_SCISSOR_BOX, scissor);
-		glScissor(ar->winrct.xmin, ar->winrct.ymin, mask_x, ar->winy);
+		glScissor(0, 0, mask_x, ar->winy);
 	}
 
 	// gray hierarchy lines

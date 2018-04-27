@@ -2171,10 +2171,6 @@ void init_userdef_do_versions(void)
 				strcpy(km->idname, "Property Editor");
 		}
 	}
-	if (!USER_VERSION_ATLEAST(250, 16)) {
-		if (U.wmdrawmethod == USER_DRAW_TRIPLE)
-			U.wmdrawmethod = USER_DRAW_AUTOMATIC;
-	}
 	
 	if (!USER_VERSION_ATLEAST(252, 3)) {
 		if (U.flag & USER_LMOUSESELECT) 

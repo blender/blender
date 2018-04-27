@@ -3908,20 +3908,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static const EnumPropertyItem draw_method_items[] = {
-		{USER_DRAW_AUTOMATIC, "AUTOMATIC", 0, "Automatic", "Automatically set based on graphics card and driver"},
-		{USER_DRAW_TRIPLE, "TRIPLE_BUFFER", 0, "Triple Buffer",
-		                   "Use a third buffer for minimal redraws at the cost of more memory"},
-		{USER_DRAW_OVERLAP, "OVERLAP", 0, "Overlap",
-		                    "Redraw all overlapping regions, minimal memory usage but more redraws"},
-		{USER_DRAW_OVERLAP_FLIP, "OVERLAP_FLIP", 0, "Overlap Flip",
-		                         "Redraw all overlapping regions, minimal memory usage but more redraws "
-		                         "(for graphics drivers that do flipping)"},
-		{USER_DRAW_FULL, "FULL", 0, "Full",
-		                 "Do a full redraw each time, slow, only use for reference or when everything else fails"},
-		{0, NULL, 0, NULL, NULL}
-	};
-	
 	static const EnumPropertyItem color_picker_types[] = {
 		{USER_CP_CIRCLE_HSV, "CIRCLE_HSV", 0, "Circle (HSV)", "A circular Hue/Saturation color wheel, with Value slider"},
 		{USER_CP_CIRCLE_HSL, "CIRCLE_HSL", 0, "Circle (HSL)", "A circular Hue/Saturation color wheel, with Lightness slider"},
@@ -4138,12 +4124,6 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_range(prop, 1, 3600);
 	RNA_def_property_ui_text(prop, "Texture Collection Rate",
 	                         "Number of seconds between each run of the GL texture garbage collector");
-
-	prop = RNA_def_property(srna, "window_draw_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "wmdrawmethod");
-	RNA_def_property_enum_items(prop, draw_method_items);
-	RNA_def_property_ui_text(prop, "Window Draw Method", "Drawing method used by the window manager");
-	RNA_def_property_update(prop, 0, "rna_userdef_dpi_update");
 
 	prop = RNA_def_property(srna, "audio_mixing_buffer", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mixbufsize");

@@ -1041,42 +1041,46 @@ void DRW_notify_view_update(const DRWUpdateContext *update_ctx)
 	Scene *scene = update_ctx->scene;
 	ViewLayer *view_layer = update_ctx->view_layer;
 
-	if (rv3d->viewport == NULL) {
-		return;
-	}
-
-	/* XXX Really nasty locking. But else this could
-	 * be executed by the material previews thread
-	 * while rendering a viewport. */
-	BLI_mutex_lock(&DST.ogl_context_mutex);
-
-	/* Reset before using it. */
-	drw_state_prepare_clean_for_draw(&DST);
-
-	DST.viewport = rv3d->viewport;
-	DST.draw_ctx = (DRWContextState){
-		.ar = ar, .rv3d = rv3d, .v3d = v3d,
-		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
-		.engine_type = engine_type,
-		.depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
-	};
-
-	drw_engines_enable(view_layer, engine_type);
-
-	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
-		DrawEngineType *draw_engine = link->data;
-		ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine);
-
-		if (draw_engine->view_update) {
-			draw_engine->view_update(data);
+	/* Separate update for each stereo view. */
+	for (int view = 0; view < 2; view++) {
+		GPUViewport *viewport = WM_draw_region_get_viewport(ar, view);
+		if (!viewport) {
+			continue;
 		}
+
+		/* XXX Really nasty locking. But else this could
+		 * be executed by the material previews thread
+		 * while rendering a viewport. */
+		BLI_mutex_lock(&DST.ogl_context_mutex);
+
+		/* Reset before using it. */
+		drw_state_prepare_clean_for_draw(&DST);
+
+		DST.viewport = viewport;
+		DST.draw_ctx = (DRWContextState){
+			.ar = ar, .rv3d = rv3d, .v3d = v3d,
+			.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+			.engine_type = engine_type,
+			.depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
+		};
+
+		drw_engines_enable(view_layer, engine_type);
+
+		for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+			DrawEngineType *draw_engine = link->data;
+			ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine);
+
+			if (draw_engine->view_update) {
+				draw_engine->view_update(data);
+			}
+		}
+
+		DST.viewport = NULL;
+
+		drw_engines_disable();
+
+		BLI_mutex_unlock(&DST.ogl_context_mutex);
 	}
-
-	DST.viewport = NULL;
-
-	drw_engines_disable();
-
-	BLI_mutex_unlock(&DST.ogl_context_mutex);
 }
 
 /** \} */
@@ -1099,28 +1103,34 @@ void DRW_notify_id_update(const DRWUpdateContext *update_ctx, ID *id)
 	Depsgraph *depsgraph = update_ctx->depsgraph;
 	Scene *scene = update_ctx->scene;
 	ViewLayer *view_layer = update_ctx->view_layer;
-	if (rv3d->viewport == NULL) {
-		return;
-	}
-	/* Reset before using it. */
-	drw_state_prepare_clean_for_draw(&DST);
-	DST.viewport = rv3d->viewport;
-	DST.draw_ctx = (DRWContextState){
-		.ar = ar, .rv3d = rv3d, .v3d = v3d,
-		.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
-		.engine_type = engine_type,
-		.depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
-	};
-	drw_engines_enable(view_layer, engine_type);
-	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
-		DrawEngineType *draw_engine = link->data;
-		ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine);
-		if (draw_engine->id_update) {
-			draw_engine->id_update(data, id);
+
+	/* Separate update for each stereo view. */
+	for (int view = 0; view < 2; view++) {
+		GPUViewport *viewport = WM_draw_region_get_viewport(ar, view);
+		if (!viewport) {
+			continue;
 		}
+
+		/* Reset before using it. */
+		drw_state_prepare_clean_for_draw(&DST);
+		DST.viewport = viewport;
+		DST.draw_ctx = (DRWContextState){
+			.ar = ar, .rv3d = rv3d, .v3d = v3d,
+			.scene = scene, .view_layer = view_layer, .obact = OBACT(view_layer),
+			.engine_type = engine_type,
+			.depsgraph = depsgraph, .object_mode = OB_MODE_OBJECT,
+		};
+		drw_engines_enable(view_layer, engine_type);
+		for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
+			DrawEngineType *draw_engine = link->data;
+			ViewportEngineData *data = drw_viewport_engine_data_ensure(draw_engine);
+			if (draw_engine->id_update) {
+				draw_engine->id_update(data, id);
+			}
+		}
+		DST.viewport = NULL;
+		drw_engines_disable();
 	}
-	DST.viewport = NULL;
-	drw_engines_disable();
 }
 
 /** \} */
@@ -1140,10 +1150,11 @@ void DRW_draw_view(const bContext *C)
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
+	GPUViewport *viewport = WM_draw_region_get_bound_viewport(ar);
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
-	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, C);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, C);
 }
 
 /**
@@ -1154,6 +1165,7 @@ void DRW_draw_render_loop_ex(
         struct Depsgraph *depsgraph,
         RenderEngineType *engine_type,
         ARegion *ar, View3D *v3d,
+        GPUViewport *viewport,
         const bContext *evil_C)
 {
 
@@ -1163,7 +1175,7 @@ void DRW_draw_render_loop_ex(
 
 	DST.draw_ctx.evil_C = evil_C;
 
-	DST.viewport = rv3d->viewport;
+	DST.viewport = viewport;
 	v3d->zbuf = true;
 
 	/* Setup viewport */
@@ -1298,7 +1310,8 @@ void DRW_draw_render_loop_ex(
 
 void DRW_draw_render_loop(
         struct Depsgraph *depsgraph,
-        ARegion *ar, View3D *v3d)
+        ARegion *ar, View3D *v3d,
+        GPUViewport *viewport)
 {
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
@@ -1306,7 +1319,7 @@ void DRW_draw_render_loop(
 	Scene *scene = DEG_get_evaluated_scene(depsgraph);
 	RenderEngineType *engine_type = ED_view3d_engine_type(scene, v3d->drawtype);
 
-	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, viewport, NULL);
 }
 
 /* @viewport CAN be NULL, in this case we create one. */
@@ -1316,18 +1329,10 @@ void DRW_draw_render_loop_offscreen(
         const bool draw_background, GPUOffScreen *ofs,
         GPUViewport *viewport)
 {
-	RegionView3D *rv3d = ar->regiondata;
-
-	/* backup */
-	void *backup_viewport = rv3d->viewport;
-	{
-		/* backup (_never_ use rv3d->viewport) */
-		if (viewport == NULL) {
-			rv3d->viewport = GPU_viewport_create_from_offscreen(ofs);
-		}
-		else {
-			rv3d->viewport = viewport;
-		}
+	/* Create temporary viewport if needed. */
+	GPUViewport *render_viewport = viewport;
+	if (viewport == NULL) {
+		render_viewport = GPU_viewport_create_from_offscreen(ofs);
 	}
 
 	GPU_framebuffer_restore();
@@ -1336,17 +1341,13 @@ void DRW_draw_render_loop_offscreen(
 	drw_state_prepare_clean_for_draw(&DST);
 	DST.options.is_image_render = true;
 	DST.options.draw_background = draw_background;
-	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, NULL);
+	DRW_draw_render_loop_ex(depsgraph, engine_type, ar, v3d, render_viewport, NULL);
 
-	/* restore */
-	{
-		if (viewport == NULL) {
-			/* don't free data owned by 'ofs' */
-			GPU_viewport_clear_from_offscreen(rv3d->viewport);
-			GPU_viewport_free(rv3d->viewport);
-		}
-
-		rv3d->viewport = backup_viewport;
+	/* Free temporary viewport. */
+	if (viewport == NULL) {
+		/* don't free data owned by 'ofs' */
+		GPU_viewport_clear_from_offscreen(render_viewport);
+		GPU_viewport_free(render_viewport);
 	}
 
 	/* we need to re-bind (annoying!) */
@@ -1516,10 +1517,6 @@ void DRW_draw_select_loop(
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
 
-	/* backup (_never_ use rv3d->viewport) */
-	void *backup_viewport = rv3d->viewport;
-	rv3d->viewport = NULL;
-
 	bool use_obedit = false;
 	int obedit_mode = 0;
 	if (obedit != NULL) {
@@ -1646,9 +1643,6 @@ void DRW_draw_select_loop(
 
 	/* Cleanup for selection state */
 	GPU_viewport_free(viewport);
-
-	/* restore */
-	rv3d->viewport = backup_viewport;
 #endif  /* USE_GPU_SELECT */
 }
 
@@ -1701,10 +1695,6 @@ void DRW_draw_depth_loop(
 	RegionView3D *rv3d = ar->regiondata;
 
 	DRW_opengl_context_enable();
-
-	/* backup (_never_ use rv3d->viewport) */
-	void *backup_viewport = rv3d->viewport;
-	rv3d->viewport = NULL;
 
 	/* Reset before using it. */
 	drw_state_prepare_clean_for_draw(&DST);
@@ -1802,9 +1792,6 @@ void DRW_draw_depth_loop(
 
 	gpuPopMatrix();
 	gpuPopProjectionMatrix();
-
-	/* restore */
-	rv3d->viewport = backup_viewport;
 }
 
 /** \} */
