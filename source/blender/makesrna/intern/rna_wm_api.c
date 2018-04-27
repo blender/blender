@@ -384,6 +384,23 @@ static void rna_PieMenuEnd(bContext *C, PointerRNA *handle)
 	UI_pie_menu_end(C, handle->data);
 }
 
+static PointerRNA rna_WindoManager_operator_properties_last(const char *idname)
+{
+	wmOperatorType *ot = WM_operatortype_find(idname, true);
+
+	if (ot != NULL) {
+		/* Could make optional. */
+		if (ot->last_properties == NULL) {
+			IDPropertyTemplate val = {0};
+			ot->last_properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+		}
+		PointerRNA ptr;
+		RNA_pointer_create(NULL, ot->srna, ot->last_properties, &ptr);
+		return ptr;
+	}
+	return PointerRNA_NULL;
+}
+
 #else
 
 #define WM_GEN_INVOKE_EVENT (1 << 0)
@@ -594,6 +611,17 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPieMenu", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+
+	/* access last operator options (optionally create). */
+	func = RNA_def_function(srna, "operator_properties_last", "rna_WindoManager_operator_properties_last");
+	RNA_def_function_flag(func, FUNC_NO_SELF);
+	parm = RNA_def_string(func, "operator", NULL, 0, "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	/* return */
+	parm = RNA_def_pointer(func, "result", "OperatorProperties", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
+
 }
 
 void RNA_api_operator(StructRNA *srna)
