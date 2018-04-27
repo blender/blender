@@ -118,7 +118,7 @@ class ToolSelectPanelHelper:
             icon_value = _icon_cache.get(icon_name)
             if icon_value is None:
                 dirname = bpy.utils.resource_path('LOCAL')
-                if not dirname:
+                if not os.path.exists(dirname):
                     # TODO(campbell): use a better way of finding datafiles.
                     dirname = bpy.utils.resource_path('SYSTEM')
                 filename = os.path.join(dirname, "datafiles", "icons", icon_name + ".dat")
