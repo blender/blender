@@ -252,7 +252,6 @@ class AddPresetRender(AddPresetBase, Operator):
     ]
 
     preset_values = [
-        "scene.render.field_order",
         "scene.render.fps",
         "scene.render.fps_base",
         "scene.render.pixel_aspect_x",
@@ -260,8 +259,6 @@ class AddPresetRender(AddPresetBase, Operator):
         "scene.render.resolution_percentage",
         "scene.render.resolution_x",
         "scene.render.resolution_y",
-        "scene.render.use_fields",
-        "scene.render.use_fields_still",
     ]
 
     preset_subdir = "render"
