@@ -396,6 +396,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 
 	uint objects_len = 0;
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	bool changed_multi = false;
 
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 		Object *obedit = objects[ob_index];
@@ -403,32 +404,49 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 		const int type = RNA_enum_get(op->ptr, "type");
 
 		switch (type) {
-			case MESH_DELETE_VERT:
-				if (!EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS))  /* Erase Vertices */
-					return OPERATOR_CANCELLED;
+			case MESH_DELETE_VERT: /* Erase Vertices */
+				if (!(em->bm->totvertsel &&
+				      EDBM_op_callf(em, op, "delete geom=%hv context=%i", BM_ELEM_SELECT, DEL_VERTS)))
+				{
+					continue;
+				}
 				break;
-			case MESH_DELETE_EDGE:
-				if (!EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES))  /* Erase Edges */
-					return OPERATOR_CANCELLED;
+			case MESH_DELETE_EDGE: /* Erase Edges */
+				if (!(em->bm->totedgesel &&
+				      EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_FACES)))
+				{
+					continue;
+				}
 				break;
-			case MESH_DELETE_FACE:
-				if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES))  /* Erase Faces */
-					return OPERATOR_CANCELLED;
+			case MESH_DELETE_FACE: /* Erase Faces */
+				if (!(em->bm->totfacesel &&
+				      EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_FACES)))
+				{
+					continue;
+				}
 				break;
 			case MESH_DELETE_EDGE_FACE:
 				/* Edges and Faces */
-				if (!EDBM_op_callf(em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES))
-					return OPERATOR_CANCELLED;
+				if (!((em->bm->totedgesel || em->bm->totfacesel) &&
+				      EDBM_op_callf(em, op, "delete geom=%hef context=%i", BM_ELEM_SELECT, DEL_EDGESFACES)))
+				{
+					continue;
+				}
 				break;
 			case MESH_DELETE_ONLY_FACE:
 				/* Only faces. */
-				if (!EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES))
-					return OPERATOR_CANCELLED;
+				if (!(em->bm->totfacesel &&
+				      EDBM_op_callf(em, op, "delete geom=%hf context=%i", BM_ELEM_SELECT, DEL_ONLYFACES)))
+				{
+					continue;
+				}
 				break;
 			default:
 				BLI_assert(0);
 				break;
 		}
+
+		changed_multi = true;
 
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
@@ -436,7 +454,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 
 	}
 
-	return OPERATOR_FINISHED;
+	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_delete(wmOperatorType *ot)
