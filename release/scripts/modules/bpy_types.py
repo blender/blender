@@ -856,7 +856,8 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
 
     def path_menu(self, searchpaths, operator, *,
                   props_default=None, prop_filepath="filepath",
-                  filter_ext=None, filter_path=None, display_name=None):
+                  filter_ext=None, filter_path=None, display_name=None,
+                  add_operator=None):
         """
         Populate a menu from a list of paths.
 
@@ -902,12 +903,16 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
 
         files.sort()
 
+        col = layout.column(align=True)
+
         for f, filepath in files:
             # Intentionally pass the full path to 'display_name' callback,
             # since the callback may want to use part a directory in the name.
-            props = layout.operator(
+            row = col.row(align=True)
+            name = display_name(filepath) if display_name else bpy.path.display_name(f)
+            props = row.operator(
                 operator,
-                text=display_name(filepath) if display_name else bpy.path.display_name(f),
+                text=name,
                 translate=False,
             )
 
@@ -919,6 +924,25 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
             if operator == "script.execute_preset":
                 props.menu_idname = self.bl_idname
 
+            if add_operator:
+                props = row.operator(add_operator, text="", icon='ZOOMOUT')
+                props.name = name
+                props.remove_name = True
+
+        if add_operator:
+            wm = bpy.data.window_managers[0]
+
+            layout.separator()
+            row = layout.row()
+
+            sub = row.row()
+            sub.emboss = 'NORMAL'
+            sub.prop(wm, "preset_name", text="")
+
+            props = row.operator(add_operator, text="", icon='ZOOMIN')
+            props.name = wm.preset_name
+
+
     def draw_preset(self, context):
         """
         Define these on the subclass:
@@ -926,16 +950,19 @@ class Menu(StructRNA, _GenericUI, metaclass=RNAMeta):
         - preset_subdir (string)
 
         Optionally:
+        - preset_add_operator (string)
         - preset_extensions (set of strings)
         - preset_operator_defaults (dict of keyword args)
         """
         import bpy
         ext_valid = getattr(self, "preset_extensions", {".py", ".xml"})
         props_default = getattr(self, "preset_operator_defaults", None)
+        add_operator = getattr(self, "preset_add_operator", None)
         self.path_menu(bpy.utils.preset_paths(self.preset_subdir),
                        self.preset_operator,
                        props_default=props_default,
-                       filter_ext=lambda ext: ext.lower() in ext_valid)
+                       filter_ext=lambda ext: ext.lower() in ext_valid,
+                       add_operator=add_operator)
 
     @classmethod
     def draw_collapsible(cls, context, layout):

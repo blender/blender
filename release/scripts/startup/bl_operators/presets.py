@@ -19,9 +19,15 @@
 # <pep8 compliant>
 
 import bpy
-from bpy.types import Menu, Operator
+from bpy.types import Menu, Operator, Panel, WindowManager
 from bpy.props import StringProperty, BoolProperty
 
+# For preset popover menu
+WindowManager.preset_name = StringProperty(
+    name="Preset Name",
+    description="Name for new preset",
+    default="New Preset"
+)
 
 class AddPresetBase:
     """Base preset class, only for subclassing
@@ -40,6 +46,10 @@ class AddPresetBase:
             maxlen=64,
             options={'SKIP_SAVE'},
             )
+    remove_name = BoolProperty(
+            default=False,
+            options={'HIDDEN', 'SKIP_SAVE'},
+            )
     remove_active = BoolProperty(
             default=False,
             options={'HIDDEN', 'SKIP_SAVE'},
@@ -48,6 +58,7 @@ class AddPresetBase:
     # needed for mix-ins
     order = [
         "name",
+        "remove_name",
         "remove_active",
         ]
 
@@ -85,10 +96,16 @@ class AddPresetBase:
         else:
             ext = ".py"
 
-        if not self.remove_active:
-            name = self.name.strip()
+        name = self.name.strip()
+        if not (self.remove_name or self.remove_active):
+
             if not name:
                 return {'FINISHED'}
+
+            # Reset preset name
+            wm = bpy.data.window_managers[0]
+            if name == wm.preset_name:
+                wm.preset_name = 'New Preset'
 
             filename = self.as_filename(name)
 
@@ -155,15 +172,16 @@ class AddPresetBase:
             preset_menu_class.bl_label = bpy.path.display_name(filename)
 
         else:
-            preset_active = preset_menu_class.bl_label
+            if self.remove_active:
+                name = preset_menu_class.bl_label
 
             # fairly sloppy but convenient.
-            filepath = bpy.utils.preset_find(preset_active,
+            filepath = bpy.utils.preset_find(name,
                                              self.preset_subdir,
                                              ext=ext)
 
             if not filepath:
-                filepath = bpy.utils.preset_find(preset_active,
+                filepath = bpy.utils.preset_find(name,
                                                  self.preset_subdir,
                                                  display_name=True,
                                                  ext=ext)
@@ -194,7 +212,7 @@ class AddPresetBase:
         self.name = self.as_filename(self.name.strip())
 
     def invoke(self, context, event):
-        if not self.remove_active:
+        if not (self.remove_active or self.remove_name):
             wm = context.window_manager
             return wm.invoke_props_dialog(self)
         else:
@@ -239,6 +257,40 @@ class ExecutePreset(Operator):
             return {'CANCELLED'}
 
         return {'FINISHED'}
+
+
+class PresetMenu(Panel):
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'HEADER'
+    bl_label = "Presets"
+    path_menu = Menu.path_menu
+
+    @classmethod
+    def draw_panel_header(cls, layout):
+        layout.emboss = 'NONE'
+        layout.popover(cls.bl_space_type,
+                       cls.bl_region_type,
+                       cls.__name__,
+                       icon='PRESET',
+                       text='')
+
+    @classmethod
+    def draw_menu(cls, layout, text=None):
+        if text == None:
+            text = cls.bl_label
+
+        layout.popover(cls.bl_space_type,
+                       cls.bl_region_type,
+                       cls.__name__,
+                       icon='PRESET',
+                       text=text)
+
+    def draw(self, context):
+        layout = self.layout
+        layout.emboss = 'PULLDOWN_MENU'
+        layout.operator_context = 'EXEC_DEFAULT'
+
+        Menu.draw_preset(self, context)
 
 
 class AddPresetRender(AddPresetBase, Operator):
@@ -383,35 +435,6 @@ class AddPresetHairDynamics(AddPresetBase, Operator):
         "settings.voxel_cell_size",
         "settings.pin_stiffness",
         ]
-
-
-class AddPresetSunSky(AddPresetBase, Operator):
-    """Add or remove a Sky & Atmosphere Preset"""
-    bl_idname = "lamp.sunsky_preset_add"
-    bl_label = "Add Sunsky Preset"
-    preset_menu = "LAMP_MT_sunsky_presets"
-
-    preset_defines = [
-        "sky = bpy.context.lamp.sky"
-    ]
-
-    preset_values = [
-        "sky.atmosphere_extinction",
-        "sky.atmosphere_inscattering",
-        "sky.atmosphere_turbidity",
-        "sky.backscattered_light",
-        "sky.horizon_brightness",
-        "sky.spread",
-        "sky.sun_brightness",
-        "sky.sun_intensity",
-        "sky.sun_size",
-        "sky.sky_blend",
-        "sky.sky_blend_type",
-        "sky.sky_color_space",
-        "sky.sky_exposure",
-    ]
-
-    preset_subdir = "sunsky"
 
 
 class AddPresetInteraction(AddPresetBase, Operator):
@@ -665,7 +688,6 @@ classes = (
     AddPresetOperator,
     AddPresetRender,
     AddPresetSafeAreas,
-    AddPresetSunSky,
     AddPresetTrackingCamera,
     AddPresetTrackingSettings,
     AddPresetTrackingTrackColor,

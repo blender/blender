@@ -19,6 +19,7 @@
 # <pep8 compliant>
 import bpy
 from bpy.types import Menu, Panel
+from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
     point_cache_ui,
@@ -30,11 +31,11 @@ def cloth_panel_enabled(md):
     return md.point_cache.is_baked is False
 
 
-class CLOTH_MT_presets(Menu):
+class CLOTH_MT_presets(PresetMenu):
     bl_label = "Cloth Presets"
     preset_subdir = "cloth"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "cloth.preset_add"
 
 
 class PhysicButtonsPanel:
@@ -52,6 +53,9 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
     bl_label = "Cloth"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
+    def draw_header_preset(self, context):
+        CLOTH_MT_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
 
@@ -60,16 +64,6 @@ class PHYSICS_PT_cloth(PhysicButtonsPanel, Panel):
         cloth = md.settings
 
         layout.active = cloth_panel_enabled(md)
-
-        split = layout.split(percentage=0.25)
-
-        col = split.column()
-
-        split.label(text="Presets:")
-        sub = split.row(align=True)
-        sub.menu("CLOTH_MT_presets", text=bpy.types.CLOTH_MT_presets.bl_label)
-        sub.operator("cloth.preset_add", text="", icon='ZOOMIN')
-        sub.operator("cloth.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         split = layout.split(percentage=0.25)
 

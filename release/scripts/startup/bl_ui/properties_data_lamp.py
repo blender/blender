@@ -22,14 +22,6 @@ from bpy.types import Menu, Panel
 from rna_prop_ui import PropertyPanel
 
 
-class LAMP_MT_sunsky_presets(Menu):
-    bl_label = "Sun & Sky Presets"
-    preset_subdir = "sunsky"
-    preset_operator = "script.execute_preset"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
-
-
 class DataButtonsPanel:
     bl_space_type = 'PROPERTIES'
     bl_region_type = 'WINDOW'
@@ -352,7 +344,6 @@ class DATA_PT_custom_props_lamp(DataButtonsPanel, PropertyPanel, Panel):
 
 
 classes = (
-    LAMP_MT_sunsky_presets,
     DATA_PT_context_lamp,
     DATA_PT_preview,
     DATA_PT_lamp,

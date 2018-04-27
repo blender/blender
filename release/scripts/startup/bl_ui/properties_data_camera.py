@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
+from bl_operators.presets import PresetMenu
 
 
 class CameraButtonsPanel:
@@ -33,20 +34,20 @@ class CameraButtonsPanel:
         return context.camera and (engine in cls.COMPAT_ENGINES)
 
 
-class CAMERA_MT_presets(Menu):
+class CAMERA_MT_presets(PresetMenu):
     bl_label = "Camera Presets"
     preset_subdir = "camera"
     preset_operator = "script.execute_preset"
+    preset_add_operator = "camera.preset_add"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
 
 
-class SAFE_AREAS_MT_presets(Menu):
+class SAFE_AREAS_MT_presets(PresetMenu):
     bl_label = "Camera Presets"
     preset_subdir = "safe_areas"
     preset_operator = "script.execute_preset"
+    preset_add_operator = "safe_areas.preset_add"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
 
 
 class DATA_PT_context_camera(CameraButtonsPanel, Panel):
@@ -185,16 +186,13 @@ class DATA_PT_camera(CameraButtonsPanel, Panel):
     bl_label = "Camera"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
+    def draw_header_preset(self, context):
+        CAMERA_MT_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
 
         cam = context.camera
-
-        row = layout.row(align=True)
-
-        row.menu("CAMERA_MT_presets", text=bpy.types.CAMERA_MT_presets.bl_label)
-        row.operator("camera.preset_add", text="", icon='ZOOMIN')
-        row.operator("camera.preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.use_property_split = True
 
@@ -410,6 +408,9 @@ class DATA_PT_camera_safe_areas(CameraButtonsPanel, Panel):
 
         self.layout.prop(cam, "show_safe_areas", text="")
 
+    def draw_header_preset(self, context):
+        SAFE_AREAS_MT_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
         safe_data = context.scene.safe_areas
@@ -429,13 +430,6 @@ def draw_display_safe_settings(layout, safe_data, settings):
     show_safe_center = settings.show_safe_center
 
     layout.use_property_split = True
-
-    row = layout.row(align=True)
-    row.menu("SAFE_AREAS_MT_presets", text=bpy.types.SAFE_AREAS_MT_presets.bl_label)
-    row.operator("safe_areas.preset_add", text="", icon='ZOOMIN')
-    row.operator("safe_areas.preset_add", text="", icon='ZOOMOUT').remove_active = True
-
-    layout.separator()
 
     col = layout.column()
     col.active = show_safe_areas

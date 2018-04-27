@@ -25,6 +25,7 @@ from bpy.types import (
 )
 
 from rna_prop_ui import PropertyPanel
+from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
     point_cache_ui,
@@ -32,12 +33,12 @@ from .properties_physics_common import (
 )
 
 
-class SCENE_MT_units_length_presets(Menu):
+class SCENE_MT_units_length_presets(PresetMenu):
     """Unit of measure for properties that use length values"""
     bl_label = "Unit Presets"
     preset_subdir = "units_length"
     preset_operator = "script.execute_preset"
-    draw = Menu.draw_preset
+    preset_add_operator = "scene.units_length_preset_add"
 
 
 class SCENE_UL_keying_set_paths(UIList):
@@ -81,15 +82,13 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
     bl_label = "Units"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
 
+    def draw_header_preset(self, context):
+        SCENE_MT_units_length_presets.draw_panel_header(self.layout)
+
     def draw(self, context):
         layout = self.layout
 
         unit = context.scene.unit_settings
-
-        row = layout.row(align=True)
-        row.menu("SCENE_MT_units_length_presets", text=SCENE_MT_units_length_presets.bl_label)
-        row.operator("scene.units_length_preset_add", text="", icon='ZOOMIN')
-        row.operator("scene.units_length_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.use_property_split = True
 

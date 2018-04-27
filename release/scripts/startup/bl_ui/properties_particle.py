@@ -21,6 +21,7 @@ import bpy
 from bpy.types import Panel, Menu
 from rna_prop_ui import PropertyPanel
 from bpy.app.translations import pgettext_iface as iface_
+from bl_operators.presets import PresetMenu
 
 from .properties_physics_common import (
     point_cache_ui,
@@ -82,12 +83,12 @@ class PARTICLE_MT_specials(Menu):
         layout.operator("particle.duplicate_particle_system")
 
 
-class PARTICLE_MT_hair_dynamics_presets(Menu):
+class PARTICLE_MT_hair_dynamics_presets(PresetMenu):
     bl_label = "Hair Dynamics Presets"
     preset_subdir = "hair_dynamics"
     preset_operator = "script.execute_preset"
+    preset_add_operator = "particle.hair_dynamics_preset_add"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-    draw = Menu.draw_preset
 
 
 class ParticleButtonsPanel:
@@ -340,6 +341,16 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         psys = context.particle_system
         self.layout.prop(psys, "use_hair_dynamics", text="")
 
+    def draw_header_preset(self, context):
+        psys = context.particle_system
+
+        if not psys.cloth:
+            return
+
+        layout = self.layout
+        layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
+        PARTICLE_MT_hair_dynamics_presets.draw_panel_header(layout)
+
     def draw(self, context):
         layout = self.layout
 
@@ -354,11 +365,6 @@ class PARTICLE_PT_hair_dynamics(ParticleButtonsPanel, Panel):
         result = cloth_md.solver_result
 
         layout.enabled = psys.use_hair_dynamics and psys.point_cache.is_baked is False
-
-        row = layout.row(align=True)
-        row.menu("PARTICLE_MT_hair_dynamics_presets", text=bpy.types.PARTICLE_MT_hair_dynamics_presets.bl_label)
-        row.operator("particle.hair_dynamics_preset_add", text="", icon='ZOOMIN')
-        row.operator("particle.hair_dynamics_preset_add", text="", icon='ZOOMOUT').remove_active = True
 
         layout.use_property_split = True
 

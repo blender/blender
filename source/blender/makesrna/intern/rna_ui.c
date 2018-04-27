@@ -166,6 +166,24 @@ static void panel_draw_header(const bContext *C, Panel *pnl)
 	RNA_parameter_list_free(&list);
 }
 
+static void panel_draw_header_preset(const bContext *C, Panel *pnl)
+{
+	extern FunctionRNA rna_Panel_draw_header_preset_func;
+
+	PointerRNA ptr;
+	ParameterList list;
+	FunctionRNA *func;
+
+	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->ext.srna, pnl, &ptr);
+	func = &rna_Panel_draw_header_preset_func;
+
+	RNA_parameter_list_create(&list, &ptr, func);
+	RNA_parameter_set_lookup(&list, "context", &C);
+	pnl->type->ext.call((bContext *)C, &ptr, func, &list);
+
+	RNA_parameter_list_free(&list);
+}
+
 static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 {
 	ARegionType *art;
@@ -199,7 +217,7 @@ static StructRNA *rna_Panel_register(
 	PanelType *pt, *parent = NULL, dummypt = {NULL};
 	Panel dummypanel = {NULL};
 	PointerRNA dummyptr;
-	int have_function[3];
+	int have_function[4];
 
 	/* setup dummy panel & panel type to store static properties in */
 	dummypanel.type = &dummypt;
@@ -267,6 +285,7 @@ static StructRNA *rna_Panel_register(
 	pt->poll = (have_function[0]) ? panel_poll : NULL;
 	pt->draw = (have_function[1]) ? panel_draw : NULL;
 	pt->draw_header = (have_function[2]) ? panel_draw_header : NULL;
+	pt->draw_header_preset = (have_function[3]) ? panel_draw_header_preset : NULL;
 
 	/* XXX use "no header" flag for some ordering of panels until we have real panel ordering */
 	if (pt->flag & PNL_NO_HEADER) {
@@ -1054,6 +1073,12 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	func = RNA_def_function(srna, "draw_header", NULL);
 	RNA_def_function_ui_description(func, "Draw UI elements into the panel's header UI layout");
+	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
+	parm = RNA_def_pointer(func, "context", "Context", "", "");
+	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
+
+	func = RNA_def_function(srna, "draw_header_preset", NULL);
+	RNA_def_function_ui_description(func, "Draw UI elements for presets in the panel's header");
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);

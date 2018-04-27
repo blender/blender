@@ -1861,6 +1861,21 @@ static void ed_panel_draw(const bContext *C,
 	/* bad fixed values */
 	int xco, yco, h = 0;
 
+	if (pt->draw_header_preset && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
+		/* for preset menu */
+		panel->layout = UI_block_layout(
+		        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+		        0, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
+
+		pt->draw_header_preset(C, panel);
+
+		int headerend = w - UI_UNIT_X;
+
+		UI_block_layout_resolve(block, &xco, &yco);
+		UI_block_translate(block, headerend - xco, 0);
+		panel->layout = NULL;
+	}
+
 	if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 		int labelx, labely;
 		UI_panel_label_offset(block, &labelx, &labely);

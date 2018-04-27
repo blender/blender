@@ -216,6 +216,8 @@ typedef struct PanelType {
 	int (*poll)(const struct bContext *C, struct PanelType *pt);
 	/* draw header (optional) */
 	void (*draw_header)(const struct bContext *C, struct Panel *pa);
+	/* draw header preset (optional) */
+	void (*draw_header_preset)(const struct bContext *C, struct Panel *pa);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *C, struct Panel *pa);
 
