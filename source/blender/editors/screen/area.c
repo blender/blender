@@ -85,6 +85,61 @@ enum RegionEmbossSide {
 
 /* general area and region code */
 
+static void region_draw_emboss(const ARegion *ar, const rcti *scirct, int sides)
+{
+	rcti rect;
+
+	/* translate scissor rect to region space */
+	rect.xmin = scirct->xmin - ar->winrct.xmin;
+	rect.ymin = scirct->ymin - ar->winrct.ymin;
+	rect.xmax = scirct->xmax - ar->winrct.xmin;
+	rect.ymax = scirct->ymax - ar->winrct.ymin;
+
+	/* set transp line */
+	glEnable(GL_BLEND);
+	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+	float color[4] = {0.0f, 0.0f, 0.0f, 0.25f};
+	UI_GetThemeColor3fv(TH_EDITOR_OUTLINE, color);
+
+	Gwn_VertFormat *format = immVertexFormat();
+	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	immUniformColor4fv(color);
+
+	immBeginAtMost(GWN_PRIM_LINES, 8);
+
+	/* right */
+	if (sides & REGION_EMBOSS_RIGHT) {
+		immVertex2f(pos, rect.xmax, rect.ymax);
+		immVertex2f(pos, rect.xmax, rect.ymin);
+	}
+
+	/* bottom */
+	if (sides & REGION_EMBOSS_BOTTOM) {
+		immVertex2f(pos, rect.xmax, rect.ymin);
+		immVertex2f(pos, rect.xmin, rect.ymin);
+	}
+
+	/* left */
+	if (sides & REGION_EMBOSS_LEFT) {
+		immVertex2f(pos, rect.xmin, rect.ymin);
+		immVertex2f(pos, rect.xmin, rect.ymax);
+	}
+
+	/* top */
+	if (sides & REGION_EMBOSS_TOP) {
+		immVertex2f(pos, rect.xmin, rect.ymax);
+		immVertex2f(pos, rect.xmax, rect.ymax);
+	}
+
+	immEnd();
+	immUnbindProgram();
+
+	glDisable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
 void ED_region_pixelspace(ARegion *ar)
 {
 	wmOrtho2_region_pixelspace(ar);
@@ -500,6 +555,18 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	UI_blocklist_free_inactive(C, &ar->uiblocks);
+
+	if (sa) {
+		const bScreen *screen = WM_window_get_active_screen(win);
+
+		/* Only draw region emboss for top-bar and quad-view. */
+		if ((screen->state != SCREENFULL) && ED_area_is_global(sa)) {
+			region_draw_emboss(ar, &ar->winrct, (REGION_EMBOSS_LEFT | REGION_EMBOSS_RIGHT));
+		}
+		else if ((ar->regiontype == RGN_TYPE_WINDOW) && (ar->alignment == RGN_ALIGN_QSPLIT)) {
+			region_draw_emboss(ar, &ar->winrct, REGION_EMBOSS_ALL);
+		}
+	}
 
 	/* We may want to detach message-subscriptions from drawing. */
 	{
