@@ -238,9 +238,10 @@ static int ui_layout_vary_direction(uiLayout *layout)
 static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool compact)
 {
 	bool variable;
+	const int unit_x = UI_UNIT_X * (layout->scale[0] ? layout->scale[0] : 1.0f);
 
 	if (icon && !name[0])
-		return UI_UNIT_X;  /* icon only */
+		return unit_x;  /* icon only */
 
 	variable = (ui_layout_vary_direction(layout) == UI_ITEM_VARY_X);
 
@@ -249,14 +250,14 @@ static int ui_text_icon_width(uiLayout *layout, const char *name, int icon, bool
 			layout->item.flag |= UI_ITEM_MIN;
 		}
 		const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-		/* it may seem odd that the icon only adds (UI_UNIT_X / 4)
+		/* it may seem odd that the icon only adds (unit_x / 4)
 		 * but taking margins into account its fine */
 		return (UI_fontstyle_string_width(fstyle, name) +
-		        (UI_UNIT_X * ((compact ? 1.25f : 1.50f) +
-		                      (icon    ? 0.25f : 0.0f))));
+		        (unit_x * ((compact ? 1.25f : 1.50f) +
+		                   (icon    ? 0.25f : 0.0f))));
 	}
 	else {
-		return UI_UNIT_X * 10;
+		return unit_x * 10;
 	}
 }
 
