@@ -50,8 +50,11 @@
 #include "UI_resources.h"
 #include "UI_view2d.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 
 /* ******************** default callbacks for topbar space ***************** */
@@ -194,6 +197,22 @@ static void topbar_header_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARe
 	}
 }
 
+static void topbar_header_region_message_subscribe(
+        const struct bContext *UNUSED(C),
+        struct WorkSpace *workspace, struct Scene *UNUSED(scene),
+        struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
+        struct wmMsgBus *mbus)
+{
+	wmMsgSubscribeValue msg_sub_value_region_tag_redraw = {
+		.owner = ar,
+		.user_data = ar,
+		.notify = ED_region_do_msg_notify_tag_redraw,
+	};
+	WM_msg_subscribe_rna_prop(
+	        mbus, &workspace->id, workspace,
+	        WorkSpace, tool_keymap, &msg_sub_value_region_tag_redraw);
+}
+
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)
 {
 	struct RecentFile *recent;
@@ -258,6 +277,7 @@ void ED_spacetype_topbar(void)
 	art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	art->listener = topbar_header_listener;
+	art->message_subscribe = topbar_header_region_message_subscribe;
 	art->init = topbar_header_region_init;
 	art->draw = topbar_header_region_draw;
 

@@ -38,8 +38,11 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
+#include "RNA_access.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace)
 {
@@ -93,6 +96,12 @@ void WM_toolsystem_set(bContext *C, const bToolDef *tool)
 	}
 
 	WM_toolsystem_link(C, workspace);
+
+	{
+		struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+		WM_msg_publish_rna_prop(
+		        mbus, &workspace->id, workspace, WorkSpace, tool_keymap);
+	}
 }
 
 void WM_toolsystem_init(bContext *C)
