@@ -93,7 +93,6 @@ class AbcExporter {
 	unsigned int m_trans_sampling_index, m_shape_sampling_index;
 
 	Scene *m_scene;
-	ViewLayer *m_view_layer;
 	Depsgraph *m_depsgraph;
 
 	ArchiveWriter *m_writer;
@@ -105,8 +104,7 @@ class AbcExporter {
 	std::vector<AbcObjectWriter *> m_shapes;
 
 public:
-	AbcExporter(Main *bmain, Scene *scene, ViewLayer *view_layer,
-	            Depsgraph *depsgraph,
+	AbcExporter(Main *bmain, Scene *scene, Depsgraph *depsgraph,
 	            const char *filename, ExportSettings &settings);
 	~AbcExporter();
 

@@ -37,6 +37,9 @@
  */
 #define NESTED_ID_NASTY_WORKAROUND
 
+/* Silence warnings from copying deprecated fields. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "intern/eval/deg_eval_copy_on_write.h"
 
 #include <cstring>

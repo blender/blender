@@ -264,8 +264,7 @@ static void export_startjob(void *customdata, short *stop, short *do_update, flo
 
 	try {
 		Scene *scene = data->scene;
-		ViewLayer *view_layer = data->view_layer;
-		AbcExporter exporter(data->bmain, scene, view_layer, data->depsgraph, data->filename, data->settings);
+		AbcExporter exporter(data->bmain, scene, data->depsgraph, data->filename, data->settings);
 
 		const int orig_frame = CFRA;
 
@@ -647,6 +646,7 @@ struct ImportJobData {
 	bool import_ok;
 };
 
+#if 0
 ABC_INLINE bool is_mesh_and_strands(const IObject &object)
 {
 	bool has_mesh = false;
@@ -677,6 +677,7 @@ ABC_INLINE bool is_mesh_and_strands(const IObject &object)
 
 	return has_mesh && has_curve;
 }
+#endif
 
 static void import_startjob(void *user_data, short *stop, short *do_update, float *progress)
 {

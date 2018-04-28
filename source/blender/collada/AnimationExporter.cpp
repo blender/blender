@@ -38,7 +38,6 @@ bool AnimationExporter::exportAnimations(Scene *sce)
 {
 	bool has_animations = hasAnimations(sce);
 	if (has_animations) {
-		this->depsgraph = depsgraph;
 		this->scene = sce;
 
 		openLibrary();

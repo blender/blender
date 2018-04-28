@@ -1064,7 +1064,7 @@ static struct {
 	int calls; /* Number of calls batched together */
 	bool enabled;
 	float mat[4][4];
-} g_icon_draw_cache = {0};
+} g_icon_draw_cache = {{{{0}}}};
 
 void UI_icon_draw_cache_begin(void)
 {

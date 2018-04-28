@@ -168,7 +168,7 @@ static bool export_object(const ExportSettings * const settings, const Base * co
 
 /* ************************************************************************** */
 
-AbcExporter::AbcExporter(Main *bmain, Scene *scene, ViewLayer *view_layer,
+AbcExporter::AbcExporter(Main *bmain, Scene *scene,
                          Depsgraph *depsgraph,
                          const char *filename, ExportSettings &settings)
     : m_bmain(bmain)
@@ -177,7 +177,6 @@ AbcExporter::AbcExporter(Main *bmain, Scene *scene, ViewLayer *view_layer,
     , m_trans_sampling_index(0)
     , m_shape_sampling_index(0)
     , m_scene(scene)
-    , m_view_layer(view_layer)
     , m_depsgraph(depsgraph)
     , m_writer(NULL)
 {}

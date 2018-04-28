@@ -616,7 +616,11 @@ static int bake_image_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	int result = OPERATOR_CANCELLED;
 
-	BLI_assert(is_multires_bake(scene));
+	if (!is_multires_bake(scene)) {
+		BLI_assert(0);
+		return result;
+	}
+
 	result = multiresbake_image_exec_locked(C, op);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_RENDER_RESULT, scene);

@@ -30,6 +30,9 @@
  * Implementation of Querying and Filtering API's
  */
 
+/* Silence warnings from copying deprecated fields. */
+#define DNA_DEPRECATED_ALLOW
+
 #include "MEM_guardedalloc.h"
 
 extern "C" {

@@ -37,7 +37,6 @@ class AbcTransformWriter : public AbcObjectWriter {
 	Alembic::Abc::M44d m_matrix;
 
 	bool m_is_animated;
-	bool m_visible;
 	bool m_inherits_xform;
 
 public:

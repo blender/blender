@@ -46,7 +46,7 @@ static struct {
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 
 	int next_object_id;
-} e_data = {NULL};
+} e_data = {{NULL}};
 
 /* Shaders */
 extern char datatoc_workbench_prepass_vert_glsl[];
