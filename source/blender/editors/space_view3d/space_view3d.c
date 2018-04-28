@@ -75,6 +75,7 @@
 
 #include "RNA_access.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #ifdef WITH_PYTHON
@@ -1273,7 +1274,7 @@ static int view3d_tools_region_snap_size(const ARegion *ar, int size, int axis)
 		int best_diff = INT_MAX;
 		int best_size = size;
 		for (uint i = 0; i < ARRAY_SIZE(snap_units); i += 1) {
-			const int test_size = (snap_units[i] * U.widget_unit) / aspect;
+			const int test_size = (snap_units[i] * U.widget_unit) / (UI_DPI_FAC * aspect);
 			const int test_diff = ABS(test_size - size);
 			if (test_diff < best_diff) {
 				best_size = test_size;

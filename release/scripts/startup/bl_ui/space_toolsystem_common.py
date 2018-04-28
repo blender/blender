@@ -299,12 +299,13 @@ class ToolSelectPanelHelper:
         """
         # Currently this just checks the width,
         # we could have different layouts as preferences too.
+        system = bpy.context.user_preferences.system
         view2d = region.view2d
-        ui_scale = (
+        view2d_scale = (
             view2d.region_to_view(1.0, 0.0)[0] -
             view2d.region_to_view(0.0, 0.0)[0]
         )
-        width_scale = region.width * ui_scale
+        width_scale = region.width * view2d_scale / system.ui_scale
 
         if width_scale > 120.0:
             show_text = True
