@@ -577,7 +577,7 @@ BLI_INLINE uint mcol_alpha_add(uint col_src, int fac)
 {
 	uchar *cp_src, *cp_mix;
 	int temp;
-	uint col_mix = 0;
+	uint col_mix = col_src;
 
 	if (fac == 0) {
 		return col_src;
@@ -596,7 +596,7 @@ BLI_INLINE uint mcol_alpha_sub(uint col_src, int fac)
 {
 	uchar *cp_src, *cp_mix;
 	int temp;
-	uint col_mix = 0;
+	uint col_mix = col_src;
 
 	if (fac == 0) {
 		return col_src;
