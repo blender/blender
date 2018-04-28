@@ -229,6 +229,102 @@ class ToolSelectPanelHelper:
                         km, km_idname = cls._km_action_simple(kc, context_mode, text, keymap_data)
                         cls._tool_keymap[context_mode, text] = km, km_idname
 
+
+    # -------------------------------------------------------------------------
+    # Layout Generators
+    #
+    # Meaning of recieved values:
+    # - Bool: True for a separator, otherwise False for regular tools.
+    # - None: Signal to finish (complete any final operations, e.g. add padding).
+
+    @staticmethod
+    def _layout_generator_single_column(layout):
+        scale_y = 2.0
+
+        col = layout.column(align=True)
+        col.scale_y = scale_y
+        is_sep = False
+        while True:
+            if is_sep is True:
+                col = layout.column(align=True)
+                col.scale_y = scale_y
+            elif is_sep is None:
+                yield None
+                return
+            is_sep = yield col
+
+    @staticmethod
+    def _layout_generator_multi_columns(layout, column_count):
+        scale_y = 2.0
+        scale_x = 2.2
+        column_last = column_count - 1
+
+        col = layout.column(align=True)
+
+        row = col.row(align=True)
+
+        row.scale_x = scale_x
+        row.scale_y = scale_y
+
+        is_sep = False
+        column_index = 0
+        while True:
+            if is_sep is True:
+                if column_index != column_last:
+                    row.label("")
+                col = layout.column(align=True)
+                row = col.row(align=True)
+                row.scale_x = scale_x
+                row.scale_y = scale_y
+                column_index = 0
+
+            is_sep = yield row
+            if is_sep is None:
+                if column_index == column_last:
+                    row.label("")
+                    yield None
+                    return
+
+            if column_index == column_count:
+                column_index = 0
+                row = col.row(align=True)
+                row.scale_x = scale_x
+                row.scale_y = scale_y
+            column_index += 1
+
+    @staticmethod
+    def _layout_generator_detect_from_region(layout, region):
+        """
+        Choose an appropriate layout for the toolbar.
+        """
+        # Currently this just checks the width,
+        # we could have different layouts as preferences too.
+        view2d = region.view2d
+        ui_scale = (
+            view2d.region_to_view(1.0, 0.0)[0] -
+            view2d.region_to_view(0.0, 0.0)[0]
+        )
+        width_scale = region.width * ui_scale
+
+        if width_scale > 120.0:
+            show_text = True
+            column_count = 1
+        else:
+            show_text = False
+            # 2 column layout, disabled
+            if width_scale > 80.0:
+                column_count = 2
+                use_columns = True
+            else:
+                column_count = 1
+
+        if column_count == 1:
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout)
+        else:
+            ui_gen = ToolSelectPanelHelper._layout_generator_multi_columns(layout, column_count=column_count)
+
+        return ui_gen, show_text
+
     def draw(self, context):
         # XXX, this UI isn't very nice.
         # We might need to create new button types for this.
@@ -238,51 +334,17 @@ class ToolSelectPanelHelper:
 
         context_mode = context.mode
         tool_def_active, index_active = self._tool_vars_from_active_with_index(context)
-        layout = self.layout
 
-        scale_x = 4.0  # only for rows, maximum scale is clamped so this can be a big value
-        scale_y = 2.0
+        ui_gen, show_text = self._layout_generator_detect_from_region(self.layout, context.region)
 
-        # TODO(campbell): expose ui_scale.
-        view2d = context.region.view2d
-        ui_scale = (
-            view2d.region_to_view(1.0, 0.0)[0] -
-            view2d.region_to_view(0.0, 0.0)[0]
-        )
-        width_scale = context.region.width * ui_scale
-        del view2d, ui_scale
-
-        if width_scale > 120.0:
-            show_text = True
-            use_columns = False
-        else:
-            show_text = False
-            # 2 column layout, disabled
-            if width_scale > 80.0:
-                column_count = 2
-                use_columns = True
-            else:
-                use_columns = False
-
-        # Currently support 2x columns, more can be easily supported.
-        column_index = 0
+        # Start iteration
+        ui_gen.send(None)
 
         for tool_items in self.tools_from_context(context):
             if tool_items:
-                col = layout.column(align=True)
-                if not use_columns:
-                    col.scale_y = scale_y
                 for item in tool_items:
                     if item is None:
-                        col = layout.column(align=True)
-                        if not use_columns:
-                            col.scale_y = scale_y
-                        else:
-                            if column_index != 0:
-                                row.label("")
-                            row = col.row(align=True)
-                            row.scale_x = scale_x
-                            row.scale_y = scale_y
+                        ui_gen.send(True)
                         continue
 
                     if type(item) is tuple:
@@ -314,15 +376,7 @@ class ToolSelectPanelHelper:
                     is_active = (tool_def == tool_def_active)
                     icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
 
-                    if use_columns:
-                        col.scale_y = scale_y
-                        if column_index == 0:
-                            row = col.row(align=True)
-                            row.scale_x = scale_x
-                            row.scale_y = scale_y
-                        sub = row
-                    else:
-                        sub = col
+                    sub = ui_gen.send(False)
 
                     if use_menu:
                         props = sub.operator_menu_hold(
@@ -342,16 +396,8 @@ class ToolSelectPanelHelper:
                     props.keymap = tool_def[0] or ""
                     props.manipulator_group = tool_def[1] or ""
                     props.index = index
-
-                    if use_columns:
-                        col.scale_y = 1.0
-                        column_index += 1
-                        if column_index == column_count:
-                            column_index = 0
-        if use_columns:
-            if column_index == 1:
-                row.label("")
-
+        # Signal to finish any remaining layout edits.
+        ui_gen.send(None)
 
     def tools_from_context(cls, context):
         return (cls._tools[None], cls._tools.get(context.mode, ()))
