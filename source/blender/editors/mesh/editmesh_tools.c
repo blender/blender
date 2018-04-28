@@ -451,8 +451,9 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
 		EDBM_update_generic(em, true, true);
-
 	}
+
+	MEM_SAFE_FREE(objects);
 
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
