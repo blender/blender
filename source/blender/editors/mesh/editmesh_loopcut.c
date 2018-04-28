@@ -44,6 +44,7 @@
 #include "BKE_editmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_unit.h"
+#include "BKE_layer.h"
 
 #include "GPU_immediate.h"
 #include "GPU_matrix.h"
@@ -85,9 +86,15 @@ typedef struct RingSelOpData {
 
 	ViewContext vc;
 
+	Object **objects;
+	uint     objects_len;
+
+	/* These values switch objects based on the object under the cursor. */
+	uint ob_index;
 	Object *ob;
 	BMEditMesh *em;
 	BMEdge *eed;
+
 	NumInput num;
 
 	bool extend;
@@ -384,18 +391,23 @@ static void edgering_preview_calc(RingSelOpData *lcd, const int previewlines)
 
 static void edgering_select(RingSelOpData *lcd)
 {
+	if (!lcd->eed) {
+		return;
+	}
+
+	if (!lcd->extend) {
+		for (uint ob_index = 0; ob_index < lcd->objects_len; ob_index++) {
+			Object *ob_iter = lcd->objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			WM_main_add_notifier(NC_GEOM | ND_SELECT, ob_iter->data);
+		}
+	}
+
 	BMEditMesh *em = lcd->em;
 	BMEdge *eed_start = lcd->eed;
 	BMWalker walker;
 	BMEdge *eed;
-	
-	if (!eed_start)
-		return;
-
-	if (!lcd->extend) {
-		EDBM_flag_disable_all(lcd->em, BM_ELEM_SELECT);
-	}
-
 	BMW_init(&walker, em->bm, BMW_EDGERING,
 	         BMW_MASK_NOP, BMW_MASK_NOP, BMW_MASK_NOP,
 	         BMW_FLAG_TEST_HIDDEN,
@@ -499,6 +511,8 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 	
 	edgering_preview_free(lcd);
 
+	MEM_freeN(lcd->objects);
+
 	ED_region_tag_redraw(lcd->ar);
 
 	/* free the custom data */
@@ -515,17 +529,20 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 
 	/* alloc new customdata */
 	lcd = op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data");
-	
+
+	em_setup_viewcontext(C, &lcd->vc);
+
 	/* assign the drawing handle for drawing preview line... */
 	lcd->ar = CTX_wm_region(C);
 	lcd->draw_handle = ED_region_draw_cb_activate(lcd->ar->type, ringsel_draw, lcd, REGION_DRAW_POST_VIEW);
-	lcd->ob = CTX_data_edit_object(C);
-	lcd->em = BKE_editmesh_from_object(lcd->ob);
+	/* Initialize once the cursor is over a mesh. */
+	lcd->ob = NULL;
+	lcd->em = NULL;
 	lcd->extend = do_cut ? false : RNA_boolean_get(op->ptr, "extend");
 	lcd->do_cut = do_cut;
 	lcd->cuts = RNA_int_get(op->ptr, "number_cuts");
 	lcd->smoothness = RNA_float_get(op->ptr, "smoothness");
-	
+
 	initNumInput(&lcd->num);
 	lcd->num.idx_max = 1;
 	lcd->num.val_flag[0] |= NUM_NO_NEGATIVE | NUM_NO_FRACTION;
@@ -533,8 +550,6 @@ static int ringsel_init(bContext *C, wmOperator *op, bool do_cut)
 	lcd->num.unit_sys = scene->unit.system;
 	lcd->num.unit_type[0] = B_UNIT_NONE;
 	lcd->num.unit_type[1] = B_UNIT_NONE;
-
-	em_setup_viewcontext(C, &lcd->vc);
 
 	ED_region_tag_redraw(lcd->ar);
 
@@ -547,44 +562,102 @@ static void ringcut_cancel(bContext *C, wmOperator *op)
 	ringsel_exit(C, op);
 }
 
-static void loopcut_update_edge(RingSelOpData *lcd, BMEdge *e, const int previewlines)
+static void loopcut_update_edge(RingSelOpData *lcd, uint ob_index, BMEdge *e, const int previewlines)
 {
 	if (e != lcd->eed) {
 		lcd->eed = e;
+		lcd->ob = lcd->vc.obedit;
+		lcd->ob_index = ob_index;
+		lcd->em = lcd->vc.em;
 		ringsel_find_edge(lcd, previewlines);
+	}
+	else if (e == NULL) {
+		lcd->ob = NULL;
+		lcd->em = NULL;
+		lcd->ob_index = UINT_MAX;
 	}
 }
 
 static void loopcut_mouse_move(RingSelOpData *lcd, const int previewlines)
 {
-	float dist = ED_view3d_select_dist_px();
-	BMEdge *e = EDBM_edge_find_nearest(&lcd->vc, &dist);
-	loopcut_update_edge(lcd, e, previewlines);
+	struct {
+		Object *ob;
+		BMEdge *eed;
+		float dist;
+		int ob_index;
+	} best = {
+		.dist = ED_view3d_select_dist_px(),
+	};
+
+	for (uint ob_index = 0; ob_index < lcd->objects_len; ob_index++) {
+		Object *ob_iter = lcd->objects[ob_index];
+		ED_view3d_viewcontext_init_object(&lcd->vc, ob_iter);
+		BMEdge *eed_test = EDBM_edge_find_nearest_ex(&lcd->vc, &best.dist, NULL, false, false, NULL);
+		if (eed_test) {
+			best.ob = ob_iter;
+			best.eed = eed_test;
+			best.ob_index = ob_index;
+		}
+	}
+
+	if (best.eed) {
+		ED_view3d_viewcontext_init_object(&lcd->vc, best.ob);
+	}
+
+	loopcut_update_edge(lcd, best.ob_index, best.eed, previewlines);
 }
 
 /* called by both init() and exec() */
 static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	const bool is_interactive = (event != NULL);
-	Object *obedit = CTX_data_edit_object(C);
-	RingSelOpData *lcd;
 
-	if (modifiers_isDeformedByLattice(obedit) || modifiers_isDeformedByArmature(obedit))
-		BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
+	/* Use for redo - intentionally wrap int to uint. */
+	const struct {
+		uint ob_index;
+		uint e_index;
+	} exec_data = {
+		.ob_index = (uint)RNA_int_get(op->ptr, "object_index"),
+		.e_index = (uint)RNA_int_get(op->ptr, "edge_index"),
+	};
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+
+	uint objects_len;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len);
+
+	if (is_interactive) {
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *ob_iter = objects[ob_index];
+			if (modifiers_isDeformedByLattice(ob_iter) || modifiers_isDeformedByArmature(ob_iter)) {
+				BKE_report(op->reports, RPT_WARNING, "Loop cut does not work well on deformed edit mesh display");
+				break;
+			}
+		}
+	}
 
 	view3d_operator_needs_opengl(C);
 
 	/* for re-execution, check edge index is in range before we setup ringsel */
+	bool ok = true;
 	if (is_interactive == false) {
-		const int e_index = RNA_int_get(op->ptr, "edge_index");
-		BMEditMesh *em = BKE_editmesh_from_object(obedit);
-		if (UNLIKELY((e_index == -1) || (e_index >= em->bm->totedge))) {
+		if (exec_data.ob_index >= objects_len) {
 			return OPERATOR_CANCELLED;
+			ok = false;
+		}
+		else {
+			Object *ob_iter = objects[exec_data.ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(ob_iter);
+			if (exec_data.e_index >= em->bm->totedge) {
+				ok = false;
+			}
 		}
 	}
 
-	if (!ringsel_init(C, op, true))
+	if (!ok || !ringsel_init(C, op, true)) {
+		MEM_freeN(objects);
 		return OPERATOR_CANCELLED;
+	}
 
 	/* add a modal handler for this operator - handles loop selection */
 	if (is_interactive) {
@@ -592,18 +665,24 @@ static int loopcut_init(bContext *C, wmOperator *op, const wmEvent *event)
 		WM_event_add_modal_handler(C, op);
 	}
 
-	lcd = op->customdata;
+	RingSelOpData *lcd = op->customdata;
+
+	lcd->objects = objects;
+	lcd->objects_len = objects_len;
 
 	if (is_interactive) {
 		copy_v2_v2_int(lcd->vc.mval, event->mval);
 		loopcut_mouse_move(lcd, is_interactive ? 1 : 0);
 	}
 	else {
-		const int e_index = RNA_int_get(op->ptr, "edge_index");
+
+		Object *ob_iter = objects[exec_data.ob_index];
+		ED_view3d_viewcontext_init_object(&lcd->vc, ob_iter);
+
 		BMEdge *e;
-		BM_mesh_elem_table_ensure(lcd->em->bm, BM_EDGE);
-		e = BM_edge_at_index(lcd->em->bm, e_index);
-		loopcut_update_edge(lcd, e, 0);
+		BM_mesh_elem_table_ensure(lcd->vc.em->bm, BM_EDGE);
+		e = BM_edge_at_index(lcd->vc.em->bm, exec_data.e_index);
+		loopcut_update_edge(lcd, exec_data.ob_index, e, 0);
 	}
 
 #ifdef USE_LOOPSLIDE_HACK
@@ -653,6 +732,7 @@ static int loopcut_finish(RingSelOpData *lcd, bContext *C, wmOperator *op)
 	if (lcd->eed) {
 		/* set for redo */
 		BM_mesh_elem_index_ensure(lcd->em->bm, BM_EDGE);
+		RNA_int_set(op->ptr, "object_index", lcd->ob_index);
 		RNA_int_set(op->ptr, "edge_index", BM_elem_index_get(lcd->eed));
 
 		/* execute */
@@ -880,6 +960,9 @@ void MESH_OT_loopcut(wmOperatorType *ot)
 	RNA_def_property_ui_text(prop, "Falloff", "Falloff type the feather");
 	RNA_def_property_translation_context(prop, BLT_I18NCONTEXT_ID_CURVE); /* Abusing id_curve :/ */
 
+	/* For redo only. */
+	prop = RNA_def_int(ot->srna, "object_index", -1, -1, INT_MAX, "Object Index", "", 0, INT_MAX);
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 	prop = RNA_def_int(ot->srna, "edge_index", -1, -1, INT_MAX, "Edge Index", "", 0, INT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
 
