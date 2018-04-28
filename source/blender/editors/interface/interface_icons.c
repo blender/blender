@@ -977,7 +977,7 @@ PreviewImage *UI_icon_to_preview(int icon_id)
 }
 
 static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect), int rw, int rh,
-                           unsigned int *rect, float alpha, const float rgb[3], const bool desaturate)
+                           unsigned int *rect, float alpha, const float rgb[3], const float desaturate)
 {
 	ImBuf *ima = NULL;
 	int draw_w = w;
@@ -1026,8 +1026,19 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	UI_widgetbase_draw_cache_flush();
 
 	/* draw */
-	GPUBuiltinShader shader = (desaturate) ? GPU_SHADER_2D_IMAGE_DESATURATE_COLOR : GPU_SHADER_2D_IMAGE_COLOR;
+	GPUBuiltinShader shader;
+	if (desaturate != 0.0f) {
+		shader = GPU_SHADER_2D_IMAGE_DESATURATE_COLOR;
+	}
+	else {
+		shader = GPU_SHADER_2D_IMAGE_COLOR;
+	}
 	IMMDrawPixelsTexState state = immDrawPixelsTexSetup(shader);
+
+	if (shader == GPU_SHADER_2D_IMAGE_DESATURATE_COLOR) {
+		immUniform1f("factor", desaturate);
+	}
+
 	immDrawPixelsTex(&state, draw_x, draw_y, draw_w, draw_h, GL_RGBA, GL_UNSIGNED_BYTE, GL_NEAREST, rect,
 	                 1.0f, 1.0f, col);
 
@@ -1193,7 +1204,7 @@ static int get_draw_size(enum eIconSizes size)
 
 static void icon_draw_size(
         float x, float y, int icon_id, float aspect, float alpha, const float rgb[3],
-        enum eIconSizes size, int draw_size, const bool desaturate)
+        enum eIconSizes size, int draw_size, const float desaturate)
 {
 	bTheme *btheme = UI_GetTheme();
 	Icon *icon = NULL;
@@ -1529,7 +1540,7 @@ int UI_idcode_icon_get(const int idcode)
 
 static void icon_draw_at_size(
         float x, float y, int icon_id, float aspect, float alpha,
-        enum eIconSizes size, const bool desaturate)
+        enum eIconSizes size, const float desaturate)
 {
 	int draw_size = get_draw_size(size);
 	icon_draw_size(x, y, icon_id, aspect, alpha, NULL, size, draw_size, desaturate);
@@ -1537,7 +1548,7 @@ static void icon_draw_at_size(
 
 void UI_icon_draw_aspect(float x, float y, int icon_id, float aspect, float alpha)
 {
-	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, false);
+	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, 0.0f);
 }
 
 void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, const float rgb[3])
@@ -1546,9 +1557,9 @@ void UI_icon_draw_aspect_color(float x, float y, int icon_id, float aspect, cons
 	icon_draw_size(x, y, icon_id, aspect, 1.0f, rgb, ICON_SIZE_ICON, draw_size, false);
 }
 
-void UI_icon_draw_desaturate(float x, float y, int icon_id, float aspect, float alpha)
+void UI_icon_draw_desaturate(float x, float y, int icon_id, float aspect, float alpha, float desaturate)
 {
-	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, true);
+	icon_draw_at_size(x, y, icon_id, aspect, alpha, ICON_SIZE_ICON, desaturate);
 }
 
 /* draws icon with dpi scale factor */

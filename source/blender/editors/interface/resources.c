@@ -2999,6 +2999,7 @@ void init_userdef_do_versions(void)
 		};
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			btheme->tui.wcol_toolbar_item = wcol_toolbar_item;
+			btheme->tui.icon_saturation = 0.4f;
 		}
 	}
 

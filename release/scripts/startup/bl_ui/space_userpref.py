@@ -898,6 +898,7 @@ class USERPREF_PT_theme(Panel):
             colsub = padding.column()
             colsub.row().prop(ui, "menu_shadow_fac")
             colsub.row().prop(ui, "icon_alpha")
+            colsub.row().prop(ui, "icon_saturation")
             colsub.row().prop(ui, "editor_outline")
 
             subsplit = row.split(percentage=0.85)

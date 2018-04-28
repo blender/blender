@@ -1327,7 +1327,8 @@ static void widget_draw_icon_ex(
 			UI_icon_draw_aspect(xs, ys, icon, aspect, alpha);
 		}
 		else {
-			UI_icon_draw_desaturate(xs, ys, icon, aspect, alpha);
+			const bTheme *btheme = UI_GetTheme();
+			UI_icon_draw_desaturate(xs, ys, icon, aspect, alpha, 1.0 - btheme->tui.icon_saturation);
 		}
 	}
 

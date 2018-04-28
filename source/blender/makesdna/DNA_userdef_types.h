@@ -185,6 +185,8 @@ typedef struct ThemeUI {
 	
 	char iconfile[256];	// FILE_MAXFILE length
 	float icon_alpha;
+	float icon_saturation;
+	char _pad[4];
 
 	/* Axis Colors */
 	char xaxis[4], yaxis[4], zaxis[4];
