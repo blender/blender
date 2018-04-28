@@ -23,7 +23,7 @@
  *  \ingroup draw_engine
  */
 
- #include "DNA_view3d_types.h"
+#include "DNA_view3d_types.h"
 
 #include "GPU_shader.h"
 #include "DRW_render.h"

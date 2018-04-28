@@ -19,7 +19,7 @@
  *
  */
 
-/** \file solid_studio_mode.c
+/** \file solid_mode.c
  *  \ingroup draw_engine
  *
  * Simple engine for drawing color and/or depth.

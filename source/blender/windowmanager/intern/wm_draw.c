@@ -105,16 +105,10 @@ static void wm_paintcursor_draw(bContext *C, ARegion *ar)
 				if (ELEM(win->grabcursor, GHOST_kGrabWrap, GHOST_kGrabHide)) {
 					int x = 0, y = 0;
 					wm_get_cursor_position(win, &x, &y);
-					pc->draw(C,
-							 x,
-							 y,
-							 pc->customdata);
+					pc->draw(C, x, y, pc->customdata);
 				}
 				else {
-					pc->draw(C,
-							 win->eventstate->x,
-							 win->eventstate->y,
-							 pc->customdata);
+					pc->draw(C, win->eventstate->x, win->eventstate->y, pc->customdata);
 				}
 
 				glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
@@ -581,7 +575,7 @@ static void wm_draw_window_onscreen(bContext *C, wmWindow *win, int view)
 			if (ar->visible && ar->overlap == false) {
 				if (view == -1 && ar->draw_buffer && ar->draw_buffer->stereo) {
 					/* Stereo drawing from textures. */
-					if(win->stereo3d_format->display_mode == S3D_DISPLAY_ANAGLYPH) {
+					if (win->stereo3d_format->display_mode == S3D_DISPLAY_ANAGLYPH) {
 						wm_stereo3d_draw_anaglyph(win, ar);
 					}
 					else {
@@ -660,7 +654,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 		/* Regular mono drawing. */
 		wm_draw_window_onscreen(C, win, -1);
 	}
-	else if(win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
+	else if (win->stereo3d_format->display_mode == S3D_DISPLAY_PAGEFLIP) {
 		/* For pageflip we simply draw to both back buffers. */
 		glDrawBuffer(GL_BACK_LEFT);
 		wm_draw_window_onscreen(C, win, 0);
@@ -668,7 +662,7 @@ static void wm_draw_window(bContext *C, wmWindow *win)
 		wm_draw_window_onscreen(C, win, 1);
 		glDrawBuffer(GL_BACK);
 	}
-	else if(ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
+	else if (ELEM(win->stereo3d_format->display_mode, S3D_DISPLAY_ANAGLYPH, S3D_DISPLAY_INTERLACE)) {
 		/* For anaglyph and interlace, we draw individual regions with
 		 * stereo framebuffers using different shaders. */
 		wm_draw_window_onscreen(C, win, -1);

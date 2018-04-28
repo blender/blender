@@ -754,7 +754,8 @@ static void area_azone_initialize(wmWindow *win, const bScreen *screen, ScrArea 
 #ifdef __APPLE__
 		if (!WM_window_is_fullscreen(win) &&
 		    ((coords[i][0] == 0 && coords[i][1] == 0) ||
-		     (coords[i][0] == WM_window_pixels_x(win) && coords[i][1] == 0))) {
+		     (coords[i][0] == WM_window_pixels_x(win) && coords[i][1] == 0)))
+		{
 			continue;
 		}
 #else

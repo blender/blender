@@ -99,8 +99,8 @@ void wm_stereo3d_draw_interlace(wmWindow *win, ARegion *ar)
 	}
 
 	immBindBuiltinProgram(GPU_SHADER_2D_IMAGE_INTERLACE);
-	immUniform1i("image_a", (swap)? 1: 0);
-	immUniform1i("image_b", (swap)? 0: 1);
+	immUniform1i("image_a", (swap) ? 1 : 0);
+	immUniform1i("image_b", (swap) ? 0 : 1);
 
 	immUniform1i("interlace_id", interlace_gpu_id_from_type(interlace_type));
 

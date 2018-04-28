@@ -87,11 +87,11 @@ static void deg_task_run_func(TaskPool *pool,
 	/* Perform operation. */
 	if (state->do_stats) {
 		const double start_time = PIL_check_seconds_timer();
-		node->evaluate((::Depsgraph*)state->graph);
+		node->evaluate((::Depsgraph *)state->graph);
 		node->stats.current_time += PIL_check_seconds_timer() - start_time;
 	}
 	else {
-		node->evaluate((::Depsgraph*)state->graph);
+		node->evaluate((::Depsgraph *)state->graph);
 	}
 	/* Schedule children. */
 	BLI_task_pool_delayed_push_begin(pool, thread_id);

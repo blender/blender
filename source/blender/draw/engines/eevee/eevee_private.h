@@ -417,7 +417,7 @@ typedef struct EEVEE_PlanarReflection {
 
 /* ************ PROBE DATA ************* */
 
-typedef struct EEVEE_LightProbeVisTest{
+typedef struct EEVEE_LightProbeVisTest {
 	bool invert;
 	bool cached; /* Reuse last test results */
 	struct Group *group; /* Skip test if NULL */

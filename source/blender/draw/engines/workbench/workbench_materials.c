@@ -168,7 +168,7 @@ static uint get_material_hash(WORKBENCH_PrivateData *wpd, WORKBENCH_MaterialData
 
 static void workbench_init_object_data(ObjectEngineData *engine_data)
 {
-	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData*)engine_data;
+	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
 	data->object_id = e_data.next_object_id++;
 }
 
@@ -265,7 +265,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	/* Deferred Mix Pass */
 	{
 		WORKBENCH_UBO_World *wd = &wpd->world_data;
-		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD)?TH_LOW_GRAD:TH_HIGH_GRAD, wd->background_color_low);
+		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD:TH_HIGH_GRAD, wd->background_color_low);
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
 		copy_v3_v3(wd->diffuse_light_x_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_x_pos"));
 		copy_v3_v3(wd->diffuse_light_x_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_x_neg"));
@@ -300,7 +300,8 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	WORKBENCH_MaterialData *material;
-	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData*)DRW_object_engine_data_ensure(ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
+	        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
 	float color[3];
 	const float hsv_saturation = BKE_collection_engine_property_value_get_float(props, "random_object_color_saturation");
@@ -375,7 +376,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 
 		material = get_or_create_material_data(vedata, props, ob);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
-		if(is_sculpt_mode) {
+		if (is_sculpt_mode) {
 			DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 		}
 		else {

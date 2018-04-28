@@ -78,8 +78,6 @@
 
 #include "atomic_ops.h"
 
-#include "DEG_depsgraph_query.h"
-
 /* ***************************************** */
 /* AnimData API */
 
@@ -1709,7 +1707,7 @@ static void animsys_evaluate_fcurves(PointerRNA *ptr, ListBase *list, AnimMapper
 
 	/* Pointer is expected to be an ID pointer, if it's not -- we are doomed. */
 	PointerRNA orig_ptr = *ptr;
-	orig_ptr.id.data = ((ID*)orig_ptr.id.data)->orig_id;
+	orig_ptr.id.data = ((ID *)orig_ptr.id.data)->orig_id;
 	orig_ptr.data = orig_ptr.id.data;
 
 	/* calculate then execute each curve */

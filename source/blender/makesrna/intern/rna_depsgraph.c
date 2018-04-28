@@ -37,7 +37,6 @@
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.h"
-#include "DEG_depsgraph_query.h"
 
 #define STATS_MAX_SIZE 16384
 

@@ -3360,7 +3360,7 @@ static void widget_numbut_draw(uiWidgetColors *wcol, rcti *rect, int state, int 
 
 		wcol_zone = *wcol;
 		copy_v3_v3_char(wcol_zone.item, wcol->text);
-		if (!(state & (UI_STATE_ACTIVE_LEFT|UI_STATE_ACTIVE_RIGHT))) {
+		if (!(state & (UI_STATE_ACTIVE_LEFT | UI_STATE_ACTIVE_RIGHT))) {
 			widget_active_color(wcol_zone.inner);
 		}
 
