@@ -3957,20 +3957,27 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "International Fonts", "Use international fonts");
 	RNA_def_property_update(prop, NC_WINDOW, "rna_userdef_language_update");
 
+	prop = RNA_def_property(srna, "ui_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_sdna(prop, NULL, "dpi_fac");
+	RNA_def_property_ui_text(prop, "UI Scale",
+	                         "Size multiplier to use when drawing custom user interface elements, so that "
+	                         "they are scaled correctly on screens with different DPI. This value is based "
+	                         "on operating system DPI settings and Blender display scale");
+
+	prop = RNA_def_property(srna, "ui_line_width", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_sdna(prop, NULL, "pixelsize");
+	RNA_def_property_ui_text(prop, "UI Line Width",
+	                         "Suggested line thickness and point size in pixels, for add-ons drawing custom "
+	                         "user interface elements, based on operating system settings and Blender UI scale");
+
 	prop = RNA_def_property(srna, "dpi", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "DPI",
-	                         "DPI for add-ons to use when drawing custom user interface elements, controlled by "
-	                         "operating system settings and Blender UI scale, with a reference value of 72 DPI "
-	                         "(note that since this value includes a user defined scale, it is not always the "
-	                         "actual monitor DPI)");
 
 	prop = RNA_def_property(srna, "pixel_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_float_sdna(prop, NULL, "pixelsize");
-	RNA_def_property_ui_text(prop, "Pixel Size",
-	                         "Suggested line thickness and point size in pixels, for add-ons drawing custom user "
-	                         "interface elements, controlled by operating system settings and Blender UI scale");
 
 	prop = RNA_def_property(srna, "font_path_ui", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "font_path_ui");

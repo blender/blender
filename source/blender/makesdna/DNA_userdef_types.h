@@ -487,12 +487,16 @@ typedef struct UserDef {
 	int audioformat;
 	int audiochannels;
 
+	float ui_scale;     /* setting for UI scale */
+	int ui_line_width;  /* setting for UI line width */
+	int dpi;            /* runtime, full DPI divided by pixelsize */
+	float dpi_fac;      /* runtime, multiplier to scale UI elements based on DPI */
+	float pixelsize;	/* runtime, line width and point size based on DPI */
+	int virtual_pixel;	/* deprecated, for forward compatibility */
+
 	int scrollback;     /* console scrollback limit */
-	int dpi;            /* range 48-128? */
-	float ui_scale;     /* interface scale */
-	int ui_line_width;  /* interface line width */
 	char node_margin;   /* node insert offset (aka auto-offset) margin, but might be useful for later stuff as well */
-	char pad2;
+	char pad2[5];
 	short transopts;    /* eUserpref_Translation_Flags */
 	short menuthreshold1, menuthreshold2;
 
@@ -583,8 +587,6 @@ typedef struct UserDef {
 	int compute_device_id;
 	
 	float fcu_inactive_alpha;	/* opacity of inactive F-Curves in F-Curve Editor */
-	float pixelsize;			/* private, set by GHOST, to multiply DPI with */
-	int virtual_pixel;			/* virtual pixelsize mode */
 
 	short pie_interaction_type;     /* if keeping a pie menu spawn button pressed after this time, it turns into
 	                             * a drag/release pie menu */

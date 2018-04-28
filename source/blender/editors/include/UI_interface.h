@@ -230,7 +230,7 @@ enum {
 
 /* scale fixed button widths by this to account for DPI */
 
-#define UI_DPI_FAC ((U.pixelsize * (float)U.dpi) / 72.0f)
+#define UI_DPI_FAC (U.dpi_fac)
 /* 16 to copy ICON_DEFAULT_HEIGHT */
 #define UI_DPI_ICON_SIZE ((float)16 * UI_DPI_FAC)
 
