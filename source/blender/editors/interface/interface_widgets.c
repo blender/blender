@@ -3605,7 +3605,13 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 		float factor_discard = 1.0f; /* No discard. */
 		float value = (float)ui_but_value_get(but);
 
-		factor = (value - but->softmin) / (but->softmax - but->softmin);
+		if (but->rnaprop && (RNA_property_subtype(but->rnaprop) == PROP_PERCENTAGE)) {
+			factor = value / but->softmax;
+		}
+		else {
+			factor = (value - but->softmin) / (but->softmax - but->softmin);
+		}
+
 		factor_ui = factor * (float)BLI_rcti_size_x(rect);
 
 		if (factor_ui <= offs) {
