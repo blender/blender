@@ -323,7 +323,7 @@ static void manipulator_grab_property_update(wmManipulator *mpr, wmManipulatorPr
 
 static int manipulator_grab_cursor_get(wmManipulator *UNUSED(mpr))
 {
-	return BC_HANDCURSOR;
+	return BC_NSEW_SCROLLCURSOR;
 }
 
 /* -------------------------------------------------------------------- */

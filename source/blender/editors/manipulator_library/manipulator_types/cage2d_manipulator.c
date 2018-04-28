@@ -704,7 +704,7 @@ static int manipulator_cage2d_get_cursor(wmManipulator *mpr)
 
 	switch (highlight_part) {
 		case ED_MANIPULATOR_CAGE2D_PART_TRANSLATE:
-			return BC_HANDCURSOR;
+			return BC_NSEW_SCROLLCURSOR;
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MIN_X:
 		case ED_MANIPULATOR_CAGE2D_PART_SCALE_MAX_X:
 			return CURSOR_X_MOVE;
