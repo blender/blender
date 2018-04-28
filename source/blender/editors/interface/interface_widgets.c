@@ -1159,7 +1159,7 @@ static void draw_widgetbase_batch(Gwn_Batch *batch, uiWidgetBase *wtb)
 	}
 }
 
-static void widgetbase_draw(uiWidgetBase *wtb, uiWidgetColors *wcol)
+static void widgetbase_draw(uiWidgetBase *wtb, const uiWidgetColors *wcol)
 {
 	unsigned char inner_col1[4] = {0};
 	unsigned char inner_col2[4] = {0};
@@ -2767,56 +2767,6 @@ static void widget_menu_back(uiWidgetColors *wcol, rcti *rect, int flag, int dir
 	glDisable(GL_BLEND);
 }
 
-static void widget_popover_back(uiWidgetColors *wcol, rcti *rect, int UNUSED(flag), int direction)
-{
-	/* tsk, this isn't nice. */
-	const float unit_half = (BLI_rcti_size_x(rect) / UI_POPOVER_WIDTH_UNITS) / 2;
-	const float cent_x = BLI_rcti_cent_x(rect);
-	rect->ymax -= unit_half;
-	rect->ymin += unit_half;
-
-
-	glEnable(GL_BLEND);
-
-	/* Extracted from 'widget_menu_back', keep separate to avoid menu changes breaking popovers */
-	{
-		uiWidgetBase wtb;
-		widget_init(&wtb);
-
-		const int roundboxalign = UI_CNR_ALL;
-		widget_softshadow(rect, roundboxalign, wcol->roundness * U.widget_unit);
-
-		round_box_edges(&wtb, roundboxalign, rect, wcol->roundness * U.widget_unit);
-		wtb.draw_emboss = false;
-		widgetbase_draw(&wtb, wcol);
-	}
-
-	/* Draw popover arrow (top/bottom) */
-	if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
-		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-		immUniformColor4ubv((unsigned char *)wcol->inner);
-		glEnable(GL_BLEND);
-		immBegin(GWN_PRIM_TRIS, 3);
-		if (direction == UI_DIR_DOWN) {
-			const float y = rect->ymax;
-			immVertex2f(pos, cent_x - unit_half, y);
-			immVertex2f(pos, cent_x + unit_half, y);
-			immVertex2f(pos, cent_x, y + unit_half);
-		}
-		else {
-			const float y = rect->ymin;
-			immVertex2f(pos, cent_x - unit_half, y);
-			immVertex2f(pos, cent_x + unit_half, rect->ymin);
-			immVertex2f(pos, cent_x, y - unit_half);
-		}
-		immEnd();
-		immUnbindProgram();
-	}
-
-	glDisable(GL_BLEND);
-}
-
 static void ui_hsv_cursor(float x, float y)
 {
 	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
@@ -4261,10 +4211,6 @@ static uiWidgetType *widget_type(uiWidgetTypeEnum type)
 			wt.wcol_theme = &btheme->tui.wcol_menu_back;
 			wt.draw = widget_menu_back;
 			break;
-		case UI_WTYPE_POPOVER_BACK:
-			wt.wcol_theme = &btheme->tui.wcol_menu_back;
-			wt.draw = widget_popover_back;
-			break;
 
 		/* specials */
 		case UI_WTYPE_ICON:
@@ -4707,15 +4653,72 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 	}
 }
 
-void ui_draw_popover_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+/**
+ * Similar to 'widget_menu_back', however we can't use the widget preset system
+ * because we need to pass in the original location so we know where to show the arrow.
+ */
+static void ui_draw_popover_back_impl(
+        const uiWidgetColors *wcol, rcti *rect, int direction,
+        const float mval_origin[2])
 {
-	uiWidgetType *wt = widget_type(UI_WTYPE_POPOVER_BACK);
+	/* tsk, this isn't nice. */
+	const float unit_half = (BLI_rcti_size_x(rect) / UI_POPOVER_WIDTH_UNITS) / 2;
+	const float cent_x = mval_origin ? mval_origin[0] : BLI_rcti_cent_x(rect);
+	rect->ymax -= unit_half;
+	rect->ymin += unit_half;
 
-	wt->state(wt, 0);
+	glEnable(GL_BLEND);
+
+	/* Extracted from 'widget_menu_back', keep separate to avoid menu changes breaking popovers */
+	{
+		uiWidgetBase wtb;
+		widget_init(&wtb);
+
+		const int roundboxalign = UI_CNR_ALL;
+		widget_softshadow(rect, roundboxalign, wcol->roundness * U.widget_unit);
+
+		round_box_edges(&wtb, roundboxalign, rect, wcol->roundness * U.widget_unit);
+		wtb.draw_emboss = false;
+		widgetbase_draw(&wtb, wcol);
+	}
+
+	/* Draw popover arrow (top/bottom) */
+	if (ELEM(direction, UI_DIR_UP, UI_DIR_DOWN)) {
+		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+		immUniformColor4ubv((unsigned char *)wcol->inner);
+		glEnable(GL_BLEND);
+		immBegin(GWN_PRIM_TRIS, 3);
+		if (direction == UI_DIR_DOWN) {
+			const float y = rect->ymax;
+			immVertex2f(pos, cent_x - unit_half, y);
+			immVertex2f(pos, cent_x + unit_half, y);
+			immVertex2f(pos, cent_x, y + unit_half);
+		}
+		else {
+			const float y = rect->ymin;
+			immVertex2f(pos, cent_x - unit_half, y);
+			immVertex2f(pos, cent_x + unit_half, rect->ymin);
+			immVertex2f(pos, cent_x, y - unit_half);
+		}
+		immEnd();
+		immUnbindProgram();
+	}
+
+	glDisable(GL_BLEND);
+}
+
+void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+{
 	if (block) {
-		wt->draw(&wt->wcol, rect, block->flag, block->direction);
+		float mval_origin[2] = {block->mx, block->my};
+		ui_window_to_block_fl(ar, block, &mval_origin[0], &mval_origin[1]);
+		ui_draw_popover_back_impl(&wcol_menu_back, rect, block->direction, mval_origin);
 	}
 	else {
+		uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
+
+		wt->state(wt, 0);
 		wt->draw(&wt->wcol, rect, 0, 0);
 	}
 }

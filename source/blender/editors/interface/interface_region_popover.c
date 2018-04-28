@@ -140,6 +140,15 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 		bool slideout = false; //ui_block_is_menu(pup->but->block);
 		if (slideout)
 			UI_block_direction_set(block, UI_DIR_RIGHT);
+
+		/* Store the button location for positioning the popover arrow hint. */
+		{
+			float center[2] = {BLI_rctf_cent_x(&pup->but->rect), BLI_rctf_cent_y(&pup->but->rect)};
+			ui_block_to_window_fl(handle->ctx_region, pup->but->block, &center[0], &center[1]);
+			/* These variables aren't used for popovers, we could add new variables if there is a conflict. */
+			block->mx = (int)center[0];
+			block->my = (int)center[1];
+		}
 	}
 	else {
 		/* Not attached to a button. */
