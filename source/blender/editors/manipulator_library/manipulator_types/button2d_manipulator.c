@@ -57,6 +57,7 @@
 #include "ED_view3d.h"
 #include "ED_manipulator_library.h"
 
+#include "UI_interface.h"
 #include "UI_interface_icons.h"
 #include "UI_resources.h"
 
@@ -152,8 +153,8 @@ static void button2d_draw_intern(
 			button2d_geom_draw_backdrop(mpr, color, select);
 			gpuPopMatrix();
 			UI_icon_draw(
-			        mpr->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * U.ui_scale,
-			        mpr->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * U.ui_scale,
+			        mpr->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_DPI_FAC,
+			        mpr->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_DPI_FAC,
 			        button->icon);
 		}
 		else {
@@ -194,7 +195,7 @@ static int manipulator_button2d_test_select(
 	else {
 		copy_v2_v2(point_local, (float [2]){UNPACK2(event->mval)});
 		sub_v2_v2(point_local, mpr->matrix_basis[3]);
-		mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * U.ui_scale));
+		mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * UI_DPI_FAC));
 	}
 	/* The 'mpr->scale_final' is already applied when projecting. */
 	if (len_squared_v2(point_local) < 1.0f) {

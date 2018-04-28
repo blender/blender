@@ -53,6 +53,8 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
+#include "UI_interface.h"
+
 #ifdef WITH_PYTHON
 #include "BPY_extern.h"
 #endif
@@ -470,7 +472,7 @@ bool wm_manipulator_select_and_highlight(bContext *C, wmManipulatorMap *mmap, wm
 void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 {
 	const RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	float scale = U.ui_scale;
+	float scale = UI_DPI_FAC;
 
 	if ((mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_SCALE) == 0) {
 		scale *= U.manipulator_size;

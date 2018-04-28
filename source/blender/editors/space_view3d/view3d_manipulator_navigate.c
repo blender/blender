@@ -34,6 +34,7 @@
 #include "ED_screen.h"
 #include "ED_manipulator_library.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "MEM_guardedalloc.h"
@@ -291,8 +292,8 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 
 
 	const float icon_size = MANIPULATOR_SIZE;
-	const float icon_offset = (icon_size / 2.0) * MANIPULATOR_OFFSET_FAC * U.ui_scale;
-	const float icon_offset_mini = icon_size * MANIPULATOR_MINI_OFFSET_FAC * U.ui_scale;
+	const float icon_offset = (icon_size / 2.0) * MANIPULATOR_OFFSET_FAC * UI_DPI_FAC;
+	const float icon_offset_mini = icon_size * MANIPULATOR_MINI_OFFSET_FAC * UI_DPI_FAC;
 	const float co[2] = {ar->winx - icon_offset, ar->winy - icon_offset};
 
 	wmManipulator *mpr;

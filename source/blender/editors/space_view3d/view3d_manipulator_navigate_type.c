@@ -47,6 +47,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "UI_interface.h"
 #include "UI_resources.h"
 
 #include "WM_api.h"
@@ -238,7 +239,7 @@ static int manipulator_axis_test_select(
 {
 	float point_local[2] = {UNPACK2(event->mval)};
 	sub_v2_v2(point_local, mpr->matrix_basis[3]);
-	mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * U.ui_scale));
+	mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * UI_DPI_FAC));
 
 	const float len_sq = len_squared_v2(point_local);
 	if (len_sq > 1.0) {
