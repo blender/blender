@@ -4175,31 +4175,36 @@ static void ui_numedit_set_active(uiBut *but)
 		return;
 	}
 
-	/* we can click on the side arrows to increment/decrement,
-	 * or click inside to edit the value directly */
-	int mx = data->window->eventstate->x;
-	int my = data->window->eventstate->x;
-	ui_window_to_block(data->region, but->block, &mx, &my);
+	/* Ignore once we start dragging. */
+	if (data->dragchange == false) {
+		const  float handle_width = min_ff(BLI_rctf_size_x(&but->rect) / 3, BLI_rctf_size_y(&but->rect) * 0.7f);
+		/* we can click on the side arrows to increment/decrement,
+		 * or click inside to edit the value directly */
+		int mx = data->window->eventstate->x;
+		int my = data->window->eventstate->x;
+		ui_window_to_block(data->region, but->block, &mx, &my);
 
-	float handle_width = min_ff(BLI_rctf_size_x(&but->rect) / 3, BLI_rctf_size_y(&but->rect) * 0.7f);
-
-	if (mx < (but->rect.xmin + handle_width)) {
-		but->drawflag |= UI_BUT_ACTIVE_LEFT;
-	}
-	else if (mx > (but->rect.xmax - handle_width)) {
-		but->drawflag |= UI_BUT_ACTIVE_RIGHT;
-	}
-
-	if ((but->drawflag & (UI_BUT_ACTIVE_LEFT)) || (but->drawflag & (UI_BUT_ACTIVE_RIGHT))) {
-		if (data->changed_cursor) {
-			WM_cursor_modal_restore(data->window);
-			data->changed_cursor = false;
+		if (mx < (but->rect.xmin + handle_width)) {
+			but->drawflag |= UI_BUT_ACTIVE_LEFT;
+		}
+		else if (mx > (but->rect.xmax - handle_width)) {
+			but->drawflag |= UI_BUT_ACTIVE_RIGHT;
 		}
 	}
-	else {
-		if (data->changed_cursor == false) {
-			WM_cursor_modal_set(data->window, CURSOR_X_MOVE);
-			data->changed_cursor = true;
+
+	/* Don't change the cursor once pressed. */
+	if ((but->flag & UI_SELECT) == 0) {
+		if ((but->drawflag & (UI_BUT_ACTIVE_LEFT)) || (but->drawflag & (UI_BUT_ACTIVE_RIGHT))) {
+			if (data->changed_cursor) {
+				WM_cursor_modal_restore(data->window);
+				data->changed_cursor = false;
+			}
+		}
+		else {
+			if (data->changed_cursor == false) {
+				WM_cursor_modal_set(data->window, CURSOR_X_MOVE);
+				data->changed_cursor = true;
+			}
 		}
 	}
 
