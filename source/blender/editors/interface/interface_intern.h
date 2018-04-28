@@ -717,7 +717,11 @@ typedef struct uiWidgetBaseParameters {
 	float color_tria[4];
 	float tria1_center[2], tria2_center[2];
 	float tria1_size, tria2_size;
-	float shade_dir, do_alpha_check;
+	float shade_dir;
+	/* We pack alpha check and discard factor in alpha_discard.
+	 * If the value is negative then we do alpha check.
+	 * The absolute value itself is the discard factor. */
+	float alpha_discard;
 } uiWidgetBaseParameters;
 
 enum {

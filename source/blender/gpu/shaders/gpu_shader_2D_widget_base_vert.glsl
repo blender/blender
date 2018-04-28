@@ -103,12 +103,17 @@ uniform vec4 parameters[MAX_PARAM];
 #define tria1Size     parameters[gl_InstanceID * MAX_PARAM + 10].x
 #define tria2Size     parameters[gl_InstanceID * MAX_PARAM + 10].y
 #define shadeDir      parameters[gl_InstanceID * MAX_PARAM + 10].z
-#define doAlphaCheck  parameters[gl_InstanceID * MAX_PARAM + 10].w
+#define alphaDiscard  parameters[gl_InstanceID * MAX_PARAM + 10].w
+
+/* We encode alpha check and discard factor together. */
+#define doAlphaCheck (alphaDiscard < 0.0)
+#define discardFactor abs(alphaDiscard)
 
 in uint vflag;
 
 noperspective out vec4 finalColor;
 noperspective out float butCo;
+flat out float discardFac;
 
 vec2 do_widget(void)
 {
@@ -133,27 +138,29 @@ vec2 do_widget(void)
 	else /* (cflag == TOP_LEFT) */
 		v += rct.xw;
 
+	vec2 uv = faci * (v - recti.xz);
+
 	/* compute uv and color gradient */
 	uint color_id = (vflag >> COLOR_OFS) & COLOR_RANGE;
 	if (color_id == COLOR_INNER) {
-		vec2 uv = faci * (v - recti.xz);
 		float fac = clamp((shadeDir > 0.0) ? uv.y : uv.x, 0.0, 1.0);
-		if (doAlphaCheck != 0.0) {
+
+		if (doAlphaCheck) {
 			finalColor = colorInner1;
 			butCo = uv.x;
 		}
 		else {
 			finalColor = mix(colorInner2, colorInner1, fac);
-			butCo = -1.0;
+			butCo = -abs(uv.x);
 		}
 	}
 	else if (color_id == COLOR_EDGE) {
 		finalColor = colorEdge;
-		butCo = -1.0;
+		butCo = -abs(uv.x);
 	}
 	else /* (color_id == COLOR_EMBOSS) */ {
 		finalColor = colorEmboss;
-		butCo = -1.0;
+		butCo = -abs(uv.x);
 	}
 
 	bool is_emboss = (vflag & EMBOSS_FLAG) != 0u;
@@ -183,6 +190,7 @@ vec2 do_tria()
 
 void main()
 {
+	discardFac = discardFactor;
 	bool is_tria = (vflag & TRIA_FLAG) != 0u;
 
 	vec2 v = (is_tria) ? do_tria() : do_widget();

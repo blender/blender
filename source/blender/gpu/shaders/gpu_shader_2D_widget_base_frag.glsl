@@ -2,6 +2,7 @@ uniform vec3 checkerColorAndSize;
 
 noperspective in vec4 finalColor;
 noperspective in float butCo;
+flat in float discardFac;
 
 out vec4 fragColor;
 
@@ -22,6 +23,10 @@ vec4 do_checkerboard()
 
 void main()
 {
+	if (min(1.0, -butCo) > discardFac) {
+		discard;
+	}
+
 	fragColor = finalColor;
 
 	if (butCo > 0.5) {
