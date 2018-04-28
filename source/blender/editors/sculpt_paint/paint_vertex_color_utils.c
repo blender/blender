@@ -76,12 +76,12 @@ bool ED_vpaint_color_transform(
 		}
 
 		for (int j = 0; j < mp->totloop; j++, lcol++) {
-			float col[3];
-			rgb_uchar_to_float(col, &lcol->r);
+			float col_mix[3];
+			rgb_uchar_to_float(col_mix, &lcol->r);
 
-			vpaint_tx_fn(col, user_data, col);
+			vpaint_tx_fn(col_mix, user_data, col_mix);
 
-			rgb_float_to_uchar(&lcol->r, col);
+			rgb_float_to_uchar(&lcol->r, col_mix);
 		}
 	}
 
@@ -97,437 +97,437 @@ bool ED_vpaint_color_transform(
 /** \name Color Blending Modes
  * \{ */
 
-BLI_INLINE uint mcol_blend(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_blend(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	if (fac >= 255) {
-		return col2;
+		return col_dst;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	/* Updated to use the rgb squared color model which blends nicer. */
-	int r1 = cp1[0] * cp1[0];
-	int g1 = cp1[1] * cp1[1];
-	int b1 = cp1[2] * cp1[2];
-	int a1 = cp1[3] * cp1[3];
+	int r1 = cp_src[0] * cp_src[0];
+	int g1 = cp_src[1] * cp_src[1];
+	int b1 = cp_src[2] * cp_src[2];
+	int a1 = cp_src[3] * cp_src[3];
 
-	int r2 = cp2[0] * cp2[0];
-	int g2 = cp2[1] * cp2[1];
-	int b2 = cp2[2] * cp2[2];
-	int a2 = cp2[3] * cp2[3];
+	int r2 = cp_dst[0] * cp_dst[0];
+	int g2 = cp_dst[1] * cp_dst[1];
+	int b2 = cp_dst[2] * cp_dst[2];
+	int a2 = cp_dst[3] * cp_dst[3];
 
-	cp[0] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * r1 + fac * r2), 255)));
-	cp[1] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * g1 + fac * g2), 255)));
-	cp[2] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * b1 + fac * b2), 255)));
-	cp[3] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * a1 + fac * a2), 255)));
+	cp_mix[0] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * r1 + fac * r2), 255)));
+	cp_mix[1] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * g1 + fac * g2), 255)));
+	cp_mix[2] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * b1 + fac * b2), 255)));
+	cp_mix[3] = round_fl_to_uchar(sqrtf(divide_round_i((mfac * a1 + fac * a2), 255)));
 
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_add(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_add(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = cp1[0] + divide_round_i((fac * cp2[0]), 255);
-	cp[0] = (temp > 254) ? 255 : temp;
-	temp = cp1[1] + divide_round_i((fac * cp2[1]), 255);
-	cp[1] = (temp > 254) ? 255 : temp;
-	temp = cp1[2] + divide_round_i((fac * cp2[2]), 255);
-	cp[2] = (temp > 254) ? 255 : temp;
-	temp = cp1[3] + divide_round_i((fac * cp2[3]), 255);
-	cp[3] = (temp > 254) ? 255 : temp;
+	temp = cp_src[0] + divide_round_i((fac * cp_dst[0]), 255);
+	cp_mix[0] = (temp > 254) ? 255 : temp;
+	temp = cp_src[1] + divide_round_i((fac * cp_dst[1]), 255);
+	cp_mix[1] = (temp > 254) ? 255 : temp;
+	temp = cp_src[2] + divide_round_i((fac * cp_dst[2]), 255);
+	cp_mix[2] = (temp > 254) ? 255 : temp;
+	temp = cp_src[3] + divide_round_i((fac * cp_dst[3]), 255);
+	cp_mix[3] = (temp > 254) ? 255 : temp;
 
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_sub(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_sub(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = cp1[0] - divide_round_i((fac * cp2[0]), 255);
-	cp[0] = (temp < 0) ? 0 : temp;
-	temp = cp1[1] - divide_round_i((fac * cp2[1]), 255);
-	cp[1] = (temp < 0) ? 0 : temp;
-	temp = cp1[2] - divide_round_i((fac * cp2[2]), 255);
-	cp[2] = (temp < 0) ? 0 : temp;
-	temp = cp1[3] - divide_round_i((fac * cp2[3]), 255);
-	cp[3] = (temp < 0) ? 0 : temp;
+	temp = cp_src[0] - divide_round_i((fac * cp_dst[0]), 255);
+	cp_mix[0] = (temp < 0) ? 0 : temp;
+	temp = cp_src[1] - divide_round_i((fac * cp_dst[1]), 255);
+	cp_mix[1] = (temp < 0) ? 0 : temp;
+	temp = cp_src[2] - divide_round_i((fac * cp_dst[2]), 255);
+	cp_mix[2] = (temp < 0) ? 0 : temp;
+	temp = cp_src[3] - divide_round_i((fac * cp_dst[3]), 255);
+	cp_mix[3] = (temp < 0) ? 0 : temp;
 
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_mul(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_mul(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	/* first mul, then blend the fac */
-	cp[0] = divide_round_i(mfac * cp1[0] * 255 + fac * cp2[0] * cp1[0], 255 * 255);
-	cp[1] = divide_round_i(mfac * cp1[1] * 255 + fac * cp2[1] * cp1[1], 255 * 255);
-	cp[2] = divide_round_i(mfac * cp1[2] * 255 + fac * cp2[2] * cp1[2], 255 * 255);
-	cp[3] = divide_round_i(mfac * cp1[3] * 255 + fac * cp2[3] * cp1[3], 255 * 255);
+	cp_mix[0] = divide_round_i(mfac * cp_src[0] * 255 + fac * cp_dst[0] * cp_src[0], 255 * 255);
+	cp_mix[1] = divide_round_i(mfac * cp_src[1] * 255 + fac * cp_dst[1] * cp_src[1], 255 * 255);
+	cp_mix[2] = divide_round_i(mfac * cp_src[2] * 255 + fac * cp_dst[2] * cp_src[2], 255 * 255);
+	cp_mix[3] = divide_round_i(mfac * cp_src[3] * 255 + fac * cp_dst[3] * cp_src[3], 255 * 255);
 
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_lighten(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_lighten(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 	else if (fac >= 255) {
-		return col2;
+		return col_dst;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	/* See if are lighter, if so mix, else don't do anything.
-	 * if the paint col is darker then the original, then ignore */
-	if (IMB_colormanagement_get_luminance_byte(cp1) > IMB_colormanagement_get_luminance_byte(cp2)) {
-		return col1;
+	 * if the paint color is darker then the original, then ignore */
+	if (IMB_colormanagement_get_luminance_byte(cp_src) > IMB_colormanagement_get_luminance_byte(cp_dst)) {
+		return col_src;
 	}
 
-	cp[0] = divide_round_i(mfac * cp1[0] + fac * cp2[0], 255);
-	cp[1] = divide_round_i(mfac * cp1[1] + fac * cp2[1], 255);
-	cp[2] = divide_round_i(mfac * cp1[2] + fac * cp2[2], 255);
-	cp[3] = divide_round_i(mfac * cp1[3] + fac * cp2[3], 255);
+	cp_mix[0] = divide_round_i(mfac * cp_src[0] + fac * cp_dst[0], 255);
+	cp_mix[1] = divide_round_i(mfac * cp_src[1] + fac * cp_dst[1], 255);
+	cp_mix[2] = divide_round_i(mfac * cp_src[2] + fac * cp_dst[2], 255);
+	cp_mix[3] = divide_round_i(mfac * cp_src[3] + fac * cp_dst[3], 255);
 
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_darken(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_darken(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 	else if (fac >= 255) {
-		return col2;
+		return col_dst;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	/* See if were darker, if so mix, else don't do anything.
-	 * if the paint col is brighter then the original, then ignore */
-	if (IMB_colormanagement_get_luminance_byte(cp1) < IMB_colormanagement_get_luminance_byte(cp2)) {
-		return col1;
+	 * if the paint color is brighter then the original, then ignore */
+	if (IMB_colormanagement_get_luminance_byte(cp_src) < IMB_colormanagement_get_luminance_byte(cp_dst)) {
+		return col_src;
 	}
 
-	cp[0] = divide_round_i((mfac * cp1[0] + fac * cp2[0]), 255);
-	cp[1] = divide_round_i((mfac * cp1[1] + fac * cp2[1]), 255);
-	cp[2] = divide_round_i((mfac * cp1[2] + fac * cp2[2]), 255);
-	cp[3] = divide_round_i((mfac * cp1[3] + fac * cp2[3]), 255);
-	return col;
+	cp_mix[0] = divide_round_i((mfac * cp_src[0] + fac * cp_dst[0]), 255);
+	cp_mix[1] = divide_round_i((mfac * cp_src[1] + fac * cp_dst[1]), 255);
+	cp_mix[2] = divide_round_i((mfac * cp_src[2] + fac * cp_dst[2]), 255);
+	cp_mix[3] = divide_round_i((mfac * cp_src[3] + fac * cp_dst[3]), 255);
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_colordodge(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_colordodge(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = (cp2[0] == 255) ? 255 : min_ii((cp1[0] * 225) / (255 - cp2[0]), 255);
-	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
-	temp = (cp2[1] == 255) ? 255 : min_ii((cp1[1] * 225) / (255 - cp2[1]), 255);
-	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = (cp2[2] == 255) ? 255 : min_ii((cp1[2] * 225) / (255 - cp2[2]), 255);
-	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
-	temp = (cp2[3] == 255) ? 255 : min_ii((cp1[3] * 225) / (255 - cp2[3]), 255);
-	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
-	return col;
+	temp = (cp_dst[0] == 255) ? 255 : min_ii((cp_src[0] * 225) / (255 - cp_dst[0]), 255);
+	cp_mix[0] = (mfac * cp_src[0] + temp * fac) / 255;
+	temp = (cp_dst[1] == 255) ? 255 : min_ii((cp_src[1] * 225) / (255 - cp_dst[1]), 255);
+	cp_mix[1] = (mfac * cp_src[1] + temp * fac) / 255;
+	temp = (cp_dst[2] == 255) ? 255 : min_ii((cp_src[2] * 225) / (255 - cp_dst[2]), 255);
+	cp_mix[2] = (mfac * cp_src[2] + temp * fac) / 255;
+	temp = (cp_dst[3] == 255) ? 255 : min_ii((cp_src[3] * 225) / (255 - cp_dst[3]), 255);
+	cp_mix[3] = (mfac * cp_src[3] + temp * fac) / 255;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_difference(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_difference(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = abs(cp1[0] - cp2[0]);
-	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
-	temp = abs(cp1[1] - cp2[1]);
-	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = abs(cp1[2] - cp2[2]);
-	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
-	temp = abs(cp1[3] - cp2[3]);
-	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
-	return col;
+	temp = abs(cp_src[0] - cp_dst[0]);
+	cp_mix[0] = (mfac * cp_src[0] + temp * fac) / 255;
+	temp = abs(cp_src[1] - cp_dst[1]);
+	cp_mix[1] = (mfac * cp_src[1] + temp * fac) / 255;
+	temp = abs(cp_src[2] - cp_dst[2]);
+	cp_mix[2] = (mfac * cp_src[2] + temp * fac) / 255;
+	temp = abs(cp_src[3] - cp_dst[3]);
+	cp_mix[3] = (mfac * cp_src[3] + temp * fac) / 255;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_screen(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_screen(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = max_ii(255 - (((255 - cp1[0]) * (255 - cp2[0])) / 255), 0);
-	cp[0] = (mfac * cp1[0] + temp * fac) / 255;
-	temp = max_ii(255 - (((255 - cp1[1]) * (255 - cp2[1])) / 255), 0);
-	cp[1] = (mfac * cp1[1] + temp * fac) / 255;
-	temp = max_ii(255 - (((255 - cp1[2]) * (255 - cp2[2])) / 255), 0);
-	cp[2] = (mfac * cp1[2] + temp * fac) / 255;
-	temp = max_ii(255 - (((255 - cp1[3]) * (255 - cp2[3])) / 255), 0);
-	cp[3] = (mfac * cp1[3] + temp * fac) / 255;
-	return col;
+	temp = max_ii(255 - (((255 - cp_src[0]) * (255 - cp_dst[0])) / 255), 0);
+	cp_mix[0] = (mfac * cp_src[0] + temp * fac) / 255;
+	temp = max_ii(255 - (((255 - cp_src[1]) * (255 - cp_dst[1])) / 255), 0);
+	cp_mix[1] = (mfac * cp_src[1] + temp * fac) / 255;
+	temp = max_ii(255 - (((255 - cp_src[2]) * (255 - cp_dst[2])) / 255), 0);
+	cp_mix[2] = (mfac * cp_src[2] + temp * fac) / 255;
+	temp = max_ii(255 - (((255 - cp_src[3]) * (255 - cp_dst[3])) / 255), 0);
+	cp_mix[3] = (mfac * cp_src[3] + temp * fac) / 255;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_hardlight(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_hardlight(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	int i = 0;
 
 	for (i = 0; i < 4; i++) {
-		if (cp2[i] > 127) {
-			temp = 255 - ((255 - 2 * (cp2[i] - 127)) * (255 - cp1[i]) / 255);
+		if (cp_dst[i] > 127) {
+			temp = 255 - ((255 - 2 * (cp_dst[i] - 127)) * (255 - cp_src[i]) / 255);
 		}
 		else {
-			temp = (2 * cp2[i] * cp1[i]) >> 8;
+			temp = (2 * cp_dst[i] * cp_src[i]) >> 8;
 		}
-		cp[i] = min_ii((mfac * cp1[i] + temp * fac) / 255, 255);
+		cp_mix[i] = min_ii((mfac * cp_src[i] + temp * fac) / 255, 255);
 	}
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_overlay(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_overlay(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	int i = 0;
 
 	for (i = 0; i < 4; i++) {
-		if (cp1[i] > 127) {
-			temp = 255 - ((255 - 2 * (cp1[i] - 127)) * (255 - cp2[i]) / 255);
+		if (cp_src[i] > 127) {
+			temp = 255 - ((255 - 2 * (cp_src[i] - 127)) * (255 - cp_dst[i]) / 255);
 		}
 		else {
-			temp = (2 * cp2[i] * cp1[i]) >> 8;
+			temp = (2 * cp_dst[i] * cp_src[i]) >> 8;
 		}
-		cp[i] = min_ii((mfac * cp1[i] + temp * fac) / 255, 255);
+		cp_mix[i] = min_ii((mfac * cp_src[i] + temp * fac) / 255, 255);
 	}
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_softlight(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_softlight(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	int i = 0;
 
 	for (i = 0; i < 4; i++) {
-		if (cp1[i] < 127) {
-			temp = ((2 * ((cp2[i] / 2) + 64)) * cp1[i]) / 255;
+		if (cp_src[i] < 127) {
+			temp = ((2 * ((cp_dst[i] / 2) + 64)) * cp_src[i]) / 255;
 		}
 		else {
-			temp = 255 - (2 * (255 - ((cp2[i] / 2) + 64)) * (255 - cp1[i]) / 255);
+			temp = 255 - (2 * (255 - ((cp_dst[i] / 2) + 64)) * (255 - cp_src[i]) / 255);
 		}
-		cp[i] = (temp * fac + cp1[i] * mfac) / 255;
+		cp_mix[i] = (temp * fac + cp_src[i] * mfac) / 255;
 	}
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_exclusion(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_exclusion(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac, temp;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	int i = 0;
 
 	for (i = 0; i < 4; i++) {
-		temp = 127 - ((2 * (cp1[i] - 127) * (cp2[i] - 127)) / 255);
-		cp[i] = (temp * fac + cp1[i] * mfac) / 255;
+		temp = 127 - ((2 * (cp_src[i] - 127) * (cp_dst[i] - 127)) / 255);
+		cp_mix[i] = (temp * fac + cp_src[i] * mfac) / 255;
 	}
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_luminosity(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_luminosity(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	float h1, s1, v1;
 	float h2, s2, v2;
 	float r, g, b;
-	rgb_to_hsv(cp1[0] / 255.0f, cp1[1] / 255.0f, cp1[2] / 255.0f, &h1, &s1, &v1);
-	rgb_to_hsv(cp2[0] / 255.0f, cp2[1] / 255.0f, cp2[2] / 255.0f, &h2, &s2, &v2);
+	rgb_to_hsv(cp_src[0] / 255.0f, cp_src[1] / 255.0f, cp_src[2] / 255.0f, &h1, &s1, &v1);
+	rgb_to_hsv(cp_dst[0] / 255.0f, cp_dst[1] / 255.0f, cp_dst[2] / 255.0f, &h2, &s2, &v2);
 
 	v1 = v2;
 
 	hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-	cp[0] = ((int)(r * 255.0f) * fac + mfac * cp1[0]) / 255;
-	cp[1] = ((int)(g * 255.0f) * fac + mfac * cp1[1]) / 255;
-	cp[2] = ((int)(b * 255.0f) * fac + mfac * cp1[2]) / 255;
-	cp[3] = ((int)(cp2[3])     * fac + mfac * cp1[3]) / 255;
-	return col;
+	cp_mix[0] = ((int)(r * 255.0f) * fac + mfac * cp_src[0]) / 255;
+	cp_mix[1] = ((int)(g * 255.0f) * fac + mfac * cp_src[1]) / 255;
+	cp_mix[2] = ((int)(b * 255.0f) * fac + mfac * cp_src[2]) / 255;
+	cp_mix[3] = ((int)(cp_dst[3])  * fac + mfac * cp_src[3]) / 255;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_saturation(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_saturation(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	float h1, s1, v1;
 	float h2, s2, v2;
 	float r, g, b;
-	rgb_to_hsv(cp1[0] / 255.0f, cp1[1] / 255.0f, cp1[2] / 255.0f, &h1, &s1, &v1);
-	rgb_to_hsv(cp2[0] / 255.0f, cp2[1] / 255.0f, cp2[2] / 255.0f, &h2, &s2, &v2);
+	rgb_to_hsv(cp_src[0] / 255.0f, cp_src[1] / 255.0f, cp_src[2] / 255.0f, &h1, &s1, &v1);
+	rgb_to_hsv(cp_dst[0] / 255.0f, cp_dst[1] / 255.0f, cp_dst[2] / 255.0f, &h2, &s2, &v2);
 
 	if (s1 > EPS_SATURATION) {
 		s1 = s2;
@@ -535,81 +535,81 @@ BLI_INLINE uint mcol_saturation(uint col1, uint col2, int fac)
 
 	hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-	cp[0] = ((int)(r * 255.0f) * fac + mfac * cp1[0]) / 255;
-	cp[1] = ((int)(g * 255.0f) * fac + mfac * cp1[1]) / 255;
-	cp[2] = ((int)(b * 255.0f) * fac + mfac * cp1[2]) / 255;
-	return col;
+	cp_mix[0] = ((int)(r * 255.0f) * fac + mfac * cp_src[0]) / 255;
+	cp_mix[1] = ((int)(g * 255.0f) * fac + mfac * cp_src[1]) / 255;
+	cp_mix[2] = ((int)(b * 255.0f) * fac + mfac * cp_src[2]) / 255;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_hue(uint col1, uint col2, int fac)
+BLI_INLINE uint mcol_hue(uint col_src, uint col_dst, int fac)
 {
-	uchar *cp1, *cp2, *cp;
+	uchar *cp_src, *cp_dst, *cp_mix;
 	int mfac;
-	uint col = 0;
+	uint col_mix = 0;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
 	mfac = 255 - fac;
 
-	cp1 = (uchar *)&col1;
-	cp2 = (uchar *)&col2;
-	cp = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_dst = (uchar *)&col_dst;
+	cp_mix = (uchar *)&col_mix;
 
 	float h1, s1, v1;
 	float h2, s2, v2;
 	float r, g, b;
-	rgb_to_hsv(cp1[0] / 255.0f, cp1[1] / 255.0f, cp1[2] / 255.0f, &h1, &s1, &v1);
-	rgb_to_hsv(cp2[0] / 255.0f, cp2[1] / 255.0f, cp2[2] / 255.0f, &h2, &s2, &v2);
+	rgb_to_hsv(cp_src[0] / 255.0f, cp_src[1] / 255.0f, cp_src[2] / 255.0f, &h1, &s1, &v1);
+	rgb_to_hsv(cp_dst[0] / 255.0f, cp_dst[1] / 255.0f, cp_dst[2] / 255.0f, &h2, &s2, &v2);
 
 	h1 = h2;
 
 	hsv_to_rgb(h1, s1, v1, &r, &g, &b);
 
-	cp[0] = ((int)(r * 255.0f) * fac + mfac * cp1[0]) / 255;
-	cp[1] = ((int)(g * 255.0f) * fac + mfac * cp1[1]) / 255;
-	cp[2] = ((int)(b * 255.0f) * fac + mfac * cp1[2]) / 255;
-	cp[3] = ((int)(cp2[3])     * fac + mfac * cp1[3]) / 255;
-	return col;
+	cp_mix[0] = ((int)(r * 255.0f) * fac + mfac * cp_src[0]) / 255;
+	cp_mix[1] = ((int)(g * 255.0f) * fac + mfac * cp_src[1]) / 255;
+	cp_mix[2] = ((int)(b * 255.0f) * fac + mfac * cp_src[2]) / 255;
+	cp_mix[3] = ((int)(cp_dst[3])  * fac + mfac * cp_src[3]) / 255;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_alpha_add(uint col1, int fac)
+BLI_INLINE uint mcol_alpha_add(uint col_src, int fac)
 {
-	uchar *cp1, *cp;
+	uchar *cp_src, *cp_mix;
 	int temp;
-	uint col = 0;
+	uint col_mix = col_src;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
-	cp1 = (uchar *)&col1;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = cp1[3] + fac;
-	cp[3] = (temp > 254) ? 255 : temp;
+	temp = cp_src[3] + fac;
+	cp_mix[3] = (temp > 254) ? 255 : temp;
 
-	return col;
+	return col_mix;
 }
 
-BLI_INLINE uint mcol_alpha_sub(uint col1, int fac)
+BLI_INLINE uint mcol_alpha_sub(uint col_src, int fac)
 {
-	uchar *cp1, *cp;
+	uchar *cp_src, *cp_mix;
 	int temp;
-	uint col = 0;
+	uint col_mix = col_src;
 
 	if (fac == 0) {
-		return col1;
+		return col_src;
 	}
 
-	cp1 = (uchar *)&col1;
-	cp  = (uchar *)&col;
+	cp_src = (uchar *)&col_src;
+	cp_mix = (uchar *)&col_mix;
 
-	temp = cp1[3] - fac;
-	cp[3] = temp < 0 ? 0 : temp;
+	temp = cp_src[3] - fac;
+	cp_mix[3] = temp < 0 ? 0 : temp;
 
-	return col;
+	return col_mix;
 }
 
 /* wpaint has 'ED_wpaint_blend_tool' */
