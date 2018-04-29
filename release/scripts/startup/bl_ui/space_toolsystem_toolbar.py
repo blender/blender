@@ -406,17 +406,52 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_from_brushes(context):
+        # Categories
+        brush_categories = {}
         for brush in context.blend_data.brushes:
-            name = brush.name
-            yield type(
-                "DynToolDef",
-                (ToolDef,),
-                dict(
-                    text=name,
-                    icon="none",
-                    data_block=name,
+            if brush.use_paint_sculpt:
+                name = brush.name
+                brush_categories.setdefault(brush.sculpt_tool, []).append(
+                    type(
+                        "DynToolDef",
+                        (ToolDef,),
+                        dict(
+                            text=name,
+                            icon="none",
+                            data_block=name,
+                        )
+                    )
                 )
-            )
+
+        def tools_from_brush_group(*groups):
+            if len(groups) == 1:
+                tool_defs = brush_categories.pop(groups[0], ())
+            else:
+                tool_defs = tuple(item for g in groups for item in brush_categories.pop(g, ()))
+            if len(tool_defs) > 1:
+                return (tool_defs,)
+            else:
+                return tool_defs
+
+        # Each item below is a single toolbar entry:
+        # Grouped for multiple or none if no brushes are found.
+        tool_defs = (
+            *tools_from_brush_group("DRAW"),
+            *tools_from_brush_group("GRAB", "THUMB"),
+            *tools_from_brush_group("SNAKE_HOOK"),
+            *tools_from_brush_group("BLOB", "INFLATE"),
+            *tools_from_brush_group("SMOOTH", "SCRAPE" , "FLATTEN"),
+            *tools_from_brush_group("CREASE", "PINCH"),
+            *tools_from_brush_group("CLAY", "CLAY_STRIPS"),
+            *tools_from_brush_group("LAYER"),
+            *tools_from_brush_group("NUDGE", "ROTATE"),
+            *tools_from_brush_group("FILL"),
+            *tools_from_brush_group("SIMPLIFY"),
+            *tools_from_brush_group("MASK"),
+        )
+        # Ensure we use all types.
+        assert(len(brush_categories) == 0)
+        return tool_defs
 
 
 class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
@@ -437,6 +472,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                     yield from item(context)
                 else:
                     yield item
+            # Separate
+            yield None
 
 
     @classmethod
@@ -456,25 +493,31 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         _defs_view3d_generic.ruler,
     )
 
+    _tools_select = (
+        (
+            _defs_view3d_select.border,
+            _defs_view3d_select.circle,
+            _defs_view3d_select.lasso,
+        ),
+    )
+
     _tools = {
         None: [
             _defs_view3d_generic.cursor,
-
-            # 'Select' Group
-            (
-                _defs_view3d_select.border,
-                _defs_view3d_select.circle,
-                _defs_view3d_select.lasso,
-            ),
             # End group.
         ],
         'OBJECT': [
+            *_tools_select,
+            None,
             *_tools_transform,
         ],
         'POSE': [
+            *_tools_select,
             *_tools_transform,
         ],
         'PAINT_WEIGHT': [
+            *_tools_select,
+
             # TODO, override brush events
             (
                 _defs_weight_paint.gradient_linear,
@@ -482,6 +525,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'EDIT_ARMATURE': [
+            *_tools_select,
+            None,
             *_tools_transform,
             _defs_edit_armature.roll,
             None,
@@ -491,6 +536,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             )
         ],
         'EDIT_MESH': [
+            *_tools_select,
+            None,
             *_tools_transform,
             None,
             (
@@ -539,6 +586,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             ),
         ],
         'EDIT_CURVE': [
+            *_tools_select,
+            None,
             *_tools_transform,
             None,
             _defs_edit_curve.draw,
