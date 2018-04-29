@@ -45,6 +45,9 @@ class VIEW3D_HT_header(Header):
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row = layout
+        row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_shading", text="Shading")
+        row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_overlays", text="Overlay")
+
         layout.template_header_3D()
 
         if obj:
@@ -3513,16 +3516,61 @@ class VIEW3D_PT_view3d_name(Panel):
                 row.prop(bone, "name", text="")
 
 
-class VIEW3D_PT_view3d_display(Panel):
+class VIEW3D_PT_shading(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_label = "Display"
-    bl_options = {'DEFAULT_CLOSED'}
+    bl_label = "Shading"
 
     @classmethod
     def poll(cls, context):
+        return False
+
+    def draw(self, context):
+        layout = self.layout
+
         view = context.space_data
-        return (view)
+
+        col = layout.column()
+        col.prop(view, "viewport_shade", expand=True)
+
+        if view.viewport_shade == 'SOLID':
+            col.separator()
+            col.row().prop(view, "viewport_lighting", expand=True)
+
+            if view.viewport_lighting == 'STUDIO':
+                # TODO: don't store these settings in the scene
+                scene = context.scene
+                props = scene.layer_properties['BLENDER_WORKBENCH']
+
+                col.separator()
+
+                sub = col.column()
+                sub.label(text="Left/Right:")
+                row = sub.row(align=True)
+                row.prop(props, "diffuse_light_x_neg", text="")
+                row.prop(props, "diffuse_light_x_pos", text="")
+
+                sub = col.column()
+                sub.label(text="Up/Down:")
+                row = sub.row(align=True)
+                row.prop(props, "diffuse_light_y_neg", text="")
+                row.prop(props, "diffuse_light_y_pos", text="")
+
+                sub = col.column()
+                sub.label(text="Front/Back:")
+                row = sub.row(align=True)
+                row.prop(props, "diffuse_light_z_neg", text="")
+                row.prop(props, "diffuse_light_z_pos", text="")
+
+
+class VIEW3D_PT_overlay(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Overlay"
+
+    @classmethod
+    def poll(cls, context):
+        return False
 
     def draw(self, context):
         layout = self.layout
@@ -3531,7 +3579,9 @@ class VIEW3D_PT_view3d_display(Panel):
         scene = context.scene
 
         col = layout.column()
-        col.prop(view, "show_only_render")
+        col.prop(view, "show_only_render", text="Show Overlays")
+        col.separator()
+
         col.prop(view, "show_world")
 
         if view.viewport_shade == "SOLID":
@@ -3569,20 +3619,32 @@ class VIEW3D_PT_view3d_display(Panel):
         subsub.active = scene.unit_settings.system == 'NONE'
         subsub.prop(view, "grid_subdivisions", text="Subdivisions")
 
-        layout.separator()
 
-        layout.operator("screen.region_quadview", text="Toggle Quad View")
+class VIEW3D_PT_quad_view(Panel):
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_label = "Quad View"
+    bl_options = {'DEFAULT_CLOSED'}
 
-        if view.region_quadviews:
-            region = view.region_quadviews[2]
-            col = layout.column()
-            col.prop(region, "lock_rotation")
-            row = col.row()
-            row.enabled = region.lock_rotation
-            row.prop(region, "show_sync_view")
-            row = col.row()
-            row.enabled = region.lock_rotation and region.show_sync_view
-            row.prop(region, "use_box_clip")
+    @classmethod
+    def poll(cls, context):
+        view = context.space_data
+        return view.region_quadviews
+
+    def draw(self, context):
+        layout = self.layout
+
+        view = context.space_data
+
+        region = view.region_quadviews[2]
+        col = layout.column()
+        col.prop(region, "lock_rotation")
+        row = col.row()
+        row.enabled = region.lock_rotation
+        row.prop(region, "show_sync_view")
+        row = col.row()
+        row.enabled = region.lock_rotation and region.show_sync_view
+        row.prop(region, "use_box_clip")
 
 
 class VIEW3D_PT_view3d_stereo(Panel):
@@ -3990,12 +4052,14 @@ classes = (
     VIEW3D_PT_view3d_properties,
     VIEW3D_PT_view3d_cursor,
     VIEW3D_PT_view3d_name,
-    VIEW3D_PT_view3d_display,
+    VIEW3D_PT_quad_view,
     VIEW3D_PT_view3d_stereo,
     VIEW3D_PT_view3d_motion_tracking,
     VIEW3D_PT_view3d_meshdisplay,
     VIEW3D_PT_view3d_meshstatvis,
     VIEW3D_PT_view3d_curvedisplay,
+    VIEW3D_PT_shading,
+    VIEW3D_PT_overlays,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_context_properties,
 )
