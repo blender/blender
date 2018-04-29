@@ -34,6 +34,7 @@ class VIEW3D_HT_header(Header):
         layout = self.layout
 
         view = context.space_data
+        shading = view.shading
         # mode_string = context.mode
         obj = context.active_object
         toolsettings = context.tool_settings
@@ -46,7 +47,7 @@ class VIEW3D_HT_header(Header):
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row = layout
         row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_shading", text="Shading")
-        row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_overlays", text="Overlay")
+        row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_overlay", text="Overlay")
 
         layout.template_header_3D()
 
@@ -57,7 +58,7 @@ class VIEW3D_HT_header(Header):
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if ((view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
+            if ((shading.type not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
                     (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
                 row.prop(view, "use_occlude_geometry", text="")
 
@@ -3529,15 +3530,16 @@ class VIEW3D_PT_shading(Panel):
         layout = self.layout
 
         view = context.space_data
+        shading = view.shading
 
         col = layout.column()
-        col.prop(view, "viewport_shade", expand=True)
+        col.prop(shading, "type", expand=True)
 
-        if view.viewport_shade == 'SOLID':
+        if shading.type == 'SOLID':
             col.separator()
-            col.row().prop(view, "viewport_lighting", expand=True)
+            col.row().prop(shading, "light", expand=True)
 
-            if view.viewport_lighting == 'STUDIO':
+            if shading.light == 'STUDIO':
                 # TODO: don't store these settings in the scene
                 scene = context.scene
                 props = scene.layer_properties['BLENDER_WORKBENCH']
@@ -3576,15 +3578,17 @@ class VIEW3D_PT_overlay(Panel):
         layout = self.layout
 
         view = context.space_data
+        overlay = view.overlay
+        shading = view.shading
         scene = context.scene
 
         col = layout.column()
-        col.prop(view, "show_only_render", text="Show Overlays")
+        col.prop(overlay, "show_overlays")
         col.separator()
 
         col.prop(view, "show_world")
 
-        if view.viewport_shade == "SOLID":
+        if shading.type == "SOLID":
             col.prop(view, "show_random_object_colors")
             col.prop(view, "show_object_overlap")
 
@@ -3592,7 +3596,7 @@ class VIEW3D_PT_overlay(Panel):
             col.prop(view, "show_mode_shade_override")
 
         col = layout.column()
-        display_all = not view.show_only_render
+        display_all = overlay.show_overlays
         col.active = display_all
         col.prop(view, "show_outline_selected")
         col.prop(view, "show_all_objects_origin")
@@ -4059,7 +4063,7 @@ classes = (
     VIEW3D_PT_view3d_meshstatvis,
     VIEW3D_PT_view3d_curvedisplay,
     VIEW3D_PT_shading,
-    VIEW3D_PT_overlays,
+    VIEW3D_PT_overlay,
     VIEW3D_PT_transform_orientations,
     VIEW3D_PT_context_properties,
 )

@@ -987,11 +987,11 @@ kmi = km.keymap_items.new('view3d.view_orbit', 'WHEELDOWNMOUSE', 'PRESS', shift=
 kmi.properties.type = 'ORBITDOWN'
 kmi = km.keymap_items.new('view3d.localview', 'I', 'PRESS', shift=True)
 kmi = km.keymap_items.new('wm.context_toggle_enum', 'FOUR', 'PRESS')
-kmi.properties.data_path = 'space_data.viewport_shade'
+kmi.properties.data_path = 'space_data.shading.type'
 kmi.properties.value_1 = 'WIREFRAME'
 kmi.properties.value_2 = 'WIREFRAME'
 kmi = km.keymap_items.new('wm.context_toggle_enum', 'FIVE', 'PRESS')
-kmi.properties.data_path = 'space_data.viewport_shade'
+kmi.properties.data_path = 'space_data.shading.type'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'SOLID'
 kmi = km.keymap_items.new('view3d.select_or_deselect_all', 'SELECTMOUSE', 'CLICK')
@@ -1080,7 +1080,7 @@ kmi.properties.rotate = True
 kmi = km.keymap_items.new('view3d.enable_manipulator', 'R', 'PRESS')
 kmi.properties.scale = True
 kmi = km.keymap_items.new('wm.context_toggle_enum', 'SIX', 'PRESS')
-kmi.properties.data_path = 'space_data.viewport_shade'
+kmi.properties.data_path = 'space_data.shading.type'
 kmi.properties.value_1 = 'TEXTURED'
 kmi.properties.value_2 = 'TEXTURED'
 kmi = km.keymap_items.new('wm.context_set_enum', 'X', 'PRESS')

@@ -175,7 +175,7 @@ static const EnumPropertyItem autosnap_items[] = {
 };
 #endif
 
-const EnumPropertyItem rna_enum_viewport_shade_items[] = {
+const EnumPropertyItem rna_enum_shading_type_items[] = {
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
 	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid"},
 	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Texture", "Display the object solid, with a texture"},
@@ -491,7 +491,7 @@ static void rna_SpaceView3D_layer_update(Main *bmain, Scene *UNUSED(scene), Poin
 	DEG_on_visible_update(bmain, false);
 }
 
-static void rna_SpaceView3D_viewport_shade_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_3DViewShading_type_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	ScrArea *sa = rna_area_from_space(ptr);
@@ -649,7 +649,7 @@ static void rna_RegionView3D_view_matrix_set(PointerRNA *ptr, const float *value
 	ED_view3d_from_m4(mat, rv3d->ofs, rv3d->viewquat, &rv3d->dist);
 }
 
-static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
+static int rna_3DViewShading_type_get(PointerRNA *ptr)
 {
 	bScreen *screen = ptr->id.data;
 	Scene *scene = WM_windows_scene_get_from_screen(G.main->wm.first, screen);
@@ -670,7 +670,7 @@ static int rna_SpaceView3D_viewport_shade_get(PointerRNA *ptr)
 	return v3d->drawtype;
 }
 
-static void rna_SpaceView3D_viewport_shade_set(PointerRNA *ptr, int value)
+static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
 {
 	View3D *v3d = (View3D *)ptr->data;
 	if (value != v3d->drawtype && value == OB_RENDER) {
@@ -679,7 +679,7 @@ static void rna_SpaceView3D_viewport_shade_set(PointerRNA *ptr, int value)
 	v3d->drawtype = value;
 }
 
-static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(
+static const EnumPropertyItem *rna_3DViewShading_type_itemf(
         bContext *C, PointerRNA *UNUSED(ptr),
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
@@ -690,15 +690,15 @@ static const EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 
-	RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_SOLID);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_SOLID);
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
-		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 	}
 	else {
-		RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_MATERIAL);
+		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_MATERIAL);
 		if (type && type->render_to_view) {
-			RNA_enum_items_add_value(&item, &totitem, rna_enum_viewport_shade_items, OB_RENDER);
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);
 		}
 	}
 
@@ -718,6 +718,26 @@ static const EnumPropertyItem *rna_SpaceView3D_stereo3d_camera_itemf(
 		return multiview_camera_items;
 	else
 		return stereo3d_camera_items;
+}
+
+static PointerRNA rna_SpaceView3D_shading_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_View3DShading, ptr->data);
+}
+
+static char *rna_View3DShading_path(PointerRNA *UNUSED(ptr))
+{
+    return BLI_sprintfN("shading");
+}
+
+static PointerRNA rna_SpaceView3D_overlay_get(PointerRNA *ptr)
+{
+	return rna_pointer_inherit_refine(ptr, &RNA_View3DOverlay, ptr->data);
+}
+
+static char *rna_View3DOverlay_path(PointerRNA *UNUSED(ptr))
+{
+    return BLI_sprintfN("overlay");
 }
 
 /* Space Image Editor */
@@ -2159,6 +2179,49 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 }
 
+static void rna_def_space_view3d_shading(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "View3DShading", NULL);
+	RNA_def_struct_sdna(srna, "View3D");
+	RNA_def_struct_nested(brna, srna, "SpaceView3D");
+	RNA_def_struct_path_func(srna, "rna_View3DShading_path");
+	RNA_def_struct_ui_text(srna, "3D View Shading Settings", "Settings for shading in the 3D viewport");
+
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
+	RNA_def_property_enum_items(prop, rna_enum_shading_type_items);
+	RNA_def_property_enum_funcs(prop, "rna_3DViewShading_type_get", "rna_3DViewShading_type_set",
+	                            "rna_3DViewShading_type_itemf");
+	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
+
+	prop = RNA_def_property(srna, "light", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype_lighting");
+	RNA_def_property_enum_items(prop, rna_enum_viewport_lighting_items);
+	RNA_def_property_ui_text(prop, "Lighting", "Lighting Method for Solid/Texture Viewport Shading");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
+}
+
+static void rna_def_space_view3d_overlay(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "View3DOverlay", NULL);
+	RNA_def_struct_sdna(srna, "View3D");
+	RNA_def_struct_nested(brna, srna, "SpaceView3D");
+	RNA_def_struct_path_func(srna, "rna_View3DOverlay_path");
+	RNA_def_struct_ui_text(srna, "3D View Overlay Settings", "Settings for display of overlays in the 3D viewport");
+
+	prop = RNA_def_property(srna, "show_overlays", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag2", V3D_RENDER_OVERRIDE);
+	RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like manipulators and outlines");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+}
+
 static void rna_def_space_view3d(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2269,37 +2332,23 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock to Cursor", "3D View center is locked to the cursor's position");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "viewport_shade", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "drawtype");
-	RNA_def_property_enum_items(prop, rna_enum_viewport_shade_items);
-	RNA_def_property_enum_funcs(prop, "rna_SpaceView3D_viewport_shade_get", "rna_SpaceView3D_viewport_shade_set",
-	                            "rna_SpaceView3D_viewport_shade_itemf");
-	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
-
-	prop = RNA_def_property(srna, "viewport_lighting", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "drawtype_lighting");
-	RNA_def_property_enum_items(prop, rna_enum_viewport_lighting_items);
-	RNA_def_property_ui_text(prop, "Viewport Lighting", "Lighting Method for Solid/Texture Viewport Shading");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
-
 	prop = RNA_def_property(srna, "show_face_orientation_overlay", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "overlays", V3D_OVERLAY_FACE_ORIENTATION);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Face Orientation", "Show the Face Orientation Overlay");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "show_random_object_colors", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_RANDOMIZE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Random Colors", "Show random object colors");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "show_object_overlap", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_OBJECT_OVERLAP);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Object Overlap", "Show Object Overlap");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_SpaceView3D_viewport_shade_update");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
@@ -2430,11 +2479,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "lock_camera", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_LOCK_CAMERA);
 	RNA_def_property_ui_text(prop, "Lock Camera to View", "Enable view navigation within the camera view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_only_render", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag2", V3D_RENDER_OVERRIDE);
-	RNA_def_property_ui_text(prop, "Only Render", "Display only objects which will be rendered");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_world", PROP_BOOLEAN, PROP_NONE);
@@ -2593,6 +2637,22 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "stereo3d_volume_alpha");
 	RNA_def_property_ui_text(prop, "Volume Alpha", "Opacity (alpha) of the cameras' frustum volume");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* Nested Structs */
+	prop = RNA_def_property(srna, "shading", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "View3DShading");
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_shading_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Shading Settings", "Settings for shading in the 3D viewport");
+
+	prop = RNA_def_property(srna, "overlay", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_struct_type(prop, "View3DOverlay");
+	RNA_def_property_pointer_funcs(prop, "rna_SpaceView3D_overlay_get", NULL, NULL, NULL);
+	RNA_def_property_ui_text(prop, "Overlay Settings", "Settings for display of overlays in the 3D viewport");
+
+	rna_def_space_view3d_shading(brna);
+	rna_def_space_view3d_overlay(brna);
 
 	/* *** Animated *** */
 	RNA_define_animate_sdna(true);

@@ -165,7 +165,7 @@ extern const EnumPropertyItem rna_enum_property_type_items[];
 extern const EnumPropertyItem rna_enum_property_subtype_items[];
 extern const EnumPropertyItem rna_enum_property_unit_items[];
 
-extern const EnumPropertyItem rna_enum_viewport_shade_items[];
+extern const EnumPropertyItem rna_enum_shading_type_items[];
 
 extern const EnumPropertyItem rna_enum_navigation_mode_items[];
 
