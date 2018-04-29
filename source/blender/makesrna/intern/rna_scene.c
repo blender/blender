@@ -957,10 +957,12 @@ static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *ite
 	rna_iterator_listbase_begin(iter, &rd->views, rna_RenderSettings_stereoViews_skip);
 }
 
+#if 0
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
 }
+#endif
 
 static char *rna_BakeSettings_path(PointerRNA *UNUSED(ptr))
 {

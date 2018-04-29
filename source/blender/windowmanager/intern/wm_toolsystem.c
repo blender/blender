@@ -99,9 +99,9 @@ void WM_toolsystem_set(bContext *C, const bToolDef *tool)
 	workspace->tool.spacetype = tool->spacetype;
 
 	if (&workspace->tool != tool) {
-		BLI_strncpy(workspace->tool.keymap, tool->keymap, sizeof(tool->keymap));
-		BLI_strncpy(workspace->tool.manipulator_group, tool->manipulator_group, sizeof(tool->manipulator_group));
-		BLI_strncpy(workspace->tool.data_block, tool->data_block, sizeof(tool->data_block));
+		STRNCPY(workspace->tool.keymap, tool->keymap);
+		STRNCPY(workspace->tool.manipulator_group, tool->manipulator_group);
+		STRNCPY(workspace->tool.data_block, tool->data_block);
 		workspace->tool.spacetype = tool->spacetype;
 	}
 
