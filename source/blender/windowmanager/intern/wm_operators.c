@@ -1828,6 +1828,7 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 	tool_def.spacetype = sa->spacetype;
 	RNA_string_get(op->ptr, "keymap", tool_def.keymap);
 	RNA_string_get(op->ptr, "manipulator_group", tool_def.manipulator_group);
+	RNA_string_get(op->ptr, "data_block", tool_def.data_block);
 
 	WM_toolsystem_set(C, &tool_def);
 
@@ -1849,6 +1850,7 @@ static void WM_OT_tool_set(wmOperatorType *ot)
 
 	RNA_def_string(ot->srna, "keymap", NULL, KMAP_MAX_NAME, "Key Map", "");
 	RNA_def_string(ot->srna, "manipulator_group", NULL, MAX_NAME, "Manipulator Group", "");
+	RNA_def_string(ot->srna, "data_block", NULL, MAX_NAME, "Data Block", "");
 	RNA_def_int(ot->srna, "index", 0, INT_MIN, INT_MAX, "Index", "", INT_MIN, INT_MAX);
 }
 #endif /* USE_WORKSPACE_TOOL */

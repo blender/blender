@@ -79,11 +79,10 @@ class ToolDef:
         # All classes must have a name
         assert(cls.text is not None)
         # We must have a key-map or widget (otherwise the tool does nothing!)
-        assert(cls.keymap is not None or cls.widget is not None)
+        assert(not (cls.keymap is None and cls.widget is None and cls.data_block is None))
 
         if type(cls.keymap) is tuple:
             cls.keymap = _keymap_fn_from_seq(cls.keymap)
-
 
     # The name to display in the interface.
     text = None
@@ -96,6 +95,9 @@ class ToolDef:
     # - A tuple filled with triple's of:
     #   ``(operator_id, operator_properties, keymap_item_args)``.
     keymap = None
+    # Optional data-block assosiated with this tool.
+    # (Typically brush name, usage depends on mode, we could use for non-brush ID's in other modes).
+    data_block = None
     # Optional draw settings (operator options, toolsettings).
     draw_settings = None
 
@@ -166,6 +168,7 @@ class ToolSelectPanelHelper:
         text = item.text
         icon_name = item.icon
         mp_idname = item.widget
+        datablock_idname = item.data_block
         keymap_fn = item.keymap
         if keymap_fn is None:
             km, km_idname = (None, None)
@@ -174,13 +177,15 @@ class ToolSelectPanelHelper:
             if km_test is None and context_mode is not None:
                 km_test = cls._tool_keymap[None, text]
             km, km_idname = km_test
-        return (km_idname, mp_idname), icon_name
+        return (km_idname, mp_idname, datablock_idname), icon_name
 
     @staticmethod
     def _tool_vars_from_active_with_index(context):
         workspace = context.workspace
         return (
-            (workspace.tool_keymap or None, workspace.tool_manipulator_group or None),
+            (workspace.tool_keymap or None,
+             workspace.tool_manipulator_group or None,
+             workspace.tool_data_block or None),
             workspace.tool_index,
         )
 
@@ -387,6 +392,7 @@ class ToolSelectPanelHelper:
 
                 tool_def, icon_name = self._tool_vars_from_def(item, context_mode)
                 is_active = (tool_def == tool_def_active)
+
                 icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
 
                 sub = ui_gen.send(False)
@@ -408,6 +414,7 @@ class ToolSelectPanelHelper:
                     )
                 props.keymap = tool_def[0] or ""
                 props.manipulator_group = tool_def[1] or ""
+                props.data_block = tool_def[2] or ""
                 props.index = index
         # Signal to finish any remaining layout edits.
         ui_gen.send(None)
@@ -507,6 +514,7 @@ class WM_MT_toolsystem_submenu(Menu):
             )
             props.keymap = tool_def[0] or ""
             props.manipulator_group = tool_def[1] or ""
+            props.data_block = tool_def[2] or ""
             props.index = index
             index += 1
 

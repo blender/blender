@@ -187,6 +187,11 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool manipulator");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	prop = RNA_def_property(srna, "tool_data_block", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "tool.data_block");
+	RNA_def_property_ui_text(prop, "Active Tool", "Currently active data-block");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
 	prop = RNA_def_property(srna, "tool_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "tool.index");
 	RNA_def_property_ui_text(prop, "Active Tool Index", "Tool group index");
