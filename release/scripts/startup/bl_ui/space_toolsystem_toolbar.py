@@ -402,6 +402,23 @@ class _defs_edit_curve:
         )
 
 
+class _defs_sculpt:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        for brush in context.blend_data.brushes:
+            name = brush.name
+            yield type(
+                "DynToolDef",
+                (ToolDef,),
+                dict(
+                    text=name,
+                    icon="none",
+                    data_block=name,
+                )
+            )
+
+
 class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
@@ -526,6 +543,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_edit_curve.draw,
             _defs_edit_curve.extrude_cursor,
+        ],
+        'SCULPT': [
+            _defs_sculpt.generate_from_brushes,
         ],
     }
 
