@@ -456,11 +456,9 @@ class ToolSelectPanelHelper:
     def draw_active_tool_header(context, layout):
         item, icon_value = ToolSelectPanelHelper._active_tool(context, with_icon=True)
         if item is None:
-            layout.label("No Tool Found")
             return
-        # Indent until we have better icon scaling.
-        layout.label("      " + item.text, icon_value=icon_value)
-
+        # Note: we could show 'item.text' here but it makes the layout jitter when switcuing tools.
+        layout.label(" ", icon_value=icon_value)
         draw_settings = item.draw_settings
         if draw_settings is not None:
             draw_settings(context, layout)
