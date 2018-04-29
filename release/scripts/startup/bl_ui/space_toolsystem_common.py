@@ -183,9 +183,11 @@ class ToolSelectPanelHelper:
     def _tool_vars_from_active_with_index(context):
         workspace = context.workspace
         return (
-            (workspace.tool_keymap or None,
-             workspace.tool_manipulator_group or None,
-             workspace.tool_data_block or None),
+            (
+                workspace.tool_keymap or None,
+                workspace.tool_manipulator_group or None,
+                workspace.tool_data_block or None,
+            ),
             workspace.tool_index,
         )
 
@@ -193,7 +195,11 @@ class ToolSelectPanelHelper:
     def _tool_vars_from_button_with_index(context):
         props = context.button_operator
         return (
-            (props.keymap or None or None, props.manipulator_group or None),
+            (
+                props.keymap or None or None,
+                props.manipulator_group or None,
+                props.data_block,
+            ),
             props.index,
         )
 
@@ -477,16 +483,15 @@ class WM_MT_toolsystem_submenu(Menu):
         )
         if cls is not None:
             tool_def_button, index_button = cls._tool_vars_from_button_with_index(context)
-
-            for item_items in cls.tools_from_context(context):
-                for item_group in item_items:
-                    if type(item_group) is tuple:
-                        if index_button < len(item_group):
-                            item = item_group[index_button]
-                            tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
-                            is_active = (tool_def == tool_def_button)
-                            if is_active:
-                                return cls, item_group, index_button
+            for item_group in cls.tools_from_context(context):
+                if type(item_group) is tuple:
+                    if index_button < len(item_group):
+                        item = item_group[index_button]
+                        tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
+                        is_active = (tool_def == tool_def_button)
+                        print(tool_def, tool_def_button)
+                        if is_active:
+                            return cls, item_group, index_button
         return None, None, -1
 
     def draw(self, context):
