@@ -957,12 +957,10 @@ static void rna_RenderSettings_stereoViews_begin(CollectionPropertyIterator *ite
 	rna_iterator_listbase_begin(iter, &rd->views, rna_RenderSettings_stereoViews_skip);
 }
 
-#if 0
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
 }
-#endif
 
 static char *rna_BakeSettings_path(PointerRNA *UNUSED(ptr))
 {
@@ -4825,6 +4823,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "RenderSettings", NULL);
 	RNA_def_struct_sdna(srna, "RenderData");
 	RNA_def_struct_nested(brna, srna, "Scene");
+	RNA_def_struct_path_func(srna, "rna_RenderSettings_path");
 	RNA_def_struct_ui_text(srna, "Render Data", "Rendering settings for a Scene data-block");
 
 	/* Render Data */
