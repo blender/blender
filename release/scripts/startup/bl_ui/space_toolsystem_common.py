@@ -58,6 +58,10 @@ def _keymap_fn_from_seq(keymap_data):
     return keymap_fn
 
 
+def _item_is_fn(item):
+    return (not (type(item) is type and issubclass(item, ToolDef)) and callable(item))
+
+
 class ToolDef:
     """
     Tool definition,
@@ -137,14 +141,23 @@ class ToolSelectPanelHelper:
 
     @staticmethod
     def _tools_flatten(tools):
+        """
+        Flattens, skips None and calls generators.
+        """
         for item in tools:
             if item is not None:
                 if type(item) is tuple:
                     for sub_item in item:
                         if sub_item is not None:
-                            yield sub_item
+                            if _item_is_fn(sub_item):
+                                yield from sub_item(context)
+                            else:
+                                yield sub_item
                 else:
-                    yield item
+                    if _item_is_fn(item):
+                        yield from item(context)
+                    else:
+                        yield item
 
     @classmethod
     def _tool_vars_from_def(cls, item, context_mode):
@@ -220,7 +233,8 @@ class ToolSelectPanelHelper:
                 if item_parent is None:
                     continue
                 for item in item_parent if (type(item_parent) is tuple) else (item_parent,):
-                    if item is None:
+                    # skip None or generator function
+                    if item is None or _item_is_fn(item):
                         continue
                     keymap_data = item.keymap
                     if keymap_data is not None:
@@ -341,67 +355,62 @@ class ToolSelectPanelHelper:
         # Start iteration
         ui_gen.send(None)
 
-        for tool_items in self.tools_from_context(context):
-            if tool_items:
-                for item in tool_items:
-                    if item is None:
-                        ui_gen.send(True)
-                        continue
+        for item in self.tools_from_context(context):
+                if item is None:
+                    ui_gen.send(True)
+                    continue
 
-                    if type(item) is tuple:
-                        is_active = False
-                        i = 0
-                        for i, sub_item in enumerate(item):
-                            if sub_item is None:
-                                continue
-                            tool_def, icon_name = self._tool_vars_from_def(sub_item, context_mode)
-                            is_active = (tool_def == tool_def_active)
-                            if is_active:
-                                index = i
-                                break
-                        del i, sub_item
-
+                if type(item) is tuple:
+                    is_active = False
+                    i = 0
+                    for i, sub_item in enumerate(item):
+                        if sub_item is None:
+                            continue
+                        tool_def, icon_name = self._tool_vars_from_def(sub_item, context_mode)
+                        is_active = (tool_def == tool_def_active)
                         if is_active:
-                            # not ideal, write this every time :S
-                            self._tool_group_active[item[0].text] = index
-                        else:
-                            index = self._tool_group_active.get(item[0].text, 0)
+                            index = i
+                            break
+                    del i, sub_item
 
-                        item = item[index]
-                        use_menu = True
+                    if is_active:
+                        # not ideal, write this every time :S
+                        self._tool_group_active[item[0].text] = index
                     else:
-                        index = -1
-                        use_menu = False
+                        index = self._tool_group_active.get(item[0].text, 0)
 
-                    tool_def, icon_name = self._tool_vars_from_def(item, context_mode)
-                    is_active = (tool_def == tool_def_active)
-                    icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
+                    item = item[index]
+                    use_menu = True
+                else:
+                    index = -1
+                    use_menu = False
 
-                    sub = ui_gen.send(False)
+                tool_def, icon_name = self._tool_vars_from_def(item, context_mode)
+                is_active = (tool_def == tool_def_active)
+                icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
 
-                    if use_menu:
-                        props = sub.operator_menu_hold(
-                            "wm.tool_set",
-                            text=item.text if show_text else "",
-                            depress=is_active,
-                            menu="WM_MT_toolsystem_submenu",
-                            icon_value=icon_value,
-                        )
-                    else:
-                        props = sub.operator(
-                            "wm.tool_set",
-                            text=item.text if show_text else "",
-                            depress=is_active,
-                            icon_value=icon_value,
-                        )
-                    props.keymap = tool_def[0] or ""
-                    props.manipulator_group = tool_def[1] or ""
-                    props.index = index
+                sub = ui_gen.send(False)
+
+                if use_menu:
+                    props = sub.operator_menu_hold(
+                        "wm.tool_set",
+                        text=item.text if show_text else "",
+                        depress=is_active,
+                        menu="WM_MT_toolsystem_submenu",
+                        icon_value=icon_value,
+                    )
+                else:
+                    props = sub.operator(
+                        "wm.tool_set",
+                        text=item.text if show_text else "",
+                        depress=is_active,
+                        icon_value=icon_value,
+                    )
+                props.keymap = tool_def[0] or ""
+                props.manipulator_group = tool_def[1] or ""
+                props.index = index
         # Signal to finish any remaining layout edits.
         ui_gen.send(None)
-
-    def tools_from_context(cls, context):
-        return (cls._tools[None], cls._tools.get(context.mode, ()))
 
     @staticmethod
     def _active_tool(context, with_icon=False):
@@ -420,15 +429,14 @@ class ToolSelectPanelHelper:
             tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
 
             context_mode = context.mode
-            for tool_items in cls.tools_from_context(context):
-                for item in cls._tools_flatten(tool_items):
-                    tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
-                    if (tool_def == tool_def_active):
-                        if with_icon:
-                            icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
-                        else:
-                            icon_value = 0
-                        return (item, icon_value)
+            for item in cls._tools_flatten(cls.tools_from_context(context)):
+                tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
+                if (tool_def == tool_def_active):
+                    if with_icon:
+                        icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
+                    else:
+                        icon_value = 0
+                    return (item, icon_value)
         return None, 0
 
     @staticmethod

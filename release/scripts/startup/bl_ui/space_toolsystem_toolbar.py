@@ -414,7 +414,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     @classmethod
     def tools_from_context(cls, context):
-        return (cls._tools[None], cls._tools.get(context.mode, ()))
+        for tools in (cls._tools[None], cls._tools.get(context.mode, ())):
+            for item in tools:
+                if not (type(item) is type and issubclass(item, ToolDef)) and callable(item):
+                    yield from item(context)
+                else:
+                    yield item
+
 
     @classmethod
     def tools_all(cls):
