@@ -140,9 +140,12 @@ class TOPBAR_HT_lower_bar(Header):
 
         # TODO(campbell): editing options should be after active tool options
         # (obviously separated for from the users POV)
+        draw_fn = getattr(_draw_left_context_mode, mode, None)
+        if draw_fn is not None:
+            draw_fn(context, layout)
 
         if mode == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
         elif mode == 'PAINT_VERTEX':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_WEIGHT':
@@ -174,6 +177,19 @@ class TOPBAR_HT_lower_bar(Header):
             text=op.name + " Settings" if op else "Command Settings",
         )
 
+
+class _draw_left_context_mode:
+    @staticmethod
+    def SCULPT(context, layout):
+        brush = context.tool_settings.sculpt.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import UnifiedPaintPanel
+
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", icon='LOCKED', slider=True, text="Radius")
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", icon='LOCKED', slider=True, text="Strength")
+        layout.prop(brush, "direction", expand=True)
 
 class TOPBAR_PT_redo(Panel):
     bl_label = "Redo"
