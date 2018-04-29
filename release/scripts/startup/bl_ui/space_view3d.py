@@ -1803,17 +1803,17 @@ class VIEW3D_MT_make_single_user(Menu):
         props.object = props.obdata = True
         props.material = props.texture = props.animation = False
 
-        props = layout.operator("object.make_single_user", text="Object & Data & Materials+Tex")
-        props.object = props.obdata = props.material = props.texture = True
+        props = layout.operator("object.make_single_user", text="Object & Data & Materials")
+        props.object = props.obdata = props.material = True
         props.animation = False
 
-        props = layout.operator("object.make_single_user", text="Materials+Tex")
-        props.material = props.texture = True
+        props = layout.operator("object.make_single_user", text="Materials")
+        props.material = True
         props.object = props.obdata = props.animation = False
 
         props = layout.operator("object.make_single_user", text="Object Animation")
         props.animation = True
-        props.object = props.obdata = props.material = props.texture = False
+        props.object = props.obdata = props.material = False
 
 
 class VIEW3D_MT_make_links(Menu):
