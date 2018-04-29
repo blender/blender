@@ -4698,7 +4698,7 @@ static void ui_draw_popover_back_impl(
 		else {
 			const float y = rect->ymin;
 			immVertex2f(pos, cent_x - unit_half, y);
-			immVertex2f(pos, cent_x + unit_half, rect->ymin);
+			immVertex2f(pos, cent_x + unit_half, y);
 			immVertex2f(pos, cent_x, y - unit_half);
 		}
 		immEnd();
