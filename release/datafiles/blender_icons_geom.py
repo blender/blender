@@ -87,6 +87,11 @@ def write_mesh_data_lists(me):
     tris_colors = []
 
     for p in me_polys:
+
+        # Backface culling (allows using spheres without tedious manual deleting).
+        if p.normal.z <= 0.0:
+            continue
+
         l_sta = p.loop_start
         l_len = p.loop_total
         loops_poly = me_loops[l_sta:l_sta + l_len]
