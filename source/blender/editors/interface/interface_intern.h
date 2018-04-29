@@ -572,6 +572,9 @@ struct uiPopupBlockHandle {
 	/* menu direction */
 	int direction;
 
+	/* previous rect for refresh */
+	rctf prev_block_rect;
+
 /* #ifdef USE_DRAG_POPUP */
 	bool is_grab;
 	int     grab_xy_prev[2];

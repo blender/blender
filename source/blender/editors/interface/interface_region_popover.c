@@ -95,12 +95,8 @@ static void ui_popover_create_block(bContext *C, uiPopover *pup, int opcontext)
 			uiLayoutContextCopy(pup->layout, pup->but->context);
 		}
 	}
-	else {
-		/* Some enums reversing is strange, currently we have no good way to
-		 * reverse some enum's but not others, so reverse all so the first menu
-		 * items are always close to the mouse cursor. */
-		pup->block->flag |= UI_BLOCK_NO_FLIP;
-	}
+
+	pup->block->flag |= UI_BLOCK_NO_FLIP;
 }
 
 static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, void *arg_pup)

@@ -591,6 +591,17 @@ uiBlock *ui_popup_block_refresh(
 	else {
 		/* clip block with window boundary */
 		ui_popup_block_clip(window, block);
+
+		/* Avoid menu moving down and losing cursor focus by keeping it at
+		 * the same height. */
+		if (block_old && handle->prev_block_rect.ymax > block->rect.ymax) {
+			float offset = handle->prev_block_rect.ymax - block->rect.ymax;
+			ui_block_translate(block, 0, offset);
+			block->rect.ymin = handle->prev_block_rect.ymin;
+		}
+
+		handle->prev_block_rect = block->rect;
+
 		/* the block and buttons were positioned in window space as in 2.4x, now
 		 * these menu blocks are regions so we bring it back to region space.
 		 * additionally we add some padding for the menu shadow or rounded menus */
