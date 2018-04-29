@@ -2208,10 +2208,11 @@ static void OBJECT_draw_scene(void *vedata)
 
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
+//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
+
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
 	/* This needs to be drawn after the oultine */
-//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_outline);

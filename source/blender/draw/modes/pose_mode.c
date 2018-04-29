@@ -169,9 +169,10 @@ static void POSE_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
+	DRW_draw_pass(psl->bone_envelope);
+
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
-	DRW_draw_pass(psl->bone_envelope);
 	DRW_draw_pass(psl->bone_outline);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->bone_solid);
