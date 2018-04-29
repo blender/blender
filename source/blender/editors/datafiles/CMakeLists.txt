@@ -528,6 +528,18 @@ set(ICON_NAMES
 # This section is maintained by the updating script, keep BEGIN/END comments.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	# BEGIN ICON_GEOM_NAMES
+	brush.sculpt.blob
+	brush.sculpt.crease
+	brush.sculpt.draw
+	brush.sculpt.flatten
+	brush.sculpt.grab
+	brush.sculpt.layer
+	brush.sculpt.mask
+	brush.sculpt.nudge
+	brush.sculpt.pinch
+	brush.sculpt.smooth
+	brush.sculpt.snakehook
+	brush.sculpt.thumb
 	none
 	ops.armature.bone.roll
 	ops.armature.extrude.cursor
