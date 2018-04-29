@@ -472,8 +472,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                     yield from item(context)
                 else:
                     yield item
-            # Separate
-            yield None
 
 
     @classmethod
