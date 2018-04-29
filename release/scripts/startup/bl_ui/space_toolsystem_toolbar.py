@@ -410,14 +410,15 @@ class _defs_sculpt:
         brush_categories = {}
         for brush in context.blend_data.brushes:
             if brush.use_paint_sculpt:
+                sculpt_tool = brush.sculpt_tool
                 name = brush.name
-                brush_categories.setdefault(brush.sculpt_tool, []).append(
+                brush_categories.setdefault(sculpt_tool, []).append(
                     type(
                         "DynToolDef",
                         (ToolDef,),
                         dict(
                             text=name,
-                            icon="none",
+                            icon="brush.sculpt." + sculpt_tool.lower(),
                             data_block=name,
                         )
                     )
