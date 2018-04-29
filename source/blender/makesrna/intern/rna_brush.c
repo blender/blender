@@ -44,8 +44,8 @@
 #include "WM_types.h"
 
 static const EnumPropertyItem prop_direction_items[] = {
-	{0, "ADD", 0, "Add", "Add effect of brush"},
-	{BRUSH_DIR_IN, "SUBTRACT", 0, "Subtract", "Subtract effect of brush"},
+	{0, "ADD", ICON_ZOOMIN, "Add", "Add effect of brush"},
+	{BRUSH_DIR_IN, "SUBTRACT", ICON_ZOOMOUT, "Subtract", "Subtract effect of brush"},
 	{0, NULL, 0, NULL, NULL}
 };
 

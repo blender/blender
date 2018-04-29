@@ -187,9 +187,9 @@ class _draw_left_context_mode:
 
         from .properties_paint_common import UnifiedPaintPanel
 
-        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", icon='LOCKED', slider=True, text="Radius")
-        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", icon='LOCKED', slider=True, text="Strength")
-        layout.prop(brush, "direction", expand=True)
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+        layout.prop(brush, "direction", text="", expand=True)
 
 class TOPBAR_PT_redo(Panel):
     bl_label = "Redo"
