@@ -682,7 +682,7 @@ uiPopupBlockHandle *ui_popup_block_create(
 
 	memset(&type, 0, sizeof(ARegionType));
 	type.draw = ui_block_region_draw;
-	type.refresh = ui_block_region_refresh;
+	type.layout = ui_block_region_refresh;
 	type.regionid = RGN_TYPE_TEMPORARY;
 	ar->type = &type;
 

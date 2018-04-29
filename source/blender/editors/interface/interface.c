@@ -224,6 +224,26 @@ void ui_region_to_window(const ARegion *ar, int *x, int *y)
 	*y += ar->winrct.ymin;
 }
 
+static void ui_update_window_matrix(const wmWindow *window, const ARegion *region, uiBlock *block)
+{
+	/* window matrix and aspect */
+	if (region && region->visible) {
+		/* Get projection matrix which includes View2D translation and zoom. */
+		gpuGetProjectionMatrix(block->winmat);
+		block->aspect = 2.0f / fabsf(region->winx * block->winmat[0][0]);
+	}
+	else {
+		/* No subwindow created yet, for menus for example, so we use the main
+		 * window instead, since buttons are created there anyway. */
+		int width = WM_window_pixels_x(window);
+		int height = WM_window_pixels_y(window);
+		rcti winrct = {0, width - 1, 0, height - 1};
+
+		wmGetProjectionMatrix(block->winmat, &winrct);
+		block->aspect = 2.0f / fabsf(width * block->winmat[0][0]);
+	}
+}
+
 /**
  * Popups will add a margin to #ARegion.winrct for shadow,
  * for interactivity (point-inside tests for eg), we want the winrct without the margin added.
@@ -2670,6 +2690,27 @@ void UI_block_free(const bContext *C, uiBlock *block)
 	MEM_freeN(block);
 }
 
+void UI_blocklist_update_window_matrix(const bContext *C, const ListBase *lb)
+{
+	ARegion *region = CTX_wm_region(C);
+	wmWindow *window = CTX_wm_window(C);
+
+	for (uiBlock *block = lb->first; block; block = block->next) {
+		if (block->active) {
+			ui_update_window_matrix(window, region, block);
+		}
+	}
+}
+
+void UI_blocklist_draw(const bContext *C, const ListBase *lb)
+{
+	for (uiBlock *block = lb->first; block; block = block->next) {
+		if (block->active) {
+			UI_block_draw(C, block);
+		}
+	}
+}
+
 /* can be called with C==NULL */
 void UI_blocklist_free(const bContext *C, ListBase *lb)
 {
@@ -2755,25 +2796,13 @@ uiBlock *UI_block_begin(const bContext *C, ARegion *region, const char *name, sh
 	if (region)
 		UI_block_region_set(block, region);
 
-	/* window matrix and aspect */
-	if (region && region->visible) {
-		gpuGetProjectionMatrix(block->winmat);
+	/* Set window matrix and aspect for region and OpenGL state. */
+	ui_update_window_matrix(window, region, block);
 
-		block->aspect = 2.0f / fabsf(region->winx * block->winmat[0][0]);
-	}
-	else {
-		/* no subwindow created yet, for menus for example, so we
-		 * use the main window instead, since buttons are created
-		 * there anyway */
-		int width = WM_window_pixels_x(window);
-		int height = WM_window_pixels_y(window);
-		rcti winrct = {0, width -1, 0, height - 1};
-
-		wmGetProjectionMatrix(block->winmat, &winrct);
-
-		block->aspect = 2.0f / fabsf(width * block->winmat[0][0]);
+	/* Tag as popup menu if not created within a region. */
+	if (!(region && region->visible)) {
 		block->auto_open = true;
-		block->flag |= UI_BLOCK_LOOP; /* tag as menu */
+		block->flag |= UI_BLOCK_LOOP;
 	}
 
 	return block;

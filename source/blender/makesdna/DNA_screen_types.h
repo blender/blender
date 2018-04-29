@@ -464,11 +464,6 @@ enum {
 	 * just big enough to show all its content (if enough space is available).
 	 * Note that only ED_region_header supports this right now. */
 	RGN_FLAG_DYNAMIC_SIZE     = (1 << 2),
-	/* The region width stored in ARegion.sizex already has the DPI
-	 * factor applied, skip applying it again (in region_rect_recursive).
-	 * XXX Not nice at all. Leaving for now as temporary solution, but
-	 * it might cause issues if we change how ARegion.sizex is used... */
-	RGN_SIZEX_DPI_APPLIED       = (1 << 3),
 };
 
 /* region do_draw */

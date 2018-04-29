@@ -489,12 +489,25 @@ GPUViewport *WM_draw_region_get_bound_viewport(ARegion *ar)
 
 static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	bScreen *screen = WM_window_get_active_screen(win);
 
 	/* Draw screen areas into own frame buffer. */
 	ED_screen_areas_iter(win, screen, sa) {
 		CTX_wm_area_set(C, sa);
 
+		/* Compute UI layouts for dynamically size regions. */
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+			if (ar->visible && ar->do_draw && ar->type && ar->type->layout) {
+				CTX_wm_region_set(C, ar);
+				ED_region_do_layout(C, ar);
+				CTX_wm_region_set(C, NULL);
+			}
+		}
+
+		ED_area_update_region_sizes(wm, win, sa);
+
+		/* Then do actual drawing of regions. */
 		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
 			if (ar->visible && ar->do_draw) {
 				CTX_wm_region_set(C, ar);
@@ -539,11 +552,11 @@ static void wm_draw_window_offscreen(bContext *C, wmWindow *win, bool stereo)
 		if (ar->visible) {
 			CTX_wm_menu_set(C, ar);
 
-			if (ar->type && ar->type->refresh) {
-				/* UI code reads the OpenGL state, but we have to
-				 * refresh beforehand in case the menu size changes. */
+			if (ar->type && ar->type->layout) {
+				/* UI code reads the OpenGL state, but we have to refesh
+				 * the UI layout beforehand in case the menu size changes. */
 				wmViewport(&ar->winrct);
-				ar->type->refresh(C, ar);
+				ar->type->layout(C, ar);
 			}
 
 			wm_draw_region_buffer_create(ar, false, false);

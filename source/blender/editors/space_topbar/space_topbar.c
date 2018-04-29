@@ -132,11 +132,6 @@ static void topbar_main_region_init(wmWindowManager *wm, ARegion *region)
 	WM_event_add_keymap_handler(&region->handlers, keymap);
 }
 
-static void topbar_main_region_draw(const bContext *C, ARegion *region)
-{
-	ED_region_header(C, region);
-}
-
 static void topbar_operatortypes(void)
 {
 
@@ -154,11 +149,6 @@ static void topbar_header_region_init(wmWindowManager *UNUSED(wm), ARegion *ar)
 		ar->flag |= RGN_FLAG_DYNAMIC_SIZE;
 	}
 	ED_region_header_init(ar);
-}
-
-static void topbar_header_region_draw(const bContext *C, ARegion *ar)
-{
-	ED_region_header(C, ar);
 }
 
 static void topbar_main_region_listener(bScreen *UNUSED(sc), ScrArea *UNUSED(sa), ARegion *ar,
@@ -263,7 +253,8 @@ void ED_spacetype_topbar(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype topbar main region");
 	art->regionid = RGN_TYPE_WINDOW;
 	art->init = topbar_main_region_init;
-	art->draw = topbar_main_region_draw;
+	art->layout = ED_region_header_layout;
+	art->draw = ED_region_header_draw;
 	art->listener = topbar_main_region_listener;
 	art->prefsizex = UI_UNIT_X * 5; /* Mainly to avoid glitches */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
@@ -279,7 +270,8 @@ void ED_spacetype_topbar(void)
 	art->listener = topbar_header_listener;
 	art->message_subscribe = topbar_header_region_message_subscribe;
 	art->init = topbar_header_region_init;
-	art->draw = topbar_header_region_draw;
+	art->layout = ED_region_header_layout;
+	art->draw = ED_region_header_draw;
 
 	BLI_addhead(&st->regiontypes, art);
 

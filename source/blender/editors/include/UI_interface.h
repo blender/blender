@@ -475,6 +475,8 @@ uiBlock *UI_block_begin(const struct bContext *C, struct ARegion *region, const 
 void UI_block_end_ex(const struct bContext *C, uiBlock *block, const int xy[2], int r_xy[2]);
 void UI_block_end(const struct bContext *C, uiBlock *block);
 void UI_block_draw(const struct bContext *C, struct uiBlock *block);
+void UI_blocklist_update_window_matrix(const struct bContext *C, const struct ListBase *lb);
+void UI_blocklist_draw(const struct bContext *C, const struct ListBase *lb);
 void UI_block_update_from_old(const struct bContext *C, struct uiBlock *block);
 
 uiBlock *UI_block_find_in_region(const char *name, struct ARegion *ar);

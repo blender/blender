@@ -140,8 +140,8 @@ typedef struct ARegionType {
 	void (*exit)(struct wmWindowManager *, struct ARegion *);
 	/* draw entirely, view changes should be handled here */
 	void (*draw)(const struct bContext *, struct ARegion *);
-	/* optional, refresh popup before drawing */
-	void (*refresh)(const struct bContext *, struct ARegion *);
+	/* optional, compute button layout before drawing for dynamic size */
+	void (*layout)(const struct bContext *, struct ARegion *);
 	/* snap the size of the region (can be NULL for no snapping). */
 	int (*snap_size)(const struct ARegion *ar, int size, int axis);
 	/* contextual changes should be handled here */
