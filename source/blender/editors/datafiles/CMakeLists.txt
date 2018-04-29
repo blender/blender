@@ -538,7 +538,7 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	brush.sculpt.nudge
 	brush.sculpt.pinch
 	brush.sculpt.smooth
-	brush.sculpt.snakehook
+	brush.sculpt.snake_hook
 	brush.sculpt.thumb
 	none
 	ops.armature.bone.roll
