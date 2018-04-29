@@ -81,10 +81,12 @@ void WM_toolsystem_link(bContext *C, WorkSpace *workspace)
 	}
 	if (workspace->tool.data_block[0]) {
 		/* Currently only brush data-blocks supported. */
-		Paint *p = BKE_paint_get_active_from_context(C);
-		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(ID_BR, workspace->tool.data_block);
-		if (brush) {
-			BKE_paint_brush_set(p, brush);
+		Paint *paint = BKE_paint_get_active_from_context(C);
+		if (paint) {
+			struct Brush *brush = (struct Brush *)BKE_libblock_find_name(ID_BR, workspace->tool.data_block);
+			if (brush) {
+				BKE_paint_brush_set(paint, brush);
+			}
 		}
 	}
 }
