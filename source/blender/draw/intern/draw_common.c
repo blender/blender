@@ -158,6 +158,8 @@ void DRW_globals_update(void)
 
 extern char datatoc_armature_sphere_vert_glsl[];
 extern char datatoc_armature_sphere_frag_glsl[];
+extern char datatoc_armature_envelope_vert_glsl[];
+extern char datatoc_armature_envelope_frag_glsl[];
 extern char datatoc_armature_sphere_outline_vert_glsl[];
 extern char datatoc_armature_shape_outline_vert_glsl[];
 extern char datatoc_armature_shape_outline_geom_glsl[];
@@ -165,6 +167,8 @@ extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 
 static struct {
 	struct GPUShader *shape_outline;
+	struct GPUShader *bone_envelope;
+	struct GPUShader *bone_envelope_outline;
 	struct GPUShader *bone_sphere;
 	struct GPUShader *bone_sphere_outline;
 } g_armature_shaders = {NULL};
@@ -438,20 +442,24 @@ DRWShadingGroup *shgroup_instance_bone_envelope_wire(DRWPass *pass, struct Gwn_B
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass, struct Gwn_Batch *geom)
+DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass)
 {
-	static float light[3] = {0.0f, 0.0f, 1.0f};
-	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID);
+	if (g_armature_shaders.bone_envelope == NULL) {
+		g_armature_shaders.bone_envelope = DRW_shader_create(
+		            datatoc_armature_envelope_vert_glsl, NULL,
+		            datatoc_armature_envelope_frag_glsl, NULL);
+	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_envelope_solid, {
-		{"InstanceModelMatrix" , DRW_ATTRIB_FLOAT, 16},
+		{"headSphere"          , DRW_ATTRIB_FLOAT, 4},
+		{"tailSphere"          , DRW_ATTRIB_FLOAT, 4},
 		{"color"               , DRW_ATTRIB_FLOAT, 4},
-		{"radius_head"         , DRW_ATTRIB_FLOAT, 1},
-		{"radius_tail"         , DRW_ATTRIB_FLOAT, 1}
+		{"xAxis"               , DRW_ATTRIB_FLOAT, 3}
 	});
 
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom, g_formats.instance_bone_envelope_solid);
-	DRW_shgroup_uniform_vec3(grp, "light", light, 1);
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_armature_shaders.bone_envelope,
+	                                                   pass, DRW_cache_bone_envelope_solid_get(),
+	                                                   g_formats.instance_bone_envelope_solid);
 
 	return grp;
 }

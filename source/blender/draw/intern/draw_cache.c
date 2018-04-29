@@ -1878,43 +1878,24 @@ Gwn_Batch *DRW_cache_bone_wire_wire_outline_get(void)
 	return SHC.drw_bone_wire_wire;
 }
 
-
 /* Helpers for envelope bone's solid sphere-with-hidden-equatorial-cylinder.
  * Note that here we only encode head/tail in forth component of the vector. */
 static void benv_lat_lon_to_co(const float lat, const float lon, float r_nor[3])
 {
 	/* Poles are along Y axis. */
 	r_nor[0] = sinf(lat) * cosf(lon);
-	r_nor[1] = cosf(lat);
+	r_nor[1] = -cosf(lat);
 	r_nor[2] = sinf(lat) * sinf(lon);
-}
-
-static void benv_add_tri(Gwn_VertBuf *vbo, uint pos_id, uint *v_idx, float *co1, float *co2, float *co3)
-{
-	/* Given tri and its seven other mirrors along X/Y/Z axes. */
-	for (int x = -1; x <= 1; x += 2) {
-		for (int y = -1; y <= 1; y += 2) {
-			const float head_tail = (y == -1) ? 0.0f : 1.0f;
-			for (int z = -1; z <= 1; z += 2) {
-				GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++,
-				                     (const float[4]){co1[0] * x, co1[1] * y, co1[2] * z, head_tail});
-				GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++,
-				                     (const float[4]){co2[0] * x, co2[1] * y, co2[2] * z, head_tail});
-				GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++,
-				                     (const float[4]){co3[0] * x, co3[1] * y, co3[2] * z, head_tail});
-			}
-		}
-	}
 }
 
 Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 {
-#define CIRCLE_RESOL 32  /* Must be multiple of 4 */
 	if (!SHC.drw_bone_envelope) {
-		const int lon_res = CIRCLE_RESOL / 4;
-		const int lat_res = CIRCLE_RESOL / 4;
-		const float lon_inc = M_PI_2 / lon_res;
-		const float lat_inc = M_PI_2 / lat_res;
+		const int lon_res = 24;
+		const int lat_res = 16;
+		const float lon_inc = 2.0f * M_PI / lon_res;
+		const float lat_inc = M_PI / lat_res;
+		const float eps = 0.02f;
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
@@ -1925,91 +1906,58 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, lat_res * lon_res * 8 * 6);
+		GWN_vertbuf_data_alloc(vbo, ((lat_res + 1) * 2) * lon_res * 2);
 
-		float lon = 0.0f;
+		float lon = lon_inc;
 		for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 			float lat = 0.0f;
-			float co1[3], co2[3], co3[3], co4[3];
+			float co1[4], co2[4];
+			co1[3] = co2[3] = 0.0f;
 
+			/* 1st sphere */
 			for (int j = 0; j < lat_res; j++, lat += lat_inc) {
-				benv_lat_lon_to_co(lat,           lon,           co1);
-				benv_lat_lon_to_co(lat,           lon + lon_inc, co2);
-				benv_lat_lon_to_co(lat + lat_inc, lon + lon_inc, co3);
-				benv_lat_lon_to_co(lat + lat_inc, lon,           co4);
+				benv_lat_lon_to_co(lat, lon,           co1);
+				benv_lat_lon_to_co(lat, lon + lon_inc, co2);
 
-				if (j != 0) {  /* At pole, n1 and n2 are identical. */
-					benv_add_tri(vbo, attr_id.pos, &v_idx, co1, co2, co3);
-				}
-				benv_add_tri(vbo, attr_id.pos, &v_idx, co1, co3, co4);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 			}
+			/* Need to close the sphere, but add a small gap to be able
+			 * to distinguish the verts in the vertex shader. */
+			benv_lat_lon_to_co(M_PI - eps, lon,           co1);
+			benv_lat_lon_to_co(M_PI - eps, lon + lon_inc, co2);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 
-			/* lat is at equator (i.e. lat == pi / 2). */
-			/* We need to add 'cylinder' part between the equators (along XZ plane). */
-			for (int x = -1; x <= 1; x += 2) {
-				for (int z = -1; z <= 1; z += 2) {
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co3[0] * x, co3[1], co3[2] * z, 0.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co4[0] * x, co4[1], co4[2] * z, 0.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co4[0] * x, co4[1], co4[2] * z, 1.0f});
+			/* Add some precision to the middle part */
+			// co1[3] = co2[3] = 0.5f;
+			// co1[1] = co2[1] = 0.0f;
+			// GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+			// GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co3[0] * x, co3[1], co3[2] * z, 0.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co4[0] * x, co4[1], co4[2] * z, 1.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co3[0] * x, co3[1], co3[2] * z, 1.0f});
-				}
+			/* 2nd sphere */
+			co1[3] = co2[3] = 1.0f;
+
+			/* Need to open the sphere */
+			benv_lat_lon_to_co(eps, lon,           co1);
+			benv_lat_lon_to_co(eps, lon + lon_inc, co2);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
+
+			lat = lat_inc;
+			for (int j = 1; j < lat_res + 1; j++, lat += lat_inc) {
+				benv_lat_lon_to_co(lat, lon,           co1);
+				benv_lat_lon_to_co(lat, lon + lon_inc, co2);
+
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 			}
 		}
 
-		SHC.drw_bone_envelope = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_envelope = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_envelope;
 }
-
-
-Gwn_Batch *DRW_cache_bone_envelope_distance_outline_get(void)
-{
-#define CIRCLE_RESOL 32  /* Must be multiple of 2 */
-	if (!SHC.drw_bone_envelope_distance) {
-		unsigned int v_idx = 0;
-
-		static Gwn_VertFormat format = { 0 };
-		static unsigned int pos_id;
-		if (format.attrib_ct == 0) {
-			pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
-		}
-
-		/* Vertices */
-		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL * 2 + 6);
-
-		/* Encoded triangle strip, vertex shader gives them final correct value. */
-		for (int i = 0; i < CIRCLE_RESOL + 1; i++) {
-			const bool is_headtail_transition = ELEM(i, CIRCLE_RESOL / 2, CIRCLE_RESOL);
-			const float head_tail = (i > CIRCLE_RESOL / 2) ? 1.0f : 0.0f;
-			const float alpha = 2.0f * M_PI * i / CIRCLE_RESOL;
-			const float x = cosf(alpha);
-			const float y = -sinf(alpha);
-
-			/*                                                        { X, Y, head/tail, inner/outer border } */
-			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 0.0f});
-			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 1.0f});
-			if (is_headtail_transition) {
-				GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, 1.0f - head_tail, 0.0f});
-				GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, 1.0f - head_tail, 1.0f});
-			}
-		}
-
-		SHC.drw_bone_envelope_distance = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	}
-	return SHC.drw_bone_envelope_distance;
-#undef CIRCLE_RESOL
-}
-
 
 /* Bone body. */
 Gwn_Batch *DRW_cache_bone_envelope_wire_outline_get(void)
