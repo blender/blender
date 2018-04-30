@@ -42,6 +42,8 @@
 #include "BKE_action.h"
 #include "BKE_context.h"
 
+#include "DEG_depsgraph.h"
+
 #include "RNA_access.h"
 #include "RNA_define.h"
 
@@ -105,6 +107,7 @@ static int pose_group_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -214,6 +217,7 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 	
 	/* report done status */
 	if (done)
@@ -263,6 +267,7 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 	
 	/* report done status */
 	if (done)
@@ -414,6 +419,7 @@ static int group_sort_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
