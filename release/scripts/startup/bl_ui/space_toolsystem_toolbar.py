@@ -568,6 +568,26 @@ class _defs_vertex_paint:
         )
 
 
+class _defs_texture_paint:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_brushes_ex(
+            context,
+            icon_prefix="brush.paint_texture.",
+            brush_test_attr="use_paint_image",
+            brush_category_attr="image_tool",
+            brush_category_layout=(
+                ('DRAW',),
+                ('SOFTEN',),
+                ('SMEAR',),
+                ('CLONE',),
+                ('FILL',),
+                ('MASK',),
+            )
+        )
+
+
 class _defs_weight_paint:
 
     @staticmethod
@@ -746,6 +766,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SCULPT': [
             _defs_sculpt.generate_from_brushes,
+        ],
+        'PAINT_TEXTURE': [
+            _defs_texture_paint.generate_from_brushes,
         ],
         'PAINT_VERTEX': [
             _defs_vertex_paint.generate_from_brushes,

@@ -197,6 +197,7 @@ class View3DPaintPanel(UnifiedPaintPanel):
 
 class VIEW3D_PT_imapaint_tools_missing(Panel, View3DPaintPanel):
     bl_category = "Tools"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "Missing Data"
 
     @classmethod
@@ -530,7 +531,7 @@ class VIEW3D_MT_tools_projectpaint_uvlayer(Menu):
 
 
 class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "Slots"
     bl_category = "Slots"
 
@@ -591,7 +592,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
 
 
 class VIEW3D_PT_stencil_projectpaint(View3DPanel, Panel):
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "Mask"
     bl_category = "Slots"
 
@@ -725,7 +726,7 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_mask_texture(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "Texture Mask"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1126,7 +1127,7 @@ class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "External"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1148,7 +1149,7 @@ class VIEW3D_PT_tools_imagepaint_external(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "Symmetry"
     bl_options = {'DEFAULT_CLOSED'}
 
@@ -1167,7 +1168,7 @@ class VIEW3D_PT_tools_imagepaint_symmetry(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_projectpaint(View3DPaintPanel, Panel):
     bl_category = "Options"
-    bl_context = "imagepaint"
+    bl_context = ".imagepaint" # dot on purpose (access from topbar)
     bl_label = "Project Paint"
 
     @classmethod

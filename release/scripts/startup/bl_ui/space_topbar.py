@@ -154,6 +154,7 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".weightpaint", category="")
         elif mode == 'PAINT_TEXTURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".imagepaint", category="")
 
         elif mode == 'EDIT_ARMATURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".armature_edit", category="")
