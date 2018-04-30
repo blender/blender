@@ -264,7 +264,7 @@ static struct GPUTexture *load_matcaps(PreviewImage *prv[24], int nbr)
 		BKE_previewimg_free(&prv[i]);
 	}
 
-	tex = DRW_texture_create_2D_array(w, h, nbr, DRW_TEX_RGBA_8, DRW_TEX_FILTER, final_rect);
+	tex = DRW_texture_create_2D_array(w, h, nbr, GPU_RGBA8, DRW_TEX_FILTER, final_rect);
 	MEM_freeN(final_rect);
 
 	return tex;
@@ -343,7 +343,7 @@ static struct GPUTexture *create_jitter_texture(int num_samples)
 
 	UNUSED_VARS(bsdf_split_sum_ggx, btdf_split_sum_ggx, ltc_mag_ggx, ltc_mat_ggx, ltc_disk_integral);
 
-	return DRW_texture_create_2D(64, 64, DRW_TEX_RGB_16, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
+	return DRW_texture_create_2D(64, 64, GPU_RGB16F, DRW_TEX_FILTER | DRW_TEX_WRAP, &jitter[0][0]);
 }
 
 static void clay_engine_init(void *vedata)
@@ -460,8 +460,8 @@ static void clay_engine_init(void *vedata)
 		const float *viewport_size = DRW_viewport_size_get();
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-		g_data->normal_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RG_8, &draw_engine_clay_type);
-		g_data->id_tx =     DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_R_16I, &draw_engine_clay_type);
+		g_data->normal_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG8, &draw_engine_clay_type);
+		g_data->id_tx =     DRW_texture_pool_query_2D(size[0], size[1], GPU_R16UI, &draw_engine_clay_type);
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -470,9 +470,9 @@ static void clay_engine_init(void *vedata)
 		});
 
 		/* For FXAA */
-		/* TODO(fclem): OPTI: we could merge normal_tx and id_tx into a DRW_TEX_RGBA_8
+		/* TODO(fclem): OPTI: we could merge normal_tx and id_tx into a GPU_RGBA8
 		 * and reuse it for the fxaa target. */
-		g_data->color_copy = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8, &draw_engine_clay_type);
+		g_data->color_copy = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_clay_type);
 
 		GPU_framebuffer_ensure_config(&fbl->antialias_fb, {
 			GPU_ATTACHMENT_NONE,

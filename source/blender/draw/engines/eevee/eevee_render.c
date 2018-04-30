@@ -62,8 +62,8 @@ void EEVEE_render_init(EEVEE_Data *ved, RenderEngine *engine, struct Depsgraph *
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	/* TODO 32 bit depth */
-	DRW_texture_ensure_fullscreen_2D(&dtxl->depth, DRW_TEX_DEPTH_24_STENCIL_8, 0);
-	DRW_texture_ensure_fullscreen_2D(&txl->color, DRW_TEX_RGBA_32, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
+	DRW_texture_ensure_fullscreen_2D(&dtxl->depth, GPU_DEPTH24_STENCIL8, 0);
+	DRW_texture_ensure_fullscreen_2D(&txl->color, GPU_RGBA32F, DRW_TEX_FILTER | DRW_TEX_MIPMAP);
 
 	GPU_framebuffer_ensure_config(&dfbl->default_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),

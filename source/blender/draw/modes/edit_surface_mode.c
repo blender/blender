@@ -117,8 +117,8 @@ static void EDIT_SURFACE_engine_init(void *vedata)
 
 	/* Init Framebuffers like this: order is attachment order (for color texs) */
 	/*
-	 * DRWFboTexture tex[2] = {{&txl->depth, DRW_TEX_DEPTH_24, 0},
-	 *                         {&txl->color, DRW_TEX_RGBA_8, DRW_TEX_FILTER}};
+	 * DRWFboTexture tex[2] = {{&txl->depth, GPU_DEPTH_COMPONENT24, 0},
+	 *                         {&txl->color, GPU_RGBA8, DRW_TEX_FILTER}};
 	 */
 
 	/* DRW_framebuffer_init takes care of checking if

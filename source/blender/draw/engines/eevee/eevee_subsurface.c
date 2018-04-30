@@ -91,11 +91,11 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		 * as the depth buffer we are sampling from. This could be avoided if the stencil is
 		 * a separate texture but that needs OpenGL 4.4 or ARB_texture_stencil8.
 		 * OR OpenGL 4.3 / ARB_ES3_compatibility if using a renderbuffer instead */
-		effects->sss_stencil = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], DRW_TEX_DEPTH_24_STENCIL_8,
+		effects->sss_stencil = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_DEPTH24_STENCIL8,
 		                                                 &draw_engine_eevee_type);
-		effects->sss_blur =    DRW_texture_pool_query_2D(fs_size[0], fs_size[1], DRW_TEX_RGBA_16,
+		effects->sss_blur =    DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_RGBA16F,
 		                                                 &draw_engine_eevee_type);
-		effects->sss_data =    DRW_texture_pool_query_2D(fs_size[0], fs_size[1], DRW_TEX_RGBA_16,
+		effects->sss_data =    DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_RGBA16F,
 		                                                 &draw_engine_eevee_type);
 
 		GPU_framebuffer_ensure_config(&fbl->sss_blur_fb, {
@@ -114,7 +114,7 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		});
 
 		if (effects->sss_separate_albedo) {
-			effects->sss_albedo = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], DRW_TEX_RGB_11_11_10,
+			effects->sss_albedo = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_R11F_G11F_B10F,
 			                                                &draw_engine_eevee_type);
 		}
 		else {
@@ -151,8 +151,8 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
 	if (BKE_collection_engine_property_value_get_bool(props, "sss_enable")) {
-		DRW_texture_ensure_fullscreen_2D(&txl->sss_dir_accum, DRW_TEX_RGBA_16, 0);
-		DRW_texture_ensure_fullscreen_2D(&txl->sss_col_accum, DRW_TEX_RGBA_16, 0);
+		DRW_texture_ensure_fullscreen_2D(&txl->sss_dir_accum, GPU_RGBA16F, 0);
+		DRW_texture_ensure_fullscreen_2D(&txl->sss_col_accum, GPU_RGBA16F, 0);
 
 		GPU_framebuffer_ensure_config(&fbl->sss_accum_fb, {
 			GPU_ATTACHMENT_TEXTURE(effects->sss_stencil),

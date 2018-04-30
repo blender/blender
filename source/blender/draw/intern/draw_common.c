@@ -149,7 +149,7 @@ void DRW_globals_update(void)
 	if (globals_ramp) {
 		GPU_texture_free(globals_ramp);
 	}
-	globals_ramp = GPU_texture_create_1D(col_size, colors, NULL);
+	globals_ramp = GPU_texture_create_1D(col_size, GPU_RGBA8, colors, NULL);
 
 	MEM_freeN(colors);
 }

@@ -146,7 +146,7 @@ static struct GPUTexture *create_hammersley_sample_texture(int samples)
 		texels[i][1] = sinf(phi);
 	}
 
-	tex = DRW_texture_create_1D(samples, DRW_TEX_RG_16, DRW_TEX_WRAP, (float *)texels);
+	tex = DRW_texture_create_1D(samples, GPU_RG16F, DRW_TEX_WRAP, (float *)texels);
 	MEM_freeN(texels);
 	return tex;
 }
@@ -172,14 +172,14 @@ static void planar_pool_ensure_alloc(EEVEE_Data *vedata, int num_planar_ref)
 	if (!txl->planar_pool) {
 		if (num_planar_ref > 0) {
 			txl->planar_pool = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
-			                                                 DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			                                                 GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 			txl->planar_depth = DRW_texture_create_2D_array(width, height, max_ff(1, num_planar_ref),
-			                                                DRW_TEX_DEPTH_24, 0, NULL);
+			                                                GPU_DEPTH_COMPONENT24, 0, NULL);
 		}
 		else if (num_planar_ref == 0) {
 			/* Makes Opengl Happy : Create a placeholder texture that will never be sampled but still bound to shader. */
-			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGBA_8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
-			txl->planar_depth = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_DEPTH_24, 0, NULL);
+			txl->planar_pool = DRW_texture_create_2D_array(1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+			txl->planar_depth = DRW_texture_create_2D_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
 		}
 	}
 }
@@ -356,8 +356,8 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 
 	/* Setup Render Target Cubemap */
 	if (!sldata->probe_rt) {
-		sldata->probe_depth_rt = DRW_texture_create_cube(sldata->probes->target_size, DRW_TEX_DEPTH_24, 0, NULL);
-		sldata->probe_rt = DRW_texture_create_cube(sldata->probes->target_size, DRW_TEX_RGBA_16, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		sldata->probe_depth_rt = DRW_texture_create_cube(sldata->probes->target_size, GPU_DEPTH_COMPONENT24, 0, NULL);
+		sldata->probe_rt = DRW_texture_create_cube(sldata->probes->target_size, GPU_RGBA16F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 	}
 
 	for (int i = 0; i < 6; ++i) {
@@ -369,14 +369,14 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 
 	/* Placeholder planar pool: used when rendering planar reflections (avoid dependency loop). */
 	if (!e_data.planar_pool_placeholder) {
-		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_RGBA_8, DRW_TEX_FILTER, NULL);
+		e_data.planar_pool_placeholder = DRW_texture_create_2D_array(1, 1, 1, GPU_RGBA8, DRW_TEX_FILTER, NULL);
 	}
 
 	if (!e_data.depth_placeholder) {
-		e_data.depth_placeholder = DRW_texture_create_2D(1, 1, DRW_TEX_DEPTH_24, 0, NULL);
+		e_data.depth_placeholder = DRW_texture_create_2D(1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
 	}
 	if (!e_data.depth_array_placeholder) {
-		e_data.depth_array_placeholder = DRW_texture_create_2D_array(1, 1, 1, DRW_TEX_DEPTH_24, 0, NULL);
+		e_data.depth_array_placeholder = DRW_texture_create_2D_array(1, 1, 1, GPU_DEPTH_COMPONENT24, 0, NULL);
 	}
 }
 
@@ -971,7 +971,7 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 	if (!sldata->probe_pool) {
 		sldata->probe_pool = DRW_texture_create_2D_array(pinfo->cubemap_res, pinfo->cubemap_res, max_ff(1, pinfo->num_cube),
-		                                                 DRW_TEX_RGB_11_11_10, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
+		                                                 GPU_R11F_G11F_B10F, DRW_TEX_FILTER | DRW_TEX_MIPMAP, NULL);
 		if (sldata->probe_filter_fb) {
 			GPU_framebuffer_texture_attach(sldata->probe_filter_fb, sldata->probe_pool, 0, 0);
 		}
@@ -991,9 +991,9 @@ void EEVEE_lightprobes_cache_finish(EEVEE_ViewLayerData *sldata, EEVEE_Data *ved
 
 #ifdef IRRADIANCE_SH_L2
 	/* we need a signed format for Spherical Harmonics */
-	int irradiance_format = DRW_TEX_RGBA_16;
+	int irradiance_format = GPU_RGBA16F;
 #else
-	int irradiance_format = DRW_TEX_RGBA_8;
+	int irradiance_format = GPU_RGBA8;
 #endif
 
 	if (!sldata->irradiance_pool || !sldata->irradiance_rt) {

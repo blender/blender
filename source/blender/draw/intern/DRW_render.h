@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 
 #include "GPU_framebuffer.h"
+#include "GPU_texture.h"
 
 #include "draw_common.h"
 #include "draw_cache.h"
@@ -169,33 +170,6 @@ typedef struct DefaultTextureList {
 #endif
 
 /* Textures */
-/* NOTE naming in this struct is broken.
- * There should either be suffixes for Normalized int formats or float formats.
- * Right now every 8bit texture is Normalized int and others are Floating point. */
-typedef enum {
-	DRW_TEX_RGBA_8,
-	DRW_TEX_RGBA_16,
-	DRW_TEX_RGBA_32,
-	DRW_TEX_RGB_11_11_10,
-	DRW_TEX_RGB_8,
-	DRW_TEX_RGB_16,
-	DRW_TEX_RGB_32,
-	DRW_TEX_RG_8,
-	DRW_TEX_RG_16,
-	DRW_TEX_RG_16I,
-	DRW_TEX_RG_32,
-	DRW_TEX_R_8,
-	DRW_TEX_R_16,
-	DRW_TEX_R_16I,
-	DRW_TEX_R_16U,
-	DRW_TEX_R_32,
-	DRW_TEX_R_32U,
-	DRW_TEX_DEPTH_16,
-	DRW_TEX_DEPTH_24,
-	DRW_TEX_DEPTH_24_STENCIL_8,
-	DRW_TEX_DEPTH_32,
-} DRWTextureFormat;
-
 typedef enum {
 	DRW_TEX_FILTER = (1 << 0),
 	DRW_TEX_WRAP = (1 << 1),
@@ -206,23 +180,23 @@ typedef enum {
 /* Textures from DRW_texture_pool_query_* have the options
  * DRW_TEX_FILTER for color float textures, and no options
  * for depth textures and integer textures. */
-struct GPUTexture *DRW_texture_pool_query_2D(int w, int h, DRWTextureFormat format, DrawEngineType *engine_type);
+struct GPUTexture *DRW_texture_pool_query_2D(int w, int h, GPUTextureFormat format, DrawEngineType *engine_type);
 
 struct GPUTexture *DRW_texture_create_1D(
-        int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, GPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_2D(
-        int w, int h, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, int h, GPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_2D_array(
-        int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, int h, int d, GPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_3D(
-        int w, int h, int d, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, int h, int d, GPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 struct GPUTexture *DRW_texture_create_cube(
-        int w, DRWTextureFormat format, DRWTextureFlag flags, const float *fpixels);
+        int w, GPUTextureFormat format, DRWTextureFlag flags, const float *fpixels);
 
 void DRW_texture_ensure_fullscreen_2D(
-        struct GPUTexture **tex, DRWTextureFormat format, DRWTextureFlag flags);
+        struct GPUTexture **tex, GPUTextureFormat format, DRWTextureFlag flags);
 void DRW_texture_ensure_2D(
-        struct GPUTexture **tex, int w, int h, DRWTextureFormat format, DRWTextureFlag flags);
+        struct GPUTexture **tex, int w, int h, GPUTextureFormat format, DRWTextureFlag flags);
 
 void DRW_texture_generate_mipmaps(struct GPUTexture *tex);
 void DRW_texture_free(struct GPUTexture *tex);

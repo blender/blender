@@ -111,7 +111,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 		effects->blit_texel_size[0] = 1.0f / (float)blitsize[0];
 		effects->blit_texel_size[1] = 1.0f / (float)blitsize[1];
 
-		effects->bloom_blit = DRW_texture_pool_query_2D(blitsize[0], blitsize[1], DRW_TEX_RGB_11_11_10,
+		effects->bloom_blit = DRW_texture_pool_query_2D(blitsize[0], blitsize[1], GPU_R11F_G11F_B10F,
 		                                                &draw_engine_eevee_type);
 
 		GPU_framebuffer_ensure_config(&fbl->bloom_blit_fb, {
@@ -153,7 +153,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 			effects->downsamp_texel_size[i][0] = 1.0f / (float)texsize[0];
 			effects->downsamp_texel_size[i][1] = 1.0f / (float)texsize[1];
 
-			effects->bloom_downsample[i] = DRW_texture_pool_query_2D(texsize[0], texsize[1], DRW_TEX_RGB_11_11_10,
+			effects->bloom_downsample[i] = DRW_texture_pool_query_2D(texsize[0], texsize[1], GPU_R11F_G11F_B10F,
 			                                                         &draw_engine_eevee_type);
 			GPU_framebuffer_ensure_config(&fbl->bloom_down_fb[i], {
 				GPU_ATTACHMENT_NONE,
@@ -169,7 +169,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 			texsize[0] = MAX2(texsize[0], 2);
 			texsize[1] = MAX2(texsize[1], 2);
 
-			effects->bloom_upsample[i] = DRW_texture_pool_query_2D(texsize[0], texsize[1], DRW_TEX_RGB_11_11_10,
+			effects->bloom_upsample[i] = DRW_texture_pool_query_2D(texsize[0], texsize[1], GPU_R11F_G11F_B10F,
 			                                                       &draw_engine_eevee_type);
 			GPU_framebuffer_ensure_config(&fbl->bloom_accum_fb[i], {
 				GPU_ATTACHMENT_NONE,

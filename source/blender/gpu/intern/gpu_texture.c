@@ -252,6 +252,26 @@ static GLenum gpu_texture_get_format(
 	}
 }
 
+static int gpu_texture_get_component_count(GPUTextureFormat format)
+{
+	switch (format) {
+		case GPU_RGBA8:
+		case GPU_RGBA16F:
+		case GPU_RGBA32F:
+			return 4;
+		case GPU_RGB16F:
+		case GPU_R11F_G11F_B10F:
+			return 3;
+		case GPU_RG8:
+		case GPU_RG16F:
+		case GPU_RG16I:
+		case GPU_RG32F:
+			return 2;
+		default:
+			return 1;
+	}
+}
+
 static float *GPU_texture_3D_rescale(GPUTexture *tex, int w, int h, int d, int channels, const float *fpixels)
 {
 	const unsigned int xf = w / tex->w, yf = h / tex->h, zf = d / tex->d;
@@ -354,7 +374,7 @@ static bool gpu_texture_try_alloc(
 
 static GPUTexture *GPU_texture_create_nD(
         int w, int h, int d, int n, const float *fpixels,
-        GPUTextureFormat data_type, int components, int samples,
+        GPUTextureFormat data_type, int samples,
         const bool can_rescale, char err_out[256])
 {
 	if (samples) {
@@ -369,7 +389,7 @@ static GPUTexture *GPU_texture_create_nD(
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->format = data_type;
-	tex->components = components;
+	tex->components = gpu_texture_get_component_count(data_type);
 	tex->format_flag = 0;
 
 	if (n == 2) {
@@ -397,7 +417,7 @@ static GPUTexture *GPU_texture_create_nD(
 		tex->target = GL_TEXTURE_2D_MULTISAMPLE;
 
 	GLenum format, internalformat, data_format;
-	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format,
+	internalformat = gpu_texture_get_format(tex->components, data_type, &format, &data_format,
 	                                        &tex->format_flag, &tex->bytesize);
 
 	gpu_texture_memory_footprint_add(tex);
@@ -434,7 +454,7 @@ static GPUTexture *GPU_texture_create_nD(
 	}
 
 	float *rescaled_fpixels = NULL;
-	bool valid = gpu_texture_try_alloc(tex, proxy, internalformat, format, data_format, components, can_rescale,
+	bool valid = gpu_texture_try_alloc(tex, proxy, internalformat, format, data_format, tex->components, can_rescale,
 	                                   fpixels, &rescaled_fpixels);
 	if (!valid) {
 		if (err_out)
@@ -506,7 +526,7 @@ static GPUTexture *GPU_texture_cube_create(
         int w, int d,
         const float *fpixels_px, const float *fpixels_py, const float *fpixels_pz,
         const float *fpixels_nx, const float *fpixels_ny, const float *fpixels_nz,
-        GPUTextureFormat data_type, int components,
+        GPUTextureFormat data_type,
         char err_out[256])
 {
 	GLenum format, internalformat, data_format;
@@ -519,7 +539,7 @@ static GPUTexture *GPU_texture_cube_create(
 	tex->number = -1;
 	tex->refcount = 1;
 	tex->format = data_type;
-	tex->components = components;
+	tex->components = gpu_texture_get_component_count(data_type);
 	tex->format_flag = GPU_FORMAT_CUBE;
 
 	if (d == 0) {
@@ -530,7 +550,7 @@ static GPUTexture *GPU_texture_cube_create(
 		// tex->target_base = tex->target = GL_TEXTURE_CUBE_MAP_ARRAY;
 	}
 
-	internalformat = gpu_texture_get_format(components, data_type, &format, &data_format,
+	internalformat = gpu_texture_get_format(tex->components, data_type, &format, &data_format,
 	                                        &tex->format_flag, &tex->bytesize);
 
 	gpu_texture_memory_footprint_add(tex);
@@ -692,59 +712,41 @@ GPUTexture *GPU_texture_from_preview(PreviewImage *prv, int mipmap)
 
 }
 
-GPUTexture *GPU_texture_create_1D(int w, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_1D(
+        int w, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
-	return GPU_texture_create_nD(w, 0, 0, 1, pixels, GPU_RGBA8, 4, 0, false, err_out);
+	return GPU_texture_create_nD(w, 0, 0, 1, pixels, data_type, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_1D_custom(
-        int w, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_2D(
+        int w, int h, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
-	return GPU_texture_create_nD(w, 0, 0, 1, pixels, data_type, channels, 0, false, err_out);
+	return GPU_texture_create_nD(w, h, 0, 2, pixels, data_type, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D(int w, int h, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_2D_multisample(
+        int w, int h, GPUTextureFormat data_type, const float *pixels, int samples, char err_out[256])
 {
-	return GPU_texture_create_nD(w, h, 0, 2, pixels, GPU_RGBA8, 4, 0, false, err_out);
+	return GPU_texture_create_nD(w, h, 0, 2, pixels, data_type, samples, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_custom(
-        int w, int h, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
+GPUTexture *GPU_texture_create_2D_array(
+        int w, int h, int d, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
-	return GPU_texture_create_nD(w, h, 0, 2, pixels, data_type, channels, 0, false, err_out);
+	return GPU_texture_create_nD(w, h, d, 2, pixels, data_type, 0, false, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_multisample(int w, int h, const float *pixels, int samples, char err_out[256])
+GPUTexture *GPU_texture_create_3D(
+        int w, int h, int d, GPUTextureFormat data_type, const float *pixels, char err_out[256])
 {
-	return GPU_texture_create_nD(w, h, 0, 2, pixels, GPU_RGBA8, 4, samples, false, err_out);
+	return GPU_texture_create_nD(w, h, d, 3, pixels, data_type, 0, true, err_out);
 }
 
-GPUTexture *GPU_texture_create_2D_custom_multisample(
-        int w, int h, int channels, GPUTextureFormat data_type, const float *pixels, int samples, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, 0, 2, pixels, data_type, channels, samples, false, err_out);
-}
-
-GPUTexture *GPU_texture_create_2D_array_custom(
-        int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, d, 2, pixels, data_type, channels, 0, false, err_out);
-}
-
-GPUTexture *GPU_texture_create_3D(int w, int h, int d, const float *pixels, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, d, 3, pixels, GPU_RGBA8, 4, 0, true, err_out);
-}
-
-GPUTexture *GPU_texture_create_3D_custom(
-        int w, int h, int d, int channels, GPUTextureFormat data_type, const float *pixels, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, d, 3, pixels, data_type, channels, 0, true, err_out);
-}
-GPUTexture *GPU_texture_create_cube_custom(
-        int w, int channels, GPUTextureFormat data_type, const float *fpixels, char err_out[256])
+GPUTexture *GPU_texture_create_cube(
+        int w, GPUTextureFormat data_type, const float *fpixels, char err_out[256])
 {
 	const float *fpixels_px, *fpixels_py, *fpixels_pz, *fpixels_nx, *fpixels_ny, *fpixels_nz;
+	const int channels = gpu_texture_get_component_count(data_type);
 
 	if (fpixels) {
 		fpixels_px = fpixels + 0 * w * w * channels;
@@ -759,27 +761,7 @@ GPUTexture *GPU_texture_create_cube_custom(
 	}
 
 	return GPU_texture_cube_create(w, 0, fpixels_px, fpixels_py, fpixels_pz, fpixels_nx, fpixels_ny, fpixels_nz,
-	                               data_type, channels, err_out);
-}
-
-GPUTexture *GPU_texture_create_depth(int w, int h, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH_COMPONENT24, 1, 0, false, err_out);
-}
-
-GPUTexture *GPU_texture_create_depth_with_stencil(int w, int h, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH24_STENCIL8, 1, 0, false, err_out);
-}
-
-GPUTexture *GPU_texture_create_depth_multisample(int w, int h, int samples, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH_COMPONENT24, 1, samples, false, err_out);
-}
-
-GPUTexture *GPU_texture_create_depth_with_stencil_multisample(int w, int h, int samples, char err_out[256])
-{
-	return GPU_texture_create_nD(w, h, 0, 2, NULL, GPU_DEPTH24_STENCIL8, 1, samples, false, err_out);
+	                               data_type, err_out);
 }
 
 void GPU_texture_update(GPUTexture *tex, const float *pixels)
@@ -817,9 +799,9 @@ void GPU_invalid_tex_init(void)
 {
 	memory_usage = 0;
 	const float color[4] = {1.0f, 0.0f, 1.0f, 1.0f};
-	GG.invalid_tex_1D = GPU_texture_create_1D(1, color, NULL);
-	GG.invalid_tex_2D = GPU_texture_create_2D(1, 1, color, NULL);
-	GG.invalid_tex_3D = GPU_texture_create_3D(1, 1, 1, color, NULL);
+	GG.invalid_tex_1D = GPU_texture_create_1D(1, GPU_RGBA8, color, NULL);
+	GG.invalid_tex_2D = GPU_texture_create_2D(1, 1, GPU_RGBA8, color, NULL);
+	GG.invalid_tex_3D = GPU_texture_create_3D(1, 1, 1, GPU_RGBA8, color, NULL);
 }
 
 void GPU_invalid_tex_bind(int mode)

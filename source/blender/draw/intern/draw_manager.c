@@ -1447,7 +1447,7 @@ static void draw_select_framebuffer_setup(const rcti *rect)
 	}
 
 	if (g_select_buffer.texture_depth == NULL) {
-		g_select_buffer.texture_depth = GPU_texture_create_depth(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), NULL);
+		g_select_buffer.texture_depth = GPU_texture_create_2D(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), GPU_DEPTH_COMPONENT24, NULL, NULL);
 
 		GPU_framebuffer_texture_attach(g_select_buffer.framebuffer, g_select_buffer.texture_depth, 0, 0);
 

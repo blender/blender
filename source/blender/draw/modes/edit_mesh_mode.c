@@ -141,9 +141,9 @@ static void EDIT_MESH_engine_init(void *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-	e_data.occlude_wire_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_DEPTH_24,
+	e_data.occlude_wire_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24,
 	                                                         &draw_engine_edit_mesh_type);
-	e_data.occlude_wire_color_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8,
+	e_data.occlude_wire_color_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8,
 	                                                         &draw_engine_edit_mesh_type);
 
 	GPU_framebuffer_ensure_config(&fbl->occlude_wire_fb, {

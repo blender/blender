@@ -122,7 +122,7 @@ bool GPU_viewport_do_update(GPUViewport *viewport);
 GPUTexture *GPU_viewport_color_texture(GPUViewport *viewport);
 
 /* Texture pool */
-GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine, int width, int height, int channels, int format);
+GPUTexture *GPU_viewport_texture_pool_query(GPUViewport *viewport, void *engine, int width, int height, int format);
 
 bool GPU_viewport_engines_data_validate(GPUViewport *viewport, unsigned int hash);
 void GPU_viewport_cache_release(GPUViewport *viewport);

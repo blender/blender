@@ -103,11 +103,11 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 
 			int buffer_size[2] = {(int)viewport_size[0] / 2, (int)viewport_size[1] / 2};
 
-			effects->dof_down_near = DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], DRW_TEX_RGB_11_11_10,
+			effects->dof_down_near = DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], GPU_R11F_G11F_B10F,
 			                                                   &draw_engine_eevee_type);
-			effects->dof_down_far =  DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], DRW_TEX_RGB_11_11_10,
+			effects->dof_down_far =  DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], GPU_R11F_G11F_B10F,
 			                                                   &draw_engine_eevee_type);
-			effects->dof_coc =       DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], DRW_TEX_RG_16,
+			effects->dof_coc =       DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], GPU_RG16F,
 			                                                   &draw_engine_eevee_type);
 
 			GPU_framebuffer_ensure_config(&fbl->dof_down_fb, {
@@ -118,7 +118,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			});
 
 			/* Go full 32bits for rendering and reduce the color artifacts. */
-			DRWTextureFormat fb_format = DRW_state_is_image_render() ? DRW_TEX_RGBA_32 : DRW_TEX_RGBA_16;
+			GPUTextureFormat fb_format = DRW_state_is_image_render() ? GPU_RGBA32F : GPU_RGBA16F;
 
 			effects->dof_far_blur = DRW_texture_pool_query_2D(buffer_size[0], buffer_size[1], fb_format,
 			                                                  &draw_engine_eevee_type);

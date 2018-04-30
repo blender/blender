@@ -523,7 +523,7 @@ struct GPUUniformBuffer *GPU_material_sss_profile_get(GPUMaterial *material, int
 			GPU_texture_free(material->sss_tex_profile);
 		}
 
-		material->sss_tex_profile = GPU_texture_create_1D_custom(64, 4, GPU_RGBA16F, translucence_profile, NULL);
+		material->sss_tex_profile = GPU_texture_create_1D(64, GPU_RGBA16F, translucence_profile, NULL);
 
 		MEM_freeN(translucence_profile);
 

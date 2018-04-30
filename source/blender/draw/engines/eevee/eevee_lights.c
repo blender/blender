@@ -472,7 +472,7 @@ void EEVEE_lights_cache_shcaster_object_add(EEVEE_ViewLayerData *sldata, Object 
 void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 {
 	EEVEE_LampsInfo *linfo = sldata->lamps;
-	DRWTextureFormat shadow_pool_format = DRW_TEX_R_32;
+	GPUTextureFormat shadow_pool_format = GPU_R32F;
 
 	sldata->common_data.la_num_light = linfo->num_light;
 
@@ -485,8 +485,8 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 	}
 
 	switch (linfo->shadow_method) {
-		case SHADOW_ESM: shadow_pool_format = ((linfo->shadow_high_bitdepth) ? DRW_TEX_R_32 : DRW_TEX_R_16); break;
-		case SHADOW_VSM: shadow_pool_format = ((linfo->shadow_high_bitdepth) ? DRW_TEX_RG_32 : DRW_TEX_RG_16); break;
+		case SHADOW_ESM: shadow_pool_format = ((linfo->shadow_high_bitdepth) ? GPU_R32F : GPU_R16F); break;
+		case SHADOW_VSM: shadow_pool_format = ((linfo->shadow_high_bitdepth) ? GPU_RG32F : GPU_RG16F); break;
 		default:
 			BLI_assert(!"Incorrect Shadow Method");
 			break;
@@ -496,7 +496,7 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 		/* TODO render everything on the same 2d render target using clip planes and no Geom Shader. */
 		/* Cubemaps */
 		sldata->shadow_cube_target = DRW_texture_create_cube(
-		        linfo->shadow_cube_target_size, DRW_TEX_DEPTH_24, 0, NULL);
+		        linfo->shadow_cube_target_size, GPU_DEPTH_COMPONENT24, 0, NULL);
 		sldata->shadow_cube_blur = DRW_texture_create_cube(
 		        linfo->shadow_cube_target_size, shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
@@ -504,7 +504,7 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 	if (!sldata->shadow_cascade_target) {
 		/* CSM */
 		sldata->shadow_cascade_target = DRW_texture_create_2D_array(
-		        linfo->shadow_size, linfo->shadow_size, MAX_CASCADE_NUM, DRW_TEX_DEPTH_24, 0, NULL);
+		        linfo->shadow_size, linfo->shadow_size, MAX_CASCADE_NUM, GPU_DEPTH_COMPONENT24, 0, NULL);
 		sldata->shadow_cascade_blur = DRW_texture_create_2D_array(
 		        linfo->shadow_size, linfo->shadow_size, MAX_CASCADE_NUM, shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}

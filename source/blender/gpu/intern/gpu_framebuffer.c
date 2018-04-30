@@ -657,11 +657,11 @@ GPUOffScreen *GPU_offscreen_create(int width, int height, int samples, bool dept
 
 	ofs = MEM_callocN(sizeof(GPUOffScreen), "GPUOffScreen");
 
-	ofs->color = GPU_texture_create_2D_custom_multisample(width, height, 4,
+	ofs->color = GPU_texture_create_2D_multisample(width, height,
 	        (high_bitdepth) ? GPU_RGBA16F : GPU_RGBA8, NULL, samples, err_out);
 
 	if (depth) {
-		ofs->depth = GPU_texture_create_depth_with_stencil_multisample(width, height, samples, err_out);
+		ofs->depth = GPU_texture_create_2D_multisample(width, height, GPU_DEPTH24_STENCIL8, NULL, samples, err_out);
 	}
 
 	if ((depth && !ofs->depth) || !ofs->color) {

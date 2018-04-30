@@ -313,12 +313,12 @@ static void OBJECT_engine_init(void *vedata)
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
 	if (DRW_state_is_fbo()) {
-		e_data.outlines_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_DEPTH_24,
+		e_data.outlines_depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24,
 		                                                     &draw_engine_object_type);
-		/* XXX TODO DRW_TEX_R_16U can overflow, it would cause no harm
+		/* XXX TODO GPU_R16UI can overflow, it would cause no harm
 		 * (only bad colored or missing outlines) but we should
 		 * use 32bits only if the scene have that many objects */
-		e_data.outlines_id_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_R_16U,
+		e_data.outlines_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16UI,
 		                                                  &draw_engine_object_type);
 
 		GPU_framebuffer_ensure_config(&fbl->outlines_fb, {
@@ -326,7 +326,7 @@ static void OBJECT_engine_init(void *vedata)
 			GPU_ATTACHMENT_TEXTURE(e_data.outlines_id_tx)
 		});
 
-		e_data.outlines_color_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8,
+		e_data.outlines_color_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8,
 		                                                     &draw_engine_object_type);
 
 		GPU_framebuffer_ensure_config(&fbl->expand_fb, {
@@ -334,7 +334,7 @@ static void OBJECT_engine_init(void *vedata)
 			GPU_ATTACHMENT_TEXTURE(e_data.outlines_color_tx)
 		});
 
-		e_data.outlines_blur_tx = DRW_texture_pool_query_2D(size[0], size[1], DRW_TEX_RGBA_8,
+		e_data.outlines_blur_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8,
 		                                                    &draw_engine_object_type);
 
 		GPU_framebuffer_ensure_config(&fbl->blur_fb, {
