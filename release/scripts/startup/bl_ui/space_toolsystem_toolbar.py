@@ -445,7 +445,7 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def knife():
-        def draw_settings(cls, context, layout):
+        def draw_settings(context, layout):
             wm=context.window_manager
             props=wm.operator_properties_last("mesh.knife_tool")
             layout.prop(props, "use_occlude_geometry")
