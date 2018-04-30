@@ -65,14 +65,14 @@ class TIME_HT_editor_buttons(Header):
             #   since JACK transport doesn't support reversed playback
             if scene.sync_mode == 'AUDIO_SYNC' and context.user_preferences.system.audio_device == 'JACK':
                 sub = row.row(align=True)
-                sub.scale_x = 2.0
+                sub.scale_x = 1.4
                 sub.operator("screen.animation_play", text="", icon='PLAY')
             else:
                 row.operator("screen.animation_play", text="", icon='PLAY_REVERSE').reverse = True
                 row.operator("screen.animation_play", text="", icon='PLAY')
         else:
             sub = row.row(align=True)
-            sub.scale_x = 2.0
+            sub.scale_x = 1.4
             sub.operator("screen.animation_play", text="", icon='PAUSE')
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
         row.operator("screen.frame_jump", text="", icon='FF').end = True
