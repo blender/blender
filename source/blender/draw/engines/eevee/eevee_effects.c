@@ -234,8 +234,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Motion vector buffer for correct TAA / motion blur.
 	 */
 	if ((effects->enabled_effects & EFFECT_VELOCITY_BUFFER) != 0) {
-		/* TODO use RG16_UNORM */
-		effects->velocity_tx = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], GPU_RG32F,
+		effects->velocity_tx = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], GPU_RG16,
 		                                                 &draw_engine_eevee_type);
 
 		/* TODO output objects velocity during the mainpass. */

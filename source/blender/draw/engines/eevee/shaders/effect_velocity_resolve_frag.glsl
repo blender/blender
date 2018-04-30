@@ -16,4 +16,7 @@ void main()
 	vec2 uv_history = project_point(pastPersmat, world_position).xy * 0.5 + 0.5;
 
 	outData = uv - uv_history;
+
+	/* Encode to unsigned normalized 16bit texture. */
+	outData = outData * 0.5 + 0.5;
 }

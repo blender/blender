@@ -41,6 +41,9 @@ void main()
 	float depth = texelFetch(depthBuffer, texel, 0).r;
 	vec2 motion = texelFetch(velocityBuffer, texel, 0).rg;
 
+	/* Decode from unsigned normalized 16bit texture. */
+	motion = motion * 2.0 - 1.0;
+
 	/* Compute pixel position in previous frame. */
 	vec2 screen_res = vec2(textureSize(colorBuffer, 0).xy);
 	vec2 uv = gl_FragCoord.xy / screen_res;
