@@ -609,27 +609,23 @@ void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)
 	BKE_id_make_local_generic(bmain, &me->id, true, lib_local);
 }
 
-bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int loop_index, const int face_index,
-                                      const char *new_name, const bool do_tessface)
+bool BKE_mesh_uv_cdlayer_rename_index(
+        Mesh *me, const int loop_index, const int face_index,
+        const char *new_name, const bool do_tessface)
 {
-	CustomData *pdata, *ldata, *fdata;
-	CustomDataLayer *cdlp, *cdlu, *cdlf;
-	const int step = do_tessface ? 3 : 2;
-	int i;
+	CustomData *ldata, *fdata;
+	CustomDataLayer *cdlu, *cdlf;
 
 	if (me->edit_btmesh) {
-		pdata = &me->edit_btmesh->bm->pdata;
 		ldata = &me->edit_btmesh->bm->ldata;
 		fdata = NULL;  /* No tessellated data in BMesh! */
 	}
 	else {
-		pdata = &me->pdata;
 		ldata = &me->ldata;
 		fdata = &me->fdata;
 	}
 
 	cdlu = &ldata->layers[loop_index];
-	cdlp = (poly_index != -1) ? &pdata->layers[poly_index] : NULL;
 	cdlf = (face_index != -1) && fdata && do_tessface ? &fdata->layers[face_index] : NULL;
 
 	if (cdlu->name != new_name) {
@@ -640,35 +636,12 @@ bool BKE_mesh_uv_cdlayer_rename_index(Mesh *me, const int poly_index, const int 
 		CustomData_set_layer_unique_name(ldata, loop_index);
 	}
 
-	if (cdlp == NULL && cdlf == NULL) {
+	if (cdlf == NULL) {
 		return false;
 	}
 
-	/* Loop until we do have exactly the same name for all layers! */
-	for (i = 1;
-	     (cdlp && !STREQ(cdlu->name, cdlp->name)) ||
-	     (cdlf && !STREQ(cdlu->name, cdlf->name));
-	     i++)
-	{
-		switch (i % step) {
-			case 0:
-				if (cdlp) {
-					BLI_strncpy(cdlp->name, cdlu->name, sizeof(cdlp->name));
-					CustomData_set_layer_unique_name(pdata, poly_index);
-				}
-				break;
-			case 1:
-				BLI_strncpy(cdlu->name, cdlp->name, sizeof(cdlu->name));
-				CustomData_set_layer_unique_name(ldata, loop_index);
-				break;
-			case 2:
-				if (cdlf) {
-					BLI_strncpy(cdlf->name, cdlu->name, sizeof(cdlf->name));
-					CustomData_set_layer_unique_name(fdata, face_index);
-				}
-				break;
-		}
-	}
+	BLI_strncpy(cdlf->name, cdlu->name, sizeof(cdlf->name));
+	CustomData_set_layer_unique_name(fdata, face_index);
 
 	return true;
 }
@@ -712,7 +685,7 @@ bool BKE_mesh_uv_cdlayer_rename(Mesh *me, const char *old_name, const char *new_
 		if (fidx != -1)
 			fidx += fidx_start;
 
-		return BKE_mesh_uv_cdlayer_rename_index(me, -1, lidx, fidx, new_name, do_tessface);
+		return BKE_mesh_uv_cdlayer_rename_index(me, lidx, fidx, new_name, do_tessface);
 	}
 }
 
