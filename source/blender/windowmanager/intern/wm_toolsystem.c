@@ -38,6 +38,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
+#include "BKE_workspace.h"
 
 #include "RNA_access.h"
 
@@ -79,13 +80,26 @@ void WM_toolsystem_link(bContext *C, WorkSpace *workspace)
 	if (workspace->tool.manipulator_group[0]) {
 		WM_manipulator_group_type_ensure(workspace->tool.manipulator_group);
 	}
+
 	if (workspace->tool.data_block[0]) {
+		Main *bmain = CTX_data_main(C);
+
 		/* Currently only brush data-blocks supported. */
-		Paint *paint = BKE_paint_get_active_from_context(C);
-		if (paint) {
-			struct Brush *brush = (struct Brush *)BKE_libblock_find_name(ID_BR, workspace->tool.data_block);
-			if (brush) {
-				BKE_paint_brush_set(paint, brush);
+		struct Brush *brush = (struct Brush *)BKE_libblock_find_name(ID_BR, workspace->tool.data_block);
+
+		if (brush) {
+			wmWindowManager *wm = bmain->wm.first;
+			for (wmWindow *win = wm->windows.first; win; win = win->next) {
+				if (workspace == WM_window_get_active_workspace(win)) {
+					Scene *scene = win->scene;
+					ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
+					Paint *paint = BKE_paint_get_active(scene, view_layer);
+					if (paint) {
+						if (brush) {
+							BKE_paint_brush_set(paint, brush);
+						}
+					}
+				}
 			}
 		}
 	}
