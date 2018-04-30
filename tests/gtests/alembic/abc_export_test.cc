@@ -16,9 +16,9 @@ extern "C" {
 class TestableAbcExporter : public AbcExporter {
 public:
 	TestableAbcExporter(Main *bmain,
-	                    Scene *scene, ViewLayer *view_layer, Depsgraph *depsgraph,
+	                    Scene *scene, Depsgraph *depsgraph,
 	                    const char *filename, ExportSettings &settings)
-	    : AbcExporter(bmain, scene, view_layer, depsgraph, filename, settings)
+	    : AbcExporter(bmain, scene, depsgraph, filename, settings)
 	{
 	}
 
@@ -72,8 +72,7 @@ protected:
 	// Call after setting up the settings.
 	void createExporter()
 	{
-		ViewLayer *view_layer = (ViewLayer *)scene.view_layers.first;
-		exporter = new TestableAbcExporter(bmain, &scene, view_layer, depsgraph, "somefile.abc", settings);
+		exporter = new TestableAbcExporter(bmain, &scene, depsgraph, "somefile.abc", settings);
 	}
 };
 
