@@ -1050,7 +1050,7 @@ class VIEW3D_PT_tools_brush_appearance(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = "weightpaint"
+    bl_context = ".weightpaint"
     bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Symmetry"
 
@@ -1063,7 +1063,7 @@ class VIEW3D_PT_tools_weightpaint_symmetry(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
     bl_category = "Options"
-    bl_context = "weightpaint"
+    bl_context = ".weightpaint"
     bl_label = "Options"
 
     def draw(self, context):

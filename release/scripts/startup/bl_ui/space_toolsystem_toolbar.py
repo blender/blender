@@ -203,33 +203,6 @@ class _defs_view3d_select:
 # -----------------------------------------------------------------------------
 # Object Modes (named based on context.mode)
 
-class _defs_weight_paint:
-
-    @ToolDef.from_fn
-    def gradient_linear():
-        return dict(
-            text="Linear Gradient",
-            icon=None,
-            widget=None,
-            keymap=(
-                ("paint.weight_gradient", dict(type='LINEAR'),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
-        )
-
-    @ToolDef.from_fn
-    def gradient_radial():
-        return dict(
-            text="Radial Gradient",
-            icon=None,
-            widget=None,
-            keymap=(
-                ("paint.weight_gradient",
-                 dict(type='RADIAL'),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
-        )
-
 class _defs_edit_armature:
 
     @ToolDef.from_fn
@@ -571,13 +544,14 @@ class _defs_sculpt:
             )
         )
 
-class _defs_vertexpaint:
+
+class _defs_vertex_paint:
 
     @staticmethod
     def generate_from_brushes(context):
         return generate_from_brushes_ex(
             context,
-            icon_prefix="brush.vertexpaint.",
+            icon_prefix="brush.paint_vertex.",
             brush_test_attr="use_paint_vertex",
             brush_category_attr="vertex_tool",
             brush_category_layout=(
@@ -591,6 +565,54 @@ class _defs_vertexpaint:
                     'SATURATION', 'HUE',
                 ),
             )
+        )
+
+
+class _defs_weight_paint:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_brushes_ex(
+            context,
+            icon_prefix="brush.paint_weight.",
+            brush_test_attr="use_paint_weight",
+            brush_category_attr="vertex_tool",
+            brush_category_layout=(
+                ('MIX',),
+                ('BLUR', 'AVERAGE'),
+                ('SMEAR',),
+                (
+                    'ADD', 'SUB', 'MUL', 'LIGHTEN', 'DARKEN',
+                    'COLORDODGE', 'DIFFERENCE', 'SCREEN', 'HARDLIGHT',
+                    'OVERLAY', 'SOFTLIGHT', 'EXCLUSION', 'LUMINOCITY',
+                    'SATURATION', 'HUE',
+                ),
+            )
+        )
+
+    @ToolDef.from_fn
+    def gradient_linear():
+        return dict(
+            text="Linear Gradient",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("paint.weight_gradient", dict(type='LINEAR'),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def gradient_radial():
+        return dict(
+            text="Radial Gradient",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("paint.weight_gradient",
+                 dict(type='RADIAL'),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
         )
 
 
@@ -652,15 +674,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'POSE': [
             *_tools_select,
             *_tools_transform,
-        ],
-        'PAINT_WEIGHT': [
-            *_tools_select,
-
-            # TODO, override brush events
-            (
-                _defs_weight_paint.gradient_linear,
-                _defs_weight_paint.gradient_radial,
-            ),
         ],
         'EDIT_ARMATURE': [
             *_tools_select,
@@ -735,7 +748,17 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_sculpt.generate_from_brushes,
         ],
         'PAINT_VERTEX': [
-            _defs_vertexpaint.generate_from_brushes,
+            _defs_vertex_paint.generate_from_brushes,
+        ],
+        'PAINT_WEIGHT': [
+            *_tools_select,
+
+            # TODO, override brush events
+            _defs_weight_paint.generate_from_brushes,
+            (
+                _defs_weight_paint.gradient_linear,
+                _defs_weight_paint.gradient_radial,
+            ),
         ],
     }
 
