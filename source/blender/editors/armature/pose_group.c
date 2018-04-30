@@ -38,6 +38,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
+#include "BKE_armature.h"
 #include "BKE_action.h"
 #include "BKE_context.h"
 
@@ -432,11 +433,11 @@ void POSE_OT_group_sort(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static void pose_group_select(bContext *C, Object *ob, bool select)
+static void pose_group_select(Object *ob, bool select)
 {
 	bPose *pose = ob->pose;
 	
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+	FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN (ob, pchan)
 	{
 		if ((pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
 			if (select) {
@@ -449,7 +450,7 @@ static void pose_group_select(bContext *C, Object *ob, bool select)
 			}
 		}
 	}
-	CTX_DATA_END;
+	FOREACH_PCHAN_VISIBLE_IN_OBJECT_END;
 }
 
 static int pose_group_select_exec(bContext *C, wmOperator *UNUSED(op))
@@ -460,7 +461,7 @@ static int pose_group_select_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
 	
-	pose_group_select(C, ob, 1);
+	pose_group_select(ob, 1);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -491,7 +492,7 @@ static int pose_group_deselect_exec(bContext *C, wmOperator *UNUSED(op))
 	if (ELEM(NULL, ob, ob->pose))
 		return OPERATOR_CANCELLED;
 	
-	pose_group_select(C, ob, 0);
+	pose_group_select(ob, 0);
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
