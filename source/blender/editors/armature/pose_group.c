@@ -205,12 +205,12 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
 		BKE_pose_add_group(ob->pose, NULL);
 	
 	/* add selected bones to group then */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob, pchan)
 	{
 		pchan->agrp_index = pose->active_group;
 		done = true;
 	}
-	CTX_DATA_END;
+	FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
@@ -252,14 +252,14 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* find selected bones to remove from all bone groups */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob, pchan)
 	{
 		if (pchan->agrp_index) {
 			pchan->agrp_index = 0;
 			done = true;
 		}
 	}
-	CTX_DATA_END;
+	FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
