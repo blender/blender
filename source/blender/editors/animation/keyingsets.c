@@ -1054,6 +1054,7 @@ int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSe
 				break;
 			}
 			default:
+				DEG_id_tag_update(ksp->id, DEG_TAG_COPY_ON_WRITE);
 				break;
 		}
 		
