@@ -1,8 +1,6 @@
 
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ViewProjectionMatrix;
-uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ProjectionMatrix;
 
 /* ---- Instanciated Attribs ---- */
 in vec4 pos;  /* w encodes head (== 0.0f), tail (== 1.0f). */
@@ -28,7 +26,7 @@ float sdf_bone(vec3 p, Bone b)
 	h = clamp(h, 0.0, 1.0);
 	return length(pa - b.vec * h) - (b.r1 + b.rdif * h);
 }
-	
+
 void main()
 {
 	/* Raytracing against cone need a parametric definition of the cone
