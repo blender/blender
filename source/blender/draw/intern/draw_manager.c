@@ -214,7 +214,7 @@ int DRW_object_is_mode_shade(const Object *ob)
 int DRW_object_is_paint_mode(const Object *ob)
 {
 	if (ob == DST.draw_ctx.obact) {
-		if ((DST.draw_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) > 0) {
+		if ((DST.draw_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) > 0) {
 			return true;
 		}
 	}
