@@ -250,7 +250,7 @@ typedef struct Object {
 	char restrictflag;		/* for restricting view, select, render etc. accessible in outliner */
 	char pad3;
 	short softflag;			/* softbody settings */
-	float pad9[3];
+	int pad2;
 
 	ListBase constraints;		/* object constraints */
 	ListBase nlastrips  DNA_DEPRECATED;			// XXX deprecated... old animation system
