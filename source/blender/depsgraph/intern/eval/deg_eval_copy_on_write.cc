@@ -78,6 +78,7 @@ extern "C" {
 #endif
 
 #include "BKE_action.h"
+#include "BKE_animsys.h"
 #include "BKE_editmesh.h"
 #include "BKE_library_query.h"
 #include "BKE_object.h"
@@ -603,6 +604,13 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	                                          create_placeholders);
 }
 
+static void deg_update_copy_on_write_animation(const Depsgraph * /*depsgraph*/,
+                                               const IDDepsNode *id_node)
+{
+	DEG_debug_print_eval(__func__, id_node->id_orig->name, id_node->id_cow);
+	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false);
+}
+
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
                                        const IDDepsNode *id_node)
 {
@@ -657,6 +665,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				                         ID_RECALC_ANIMATION |
 				                         ID_RECALC_COPY_ON_WRITE);
 				if ((id_cow->recalc & ~ignore_flag) == 0) {
+					deg_update_copy_on_write_animation(depsgraph, id_node);
 					return id_cow;
 				}
 				break;
