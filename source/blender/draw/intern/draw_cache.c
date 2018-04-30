@@ -86,8 +86,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_bone_wire_wire;
 	Gwn_Batch *drw_bone_envelope;
 	Gwn_Batch *drw_bone_envelope_distance;
-	Gwn_Batch *drw_bone_envelope_wire;
-	Gwn_Batch *drw_bone_envelope_head_wire;
+	Gwn_Batch *drw_bone_envelope_outline;
 	Gwn_Batch *drw_bone_point;
 	Gwn_Batch *drw_bone_point_wire;
 	Gwn_Batch *drw_bone_arrows;
@@ -1959,70 +1958,58 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 	return SHC.drw_bone_envelope;
 }
 
-/* Bone body. */
-Gwn_Batch *DRW_cache_bone_envelope_wire_outline_get(void)
+Gwn_Batch *DRW_cache_bone_envelope_outline_get(void)
 {
-	if (!SHC.drw_bone_envelope_wire) {
-		unsigned int v_idx = 0;
+	if (!SHC.drw_bone_envelope_outline) {
+#  define CIRCLE_RESOL 64
+		float v0[2], v1[2], v2[2];
+		const float radius = 1.0f;
 
+		/* Position Only 2D format */
 		static Gwn_VertFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos0, pos1, pos2; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			attr_id.pos0 = GWN_vertformat_attr_add(&format, "pos0", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.pos1 = GWN_vertformat_attr_add(&format, "pos1", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.pos2 = GWN_vertformat_attr_add(&format, "pos2", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 
-		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 4);
+		GWN_vertbuf_data_alloc(vbo, (CIRCLE_RESOL + 1) * 2);
 
-		/* Two lines between head and tail circles. */
-		/* Encoded lines, vertex shader gives them final correct value. */
-		/*                                                         { X,    Y, head/tail, inner/outer border } */
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       0.0f, 0.0f});
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       1.0f, 0.0f});
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       0.0f, 0.0f});
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       1.0f, 0.0f});
+		v0[0] = radius * sinf((2.0f * M_PI * -2) / ((float)CIRCLE_RESOL));
+		v0[1] = radius * cosf((2.0f * M_PI * -2) / ((float)CIRCLE_RESOL));
+		v1[0] = radius * sinf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+		v1[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
 
-		SHC.drw_bone_envelope_wire = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	}
-	return SHC.drw_bone_envelope_wire;
-}
-
-
-/* Bone head and tail. */
-Gwn_Batch *DRW_cache_bone_envelope_head_wire_outline_get(void)
-{
-#define CIRCLE_RESOL 32  /* Must be multiple of 2 */
-	if (!SHC.drw_bone_envelope_head_wire) {
-		unsigned int v_idx = 0;
-
-		static Gwn_VertFormat format = { 0 };
-		static unsigned int pos_id;
-		if (format.attrib_ct == 0) {
-			pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+		/* Output 4 verts for each position. See shader for explanation. */
+		unsigned int v = 0;
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v2[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v2[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
+			copy_v2_v2(v0, v1);
+			copy_v2_v2(v1, v2);
 		}
+		v2[0] = 0.0f;
+		v2[1] = radius;
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
 
-		/* Vertices */
-		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
-
-		/* Encoded lines, vertex shader gives them final correct value. */
-		/* Only head circle (tail is drawn in disp_tail_mat space as a head one by draw_armature.c's draw_point()). */
-		for (int i = 0; i < CIRCLE_RESOL; i++) {
-			const float alpha = 2.0f * M_PI * i / CIRCLE_RESOL;
-			const float x = cosf(alpha);
-			const float y = -sinf(alpha);
-
-			/*                                                         {     X,      Y, head/tail, inner/outer border } */
-			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){     x,      y,      0.0f, 0.0f});
-		}
-
-		SHC.drw_bone_envelope_head_wire = GWN_batch_create_ex(GWN_PRIM_LINE_LOOP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_envelope_outline = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#  undef CIRCLE_RESOL
 	}
-	return SHC.drw_bone_envelope_head_wire;
-#undef CIRCLE_RESOL
+	return SHC.drw_bone_envelope_outline;
 }
-
 
 Gwn_Batch *DRW_cache_bone_point_get(void)
 {
