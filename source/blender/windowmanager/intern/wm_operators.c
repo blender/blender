@@ -2619,10 +2619,9 @@ static void radial_control_paint_tex(RadialControl *rc, float radius, float alph
 	immUnbindProgram();
 }
 
-static void radial_control_paint_cursor(bContext *C, int x, int y, void *customdata)
+static void radial_control_paint_cursor(bContext *UNUSED(C), int x, int y, void *customdata)
 {
 	RadialControl *rc = customdata;
-	ARegion *ar = CTX_wm_region(C);
 	uiStyle *style = UI_style_get();
 	const uiFontStyle *fstyle = &style->widget;
 	const int fontid = fstyle->uifont_id;
@@ -2673,8 +2672,8 @@ static void radial_control_paint_cursor(bContext *C, int x, int y, void *customd
 	}
 
 	/* Keep cursor in the original place */
-	x = rc->initial_mouse[0] - ar->winrct.xmin;
-	y = rc->initial_mouse[1] - ar->winrct.ymin;
+	x = rc->initial_mouse[0];
+	y = rc->initial_mouse[1];
 	gpuTranslate2f((float)x, (float)y);
 
 	glEnable(GL_BLEND);
