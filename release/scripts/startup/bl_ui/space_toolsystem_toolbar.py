@@ -522,7 +522,7 @@ class _defs_sculpt:
 
         def tools_from_brush_group(*groups):
             if len(groups) == 1:
-                tool_defs = brush_categories.pop(groups[0], ())
+                tool_defs = tuple(brush_categories.pop(groups[0], ()))
             else:
                 tool_defs = tuple(item for g in groups for item in brush_categories.pop(g, ()))
             if len(tool_defs) > 1:
@@ -565,7 +565,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     def tools_from_context(cls, context):
         for tools in (cls._tools[None], cls._tools.get(context.mode, ())):
             for item in tools:
-                if not (type(item) is type and issubclass(item, ToolDef)) and callable(item):
+                if not (type(item) is ToolDef) and callable(item):
                     yield from item(context)
                 else:
                     yield item
