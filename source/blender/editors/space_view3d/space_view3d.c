@@ -1053,6 +1053,8 @@ static void view3d_main_region_message_subscribe(
 		&RNA_Object,
 		&RNA_UnitSettings,  /* grid-floor */
 
+		&RNA_View3DOverlay,
+		&RNA_View3DShading,
 		&RNA_World,
 	};
 
