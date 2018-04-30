@@ -145,15 +145,16 @@ class TOPBAR_HT_lower_bar(Header):
             draw_fn(context, layout)
 
         if mode == 'SCULPT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".sculpt_mode", category="")
         elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".vertexpaint", category="")
         elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".weightpaint", category="")
         elif mode == 'PAINT_TEXTURE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".imagepaint", category="")
 
         elif mode == 'EDIT_ARMATURE':

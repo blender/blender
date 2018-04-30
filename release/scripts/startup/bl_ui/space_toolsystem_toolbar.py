@@ -774,10 +774,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             _defs_vertex_paint.generate_from_brushes,
         ],
         'PAINT_WEIGHT': [
-            *_tools_select,
+            _defs_weight_paint.generate_from_brushes,
 
             # TODO, override brush events
-            _defs_weight_paint.generate_from_brushes,
+            *_tools_select,
             (
                 _defs_weight_paint.gradient_linear,
                 _defs_weight_paint.gradient_radial,
