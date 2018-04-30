@@ -993,34 +993,45 @@ void MESH_OT_mark_seam(wmOperatorType *ot)
 
 static int edbm_mark_sharp_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = ((Mesh *)obedit->data);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMIter iter;
 	const bool clear = RNA_boolean_get(op->ptr, "clear");
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	/* auto-enable sharp edge drawing */
-	if (clear == 0) {
-		me->drawflag |= ME_DRAWSHARP;
-	}
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		Mesh *me = ((Mesh *)obedit->data);
 
-	BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-		if (use_verts) {
-			if (!(BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) || BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))) {
-				continue;
-			}
-		}
-		else if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+		if (bm->totedgesel == 0) {
 			continue;
 		}
 
-		BM_elem_flag_set(eed, BM_ELEM_SMOOTH, clear);
-	}
+		/* auto-enable sharp edge drawing */
+		if (clear == 0) {
+			me->drawflag |= ME_DRAWSHARP;
+		}
 
-	EDBM_update_generic(em, true, false);
+		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+			if (use_verts) {
+				if (!(BM_elem_flag_test(eed->v1, BM_ELEM_SELECT) || BM_elem_flag_test(eed->v2, BM_ELEM_SELECT))) {
+					continue;
+				}
+			}
+			else if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				continue;
+			}
+
+			BM_elem_flag_set(eed, BM_ELEM_SMOOTH, clear);
+		}
+
+		EDBM_update_generic(em, true, false);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
