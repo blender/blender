@@ -31,6 +31,52 @@ from .space_toolsystem_common import (
     ToolDef,
 )
 
+def generate_from_brushes_ex(
+        context, *,
+        icon_prefix,
+        brush_test_attr,
+        brush_category_attr,
+        brush_category_layout,
+):
+    # Categories
+    brush_categories = {}
+    for brush in context.blend_data.brushes:
+        if getattr(brush, brush_test_attr):
+            category = getattr(brush, brush_category_attr)
+            name = brush.name
+            brush_categories.setdefault(category, []).append(
+                ToolDef.from_dict(
+                    dict(
+                        text=name,
+                        icon=icon_prefix + category.lower(),
+                        data_block=name,
+                    )
+                )
+            )
+
+    def tools_from_brush_group(groups):
+        assert(type(groups) is tuple)
+        if len(groups) == 1:
+            tool_defs = tuple(brush_categories.pop(groups[0], ()))
+        else:
+            tool_defs = tuple(item for g in groups for item in brush_categories.pop(g, ()))
+        if len(tool_defs) > 1:
+            return (tool_defs,)
+        else:
+            return tool_defs
+
+    # Each item below is a single toolbar entry:
+    # Grouped for multiple or none if no brushes are found.
+    tool_defs = tuple(
+        tool_def
+        for category in brush_category_layout
+        for tool_def in tools_from_brush_group(category)
+    )
+    # Ensure we use all types.
+    assert(len(brush_categories) == 0)
+    return tool_defs
+
+
 class _defs_view3d_generic:
     @ToolDef.from_fn
     def cursor():
@@ -504,51 +550,48 @@ class _defs_sculpt:
 
     @staticmethod
     def generate_from_brushes(context):
-        # Categories
-        brush_categories = {}
-        for brush in context.blend_data.brushes:
-            if brush.use_paint_sculpt:
-                sculpt_tool = brush.sculpt_tool
-                name = brush.name
-                brush_categories.setdefault(sculpt_tool, []).append(
-                    ToolDef.from_dict(
-                        dict(
-                            text=name,
-                            icon="brush.sculpt." + sculpt_tool.lower(),
-                            data_block=name,
-                        )
-                    )
-                )
-
-        def tools_from_brush_group(*groups):
-            if len(groups) == 1:
-                tool_defs = tuple(brush_categories.pop(groups[0], ()))
-            else:
-                tool_defs = tuple(item for g in groups for item in brush_categories.pop(g, ()))
-            if len(tool_defs) > 1:
-                return (tool_defs,)
-            else:
-                return tool_defs
-
-        # Each item below is a single toolbar entry:
-        # Grouped for multiple or none if no brushes are found.
-        tool_defs = (
-            *tools_from_brush_group("DRAW"),
-            *tools_from_brush_group("GRAB", "THUMB"),
-            *tools_from_brush_group("SNAKE_HOOK"),
-            *tools_from_brush_group("BLOB", "INFLATE"),
-            *tools_from_brush_group("SMOOTH", "SCRAPE" , "FLATTEN"),
-            *tools_from_brush_group("CREASE", "PINCH"),
-            *tools_from_brush_group("CLAY", "CLAY_STRIPS"),
-            *tools_from_brush_group("LAYER"),
-            *tools_from_brush_group("NUDGE", "ROTATE"),
-            *tools_from_brush_group("FILL"),
-            *tools_from_brush_group("SIMPLIFY"),
-            *tools_from_brush_group("MASK"),
+        return generate_from_brushes_ex(
+            context,
+            icon_prefix="brush.sculpt.",
+            brush_test_attr="use_paint_sculpt",
+            brush_category_attr="sculpt_tool",
+            brush_category_layout=(
+                ('DRAW',),
+                ('GRAB', 'THUMB'),
+                ('SNAKE_HOOK',),
+                ('BLOB', 'INFLATE'),
+                ('SMOOTH', 'SCRAPE' , 'FLATTEN'),
+                ('CREASE', 'PINCH'),
+                ('CLAY', 'CLAY_STRIPS'),
+                ('LAYER',),
+                ('NUDGE', 'ROTATE'),
+                ('FILL',),
+                ('SIMPLIFY',),
+                ('MASK',),
+            )
         )
-        # Ensure we use all types.
-        assert(len(brush_categories) == 0)
-        return tool_defs
+
+class _defs_vertexpaint:
+
+    @staticmethod
+    def generate_from_brushes(context):
+        return generate_from_brushes_ex(
+            context,
+            icon_prefix="brush.vertexpaint.",
+            brush_test_attr="use_paint_vertex",
+            brush_category_attr="vertex_tool",
+            brush_category_layout=(
+                ('MIX',),
+                ('BLUR', 'AVERAGE'),
+                ('SMEAR',),
+                (
+                    'ADD', 'SUB', 'MUL', 'LIGHTEN', 'DARKEN',
+                    'COLORDODGE', 'DIFFERENCE', 'SCREEN', 'HARDLIGHT',
+                    'OVERLAY', 'SOFTLIGHT', 'EXCLUSION', 'LUMINOCITY',
+                    'SATURATION', 'HUE',
+                ),
+            )
+        )
 
 
 class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
@@ -690,6 +733,9 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'SCULPT': [
             _defs_sculpt.generate_from_brushes,
+        ],
+        'PAINT_VERTEX': [
+            _defs_vertexpaint.generate_from_brushes,
         ],
     }
 

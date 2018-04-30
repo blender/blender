@@ -148,6 +148,7 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
         elif mode == 'PAINT_VERTEX':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".vertexpaint", category="")
         elif mode == 'PAINT_WEIGHT':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_TEXTURE':
@@ -190,6 +191,17 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
         layout.prop(brush, "direction", text="", expand=True)
+
+    def PAINT_VERTEX(context, layout):
+        brush = context.tool_settings.vertex_paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import UnifiedPaintPanel
+
+        layout.prop(brush, "color", text="")
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 
 class TOPBAR_PT_redo(Panel):
     bl_label = "Redo"

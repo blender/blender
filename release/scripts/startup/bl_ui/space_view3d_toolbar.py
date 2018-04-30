@@ -1094,7 +1094,7 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
     bl_category = "Options"
-    bl_context = "vertexpaint"
+    bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_label = "Options"
 
     def draw(self, context):
@@ -1110,7 +1110,7 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
 
 class VIEW3D_PT_tools_vertexpaint_symmetry(Panel, View3DPaintPanel):
     bl_category = "Tools"
-    bl_context = "vertexpaint"
+    bl_context = ".vertexpaint"  # dot on purpose (access from topbar)
     bl_options = {'DEFAULT_CLOSED'}
     bl_label = "Symmetry"
 
