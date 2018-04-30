@@ -608,7 +608,7 @@ static void deg_update_copy_on_write_animation(const Depsgraph * /*depsgraph*/,
                                                const IDDepsNode *id_node)
 {
 	DEG_debug_print_eval(__func__, id_node->id_orig->name, id_node->id_cow);
-	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false);
+	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false, false);
 }
 
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
