@@ -195,6 +195,17 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
         layout.prop(brush, "direction", text="", expand=True)
 
+    def PAINT_TEXTURE(context, layout):
+        brush = context.tool_settings.vertex_paint.brush
+        if brush is None:
+            return
+
+        from .properties_paint_common import UnifiedPaintPanel
+
+        layout.prop(brush, "color", text="")
+        UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
+        UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+
     def PAINT_VERTEX(context, layout):
         brush = context.tool_settings.vertex_paint.brush
         if brush is None:
