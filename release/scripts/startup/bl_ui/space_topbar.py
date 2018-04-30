@@ -150,7 +150,7 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".vertexpaint", category="")
         elif mode == 'PAINT_WEIGHT':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
         elif mode == 'PAINT_TEXTURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
 

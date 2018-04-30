@@ -96,8 +96,6 @@ static void PAINT_VERTEX_engine_init(void *UNUSED(vedata))
 	}
 }
 
-static float world_light;
-
 static void PAINT_VERTEX_cache_init(void *vedata)
 {
 	PAINT_VERTEX_PassList *psl = ((PAINT_VERTEX_Data *)vedata)->psl;
@@ -112,12 +110,13 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 		/* Create a pass */
 		psl->vcolor_faces = DRW_pass_create(
 		        "Vert Color Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_MULTIPLY);
 
 		stl->g_data->fvcolor_shgrp = DRW_shgroup_create(e_data.vcolor_face_shader, psl->vcolor_faces);
 
 		static float light[3] = {-0.3f, 0.5f, 1.0f};
 		static float alpha = 1.0f;
+		static float world_light = 1.0f;
 		DRW_shgroup_uniform_vec3(stl->g_data->fvcolor_shgrp, "light", light, 1);
 		DRW_shgroup_uniform_float(stl->g_data->fvcolor_shgrp, "alpha", &alpha, 1);
 		DRW_shgroup_uniform_float(stl->g_data->fvcolor_shgrp, "global", &world_light, 1);
@@ -156,8 +155,6 @@ static void PAINT_VERTEX_cache_populate(void *vedata, Object *ob)
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		struct Gwn_Batch *geom;
 
-		world_light = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_shading") ? 0.5f : 1.0f;
-
 		if (use_surface) {
 			geom = DRW_cache_mesh_surface_vert_colors_get(ob);
 			DRW_shgroup_call_add(stl->g_data->fvcolor_shgrp, geom, ob->obmat);
@@ -195,7 +192,6 @@ void PAINT_VERTEX_collection_settings_create(IDProperty *properties)
 	           properties->type == IDP_GROUP &&
 	           properties->subtype == IDP_GROUP_SUB_MODE_PAINT_VERTEX);
 
-	BKE_collection_engine_property_add_bool(properties, "use_shading", true);
 	BKE_collection_engine_property_add_bool(properties, "use_wire", false);
 }
 

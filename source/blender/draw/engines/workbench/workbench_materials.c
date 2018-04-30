@@ -174,7 +174,11 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 
 static void get_material_solid_color(WORKBENCH_PrivateData *wpd, WORKBENCH_ObjectData *engine_object_data, Object *ob, float *color, float hsv_saturation, float hsv_value)
 {
-	if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
+	static float default_color[] = {1.0f, 1.0f, 1.0f};
+	if (DRW_object_is_paint_mode(ob)) {
+		copy_v3_v3(color, default_color);
+	}
+	else if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
 		float offset = fmodf(engine_object_data->object_id * M_GOLDEN_RATION_CONJUGATE, 1.0);
 		float hsv[3] = {offset, hsv_saturation, hsv_value};
 		hsv_to_rgb_v(hsv, color);
