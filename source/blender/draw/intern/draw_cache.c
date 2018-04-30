@@ -2096,7 +2096,7 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 		static struct { uint pos0, pos1; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos0 = GWN_vertformat_attr_add(&format, "pos0", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-			attr_id.pos1 = GWN_vertformat_attr_add(&format, "pos1", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.pos1 = GWN_vertformat_attr_add(&format, "pos1", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);

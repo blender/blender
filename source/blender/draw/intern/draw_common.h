@@ -118,12 +118,12 @@ struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct Gw
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
-struct DRWShadingGroup *shgroup_instance_bone_envelope_wire(struct DRWPass *pass, struct Gwn_Batch *geom);
+struct DRWShadingGroup *shgroup_instance_bone_envelope_outline(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass, struct Gwn_Batch *geom);
-struct DRWShadingGroup *shgroup_instance_armature_shape_outline(struct DRWPass *pass, struct Gwn_Batch *geom);
-struct DRWShadingGroup *shgroup_instance_armature_sphere(struct DRWPass *pass);
-struct DRWShadingGroup *shgroup_instance_armature_sphere_outline(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_shape_outline(struct DRWPass *pass, struct Gwn_Batch *geom);
+struct DRWShadingGroup *shgroup_instance_bone_sphere(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass);
 
 int DRW_object_wire_theme_get(
         struct Object *ob, struct ViewLayer *view_layer, float **r_color);
