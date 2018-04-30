@@ -147,7 +147,7 @@ class TOPBAR_HT_lower_bar(Header):
         if mode == 'SCULPT':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
         elif mode == 'PAINT_VERTEX':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".dummy", category="")
         elif mode == 'PAINT_WEIGHT':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context="", category="")
         elif mode == 'PAINT_TEXTURE':
