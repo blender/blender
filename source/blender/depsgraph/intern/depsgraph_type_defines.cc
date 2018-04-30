@@ -71,6 +71,43 @@ DepsNodeFactory *deg_type_get_factory(const eDepsNode_Type type)
 	return depsnode_typeinfo_registry[type];
 }
 
+/* Stringified node types ---------------------------------- */
+
+const char* nodeTypeAsString(eDepsNode_Type type)
+{
+	switch (type) {
+#define STRINGIFY_TYPE(name) case DEG_NODE_TYPE_##name: return #name
+
+		STRINGIFY_TYPE(UNDEFINED);
+		STRINGIFY_TYPE(OPERATION);
+		/* **** Generic Types **** */
+		STRINGIFY_TYPE(TIMESOURCE);
+		STRINGIFY_TYPE(ID_REF);
+		/* **** Outer Types **** */
+		STRINGIFY_TYPE(PARAMETERS);
+		STRINGIFY_TYPE(PROXY);
+		STRINGIFY_TYPE(ANIMATION);
+		STRINGIFY_TYPE(TRANSFORM);
+		STRINGIFY_TYPE(GEOMETRY);
+		STRINGIFY_TYPE(SEQUENCER);
+		STRINGIFY_TYPE(LAYER_COLLECTIONS);
+		STRINGIFY_TYPE(COPY_ON_WRITE);
+		/* **** Evaluation-Related Outer Types (with Subdata) **** */
+		STRINGIFY_TYPE(EVAL_POSE);
+		STRINGIFY_TYPE(BONE);
+		STRINGIFY_TYPE(EVAL_PARTICLES);
+		STRINGIFY_TYPE(SHADING);
+		STRINGIFY_TYPE(SHADING_PARAMETERS);
+		STRINGIFY_TYPE(CACHE);
+		STRINGIFY_TYPE(BATCH_CACHE);
+
+		/* Total number of meaningful node types. */
+		case NUM_DEG_NODE_TYPES: return "SpecialCase";
+#undef STRINGIFY_TYPE
+	}
+	return "UNKNOWN";
+}
+
 /* Stringified opcodes ------------------------------------- */
 
 const char* operationCodeAsString(eDepsOperation_Code opcode)
