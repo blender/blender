@@ -225,13 +225,13 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob)
+	FOREACH_OBJECT_IN_MODE_BEGIN(view_layer, OB_MODE_POSE, ob_iter)
 	{
 		/* loop over all selected pchans
 		 *
 		 * TODO, loop over children before parents if multiple bones
 		 * at once are to be predictable*/
-		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan)
 		{
 			float delta_mat[4][4];
 			
@@ -247,12 +247,12 @@ static int pose_visual_transform_apply_exec(bContext *C, wmOperator *UNUSED(op))
 			
 			BKE_pchan_apply_mat4(pchan, delta_mat, true);
 		}
-		CTX_DATA_END;
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
 		
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
 
 		/* note, notifier might evolve */
-		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob_iter);
 	}
 	FOREACH_OBJECT_IN_MODE_END;
 
