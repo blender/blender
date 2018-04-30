@@ -662,13 +662,15 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
     # for reuse
     _tools_transform = (
-        _defs_transform.translate,
+        (
+            _defs_transform.translate,
+            _defs_transform.transform,
+        ),
         _defs_transform.rotate,
         (
             _defs_transform.scale,
             _defs_transform.scale_cage,
         ),
-        _defs_transform.transform,
         None,
         _defs_view3d_generic.ruler,
     )
@@ -712,23 +714,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_transform,
             None,
             (
-                _defs_edit_mesh.rip_region,
-                _defs_edit_mesh.rip_edge,
+                _defs_edit_mesh.extrude,
+                _defs_edit_mesh.extrude_individual,
+                _defs_edit_mesh.extrude_cursor,
             ),
-            _defs_edit_mesh.poly_build,
-
-            # 'Slide' Group
-            (
-                _defs_edit_mesh.edge_slide,
-                _defs_edit_mesh.vert_slide,
-            ),
-            # End group.
-
-            (
-                _defs_edit_mesh.spin,
-                _defs_edit_mesh.spin_duplicate,
-            ),
-
             _defs_edit_mesh.inset,
             _defs_edit_mesh.bevel,
             (
@@ -736,24 +725,29 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                 _defs_edit_mesh.offset_edge_loops_slide,
             ),
             (
-                _defs_edit_mesh.extrude,
-                _defs_edit_mesh.extrude_individual,
-                _defs_edit_mesh.extrude_cursor,
+                _defs_edit_mesh.knife,
+                _defs_edit_mesh.bisect,
             ),
-
+            _defs_edit_mesh.poly_build,
+            (
+                _defs_edit_mesh.spin,
+                _defs_edit_mesh.spin_duplicate,
+            ),
             (
                 _defs_edit_mesh.vertex_smooth,
                 _defs_edit_mesh.vertex_randomize,
             ),
-
+            (
+                _defs_edit_mesh.edge_slide,
+                _defs_edit_mesh.vert_slide,
+            ),
             (
                 _defs_edit_mesh.shrink_fatten,
                 _defs_edit_mesh.push_pull,
             ),
-
             (
-                _defs_edit_mesh.knife,
-                _defs_edit_mesh.bisect,
+                _defs_edit_mesh.rip_region,
+                _defs_edit_mesh.rip_edge,
             ),
         ],
         'EDIT_CURVE': [
