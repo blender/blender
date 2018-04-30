@@ -196,11 +196,11 @@ int DRW_object_is_mode_shade(const Object *ob)
 	BLI_assert(ob == DST.draw_ctx.obact);
 	UNUSED_VARS_NDEBUG(ob);
 	if ((DST.draw_ctx.object_mode & OB_MODE_EDIT) == 0) {
-		if ((DST.draw_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) > 0) {
-			return !(ELEM(DST.draw_ctx.v3d->drawtype, OB_MATERIAL, OB_RENDER));
-		}
-		else if (DST.draw_ctx.object_mode & (OB_MODE_TEXTURE_PAINT)) {
-			if ((DST.draw_ctx.v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0) {
+		if ((DST.draw_ctx.object_mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT)) > 0) {
+			if (ELEM(DST.draw_ctx.v3d->drawtype, OB_MATERIAL, OB_RENDER)) {
+				return false;
+			}
+			else if ((DST.draw_ctx.v3d->flag2 & V3D_SHOW_MODE_SHADE_OVERRIDE) == 0) {
 				return true;
 			}
 			else {

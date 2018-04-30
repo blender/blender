@@ -195,7 +195,7 @@ static void PAINT_TEXTURE_cache_init(void *vedata)
 	{
 		/* Create a pass */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
-		                 DRW_STATE_BLEND | DRW_STATE_WIRE;
+		                 DRW_STATE_MULTIPLY | DRW_STATE_WIRE;
 		psl->image_faces = DRW_pass_create("Image Color Pass", state);
 
 		stl->g_data->shgroup_fallback = DRW_shgroup_create(e_data.fallback_sh, psl->image_faces);
