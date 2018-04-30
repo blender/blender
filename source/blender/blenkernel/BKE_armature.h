@@ -152,61 +152,78 @@ void b_bone_spline_setup(struct bPoseChannel *pchan, int rest, Mat4 result_array
 #define PBONE_SELECTABLE(arm, bone) \
 	(PBONE_VISIBLE(arm, bone) && !((bone)->flag & BONE_UNSELECTABLE))
 
+
+/* context.selected_pose_bones */
+#define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
+	for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan;  _pchan = _pchan->next) { \
+		if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone) && ((_pchan)->bone->flag & BONE_SELECTED)) {
+#define FOREACH_PCHAN_SELECTED_IN_OBJECT_END \
+		} \
+	} ((void)0)
+/* context.visible_pose_bones */
+#define FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN(_ob, _pchan) \
+	for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan;  _pchan = _pchan->next) { \
+		if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone)) {
+#define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
+		} \
+	} ((void)0)
+
+
 /* Evaluation helpers */
 struct bKinematicConstraint;
 struct bPose;
 struct bSplineIKConstraint;
 
 struct bPoseChannel *BKE_armature_ik_solver_find_root(
-        struct bPoseChannel *pchan,
-        struct bKinematicConstraint *data);
+				struct bPoseChannel *pchan,
+				struct bKinematicConstraint *data);
 struct bPoseChannel *BKE_armature_splineik_solver_find_root(
-        struct bPoseChannel *pchan,
-        struct bSplineIKConstraint *data);
+				struct bPoseChannel *pchan,
+				struct bSplineIKConstraint *data);
 
 void BKE_pose_splineik_init_tree(struct Scene *scene, struct Object *ob, float ctime);
 void BKE_splineik_execute_tree(
-        struct Depsgraph *depsgraph, struct Scene *scene,
-        struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
+				struct Depsgraph *depsgraph, struct Scene *scene,
+				struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
 
 void BKE_pose_eval_init(struct Depsgraph *depsgraph,
-                        struct Scene *scene,
-                        struct Object *ob);
+												struct Scene *scene,
+												struct Object *ob);
 
 void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
-                           struct Scene *scene,
-                           struct Object *ob);
+													 struct Scene *scene,
+													 struct Object *ob);
 
 void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
-                        struct Scene *scene,
-                        struct Object *ob,
-                        int pchan_index);
+												struct Scene *scene,
+												struct Object *ob,
+												int pchan_index);
 
 void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
-                                   struct Scene *scene,
-                                   struct Object *ob,
-                                   int pchan_index);
+																	 struct Scene *scene,
+																	 struct Object *ob,
+																	 int pchan_index);
 
 void BKE_pose_bone_done(struct Depsgraph *depsgraph,
-                        struct Object *ob,
-                        int pchan_index);
+												struct Object *ob,
+												int pchan_index);
 
 void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
-                              struct Scene *scene,
-                              struct Object *ob,
-                              int rootchan_index);
+															struct Scene *scene,
+															struct Object *ob,
+															int rootchan_index);
 
 void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
-                                struct Scene *scene,
-                                struct Object *ob,
-                                int rootchan_index);
+																struct Scene *scene,
+																struct Object *ob,
+																int rootchan_index);
 
 void BKE_pose_eval_flush(struct Depsgraph *depsgraph,
-                         struct Scene *scene,
-                         struct Object *ob);
+												 struct Scene *scene,
+												 struct Object *ob);
 
 void BKE_pose_eval_proxy_copy(struct Depsgraph *depsgraph,
-                              struct Object *ob);
+															struct Object *ob);
 
 #ifdef __cplusplus
 }

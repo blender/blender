@@ -208,21 +208,6 @@ void BKE_pose_rest(struct bPose *pose);
 /* Tag pose for recalc. Also tag all related data to be recalc. */
 void BKE_pose_tag_recalc(struct Main *bmain, struct bPose *pose);
 
-/* context.selected_pose_bones */
-#define FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN(_ob, _pchan) \
-	for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan;  _pchan = _pchan->next) { \
-		if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone) && ((_pchan)->bone->flag & BONE_SELECTED)) {
-#define FOREACH_PCHAN_SELECTED_IN_OBJECT_END \
-		} \
-	} ((void)0)
-/* context.visible_pose_bones */
-#define FOREACH_PCHAN_VISIBLE_IN_OBJECT_BEGIN(_ob, _pchan) \
-	for (bPoseChannel *_pchan = (_ob)->pose->chanbase.first; _pchan;  _pchan = _pchan->next) { \
-		if (PBONE_VISIBLE(((bArmature *)(_ob)->data), (_pchan)->bone)) {
-#define FOREACH_PCHAN_VISIBLE_IN_OBJECT_END \
-		} \
-	} ((void)0)
-
 
 #ifdef __cplusplus
 };
