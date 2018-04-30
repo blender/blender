@@ -172,6 +172,15 @@ void IDDepsNode::destroy()
 	id_orig = NULL;
 }
 
+string IDDepsNode::identifier() const
+{
+	char orig_ptr[24], cow_ptr[24];
+	BLI_snprintf(orig_ptr, sizeof(orig_ptr), "%p", id_orig);
+	BLI_snprintf(cow_ptr, sizeof(cow_ptr), "%p", id_cow);
+	return string(nodeTypeAsString(type)) + " : " + name +
+	        " (orig: " + orig_ptr + ", eval: " + cow_ptr + ")";
+}
+
 ComponentDepsNode *IDDepsNode::find_component(eDepsNode_Type type,
                                               const char *name) const
 {
