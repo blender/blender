@@ -6439,44 +6439,57 @@ void MESH_OT_mark_freestyle_edge(wmOperatorType *ot)
 
 static int edbm_mark_freestyle_face_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = (Mesh *)obedit->data;
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMFace *efa;
 	BMIter iter;
 	FreestyleFace *ffa;
 	const bool clear = RNA_boolean_get(op->ptr, "clear");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	if (em == NULL) return OPERATOR_FINISHED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Mesh *me = (Mesh *)obedit->data;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	/* auto-enable Freestyle face mark drawing */
-	if (!clear) {
-		me->drawflag |= ME_DRAW_FREESTYLE_FACE;
-	}
+		if (em == NULL) {
+			continue;
+		}
 
-	if (!CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE)) {
-		BM_data_layer_add(em->bm, &em->bm->pdata, CD_FREESTYLE_FACE);
-	}
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	if (clear) {
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-				ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
-				ffa->flag &= ~FREESTYLE_FACE_MARK;
+		/* auto-enable Freestyle face mark drawing */
+		if (!clear) {
+			me->drawflag |= ME_DRAW_FREESTYLE_FACE;
+		}
+
+		if (!CustomData_has_layer(&em->bm->pdata, CD_FREESTYLE_FACE)) {
+			BM_data_layer_add(em->bm, &em->bm->pdata, CD_FREESTYLE_FACE);
+		}
+
+		if (clear) {
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+					ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
+					ffa->flag &= ~FREESTYLE_FACE_MARK;
+				}
 			}
 		}
-	}
-	else {
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
-				ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
-				ffa->flag |= FREESTYLE_FACE_MARK;
+		else {
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+					ffa = CustomData_bmesh_get(&em->bm->pdata, efa->head.data, CD_FREESTYLE_FACE);
+					ffa->flag |= FREESTYLE_FACE_MARK;
+				}
 			}
 		}
-	}
 
-	DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
