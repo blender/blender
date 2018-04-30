@@ -31,7 +31,8 @@ __all__ = (
 if "_icon_cache" in locals():
     release = bpy.app.icons.release
     for icon_value in _icon_cache.values():
-        release(icon_value)
+        if icon_value != 0:
+            release(icon_value)
     del release
 
 
@@ -161,7 +162,11 @@ class ToolSelectPanelHelper:
                         print("Missing icons:", filename, ex)
                     else:
                         print("Corrupt icon:", filename, ex)
-                    icon_value = 0
+                    # Use none as a fallback (avoids layout issues).
+                    if icon_name != "none":
+                        icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle("none")
+                    else:
+                        icon_value = 0
                 _icon_cache[icon_name] = icon_value
             return icon_value
         else:
