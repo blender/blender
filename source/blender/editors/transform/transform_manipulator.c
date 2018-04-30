@@ -1287,7 +1287,7 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 		ScrArea *sa = CTX_wm_area(C);
 		wmKeyMap *km = WM_keymap_find_all(C, workspace->tool.keymap, sa->spacetype, RGN_TYPE_WINDOW);
 		/* Weak, check first event */
-		wmKeyMapItem *kmi = km->items.first;
+		wmKeyMapItem *kmi = km ? km->items.first : NULL;
 
 		if (kmi == NULL) {
 			man->twtype |= V3D_MANIP_TRANSLATE | V3D_MANIP_ROTATE | V3D_MANIP_SCALE;
