@@ -268,16 +268,6 @@ typedef enum eDepsOperation_Code {
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
 
-/* Some magic to stringify operation codes. */
-class DepsOperationStringifier {
-public:
-	DepsOperationStringifier();
-	const char *operator[](eDepsOperation_Code opcodex);
-protected:
-	const char *names_[DEG_NUM_OPCODES];
-};
-
-/* String defines for these opcodes, defined in depsgraph_type_defines.cpp */
-extern DepsOperationStringifier DEG_OPNAMES;
+const char* operationCodeAsString(eDepsOperation_Code opcode);
 
 }  // namespace DEG
