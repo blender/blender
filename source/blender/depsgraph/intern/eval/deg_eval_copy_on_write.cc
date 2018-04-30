@@ -800,6 +800,8 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
 
 void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 {
+	BLI_assert(id_cow != id_orig);
+	BLI_assert((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0);
 	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
 	id_cow->orig_id = (ID *)id_orig;
 }
