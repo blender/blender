@@ -73,6 +73,8 @@ def generate_from_brushes_ex(
         for tool_def in tools_from_brush_group(category)
     )
     # Ensure we use all types.
+    if brush_categories:
+        print(brush_categories)
     assert(len(brush_categories) == 0)
     return tool_defs
 
@@ -562,7 +564,7 @@ class _defs_vertex_paint:
                     'ADD', 'SUB', 'MUL', 'LIGHTEN', 'DARKEN',
                     'COLORDODGE', 'DIFFERENCE', 'SCREEN', 'HARDLIGHT',
                     'OVERLAY', 'SOFTLIGHT', 'EXCLUSION', 'LUMINOCITY',
-                    'SATURATION', 'HUE',
+                    'SATURATION', 'HUE', 'ERASE_ALPHA', 'ADD_ALPHA',
                 ),
             )
         )
