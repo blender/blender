@@ -976,8 +976,9 @@ static void rna_def_effector_weight(BlenderRNA *brna)
 	
 	/* General */
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Effector Group", "Limit effectors to this Group");
+	RNA_def_property_ui_text(prop, "Effector Collection", "Limit effectors to this collection");
 	RNA_def_property_update(prop, 0, "rna_EffectorWeight_dependency_update");
 
 	prop = RNA_def_property(srna, "gravity", PROP_FLOAT, PROP_NONE);
@@ -1762,8 +1763,9 @@ static void rna_def_softbody(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_softbody_update");
 
 	prop = RNA_def_property(srna, "collision_group", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Collision Group", "Limit colliders to this Group");
+	RNA_def_property_ui_text(prop, "Collision Collection", "Limit colliders to this collection");
 	RNA_def_property_update(prop, 0, "rna_softbody_dependency_update");
 
 	prop = RNA_def_property(srna, "effector_weights", PROP_POINTER, PROP_NONE);

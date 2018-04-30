@@ -328,14 +328,14 @@ void DEG_relations_tag_update(Main *bmain)
 void DEG_add_collision_relations(DepsNodeHandle *handle,
                                  Scene *scene,
                                  Object *object,
-                                 Group *group,
+                                 Collection *collection,
                                  unsigned int modifier_type,
                                  DEG_CollobjFilterFunction fn,
                                  bool dupli,
                                  const char *name)
 {
 	unsigned int numcollobj;
-	Object **collobjs = get_collisionobjects_ext(scene, object, group, &numcollobj, modifier_type, dupli);
+	Object **collobjs = get_collisionobjects_ext(scene, object, collection, &numcollobj, modifier_type, dupli);
 
 	for (unsigned int i = 0; i < numcollobj; i++) {
 		Object *ob1 = collobjs[i];

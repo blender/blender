@@ -122,7 +122,7 @@ typedef struct PartDeflect {
 } PartDeflect;
 
 typedef struct EffectorWeights {
-	struct Group *group;		/* only use effectors from this group of objects */
+	struct Collection *group;		/* only use effectors from this group of objects */
 	
 	float weight[14];			/* effector type specific weights */
 	float global_gravity;
@@ -292,7 +292,7 @@ typedef struct SoftBody {
 	struct PointCache *pointcache;
 	struct ListBase ptcaches;
 
-	struct Group *collision_group;
+	struct Collection *collision_group;
 
 	struct EffectorWeights *effector_weights;
 	/* reverse esimated obmatrix .. no need to store in blend file .. how ever who cares */ 

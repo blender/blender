@@ -322,7 +322,7 @@ PreviewImage **BKE_previewimg_id_get_p(const ID *id)
 		ID_PRV_CASE(ID_IM, Image);
 		ID_PRV_CASE(ID_BR, Brush);
 		ID_PRV_CASE(ID_OB, Object);
-		ID_PRV_CASE(ID_GR, Group);
+		ID_PRV_CASE(ID_GR, Collection);
 		ID_PRV_CASE(ID_SCE, Scene);
 		ID_PRV_CASE(ID_SCR, bScreen);
 #undef ID_PRV_CASE

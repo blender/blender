@@ -33,6 +33,8 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
+#include "DNA_group_types.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_context.h"
@@ -67,7 +69,7 @@ static int outliner_item_drag_drop_poll(bContext *C)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	return ED_operator_outliner_active(C) &&
 	       /* Only collection display modes supported for now. Others need more design work */
-	       ELEM(soops->outlinevis, SO_COLLECTIONS, SO_GROUPS);
+	       ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_LIBRARIES);
 }
 
 static TreeElement *outliner_item_drag_element_find(SpaceOops *soops, ARegion *ar, const wmEvent *event)
@@ -184,25 +186,19 @@ static void outliner_item_drag_handle(
  */
 static bool is_empty_collection(TreeElement *te)
 {
-	if (!ELEM(TREESTORE(te)->type, TSE_SCENE_COLLECTION, TSE_LAYER_COLLECTION)) {
+	Collection *collection = outliner_collection_from_tree_element(te);
+
+	if (!collection) {
 		return false;
 	}
 
-	SceneCollection *scene_collection;
-	if (TREESTORE(te)->type == TSE_SCENE_COLLECTION) {
-		scene_collection = (SceneCollection *)te->directdata;
-	}
-	else {
-		BLI_assert(TREESTORE(te)->type == TSE_LAYER_COLLECTION);
-		scene_collection = ((LayerCollection *)te->directdata)->scene_collection;
-	}
-
-	return BLI_listbase_is_empty(&scene_collection->objects) &&
-	       BLI_listbase_is_empty(&scene_collection->scene_collections);
+	return BLI_listbase_is_empty(&collection->gobject) &&
+	       BLI_listbase_is_empty(&collection->children);
 }
 
 static bool outliner_item_drag_drop_apply(
         Main *bmain,
+        Scene *scene,
         SpaceOops *soops,
         OutlinerDragDropTooltip *data,
         const wmEvent *event)
@@ -225,7 +221,7 @@ static bool outliner_item_drag_drop_apply(
 		 * it is strange to have it closed and we not see the newly dragged elements. */
 		const bool should_open_collection = (insert_type == TE_INSERT_INTO) && is_empty_collection(insert_handle);
 
-		dragged_te->reinsert(bmain, soops, dragged_te, insert_handle, insert_type, event);
+		dragged_te->reinsert(bmain, scene, soops, dragged_te, insert_handle, insert_type, event);
 
 		if (should_open_collection && !is_empty_collection(insert_handle)) {
 			TREESTORE(insert_handle)->flag &= ~TSE_CLOSED;
@@ -239,6 +235,7 @@ static bool outliner_item_drag_drop_apply(
 static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	OutlinerDragDropTooltip *data = op->customdata;
@@ -250,7 +247,7 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	switch (event->type) {
 		case EVT_MODAL_MAP:
 			if (event->val == OUTLINER_ITEM_DRAG_CONFIRM) {
-				if (outliner_item_drag_drop_apply(bmain, soops, data, event)) {
+				if (outliner_item_drag_drop_apply(bmain, scene, soops, data, event)) {
 					skip_rebuild = false;
 				}
 				retval = OPERATOR_FINISHED;
@@ -283,37 +280,20 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 	return retval;
 }
 
-/**
- * Check if the given TreeElement is a collection
- *
- * This test is mainly used to see if next/prev TreeElement is a collection.
- * It will fail when there is no next/prev TreeElement, or when the
- * element is an Override or something else in the future.
- */
-static bool tree_element_is_collection_get(const TreeElement *te)
-{
-	if (te == NULL) {
-		return false;
-	}
-
-	TreeStoreElem *tselem = TREESTORE(te);
-	return ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION);
-}
-
 static const char *outliner_drag_drop_tooltip_get(
         const TreeElement *te_float)
 {
 	const char *name = NULL;
 
 	const TreeElement *te_insert = te_float->drag_data->insert_handle;
-	if (tree_element_is_collection_get(te_float)) {
+	if (te_float && outliner_is_collection_tree_element(te_float)) {
 		if (te_insert == NULL) {
 			name = TIP_("Move collection");
 		}
 		else {
 			switch (te_float->drag_data->insert_type) {
 				case TE_INSERT_BEFORE:
-					if (tree_element_is_collection_get(te_insert->prev)) {
+					if (te_insert->prev && outliner_is_collection_tree_element(te_insert->prev)) {
 						name = TIP_("Move between collections");
 					}
 					else {
@@ -321,7 +301,7 @@ static const char *outliner_drag_drop_tooltip_get(
 					}
 					break;
 				case TE_INSERT_AFTER:
-					if (tree_element_is_collection_get(te_insert->next)) {
+					if (te_insert->next && outliner_is_collection_tree_element(te_insert->next)) {
 						name = TIP_("Move between collections");
 					}
 					else {
@@ -335,7 +315,7 @@ static const char *outliner_drag_drop_tooltip_get(
 		}
 	}
 	else if ((TREESTORE(te_float)->type == 0) && (te_float->idcode == ID_OB)) {
-		name = TIP_("Move to collection (Ctrl to add)");
+		name = TIP_("Move to collection (Ctrl to link)");
 	}
 
 	return name;
@@ -434,7 +414,6 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_operation);
 	WM_operatortype_append(OUTLINER_OT_scene_operation);
 	WM_operatortype_append(OUTLINER_OT_object_operation);
-	WM_operatortype_append(OUTLINER_OT_group_operation);
 	WM_operatortype_append(OUTLINER_OT_lib_operation);
 	WM_operatortype_append(OUTLINER_OT_lib_relocate);
 	WM_operatortype_append(OUTLINER_OT_id_operation);
@@ -445,7 +424,6 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_action_set);
 	WM_operatortype_append(OUTLINER_OT_constraint_operation);
 	WM_operatortype_append(OUTLINER_OT_modifier_operation);
-	WM_operatortype_append(OUTLINER_OT_collection_operation);
 
 	WM_operatortype_append(OUTLINER_OT_show_one_level);
 	WM_operatortype_append(OUTLINER_OT_show_active);
@@ -467,24 +445,18 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_parent_clear);
 	WM_operatortype_append(OUTLINER_OT_scene_drop);
 	WM_operatortype_append(OUTLINER_OT_material_drop);
-	WM_operatortype_append(OUTLINER_OT_group_link);
+	WM_operatortype_append(OUTLINER_OT_collection_drop);
 
 	/* collections */
-	WM_operatortype_append(OUTLINER_OT_collections_delete);
-	WM_operatortype_append(OUTLINER_OT_collection_select);
-	WM_operatortype_append(OUTLINER_OT_collection_toggle);
-	WM_operatortype_append(OUTLINER_OT_collection_link);
-	WM_operatortype_append(OUTLINER_OT_collection_unlink);
 	WM_operatortype_append(OUTLINER_OT_collection_new);
 	WM_operatortype_append(OUTLINER_OT_collection_duplicate);
-
-	WM_operatortype_append(OUTLINER_OT_collection_nested_new);
-	WM_operatortype_append(OUTLINER_OT_collection_delete_selected);
-	WM_operatortype_append(OUTLINER_OT_collection_objects_add);
-	WM_operatortype_append(OUTLINER_OT_collection_objects_remove);
+	WM_operatortype_append(OUTLINER_OT_collection_delete);
 	WM_operatortype_append(OUTLINER_OT_collection_objects_select);
-	WM_operatortype_append(OUTLINER_OT_object_add_to_new_collection);
-	WM_operatortype_append(OUTLINER_OT_object_remove_from_collection);
+	WM_operatortype_append(OUTLINER_OT_collection_objects_deselect);
+	WM_operatortype_append(OUTLINER_OT_collection_link);
+	WM_operatortype_append(OUTLINER_OT_collection_instance);
+	WM_operatortype_append(OUTLINER_OT_collection_exclude_set);
+	WM_operatortype_append(OUTLINER_OT_collection_include_set);
 }
 
 static wmKeyMap *outliner_item_drag_drop_modal_keymap(wmKeyConfig *keyconf)
@@ -582,8 +554,8 @@ void outliner_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_add_selected", DKEY, KM_PRESS, 0, 0);
 	WM_keymap_verify_item(keymap, "OUTLINER_OT_drivers_delete_selected", DKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_nested_new", CKEY, KM_PRESS, 0, 0);
-	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete_selected", XKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_new", CKEY, KM_PRESS, 0, 0);
+	WM_keymap_verify_item(keymap, "OUTLINER_OT_collection_delete", XKEY, KM_PRESS, 0, 0);
 
 	outliner_item_drag_drop_modal_keymap(keyconf);
 }

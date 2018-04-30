@@ -263,7 +263,7 @@ typedef struct Object {
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
-	struct Group *dup_group;	/* object duplicator for group */
+	struct Collection *dup_group;	/* object duplicator for group */
 	void *pad10;
 
 	char  pad4;
@@ -423,7 +423,7 @@ enum {
 	OB_DUPLIROT         = 1 << 5,
 	OB_DUPLINOSPEED     = 1 << 6,
 	OB_DUPLICALCDERIVED = 1 << 7, /* runtime, calculate derivedmesh for dupli before it's used */
-	OB_DUPLIGROUP       = 1 << 8,
+	OB_DUPLICOLLECTION  = 1 << 8,
 	OB_DUPLIFACES       = 1 << 9,
 	OB_DUPLIFACES_SCALE = 1 << 10,
 	OB_DUPLIPARTS       = 1 << 11,
@@ -431,7 +431,7 @@ enum {
 	OB_NO_CONSTRAINTS   = 1 << 13,  /* runtime constraints disable */
 	OB_NO_PSYS_UPDATE   = 1 << 14,  /* hack to work around particle issue */
 
-	OB_DUPLI            = OB_DUPLIFRAMES | OB_DUPLIVERTS | OB_DUPLIGROUP | OB_DUPLIFACES | OB_DUPLIPARTS,
+	OB_DUPLI            = OB_DUPLIFRAMES | OB_DUPLIVERTS | OB_DUPLICOLLECTION | OB_DUPLIFACES | OB_DUPLIPARTS,
 };
 
 /* (short) trackflag / upflag */
@@ -525,7 +525,7 @@ enum {
 #define OB_FROMDUPLI        (1 << 9)
 #define OB_DONE             (1 << 10)  /* unknown state, clear before use */
 /* #define OB_RADIO            (1 << 11) */  /* deprecated */
-#define OB_FROMGROUP        (1 << 12)
+/* #define OB_FROMGROUP        (1 << 12) */  /* deprecated */
 
 /* WARNING - when adding flags check on PSYS_RECALC */
 /* ob->recalc (flag bits!) */

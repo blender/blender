@@ -91,11 +91,11 @@
 #include "BKE_brush.h"
 #include "BKE_camera.h"
 #include "BKE_cachefile.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_gpencil.h"
 #include "BKE_idcode.h"
 #include "BKE_idprop.h"
@@ -437,7 +437,7 @@ bool id_make_local(Main *bmain, ID *id, const bool test, const bool lib_local)
 			if (!test) BKE_sound_make_local(bmain, (bSound *)id, lib_local);
 			return true;
 		case ID_GR:
-			if (!test) BKE_group_make_local(bmain, (Group *)id, lib_local);
+			if (!test) BKE_collection_make_local(bmain, (Collection *)id, lib_local);
 			return true;
 		case ID_AR:
 			if (!test) BKE_armature_make_local(bmain, (bArmature *)id, lib_local);
@@ -615,7 +615,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
 			BKE_text_copy_data(bmain, (Text *)*r_newid, (Text *)id, flag);
 			break;
 		case ID_GR:
-			BKE_group_copy_data(bmain, (Group *)*r_newid, (Group *)id, flag);
+			BKE_collection_copy_data(bmain, (Collection *)*r_newid, (Collection *)id, flag);
 			break;
 		case ID_AR:
 			BKE_armature_copy_data(bmain, (bArmature *)*r_newid, (bArmature *)id, flag);
@@ -729,7 +729,7 @@ void BKE_id_swap(Main *bmain, ID *id_a, ID *id_b)
 		CASE_SWAP(ID_TXT, Text);
 		CASE_SWAP(ID_SPK, Speaker);
 		CASE_SWAP(ID_SO, bSound);
-		CASE_SWAP(ID_GR, Group);
+		CASE_SWAP(ID_GR, Collection);
 		CASE_SWAP(ID_AR, bArmature);
 		CASE_SWAP(ID_AC, bAction);
 		CASE_SWAP(ID_NT, bNodeTree);
@@ -935,7 +935,7 @@ ListBase *which_libbase(Main *mainlib, short type)
 		case ID_SO:
 			return &(mainlib->sound);
 		case ID_GR:
-			return &(mainlib->group);
+			return &(mainlib->collection);
 		case ID_AR:
 			return &(mainlib->armature);
 		case ID_AC:
@@ -1096,7 +1096,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 
 	lb[INDEX_ID_TXT] = &(main->text);
 	lb[INDEX_ID_SO]  = &(main->sound);
-	lb[INDEX_ID_GR]  = &(main->group);
+	lb[INDEX_ID_GR]  = &(main->collection);
 	lb[INDEX_ID_PAL] = &(main->palettes);
 	lb[INDEX_ID_PC]  = &(main->paintcurves);
 	lb[INDEX_ID_BR]  = &(main->brush);
@@ -1165,7 +1165,7 @@ size_t BKE_libblock_get_alloc_info(short type, const char **name)
 		CASE_RETURN(ID_SPK, Speaker);
 		CASE_RETURN(ID_LP,  LightProbe);
 		CASE_RETURN(ID_SO,  bSound);
-		CASE_RETURN(ID_GR,  Group);
+		CASE_RETURN(ID_GR,  Collection);
 		CASE_RETURN(ID_AR,  bArmature);
 		CASE_RETURN(ID_AC,  bAction);
 		CASE_RETURN(ID_NT,  bNodeTree);

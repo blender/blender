@@ -55,9 +55,9 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_collection.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
@@ -94,7 +94,7 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 	if (rbw->physics_world) {
 		/* free physics references, we assume that all physics objects in will have been added to the world */
 		if (rbw->constraints) {
-			FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, object)
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, object)
 			{
 				if (object->rigidbody_constraint) {
 					RigidBodyCon *rbc = object->rigidbody_constraint;
@@ -103,11 +103,11 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 					}
 				}
 			}
-			FOREACH_GROUP_OBJECT_END;
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 		}
 
 		if (rbw->group) {
-			FOREACH_GROUP_OBJECT_BEGIN(rbw->group, object)
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 			{
 				if (object->rigidbody_object) {
 					RigidBodyOb *rbo = object->rigidbody_object;
@@ -116,7 +116,7 @@ void BKE_rigidbody_free_world(RigidBodyWorld *rbw)
 					}
 				}
 			}
-			FOREACH_GROUP_OBJECT_END;
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 		}
 		/* free dynamics world */
 		RB_dworld_delete(rbw->physics_world);
@@ -1156,7 +1156,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 
 		/* remove object from rigid body constraints */
 		if (rbw->constraints) {
-			FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, obt)
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, obt)
 			{
 				if (obt && obt->rigidbody_constraint) {
 					rbc = obt->rigidbody_constraint;
@@ -1165,7 +1165,7 @@ void BKE_rigidbody_remove_object(Scene *scene, Object *ob)
 					}
 				}
 			}
-			FOREACH_GROUP_OBJECT_END;
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 		}
 	}
 
@@ -1199,9 +1199,10 @@ void BKE_rigidbody_remove_constraint(Scene *scene, Object *ob)
 /* Update object array and rigid body count so they're in sync with the rigid body group */
 static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
 {
+	const ListBase objects = BKE_collection_object_cache_get(rbw->group);
 	int i, n;
 
-	n = BLI_listbase_count(&rbw->group->view_layer->object_bases);
+	n = BLI_listbase_count(&objects);
 
 	if (rbw->numbodies != n) {
 		rbw->numbodies = n;
@@ -1209,12 +1210,12 @@ static void rigidbody_update_ob_array(RigidBodyWorld *rbw)
 	}
 
 	i = 0;
-	FOREACH_GROUP_OBJECT_BEGIN(rbw->group, object)
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, object)
 	{
 		rbw->objects[i] = object;
 		i++;
 	}
-	FOREACH_GROUP_OBJECT_END;
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
 static void rigidbody_update_sim_world(Scene *scene, RigidBodyWorld *rbw)
@@ -1340,7 +1341,7 @@ static void rigidbody_update_simulation(struct Depsgraph *depsgraph, Scene *scen
 	 * Memory management needs redesign here, this is just a dirty workaround.
 	 */
 	if (rebuild && rbw->constraints) {
-		FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, ob)
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, ob)
 		{
 			RigidBodyCon *rbc = ob->rigidbody_constraint;
 			if (rbc && rbc->physics_constraint) {
@@ -1349,11 +1350,11 @@ static void rigidbody_update_simulation(struct Depsgraph *depsgraph, Scene *scen
 				rbc->physics_constraint = NULL;
 			}
 		}
-		FOREACH_GROUP_OBJECT_END;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 
 	/* update objects */
-	FOREACH_GROUP_OBJECT_BEGIN(rbw->group, ob)
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->group, ob)
 	{
 		if (ob->type == OB_MESH) {
 			/* validate that we've got valid object set up here... */
@@ -1396,13 +1397,13 @@ static void rigidbody_update_simulation(struct Depsgraph *depsgraph, Scene *scen
 			rigidbody_update_sim_ob(depsgraph, scene, rbw, ob, rbo);
 		}
 	}
-	FOREACH_GROUP_OBJECT_END;
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	
 	/* update constraints */
 	if (rbw->constraints == NULL) /* no constraints, move on */
 		return;
 
-	FOREACH_GROUP_OBJECT_BEGIN(rbw->constraints, ob)
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(rbw->constraints, ob)
 	{
 		/* validate that we've got valid object set up here... */
 		RigidBodyCon *rbc = ob->rigidbody_constraint;
@@ -1430,12 +1431,12 @@ static void rigidbody_update_simulation(struct Depsgraph *depsgraph, Scene *scen
 			rbc->flag &= ~RBC_FLAG_NEEDS_VALIDATE;
 		}
 	}
-	FOREACH_GROUP_OBJECT_END;
+	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 }
 
 static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 {
-	FOREACH_GROUP_BASE_BEGIN(rbw->group, base)
+	FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(rbw->group, base)
 	{
 		Object *ob = base->object;
 		RigidBodyOb *rbo = ob->rigidbody_object;
@@ -1448,7 +1449,7 @@ static void rigidbody_update_simulation_post_step(RigidBodyWorld *rbw)
 				RB_body_deactivate(rbo->physics_object);
 		}
 	}
-	FOREACH_GROUP_BASE_END
+	FOREACH_COLLECTION_BASE_RECURSIVE_END
 }
 
 bool BKE_rigidbody_check_sim_running(RigidBodyWorld *rbw, float ctime)
@@ -1575,7 +1576,8 @@ void BKE_rigidbody_rebuild_world(struct Depsgraph *depsgraph, Scene *scene, floa
 	cache = rbw->pointcache;
 
 	/* flag cache as outdated if we don't have a world or number of objects in the simulation has changed */
-	if (rbw->physics_world == NULL || rbw->numbodies != BLI_listbase_count(&rbw->group->view_layer->object_bases)) {
+	const ListBase objects = BKE_collection_object_cache_get(rbw->group);
+	if (rbw->physics_world == NULL || rbw->numbodies != BLI_listbase_count(&objects)) {
 		cache->flag |= PTCACHE_OUTDATED;
 	}
 

@@ -209,10 +209,10 @@ static void rna_Main_sound_begin(CollectionPropertyIterator *iter, PointerRNA *p
 	rna_iterator_listbase_begin(iter, &bmain->sound, NULL);
 }
 
-static void rna_Main_group_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Main_collection_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain = (Main *)ptr->data;
-	rna_iterator_listbase_begin(iter, &bmain->group, NULL);
+	rna_iterator_listbase_begin(iter, &bmain->collection, NULL);
 }
 
 static void rna_Main_armature_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -365,7 +365,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture data-blocks", RNA_def_main_textures},
 		{"brushes", "Brush", "rna_Main_brush_begin", "Brushes", "Brush data-blocks", RNA_def_main_brushes},
 		{"worlds", "World", "rna_Main_world_begin", "Worlds", "World data-blocks", RNA_def_main_worlds},
-		{"groups", "Group", "rna_Main_group_begin", "Groups", "Group data-blocks", RNA_def_main_groups},
+		{"collections", "Collection", "rna_Main_collection_begin", "Collections", "Collection data-blocks", RNA_def_main_collections},
 		{"shape_keys", "Key", "rna_Main_key_begin", "Shape Keys", "Shape Key data-blocks", NULL},
 		{"texts", "Text", "rna_Main_text_begin", "Texts", "Text data-blocks", RNA_def_main_texts},
 		{"speakers", "Speaker", "rna_Main_speaker_begin", "Speakers", "Speaker data-blocks", RNA_def_main_speakers},

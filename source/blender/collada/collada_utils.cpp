@@ -163,8 +163,8 @@ Object *bc_add_object(Scene *scene, ViewLayer *view_layer, int type, const char 
 	ob->lay = scene->lay;
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
-	LayerCollection *layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
-	BKE_collection_object_add(&scene->id, layer_collection->scene_collection, ob);
+	LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
+	BKE_collection_object_add(G.main, layer_collection->collection, ob);
 
 	Base *base = BKE_view_layer_base_find(view_layer, ob);
 	BKE_view_layer_base_select(view_layer, base);

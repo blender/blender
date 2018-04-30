@@ -156,8 +156,6 @@ static void buttons_main_region_draw(const bContext *C, ARegion *ar)
 		ED_region_panels(C, ar, "world", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_WORKSPACE)
 		ED_region_panels(C, ar, "workspace", sbuts->mainb, vertical);
-	else if (sbuts->mainb == BCONTEXT_COLLECTION)
-		ED_region_panels(C, ar, "collection", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_OBJECT)
 		ED_region_panels(C, ar, "object", sbuts->mainb, vertical);
 	else if (sbuts->mainb == BCONTEXT_DATA)

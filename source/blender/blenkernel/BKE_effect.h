@@ -40,13 +40,13 @@
 struct Object;
 struct Scene;
 struct ListBase;
-struct Group;
+struct Collection;
 struct ParticleSimulationData;
 struct ParticleData;
 struct ParticleKey;
 struct Depsgraph;
 
-struct EffectorWeights *BKE_add_effector_weights(struct Group *group);
+struct EffectorWeights *BKE_add_effector_weights(struct Collection *collection);
 struct PartDeflect *object_add_collision_fields(int type);
 
 /* Input to effector code */

@@ -1335,14 +1335,14 @@ class INFO_MT_add(Menu):
         layout.operator_menu_enum("object.effector_add", "type", text="Force Field", icon='OUTLINER_OB_FORCE_FIELD')
         layout.separator()
 
-        if len(bpy.data.groups) > 10:
+        if len(bpy.data.collections) > 10:
             layout.operator_context = 'INVOKE_REGION_WIN'
-            layout.operator("object.group_instance_add", text="Group Instance...", icon='OUTLINER_OB_GROUP_INSTANCE')
+            layout.operator("object.collection_instance_add", text="Collection Instance...", icon='OUTLINER_OB_GROUP_INSTANCE')
         else:
             layout.operator_menu_enum(
-                "object.group_instance_add",
-                "group",
-                text="Group Instance",
+                "object.collection_instance_add",
+                "collection",
+                text="Collection Instance",
                 icon='OUTLINER_OB_GROUP_INSTANCE',
             )
 
@@ -1407,7 +1407,7 @@ class VIEW3D_MT_object(Menu):
         layout.separator()
 
         layout.menu("VIEW3D_MT_object_parent")
-        layout.menu("VIEW3D_MT_object_group")
+        layout.menu("VIEW3D_MT_object_collection")
         layout.menu("VIEW3D_MT_snap")
 
         layout.separator()
@@ -1714,21 +1714,21 @@ class VIEW3D_MT_object_track(Menu):
         layout.operator_enum("object.track_clear", "type")
 
 
-class VIEW3D_MT_object_group(Menu):
-    bl_label = "Group"
+class VIEW3D_MT_object_collection(Menu):
+    bl_label = "Collection"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("group.create")
-        # layout.operator_menu_enum("group.objects_remove", "group")  # BUGGY
-        layout.operator("group.objects_remove")
-        layout.operator("group.objects_remove_all")
+        layout.operator("collection.create")
+        # layout.operator_menu_enum("collection.objects_remove", "collection")  # BUGGY
+        layout.operator("collection.objects_remove")
+        layout.operator("collection.objects_remove_all")
 
         layout.separator()
 
-        layout.operator("group.objects_add_active")
-        layout.operator("group.objects_remove_active")
+        layout.operator("collection.objects_add_active")
+        layout.operator("collection.objects_remove_active")
 
 
 class VIEW3D_MT_object_constraints(Menu):
@@ -3974,7 +3974,7 @@ classes = (
     VIEW3D_MT_object_apply,
     VIEW3D_MT_object_parent,
     VIEW3D_MT_object_track,
-    VIEW3D_MT_object_group,
+    VIEW3D_MT_object_collection,
     VIEW3D_MT_object_constraints,
     VIEW3D_MT_object_quick_effects,
     VIEW3D_MT_make_single_user,

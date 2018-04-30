@@ -55,7 +55,7 @@ struct ListBase;
 struct GHash;
 struct ID;
 struct FCurve;
-struct Group;
+struct Collection;
 struct Key;
 struct LayerCollection;
 struct Main;
@@ -195,8 +195,9 @@ struct DepsgraphRelationBuilder
 	                                       bool check_unique = false);
 
 	void build_id(ID* id);
+	void build_layer_collections(ListBase *lb);
 	void build_view_layer(Scene *scene, ViewLayer *view_layer);
-	void build_group(Object *object, Group *group);
+	void build_collection(Object *object, Collection *collection);
 	void build_object(Base *base, Object *object);
 	void build_object_flags(Base *base, Object *object);
 	void build_object_data(Object *object);
@@ -259,7 +260,7 @@ struct DepsgraphRelationBuilder
 	void add_collision_relations(const OperationKey &key,
 	                             Scene *scene,
 	                             Object *object,
-	                             Group *group,
+	                             Collection *collection,
 	                             bool dupli,
 	                             const char *name);
 	void add_forcefield_relations(const OperationKey &key,

@@ -160,7 +160,7 @@ typedef struct ParticleSettings {
 	struct SPHFluidSettings *fluid;
 
 	struct EffectorWeights *effector_weights;
-	struct Group *collision_group;
+	struct Collection *collision_group;
 
 	int flag, rt;
 	short type, from, distr, texact;
@@ -244,9 +244,9 @@ typedef struct ParticleSettings {
 
 	struct MTex *mtex[18];		/* MAX_MTEX */
 
-	struct Group *dup_group;
+	struct Collection *dup_group;
 	struct ListBase dupliweights;
-	struct Group *eff_group  DNA_DEPRECATED;		// deprecated
+	struct Collection *eff_group  DNA_DEPRECATED;		// deprecated
 	struct Object *dup_ob;
 	struct Object *bb_ob;
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */

@@ -137,7 +137,7 @@ static short wm_link_append_flag(wmOperator *op)
 		flag |= FILE_RELPATH;
 	if (RNA_boolean_get(op->ptr, "link"))
 		flag |= FILE_LINK;
-	if (RNA_boolean_get(op->ptr, "instance_groups"))
+	if (RNA_boolean_get(op->ptr, "instance_collections"))
 		flag |= FILE_GROUP_INSTANCE;
 
 	return flag;
@@ -259,7 +259,7 @@ static void wm_link_do(
 				continue;
 			}
 
-			new_id = BLO_library_link_named_part_ex(mainl, &bh, item->idcode, item->name, flag, scene, view_layer);
+			new_id = BLO_library_link_named_part_ex(mainl, &bh, item->idcode, item->name, flag, bmain, scene, view_layer);
 
 			if (new_id) {
 				/* If the link is successful, clear item's libs 'todo' flags.
@@ -269,7 +269,7 @@ static void wm_link_do(
 			}
 		}
 
-		BLO_library_link_end(mainl, &bh, flag, scene, view_layer);
+		BLO_library_link_end(mainl, &bh, flag, bmain, scene, view_layer);
 		BLO_blendhandle_close(bh);
 	}
 }
@@ -521,8 +521,8 @@ static void wm_link_append_properties_common(wmOperatorType *ot, bool is_link)
 	prop = RNA_def_boolean(ot->srna, "active_collection", true,
 	                       "Active Collection", "Put new objects on the active collection");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
-	prop = RNA_def_boolean(ot->srna, "instance_groups", is_link,
-	                       "Instance Groups", "Create Dupli-Group instances for each group");
+	prop = RNA_def_boolean(ot->srna, "instance_collections", is_link,
+	                       "Instance Collections", "Create instances for collections, rather than adding them directly to the scene");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

@@ -65,10 +65,10 @@ class WM_OT_previews_batch_generate(Operator):
             name="Scenes",
             description="Generate scenes' previews",
             )
-    use_groups = BoolProperty(
+    use_collections = BoolProperty(
             default=True,
-            name="Groups",
-            description="Generate groups' previews",
+            name="Collections",
+            description="Generate collections' previews",
             )
     use_objects = BoolProperty(
             default=True,
@@ -121,8 +121,8 @@ class WM_OT_previews_batch_generate(Operator):
             ])
             if not self.use_scenes:
                 cmd.append('--no_scenes')
-            if not self.use_groups:
-                cmd.append('--no_groups')
+            if not self.use_collections:
+                cmd.append('--no_collections')
             if not self.use_objects:
                 cmd.append('--no_objects')
             if not self.use_intern_data:
@@ -175,9 +175,9 @@ class WM_OT_previews_batch_clear(Operator):
             name="Scenes",
             description="Clear scenes' previews",
             )
-    use_groups = BoolProperty(default=True,
-            name="Groups",
-            description="Clear groups' previews",
+    use_collections = BoolProperty(default=True,
+            name="Collections",
+            description="Clear collections' previews",
             )
     use_objects = BoolProperty(
             default=True,
@@ -231,8 +231,8 @@ class WM_OT_previews_batch_clear(Operator):
             ])
             if not self.use_scenes:
                 cmd.append('--no_scenes')
-            if not self.use_groups:
-                cmd.append('--no_groups')
+            if not self.use_collections:
+                cmd.append('--no_collections')
             if not self.use_objects:
                 cmd.append('--no_objects')
             if not self.use_intern_data:

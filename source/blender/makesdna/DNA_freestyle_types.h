@@ -40,7 +40,7 @@ extern "C" {
 #endif
 
 struct FreestyleLineStyle;
-struct Group;
+struct Collection;
 struct Text;
 
 /* FreestyleConfig::flags */
@@ -125,7 +125,7 @@ typedef struct FreestyleLineSet {
 	int qi_start, qi_end;
 	int edge_types, exclude_edge_types; /* feature edge types */
 	int pad2;
-	struct Group *group; /* group of target objects */
+	struct Collection *group; /* group of target objects */
 
 	struct FreestyleLineStyle *linestyle;
 } FreestyleLineSet;

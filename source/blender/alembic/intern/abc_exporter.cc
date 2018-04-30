@@ -409,7 +409,7 @@ void AbcExporter::exploreTransform(Depsgraph *depsgraph, Base *ob_base, Object *
 				continue;
 			}
 
-			if (link->type == OB_DUPLIGROUP) {
+			if (link->type == OB_DUPLICOLLECTION) {
 				dupli_ob = link->ob;
 				dupli_parent = (dupli_ob->parent) ? dupli_ob->parent : ob;
 
@@ -522,7 +522,7 @@ void AbcExporter::exploreObject(Depsgraph *depsgraph, Base *ob_base, Object *dup
 			if (m_settings.renderable_only && link->no_draw) {
 				continue;
 			}
-			if (link->type == OB_DUPLIGROUP) {
+			if (link->type == OB_DUPLICOLLECTION) {
 				fake_base.object = link->ob;
 				exploreObject(depsgraph, &fake_base, ob);
 			}

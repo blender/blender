@@ -34,36 +34,61 @@
 #ifndef __DNA_GROUP_TYPES_H__
 #define __DNA_GROUP_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
 struct Object;
+struct Collection;
 
-typedef struct GroupObject {
-	struct GroupObject *next, *prev;
+typedef struct CollectionObject {
+	struct CollectionObject *next, *prev;
 	struct Object *ob;
-} GroupObject;
+} CollectionObject;
 
 
-typedef struct Group {
+typedef struct CollectionChild {
+	struct CollectionChild *next, *prev;
+	struct Collection *collection;
+} CollectionChild;
+
+
+typedef struct Collection {
 	ID id;
 	
-	ListBase gobject;	/* GroupObject */
+	ListBase gobject;   /* CollectionObject */
+	ListBase children;  /* CollectionChild */
 
 	struct PreviewImage *preview;
 
-	/* Bad design, since layers stored in the scenes 'Base'
-	 * the objects that show in the group can change depending
-	 * on the last used scene */
-	unsigned int layer;
+	unsigned int layer DNA_DEPRECATED;
 	float dupli_ofs[3];
 
-	struct SceneCollection *collection;
-	struct ViewLayer *view_layer;
-} Group;
+	short flag, pad[3];
 
+	/* Runtime. Cache of objects in this collection and all its
+	 * children. This is created on demand when e.g. some physics
+	 * simulation needs it, we don't want to have it for every
+	 * collections due to memory usage reasons. */
+	ListBase object_cache;
 
-#define GROUP_MASTER_COLLECTION(_group) \
-	(((LayerCollection *)(_group)->view_layer->layer_collections.first)->scene_collection)
+	/* Runtime. List of collections that are a parent of this
+	 * datablock. */
+	ListBase parents;
+
+	/* Deprecated */
+	struct SceneCollection *collection DNA_DEPRECATED;
+	struct ViewLayer *view_layer DNA_DEPRECATED;
+} Collection;
+
+/* Collection->flag */
+enum {
+	COLLECTION_RESTRICT_VIEW       = (1 << 0), /* Hidden in viewport. */
+	COLLECTION_RESTRICT_SELECT     = (1 << 1), /* Not selectable in viewport. */
+	COLLECTION_DISABLED_DEPRECATED = (1 << 2), /* Not used anymore */
+	COLLECTION_RESTRICT_RENDER     = (1 << 3), /* Hidden in renders. */
+	COLLECTION_HAS_OBJECT_CACHE    = (1 << 4), /* Runtime: object_cache is populated. */
+	COLLECTION_IS_MASTER           = (1 << 5), /* Is master collection embedded in the scene. */
+};
 
 #endif  /* __DNA_GROUP_TYPES_H__ */

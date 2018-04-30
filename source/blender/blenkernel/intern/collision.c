@@ -46,8 +46,8 @@
 #include "BLI_edgehash.h"
 
 #include "BKE_cloth.h"
+#include "BKE_collection.h"
 #include "BKE_effect.h"
-#include "BKE_group.h"
 #include "BKE_layer.h"
 #include "BKE_modifier.h"
 #include "BKE_scene.h"
@@ -503,20 +503,20 @@ static void add_collision_object(Object ***objs, unsigned int *numobj, unsigned 
 
 	/* objects in dupli groups, one level only for now */
 	if (ob->dup_group && level == 0) {
-		Group *group= ob->dup_group;
+		Collection *collection= ob->dup_group;
 
 		/* add objects */
-		FOREACH_GROUP_OBJECT_BEGIN(group, object)
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 		{
 			add_collision_object(objs, numobj, maxobj, object, self, level+1, modifier_type);
 		}
-		FOREACH_GROUP_OBJECT_END;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 }
 
 // return all collision objects in scene
 // collision object will exclude self 
-Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
+Object **get_collisionobjects_ext(Scene *scene, Object *self, Collection *collection, unsigned int *numcollobj, unsigned int modifier_type, bool dupli)
 {
 	Object **objs;
 	unsigned int numobj= 0, maxobj= 100;
@@ -525,13 +525,13 @@ Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, unsi
 	objs= MEM_callocN(sizeof(Object *)*maxobj, "CollisionObjectsArray");
 
 	/* gather all collision objects */
-	if (group) {
-		/* use specified group */
-		FOREACH_GROUP_OBJECT_BEGIN(group, object)
+	if (collection) {
+		/* use specified collection */
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 		{
 			add_collision_object(&objs, &numobj, &maxobj, object, self, level, modifier_type);
 		}
-		FOREACH_GROUP_OBJECT_END;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 	else {
 		Scene *sce_iter;
@@ -549,11 +549,11 @@ Object **get_collisionobjects_ext(Scene *scene, Object *self, Group *group, unsi
 	return objs;
 }
 
-Object **get_collisionobjects(Scene *scene, Object *self, Group *group, unsigned int *numcollobj, unsigned int modifier_type)
+Object **get_collisionobjects(Scene *scene, Object *self, Collection *collection, unsigned int *numcollobj, unsigned int modifier_type)
 {
 	/* Need to check for active layers, too.
 	   Otherwise this check fails if the objects are not on the same layer - DG */
-	return get_collisionobjects_ext(scene, self, group, numcollobj, modifier_type, true);
+	return get_collisionobjects_ext(scene, self, collection, numcollobj, modifier_type, true);
 }
 
 static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self, int level)
@@ -579,30 +579,30 @@ static void add_collider_cache_object(ListBase **objs, Object *ob, Object *self,
 		BLI_addtail(*objs, col);
 	}
 
-	/* objects in dupli groups, one level only for now */
+	/* objects in dupli collection, one level only for now */
 	if (ob->dup_group && level == 0) {
-		Group *group= ob->dup_group;
+		Collection *collection= ob->dup_group;
 
 		/* add objects */
-		FOREACH_GROUP_OBJECT_BEGIN(group, object)
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 		{
 			add_collider_cache_object(objs, object, self, level+1);
 		}
-		FOREACH_GROUP_OBJECT_END;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 }
 
-ListBase *get_collider_cache(Scene *scene, Object *self, Group *group)
+ListBase *get_collider_cache(Scene *scene, Object *self, Collection *collection)
 {
 	ListBase *objs= NULL;
 	
 	/* add object in same layer in scene */
-	if (group) {
-		FOREACH_GROUP_OBJECT_BEGIN(group, object)
+	if (collection) {
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 		{
 			add_collider_cache_object(&objs, object, self, 0);
 		}
-		FOREACH_GROUP_OBJECT_END;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 	}
 	else {
 		Scene *sce_iter;

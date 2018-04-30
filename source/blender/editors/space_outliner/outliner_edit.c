@@ -50,6 +50,7 @@
 #include "BLT_translation.h"
 
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_idcode.h"
 #include "BKE_layer.h"
@@ -61,7 +62,6 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_material.h"
-#include "BKE_group.h"
 
 #include "DEG_depsgraph_build.h"
 
@@ -254,7 +254,7 @@ void OUTLINER_OT_item_openclose(wmOperatorType *ot)
 
 /* Rename --------------------------------------------------- */
 
-static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, TreeStoreElem *tselem,
+static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem,
                            ReportList *reports)
 {
 	bool add_textbut = false;
@@ -264,19 +264,18 @@ static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, Tre
 		/* do nothing */;
 	}
 	else if (ELEM(tselem->type, TSE_ANIM_DATA, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE,
-	              TSE_DRIVER_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE))
+	              TSE_DRIVER_BASE, TSE_POSE_BASE, TSE_POSEGRP_BASE, TSE_R_LAYER_BASE, TSE_SCENE_COLLECTION_BASE,
+	              TSE_VIEW_COLLECTION_BASE))
 	{
 		BKE_report(reports, RPT_WARNING, "Cannot edit builtin name");
 	}
 	else if (ELEM(tselem->type, TSE_SEQUENCE, TSE_SEQ_STRIP, TSE_SEQUENCE_DUP)) {
 		BKE_report(reports, RPT_WARNING, "Cannot edit sequence name");
 	}
-	else if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
-		SceneCollection *master = BKE_collection_master(&scene->id);
+	else if (outliner_is_collection_tree_element(te)) {
+		Collection *collection = outliner_collection_from_tree_element(te);
 
-		if ((tselem->type == TSE_SCENE_COLLECTION && te->directdata == master) ||
-		    (((LayerCollection *)te->directdata)->scene_collection == master))
-		{
+		if (collection->flag & COLLECTION_IS_MASTER) {
 			BKE_report(reports, RPT_WARNING, "Cannot edit name of master collection");
 		}
 		else {
@@ -300,14 +299,14 @@ static void do_item_rename(const Scene *scene, ARegion *ar, TreeElement *te, Tre
 }
 
 void item_rename_cb(
-        bContext *C, ReportList *reports, Scene *scene, TreeElement *te,
+        bContext *C, ReportList *reports, Scene *UNUSED(scene), TreeElement *te,
         TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
 {
 	ARegion *ar = CTX_wm_region(C);
-	do_item_rename(scene, ar, te, tselem, reports);
+	do_item_rename(ar, te, tselem, reports);
 }
 
-static int do_outliner_item_rename(const Scene *scene, ReportList *reports, ARegion *ar, TreeElement *te,
+static int do_outliner_item_rename(ReportList *reports, ARegion *ar, TreeElement *te,
                                    const float mval[2])
 {
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {
@@ -315,14 +314,14 @@ static int do_outliner_item_rename(const Scene *scene, ReportList *reports, AReg
 		
 		/* click on name */
 		if (mval[0] > te->xs + UI_UNIT_X * 2 && mval[0] < te->xend) {
-			do_item_rename(scene, ar, te, tselem, reports);
+			do_item_rename(ar, te, tselem, reports);
 			return 1;
 		}
 		return 0;
 	}
 	
 	for (te = te->subtree.first; te; te = te->next) {
-		if (do_outliner_item_rename(scene, reports, ar, te, mval)) return 1;
+		if (do_outliner_item_rename(reports, ar, te, mval)) return 1;
 	}
 	return 0;
 }
@@ -338,7 +337,7 @@ static int outliner_item_rename(bContext *C, wmOperator *op, const wmEvent *even
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 	
 	for (te = soops->tree.first; te; te = te->next) {
-		if (do_outliner_item_rename(CTX_data_scene(C), op->reports, ar, te, fmval)) {
+		if (do_outliner_item_rename(op->reports, ar, te, fmval)) {
 			changed = true;
 			break;
 		}
@@ -1915,7 +1914,6 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = NULL;
 	TreeElement *te = NULL;
-	TreeStoreElem *tselem;
 	char childname[MAX_ID_NAME];
 	char parname[MAX_ID_NAME];
 	int partype = 0;
@@ -1925,21 +1923,8 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 
 	/* Find object hovered over */
 	te = outliner_dropzone_find(soops, fmval, true);
-	tselem = te ? TREESTORE(te) : NULL;
 
-	if (tselem && ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
-		SceneCollection *sc = outliner_scene_collection_from_tree_element(te);
-
-		scene = BKE_scene_find_from_collection(bmain, sc);
-		BLI_assert(scene);
-		RNA_string_get(op->ptr, "child", childname);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
-		BKE_collection_object_add(&scene->id, sc, ob);
-
-		DEG_relations_tag_update(bmain);
-		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-	}
-	else if (te) {
+	if (te) {
 		RNA_string_set(op->ptr, "parent", te->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);
@@ -2082,9 +2067,10 @@ static int outliner_parenting_poll(bContext *C)
 		if (soops->outlinevis == SO_SCENES) {
 			return true;
 		}
-
-		if (soops->outlinevis == SO_COLLECTIONS) {
-			return (soops->filter & SO_FILTER_NO_COLLECTION);
+		else if ((soops->outlinevis == SO_VIEW_LAYER) &&
+		         (soops->filter & SO_FILTER_NO_COLLECTION))
+		{
+			return true;
 		}
 	}
 
@@ -2163,16 +2149,16 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			return OPERATOR_CANCELLED;
 		}
 
-		SceneCollection *sc;
+		Collection *collection;
 		if (scene != CTX_data_scene(C)) {
 			/* when linking to an inactive scene link to the master collection */
-			sc = BKE_collection_master(&scene->id);
+			collection = BKE_collection_master(scene);
 		}
 		else {
-			sc = CTX_data_scene_collection(C);
+			collection = CTX_data_collection(C);
 		}
 
-		BKE_collection_object_add(&scene->id, sc, ob);
+		BKE_collection_object_add(bmain, collection, ob);
 
 		for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 			Base *base = BKE_view_layer_base_find(view_layer, ob);
@@ -2268,58 +2254,81 @@ void OUTLINER_OT_material_drop(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "material", "Material", MAX_ID_NAME, "Material", "Target Material");
 }
 
-static int group_link_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+/* ******************** Collection Drop Operator *********************** */
+
+static int collection_drop_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
+	/* TODO: implement */
+#if 0
+	Object *par = NULL, *ob = NULL;
 	Main *bmain = CTX_data_main(C);
-	Group *group = NULL;
-	Object *ob = NULL;
+	Scene *scene = CTX_data_scene(C);
+	int partype = -1;
+	char parname[MAX_ID_NAME], childname[MAX_ID_NAME];
+
+	RNA_string_get(op->ptr, "parent", parname);
+	par = (Object *)BKE_libblock_find_name(ID_OB, parname);
+	RNA_string_get(op->ptr, "child", childname);
+	ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
+
+	if (ID_IS_LINKED(ob)) {
+		BKE_report(op->reports, RPT_INFO, "Can't edit library linked object");
+		return OPERATOR_CANCELLED;
+	}
+
+	ED_object_parent_set(op->reports, C, scene, ob, par, partype, false, false, NULL);
+
+	DEG_relations_tag_update(bmain);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
+#endif
+
+	return OPERATOR_FINISHED;
+}
+
+static int collection_drop_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
-	TreeElement *te = NULL;
-	char ob_name[MAX_ID_NAME - 2];
+	Main *bmain = CTX_data_main(C);
+	char childname[MAX_ID_NAME];
 	float fmval[2];
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
 	/* Find object hovered over */
-	te = outliner_dropzone_find(soops, fmval, true);
+	TreeElement *te = outliner_dropzone_find(soops, fmval, true);
 
-	if (te) {
-		group = (Group *)BKE_libblock_find_name(ID_GR, te->name);
-
-		RNA_string_get(op->ptr, "object", ob_name);
-		ob = (Object *)BKE_libblock_find_name(ID_OB, ob_name);
-
-		if (ELEM(NULL, group, ob)) {
-			return OPERATOR_CANCELLED;
-		}
-		if (BKE_group_object_exists(group, ob)) {
-			return OPERATOR_FINISHED;
-		}
-
-		if (BKE_group_object_cyclic_check(bmain, ob, group)) {
-			BKE_report(op->reports, RPT_ERROR, "Could not add the group because of dependency cycle detected");
-			return OPERATOR_CANCELLED;
-		}
-
-		BKE_group_object_add(group, ob);
-		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
-
-		return OPERATOR_FINISHED;
+	if (!te || !outliner_is_collection_tree_element(te)) {
+		return OPERATOR_CANCELLED;
 	}
 
-	return OPERATOR_CANCELLED;
+	Collection *collection = outliner_collection_from_tree_element(te);
+
+	// TODO: don't use scene, makes no sense anymore
+	// TODO: move rather than link, change hover text
+	Scene *scene = BKE_scene_find_from_collection(bmain, collection);
+	BLI_assert(scene);
+	RNA_string_get(op->ptr, "child", childname);
+	Object *ob = (Object *)BKE_libblock_find_name(ID_OB, childname);
+	BKE_collection_object_add(bmain, collection, ob);
+
+	DEG_relations_tag_update(bmain);
+	WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
+
+	return OPERATOR_FINISHED;
 }
 
-void OUTLINER_OT_group_link(wmOperatorType *ot)
+void OUTLINER_OT_collection_drop(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Link Object to Group";
-	ot->description = "Link Object to Group in Outliner";
-	ot->idname = "OUTLINER_OT_group_link";
+	ot->name = "Link to Collection"; // TODO: rename to move?
+	ot->description = "Drag to move to collection in Outliner";
+	ot->idname = "OUTLINER_OT_collection_drop";
 
 	/* api callbacks */
-	ot->invoke = group_link_invoke;
+	ot->invoke = collection_drop_invoke;
+	ot->exec = collection_drop_exec;
 
 	ot->poll = ED_operator_outliner_active;
 
@@ -2327,5 +2336,6 @@ void OUTLINER_OT_group_link(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_INTERNAL;
 
 	/* properties */
-	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
+	RNA_def_string(ot->srna, "child", "Object", MAX_ID_NAME, "Child", "Child Object");
+	RNA_def_string(ot->srna, "parent", "Collection", MAX_ID_NAME, "Parent", "Parent Collection");
 }

@@ -35,7 +35,7 @@
 
 #include "DNA_listBase.h"
 
-struct Group;
+struct Collection;
 
 struct EffectorWeights;
 
@@ -50,10 +50,10 @@ typedef struct RigidBodyWorld {
 	/* Sim World Settings ------------------------------------------------------------- */
 	struct EffectorWeights *effector_weights; /* effectors info */
 
-	struct Group *group;		/* Group containing objects to use for Rigid Bodies */
+	struct Collection *group;		/* Group containing objects to use for Rigid Bodies */
 	struct Object **objects;	/* Array to access group objects by index, only used at runtime */
 	
-	struct Group *constraints;	/* Group containing objects to use for Rigid Body Constraints*/
+	struct Collection *constraints;	/* Group containing objects to use for Rigid Body Constraints*/
 
 	int pad;
 	float ltime;				/* last frame world was evaluated for (internal) */

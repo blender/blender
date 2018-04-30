@@ -65,6 +65,14 @@ extern "C" {
 
 namespace DEG {
 
+void DepsgraphNodeBuilder::build_layer_collections(ListBase *lb)
+{
+	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
+		build_collection(lc->collection);
+		build_layer_collections(&lc->layer_collections);
+	}
+}
+
 void DepsgraphNodeBuilder::build_view_layer(
         Scene *scene,
         ViewLayer *view_layer,
@@ -100,6 +108,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 		base->object->select_color = select_color++;
 		++base_index;
 	}
+	build_layer_collections(&view_layer->layer_collections);
 	if (scene->camera != NULL) {
 		build_object(-1, scene->camera, DEG_ID_LINKED_INDIRECTLY);
 	}
@@ -140,7 +149,7 @@ void DepsgraphNodeBuilder::build_view_layer(
 	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
 	                   function_bind(BKE_layer_eval_view_layer_indexed,
 	                                 _1,
-	                                 &scene_cow->id,
+	                                 scene_cow,
 	                                 view_layer_index_),
 	                   DEG_OPCODE_VIEW_LAYER_EVAL);
 	/* Parameters evaluation for scene relations mainly. */

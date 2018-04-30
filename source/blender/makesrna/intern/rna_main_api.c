@@ -51,6 +51,7 @@
 
 #include "BKE_main.h"
 #include "BKE_camera.h"
+#include "BKE_collection.h"
 #include "BKE_curve.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
@@ -69,7 +70,6 @@
 #include "BKE_sound.h"
 #include "BKE_text.h"
 #include "BKE_action.h"
-#include "BKE_group.h"
 #include "BKE_brush.h"
 #include "BKE_lattice.h"
 #include "BKE_mball.h"
@@ -443,12 +443,12 @@ static World *rna_Main_worlds_new(Main *bmain, const char *name)
 	return world;
 }
 
-static Group *rna_Main_groups_new(Main *bmain, const char *name)
+static Collection *rna_Main_collections_new(Main *bmain, const char *name)
 {
 	char safe_name[MAX_ID_NAME - 2];
 	rna_idname_validate(name, safe_name);
 
-	return BKE_group_add(bmain, safe_name);
+	return BKE_collection_add(bmain, NULL, safe_name);
 }
 
 static Speaker *rna_Main_speakers_new(Main *bmain, const char *name)
@@ -618,7 +618,7 @@ RNA_MAIN_ID_TAG_FUNCS_DEF(fonts, vfont, ID_VF)
 RNA_MAIN_ID_TAG_FUNCS_DEF(textures, tex, ID_TE)
 RNA_MAIN_ID_TAG_FUNCS_DEF(brushes, brush, ID_BR)
 RNA_MAIN_ID_TAG_FUNCS_DEF(worlds, world, ID_WO)
-RNA_MAIN_ID_TAG_FUNCS_DEF(groups, group, ID_GR)
+RNA_MAIN_ID_TAG_FUNCS_DEF(collections, collection, ID_GR)
 //RNA_MAIN_ID_TAG_FUNCS_DEF(shape_keys, key, ID_KE)
 RNA_MAIN_ID_TAG_FUNCS_DEF(texts, text, ID_TXT)
 RNA_MAIN_ID_TAG_FUNCS_DEF(speakers, speaker, ID_SPK)
@@ -1272,7 +1272,7 @@ void RNA_def_main_textures(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_srna(cprop, "BlendDataTextures");
 	srna = RNA_def_struct(brna, "BlendDataTextures", NULL);
 	RNA_def_struct_sdna(srna, "Main");
-	RNA_def_struct_ui_text(srna, "Main Textures", "Collection of groups");
+	RNA_def_struct_ui_text(srna, "Main Textures", "Collection of textures");
 
 	func = RNA_def_function(srna, "new", "rna_Main_textures_new");
 	RNA_def_function_ui_description(func, "Add a new texture to the main database");
@@ -1387,45 +1387,45 @@ void RNA_def_main_worlds(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_boolean_funcs(prop, "rna_Main_worlds_is_updated_get", NULL);
 }
 
-void RNA_def_main_groups(BlenderRNA *brna, PropertyRNA *cprop)
+void RNA_def_main_collections(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *parm;
 	PropertyRNA *prop;
 
-	RNA_def_property_srna(cprop, "BlendDataGroups");
-	srna = RNA_def_struct(brna, "BlendDataGroups", NULL);
+	RNA_def_property_srna(cprop, "BlendDataCollections");
+	srna = RNA_def_struct(brna, "BlendDataCollections", NULL);
 	RNA_def_struct_sdna(srna, "Main");
-	RNA_def_struct_ui_text(srna, "Main Groups", "Collection of groups");
+	RNA_def_struct_ui_text(srna, "Main Collections", "Collection of collections");
 
-	func = RNA_def_function(srna, "new", "rna_Main_groups_new");
-	RNA_def_function_ui_description(func, "Add a new group to the main database");
-	parm = RNA_def_string(func, "name", "Group", 0, "", "New name for the data-block");
+	func = RNA_def_function(srna, "new", "rna_Main_collections_new");
+	RNA_def_function_ui_description(func, "Add a new collection to the main database");
+	parm = RNA_def_string(func, "name", "Collection", 0, "", "New name for the data-block");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 	/* return type */
-	parm = RNA_def_pointer(func, "group", "Group", "", "New group data-block");
+	parm = RNA_def_pointer(func, "collection", "Collection", "", "New collection data-block");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "remove", "rna_Main_ID_remove");
-	RNA_def_function_ui_description(func, "Remove a group from the current blendfile");
+	RNA_def_function_ui_description(func, "Remove a collection from the current blendfile");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
-	parm = RNA_def_pointer(func, "group", "Group", "", "Group to remove");
+	parm = RNA_def_pointer(func, "collection", "Collection", "", "Collection to remove");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
-	RNA_def_boolean(func, "do_unlink", true, "", "Unlink all usages of this group before deleting it");
+	RNA_def_boolean(func, "do_unlink", true, "", "Unlink all usages of this collection before deleting it");
 	RNA_def_boolean(func, "do_id_user", true, "",
-	                "Decrement user counter of all datablocks used by this group");
+	                "Decrement user counter of all datablocks used by this collection");
 	RNA_def_boolean(func, "do_ui_user", true, "",
-	                "Make sure interface does not reference this group");
+	                "Make sure interface does not reference this collection");
 
-	func = RNA_def_function(srna, "tag", "rna_Main_groups_tag");
+	func = RNA_def_function(srna, "tag", "rna_Main_collections_tag");
 	parm = RNA_def_boolean(func, "value", 0, "Value", "");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	prop = RNA_def_property(srna, "is_updated", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_boolean_funcs(prop, "rna_Main_groups_is_updated_get", NULL);
+	RNA_def_property_boolean_funcs(prop, "rna_Main_collections_is_updated_get", NULL);
 }
 
 void RNA_def_main_speakers(BlenderRNA *brna, PropertyRNA *cprop)

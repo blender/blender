@@ -88,6 +88,7 @@ void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
 void OBJECT_OT_forcefield_toggle(struct wmOperatorType *ot);
 
 void OBJECT_OT_move_to_collection(struct wmOperatorType *ot);
+void OBJECT_OT_link_to_collection(struct wmOperatorType *ot);
 
 /* object_select.c */
 void OBJECT_OT_select_all(struct wmOperatorType *ot);
@@ -99,7 +100,6 @@ void OBJECT_OT_select_grouped(struct wmOperatorType *ot);
 void OBJECT_OT_select_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_select_more(struct wmOperatorType *ot);
 void OBJECT_OT_select_less(struct wmOperatorType *ot);
-void OBJECT_OT_select_same_group(struct wmOperatorType *ot);
 void OBJECT_OT_select_same_collection(struct wmOperatorType *ot);
 
 /* object_add.c */
@@ -115,7 +115,7 @@ void OBJECT_OT_lamp_add(struct wmOperatorType *ot);
 void OBJECT_OT_effector_add(struct wmOperatorType *ot);
 void OBJECT_OT_camera_add(struct wmOperatorType *ot);
 void OBJECT_OT_speaker_add(struct wmOperatorType *ot);
-void OBJECT_OT_group_instance_add(struct wmOperatorType *ot);
+void OBJECT_OT_collection_instance_add(struct wmOperatorType *ot);
 
 void OBJECT_OT_duplicates_make_real(struct wmOperatorType *ot);
 void OBJECT_OT_duplicate(struct wmOperatorType *ot);
@@ -134,11 +134,11 @@ void OBJECT_OT_hook_reset(struct wmOperatorType *ot);
 void OBJECT_OT_hook_recenter(struct wmOperatorType *ot);
 
 /* object_group.c */
-void GROUP_OT_create(struct wmOperatorType *ot);
-void GROUP_OT_objects_remove_all(struct wmOperatorType *ot);
-void GROUP_OT_objects_remove(struct wmOperatorType *ot);
-void GROUP_OT_objects_add_active(struct wmOperatorType *ot);
-void GROUP_OT_objects_remove_active(struct wmOperatorType *ot);
+void COLLECTION_OT_create(struct wmOperatorType *ot);
+void COLLECTION_OT_objects_remove_all(struct wmOperatorType *ot);
+void COLLECTION_OT_objects_remove(struct wmOperatorType *ot);
+void COLLECTION_OT_objects_add_active(struct wmOperatorType *ot);
+void COLLECTION_OT_objects_remove_active(struct wmOperatorType *ot);
 
 /* object_modifier.c */
 int edit_modifier_poll_generic(struct bContext *C, struct StructRNA *rna_type, int obtype_flag);
@@ -251,11 +251,11 @@ void OBJECT_OT_shape_key_mirror(struct wmOperatorType *ot);
 void OBJECT_OT_shape_key_move(struct wmOperatorType *ot);
 
 /* object_group.c */
-void OBJECT_OT_group_add(struct wmOperatorType *ot);
-void OBJECT_OT_group_link(struct wmOperatorType *ot);
-void OBJECT_OT_group_remove(struct wmOperatorType *ot);
-void OBJECT_OT_group_unlink(struct wmOperatorType *ot);
-void OBJECT_OT_grouped_select(struct wmOperatorType *ot);
+void OBJECT_OT_collection_add(struct wmOperatorType *ot);
+void OBJECT_OT_collection_link(struct wmOperatorType *ot);
+void OBJECT_OT_collection_remove(struct wmOperatorType *ot);
+void OBJECT_OT_collection_unlink(struct wmOperatorType *ot);
+void OBJECT_OT_collection_objects_select(struct wmOperatorType *ot);
 
 /* object_bake.c */
 void OBJECT_OT_bake_image(wmOperatorType *ot);

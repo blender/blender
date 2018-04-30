@@ -75,7 +75,6 @@
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
 #include "BKE_gpencil.h"
-#include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -244,20 +243,18 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	sce_dst->depsgraph_hash = NULL;
 	sce_dst->fps_info = NULL;
 
-	/* layers and collections */
-	sce_dst->collection = MEM_dupallocN(sce_src->collection);
-	SceneCollection *mc_src = BKE_collection_master(&sce_src->id);
-	SceneCollection *mc_dst = BKE_collection_master(&sce_dst->id);
+	/* Master Collection */
+	if (sce_src->master_collection) {
+		sce_dst->master_collection = BKE_collection_copy_master(bmain, sce_src->master_collection, flag);
+	}
 
-	/* Recursively creates a new SceneCollection tree. */
-	BKE_collection_copy_data(mc_dst, mc_src, flag_subdata);
-
+	/* View Layers */
 	BLI_duplicatelist(&sce_dst->view_layers, &sce_src->view_layers);
 	for (ViewLayer *view_layer_src = sce_src->view_layers.first, *view_layer_dst = sce_dst->view_layers.first;
 	     view_layer_src;
 	     view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next)
 	{
-		BKE_view_layer_copy_data(view_layer_dst, view_layer_src, mc_dst, mc_src, flag_subdata);
+		BKE_view_layer_copy_data(sce_dst, sce_src, view_layer_dst, view_layer_src, flag_subdata);
 	}
 
 	BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
@@ -407,6 +404,9 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 				BKE_id_copy_ex(bmain, (ID *)sce_copy->world, (ID **)&sce_copy->world, LIB_ID_COPY_ACTIONS, false);
 			}
 
+			/* Collections */
+			BKE_collection_copy_full(bmain, sce_copy->master_collection);
+
 			/* Full copy of GreasePencil. */
 			/* XXX Not copying anim/actions here? */
 			if (sce_copy->gpd) {
@@ -506,9 +506,15 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	}
 
 	/* Master Collection */
-	BKE_collection_master_free(&sce->id, do_id_user);
-	MEM_freeN(sce->collection);
-	sce->collection = NULL;
+	// TODO: what to do with do_id_user? it's also true when just
+	// closing the file which seems wrong? should decrement users
+	// for objects directly in the master collection? then other
+	// collections in the scene need to do it too?
+	if (sce->master_collection) {
+		BKE_collection_free(sce->master_collection);
+		MEM_freeN(sce->master_collection);
+		sce->master_collection = NULL;
+	}
 
 	/* These are freed on doversion. */
 	BLI_assert(sce->layer_properties == NULL);
@@ -789,8 +795,7 @@ void BKE_scene_init(Scene *sce)
 	sce->orientation_index_custom = -1;
 
 	/* Master Collection */
-	sce->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
-	BLI_strncpy(sce->collection->name, "Master Collection", sizeof(sce->collection->name));
+	sce->master_collection = BKE_collection_master_add();
 
 	BKE_view_layer_add(sce, "View Layer");
 
@@ -910,29 +915,19 @@ Object *BKE_scene_object_find_by_name(Scene *scene, const char *name)
 void BKE_scene_set_background(Main *bmain, Scene *scene)
 {
 	Object *ob;
-	Group *group;
 	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
 	BKE_scene_validate_setscene(bmain, scene);
 	
 	/* deselect objects (for dataselect) */
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
-		ob->flag &= ~(SELECT | OB_FROMGROUP);
-
-	/* group flags again */
-	for (group = bmain->group.first; group; group = group->id.next) {
-		FOREACH_GROUP_OBJECT_BEGIN(group, object)
-		{
-			object->flag |= OB_FROMGROUP;
-		}
-		FOREACH_GROUP_OBJECT_END;
-	}
+		ob->flag &= ~SELECT;
 
 	/* copy layers and flags from bases to objects */
 	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 		for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 			ob = base->object;
-			/* group patch... */
+			/* collection patch... */
 			BKE_scene_object_base_flag_sync_from_base(base);
 		}
 	}
@@ -1025,9 +1020,9 @@ int BKE_scene_base_iter_next(
 			else {
 				if (iter->phase != F_DUPLI) {
 					if (depsgraph && (*base)->object->transflag & OB_DUPLI) {
-						/* groups cannot be duplicated for mballs yet, 
+						/* collections cannot be duplicated for mballs yet, 
 						 * this enters eternal loop because of 
-						 * makeDispListMBall getting called inside of group_duplilist */
+						 * makeDispListMBall getting called inside of collection_duplilist */
 						if ((*base)->object->dup_group == NULL) {
 							iter->duplilist = object_duplilist_ex(depsgraph, (*scene), (*base)->object, false);
 							
@@ -1087,11 +1082,11 @@ int BKE_scene_base_iter_next(
 	return iter->phase;
 }
 
-Scene *BKE_scene_find_from_collection(const Main *bmain, const SceneCollection *scene_collection)
+Scene *BKE_scene_find_from_collection(const Main *bmain, const Collection *collection)
 {
 	for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
 		for (ViewLayer *layer = scene->view_layers.first; layer; layer = layer->next) {
-			if (BKE_view_layer_has_collection(layer, scene_collection)) {
+			if (BKE_view_layer_has_collection(layer, collection)) {
 				return scene;
 			}
 		}
@@ -1555,11 +1550,7 @@ void BKE_scene_object_base_flag_sync_from_base(Base *base)
 {
 	Object *ob = base->object;
 
-	/* keep the object only flags untouched */
-	int flag = ob->flag & OB_FROMGROUP;
-
 	ob->flag = base->flag;
-	ob->flag |= flag;
 
 	if ((base->flag & BASE_SELECTED) != 0) {
 		ob->flag |= SELECT;

@@ -49,7 +49,7 @@ extern "C" {
 #include "DEG_depsgraph_debug.h"
 
 struct DEGEditorUpdateContext;
-struct Group;
+struct Collection;
 struct Main;
 struct Scene;
 

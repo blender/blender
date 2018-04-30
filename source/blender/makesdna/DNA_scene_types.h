@@ -47,6 +47,7 @@ extern "C" {
 #include "DNA_ID.h"
 #include "DNA_freestyle_types.h"
 #include "DNA_gpu_types.h"
+#include "DNA_group_types.h"
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_userdef_types.h"
@@ -58,7 +59,7 @@ struct Brush;
 struct World;
 struct Scene;
 struct Image;
-struct Group;
+struct Collection;
 struct Text;
 struct bNodeTree;
 struct AnimData;
@@ -1510,7 +1511,9 @@ typedef struct Scene {
 	struct PreviewImage *preview;
 
 	ListBase view_layers;
-	struct SceneCollection *collection;
+	/* Not an actual datablock, but memory owned by scene. */
+	Collection *master_collection;
+	struct SceneCollection *collection DNA_DEPRECATED;
 
 	IDProperty *layer_properties;  /* settings to be override by workspaces */
 

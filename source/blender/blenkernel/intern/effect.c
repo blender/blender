@@ -57,6 +57,7 @@
 #include "PIL_time.h"
 
 #include "BKE_anim.h"		/* needed for where_on_path */
+#include "BKE_collection.h"
 #include "BKE_collision.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
@@ -64,7 +65,6 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_modifier.h"
@@ -86,7 +86,7 @@
 #include <string.h>
 #endif // WITH_MOD_FLUID
 
-EffectorWeights *BKE_add_effector_weights(Group *group)
+EffectorWeights *BKE_add_effector_weights(Collection *collection)
 {
 	EffectorWeights *weights = MEM_callocN(sizeof(EffectorWeights), "EffectorWeights");
 	int i;
@@ -96,7 +96,7 @@ EffectorWeights *BKE_add_effector_weights(Group *group)
 
 	weights->global_gravity = 1.0f;
 
-	weights->group = group;
+	weights->group = collection;
 
 	return weights;
 }
@@ -215,23 +215,10 @@ ListBase *pdInitEffectors(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob_src, ParticleSystem *psys_src,
         EffectorWeights *weights, bool for_simulation)
 {
-	ViewLayer *view_layer;
-	Base *base;
+	Base *base = BKE_collection_or_layer_objects(depsgraph, scene, NULL, weights->group);
 	ListBase *effectors = NULL;
 
-	if (weights->group) {
-		view_layer = weights->group->view_layer;
-	}
-	/* TODO(mai): the check for view_layer shouldnt be needed, remove when render engine api is updated for this */
-	else if (depsgraph && DEG_get_evaluated_view_layer(depsgraph)) {
-		view_layer = DEG_get_evaluated_view_layer(depsgraph);
-	}
-	else {
-		/* depsgraph is NULL during deg build */
-		view_layer = BKE_view_layer_context_active_PLACEHOLDER(scene);
-	}
-
-	for (base = FIRSTBASE(view_layer); base; base = base->next) {
+	for (; base; base = base->next) {
 		if ((base->flag & BASE_VISIBLED) == 0) {
 			continue;
 		}

@@ -34,6 +34,7 @@ extern "C" {
 #include "RNA_types.h"
 
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_listBase.h"
 #include "DNA_linestyle_types.h"
 #include "DNA_material_types.h"
@@ -47,6 +48,7 @@ extern "C" {
 #include "BKE_customdata.h"
 #include "BKE_idprop.h"
 #include "BKE_global.h"
+#include "BKE_layer.h"
 #include "BKE_library.h" /* free_libblock */
 #include "BKE_material.h"
 #include "BKE_mesh.h"
@@ -206,12 +208,7 @@ BlenderStrokeRenderer::~BlenderStrokeRenderer()
 	}
 
 	// Make sure we don't have any bases which might reference freed objects.
-	FOREACH_SCENE_COLLECTION_BEGIN(freestyle_scene, sc)
-	{
-		BLI_freelistN(&sc->objects);
-	}
-	FOREACH_SCENE_COLLECTION_END;
-	BLI_freelistN(&view_layer->object_bases);
+	BKE_main_collection_sync(freestyle_bmain);
 
 	// release materials
 	Link *lnk = (Link *)freestyle_bmain->mat.first;
@@ -865,8 +862,8 @@ Object *BlenderStrokeRenderer::NewMesh() const
 	ob->data = BKE_mesh_add(freestyle_bmain, name);
 	ob->lay = 1;
 
-	SceneCollection *sc_master = BKE_collection_master(&freestyle_scene->id);
-	BKE_collection_object_add(&freestyle_scene->id, sc_master, ob);
+	Collection *collection_master = BKE_collection_master(freestyle_scene);
+	BKE_collection_object_add(freestyle_bmain, collection_master, ob);
 	DEG_graph_tag_relations_update(freestyle_depsgraph);
 
 	DEG_graph_id_tag_update(freestyle_bmain,

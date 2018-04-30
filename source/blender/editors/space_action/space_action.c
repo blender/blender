@@ -776,7 +776,7 @@ static void action_id_remap(ScrArea *UNUSED(sa), SpaceLink *slink, ID *old_id, I
 	}
 
 	if ((ID *)sact->ads.filter_grp == old_id) {
-		sact->ads.filter_grp = (Group *)new_id;
+		sact->ads.filter_grp = (Collection *)new_id;
 	}
 	if ((ID *)sact->ads.source == old_id) {
 		sact->ads.source = new_id;

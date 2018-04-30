@@ -191,40 +191,6 @@ static int buttons_context_path_workspace(ButsContextPath *path)
 	return RNA_struct_is_a(ptr->type, &RNA_WorkSpace);
 }
 
-static int buttons_context_path_collection(ButsContextPath *path, eSpaceButtons_Collection_Context collection_context)
-{
-	PointerRNA *ptr = &path->ptr[path->len - 1];
-
-	/* if we already have a (pinned) Collection, we're done */
-	if (RNA_struct_is_a(ptr->type, &RNA_LayerCollection)) {
-		return 1;
-	}
-	else if (RNA_struct_is_a(ptr->type, &RNA_ViewLayer)) {
-		ViewLayer *view_layer = ptr->data;
-
-		if (collection_context == SB_COLLECTION_CTX_GROUP) {
-			Object *ob = OBACT(view_layer);
-			if (ob && ob->dup_group) {
-				view_layer = ob->dup_group->view_layer;
-
-				/* Replace the view layer by the group in the context path. */
-				RNA_pointer_create(NULL, &RNA_Group, ob->dup_group, &path->ptr[path->len - 1]);
-			}
-		}
-
-		LayerCollection *layer_collection = BKE_layer_collection_get_active(view_layer);
-
-		if (layer_collection) {
-			RNA_pointer_create(NULL, &RNA_LayerCollection, layer_collection, &path->ptr[path->len]);
-			path->len++;
-			return 1;
-		}
-	}
-
-	/* no path to a collection possible */
-	return 0;
-}
-
 static int buttons_context_path_object(ButsContextPath *path)
 {
 	PointerRNA *ptr = &path->ptr[path->len - 1];
@@ -561,9 +527,6 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 			break;
 		case BCONTEXT_WORKSPACE:
 			found = buttons_context_path_workspace(path);
-			break;
-		case BCONTEXT_COLLECTION:
-			found = buttons_context_path_collection(path, sbuts->collection_context);
 			break;
 		case BCONTEXT_OBJECT:
 		case BCONTEXT_PHYSICS:
@@ -980,10 +943,6 @@ int buttons_context(const bContext *C, const char *member, bContextDataResult *r
 	}
 	else if (CTX_data_equals(member, "line_style")) {
 		set_pointer_type(path, result, &RNA_FreestyleLineStyle);
-		return 1;
-	}
-	else if (CTX_data_equals(member, "collection")) {
-		set_pointer_type(path, result, &RNA_LayerCollection);
 		return 1;
 	}
 	else {

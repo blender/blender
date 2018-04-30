@@ -1614,10 +1614,10 @@ static void object_simplify_update(Object *ob)
 		psys->recalc |= PSYS_RECALC_CHILD;
 	
 	if (ob->dup_group) {
-		GroupObject *gob;
+		CollectionObject *cob;
 
-		for (gob = ob->dup_group->gobject.first; gob; gob = gob->next)
-			object_simplify_update(gob->ob);
+		for (cob = ob->dup_group->gobject.first; cob; cob = cob->next)
+			object_simplify_update(cob->ob);
 	}
 }
 
@@ -3645,16 +3645,16 @@ void rna_def_freestyle_settings(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "group");
-	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Group", "A group of objects based on which feature edges are selected");
+	RNA_def_property_ui_text(prop, "Collection", "A collection of objects based on which feature edges are selected");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "group_negation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flags");
 	RNA_def_property_enum_items(prop, group_negation_items);
-	RNA_def_property_ui_text(prop, "Group Negation",
-	                         "Specify either inclusion or exclusion of feature edges belonging to a group of objects");
+	RNA_def_property_ui_text(prop, "Collection Negation",
+	                         "Specify either inclusion or exclusion of feature edges belonging to a collection of objects");
 	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, "rna_Scene_freestyle_update");
 
 	prop = RNA_def_property(srna, "face_mark_negation", PROP_ENUM, PROP_NONE);
@@ -6609,11 +6609,11 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "View Layers", "");
 	rna_def_view_layers(brna, prop);
 
-	prop = RNA_def_property(srna, "master_collection", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_NEVER_NULL);
-	RNA_def_property_pointer_sdna(prop, NULL, "collection");
-	RNA_def_property_struct_type(prop, "SceneCollection");
-	RNA_def_property_ui_text(prop, "Master Collection", "Collection that contains all other collections");
+	RNA_def_property_pointer_sdna(prop, NULL, "master_collection");
+	RNA_def_property_struct_type(prop, "Collection");
+	RNA_def_property_ui_text(prop, "Collection", "Scene master collection that objects and other collections in the scene");
 
 	/* Scene Display */
 	prop = RNA_def_property(srna, "display", PROP_POINTER, PROP_NONE);

@@ -37,6 +37,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
 
+#include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
@@ -271,36 +272,26 @@ static void stats_object_sculpt_dynamic_topology(Object *ob, SceneStats *stats)
 	stats->tottri = ob->sculpt->bm->totface;
 }
 
-static void stats_dupli_object_group_count(SceneCollection *scene_collection, int *count)
+static void stats_dupli_object_group_count(Collection *collection, int *count)
 {
-	for (LinkData *link = scene_collection->objects.first; link; link = link->next) {
-		(*count)++;
-	}
+	*count += BLI_listbase_count(&collection->gobject);
 
-	SceneCollection *scene_collection_nested;
-	for (scene_collection_nested = scene_collection->scene_collections.first;
-	     scene_collection_nested;
-	     scene_collection_nested = scene_collection_nested->next)
-	{
-		stats_dupli_object_group_count(scene_collection_nested, count);
+	for (CollectionChild *child = collection->children.first; child; child = child->next) {
+		stats_dupli_object_group_count(child->collection, count);
 	}
 }
 
-static void stats_dupli_object_group_doit(SceneCollection *scene_collection, SceneStats *stats, ParticleSystem *psys,
+static void stats_dupli_object_group_doit(Collection *collection, SceneStats *stats, ParticleSystem *psys,
                                           const int totgroup, int *cur)
 {
-	for (LinkData *link = scene_collection->objects.first; link; link = link->next) {
+	for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
 		int tot = count_particles_mod(psys, totgroup, *cur);
-		stats_object(link->data, 0, tot, stats);
+		stats_object(cob->ob, 0, tot, stats);
 		(*cur)++;
 	}
 
-	SceneCollection *scene_collection_nested;
-	for (scene_collection_nested = scene_collection->scene_collections.first;
-	     scene_collection_nested;
-	     scene_collection_nested = scene_collection_nested->next)
-	{
-		stats_dupli_object_group_doit(scene_collection_nested, stats, psys, totgroup, cur);
+	for (CollectionChild *child = collection->children.first; child; child = child->next) {
+		stats_dupli_object_group_doit(child->collection, stats, psys, totgroup, cur);
 	}
 }
 
@@ -323,9 +314,9 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 			else if (part->draw_as == PART_DRAW_GR && part->dup_group) {
 				int totgroup = 0, cur = 0;
 
-				SceneCollection *scene_collection = part->dup_group->collection;
-				stats_dupli_object_group_count(scene_collection, &totgroup);
-				stats_dupli_object_group_doit(scene_collection, stats, psys, totgroup, &cur);
+				Collection *collection = part->dup_group;
+				stats_dupli_object_group_count(collection, &totgroup);
+				stats_dupli_object_group_doit(collection, stats, psys, totgroup, &cur);
 			}
 		}
 		
@@ -353,7 +344,7 @@ static void stats_dupli_object(Base *base, Object *ob, SceneStats *stats)
 		stats->totobj += tot;
 		stats_object(ob, base->flag & BASE_SELECTED, tot, stats);
 	}
-	else if ((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
+	else if ((ob->transflag & OB_DUPLICOLLECTION) && ob->dup_group) {
 		/* Dupli Group */
 		int tot = count_duplilist(ob);
 		stats->totobj += tot;

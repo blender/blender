@@ -37,7 +37,7 @@ extern "C" {
 typedef struct Base {
 	struct Base *next, *prev;
 	short flag;
-	short refcount;
+	short pad;
 	short sx, sy;
 	struct Object *object;
 	unsigned int lay;
@@ -53,25 +53,23 @@ typedef struct ViewLayerEngineData {
 
 typedef struct LayerCollection {
 	struct LayerCollection *next, *prev;
-	struct SceneCollection *scene_collection;
+	struct Collection *collection;
+	struct SceneCollection *scene_collection DNA_DEPRECATED;
 	short flag;
-	/* TODO(sergey): Get rid of this once we've got CoW in DEG, */
-	short flag_evaluated;
-	short pad[2];
-	ListBase object_bases; /* (ObjectBase *)LinkData->data - synced with collection->objects */
-	ListBase layer_collections; /* synced with collection->collections */
+	short pad[3];
+	ListBase layer_collections; /* synced with collection->children */
 } LayerCollection;
 
 typedef struct ViewLayer {
 	struct ViewLayer *next, *prev;
 	char name[64]; /* MAX_NAME */
-	short active_collection;
 	short flag;
-	short pad[2];
+	short pad[3];
 	ListBase object_bases;      /* ObjectBase */
 	struct SceneStats *stats;   /* default allocated now */
 	struct Base *basact;
 	ListBase layer_collections; /* LayerCollection */
+	LayerCollection *active_collection;
 
 	/* Old SceneRenderLayer data. */
 	int layflag;
@@ -86,17 +84,8 @@ typedef struct ViewLayer {
 	/* Runtime data */
 	ListBase drawdata;    /* ViewLayerEngineData */
 	struct Base **object_bases_array;
+	struct GHash *object_bases_hash;
 } ViewLayer;
-
-typedef struct SceneCollection {
-	struct SceneCollection *next, *prev;
-	char name[64]; /* MAX_NAME */
-	int active_object_index; /* for UI */
-	char type;
-	char pad[3];
-	ListBase objects;           /* (Object *)LinkData->data */
-	ListBase scene_collections; /* nested collections */
-} SceneCollection;
 
 /* Base->flag */
 enum {
@@ -106,14 +95,17 @@ enum {
 	BASE_FROMDUPLI        = (1 << 3),
 	BASE_DIRTY_ENGINE_SETTINGS = (1 << 4),
 	BASE_FROM_SET         = (1 << 5), /* To be set only by the depsgraph */
+	BASE_VISIBLE_VIEWPORT = (1 << 6),
+	BASE_VISIBLE_RENDER   = (1 << 7),
 };
 
 /* LayerCollection->flag */
 enum {
-	COLLECTION_VIEWPORT   = (1 << 0), /* Only used for group collections. */
-	COLLECTION_SELECTABLE = (1 << 1),
-	COLLECTION_DISABLED   = (1 << 2),
-	COLLECTION_RENDER     = (1 << 3), /* Only used for group collections. */
+	/* LAYER_COLLECTION_DEPRECATED0 = (1 << 0), */
+	/* LAYER_COLLECTION_DEPRECATED1 = (1 << 1), */
+	/* LAYER_COLLECTION_DEPRECATED2 = (1 << 2), */
+	/* LAYER_COLLECTION_DEPRECATED3 = (1 << 3), */
+	LAYER_COLLECTION_EXCLUDE = (1 << 4),
 };
 
 /* ViewLayer->flag */
@@ -123,11 +115,22 @@ enum {
 	VIEW_LAYER_FREESTYLE = (1 << 2),
 };
 
-/* SceneCollection->type */
-enum {
-	COLLECTION_TYPE_NONE =  0,
-	COLLECTION_TYPE_GROUP_INTERNAL = 1,
-};
+/****************************** Deprecated ******************************/
+
+/* Compatibility with collections saved in early 2.8 versions,
+ * used in file reading and versioning code. */
+#define USE_COLLECTION_COMPAT_28
+
+typedef struct SceneCollection {
+	struct SceneCollection *next, *prev;
+	char name[64]; /* MAX_NAME */
+	int active_object_index; /* for UI */
+	short flag;
+	char type;
+	char pad;
+	ListBase objects;           /* (Object *)LinkData->data */
+	ListBase scene_collections; /* nested collections */
+} SceneCollection;
 
 #ifdef __cplusplus
 }

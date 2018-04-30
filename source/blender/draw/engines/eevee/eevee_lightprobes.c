@@ -35,8 +35,8 @@
 #include "DNA_lightprobe_types.h"
 #include "DNA_view3d_types.h"
 
+#include "BKE_collection.h"
 #include "BKE_object.h"
-#include "BKE_group.h"
 #include "MEM_guardedalloc.h"
 
 #include "GPU_material.h"
@@ -389,7 +389,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 	EEVEE_LightProbesInfo *pinfo = sldata->probes;
 
 	/* Make sure no aditionnal visibility check runs by default. */
-	pinfo->vis_data.group = NULL;
+	pinfo->vis_data.collection = NULL;
 
 	pinfo->do_cube_update = false;
 	pinfo->num_cube = 1; /* at least one for the world */
@@ -581,7 +581,7 @@ bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
 	EEVEE_ObjectEngineData *oed = (EEVEE_ObjectEngineData *)user_data;
 
 	/* test disabled if group is NULL */
-	if (oed->test_data->group == NULL)
+	if (oed->test_data->collection == NULL)
 		return vis_in;
 
 	if (oed->test_data->cached == false)
@@ -593,7 +593,7 @@ bool EEVEE_lightprobes_obj_visibility_cb(bool vis_in, void *user_data)
 
 	if (oed->ob_vis_dirty) {
 		oed->ob_vis_dirty = false;
-		oed->ob_vis = BKE_group_object_exists(oed->test_data->group, oed->ob);
+		oed->ob_vis = BKE_collection_has_object_recursive(oed->test_data->collection, oed->ob);
 		oed->ob_vis = (oed->test_data->invert) ? !oed->ob_vis : oed->ob_vis;
 	}
 
@@ -1301,7 +1301,7 @@ static void render_scene_to_probe(
 	DRW_stats_group_end();
 
 	/* Make sure no aditionnal visibility check runs after this. */
-	pinfo->vis_data.group = NULL;
+	pinfo->vis_data.collection = NULL;
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
@@ -1400,7 +1400,7 @@ static void render_scene_to_planar(
 	DRW_stats_group_end();
 
 	/* Make sure no aditionnal visibility check runs after this. */
-	pinfo->vis_data.group = NULL;
+	pinfo->vis_data.collection = NULL;
 
 	/* Restore */
 	txl->planar_pool = tmp_planar_pool;
@@ -1554,7 +1554,7 @@ void EEVEE_lightprobes_refresh_planar(EEVEE_ViewLayerData *sldata, EEVEE_Data *v
 	for (int i = 0; (ob = pinfo->probes_planar_ref[i]) && (i < MAX_PLANAR); i++) {
 		EEVEE_LightProbeEngineData *ped = EEVEE_lightprobe_data_ensure(ob);
 		LightProbe *prb = (LightProbe *)ob->data;
-		pinfo->vis_data.group = prb->visibility_grp;
+		pinfo->vis_data.collection = prb->visibility_grp;
 		pinfo->vis_data.invert = prb->flag & LIGHTPROBE_FLAG_INVERT_GROUP;
 		render_scene_to_planar(sldata, vedata, i, ped);
 	}
@@ -1603,7 +1603,7 @@ static void lightprobes_refresh_cube(EEVEE_ViewLayerData *sldata, EEVEE_Data *ve
 			continue;
 		}
 		LightProbe *prb = (LightProbe *)ob->data;
-		pinfo->vis_data.group = prb->visibility_grp;
+		pinfo->vis_data.collection = prb->visibility_grp;
 		pinfo->vis_data.invert = prb->flag & LIGHTPROBE_FLAG_INVERT_GROUP;
 		render_scene_to_probe(sldata, vedata, ob->obmat[3], prb->clipsta, prb->clipend);
 		glossy_filter_probe(sldata, vedata, psl, i, prb->intensity);
@@ -1711,7 +1711,7 @@ static void lightprobes_refresh_all_no_world(EEVEE_ViewLayerData *sldata, EEVEE_
 					egrid->level_bias = (float)(1 << 0);
 					DRW_uniformbuffer_update(sldata->grid_ubo, &sldata->probes->grid_data);
 				}
-				pinfo->vis_data.group = prb->visibility_grp;
+				pinfo->vis_data.collection = prb->visibility_grp;
 				pinfo->vis_data.invert = prb->flag & LIGHTPROBE_FLAG_INVERT_GROUP;
 				render_scene_to_probe(sldata, vedata, pos, prb->clipsta, prb->clipend);
 				diffuse_filter_probe(sldata, vedata, psl, egrid->offset + cell_id,

@@ -43,7 +43,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_dynamicpaint_types.h"
-#include "DNA_group_types.h" /*GroupObject*/
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -55,6 +55,7 @@
 #include "BKE_animsys.h"
 #include "BKE_armature.h"
 #include "BKE_bvhutils.h"   /* bvh tree */
+#include "BKE_collection.h"
 #include "BKE_colorband.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_constraint.h"
@@ -491,16 +492,11 @@ static void scene_setSubframe(Scene *scene, float subframe)
 
 static int surface_getBrushFlags(DynamicPaintSurface *surface, const ViewLayer *view_layer)
 {
-	Base *base = NULL;
+	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, surface->brush_group);
 	Object *brushObj = NULL;
 	ModifierData *md = NULL;
 
 	int flags = 0;
-
-	if (surface->brush_group)
-		base = FIRSTBASE(surface->brush_group->view_layer);
-	else
-		base = FIRSTBASE(view_layer);
 
 	while (base) {
 		brushObj = NULL;
@@ -5911,20 +5907,14 @@ static int dynamicPaint_doStep(struct Depsgraph *depsgraph, Scene *scene, Object
 	 * Loop through surface's target paint objects and do painting
 	 */
 	{
-		Base *base = NULL;
 		Object *brushObj = NULL;
 		ModifierData *md = NULL;
 		ViewLayer *view_layer = DEG_get_evaluated_view_layer(depsgraph);
+		Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, surface->brush_group);
 
 		/* backup current scene frame */
 		int scene_frame = scene->r.cfra;
 		float scene_subframe = scene->r.subframe;
-
-		/* either from group or from all objects */
-		if (surface->brush_group)
-			base = FIRSTBASE(surface->brush_group->view_layer);
-		else
-			base = FIRSTBASE(view_layer);
 
 		while (base) {
 			brushObj = NULL;

@@ -39,8 +39,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_collection.h"
 #include "BKE_context.h"
-#include "BKE_group.h"
 #include "BKE_library.h"
 #include "BKE_library_remap.h"
 #include "BKE_main.h"
@@ -64,8 +64,9 @@
 /********************* 3d view operators ***********************/
 
 /* can be called with C == NULL */
-static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
+static const EnumPropertyItem *collection_object_active_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), bool *r_free)
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob;
 	EnumPropertyItem *item = NULL, item_tmp = {0};
 	int totitem = 0;
@@ -78,25 +79,25 @@ static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA
 
 	/* check that the object exists */
 	if (ob) {
-		Group *group;
+		Collection *collection;
 		int i = 0, count = 0;
 
-		/* if 2 or more groups, add option to add to all groups */
-		group = NULL;
-		while ((group = BKE_group_object_find(group, ob)))
+		/* if 2 or more collections, add option to add to all collections */
+		collection = NULL;
+		while ((collection = BKE_collection_object_find(bmain, collection, ob)))
 			count++;
 
 		if (count >= 2) {
-			item_tmp.identifier = item_tmp.name = "All Groups";
+			item_tmp.identifier = item_tmp.name = "All Collections";
 			item_tmp.value = INT_MAX; /* this will give NULL on lookup */
 			RNA_enum_item_add(&item, &totitem, &item_tmp);
 			RNA_enum_item_add_separator(&item, &totitem);
 		}
 
-		/* add groups */
-		group = NULL;
-		while ((group = BKE_group_object_find(group, ob))) {
-			item_tmp.identifier = item_tmp.name = group->id.name + 2;
+		/* add collections */
+		collection = NULL;
+		while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
+			item_tmp.identifier = item_tmp.name = collection->id.name + 2;
 			/* item_tmp.icon = ICON_ARMATURE_DATA; */
 			item_tmp.value = i;
 			RNA_enum_item_add(&item, &totitem, &item_tmp);
@@ -110,48 +111,48 @@ static const EnumPropertyItem *group_object_active_itemf(bContext *C, PointerRNA
 	return item;
 }
 
-/* get the group back from the enum index, quite awkward and UI specific */
-static Group *group_object_active_find_index(Object *ob, const int group_object_index)
+/* get the collection back from the enum index, quite awkward and UI specific */
+static Collection *collection_object_active_find_index(Main *bmain, Object *ob, const int collection_object_index)
 {
-	Group *group = NULL;
+	Collection *collection = NULL;
 	int i = 0;
-	while ((group = BKE_group_object_find(group, ob))) {
-		if (i == group_object_index) {
+	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
+		if (i == collection_object_index) {
 			break;
 		}
 		i++;
 	}
 
-	return group;
+	return collection;
 }
 
 static int objects_add_active_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	Main *bmain = CTX_data_main(C);
-	int single_group_index = RNA_enum_get(op->ptr, "group");
-	Group *single_group = group_object_active_find_index(ob, single_group_index);
-	Group *group;
+	int single_collection_index = RNA_enum_get(op->ptr, "collection");
+	Collection *single_collection = collection_object_active_find_index(bmain, ob, single_collection_index);
+	Collection *collection;
 	bool is_cycle = false;
 	bool updated = false;
 
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
-	/* now add all selected objects to the group(s) */
-	for (group = bmain->group.first; group; group = group->id.next) {
-		if (single_group && group != single_group)
+	/* now add all selected objects to the collection(s) */
+	for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+		if (single_collection && collection != single_collection)
 			continue;
-		if (!BKE_group_object_exists(group, ob))
+		if (!BKE_collection_has_object(collection, ob))
 			continue;
 
 		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 		{
-			if (BKE_group_object_exists(group, base->object))
+			if (BKE_collection_has_object(collection, base->object))
 				continue;
 
-			if (!BKE_group_object_cyclic_check(bmain, base->object, group)) {
-				BKE_group_object_add(group, base->object);
+			if (!BKE_collection_object_cyclic_check(bmain, base->object, collection)) {
+				BKE_collection_object_add(bmain, collection, base->object);
 				updated = true;
 			}
 			else {
@@ -162,7 +163,7 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	}
 
 	if (is_cycle)
-		BKE_report(op->reports, RPT_WARNING, "Skipped some groups because of cycle detected");
+		BKE_report(op->reports, RPT_WARNING, "Skipped some collections because of cycle detected");
 
 	if (!updated)
 		return OPERATOR_CANCELLED;
@@ -173,14 +174,14 @@ static int objects_add_active_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GROUP_OT_objects_add_active(wmOperatorType *ot)
+void COLLECTION_OT_objects_add_active(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Add Selected To Active Group";
-	ot->description = "Add the object to an object group that contains the active object";
-	ot->idname = "GROUP_OT_objects_add_active";
+	ot->name = "Add Selected To Active Collection";
+	ot->description = "Add the object to an object collection that contains the active object";
+	ot->idname = "COLLECTION_OT_objects_add_active";
 	
 	/* api callbacks */
 	ot->exec = objects_add_active_exec;
@@ -191,8 +192,8 @@ void GROUP_OT_objects_add_active(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "The group to add other selected objects to");
-	RNA_def_enum_funcs(prop, group_object_active_itemf);
+	prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "The collection to add other selected objects to");
+	RNA_def_enum_funcs(prop, collection_object_active_itemf);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
@@ -202,26 +203,26 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *ob = OBACT(view_layer);
-	int single_group_index = RNA_enum_get(op->ptr, "group");
-	Group *single_group = group_object_active_find_index(ob, single_group_index);
-	Group *group;
+	int single_collection_index = RNA_enum_get(op->ptr, "collection");
+	Collection *single_collection = collection_object_active_find_index(bmain, ob, single_collection_index);
+	Collection *collection;
 	bool ok = false;
 	
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 	
-	/* linking to same group requires its own loop so we can avoid
-	 * looking up the active objects groups each time */
+	/* linking to same collection requires its own loop so we can avoid
+	 * looking up the active objects collections each time */
 
-	for (group = bmain->group.first; group; group = group->id.next) {
-		if (single_group && group != single_group)
+	for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+		if (single_collection && collection != single_collection)
 			continue;
 
-		if (BKE_group_object_exists(group, ob)) {
-			/* Remove groups from selected objects */
+		if (BKE_collection_has_object(collection, ob)) {
+			/* Remove collections from selected objects */
 			CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 			{
-				BKE_group_object_unlink(group, base->object);
+				BKE_collection_object_remove(bmain, collection, base->object, false);
 				ok = 1;
 			}
 			CTX_DATA_END;
@@ -229,7 +230,7 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	}
 	
 	if (!ok)
-		BKE_report(op->reports, RPT_ERROR, "Active object contains no groups");
+		BKE_report(op->reports, RPT_ERROR, "Active object contains no collections");
 	
 	DEG_relations_tag_update(bmain);
 	WM_event_add_notifier(C, NC_GROUP | NA_EDITED, NULL);
@@ -237,14 +238,14 @@ static int objects_remove_active_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GROUP_OT_objects_remove_active(wmOperatorType *ot)
+void COLLECTION_OT_objects_remove_active(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Remove Selected From Active Group";
-	ot->description = "Remove the object from an object group that contains the active object";
-	ot->idname = "GROUP_OT_objects_remove_active";
+	ot->name = "Remove Selected From Active Collection";
+	ot->description = "Remove the object from an object collection that contains the active object";
+	ot->idname = "COLLECTION_OT_objects_remove_active";
 	
 	/* api callbacks */
 	ot->exec = objects_remove_active_exec;
@@ -255,19 +256,19 @@ void GROUP_OT_objects_remove_active(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "The group to remove other selected objects from");
-	RNA_def_enum_funcs(prop, group_object_active_itemf);
+	prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "The collection to remove other selected objects from");
+	RNA_def_enum_funcs(prop, collection_object_active_itemf);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
 
-static int group_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 	{
-		BKE_object_groups_clear(base->object);
+		BKE_object_groups_clear(bmain, base->object);
 	}
 	CTX_DATA_END;
 
@@ -277,43 +278,43 @@ static int group_objects_remove_all_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void GROUP_OT_objects_remove_all(wmOperatorType *ot)
+void COLLECTION_OT_objects_remove_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove From All Groups";
-	ot->description = "Remove selected objects from all groups";
-	ot->idname = "GROUP_OT_objects_remove_all";
+	ot->name = "Remove From All Unlinked Collections";
+	ot->description = "Remove selected objects from all collections not used in a scene";
+	ot->idname = "COLLECTION_OT_objects_remove_all";
 	
 	/* api callbacks */
-	ot->exec = group_objects_remove_all_exec;
+	ot->exec = collection_objects_remove_all_exec;
 	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int group_objects_remove_exec(bContext *C, wmOperator *op)
+static int collection_objects_remove_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = ED_object_context(C);
 	Main *bmain = CTX_data_main(C);
-	int single_group_index = RNA_enum_get(op->ptr, "group");
-	Group *single_group = group_object_active_find_index(ob, single_group_index);
-	Group *group;
+	int single_collection_index = RNA_enum_get(op->ptr, "collection");
+	Collection *single_collection = collection_object_active_find_index(bmain, ob, single_collection_index);
+	Collection *collection;
 	bool updated = false;
 
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
-	for (group = bmain->group.first; group; group = group->id.next) {
-		if (single_group && group != single_group)
+	for (collection = bmain->collection.first; collection; collection = collection->id.next) {
+		if (single_collection && collection != single_collection)
 			continue;
-		if (!BKE_group_object_exists(group, ob))
+		if (!BKE_collection_has_object(collection, ob))
 			continue;
 
-		/* now remove all selected objects from the group */
+		/* now remove all selected objects from the collection */
 		CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
 		{
-			BKE_group_object_unlink(group, base->object);
+			BKE_collection_object_remove(bmain, collection, base->object, false);
 			updated = true;
 		}
 		CTX_DATA_END;
@@ -328,17 +329,17 @@ static int group_objects_remove_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GROUP_OT_objects_remove(wmOperatorType *ot)
+void COLLECTION_OT_objects_remove(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Remove From Group";
-	ot->description = "Remove selected objects from a group";
-	ot->idname = "GROUP_OT_objects_remove";
+	ot->name = "Remove From Collection";
+	ot->description = "Remove selected objects from a collection";
+	ot->idname = "COLLECTION_OT_objects_remove";
 
 	/* api callbacks */
-	ot->exec = group_objects_remove_exec;
+	ot->exec = collection_objects_remove_exec;
 	ot->invoke = WM_menu_invoke;
 	ot->poll = ED_operator_objectmode;
 
@@ -346,25 +347,24 @@ void GROUP_OT_objects_remove(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "The group to remove this object from");
-	RNA_def_enum_funcs(prop, group_object_active_itemf);
+	prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "The collection to remove this object from");
+	RNA_def_enum_funcs(prop, collection_object_active_itemf);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
 
-static int group_create_exec(bContext *C, wmOperator *op)
+static int collection_create_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
-	Group *group = NULL;
 	char name[MAX_ID_NAME - 2]; /* id name */
 	
 	RNA_string_get(op->ptr, "name", name);
 	
-	group = BKE_group_add(bmain, name);
+	Collection *collection = BKE_collection_add(bmain, NULL, name);
 		
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		BKE_group_object_add(group, base->object);
+		BKE_collection_object_add(bmain, collection, base->object);
 	}
 	CTX_DATA_END;
 
@@ -374,102 +374,101 @@ static int group_create_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GROUP_OT_create(wmOperatorType *ot)
+void COLLECTION_OT_create(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Create New Group";
-	ot->description = "Create an object group from selected objects";
-	ot->idname = "GROUP_OT_create";
+	ot->name = "Create New Collection";
+	ot->description = "Create an object collection from selected objects";
+	ot->idname = "COLLECTION_OT_create";
 	
 	/* api callbacks */
-	ot->exec = group_create_exec;
+	ot->exec = collection_create_exec;
 	ot->poll = ED_operator_objectmode;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
-	RNA_def_string(ot->srna, "name", "Group", MAX_ID_NAME - 2, "Name", "Name of the new group");
+	RNA_def_string(ot->srna, "name", "Collection", MAX_ID_NAME - 2, "Name", "Name of the new collection");
 }
 
 /****************** properties window operators *********************/
 
-static int group_add_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_add_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_context(C);
 	Main *bmain = CTX_data_main(C);
-	Group *group;
 
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 
-	group = BKE_group_add(bmain, "Group");
-	BKE_group_object_add(group, ob);
+	Collection *collection = BKE_collection_add(bmain, NULL, "Collection");
+	BKE_collection_object_add(bmain, collection, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_group_add(wmOperatorType *ot)
+void OBJECT_OT_collection_add(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add to Group";
-	ot->idname = "OBJECT_OT_group_add";
-	ot->description = "Add an object to a new group";
+	ot->name = "Add to Collection";
+	ot->idname = "OBJECT_OT_collection_add";
+	ot->description = "Add an object to a new collection";
 	
 	/* api callbacks */
-	ot->exec = group_add_exec;
+	ot->exec = collection_add_exec;
 	ot->poll = ED_operator_objectmode;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int group_link_exec(bContext *C, wmOperator *op)
+static int collection_link_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
-	Group *group = BLI_findlink(&bmain->group, RNA_enum_get(op->ptr, "group"));
+	Collection *collection = BLI_findlink(&bmain->collection, RNA_enum_get(op->ptr, "collection"));
 
-	if (ELEM(NULL, ob, group))
+	if (ELEM(NULL, ob, collection))
 		return OPERATOR_CANCELLED;
 
-	/* Early return check, if the object is already in group
+	/* Early return check, if the object is already in collection
 	 * we could skip all the dependency check and just consider
 	 * operator is finished.
 	 */
-	if (BKE_group_object_exists(group, ob)) {
+	if (BKE_collection_has_object(collection, ob)) {
 		return OPERATOR_FINISHED;
 	}
 
-	/* Adding object to group which is used as dupligroup for self is bad idea.
+	/* Adding object to collection which is used as duplicollection for self is bad idea.
 	 *
-	 * It is also  bad idea to add object to group which is in group which
+	 * It is also  bad idea to add object to collection which is in collection which
 	 * contains our current object.
 	 */
-	if (BKE_group_object_cyclic_check(bmain, ob, group)) {
-		BKE_report(op->reports, RPT_ERROR, "Could not add the group because of dependency cycle detected");
+	if (BKE_collection_object_cyclic_check(bmain, ob, collection)) {
+		BKE_report(op->reports, RPT_ERROR, "Could not add the collection because of dependency cycle detected");
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_group_object_add(group, ob);
+	BKE_collection_object_add(bmain, collection, ob);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_group_link(wmOperatorType *ot)
+void OBJECT_OT_collection_link(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
 	/* identifiers */
-	ot->name = "Link to Group";
-	ot->idname = "OBJECT_OT_group_link";
-	ot->description = "Add an object to an existing group";
+	ot->name = "Link to Collection";
+	ot->idname = "OBJECT_OT_collection_link";
+	ot->description = "Add an object to an existing collection";
 	
 	/* api callbacks */
-	ot->exec = group_link_exec;
+	ot->exec = collection_link_exec;
 	ot->invoke = WM_enum_search_invoke;
 	ot->poll = ED_operator_objectmode;
 
@@ -477,36 +476,37 @@ void OBJECT_OT_group_link(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	prop = RNA_def_enum(ot->srna, "group", DummyRNA_NULL_items, 0, "Group", "");
-	RNA_def_enum_funcs(prop, RNA_group_local_itemf);
+	prop = RNA_def_enum(ot->srna, "collection", DummyRNA_NULL_items, 0, "Collection", "");
+	RNA_def_enum_funcs(prop, RNA_collection_local_itemf);
 	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
 	ot->prop = prop;
 }
 
-static int group_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Main *bmain = CTX_data_main(C);
 	Object *ob = ED_object_context(C);
-	Group *group = CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+	Collection *collection = CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data;
 
-	if (!ob || !group)
+	if (!ob || !collection)
 		return OPERATOR_CANCELLED;
 
-	BKE_group_object_unlink(group, ob);
+	BKE_collection_object_remove(bmain, collection, ob, false);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 	
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_group_remove(wmOperatorType *ot)
+void OBJECT_OT_collection_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove Group";
-	ot->idname = "OBJECT_OT_group_remove";
-	ot->description = "Remove the active object from this group";
+	ot->name = "Remove Collection";
+	ot->idname = "OBJECT_OT_collection_remove";
+	ot->description = "Remove the active object from this collection";
 	
 	/* api callbacks */
-	ot->exec = group_remove_exec;
+	ot->exec = collection_remove_exec;
 	ot->poll = ED_operator_objectmode;
 
 	/* flags */
@@ -514,47 +514,47 @@ void OBJECT_OT_group_remove(wmOperatorType *ot)
 }
 
 
-static int group_unlink_exec(bContext *C, wmOperator *UNUSED(op))
+static int collection_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
-	Group *group = CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+	Collection *collection = CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data;
 
-	if (!group)
+	if (!collection)
 		return OPERATOR_CANCELLED;
 
-	BKE_libblock_delete(bmain, group);
+	BKE_libblock_delete(bmain, collection);
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, NULL);
 
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_group_unlink(wmOperatorType *ot)
+void OBJECT_OT_collection_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Unlink Group";
-	ot->idname = "OBJECT_OT_group_unlink";
-	ot->description = "Unlink the group from all objects";
+	ot->name = "Unlink Collection";
+	ot->idname = "OBJECT_OT_collection_unlink";
+	ot->description = "Unlink the collection from all objects";
 
 	/* api callbacks */
-	ot->exec = group_unlink_exec;
+	ot->exec = collection_unlink_exec;
 	ot->poll = ED_operator_objectmode;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select objects in the same group as the active */
+static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select objects in the same collection as the active */
 {
-	Group *group = CTX_data_pointer_get_type(C, "group", &RNA_Group).data;
+	Collection *collection = CTX_data_pointer_get_type(C, "collection", &RNA_Collection).data;
 
-	if (!group)
+	if (!collection)
 		return OPERATOR_CANCELLED;
 
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
 		if (((base->flag & BASE_SELECTED) == 0) && ((base->flag & BASE_SELECTABLED) != 0)) {
-			if (BKE_group_object_exists(group, base->object)) {
+			if (BKE_collection_has_object_recursive(collection, base->object)) {
 				ED_object_base_select(base, BA_SELECT);
 			}
 		}
@@ -566,12 +566,12 @@ static int select_grouped_exec(bContext *C, wmOperator *UNUSED(op))  /* Select o
 	return OPERATOR_FINISHED;
 }
 
-void OBJECT_OT_grouped_select(wmOperatorType *ot)
+void OBJECT_OT_collection_objects_select(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select Grouped";
-	ot->idname = "OBJECT_OT_grouped_select";
-	ot->description = "Select all objects in group";
+	ot->name = "Select Objects in Collection";
+	ot->idname = "OBJECT_OT_collection_objects_select";
+	ot->description = "Select all objects in collection";
 
 	/* api callbacks */
 	ot->exec = select_grouped_exec;

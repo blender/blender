@@ -425,9 +425,9 @@ static void rna_def_canvas_surface(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	prop = RNA_def_property(srna, "brush_group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Brush Group", "Only use brush objects from this group");
+	RNA_def_property_ui_text(prop, "Brush Collection", "Only use brush objects from this collection");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_DynamicPaint_reset_dependency");
 
 

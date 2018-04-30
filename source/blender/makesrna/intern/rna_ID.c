@@ -58,7 +58,7 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_CU, "CURVE", ICON_CURVE_DATA, "Curve", ""},
 	{ID_VF, "FONT", ICON_FONT_DATA, "Font", ""},
 	{ID_GD, "GREASEPENCIL", ICON_GREASEPENCIL, "Grease Pencil", ""},
-	{ID_GR, "GROUP", ICON_GROUP, "Group", ""},
+	{ID_GR, "COLLECTION", ICON_GROUP, "Collection", ""},
 	{ID_IM, "IMAGE", ICON_IMAGE_DATA, "Image", ""},
 	{ID_KE, "KEY", ICON_SHAPEKEY_DATA, "Key", ""},
 	{ID_LA, "LAMP", ICON_LAMP_DATA, "Lamp", ""},
@@ -179,7 +179,7 @@ short RNA_type_to_ID_code(const StructRNA *type)
 	if (base_type == &RNA_Camera) return ID_CA;
 	if (base_type == &RNA_Curve) return ID_CU;
 	if (base_type == &RNA_GreasePencil) return ID_GD;
-	if (base_type == &RNA_Group) return ID_GR;
+	if (base_type == &RNA_Collection) return ID_GR;
 	if (base_type == &RNA_Image) return ID_IM;
 	if (base_type == &RNA_Key) return ID_KE;
 	if (base_type == &RNA_Lamp) return ID_LA;
@@ -223,7 +223,7 @@ StructRNA *ID_code_to_RNA_type(short idcode)
 		case ID_CF: return &RNA_CacheFile;
 		case ID_CU: return &RNA_Curve;
 		case ID_GD: return &RNA_GreasePencil;
-		case ID_GR: return &RNA_Group;
+		case ID_GR: return &RNA_Collection;
 		case ID_IM: return &RNA_Image;
 		case ID_KE: return &RNA_Key;
 		case ID_LA: return &RNA_Lamp;

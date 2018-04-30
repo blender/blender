@@ -905,7 +905,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 				}
 				else {
 					PointerPropertyRNA *pprop = (PointerPropertyRNA *)dp->prop;
-					StructRNA *type = rna_find_struct((const char *)pprop->type);
+					StructRNA *type = (pprop->type) ? rna_find_struct((const char *)pprop->type) : NULL;
 					if (type && (type->flag & STRUCT_ID)) {
 						fprintf(f, "	if (value.data)\n");
 						fprintf(f, "		id_lib_extern((ID *)value.data);\n\n");
@@ -2458,12 +2458,24 @@ static void rna_auto_types(void)
 
 	for (ds = DefRNA.structs.first; ds; ds = ds->cont.next) {
 		/* DNA name for Screen is patched in 2.5, we do the reverse here .. */
-		if (ds->dnaname && STREQ(ds->dnaname, "Screen"))
-			ds->dnaname = "bScreen";
+		if (ds->dnaname) {
+			if (STREQ(ds->dnaname, "Screen"))
+				ds->dnaname = "bScreen";
+			if (STREQ(ds->dnaname, "Group"))
+				ds->dnaname = "Collection";
+			if (STREQ(ds->dnaname, "GroupObject"))
+				ds->dnaname = "CollectionObject";
+		}
 
 		for (dp = ds->cont.properties.first; dp; dp = dp->next) {
-			if (dp->dnastructname && STREQ(dp->dnastructname, "Screen"))
-				dp->dnastructname = "bScreen";
+			if (dp->dnastructname) {
+				if (STREQ(dp->dnastructname, "Screen"))
+					dp->dnastructname = "bScreen";
+				if (STREQ(dp->dnastructname, "Group"))
+					dp->dnastructname = "Collection";
+				if (STREQ(dp->dnastructname, "GroupObject"))
+					dp->dnastructname = "CollectionObject";
+			}
 
 			if (dp->dnatype) {
 				if (dp->prop->type == PROP_POINTER) {
@@ -3368,7 +3380,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_fcurve.c", "rna_fcurve_api.c", RNA_def_fcurve},
 	{"rna_fluidsim.c", NULL, RNA_def_fluidsim},
 	{"rna_gpencil.c", NULL, RNA_def_gpencil},
-	{"rna_group.c", NULL, RNA_def_group},
+	{"rna_group.c", NULL, RNA_def_collections},
 	{"rna_image.c", "rna_image_api.c", RNA_def_image},
 	{"rna_key.c", NULL, RNA_def_key},
 	{"rna_lamp.c", NULL, RNA_def_lamp},
@@ -3726,7 +3738,7 @@ static const char *cpp_classes = ""
 "	COLLECTION_PROPERTY_LENGTH_##has_length(sname, identifier) \\\n"
 "	COLLECTION_PROPERTY_LOOKUP_INT_##has_lookup_int(sname, identifier) \\\n"
 "	COLLECTION_PROPERTY_LOOKUP_STRING_##has_lookup_string(sname, identifier) \\\n"
-"	Collection<sname, type, sname##_##identifier##_begin, \\\n"
+"	CollectionRef<sname, type, sname##_##identifier##_begin, \\\n"
 "		sname##_##identifier##_next, sname##_##identifier##_end, \\\n"
 "		sname##_##identifier##_length_wrap, \\\n"
 "		sname##_##identifier##_lookup_int_wrap, sname##_##identifier##_lookup_string_wrap, collection_funcs> identifier;\n"
@@ -3823,9 +3835,9 @@ static const char *cpp_classes = ""
 "template<typename Tp, typename T, TBeginFunc Tbegin, TNextFunc Tnext, TEndFunc Tend,\n"
 "         TLengthFunc Tlength, TLookupIntFunc Tlookup_int, TLookupStringFunc Tlookup_string,\n"
 "         typename Tcollection_funcs>\n"
-"class Collection : public Tcollection_funcs {\n"
+"class CollectionRef : public Tcollection_funcs {\n"
 "public:\n"
-"	Collection(const PointerRNA &p) : Tcollection_funcs(p), ptr(p) {}\n"
+"	CollectionRef(const PointerRNA &p) : Tcollection_funcs(p), ptr(p) {}\n"
 "\n"
 "	void begin(CollectionIterator<T, Tbegin, Tnext, Tend>& iter)\n"
 "	{ iter.begin(ptr); }\n"

@@ -77,7 +77,6 @@
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
 #include "BKE_font.h"
-#include "BKE_group.h"
 #include "BKE_gpencil.h"
 #include "BKE_idprop.h"
 #include "BKE_image.h"
@@ -271,25 +270,27 @@ static void libblock_remap_data_preprocess_scene_object_unlink(
 		r_id_remap_data->skipped_refcounted++;
 	}
 	else {
-		BKE_collections_object_remove(r_id_remap_data->bmain, &sce->id, ob, false);
+		/* Remove object from all collections in the scene. free_use is false
+		 * to avoid recursively calling object free again. */
+		BKE_scene_collections_object_remove(r_id_remap_data->bmain, sce, ob, false);
 		if (!is_indirect) {
 			r_id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
 		}
 	}
 }
 
-static void libblock_remap_data_preprocess_group_unlink(
+static void libblock_remap_data_preprocess_collection_unlink(
         IDRemap *r_id_remap_data, Object *ob, const bool skip_indirect, const bool is_indirect)
 {
 	Main *bmain = r_id_remap_data->bmain;
-	for (Group *group = bmain->group.first; group; group = group->id.next) {
-		if (BKE_group_object_exists(group, ob)) {
+	for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+		if (!BKE_collection_is_in_scene(collection) && BKE_collection_has_object(collection, ob)) {
 			if (skip_indirect && is_indirect) {
 				r_id_remap_data->skipped_indirect++;
 				r_id_remap_data->skipped_refcounted++;
 			}
 			else {
-				BKE_collections_object_remove(bmain, &group->id, ob, false);
+				BKE_collection_object_remove(bmain, collection, ob, false);
 				if (!is_indirect) {
 					r_id_remap_data->status |= ID_REMAP_IS_LINKED_DIRECT;
 				}
@@ -311,12 +312,14 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 
 				/* In case we are unlinking... */
 				if (!r_id_remap_data->old_id) {
+					/* TODO: how is it valid to iterator over a scene while
+					 * removing objects from it? can't this crash? */
 					/* ... everything from scene. */
 					FOREACH_SCENE_OBJECT_BEGIN(sce, ob_iter)
 					{
 						libblock_remap_data_preprocess_scene_object_unlink(
 						            r_id_remap_data, sce, ob_iter, skip_indirect, is_indirect);
-						libblock_remap_data_preprocess_group_unlink(
+						libblock_remap_data_preprocess_collection_unlink(
 						            r_id_remap_data, ob_iter, skip_indirect, is_indirect);
 					}
 					FOREACH_SCENE_OBJECT_END;
@@ -326,7 +329,7 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 					Object *old_ob = (Object *)r_id_remap_data->old_id;
 					libblock_remap_data_preprocess_scene_object_unlink(
 					            r_id_remap_data, sce, old_ob, skip_indirect, is_indirect);
-					libblock_remap_data_preprocess_group_unlink(
+					libblock_remap_data_preprocess_collection_unlink(
 					            r_id_remap_data, old_ob, skip_indirect, is_indirect);
 				}
 
@@ -360,23 +363,16 @@ static void libblock_remap_data_preprocess(IDRemap *r_id_remap_data)
 
 static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *old_ob, Object *new_ob)
 {
-	if (old_ob->flag & OB_FROMGROUP) {
-		/* Note that for Scene's BaseObject->flag, either we:
-		 *     - unlinked old_ob (i.e. new_ob is NULL), in which case scenes' bases have been removed already.
-		 *     - remapped old_ob by new_ob, in which case scenes' bases are still valid as is.
-		 * So in any case, no need to update them here. */
-		if (BKE_group_object_find(NULL, old_ob) == NULL) {
-			old_ob->flag &= ~OB_FROMGROUP;
-		}
-		if (new_ob == NULL) {  /* We need to remove NULL-ified groupobjects... */
-			for (Group *group = bmain->group.first; group; group = group->id.next) {
-				BKE_group_object_unlink(group, NULL);
-			}
-		}
-		else {
-			new_ob->flag |= OB_FROMGROUP;
-		}
+	if (new_ob == NULL) {
+		 /* In case we unlinked old_ob (new_ob is NULL), the object has already
+		  * been removed from the scenes and their collections. We still have
+		  * to remove the NULL children from collections not used in any scene. */
+		BKE_collections_object_remove_nulls(bmain);
 	}
+	else {
+		BKE_main_collection_sync_remap(bmain);
+	}
+
 	if (old_ob->type == OB_MBALL) {
 		for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 			if (ob->type == OB_MBALL && BKE_mball_is_basis_for(ob, old_ob)) {
@@ -386,26 +382,19 @@ static void libblock_remap_data_postprocess_object_update(Main *bmain, Object *o
 	}
 }
 
-static void libblock_remap_data_postprocess_group_scene_unlink(Main *UNUSED(bmain), Scene *sce, ID *old_id)
+static void libblock_remap_data_postprocess_collection_update(Main *bmain, Collection *old_collection, Collection *new_collection)
 {
-	/* Note that here we assume no object has no base (i.e. all objects are assumed instanced
-	 * in one scene...). */
-	FOREACH_SCENE_OBJECT_BEGIN(sce, ob)
-	{
-		if (ob->flag & OB_FROMGROUP) {
-			Group *grp = BKE_group_object_find(NULL, ob);
-
-			/* Unlinked group (old_id) is still in bmain... */
-			if (grp && (&grp->id == old_id || grp->id.us == 0)) {
-				grp = BKE_group_object_find(grp, ob);
-			}
-			if (!grp) {
-				ob->flag &= ~OB_FROMGROUP;
-			}
-		}
+	if (new_collection == NULL) {
+		 /* In case we unlinked old_collection (new_collection is NULL), we need
+		  * to remove any collection children that have been set to NULL in the
+		  * because of pointer replacement. */
+		BKE_collections_child_remove_nulls(bmain, old_collection);
 	}
-	FOREACH_SCENE_OBJECT_END;
+	else {
+		BKE_main_collection_sync_remap(bmain);
+	}
 }
+
 
 static void libblock_remap_data_postprocess_obdata_relink(Main *UNUSED(bmain), Object *ob, ID *new_id)
 {
@@ -588,11 +577,7 @@ void BKE_libblock_remap_locked(
 			libblock_remap_data_postprocess_object_update(bmain, (Object *)old_id, (Object *)new_id);
 			break;
 		case ID_GR:
-			if (!new_id) {  /* Only affects us in case group was unlinked. */
-				for (Scene *sce = bmain->scene.first; sce; sce = sce->id.next) {
-					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, old_id);
-				}
-			}
+			libblock_remap_data_postprocess_collection_update(bmain, (Collection *)old_id, (Collection *)new_id);
 			break;
 		case ID_ME:
 		case ID_CU:
@@ -689,8 +674,6 @@ void BKE_libblock_relink_ex(
 	switch (GS(id->name)) {
 		case ID_SCE:
 		{
-			Scene *sce = (Scene *)id;
-
 			if (old_id) {
 				switch (GS(old_id->name)) {
 					case ID_OB:
@@ -699,21 +682,19 @@ void BKE_libblock_relink_ex(
 						break;
 					}
 					case ID_GR:
-						if (!new_id) {  /* Only affects us in case group was unlinked. */
-							libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, old_id);
-						}
+						libblock_remap_data_postprocess_collection_update(bmain, (Collection *)old_id, (Collection *)new_id);
 						break;
 					default:
 						break;
 				}
 			}
 			else {
-				/* No choice but to check whole objects/groups. */
+				/* No choice but to check whole objects/collections. */
 				for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
 					libblock_remap_data_postprocess_object_update(bmain, ob, NULL);
 				}
-				for (Group *grp = bmain->group.first; grp; grp = grp->id.next) {
-					libblock_remap_data_postprocess_group_scene_unlink(bmain, sce, NULL);
+				for (Collection *collection = bmain->collection.first; collection; collection = collection->id.next) {
+					libblock_remap_data_postprocess_collection_update(bmain, collection, NULL);
 				}
 			}
 			break;
@@ -843,7 +824,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
 			BKE_sound_free((bSound *)id);
 			break;
 		case ID_GR:
-			BKE_group_free((Group *)id);
+			BKE_collection_free((Collection *)id);
 			break;
 		case ID_AR:
 			BKE_armature_free((bArmature *)id);
@@ -1038,8 +1019,8 @@ void BKE_libblock_free_us(Main *bmain, void *idv)      /* test users */
 	
 	id_us_min(id);
 
-	/* XXX This is a temp (2.77) hack so that we keep same behavior as in 2.76 regarding groups when deleting an object.
-	 *     Since only 'user_one' usage of objects is groups, and only 'real user' usage of objects is scenes,
+	/* XXX This is a temp (2.77) hack so that we keep same behavior as in 2.76 regarding collections when deleting an object.
+	 *     Since only 'user_one' usage of objects is collections, and only 'real user' usage of objects is scenes,
 	 *     removing that 'user_one' tag when there is no more real (scene) users of an object ensures it gets
 	 *     fully unlinked.
 	 *     But only for local objects, not linked ones!

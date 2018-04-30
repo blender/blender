@@ -66,7 +66,7 @@ typedef struct LightProbe {
 
 	struct Object *parallax_ob;    /* Object to use as a parallax origin */
 	struct Image *image;           /* Image to use on as lighting data */
-	struct Group *visibility_grp;  /* Object visibility group, inclusive or exclusive */
+	struct Collection *visibility_grp;  /* Object visibility group, inclusive or exclusive */
 
 	float data_draw_size;
 

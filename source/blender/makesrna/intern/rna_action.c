@@ -325,18 +325,18 @@ static void rna_def_dopesheet(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_HELP, 0); /* XXX: this doesn't quite fit */
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
-	/* Object Group Filtering Settings */
-	prop = RNA_def_property(srna, "show_only_group_objects", PROP_BOOLEAN, PROP_NONE);
+	/* Object Collection Filtering Settings */
+	prop = RNA_def_property(srna, "show_only_collection_objects", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "filterflag", ADS_FILTER_ONLYOBGROUP);
-	RNA_def_property_ui_text(prop, "Only Objects in Group",
-	                         "Only include channels from objects in the specified group");
+	RNA_def_property_ui_text(prop, "Only Objects in Collection",
+	                         "Only include channels from objects in the specified collection");
 	RNA_def_property_ui_icon(prop, ICON_GROUP, 0);
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
-	prop = RNA_def_property(srna, "filter_group", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "filter_collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "filter_grp");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Filtering Group", "Group that included object should be a member of");
+	RNA_def_property_ui_text(prop, "Filtering Collection", "Collection that included object should be a member of");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
 	/* FCurve Display Name Search Settings */

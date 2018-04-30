@@ -1236,15 +1236,15 @@ bool RE_allow_render_generic_object(Object *ob)
 #ifdef DEPSGRAPH_WORKAROUND_HACK
 static void tag_dependend_object_for_render(Scene *scene, Object *object);
 
-static void tag_dependend_group_for_render(Scene *scene, Group *group)
+static void tag_dependend_group_for_render(Scene *scene, Collection *collection)
 {
-	if (group->id.tag & LIB_TAG_DOIT) {
+	if (collection->id.tag & LIB_TAG_DOIT) {
 		return;
 	}
-	group->id.tag |= LIB_TAG_DOIT;
+	collection->id.tag |= LIB_TAG_DOIT;
 
-	for (GroupObject *go = group->gobject.first; go != NULL; go = go->next) {
-		Object *object = go->ob;
+	for (CollectionObject *cob = collection->gobject.first; cob != NULL; cob = cob->next) {
+		Object *object = cob->ob;
 		tag_dependend_object_for_render(scene, object);
 	}
 }
@@ -1301,12 +1301,12 @@ static void tag_dependend_object_for_render(Scene *scene, Object *object)
 							break;
 						case PART_DRAW_GR:
 							if (part->dup_group != NULL) {
-								for (GroupObject *go = part->dup_group->gobject.first;
-								     go != NULL;
-								     go = go->next)
+								FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(part->dup_group, base)
 								{
-									DEG_id_tag_update(&go->ob->id, OB_RECALC_DATA);
+									Object *ob = base->object;
+									DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 								}
+								FOREACH_COLLECTION_BASE_RECURSIVE_END
 							}
 							break;
 					}
@@ -1412,7 +1412,7 @@ static void ntree_render_scenes(Render *re)
 	tag_scenes_for_render(re);
 
 #ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
-	tag_groups_for_render(re);
+	tag_collections_for_render(re);
 #endif
 	
 	/* now foreach render-result node tagged we do a full render */
@@ -1613,7 +1613,7 @@ static void do_render_composite(Render *re)
 
 #ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
 	/* Restore their visibility based on the viewport visibility flags. */
-	tag_groups_for_render(re);
+	tag_collections_for_render(re);
 #endif
 
 	/* weak... the display callback wants an active renderlayer pointer... */
@@ -2129,8 +2129,8 @@ static int render_initialize_from_main(Render *re, RenderData *rd, Main *bmain, 
 	tag_scenes_for_render(re);
 
 #ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
-	/* Update group collections visibility. */
-	tag_groups_for_render(re);
+	/* Update collection collections visibility. */
+	tag_collections_for_render(re);
 #endif
 
 	/*

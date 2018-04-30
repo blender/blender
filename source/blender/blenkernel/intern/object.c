@@ -80,12 +80,12 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_animsys.h"
 #include "BKE_anim.h"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
-#include "BKE_group.h"
 #include "BKE_icons.h"
 #include "BKE_key.h"
 #include "BKE_lamp.h"
@@ -719,7 +719,7 @@ Object *BKE_object_add_only_object(Main *bmain, int type, const char *name)
 
 	ob = BKE_libblock_alloc(bmain, ID_OB, name, 0);
 
-	/* We increase object user count when linking to SceneCollections. */
+	/* We increase object user count when linking to Collections. */
 	id_us_min(&ob->id);
 
 	/* default object vars */
@@ -746,12 +746,12 @@ static Object *object_add_common(Main *bmain, ViewLayer *view_layer, int type, c
 /**
  * General add: to scene, with layer from area and default name
  *
- * Object is added to the active SceneCollection.
+ * Object is added to the active Collection.
  * If there is no linked collection to the active ViewLayer we create a new one.
  */
 /* creates minimum required data, but without vertices etc. */
 Object *BKE_object_add(
-        Main *bmain, Scene *scene, ViewLayer *view_layer,
+        Main *bmain, Scene *UNUSED(scene), ViewLayer *view_layer,
         int type, const char *name)
 {
 	Object *ob;
@@ -760,8 +760,8 @@ Object *BKE_object_add(
 
 	ob = object_add_common(bmain, view_layer, type, name);
 
-	layer_collection = BKE_layer_collection_get_active_ensure(scene, view_layer);
-	BKE_collection_object_add(&scene->id, layer_collection->scene_collection, ob);
+	layer_collection = BKE_layer_collection_get_active(view_layer);
+	BKE_collection_object_add(bmain, layer_collection->collection, ob);
 
 	base = BKE_view_layer_base_find(view_layer, ob);
 	BKE_view_layer_base_select(view_layer, base);
@@ -782,7 +782,7 @@ Object *BKE_object_add_from(
 	Base *base;
 
 	ob = object_add_common(bmain, view_layer, type, name);
-	BKE_collection_object_add_from(scene, ob_src, ob);
+	BKE_collection_object_add_from(bmain, scene, ob_src, ob);
 
 	base = BKE_view_layer_base_find(view_layer, ob);
 	BKE_view_layer_base_select(view_layer, base);
@@ -1157,7 +1157,6 @@ void BKE_object_copy_data(Main *UNUSED(bmain), Object *ob_dst, const Object *ob_
 	if (ob_src->iuser) ob_dst->iuser = MEM_dupallocN(ob_src->iuser);
 	
 	if (ob_src->bb) ob_dst->bb = MEM_dupallocN(ob_src->bb);
-	ob_dst->flag &= ~OB_FROMGROUP;
 	
 	BLI_listbase_clear(&ob_dst->modifiers);
 	
@@ -1344,9 +1343,9 @@ void BKE_object_copy_proxy_drivers(Object *ob, Object *target)
 
 /* proxy rule: lib_object->proxy_from == the one we borrow from, set temporally while object_update */
 /*             local_object->proxy == pointer to library object, saved in files and read */
-/*             local_object->proxy_group == pointer to group dupli-object, saved in files and read */
+/*             local_object->proxy_group == pointer to collection dupli-object, saved in files and read */
 
-void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
+void BKE_object_make_proxy(Object *ob, Object *target, Object *cob)
 {
 	/* paranoia checks */
 	if (ID_IS_LINKED(ob) || !ID_IS_LINKED(target)) {
@@ -1355,24 +1354,24 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 	}
 	
 	ob->proxy = target;
-	ob->proxy_group = gob;
+	ob->proxy_group = cob;
 	id_lib_extern(&target->id);
 	
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	DEG_id_tag_update(&target->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 	
 	/* copy transform
-	 * - gob means this proxy comes from a group, just apply the matrix
+	 * - cob means this proxy comes from a collection, just apply the matrix
 	 *   so the object wont move from its dupli-transform.
 	 *
-	 * - no gob means this is being made from a linked object,
+	 * - no cob means this is being made from a linked object,
 	 *   this is closer to making a copy of the object - in-place. */
-	if (gob) {
+	if (cob) {
 		ob->rotmode = target->rotmode;
-		mul_m4_m4m4(ob->obmat, gob->obmat, target->obmat);
-		if (gob->dup_group) { /* should always be true */
+		mul_m4_m4m4(ob->obmat, cob->obmat, target->obmat);
+		if (cob->dup_group) { /* should always be true */
 			float tvec[3];
-			mul_v3_mat3_m4v3(tvec, ob->obmat, gob->dup_group->dupli_ofs);
+			mul_v3_mat3_m4v3(tvec, ob->obmat, cob->dup_group->dupli_ofs);
 			sub_v3_v3(ob->obmat[3], tvec);
 		}
 		BKE_object_apply_mat4(ob, ob->obmat, false, true);
@@ -2624,13 +2623,13 @@ static void object_handle_update_proxy(Depsgraph *depsgraph,
                                        Object *object,
                                        const bool do_proxy_update)
 {
-	/* The case when this is a group proxy, object_update is called in group.c */
+	/* The case when this is a collection proxy, object_update is called in collection.c */
 	if (object->proxy == NULL) {
 		return;
 	}
 	/* set pointer in library proxy target, for copying, but restore it */
 	object->proxy->proxy_from = object;
-	// printf("set proxy pointer for later group stuff %s\n", ob->id.name);
+	// printf("set proxy pointer for later collection stuff %s\n", ob->id.name);
 
 	/* the no-group proxy case, we call update */
 	if (object->proxy_group == NULL) {
@@ -3410,22 +3409,22 @@ LinkNode *BKE_object_relational_superset(struct ViewLayer *view_layer, eObjectSe
 /**
  * return all groups this object is apart of, caller must free.
  */
-struct LinkNode *BKE_object_groups(Object *ob)
+struct LinkNode *BKE_object_groups(Main *bmain, Object *ob)
 {
-	LinkNode *group_linknode = NULL;
-	Group *group = NULL;
-	while ((group = BKE_group_object_find(group, ob))) {
-		BLI_linklist_prepend(&group_linknode, group);
+	LinkNode *collection_linknode = NULL;
+	Collection *collection = NULL;
+	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
+		BLI_linklist_prepend(&collection_linknode, collection);
 	}
 
-	return group_linknode;
+	return collection_linknode;
 }
 
-void BKE_object_groups_clear(Object *ob)
+void BKE_object_groups_clear(Main *bmain, Object *ob)
 {
-	Group *group = NULL;
-	while ((group = BKE_group_object_find(group, ob))) {
-		BKE_group_object_unlink(group, ob);
+	Collection *collection = NULL;
+	while ((collection = BKE_collection_object_find(bmain, collection, ob))) {
+		BKE_collection_object_remove(bmain, collection, ob, false);
 	}
 }
 

@@ -185,7 +185,6 @@ typedef enum eSpaceButtons_Context {
 	BCONTEXT_CONSTRAINT = 11,
 	BCONTEXT_BONE_CONSTRAINT = 12,
 	BCONTEXT_VIEW_LAYER = 13,
-	BCONTEXT_COLLECTION = 14,
 	BCONTEXT_WORKSPACE = 15,
 
 	/* always as last... */
@@ -201,12 +200,6 @@ typedef enum eSpaceButtons_Flag {
 	SB_TEX_USER_LIMITED = (1 << 3), /* Do not add materials, particles, etc. in TemplateTextureUser list. */
 	SB_SHADING_CONTEXT = (1 << 4),
 } eSpaceButtons_Flag;
-
-/* sbuts->collection_context */
-typedef enum eSpaceButtons_Collection_Context {
-	SB_COLLECTION_CTX_VIEW_LAYER = 0,
-	SB_COLLECTION_CTX_GROUP = 1,
-} eSpaceButtons_Collection_Context;
 
 /* sbuts->align */
 typedef enum eSpaceButtons_Align {
@@ -281,7 +274,7 @@ typedef enum eSpaceOutliner_Flag {
 typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_SEARCH           = (1 << 0),
 	/* SO_FILTER_ENABLE           = (1 << 1), */ /* Deprecated */
-	/* SO_FILTER_NO_OBJECT        = (1 << 2), */ /* Deprecated */
+	SO_FILTER_NO_OBJECT        = (1 << 2),
 	SO_FILTER_NO_OB_CONTENT    = (1 << 3), /* Not only mesh, but modifiers, constraints, ... */
 	SO_FILTER_NO_CHILDREN      = (1 << 4),
 
@@ -325,27 +318,26 @@ typedef enum eSpaceOutliner_StateFilter {
 	SO_FILTER_OB_VISIBLE       = 1,
 	SO_FILTER_OB_SELECTED      = 2,
 	SO_FILTER_OB_ACTIVE        = 3,
-	SO_FILTER_OB_NONE          = 4,
 } eSpaceOutliner_StateFilter;
 
 /* SpaceOops->outlinevis */
 typedef enum eSpaceOutliner_Mode {
-	SO_SCENES         = 0,
+	SO_SCENES            = 0,
 	/* SO_CUR_SCENE      = 1, */  /* deprecated! */
 	/* SO_VISIBLE        = 2, */  /* deprecated! */
 	/* SO_SELECTED       = 3, */  /* deprecated! */
 	/* SO_ACTIVE         = 4, */  /* deprecated! */
 	/* SO_SAME_TYPE      = 5, */  /* deprecated! */
-	SO_GROUPS         = 6,
-	SO_LIBRARIES      = 7,
+	/* SO_GROUPS         = 6, */  /* deprecated! */
+	SO_LIBRARIES         = 7,
 	/* SO_VERSE_SESSION  = 8, */  /* deprecated! */
 	/* SO_VERSE_MS       = 9, */  /* deprecated! */
-	SO_SEQUENCE       = 10,
-	SO_DATA_API       = 11,
+	SO_SEQUENCE          = 10,
+	SO_DATA_API          = 11,
 	/* SO_USERDEF        = 12, */  /* deprecated! */
-	/* SO_KEYMAP      = 13, */    /* deprecated! */
-	SO_ID_ORPHANS     = 14,
-	SO_COLLECTIONS    = 15,
+	/* SO_KEYMAP         = 13, */  /* deprecated! */
+	SO_ID_ORPHANS        = 14,
+	SO_VIEW_LAYER        = 15,
 } eSpaceOutliner_Mode;
 
 /* SpaceOops->storeflag */

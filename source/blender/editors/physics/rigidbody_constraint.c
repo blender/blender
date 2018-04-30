@@ -37,8 +37,8 @@
 #include "DNA_rigidbody_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_collection.h"
 #include "BKE_context.h"
-#include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_rigidbody.h"
@@ -83,14 +83,14 @@ bool ED_rigidbody_constraint_add(Main *bmain, Scene *scene, Object *ob, int type
 	}
 	/* create constraint group if it doesn't already exits */
 	if (rbw->constraints == NULL) {
-		rbw->constraints = BKE_group_add(bmain, "RigidBodyConstraints");
+		rbw->constraints = BKE_collection_add(bmain, NULL, "RigidBodyConstraints");
 	}
 	/* make rigidbody constraint settings */
 	ob->rigidbody_constraint = BKE_rigidbody_create_constraint(scene, ob, type);
 	ob->rigidbody_constraint->flag |= RBC_FLAG_NEEDS_VALIDATE;
 
 	/* add constraint to rigid body constraint group */
-	BKE_group_object_add(rbw->constraints, ob);
+	BKE_collection_object_add(bmain, rbw->constraints, ob);
 
 	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -103,7 +103,7 @@ void ED_rigidbody_constraint_remove(Main *bmain, Scene *scene, Object *ob)
 
 	BKE_rigidbody_remove_constraint(scene, ob);
 	if (rbw)
-		BKE_group_object_unlink(rbw->constraints, ob);
+		BKE_collection_object_remove(bmain, rbw->constraints, ob, false);
 
 	DEG_relations_tag_update(bmain);
 	DEG_id_tag_update(&ob->id, OB_RECALC_OB);

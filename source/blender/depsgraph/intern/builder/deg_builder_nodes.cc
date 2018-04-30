@@ -71,12 +71,12 @@ extern "C" {
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_fcurve.h"
 #include "BKE_idcode.h"
-#include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_lattice.h"
 #include "BKE_library.h"
@@ -388,7 +388,7 @@ void DepsgraphNodeBuilder::build_id(ID* id) {
 	}
 	switch (GS(id->name)) {
 		case ID_GR:
-			build_group((Group *)id);
+			build_collection((Collection *)id);
 			break;
 		case ID_OB:
 			build_object(-1, (Object *)id, DEG_ID_LINKED_INDIRECTLY);
@@ -419,29 +419,21 @@ void DepsgraphNodeBuilder::build_id(ID* id) {
 	}
 }
 
-void DepsgraphNodeBuilder::build_group(Group *group)
+void DepsgraphNodeBuilder::build_collection(Collection *collection)
 {
-	if (built_map_.checkIsBuiltAndTag(group)) {
+	if (built_map_.checkIsBuiltAndTag(collection)) {
 		return;
 	}
-	/* Build group objects. */
-	LISTBASE_FOREACH (Base *, base, &group->view_layer->object_bases) {
-		build_object(-1, base->object, DEG_ID_LINKED_INDIRECTLY);
+	/* Build collection objects. */
+	LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+		build_object(-1, cob->ob, DEG_ID_LINKED_INDIRECTLY);
 	}
-	/* Operation to evaluate the whole view layer.
-	 *
-	 * NOTE: We re-use DONE opcode even though the function does everything.
-	 * This way we wouldn't need to worry about possible relations from DONE,
-	 * regardless whether it's a group or scene or something else.
-	 */
-	add_id_node(&group->id);
-	Group *group_cow = get_cow_datablock(group);
-	add_operation_node(&group->id,
-	                   DEG_NODE_TYPE_LAYER_COLLECTIONS,
-	                   function_bind(BKE_group_eval_view_layers,
-	                                 _1,
-	                                 group_cow),
-	                   DEG_OPCODE_VIEW_LAYER_EVAL);
+	/* Build child collections. */
+	LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+		build_collection(child->collection);
+	}
+
+	add_id_node(&collection->id);
 }
 
 void DepsgraphNodeBuilder::build_object(int base_index,
@@ -514,7 +506,7 @@ void DepsgraphNodeBuilder::build_object(int base_index,
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
-		build_group(object->dup_group);
+		build_collection(object->dup_group);
 	}
 }
 
@@ -848,7 +840,8 @@ void DepsgraphNodeBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		LISTBASE_FOREACH (Base *, base, &rbw->group->view_layer->object_bases) {
+		const ListBase group_objects = BKE_collection_object_cache_get(rbw->group);
+		LISTBASE_FOREACH (Base *, base, &group_objects) {
 			Object *object = base->object;
 
 			if (!object || (object->type != OB_MESH))
@@ -922,7 +915,7 @@ void DepsgraphNodeBuilder::build_particles(Object *object)
 				break;
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
-					build_group(part->dup_group);
+					build_collection(part->dup_group);
 				}
 				break;
 		}

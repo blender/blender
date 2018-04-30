@@ -51,10 +51,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_context.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
-#include "BKE_group.h"
 #include "BKE_layer.h"
 #include "BKE_library.h"
 #include "BKE_library_override.h"
@@ -105,7 +105,8 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
-			if (tselem->type) {
+			/* Layer collection points to collection ID. */
+			if (!ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
 				if (*datalevel == 0)
 					*datalevel = tselem->type;
 				else if (*datalevel != tselem->type)
@@ -129,6 +130,9 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 					case ID_LI:
 						if (*idlevel == 0) *idlevel = idcode;
 						else if (*idlevel != idcode) *idlevel = -1;
+						if (ELEM(*datalevel, TSE_VIEW_COLLECTION_BASE, TSE_SCENE_COLLECTION_BASE)) {
+							*datalevel = 0;
+						}
 						break;
 				}
 			}
@@ -214,21 +218,52 @@ static void unlink_texture_cb(
 	}
 }
 
-static void unlink_group_cb(
+static void unlink_collection_cb(
         bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
         TreeStoreElem *tsep, TreeStoreElem *tselem, void *UNUSED(user_data))
 {
-	Group *group = (Group *)tselem->id;
-	
+	Main *bmain = CTX_data_main(C);
+	Collection *collection = (Collection *)tselem->id;
+
 	if (tsep) {
 		if (GS(tsep->id->name) == ID_OB) {
 			Object *ob = (Object *)tsep->id;
 			ob->dup_group = NULL;
+			DEG_relations_tag_update(bmain);
+		}
+		else if (GS(tsep->id->name) == ID_GR) {
+			Collection *parent = (Collection *)tsep->id;
+			id_fake_user_set(&collection->id);
+			BKE_collection_child_remove(bmain, parent, collection);
+			DEG_relations_tag_update(bmain);
+		}
+		else if (GS(tsep->id->name) == ID_SCE) {
+			Collection *parent = BKE_collection_master((Scene *)tsep->id);
+			id_fake_user_set(&collection->id);
+			BKE_collection_child_remove(bmain, parent, collection);
+			DEG_relations_tag_update(bmain);
 		}
 	}
-	else {
-		Main *bmain = CTX_data_main(C);
-		BKE_libblock_delete(bmain, group);
+}
+
+static void unlink_object_cb(
+        bContext *C, ReportList *UNUSED(reports), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+        TreeStoreElem *tsep, TreeStoreElem *tselem, void *UNUSED(user_data))
+{
+	Main *bmain = CTX_data_main(C);
+	Object *ob = (Object *)tselem->id;
+	
+	if (tsep) {
+		if (GS(tsep->id->name) == ID_GR) {
+			Collection *parent = (Collection *)tsep->id;
+			BKE_collection_object_remove(bmain, parent, ob, true);
+			DEG_relations_tag_update(bmain);
+		}
+		else if (GS(tsep->id->name) == ID_SCE) {
+			Collection *parent = BKE_collection_master((Scene *)tsep->id);
+			BKE_collection_object_remove(bmain, parent, ob, true);
+			DEG_relations_tag_update(bmain);
+		}
 	}
 }
 
@@ -255,7 +290,7 @@ static void outliner_do_libdata_operation(
 	for (te = lb->first; te; te = te->next) {
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
-			if (tselem->type == 0) {
+			if (ELEM(tselem->type, 0, TSE_LAYER_COLLECTION)) {
 				TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
 				operation_cb(C, reports, scene, te, tsep, tselem, user_data);
 			}
@@ -520,42 +555,6 @@ static void singleuser_world_cb(
 	}
 }
 
-static void group_linkobs2scene_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
-        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
-{
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	SceneCollection *sc = CTX_data_scene_collection(C);
-	Group *group = (Group *)tselem->id;
-	Base *base;
-
-	FOREACH_GROUP_OBJECT_BEGIN(group, object)
-	{
-		base = BKE_view_layer_base_find(view_layer, object);
-		if (!base) {
-			/* link to scene */
-			BKE_collection_object_add(&scene->id, sc, object);
-			base = BKE_view_layer_base_find(view_layer, object);
-			id_us_plus(&object->id);
-		}
-
-		base->flag |= BASE_SELECTED;
-	}
-	FOREACH_GROUP_OBJECT_END;
-}
-
-static void group_instance_cb(
-        bContext *C, ReportList *UNUSED(reports), Scene *scene, TreeElement *UNUSED(te),
-        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem, void *UNUSED(user_data))
-{
-	Group *group = (Group *)tselem->id;
-
-	Object *ob = ED_object_add_type(C, OB_EMPTY, group->id.name + 2, scene->cursor.location, NULL, false, scene->layact);
-	ob->dup_group = group;
-	ob->transflag |= OB_DUPLIGROUP;
-	id_lib_extern(&group->id);
-}
-
 /**
  * \param select_recurse: Set to false for operations which are already recursively operating on their children.
  */
@@ -659,17 +658,6 @@ typedef enum eOutliner_PropModifierOps {
 	OL_MODIFIER_OP_TOGREN,
 	OL_MODIFIER_OP_DELETE
 } eOutliner_PropModifierOps;
-
-typedef enum eOutliner_PropCollectionOps {
-	OL_COLLECTION_OP_OBJECTS_ADD = 1,
-	OL_COLLECTION_OP_OBJECTS_REMOVE,
-	OL_COLLECTION_OP_OBJECTS_SELECT,
-	OL_COLLECTION_OP_COLLECTION_NEW,
-	OL_COLLECTION_OP_COLLECTION_COPY,
-	OL_COLLECTION_OP_COLLECTION_DEL,
-	OL_COLLECTION_OP_COLLECTION_UNLINK,
-	OL_COLLECTION_OP_GROUP_CREATE,
-} eOutliner_PropCollectionOps;
 
 static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
@@ -818,90 +806,6 @@ static void modifier_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem
 		ED_object_modifier_remove(NULL, bmain, ob, md);
 		WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER | NA_REMOVED, ob);
 		te->store_elem->flag &= ~TSE_SELECTED;
-	}
-}
-
-static void collection_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *Carg)
-{
-	bContext *C = (bContext *)Carg;
-	Scene *scene = CTX_data_scene(C);
-	LayerCollection *lc = te->directdata;
-	ID *id = te->store_elem->id;
-	SceneCollection *sc = lc->scene_collection;
-
-	if (event == OL_COLLECTION_OP_OBJECTS_ADD) {
-		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-		{
-			BKE_collection_object_add(id, sc, ob);
-		}
-		CTX_DATA_END;
-
-		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-	}
-	else if (event == OL_COLLECTION_OP_OBJECTS_REMOVE) {
-		Main *bmain = CTX_data_main(C);
-
-		CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
-		{
-			BKE_collection_object_remove(bmain, id, sc, ob, true);
-		}
-		CTX_DATA_END;
-
-		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-		te->store_elem->flag &= ~TSE_SELECTED;
-	}
-	else if (event == OL_COLLECTION_OP_OBJECTS_SELECT) {
-		BKE_layer_collection_objects_select(lc);
-		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
-	}
-	else if (event == OL_COLLECTION_OP_COLLECTION_NEW) {
-		if (GS(id->name) == ID_GR) {
-			BKE_collection_add(id, sc, COLLECTION_TYPE_GROUP_INTERNAL, NULL);
-		}
-		else {
-			BLI_assert(GS(id->name) == ID_SCE);
-			BKE_collection_add(id, sc, COLLECTION_TYPE_NONE, NULL);
-		}
-		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-	}
-	else if (event == OL_COLLECTION_OP_COLLECTION_COPY) {
-		BKE_layer_collection_duplicate(id, lc);
-		DEG_relations_tag_update(CTX_data_main(C));
-		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-	}
-	else if (event == OL_COLLECTION_OP_COLLECTION_UNLINK) {
-		ViewLayer *view_layer = CTX_data_view_layer(C);
-
-		if (BLI_findindex(&view_layer->layer_collections, lc) == -1) {
-			/* we can't unlink if the layer collection wasn't directly linked */
-			TODO_LAYER_OPERATORS; /* this shouldn't be in the menu in those cases */
-		}
-		else {
-			BKE_collection_unlink(view_layer, lc);
-			DEG_relations_tag_update(CTX_data_main(C));
-			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-		}
-	}
-	else if (event == OL_COLLECTION_OP_COLLECTION_DEL) {
-		if (BKE_collection_remove(id, sc)) {
-			DEG_relations_tag_update(CTX_data_main(C));
-			WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-		}
-		else {
-			/* we can't remove the master collection */
-			TODO_LAYER_OPERATORS; /* this shouldn't be in the menu in those cases */
-		}
-	}
-	else if (event == OL_COLLECTION_OP_GROUP_CREATE) {
-		Main *bmain = CTX_data_main(C);
-		BKE_collection_group_create(bmain, scene, lc);
-		DEG_relations_tag_update(bmain);
-		/* TODO(sergey): Use proper flag for tagging here. */
-		DEG_id_tag_update(&scene->id, 0);
-		WM_event_add_notifier(C, NC_SCENE | ND_LAYER, scene);
-	}
-	else {
-		BLI_assert(!"Collection operation not fully implemented!");
 	}
 }
 
@@ -1124,106 +1028,6 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 
 /* **************************************** */
 
-typedef enum eOutliner_PropGroupOps {
-	OL_GROUPOP_UNLINK = 1,
-	OL_GROUPOP_LOCAL,
-	OL_GROUPOP_STATIC_OVERRIDE,
-	OL_GROUPOP_LINK,
-	OL_GROUPOP_DELETE,
-	OL_GROUPOP_REMAP,
-	OL_GROUPOP_INSTANCE,
-	OL_GROUPOP_TOGVIS,
-	OL_GROUPOP_TOGSEL,
-	OL_GROUPOP_TOGREN,
-	OL_GROUPOP_RENAME,
-} eOutliner_PropGroupOps;
-
-static const EnumPropertyItem prop_group_op_types[] = {
-	{OL_GROUPOP_UNLINK, "UNLINK",     0, "Unlink Group", ""},
-	{OL_GROUPOP_LOCAL, "LOCAL",       0, "Make Local Group", ""},
-	{OL_GROUPOP_STATIC_OVERRIDE, "STATIC_OVERRIDE",
-	 0, "Add Static Override", "Add a local static override of that group"},
-	{OL_GROUPOP_LINK, "LINK",         0, "Link Group Objects to Scene", ""},
-	{OL_GROUPOP_DELETE, "DELETE",     0, "Delete Group", ""},
-	{OL_GROUPOP_REMAP, "REMAP",       0, "Remap Users",
-	 "Make all users of selected data-blocks to use instead current (clicked) one"},
-	{OL_GROUPOP_INSTANCE, "INSTANCE", 0, "Instance Groups in Scene", ""},
-	{OL_GROUPOP_TOGVIS, "TOGVIS",     0, "Toggle Visible Group", ""},
-	{OL_GROUPOP_TOGSEL, "TOGSEL",     0, "Toggle Selectable", ""},
-	{OL_GROUPOP_TOGREN, "TOGREN",     0, "Toggle Renderable", ""},
-	{OL_GROUPOP_RENAME, "RENAME",     0, "Rename", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int outliner_group_operation_exec(bContext *C, wmOperator *op)
-{
-	Scene *scene = CTX_data_scene(C);
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	int event;
-	
-	/* check for invalid states */
-	if (soops == NULL)
-		return OPERATOR_CANCELLED;
-	
-	event = RNA_enum_get(op->ptr, "type");
-
-	switch (event) {
-		case OL_GROUPOP_UNLINK:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, unlink_group_cb, NULL);
-			break;
-		case OL_GROUPOP_LOCAL:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_local_cb, NULL);
-			break;
-		case OL_GROUPOP_STATIC_OVERRIDE:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_static_override_cb, NULL);
-			break;
-		case OL_GROUPOP_LINK:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_linkobs2scene_cb, NULL);
-			break;
-		case OL_GROUPOP_INSTANCE:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, group_instance_cb, NULL);
-			/* works without this except if you try render right after, see: 22027 */
-			DEG_relations_tag_update(CTX_data_main(C));
-			break;
-		case OL_GROUPOP_DELETE:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_delete_cb, NULL);
-			break;
-		case OL_GROUPOP_REMAP:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, id_remap_cb, NULL);
-			break;
-		case OL_GROUPOP_RENAME:
-			outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, item_rename_cb, NULL);
-			break;
-		default:
-			BLI_assert(0);
-	}
-
-	ED_undo_push(C, prop_group_op_types[event - 1].name);
-	WM_event_add_notifier(C, NC_GROUP, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-
-void OUTLINER_OT_group_operation(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Outliner Group Operation";
-	ot->idname = "OUTLINER_OT_group_operation";
-	ot->description = "";
-	
-	/* callbacks */
-	ot->invoke = WM_menu_invoke;
-	ot->exec = outliner_group_operation_exec;
-	ot->poll = ED_operator_outliner_active;
-	
-	ot->flag = 0;
-	
-	ot->prop = RNA_def_enum(ot->srna, "type", prop_group_op_types, 0, "Group Operation", "");
-}
-
-/* **************************************** */
-
 typedef enum eOutlinerIdOpTypes {
 	OUTLINER_IDOP_INVALID = 0,
 	
@@ -1278,6 +1082,14 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 		case OUTLINER_IDOP_UNLINK:
 		{
 			/* unlink datablock from its parent */
+			if (objectlevel) {
+				outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, unlink_object_cb, NULL);
+
+				WM_event_add_notifier(C, NC_SCENE | ND_LAYER, NULL);
+				ED_undo_push(C, "Unlink Object");
+				break;
+			}
+
 			switch (idlevel) {
 				case ID_AC:
 					outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, unlink_action_cb, NULL);
@@ -1302,6 +1114,12 @@ static int outliner_id_operation_exec(bContext *C, wmOperator *op)
 					
 					WM_event_add_notifier(C, NC_SCENE | ND_WORLD, NULL);
 					ED_undo_push(C, "Unlink world");
+					break;
+				case ID_GR:
+					outliner_do_libdata_operation(C, op->reports, scene, soops, &soops->tree, unlink_collection_cb, NULL);
+
+					WM_event_add_notifier(C, NC_SCENE | ND_LAYER, NULL);
+					ED_undo_push(C, "Unlink Collection");
 					break;
 				default:
 					BKE_report(op->reports, RPT_WARNING, "Not yet implemented");
@@ -1840,84 +1658,6 @@ void OUTLINER_OT_modifier_operation(wmOperatorType *ot)
 
 /* ******************** */
 
-static EnumPropertyItem prop_collection_op_types[] = {
-	{OL_COLLECTION_OP_OBJECTS_ADD, "OBJECTS_ADD", ICON_ZOOMIN, "Add Selected", "Add selected objects to collection"},
-	{OL_COLLECTION_OP_OBJECTS_REMOVE, "OBJECTS_REMOVE", ICON_X, "Remove Selected", "Remove selected objects from collection"},
-	{OL_COLLECTION_OP_OBJECTS_SELECT, "OBJECTS_SELECT", ICON_RESTRICT_SELECT_OFF, "Select Objects", "Select collection objects"},
-	{OL_COLLECTION_OP_COLLECTION_NEW, "COLLECTION_NEW", ICON_NEW, "New Collection", "Add a new nested collection"},
-	{OL_COLLECTION_OP_COLLECTION_COPY, "COLLECTION_DUPLI", ICON_NONE, "Duplicate Collection", "Duplicate the collection"},
-	{OL_COLLECTION_OP_COLLECTION_UNLINK, "COLLECTION_UNLINK", ICON_UNLINKED, "Unlink", "Unlink collection"},
-	{OL_COLLECTION_OP_COLLECTION_DEL, "COLLECTION_DEL", ICON_X, "Delete Collection", "Delete the collection"},
-	{OL_COLLECTION_OP_GROUP_CREATE, "GROUP_CREATE", ICON_GROUP, "Create Group", "Turn the collection into a group collection"},
-	{0, NULL, 0, NULL, NULL}
-};
-
-static int outliner_collection_operation_exec(bContext *C, wmOperator *op)
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	int scenelevel = 0, objectlevel = 0, idlevel = 0, datalevel = 0;
-	eOutliner_PropCollectionOps event;
-
-	event = RNA_enum_get(op->ptr, "type");
-	set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
-
-	outliner_do_data_operation(soops, datalevel, event, &soops->tree, collection_cb, C);
-
-	outliner_cleanup_tree(soops);
-
-	ED_undo_push(C, "Collection operation");
-
-	return OPERATOR_FINISHED;
-}
-
-static int outliner_collection_operation_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(event))
-{
-	SpaceOops *soops = CTX_wm_space_outliner(C);
-	wmOperatorType *ot = op->type;
-	EnumPropertyItem *prop = &prop_collection_op_types[0];
-
-	uiPopupMenu *pup = UI_popup_menu_begin(C, "Collection", ICON_NONE);
-	uiLayout *layout = UI_popup_menu_layout(pup);
-
-	for (int i = 0; i < (ARRAY_SIZE(prop_collection_op_types) - 1); i++, prop++) {
-		if (soops->outlinevis != SO_GROUPS ||
-		    !ELEM(prop->value,
-		          OL_COLLECTION_OP_OBJECTS_SELECT,
-		          OL_COLLECTION_OP_COLLECTION_UNLINK,
-		          OL_COLLECTION_OP_GROUP_CREATE))
-		{
-			uiItemEnumO_ptr(layout, ot, NULL, prop->icon, "type", prop->value);
-		}
-	}
-
-	UI_popup_menu_end(C, pup);
-
-	return OPERATOR_INTERFACE;
-}
-
-void OUTLINER_OT_collection_operation(wmOperatorType *ot)
-{
-	PropertyRNA *prop;
-
-	/* identifiers */
-	ot->name = "Outliner Collection Operation";
-	ot->idname = "OUTLINER_OT_collection_operation";
-	ot->description = "";
-
-	/* callbacks */
-	ot->invoke = outliner_collection_operation_invoke;
-	ot->exec = outliner_collection_operation_exec;
-	ot->poll = ED_operator_outliner_active;
-
-	ot->flag = 0;
-
-	prop = RNA_def_enum(ot->srna, "type", prop_collection_op_types, OL_COLLECTION_OP_OBJECTS_ADD, "Collection Operation", "");
-	RNA_def_property_flag(prop, PROP_ENUM_NO_TRANSLATE);
-	ot->prop = prop;
-}
-
-/* ******************** */
-
 // XXX: select linked is for RNA structs only
 static const EnumPropertyItem prop_data_op_types[] = {
 	{OL_DOP_SELECT, "SELECT", 0, "Select", ""},
@@ -2041,7 +1781,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 		}
 		
 		set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);
-		
+
 		if (scenelevel) {
 			if (objectlevel || datalevel || idlevel) {
 				BKE_report(reports, RPT_WARNING, "Mixed selection");
@@ -2051,7 +1791,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 			}
 		}
 		else if (objectlevel) {
-			WM_menu_name_call(C, "OUTLINER_MT_context_object", WM_OP_INVOKE_REGION_WIN);
+			WM_menu_name_call(C, "OUTLINER_MT_object", WM_OP_INVOKE_REGION_WIN);
 		}
 		else if (idlevel) {
 			if (idlevel == -1 || datalevel) {
@@ -2060,7 +1800,7 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 			else {
 				switch (idlevel) {
 					case ID_GR:
-						WM_operator_name_call(C, "OUTLINER_OT_group_operation", WM_OP_INVOKE_REGION_WIN, NULL);
+						WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
 						break;
 					case ID_LI:
 						WM_operator_name_call(C, "OUTLINER_OT_lib_operation", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -2081,8 +1821,11 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 				else if (datalevel == TSE_DRIVER_BASE) {
 					/* do nothing... no special ops needed yet */
 				}
-				else if (ELEM(datalevel, TSE_R_LAYER_BASE, TSE_R_LAYER)) {
-					/*WM_operator_name_call(C, "OUTLINER_OT_renderdata_operation", WM_OP_INVOKE_REGION_WIN, NULL)*/
+				else if (datalevel == TSE_LAYER_COLLECTION) {
+					WM_menu_name_call(C, "OUTLINER_MT_collection", WM_OP_INVOKE_REGION_WIN);
+				}
+				else if (ELEM(datalevel, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
+					WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
 				}
 				else if (datalevel == TSE_ID_BASE) {
 					/* do nothing... there are no ops needed here yet */
@@ -2092,12 +1835,6 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 				}
 				else if (datalevel == TSE_MODIFIER) {
 					WM_operator_name_call(C, "OUTLINER_OT_modifier_operation", WM_OP_INVOKE_REGION_WIN, NULL);
-				}
-				else if (datalevel == TSE_LAYER_COLLECTION) {
-					WM_operator_name_call(C, "OUTLINER_OT_collection_operation", WM_OP_INVOKE_REGION_WIN, NULL);
-				}
-				else if (datalevel == TSE_SCENE_COLLECTION) {
-					WM_menu_name_call(C, "OUTLINER_MT_context_scene_collection", WM_OP_INVOKE_REGION_WIN);
 				}
 				else {
 					WM_operator_name_call(C, "OUTLINER_OT_data_operation", WM_OP_INVOKE_REGION_WIN, NULL);
@@ -2123,6 +1860,7 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
 	uiBut *but = UI_context_active_but_get(C);
 	TreeElement *te;
 	float fmval[2];
+	bool found = false;
 
 	if (but) {
 		UI_but_tooltip_timer_remove(C, but);
@@ -2132,7 +1870,15 @@ static int outliner_operation(bContext *C, wmOperator *UNUSED(op), const wmEvent
 	
 	for (te = soops->tree.first; te; te = te->next) {
 		if (do_outliner_operation_event(C, ar, soops, te, fmval)) {
+			found = true;
 			break;
+		}
+	}
+
+	if (!found) {
+		/* Menus for clicking in empty space. */
+		if (soops->outlinevis == SO_VIEW_LAYER) {
+			WM_menu_name_call(C, "OUTLINER_MT_collection_new", WM_OP_INVOKE_REGION_WIN);
 		}
 	}
 	

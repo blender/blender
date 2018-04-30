@@ -97,7 +97,7 @@ typedef struct Particle {
 	short mat_nr, rt;
 } Particle;
 
-struct Group;
+struct Collection;
 
 typedef struct PartEff {
 	struct PartEff *next, *prev;
@@ -122,7 +122,7 @@ typedef struct PartEff {
 	float imat[4][4];	/* inverse matrix of parent Object */
 	
 	Particle *keys;
-	struct Group *group;
+	struct Collection *group;
 	
 } PartEff;
 

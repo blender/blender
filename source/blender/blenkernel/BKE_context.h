@@ -40,6 +40,7 @@ extern "C" {
 struct ARegion;
 struct bScreen;
 struct CacheFile;
+struct Collection;
 struct Depsgraph;
 struct LayerCollection;
 struct ListBase;
@@ -49,7 +50,6 @@ struct Base;
 struct PointerRNA;
 struct ReportList;
 struct Scene;
-struct SceneCollection;
 struct ViewLayer;
 struct ScrArea;
 struct SpaceLink;
@@ -257,7 +257,7 @@ int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBas
 struct Main *CTX_data_main(const bContext *C);
 struct Scene *CTX_data_scene(const bContext *C);
 struct LayerCollection *CTX_data_layer_collection(const bContext *C);
-struct SceneCollection *CTX_data_scene_collection(const bContext *C);
+struct Collection *CTX_data_collection(const bContext *C);
 struct ViewLayer *CTX_data_view_layer(const bContext *C);
 struct RenderEngineType *CTX_data_engine_type(const bContext *C);
 struct ToolSettings *CTX_data_tool_settings(const bContext *C);

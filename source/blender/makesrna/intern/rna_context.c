@@ -171,11 +171,10 @@ static int rna_Context_engine_length(PointerRNA *ptr)
 	return strlen(engine_type->idname);
 }
 
-static PointerRNA rna_Context_scene_collection_get(PointerRNA *ptr)
+static PointerRNA rna_Context_collection_get(PointerRNA *ptr)
 {
 	bContext *C = (bContext *)ptr->data;
-	ptr->id.data = CTX_data_scene(C);
-	return rna_pointer_inherit_refine(ptr, &RNA_SceneCollection, CTX_data_scene_collection(C));
+	return rna_pointer_inherit_refine(ptr, &RNA_Collection, CTX_data_collection(C));
 }
 
 static PointerRNA rna_Context_layer_collection_get(PointerRNA *ptr)
@@ -287,10 +286,10 @@ void RNA_def_context(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_string_funcs(prop, "rna_Context_engine_get", "rna_Context_engine_length", NULL);
 
-	prop = RNA_def_property(srna, "scene_collection", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_struct_type(prop, "SceneCollection");
-	RNA_def_property_pointer_funcs(prop, "rna_Context_scene_collection_get", NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "Collection");
+	RNA_def_property_pointer_funcs(prop, "rna_Context_collection_get", NULL, NULL, NULL);
 
 	prop = RNA_def_property(srna, "layer_collection", PROP_POINTER, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

@@ -173,19 +173,20 @@ class OBJECT_PT_relations_extras(ObjectButtonsPanel, Panel):
         row.prop(ob, "slow_parent_offset", text="Offset")
 
 
-class GROUP_MT_specials(Menu):
-    bl_label = "Group Specials"
+class COLLECTION_MT_specials(Menu):
+    bl_label = "Collection Specials"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("object.group_unlink", icon='X')
-        layout.operator("object.grouped_select")
+        layout.operator("object.collection_unlink", icon='X')
+        layout.operator("object.collection_objects_select")
         layout.operator("object.dupli_offset_from_cursor")
 
 
-class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
-    bl_label = "Groups"
+class OBJECT_PT_collections(ObjectButtonsPanel, Panel):
+    bl_label = "Collections"
+    bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
         layout = self.layout
@@ -193,30 +194,30 @@ class OBJECT_PT_groups(ObjectButtonsPanel, Panel):
         obj = context.object
 
         row = layout.row(align=True)
-        if bpy.data.groups:
-            row.operator("object.group_link", text="Add to Group")
+        if bpy.data.collections:
+            row.operator("object.collection_link", text="Add to Collection")
         else:
-            row.operator("object.group_add", text="Add to Group")
-        row.operator("object.group_add", text="", icon='ZOOMIN')
+            row.operator("object.collection_add", text="Add to Collection")
+        row.operator("object.collection_add", text="", icon='ZOOMIN')
 
         obj_name = obj.name
-        for group in bpy.data.groups:
+        for collection in bpy.data.collections:
             # XXX this is slow and stupid!, we need 2 checks, one thats fast
             # and another that we can be sure its not a name collision
             # from linked library data
-            group_objects = group.objects
-            if obj_name in group.objects and obj in group_objects[:]:
+            collection_objects = collection.objects
+            if obj_name in collection.objects and obj in collection_objects[:]:
                 col = layout.column(align=True)
 
-                col.context_pointer_set("group", group)
+                col.context_pointer_set("collection", collection)
 
                 row = col.box().row()
-                row.prop(group, "name", text="")
-                row.operator("object.group_remove", text="", icon='X', emboss=False)
-                row.menu("GROUP_MT_specials", icon='DOWNARROW_HLT', text="")
+                row.prop(collection, "name", text="")
+                row.operator("object.collection_remove", text="", icon='X', emboss=False)
+                row.menu("COLLECTION_MT_specials", icon='DOWNARROW_HLT', text="")
 
                 row = col.box().row()
-                row.prop(group, "dupli_offset", text="")
+                row.prop(collection, "dupli_offset", text="")
 
 
 class OBJECT_PT_display(ObjectButtonsPanel, Panel):
@@ -317,8 +318,8 @@ class OBJECT_PT_duplication(ObjectButtonsPanel, Panel):
             sub.active = ob.use_dupli_faces_scale
             sub.prop(ob, "dupli_faces_scale", text="Inherit Scale")
 
-        elif ob.dupli_type == 'GROUP':
-            layout.prop(ob, "dupli_group", text="Group")
+        elif ob.dupli_type == 'COLLECTION':
+            layout.prop(ob, "dupli_group", text="Collection")
 
 
 from .properties_animviz import (
@@ -372,8 +373,8 @@ classes = (
     OBJECT_PT_transform_locks,
     OBJECT_PT_relations,
     OBJECT_PT_relations_extras,
-    GROUP_MT_specials,
-    OBJECT_PT_groups,
+    COLLECTION_MT_specials,
+    OBJECT_PT_collections,
     OBJECT_PT_display,
     OBJECT_PT_duplication,
     OBJECT_PT_motion_paths,

@@ -59,6 +59,7 @@
 #include "BKE_appdir.h"
 #include "BKE_anim.h"
 #include "BKE_cloth.h"
+#include "BKE_collection.h"
 #include "BKE_dynamicpaint.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -1741,8 +1742,8 @@ void BKE_ptcache_ids_from_object(ListBase *lb, Object *ob, Scene *scene, int dup
 	 * for baking with linking dupligroups. Once we have better overrides
 	 * this can be revisited so users select the local objects directly. */
 	if (scene && (duplis-- > 0) && (ob->dup_group)) {
-		Group *group = ob->dup_group;
-		Base *base = group->view_layer->object_bases.first;
+		Collection *collection = ob->dup_group;
+		Base *base = BKE_collection_object_cache_get(collection).first;
 
 		for (; base; base = base->next) {
 			if (base->object != ob) {

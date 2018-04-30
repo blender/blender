@@ -27,6 +27,7 @@
  *  \ingroup bke
  */
 
+#include "BLI_compiler_compat.h"
 #include "BLI_ghash.h"
 #include "BLI_iterator.h"
 #include "DNA_listBase.h"
@@ -35,53 +36,132 @@
 extern "C" {
 #endif
 
+/* Structs */
+
 struct Base;
 struct BLI_Iterator;
-struct Group;
+struct Collection;
+struct Depsgraph;
 struct ID;
-struct LayerCollection;
 struct Main;
 struct Object;
 struct Scene;
-struct SceneCollection;
 struct ViewLayer;
 
-struct SceneCollection *BKE_collection_add(
-        struct ID *owner_id, struct SceneCollection *sc_parent, const int type, const char *name);
-bool BKE_collection_remove(struct ID *owner_id, struct SceneCollection *sc);
-void BKE_collection_copy_data(struct SceneCollection *sc_dst, struct SceneCollection *sc_src, const int flag);
-struct SceneCollection *BKE_collection_duplicate(struct ID *owner_id, struct SceneCollection *scene_collection);
-struct SceneCollection *BKE_collection_master(const struct ID *owner_id);
-void BKE_collection_rename(const struct ID *owner_id, struct SceneCollection *sc, const char *name);
-void BKE_collection_master_free(struct ID *owner_id, const bool do_id_user);
-bool BKE_collection_object_add(const struct ID *owner_id, struct SceneCollection *sc, struct Object *object);
-void BKE_collection_object_add_from(struct Scene *scene, struct Object *ob_src, struct Object *ob_dst);
-bool BKE_collection_object_remove(struct Main *bmain, struct ID *owner_id, struct SceneCollection *sc, struct Object *object, const bool free_us);
-bool BKE_collections_object_remove(struct Main *bmain, struct ID *owner_id, struct Object *object, const bool free_us);
-void BKE_collection_object_move(struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src, struct Object *ob);
-bool BKE_collection_object_exists(struct SceneCollection *scene_collection, struct Object *ob);
-struct SceneCollection *BKE_collection_from_index(struct Scene *scene, const int index);
+typedef struct CollectionParent {
+	struct CollectionParent *next, *prev;
+	struct Collection *collection;
+} CollectionParent;
 
-void BKE_collection_new_name_get(struct ID *owner_id, struct SceneCollection *sc_parent, char *rname);
+/* Collections */
 
-bool BKE_collection_objects_select(struct ViewLayer *view_layer, struct SceneCollection *scene_collection);
+struct Collection *BKE_collection_add(struct Main *bmain, struct Collection *parent, const char *name);
+void               BKE_collection_free(struct Collection *collection);
+bool               BKE_collection_delete(struct Main *bmain, struct Collection *collection, bool hierarchy);
 
-struct Group *BKE_collection_group_create(struct Main *bmain, struct Scene *scene, struct LayerCollection *lc);
+struct Collection *BKE_collection_copy(struct Main *bmain, struct Collection *parent, struct Collection *collection);
+struct Collection *BKE_collection_copy_master(struct Main *bmain, struct Collection *collection, const int flag);
+void               BKE_collection_copy_data(struct Main *bmain, struct Collection *collection_dst, const struct Collection *collection_src, const int flag);
+void               BKE_collection_copy_full(struct Main *bmain, struct Collection *collection);
+void               BKE_collection_make_local(struct Main *bmain, struct Collection *collection, const bool lib_local);
 
-void BKE_collection_reinsert_after(const struct Scene *scene, struct SceneCollection *sc_reinsert, struct SceneCollection *sc_after);
-void BKE_collection_reinsert_into(struct SceneCollection *sc_reinsert, struct SceneCollection *sc_into);
+/* Master Collection for Scene */
 
-bool BKE_collection_move_above(const struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
-bool BKE_collection_move_below(const struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
-bool BKE_collection_move_into(const struct ID *owner_id, struct SceneCollection *sc_dst, struct SceneCollection *sc_src);
+struct Collection *BKE_collection_master(const struct Scene *scene);
+struct Collection *BKE_collection_master_add(void);
+
+/* Collection Objects */
+
+bool               BKE_collection_has_object(struct Collection *collection, struct Object *ob);
+bool               BKE_collection_has_object_recursive(struct Collection *collection, struct Object *ob);
+struct Collection *BKE_collection_object_find(struct Main *bmain, struct Collection *collection, struct Object *ob);
+
+bool BKE_collection_object_add(struct Main *bmain, struct Collection *collection, struct Object *ob);
+void BKE_collection_object_add_from(struct Main *bmain, struct Scene *scene, struct Object *ob_src, struct Object *ob_dst);
+bool BKE_collection_object_remove(struct Main *bmain, struct Collection *collection, struct Object *object, const bool free_us);
+void BKE_collection_object_move(struct Main *bmain, struct Scene *scene, struct Collection *collection_dst, struct Collection *collection_src, struct Object *ob);
+
+bool BKE_scene_collections_object_remove(struct Main *bmain, struct Scene *scene, struct Object *object, const bool free_us);
+void BKE_collections_object_remove_nulls(struct Main *bmain);
+void BKE_collections_child_remove_nulls(struct Main *bmain, struct Collection *old_collection);
+
+/* Dependencies. */
+
+bool BKE_collection_is_in_scene(struct Collection *collection);
+void BKE_collections_after_lib_link(struct Main *bmain);
+bool BKE_collection_object_cyclic_check(struct Main *bmain, struct Object *object, struct Collection *collection);
+bool BKE_collection_is_animated(struct Collection *collection, struct Object *parent);
+void BKE_collection_handle_recalc_and_update(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *parent, struct Collection *collection);
+
+/* Object list cache. */
+
+struct ListBase BKE_collection_object_cache_get(struct Collection *collection);
+void BKE_collection_object_cache_free(struct Collection *collection);
+
+struct Base *BKE_collection_or_layer_objects(struct Depsgraph *depsgraph,
+                                             const struct Scene *scene,
+                                             const struct ViewLayer *view_layer,
+                                             struct Collection *collection);
+
+/* Editing. */
+
+struct Collection *BKE_collection_from_index(struct Scene *scene, const int index);
+void BKE_collection_new_name_get(struct Collection *collection_parent, char *rname);
+bool BKE_collection_objects_select(struct ViewLayer *view_layer, struct Collection *collection, bool deselect);
+
+/* Collection children */
+
+bool BKE_collection_child_add(struct Main *bmain,
+                              struct Collection *parent,
+                              struct Collection *child);
+
+bool BKE_collection_child_remove(struct Main *bmain,
+                                 struct Collection *parent,
+                                 struct Collection *child);
+
+bool BKE_collection_move(struct Main *bmain,
+                         struct Collection *to_parent,
+                         struct Collection *from_parent,
+                         struct Collection *relative,
+                         bool relative_after,
+                         struct Collection *collection);
+
+bool BKE_collection_find_cycle(struct Collection *new_ancestor,
+                               struct Collection *collection);
+
+
+/* Iteration callbacks. */
 
 typedef void (*BKE_scene_objects_Cb)(struct Object *ob, void *data);
-typedef void (*BKE_scene_collections_Cb)(struct SceneCollection *ob, void *data);
+typedef void (*BKE_scene_collections_Cb)(struct Collection *ob, void *data);
 
 void BKE_scene_collections_callback(struct Scene *scene, BKE_scene_collections_Cb callback, void *data);
 void BKE_scene_objects_callback(struct Scene *scene, BKE_scene_objects_Cb callback, void *data);
 
-/* iterators */
+/* Iteratorion over objects in collection. */
+
+#define FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(_collection, _base)               \
+	for (Base *_base = (Base*)BKE_collection_object_cache_get(_collection).first; \
+	     _base;                                                                   \
+	     _base = _base->next)                                                     \
+	{
+
+#define FOREACH_COLLECTION_BASE_RECURSIVE_END                                     \
+	}
+
+#define FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(_collection, _object)           \
+	for (Base *_base = (Base*)BKE_collection_object_cache_get(_collection).first; \
+	     _base;                                                                   \
+	     _base = _base->next)                                                     \
+	{                                                                             \
+		Object *_object = _base->object;                                          \
+		BLI_assert(_object != NULL);
+
+#define FOREACH_COLLECTION_OBJECT_RECURSIVE_END                                   \
+	} ((void)0)
+
+/* Iteration over collections in scene. */
+
 void BKE_scene_collections_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_collections_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_collections_iterator_end(struct BLI_Iterator *iter);
@@ -90,11 +170,11 @@ void BKE_scene_objects_iterator_begin(struct BLI_Iterator *iter, void *data_in);
 void BKE_scene_objects_iterator_next(struct BLI_Iterator *iter);
 void BKE_scene_objects_iterator_end(struct BLI_Iterator *iter);
 
-#define FOREACH_SCENE_COLLECTION_BEGIN(_id, _instance)                        \
+#define FOREACH_SCENE_COLLECTION_BEGIN(scene, _instance)                      \
 	ITER_BEGIN(BKE_scene_collections_iterator_begin,                          \
 	           BKE_scene_collections_iterator_next,                           \
 	           BKE_scene_collections_iterator_end,                            \
-	           _id, SceneCollection *, _instance)
+	           scene, Collection *, _instance)
 
 #define FOREACH_SCENE_COLLECTION_END                                          \
 	ITER_END

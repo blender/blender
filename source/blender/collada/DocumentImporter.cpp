@@ -266,7 +266,7 @@ void DocumentImporter::finish()
 		std::vector<Object *>::iterator it;
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
-			BKE_collections_object_remove(G.main, &sce->id, ob, true);
+			BKE_scene_collections_object_remove(G.main, sce, ob, true);
 		}
 		libnode_ob.clear();
 
@@ -409,7 +409,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 
 	Object *obn = BKE_object_copy(G.main, source_ob);
 	DEG_id_tag_update(&obn->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
-	BKE_collection_object_add_from(sce, source_ob, obn);
+	BKE_collection_object_add_from(G.main, sce, source_ob, obn);
 
 	if (instance_node) {
 		anim_importer.read_node_transform(instance_node, obn);

@@ -20,6 +20,6 @@ The execution context is one of:
 'EXEC_SCREEN')
 """
 
-# group add popup
+# collection add popup
 import bpy
-bpy.ops.object.group_instance_add('INVOKE_DEFAULT')
+bpy.ops.object.collection_instance_add('INVOKE_DEFAULT')

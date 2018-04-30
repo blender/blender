@@ -476,9 +476,16 @@ static bool init_structDNA(
 			/* this is a patch, to change struct names without a conflict with SDNA */
 			/* be careful to use it, in this case for a system-struct (opengl/X) */
 			
-			if (*cp == 'b') {
-				/* struct Screen was already used by X, 'bScreen' replaces the old IrisGL 'Screen' struct */
-				if (strcmp("bScreen", cp) == 0) sdna->types[nr] = cp + 1;
+			/* struct Screen was already used by X, 'bScreen' replaces the old IrisGL 'Screen' struct */
+			if (strcmp("bScreen", cp) == 0) {
+				sdna->types[nr] = cp + 1;
+			}
+			/* Groups renamed to collections in 2.8 */
+			else if (strcmp("Collection", cp) == 0) {
+				sdna->types[nr] = "Group";
+			}
+			else if (strcmp("CollectionObject", cp) == 0) {
+				sdna->types[nr] = "GroupObject";
 			}
 			else if (doversion_280) {
 				if (strcmp(cp, "SceneLayer") == 0) {

@@ -65,10 +65,10 @@
 
 #include "BKE_boids.h"
 #include "BKE_cloth.h"
+#include "BKE_collection.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_main.h"
 #include "BKE_lattice.h"
 
@@ -372,13 +372,19 @@ void psys_check_group_weights(ParticleSettings *part)
 	ParticleDupliWeight *dw, *tdw;
 	int current = 0;
 
-	if (part->ren_as == PART_DRAW_GR && part->dup_group && part->dup_group->view_layer->object_bases.first) {
+	if (part->ren_as != PART_DRAW_GR || !part->dup_group) {
+		BLI_freelistN(&part->dupliweights);
+		return;
+	}
+
+	const ListBase dup_group_objects = BKE_collection_object_cache_get(part->dup_group);
+	if (dup_group_objects.first) {
 		/* First try to find NULL objects from their index,
 		 * and remove all weights that don't have an object in the group. */
 		dw = part->dupliweights.first;
 		while (dw) {
-			if (dw->ob == NULL || !BKE_group_object_exists(part->dup_group, dw->ob)) {
-				Base *base = BLI_findlink(&part->dup_group->view_layer->object_bases, dw->index);
+			if (dw->ob == NULL || !BKE_collection_has_object_recursive(part->dup_group, dw->ob)) {
+				Base *base = BLI_findlink(&dup_group_objects, dw->index);
 				if (base != NULL) {
 					dw->ob = base->object;
 				}
@@ -394,7 +400,7 @@ void psys_check_group_weights(ParticleSettings *part)
 		}
 
 		/* then add objects in the group to new list */
-		FOREACH_GROUP_OBJECT_BEGIN(part->dup_group, object)
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
 		{
 			dw = part->dupliweights.first;
 			while (dw && dw->ob != object) {
@@ -408,7 +414,7 @@ void psys_check_group_weights(ParticleSettings *part)
 				BLI_addtail(&part->dupliweights, dw);
 			}
 		}
-		FOREACH_GROUP_OBJECT_END;
+		FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 
 		dw = part->dupliweights.first;
 		for (; dw; dw = dw->next) {

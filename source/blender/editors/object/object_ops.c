@@ -93,7 +93,6 @@ void ED_operatortypes_object(void)
 
 	WM_operatortype_append(OBJECT_OT_select_random);
 	WM_operatortype_append(OBJECT_OT_select_all);
-	WM_operatortype_append(OBJECT_OT_select_same_group);
 	WM_operatortype_append(OBJECT_OT_select_same_collection);
 	WM_operatortype_append(OBJECT_OT_select_by_type);
 	WM_operatortype_append(OBJECT_OT_select_linked);
@@ -102,11 +101,11 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_select_more);
 	WM_operatortype_append(OBJECT_OT_select_less);
 
-	WM_operatortype_append(GROUP_OT_create);
-	WM_operatortype_append(GROUP_OT_objects_remove_all);
-	WM_operatortype_append(GROUP_OT_objects_remove);
-	WM_operatortype_append(GROUP_OT_objects_add_active);
-	WM_operatortype_append(GROUP_OT_objects_remove_active);
+	WM_operatortype_append(COLLECTION_OT_create);
+	WM_operatortype_append(COLLECTION_OT_objects_remove_all);
+	WM_operatortype_append(COLLECTION_OT_objects_remove);
+	WM_operatortype_append(COLLECTION_OT_objects_add_active);
+	WM_operatortype_append(COLLECTION_OT_objects_remove_active);
 
 	WM_operatortype_append(OBJECT_OT_delete);
 	WM_operatortype_append(OBJECT_OT_text_add);
@@ -120,7 +119,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_add);
 	WM_operatortype_append(OBJECT_OT_add_named);
 	WM_operatortype_append(OBJECT_OT_effector_add);
-	WM_operatortype_append(OBJECT_OT_group_instance_add);
+	WM_operatortype_append(OBJECT_OT_collection_instance_add);
 	WM_operatortype_append(OBJECT_OT_metaball_add);
 	WM_operatortype_append(OBJECT_OT_duplicates_make_real);
 	WM_operatortype_append(OBJECT_OT_duplicate);
@@ -213,6 +212,7 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(TRANSFORM_OT_vertex_warp);
 
 	WM_operatortype_append(OBJECT_OT_move_to_collection);
+	WM_operatortype_append(OBJECT_OT_link_to_collection);
 
 	WM_operatortype_append(OBJECT_OT_shape_key_add);
 	WM_operatortype_append(OBJECT_OT_shape_key_remove);
@@ -221,11 +221,11 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_shape_key_mirror);
 	WM_operatortype_append(OBJECT_OT_shape_key_move);
 
-	WM_operatortype_append(OBJECT_OT_group_add);
-	WM_operatortype_append(OBJECT_OT_group_link);
-	WM_operatortype_append(OBJECT_OT_group_remove);
-	WM_operatortype_append(OBJECT_OT_group_unlink);
-	WM_operatortype_append(OBJECT_OT_grouped_select);
+	WM_operatortype_append(OBJECT_OT_collection_add);
+	WM_operatortype_append(OBJECT_OT_collection_link);
+	WM_operatortype_append(OBJECT_OT_collection_remove);
+	WM_operatortype_append(OBJECT_OT_collection_unlink);
+	WM_operatortype_append(OBJECT_OT_collection_objects_select);
 
 	WM_operatortype_append(OBJECT_OT_hook_add_selob);
 	WM_operatortype_append(OBJECT_OT_hook_add_newob);
@@ -395,11 +395,11 @@ void ED_keymap_object(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "ANIM_OT_keyframe_delete_v3d", IKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_verify_item(keymap, "ANIM_OT_keying_set_active_set", IKEY, KM_PRESS, KM_CTRL | KM_SHIFT | KM_ALT, 0);
 	
-	WM_keymap_verify_item(keymap, "GROUP_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_all", GKEY, KM_PRESS, KM_SHIFT | KM_CTRL | KM_ALT, 0);
-	WM_keymap_verify_item(keymap, "GROUP_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
-	WM_keymap_verify_item(keymap, "GROUP_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "COLLECTION_OT_create", GKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "COLLECTION_OT_objects_remove", GKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "COLLECTION_OT_objects_remove_all", GKEY, KM_PRESS, KM_SHIFT | KM_CTRL | KM_ALT, 0);
+	WM_keymap_verify_item(keymap, "COLLECTION_OT_objects_add_active", GKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
+	WM_keymap_verify_item(keymap, "COLLECTION_OT_objects_remove_active", GKEY, KM_PRESS, KM_SHIFT | KM_ALT, 0);
 	
 	WM_keymap_add_menu(keymap, "VIEW3D_MT_object_specials", WKEY, KM_PRESS, 0, 0);
 

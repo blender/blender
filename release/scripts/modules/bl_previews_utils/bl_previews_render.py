@@ -68,7 +68,7 @@ def rna_backup_restore(data, backup):
         setattr(dt, path[-1], val)
 
 
-def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
+def do_previews(do_objects, do_collections, do_scenes, do_data_intern):
     import collections
 
     # Helpers.
@@ -251,9 +251,9 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
         return 'BLENDER_RENDER'
 
     def object_bbox_merge(bbox, ob, ob_space, offset_matrix):
-        # Take group instances into account (including linked one in this case).
-        if ob.type == 'EMPTY' and ob.dupli_type == 'GROUP':
-            grp_objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in ob.dupli_group.objects)
+        # Take collections instances into account (including linked one in this case).
+        if ob.type == 'EMPTY' and ob.dupli_type == 'COLLECTION':
+            grp_objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in ob.dupli_group.all_objects)
             if (len(grp_objects) == 0):
                 ob_bbox = ob.bound_box
             else:
@@ -343,7 +343,7 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
     render_contexts = {}
 
     objects_ignored = set()
-    groups_ignored = set()
+    collections_ignored = set()
 
     prev_scenename = bpy.context.screen.scene.name
 
@@ -398,11 +398,11 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             if is_rendered is not ...:
                 ob.hide_render = is_rendered
 
-    if do_groups:
-        for grp in ids_nolib(bpy.data.groups):
-            if grp.name in groups_ignored:
+    if do_collections:
+        for grp in ids_nolib(bpy.data.collections):
+            if grp.name in collections_ignored:
                 continue
-            # Here too, we do want to keep linked objects members of local group...
+            # Here too, we do want to keep linked objects members of local collection...
             objects = tuple((ob.name, ob.library.filepath if ob.library else None) for ob in grp.objects)
 
             render_engine = objects_render_engine_guess(objects)
@@ -414,14 +414,14 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
             scene = bpy.data.scenes[render_context.scene, None]
             bpy.context.screen.scene = scene
 
-            bpy.ops.object.group_instance_add(group=grp.name)
+            bpy.ops.object.collection_instance_add(collection=grp.name)
             grp_ob = next((ob for ob in scene.objects if ob.dupli_group and ob.dupli_group.name == grp.name))
             grp_obname = grp_ob.name
             scene.update()
 
             offset_matrix = Matrix.Translation(grp.dupli_offset).inverted()
 
-            preview_render_do(render_context, 'groups', grp.name, objects, offset_matrix)
+            preview_render_do(render_context, 'collections', grp.name, objects, offset_matrix)
 
             scene = bpy.data.scenes[render_context.scene, None]
             scene.objects.unlink(bpy.data.objects[grp_obname, None])
@@ -462,7 +462,7 @@ def do_previews(do_objects, do_groups, do_scenes, do_data_intern):
         print("*NOT* Saving %s, because some error(s) happened while deleting temp render data..." % bpy.data.filepath)
 
 
-def do_clear_previews(do_objects, do_groups, do_scenes, do_data_intern):
+def do_clear_previews(do_objects, do_collections, do_scenes, do_data_intern):
     if do_data_intern:
         bpy.ops.wm.previews_clear(id_type=INTERN_PREVIEW_TYPES)
 
@@ -470,8 +470,8 @@ def do_clear_previews(do_objects, do_groups, do_scenes, do_data_intern):
         for ob in ids_nolib(bpy.data.objects):
             ob.preview.image_size = (0, 0)
 
-    if do_groups:
-        for grp in ids_nolib(bpy.data.groups):
+    if do_collections:
+        for grp in ids_nolib(bpy.data.collections):
             grp.preview.image_size = (0, 0)
 
     if do_scenes:
@@ -502,8 +502,8 @@ def main():
                         help="Do not generate a backup .blend1 file when saving processed ones.")
     parser.add_argument('--no_scenes', default=True, action="store_false",
                         help="Do not generate/clear previews for scene IDs.")
-    parser.add_argument('--no_groups', default=True, action="store_false",
-                        help="Do not generate/clear previews for group IDs.")
+    parser.add_argument('--no_collections', default=True, action="store_false",
+                        help="Do not generate/clear previews for collection IDs.")
     parser.add_argument('--no_objects', default=True, action="store_false",
                         help="Do not generate/clear previews for object IDs.")
     parser.add_argument('--no_data_intern', default=True, action="store_false",
@@ -518,11 +518,11 @@ def main():
 
     if args.clear:
         print("clear!")
-        do_clear_previews(do_objects=args.no_objects, do_groups=args.no_groups, do_scenes=args.no_scenes,
+        do_clear_previews(do_objects=args.no_objects, do_collections=args.no_collections, do_scenes=args.no_scenes,
                           do_data_intern=args.no_data_intern)
     else:
         print("render!")
-        do_previews(do_objects=args.no_objects, do_groups=args.no_groups, do_scenes=args.no_scenes,
+        do_previews(do_objects=args.no_objects, do_collections=args.no_collections, do_scenes=args.no_scenes,
                     do_data_intern=args.no_data_intern)
 
     # Not really necessary, but better be consistent.

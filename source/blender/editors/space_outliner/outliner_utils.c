@@ -101,6 +101,23 @@ TreeElement *outliner_find_tree_element(ListBase *lb, const TreeStoreElem *store
 	return NULL;
 }
 
+/* Find parent element of te */
+TreeElement *outliner_find_parent_element(ListBase *lb, TreeElement *parent_te, const TreeElement *child_te)
+{
+	TreeElement *te;
+	for (te = lb->first; te; te = te->next) {
+		if (te == child_te) {
+			return parent_te;
+		}
+
+		TreeElement *find_te = outliner_find_parent_element(&te->subtree, te, child_te);
+		if (find_te) {
+			return find_te;
+		}
+	}
+	return NULL;
+}
+
 /* tse is not in the treestore, we use its contents to find a match */
 TreeElement *outliner_find_tse(SpaceOops *soops, const TreeStoreElem *tse)
 {
@@ -125,10 +142,8 @@ TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, const ID *id)
 			if (tselem->id == id) {
 				return te;
 			}
-			/* only deeper on scene or object */
-			if (ELEM(te->idcode, ID_OB, ID_SCE) ||
-			    ((soops->outlinevis == SO_GROUPS) && (te->idcode == ID_GR)))
-			{
+			/* only deeper on scene collection or object */
+			if (ELEM(te->idcode, ID_OB, ID_SCE, ID_GR)) {
 				TreeElement *tes = outliner_find_id(soops, &te->subtree, id);
 				if (tes) {
 					return tes;

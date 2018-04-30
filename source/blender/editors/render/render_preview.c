@@ -51,6 +51,7 @@
 
 #include "DNA_world_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_group_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
@@ -252,7 +253,7 @@ static Scene *preview_get_scene(Main *pr_main)
 	return pr_main->scene.first;
 }
 
-static const char *preview_layer_name(const char pr_type)
+static const char *preview_collection_name(const char pr_type)
 {
 	switch (pr_type) {
 		case MA_FLAT:
@@ -281,19 +282,21 @@ static const char *preview_layer_name(const char pr_type)
 	}
 }
 
-static void set_preview_layer(ViewLayer *view_layer, char pr_type)
+static void set_preview_collection(Scene *scene, ViewLayer *view_layer, char pr_type)
 {
-	LayerCollection *lc;
-	const char *collection_name = preview_layer_name(pr_type);
+	LayerCollection *lc = view_layer->layer_collections.first;
+	const char *collection_name = preview_collection_name(pr_type);
 
-	for (lc = view_layer->layer_collections.first; lc; lc = lc->next) {
-		if (STREQ(lc->scene_collection->name, collection_name)) {
-			lc->flag = COLLECTION_VIEWPORT | COLLECTION_RENDER;
+	for (lc = lc->layer_collections.first; lc; lc = lc->next) {
+		if (STREQ(lc->collection->id.name + 2, collection_name)) {
+			lc->collection->flag &= ~COLLECTION_RESTRICT_RENDER;
 		}
 		else {
-			lc->flag = COLLECTION_DISABLED;
+			lc->collection->flag |= COLLECTION_RESTRICT_RENDER;
 		}
 	}
+
+	BKE_layer_collection_sync(scene, view_layer);
 }
 
 static World *preview_get_localized_world(ShaderPreview *sp, World *world)
@@ -389,10 +392,10 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				}
 				
 				if (sp->pr_method == PR_ICON_RENDER) {
-					set_preview_layer(view_layer, MA_SPHERE_A);
+					set_preview_collection(sce, view_layer, MA_SPHERE_A);
 				}
 				else {
-					set_preview_layer(view_layer, mat->pr_type);
+					set_preview_collection(sce, view_layer, mat->pr_type);
 
 					if (mat->nodetree && sp->pr_method == PR_NODE_RENDER) {
 						/* two previews, they get copied by wmJob */
@@ -433,7 +436,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				sp->texcopy = tex;
 				BLI_addtail(&pr_main->tex, tex);
 			}
-			set_preview_layer(view_layer, MA_TEXTURE);
+			set_preview_collection(sce, view_layer, MA_TEXTURE);
 			
 			if (tex && tex->nodetree && sp->pr_method == PR_NODE_RENDER) {
 				/* two previews, they get copied by wmJob */
@@ -451,7 +454,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_addtail(&pr_main->lamp, la);
 			}
 
-			set_preview_layer(view_layer, MA_LAMP);
+			set_preview_collection(sce, view_layer, MA_LAMP);
 
 			if (sce->world) {
 				/* Only use lighting from the lamp. */
@@ -483,7 +486,7 @@ static Scene *preview_prepare_scene(Main *bmain, Scene *scene, ID *id, int id_ty
 				BLI_addtail(&pr_main->world, wrld);
 			}
 
-			set_preview_layer(view_layer, MA_SKY);
+			set_preview_collection(sce, view_layer, MA_SKY);
 			sce->world = wrld;
 
 			if (wrld && wrld->nodetree && sp->pr_method == PR_NODE_RENDER) {

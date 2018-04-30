@@ -413,7 +413,7 @@ typedef struct EEVEE_PlanarReflection {
 typedef struct EEVEE_LightProbeVisTest {
 	bool invert;
 	bool cached; /* Reuse last test results */
-	struct Group *group; /* Skip test if NULL */
+	struct Collection *collection; /* Skip test if NULL */
 } EEVEE_LightProbeVisTest;
 
 typedef struct EEVEE_LightProbesInfo {

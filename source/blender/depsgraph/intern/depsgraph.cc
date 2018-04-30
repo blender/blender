@@ -696,30 +696,26 @@ void DEG_debug_print_eval_parent_typed(struct Depsgraph *depsgraph,
                                        const char *function_name,
                                        const char *object_name,
                                        const void *object_address,
-                                       const char *object_type,
                                        const char *parent_comment,
                                        const char *parent_name,
-                                       const void *parent_address,
-                                       const char *parent_type)
+                                       const void *parent_address)
 {
 	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
-	        "%s%s on %s %s(%p)%s [%s] %s %s %s(%p)%s %s\n",
+	        "%s%s on %s %s(%p) [%s] %s %s %s(%p)%s\n",
 	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        function_name,
 	        object_name,
 	        DEG::deg_color_for_pointer(object_address).c_str(),
 	        object_address,
-	        object_type,
 	        DEG::deg_color_end().c_str(),
 	        parent_comment,
 	        parent_name,
 	        DEG::deg_color_for_pointer(parent_address).c_str(),
 	        parent_address,
-	        DEG::deg_color_end().c_str(),
-	        parent_type);
+	        DEG::deg_color_end().c_str());
 	fflush(stdout);
 }
 

@@ -71,10 +71,10 @@ variables on the UI for now
 #include "BLI_ghash.h"
 #include "BLI_threads.h"
 
+#include "BKE_collection.h"
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_modifier.h"
 #include "BKE_softbody.h"
 #include "BKE_pointcache.h"
@@ -514,20 +514,18 @@ static void ccd_build_deflector_hash_single(GHash *hash, Object *ob)
 }
 
 /**
- * \note group overrides scene when not NULL.
+ * \note collection overrides scene when not NULL.
  */
-static void ccd_build_deflector_hash(ViewLayer *view_layer, Group *group, Object *vertexowner, GHash *hash)
+static void ccd_build_deflector_hash(ViewLayer *view_layer, Collection *collection, Object *vertexowner, GHash *hash)
 {
 	Object *ob;
 
 	if (!hash) return;
 
-	/* Explicit collision group. */
-	if (group) {
-		view_layer = group->view_layer;
-	}
+	/* Explicit collision collection. */
+	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
 
-	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+	for (; base; base = base->next) {
 		/* Only proceed for mesh object in same layer. */
 		if (base->object->type == OB_MESH) {
 			ob = base->object;
@@ -551,20 +549,18 @@ static void ccd_update_deflector_hash_single(GHash *hash, Object *ob)
 }
 
 /**
- * \note group overrides scene when not NULL.
+ * \note collection overrides scene when not NULL.
  */
-static void ccd_update_deflector_hash(ViewLayer *view_layer, Group *group, Object *vertexowner, GHash *hash)
+static void ccd_update_deflector_hash(ViewLayer *view_layer, Collection *collection, Object *vertexowner, GHash *hash)
 {
 	Object *ob;
 
 	if ((!hash) || (!vertexowner)) return;
 
-	/* Explicit collision group. */
-	if (group) {
-		view_layer = group->view_layer;
-	}
+	/* Explicit collision collection. */
+	Base *base = BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection);
 
-	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+	for (; base; base = base->next) {
 		/* Only proceed for mesh object in same layer. */
 		if (base->object->type == OB_MESH) {
 			ob = base->object;
@@ -964,11 +960,11 @@ static void free_softbody_intern(SoftBody *sb)
 /* +++ dependency information functions*/
 
 /**
- * \note group overrides scene when not NULL.
+ * \note collection overrides scene when not NULL.
  */
-static bool are_there_deflectors(ViewLayer *view_layer)
+static bool are_there_deflectors(Base *first_base)
 {
-	for (Base *base = FIRSTBASE(view_layer); base; base = base->next) {
+	for (Base *base = first_base; base; base = base->next) {
 		if (base->object->pd) {
 			if (base->object->pd->deflect)
 				return 1;
@@ -978,9 +974,9 @@ static bool are_there_deflectors(ViewLayer *view_layer)
 	return 0;
 }
 
-static int query_external_colliders(ViewLayer *view_layer, Group *group)
+static int query_external_colliders(ViewLayer *view_layer, Collection *collection)
 {
-	return(are_there_deflectors(group != NULL ? group->view_layer : view_layer));
+	return(are_there_deflectors(BKE_collection_or_layer_objects(NULL, NULL, view_layer, collection)));
 }
 /* --- dependency information functions*/
 

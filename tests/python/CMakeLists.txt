@@ -630,4 +630,6 @@ if(WITH_CODEC_FFMPEG)
 endif()
 
 add_subdirectory(collada)
-add_subdirectory(view_layer)
+
+# TODO: disabled for now after collection unification
+# add_subdirectory(view_layer)

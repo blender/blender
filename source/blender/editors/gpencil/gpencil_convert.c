@@ -48,6 +48,7 @@
 
 #include "DNA_anim_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_group_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_scene_types.h"
@@ -1128,7 +1129,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	struct Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
-	SceneCollection *sc = CTX_data_scene_collection(C);
+	Collection *collection = CTX_data_collection(C);
 	bGPDframe *gpf = BKE_gpencil_layer_getframe(gpl, CFRA, 0);
 	bGPDstroke *gps, *prev_gps = NULL;
 	Object *ob;
@@ -1158,7 +1159,7 @@ static void gp_layer_to_curve(bContext *C, ReportList *reports, bGPdata *gpd, bG
 	 */
 	ob = BKE_object_add_only_object(bmain, OB_CURVE, gpl->info);
 	cu = ob->data = BKE_curve_add(bmain, gpl->info, OB_CURVE);
-	BKE_collection_object_add(&scene->id, sc, ob);
+	BKE_collection_object_add(bmain, collection, ob);
 	base_new = BKE_view_layer_base_find(view_layer, ob);
 	
 	cu->flag |= CU_3D;

@@ -69,6 +69,14 @@ extern "C" {
 
 namespace DEG {
 
+void DepsgraphRelationBuilder::build_layer_collections(ListBase *lb)
+{
+	for (LayerCollection *lc = (LayerCollection *)lb->first; lc; lc = lc->next) {
+		build_collection(NULL, lc->collection);
+		build_layer_collections(&lc->layer_collections);
+	}
+}
+
 void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_layer)
 {
 	/* Setup currently building context. */
@@ -81,6 +89,9 @@ void DepsgraphRelationBuilder::build_view_layer(Scene *scene, ViewLayer *view_la
 	LISTBASE_FOREACH (Base *, base, &view_layer->object_bases) {
 		build_object(base, base->object);
 	}
+
+	build_layer_collections(&view_layer->layer_collections);
+
 	if (scene->camera != NULL) {
 		build_object(NULL, scene->camera);
 	}

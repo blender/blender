@@ -72,7 +72,6 @@
 #include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_fcurve.h"
-#include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -287,6 +286,16 @@ static void library_foreach_bone(LibraryForeachIDData *data, Bone *bone)
 	FOREACH_FINALIZE_VOID;
 }
 
+static void library_foreach_layer_collection(LibraryForeachIDData *data, ListBase *lb)
+{
+	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
+		FOREACH_CALLBACK_INVOKE(data, lc->collection, IDWALK_CB_NOP);
+		library_foreach_layer_collection(data, &lc->layer_collections);
+	}
+
+	FOREACH_FINALIZE_VOID;
+}
+
 static void library_foreach_ID_as_subdata_link(
         ID **id_pp, LibraryIDLinkCallback callback, void *user_data, int flag, LibraryForeachIDData *data)
 {
@@ -409,19 +418,20 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 				CALLBACK_INVOKE(scene->gpd, IDWALK_CB_USER);
 
-				FOREACH_SCENE_COLLECTION_BEGIN(scene, sc)
-				{
-					for (LinkData *link = sc->objects.first; link; link = link->next) {
-						CALLBACK_INVOKE_ID(link->data, IDWALK_CB_USER);
-					}
+				for (CollectionObject *cob = scene->master_collection->gobject.first; cob; cob = cob->next) {
+					CALLBACK_INVOKE(cob->ob, IDWALK_CB_USER);
 				}
-				FOREACH_SCENE_COLLECTION_END;
+				for (CollectionChild *child = scene->master_collection->children.first; child; child = child->next) {
+					CALLBACK_INVOKE(child->collection, IDWALK_CB_USER);
+				}
 
 				ViewLayer *view_layer;
 				for (view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
 					for (Base *base = view_layer->object_bases.first; base; base = base->next) {
-						CALLBACK_INVOKE(base->object, IDWALK_NOP);
+						CALLBACK_INVOKE(base->object, IDWALK_CB_NOP);
 					}
+
+					library_foreach_layer_collection(&data, &view_layer->layer_collections);
 
 					for (FreestyleModuleConfig  *fmc = view_layer->freestyle_config.modules.first; fmc; fmc = fmc->next) {
 						if (fmc->script) {
@@ -702,12 +712,13 @@ void BKE_library_foreach_ID_link(Main *bmain, ID *id, LibraryIDLinkCallback call
 
 			case ID_GR:
 			{
-				Group *group = (Group *) id;
-				FOREACH_GROUP_BASE_BEGIN(group, base)
-				{
-					CALLBACK_INVOKE(base->object, IDWALK_CB_USER_ONE);
+				Collection *collection = (Collection *) id;
+				for (CollectionObject *cob = collection->gobject.first; cob; cob = cob->next) {
+					CALLBACK_INVOKE(cob->ob, IDWALK_CB_USER);
 				}
-				FOREACH_GROUP_BASE_END
+				for (CollectionChild *child = collection->children.first; child; child = child->next) {
+					CALLBACK_INVOKE(child->collection, IDWALK_CB_USER);
+				}
 				break;
 			}
 
@@ -1048,7 +1059,7 @@ bool BKE_library_id_can_use_idtype(ID *id_owner, const short id_type_used)
 		case ID_SPK:
 			return ELEM(id_type_used, ID_SO);
 		case ID_GR:
-			return ELEM(id_type_used, ID_OB);
+			return ELEM(id_type_used, ID_OB, ID_GR);
 		case ID_NT:
 			/* Could be the following, but node.id has no type restriction... */
 #if 0

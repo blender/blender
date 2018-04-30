@@ -740,15 +740,15 @@ static void rna_def_rigidbody_world(BlenderRNA *brna)
 	
 	/* groups */
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-	RNA_def_property_ui_text(prop, "Group", "Group containing objects participating in this simulation");
+	RNA_def_property_ui_text(prop, "Collection", "Collection containing objects participating in this simulation");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 
 	prop = RNA_def_property(srna, "constraints", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "Group");
+	RNA_def_property_struct_type(prop, "Collection");
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
-	RNA_def_property_ui_text(prop, "Constraints", "Group containing rigid body constraint objects");
+	RNA_def_property_ui_text(prop, "Constraints", "Collection containing rigid body constraint objects");
 	RNA_def_property_update(prop, NC_SCENE, "rna_RigidBodyWorld_reset");
 	
 	/* booleans */
@@ -999,7 +999,7 @@ static void rna_def_rigidbody_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "col_groups", 1);
 	RNA_def_property_array(prop, 20);
 	RNA_def_property_boolean_funcs(prop, NULL, "rna_RigidBodyOb_collision_groups_set");
-	RNA_def_property_ui_text(prop, "Collision Groups", "Collision Groups Rigid Body belongs to");
+	RNA_def_property_ui_text(prop, "Collision Collections", "Collision collections rigid body belongs to");
 	RNA_def_property_update(prop, NC_OBJECT | ND_POINTCACHE, "rna_RigidBodyOb_reset");
 	RNA_def_property_flag(prop, PROP_LIB_EXCEPTION);
 }

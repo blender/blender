@@ -26,7 +26,7 @@
 
 extern "C" {
 	#include "BLI_utildefines.h"
-	#include "BKE_group.h"
+	#include "BKE_collection.h"
 	#include "BKE_object.h"
 	#include "BLI_listbase.h"
 }
@@ -171,15 +171,15 @@ void SceneExporter::writeNodes(Depsgraph *depsgraph, Object *ob, Scene *sce)
 	}
 
 	// empty object
-	else if (ob->type == OB_EMPTY) { // TODO: handle groups (OB_DUPLIGROUP
-		if ((ob->transflag & OB_DUPLIGROUP) == OB_DUPLIGROUP && ob->dup_group) {
-			Group *group = ob->dup_group;
+	else if (ob->type == OB_EMPTY) { // TODO: handle groups (OB_DUPLICOLLECTION
+		if ((ob->transflag & OB_DUPLICOLLECTION) == OB_DUPLICOLLECTION && ob->dup_group) {
+			Collection *collection = ob->dup_group;
 			/* printf("group detected '%s'\n", group->id.name + 2); */
-			FOREACH_GROUP_OBJECT_BEGIN(group, object)
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
 			{
 				printf("\t%s\n", object->id.name);
 			}
-			FOREACH_GROUP_OBJECT_END;
+			FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 		}
 	}
 

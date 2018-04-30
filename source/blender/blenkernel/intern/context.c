@@ -30,6 +30,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -949,7 +950,7 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
 	LayerCollection *layer_collection;
 
 	if (ctx_data_pointer_verify(C, "layer_collection", (void *)&layer_collection)) {
-		if (BKE_view_layer_has_collection(view_layer, layer_collection->scene_collection)) {
+		if (BKE_view_layer_has_collection(view_layer, layer_collection->collection)) {
 			return layer_collection;
 		}
 	}
@@ -958,21 +959,21 @@ LayerCollection *CTX_data_layer_collection(const bContext *C)
 	return BKE_layer_collection_get_active(view_layer);
 }
 
-SceneCollection *CTX_data_scene_collection(const bContext *C)
+Collection *CTX_data_collection(const bContext *C)
 {
-	SceneCollection *scene_collection;
-	if (ctx_data_pointer_verify(C, "scene_collection", (void *)&scene_collection)) {
-		return scene_collection;
+	Collection *collection;
+	if (ctx_data_pointer_verify(C, "collection", (void *)&collection)) {
+		return collection;
 	}
 
 	LayerCollection *layer_collection = CTX_data_layer_collection(C);
 	if (layer_collection) {
-		return layer_collection->scene_collection;
+		return layer_collection->collection;
 	}
 
 	/* fallback */
 	Scene *scene = CTX_data_scene(C);
-	return BKE_collection_master(&scene->id);
+	return BKE_collection_master(scene);
 }
 
 int CTX_data_mode_enum_ex(const Object *obedit, const Object *ob, const eObjectMode object_mode)

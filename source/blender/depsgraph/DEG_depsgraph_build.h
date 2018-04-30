@@ -42,7 +42,7 @@ struct Depsgraph;
 
 struct CacheFile;
 struct EffectorWeights;
-struct Group;
+struct Collection;
 struct Main;
 struct ModifierData;
 struct Object;
@@ -159,7 +159,7 @@ typedef bool (*DEG_CollobjFilterFunction)(struct Object *obj, struct ModifierDat
 void DEG_add_collision_relations(struct DepsNodeHandle *handle,
                                  struct Scene *scene,
                                  struct Object *object,
-                                 struct Group *group,
+                                 struct Collection *collection,
                                  unsigned int modifier_type,
                                  DEG_CollobjFilterFunction fn,
                                  bool dupli,

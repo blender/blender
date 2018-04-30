@@ -138,10 +138,6 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, const wmEvent *e
 					}
 				}
 			}
-			else if (ELEM(tselem->type, TSE_LAYER_COLLECTION, TSE_SCENE_COLLECTION)) {
-				/* support adding object from different scene to collection */
-				return 1;
-			}
 		}
 	}
 	return 0;
@@ -163,7 +159,7 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, const wmEvent *
 
 	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
 
-	if (!ELEM(soops->outlinevis, SO_SCENES, SO_GROUPS, SO_COLLECTIONS)) {
+	if (!ELEM(soops->outlinevis, SO_VIEW_LAYER)) {
 		return false;
 	}
 
@@ -250,7 +246,7 @@ static void outliner_material_drop_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_string_set(drop->ptr, "material", id->name + 2);
 }
 
-static int outliner_group_link_poll(bContext *C, wmDrag *drag, const wmEvent *event)
+static int outliner_collection_drop_poll(bContext *C, wmDrag *drag, const wmEvent *event)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
@@ -259,19 +255,19 @@ static int outliner_group_link_poll(bContext *C, wmDrag *drag, const wmEvent *ev
 
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = drag->poin;
-		if (GS(id->name) == ID_OB) {
+		if (ELEM(GS(id->name), ID_OB, ID_GR)) {
 			/* Ensure item under cursor is valid drop target */
 			TreeElement *te = outliner_dropzone_find(soops, fmval, true);
-			return (te && te->idcode == ID_GR && TREESTORE(te)->type == 0);
+			return (te && outliner_is_collection_tree_element(te));
 		}
 	}
 	return 0;
 }
 
-static void outliner_group_link_copy(wmDrag *drag, wmDropBox *drop)
+static void outliner_collection_drop_copy(wmDrag *drag, wmDropBox *drop)
 {
 	ID *id = drag->poin;
-	RNA_string_set(drop->ptr, "object", id->name + 2);
+	RNA_string_set(drop->ptr, "child", id->name + 2);
 }
 
 /* region dropbox definition */
@@ -283,7 +279,7 @@ static void outliner_dropboxes(void)
 	WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", outliner_parent_clear_poll, outliner_parent_clear_copy);
 	WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", outliner_scene_drop_poll, outliner_scene_drop_copy);
 	WM_dropbox_add(lb, "OUTLINER_OT_material_drop", outliner_material_drop_poll, outliner_material_drop_copy);
-	WM_dropbox_add(lb, "OUTLINER_OT_group_link", outliner_group_link_poll, outliner_group_link_copy);
+	WM_dropbox_add(lb, "OUTLINER_OT_collection_drop", outliner_collection_drop_poll, outliner_collection_drop_copy);
 }
 
 static void outliner_main_region_draw(const bContext *C, ARegion *ar)
@@ -438,7 +434,7 @@ static void outliner_main_region_message_subscribe(
 		.notify = ED_region_do_msg_notify_tag_redraw,
 	};
 
-	if (soops->outlinevis == SO_COLLECTIONS) {
+	if (ELEM(soops->outlinevis, SO_VIEW_LAYER, SO_SCENES)) {
 		WM_msg_subscribe_rna_anon_prop(mbus, Window, view_layer, &msg_sub_value_region_tag_redraw);
 	}
 }

@@ -72,12 +72,12 @@ extern "C" {
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_effect.h"
 #include "BKE_collision.h"
 #include "BKE_fcurve.h"
-#include "BKE_group.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
@@ -296,14 +296,14 @@ void DepsgraphRelationBuilder::add_collision_relations(
         const OperationKey &key,
         Scene *scene,
         Object *object,
-        Group *group,
+        Collection *collection,
         bool dupli,
         const char *name)
 {
 	unsigned int numcollobj;
 	Object **collobjs = get_collisionobjects_ext(scene,
 	                                             object,
-	                                             group,
+	                                             collection,
 	                                             &numcollobj,
 	                                             eModifierType_Collision,
 	                                             dupli);
@@ -397,7 +397,7 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 	}
 	switch (GS(id->name)) {
 		case ID_GR:
-			build_group(NULL, (Group *)id);
+			build_collection(NULL, (Collection *)id);
 			break;
 		case ID_OB:
 			build_object(NULL, (Object *)id);
@@ -425,19 +425,23 @@ void DepsgraphRelationBuilder::build_id(ID *id)
 	}
 }
 
-void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
+void DepsgraphRelationBuilder::build_collection(Object *object, Collection *collection)
 {
-	const bool group_done = built_map_.checkIsBuiltAndTag(group);
+	const bool group_done = built_map_.checkIsBuiltAndTag(collection);
 	OperationKey object_local_transform_key(object != NULL ? &object->id : NULL,
 	                                        DEG_NODE_TYPE_TRANSFORM,
 	                                        DEG_OPCODE_TRANSFORM_LOCAL);
 	if (!group_done) {
-		LISTBASE_FOREACH (Base *, base, &group->view_layer->object_bases) {
-			build_object(NULL, base->object);
+		LISTBASE_FOREACH (CollectionObject *, cob, &collection->gobject) {
+			build_object(NULL, cob->ob);
+		}
+		LISTBASE_FOREACH (CollectionChild *, child, &collection->children) {
+			build_collection(NULL, child->collection);
 		}
 	}
 	if (object != NULL) {
-		LISTBASE_FOREACH (Base *, base, &group->view_layer->object_bases) {
+		const ListBase group_objects = BKE_collection_object_cache_get(collection);
+		LISTBASE_FOREACH (Base *, base, &group_objects) {
 			ComponentKey dupli_transform_key(&base->object->id, DEG_NODE_TYPE_TRANSFORM);
 			add_relation(dupli_transform_key, object_local_transform_key, "Dupligroup");
 		}
@@ -549,7 +553,7 @@ void DepsgraphRelationBuilder::build_object(Base *base, Object *object)
 	}
 	/* Object dupligroup. */
 	if (object->dup_group != NULL) {
-		build_group(object, object->dup_group);
+		build_collection(object, object->dup_group);
 	}
 }
 
@@ -1353,7 +1357,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* objects - simulation participants */
 	if (rbw->group) {
-		LISTBASE_FOREACH (Base *, base, &rbw->group->view_layer->object_bases) {
+		const ListBase group_objects = BKE_collection_object_cache_get(rbw->group);
+		LISTBASE_FOREACH (Base *, base, &group_objects) {
 			Object *object = base->object;
 			if (object == NULL || object->type != OB_MESH) {
 				continue;
@@ -1407,7 +1412,8 @@ void DepsgraphRelationBuilder::build_rigidbody(Scene *scene)
 
 	/* constraints */
 	if (rbw->constraints) {
-		LISTBASE_FOREACH (Base *, base, &rbw->constraints->view_layer->object_bases) {
+		const ListBase constraint_objects = BKE_collection_object_cache_get(rbw->constraints);
+		LISTBASE_FOREACH (Base *, base, &constraint_objects) {
 			Object *object = base->object;
 			if (object == NULL || !object->rigidbody_constraint) {
 				continue;
@@ -1529,8 +1535,8 @@ void DepsgraphRelationBuilder::build_particles(Object *object)
 				break;
 			case PART_DRAW_GR:
 				if (part->dup_group != NULL) {
-					build_group(NULL, part->dup_group);
-					LISTBASE_FOREACH (GroupObject *, go, &part->dup_group->gobject) {
+					build_collection(NULL, part->dup_group);
+					LISTBASE_FOREACH (CollectionObject *, go, &part->dup_group->gobject) {
 						build_particles_visualization_object(object,
 						                                     psys,
 						                                     go->ob);

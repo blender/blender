@@ -104,7 +104,7 @@ typedef struct DynamicPaintSurface {
 	struct DynamicPaintCanvasSettings *canvas; /* for fast RNA access */
 	struct PaintSurfaceData *data;
 
-	struct Group *brush_group;
+	struct Collection *brush_group;
 	struct EffectorWeights *effector_weights;
 
 	/* cache */

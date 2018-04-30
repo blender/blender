@@ -48,10 +48,10 @@
 #include "DNA_vfont_types.h"
 
 #include "BKE_animsys.h"
+#include "BKE_collection.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
-#include "BKE_group.h"
 #include "BKE_idprop.h"
 #include "BKE_lattice.h"
 #include "BKE_main.h"
@@ -74,7 +74,7 @@ typedef struct DupliContext {
 	Depsgraph *depsgraph;
 	bool do_update;
 	bool animated;
-	Group *group; /* XXX child objects are selected from this group if set, could be nicer */
+	Collection *collection; /* XXX child objects are selected from this group if set, could be nicer */
 	Object *obedit; /* Only to check if the object is in edit-mode. */
 
 	Scene *scene;
@@ -107,7 +107,7 @@ static void init_context(DupliContext *r_ctx, Depsgraph *depsgraph, Scene *scene
 	/* don't allow BKE_object_handle_update for viewport during render, can crash */
 	r_ctx->do_update = update && !(G.is_rendering && DEG_get_mode(depsgraph) != DAG_EVAL_RENDER);
 	r_ctx->animated = false;
-	r_ctx->group = NULL;
+	r_ctx->collection = NULL;
 
 	r_ctx->object = ob;
 	r_ctx->obedit = OBEDIT_FROM_OBACT(ob);
@@ -130,8 +130,8 @@ static void copy_dupli_context(DupliContext *r_ctx, const DupliContext *ctx, Obj
 	r_ctx->animated |= animated; /* object animation makes all children animated */
 
 	/* XXX annoying, previously was done by passing an ID* argument, this at least is more explicit */
-	if (ctx->gen->type == OB_DUPLIGROUP)
-		r_ctx->group = ctx->object->dup_group;
+	if (ctx->gen->type == OB_DUPLICOLLECTION)
+		r_ctx->collection = ctx->object->dup_group;
 
 	r_ctx->object = ob;
 	if (mat)
@@ -210,7 +210,7 @@ static DupliObject *make_dupli(const DupliContext *ctx,
  */
 static void make_recursive_duplis(const DupliContext *ctx, Object *ob, float space_mat[4][4], int index, bool animated)
 {
-	/* simple preventing of too deep nested groups with MAX_DUPLI_RECUR */
+	/* simple preventing of too deep nested collections with MAX_DUPLI_RECUR */
 	if (ctx->level < MAX_DUPLI_RECUR) {
 		DupliContext rctx;
 		copy_dupli_context(&rctx, ctx, ob, space_mat, index, animated);
@@ -235,19 +235,19 @@ static bool is_child(const Object *ob, const Object *parent)
 	return false;
 }
 
-/* create duplis from every child in scene or group */
+/* create duplis from every child in scene or collection */
 static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChildDuplisFunc make_child_duplis_cb)
 {
 	Object *parent = ctx->object;
 
-	if (ctx->group) {
-		int groupid = 0;
-		FOREACH_GROUP_BASE_BEGIN(ctx->group, base)
+	if (ctx->collection) {
+		int collectionid = 0;
+		FOREACH_COLLECTION_BASE_RECURSIVE_BEGIN(ctx->collection, base)
 		{
 			Object *ob = base->object;
 			if ((base->flag & BASE_VISIBLED) && ob != ctx->obedit && is_child(ob, parent)) {
 				DupliContext pctx;
-				copy_dupli_context(&pctx, ctx, ctx->object, NULL, groupid, false);
+				copy_dupli_context(&pctx, ctx, ctx->object, NULL, collectionid, false);
 
 				/* mballs have a different dupli handling */
 				if (ob->type != OB_MBALL) {
@@ -255,9 +255,9 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 				}
 				make_child_duplis_cb(&pctx, userdata, ob);
 			}
-			groupid++;
+			collectionid++;
 		}
-		FOREACH_GROUP_BASE_END
+		FOREACH_COLLECTION_BASE_RECURSIVE_END
 	}
 	else {
 		int baseid = 0;
@@ -281,54 +281,55 @@ static void make_child_duplis(const DupliContext *ctx, void *userdata, MakeChild
 
 /*---- Implementations ----*/
 
-/* OB_DUPLIGROUP */
-static void make_duplis_group(const DupliContext *ctx)
+/* OB_DUPLICOLLECTION */
+static void make_duplis_collection(const DupliContext *ctx)
 {
 	Object *ob = ctx->object;
-	Group *group;
+	Collection *collection;
 	Base *base;
-	float group_mat[4][4];
+	float collection_mat[4][4];
 	int id;
 	bool animated;
 
 	if (ob->dup_group == NULL) return;
-	group = ob->dup_group;
+	collection = ob->dup_group;
 
-	/* combine group offset and obmat */
-	unit_m4(group_mat);
-	sub_v3_v3(group_mat[3], group->dupli_ofs);
-	mul_m4_m4m4(group_mat, ob->obmat, group_mat);
+	/* combine collection offset and obmat */
+	unit_m4(collection_mat);
+	sub_v3_v3(collection_mat[3], collection->dupli_ofs);
+	mul_m4_m4m4(collection_mat, ob->obmat, collection_mat);
 	/* don't access 'ob->obmat' from now on. */
 
-	/* handles animated groups */
+	/* handles animated collections */
 
 	/* we need to check update for objects that are not in scene... */
 	if (ctx->do_update) {
 		/* note: update is optional because we don't always need object
 		 * transformations to be correct. Also fixes bug [#29616]. */
-		BKE_group_handle_recalc_and_update(ctx->depsgraph, ctx->scene, ob, group);
+		BKE_collection_handle_recalc_and_update(ctx->depsgraph, ctx->scene, ob, collection);
 	}
 
-	animated = BKE_group_is_animated(group, ob);
+	animated = BKE_collection_is_animated(collection, ob);
 
-	for (base = group->view_layer->object_bases.first, id = 0; base; base = base->next, id++) {
+	const ListBase dup_collection_objects = BKE_collection_object_cache_get(collection);
+	for (base = dup_collection_objects.first, id = 0; base; base = base->next, id++) {
 		if (base->object != ob && (base->flag & BASE_VISIBLED)) {
 			float mat[4][4];
 
-			/* group dupli offset, should apply after everything else */
-			mul_m4_m4m4(mat, group_mat, base->object->obmat);
+			/* collection dupli offset, should apply after everything else */
+			mul_m4_m4m4(mat, collection_mat, base->object->obmat);
 
 			make_dupli(ctx, base->object, mat, id, animated, false);
 
 			/* recursion */
-			make_recursive_duplis(ctx, base->object, group_mat, id, animated);
+			make_recursive_duplis(ctx, base->object, collection_mat, id, animated);
 		}
 	}
 }
 
-static const DupliGenerator gen_dupli_group = {
-    OB_DUPLIGROUP,                  /* type */
-    make_duplis_group               /* make_duplis */
+static const DupliGenerator gen_dupli_collection = {
+    OB_DUPLICOLLECTION,             /* type */
+    make_duplis_collection          /* make_duplis */
 };
 
 /* OB_DUPLIFRAMES */
@@ -341,8 +342,8 @@ static void make_duplis_frames(const DupliContext *ctx)
 	int cfrao = scene->r.cfra;
 	int dupend = ob->dupend;
 
-	/* dupliframes not supported inside groups */
-	if (ctx->group)
+	/* dupliframes not supported inside collections */
+	if (ctx->collection)
 		return;
 	/* if we don't have any data/settings which will lead to object movement,
 	 * don't waste time trying, as it will all look the same...
@@ -601,8 +602,8 @@ static void make_duplis_font(const DupliContext *ctx)
 	const wchar_t *text = NULL;
 	bool text_free = false;
 
-	/* font dupliverts not supported inside groups */
-	if (ctx->group)
+	/* font dupliverts not supported inside collections */
+	if (ctx->collection)
 		return;
 
 	copy_m4_m4(pmat, par->obmat);
@@ -851,7 +852,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	float tmat[4][4], mat[4][4], pamat[4][4], vec[3], size = 0.0;
 	float (*obmat)[4];
 	int a, b, hair = 0;
-	int totpart, totchild, totgroup = 0 /*, pa_num */;
+	int totpart, totchild, totcollection = 0 /*, pa_num */;
 
 	int no_draw_flag = PARS_UNEXIST;
 
@@ -891,10 +892,14 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				return;
 		}
 		else { /*PART_DRAW_GR */
-			if (part->dup_group == NULL || BLI_listbase_is_empty(&part->dup_group->view_layer->object_bases))
+			if (part->dup_group == NULL)
 				return;
 
-			if (BLI_findptr(&part->dup_group->view_layer->object_bases, par, offsetof(Base, object))) {
+			const ListBase dup_collection_objects = BKE_collection_object_cache_get(part->dup_group);
+			if (BLI_listbase_is_empty(&dup_collection_objects))
+				return;
+
+			if (BLI_findptr(&dup_collection_objects, par, offsetof(Base, object))) {
 				return;
 			}
 		}
@@ -918,31 +923,31 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 		/* gather list of objects or single object */
 		if (part->ren_as == PART_DRAW_GR) {
 			if (ctx->do_update) {
-				BKE_group_handle_recalc_and_update(ctx->depsgraph, scene, par, part->dup_group);
+				BKE_collection_handle_recalc_and_update(ctx->depsgraph, scene, par, part->dup_group);
 			}
 
 			if (part->draw & PART_DRAW_COUNT_GR) {
 				for (dw = part->dupliweights.first; dw; dw = dw->next)
-					totgroup += dw->count;
+					totcollection += dw->count;
 			}
 			else {
-				FOREACH_GROUP_OBJECT_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
 				{
 					(void) object;
-					totgroup++;
+					totcollection++;
 				}
-				FOREACH_GROUP_OBJECT_END;
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 			}
 
 			/* we also copy the actual objects to restore afterwards, since
 			 * BKE_object_where_is_calc_time will change the object which breaks transform */
-			oblist = MEM_callocN((size_t)totgroup * sizeof(Object *), "dupgroup object list");
-			obcopylist = MEM_callocN((size_t)totgroup * sizeof(Object), "dupgroup copy list");
+			oblist = MEM_callocN((size_t)totcollection * sizeof(Object *), "dupcollection object list");
+			obcopylist = MEM_callocN((size_t)totcollection * sizeof(Object), "dupcollection copy list");
 
-			if (part->draw & PART_DRAW_COUNT_GR && totgroup) {
+			if (part->draw & PART_DRAW_COUNT_GR && totcollection) {
 				dw = part->dupliweights.first;
 
-				for (a = 0; a < totgroup; dw = dw->next) {
+				for (a = 0; a < totcollection; dw = dw->next) {
 					for (b = 0; b < dw->count; b++, a++) {
 						oblist[a] = dw->ob;
 						obcopylist[a] = *dw->ob;
@@ -951,17 +956,17 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 			}
 			else {
 				a = 0;
-				FOREACH_GROUP_OBJECT_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
 				{
 					oblist[a] = object;
 					obcopylist[a] = *object;
 					a++;
 
-					if (a >= totgroup) {
+					if (a >= totcollection) {
 						continue;
 					}
 				}
-				FOREACH_GROUP_OBJECT_END;
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 			}
 		}
 		else {
@@ -1003,14 +1008,14 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 			if (part->ren_as == PART_DRAW_GR) {
 				/* prevent divide by zero below [#28336] */
-				if (totgroup == 0)
+				if (totcollection == 0)
 					continue;
 
-				/* for groups, pick the object based on settings */
+				/* for collections, pick the object based on settings */
 				if (part->draw & PART_DRAW_RAND_GR)
-					b = BLI_rand() % totgroup;
+					b = BLI_rand() % totcollection;
 				else
-					b = a % totgroup;
+					b = a % totcollection;
 
 				ob = oblist[b];
 				obmat = oblist[b]->obmat;
@@ -1051,7 +1056,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 			if (part->ren_as == PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
 				b = 0;
-				FOREACH_GROUP_OBJECT_BEGIN(part->dup_group, object)
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(part->dup_group, object)
 				{
 					copy_m4_m4(tmat, oblist[b]->obmat);
 
@@ -1059,7 +1064,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					mul_mat3_m4_fl(tmat, size * scale);
 					mul_v3_fl(tmat[3], size * scale);
 
-					/* group dupli offset, should apply after everything else */
+					/* collection dupli offset, should apply after everything else */
 					if (!is_zero_v3(part->dup_group->dupli_ofs)) {
 						sub_v3_v3(tmat[3], part->dup_group->dupli_ofs);
 					}
@@ -1076,7 +1081,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 					b++;
 				}
-				FOREACH_GROUP_OBJECT_END;
+				FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
 			}
 			else {
 				/* to give ipos in object correct offset */
@@ -1130,7 +1135,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 
 		/* restore objects since they were changed in BKE_object_where_is_calc_time */
 		if (part->ren_as == PART_DRAW_GR) {
-			for (a = 0; a < totgroup; a++)
+			for (a = 0; a < totcollection; a++)
 				*(oblist[a]) = obcopylist[a];
 		}
 		else
@@ -1201,8 +1206,8 @@ static const DupliGenerator *get_dupli_generator(const DupliContext *ctx)
 	else if (transflag & OB_DUPLIFRAMES) {
 		return &gen_dupli_frames;
 	}
-	else if (transflag & OB_DUPLIGROUP) {
-		return &gen_dupli_group;
+	else if (transflag & OB_DUPLICOLLECTION) {
+		return &gen_dupli_collection;
 	}
 
 	return NULL;

@@ -112,7 +112,7 @@ typedef struct Main {
 	ListBase speaker;
 	ListBase lightprobe;
 	ListBase sound;
-	ListBase group;
+	ListBase collection;
 	ListBase armature;
 	ListBase action;
 	ListBase nodetree;
