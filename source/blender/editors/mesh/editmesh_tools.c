@@ -914,37 +914,51 @@ void MESH_OT_edge_face_add(wmOperatorType *ot)
 static int edbm_mark_seam_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = ((Mesh *)obedit->data);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	BMEdge *eed;
 	BMIter iter;
 	const bool clear = RNA_boolean_get(op->ptr, "clear");
 
-	/* auto-enable seams drawing */
-	if (clear == 0) {
-		me->drawflag |= ME_DRAWSEAMS;
-	}
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	if (clear) {
-		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
-				continue;
-
-			BM_elem_flag_disable(eed, BM_ELEM_SEAM);
+		if (bm->totedgesel == 0) {
+			continue;
 		}
-	}
-	else {
-		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN))
-				continue;
-			BM_elem_flag_enable(eed, BM_ELEM_SEAM);
-		}
-	}
 
-	ED_uvedit_live_unwrap(scene, obedit);
-	EDBM_update_generic(em, true, false);
+		Mesh *me = ((Mesh *)obedit->data);
+
+		/* auto-enable seams drawing */
+		if (clear == 0) {
+			me->drawflag |= ME_DRAWSEAMS;
+		}
+
+		if (clear) {
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					continue;
+				}
+
+				BM_elem_flag_disable(eed, BM_ELEM_SEAM);
+			}
+		}
+		else {
+			BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_SELECT) || BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					continue;
+				}
+				BM_elem_flag_enable(eed, BM_ELEM_SEAM);
+			}
+		}
+
+		ED_uvedit_live_unwrap(scene, obedit);
+		EDBM_update_generic(em, true, false);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
