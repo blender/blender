@@ -363,14 +363,14 @@ static void wm_draw_region_bind(ARegion *ar, int view)
 	}
 	else {
 		GPU_offscreen_bind(ar->draw_buffer->offscreen[view], false);
+
+		/* For now scissor is expected by region drawing, we could disable it
+		 * and do the enable/disable in the specific cases that setup scissor. */
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(0, 0, ar->winx, ar->winy);
 	}
 
 	ar->draw_buffer->bound_view = view;
-
-	/* For now scissor is expected by region drawing, we could disable it
-	 * and do the enable/disable in the specific cases that setup scissor. */
-	glEnable(GL_SCISSOR_TEST);
-	glScissor(0, 0, ar->winx, ar->winy);
 }
 
 static void wm_draw_region_unbind(ARegion *ar, int view)
@@ -379,14 +379,13 @@ static void wm_draw_region_unbind(ARegion *ar, int view)
 		return;
 	}
 
-	glDisable(GL_SCISSOR_TEST);
-
 	ar->draw_buffer->bound_view = -1;
 
 	if (ar->draw_buffer->viewport[view]) {
 		GPU_viewport_unbind(ar->draw_buffer->viewport[view]);
 	}
 	else {
+		glDisable(GL_SCISSOR_TEST);
 		GPU_offscreen_unbind(ar->draw_buffer->offscreen[view], false);
 	}
 }
