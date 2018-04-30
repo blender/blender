@@ -120,9 +120,10 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 		CTX_wm_window_set(C, win);
 
 		for (sa = sc->areabase.first; sa; sa = sa->next) {
-			if (sa->spacetype != SPACE_VIEW3D)
+			if (sa->spacetype != SPACE_VIEW3D) {
 				continue;
-
+			}
+			View3D *v3d = sa->spacedata.first;
 			for (ar = sa->regionbase.first; ar; ar = ar->next) {
 				if (ar->regiontype != RGN_TYPE_WINDOW) {
 					continue;
@@ -143,7 +144,8 @@ void ED_render_scene_update(const DEGEditorUpdateContext *update_ctx, int update
 
 				}
 				else {
-					RenderEngineType *engine_type = RE_engines_find(scene->r.engine);
+					RenderEngineType *engine_type =
+					        ED_view3d_engine_type(scene, v3d->drawtype);
 					if (updated) {
 						DRW_notify_view_update(
 						        (&(DRWUpdateContext){
