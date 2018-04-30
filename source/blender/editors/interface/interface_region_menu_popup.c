@@ -365,7 +365,6 @@ uiPopupBlockHandle *ui_popup_menu_create(
 		WM_event_add_mousemove(C);
 	}
 
-	handle->can_refresh = false;
 	MEM_freeN(pup);
 
 	return handle;
@@ -456,7 +455,6 @@ void UI_popup_menu_end(bContext *C, uiPopupMenu *pup)
 	UI_popup_handlers_add(C, &window->modalhandlers, menu, 0);
 	WM_event_add_mousemove(C);
 
-	menu->can_refresh = false;
 	MEM_freeN(pup);
 }
 
@@ -560,6 +558,7 @@ void UI_popup_block_invoke_ex(bContext *C, uiBlockCreateFunc func, void *arg, co
 
 	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
 	handle->popup = true;
+	handle->can_refresh = true;
 	handle->optype = (opname) ? WM_operatortype_find(opname, 0) : NULL;
 	handle->opcontext = opcontext;
 
@@ -582,6 +581,7 @@ void UI_popup_block_ex(
 	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, arg);
 	handle->popup = true;
 	handle->retvalue = 1;
+	handle->can_refresh = true;
 
 	handle->popup_op = op;
 	handle->popup_arg = arg;
@@ -602,6 +602,7 @@ void uiPupBlockOperator(bContext *C, uiBlockCreateFunc func, wmOperator *op, int
 	handle = ui_popup_block_create(C, NULL, NULL, func, NULL, op);
 	handle->popup = 1;
 	handle->retvalue = 1;
+	handle->can_refresh = true;
 
 	handle->popup_arg = op;
 	handle->popup_func = operator_cb;

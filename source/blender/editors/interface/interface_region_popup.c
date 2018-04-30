@@ -470,8 +470,6 @@ uiBlock *ui_popup_block_refresh(
         bContext *C, uiPopupBlockHandle *handle,
         ARegion *butregion, uiBut *but)
 {
-	BLI_assert(handle->can_refresh == true);
-
 	const int margin = UI_POPUP_MARGIN;
 	wmWindow *window = CTX_wm_window(C);
 	ARegion *ar = handle->region;
@@ -482,6 +480,8 @@ uiBlock *ui_popup_block_refresh(
 
 	uiBlock *block_old = ar->uiblocks.first;
 	uiBlock *block;
+
+	BLI_assert(!block_old || handle->can_refresh == true);
 
 #ifdef DEBUG
 	wmEvent *event_back = window->eventstate;
@@ -673,8 +673,9 @@ uiPopupBlockHandle *ui_popup_block_create(
 	handle->popup_create_vars.but = but;
 	handle->popup_create_vars.butregion = but ? butregion : NULL;
 	copy_v2_v2_int(handle->popup_create_vars.event_xy, &window->eventstate->x);
-	/* caller may free vars used to create this popup, in that case this variable should be disabled. */
-	handle->can_refresh = true;
+
+	/* don't allow by default, only if popup type explicitly supports it */
+	handle->can_refresh = false;
 
 	/* create area region */
 	ar = ui_region_temp_add(CTX_wm_screen(C));
@@ -692,7 +693,7 @@ uiPopupBlockHandle *ui_popup_block_create(
 	handle = block->handle;
 
 	/* keep centered on window resizing */
-	if ((block->bounds_type == UI_BLOCK_BOUNDS_POPUP_CENTER) && handle->can_refresh) {
+	if (block->bounds_type == UI_BLOCK_BOUNDS_POPUP_CENTER) {
 		type.listener = ui_block_region_popup_window_listener;
 	}
 
