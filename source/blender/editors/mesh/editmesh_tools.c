@@ -6354,45 +6354,59 @@ void MESH_OT_symmetry_snap(struct wmOperatorType *ot)
 
 static int edbm_mark_freestyle_edge_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = (Mesh *)obedit->data;
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BMEdge *eed;
 	BMIter iter;
 	FreestyleEdge *fed;
 	const bool clear = RNA_boolean_get(op->ptr, "clear");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	if (em == NULL)
-		return OPERATOR_FINISHED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	/* auto-enable Freestyle edge mark drawing */
-	if (clear == 0) {
-		me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
-	}
+		if (em == NULL) {
+			continue;
+		}
 
-	if (!CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
-		BM_data_layer_add(em->bm, &em->bm->edata, CD_FREESTYLE_EDGE);
-	}
+		BMesh *bm = em->bm;
+		Mesh *me = ((Mesh *)obedit->data);
 
-	if (clear) {
-		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-				fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
-				fed->flag &= ~FREESTYLE_EDGE_MARK;
+		if (bm->totedgesel == 0) {
+			continue;
+		}
+
+		/* auto-enable Freestyle edge mark drawing */
+		if (clear == 0) {
+			me->drawflag |= ME_DRAW_FREESTYLE_EDGE;
+		}
+
+		if (!CustomData_has_layer(&em->bm->edata, CD_FREESTYLE_EDGE)) {
+			BM_data_layer_add(em->bm, &em->bm->edata, CD_FREESTYLE_EDGE);
+		}
+
+		if (clear) {
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
+					fed->flag &= ~FREESTYLE_EDGE_MARK;
+				}
 			}
 		}
-	}
-	else {
-		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
-				fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
-				fed->flag |= FREESTYLE_EDGE_MARK;
+		else {
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT) && !BM_elem_flag_test(eed, BM_ELEM_HIDDEN)) {
+					fed = CustomData_bmesh_get(&em->bm->edata, eed->head.data, CD_FREESTYLE_EDGE);
+					fed->flag |= FREESTYLE_EDGE_MARK;
+				}
 			}
 		}
-	}
 
-	DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+		DEG_id_tag_update(obedit->data, OB_RECALC_DATA);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
