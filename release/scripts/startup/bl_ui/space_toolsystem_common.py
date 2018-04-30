@@ -59,47 +59,73 @@ def _keymap_fn_from_seq(keymap_data):
 
 
 def _item_is_fn(item):
-    return (not (type(item) is type and issubclass(item, ToolDef)) and callable(item))
+    return (not (type(item) is ToolDef) and callable(item))
 
 
-class ToolDef:
+from collections import namedtuple
+ToolDef = namedtuple(
+    "ToolDef",
+    (
+        # The name to display in the interface.
+        "text",
+        # The name of the icon to use (found in ``release/datafiles/icons``) or None for no icon.
+        "icon",
+        # An optional manipulator group to activate when the tool is set or None for no widget.
+        "widget",
+        # Optional keymap for tool, either:
+        # - A function that populates a keymaps passed in as an argument.
+        # - A tuple filled with triple's of:
+        #   ``(operator_id, operator_properties, keymap_item_args)``.
+        #
+        # Warning: currently 'from_dict' this is a list of one item,
+        # so internally we can swap the keymap function for the keymap it's self.
+        # This isn't very nice and may change, tool definitions shouldn't care about this.
+        "keymap",
+        # Optional data-block assosiated with this tool.
+        # (Typically brush name, usage depends on mode, we could use for non-brush ID's in other modes).
+        "data_block",
+        # Optional draw settings (operator options, toolsettings).
+        "draw_settings",
+    )
+)
+del namedtuple
+
+def from_dict(kw_args):
     """
-    Tool definition,
-    This class is never instanced, it's used as definition for tool types.
-
-    Since we want to define functions here, it's more convenient to declare class-methods
-    then functions in a dict or tuple.
+    Use so each tool can avoid defining all members of the named tuple.
+    Also convert the keymap from a tuple into a function
+    (since keymap is a callback).
     """
-    __slots__ = ()
+    kw = {
+        "icon": None,
+        "widget": None,
+        "keymap": None,
+        "data_block": None,
+        "draw_settings": None,
+    }
+    kw.update(kw_args)
 
-    def __new__(cls, *args, **kwargs):
-        raise RuntimeError("%s should not be instantiated" % cls)
+    keymap = kw["keymap"]
+    if kw["keymap"] is None:
+        pass
+    elif type(keymap) is tuple:
+        keymap = [_keymap_fn_from_seq(keymap)]
+    else:
+        keymap = [keymap]
+    kw["keymap"] = keymap
+    return ToolDef(**kw)
 
-    def __init_subclass__(cls):
-        # All classes must have a name
-        assert(cls.text is not None)
-        # We must have a key-map or widget (otherwise the tool does nothing!)
-        assert(not (cls.keymap is None and cls.widget is None and cls.data_block is None))
+def from_fn(fn):
+    """
+    Use as decorator so we can define functions.
+    """
+    return ToolDef.from_dict(fn())
 
-        if type(cls.keymap) is tuple:
-            cls.keymap = _keymap_fn_from_seq(cls.keymap)
 
-    # The name to display in the interface.
-    text = None
-    # The name of the icon to use (found in ``release/datafiles/icons``) or None for no icon.
-    icon = None
-    # An optional manipulator group to activate when the tool is set or None for no widget.
-    widget = None
-    # Optional keymap for tool, either:
-    # - A function that populates a keymaps passed in as an argument.
-    # - A tuple filled with triple's of:
-    #   ``(operator_id, operator_properties, keymap_item_args)``.
-    keymap = None
-    # Optional data-block assosiated with this tool.
-    # (Typically brush name, usage depends on mode, we could use for non-brush ID's in other modes).
-    data_block = None
-    # Optional draw settings (operator options, toolsettings).
-    draw_settings = None
+ToolDef.from_dict = from_dict
+ToolDef.from_fn = from_fn
+del from_dict
+del from_fn
 
 
 class ToolSelectPanelHelper:
@@ -169,14 +195,11 @@ class ToolSelectPanelHelper:
         icon_name = item.icon
         mp_idname = item.widget
         datablock_idname = item.data_block
-        keymap_fn = item.keymap
-        if keymap_fn is None:
-            km, km_idname = (None, None)
+        keymap = item.keymap
+        if keymap is None:
+            km_idname = None
         else:
-            km_test = cls._tool_keymap.get((context_mode, text))
-            if km_test is None and context_mode is not None:
-                km_test = cls._tool_keymap[None, text]
-            km, km_idname = km_test
+            km_idname = keymap[0].name
         return (km_idname, mp_idname, datablock_idname), icon_name
 
     @staticmethod
@@ -198,23 +221,21 @@ class ToolSelectPanelHelper:
             (
                 props.keymap or None or None,
                 props.manipulator_group or None,
-                props.data_block,
+                props.data_block or None,
             ),
             props.index,
         )
 
     @classmethod
     def _km_action_simple(cls, kc, context_mode, text, keymap_fn):
-
         if context_mode is None:
             context_mode = "All"
         km_idname = f"{cls.keymap_prefix} {context_mode}, {text}"
         km = kc.keymaps.get(km_idname)
-        if km is not None:
-            return km, km_idname
-        km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW')
-        keymap_fn(km)
-        return km, km_idname
+        if km is None:
+            km = kc.keymaps.new(km_idname, space_type=cls.bl_space_type, region_type='WINDOW')
+            keymap_fn[0](km)
+        keymap_fn[0] = km
 
     @classmethod
     def register(cls):
@@ -225,9 +246,6 @@ class ToolSelectPanelHelper:
         #
         # This needs some careful consideration.
         kc = wm.keyconfigs.user
-
-        # {context_mode: {tool_name: (keymap, keymap_idname, manipulator_group_idname), ...}, ...}
-        cls._tool_keymap = {}
 
         # Track which tool-group was last used for non-active groups.
         # Blender stores the active tool-group index.
@@ -248,11 +266,10 @@ class ToolSelectPanelHelper:
                     if item is None or _item_is_fn(item):
                         continue
                     keymap_data = item.keymap
-                    if keymap_data is not None:
+                    if keymap_data is not None and callable(keymap_data[0]):
                         text = item.text
                         icon_name = item.icon
-                        km, km_idname = cls._km_action_simple(kc, context_mode, text, keymap_data)
-                        cls._tool_keymap[context_mode, text] = km, km_idname
+                        cls._km_action_simple(kc, context_mode, text, keymap_data)
 
 
     # -------------------------------------------------------------------------
@@ -487,7 +504,6 @@ class WM_MT_toolsystem_submenu(Menu):
                         item = item_group[index_button]
                         tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
                         is_active = (tool_def == tool_def_button)
-                        print(tool_def, tool_def_button)
                         if is_active:
                             return cls, item_group, index_button
         return None, None, -1
