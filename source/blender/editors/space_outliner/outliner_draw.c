@@ -1596,7 +1596,7 @@ static void outliner_draw_hierarchy_lines_recursive(unsigned pos, SpaceOops *soo
 	const unsigned char grayed_alpha = col[3] / 2;
 
 	/* For vertical lines between objects. */
-	y1 = *starty;
+	y1 = y2 = *starty;
 	for (te = lb->first; te; te = te->next) {
 		bool draw_childs_grayed_out = draw_grayed_out || (te->drag_data != NULL);
 		tselem = TREESTORE(te);

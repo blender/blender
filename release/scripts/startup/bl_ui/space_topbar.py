@@ -224,7 +224,7 @@ class _draw_left_context_mode:
 
         from .properties_paint_common import UnifiedPaintPanel
 
-        layout.prop(brush, "weight")
+        UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
         UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
 

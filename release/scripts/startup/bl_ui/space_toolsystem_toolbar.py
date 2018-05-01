@@ -613,28 +613,42 @@ class _defs_weight_paint:
         )
 
     @ToolDef.from_fn
-    def gradient_linear():
+    def sample_weight():
         return dict(
-            text="Linear Gradient",
-            icon=None,
+            text="Sample Weight",
+            icon="ops.paint.weight_sample",
             widget=None,
             keymap=(
-                ("paint.weight_gradient", dict(type='LINEAR'),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
+                ("paint.weight_sample", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
         )
 
     @ToolDef.from_fn
-    def gradient_radial():
+    def sample_weight_group():
         return dict(
-            text="Radial Gradient",
-            icon=None,
+            text="Sample Vertex Group",
+            icon="ops.paint.weight_sample_group",
             widget=None,
             keymap=(
-                ("paint.weight_gradient",
-                 dict(type='RADIAL'),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
+                ("paint.weight_sample_group", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+        )
+
+    @ToolDef.from_fn
+    def gradient():
+        def draw_settings(context, layout):
+            wm = context.window_manager
+            props = wm.operator_properties_last("paint.weight_gradient")
+            layout.prop(props, "type")
+
+        return dict(
+            text="Gradient",
+            icon="ops.paint.weight_gradient",
+            widget=None,
+            keymap=(
+                ("paint.weight_gradient", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+            draw_settings=draw_settings,
         )
 
 
@@ -771,13 +785,14 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PAINT_WEIGHT': [
             _defs_weight_paint.generate_from_brushes,
-
+            None,
+            _defs_weight_paint.sample_weight,
+            _defs_weight_paint.sample_weight_group,
+            None,
             # TODO, override brush events
             *_tools_select,
-            (
-                _defs_weight_paint.gradient_linear,
-                _defs_weight_paint.gradient_radial,
-            ),
+            None,
+            _defs_weight_paint.gradient,
         ],
     }
 

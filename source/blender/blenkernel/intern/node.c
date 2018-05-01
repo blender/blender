@@ -1989,9 +1989,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 	if (ntree) {
 		bNodeTree *ltree;
 		bNode *node;
-		AnimData *adt;
-
-		bAction *action_backup = NULL, *tmpact_backup = NULL;
 
 		BLI_spin_lock(&spin);
 		if (!ntree->duplilock) {
@@ -2000,18 +1997,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		BLI_spin_unlock(&spin);
 
 		BLI_mutex_lock(ntree->duplilock);
-
-		/* Workaround for copying an action on each render!
-		 * set action to NULL so animdata actions don't get copied */
-		adt = BKE_animdata_from_id(&ntree->id);
-
-		if (adt) {
-			action_backup = adt->action;
-			tmpact_backup = adt->tmpact;
-
-			adt->action = NULL;
-			adt->tmpact = NULL;
-		}
 
 		/* Make full copy outside of Main database.
 		 * Note: previews are not copied here.
@@ -2025,20 +2010,6 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 				node->id = (ID *)ntreeLocalize((bNodeTree *)node->id);
 			}
 		}
-
-		if (adt) {
-			AnimData *ladt = BKE_animdata_from_id(&ltree->id);
-
-			adt->action = ladt->action = action_backup;
-			adt->tmpact = ladt->tmpact = tmpact_backup;
-
-			if (action_backup)
-				id_us_plus(&action_backup->id);
-			if (tmpact_backup)
-				id_us_plus(&tmpact_backup->id);
-
-		}
-		/* end animdata uglyness */
 
 		/* ensures only a single output node is enabled */
 		ntreeSetOutput(ntree);

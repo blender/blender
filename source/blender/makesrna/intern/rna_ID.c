@@ -108,6 +108,31 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 
 #include "WM_api.h"
 
+void rna_ID_override_static_property_operation_refname_get(PointerRNA *ptr, char *value)
+{
+	IDOverrideStaticPropertyOperation *opop = ptr->data;
+	strcpy(value, (opop->subitem_reference_name == NULL) ? "" : opop->subitem_reference_name);
+}
+
+int rna_ID_override_static_property_operation_refname_length(PointerRNA *ptr)
+{
+	IDOverrideStaticPropertyOperation *opop = ptr->data;
+	return (opop->subitem_reference_name == NULL) ? 0 : strlen(opop->subitem_reference_name);
+}
+
+void rna_ID_override_static_property_operation_locname_get(PointerRNA *ptr, char *value)
+{
+	IDOverrideStaticPropertyOperation *opop = ptr->data;
+	strcpy(value, (opop->subitem_local_name == NULL) ? "" : opop->subitem_local_name);
+}
+
+int rna_ID_override_static_property_operation_locname_length(PointerRNA *ptr)
+{
+	IDOverrideStaticPropertyOperation *opop = ptr->data;
+	return (opop->subitem_local_name == NULL) ? 0 : strlen(opop->subitem_local_name);
+}
+
+
 /* name functions that ignore the first two ID characters */
 void rna_ID_name_get(PointerRNA *ptr, char *value)
 {
@@ -997,6 +1022,68 @@ static void rna_def_image_preview(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Reload the preview from its source path");
 }
 
+static void rna_def_ID_override_static_property_operation(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static const EnumPropertyItem static_override_property_operation_items[] = {
+		{IDOVERRIDESTATIC_OP_NOOP, "NOOP", 0, "No-Op", "Does nothing, prevents adding actual overrides (NOT USED)"},
+		{IDOVERRIDESTATIC_OP_REPLACE, "REPLACE", 0, "Replace", "Replace value of reference by overriding one"},
+		{IDOVERRIDESTATIC_OP_ADD, "DIFF_ADD", 0, "Differential",
+		 "Stores and apply difference between reference and local value (NOT USED)"},
+		{IDOVERRIDESTATIC_OP_SUBTRACT, "DIFF_SUB", 0, "Differential",
+		 "Stores and apply difference between reference and local value (NOT USED)"},
+		{IDOVERRIDESTATIC_OP_MULTIPLY, "FACT_MULTIPLY", 0, "Factor",
+		 "Stores and apply multiplication factor between reference and local value (NOT USED)"},
+		{IDOVERRIDESTATIC_OP_INSERT_AFTER, "INSERT_AFTER", 0, "Insert After",
+		 "Insert a new item into collection after the one referenced in subitem_reference_name or _index"},
+		{IDOVERRIDESTATIC_OP_INSERT_BEFORE, "INSERT_BEFORE", 0, "Insert Before",
+		 "Insert a new item into collection after the one referenced in subitem_reference_name or _index (NOT USED)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static const EnumPropertyItem static_override_property_flag_items[] = {
+		{IDOVERRIDESTATIC_FLAG_MANDATORY, "MANDATORY", 0, "Mandatory",
+		 "For templates, prevents the user from removing pre-defined operation (NOT USED)"},
+		{IDOVERRIDESTATIC_FLAG_LOCKED, "LOCKED", 0, "Locked",
+		 "Prevents the user from modifying that override operation (NOT USED)"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "IDOverrideStaticPropertyOperation", NULL);
+	RNA_def_struct_ui_text(srna, "ID Static Override Property Operation",
+	                       "Description of an override operation over an overridden property");
+
+	prop = RNA_def_enum(srna, "operation", static_override_property_operation_items, IDOVERRIDESTATIC_OP_REPLACE,
+	                    "Operation", "What override operation is performed");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+
+	prop = RNA_def_enum(srna, "flag", static_override_property_flag_items, 0,
+	                    "Flags", "Optional flags (NOT USED)");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+
+	prop = RNA_def_string(srna, "subitem_reference_name", NULL, INT_MAX, "Subitem Reference Name",
+	                      "Used to handle insertions into collection");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+	RNA_def_property_string_funcs(prop, "rna_ID_override_static_property_operation_refname_get",
+	                              "rna_ID_override_static_property_operation_refname_length", NULL);
+
+	prop = RNA_def_string(srna, "subitem_local_name", NULL, INT_MAX, "Subitem Local Name",
+	                      "Used to handle insertions into collection");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+	RNA_def_property_string_funcs(prop, "rna_ID_override_static_property_operation_locname_get",
+	                              "rna_ID_override_static_property_operation_locname_length", NULL);
+
+	prop = RNA_def_int(srna, "subitem_reference_index", -1, -1, INT_MAX, "Subitem Reference Index",
+	                   "Used to handle insertions into collection", -1, INT_MAX);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+
+	prop = RNA_def_int(srna, "subitem_local_index", -1, -1, INT_MAX, "Subitem Local Index",
+	                   "Used to handle insertions into collection", -1, INT_MAX);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+}
+
 static void rna_def_ID_override_static_property(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1005,11 +1092,18 @@ static void rna_def_ID_override_static_property(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "IDOverrideStaticProperty", NULL);
 	RNA_def_struct_ui_text(srna, "ID Static Override Property", "Description of an overridden property");
 
-	prop = RNA_def_string(srna, "rna_path", NULL, INT_MAX, "RNA Path", "RNA path leading to that property, from owning ID");
+	/* String pointer, we *should* add get/set/etc. But NULL rna_path would be a nasty bug anyway... */
+	prop = RNA_def_string(srna, "rna_path", NULL, INT_MAX, "RNA Path",
+	                      "RNA path leading to that property, from owning ID");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);  /* For now. */
+
+	RNA_def_collection(srna, "operations", "IDOverrideStaticPropertyOperation", "Operations",
+	                   "List of overriding operations for a property");
+
+	rna_def_ID_override_static_property_operation(brna);
 }
 
-	static void rna_def_ID_override_static(BlenderRNA *brna)
+static void rna_def_ID_override_static(BlenderRNA *brna)
 {
 	StructRNA *srna;
 

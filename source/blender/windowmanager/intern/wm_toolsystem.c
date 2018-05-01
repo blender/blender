@@ -140,3 +140,13 @@ void WM_toolsystem_init(bContext *C)
 		WM_toolsystem_link(C, workspace);
 	}
 }
+
+/**
+ * For paint modes to support non-brush tools.
+ */
+bool WM_toolsystem_active_tool_is_brush(const bContext *C)
+{
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	/* Will need to become more comprehensive, for now check tool data-block. */
+	return workspace->tool.data_block[0] != '\0';
+}

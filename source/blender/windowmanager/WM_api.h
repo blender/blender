@@ -595,6 +595,8 @@ void WM_toolsystem_link(struct bContext *C, struct WorkSpace *workspace);
 void WM_toolsystem_set(struct bContext *C, const struct bToolDef *tool);
 void WM_toolsystem_init(struct bContext *C);
 
+bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
+
 /* wm_tooltip.c */
 typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *, struct ARegion *, bool *);
 

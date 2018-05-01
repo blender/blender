@@ -264,7 +264,7 @@ static Brush *image_paint_brush(bContext *C)
 	return BKE_paint_brush(&settings->imapaint.paint);
 }
 
-static int image_paint_poll(bContext *C)
+static int image_paint_poll_ex(bContext *C, bool check_tool)
 {
 	Object *obact;
 
@@ -273,7 +273,9 @@ static int image_paint_poll(bContext *C)
 
 	obact = CTX_data_active_object(C);
 	if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
-		return 1;
+		if (!check_tool || WM_toolsystem_active_tool_is_brush(C)) {
+			return 1;
+		}
 	}
 	else {
 		SpaceImage *sima = CTX_wm_space_image(C);
@@ -288,6 +290,16 @@ static int image_paint_poll(bContext *C)
 	}
 
 	return 0;
+}
+
+static int image_paint_poll(bContext *C)
+{
+	return image_paint_poll_ex(C, true);
+}
+
+static int image_paint_poll_ignore_tool(bContext *C)
+{
+	return image_paint_poll_ex(C, false);
 }
 
 static int image_paint_2d_clone_poll(bContext *C)
@@ -999,7 +1011,7 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 
 static int sample_color_poll(bContext *C)
 {
-	return (image_paint_poll(C) || vertex_paint_poll(C));
+	return (image_paint_poll_ignore_tool(C) || image_paint_poll_ignore_tool(C));
 }
 
 void PAINT_OT_sample_color(wmOperatorType *ot)

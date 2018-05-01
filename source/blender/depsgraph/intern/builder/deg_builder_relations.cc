@@ -563,6 +563,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 		ComponentKey geometry_key((ID *)object->data, DEG_NODE_TYPE_GEOMETRY);
 		ComponentKey key_key(&key->id, DEG_NODE_TYPE_GEOMETRY);
 		add_relation(key_key, geometry_key, "Shapekeys");
+		build_nested_shapekey(&object->id, key);
 	}
 }
 
@@ -1273,6 +1274,7 @@ void DepsgraphRelationBuilder::build_world(World *world)
 		ComponentKey ntree_key(&world->nodetree->id, DEG_NODE_TYPE_SHADING);
 		ComponentKey world_key(&world->id, DEG_NODE_TYPE_SHADING);
 		add_relation(ntree_key, world_key, "NTree->World Shading Update");
+		build_nested_nodetree(&world->id, world->nodetree);
 	}
 }
 
@@ -1804,6 +1806,7 @@ void DepsgraphRelationBuilder::build_lamp(Object *object)
 		build_nodetree(lamp->nodetree);
 		ComponentKey nodetree_key(&lamp->nodetree->id, DEG_NODE_TYPE_SHADING);
 		add_relation(nodetree_key, lamp_parameters_key, "NTree->Lamp Parameters");
+		build_nested_nodetree(&lamp->id, lamp->nodetree);
 	}
 
 	if (DEG_depsgraph_use_copy_on_write()) {
@@ -1896,6 +1899,7 @@ void DepsgraphRelationBuilder::build_material(Material *material)
 		                          DEG_NODE_TYPE_SHADING,
 		                          DEG_OPCODE_MATERIAL_UPDATE);
 		add_relation(ntree_key, material_key, "Material's NTree");
+		build_nested_nodetree(&material->id, material->nodetree);
 	}
 }
 
@@ -1909,6 +1913,7 @@ void DepsgraphRelationBuilder::build_texture(Tex *texture)
 	build_animdata(&texture->id);
 	/* texture's nodetree */
 	build_nodetree(texture->nodetree);
+	build_nested_nodetree(&texture->id, texture->nodetree);
 }
 
 void DepsgraphRelationBuilder::build_compositor(Scene *scene)
@@ -1977,6 +1982,43 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations()
 	foreach (IDDepsNode *id_node, graph_->id_nodes) {
 		build_copy_on_write_relations(id_node);
 	}
+}
+
+/* Nested datablocks (node trees, shape keys) requires special relation to
+ * ensure owner's datablock remapping happens after node tree itself is ready.
+ *
+ * This is similar to what happens in ntree_hack_remap_pointers().
+ */
+void DepsgraphRelationBuilder::build_nested_datablock(ID *owner, ID *id) {
+	if (!DEG_depsgraph_use_copy_on_write()) {
+		return;
+	}
+	OperationKey owner_copy_on_write_key(owner,
+	                                     DEG_NODE_TYPE_COPY_ON_WRITE,
+	                                     DEG_OPCODE_COPY_ON_WRITE);
+	OperationKey id_copy_on_write_key(id,
+	                                  DEG_NODE_TYPE_COPY_ON_WRITE,
+	                                  DEG_OPCODE_COPY_ON_WRITE);
+	add_relation(id_copy_on_write_key,
+	             owner_copy_on_write_key,
+	             "Eval Order");
+}
+
+void DepsgraphRelationBuilder::build_nested_nodetree(ID *owner,
+                                                     bNodeTree *ntree)
+{
+	if (ntree == NULL) {
+		return;
+	}
+	build_nested_datablock(owner, &ntree->id);
+}
+
+void DepsgraphRelationBuilder::build_nested_shapekey(ID *owner, Key *key)
+{
+	if (key == NULL) {
+		return;
+	}
+	build_nested_datablock(owner, &key->id);
 }
 
 void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node)
