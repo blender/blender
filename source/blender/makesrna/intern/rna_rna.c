@@ -2301,8 +2301,13 @@ bool rna_property_override_apply_default(
 			if (value != buff) MEM_freeN(value);
 			return true;
 		}
+		case PROP_COLLECTION:
+		{
+			BLI_assert(!"You need to define a specific override apply callback for enums.");
+			return false;
+		}
 		default:
-			/* TODO PROP_COLLECTION of course! */
+			BLI_assert(0);
 			return false;
 	}
 
