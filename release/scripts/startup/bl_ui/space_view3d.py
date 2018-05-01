@@ -42,6 +42,13 @@ class VIEW3D_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
+        mode = 'OBJECT' if obj is None else obj.mode
+        act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[mode]
+        layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
+        del act_mode_item
+
+        layout.template_header_3D_mode()
+
         VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
@@ -52,7 +59,9 @@ class VIEW3D_HT_header(Header):
         layout.template_header_3D()
 
         if obj:
-            mode = obj.mode
+            # Set above:
+            # mode = obj.mode
+
             # Particle edit
             if mode == 'PARTICLE_EDIT':
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)

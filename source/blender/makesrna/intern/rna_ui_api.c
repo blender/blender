@@ -982,6 +982,9 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Inserts common 3DView header UI (selectors for context mode, shading, etc.)");
 
+	func = RNA_def_function(srna, "template_header_3D_mode", "uiTemplateHeader3D_mode");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	RNA_def_function_ui_description(func, "");
 
 	func = RNA_def_function(srna, "template_edit_mode_selection", "uiTemplateEditModeSelection");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);

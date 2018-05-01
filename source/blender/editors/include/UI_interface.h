@@ -1031,6 +1031,7 @@ eAutoPropButsReturn uiTemplateOperatorPropertyButs(
         const struct bContext *C, uiLayout *layout, struct wmOperator *op,
         bool (*check_prop)(struct PointerRNA *, struct PropertyRNA *),
         const eButLabelAlign label_align, const short flag);
+void uiTemplateHeader3D_mode(uiLayout *layout, struct bContext *C);
 void uiTemplateHeader3D(uiLayout *layout, struct bContext *C);
 void uiTemplateEditModeSelection(uiLayout *layout, struct bContext *C);
 void uiTemplateReportsBanner(uiLayout *layout, struct bContext *C);
