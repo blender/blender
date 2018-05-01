@@ -3539,6 +3539,10 @@ class VIEW3D_PT_shading(Panel):
             col.separator()
             col.row().prop(shading, "light", expand=True)
 
+            col.separator()
+            col.prop(shading, "show_random_object_colors")
+            col.prop(shading, "show_object_overlap")
+
             if shading.light == 'STUDIO':
                 # TODO: don't store these settings in the scene
                 scene = context.scene
@@ -3587,10 +3591,6 @@ class VIEW3D_PT_overlay(Panel):
         col.separator()
 
         col.prop(view, "show_world")
-
-        if shading.type == "SOLID":
-            col.prop(view, "show_random_object_colors")
-            col.prop(view, "show_object_overlap")
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             col.prop(view, "show_mode_shade_override")
