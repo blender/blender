@@ -300,7 +300,7 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-                                             Object *ob, Mesh *mesh)
+                                      Object *ob, Mesh *mesh)
 {
 	Mesh *result = mesh;
 

@@ -276,8 +276,8 @@ typedef struct ModifierTypeInfo {
 	 * modified form), but must not release it.
 	 */
 	struct Mesh *(*applyModifier)(struct ModifierData *md, struct Depsgraph *depsgraph,
-	                                     struct Object *ob, struct Mesh *mesh,
-	                                     ModifierApplyFlag flag);
+	                              struct Object *ob, struct Mesh *mesh,
+	                              ModifierApplyFlag flag);
 
 	/* Like applyModifier but called during editmode (for supporting
 	 * modifiers).
@@ -287,8 +287,8 @@ typedef struct ModifierTypeInfo {
 	 * mesh apply as for applyModifier.
 	 */
 	struct Mesh *(*applyModifierEM)(struct ModifierData *md, struct Depsgraph *depsgraph,
-	                                       struct Object *ob, struct BMEditMesh *editData,
-	                                       struct Mesh *mesh, ModifierApplyFlag flag);
+	                                struct Object *ob, struct BMEditMesh *editData,
+	                                struct Mesh *mesh, ModifierApplyFlag flag);
 
 
 	/********************* Optional functions *********************/
@@ -515,55 +515,65 @@ void modwrap_deformVertsEM(
  * depending on if the modifier has been ported to Mesh or is still using DerivedMesh
  */
 
-void modifier_deformVerts(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct Mesh *mesh,
-	float (*vertexCos)[3], int numVerts,
-	ModifierApplyFlag flag);
+void modifier_deformVerts(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct Mesh *mesh,
+        float (*vertexCos)[3], int numVerts, ModifierApplyFlag flag);
 
-void modifier_deformMatrices(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct Mesh *mesh,
-	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+void modifier_deformMatrices(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct Mesh *mesh,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
-void modifier_deformVertsEM(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct BMEditMesh *editData, struct Mesh *mesh,
-	float (*vertexCos)[3], int numVerts);
+void modifier_deformVertsEM(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct BMEditMesh *editData, struct Mesh *mesh,
+        float (*vertexCos)[3], int numVerts);
 
-void modifier_deformMatricesEM(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct BMEditMesh *editData, struct Mesh *mesh,
-	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+void modifier_deformMatricesEM(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct BMEditMesh *editData, struct Mesh *mesh,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
-struct Mesh *modifier_applyModifier(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct Mesh *mesh, ModifierApplyFlag flag);
+struct Mesh *modifier_applyModifier(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct Mesh *mesh, ModifierApplyFlag flag);
 
-struct Mesh *modifier_applyModifierEM(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct BMEditMesh *editData,
-	struct Mesh *mesh, ModifierApplyFlag flag);
+struct Mesh *modifier_applyModifierEM(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct BMEditMesh *editData,
+        struct Mesh *mesh, ModifierApplyFlag flag);
 
 /* depricated variants of above that accept DerivedMesh */
 
-void modifier_deformVerts_DM_deprecated(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct DerivedMesh *dm,
-	float (*vertexCos)[3], int numVerts,
-	ModifierApplyFlag flag);
+void modifier_deformVerts_DM_deprecated(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts, ModifierApplyFlag flag);
 
-void modifier_deformMatrices_DM_deprecated(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct DerivedMesh *dm,
-	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+void modifier_deformMatrices_DM_deprecated(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct DerivedMesh *dm,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
-void modifier_deformVertsEM_DM_deprecated(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct BMEditMesh *editData, struct DerivedMesh *dm,
-	float (*vertexCos)[3], int numVerts);
+void modifier_deformVertsEM_DM_deprecated(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct BMEditMesh *editData, struct DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts);
 
-void modifier_deformMatricesEM_DM_deprecated(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct BMEditMesh *editData, struct DerivedMesh *dm,
-	float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+void modifier_deformMatricesEM_DM_deprecated(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct BMEditMesh *editData, struct DerivedMesh *dm,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
-struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct DerivedMesh *dm, ModifierApplyFlag flag);
+struct DerivedMesh *modifier_applyModifier_DM_deprecated(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct DerivedMesh *dm, ModifierApplyFlag flag);
 
-struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *md, struct Depsgraph *depsgraph,
-	struct Object *ob, struct BMEditMesh *editData,
-	struct DerivedMesh *dm, ModifierApplyFlag flag);
+struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(
+        struct ModifierData *md, struct Depsgraph *depsgraph,
+        struct Object *ob, struct BMEditMesh *editData,
+        struct DerivedMesh *dm, ModifierApplyFlag flag);
 
 #endif
 
