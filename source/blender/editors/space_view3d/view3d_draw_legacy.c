@@ -166,21 +166,23 @@ static void backdrawview3d(
         Object *obact, Object *obedit)
 {
 	RegionView3D *rv3d = ar->regiondata;
+	Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
+	Object *obact_eval = DEG_get_evaluated_object(depsgraph, obact);
 
 	BLI_assert(ar->regiontype == RGN_TYPE_WINDOW);
 
-	if (obact && (obact->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
-	             BKE_paint_select_face_test(obact)))
+	if (obact_eval && (obact_eval->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT) ||
+	             BKE_paint_select_face_test(obact_eval)))
 	{
 		/* do nothing */
 	}
 	/* texture paint mode sampling */
-	else if (obact && (obact->mode & OB_MODE_TEXTURE_PAINT) &&
+	else if (obact_eval && (obact_eval->mode & OB_MODE_TEXTURE_PAINT) &&
 	         (v3d->drawtype > OB_WIRE))
 	{
 		/* do nothing */
 	}
-	else if ((obact && (obact->mode & OB_MODE_PARTICLE_EDIT)) &&
+	else if ((obact_eval && (obact_eval->mode & OB_MODE_PARTICLE_EDIT)) &&
 	         V3D_IS_ZBUF(v3d))
 	{
 		/* do nothing */
@@ -260,8 +262,8 @@ static void backdrawview3d(
 
 	G.f |= G_BACKBUFSEL;
 
-	if (obact && ((obact->base_flag & BASE_VISIBLED) != 0)) {
-		draw_object_backbufsel(depsgraph, scene, v3d, rv3d, obact);
+	if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLED) != 0)) {
+		draw_object_backbufsel(depsgraph, scene_eval, v3d, rv3d, obact_eval);
 	}
 
 	if (rv3d->gpuoffscreen)
