@@ -205,9 +205,8 @@ BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
 }
 
 static DerivedMesh *applyModifier(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-        Object *ob, DerivedMesh *dm,
-        ModifierApplyFlag UNUSED(flag))
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	const SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -223,7 +222,7 @@ static DerivedMesh *applyModifier(
 	unsigned int newLoops = 0, newFaces = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
 	/* only use material offsets if we have 2 or more materials  */
-	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
+	const short mat_nr_max = ctx->object->totcol > 1 ? ctx->object->totcol - 1 : 0;
 	const short mat_ofs = mat_nr_max ? smd->mat_ofs : 0;
 	const short mat_ofs_rim = mat_nr_max ? smd->mat_ofs_rim : 0;
 
@@ -261,7 +260,7 @@ static DerivedMesh *applyModifier(
 	/* array size is doubled in case of using a shell */
 	const unsigned int stride = do_shell ? 2 : 1;
 
-	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
+	modifier_get_vgroup(ctx->object, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
 	orig_mvert = dm->getVertArray(dm);
 	orig_medge = dm->getEdgeArray(dm);

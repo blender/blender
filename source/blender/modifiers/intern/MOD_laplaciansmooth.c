@@ -506,17 +506,17 @@ static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, DerivedMesh *derivedData,
-                        float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+                        float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
 
 	if (numVerts == 0)
 		return;
 
-	dm = get_dm(ob, NULL, derivedData, NULL, false, false);
+	dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
 
-	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ob, dm,
+	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, dm,
 	                           vertexCos, numVerts);
 
 	if (dm != derivedData)
@@ -524,7 +524,7 @@ static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), O
 }
 
 static void deformVertsEM(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm;
@@ -532,9 +532,9 @@ static void deformVertsEM(
 	if (numVerts == 0)
 		return;
 
-	dm = get_dm(ob, editData, derivedData, NULL, false, false);
+	dm = get_dm(ctx->object, editData, derivedData, NULL, false, false);
 
-	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ob, dm,
+	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, dm,
 	                           vertexCos, numVerts);
 
 	if (dm != derivedData)

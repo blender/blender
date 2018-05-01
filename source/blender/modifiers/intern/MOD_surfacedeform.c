@@ -1181,21 +1181,20 @@ static void surfacedeformModifier_do(
 }
 
 static void deformVerts(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-        Object *ob, DerivedMesh *UNUSED(derivedData),
-        float (*vertexCos)[3], int numVerts,
-        ModifierApplyFlag UNUSED(flag))
-{
-	surfacedeformModifier_do(md, vertexCos, numVerts, ob);
-}
-
-static void deformVertsEM(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-        Object *ob, struct BMEditMesh *UNUSED(editData),
+        ModifierData *md, const ModifierEvalContext *ctx,
         DerivedMesh *UNUSED(derivedData),
         float (*vertexCos)[3], int numVerts)
 {
-	surfacedeformModifier_do(md, vertexCos, numVerts, ob);
+	surfacedeformModifier_do(md, vertexCos, numVerts, ctx->object);
+}
+
+static void deformVertsEM(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *UNUSED(editData),
+        DerivedMesh *UNUSED(derivedData),
+        float (*vertexCos)[3], int numVerts)
+{
+	surfacedeformModifier_do(md, vertexCos, numVerts, ctx->object);
 }
 
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))

@@ -85,11 +85,10 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        DerivedMesh *derivedData,
                         float (*vertexCos)[3],
-                        int UNUSED(numVerts),
-                        ModifierApplyFlag UNUSED(flag))
+                        int UNUSED(numVerts))
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	
@@ -98,9 +97,9 @@ static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
 
 	/* if possible use/create DerivedMesh */
 	if (derivedData) surmd->dm = CDDM_copy(derivedData);
-	else surmd->dm = get_dm(ob, NULL, NULL, NULL, false, false);
+	else surmd->dm = get_dm(ctx->object, NULL, NULL, NULL, false, false);
 	
-	if (!ob->pd) {
+	if (!ctx->object->pd) {
 		printf("SurfaceModifier deformVerts: Should not happen!\n");
 		return;
 	}
@@ -141,7 +140,7 @@ static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
 		/* convert to global coordinates and calculate velocity */
 		for (i = 0, x = surmd->x, v = surmd->v; i < numverts; i++, x++, v++) {
 			vec = CDDM_get_vert(surmd->dm, i)->co;
-			mul_m4_v3(ob->obmat, vec);
+			mul_m4_v3(ctx->object->obmat, vec);
 
 			if (init)
 				v->co[0] = v->co[1] = v->co[2] = 0.0f;

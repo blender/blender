@@ -316,14 +316,13 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	return dm;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	DerivedMesh *result;
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 
-	result = uvprojectModifier_do(umd, ob, derivedData);
+	result = uvprojectModifier_do(umd, ctx->object, derivedData);
 
 	return result;
 }

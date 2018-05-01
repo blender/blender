@@ -184,14 +184,13 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag flag)
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	DerivedMesh *dm = derivedData;
 	DerivedMesh *result;
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
-	const bool use_render_params = (flag & MOD_APPLY_RENDER) != 0;
+	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
 	
 	int *origindex;
 	int mpoly_index = 0;
@@ -279,7 +278,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 
 	if (ltmd->ob_axis) {
 		/* calc the matrix relative to the axis object */
-		invert_m4_m4(mtx_tmp_a, ob->obmat);
+		invert_m4_m4(mtx_tmp_a, ctx->object->obmat);
 		copy_m4_m4(mtx_tx_inv, ltmd->ob_axis->obmat);
 		mul_m4_m4m4(mtx_tx, mtx_tmp_a, mtx_tx_inv);
 

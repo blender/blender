@@ -121,9 +121,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *UNUSED(ob), DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *UNUSED(ctx),
+                                  DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;

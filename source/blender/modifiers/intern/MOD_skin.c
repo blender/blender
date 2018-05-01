@@ -1917,10 +1917,8 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,
-                                  struct Depsgraph *UNUSED(depsgraph),
-                                  Object *UNUSED(ob),
-                                  DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+                                  const ModifierEvalContext *UNUSED(ctx),
+                                  DerivedMesh *dm)
 {
 	DerivedMesh *result;
 

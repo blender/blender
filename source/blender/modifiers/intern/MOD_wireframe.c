@@ -102,10 +102,10 @@ static DerivedMesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob,
 
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
-                                  DerivedMesh *dm, ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *dm)
 {
-	return WireframeModifier_do((WireframeModifierData *)md, ob, dm);
+	return WireframeModifier_do((WireframeModifierData *)md, ctx->object, dm);
 }
 
 

@@ -351,8 +351,7 @@ static void mesh_merge_transform(
 }
 
 static Mesh *arrayModifier_doArray(
-        ArrayModifierData *amd, Object *ob, Mesh *mesh,
-        ModifierApplyFlag flag)
+        ArrayModifierData *amd, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	const float eps = 1e-6f;
 	const MVert *src_mvert;
@@ -396,10 +395,11 @@ static Mesh *arrayModifier_doArray(
 
 	count = amd->count;
 
-	if (amd->start_cap && amd->start_cap != ob && amd->start_cap->type == OB_MESH) {
-		vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(amd->start_cap, ob, &vgroup_start_cap_remap_len);
+	if (amd->start_cap && amd->start_cap != ctx->object && amd->start_cap->type == OB_MESH) {
+		vgroup_start_cap_remap = BKE_object_defgroup_index_map_create(
+		                             amd->start_cap, ctx->object, &vgroup_start_cap_remap_len);
 
-		start_cap_mesh = get_mesh_eval_for_modifier(amd->start_cap, flag);
+		start_cap_mesh = get_mesh_eval_for_modifier(amd->start_cap, ctx->flag);
 		if (start_cap_mesh) {
 			start_cap_nverts = start_cap_mesh->totvert;
 			start_cap_nedges = start_cap_mesh->totedge;
@@ -407,10 +407,11 @@ static Mesh *arrayModifier_doArray(
 			start_cap_npolys = start_cap_mesh->totpoly;
 		}
 	}
-	if (amd->end_cap && amd->end_cap != ob && amd->end_cap->type == OB_MESH) {
-		vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(amd->end_cap, ob, &vgroup_end_cap_remap_len);
+	if (amd->end_cap && amd->end_cap != ctx->object && amd->end_cap->type == OB_MESH) {
+		vgroup_end_cap_remap = BKE_object_defgroup_index_map_create(
+		                           amd->end_cap, ctx->object, &vgroup_end_cap_remap_len);
 
-		end_cap_mesh = get_mesh_eval_for_modifier(amd->end_cap, flag);
+		end_cap_mesh = get_mesh_eval_for_modifier(amd->end_cap, ctx->flag);
 		if (end_cap_mesh) {
 			end_cap_nverts = end_cap_mesh->totvert;
 			end_cap_nedges = end_cap_mesh->totedge;
@@ -446,8 +447,8 @@ static Mesh *arrayModifier_doArray(
 		float obinv[4][4];
 		float result_mat[4][4];
 
-		if (ob)
-			invert_m4_m4(obinv, ob->obmat);
+		if (ctx->object)
+			invert_m4_m4(obinv, ctx->object->obmat);
 		else
 			unit_m4(obinv);
 
@@ -747,12 +748,11 @@ static Mesh *arrayModifier_doArray(
 }
 
 
-static Mesh *applyModifier(ModifierData *md, Depsgraph *UNUSED(depsgraph),
-                           Object *ob, Mesh *mesh,
-                           ModifierApplyFlag flag)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                           Mesh *mesh)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
-	return arrayModifier_doArray(amd, ob, mesh, flag);
+	return arrayModifier_doArray(amd, ctx, mesh);
 }
 
 

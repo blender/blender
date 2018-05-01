@@ -86,9 +86,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
@@ -136,7 +135,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 			MDeformVert *dvert;
 			int defgrp_index;
 
-			modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
+			modifier_get_vgroup(ctx->object, dm, dmd->defgrp_name, &dvert, &defgrp_index);
 
 			if (dvert) {
 				const unsigned int vert_tot = dm->getNumVerts(dm);

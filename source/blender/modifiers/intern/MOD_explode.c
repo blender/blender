@@ -787,8 +787,8 @@ static DerivedMesh *cutEdges(ExplodeModifierData *emd, DerivedMesh *dm)
 }
 static DerivedMesh *explodeMesh(
         ExplodeModifierData *emd,
-        ParticleSystemModifierData *psmd, struct Depsgraph *depsgraph, Scene *scene,
-        Object *ob, DerivedMesh *to_explode)
+        ParticleSystemModifierData *psmd, const ModifierEvalContext *ctx, Scene *scene,
+        DerivedMesh *to_explode)
 {
 	DerivedMesh *explode, *dm = to_explode;
 	MFace *mf = NULL, *mface;
@@ -813,9 +813,9 @@ static DerivedMesh *explodeMesh(
 	mface = dm->getTessFaceArray(dm);
 	totpart = psmd->psys->totpart;
 
-	sim.depsgraph = depsgraph;
+	sim.depsgraph = ctx->depsgraph;
 	sim.scene = scene;
-	sim.ob = ob;
+	sim.ob = ctx->object;
 	sim.psys = psmd->psys;
 	sim.psmd = psmd;
 
@@ -870,7 +870,7 @@ static DerivedMesh *explodeMesh(
 	/*dupvert = CDDM_get_verts(explode);*/
 
 	/* getting back to object space */
-	invert_m4_m4(imat, ob->obmat);
+	invert_m4_m4(imat, ctx->object->obmat);
 
 	psmd->psys->lattice_deform_data = psys_create_lattice_deform_data(&sim);
 
@@ -901,7 +901,7 @@ static DerivedMesh *explodeMesh(
 			psys_get_particle_state(&sim, ed_v2, &state, 1);
 
 			vertco = CDDM_get_vert(explode, v)->co;
-			mul_m4_v3(ob->obmat, vertco);
+			mul_m4_v3(ctx->object->obmat, vertco);
 
 			sub_v3_v3(vertco, birth.co);
 
@@ -995,13 +995,12 @@ static ParticleSystemModifierData *findPrecedingParticlesystem(Object *ob, Modif
 	}
 	return psmd;
 }
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
-                                  Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	DerivedMesh *dm = derivedData;
 	ExplodeModifierData *emd = (ExplodeModifierData *) md;
-	ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ob, md);
+	ParticleSystemModifierData *psmd = findPrecedingParticlesystem(ctx->object, md);
 
 	if (psmd) {
 		ParticleSystem *psys = psmd->psys;
@@ -1030,7 +1029,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 		if (emd->flag & eExplodeFlag_EdgeCut) {
 			int *facepa = emd->facepa;
 			DerivedMesh *splitdm = cutEdges(emd, dm);
-			DerivedMesh *explode = explodeMesh(emd, psmd, depsgraph, md->scene, ob, splitdm);
+			DerivedMesh *explode = explodeMesh(emd, psmd, ctx, md->scene, splitdm);
 
 			MEM_freeN(emd->facepa);
 			emd->facepa = facepa;
@@ -1038,7 +1037,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 			return explode;
 		}
 		else
-			return explodeMesh(emd, psmd, depsgraph, md->scene, ob, derivedData);
+			return explodeMesh(emd, psmd, ctx, md->scene, derivedData);
 	}
 	return derivedData;
 }

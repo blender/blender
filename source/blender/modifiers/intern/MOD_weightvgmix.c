@@ -201,8 +201,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (wmd->defgrp_name_a[0] == '\0');
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
-                                  DerivedMesh *derivedData, ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	DerivedMesh *dm = derivedData;
@@ -226,16 +226,16 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	/* Check if we can just return the original mesh.
 	 * Must have verts and therefore verts assigned to vgroups to do anything useful!
 	 */
-	if ((numVerts == 0) || BLI_listbase_is_empty(&ob->defbase))
+	if ((numVerts == 0) || BLI_listbase_is_empty(&ctx->object->defbase))
 		return dm;
 
 	/* Get vgroup idx from its name. */
-	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name_a);
+	defgrp_index = defgroup_name_index(ctx->object, wmd->defgrp_name_a);
 	if (defgrp_index == -1)
 		return dm;
 	/* Get second vgroup idx from its name, if given. */
 	if (wmd->defgrp_name_b[0] != (char)0) {
-		defgrp_index_other = defgroup_name_index(ob, wmd->defgrp_name_b);
+		defgrp_index_other = defgroup_name_index(ctx->object, wmd->defgrp_name_b);
 		if (defgrp_index_other == -1)
 			return dm;
 	}
@@ -352,7 +352,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	}
 
 	/* Do masking. */
-	weightvg_do_mask(numIdx, indices, org_w, new_w, ob, dm, wmd->mask_constant,
+	weightvg_do_mask(numIdx, indices, org_w, new_w, ctx->object, dm, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->modifier.scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);

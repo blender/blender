@@ -302,40 +302,39 @@ static void waveModifier_do(WaveModifierData *md,
 	if (wmd->texture) MEM_freeN(tex_co);
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph,
-                        Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        DerivedMesh *derivedData,
                         float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+                        int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		dm = get_cddm(ob, NULL, dm, vertexCos, false);
+		dm = get_cddm(ctx->object, NULL, dm, vertexCos, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		dm = get_dm(ob, NULL, dm, NULL, false, false);
+		dm = get_dm(ctx->object, NULL, dm, NULL, false, false);
 
-	waveModifier_do(wmd, depsgraph, ob, dm, vertexCos, numVerts);
+	waveModifier_do(wmd, ctx->depsgraph, ctx->object, dm, vertexCos, numVerts);
 
 	if (dm != derivedData)
 		dm->release(dm);
 }
 
 static void deformVertsEM(
-        ModifierData *md, struct Depsgraph *depsgraph,
-        Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
 	if (wmd->flag & MOD_WAVE_NORM)
-		dm = get_cddm(ob, editData, dm, vertexCos, false);
+		dm = get_cddm(ctx->object, editData, dm, vertexCos, false);
 	else if (wmd->texture || wmd->defgrp_name[0])
-		dm = get_dm(ob, editData, dm, NULL, false, false);
+		dm = get_dm(ctx->object, editData, dm, NULL, false, false);
 
-	waveModifier_do(wmd, depsgraph, ob, dm, vertexCos, numVerts);
+	waveModifier_do(wmd, ctx->depsgraph, ctx->object, dm, vertexCos, numVerts);
 
 	if (dm != derivedData)
 		dm->release(dm);

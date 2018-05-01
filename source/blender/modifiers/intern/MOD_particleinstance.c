@@ -202,9 +202,8 @@ static void store_float_in_vcol(MLoopCol *vcol, float float_value)
 	vcol->a = 1.0f;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
-                                  Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	DerivedMesh *dm = derivedData, *result;
 	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
@@ -217,7 +216,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	int totvert, totpoly, totloop /* , totedge */;
 	int maxvert, maxpoly, maxloop, part_end = 0, part_start;
 	int k, p, p_skip;
-	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
+	short track = ctx->object->trackflag % 3, trackneg, axis = pimd->axis;
 	float max_co = 0.0, min_co = 0.0, temp_co[3];
 	float *size = NULL;
 	float spacemat[4][4];
@@ -225,9 +224,9 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	const bool use_children = pimd->flag & eParticleInstanceFlag_Children;
 	bool between;
 
-	trackneg = ((ob->trackflag > 2) ? 1 : 0);
+	trackneg = ((ctx->object->trackflag > 2) ? 1 : 0);
 
-	if (pimd->ob == ob) {
+	if (pimd->ob == ctx->object) {
 		pimd->ob = NULL;
 		return derivedData;
 	}
@@ -252,7 +251,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	if (part_end == 0)
 		return derivedData;
 
-	sim.depsgraph = depsgraph;
+	sim.depsgraph = ctx->depsgraph;
 	sim.scene = md->scene;
 	sim.ob = pimd->ob;
 	sim.psys = psys;

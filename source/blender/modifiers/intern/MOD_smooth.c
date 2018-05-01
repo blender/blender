@@ -215,12 +215,12 @@ static void smoothModifier_do(
 	MEM_freeN(uctmp);
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, DerivedMesh *derivedData,
-                        float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+                        float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
+	DerivedMesh *dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
 
-	smoothModifier_do((SmoothModifierData *)md, ob, dm,
+	smoothModifier_do((SmoothModifierData *)md, ctx->object, dm,
 	                  vertexCos, numVerts);
 
 	if (dm != derivedData)
@@ -228,12 +228,12 @@ static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), O
 }
 
 static void deformVertsEM(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, false, false);
+	DerivedMesh *dm = get_dm(ctx->object, editData, derivedData, NULL, false, false);
 
-	smoothModifier_do((SmoothModifierData *)md, ob, dm,
+	smoothModifier_do((SmoothModifierData *)md, ctx->object, dm,
 	                  vertexCos, numVerts);
 
 	if (dm != derivedData)

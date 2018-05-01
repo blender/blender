@@ -44,28 +44,27 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *UNUSED(md), struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, DerivedMesh *UNUSED(derivedData),
+static void deformVerts(ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
+                        DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+                        int numVerts)
 {
-	Key *key = BKE_key_from_object(ob);
+	Key *key = BKE_key_from_object(ctx->object);
 
 	if (key && key->block.first) {
 		int deformedVerts_tot;
 		BKE_key_evaluate_object_ex(
-		            ob, &deformedVerts_tot,
+		            ctx->object, &deformedVerts_tot,
 		            (float *)vertexCos, sizeof(*vertexCos) * numVerts);
 
 	}
 }
 
-static void deformMatrices(ModifierData *md, struct Depsgraph *depsgraph, Object *ob, DerivedMesh *derivedData,
+static void deformMatrices(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
                            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
-	Key *key = BKE_key_from_object(ob);
-	KeyBlock *kb = BKE_keyblock_from_object(ob);
+	Key *key = BKE_key_from_object(ctx->object);
+	KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
 	float scale[3][3];
 
 	(void)vertexCos; /* unused */
@@ -73,37 +72,37 @@ static void deformMatrices(ModifierData *md, struct Depsgraph *depsgraph, Object
 	if (kb && kb->totelem == numVerts && kb != key->refkey) {
 		int a;
 
-		if (ob->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
+		if (ctx->object->shapeflag & OB_SHAPE_LOCK) scale_m3_fl(scale, 1);
 		else scale_m3_fl(scale, kb->curval);
 
 		for (a = 0; a < numVerts; a++)
 			copy_m3_m3(defMats[a], scale);
 	}
 
-	deformVerts(md, depsgraph, ob, derivedData, vertexCos, numVerts, 0);
+	deformVerts(md, ctx, derivedData, vertexCos, numVerts);
 }
 
-static void deformVertsEM(ModifierData *md, struct Depsgraph *depsgraph, Object *ob,
+static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
                           struct BMEditMesh *UNUSED(editData),
                           DerivedMesh *derivedData,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-	Key *key = BKE_key_from_object(ob);
+	Key *key = BKE_key_from_object(ctx->object);
 
 	if (key && key->type == KEY_RELATIVE)
-		deformVerts(md, depsgraph, ob, derivedData, vertexCos, numVerts, 0);
+		deformVerts(md, ctx, derivedData, vertexCos, numVerts);
 }
 
-static void deformMatricesEM(ModifierData *UNUSED(md), struct Depsgraph *UNUSED(depsgraph),
-                             Object *ob, struct BMEditMesh *UNUSED(editData),
+static void deformMatricesEM(ModifierData *UNUSED(md), const ModifierEvalContext *ctx,
+                             struct BMEditMesh *UNUSED(editData),
                              DerivedMesh *UNUSED(derivedData),
                              float (*vertexCos)[3],
                              float (*defMats)[3][3],
                              int numVerts)
 {
-	Key *key = BKE_key_from_object(ob);
-	KeyBlock *kb = BKE_keyblock_from_object(ob);
+	Key *key = BKE_key_from_object(ctx->object);
+	KeyBlock *kb = BKE_keyblock_from_object(ctx->object);
 	float scale[3][3];
 
 	(void)vertexCos; /* unused */

@@ -69,8 +69,9 @@ static void initData(ModifierData *md)
 	cloth_init(clmd);
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
-                        int numVerts, ModifierApplyFlag UNUSED(flag))
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        DerivedMesh *derivedData, float (*vertexCos)[3],
+                        int numVerts)
 {
 	DerivedMesh *dm;
 	ClothModifierData *clmd = (ClothModifierData *) md;
@@ -83,7 +84,7 @@ static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph, Object *o
 			return;
 	}
 
-	dm = get_dm(ob, NULL, derivedData, NULL, false, false);
+	dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
 	if (dm == derivedData)
 		dm = CDDM_copy(dm);
 
@@ -94,7 +95,7 @@ static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph, Object *o
 	 * Also hopefully new cloth system will arrive soon..
 	 */
 	if (derivedData == NULL && clmd->sim_parms->shapekey_rest) {
-		KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ob),
+		KeyBlock *kb = BKE_keyblock_from_key(BKE_key_from_object(ctx->object),
 		                                     clmd->sim_parms->shapekey_rest);
 		if (kb && kb->data != NULL) {
 			float (*layerorco)[3];
@@ -109,7 +110,7 @@ static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph, Object *o
 
 	CDDM_apply_vert_coords(dm, vertexCos);
 
-	clothModifier_do(clmd, depsgraph, md->scene, ob, dm, vertexCos);
+	clothModifier_do(clmd, ctx->depsgraph, md->scene, ctx->object, dm, vertexCos);
 
 	dm->release(dm);
 }

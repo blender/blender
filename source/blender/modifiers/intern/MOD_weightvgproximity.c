@@ -368,8 +368,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (wmd->proximity_ob_target == NULL);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
-                                  DerivedMesh *derivedData, ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
 	DerivedMesh *dm = derivedData;
@@ -377,6 +377,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	MDeformWeight **dw, **tdw;
 	int numVerts;
 	float (*v_cos)[3] = NULL; /* The vertices coordinates. */
+	Object *ob = ctx->object;
 	Object *obr = NULL; /* Our target object. */
 	int defgrp_index;
 	float *tw = NULL;
@@ -400,7 +401,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	/* Check if we can just return the original mesh.
 	 * Must have verts and therefore verts assigned to vgroups to do anything useful!
 	 */
-	if ((numVerts == 0) || BLI_listbase_is_empty(&ob->defbase))
+	if ((numVerts == 0) || BLI_listbase_is_empty(&ctx->object->defbase))
 		return dm;
 
 	/* Get our target object. */

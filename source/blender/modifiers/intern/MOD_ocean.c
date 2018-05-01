@@ -555,13 +555,12 @@ static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
 }
 #endif /* WITH_OCEANSIM */
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	DerivedMesh *result;
 
-	result = doOcean(md, ob, derivedData, 0);
+	result = doOcean(md, ctx->object, derivedData, 0);
 
 	if (result != derivedData)
 		result->dirty |= DM_DIRTY_NORMALS;

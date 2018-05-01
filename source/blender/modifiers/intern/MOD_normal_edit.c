@@ -517,10 +517,10 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
-                                  DerivedMesh *dm, ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *dm)
 {
-	return normalEditModifier_do((NormalEditModifierData *)md, ob, dm);
+	return normalEditModifier_do((NormalEditModifierData *)md, ctx->object, dm);
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {

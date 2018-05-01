@@ -80,9 +80,8 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static Mesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
-                           Object *UNUSED(ob), struct Mesh *mesh,
-                           ModifierApplyFlag UNUSED(flag))
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                           struct Mesh *mesh)
 {
 	Mesh *result;
 	BuildModifierData *bmd = (BuildModifierData *) md;
@@ -116,7 +115,7 @@ static Mesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	range_vn_i(edgeMap, numEdge_src, 0);
 	range_vn_i(faceMap, numPoly_src, 0);
 
-	struct Scene *scene = DEG_get_input_scene(depsgraph);
+	struct Scene *scene = DEG_get_input_scene(ctx->depsgraph);
 	frac = (BKE_scene_frame_get(scene) - bmd->start) / bmd->length;
 	CLAMP(frac, 0.0f, 1.0f);
 	if (bmd->flag & MOD_BUILD_FLAG_REVERSE) {

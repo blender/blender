@@ -155,10 +155,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,
-                                  struct Depsgraph *UNUSED(depsgraph),
-                                  Object *ob,
-                                  DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+                                  const ModifierEvalContext *ctx,
+                                  DerivedMesh *derivedData)
 {
 	WeightVGEditModifierData *wmd = (WeightVGEditModifierData *) md;
 	DerivedMesh *dm = derivedData;
@@ -183,11 +181,11 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	/* Check if we can just return the original mesh.
 	 * Must have verts and therefore verts assigned to vgroups to do anything useful!
 	 */
-	if ((numVerts == 0) || BLI_listbase_is_empty(&ob->defbase))
+	if ((numVerts == 0) || BLI_listbase_is_empty(&ctx->object->defbase))
 		return dm;
 
 	/* Get vgroup idx from its name. */
-	defgrp_index = defgroup_name_index(ob, wmd->defgrp_name);
+	defgrp_index = defgroup_name_index(ctx->object, wmd->defgrp_name);
 	if (defgrp_index == -1)
 		return dm;
 
@@ -223,7 +221,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 		RNG *rng = NULL;
 
 		if (wmd->falloff_type == MOD_WVG_MAPPING_RANDOM)
-			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ob->id.name + 2));
+			rng = BLI_rng_new_srandom(BLI_ghashutil_strhash(ctx->object->id.name + 2));
 
 		weightvg_do_map(numVerts, new_w, wmd->falloff_type, wmd->cmap_curve, rng);
 
@@ -232,7 +230,7 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	}
 
 	/* Do masking. */
-	weightvg_do_mask(numVerts, NULL, org_w, new_w, ob, dm, wmd->mask_constant,
+	weightvg_do_mask(numVerts, NULL, org_w, new_w, ctx->object, dm, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->modifier.scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);

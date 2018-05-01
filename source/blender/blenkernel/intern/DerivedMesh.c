@@ -1145,6 +1145,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 	DerivedMesh *dm;
 	KeyBlock *kb;
+	ModifierEvalContext mectx = {depsgraph, ob, 0};
 
 	md->scene = scene;
 	
@@ -1167,7 +1168,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 		Mesh *mesh_orig_id = (Mesh *)DEG_get_original_id(&me->id);
 		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(mesh_orig_id, &numVerts);
 
-		modwrap_deformVerts(md, depsgraph, ob, NULL, deformedVerts, numVerts, 0);
+		modwrap_deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
 		dm = mesh_create_derived(me, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -1181,7 +1182,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 		if (build_shapekey_layers)
 			add_shapekey_layers(tdm, me, ob);
 		
-		dm = modwrap_applyModifier(md, depsgraph, ob, tdm, 0);
+		dm = modwrap_applyModifier(md, &mectx, tdm);
 		ASSERT_IS_VALID_DM(dm);
 
 		if (tdm != dm) tdm->release(tdm);
@@ -1796,6 +1797,12 @@ static void mesh_calc_modifiers(
 	if (useDeform)
 		deform_app_flags |= MOD_APPLY_USECACHE;
 
+	/* TODO(sybren): do we really need three context objects? Or do we modify
+	 * them on the fly to change the flags where needed? */
+	const ModifierEvalContext mectx_deform = {depsgraph, ob, deform_app_flags};
+	const ModifierEvalContext mectx_apply = {depsgraph, ob, app_flags};
+	const ModifierEvalContext mectx_orco = {depsgraph, ob, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO};
+
 	md = firstmd = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 
 	modifiers_clearErrors(ob);
@@ -1845,7 +1852,7 @@ static void mesh_calc_modifiers(
 				if (!deformedVerts)
 					deformedVerts = BKE_mesh_vertexCos_get(mesh_orig_id, &numVerts);
 
-				modwrap_deformVerts(md, depsgraph, ob, NULL, deformedVerts, numVerts, deform_app_flags);
+				modwrap_deformVerts(md, &mectx_deform, NULL, deformedVerts, numVerts);
 			}
 			else {
 				break;
@@ -1986,7 +1993,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 
-			modwrap_deformVerts(md, depsgraph, ob, dm, deformedVerts, numVerts, deform_app_flags);
+			modwrap_deformVerts(md, &mectx_deform, dm, deformedVerts, numVerts);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -2061,7 +2068,7 @@ static void mesh_calc_modifiers(
 				}
 			}
 
-			ndm = modwrap_applyModifier(md, depsgraph, ob, dm, app_flags);
+			ndm = modwrap_applyModifier(md, &mectx_apply, dm);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {
@@ -2088,7 +2095,7 @@ static void mesh_calc_modifiers(
 				                 (mti->requiredDataMask ?
 				                  mti->requiredDataMask(ob, md) : 0));
 
-				ndm = modwrap_applyModifier(md, depsgraph, ob, orcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+				ndm = modwrap_applyModifier(md, &mectx_orco, orcodm);
 				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
@@ -2106,7 +2113,7 @@ static void mesh_calc_modifiers(
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
 
-				ndm = modwrap_applyModifier(md, depsgraph, ob, clothorcodm, (app_flags & ~MOD_APPLY_USECACHE) | MOD_APPLY_ORCO);
+				ndm = modwrap_applyModifier(md, &mectx_orco, clothorcodm);
 				ASSERT_IS_VALID_DM(ndm);
 
 				if (ndm) {
@@ -2300,6 +2307,11 @@ static void editbmesh_calc_modifiers(
 	const bool do_mod_wmcol = do_init_wmcol;
 	VirtualModifierData virtualModifierData;
 
+	/* TODO(sybren): do we really need multiple objects, or shall we change the flags where needed? */
+	const ModifierEvalContext mectx = {depsgraph, ob, 0};
+	const ModifierEvalContext mectx_orco = {depsgraph, ob, MOD_APPLY_ORCO};
+	const ModifierEvalContext mectx_cache_gpu = {depsgraph, ob, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU};
+
 	const bool do_loop_normals = (((Mesh *)(ob->data))->flag & ME_AUTOSMOOTH) != 0;
 	const float loop_normals_split_angle = ((Mesh *)(ob->data))->smoothresh;
 
@@ -2363,9 +2375,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->deformVertsEM || mti->deformVertsEM_DM)
-				modwrap_deformVertsEM(md, depsgraph, ob, em, dm, deformedVerts, numVerts);
+				modwrap_deformVertsEM(md, &mectx, em, dm, deformedVerts, numVerts);
 			else
-				modwrap_deformVerts(md, depsgraph, ob, dm, deformedVerts, numVerts, 0);
+				modwrap_deformVerts(md, &mectx, dm, deformedVerts, numVerts);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -2410,10 +2422,10 @@ static void editbmesh_calc_modifiers(
 				DM_set_only_copy(orcodm, mask | CD_MASK_ORIGINDEX);
 
 				if (mti->applyModifierEM || mti->applyModifierEM_DM) {
-					ndm = modwrap_applyModifierEM(md, depsgraph, ob, em, orcodm, MOD_APPLY_ORCO);
+					ndm = modwrap_applyModifierEM(md, &mectx_orco, em, orcodm);
 				}
 				else {
-					ndm = modwrap_applyModifier(md, depsgraph, ob, orcodm, MOD_APPLY_ORCO);
+					ndm = modwrap_applyModifier(md, &mectx_orco, orcodm);
 				}
 				ASSERT_IS_VALID_DM(ndm);
 
@@ -2438,9 +2450,9 @@ static void editbmesh_calc_modifiers(
 			}
 
 			if (mti->applyModifierEM || mti->applyModifierEM_DM)
-				ndm = modwrap_applyModifierEM(md, depsgraph, ob, em, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
+				ndm = modwrap_applyModifierEM(md, &mectx_cache_gpu, em, dm);
 			else
-				ndm = modwrap_applyModifier(md, depsgraph, ob, dm, MOD_APPLY_USECACHE | MOD_APPLY_ALLOW_GPU);
+				ndm = modwrap_applyModifier(md, &mectx_cache_gpu, dm);
 			ASSERT_IS_VALID_DM(ndm);
 
 			if (ndm) {

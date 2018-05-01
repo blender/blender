@@ -261,6 +261,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 	int cageIndex = modifiers_getCageIndex(scene, ob, NULL, 1);
 	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
 	VirtualModifierData virtualModifierData;
+	ModifierEvalContext mectx = {depsgraph, ob, 0};
 
 	modifiers_clearErrors(ob);
 
@@ -292,7 +293,7 @@ int BKE_crazyspace_get_first_deform_matrices_editbmesh(
 					unit_m3(defmats[a]);
 			}
 
-			modifier_deformMatricesEM_DM_deprecated(md, depsgraph, ob, em, dm, deformedVerts, defmats, numVerts);
+			modifier_deformMatricesEM_DM_deprecated(md, &mectx, em, dm, deformedVerts, defmats, numVerts);
 		}
 		else
 			break;
@@ -323,6 +324,7 @@ int BKE_sculpt_get_first_deform_matrices(
 	const bool has_multires = mmd != NULL && mmd->sculptlvl > 0;
 	int numleft = 0;
 	VirtualModifierData virtualModifierData;
+	ModifierEvalContext mectx = {depsgraph, ob, 0};
 
 	if (has_multires) {
 		*deformmats = NULL;
@@ -350,7 +352,7 @@ int BKE_sculpt_get_first_deform_matrices(
 			}
 
 			if (mti->deformMatrices || mti->deformMatrices_DM) {
-				modifier_deformMatrices_DM_deprecated(md, depsgraph, ob, dm, deformedVerts, defmats, numVerts);
+				modifier_deformMatrices_DM_deprecated(md, &mectx, dm, deformedVerts, defmats, numVerts);
 			}
 			else break;
 		}
@@ -388,6 +390,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph, Scene *scene, Obje
 		int i, deformed = 0;
 		VirtualModifierData virtualModifierData;
 		ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
+		ModifierEvalContext mectx = {depsgraph, ob, 0};
 		Mesh *me = (Mesh *)ob->data;
 
 		for (; md; md = md->next) {
@@ -401,7 +404,7 @@ void BKE_crazyspace_build_sculpt(struct Depsgraph *depsgraph, Scene *scene, Obje
 				if ((mti->deformMatrices || mti->deformMatrices_DM) && !deformed)
 					continue;
 
-				modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, deformedVerts, me->totvert, 0);
+				modifier_deformVerts_DM_deprecated(md, &mectx, NULL, deformedVerts, me->totvert);
 				deformed = 1;
 			}
 		}

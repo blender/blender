@@ -1033,6 +1033,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	float (*vertexCos)[3] = NULL;
 	int numVerts, editmode = (lt->editlatt != NULL);
+	const ModifierEvalContext mectx = {depsgraph, ob, 0};
 
 	if (ob->curve_cache) {
 		BKE_displist_free(&ob->curve_cache->disp);
@@ -1053,7 +1054,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
-		modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, vertexCos, numVerts, 0);
+		modifier_deformVerts_DM_deprecated(md, &mectx, NULL, vertexCos, numVerts);
 	}
 
 	/* always displist to make this work like derivedmesh */

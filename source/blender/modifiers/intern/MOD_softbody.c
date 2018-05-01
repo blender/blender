@@ -49,13 +49,12 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *md, Depsgraph *depsgraph, Object *ob,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
                         DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+                        int numVerts)
 {
-	sbObjectStep(depsgraph, md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
+	sbObjectStep(ctx->depsgraph, md->scene, ctx->object, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

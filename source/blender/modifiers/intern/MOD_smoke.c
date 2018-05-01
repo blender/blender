@@ -102,16 +102,15 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Depsgraph *depsgraph,
-                                  Object *ob, DerivedMesh *dm,
-                                  ModifierApplyFlag flag)
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *dm)
 {
 	SmokeModifierData *smd = (SmokeModifierData *) md;
 
-	if (flag & MOD_APPLY_ORCO)
+	if (ctx->flag & MOD_APPLY_ORCO)
 		return dm;
 
-	return smokeModifier_do(smd, depsgraph, md->scene, ob, dm);
+	return smokeModifier_do(smd, ctx->depsgraph, md->scene, ctx->object, dm);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

@@ -98,15 +98,15 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        DerivedMesh *derivedData,
                         float (*vertexCos)[3],
-                        int UNUSED(numVerts),
-                        ModifierApplyFlag UNUSED(flag))
+                        int UNUSED(numVerts))
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	DerivedMesh *dm = NULL;
 	MVert *tempVert = NULL;
+	Object *ob = ctx->object;
 	
 	/* if possible use/create DerivedMesh */
 	if (derivedData) dm = CDDM_copy(derivedData);

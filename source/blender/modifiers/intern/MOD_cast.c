@@ -429,22 +429,21 @@ static void cuboid_do(
 	}
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        DerivedMesh *derivedData,
                         float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+                        int numVerts)
 {
 	DerivedMesh *dm = NULL;
 	CastModifierData *cmd = (CastModifierData *)md;
 
-	dm = get_dm(ob, NULL, derivedData, NULL, false, false);
+	dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-		cuboid_do(cmd, ob, dm, vertexCos, numVerts);
+		cuboid_do(cmd, ctx->object, dm, vertexCos, numVerts);
 	}
 	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-		sphere_do(cmd, ob, dm, vertexCos, numVerts);
+		sphere_do(cmd, ctx->object, dm, vertexCos, numVerts);
 	}
 
 	if (dm != derivedData)
@@ -452,18 +451,18 @@ static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
 }
 
 static void deformVertsEM(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-        Object *ob, struct BMEditMesh *editData,
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData,
         DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, false, false);
+	DerivedMesh *dm = get_dm(ctx->object, editData, derivedData, NULL, false, false);
 	CastModifierData *cmd = (CastModifierData *)md;
 
 	if (cmd->type == MOD_CAST_TYPE_CUBOID) {
-		cuboid_do(cmd, ob, dm, vertexCos, numVerts);
+		cuboid_do(cmd, ctx->object, dm, vertexCos, numVerts);
 	}
 	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
-		sphere_do(cmd, ob, dm, vertexCos, numVerts);
+		sphere_do(cmd, ctx->object, dm, vertexCos, numVerts);
 	}
 
 	if (dm != derivedData)

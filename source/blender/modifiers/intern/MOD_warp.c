@@ -309,24 +309,24 @@ static int warp_needs_dm(WarpModifierData *wmd)
 	return wmd->texture || wmd->defgrp_name[0];
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, DerivedMesh *derivedData,
-                        float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+                        float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = NULL;
 	int use_dm = warp_needs_dm((WarpModifierData *)md);
 
 	if (use_dm) {
-		dm = get_cddm(ob, NULL, derivedData, vertexCos, false);
+		dm = get_cddm(ctx->object, NULL, derivedData, vertexCos, false);
 	}
 
-	warpModifier_do((WarpModifierData *)md, ob, dm, vertexCos, numVerts);
+	warpModifier_do((WarpModifierData *)md, ctx->object, dm, vertexCos, numVerts);
 
 	if (use_dm) {
 		if (dm != derivedData) dm->release(dm);
 	}
 }
 
-static void deformVertsEM(ModifierData *md, struct Depsgraph *depsgraph, Object *ob, struct BMEditMesh *em,
+static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
                           DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
@@ -337,7 +337,7 @@ static void deformVertsEM(ModifierData *md, struct Depsgraph *depsgraph, Object 
 			dm = CDDM_from_editbmesh(em, false, false);
 	}
 
-	deformVerts(md, depsgraph, ob, dm, vertexCos, numVerts, 0);
+	deformVerts(md, ctx, dm, vertexCos, numVerts);
 
 	if (use_dm) {
 		if (!derivedData) dm->release(dm);

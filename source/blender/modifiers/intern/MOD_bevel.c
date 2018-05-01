@@ -86,9 +86,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 /*
  * This calls the new bevel code (added since 2.64)
  */
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  struct Object *ob, DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *dm)
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -103,12 +102,12 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	const bool vertex_only = (bmd->flags & MOD_BEVEL_VERT) != 0;
 	const bool do_clamp = !(bmd->flags & MOD_BEVEL_OVERLAP_OK);
 	const int offset_type = bmd->val_flags;
-	const int mat = CLAMPIS(bmd->mat, -1, ob->totcol - 1);
+	const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
 	const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
 
 	bm = DM_to_bmesh(dm, true);
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
-		modifier_get_vgroup(ob, dm, bmd->defgrp_name, &dvert, &vgroup);
+		modifier_get_vgroup(ctx->object, dm, bmd->defgrp_name, &dvert, &vgroup);
 
 	if (vertex_only) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {

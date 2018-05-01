@@ -67,14 +67,14 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
-                                  DerivedMesh *dm, ModifierApplyFlag flag)
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *dm)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	DerivedMesh *result;
-	Mesh *me = (Mesh *)ob->data;
-	const bool useRenderParams = (flag & MOD_APPLY_RENDER) != 0;
-	const bool ignore_simplify = (flag & MOD_APPLY_IGNORE_SIMPLIFY) != 0;
+	Mesh *me = (Mesh *)ctx->object->data;
+	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
+	const bool ignore_simplify = (ctx->flag & MOD_APPLY_IGNORE_SIMPLIFY) != 0;
 	MultiresFlags flags = 0;
 	const bool has_mask = CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK);
 
@@ -94,12 +94,12 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	if (ignore_simplify)
 		flags |= MULTIRES_IGNORE_SIMPLIFY;
 
-	result = multires_make_derived_from_derived(dm, mmd, ob, flags);
+	result = multires_make_derived_from_derived(dm, mmd, ctx->object, flags);
 
 	if (result == dm)
 		return dm;
 
-	if (useRenderParams || !(flag & MOD_APPLY_USECACHE)) {
+	if (useRenderParams || !(ctx->flag & MOD_APPLY_USECACHE)) {
 		DerivedMesh *cddm;
 		
 		cddm = CDDM_copy(result);

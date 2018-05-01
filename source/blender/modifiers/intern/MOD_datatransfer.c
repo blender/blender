@@ -148,15 +148,14 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	DT_TYPE_SHARP_FACE \
 )
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph, Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData)
 {
 	DataTransferModifierData *dtmd = (DataTransferModifierData *) md;
 	DerivedMesh *dm = derivedData;
 	ReportList reports;
 
 	/* Only used to check wehther we are operating on org data or not... */
-	Mesh *me = ob->data;
+	Mesh *me = ctx->object->data;
 
 	const bool invert_vgroup = (dtmd->flags & MOD_DATATRANSFER_INVERT_VGROUP) != 0;
 
@@ -166,7 +165,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	SpaceTransform *space_transform = (dtmd->flags & MOD_DATATRANSFER_OBSRC_TRANSFORM) ? &space_transform_data : NULL;
 
 	if (space_transform) {
-		BLI_SPACE_TRANSFORM_SETUP(space_transform, ob, dtmd->ob_source);
+		BLI_SPACE_TRANSFORM_SETUP(space_transform, ctx->object, dtmd->ob_source);
 	}
 
 	MVert *mvert = dm->getVertArray(dm);
@@ -180,7 +179,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *depsgraph,
 	BKE_reports_init(&reports, RPT_STORE);
 
 	/* Note: no islands precision for now here. */
-	BKE_object_data_transfer_dm(depsgraph, md->scene, dtmd->ob_source, ob, dm, dtmd->data_types, false,
+	BKE_object_data_transfer_dm(ctx->depsgraph, md->scene, dtmd->ob_source, ctx->object, dm, dtmd->data_types, false,
 	                     dtmd->vmap_mode, dtmd->emap_mode, dtmd->lmap_mode, dtmd->pmap_mode,
 	                     space_transform, false, max_dist, dtmd->map_ray_radius, 0.0f,
 	                     dtmd->layers_select_src, dtmd->layers_select_dst,

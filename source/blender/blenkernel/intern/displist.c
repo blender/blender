@@ -827,6 +827,8 @@ static void curve_calc_modifiers_pre(
 	else
 		required_mode = eModifierMode_Realtime;
 
+	const ModifierEvalContext mectx = {depsgraph, ob, app_flag};
+
 	pretessellatePoint = curve_get_tessellate_point(scene, ob, use_render_resolution, editmode);
 
 	if (editmode)
@@ -860,7 +862,7 @@ static void curve_calc_modifiers_pre(
 				deformedVerts = BKE_curve_nurbs_vertexCos_get(nurb, &numVerts);
 			}
 
-			modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, deformedVerts, numVerts, app_flag);
+			modifier_deformVerts_DM_deprecated(md, &mectx, NULL, deformedVerts, numVerts);
 
 			if (md == pretessellatePoint)
 				break;
@@ -935,6 +937,11 @@ static void curve_calc_modifiers_post(
 	else
 		required_mode = eModifierMode_Realtime;
 
+	const ModifierEvalContext mectx_deform = {depsgraph, ob,
+	                                          editmode ? app_flag | MOD_APPLY_USECACHE : app_flag};
+	const ModifierEvalContext mectx_apply = {depsgraph, ob,
+	                                         useCache ? app_flag | MOD_APPLY_USECACHE : app_flag};
+
 	pretessellatePoint = curve_get_tessellate_point(scene, ob, use_render_resolution, editmode);
 
 	if (editmode)
@@ -950,8 +957,6 @@ static void curve_calc_modifiers_post(
 
 	for (; md; md = md->next) {
 		const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-		ModifierApplyFlag appf = app_flag;
-
 		md->scene = scene;
 
 		if (!modifier_isEnabled(scene, md, required_mode))
@@ -960,8 +965,6 @@ static void curve_calc_modifiers_post(
 		if (mti->type == eModifierTypeType_OnlyDeform ||
 		    (mti->type == eModifierTypeType_DeformOrConstruct && !dm))
 		{
-			if (editmode)
-				appf |= MOD_APPLY_USECACHE;
 			if (dm) {
 				if (!vertCos) {
 					totvert = dm->getNumVerts(dm);
@@ -969,14 +972,14 @@ static void curve_calc_modifiers_post(
 					dm->getVertCos(dm, vertCos);
 				}
 
-				modifier_deformVerts_DM_deprecated(md, depsgraph, ob, dm, vertCos, totvert, appf);
+				modifier_deformVerts_DM_deprecated(md, &mectx_deform, dm, vertCos, totvert);
 			}
 			else {
 				if (!vertCos) {
 					vertCos = displist_get_allverts(dispbase, &totvert);
 				}
 
-				modifier_deformVerts_DM_deprecated(md, depsgraph, ob, NULL, vertCos, totvert, appf);
+				modifier_deformVerts_DM_deprecated(md, &mectx_deform, NULL, vertCos, totvert);
 			}
 		}
 		else {
@@ -1015,10 +1018,7 @@ static void curve_calc_modifiers_post(
 				vertCos = NULL;
 			}
 
-			if (useCache)
-				appf |= MOD_APPLY_USECACHE;
-
-			ndm = modwrap_applyModifier(md, depsgraph, ob, dm, appf);
+			ndm = modwrap_applyModifier(md, &mectx_apply, dm);
 
 			if (ndm) {
 				/* Modifier returned a new derived mesh */
@@ -1162,6 +1162,8 @@ static void curve_calc_orcodm(
 	else
 		required_mode = eModifierMode_Realtime;
 
+	const ModifierEvalContext mectx = {depsgraph, ob, app_flag};
+
 	pretessellatePoint = curve_get_tessellate_point(scene, ob, use_render_resolution, editmode);
 
 	if (editmode)
@@ -1190,7 +1192,7 @@ static void curve_calc_orcodm(
 		if (mti->type != eModifierTypeType_Constructive)
 			continue;
 
-		ndm = modwrap_applyModifier(md, depsgraph, ob, orcodm, app_flag);
+		ndm = modwrap_applyModifier(md, &mectx, orcodm);
 
 		if (ndm) {
 			/* if the modifier returned a new dm, release the old one */

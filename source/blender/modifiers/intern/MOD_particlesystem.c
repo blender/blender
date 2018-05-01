@@ -97,11 +97,10 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 
 /* saves the current emitter state for a particle system and calculates particles */
-static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph,
-                        Object *ob, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        DerivedMesh *derivedData,
                         float (*vertexCos)[3],
-                        int UNUSED(numVerts),
-                        ModifierApplyFlag flag)
+                        int UNUSED(numVerts))
 {
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
@@ -109,16 +108,16 @@ static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph,
 	bool needsFree = false;
 	/* float cfra = BKE_scene_frame_get(md->scene); */  /* UNUSED */
 
-	if (ob->particlesystem.first)
+	if (ctx->object->particlesystem.first)
 		psys = psmd->psys;
 	else
 		return;
 	
-	if (!psys_check_enabled(ob, psys, (flag & MOD_APPLY_RENDER) != 0))
+	if (!psys_check_enabled(ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0))
 		return;
 
 	if (dm == NULL) {
-		dm = get_dm(ob, NULL, NULL, vertexCos, false, true);
+		dm = get_dm(ctx->object, NULL, NULL, vertexCos, false, true);
 
 		if (!dm)
 			return;
@@ -163,11 +162,11 @@ static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph,
 	if (!psmd->dm_final->deformedOnly) {
 		/* XXX Think we can assume here that if current DM is not only-deformed, ob->deformedOnly has been set.
 		 *     This is awfully weak though. :| */
-		if (ob->derivedDeform) {
-			psmd->dm_deformed = CDDM_copy(ob->derivedDeform);
+		if (ctx->object->derivedDeform) {
+			psmd->dm_deformed = CDDM_copy(ctx->object->derivedDeform);
 		}
 		else {  /* Can happen in some cases, e.g. when rendering from Edit mode... */
-			psmd->dm_deformed = CDDM_from_mesh((Mesh *)ob->data);
+			psmd->dm_deformed = CDDM_from_mesh((Mesh *)ctx->object->data);
 		}
 		DM_ensure_tessface(psmd->dm_deformed);
 	}
@@ -184,9 +183,9 @@ static void deformVerts(ModifierData *md, struct Depsgraph *depsgraph,
 		psmd->totdmface = psmd->dm_final->getNumTessFaces(psmd->dm_final);
 	}
 
-	if (!(ob->transflag & OB_NO_PSYS_UPDATE)) {
+	if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
-		particle_system_update(depsgraph, md->scene, ob, psys, (flag & MOD_APPLY_RENDER) != 0);
+		particle_system_update(ctx->depsgraph, md->scene, ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0);
 		psmd->flag |= eParticleSystemFlag_psys_updated;
 	}
 }

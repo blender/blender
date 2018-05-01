@@ -384,22 +384,21 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, struct Mesh *mesh,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        struct Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+                        int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, mesh, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh, vertexCos, numVerts);
 }
 
-static void deformVertsEM(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                          Object *ob, struct BMEditMesh *UNUSED(editData),
+static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
+                          struct BMEditMesh *UNUSED(editData),
                           struct Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, mesh, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh, vertexCos, numVerts);
 }
 
 

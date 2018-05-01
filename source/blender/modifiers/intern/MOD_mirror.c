@@ -330,14 +330,13 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	return result;
 }
 
-static Mesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                           Object *ob, Mesh *mesh,
-                           ModifierApplyFlag UNUSED(flag))
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                           Mesh *mesh)
 {
 	Mesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
-	result = mirrorModifier__doMirror(mmd, ob, mesh);
+	result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
 	BKE_mesh_calc_normals(result);
 
 	return result;

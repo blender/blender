@@ -110,17 +110,16 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                        Object *ob, Mesh *mesh,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
+                        Mesh *mesh,
                         float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+                        int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 	
-	armature_deform_verts(amd->object, ob, mesh, vertexCos, NULL,
+	armature_deform_verts(amd->object, ctx->object, mesh, vertexCos, NULL,
 	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
 
 	/* free cache */
@@ -131,7 +130,7 @@ static void deformVerts(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
 }
 
 static void deformVertsEM(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, struct BMEditMesh *em,
+        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
@@ -147,7 +146,7 @@ static void deformVertsEM(
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	armature_deform_verts(amd->object, ob, mesh_src, vertexCos, NULL,
+	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, NULL,
 	                      numVerts, amd->deformflag, (float(*)[3])amd->prevCos, amd->defgrp_name);
 
 	/* free cache */
@@ -163,7 +162,7 @@ static void deformVertsEM(
 }
 
 static void deformMatricesEM(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, struct BMEditMesh *em,
+        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
         Mesh *mesh, float (*vertexCos)[3],
         float (*defMats)[3][3], int numVerts)
 {
@@ -178,7 +177,7 @@ static void deformMatricesEM(
 		BM_mesh_bm_to_me(em->bm, mesh_src, &params);
 	}
 
-	armature_deform_verts(amd->object, ob, mesh_src, vertexCos, defMats, numVerts,
+	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if (!mesh) {
@@ -187,13 +186,13 @@ static void deformMatricesEM(
 	}
 }
 
-static void deformMatrices(ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob, Mesh *mesh,
+static void deformMatrices(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
                            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 	ArmatureModifierData *amd = (ArmatureModifierData *) md;
-	Mesh *mesh_src = mesh ? mesh : ob->data;
+	Mesh *mesh_src = mesh ? mesh : ctx->object->data;
 
-	armature_deform_verts(amd->object, ob, mesh_src, vertexCos, defMats, numVerts,
+	armature_deform_verts(amd->object, ctx->object, mesh_src, vertexCos, defMats, numVerts,
 	                      amd->deformflag, NULL, amd->defgrp_name);
 }
 

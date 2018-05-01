@@ -166,9 +166,8 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 }
 
 static DerivedMesh *applyModifier(
-        ModifierData *md, struct Depsgraph *UNUSED(depsgraph), Object *ob,
-        DerivedMesh *dm,
-        ModifierApplyFlag flag)
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *dm)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 	DerivedMesh *dm_other;
@@ -176,7 +175,7 @@ static DerivedMesh *applyModifier(
 	if (!bmd->object)
 		return dm;
 
-	dm_other = get_dm_for_modifier(bmd->object, flag);
+	dm_other = get_dm_for_modifier(bmd->object, ctx->flag);
 
 	if (dm_other) {
 		DerivedMesh *result;
@@ -184,10 +183,10 @@ static DerivedMesh *applyModifier(
 		/* when one of objects is empty (has got no faces) we could speed up
 		 * calculation a bit returning one of objects' derived meshes (or empty one)
 		 * Returning mesh is depended on modifiers operation (sergey) */
-		result = get_quick_derivedMesh(ob, dm, bmd->object, dm_other, bmd->operation);
+		result = get_quick_derivedMesh(ctx->object, dm, bmd->object, dm_other, bmd->operation);
 
 		if (result == NULL) {
-			const bool is_flip = (is_negative_m4(ob->obmat) != is_negative_m4(bmd->object->obmat));
+			const bool is_flip = (is_negative_m4(ctx->object->obmat) != is_negative_m4(bmd->object->obmat));
 
 			BMesh *bm;
 			const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_DM(dm, dm_other);
@@ -234,7 +233,7 @@ static DerivedMesh *applyModifier(
 					float imat[4][4];
 					float omat[4][4];
 
-					invert_m4_m4(imat, ob->obmat);
+					invert_m4_m4(imat, ctx->object->obmat);
 					mul_m4_m4m4(omat, imat, bmd->object->obmat);
 
 					BMVert *eve;
@@ -260,7 +259,7 @@ static DerivedMesh *applyModifier(
 						const short ob_src_totcol = bmd->object->totcol;
 						short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
 
-						BKE_material_remap_object_calc(ob, bmd->object, material_remap);
+						BKE_material_remap_object_calc(ctx->object, bmd->object, material_remap);
 
 						BMFace *efa;
 						i = 0;

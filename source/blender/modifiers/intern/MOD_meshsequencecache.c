@@ -90,15 +90,14 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (mcmd->cache_file == NULL) || (mcmd->object_path[0] == '\0');
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(depsgraph),
-                                  Object *ob, DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                                  DerivedMesh *dm)
 {
 #ifdef WITH_ALEMBIC
 	MeshSeqCacheModifierData *mcmd = (MeshSeqCacheModifierData *) md;
 
 	/* Only used to check whether we are operating on org data or not... */
-	Mesh *me = (ob->type == OB_MESH) ? ob->data : NULL;
+	Mesh *me = (ctx->object->type == OB_MESH) ? ctx->object->data : NULL;
 	DerivedMesh *org_dm = dm;
 
 	Scene *scene = md->scene;
@@ -113,7 +112,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	if (!mcmd->reader) {
 		mcmd->reader = CacheReader_open_alembic_object(cache_file->handle,
 		                                               NULL,
-		                                               ob,
+		                                               ctx->object,
 		                                               mcmd->object_path);
 		if (!mcmd->reader) {
 			modifier_setError(md, "Could not create Alembic reader for file %s", cache_file->filepath);
@@ -132,7 +131,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	}
 
 	DerivedMesh *result = ABC_read_mesh(mcmd->reader,
-	                                    ob,
+	                                    ctx->object,
 	                                    dm,
 	                                    time,
 	                                    &err_str,
@@ -150,7 +149,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Depsgraph *UNUSED(dep
 	return result ? result : dm;
 #else
 	return dm;
-	UNUSED_VARS(md, ob);
+	UNUSED_VARS(ctx, md);
 #endif
 }
 
