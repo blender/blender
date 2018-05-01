@@ -1138,7 +1138,7 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	if (mti->applyModifierEM) {
+	if (mti->applyModifierEM_DM) {
 		return mti->applyModifierEM_DM(md, ctx, editData, dm);
 	}
 	else {
