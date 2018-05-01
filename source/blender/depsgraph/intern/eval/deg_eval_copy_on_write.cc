@@ -45,6 +45,7 @@
 #include <cstring>
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_string.h"
 
@@ -61,6 +62,7 @@
 
 extern "C" {
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -329,7 +331,6 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 	}
 	return !ELEM(id_type, ID_BR,
 	                      ID_LS,
-	                      ID_AC,
 	                      ID_PAL);
 }
 
