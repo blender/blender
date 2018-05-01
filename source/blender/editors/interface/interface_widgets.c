@@ -3562,7 +3562,8 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 			factor = (value - but->softmin) / (but->softmax - but->softmin);
 		}
 
-		factor_ui = factor * (float)BLI_rcti_size_x(rect);
+		float width = (float)BLI_rcti_size_x(rect);
+		factor_ui = factor * width;
 
 		if (factor_ui <= offs) {
 			/* Left part only. */
@@ -3570,7 +3571,7 @@ static void widget_numslider(uiBut *but, uiWidgetColors *wcol, rcti *rect, int s
 			rect1.xmax = rect1.xmin + offs;
 			factor_discard = factor_ui / offs;
 		}
-		else if (factor_ui <= rect->xmax - offs) {
+		else if (factor_ui <= width - offs) {
 			/* Left part + middle part. */
 			roundboxalign_slider &= ~(UI_CNR_TOP_RIGHT | UI_CNR_BOTTOM_RIGHT);
 			rect1.xmax = rect1.xmin + factor_ui;
