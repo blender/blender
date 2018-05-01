@@ -635,28 +635,20 @@ class _defs_weight_paint:
         )
 
     @ToolDef.from_fn
-    def gradient_linear():
-        return dict(
-            text="Linear Gradient",
-            icon="ops.paint.weight_gradient.linear",
-            widget=None,
-            keymap=(
-                ("paint.weight_gradient", dict(type='LINEAR'),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
-            ),
-        )
+    def gradient():
+        def draw_settings(context, layout):
+            wm = context.window_manager
+            props = wm.operator_properties_last("paint.weight_gradient")
+            layout.prop(props, "type")
 
-    @ToolDef.from_fn
-    def gradient_radial():
         return dict(
-            text="Radial Gradient",
-            icon="ops.paint.weight_gradient.radial",
+            text="Gradient",
+            icon="ops.paint.weight_gradient",
             widget=None,
             keymap=(
-                ("paint.weight_gradient",
-                 dict(type='RADIAL'),
-                 dict(type='EVT_TWEAK_A', value='ANY')),
+                ("paint.weight_gradient", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
             ),
+            draw_settings=draw_settings,
         )
 
 
@@ -800,10 +792,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             # TODO, override brush events
             *_tools_select,
             None,
-            (
-                _defs_weight_paint.gradient_linear,
-                _defs_weight_paint.gradient_radial,
-            ),
+            _defs_weight_paint.gradient,
         ],
     }
 
