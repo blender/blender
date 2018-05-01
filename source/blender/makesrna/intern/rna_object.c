@@ -1133,6 +1133,37 @@ static void rna_Object_constraints_clear(Object *object)
 	WM_main_add_notifier(NC_OBJECT | ND_CONSTRAINT | NA_REMOVED, object);
 }
 
+bool rna_Object_constraints_override_apply(
+        PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
+        PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
+        const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        IDOverrideStaticPropertyOperation *opop)
+{
+	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
+	           "Unsupported RNA override operation on constraints collection");
+
+	printf("%s: We are supposed to insert a constraint...\n", __func__);
+	return false;
+#if 0
+	/* AnimData is a special case, since you cannot edit/replace it, it's either existent or not. */
+	AnimData *adt_dst = RNA_property_pointer_get(ptr_dst, prop_dst).data;
+	AnimData *adt_src = RNA_property_pointer_get(ptr_src, prop_src).data;
+
+	if (adt_dst == NULL && adt_src != NULL) {
+		/* Copy anim data from reference into final local ID. */
+		BKE_animdata_copy_id(NULL, ptr_dst->id.data, ptr_src->id.data, false, true);
+		return true;
+	}
+	else if (adt_dst != NULL && adt_src == NULL) {
+		/* Override has cleared/removed anim data from its reference. */
+		BKE_animdata_free(ptr_dst->id.data, true);
+		return true;
+	}
+
+	return false;
+#endif
+}
+
 static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports,
                                              const char *name, int type)
 {
@@ -2075,6 +2106,7 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC | PROP_OVERRIDABLE_STATIC_INSERTION);
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints affecting the transformation of the object");
+	RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Object_constraints_override_apply");
 /*	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, NULL, NULL, NULL, NULL, "constraints__add", "constraints__remove"); */
 	rna_def_object_constraints(brna, prop);
 

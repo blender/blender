@@ -7684,12 +7684,20 @@ bool RNA_struct_override_store(
 static void rna_property_override_apply_ex(
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
-        IDOverrideStaticProperty *op)
+        IDOverrideStaticProperty *op, const bool do_insert)
 {
 	for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
+		if (!do_insert != !ELEM(opop->operation, IDOVERRIDESTATIC_OP_INSERT_AFTER, IDOVERRIDESTATIC_OP_INSERT_BEFORE)) {
+			if (!do_insert) {
+				printf("Skipping insert override operations in first pass (%s)!\n", op->rna_path);
+			}
+			continue;
+		}
 		if (!rna_property_override_operation_apply(ptr_local, ptr_override, ptr_storage,
 		                                           prop_local, prop_override, prop_storage, opop))
 		{
+			/* TODO No assert here, would be much much better to just report as warning,
+			 * failing override applications will probably be fairly common! */
 			BLI_assert(0);
 		}
 	}
@@ -7703,32 +7711,38 @@ void RNA_struct_override_apply(
 #ifdef DEBUG_OVERRIDE_TIMEIT
 	TIMEIT_START_AVERAGED(RNA_struct_override_apply);
 #endif
-	for (IDOverrideStaticProperty *op = override->properties.first; op; op = op->next) {
-		/* Simplified for now! */
-		PointerRNA data_override, data_local;
-		PropertyRNA *prop_override, *prop_local;
+	/* Note: Applying insert operations in a separate pass is mandatory.
+	 * We could optimize this later, but for now, as inneficient as it is, don't think this is a critical point.
+	 */
+	bool do_insert = false;
+	for (int i = 0; i < 2; i++, do_insert = true) {
+		for (IDOverrideStaticProperty *op = override->properties.first; op; op = op->next) {
+			/* Simplified for now! */
+			PointerRNA data_override, data_local;
+			PropertyRNA *prop_override, *prop_local;
 
-		if (RNA_path_resolve_property(ptr_local, op->rna_path, &data_local, &prop_local) &&
-		    RNA_path_resolve_property(ptr_override, op->rna_path, &data_override, &prop_override))
-		{
-			PointerRNA data_storage;
-			PropertyRNA *prop_storage = NULL;
+			if (RNA_path_resolve_property(ptr_local, op->rna_path, &data_local, &prop_local) &&
+			    RNA_path_resolve_property(ptr_override, op->rna_path, &data_override, &prop_override))
+			{
+				PointerRNA data_storage;
+				PropertyRNA *prop_storage = NULL;
 
-			/* It is totally OK if this does not success, only a subset of override operations actually need storage. */
-			if (ptr_storage && (ptr_storage->id.data != NULL)) {
-				RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
+				/* It is totally OK if this does not success, only a subset of override operations actually need storage. */
+				if (ptr_storage && (ptr_storage->id.data != NULL)) {
+					RNA_path_resolve_property(ptr_storage, op->rna_path, &data_storage, &prop_storage);
+				}
+
+				rna_property_override_apply_ex(
+				            &data_local, &data_override, prop_storage ? &data_storage : NULL,
+				            prop_local, prop_override, prop_storage, op, do_insert);
 			}
-
-			rna_property_override_apply_ex(
-			            &data_local, &data_override, prop_storage ? &data_storage : NULL,
-			            prop_local, prop_override, prop_storage, op);
-		}
 #ifndef NDEBUG
-		else {
-			printf("Failed to apply static override operation to '%s.%s' (could not resolve some properties)\n",
-			       ((ID *)ptr_override->id.data)->name, op->rna_path);
-		}
+			else {
+				printf("Failed to apply static override operation to '%s.%s' (could not resolve some properties)\n",
+				       ((ID *)ptr_override->id.data)->name, op->rna_path);
+			}
 #endif
+		}
 	}
 #ifdef DEBUG_OVERRIDE_TIMEIT
 	TIMEIT_END_AVERAGED(RNA_struct_override_apply);
