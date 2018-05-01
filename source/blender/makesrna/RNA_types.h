@@ -158,7 +158,7 @@ typedef enum PropertySubType {
 
 /* Make sure enums are updated with these */
 /* HIGHEST FLAG IN USE: 1 << 31
- * FREE FLAGS: 9, 11, 13, 14, 15, 30 */
+ * FREE FLAGS: 11, 13, 14, 15, 30 */
 typedef enum PropertyFlag {
 	/* editable means the property is editable in the user
 	 * interface, properties are editable by default except
@@ -178,6 +178,8 @@ typedef enum PropertyFlag {
 
 	/* Means the property can be overriden by a local 'proxy' of some linked datablock. */
 	PROP_OVERRIDABLE_STATIC      = (1 << 2),
+	/* The property supports insertion (collections only). */
+	PROP_OVERRIDABLE_STATIC_INSERTION = (1 << 9),
 
 	/* Forbid usage of this property in comparison (& hence override) code.
 	 * Useful e.g. for collections of data like mesh's geometry, particles, etc. */

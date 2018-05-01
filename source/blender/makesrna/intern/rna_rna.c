@@ -106,6 +106,7 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
 #include "BLI_ghash.h"
+#include "BLI_string.h"
 
 #include "BKE_library_override.h"
 
@@ -1093,6 +1094,108 @@ static int rna_BlenderRNA_structs_lookup_string(PointerRNA *ptr, const char *key
 
 /* Default override (and compare) callbacks. */
 
+/* Ensures it makes sense to go inside the pointers to compare their content
+ * (if they are IDs, or have different names or RNA type, then this would be meaningless). */
+static bool rna_property_override_diff_propptr_validate_diffing(
+        PointerRNA *propptr_a, PointerRNA *propptr_b,
+        bool *r_is_id, bool *r_is_null, bool *r_is_type_diff,
+        char **r_propname_a, char *propname_a_buff, size_t propname_a_buff_size,
+        char **r_propname_b, char *propname_b_buff, size_t propname_b_buff_size)
+{
+	BLI_assert(propptr_a != NULL);
+
+	bool is_valid_for_diffing = true;
+	const bool do_force_name = r_propname_a != NULL;
+
+	if (do_force_name) {
+		BLI_assert(r_propname_a != NULL);
+		BLI_assert(r_propname_b != NULL);
+	}
+
+	*r_is_id = *r_is_null = *r_is_type_diff = false;
+
+	/* Beware, PointerRNA_NULL has no type and is considered a 'blank page'! */
+	if (propptr_a->type == NULL) {
+		if (propptr_b == NULL || propptr_b->type == NULL) {
+			*r_is_null = true;
+		}
+		else {
+			*r_is_id = RNA_struct_is_ID(propptr_b->type);
+			*r_is_null = true;
+			*r_is_type_diff = true;
+		}
+		is_valid_for_diffing = false;
+	}
+	else {
+		*r_is_id = RNA_struct_is_ID(propptr_a->type);
+		*r_is_null = *r_is_type_diff = (ELEM(NULL, propptr_b, propptr_b->type));
+		is_valid_for_diffing = !(*r_is_id || *r_is_null);
+	}
+
+	if (propptr_b == NULL || propptr_a->type != propptr_b->type) {
+		*r_is_type_diff = true;
+		is_valid_for_diffing = false;
+//		printf("%s: different pointer RNA types\n", rna_path ? rna_path : "<UNKNOWN>");
+	}
+
+	/* We do a generic quick first comparison checking for "name" and/or "type" properties.
+	 * We assume that is any of those are false, then we are not handling the same data.
+	 * This helps a lot in static override case, especially to detect inserted items in collections. */
+	if (is_valid_for_diffing || do_force_name) {
+		PropertyRNA *nameprop_a = RNA_struct_name_property(propptr_a->type);
+		PropertyRNA *nameprop_b = (propptr_b != NULL) ? RNA_struct_name_property(propptr_b->type) : NULL;
+
+		int propname_a_len = 0, propname_b_len = 0;
+		char *propname_a = NULL;
+		char *propname_b = NULL;
+		char buff_a[4096];
+		char buff_b[4096];
+		if (nameprop_a != NULL) {
+			if (r_propname_a == NULL && propname_a_buff == NULL) {
+				propname_a_buff = buff_a;
+				propname_a_buff_size = sizeof(buff_a);
+			}
+
+			propname_a = RNA_property_string_get_alloc(
+			                 propptr_a, nameprop_a, propname_a_buff, propname_a_buff_size, &propname_a_len);
+//			printf("propname_a = %s\n", propname_a ? propname_a : "<NONE>");
+
+			if (r_propname_a != NULL) {
+				*r_propname_a = propname_a;
+			}
+		}
+//		else printf("item of type %s a has no name property!\n", propptr_a->type->name);
+		if (nameprop_b != NULL) {
+			if (r_propname_b == NULL && propname_b_buff == NULL) {
+				propname_b_buff = buff_b;
+				propname_b_buff_size = sizeof(buff_b);
+			}
+
+			propname_b = RNA_property_string_get_alloc(
+			                 propptr_b, nameprop_b, propname_b_buff, propname_b_buff_size, &propname_b_len);
+
+			if (r_propname_b != NULL) {
+				*r_propname_b = propname_b;
+			}
+		}
+		if (propname_a != NULL && propname_b != NULL) {
+			if (propname_a_len != propname_b_len ||
+			    propname_a[0] != propname_b[0] ||
+			    !STREQ(propname_a, propname_b))
+			{
+				is_valid_for_diffing = false;
+//				printf("%s: different names\n", rna_path ? rna_path : "<UNKNOWN>");
+			}
+		}
+	}
+
+	if (*r_is_id) {
+		BLI_assert(propptr_a->data == propptr_a->id.data && propptr_b->data == propptr_b->id.data);
+	}
+
+	return is_valid_for_diffing;
+}
+
 /* Used for both Pointer and Collection properties. */
 static int rna_property_override_diff_propptr(
         PointerRNA *propptr_a, PointerRNA *propptr_b, eRNACompareMode mode, const bool no_ownership,
@@ -1101,31 +1204,19 @@ static int rna_property_override_diff_propptr(
 	const bool do_create = override != NULL && (flags & RNA_OVERRIDE_COMPARE_CREATE) != 0 && rna_path != NULL;
 
 	bool is_id = false;
-	bool is_type_null = false;
-
-	/* Beware, PointerRNA_NULL has no type and is considered a 'blank page'! */
-	if (propptr_a->type == NULL) {
-		if (propptr_b->type == NULL) {
-			if (r_override_changed) {
-				*r_override_changed = false;
-			}
-			return 0;
-		}
-		is_id = RNA_struct_is_ID(propptr_b->type);
-		is_type_null = true;
-	}
-	else {
-		is_id = RNA_struct_is_ID(propptr_a->type);
-		is_type_null = (propptr_b->type == NULL);
-	}
+	bool is_null = false;
+	bool is_type_diff = false;
+	/* If false, it means that the whole data itself is different, so no point in going inside of it at all! */
+	bool is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(
+	                                propptr_a, propptr_b, &is_id, &is_null, &is_type_diff,
+	                                NULL, NULL, 0, NULL, NULL, 0);
 
 	if (is_id) {
-		BLI_assert(propptr_a->data == propptr_a->id.data && propptr_b->data == propptr_b->id.data);
 		BLI_assert(no_ownership);  /* For now, once we deal with nodetrees we'll want to get rid of that one. */
 	}
 
 	if (override) {
-		if (no_ownership /* || is_id */ || is_type_null) {
+		if (no_ownership /* || is_id */ || is_null || is_type_diff || !is_valid_for_diffing) {
 			/* In case this pointer prop does not own its data (or one is NULL), do not compare structs!
 			 * This is a quite safe path to infinite loop, among other nasty issues.
 			 * Instead, just compare pointers themselves. */
@@ -1156,6 +1247,8 @@ static int rna_property_override_diff_propptr(
 		}
 	}
 	else {
+		/* We could also use is_diff_pointer, but then we potentially lose the gt/lt info -
+		 * and don't think performances are critical here for now anyway... */
 		return !RNA_struct_equals(propptr_a, propptr_b, mode);
 	}
 }
@@ -1374,10 +1467,13 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 		case PROP_STRING:
 		{
-			char fixed_a[128], fixed_b[128];
+			char fixed_a[4096], fixed_b[4096];
 			int len_str_a, len_str_b;
 			char *value_a = RNA_property_string_get_alloc(ptr_a, prop_a, fixed_a, sizeof(fixed_a), &len_str_a);
 			char *value_b = RNA_property_string_get_alloc(ptr_b, prop_b, fixed_b, sizeof(fixed_b), &len_str_b);
+			/* TODO we could do a check on length too, but then we would not have a 'real' string comparison...
+			 * Maybe behind a eRNAOverrideMatch flag? */
+//			const int comp = len_str_a < len_str_b ? -1 : len_str_a > len_str_b ? 1 : strcmp(value_a, value_b);
 			const int comp = strcmp(value_a, value_b);
 
 			if (do_create && comp != 0) {
@@ -1418,85 +1514,194 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 
 		case PROP_COLLECTION:
 		{
+			/* Note: we assume we only insert in ptr_a (i.e. we can only get new items in ptr_a),
+			 * and that we never remove anything. */
+			const bool use_insertion = (RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC_INSERTION) && do_create;
 			bool equals = true;
-			int idx = 0;
+			bool abort = false;
+			bool is_first_insert = true;
+			int idx_a = 0;
+			int idx_b = 0;
+
+#define RNA_PATH_BUFFSIZE 8192
+
+			char extended_rna_path_buffer[RNA_PATH_BUFFSIZE];
+			char *extended_rna_path = extended_rna_path_buffer;
+
+#define RNA_PATH_PRINTF(_str, ...) \
+			if (BLI_snprintf(extended_rna_path_buffer, RNA_PATH_BUFFSIZE, \
+			                 (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE - 1) \
+			{ extended_rna_path = BLI_sprintfN((_str), __VA_ARGS__); }(void)0
+#define RNA_PATH_FREE() \
+			if (extended_rna_path != extended_rna_path_buffer) MEM_freeN(extended_rna_path)
 
 			CollectionPropertyIterator iter_a, iter_b;
 			RNA_property_collection_begin(ptr_a, prop_a, &iter_a);
 			RNA_property_collection_begin(ptr_b, prop_b, &iter_b);
 
-			for (; iter_a.valid && iter_b.valid;
-			     RNA_property_collection_next(&iter_a), RNA_property_collection_next(&iter_b), idx++)
-			{
-				if (iter_a.ptr.type != iter_b.ptr.type) {
-					/* nothing we can do (for until we support adding/removing from collections), skip it. */
-					equals = false;
-					continue;
-				}
-				else if (iter_a.ptr.type == NULL) {
-					/* NULL RNA pointer... */
-					BLI_assert(iter_a.ptr.data == NULL);
-					BLI_assert(iter_b.ptr.data == NULL);
-					continue;
-				}
+			char buff_a[4096];
+			char buff_prev_a[4096] = {0};
+			char buff_b[4096];
+			char *propname_a = NULL;
+			char *prev_propname_a = buff_prev_a;
+			char *propname_b = NULL;
 
-				PropertyRNA *propname = RNA_struct_name_property(iter_a.ptr.type);
-				char propname_buff_a[256], propname_buff_b[256];
-				char *propname_a = NULL, *propname_b = NULL;
+			for (; iter_a.valid && !abort; ) {
+				bool is_valid_for_diffing;
+				bool is_valid_for_insertion;
+				do {
+					bool is_id = false, is_null = false, is_type_diff = false;
 
-				if (propname != NULL) {
-					propname_a = RNA_property_string_get_alloc(&iter_a.ptr, propname, propname_buff_a, sizeof(propname_buff_a), NULL);
-					propname_b = RNA_property_string_get_alloc(&iter_b.ptr, propname, propname_buff_b, sizeof(propname_buff_b), NULL);
-				}
+					is_valid_for_insertion = use_insertion;
 
-#define RNA_PATH_BUFFSIZE 8192
-#define RNA_PATH_PRINTF(_str, ...) \
-				if (BLI_snprintf(extended_rna_path_buffer, RNA_PATH_BUFFSIZE, \
-				                 (_str), __VA_ARGS__) >= RNA_PATH_BUFFSIZE) \
-				{ extended_rna_path = BLI_sprintfN((_str), __VA_ARGS__); }(void)0
-#define RNA_PATH_FREE \
-				if (extended_rna_path != extended_rna_path_buffer) MEM_freeN(extended_rna_path)
-
-				char extended_rna_path_buffer[RNA_PATH_BUFFSIZE];
-				char *extended_rna_path = extended_rna_path_buffer;
-
-				/* There may be a propname defined in some cases, while no actual name set
-				 * (e.g. happens with point cache), in that case too we want to fall back to index. */
-				if ((propname_a != NULL && propname_a[0] != '\0') || (propname_b != NULL && propname_b[0] != '\0')) {
-					if (!STREQ(propname_a, propname_b)) {
-						/* Same as above, not same structs. */
-						equals = false;
+					/* If false, it means that the whole data itself is different, so no point in going inside of it at all! */
+					if (iter_b.valid) {
+						is_valid_for_diffing = rna_property_override_diff_propptr_validate_diffing(
+						                                &iter_a.ptr, &iter_b.ptr, &is_id, &is_null, &is_type_diff,
+						                                &propname_a, buff_a, sizeof(buff_a),
+						                                &propname_b, buff_b, sizeof(buff_b));
 					}
-					else if (rna_path) {
-						char esc_item_name[RNA_PATH_BUFFSIZE];
-						BLI_strescape(esc_item_name, propname_a, RNA_PATH_BUFFSIZE);
-						RNA_PATH_PRINTF("%s[\"%s\"]", rna_path, esc_item_name);
+					else {
+						is_valid_for_diffing = false;
+						if (is_valid_for_insertion) {
+							/* We still need propname from 'a' item... */
+							rna_property_override_diff_propptr_validate_diffing(
+							            &iter_a.ptr, NULL, &is_id, &is_null, &is_type_diff,
+							            &propname_a, buff_a, sizeof(buff_a),
+							            &propname_b, buff_b, sizeof(buff_b));
+						}
 					}
-				}
-				else {  /* Based on index... */
+
+					/* We do not support insertion of IDs for now, neither handle NULL pointers. */
+					if (is_id || is_valid_for_diffing) {
+						is_valid_for_insertion = false;
+					}
+
+#if 0
 					if (rna_path) {
-						RNA_PATH_PRINTF("%s[%d]", rna_path, idx);
+						printf("Checking %s, %s [%d] vs %s [%d]; diffing: %d; insert: %d (could be used: %d, do_create: %d)\n",
+						       rna_path, propname_a ? propname_a : "", idx_a, propname_b ? propname_b : "", idx_b,
+						       is_valid_for_diffing, is_valid_for_insertion,
+						       (RNA_property_flag(prop_a) & PROP_OVERRIDABLE_STATIC_INSERTION) != 0, do_create);
 					}
-				}
+#endif
 
-				if (equals || do_create) {
-					const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
-					const int eq = rna_property_override_diff_propptr(
-					              &iter_a.ptr, &iter_b.ptr, mode, no_ownership,
-					              override, extended_rna_path, flags, r_override_changed);
-					equals = equals && eq;
-				}
+					if (!(is_valid_for_diffing || is_valid_for_insertion)) {
+						/* Differences we cannot handle, we can break here
+						 * (we do not support replacing ID pointers in collections e.g.). */
+						equals = false;
+						abort = true;
+						break;
+					}
 
-				if (propname_a != propname_buff_a) {
-					MEM_SAFE_FREE(propname_a);
-				}
-				if (propname_b != propname_buff_b) {
-					MEM_SAFE_FREE(propname_b);
-				}
-				RNA_PATH_FREE;
+					/* There may be a propname defined in some cases, while no actual name set
+					 * (e.g. happens with point cache), in that case too we want to fall back to index.
+					 * Note that we do not need the RNA path for insertion operations. */
+					if (is_valid_for_diffing) {
+						if ((propname_a != NULL && propname_a[0] != '\0') &&
+						    (propname_b != NULL && propname_b[0] != '\0'))
+						{
+							if (rna_path) {
+								/* In case of name, either it is valid for diffing, and _a and _b are identical,
+								 * or it is valid for insertion, and we need to use _a. */
+								char esc_item_name[RNA_PATH_BUFFSIZE];
+								BLI_strescape(esc_item_name, propname_a, RNA_PATH_BUFFSIZE);
+								RNA_PATH_PRINTF("%s[\"%s\"]", rna_path, esc_item_name);
+							}
+						}
+						else {  /* Based on index... */
+							if (rna_path) {
+								/* In case of indices, we need _a one for insertion, but _b ones for in-depth diffing.
+								 * Insertion always happen once all 'replace' operations have been done,
+								 * otherwise local and reference paths for those would have to be different! */
+								RNA_PATH_PRINTF("%s[%d]", rna_path, is_valid_for_insertion ? idx_a : idx_b);
+							}
+						}
+					}
 
-				if (!rna_path && !equals) {
-					break;  /* Early out in case we do not want to loop over whole collection. */
+					/* Collections do not support replacement of their data (since they do not support removing),
+					 * only in *some* cases, insertion.
+					 * We also assume then that _a data is the one where things are inserted. */
+					if (is_valid_for_insertion && use_insertion) {
+						bool created;
+						IDOverrideStaticProperty *op = BKE_override_static_property_get(override, rna_path, &created);
+
+						if (is_first_insert) {
+							/* We need to clean up all possible existing insertion operations, otherwise we'd end up
+							 * with a mess of ops everytime something changes. */
+							for (IDOverrideStaticPropertyOperation *opop = op->operations.first;
+							     opop != NULL;)
+							{
+								IDOverrideStaticPropertyOperation *opop_next = opop->next;
+								if (ELEM(opop->operation,
+								         IDOVERRIDESTATIC_OP_INSERT_AFTER, IDOVERRIDESTATIC_OP_INSERT_BEFORE))
+								{
+									BKE_override_static_property_operation_delete(op, opop);
+								}
+								opop = opop_next;
+							}
+							is_first_insert = false;
+						}
+
+						BKE_override_static_property_operation_get(
+						            op, IDOVERRIDESTATIC_OP_INSERT_AFTER,
+						            NULL, prev_propname_a, -1, idx_a - 1, true, NULL, NULL);
+//						printf("%s: Adding insertion op override after '%s'/%d\n", rna_path, prev_propname_a, idx_a - 1);
+					}
+					else if (is_valid_for_diffing) {
+						if (equals || do_create) {
+							const bool no_ownership = (RNA_property_flag(prop_a) & PROP_PTR_NO_OWNERSHIP) != 0;
+							const int eq = rna_property_override_diff_propptr(
+							              &iter_a.ptr, &iter_b.ptr, mode, no_ownership,
+							              override, extended_rna_path, flags, r_override_changed);
+							equals = equals && eq;
+						}
+					}
+
+					if (prev_propname_a != buff_prev_a) {
+						MEM_freeN(prev_propname_a);
+						prev_propname_a = buff_prev_a;
+					}
+					prev_propname_a[0] = '\0';
+					if (propname_a != NULL &&
+					    BLI_strncpy_rlen(prev_propname_a, propname_a, sizeof(buff_prev_a)) >= sizeof(buff_prev_a) - 1)
+					{
+						prev_propname_a = BLI_strdup(propname_a);
+					}
+					if (propname_a != buff_a) {
+						MEM_SAFE_FREE(propname_a);
+						propname_a = buff_a;
+					}
+					propname_a[0] = '\0';
+					if (propname_b != buff_b) {
+						MEM_SAFE_FREE(propname_b);
+						propname_b = buff_b;
+					}
+					propname_b[0] = '\0';
+					RNA_PATH_FREE();
+
+					if (!do_create && !equals) {
+						abort = true;  /* Early out in case we do not want to loop over whole collection. */
+						break;
+					}
+
+					if (!(use_insertion && !is_valid_for_diffing)) {
+						break;
+					}
+
+					if (iter_a.valid) {
+						RNA_property_collection_next(&iter_a);
+						idx_a++;
+					}
+				} while (iter_a.valid);
+
+				if (iter_a.valid) {
+					RNA_property_collection_next(&iter_a);
+					idx_a++;
+				}
+				if (iter_b.valid) {
+					RNA_property_collection_next(&iter_b);
+					idx_b++;
 				}
 
 #undef RNA_PATH_BUFFSIZE
@@ -1504,7 +1709,7 @@ int rna_property_override_diff_default(PointerRNA *ptr_a, PointerRNA *ptr_b,
 #undef RNA_PATH_FREE
 			}
 
-			equals = equals && !(iter_a.valid || iter_b.valid);  /* Not same number of items in both collections... */
+			equals = equals && !(iter_a.valid || iter_b.valid) && !abort;  /* Not same number of items in both collections... */
 			RNA_property_collection_end(&iter_a);
 			RNA_property_collection_end(&iter_b);
 
