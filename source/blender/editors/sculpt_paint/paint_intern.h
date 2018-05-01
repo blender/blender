@@ -94,8 +94,10 @@ void paint_cursor_delete_textures(void);
 
 /* paint_vertex.c */
 int weight_paint_poll(struct bContext *C);
+int weight_paint_poll_ignore_tool(bContext *C);
 int weight_paint_mode_poll(struct bContext *C);
 int vertex_paint_poll(struct bContext *C);
+int vertex_paint_poll_ignore_tool(struct bContext *C);
 int vertex_paint_mode_poll(struct bContext *C);
 
 typedef void (*VPaintTransform_Callback)(const float col[3], const void *user_data, float r_col[3]);

@@ -849,7 +849,7 @@ void PAINT_OT_weight_gradient(wmOperatorType *ot)
 	ot->invoke = paint_weight_gradient_invoke;
 	ot->modal = paint_weight_gradient_modal;
 	ot->exec = paint_weight_gradient_exec;
-	ot->poll = weight_paint_poll;
+	ot->poll = weight_paint_poll_ignore_tool;
 	ot->cancel = WM_gesture_straightline_cancel;
 
 	/* flags */
