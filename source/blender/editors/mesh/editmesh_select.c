@@ -2314,6 +2314,7 @@ bool EDBM_selectmode_toggle(
         bContext *C, const short selectmode_new,
         const int action, const bool use_extend, const bool use_expand)
 {
+	Scene *scene = CTX_data_scene(C);
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	Object *obedit = CTX_data_edit_object(C);
@@ -2420,9 +2421,11 @@ bool EDBM_selectmode_toggle(
 			Object *ob_iter = objects[ob_index];
 			BMEditMesh *em_iter = BKE_editmesh_from_object(ob_iter);
 			EDBM_selectmode_set(em_iter);
+			DEG_id_tag_update(ob_iter->data, DEG_TAG_COPY_ON_WRITE);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 		}
 		WM_main_add_notifier(NC_SCENE | ND_TOOLSETTINGS, NULL);
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 	}
 
 	MEM_SAFE_FREE(objects);
