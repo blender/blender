@@ -178,6 +178,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	// EEVEE_FramebufferList *fbl = vedata->fbl;
 	// EEVEE_TextureList *txl = vedata->txl;
 	EEVEE_EffectsInfo *effects = stl->effects;
+	int repro_flag = 0;
 
 	if (!e_data.taa_resolve_sh) {
 		eevee_create_shader_temporal_sampling();
@@ -194,14 +195,6 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
 
-	int repro_flag = 0;
-	if (!DRW_state_is_image_render() &&
-	    BKE_collection_engine_property_value_get_bool(props, "taa_reprojection"))
-	{
-		repro_flag = EFFECT_TAA_REPROJECT | EFFECT_VELOCITY_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
-		effects->taa_reproject_sample = ((effects->taa_reproject_sample + 1) % 16);
-	}
-
 	if ((BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1 &&
 	    /* FIXME the motion blur camera evaluation is tagging view_updated
 	     * thus making the TAA always reset and never stopping rendering. */
@@ -209,6 +202,13 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	    DRW_state_is_image_render())
 	{
 		float persmat[4][4], viewmat[4][4];
+
+		if (!DRW_state_is_image_render() &&
+		    BKE_collection_engine_property_value_get_bool(props, "taa_reprojection"))
+		{
+			repro_flag = EFFECT_TAA_REPROJECT | EFFECT_VELOCITY_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
+			effects->taa_reproject_sample = ((effects->taa_reproject_sample + 1) % 16);
+		}
 
 		/* Until we support reprojection, we need to make sure
 		 * that the history buffer contains correct information. */
