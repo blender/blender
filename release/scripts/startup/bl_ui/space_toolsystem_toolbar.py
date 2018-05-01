@@ -613,10 +613,32 @@ class _defs_weight_paint:
         )
 
     @ToolDef.from_fn
+    def sample_weight():
+        return dict(
+            text="Sample Weight",
+            icon="ops.paint.weight_sample",
+            widget=None,
+            keymap=(
+                ("paint.weight_sample", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def sample_weight_group():
+        return dict(
+            text="Sample Vertex Group",
+            icon="ops.paint.weight_sample_group",
+            widget=None,
+            keymap=(
+                ("paint.weight_sample_group", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def gradient_linear():
         return dict(
             text="Linear Gradient",
-            icon=None,
+            icon="ops.paint.weight_gradient.linear",
             widget=None,
             keymap=(
                 ("paint.weight_gradient", dict(type='LINEAR'),
@@ -628,7 +650,7 @@ class _defs_weight_paint:
     def gradient_radial():
         return dict(
             text="Radial Gradient",
-            icon=None,
+            icon="ops.paint.weight_gradient.radial",
             widget=None,
             keymap=(
                 ("paint.weight_gradient",
@@ -771,9 +793,13 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         ],
         'PAINT_WEIGHT': [
             _defs_weight_paint.generate_from_brushes,
-
+            None,
+            _defs_weight_paint.sample_weight,
+            _defs_weight_paint.sample_weight_group,
+            None,
             # TODO, override brush events
             *_tools_select,
+            None,
             (
                 _defs_weight_paint.gradient_linear,
                 _defs_weight_paint.gradient_radial,
