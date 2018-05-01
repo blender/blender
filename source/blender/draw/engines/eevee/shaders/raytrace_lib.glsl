@@ -9,7 +9,10 @@ float sample_depth(vec2 uv, int index, float lod)
 	else {
 #endif
 		/* Correct UVs for mipmaping mis-alignment */
-		uv *= mipRatio[int(lod + 1.0)];
+		/* + 1.0 because we are using half res maxzBuffer
+		 * and mipRatio starts at on mip 0. */
+		int mip = int(lod + 1.0);
+		uv *= mipRatio[mip];
 		return textureLod(maxzBuffer, uv, lod).r;
 #ifdef PLANAR_PROBE_RAYTRACE
 	}
@@ -58,13 +61,13 @@ float refine_isect(float prev_delta, float curr_delta)
 	return saturate(prev_delta / (prev_delta - curr_delta));
 }
 
-void prepare_raycast(vec3 ray_origin, vec3 ray_end, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
+void prepare_raycast(vec3 ray_origin, vec3 ray_dir, float thickness, out vec4 ss_step, out vec4 ss_ray, out float max_time)
 {
 	/* Negate the ray direction if it goes towards the camera.
 	 * This way we don't need to care if the projected point
 	 * is behind the near plane. */
-	float z_sign = -sign(ray_end.z);
-	ray_end = z_sign * ray_end + ray_origin;
+	float z_sign = -sign(ray_dir.z);
+	vec3 ray_end = ray_origin + z_sign * ray_dir;
 
 	/* Project into screen space. */
 	vec4 ss_start, ss_end;
@@ -94,7 +97,7 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_end, float thickness, out vec4 ss
 
 	/* Make ss_step cover one pixel. */
 	ss_step /= max(abs(ss_step.x), abs(ss_step.y));
-	ss_step *= ((abs(ss_step.x) > abs(ss_step.y)) ? ssrPixelSize.x : ssrPixelSize.y);
+	ss_step *= (abs(ss_step.x) > abs(ss_step.y)) ? ssrPixelSize.x : ssrPixelSize.y;
 
 	/* Clip to segment's end. */
 	max_time /= length(ss_step.xyz);
@@ -107,6 +110,8 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_end, float thickness, out vec4 ss
 	 * 4th component how far we are on the ray */
 	ss_ray = ss_start * 0.5 + 0.5;
 	ss_step *= 0.5;
+
+	ss_ray.xy += 0.5 * ssrPixelSize * 2.0; /* take the center of the texel. * 2 because halfres. */
 }
 
 /* See times_and_deltas. */
@@ -117,14 +122,14 @@ void prepare_raycast(vec3 ray_origin, vec3 ray_end, float thickness, out vec4 ss
 
 // #define GROUPED_FETCHES /* is still slower, need to see where is the bottleneck. */
 /* Return the hit position, and negate the z component (making it positive) if not hit occured. */
-/* __ray_end__ is the ray direction premultiplied by it's maximum length */
+/* __ray_dir__ is the ray direction premultiplied by it's maximum length */
 vec3 raycast(
-        int index, vec3 ray_origin, vec3 ray_end, float thickness, float ray_jitter,
+        int index, vec3 ray_origin, vec3 ray_dir, float thickness, float ray_jitter,
         float trace_quality, float roughness, const bool discard_backface)
 {
 	vec4 ss_step, ss_start;
 	float max_time;
-	prepare_raycast(ray_origin, ray_end, thickness, ss_step, ss_start, max_time);
+	prepare_raycast(ray_origin, ray_dir, thickness, ss_step, ss_start, max_time);
 
 	float max_trace_time = max(0.001, max_time - 0.01);
 
