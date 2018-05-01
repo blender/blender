@@ -273,7 +273,9 @@ static int image_paint_poll(bContext *C)
 
 	obact = CTX_data_active_object(C);
 	if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) && CTX_wm_region_view3d(C)) {
-		return 1;
+		if (WM_toolsystem_active_tool_is_brush(C)) {
+			return 1;
+		}
 	}
 	else {
 		SpaceImage *sima = CTX_wm_space_image(C);

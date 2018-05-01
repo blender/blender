@@ -214,8 +214,11 @@ int vertex_paint_poll(bContext *C)
 		ScrArea *sa = CTX_wm_area(C);
 		if (sa && sa->spacetype == SPACE_VIEW3D) {
 			ARegion *ar = CTX_wm_region(C);
-			if (ar->regiontype == RGN_TYPE_WINDOW)
-				return 1;
+			if (ar->regiontype == RGN_TYPE_WINDOW) {
+				if (WM_toolsystem_active_tool_is_brush(C)) {
+					return 1;
+				}
+			}
 		}
 	}
 	return 0;
@@ -241,7 +244,9 @@ int weight_paint_poll(bContext *C)
 	{
 		ARegion *ar = CTX_wm_region(C);
 		if (ar->regiontype == RGN_TYPE_WINDOW) {
-			return 1;
+			if (WM_toolsystem_active_tool_is_brush(C)) {
+				return 1;
+			}
 		}
 	}
 	return 0;
