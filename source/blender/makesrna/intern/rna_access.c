@@ -7684,7 +7684,7 @@ bool RNA_struct_override_store(
 static void rna_property_override_apply_ex(
         PointerRNA *ptr_local, PointerRNA *ptr_override, PointerRNA *ptr_storage,
         PropertyRNA *prop_local, PropertyRNA *prop_override, PropertyRNA *prop_storage,
-        IDOverrideStaticProperty *op, const bool do_insert)
+        IDOverrideStaticProperty *op)
 {
 	for (IDOverrideStaticPropertyOperation *opop = op->operations.first; opop; opop = opop->next) {
 		if (!rna_property_override_operation_apply(ptr_local, ptr_override, ptr_storage,
@@ -7721,7 +7721,7 @@ void RNA_struct_override_apply(
 
 			rna_property_override_apply_ex(
 			            &data_local, &data_override, prop_storage ? &data_storage : NULL,
-			            prop_local, prop_override, prop_storage, op, do_insert);
+			            prop_local, prop_override, prop_storage, op);
 		}
 #ifndef NDEBUG
 		else {
