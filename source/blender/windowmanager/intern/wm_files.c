@@ -2128,9 +2128,11 @@ static int wm_save_as_mainfile_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_WM | ND_FILESAVE, NULL);
 
+#if 0 /* XXX: Remove? This is not currently defined as a valid property */
 	if (RNA_boolean_get(op->ptr, "exit")) {
 		wm_exit_schedule_delayed(C);
 	}
+#endif
 
 	return OPERATOR_FINISHED;
 }
