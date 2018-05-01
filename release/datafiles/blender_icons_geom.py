@@ -74,7 +74,22 @@ class TriMesh:
         return me
 
 
-def write_mesh_data_lists(me):
+def object_child_map(objects):
+    objects_children = {}
+    for ob in objects:
+        ob_parent = ob.parent
+        # Get the root.
+        if ob_parent is not None:
+            while ob_parent and ob_parent.parent:
+                ob_parent = ob_parent.parent
+        if ob_parent is not None:
+            objects_children.setdefault(ob_parent, []).append(ob)
+    for ob_all in objects_children.values():
+        ob_all.sort(key=lambda ob: ob.name)
+    return objects_children
+
+
+def mesh_data_lists_from_mesh(me):
     me_loops = me.loops[:]
     me_loops_color = me.vertex_colors.active.data[:]
     me_verts = me.vertices[:]
@@ -128,7 +143,27 @@ def write_mesh_data_lists(me):
     return (tris_coords, tris_colors)
 
 
-def write_mesh_to_py(fh, ob):
+def mesh_data_lists_from_objects(ob_parent, ob_children):
+    tris_coords = []
+    tris_colors = []
+
+    has_parent = False
+    if ob_children:
+        parent_matrix = ob_parent.matrix_world.copy()
+        parent_matrix_inverted = parent_matrix.inverted()
+
+    for ob in (ob_parent, *ob_children):
+        with TriMesh(ob) as me:
+            if has_parent:
+                me.transform(parent_matrix_inverted * ob.matrix_world)
+            tris_coords_iter, tris_colors_iter = mesh_data_lists_from_mesh(me)
+            tris_coords.extend(tris_coords_iter)
+            tris_colors.extend(tris_colors_iter)
+        has_parent = True
+    return tris_coords, tris_colors
+
+
+def write_mesh_to_py(fh, ob, ob_children):
 
     def float_as_byte(f, axis_range):
         assert(axis_range <= 255)
@@ -143,8 +178,7 @@ def write_mesh_to_py(fh, ob):
             float_as_byte(v[1], coords_range_align[1]),
         )
 
-    with TriMesh(ob) as me:
-        tris_coords, tris_colors = write_mesh_data_lists(me)
+    tris_coords, tris_colors = mesh_data_lists_from_objects(ob, ob_children)
 
     if 0:
         # make as large as we can, keeping alignment
@@ -250,10 +284,14 @@ def main():
 
     objects.sort(key=lambda a: a[0])
 
+    objects_children = object_child_map(bpy.data.objects)
+
     for name, ob in objects:
+        if ob.parent:
+            continue
         filename = os.path.join(args.output_dir, name + ".dat")
         with open(filename, 'wb') as fh:
-            write_mesh_to_py(fh, ob)
+            write_mesh_to_py(fh, ob, objects_children.get(ob, []))
 
 
 if __name__ == "__main__":
