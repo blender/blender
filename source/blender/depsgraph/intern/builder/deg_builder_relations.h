@@ -251,6 +251,10 @@ struct DepsgraphRelationBuilder
 	void build_movieclip(MovieClip *clip);
 	void build_lightprobe(Object *object);
 
+	void build_nested_datablock(ID *owner, ID *id);
+	void build_nested_nodetree(ID *owner, bNodeTree *ntree);
+	void build_nested_shapekey(ID *owner, Key *key);
+
 	void add_collision_relations(const OperationKey &key,
 	                             Scene *scene,
 	                             Object *object,
