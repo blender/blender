@@ -1289,7 +1289,7 @@ static void material_transparent(
 	}
 }
 
-void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob)
+void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sldata, Object *ob, bool *cast_shadow)
 {
 	EEVEE_PassList *psl = vedata->psl;
 	EEVEE_StorageList *stl = vedata->stl;
@@ -1418,14 +1418,17 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 					switch (ma->blend_shadow) {
 						case MA_BS_SOLID:
 							EEVEE_lights_cache_shcaster_add(sldata, stl, mat_geom[i], ob);
+							*cast_shadow = true;
 							break;
 						case MA_BS_CLIP:
 							gpumat = EEVEE_material_mesh_depth_get(scene, ma, false, true);
 							EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob, &ma->alpha_threshold);
+							*cast_shadow = true;
 							break;
 						case MA_BS_HASHED:
 							gpumat = EEVEE_material_mesh_depth_get(scene, ma, true, true);
 							EEVEE_lights_cache_shcaster_material_add(sldata, psl, gpumat, mat_geom[i], ob, NULL);
+							*cast_shadow = true;
 							break;
 						case MA_BS_NONE:
 						default:
@@ -1434,6 +1437,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				}
 				else {
 					EEVEE_lights_cache_shcaster_add(sldata, stl, mat_geom[i], ob);
+					*cast_shadow = true;
 				}
 			}
 		}

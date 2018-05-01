@@ -140,9 +140,9 @@ static void eevee_cache_populate(void *vedata, Object *ob)
 	}
 
 	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
-		EEVEE_materials_cache_populate(vedata, sldata, ob);
+		bool cast_shadow;
 
-		const bool cast_shadow = true;
+		EEVEE_materials_cache_populate(vedata, sldata, ob, &cast_shadow);
 
 		if (cast_shadow) {
 			EEVEE_lights_cache_shcaster_object_add(sldata, ob);
