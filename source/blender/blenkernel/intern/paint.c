@@ -865,6 +865,15 @@ void BKE_sculpt_update_mesh_elements(
         Depsgraph *depsgraph, Scene *scene, Sculpt *sd, Object *ob,
         bool need_pmap, bool need_mask)
 {
+	if (depsgraph == NULL) {
+		/* Happens on file load.
+		 *
+		 * We do nothing in this case, it will be taken care about on depsgraph
+		 * evaluation.
+		 */
+		return;
+	}
+
 	DerivedMesh *dm;
 	SculptSession *ss = ob->sculpt;
 	Mesh *me = ob->data;
