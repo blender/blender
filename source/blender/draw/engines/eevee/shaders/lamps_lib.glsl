@@ -211,15 +211,27 @@ float light_visibility(LightData ld, vec3 W,
 			vec3 ray_dir = L.xyz + T * rand.z + B * rand.w;
 			ray_dir = transform_direction(ViewMatrix, ray_dir);
 			ray_dir = normalize(ray_dir);
-			vec3 ray_origin = viewPosition + viewNormal * (gl_FrontFacing ? data.sh_contact_offset : -data.sh_contact_offset);
-			vec3 hit_pos = raycast(-1, ray_origin, ray_dir * trace_distance, data.sh_contact_thickness, rand.x,
-			                       0.75, 0.01, false);
+
+			vec3 ray_ori = viewPosition;
+
+			float bias = 0.5; /* Constant Bias */
+			bias += 1.0 - abs(dot(viewNormal, ray_dir)); /* Angle dependant bias */
+			bias *= gl_FrontFacing ? data.sh_contact_offset : -data.sh_contact_offset;
+
+			vec3 nor_bias = viewNormal * bias;
+			ray_ori += nor_bias;
+
+			ray_dir *= trace_distance;
+			ray_dir -= nor_bias;
+
+			vec3 hit_pos = raycast(-1, ray_ori, ray_dir, data.sh_contact_thickness, rand.x,
+			                       0.1, 0.001, false);
 
 			if (hit_pos.z > 0.0) {
 				hit_pos = get_view_space_from_depth(hit_pos.xy, hit_pos.z);
 				float hit_dist = distance(viewPosition, hit_pos);
 				float dist_ratio = hit_dist / trace_distance;
-				return mix(0.0, vis, dist_ratio * dist_ratio * dist_ratio);
+				return vis * saturate(dist_ratio * dist_ratio * dist_ratio);
 			}
 		}
 #endif
