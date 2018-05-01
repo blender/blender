@@ -51,6 +51,8 @@ struct IDDepsNode : public DepsNode {
 	~IDDepsNode();
 	void destroy();
 
+	virtual string identifier() const;
+
 	ComponentDepsNode *find_component(eDepsNode_Type type,
 	                                  const char *name = "") const;
 	ComponentDepsNode *add_component(eDepsNode_Type type,

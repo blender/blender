@@ -2051,6 +2051,8 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		if (ntree->typeinfo->localize)
 			ntree->typeinfo->localize(ltree, ntree);
 
+		ltree->id.tag |= LIB_TAG_LOCALIZED;
+
 		BLI_mutex_unlock(ntree->duplilock);
 
 		return ltree;

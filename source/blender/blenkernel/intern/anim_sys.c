@@ -264,7 +264,7 @@ void BKE_animdata_free(ID *id, const bool do_id_user)
 /* Copying -------------------------------------------- */
 
 /* Make a copy of the given AnimData - to be used when copying datablocks */
-AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action)
+AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action, const bool do_id_user)
 {
 	AnimData *dadt;
 	
@@ -279,7 +279,7 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action)
 		BKE_id_copy_ex(bmain, (ID *)dadt->action, (ID **)&dadt->action, 0, false);
 		BKE_id_copy_ex(bmain, (ID *)dadt->tmpact, (ID **)&dadt->tmpact, 0, false);
 	}
-	else {
+	else if (do_id_user) {
 		id_us_plus((ID *)dadt->action);
 		id_us_plus((ID *)dadt->tmpact);
 	}
@@ -297,19 +297,19 @@ AnimData *BKE_animdata_copy(Main *bmain, AnimData *adt, const bool do_action)
 	return dadt;
 }
 
-bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const bool do_action)
+bool BKE_animdata_copy_id(Main *bmain, ID *id_to, ID *id_from, const bool do_action, const bool do_id_user)
 {
 	AnimData *adt;
 
 	if ((id_to && id_from) && (GS(id_to->name) != GS(id_from->name)))
 		return false;
 
-	BKE_animdata_free(id_to, true);
+	BKE_animdata_free(id_to, do_id_user);
 
 	adt = BKE_animdata_from_id(id_from);
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id_to;
-		iat->adt = BKE_animdata_copy(bmain, adt, do_action);
+		iat->adt = BKE_animdata_copy(bmain, adt, do_action, do_id_user);
 	}
 
 	return true;

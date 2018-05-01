@@ -1376,7 +1376,7 @@ static void id_copy_animdata(Main *bmain, ID *id, const bool do_action)
 	
 	if (adt) {
 		IdAdtTemplate *iat = (IdAdtTemplate *)id;
-		iat->adt = BKE_animdata_copy(bmain, iat->adt, do_action); /* could be set to false, need to investigate */
+		iat->adt = BKE_animdata_copy(bmain, iat->adt, do_action, true); /* could be set to false, need to investigate */
 	}
 }
 

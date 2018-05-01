@@ -56,7 +56,7 @@ OperationDepsNode::~OperationDepsNode()
 
 string OperationDepsNode::identifier() const
 {
-	return string(DEG_OPNAMES[opcode]) + "(" + name + ")";
+	return string(operationCodeAsString(opcode)) + "(" + name + ")";
 }
 
 /* Full node identifier, including owner name.

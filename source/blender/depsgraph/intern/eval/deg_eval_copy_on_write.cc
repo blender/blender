@@ -340,17 +340,6 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 struct RemapCallbackUserData {
 	/* Dependency graph for which remapping is happening. */
 	const Depsgraph *depsgraph;
-	/* Temporarily allocated memory for copying purposes. This ID will
-	 * be discarded after expanding is done, so need to make sure temp_id
-	 * is replaced with proper real_id.
-	 *
-	 * NOTE: This is due to our logic of "inplace" duplication, where we
-	 * use generic duplication routines (which gives us new ID) which then
-	 * is followed with copying data to a placeholder we prepared before and
-	 * discarding pointer returned by duplication routines.
-	 */
-	const ID *temp_id;
-	ID *real_id;
 	/* Create placeholder for ID nodes for cases when we need to remap original
 	 * ID to it[s CoW version but we don't have required ID node yet.
 	 *
@@ -371,12 +360,7 @@ int foreach_libblock_remap_callback(void *user_data_v,
 	RemapCallbackUserData *user_data = (RemapCallbackUserData *)user_data_v;
 	const Depsgraph *depsgraph = user_data->depsgraph;
 	ID *id_orig = *id_p;
-	if (id_orig == user_data->temp_id) {
-		DEG_COW_PRINT("    Remapping datablock for %s: id_temp=%p id_cow=%p\n",
-		              id_orig->name, id_orig, user_data->real_id);
-		*id_p = user_data->real_id;
-	}
-	else if (check_datablocks_copy_on_writable(id_orig)) {
+	if (check_datablocks_copy_on_writable(id_orig)) {
 		ID *id_cow;
 		if (user_data->create_placeholders) {
 			/* Special workaround to stop creating temp datablocks for
@@ -523,11 +507,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * - We don't want bmain's content to be freed when main is freed.
 	 */
 	bool done = false;
-	/* Need to make sure the possibly temporary allocated memory is correct for
-	 * until we are fully done with remapping original pointers with copied on
-	 * write ones.
-	 */
-	ID *newid = NULL;
 	/* First we handle special cases which are not covered by id_copy() yet.
 	 * or cases where we want to do something smarter than simple datablock
 	 * copy.
@@ -569,8 +548,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	/* Perform remapping of the nodes. */
 	RemapCallbackUserData user_data;
 	user_data.depsgraph = depsgraph;
-	user_data.temp_id = newid;
-	user_data.real_id = id_cow;
 	user_data.node_builder = node_builder;
 	user_data.create_placeholders = create_placeholders;
 	BKE_library_foreach_ID_link(NULL,
@@ -582,10 +559,6 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 * from above.
 	 */
 	update_special_pointers(depsgraph, id_orig, id_cow);
-	/* Now we can safely discard temporary memory used for copying. */
-	if (newid != NULL) {
-		MEM_freeN(newid);
-	}
 	id_cow->recalc = id_orig->recalc | id_cow_recalc;
 	return id_cow;
 }
@@ -608,7 +581,7 @@ static void deg_update_copy_on_write_animation(const Depsgraph * /*depsgraph*/,
                                                const IDDepsNode *id_node)
 {
 	DEG_debug_print_eval(__func__, id_node->id_orig->name, id_node->id_cow);
-	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false);
+	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false, false);
 }
 
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
@@ -827,6 +800,8 @@ bool deg_validate_copy_on_write_datablock(ID *id_cow)
 
 void deg_tag_copy_on_write_id(ID *id_cow, const ID *id_orig)
 {
+	BLI_assert(id_cow != id_orig);
+	BLI_assert((id_orig->tag & LIB_TAG_COPY_ON_WRITE) == 0);
 	id_cow->tag |= LIB_TAG_COPY_ON_WRITE;
 	id_cow->orig_id = (ID *)id_orig;
 }

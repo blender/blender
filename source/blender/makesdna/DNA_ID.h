@@ -457,16 +457,17 @@ enum {
 	/* RESET_AFTER_USE tag existing data before linking so we know what is new. */
 	LIB_TAG_PRE_EXISTING    = 1 << 11,
 
-	/* The datablock is a copy-on-write version. */
+	/* The datablock is a copy-on-write/localized version. */
 	LIB_TAG_COPY_ON_WRITE   = 1 << 12,
 	LIB_TAG_COPY_ON_WRITE_EVAL = 1 << 13,
+	LIB_TAG_LOCALIZED = 1 << 14,
 
 	/* RESET_NEVER tag datablock for freeing etc. behavior (usually set when copying real one into temp/runtime one). */
-	LIB_TAG_NO_MAIN          = 1 << 14,  /* Datablock is not listed in Main database. */
-	LIB_TAG_NO_USER_REFCOUNT = 1 << 15,  /* Datablock does not refcount usages of other IDs. */
+	LIB_TAG_NO_MAIN          = 1 << 15,  /* Datablock is not listed in Main database. */
+	LIB_TAG_NO_USER_REFCOUNT = 1 << 16,  /* Datablock does not refcount usages of other IDs. */
 	/* Datablock was not allocated by standard system (BKE_libblock_alloc), do not free its memory
 	 * (usual type-specific freeing is called though). */
-	LIB_TAG_NOT_ALLOCATED     = 1 << 16,
+	LIB_TAG_NOT_ALLOCATED     = 1 << 17,
 };
 
 /* WARNING - when adding flags check on PSYS_RECALC */

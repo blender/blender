@@ -179,7 +179,7 @@ string OperationKey::identifier() const
 	return string("OperationKey(") +
 	       "t: " + typebuf +
 	       ", cn: '" + component_name +
-	       "', c: " + DEG_OPNAMES[opcode] +
+	       "', c: " + operationCodeAsString(opcode) +
 	       ", n: '" + name + "')";
 }
 

@@ -1244,3 +1244,10 @@ Depsgraph *CTX_data_depsgraph(const bContext *C)
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	return BKE_scene_get_depsgraph(scene, view_layer, true);
 }
+
+Depsgraph *CTX_data_depsgraph_on_load(const bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	return BKE_scene_get_depsgraph(scene, view_layer, false);
+}

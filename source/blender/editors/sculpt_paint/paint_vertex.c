@@ -2342,7 +2342,7 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 		ED_object_vpaintmode_exit_ex(ob);
 	}
 	else {
-		Depsgraph *depsgraph = CTX_data_depsgraph(C);
+		Depsgraph *depsgraph = CTX_data_depsgraph_on_load(C);
 		wmWindowManager *wm = CTX_wm_manager(C);
 		ED_object_vpaintmode_enter_ex(depsgraph, wm, scene, ob);
 	}

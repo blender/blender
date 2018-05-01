@@ -322,6 +322,11 @@ int CTX_data_editable_gpencil_strokes(const bContext *C, ListBase *list);
 
 struct Depsgraph *CTX_data_depsgraph(const bContext *C);
 
+/* Will Return NULL if depsgraph is not allocated yet.
+ * Only used by handful of operators which are run on file load.
+ */
+struct Depsgraph *CTX_data_depsgraph_on_load(const bContext *C);
+
 #ifdef __cplusplus
 }
 #endif

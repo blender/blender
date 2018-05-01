@@ -199,7 +199,9 @@ Material *BKE_material_localize(Material *ma)
 	BLI_listbase_clear(&man->gpumaterial);
 
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
-	
+
+	man->id.tag |= LIB_TAG_LOCALIZED;
+
 	return man;
 }
 
