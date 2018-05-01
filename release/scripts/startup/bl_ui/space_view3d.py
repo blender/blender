@@ -3592,6 +3592,14 @@ class VIEW3D_PT_overlay(Panel):
 
         col.prop(view, "show_world")
 
+        if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
+            engine_type = {
+                'PAINT_WEIGHT': 'WeightPaintMode',
+                'PAINT_VERTEX': 'VertexPaintMode',
+            }.get(context.mode)
+            engine_props = scene.collection_properties[engine_type]
+            col.prop(engine_props, "use_wire")
+
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             col.prop(view, "show_mode_shade_override")
 
