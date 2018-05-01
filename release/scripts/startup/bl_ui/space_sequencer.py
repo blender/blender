@@ -79,13 +79,13 @@ class SEQUENCER_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
+        layout.prop(st, "view_type", text="")
+
         SEQUENCER_MT_editor_menus.draw_collapsible(context, layout)
 
         row = layout.row(align=True)
         row.prop(scene, "use_preview_range", text="", toggle=True)
         row.prop(scene, "lock_frame_selection_to_range", text="", toggle=True)
-
-        layout.prop(st, "view_type", expand=True, text="")
 
         if st.view_type in {'PREVIEW', 'SEQUENCER_PREVIEW'}:
             layout.prop(st, "display_mode", expand=True, text="")

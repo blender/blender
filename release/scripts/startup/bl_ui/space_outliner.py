@@ -36,9 +36,9 @@ class OUTLINER_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
-        OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
-
         layout.prop(space, "display_mode", text="")
+
+        OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
 
         if space.display_mode == 'DATABLOCKS':
             layout.separator()

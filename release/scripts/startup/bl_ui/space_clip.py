@@ -57,9 +57,6 @@ class CLIP_HT_header(Header):
         sc = context.space_data
         clip = sc.clip
 
-        row = layout.row(align=True)
-        row.template_header()
-
         CLIP_MT_tracking_editor_menus.draw_collapsible(context, layout)
 
         row = layout.row()
@@ -70,8 +67,6 @@ class CLIP_HT_header(Header):
             active_object = tracking.objects.active
 
             if sc.view == 'CLIP':
-                layout.prop(sc, "mode", text="")
-                layout.prop(sc, "view", text="", expand=True)
                 layout.prop(sc, "pivot_point", text="", icon_only=True)
 
                 r = active_object.reconstruction
@@ -80,8 +75,6 @@ class CLIP_HT_header(Header):
                     layout.label(text="Solve error: %.4f" %
                                  (r.average_error))
             elif sc.view == 'GRAPH':
-                layout.prop(sc, "view", text="", expand=True)
-
                 row = layout.row(align=True)
                 row.prop(sc, "show_graph_only_selected", text="")
                 row.prop(sc, "show_graph_hidden", text="")
@@ -103,7 +96,6 @@ class CLIP_HT_header(Header):
                              text="Filters")
             elif sc.view == 'DOPESHEET':
                 dopesheet = tracking.dopesheet
-                layout.prop(sc, "view", text="", expand=True)
 
                 row = layout.row(align=True)
                 row.prop(dopesheet, "show_only_selected", text="")
@@ -113,8 +105,6 @@ class CLIP_HT_header(Header):
                 row.prop(dopesheet, "sort_method", text="")
                 row.prop(dopesheet, "use_invert_sort",
                          text="Invert", toggle=True)
-        else:
-            layout.prop(sc, "view", text="", expand=True)
 
     def _draw_masking(self, context):
         layout = self.layout
@@ -123,17 +113,12 @@ class CLIP_HT_header(Header):
         sc = context.space_data
         clip = sc.clip
 
-        row = layout.row(align=True)
-        row.template_header()
-
         CLIP_MT_masking_editor_menus.draw_collapsible(context, layout)
 
         row = layout.row()
         row.template_ID(sc, "clip", open="clip.open")
 
         if clip:
-            layout.prop(sc, "mode", text="")
-
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
 
@@ -151,7 +136,12 @@ class CLIP_HT_header(Header):
 
         sc = context.space_data
 
+        row = layout.row(align=True)
+        row.template_header()
+
+        layout.prop(sc, "mode", text="")
         if sc.mode == 'TRACKING':
+            layout.prop(sc, "view", text="", icon_only=True)
             self._draw_tracking(context)
         else:
             self._draw_masking(context)

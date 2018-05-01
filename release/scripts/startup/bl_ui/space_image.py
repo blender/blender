@@ -443,13 +443,13 @@ class IMAGE_HT_header(Header):
         row = layout.row(align=True)
         row.template_header()
 
+        layout.prop(sima, "mode", text="")
+
         MASK_MT_editor_menus.draw_collapsible(context, layout)
 
         layout.template_ID(sima, "image", new="image.new", open="image.open")
         if not show_render:
             layout.prop(sima, "use_image_pin", text="")
-
-        layout.prop(sima, "mode", text="")
 
         if show_maskedit:
             row = layout.row()
