@@ -1278,7 +1278,7 @@ bool RNA_struct_override_store(
         struct IDOverrideStatic *override);
 
 void RNA_struct_override_apply(
-        struct PointerRNA *ptr_local, struct PointerRNA *ptr_reference, struct PointerRNA *ptr_storage,
+        struct PointerRNA *ptr_local, struct PointerRNA *ptr_override, struct PointerRNA *ptr_storage,
         struct IDOverrideStatic *override);
 
 struct IDOverrideStaticProperty *RNA_property_override_property_find(PointerRNA *ptr, PropertyRNA *prop);
