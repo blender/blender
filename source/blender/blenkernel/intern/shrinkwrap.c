@@ -158,7 +158,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 		return;
 	}
 
-	TIMEIT_BENCH(bvhtree_from_mesh_verts(&treeData, calc->target, 0.0, 2, 6), bvhtree_verts);
+	TIMEIT_BENCH(bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_VERTS), bvhtree_verts);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
@@ -588,7 +588,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	}
 
 	/* Create a bvh-tree of the given target */
-	bvhtree_from_mesh_looptri(&treeData, calc->target, 0.0, 2, 6);
+	bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_LOOPTRI);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
