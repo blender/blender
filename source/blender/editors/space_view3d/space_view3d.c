@@ -1091,6 +1091,10 @@ static void view3d_main_region_message_subscribe(
 		extern StructRNA RNA_ViewLayerEngineSettingsEevee;
 		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsEevee, &msg_sub_value_region_tag_redraw);
 	}
+	else if (STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH)) {
+		extern StructRNA RNA_ViewLayerEngineSettingsWorkbench;
+		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsWorkbench, &msg_sub_value_region_tag_redraw);
+	}
 #ifdef WITH_CLAY_ENGINE
 	else if (STREQ(scene->r.engine, RE_engine_id_BLENDER_CLAY)) {
 		extern StructRNA RNA_ViewLayerEngineSettingsClay;
