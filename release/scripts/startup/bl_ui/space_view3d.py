@@ -53,8 +53,8 @@ class VIEW3D_HT_header(Header):
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row = layout
-        row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_shading", text="Shading")
-        row.popover(space_type='VIEW_3D', region_type='UI', panel_type="VIEW3D_PT_overlay", text="Overlay")
+        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading", text="Shading")
+        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay", text="Overlay")
 
         layout.template_header_3D()
 
@@ -3528,12 +3528,12 @@ class VIEW3D_PT_view3d_name(Panel):
 
 class VIEW3D_PT_shading(Panel):
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_region_type = 'HEADER'
     bl_label = "Shading"
 
     @classmethod
     def poll(cls, context):
-        return False
+        return True
 
     def draw(self, context):
         layout = self.layout
@@ -3549,7 +3549,7 @@ class VIEW3D_PT_shading(Panel):
             col.row().prop(shading, "light", expand=True)
 
             col.separator()
-            col.prop(shading, "show_random_object_colors")
+            col.row().prop(shading, "single_color_mode", expand=True)
             col.prop(shading, "show_object_overlap")
 
             if shading.light == 'STUDIO':
@@ -3580,12 +3580,12 @@ class VIEW3D_PT_shading(Panel):
 
 class VIEW3D_PT_overlay(Panel):
     bl_space_type = 'VIEW_3D'
-    bl_region_type = 'UI'
+    bl_region_type = 'HEADER'
     bl_label = "Overlay"
 
     @classmethod
     def poll(cls, context):
-        return False
+        return True
 
     def draw(self, context):
         layout = self.layout

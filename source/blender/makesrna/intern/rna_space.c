@@ -177,7 +177,7 @@ static const EnumPropertyItem autosnap_items[] = {
 
 const EnumPropertyItem rna_enum_shading_type_items[] = {
 	{OB_WIRE, "WIREFRAME", ICON_WIRE, "Wireframe", "Display the object as wire edges"},
-	{OB_SOLID, "SOLID", ICON_SOLID, "Solid", "Display the object solid"},
+	{OB_SOLID, "SOLID", ICON_SOLID, "Single Color", "Display the object or material in a single color"},
 	{OB_TEXTURE, "TEXTURED", ICON_POTATO, "Texture", "Display the object solid, with a texture"},
 	{OB_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Display objects solid, with GLSL material"},
 	{OB_RENDER, "RENDERED", ICON_SMOOTH, "Rendered", "Display render preview"},
@@ -677,6 +677,16 @@ static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
 		v3d->prev_drawtype = v3d->drawtype;
 	}
 	v3d->drawtype = value;
+}
+
+static void rna_View3DShading_single_color_mode_set(PointerRNA *ptr, int value) {
+	View3D *v3d = (View3D *)ptr->data;
+	v3d->drawtype_options = (v3d->drawtype_options &~ V3D_DRAWOPTION_SOLID_COLOR_MASK) + value;
+}
+
+static int rna_View3DShading_single_color_mode_get(PointerRNA *ptr) {
+	View3D *v3d = (View3D *)ptr->data;
+	return v3d->drawtype_options & V3D_DRAWOPTION_SOLID_COLOR_MASK;
 }
 
 static const EnumPropertyItem *rna_3DViewShading_type_itemf(
@@ -2184,6 +2194,14 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static const EnumPropertyItem single_color_mode_items[] = {
+		{V3D_DRAWOPTION_SINGLE_COLOR,   "SINGLE",   0, "Single",   "Show scene in a single color"},
+		{V3D_DRAWOPTION_OBJECT_COLOR,   "OBJECT",   0, "Object",   "Show Object color"},
+		{V3D_DRAWOPTION_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show Material color"},
+		{V3D_DRAWOPTION_RANDOMIZE,      "RANDOM",   0, "Random",   "Show random object color"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "View3DShading", NULL);
 	RNA_def_struct_sdna(srna, "View3D");
 	RNA_def_struct_nested(brna, srna, "SpaceView3D");
@@ -2210,10 +2228,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Object Overlap", "Show Object Overlap");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
-	prop = RNA_def_property(srna, "show_random_object_colors", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_RANDOMIZE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Random Colors", "Show random object colors");
+	prop = RNA_def_property(srna, "single_color_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, single_color_mode_items);
+	RNA_def_property_enum_funcs(prop, "rna_View3DShading_single_color_mode_get",
+	                                  "rna_View3DShading_single_color_mode_set",
+	                                  NULL);
+	RNA_def_property_ui_text(prop, "Color", "Single Color Mode");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 }
 

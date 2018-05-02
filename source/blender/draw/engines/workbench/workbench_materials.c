@@ -26,6 +26,7 @@
 #include "workbench_private.h"
 
 #include "BLI_dynstr.h"
+#include "BLI_alloca.h"
 
 #include "BKE_particle.h"
 
@@ -172,10 +173,10 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 	data->object_id = e_data.next_object_id++;
 }
 
-static void get_material_solid_color(WORKBENCH_PrivateData *wpd, WORKBENCH_ObjectData *engine_object_data, Object *ob, float *color, float hsv_saturation, float hsv_value)
+static void get_material_solid_color(WORKBENCH_PrivateData *wpd, WORKBENCH_ObjectData *engine_object_data, Object *ob, Material *mat, float *color, float hsv_saturation, float hsv_value)
 {
 	static float default_color[] = {1.0f, 1.0f, 1.0f};
-	if (DRW_object_is_paint_mode(ob)) {
+	if (DRW_object_is_paint_mode(ob) || wpd->drawtype_options & V3D_DRAWOPTION_SINGLE_COLOR) {
 		copy_v3_v3(color, default_color);
 	}
 	else if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
@@ -183,8 +184,17 @@ static void get_material_solid_color(WORKBENCH_PrivateData *wpd, WORKBENCH_Objec
 		float hsv[3] = {offset, hsv_saturation, hsv_value};
 		hsv_to_rgb_v(hsv, color);
 	}
-	else {
+	else if (wpd->drawtype_options & V3D_DRAWOPTION_OBJECT_COLOR) {
 		copy_v3_v3(color, ob->col);
+	}
+	else {
+		/* V3D_DRAWOPTION_MATERIAL_COLOR */
+		if (mat) {
+			copy_v3_v3(color, &mat->r);
+		}
+		else {
+			copy_v3_v3(color, default_color);
+		}
 	}
 }
 
@@ -298,7 +308,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 
 
 }
-static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedata, IDProperty *props, Object *ob)
+static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedata, IDProperty *props, Object *ob, Material *mat)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -312,7 +322,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
 
 	/* Solid */
-	get_material_solid_color(wpd, engine_object_data, ob, color, hsv_saturation, hsv_value);
+	get_material_solid_color(wpd, engine_object_data, ob, mat, color, hsv_saturation, hsv_value);
 	copy_v3_v3(material_template.color, color);
 	material_template.object_id = engine_object_data->object_id;
 	unsigned int hash = get_material_hash(wpd, &material_template);
@@ -352,7 +362,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, IDPropert
 
 					if (draw_as == PART_DRAW_PATH) {
 						struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
-						WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, props, ob);
+						WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, props, ob, NULL);
 						DRW_shgroup_call_add(material->shgrp, geom, mat);
 					}
 				}
@@ -370,21 +380,41 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 	if (ob->type == OB_MESH) {
 		workbench_cache_populate_particles(vedata, props, ob);
 	}
-
-	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
-
+	
 	WORKBENCH_MaterialData *material;
-	if (geom) {
+	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
-
-		material = get_or_create_material_data(vedata, props, ob);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
-		if (is_sculpt_mode) {
-			DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
-		}
-		else {
-			DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+
+		if ((vedata->stl->g_data->drawtype_options & V3D_DRAWOPTION_SOLID_COLOR_MASK) != 0 || is_sculpt_mode) {
+			/* No material split needed */
+			struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+			if (geom) {
+				material = get_or_create_material_data(vedata, props, ob, NULL);
+				if (is_sculpt_mode) {
+					DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
+				}
+				else {
+					DRW_shgroup_call_object_add(material->shgrp, geom, ob);
+				}
+			}
+		} 
+		else { /* MATERIAL colors */
+			const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
+			struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+			for (int i = 0; i < materials_len; i ++) {
+				gpumat_array[i] = NULL;
+			}
+
+			struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
+			if (mat_geom) {
+				for (int i = 0; i < materials_len; ++i) {
+					Material *mat = give_current_material(ob, i + 1);
+					material = get_or_create_material_data(vedata, props, ob, mat);
+					DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
+				}
+			}
 		}
 	}
 }
@@ -419,4 +449,3 @@ void workbench_materials_draw_scene(WORKBENCH_Data *vedata)
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);
 
 }
-
