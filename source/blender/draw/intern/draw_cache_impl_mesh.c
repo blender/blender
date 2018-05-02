@@ -391,7 +391,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		BMesh *bm = embm->bm;
 
 		rdata->edit_bmesh = embm;
-		rdata->edit_data = me->emd;
+		rdata->edit_data = me->runtime.edit_data;
 
 		int bm_ensure_types = 0;
 		if (types & (MR_DATATYPE_VERT)) {
@@ -1582,7 +1582,7 @@ typedef struct MeshBatchCache {
 
 static bool mesh_batch_cache_valid(Mesh *me)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 
 	if (cache == NULL) {
 		return false;
@@ -1623,10 +1623,10 @@ static bool mesh_batch_cache_valid(Mesh *me)
 
 static void mesh_batch_cache_init(Mesh *me)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 
 	if (!cache) {
-		cache = me->batch_cache = MEM_callocN(sizeof(*cache), __func__);
+		cache = me->runtime.batch_cache = MEM_callocN(sizeof(*cache), __func__);
 	}
 	else {
 		memset(cache, 0, sizeof(*cache));
@@ -1653,12 +1653,12 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 		mesh_batch_cache_clear(me);
 		mesh_batch_cache_init(me);
 	}
-	return me->batch_cache;
+	return me->runtime.batch_cache;
 }
 
 void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (cache == NULL) {
 		return;
 	}
@@ -1704,7 +1704,7 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
  **/
 static void mesh_batch_cache_clear_selective(Mesh *me, Gwn_VertBuf *vert)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (!cache) {
 		return;
 	}
@@ -1741,7 +1741,7 @@ static void mesh_batch_cache_clear_selective(Mesh *me, Gwn_VertBuf *vert)
 
 static void mesh_batch_cache_clear(Mesh *me)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (!cache) {
 		return;
 	}
@@ -1820,7 +1820,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 void DRW_mesh_batch_cache_free(Mesh *me)
 {
 	mesh_batch_cache_clear(me);
-	MEM_SAFE_FREE(me->batch_cache);
+	MEM_SAFE_FREE(me->runtime.batch_cache);
 }
 
 /* Gwn_Batch cache usage. */
@@ -3959,7 +3959,7 @@ Gwn_Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
  */
 void DRW_mesh_cache_sculpt_coords_ensure(Mesh *me)
 {
-	if (me->batch_cache) {
+	if (me->runtime.batch_cache) {
 		MeshBatchCache *cache = mesh_batch_cache_get(me);
 		if (cache && cache->pos_with_normals && cache->is_sculpt_points_tag) {
 			/* XXX Force update of all the batches that contains the pos_with_normals buffer.
