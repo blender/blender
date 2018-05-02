@@ -614,6 +614,39 @@ int WM_operator_poll_context(bContext *C, wmOperatorType *ot, short context)
 	return wm_operator_call_internal(C, ot, NULL, NULL, context, true);
 }
 
+bool WM_operator_check_ui_empty(wmOperatorType *ot)
+{
+	if (ot->macro.first != NULL) {
+		/* for macros, check all have exec() we can call */
+		wmOperatorTypeMacro *otmacro;
+		for (otmacro = ot->macro.first; otmacro; otmacro = otmacro->next) {
+			wmOperatorType *otm = WM_operatortype_find(otmacro->idname, 0);
+			if (otm && !WM_operator_check_ui_empty(otm)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/* Assume a ui callback will draw something. */
+	if (ot->ui) {
+		return false;
+	}
+
+	PointerRNA ptr;
+	WM_operator_properties_create_ptr(&ptr, ot);
+	RNA_STRUCT_BEGIN (&ptr, prop)
+	{
+		int flag = RNA_property_flag(prop);
+		if (flag & PROP_HIDDEN) {
+			continue;
+		}
+		return false;
+	}
+	RNA_STRUCT_END;
+	return true;
+}
+
 /**
  * Sets the active region for this space from the context.
  *
