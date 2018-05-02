@@ -163,7 +163,7 @@ static ID *override_static_create_from(Main *bmain, ID *reference_id)
 	id_us_min(local_id);
 
 	BKE_override_static_init(local_id, reference_id);
-	local_id->flag |= LIB_OVERRIDE_STATIC_AUTO;
+	local_id->flag |= STATICOVERRIDE_AUTO;
 
 	return local_id;
 }
@@ -534,7 +534,7 @@ bool BKE_override_static_operations_create(ID *local, const bool force_auto)
 	const bool is_template = (local->override_static->reference == NULL);
 	bool ret = false;
 
-	if (!is_template && (force_auto || local->flag & LIB_OVERRIDE_STATIC_AUTO)) {
+	if (!is_template && (force_auto || local->override_static->flag & STATICOVERRIDE_AUTO)) {
 		PointerRNA rnaptr_local, rnaptr_reference;
 		RNA_id_pointer_create(local, &rnaptr_local);
 		RNA_id_pointer_create(local->override_static->reference, &rnaptr_reference);

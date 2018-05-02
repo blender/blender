@@ -2332,7 +2332,7 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 				}
 				else {
 					/* Disable auto-override tags for non-active objects, will help with performaces... */
-					new_ob->id.flag &= ~LIB_OVERRIDE_STATIC_AUTO;
+					new_ob->id.override_static->flag &= ~STATICOVERRIDE_AUTO;
 				}
 				/* We still want to store all objects' current override status (i.e. change of parent). */
 				BKE_override_static_operations_create(&new_ob->id, true);

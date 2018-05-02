@@ -181,12 +181,18 @@ typedef struct IDOverrideStatic {
 	struct ID *reference;  /* Reference linked ID which this one overrides. */
 	ListBase properties;  /* List of IDOverrideProperty structs. */
 
+	short flag;
+	short pad[3];
+
 	/* Read/write data. */
 	/* Temp ID storing extra override data (used for differential operations only currently).
 	 * Always NULL outside of read/write context. */
 	struct ID *storage;
 } IDOverrideStatic;
 
+enum eStaticOverride_Flag {
+	STATICOVERRIDE_AUTO    = 1 << 0,  /* Allow automatic generation of overriding rules. */
+};
 
 /* watch it: Sequence has identical beginning. */
 /**
@@ -389,7 +395,7 @@ typedef enum ID_Type {
 
 #define ID_IS_STATIC_OVERRIDE_AUTO(_id) (!ID_IS_LINKED((_id)) && \
                                          ID_IS_STATIC_OVERRIDE((_id)) && \
-                                         (((ID *)(_id))->flag & LIB_OVERRIDE_STATIC_AUTO))
+                                         (((ID *)(_id))->override_static->flag & STATICOVERRIDE_AUTO))
 
 #ifdef GS
 #  undef GS
@@ -402,7 +408,6 @@ typedef enum ID_Type {
 
 /* id->flag (persitent). */
 enum {
-	LIB_OVERRIDE_STATIC_AUTO    = 1 << 0,  /* Allow automatic generation of overriding rules. */
 	LIB_FAKEUSER                = 1 << 9,
 };
 
