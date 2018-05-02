@@ -849,7 +849,7 @@ void curve_deform_vector(Object *cuOb, Object *target,
 
 }
 
-void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
+void lattice_deform_verts(Object *laOb, Object *target, Mesh *mesh,
                           float (*vertexCos)[3], int numVerts, const char *vgroup, float fac)
 {
 	LatticeDeformData *lattice_deform_data;
@@ -867,8 +867,8 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	 */
 	if (target && target->type == OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
-		if (dm) {
-			use_vgroups = (dm->getVertDataArray(dm, CD_MDEFORMVERT) != NULL);
+		if (mesh) {
+			use_vgroups = (mesh->dvert != NULL);
 		}
 		else {
 			Mesh *me = target->data;
@@ -884,11 +884,12 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 		const int defgrp_index = defgroup_name_index(target, vgroup);
 		float weight;
 
-		if (defgrp_index >= 0 && (me->dvert || dm)) {
+		if (defgrp_index >= 0 && (me->dvert || mesh)) {
 			MDeformVert *dvert = me->dvert;
 			
 			for (a = 0; a < numVerts; a++, dvert++) {
-				if (dm) dvert = dm->getVertData(dm, a, CD_MDEFORMVERT);
+				/* TODO(sybren): take out of the loop and move to above assignment of dvert */
+				if (mesh) dvert = mesh->dvert + a;
 
 				weight = defvert_find_weight(dvert, defgrp_index);
 
