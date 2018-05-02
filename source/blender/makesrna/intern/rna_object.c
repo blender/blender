@@ -174,6 +174,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 
 #include "DNA_key_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_ID.h"
 #include "DNA_lattice_types.h"
 #include "DNA_node_types.h"
 
@@ -1142,8 +1143,43 @@ bool rna_Object_constraints_override_apply(
 	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
 	           "Unsupported RNA override operation on constraints collection");
 
-	printf("%s: We are supposed to insert a constraint...\n", __func__);
-	return false;
+	Object *ob_dst = (Object *)ptr_dst->id.data;
+	Object *ob_src = (Object *)ptr_src->id.data;
+
+	/* Remember that insertion operations are defined and stored in correct order, which means that
+	 * even if we insert several items in a row, we alays insert first one, then second one, etc.
+	 * So we should always find 'anchor' constraint in both _src *and* _dst> */
+	bConstraint *con_anchor = NULL;
+	if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+		con_anchor = BLI_findstring(&ob_dst->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
+	}
+	if (con_anchor == NULL && opop->subitem_local_index >= 0) {
+		con_anchor = BLI_findlink(&ob_dst->constraints, opop->subitem_local_index);
+	}
+	/* Otherwise we just insert in first position. */
+
+	bConstraint *con_src = NULL;
+	if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+		con_src = BLI_findstring(&ob_src->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
+	}
+	if (con_src == NULL && opop->subitem_local_index >= 0) {
+		con_src = BLI_findlink(&ob_src->constraints, opop->subitem_local_index);
+	}
+	con_src = con_src ? con_src->next : ob_src->constraints.first;
+
+	BLI_assert(con_src != NULL);
+
+	bConstraint *con_dst = BKE_constraint_duplicate_ex(con_src, 0, true);
+
+	/* This handles NULL anchor as expected by adding at head of list. */
+	BLI_insertlinkafter(&ob_dst->constraints, con_anchor, con_dst);
+
+	/* This should actually *not* be needed in typical cases. However, if overridden source was edited,
+	 * we *may* have some new conflicting names. */
+	BKE_constraint_unique_name(con_dst, &ob_dst->constraints);
+
+//	printf("%s: We inserted a constraint...\n", __func__);
+	return true;
 #if 0
 	/* AnimData is a special case, since you cannot edit/replace it, it's either existent or not. */
 	AnimData *adt_dst = RNA_property_pointer_get(ptr_dst, prop_dst).data;
