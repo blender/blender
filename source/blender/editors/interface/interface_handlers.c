@@ -128,7 +128,7 @@ static bool ui_mouse_motion_keynav_test(struct uiKeyNavLock *keynav, const wmEve
 #define BUTTON_FLASH_DELAY          0.020
 #define MENU_SCROLL_INTERVAL        0.1
 #define PIE_MENU_INTERVAL           0.01
-#define BUTTON_AUTO_OPEN_THRESH     0.3
+#define BUTTON_AUTO_OPEN_THRESH     0.2
 #define BUTTON_MOUSE_TOWARDS_THRESH 1.0
 /* pixels to move the cursor to get out of keyboard navigation */
 #define BUTTON_KEYNAV_PX_LIMIT      8
@@ -8369,6 +8369,19 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 					/* deselect the button when moving the mouse away */
 					/* also de-activate for buttons that only show higlights */
 					if (ui_but_contains_point_px(ar, but, event->x, event->y)) {
+
+						/* Drag on a hold button (used in the toolbar) now opens it immediately. */
+						if (data->hold_action_timer) {
+							if (but->flag & UI_SELECT) {
+								if ((abs(event->x - event->prevx)) > 2 ||
+								    (abs(event->y - event->prevy)) > 2)
+								{
+									WM_event_remove_timer(data->wm, data->window, data->hold_action_timer);
+									data->hold_action_timer = WM_event_add_timer(data->wm, data->window, TIMER, 0.0f);
+								}
+							}
+						}
+
 						if (!(but->flag & UI_SELECT)) {
 							but->flag |= (UI_SELECT | UI_ACTIVE);
 							data->cancel = false;
