@@ -33,6 +33,7 @@
  */
  
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
@@ -40,6 +41,7 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "MOD_util.h"
@@ -86,10 +88,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 /*
  * This calls the new bevel code (added since 2.64)
  */
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *dm)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	BMesh *bm;
 	BMIter iter;
 	BMEdge *e;
@@ -105,9 +106,17 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
 	const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
 
-	bm = DM_to_bmesh(dm, true);
+	const struct BMeshCreateParams bmcp = {0};
+	const struct BMeshFromMeshParams bmfmp = {
+		.calc_face_normal = true,
+		.add_key_index = false,
+		.use_shapekey = true,
+		.active_shapekey = ctx->object->shapenr,
+	};
+	bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
+
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
-		modifier_get_vgroup(ctx->object, dm, bmd->defgrp_name, &dvert, &vgroup);
+		modifier_get_vgroup_mesh(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
 
 	if (vertex_only) {
 		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
@@ -167,14 +176,13 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide);
 
-	result = CDDM_from_bmesh(bm, true);
+	struct BMeshToMeshParams bmmp = {0};
+	result = BKE_bmesh_to_mesh(bm, &bmmp);
 
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
 	BM_mesh_free(bm);
-
-	result->dirty |= DM_DIRTY_NORMALS;
 
 	return result;
 }
@@ -199,14 +207,14 @@ ModifierTypeInfo modifierType_Bevel = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

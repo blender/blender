@@ -666,21 +666,39 @@ Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 	return me_copy;
 }
 
-BMesh *BKE_mesh_to_bmesh(
-        Mesh *me, Object *ob,
-        const bool add_key_index, const struct BMeshCreateParams *params)
+BMesh *BKE_mesh_to_bmesh_ex(
+        Mesh *me,
+        const struct BMeshCreateParams *create_params,
+        const struct BMeshFromMeshParams *convert_params)
 {
 	BMesh *bm;
 	const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(me);
 
-	bm = BM_mesh_create(&allocsize, params);
-
-	BM_mesh_bm_from_me(
-	        bm, me, (&(struct BMeshFromMeshParams){
-	            .add_key_index = add_key_index, .use_shapekey = true, .active_shapekey = ob->shapenr,
-	        }));
+	bm = BM_mesh_create(&allocsize, create_params);
+	BM_mesh_bm_from_me(bm, me, convert_params);
 
 	return bm;
+}
+
+BMesh *BKE_mesh_to_bmesh(
+        Mesh *me, Object *ob,
+        const bool add_key_index, const struct BMeshCreateParams *params)
+{
+	struct BMeshFromMeshParams convert_params = {
+		.calc_face_normal = false,
+		.add_key_index = add_key_index,
+		.use_shapekey = true,
+		.active_shapekey = ob->shapenr,
+	};
+	return BKE_mesh_to_bmesh_ex(me, params, &convert_params);
+}
+
+Mesh *BKE_bmesh_to_mesh(BMesh *bm, const struct BMeshToMeshParams *params)
+{
+	Mesh *mesh = BKE_libblock_alloc_notest(ID_ME);
+	BKE_mesh_init(mesh);
+	BM_mesh_bm_to_me(bm, mesh, params);
+	return mesh;
 }
 
 void BKE_mesh_make_local(Main *bmain, Mesh *me, const bool lib_local)

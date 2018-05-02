@@ -33,6 +33,8 @@
 
 struct ID;
 struct BMeshCreateParams;
+struct BMeshFromMeshParams;
+struct BMeshToMeshParams;
 struct BoundBox;
 struct Depsgraph;
 struct EdgeHash;
@@ -71,9 +73,15 @@ extern "C" {
 
 /* *** mesh.c *** */
 
+struct BMesh *BKE_mesh_to_bmesh_ex(
+        struct Mesh *me,
+        const struct BMeshCreateParams *create_params,
+        const struct BMeshFromMeshParams *convert_params);
 struct BMesh *BKE_mesh_to_bmesh(
         struct Mesh *me, struct Object *ob,
         const bool add_key_index, const struct BMeshCreateParams *params);
+
+struct Mesh *BKE_bmesh_to_mesh(struct BMesh *me, const struct BMeshToMeshParams *params);
 
 int poly_find_loop_from_vert(
         const struct MPoly *poly,
