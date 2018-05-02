@@ -1309,9 +1309,9 @@ void paste_matcopybuf(Material *ma)
 	ma->nodetree = ntreeCopyTree_ex(matcopybuf.nodetree, G.main, false);
 }
 
-void BKE_material_eval(struct Depsgraph *UNUSED(depsgraph), Material *material)
+void BKE_material_eval(struct Depsgraph *depsgraph, Material *material)
 {
-	DEG_debug_print_eval(__func__, material->id.name, material);
+	DEG_debug_print_eval(depsgraph, __func__, material->id.name, material);
 	if ((BLI_listbase_is_empty(&material->gpumaterial) == false)) {
 		GPU_material_uniform_buffer_tag_dirty(&material->gpumaterial);
 	}

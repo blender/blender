@@ -1609,8 +1609,8 @@ bool BKE_movieclip_put_frame_if_possible(MovieClip *clip,
 	return result;
 }
 
-void BKE_movieclip_eval_update(struct Depsgraph *UNUSED(depsgraph), MovieClip *clip)
+void BKE_movieclip_eval_update(struct Depsgraph *depsgraph, MovieClip *clip)
 {
-	DEG_debug_print_eval(__func__, clip->id.name, clip);
+	DEG_debug_print_eval(depsgraph, __func__, clip->id.name, clip);
 	BKE_tracking_dopesheet_tag_update(&clip->tracking);
 }

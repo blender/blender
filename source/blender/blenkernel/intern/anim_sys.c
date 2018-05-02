@@ -2949,7 +2949,7 @@ void BKE_animsys_eval_animdata(Depsgraph *depsgraph, ID *id)
 	Scene *scene = NULL; /* XXX: this is only needed for flushing RNA updates,
 	                      * which should get handled as part of the dependency graph instead...
 	                      */
-	DEG_debug_print_eval_time(__func__, id->name, id, ctime);
+	DEG_debug_print_eval_time(depsgraph, __func__, id->name, id, ctime);
 	short recalc = ADT_RECALC_ANIM;
 	const Scene *scene_eval = DEG_get_evaluated_scene(depsgraph);
 	/* If animation component is directly tagged for update, we always apply f-curves. */
@@ -2991,7 +2991,7 @@ void BKE_animsys_eval_driver(Depsgraph *depsgraph,
 	fcu = find_driver_from_evaluated_id(id, fcu);
 
 	DEG_debug_print_eval_subdata_index(
-	        __func__, id->name, id, "fcu", fcu->rna_path, fcu, fcu->array_index);
+	        depsgraph, __func__, id->name, id, "fcu", fcu->rna_path, fcu, fcu->array_index);
 
 	RNA_id_pointer_create(id, &id_ptr);
 

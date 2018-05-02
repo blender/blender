@@ -57,6 +57,7 @@ extern "C" {
 #include <cstring>
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_debug.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
@@ -108,6 +109,7 @@ Depsgraph::Depsgraph(Scene *scene,
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
+	debug_flags = G.debug;
 }
 
 Depsgraph::~Depsgraph()
@@ -600,11 +602,12 @@ void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
 
 /* Evaluation and debug */
 
-void DEG_debug_print_eval(const char *function_name,
+void DEG_debug_print_eval(struct Depsgraph *depsgraph,
+                          const char *function_name,
                           const char *object_name,
                           const void *object_address)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
@@ -617,14 +620,15 @@ void DEG_debug_print_eval(const char *function_name,
 	fflush(stdout);
 }
 
-void DEG_debug_print_eval_subdata(const char *function_name,
+void DEG_debug_print_eval_subdata(struct Depsgraph *depsgraph,
+                                  const char *function_name,
                                   const char *object_name,
                                   const void *object_address,
                                   const char *subdata_comment,
                                   const char *subdata_name,
                                   const void *subdata_address)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
@@ -642,7 +646,8 @@ void DEG_debug_print_eval_subdata(const char *function_name,
 	fflush(stdout);
 }
 
-void DEG_debug_print_eval_subdata_index(const char *function_name,
+void DEG_debug_print_eval_subdata_index(struct Depsgraph *depsgraph,
+                                        const char *function_name,
                                         const char *object_name,
                                         const void *object_address,
                                         const char *subdata_comment,
@@ -650,7 +655,7 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
                                         const void *subdata_address,
                                         const int subdata_index)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
@@ -669,12 +674,13 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
 	fflush(stdout);
 }
 
-void DEG_debug_print_eval_time(const char *function_name,
+void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
+                               const char *function_name,
                                const char *object_name,
                                const void *object_address,
                                float time)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,

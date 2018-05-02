@@ -2747,10 +2747,10 @@ Mesh *BKE_mesh_new_from_object(
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_mesh_eval_geometry(Depsgraph *UNUSED(depsgraph),
+void BKE_mesh_eval_geometry(Depsgraph *depsgraph,
                             Mesh *mesh)
 {
-	DEG_debug_print_eval(__func__, mesh->id.name, mesh);
+	DEG_debug_print_eval(depsgraph, __func__, mesh->id.name, mesh);
 	if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(mesh);
 	}

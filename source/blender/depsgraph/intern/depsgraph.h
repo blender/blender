@@ -202,6 +202,9 @@ struct Depsgraph {
 	 * Stored here to save us form doing hash lookup.
 	 */
 	Scene *scene_cow;
+
+	/* NITE: Corresponds to G_DEBUG_DEPSGRAPH_* flags. */
+	int debug_flags;
 };
 
 }  // namespace DEG

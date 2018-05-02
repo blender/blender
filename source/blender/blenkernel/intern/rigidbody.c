@@ -1696,7 +1696,7 @@ void BKE_rigidbody_rebuild_sim(struct Depsgraph *depsgraph,
                                Scene *scene)
 {
 	float ctime = BKE_scene_frame_get(scene);
-	DEG_debug_print_eval_time(__func__, scene->id.name, scene, ctime);
+	DEG_debug_print_eval_time(depsgraph, __func__, scene->id.name, scene, ctime);
 	/* rebuild sim data (i.e. after resetting to start of timeline) */
 	if (BKE_scene_check_rigidbody_active(scene)) {
 		BKE_rigidbody_rebuild_world(depsgraph, scene, ctime);
@@ -1707,20 +1707,20 @@ void BKE_rigidbody_eval_simulation(struct Depsgraph *depsgraph,
                                    Scene *scene)
 {
 	float ctime = BKE_scene_frame_get(scene);
-	DEG_debug_print_eval_time(__func__, scene->id.name, scene, ctime);
+	DEG_debug_print_eval_time(depsgraph, __func__, scene->id.name, scene, ctime);
 	/* evaluate rigidbody sim */
 	if (BKE_scene_check_rigidbody_active(scene)) {
 		BKE_rigidbody_do_simulation(depsgraph, scene, ctime);
 	}
 }
 
-void BKE_rigidbody_object_sync_transforms(struct Depsgraph *UNUSED(depsgraph),
+void BKE_rigidbody_object_sync_transforms(struct Depsgraph *depsgraph,
                                           Scene *scene,
                                           Object *ob)
 {
 	RigidBodyWorld *rbw = scene->rigidbody_world;
 	float ctime = BKE_scene_frame_get(scene);
-	DEG_debug_print_eval_time(__func__, ob->id.name, ob, ctime);
+	DEG_debug_print_eval_time(depsgraph, __func__, ob->id.name, ob, ctime);
 	/* read values pushed into RBO from sim/cache... */
 	BKE_rigidbody_sync_transforms(rbw, ob, ctime);
 }

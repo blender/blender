@@ -567,14 +567,14 @@ BLI_INLINE bPoseChannel *pose_pchan_get_indexed(Object *ob, int pchan_index)
 	return pose->chan_array[pchan_index];
 }
 
-void BKE_pose_eval_init(struct Depsgraph *UNUSED(depsgraph),
+void BKE_pose_eval_init(struct Depsgraph *depsgraph,
                         Scene *UNUSED(scene),
                         Object *ob)
 {
 	bPose *pose = ob->pose;
 	BLI_assert(pose != NULL);
 
-	DEG_debug_print_eval(__func__, ob->id.name, ob);
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 
 	BLI_assert(ob->type == OB_ARMATURE);
 
@@ -601,7 +601,7 @@ void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
                            Scene *scene,
                            Object *ob)
 {
-	DEG_debug_print_eval(__func__, ob->id.name, ob);
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 	BLI_assert(ob->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bArmature *arm = (bArmature *)ob->data;
@@ -624,7 +624,7 @@ void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
 {
 	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
 	DEG_debug_print_eval_subdata(
-	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
+	        depsgraph, __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	BLI_assert(ob->type == OB_ARMATURE);
 	bArmature *arm = (bArmature *)ob->data;
 	if (arm->edbo || (arm->flag & ARM_RESTPOS)) {
@@ -661,7 +661,7 @@ void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
 {
 	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
 	DEG_debug_print_eval_subdata(
-	        __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
+	        depsgraph, __func__, ob->id.name, ob, "pchan", pchan->name, pchan);
 	bArmature *arm = (bArmature *)ob->data;
 	if (arm->flag & ARM_RESTPOS) {
 		return;
@@ -677,13 +677,13 @@ void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
 	}
 }
 
-void BKE_pose_bone_done(struct Depsgraph *UNUSED(depsgraph),
+void BKE_pose_bone_done(struct Depsgraph *depsgraph,
                         struct Object *ob,
                         int pchan_index)
 {
 	bPoseChannel *pchan = pose_pchan_get_indexed(ob, pchan_index);
 	float imat[4][4];
-	DEG_debug_print_eval(__func__, pchan->name, pchan);
+	DEG_debug_print_eval(depsgraph, __func__, pchan->name, pchan);
 	if (pchan->bone) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 		mul_m4_m4m4(pchan->chan_mat, pchan->pose_mat, imat);
@@ -697,7 +697,7 @@ void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
 {
 	bPoseChannel *rootchan = pose_pchan_get_indexed(ob, rootchan_index);
 	DEG_debug_print_eval_subdata(
-	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
+	        depsgraph, __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bArmature *arm = (bArmature *)ob->data;
@@ -715,7 +715,7 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
 {
 	bPoseChannel *rootchan = pose_pchan_get_indexed(ob, rootchan_index);
 	DEG_debug_print_eval_subdata(
-	        __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
+	        depsgraph, __func__, ob->id.name, ob, "rootchan", rootchan->name, rootchan);
 	BLI_assert(ob->type == OB_ARMATURE);
 	const float ctime = BKE_scene_frame_get(scene); /* not accurate... */
 	bArmature *arm = (bArmature *)ob->data;
@@ -725,7 +725,7 @@ void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
 	BKE_splineik_execute_tree(depsgraph, scene, ob, rootchan, ctime);
 }
 
-void BKE_pose_eval_flush(struct Depsgraph *UNUSED(depsgraph),
+void BKE_pose_eval_flush(struct Depsgraph *depsgraph,
                          Scene *scene,
                          Object *ob)
 {
@@ -733,7 +733,7 @@ void BKE_pose_eval_flush(struct Depsgraph *UNUSED(depsgraph),
 	BLI_assert(pose != NULL);
 
 	float ctime = BKE_scene_frame_get(scene); /* not accurate... */
-	DEG_debug_print_eval(__func__, ob->id.name, ob);
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 	BLI_assert(ob->type == OB_ARMATURE);
 
 	/* release the IK tree */
@@ -744,10 +744,10 @@ void BKE_pose_eval_flush(struct Depsgraph *UNUSED(depsgraph),
 	pose->chan_array = NULL;
 }
 
-void BKE_pose_eval_proxy_copy(struct Depsgraph *UNUSED(depsgraph), Object *ob)
+void BKE_pose_eval_proxy_copy(struct Depsgraph *depsgraph, Object *ob)
 {
 	BLI_assert(ID_IS_LINKED(ob) && ob->proxy_from != NULL);
-	DEG_debug_print_eval(__func__, ob->id.name, ob);
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 	if (BKE_pose_copy_result(ob->pose, ob->proxy_from->pose) == false) {
 		printf("Proxy copy error, lib Object: %s proxy Object: %s\n",
 		       ob->id.name + 2, ob->proxy_from->id.name + 2);
