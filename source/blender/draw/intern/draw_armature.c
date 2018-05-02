@@ -189,12 +189,6 @@ static void drw_shgroup_bone_envelope_distance(
 		head_sphere[3] += *distance;
 		tail_sphere[3]  = *radius_tail;
 		tail_sphere[3] += *distance;
-
-		/* Shader transform is nicer if tail is the biggest. */
-		if (*radius_head > *radius_tail) {
-			swap_v4_v4(head_sphere, tail_sphere);
-		}
-
 		DRW_shgroup_call_dynamic_add(g_data.bone_envelope_distance, head_sphere, tail_sphere, color, final_bonemat[0]);
 	}
 }
@@ -232,12 +226,6 @@ static void drw_shgroup_bone_envelope(
 		/* Draw Body */
 		float tmp_sphere[4];
 		float len = len_v3v3(tail_sphere, head_sphere);
-
-		/* Shader transform is nicer if tail is the biggest. */
-		if (*radius_head > *radius_tail) {
-			swap_v4_v4(head_sphere, tail_sphere);
-		}
-
 		float fac_head = (len - head_sphere[3]) / len;
 		float fac_tail = (len - tail_sphere[3]) / len;
 

@@ -85,7 +85,6 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_bone_box_wire;
 	Gwn_Batch *drw_bone_wire_wire;
 	Gwn_Batch *drw_bone_envelope;
-	Gwn_Batch *drw_bone_envelope_distance;
 	Gwn_Batch *drw_bone_envelope_outline;
 	Gwn_Batch *drw_bone_point;
 	Gwn_Batch *drw_bone_point_wire;
@@ -1881,20 +1880,18 @@ Gwn_Batch *DRW_cache_bone_wire_wire_outline_get(void)
  * Note that here we only encode head/tail in forth component of the vector. */
 static void benv_lat_lon_to_co(const float lat, const float lon, float r_nor[3])
 {
-	/* Poles are along Y axis. */
 	r_nor[0] = sinf(lat) * cosf(lon);
-	r_nor[1] = -cosf(lat);
-	r_nor[2] = sinf(lat) * sinf(lon);
+	r_nor[1] = sinf(lat) * sinf(lon);
+	r_nor[2] = cosf(lat);
 }
 
 Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 {
 	if (!SHC.drw_bone_envelope) {
 		const int lon_res = 24;
-		const int lat_res = 16;
+		const int lat_res = 24;
 		const float lon_inc = 2.0f * M_PI / lon_res;
 		const float lat_inc = M_PI / lat_res;
-		const float eps = 0.02f;
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
@@ -1905,13 +1902,15 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, ((lat_res + 1) * 2) * lon_res * 2);
+		GWN_vertbuf_data_alloc(vbo, ((lat_res + 1) * 2) * lon_res * 1);
 
-		float lon = lon_inc;
+		float lon = 0.0f;
 		for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 			float lat = 0.0f;
 			float co1[4], co2[4];
 			co1[3] = co2[3] = 0.0f;
+
+			/* Note: the poles are duplicated on purpose, to restart the strip. */
 
 			/* 1st sphere */
 			for (int j = 0; j < lat_res; j++, lat += lat_inc) {
@@ -1921,36 +1920,13 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 			}
-			/* Need to close the sphere, but add a small gap to be able
-			 * to distinguish the verts in the vertex shader. */
-			benv_lat_lon_to_co(M_PI - eps, lon,           co1);
-			benv_lat_lon_to_co(M_PI - eps, lon + lon_inc, co2);
+
+			/* Closing the loop */
+			benv_lat_lon_to_co(M_PI, lon,           co1);
+			benv_lat_lon_to_co(M_PI, lon + lon_inc, co2);
+
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
-
-			/* Add some precision to the middle part */
-			// co1[3] = co2[3] = 0.5f;
-			// co1[1] = co2[1] = 0.0f;
-			// GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
-			// GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
-
-			/* 2nd sphere */
-			co1[3] = co2[3] = 1.0f;
-
-			/* Need to open the sphere */
-			benv_lat_lon_to_co(eps, lon,           co1);
-			benv_lat_lon_to_co(eps, lon + lon_inc, co2);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
-
-			lat = lat_inc;
-			for (int j = 1; j < lat_res + 1; j++, lat += lat_inc) {
-				benv_lat_lon_to_co(lat, lon,           co1);
-				benv_lat_lon_to_co(lat, lon + lon_inc, co2);
-
-				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
-				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
-			}
 		}
 
 		SHC.drw_bone_envelope = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
