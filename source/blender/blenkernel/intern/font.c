@@ -1022,7 +1022,7 @@ makebreak:
 			/* top and top-baseline are the same when text-boxes are used */
 			if (cu->align_y != CU_ALIGN_Y_TOP && i_textbox < slen) {
 				/* all previous textboxes are 'full', only align the last used text-box */
-				float yoff;
+				float yoff = 0.0f;
 				int lines;
 				struct CharTrans *ct_last, *ct_textbox;
 
@@ -1051,7 +1051,7 @@ makebreak:
 		else {
 			/* non text-box case handled separately */
 			ct = chartransdata;
-			float yoff;
+			float yoff = 0.0f;
 
 			if (cu->align_y == CU_ALIGN_Y_TOP) {
 				yoff = -linedist;

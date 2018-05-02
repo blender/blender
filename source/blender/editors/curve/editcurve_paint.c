@@ -711,7 +711,7 @@ static void curve_draw_exec_precalc(wmOperator *op)
 			const struct StrokeElem *selem, *selem_first, *selem_last;
 
 			BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
-			selem_first = BLI_mempool_iterstep(&iter);
+			selem_first = selem_last = BLI_mempool_iterstep(&iter);
 			for (selem = BLI_mempool_iterstep(&iter); selem; selem = BLI_mempool_iterstep(&iter)) {
 				selem_last = selem;
 			}

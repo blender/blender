@@ -212,6 +212,7 @@ eAutoPropButsReturn uiDefAutoButsRNA(
 				break;
 			}
 			case UI_BUT_LABEL_ALIGN_NONE:
+			default:
 				col = layout;
 				name = NULL; /* no smart label alignment, show default name with button */
 				break;

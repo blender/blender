@@ -676,7 +676,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C,
 				 * the mouse.
 				 */
 				if (sc->flag & SC_SHOW_MARKER_PATTERN) {
-					int current_corner;
+					int current_corner = -1;
 					distance_squared =
 					        mouse_to_closest_pattern_corner_distance_squared(
 					                marker,

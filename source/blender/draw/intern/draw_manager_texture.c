@@ -25,7 +25,7 @@
 
 #include "draw_manager.h"
 
-#ifdef DEBUG
+#ifndef NDEBUG
 /* Maybe gpu_texture.c is a better place for this. */
 static bool drw_texture_format_supports_framebuffer(GPUTextureFormat format)
 {
