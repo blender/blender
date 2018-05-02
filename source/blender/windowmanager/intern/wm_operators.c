@@ -1388,6 +1388,21 @@ wmOperator *WM_operator_last_redo(const bContext *C)
 	return op;
 }
 
+IDProperty *WM_operator_last_properties_ensure_idprops(wmOperatorType *ot)
+{
+	if (ot->last_properties == NULL) {
+		IDPropertyTemplate val = {0};
+		ot->last_properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+	}
+	return ot->last_properties;
+}
+
+void WM_operator_last_properties_ensure(wmOperatorType *ot, PointerRNA *ptr)
+{
+	IDProperty *props = WM_operator_last_properties_ensure_idprops(ot);
+	RNA_pointer_create(NULL, ot->srna, props, ptr);
+}
+
 /**
  * Use for drag & drop a path or name with operators invoke() function.
  */

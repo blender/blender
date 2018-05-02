@@ -340,6 +340,9 @@ void		WM_operator_properties_free(struct PointerRNA *ptr);
 
 bool        WM_operator_check_ui_empty(struct wmOperatorType *ot);
 bool        WM_operator_check_ui_enabled(const struct bContext *C, const char *idname);
+
+IDProperty *WM_operator_last_properties_ensure_idprops(struct wmOperatorType *ot);
+void        WM_operator_last_properties_ensure(struct wmOperatorType *ot, struct PointerRNA *ptr);
 wmOperator *WM_operator_last_redo(const struct bContext *C);
 ID         *WM_operator_drop_load_path(struct bContext *C, struct wmOperator *op, const short idcode);
 
