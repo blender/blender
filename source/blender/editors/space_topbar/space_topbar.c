@@ -45,6 +45,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_undo.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -297,8 +298,14 @@ static int topbar_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(
 		return false;
 	}
 
-	return (WM_operator_poll((bContext *)C, op->type) &&
-	        WM_operator_check_ui_empty(op->type) == false);
+	bool success = false;
+	if (!WM_operator_check_ui_empty(op->type)) {
+		const OperatorRepeatContextHandle *context_info;
+		context_info = ED_operator_repeat_prepare_context((bContext *)C, op);
+		success = WM_operator_poll((bContext *)C, op->type);
+		ED_operator_repeat_reset_context((bContext *)C, context_info);
+	}
+	return success;
 }
 
 static void topbar_panel_operator_redo(const bContext *C, Panel *pa)
