@@ -118,6 +118,8 @@ const bConstraintTypeInfo *BKE_constraint_typeinfo_from_type(int type);
 /* Constraint function prototypes */
 void BKE_constraint_unique_name(struct bConstraint *con, struct ListBase *list);
 
+struct bConstraint *BKE_constraint_duplicate_ex(struct bConstraint *src, const int flag, const bool do_extern);
+
 void BKE_constraints_free(struct ListBase *list);
 void BKE_constraints_free_ex(struct ListBase *list, bool do_id_user);
 void BKE_constraints_copy(struct ListBase *dst, const struct ListBase *src, bool do_extern);

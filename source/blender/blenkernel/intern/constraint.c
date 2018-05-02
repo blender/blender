@@ -4657,6 +4657,43 @@ static void con_fix_copied_refs_cb(bConstraint *UNUSED(con), ID **idpoin, bool i
 		id_us_plus(*idpoin);
 }
 
+/** Copies a single constraint's data (\a dst must already be a shallow copy of \a src). */
+static void constraint_copy_data_ex(bConstraint *dst, bConstraint *src, const int flag, const bool do_extern)
+{
+	const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(src);
+
+	/* make a new copy of the constraint's data */
+	dst->data = MEM_dupallocN(dst->data);
+
+	/* only do specific constraints if required */
+	if (cti) {
+		/* perform custom copying operations if needed */
+		if (cti->copy_data)
+			cti->copy_data(dst, src);
+
+		/* Fix usercounts for all referenced data that need it. */
+		if (cti->id_looper && (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
+			cti->id_looper(dst, con_fix_copied_refs_cb, NULL);
+		}
+
+		/* for proxies we don't want to make extern */
+		if (do_extern) {
+			/* go over used ID-links for this constraint to ensure that they are valid for proxies */
+			if (cti->id_looper)
+				cti->id_looper(dst, con_extern_cb, NULL);
+		}
+	}
+}
+
+/** Allocate and duplicate a single constraint, ouside of any object/pose context. */
+bConstraint *BKE_constraint_duplicate_ex(bConstraint *src, const int flag, const bool do_extern)
+{
+	bConstraint *dst = MEM_dupallocN(src);
+	constraint_copy_data_ex(dst, src, flag, do_extern);
+	dst->next = dst->prev = NULL;
+	return dst;
+}
+
 /* duplicate all of the constraints in a constraint stack */
 void BKE_constraints_copy_ex(ListBase *dst, const ListBase *src, const int flag, bool do_extern)
 {
@@ -4666,29 +4703,7 @@ void BKE_constraints_copy_ex(ListBase *dst, const ListBase *src, const int flag,
 	BLI_duplicatelist(dst, src);
 
 	for (con = dst->first, srccon = src->first; con && srccon; srccon = srccon->next, con = con->next) {
-		const bConstraintTypeInfo *cti = BKE_constraint_typeinfo_get(con);
-
-		/* make a new copy of the constraint's data */
-		con->data = MEM_dupallocN(con->data);
-
-		/* only do specific constraints if required */
-		if (cti) {
-			/* perform custom copying operations if needed */
-			if (cti->copy_data)
-				cti->copy_data(con, srccon);
-
-			/* Fix usercounts for all referenced data that need it. */
-			if (cti->id_looper && (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) == 0) {
-				cti->id_looper(con, con_fix_copied_refs_cb, NULL);
-			}
-
-			/* for proxies we don't want to make extern */
-			if (do_extern) {
-				/* go over used ID-links for this constraint to ensure that they are valid for proxies */
-				if (cti->id_looper)
-					cti->id_looper(con, con_extern_cb, NULL);
-			}
-		}
+		constraint_copy_data_ex(con, srccon, flag, do_extern);
 	}
 }
 
