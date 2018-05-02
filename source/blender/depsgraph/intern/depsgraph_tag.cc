@@ -406,8 +406,49 @@ void deg_graph_id_tag_update_single_flag(Main *bmain,
 
 }
 
+string stringify_append_bit(const string& str, eDepsgraph_Tag tag)
+{
+	string result = str;
+	if (!result.empty()) {
+		result += ", ";
+	}
+	result += DEG_update_tag_as_string(tag);
+	return result;
+}
+
+string stringify_update_bitfield(int flag)
+{
+	if (flag == 0) {
+		return "LEGACY_0";
+	}
+	string result = "";
+	int current_flag = flag;
+	/* Special cases to avoid ALL flags form being split into
+	 * individual bits.
+	 */
+	if ((current_flag & DEG_TAG_PSYS_ALL) == DEG_TAG_PSYS_ALL) {
+		result = stringify_append_bit(result, DEG_TAG_PSYS_ALL);
+	}
+	/* Handle all the rest of the flags. */
+	while (current_flag != 0) {
+		eDepsgraph_Tag tag =
+		        (eDepsgraph_Tag)(1 << bitscan_forward_clear_i(&current_flag));
+		result = stringify_append_bit(result, tag);
+	}
+	return result;
+}
+
 void deg_graph_id_tag_update(Main *bmain, Depsgraph *graph, ID *id, int flag)
 {
+	const int debug_flags = (graph != NULL)
+	        ? DEG_debug_flags_get((::Depsgraph *)graph)
+	        : G.debug;
+	if (debug_flags & G_DEBUG_DEPSGRAPH_TAG) {
+		printf("%s: id=%s flags=%s\n",
+		       __func__,
+		       id->name,
+		       stringify_update_bitfield(flag).c_str());
+	}
 	IDDepsNode *id_node = (graph != NULL) ? graph->find_id_node(id)
 	                                      : NULL;
 	DEG_id_type_tag(bmain, GS(id->name));
@@ -482,38 +523,6 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 	}
 }
 
-string stringify_append_bit(const string& str, eDepsgraph_Tag tag)
-{
-	string result = str;
-	if (!result.empty()) {
-		result += ", ";
-	}
-	result += DEG_update_tag_as_string(tag);
-	return result;
-}
-
-string stringify_update_bitfield(int flag)
-{
-	if (flag == 0) {
-		return "LEGACY_0";
-	}
-	string result = "";
-	int current_flag = flag;
-	/* Special cases to avoid ALL flags form being split into
-	 * individual bits.
-	 */
-	if ((current_flag & DEG_TAG_PSYS_ALL) == DEG_TAG_PSYS_ALL) {
-		result = stringify_append_bit(result, DEG_TAG_PSYS_ALL);
-	}
-	/* Handle all the rest of the flags. */
-	while (current_flag != 0) {
-		eDepsgraph_Tag tag =
-		        (eDepsgraph_Tag)(1 << bitscan_forward_clear_i(&current_flag));
-		result = stringify_append_bit(result, tag);
-	}
-	return result;
-}
-
 }  /* namespace */
 
 }  // namespace DEG
@@ -553,12 +562,6 @@ void DEG_id_tag_update_ex(Main *bmain, ID *id, int flag)
 	if (id == NULL) {
 		/* Ideally should not happen, but old depsgraph allowed this. */
 		return;
-	}
-	if (G.debug & G_DEBUG_DEPSGRAPH_TAG) {
-		printf("%s: id=%s flags=%s\n",
-		       __func__,
-		       id->name,
-		       DEG::stringify_update_bitfield(flag).c_str());
 	}
 	DEG::deg_id_tag_update(bmain, id, flag);
 }
