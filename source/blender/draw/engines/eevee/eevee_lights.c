@@ -546,6 +546,8 @@ static void eevee_light_setup(Object *ob, EEVEE_Light *evli)
 	/* Color */
 	copy_v3_v3(evli->color, &la->r);
 
+	evli->spec = la->spec_fac;
+
 	/* Influence Radius */
 	evli->dist = la->dist;
 

@@ -89,6 +89,8 @@ typedef struct Lamp {
 
 	float contact_dist, contact_bias, contact_spread, contact_thickness;
 
+	float spec_fac, pad;
+
 	/* preview */
 	struct PreviewImage *preview;
 

@@ -143,7 +143,7 @@ class DATA_PT_EEVEE_lamp(DataButtonsPanel, Panel):
                 sub.prop(lamp, "size_y", text="Size Y")
 
         col = split.column()
-        col.label()
+        col.prop(lamp, "specular_factor", text="Specular")
 
 
 class DATA_PT_EEVEE_shadow(DataButtonsPanel, Panel):
