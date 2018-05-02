@@ -1113,7 +1113,7 @@ static int uv_select_edgeloop(
 
 static void uv_select_linked_multi(
         Scene *scene, Image *ima, Object **objects, const uint objects_len, const float limit[2],
-        UvNearestHit *hit_final, bool extend, bool select_faces)
+        UvNearestHit *hit_final, bool extend, bool deselect, bool toggle, bool select_faces)
 {
 	/* loop over objects, or just use hit_final->ob */
 	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
@@ -1222,88 +1222,64 @@ static void uv_select_linked_multi(
 			}
 		}
 
-		if (!extend) {
+		/* Toggling - if any of the linked vertices is selected (and visible), we deselect. */
+		if ((toggle == true) && (extend == false) && (deselect == false)) {
 			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-				if (select_faces) {
-					if (flag[a])
-						BM_face_select_set(em->bm, efa, true);
-					else
-						BM_face_select_set(em->bm, efa, false);
-				}
-				else {
-					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-						if (flag[a])
-							luv->flag |= MLOOPUV_VERTSEL;
-						else
-							luv->flag &= ~MLOOPUV_VERTSEL;
-					}
-				}
-			}
-		}
-		else {
-			BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
+				bool found_selected = false;
 				if (!flag[a]) {
 					continue;
 				}
 
 				if (select_faces) {
-					if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN))
-						break;
+					if (BM_elem_flag_test(efa, BM_ELEM_SELECT) && !BM_elem_flag_test(efa, BM_ELEM_HIDDEN)) {
+						found_selected = true;
+					}
 				}
 				else {
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 						luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
 
 						if (luv->flag & MLOOPUV_VERTSEL) {
-							break;
+							found_selected = true;
 						}
 					}
 
-					if (l) {
+					if (found_selected) {
+						deselect = true;
 						break;
 					}
 				}
 			}
+		}
 
-			if (efa) {
-				BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-					if (!flag[a]) {
-						continue;
-					}
+#define SET_SELECTION(value) \
+		if (select_faces) { \
+			BM_face_select_set(em->bm, efa, value); \
+		} \
+		else { \
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) { \
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset); \
+				luv->flag = (value) ? (luv->flag | MLOOPUV_VERTSEL) : (luv->flag & ~MLOOPUV_VERTSEL); \
+			} \
+		} (void)0
 
-					if (select_faces) {
-						BM_face_select_set(em->bm, efa, false);
-					}
-					else {
-						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-							luv->flag &= ~MLOOPUV_VERTSEL;
-						}
-					}
+		BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
+			if (!flag[a]) {
+				if (!extend && !deselect && !toggle) {
+					SET_SELECTION(false);
 				}
+				continue;
+			}
+
+			if (!deselect) {
+				SET_SELECTION(true);
 			}
 			else {
-				BM_ITER_MESH_INDEX (efa, &iter, em->bm, BM_FACES_OF_MESH, a) {
-					if (!flag[a]) {
-						continue;
-					}
-
-					if (select_faces) {
-						BM_face_select_set(em->bm, efa, true);
-					}
-					else {
-						BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-							luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-
-							luv->flag |= MLOOPUV_VERTSEL;
-						}
-					}
-				}
+				SET_SELECTION(false);
 			}
 		}
+
+#undef SET_SELECTION
 
 		MEM_freeN(stack);
 		MEM_freeN(flag);
@@ -2256,7 +2232,8 @@ static int uv_mouse_select_multi(
 			/* TODO(MULTI_EDIT): We only need to de-select non-active */
 			uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
 		}
-		uv_select_linked_multi(scene, ima, objects, objects_len, limit, &hit, extend, false);
+		/* Current behavior of 'extend' is actually toggling, so pass extend flag as 'toggle' here */
+		uv_select_linked_multi(scene, ima, objects, objects_len, limit, &hit, false, false, extend, false);
 	}
 	else if (extend) {
 		if (selectmode == UV_SELECT_VERTEX) {
@@ -2490,7 +2467,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Image *ima = CTX_data_edit_image(C);
 	float limit[2];
-	int extend;
+	int extend, deselect;
 	bool select_faces = (ts->uv_flag & UV_SYNC_SELECTION) && (ts->selectmode & SCE_SELECT_FACE);
 
 	UvNearestHit hit = UV_NEAREST_HIT_INIT;
@@ -2501,6 +2478,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 	}
 
 	extend = RNA_boolean_get(op->ptr, "extend");
+	deselect = RNA_boolean_get(op->ptr, "deselect");
 	uvedit_pixel_to_float(sima, limit, 0.05f);
 
 	uint objects_len = 0;
@@ -2531,7 +2509,9 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 		uv_select_all_perform_multi(scene, ima, objects, objects_len, SEL_DESELECT);
 	}
 
-	uv_select_linked_multi(scene, ima, objects, objects_len, limit, pick ? &hit : NULL, extend, select_faces);
+	uv_select_linked_multi(
+	        scene, ima, objects, objects_len, limit, pick ? &hit : NULL,
+	        extend, deselect, false, select_faces);
 
 	/* weak!, but works */
 	Object **objects_free = objects;
@@ -2571,6 +2551,7 @@ static void UV_OT_select_linked(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
 	                "Extend", "Extend selection rather than clearing the existing selection");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked UV vertices rather than selecting them");
 }
 
 static int uv_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmEvent *event)
@@ -2599,7 +2580,7 @@ static void UV_OT_select_linked_pick(wmOperatorType *ot)
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
 	                "Extend", "Extend selection rather than clearing the existing selection");
-
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect linked UV vertices rather than selecting them");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
@@ -4398,10 +4379,18 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	/* selection manipulation */
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0)->ptr, "extend", false);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0)->ptr, "extend", false);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0)->ptr, "extend", true);
-	RNA_boolean_set(WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "extend", true);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "extend", true);
+	RNA_boolean_set(kmi->ptr, "deselect", false);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_linked", LKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
+	kmi = WM_keymap_add_item(keymap, "UV_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", false);
+	RNA_boolean_set(kmi->ptr, "deselect", true);
 
 	/* select more/less */
 	WM_keymap_add_item(keymap, "UV_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
