@@ -69,6 +69,11 @@ typedef struct EditMeshData {
 typedef struct MeshRuntime {
 	struct EditMeshData *edit_data;
 	void *batch_cache;
+
+	uint64_t cd_dirty_vert;
+	uint64_t cd_dirty_edge;
+	uint64_t cd_dirty_loop;
+	uint64_t cd_dirty_poly;
 } MeshRuntime;
 
 typedef struct Mesh {
