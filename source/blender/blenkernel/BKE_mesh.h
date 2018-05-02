@@ -81,7 +81,7 @@ struct BMesh *BKE_mesh_to_bmesh(
         struct Mesh *me, struct Object *ob,
         const bool add_key_index, const struct BMeshCreateParams *params);
 
-struct Mesh *BKE_bmesh_to_mesh(struct BMesh *me, const struct BMeshToMeshParams *params);
+struct Mesh *BKE_bmesh_to_mesh(struct BMesh *bm, const struct BMeshToMeshParams *params);
 
 int poly_find_loop_from_vert(
         const struct MPoly *poly,

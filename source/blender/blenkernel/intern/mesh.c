@@ -392,30 +392,30 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
 
 bool BKE_mesh_ensure_edit_data(struct Mesh *me)
 {
-	if (me->emd != NULL) {
+	if (me->runtime.edit_data != NULL) {
 		return false;
 	}
 
-	me->emd = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
+	me->runtime.edit_data = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
 	return true;
 }
 
 bool BKE_mesh_clear_edit_data(struct Mesh *me)
 {
-	if (me->emd == NULL) {
+	if (me->runtime.edit_data == NULL) {
 		return false;
 	}
 
-	if (me->emd->polyCos != NULL)
-		MEM_freeN((void *)me->emd->polyCos);
-	if (me->emd->polyNos != NULL)
-		MEM_freeN((void *)me->emd->polyNos);
-	if (me->emd->vertexCos != NULL)
-		MEM_freeN((void *)me->emd->vertexCos);
-	if (me->emd->vertexNos != NULL)
-		MEM_freeN((void *)me->emd->vertexNos);
+	if (me->runtime.edit_data->polyCos != NULL)
+		MEM_freeN((void *)me->runtime.edit_data->polyCos);
+	if (me->runtime.edit_data->polyNos != NULL)
+		MEM_freeN((void *)me->runtime.edit_data->polyNos);
+	if (me->runtime.edit_data->vertexCos != NULL)
+		MEM_freeN((void *)me->runtime.edit_data->vertexCos);
+	if (me->runtime.edit_data->vertexNos != NULL)
+		MEM_freeN((void *)me->runtime.edit_data->vertexNos);
 
-	MEM_SAFE_FREE(me->emd);
+	MEM_SAFE_FREE(me->runtime.edit_data);
 	return true;
 }
 
@@ -602,7 +602,7 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	BKE_mesh_update_customdata_pointers(me_dst, do_tessface);
 
 	me_dst->edit_btmesh = NULL;
-	me_dst->batch_cache = NULL;
+	me_dst->runtime.batch_cache = NULL;
 
 	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
 	me_dst->bb = MEM_dupallocN(me_dst->bb);
@@ -644,6 +644,13 @@ static Mesh *mesh_from_template_ex(
 	}
 
 	BKE_mesh_update_customdata_pointers(me_dst, false);
+
+	if (!CustomData_get_layer(&me_dst->vdata, CD_ORIGINDEX))
+		CustomData_add_layer(&me_dst->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	if (!CustomData_get_layer(&me_dst->edata, CD_ORIGINDEX))
+		CustomData_add_layer(&me_dst->edata, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	if (!CustomData_get_layer(&me_dst->pdata, CD_ORIGINDEX))
+		CustomData_add_layer(&me_dst->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, numPolys);
 
 	return me_dst;
 }
@@ -2755,13 +2762,13 @@ void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
 
 void BKE_mesh_batch_cache_dirty(Mesh *me, int mode)
 {
-	if (me->batch_cache) {
+	if (me->runtime.batch_cache) {
 		BKE_mesh_batch_cache_dirty_cb(me, mode);
 	}
 }
 void BKE_mesh_batch_cache_free(Mesh *me)
 {
-	if (me->batch_cache) {
+	if (me->runtime.batch_cache) {
 		BKE_mesh_batch_cache_free_cb(me);
 	}
 }

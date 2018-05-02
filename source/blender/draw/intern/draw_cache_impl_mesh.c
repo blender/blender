@@ -391,7 +391,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 		BMesh *bm = embm->bm;
 
 		rdata->edit_bmesh = embm;
-		rdata->edit_data = me->emd;
+		rdata->edit_data = me->runtime.edit_data;
 
 		int bm_ensure_types = 0;
 		if (types & (MR_DATATYPE_VERT)) {
@@ -1564,6 +1564,12 @@ typedef struct MeshBatchCache {
 	Gwn_Batch *overlay_weight_verts;
 	Gwn_Batch *overlay_paint_edges;
 
+	/* arrays of bool uniform names (and value) that will be use to
+	 * set srgb conversion for auto attribs.*/
+	char *auto_layer_names;
+	int *auto_layer_is_srgb;
+	int auto_layer_ct;
+
 	/* settings to determine if cache is invalid */
 	bool is_maybe_dirty;
 	bool is_dirty; /* Instantly invalidates cache, skipping mesh check */
@@ -1582,7 +1588,7 @@ typedef struct MeshBatchCache {
 
 static bool mesh_batch_cache_valid(Mesh *me)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 
 	if (cache == NULL) {
 		return false;
@@ -1623,10 +1629,10 @@ static bool mesh_batch_cache_valid(Mesh *me)
 
 static void mesh_batch_cache_init(Mesh *me)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 
 	if (!cache) {
-		cache = me->batch_cache = MEM_callocN(sizeof(*cache), __func__);
+		cache = me->runtime.batch_cache = MEM_callocN(sizeof(*cache), __func__);
 	}
 	else {
 		memset(cache, 0, sizeof(*cache));
@@ -1653,12 +1659,12 @@ static MeshBatchCache *mesh_batch_cache_get(Mesh *me)
 		mesh_batch_cache_clear(me);
 		mesh_batch_cache_init(me);
 	}
-	return me->batch_cache;
+	return me->runtime.batch_cache;
 }
 
 void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (cache == NULL) {
 		return;
 	}
@@ -1704,7 +1710,7 @@ void DRW_mesh_batch_cache_dirty(Mesh *me, int mode)
  **/
 static void mesh_batch_cache_clear_selective(Mesh *me, Gwn_VertBuf *vert)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (!cache) {
 		return;
 	}
@@ -1741,7 +1747,7 @@ static void mesh_batch_cache_clear_selective(Mesh *me, Gwn_VertBuf *vert)
 
 static void mesh_batch_cache_clear(Mesh *me)
 {
-	MeshBatchCache *cache = me->batch_cache;
+	MeshBatchCache *cache = me->runtime.batch_cache;
 	if (!cache) {
 		return;
 	}
@@ -1806,6 +1812,9 @@ static void mesh_batch_cache_clear(Mesh *me)
 	MEM_SAFE_FREE(cache->shaded_triangles_in_order);
 	MEM_SAFE_FREE(cache->shaded_triangles);
 
+	MEM_SAFE_FREE(cache->auto_layer_names);
+	MEM_SAFE_FREE(cache->auto_layer_is_srgb);
+
 	if (cache->texpaint_triangles) {
 		for (int i = 0; i < cache->mat_len; ++i) {
 			GWN_BATCH_DISCARD_SAFE(cache->texpaint_triangles[i]);
@@ -1820,7 +1829,7 @@ static void mesh_batch_cache_clear(Mesh *me)
 void DRW_mesh_batch_cache_free(Mesh *me)
 {
 	mesh_batch_cache_clear(me);
-	MEM_SAFE_FREE(me->batch_cache);
+	MEM_SAFE_FREE(me->runtime.batch_cache);
 }
 
 /* Gwn_Batch cache usage. */
@@ -1855,6 +1864,27 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 		if (tangent_len == 0) { tangent_id = NULL; }
 		if (vcol_len == 0) { vcol_id = NULL; }
 
+		/* Count number of auto layer and allocate big enough name buffer. */
+		uint auto_names_len = 0;
+		uint auto_ofs = 0;
+		uint auto_id = 0;
+		cache->auto_layer_ct = 0;
+		for (uint i = 0; i < uv_len; i++) {
+			const char *attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
+			auto_names_len += strlen(attrib_name) + 2; /* include null terminator and b prefix. */
+			cache->auto_layer_ct++;
+		}
+		for (uint i = 0; i < vcol_len; i++) {
+			if (rdata->cd.layers.auto_vcol[i]) {
+				const char *attrib_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
+				auto_names_len += strlen(attrib_name) + 2; /* include null terminator and b prefix. */
+				cache->auto_layer_ct++;
+			}
+		}
+		auto_names_len += 1; /* add an ultimate '\0' terminator */
+		cache->auto_layer_names = MEM_callocN(auto_names_len * sizeof(char), "Auto layer name buf");
+		cache->auto_layer_is_srgb = MEM_mallocN(cache->auto_layer_ct * sizeof(int), "Auto layer value buf");
+
 		for (uint i = 0; i < uv_len; i++) {
 			/* UV */
 			const char *attrib_name = mesh_render_data_uv_layer_uuid_get(rdata, i);
@@ -1867,6 +1897,10 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			/* Auto Name */
 			attrib_name = mesh_render_data_uv_auto_layer_uuid_get(rdata, i);
 			GWN_vertformat_alias_add(format, attrib_name);
+
+			/* +1 include null terminator. */
+			auto_ofs += 1 + BLI_snprintf_rlen(cache->auto_layer_names + auto_ofs, auto_names_len - auto_ofs, "b%s", attrib_name);
+			cache->auto_layer_is_srgb[auto_id++] = 0; /* tag as not srgb */
 
 			if (i == rdata->cd.layers.uv_active) {
 				GWN_vertformat_alias_add(format, "u");
@@ -1896,7 +1930,12 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			/* Auto layer */
 			if (rdata->cd.layers.auto_vcol[i]) {
 				attrib_name = mesh_render_data_vcol_auto_layer_uuid_get(rdata, i);
+
 				GWN_vertformat_alias_add(format, attrib_name);
+
+				/* +1 include null terminator. */
+				auto_ofs += 1 + BLI_snprintf_rlen(cache->auto_layer_names + auto_ofs, auto_names_len - auto_ofs, "b%s", attrib_name);
+				cache->auto_layer_is_srgb[auto_id++] = 1; /* tag as srgb */
 			}
 
 			if (i == rdata->cd.layers.vcol_active) {
@@ -3809,7 +3848,8 @@ Gwn_Batch *DRW_mesh_batch_cache_get_verts_with_select_id(Mesh *me, uint select_i
 }
 
 Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(
-        Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+        Mesh *me, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3827,17 +3867,23 @@ Gwn_Batch **DRW_mesh_batch_cache_get_surface_shaded(
 		Gwn_IndexBuf **el = mesh_batch_cache_get_triangles_in_order_split_by_material(rdata, cache);
 
 		Gwn_VertBuf *vbo = mesh_batch_cache_get_tri_pos_and_normals(rdata, cache);
+		Gwn_VertBuf *vbo_shading = mesh_batch_cache_get_tri_shading_data(rdata, cache);
+
 		for (int i = 0; i < mat_len; ++i) {
 			cache->shaded_triangles[i] = GWN_batch_create(
 			        GWN_PRIM_TRIS, vbo, el[i]);
-			Gwn_VertBuf *vbo_shading = mesh_batch_cache_get_tri_shading_data(rdata, cache);
 			if (vbo_shading) {
 				GWN_batch_vertbuf_add(cache->shaded_triangles[i], vbo_shading);
 			}
 		}
 
-
 		mesh_render_data_free(rdata);
+	}
+
+	if (auto_layer_names) {
+		*auto_layer_names = cache->auto_layer_names;
+		*auto_layer_is_srgb = cache->auto_layer_is_srgb;
+		*auto_layer_count = cache->auto_layer_ct;
 	}
 
 	return cache->shaded_triangles;
@@ -3959,7 +4005,7 @@ Gwn_Batch *DRW_mesh_batch_cache_get_weight_overlay_verts(Mesh *me)
  */
 void DRW_mesh_cache_sculpt_coords_ensure(Mesh *me)
 {
-	if (me->batch_cache) {
+	if (me->runtime.batch_cache) {
 		MeshBatchCache *cache = mesh_batch_cache_get(me);
 		if (cache && cache->pos_with_normals && cache->is_sculpt_points_tag) {
 			/* XXX Force update of all the batches that contains the pos_with_normals buffer.

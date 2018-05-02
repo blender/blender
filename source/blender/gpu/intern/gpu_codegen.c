@@ -914,6 +914,12 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 						GPU_DATATYPE_STR[input->type], attrib_prefix_get(input->attribtype), hash);
 					BLI_dynstr_appendf(ds, "#define att%d %s%u\n",
 						input->attribid, attrib_prefix_get(input->attribtype), hash);
+					/* Auto attrib can be vertex color byte buffer.
+					 * We need to know and convert them to linear space in VS. */
+					if (!use_geom && input->attribtype == CD_AUTO_FROM_NAME) {
+						BLI_dynstr_appendf(ds, "uniform bool ba%u;\n", hash);
+						BLI_dynstr_appendf(ds, "#define att%d_is_srgb ba%u\n", input->attribid, hash);
+					}
 				}
 				BLI_dynstr_appendf(ds, "out %s var%d%s;\n",
 					GPU_DATATYPE_STR[input->type], input->attribid, use_geom ? "g" : "");
@@ -923,8 +929,17 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 
 	BLI_dynstr_append(ds, "\n");
 
-	BLI_dynstr_append(ds, "#define ATTRIB\n");
-	BLI_dynstr_append(ds, "uniform mat3 NormalMatrix;\n");
+	BLI_dynstr_append(ds,
+	    "#define ATTRIB\n"
+	    "uniform mat3 NormalMatrix;\n"
+	    "vec3 srgb_to_linear_attrib(vec3 c) {\n"
+	    "\tc = max(c, vec3(0.0));\n"
+	    "\tvec3 c1 = c * (1.0 / 12.92);\n"
+	    "\tvec3 c2 = pow((c + 0.055) * (1.0 / 1.055), vec3(2.4));\n"
+	    "\treturn mix(c1, c2, step(vec3(0.04045), c));\n"
+	    "}\n\n"
+	);
+
 	BLI_dynstr_append(ds, "void pass_attrib(in vec3 position) {\n");
 
 	for (node = nodes->first; node; node = node->next) {
@@ -941,6 +956,15 @@ static char *code_generate_vertex(ListBase *nodes, const char *vert_code, bool u
 				else if (input->attribtype == CD_ORCO) {
 					BLI_dynstr_appendf(ds, "\tvar%d%s = OrcoTexCoFactors[0] + position * OrcoTexCoFactors[1];\n",
 					                   input->attribid, use_geom ? "g" : "");
+				}
+				else if (input->attribtype == CD_MCOL) {
+					BLI_dynstr_appendf(ds, "\tvar%d%s = srgb_to_linear_attrib(att%d);\n",
+					                   input->attribid, use_geom ? "g" : "", input->attribid);
+				}
+				else if (input->attribtype == CD_AUTO_FROM_NAME) {
+					BLI_dynstr_appendf(ds, "\tvar%d%s = (att%d_is_srgb) ? srgb_to_linear_attrib(att%d) : att%d;\n",
+					                   input->attribid, use_geom ? "g" : "",
+					                   input->attribid, input->attribid, input->attribid);
 				}
 				else {
 					BLI_dynstr_appendf(ds, "\tvar%d%s = att%d;\n",

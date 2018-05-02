@@ -1106,11 +1106,16 @@ static void rna_def_ID_override_static_property(BlenderRNA *brna)
 static void rna_def_ID_override_static(BlenderRNA *brna)
 {
 	StructRNA *srna;
+	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "IDOverrideStatic", NULL);
 	RNA_def_struct_ui_text(srna, "ID Static Override", "Struct gathering all data needed by statically overridden IDs");
 
 	RNA_def_pointer(srna, "reference", "ID", "Reference ID", "Linked ID used as reference by this override");
+
+	prop = RNA_def_boolean(srna, "auto_generate", true, "Auto Generate Override",
+	                       "Automatically generate overriding operations by detecting changes in properties");
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", STATICOVERRIDE_AUTO);
 
 	RNA_def_collection(srna, "properties", "IDOverrideStaticProperty", "Properties",
 	                   "List of overridden properties");
