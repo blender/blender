@@ -1180,24 +1180,6 @@ bool rna_Object_constraints_override_apply(
 
 //	printf("%s: We inserted a constraint...\n", __func__);
 	return true;
-#if 0
-	/* AnimData is a special case, since you cannot edit/replace it, it's either existent or not. */
-	AnimData *adt_dst = RNA_property_pointer_get(ptr_dst, prop_dst).data;
-	AnimData *adt_src = RNA_property_pointer_get(ptr_src, prop_src).data;
-
-	if (adt_dst == NULL && adt_src != NULL) {
-		/* Copy anim data from reference into final local ID. */
-		BKE_animdata_copy_id(NULL, ptr_dst->id.data, ptr_src->id.data, false, true);
-		return true;
-	}
-	else if (adt_dst != NULL && adt_src == NULL) {
-		/* Override has cleared/removed anim data from its reference. */
-		BKE_animdata_free(ptr_dst->id.data, true);
-		return true;
-	}
-
-	return false;
-#endif
 }
 
 static ModifierData *rna_Object_modifier_new(Object *object, bContext *C, ReportList *reports,
