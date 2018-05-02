@@ -1561,7 +1561,7 @@ static void template_operator_redo_property_buts_draw(
 	}
 }
 
-void uiTemplateOperatorRedoProperties(uiLayout *layout, bContext *C)
+void uiTemplateOperatorRedoProperties(uiLayout *layout, const bContext *C)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 	uiBlock *block = uiLayoutGetBlock(layout);
