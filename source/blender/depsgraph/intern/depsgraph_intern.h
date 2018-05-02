@@ -116,7 +116,7 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
 
 #define DEG_DEBUG_PRINTF(depsgraph, type, ...) \
 	do { \
-		if (DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_ ## type) { \
+		if (DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_ ## type) { \
 			fprintf(stderr, __VA_ARGS__); \
 		} \
 	} while (0)

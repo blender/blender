@@ -607,7 +607,7 @@ void DEG_debug_print_eval(struct Depsgraph *depsgraph,
                           const char *object_name,
                           const void *object_address)
 {
-	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
@@ -628,7 +628,7 @@ void DEG_debug_print_eval_subdata(struct Depsgraph *depsgraph,
                                   const char *subdata_name,
                                   const void *subdata_address)
 {
-	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
@@ -655,7 +655,7 @@ void DEG_debug_print_eval_subdata_index(struct Depsgraph *depsgraph,
                                         const void *subdata_address,
                                         const int subdata_index)
 {
-	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
@@ -680,7 +680,7 @@ void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
                                const void *object_address,
                                float time)
 {
-	if ((DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,

@@ -50,14 +50,14 @@ extern "C" {
 
 #include "util/deg_util_foreach.h"
 
-void DEG_set_debug_flags(Depsgraph *depsgraph, int flags)
+void DEG_debug_flags_set(Depsgraph *depsgraph, int flags)
 {
 	DEG::Depsgraph *deg_graph =
 	        reinterpret_cast<DEG::Depsgraph *>(depsgraph);
 	deg_graph->debug_flags = flags;
 }
 
-int DEG_get_debug_flags(const Depsgraph *depsgraph)
+int DEG_debug_flags_get(const Depsgraph *depsgraph)
 {
 	const DEG::Depsgraph *deg_graph =
 	        reinterpret_cast<const DEG::Depsgraph *>(depsgraph);

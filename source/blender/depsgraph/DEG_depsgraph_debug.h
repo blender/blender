@@ -47,8 +47,8 @@ struct ViewLayer;
 
 /* NOTE: Those flags are same bitmask as G.debug_flags */
 
-void DEG_set_debug_flags(struct Depsgraph *depsgraph, int flags);
-int DEG_get_debug_flags(const struct Depsgraph *depsgraph);
+void DEG_debug_flags_set(struct Depsgraph *depsgraph, int flags);
+int DEG_debug_flags_get(const struct Depsgraph *depsgraph);
 
 /* ------------------------------------------------ */
 

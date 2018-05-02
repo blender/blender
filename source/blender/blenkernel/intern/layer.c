@@ -2416,7 +2416,7 @@ static void layer_eval_layer_collection(Depsgraph *depsgraph,
                                         LayerCollection *layer_collection,
                                         LayerCollection *parent_layer_collection)
 {
-	if (DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) {
+	if (DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) {
 		/* TODO)sergey): Try to make it more generic and handled by depsgraph messaging. */
 		printf("%s on %s (%p) [%s], parent %s (%p) [%s]\n",
 		       __func__,
