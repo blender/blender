@@ -73,17 +73,12 @@ mat3 compute_mat(vec4 sphere, vec3 bone_vec, out float z_ofs)
 	return mat3(x_axis, y_axis, z_axis);
 }
 
-struct Bone { vec3 p1, vec; float vec_rsq, h_bias, h_scale; };
+struct Bone { vec3 vec; float sinb; };
 
 bool bone_blend_starts(vec3 p, Bone b)
 {
-	/* Simple capsule sdf with a minor touch and optimisations. */
-	vec3 pa = p - b.p1;
-	float h = dot(pa, b.vec) * b.vec_rsq;
-	h = h * b.h_scale + b.h_bias; /* comment this line for sharp transition. */
-	return h > 0.0; /* we just want to know when the head sphere starts interpolating. */
-	// h = clamp(h, 0.0, 1.0);
-	// return length(pa - b.vec * h) - (b.r1 + b.rdif * h);
+	/* we just want to know when the head sphere starts interpolating. */
+	return dot(p, b.vec) > -b.sinb;
 }
 
 vec3 get_outline_point(
@@ -93,9 +88,12 @@ vec3 get_outline_point(
 	/* Compute outline position on the nearest sphere and check
 	 * if it penetrates the capsule body. If it does, put this
 	 * vertex on the farthest sphere. */
-	vec3 wpos = sph_near.xyz + mat_near * vec3(pos * sph_near.w, z_ofs_near);
+	vec3 wpos = mat_near * vec3(pos * sph_near.w, z_ofs_near);
 	if (bone_blend_starts(wpos, b)) {
 		wpos = sph_far.xyz + mat_far * vec3(pos * sph_far.w, z_ofs_far);
+	}
+	else {
+		wpos += sph_near.xyz;
 	}
 	return wpos;
 }
@@ -117,19 +115,12 @@ void main()
 		sph_far = tailSphere;
 	}
 
-	Bone b;
-	/* Precompute everything we can to speedup iterations. */
-	b.p1 = sph_near.xyz;
-	b.vec = sph_far.xyz - sph_near.xyz;
-	float vec_lsq = max(1e-8, dot(b.vec, b.vec));
-	b.vec_rsq = 1.0 / vec_lsq;
-	float sinb = (sph_far.w - sph_near.w) * b.vec_rsq;
-	float ofs1 = sinb * sph_near.w;
-	float ofs2 = sinb * sph_far.w;
-	b.h_scale = 1.0 - ofs1 + ofs2;
-	b.h_bias = ofs1 * b.h_scale;
-
 	vec3 bone_vec = (sph_far.xyz - sph_near.xyz) + 1e-8;
+
+	Bone b;
+	float bone_lenrcp = 1.0 / max(1e-8, sqrt(dot(bone_vec, bone_vec)));
+	b.sinb = (sph_far.w - sph_near.w) * bone_lenrcp * sph_near.w;
+	b.vec = bone_vec * bone_lenrcp;
 
 	float z_ofs_near, z_ofs_far;
 	mat3 mat_near = compute_mat(sph_near, bone_vec, z_ofs_near);
