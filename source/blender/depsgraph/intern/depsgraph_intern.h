@@ -117,14 +117,15 @@ void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
 #define DEG_DEBUG_PRINTF(depsgraph, type, ...) \
 	do { \
 		if (DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_ ## type) { \
-			fprintf(stderr, __VA_ARGS__); \
+			DEG_debug_print_begin(depsgraph); \
+			fprintf(stdout, __VA_ARGS__); \
 		} \
 	} while (0)
 
 #define DEG_GLOBAL_DEBUG_PRINTF(type, ...) \
 	do { \
 		if (G.debug & G_DEBUG_DEPSGRAPH_ ## type) { \
-			fprintf(stderr, __VA_ARGS__); \
+			fprintf(stdout, __VA_ARGS__); \
 		} \
 	} while (0)
 

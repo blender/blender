@@ -234,6 +234,8 @@ void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
 
 /* Evaluation Debug ------------------------------ */
 
+void DEG_debug_print_begin(struct Depsgraph *depsgraph);
+
 void DEG_debug_print_eval(struct Depsgraph *depsgraph,
                           const char* function_name,
                           const char* object_name,
@@ -255,6 +257,16 @@ void DEG_debug_print_eval_subdata_index(struct Depsgraph *depsgraph,
                                         const char *subdata_name,
                                         const void *subdata_address,
                                         const int subdata_index);
+
+void DEG_debug_print_eval_parent_typed(struct Depsgraph *depsgraph,
+                                       const char *function_name,
+                                       const char *object_name,
+                                       const void *object_address,
+                                       const char *object_type,
+                                       const char *parent_comment,
+                                       const char *parent_name,
+                                       const void *parent_address,
+                                       const char *parent_type);
 
 void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
                                const char* function_name,

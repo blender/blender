@@ -2416,17 +2416,16 @@ static void layer_eval_layer_collection(Depsgraph *depsgraph,
                                         LayerCollection *layer_collection,
                                         LayerCollection *parent_layer_collection)
 {
-	if (DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) {
-		/* TODO)sergey): Try to make it more generic and handled by depsgraph messaging. */
-		printf("%s on %s (%p) [%s], parent %s (%p) [%s]\n",
-		       __func__,
-		       layer_collection->scene_collection->name,
-		       layer_collection->scene_collection,
-		       collection_type_lookup[layer_collection->scene_collection->type],
-		       (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
-		       (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL,
-		       (parent_layer_collection != NULL) ? collection_type_lookup[parent_layer_collection->scene_collection->type] : "");
-	}
+	DEG_debug_print_eval_parent_typed(
+	        depsgraph,
+	        __func__,
+	        layer_collection->scene_collection->name,
+	        layer_collection->scene_collection,
+	        collection_type_lookup[layer_collection->scene_collection->type],
+	        "parent",
+	        (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
+	        (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL,
+	        (parent_layer_collection != NULL) ? collection_type_lookup[parent_layer_collection->scene_collection->type] : "");
 	BLI_assert(layer_collection != parent_layer_collection);
 
 	/* visibility */
