@@ -523,11 +523,19 @@ Gwn_Batch *DRW_cache_object_surface_get(Object *ob)
 }
 
 Gwn_Batch **DRW_cache_object_surface_material_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
+	if (auto_layer_names != NULL) {
+		*auto_layer_names = NULL;
+		*auto_layer_is_srgb = NULL;
+		*auto_layer_count = 0;
+	}
+
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len,
+			                                         auto_layer_names, auto_layer_is_srgb, auto_layer_count);
 		case OB_CURVE:
 			return DRW_cache_curve_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		case OB_SURF:
@@ -2298,12 +2306,14 @@ Gwn_Batch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
 
 /* Return list of batches */
 Gwn_Batch **DRW_cache_mesh_surface_shaded_get(
-        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len);
+	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len,
+	                                               auto_layer_names, auto_layer_is_srgb, auto_layer_count);
 }
 
 /* Return list of batches */
