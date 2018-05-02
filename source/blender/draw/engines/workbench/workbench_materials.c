@@ -407,7 +407,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 				gpumat_array[i] = NULL;
 			}
 
-			struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len);
+			struct Gwn_Batch **mat_geom = DRW_cache_object_surface_material_get(ob, gpumat_array, materials_len, NULL, NULL, NULL);
 			if (mat_geom) {
 				for (int i = 0; i < materials_len; ++i) {
 					Material *mat = give_current_material(ob, i + 1);
