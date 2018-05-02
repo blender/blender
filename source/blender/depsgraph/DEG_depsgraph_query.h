@@ -188,6 +188,9 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
                               const ID *id,
                               DEGForeachIDCallback callback, void *user_data);
 
+void DEG_foreach_ID(const Depsgraph *depsgraph,
+                    DEGForeachIDCallback callback, void *user_data);
+
 
 #ifdef __cplusplus
 } /* extern "C" */

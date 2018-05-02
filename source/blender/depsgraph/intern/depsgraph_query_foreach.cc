@@ -136,6 +136,14 @@ static void deg_foreach_dependent_ID(const Depsgraph *graph,
 	}
 }
 
+static void deg_foreach_id(const Depsgraph *depsgraph,
+                           DEGForeachIDCallback callback, void *user_data)
+{
+	foreach (const IDDepsNode *id_node, depsgraph->id_nodes) {
+		callback(id_node->id_orig, user_data);
+	}
+}
+
 }  // namespace DEG
 
 void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
@@ -145,4 +153,10 @@ void DEG_foreach_dependent_ID(const Depsgraph *depsgraph,
 	DEG::deg_foreach_dependent_ID((const DEG::Depsgraph *)depsgraph,
 	                              id,
 	                              callback, user_data);
+}
+
+void DEG_foreach_ID(const Depsgraph *depsgraph,
+                    DEGForeachIDCallback callback, void *user_data)
+{
+	DEG::deg_foreach_id((const DEG::Depsgraph *)depsgraph, callback, user_data);
 }
