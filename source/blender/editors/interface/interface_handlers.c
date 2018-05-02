@@ -10008,8 +10008,10 @@ static int ui_handler_region_menu(bContext *C, const wmEvent *event, void *UNUSE
 		{
 			/* if mouse moves to a different root-level menu button,
 			 * open it to replace the current menu */
-			ui_handle_button_activate(C, ar, but_other, BUTTON_ACTIVATE_OVER);
-			button_activate_state(C, but_other, BUTTON_STATE_MENU_OPEN);
+			if ((but_other->flag & UI_BUT_DISABLED) == 0) {
+				ui_handle_button_activate(C, ar, but_other, BUTTON_ACTIVATE_OVER);
+				button_activate_state(C, but_other, BUTTON_STATE_MENU_OPEN);
+			}
 		}
 		else if (data->state == BUTTON_STATE_MENU_OPEN) {
 			int retval;
