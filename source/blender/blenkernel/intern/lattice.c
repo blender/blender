@@ -885,12 +885,9 @@ void lattice_deform_verts(Object *laOb, Object *target, Mesh *mesh,
 		float weight;
 
 		if (defgrp_index >= 0 && (me->dvert || mesh)) {
-			MDeformVert *dvert = me->dvert;
+			MDeformVert *dvert = mesh ? mesh->dvert : me->dvert;
 			
 			for (a = 0; a < numVerts; a++, dvert++) {
-				/* TODO(sybren): take out of the loop and move to above assignment of dvert */
-				if (mesh) dvert = mesh->dvert + a;
-
 				weight = defvert_find_weight(dvert, defgrp_index);
 
 				if (weight > 0.0f)
