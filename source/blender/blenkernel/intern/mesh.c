@@ -645,6 +645,13 @@ static Mesh *mesh_from_template_ex(
 
 	BKE_mesh_update_customdata_pointers(me_dst, false);
 
+	if (!CustomData_get_layer(&me_dst->vdata, CD_ORIGINDEX))
+		CustomData_add_layer(&me_dst->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	if (!CustomData_get_layer(&me_dst->edata, CD_ORIGINDEX))
+		CustomData_add_layer(&me_dst->edata, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	if (!CustomData_get_layer(&me_dst->pdata, CD_ORIGINDEX))
+		CustomData_add_layer(&me_dst->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, numPolys);
+
 	return me_dst;
 }
 
