@@ -699,11 +699,11 @@ static bool remap_hair_emitter(
 
 	if (dm->getNumTessFaces(dm) != 0) {
 		mface = dm->getTessFaceArray(dm);
-		bvhtree_from_mesh_faces(&bvhtree, dm, 0.0, 2, 6);
+		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_FACES);
 	}
 	else if (dm->getNumEdges(dm) != 0) {
 		medge = dm->getEdgeArray(dm);
-		bvhtree_from_mesh_edges(&bvhtree, dm, 0.0, 2, 6);
+		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_EDGES);
 	}
 	else {
 		dm->release(dm);

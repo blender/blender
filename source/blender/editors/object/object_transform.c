@@ -35,6 +35,7 @@
 #include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_lamp_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_group_types.h"
@@ -479,6 +480,18 @@ static int apply_objects_internal(
 				changed = false;
 			}
 		}
+
+		if (ob->type == OB_LAMP) {
+			Lamp *la = ob->data;
+			if (la->type == LA_AREA) {
+				if (apply_rot || apply_loc) {
+					BKE_reportf(reports, RPT_ERROR,
+					            "Area Lamps can only have scale applied: \"%s\"",
+					            ob->id.name + 2);
+					changed = false;
+				}
+			}
+		}
 	}
 	CTX_DATA_END;
 	
@@ -607,6 +620,22 @@ static int apply_objects_internal(
 				float max_scale = max_fff(fabsf(ob->size[0]), fabsf(ob->size[1]), fabsf(ob->size[2]));
 				ob->empty_drawsize *= max_scale;
 			}
+		}
+		else if (ob->type == OB_LAMP) {
+			Lamp *la = ob->data;
+			if (la->type != LA_AREA) {
+				continue;
+			}
+
+			bool keeps_aspect_ratio = compare_ff_relative(rsmat[0][0], rsmat[1][1], FLT_EPSILON, 64);
+			if ((la->area_shape == LA_AREA_SQUARE) && !keeps_aspect_ratio) {
+				la->area_shape = LA_AREA_RECT;
+				la->area_sizey = la->area_size;
+			}
+
+			la->area_size *= rsmat[0][0];
+			la->area_sizey *= rsmat[1][1];
+			la->area_sizez *= rsmat[2][2];
 		}
 		else {
 			continue;

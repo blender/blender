@@ -214,7 +214,8 @@ Paint *BKE_paint_get_active_from_context(const bContext *C)
 			}
 		}
 		else {
-			return BKE_paint_get_active(sce, view_layer);
+			/* default to image paint */
+			return &ts->imapaint.paint;
 		}
 	}
 

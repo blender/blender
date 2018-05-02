@@ -158,9 +158,9 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 			surmd->bvhtree = MEM_callocN(sizeof(BVHTreeFromMesh), "BVHTreeFromMesh");
 
 		if (surmd->dm->getNumPolys(surmd->dm))
-			bvhtree_from_mesh_looptri(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+			bvhtree_from_mesh_get(surmd->bvhtree, surmd->dm, BVHTREE_FROM_LOOPTRI);
 		else
-			bvhtree_from_mesh_edges(surmd->bvhtree, surmd->dm, 0.0, 2, 6);
+			bvhtree_from_mesh_get(surmd->bvhtree, surmd->dm, BVHTREE_FROM_EDGES);
 	}
 }
 

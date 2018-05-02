@@ -548,7 +548,7 @@ bool RE_bake_pixels_populate_from_objects(
 
 		if (dm_highpoly[i]->getNumTessFaces(dm_highpoly[i]) != 0) {
 			/* Create a bvh-tree for each highpoly object */
-			bvhtree_from_mesh_faces(&treeData[i], dm_highpoly[i], 0.0, 2, 6);
+			bvhtree_from_mesh_get(&treeData[i], dm_highpoly[i], BVHTREE_FROM_FACES);
 
 			if (treeData[i].tree == NULL) {
 				printf("Baking: out of memory while creating BHVTree for object \"%s\"\n", highpoly[i].ob->id.name + 2);

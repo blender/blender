@@ -2465,6 +2465,7 @@ static bool merge_target(
 	if (use_cursor) {
 		vco = ED_view3d_cursor3d_get(scene, v3d);
 		copy_v3_v3(co, vco);
+		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->imat, co);
 	}
 	else {
