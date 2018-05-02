@@ -45,6 +45,7 @@
 
 #include "ED_screen.h"
 #include "ED_space_api.h"
+#include "ED_undo.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -56,6 +57,8 @@
 #include "WM_types.h"
 #include "WM_message.h"
 
+
+void topbar_panels_register(ARegionType *art);
 
 /* ******************** default callbacks for topbar space ***************** */
 
@@ -273,9 +276,64 @@ void ED_spacetype_topbar(void)
 	art->layout = ED_region_header_layout;
 	art->draw = ED_region_header_draw;
 
+	/* For popovers. */
+	topbar_panels_register(art);
+
 	BLI_addhead(&st->regiontypes, art);
 
 	recent_files_menu_register();
 
 	BKE_spacetype_register(st);
 }
+
+
+/* -------------------------------------------------------------------- */
+/** \name Redo Panel
+ * \{ */
+
+static int topbar_panel_operator_redo_poll(const bContext *C, PanelType *UNUSED(pt))
+{
+	wmOperator *op = WM_operator_last_redo(C);
+	if (op == NULL) {
+		return false;
+	}
+
+	bool success = false;
+	if (!WM_operator_check_ui_empty(op->type)) {
+		const OperatorRepeatContextHandle *context_info;
+		context_info = ED_operator_repeat_prepare_context((bContext *)C, op);
+		success = WM_operator_poll((bContext *)C, op->type);
+		ED_operator_repeat_reset_context((bContext *)C, context_info);
+	}
+	return success;
+}
+
+static void topbar_panel_operator_redo(const bContext *C, Panel *pa)
+{
+	wmOperator *op = WM_operator_last_redo(C);
+	if (op == NULL) {
+		return;
+	}
+	if (!WM_operator_check_ui_enabled(C, op->type->name)) {
+		uiLayoutSetEnabled(pa->layout, false);
+	}
+	uiLayout *col = uiLayoutColumn(pa->layout, false);
+	uiTemplateOperatorRedoProperties(col, C);
+}
+
+void topbar_panels_register(ARegionType *art)
+{
+	PanelType *pt;
+
+	pt = MEM_callocN(sizeof(PanelType), __func__);
+	strcpy(pt->idname, "TOPBAR_PT_redo");
+	strcpy(pt->label, N_("Redo"));
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->draw = topbar_panel_operator_redo;
+	pt->poll = topbar_panel_operator_redo_poll;
+	pt->space_type = SPACE_TOPBAR;
+	pt->region_type = RGN_TYPE_HEADER;
+	BLI_addtail(&art->paneltypes, pt);
+}
+
+/** \} */

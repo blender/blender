@@ -179,7 +179,7 @@ class TOPBAR_HT_lower_bar(Header):
         row.enabled = op is not None
         row.popover(
             space_type='TOPBAR',
-            region_type='WINDOW',
+            region_type='HEADER',
             panel_type="TOPBAR_PT_redo",
             text=op.name + " Settings" if op else "Command Settings",
         )
@@ -230,16 +230,6 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
         UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
-
-
-class TOPBAR_PT_redo(Panel):
-    bl_label = "Redo"
-    bl_space_type = 'TOPBAR'
-    bl_region_type = 'WINDOW'
-
-    def draw(self, context):
-        layout = self.layout
-        layout.column().template_operator_redo_props()
 
 
 class INFO_MT_editor_menus(Menu):
@@ -508,7 +498,6 @@ class INFO_MT_help(Menu):
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
-    TOPBAR_PT_redo,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,

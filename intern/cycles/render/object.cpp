@@ -480,7 +480,7 @@ void ObjectManager::device_update_object_transform(UpdateObjectTransformState *s
 	kobject.dupli_uv[1] = ob->dupli_uv[1];
 	int totalsteps = mesh->motion_steps;
 	kobject.numsteps = (totalsteps - 1)/2;
-	kobject.numverts = mesh->verts.size();;
+	kobject.numverts = mesh->verts.size();
 	kobject.patch_map_offset = 0;
 	kobject.attribute_map_offset = 0;
 

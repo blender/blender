@@ -70,6 +70,7 @@
 #include "bmesh_tools.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "mesh_intern.h"  /* own include */
 
@@ -657,15 +658,19 @@ BMEdge *EDBM_edge_find_nearest_ex(
 		BMEdge *eed;
 
 		/* Make sure that the edges also are considered to find nearest.
-		 * TODO: cleanup: add `selectmode` as a parameter */
+		 * TODO: cleanup: add `selectmode` as a parameter
+		 * XXX: Without selectmode as parameter we need to resort to this super ugly hack,
+		 *      because we should never write to evaluate data. */
 		const short ts_selectmode = vc->scene->toolsettings->selectmode;
-		vc->scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
+
+		Scene *scene_eval = (Scene *)DEG_get_evaluated_id(vc->depsgraph, &vc->scene->id);
+		scene_eval->toolsettings->selectmode |= SCE_SELECT_EDGE;
 
 		/* No afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad. */
 		ED_view3d_backbuf_validate(vc);
 
 		/* restore `selectmode` */
-		vc->scene->toolsettings->selectmode = ts_selectmode;
+		scene_eval->toolsettings->selectmode = ts_selectmode;
 
 		index = ED_view3d_backbuf_sample_rect(vc, vc->mval, dist_px, bm_solidoffs, bm_wireoffs, &dist_test);
 		eed = index ? BM_edge_at_index_find_or_table(bm, index - 1) : NULL;

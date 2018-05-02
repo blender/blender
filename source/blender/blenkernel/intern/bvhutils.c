@@ -501,7 +501,7 @@ BVHTree *bvhtree_from_editmesh_verts(
 
 /* Builds a bvh tree where nodes are the vertices of the given dm
  * and stores the BVHTree in dm->bvhCache */
-BVHTree *bvhtree_from_mesh_verts(
+static BVHTree *bvhtree_from_mesh_verts(
         BVHTreeFromMesh *data, DerivedMesh *dm,
         float epsilon, int tree_type, int axis)
 {
@@ -859,7 +859,7 @@ static void bvhtree_from_mesh_faces_setup_data(
 }
 
 /* Builds a bvh tree where nodes are the tesselated faces of the given dm */
-BVHTree *bvhtree_from_mesh_faces(
+static BVHTree *bvhtree_from_mesh_faces(
         BVHTreeFromMesh *data, DerivedMesh *dm,
         float epsilon, int tree_type, int axis)
 {
@@ -1223,6 +1223,25 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
 	        looptri, looptri_allocated);
 
 	return tree;
+}
+
+/**
+ * Builds or queries a bvhcache for the cache bvhtree of the request type.
+ */
+BVHTree *bvhtree_from_mesh_get(
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, int type)
+{
+	switch (type) {
+		case BVHTREE_FROM_VERTS:
+			return bvhtree_from_mesh_verts(data, mesh, 0.0f, 2, 6);
+		case BVHTREE_FROM_EDGES:
+			return bvhtree_from_mesh_edges(data, mesh, 0.0f, 2, 6);
+		case BVHTREE_FROM_FACES:
+			return bvhtree_from_mesh_faces(data, mesh, 0.0f, 2, 6);
+		case BVHTREE_FROM_LOOPTRI:
+			return bvhtree_from_mesh_looptri(data, mesh, 0.0f, 2, 6);
+	}
+	return NULL;
 }
 
 /** \} */

@@ -1694,10 +1694,10 @@ static bool snapDerivedMesh(
 		if (treedata->tree == NULL) {
 			switch (snapdata->snap_to) {
 				case SCE_SNAP_MODE_EDGE:
-					bvhtree_from_mesh_edges(treedata, dm, 0.0f, 2, 6);
+					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_EDGES);
 					break;
 				case SCE_SNAP_MODE_VERTEX:
-					bvhtree_from_mesh_verts(treedata, dm, 0.0f, 2, 6);
+					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_VERTS);
 					break;
 			}
 		}

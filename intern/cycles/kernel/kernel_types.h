@@ -1452,7 +1452,7 @@ typedef struct KernelObject {
 	uint attribute_map_offset;
 	uint motion_offset;
 	uint pad;
-} KernelObject;;
+} KernelObject;
 static_assert_align(KernelObject, 16);
 
 typedef struct KernelSpotLight {

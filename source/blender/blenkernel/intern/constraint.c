@@ -3431,9 +3431,9 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstrai
 					nearest.dist_sq = FLT_MAX;
 
 					if (scon->shrinkType == MOD_SHRINKWRAP_NEAREST_VERTEX)
-						bvhtree_from_mesh_verts(&treeData, target, 0.0, 2, 6);
+						bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_VERTS);
 					else
-						bvhtree_from_mesh_looptri(&treeData, target, 0.0, 2, 6);
+						bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRI);
 					
 					if (treeData.tree == NULL) {
 						fail = true;

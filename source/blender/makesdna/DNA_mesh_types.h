@@ -65,6 +65,17 @@ typedef struct EditMeshData {
 	const float (*polyCos)[3];
 } EditMeshData;
 
+/* not saved in file! */
+typedef struct MeshRuntime {
+	struct EditMeshData *edit_data;
+	void *batch_cache;
+
+	uint64_t cd_dirty_vert;
+	uint64_t cd_dirty_edge;
+	uint64_t cd_dirty_loop;
+	uint64_t cd_dirty_poly;
+} MeshRuntime;
+
 typedef struct Mesh {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */
@@ -100,7 +111,6 @@ typedef struct Mesh {
 
 	/* When the object is available, the preferred access method is: BKE_editmesh_from_object(ob) */
 	struct BMEditMesh *edit_btmesh;	/* not saved in file! */
-	struct EditMeshData *emd; /* not saved in file! */
 
 	struct CustomData vdata, edata, fdata;
 
@@ -140,7 +150,8 @@ typedef struct Mesh {
 	short totcol;
 
 	struct Multires *mr DNA_DEPRECATED; /* deprecated multiresolution modeling data, only keep for loading old files */
-	void *batch_cache;
+
+	MeshRuntime runtime;
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */

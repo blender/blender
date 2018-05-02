@@ -39,10 +39,13 @@
 
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_lattice.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
+
+#include "MEM_guardedalloc.h"
 
 #include "MOD_util.h"
 
@@ -100,7 +103,7 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 }
 
 static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *derivedData,
+                        struct Mesh *mesh,
                         float (*vertexCos)[3],
                         int numVerts)
 {
@@ -108,22 +111,28 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
-	
-	lattice_deform_verts(lmd->object, ctx->object, derivedData,
+
+	lattice_deform_verts(lmd->object, ctx->object, mesh,
 	                     vertexCos, numVerts, lmd->name, lmd->strength);
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = derivedData;
+	struct Mesh *mesh_src = mesh;
 
-	if (!derivedData) dm = CDDM_from_editbmesh(em, false, false);
+	if (!mesh) {
+		struct BMeshToMeshParams params = {0};
+		mesh_src = BKE_bmesh_to_mesh(em->bm, &params);
+	}
 
-	deformVerts(md, ctx, dm, vertexCos, numVerts);
+	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
-	if (!derivedData) dm->release(dm);
+	if (!mesh) {
+		BKE_mesh_free(mesh_src);
+		MEM_freeN(mesh_src);
+	}
 }
 
 
@@ -137,16 +146,16 @@ ModifierTypeInfo modifierType_Lattice = {
 	                        eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,

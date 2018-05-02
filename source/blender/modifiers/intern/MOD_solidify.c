@@ -68,106 +68,6 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 	return !((edge_ref->f1 == 0) && (edge_ref->f2 == 0));
 }
 
-/**
- * \param dm  Mesh to calculate normals for.
- * \param face_nors  Precalculated face normals.
- * \param r_vert_nors  Return vert normals.
- */
-static void dm_calc_normal(DerivedMesh *dm, float (*face_nors)[3], float (*r_vert_nors)[3])
-{
-	int i, numVerts, numEdges, numFaces;
-	MPoly *mpoly, *mp;
-	MLoop *mloop, *ml;
-	MEdge *medge, *ed;
-	MVert *mvert, *mv;
-
-	numVerts = dm->getNumVerts(dm);
-	numEdges = dm->getNumEdges(dm);
-	numFaces = dm->getNumPolys(dm);
-	mpoly = dm->getPolyArray(dm);
-	medge = dm->getEdgeArray(dm);
-	mvert = dm->getVertArray(dm);
-	mloop = dm->getLoopArray(dm);
-
-	/* we don't want to overwrite any referenced layers */
-
-	/* Doesn't work here! */
-#if 0
-	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, numVerts);
-	cddm->mvert = mv;
-#endif
-
-	mv = mvert;
-	mp = mpoly;
-
-	{
-		EdgeFaceRef *edge_ref_array = MEM_calloc_arrayN((size_t)numEdges, sizeof(EdgeFaceRef), "Edge Connectivity");
-		EdgeFaceRef *edge_ref;
-		float edge_normal[3];
-
-		/* This loop adds an edge hash if its not there, and adds the face index */
-		for (i = 0; i < numFaces; i++, mp++) {
-			int j;
-
-			ml = mloop + mp->loopstart;
-
-			for (j = 0; j < mp->totloop; j++, ml++) {
-				/* --- add edge ref to face --- */
-				edge_ref = &edge_ref_array[ml->e];
-				if (!edgeref_is_init(edge_ref)) {
-					edge_ref->f1 =  i;
-					edge_ref->f2 = -1;
-				}
-				else if ((edge_ref->f1 != -1) && (edge_ref->f2 == -1)) {
-					edge_ref->f2 = i;
-				}
-				else {
-					/* 3+ faces using an edge, we can't handle this usefully */
-					edge_ref->f1 = edge_ref->f2 = -1;
-#ifdef USE_NONMANIFOLD_WORKAROUND
-					medge[ml->e].flag |= ME_EDGE_TMP_TAG;
-#endif
-				}
-				/* --- done --- */
-			}
-		}
-
-		for (i = 0, ed = medge, edge_ref = edge_ref_array; i < numEdges; i++, ed++, edge_ref++) {
-			/* Get the edge vert indices, and edge value (the face indices that use it) */
-
-			if (edgeref_is_init(edge_ref) && (edge_ref->f1 != -1)) {
-				if (edge_ref->f2 != -1) {
-					/* We have 2 faces using this edge, calculate the edges normal
-					 * using the angle between the 2 faces as a weighting */
-#if 0
-					add_v3_v3v3(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
-					normalize_v3_length(
-					        edge_normal,
-					        angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
-#else
-					mid_v3_v3v3_angle_weighted(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
-#endif
-				}
-				else {
-					/* only one face attached to that edge */
-					/* an edge without another attached- the weight on this is undefined */
-					copy_v3_v3(edge_normal, face_nors[edge_ref->f1]);
-				}
-				add_v3_v3(r_vert_nors[ed->v1], edge_normal);
-				add_v3_v3(r_vert_nors[ed->v2], edge_normal);
-			}
-		}
-		MEM_freeN(edge_ref_array);
-	}
-
-	/* normalize vertex normals and assign */
-	for (i = 0; i < numVerts; i++, mv++) {
-		if (normalize_v3(r_vert_nors[i]) == 0.0f) {
-			normal_short_to_float_v3(r_vert_nors[i], mv->no);
-		}
-	}
-}
-
 static void initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -204,21 +104,21 @@ BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
 	r[2] += (float)a[2] * f;
 }
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	const SolidifyModifierData *smd = (SolidifyModifierData *) md;
 
 	MVert *mv, *mvert, *orig_mvert;
 	MEdge *ed, *medge, *orig_medge;
 	MLoop *ml, *mloop, *orig_mloop;
 	MPoly *mp, *mpoly, *orig_mpoly;
-	const unsigned int numVerts = (unsigned int)dm->getNumVerts(dm);
-	const unsigned int numEdges = (unsigned int)dm->getNumEdges(dm);
-	const unsigned int numFaces = (unsigned int)dm->getNumPolys(dm);
-	const unsigned int numLoops = (unsigned int)dm->getNumLoops(dm);
+	const unsigned int numVerts = (unsigned int)mesh->totvert;
+	const unsigned int numEdges = (unsigned int)mesh->totedge;
+	const unsigned int numFaces = (unsigned int)mesh->totpoly;
+	const unsigned int numLoops = (unsigned int)mesh->totloop;
 	unsigned int newLoops = 0, newFaces = 0, newEdges = 0, newVerts = 0, rimVerts = 0;
 
 	/* only use material offsets if we have 2 or more materials  */
@@ -260,12 +160,12 @@ static DerivedMesh *applyModifier(
 	/* array size is doubled in case of using a shell */
 	const unsigned int stride = do_shell ? 2 : 1;
 
-	modifier_get_vgroup(ctx->object, dm, smd->defgrp_name, &dvert, &defgrp_index);
+	modifier_get_vgroup_mesh(ctx->object, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
-	orig_mvert = dm->getVertArray(dm);
-	orig_medge = dm->getEdgeArray(dm);
-	orig_mloop = dm->getLoopArray(dm);
-	orig_mpoly = dm->getPolyArray(dm);
+	orig_mvert = mesh->mvert;
+	orig_medge = mesh->medge;
+	orig_mloop = mesh->mloop;
+	orig_mpoly = mesh->mpoly;
 
 	if (need_face_normals) {
 		/* calculate only face normals */
@@ -366,49 +266,51 @@ static DerivedMesh *applyModifier(
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
 		vert_nors = MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno_hq");
-		dm_calc_normal(dm, face_nors, vert_nors);
+		BKE_mesh_calc_normals_poly(mesh->mvert, vert_nors, mesh->totvert,
+		                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+		                           NULL, false);
 	}
 
-	result = CDDM_from_template(dm,
-	                            (int)((numVerts * stride) + newVerts),
-	                            (int)((numEdges * stride) + newEdges + rimVerts), 0,
-	                            (int)((numLoops * stride) + newLoops),
-	                            (int)((numFaces * stride) + newFaces));
+	result = BKE_mesh_from_template(mesh,
+	                                (int)((numVerts * stride) + newVerts),
+	                                (int)((numEdges * stride) + newEdges + rimVerts), 0,
+	                                (int)((numLoops * stride) + newLoops),
+	                                (int)((numFaces * stride) + newFaces));
 
-	mpoly = CDDM_get_polys(result);
-	mloop = CDDM_get_loops(result);
-	medge = CDDM_get_edges(result);
-	mvert = CDDM_get_verts(result);
+	mpoly = result->mpoly;
+	mloop = result->mloop;
+	medge = result->medge;
+	mvert = result->mvert;
 
 	if (do_shell) {
-		DM_copy_vert_data(dm, result, 0, 0, (int)numVerts);
-		DM_copy_vert_data(dm, result, 0, (int)numVerts, (int)numVerts);
+		CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)numVerts);
+		CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)numVerts, (int)numVerts);
 
-		DM_copy_edge_data(dm, result, 0, 0, (int)numEdges);
-		DM_copy_edge_data(dm, result, 0, (int)numEdges, (int)numEdges);
+		CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, (int)numEdges);
+		CustomData_copy_data(&mesh->edata, &result->edata, 0, (int)numEdges, (int)numEdges);
 
-		DM_copy_loop_data(dm, result, 0, 0, (int)numLoops);
-		DM_copy_loop_data(dm, result, 0, (int)numLoops, (int)numLoops);
+		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)numLoops);
+		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, (int)numLoops, (int)numLoops);
 
-		DM_copy_poly_data(dm, result, 0, 0, (int)numFaces);
-		DM_copy_poly_data(dm, result, 0, (int)numFaces, (int)numFaces);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numFaces);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, (int)numFaces, (int)numFaces);
 	}
 	else {
 		int i, j;
-		DM_copy_vert_data(dm, result, 0, 0, (int)numVerts);
+		CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)numVerts);
 		for (i = 0, j = (int)numVerts; i < numVerts; i++) {
 			if (old_vert_arr[i] != INVALID_UNUSED) {
-				DM_copy_vert_data(dm, result, i, j, 1);
+				CustomData_copy_data(&mesh->vdata, &result->vdata, i, j, 1);
 				j++;
 			}
 		}
 
-		DM_copy_edge_data(dm, result, 0, 0, (int)numEdges);
+		CustomData_copy_data(&mesh->edata, &result->edata, 0, 0, (int)numEdges);
 
 		for (i = 0, j = (int)numEdges; i < numEdges; i++) {
 			if (!ELEM(edge_users[i], INVALID_UNUSED, INVALID_PAIR)) {
 				MEdge *ed_src, *ed_dst;
-				DM_copy_edge_data(dm, result, i, j, 1);
+				CustomData_copy_data(&mesh->edata, &result->edata, i, j, 1);
 
 				ed_src = &medge[i];
 				ed_dst = &medge[j];
@@ -419,8 +321,8 @@ static DerivedMesh *applyModifier(
 		}
 
 		/* will be created later */
-		DM_copy_loop_data(dm, result, 0, 0, (int)numLoops);
-		DM_copy_poly_data(dm, result, 0, 0, (int)numFaces);
+		CustomData_copy_data(&mesh->ldata, &result->ldata, 0, 0, (int)numLoops);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, 0, 0, (int)numFaces);
 	}
 
 #undef INVALID_UNUSED
@@ -453,7 +355,7 @@ static DerivedMesh *applyModifier(
 		unsigned int i;
 
 		mp = mpoly + numFaces;
-		for (i = 0; i < dm->numPolyData; i++, mp++) {
+		for (i = 0; i < mesh->totpoly; i++, mp++) {
 			const int loop_end = mp->totloop - 1;
 			MLoop *ml2;
 			unsigned int e;
@@ -461,19 +363,19 @@ static DerivedMesh *applyModifier(
 
 			/* reverses the loop direction (MLoop.v as well as custom-data)
 			 * MLoop.e also needs to be corrected too, done in a separate loop below. */
-			ml2 = mloop + mp->loopstart + dm->numLoopData;
+			ml2 = mloop + mp->loopstart + mesh->totloop;
 #if 0
 			for (j = 0; j < mp->totloop; j++) {
-				CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart + j,
-				                     mp->loopstart + (loop_end - j) + dm->numLoopData, 1);
+				CustomData_copy_data(&mesh->ldata, &result->ldata, mp->loopstart + j,
+				                     mp->loopstart + (loop_end - j) + mesh->totloop, 1);
 			}
 #else
 			/* slightly more involved, keep the first vertex the same for the copy,
 			 * ensures the diagonals in the new face match the original. */
 			j = 0;
 			for (int j_prev = loop_end; j < mp->totloop; j_prev = j++) {
-				CustomData_copy_data(&dm->loopData, &result->loopData, mp->loopstart + j,
-				                     mp->loopstart + (loop_end - j_prev) + dm->numLoopData, 1);
+				CustomData_copy_data(&mesh->ldata, &result->ldata, mp->loopstart + j,
+				                     mp->loopstart + (loop_end - j_prev) + mesh->totloop, 1);
 			}
 #endif
 
@@ -488,7 +390,7 @@ static DerivedMesh *applyModifier(
 			}
 			ml2[loop_end].e = e;
 
-			mp->loopstart += dm->numLoopData;
+			mp->loopstart += mesh->totloop;
 
 			for (j = 0; j < mp->totloop; j++) {
 				ml2[j].e += numEdges;
@@ -735,8 +637,8 @@ static DerivedMesh *applyModifier(
 		MEM_freeN(vert_nors);
 
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
-	if ((dm->dirty & DM_DIRTY_NORMALS) || (smd->flag & MOD_SOLIDIFY_RIM) || dvert) {
-		result->dirty |= DM_DIRTY_NORMALS;
+	if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || (smd->flag & MOD_SOLIDIFY_RIM) || dvert) {
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	}
 	else if (do_shell) {
 		unsigned int i;
@@ -762,7 +664,9 @@ static DerivedMesh *applyModifier(
 #define SOLIDIFY_SIDE_NORMALS
 
 #ifdef SOLIDIFY_SIDE_NORMALS
-		const bool do_side_normals = !(result->dirty & DM_DIRTY_NORMALS);
+		/* Note that, due to the code setting cd_dirty_vert a few lines above,
+		 * do_side_normals is always false. - Sybren */
+		const bool do_side_normals = !(result->runtime.cd_dirty_vert & CD_MASK_NORMAL);
 		/* annoying to allocate these since we only need the edge verts, */
 		float (*edge_vert_nos)[3] = do_side_normals ? MEM_calloc_arrayN(numVerts, 3 * sizeof(float), __func__) : NULL;
 		float nor[3];
@@ -780,7 +684,8 @@ static DerivedMesh *applyModifier(
 		}
 
 		/* add faces & edges */
-		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);
+		origindex_edge = CustomData_get_layer(&result->edata, CD_ORIGINDEX);
+		BLI_assert(origindex_edge != NULL);
 		ed = &medge[(numEdges * stride) + newEdges];  /* start after copied edges */
 		orig_ed = &origindex_edge[(numEdges * stride) + newEdges];
 		for (i = 0; i < rimVerts; i++, ed++, orig_ed++) {
@@ -816,7 +721,7 @@ static DerivedMesh *applyModifier(
 			ed = medge + eidx;
 
 			/* copy most of the face settings */
-			DM_copy_poly_data(dm, result, (int)fidx, (int)((numFaces * stride) + i), 1);
+			CustomData_copy_data(&mesh->pdata, &result->pdata, (int)fidx, (int)((numFaces * stride) + i), 1);
 			mp->loopstart = (int)(j + (numLoops * stride));
 			mp->flag = mpoly[fidx].flag;
 
@@ -828,10 +733,10 @@ static DerivedMesh *applyModifier(
 
 			mp->totloop = 4;
 
-			CustomData_copy_data(&dm->loopData, &result->loopData, k2, (int)((numLoops * stride) + j + 0), 1);
-			CustomData_copy_data(&dm->loopData, &result->loopData, k1, (int)((numLoops * stride) + j + 1), 1);
-			CustomData_copy_data(&dm->loopData, &result->loopData, k1, (int)((numLoops * stride) + j + 2), 1);
-			CustomData_copy_data(&dm->loopData, &result->loopData, k2, (int)((numLoops * stride) + j + 3), 1);
+			CustomData_copy_data(&mesh->ldata, &result->ldata, k2, (int)((numLoops * stride) + j + 0), 1);
+			CustomData_copy_data(&mesh->ldata, &result->ldata, k1, (int)((numLoops * stride) + j + 1), 1);
+			CustomData_copy_data(&mesh->ldata, &result->ldata, k1, (int)((numLoops * stride) + j + 2), 1);
+			CustomData_copy_data(&mesh->ldata, &result->ldata, k2, (int)((numLoops * stride) + j + 3), 1);
 
 			if (flip == false) {
 				ml[j].v = ed->v1;
@@ -905,6 +810,7 @@ static DerivedMesh *applyModifier(
 				int k;
 
 				/* note, only the first vertex (lower half of the index) is calculated */
+				BLI_assert(ed->v1 < numVerts);
 				normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
 
 				for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
@@ -967,14 +873,14 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

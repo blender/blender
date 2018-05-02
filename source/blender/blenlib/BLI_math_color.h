@@ -51,6 +51,10 @@ extern "C" {
 #define BLI_YCC_ITU_BT709   1
 #define BLI_YCC_JFIF_0_255  2
 
+/* YUV */
+#define BLI_YUV_ITU_BT601   0
+#define BLI_YUV_ITU_BT709   1
+
 /******************* Conversion to RGB ********************/
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
@@ -58,14 +62,14 @@ void hsv_to_rgb_v(const float hsv[3], float r_rgb[3]);
 void hsl_to_rgb(float h, float c, float l, float *r, float *g, float *b);
 void hsl_to_rgb_v(const float hcl[3], float r_rgb[3]);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
-void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb);
+void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb, int colorspace);
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, int colorspace);
 void xyz_to_rgb(float x, float y, float z, float *r, float *g, float *b, int colorspace);
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);
 
 /***************** Conversion from RGB ********************/
 
-void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
+void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv, int colorspace);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
 void rgb_to_hsv_v(const float rgb[3], float r_hsv[3]);
@@ -164,4 +168,3 @@ void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *o
 #endif
 
 #endif /* __BLI_MATH_COLOR_H__ */
-

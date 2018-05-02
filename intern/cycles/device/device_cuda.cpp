@@ -1684,7 +1684,7 @@ public:
 			min_blocks *= 8;
 		}
 
-		uint step_samples = divide_up(min_blocks * num_threads_per_block, wtile->w * wtile->h);;
+		uint step_samples = divide_up(min_blocks * num_threads_per_block, wtile->w * wtile->h);
 
 		/* Render all samples. */
 		int start_sample = rtile.start_sample;

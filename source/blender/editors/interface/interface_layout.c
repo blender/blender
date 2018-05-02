@@ -1948,7 +1948,7 @@ void uiItemM(uiLayout *layout, bContext *UNUSED(C), const char *menuname, const 
 }
 
 /* popover */
-void uiItemPopoverPanel_ptr(uiLayout *layout, bContext *UNUSED(C), PanelType *pt, const char *name, int icon)
+void uiItemPopoverPanel_ptr(uiLayout *layout, bContext *C, PanelType *pt, const char *name, int icon)
 {
 	if (!name) {
 		name = CTX_IFACE_(pt->translation_context, pt->label);
@@ -1959,6 +1959,9 @@ void uiItemPopoverPanel_ptr(uiLayout *layout, bContext *UNUSED(C), PanelType *pt
 
 	uiBut *but = ui_item_menu(layout, name, icon, ui_item_paneltype_func, pt, NULL, NULL, false);
 	but->type = UI_BTYPE_POPOVER;
+	if (pt->poll && (pt->poll(C, pt) == false)) {
+		but->flag |= UI_BUT_DISABLED;
+	}
 }
 
 void uiItemPopoverPanel(

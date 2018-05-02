@@ -148,7 +148,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 
 	if (dist_v) {
 		/* Create a bvh-tree of the given target's verts. */
-		bvhtree_from_mesh_verts(&treeData_v, target, 0.0, 2, 6);
+		bvhtree_from_mesh_get(&treeData_v, target, BVHTREE_FROM_VERTS);
 		if (treeData_v.tree == NULL) {
 			OUT_OF_MEMORY();
 			return;
@@ -156,7 +156,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	}
 	if (dist_e) {
 		/* Create a bvh-tree of the given target's edges. */
-		bvhtree_from_mesh_edges(&treeData_e, target, 0.0, 2, 6);
+		bvhtree_from_mesh_get(&treeData_e, target, BVHTREE_FROM_EDGES);
 		if (treeData_e.tree == NULL) {
 			OUT_OF_MEMORY();
 			return;
@@ -164,7 +164,7 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
 	}
 	if (dist_f) {
 		/* Create a bvh-tree of the given target's faces. */
-		bvhtree_from_mesh_looptri(&treeData_f, target, 0.0, 2, 6);
+		bvhtree_from_mesh_get(&treeData_f, target, BVHTREE_FROM_LOOPTRI);
 		if (treeData_f.tree == NULL) {
 			OUT_OF_MEMORY();
 			return;

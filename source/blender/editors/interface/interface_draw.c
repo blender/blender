@@ -1114,7 +1114,7 @@ static void vectorscope_draw_target(unsigned int pos, float centerx, float cente
 	float tangle = 0.0f, tampli;
 	float dangle, dampli, dangle2, dampli2;
 
-	rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v);
+	rgb_to_yuv(colf[0], colf[1], colf[2], &y, &u, &v, BLI_YUV_ITU_BT709);
 	if (u > 0 && v >= 0) tangle = atanf(v / u);
 	else if (u > 0 && v < 0) tangle = atanf(v / u) + 2.0f * (float)M_PI;
 	else if (u < 0) tangle = atanf(v / u) + (float)M_PI;
