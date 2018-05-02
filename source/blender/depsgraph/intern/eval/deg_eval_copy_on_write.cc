@@ -774,7 +774,7 @@ void deg_evaluate_copy_on_write(struct ::Depsgraph *graph,
                                 const IDDepsNode *id_node)
 {
 	const DEG::Depsgraph *depsgraph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-	DEBUG_PRINT("%s on %s\n", __func__, id_node->id_orig->name);
+	DEG_debug_print_eval(__func__, id_node->id_orig->name, id_node->id_cow);
 	if (id_node->id_orig == &depsgraph->scene->id) {
 		/* NOTE: This is handled by eval_ctx setup routines, which
 		 * ensures scene and view layer pointers are valid.
