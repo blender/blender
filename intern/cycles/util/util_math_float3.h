@@ -67,7 +67,7 @@ ccl_device_inline float len_squared(const float3 a);
 
 ccl_device_inline float3 saturate3(float3 a);
 ccl_device_inline float3 safe_normalize(const float3 a);
-ccl_device_inline float3 normalize_len(const float3 a, float *t);;
+ccl_device_inline float3 normalize_len(const float3 a, float *t);
 ccl_device_inline float3 safe_normalize_len(const float3 a, float *t);
 ccl_device_inline float3 interp(float3 a, float3 b, float t);
 

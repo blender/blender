@@ -27,9 +27,9 @@ TEST(math_color, RGBToYUVRoundtrip)
 	float orig_rgb[3] = {0.1f, 0.2f, 0.3f};
 	float yuv[3], rgb[3];
 	rgb_to_yuv(orig_rgb[0], orig_rgb[1], orig_rgb[2],
-	           &yuv[0], &yuv[1], &yuv[2]);
+	           &yuv[0], &yuv[1], &yuv[2], BLI_YUV_ITU_BT709);
 	yuv_to_rgb(yuv[0], yuv[1], yuv[2],
-	           &rgb[0], &rgb[1], &rgb[2]);
+	           &rgb[0], &rgb[1], &rgb[2], BLI_YUV_ITU_BT709);
 	EXPECT_V3_NEAR(orig_rgb, rgb, 1e-4);
 }
 
