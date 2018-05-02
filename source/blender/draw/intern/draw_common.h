@@ -118,6 +118,7 @@ struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct Gw
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
+struct DRWShadingGroup *shgroup_instance_bone_envelope_distance(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_outline(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass, struct Gwn_Batch *geom);

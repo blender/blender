@@ -175,7 +175,7 @@ static void drw_shgroup_bone_envelope_distance(
 {
 	if (g_data.pass_bone_envelope != NULL) {
 		if (g_data.bone_envelope_distance == NULL) {
-			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_solid(g_data.pass_bone_envelope);
+			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_distance(g_data.pass_bone_envelope);
 			/* pass_bone_envelope should have the DRW_STATE_CULL_FRONT state enabled. */
 		}
 		float head_sphere[4] = {0.0f, 0.0f, 0.0f, 1.0f}, tail_sphere[4] = {0.0f, 1.0f, 0.0f, 1.0f};

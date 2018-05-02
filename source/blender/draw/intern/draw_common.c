@@ -169,6 +169,7 @@ extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 static struct {
 	struct GPUShader *shape_outline;
 	struct GPUShader *bone_envelope;
+	struct GPUShader *bone_envelope_distance;
 	struct GPUShader *bone_envelope_outline;
 	struct GPUShader *bone_sphere;
 	struct GPUShader *bone_sphere_outline;
@@ -448,12 +449,34 @@ DRWShadingGroup *shgroup_instance_bone_envelope_outline(DRWPass *pass)
 	return grp;
 }
 
+DRWShadingGroup *shgroup_instance_bone_envelope_distance(DRWPass *pass)
+{
+	if (g_armature_shaders.bone_envelope_distance == NULL) {
+		g_armature_shaders.bone_envelope_distance = DRW_shader_create(
+		            datatoc_armature_envelope_vert_glsl, NULL,
+		            datatoc_armature_envelope_frag_glsl, NULL);
+	}
+
+	DRW_shgroup_instance_format(g_formats.instance_bone_envelope, {
+		{"headSphere"          , DRW_ATTRIB_FLOAT, 4},
+		{"tailSphere"          , DRW_ATTRIB_FLOAT, 4},
+		{"color"               , DRW_ATTRIB_FLOAT, 4},
+		{"xAxis"               , DRW_ATTRIB_FLOAT, 3}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_armature_shaders.bone_envelope_distance,
+	                                                   pass, DRW_cache_bone_envelope_solid_get(),
+	                                                   g_formats.instance_bone_envelope);
+
+	return grp;
+}
+
 DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass)
 {
 	if (g_armature_shaders.bone_envelope == NULL) {
 		g_armature_shaders.bone_envelope = DRW_shader_create(
 		            datatoc_armature_envelope_vert_glsl, NULL,
-		            datatoc_armature_envelope_frag_glsl, NULL);
+		            datatoc_armature_envelope_frag_glsl, "#define SMOOTH_ENVELOPE\n");
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_envelope, {

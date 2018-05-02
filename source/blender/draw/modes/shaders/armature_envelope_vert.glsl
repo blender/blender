@@ -4,7 +4,7 @@ uniform mat4 ViewMatrixInverse;
 uniform mat4 ViewProjectionMatrix;
 
 /* ---- Instanciated Attribs ---- */
-in vec4 pos;  /* w encodes head (== 0.0f), tail (== 1.0f). */
+in vec3 pos;
 
 /* ---- Per instance Attribs ---- */
 /* Assumed to be in world coordinate already. */
@@ -21,7 +21,11 @@ void main()
 	vec3 bone_vec = tailSphere.xyz - headSphere.xyz;
 	float bone_len = max(1e-8, sqrt(dot(bone_vec, bone_vec)));
 	float bone_lenrcp = 1.0 / bone_len;
+#ifdef SMOOTH_ENVELOPE
 	float sinb = (tailSphere.w - headSphere.w) * bone_lenrcp;
+#else
+	const float sinb = 0.0;
+#endif
 
 	vec3 y_axis = bone_vec * bone_lenrcp;
 	vec3 z_axis = normalize(cross(xAxis, -y_axis));

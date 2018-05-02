@@ -1897,7 +1897,7 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
@@ -1907,8 +1907,7 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 		float lon = 0.0f;
 		for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 			float lat = 0.0f;
-			float co1[4], co2[4];
-			co1[3] = co2[3] = 0.0f;
+			float co1[3], co2[3];
 
 			/* Note: the poles are duplicated on purpose, to restart the strip. */
 
