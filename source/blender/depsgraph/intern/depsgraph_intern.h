@@ -46,6 +46,8 @@ extern "C" {
 #include "intern/nodes/deg_node_operation.h"
 #include "intern/depsgraph.h"
 
+#include "DEG_depsgraph_debug.h"
+
 struct DEGEditorUpdateContext;
 struct Group;
 struct Main;
@@ -112,7 +114,14 @@ void deg_editors_id_update(const DEGEditorUpdateContext *update_ctx,
 void deg_editors_scene_update(const DEGEditorUpdateContext *update_ctx,
                               bool updated);
 
-#define DEG_DEBUG_PRINTF(type, ...) \
+#define DEG_DEBUG_PRINTF(depsgraph, type, ...) \
+	do { \
+		if (DEG_get_debug_flags(depsgraph) & G_DEBUG_DEPSGRAPH_ ## type) { \
+			fprintf(stderr, __VA_ARGS__); \
+		} \
+	} while (0)
+
+#define DEG_GLOBAL_DEBUG_PRINTF(type, ...) \
 	do { \
 		if (G.debug & G_DEBUG_DEPSGRAPH_ ## type) { \
 			fprintf(stderr, __VA_ARGS__); \
