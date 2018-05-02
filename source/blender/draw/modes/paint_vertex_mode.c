@@ -176,6 +176,7 @@ static void PAINT_VERTEX_draw_scene(void *vedata)
 
 static void PAINT_VERTEX_engine_free(void)
 {
+	DRW_SHADER_FREE_SAFE(e_data.vcolor_face_shader);
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
 }
 
