@@ -526,6 +526,8 @@ typedef enum eBConstraint_Flags {
 	CONSTRAINT_OFF = (1<<9),
 		/* use bbone curve shape when calculating headtail values */
 	CONSTRAINT_BBONE_SHAPE = (1<<10),
+		/* That constraint has been inserted in local override (i.e. it can be fully edited!). */
+	CONSTRAINT_STATICOVERRIDE_LOCAL = (1 << 11),
 } eBConstraint_Flags;
 
 /* bConstraint->ownspace/tarspace */

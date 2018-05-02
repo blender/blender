@@ -34,6 +34,8 @@
 
 #include "DNA_ID.h"
 #include "DNA_scene_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_modifier_types.h"
 #include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
@@ -1966,9 +1968,24 @@ bool RNA_property_animated(PointerRNA *ptr, PropertyRNA *prop)
 
 /** \note Does not take into account editable status, this has to be checked separately
  * (using RNA_property_edtiable_flag() usually). */
-bool RNA_property_overridable_get(PointerRNA *UNUSED(ptr), PropertyRNA *prop)
+bool RNA_property_overridable_get(PointerRNA *ptr, PropertyRNA *prop)
 {
 	if (prop->magic == RNA_MAGIC) {
+		/* Special handling for insertions of constraints or modifiers... */
+		/* TODO Note We may want to add a more generic system to RNA (like a special property in struct of items)
+		 * if we get more overrideable collections, for now we can live with those special-cases handling I think. */
+		if (RNA_struct_is_a(ptr->type, &RNA_Constraint)) {
+			bConstraint *con = ptr->data;
+			if (con->flag & CONSTRAINT_STATICOVERRIDE_LOCAL) {
+				return true;
+			}
+		}
+		else if (RNA_struct_is_a(ptr->type, &RNA_Modifier)) {
+			ModifierData *mod = ptr->data;
+			if (mod->flag & eModifierFlag_StaticOverride_Local) {
+				return true;
+			}
+		}
 		/* If this is a RNA-defined property (real or 'virtual' IDProp), we want to use RNA prop flag. */
 		return !(prop->flag & PROP_NO_COMPARISON) && (prop->flag & PROP_OVERRIDABLE_STATIC);
 	}

@@ -4530,7 +4530,7 @@ static bConstraint *add_new_constraint_internal(const char *name, short type)
 
 	/* Set up a generic constraint datablock */
 	con->type = type;
-	con->flag |= CONSTRAINT_EXPAND;
+	con->flag |= CONSTRAINT_EXPAND | CONSTRAINT_STATICOVERRIDE_LOCAL;
 	con->enforce = 1.0f;
 
 	/* Determine a basic name, and info */

@@ -3391,6 +3391,11 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		}
 		/* own ipo, all constraints have it */
 		con->ipo = newlibadr_us(fd, id->lib, con->ipo); // XXX deprecated - old animation system
+
+		/* If linking from a library, clear 'local' static override flag. */
+		if (id->lib != NULL) {
+			con->flag &= ~CONSTRAINT_STATICOVERRIDE_LOCAL;
+		}
 	}
 	
 	/* relink all ID-blocks used by the constraints */
@@ -4784,6 +4789,14 @@ static void lib_link_modifiers__linkModifiers(
 static void lib_link_modifiers(FileData *fd, Object *ob)
 {
 	modifiers_foreachIDLink(ob, lib_link_modifiers__linkModifiers, fd);
+
+	/* If linking from a library, clear 'local' static override flag. */
+	if (ob->id.lib != NULL) {
+		for (ModifierData *mod = ob->modifiers.first; mod != NULL; mod = mod->next) {
+			mod->flag &= ~eModifierFlag_StaticOverride_Local;
+		}
+	}
+
 }
 
 static void lib_link_object(FileData *fd, Main *main)

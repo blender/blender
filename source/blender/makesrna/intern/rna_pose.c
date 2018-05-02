@@ -563,6 +563,54 @@ static void rna_PoseChannel_constraints_remove(ID *id, bPoseChannel *pchan, Repo
 	}
 }
 
+bool rna_PoseChannel_constraints_override_apply(
+        PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
+        PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
+        const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        IDOverrideStaticPropertyOperation *opop)
+{
+	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
+	           "Unsupported RNA override operation on constraints collection");
+
+	bPoseChannel *pchan_dst = (bPoseChannel *)ptr_dst->data;
+	bPoseChannel *pchan_src = (bPoseChannel *)ptr_src->data;
+
+	/* Remember that insertion operations are defined and stored in correct order, which means that
+	 * even if we insert several items in a row, we alays insert first one, then second one, etc.
+	 * So we should always find 'anchor' constraint in both _src *and* _dst> */
+	bConstraint *con_anchor = NULL;
+	if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+		con_anchor = BLI_findstring(&pchan_dst->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
+	}
+	if (con_anchor == NULL && opop->subitem_local_index >= 0) {
+		con_anchor = BLI_findlink(&pchan_dst->constraints, opop->subitem_local_index);
+	}
+	/* Otherwise we just insert in first position. */
+
+	bConstraint *con_src = NULL;
+	if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+		con_src = BLI_findstring(&pchan_src->constraints, opop->subitem_local_name, offsetof(bConstraint, name));
+	}
+	if (con_src == NULL && opop->subitem_local_index >= 0) {
+		con_src = BLI_findlink(&pchan_src->constraints, opop->subitem_local_index);
+	}
+	con_src = con_src ? con_src->next : pchan_src->constraints.first;
+
+	BLI_assert(con_src != NULL);
+
+	bConstraint *con_dst = BKE_constraint_duplicate_ex(con_src, 0, true);
+
+	/* This handles NULL anchor as expected by adding at head of list. */
+	BLI_insertlinkafter(&pchan_dst->constraints, con_anchor, con_dst);
+
+	/* This should actually *not* be needed in typical cases. However, if overridden source was edited,
+	 * we *may* have some new conflicting names. */
+	BKE_constraint_unique_name(con_dst, &pchan_dst->constraints);
+
+//	printf("%s: We inserted a constraint...\n", __func__);
+	return true;
+}
+
 static int rna_PoseChannel_proxy_editable(PointerRNA *ptr, const char **r_info)
 {
 	Object *ob = (Object *)ptr->id.data;
@@ -808,6 +856,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Constraint");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC | PROP_OVERRIDABLE_STATIC_INSERTION);
 	RNA_def_property_ui_text(prop, "Constraints", "Constraints that act on this PoseChannel");
+	RNA_def_property_override_funcs(prop, NULL, NULL, "rna_PoseChannel_constraints_override_apply");
 
 	rna_def_pose_channel_constraints(brna, prop);
 

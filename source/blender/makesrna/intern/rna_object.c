@@ -188,6 +188,7 @@ const EnumPropertyItem rna_enum_object_axis_items[] = {
 #include "BKE_object.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_deform.h"
@@ -1208,6 +1209,55 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, object);
 }
 
+bool rna_Object_modifiers_override_apply(
+        PointerRNA *ptr_dst, PointerRNA *ptr_src, PointerRNA *UNUSED(ptr_storage),
+        PropertyRNA *UNUSED(prop_dst), PropertyRNA *UNUSED(prop_src), PropertyRNA *UNUSED(prop_storage),
+        const int UNUSED(len_dst), const int UNUSED(len_src), const int UNUSED(len_storage),
+        IDOverrideStaticPropertyOperation *opop)
+{
+	BLI_assert(opop->operation == IDOVERRIDESTATIC_OP_INSERT_AFTER &&
+	           "Unsupported RNA override operation on modifiers collection");
+
+	Object *ob_dst = (Object *)ptr_dst->id.data;
+	Object *ob_src = (Object *)ptr_src->id.data;
+
+	/* Remember that insertion operations are defined and stored in correct order, which means that
+	 * even if we insert several items in a row, we alays insert first one, then second one, etc.
+	 * So we should always find 'anchor' constraint in both _src *and* _dst> */
+	ModifierData *mod_anchor = NULL;
+	if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+		mod_anchor = BLI_findstring(&ob_dst->modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
+	}
+	if (mod_anchor == NULL && opop->subitem_local_index >= 0) {
+		mod_anchor = BLI_findlink(&ob_dst->modifiers, opop->subitem_local_index);
+	}
+	/* Otherwise we just insert in first position. */
+
+	ModifierData *mod_src = NULL;
+	if (opop->subitem_local_name && opop->subitem_local_name[0]) {
+		mod_src = BLI_findstring(&ob_src->modifiers, opop->subitem_local_name, offsetof(ModifierData, name));
+	}
+	if (mod_src == NULL && opop->subitem_local_index >= 0) {
+		mod_src = BLI_findlink(&ob_src->modifiers, opop->subitem_local_index);
+	}
+	mod_src = mod_src ? mod_src->next : ob_src->modifiers.first;
+
+	BLI_assert(mod_src != NULL);
+
+	ModifierData *mod_dst = modifier_new(mod_src->type);
+	modifier_copyData(mod_src, mod_dst);
+
+	/* This handles NULL anchor as expected by adding at head of list. */
+	BLI_insertlinkafter(&ob_dst->modifiers, mod_anchor, mod_dst);
+
+	/* This should actually *not* be needed in typical cases. However, if overridden source was edited,
+	 * we *may* have some new conflicting names. */
+	modifier_unique_name(&ob_dst->modifiers, mod_dst);
+
+//	printf("%s: We inserted a modifier...\n", __func__);
+	return true;
+}
+
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
 	Object *ob = (Object *)ptr->id.data;
@@ -2116,6 +2166,7 @@ static void rna_def_object(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "modifiers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Modifier");
 	RNA_def_property_ui_text(prop, "Modifiers", "Modifiers affecting the geometric data of the object");
+	RNA_def_property_override_funcs(prop, NULL, NULL, "rna_Object_modifiers_override_apply");
 	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC | PROP_OVERRIDABLE_STATIC_INSERTION);
 	rna_def_object_modifiers(brna, prop);
 

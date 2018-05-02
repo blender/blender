@@ -132,6 +132,7 @@ ModifierData *modifier_new(int type)
 
 	md->type = type;
 	md->mode = eModifierMode_Realtime | eModifierMode_Render | eModifierMode_Expanded;
+	md->flag = eModifierFlag_StaticOverride_Local;
 
 	if (mti->flags & eModifierTypeFlag_EnableInEditmode)
 		md->mode |= eModifierMode_Editmode;
@@ -311,6 +312,7 @@ void modifier_copyData_ex(ModifierData *md, ModifierData *target, const int flag
 	const ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
 	target->mode = md->mode;
+	target->flag = md->flag;
 
 	if (mti->copyData) {
 		mti->copyData(md, target);
