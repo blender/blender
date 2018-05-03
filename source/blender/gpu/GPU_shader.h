@@ -185,8 +185,6 @@ typedef enum GPUBuiltinShader {
 	GPU_SHADER_2D_NODELINK,
 	GPU_SHADER_2D_NODELINK_INST,
 
-	GPU_SHADER_3D_INSTANCE_MBALL_HANDLES,
-
 	GPU_NUM_BUILTIN_SHADERS /* (not an actual shader) */
 } GPUBuiltinShader;
 

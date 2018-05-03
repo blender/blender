@@ -819,9 +819,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                             datatoc_gpu_shader_2D_nodelink_frag_glsl },
 		[GPU_SHADER_2D_NODELINK_INST] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
 		                                  datatoc_gpu_shader_2D_nodelink_frag_glsl },
-
-		[GPU_SHADER_3D_INSTANCE_MBALL_HANDLES] = { datatoc_gpu_shader_instance_mball_handles_vert_glsl,
-		                                           datatoc_gpu_shader_flat_color_frag_glsl },
 	};
 
 	if (builtin_shaders[shader] == NULL) {
