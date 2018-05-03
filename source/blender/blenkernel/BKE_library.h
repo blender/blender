@@ -78,6 +78,7 @@ enum {
 	/* XXX TODO Do we want to keep that? would rather try to get rid of it... */
 	LIB_ID_COPY_ACTIONS            = 1 << 19,  /* EXCEPTION! Deep-copy actions used by animdata of copied ID. */
 	LIB_ID_COPY_KEEP_LIB           = 1 << 20,  /* Keep the library pointer when copying datablock outside of bmain. */
+	LIB_ID_COPY_NO_ANIMDATA        = 1 << 21,  /* Don't copy id->adt, used by ID datablock localization routines. */
 };
 
 void BKE_libblock_copy_ex(struct Main *bmain, const struct ID *id, struct ID **r_newid, const int flag);

@@ -2001,8 +2001,13 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* Make full copy outside of Main database.
 		 * Note: previews are not copied here.
 		 */
-		BKE_id_copy_ex(G.main, (ID *)ntree, (ID **)&ltree,
-		               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_COPY_NO_PREVIEW, false);
+		BKE_id_copy_ex(
+		        NULL, &ntree->id, (ID **)&ltree,
+		        (LIB_ID_CREATE_NO_MAIN |
+		         LIB_ID_CREATE_NO_USER_REFCOUNT |
+		         LIB_ID_COPY_NO_PREVIEW |
+		         LIB_ID_COPY_NO_ANIMDATA),
+		        false);
 		ltree->flag |= NTREE_IS_LOCALIZED;
 
 		for (node = ltree->nodes.first; node; node = node->next) {

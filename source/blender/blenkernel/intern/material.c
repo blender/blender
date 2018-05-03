@@ -187,15 +187,18 @@ Material *BKE_material_localize(Material *ma)
 	 * ... Once f*** nodes are fully converted to that too :( */
 
 	Material *man;
-	
-	man = BKE_libblock_copy_nolib(&ma->id, false);
+
+	BKE_id_copy_ex(
+	        NULL, &ma->id, (ID **)&man,
+	        (LIB_ID_CREATE_NO_MAIN |
+	         LIB_ID_CREATE_NO_USER_REFCOUNT |
+	         LIB_ID_COPY_NO_PREVIEW |
+	         LIB_ID_COPY_NO_ANIMDATA),
+	        false);
 
 	man->texpaintslot = NULL;
 	man->preview = NULL;
-	
-	if (ma->nodetree)
-		man->nodetree = ntreeLocalize(ma->nodetree);
-	
+
 	BLI_listbase_clear(&man->gpumaterial);
 
 	/* TODO Duplicate Engine Settings and set runtime to NULL */
