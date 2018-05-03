@@ -105,7 +105,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*face_nors)[3], float (*r_ver
 		EdgeFaceRef *edge_ref;
 		float edge_normal[3];
 
-		/* This loop adds an edge hash if its not there, and adds the face index */
+		/* Add an edge reference if it's not there, pointing back to the face index. */
 		for (i = 0; i < numFaces; i++, mp++) {
 			int j;
 
@@ -899,14 +899,15 @@ static DerivedMesh *applyModifier(
 
 #ifdef SOLIDIFY_SIDE_NORMALS
 		if (do_side_normals) {
+			const MEdge *ed_orig = medge;
 			ed = medge + (numEdges * stride);
-			for (i = 0; i < rimVerts; i++, ed++) {
+			for (i = 0; i < rimVerts; i++, ed++, ed_orig++) {
 				float nor_cpy[3];
 				short *nor_short;
 				int k;
 
 				/* note, only the first vertex (lower half of the index) is calculated */
-				normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
+				normalize_v3_v3(nor_cpy, edge_vert_nos[ed_orig->v1]);
 
 				for (k = 0; k < 2; k++) { /* loop over both verts of the edge */
 					nor_short = mvert[*(&ed->v1 + k)].no;
