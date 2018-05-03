@@ -129,6 +129,9 @@ void ED_pose_bone_select(Object *ob, bPoseChannel *pchan, bool select)
 		
 		/* send necessary notifiers */
 		WM_main_add_notifier(NC_GEOM | ND_DATA, ob);
+		
+		/* tag armature for copy-on-write update (since act_bone is in armature not object) */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 
@@ -220,6 +223,9 @@ bool ED_armature_pose_select_pick_with_buffer(
 				 */
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
+			
+			/* tag armature for copy-on-write update (since act_bone is in armature not object) */
+			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 		}
 	}
 	
