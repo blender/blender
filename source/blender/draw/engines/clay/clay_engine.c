@@ -24,6 +24,7 @@
 #include "BLI_rand.h"
 
 #include "DNA_particle_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_icons.h"
 #include "BKE_idprop.h"
@@ -485,7 +486,7 @@ static void clay_engine_init(void *vedata)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		ViewLayer *view_layer = draw_ctx->view_layer;
 		IDProperty *props = BKE_view_layer_engine_evaluated_get(
-		        view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+		        view_layer, RE_engine_id_BLENDER_CLAY);
 		int ssao_samples = BKE_collection_engine_property_value_get_int(props, "ssao_samples");
 
 		float invproj[4][4];
@@ -684,7 +685,7 @@ static int hair_mat_in_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *
 
 static void ubo_mat_from_object(CLAY_Storage *storage, Object *ob, bool *r_needs_ao, int *r_id)
 {
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, RE_engine_id_BLENDER_CLAY);
 
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
@@ -726,7 +727,7 @@ static void ubo_mat_from_object(CLAY_Storage *storage, Object *ob, bool *r_needs
 
 static void hair_ubo_mat_from_object(Object *ob, CLAY_HAIR_UBO_Material *r_ubo)
 {
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_CLAY);
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, RE_engine_id_BLENDER_CLAY);
 
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
@@ -920,8 +921,7 @@ static void clay_cache_populate(void *vedata, Object *ob)
 
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 	if (geom) {
-		IDProperty *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
-		const bool do_cull = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_backface_culling");
+		const bool do_cull = (draw_ctx->v3d && (draw_ctx->v3d->flag2 & V3D_BACKFACE_CULLING));
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		const bool use_flat = is_sculpt_mode && DRW_object_is_flat_normal(ob);
 

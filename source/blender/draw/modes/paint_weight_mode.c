@@ -34,6 +34,7 @@
 #include "draw_mode_engines.h"
 
 #include "DNA_mesh_types.h"
+#include "DNA_view3d_types.h"
 
 #include "BKE_mesh.h"
 
@@ -176,11 +177,11 @@ static void PAINT_WEIGHT_cache_populate(void *vedata, Object *ob)
 {
 	PAINT_WEIGHT_StorageList *stl = ((PAINT_WEIGHT_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const View3D *v3d = draw_ctx->v3d;
 
 	if ((ob->type == OB_MESH) && (ob == draw_ctx->obact)) {
-		IDProperty *ces_mode_pw = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_PAINT_WEIGHT, "");
 		const Mesh *me = ob->data;
-		const bool use_wire = BKE_collection_engine_property_value_get_bool(ces_mode_pw, "use_wire");
+		const bool use_wire = (v3d->overlay.paint_flag & V3D_OVERLAY_PAINT_WIRE) != 0;
 		const bool use_surface = DRW_object_is_mode_shade(ob) == true;
 		const bool use_face_sel = (me->editflag & ME_EDIT_PAINT_FACE_SEL) != 0;
 		const bool use_vert_sel = (me->editflag & ME_EDIT_PAINT_VERT_SEL) != 0;
@@ -222,15 +223,6 @@ static void PAINT_WEIGHT_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.wire_overlay_shader);
 	DRW_SHADER_FREE_SAFE(e_data.vert_overlay_shader);
-}
-
-void PAINT_WEIGHT_collection_settings_create(IDProperty *properties)
-{
-	BLI_assert(properties &&
-	           properties->type == IDP_GROUP &&
-	           properties->subtype == IDP_GROUP_SUB_MODE_PAINT_WEIGHT);
-
-	BKE_collection_engine_property_add_bool(properties, "use_wire", false);
 }
 
 static const DrawEngineDataSize PAINT_WEIGHT_data_size = DRW_VIEWPORT_DATA_SIZE(PAINT_WEIGHT_Data);

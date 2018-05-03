@@ -289,7 +289,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	DRWShadingGroup *grp;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_WORKBENCH);
 	static float light_multiplier = 1.0f;
 
 	const DRWContextState *DCS = DRW_context_state_get();
@@ -431,7 +431,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 	if (!DRW_object_is_renderable(ob))
 		return;
 
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
+	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, RE_engine_id_BLENDER_WORKBENCH);
 	if (ob->type == OB_MESH) {
 		workbench_cache_populate_particles(vedata, props, ob);
 	}

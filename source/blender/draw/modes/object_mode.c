@@ -1996,9 +1996,6 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 		return;
 	}
 
-	//CollectionEngineSettings *ces_mode_ob = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_OBJECT, "");
-
-	//bool do_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ob, "show_wire");
 	bool do_outlines = ((ob->base_flag & BASE_SELECTED) != 0);
 
 	if (do_outlines) {
@@ -2234,15 +2231,6 @@ static void OBJECT_draw_scene(void *vedata)
 		BLI_ghash_free(stl->g_data->image_plane_map, NULL, MEM_freeN);
 		stl->g_data->image_plane_map = NULL;
 	}
-}
-
-void OBJECT_collection_settings_create(IDProperty *props)
-{
-	BLI_assert(props &&
-	           props->type == IDP_GROUP &&
-	           props->subtype == IDP_GROUP_SUB_MODE_OBJECT);
-	BKE_collection_engine_property_add_int(props, "show_wire", false);
-	BKE_collection_engine_property_add_int(props, "show_backface_culling", false);
 }
 
 static const DrawEngineDataSize OBJECT_data_size = DRW_VIEWPORT_DATA_SIZE(OBJECT_Data);

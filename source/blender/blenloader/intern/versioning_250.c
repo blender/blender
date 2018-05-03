@@ -838,8 +838,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 
 		for (sce = main->scene.first; sce; sce = sce->id.next) {
 			ts = sce->toolsettings;
-			if (ts->normalsize == 0.0f || !ts->uv_selectmode || ts->vgroup_weight == 0.0f) {
-				ts->normalsize = 0.1f;
+			if (!ts->uv_selectmode || ts->vgroup_weight == 0.0f) {
 				ts->selectmode = SCE_SELECT_VERTEX;
 
 				/* autokeying - setting should be taken from the user-prefs

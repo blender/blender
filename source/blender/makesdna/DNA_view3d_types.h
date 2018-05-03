@@ -146,6 +146,14 @@ typedef struct View3DShading {
 /* 3D Viewport Overlay setings */
 typedef struct View3DOverlay {
 	int flag;
+
+	/* Edit mode settings */
+	int edit_flag;
+	float normals_length;
+	float backwire_opacity;
+
+	/* Paint mode settings */
+	int paint_flag;
 	int pad;
 } View3DOverlay;
 
@@ -330,8 +338,24 @@ enum {
 
 /* View3DOverlay->flag */
 enum {
-	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
-	V3D_OVERLAY_HIDE_CURSOR      = (1 << 1),
+	V3D_OVERLAY_FACE_ORIENTATION  = (1 << 0),
+	V3D_OVERLAY_HIDE_CURSOR       = (1 << 1),
+};
+
+/* View3DOverlay->edit_flag */
+enum {
+	V3D_OVERLAY_EDIT_VERT_NORMALS = (1 << 0),
+	V3D_OVERLAY_EDIT_LOOP_NORMALS = (1 << 1),
+	V3D_OVERLAY_EDIT_FACE_NORMALS = (1 << 2),
+
+	V3D_OVERLAY_EDIT_OCCLUDE_WIRE = (1 << 3),
+
+	V3D_OVERLAY_EDIT_WEIGHT       = (1 << 4),
+};
+
+/* View3DOverlay->paint_flag */
+enum {
+	V3D_OVERLAY_PAINT_WIRE        = (1 << 0),
 };
 
 /* View3D->around */

@@ -653,7 +653,6 @@ void BKE_scene_init(Scene *sce)
 
 	sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
-	sce->toolsettings->normalsize = 0.1;
 	sce->toolsettings->autokey_mode = U.autokey_mode;
 
 	sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;

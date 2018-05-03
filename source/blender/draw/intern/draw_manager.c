@@ -150,13 +150,10 @@ bool DRW_object_is_renderable(Object *ob)
 
 	if (ob->type == OB_MESH) {
 		if (ob == DST.draw_ctx.object_edit) {
-			IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
-			bool do_show_occlude_wire = BKE_collection_engine_property_value_get_bool(props, "show_occlude_wire");
-			if (do_show_occlude_wire) {
-				return false;
-			}
-			bool do_show_weight = BKE_collection_engine_property_value_get_bool(props, "show_weight");
-			if (do_show_weight) {
+			View3D *v3d = DST.draw_ctx.v3d;
+			const int mask = (V3D_OVERLAY_EDIT_OCCLUDE_WIRE | V3D_OVERLAY_EDIT_WEIGHT);
+
+			if (v3d && v3d->overlay.edit_flag & mask) {
 				return false;
 			}
 		}

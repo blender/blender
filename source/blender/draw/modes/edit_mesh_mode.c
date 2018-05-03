@@ -452,18 +452,17 @@ static void EDIT_MESH_cache_populate(void *vedata, Object *ob)
 	if (ob->type == OB_MESH) {
 		if ((ob == draw_ctx->object_edit) || BKE_object_is_in_editmode_and_selected(ob)) {
 			const Mesh *me = ob->data;
-			IDProperty *ces_mode_ed = BKE_layer_collection_engine_evaluated_get(ob, COLLECTION_MODE_EDIT, "");
-			bool do_occlude_wire = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_occlude_wire");
-			bool do_show_weight = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "show_weight");
+			bool do_occlude_wire = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_OCCLUDE_WIRE) != 0;
+			bool do_show_weight = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_WEIGHT) != 0;
 
 			/* Updating uniform */
-			backwire_opacity = BKE_collection_engine_property_value_get_float(ces_mode_ed, "backwire_opacity");
+			backwire_opacity = v3d->overlay.backwire_opacity;
 
-			bool fnormals_do = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "face_normals_show");
-			bool vnormals_do = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "vert_normals_show");
-			bool lnormals_do = BKE_collection_engine_property_value_get_bool(ces_mode_ed, "loop_normals_show");
+			bool fnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_FACE_NORMALS) != 0;
+			bool vnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_VERT_NORMALS) != 0;
+			bool lnormals_do = (v3d->overlay.edit_flag & V3D_OVERLAY_EDIT_LOOP_NORMALS) != 0;
 			/* Updating uniform */
-			size_normal = BKE_collection_engine_property_value_get_float(ces_mode_ed, "normals_length");
+			size_normal = v3d->overlay.normals_length;
 
 			face_mod = (do_occlude_wire) ? 0.0f : 1.0f;
 
@@ -551,20 +550,6 @@ static void EDIT_MESH_draw_scene(void *vedata)
 		DRW_draw_pass(psl->normals);
 		DRW_draw_pass(psl->edit_face_overlay);
 	}
-}
-
-void EDIT_MESH_collection_settings_create(IDProperty *properties)
-{
-	BLI_assert(properties &&
-	           properties->type == IDP_GROUP &&
-	           properties->subtype == IDP_GROUP_SUB_MODE_EDIT);
-	BKE_collection_engine_property_add_int(properties, "show_occlude_wire", false);
-	BKE_collection_engine_property_add_int(properties, "show_weight", false);
-	BKE_collection_engine_property_add_int(properties, "face_normals_show", false);
-	BKE_collection_engine_property_add_int(properties, "vert_normals_show", false);
-	BKE_collection_engine_property_add_int(properties, "loop_normals_show", false);
-	BKE_collection_engine_property_add_float(properties, "normals_length", 0.1);
-	BKE_collection_engine_property_add_float(properties, "backwire_opacity", 0.5);
 }
 
 static void EDIT_MESH_engine_free(void)

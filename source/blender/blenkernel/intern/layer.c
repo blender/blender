@@ -69,7 +69,7 @@ static void layer_collection_objects_populate(ViewLayer *view_layer, LayerCollec
 static LayerCollection *layer_collection_add(ViewLayer *view_layer, LayerCollection *parent, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
 static IDProperty *collection_engine_settings_create(struct EngineSettingsCB_Type *ces_type, const bool populate);
-static IDProperty *collection_engine_get(IDProperty *root, const int type, const char *engine_name);
+static IDProperty *collection_engine_get(IDProperty *root, const char *engine_name);
 static void collection_engine_settings_init(IDProperty *root, const bool populate);
 static void layer_engine_settings_init(IDProperty *root, const bool populate);
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
@@ -1458,7 +1458,7 @@ typedef struct EngineSettingsCB_Type {
 
 static void create_engine_settings_scene(IDProperty *root, EngineSettingsCB_Type *es_type)
 {
-	if (collection_engine_get(root, COLLECTION_MODE_NONE, es_type->name)) {
+	if (collection_engine_get(root, es_type->name)) {
 		return;
 	}
 
@@ -1478,7 +1478,7 @@ static void create_view_layer_engine_settings_scene(Scene *scene, EngineSettings
 
 static void create_layer_collection_engine_settings_collection(LayerCollection *lc, EngineSettingsCB_Type *es_type)
 {
-	if (BKE_layer_collection_engine_collection_get(lc, COLLECTION_MODE_NONE, es_type->name)) {
+	if (BKE_layer_collection_engine_collection_get(lc, es_type->name)) {
 		return;
 	}
 
@@ -1510,7 +1510,7 @@ static void create_view_layer_engines_settings_scene(Scene *scene, EngineSetting
 
 static void create_view_layer_engines_settings_layer(ViewLayer *view_layer, EngineSettingsCB_Type *es_type)
 {
-	if (BKE_view_layer_engine_layer_get(view_layer, COLLECTION_MODE_NONE, es_type->name)) {
+	if (BKE_view_layer_engine_layer_get(view_layer, es_type->name)) {
 		return;
 	}
 
@@ -1601,70 +1601,6 @@ static IDProperty *collection_engine_settings_create(EngineSettingsCB_Type *es_t
 	return props;
 }
 
-static void layer_collection_create_mode_settings_object(IDProperty *root, const bool populate)
-{
-	IDProperty *props;
-	IDPropertyTemplate val = {0};
-
-	props = IDP_New(IDP_GROUP, &val, "ObjectMode");
-	props->subtype = IDP_GROUP_SUB_MODE_OBJECT;
-
-	/* properties */
-	if (populate) {
-		OBJECT_collection_settings_create(props);
-	}
-
-	IDP_AddToGroup(root, props);
-}
-
-static void layer_collection_create_mode_settings_edit(IDProperty *root, const bool populate)
-{
-	IDProperty *props;
-	IDPropertyTemplate val = {0};
-
-	props = IDP_New(IDP_GROUP, &val, "EditMode");
-	props->subtype = IDP_GROUP_SUB_MODE_EDIT;
-
-	/* properties */
-	if (populate) {
-		EDIT_MESH_collection_settings_create(props);
-	}
-
-	IDP_AddToGroup(root, props);
-}
-
-static void layer_collection_create_mode_settings_paint_weight(IDProperty *root, const bool populate)
-{
-	IDProperty *props;
-	IDPropertyTemplate val = {0};
-
-	props = IDP_New(IDP_GROUP, &val, "WeightPaintMode");
-	props->subtype = IDP_GROUP_SUB_MODE_PAINT_WEIGHT;
-
-	/* properties */
-	if (populate) {
-		PAINT_WEIGHT_collection_settings_create(props);
-	}
-
-	IDP_AddToGroup(root, props);
-}
-
-static void layer_collection_create_mode_settings_paint_vertex(IDProperty *root, const bool populate)
-{
-	IDProperty *props;
-	IDPropertyTemplate val = {0};
-
-	props = IDP_New(IDP_GROUP, &val, "VertexPaintMode");
-	props->subtype = IDP_GROUP_SUB_MODE_PAINT_VERTEX;
-
-	/* properties */
-	if (populate) {
-		PAINT_VERTEX_collection_settings_create(props);
-	}
-
-	IDP_AddToGroup(root, props);
-}
-
 static void layer_collection_create_render_settings(IDProperty *root, const bool populate)
 {
 	EngineSettingsCB_Type *es_type;
@@ -1683,117 +1619,59 @@ static void view_layer_create_render_settings(IDProperty *root, const bool popul
 	}
 }
 
-static void collection_create_mode_settings(IDProperty *root, const bool populate)
-{
-	/* XXX TODO: put all those engines in the R_engines_settings_callbacks
-	 * and have IDP_AddToGroup outside the callbacks */
-	layer_collection_create_mode_settings_object(root, populate);
-	layer_collection_create_mode_settings_edit(root, populate);
-	layer_collection_create_mode_settings_paint_weight(root, populate);
-	layer_collection_create_mode_settings_paint_vertex(root, populate);
-}
-
-static void layer_create_mode_settings(IDProperty *root, const bool populate)
-{
-	TODO_LAYER; /* XXX like collection_create_mode_settings */
-	UNUSED_VARS(root, populate);
-}
-
-static int idproperty_group_subtype(const int mode_type)
-{
-	int idgroup_type;
-
-	switch (mode_type) {
-		case COLLECTION_MODE_OBJECT:
-			idgroup_type = IDP_GROUP_SUB_MODE_OBJECT;
-			break;
-		case COLLECTION_MODE_EDIT:
-			idgroup_type = IDP_GROUP_SUB_MODE_EDIT;
-			break;
-		case COLLECTION_MODE_PAINT_WEIGHT:
-			idgroup_type = IDP_GROUP_SUB_MODE_PAINT_WEIGHT;
-			break;
-		case COLLECTION_MODE_PAINT_VERTEX:
-			idgroup_type = IDP_GROUP_SUB_MODE_PAINT_VERTEX;
-			break;
-		default:
-		case COLLECTION_MODE_NONE:
-			return IDP_GROUP_SUB_ENGINE_RENDER;
-			break;
-	}
-
-	return idgroup_type;
-}
-
 /**
  * Return collection enginne settings for either Object s of LayerCollection s
  */
-static IDProperty *collection_engine_get(
-        IDProperty *root, const int type, const char *engine_name)
+static IDProperty *collection_engine_get(IDProperty *root, const char *engine_name)
 {
-	const int subtype = idproperty_group_subtype(type);
-
-	if (subtype == IDP_GROUP_SUB_ENGINE_RENDER) {
-		return IDP_GetPropertyFromGroup(root, engine_name);
-	}
-	else {
-		IDProperty *prop;
-		for (prop = root->data.group.first; prop; prop = prop->next) {
-			if (prop->subtype == subtype) {
-				return prop;
-			}
-		}
-	}
-
-	BLI_assert(false);
-	return NULL;
+	return IDP_GetPropertyFromGroup(root, engine_name);
 }
 
 /**
  * Return collection engine settings from Object for specified engine of mode
  */
-IDProperty *BKE_layer_collection_engine_evaluated_get(Object *ob, const int type, const char *engine_name)
+IDProperty *BKE_layer_collection_engine_evaluated_get(Object *ob, const char *engine_name)
 {
-	return collection_engine_get(ob->base_collection_properties, type, engine_name);
+	return collection_engine_get(ob->base_collection_properties, engine_name);
 }
 /**
  * Return layer collection engine settings for specified engine
  */
-IDProperty *BKE_layer_collection_engine_collection_get(LayerCollection *lc, const int type, const char *engine_name)
+IDProperty *BKE_layer_collection_engine_collection_get(LayerCollection *lc, const char *engine_name)
 {
-	return collection_engine_get(lc->properties, type, engine_name);
+	return collection_engine_get(lc->properties, engine_name);
 }
 
 /**
  * Return layer collection engine settings for specified engine in the scene
  */
-IDProperty *BKE_layer_collection_engine_scene_get(Scene *scene, const int type, const char *engine_name)
+IDProperty *BKE_layer_collection_engine_scene_get(Scene *scene, const char *engine_name)
 {
-	return collection_engine_get(scene->collection_properties, type, engine_name);
+	return collection_engine_get(scene->collection_properties, engine_name);
 }
 
 /**
  * Return scene layer engine settings for specified engine in the scene
  */
-IDProperty *BKE_view_layer_engine_scene_get(Scene *scene, const int type, const char *engine_name)
+IDProperty *BKE_view_layer_engine_scene_get(Scene *scene, const char *engine_name)
 {
-	return collection_engine_get(scene->layer_properties, type, engine_name);
+	return collection_engine_get(scene->layer_properties, engine_name);
 }
 
 /**
  * Return scene layer engine settings for specified engine
  */
-IDProperty *BKE_view_layer_engine_layer_get(ViewLayer *view_layer, const int type, const char *engine_name)
+IDProperty *BKE_view_layer_engine_layer_get(ViewLayer *view_layer, const char *engine_name)
 {
-	return collection_engine_get(view_layer->properties, type, engine_name);
+	return collection_engine_get(view_layer->properties, engine_name);
 }
 
 /**
  * Return scene layer evaluated engine settings for specified engine
  */
-IDProperty *BKE_view_layer_engine_evaluated_get(ViewLayer *view_layer, const int type, const char *engine_name)
+IDProperty *BKE_view_layer_engine_evaluated_get(ViewLayer *view_layer, const char *engine_name)
 {
-	return collection_engine_get(view_layer->properties_evaluated, type, engine_name);
+	return collection_engine_get(view_layer->properties_evaluated, engine_name);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1887,9 +1765,6 @@ static void collection_engine_settings_init(IDProperty *root, const bool populat
 {
 	/* render engines */
 	layer_collection_create_render_settings(root, populate);
-
-	/* mode engines */
-	collection_create_mode_settings(root, populate);
 }
 
 /* get all the default settings defined in scene and merge them here */
@@ -1897,9 +1772,6 @@ static void layer_engine_settings_init(IDProperty *root, const bool populate)
 {
 	/* render engines */
 	view_layer_create_render_settings(root, populate);
-
-	/* mode engines */
-	layer_create_mode_settings(root, populate);
 }
 
 /**

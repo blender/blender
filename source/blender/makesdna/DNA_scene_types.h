@@ -1208,7 +1208,6 @@ typedef struct ToolSettings {
 	float vgroup_weight;
 
 	float doublimit;	/* remove doubles limit */
-	float normalsize;	/* size of normals */
 	short automerge;
 
 	/* Selection Mode for Mesh */
@@ -1233,6 +1232,8 @@ typedef struct ToolSettings {
 	char gpencil_v2d_align; /*                          : General 2D Editor */
 	char gpencil_seq_align; /*                          : Sequencer Preview */
 	char gpencil_ima_align; /*                          : Image Editor */
+
+	char _pad3[4];
 	
 	/* Grease Pencil Sculpt */
 	struct GP_BrushEdit_Settings gp_sculpt;

@@ -435,7 +435,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		EEVEE_occlusion_output_init(sldata, vedata);
 	}
 
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_EEVEE);
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
 	unsigned int tot_sample = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
 	unsigned int render_samples = 0;
 

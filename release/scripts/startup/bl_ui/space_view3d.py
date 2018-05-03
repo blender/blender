@@ -3555,7 +3555,7 @@ class VIEW3D_PT_shading(Panel):
             col.separator()
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
-                col.row().template_icon_view(shading, "studiolight")
+                col.row().template_icon_view(shading, "studio_light")
                 col.separator()
 
             col.prop(shading, "show_shadows")
@@ -3592,23 +3592,13 @@ class VIEW3D_PT_overlay(Panel):
         col.active = display_all
         col.prop(overlay, "show_cursor")
 
-        if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
-            engine_type = {
-                'PAINT_WEIGHT': 'WeightPaintMode',
-                'PAINT_VERTEX': 'VertexPaintMode',
-            }.get(context.mode)
-            engine_props = scene.collection_properties[engine_type]
-            col.prop(engine_props, "use_wire")
-
-        if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
-            col.prop(view, "show_mode_shade_override")
-
         col = layout.column()
         col.active = display_all
         col.prop(overlay, "show_outline_selected")
         col.prop(overlay, "show_all_objects_origin")
         col.prop(overlay, "show_relationship_lines")
         col.prop(overlay, "show_face_orientation")
+        col.prop(overlay, "show_backface_culling")
 
         col = layout.column()
         col.active = display_all
@@ -3629,6 +3619,32 @@ class VIEW3D_PT_overlay(Panel):
         subsub = sub.column(align=True)
         subsub.active = scene.unit_settings.system == 'NONE'
         subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
+
+        if context.mode == 'EDIT_MESH':
+            col.separator()
+            col.label(text="Edit Mode:")
+
+            col.prop(overlay, "show_occlude_wire")
+
+            col.label(text="Normals:")
+            row = col.row(align=True)
+
+            row.prop(overlay, "show_vertex_normals", text="", icon='VERTEXSEL')
+            row.prop(overlay, "show_split_normals", text="", icon='LOOPSEL')
+            row.prop(overlay, "show_face_normals", text="", icon='FACESEL')
+
+            sub = row.row(align=True)
+            sub.active = overlay.show_vertex_normals or overlay.show_face_normals or overlay.show_split_normals
+            sub.prop(overlay, "normals_length", text="Size")
+
+        elif context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
+            col.separator()
+            col.label(text="Paint Mode:")
+
+            if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
+                col.prop(overlay, "show_paint_wire")
+
+            col.prop(view, "show_mode_shade_override")
 
 
 class VIEW3D_PT_quad_view(Panel):
@@ -3769,18 +3785,6 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
             col.prop(mesh, "show_freestyle_face_marks", text="Face Marks")
 
         col = layout.column()
-
-        col.separator()
-        col.label(text="Normals:")
-        row = col.row(align=True)
-
-        row.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
-        row.prop(mesh, "show_normal_loop", text="", icon='LOOPSEL')
-        row.prop(mesh, "show_normal_face", text="", icon='FACESEL')
-
-        sub = row.row(align=True)
-        sub.active = mesh.show_normal_vertex or mesh.show_normal_face or mesh.show_normal_loop
-        sub.prop(scene.tool_settings, "normal_size", text="Size")
 
         col.separator()
         split = layout.split()

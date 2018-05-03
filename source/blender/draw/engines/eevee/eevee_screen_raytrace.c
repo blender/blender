@@ -113,7 +113,6 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer,
-	                                                        COLLECTION_MODE_NONE,
 	                                                        RE_engine_id_BLENDER_EEVEE);
 
 	/* Compute pixel size, (shared with contact shadows) */

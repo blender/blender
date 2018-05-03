@@ -141,21 +141,6 @@ enum {
 	COLLECTION_TYPE_GROUP_INTERNAL = 1,
 };
 
-/* *************************************************************** */
-/* Engine Settings */
-
-/* CollectionEngineSettings->type */
-typedef enum CollectionEngineSettingsType {
-	COLLECTION_MODE_NONE = 0,
-	COLLECTION_MODE_OBJECT = 1,
-	COLLECTION_MODE_EDIT = 2,
-	COLLECTION_MODE_PAINT_WEIGHT = 5,
-	COLLECTION_MODE_PAINT_VERTEX = 6,
-} CollectionModeSettingsType;
-
-/* *************************************************************** */
-
-
 #ifdef __cplusplus
 }
 #endif

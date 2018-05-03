@@ -128,13 +128,6 @@ void DRW_pass_free(struct DRWPass *pass);
 struct DRWInstanceDataList *DRW_instance_data_list_create(void);
 void DRW_instance_data_list_free(struct DRWInstanceDataList *idatalist);
 
-/* Mode engines initialization */
-void OBJECT_collection_settings_create(struct IDProperty *properties);
-void EDIT_MESH_collection_settings_create(struct IDProperty *properties);
-void EDIT_ARMATURE_collection_settings_create(struct IDProperty *properties);
-void PAINT_WEIGHT_collection_settings_create(struct IDProperty *properties);
-void PAINT_VERTEX_collection_settings_create(struct IDProperty *properties);
-
 void DRW_opengl_context_create(void);
 void DRW_opengl_context_destroy(void);
 void DRW_opengl_context_enable(void);

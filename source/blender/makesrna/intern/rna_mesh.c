@@ -3516,26 +3516,6 @@ static void rna_def_mesh(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Draw Faces", "Display all faces as shades in the 3D view and UV editor");
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
-	prop = RNA_def_property(srna, "show_normal_face", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWNORMALS);
-	RNA_def_property_ui_text(prop, "Draw Normals", "Display face normals as lines");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-
-	prop = RNA_def_property(srna, "show_normal_loop", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_LNORMALS);
-	RNA_def_property_ui_text(prop, "Draw Split Normals", "Display vertex-per-face normals as lines");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-
-	prop = RNA_def_property(srna, "show_normal_vertex", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAW_VNORMALS);
-	RNA_def_property_ui_text(prop, "Draw Vertex Normals", "Display vertex normals as lines");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
-
-	prop = RNA_def_property(srna, "show_weight", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWEIGHT);
-	RNA_def_property_ui_text(prop, "Show Weights", "Draw weights in editmode");
-	RNA_def_property_update(prop, 0, "rna_Mesh_update_data_edit_color");  /* needs to rebuild 'dm' */
-
 	prop = RNA_def_property(srna, "show_edge_crease", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawflag", ME_DRAWCREASES);
 	RNA_def_property_ui_text(prop, "Draw Creases", "Display creases created for Subdivision Surface modifier");
