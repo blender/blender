@@ -39,6 +39,7 @@
 
 #include "BLI_math.h"
 
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -313,8 +314,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 		result = doMirrorOnAxis(mmd, ob, result, 1);
 		if (tmp != mesh) {
 			/* free intermediate results */
-			BKE_mesh_free(tmp);
-			MEM_freeN(tmp);
+			BKE_id_free(NULL, tmp);
 		}
 	}
 	if (mmd->flag & MOD_MIR_AXIS_Z) {
@@ -322,8 +322,7 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 		result = doMirrorOnAxis(mmd, ob, result, 2);
 		if (tmp != mesh) {
 			/* free intermediate results */
-			BKE_mesh_free(tmp);
-			MEM_freeN(tmp);
+			BKE_id_free(NULL, tmp);
 		}
 	}
 

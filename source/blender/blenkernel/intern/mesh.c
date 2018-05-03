@@ -47,6 +47,7 @@
 #include "BLI_utildefines_stack.h"
 
 #include "BKE_animsys.h"
+#include "BKE_idcode.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
@@ -621,8 +622,7 @@ static Mesh *mesh_from_template_ex(
 {
 	const bool do_tessface = ((me_src->totface != 0) && (me_src->totpoly == 0)); /* only do tessface if we have no polys */
 
-	Mesh *me_dst = MEM_callocN(sizeof(struct Mesh), "Mesh");
-	BKE_mesh_init(me_dst);
+	Mesh *me_dst = BKE_id_new_nomain(ID_ME, NULL);
 
 	me_dst->mat = MEM_dupallocN(me_src->mat);
 	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
@@ -703,8 +703,7 @@ BMesh *BKE_mesh_to_bmesh(
 
 Mesh *BKE_bmesh_to_mesh(BMesh *bm, const struct BMeshToMeshParams *params)
 {
-	Mesh *mesh = BKE_libblock_alloc_notest(ID_ME);
-	BKE_mesh_init(mesh);
+	Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
 	BM_mesh_bm_to_me(bm, mesh, params);
 	return mesh;
 }

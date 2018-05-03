@@ -152,8 +152,7 @@ static void deformVertsEM(
 	}
 
 	if (!mesh) {
-		BKE_mesh_free(mesh_src);
-		MEM_freeN(mesh_src);
+		BKE_id_free(NULL, mesh_src);
 	}
 }
 
@@ -173,8 +172,7 @@ static void deformMatricesEM(
 	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if (!mesh) {
-		BKE_mesh_free(mesh_src);
-		MEM_freeN(mesh_src);
+		BKE_id_free(NULL, mesh_src);
 	}
 }
 
