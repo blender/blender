@@ -960,7 +960,7 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 		return false;
 	}
 
-	bvhtree_from_mesh_get(&treeData, tdm, BVHTREE_FROM_LOOPTRI);
+	bvhtree_from_mesh_get(&treeData, tdm, BVHTREE_FROM_LOOPTRI, 2);
 	if (treeData.tree == NULL) {
 		modifier_setError((ModifierData *)smd, "Out of memory");
 		freeAdjacencyMap(vert_edges, adj_array, edge_polys);

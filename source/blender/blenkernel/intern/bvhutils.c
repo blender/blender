@@ -1229,19 +1229,30 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
  * Builds or queries a bvhcache for the cache bvhtree of the request type.
  */
 BVHTree *bvhtree_from_mesh_get(
-        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, int type)
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh,
+        const int type, const int tree_type)
 {
+	BVHTree *tree = NULL;
 	switch (type) {
 		case BVHTREE_FROM_VERTS:
-			return bvhtree_from_mesh_verts(data, mesh, 0.0f, 2, 6);
+			tree = bvhtree_from_mesh_verts(data, mesh, 0.0f, tree_type, 6);
+			break;
 		case BVHTREE_FROM_EDGES:
-			return bvhtree_from_mesh_edges(data, mesh, 0.0f, 2, 6);
+			tree = bvhtree_from_mesh_edges(data, mesh, 0.0f, tree_type, 6);
+			break;
 		case BVHTREE_FROM_FACES:
-			return bvhtree_from_mesh_faces(data, mesh, 0.0f, 2, 6);
+			tree = bvhtree_from_mesh_faces(data, mesh, 0.0f, tree_type, 6);
+			break;
 		case BVHTREE_FROM_LOOPTRI:
-			return bvhtree_from_mesh_looptri(data, mesh, 0.0f, 2, 6);
+			tree = bvhtree_from_mesh_looptri(data, mesh, 0.0f, tree_type, 6);
+			break;
 	}
-	return NULL;
+#ifdef DEBUG
+	if (BLI_bvhtree_get_tree_type(tree) != tree_type) {
+		printf("tree_type %d obtained instead of %d\n", BLI_bvhtree_get_tree_type(tree), tree_type);
+	}
+#endif
+	return tree;
 }
 
 /** \} */

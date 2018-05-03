@@ -161,7 +161,9 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
         const BLI_bitmap *mask, int looptri_num_active,
         float epsilon, int tree_type, int axis);
 
-BVHTree *bvhtree_from_mesh_get(struct BVHTreeFromMesh *data, struct DerivedMesh *mesh, int type);
+BVHTree *bvhtree_from_mesh_get(
+        struct BVHTreeFromMesh *data, struct DerivedMesh *mesh,
+        const int type, const int tree_type);
 
 /**
  * Frees data allocated by a call to bvhtree_from_mesh_*.

@@ -692,11 +692,11 @@ static bool remap_hair_emitter(Scene *scene, Object *ob, ParticleSystem *psys,
 
 	if (dm->getNumTessFaces(dm) != 0) {
 		mface = dm->getTessFaceArray(dm);
-		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_FACES);
+		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_FACES, 2);
 	}
 	else if (dm->getNumEdges(dm) != 0) {
 		medge = dm->getEdgeArray(dm);
-		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_EDGES);
+		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_EDGES, 2);
 	}
 	else {
 		dm->release(dm);

@@ -131,7 +131,7 @@ float BKE_mesh_remap_calc_difference_from_dm(
 	float result = 0.0f;
 	int i;
 
-	bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS);
+	bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS, 2);
 	nearest.index = -1;
 
 	for (i = 0; i < numverts_dst; i++) {
@@ -460,7 +460,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 		float tmp_co[3], tmp_no[3];
 
 		if (mode == MREMAP_MODE_VERT_NEAREST) {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numverts_dst; i++) {
@@ -485,7 +485,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)dm_src->getNumVerts(dm_src), __func__);
 			dm_src->getVertCos(dm_src, vcos_src);
 
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numverts_dst; i++) {
@@ -548,7 +548,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 				        &treedata, dm_src, ray_radius, 2, 6);
 			}
 			else {
-				bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI);
+				bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 			}
 
 			if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
@@ -682,7 +682,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 
 			dm_src->getVertCos(dm_src, vcos_src);
 
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numedges_dst; i++) {
@@ -782,7 +782,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			MEM_freeN(vert_to_edge_src_map_mem);
 		}
 		else if (mode == MREMAP_MODE_EDGE_NEAREST) {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numedges_dst; i++) {
@@ -809,7 +809,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)dm_src->getNumVerts(dm_src), __func__);
 
 			dm_src->getVertCos(dm_src, vcos_src);
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 			for (i = 0; i < numedges_dst; i++) {
 				interp_v3_v3v3(tmp_co, verts_dst[edges_dst[i].v1].co, verts_dst[edges_dst[i].v2].co, 0.5f);
@@ -1366,7 +1366,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 			}
 			else {
 				BLI_assert(num_trees == 1);
-				bvhtree_from_mesh_get(&treedata[0], dm_src, BVHTREE_FROM_VERTS);
+				bvhtree_from_mesh_get(&treedata[0], dm_src, BVHTREE_FROM_VERTS, 2);
 			}
 		}
 		else {  /* We use polygons. */
@@ -2018,7 +2018,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 			        &treedata, dm_src, MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius), 2, 6);
 		}
 		else {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 		}
 
 		if (mode == MREMAP_MODE_POLY_NEAREST) {
