@@ -733,8 +733,8 @@ void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
 		return;
 	}
 	fprintf(stdout,
-	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        "%s%s on %s %s(%p)%s at time %f\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        function_name,
 	        object_name,
 	        DEG::deg_color_for_pointer(object_address).c_str(),
