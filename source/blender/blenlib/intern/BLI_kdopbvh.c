@@ -1151,6 +1151,14 @@ int BLI_bvhtree_get_len(const BVHTree *tree)
 	return tree->totleaf;
 }
 
+/**
+ * Maximum number of children that a node can have.
+ */
+int BLI_bvhtree_get_tree_type(const BVHTree *tree)
+{
+	return tree->tree_type;
+}
+
 float BLI_bvhtree_get_epsilon(const BVHTree *tree)
 {
 	return tree->epsilon;
