@@ -245,14 +245,13 @@ static PyObject *bpy_bmeditselseq_subscript_slice(BPy_BMEditSelSeq *self, Py_ssi
 	}
 
 	/* add items until stop */
-	while ((ese = ese->next)) {
+	do {
 		PyList_APPEND(list, BPy_BMElem_CreatePyObject(self->bm, &ese->ele->head));
-
 		count++;
 		if (count == stop) {
 			break;
 		}
-	}
+	} while ((ese = ese->next));
 
 	return list;
 }
