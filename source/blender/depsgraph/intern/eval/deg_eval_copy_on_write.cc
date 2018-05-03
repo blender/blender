@@ -81,6 +81,7 @@ extern "C" {
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_library_query.h"
 #include "BKE_object.h"
@@ -419,6 +420,10 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			BLI_assert(object_cow->derivedFinal == NULL);
 			BLI_assert(object_cow->derivedDeform == NULL);
 			object_cow->mode = object_orig->mode;
+			if (object_cow->type == OB_ARMATURE) {
+				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
+				                             object_cow->pose);
+			}
 			break;
 		}
 		case ID_ME:

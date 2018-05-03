@@ -1943,6 +1943,15 @@ void BKE_pose_clear_pointers(bPose *pose)
 	}
 }
 
+void BKE_pose_remap_bone_pointers(bArmature *armature, bPose *pose)
+{
+	GHash *bone_hash = BKE_armature_bone_from_name_map(armature);
+	for (bPoseChannel *pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		pchan->bone = BLI_ghash_lookup(bone_hash, pchan->name);
+	}
+	BLI_ghash_free(bone_hash, NULL, NULL);
+}
+
 /* only after leave editmode, duplicating, validating older files, library syncing */
 /* NOTE: pose->flag is set for it */
 void BKE_pose_rebuild(Object *ob, bArmature *arm)
