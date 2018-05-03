@@ -638,7 +638,7 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 
 	if (r_color != NULL) {
 		switch (theme_id) {
-			case TH_WIRE_EDIT:    *r_color = ts.colorTransform; break;
+			case TH_WIRE_EDIT:    *r_color = ts.colorWireEdit; break;
 			case TH_ACTIVE:       *r_color = ts.colorActive; break;
 			case TH_SELECT:       *r_color = ts.colorSelect; break;
 			case TH_GROUP:        *r_color = ts.colorGroup; break;
