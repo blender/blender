@@ -276,6 +276,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
 /* Tag graph relations for update. */
 void DEG_graph_tag_relations_update(Depsgraph *graph)
 {
+	DEG_DEBUG_PRINTF(graph, TAG, "%s: Tagging relations for update.\n", __func__);
 	DEG::Depsgraph *deg_graph = reinterpret_cast<DEG::Depsgraph *>(graph);
 	deg_graph->need_update = true;
 	/* NOTE: When relations are updated, it's quite possible that
@@ -310,7 +311,7 @@ void DEG_graph_relations_update(Depsgraph *graph,
 /* Tag all relations for update. */
 void DEG_relations_tag_update(Main *bmain)
 {
-	DEG_DEBUG_PRINTF(TAG, "%s: Tagging relations for update.\n", __func__);
+	DEG_GLOBAL_DEBUG_PRINTF(TAG, "%s: Tagging relations for update.\n", __func__);
 	LISTBASE_FOREACH (Scene *, scene, &bmain->scene) {
 		LISTBASE_FOREACH (ViewLayer *, view_layer, &scene->view_layers) {
 			Depsgraph *depsgraph =

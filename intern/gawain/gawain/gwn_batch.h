@@ -115,6 +115,7 @@ void GWN_batch_uniform_3fv(Gwn_Batch*, const char* name, const float data[3]);
 void GWN_batch_uniform_4fv(Gwn_Batch*, const char* name, const float data[4]);
 void GWN_batch_uniform_2fv_array(Gwn_Batch*, const char* name, int len, const float *data);
 void GWN_batch_uniform_4fv_array(Gwn_Batch*, const char* name, int len, const float *data);
+void GWN_batch_uniform_mat4(Gwn_Batch*, const char* name, const float data[4][4]);
 
 void GWN_batch_draw(Gwn_Batch*);
 

@@ -1429,8 +1429,14 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
 #endif
 
 	/* the duplicate should get a copy of the animdata */
-	BLI_assert((flag & LIB_ID_COPY_ACTIONS) == 0 || (flag & LIB_ID_CREATE_NO_MAIN) == 0);
-	id_copy_animdata(bmain, new_id, (flag & LIB_ID_COPY_ACTIONS) != 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0);
+	if ((flag & LIB_ID_COPY_NO_ANIMDATA) == 0) {
+		BLI_assert((flag & LIB_ID_COPY_ACTIONS) == 0 || (flag & LIB_ID_CREATE_NO_MAIN) == 0);
+		id_copy_animdata(bmain, new_id, (flag & LIB_ID_COPY_ACTIONS) != 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0);
+	}
+	else if (id_can_have_animdata(new_id)) {
+		IdAdtTemplate *iat = (IdAdtTemplate *)new_id;
+		iat->adt = NULL;
+	}
 
 	if ((flag & LIB_ID_CREATE_NO_DEG_TAG) == 0 && (flag & LIB_ID_CREATE_NO_MAIN) == 0) {
 		DEG_id_type_tag(bmain, GS(new_id->name));

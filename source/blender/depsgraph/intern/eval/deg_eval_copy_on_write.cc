@@ -45,6 +45,7 @@
 #include <cstring>
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_threads.h"
 #include "BLI_string.h"
 
@@ -61,6 +62,7 @@
 
 extern "C" {
 #include "DNA_ID.h"
+#include "DNA_anim_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -329,7 +331,6 @@ static bool check_datablocks_copy_on_writable(const ID *id_orig)
 	}
 	return !ELEM(id_type, ID_BR,
 	                      ID_LS,
-	                      ID_AC,
 	                      ID_PAL);
 }
 
@@ -577,10 +578,13 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	                                          create_placeholders);
 }
 
-static void deg_update_copy_on_write_animation(const Depsgraph * /*depsgraph*/,
+static void deg_update_copy_on_write_animation(const Depsgraph *depsgraph,
                                                const IDDepsNode *id_node)
 {
-	DEG_debug_print_eval(__func__, id_node->id_orig->name, id_node->id_cow);
+	DEG_debug_print_eval((::Depsgraph *)depsgraph,
+	                     __func__,
+	                     id_node->id_orig->name,
+	                     id_node->id_cow);
 	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false, false);
 }
 
@@ -773,7 +777,7 @@ void deg_evaluate_copy_on_write(struct ::Depsgraph *graph,
                                 const IDDepsNode *id_node)
 {
 	const DEG::Depsgraph *depsgraph = reinterpret_cast<const DEG::Depsgraph *>(graph);
-	DEBUG_PRINT("%s on %s\n", __func__, id_node->id_orig->name);
+	DEG_debug_print_eval(graph, __func__, id_node->id_orig->name, id_node->id_cow);
 	if (id_node->id_orig == &depsgraph->scene->id) {
 		/* NOTE: This is handled by eval_ctx setup routines, which
 		 * ensures scene and view layer pointers are valid.

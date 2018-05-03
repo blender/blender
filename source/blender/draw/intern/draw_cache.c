@@ -85,9 +85,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_bone_box_wire;
 	Gwn_Batch *drw_bone_wire_wire;
 	Gwn_Batch *drw_bone_envelope;
-	Gwn_Batch *drw_bone_envelope_distance;
-	Gwn_Batch *drw_bone_envelope_wire;
-	Gwn_Batch *drw_bone_envelope_head_wire;
+	Gwn_Batch *drw_bone_envelope_outline;
 	Gwn_Batch *drw_bone_point;
 	Gwn_Batch *drw_bone_point_wire;
 	Gwn_Batch *drw_bone_arrows;
@@ -130,6 +128,7 @@ const float n1[3], const float n2[3])
 	GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, co2);
 }
 
+#if 0 /* UNUSED */
 static void add_lat_lon_vert(
         Gwn_VertBuf *vbo, unsigned int pos_id, unsigned int nor_id,
         unsigned int *v_idx, const float rad, const float lat, const float lon)
@@ -143,6 +142,7 @@ static void add_lat_lon_vert(
 	GWN_vertbuf_attr_set(vbo, nor_id, *v_idx, nor);
 	GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++, pos);
 }
+#endif
 
 static Gwn_VertBuf *fill_arrows_vbo(const float scale)
 {
@@ -347,7 +347,7 @@ Gwn_Batch *DRW_cache_cube_get(void)
 
 Gwn_Batch *DRW_cache_circle_get(void)
 {
-#define CIRCLE_RESOL 32
+#define CIRCLE_RESOL 64
 	if (!SHC.drw_circle) {
 		float v[3] = {0.0f, 0.0f, 0.0f};
 
@@ -359,21 +359,16 @@ Gwn_Batch *DRW_cache_circle_get(void)
 		}
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL * 2);
+		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
 
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v[0] = sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[2] = cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v[1] = 0.0f;
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2, v);
-
-			v[0] = sinf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			v[2] = cosf((2.0f * M_PI * (a + 1)) / ((float)CIRCLE_RESOL));
-			v[1] = 0.0f;
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, a * 2 + 1, v);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a, v);
 		}
 
-		SHC.drw_circle = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_circle = GWN_batch_create_ex(GWN_PRIM_LINE_LOOP, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_circle;
 #undef CIRCLE_RESOL
@@ -523,11 +518,19 @@ Gwn_Batch *DRW_cache_object_surface_get(Object *ob)
 }
 
 Gwn_Batch **DRW_cache_object_surface_material_get(
-        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+        struct Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
+	if (auto_layer_names != NULL) {
+		*auto_layer_names = NULL;
+		*auto_layer_is_srgb = NULL;
+		*auto_layer_count = 0;
+	}
+
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
+			return DRW_cache_mesh_surface_shaded_get(ob, gpumat_array, gpumat_array_len,
+			                                         auto_layer_names, auto_layer_is_srgb, auto_layer_count);
 		case OB_CURVE:
 			return DRW_cache_curve_surface_shaded_get(ob, gpumat_array, gpumat_array_len);
 		case OB_SURF:
@@ -1527,6 +1530,22 @@ static const float bone_octahedral_verts[6][3] = {
 	{ 0.0f, 1.0f,  0.0f}
 };
 
+static const float bone_octahedral_smooth_normals[6][3] = {
+	{ 0.0f, -1.0f,  0.0f},
+#if 0 /* creates problems for outlines when scaled */
+	{ 0.943608f * M_SQRT1_2, -0.331048f,  0.943608f * M_SQRT1_2},
+	{ 0.943608f * M_SQRT1_2, -0.331048f, -0.943608f * M_SQRT1_2},
+	{-0.943608f * M_SQRT1_2, -0.331048f, -0.943608f * M_SQRT1_2},
+	{-0.943608f * M_SQRT1_2, -0.331048f,  0.943608f * M_SQRT1_2},
+#else
+	{ M_SQRT1_2, 0.0f,  M_SQRT1_2},
+	{ M_SQRT1_2, 0.0f, -M_SQRT1_2},
+	{-M_SQRT1_2, 0.0f, -M_SQRT1_2},
+	{-M_SQRT1_2, 0.0f,  M_SQRT1_2},
+#endif
+	{ 0.0f,  1.0f,  0.0f}
+};
+
 static const unsigned int bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
@@ -1553,6 +1572,29 @@ static const unsigned int bone_octahedral_solid_tris[8][3] = {
 	{5, 4, 1}
 };
 
+/**
+ * Store indices of generated verts from bone_octahedral_solid_tris to define adjacency infos.
+ * Example: triangle {2, 1, 0} is adjacent to {3, 2, 0}, {1, 4, 0} and {5, 1, 2}.
+ * {2, 1, 0} becomes {0, 1, 2}
+ * {3, 2, 0} becomes {3, 4, 5}
+ * {1, 4, 0} becomes {9, 10, 11}
+ * {5, 1, 2} becomes {12, 13, 14}
+ * According to opengl specification it becomes (starting from
+ * the first vertex of the first face aka. vertex 2):
+ * {0, 12, 1, 10, 2, 3}
+ **/
+static const unsigned int bone_octahedral_solid_tris_adjacency[8][6] = {
+	{ 0, 12,  1, 10,  2,  3},
+	{ 3, 15,  4,  1,  5,  6},
+	{ 6, 18,  7,  4,  8,  9},
+	{ 9, 21, 10,  7, 11,  0},
+
+	{12, 22, 13,  2, 14, 17},
+	{15, 13, 16,  5, 17, 20},
+	{18, 16, 19,  8, 20, 23},
+	{21, 19, 22, 11, 23, 14},
+};
+
 /* aligned with bone_octahedral_solid_tris */
 static const float bone_octahedral_solid_normals[8][3] = {
 	{ M_SQRT1_2,   -M_SQRT1_2,    0.00000000f},
@@ -1571,26 +1613,37 @@ Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
-		static struct { uint pos, nor; } attr_id;
+		static struct { uint pos, nor, snor; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.snor = GWN_vertformat_attr_add(&format, "snor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 24);
 
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 8, 24, false);
+
 		for (int i = 0; i < 8; i++) {
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][0]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][0]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][1]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][1]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
+			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][2]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
+			for (int j = 0; j < 6; ++j) {
+				GWN_indexbuf_add_generic_vert(&elb, bone_octahedral_solid_tris_adjacency[i][j]);
+			}
 		}
 
-		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
+		                                              GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}
 	return SHC.drw_bone_octahedral;
 }
@@ -1638,6 +1691,17 @@ static const float bone_box_verts[8][3] = {
 	{-1.0f, 1.0f,  1.0f}
 };
 
+static const float bone_box_smooth_normals[8][3] = {
+	{ M_SQRT3, -M_SQRT3,  M_SQRT3},
+	{ M_SQRT3, -M_SQRT3, -M_SQRT3},
+	{-M_SQRT3, -M_SQRT3, -M_SQRT3},
+	{-M_SQRT3, -M_SQRT3,  M_SQRT3},
+	{ M_SQRT3,  M_SQRT3,  M_SQRT3},
+	{ M_SQRT3,  M_SQRT3, -M_SQRT3},
+	{-M_SQRT3,  M_SQRT3, -M_SQRT3},
+	{-M_SQRT3,  M_SQRT3,  M_SQRT3},
+};
+
 static const unsigned int bone_box_wire[24] = {
 	0, 1,  1, 2,  2, 3,  3, 0,
 	4, 5,  5, 6,  6, 7,  7, 4,
@@ -1672,7 +1736,31 @@ static const unsigned int bone_box_solid_tris[12][3] = {
 	{4, 6, 7},
 };
 
-/* aligned with bone_octahedral_solid_tris */
+/**
+ * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
+ * See bone_octahedral_solid_tris for more infos.
+ **/
+static const unsigned int bone_box_solid_tris_adjacency[12][6] = {
+	{ 0,  8,  1, 14,  2,  5},
+	{ 3,  1,  4, 20,  5, 26},
+
+	{ 6,  2,  7, 16,  8, 11},
+	{ 9,  7, 10, 32, 11, 24},
+
+	{12,  0, 13, 22, 14, 17},
+	{15, 13, 16, 30, 17,  6},
+
+	{18,  3, 19, 28, 20, 23},
+	{21, 19, 22, 33, 23, 12},
+
+	{24,  4, 25, 10, 26, 29},
+	{27, 25, 28, 34, 29, 18},
+
+	{30,  9, 31, 15, 32, 35},
+	{33, 31, 34, 21, 35, 27},
+};
+
+/* aligned with bone_box_solid_tris */
 static const float bone_box_solid_normals[12][3] = {
 	{ 0.0f, -1.0f,  0.0f},
 	{ 0.0f, -1.0f,  0.0f},
@@ -1699,24 +1787,33 @@ Gwn_Batch *DRW_cache_bone_box_get(void)
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
-		static struct { uint pos, nor; } attr_id;
+		static struct { uint pos, nor, snor; } attr_id;
 		if (format.attrib_ct == 0) {
 			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 			attr_id.nor = GWN_vertformat_attr_add(&format, "nor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+			attr_id.snor = GWN_vertformat_attr_add(&format, "snor", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 36);
 
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 12, 36, false);
+
 		for (int i = 0; i < 12; i++) {
 			for (int j = 0; j < 3; j++) {
 				GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_box_solid_normals[i]);
+				GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_box_smooth_normals[bone_box_solid_tris[i][j]]);
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_box_verts[bone_box_solid_tris[i][j]]);
+			}
+			for (int j = 0; j < 6; ++j) {
+				GWN_indexbuf_add_generic_vert(&elb, bone_box_solid_tris_adjacency[i][j]);
 			}
 		}
 
-		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
+		                                       GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}
 	return SHC.drw_bone_box;
 }
@@ -1779,207 +1876,120 @@ Gwn_Batch *DRW_cache_bone_wire_wire_outline_get(void)
 	return SHC.drw_bone_wire_wire;
 }
 
-
 /* Helpers for envelope bone's solid sphere-with-hidden-equatorial-cylinder.
  * Note that here we only encode head/tail in forth component of the vector. */
 static void benv_lat_lon_to_co(const float lat, const float lon, float r_nor[3])
 {
-	/* Poles are along Y axis. */
 	r_nor[0] = sinf(lat) * cosf(lon);
-	r_nor[1] = cosf(lat);
-	r_nor[2] = sinf(lat) * sinf(lon);
-}
-
-static void benv_add_tri(Gwn_VertBuf *vbo, uint pos_id, uint *v_idx, float *co1, float *co2, float *co3)
-{
-	/* Given tri and its seven other mirrors along X/Y/Z axes. */
-	for (int x = -1; x <= 1; x += 2) {
-		for (int y = -1; y <= 1; y += 2) {
-			const float head_tail = (y == -1) ? 0.0f : 1.0f;
-			for (int z = -1; z <= 1; z += 2) {
-				GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++,
-				                     (const float[4]){co1[0] * x, co1[1] * y, co1[2] * z, head_tail});
-				GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++,
-				                     (const float[4]){co2[0] * x, co2[1] * y, co2[2] * z, head_tail});
-				GWN_vertbuf_attr_set(vbo, pos_id, (*v_idx)++,
-				                     (const float[4]){co3[0] * x, co3[1] * y, co3[2] * z, head_tail});
-			}
-		}
-	}
+	r_nor[1] = sinf(lat) * sinf(lon);
+	r_nor[2] = cosf(lat);
 }
 
 Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 {
-#define CIRCLE_RESOL 32  /* Must be multiple of 4 */
 	if (!SHC.drw_bone_envelope) {
-		const int lon_res = CIRCLE_RESOL / 4;
-		const int lat_res = CIRCLE_RESOL / 4;
-		const float lon_inc = M_PI_2 / lon_res;
-		const float lat_inc = M_PI_2 / lat_res;
+		const int lon_res = 24;
+		const int lat_res = 24;
+		const float lon_inc = 2.0f * M_PI / lon_res;
+		const float lat_inc = M_PI / lat_res;
 		unsigned int v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
 		if (format.attrib_ct == 0) {
-			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
 		}
 
 		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, lat_res * lon_res * 8 * 6);
+		GWN_vertbuf_data_alloc(vbo, ((lat_res + 1) * 2) * lon_res * 1);
 
 		float lon = 0.0f;
 		for (int i = 0; i < lon_res; i++, lon += lon_inc) {
 			float lat = 0.0f;
-			float co1[3], co2[3], co3[3], co4[3];
+			float co1[3], co2[3];
 
+			/* Note: the poles are duplicated on purpose, to restart the strip. */
+
+			/* 1st sphere */
 			for (int j = 0; j < lat_res; j++, lat += lat_inc) {
-				benv_lat_lon_to_co(lat,           lon,           co1);
-				benv_lat_lon_to_co(lat,           lon + lon_inc, co2);
-				benv_lat_lon_to_co(lat + lat_inc, lon + lon_inc, co3);
-				benv_lat_lon_to_co(lat + lat_inc, lon,           co4);
+				benv_lat_lon_to_co(lat, lon,           co1);
+				benv_lat_lon_to_co(lat, lon + lon_inc, co2);
 
-				if (j != 0) {  /* At pole, n1 and n2 are identical. */
-					benv_add_tri(vbo, attr_id.pos, &v_idx, co1, co2, co3);
-				}
-				benv_add_tri(vbo, attr_id.pos, &v_idx, co1, co3, co4);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 			}
 
-			/* lat is at equator (i.e. lat == pi / 2). */
-			/* We need to add 'cylinder' part between the equators (along XZ plane). */
-			for (int x = -1; x <= 1; x += 2) {
-				for (int z = -1; z <= 1; z += 2) {
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co3[0] * x, co3[1], co3[2] * z, 0.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co4[0] * x, co4[1], co4[2] * z, 0.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co4[0] * x, co4[1], co4[2] * z, 1.0f});
+			/* Closing the loop */
+			benv_lat_lon_to_co(M_PI, lon,           co1);
+			benv_lat_lon_to_co(M_PI, lon + lon_inc, co2);
 
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co3[0] * x, co3[1], co3[2] * z, 0.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co4[0] * x, co4[1], co4[2] * z, 1.0f});
-					GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++,
-					                     (const float[4]){co3[0] * x, co3[1], co3[2] * z, 1.0f});
-				}
-			}
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, co2);
 		}
 
-		SHC.drw_bone_envelope = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_envelope = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_envelope;
 }
 
-
-Gwn_Batch *DRW_cache_bone_envelope_distance_outline_get(void)
+Gwn_Batch *DRW_cache_bone_envelope_outline_get(void)
 {
-#define CIRCLE_RESOL 32  /* Must be multiple of 2 */
-	if (!SHC.drw_bone_envelope_distance) {
-		unsigned int v_idx = 0;
+	if (!SHC.drw_bone_envelope_outline) {
+#  define CIRCLE_RESOL 64
+		float v0[2], v1[2], v2[2];
+		const float radius = 1.0f;
 
+		/* Position Only 2D format */
 		static Gwn_VertFormat format = { 0 };
-		static unsigned int pos_id;
+		static struct { uint pos0, pos1, pos2; } attr_id;
 		if (format.attrib_ct == 0) {
-			pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+			attr_id.pos0 = GWN_vertformat_attr_add(&format, "pos0", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.pos1 = GWN_vertformat_attr_add(&format, "pos1", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.pos2 = GWN_vertformat_attr_add(&format, "pos2", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		}
 
-		/* Vertices */
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL * 2 + 6);
+		GWN_vertbuf_data_alloc(vbo, (CIRCLE_RESOL + 1) * 2);
 
-		/* Encoded triangle strip, vertex shader gives them final correct value. */
-		for (int i = 0; i < CIRCLE_RESOL + 1; i++) {
-			const bool is_headtail_transition = ELEM(i, CIRCLE_RESOL / 2, CIRCLE_RESOL);
-			const float head_tail = (i > CIRCLE_RESOL / 2) ? 1.0f : 0.0f;
-			const float alpha = 2.0f * M_PI * i / CIRCLE_RESOL;
-			const float x = cosf(alpha);
-			const float y = -sinf(alpha);
+		v0[0] = radius * sinf((2.0f * M_PI * -2) / ((float)CIRCLE_RESOL));
+		v0[1] = radius * cosf((2.0f * M_PI * -2) / ((float)CIRCLE_RESOL));
+		v1[0] = radius * sinf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+		v1[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
 
-			/*                                                        { X, Y, head/tail, inner/outer border } */
-			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 0.0f});
-			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, head_tail, 1.0f});
-			if (is_headtail_transition) {
-				GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, 1.0f - head_tail, 0.0f});
-				GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){x, y, 1.0f - head_tail, 1.0f});
-			}
+		/* Output 4 verts for each position. See shader for explanation. */
+		unsigned int v = 0;
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v2[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v2[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
+			copy_v2_v2(v0, v1);
+			copy_v2_v2(v1, v2);
 		}
+		v2[0] = 0.0f;
+		v2[1] = radius;
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
 
-		SHC.drw_bone_envelope_distance = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_bone_envelope_outline = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#  undef CIRCLE_RESOL
 	}
-	return SHC.drw_bone_envelope_distance;
-#undef CIRCLE_RESOL
+	return SHC.drw_bone_envelope_outline;
 }
-
-
-/* Bone body. */
-Gwn_Batch *DRW_cache_bone_envelope_wire_outline_get(void)
-{
-	if (!SHC.drw_bone_envelope_wire) {
-		unsigned int v_idx = 0;
-
-		static Gwn_VertFormat format = { 0 };
-		static unsigned int pos_id;
-		if (format.attrib_ct == 0) {
-			pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
-		}
-
-		/* Vertices */
-		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 4);
-
-		/* Two lines between head and tail circles. */
-		/* Encoded lines, vertex shader gives them final correct value. */
-		/*                                                         { X,    Y, head/tail, inner/outer border } */
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       0.0f, 0.0f});
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){ 1.0f, 0.0f,       1.0f, 0.0f});
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       0.0f, 0.0f});
-		GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){-1.0f, 0.0f,       1.0f, 0.0f});
-
-		SHC.drw_bone_envelope_wire = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	}
-	return SHC.drw_bone_envelope_wire;
-}
-
-
-/* Bone head and tail. */
-Gwn_Batch *DRW_cache_bone_envelope_head_wire_outline_get(void)
-{
-#define CIRCLE_RESOL 32  /* Must be multiple of 2 */
-	if (!SHC.drw_bone_envelope_head_wire) {
-		unsigned int v_idx = 0;
-
-		static Gwn_VertFormat format = { 0 };
-		static unsigned int pos_id;
-		if (format.attrib_ct == 0) {
-			pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
-		}
-
-		/* Vertices */
-		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
-
-		/* Encoded lines, vertex shader gives them final correct value. */
-		/* Only head circle (tail is drawn in disp_tail_mat space as a head one by draw_armature.c's draw_point()). */
-		for (int i = 0; i < CIRCLE_RESOL; i++) {
-			const float alpha = 2.0f * M_PI * i / CIRCLE_RESOL;
-			const float x = cosf(alpha);
-			const float y = -sinf(alpha);
-
-			/*                                                         {     X,      Y, head/tail, inner/outer border } */
-			GWN_vertbuf_attr_set(vbo, pos_id, v_idx++, (const float[4]){     x,      y,      0.0f, 0.0f});
-		}
-
-		SHC.drw_bone_envelope_head_wire = GWN_batch_create_ex(GWN_PRIM_LINE_LOOP, vbo, NULL, GWN_BATCH_OWNS_VBO);
-	}
-	return SHC.drw_bone_envelope_head_wire;
-#undef CIRCLE_RESOL
-}
-
 
 Gwn_Batch *DRW_cache_bone_point_get(void)
 {
 	if (!SHC.drw_bone_point) {
+#if 0 /* old style geometry sphere */
 		const int lon_res = 16;
 		const int lat_res = 8;
 		const float rad = 0.05f;
@@ -2017,6 +2027,30 @@ Gwn_Batch *DRW_cache_bone_point_get(void)
 		}
 
 		SHC.drw_bone_point = GWN_batch_create_ex(GWN_PRIM_TRIS, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#else
+#  define CIRCLE_RESOL 64
+		float v[2];
+		const float radius = 0.05f;
+
+		/* Position Only 2D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, CIRCLE_RESOL);
+
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, a, v);
+		}
+
+		SHC.drw_bone_point = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#  undef CIRCLE_RESOL
+#endif
 	}
 	return SHC.drw_bone_point;
 }
@@ -2024,8 +2058,48 @@ Gwn_Batch *DRW_cache_bone_point_get(void)
 Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 {
 	if (!SHC.drw_bone_point_wire) {
+#if 0 /* old style geometry sphere */
 		Gwn_VertBuf *vbo = sphere_wire_vbo(0.05f);
 		SHC.drw_bone_point_wire = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#else
+#  define CIRCLE_RESOL 64
+		float v0[2], v1[2];
+		const float radius = 0.05f;
+
+		/* Position Only 2D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos0, pos1; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos0 = GWN_vertformat_attr_add(&format, "pos0", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.pos1 = GWN_vertformat_attr_add(&format, "pos1", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, (CIRCLE_RESOL + 1) * 2);
+
+		v0[0] = radius * sinf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+		v0[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
+
+		unsigned int v = 0;
+		for (int a = 0; a < CIRCLE_RESOL; a++) {
+			v1[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			v1[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+			copy_v2_v2(v0, v1);
+		}
+		v1[0] = 0.0f;
+		v1[1] = radius;
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
+
+		SHC.drw_bone_point_wire = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
+#  undef CIRCLE_RESOL
+#endif
 	}
 	return SHC.drw_bone_point_wire;
 }
@@ -2298,12 +2372,14 @@ Gwn_Batch *DRW_cache_mesh_surface_vert_colors_get(Object *ob)
 
 /* Return list of batches */
 Gwn_Batch **DRW_cache_mesh_surface_shaded_get(
-        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len)
+        Object *ob, struct GPUMaterial **gpumat_array, uint gpumat_array_len,
+        char **auto_layer_names, int **auto_layer_is_srgb, int *auto_layer_count)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len);
+	return DRW_mesh_batch_cache_get_surface_shaded(me, gpumat_array, gpumat_array_len,
+	                                               auto_layer_names, auto_layer_is_srgb, auto_layer_count);
 }
 
 /* Return list of batches */

@@ -739,6 +739,7 @@ extern struct CLG_LogRef *WM_LOG_OPERATORS;
 extern struct CLG_LogRef *WM_LOG_HANDLERS;
 extern struct CLG_LogRef *WM_LOG_EVENTS;
 extern struct CLG_LogRef *WM_LOG_KEYMAPS;
+extern struct CLG_LogRef *WM_LOG_TOOLS;
 
 
 #ifdef __cplusplus

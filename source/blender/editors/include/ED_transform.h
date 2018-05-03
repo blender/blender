@@ -194,4 +194,17 @@ bool snapNodesTransform(
         /* return args */
         float r_loc[2], float *r_dist_px, char *r_node_border);
 
+struct TransformBounds {
+	float center[3];		/* Center for transform widget. */
+	float min[3], max[3];	/* Boundbox of selection for transform widget. */
+
+	/* Normalized axis */
+	float axis[3][3];
+	float axis_min[3], axis_max[3];
+};
+
+int ED_transform_calc_manipulator_stats(
+        const struct bContext *C, bool use_only_center,
+        struct TransformBounds *tbounds);
+
 #endif  /* __ED_TRANSFORM_H__ */

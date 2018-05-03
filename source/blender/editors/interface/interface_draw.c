@@ -116,6 +116,7 @@ void UI_draw_roundbox_aa(bool filled, float minx, float miny, float maxx, float 
 		.color_inner1[1] = color[1], .color_inner2[1] = color[1],
 		.color_inner1[2] = color[2], .color_inner2[2] = color[2],
 		.color_inner1[3] = color[3], .color_inner2[3] = color[3],
+		.alpha_discard = 1.0f,
 	};
 
 	glEnable(GL_BLEND);
@@ -236,6 +237,7 @@ void UI_draw_roundbox_4fv(bool filled, float minx, float miny, float maxx, float
 		.color_inner1[1] = col[1], .color_inner2[1] = col[1],
 		.color_inner1[2] = col[2], .color_inner2[2] = col[2],
 		.color_inner1[3] = col[3], .color_inner2[3] = col[3],
+		.alpha_discard = 1.0f,
 	};
 
 	Gwn_Batch *batch = ui_batch_roundbox_get(filled, false);
@@ -393,6 +395,7 @@ void UI_draw_roundbox_shade_x(
 		.color_inner2[2] = max_ff(0.0f, col[2] + shadedown),
 		.color_inner1[3] = 1.0f,
 		.color_inner2[3] = 1.0f,
+		.alpha_discard = 1.0f,
 	};
 
 	Gwn_Batch *batch = ui_batch_roundbox_get(filled, false);
@@ -2160,6 +2163,7 @@ void ui_draw_dropshadow(const rctf *rct, float radius, float aspect, float alpha
 		.round_corners[1] = (roundboxtype & UI_CNR_BOTTOM_RIGHT) ? 1.0f : 0.0f,
 		.round_corners[2] = (roundboxtype & UI_CNR_TOP_RIGHT) ? 1.0f : 0.0f,
 		.round_corners[3] = (roundboxtype & UI_CNR_TOP_LEFT) ? 1.0f : 0.0f,
+		.alpha_discard = 1.0f,
 	};
 
 	Gwn_Batch *batch = ui_batch_roundbox_shadow_get();

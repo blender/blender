@@ -1068,7 +1068,19 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							}
 						}
 					}
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->overlays |= V3D_OVERLAY_3DCURSOR;
+					}
 				}
+			}
+		}
+	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "spec_fac")) {
+			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
+				la->spec_fac = 1.0f;
 			}
 		}
 	}

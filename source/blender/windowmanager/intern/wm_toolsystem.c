@@ -26,6 +26,8 @@
 
 #include <string.h>
 
+#include "CLG_log.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
 
@@ -78,7 +80,14 @@ void WM_toolsystem_unlink(bContext *C, WorkSpace *workspace)
 void WM_toolsystem_link(bContext *C, WorkSpace *workspace)
 {
 	if (workspace->tool.manipulator_group[0]) {
-		WM_manipulator_group_type_ensure(workspace->tool.manipulator_group);
+		const char *idname = workspace->tool.manipulator_group;
+		wmManipulatorGroupType *wgt = WM_manipulatorgrouptype_find(idname, false);
+		if (wgt != NULL) {
+			WM_manipulator_group_type_ensure_ptr(wgt);
+		}
+		else {
+			CLOG_WARN(WM_LOG_TOOLS, "'%s' widget not found", idname);
+		}
 	}
 
 	if (workspace->tool.data_block[0]) {

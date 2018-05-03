@@ -57,6 +57,7 @@ extern "C" {
 #include <cstring>
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_debug.h"
 
 #include "intern/eval/deg_eval_copy_on_write.h"
 
@@ -108,6 +109,7 @@ Depsgraph::Depsgraph(Scene *scene,
 	BLI_spin_init(&lock);
 	id_hash = BLI_ghash_ptr_new("Depsgraph id hash");
 	entry_tags = BLI_gset_ptr_new("Depsgraph entry_tags");
+	debug_flags = G.debug;
 }
 
 Depsgraph::~Depsgraph()
@@ -600,15 +602,32 @@ void DEG_editors_set_update_cb(DEG_EditorUpdateIDCb id_func,
 
 /* Evaluation and debug */
 
-void DEG_debug_print_eval(const char *function_name,
+static DEG::string depsgraph_name_for_logging(struct Depsgraph *depsgraph)
+{
+	const char *name = DEG_debug_name_get(depsgraph);
+	if (name[0] == '\0') {
+		return "";
+	}
+	return "[" + DEG::string(name) + "]: ";
+}
+
+void DEG_debug_print_begin(struct Depsgraph *depsgraph)
+{
+	fprintf(stdout, "%s",
+	        depsgraph_name_for_logging(depsgraph).c_str());
+}
+
+void DEG_debug_print_eval(struct Depsgraph *depsgraph,
+                          const char *function_name,
                           const char *object_name,
                           const void *object_address)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
-	        "%s on %s %s(%p)%s\n",
+	        "%s%s on %s %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        function_name,
 	        object_name,
 	        DEG::deg_color_for_pointer(object_address).c_str(),
@@ -617,18 +636,20 @@ void DEG_debug_print_eval(const char *function_name,
 	fflush(stdout);
 }
 
-void DEG_debug_print_eval_subdata(const char *function_name,
+void DEG_debug_print_eval_subdata(struct Depsgraph *depsgraph,
+                                  const char *function_name,
                                   const char *object_name,
                                   const void *object_address,
                                   const char *subdata_comment,
                                   const char *subdata_name,
                                   const void *subdata_address)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
-	        "%s on %s %s(%p)%s %s %s %s(%p)%s\n",
+	        "%s%s on %s %s(%p)%s %s %s %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        function_name,
 	        object_name,
 	        DEG::deg_color_for_pointer(object_address).c_str(),
@@ -642,7 +663,8 @@ void DEG_debug_print_eval_subdata(const char *function_name,
 	fflush(stdout);
 }
 
-void DEG_debug_print_eval_subdata_index(const char *function_name,
+void DEG_debug_print_eval_subdata_index(struct Depsgraph *depsgraph,
+                                        const char *function_name,
                                         const char *object_name,
                                         const void *object_address,
                                         const char *subdata_comment,
@@ -650,11 +672,12 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
                                         const void *subdata_address,
                                         const int subdata_index)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
-	        "%s on %s %s(%p)^%s %s %s[%d] %s(%p)%s\n",
+	        "%s%s on %s %s(%p)%s %s %s[%d] %s(%p)%s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        function_name,
 	        object_name,
 	        DEG::deg_color_for_pointer(object_address).c_str(),
@@ -669,16 +692,49 @@ void DEG_debug_print_eval_subdata_index(const char *function_name,
 	fflush(stdout);
 }
 
-void DEG_debug_print_eval_time(const char *function_name,
+void DEG_debug_print_eval_parent_typed(struct Depsgraph *depsgraph,
+                                       const char *function_name,
+                                       const char *object_name,
+                                       const void *object_address,
+                                       const char *object_type,
+                                       const char *parent_comment,
+                                       const char *parent_name,
+                                       const void *parent_address,
+                                       const char *parent_type)
+{
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+		return;
+	}
+	fprintf(stdout,
+	        "%s%s on %s %s(%p)%s [%s] %s %s %s(%p)%s %s\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
+	        function_name,
+	        object_name,
+	        DEG::deg_color_for_pointer(object_address).c_str(),
+	        object_address,
+	        object_type,
+	        DEG::deg_color_end().c_str(),
+	        parent_comment,
+	        parent_name,
+	        DEG::deg_color_for_pointer(parent_address).c_str(),
+	        parent_address,
+	        DEG::deg_color_end().c_str(),
+	        parent_type);
+	fflush(stdout);
+}
+
+void DEG_debug_print_eval_time(struct Depsgraph *depsgraph,
+                               const char *function_name,
                                const char *object_name,
                                const void *object_address,
                                float time)
 {
-	if ((G.debug & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
+	if ((DEG_debug_flags_get(depsgraph) & G_DEBUG_DEPSGRAPH_EVAL) == 0) {
 		return;
 	}
 	fprintf(stdout,
-	        "%s on %s %s(%p)%s at time %f\n",
+	        "%s%s on %s %s(%p)%s at time %f\n",
+	        depsgraph_name_for_logging(depsgraph).c_str(),
 	        function_name,
 	        object_name,
 	        DEG::deg_color_for_pointer(object_address).c_str(),

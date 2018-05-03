@@ -169,6 +169,16 @@ static bool object_particles_depends_on_time(Object *object)
 	return false;
 }
 
+static bool check_id_has_anim_component(ID *id)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	if (adt == NULL) {
+		return false;
+	}
+	return (adt->action != NULL) ||
+	       (!BLI_listbase_is_empty(&adt->nla_tracks));
+}
+
 /* **** General purpose functions ****  */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
@@ -251,7 +261,8 @@ DepsRelation *DepsgraphRelationBuilder::add_time_relation(
 		return graph_->add_new_relation(timesrc, node_to, description, check_unique);
 	}
 	else {
-		DEG_DEBUG_PRINTF(BUILD, "add_time_relation(%p = %s, %p = %s, %s) Failed\n",
+		DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
+		                 BUILD, "add_time_relation(%p = %s, %p = %s, %s) Failed\n",
 		                 timesrc,   (timesrc) ? timesrc->identifier().c_str() : "<None>",
 		                 node_to,   (node_to) ? node_to->identifier().c_str() : "<None>",
 		                 description);
@@ -272,7 +283,8 @@ DepsRelation *DepsgraphRelationBuilder::add_operation_relation(
 		                                check_unique);
 	}
 	else {
-		DEG_DEBUG_PRINTF(BUILD, "add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
+		DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
+		                 BUILD, "add_operation_relation(%p = %s, %p = %s, %s) Failed\n",
 		                 node_from, (node_from) ? node_from->identifier().c_str() : "<None>",
 		                 node_to,   (node_to)   ? node_to->identifier().c_str() : "<None>",
 		                 description);
@@ -898,6 +910,11 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	ComponentKey adt_key(id, DEG_NODE_TYPE_ANIMATION);
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
+	/* Relation from action itself. */
+	if (adt->action != NULL) {
+		ComponentKey action_key(&adt->action->id, DEG_NODE_TYPE_ANIMATION);
+		add_relation(action_key, adt_key, "Action -> Animation");
+	}
 	/* Get source operations. */
 	DepsNode *node_from = get_node(adt_key);
 	BLI_assert(node_from != NULL);
@@ -1879,6 +1896,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	                                    DEG_NODE_TYPE_SHADING_PARAMETERS,
 	                                    DEG_OPCODE_MATERIAL_UPDATE);
 	add_relation(shading_parameters_key, shading_update_key, "NTree Shading Parameters");
+
+	if (check_id_has_anim_component(&ntree->id)) {
+		ComponentKey animation_key(&ntree->id, DEG_NODE_TYPE_ANIMATION);
+		add_relation(shading_parameters_key, animation_key, "NTree Shading Parameters");
+	}
 }
 
 /* Recursively build graph for material */

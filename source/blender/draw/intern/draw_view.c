@@ -614,6 +614,10 @@ void DRW_draw_background(void)
 static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, ViewLayer *view_layer)
 {
 	Object *ob = OBACT(view_layer);
+	View3D *v3d = draw_ctx->v3d;
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) > 0 || (v3d->overlays & V3D_OVERLAY_3DCURSOR) == 0) {
+		return false;
+	}
 
 	/* don't draw cursor in paint modes, but with a few exceptions */
 	if (ob && draw_ctx->object_mode & OB_MODE_ALL_PAINT) {

@@ -1717,9 +1717,28 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 	if (t->helpline != HLP_NONE) {
 		float cent[2];
-		float mval[3] = { x, y, 0.0f };
+		float mval[3] = {
+		    x,
+		    y,
+		    0.0f,
+		};
+		float tmval[2] = {
+		    (float)t->mval[0],
+		    (float)t->mval[1],
+		};
 
 		projectFloatViewEx(t, t->center_global, cent, V3D_PROJ_TEST_CLIP_ZERO);
+
+		/* Offset the values for the area region. */
+		const float offset[2] = {
+		    t->ar->winrct.xmin,
+		    t->ar->winrct.ymin,
+		};
+
+		for (int i = 0; i < 2; i++) {
+			cent[i] += offset[i];
+			tmval[i] += offset[i];
+		}
 
 		gpuPushMatrix();
 
@@ -1745,7 +1764,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 			immBegin(GWN_PRIM_LINES, 2);
 			immVertex2fv(POS_INDEX, cent);
-			immVertex2f(POS_INDEX, (float)t->mval[0], (float)t->mval[1]);
+			immVertex2f(POS_INDEX, tmval[0], tmval[1]);
 			immEnd();
 
 			immUnbindProgram();
@@ -1762,7 +1781,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				immUniformThemeColor(TH_VIEW_OVERLAY);
 
 				gpuTranslate3fv(mval);
-				gpuRotateAxis(-RAD2DEGF(atan2f(cent[0] - t->mval[0], cent[1] - t->mval[1])), 'Z');
+				gpuRotateAxis(-RAD2DEGF(atan2f(cent[0] - tmval[0], cent[1] - tmval[1])), 'Z');
 
 				glLineWidth(3.0f);
 				drawArrow(UP, 5, 10, 5);
@@ -1787,7 +1806,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 				break;
 			case HLP_ANGLE:
 			{
-				float dx = t->mval[0] - cent[0], dy = t->mval[1] - cent[1];
+				float dx = tmval[0] - cent[0], dy = tmval[1] - cent[1];
 				float angle = atan2f(dy, dx);
 				float dist = hypotf(dx, dy);
 				float delta_angle = min_ff(15.0f / dist, (float)M_PI / 4.0f);
@@ -1795,7 +1814,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 				immUniformThemeColor(TH_VIEW_OVERLAY);
 
-				gpuTranslate3f(cent[0] - t->mval[0] + mval[0], cent[1] - t->mval[1] + mval[1], 0);
+				gpuTranslate3f(cent[0] - tmval[0] + mval[0], cent[1] - tmval[1] + mval[1], 0);
 
 				glLineWidth(3.0f);
 				drawArc(dist, angle - delta_angle, angle - spacing_angle, 10);

@@ -550,32 +550,6 @@ void BKE_mball_eval_geometry(struct Depsgraph *UNUSED(depsgraph),
 
 /* Draw Engine */
 
-/* use for draw-manager only. */
-void BKE_mball_element_calc_scale_xform(float r_scale_xform[3][4],
-                                        const float obmat[4][4],
-                                        const float local_pos[3])
-{
-	float world_pos[3], scamat[3][3];
-	mul_v3_m4v3(world_pos, obmat, local_pos);
-	copy_m3_m4(scamat, obmat);
-	{
-		/* Get the normalized inverse matrix to extract only
-		 * the scale of Scamat */
-		float iscamat[3][3];
-		invert_m3_m3(iscamat, scamat);
-		normalize_m3(iscamat);
-		mul_m3_m3_post(scamat, iscamat);
-	}
-
-	copy_v3_v3(r_scale_xform[0], scamat[0]);
-	copy_v3_v3(r_scale_xform[1], scamat[1]);
-	copy_v3_v3(r_scale_xform[2], scamat[2]);
-
-	r_scale_xform[0][3] = world_pos[0];
-	r_scale_xform[1][3] = world_pos[1];
-	r_scale_xform[2][3] = world_pos[2];
-}
-
 void (*BKE_mball_batch_cache_dirty_cb)(MetaBall *mb, int mode) = NULL;
 void (*BKE_mball_batch_cache_free_cb)(MetaBall *mb) = NULL;
 

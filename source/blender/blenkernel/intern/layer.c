@@ -54,6 +54,7 @@
 #include "DNA_workspace_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_debug.h"
 #include "DEG_depsgraph_query.h"
 
 #include "DRW_engine.h"
@@ -2369,9 +2370,9 @@ static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
 	}
 }
 
-static void layer_eval_layer_collection_pre(ID *owner_id, ViewLayer *view_layer)
+static void layer_eval_layer_collection_pre(Depsgraph *depsgraph, ID *owner_id, ViewLayer *view_layer)
 {
-	DEG_debug_print_eval(__func__, view_layer->name, view_layer);
+	DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 	Scene *scene = (GS(owner_id->name) == ID_SCE) ? (Scene *)owner_id : NULL;
 
 	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
@@ -2415,17 +2416,16 @@ static void layer_eval_layer_collection(Depsgraph *depsgraph,
                                         LayerCollection *layer_collection,
                                         LayerCollection *parent_layer_collection)
 {
-	if (G.debug & G_DEBUG_DEPSGRAPH_EVAL) {
-		/* TODO)sergey): Try to make it more generic and handled by depsgraph messaging. */
-		printf("%s on %s (%p) [%s], parent %s (%p) [%s]\n",
-		       __func__,
-		       layer_collection->scene_collection->name,
-		       layer_collection->scene_collection,
-		       collection_type_lookup[layer_collection->scene_collection->type],
-		       (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
-		       (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL,
-		       (parent_layer_collection != NULL) ? collection_type_lookup[parent_layer_collection->scene_collection->type] : "");
-	}
+	DEG_debug_print_eval_parent_typed(
+	        depsgraph,
+	        __func__,
+	        layer_collection->scene_collection->name,
+	        layer_collection->scene_collection,
+	        collection_type_lookup[layer_collection->scene_collection->type],
+	        "parent",
+	        (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection->name : "NONE",
+	        (parent_layer_collection != NULL) ? parent_layer_collection->scene_collection : NULL,
+	        (parent_layer_collection != NULL) ? collection_type_lookup[parent_layer_collection->scene_collection->type] : "");
 	BLI_assert(layer_collection != parent_layer_collection);
 
 	/* visibility */
@@ -2471,9 +2471,9 @@ static void layer_eval_layer_collection(Depsgraph *depsgraph,
 	}
 }
 
-static void layer_eval_layer_collection_post(ViewLayer *view_layer)
+static void layer_eval_layer_collection_post(Depsgraph *depsgraph, ViewLayer *view_layer)
 {
-	DEG_debug_print_eval(__func__, view_layer->name, view_layer);
+	DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 	/* Create array of bases, for fast index-based lookup. */
 	const int num_object_bases = BLI_listbase_count(&view_layer->object_bases);
 	MEM_SAFE_FREE(view_layer->object_bases_array);
@@ -2511,11 +2511,11 @@ void BKE_layer_eval_view_layer(struct Depsgraph *depsgraph,
                                struct ID *owner_id,
                                ViewLayer *view_layer)
 {
-	layer_eval_layer_collection_pre(owner_id, view_layer);
+	layer_eval_layer_collection_pre(depsgraph, owner_id, view_layer);
 	layer_eval_collections_recurse(depsgraph,
 	                               &view_layer->layer_collections,
 	                               NULL);
-	layer_eval_layer_collection_post(view_layer);
+	layer_eval_layer_collection_post(depsgraph, view_layer);
 }
 
 void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,

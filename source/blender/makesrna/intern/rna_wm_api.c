@@ -389,13 +389,8 @@ static PointerRNA rna_WindoManager_operator_properties_last(const char *idname)
 	wmOperatorType *ot = WM_operatortype_find(idname, true);
 
 	if (ot != NULL) {
-		/* Could make optional. */
-		if (ot->last_properties == NULL) {
-			IDPropertyTemplate val = {0};
-			ot->last_properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
-		}
 		PointerRNA ptr;
-		RNA_pointer_create(NULL, ot->srna, ot->last_properties, &ptr);
+		WM_operator_last_properties_ensure(ot, &ptr);
 		return ptr;
 	}
 	return PointerRNA_NULL;

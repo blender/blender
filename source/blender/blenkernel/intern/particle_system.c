@@ -4432,11 +4432,11 @@ void BKE_particlesystem_id_loop(ParticleSystem *psys, ParticleSystemIDFunc func,
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_particle_system_eval_init(struct Depsgraph *UNUSED(depsgraph),
+void BKE_particle_system_eval_init(struct Depsgraph *depsgraph,
                                    Scene *scene,
                                    Object *ob)
 {
-	DEG_debug_print_eval(__func__, ob->id.name, ob);
+	DEG_debug_print_eval(depsgraph, __func__, ob->id.name, ob);
 	for (ParticleSystem *psys = ob->particlesystem.first;
 	     psys != NULL;
 	     psys = psys->next)

@@ -285,9 +285,9 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
-	UNUSED_VARS(fbl, dtxl);
+	UNUSED_VARS(fbl);
 
-	MULTISAMPLE_SYNC_ENABLE(dfbl)
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
 	/* Show / hide entire passes, swap framebuffers ... whatever you fancy */
 	/*
@@ -303,7 +303,7 @@ static void EDIT_CURVE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->overlay_edge_pass);
 	DRW_draw_pass(psl->overlay_vert_pass);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
 
 	/* If you changed framebuffer, double check you rebind
 	 * the default one with its textures attached before finishing */

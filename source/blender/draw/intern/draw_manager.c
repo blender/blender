@@ -294,6 +294,55 @@ void DRW_transform_to_display(GPUTexture *tex)
 
 /* -------------------------------------------------------------------- */
 
+/** \name Multisample Resolve
+ * \{ */
+
+/* Use manual multisample resolve pass.
+ * Much quicker than blitting back and forth.
+ * Assume destination fb is bound*/
+void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
+{
+	drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL |
+	              DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+
+	int samples = GPU_texture_samples(src_depth);
+
+	BLI_assert(samples > 0);
+	BLI_assert(GPU_texture_samples(src_color) == samples);
+
+	Gwn_Batch *geom = DRW_cache_fullscreen_quad_get();
+
+	int builtin;
+	switch (samples) {
+		case 2:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2; break;
+		case 4:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_4; break;
+		case 8:  builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_8; break;
+		case 16: builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16; break;
+		default:
+			BLI_assert(0);
+	}
+
+	GWN_batch_program_set_builtin(geom, builtin);
+
+	GPU_texture_bind(src_depth, 0);
+	GPU_texture_bind(src_color, 1);
+	GWN_batch_uniform_1i(geom, "depthMulti", 0);
+	GWN_batch_uniform_1i(geom, "colorMulti", 1);
+
+	float mat[4][4];
+	unit_m4(mat);
+	GWN_batch_uniform_mat4(geom, "ModelViewProjectionMatrix", mat);
+
+	/* avoid gpuMatrix calls */
+	GWN_batch_program_use_begin(geom);
+	GWN_batch_draw_range_ex(geom, 0, 0, false);
+	GWN_batch_program_use_end(geom);
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
 /** \name Viewport (DRW_viewport)
  * \{ */
 

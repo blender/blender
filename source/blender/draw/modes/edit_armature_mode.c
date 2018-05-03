@@ -38,6 +38,7 @@ extern GlobalsUboStorage ts;
 typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_wire;
+	struct DRWPass *bone_outline;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *relationship;
 } EDIT_ARMATURE_PassList;
@@ -79,6 +80,12 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 	}
 
 	{
+		/* Bones Outline */
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
+	}
+
+	{
 		/* Wire bones */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
 		psl->bone_wire = DRW_pass_create("Bone Wire Pass", state);
@@ -86,7 +93,7 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 
 	{
 		/* distance outline around envelope bones */
-		DRWState state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		DRWState state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_FRONT;
 		psl->bone_envelope = DRW_pass_create("Bone Envelope Outline Pass", state);
 	}
 
@@ -112,7 +119,8 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 	if (ob->type == OB_ARMATURE) {
 		if (arm->edbo) {
 			DRW_shgroup_armature_edit(
-			            ob, psl->bone_solid, psl->bone_wire, psl->bone_envelope, stl->g_data->relationship_lines);
+			            ob, psl->bone_solid, psl->bone_outline, psl->bone_wire,
+			            psl->bone_envelope, stl->g_data->relationship_lines);
 		}
 	}
 }
@@ -121,15 +129,18 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 {
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-
-	MULTISAMPLE_SYNC_ENABLE(dfbl)
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	DRW_draw_pass(psl->bone_envelope);
+
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
+
+	DRW_draw_pass(psl->bone_outline);
 	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->relationship);
 
-	MULTISAMPLE_SYNC_DISABLE(dfbl)
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
 }
 
 #if 0

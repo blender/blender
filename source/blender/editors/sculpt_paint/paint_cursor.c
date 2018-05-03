@@ -630,7 +630,10 @@ static void paint_draw_tex_overlay(UnifiedPaintSettings *ups, Brush *brush,
 			}
 
 			if (ups->draw_anchored) {
-				const float *aim = ups->anchored_initial_mouse;
+				float aim[2] = {
+				    ups->anchored_initial_mouse[0] + vc->ar->winrct.xmin,
+				    ups->anchored_initial_mouse[1] + vc->ar->winrct.ymin,
+				};
 				quad.xmin = aim[0] - ups->anchored_size;
 				quad.ymin = aim[1] - ups->anchored_size;
 				quad.xmax = aim[0] + ups->anchored_size;
@@ -730,7 +733,10 @@ static void paint_draw_cursor_overlay(UnifiedPaintSettings *ups, Brush *brush,
 		glDepthFunc(GL_ALWAYS);
 
 		if (ups->draw_anchored) {
-			const float *aim = ups->anchored_initial_mouse;
+			float aim[2] = {
+			    ups->anchored_initial_mouse[0] + vc->ar->winrct.xmin,
+			    ups->anchored_initial_mouse[1] + vc->ar->winrct.ymin,
+			};
 			copy_v2_v2(center, aim);
 			quad.xmin = aim[0] - ups->anchored_size;
 			quad.ymin = aim[1] - ups->anchored_size;
@@ -1023,6 +1029,7 @@ static bool ommit_cursor_drawing(Paint *paint, ePaintMode mode, Brush *brush)
 static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 {
 	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
 	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
 	Paint *paint = BKE_paint_get_active_from_context(C);
 	Brush *brush = BKE_paint_brush(paint);
@@ -1094,8 +1101,9 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 
 	if (ups->draw_anchored) {
 		final_radius = ups->anchored_size;
-		translation[0] = ups->anchored_initial_mouse[0];
-		translation[1] = ups->anchored_initial_mouse[1];
+		copy_v2_fl2(translation,
+		            ups->anchored_initial_mouse[0] + ar->winrct.xmin,
+		            ups->anchored_initial_mouse[1] + ar->winrct.ymin);
 	}
 
 	/* make lines pretty */

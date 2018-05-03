@@ -5255,10 +5255,10 @@ void BKE_curve_rect_from_textbox(const struct Curve *cu, const struct TextBox *t
 
 /* **** Depsgraph evaluation **** */
 
-void BKE_curve_eval_geometry(Depsgraph *UNUSED(depsgraph),
+void BKE_curve_eval_geometry(Depsgraph *depsgraph,
                              Curve *curve)
 {
-	DEG_debug_print_eval(__func__, curve->id.name, curve);
+	DEG_debug_print_eval(depsgraph, __func__, curve->id.name, curve);
 	if (curve->bb == NULL || (curve->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_curve_texspace_calc(curve);
 	}

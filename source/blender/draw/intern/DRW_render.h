@@ -102,20 +102,21 @@ typedef char DRWViewportEmptyList;
 }
 
 /* Use of multisample framebuffers. */
-#define MULTISAMPLE_SYNC_ENABLE(dfbl) { \
+#define MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Blit"); \
-		GPU_framebuffer_blit(dfbl->default_fb, 0, dfbl->multisample_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT); \
 		GPU_framebuffer_bind(dfbl->multisample_fb); \
+		/* TODO clear only depth but need to do alpha to coverage for transparencies. */ \
+		GPU_framebuffer_clear_color_depth(dfbl->multisample_fb, (const float[4]){0.0f}, 1.0f); \
 		DRW_stats_query_end(); \
 	} \
 }
 
-#define MULTISAMPLE_SYNC_DISABLE(dfbl) { \
+#define MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl) { \
 	if (dfbl->multisample_fb != NULL) { \
 		DRW_stats_query_start("Multisample Resolve"); \
-		GPU_framebuffer_blit(dfbl->multisample_fb, 0, dfbl->default_fb, 0, GPU_COLOR_BIT | GPU_DEPTH_BIT); \
 		GPU_framebuffer_bind(dfbl->default_fb); \
+		DRW_multisamples_resolve(dtxl->multisample_depth, dtxl->multisample_color); \
 		DRW_stats_query_end(); \
 	} \
 }
@@ -219,6 +220,8 @@ void DRW_uniformbuffer_free(struct GPUUniformBuffer *ubo);
 } while (0)
 
 void DRW_transform_to_display(struct GPUTexture *tex);
+void DRW_multisamples_resolve(
+        struct GPUTexture *src_depth, struct GPUTexture *src_color);
 
 /* Shaders */
 struct GPUShader *DRW_shader_create(
@@ -268,6 +271,7 @@ typedef enum {
 	DRW_STATE_TRANSMISSION  = (1 << 17),
 	DRW_STATE_CLIP_PLANES   = (1 << 18),
 	DRW_STATE_ADDITIVE_FULL = (1 << 19), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
+	DRW_STATE_BLEND_PREMUL  = (1 << 20), /* Use that if color is already premult by alpha. */
 
 	DRW_STATE_WRITE_STENCIL    = (1 << 27),
 	DRW_STATE_STENCIL_EQUAL    = (1 << 28),

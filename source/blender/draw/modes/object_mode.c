@@ -101,6 +101,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *outlines_resolve;
 	struct DRWPass *grid;
 	struct DRWPass *bone_solid;
+	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *particle;
@@ -1040,6 +1041,7 @@ static void OBJECT_cache_init(void *vedata)
 		/* Solid bones */
 		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
+		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
 	}
 
 	{
@@ -1050,7 +1052,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* distance outline around envelope bones */
-		DRWState state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND;
+		DRWState state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_FRONT;
 		psl->bone_envelope = DRW_pass_create("Bone Envelope Outline Pass", state);
 	}
 
@@ -1186,9 +1188,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Metaballs Handles */
-		struct Gwn_Batch *geom;
-		geom = DRW_cache_screenspace_circle_get();
-		stl->g_data->mball_handle = shgroup_instance_mball_handles(psl->non_meshes, geom);
+		stl->g_data->mball_handle = shgroup_instance_mball_handles(psl->non_meshes);
 	}
 
 	{
@@ -1327,10 +1327,31 @@ static void DRW_shgroup_mball_handles(OBJECT_StorageList *stl, Object *ob, ViewL
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 
+	float draw_scale_xform[3][4]; /* Matrix of Scale and Translation */
+	{
+		float scamat[3][3];
+		copy_m3_m4(scamat, ob->obmat);
+		/* Get the normalized inverse matrix to extract only
+		* the scale of Scamat */
+		float iscamat[3][3];
+		invert_m3_m3(iscamat, scamat);
+		normalize_m3(iscamat);
+		mul_m3_m3_post(scamat, iscamat);
+
+		copy_v3_v3(draw_scale_xform[0], scamat[0]);
+		copy_v3_v3(draw_scale_xform[1], scamat[1]);
+		copy_v3_v3(draw_scale_xform[2], scamat[2]);
+	}
+
 	for (MetaElem *ml = mb->elems.first; ml != NULL; ml = ml->next) {
 		/* draw radius */
-		BKE_mball_element_calc_scale_xform(ml->draw_scale_xform, ob->obmat, &ml->x);
-		DRW_shgroup_call_dynamic_add(stl->g_data->mball_handle, ml->draw_scale_xform, &ml->rad, color);
+		float world_pos[3];
+		mul_v3_m4v3(world_pos, ob->obmat, &ml->x);
+		draw_scale_xform[0][3] = world_pos[0];
+		draw_scale_xform[1][3] = world_pos[1];
+		draw_scale_xform[2][3] = world_pos[2];
+
+		DRW_shgroup_call_dynamic_add(stl->g_data->mball_handle, draw_scale_xform, &ml->rad, color);
 	}
 }
 
@@ -2141,7 +2162,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 			if (arm->edbo == NULL) {
 				if (DRW_state_is_select() || !DRW_pose_mode_armature(ob, draw_ctx->obact)) {
 					DRW_shgroup_armature_object(
-					        ob, view_layer, psl->bone_solid, psl->bone_wire, psl->bone_envelope,
+					        ob, view_layer, psl->bone_solid, psl->bone_outline, psl->bone_wire, psl->bone_envelope,
 					        stl->g_data->relationship_lines);
 				}
 			}
@@ -2187,6 +2208,7 @@ static void OBJECT_draw_scene(void *vedata)
 	OBJECT_FramebufferList *fbl = ((OBJECT_Data *)vedata)->fbl;
 	OBJECT_PrivateData *g_data = stl->g_data;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 
 	int id_ct_select =       g_data->id_ofs_select;
 	int id_ct_select_group = g_data->id_ofs_select_group;
@@ -2204,6 +2226,20 @@ static void OBJECT_draw_scene(void *vedata)
 	outline_calls += id_ct_prb_select + id_ct_prb_select_group + id_ct_prb_active + id_ct_prb_active_group + id_ct_prb_transform;
 
 	float clearcol[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
+
+	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
+
+	/* This needs to be drawn after the oultine */
+	DRW_draw_pass(psl->bone_solid);
+	DRW_draw_pass(psl->bone_wire);
+	DRW_draw_pass(psl->bone_outline);
+	DRW_draw_pass(psl->non_meshes);
+	DRW_draw_pass(psl->particle);
+	DRW_draw_pass(psl->reference_image);
+
+	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
 
 	if (DRW_state_is_fbo() && outline_calls > 0) {
 		DRW_stats_group_start("Outlines");
@@ -2246,18 +2282,6 @@ static void OBJECT_draw_scene(void *vedata)
 		/* Render probes spheres/planes so we can select them. */
 		DRW_draw_pass(psl->lightprobes);
 	}
-
-	MULTISAMPLE_SYNC_ENABLE(dfbl)
-
-	/* This needs to be drawn after the oultine */
-//	DRW_draw_pass(psl->bone_envelope);  /* Never drawn in Object mode currently. */
-	DRW_draw_pass(psl->bone_wire);
-	DRW_draw_pass(psl->bone_solid);
-	DRW_draw_pass(psl->non_meshes);
-	DRW_draw_pass(psl->particle);
-	DRW_draw_pass(psl->reference_image);
-
-	MULTISAMPLE_SYNC_DISABLE(dfbl)
 
 	DRW_draw_pass(psl->ob_center);
 

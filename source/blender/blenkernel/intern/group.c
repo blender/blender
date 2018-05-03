@@ -384,6 +384,6 @@ void BKE_group_handle_recalc_and_update(struct Depsgraph *depsgraph, Scene *scen
 void BKE_group_eval_view_layers(struct Depsgraph *depsgraph,
                                 Group *group)
 {
-	DEG_debug_print_eval(__func__, group->id.name, group);
+	DEG_debug_print_eval(depsgraph, __func__, group->id.name, group);
 	BKE_layer_eval_view_layer(depsgraph, &group->id, group->view_layer);
 }

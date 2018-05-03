@@ -90,6 +90,7 @@ extern char datatoc_gpu_shader_image_mask_uniform_color_frag_glsl[];
 extern char datatoc_gpu_shader_image_modulate_alpha_frag_glsl[];
 extern char datatoc_gpu_shader_image_depth_linear_frag_glsl[];
 extern char datatoc_gpu_shader_image_depth_copy_frag_glsl[];
+extern char datatoc_gpu_shader_image_multisample_resolve_frag_glsl[];
 extern char datatoc_gpu_shader_3D_vert_glsl[];
 extern char datatoc_gpu_shader_3D_normal_vert_glsl[];
 extern char datatoc_gpu_shader_3D_flat_color_vert_glsl[];
@@ -110,8 +111,6 @@ extern char datatoc_gpu_shader_instance_camera_vert_glsl[];
 extern char datatoc_gpu_shader_instance_distance_line_vert_glsl[];
 extern char datatoc_gpu_shader_instance_edges_variying_color_geom_glsl[];
 extern char datatoc_gpu_shader_instance_edges_variying_color_vert_glsl[];
-extern char datatoc_gpu_shader_instance_bone_envelope_solid_vert_glsl[];
-extern char datatoc_gpu_shader_instance_bone_envelope_wire_vert_glsl[];
 extern char datatoc_gpu_shader_instance_mball_handles_vert_glsl[];
 
 extern char datatoc_gpu_shader_3D_groundpoint_vert_glsl[];
@@ -690,6 +689,10 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		                                datatoc_gpu_shader_image_depth_linear_frag_glsl },
 		[GPU_SHADER_3D_IMAGE_DEPTH_COPY] = { datatoc_gpu_shader_3D_image_vert_glsl,
 		                                     datatoc_gpu_shader_image_depth_copy_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_2] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_4] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_8] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
+		[GPU_SHADER_2D_IMAGE_MULTISAMPLE_16] = { datatoc_gpu_shader_2D_vert_glsl, datatoc_gpu_shader_image_multisample_resolve_frag_glsl },
 
 		[GPU_SHADER_2D_IMAGE_INTERLACE] = { datatoc_gpu_shader_2D_image_vert_glsl,
 		                                    datatoc_gpu_shader_image_interlace_frag_glsl },
@@ -817,11 +820,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		[GPU_SHADER_2D_NODELINK_INST] = { datatoc_gpu_shader_2D_nodelink_vert_glsl,
 		                                  datatoc_gpu_shader_2D_nodelink_frag_glsl },
 
-		[GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID] = { datatoc_gpu_shader_instance_bone_envelope_solid_vert_glsl,
-		                                                 datatoc_gpu_shader_simple_lighting_frag_glsl },
-		[GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_WIRE] = { datatoc_gpu_shader_instance_bone_envelope_wire_vert_glsl,
-		                                                datatoc_gpu_shader_flat_color_frag_glsl },
-
 		[GPU_SHADER_3D_INSTANCE_MBALL_HANDLES] = { datatoc_gpu_shader_instance_mball_handles_vert_glsl,
 		                                           datatoc_gpu_shader_flat_color_frag_glsl },
 	};
@@ -830,6 +828,18 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 		/* just a few special cases */
 		const char *defines = NULL;
 		switch (shader) {
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_2:
+				defines = "#define SAMPLES 2\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_4:
+				defines = "#define SAMPLES 4\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_8:
+				defines = "#define SAMPLES 8\n";
+				break;
+			case GPU_SHADER_2D_IMAGE_MULTISAMPLE_16:
+				defines = "#define SAMPLES 16\n";
+				break;
 			case GPU_SHADER_2D_WIDGET_BASE_INST:
 			case GPU_SHADER_2D_NODELINK_INST:
 				defines = "#define USE_INSTANCE\n";
@@ -845,7 +855,6 @@ GPUShader *GPU_shader_get_builtin_shader(GPUBuiltinShader shader)
 				defines = "#define AXIS_NAME\n";
 				break;
 			case GPU_SHADER_3D_OBJECTSPACE_SIMPLE_LIGHTING_VARIYING_COLOR:
-			case GPU_SHADER_3D_INSTANCE_BONE_ENVELOPE_SOLID:
 				defines = "#define USE_INSTANCE_COLOR\n";
 				break;
 			case GPU_SHADER_3D_FLAT_COLOR_U32:

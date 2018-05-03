@@ -72,6 +72,7 @@
 
 #include "DEG_depsgraph_query.h"
 
+#include "GPU_batch.h"
 #include "GPU_draw.h"
 #include "GPU_matrix.h"
 #include "GPU_immediate.h"
@@ -1264,6 +1265,10 @@ void view3d_main_region_draw(const bContext *C, ARegion *ar)
 
 	GPU_free_images_old();
 	GPU_pass_cache_garbage_collect();
+
+	/* XXX This is in order to draw UI batches with the DRW
+	 * olg context since we now use it for drawing the entire area */
+	gpu_batch_presets_reset();
 
 	/* No depth test for drawing action zones afterwards. */
 	glDisable(GL_DEPTH_TEST);

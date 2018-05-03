@@ -118,9 +118,13 @@ struct DRWShadingGroup *shgroup_instance_outline(struct DRWPass *pass, struct Gw
 struct DRWShadingGroup *shgroup_camera_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_distance_lines_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
 struct DRWShadingGroup *shgroup_spot_instance(struct DRWPass *pass, struct Gwn_Batch *geom);
-struct DRWShadingGroup *shgroup_instance_bone_envelope_wire(struct DRWPass *pass, struct Gwn_Batch *geom);
-struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass, struct Gwn_Batch *geom);
-struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass, struct Gwn_Batch *geom);
+struct DRWShadingGroup *shgroup_instance_bone_envelope_distance(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_envelope_outline(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_envelope_solid(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_mball_handles(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_shape_outline(struct DRWPass *pass, struct Gwn_Batch *geom);
+struct DRWShadingGroup *shgroup_instance_bone_sphere(struct DRWPass *pass);
+struct DRWShadingGroup *shgroup_instance_bone_sphere_outline(struct DRWPass *pass);
 
 int DRW_object_wire_theme_get(
         struct Object *ob, struct ViewLayer *view_layer, float **r_color);
@@ -129,17 +133,20 @@ float *DRW_color_background_blend_get(int theme_id);
 /* draw_armature.c */
 void DRW_shgroup_armature_object(
         struct Object *ob, struct ViewLayer *view_layer,
-        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
+        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_outline,
+        struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
 void DRW_shgroup_armature_pose(
         struct Object *ob,
-        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
+        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_outline,
+        struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
 void DRW_shgroup_armature_edit(
         struct Object *ob,
-        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
+        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_outline,
+        struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
 /* pose_mode.c */

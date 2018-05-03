@@ -722,7 +722,8 @@ typedef struct uiWidgetBaseParameters {
 	float shade_dir;
 	/* We pack alpha check and discard factor in alpha_discard.
 	 * If the value is negative then we do alpha check.
-	 * The absolute value itself is the discard factor. */
+	 * The absolute value itself is the discard factor.
+	 * Initialize value to 1.0.f if you don't want discard */
 	float alpha_discard;
 } uiWidgetBaseParameters;
 

@@ -176,7 +176,8 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 		}
 	}
 
-	DEG_DEBUG_PRINTF(BUILD, "\nStarting IK Build: pchan = %s, target = (%s, %s), segcount = %d\n",
+	DEG_DEBUG_PRINTF((::Depsgraph *)graph_,
+	                 BUILD, "\nStarting IK Build: pchan = %s, target = (%s, %s), segcount = %d\n",
 	                 pchan->name, data->tar->id.name, data->subtarget, data->rootbone);
 
 	bPoseChannel *parchan = pchan;
@@ -219,7 +220,7 @@ void DepsgraphRelationBuilder::build_ik_pose(Object *object,
 		root_map->add_bone(parchan->name, rootchan->name);
 
 		/* continue up chain, until we reach target number of items... */
-		DEG_DEBUG_PRINTF(BUILD, "  %d = %s\n", segcount, parchan->name);
+		DEG_DEBUG_PRINTF((::Depsgraph *)graph_, BUILD, "  %d = %s\n", segcount, parchan->name);
 		segcount++;
 		if ((segcount == data->rootbone) || (segcount > 255)) break;  /* 255 is weak */
 

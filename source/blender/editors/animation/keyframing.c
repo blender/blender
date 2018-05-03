@@ -159,7 +159,9 @@ bAction *verify_adt_action(ID *id, short add)
 		/* XXX: we probably should have bmain passed down, but that involves altering too many API's */
 		DEG_relations_tag_update(G.main);
 	}
-		
+
+	DEG_id_tag_update(&adt->action->id, DEG_TAG_COPY_ON_WRITE);
+
 	/* return the action */
 	return adt->action;
 }

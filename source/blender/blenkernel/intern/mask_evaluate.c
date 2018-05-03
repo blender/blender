@@ -901,7 +901,7 @@ void BKE_mask_layer_evaluate_deform(MaskLayer *masklay, const float ctime)
 void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
 {
 	float ctime = DEG_get_ctime(depsgraph);
-	DEG_debug_print_eval(__func__, mask->id.name, mask);
+	DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
 	for (MaskLayer *mask_layer = mask->masklayers.first;
 	     mask_layer != NULL;
 	     mask_layer = mask_layer->next)
@@ -913,7 +913,7 @@ void BKE_mask_eval_animation(struct Depsgraph *depsgraph, Mask *mask)
 void BKE_mask_eval_update(struct Depsgraph *depsgraph, Mask *mask)
 {
 	float ctime = DEG_get_ctime(depsgraph);
-	DEG_debug_print_eval(__func__, mask->id.name, mask);
+	DEG_debug_print_eval(depsgraph, __func__, mask->id.name, mask);
 	for (MaskLayer *mask_layer = mask->masklayers.first;
 	     mask_layer != NULL;
 	     mask_layer = mask_layer->next)

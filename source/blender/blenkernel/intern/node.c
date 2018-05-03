@@ -2001,8 +2001,13 @@ bNodeTree *ntreeLocalize(bNodeTree *ntree)
 		/* Make full copy outside of Main database.
 		 * Note: previews are not copied here.
 		 */
-		BKE_id_copy_ex(G.main, (ID *)ntree, (ID **)&ltree,
-		               LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_COPY_NO_PREVIEW, false);
+		BKE_id_copy_ex(
+		        NULL, &ntree->id, (ID **)&ltree,
+		        (LIB_ID_CREATE_NO_MAIN |
+		         LIB_ID_CREATE_NO_USER_REFCOUNT |
+		         LIB_ID_COPY_NO_PREVIEW |
+		         LIB_ID_COPY_NO_ANIMDATA),
+		        false);
 		ltree->flag |= NTREE_IS_LOCALIZED;
 
 		for (node = ltree->nodes.first; node; node = node->next) {
@@ -3765,10 +3770,10 @@ void BKE_nodetree_copy_default_values(bNodeTree *ntree_dst,
 	}
 }
 
-void BKE_nodetree_shading_params_eval(struct Depsgraph *UNUSED(depsgraph),
+void BKE_nodetree_shading_params_eval(struct Depsgraph *depsgraph,
                                       bNodeTree *ntree_dst,
                                       const bNodeTree *ntree_src)
 {
-	DEG_debug_print_eval(__func__, ntree_src->id.name, ntree_dst);
+	DEG_debug_print_eval(depsgraph, __func__, ntree_src->id.name, ntree_dst);
 	BKE_nodetree_copy_default_values(ntree_dst, ntree_src);
 }

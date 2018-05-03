@@ -323,6 +323,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->gridsubdiv = 10;
 	v3d->drawtype = OB_SOLID;
 	v3d->drawtype_lighting = V3D_LIGHTING_STUDIO;
+	v3d->overlays = V3D_OVERLAY_3DCURSOR;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 	
@@ -1090,6 +1091,10 @@ static void view3d_main_region_message_subscribe(
 	if (STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE)) {
 		extern StructRNA RNA_ViewLayerEngineSettingsEevee;
 		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsEevee, &msg_sub_value_region_tag_redraw);
+	}
+	else if (STREQ(scene->r.engine, RE_engine_id_BLENDER_WORKBENCH)) {
+		extern StructRNA RNA_ViewLayerEngineSettingsWorkbench;
+		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsWorkbench, &msg_sub_value_region_tag_redraw);
 	}
 #ifdef WITH_CLAY_ENGINE
 	else if (STREQ(scene->r.engine, RE_engine_id_BLENDER_CLAY)) {

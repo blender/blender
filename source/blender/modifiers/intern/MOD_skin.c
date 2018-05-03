@@ -59,6 +59,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_modifier_types.h"
@@ -70,9 +71,7 @@
 #include "BLI_stack.h"
 #include "BLI_bitmap.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
@@ -814,11 +813,11 @@ static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
 #undef NUM_SUBDIVISIONS_MAX
 }
 
-/* Take a DerivedMesh and subdivide its edges to keep skin nodes
+/* Take a Mesh and subdivide its edges to keep skin nodes
  * reasonably close. */
-static DerivedMesh *subdivide_base(DerivedMesh *orig)
+static Mesh *subdivide_base(Mesh *orig)
 {
-	DerivedMesh *dm;
+	Mesh *result;
 	MVertSkin *orignode, *outnode;
 	MVert *origvert, *outvert;
 	MEdge *origedge, *outedge, *e;
@@ -828,12 +827,12 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 	int i, j, k, u, v;
 	float radrat;
 
-	orignode = CustomData_get_layer(&orig->vertData, CD_MVERT_SKIN);
-	origvert = orig->getVertArray(orig);
-	origedge = orig->getEdgeArray(orig);
-	origdvert = orig->getVertDataArray(orig, CD_MDEFORMVERT);
-	totorigvert = orig->getNumVerts(orig);
-	totorigedge = orig->getNumEdges(orig);
+	orignode = CustomData_get_layer(&orig->vdata, CD_MVERT_SKIN);
+	origvert = orig->mvert;
+	origedge = orig->medge;
+	origdvert = orig->dvert;
+	totorigvert = orig->totvert;
+	totorigedge = orig->totedge;
 
 	/* Get degree of all vertices */
 	degree = MEM_calloc_arrayN(totorigvert, sizeof(int), "degree");
@@ -853,19 +852,19 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 	MEM_freeN(degree);
 
 	/* Allocate output derivedmesh */
-	dm = CDDM_from_template(orig,
-	                        totorigvert + totsubd,
-	                        totorigedge + totsubd,
-	                        0, 0, 0);
+	result = BKE_mesh_from_template(orig,
+	                                totorigvert + totsubd,
+	                                totorigedge + totsubd,
+	                                0, 0, 0);
 
-	outvert = dm->getVertArray(dm);
-	outedge = dm->getEdgeArray(dm);
-	outnode = CustomData_get_layer(&dm->vertData, CD_MVERT_SKIN);
-	outdvert = CustomData_get_layer(&dm->vertData, CD_MDEFORMVERT);
+	outvert = result->mvert;
+	outedge = result->medge;
+	outnode = CustomData_get_layer(&result->vdata, CD_MVERT_SKIN);
+	outdvert = result->dvert;
 
 	/* Copy original vertex data */
-	CustomData_copy_data(&orig->vertData,
-	                     &dm->vertData,
+	CustomData_copy_data(&orig->vdata,
+	                     &result->vdata,
 	                     0, 0, totorigvert);
 
 	/* Subdivide edges */
@@ -949,7 +948,7 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 	MEM_freeN(edge_subd);
 
-	return dm;
+	return result;
 }
 
 /******************************* Output *******************************/
@@ -1805,12 +1804,12 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 	return so.bm;
 }
 
-static void skin_set_orig_indices(DerivedMesh *dm)
+static void skin_set_orig_indices(Mesh *mesh)
 {
 	int *orig, totpoly;
 
-	totpoly = dm->getNumPolys(dm);
-	orig = CustomData_add_layer(&dm->polyData, CD_ORIGINDEX,
+	totpoly = mesh->totpoly;
+	orig = CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX,
 	                            CD_CALLOC, NULL, totpoly);
 	copy_vn_i(orig, totpoly, ORIGINDEX_NONE);
 }
@@ -1821,10 +1820,10 @@ static void skin_set_orig_indices(DerivedMesh *dm)
  * 2) Generate node frames
  * 3) Output vertices and polygons from frames, connections, and hulls
  */
-static DerivedMesh *base_skin(DerivedMesh *origdm,
-                              SkinModifierData *smd)
+static Mesh *base_skin(Mesh *origmesh,
+                       SkinModifierData *smd)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	MVertSkin *nodes;
 	BMesh *bm;
 	EMat *emat;
@@ -1837,13 +1836,13 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 	int totvert, totedge;
 	bool has_valid_root = false;
 
-	nodes = CustomData_get_layer(&origdm->vertData, CD_MVERT_SKIN);
+	nodes = CustomData_get_layer(&origmesh->vdata, CD_MVERT_SKIN);
 
-	mvert = origdm->getVertArray(origdm);
-	dvert = origdm->getVertDataArray(origdm, CD_MDEFORMVERT);
-	medge = origdm->getEdgeArray(origdm);
-	totvert = origdm->getNumVerts(origdm);
-	totedge = origdm->getNumEdges(origdm);
+	mvert = origmesh->mvert;
+	dvert = origmesh->dvert;
+	medge = origmesh->medge;
+	totvert = origmesh->totvert;
+	totedge = origmesh->totedge;
 
 	BKE_mesh_vert_edge_map_create(&emap, &emapmem, medge, totvert, totedge);
 
@@ -1864,32 +1863,33 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 
 	if (!bm)
 		return NULL;
-	
-	result = CDDM_from_bmesh(bm, false);
+
+	struct BMeshToMeshParams bmtmp = {0};
+	result = BKE_bmesh_to_mesh(bm, &bmtmp);
 	BM_mesh_free(bm);
 
-	result->dirty |= DM_DIRTY_NORMALS;
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 	skin_set_orig_indices(result);
 
 	return result;
 }
 
-static DerivedMesh *final_skin(SkinModifierData *smd,
-                               DerivedMesh *origdm)
+static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh)
 {
-	DerivedMesh *dm;
+	Mesh *result;
 
 	/* Skin node layer is required */
-	if (!CustomData_get_layer(&origdm->vertData, CD_MVERT_SKIN))
-		return origdm;
+	if (!CustomData_get_layer(&mesh->vdata, CD_MVERT_SKIN))
+		return mesh;
 
-	origdm = subdivide_base(origdm);
-	dm = base_skin(origdm, smd);
+	mesh = subdivide_base(mesh);
+	result = base_skin(mesh, smd);
 
-	origdm->release(origdm);
+	BKE_mesh_free(mesh);
+	MEM_freeN(mesh);
 
-	return dm;
+	return result;
 }
 
 
@@ -1916,14 +1916,14 @@ static void copyData(ModifierData *md, ModifierData *target)
 	modifier_copyData_generic(md, target);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md,
-                                  const ModifierEvalContext *UNUSED(ctx),
-                                  DerivedMesh *dm)
+static Mesh *applyModifier(ModifierData *md,
+                           const ModifierEvalContext *UNUSED(ctx),
+                           Mesh *mesh)
 {
-	DerivedMesh *result;
+	Mesh *result;
 
-	if (!(result = final_skin((SkinModifierData *)md, dm)))
-		return dm;
+	if (!(result = final_skin((SkinModifierData *)md, mesh)))
+		return mesh;
 	return result;
 }
 
@@ -1946,14 +1946,14 @@ ModifierTypeInfo modifierType_Skin = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,

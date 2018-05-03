@@ -45,10 +45,39 @@ extern "C" {
 #include "DEG_depsgraph_query.h"
 
 #include "intern/depsgraph_intern.h"
+#include "intern/depsgraph_types.h"
 #include "intern/nodes/deg_node_id.h"
 #include "intern/nodes/deg_node_time.h"
 
 #include "util/deg_util_foreach.h"
+
+void DEG_debug_flags_set(Depsgraph *depsgraph, int flags)
+{
+	DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	deg_graph->debug_flags = flags;
+}
+
+int DEG_debug_flags_get(const Depsgraph *depsgraph)
+{
+	const DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+	return deg_graph->debug_flags;
+}
+
+void DEG_debug_name_set(struct Depsgraph *depsgraph, const char *name)
+{
+	DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<DEG::Depsgraph *>(depsgraph);
+	deg_graph->debug_name = name;
+}
+
+const char *DEG_debug_name_get(struct Depsgraph *depsgraph)
+{
+	const DEG::Depsgraph *deg_graph =
+	        reinterpret_cast<const DEG::Depsgraph *>(depsgraph);
+	return deg_graph->debug_name.c_str();
+}
 
 bool DEG_debug_compare(const struct Depsgraph *graph1,
                        const struct Depsgraph *graph2)
