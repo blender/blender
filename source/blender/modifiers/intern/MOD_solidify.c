@@ -68,6 +68,106 @@ BLI_INLINE bool edgeref_is_init(const EdgeFaceRef *edge_ref)
 	return !((edge_ref->f1 == 0) && (edge_ref->f2 == 0));
 }
 
+/**
+ * \param dm  Mesh to calculate normals for.
+ * \param face_nors  Precalculated face normals.
+ * \param r_vert_nors  Return vert normals.
+ */
+static void mesh_calc_hq_normal(Mesh *mesh, float (*face_nors)[3], float (*r_vert_nors)[3])
+{
+	int i, numVerts, numEdges, numFaces;
+	MPoly *mpoly, *mp;
+	MLoop *mloop, *ml;
+	MEdge *medge, *ed;
+	MVert *mvert, *mv;
+
+	numVerts = mesh->totvert;
+	numEdges = mesh->totedge;
+	numFaces = mesh->totface;
+	mpoly = mesh->mpoly;
+	medge = mesh->medge;
+	mvert = mesh->mvert;
+	mloop = mesh->mloop;
+
+	/* we don't want to overwrite any referenced layers */
+
+	/* Doesn't work here! */
+#if 0
+	mv = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MVERT, numVerts);
+	cddm->mvert = mv;
+#endif
+
+	mv = mvert;
+	mp = mpoly;
+
+	{
+		EdgeFaceRef *edge_ref_array = MEM_calloc_arrayN((size_t)numEdges, sizeof(EdgeFaceRef), "Edge Connectivity");
+		EdgeFaceRef *edge_ref;
+		float edge_normal[3];
+
+		/* This loop adds an edge hash if its not there, and adds the face index */
+		for (i = 0; i < numFaces; i++, mp++) {
+			int j;
+
+			ml = mloop + mp->loopstart;
+
+			for (j = 0; j < mp->totloop; j++, ml++) {
+				/* --- add edge ref to face --- */
+				edge_ref = &edge_ref_array[ml->e];
+				if (!edgeref_is_init(edge_ref)) {
+					edge_ref->f1 =  i;
+					edge_ref->f2 = -1;
+				}
+				else if ((edge_ref->f1 != -1) && (edge_ref->f2 == -1)) {
+					edge_ref->f2 = i;
+				}
+				else {
+					/* 3+ faces using an edge, we can't handle this usefully */
+					edge_ref->f1 = edge_ref->f2 = -1;
+#ifdef USE_NONMANIFOLD_WORKAROUND
+					medge[ml->e].flag |= ME_EDGE_TMP_TAG;
+#endif
+				}
+				/* --- done --- */
+			}
+		}
+
+		for (i = 0, ed = medge, edge_ref = edge_ref_array; i < numEdges; i++, ed++, edge_ref++) {
+			/* Get the edge vert indices, and edge value (the face indices that use it) */
+
+			if (edgeref_is_init(edge_ref) && (edge_ref->f1 != -1)) {
+				if (edge_ref->f2 != -1) {
+					/* We have 2 faces using this edge, calculate the edges normal
+										* using the angle between the 2 faces as a weighting */
+#if 0
+					add_v3_v3v3(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
+					normalize_v3_length(
+					            edge_normal,
+					            angle_normalized_v3v3(face_nors[edge_ref->f1], face_nors[edge_ref->f2]));
+#else
+					mid_v3_v3v3_angle_weighted(edge_normal, face_nors[edge_ref->f1], face_nors[edge_ref->f2]);
+#endif
+				}
+				else {
+					/* only one face attached to that edge */
+					/* an edge without another attached- the weight on this is undefined */
+					copy_v3_v3(edge_normal, face_nors[edge_ref->f1]);
+				}
+				add_v3_v3(r_vert_nors[ed->v1], edge_normal);
+				add_v3_v3(r_vert_nors[ed->v2], edge_normal);
+			}
+		}
+		MEM_freeN(edge_ref_array);
+	}
+
+	/* normalize vertex normals and assign */
+	for (i = 0; i < numVerts; i++, mv++) {
+		if (normalize_v3(r_vert_nors[i]) == 0.0f) {
+			normal_short_to_float_v3(r_vert_nors[i], mv->no);
+		}
+	}
+}
+
 static void initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -266,9 +366,7 @@ static Mesh *applyModifier(
 
 	if (smd->flag & MOD_SOLIDIFY_NORMAL_CALC) {
 		vert_nors = MEM_calloc_arrayN(numVerts, 3 * sizeof(float), "mod_solid_vno_hq");
-		BKE_mesh_calc_normals_poly(mesh->mvert, vert_nors, mesh->totvert,
-		                           mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-		                           NULL, false);
+		mesh_calc_hq_normal(mesh, face_nors, vert_nors);
 	}
 
 	result = BKE_mesh_from_template(mesh,
