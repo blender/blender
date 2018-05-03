@@ -493,7 +493,7 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass)
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, struct Gwn_Batch *geom)
+DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass)
 {
 	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_INSTANCE_MBALL_HANDLES);
 
@@ -503,7 +503,8 @@ DRWShadingGroup *shgroup_instance_mball_handles(DRWPass *pass, struct Gwn_Batch 
 		{"color"                  , DRW_ATTRIB_FLOAT, 3}
 	});
 
-	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, geom, g_formats.instance_mball_handles);
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(sh, pass, DRW_cache_screenspace_circle_get(),
+	                                                   g_formats.instance_mball_handles);
 	DRW_shgroup_uniform_vec3(grp, "screen_vecs[0]", DRW_viewport_screenvecs_get(), 2);
 
 	return grp;

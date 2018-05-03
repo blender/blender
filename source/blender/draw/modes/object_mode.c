@@ -1188,9 +1188,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Metaballs Handles */
-		struct Gwn_Batch *geom;
-		geom = DRW_cache_screenspace_circle_get();
-		stl->g_data->mball_handle = shgroup_instance_mball_handles(psl->non_meshes, geom);
+		stl->g_data->mball_handle = shgroup_instance_mball_handles(psl->non_meshes);
 	}
 
 	{
@@ -1329,10 +1327,31 @@ static void DRW_shgroup_mball_handles(OBJECT_StorageList *stl, Object *ob, ViewL
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 
+	float draw_scale_xform[3][4]; /* Matrix of Scale and Translation */
+	{
+		float scamat[3][3];
+		copy_m3_m4(scamat, ob->obmat);
+		/* Get the normalized inverse matrix to extract only
+		* the scale of Scamat */
+		float iscamat[3][3];
+		invert_m3_m3(iscamat, scamat);
+		normalize_m3(iscamat);
+		mul_m3_m3_post(scamat, iscamat);
+
+		copy_v3_v3(draw_scale_xform[0], scamat[0]);
+		copy_v3_v3(draw_scale_xform[1], scamat[1]);
+		copy_v3_v3(draw_scale_xform[2], scamat[2]);
+	}
+
 	for (MetaElem *ml = mb->elems.first; ml != NULL; ml = ml->next) {
 		/* draw radius */
-		BKE_mball_element_calc_scale_xform(ml->draw_scale_xform, ob->obmat, &ml->x);
-		DRW_shgroup_call_dynamic_add(stl->g_data->mball_handle, ml->draw_scale_xform, &ml->rad, color);
+		float world_pos[3];
+		mul_v3_m4v3(world_pos, ob->obmat, &ml->x);
+		draw_scale_xform[0][3] = world_pos[0];
+		draw_scale_xform[1][3] = world_pos[1];
+		draw_scale_xform[2][3] = world_pos[2];
+
+		DRW_shgroup_call_dynamic_add(stl->g_data->mball_handle, draw_scale_xform, &ml->rad, color);
 	}
 }
 
