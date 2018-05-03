@@ -410,7 +410,7 @@ static bool PE_create_shape_tree(PEData *data, Object *shapeob)
 		return false;
 	}
 	
-	return (bvhtree_from_mesh_looptri(&data->shape_bvh, dm, 0.0f, 4, 8) != NULL);
+	return (bvhtree_from_mesh_get(&data->shape_bvh, dm, BVHTREE_FROM_LOOPTRI, 4) != NULL);
 }
 
 static void PE_free_shape_tree(PEData *data)
