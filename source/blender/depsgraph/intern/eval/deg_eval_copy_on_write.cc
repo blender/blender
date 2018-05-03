@@ -63,6 +63,7 @@
 extern "C" {
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -426,6 +427,13 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			}
 			break;
 		}
+		case ID_AR:
+		{
+			const bArmature *armature_orig = (const bArmature *)id_orig;
+			bArmature *armature_cow = (bArmature *)id_cow;
+			armature_cow->edbo = armature_orig->edbo;
+			break;
+		}
 		case ID_ME:
 		{
 			/* For meshes we need to update edit_btmesh to make it to point
@@ -753,6 +761,12 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			 */
 			Object *ob_cow = (Object *)id_cow;
 			ob_cow->data = NULL;
+			break;
+		}
+		case ID_AR:
+		{
+			bArmature *armature_cow = (bArmature *)id_cow;
+			armature_cow->edbo = NULL;
 			break;
 		}
 		case ID_ME:
