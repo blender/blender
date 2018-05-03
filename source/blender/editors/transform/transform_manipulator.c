@@ -435,13 +435,11 @@ static void calc_tw_center(struct TransformBounds *tbounds, const float co[3])
 	minmax_v3v3_v3(tbounds->min, tbounds->max, co);
 	add_v3_v3(tbounds->center, co);
 
-#ifdef USE_AXIS_BOUNDS
 	for (int i = 0; i < 3; i++) {
 		const float d = dot_v3v3(tbounds->axis[i], co);
 		tbounds->axis_min[i] = min_ff(d, tbounds->axis_min[i]);
 		tbounds->axis_max[i] = max_ff(d, tbounds->axis_max[i]);
 	}
-#endif
 }
 
 static void protectflag_to_drawflags(short protectflag, short *drawflags)
@@ -609,11 +607,9 @@ int ED_transform_calc_manipulator_stats(
 	/* transform widget matrix */
 	unit_m4(rv3d->twmat);
 
-#ifdef USE_AXIS_BOUNDS
 	unit_m3(rv3d->tw_axis_matrix);
 	zero_v3(rv3d->tw_axis_min);
 	zero_v3(rv3d->tw_axis_max);
-#endif
 
 	rv3d->twdrawflag = 0xFFFF;
 
@@ -693,7 +689,6 @@ int ED_transform_calc_manipulator_stats(
 	INIT_MINMAX(tbounds->min, tbounds->max);
 	zero_v3(tbounds->center);
 
-#ifdef USE_AXIS_BOUNDS
 	copy_m3_m4(tbounds->axis, rv3d->twmat);
 	if (ob && ob->mode & OB_MODE_EDIT) {
 		float diff_mat[3][3];
@@ -708,7 +703,6 @@ int ED_transform_calc_manipulator_stats(
 		tbounds->axis_min[i] = +FLT_MAX;
 		tbounds->axis_max[i] = -FLT_MAX;
 	}
-#endif
 
 	if (is_gp_edit) {
 		float diff_mat[4][4];
@@ -1044,11 +1038,9 @@ int ED_transform_calc_manipulator_stats(
 		unit_m4(rv3d->twmat);
 	}
 	else {
-#ifdef USE_AXIS_BOUNDS
 		copy_v3_v3(rv3d->tw_axis_min, tbounds->axis_min);
 		copy_v3_v3(rv3d->tw_axis_max, tbounds->axis_max);
 		copy_m3_m3(rv3d->tw_axis_matrix, tbounds->axis);
-#endif
 	}
 
 	return totsel;
