@@ -493,6 +493,8 @@ cache_end:
 					Base *base = NULL;
 					EditBone *ebone;
 					base = ED_armature_base_and_ebone_from_select_buffer(bases, bases_len, hitresult, &ebone);
+					/* If this fails, selection code is setting the selection ID's incorrectly. */
+					BLI_assert(base && ebone);
 
 					int dep;
 					/* clicks on bone points get advantage */
