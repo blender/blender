@@ -210,6 +210,11 @@ void BLO_update_defaults_startup_blend(Main *bmain)
 		}
 
 		scene->r.ffcodecdata.audio_mixrate = 48000;
+		
+		/* set av sync by default */
+		printf("setting new default audio\n");
+		scene->audio.flag |= AUDIO_SYNC;
+		scene->flag &= ~SCE_FRAME_DROP;
 	}
 
 	for (FreestyleLineStyle *linestyle = bmain->linestyle.first; linestyle; linestyle = linestyle->id.next) {
