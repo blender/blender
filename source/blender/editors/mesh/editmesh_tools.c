@@ -290,27 +290,39 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 
 static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
-
 	const int iterations = RNA_int_get(op->ptr, "iterations");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	EDBM_op_init(em, &bmop, op,
-	             "unsubdivide verts=%hv iterations=%i", BM_ELEM_SELECT, iterations);
+		if ((em->bm->totvertsel == 0) &&
+		    (em->bm->totedgesel == 0) &&
+		    (em->bm->totfacesel == 0))
+		{
+			continue;
+		}
 
-	BMO_op_exec(em->bm, &bmop);
+		BMOperator bmop;
+		EDBM_op_init(em, &bmop, op,
+	               "unsubdivide verts=%hv iterations=%i", BM_ELEM_SELECT, iterations);
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
+		BMO_op_exec(em->bm, &bmop);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+			EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);  /* need to flush vert->face first */
+		}
+		EDBM_selectmode_flush(em);
+
+		EDBM_update_generic(em, true, true);
 	}
-
-	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
-		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);  /* need to flush vert->face first */
-	}
-	EDBM_selectmode_flush(em);
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
