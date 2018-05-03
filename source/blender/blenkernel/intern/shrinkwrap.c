@@ -437,8 +437,8 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 		}
 	}
 	else {
-		if (targ_tree = bvhtree_from_mesh_get(
-		        &treedata_stack.dmtreedata, calc->target, BVHTREE_FROM_LOOPTRI, 4))
+		if ((targ_tree = bvhtree_from_mesh_get(
+		             &treedata_stack.dmtreedata, calc->target, BVHTREE_FROM_LOOPTRI, 4)))
 		{
 			targ_callback = treedata_stack.dmtreedata.raycast_callback;
 			treeData = &treedata_stack.dmtreedata;
