@@ -3594,12 +3594,16 @@ class VIEW3D_PT_overlay(Panel):
         overlay = view.overlay
         shading = view.shading
         scene = context.scene
+        display_all = overlay.show_overlays
 
         col = layout.column()
         col.prop(overlay, "show_overlays")
         col.separator()
-
         col.prop(view, "show_world")
+
+        col = layout.column()
+        col.active = display_all
+        col.prop(overlay, "show_3dcursor")
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
             engine_type = {
@@ -3613,7 +3617,6 @@ class VIEW3D_PT_overlay(Panel):
             col.prop(view, "show_mode_shade_override")
 
         col = layout.column()
-        display_all = overlay.show_overlays
         col.active = display_all
         col.prop(view, "show_outline_selected")
         col.prop(view, "show_all_objects_origin")

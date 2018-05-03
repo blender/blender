@@ -1068,6 +1068,10 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							}
 						}
 					}
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->overlays |= V3D_OVERLAY_3DCURSOR;
+					}
 				}
 			}
 		}
