@@ -323,7 +323,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->gridsubdiv = 10;
 	v3d->drawtype = OB_SOLID;
 	v3d->drawtype_lighting = V3D_LIGHTING_STUDIO;
-	v3d->overlays = V3D_OVERLAY_3DCURSOR;
+	v3d->overlays = 0;
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;
 	

@@ -3582,7 +3582,7 @@ class VIEW3D_PT_overlay(Panel):
 
         col = layout.column()
         col.active = display_all
-        col.prop(overlay, "show_3dcursor")
+        col.prop(overlay, "show_cursor")
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
             engine_type = {
