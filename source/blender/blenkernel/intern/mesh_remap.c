@@ -862,7 +862,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			/* Here it's simpler to just allocate for all edges :/ */
 			float *weights = MEM_mallocN(sizeof(*weights) * (size_t)numedges_src, __func__);
 
-			bvhtree_from_mesh_edges(&treedata, dm_src, MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius), 2, 6);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES, 2);
 
 			for (i = 0; i < numedges_dst; i++) {
 				/* For each dst edge, we sample some rays from it (interpolated from its vertices)
@@ -916,8 +916,10 @@ void BKE_mesh_remap_calc_edges_from_dm(
 					interp_v3_v3v3_slerp_safe(tmp_no, v1_no, v2_no, fac);
 
 					while (n--) {
+						float radius = (ray_radius / w);
+						treedata.sphere_radius = radius;
 						if (mesh_remap_bvhtree_query_raycast(
-						        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
+						        &treedata, &rayhit, tmp_co, tmp_no, radius, max_dist, &hit_dist))
 						{
 							weights[rayhit.index] += w;
 							totweights += w;
