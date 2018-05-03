@@ -4851,52 +4851,65 @@ void MESH_OT_dissolve_mode(wmOperatorType *ot)
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
 	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 	const bool use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
 	const int delimit = RNA_enum_get(op->ptr, "delimit");
-
 	char dissolve_flag;
 
-	if (em->selectmode == SCE_SELECT_FACE) {
-		/* flush selection to tags and untag edges/verts with partially selected faces */
-		BMIter iter;
-		BMIter liter;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-		BMElem *ele;
-		BMFace *f;
-		BMLoop *l;
-
-		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		if ((bm->totvertsel == 0) &&
+		    (bm->totedgesel == 0) &&
+		    (bm->totfacesel == 0))
+		{
+			continue;
 		}
-		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
-		}
 
-		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-					BM_elem_flag_disable(l->v, BM_ELEM_TAG);
-					BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+		if (em->selectmode == SCE_SELECT_FACE) {
+			/* flush selection to tags and untag edges/verts with partially selected faces */
+			BMIter iter;
+			BMIter liter;
+
+			BMElem *ele;
+			BMFace *f;
+			BMLoop *l;
+
+			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+				BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+			}
+			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+			}
+
+			BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+					BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+						BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+						BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+					}
 				}
 			}
+
+			dissolve_flag = BM_ELEM_TAG;
+		}
+		else {
+			dissolve_flag = BM_ELEM_SELECT;
 		}
 
-		dissolve_flag = BM_ELEM_TAG;
-	}
-	else {
-		dissolve_flag = BM_ELEM_SELECT;
-	}
+		EDBM_op_call_and_selectf(
+		        em, op, "region.out", true,
+		        "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b delimit=%i",
+		        dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries, delimit);
 
-	EDBM_op_call_and_selectf(
-	            em, op, "region.out", true,
-	            "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b delimit=%i",
-	            dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries, delimit);
-
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
