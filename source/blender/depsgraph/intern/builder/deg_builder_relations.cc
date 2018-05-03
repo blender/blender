@@ -169,6 +169,16 @@ static bool object_particles_depends_on_time(Object *object)
 	return false;
 }
 
+static bool check_id_has_anim_component(ID *id)
+{
+	AnimData *adt = BKE_animdata_from_id(id);
+	if (adt == NULL) {
+		return false;
+	}
+	return (adt->action != NULL) ||
+	       (!BLI_listbase_is_empty(&adt->nla_tracks));
+}
+
 /* **** General purpose functions ****  */
 
 DepsgraphRelationBuilder::DepsgraphRelationBuilder(Main *bmain,
@@ -1886,6 +1896,11 @@ void DepsgraphRelationBuilder::build_nodetree(bNodeTree *ntree)
 	                                    DEG_NODE_TYPE_SHADING_PARAMETERS,
 	                                    DEG_OPCODE_MATERIAL_UPDATE);
 	add_relation(shading_parameters_key, shading_update_key, "NTree Shading Parameters");
+
+	if (check_id_has_anim_component(&ntree->id)) {
+		ComponentKey animation_key(&ntree->id, DEG_NODE_TYPE_ANIMATION);
+		add_relation(shading_parameters_key, animation_key, "NTree Shading Parameters");
+	}
 }
 
 /* Recursively build graph for material */
