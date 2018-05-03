@@ -67,6 +67,8 @@
 
 #include "DEG_depsgraph.h"
 
+#include "DRW_engine.h"
+
 #include "ED_datafiles.h"
 #include "ED_keyframes_draw.h"
 #include "ED_render.h"
@@ -491,6 +493,23 @@ static void init_matcap_icons(void)
 
 }
 
+static void init_studio_light_icons(void)
+{
+	/* dynamic allocation now, tucking datatoc pointers in DrawInfo */
+#define INIT_STUDIOLIGHT_ICON(icon_id, studiolight_id)                                         \
+	{                                                                                          \
+		DrawInfo *di;                                                                          \
+		di = def_internal_icon(NULL, icon_id, 0, 0, 96, ICON_TYPE_BUFFER);                     \
+		di->data.buffer.image->rect = WORKBENCH_generate_studiolight_preview(studiolight_id, 96); \
+	} (void)0
+
+	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_01, 0);
+	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_02, 1);
+	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_03, 2);
+	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_04, 3);
+	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_05, 4);
+
+}
 static void init_internal_icons(void)
 {
 //	bTheme *btheme = UI_GetTheme();
@@ -837,6 +856,7 @@ void UI_icons_init(int first_dyn_id)
 	init_internal_icons();
 	init_brush_icons();
 	init_matcap_icons();
+	init_studio_light_icons();
 #endif
 }
 

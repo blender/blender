@@ -3546,36 +3546,15 @@ class VIEW3D_PT_shading(Panel):
 
         if shading.type == 'SOLID':
             col.separator()
-            col.row().prop(shading, "light", expand=True)
+            col.row().prop(shading, "single_color_mode", expand=True)
 
             col.separator()
-            col.row().prop(shading, "single_color_mode", expand=True)
-            col.prop(shading, "show_object_overlap")
-
+            col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
-                # TODO: don't store these settings in the scene
-                scene = context.scene
-                props = scene.layer_properties['BLENDER_WORKBENCH']
+                col.row().template_icon_view(shading, "studiolight")
 
-                col.separator()
-
-                sub = col.column()
-                sub.label(text="Left/Right:")
-                row = sub.row(align=True)
-                row.prop(props, "diffuse_light_x_neg", text="")
-                row.prop(props, "diffuse_light_x_pos", text="")
-
-                sub = col.column()
-                sub.label(text="Up/Down:")
-                row = sub.row(align=True)
-                row.prop(props, "diffuse_light_y_neg", text="")
-                row.prop(props, "diffuse_light_y_pos", text="")
-
-                sub = col.column()
-                sub.label(text="Front/Back:")
-                row = sub.row(align=True)
-                row.prop(props, "diffuse_light_z_neg", text="")
-                row.prop(props, "diffuse_light_z_pos", text="")
+            col.separator()
+            col.prop(shading, "show_object_overlap")
 
 
 class VIEW3D_PT_overlay(Panel):

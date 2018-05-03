@@ -257,10 +257,6 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DRWShadingGroup *grp;
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, COLLECTION_MODE_NONE, RE_engine_id_BLENDER_WORKBENCH);
-
 	const DRWContextState *DCS = DRW_context_state_get();
 
 	wpd->material_hash = BLI_ghash_ptr_new(__func__);
@@ -269,10 +265,12 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	if (v3d) {
 		wpd->drawtype_lighting = v3d->drawtype_lighting;
 		wpd->drawtype_options = v3d->drawtype_options;
+		wpd->drawtype_studiolight = v3d->drawtype_studiolight;
 	}
 	else {
 		wpd->drawtype_lighting = V3D_LIGHTING_STUDIO;
 		wpd->drawtype_options = 0;
+		wpd->drawtype_studiolight = 0;
 	}
 
 	select_deferred_shaders(wpd);
@@ -281,12 +279,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		WORKBENCH_UBO_World *wd = &wpd->world_data;
 		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD:TH_HIGH_GRAD, wd->background_color_low);
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
-		copy_v3_v3(wd->diffuse_light_x_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_x_pos"));
-		copy_v3_v3(wd->diffuse_light_x_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_x_neg"));
-		copy_v3_v3(wd->diffuse_light_y_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_y_pos"));
-		copy_v3_v3(wd->diffuse_light_y_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_y_neg"));
-		copy_v3_v3(wd->diffuse_light_z_pos, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_z_pos"));
-		copy_v3_v3(wd->diffuse_light_z_neg, BKE_collection_engine_property_value_get_float_array(props, "diffuse_light_z_neg"));
+		studiolight_update_world(wpd->drawtype_studiolight, wd);
 
 		psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR);
 		grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);

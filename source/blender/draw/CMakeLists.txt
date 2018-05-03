@@ -107,6 +107,7 @@ set(SRC
 	engines/eevee/eevee_volumes.c
 	engines/workbench/workbench_engine.c
 	engines/workbench/workbench_materials.c
+	engines/workbench/workbench_studiolight.c
 	engines/workbench/solid_mode.c
 	engines/external/external_engine.c
 
