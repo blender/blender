@@ -547,7 +547,7 @@ ID *deg_expand_copy_on_write_datablock(const Depsgraph *depsgraph,
 	 */
 	deg_tag_copy_on_write_id(id_cow, id_orig);
 	/* Perform remapping of the nodes. */
-	RemapCallbackUserData user_data;
+	RemapCallbackUserData user_data = {NULL};
 	user_data.depsgraph = depsgraph;
 	user_data.node_builder = node_builder;
 	user_data.create_placeholders = create_placeholders;
@@ -586,6 +586,13 @@ static void deg_update_copy_on_write_animation(const Depsgraph *depsgraph,
 	                     id_node->id_orig->name,
 	                     id_node->id_cow);
 	BKE_animdata_copy_id(NULL, id_node->id_cow, id_node->id_orig, false, false);
+	RemapCallbackUserData user_data = {NULL};
+	user_data.depsgraph = depsgraph;
+	BKE_library_foreach_ID_link(NULL,
+	                            id_node->id_cow,
+	                            foreach_libblock_remap_callback,
+	                            (void *)&user_data,
+	                            IDWALK_NOP);
 }
 
 ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,

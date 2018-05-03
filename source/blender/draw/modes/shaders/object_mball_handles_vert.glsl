@@ -4,8 +4,6 @@
  * Note that if the stiffness is zero, it assumes the scale is directly multiplied by the radius */
 
 
- #define M_PI_2     1.570796f   // pi/2
-
 uniform mat4 ViewProjectionMatrix;
 uniform vec3 screen_vecs[2];
 

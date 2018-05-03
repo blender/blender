@@ -80,6 +80,7 @@
 #include "BKE_world.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 #include "DEG_depsgraph_build.h"
 
 #include "IMB_imbuf.h"
@@ -155,6 +156,7 @@ typedef struct ShaderPreview {
 	short *stop, *do_update;
 	
 	Scene *scene;
+	Depsgraph *depsgraph;
 	ID *id;
 	ID *parent;
 	MTex *slot;
@@ -184,6 +186,7 @@ typedef struct IconPreviewSize {
 typedef struct IconPreview {
 	Main *bmain;
 	Scene *scene;
+	Depsgraph *depsgraph;
 	void *owner;
 	ID *id;
 	ListBase sizes;
@@ -679,6 +682,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	char name[32];
 	int sizex;
 	Main *pr_main = sp->pr_main;
+	ID *id_eval = DEG_get_evaluated_id(sp->depsgraph, id);
 	
 	/* in case of split preview, use border render */
 	if (split) {
@@ -698,7 +702,7 @@ static void shader_preview_render(ShaderPreview *sp, ID *id, int split, int firs
 	}
 	
 	/* get the stuff from the builtin preview dbase */
-	sce = preview_prepare_scene(sp->bmain, sp->scene, id, idtype, sp);
+	sce = preview_prepare_scene(sp->bmain, sp->scene, id_eval, idtype, sp);
 	if (sce == NULL) return;
 	
 	if (!split || first) sprintf(name, "Preview %p", sp->owner);
@@ -1060,6 +1064,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 
 		/* construct shader preview from image size and previewcustomdata */
 		sp->scene = ip->scene;
+		sp->depsgraph = ip->depsgraph;
 		sp->owner = ip->owner;
 		sp->sizex = cur_size->sizex;
 		sp->sizey = cur_size->sizey;
@@ -1172,6 +1177,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	/* customdata for preview thread */
 	ip->bmain = CTX_data_main(C);
 	ip->scene = CTX_data_scene(C);
+	ip->depsgraph = CTX_data_depsgraph(C);
 	ip->owner = owner;
 	ip->id = id;
 
@@ -1216,6 +1222,7 @@ void ED_preview_shader_job(const bContext *C, void *owner, ID *id, ID *parent, M
 
 	/* customdata for preview thread */
 	sp->scene = scene;
+	sp->depsgraph = CTX_data_depsgraph(C);
 	sp->owner = owner;
 	sp->sizex = sizex;
 	sp->sizey = sizey;

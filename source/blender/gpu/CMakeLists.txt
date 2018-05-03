@@ -181,7 +181,6 @@ data_to_c_simple(shaders/gpu_shader_instance_camera_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_instance_distance_line_vert.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_instance_edges_variying_color_geom.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_instance_edges_variying_color_vert.glsl SRC)
-data_to_c_simple(shaders/gpu_shader_instance_mball_handles_vert.glsl SRC)
 
 data_to_c_simple(shaders/gpu_shader_3D_groundline_geom.glsl SRC)
 data_to_c_simple(shaders/gpu_shader_3D_groundpoint_vert.glsl SRC)

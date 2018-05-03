@@ -258,7 +258,7 @@ typedef struct View3D {
 	/* drawtype options (lighting, random) used for drawtype == OB_SOLID */
 	short drawtype_lighting;
 	short drawtype_options;
-	short pad5;
+	short drawtype_studiolight;
 
 	int overlays;
 	int pad6;

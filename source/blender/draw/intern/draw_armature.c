@@ -1195,7 +1195,8 @@ static void draw_bone_envelope(
 		rad_head = (pchan->parent && (boneflag & BONE_CONNECTED)) ? &pchan->parent->bone->rad_tail : &pchan->bone->rad_head;
 	}
 
-	if ((boneflag & BONE_NO_DEFORM) == 0 &&
+	if ((select_id == -1) &&
+	    (boneflag & BONE_NO_DEFORM) == 0 &&
 	    ((boneflag & BONE_SELECTED) || (eBone && (boneflag & (BONE_ROOTSEL | BONE_TIPSEL)))))
 	{
 		drw_shgroup_bone_envelope_distance(BONE_VAR(eBone, pchan, disp_mat), col_white, rad_head, rad_tail, distance);

@@ -73,6 +73,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUShader *composite_sh;
 	short drawtype_lighting;
 	short drawtype_options;
+	short drawtype_studiolight;
 	struct GPUUniformBuffer *world_ubo;
 	WORKBENCH_UBO_World world_data;
 } WORKBENCH_PrivateData; /* Transient data */
@@ -112,5 +113,8 @@ void workbench_materials_draw_scene(WORKBENCH_Data *vedata);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
 void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);
 void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
+
+/* workbench_studiolight.c */
+void studiolight_update_world(int studio_light, WORKBENCH_UBO_World* wd);
 
 #endif

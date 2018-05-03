@@ -107,6 +107,7 @@ set(SRC
 	engines/eevee/eevee_volumes.c
 	engines/workbench/workbench_engine.c
 	engines/workbench/workbench_materials.c
+	engines/workbench/workbench_studiolight.c
 	engines/workbench/solid_mode.c
 	engines/external/external_engine.c
 
@@ -257,6 +258,7 @@ data_to_c_simple(modes/shaders/object_outline_prepass_frag.glsl SRC)
 data_to_c_simple(modes/shaders/object_grid_frag.glsl SRC)
 data_to_c_simple(modes/shaders/object_grid_vert.glsl SRC)
 data_to_c_simple(modes/shaders/object_lightprobe_grid_vert.glsl SRC)
+data_to_c_simple(modes/shaders/object_mball_handles_vert.glsl SRC)
 data_to_c_simple(modes/shaders/object_particle_prim_vert.glsl SRC)
 data_to_c_simple(modes/shaders/object_particle_dot_vert.glsl SRC)
 data_to_c_simple(modes/shaders/object_particle_dot_frag.glsl SRC)
