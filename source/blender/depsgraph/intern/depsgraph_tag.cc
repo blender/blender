@@ -496,7 +496,7 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 	/* Make sure objects are up to date. */
 	foreach (DEG::IDDepsNode *id_node, graph->id_nodes) {
 		const ID_Type id_type = GS(id_node->id_orig->name);
-		int flag = 0;
+		int flag = DEG_TAG_TIME | DEG_TAG_COPY_ON_WRITE;
 		/* We only tag components which needs an update. Tagging everything is
 		 * not a good idea because that might reset particles cache (or any
 		 * other type of cache).
@@ -504,7 +504,7 @@ void deg_graph_on_visible_update(Main *bmain, Depsgraph *graph)
 		 * TODO(sergey): Need to generalize this somehow.
 		 */
 		if (id_type == ID_OB) {
-			flag |= OB_RECALC_OB | OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE;
+			flag |= OB_RECALC_OB | OB_RECALC_DATA;
 		}
 		deg_graph_id_tag_update(bmain, graph, id_node->id_orig, flag);
 	}
