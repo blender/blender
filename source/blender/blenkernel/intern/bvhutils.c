@@ -709,7 +709,7 @@ BVHTree *bvhtree_from_editmesh_edges(
 }
 
 /* Builds a bvh tree where nodes are the edges of the given dm */
-BVHTree *bvhtree_from_mesh_edges(
+static BVHTree *bvhtree_from_mesh_edges(
         BVHTreeFromMesh *data, DerivedMesh *dm,
         float epsilon, int tree_type, int axis)
 {
