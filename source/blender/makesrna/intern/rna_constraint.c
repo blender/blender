@@ -535,7 +535,7 @@ static void rna_def_constraint_target_common(StructRNA *srna)
 
 	prop = RNA_def_property(srna, "subtarget", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "subtarget");
-	RNA_def_property_ui_text(prop, "Sub-Target", "Only Armature bones are supported currently");
+	RNA_def_property_ui_text(prop, "Sub-Target", "Armature bone, mesh or lattice vertex group, ...");
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_dependency_update");
 }
 
