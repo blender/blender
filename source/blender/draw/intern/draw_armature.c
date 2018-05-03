@@ -293,7 +293,7 @@ static void drw_shgroup_bone_envelope_head_wire(
 	if (g_data.bone_point_wire == NULL) {
 		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.pass_bone_wire);
 	}
-	
+
 	float head_sphere[4] = {0.0f, 0.0f, 0.0f, 1.0f}, tail_sphere[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);

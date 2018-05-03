@@ -380,7 +380,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 	if (ob->type == OB_MESH) {
 		workbench_cache_populate_particles(vedata, props, ob);
 	}
-	
+
 	WORKBENCH_MaterialData *material;
 	if (ELEM(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT)) {
 		const DRWContextState *draw_ctx = DRW_context_state_get();
@@ -399,7 +399,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 					DRW_shgroup_call_object_add(material->shgrp, geom, ob);
 				}
 			}
-		} 
+		}
 		else { /* MATERIAL colors */
 			const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
 			struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
