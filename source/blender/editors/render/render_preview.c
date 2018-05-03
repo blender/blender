@@ -186,6 +186,7 @@ typedef struct IconPreviewSize {
 typedef struct IconPreview {
 	Main *bmain;
 	Scene *scene;
+	Depsgraph *depsgraph;
 	void *owner;
 	ID *id;
 	ListBase sizes;
@@ -1063,6 +1064,7 @@ static void icon_preview_startjob_all_sizes(void *customdata, short *stop, short
 
 		/* construct shader preview from image size and previewcustomdata */
 		sp->scene = ip->scene;
+		sp->depsgraph = ip->depsgraph;
 		sp->owner = ip->owner;
 		sp->sizex = cur_size->sizex;
 		sp->sizey = cur_size->sizey;
@@ -1175,6 +1177,7 @@ void ED_preview_icon_job(const bContext *C, void *owner, ID *id, unsigned int *r
 	/* customdata for preview thread */
 	ip->bmain = CTX_data_main(C);
 	ip->scene = CTX_data_scene(C);
+	ip->depsgraph = CTX_data_depsgraph(C);
 	ip->owner = owner;
 	ip->id = id;
 
