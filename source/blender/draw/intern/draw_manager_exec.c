@@ -461,6 +461,8 @@ static void draw_clipping_setup_from_view(void)
 		mul_m4_v3(viewinv, bbox.vec[i]);
 	}
 
+	memcpy(&DST.clipping.frustum_corners, &bbox, sizeof(BoundBox));
+
 	/* Compute clip planes using the world space frustum corners. */
 	for (int p = 0; p < 6; p++) {
 		int q, r;
@@ -638,6 +640,22 @@ bool DRW_culling_box_test(BoundBox *bbox)
 	}
 
 	return true;
+}
+
+/* Return True if the current view frustum is inside or intersect the given plane */
+bool DRW_culling_plane_test(float plane[4])
+{
+	draw_clipping_setup_from_view();
+
+	/* Test against the 8 frustum corners. */
+	for (int c = 0; c < 8; c++) {
+		float dist = plane_point_side_v3(plane, DST.clipping.frustum_corners.vec[c]);
+		if (dist < 0.0f) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /** \} */

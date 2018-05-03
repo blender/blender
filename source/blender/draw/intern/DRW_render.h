@@ -462,6 +462,7 @@ void DRW_state_clip_planes_reset(void);
 /* Culling, return true if object is inside view frustum. */
 bool DRW_culling_sphere_test(BoundSphere *bsphere);
 bool DRW_culling_box_test(BoundBox *bbox);
+bool DRW_culling_plane_test(float plane[4]);
 
 /* Selection */
 void DRW_select_load_id(unsigned int id);

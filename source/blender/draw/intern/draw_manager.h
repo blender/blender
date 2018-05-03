@@ -320,6 +320,7 @@ typedef struct DRWManager {
 
 	struct {
 		float frustum_planes[6][4];
+		BoundBox frustum_corners;
 		BoundSphere frustum_bsphere;
 		bool updated;
 	} clipping;
