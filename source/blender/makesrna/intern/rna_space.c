@@ -2201,6 +2201,14 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 		{V3D_DRAWOPTION_RANDOMIZE,      "RANDOM",   0, "Random",   "Show random object color"},
 		{0, NULL, 0, NULL, NULL}
 	};
+	static const EnumPropertyItem studio_lighting_items[] = {
+		{0, "01", ICON_STUDIOLIGHT_01, "", ""},
+		{1, "02", ICON_STUDIOLIGHT_02, "", ""},
+		{2, "03", ICON_STUDIOLIGHT_03, "", ""},
+		{3, "04", ICON_STUDIOLIGHT_04, "", ""},
+		{4, "05", ICON_STUDIOLIGHT_05, "", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "View3DShading", NULL);
 	RNA_def_struct_sdna(srna, "View3D");
@@ -2226,6 +2234,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_OBJECT_OVERLAP);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Object Overlap", "Show Object Overlap");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
+
+	prop = RNA_def_property(srna, "studiolight", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "drawtype_studiolight");
+	RNA_def_property_enum_items(prop, studio_lighting_items);
+	RNA_def_property_ui_text(prop, "Studiolight", "Studio lighting setup");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "single_color_mode", PROP_ENUM, PROP_NONE);

@@ -58,20 +58,7 @@ static void workbench_view_layer_settings_create(RenderEngine *UNUSED(engine), I
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-
-	const float diffuse_x_pos[3] = {1.0,  0.8,   0.6};
-	const float diffuse_x_neg[3] = {1.0,  0.6,   0.6};
-	const float diffuse_y_pos[3] = {0.9,  0.9,   1.0};
-	const float diffuse_y_neg[3] = {0.05, 0.025, 0.025};
-	const float diffuse_z_pos[3] = {0.8,  0.8,   0.75};
-	const float diffuse_z_neg[3] = {1.0,  0.95,  0.8};
-
-	BKE_collection_engine_property_add_float_array(props, "diffuse_light_x_pos", diffuse_x_pos, 3);
-	BKE_collection_engine_property_add_float_array(props, "diffuse_light_x_neg", diffuse_x_neg, 3);
-	BKE_collection_engine_property_add_float_array(props, "diffuse_light_y_pos", diffuse_y_pos, 3);
-	BKE_collection_engine_property_add_float_array(props, "diffuse_light_y_neg", diffuse_y_neg, 3);
-	BKE_collection_engine_property_add_float_array(props, "diffuse_light_z_pos", diffuse_z_pos, 3);
-	BKE_collection_engine_property_add_float_array(props, "diffuse_light_z_neg", diffuse_z_neg, 3);
+	UNUSED_VARS_NDEBUG(props);
 }
 
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */
