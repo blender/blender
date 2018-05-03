@@ -92,8 +92,6 @@
 
 #include "DEG_depsgraph_query.h"
 
-#define USE_AXIS_BOUNDS
-
 /* return codes for select, and drawing flags */
 
 #define MAN_TRANS_X		(1 << 0)
@@ -171,17 +169,6 @@ typedef struct ManipulatorGroup {
 
 	struct wmManipulator *manipulators[MAN_AXIS_LAST];
 } ManipulatorGroup;
-
-struct TransformBounds {
-	float center[3];		/* Center for transform widget. */
-	float min[3], max[3];	/* Boundbox of selection for transform widget. */
-
-#ifdef USE_AXIS_BOUNDS
-	/* Normalized axis */
-	float axis[3][3];
-	float axis_min[3], axis_max[3];
-#endif
-};
 
 /* -------------------------------------------------------------------- */
 /** \name Utilities
@@ -599,7 +586,7 @@ bool gimbal_axis(Object *ob, float gmat[3][3])
 
 /* centroid, boundbox, of selection */
 /* returns total items selected */
-static int calc_manipulator_stats(
+int ED_transform_calc_manipulator_stats(
         const bContext *C, bool use_only_center,
         struct TransformBounds *tbounds)
 {
@@ -1261,7 +1248,7 @@ static int manipulator_modal(
 	struct TransformBounds tbounds;
 
 
-	if (calc_manipulator_stats(C, true, &tbounds)) {
+	if (ED_transform_calc_manipulator_stats(C, true, &tbounds)) {
 		manipulator_prepare_mat(C, v3d, rv3d, &tbounds);
 		WM_manipulator_set_matrix_location(widget, rv3d->twmat[3]);
 	}
@@ -1421,7 +1408,7 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 	struct TransformBounds tbounds;
 
 	/* skip, we don't draw anything anyway */
-	if ((man->all_hidden = (calc_manipulator_stats(C, true, &tbounds) == 0)))
+	if ((man->all_hidden = (ED_transform_calc_manipulator_stats(C, true, &tbounds) == 0)))
 		return;
 
 	manipulator_prepare_mat(C, v3d, rv3d, &tbounds);
@@ -1653,7 +1640,7 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmManipulatorGroup
 
 	struct TransformBounds tbounds;
 
-	if ((calc_manipulator_stats(C, false, &tbounds) == 0) ||
+	if ((ED_transform_calc_manipulator_stats(C, false, &tbounds) == 0) ||
 	    equals_v3v3(rv3d->tw_axis_min, rv3d->tw_axis_max))
 	{
 		WM_manipulator_set_flag(mpr, WM_MANIPULATOR_HIDDEN, true);
