@@ -163,7 +163,7 @@ static ID *override_static_create_from(Main *bmain, ID *reference_id)
 	id_us_min(local_id);
 
 	BKE_override_static_init(local_id, reference_id);
-	local_id->flag |= STATICOVERRIDE_AUTO;
+	local_id->override_static->flag |= STATICOVERRIDE_AUTO;
 
 	return local_id;
 }
