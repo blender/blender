@@ -277,13 +277,6 @@ void applyProject(TransInfo *t)
 
 		FOREACH_TRANS_DATA_CONTAINER(t, tc) {
 			TransData *td = tc->data;
-
-			float imat[4][4];
-			if (t->flag & (T_EDIT | T_POSE)) {
-				Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-				invert_m4_m4(imat, ob->obmat);
-			}
-
 			for (i = 0; i < tc->data_len; i++, td++) {
 				float iloc[3], loc[3], no[3];
 				float mval_fl[2];
@@ -299,9 +292,8 @@ void applyProject(TransInfo *t)
 					continue;
 
 				copy_v3_v3(iloc, td->loc);
-				if (t->flag & (T_EDIT | T_POSE)) {
-					Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-					mul_m4_v3(ob->obmat, iloc);
+				if (tc->use_local_mat) {
+					mul_m4_v3(tc->mat, iloc);
 				}
 				else if (t->flag & T_OBJECT) {
 					BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
@@ -314,8 +306,8 @@ void applyProject(TransInfo *t)
 					        loc, no))
 					{
 #if 0
-						if (t->flag & (T_EDIT | T_POSE)) {
-							mul_m4_v3(imat, loc);
+						if (tc->use_local_mat) {
+							mul_m4_v3(tc->imat, loc);
 						}
 #endif
 
@@ -352,8 +344,6 @@ void applyGridAbsolute(TransInfo *t)
 {
 	float grid_size = 0.0f;
 	GearsType grid_action;
-	float (*obmat)[4] = NULL;
-	bool use_obmat = false;
 	int i;
 	
 	if (!(activeSnap(t) && (ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID))))
@@ -375,12 +365,6 @@ void applyGridAbsolute(TransInfo *t)
 	FOREACH_TRANS_DATA_CONTAINER(t, tc) {
 		TransData *td;
 
-		if (t->flag & (T_EDIT | T_POSE)) {
-			Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-			obmat = ob->obmat;
-			use_obmat = true;
-		}
-
 		for (i = 0, td = tc->data; i < tc->data_len; i++, td++) {
 			float iloc[3], loc[3], tvec[3];
 
@@ -394,8 +378,8 @@ void applyGridAbsolute(TransInfo *t)
 				continue;
 
 			copy_v3_v3(iloc, td->loc);
-			if (use_obmat) {
-				mul_m4_v3(obmat, iloc);
+			if (tc->use_local_mat) {
+				mul_m4_v3(tc->mat, iloc);
 			}
 			else if (t->flag & T_OBJECT) {
 				BKE_object_eval_transform_all(t->depsgraph, t->scene, td->ob);
@@ -1093,17 +1077,13 @@ static void TargetSnapMedian(TransInfo *t)
 		t->tsnap.snapTarget[2] = 0;
 
 		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			Object *ob_xform = NULL;
-			if (t->flag & (T_EDIT | T_POSE)) {
-				ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
-			}
 			TransData *td = tc->data;
 			int i;
 			for (i = 0; i < tc->data_len && td->flag & TD_SELECTED; i++, td++) {
 				/* TODO(campbell): perform the global transformation once per TransDataContainer */
-				if (ob_xform) {
+				if (tc->use_local_mat) {
 					float v[3];
-					mul_v3_m4v3(v, ob_xform->obmat, td->center);
+					mul_v3_m4v3(v, tc->mat, td->center);
 					add_v3_v3(t->tsnap.snapTarget, v);
 				}
 				else {
@@ -1187,9 +1167,8 @@ static void TargetSnapClosest(TransInfo *t)
 
 					copy_v3_v3(loc, td->center);
 
-					if (t->flag & (T_EDIT | T_POSE)) {
-						Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-						mul_m4_v3(ob->obmat, loc);
+					if (tc->use_local_mat) {
+						mul_m4_v3(tc->mat, loc);
 					}
 
 					dist = t->tsnap.distance(t, loc, t->tsnap.snapPoint);
