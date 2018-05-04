@@ -183,7 +183,7 @@ bool BKE_pose_channel_in_IK_chain(struct Object *ob, struct bPoseChannel *pchan)
 
 /* clears BONE_UNKEYED flags for frame changing */
 // XXX to be deprecated for a more general solution in animsys...
-void framechange_poses_clear_unkeyed(void);
+void framechange_poses_clear_unkeyed(struct Main *bmain);
 
 /* Bone Groups API --------------------- */	
 
