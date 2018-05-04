@@ -1337,6 +1337,9 @@ void DepsgraphNodeBuilder::build_compositor(Scene *scene)
 
 void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 {
+	if (built_map_.checkIsBuiltAndTag(gpd)) {
+		return;
+	}
 	ID *gpd_id = &gpd->id;
 
 	/* TODO(sergey): what about multiple users of same datablock? This should
@@ -1351,6 +1354,9 @@ void DepsgraphNodeBuilder::build_gpencil(bGPdata *gpd)
 
 void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 {
+	if (built_map_.checkIsBuiltAndTag(cache_file)) {
+		return;
+	}
 	ID *cache_file_id = &cache_file->id;
 	/* Animation, */
 	build_animdata(cache_file_id);
@@ -1361,6 +1367,9 @@ void DepsgraphNodeBuilder::build_cachefile(CacheFile *cache_file)
 
 void DepsgraphNodeBuilder::build_mask(Mask *mask)
 {
+	if (built_map_.checkIsBuiltAndTag(mask)) {
+		return;
+	}
 	ID *mask_id = &mask->id;
 	Mask *mask_cow = get_cow_datablock(mask);
 	/* F-Curve based animation. */
@@ -1379,6 +1388,9 @@ void DepsgraphNodeBuilder::build_mask(Mask *mask)
 
 void DepsgraphNodeBuilder::build_movieclip(MovieClip *clip)
 {
+	if (built_map_.checkIsBuiltAndTag(clip)) {
+		return;
+	}
 	ID *clip_id = &clip->id;
 	MovieClip *clip_cow = get_cow_datablock(clip);
 	/* Animation. */
