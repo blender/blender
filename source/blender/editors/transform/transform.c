@@ -3055,11 +3055,11 @@ static void Bend(TransInfo *t, const int UNUSED(mval[2]))
 		float warp_end_radius_local[3];
 		float pivot_local[3];
 
-		if (t->flag & T_EDIT) {
-			sub_v3_v3v3(warp_sta_local, data->warp_sta, tc->obedit->obmat[3]);
-			sub_v3_v3v3(warp_end_local, data->warp_end, tc->obedit->obmat[3]);
-			sub_v3_v3v3(warp_end_radius_local, warp_end_radius_global, tc->obedit->obmat[3]);
-			sub_v3_v3v3(pivot_local, pivot_global, tc->obedit->obmat[3]);
+		if (tc->use_local_mat) {
+			sub_v3_v3v3(warp_sta_local, data->warp_sta, tc->mat[3]);
+			sub_v3_v3v3(warp_end_local, data->warp_end, tc->mat[3]);
+			sub_v3_v3v3(warp_end_radius_local, warp_end_radius_global, tc->mat[3]);
+			sub_v3_v3v3(pivot_local, pivot_global, tc->mat[3]);
 		}
 		else {
 			copy_v3_v3(warp_sta_local, data->warp_sta);
@@ -3855,18 +3855,14 @@ static void ElementRotation_ex(TransInfo *t, TransDataContainer *tc, TransData *
 	 * has been computed, it has to be converted back into the bone's space.
 	 */
 	else if (t->flag & T_POSE) {
-		float pmtx[3][3], imtx[3][3];
-		
 		// Extract and invert armature object matrix
-		copy_m3_m4(pmtx, tc->poseobj->obmat);
-		invert_m3_m3(imtx, pmtx);
-		
+
 		if ((td->flag & TD_NO_LOC) == 0) {
 			sub_v3_v3v3(vec, td->center, center);
 			
-			mul_m3_v3(pmtx, vec);   // To Global space
+			mul_m3_v3(tc->mat3, vec);   // To Global space
 			mul_m3_v3(mat, vec);        // Applying rotation
-			mul_m3_v3(imtx, vec);   // To Local space
+			mul_m3_v3(tc->imat3, vec);  // To Local space
 			
 			add_v3_v3(vec, center);
 			/* vec now is the location where the object has to be */
@@ -3878,11 +3874,11 @@ static void ElementRotation_ex(TransInfo *t, TransDataContainer *tc, TransData *
 				/* do nothing */
 			}
 			else if (td->flag & TD_PBONE_LOCAL_MTX_C) {
-				mul_m3_v3(pmtx, vec);   // To Global space
+				mul_m3_v3(tc->mat3, vec);        // To Global space
 				mul_m3_v3(td->ext->l_smtx, vec); // To Pose space (Local Location)
 			}
 			else {
-				mul_m3_v3(pmtx, vec);   // To Global space
+				mul_m3_v3(tc->mat3, vec); // To Global space
 				mul_m3_v3(td->smtx, vec); // To Pose space
 			}
 
@@ -4441,9 +4437,8 @@ static void applyTranslationValue(TransInfo *t, const float vec[3])
 		if (apply_snap_align_rotation) {
 			copy_v3_v3(pivot, t->tsnap.snapTarget);
 			/* The pivot has to be in local-space (see T49494) */
-			if (t->flag & (T_EDIT | T_POSE)) {
-				Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-				mul_m4_v3(ob->imat, pivot);
+			if (tc->use_local_mat) {
+				mul_m4_v3(tc->imat, pivot);
 			}
 		}
 

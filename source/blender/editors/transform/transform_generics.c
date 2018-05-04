@@ -1105,8 +1105,6 @@ void drawLine(TransInfo *t, const float center[3], const float dir[3], char axis
 		
 		gpuPushMatrix();
 
-		// if (t->obedit) gpuLoadMatrix(t->obedit->obmat); // sets opengl viewing
-
 		copy_v3_v3(v3, dir);
 		mul_v3_fl(v3, v3d->far);
 		
@@ -1187,12 +1185,25 @@ void initTransDataContainers_FromObjectData(TransInfo *t)
 			TransDataContainer *tc = &t->data_container[i];
 			if (object_mode & OB_MODE_EDIT) {
 				tc->obedit = objects[i];
-				copy_m3_m4(tc->obedit_mat, tc->obedit->obmat);
-				normalize_m3(tc->obedit_mat);
+				/* Check needed for UV's */
+				if ((t->flag & T_2D_EDIT) == 0) {
+					tc->use_local_mat = true;
+				}
 			}
 			else if (object_mode & OB_MODE_POSE) {
 				tc->poseobj = objects[i];
+				tc->use_local_mat = true;
 			}
+
+			if (tc->use_local_mat) {
+				BLI_assert((t->flag & T_2D_EDIT) == 0);
+				copy_m4_m4(tc->mat, objects[i]->obmat);
+				copy_m3_m4(tc->mat3, tc->mat);
+				invert_m4_m4(tc->imat, tc->mat);
+				invert_m3_m3(tc->imat3, tc->mat3);
+				normalize_m3_m3(tc->mat3_unit, tc->mat3);
+			}
+			/* Otherwise leave as zero. */
 		}
 		MEM_freeN(objects);
 	}
@@ -1766,16 +1777,11 @@ void calculateCenterLocal(
 {
 	/* setting constraint center */
 	/* note, init functions may over-ride t->center */
-	if (t->flag & (T_EDIT | T_POSE)) {
-		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-			float obinv[4][4];
-			Object *ob = tc->obedit ? tc->obedit : tc->poseobj;
-			invert_m4_m4(obinv, ob->obmat);
-			mul_v3_m4v3(tc->center_local, obinv, center_global);
+	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		if (tc->use_local_mat) {
+			mul_v3_m4v3(tc->center_local, tc->imat, center_global);
 		}
-	}
-	else {
-		FOREACH_TRANS_DATA_CONTAINER (t, tc) {
+		else {
 			copy_v3_v3(tc->center_local, center_global);
 		}
 	}
@@ -1865,14 +1871,13 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
 	int total = 0;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		Object *ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
 		int i;
 		for (i = 0; i < tc->data_len; i++) {
 			if (tc->data[i].flag & TD_SELECTED) {
 				if (!(tc->data[i].flag & TD_NOCENTER)) {
-					if (ob_xform) {
+					if (tc->use_local_mat) {
 						float v[3];
-						mul_v3_m4v3(v, ob_xform->obmat, tc->data[i].center);
+						mul_v3_m4v3(v, tc->mat, tc->data[i].center);
 						add_v3_v3(partial, v);
 					}
 					else {
@@ -1896,14 +1901,13 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
 	int i;
 	bool is_first = true;
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		Object *ob_xform = tc->obedit ? tc->obedit : tc->poseobj;
 		for (i = 0; i < tc->data_len; i++) {
 			if (is_first == false) {
 				if (tc->data[i].flag & TD_SELECTED) {
 					if (!(tc->data[i].flag & TD_NOCENTER)) {
-						if (ob_xform) {
+						if (tc->use_local_mat) {
 							float v[3];
-							mul_v3_m4v3(v, ob_xform->obmat, tc->data[i].center);
+							mul_v3_m4v3(v, tc->mat, tc->data[i].center);
 							minmax_v3v3_v3(min, max, v);
 						}
 						else {
@@ -1911,11 +1915,11 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
 						}
 					}
 				}
-				is_first = false;
 			}
 			else {
 				copy_v3_v3(max, tc->data[i].center);
 				copy_v3_v3(min, tc->data[i].center);
+				is_first = false;
 			}
 		}
 	}
