@@ -4052,6 +4052,12 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 
 	BMO_op_exec(em->bm, &bmop);
 
+	/* NOTE: EDBM_op_finish() will change bmesh pointer inside of edit mesh,
+	 * so need to tell evaluated objects to sync new bmesh pointer to their
+	 * edit mesh structures.
+	 */
+	DEG_id_tag_update(&obedit->id, 0);
+
 	/* cancel if nothing was done */
 	if ((totedge_orig == em->bm->totedge) &&
 	    (totface_orig == em->bm->totface))
