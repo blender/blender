@@ -494,10 +494,9 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 		linfo->update_flag |= LIGHT_UPDATE_SHADOW_CUBE;
 	}
 
-	if (linfo->num_cube_layer != linfo->cache_num_cube_layer) {
-		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_pool);
-		linfo->cache_num_cube_layer = linfo->num_cube_layer;
-		linfo->update_flag |= LIGHT_UPDATE_SHADOW_CUBE;
+	if (linfo->num_cascade_layer != linfo->cache_num_cascade_layer) {
+		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_pool);
+		linfo->cache_num_cascade_layer = linfo->num_cascade_layer;
 	}
 
 	switch (linfo->shadow_method) {
@@ -517,9 +516,16 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 	}
 	if (!sldata->shadow_cube_pool) {
 		sldata->shadow_cube_pool = DRW_texture_create_2D_array(
-		        linfo->shadow_cube_store_size, linfo->shadow_cube_store_size, max_ff(1, linfo->num_cube_layer),
+		        linfo->shadow_cube_store_size, linfo->shadow_cube_store_size, max_ii(1, linfo->num_cube_layer),
 		        shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
+	GPU_framebuffer_ensure_config(&sldata->shadow_cube_target_fb, {
+		GPU_ATTACHMENT_TEXTURE(sldata->shadow_cube_target)
+	});
+	GPU_framebuffer_ensure_config(&sldata->shadow_cube_store_fb, {
+		GPU_ATTACHMENT_NONE,
+		GPU_ATTACHMENT_TEXTURE(sldata->shadow_cube_pool)
+	});
 
 	/* CSM */
 	if (!sldata->shadow_cascade_target) {
@@ -530,24 +536,12 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 	}
 	if (!sldata->shadow_cascade_pool) {
 		sldata->shadow_cascade_pool = DRW_texture_create_2D_array(
-		        linfo->shadow_cascade_size, linfo->shadow_cascade_size, max_ff(1, linfo->num_cascade_layer),
+		        linfo->shadow_cascade_size, linfo->shadow_cascade_size, max_ii(1, linfo->num_cascade_layer),
 		        shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
-
-	/* Render FB */
-	GPU_framebuffer_ensure_config(&sldata->shadow_cube_target_fb, {
-		GPU_ATTACHMENT_TEXTURE(sldata->shadow_cube_target)
-	});
 	GPU_framebuffer_ensure_config(&sldata->shadow_cascade_target_fb, {
 		GPU_ATTACHMENT_TEXTURE(sldata->shadow_cascade_target)
 	});
-
-	/* Storage FB */
-	GPU_framebuffer_ensure_config(&sldata->shadow_cube_store_fb, {
-		GPU_ATTACHMENT_NONE,
-		GPU_ATTACHMENT_TEXTURE(sldata->shadow_cube_pool)
-	});
-
 	GPU_framebuffer_ensure_config(&sldata->shadow_cascade_store_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(sldata->shadow_cascade_pool)
@@ -712,30 +706,16 @@ static void frustum_min_bounding_sphere(const float corners[8][3], float r_cente
 #endif
 }
 
-static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngineData *led)
+static void eevee_shadow_cascade_setup(
+        Object *ob, EEVEE_LampsInfo *linfo, EEVEE_LampEngineData *led,
+        DRWMatrixState *saved_mats, float view_near, float view_far)
 {
 	Lamp *la = (Lamp *)ob->data;
 
 	/* Camera Matrices */
-	float persmat[4][4], persinv[4][4];
-	float viewprojmat[4][4], projinv[4][4];
-	float view_near, view_far;
-	float near_v[4] = {0.0f, 0.0f, -1.0f, 1.0f};
-	float far_v[4] = {0.0f, 0.0f,  1.0f, 1.0f};
+	float (*persinv)[4] = saved_mats->mat[DRW_MAT_PERSINV];
+	float (*vp_projmat)[4] = saved_mats->mat[DRW_MAT_WIN];
 	bool is_persp = DRW_viewport_is_persp_get();
-	DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);
-	invert_m4_m4(persinv, persmat);
-	/* FIXME : Get near / far from Draw manager? */
-	DRW_viewport_matrix_get(viewprojmat, DRW_MAT_WIN);
-	invert_m4_m4(projinv, viewprojmat);
-	mul_m4_v4(projinv, near_v);
-	mul_m4_v4(projinv, far_v);
-	view_near = near_v[2];
-	view_far = far_v[2]; /* TODO: Should be a shadow parameter */
-	if (is_persp) {
-		view_near /= near_v[3];
-		view_far /= far_v[3];
-	}
 
 	/* Lamps Matrices */
 	int sh_nbr = 1; /* TODO : MSM */
@@ -786,7 +766,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		/* Nearest plane */
 		float p[4] = {1.0f, 1.0f, csm_start, 1.0f};
 		/* TODO: we don't need full m4 multiply here */
-		mul_m4_v4(viewprojmat, p);
+		mul_m4_v4(vp_projmat, p);
 		splits_start_ndc[0] = p[2];
 		if (is_persp) {
 			splits_start_ndc[0] /= p[3];
@@ -797,7 +777,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		/* Farthest plane */
 		float p[4] = {1.0f, 1.0f, csm_end, 1.0f};
 		/* TODO: we don't need full m4 multiply here */
-		mul_m4_v4(viewprojmat, p);
+		mul_m4_v4(vp_projmat, p);
 		splits_end_ndc[cascade_nbr - 1] = p[2];
 		if (is_persp) {
 			splits_end_ndc[cascade_nbr - 1] /= p[3];
@@ -828,7 +808,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		{
 			float p[4] = {1.0f, 1.0f, cascade_data->split_start[c], 1.0f};
 			/* TODO: we don't need full m4 multiply here */
-			mul_m4_v4(viewprojmat, p);
+			mul_m4_v4(vp_projmat, p);
 			splits_start_ndc[c] = p[2];
 
 			if (is_persp) {
@@ -839,7 +819,7 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 		{
 			float p[4] = {1.0f, 1.0f, cascade_data->split_end[c - 1], 1.0f};
 			/* TODO: we don't need full m4 multiply here */
-			mul_m4_v4(viewprojmat, p);
+			mul_m4_v4(vp_projmat, p);
 			splits_end_ndc[c - 1] = p[2];
 
 			if (is_persp) {
@@ -1145,6 +1125,8 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 	DRW_stats_group_end();
 
 	DRW_viewport_matrix_override_set_all(&saved_mats);
+	float near = DRW_viewport_near_distance_get();
+	float far = DRW_viewport_far_distance_get();
 
 	/* Cascaded Shadow Maps */
 	DRW_stats_group_start("Cascaded Shadow Maps");
@@ -1164,7 +1146,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		float (*viewmat)[4] = render_mats.mat[DRW_MAT_VIEW];
 		float (*persmat)[4] = render_mats.mat[DRW_MAT_PERS];
 
-		eevee_shadow_cascade_setup(ob, linfo, led);
+		eevee_shadow_cascade_setup(ob, linfo, led, &saved_mats, near, far);
 
 		srd->clip_near = la->clipsta;
 		srd->clip_far = la->clipend;
