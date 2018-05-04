@@ -80,7 +80,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 
 	bm = BKE_mesh_to_bmesh_ex(
 	        mesh,
-	        &((struct BMeshCreateParams){0}),
+	        &(struct BMeshCreateParams){0},
 	        &(struct BMeshFromMeshParams){
 	            .calc_face_normal = true,
 	            .add_key_index = false,
@@ -103,7 +103,7 @@ static Mesh *WireframeModifier_do(WireframeModifierData *wmd, Object *ob, Mesh *
 	       MAX2(ob->totcol - 1, 0),
 	       false);
 
-	result = BKE_bmesh_to_mesh(bm, (&(struct BMeshToMeshParams){0}));
+	result = BKE_bmesh_to_mesh(bm, &(struct BMeshToMeshParams){0});
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
