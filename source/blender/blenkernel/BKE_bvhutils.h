@@ -57,9 +57,6 @@ typedef struct BVHTreeFromEditMesh {
 
 	struct BMEditMesh *em;
 
-	/* radius for raycast */
-	float sphere_radius;
-
 	/* Private data */
 	bool cached;
 
@@ -86,9 +83,6 @@ typedef struct BVHTreeFromMesh {
 	bool face_allocated;
 	bool loop_allocated;
 	bool looptri_allocated;
-
-	/* radius for raycast */
-	float sphere_radius;
 
 	/* Private data */
 	bool cached;

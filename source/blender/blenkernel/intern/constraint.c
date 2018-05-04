@@ -3568,8 +3568,7 @@ static void shrinkwrap_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 						break;
 					}
 
-					treeData.sphere_radius = scon->dist;
-					if (BKE_shrinkwrap_project_normal(0, co, no, treeData.sphere_radius, &transform, treeData.tree,
+					if (BKE_shrinkwrap_project_normal(0, co, no, scon->dist, &transform, treeData.tree,
 					                                  &hit, treeData.raycast_callback, &treeData) == false)
 					{
 						fail = true;

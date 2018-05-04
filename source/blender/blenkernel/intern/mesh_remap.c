@@ -544,7 +544,6 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 			if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
-				treedata.sphere_radius = ray_radius;
 				for (i = 0; i < numverts_dst; i++) {
 					copy_v3_v3(tmp_co, verts_dst[i].co);
 					normal_short_to_float_v3(tmp_no, verts_dst[i].no);
@@ -909,10 +908,8 @@ void BKE_mesh_remap_calc_edges_from_dm(
 					interp_v3_v3v3_slerp_safe(tmp_no, v1_no, v2_no, fac);
 
 					while (n--) {
-						float radius = (ray_radius / w);
-						treedata.sphere_radius = radius;
 						if (mesh_remap_bvhtree_query_raycast(
-						        &treedata, &rayhit, tmp_co, tmp_no, radius, max_dist, &hit_dist))
+						        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
 						{
 							weights[rayhit.index] += w;
 							totweights += w;
@@ -1565,10 +1562,8 @@ void BKE_mesh_remap_calc_loops_from_dm(
 						}
 
 						while (n--) {
-							float radius = ray_radius / w;
-							tdata->sphere_radius = radius;
 							if (mesh_remap_bvhtree_query_raycast(
-							        tdata, &rayhit, tmp_co, tmp_no, radius, max_dist, &hit_dist))
+							        tdata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
 							{
 								islands_res[tindex][plidx_dst].factor = (hit_dist ? (1.0f / hit_dist) : 1e18f) * w;
 								islands_res[tindex][plidx_dst].hit_dist = hit_dist;
@@ -2051,7 +2046,6 @@ void BKE_mesh_remap_calc_polys_from_dm(
 					BLI_space_transform_apply_normal(space_transform, tmp_no);
 				}
 
-				treedata.sphere_radius = ray_radius;
 				if (mesh_remap_bvhtree_query_raycast(
 				        &treedata, &rayhit, tmp_co, tmp_no, ray_radius, max_dist, &hit_dist))
 				{
@@ -2201,9 +2195,8 @@ void BKE_mesh_remap_calc_polys_from_dm(
 
 						/* At this point, tmp_co is a point on our poly surface, in mesh_src space! */
 						while (n--) {
-							treedata.sphere_radius = ray_radius / w;
 							if (mesh_remap_bvhtree_query_raycast(
-							        &treedata, &rayhit, tmp_co, tmp_no, treedata.sphere_radius, max_dist, &hit_dist))
+							        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
 							{
 								const MLoopTri *lt = &treedata.looptri[rayhit.index];
 
