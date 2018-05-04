@@ -145,9 +145,8 @@ void IDP_RelinkProperty(struct IDProperty *prop);
 #  define IDP_Id(prop)               ((ID *) (prop)->data.pointer)
 #endif
 
-#ifndef NDEBUG
-/* for printout only */
-void IDP_spit(IDProperty *prop);
-#endif
+/* for printout/logging only */
+char *IDP_reprN(const struct IDProperty *prop);
+void  IDP_print(const struct IDProperty *prop);
 
 #endif /* __BKE_IDPROP_H__ */

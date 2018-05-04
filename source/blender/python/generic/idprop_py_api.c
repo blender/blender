@@ -30,6 +30,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_string.h"
 
 #include "idprop_py_api.h"
 
@@ -1804,39 +1805,48 @@ PyObject *BPyInit_idprop(void)
 	return mod;
 }
 
-
-#ifndef NDEBUG
 /* -------------------------------------------------------------------- */
 /* debug only function */
 
-void IDP_spit(IDProperty *prop)
+char *IDP_reprN(const IDProperty *prop)
 {
-	if (prop) {
-		PyGILState_STATE gilstate;
-		bool use_gil = true; /* !PyC_IsInterpreterActive(); */
-		PyObject *ret_dict;
-		PyObject *ret_str;
-
-		if (use_gil) {
-			gilstate = PyGILState_Ensure();
-		}
-
-		/* to_dict() */
-		ret_dict = BPy_IDGroup_MapDataToPy(prop);
-		ret_str = PyObject_Repr(ret_dict);
-		Py_DECREF(ret_dict);
-
-		printf("IDProperty(%p): %s\n", prop, _PyUnicode_AsString(ret_str));
-
-		Py_DECREF(ret_str);
-
-		if (use_gil) {
-			PyGILState_Release(gilstate);
-		}
+	if (prop == NULL) {
+		return BLI_strdup("None");
 	}
-	else {
-		printf("IDProperty: <NIL>\n");
+
+	PyGILState_STATE gilstate;
+	bool use_gil = true; /* !PyC_IsInterpreterActive(); */
+	PyObject *ret_dict;
+	PyObject *ret_str;
+
+	if (use_gil) {
+		gilstate = PyGILState_Ensure();
 	}
+
+	/* Note: non-const cast is safe here since we only repr the result. */
+	/* to_dict() */
+	ret_dict = BPy_IDGroup_MapDataToPy((IDProperty *)prop);
+	ret_str = PyObject_Repr(ret_dict);
+	Py_DECREF(ret_dict);
+
+	Py_ssize_t res_str_len = 0;
+	char *res_str_bytes = _PyUnicode_AsStringAndSize(ret_str, &res_str_len);
+
+	res_str_bytes = BLI_strdupn(res_str_bytes, res_str_len);
+
+	Py_DECREF(ret_str);
+
+	if (use_gil) {
+		PyGILState_Release(gilstate);
+	}
+	return res_str_bytes;
 }
 
-#endif
+
+void IDP_print(const IDProperty *prop)
+{
+	char *repr = IDP_reprN(prop);
+	printf("IDProperty(%p): %s\n", prop, repr);
+	MEM_freeN(repr);
+}
+
