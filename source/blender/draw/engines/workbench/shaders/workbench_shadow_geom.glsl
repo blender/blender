@@ -22,10 +22,10 @@ void main()
 	vec4 v2 = gl_in[1].gl_Position;
 	vec4 v3 = gl_in[2].gl_Position;
 	bool backface = dot(face_normal(v1.xyz, v2.xyz, v3.xyz), light_direction.xyz) > 0.0;
-	
+
 	int index0 = backface?0:2;
 	int index2 = backface?2:0;
-	
+
 	/* back cap */
 	gl_Position = vertexData[index0].backPosition;
 	EmitVertex();
