@@ -1409,7 +1409,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 			}
 			else {
 				BLI_assert(num_trees == 1);
-				bvhtree_from_mesh_looptri(&treedata[0], dm_src, 0.0, 2, 6);
+				bvhtree_from_mesh_get(&treedata[0], dm_src, BVHTREE_FROM_LOOPTRI, 2);
 			}
 		}
 

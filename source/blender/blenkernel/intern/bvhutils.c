@@ -1127,7 +1127,7 @@ BVHTree *bvhtree_from_editmesh_looptri(
  *
  * \note for editmesh this is currently a duplicate of bvhtree_from_mesh_faces
  */
-BVHTree *bvhtree_from_mesh_looptri(
+static BVHTree *bvhtree_from_mesh_looptri(
         BVHTreeFromMesh *data, DerivedMesh *dm,
         float epsilon, int tree_type, int axis)
 {
