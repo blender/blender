@@ -51,6 +51,7 @@
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_idcode.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_displist.h"
@@ -612,6 +613,42 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	if (me_src->key) {
 		BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag, false);
 	}
+}
+
+Mesh *BKE_mesh_new(int numVerts, int numEdges, int numTessFaces,int numLoops, int numPolys)
+{
+	Mesh *mesh = BKE_libblock_alloc(NULL, ID_ME,
+	                                BKE_idcode_to_name(ID_ME),
+	                                LIB_ID_CREATE_NO_MAIN |
+	                                LIB_ID_CREATE_NO_USER_REFCOUNT |
+								    LIB_ID_CREATE_NO_DEG_TAG);
+	BKE_libblock_init_empty(&mesh->id);
+
+	/* don't use CustomData_reset(...); because we dont want to touch customdata */
+	copy_vn_i(mesh->vdata.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(mesh->edata.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(mesh->fdata.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(mesh->ldata.typemap, CD_NUMTYPES, -1);
+	copy_vn_i(mesh->pdata.typemap, CD_NUMTYPES, -1);
+
+	CustomData_add_layer(&mesh->vdata, CD_ORIGINDEX, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&mesh->edata, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&mesh->fdata, CD_ORIGINDEX, CD_CALLOC, NULL, numTessFaces);
+	CustomData_add_layer(&mesh->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, numPolys);
+
+	CustomData_add_layer(&mesh->vdata, CD_MVERT, CD_CALLOC, NULL, numVerts);
+	CustomData_add_layer(&mesh->edata, CD_MEDGE, CD_CALLOC, NULL, numEdges);
+	CustomData_add_layer(&mesh->fdata, CD_MFACE, CD_CALLOC, NULL, numTessFaces);
+	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_CALLOC, NULL, numLoops);
+	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_CALLOC, NULL, numPolys);
+
+	mesh->mvert = CustomData_get_layer(&mesh->vdata, CD_MVERT);
+	mesh->medge = CustomData_get_layer(&mesh->edata, CD_MEDGE);
+	mesh->mface = CustomData_get_layer(&mesh->fdata, CD_MFACE);
+	mesh->mloop = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
+	mesh->mpoly = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
+
+	return mesh;
 }
 
 static Mesh *mesh_from_template_ex(
