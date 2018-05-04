@@ -1131,8 +1131,8 @@ BVHTree *bvhtree_from_mesh_get(
 #endif
 		data->tree = tree;
 
-		data->nearest_callback = mesh_looptri_nearest_point;
-		data->raycast_callback = mesh_looptri_spherecast;
+		data->nearest_callback = nearest_callback;
+		data->raycast_callback = raycast_callback;
 
 		data->vert = mvert;
 		data->edge = medge;
