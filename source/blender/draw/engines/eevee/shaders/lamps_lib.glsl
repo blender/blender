@@ -20,21 +20,33 @@ layout(std140) uniform light_block {
 #define HEMI     3.0
 #define AREA     4.0
 
+#if defined(SHADOW_VSM)
+#define ShadowSample vec2
+#define sample_cube(vec, id)    texture_octahedron(shadowTexture, vec4(vec, id)).rg
+#define sample_cascade(vec, id) texture(shadowTexture, vec3(vec, id)).rg
+#elif defined(SHADOW_ESM)
+#define ShadowSample float
+#define sample_cube(vec, id)    texture_octahedron(shadowTexture, vec4(vec, id)).r
+#define sample_cascade(vec, id) texture(shadowTexture, vec3(vec, id)).r
+#else
+#define ShadowSample float
+#define sample_cube(vec, id)    texture_octahedron(shadowTexture, vec4(vec, id)).r
+#define sample_cascade(vec, id) texture(shadowTexture, vec3(vec, id)).r
+#endif
+
+#if defined(SHADOW_VSM)
+#define get_depth_delta(s) (dist - s.x)
+#else
+#define get_depth_delta(s) (dist - s)
+#endif
+
 /* ----------------------------------------------------------- */
 /* ----------------------- Shadow tests ---------------------- */
 /* ----------------------------------------------------------- */
 
-float shadow_test_esm(float z, float dist, float exponent)
-{
-	return saturate(exp(exponent * (z - dist)));
-}
+#if defined(SHADOW_VSM)
 
-float shadow_test_pcf(float z, float dist)
-{
-	return step(0, z - dist);
-}
-
-float shadow_test_vsm(vec2 moments, float dist, float bias, float bleed_bias)
+float shadow_test(ShadowSample moments, float dist, ShadowData sd)
 {
 	float p = 0.0;
 
@@ -42,17 +54,32 @@ float shadow_test_vsm(vec2 moments, float dist, float bias, float bleed_bias)
 		p = 1.0;
 
 	float variance = moments.y - (moments.x * moments.x);
-	variance = max(variance, bias / 10.0);
+	variance = max(variance, sd.sh_bias / 10.0);
 
 	float d = moments.x - dist;
 	float p_max = variance / (variance + d * d);
 
 	/* Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1] */
-	p_max = clamp((p_max - bleed_bias) / (1.0 - bleed_bias), 0.0, 1.0);
+	p_max = clamp((p_max - sd.sh_bleed) / (1.0 - sd.sh_bleed), 0.0, 1.0);
 
 	return max(p, p_max);
 }
 
+#elif defined(SHADOW_ESM)
+
+float shadow_test(ShadowSample z, float dist, ShadowData sd)
+{
+	return saturate(exp(sd.sh_exp * (z - dist + sd.sh_bias)));
+}
+
+#else
+
+float shadow_test(ShadowSample z, float dist, ShadowData sd)
+{
+	return step(0, z - dist + sd.sh_bias);
+}
+
+#endif
 
 /* ----------------------------------------------------------- */
 /* ----------------------- Shadow types ---------------------- */
@@ -71,19 +98,8 @@ float shadow_cubemap(ShadowData sd, ShadowCubeData scd, float texid, vec3 W)
 
 	cubevec /= dist;
 
-#if defined(SHADOW_VSM)
-	vec2 moments = texture_octahedron(shadowTexture, vec4(cubevec, texid)).rg;
-#else
-	float z = texture_octahedron(shadowTexture, vec4(cubevec, texid)).r;
-#endif
-
-#if defined(SHADOW_VSM)
-	return shadow_test_vsm(moments, dist, sd.sh_bias, sd.sh_bleed);
-#elif defined(SHADOW_ESM)
-	return shadow_test_esm(z, dist - sd.sh_bias, sd.sh_exp);
-#else
-	return shadow_test_pcf(z, dist - sd.sh_bias);
-#endif
+	ShadowSample s = sample_cube(cubevec, texid);
+	return shadow_test(s, dist, sd);
 }
 
 float evaluate_cascade(ShadowData sd, mat4 shadowmat, vec3 W, float range, float texid)
@@ -91,20 +107,8 @@ float evaluate_cascade(ShadowData sd, mat4 shadowmat, vec3 W, float range, float
 	vec4 shpos = shadowmat * vec4(W, 1.0);
 	float dist = shpos.z * range;
 
-#if defined(SHADOW_VSM)
-	vec2 moments = texture(shadowTexture, vec3(shpos.xy, texid)).rg;
-#else
-	float z = texture(shadowTexture, vec3(shpos.xy, texid)).r;
-#endif
-
-	float vis;
-#if defined(SHADOW_VSM)
-	vis = shadow_test_vsm(moments, dist, sd.sh_bias, sd.sh_bleed);
-#elif defined(SHADOW_ESM)
-	vis = shadow_test_esm(z, dist - sd.sh_bias, sd.sh_exp);
-#else
-	vis = shadow_test_pcf(z, dist - sd.sh_bias);
-#endif
+	ShadowSample s = sample_cascade(shpos.xy, texid);
+	float vis = shadow_test(s, dist, sd);
 
 	/* If fragment is out of shadowmap range, do not occlude */
 	if (shpos.z < 1.0 && shpos.z > 0.0) {
@@ -125,6 +129,7 @@ float shadow_cascade(ShadowData sd, ShadowCascadeData scd, float texid, vec3 W)
 	float range = abs(sd.sh_far - sd.sh_near); /* Same factor as in get_cascade_world_distance(). */
 
 	/* Branching using (weights > 0.0) is reaally slooow on intel so avoid it for now. */
+	/* TODO OPTI: Only do 2 samples and blend. */
 	vis.x = evaluate_cascade(sd, scd.shadowmat[0], W, range, texid + 0);
 	vis.y = evaluate_cascade(sd, scd.shadowmat[1], W, range, texid + 1);
 	vis.z = evaluate_cascade(sd, scd.shadowmat[2], W, range, texid + 2);
@@ -346,13 +351,8 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 				return vec3(0.0);
 			}
 
-#if defined(SHADOW_VSM)
-			vec2 moments = texture(shadowTexture, vec3(shpos.xy, data.sh_tex_start + id)).rg;
-			delta = dist - moments.x;
-#else
-			float z = texture(shadowTexture, vec3(shpos.xy, data.sh_tex_start + id)).r;
-			delta = dist - z;
-#endif
+			ShadowSample s = sample_cascade(shpos.xy, data.sh_tex_start + id);
+			delta = get_depth_delta(s);
 		}
 		else {
 			vec3 cubevec = W - shadows_cube_data[int(data.sh_data_start)].position.xyz;
@@ -364,13 +364,8 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 			if (dist < data.sh_far) {
 				cubevec /= dist;
 
-#if defined(SHADOW_VSM)
-				vec2 moments = texture_octahedron(shadowTexture, vec4(cubevec, data.sh_tex_start)).rg;
-				delta = dist - moments.x;
-#else
-				float z = texture_octahedron(shadowTexture, vec4(cubevec, data.sh_tex_start)).r;
-				delta = dist - z;
-#endif
+				ShadowSample s = sample_cube(cubevec, data.sh_tex_start);
+				delta = get_depth_delta(s);
 			}
 		}
 
