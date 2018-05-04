@@ -132,6 +132,8 @@ static void rna_Pose_IK_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 	Object *ob = ptr->id.data;
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_POSE, ptr->id.data);
+
 	BIK_clear_data(ob->pose);
 }
 
