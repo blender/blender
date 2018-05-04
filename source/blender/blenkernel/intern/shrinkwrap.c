@@ -191,8 +191,8 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
 bool BKE_shrinkwrap_project_normal(
-        char options, const float vert[3],
-        const float dir[3], const SpaceTransform *transf,
+        char options, const float vert[3], const float dir[3],
+        const float ray_radius, const SpaceTransform *transf,
         BVHTree *tree, BVHTreeRayHit *hit,
         BVHTree_RayCastCallback callback, void *userdata)
 {
@@ -229,7 +229,7 @@ bool BKE_shrinkwrap_project_normal(
 
 	hit_tmp.index = -1;
 
-	BLI_bvhtree_ray_cast(tree, co, no, 0.0f, &hit_tmp, callback, userdata);
+	BLI_bvhtree_ray_cast(tree, co, no, ray_radius, &hit_tmp, callback, userdata);
 
 	if (hit_tmp.index != -1) {
 		/* invert the normal first so face culling works on rotated objects */
@@ -322,13 +322,13 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	if (calc->smd->shrinkOpts & MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR) {
 		if (aux_tree) {
 			BKE_shrinkwrap_project_normal(
-			        0, tmp_co, tmp_no,
+			        0, tmp_co, tmp_no, 0.0,
 			        local2aux, aux_tree, hit,
 			        aux_callback, auxData);
 		}
 
 		BKE_shrinkwrap_project_normal(
-		        calc->smd->shrinkOpts, tmp_co, tmp_no,
+		        calc->smd->shrinkOpts, tmp_co, tmp_no, 0.0,
 		        &calc->local2target, targ_tree, hit,
 		        targ_callback, treeData);
 	}
@@ -340,13 +340,13 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 
 		if (aux_tree) {
 			BKE_shrinkwrap_project_normal(
-			        0, tmp_co, inv_no,
+			        0, tmp_co, inv_no, 0.0,
 			        local2aux, aux_tree, hit,
 			        aux_callback, auxData);
 		}
 
 		BKE_shrinkwrap_project_normal(
-		        calc->smd->shrinkOpts, tmp_co, inv_no,
+		        calc->smd->shrinkOpts, tmp_co, inv_no, 0.0,
 		        &calc->local2target, targ_tree, hit,
 		        targ_callback, treeData);
 	}

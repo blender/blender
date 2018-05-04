@@ -3485,15 +3485,15 @@ static void shrinkwrap_get_tarmat(struct Depsgraph *UNUSED(depsgraph), bConstrai
 						break;
 					}
 
-					bvhtree_from_mesh_looptri(&treeData, target, scon->dist, 4, 6);
+					bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRI, 4);
 					if (treeData.tree == NULL) {
 						fail = true;
 						break;
 					}
 
-					
-					if (BKE_shrinkwrap_project_normal(0, co, no, &transform, treeData.tree, &hit,
-					                                  treeData.raycast_callback, &treeData) == false)
+					treeData.sphere_radius = scon->dist;
+					if (BKE_shrinkwrap_project_normal(0, co, no, treeData.sphere_radius, &transform, treeData.tree,
+					                                  &hit, treeData.raycast_callback, &treeData) == false)
 					{
 						fail = true;
 						break;
