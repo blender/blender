@@ -184,6 +184,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
 	BM_mesh_free(bm);
 
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+
 	return result;
 }
 

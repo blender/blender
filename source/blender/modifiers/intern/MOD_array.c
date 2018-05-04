@@ -372,7 +372,7 @@ static Mesh *arrayModifier_doArray(
 	int tot_doubles;
 
 	const bool use_merge = (amd->flags & MOD_ARR_MERGE) != 0;
-	const bool use_recalc_normals = /* (dm->dirty & DM_DIRTY_NORMALS) || */ use_merge;
+	const bool use_recalc_normals = (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || use_merge;
 	const bool use_offset_ob = ((amd->offset_type & MOD_ARR_OFF_OBJ) && amd->offset_ob);
 
 	int start_cap_nverts = 0, start_cap_nedges = 0, start_cap_npolys = 0, start_cap_nloops = 0;
@@ -733,8 +733,11 @@ static Mesh *arrayModifier_doArray(
 		MEM_freeN(full_doubles_map);
 	}
 
+	/* In case org dm has dirty normals, or we made some merging, mark normals as dirty in new mesh!
+	 * TODO: we may need to set other dirty flags as well?
+	 */
 	if (use_recalc_normals) {
-		BKE_mesh_calc_normals(result);
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	}
 
 	if (vgroup_start_cap_remap) {

@@ -337,8 +337,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
 	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
 	result = mirrorModifier__doMirror(mmd, ctx->object, mesh);
-	BKE_mesh_calc_normals(result);
 
+	if (result != mesh) {
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+	}
 	return result;
 }
 
