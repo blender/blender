@@ -2250,6 +2250,12 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Single Color Mode");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
+	prop = RNA_def_property(srna, "single_color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_float_sdna(prop, NULL, "drawtype_single_color");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Color", "Color for single color mode");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
+
 	prop = RNA_def_property(srna, "show_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_SHADOW);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);

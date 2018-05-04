@@ -261,8 +261,10 @@ typedef struct View3D {
 	short drawtype_options;
 	short drawtype_studiolight;
 	float drawtype_ambient_intensity;
-
+	float drawtype_single_color[3];
 	int overlays;
+
+	int pad5;
 
 	View3DDebug debug;
 } View3D;

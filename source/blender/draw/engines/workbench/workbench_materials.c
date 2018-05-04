@@ -190,7 +190,7 @@ static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Mat
 {
 	static float default_color[] = {1.0f, 1.0f, 1.0f};
 	if (DRW_object_is_paint_mode(ob) || wpd->drawtype_options & V3D_DRAWOPTION_SINGLE_COLOR) {
-		copy_v3_v3(color, default_color);
+		copy_v3_v3(color, wpd->drawtype_single_color);
 	}
 	else if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
 		uint hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
@@ -311,12 +311,14 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		wpd->drawtype_options = v3d->drawtype_options;
 		wpd->drawtype_studiolight = v3d->drawtype_studiolight;
 		wpd->drawtype_ambient_intensity = v3d->drawtype_ambient_intensity;
+		copy_v3_v3(wpd->drawtype_single_color, v3d->drawtype_single_color);
 	}
 	else {
 		wpd->drawtype_lighting = V3D_LIGHTING_STUDIO;
 		wpd->drawtype_options = 0;
 		wpd->drawtype_studiolight = 0;
 		wpd->drawtype_ambient_intensity = 0.5;
+		copy_v3_fl(wpd->drawtype_single_color, 1.0f);
 	}
 
 	select_deferred_shaders(wpd);

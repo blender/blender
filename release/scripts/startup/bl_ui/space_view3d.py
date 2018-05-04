@@ -3548,6 +3548,10 @@ class VIEW3D_PT_shading(Panel):
             col.separator()
             col.row().prop(shading, "single_color_mode", expand=True)
 
+            if shading.single_color_mode == 'SINGLE':
+                col.separator()
+                col.row().prop(shading, "single_color", text="")
+
             col.separator()
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
