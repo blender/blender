@@ -36,6 +36,7 @@
 
 typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *prepass_fb;
+	struct GPUFrameBuffer *composite_fb;
 } WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_StorageList {

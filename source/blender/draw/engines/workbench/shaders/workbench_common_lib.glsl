@@ -33,20 +33,3 @@ vec2 normal_encode(vec3 n)
 	float p = sqrt(n.z * 8.0 + 8.0);
 	return vec2(n.xy / p + 0.5);
 }
-
-/* Linear to srgb conversion */
-const float SRGB_ALPHA = 0.055;
-float linear_to_srgb(float channel) {
-	if(channel <= 0.0031308) {
-		return 12.92 * channel;
-	} else {
-		return (1.0 + SRGB_ALPHA) * pow(channel, 1.0/2.4) - SRGB_ALPHA;
-	}
-}
-vec3 linearrgb_to_srgb(vec3 rgb) {
-	return vec3(
-		linear_to_srgb(rgb.r),
-		linear_to_srgb(rgb.g),
-		linear_to_srgb(rgb.b)
-	);
-}

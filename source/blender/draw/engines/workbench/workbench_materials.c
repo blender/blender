@@ -50,6 +50,7 @@ static struct {
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *color_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
+	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 
 	float light_direction[3]; /* world light direction for shadows */
 	int next_object_id;
@@ -137,7 +138,9 @@ static char *workbench_build_prepass_frag(void)
 static int get_shader_index(WORKBENCH_PrivateData *wpd)
 {
 	const int DRAWOPTIONS_MASK = V3D_DRAWOPTION_OBJECT_OVERLAP;
-	return ((wpd->drawtype_options & DRAWOPTIONS_MASK) << 2) + wpd->drawtype_lighting;
+	int index = (wpd->drawtype_options & DRAWOPTIONS_MASK);
+	index = (index << 2) + wpd->drawtype_lighting;
+	return index;
 }
 
 static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
@@ -237,6 +240,7 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_solid);
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
+		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
 #ifdef WORKBENCH_ENCODE_NORMALS
 		e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG8, &draw_engine_workbench_solid);
 #else
@@ -248,6 +252,10 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 			GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.color_buffer_tx),
 			GPU_ATTACHMENT_TEXTURE(e_data.normal_buffer_tx),
+		});
+		GPU_framebuffer_ensure_config(&fbl->composite_fb, {
+			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+			GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
 		});
 	}
 
@@ -524,15 +532,18 @@ void workbench_materials_draw_scene(WORKBENCH_Data *vedata)
 #else
 		GPU_framebuffer_bind(dfbl->depth_only_fb);
 		DRW_draw_pass(psl->shadow_pass);
-		GPU_framebuffer_bind(dfbl->default_fb);
+		GPU_framebuffer_bind(fbl->composite_fb);
 		DRW_draw_pass(psl->composite_pass);
 		DRW_draw_pass(psl->composite_shadow_pass);
 #endif
 	}
 	else {
-		GPU_framebuffer_bind(dfbl->default_fb);
+		GPU_framebuffer_bind(fbl->composite_fb);
 		DRW_draw_pass(psl->composite_pass);
 	}
+
+	GPU_framebuffer_bind(dfbl->color_only_fb);
+	DRW_transform_to_display(e_data.composite_buffer_tx);
 
 	BLI_ghash_free(wpd->material_hash, NULL, MEM_freeN);
 	DRW_UBO_FREE_SAFE(wpd->world_ubo);

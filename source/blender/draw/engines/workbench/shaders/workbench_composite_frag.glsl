@@ -13,7 +13,6 @@ layout(std140) uniform world_block {
 	WorldData world_data;
 };
 
-
 void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
@@ -22,7 +21,7 @@ void main()
 
 #ifndef V3D_DRAWOPTION_OBJECT_OVERLAP
 	if (depth == 1.0) {
-		fragColor = vec4(linearrgb_to_srgb(background_color(world_data, uv_viewport.y)), 0.0);
+		fragColor = vec4(background_color(world_data, uv_viewport.y), 0.0);
 		return;
 	}
 #else /* !V3D_DRAWOPTION_OBJECT_OVERLAP */
@@ -32,9 +31,9 @@ void main()
 	if (object_id == NO_OBJECT_ID) {
 		vec3 background = background_color(world_data, uv_viewport.y);
 		if (object_overlap == 0.0) {
-			fragColor = vec4(linearrgb_to_srgb(background), 0.0);
+			fragColor = vec4(background, 0.0);
 		} else {
-			fragColor = vec4(linearrgb_to_srgb(mix(objectOverlapColor, background, object_overlap)), 1.0-object_overlap);
+			fragColor = vec4(mix(objectOverlapColor, background, object_overlap), 1.0-object_overlap);
 		}
 		return;
 	}
@@ -64,5 +63,5 @@ void main()
 	shaded_color = mix(objectOverlapColor, shaded_color, object_overlap);
 #endif /* V3D_DRAWOPTION_OBJECT_OVERLAP */
 
-	fragColor = vec4(linearrgb_to_srgb(shaded_color), 1.0);
+	fragColor = vec4(shaded_color, 1.0);
 }
