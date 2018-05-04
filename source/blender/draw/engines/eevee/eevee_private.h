@@ -351,7 +351,7 @@ typedef struct EEVEE_LampsInfo {
 	int update_flag;
 	int shadow_cube_size, shadow_cascade_size, shadow_method;
 	bool shadow_high_bitdepth;
-	int shadow_cube_target_size;
+	int shadow_cube_store_size;
 	int current_shadow_cascade;
 	int current_shadow_face;
 	unsigned int shadow_instance_count;

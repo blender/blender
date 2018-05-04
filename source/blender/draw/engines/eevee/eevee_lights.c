@@ -143,16 +143,13 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
 
-		/* Compute adequate size for the cubemap render target.
-		 * The 3.0f factor is here to make sure there is no under sampling between
-		 * the octahedron mapping and the cubemap. */
-		int new_cube_target_size = (int)ceil(sqrt((float)(sh_cube_size * sh_cube_size) / 6.0f) * 3.0f);
+		/* Compute adequate size for the octahedral map. */
+		linfo->shadow_cube_store_size = (int)ceil(sqrt((sh_cube_size * sh_cube_size) * 6.0f));
 
-		CLAMP(new_cube_target_size, 1, 4096);
+		CLAMP(linfo->shadow_cube_store_size, 1, 4096);
 		CLAMP(sh_cube_size, 1, 4096);
 
-		linfo->shadow_cube_target_size = new_cube_target_size;
-		linfo->shadow_render_data.cube_texel_size = 1.0 / (float)linfo->shadow_cube_target_size;
+		linfo->shadow_render_data.cube_texel_size = 1.0f / sh_cube_size;
 	}
 
 	if ((linfo->shadow_cascade_size != sh_cascade_size) ||
@@ -514,13 +511,13 @@ void EEVEE_lights_cache_finish(EEVEE_ViewLayerData *sldata)
 	/* Cubemaps */
 	if (!sldata->shadow_cube_target) {
 		sldata->shadow_cube_target = DRW_texture_create_cube(
-		        linfo->shadow_cube_target_size, GPU_DEPTH_COMPONENT24, 0, NULL);
+		        linfo->shadow_cube_size, GPU_DEPTH_COMPONENT24, 0, NULL);
 		sldata->shadow_cube_blur = DRW_texture_create_cube(
-		        linfo->shadow_cube_target_size, shadow_pool_format, DRW_TEX_FILTER, NULL);
+		        linfo->shadow_cube_size, shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
 	if (!sldata->shadow_cube_pool) {
 		sldata->shadow_cube_pool = DRW_texture_create_2D_array(
-		        linfo->shadow_cube_size, linfo->shadow_cube_size, max_ff(1, linfo->num_cube_layer),
+		        linfo->shadow_cube_store_size, linfo->shadow_cube_store_size, max_ff(1, linfo->num_cube_layer),
 		        shadow_pool_format, DRW_TEX_FILTER, NULL);
 	}
 
@@ -1071,7 +1068,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		srd->clip_far = la->clipend;
 		copy_v3_v3(srd->position, ob->obmat[3]);
 
-		srd->stored_texel_size = 1.0 / (float)linfo->shadow_cube_size;
+		srd->stored_texel_size = 1.0 / (float)linfo->shadow_cube_store_size;
 
 		DRW_uniformbuffer_update(sldata->shadow_render_ubo, srd);
 
@@ -1101,10 +1098,11 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 
 		/* 0.001f is arbitrary, but it should be relatively small so that filter size is not too big. */
 		float filter_texture_size = la->soft * 0.001f;
-		float filter_pixel_size = ceil(filter_texture_size / linfo->shadow_render_data.cube_texel_size);
-		linfo->filter_size = linfo->shadow_render_data.cube_texel_size * ((filter_pixel_size > 1.0f) ? 1.5f : 0.0f);
+		float filter_pixel_size = ceil(filter_texture_size / srd->cube_texel_size);
+		linfo->filter_size = srd->cube_texel_size * ((filter_pixel_size > 1.0f) ? 1.5f : 0.0f);
 
 		/* TODO: OPTI: Filter all faces in one/two draw call */
+		/* TODO: OPTI: Don't do this intermediate step if no filter is needed. */
 		for (linfo->current_shadow_face = 0;
 		     linfo->current_shadow_face < 6;
 		     linfo->current_shadow_face++)
@@ -1120,11 +1118,11 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 
 		/* Adjust constants if concentric samples change. */
 		const float max_filter_size = 7.5f;
-		const float previous_box_filter_size = 9.0f; /* Dunno why but that works. */
+		const float magic = 4.5f; /* Dunno why but that works. */
 		const int max_sample = 256;
 
 		if (filter_pixel_size > 2.0f) {
-			linfo->filter_size = linfo->shadow_render_data.cube_texel_size * max_filter_size * previous_box_filter_size;
+			linfo->filter_size = srd->cube_texel_size * max_filter_size * magic;
 			filter_pixel_size = max_ff(0.0f, filter_pixel_size - 3.0f);
 			/* Compute number of concentric samples. Depends directly on filter size. */
 			float pix_size_sqr = filter_pixel_size * filter_pixel_size;
@@ -1217,11 +1215,11 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 
 			/* Adjust constants if concentric samples change. */
 			const float max_filter_size = 7.5f;
-			const float previous_box_filter_size = 3.2f; /* Arbitrary: less banding */
+			const float magic = 3.2f; /* Arbitrary: less banding */
 			const int max_sample = 256;
 
 			if (filter_pixel_size > 2.0f) {
-				linfo->filter_size = srd->stored_texel_size * max_filter_size * previous_box_filter_size;
+				linfo->filter_size = srd->stored_texel_size * max_filter_size * magic;
 				filter_pixel_size = max_ff(0.0f, filter_pixel_size - 3.0f);
 				/* Compute number of concentric samples. Depends directly on filter size. */
 				float pix_size_sqr = filter_pixel_size * filter_pixel_size;
