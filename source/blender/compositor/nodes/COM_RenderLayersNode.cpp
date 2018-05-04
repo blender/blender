@@ -157,6 +157,11 @@ void RenderLayersNode::missingSocketLink(NodeConverter &converter,
 			operation = value_operation;
 			break;
 		}
+		default:
+		{
+			BLI_assert("!Unexpected data type");
+			return;
+		}
 	}
 
 	converter.mapOutputSocket(output, operation->getOutputSocket());

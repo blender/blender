@@ -198,7 +198,7 @@ void DEG_graph_build_from_view_layer(Depsgraph *graph,
                                       Scene *scene,
                                       ViewLayer *view_layer)
 {
-	double start_time;
+	double start_time = 0.0;
 	if (G.debug & G_DEBUG_DEPSGRAPH_BUILD) {
 		start_time = PIL_check_seconds_timer();
 	}

@@ -717,6 +717,7 @@ void BKE_scene_init(Scene *sce)
 	sce->audio.doppler_factor = 1.0f;
 	sce->audio.speed_of_sound = 343.3f;
 	sce->audio.volume = 1.0f;
+	sce->audio.flag = AUDIO_SYNC;
 
 	BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 

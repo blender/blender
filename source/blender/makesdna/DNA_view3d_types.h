@@ -90,12 +90,13 @@ enum {
 	V3D_DRAWOPTION_OBJECT_OVERLAP = (1 << 1),
 	V3D_DRAWOPTION_SINGLE_COLOR   = (1 << 2),
 	V3D_DRAWOPTION_OBJECT_COLOR   = (1 << 4),
+	V3D_DRAWOPTION_SHADOW         = (1 << 5),
 };
 #define V3D_DRAWOPTION_SOLID_COLOR_MASK (V3D_DRAWOPTION_SINGLE_COLOR | V3D_DRAWOPTION_RANDOMIZE | V3D_DRAWOPTION_OBJECT_COLOR | V3D_DRAWOPTION_MATERIAL_COLOR)
 
 enum {
 	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
-	V3D_OVERLAY_3DCURSOR         = (1 << 1),
+	V3D_OVERLAY_HIDE_CURSOR      = (1 << 1),
 };
 
 typedef struct RegionView3D {
@@ -259,9 +260,9 @@ typedef struct View3D {
 	short drawtype_lighting;
 	short drawtype_options;
 	short drawtype_studiolight;
+	float drawtype_ambient_intensity;
 
 	int overlays;
-	int pad6;
 
 	View3DDebug debug;
 } View3D;

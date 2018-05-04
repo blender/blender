@@ -618,34 +618,31 @@ static void pose_copy_menu(Scene *scene)
 
 static int pose_flip_names_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	bArmature *arm;
-
-	/* paranoia checks */
-	if (ELEM(NULL, ob, ob->pose)) 
-		return OPERATOR_CANCELLED;
-
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool do_strip_numbers = RNA_boolean_get(op->ptr, "do_strip_numbers");
-
-	arm = ob->data;
-
-	ListBase bones_names = {NULL};
-
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
-	{
-		BLI_addtail(&bones_names, BLI_genericNodeN(pchan->name));
-	}
-	CTX_DATA_END;
-
-	ED_armature_bones_flip_names(arm, &bones_names, do_strip_numbers);
-
-	BLI_freelistN(&bones_names);
 	
-	/* since we renamed stuff... */
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob)
+	{
+		bArmature *arm = ob->data;
+		ListBase bones_names = {NULL};
 
-	/* note, notifier might evolve */
-	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob, pchan)
+		{
+			BLI_addtail(&bones_names, BLI_genericNodeN(pchan->name));
+		}
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+
+		ED_armature_bones_flip_names(arm, &bones_names, do_strip_numbers);
+
+		BLI_freelistN(&bones_names);
+		
+		/* since we renamed stuff... */
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+		/* note, notifier might evolve */
+		WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	}
+	FOREACH_OBJECT_IN_MODE_END;
 	
 	return OPERATOR_FINISHED;
 }

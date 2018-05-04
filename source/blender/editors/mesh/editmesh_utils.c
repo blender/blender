@@ -553,7 +553,7 @@ UvVertMap *BM_uv_vert_map_create(
 
 	BM_ITER_MESH_INDEX (efa, &iter, bm, BM_FACES_OF_MESH, a) {
 		if ((use_select == false) || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			float (*tf_uv)[2];
+			float (*tf_uv)[2] = NULL;
 
 			if (use_winding) {
 				tf_uv = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
@@ -657,7 +657,7 @@ UvElementMap *BM_uv_element_map_create(
 	/* vars from original func */
 	UvElementMap *element_map;
 	UvElement *buf;
-	bool *winding;
+	bool *winding = NULL;
 	BLI_buffer_declare_static(vec2f, tf_uv_buf, BLI_BUFFER_NOP, BM_DEFAULT_NGON_STACK_SIZE);
 
 	MLoopUV *luv;
@@ -698,7 +698,7 @@ UvElementMap *BM_uv_element_map_create(
 		}
 
 		if (!selected || BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-			float (*tf_uv)[2];
+			float (*tf_uv)[2] = NULL;
 
 			if (use_winding) {
 				tf_uv = (float (*)[2])BLI_buffer_reinit_data(&tf_uv_buf, vec2f, efa->len);
@@ -1002,7 +1002,7 @@ void EDBM_verts_mirror_cache_begin_ex(
 	BMesh *bm = em->bm;
 	BMIter iter;
 	BMVert *v;
-	int cd_vmirr_offset;
+	int cd_vmirr_offset = 0;
 	int i;
 	const float maxdist_sq = SQUARE(maxdist);
 

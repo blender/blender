@@ -297,6 +297,10 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
 	MEM_freeN(edgeMap);
 	MEM_freeN(faceMap);
 
+	if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+	}
+
 	/* TODO(sybren): also copy flags & tags? */
 	return result;
 }

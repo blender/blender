@@ -77,8 +77,6 @@ class TIME_HT_editor_buttons(Header):
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
-        layout.prop(scene, "sync_mode", text="")
-
         layout.separator()
 
         row = layout.row(align=True)
@@ -218,10 +216,9 @@ class TIME_MT_playback(Menu):
         layout.prop(screen, "use_follow")
         layout.separator()
 
-        layout.prop(scene, "use_frame_drop", text="Frame Dropping")
-        layout.prop(scene, "use_audio_sync", text="AV-sync", icon='SPEAKER')
         layout.prop(scene, "use_audio")
         layout.prop(scene, "use_audio_scrub")
+        layout.prop_menu_enum(scene, "sync_mode")
 
 
 class TIME_MT_autokey(Menu):

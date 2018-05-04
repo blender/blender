@@ -278,21 +278,27 @@ void drw_state_set(DRWState state)
 		DRWState test;
 		if (CHANGED_ANY_STORE_VAR(
 		        DRW_STATE_WRITE_STENCIL |
-		        DRW_STATE_STENCIL_EQUAL,
+		        DRW_STATE_WRITE_STENCIL_SHADOW |
+		        DRW_STATE_STENCIL_EQUAL |
+		        DRW_STATE_STENCIL_NEQUAL,
 		        test))
 		{
 			if (test) {
 				glEnable(GL_STENCIL_TEST);
-
 				/* Stencil Write */
 				if ((state & DRW_STATE_WRITE_STENCIL) != 0) {
 					glStencilMask(0xFF);
 					glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 				}
+				else if ((state & DRW_STATE_WRITE_STENCIL_SHADOW) != 0) {
+					glStencilMask(0xFF);
+					glStencilOpSeparate(GL_BACK,  GL_KEEP, GL_INCR_WRAP, GL_KEEP);
+					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+				}
 				/* Stencil Test */
-				else if ((state & DRW_STATE_STENCIL_EQUAL) != 0) {
+				else if ((state & (DRW_STATE_STENCIL_EQUAL | DRW_STATE_STENCIL_NEQUAL)) != 0) {
 					glStencilMask(0x00); /* disable write */
-					DST.stencil_mask = 0;
+					DST.stencil_mask = STENCIL_UNDEFINED;
 				}
 				else {
 					BLI_assert(0);
@@ -318,15 +324,17 @@ void drw_state_set(DRWState state)
 static void drw_stencil_set(unsigned int mask)
 {
 	if (DST.stencil_mask != mask) {
+		DST.stencil_mask = mask;
 		/* Stencil Write */
 		if ((DST.state & DRW_STATE_WRITE_STENCIL) != 0) {
 			glStencilFunc(GL_ALWAYS, mask, 0xFF);
-			DST.stencil_mask = mask;
 		}
 		/* Stencil Test */
 		else if ((DST.state & DRW_STATE_STENCIL_EQUAL) != 0) {
 			glStencilFunc(GL_EQUAL, mask, 0xFF);
-			DST.stencil_mask = mask;
+		}
+		else if ((DST.state & DRW_STATE_STENCIL_NEQUAL) != 0) {
+			glStencilFunc(GL_NOTEQUAL, mask, 0xFF);
 		}
 	}
 }
@@ -460,6 +468,8 @@ static void draw_clipping_setup_from_view(void)
 	for (int i = 0; i < 8; i++) {
 		mul_m4_v3(viewinv, bbox.vec[i]);
 	}
+
+	memcpy(&DST.clipping.frustum_corners, &bbox, sizeof(BoundBox));
 
 	/* Compute clip planes using the world space frustum corners. */
 	for (int p = 0; p < 6; p++) {
@@ -638,6 +648,22 @@ bool DRW_culling_box_test(BoundBox *bbox)
 	}
 
 	return true;
+}
+
+/* Return True if the current view frustum is inside or intersect the given plane */
+bool DRW_culling_plane_test(float plane[4])
+{
+	draw_clipping_setup_from_view();
+
+	/* Test against the 8 frustum corners. */
+	for (int c = 0; c < 8; c++) {
+		float dist = plane_point_side_v3(plane, DST.clipping.frustum_corners.vec[c]);
+		if (dist < 0.0f) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /** \} */

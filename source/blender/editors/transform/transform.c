@@ -5905,6 +5905,7 @@ static bool bm_loop_calc_opposite_co(BMLoop *l_tmp,
 	BMLoop *l_last  = l_tmp->prev;
 	BMLoop *l_iter;
 	float dist = FLT_MAX;
+	bool found = false;
 
 	l_iter = l_first;
 	do {
@@ -5923,12 +5924,13 @@ static bool bm_loop_calc_opposite_co(BMLoop *l_tmp,
 				if (tdist < dist) {
 					copy_v3_v3(r_co, tvec);
 					dist = tdist;
+					found = true;
 				}
 			}
 		}
 	} while ((l_iter = l_iter->next) != l_last);
 
-	return (dist != FLT_MAX);
+	return found;
 }
 
 /**

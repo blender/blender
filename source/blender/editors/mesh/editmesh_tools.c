@@ -290,27 +290,39 @@ void MESH_OT_subdivide_edgering(wmOperatorType *ot)
 
 static int edbm_unsubdivide_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
-
 	const int iterations = RNA_int_get(op->ptr, "iterations");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	EDBM_op_init(em, &bmop, op,
-	             "unsubdivide verts=%hv iterations=%i", BM_ELEM_SELECT, iterations);
+		if ((em->bm->totvertsel == 0) &&
+		    (em->bm->totedgesel == 0) &&
+		    (em->bm->totfacesel == 0))
+		{
+			continue;
+		}
 
-	BMO_op_exec(em->bm, &bmop);
+		BMOperator bmop;
+		EDBM_op_init(em, &bmop, op,
+	               "unsubdivide verts=%hv iterations=%i", BM_ELEM_SELECT, iterations);
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return 0;
+		BMO_op_exec(em->bm, &bmop);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+			EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);  /* need to flush vert->face first */
+		}
+		EDBM_selectmode_flush(em);
+
+		EDBM_update_generic(em, true, true);
 	}
-
-	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
-		EDBM_selectmode_flush_ex(em, SCE_SELECT_VERTEX);  /* need to flush vert->face first */
-	}
-	EDBM_selectmode_flush(em);
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -1753,71 +1765,99 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
  */
 static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
 	BMEdge *eed;
 	BMIter iter;
 	const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
-	int tot = 0;
 
-	if (em->bm->totedgesel == 0) {
+	int tot_rotate_all = 0, tot_failed_all = 0;
+	bool no_selected_edges = true, invalid_selected_edges = true;
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		int tot = 0;
+
+		if (em->bm->totedgesel == 0) {
+			continue;
+		}
+		no_selected_edges = false;
+
+		/* first see if we have two adjacent faces */
+		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_disable(eed, BM_ELEM_TAG);
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				BMFace *fa, *fb;
+				if (BM_edge_face_pair(eed, &fa, &fb)) {
+					/* if both faces are selected we rotate between them,
+					 * otherwise - rotate between 2 unselected - but not mixed */
+					if (BM_elem_flag_test(fa, BM_ELEM_SELECT) == BM_elem_flag_test(fb, BM_ELEM_SELECT)) {
+						BM_elem_flag_enable(eed, BM_ELEM_TAG);
+						tot++;
+					}
+				}
+			}
+		}
+
+		/* ok, we don't have two adjacent faces, but we do have two selected ones.
+		 * that's an error condition.*/
+		if (tot == 0) {
+			continue;
+		}
+		invalid_selected_edges = false;
+
+		BMOperator bmop;
+		EDBM_op_init(em, &bmop, op, "rotate_edges edges=%he use_ccw=%b", BM_ELEM_TAG, use_ccw);
+
+		/* avoids leaving old verts selected which can be a problem running multiple times,
+		 * since this means the edges become selected around the face which then attempt to rotate */
+		BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_in, "edges", BM_EDGE, BM_ELEM_SELECT, true);
+
+		BMO_op_exec(em->bm, &bmop);
+		/* edges may rotate into hidden vertices, if this does _not_ run we get an ilogical state */
+		BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_HIDDEN, true);
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+
+		const int tot_rotate = BMO_slot_buffer_count(bmop.slots_out, "edges.out");
+		const int tot_failed = tot - tot_rotate;
+
+		tot_rotate_all += tot_rotate;
+		tot_failed_all += tot_failed;
+
+		if (tot_failed != 0) {
+			/* If some edges fail to rotate, we need to re-select them,
+			 * otherwise we can end up with invalid selection
+			 * (unselected edge between 2 selected faces). */
+			BM_mesh_elem_hflag_enable_test(em->bm, BM_EDGE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
+		}
+
+		EDBM_selectmode_flush(em);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
+
+	if (no_selected_edges) {
 		BKE_report(op->reports, RPT_ERROR, "Select edges or face pairs for edge loops to rotate about");
 		return OPERATOR_CANCELLED;
 	}
 
-	/* first see if we have two adjacent faces */
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		BM_elem_flag_disable(eed, BM_ELEM_TAG);
-		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-			BMFace *fa, *fb;
-			if (BM_edge_face_pair(eed, &fa, &fb)) {
-				/* if both faces are selected we rotate between them,
-				 * otherwise - rotate between 2 unselected - but not mixed */
-				if (BM_elem_flag_test(fa, BM_ELEM_SELECT) == BM_elem_flag_test(fb, BM_ELEM_SELECT)) {
-					BM_elem_flag_enable(eed, BM_ELEM_TAG);
-					tot++;
-				}
-			}
-		}
-	}
-
-	/* ok, we don't have two adjacent faces, but we do have two selected ones.
-	 * that's an error condition.*/
-	if (tot == 0) {
+	/* Ok, we don't have two adjacent faces, but we do have two selected ones.
+	 * that's an error condition. */
+	if (invalid_selected_edges) {
 		BKE_report(op->reports, RPT_ERROR, "Could not find any selected edges that can be rotated");
 		return OPERATOR_CANCELLED;
 	}
 
-	EDBM_op_init(em, &bmop, op, "rotate_edges edges=%he use_ccw=%b", BM_ELEM_TAG, use_ccw);
-
-	/* avoids leaving old verts selected which can be a problem running multiple times,
-	 * since this means the edges become selected around the face which then attempt to rotate */
-	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_in, "edges", BM_EDGE, BM_ELEM_SELECT, true);
-
-	BMO_op_exec(em->bm, &bmop);
-	/* edges may rotate into hidden vertices, if this does _not_ run we get an ilogical state */
-	BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_HIDDEN, true);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
-
-	const int tot_rotate = BMO_slot_buffer_count(bmop.slots_out, "edges.out");
-	const int tot_failed = tot - tot_rotate;
-	if (tot_failed != 0) {
-		/* If some edges fail to rotate, we need to re-select them,
-		 * otherwise we can end up with invalid selection
-		 * (unselected edge between 2 selected faces). */
-		BM_mesh_elem_hflag_enable_test(em->bm, BM_EDGE, BM_ELEM_SELECT, true, false, BM_ELEM_TAG);
-
-		BKE_reportf(op->reports, RPT_WARNING, "Unable to rotate %d edge(s)", tot_failed);
+	if (tot_failed_all != 0) {
+		BKE_reportf(op->reports, RPT_WARNING, "Unable to rotate %d edge(s)", tot_failed_all);
 	}
-
-	EDBM_selectmode_flush(em);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
 
 	return OPERATOR_FINISHED;
 }
@@ -4851,52 +4891,65 @@ void MESH_OT_dissolve_mode(wmOperatorType *ot)
 
 static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
 	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 	const bool use_dissolve_boundaries = RNA_boolean_get(op->ptr, "use_dissolve_boundaries");
 	const int delimit = RNA_enum_get(op->ptr, "delimit");
-
 	char dissolve_flag;
 
-	if (em->selectmode == SCE_SELECT_FACE) {
-		/* flush selection to tags and untag edges/verts with partially selected faces */
-		BMIter iter;
-		BMIter liter;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-		BMElem *ele;
-		BMFace *f;
-		BMLoop *l;
-
-		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
-			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		if ((bm->totvertsel == 0) &&
+		    (bm->totedgesel == 0) &&
+		    (bm->totfacesel == 0))
+		{
+			continue;
 		}
-		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
-		}
 
-		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
-				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-					BM_elem_flag_disable(l->v, BM_ELEM_TAG);
-					BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+		if (em->selectmode == SCE_SELECT_FACE) {
+			/* flush selection to tags and untag edges/verts with partially selected faces */
+			BMIter iter;
+			BMIter liter;
+
+			BMElem *ele;
+			BMFace *f;
+			BMLoop *l;
+
+			BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+				BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+			}
+			BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+			}
+
+			BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+					BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+						BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+						BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+					}
 				}
 			}
+
+			dissolve_flag = BM_ELEM_TAG;
+		}
+		else {
+			dissolve_flag = BM_ELEM_SELECT;
 		}
 
-		dissolve_flag = BM_ELEM_TAG;
-	}
-	else {
-		dissolve_flag = BM_ELEM_SELECT;
-	}
+		EDBM_op_call_and_selectf(
+		        em, op, "region.out", true,
+		        "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b delimit=%i",
+		        dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries, delimit);
 
-	EDBM_op_call_and_selectf(
-	            em, op, "region.out", true,
-	            "dissolve_limit edges=%he verts=%hv angle_limit=%f use_dissolve_boundaries=%b delimit=%i",
-	            dissolve_flag, dissolve_flag, angle_limit, use_dissolve_boundaries, delimit);
-
-	EDBM_update_generic(em, true, true);
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }

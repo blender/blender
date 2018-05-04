@@ -829,7 +829,7 @@ static int armature_extrude_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit;
 	bArmature *arm;
-	EditBone *newbone, *ebone, *flipbone, *first = NULL;
+	EditBone *newbone = NULL, *ebone, *flipbone, *first = NULL;
 	int a, totbone = 0, do_extrude;
 	bool forked = RNA_boolean_get(op->ptr, "forked");
 

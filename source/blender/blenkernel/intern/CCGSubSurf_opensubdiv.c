@@ -232,6 +232,9 @@ bool ccgSubSurf_prepareGLMesh(CCGSubSurf *ss,
 		CHECK_COMPUTE_TYPE(CUDA)
 		CHECK_COMPUTE_TYPE(GLSL_TRANSFORM_FEEDBACK)
 		CHECK_COMPUTE_TYPE(GLSL_COMPUTE)
+		default:
+			compute_type = OPENSUBDIV_EVALUATOR_CPU;
+			break;
 #undef CHECK_COMPUTE_TYPE
 	}
 
@@ -739,7 +742,7 @@ static void opensubdiv_evaluateNGonFaceGrids(CCGSubSurf *ss,
 	/* Evaluate edges. */
 	for (S = 0; S < face->numVerts; S++) {
 		CCGEdge *edge = FACE_getEdges(face)[S];
-		int x, S0, S1;
+		int x, S0 = 0, S1 = 0;
 		bool flip;
 
 		for (x = 0; x < face->numVerts; ++x) {

@@ -390,6 +390,40 @@ void DepsgraphRelationBuilder::begin_build()
 {
 }
 
+void DepsgraphRelationBuilder::build_id(ID* id) {
+	if (id == NULL) {
+		return;
+	}
+	switch (GS(id->name)) {
+		case ID_GR:
+			build_group(NULL, (Group *)id);
+			break;
+		case ID_OB:
+			build_object(NULL, (Object *)id);
+			break;
+		case ID_NT:
+			build_nodetree((bNodeTree *)id);
+			break;
+		case ID_MA:
+			build_material((Material *)id);
+			break;
+		case ID_TE:
+			build_texture((Tex *)id);
+			break;
+		case ID_WO:
+			build_world((World *)id);
+			break;
+		case ID_MSK:
+			build_mask((Mask *)id);
+			break;
+		case ID_MC:
+			build_movieclip((MovieClip *)id);
+			break;
+		default:
+			fprintf(stderr, "Unhandled ID %s\n", id->name);
+	}
+}
+
 void DepsgraphRelationBuilder::build_group(Object *object, Group *group)
 {
 	const bool group_done = built_map_.checkIsBuiltAndTag(group);
@@ -539,7 +573,9 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 	}
 	ID *obdata_id = (ID *)object->data;
 	/* Object data animation. */
-	build_animdata(obdata_id);
+	if (!built_map_.checkIsBuilt(obdata_id)) {
+		build_animdata(obdata_id);
+	}
 	/* type-specific data. */
 	switch (object->type) {
 		case OB_MESH:
@@ -557,7 +593,7 @@ void DepsgraphRelationBuilder::build_object_data(Object *object)
 				build_proxy_rig(object);
 			}
 			else {
-				build_rig(object);
+				 build_rig(object);
 			}
 			break;
 		case OB_LAMP:
@@ -1212,6 +1248,7 @@ void DepsgraphRelationBuilder::build_driver_variables(ID *id, FCurve *fcu)
 			if (dtar->id == NULL) {
 				continue;
 			}
+			build_id(dtar->id);
 			/* Special handling for directly-named bones. */
 			if ((dtar->flag & DTAR_FLAG_STRUCT_REF) &&
 			    (((Object *)dtar->id)->type == OB_ARMATURE) &&

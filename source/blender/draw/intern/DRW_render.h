@@ -273,10 +273,11 @@ typedef enum {
 	DRW_STATE_ADDITIVE_FULL = (1 << 19), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
 	DRW_STATE_BLEND_PREMUL  = (1 << 20), /* Use that if color is already premult by alpha. */
 
-	DRW_STATE_WRITE_STENCIL    = (1 << 27),
-	DRW_STATE_STENCIL_EQUAL    = (1 << 28),
+	DRW_STATE_WRITE_STENCIL          = (1 << 27),
+	DRW_STATE_WRITE_STENCIL_SHADOW   = (1 << 28),
+	DRW_STATE_STENCIL_EQUAL          = (1 << 29),
+	DRW_STATE_STENCIL_NEQUAL         = (1 << 30),
 } DRWState;
-
 #define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS)
 
 typedef enum {
@@ -462,6 +463,7 @@ void DRW_state_clip_planes_reset(void);
 /* Culling, return true if object is inside view frustum. */
 bool DRW_culling_sphere_test(BoundSphere *bsphere);
 bool DRW_culling_box_test(BoundBox *bbox);
+bool DRW_culling_plane_test(float plane[4]);
 
 /* Selection */
 void DRW_select_load_id(unsigned int id);

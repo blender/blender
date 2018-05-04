@@ -1599,6 +1599,7 @@ static void curve_select_shortest_path_surf(Nurb *nu, int vert_src, int vert_dst
 	/* init heap */
 	heap = BLI_heap_new();
 
+	vert_curr = data[vert_src].vert;
 	BLI_heap_insert(heap, 0.0f, &data[vert_src].vert);
 	data[vert_src].cost = 0.0f;
 	data[vert_src].vert_prev = vert_src;  /* nop */

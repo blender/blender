@@ -3552,8 +3552,13 @@ class VIEW3D_PT_shading(Panel):
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
                 col.row().template_icon_view(shading, "studiolight")
+                col.separator()
 
-            col.separator()
+            col.prop(shading, "show_shadows")
+            if shading.show_shadows:
+                col.prop(shading, "ambient_light_intensity")
+                col.separator()
+
             col.prop(shading, "show_object_overlap")
 
 
@@ -3582,7 +3587,7 @@ class VIEW3D_PT_overlay(Panel):
 
         col = layout.column()
         col.active = display_all
-        col.prop(overlay, "show_3dcursor")
+        col.prop(overlay, "show_cursor")
 
         if context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX'}:
             engine_type = {

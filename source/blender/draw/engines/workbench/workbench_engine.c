@@ -58,7 +58,9 @@ static void workbench_view_layer_settings_create(RenderEngine *UNUSED(engine), I
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-	UNUSED_VARS_NDEBUG(props);
+
+	const float light_direction[3] = {-0.577350269, -0.577350269, 0.577350269};
+	BKE_collection_engine_property_add_float_array(props, "light_direction", light_direction, 3);	UNUSED_VARS_NDEBUG(props);
 }
 
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */

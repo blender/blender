@@ -25,6 +25,7 @@
 
 #include "draw_manager.h"
 
+#ifndef NDEBUG
 /* Maybe gpu_texture.c is a better place for this. */
 static bool drw_texture_format_supports_framebuffer(GPUTextureFormat format)
 {
@@ -55,6 +56,7 @@ static bool drw_texture_format_supports_framebuffer(GPUTextureFormat format)
 			return false;
 	}
 }
+#endif
 
 void drw_texture_set_parameters(GPUTexture *tex, DRWTextureFlag flags)
 {

@@ -106,14 +106,15 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	const int mat = CLAMPIS(bmd->mat, -1, ctx->object->totcol - 1);
 	const bool loop_slide = (bmd->flags & MOD_BEVEL_EVEN_WIDTHS) == 0;
 
-	const struct BMeshCreateParams bmcp = {0};
-	const struct BMeshFromMeshParams bmfmp = {
-		.calc_face_normal = true,
-		.add_key_index = false,
-		.use_shapekey = true,
-		.active_shapekey = ctx->object->shapenr,
-	};
-	bm = BKE_mesh_to_bmesh_ex(mesh, &bmcp, &bmfmp);
+	bm = BKE_mesh_to_bmesh_ex(
+	        mesh,
+	        &(struct BMeshCreateParams){0},
+	        &(struct BMeshFromMeshParams){
+	            .calc_face_normal = true,
+	            .add_key_index = false,
+	            .use_shapekey = true,
+	            .active_shapekey = ctx->object->shapenr,
+	        });
 
 	if ((bmd->lim_flags & MOD_BEVEL_VGROUP) && bmd->defgrp_name[0])
 		modifier_get_vgroup_mesh(ctx->object, mesh, bmd->defgrp_name, &dvert, &vgroup);
@@ -176,13 +177,14 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	              vertex_only, bmd->lim_flags & MOD_BEVEL_WEIGHT, do_clamp,
 	              dvert, vgroup, mat, loop_slide);
 
-	struct BMeshToMeshParams bmmp = {0};
-	result = BKE_bmesh_to_mesh(bm, &bmmp);
+	result = BKE_bmesh_to_mesh(bm, &(struct BMeshToMeshParams){0});
 
 	BLI_assert(bm->vtoolflagpool == NULL &&
 	           bm->etoolflagpool == NULL &&
 	           bm->ftoolflagpool == NULL);  /* make sure we never alloc'd these */
 	BM_mesh_free(bm);
+
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 	return result;
 }

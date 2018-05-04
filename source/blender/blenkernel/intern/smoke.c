@@ -867,7 +867,7 @@ static void obstacles_from_derivedmesh(
 			copy_v3_v3(&scs->verts_old[i * 3], co);
 		}
 
-		if (bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 4, 6)) {
+		if (bvhtree_from_mesh_get(&treeData, dm, BVHTREE_FROM_LOOPTRI, 4)) {
 			ObstaclesFromDMData data = {
 			    .sds = sds, .mvert = mvert, .mloop = mloop, .looptri = looptri,
 			    .tree = &treeData, .obstacle_map = obstacle_map,
@@ -1738,7 +1738,7 @@ static void emit_from_derivedmesh(Object *flow_ob, SmokeDomainSettings *sds, Smo
 			res[i] = em->res[i] * hires_multiplier;
 		}
 
-		if (bvhtree_from_mesh_looptri(&treeData, dm, 0.0f, 4, 6)) {
+		if (bvhtree_from_mesh_get(&treeData, dm, BVHTREE_FROM_LOOPTRI, 4)) {
 			const float hr = 1.0f / ((float)hires_multiplier);
 
 			EmitFromDMData data = {

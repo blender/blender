@@ -726,8 +726,10 @@ static void eevee_shadow_cascade_setup(Object *ob, EEVEE_LampsInfo *linfo, EEVEE
 	/* obmat = Object Space > World Space */
 	/* viewmat = World Space > View Space */
 	float (*viewmat)[4] = sh_data->viewmat;
-	invert_m4_m4(viewmat, ob->obmat);
-	normalize_m4(viewmat);
+#if 0 /* done at culling time */
+	normalize_m4_m4(viewmat, ob->obmat);
+#endif
+	invert_m4(viewmat);
 	invert_m4_m4(sh_data->viewinv, viewmat);
 
 	/* The technique consists into splitting
@@ -993,6 +995,28 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 
 	DRWMatrixState saved_mats;
 
+	/* Precompute all shadow/view test before rendering and trashing the culling cache. */
+	bool cube_visible[MAX_SHADOW_CUBE];
+	for (i = 0; (ob = linfo->shadow_cube_ref[i]) && (i < MAX_SHADOW_CUBE); i++) {
+		Lamp *la = (Lamp *)ob->data;
+		BoundSphere bsphere = {
+			.center = {ob->obmat[3][0], ob->obmat[3][1], ob->obmat[3][2]},
+			.radius = la->dist
+		};
+		cube_visible[i] = DRW_culling_sphere_test(&bsphere);
+	}
+	bool cascade_visible[MAX_SHADOW_CASCADE];
+	for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
+		EEVEE_LampEngineData *led = EEVEE_lamp_data_get(ob);
+		EEVEE_ShadowCascadeData *sh_data = &led->data.scad;
+		float plane[4];
+		normalize_m4_m4(sh_data->viewmat, ob->obmat);
+		plane_from_point_normal_v3(plane, sh_data->viewmat[3], sh_data->viewmat[2]);
+		/* TODO: check against near/far instead of "local Z = 0" plane.
+		 * Or even the cascades AABB. */
+		cascade_visible[i] = DRW_culling_plane_test(plane);
+	}
+
 	/* We need to save the Matrices before overidding them */
 	DRW_viewport_matrix_get_all(&saved_mats);
 
@@ -1003,7 +1027,7 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(ob);
 		Lamp *la = (Lamp *)ob->data;
 
-		if (!led->need_update) {
+		if (!led->need_update || !cube_visible[i]) {
 			continue;
 		}
 
@@ -1099,6 +1123,10 @@ void EEVEE_draw_shadows(EEVEE_ViewLayerData *sldata, EEVEE_PassList *psl)
 	/* Cascaded Shadow Maps */
 	DRW_stats_group_start("Cascaded Shadow Maps");
 	for (i = 0; (ob = linfo->shadow_cascade_ref[i]) && (i < MAX_SHADOW_CASCADE); i++) {
+		if (!cascade_visible[i]) {
+			continue;
+		}
+
 		EEVEE_LampEngineData *led = EEVEE_lamp_data_ensure(ob);
 		Lamp *la = (Lamp *)ob->data;
 

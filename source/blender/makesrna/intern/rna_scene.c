@@ -5864,14 +5864,17 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_GRAPH, NULL);
 	
 	/* Frame dropping flag for playback and sync enum */
+#if 0 /* XXX: Is this actually needed? */
 	prop = RNA_def_property(srna, "use_frame_drop", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SCE_FRAME_DROP);
 	RNA_def_property_ui_text(prop, "Frame Dropping", "Play back dropping frames if frame display is too slow");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+#endif
 
 	prop = RNA_def_property(srna, "sync_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_funcs(prop, "rna_Scene_sync_mode_get", "rna_Scene_sync_mode_set", NULL);
 	RNA_def_property_enum_items(prop, sync_mode_items);
+	RNA_def_property_enum_default(prop, AUDIO_SYNC);
 	RNA_def_property_ui_text(prop, "Sync Mode", "How to sync playback");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
@@ -6007,11 +6010,13 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Audio Muted", "Play back of audio from Sequence Editor will be muted");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+#if 0 /* XXX: Is this actually needed? */
 	prop = RNA_def_property(srna, "use_audio_sync", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SYNC);
 	RNA_def_property_ui_text(prop, "Audio Sync",
 	                         "Play back and sync with audio clock, dropping frames if frame display is too slow");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
+#endif
 
 	prop = RNA_def_property(srna, "use_audio_scrub", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "audio.flag", AUDIO_SCRUB);

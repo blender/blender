@@ -63,6 +63,7 @@
 extern "C" {
 #include "DNA_ID.h"
 #include "DNA_anim_types.h"
+#include "DNA_armature_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
@@ -81,6 +82,7 @@ extern "C" {
 
 #include "BKE_action.h"
 #include "BKE_animsys.h"
+#include "BKE_armature.h"
 #include "BKE_editmesh.h"
 #include "BKE_library_query.h"
 #include "BKE_object.h"
@@ -419,6 +421,17 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			BLI_assert(object_cow->derivedFinal == NULL);
 			BLI_assert(object_cow->derivedDeform == NULL);
 			object_cow->mode = object_orig->mode;
+			if (object_cow->type == OB_ARMATURE) {
+				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
+				                             object_cow->pose);
+			}
+			break;
+		}
+		case ID_AR:
+		{
+			const bArmature *armature_orig = (const bArmature *)id_orig;
+			bArmature *armature_cow = (bArmature *)id_cow;
+			armature_cow->edbo = armature_orig->edbo;
 			break;
 		}
 		case ID_ME:
@@ -748,6 +761,12 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			 */
 			Object *ob_cow = (Object *)id_cow;
 			ob_cow->data = NULL;
+			break;
+		}
+		case ID_AR:
+		{
+			bArmature *armature_cow = (bArmature *)id_cow;
+			armature_cow->edbo = NULL;
 			break;
 		}
 		case ID_ME:

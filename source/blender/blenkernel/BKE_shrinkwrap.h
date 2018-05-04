@@ -90,7 +90,7 @@ void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object
  * (where each tree was built on its own coords space)
  */
 bool BKE_shrinkwrap_project_normal(
-        char options, const float vert[3], const float dir[3],
+        char options, const float vert[3], const float dir[3], const float ray_radius,
         const struct SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit,
         BVHTree_RayCastCallback callback, void *userdata);
 

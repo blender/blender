@@ -262,7 +262,7 @@ typedef struct ViewUboStorage {
 /* ------------- DRAW MANAGER ------------ */
 
 #define MAX_CLIP_PLANES 6 /* GL_MAX_CLIP_PLANES is at least 6 */
-
+#define STENCIL_UNDEFINED 256
 typedef struct DRWManager {
 	/* TODO clean up this struct a bit */
 	/* Cache generation */
@@ -320,6 +320,7 @@ typedef struct DRWManager {
 
 	struct {
 		float frustum_planes[6][4];
+		BoundBox frustum_corners;
 		BoundSphere frustum_bsphere;
 		bool updated;
 	} clipping;

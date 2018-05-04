@@ -41,6 +41,7 @@
 
 #include "BKE_editmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -123,15 +124,13 @@ static void deformVertsEM(
 	struct Mesh *mesh_src = mesh;
 
 	if (!mesh) {
-		struct BMeshToMeshParams params = {0};
-		mesh_src = BKE_bmesh_to_mesh(em->bm, &params);
+		mesh_src = BKE_bmesh_to_mesh(em->bm, &(struct BMeshToMeshParams){0});
 	}
 
 	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
 	if (!mesh) {
-		BKE_mesh_free(mesh_src);
-		MEM_freeN(mesh_src);
+		BKE_id_free(NULL, mesh_src);
 	}
 }
 

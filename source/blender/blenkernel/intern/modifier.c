@@ -60,6 +60,7 @@
 
 #include "BKE_appdir.h"
 #include "BKE_cdderivedmesh.h"
+#include "BKE_idcode.h"
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
@@ -1003,16 +1004,14 @@ void modifier_deformVerts_DM_deprecated(struct ModifierData *md, const ModifierE
 		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
-			mesh = BKE_libblock_alloc_notest(ID_ME);
-			BKE_mesh_init(mesh);
+			mesh = BKE_id_new_nomain(ID_ME, NULL);
 			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 
 		mti->deformVerts(md, ctx, mesh, vertexCos, numVerts);
 
 		if (mesh != NULL) {
-			BKE_mesh_free(mesh);
-			MEM_freeN(mesh);
+			BKE_id_free(NULL, mesh);
 		}
 	}
 }
@@ -1031,16 +1030,14 @@ void modifier_deformMatrices_DM_deprecated(struct ModifierData *md, const Modifi
 		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
-			mesh = BKE_libblock_alloc_notest(ID_ME);
-			BKE_mesh_init(mesh);
+			mesh = BKE_id_new_nomain(ID_ME, NULL);
 			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 
 		mti->deformMatrices(md, ctx, mesh, vertexCos, defMats, numVerts);
 
 		if (mesh != NULL) {
-			BKE_mesh_free(mesh);
-			MEM_freeN(mesh);
+			BKE_id_free(NULL, mesh);
 		}
 	}
 }
@@ -1058,16 +1055,14 @@ void modifier_deformVertsEM_DM_deprecated(struct ModifierData *md, const Modifie
 		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
-			mesh = BKE_libblock_alloc_notest(ID_ME);
-			BKE_mesh_init(mesh);
+			mesh = BKE_id_new_nomain(ID_ME, NULL);
 			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 
 		mti->deformVertsEM(md, ctx, editData, mesh, vertexCos, numVerts);
 
 		if (mesh != NULL) {
-			BKE_mesh_free(mesh);
-			MEM_freeN(mesh);
+			BKE_id_free(NULL, mesh);
 		}
 	}
 }
@@ -1085,16 +1080,14 @@ void modifier_deformMatricesEM_DM_deprecated(struct ModifierData *md, const Modi
 		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
-			mesh = BKE_libblock_alloc_notest(ID_ME);
-			BKE_mesh_init(mesh);
+			mesh = BKE_id_new_nomain(ID_ME, NULL);
 			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 
 		mti->deformMatricesEM(md, ctx, editData, mesh, vertexCos, defMats, numVerts);
 
 		if (mesh != NULL) {
-			BKE_mesh_free(mesh);
-			MEM_freeN(mesh);
+			BKE_id_free(NULL, mesh);
 		}
 	}
 }
@@ -1111,8 +1104,7 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
-			mesh = BKE_libblock_alloc_notest(ID_ME);
-			BKE_mesh_init(mesh);
+			mesh = BKE_id_new_nomain(ID_ME, NULL);
 			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 
@@ -1122,12 +1114,10 @@ struct DerivedMesh *modifier_applyModifier_DM_deprecated(struct ModifierData *md
 		DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE);
 
 		if(new_mesh != mesh) {
-			BKE_mesh_free(new_mesh);
-			MEM_freeN(new_mesh);
+			BKE_id_free(NULL, new_mesh);
 		}
 		if (mesh != NULL) {
-			BKE_mesh_free(mesh);
-			MEM_freeN(mesh);
+			BKE_id_free(NULL, mesh);
 		}
 
 		return ndm;
@@ -1147,8 +1137,7 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 		/* TODO(sybren): deduplicate all the copies of this code in this file. */
 		Mesh *mesh = NULL;
 		if (dm != NULL) {
-			mesh = BKE_libblock_alloc_notest(ID_ME);
-			BKE_mesh_init(mesh);
+			mesh = BKE_id_new_nomain(ID_ME, NULL);
 			DM_to_mesh(dm, mesh, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 
@@ -1158,12 +1147,10 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 		DerivedMesh *ndm = CDDM_from_mesh_ex(new_mesh, CD_DUPLICATE);
 
 		if(new_mesh != mesh) {
-			BKE_mesh_free(new_mesh);
-			MEM_freeN(new_mesh);
+			BKE_id_free(NULL, new_mesh);
 		}
 		if (mesh != NULL) {
-			BKE_mesh_free(mesh);
-			MEM_freeN(mesh);
+			BKE_id_free(NULL, mesh);
 		}
 
 		return ndm;

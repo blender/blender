@@ -450,7 +450,7 @@ static bool raycastDerivedMesh(
 		}
 
 		if (treedata->tree == NULL) {
-			bvhtree_from_mesh_looptri(treedata, dm, 0.0f, 4, 6);
+			bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_LOOPTRI, 4);
 
 			if (treedata->tree == NULL) {
 				return retval;
@@ -1694,10 +1694,10 @@ static bool snapDerivedMesh(
 		if (treedata->tree == NULL) {
 			switch (snapdata->snap_to) {
 				case SCE_SNAP_MODE_EDGE:
-					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_EDGES);
+					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_EDGES, 2);
 					break;
 				case SCE_SNAP_MODE_VERTEX:
-					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_VERTS);
+					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_VERTS, 2);
 					break;
 			}
 		}

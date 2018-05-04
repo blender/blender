@@ -131,7 +131,7 @@ float BKE_mesh_remap_calc_difference_from_dm(
 	float result = 0.0f;
 	int i;
 
-	bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS);
+	bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS, 2);
 	nearest.index = -1;
 
 	for (i = 0; i < numverts_dst; i++) {
@@ -422,9 +422,6 @@ typedef struct IslandResult {
 #define MREMAP_RAYCAST_APPROXIMATE_NR 3
 /* Each approximated raycasts will have n times bigger radius than previous one. */
 #define MREMAP_RAYCAST_APPROXIMATE_FAC 5.0f
-/* BVH epsilon value we have to give to bvh 'constructor' when doing approximated raycasting. */
-#define MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(_ray_radius) \
-	((float)MREMAP_RAYCAST_APPROXIMATE_NR * MREMAP_RAYCAST_APPROXIMATE_FAC * (_ray_radius))
 
 /* min 16 rays/face, max 400. */
 #define MREMAP_RAYCAST_TRI_SAMPLES_MIN 4
@@ -460,7 +457,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 		float tmp_co[3], tmp_no[3];
 
 		if (mode == MREMAP_MODE_VERT_NEAREST) {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numverts_dst; i++) {
@@ -485,7 +482,7 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)dm_src->getNumVerts(dm_src), __func__);
 			dm_src->getVertCos(dm_src, vcos_src);
 
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numverts_dst; i++) {
@@ -543,15 +540,11 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			float *weights = MEM_mallocN(sizeof(*weights) * tmp_buff_size, __func__);
 
 			dm_src->getVertCos(dm_src, vcos_src);
-			if (mode & MREMAP_USE_NORPROJ) {
-				bvhtree_from_mesh_looptri(
-				        &treedata, dm_src, ray_radius, 2, 6);
-			}
-			else {
-				bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI);
-			}
+
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 			if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
+				treedata.sphere_radius = ray_radius;
 				for (i = 0; i < numverts_dst; i++) {
 					copy_v3_v3(tmp_co, verts_dst[i].co);
 					normal_short_to_float_v3(tmp_no, verts_dst[i].no);
@@ -682,7 +675,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 
 			dm_src->getVertCos(dm_src, vcos_src);
 
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_VERTS, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numedges_dst; i++) {
@@ -782,7 +775,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			MEM_freeN(vert_to_edge_src_map_mem);
 		}
 		else if (mode == MREMAP_MODE_EDGE_NEAREST) {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES, 2);
 			nearest.index = -1;
 
 			for (i = 0; i < numedges_dst; i++) {
@@ -809,7 +802,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			float (*vcos_src)[3] = MEM_mallocN(sizeof(*vcos_src) * (size_t)dm_src->getNumVerts(dm_src), __func__);
 
 			dm_src->getVertCos(dm_src, vcos_src);
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 			for (i = 0; i < numedges_dst; i++) {
 				interp_v3_v3v3(tmp_co, verts_dst[edges_dst[i].v1].co, verts_dst[edges_dst[i].v2].co, 0.5f);
@@ -862,7 +855,7 @@ void BKE_mesh_remap_calc_edges_from_dm(
 			/* Here it's simpler to just allocate for all edges :/ */
 			float *weights = MEM_mallocN(sizeof(*weights) * (size_t)numedges_src, __func__);
 
-			bvhtree_from_mesh_edges(&treedata, dm_src, MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius), 2, 6);
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_EDGES, 2);
 
 			for (i = 0; i < numedges_dst; i++) {
 				/* For each dst edge, we sample some rays from it (interpolated from its vertices)
@@ -916,8 +909,10 @@ void BKE_mesh_remap_calc_edges_from_dm(
 					interp_v3_v3v3_slerp_safe(tmp_no, v1_no, v2_no, fac);
 
 					while (n--) {
+						float radius = (ray_radius / w);
+						treedata.sphere_radius = radius;
 						if (mesh_remap_bvhtree_query_raycast(
-						        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
+						        &treedata, &rayhit, tmp_co, tmp_no, radius, max_dist, &hit_dist))
 						{
 							weights[rayhit.index] += w;
 							totweights += w;
@@ -1205,8 +1200,6 @@ void BKE_mesh_remap_calc_loops_from_dm(
 		IslandResult **islands_res;
 		size_t islands_res_buff_size = MREMAP_DEFAULT_BUFSIZE;
 
-		const float bvh_epsilon = (mode & MREMAP_USE_NORPROJ) ? MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius) : 0.0f;
-
 		if (!use_from_vert) {
 			vcos_src = MEM_mallocN(sizeof(*vcos_src) * (size_t)num_verts_src, __func__);
 			dm_src->getVertCos(dm_src, vcos_src);
@@ -1356,7 +1349,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					}
 					/* verts 'ownership' is transfered to treedata here, which will handle its freeing. */
 					bvhtree_from_mesh_verts_ex(&treedata[tindex], verts_src, num_verts_src, verts_allocated_src,
-					                           verts_active, num_verts_active, bvh_epsilon, 2, 6);
+					                           verts_active, num_verts_active, 0.0, 2, 6);
 					if (verts_allocated_src) {
 						verts_allocated_src = false;  /* Only 'give' our verts once, to first tree! */
 					}
@@ -1366,7 +1359,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 			}
 			else {
 				BLI_assert(num_trees == 1);
-				bvhtree_from_mesh_get(&treedata[0], dm_src, BVHTREE_FROM_VERTS);
+				bvhtree_from_mesh_get(&treedata[0], dm_src, BVHTREE_FROM_VERTS, 2);
 			}
 		}
 		else {  /* We use polygons. */
@@ -1403,7 +1396,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 					        verts_src, verts_allocated_src,
 					        loops_src, loops_allocated_src,
 					        looptri_src, num_looptri_src, false,
-					        looptri_active, num_looptri_active, bvh_epsilon, 2, 6);
+					        looptri_active, num_looptri_active, 0.0, 2, 6);
 					if (verts_allocated_src) {
 						verts_allocated_src = false;  /* Only 'give' our verts once, to first tree! */
 					}
@@ -1416,7 +1409,7 @@ void BKE_mesh_remap_calc_loops_from_dm(
 			}
 			else {
 				BLI_assert(num_trees == 1);
-				bvhtree_from_mesh_looptri(&treedata[0], dm_src, bvh_epsilon, 2, 6);
+				bvhtree_from_mesh_get(&treedata[0], dm_src, BVHTREE_FROM_LOOPTRI, 2);
 			}
 		}
 
@@ -1572,8 +1565,10 @@ void BKE_mesh_remap_calc_loops_from_dm(
 						}
 
 						while (n--) {
+							float radius = ray_radius / w;
+							tdata->sphere_radius = radius;
 							if (mesh_remap_bvhtree_query_raycast(
-							        tdata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
+							        tdata, &rayhit, tmp_co, tmp_no, radius, max_dist, &hit_dist))
 							{
 								islands_res[tindex][plidx_dst].factor = (hit_dist ? (1.0f / hit_dist) : 1e18f) * w;
 								islands_res[tindex][plidx_dst].hit_dist = hit_dist;
@@ -2013,13 +2008,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 		BVHTreeRayHit rayhit = {0};
 		float hit_dist;
 
-		if (mode & MREMAP_USE_NORPROJ) {
-			bvhtree_from_mesh_looptri(
-			        &treedata, dm_src, MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius), 2, 6);
-		}
-		else {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI);
-		}
+		bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 		if (mode == MREMAP_MODE_POLY_NEAREST) {
 			nearest.index = -1;
@@ -2062,6 +2051,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 					BLI_space_transform_apply_normal(space_transform, tmp_no);
 				}
 
+				treedata.sphere_radius = ray_radius;
 				if (mesh_remap_bvhtree_query_raycast(
 				        &treedata, &rayhit, tmp_co, tmp_no, ray_radius, max_dist, &hit_dist))
 				{
@@ -2211,8 +2201,9 @@ void BKE_mesh_remap_calc_polys_from_dm(
 
 						/* At this point, tmp_co is a point on our poly surface, in mesh_src space! */
 						while (n--) {
+							treedata.sphere_radius = ray_radius / w;
 							if (mesh_remap_bvhtree_query_raycast(
-							        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
+							        &treedata, &rayhit, tmp_co, tmp_no, treedata.sphere_radius, max_dist, &hit_dist))
 							{
 								const MLoopTri *lt = &treedata.looptri[rayhit.index];
 
@@ -2262,7 +2253,6 @@ void BKE_mesh_remap_calc_polys_from_dm(
 
 #undef MREMAP_RAYCAST_APPROXIMATE_NR
 #undef MREMAP_RAYCAST_APPROXIMATE_FAC
-#undef MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON
 #undef MREMAP_RAYCAST_TRI_SAMPLES_MIN
 #undef MREMAP_RAYCAST_TRI_SAMPLES_MAX
 #undef MREMAP_DEFAULT_BUFSIZE

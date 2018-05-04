@@ -72,6 +72,7 @@
 #include "BLI_bitmap.h"
 
 #include "BKE_deform.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_modifier.h"
@@ -1864,8 +1865,7 @@ static Mesh *base_skin(Mesh *origmesh,
 	if (!bm)
 		return NULL;
 
-	struct BMeshToMeshParams bmtmp = {0};
-	result = BKE_bmesh_to_mesh(bm, &bmtmp);
+	result = BKE_bmesh_to_mesh(bm, &(struct BMeshToMeshParams){0});
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
@@ -1886,9 +1886,7 @@ static Mesh *final_skin(SkinModifierData *smd, Mesh *mesh)
 	mesh = subdivide_base(mesh);
 	result = base_skin(mesh, smd);
 
-	BKE_mesh_free(mesh);
-	MEM_freeN(mesh);
-
+	BKE_id_free(NULL, mesh);
 	return result;
 }
 

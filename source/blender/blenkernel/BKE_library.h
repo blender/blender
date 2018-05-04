@@ -52,8 +52,12 @@ struct PropertyRNA;
 
 size_t BKE_libblock_get_alloc_info(short type, const char **name);
 void *BKE_libblock_alloc_notest(short type) ATTR_WARN_UNUSED_RESULT;
-void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, const int flag) ATTR_WARN_UNUSED_RESULT ATTR_NONNULL(1);
+void *BKE_libblock_alloc(struct Main *bmain, short type, const char *name, const int flag) ATTR_WARN_UNUSED_RESULT;
 void  BKE_libblock_init_empty(struct ID *id) ATTR_NONNULL(1);
+
+void *BKE_id_new(struct Main *bmain, const short type, const char *name);
+void *BKE_id_new_nomain(const short type, const char *name);
+
 
 /**
  * New ID creation/copying options.

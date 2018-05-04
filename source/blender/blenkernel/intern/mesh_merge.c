@@ -39,6 +39,7 @@
 #include "BLI_ghash.h"
 
 #include "BKE_customdata.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 
@@ -677,8 +678,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 	if (poly_map_mem != NULL)
 		MEM_freeN(poly_map_mem);
 
-	BKE_mesh_free(mesh);
-	MEM_freeN(mesh);
+	BKE_id_free(NULL, mesh);
 
 	return result;
 }
