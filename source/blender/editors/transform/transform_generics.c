@@ -1911,11 +1911,11 @@ void calculateCenterBound(TransInfo *t, float r_center[3])
 						}
 					}
 				}
-				is_first = false;
 			}
 			else {
 				copy_v3_v3(max, tc->data[i].center);
 				copy_v3_v3(min, tc->data[i].center);
+				is_first = false;
 			}
 		}
 	}
