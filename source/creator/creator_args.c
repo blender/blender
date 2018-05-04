@@ -710,8 +710,11 @@ static int arg_handle_log_level_set(int argc, const char **argv, void *UNUSED(da
 		if (!parse_int_clamp(argv[1], NULL, -1, INT_MAX, &G.log.level, &err_msg)) {
 			printf("\nError: %s '%s %s'.\n", err_msg, arg_id, argv[1]);
 		}
-		if (G.log.level == -1) {
-			G.log.level = INT_MAX;
+		else {
+			if (G.log.level == -1) {
+				G.log.level = INT_MAX;
+			}
+			CLG_level_set(G.log.level);
 		}
 		return 1;
 	}
