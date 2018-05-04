@@ -33,6 +33,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_ghash.h"
 
+#include "DNA_ID.h"
+
 namespace DEG {
 
 BuilderMap::BuilderMap() {

@@ -317,11 +317,13 @@ void DepsgraphRelationBuilder::build_rig(Object *object)
 	add_relation(init_ik_key, flush_key, "Pose Init IK -> Pose Cleanup");
 
 	/* Make sure pose is up-to-date with armature updates. */
-	OperationKey armature_key(&arm->id,
-	                          DEG_NODE_TYPE_PARAMETERS,
-	                          DEG_OPCODE_PLACEHOLDER,
-	                          "Armature Eval");
-	add_relation(armature_key, init_key, "Data dependency");
+	if (!built_map_.checkIsBuiltAndTag(arm)) {
+		OperationKey armature_key(&arm->id,
+		                          DEG_NODE_TYPE_PARAMETERS,
+		                          DEG_OPCODE_PLACEHOLDER,
+		                          "Armature Eval");
+		add_relation(armature_key, init_key, "Data dependency");
+	}
 
 	/* IK Solvers...
 	 * - These require separate processing steps are pose-level
