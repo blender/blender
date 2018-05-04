@@ -1,5 +1,6 @@
 
-uniform sampler2DArray shadowTexture;
+uniform sampler2DArray shadowCubeTexture;
+uniform sampler2DArray shadowCascadeTexture;
 
 #define LAMPS_LIB
 
@@ -22,16 +23,16 @@ layout(std140) uniform light_block {
 
 #if defined(SHADOW_VSM)
 #define ShadowSample vec2
-#define sample_cube(vec, id)    texture_octahedron(shadowTexture, vec4(vec, id)).rg
-#define sample_cascade(vec, id) texture(shadowTexture, vec3(vec, id)).rg
+#define sample_cube(vec, id)    texture_octahedron(shadowCubeTexture, vec4(vec, id)).rg
+#define sample_cascade(vec, id) texture(shadowCascadeTexture, vec3(vec, id)).rg
 #elif defined(SHADOW_ESM)
 #define ShadowSample float
-#define sample_cube(vec, id)    texture_octahedron(shadowTexture, vec4(vec, id)).r
-#define sample_cascade(vec, id) texture(shadowTexture, vec3(vec, id)).r
+#define sample_cube(vec, id)    texture_octahedron(shadowCubeTexture, vec4(vec, id)).r
+#define sample_cascade(vec, id) texture(shadowCascadeTexture, vec3(vec, id)).r
 #else
 #define ShadowSample float
-#define sample_cube(vec, id)    texture_octahedron(shadowTexture, vec4(vec, id)).r
-#define sample_cascade(vec, id) texture(shadowTexture, vec3(vec, id)).r
+#define sample_cube(vec, id)    texture_octahedron(shadowCubeTexture, vec4(vec, id)).r
+#define sample_cascade(vec, id) texture(shadowCascadeTexture, vec3(vec, id)).r
 #endif
 
 #if defined(SHADOW_VSM)

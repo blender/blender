@@ -368,7 +368,8 @@ static void add_standard_uniforms(
 	/* TODO if glossy or diffuse bsdf */
 	if (true) {
 		DRW_shgroup_uniform_texture(shgrp, "utilTex", e_data.util_tex);
-		DRW_shgroup_uniform_texture_ref(shgrp, "shadowTexture", &sldata->shadow_pool);
+		DRW_shgroup_uniform_texture_ref(shgrp, "shadowCubeTexture", &sldata->shadow_cube_pool);
+		DRW_shgroup_uniform_texture_ref(shgrp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
 		DRW_shgroup_uniform_texture_ref(shgrp, "maxzBuffer", &vedata->txl->maxzbuffer);
 
 		if ((vedata->stl->effects->enabled_effects & EFFECT_GTAO) != 0) {

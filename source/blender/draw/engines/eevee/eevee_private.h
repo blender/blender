@@ -344,11 +344,12 @@ typedef struct EEVEE_ShadowCasterBuffer {
 /* ************ LIGHT DATA ************* */
 typedef struct EEVEE_LampsInfo {
 	int num_light, cache_num_light;
-	int num_layer, cache_num_layer;
+	int num_cube_layer, cache_num_cube_layer;
+	int num_cascade_layer, cache_num_cascade_layer;
 	int gpu_cube_ct, gpu_cascade_ct, gpu_shadow_ct;
 	int cpu_cube_ct, cpu_cascade_ct;
 	int update_flag;
-	int shadow_size, shadow_method;
+	int shadow_cube_size, shadow_cascade_size, shadow_method;
 	bool shadow_high_bitdepth;
 	int shadow_cube_target_size;
 	int current_shadow_cascade;
@@ -645,14 +646,16 @@ typedef struct EEVEE_ViewLayerData {
 	struct GPUUniformBuffer *shadow_samples_ubo;
 
 	struct GPUFrameBuffer *shadow_cube_target_fb;
+	struct GPUFrameBuffer *shadow_cube_store_fb;
 	struct GPUFrameBuffer *shadow_cascade_target_fb;
-	struct GPUFrameBuffer *shadow_store_fb;
+	struct GPUFrameBuffer *shadow_cascade_store_fb;
 
 	struct GPUTexture *shadow_cube_target;
 	struct GPUTexture *shadow_cube_blur;
 	struct GPUTexture *shadow_cascade_target;
 	struct GPUTexture *shadow_cascade_blur;
-	struct GPUTexture *shadow_pool;
+	struct GPUTexture *shadow_cube_pool;
+	struct GPUTexture *shadow_cascade_pool;
 
 	struct EEVEE_ShadowCasterBuffer shcasters_buffers[2];
 

@@ -675,7 +675,8 @@ class RENDER_PT_eevee_shadows(RenderButtonsPanel, Panel):
 
         col = layout.column()
         col.prop(props, "shadow_method")
-        col.prop(props, "shadow_size")
+        col.prop(props, "shadow_cube_size")
+        col.prop(props, "shadow_cascade_size")
         col.prop(props, "shadow_high_bitdepth")
 
 

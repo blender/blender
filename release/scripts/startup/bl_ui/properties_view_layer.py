@@ -308,7 +308,8 @@ class VIEWLAYER_PT_eevee_shadows(ViewLayerButtonsPanel, Panel):
 
         col = layout.column()
         col.template_override_property(layer_props, scene_props, "shadow_method")
-        col.template_override_property(layer_props, scene_props, "shadow_size")
+        col.template_override_property(layer_props, scene_props, "shadow_cube_size")
+        col.template_override_property(layer_props, scene_props, "shadow_cascade_size")
         col.template_override_property(layer_props, scene_props, "shadow_high_bitdepth")
 
 

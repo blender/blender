@@ -39,13 +39,15 @@ static void eevee_view_layer_data_free(void *storage)
 	DRW_UBO_FREE_SAFE(sldata->shadow_ubo);
 	DRW_UBO_FREE_SAFE(sldata->shadow_render_ubo);
 	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_target_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cube_store_fb);
 	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_target_fb);
-	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_store_fb);
+	GPU_FRAMEBUFFER_FREE_SAFE(sldata->shadow_cascade_store_fb);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_pool);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
 	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_blur);
-	DRW_TEXTURE_FREE_SAFE(sldata->shadow_pool);
+	DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_pool);
 	MEM_SAFE_FREE(sldata->shcasters_buffers[0].shadow_casters);
 	MEM_SAFE_FREE(sldata->shcasters_buffers[0].flags);
 	MEM_SAFE_FREE(sldata->shcasters_buffers[1].shadow_casters);

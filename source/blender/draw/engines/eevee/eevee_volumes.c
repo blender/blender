@@ -422,7 +422,8 @@ void EEVEE_volumes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 		grp = DRW_shgroup_empty_tri_batch_create(scatter_sh, psl->volumetric_scatter_ps,
 		                                         common_data->vol_tex_size[2]);
 		DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &sldata->irradiance_pool);
-		DRW_shgroup_uniform_texture_ref(grp, "shadowTexture", &sldata->shadow_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowCubeTexture", &sldata->shadow_cube_pool);
+		DRW_shgroup_uniform_texture_ref(grp, "shadowCascadeTexture", &sldata->shadow_cascade_pool);
 		DRW_shgroup_uniform_texture_ref(grp, "volumeScattering", &txl->volume_prop_scattering);
 		DRW_shgroup_uniform_texture_ref(grp, "volumeExtinction", &txl->volume_prop_extinction);
 		DRW_shgroup_uniform_texture_ref(grp, "volumeEmission", &txl->volume_prop_emission);

@@ -497,7 +497,8 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 	BKE_collection_engine_property_add_float(props, "motion_blur_shutter", 1.0f);
 
 	BKE_collection_engine_property_add_int(props, "shadow_method", SHADOW_ESM);
-	BKE_collection_engine_property_add_int(props, "shadow_size", 512);
+	BKE_collection_engine_property_add_int(props, "shadow_cube_size", 512);
+	BKE_collection_engine_property_add_int(props, "shadow_cascade_size", 1024);
 	BKE_collection_engine_property_add_bool(props, "shadow_high_bitdepth", false);
 }
 

@@ -418,7 +418,8 @@ RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_thickness)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_border_fade)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_FLOAT(ssr_firefly_fac)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_method)
-RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_size)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_cube_size)
+RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(shadow_cascade_size)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_BOOL(shadow_high_bitdepth)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_samples)
 RNA_LAYER_ENGINE_EEVEE_GET_SET_INT(taa_render_samples)
@@ -1565,10 +1566,17 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 
-	prop = RNA_def_property(srna, "shadow_size", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_shadow_size_get", "rna_LayerEngineSettings_Eevee_shadow_size_set", NULL);
+	prop = RNA_def_property(srna, "shadow_cube_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_shadow_cube_size_get", "rna_LayerEngineSettings_Eevee_shadow_cube_size_set", NULL);
 	RNA_def_property_enum_items(prop, eevee_shadow_size_items);
-	RNA_def_property_ui_text(prop, "Size", "Size of every shadow maps");
+	RNA_def_property_ui_text(prop, "Cube Shadows Resolution", "Size of point and area lamps shadow maps");
+	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
+	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
+
+	prop = RNA_def_property(srna, "shadow_cascade_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Eevee_shadow_cascade_size_get", "rna_LayerEngineSettings_Eevee_shadow_cascade_size_set", NULL);
+	RNA_def_property_enum_items(prop, eevee_shadow_size_items);
+	RNA_def_property_ui_text(prop, "Directional Shadows Resolution", "Size of sun lamps shadow maps");
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
 
