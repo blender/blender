@@ -492,6 +492,14 @@ static void CLG_ctx_type_filter_include(CLogContext *ctx, const char *type_match
 	clg_ctx_type_filter_append(&ctx->filters[1], type_match, type_match_len);
 }
 
+static void CLG_ctx_level_set(CLogContext *ctx, int level)
+{
+	ctx->default_type.level = level;
+	for (CLG_LogType *ty = ctx->types; ty; ty = ty->next) {
+		ty->level = level;
+	}
+}
+
 static CLogContext *CLG_ctx_init(void)
 {
 	CLogContext *ctx = MEM_callocN(sizeof(*ctx), __func__);
@@ -568,6 +576,12 @@ void CLG_type_filter_include(const char *type_match, int type_match_len)
 {
 	CLG_ctx_type_filter_include(g_ctx, type_match, type_match_len);
 }
+
+void CLG_level_set(int level)
+{
+	CLG_ctx_level_set(g_ctx, level);
+}
+
 
 /** \} */
 

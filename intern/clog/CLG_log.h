@@ -150,6 +150,8 @@ void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle));
 void CLG_type_filter_include(const char *type_filter, int type_filter_len);
 void CLG_type_filter_exclude(const char *type_filter, int type_filter_len);
 
+void CLG_level_set(int level);
+
 void CLG_logref_init(CLG_LogRef *clg_ref);
 
 /** Declare outside function, declare as extern in header. */
