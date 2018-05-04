@@ -194,10 +194,10 @@ static void mesh_faces_spherecast(void *userdata, int index, const BVHTreeRay *r
 	
 	do {
 		float dist;
-		if (data->sphere_radius == 0.0f)
+		if (ray->radius == 0.0f)
 			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
-			dist = bvhtree_sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
+			dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, t0, t1, t2);
 
 		if (dist >= 0 && dist < hit->dist) {
 			hit->index = index;
@@ -226,10 +226,10 @@ static void mesh_looptri_spherecast(void *userdata, int index, const BVHTreeRay 
 	};
 	float dist;
 
-	if (data->sphere_radius == 0.0f)
+	if (ray->radius == 0.0f)
 		dist = bvhtree_ray_tri_intersection(ray, hit->dist, UNPACK3(vtri_co));
 	else
-		dist = bvhtree_sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, UNPACK3(vtri_co));
+		dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, UNPACK3(vtri_co));
 
 	if (dist >= 0 && dist < hit->dist) {
 		hit->index = index;
@@ -254,10 +254,10 @@ static void editmesh_looptri_spherecast(void *userdata, int index, const BVHTree
 
 	{
 		float dist;
-		if (data->sphere_radius == 0.0f)
+		if (ray->radius == 0.0f)
 			dist = bvhtree_ray_tri_intersection(ray, hit->dist, t0, t1, t2);
 		else
-			dist = bvhtree_sphereray_tri_intersection(ray, data->sphere_radius, hit->dist, t0, t1, t2);
+			dist = bvhtree_sphereray_tri_intersection(ray, ray->radius, hit->dist, t0, t1, t2);
 
 		if (dist >= 0 && dist < hit->dist) {
 			hit->index = index;
@@ -340,7 +340,7 @@ static void mesh_edges_spherecast(void *userdata, int index, const BVHTreeRay *r
 	const MVert *vert = data->vert;
 	const MEdge *edge = &data->edge[index];
 
-	const float radius_sq = SQUARE(data->sphere_radius);
+	const float radius_sq = SQUARE(ray->radius);
 	float dist;
 	const float *v1, *v2, *r1;
 	float r2[3], i1[3], i2[3];
@@ -448,7 +448,7 @@ static BVHTree *bvhtree_from_mesh_verts_create_tree(
 }
 
 static void bvhtree_from_mesh_verts_setup_data(
-        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached, float epsilon,
+        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached,
         const MVert *vert, const bool vert_allocated)
 {
 	memset(data, 0, sizeof(*data));
@@ -464,8 +464,6 @@ static void bvhtree_from_mesh_verts_setup_data(
 	data->vert = vert;
 	data->vert_allocated = vert_allocated;
 	//data->face = DM_get_tessface_array(dm, &data->face_allocated);  /* XXX WHY???? */
-
-	data->sphere_radius = epsilon;
 }
 
 /* Builds a bvh tree where nodes are the vertices of the given em */
@@ -515,7 +513,7 @@ BVHTree *bvhtree_from_mesh_verts_ex(
 
 	/* Setup BVHTreeFromMesh */
 	bvhtree_from_mesh_verts_setup_data(
-	        data, tree, false, epsilon, vert, vert_allocated);
+	        data, tree, false, vert, vert_allocated);
 
 	return tree;
 }
@@ -599,7 +597,7 @@ static BVHTree *bvhtree_from_mesh_edges_create_tree(
 
 static void bvhtree_from_mesh_edges_setup_data(
         BVHTreeFromMesh *data, BVHTree *tree,
-        const bool is_cached, float epsilon,
+        const bool is_cached,
         const MVert *vert, const bool vert_allocated,
         const MEdge *edge, const bool edge_allocated)
 {
@@ -616,8 +614,6 @@ static void bvhtree_from_mesh_edges_setup_data(
 	data->vert_allocated = vert_allocated;
 	data->edge = edge;
 	data->edge_allocated = edge_allocated;
-
-	data->sphere_radius = epsilon;
 }
 
 /* Builds a bvh tree where nodes are the edges of the given em */
@@ -672,7 +668,7 @@ BVHTree *bvhtree_from_mesh_edges_ex(
 
 	/* Setup BVHTreeFromMesh */
 	bvhtree_from_mesh_edges_setup_data(
-	        data, tree, false, epsilon, vert, vert_allocated, edge, edge_allocated);
+	        data, tree, false, vert, vert_allocated, edge, edge_allocated);
 
 	return tree;
 }
@@ -730,7 +726,7 @@ static BVHTree *bvhtree_from_mesh_faces_create_tree(
 }
 
 static void bvhtree_from_mesh_faces_setup_data(
-        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached, float epsilon,
+        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached,
         const MVert *vert, const bool vert_allocated,
         const MFace *face, const bool face_allocated)
 {
@@ -746,8 +742,6 @@ static void bvhtree_from_mesh_faces_setup_data(
 	data->vert_allocated = vert_allocated;
 	data->face = face;
 	data->face_allocated = face_allocated;
-
-	data->sphere_radius = epsilon;
 }
 
 /**
@@ -770,7 +764,7 @@ BVHTree *bvhtree_from_mesh_faces_ex(
 
 	/* Setup BVHTreeFromMesh */
 	bvhtree_from_mesh_faces_setup_data(
-	        data, tree, false, epsilon, vert, vert_allocated, face, face_allocated);
+	        data, tree, false, vert, vert_allocated, face, face_allocated);
 
 	return tree;
 }
@@ -876,7 +870,7 @@ static BVHTree *bvhtree_from_mesh_looptri_create_tree(
 }
 
 static void bvhtree_from_mesh_looptri_setup_data(
-        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached, float epsilon,
+        BVHTreeFromMesh *data, BVHTree *tree, const bool is_cached,
         const MVert *vert, const bool vert_allocated,
         const MLoop *mloop, const bool loop_allocated,
         const MLoopTri *looptri, const bool looptri_allocated)
@@ -895,8 +889,6 @@ static void bvhtree_from_mesh_looptri_setup_data(
 	data->loop_allocated = loop_allocated;
 	data->looptri = looptri;
 	data->looptri_allocated = looptri_allocated;
-
-	data->sphere_radius = epsilon;
 }
 
 /**
@@ -941,7 +933,6 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(
 		data->tree = tree;
 		data->nearest_callback = editmesh_looptri_nearest_point;
 		data->raycast_callback = editmesh_looptri_spherecast;
-		data->sphere_radius = 0.0f;
 		data->em = em;
 		data->cached = bvhCache != NULL;
 	}
@@ -977,7 +968,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
 
 	/* Setup BVHTreeFromMesh */
 	bvhtree_from_mesh_looptri_setup_data(
-	        data, tree, false, epsilon,
+	        data, tree, false,
 	        vert, vert_allocated,
 	        mloop, loop_allocated,
 	        looptri, looptri_allocated);
@@ -1144,8 +1135,6 @@ BVHTree *bvhtree_from_mesh_get(
 		data->edge_allocated = edge_allocated;
 		data->loop_allocated = loop_allocated;
 		data->looptri_allocated = looptri_allocated;
-
-		data->sphere_radius = 0.0;
 
 		data->cached = true;
 	}
