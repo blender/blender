@@ -41,9 +41,6 @@ typedef struct GlobalsUboStorage {
 	float colorActive[4];
 	float colorSelect[4];
 	float colorTransform[4];
-	float colorGroupActive[4];
-	float colorGroupSelect[4];
-	float colorGroup[4];
 	float colorLibrarySelect[4];
 	float colorLibrary[4];
 	float colorLamp[4];

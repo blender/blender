@@ -7,7 +7,7 @@ uniform usampler2D outlineId;
 uniform sampler2D outlineDepth;
 uniform sampler2D sceneDepth;
 
-uniform int idOffsets[5];
+uniform int idOffsets[3];
 
 uniform float alphaOcclu;
 uniform vec2 viewportSize;
@@ -21,13 +21,7 @@ vec4 convert_id_to_color(int id)
 		return colorActive;
 	}
 	else if (id < idOffsets[2]) {
-		return colorGroupActive;
-	}
-	else if (id < idOffsets[3]) {
 		return colorSelect;
-	}
-	else if (id < idOffsets[4]) {
-		return colorGroup;
 	}
 	else {
 		return colorTransform;

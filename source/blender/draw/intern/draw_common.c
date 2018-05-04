@@ -54,9 +54,6 @@ void DRW_globals_update(void)
 	UI_GetThemeColor4fv(TH_ACTIVE, ts.colorActive);
 	UI_GetThemeColor4fv(TH_SELECT, ts.colorSelect);
 	UI_GetThemeColor4fv(TH_TRANSFORM, ts.colorTransform);
-	UI_GetThemeColor4fv(TH_GROUP_ACTIVE, ts.colorGroupActive);
-	UI_GetThemeColorShade4fv(TH_GROUP_ACTIVE, -25, ts.colorGroupSelect);
-	UI_GetThemeColor4fv(TH_GROUP, ts.colorGroup);
 	UI_COLOR_RGBA_FROM_U8(0x88, 0xFF, 0xFF, 155, ts.colorLibrarySelect);
 	UI_COLOR_RGBA_FROM_U8(0x55, 0xCC, 0xCC, 155, ts.colorLibrary);
 	UI_GetThemeColor4fv(TH_LAMP, ts.colorLamp);
@@ -613,26 +610,16 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 	}
 	else {
 		/* Sets the 'theme_id' or fallback to wire */
-		if ((ob->flag & OB_FROMGROUP) != 0) {
-			if ((ob->base_flag & BASE_SELECTED) != 0) {
-				theme_id = TH_GROUP_ACTIVE;
-			}
-			else {
-				theme_id = TH_GROUP;
-			}
+		if ((ob->base_flag & BASE_SELECTED) != 0) {
+			theme_id = (active) ? TH_ACTIVE : TH_SELECT;
 		}
 		else {
-			if ((ob->base_flag & BASE_SELECTED) != 0) {
-				theme_id = (active) ? TH_ACTIVE : TH_SELECT;
-			}
-			else {
-				if (ob->type == OB_LAMP) theme_id = TH_LAMP;
-				else if (ob->type == OB_SPEAKER) theme_id = TH_SPEAKER;
-				else if (ob->type == OB_CAMERA) theme_id = TH_CAMERA;
-				else if (ob->type == OB_EMPTY) theme_id = TH_EMPTY;
-				else if (ob->type == OB_LIGHTPROBE) theme_id = TH_EMPTY; /* TODO add lightprobe color */
-				/* fallback to TH_WIRE */
-			}
+			if (ob->type == OB_LAMP) theme_id = TH_LAMP;
+			else if (ob->type == OB_SPEAKER) theme_id = TH_SPEAKER;
+			else if (ob->type == OB_CAMERA) theme_id = TH_CAMERA;
+			else if (ob->type == OB_EMPTY) theme_id = TH_EMPTY;
+			else if (ob->type == OB_LIGHTPROBE) theme_id = TH_EMPTY; /* TODO add lightprobe color */
+			/* fallback to TH_WIRE */
 		}
 	}
 
@@ -641,19 +628,12 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 			case TH_WIRE_EDIT:    *r_color = ts.colorWireEdit; break;
 			case TH_ACTIVE:       *r_color = ts.colorActive; break;
 			case TH_SELECT:       *r_color = ts.colorSelect; break;
-			case TH_GROUP:        *r_color = ts.colorGroup; break;
-			case TH_GROUP_ACTIVE: *r_color = ts.colorGroupActive; break;
 			case TH_TRANSFORM:    *r_color = ts.colorTransform; break;
 			case OB_SPEAKER:      *r_color = ts.colorSpeaker; break;
 			case OB_CAMERA:       *r_color = ts.colorCamera; break;
 			case OB_EMPTY:        *r_color = ts.colorEmpty; break;
 			case OB_LAMP:         *r_color = ts.colorLamp; break;
 			default:              *r_color = ts.colorWire; break;
-		}
-
-		/* uses darker active color for non-active + selected */
-		if ((theme_id == TH_GROUP_ACTIVE) && !active) {
-			*r_color = ts.colorGroupSelect;
 		}
 	}
 
@@ -670,8 +650,6 @@ float *DRW_color_background_blend_get(int theme_id)
 		case TH_WIRE_EDIT:    ret = colors[0]; break;
 		case TH_ACTIVE:       ret = colors[1]; break;
 		case TH_SELECT:       ret = colors[2]; break;
-		case TH_GROUP:        ret = colors[3]; break;
-		case TH_GROUP_ACTIVE: ret = colors[4]; break;
 		case TH_TRANSFORM:    ret = colors[5]; break;
 		case OB_SPEAKER:      ret = colors[6]; break;
 		case OB_CAMERA:       ret = colors[7]; break;
