@@ -2013,13 +2013,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 		BVHTreeRayHit rayhit = {0};
 		float hit_dist;
 
-		if (mode & MREMAP_USE_NORPROJ) {
-			bvhtree_from_mesh_looptri(
-			        &treedata, dm_src, MREMAP_RAYCAST_APPROXIMATE_BVHEPSILON(ray_radius), 2, 6);
-		}
-		else {
-			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
-		}
+		bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 		if (mode == MREMAP_MODE_POLY_NEAREST) {
 			nearest.index = -1;
@@ -2062,6 +2056,7 @@ void BKE_mesh_remap_calc_polys_from_dm(
 					BLI_space_transform_apply_normal(space_transform, tmp_no);
 				}
 
+				treedata.sphere_radius = ray_radius;
 				if (mesh_remap_bvhtree_query_raycast(
 				        &treedata, &rayhit, tmp_co, tmp_no, ray_radius, max_dist, &hit_dist))
 				{
@@ -2211,8 +2206,9 @@ void BKE_mesh_remap_calc_polys_from_dm(
 
 						/* At this point, tmp_co is a point on our poly surface, in mesh_src space! */
 						while (n--) {
+							treedata.sphere_radius = ray_radius / w;
 							if (mesh_remap_bvhtree_query_raycast(
-							        &treedata, &rayhit, tmp_co, tmp_no, ray_radius / w, max_dist, &hit_dist))
+							        &treedata, &rayhit, tmp_co, tmp_no, treedata.sphere_radius, max_dist, &hit_dist))
 							{
 								const MLoopTri *lt = &treedata.looptri[rayhit.index];
 
