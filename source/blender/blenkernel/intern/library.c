@@ -80,8 +80,8 @@
 #include "BLI_memarena.h"
 #include "BLI_mempool.h"
 #include "BLI_string_utils.h"
-
 #include "BLI_threads.h"
+
 #include "BLT_translation.h"
 
 #include "BKE_action.h"
@@ -1366,6 +1366,41 @@ void BKE_libblock_init_empty(ID *id)
 		default:
 			BLI_assert(0);  /* Should never reach this point... */
 	}
+}
+
+/** Generic helper to create a new empty datablock of given type in given \a bmain database.
+ *
+ * \param name can be NULL, in which case we get default name for this ID type. */
+void *BKE_id_new(Main *bmain, const short type, const char *name)
+{
+	BLI_assert(bmain != NULL);
+
+	if (name == NULL) {
+		name = DATA_(BKE_idcode_to_name(type));
+	}
+
+	ID *id = BKE_libblock_alloc(bmain, type, name, 0);
+	BKE_libblock_init_empty(id);
+
+	return id;
+}
+
+/** Generic helper to create a new temporary empty datablock of given type, *outside* of any Main database.
+ *
+ * \param name can be NULL, in which case we get default name for this ID type. */
+void *BKE_id_new_nomain(const short type, const char *name)
+{
+	if (name == NULL) {
+		name = DATA_(BKE_idcode_to_name(type));
+	}
+
+	ID *id = BKE_libblock_alloc(NULL, type, name,
+	                            LIB_ID_CREATE_NO_MAIN |
+	                            LIB_ID_CREATE_NO_USER_REFCOUNT |
+	                            LIB_ID_CREATE_NO_DEG_TAG);
+	BKE_libblock_init_empty(id);
+
+	return id;
 }
 
 /* by spec, animdata is first item after ID */
