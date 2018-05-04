@@ -183,14 +183,19 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 	data->object_id = e_data.next_object_id++;
 }
 
-static void get_material_solid_color(WORKBENCH_PrivateData *wpd, WORKBENCH_ObjectData *engine_object_data, Object *ob, Material *mat, float *color, float hsv_saturation, float hsv_value)
+static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color, float hsv_saturation, float hsv_value)
 {
 	static float default_color[] = {1.0f, 1.0f, 1.0f};
 	if (DRW_object_is_paint_mode(ob) || wpd->drawtype_options & V3D_DRAWOPTION_SINGLE_COLOR) {
 		copy_v3_v3(color, default_color);
 	}
 	else if (wpd->drawtype_options & V3D_DRAWOPTION_RANDOMIZE) {
-		float offset = fmodf(engine_object_data->object_id * M_GOLDEN_RATION_CONJUGATE, 1.0);
+		uint hash = BLI_ghashutil_strhash_p_murmur(ob->id.name);
+		if (ob->id.lib) {
+			hash = (hash * 13) ^ BLI_ghashutil_strhash_p_murmur(ob->id.lib->name);
+		}
+		float offset = fmodf((hash / 100000.0) * M_GOLDEN_RATION_CONJUGATE, 1.0);
+
 		float hsv[3] = {offset, hsv_saturation, hsv_value};
 		hsv_to_rgb_v(hsv, color);
 	}
@@ -372,7 +377,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
 
 	/* Solid */
-	get_material_solid_color(wpd, engine_object_data, ob, mat, color, hsv_saturation, hsv_value);
+	get_material_solid_color(wpd, ob, mat, color, hsv_saturation, hsv_value);
 	copy_v3_v3(material_template.color, color);
 	material_template.object_id = engine_object_data->object_id;
 	unsigned int hash = get_material_hash(wpd, &material_template);
