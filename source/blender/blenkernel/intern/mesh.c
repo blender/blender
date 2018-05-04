@@ -691,13 +691,14 @@ BMesh *BKE_mesh_to_bmesh(
         Mesh *me, Object *ob,
         const bool add_key_index, const struct BMeshCreateParams *params)
 {
-	struct BMeshFromMeshParams convert_params = {
-		.calc_face_normal = false,
-		.add_key_index = add_key_index,
-		.use_shapekey = true,
-		.active_shapekey = ob->shapenr,
-	};
-	return BKE_mesh_to_bmesh_ex(me, params, &convert_params);
+	return BKE_mesh_to_bmesh_ex(
+	        me, params,
+	        &(struct BMeshFromMeshParams){
+	            .calc_face_normal = false,
+	            .add_key_index = add_key_index,
+	            .use_shapekey = true,
+	            .active_shapekey = ob->shapenr,
+	        });
 }
 
 Mesh *BKE_bmesh_to_mesh(BMesh *bm, const struct BMeshToMeshParams *params)

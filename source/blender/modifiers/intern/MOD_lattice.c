@@ -123,8 +123,7 @@ static void deformVertsEM(
 	struct Mesh *mesh_src = mesh;
 
 	if (!mesh) {
-		struct BMeshToMeshParams params = {0};
-		mesh_src = BKE_bmesh_to_mesh(em->bm, &params);
+		mesh_src = BKE_bmesh_to_mesh(em->bm, &(struct BMeshToMeshParams){0});
 	}
 
 	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
