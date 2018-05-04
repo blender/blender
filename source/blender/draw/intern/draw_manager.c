@@ -611,8 +611,32 @@ bool DRW_viewport_is_persp_get(void)
 	else {
 		return DST.view_data.matstate.mat[DRW_MAT_WIN][3][3] == 0.0f;
 	}
-	BLI_assert(0);
-	return false;
+}
+
+float DRW_viewport_near_distance_get(void)
+{
+	float projmat[4][4];
+	DRW_viewport_matrix_get(projmat, DRW_MAT_WIN);
+
+	if (DRW_viewport_is_persp_get()) {
+		return -projmat[3][2] / (projmat[2][2] - 1.0f);
+	}
+	else {
+		return -(projmat[3][2] + 1.0f) / projmat[2][2];
+	}
+}
+
+float DRW_viewport_far_distance_get(void)
+{
+	float projmat[4][4];
+	DRW_viewport_matrix_get(projmat, DRW_MAT_WIN);
+
+	if (DRW_viewport_is_persp_get()) {
+		return -projmat[3][2] / (projmat[2][2] + 1.0f);
+	}
+	else {
+		return -(projmat[3][2] - 1.0f) / projmat[2][2];
+	}
 }
 
 DefaultFramebufferList *DRW_viewport_framebuffer_list_get(void)
