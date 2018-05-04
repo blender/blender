@@ -44,7 +44,10 @@ typedef struct WORKBENCH_StorageList {
 
 typedef struct WORKBENCH_PassList {
 	struct DRWPass *prepass_pass;
+	struct DRWPass *shadow_pass;
 	struct DRWPass *composite_pass;
+	struct DRWPass *composite_shadow_pass;
+	struct DRWPass *composite_light_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_Data {
@@ -74,7 +77,10 @@ typedef struct WORKBENCH_PrivateData {
 	short drawtype_lighting;
 	short drawtype_options;
 	short drawtype_studiolight;
+	short pad;
+	float drawtype_ambient_intensity;
 	struct GPUUniformBuffer *world_ubo;
+	struct DRWShadingGroup *shadow_shgrp;
 	WORKBENCH_UBO_World world_data;
 } WORKBENCH_PrivateData; /* Transient data */
 
@@ -109,6 +115,7 @@ void workbench_solid_materials_free(void);
 /* workbench_materials.c */
 void workbench_materials_engine_init(WORKBENCH_Data *vedata);
 void workbench_materials_engine_free(void);
+void workbench_materials_draw_background(WORKBENCH_Data *vedata);
 void workbench_materials_draw_scene(WORKBENCH_Data *vedata);
 void workbench_materials_cache_init(WORKBENCH_Data *vedata);
 void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);

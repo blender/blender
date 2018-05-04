@@ -59,8 +59,10 @@ static void workbench_solid_cache_finish(void *vedata)
 	workbench_materials_cache_finish(data);
 }
 
-static void workbench_solid_draw_background(void *UNUSED(vedata))
+static void workbench_solid_draw_background(void *vedata)
 {
+	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	workbench_materials_draw_background(data);
 }
 
 static void workbench_solid_draw_scene(void *vedata)

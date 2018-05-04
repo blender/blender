@@ -755,17 +755,7 @@ class RENDER_PT_workbench_environment_light(RenderButtonsPanel, Panel):
         layout = self.layout
         scene = context.scene
         props = scene.layer_properties['BLENDER_WORKBENCH']
-
-        row = layout.row(align=True)
-        col = row.column(align=True)
-        col.prop(props, "diffuse_light_x_neg", text="Left/Right")
-        col.prop(props, "diffuse_light_x_pos", text="")
-        col = row.column(align=True)
-        col.prop(props, "diffuse_light_y_pos", text="Up/Down")
-        col.prop(props, "diffuse_light_y_neg", text="")
-        col = row.column(align=True)
-        col.prop(props, "diffuse_light_z_pos", text="Front/Back")
-        col.prop(props, "diffuse_light_z_neg", text="")
+        layout.prop(props, "light_direction", text="")
 
 
 classes = (
