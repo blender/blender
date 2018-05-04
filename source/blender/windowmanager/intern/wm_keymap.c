@@ -1134,9 +1134,9 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 						if (kmi->ptr) {
 							if (STREQ("MESH_OT_rip_move", opname)) {
 								printf("OPERATOR\n");
-								IDP_spit(properties);
+								IDP_print(properties);
 								printf("KEYMAP\n");
-								IDP_spit(kmi->ptr->data);
+								IDP_print(kmi->ptr->data);
 							}
 						}
 #endif
@@ -1167,9 +1167,9 @@ static wmKeyMapItem *wm_keymap_item_find_handlers(
 #ifndef NDEBUG
 #ifdef WITH_PYTHON
 										printf("OPERATOR\n");
-										IDP_spit(properties);
+										IDP_print(properties);
 										printf("KEYMAP\n");
-										IDP_spit(kmi->ptr->data);
+										IDP_print(kmi->ptr->data);
 #endif
 #endif
 										printf("\n");
@@ -1316,9 +1316,9 @@ static wmKeyMapItem *wm_keymap_item_find(
 #ifndef NDEBUG
 #ifdef WITH_PYTHON
 					printf("OPERATOR\n");
-					IDP_spit(properties);
+					IDP_print(properties);
 					printf("KEYMAP\n");
-					IDP_spit(kmi->ptr->data);
+					IDP_print(kmi->ptr->data);
 #endif
 #endif
 					printf("\n");

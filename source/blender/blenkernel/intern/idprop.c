@@ -859,9 +859,9 @@ bool IDP_EqualsProperties_ex(IDProperty *prop1, IDProperty *prop2, const bool is
 				if ((p1 != p2) && ((fabsf(p1 - p2) / max_ff(p1, p2)) < 0.001f)) {
 					printf("WARNING: Comparing two float properties that have nearly the same value (%f vs. %f)\n", p1, p2);
 					printf("    p1: ");
-					IDP_spit(prop1);
+					IDP_print(prop1);
 					printf("    p2: ");
-					IDP_spit(prop2);
+					IDP_print(prop2);
 				}
 			}
 #endif
@@ -1107,3 +1107,18 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference)
 }
 
 /** \} */
+
+/* We could write a C version, see: idprop_py_api.c */
+#ifndef WITH_PYTHON
+char *IDP_reprN(IDProperty *UNUSED(prop))
+{
+	return BLI_strdup("<unsupported>");
+}
+
+void IDP_print(IDProperty *prop)
+{
+	char *repr = IDP_reprN(prop);
+	printf("IDProperty(%p): %s\n", prop, repr);
+	MEM_freeN(repr);
+}
+#endif /* WITH_PYTHON */

@@ -152,10 +152,9 @@ void IDP_Reset(IDProperty *prop, const IDProperty *reference);
 #  define IDP_Id(prop)               ((ID *) (prop)->data.pointer)
 #endif
 
-#ifndef NDEBUG
-/* for printout only */
-void IDP_spit(IDProperty *prop);
-#endif
+/* for printout/logging only */
+char *IDP_reprN(const struct IDProperty *prop);
+void  IDP_print(const struct IDProperty *prop);
 
 #ifdef __cplusplus
 }
