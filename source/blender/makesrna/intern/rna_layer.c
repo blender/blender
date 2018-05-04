@@ -1141,7 +1141,6 @@ static void rna_def_view_layer_engine_settings_eevee(BlenderRNA *brna)
 		{1024, "1024", 0, "1024px", ""},
 		{2048, "2048", 0, "2048px", ""},
 		{4096, "4096", 0, "4096px", ""},
-		{8192, "8192", 0, "8192px", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

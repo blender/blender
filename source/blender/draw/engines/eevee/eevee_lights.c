@@ -138,7 +138,7 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 	    (linfo->shadow_method != sh_method) ||
 	    (linfo->shadow_high_bitdepth != sh_high_bitdepth))
 	{
-		BLI_assert((sh_cube_size > 0) && (sh_cube_size <= 8192));
+		BLI_assert((sh_cube_size > 0) && (sh_cube_size <= 4096));
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_pool);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_target);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cube_blur);
@@ -149,6 +149,7 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 		int new_cube_target_size = (int)ceil(sqrt((float)(sh_cube_size * sh_cube_size) / 6.0f) * 3.0f);
 
 		CLAMP(new_cube_target_size, 1, 4096);
+		CLAMP(sh_cube_size, 1, 4096);
 
 		linfo->shadow_cube_target_size = new_cube_target_size;
 		linfo->shadow_render_data.cube_texel_size = 1.0 / (float)linfo->shadow_cube_target_size;
@@ -158,10 +159,12 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 	    (linfo->shadow_method != sh_method) ||
 	    (linfo->shadow_high_bitdepth != sh_high_bitdepth))
 	{
-		BLI_assert((sh_cascade_size > 0) && (sh_cascade_size <= 8192));
+		BLI_assert((sh_cascade_size > 0) && (sh_cascade_size <= 4096));
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_pool);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_target);
 		DRW_TEXTURE_FREE_SAFE(sldata->shadow_cascade_blur);
+
+		CLAMP(sh_cascade_size, 1, 4096);
 	}
 
 	linfo->shadow_high_bitdepth = sh_high_bitdepth;
