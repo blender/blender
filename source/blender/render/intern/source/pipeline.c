@@ -1234,96 +1234,99 @@ bool RE_allow_render_generic_object(Object *ob)
 #define DEPSGRAPH_WORKAROUND_HACK
 
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-static void tag_dependend_objects_for_render(Scene *scene, int UNUSED(renderlay))
+static void tag_dependend_object_for_render(Scene *scene, Object *object);
+
+static void tag_dependend_group_for_render(Scene *scene, Group *group)
 {
-	FOREACH_OBJECT_RENDERABLE_BEGIN(scene, object)
-	{
-		if (object->type == OB_MESH) {
-			if (RE_allow_render_generic_object(object)) {
-				ModifierData *md;
-				VirtualModifierData virtualModifierData;
+	if (group->id.tag & LIB_TAG_DOIT) {
+		return;
+	}
+	group->id.tag |= LIB_TAG_DOIT;
 
-				for (md = modifiers_getVirtualModifierList(object, &virtualModifierData);
-				     md;
-				     md = md->next)
-				{
-					if (!modifier_isEnabled(scene, md, eModifierMode_Render)) {
-						continue;
-					}
+	for (GroupObject *go = group->gobject.first; go != NULL; go = go->next) {
+		Object *object = go->ob;
+		tag_dependend_object_for_render(scene, object);
+	}
+}
 
-					if (md->type == eModifierType_Boolean) {
-						BooleanModifierData *bmd = (BooleanModifierData *)md;
-						if (bmd->object && bmd->object->type == OB_MESH) {
-							DEG_id_tag_update(&bmd->object->id, OB_RECALC_DATA);
-						}
+static void tag_dependend_object_for_render(Scene *scene, Object *object)
+{
+	if (object->type == OB_MESH) {
+		if (RE_allow_render_generic_object(object)) {
+			ModifierData *md;
+			VirtualModifierData virtualModifierData;
+
+			if (object->particlesystem.first) {
+				DEG_id_tag_update(&object->id, OB_RECALC_DATA);
+			}
+
+			for (md = modifiers_getVirtualModifierList(object, &virtualModifierData);
+			     md;
+			     md = md->next)
+			{
+				if (!modifier_isEnabled(scene, md, eModifierMode_Render)) {
+					continue;
+				}
+
+				if (md->type == eModifierType_Boolean) {
+					BooleanModifierData *bmd = (BooleanModifierData *)md;
+					if (bmd->object && bmd->object->type == OB_MESH) {
+						DEG_id_tag_update(&bmd->object->id, OB_RECALC_DATA);
 					}
-					else if (md->type == eModifierType_Array) {
-						ArrayModifierData *amd = (ArrayModifierData *)md;
-						if (amd->start_cap && amd->start_cap->type == OB_MESH) {
-							DEG_id_tag_update(&amd->start_cap->id, OB_RECALC_DATA);
-						}
-						if (amd->end_cap && amd->end_cap->type == OB_MESH) {
-							DEG_id_tag_update(&amd->end_cap->id, OB_RECALC_DATA);
-						}
+				}
+				else if (md->type == eModifierType_Array) {
+					ArrayModifierData *amd = (ArrayModifierData *)md;
+					if (amd->start_cap && amd->start_cap->type == OB_MESH) {
+						DEG_id_tag_update(&amd->start_cap->id, OB_RECALC_DATA);
 					}
-					else if (md->type == eModifierType_Shrinkwrap) {
-						ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
-						if (smd->target  && smd->target->type == OB_MESH) {
-							DEG_id_tag_update(&smd->target->id, OB_RECALC_DATA);
-						}
+					if (amd->end_cap && amd->end_cap->type == OB_MESH) {
+						DEG_id_tag_update(&amd->end_cap->id, OB_RECALC_DATA);
 					}
-					else if (md->type == eModifierType_ParticleSystem) {
-						ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
-						ParticleSystem *psys = psmd->psys;
-						ParticleSettings *part = psys->part;
-						switch (part->ren_as) {
-							case PART_DRAW_OB:
-								if (part->dup_ob != NULL) {
-									DEG_id_tag_update(&part->dup_ob->id, OB_RECALC_DATA);
+				}
+				else if (md->type == eModifierType_Shrinkwrap) {
+					ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
+					if (smd->target  && smd->target->type == OB_MESH) {
+						DEG_id_tag_update(&smd->target->id, OB_RECALC_DATA);
+					}
+				}
+				else if (md->type == eModifierType_ParticleSystem) {
+					ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
+					ParticleSystem *psys = psmd->psys;
+					ParticleSettings *part = psys->part;
+					switch (part->ren_as) {
+						case PART_DRAW_OB:
+							if (part->dup_ob != NULL) {
+								DEG_id_tag_update(&part->dup_ob->id, OB_RECALC_DATA);
+							}
+							break;
+						case PART_DRAW_GR:
+							if (part->dup_group != NULL) {
+								for (GroupObject *go = part->dup_group->gobject.first;
+								     go != NULL;
+								     go = go->next)
+								{
+									DEG_id_tag_update(&go->ob->id, OB_RECALC_DATA);
 								}
-								break;
-							case PART_DRAW_GR:
-								if (part->dup_group != NULL) {
-									for (GroupObject *go = part->dup_group->gobject.first;
-									     go != NULL;
-									     go = go->next)
-									{
-										DEG_id_tag_update(&go->ob->id, OB_RECALC_DATA);
-									}
-								}
-								break;
-						}
+							}
+							break;
 					}
 				}
 			}
 		}
 	}
-	FOREACH_OBJECT_RENDERABLE_END;
+	if (object->dup_group != NULL) {
+		tag_dependend_group_for_render(scene, object->dup_group);
+	}
 }
-#endif
 
-#define DEPSGRAPH_WORKAROUND_GROUP_HACK
-
-#ifdef DEPSGRAPH_WORKAROUND_GROUP_HACK
-/**
- * Make sure the COLLECTION_VIEWPORT / COLLECTION_RENDER is considered
- * for the collections visibility.
- *
- * This won't be needed anymore once we have depsgraph per render engine.
- */
-static void tag_groups_for_render(Render *re)
+static void tag_dependend_objects_for_render(Main *bmain, Scene *scene)
 {
-	for (Group *group = re->main->group.first; group; group = group->id.next) {
-		DEG_id_tag_update(&group->id, 0);
+	BKE_main_id_tag_idcode(bmain, ID_GR, LIB_TAG_DOIT, false);
+	FOREACH_OBJECT_RENDERABLE_BEGIN(scene, object)
+	{
+		tag_dependend_object_for_render(scene, object);
 	}
-
-#ifdef WITH_FREESTYLE
-	if (re->freestyle_bmain) {
-		for (Group *group = re->freestyle_bmain->group.first; group; group = group->id.next) {
-			DEG_id_tag_update(&group->id, 0);
-		}
-	}
-#endif
+	FOREACH_OBJECT_RENDERABLE_END;
 }
 #endif
 
@@ -1331,14 +1334,11 @@ static void tag_scenes_for_render(Render *re)
 {
 	bNode *node;
 	Scene *sce;
-#ifdef DEPSGRAPH_WORKAROUND_HACK
-	int renderlay = re->lay;
-#endif
 	
 	for (sce = re->main->scene.first; sce; sce = sce->id.next) {
 		sce->id.tag &= ~LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-		tag_dependend_objects_for_render(sce, renderlay);
+		tag_dependend_objects_for_render(re->main, sce);
 #endif
 	}
 	
@@ -1347,7 +1347,7 @@ static void tag_scenes_for_render(Render *re)
 		for (sce = re->freestyle_bmain->scene.first; sce; sce = sce->id.next) {
 			sce->id.tag &= ~LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-			tag_dependend_objects_for_render(sce, renderlay);
+			tag_dependend_objects_for_render(re->freestyle_bmain, sce);
 #endif
 		}
 	}
@@ -1356,7 +1356,7 @@ static void tag_scenes_for_render(Render *re)
 	if (RE_GetCamera(re) && composite_needs_render(re->scene, 1)) {
 		re->scene->id.tag |= LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-		tag_dependend_objects_for_render(re->scene, renderlay);
+		tag_dependend_objects_for_render(re->main, re->scene);
 #endif
 	}
 	
@@ -1389,7 +1389,7 @@ static void tag_scenes_for_render(Render *re)
 							node->flag |= NODE_TEST;
 							node->id->tag |= LIB_TAG_DOIT;
 #ifdef DEPSGRAPH_WORKAROUND_HACK
-							tag_dependend_objects_for_render(scene, renderlay);
+							tag_dependend_objects_for_render(re->main, scene);
 #endif
 						}
 					}
