@@ -543,15 +543,13 @@ void BKE_mesh_remap_calc_verts_from_dm(
 			float *weights = MEM_mallocN(sizeof(*weights) * tmp_buff_size, __func__);
 
 			dm_src->getVertCos(dm_src, vcos_src);
-			if (mode & MREMAP_USE_NORPROJ) {
-				bvhtree_from_mesh_looptri(
-				        &treedata, dm_src, ray_radius, 2, 6);
-			}
-			else {
-				bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
-			}
+
+			bvhtree_from_mesh_get(&treedata, dm_src, BVHTREE_FROM_LOOPTRI, 2);
 
 			if (mode == MREMAP_MODE_VERT_POLYINTERP_VNORPROJ) {
+				if (mode & MREMAP_USE_NORPROJ) {
+					treedata.sphere_radius = ray_radius;
+				}
 				for (i = 0; i < numverts_dst; i++) {
 					copy_v3_v3(tmp_co, verts_dst[i].co);
 					normal_short_to_float_v3(tmp_no, verts_dst[i].no);
