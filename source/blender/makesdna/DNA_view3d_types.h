@@ -73,32 +73,6 @@ typedef struct View3DDebug {
 	char pad[7];
 } View3DDebug;
 
-/* ********************************* */
-enum {
-	V3D_LIGHTING_FLAT   = 0,
-	V3D_LIGHTING_STUDIO = 1,
-	V3D_LIGHTING_SCENE  = 2
-};
-
-/* 
- * V3D_DRAWOPTION_OBJECT_COLOR, V3D_DRAWOPTION_OBJECT_OVERLAP, 
- * V3D_DRAWOPTION_SINGLE_COLOR, V3D_DRAWOPTION_MATERIAL_COLOR are mutual exclusive
-*/
-enum {
-	V3D_DRAWOPTION_MATERIAL_COLOR = (0 << 0),
-	V3D_DRAWOPTION_RANDOMIZE      = (1 << 0),
-	V3D_DRAWOPTION_OBJECT_OVERLAP = (1 << 1),
-	V3D_DRAWOPTION_SINGLE_COLOR   = (1 << 2),
-	V3D_DRAWOPTION_OBJECT_COLOR   = (1 << 4),
-	V3D_DRAWOPTION_SHADOW         = (1 << 5),
-};
-#define V3D_DRAWOPTION_SOLID_COLOR_MASK (V3D_DRAWOPTION_SINGLE_COLOR | V3D_DRAWOPTION_RANDOMIZE | V3D_DRAWOPTION_OBJECT_COLOR | V3D_DRAWOPTION_MATERIAL_COLOR)
-
-enum {
-	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
-	V3D_OVERLAY_HIDE_CURSOR      = (1 << 1),
-};
-
 typedef struct RegionView3D {
 	
 	float winmat[4][4];			/* GL_PROJECTION matrix */
@@ -342,6 +316,35 @@ typedef struct View3D {
 
 /* View3d->flag3 (short) */
 #define V3D_SHOW_WORLD			(1 << 0)
+
+/* View3D->drawtype_lighting */
+enum {
+	V3D_LIGHTING_FLAT   = 0,
+	V3D_LIGHTING_STUDIO = 1,
+	V3D_LIGHTING_SCENE  = 2
+};
+
+/* View3D->drawtype_options */
+enum {
+	V3D_DRAWOPTION_MATERIAL_COLOR = (0 << 0),
+	V3D_DRAWOPTION_RANDOMIZE      = (1 << 0),
+	V3D_DRAWOPTION_OBJECT_OVERLAP = (1 << 1),
+	V3D_DRAWOPTION_SINGLE_COLOR   = (1 << 2),
+	V3D_DRAWOPTION_OBJECT_COLOR   = (1 << 4),
+	V3D_DRAWOPTION_SHADOW         = (1 << 5),
+
+	/* These options are mutually exclusive. */
+	V3D_DRAWOPTION_SOLID_COLOR_MASK = (V3D_DRAWOPTION_SINGLE_COLOR |
+	                                   V3D_DRAWOPTION_RANDOMIZE |
+	                                   V3D_DRAWOPTION_OBJECT_COLOR |
+	                                   V3D_DRAWOPTION_MATERIAL_COLOR),
+};
+
+/* View3D->overlays */
+enum {
+	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
+	V3D_OVERLAY_HIDE_CURSOR      = (1 << 1),
+};
 
 /* View3d->debug.background */
 enum {
