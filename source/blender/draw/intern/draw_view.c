@@ -615,7 +615,7 @@ static bool is_cursor_visible(const DRWContextState *draw_ctx, Scene *scene, Vie
 {
 	Object *ob = OBACT(view_layer);
 	View3D *v3d = draw_ctx->v3d;
-	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) > 0 || (v3d->overlays & V3D_OVERLAY_HIDE_CURSOR)) {
+	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) > 0 || (v3d->overlay.flag & V3D_OVERLAY_HIDE_CURSOR)) {
 		return false;
 	}
 

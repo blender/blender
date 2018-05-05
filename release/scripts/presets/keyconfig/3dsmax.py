@@ -722,7 +722,7 @@ kmi.properties.value_1 = 'VERTEX'
 kmi.properties.value_2 = 'INCREMENT'
 kmi = km.keymap_items.new('view3d.select_border', 'EVT_TWEAK_L', 'ANY', ctrl=True)
 kmi = km.keymap_items.new('wm.context_toggle', 'G', 'PRESS')
-kmi.properties.data_path = 'space_data.show_floor'
+kmi.properties.data_path = 'space_data.overlay.show_floor'
 
 # Map Animation Channels
 km = kc.keymaps.new('Animation Channels', space_type='EMPTY', region_type='WINDOW', modal=False)

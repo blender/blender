@@ -222,7 +222,7 @@ def object_add_grid_scale(context):
     space_data = context.space_data
 
     if space_data and space_data.type == 'VIEW_3D':
-        return space_data.grid_scale_unit
+        return space_data.overlay.grid_scale_unit
 
     return 1.0
 

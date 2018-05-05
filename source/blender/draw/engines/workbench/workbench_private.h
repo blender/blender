@@ -75,11 +75,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct GHash *material_hash;
 	struct GPUShader *prepass_sh;
 	struct GPUShader *composite_sh;
-	short drawtype_lighting;
-	short drawtype_options;
-	short drawtype_studiolight;
-	float drawtype_ambient_intensity;
-	float drawtype_single_color[3];
+	View3DShading shading;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	WORKBENCH_UBO_World world_data;

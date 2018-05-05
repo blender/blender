@@ -983,7 +983,7 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, int UNUSED(drawtype_lighting))
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype)
 {
 	switch (drawtype) {
 		case OB_WIRE:
@@ -1065,9 +1065,9 @@ static void drw_engines_enable_from_mode(int mode)
 	}
 }
 
-static void drw_engines_enable_from_overlays(int draw_overlays)
+static void drw_engines_enable_from_overlays(int overlay_flag)
 {
-	if (draw_overlays) {
+	if (overlay_flag) {
 		use_drw_engine(&draw_engine_overlay_type);
 	}
 }
@@ -1085,12 +1085,11 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	const int mode = CTX_data_mode_enum_ex(DST.draw_ctx.object_edit, obact, DST.draw_ctx.object_mode);
 	View3D * v3d = DST.draw_ctx.v3d;
 	const int drawtype = v3d->drawtype;
-	const int drawtype_lighting = v3d->drawtype_lighting;
 
-	drw_engines_enable_from_engine(engine_type, drawtype, drawtype_lighting);
+	drw_engines_enable_from_engine(engine_type, drawtype);
 
 	if (DRW_state_draw_support()) {
-		drw_engines_enable_from_overlays(v3d->overlays);
+		drw_engines_enable_from_overlays(v3d->overlay.flag);
 		drw_engines_enable_from_object_mode();
 		drw_engines_enable_from_mode(mode);
 	}

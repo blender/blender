@@ -966,7 +966,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *)sl;
-						v3d->drawtype_lighting = V3D_LIGHTING_STUDIO;
+						v3d->shading.light = V3D_LIGHTING_STUDIO;
 
 						/* Assume (demo) files written with 2.8 want to show
 						 * Eevee renders in the viewport. */
@@ -1069,21 +1069,30 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							}
 						}
 					}
-					if (sl->spacetype == SPACE_VIEW3D) {
-						View3D *v3d = (View3D *)sl;
-						v3d->drawtype_ambient_intensity = 0.5;
-						copy_v3_fl(v3d->drawtype_single_color, 1.0f);
-						v3d->overlays |= V3D_OVERLAY_HIDE_CURSOR;
-					}
 				}
 			}
 		}
 	}
 
-	{
+	if (!MAIN_VERSION_ATLEAST(main, 280, 13)) {
+		/* Initialize specular factor. */
 		if (!DNA_struct_elem_find(fd->filesdna, "Lamp", "float", "spec_fac")) {
 			for (Lamp *la = main->lamp.first; la; la = la->id.next) {
 				la->spec_fac = 1.0f;
+			}
+		}
+
+		/* Initialize new view3D options. */
+		for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_VIEW3D) {
+						View3D *v3d = (View3D *)sl;
+						v3d->shading.ambient_intensity = 0.5;
+						copy_v3_fl(v3d->shading.single_color, 1.0f);
+						v3d->overlay.flag |= V3D_OVERLAY_HIDE_CURSOR;
+					}
+				}
 			}
 		}
 	}

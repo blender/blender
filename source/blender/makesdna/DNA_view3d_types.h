@@ -131,6 +131,24 @@ typedef struct RegionView3D {
 	float rot_axis[3];
 } RegionView3D;
 
+/* 3D Viewport Shading setings */
+typedef struct View3DShading {
+	short flag;
+	short color_type;
+
+	short light;
+	short studio_light;
+
+	float ambient_intensity;
+	float single_color[3];
+} View3DShading;
+
+/* 3D Viewport Overlay setings */
+typedef struct View3DOverlay {
+	int flag;
+	int pad;
+} View3DOverlay;
+
 /* 3D ViewPort Struct */
 typedef struct View3D {
 	struct SpaceLink *next, *prev;
@@ -162,13 +180,9 @@ typedef struct View3D {
 	unsigned int lay;
 	int layact;
 	
-	/**
-	 * The drawing mode for the 3d display. Set to OB_BOUNDBOX, OB_WIRE, OB_SOLID,
-	 * OB_TEXTURE, OB_MATERIAL or OB_RENDER */
-	short drawtype;
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
 	short scenelock, around;
-	short flag, flag2;
+	short flag, flag2, pad2;
 	
 	float lens, grid;
 	float near, far;
@@ -202,7 +216,7 @@ typedef struct View3D {
 	/* XXX deprecated? */
 	struct bGPdata *gpd  DNA_DEPRECATED;		/* Grease-Pencil Data (annotation layers) */
 
-	 /* multiview - stereo 3d */
+	/* Stereoscopy settings */
 	short stereo3d_flag;
 	char stereo3d_camera;
 	char pad4;
@@ -210,19 +224,13 @@ typedef struct View3D {
 	float stereo3d_volume_alpha;
 	float stereo3d_convergence_alpha;
 
-	/* Previous viewport draw type.
-	 * Runtime-only, set in the rendered viewport toggle operator.
-	 */
-	short prev_drawtype;
-	/* drawtype options (lighting, random) used for drawtype == OB_SOLID */
-	short drawtype_lighting;
-	short drawtype_options;
-	short drawtype_studiolight;
-	float drawtype_ambient_intensity;
-	float drawtype_single_color[3];
-	int overlays;
-
+	/* Display settings */
+	short drawtype;         /* Shading mode (OB_SOLID, OB_TEXTURE, ..) */
+	short prev_drawtype;    /* Runtime, for toggle between rendered viewport. */
 	int pad5;
+
+	View3DShading shading;
+	View3DOverlay overlay;
 } View3D;
 
 
@@ -299,30 +307,28 @@ typedef struct View3D {
 /* View3d->flag3 (short) */
 #define V3D_SHOW_WORLD			(1 << 0)
 
-/* View3D->drawtype_lighting */
+/* View3DShading->light */
 enum {
 	V3D_LIGHTING_FLAT   = 0,
 	V3D_LIGHTING_STUDIO = 1,
 	V3D_LIGHTING_SCENE  = 2
 };
 
-/* View3D->drawtype_options */
+/* View3DShading->flag */
 enum {
-	V3D_DRAWOPTION_MATERIAL_COLOR = (0 << 0),
-	V3D_DRAWOPTION_RANDOMIZE      = (1 << 0),
-	V3D_DRAWOPTION_OBJECT_OVERLAP = (1 << 1),
-	V3D_DRAWOPTION_SINGLE_COLOR   = (1 << 2),
-	V3D_DRAWOPTION_OBJECT_COLOR   = (1 << 4),
-	V3D_DRAWOPTION_SHADOW         = (1 << 5),
-
-	/* These options are mutually exclusive. */
-	V3D_DRAWOPTION_SOLID_COLOR_MASK = (V3D_DRAWOPTION_SINGLE_COLOR |
-	                                   V3D_DRAWOPTION_RANDOMIZE |
-	                                   V3D_DRAWOPTION_OBJECT_COLOR |
-	                                   V3D_DRAWOPTION_MATERIAL_COLOR),
+	V3D_SHADING_OBJECT_OVERLAP = (1 << 0),
+	V3D_SHADING_SHADOW         = (1 << 2),
 };
 
-/* View3D->overlays */
+/* View3DShading->single_color_type */
+enum {
+	V3D_SHADING_MATERIAL_COLOR = 0,
+	V3D_SHADING_RANDOM_COLOR   = 1,
+	V3D_SHADING_SINGLE_COLOR   = 2,
+	V3D_SHADING_OBJECT_COLOR   = 3,
+};
+
+/* View3DOverlay->flag */
 enum {
 	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
 	V3D_OVERLAY_HIDE_CURSOR      = (1 << 1),

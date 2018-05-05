@@ -3546,9 +3546,9 @@ class VIEW3D_PT_shading(Panel):
 
         if shading.type == 'SOLID':
             col.separator()
-            col.row().prop(shading, "single_color_mode", expand=True)
+            col.row().prop(shading, "color_type", expand=True)
 
-            if shading.single_color_mode == 'SINGLE':
+            if shading.color_type == 'SINGLE':
                 col.separator()
                 col.row().prop(shading, "single_color", text="")
 
@@ -3580,7 +3580,6 @@ class VIEW3D_PT_overlay(Panel):
 
         view = context.space_data
         overlay = view.overlay
-        shading = view.shading
         scene = context.scene
         display_all = overlay.show_overlays
 
@@ -3606,30 +3605,30 @@ class VIEW3D_PT_overlay(Panel):
 
         col = layout.column()
         col.active = display_all
-        col.prop(view, "show_outline_selected")
-        col.prop(view, "show_all_objects_origin")
-        col.prop(view, "show_relationship_lines")
-        col.prop(view, "show_face_orientation_overlay")
+        col.prop(overlay, "show_outline_selected")
+        col.prop(overlay, "show_all_objects_origin")
+        col.prop(overlay, "show_relationship_lines")
+        col.prop(overlay, "show_face_orientation")
 
         col = layout.column()
         col.active = display_all
         split = col.split(percentage=0.55)
-        split.prop(view, "show_floor", text="Grid Floor")
+        split.prop(overlay, "show_floor", text="Grid Floor")
 
         row = split.row(align=True)
-        row.prop(view, "show_axis_x", text="X", toggle=True)
-        row.prop(view, "show_axis_y", text="Y", toggle=True)
-        row.prop(view, "show_axis_z", text="Z", toggle=True)
+        row.prop(overlay, "show_axis_x", text="X", toggle=True)
+        row.prop(overlay, "show_axis_y", text="Y", toggle=True)
+        row.prop(overlay, "show_axis_z", text="Z", toggle=True)
 
         sub = col.column(align=True)
-        sub.active = bool(view.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
+        sub.active = bool(overlay.show_floor or view.region_quadviews or not view.region_3d.is_perspective)
         subsub = sub.column(align=True)
-        subsub.active = view.show_floor
-        subsub.prop(view, "grid_lines", text="Lines")
-        sub.prop(view, "grid_scale", text="Scale")
+        subsub.active = overlay.show_floor
+        subsub.prop(overlay, "grid_lines", text="Lines")
+        sub.prop(overlay, "grid_scale", text="Scale")
         subsub = sub.column(align=True)
         subsub.active = scene.unit_settings.system == 'NONE'
-        subsub.prop(view, "grid_subdivisions", text="Subdivisions")
+        subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
 
 class VIEW3D_PT_quad_view(Panel):

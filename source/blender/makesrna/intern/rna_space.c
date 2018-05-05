@@ -463,7 +463,7 @@ static void rna_View3D_CursorLocation_set(PointerRNA *ptr, const float *values)
 	copy_v3_v3(cursor, values);
 }
 
-static float rna_View3D_GridScaleUnit_get(PointerRNA *ptr)
+static float rna_View3DOverlay_GridScaleUnit_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)(ptr->data);
 	bScreen *screen = ptr->id.data;
@@ -660,16 +660,6 @@ static void rna_3DViewShading_type_set(PointerRNA *ptr, int value)
 		v3d->prev_drawtype = v3d->drawtype;
 	}
 	v3d->drawtype = value;
-}
-
-static void rna_View3DShading_single_color_mode_set(PointerRNA *ptr, int value) {
-	View3D *v3d = (View3D *)ptr->data;
-	v3d->drawtype_options = (v3d->drawtype_options &~ V3D_DRAWOPTION_SOLID_COLOR_MASK) + value;
-}
-
-static int rna_View3DShading_single_color_mode_get(PointerRNA *ptr) {
-	View3D *v3d = (View3D *)ptr->data;
-	return v3d->drawtype_options & V3D_DRAWOPTION_SOLID_COLOR_MASK;
 }
 
 static const EnumPropertyItem *rna_3DViewShading_type_itemf(
@@ -2177,11 +2167,11 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static const EnumPropertyItem single_color_mode_items[] = {
-		{V3D_DRAWOPTION_SINGLE_COLOR,   "SINGLE",   0, "Single",   "Show scene in a single color"},
-		{V3D_DRAWOPTION_OBJECT_COLOR,   "OBJECT",   0, "Object",   "Show Object color"},
-		{V3D_DRAWOPTION_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show Material color"},
-		{V3D_DRAWOPTION_RANDOMIZE,      "RANDOM",   0, "Random",   "Show random object color"},
+	static const EnumPropertyItem color_type_items[] = {
+		{V3D_SHADING_SINGLE_COLOR,   "SINGLE",   0, "Single",   "Show scene in a single color"},
+		{V3D_SHADING_OBJECT_COLOR,   "OBJECT",   0, "Object",   "Show Object color"},
+		{V3D_SHADING_MATERIAL_COLOR, "MATERIAL", 0, "Material", "Show Material color"},
+		{V3D_SHADING_RANDOM_COLOR,   "RANDOM",   0, "Random",   "Show random object color"},
 		{0, NULL, 0, NULL, NULL}
 	};
 	static const EnumPropertyItem studio_lighting_items[] = {
@@ -2207,46 +2197,43 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Viewport Shading", "Method to display/shade objects in the 3D View");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
+	RNA_def_struct_sdna(srna, "View3DShading");
+
 	prop = RNA_def_property(srna, "light", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "drawtype_lighting");
+	RNA_def_property_enum_sdna(prop, NULL, "light");
 	RNA_def_property_enum_items(prop, rna_enum_viewport_lighting_items);
 	RNA_def_property_ui_text(prop, "Lighting", "Lighting Method for Solid/Texture Viewport Shading");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "show_object_overlap", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_OBJECT_OVERLAP);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_OBJECT_OVERLAP);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Object Overlap", "Show Object Overlap");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
-	prop = RNA_def_property(srna, "studiolight", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "drawtype_studiolight");
+	prop = RNA_def_property(srna, "studio_light", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, studio_lighting_items);
 	RNA_def_property_ui_text(prop, "Studiolight", "Studio lighting setup");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
-	prop = RNA_def_property(srna, "single_color_mode", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_items(prop, single_color_mode_items);
-	RNA_def_property_enum_funcs(prop, "rna_View3DShading_single_color_mode_get",
-	                                  "rna_View3DShading_single_color_mode_set",
-	                                  NULL);
-	RNA_def_property_ui_text(prop, "Color", "Single Color Mode");
+	prop = RNA_def_property(srna, "color_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, color_type_items);
+	RNA_def_property_ui_text(prop, "Color", "Color Type");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "single_color", PROP_FLOAT, PROP_COLOR);
-	RNA_def_property_float_sdna(prop, NULL, "drawtype_single_color");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Color", "Color for single color mode");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "show_shadows", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "drawtype_options", V3D_DRAWOPTION_SHADOW);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SHADING_SHADOW);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Shadow", "Show Shadow");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
 
 	prop = RNA_def_property(srna, "ambient_light_intensity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "drawtype_ambient_intensity");
+	RNA_def_property_float_sdna(prop, NULL, "ambient_intensity");
 	RNA_def_property_float_default(prop, 0.5);
 	RNA_def_property_ui_text(prop, "Ambient Light", "Intensity of ambient light for shadows");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
@@ -2271,10 +2258,85 @@ static void rna_def_space_view3d_overlay(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Overlays", "Display overlays like manipulators and outlines");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
+	prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
+	RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid in perspective view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_axis_x", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_X);
+	RNA_def_property_ui_text(prop, "Display X Axis", "Show the X axis line in perspective view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_axis_y", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Y);
+	RNA_def_property_ui_text(prop, "Display Y Axis", "Show the Y axis line in perspective view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_axis_z", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Z);
+	RNA_def_property_ui_text(prop, "Display Z Axis", "Show the Z axis line in perspective view");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "grid_scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "grid");
+	RNA_def_property_ui_text(prop, "Grid Scale", "Distance between 3D View grid lines");
+	RNA_def_property_range(prop, 0.0f, FLT_MAX);
+	RNA_def_property_ui_range(prop, 0.001f, 1000.0f, 0.1f, 3);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "gridlines");
+	RNA_def_property_ui_text(prop, "Grid Lines", "Number of grid lines to display in perspective view");
+	RNA_def_property_range(prop, 0, 1024);
+	RNA_def_property_int_default(prop, 16);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "grid_subdivisions", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "gridsubdiv");
+	RNA_def_property_ui_text(prop, "Grid Subdivisions", "Number of subdivisions between grid lines");
+	RNA_def_property_range(prop, 1, 1024);
+	RNA_def_property_int_default(prop, 10);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "grid_scale_unit", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_float_funcs(prop, "rna_View3DOverlay_GridScaleUnit_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Grid Scale Unit", "Grid cell size scaled by scene unit system settings");
+
+	prop = RNA_def_property(srna, "show_outline_selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SELECT_OUTLINE);
+	RNA_def_property_ui_text(prop, "Outline Selected",
+	                         "Show an outline highlight around selected objects in non-wireframe views");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_all_objects_origin", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DRAW_CENTERS);
+	RNA_def_property_ui_text(prop, "All Object Origins",
+	                         "Show the object origin center dot for all (selected and unselected) objects");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_relationship_lines", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_HIDE_HELPLINES);
+	RNA_def_property_ui_text(prop, "Relationship Lines",
+	                         "Show dashed lines indicating parent or constraint relationships");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	RNA_def_struct_sdna(srna, "View3DOverlay");
+
 	prop = RNA_def_property(srna, "show_cursor", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "overlays", V3D_OVERLAY_HIDE_CURSOR);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_OVERLAY_HIDE_CURSOR);
 	RNA_def_property_ui_text(prop, "Show 3D Cursor", "Display 3D Cursor Overlay");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	prop = RNA_def_property(srna, "show_face_orientation", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_OVERLAY_FACE_ORIENTATION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Face Orientation", "Show the Face Orientation Overlay");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
+
+
 }
 
 static void rna_def_space_view3d(BlenderRNA *brna)
@@ -2387,12 +2449,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock to Cursor", "3D View center is locked to the cursor's position");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
-	prop = RNA_def_property(srna, "show_face_orientation_overlay", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "overlays", V3D_OVERLAY_FACE_ORIENTATION);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Face Orientation", "Show the Face Orientation Overlay");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, "rna_3DViewShading_type_update");
-
 	prop = RNA_def_property(srna, "local_view", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "localvd");
 	RNA_def_property_ui_text(prop, "Local View",
@@ -2426,71 +2482,6 @@ static void rna_def_space_view3d(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.001f, FLT_MAX, 10, 3);
 	RNA_def_property_float_default(prop, 1000.0f);
 	RNA_def_property_ui_text(prop, "Clip End", "3D View far clipping distance");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "grid_scale", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_sdna(prop, NULL, "grid");
-	RNA_def_property_ui_text(prop, "Grid Scale", "Distance between 3D View grid lines");
-	RNA_def_property_range(prop, 0.0f, FLT_MAX);
-	RNA_def_property_ui_range(prop, 0.001f, 1000.0f, 0.1f, 3);
-	RNA_def_property_float_default(prop, 1.0f);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "grid_lines", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "gridlines");
-	RNA_def_property_ui_text(prop, "Grid Lines", "Number of grid lines to display in perspective view");
-	RNA_def_property_range(prop, 0, 1024);
-	RNA_def_property_int_default(prop, 16);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "grid_subdivisions", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "gridsubdiv");
-	RNA_def_property_ui_text(prop, "Grid Subdivisions", "Number of subdivisions between grid lines");
-	RNA_def_property_range(prop, 1, 1024);
-	RNA_def_property_int_default(prop, 10);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "grid_scale_unit", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_float_funcs(prop, "rna_View3D_GridScaleUnit_get", NULL, NULL);
-	RNA_def_property_ui_text(prop, "Grid Scale Unit", "Grid cell size scaled by scene unit system settings");
-
-	prop = RNA_def_property(srna, "show_floor", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_FLOOR);
-	RNA_def_property_ui_text(prop, "Display Grid Floor", "Show the ground plane grid in perspective view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_axis_x", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_X);
-	RNA_def_property_ui_text(prop, "Display X Axis", "Show the X axis line in perspective view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_axis_y", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Y);
-	RNA_def_property_ui_text(prop, "Display Y Axis", "Show the Y axis line in perspective view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_axis_z", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "gridflag", V3D_SHOW_Z);
-	RNA_def_property_ui_text(prop, "Display Z Axis", "Show the Z axis line in perspective view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_outline_selected", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_SELECT_OUTLINE);
-	RNA_def_property_ui_text(prop, "Outline Selected",
-	                         "Show an outline highlight around selected objects in non-wireframe views");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_all_objects_origin", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_DRAW_CENTERS);
-	RNA_def_property_ui_text(prop, "All Object Origins",
-	                         "Show the object origin center dot for all (selected and unselected) objects");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
-
-	prop = RNA_def_property(srna, "show_relationship_lines", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", V3D_HIDE_HELPLINES);
-	RNA_def_property_ui_text(prop, "Relationship Lines",
-	                         "Show dashed lines indicating parent or constraint relationships");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "show_grease_pencil", PROP_BOOLEAN, PROP_NONE);
