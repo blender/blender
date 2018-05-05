@@ -580,10 +580,9 @@ void IDP_ReplaceGroupInGroup(IDProperty *dest, const IDProperty *src)
 void IDP_ReplaceInGroup_ex(IDProperty *group, IDProperty *prop, IDProperty *prop_exist)
 {
 	BLI_assert(group->type == IDP_GROUP);
-
 	BLI_assert(prop_exist == IDP_GetPropertyFromGroup(group, prop->name));
 
-	if ((prop_exist = IDP_GetPropertyFromGroup(group, prop->name))) {
+	if (prop_exist != NULL) {
 		BLI_insertlinkreplace(&group->data.group, prop_exist, prop);
 		IDP_FreeProperty(prop_exist);
 		MEM_freeN(prop_exist);

@@ -855,7 +855,7 @@ static PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 }
 
 PyDoc_STRVAR(BPy_IDGroup_pop_doc,
-".. method:: pop(key)\n"
+".. method:: pop(key, default)\n"
 "\n"
 "   Remove an item from the group, returning a Python representation.\n"
 "\n"
@@ -863,38 +863,40 @@ PyDoc_STRVAR(BPy_IDGroup_pop_doc,
 "\n"
 "   :arg key: Name of item to remove.\n"
 "   :type key: string\n"
+"   :arg default: Value to return when key isn't found, otherwise raise an exception.\n"
+"   :type default: Undefined\n"
 );
-static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *value)
+static PyObject *BPy_IDGroup_pop(BPy_IDProperty *self, PyObject *args)
 {
 	IDProperty *idprop;
 	PyObject *pyform;
-	const char *name = _PyUnicode_AsString(value);
 
-	if (!name) {
-		PyErr_Format(PyExc_TypeError,
-		             "pop expected at least a string argument, not %.200s",
-		             Py_TYPE(value)->tp_name);
+	char *key;
+	PyObject *def = NULL;
+
+	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def)) {
 		return NULL;
 	}
 
-	idprop = IDP_GetPropertyFromGroup(self->prop, name);
-
-	if (idprop) {
-		pyform = BPy_IDGroup_MapDataToPy(idprop);
-
-		if (!pyform) {
-			/* ok something bad happened with the pyobject,
-			 * so don't remove the prop from the group.  if pyform is
-			 * NULL, then it already should have raised an exception.*/
+	idprop = IDP_GetPropertyFromGroup(self->prop, key);
+	if (idprop == NULL) {
+		if (def == NULL) {
+			PyErr_SetString(PyExc_KeyError, "item not in group");
 			return NULL;
 		}
-
-		IDP_RemoveFromGroup(self->prop, idprop);
-		return pyform;
+		return Py_INCREF_RET(def);
 	}
 
-	PyErr_SetString(PyExc_KeyError, "item not in group");
-	return NULL;
+	pyform = BPy_IDGroup_MapDataToPy(idprop);
+	if (pyform == NULL) {
+		/* ok something bad happened with the pyobject,
+		 * so don't remove the prop from the group.  if pyform is
+		 * NULL, then it already should have raised an exception.*/
+		return NULL;
+	}
+
+	IDP_RemoveFromGroup(self->prop, idprop);
+	return pyform;
 }
 
 PyDoc_STRVAR(BPy_IDGroup_iter_items_doc,
@@ -1126,7 +1128,7 @@ static PyObject *BPy_IDGroup_get(BPy_IDProperty *self, PyObject *args)
 }
 
 static struct PyMethodDef BPy_IDGroup_methods[] = {
-	{"pop", (PyCFunction)BPy_IDGroup_pop, METH_O, BPy_IDGroup_pop_doc},
+	{"pop", (PyCFunction)BPy_IDGroup_pop, METH_VARARGS, BPy_IDGroup_pop_doc},
 	{"iteritems", (PyCFunction)BPy_IDGroup_iter_items, METH_NOARGS, BPy_IDGroup_iter_items_doc},
 	{"keys", (PyCFunction)BPy_IDGroup_keys, METH_NOARGS, BPy_IDGroup_keys_doc},
 	{"values", (PyCFunction)BPy_IDGroup_values, METH_NOARGS, BPy_IDGroup_values_doc},

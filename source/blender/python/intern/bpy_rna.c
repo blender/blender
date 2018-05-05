@@ -4714,6 +4714,56 @@ static PyObject *pyrna_struct_get(BPy_StructRNA *self, PyObject *args)
 	return Py_INCREF_RET(def);
 }
 
+PyDoc_STRVAR(pyrna_struct_pop_doc,
+".. method:: pop(key, default=None)\n"
+"\n"
+"   Remove and return the value of the custom property assigned to key or default\n"
+"   when not found (matches pythons dictionary function of the same name).\n"
+"\n"
+"   :arg key: The key associated with the custom property.\n"
+"   :type key: string\n"
+"   :arg default: Optional argument for the value to return if\n"
+"      *key* is not found.\n"
+"   :type default: Undefined\n"
+"\n"
+BPY_DOC_ID_PROP_TYPE_NOTE
+);
+static PyObject *pyrna_struct_pop(BPy_StructRNA *self, PyObject *args)
+{
+	IDProperty *group, *idprop;
+
+	const char *key;
+	PyObject *def = NULL;
+
+	PYRNA_STRUCT_CHECK_OBJ(self);
+
+	if (!PyArg_ParseTuple(args, "s|O:get", &key, &def))
+		return NULL;
+
+	/* mostly copied from BPy_IDGroup_Map_GetItem */
+	if (RNA_struct_idprops_check(self->ptr.type) == 0) {
+		PyErr_SetString(PyExc_TypeError, "this type doesn't support IDProperties");
+		return NULL;
+	}
+
+	group = RNA_struct_idprops(&self->ptr, 0);
+	if (group) {
+		idprop = IDP_GetPropertyFromGroup(group, key);
+
+		if (idprop) {
+			PyObject *ret = BPy_IDGroup_WrapData(self->ptr.id.data, idprop, group);
+			IDP_RemoveFromGroup(group, idprop);
+			return ret;
+		}
+	}
+
+	if (def == NULL) {
+		PyErr_SetString(PyExc_KeyError, "key not found");
+		return NULL;
+	}
+	return Py_INCREF_RET(def);
+}
+
 PyDoc_STRVAR(pyrna_struct_as_pointer_doc,
 ".. method:: as_pointer()\n"
 "\n"
@@ -5171,6 +5221,7 @@ static struct PyMethodDef pyrna_struct_methods[] = {
 	{"items", (PyCFunction)pyrna_struct_items, METH_NOARGS, pyrna_struct_items_doc},
 
 	{"get", (PyCFunction)pyrna_struct_get, METH_VARARGS, pyrna_struct_get_doc},
+	{"pop", (PyCFunction)pyrna_struct_pop, METH_VARARGS, pyrna_struct_pop_doc},
 
 	{"as_pointer", (PyCFunction)pyrna_struct_as_pointer, METH_NOARGS, pyrna_struct_as_pointer_doc},
 
