@@ -528,7 +528,14 @@ set(ICON_NAMES
 # This section is maintained by the updating script, keep BEGIN/END comments.
 set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	# BEGIN ICON_GEOM_NAMES
+	brush.paint_texture.airbrush
+	brush.paint_texture.clone
 	brush.paint_texture.draw
+	brush.paint_texture.fill
+	brush.paint_texture.mask
+	brush.paint_texture.multiply
+	brush.paint_texture.smear
+	brush.paint_texture.soften
 	brush.paint_vertex.alpha
 	brush.paint_vertex.blur
 	brush.paint_vertex.mix
@@ -583,6 +590,8 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.mesh.spin
 	ops.mesh.spin.duplicate
 	ops.mesh.vertices_smooth
+	ops.paint.vertex_color_fill
+	ops.paint.weight_fill
 	ops.paint.weight_gradient
 	ops.transform.edge_slide
 	ops.transform.push_pull
