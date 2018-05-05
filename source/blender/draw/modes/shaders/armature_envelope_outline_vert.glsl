@@ -16,7 +16,7 @@ in vec2 pos2;
 /* Assumed to be in world coordinate already. */
 in vec4 headSphere;
 in vec4 tailSphere;
-in vec4 color;
+in vec4 outlineColorSize;
 in vec3 xAxis;
 
 flat out vec4 finalColor;
@@ -145,12 +145,12 @@ void main()
 	vec2 edge_dir = compute_dir(ss0, ss1, ss2);
 
 	bool outer = ((gl_VertexID & 1) == 1);
-	vec2 t = lineThickness / viewportSize;
+	vec2 t = outlineColorSize.w * (lineThickness / viewportSize);
 	t *= pres_fac;
 	t  = (outer) ? t : vec2(0.0);
 
 	gl_Position = p1;
 	gl_Position.xy += t * edge_dir;
 
-	finalColor = color;
+	finalColor = vec4(outlineColorSize.rgb, 1.0);
 }

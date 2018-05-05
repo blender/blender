@@ -187,7 +187,9 @@ static struct {
 	struct Gwn_VertFormat *instance_camera;
 	struct Gwn_VertFormat *instance_distance_lines;
 	struct Gwn_VertFormat *instance_spot;
+	struct Gwn_VertFormat *instance_bone_outline;
 	struct Gwn_VertFormat *instance_bone_envelope;
+	struct Gwn_VertFormat *instance_bone_envelope_outline;
 	struct Gwn_VertFormat *instance_mball_handles;
 } g_formats = {NULL};
 
@@ -435,16 +437,16 @@ DRWShadingGroup *shgroup_instance_bone_envelope_outline(DRWPass *pass)
 		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
-	DRW_shgroup_instance_format(g_formats.instance_bone_envelope, {
+	DRW_shgroup_instance_format(g_formats.instance_bone_envelope_outline, {
 		{"headSphere"          , DRW_ATTRIB_FLOAT, 4},
 		{"tailSphere"          , DRW_ATTRIB_FLOAT, 4},
-		{"color"               , DRW_ATTRIB_FLOAT, 4},
+		{"outlineColorSize"    , DRW_ATTRIB_FLOAT, 4},
 		{"xAxis"               , DRW_ATTRIB_FLOAT, 3}
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.bone_envelope_outline,
 	                                                   pass, DRW_cache_bone_envelope_outline_get(),
-	                                                   g_formats.instance_bone_envelope);
+	                                                   g_formats.instance_bone_envelope_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	return grp;
@@ -527,14 +529,13 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct Gwn_B
 		            NULL);
 	}
 
-	/* TODO own format? */
-	DRW_shgroup_instance_format(g_formats.instance_color, {
+	DRW_shgroup_instance_format(g_formats.instance_bone_outline, {
 		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
-		{"color"              , DRW_ATTRIB_FLOAT, 4}
+		{"outlineColorSize"   , DRW_ATTRIB_FLOAT, 4}
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.shape_outline,
-	                                                   pass, geom, g_formats.instance_color);
+	                                                   pass, geom, g_formats.instance_bone_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	return grp;
@@ -568,15 +569,14 @@ DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 		            datatoc_gpu_shader_flat_color_frag_glsl, NULL);
 	}
 
-	/* TODO own format? */
-	DRW_shgroup_instance_format(g_formats.instance_color, {
+	DRW_shgroup_instance_format(g_formats.instance_bone_outline, {
 		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
-		{"color"              , DRW_ATTRIB_FLOAT, 4}
+		{"outlineColorSize"   , DRW_ATTRIB_FLOAT, 4}
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.bone_sphere_outline,
 	                                                   pass, DRW_cache_bone_point_wire_outline_get(),
-	                                                   g_formats.instance_color);
+	                                                   g_formats.instance_bone_outline);
 	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
 
 	return grp;

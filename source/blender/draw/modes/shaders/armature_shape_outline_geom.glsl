@@ -8,7 +8,7 @@ in float vZ[];
 in float vFacing[];
 in vec2 ssPos[];
 in vec2 ssNor[];
-in vec4 vCol[];
+in vec4 vColSize[];
 
 flat out vec4 finalColor;
 uniform mat4 ProjectionMatrix;
@@ -53,9 +53,9 @@ void emit_corner(const int e, vec2 thick, bool is_persp)
 
 void main(void)
 {
-	finalColor = vCol[0];
+	finalColor = vec4(vColSize[0].rgb, 1.0);
 
-	vec2 thick = lineThickness / viewportSize;
+	vec2 thick = vColSize[0].w * (lineThickness / viewportSize);
 	bool is_persp = (ProjectionMatrix[3][3] == 0.0);
 
 	const ivec3 edges = ivec3(0, 2, 4);

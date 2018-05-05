@@ -10,7 +10,7 @@ in vec2 pos1;
 
 /* ---- Per instance Attribs ---- */
 in mat4 InstanceModelMatrix;
-in vec4 color;
+in vec4 outlineColorSize;
 
 flat out vec4 finalColor;
 
@@ -91,12 +91,12 @@ void main()
 
 	bool outer = ((gl_VertexID & 1) == 1);
 
-	vec2 t = lineThickness / viewportSize;
+	vec2 t = outlineColorSize.w * (lineThickness / viewportSize);
 	t *= (is_persp) ? abs(V.z) : 1.0;
 	t  = (outer) ? t : vec2(0.0);
 
 	gl_Position = p0;
 	gl_Position.xy += t * edge_dir;
 
-	finalColor = color;
+	finalColor = vec4(outlineColorSize.rgb, 1.0);
 }

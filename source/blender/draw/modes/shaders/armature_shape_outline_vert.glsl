@@ -12,14 +12,14 @@ in vec3 snor;
 
 /* ---- Per instance Attribs ---- */
 in mat4 InstanceModelMatrix;
-in vec4 color;
+in vec4 outlineColorSize;
 
 out vec4 pPos;
 out float vZ;
 out float vFacing;
 out vec2 ssPos;
 out vec2 ssNor;
-out vec4 vCol;
+out vec4 vColSize;
 
 /* project to screen space */
 vec2 proj(vec4 pos)
@@ -49,5 +49,5 @@ void main()
 
 	ssPos = proj(pPos);
 
-	vCol = color;
+	vColSize = outlineColorSize;
 }
