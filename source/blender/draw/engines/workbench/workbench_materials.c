@@ -290,7 +290,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_WORKBENCH);
-	static float light_multiplier = 1.0f;
+	static float shadow_multiplier = 0.0f;
 
 	const DRWContextState *DCS = DRW_context_state_get();
 
@@ -303,8 +303,8 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	else {
 		memset(&wpd->shading, 0, sizeof(wpd->shading));
 		wpd->shading.light = V3D_LIGHTING_STUDIO;
-		wpd->shading.ambient_intensity = 0.5;
-		copy_v3_fl(wpd->shading.single_color, 1.0f);
+		wpd->shading.shadow_intensity = 0.5;
+		copy_v3_fl(wpd->shading.single_color, 0.8f);
 	}
 
 	select_deferred_shaders(wpd);
@@ -326,7 +326,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_stencil_mask(grp, 0x00);
-			DRW_shgroup_uniform_float(grp, "lightMultiplier", &light_multiplier, 1);
+			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &shadow_multiplier, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
 #ifdef DEBUG_SHADOW_VOLUME
@@ -346,7 +346,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_shadow_pass);
 			DRW_shgroup_stencil_mask(grp, 0x00);
 			workbench_composite_uniforms(wpd, grp);
-			DRW_shgroup_uniform_float(grp, "lightMultiplier", &wpd->shading.ambient_intensity, 1);
+			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shading.shadow_intensity, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
 		}
@@ -354,7 +354,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 			psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR);
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
-			DRW_shgroup_uniform_float(grp, "lightMultiplier", &light_multiplier, 1);
+			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &shadow_multiplier, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 		}
 	}

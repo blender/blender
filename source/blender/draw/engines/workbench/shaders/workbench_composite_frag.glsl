@@ -6,7 +6,7 @@ uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
 uniform vec2 invertedViewportSize;
 uniform vec3 objectOverlapColor = vec3(0.0);
-uniform float lightMultiplier;
+uniform float shadowMultiplier;
 
 layout(std140) uniform world_block {
 	WorldData world_data;
@@ -49,11 +49,11 @@ void main()
 	vec3 normal_viewport = texelFetch(normalBuffer, texel, 0).rgb;
 #endif /* WORKBENCH_ENCODE_NORMALS */
 	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_viewport);
-	vec3 shaded_color = diffuse_light * diffuse_color.rgb * lightMultiplier;
+	vec3 shaded_color = diffuse_light * diffuse_color.rgb * (1.0 - shadowMultiplier);
 
 #else /* V3D_LIGHTING_STUDIO */
 	vec3 diffuse_color = texelFetch(colorBuffer, texel, 0).rgb;
-	vec3 shaded_color = diffuse_color * lightMultiplier;
+	vec3 shaded_color = diffuse_color * (1.0 - shadowMultiplier);
 #endif /* V3D_LIGHTING_STUDIO */
 
 

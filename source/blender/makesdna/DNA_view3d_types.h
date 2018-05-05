@@ -139,7 +139,7 @@ typedef struct View3DShading {
 	short light;
 	short studio_light;
 
-	float ambient_intensity;
+	float shadow_intensity;
 	float single_color[3];
 } View3DShading;
 

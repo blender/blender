@@ -1090,8 +1090,8 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 						View3D *v3d = (View3D *)sl;
 						v3d->shading.light = V3D_LIGHTING_STUDIO;
 						v3d->shading.color_type = V3D_SHADING_MATERIAL_COLOR;
-						copy_v3_fl(v3d->shading.single_color, 1.0f);
-						v3d->shading.ambient_intensity = 0.5;
+						copy_v3_fl(v3d->shading.single_color, 0.8f);
+						v3d->shading.shadow_intensity = 0.5;
 
 						v3d->overlay.flag |= V3D_OVERLAY_HIDE_CURSOR;
 						v3d->overlay.backwire_opacity = 0.5f;

@@ -3558,12 +3558,14 @@ class VIEW3D_PT_shading(Panel):
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
                 col.row().template_icon_view(shading, "studio_light")
-                col.separator()
 
-            col.prop(shading, "show_shadows")
-            if shading.show_shadows:
-                col.prop(shading, "ambient_light_intensity")
-                col.separator()
+            col.separator()
+
+            row = col.row()
+            row.prop(shading, "show_shadows")
+            sub = row.row()
+            sub.active = shading.show_shadows
+            sub.prop(shading, "shadow_intensity", text="")
 
             col.prop(shading, "show_object_overlap")
 
