@@ -1957,7 +1957,7 @@ void uiItemPopoverPanel_ptr(uiLayout *layout, bContext *C, PanelType *pt, const 
 	if (layout->root->type == UI_LAYOUT_MENU && !icon)
 		icon = ICON_BLANK1;
 
-	uiBut *but = ui_item_menu(layout, name, icon, ui_item_paneltype_func, pt, NULL, NULL, false);
+	uiBut *but = ui_item_menu(layout, name, icon, ui_item_paneltype_func, pt, NULL, NULL, true);
 	but->type = UI_BTYPE_POPOVER;
 	if (pt->poll && (pt->poll(C, pt) == false)) {
 		but->flag |= UI_BUT_DISABLED;

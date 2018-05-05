@@ -3200,7 +3200,7 @@ static uiBut *ui_def_but(
 	         ELEM(but->type,
 	              UI_BTYPE_MENU, UI_BTYPE_TEXT, UI_BTYPE_LABEL,
 	              UI_BTYPE_BLOCK, UI_BTYPE_BUT_MENU, UI_BTYPE_SEARCH_MENU,
-	              UI_BTYPE_PROGRESS_BAR))
+	              UI_BTYPE_PROGRESS_BAR, UI_BTYPE_POPOVER))
 	{
 		but->drawflag |= (UI_BUT_TEXT_LEFT | UI_BUT_ICON_LEFT);
 	}

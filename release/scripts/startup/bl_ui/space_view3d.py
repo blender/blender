@@ -53,8 +53,10 @@ class VIEW3D_HT_header(Header):
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
         row = layout
-        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading", text="Shading")
-        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay", text="Overlay")
+        shading_type = view.shading.type
+        shading_item = bpy.types.View3DShading.bl_rna.properties['type'].enum_items[shading_type]
+        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading", text=shading_item.name, icon=shading_item.icon)
+        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay", text="Overlays", icon='WIRE')
 
         layout.template_header_3D()
 
