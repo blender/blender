@@ -313,6 +313,12 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		WORKBENCH_UBO_World *wd = &wpd->world_data;
 		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD:TH_HIGH_GRAD, wd->background_color_low);
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
+
+		/* XXX: Really quick conversion to avoid washed out background.
+		 * Needs to be adressed properly (color managed using ocio). */
+		srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
+		srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
+
 		studiolight_update_world(wpd->shading.studio_light, wd);
 
 		wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
