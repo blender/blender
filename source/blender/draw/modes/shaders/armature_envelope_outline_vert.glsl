@@ -5,7 +5,7 @@ uniform mat4 ViewProjectionMatrix;
 uniform mat4 ProjectionMatrix;
 
 uniform vec2 viewportSize;
-uniform float lineThickness = 3.0;
+uniform float lineThickness = 2.0;
 
 /* ---- Instanciated Attribs ---- */
 in vec2 pos0;

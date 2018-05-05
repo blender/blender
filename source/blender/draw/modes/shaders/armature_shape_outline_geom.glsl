@@ -13,7 +13,7 @@ in vec4 vCol[];
 flat out vec4 finalColor;
 uniform mat4 ProjectionMatrix;
 uniform vec2 viewportSize;
-uniform float lineThickness = 3.0;
+uniform float lineThickness = 2.0;
 
 vec2 compute_dir(vec2 v0, vec2 v1)
 {
