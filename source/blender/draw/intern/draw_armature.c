@@ -625,13 +625,14 @@ static struct {
 
 	/* not a theme, this is an override */
 	const float *const_color;
-	bool do_wires;
+	float const_wire;
 } g_theme;
 
 /** See: 'set_pchan_color'*/
-static void update_color(const float const_color[4])
+static void update_color(const Object *ob, const float const_color[4])
 {
 	g_theme.const_color = const_color;
+	g_theme.const_wire = ((ob->base_flag & BASE_SELECTED) != 0) ? 1.5f : 0.0f;
 
 #define NO_ALPHA(c) (((c)[3] = 1.0f), (c))
 
@@ -691,7 +692,9 @@ static const float *get_bone_solid_with_consts_color(
 
 static float get_bone_wire_thickness(int boneflag)
 {
-	if (boneflag & BONE_DRAW_ACTIVE)
+	if (g_theme.const_color)
+		return g_theme.const_wire;
+	else if (boneflag & BONE_DRAW_ACTIVE)
 		return 3.0f;
 	else if (boneflag & BONE_SELECTED)
 		return 2.0f;
@@ -703,13 +706,12 @@ static const float *get_bone_wire_color(
         const EditBone *eBone, const bPoseChannel *pchan, const bArmature *arm,
         const int boneflag, const short constflag)
 {
-	if (g_theme.const_color)
-		return g_theme.const_color;
-
 	static float disp_color[4];
-	copy_v3_v3(disp_color, g_theme.vertex_color);
 
-	if (eBone) {
+	if (g_theme.const_color) {
+		copy_v3_v3(disp_color, g_theme.const_color);
+	}
+	else if (eBone) {
 		if (boneflag & BONE_SELECTED) {
 			if (boneflag & BONE_DRAW_ACTIVE) {
 				copy_v3_v3(disp_color, g_theme.edge_select_color);
@@ -730,6 +732,9 @@ static const float *get_bone_wire_color(
 	else if (arm->flag & ARM_POSEMODE) {
 		copy_v4_v4(disp_color, pchan->draw_data->wire_color);
 		set_pchan_color(PCHAN_COLOR_NORMAL, boneflag, constflag, disp_color);
+	}
+	else {
+		copy_v3_v3(disp_color, g_theme.vertex_color);
 	}
 
 	disp_color[3] = get_bone_wire_thickness(boneflag);
@@ -1005,10 +1010,10 @@ static void draw_points(
 	const bool is_envelope_draw = (arm->drawtype == ARM_ENVELOPE);
 	static const float envelope_ignore = -1.0f;
 
+	col_wire_tail[3] = col_wire_root[3] = get_bone_wire_thickness(boneflag);
+
 	/* Edit bone points can be selected */
 	if (eBone) {
-		col_wire_tail[3] = col_wire_root[3] = get_bone_wire_thickness(boneflag);
-
 		if (eBone->flag & BONE_ROOTSEL) {
 			copy_v3_v3(col_wire_root, g_theme.vertex_select_color);
 		}
@@ -1263,7 +1268,7 @@ static void draw_armature_edit(Object *ob)
 	int index;
 	const bool is_select = DRW_state_is_select();
 
-	update_color(NULL);
+	update_color(ob, NULL);
 
 	const bool show_text = DRW_state_show_text();
 
@@ -1338,7 +1343,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 	int index = -1;
 	Bone *bone;
 
-	update_color(const_color);
+	update_color(ob, const_color);
 
 	/* We can't safely draw non-updated pose, might contain NULL bone pointers... */
 	if (ob->pose->flag & POSE_RECALC) {
@@ -1480,7 +1485,6 @@ void DRW_shgroup_armature_object(
 {
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
-
 	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_outline, pass_bone_wire, NULL, shgrp_relationship_lines);
 	draw_armature_pose(ob, color);
 }
