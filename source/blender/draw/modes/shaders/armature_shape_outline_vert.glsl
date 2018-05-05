@@ -45,7 +45,13 @@ void main()
 	 * barelly visible at the outline corners. */
 	ssNor = normalize((NormalMatrix * snor).xy);
 
-	vFacing = dot(V, normalize(NormalMatrix * nor));
+	vec3 normal = normalize(NormalMatrix * nor);
+	/* Add a small bias to avoid loosing outline
+	 * on faces orthogonal to the view.
+	 * (test case: octahedral bone without rotation in front view.) */
+	normal.z += 1e-6;
+
+	vFacing = dot(V, normal);
 
 	ssPos = proj(pPos);
 
