@@ -1,6 +1,5 @@
 out vec4 fragColor;
 
-uniform sampler2D depthBuffer;
 uniform usampler2D objectId;
 uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
@@ -17,15 +16,14 @@ void main()
 {
 	ivec2 texel = ivec2(gl_FragCoord.xy);
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
-	float depth = texelFetch(depthBuffer, texel, 0).r;
+	uint object_id = texelFetch(objectId, texel, 0).r;
 
 #ifndef V3D_DRAWOPTION_OBJECT_OVERLAP
-	if (depth == 1.0) {
+	if (object_id == NO_OBJECT_ID) {
 		fragColor = vec4(background_color(world_data, uv_viewport.y), 0.0);
 		return;
 	}
 #else /* !V3D_DRAWOPTION_OBJECT_OVERLAP */
-	uint object_id = depth == 1.0? NO_OBJECT_ID: texelFetch(objectId, texel, 0).r;
 	float object_overlap = calculate_object_overlap(objectId, texel, object_id);
 
 	if (object_id == NO_OBJECT_ID) {

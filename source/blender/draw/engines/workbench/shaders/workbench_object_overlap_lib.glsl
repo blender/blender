@@ -1,5 +1,4 @@
 #define OBJECT_OVERLAP_OFFSET 1
-#define NO_OBJECT_ID uint(0)
 
 float calculate_object_overlap(usampler2D objectId, ivec2 texel, uint object_id)
 {

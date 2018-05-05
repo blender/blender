@@ -72,7 +72,6 @@ extern char datatoc_workbench_world_light_lib_glsl[];
 
 extern DrawEngineType draw_engine_workbench_solid;
 
-#define OBJECT_ID_PASS_ENABLED(wpd) (wpd->drawtype_options & V3D_DRAWOPTION_OBJECT_OVERLAP)
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->drawtype_lighting & V3D_LIGHTING_STUDIO)
 #define SHADOW_ENABLED(wpd) (wpd->drawtype_options & V3D_DRAWOPTION_SHADOW)
 static char *workbench_build_defines(WORKBENCH_PrivateData *wpd)
@@ -163,19 +162,14 @@ static void select_deferred_shaders(WORKBENCH_PrivateData *wpd)
 }
 
 /* Functions */
-static uint get_material_hash(WORKBENCH_PrivateData *wpd, WORKBENCH_MaterialData *material_template)
+static uint get_material_hash(WORKBENCH_MaterialData *material_template)
 {
 	uint input[4];
 	float *color = material_template->color;
 	input[0] = (uint)(color[0] * 512);
 	input[1] = (uint)(color[1] * 512);
 	input[2] = (uint)(color[2] * 512);
-
-	/* Only hash object id when needed */
-	input[3] = (uint)0;
-	if (OBJECT_ID_PASS_ENABLED(wpd)) {
-		input[3] = material_template->object_id;
-	}
+	input[3] = material_template->object_id;
 
 	return BLI_ghashutil_uinthash_v4_murmur(input);
 }
@@ -277,12 +271,8 @@ void workbench_materials_engine_free()
 
 static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingGroup *grp)
 {
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
-	DRW_shgroup_uniform_texture_ref(grp, "depthBuffer", &dtxl->depth);
 	DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &e_data.color_buffer_tx);
-	if (OBJECT_ID_PASS_ENABLED(wpd)) {
-		DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
-	}
+	DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		DRW_shgroup_uniform_texture_ref(grp, "normalBuffer", &e_data.normal_buffer_tx);
 	}
@@ -390,7 +380,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	get_material_solid_color(wpd, ob, mat, color, hsv_saturation, hsv_value);
 	copy_v3_v3(material_template.color, color);
 	material_template.object_id = engine_object_data->object_id;
-	unsigned int hash = get_material_hash(wpd, &material_template);
+	unsigned int hash = get_material_hash(&material_template);
 
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
@@ -509,8 +499,7 @@ void workbench_materials_draw_background(WORKBENCH_Data *vedata)
 	unsigned int clear_stencil = 0xFF;
 
 	GPU_framebuffer_bind(fbl->prepass_fb);
-	int clear_bits = GPU_DEPTH_BIT;
-	SET_FLAG_FROM_TEST(clear_bits, OBJECT_ID_PASS_ENABLED(wpd), GPU_COLOR_BIT);
+	int clear_bits = GPU_DEPTH_BIT | GPU_COLOR_BIT;
 	SET_FLAG_FROM_TEST(clear_bits, SHADOW_ENABLED(wpd), GPU_STENCIL_BIT);
 	GPU_framebuffer_clear(fbl->prepass_fb, clear_bits, clear_color, clear_depth, clear_stencil);
 }

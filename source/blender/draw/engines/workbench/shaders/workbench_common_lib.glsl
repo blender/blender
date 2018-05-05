@@ -1,3 +1,5 @@
+#define NO_OBJECT_ID uint(0)
+
 /* 4x4 bayer matrix prepared for 8bit UNORM precision error. */
 #define P(x) (((x + 0.5) * (1.0 / 16.0) - 0.5) * (1.0 / 255.0))
 const vec4 dither_mat4x4[4] = vec4[4](
