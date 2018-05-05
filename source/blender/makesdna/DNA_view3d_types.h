@@ -44,7 +44,6 @@ struct bGPdata;
 struct SmoothView3DStore;
 struct wmTimer;
 struct Material;
-struct GPUFX;
 struct GPUViewport;
 
 /* This is needed to not let VC choke on near and far... old
@@ -66,12 +65,6 @@ struct GPUViewport;
 
 /* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
  * code, and patch for windows. */
-
-typedef struct View3DDebug {
-	float znear, zfar;
-	char background;
-	char pad[7];
-} View3DDebug;
 
 typedef struct RegionView3D {
 	
@@ -136,8 +129,6 @@ typedef struct RegionView3D {
 	/* active rotation from NDOF or elsewhere */
 	float rot_angle;
 	float rot_axis[3];
-
-	struct GPUFX *compositor;
 } RegionView3D;
 
 /* 3D ViewPort Struct */
@@ -195,11 +186,6 @@ typedef struct View3D {
 	
 	short flag3;
 
-	/* afterdraw, for xray & transparent */
-	struct ListBase afterdraw_transp;
-	struct ListBase afterdraw_xray;
-	struct ListBase afterdraw_xraytransp;
-
 	/* drawflags, denoting state */
 	char zbuf, transp, xray;
 
@@ -212,8 +198,6 @@ typedef struct View3D {
 	struct GPUFXSettings fx_settings;
 
 	void *properties_storage;		/* Nkey panel stores stuff here (runtime only!) */
-	/* Allocated per view, not library data (used by matcap). */
-	struct Material *defmaterial;
 
 	/* XXX deprecated? */
 	struct bGPdata *gpd  DNA_DEPRECATED;		/* Grease-Pencil Data (annotation layers) */
@@ -239,8 +223,6 @@ typedef struct View3D {
 	int overlays;
 
 	int pad5;
-
-	View3DDebug debug;
 } View3D;
 
 
@@ -344,13 +326,6 @@ enum {
 enum {
 	V3D_OVERLAY_FACE_ORIENTATION = (1 << 0),
 	V3D_OVERLAY_HIDE_CURSOR      = (1 << 1),
-};
-
-/* View3d->debug.background */
-enum {
-	V3D_DEBUG_BACKGROUND_NONE     = (1 << 0),
-	V3D_DEBUG_BACKGROUND_GRADIENT = (1 << 1),
-	V3D_DEBUG_BACKGROUND_WORLD    = (1 << 2),
 };
 
 /* View3D->around */

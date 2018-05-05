@@ -6374,7 +6374,6 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 				rv3d->render_engine = NULL;
 				rv3d->sms = NULL;
 				rv3d->smooth_timer = NULL;
-				rv3d->compositor = NULL;
 			}
 		}
 	}
@@ -6455,11 +6454,7 @@ static void direct_link_area(FileData *fd, ScrArea *area)
 				direct_link_gpencil(fd, v3d->gpd);
 			}
 			v3d->localvd = newdataadr(fd, v3d->localvd);
-			BLI_listbase_clear(&v3d->afterdraw_transp);
-			BLI_listbase_clear(&v3d->afterdraw_xray);
-			BLI_listbase_clear(&v3d->afterdraw_xraytransp);
 			v3d->properties_storage = NULL;
-			v3d->defmaterial = NULL;
 
 			/* render can be quite heavy, set to solid on load */
 			if (v3d->drawtype == OB_RENDER)

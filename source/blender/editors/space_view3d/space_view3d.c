@@ -395,14 +395,6 @@ static void view3d_free(SpaceLink *sl)
 	
 	if (vd->properties_storage) MEM_freeN(vd->properties_storage);
 	
-	/* matcap material, its preview rect gets freed via icons */
-	if (vd->defmaterial) {
-		if (vd->defmaterial->gpumaterial.first)
-			GPU_material_free(&vd->defmaterial->gpumaterial);
-		BKE_previewimg_free(&vd->defmaterial->preview);
-		MEM_freeN(vd->defmaterial);
-	}
-
 	if (vd->fx_settings.ssao)
 		MEM_freeN(vd->fx_settings.ssao);
 	if (vd->fx_settings.dof)
@@ -433,8 +425,6 @@ static SpaceLink *view3d_duplicate(SpaceLink *sl)
 		v3dn->drawtype = OB_SOLID;
 	
 	/* copy or clear inside new stuff */
-
-	v3dn->defmaterial = NULL;
 
 	v3dn->properties_storage = NULL;
 	if (v3dn->fx_settings.dof)
@@ -748,7 +738,6 @@ static void *view3d_main_region_duplicate(void *poin)
 		new->render_engine = NULL;
 		new->sms = NULL;
 		new->smooth_timer = NULL;
-		new->compositor = NULL;
 		
 		return new;
 	}
@@ -1419,8 +1408,6 @@ static void view3d_id_remap(ScrArea *sa, SpaceLink *slink, ID *old_id, ID *new_i
 
 		/* Values in local-view aren't used, see: T52663 */
 		if (is_local == false) {
-			/* Skip 'v3d->defmaterial', it's not library data.  */
-
 			if ((ID *)v3d->ob_centre == old_id) {
 				v3d->ob_centre = (Object *)new_id;
 				/* Otherwise, bonename may remain valid... We could be smart and check this, too? */
