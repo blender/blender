@@ -54,7 +54,7 @@ static struct {
 
 	float light_direction[3]; /* world light direction for shadows */
 	int next_object_id;
-} e_data = {NULL};
+} e_data = {{NULL}};
 
 /* Shaders */
 extern char datatoc_workbench_prepass_vert_glsl[];

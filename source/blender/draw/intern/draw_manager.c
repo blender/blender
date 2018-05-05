@@ -320,6 +320,8 @@ void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
 		case 16: builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_16; break;
 		default:
 			BLI_assert(0);
+			builtin = GPU_SHADER_2D_IMAGE_MULTISAMPLE_2;
+			break;
 	}
 
 	GWN_batch_program_set_builtin(geom, builtin);
