@@ -153,12 +153,15 @@ void DRW_globals_update(void)
 
 /* ********************************* SHGROUP ************************************* */
 
-extern char datatoc_armature_sphere_vert_glsl[];
-extern char datatoc_armature_sphere_frag_glsl[];
+extern char datatoc_armature_sphere_solid_vert_glsl[];
+extern char datatoc_armature_sphere_solid_frag_glsl[];
 extern char datatoc_armature_sphere_outline_vert_glsl[];
-extern char datatoc_armature_envelope_vert_glsl[];
-extern char datatoc_armature_envelope_frag_glsl[];
+extern char datatoc_armature_envelope_solid_vert_glsl[];
+extern char datatoc_armature_envelope_solid_frag_glsl[];
 extern char datatoc_armature_envelope_outline_vert_glsl[];
+extern char datatoc_armature_envelope_distance_frag_glsl[];
+extern char datatoc_armature_shape_solid_vert_glsl[];
+extern char datatoc_armature_shape_solid_frag_glsl[];
 extern char datatoc_armature_shape_outline_vert_glsl[];
 extern char datatoc_armature_shape_outline_geom_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
@@ -167,6 +170,7 @@ extern char datatoc_object_mball_handles_vert_glsl[];
 
 static struct {
 	struct GPUShader *shape_outline;
+	struct GPUShader *shape_solid;
 	struct GPUShader *bone_envelope;
 	struct GPUShader *bone_envelope_distance;
 	struct GPUShader *bone_envelope_outline;
@@ -187,8 +191,10 @@ static struct {
 	struct Gwn_VertFormat *instance_camera;
 	struct Gwn_VertFormat *instance_distance_lines;
 	struct Gwn_VertFormat *instance_spot;
+	struct Gwn_VertFormat *instance_bone;
 	struct Gwn_VertFormat *instance_bone_outline;
 	struct Gwn_VertFormat *instance_bone_envelope;
+	struct Gwn_VertFormat *instance_bone_envelope_distance;
 	struct Gwn_VertFormat *instance_bone_envelope_outline;
 	struct Gwn_VertFormat *instance_mball_handles;
 } g_formats = {NULL};
@@ -456,20 +462,19 @@ DRWShadingGroup *shgroup_instance_bone_envelope_distance(DRWPass *pass)
 {
 	if (g_shaders.bone_envelope_distance == NULL) {
 		g_shaders.bone_envelope_distance = DRW_shader_create(
-		            datatoc_armature_envelope_vert_glsl, NULL,
-		            datatoc_armature_envelope_frag_glsl, NULL);
+		            datatoc_armature_envelope_solid_vert_glsl, NULL,
+		            datatoc_armature_envelope_distance_frag_glsl, NULL);
 	}
 
-	DRW_shgroup_instance_format(g_formats.instance_bone_envelope, {
+	DRW_shgroup_instance_format(g_formats.instance_bone_envelope_distance, {
 		{"headSphere"          , DRW_ATTRIB_FLOAT, 4},
 		{"tailSphere"          , DRW_ATTRIB_FLOAT, 4},
-		{"color"               , DRW_ATTRIB_FLOAT, 4},
 		{"xAxis"               , DRW_ATTRIB_FLOAT, 3}
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.bone_envelope_distance,
 	                                                   pass, DRW_cache_bone_envelope_solid_get(),
-	                                                   g_formats.instance_bone_envelope);
+	                                                   g_formats.instance_bone_envelope_distance);
 
 	return grp;
 }
@@ -478,14 +483,15 @@ DRWShadingGroup *shgroup_instance_bone_envelope_solid(DRWPass *pass)
 {
 	if (g_shaders.bone_envelope == NULL) {
 		g_shaders.bone_envelope = DRW_shader_create(
-		            datatoc_armature_envelope_vert_glsl, NULL,
-		            datatoc_armature_envelope_frag_glsl, "#define SMOOTH_ENVELOPE\n");
+		            datatoc_armature_envelope_solid_vert_glsl, NULL,
+		            datatoc_armature_envelope_solid_frag_glsl, "#define SMOOTH_ENVELOPE\n");
 	}
 
 	DRW_shgroup_instance_format(g_formats.instance_bone_envelope, {
 		{"headSphere"          , DRW_ATTRIB_FLOAT, 4},
 		{"tailSphere"          , DRW_ATTRIB_FLOAT, 4},
-		{"color"               , DRW_ATTRIB_FLOAT, 4},
+		{"boneColor"           , DRW_ATTRIB_FLOAT, 3},
+		{"stateColor"          , DRW_ATTRIB_FLOAT, 3},
 		{"xAxis"               , DRW_ATTRIB_FLOAT, 3}
 	});
 
@@ -541,22 +547,43 @@ DRWShadingGroup *shgroup_instance_bone_shape_outline(DRWPass *pass, struct Gwn_B
 	return grp;
 }
 
-DRWShadingGroup *shgroup_instance_bone_sphere(DRWPass *pass)
+DRWShadingGroup *shgroup_instance_bone_shape_solid(DRWPass *pass, struct Gwn_Batch *geom)
+{
+	if (g_shaders.shape_solid == NULL) {
+		g_shaders.shape_solid = DRW_shader_create(
+		            datatoc_armature_shape_solid_vert_glsl, NULL,
+		            datatoc_armature_shape_solid_frag_glsl, NULL);
+	}
+
+	DRW_shgroup_instance_format(g_formats.instance_bone, {
+		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
+		{"boneColor"           , DRW_ATTRIB_FLOAT, 3},
+		{"stateColor"          , DRW_ATTRIB_FLOAT, 3}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.shape_solid,
+	                                                   pass, geom, g_formats.instance_bone);
+	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+
+	return grp;
+}
+
+DRWShadingGroup *shgroup_instance_bone_sphere_solid(DRWPass *pass)
 {
 	if (g_shaders.bone_sphere == NULL) {
 		g_shaders.bone_sphere = DRW_shader_create(
-		            datatoc_armature_sphere_vert_glsl, NULL,
-		            datatoc_armature_sphere_frag_glsl, NULL);
+		            datatoc_armature_sphere_solid_vert_glsl, NULL,
+		            datatoc_armature_sphere_solid_frag_glsl, NULL);
 	}
 
-	/* TODO own format? */
-	DRW_shgroup_instance_format(g_formats.instance_color, {
+	DRW_shgroup_instance_format(g_formats.instance_bone, {
 		{"InstanceModelMatrix", DRW_ATTRIB_FLOAT, 16},
-		{"color"              , DRW_ATTRIB_FLOAT, 4}
+		{"boneColor"           , DRW_ATTRIB_FLOAT, 3},
+		{"stateColor"          , DRW_ATTRIB_FLOAT, 3}
 	});
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.bone_sphere,
-	                                                   pass, DRW_cache_bone_point_get(), g_formats.instance_color);
+	                                                   pass, DRW_cache_bone_point_get(), g_formats.instance_bone);
 
 	return grp;
 }

@@ -10,10 +10,12 @@ in vec3 pos;
 /* Assumed to be in world coordinate already. */
 in vec4 headSphere;
 in vec4 tailSphere;
-in vec4 color;
 in vec3 xAxis;
+in vec3 stateColor;
+in vec3 boneColor;
 
-flat out vec4 finalColor;
+flat out vec3 finalStateColor;
+flat out vec3 finalBoneColor;
 out vec3 normalView;
 
 void main()
@@ -48,5 +50,6 @@ void main()
 
 	gl_Position = ViewProjectionMatrix * vec4(sp, 1.0);
 
-	finalColor = color;
+	finalStateColor = stateColor;
+	finalBoneColor = boneColor;
 }

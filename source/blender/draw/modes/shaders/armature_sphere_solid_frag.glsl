@@ -4,7 +4,8 @@
 uniform mat4 ViewMatrixInverse;
 uniform mat4 ProjectionMatrix;
 
-flat in vec3 solidColor;
+flat in vec3 finalStateColor;
+flat in vec3 finalBoneColor;
 flat in mat4 sphereMatrix;
 in vec3 viewPosition;
 
@@ -61,13 +62,18 @@ void main()
 	vec3 p = ray_dir * t + ray_ori;          /* Point on sphere */
 	vec3 n = normalize(p);                   /* Normal is just the point in sphere space, normalized. */
 	vec3 l = normalize(sphereMatrix[2].xyz); /* Just the view Z axis in the sphere space. */
-	float col = clamp(dot(n, l), 0.0, 1.0);
+
+
+	/* Smooth lighting factor. */
+	const float s = 0.2; /* [0.0-0.5] range */
+	float fac = clamp((dot(n, l) * (1.0 - s)) + s, 0.0, 1.0);
+	fragColor.rgb = mix(finalStateColor, finalBoneColor, fac);
 
 	/* 2x2 dither pattern to smooth the lighting. */
 	float dither = (0.5 + dot(vec2(ivec2(gl_FragCoord.xy) & ivec2(1)), vec2(1.0, 2.0))) * 0.25;
 	dither *= (1.0 / 255.0); /* Assume 8bit per color buffer. */
 
-	fragColor = vec4(col * solidColor + dither, 1.0);
+	fragColor = vec4(fragColor.rgb + dither, 1.0);
 
 	t /= ray_len;
 	gl_FragDepth = get_depth_from_view_z(ray_dir_view.z * t + ray_ori_view.z);

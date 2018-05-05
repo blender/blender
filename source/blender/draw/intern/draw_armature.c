@@ -260,7 +260,7 @@ static void drw_shgroup_bone_envelope_solid(
 		DRW_shgroup_state_enable(g_data.bone_envelope_solid, DRW_STATE_CULL_BACK);
 	}
 	if (g_data.bone_point_solid == NULL) {
-		g_data.bone_point_solid = shgroup_instance_bone_sphere(g_data.pass_bone_solid);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.pass_bone_solid);
 	}
 
 	drw_shgroup_bone_envelope(g_data.bone_point_solid,
@@ -350,7 +350,7 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float
 static void drw_shgroup_bone_point_solid(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_point_solid == NULL) {
-		g_data.bone_point_solid = shgroup_instance_bone_sphere(g_data.pass_bone_solid);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.pass_bone_solid);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);

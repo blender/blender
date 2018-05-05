@@ -7,9 +7,11 @@ in vec2 pos;
 
 /* ---- Per instance Attribs ---- */
 in mat4 InstanceModelMatrix;
-in vec3 color;
+in vec3 stateColor;
+in vec3 boneColor;
 
-flat out vec3 solidColor;
+flat out vec3 finalStateColor;
+flat out vec3 finalBoneColor;
 flat out mat4 sphereMatrix;
 out vec3 viewPosition;
 
@@ -75,5 +77,6 @@ void main()
 	gl_Position = ProjectionMatrix * V;
 	viewPosition = V.xyz;
 
-	solidColor = color;
+	finalStateColor = stateColor;
+	finalBoneColor = boneColor;
 }
