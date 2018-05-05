@@ -749,7 +749,7 @@ static void bone_hint_color_shade(float hint_color[4], const float color[4])
 {
 	mul_v3_v3fl(hint_color, color, HINT_MUL);
 	cp_shade_color3f(hint_color, -HINT_SHADE);
-	hint_color[4] = 1.0f;
+	hint_color[3] = 1.0f;
 }
 
 static const float *get_bone_hint_color(
