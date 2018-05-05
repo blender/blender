@@ -117,6 +117,7 @@ set(SRC
 	intern/icons.c
 	intern/idcode.c
 	intern/idprop.c
+	intern/idprop_utils.c
 	intern/image.c
 	intern/image_gen.c
 	intern/ipo.c

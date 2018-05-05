@@ -1069,17 +1069,3 @@ void IDP_ClearProperty(IDProperty *prop)
 
 /** \} */
 
-/* We could write a C version, see: idprop_py_api.c */
-#ifndef WITH_PYTHON
-char *IDP_reprN(IDProperty *UNUSED(prop))
-{
-	return BLI_strdup("<unsupported>");
-}
-
-void IDP_print(IDProperty *prop)
-{
-	char *repr = IDP_reprN(prop);
-	printf("IDProperty(%p): %s\n", prop, repr);
-	MEM_freeN(repr);
-}
-#endif /* WITH_PYTHON */
