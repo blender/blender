@@ -66,7 +66,7 @@ typedef struct POSE_Data {
 /* *********** STATIC *********** */
 
 typedef struct POSE_PrivateData {
-	DRWShadingGroup *relationship_lines;
+	char pad; /* UNUSED */
 } POSE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -125,7 +125,6 @@ static void POSE_cache_init(void *vedata)
 static void POSE_cache_populate(void *vedata, Object *ob)
 {
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
-	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	/* In the future this will allow us to implement face manipulators,
@@ -139,8 +138,9 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 			    .bone_wire = psl->bone_wire,
 			    .bone_envelope = psl->bone_envelope,
 			    .bone_axes = psl->bone_axes,
+			    .relationship_lines = psl->relationship,
 			};
-			DRW_shgroup_armature_pose(ob, passes, stl->g_data->relationship_lines);
+			DRW_shgroup_armature_pose(ob, passes);
 		}
 	}
 }

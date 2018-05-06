@@ -88,10 +88,39 @@ static struct {
 	DRWShadingGroup *bone_point_solid;
 	DRWShadingGroup *bone_point_wire;
 	DRWShadingGroup *bone_axes;
-	DRWShadingGroup *relationship_lines;
+	DRWShadingGroup *lines_relationship;
+	DRWShadingGroup *lines_ik;
+	DRWShadingGroup *lines_ik_no_target;
+	DRWShadingGroup *lines_ik_spline;
 
 	DRWArmaturePasses passes;
 } g_data = {NULL};
+
+
+/**
+ * Follow `TH_*` naming except for mixed colors.
+ */
+static struct {
+	float select_color[4];
+	float edge_select_color[4];
+	float bone_select_color[4];  /* tint */
+	float wire_color[4];
+	float wire_edit_color[4];
+	float bone_solid_color[4];
+	float bone_active_unselect_color[4];  /* mix */
+	float bone_pose_color[4];
+	float bone_pose_active_color[4];
+	float bone_pose_active_unselect_color[4];  /* mix */
+	float text_hi_color[4];
+	float text_color[4];
+	float vertex_select_color[4];
+	float vertex_color[4];
+
+	/* not a theme, this is an override */
+	const float *const_color;
+	float const_wire;
+} g_theme;
+
 
 /* -------------------------------------------------------------------- */
 
@@ -320,10 +349,47 @@ static void drw_shgroup_bone_axes(const float (*bone_mat)[4], const float color[
 }
 
 /* Relationship lines */
-static void UNUSED_FUNCTION(drw_shgroup_bone_relationship_lines)(const float head[3], const float tail[3])
+static void drw_shgroup_bone_relationship_lines(const float start[3], const float end[3])
 {
-	DRW_shgroup_call_dynamic_add(g_data.relationship_lines, head);
-	DRW_shgroup_call_dynamic_add(g_data.relationship_lines, tail);
+	if (g_data.lines_relationship == NULL) {
+		g_data.lines_relationship = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, g_theme.wire_color);
+	}
+	/* reverse order to have less stipple overlap */
+	DRW_shgroup_call_dynamic_add(g_data.lines_relationship, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_relationship, start);
+}
+
+static void drw_shgroup_bone_ik_lines(const float start[3], const float end[3])
+{
+	if (g_data.lines_ik == NULL) {
+		static float fcolor[4] = {0.8f, 0.5f, 0.0f, 1.0f};  /* add theme! */
+		g_data.lines_ik = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, fcolor);
+	}
+	/* reverse order to have less stipple overlap */
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik, start);
+}
+
+static void drw_shgroup_bone_ik_no_target_lines(const float start[3], const float end[3])
+{
+	if (g_data.lines_ik_no_target == NULL) {
+		static float fcolor[4] = {0.8f, 0.8f, 0.2f, 1.0f};  /* add theme! */
+		g_data.lines_ik_no_target = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, fcolor);
+	}
+	/* reverse order to have less stipple overlap */
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik_no_target, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik_no_target, start);
+}
+
+static void drw_shgroup_bone_ik_spline_lines(const float start[3], const float end[3])
+{
+	if (g_data.lines_ik_spline == NULL) {
+		static float fcolor[4] = {0.8f, 0.8f, 0.2f, 1.0f};  /* add theme! */
+		g_data.lines_ik_spline = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, fcolor);
+	}
+	/* reverse order to have less stipple overlap */
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik_spline, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik_spline, start);
 }
 
 /** \} */
@@ -599,30 +665,6 @@ static bool set_pchan_color(short colCode, const int boneflag, const short const
 
 /** \name Drawing Color Helpers
  * \{ */
-
-/**
- * Follow `TH_*` naming except for mixed colors.
- */
-static struct {
-	float select_color[4];
-	float edge_select_color[4];
-	float bone_select_color[4];  /* tint */
-	float wire_color[4];
-	float wire_edit_color[4];
-	float bone_solid_color[4];
-	float bone_active_unselect_color[4];  /* mix */
-	float bone_pose_color[4];
-	float bone_pose_active_color[4];
-	float bone_pose_active_unselect_color[4];  /* mix */
-	float text_hi_color[4];
-	float text_color[4];
-	float vertex_select_color[4];
-	float vertex_color[4];
-
-	/* not a theme, this is an override */
-	const float *const_color;
-	float const_wire;
-} g_theme;
 
 /** See: 'set_pchan_color'*/
 static void update_color(const Object *ob, const float const_color[4])
@@ -1256,6 +1298,108 @@ static void draw_bone_octahedral(
 
 /* -------------------------------------------------------------------- */
 
+/** \name Draw Relationships
+ * \{ */
+
+static void pchan_draw_ik_lines(bPoseChannel *pchan, const bool only_temp, const int constflag)
+{
+	bConstraint *con;
+	bPoseChannel *parchan;
+	float *line_start = NULL, *line_end = NULL;
+
+	for (con = pchan->constraints.first; con; con = con->next) {
+		if (con->enforce == 0.0f)
+			continue;
+
+		switch (con->type) {
+			case CONSTRAINT_TYPE_KINEMATIC:
+			{
+				bKinematicConstraint *data = (bKinematicConstraint *)con->data;
+				int segcount = 0;
+
+				/* if only_temp, only draw if it is a temporary ik-chain */
+				if (only_temp && !(data->flag & CONSTRAINT_IK_TEMP))
+					continue;
+
+				/* exclude tip from chain? */
+				parchan = ((data->flag & CONSTRAINT_IK_TIP) == 0) ? pchan->parent : pchan;
+				line_start = parchan->pose_tail;
+
+				/* Find the chain's root */
+				while (parchan->parent) {
+					segcount++;
+					if (segcount == data->rootbone || segcount > 255) {
+						break;  /* 255 is weak */
+					}
+					parchan = parchan->parent;
+				}
+
+				if (parchan) {
+					line_end = parchan->pose_head;
+
+					if (constflag & PCHAN_HAS_TARGET)
+						drw_shgroup_bone_ik_lines(line_start, line_end);
+					else
+						drw_shgroup_bone_ik_no_target_lines(line_start, line_end);
+				}
+				break;
+			}
+			case CONSTRAINT_TYPE_SPLINEIK:
+			{
+				bSplineIKConstraint *data = (bSplineIKConstraint *)con->data;
+				int segcount = 0;
+
+				parchan = pchan;
+				line_start = parchan->pose_tail;
+
+				/* Find the chain's root */
+				while (parchan->parent) {
+					segcount++;
+					/* FIXME: revise the breaking conditions */
+					if (segcount == data->chainlen || segcount > 255) break;  /* 255 is weak */
+					parchan = parchan->parent;
+				}
+				/* Only draw line in case our chain is more than one bone long! */
+				if (parchan != pchan) { /* XXX revise the breaking conditions to only stop at the tail? */
+					line_end = parchan->pose_head;
+					drw_shgroup_bone_ik_spline_lines(line_start, line_end);
+				}
+				break;
+			}
+		}
+	}
+}
+
+static void draw_bone_relations(
+        EditBone *ebone, bPoseChannel *pchan, bArmature *arm,
+        const int boneflag, const short constflag, const bool do_relations)
+{
+	if (g_data.passes.relationship_lines) {
+		if (ebone && ebone->parent) {
+			if ((boneflag & BONE_CONNECTED) == 0) {
+				drw_shgroup_bone_relationship_lines(ebone->head, ebone->parent->tail);
+			}
+		}
+		else if (pchan && pchan->parent) {
+			if ((boneflag & BONE_CONNECTED) == 0) {
+				drw_shgroup_bone_relationship_lines(pchan->pose_head, pchan->parent->pose_tail);
+			}
+
+			/* Draw a line to IK root bone if bone is selected. */
+			if (arm->flag & ARM_POSEMODE) {
+				if (constflag & (PCHAN_HAS_IK | PCHAN_HAS_SPLINEIK)) {
+					if (boneflag & BONE_SELECTED) {
+						pchan_draw_ik_lines(pchan, !do_relations, constflag);
+					}
+				}
+			}
+		}
+	}
+}
+/** \} */
+
+/* -------------------------------------------------------------------- */
+
 /** \name Main Draw Loops
  * \{ */
 
@@ -1269,6 +1413,7 @@ static void draw_armature_edit(Object *ob)
 	update_color(ob, NULL);
 
 	const bool show_text = DRW_state_show_text();
+	const bool show_relations = true; /* TODO get value from overlays settings. */
 
 	for (eBone = arm->edbo->first, index = ob->select_color; eBone; eBone = eBone->next, index += 0x10000) {
 		if (eBone->layer & arm->layer) {
@@ -1287,6 +1432,8 @@ static void draw_armature_edit(Object *ob)
 				if (eBone == arm->act_edbone) {
 					boneflag |= BONE_DRAW_ACTIVE;
 				}
+
+				draw_bone_relations(eBone, NULL, arm, boneflag, constflag, show_relations);
 
 				if (arm->drawtype == ARM_ENVELOPE) {
 					draw_bone_update_disp_matrix_default(eBone, NULL);
@@ -1363,6 +1510,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 
 	const bool is_pose_select = (arm->flag & ARM_POSEMODE) && DRW_state_is_select();
 	const bool show_text = DRW_state_show_text();
+	const bool show_relations = true; /* TODO get value from overlays settings. */
 
 	/* being set below */
 	arm->layer_used = 0;
@@ -1399,6 +1547,7 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 				if (bone == arm->act_bone)
 					boneflag |= BONE_DRAW_ACTIVE;
 
+				draw_bone_relations(NULL, pchan, arm, boneflag, constflag, show_relations);
 
 				if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
 					draw_bone_update_disp_matrix_custom(pchan);
@@ -1457,45 +1606,32 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 /**
  * This function set the object space to use for all subsequent `DRW_shgroup_bone_*` calls.
  */
-static void drw_shgroup_armature(
-        Object *ob,
-        DRWArmaturePasses passes,
-        DRWShadingGroup *shgrp_relationship_lines)
+static void drw_shgroup_armature(Object *ob, DRWArmaturePasses passes)
 {
 	memset(&g_data, 0x0, sizeof(g_data));
 	g_data.ob = ob;
 	g_data.passes = passes;
-	g_data.relationship_lines = shgrp_relationship_lines;
 	memset(&g_color, 0x0, sizeof(g_color));
 }
 
-void DRW_shgroup_armature_object(
-        Object *ob, ViewLayer *view_layer,
-        DRWArmaturePasses passes,
-        DRWShadingGroup *shgrp_relationship_lines)
+void DRW_shgroup_armature_object(Object *ob, ViewLayer *view_layer, DRWArmaturePasses passes)
 {
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
 	passes.bone_envelope = NULL; /* Don't do envelope distance in object mode. */
-	drw_shgroup_armature(ob, passes, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, passes);
 	draw_armature_pose(ob, color);
 }
 
-void DRW_shgroup_armature_pose(
-        Object *ob,
-        DRWArmaturePasses passes,
-        DRWShadingGroup *shgrp_relationship_lines)
+void DRW_shgroup_armature_pose(Object *ob, DRWArmaturePasses passes)
 {
-	drw_shgroup_armature(ob, passes, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, passes);
 	draw_armature_pose(ob, NULL);
 }
 
-void DRW_shgroup_armature_edit(
-        Object *ob,
-        DRWArmaturePasses passes,
-        DRWShadingGroup *shgrp_relationship_lines)
+void DRW_shgroup_armature_edit(Object *ob, DRWArmaturePasses passes)
 {
-	drw_shgroup_armature(ob, passes, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, passes);
 	draw_armature_edit(ob);
 }
 

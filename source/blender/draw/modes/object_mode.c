@@ -2111,8 +2111,9 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					    .bone_wire = psl->bone_wire,
 					    .bone_envelope = psl->bone_envelope,
 					    .bone_axes = psl->bone_axes,
+					    .relationship_lines = NULL, /* Don't draw relationship lines */
 					};
-					DRW_shgroup_armature_object(ob, view_layer, passes, stl->g_data->relationship_lines);
+					DRW_shgroup_armature_object(ob, view_layer, passes);
 				}
 			}
 			break;

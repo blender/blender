@@ -59,7 +59,7 @@ typedef struct EDIT_ARMATURE_Data {
 /* *********** STATIC *********** */
 
 typedef struct EDIT_ARMATURE_PrivateData {
-	DRWShadingGroup *relationship_lines;
+	char pad; /* UNUSED */
 } EDIT_ARMATURE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -116,7 +116,6 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 {
 	bArmature *arm = ob->data;
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
-	EDIT_ARMATURE_StorageList *stl = ((EDIT_ARMATURE_Data *)vedata)->stl;
 
 	if (ob->type == OB_ARMATURE) {
 		if (arm->edbo) {
@@ -126,8 +125,9 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 			    .bone_wire = psl->bone_wire,
 			    .bone_envelope = psl->bone_envelope,
 			    .bone_axes = psl->bone_axes,
+			    .relationship_lines = psl->relationship,
 			};
-			DRW_shgroup_armature_edit(ob, passes, stl->g_data->relationship_lines);
+			DRW_shgroup_armature_edit(ob, passes);
 		}
 	}
 }

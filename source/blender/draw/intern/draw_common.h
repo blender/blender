@@ -136,22 +136,12 @@ typedef struct DRWArmaturePasses{
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
 	struct DRWPass *bone_axes;
+	struct DRWPass *relationship_lines;
 } DRWArmaturePasses;
 
-void DRW_shgroup_armature_object(
-        struct Object *ob, struct ViewLayer *view_layer,
-        struct DRWArmaturePasses passes,
-        struct DRWShadingGroup *shgrp_relationship_lines);
-
-void DRW_shgroup_armature_pose(
-        struct Object *ob,
-        struct DRWArmaturePasses passes,
-        struct DRWShadingGroup *shgrp_relationship_lines);
-
-void DRW_shgroup_armature_edit(
-        struct Object *ob,
-        struct DRWArmaturePasses passes,
-        struct DRWShadingGroup *shgrp_relationship_lines);
+void DRW_shgroup_armature_object(struct Object *ob, struct ViewLayer *view_layer, struct DRWArmaturePasses passes);
+void DRW_shgroup_armature_pose(struct Object *ob, struct DRWArmaturePasses passes);
+void DRW_shgroup_armature_edit(struct Object *ob, struct DRWArmaturePasses passes);
 
 /* pose_mode.c */
 bool DRW_pose_mode_armature(
