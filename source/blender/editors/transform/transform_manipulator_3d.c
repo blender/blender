@@ -15,20 +15,16 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2005 Blender Foundation
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/transform/transform_manipulator.c
+/** \file blender/editors/transform/transform_manipulator_2d.c
  *  \ingroup edtransform
+ *
+ * \name 3D Transform Manipulator
+ *
+ * Used for 3D View
  */
-
 
 #include <stdlib.h>
 #include <string.h>

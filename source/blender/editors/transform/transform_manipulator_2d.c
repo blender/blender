@@ -15,15 +15,10 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2016 Blender Foundation.
- * All rights reserved.
- *
- * Contributor(s): none yet.
- *
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/transform/transform_manipulator2d.c
+/** \file blender/editors/transform/transform_manipulator_2d.c
  *  \ingroup edtransform
  *
  * \name 2D Transform Manipulator
