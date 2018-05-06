@@ -3453,13 +3453,28 @@ void MESH_OT_select_more(wmOperatorType *ot)
 
 static int edbm_select_less_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const bool use_face_step = RNA_boolean_get(op->ptr, "use_face_step");
 
-	EDBM_select_less(em, use_face_step);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		if ((bm->totvertsel == 0) &&
+		    (bm->totedgesel == 0) &&
+		    (bm->totfacesel == 0))
+		{
+			continue;
+		}
+
+		EDBM_select_less(em, use_face_step);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
+
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
