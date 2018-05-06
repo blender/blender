@@ -54,6 +54,7 @@
 #include "wm_event_system.h"
 
 #include "ED_screen.h"
+#include "ED_undo.h"
 
 /* own includes */
 #include "wm_manipulator_wmapi.h"
@@ -357,6 +358,21 @@ static bool manipulator_tweak_start_and_finish(
 		*r_is_modal = false;
 	}
 	if (mpop && mpop->type) {
+
+		/* Undo/Redo */
+		if (mpop->is_redo) {
+			wmWindowManager *wm = CTX_wm_manager(C);
+			wmOperator *op = WM_operator_last_redo(C);
+
+			/* We may want to enable this, for now the manipulator can manage it's own properties. */
+#if 0
+			IDP_MergeGroup(mpop->ptr.data, op->properties, false);
+#endif
+
+			WM_operator_free_all_after(wm, op);
+			ED_undo_pop_op(C, op);
+		}
+		
 		/* XXX temporary workaround for modal manipulator operator
 		 * conflicting with modal operator attached to manipulator */
 		if (mpop->type->modal) {

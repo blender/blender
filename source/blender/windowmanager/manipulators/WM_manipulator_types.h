@@ -153,6 +153,8 @@ typedef struct wmManipulatorOpElem {
 	/* operator properties if manipulator spawns and controls an operator,
 	 * or owner pointer if manipulator spawns and controls a property */
 	PointerRNA ptr;
+
+	bool is_redo;
 } wmManipulatorOpElem;
 
 /* manipulators are set per region by registering them on manipulator-maps */
