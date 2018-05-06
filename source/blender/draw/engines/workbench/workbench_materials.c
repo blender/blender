@@ -183,7 +183,7 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 
 static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color, float hsv_saturation, float hsv_value)
 {
-	static float default_color[] = {1.0f, 1.0f, 1.0f};
+	static float default_color[] = {0.8f, 0.8f, 0.8f};
 	if (DRW_object_is_paint_mode(ob) || wpd->shading.color_type == V3D_SHADING_SINGLE_COLOR) {
 		copy_v3_v3(color, wpd->shading.single_color);
 	}
