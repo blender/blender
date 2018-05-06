@@ -451,11 +451,18 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 		wmOperator *op_transform = op->macro.last;
 		wmManipulatorOpElem *mpop = WM_manipulator_operator_get(man->axis_redo, 0);
 
+		PointerRNA macroptr = RNA_pointer_get(&mpop->ptr, "TRANSFORM_OT_translate");
+
 		float value[4];
 		RNA_float_get_array(op_transform->ptr, "value", value);
-
-		PointerRNA macroptr = RNA_pointer_get(&mpop->ptr, "TRANSFORM_OT_translate");
 		RNA_float_set_array(&macroptr, "value", value);
+
+		/* Currently has glitch in re-applying. */
+#if 0
+		int constraint_axis[3];
+		RNA_boolean_get_array(op_transform->ptr, "constraint_axis", constraint_axis);
+		RNA_boolean_set_array(&macroptr, "constraint_axis", constraint_axis);
+#endif
 	}
 }
 

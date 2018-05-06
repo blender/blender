@@ -490,6 +490,15 @@ static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		WM_event_add_modal_handler(C, op);
 
 		op->flag |= OP_IS_MODAL_GRAB_CURSOR; // XXX maybe we want this with the manipulator only?
+
+		/* Use when modal input has some transformation to begin with. */
+		{
+			TransInfo *t = op->customdata;
+			if (UNLIKELY(!is_zero_v4(t->values_modal_offset))) {
+				transformApply(C, t);
+			}
+		}
+
 		return OPERATOR_RUNNING_MODAL;
 	}
 }

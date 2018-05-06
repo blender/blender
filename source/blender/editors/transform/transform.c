@@ -2230,6 +2230,33 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 	calculatePropRatio(t);
 	calculateCenter(t);
 
+	/* Overwrite initial values if operator supplied a non-null vector.
+	 *
+	 * Run before init functions so 'values_modal_offset' can be applied on mouse input.
+	 */
+	BLI_assert(is_zero_v4(t->values_modal_offset));
+	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
+		float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
+
+		if (RNA_property_array_check(prop)) {
+			RNA_float_get_array(op->ptr, "value", values);
+		}
+		else {
+			values[0] = RNA_float_get(op->ptr, "value");
+		}
+
+		copy_v4_v4(t->values, values);
+
+		if (t->flag & T_MODAL) {
+			copy_v4_v4(t->values_modal_offset, values);
+			t->redraw = TREDRAW_HARD;
+		}
+		else {
+			copy_v4_v4(t->auto_values, values);
+			t->flag |= T_AUTOVALUES;
+		}
+	}
+
 	if (event) {
 		/* Initialize accurate transform to settings requested by keymap. */
 		bool use_accurate = false;
@@ -2405,33 +2432,6 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			}
 
 			setUserConstraint(t, t->current_orientation, t->con.mode, "%s");
-		}
-	}
-
-	BLI_assert(is_zero_v4(t->values_modal_offset));
-
-	/* overwrite initial values if operator supplied a non-null vector
-	 *
-	 * keep last so we can apply the constraints space.
-	 */
-	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
-		float values[4] = {0}; /* in case value isn't length 4, avoid uninitialized memory  */
-
-		if (RNA_property_array_check(prop)) {
-			RNA_float_get_array(op->ptr, "value", values);
-		}
-		else {
-			values[0] = RNA_float_get(op->ptr, "value");
-		}
-
-		copy_v4_v4(t->values, values);
-
-		if (t->flag & T_MODAL) {
-			copy_v4_v4(t->values_modal_offset, values);
-		}
-		else {
-			copy_v4_v4(t->auto_values, values);
-			t->flag |= T_AUTOVALUES;
 		}
 	}
 
