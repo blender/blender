@@ -479,7 +479,10 @@ static int transform_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		return OPERATOR_CANCELLED;
 	}
 
-	if (RNA_struct_property_is_set(op->ptr, "value")) {
+	/* When modal, allow 'value' to set initial offset. */
+	if ((event == NULL) &&
+	    RNA_struct_property_is_set(op->ptr, "value"))
+	{
 		return transform_exec(C, op);
 	}
 	else {

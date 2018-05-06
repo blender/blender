@@ -2408,6 +2408,8 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 	}
 
+	BLI_assert(is_zero_v4(t->values_modal_offset));
+
 	/* overwrite initial values if operator supplied a non-null vector
 	 *
 	 * keep last so we can apply the constraints space.
@@ -2423,8 +2425,14 @@ bool initTransform(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 
 		copy_v4_v4(t->values, values);
-		copy_v4_v4(t->auto_values, values);
-		t->flag |= T_AUTOVALUES;
+
+		if (t->flag & T_MODAL) {
+			copy_v4_v4(t->values_modal_offset, values);
+		}
+		else {
+			copy_v4_v4(t->auto_values, values);
+			t->flag |= T_AUTOVALUES;
+		}
 	}
 
 	t->context = NULL;

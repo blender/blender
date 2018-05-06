@@ -511,6 +511,7 @@ typedef struct TransInfo {
 	short		mirror;
 
 	float		values[4];
+	float		values_modal_offset[4];  /* Offset applied ontop of modal input. */
 	float		auto_values[4];
 	float		axis[3];
 	float		axis_orig[3];	/* TransCon can change 'axis', store the original value here */

@@ -417,6 +417,12 @@ void applyMouseInput(TransInfo *t, MouseInput *mi, const int mval[2], float outp
 		mi->apply(t, mi, mval_db, output);
 	}
 
+	if (!is_zero_v3(t->values_modal_offset)) {
+		float values_ofs[3];
+		mul_v3_m3v3(values_ofs, t->spacemtx, t->values_modal_offset);
+		add_v3_v3(t->values, values_ofs);
+	}
+
 	if (mi->post) {
 		mi->post(t, output);
 	}
