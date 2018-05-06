@@ -1939,13 +1939,19 @@ void MESH_OT_hide(wmOperatorType *ot)
 
 static int edbm_reveal_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const bool select = RNA_boolean_get(op->ptr, "select");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	EDBM_mesh_reveal(em, select);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	EDBM_update_generic(em, true, false);
+		EDBM_mesh_reveal(em, select);
+		EDBM_update_generic(em, true, false);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
