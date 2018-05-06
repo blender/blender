@@ -135,6 +135,7 @@ void    ED_area_newspace(struct bContext *C, ScrArea *sa, int type, const bool s
 void    ED_area_prevspace(struct bContext *C, ScrArea *sa);
 void    ED_area_swapspace(struct bContext *C, ScrArea *sa1, ScrArea *sa2);
 int     ED_area_headersize(void);
+int     ED_area_header_alignment(const ScrArea *area);
 int     ED_area_global_size_y(const ScrArea *area);
 bool    ED_area_is_global(const ScrArea *area);
 int     ED_region_global_size_y(void);

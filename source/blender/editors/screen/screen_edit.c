@@ -170,7 +170,7 @@ ScrEdge *screen_find_active_scredge(
 static ScrArea *screen_addarea_ex(
         ScrAreaMap *area_map,
         ScrVert *bottom_left, ScrVert *top_left, ScrVert *top_right, ScrVert *bottom_right,
-        short headertype, short spacetype)
+        short spacetype)
 {
 	ScrArea *sa = MEM_callocN(sizeof(ScrArea), "addscrarea");
 
@@ -178,7 +178,6 @@ static ScrArea *screen_addarea_ex(
 	sa->v2 = top_left;
 	sa->v3 = top_right;
 	sa->v4 = bottom_right;
-	sa->headertype = headertype;
 	sa->spacetype = spacetype;
 
 	BLI_addtail(&area_map->areabase, sa);
@@ -188,10 +187,10 @@ static ScrArea *screen_addarea_ex(
 static ScrArea *screen_addarea(
         bScreen *sc,
         ScrVert *left_bottom, ScrVert *left_top, ScrVert *right_top, ScrVert *right_bottom,
-        short headertype, short spacetype)
+        short spacetype)
 {
 	return screen_addarea_ex(AREAMAP_FROM_SCREEN(sc), left_bottom, left_top, right_top, right_bottom,
-	                         headertype, spacetype);
+	                         spacetype);
 }
 
 static void screen_delarea(bContext *C, bScreen *sc, ScrArea *sa)
@@ -273,7 +272,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 		
 		if (fac > 0.5f) {
 			/* new areas: top */
-			newa = screen_addarea(sc, sv1, sa->v2, sa->v3, sv2, sa->headertype, sa->spacetype);
+			newa = screen_addarea(sc, sv1, sa->v2, sa->v3, sv2, sa->spacetype);
 
 			/* area below */
 			sa->v2 = sv1;
@@ -281,7 +280,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 		}
 		else {
 			/* new areas: bottom */
-			newa = screen_addarea(sc, sa->v1, sv1, sv2, sa->v4, sa->headertype, sa->spacetype);
+			newa = screen_addarea(sc, sa->v1, sv1, sv2, sa->v4, sa->spacetype);
 
 			/* area above */
 			sa->v1 = sv1;
@@ -305,7 +304,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 		
 		if (fac > 0.5f) {
 			/* new areas: right */
-			newa = screen_addarea(sc, sv1, sv2, sa->v3, sa->v4, sa->headertype, sa->spacetype);
+			newa = screen_addarea(sc, sv1, sv2, sa->v3, sa->v4, sa->spacetype);
 
 			/* area left */
 			sa->v3 = sv2;
@@ -313,7 +312,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 		}
 		else {
 			/* new areas: left */
-			newa = screen_addarea(sc, sa->v1, sa->v2, sv2, sv1, sa->headertype, sa->spacetype);
+			newa = screen_addarea(sc, sa->v1, sa->v2, sv2, sv1, sa->spacetype);
 
 			/* area right */
 			sa->v1 = sv1;
@@ -355,7 +354,7 @@ bScreen *screen_add(const char *name, const int winsize_x, const int winsize_y)
 	screen_addedge(sc, sv4, sv1);
 	
 	/* dummy type, no spacedata */
-	screen_addarea(sc, sv1, sv2, sv3, sv4, HEADERDOWN, SPACE_EMPTY);
+	screen_addarea(sc, sv1, sv2, sv3, sv4, SPACE_EMPTY);
 		
 	return sc;
 }
@@ -1093,7 +1092,7 @@ int ED_screen_area_active(const bContext *C)
  */
 static ScrArea *screen_area_create_with_geometry(
         ScrAreaMap *area_map, const rcti *rect,
-        short headertype, short spacetype)
+        short spacetype)
 {
 	ScrVert *bottom_left  = screen_addvert_ex(area_map, rect->xmin, rect->ymin);
 	ScrVert *top_left     = screen_addvert_ex(area_map, rect->xmin, rect->ymax);
@@ -1105,7 +1104,7 @@ static ScrArea *screen_area_create_with_geometry(
 	screen_addedge_ex(area_map, top_right, bottom_right);
 	screen_addedge_ex(area_map, bottom_right, bottom_left);
 
-	return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, headertype, spacetype);
+	return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, spacetype);
 }
 
 void ED_screen_global_topbar_area_create(wmWindow *win, const bScreen *screen)
@@ -1120,7 +1119,7 @@ void ED_screen_global_topbar_area_create(wmWindow *win, const bScreen *screen)
 		BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
 		rect.ymin = rect.ymax - size_y;
 
-		sa = screen_area_create_with_geometry(&win->global_areas, &rect, HEADERTOP, SPACE_TOPBAR);
+		sa = screen_area_create_with_geometry(&win->global_areas, &rect, SPACE_TOPBAR);
 		st = BKE_spacetype_from_id(SPACE_TOPBAR);
 		sl = st->new(sa, WM_window_get_active_scene(win));
 		sa->regionbase = sl->regionbase;

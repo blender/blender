@@ -1729,7 +1729,6 @@ void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
 	const char spacetype = sa_dst->spacetype;
 	const short flag_copy = HEADER_NO_PULLDOWN;
 	
-	sa_dst->headertype = sa_src->headertype;
 	sa_dst->spacetype = sa_src->spacetype;
 	sa_dst->type = sa_src->type;
 
@@ -1759,7 +1758,6 @@ void ED_area_data_copy(ScrArea *sa_dst, ScrArea *sa_src, const bool do_free)
 
 void ED_area_data_swap(ScrArea *sa_dst, ScrArea *sa_src)
 {
-	SWAP(short, sa_dst->headertype, sa_src->headertype);
 	SWAP(char, sa_dst->spacetype, sa_src->spacetype);
 	SWAP(SpaceType *, sa_dst->type, sa_src->type);
 
@@ -2325,6 +2323,18 @@ void ED_region_header_init(ARegion *ar)
 int ED_area_headersize(void)
 {
 	return (int)(HEADERY * UI_DPI_FAC);
+}
+
+
+int ED_area_header_alignment(const ScrArea *area)
+{
+	for (ARegion *ar = area->regionbase.first; ar; ar = ar->next) {
+		if (ar->regiontype == RGN_TYPE_HEADER) {
+			return ar->alignment;
+		}
+	}
+
+	return RGN_ALIGN_NONE;
 }
 
 /**

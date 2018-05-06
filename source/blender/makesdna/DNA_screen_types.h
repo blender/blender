@@ -264,7 +264,7 @@ typedef struct ScrArea {
 
 	short winx, winy;				/* size */
 
-	short headertype;				/* OLD! 0=no header, 1= down, 2= up */
+	short headertype DNA_DEPRECATED;/* OLD! 0=no header, 1= down, 2= up */
 	short do_refresh;				/* private, for spacetype refresh callback */
 	short flag;
 	short region_active_win;		/* index of last used region of 'RGN_TYPE_WINDOW'
@@ -354,9 +354,6 @@ enum {
 #define AREAGRID	4
 #define AREAMINX	32
 #define HEADERY		26
-
-#define HEADERDOWN	1
-#define HEADERTOP	2
 
 /* screen->state */
 enum {

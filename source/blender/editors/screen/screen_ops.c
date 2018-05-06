@@ -2112,7 +2112,8 @@ static int region_scale_get_maxsize(RegionMoveData *rmd)
 	if (rmd->ar->regiontype == RGN_TYPE_TOOL_PROPS) {
 		/* this calculation seems overly verbose
 		 * can someone explain why this method is necessary? - campbell */
-		maxsize = rmd->maxsize - ((rmd->sa->headertype == HEADERTOP) ? UI_UNIT_Y * 2 : UI_UNIT_Y) - (UI_UNIT_Y / 4);
+		const bool top_header = ED_area_header_alignment(rmd->sa) == RGN_ALIGN_TOP;
+		maxsize = rmd->maxsize - ((top_header) ? UI_UNIT_Y * 2 : UI_UNIT_Y) - (UI_UNIT_Y / 4);
 	}
 
 	return maxsize;
