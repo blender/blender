@@ -1806,6 +1806,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 		SpaceLink *sl;
 		/* store sa->type->exit callback */
 		void *sa_exit = sa->type ? sa->type->exit : NULL;
+		int header_alignment = ED_area_header_alignment(sa);
 
 		/* in some cases (opening temp space) we don't want to
 		 * call area exit callback, so we temporarily unset it */
@@ -1844,7 +1845,7 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 			}
 			sl = NULL;
 		}
-		
+
 		if (sl) {
 			/* swap regions */
 			slold->regionbase = sa->regionbase;
@@ -1868,6 +1869,14 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 					slold->regionbase = sa->regionbase;
 				sa->regionbase = sl->regionbase;
 				BLI_listbase_clear(&sl->regionbase);
+			}
+		}
+
+		/* Sync header alignment. */
+		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+			if (ar->regiontype == RGN_TYPE_HEADER) {
+				ar->alignment = header_alignment;
+				break;
 			}
 		}
 		
@@ -2334,7 +2343,7 @@ int ED_area_header_alignment(const ScrArea *area)
 		}
 	}
 
-	return RGN_ALIGN_NONE;
+	return RGN_ALIGN_TOP;
 }
 
 /**
