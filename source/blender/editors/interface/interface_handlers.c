@@ -247,6 +247,9 @@ typedef struct uiHandleButtonMulti {
 
 	bool is_proportional;
 
+	/* In some cases we directly apply the changes to multiple buttons, so we don't want to do it twice. */
+	bool skip;
+
 	/* before activating, we need to check gesture direction
 	 * accumulate signed cursor movement here so we can tell if this is a vertical motion or not. */
 	float drag_dir[2];
@@ -1173,6 +1176,7 @@ static void ui_multibut_states_apply(bContext *C, uiHandleButtonData *data, uiBl
 	uiBut *but;
 
 	BLI_assert(data->multi_data.init == BUTTON_MULTI_INIT_ENABLE);
+	BLI_assert(data->multi_data.skip == false);
 
 	for (but = block->buttons.first; but; but = but->next) {
 		if (but->flag & UI_BUT_DRAG_MULTI) {
@@ -1962,7 +1966,9 @@ static void ui_apply_but(bContext *C, uiBlock *block, uiBut *but, uiHandleButton
 
 #ifdef USE_DRAG_MULTINUM
 	if (data->multi_data.has_mbuts) {
-		if (data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) {
+		if ((data->multi_data.init == BUTTON_MULTI_INIT_ENABLE) &&
+		    (data->multi_data.skip == false))
+		{
 			if (data->cancel) {
 				ui_multibut_restore(C, data, block);
 			}
@@ -8264,6 +8270,37 @@ static void ui_handle_button_activate(bContext *C, ARegion *ar, uiBut *but, uiBu
 
 /************ handle events for an activated button ***********/
 
+static bool ui_button_value_default(uiBut *but, double *r_value)
+{
+	if (but->rnaprop != NULL && ui_but_is_rna_valid(but)) {
+		int type = RNA_property_type(but->rnaprop);
+		if (ELEM(type, PROP_FLOAT, PROP_INT)) {
+			double default_value;
+			switch (type) {
+				case PROP_INT:
+					if (RNA_property_array_check(but->rnaprop)) {
+						default_value = (double)RNA_property_int_get_default_index(&but->rnapoin, but->rnaprop, but->rnaindex);
+					}
+					else {
+						default_value = (double)RNA_property_int_get_default(&but->rnapoin, but->rnaprop);
+					}
+					break;
+				case PROP_FLOAT:
+					if (RNA_property_array_check(but->rnaprop)) {
+						default_value = (double)RNA_property_float_get_default_index(&but->rnapoin, but->rnaprop, but->rnaindex);
+					}
+					else {
+						default_value = (double)RNA_property_float_get_default(&but->rnapoin, but->rnaprop);
+					}
+					break;
+			}
+			*r_value = default_value;
+			return true;
+		}
+	}
+	return false;
+}
+
 static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 {
 	uiHandleButtonData *data = but->active;
@@ -8456,6 +8493,29 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 	if (data && data->state == BUTTON_STATE_EXIT) {
 		uiBut *post_but = data->postbut;
 		uiButtonActivateType post_type = data->posttype;
+
+		/* Reset the button value when empty text is typed. */
+		if ((data->str != NULL) && (data->str[0] == '\0') &&
+		    ELEM(RNA_property_type(but->rnaprop), PROP_FLOAT, PROP_INT))
+		{
+			MEM_SAFE_FREE(data->str);
+			ui_button_value_default(but, &data->value);
+
+#ifdef USE_DRAG_MULTINUM
+			if (data->multi_data.mbuts) {
+				for (LinkNode *l = data->multi_data.mbuts; l; l = l->next) {
+					uiButMultiState *state = l->link;
+					uiBut *but_iter = state->but;
+					double default_value;
+
+					if (ui_button_value_default(but_iter, &default_value)) {
+						ui_but_value_set(but_iter, default_value);
+					}
+				}
+			}
+			data->multi_data.skip = true;
+#endif
+		}
 
 		button_activate_exit(C, but, data, (post_but == NULL), false);
 
