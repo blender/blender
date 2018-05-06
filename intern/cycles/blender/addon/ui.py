@@ -1267,7 +1267,6 @@ class CYCLES_MATERIAL_PT_viewport(CyclesButtonsPanel, Panel):
         col = split.column(align=True)
         col.label("Specular:")
         col.prop(mat, "specular_color", text="")
-        col.prop(mat, "specular_hardness", text="Hardness")
 
 
 class CYCLES_RENDER_PT_bake(CyclesButtonsPanel, Panel):
