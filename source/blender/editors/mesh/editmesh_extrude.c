@@ -364,7 +364,9 @@ typedef struct ManipulatorExtrudeGroup {
 static bool manipulator_mesh_extrude_poll(const bContext *C, wmManipulatorGroupType *wgt)
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
-	if (!STREQ(workspace->tool.manipulator_group, "MESH_WGT_extrude")) {
+	if (!STREQ(workspace->tool.manipulator_group, "MESH_WGT_extrude") ||
+	    !ED_operator_editmesh_view3d((bContext *)C))
+	{
 		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
