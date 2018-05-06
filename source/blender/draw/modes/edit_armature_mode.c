@@ -109,10 +109,6 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
 		        DRW_STATE_BLEND | DRW_STATE_WIRE;
 		psl->relationship = DRW_pass_create("Bone Relationship Pass", state);
-
-		/* Relationship Lines */
-		stl->g_data->relationship_lines = shgroup_dynlines_uniform_color(psl->relationship, ts.colorWire);
-		DRW_shgroup_state_enable(stl->g_data->relationship_lines, DRW_STATE_STIPPLE_3);
 	}
 }
 
