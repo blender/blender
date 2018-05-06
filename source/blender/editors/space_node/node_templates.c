@@ -386,20 +386,13 @@ static void ui_node_link(bContext *C, void *arg_p, void *event_p)
 	ED_undo_push(C, "Node input modify");
 }
 
-static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
+static void ui_node_sock_name(bNodeTree *ntree, bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 {
 	if (sock->link && sock->link->fromnode) {
 		bNode *node = sock->link->fromnode;
 		char node_name[UI_MAX_NAME_STR];
 
-		if (node->type == NODE_GROUP) {
-			if (node->id)
-				BLI_strncpy(node_name, node->id->name + 2, UI_MAX_NAME_STR);
-			else
-				BLI_strncpy(node_name, N_(node->typeinfo->ui_name), UI_MAX_NAME_STR);
-		}
-		else
-			BLI_strncpy(node_name, node->typeinfo->ui_name, UI_MAX_NAME_STR);
+		nodeLabel(ntree, node, node_name, sizeof(node_name));
 
 		if (BLI_listbase_is_empty(&node->inputs) &&
 		    node->outputs.first != node->outputs.last)
@@ -609,7 +602,7 @@ void uiTemplateNodeLink(uiLayout *layout, bNodeTree *ntree, bNode *node, bNodeSo
 
 	if (sock->link || sock->type == SOCK_SHADER || (sock->flag & SOCK_HIDE_VALUE)) {
 		char name[UI_MAX_NAME_STR];
-		ui_node_sock_name(sock, name);
+		ui_node_sock_name(ntree, sock, name);
 		but = uiDefMenuBut(block, ui_template_node_link_menu, NULL, name, 0, 0, UI_UNIT_X * 4, UI_UNIT_Y, "");
 	}
 	else
