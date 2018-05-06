@@ -124,7 +124,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
 	UI_block_region_set(block, handle->region);
 	UI_block_layout_resolve(block, &width, &height);
-	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER | UI_BLOCK_NO_WIN_CLIP);
+	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
 	UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
 	const int block_margin = U.widget_unit / 2;
