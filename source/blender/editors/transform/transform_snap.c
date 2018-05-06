@@ -1203,7 +1203,8 @@ bool snapObjectsTransform(
 	            .use_object_edit_cage = (t->flag & T_EDIT) != 0,
 	        },
 	        mval, dist_px, NULL,
-	        r_loc, r_no, NULL);
+	        r_loc, r_no, NULL,
+	        NULL, NULL);
 }
 
 

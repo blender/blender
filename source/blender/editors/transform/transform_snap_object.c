@@ -2356,7 +2356,8 @@ bool ED_transform_snap_object_project_view3d_ex(
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
         float *ray_depth,
-        float r_loc[3], float r_no[3], int *r_index)
+        float r_loc[3], float r_no[3], int *r_index,
+        Object **r_ob, float r_obmat[4][4])
 {
 	float ray_origin[3], ray_start[3], ray_normal[3], depth_range[2], ray_end[3];
 
@@ -2389,7 +2390,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 		        sctx,
 		        ray_start, ray_normal,
 		        params->snap_select, params->use_object_edit_cage,
-		        ray_depth, r_loc, r_no, r_index, NULL, NULL, NULL);
+		        ray_depth, r_loc, r_no, r_index, r_ob, r_obmat, NULL);
 	}
 	else {
 		SnapData snapdata;
@@ -2400,7 +2401,7 @@ bool ED_transform_snap_object_project_view3d_ex(
 		return snapObjectsRay(
 		        sctx, &snapdata,
 		        params->snap_select, params->use_object_edit_cage,
-		        ray_depth, dist_px, r_loc, r_no, NULL, NULL);
+		        ray_depth, dist_px, r_loc, r_no, r_ob, r_obmat);
 	}
 }
 
@@ -2418,7 +2419,8 @@ bool ED_transform_snap_object_project_view3d(
 	        params,
 	        mval, dist_px,
 	        ray_depth,
-	        r_loc, r_no, NULL);
+	        r_loc, r_no, NULL,
+	        NULL, NULL);
 }
 
 /**

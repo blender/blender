@@ -117,7 +117,8 @@ bool ED_transform_snap_object_project_view3d_ex(
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
         float *ray_depth,
-        float r_loc[3], float r_no[3], int *r_index);
+        float r_loc[3], float r_no[3], int *r_index,
+        struct Object **r_ob, float r_obmat[4][4]);
 bool ED_transform_snap_object_project_view3d(
         struct SnapObjectContext *sctx,
         const unsigned short snap_to,
