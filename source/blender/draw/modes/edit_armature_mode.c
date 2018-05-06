@@ -40,6 +40,7 @@ typedef struct EDIT_ARMATURE_PassList {
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_outline;
 	struct DRWPass *bone_envelope;
+	struct DRWPass *bone_axes;
 	struct DRWPass *relationship;
 } EDIT_ARMATURE_PassList;
 
@@ -98,6 +99,11 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 	}
 
 	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WIRE_SMOOTH | DRW_STATE_BLEND;
+		psl->bone_axes = DRW_pass_create("Bone Axes Pass", state);
+	}
+
+	{
 		/* Non Meshes Pass (Camera, empties, lamps ...) */
 		DRWState state =
 		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS |
@@ -123,6 +129,7 @@ static void EDIT_ARMATURE_cache_populate(void *vedata, Object *ob)
 			    .bone_outline = psl->bone_outline,
 			    .bone_wire = psl->bone_wire,
 			    .bone_envelope = psl->bone_envelope,
+			    .bone_axes = psl->bone_axes,
 			};
 			DRW_shgroup_armature_edit(ob, passes, stl->g_data->relationship_lines);
 		}
@@ -145,6 +152,9 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->relationship);
 
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
+
+	/* Draw axes with linesmooth and outside of multisample buffer. */
+	DRW_draw_pass(psl->bone_axes);
 }
 
 #if 0

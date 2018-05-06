@@ -135,6 +135,7 @@ typedef struct DRWArmaturePasses{
 	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
+	struct DRWPass *bone_axes;
 } DRWArmaturePasses;
 
 void DRW_shgroup_armature_object(

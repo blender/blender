@@ -312,7 +312,7 @@ static void drw_shgroup_bone_point(
 static void drw_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_axes == NULL) {
-		g_data.bone_axes = shgroup_instance_bone_axes(g_data.passes.bone_wire);
+		g_data.bone_axes = shgroup_instance_bone_axes(g_data.passes.bone_axes);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);

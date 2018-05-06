@@ -104,6 +104,7 @@ typedef struct OBJECT_PassList {
 	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;
 	struct DRWPass *bone_envelope;
+	struct DRWPass *bone_axes;
 	struct DRWPass *particle;
 	struct DRWPass *lightprobes;
 	/* use for empty/background images */
@@ -1001,6 +1002,11 @@ static void OBJECT_cache_init(void *vedata)
 		/* distance outline around envelope bones */
 		DRWState state = DRW_STATE_ADDITIVE | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_FRONT;
 		psl->bone_envelope = DRW_pass_create("Bone Envelope Outline Pass", state);
+	}
+
+	{
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE;
+		psl->bone_axes = DRW_pass_create("Bone Axes Pass", state);
 	}
 
 	{
@@ -2103,6 +2109,7 @@ static void OBJECT_cache_populate(void *vedata, Object *ob)
 					    .bone_outline = psl->bone_outline,
 					    .bone_wire = psl->bone_wire,
 					    .bone_envelope = psl->bone_envelope,
+					    .bone_axes = psl->bone_axes,
 					};
 					DRW_shgroup_armature_object(ob, view_layer, passes, stl->g_data->relationship_lines);
 				}
@@ -2175,6 +2182,7 @@ static void OBJECT_draw_scene(void *vedata)
 	DRW_draw_pass(psl->non_meshes);
 	DRW_draw_pass(psl->particle);
 	DRW_draw_pass(psl->reference_image);
+	DRW_draw_pass(psl->bone_axes);
 
 	MULTISAMPLE_SYNC_DISABLE(dfbl, dtxl)
 
