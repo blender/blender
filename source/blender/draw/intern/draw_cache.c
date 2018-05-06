@@ -2104,10 +2104,164 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 	return SHC.drw_bone_point_wire;
 }
 
+static void set_bone_axis_vert(
+        Gwn_VertBuf *vbo, uint axis, uint pos, uint col,
+        unsigned int *v, const float *a, const float *p, const float *c)
+{
+	GWN_vertbuf_attr_set(vbo, axis, *v, a);
+	GWN_vertbuf_attr_set(vbo, pos,  *v, p);
+	GWN_vertbuf_attr_set(vbo, col,  *v, c);
+	*v += 1;
+}
+
+#define S_X 0.0215f
+#define S_Y 0.025f
+static float x_axis_name[4][2] = {
+	{ 0.9f * S_X,  1.0f * S_Y}, {-1.0f * S_X, -1.0f * S_Y},
+	{-0.9f * S_X,  1.0f * S_Y}, { 1.0f * S_X, -1.0f * S_Y}
+};
+#define X_LEN (sizeof(x_axis_name) / (sizeof(float) * 2))
+#undef S_X
+#undef S_Y
+
+#define S_X 0.0175f
+#define S_Y 0.025f
+static float y_axis_name[6][2] = {
+	{-1.0f * S_X,  1.0f * S_Y}, { 0.0f * S_X, -0.1f * S_Y},
+	{ 1.0f * S_X,  1.0f * S_Y}, { 0.0f * S_X, -0.1f * S_Y},
+	{ 0.0f * S_X, -0.1f * S_Y}, { 0.0f * S_X, -1.0f * S_Y}
+};
+#define Y_LEN (sizeof(y_axis_name) / (sizeof(float) * 2))
+#undef S_X
+#undef S_Y
+
+#define S_X 0.02f
+#define S_Y 0.025f
+static float z_axis_name[10][2] = {
+	{-0.95f * S_X,  1.00f * S_Y}, { 0.95f * S_X,  1.00f * S_Y},
+	{ 0.95f * S_X,  1.00f * S_Y}, { 0.95f * S_X,  0.90f * S_Y},
+	{ 0.95f * S_X,  0.90f * S_Y}, {-1.00f * S_X, -0.90f * S_Y},
+	{-1.00f * S_X, -0.90f * S_Y}, {-1.00f * S_X, -1.00f * S_Y},
+	{-1.00f * S_X, -1.00f * S_Y}, { 1.00f * S_X, -1.00f * S_Y}
+};
+#define Z_LEN (sizeof(z_axis_name) / (sizeof(float) * 2))
+#undef S_X
+#undef S_Y
+
+#define S_X 0.007f
+#define S_Y 0.007f
+static float axis_marker[8][2] = {
+#if 0 /* square */
+	{-1.0f * S_X,  1.0f * S_Y}, { 1.0f * S_X,  1.0f * S_Y},
+	{ 1.0f * S_X,  1.0f * S_Y}, { 1.0f * S_X, -1.0f * S_Y},
+	{ 1.0f * S_X, -1.0f * S_Y}, {-1.0f * S_X, -1.0f * S_Y},
+	{-1.0f * S_X, -1.0f * S_Y}, {-1.0f * S_X,  1.0f * S_Y}
+#else /* diamond */
+	{-S_X,  0.f}, { 0.f,  S_Y},
+	{ 0.f,  S_Y}, { S_X,  0.f},
+	{ S_X,  0.f}, { 0.f, -S_Y},
+	{ 0.f, -S_Y}, {-S_X,  0.f}
+#endif
+};
+#define MARKER_LEN (sizeof(axis_marker) / (sizeof(float) * 2))
+#define MARKER_FILL_LAYER 6
+#undef S_X
+#undef S_Y
+
+#define S_X 0.0007f
+#define S_Y 0.0007f
+#define O_X  0.001f
+#define O_Y -0.001f
+static float axis_name_shadow[8][2] = {
+	{-S_X + O_X,  S_Y + O_Y}, { S_X + O_X,  S_Y + O_Y},
+	{ S_X + O_X,  S_Y + O_Y}, { S_X + O_X, -S_Y + O_Y},
+	{ S_X + O_X, -S_Y + O_Y}, {-S_X + O_X, -S_Y + O_Y},
+	{-S_X + O_X, -S_Y + O_Y}, {-S_X + O_X,  S_Y + O_Y}
+};
+// #define SHADOW_RES (sizeof(axis_name_shadow) / (sizeof(float) * 2))
+#define SHADOW_RES 0
+#undef O_X
+#undef O_Y
+#undef S_X
+#undef S_Y
+
 Gwn_Batch *DRW_cache_bone_arrows_get(void)
 {
 	if (!SHC.drw_bone_arrows) {
-		Gwn_VertBuf *vbo = fill_arrows_vbo(0.25f);
+		/* Position Only 3D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint axis, pos, col; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.axis = GWN_vertformat_attr_add(&format, "axis", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
+			attr_id.pos = GWN_vertformat_attr_add(&format, "screenPos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.col = GWN_vertformat_attr_add(&format, "colorAxis", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		}
+
+		/* Line */
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, (2 + MARKER_LEN * MARKER_FILL_LAYER) * 3 +
+		                            (X_LEN + Y_LEN + Z_LEN) * (1 + SHADOW_RES));
+
+		unsigned int v = 0;
+
+		for (int axis = 0; axis < 3; axis++) {
+			float pos[2] = {0.0f, 0.0f};
+			float c[3] = {0.0f, 0.0f, 0.0f};
+			float a = 0.0f;
+			/* center to axis line */
+			set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col, &v, &a, pos, c);
+			c[axis] = 0.5f;
+			a = axis + 0.25f;
+			set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col, &v, &a, pos, c);
+
+			/* Axis end marker */
+			for (int j = 1; j < MARKER_FILL_LAYER + 1; ++j) {
+				for (int i = 0; i < MARKER_LEN; ++i) {
+					float tmp[2];
+					mul_v2_v2fl(tmp, axis_marker[i], j / (float)MARKER_FILL_LAYER);
+					set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col,
+					                   &v, &a, tmp, c);
+				}
+			}
+
+			a = axis + 0.31f;
+			/* Axis name */
+			int axis_v_ct;
+			float (*axis_verts)[2];
+			if (axis == 0) {
+				axis_verts = x_axis_name;
+				axis_v_ct = X_LEN;
+			}
+			else if (axis == 1) {
+				axis_verts = y_axis_name;
+				axis_v_ct = Y_LEN;
+			}
+			else {
+				axis_verts = z_axis_name;
+				axis_v_ct = Z_LEN;
+			}
+
+			/* Axis name shadows */
+			copy_v3_fl(c, 0.0f);
+			c[axis] = 0.3f;
+			for (int j = 0; j < SHADOW_RES; ++j) {
+				for (int i = 0; i < axis_v_ct; ++i) {
+					float tmp[2];
+					add_v2_v2v2(tmp, axis_verts[i], axis_name_shadow[j]);
+					set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col,
+					                   &v, &a, tmp, c);
+				}
+			}
+
+			/* Axis name */
+			copy_v3_fl(c, 0.1f);
+			c[axis] = 1.0f;
+			for (int i = 0; i < axis_v_ct; ++i) {
+				set_bone_axis_vert(vbo, attr_id.axis, attr_id.pos, attr_id.col,
+				                   &v, &a, axis_verts[i], c);
+			}
+		}
+
 		SHC.drw_bone_arrows = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_arrows;
