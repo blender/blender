@@ -57,6 +57,8 @@
 
 #include "BKE_context.h"
 
+#include "ED_screen.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -122,7 +124,7 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 
 	UI_block_region_set(block, handle->region);
 	UI_block_layout_resolve(block, &width, &height);
-	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER);
+	UI_block_flag_enable(block, UI_BLOCK_MOVEMOUSE_QUIT | UI_BLOCK_KEEP_OPEN | UI_BLOCK_POPOVER | UI_BLOCK_NO_WIN_CLIP);
 	UI_block_direction_set(block, UI_DIR_DOWN | UI_DIR_CENTER_X);
 
 	const int block_margin = U.widget_unit / 2;
@@ -138,13 +140,32 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 			UI_block_direction_set(block, UI_DIR_RIGHT);
 
 		/* Store the button location for positioning the popover arrow hint. */
-		{
+		if (!handle->refresh) {
 			float center[2] = {BLI_rctf_cent_x(&pup->but->rect), BLI_rctf_cent_y(&pup->but->rect)};
 			ui_block_to_window_fl(handle->ctx_region, pup->but->block, &center[0], &center[1]);
 			/* These variables aren't used for popovers, we could add new variables if there is a conflict. */
-			block->mx = (int)center[0];
-			block->my = (int)center[1];
+			handle->prev_mx = block->mx = (int)center[0];
+			handle->prev_my = block->my = (int)center[1];
 		}
+		else {
+			block->mx = handle->prev_mx;
+			block->my = handle->prev_my;
+		}
+
+		/* Prefer popover from header to be positioned into the editor. */
+		if (!slideout) {
+			ScrArea *sa = CTX_wm_area(C);
+			if (sa && ED_area_header_alignment(sa) == RGN_ALIGN_BOTTOM) {
+				ARegion *ar = CTX_wm_region(C);
+				if (ar && ar->regiontype == RGN_TYPE_HEADER) {
+					UI_block_direction_set(block, UI_DIR_UP | UI_DIR_CENTER_X);
+				}
+			}
+		}
+
+		/* Estimated a maximum size so we don't go offscreen for low height
+		 * areas near the bottom of the window on refreshes. */
+		handle->max_size_y = UI_UNIT_Y * 16.0f;
 	}
 	else {
 		/* Not attached to a button. */

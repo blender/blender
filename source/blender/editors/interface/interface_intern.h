@@ -551,6 +551,7 @@ struct uiPopupBlockHandle {
 	struct uiPopupBlockCreate popup_create_vars;
 	/* true if we can re-create the popup using 'popup_create_vars' */
 	bool can_refresh;
+	bool refresh;
 
 	struct wmTimer *scrolltimer;
 
@@ -572,8 +573,14 @@ struct uiPopupBlockHandle {
 	/* menu direction */
 	int direction;
 
-	/* previous rect for refresh */
+	/* Previous values so we don't resize or reposition on refresh. */
 	rctf prev_block_rect;
+	rctf prev_butrct;
+	short prev_dir1, prev_dir2;
+	int prev_mx, prev_my;
+
+	/* Maximum estimated size to avoid having to reposition on refresh. */
+	float max_size_x, max_size_y;
 
 /* #ifdef USE_DRAG_POPUP */
 	bool is_grab;
