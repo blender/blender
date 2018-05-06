@@ -364,7 +364,7 @@ class _defs_edit_mesh:
         return dict(
             text="Extrude Region",
             icon="ops.mesh.extrude_region_move",
-            widget=None,
+            widget="MESH_WGT_extrude",
             keymap=(
                 ("mesh.extrude_region_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='ACTIONMOUSE', value='PRESS')),
