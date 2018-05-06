@@ -1855,6 +1855,15 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 			/* put in front of list */
 			BLI_remlink(&sa->spacedata, sl);
 			BLI_addhead(&sa->spacedata, sl);
+
+
+			/* Sync header alignment. */
+			for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
+				if (ar->regiontype == RGN_TYPE_HEADER) {
+					ar->alignment = header_alignment;
+					break;
+				}
+			}
 		}
 		else {
 			/* new space */
@@ -1869,14 +1878,6 @@ void ED_area_newspace(bContext *C, ScrArea *sa, int type, const bool skip_ar_exi
 					slold->regionbase = sa->regionbase;
 				sa->regionbase = sl->regionbase;
 				BLI_listbase_clear(&sl->regionbase);
-			}
-		}
-
-		/* Sync header alignment. */
-		for (ARegion *ar = sa->regionbase.first; ar; ar = ar->next) {
-			if (ar->regiontype == RGN_TYPE_HEADER) {
-				ar->alignment = header_alignment;
-				break;
 			}
 		}
 		
