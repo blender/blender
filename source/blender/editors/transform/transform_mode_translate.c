@@ -362,6 +362,11 @@ static void applyTranslation(TransInfo *t, const int UNUSED(mval[2]))
   }
   else {
     copy_v3_v3(global_dir, t->values);
+    if (!is_zero_v3(t->values_modal_offset)) {
+      float values_ofs[3];
+      mul_v3_m3v3(values_ofs, t->spacemtx, t->values_modal_offset);
+      add_v3_v3(global_dir, values_ofs);
+    }
 
     t->tsnap.snapElem = 0;
     applySnapping(t, global_dir);

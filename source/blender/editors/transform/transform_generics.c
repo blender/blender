@@ -353,8 +353,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
     t->around = V3D_AROUND_CENTER_BOUNDS;
   }
 
-  BLI_assert(is_zero_v4(t->values_modal_offset));
-
   bool t_values_set_is_array = false;
 
   if (op && (prop = RNA_struct_find_property(op->ptr, "value")) &&
@@ -368,7 +366,6 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
       values[0] = RNA_float_get(op->ptr, "value");
     }
 
-    copy_v4_v4(t->values, values);
     if (t->flag & T_MODAL) {
       /* Run before init functions so 'values_modal_offset' can be applied on mouse input. */
       copy_v4_v4(t->values_modal_offset, values);
