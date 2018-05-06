@@ -710,6 +710,59 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 				ED_area_tag_redraw(sa);
 				break;
 			}
+			else if (az->type == AZONE_REGION_SCROLL) {
+				ARegion *ar = az->ar;
+				View2D *v2d = &ar->v2d;
+				const short isect_value = UI_view2d_mouse_in_scrollers(ar, v2d, xy[0], xy[1]);
+				bool redraw = false;
+
+				if (isect_value == 'h') {
+					if (az->direction == AZ_SCROLL_HOR) {
+						az->alpha = 1.0f;
+						v2d->alpha_hor = 255;
+						v2d->size_hor = V2D_SCROLL_HEIGHT;
+						redraw = true;
+					}
+				}
+				else if (isect_value == 'v') {
+					if (az->direction == AZ_SCROLL_VERT) {
+						az->alpha = 1.0f;
+						v2d->alpha_vert = 255;
+						v2d->size_vert = V2D_SCROLL_WIDTH;
+						redraw = true;
+					}
+				}
+				else {
+					const int local_xy[2] = {xy[0] - ar->winrct.xmin, xy[1] - ar->winrct.ymin};
+					float dist_fac = 0.0f, alpha = 0.0f;
+
+					if (az->direction == AZ_SCROLL_HOR) {
+						dist_fac = BLI_rcti_length_y(&v2d->hor, local_xy[1]) / AZONEFADEIN;
+						CLAMP(dist_fac, 0.0f, 1.0f);
+						alpha = 1.0f - dist_fac;
+
+						v2d->alpha_hor = alpha * 255;
+						v2d->size_hor = round_fl_to_int(V2D_SCROLL_HEIGHT -
+						                                ((V2D_SCROLL_HEIGHT - V2D_SCROLL_HEIGHT_MIN) * dist_fac));
+					}
+					else if (az->direction == AZ_SCROLL_VERT) {
+						dist_fac = BLI_rcti_length_x(&v2d->vert, local_xy[0]) / AZONEFADEIN;
+						CLAMP(dist_fac, 0.0f, 1.0f);
+						alpha = 1.0f - dist_fac;
+
+						v2d->alpha_vert = alpha * 255;
+						v2d->size_vert = round_fl_to_int(V2D_SCROLL_WIDTH -
+						                                 ((V2D_SCROLL_WIDTH - V2D_SCROLL_WIDTH_MIN) * dist_fac));
+					}
+					az->alpha = alpha;
+					redraw = true;
+				}
+
+				if (redraw) {
+					ED_area_tag_redraw(sa);
+				}
+				/* Don't return! */
+			}
 		}
 	}
 	
@@ -771,6 +824,9 @@ static int actionzone_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 		actionzone_apply(C, op, sad->az->type);
 		actionzone_exit(op);
 		return OPERATOR_FINISHED;
+	}
+	else if (ELEM(sad->az->type, AZONE_REGION_SCROLL)) {
+		return OPERATOR_PASS_THROUGH;
 	}
 	else {
 		/* add modal handler */

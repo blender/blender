@@ -83,13 +83,22 @@ typedef enum {
 	AE_BOTTOM_TO_TOPLEFT    /* Region located at the top, _bottom_ edge is action zone. Region minimized to the top left */
 } AZEdge;
 
+typedef enum {
+	AZ_SCROLL_VERT,
+	AZ_SCROLL_HOR,
+} AZScrollDirection;
+
 /* for editing areas/regions */
 typedef struct AZone {
 	struct AZone *next, *prev;
 	ARegion *ar;
 	int type;
-	/* region-azone, which of the edges (only for AZONE_REGION) */
-	AZEdge edge;
+
+	union {
+		/* region-azone, which of the edges (only for AZONE_REGION) */
+		AZEdge edge;
+		AZScrollDirection direction;
+	};
 	/* for draw */
 	short x1, y1, x2, y2;
 	/* for clip */
@@ -99,8 +108,15 @@ typedef struct AZone {
 } AZone;
 
 /* actionzone type */
-#define AZONE_AREA      1  /* corner widgets for splitting areas */
-#define AZONE_REGION    2  /* when a region is collapsed, draw a handle to expose */
-#define AZONE_FULLSCREEN 3 /* when in editor fullscreen draw a corner to go to normal mode */
+enum {
+	/* corner widgets for splitting areas */
+	AZONE_AREA = 1,
+	/* when a region is collapsed, draw a handle to expose */
+	AZONE_REGION,
+	/* when in editor fullscreen draw a corner to go to normal mode */
+	AZONE_FULLSCREEN,
+	/* Hotspot azone around scrollbars to show/hide them. */
+	AZONE_REGION_SCROLL,
+};
 
 #endif /* __ED_SCREEN_TYPES_H__ */
