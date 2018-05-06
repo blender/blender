@@ -1118,7 +1118,7 @@ static void manipulator_line_range(const int twtype, const short axis_type, floa
 
 static void manipulator_xform_message_subscribe(
         wmManipulatorGroup *mgroup, struct wmMsgBus *mbus,
-        bScreen *screen, ScrArea *sa, ARegion *ar, const void *type_fn)
+        Scene *scene, bScreen *screen, ScrArea *sa, ARegion *ar, const void *type_fn)
 {
 	/* Subscribe to view properties */
 	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
@@ -1127,18 +1127,26 @@ static void manipulator_xform_message_subscribe(
 		.notify = WM_manipulator_do_msg_notify_tag_refresh,
 	};
 
-	PointerRNA space_ptr;
-	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, sa->spacedata.first, &space_ptr);
+	PointerRNA scene_ptr;
+	RNA_id_pointer_create(&scene->id, &scene_ptr);
 
 	{
+		const View3D *v3d = sa->spacedata.first;
 		extern PropertyRNA rna_Scene_transform_orientation;
+		extern PropertyRNA rna_Scene_cursor_location;
 		const PropertyRNA *props[] = {
 			&rna_Scene_transform_orientation,
+			(v3d->around == V3D_AROUND_CURSOR) ? &rna_Scene_cursor_location : NULL,
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			WM_msg_subscribe_rna(mbus, &space_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+			if (props[i]) {
+				WM_msg_subscribe_rna(mbus, &scene_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+			}
 		}
 	}
+
+	PointerRNA space_ptr;
+	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, sa->spacedata.first, &space_ptr);
 
 	if (type_fn == TRANSFORM_WGT_manipulator) {
 		extern PropertyRNA rna_SpaceView3D_pivot_point;
@@ -1454,10 +1462,11 @@ static void WIDGETGROUP_manipulator_refresh(const bContext *C, wmManipulatorGrou
 static void WIDGETGROUP_manipulator_message_subscribe(
         const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
 {
+	Scene *scene = CTX_data_scene(C);
 	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	manipulator_xform_message_subscribe(mgroup, mbus, screen, sa, ar, TRANSFORM_WGT_manipulator);
+	manipulator_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, TRANSFORM_WGT_manipulator);
 }
 
 static void WIDGETGROUP_manipulator_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
@@ -1674,10 +1683,11 @@ static void WIDGETGROUP_xform_cage_refresh(const bContext *C, wmManipulatorGroup
 static void WIDGETGROUP_xform_cage_message_subscribe(
         const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
 {
+	Scene *scene = CTX_data_scene(C);
 	bScreen *screen = CTX_wm_screen(C);
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
-	manipulator_xform_message_subscribe(mgroup, mbus, screen, sa, ar, VIEW3D_WGT_xform_cage);
+	manipulator_xform_message_subscribe(mgroup, mbus, scene, screen, sa, ar, VIEW3D_WGT_xform_cage);
 }
 
 static void WIDGETGROUP_xform_cage_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)

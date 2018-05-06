@@ -66,6 +66,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -4605,6 +4606,12 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
 	else
 		WM_event_add_notifier(C, NC_SCENE | NA_EDITED, scene);
+
+	{
+		struct wmMsgBus *mbus = CTX_wm_message_bus(C);
+		WM_msg_publish_rna_prop(
+		        mbus, &scene->id, scene, Scene, cursor_location);
+	}
 
 	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
