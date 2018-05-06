@@ -131,9 +131,13 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 
 	if (ob->type == OB_ARMATURE) {
 		if (DRW_pose_mode_armature(ob, draw_ctx->obact)) {
-			DRW_shgroup_armature_pose(
-			        ob, psl->bone_solid, psl->bone_outline, psl->bone_wire, psl->bone_envelope,
-			        stl->g_data->relationship_lines);
+			DRWArmaturePasses passes = {
+			    .bone_solid = psl->bone_solid,
+			    .bone_outline = psl->bone_outline,
+			    .bone_wire = psl->bone_wire,
+			    .bone_envelope = psl->bone_envelope,
+			};
+			DRW_shgroup_armature_pose(ob, passes, stl->g_data->relationship_lines);
 		}
 	}
 }

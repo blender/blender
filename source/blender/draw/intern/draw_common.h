@@ -130,22 +130,26 @@ int DRW_object_wire_theme_get(
 float *DRW_color_background_blend_get(int theme_id);
 
 /* draw_armature.c */
+typedef struct DRWArmaturePasses{
+	struct DRWPass *bone_solid;
+	struct DRWPass *bone_outline;
+	struct DRWPass *bone_wire;
+	struct DRWPass *bone_envelope;
+} DRWArmaturePasses;
+
 void DRW_shgroup_armature_object(
         struct Object *ob, struct ViewLayer *view_layer,
-        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_outline,
-        struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
+        struct DRWArmaturePasses passes,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
 void DRW_shgroup_armature_pose(
         struct Object *ob,
-        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_outline,
-        struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
+        struct DRWArmaturePasses passes,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
 void DRW_shgroup_armature_edit(
         struct Object *ob,
-        struct DRWPass *pass_bone_solid, struct DRWPass *pass_bone_outline,
-        struct DRWPass *pass_bone_wire, struct DRWPass *pass_bone_envelope,
+        struct DRWArmaturePasses passes,
         struct DRWShadingGroup *shgrp_relationship_lines);
 
 /* pose_mode.c */

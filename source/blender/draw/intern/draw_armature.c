@@ -90,10 +90,7 @@ static struct {
 	DRWShadingGroup *bone_axes;
 	DRWShadingGroup *relationship_lines;
 
-	DRWPass *pass_bone_solid;
-	DRWPass *pass_bone_outline;
-	DRWPass *pass_bone_wire;
-	DRWPass *pass_bone_envelope;
+	DRWArmaturePasses passes;
 } g_data = {NULL};
 
 /* -------------------------------------------------------------------- */
@@ -108,11 +105,11 @@ static void drw_shgroup_bone_octahedral(
 {
 	if (g_data.bone_octahedral_outline == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
-		g_data.bone_octahedral_outline = shgroup_instance_bone_shape_outline(g_data.pass_bone_outline, geom);
+		g_data.bone_octahedral_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_octahedral_solid == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
-		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(g_data.pass_bone_solid, geom);
+		g_data.bone_octahedral_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -129,11 +126,11 @@ static void drw_shgroup_bone_box(
 {
 	if (g_data.bone_box_wire == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
-		g_data.bone_box_outline = shgroup_instance_bone_shape_outline(g_data.pass_bone_outline, geom);
+		g_data.bone_box_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_box_solid == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
-		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(g_data.pass_bone_solid, geom);
+		g_data.bone_box_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -148,7 +145,7 @@ static void drw_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float c
 {
 	if (g_data.bone_wire_wire == NULL) {
 		struct Gwn_Batch *geom = DRW_cache_bone_wire_wire_outline_get();
-		g_data.bone_wire_wire = shgroup_instance_wire(g_data.pass_bone_wire, geom);
+		g_data.bone_wire_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -160,10 +157,10 @@ static void drw_shgroup_bone_envelope_distance(
         const float (*bone_mat)[4],
         const float *radius_head, const float *radius_tail, const float *distance)
 {
-	if (g_data.pass_bone_envelope != NULL) {
+	if (g_data.passes.bone_envelope != NULL) {
 		if (g_data.bone_envelope_distance == NULL) {
-			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_distance(g_data.pass_bone_envelope);
-			/* pass_bone_envelope should have the DRW_STATE_CULL_FRONT state enabled. */
+			g_data.bone_envelope_distance = shgroup_instance_bone_envelope_distance(g_data.passes.bone_envelope);
+			/* passes.bone_envelope should have the DRW_STATE_CULL_FRONT state enabled. */
 		}
 		float head_sphere[4] = {0.0f, 0.0f, 0.0f, 1.0f}, tail_sphere[4] = {0.0f, 1.0f, 0.0f, 1.0f};
 		float final_bonemat[4][4];
@@ -186,16 +183,16 @@ static void drw_shgroup_bone_envelope(
         const float *radius_head, const float *radius_tail)
 {
 	if (g_data.bone_point_wire == NULL) {
-		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.pass_bone_wire);
+		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire);
 	}
 	if (g_data.bone_point_solid == NULL) {
-		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.pass_bone_solid);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid);
 	}
 	if (g_data.bone_envelope_wire == NULL) {
-		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_outline(g_data.pass_bone_wire);
+		g_data.bone_envelope_wire = shgroup_instance_bone_envelope_outline(g_data.passes.bone_wire);
 	}
 	if (g_data.bone_envelope_solid == NULL) {
-		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.pass_bone_solid);
+		g_data.bone_envelope_solid = shgroup_instance_bone_envelope_solid(g_data.passes.bone_solid);
 		/* We can have a lot of overdraw if we don't do this. Also envelope are not subject to
 		 * inverted matrix. */
 		DRW_shgroup_state_enable(g_data.bone_envelope_solid, DRW_STATE_CULL_BACK);
@@ -273,7 +270,7 @@ static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4], const floa
 	/* grr, not re-using instances! */
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(custom);
 	if (geom) {
-		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_solid(g_data.pass_bone_solid, geom);
+		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_solid(g_data.passes.bone_solid, geom);
 		float final_bonemat[4][4];
 		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, color);
@@ -285,7 +282,7 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float
 	/* grr, not re-using instances! */
 	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
 	if (geom) {
-		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.pass_bone_wire, geom);
+		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
 		float final_bonemat[4][4];
 		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
 		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, color);
@@ -298,10 +295,10 @@ static void drw_shgroup_bone_point(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_point_wire == NULL) {
-		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.pass_bone_wire);
+		g_data.bone_point_wire = shgroup_instance_bone_sphere_outline(g_data.passes.bone_wire);
 	}
 	if (g_data.bone_point_solid == NULL) {
-		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.pass_bone_solid);
+		g_data.bone_point_solid = shgroup_instance_bone_sphere_solid(g_data.passes.bone_solid);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -315,7 +312,7 @@ static void drw_shgroup_bone_point(
 static void drw_shgroup_bone_axes(const float (*bone_mat)[4], const float color[4])
 {
 	if (g_data.bone_axes == NULL) {
-		g_data.bone_axes = shgroup_instance_bone_axes(g_data.pass_bone_wire);
+		g_data.bone_axes = shgroup_instance_bone_axes(g_data.passes.bone_wire);
 	}
 	float final_bonemat[4][4];
 	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
@@ -987,10 +984,11 @@ static void draw_bone_update_disp_matrix_custom(bPoseChannel *pchan)
 
 static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 {
+	float final_col[4];
 	const float *col = (g_theme.const_color) ? g_theme.const_color :
 	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? g_theme.text_hi_color : g_theme.text_color;
-
-	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), col);
+	copy_v4_v4(final_col, col);
+	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), final_col);
 }
 
 static void draw_points(
@@ -1460,51 +1458,43 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
  */
 static void drw_shgroup_armature(
         Object *ob,
-        DRWPass *pass_bone_solid, DRWPass *pass_bone_outline,
-        DRWPass *pass_bone_wire, DRWPass *pass_bone_envelope,
+        DRWArmaturePasses passes,
         DRWShadingGroup *shgrp_relationship_lines)
 {
 	memset(&g_data, 0x0, sizeof(g_data));
 	g_data.ob = ob;
-
-	g_data.pass_bone_solid = pass_bone_solid;
-	g_data.pass_bone_outline = pass_bone_outline;
-	g_data.pass_bone_wire = pass_bone_wire;
-	g_data.pass_bone_envelope = pass_bone_envelope;
+	g_data.passes = passes;
 	g_data.relationship_lines = shgrp_relationship_lines;
-
 	memset(&g_color, 0x0, sizeof(g_color));
 }
 
 void DRW_shgroup_armature_object(
         Object *ob, ViewLayer *view_layer,
-        DRWPass *pass_bone_solid, DRWPass *pass_bone_outline,
-        DRWPass *pass_bone_wire, DRWPass *UNUSED(pass_bone_envelope),
+        DRWArmaturePasses passes,
         DRWShadingGroup *shgrp_relationship_lines)
 {
 	float *color;
 	DRW_object_wire_theme_get(ob, view_layer, &color);
-	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_outline, pass_bone_wire, NULL, shgrp_relationship_lines);
+	passes.bone_envelope = NULL; /* Don't do envelope distance in object mode. */
+	drw_shgroup_armature(ob, passes, shgrp_relationship_lines);
 	draw_armature_pose(ob, color);
 }
 
 void DRW_shgroup_armature_pose(
         Object *ob,
-        DRWPass *pass_bone_solid, DRWPass *pass_bone_outline,
-        DRWPass *pass_bone_wire, DRWPass *pass_bone_envelope,
+        DRWArmaturePasses passes,
         DRWShadingGroup *shgrp_relationship_lines)
 {
-	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_outline, pass_bone_wire, pass_bone_envelope, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, passes, shgrp_relationship_lines);
 	draw_armature_pose(ob, NULL);
 }
 
 void DRW_shgroup_armature_edit(
         Object *ob,
-        DRWPass *pass_bone_solid, DRWPass *pass_bone_outline,
-        DRWPass *pass_bone_wire, DRWPass *pass_bone_envelope,
+        DRWArmaturePasses passes,
         DRWShadingGroup *shgrp_relationship_lines)
 {
-	drw_shgroup_armature(ob, pass_bone_solid, pass_bone_outline, pass_bone_wire, pass_bone_envelope, shgrp_relationship_lines);
+	drw_shgroup_armature(ob, passes, shgrp_relationship_lines);
 	draw_armature_edit(ob);
 }
 
