@@ -162,6 +162,7 @@ void ED_object_sculptmode_exit_ex(
 void ED_object_sculptmode_exit(struct bContext *C);
 
 void ED_object_location_from_view(struct bContext *C, float loc[3]);
+void ED_object_rotation_from_quat(float rot[3], const float quat[4], const char align_axis);
 void ED_object_rotation_from_view(struct bContext *C, float rot[3], const char align_axis);
 void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);
 float ED_object_new_primitive_matrix(
