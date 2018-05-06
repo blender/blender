@@ -96,23 +96,21 @@ static void idp_str_append_escape(struct ReprState *state, const char *str, cons
 static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *prop)
 {
 	/* Note: 'strlen' will be calculated at compile time for literals. */
-#define STR_APPEND_STR(str) { \
-	state->str_append_fn(state->user_data, str, (uint)strlen(str)); \
-} ((void)0)
+#define STR_APPEND_STR(str)     state->str_append_fn(state->user_data, str, (uint)strlen(str))
 
-#define STR_APPEND_STR_QUOTE(str) { \
-	idp_str_append_escape(state, str, (uint)strlen(str), true); \
-} ((void)0)
+#define STR_APPEND_STR_QUOTE(str)               idp_str_append_escape(state, str, (uint)strlen(str), true)
+#define STR_APPEND_STR_LEN_QUOTE(str, str_len)  idp_str_append_escape(state, str, str_len, true)
 
-#define STR_APPEND_FMT(format, ...) { \
-	const uint len = (uint)BLI_snprintf_rlen(state->buf, sizeof(state->buf), format, __VA_ARGS__); \
-	state->str_append_fn(state->user_data, state->buf, len); \
-} ((void)0)
+#define STR_APPEND_FMT(format, ...) \
+	state->str_append_fn( \
+	        state->user_data, \
+	        state->buf, \
+	        (uint)BLI_snprintf_rlen(state->buf, sizeof(state->buf), format, __VA_ARGS__))
 
 	switch (prop->type) {
 		case IDP_STRING:
 		{
-			STR_APPEND_STR_QUOTE(IDP_String(prop));
+			STR_APPEND_STR_LEN_QUOTE(IDP_String(prop), (uint)MAX2(0, prop->len - 1));
 			break;
 		}
 		case IDP_INT:
@@ -191,11 +189,16 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
 		case IDP_ID:
 		{
 			const ID *id = prop->data.pointer;
-			STR_APPEND_STR("bpy.data.");
-			STR_APPEND_STR(BKE_idcode_to_name_plural(GS(id->name)));
-			STR_APPEND_STR("[");
-			STR_APPEND_STR_QUOTE(id->name + 2);
-			STR_APPEND_STR("]");
+			if (id != NULL) {
+				STR_APPEND_STR("bpy.data.");
+				STR_APPEND_STR(BKE_idcode_to_name_plural(GS(id->name)));
+				STR_APPEND_STR("[");
+				STR_APPEND_STR_QUOTE(id->name + 2);
+				STR_APPEND_STR("]");
+			}
+			else {
+				STR_APPEND_STR("None");
+			}
 			break;
 		}
 		default:
@@ -207,6 +210,7 @@ static void idp_repr_fn_recursive(struct ReprState *state, const IDProperty *pro
 
 #undef STR_APPEND_STR
 #undef STR_APPEND_STR_QUOTE
+#undef STR_APPEND_STR_LEN_QUOTE
 #undef STR_APPEND_FMT
 
 }
