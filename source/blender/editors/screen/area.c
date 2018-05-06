@@ -1114,6 +1114,10 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 
 	/* find overlapping previous region on same place */
 	for (ar1 = ar->prev; ar1; ar1 = ar1->prev) {
+		if (ar1->flag & (RGN_FLAG_HIDDEN)) {
+			continue;
+		}
+
 		if (ar1->overlap && ((ar1->alignment & RGN_SPLIT_PREV) == 0)) {
 			align1 = ar1->alignment;
 			if (BLI_rcti_isect(&ar1->winrct, &ar->winrct, NULL)) {
@@ -1153,6 +1157,10 @@ static void region_overlap_fix(ScrArea *sa, ARegion *ar)
 	/* At this point, 'ar' is in its final position and still open.
 	 * Make a final check it does not overlap any previous 'other side' region. */
 	for (ar1 = ar->prev; ar1; ar1 = ar1->prev) {
+		if (ar1->flag & (RGN_FLAG_HIDDEN)) {
+			continue;
+		}
+
 		if (ar1->overlap && (ar1->alignment & RGN_SPLIT_PREV) == 0) {
 			if ((ar1->alignment != align) && BLI_rcti_isect(&ar1->winrct, &ar->winrct, NULL)) {
 				/* Left overlapping right or vice-versa, forbid this! */
