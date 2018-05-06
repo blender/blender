@@ -1186,11 +1186,22 @@ bool WM_operator_last_properties_store(wmOperator *op)
 	if (op->properties) {
 		CLOG_INFO(WM_LOG_OPERATORS, 1, "storing properties for '%s'", op->type->idname);
 		op->type->last_properties = IDP_CopyProperty(op->properties);
-		return true;
 	}
-	else {
-		return false;
+
+	if (op->macro.first != NULL) {
+		for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+			if (opm->properties) {
+				if (op->type->last_properties == NULL) {
+					op->type->last_properties = IDP_New(IDP_GROUP, &(IDPropertyTemplate){0}, "wmOperatorProperties");
+				}
+				IDProperty *idp_macro = IDP_CopyProperty(opm->properties);
+				STRNCPY(idp_macro->name, opm->idname);
+				IDP_ReplaceInGroup(op->type->last_properties, idp_macro);
+			}
+		}
 	}
+
+	return (op->type->last_properties != NULL);
 }
 
 #else

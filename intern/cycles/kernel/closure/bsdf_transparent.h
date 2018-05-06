@@ -37,15 +37,22 @@ CCL_NAMESPACE_BEGIN
 
 ccl_device void bsdf_transparent_setup(ShaderData *sd, const float3 weight, int path_flag)
 {
+	/* Check cutoff weight. */
+	float sample_weight = fabsf(average(weight));
+	if(!(sample_weight >= CLOSURE_WEIGHT_CUTOFF)) {
+		return;
+	}
+
 	if(sd->flag & SD_TRANSPARENT) {
 		sd->closure_transparent_extinction += weight;
 
+		/* Add weight to existing transparent BSDF. */
 		for(int i = 0; i < sd->num_closure; i++) {
 			ShaderClosure *sc = &sd->closure[i];
 
 			if(sc->type == CLOSURE_BSDF_TRANSPARENT_ID) {
 				sc->weight += weight;
-				sc->sample_weight += fabsf(average(weight));
+				sc->sample_weight += sample_weight;
 				break;
 			}
 		}
@@ -61,11 +68,15 @@ ccl_device void bsdf_transparent_setup(ShaderData *sd, const float3 weight, int 
 			sd->num_closure_left = 1;
 		}
 
-		ShaderClosure *bsdf = bsdf_alloc(sd, sizeof(ShaderClosure), weight);
+		/* Create new transparent BSDF. */
+		ShaderClosure *bsdf = closure_alloc(sd, sizeof(ShaderClosure), CLOSURE_BSDF_TRANSPARENT_ID, weight);
 
 		if(bsdf) {
+			bsdf->sample_weight = sample_weight;
 			bsdf->N = sd->N;
-			bsdf->type = CLOSURE_BSDF_TRANSPARENT_ID;
+		}
+		else if(path_flag & PATH_RAY_TERMINATE) {
+			sd->num_closure_left = 0;
 		}
 	}
 }
