@@ -988,6 +988,7 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 	const float *col = (g_theme.const_color) ? g_theme.const_color :
 	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? g_theme.text_hi_color : g_theme.text_color;
 	copy_v4_v4(final_col, col);
+	final_col[3] = (g_theme.const_color) ? 1.0 : 0.3; /* Mix with axes color. */
 	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), final_col);
 }
 

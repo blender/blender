@@ -9,7 +9,7 @@ in vec3 colorAxis;
 
 /* ---- Per instance Attribs ---- */
 in mat4 InstanceModelMatrix;
-in vec3 color;
+in vec4 color;
 
 flat out vec4 finalColor;
 
@@ -25,6 +25,6 @@ void main()
 	
 	gl_Position = ViewProjectionMatrix * vec4(wpos + spos, 1.0);
 
-	finalColor.rgb = mix(color, colorAxis, 0.9);
+	finalColor.rgb = mix(colorAxis, color.rgb, color.a);
 	finalColor.a = 1.0;
 }

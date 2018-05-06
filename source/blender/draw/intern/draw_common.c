@@ -452,7 +452,7 @@ DRWShadingGroup *shgroup_instance_bone_axes(DRWPass *pass)
 
 	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.bone_axes,
 	                                                   pass, DRW_cache_bone_arrows_get(),
-	                                                   g_formats.instance_bone_outline);
+	                                                   g_formats.instance_color);
 	DRW_shgroup_uniform_vec3(grp, "screenVecs[0]", DRW_viewport_screenvecs_get(), 2);
 
 	return grp;
