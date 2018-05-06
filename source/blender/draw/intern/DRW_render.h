@@ -272,6 +272,7 @@ typedef enum {
 	DRW_STATE_CLIP_PLANES   = (1 << 18),
 	DRW_STATE_ADDITIVE_FULL = (1 << 19), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
 	DRW_STATE_BLEND_PREMUL  = (1 << 20), /* Use that if color is already premult by alpha. */
+	DRW_STATE_WIRE_SMOOTH   = (1 << 21),
 
 	DRW_STATE_WRITE_STENCIL          = (1 << 27),
 	DRW_STATE_WRITE_STENCIL_SHADOW   = (1 << 28),

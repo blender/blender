@@ -162,12 +162,16 @@ void drw_state_set(DRWState state)
 
 	/* Wire Width */
 	{
-		if (CHANGED_ANY(DRW_STATE_WIRE)) {
-			if ((state & DRW_STATE_WIRE) != 0) {
+		if (CHANGED_ANY(DRW_STATE_WIRE | DRW_STATE_WIRE_SMOOTH)) {
+			if ((state & DRW_STATE_WIRE_SMOOTH) != 0) {
+				glLineWidth(2.0f);
+				glEnable(GL_LINE_SMOOTH);
+			}
+			else if ((state & DRW_STATE_WIRE) != 0) {
 				glLineWidth(1.0f);
 			}
 			else {
-				/* do nothing */
+				glDisable(GL_LINE_SMOOTH);
 			}
 		}
 	}
