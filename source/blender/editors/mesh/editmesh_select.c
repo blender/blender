@@ -3097,8 +3097,6 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 
 	/* return warning! */
 	if (unified_findnearest(&vc, &basact, &eve, &eed, &efa) == 0) {
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, basact->object->data);
-
 		return OPERATOR_CANCELLED;
 	}
 	ED_view3d_viewcontext_init_object(&vc, basact->object);
