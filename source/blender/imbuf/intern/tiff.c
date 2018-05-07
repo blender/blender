@@ -869,7 +869,7 @@ int imb_savetiff(ImBuf *ibuf, const char *name, int flags)
 				}
 
 				for (i = 0; i < samplesperpixel; i++, to_i++)
-					to16[to_i] = FTOUSHORT(rgb[i]);
+					to16[to_i] = unit_float_to_ushort_clamp(rgb[i]);
 			}
 			else {
 				for (i = 0; i < samplesperpixel; i++, to_i++, from_i++)

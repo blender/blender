@@ -987,7 +987,7 @@ static void shadecolors4(char coltop[4], char coldown[4], const char *color, sho
 
 static void round_box_shade_col4_r(unsigned char r_col[4], const char col1[4], const char col2[4], const float fac)
 {
-	const int faci = FTOCHAR(fac);
+	const int faci = unit_float_to_uchar_clamp(fac);
 	const int facm = 255 - faci;
 
 	r_col[0] = (faci * col1[0] + facm * col2[0]) / 256;

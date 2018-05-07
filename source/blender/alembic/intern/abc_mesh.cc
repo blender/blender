@@ -1325,7 +1325,7 @@ void AbcSubDReader::readObjectData(Main *bmain, const Alembic::Abc::ISampleSelec
 			MEdge *edge = find_edge(edges, mesh->totedge, (*indices)[i], (*indices)[i + 1]);
 
 			if (edge) {
-				edge->crease = FTOCHAR((*sharpnesses)[s]);
+				edge->crease = unit_float_to_uchar_clamp((*sharpnesses)[s]);
 			}
 		}
 

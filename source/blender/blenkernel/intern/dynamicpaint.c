@@ -1810,7 +1810,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(
 		}
 		/* apply wetness */
 		if (mloopcol_wet) {
-			const char c = FTOCHAR(pPoint[v_index].wetness);
+			const char c = unit_float_to_uchar_clamp(pPoint[v_index].wetness);
 			mloopcol_wet[l_index].r = c;
 			mloopcol_wet[l_index].g = c;
 			mloopcol_wet[l_index].b = c;
@@ -1840,7 +1840,7 @@ static void dynamic_paint_apply_surface_vpaint_cb(
 				rgb_float_to_uchar((unsigned char *)&mloopcol_preview[l_index].r, c);
 			}
 			else {
-				const char c = FTOCHAR(pPoint[v_index].wetness);
+				const char c = unit_float_to_uchar_clamp(pPoint[v_index].wetness);
 				mloopcol_preview[l_index].r = c;
 				mloopcol_preview[l_index].g = c;
 				mloopcol_preview[l_index].b = c;

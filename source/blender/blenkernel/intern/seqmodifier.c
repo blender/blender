@@ -532,7 +532,7 @@ static void brightcontrast_apply_threaded(int width, int height, unsigned char *
 						v = (float) pixel[c] / 255.0f * (1.0f - t) + v * t;
 					}
 
-					pixel[c] = FTOCHAR(v);
+					pixel[c] = unit_float_to_uchar_clamp(v);
 				}
 			}
 			else if (rect_float) {

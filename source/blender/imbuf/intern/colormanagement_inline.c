@@ -59,7 +59,7 @@ unsigned char IMB_colormanagement_get_luminance_byte(const unsigned char rgb[3])
 	rgb_uchar_to_float(rgbf, rgb);
 	val = dot_v3v3(imbuf_luma_coefficients, rgbf);
 
-	return FTOCHAR(val);
+	return unit_float_to_uchar_clamp(val);
 }
 
 #endif  /* __IMB_COLORMANAGEMENT_INLINE_H__ */

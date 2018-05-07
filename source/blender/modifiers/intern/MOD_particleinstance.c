@@ -197,7 +197,7 @@ static bool particle_skip(ParticleInstanceModifierData *pimd, ParticleSystem *ps
 
 static void store_float_in_vcol(MLoopCol *vcol, float float_value)
 {
-	const uchar value = FTOCHAR(float_value);
+	const uchar value = unit_float_to_uchar_clamp(float_value);
 	vcol->r = vcol->g = vcol->b = value;
 	vcol->a = 1.0f;
 }

@@ -185,9 +185,9 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 			COLLADAFW::ArrayPrimitiveType<float> *values = mVData->getFloatValues();
 			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return;  // xxx need to create an eror instead
 
-			mloopcol->r = FTOCHAR((*values)[v_index * stride]);
-			mloopcol->g = FTOCHAR((*values)[v_index * stride + 1]);
-			mloopcol->b = FTOCHAR((*values)[v_index * stride + 2]);
+			mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
+			mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
+			mloopcol->b = unit_float_to_uchar_clamp((*values)[v_index * stride + 2]);
 		}
 		break;
 
@@ -196,9 +196,9 @@ void VCOLDataWrapper::get_vcol(int v_index, MLoopCol *mloopcol)
 			COLLADAFW::ArrayPrimitiveType<double> *values = mVData->getDoubleValues();
 			if (values->empty() || values->getCount() <= (v_index * stride + 2)) return; // xxx need to create an eror instead
 
-			mloopcol->r = FTOCHAR((*values)[v_index * stride]);
-			mloopcol->g = FTOCHAR((*values)[v_index * stride + 1]);
-			mloopcol->b = FTOCHAR((*values)[v_index * stride + 2]);
+			mloopcol->r = unit_float_to_uchar_clamp((*values)[v_index * stride]);
+			mloopcol->g = unit_float_to_uchar_clamp((*values)[v_index * stride + 1]);
+			mloopcol->b = unit_float_to_uchar_clamp((*values)[v_index * stride + 2]);
 		}
 		break;
 		default:

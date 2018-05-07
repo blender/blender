@@ -112,10 +112,10 @@
 static void partial_redraw_array_init(ImagePaintPartialRedraw *pr);
 
 /* Defines and Structs */
-/* FTOCHAR as inline function */
+/* unit_float_to_uchar_clamp as inline function */
 BLI_INLINE unsigned char f_to_char(const float val)
 {
-	return FTOCHAR(val);
+	return unit_float_to_uchar_clamp(val);
 }
 
 /* ProjectionPaint defines */
@@ -4378,7 +4378,7 @@ static void do_projectpaint_draw(
 		float_to_byte_dither_v3(rgba_ub, rgb, dither, u, v);
 	}
 	else {
-		F3TOCHAR3(rgb, rgba_ub);
+		unit_float_to_uchar_clamp_v3(rgba_ub, rgb);
 	}
 	rgba_ub[3] = f_to_char(mask);
 
@@ -4582,9 +4582,9 @@ static void *do_projectpaint_thread(void *ph_v)
 								float_to_byte_dither_v3(projPixel->newColor.ch, color_f, ps->dither, projPixel->x_px, projPixel->y_px);
 							}
 							else {
-								F3TOCHAR3(color_f, projPixel->newColor.ch);
+								unit_float_to_uchar_clamp_v3(projPixel->newColor.ch, color_f);
 							}
-							projPixel->newColor.ch[3] = FTOCHAR(color_f[3]);
+							projPixel->newColor.ch[3] = unit_float_to_uchar_clamp(color_f[3]);
 							IMB_blend_color_byte(projPixel->pixel.ch_pt,  projPixel->origColor.ch_pt,
 							                     projPixel->newColor.ch, ps->blend);
 						}

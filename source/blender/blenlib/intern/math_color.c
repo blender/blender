@@ -441,12 +441,12 @@ void rgba_uchar_to_float(float r_col[4], const unsigned char col_ub[4])
 
 void rgb_float_to_uchar(unsigned char r_col[3], const float col_f[3])
 {
-	F3TOCHAR3(col_f, r_col);
+	unit_float_to_uchar_clamp_v3(r_col, col_f);
 }
 
 void rgba_float_to_uchar(unsigned char r_col[4], const float col_f[4])
 {
-	F4TOCHAR4(col_f, r_col);
+	unit_float_to_uchar_clamp_v4(r_col, col_f);
 }
 
 /* ********************************* color transforms ********************************* */

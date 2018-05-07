@@ -433,7 +433,7 @@ static ImBuf *brush_painter_imbuf_new(BrushPainter *painter, int size, float pre
 				unsigned char *dst = (unsigned char *)ibuf->rect + (y * size + x) * 4;
 
 				rgb_float_to_uchar(dst, rgba);
-				dst[3] = FTOCHAR(rgba[3]);
+				dst[3] = unit_float_to_uchar_clamp(rgba[3]);
 			}
 		}
 	}

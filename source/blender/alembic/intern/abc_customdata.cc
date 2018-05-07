@@ -362,9 +362,9 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 				                  bounds_warning_given);
 
 				const Imath::C3f &color = (*c3f_ptr)[color_index];
-				cface->a = FTOCHAR(color[0]);
-				cface->r = FTOCHAR(color[1]);
-				cface->g = FTOCHAR(color[2]);
+				cface->a = unit_float_to_uchar_clamp(color[0]);
+				cface->r = unit_float_to_uchar_clamp(color[1]);
+				cface->g = unit_float_to_uchar_clamp(color[2]);
 				cface->b = 255;
 			}
 			else {
@@ -375,10 +375,10 @@ static void read_custom_data_mcols(const std::string & iobject_full_name,
 				                  bounds_warning_given);
 
 				const Imath::C4f &color = (*c4f_ptr)[color_index];
-				cface->a = FTOCHAR(color[0]);
-				cface->r = FTOCHAR(color[1]);
-				cface->g = FTOCHAR(color[2]);
-				cface->b = FTOCHAR(color[3]);
+				cface->a = unit_float_to_uchar_clamp(color[0]);
+				cface->r = unit_float_to_uchar_clamp(color[1]);
+				cface->g = unit_float_to_uchar_clamp(color[2]);
+				cface->b = unit_float_to_uchar_clamp(color[3]);
 			}
 		}
 	}

@@ -514,35 +514,34 @@ MALWAYS_INLINE __m128 _bli_math_blend_sse(const __m128 mask,
 }
 
 /* Low level conversion functions */
-/* TODO: name sensibly. */
-MINLINE unsigned char FTOCHAR(float val)
+MINLINE unsigned char unit_float_to_uchar_clamp(float val)
 {
 	return (unsigned char)(((val <= 0.0f) ? 0 : ((val > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * val) + 0.5f))));
 }
-#define FTOCHAR(val) ((CHECK_TYPE_INLINE(val, float)), FTOCHAR(val))
+#define unit_float_to_uchar_clamp(val) ((CHECK_TYPE_INLINE(val, float)), unit_float_to_uchar_clamp(val))
 
-MINLINE unsigned short FTOUSHORT(float val)
+MINLINE unsigned short unit_float_to_ushort_clamp(float val)
 {
 	return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f));
 }
-#define FTOUSHORT(val) ((CHECK_TYPE_INLINE(val, float)), FTOUSHORT(val))
+#define unit_float_to_ushort_clamp(val) ((CHECK_TYPE_INLINE(val, float)), unit_float_to_ushort_clamp(val))
 
-MINLINE unsigned char USHORTTOUCHAR(unsigned short val)
+MINLINE unsigned char unit_ushort_to_uchar(unsigned short val)
 {
 	return (unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8);
 }
-#define USHORTTOUCHAR(val) ((CHECK_TYPE_INLINE(val, unsigned short)), USHORTTOUCHAR(val))
+#define unit_ushort_to_uchar(val) ((CHECK_TYPE_INLINE(val, unsigned short)), unit_ushort_to_uchar(val))
 
-#define F3TOCHAR3(v2, v1) {                                                   \
-		(v1)[0] = FTOCHAR((v2[0]));                                           \
-		(v1)[1] = FTOCHAR((v2[1]));                                           \
-		(v1)[2] = FTOCHAR((v2[2]));                                           \
+#define unit_float_to_uchar_clamp_v3(v1, v2) {                                              \
+	(v1)[0] = unit_float_to_uchar_clamp((v2[0]));                                           \
+	(v1)[1] = unit_float_to_uchar_clamp((v2[1]));                                           \
+	(v1)[2] = unit_float_to_uchar_clamp((v2[2]));                                           \
 } ((void)0)
-#define F4TOCHAR4(v2, v1) {                                                   \
-		(v1)[0] = FTOCHAR((v2[0]));                                           \
-		(v1)[1] = FTOCHAR((v2[1]));                                           \
-		(v1)[2] = FTOCHAR((v2[2]));                                           \
-		(v1)[3] = FTOCHAR((v2[3]));                                           \
+#define unit_float_to_uchar_clamp_v4(v1, v2) {                                              \
+	(v1)[0] = unit_float_to_uchar_clamp((v2[0]));                                           \
+	(v1)[1] = unit_float_to_uchar_clamp((v2[1]));                                           \
+	(v1)[2] = unit_float_to_uchar_clamp((v2[2]));                                           \
+	(v1)[3] = unit_float_to_uchar_clamp((v2[3]));                                           \
 } ((void)0)
 
 #endif  /* __SSE2__ */

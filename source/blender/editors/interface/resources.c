@@ -1549,7 +1549,7 @@ void UI_GetThemeColorBlendShade3ubv(int colorid1, int colorid2, float fac, int o
 	blend[1] = offset + floorf((1.0f - fac) * cp1[1] + fac * cp2[1]);
 	blend[2] = offset + floorf((1.0f - fac) * cp1[2] + fac * cp2[2]);
 
-	F3TOCHAR3(blend, col);
+	unit_float_to_uchar_clamp_v3(col, blend);
 }
 
 void UI_GetThemeColorShade4ubv(int colorid, int offset, unsigned char col[4])

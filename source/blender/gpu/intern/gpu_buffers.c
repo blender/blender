@@ -452,7 +452,7 @@ void GPU_pbvh_grid_buffers_update(
 									                         diffuse_color, color_ub);
 								}
 								else {
-									F3TOCHAR3(diffuse_color, color_ub);
+									unit_float_to_uchar_clamp_v3(color_ub, diffuse_color);
 								}
 								GWN_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, color_ub);
 							}
@@ -495,7 +495,7 @@ void GPU_pbvh_grid_buffers_update(
 									                              color_ub);
 								}
 								else {
-									F3TOCHAR3(diffuse_color, color_ub);
+									unit_float_to_uchar_clamp_v3(color_ub, diffuse_color);
 								}
 								GWN_vertbuf_attr_set(buffers->vert_buf, g_vbo_id.col, vbo_index, color_ub);
 							}

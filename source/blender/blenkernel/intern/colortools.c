@@ -955,9 +955,9 @@ void curvemapping_evaluate_premulRGB(const CurveMapping *cumap, unsigned char ve
 
 	curvemapping_evaluate_premulRGBF(cumap, vecout, vecin);
 
-	vecout_byte[0] = FTOCHAR(vecout[0]);
-	vecout_byte[1] = FTOCHAR(vecout[1]);
-	vecout_byte[2] = FTOCHAR(vecout[2]);
+	vecout_byte[0] = unit_float_to_uchar_clamp(vecout[0]);
+	vecout_byte[1] = unit_float_to_uchar_clamp(vecout[1]);
+	vecout_byte[2] = unit_float_to_uchar_clamp(vecout[2]);
 }
 
 int curvemapping_RGBA_does_something(const CurveMapping *cumap)
