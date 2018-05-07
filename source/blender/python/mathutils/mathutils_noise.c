@@ -731,6 +731,7 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 {
 	PyObject *value;
 	PyObject *list;
+	PyObject *ret;
 	float vec[3];
 	float da[4], pa[12];
 	int dtype = 0;
@@ -749,10 +750,14 @@ static PyObject *M_Noise_voronoi(PyObject *UNUSED(self), PyObject *args)
 	voronoi(vec[0], vec[1], vec[2], da, pa, me, dtype);
 
 	for (i = 0; i < 4; i++) {
-		PyList_SET_ITEM(list, i, Vector_CreatePyObject(pa + 3 * i, 3, NULL));
+		PyObject *v = Vector_CreatePyObject(pa + 3 * i, 3, NULL);
+		PyList_SET_ITEM(list, i, v);
+		Py_DECREF(v);
 	}
 
-	return Py_BuildValue("[[ffff]O]", da[0], da[1], da[2], da[3], list);
+	ret = Py_BuildValue("[[ffff]O]", da[0], da[1], da[2], da[3], list);
+	Py_DECREF(list);
+	return ret;
 }
 
 PyDoc_STRVAR(M_Noise_cell_doc,
