@@ -229,6 +229,7 @@ void drw_state_set(DRWState state)
 			}
 			else {
 				glDisable(GL_BLEND);
+				glBlendFunc(GL_ONE, GL_ONE); /* Don't multiply incoming color by alpha. */
 			}
 		}
 	}
