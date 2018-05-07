@@ -5403,7 +5403,7 @@ void BM_mesh_bevel(
 		}
 
 		/* Perhaps do a pass to try to even out widths */
-		if (!bp.vertex_only && bp.offset_adjust) {
+		if (!bp.vertex_only && bp.offset_adjust && bp.offset_type != BEVEL_AMT_PERCENT) {
 			adjust_offsets(&bp);
 		}
 
