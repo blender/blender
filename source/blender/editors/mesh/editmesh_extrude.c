@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_global.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -428,6 +429,9 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	WM_manipulator_set_flag(man->axis_arrow, WM_MANIPULATOR_HIDDEN, true);
 	WM_manipulator_set_flag(man->axis_redo, WM_MANIPULATOR_HIDDEN, true);
 
+	if (G.moving) {
+		return;
+	}
 	struct TransformBounds tbounds;
 	if (!ED_transform_calc_manipulator_stats(C, false, &tbounds)) {
 		return;
