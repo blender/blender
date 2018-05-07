@@ -293,6 +293,13 @@ void modifiers_foreachTexLink(Object *ob, TexWalkFunc walk, void *userData)
 void modifier_copyData_generic(const ModifierData *md_src, ModifierData *md_dst)
 {
 	const ModifierTypeInfo *mti = modifierType_getInfo(md_src->type);
+
+	/* md_dst may have alredy be fully initialized with some extra allocated data,
+	 * we need to free it now to avoid memleak. */
+	if (mti->freeData) {
+		mti->freeData(md_dst);
+	}
+
 	const size_t data_size = sizeof(ModifierData);
 	const char *md_src_data = ((const char *)md_src) + data_size;
 	char       *md_dst_data =       ((char *)md_dst) + data_size;
