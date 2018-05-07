@@ -1375,8 +1375,6 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	ed_keymap_paint_brush_size(keymap, "tool_settings.weight_paint.brush.size");
 	ed_keymap_paint_brush_radial_control(keymap, "weight_paint", RC_WEIGHT);
 
-	ed_keymap_stencil(keymap);
-
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", EKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.vertex_paint.brush.stroke_method");
 
