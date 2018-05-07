@@ -105,7 +105,7 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int /*tileNumber*/)
 			color[3] = 1.0f;
 			this->m_input->readSampled(color, rx, ry, COM_PS_NEAREST);
 			IMB_colormanagement_processor_apply_v4(cm_processor, color);
-			F4TOCHAR4(color, this->m_outputBuffer + offset);
+			rgba_float_to_uchar(this->m_outputBuffer + offset, color);
 			offset += 4;
 		}
 	}

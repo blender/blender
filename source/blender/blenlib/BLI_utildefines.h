@@ -224,29 +224,6 @@ extern "C" {
 	b = tmp;                                                                  \
 } (void)0
 
-
-#define FTOCHAR(val) ((CHECK_TYPE_INLINE(val, float)), \
-		(char)(((val) <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * (val)) + 0.5f))))
-#define FTOUSHORT(val) ((CHECK_TYPE_INLINE(val, float)), \
-		(unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f)))
-#define USHORTTOUCHAR(val) ((unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8))
-#define F3TOCHAR3(v2, v1) {                                                   \
-		(v1)[0] = FTOCHAR((v2[0]));                                           \
-		(v1)[1] = FTOCHAR((v2[1]));                                           \
-		(v1)[2] = FTOCHAR((v2[2]));                                           \
-} (void)0
-#define F3TOCHAR4(v2, v1) {                                                   \
-		(v1)[0] = FTOCHAR((v2[0]));                                           \
-		(v1)[1] = FTOCHAR((v2[1]));                                           \
-		(v1)[2] = FTOCHAR((v2[2]));                                           \
-		(v1)[3] = 255;                                                        \
-} (void)0
-#define F4TOCHAR4(v2, v1) {                                                   \
-		(v1)[0] = FTOCHAR((v2[0]));                                           \
-		(v1)[1] = FTOCHAR((v2[1]));                                           \
-		(v1)[2] = FTOCHAR((v2[2]));                                           \
-		(v1)[3] = FTOCHAR((v2[3]));                                           \
-} (void)0
 #define VECCOPY(v1, v2) {                                                     \
 		*(v1) =   *(v2);                                                      \
 		*(v1 + 1) = *(v2 + 1);                                                \

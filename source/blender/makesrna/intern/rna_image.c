@@ -30,6 +30,7 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"

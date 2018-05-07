@@ -33,6 +33,7 @@
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_math_base.h"
 
 #include "BKE_icons.h"
 #include "BKE_object.h"

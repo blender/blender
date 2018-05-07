@@ -513,6 +513,38 @@ MALWAYS_INLINE __m128 _bli_math_blend_sse(const __m128 mask,
 	return _mm_or_ps(_mm_and_ps(mask, a), _mm_andnot_ps(mask, b));
 }
 
+/* Low level conversion functions */
+/* TODO: name sensibly. */
+MINLINE unsigned char FTOCHAR(float val)
+{
+	return (unsigned char)(((val <= 0.0f) ? 0 : ((val > (1.0f - 0.5f / 255.0f)) ? 255 : ((255.0f * val) + 0.5f))));
+}
+#define FTOCHAR(val) ((CHECK_TYPE_INLINE(val, float)), FTOCHAR(val))
+
+MINLINE unsigned short FTOUSHORT(float val)
+{
+	return (unsigned short)((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (val * 65535.0f + 0.5f));
+}
+#define FTOUSHORT(val) ((CHECK_TYPE_INLINE(val, float)), FTOUSHORT(val))
+
+MINLINE unsigned char USHORTTOUCHAR(unsigned short val)
+{
+	return (unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8);
+}
+#define USHORTTOUCHAR(val) ((CHECK_TYPE_INLINE(val, unsigned short)), USHORTTOUCHAR(val))
+
+#define F3TOCHAR3(v2, v1) {                                                   \
+		(v1)[0] = FTOCHAR((v2[0]));                                           \
+		(v1)[1] = FTOCHAR((v2[1]));                                           \
+		(v1)[2] = FTOCHAR((v2[2]));                                           \
+} ((void)0)
+#define F4TOCHAR4(v2, v1) {                                                   \
+		(v1)[0] = FTOCHAR((v2[0]));                                           \
+		(v1)[1] = FTOCHAR((v2[1]));                                           \
+		(v1)[2] = FTOCHAR((v2[2]));                                           \
+		(v1)[3] = FTOCHAR((v2[3]));                                           \
+} ((void)0)
+
 #endif  /* __SSE2__ */
 
 #endif /* __MATH_BASE_INLINE_C__ */
