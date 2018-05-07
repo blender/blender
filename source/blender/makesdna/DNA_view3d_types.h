@@ -154,7 +154,9 @@ typedef struct View3DOverlay {
 
 	/* Paint mode settings */
 	int paint_flag;
-	int pad;
+
+	/* Armature edit/pose mode settings */
+	int arm_flag;
 } View3DOverlay;
 
 /* 3D ViewPort Struct */
@@ -351,6 +353,11 @@ enum {
 	V3D_OVERLAY_EDIT_OCCLUDE_WIRE = (1 << 3),
 
 	V3D_OVERLAY_EDIT_WEIGHT       = (1 << 4),
+};
+
+/* View3DOverlay->arm_flag */
+enum {
+	V3D_OVERLAY_ARM_TRANSP_BONES  = (1 << 0),
 };
 
 /* View3DOverlay->paint_flag */

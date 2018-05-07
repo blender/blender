@@ -3626,6 +3626,8 @@ class VIEW3D_PT_overlay(Panel):
         subsub.active = scene.unit_settings.system == 'NONE'
         subsub.prop(overlay, "grid_subdivisions", text="Subdivisions")
 
+
+
         if context.mode == 'EDIT_MESH':
             col.separator()
             col.label(text="Edit Mode:")
@@ -3647,6 +3649,21 @@ class VIEW3D_PT_overlay(Panel):
             sub.active = overlay.show_vertex_normals or overlay.show_face_normals or overlay.show_split_normals
             sub.prop(overlay, "normals_length", text="Size")
 
+        elif context.mode == 'POSE':
+            col.separator()
+            col.label(text="Pose Mode:")
+
+            col = layout.column()
+            col.active = display_all
+            col.prop(overlay, "transparent_bones")
+
+        elif context.mode == 'EDIT_ARMATURE':
+            col.separator()
+            col.label(text="Edit Armature:")
+
+            col = layout.column()
+            col.active = display_all
+            col.prop(overlay, "transparent_bones")
 
         elif context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             col.separator()

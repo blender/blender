@@ -27,6 +27,7 @@
 #include "DRW_render.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_view3d_types.h"
 
 #include "draw_common.h"
 
@@ -76,7 +77,7 @@ static void EDIT_ARMATURE_cache_init(void *vedata)
 
 	{
 		/* Solid bones */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
 		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
 	}
 
@@ -137,13 +138,24 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	EDIT_ARMATURE_PassList *psl = ((EDIT_ARMATURE_Data *)vedata)->psl;
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const bool transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 
 	DRW_draw_pass(psl->bone_envelope);
 
+	if (transparent_bones) {
+		DRW_pass_state_add(psl->bone_solid, DRW_STATE_BLEND);
+		DRW_pass_state_remove(psl->bone_solid, DRW_STATE_WRITE_DEPTH);
+		DRW_draw_pass(psl->bone_solid);
+	}
+
 	MULTISAMPLE_SYNC_ENABLE(dfbl, dtxl)
 
+	if (!transparent_bones) {
+		DRW_draw_pass(psl->bone_solid);
+	}
+
 	DRW_draw_pass(psl->bone_outline);
-	DRW_draw_pass(psl->bone_solid);
 	DRW_draw_pass(psl->bone_wire);
 	DRW_draw_pass(psl->relationship);
 

@@ -5,5 +5,5 @@ out vec4 fragColor;
 
 void main()
 {
-	fragColor = finalColor;
+	fragColor = vec4(finalColor.rgb, 0.6); /* Hardcoded transparency factor. */
 }

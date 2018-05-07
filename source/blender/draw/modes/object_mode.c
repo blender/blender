@@ -987,7 +987,7 @@ static void OBJECT_cache_init(void *vedata)
 
 	{
 		/* Solid bones */
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK;
 		psl->bone_solid = DRW_pass_create("Bone Solid Pass", state);
 		psl->bone_outline = DRW_pass_create("Bone Outline Pass", state);
 	}
