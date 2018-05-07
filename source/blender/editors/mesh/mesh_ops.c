@@ -83,6 +83,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_screw);
 
 	WM_operatortype_append(MESH_OT_extrude_region);
+	WM_operatortype_append(MESH_OT_extrude_context);
 	WM_operatortype_append(MESH_OT_extrude_faces_indiv);
 	WM_operatortype_append(MESH_OT_extrude_edges_indiv);
 	WM_operatortype_append(MESH_OT_extrude_verts_indiv);
@@ -264,6 +265,13 @@ void ED_operatormacros_mesh(void)
 	ot = WM_operatortype_append_macro("MESH_OT_extrude_region_move", "Extrude Region and Move",
 	                                  "Extrude region and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");
+	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_enum_set(otmacro->ptr, "proportional", 0);
+	RNA_boolean_set(otmacro->ptr, "mirror", false);
+
+	ot = WM_operatortype_append_macro("MESH_OT_extrude_context_move", "Extrude Region and Move",
+	                                  "Extrude context and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
+	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_context");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", false);

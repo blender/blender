@@ -616,8 +616,9 @@ int ED_transform_calc_manipulator_stats(
 	/* global, local or normal orientation?
 	 * if we could check 'totsel' now, this should be skipped with no selection. */
 	if (ob && !is_gp_edit) {
+		const short orientation_type = params->orientation_type ? (params->orientation_type - 1) : scene->orientation_type;
 
-		switch (scene->orientation_type) {
+		switch (orientation_type) {
 
 			case V3D_MANIP_GLOBAL:
 			{

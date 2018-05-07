@@ -206,6 +206,8 @@ struct TransformBounds {
 struct TransformCalcParams {
 	uint use_only_center : 1;
 	uint use_local_axis : 1;
+	/* Use 'Scene.orientation_type' when zero, otherwise subtract one and use. */
+	ushort orientation_type;
 };
 int ED_transform_calc_manipulator_stats(
         const struct bContext *C,
