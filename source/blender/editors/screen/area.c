@@ -256,19 +256,18 @@ static void area_draw_azone_fullscreen(short x1, short y1, short x2, short y2, f
 	if (G.debug_value == 1) {
 		rcti click_rect;
 		float icon_size = UI_DPI_ICON_SIZE + 7 * UI_DPI_FAC;
-		unsigned char alpha_debug = 255 * alpha;
 
 		BLI_rcti_init(&click_rect, x, x + icon_size, y, y + icon_size);
 
 		Gwn_VertFormat *format = immVertexFormat();
 		unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-		unsigned int color = GWN_vertformat_attr_add(format, "color", GWN_COMP_U8, 4, GWN_FETCH_INT_TO_FLOAT_UNIT);
 
-		immAttrib4ub(color, 255, 0, 0, alpha_debug);
-		immBindBuiltinProgram(GPU_SHADER_2D_FLAT_COLOR);
+		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+
+		immUniformColor4f(1.0f, 0.0f, 0.0f, alpha);
 		imm_draw_box_wire_2d(pos, click_rect.xmin, click_rect.ymin, click_rect.xmax, click_rect.ymax);
 
-		immAttrib4ub(color, 0, 255, 255, alpha_debug);
+		immUniformColor4f(0.0f, 1.0f, 1.0f, alpha);
 		immBegin(GWN_PRIM_LINES, 4);
 		immVertex2f(pos, click_rect.xmin, click_rect.ymin);
 		immVertex2f(pos, click_rect.xmax, click_rect.ymax);
