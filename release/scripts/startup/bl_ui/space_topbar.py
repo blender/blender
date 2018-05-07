@@ -169,6 +169,10 @@ class TOPBAR_HT_lower_bar(Header):
 
         elif mode == 'POSE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
+        elif mode == 'PARTICLE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".particlemode", category="")
+
 
     def draw_right(self, context):
         layout = self.layout

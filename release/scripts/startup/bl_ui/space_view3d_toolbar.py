@@ -1227,7 +1227,7 @@ class VIEW3D_MT_tools_projectpaint_stencil(Menu):
 
 class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
     """Default tools for particle mode"""
-    bl_context = "particlemode"
+    bl_context = ".particlemode"
     bl_label = "Options"
     bl_category = "Tools"
 
