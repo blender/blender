@@ -321,11 +321,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
 		 */
 		if ((CFRA < mpath->start_frame) || (CFRA >= mpath->end_frame)) {
-			printf("skipping - out of range - %d (%d, %d)\n", CFRA, mpath->start_frame, mpath->end_frame);
 			continue;
-		}
-		else {
-			printf("doing %d\n", CFRA);
 		}
 		
 		/* get the relevant cache vert to write to */
