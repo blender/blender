@@ -732,9 +732,7 @@ static float get_bone_wire_thickness(int boneflag)
 {
 	if (g_theme.const_color)
 		return g_theme.const_wire;
-	else if (boneflag & BONE_DRAW_ACTIVE)
-		return 3.0f;
-	else if (boneflag & BONE_SELECTED)
+	else if (boneflag & (BONE_DRAW_ACTIVE | BONE_SELECTED))
 		return 2.0f;
 	else
 		return 1.0f;
@@ -1030,7 +1028,7 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 	const float *col = (g_theme.const_color) ? g_theme.const_color :
 	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? g_theme.text_hi_color : g_theme.text_color;
 	copy_v4_v4(final_col, col);
-	final_col[3] = (g_theme.const_color) ? 1.0 : 0.3; /* Mix with axes color. */
+	final_col[3] = (g_theme.const_color) ? 1.0 : 0.4; /* Mix with axes color. */
 	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), final_col);
 }
 
