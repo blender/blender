@@ -1129,6 +1129,8 @@ static float brush_strength(
 				case BRUSH_MASK_SMOOTH:
 					return alpha * pressure * feather;
 			}
+			BLI_assert(!"Not supposed to happen");
+			break;
 
 		case SCULPT_TOOL_CREASE:
 		case SCULPT_TOOL_BLOB:
