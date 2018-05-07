@@ -38,6 +38,7 @@
 #include "BLI_bitmap.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_deform.h"
@@ -46,7 +47,7 @@
 
 
 static void generate_vert_coordinates(
-        DerivedMesh *dm, Object *ob, Object *ob_center, const float offset[3],
+        Mesh *mesh, Object *ob, Object *ob_center, const float offset[3],
         const int num_verts, float (*r_cos)[3], float r_size[3])
 {
 	float min_co[3], max_co[3];
@@ -55,30 +56,37 @@ static void generate_vert_coordinates(
 
 	INIT_MINMAX(min_co, max_co);
 
-	dm->getVertCos(dm, r_cos);
+	MVert *mv = mesh->mvert;
+	for (int i = 0; i < mesh->totvert; i++, mv++) {
+		copy_v3_v3(r_cos[i], mv->co);
+		if (r_size != NULL && ob_center == NULL) {
+			minmax_v3v3_v3(min_co, max_co, r_cos[i]);
+		}
+	}
 
 	/* Get size (i.e. deformation of the spheroid generating normals), either from target object, or own geometry. */
-	if (ob_center) {
-		/* Not we are not interested in signs here - they are even troublesome actually, due to security clamping! */
-		abs_v3_v3(r_size, ob_center->size);
-	}
-	else {
-		minmax_v3v3_v3_array(min_co, max_co, r_cos, num_verts);
-		/* Set size. */
-		sub_v3_v3v3(r_size, max_co, min_co);
+	if (r_size != NULL) {
+		if (ob_center != NULL) {
+			/* Not we are not interested in signs here - they are even troublesome actually, due to security clamping! */
+			abs_v3_v3(r_size, ob_center->size);
+		}
+		else {
+			/* Set size. */
+			sub_v3_v3v3(r_size, max_co, min_co);
+		}
+
+		/* Error checks - we do not want one or more of our sizes to be null! */
+		if (is_zero_v3(r_size)) {
+			r_size[0] = r_size[1] = r_size[2] = 1.0f;
+		}
+		else {
+			CLAMP_MIN(r_size[0], FLT_EPSILON);
+			CLAMP_MIN(r_size[1], FLT_EPSILON);
+			CLAMP_MIN(r_size[2], FLT_EPSILON);
+		}
 	}
 
-	/* Error checks - we do not want one or more of our sizes to be null! */
-	if (is_zero_v3(r_size)) {
-		r_size[0] = r_size[1] = r_size[2] = 1.0f;
-	}
-	else {
-		CLAMP_MIN(r_size[0], FLT_EPSILON);
-		CLAMP_MIN(r_size[1], FLT_EPSILON);
-		CLAMP_MIN(r_size[2], FLT_EPSILON);
-	}
-
-	if (ob_center) {
+	if (ob_center != NULL) {
 		float inv_obmat[4][4];
 
 		/* Translate our coordinates so that center of ob_center is at (0, 0, 0). */
@@ -90,7 +98,7 @@ static void generate_vert_coordinates(
 
 		do_diff = true;
 	}
-	else if (!is_zero_v3(offset)) {
+	else if (offset != NULL && !is_zero_v3(offset)) {
 		negate_v3_v3(diff, offset);
 
 		do_diff = true;
@@ -186,7 +194,7 @@ static bool polygons_check_flip(
 }
 
 static void normalEditModifier_do_radial(
-        NormalEditModifierData *enmd, Object *ob, DerivedMesh *dm,
+        NormalEditModifierData *enmd, Object *ob, Mesh *mesh,
         short (*clnors)[2], float (*loopnors)[3], float (*polynors)[3],
         const short mix_mode, const float mix_factor, const float mix_limit,
         MDeformVert *dvert, const int defgrp_index, const bool use_invert_vgroup,
@@ -201,7 +209,7 @@ static void normalEditModifier_do_radial(
 
 	BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)num_verts, __func__);
 
-	generate_vert_coordinates(dm, ob, enmd->target, enmd->offset, num_verts, cos, size);
+	generate_vert_coordinates(mesh, ob, enmd->target, enmd->offset, num_verts, cos, size);
 
 	/**
 	 * size gives us our spheroid coefficients ``(A, B, C)``.
@@ -270,10 +278,11 @@ static void normalEditModifier_do_radial(
 		            mix_limit, mix_mode, num_verts, mloop, loopnors, nos, num_loops);
 	}
 
-	if (polygons_check_flip(mloop, nos, dm->getLoopDataLayout(dm), mpoly, polynors, num_polys)) {
-		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	if (polygons_check_flip(mloop, nos, &mesh->ldata, mpoly, polynors, num_polys)) {
+		/* XXX TODO is this still needed? */
+		// mesh->dirty |= DM_DIRTY_TESS_CDLAYERS;
 		/* We need to recompute vertex normals! */
-		dm->calcNormals(dm);
+		BKE_mesh_calc_normals(mesh);
 	}
 
 	BKE_mesh_normals_loop_custom_set(mvert, num_verts, medge, num_edges, mloop, nos, num_loops,
@@ -285,7 +294,7 @@ static void normalEditModifier_do_radial(
 }
 
 static void normalEditModifier_do_directional(
-        NormalEditModifierData *enmd, Object *ob, DerivedMesh *dm,
+        NormalEditModifierData *enmd, Object *ob, Mesh *mesh,
         short (*clnors)[2], float (*loopnors)[3], float (*polynors)[3],
         const short mix_mode, const float mix_factor, const float mix_limit,
         MDeformVert *dvert, const int defgrp_index, const bool use_invert_vgroup,
@@ -294,22 +303,17 @@ static void normalEditModifier_do_directional(
 {
 	const bool use_parallel_normals = (enmd->flag & MOD_NORMALEDIT_USE_DIRECTION_PARALLEL) != 0;
 
-	float (*cos)[3] = MEM_malloc_arrayN((size_t)num_verts, sizeof(*cos), __func__);
 	float (*nos)[3] = MEM_malloc_arrayN((size_t)num_loops, sizeof(*nos), __func__);
 
 	float target_co[3];
 	int i;
 
-	dm->getVertCos(dm, cos);
-
 	/* Get target's center coordinates in ob local coordinates. */
-	{
-		float mat[4][4];
+	float mat[4][4];
 
-		invert_m4_m4(mat, ob->obmat);
-		mul_m4_m4m4(mat, mat, enmd->target->obmat);
-		copy_v3_v3(target_co, mat[3]);
-	}
+	invert_m4_m4(mat, ob->obmat);
+	mul_m4_m4m4(mat, mat, enmd->target->obmat);
+	copy_v3_v3(target_co, mat[3]);
 
 	if (use_parallel_normals) {
 		float no[3];
@@ -322,6 +326,9 @@ static void normalEditModifier_do_directional(
 		}
 	}
 	else {
+		float (*cos)[3] = MEM_malloc_arrayN((size_t)num_verts, sizeof(*cos), __func__);
+		generate_vert_coordinates(mesh, ob, enmd->target, NULL, num_verts, cos, NULL);
+
 		BLI_bitmap *done_verts = BLI_BITMAP_NEW((size_t)num_verts, __func__);
 		MLoop *ml;
 		float (*no)[3];
@@ -342,6 +349,7 @@ static void normalEditModifier_do_directional(
 		}
 
 		MEM_freeN(done_verts);
+		MEM_freeN(cos);
 	}
 
 	if (loopnors) {
@@ -349,14 +357,13 @@ static void normalEditModifier_do_directional(
 		            mix_limit, mix_mode, num_verts, mloop, loopnors, nos, num_loops);
 	}
 
-	if (polygons_check_flip(mloop, nos, dm->getLoopDataLayout(dm), mpoly, polynors, num_polys)) {
-		dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	if (polygons_check_flip(mloop, nos, &mesh->ldata, mpoly, polynors, num_polys)) {
+		mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	}
 
 	BKE_mesh_normals_loop_custom_set(mvert, num_verts, medge, num_edges, mloop, nos, num_loops,
 	                                 mpoly, (const float(*)[3])polynors, num_polys, clnors);
 
-	MEM_freeN(cos);
 	MEM_freeN(nos);
 }
 
@@ -372,93 +379,105 @@ static bool is_valid_target(NormalEditModifierData *enmd)
 	return false;
 }
 
-static DerivedMesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, DerivedMesh *dm)
+static Mesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, Mesh *mesh)
 {
-	Mesh *me = ob->data;
-
-	const int num_verts = dm->getNumVerts(dm);
-	const int num_edges = dm->getNumEdges(dm);
-	const int num_loops = dm->getNumLoops(dm);
-	const int num_polys = dm->getNumPolys(dm);
-	MVert *mvert;
-	MEdge *medge;
-	MLoop *mloop;
-	MPoly *mpoly;
-
 	const bool use_invert_vgroup = ((enmd->flag & MOD_NORMALEDIT_INVERT_VGROUP) != 0);
 	const bool use_current_clnors = !((enmd->mix_mode == MOD_NORMALEDIT_MIX_COPY) &&
 	                                  (enmd->mix_factor == 1.0f) &&
 	                                  (enmd->defgrp_name[0] == '\0') &&
 	                                  (enmd->mix_limit == (float)M_PI));
 
+	/* Do not run that modifier at all if autosmooth is disabled! */
+	if (!is_valid_target(enmd) || mesh->totloop == 0) {
+		return mesh;
+	}
+
+	/* XXX TODO ARG GRRR XYQWNMPRXTYY
+	 * Once we fully switch to Mesh evaluation of modifiers, we can expect to get that flag from the COW copy.
+	 * But for now, it is lost in the DM intermediate step, so we need to directly check orig object's data. */
+#if 0
+	if (!(mesh->flag & ME_AUTOSMOOTH)) {
+#else
+	if (!(((Mesh *)ob->data)->flag & ME_AUTOSMOOTH)) {
+#endif
+		modifier_setError((ModifierData *)enmd, "Enable 'Auto Smooth' option in mesh settings");
+		return mesh;
+	}
+
+	Mesh *result;
+	BKE_id_copy_ex(
+	            NULL, &mesh->id, (ID **)&result,
+	            LIB_ID_CREATE_NO_MAIN |
+	            LIB_ID_CREATE_NO_USER_REFCOUNT |
+	            LIB_ID_CREATE_NO_DEG_TAG|
+	            LIB_ID_COPY_NO_PREVIEW,
+	            false);
+
+	const int num_verts = result->totvert;
+	const int num_edges = result->totedge;
+	const int num_loops = result->totloop;
+	const int num_polys = result->totpoly;
+	MVert *mvert = result->mvert;
+	MEdge *medge = result->medge;
+	MLoop *mloop = result->mloop;
+	MPoly *mpoly = result->mpoly;
+
 	int defgrp_index;
 	MDeformVert *dvert;
 
 	float (*loopnors)[3] = NULL;
-	short (*clnors)[2];
+	short (*clnors)[2] = NULL;
 
 	float (*polynors)[3];
-	bool free_polynors = false;
 
-	/* Do not run that modifier at all if autosmooth is disabled! */
-	if (!is_valid_target(enmd) || !num_loops) {
-		return dm;
+	CustomData *ldata = &result->ldata;
+	if (CustomData_has_layer(ldata, CD_NORMAL)) {
+		loopnors = CustomData_get_layer(ldata, CD_NORMAL);
+	}
+	else {
+		loopnors = CustomData_add_layer(ldata, CD_NORMAL, CD_CALLOC, NULL, num_loops);
 	}
 
-	if (!(me->flag & ME_AUTOSMOOTH)) {
-		modifier_setError((ModifierData *)enmd, "Enable 'Auto Smooth' option in mesh settings");
-		return dm;
+	/* Compute poly (always needed) and vert normals. */
+	CustomData *pdata = &result->pdata;
+	polynors = CustomData_get_layer(pdata, CD_NORMAL);
+	if (!polynors) {
+		polynors = CustomData_add_layer(pdata, CD_NORMAL, CD_CALLOC, NULL, num_polys);
 	}
+	BKE_mesh_calc_normals_poly(mvert, NULL, num_verts, mloop, mpoly, num_loops, num_polys, polynors,
+	                           (result->runtime.cd_dirty_vert & CD_MASK_NORMAL) ? false : true);
 
-	medge = dm->getEdgeArray(dm);
-	if (me->medge == medge) {
-		/* We need to duplicate data here, otherwise setting custom normals (which may also affect sharp edges) could
-		 * modify org mesh, see T43671. */
-		dm = CDDM_copy(dm);
-		medge = dm->getEdgeArray(dm);
-	}
-	mvert = dm->getVertArray(dm);
-	mloop = dm->getLoopArray(dm);
-	mpoly = dm->getPolyArray(dm);
+	result->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 
 	if (use_current_clnors) {
-		dm->calcLoopNormals(dm, true, me->smoothresh);
-		loopnors = dm->getLoopDataArray(dm, CD_NORMAL);
+		clnors = CustomData_get_layer(ldata, CD_CUSTOMLOOPNORMAL);
+
+		BKE_mesh_normals_loop_split(mvert, num_verts, medge, num_edges, mloop, loopnors, num_loops,
+		                            mpoly, (const float (*)[3])polynors, num_polys,
+		                            true, result->smoothresh,
+		                            NULL, clnors, NULL);
 	}
 
-	clnors = CustomData_duplicate_referenced_layer(&dm->loopData, CD_CUSTOMLOOPNORMAL, num_loops);
 	if (!clnors) {
-		DM_add_loop_layer(dm, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL);
-		clnors = dm->getLoopDataArray(dm, CD_CUSTOMLOOPNORMAL);
+		clnors = CustomData_add_layer(ldata, CD_CUSTOMLOOPNORMAL, CD_CALLOC, NULL, num_loops);
 	}
 
-	polynors = dm->getPolyDataArray(dm, CD_NORMAL);
-	if (!polynors) {
-		polynors = MEM_malloc_arrayN((size_t)num_polys, sizeof(*polynors), __func__);
-		BKE_mesh_calc_normals_poly(mvert, NULL, num_verts, mloop, mpoly, num_loops, num_polys, polynors, false);
-		free_polynors = true;
-	}
-
-	modifier_get_vgroup(ob, dm, enmd->defgrp_name, &dvert, &defgrp_index);
+	modifier_get_vgroup_mesh(ob, result, enmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (enmd->mode == MOD_NORMALEDIT_MODE_RADIAL) {
 		normalEditModifier_do_radial(
-		            enmd, ob, dm, clnors, loopnors, polynors,
+		            enmd, ob, result, clnors, loopnors, polynors,
 		            enmd->mix_mode, enmd->mix_factor, enmd->mix_limit, dvert, defgrp_index, use_invert_vgroup,
 		            mvert, num_verts, medge, num_edges, mloop, num_loops, mpoly, num_polys);
 	}
 	else if (enmd->mode == MOD_NORMALEDIT_MODE_DIRECTIONAL) {
 		normalEditModifier_do_directional(
-		            enmd, ob, dm, clnors, loopnors, polynors,
+		            enmd, ob, result, clnors, loopnors, polynors,
 		            enmd->mix_mode, enmd->mix_factor, enmd->mix_limit, dvert, defgrp_index, use_invert_vgroup,
 		            mvert, num_verts, medge, num_edges, mloop, num_loops, mpoly, num_polys);
 	}
 
-	if (free_polynors) {
-		MEM_freeN(polynors);
-	}
-
-	return dm;
+	return result;
 }
 
 static void initData(ModifierData *md)
@@ -517,10 +536,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *dm)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
-	return normalEditModifier_do((NormalEditModifierData *)md, ctx->object, dm);
+	return normalEditModifier_do((NormalEditModifierData *)md, ctx->object, mesh);
 }
 
 ModifierTypeInfo modifierType_NormalEdit = {
@@ -538,14 +556,14 @@ ModifierTypeInfo modifierType_NormalEdit = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
