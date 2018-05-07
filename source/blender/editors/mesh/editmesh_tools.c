@@ -4766,22 +4766,32 @@ static void edbm_dissolve_prop__use_boundary_tear(wmOperatorType *ot)
 
 static int edbm_dissolve_verts_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
 	const bool use_face_split = RNA_boolean_get(op->ptr, "use_face_split");
 	const bool use_boundary_tear = RNA_boolean_get(op->ptr, "use_boundary_tear");
 
-	if (!EDBM_op_callf(
-	            em, op,
-	            "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
-	            BM_ELEM_SELECT, use_face_split, use_boundary_tear))
-	{
-		return OPERATOR_CANCELLED;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+
+		if (!EDBM_op_callf(
+		            em, op,
+		            "dissolve_verts verts=%hv use_face_split=%b use_boundary_tear=%b",
+		            BM_ELEM_SELECT, use_face_split, use_boundary_tear))
+		{
+			continue;
+		}
+		EDBM_update_generic(em, true, true);
 	}
 
-	EDBM_update_generic(em, true, true);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
