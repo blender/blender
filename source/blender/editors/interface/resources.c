@@ -172,7 +172,7 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 
 			switch (colorid) {
 				case TH_BACK:
-					if (theme_regionid == RGN_TYPE_WINDOW)
+					if (ELEM(theme_regionid, RGN_TYPE_WINDOW, RGN_TYPE_PREVIEW))
 						cp = ts->back;
 					else if (theme_regionid == RGN_TYPE_CHANNELS)
 						cp = ts->list;
