@@ -43,6 +43,8 @@
 #include "DNA_key_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_anim.h"
+#include "BKE_action.h"
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
@@ -51,10 +53,10 @@
 #include "BKE_object.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
-#include "BKE_anim.h"
 #include "BKE_report.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 #include "DEG_depsgraph_build.h"
 
 // XXX bad level call...
@@ -231,8 +233,15 @@ typedef struct MPathTarget {
 	
 	bMotionPath *mpath;         /* motion path in question */
 	
+	/* Original (Source Objects) */
 	Object *ob;                 /* source object */
 	bPoseChannel *pchan;        /* source posechannel (if applicable) */
+	
+	/* "Evaluated" Copies (these come from the background COW copie
+	 * that provide all the coordinates we want to save off)
+	 */
+	Object *ob_eval;             /* evaluated object */
+	bPoseChannel *pchan_eval;    /* evaluated posechannel (if applicable) */
 } MPathTarget;
 
 /* ........ */
@@ -305,31 +314,39 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 		bMotionPath *mpath = mpt->mpath;
 		bMotionPathVert *mpv;
 		
+		Object *ob_eval = mpt->ob_eval;
+		bPoseChannel *pchan_eval = mpt->pchan_eval;
+		
 		/* current frame must be within the range the cache works for 
 		 *	- is inclusive of the first frame, but not the last otherwise we get buffer overruns
 		 */
-		if ((CFRA < mpath->start_frame) || (CFRA >= mpath->end_frame))
+		if ((CFRA < mpath->start_frame) || (CFRA >= mpath->end_frame)) {
+			printf("skipping - out of range - %d (%d, %d)\n", CFRA, mpath->start_frame, mpath->end_frame);
 			continue;
+		}
+		else {
+			printf("doing %d\n", CFRA);
+		}
 		
 		/* get the relevant cache vert to write to */
 		mpv = mpath->points + (CFRA - mpath->start_frame);
 		
 		/* pose-channel or object path baking? */
-		if (mpt->pchan) {
+		if (mpt->pchan_eval) {
 			/* heads or tails */
 			if (mpath->flag & MOTIONPATH_FLAG_BHEAD) {
-				copy_v3_v3(mpv->co, mpt->pchan->pose_head);
+				copy_v3_v3(mpv->co, pchan_eval->pose_head);
 			}
 			else {
-				copy_v3_v3(mpv->co, mpt->pchan->pose_tail);
+				copy_v3_v3(mpv->co, pchan_eval->pose_tail);
 			}
 			
 			/* result must be in worldspace */
-			mul_m4_v3(mpt->ob->obmat, mpv->co);
+			mul_m4_v3(ob_eval->obmat, mpv->co);
 		}
 		else {
 			/* worldspace object location */
-			copy_v3_v3(mpv->co, mpt->ob->obmat[3]);
+			copy_v3_v3(mpv->co, ob_eval->obmat[3]);
 		}
 	}
 }
@@ -364,6 +381,18 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	}
 	if (efra <= sfra) return;
 	
+	
+	/* get copies of objects/bones to get the calculated results from
+	 * (for copy-on-write evaluation), so that we actually get some results
+	 */
+	// TODO: Create a copy of background depsgraph that only contain these entities, and only evaluates them..
+	for (mpt = targets->first; mpt; mpt = mpt->next) {
+		mpt->ob_eval = DEG_get_evaluated_object(depsgraph, mpt->ob);
+		if (mpt->pchan) {
+			mpt->pchan_eval = BKE_pose_channel_find_name(mpt->ob_eval->pose, mpt->pchan->name);
+		}
+	}
+	
 	/* calculate path over requested range */
 	for (CFRA = sfra; CFRA <= efra; CFRA++) {
 		/* update relevant data for new frame */
@@ -374,6 +403,7 @@ static void motionpaths_calc_bake_targets(Scene *scene, ListBase *targets)
 	}
 	
 	/* reset original environment */
+	// XXX: Soon to be obsolete
 	CFRA = cfra;
 	motionpaths_calc_update_scene(bmain, depsgraph);
 	
