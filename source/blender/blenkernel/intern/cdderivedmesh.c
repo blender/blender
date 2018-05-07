@@ -611,6 +611,11 @@ DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, int alloctype)
 	dm->deformedOnly = 1;
 	dm->cd_flag = mesh->cd_flag;
 
+	if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
+		dm->dirty |= DM_DIRTY_NORMALS;
+	}
+	/* TODO DM_DIRTY_TESS_CDLAYERS ? Maybe not though, since we probably want to switch to looptris ? */
+
 	CustomData_merge(&mesh->vdata, &dm->vertData, mask, alloctype,
 	                 mesh->totvert);
 	CustomData_merge(&mesh->edata, &dm->edgeData, mask, alloctype,
