@@ -374,6 +374,8 @@ void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, co
 /* Passes */
 DRWPass *DRW_pass_create(const char *name, DRWState state);
 void DRW_pass_state_set(DRWPass *pass, DRWState state);
+void DRW_pass_state_add(DRWPass *pass, DRWState state);
+void DRW_pass_state_remove(DRWPass *pass, DRWState state);
 void DRW_pass_foreach_shgroup(DRWPass *pass, void (*callback)(void *userData, DRWShadingGroup *shgrp), void *userData);
 void DRW_pass_sort_shgroup_z(DRWPass *pass);
 

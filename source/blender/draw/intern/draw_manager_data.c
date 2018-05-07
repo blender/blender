@@ -875,6 +875,16 @@ void DRW_pass_state_set(DRWPass *pass, DRWState state)
 	pass->state = state;
 }
 
+void DRW_pass_state_add(DRWPass *pass, DRWState state)
+{
+	pass->state |= state;
+}
+
+void DRW_pass_state_remove(DRWPass *pass, DRWState state)
+{
+	pass->state &= ~state;
+}
+
 void DRW_pass_free(DRWPass *pass)
 {
 	pass->shgroups.first = NULL;
