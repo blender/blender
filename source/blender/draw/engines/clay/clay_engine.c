@@ -602,7 +602,7 @@ static DRWShadingGroup *CLAY_hair_shgroup_create(DRWPass *pass, int id)
 	if (!e_data.hair_sh) {
 		e_data.hair_sh = DRW_shader_create(
 		        datatoc_clay_particle_vert_glsl, NULL, datatoc_clay_particle_strand_frag_glsl,
-		        "#define MAX_MATERIAL 512\n");
+		        "#define MAX_MATERIAL " STRINGIFY(MAX_CLAY_MAT) "\n" );
 	}
 
 	DRWShadingGroup *grp = DRW_shgroup_create(e_data.hair_sh, pass);
