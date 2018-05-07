@@ -34,13 +34,14 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_color_types.h"      /* CurveMapping. */
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_colortools.h"       /* CurveMapping. */
+#include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
@@ -114,9 +115,9 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * XXX The standard "factor" value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
-void weightvg_do_mask(int num, const int *indices, float *org_w, const float *new_w,
-                      Object *ob, DerivedMesh *dm, float fact, const char defgrp_name[MAX_VGROUP_NAME],
-                      Scene *scene, Tex *texture, int tex_use_channel, int tex_mapping,
+void weightvg_do_mask(const int num, const int *indices, float *org_w, const float *new_w,
+                      Object *ob, Mesh *mesh, const float fact, const char defgrp_name[MAX_VGROUP_NAME],
+                      Scene *scene, Tex *texture, const int tex_use_channel, const int tex_mapping,
                       Object *tex_map_object, const char *tex_uvlayer_name)
 {
 	int ref_didx;
@@ -131,8 +132,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		float (*tex_co)[3];
 		/* See mapping note below... */
 		MappingInfoModifierData t_map;
-		float (*v_co)[3];
-		int numVerts = dm->getNumVerts(dm);
+		const int numVerts = mesh->totvert;
 
 		/* Use new generic get_texture_coords, but do not modify our DNA struct for it...
 		 * XXX Why use a ModifierData stuff here ? Why not a simple, generic struct for parameters ?
@@ -143,11 +143,9 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		t_map.map_object = tex_map_object;
 		BLI_strncpy(t_map.uvlayer_name, tex_uvlayer_name, sizeof(t_map.uvlayer_name));
 		t_map.texmapping = tex_mapping;
-		v_co = MEM_malloc_arrayN(numVerts, sizeof(*v_co), "WeightVG Modifier, TEX mode, v_co");
-		dm->getVertCos(dm, v_co);
+
 		tex_co = MEM_calloc_arrayN(numVerts, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
-		get_texture_coords(&t_map, ob, dm, v_co, tex_co, num);
-		MEM_freeN(v_co);
+		get_texture_coords_mesh(&t_map, ob, mesh, tex_co);
 
 		modifier_init_texture(scene, texture);
 
@@ -209,9 +207,11 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 
 		/* Proceed only if vgroup is valid, else use constant factor. */
 		/* Get actual dverts (ie vertex group data). */
-		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
 		/* Proceed only if vgroup is valid, else assume factor = O. */
-		if (dvert == NULL) return;
+		if (dvert == NULL) {
+			return;
+		}
 
 		/* For each weight (vertex), make the mix between org and new weights. */
 		for (i = 0; i < num; i++) {
