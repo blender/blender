@@ -67,6 +67,83 @@ void modifier_init_texture(const Scene *scene, Tex *tex)
 	}
 }
 
+/* TODO to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
+void get_texture_coords_mesh(
+        MappingInfoModifierData *dmd,
+        Object *ob,
+        Mesh *mesh,
+        float (*r_texco)[3])
+{
+	const int numVerts = mesh->totvert;
+	int i;
+	int texmapping = dmd->texmapping;
+	float mapob_imat[4][4];
+
+	if (texmapping == MOD_DISP_MAP_OBJECT) {
+		if (dmd->map_object)
+			invert_m4_m4(mapob_imat, dmd->map_object->obmat);
+		else /* if there is no map object, default to local */
+			texmapping = MOD_DISP_MAP_LOCAL;
+	}
+
+	/* UVs need special handling, since they come from faces */
+	if (texmapping == MOD_DISP_MAP_UV) {
+		if (CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) {
+			MPoly *mpoly = mesh->mpoly;
+			MPoly *mp;
+			MLoop *mloop = mesh->mloop;
+			BLI_bitmap *done = BLI_BITMAP_NEW(numVerts, __func__);
+			const int numPolys = mesh->totpoly;
+			char uvname[MAX_CUSTOMDATA_LAYER_NAME];
+			MLoopUV *mloop_uv;
+
+			CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, dmd->uvlayer_name, uvname);
+			mloop_uv = CustomData_get_layer_named(&mesh->ldata, CD_MLOOPUV, uvname);
+
+			/* verts are given the UV from the first face that uses them */
+			for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
+				unsigned int fidx = mp->totloop - 1;
+
+				do {
+					unsigned int lidx = mp->loopstart + fidx;
+					unsigned int vidx = mloop[lidx].v;
+
+					if (!BLI_BITMAP_TEST(done, vidx)) {
+						/* remap UVs from [0, 1] to [-1, 1] */
+						r_texco[vidx][0] = (mloop_uv[lidx].uv[0] * 2.0f) - 1.0f;
+						r_texco[vidx][1] = (mloop_uv[lidx].uv[1] * 2.0f) - 1.0f;
+						BLI_BITMAP_ENABLE(done, vidx);
+					}
+
+				} while (fidx--);
+			}
+
+			MEM_freeN(done);
+			return;
+		}
+		else {
+			/* if there are no UVs, default to local */
+			texmapping = MOD_DISP_MAP_LOCAL;
+		}
+	}
+
+	MVert *mv = mesh->mvert;
+	for (i = 0; i < numVerts; ++i, ++mv, ++r_texco) {
+		switch (texmapping) {
+			case MOD_DISP_MAP_LOCAL:
+				copy_v3_v3(*r_texco, mv->co);
+				break;
+			case MOD_DISP_MAP_GLOBAL:
+				mul_v3_m4v3(*r_texco, ob->obmat, mv->co);
+				break;
+			case MOD_DISP_MAP_OBJECT:
+				mul_v3_m4v3(*r_texco, ob->obmat, mv->co);
+				mul_m4_v3(mapob_imat, *r_texco);
+				break;
+		}
+	}
+}
+
 void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
                         DerivedMesh *dm,
                         float (*co)[3], float (*texco)[3],
