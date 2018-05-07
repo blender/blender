@@ -343,6 +343,7 @@ void BKE_mesh_calc_normals(Mesh *mesh)
 #ifdef DEBUG_TIME
 	TIMEIT_END_AVERAGED(BKE_mesh_calc_normals);
 #endif
+	mesh->runtime.cd_dirty_vert &= ~CD_MASK_NORMAL;
 }
 
 void BKE_mesh_calc_normals_tessface(
