@@ -31,6 +31,7 @@ from .space_toolsystem_common import (
     ToolDef,
 )
 
+
 def generate_from_brushes_ex(
         context, *,
         icon_prefix,
@@ -83,36 +84,37 @@ class _defs_view3d_generic:
     @ToolDef.from_fn
     def cursor():
         return dict(
-        text="Cursor",
-        icon="ops.generic.cursor",
-        keymap=(
-            ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
-        ),
-    )
+            text="Cursor",
+            icon="ops.generic.cursor",
+            keymap=(
+                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
+            ),
+        )
 
     @ToolDef.from_fn
     def ruler():
         return dict(
-        text="Ruler/Protractor",
-        icon="ops.view3d.ruler",
-        widget="VIEW3D_WGT_ruler",
-        keymap=(
-            ("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
-        ),
-    )
+            text="Ruler/Protractor",
+            icon="ops.view3d.ruler",
+            widget="VIEW3D_WGT_ruler",
+            keymap=(
+                ("view3d.ruler_add", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
 
 class _defs_transform:
 
     @ToolDef.from_fn
     def translate():
         return dict(
-        text="Move",
-        icon="ops.transform.translate",
-        widget="TRANSFORM_WGT_manipulator",
-        keymap=(
-            ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
-        ),
-    )
+            text="Move",
+            icon="ops.transform.translate",
+            widget="TRANSFORM_WGT_manipulator",
+            keymap=(
+                ("transform.translate", dict(release_confirm=True), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
 
     @ToolDef.from_fn
     def rotate():
@@ -151,7 +153,8 @@ class _defs_transform:
             icon="ops.transform.transform",
             widget="TRANSFORM_WGT_manipulator",
             # No keymap default action, only for manipulators!
-    )
+        )
+
 
 class _defs_view3d_select:
 
@@ -205,6 +208,7 @@ class _defs_view3d_select:
 # -----------------------------------------------------------------------------
 # Object Modes (named based on context.mode)
 
+
 class _defs_edit_armature:
 
     @ToolDef.from_fn
@@ -241,6 +245,8 @@ class _defs_edit_armature:
                 ("armature.click_extrude", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
         )
+
+
 class _defs_edit_mesh:
 
     @ToolDef.from_fn
@@ -295,7 +301,7 @@ class _defs_edit_mesh:
             keymap=(
                 ("transform.edge_slide", dict(release_confirm=True),
                  dict(type='ACTIONMOUSE', value='PRESS')
-                ),
+                 ),
             ),
         )
 
@@ -467,8 +473,8 @@ class _defs_edit_mesh:
     @ToolDef.from_fn
     def knife():
         def draw_settings(context, layout):
-            wm=context.window_manager
-            props=wm.operator_properties_last("mesh.knife_tool")
+            wm = context.window_manager
+            props = wm.operator_properties_last("mesh.knife_tool")
             layout.prop(props, "use_occlude_geometry")
             layout.prop(props, "only_selected")
 
@@ -497,6 +503,7 @@ class _defs_edit_mesh:
             ),
         )
 
+
 class _defs_edit_curve:
 
     @ToolDef.from_fn
@@ -521,6 +528,7 @@ class _defs_edit_curve:
             ),
         )
 
+
 class _defs_sculpt:
 
     @staticmethod
@@ -535,7 +543,7 @@ class _defs_sculpt:
                 ('GRAB', 'THUMB'),
                 ('SNAKE_HOOK',),
                 ('BLOB', 'INFLATE'),
-                ('SMOOTH', 'SCRAPE' , 'FLATTEN'),
+                ('SMOOTH', 'SCRAPE', 'FLATTEN'),
                 ('CREASE', 'PINCH'),
                 ('CLAY', 'CLAY_STRIPS'),
                 ('LAYER',),
@@ -670,7 +678,6 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
                     yield from item(context)
                 else:
                     yield item
-
 
     @classmethod
     def tools_all(cls):
