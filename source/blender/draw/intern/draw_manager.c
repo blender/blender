@@ -987,10 +987,10 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 			break;
 
 		case OB_SOLID:
+		case OB_TEXTURE:
 			use_drw_engine(&draw_engine_workbench_solid);
 			break;
 
-		case OB_TEXTURE:
 		case OB_MATERIAL:
 		case OB_RENDER:
 		default:
