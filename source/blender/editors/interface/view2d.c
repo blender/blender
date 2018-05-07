@@ -76,7 +76,7 @@ BLI_INLINE int clamp_float_to_int(const float f)
 		return min;
 	}
 	else if (UNLIKELY(f > max)) {
-		return max;
+		return (int)max;
 	}
 	else {
 		return (int)f;
