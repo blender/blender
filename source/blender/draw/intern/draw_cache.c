@@ -1717,8 +1717,8 @@ static const unsigned int bone_box_wire_adjacent_face[24] = {
 };
 
 static const unsigned int bone_box_solid_tris[12][3] = {
-	{0, 1, 2}, /* bottom */
-	{0, 2, 3},
+	{0, 2, 1}, /* bottom */
+	{0, 3, 2},
 
 	{0, 1, 5}, /* sides */
 	{0, 5, 4},
@@ -1741,8 +1741,8 @@ static const unsigned int bone_box_solid_tris[12][3] = {
  * See bone_octahedral_solid_tris for more infos.
  **/
 static const unsigned int bone_box_solid_tris_adjacency[12][6] = {
-	{ 0,  8,  1, 14,  2,  5},
-	{ 3,  1,  4, 20,  5, 26},
+	{ 0,  5,  1, 14,  2,  8},
+	{ 3, 26,  4, 20,  5,  1},
 
 	{ 6,  2,  7, 16,  8, 11},
 	{ 9,  7, 10, 32, 11, 24},
