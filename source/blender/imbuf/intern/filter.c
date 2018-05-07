@@ -661,9 +661,9 @@ void IMB_unpremultiply_rect(unsigned int *rect, char planes, int w, int h)
 		for (y = 0; y < h; y++) {
 			for (x = 0; x < w; x++, cp += 4) {
 				val = cp[3] != 0 ? 1.0f / (float)cp[3] : 1.0f;
-				cp[0] = FTOCHAR(cp[0] * val);
-				cp[1] = FTOCHAR(cp[1] * val);
-				cp[2] = FTOCHAR(cp[2] * val);
+				cp[0] = unit_float_to_uchar_clamp(cp[0] * val);
+				cp[1] = unit_float_to_uchar_clamp(cp[1] * val);
+				cp[2] = unit_float_to_uchar_clamp(cp[2] * val);
 			}
 		}
 	}

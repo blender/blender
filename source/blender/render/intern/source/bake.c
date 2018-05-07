@@ -305,7 +305,7 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int UNUSED(qua
 		}
 		
 		if (ELEM(bs->type, RE_BAKE_ALL, RE_BAKE_TEXTURE, RE_BAKE_VERTEX_COLORS)) {
-			col[3] = FTOCHAR(shr.alpha);
+			col[3] = unit_float_to_uchar_clamp(shr.alpha);
 		}
 		else {
 			col[3] = 255;
@@ -364,7 +364,7 @@ static void bake_displacement(void *handle, ShadeInput *UNUSED(shi), float dist,
 	else {
 		/* Target is char (LDR). */
 		unsigned char col[4];
-		col[0] = col[1] = col[2] = FTOCHAR(disp);
+		col[0] = col[1] = col[2] = unit_float_to_uchar_clamp(disp);
 		col[3] = 255;
 
 		if (bs->vcol) {
@@ -972,7 +972,7 @@ void RE_bake_ibuf_normalize_displacement(ImBuf *ibuf, float *displacement, char 
 
 			if (ibuf->rect) {
 				unsigned char *cp = (unsigned char *) (ibuf->rect + i);
-				cp[0] = cp[1] = cp[2] = FTOCHAR(normalized_displacement);
+				cp[0] = cp[1] = cp[2] = unit_float_to_uchar_clamp(normalized_displacement);
 				cp[3] = 255;
 			}
 		}
@@ -1329,8 +1329,8 @@ float RE_bake_make_derivative(ImBuf *ibuf, float *heights_buffer, const char *ma
 			else {
 				char *rrgb = (char *)ibuf->rect + index * 4;
 
-				rrgb[0] = FTOCHAR(deriv_x);
-				rrgb[1] = FTOCHAR(deriv_y);
+				rrgb[0] = unit_float_to_uchar_clamp(deriv_x);
+				rrgb[1] = unit_float_to_uchar_clamp(deriv_y);
 				rrgb[2] = 0;
 				rrgb[3] = 255;
 			}

@@ -970,7 +970,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 							fprintf(f, ";\n");
 						}
 						else if (rna_color_quantize(prop, dp)) {
-							fprintf(f, "		data->%s[i] = FTOCHAR(values[i]);\n", dp->dnaname);
+							fprintf(f, "		data->%s[i] = unit_float_to_uchar_clamp(values[i]);\n", dp->dnaname);
 						}
 						else {
 							if (dp->dnatype)

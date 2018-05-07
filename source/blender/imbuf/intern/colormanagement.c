@@ -2870,7 +2870,7 @@ static void partial_buffer_update_rect(ImBuf *ibuf,
 						display_buffer[display_index] =
 							display_buffer[display_index + 1] =
 							display_buffer[display_index + 2] =
-							display_buffer[display_index + 3] = FTOCHAR(pixel[0]);
+							display_buffer[display_index + 3] = unit_float_to_uchar_clamp(pixel[0]);
 					}
 				}
 			}

@@ -127,15 +127,15 @@ static void clear_dither_context(DitherContext *di)
 
 MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
 {
-	b[0] = USHORTTOUCHAR(us[0]);
-	b[1] = USHORTTOUCHAR(us[1]);
-	b[2] = USHORTTOUCHAR(us[2]);
-	b[3] = USHORTTOUCHAR(us[3]);
+	b[0] = unit_ushort_to_uchar(us[0]);
+	b[1] = unit_ushort_to_uchar(us[1]);
+	b[2] = unit_ushort_to_uchar(us[2]);
+	b[3] = unit_ushort_to_uchar(us[3]);
 }
 
 MINLINE unsigned char ftochar(float value)
 {
-	return FTOCHAR(value);
+	return unit_float_to_uchar_clamp(value);
 }
 
 MINLINE void ushort_to_byte_dither_v4(uchar b[4], const unsigned short us[4], DitherContext *di, float s, float t)
@@ -146,7 +146,7 @@ MINLINE void ushort_to_byte_dither_v4(uchar b[4], const unsigned short us[4], Di
 	b[0] = ftochar(dither_value + USHORTTOFLOAT(us[0]));
 	b[1] = ftochar(dither_value + USHORTTOFLOAT(us[1]));
 	b[2] = ftochar(dither_value + USHORTTOFLOAT(us[2]));
-	b[3] = USHORTTOUCHAR(us[3]);
+	b[3] = unit_ushort_to_uchar(us[3]);
 
 #undef USHORTTOFLOAT
 }
@@ -158,7 +158,7 @@ MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext
 	b[0] = ftochar(dither_value + f[0]);
 	b[1] = ftochar(dither_value + f[1]);
 	b[2] = ftochar(dither_value + f[2]);
-	b[3] = FTOCHAR(f[3]);
+	b[3] = unit_float_to_uchar_clamp(f[3]);
 }
 
 /* float to byte pixels, output 4-channel RGBA */
@@ -188,7 +188,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 			uchar *to = rect_to + ((size_t)stride_to) * y * 4;
 
 			for (x = 0; x < width; x++, from++, to += 4)
-				to[0] = to[1] = to[2] = to[3] = FTOCHAR(from[0]);
+				to[0] = to[1] = to[2] = to[3] = unit_float_to_uchar_clamp(from[0]);
 		}
 		else if (channels_from == 3) {
 			/* RGB input */
@@ -339,7 +339,7 @@ void IMB_buffer_byte_from_float_mask(uchar *rect_to, const float *rect_from,
 
 			for (x = 0; x < width; x++, from++, to += 4)
 				if (*mask++ == FILTER_MASK_USED)
-					to[0] = to[1] = to[2] = to[3] = FTOCHAR(from[0]);
+					to[0] = to[1] = to[2] = to[3] = unit_float_to_uchar_clamp(from[0]);
 		}
 		else if (channels_from == 3) {
 			/* RGB input */

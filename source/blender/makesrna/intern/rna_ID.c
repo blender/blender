@@ -636,7 +636,7 @@ static void rna_ImagePreview_pixels_float_set(PointerRNA *ptr, const float *valu
 	}
 
 	for (i = 0; i < len; i++) {
-		data[i] = FTOCHAR(values[i]);
+		data[i] = unit_float_to_uchar_clamp(values[i]);
 	}
 	prv_img->flag[size] |= PRV_USER_EDITED;
 }

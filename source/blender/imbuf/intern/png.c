@@ -124,7 +124,7 @@ static float channel_colormanage_noop(float value)
 /* wrap to avoid macro calling functions multiple times */
 BLI_INLINE unsigned short ftoshort(float val)
 {
-	return FTOUSHORT(val);
+	return unit_float_to_ushort_clamp(val);
 }
 
 int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)

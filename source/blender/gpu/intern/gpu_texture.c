@@ -74,7 +74,7 @@ static unsigned char *GPU_texture_convert_pixels(int length, const float *fpixel
 	p = pixels = MEM_callocN(sizeof(unsigned char) * len, "GPUTexturePixels");
 
 	for (int a = 0; a < len; a++, p++, fp++)
-		*p = FTOCHAR((*fp));
+		*p = unit_float_to_uchar_clamp((*fp));
 
 	return pixels;
 }

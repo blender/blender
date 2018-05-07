@@ -841,12 +841,12 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 		unsigned char chr = 0, chg = 0, chb = 0;
 		float fr = 0, fg = 0, fb = 0;
 
-		const int alphaint = FTOCHAR(a);
+		const int alphaint = unit_float_to_uchar_clamp(a);
 		
 		if (a == 1.0f) {
-			chr = FTOCHAR(col[0]);
-			chg = FTOCHAR(col[1]);
-			chb = FTOCHAR(col[2]);
+			chr = unit_float_to_uchar_clamp(col[0]);
+			chg = unit_float_to_uchar_clamp(col[1]);
+			chb = unit_float_to_uchar_clamp(col[2]);
 		}
 		else {
 			fr = col[0] * a;

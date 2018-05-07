@@ -3847,7 +3847,7 @@ void uiTemplateReportsBanner(uiLayout *layout, bContext *C)
 
 	but = uiDefBut(block, UI_BTYPE_ROUNDBOX, 0, "", UI_UNIT_X + 10, 0, UI_UNIT_X + width, UI_UNIT_Y,
 	               NULL, 0.0f, 0.0f, 0, 0, "");
-	but->col[0] = but->col[1] = but->col[2] = FTOCHAR(rti->grayscale);
+	but->col[0] = but->col[1] = but->col[2] = unit_float_to_uchar_clamp(rti->grayscale);
 	but->col[3] = 255;
 
 	UI_block_align_end(block);

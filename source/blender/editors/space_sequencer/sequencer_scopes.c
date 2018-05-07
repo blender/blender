@@ -402,10 +402,10 @@ static void draw_zebra_float(ImBuf *src, ImBuf *ibuf, float perc)
 				}
 			}
 
-			*o++ = FTOCHAR(r);
-			*o++ = FTOCHAR(g);
-			*o++ = FTOCHAR(b);
-			*o++ = FTOCHAR(a);
+			*o++ = unit_float_to_uchar_clamp(r);
+			*o++ = unit_float_to_uchar_clamp(g);
+			*o++ = unit_float_to_uchar_clamp(b);
+			*o++ = unit_float_to_uchar_clamp(a);
 		}
 	}
 }

@@ -797,7 +797,7 @@ static void apply_heights_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm,
 	}
 	else {
 		char *rrgb = (char *)ibuf->rect + pixel * 4;
-		rrgb[0] = rrgb[1] = rrgb[2] = FTOCHAR(len);
+		rrgb[0] = rrgb[1] = rrgb[2] = unit_float_to_uchar_clamp(len);
 		rrgb[3] = 255;
 	}
 }
@@ -1169,7 +1169,7 @@ static void apply_ao_callback(DerivedMesh *lores_dm, DerivedMesh *hires_dm, void
 	}
 	else {
 		unsigned char *rrgb = (unsigned char *) ibuf->rect + pixel * 4;
-		rrgb[0] = rrgb[1] = rrgb[2] = FTOCHAR(value);
+		rrgb[0] = rrgb[1] = rrgb[2] = unit_float_to_uchar_clamp(value);
 		rrgb[3] = 255;
 	}
 }
