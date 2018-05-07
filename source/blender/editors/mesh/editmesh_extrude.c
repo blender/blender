@@ -433,7 +433,7 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 		return;
 	}
 	struct TransformBounds tbounds;
-	if (!ED_transform_calc_manipulator_stats(C, false, &tbounds)) {
+	if (!ED_transform_calc_manipulator_stats(C, &(struct TransformCalcParams){0}, &tbounds)) {
 		return;
 	}
 
