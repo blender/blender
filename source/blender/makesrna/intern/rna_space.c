@@ -674,6 +674,7 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	int totitem = 0;
 
 	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_SOLID);
+	RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_TEXTURE);
 
 	if (BKE_scene_uses_blender_eevee(scene)) {
 		RNA_enum_items_add_value(&item, &totitem, rna_enum_shading_type_items, OB_RENDER);

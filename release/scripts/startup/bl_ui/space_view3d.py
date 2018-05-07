@@ -3554,6 +3554,7 @@ class VIEW3D_PT_shading(Panel):
                 col.separator()
                 col.row().prop(shading, "single_color", text="")
 
+        if shading.type in ('SOLID', 'TEXTURED'):
             col.separator()
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':

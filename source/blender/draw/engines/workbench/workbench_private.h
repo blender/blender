@@ -27,12 +27,16 @@
 #define __WORKBENCH_PRIVATE_H__
 
 
-#include "DRW_render.h"
+#include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
+
+#include "DRW_render.h"
+
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
 #define WORKBENCH_ENCODE_NORMALS
+
 
 typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *prepass_fb;
@@ -73,9 +77,11 @@ BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
 typedef struct WORKBENCH_PrivateData {
 	struct GHash *material_hash;
-	struct GPUShader *prepass_sh;
+	struct GPUShader *prepass_solid_sh;
+	struct GPUShader *prepass_texture_sh;
 	struct GPUShader *composite_sh;
 	View3DShading shading;
+	int drawtype;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	WORKBENCH_UBO_World world_data;
@@ -85,6 +91,8 @@ typedef struct WORKBENCH_MaterialData {
 	/* Solid color */
 	float color[3];
 	int object_id;
+	int drawtype;
+	Image* ima;
 
 	/* Linked shgroup for drawing */
 	DRWShadingGroup *shgrp;
