@@ -12,5 +12,5 @@ void main()
 	float n = normalize(normalView).z;
 	float fac = clamp((n * (1.0 - s)) + s, 0.0, 1.0);
 	fragColor.rgb = mix(finalStateColor, finalBoneColor, fac);
-	fragColor.a = 1.0;
+	fragColor.a = 0.6; /* Hardcoded transparency factor. */
 }
