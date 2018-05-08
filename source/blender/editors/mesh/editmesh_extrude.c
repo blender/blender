@@ -448,7 +448,8 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	if (!ED_transform_calc_manipulator_stats(
 	            C, &(struct TransformCalcParams){
 	                .orientation_type = orientation_type + 1,
-	            }, &tbounds)) {
+	            }, &tbounds))
+	{
 		return;
 	}
 

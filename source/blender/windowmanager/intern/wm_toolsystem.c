@@ -114,6 +114,11 @@ void WM_toolsystem_link(bContext *C, WorkSpace *workspace)
 	}
 }
 
+void WM_toolsystem_refresh(bContext *C, WorkSpace *workspace)
+{
+	WM_toolsystem_link(C, workspace);
+}
+
 void WM_toolsystem_set(bContext *C, const bToolDef *tool)
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
@@ -158,4 +163,12 @@ bool WM_toolsystem_active_tool_is_brush(const bContext *C)
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	/* Will need to become more comprehensive, for now check tool data-block. */
 	return workspace->tool.data_block[0] != '\0';
+}
+
+/* Follow wmMsgNotifyFn spec */
+void WM_toolsystem_do_msg_notify_tag_refresh(
+        bContext *C, wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
+{
+	WorkSpace *workspace = CTX_wm_workspace(C);
+	WM_toolsystem_refresh(C, workspace);
 }

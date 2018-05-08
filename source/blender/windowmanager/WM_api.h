@@ -53,6 +53,8 @@ struct wmEvent;
 struct wmEventHandler;
 struct wmGesture;
 struct wmJob;
+struct wmMsgSubscribeKey;
+struct wmMsgSubscribeValue;
 struct wmOperatorType;
 struct wmOperator;
 struct rcti;
@@ -595,11 +597,15 @@ bool        WM_event_is_ime_switch(const struct wmEvent *event);
 /* wm_toolsystem.c  */
 void WM_toolsystem_unlink(struct bContext *C, struct WorkSpace *workspace);
 void WM_toolsystem_link(struct bContext *C, struct WorkSpace *workspace);
+void WM_toolsystem_refresh(struct bContext *C, struct WorkSpace *workspace);
 
 void WM_toolsystem_set(struct bContext *C, const struct bToolDef *tool);
 void WM_toolsystem_init(struct bContext *C);
 
 bool WM_toolsystem_active_tool_is_brush(const struct bContext *C);
+
+void WM_toolsystem_do_msg_notify_tag_refresh(
+        struct bContext *C, struct wmMsgSubscribeKey *msg_key, struct wmMsgSubscribeValue *msg_val);
 
 /* wm_tooltip.c */
 typedef struct ARegion *(*wmTooltipInitFn)(struct bContext *, struct ARegion *, bool *);

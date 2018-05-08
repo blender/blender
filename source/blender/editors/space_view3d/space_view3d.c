@@ -1018,7 +1018,7 @@ static void view3d_main_region_listener(
 
 static void view3d_main_region_message_subscribe(
         const struct bContext *UNUSED(C),
-        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
+        struct WorkSpace *workspace, struct Scene *scene,
         struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
@@ -1092,6 +1092,17 @@ static void view3d_main_region_message_subscribe(
 		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsClay, &msg_sub_value_region_tag_redraw);
 	}
 #endif
+
+	if (workspace->tool.spacetype == SPACE_VIEW3D) {
+		wmMsgSubscribeValue msg_sub_value_region_tag_refresh = {
+			.owner = ar,
+			.user_data = ar,
+			.notify = WM_toolsystem_do_msg_notify_tag_refresh,
+		};
+		WM_msg_subscribe_rna_anon_prop(
+		        mbus, Object, mode,
+		        &msg_sub_value_region_tag_refresh);
+	}
 }
 
 /* concept is to retrieve cursor type context-less */
