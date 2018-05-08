@@ -6082,9 +6082,6 @@ void MESH_OT_bridge_edge_loops(wmOperatorType *ot)
 
 static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
 	const bool use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
 	const bool use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
 	const bool use_replace         = RNA_boolean_get(op->ptr, "use_replace");
@@ -6094,25 +6091,41 @@ static int edbm_wireframe_exec(bContext *C, wmOperator *op)
 	const float thickness          = RNA_float_get(op->ptr,   "thickness");
 	const float offset             = RNA_float_get(op->ptr,   "offset");
 
-	EDBM_op_init(
-	        em, &bmop, op,
-	        "wireframe faces=%hf use_replace=%b use_boundary=%b use_even_offset=%b use_relative_offset=%b "
-	        "use_crease=%b crease_weight=%f thickness=%f offset=%f",
-	        BM_ELEM_SELECT, use_replace, use_boundary, use_even_offset, use_relative_offset,
-	        use_crease, crease_weight, thickness, offset);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	BMO_op_exec(em->bm, &bmop);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+		BMOperator bmop;
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-	else {
+		EDBM_op_init(
+		        em, &bmop, op,
+		        "wireframe faces=%hf use_replace=%b use_boundary=%b use_even_offset=%b use_relative_offset=%b "
+		        "use_crease=%b crease_weight=%f thickness=%f offset=%f",
+		        BM_ELEM_SELECT, use_replace, use_boundary, use_even_offset, use_relative_offset,
+		        use_crease, crease_weight, thickness, offset);
+
+		BMO_op_exec(em->bm, &bmop);
+
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, false);
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
 		EDBM_update_generic(em, true, true);
-		return OPERATOR_FINISHED;
 	}
+
+	MEM_freeN(objects);
+
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_wireframe(wmOperatorType *ot)
