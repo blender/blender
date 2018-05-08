@@ -47,6 +47,7 @@
 #include "BLI_task.h"
 
 #include "BKE_shrinkwrap.h"
+#include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
 
@@ -616,7 +617,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 }
 
 /* Main shrinkwrap function */
-void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedMesh *dm,
+void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *mesh,
                                float (*vertexCos)[3], int numVerts, bool for_render)
 {
 
@@ -637,8 +638,8 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 	/* DeformVertex */
 	calc.vgroup = defgroup_name_index(calc.ob, calc.smd->vgroup_name);
-	if (dm) {
-		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	if (mesh) {
+		calc.dvert = mesh->dvert;
 	}
 	else if (calc.ob->type == OB_LATTICE) {
 		calc.dvert = BKE_lattice_deform_verts_get(calc.ob);
@@ -661,16 +662,19 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 
 	calc.vgroup = defgroup_name_index(calc.ob, smd->vgroup_name);
 
-	if (dm != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
+	if (mesh != NULL && smd->shrinkType == MOD_SHRINKWRAP_PROJECT) {
 		/* Setup arrays to get vertexs positions, normals and deform weights */
-		calc.vert   = dm->getVertDataArray(dm, CD_MVERT);
-		calc.dvert  = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		calc.vert   = mesh->mvert;
+		calc.dvert  = mesh->dvert;
 
 		/* Using vertexs positions/normals as if a subsurface was applied */
 		if (smd->subsurfLevels) {
 			SubsurfModifierData ssmd = {{NULL}};
 			ssmd.subdivType = ME_CC_SUBSURF;        /* catmull clark */
 			ssmd.levels     = smd->subsurfLevels;   /* levels */
+
+			/* TODO to be moved to Mesh once we are done with changes in subsurf code. */
+			DerivedMesh *dm = CDDM_from_mesh(mesh);
 
 			ss_mesh = subsurf_make_derived_from_derived(dm, &ssmd, NULL, (ob->mode & OB_MODE_EDIT) ? SUBSURF_IN_EDIT_MODE : 0);
 
@@ -684,8 +688,10 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 			}
 
 			/* Just to make sure we are not leaving any memory behind */
-			assert(ssmd.emCache == NULL);
-			assert(ssmd.mCache == NULL);
+			BLI_assert(ssmd.emCache == NULL);
+			BLI_assert(ssmd.mCache == NULL);
+
+			dm->release(dm);
 		}
 	}
 

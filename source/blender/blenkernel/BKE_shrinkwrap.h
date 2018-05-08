@@ -48,6 +48,7 @@
 
 struct Object;
 struct DerivedMesh;
+struct Mesh;
 struct MVert;
 struct MDeformVert;
 struct ShrinkwrapModifierData;
@@ -69,6 +70,7 @@ typedef struct ShrinkwrapCalcData {
 	int vgroup;                     //Vertex group num
 	bool invert_vgroup;             /* invert vertex group influence */
 
+	/* TODO to be moved to Mesh once we are done with changes in BVHTree helper code. */
 	struct DerivedMesh *target;     //mesh we are shrinking to
 	struct SpaceTransform local2target;    //transform to move between local and target space
 
@@ -76,7 +78,7 @@ typedef struct ShrinkwrapCalcData {
 
 } ShrinkwrapCalcData;
 
-void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
+void shrinkwrapModifier_deform(struct ShrinkwrapModifierData *smd, struct Object *ob, struct Mesh *mesh,
                                float (*vertexCos)[3], int numVerts, bool for_render);
 
 /*
