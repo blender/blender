@@ -24,6 +24,10 @@
 
 
 #include <stdio.h>
+
+#include "CLG_log.h"
+#include "MEM_guardedalloc.h"
+
 #include "DNA_ID.h"
 
 #include "BLI_utildefines.h"
@@ -36,7 +40,6 @@
 
 #include "RNA_access.h"
 
-#include "MEM_guardedalloc.h"
 
 /* -------------------------------------------------------------------------- */
 
@@ -207,6 +210,15 @@ void WM_msg_publish_rna_params(struct wmMsgBus *mbus, const wmMsgParams_RNA *msg
 {
 	wmMsgSubscribeKey_RNA *key;
 
+	const char *none = "<none>";
+	CLOG_INFO(
+	        WM_LOG_MSGBUS_PUB, 2,
+	        "rna(id='%s', %s.%s)",
+	        msg_key_params->ptr.id.data ? ((ID *)msg_key_params->ptr.id.data)->name : none,
+	        msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
+	        msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) : none
+	);
+
 	if ((key = WM_msg_lookup_rna(mbus, msg_key_params))) {
 		WM_msg_publish_with_key(mbus, &key->head);
 	}
@@ -260,6 +272,16 @@ void WM_msg_subscribe_rna_params(
 	msg_key_test.msg.head.type = WM_MSG_TYPE_RNA;
 	/* for lookup */
 	msg_key_test.msg.params = *msg_key_params;
+
+	const char *none = "<none>";
+	CLOG_INFO(
+	        WM_LOG_MSGBUS_SUB, 3,
+	        "rna(id='%s', %s.%s, info='%s')",
+	        msg_key_params->ptr.id.data ? ((ID *)msg_key_params->ptr.id.data)->name : none,
+	        msg_key_params->ptr.type ? RNA_struct_identifier(msg_key_params->ptr.type) : none,
+	        msg_key_params->prop ? RNA_property_identifier((PropertyRNA *)msg_key_params->prop) : none,
+	        id_repr
+	);
 
 	wmMsgSubscribeKey_RNA *msg_key = (wmMsgSubscribeKey_RNA *)WM_msg_subscribe_with_key(
 	        mbus, &msg_key_test.head, msg_val_params);

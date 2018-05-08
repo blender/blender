@@ -720,6 +720,8 @@ extern struct CLG_LogRef *WM_LOG_HANDLERS;
 extern struct CLG_LogRef *WM_LOG_EVENTS;
 extern struct CLG_LogRef *WM_LOG_KEYMAPS;
 extern struct CLG_LogRef *WM_LOG_TOOLS;
+extern struct CLG_LogRef *WM_LOG_MSGBUS_PUB;
+extern struct CLG_LogRef *WM_LOG_MSGBUS_SUB;
 
 
 #ifdef __cplusplus

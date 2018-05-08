@@ -24,14 +24,16 @@
 
 #include <string.h>
 
+#include "CLG_log.h"
+
+#include "MEM_guardedalloc.h"
+
 #include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 
 #include "BLI_ghash.h"
 
 #include "WM_types.h"
-
-#include "MEM_guardedalloc.h"
 
 #include "message_bus/wm_message_bus.h"
 #include "message_bus/intern/wm_message_bus_intern.h"
@@ -194,6 +196,12 @@ wmMsgSubscribeKey *WM_msg_subscribe_with_key(
 
 void WM_msg_publish_with_key(struct wmMsgBus *mbus, wmMsgSubscribeKey *msg_key)
 {
+	CLOG_INFO(
+	        WM_LOG_MSGBUS_SUB, 2,
+	        "tagging subscribers: (ptr=%p, len=%d)",
+	        msg_key, BLI_listbase_count(&msg_key->values)
+	);
+
 	for (wmMsgSubscribeValueLink *msg_lnk = msg_key->values.first; msg_lnk; msg_lnk = msg_lnk->next) {
 		if (false) {  /* make an option? */
 			msg_lnk->params.notify(NULL, msg_key, &msg_lnk->params);
