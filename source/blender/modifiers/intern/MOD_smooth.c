@@ -33,6 +33,7 @@
  */
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_math.h"
@@ -40,7 +41,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_deform.h"
 
@@ -83,7 +86,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 
 static void smoothModifier_do(
-        SmoothModifierData *smd, Object *ob, DerivedMesh *dm,
+        SmoothModifierData *smd, Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
@@ -106,16 +109,16 @@ static void smoothModifier_do(
 	fac = smd->fac;
 	facm = 1 - fac;
 
-	if (dm->getNumVerts(dm) == numVerts) {
-		medges = dm->getEdgeArray(dm);
-		numDMEdges = dm->getNumEdges(dm);
+	if (mesh->totvert == numVerts) {
+		medges = mesh->medge;
+		numDMEdges = mesh->totedge;
 	}
 	else {
 		medges = NULL;
 		numDMEdges = 0;
 	}
 
-	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
+	modifier_get_vgroup_mesh(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
 	/* NOTICE: this can be optimized a little bit by moving the
 	 * if (dvert) out of the loop, if needed */
@@ -206,29 +209,39 @@ static void smoothModifier_do(
 	MEM_freeN(uctmp);
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
                         float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
+	Mesh *mesh_src = mesh;
 
-	smoothModifier_do((SmoothModifierData *)md, ctx->object, dm,
+	if (mesh_src == NULL) {
+		mesh_src = ctx->object->data;
+	}
+
+	BLI_assert(mesh_src->totvert == numVerts);
+
+	smoothModifier_do((SmoothModifierData *)md, ctx->object, mesh_src,
 	                  vertexCos, numVerts);
-
-	if (dm != derivedData)
-		dm->release(dm);
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ctx->object, editData, derivedData, NULL, false, false);
+	Mesh *mesh_src = mesh;
 
-	smoothModifier_do((SmoothModifierData *)md, ctx->object, dm,
+	if (mesh_src == NULL) {
+		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
+	}
+
+	BLI_assert(mesh_src->totvert == numVerts);
+
+	smoothModifier_do((SmoothModifierData *)md, ctx->object, mesh_src,
 	                  vertexCos, numVerts);
 
-	if (dm != derivedData)
-		dm->release(dm);
+	if (!mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 
@@ -243,16 +256,16 @@ ModifierTypeInfo modifierType_Smooth = {
 
 	/* copyData */          modifier_copyData_generic,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
