@@ -151,6 +151,19 @@ void DRW_particle_batch_cache_free(ParticleSystem *psys)
 	MEM_SAFE_FREE(psys->batch_cache);
 }
 
+static void count_cache_segment_keys(ParticleCacheKey **pathcache,
+                                     const int num_path_cache_keys,
+                                     ParticleBatchCache *cache)
+{
+	for (int i = 0; i < num_path_cache_keys; i++) {
+		ParticleCacheKey *path = pathcache[i];
+		if (path->segments > 0) {
+			cache->elems_count += path->segments + 2;
+			cache->point_count += path->segments + 1;
+		}
+	}
+}
+
 static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 {
 	if (cache->pos == NULL || cache->indices == NULL) {
@@ -158,27 +171,11 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 		cache->point_count = 0;
 
 		if (psys->pathcache && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
-			for (int i = 0; i < psys->totpart; i++) {
-				ParticleCacheKey *path = psys->pathcache[i];
-
-				if (path->segments > 0) {
-					cache->elems_count += path->segments + 2;
-					cache->point_count += path->segments + 1;
-				}
-			}
+			count_cache_segment_keys(psys->pathcache, psys->totpart, cache);
 		}
-
 		if (psys->childcache) {
-			int child_count = psys->totchild * psys->part->disp / 100;
-
-			for (int i = 0; i < child_count; i++) {
-				ParticleCacheKey *path = psys->childcache[i];
-
-				if (path->segments > 0) {
-					cache->elems_count += path->segments + 2;
-					cache->point_count += path->segments + 1;
-				}
-			}
+			const int child_count = psys->totchild * psys->part->disp / 100;
+			count_cache_segment_keys(psys->childcache, child_count, cache);
 		}
 	}
 }
