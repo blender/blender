@@ -572,7 +572,11 @@ void EEVEE_volumes_resolve(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 		SWAP(GPUFrameBuffer *, fbl->main_fb, fbl->effect_fb);
 		SWAP(GPUFrameBuffer *, fbl->main_color_fb, fbl->effect_color_fb);
 		SWAP(GPUTexture *, txl->color, txl->color_post);
+
+		/* Restore */
+		GPU_framebuffer_texture_detach(fbl->effect_fb, dtxl->depth);
 		GPU_framebuffer_texture_attach(fbl->main_fb, dtxl->depth, 0, 0);
+		GPU_framebuffer_bind(fbl->main_fb);
 	}
 }
 
