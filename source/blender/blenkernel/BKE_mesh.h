@@ -101,11 +101,13 @@ struct Mesh *BKE_mesh_copy(struct Main *bmain, const struct Mesh *me);
 void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_tess_cd);
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
-struct Mesh *BKE_mesh_new_nomain(int numVerts, int numEdges, int numTessFaces, int numLoops, int numPolys);
+struct Mesh *BKE_mesh_new_nomain(
+        int verts_len, int edges_len, int tessface_len,
+        int loops_len, int polys_len);
 struct Mesh *BKE_mesh_new_nomain_from_template(
         const struct Mesh *me_src,
-        int numVerts, int numEdges, int numTessFaces,
-        int numLoops, int numPolys);
+        int verts_len, int edges_len, int tessface_len,
+        int loops_len, int polys_len);
 
 /* These functions construct a new Mesh, contrary to BKE_mesh_from_nurbs which modifies ob itself. */
 struct Mesh *BKE_new_mesh_nomain_from_curve(struct Object *ob);
