@@ -185,6 +185,13 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
                                           /*const*/ MTFace **mtfaces,
                                           float (*r_uv)[2])
 {
+	if (psmd == NULL) {
+		return;
+	}
+	const int emit_from = psmd->psys->part->from;
+	if (!ELEM(emit_from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+		return;
+	}
 	ParticleData *particle = &psys->particles[parent_index];
 	int num = particle->num_dmcache;
 	if (num == DMCACHE_NOTFOUND) {
@@ -211,6 +218,13 @@ static void particle_interpolate_children_uvs(ParticleSystem *psys,
                                               /*const*/ MTFace **mtfaces,
                                               float (*r_uv)[2])
 {
+	if (psmd == NULL) {
+		return;
+	}
+	const int emit_from = psmd->psys->part->from;
+	if (!ELEM(emit_from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+		return;
+	}
 	ChildParticle *particle = &psys->child[child_index];
 	int num = particle->num;
 	if (num != DMCACHE_NOTFOUND) {
@@ -293,7 +307,6 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 				continue;
 			}
 			float tangent[3];
-			int from = psmd ? psmd->psys->part->from : 0;
 			float (*uv)[2] = NULL;
 			if (psmd != NULL) {
 				uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
@@ -301,10 +314,8 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 					parent_uvs[i] = uv;
 				}
 			}
-			if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-				particle_calculate_parent_uvs(
-				        psys, psmd, num_uv_layers, i, mtfaces, uv);
-			}
+			particle_calculate_parent_uvs(
+			        psys, psmd, num_uv_layers, i, mtfaces, uv);
 			for (int j = 0; j < path->segments; j++) {
 				if (j == 0) {
 					sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
@@ -355,26 +366,21 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 				continue;
 			}
 			float tangent[3];
-			int from = psmd ? psmd->psys->part->from : 0;
 			float (*uv)[2] = NULL;
 			if (!simple) {
 				if (psmd != NULL) {
 					uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
 				}
-				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-					particle_interpolate_children_uvs(
-					        psys, psmd, num_uv_layers, i, mtfaces, uv);
-				}
+				particle_interpolate_children_uvs(
+				        psys, psmd, num_uv_layers, i, mtfaces, uv);
 			}
 			else if (!parent_uvs[psys->child[i].parent]) {
 				if (psmd != NULL) {
 					uv = parent_uvs[psys->child[i].parent] = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
 				}
-				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-					const int parent_index = psys->child[i].parent;
-					particle_calculate_parent_uvs(
-					        psys, psmd, num_uv_layers, parent_index, mtfaces, uv);
-				}
+				const int parent_index = psys->child[i].parent;
+				particle_calculate_parent_uvs(
+				        psys, psmd, num_uv_layers, parent_index, mtfaces, uv);
 			}
 			for (int j = 0; j < path->segments; j++) {
 				if (j == 0) {
