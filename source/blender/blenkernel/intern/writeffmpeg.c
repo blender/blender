@@ -615,7 +615,8 @@ static AVStream *alloc_video_stream(FFMpegContext *context, RenderData *rd, int 
 	c->rc_buffer_aggressivity = 1.0;
 #endif
 
-	c->me_method = ME_EPZS;
+	/* Deprecated and not doing anything since July 2015, deleted in recent ffmpeg */
+	//c->me_method = ME_EPZS;
 	
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec)

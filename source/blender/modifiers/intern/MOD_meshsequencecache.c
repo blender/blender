@@ -64,9 +64,6 @@ static void copyData(const ModifierData *md, ModifierData *target)
 
 	modifier_copyData_generic(md, target);
 
-	if (tmcmd->cache_file) {
-		id_us_plus(&tmcmd->cache_file->id);
-	}
 	tmcmd->reader = NULL;
 }
 
