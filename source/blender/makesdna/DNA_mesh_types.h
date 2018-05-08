@@ -71,12 +71,12 @@ typedef struct EditMeshData {
 /**
  * \warning Typical access is done via #BKE_mesh_runtime_looptri_ensure, #BKE_mesh_runtime_looptri_len.
  */
-struct LooptrisData {
+struct MLoopTri_Store {
 	/* WARNING! swapping between array (ready-to-be-used data) and array_wip (where data is actually computed)
 	 *          shall always be protected by same lock as one used for looptris computing. */
 	struct MLoopTri *array, *array_wip;
-	int num;
-	int num_alloc;
+	int len;
+	int len_alloc;
 };
 
 /* not saved in file! */
@@ -89,7 +89,7 @@ typedef struct MeshRuntime {
 	int64_t cd_dirty_loop;
 	int64_t cd_dirty_poly;
 
-	struct LooptrisData looptris;
+	struct MLoopTri_Store looptris;
 
 	/** 'BVHCache', for 'BKE_bvhutil.c' */
 	struct LinkNode *bvh_cache;
