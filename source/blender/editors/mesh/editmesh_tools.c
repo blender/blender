@@ -2361,23 +2361,33 @@ static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 
 static int edbm_reverse_uvs_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op, "reverse_uvs faces=%hf", BM_ELEM_SELECT);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	/* execute the operator */
-	BMO_op_exec(em->bm, &bmop);
+		BMOperator bmop;
 
-	/* finish the operator */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+		EDBM_op_init(em, &bmop, op, "reverse_uvs faces=%hf", BM_ELEM_SELECT);
+
+		/* execute the operator */
+		BMO_op_exec(em->bm, &bmop);
+
+		/* finish the operator */
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+		EDBM_update_generic(em, false, false);
 	}
 
-	EDBM_update_generic(em, false, false);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
