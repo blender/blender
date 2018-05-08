@@ -41,8 +41,9 @@
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
-#include "BKE_particle.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 
 #include "GPU_batch.h"
 
@@ -170,12 +171,19 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 		cache->elems_count = 0;
 		cache->point_count = 0;
 
-		if (psys->pathcache && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
-			count_cache_segment_keys(psys->pathcache, psys->totpart, cache);
-		}
-		if (psys->childcache) {
-			const int child_count = psys->totchild * psys->part->disp / 100;
-			count_cache_segment_keys(psys->childcache, child_count, cache);
+		if (psys->edit != NULL) {
+			count_cache_segment_keys(
+			        psys->edit->pathcache, psys->totpart, cache);
+		} else {
+			if (psys->pathcache &&
+			    (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+			{
+				count_cache_segment_keys(psys->pathcache, psys->totpart, cache);
+			}
+			if (psys->childcache) {
+				const int child_count = psys->totchild * psys->part->disp / 100;
+				count_cache_segment_keys(psys->childcache, child_count, cache);
+			}
 		}
 	}
 }
@@ -426,21 +434,29 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 		}
 	}
 
-	if (psys->pathcache && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+	if (psys->edit != NULL) {
 		curr_point = particle_batch_cache_fill_segments(
-		        psys, psmd, psys->pathcache, PARTICLE_SOURCE_PARENT,
+		        psys, psmd, psys->edit->pathcache, PARTICLE_SOURCE_PARENT,
 		        0, 0, psys->totpart,
 		        num_uv_layers, mtfaces, uv_id, &parent_uvs,
 		        &elb, &attr_id, cache);
 	}
-
-	if (psys->childcache) {
-		const int child_count = psys->totchild * psys->part->disp / 100;
-		curr_point = particle_batch_cache_fill_segments(
-		        psys, psmd, psys->childcache, PARTICLE_SOURCE_CHILDREN,
-		        psys->totpart, curr_point, child_count,
-		        num_uv_layers, mtfaces, uv_id, &parent_uvs,
-		        &elb, &attr_id, cache);
+	else {
+		if (psys->pathcache && (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT))) {
+			curr_point = particle_batch_cache_fill_segments(
+			        psys, psmd, psys->pathcache, PARTICLE_SOURCE_PARENT,
+			        0, 0, psys->totpart,
+			        num_uv_layers, mtfaces, uv_id, &parent_uvs,
+			        &elb, &attr_id, cache);
+		}
+		if (psys->childcache) {
+			const int child_count = psys->totchild * psys->part->disp / 100;
+			curr_point = particle_batch_cache_fill_segments(
+			        psys, psmd, psys->childcache, PARTICLE_SOURCE_CHILDREN,
+			        psys->totpart, curr_point, child_count,
+			        num_uv_layers, mtfaces, uv_id, &parent_uvs,
+			        &elb, &attr_id, cache);
+		}
 	}
 	/* Cleanup. */
 	if (parent_uvs != NULL) {
