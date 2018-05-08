@@ -2336,26 +2336,36 @@ void MESH_OT_faces_shade_flat(wmOperatorType *ot)
 
 static int edbm_rotate_uvs_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(ob);
-	BMOperator bmop;
-
 	/* get the direction from RNA */
 	const bool use_ccw = RNA_boolean_get(op->ptr, "use_ccw");
 
-	/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
-	EDBM_op_init(em, &bmop, op, "rotate_uvs faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	/* execute the operator */
-	BMO_op_exec(em->bm, &bmop);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	/* finish the operator */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
+		BMOperator bmop;
+
+		/* initialize the bmop using EDBM api, which does various ui error reporting and other stuff */
+		EDBM_op_init(em, &bmop, op, "rotate_uvs faces=%hf use_ccw=%b", BM_ELEM_SELECT, use_ccw);
+
+		/* execute the operator */
+		BMO_op_exec(em->bm, &bmop);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, false, false);
 	}
 
-	EDBM_update_generic(em, false, false);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
