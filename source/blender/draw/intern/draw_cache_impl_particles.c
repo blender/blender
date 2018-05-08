@@ -237,6 +237,41 @@ static void particle_interpolate_children_uvs(ParticleSystem *psys,
 	}
 }
 
+static void particle_calculate_uvs(ParticleSystem *psys,
+                                   ParticleSystemModifierData *psmd,
+                                   const bool is_simple,
+                                   const int num_uv_layers,
+                                   const int parent_index,
+                                   const int child_index,
+                                   /*const*/ MTFace **mtfaces,
+                                   float (**r_parent_uvs)[2],
+                                   float (**r_uv)[2])
+{
+	if (psmd != NULL) {
+		*r_uv = MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs");
+	}
+	if (child_index == -1) {
+		/* Calculate UVs for parent particles. */
+		if (is_simple) {
+			r_parent_uvs[parent_index] = *r_uv;
+		}
+		particle_calculate_parent_uvs(
+		        psys, psmd, num_uv_layers, parent_index, mtfaces, *r_uv);
+	}
+	else {
+		/* Calculate UVs for child particles. */
+		if (!is_simple) {
+			particle_interpolate_children_uvs(
+			        psys, psmd, num_uv_layers, child_index, mtfaces, *r_uv);
+		}
+		else if (!r_parent_uvs[psys->child[child_index].parent]) {
+			r_parent_uvs[psys->child[child_index].parent] = *r_uv;
+			particle_calculate_parent_uvs(
+			        psys, psmd, num_uv_layers, parent_index, mtfaces, *r_uv);
+		}
+	}
+}
+
 /* Gwn_Batch cache usage. */
 static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, ModifierData *md, ParticleBatchCache *cache)
 {
@@ -308,14 +343,12 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 			}
 			float tangent[3];
 			float (*uv)[2] = NULL;
-			if (psmd != NULL) {
-				uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
-				if (simple) {
-					parent_uvs[i] = uv;
-				}
-			}
-			particle_calculate_parent_uvs(
-			        psys, psmd, num_uv_layers, i, mtfaces, uv);
+			particle_calculate_uvs(
+			        psys, psmd,
+			        simple, num_uv_layers,
+			        i, -1,
+			        mtfaces,
+			        parent_uvs, &uv);
 			for (int j = 0; j < path->segments; j++) {
 				if (j == 0) {
 					sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
@@ -367,21 +400,12 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 			}
 			float tangent[3];
 			float (*uv)[2] = NULL;
-			if (!simple) {
-				if (psmd != NULL) {
-					uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
-				}
-				particle_interpolate_children_uvs(
-				        psys, psmd, num_uv_layers, i, mtfaces, uv);
-			}
-			else if (!parent_uvs[psys->child[i].parent]) {
-				if (psmd != NULL) {
-					uv = parent_uvs[psys->child[i].parent] = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
-				}
-				const int parent_index = psys->child[i].parent;
-				particle_calculate_parent_uvs(
-				        psys, psmd, num_uv_layers, parent_index, mtfaces, uv);
-			}
+			particle_calculate_uvs(
+			        psys, psmd,
+			        simple, num_uv_layers,
+			        psys->child[i].parent, i,
+			        mtfaces,
+			        parent_uvs, &uv);
 			for (int j = 0; j < path->segments; j++) {
 				if (j == 0) {
 					sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
