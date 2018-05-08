@@ -67,18 +67,6 @@ static void initData(ModifierData *md)
 	umd->scalex = umd->scaley = 1.0f;
 }
 
-static void copyData(const ModifierData *md, ModifierData *target)
-{
-#if 0
-	const UVProjectModifierData *umd = (const UVProjectModifierData *) md;
-#endif
-	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
-
-	modifier_copyData_generic(md, target);
-
-	id_us_plus((ID *)tumd->image);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
 {
 	CustomDataMask dataMask = 0;
@@ -370,7 +358,7 @@ ModifierTypeInfo modifierType_UVProject = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
