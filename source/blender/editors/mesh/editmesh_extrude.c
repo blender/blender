@@ -47,6 +47,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "ED_mesh.h"
 #include "ED_screen.h"
@@ -494,6 +495,27 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	}
 }
 
+static void manipulator_mesh_extrude_message_subscribe(
+        const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
+{
+	ManipulatorExtrudeGroup *man = mgroup->customdata;
+	ARegion *ar = CTX_wm_region(C);
+
+	/* Subscribe to view properties */
+	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
+		.owner = ar,
+		.user_data = mgroup->parent_mmap,
+		.notify = WM_manipulator_do_msg_notify_tag_refresh,
+	};
+
+	{
+		PointerRNA ot_ptr;
+		WM_operator_last_properties_ensure(man->ot_extrude, &ot_ptr);
+		PointerRNA macroptr = RNA_pointer_get(&ot_ptr, "TRANSFORM_OT_translate");
+		WM_msg_subscribe_rna(mbus, &macroptr, NULL, &msg_sub_value_mpr_tag_refresh, __func__);
+	}
+}
+
 static void MESH_WGT_extrude(struct wmManipulatorGroupType *wgt)
 {
 	wgt->name = "Mesh Extrude";
@@ -507,6 +529,7 @@ static void MESH_WGT_extrude(struct wmManipulatorGroupType *wgt)
 	wgt->poll = manipulator_mesh_extrude_poll;
 	wgt->setup = manipulator_mesh_extrude_setup;
 	wgt->refresh = manipulator_mesh_extrude_refresh;
+	wgt->message_subscribe = manipulator_mesh_extrude_message_subscribe;
 }
 
 #endif  /* USE_MANIPULATOR */
