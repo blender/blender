@@ -243,24 +243,36 @@ static void mesh_operator_edgering_props_get(wmOperator *op, struct EdgeRingOpSu
 
 static int edbm_subdivide_edge_ring_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object * *objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	struct EdgeRingOpSubdProps op_props;
 
 	mesh_operator_edgering_props_get(op, &op_props);
 
-	if (!EDBM_op_callf(
-	            em, op,
-	            "subdivide_edgering edges=%he interp_mode=%i cuts=%i smooth=%f "
-	            "profile_shape=%i profile_shape_factor=%f",
-	            BM_ELEM_SELECT, op_props.interp_mode, op_props.cuts, op_props.smooth,
-	            op_props.profile_shape, op_props.profile_shape_factor))
-	{
-		return OPERATOR_CANCELLED;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object * obedit = objects[ob_index];
+		BMEditMesh * em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totedgesel == 0) {
+			continue;
+		}
+
+		if (!EDBM_op_callf(
+		        em, op,
+		        "subdivide_edgering edges=%he interp_mode=%i cuts=%i smooth=%f "
+		        "profile_shape=%i profile_shape_factor=%f",
+		        BM_ELEM_SELECT, op_props.interp_mode, op_props.cuts, op_props.smooth,
+		        op_props.profile_shape, op_props.profile_shape_factor))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
 
-	EDBM_update_generic(em, true, true);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
