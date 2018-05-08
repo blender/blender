@@ -360,11 +360,12 @@ static Mesh *applyModifier(
 		mesh_calc_hq_normal(mesh, face_nors, vert_nors);
 	}
 
-	result = BKE_mesh_from_template(mesh,
-	                                (int)((numVerts * stride) + newVerts),
-	                                (int)((numEdges * stride) + newEdges + rimVerts), 0,
-	                                (int)((numLoops * stride) + newLoops),
-	                                (int)((numFaces * stride) + newFaces));
+	result = BKE_mesh_new_nomain_from_template(
+	        mesh,
+	        (int)((numVerts * stride) + newVerts),
+	        (int)((numEdges * stride) + newEdges + rimVerts), 0,
+	        (int)((numLoops * stride) + newLoops),
+	        (int)((numFaces * stride) + newFaces));
 
 	mpoly = result->mpoly;
 	mloop = result->mloop;

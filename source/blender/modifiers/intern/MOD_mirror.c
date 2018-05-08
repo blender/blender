@@ -124,7 +124,8 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		mul_m4_m4m4(mtx, itmp, mtx);
 	}
 
-	result = BKE_mesh_from_template(mesh, maxVerts * 2, maxEdges * 2, 0, maxLoops * 2, maxPolys * 2);
+	result = BKE_mesh_new_nomain_from_template(
+	        mesh, maxVerts * 2, maxEdges * 2, 0, maxLoops * 2, maxPolys * 2);
 
 	/*copy customdata to original geometry*/
 	CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, maxVerts);

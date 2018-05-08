@@ -488,7 +488,7 @@ static Mesh *arrayModifier_doArray(
 	result_npolys = chunk_npolys * count + start_cap_npolys + end_cap_npolys;
 
 	/* Initialize a result dm */
-	result = BKE_mesh_from_template(mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
+	result = BKE_mesh_new_nomain_from_template(mesh, result_nverts, result_nedges, 0, result_nloops, result_npolys);
 	result_dm_verts = result->mvert;
 
 	if (use_merge) {

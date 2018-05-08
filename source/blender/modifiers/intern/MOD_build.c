@@ -217,8 +217,9 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
 	}
 
 	/* now we know the number of verts, edges and faces, we can create the mesh. */
-	result = BKE_mesh_from_template(mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash),
-	                                0, numLoops_dst, numFaces_dst);
+	result = BKE_mesh_new_nomain_from_template(
+	        mesh, BLI_ghash_len(vertHash), BLI_ghash_len(edgeHash),
+	        0, numLoops_dst, numFaces_dst);
 
 	/* copy the vertices across */
 	GHASH_ITER (gh_iter, vertHash) {

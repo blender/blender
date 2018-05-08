@@ -853,10 +853,11 @@ static Mesh *subdivide_base(Mesh *orig)
 	MEM_freeN(degree);
 
 	/* Allocate output derivedmesh */
-	result = BKE_mesh_from_template(orig,
-	                                totorigvert + totsubd,
-	                                totorigedge + totsubd,
-	                                0, 0, 0);
+	result = BKE_mesh_new_nomain_from_template(
+	        orig,
+	        totorigvert + totsubd,
+	        totorigedge + totsubd,
+	        0, 0, 0);
 
 	outvert = result->mvert;
 	outedge = result->medge;

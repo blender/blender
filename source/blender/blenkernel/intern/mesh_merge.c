@@ -610,7 +610,7 @@ Mesh *BKE_mesh_merge_verts(Mesh *mesh, const int *vtargetmap, const int tot_vtar
 	}
 
 	/*create new cddm*/
-	result = BKE_mesh_from_template(
+	result = BKE_mesh_new_nomain_from_template(
 	        mesh, STACK_SIZE(mvert), STACK_SIZE(medge), 0, STACK_SIZE(mloop), STACK_SIZE(mpoly));
 
 	/*update edge indices and copy customdata*/

@@ -651,7 +651,7 @@ Mesh *BKE_mesh_new_nomain(int numVerts, int numEdges, int numTessFaces, int numL
 	return mesh;
 }
 
-static Mesh *mesh_from_template_ex(
+static Mesh *mesh_new_nomain_from_template_ex(
         const Mesh *me_src,
         int numVerts, int numEdges, int numTessFaces,
         int numLoops, int numPolys,
@@ -692,15 +692,16 @@ static Mesh *mesh_from_template_ex(
 	return me_dst;
 }
 
-Mesh * BKE_mesh_from_template(const Mesh *me_src,
-                              int numVerts, int numEdges, int numTessFaces,
-                              int numLoops, int numPolys)
+Mesh * BKE_mesh_new_nomain_from_template(
+        const Mesh *me_src,
+        int numVerts, int numEdges, int numTessFaces,
+        int numLoops, int numPolys)
 {
-	return mesh_from_template_ex(
-	            me_src,
-	            numVerts, numEdges, numTessFaces,
-	            numLoops, numPolys,
-	            CD_MASK_EVERYTHING);
+	return mesh_new_nomain_from_template_ex(
+	        me_src,
+	        numVerts, numEdges, numTessFaces,
+	        numLoops, numPolys,
+	        CD_MASK_EVERYTHING);
 }
 
 Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
