@@ -55,11 +55,6 @@
 
 #include "DEG_depsgraph.h"
 
-/* Define for cases when you want extra validation of mesh
- * after certain modifications.
- */
-// #undef VALIDATE_MESH
-
 enum {
 	MESHCMP_DVERT_WEIGHTMISMATCH = 1,
 	MESHCMP_DVERT_GROUPMISMATCH,
