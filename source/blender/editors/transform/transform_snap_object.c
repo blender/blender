@@ -41,17 +41,19 @@
 #include "DNA_curve_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_view3d_types.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_bvhutils.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"  /* for duplis */
 #include "BKE_editmesh.h"
 #include "BKE_main.h"
 #include "BKE_tracking.h"
 #include "BKE_context.h"
+#include "BKE_mesh.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -95,9 +97,6 @@ typedef struct SnapObjectData {
 typedef struct SnapObjectData_Mesh {
 	SnapObjectData sd;
 	BVHTreeFromMesh *bvh_trees[3];
-	MPoly *mpoly;
-	bool poly_allocated;
-
 } SnapObjectData_Mesh;
 
 typedef struct SnapObjectData_EditMesh {
@@ -259,9 +258,6 @@ static bool isect_ray_bvhroot_v3(struct BVHTree *tree, const float ray_start[3],
 	}
 }
 
-
-static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt);
-
 /** \} */
 
 /* -------------------------------------------------------------------- */
@@ -344,14 +340,6 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 		mul_m3_v3((float(*)[3])data->timat, normal);
 		normalize_v3(normal);
 
-		/* currently unused, and causes issues when looptri's haven't been calculated.
-		 * since theres some overhead in ensuring this data is valid, it may need to be optional. */
-#if 0
-		if (data->dm) {
-			hit->index = dm_looptri_to_poly_index(data->dm, &data->dm_looptri[hit->index]);
-		}
-#endif
-
 		struct SnapObjectHitDepth *hit_item = hit_depth_create(
 		        depth, location, normal, hit->index,
 		        data->ob, data->obmat, data->ob_uuid);
@@ -360,10 +348,10 @@ static void raycast_all_cb(void *userdata, int index, const BVHTreeRay *ray, BVH
 }
 
 
-static bool raycastDerivedMesh(
+static bool raycastMesh(
         SnapObjectContext *sctx,
         const float ray_start[3], const float ray_dir[3],
-        Object *ob, DerivedMesh *dm, float obmat[4][4], const unsigned int ob_index,
+        Object *ob, Mesh *me, float obmat[4][4], const unsigned int ob_index,
         /* read/write args */
         float *ray_depth,
         /* return args */
@@ -372,7 +360,7 @@ static bool raycastDerivedMesh(
 {
 	bool retval = false;
 
-	if (dm->getNumPolys(dm) == 0) {
+	if (me->totpoly == 0) {
 		return retval;
 	}
 
@@ -398,7 +386,7 @@ static bool raycastDerivedMesh(
 	}
 
 	/* Test BoundBox */
-	BoundBox *bb = BKE_object_boundbox_get(ob);
+	BoundBox *bb = BKE_mesh_boundbox_get(ob);
 	if (bb) {
 		/* was BKE_boundbox_ray_hit_check, see: cf6ca226fa58 */
 		if (!isect_ray_aabb_v3_simple(
@@ -429,28 +417,25 @@ static bool raycastDerivedMesh(
 	if (treedata) {
 		/* the tree is owned by the DM and may have been freed since we last used! */
 		if (treedata->tree) {
-			if (treedata->cached && !bvhcache_has_tree(dm->bvhCache, treedata->tree)) {
+			if (treedata->cached && !bvhcache_has_tree(me->runtime.bvh_cache, treedata->tree)) {
 				free_bvhtree_from_mesh(treedata);
 			}
 			else {
-				if (treedata->vert == NULL) {
-					treedata->vert = DM_get_vert_array(dm, &treedata->vert_allocated);
+				/* Update Pointers. */
+				if (treedata->vert && treedata->vert_allocated == false) {
+					treedata->vert = me->mvert;
 				}
-				if (treedata->loop == NULL) {
-					treedata->loop = DM_get_loop_array(dm, &treedata->loop_allocated);
+				if (treedata->loop && treedata->loop_allocated == false) {
+					treedata->loop = me->mloop;
 				}
-				if (treedata->looptri == NULL) {
-					if (sod->mpoly == NULL) {
-						sod->mpoly = DM_get_poly_array(dm, &sod->poly_allocated);
-					}
-					treedata->looptri = dm->getLoopTriArray(dm);
-					treedata->looptri_allocated = false;
+				if (treedata->looptri && treedata->looptri_allocated == false) {
+					treedata->looptri = BKE_mesh_runtime_looptri_ensure(me);
 				}
 			}
 		}
 
 		if (treedata->tree == NULL) {
-			bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_LOOPTRI, 4);
+			BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI, 4);
 
 			if (treedata->tree == NULL) {
 				return retval;
@@ -531,7 +516,7 @@ static bool raycastDerivedMesh(
 				retval = true;
 
 				if (r_index) {
-					*r_index = dm_looptri_to_poly_index(dm, &treedata->looptri[hit.index]);
+					*r_index = hit.index;
 				}
 			}
 		}
@@ -572,29 +557,24 @@ static bool raycastEditMesh(
 	}
 	treedata = sod->bvh_trees[2];
 
-	if (treedata) {
-		if (treedata->tree == NULL) {
-			BLI_bitmap *elem_mask = NULL;
-			int looptri_num_active = -1;
+	if (treedata->tree == NULL) {
+		BLI_bitmap *elem_mask = NULL;
+		int looptri_num_active = -1;
 
-			if (sctx->callbacks.edit_mesh.test_face_fn) {
-				elem_mask = BLI_BITMAP_NEW(em->tottri, __func__);
-				looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
-				        em->bm, elem_mask,
-				        sctx->callbacks.edit_mesh.test_face_fn, sctx->callbacks.edit_mesh.user_data);
-			}
-			bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6, NULL);
+		if (sctx->callbacks.edit_mesh.test_face_fn) {
+			elem_mask = BLI_BITMAP_NEW(em->tottri, __func__);
+			looptri_num_active = BM_iter_mesh_bitmap_from_filter_tessface(
+			        em->bm, elem_mask,
+			        sctx->callbacks.edit_mesh.test_face_fn, sctx->callbacks.edit_mesh.user_data);
+		}
+		bvhtree_from_editmesh_looptri_ex(treedata, em, elem_mask, looptri_num_active, 0.0f, 4, 6, NULL);
 
-			if (elem_mask) {
-				MEM_freeN(elem_mask);
-			}
+		if (elem_mask) {
+			MEM_freeN(elem_mask);
 		}
 		if (treedata->tree == NULL) {
 			return retval;
 		}
-	}
-	else {
-		return retval;
 	}
 
 	float imat[4][4];
@@ -715,10 +695,8 @@ static bool raycastObj(
 	bool retval = false;
 
 	if (ob->type == OB_MESH) {
-		BMEditMesh *em;
-
 		if (use_obedit) {
-			em = BKE_editmesh_from_object(ob);
+			BMEditMesh *em = BKE_editmesh_from_object(ob);
 			retval = raycastEditMesh(
 			        sctx,
 			        ray_start, ray_dir,
@@ -726,20 +704,10 @@ static bool raycastObj(
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
 		}
 		else {
-			/* in this case we want the mesh from the editmesh, avoids stale data. see: T45978.
-			 * still set the 'em' to NULL, since we only want the 'dm'. */
-			DerivedMesh *dm;
-			em = BKE_editmesh_from_object(ob);
-			if (em) {
-				editbmesh_get_derived_cage_and_final(sctx->depsgraph, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
-			}
-			else {
-				dm = mesh_get_derived_final(sctx->depsgraph, sctx->scene, ob, CD_MASK_BAREMESH);
-			}
-			retval = raycastDerivedMesh(
+			retval = raycastMesh(
 			        sctx,
 			        ray_start, ray_dir,
-			        ob, dm, obmat, ob_index,
+			        ob, ob->data, obmat, ob_index,
 			        ray_depth, r_loc, r_no, r_index, r_hit_list);
 		}
 	}
@@ -1583,15 +1551,9 @@ static bool snapCamera(
 	return false;
 }
 
-static int dm_looptri_to_poly_index(DerivedMesh *dm, const MLoopTri *lt)
-{
-	const int *index_mp_to_orig = dm->getPolyDataArray(dm, CD_ORIGINDEX);
-	return index_mp_to_orig ? index_mp_to_orig[lt->poly] : lt->poly;
-}
-
-static bool snapDerivedMesh(
+static bool snapMesh(
         SnapObjectContext *sctx, SnapData *snapdata,
-        Object *ob, DerivedMesh *dm, float obmat[4][4],
+        Object *ob, Mesh *me, float obmat[4][4],
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
@@ -1600,12 +1562,12 @@ static bool snapDerivedMesh(
 	bool retval = false;
 
 	if (snapdata->snap_to == SCE_SNAP_MODE_EDGE) {
-		if (dm->getNumEdges(dm) == 0) {
+		if (me->totedge == 0) {
 			return retval;
 		}
 	}
 	else {
-		if (dm->getNumVerts(dm) == 0) {
+		if (me->totvert == 0) {
 			return retval;
 		}
 	}
@@ -1636,7 +1598,7 @@ static bool snapDerivedMesh(
 	mul_m4_v3(imat, ray_org_local);
 
 	/* Test BoundBox */
-	BoundBox *bb = BKE_object_boundbox_get(ob);
+	BoundBox *bb = BKE_mesh_boundbox_get(ob);
 	if (bb) {
 		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
 		float dist_px_sq = dist_squared_to_projected_aabb_simple(
@@ -1674,18 +1636,12 @@ static bool snapDerivedMesh(
 		}
 		treedata = sod->bvh_trees[tree_index];
 
-		/* the tree is owned by the DM and may have been freed since we last used! */
-		if (treedata && treedata->tree) {
-			if (treedata->cached && !bvhcache_has_tree(dm->bvhCache, treedata->tree)) {
-				free_bvhtree_from_mesh(treedata);
+		if (treedata->tree) {
+			if (treedata->vert == NULL) {
+				treedata->vert = me->mvert; /* CustomData_get_layer(&me->vdata, CD_MVERT);? */
 			}
-			else {
-				if (treedata->vert == NULL) {
-					treedata->vert = DM_get_vert_array(dm, &treedata->vert_allocated);
-				}
-				if ((tree_index == 1) && (treedata->edge == NULL)) {
-					treedata->edge = DM_get_edge_array(dm, &treedata->edge_allocated);
-				}
+			if ((tree_index == 1) && (treedata->edge == NULL)) {
+				treedata->edge = me->medge; /* CustomData_get_layer(&me->edata, CD_MEDGE);? */
 			}
 		}
 	}
@@ -1694,10 +1650,10 @@ static bool snapDerivedMesh(
 		if (treedata->tree == NULL) {
 			switch (snapdata->snap_to) {
 				case SCE_SNAP_MODE_EDGE:
-					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_EDGES, 2);
+					BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_EDGES, 2);
 					break;
 				case SCE_SNAP_MODE_VERTEX:
-					bvhtree_from_mesh_get(treedata, dm, BVHTREE_FROM_VERTS, 2);
+					BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_VERTS, 2);
 					break;
 			}
 		}
@@ -1934,22 +1890,10 @@ static bool snapObject(
 			        r_loc, r_no);
 		}
 		else {
-			/* in this case we want the mesh from the editmesh, avoids stale data. see: T45978.
-			 * still set the 'em' to NULL, since we only want the 'dm'. */
-			DerivedMesh *dm;
-			em = BKE_editmesh_from_object(ob);
-			if (em) {
-				editbmesh_get_derived_cage_and_final(sctx->depsgraph, sctx->scene, ob, em, CD_MASK_BAREMESH, &dm);
-			}
-			else {
-				dm = mesh_get_derived_final(sctx->depsgraph, sctx->scene, ob, CD_MASK_BAREMESH);
-			}
-			retval = snapDerivedMesh(
-			        sctx, snapdata, ob, dm, obmat,
+			retval = snapMesh(
+			        sctx, snapdata, ob, ob->data, obmat,
 			        ray_depth, dist_px,
 			        r_loc, r_no);
-
-			dm->release(dm);
 		}
 	}
 	else if (snapdata->snap_to != SCE_SNAP_MODE_FACE) {
@@ -2123,9 +2067,6 @@ static void snap_object_data_free(void *sod_v)
 				if (sod->bvh_trees[i]) {
 					free_bvhtree_from_mesh(sod->bvh_trees[i]);
 				}
-			}
-			if (sod->poly_allocated) {
-				MEM_freeN(sod->mpoly);
 			}
 			break;
 		}
