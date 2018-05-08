@@ -109,11 +109,11 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
                         int numVerts)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *) md;
-
+	struct Mesh *mesh_src = mesh ? mesh : ctx->object->data;
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	lattice_deform_verts(lmd->object, ctx->object, mesh,
+	lattice_deform_verts(lmd->object, ctx->object, mesh_src,
 	                     vertexCos, numVerts, lmd->name, lmd->strength);
 }
 

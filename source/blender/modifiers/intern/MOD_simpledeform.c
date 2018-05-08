@@ -40,12 +40,15 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
 #include "MOD_util.h"
+
+#include "bmesh.h"
 
 #define BEND_EPS 0.000001f
 
@@ -389,16 +392,21 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
                         float (*vertexCos)[3],
                         int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh, vertexCos, numVerts);
+	Mesh *mesh_src = mesh ? mesh : ctx->object->data;
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
 }
 
 static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
-                          struct BMEditMesh *UNUSED(editData),
+                          struct BMEditMesh *editData,
                           struct Mesh *mesh,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh, vertexCos, numVerts);
+	Mesh *mesh_src = mesh;
+	if (!mesh) {
+		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
+	}
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
 }
 
 
