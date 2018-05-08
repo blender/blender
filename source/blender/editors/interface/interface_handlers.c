@@ -8497,8 +8497,8 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 		uiButtonActivateType post_type = data->posttype;
 
 		/* Reset the button value when empty text is typed. */
-		if ((data->str != NULL) && (data->str[0] == '\0') &&
-		    ELEM(RNA_property_type(but->rnaprop), PROP_FLOAT, PROP_INT))
+		if ((data->cancel == false) && (data->str != NULL) && (data->str[0] == '\0') &&
+		    (but->rnaprop && ELEM(RNA_property_type(but->rnaprop), PROP_FLOAT, PROP_INT)))
 		{
 			MEM_SAFE_FREE(data->str);
 			ui_button_value_default(but, &data->value);
