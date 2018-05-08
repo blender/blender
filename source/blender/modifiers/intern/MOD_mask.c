@@ -40,13 +40,16 @@
 #include "BLI_ghash.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
 #include "BKE_action.h" /* BKE_pose_channel_find_name */
-#include "BKE_cdderivedmesh.h"
+#include "BKE_customdata.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 
@@ -81,13 +84,12 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *dm)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
 	Object *ob = ctx->object;
 	const bool found_test = (mmd->flag & MOD_MASK_INV) == 0;
-	DerivedMesh *result = NULL;
+	Mesh *result = NULL;
 	GHash *vertHash = NULL, *edgeHash, *polyHash;
 	GHashIterator gh_iter;
 	MDeformVert *dvert, *dv;
@@ -107,9 +109,9 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 
 	int *loop_mapping;
 
-	dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
 	if (dvert == NULL) {
-		return found_test ? CDDM_from_template(dm, 0, 0, 0, 0, 0) : dm;
+		return found_test ? BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0) : mesh;
 	}
 
 	/* Overview of Method:
@@ -119,9 +121,9 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	 */
 	
 	/* get original number of verts, edges, and faces */
-	maxVerts = dm->getNumVerts(dm);
-	maxEdges = dm->getNumEdges(dm);
-	maxPolys = dm->getNumPolys(dm);
+	maxVerts = mesh->totvert;
+	maxEdges = mesh->totedge;
+	maxPolys = mesh->totpoly;
 	
 	/* check if we can just return the original mesh 
 	 *	- must have verts and therefore verts assigned to vgroups to do anything useful
@@ -129,7 +131,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	if (!(ELEM(mmd->mode, MOD_MASK_MODE_ARM, MOD_MASK_MODE_VGROUP)) ||
 	    (maxVerts == 0) || BLI_listbase_is_empty(&ob->defbase))
 	{
-		return dm;
+		return mesh;
 	}
 	
 	/* if mode is to use selected armature bones, aggregate the bone groups */
@@ -142,8 +144,9 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 		const int defbase_tot = BLI_listbase_count(&ob->defbase);
 		
 		/* check that there is armature object with bones to use, otherwise return original mesh */
-		if (ELEM(NULL, oba, oba->pose, ob->defbase.first))
-			return dm;
+		if (ELEM(NULL, oba, oba->pose, ob->defbase.first)) {
+			return mesh;
+		}
 		
 		/* determine whether each vertexgroup is associated with a selected bone or not 
 		 * - each cell is a boolean saying whether bone corresponding to the ith group is selected
@@ -204,8 +207,9 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 		int defgrp_index = defgroup_name_index(ob, mmd->vgroup);
 
 		/* if no vgroup (i.e. dverts) found, return the initial mesh */
-		if (defgrp_index == -1)
-			return dm;
+		if (defgrp_index == -1) {
+			return mesh;
+		}
 			
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
 		vertHash = BLI_ghash_int_new_ex("mask vert2 bh", (unsigned int)maxVerts);
@@ -227,10 +231,10 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	edgeHash = BLI_ghash_int_new_ex("mask ed2 gh", (unsigned int)maxEdges);
 	polyHash = BLI_ghash_int_new_ex("mask fa2 gh", (unsigned int)maxPolys);
 
-	mvert_src = dm->getVertArray(dm);
-	medge_src = dm->getEdgeArray(dm);
-	mpoly_src = dm->getPolyArray(dm);
-	mloop_src = dm->getLoopArray(dm);
+	mvert_src = mesh->mvert;
+	medge_src = mesh->medge;
+	mpoly_src = mesh->mpoly;
+	mloop_src = mesh->mloop;
 
 	/* overalloc, assume all polys are seen */
 	loop_mapping = MEM_malloc_arrayN((size_t)maxPolys, sizeof(int), "mask loopmap");
@@ -275,12 +279,12 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	/* now we know the number of verts, edges and faces, 
 	 * we can create the new (reduced) mesh
 	 */
-	result = CDDM_from_template(dm, numVerts, numEdges, 0, numLoops, numPolys);
+	result = BKE_mesh_new_nomain_from_template(mesh, numVerts, numEdges, 0, numLoops, numPolys);
 	
-	mpoly_dst = CDDM_get_polys(result);
-	mloop_dst = CDDM_get_loops(result);
-	medge_dst = CDDM_get_edges(result);
-	mvert_dst = CDDM_get_verts(result);
+	mpoly_dst = result->mpoly;
+	mloop_dst = result->mloop;
+	medge_dst = result->medge;
+	mvert_dst = result->mvert;
 
 	/* using ghash-iterators, map data into new mesh */
 	/* vertices */
@@ -294,7 +298,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 		v_dst = &mvert_dst[i_dst];
 
 		*v_dst = *v_src;
-		DM_copy_vert_data(dm, result, i_src, i_dst, 1);
+		CustomData_copy_data(&mesh->vdata, &result->vdata, i_src, i_dst, 1);
 	}
 		
 	/* edges */
@@ -307,7 +311,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 		e_src = &medge_src[i_src];
 		e_dst = &medge_dst[i_dst];
 
-		DM_copy_edge_data(dm, result, i_src, i_dst, 1);
+		CustomData_copy_data(&mesh->edata, &result->edata, i_src, i_dst, 1);
 		*e_dst = *e_src;
 		e_dst->v1 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v1)));
 		e_dst->v2 = GET_UINT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_UINT_IN_POINTER(e_src->v2)));
@@ -324,8 +328,8 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 		const MLoop *ml_src = &mloop_src[i_ml_src];
 		MLoop *ml_dst = &mloop_dst[i_ml_dst];
 		
-		DM_copy_poly_data(dm, result, i_src, i_dst, 1);
-		DM_copy_loop_data(dm, result, i_ml_src, i_ml_dst, mp_src->totloop);
+		CustomData_copy_data(&mesh->pdata, &result->pdata, i_src, i_dst, 1);
+		CustomData_copy_data(&mesh->ldata, &result->ldata, i_ml_src, i_ml_dst, mp_src->totloop);
 
 		*mp_dst = *mp_src;
 		mp_dst->loopstart = i_ml_dst;
@@ -339,7 +343,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 
 	/* why is this needed? - campbell */
 	/* recalculate normals */
-	result->dirty |= DM_DIRTY_NORMALS;
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	
 	/* free hashes */
 	BLI_ghash_free(vertHash, NULL, NULL);
@@ -366,14 +370,14 @@ ModifierTypeInfo modifierType_Mask = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          NULL,
