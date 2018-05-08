@@ -122,9 +122,17 @@ static void deformVerts(
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 
+	Mesh *mesh_src = mesh;
+
+	if (mesh_src == NULL) {
+		mesh_src = ctx->object->data;
+	}
+
+	BLI_assert(mesh_src->totvert == numVerts);
+
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(cmd->object, ctx->object, mesh, vertexCos, numVerts, cmd->name, cmd->defaxis - 1);
+	curve_deform_verts(cmd->object, ctx->object, mesh_src, vertexCos, numVerts, cmd->name, cmd->defaxis - 1);
 }
 
 static void deformVertsEM(
@@ -140,6 +148,8 @@ static void deformVertsEM(
 	if (mesh_src == NULL) {
 		mesh_src = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 	}
+
+	BLI_assert(mesh_src->totvert == numVerts);
 
 	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
