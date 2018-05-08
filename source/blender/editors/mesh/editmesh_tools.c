@@ -3052,38 +3052,47 @@ void MESH_OT_blend_from_shape(wmOperatorType *ot)
 
 static int edbm_solidify_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = obedit->data;
-	BMEditMesh *em = me->edit_btmesh;
-	BMesh *bm = em->bm;
-	BMOperator bmop;
-
 	const float thickness = RNA_float_get(op->ptr, "thickness");
 
-	if (!EDBM_op_init(em, &bmop, op, "solidify geom=%hf thickness=%f", BM_ELEM_SELECT, thickness)) {
-		return OPERATOR_CANCELLED;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		BMOperator bmop;
+
+		if (!EDBM_op_init(em, &bmop, op, "solidify geom=%hf thickness=%f", BM_ELEM_SELECT, thickness)) {
+			continue;
+		}
+
+		/* deselect only the faces in the region to be solidified (leave wire
+		 * edges and loose verts selected, as there will be no corresponding
+		 * geometry selected below) */
+		BMO_slot_buffer_hflag_disable(bm, bmop.slots_in, "geom", BM_FACE, BM_ELEM_SELECT, true);
+
+		/* run the solidify operator */
+		BMO_op_exec(bm, &bmop);
+
+		/* select the newly generated faces */
+		BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
 
-	/* deselect only the faces in the region to be solidified (leave wire
-	 * edges and loose verts selected, as there will be no corresponding
-	 * geometry selected below) */
-	BMO_slot_buffer_hflag_disable(bm, bmop.slots_in, "geom", BM_FACE, BM_ELEM_SELECT, true);
-
-	/* run the solidify operator */
-	BMO_op_exec(bm, &bmop);
-
-	/* select the newly generated faces */
-	BMO_slot_buffer_hflag_enable(bm, bmop.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
-
 
 void MESH_OT_solidify(wmOperatorType *ot)
 {
