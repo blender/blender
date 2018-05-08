@@ -206,6 +206,17 @@ typedef struct wmMsgSubscribeKey_RNA {
 	wmMsg_RNA msg;
 } wmMsgSubscribeKey_RNA;
 
+#ifdef __GNUC__
+#define _WM_MESSAGE_EXTERN_BEGIN \
+	_Pragma("GCC diagnostic push"); \
+	_Pragma("GCC diagnostic ignored \"-Wredundant-decls\"");
+#define _WM_MESSAGE_EXTERN_END \
+	_Pragma("GCC diagnostic pop");
+#else
+#define _WM_MESSAGE_EXTERN_BEGIN
+#define _WM_MESSAGE_EXTERN_END
+#endif
+
 void WM_msgtypeinfo_init_rna(wmMsgTypeInfo *msg_type);
 
 wmMsgSubscribeKey_RNA *WM_msg_lookup_rna(
@@ -236,14 +247,18 @@ void WM_msg_publish_ID(
 
 #define WM_msg_publish_rna_prop(mbus, id_, data_, type_, prop_) { \
 	 wmMsgParams_RNA msg_key_params_ = {{{0}}}; \
+	_WM_MESSAGE_EXTERN_BEGIN; \
 	extern PropertyRNA rna_##type_##_##prop_; \
+	_WM_MESSAGE_EXTERN_END; \
 	RNA_pointer_create(id_, &RNA_##type_, data_, &msg_key_params_.ptr); \
 	msg_key_params_.prop = &rna_##type_##_##prop_; \
 	WM_msg_publish_rna_params(mbus, &msg_key_params_); \
 } ((void)0)
 #define WM_msg_subscribe_rna_prop(mbus, id_, data_, type_, prop_, value) { \
 	wmMsgParams_RNA msg_key_params_ = {{{0}}}; \
+	_WM_MESSAGE_EXTERN_BEGIN; \
 	extern PropertyRNA rna_##type_##_##prop_; \
+	_WM_MESSAGE_EXTERN_END; \
 	RNA_pointer_create(id_, &RNA_##type_, data_, &msg_key_params_.ptr); \
 	msg_key_params_.prop = &rna_##type_##_##prop_; \
 	WM_msg_subscribe_rna_params(mbus, &msg_key_params_, value, __func__); \
@@ -260,7 +275,9 @@ void WM_msg_publish_ID(
 	        value, __func__); \
 } ((void)0)
 #define WM_msg_subscribe_rna_anon_prop(mbus, type_, prop_, value) { \
+	_WM_MESSAGE_EXTERN_BEGIN; \
 	extern PropertyRNA rna_##type_##_##prop_; \
+	_WM_MESSAGE_EXTERN_END; \
 	WM_msg_subscribe_rna_params( \
 	        mbus, \
 	        &(const wmMsgParams_RNA){ \
