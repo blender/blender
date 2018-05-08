@@ -2615,7 +2615,7 @@ void BKE_mesh_split_faces(Mesh *mesh, bool free_loop_normals)
 /* settings: 1 - preview, 2 - render */
 Mesh *BKE_mesh_new_from_object(
         Depsgraph *depsgraph, Main *bmain, Scene *sce, Object *ob,
-        int apply_modifiers, int calc_tessface, int calc_undeformed)
+        const bool apply_modifiers, const bool calc_tessface, const bool calc_undeformed)
 {
 	Mesh *tmpmesh;
 	Curve *tmpcu = NULL, *copycu;
