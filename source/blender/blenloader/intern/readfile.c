@@ -765,7 +765,9 @@ static BHeadN *get_bhead(FileData *fd)
 						bh8_from_bh4(&bhead, &bhead4);
 					}
 					else {
-						memcpy(&bhead, &bhead4, sizeof(bhead));
+						/* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
+						BLI_assert(sizeof(bhead) == sizeof(bhead4));
+						memcpy(&bhead, &bhead4, MIN2(sizeof(bhead), sizeof(bhead4)));
 					}
 				}
 				else {
@@ -786,7 +788,9 @@ static BHeadN *get_bhead(FileData *fd)
 						bh4_from_bh8(&bhead, &bhead8, (fd->flags & FD_FLAGS_SWITCH_ENDIAN));
 					}
 					else {
-						memcpy(&bhead, &bhead8, sizeof(bhead));
+						/* MIN2 is only to quiet '-Warray-bounds' compiler warning. */
+						BLI_assert(sizeof(bhead) == sizeof(bhead8));
+						memcpy(&bhead, &bhead8, MIN2(sizeof(bhead), sizeof(bhead8)));
 					}
 				}
 				else {
