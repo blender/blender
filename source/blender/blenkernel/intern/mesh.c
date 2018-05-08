@@ -615,7 +615,7 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	}
 }
 
-Mesh *BKE_mesh_new(int numVerts, int numEdges, int numTessFaces,int numLoops, int numPolys)
+Mesh *BKE_mesh_new_nomain(int numVerts, int numEdges, int numTessFaces,int numLoops, int numPolys)
 {
 	Mesh *mesh = BKE_libblock_alloc(NULL, ID_ME,
 	                                BKE_idcode_to_name(ID_ME),
