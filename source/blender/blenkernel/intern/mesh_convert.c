@@ -28,38 +28,27 @@
 #include "DNA_material_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
-#include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_curve_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
-#include "BLI_linklist.h"
 #include "BLI_listbase.h"
-#include "BLI_memarena.h"
 #include "BLI_edgehash.h"
-#include "BLI_string.h"
 
-#include "BKE_animsys.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
-#include "BKE_library_query.h"
-#include "BKE_library_remap.h"
 #include "BKE_material.h"
 #include "BKE_modifier.h"
-#include "BKE_multires.h"
-#include "BKE_key.h"
 #include "BKE_mball.h"
 #include "BKE_depsgraph.h"
-/* these 2 are only used by conversion functions */
 #include "BKE_curve.h"
 /* -- */
 #include "BKE_object.h"
-#include "BKE_editmesh.h"
 
 #include "DEG_depsgraph.h"
 
