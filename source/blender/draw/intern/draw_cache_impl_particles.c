@@ -193,14 +193,14 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 	static Gwn_VertFormat format = { 0 };
 	static struct { uint pos, tan, ind; } attr_id;
 	unsigned int *uv_id = NULL;
-	int uv_layers = 0;
+	int num_uv_layers = 0;
 	MTFace **mtfaces = NULL;
 	float (**parent_uvs)[2] = NULL;
 	bool simple = psys->part->childtype == PART_CHILD_PARTICLES;
 
-	if (psmd) {
+	if (psmd != NULL) {
 		if (CustomData_has_layer(&psmd->dm_final->loopData, CD_MLOOPUV)) {
-			uv_layers = CustomData_number_of_layers(&psmd->dm_final->loopData, CD_MLOOPUV);
+			num_uv_layers = CustomData_number_of_layers(&psmd->dm_final->loopData, CD_MLOOPUV);
 		}
 	}
 
@@ -212,9 +212,9 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 	attr_id.ind = GWN_vertformat_attr_add(&format, "ind", GWN_COMP_I32, 1, GWN_FETCH_INT);
 
 	if (psmd) {
-		uv_id = MEM_mallocN(sizeof(*uv_id) * uv_layers, "UV attrib format");
+		uv_id = MEM_mallocN(sizeof(*uv_id) * num_uv_layers, "UV attrib format");
 
-		for (int i = 0; i < uv_layers; i++) {
+		for (int i = 0; i < num_uv_layers; i++) {
 			const char *name = CustomData_get_layer_name(&psmd->dm_final->loopData, CD_MLOOPUV, i);
 			char uuid[32];
 
@@ -229,12 +229,10 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 	Gwn_IndexBufBuilder elb;
 	GWN_indexbuf_init_ex(&elb, GWN_PRIM_LINE_STRIP, cache->elems_count, cache->point_count, true);
 
-	if (uv_layers) {
+	if (num_uv_layers) {
 		DM_ensure_tessface(psmd->dm_final);
-
-		mtfaces = MEM_mallocN(sizeof(*mtfaces) * uv_layers, "Faces UV layers");
-
-		for (int i = 0; i < uv_layers; i++) {
+		mtfaces = MEM_mallocN(sizeof(*mtfaces) * num_uv_layers, "Faces UV layers");
+		for (int i = 0; i < num_uv_layers; i++) {
 			mtfaces[i] = (MTFace *)CustomData_get_layer_n(&psmd->dm_final->faceData, CD_MTFACE, i);
 		}
 	}
@@ -252,7 +250,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 			int from = psmd ? psmd->psys->part->from : 0;
 			float (*uv)[2] = NULL;
 			if (psmd != NULL) {
-				uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
+				uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
 				if (simple) {
 					parent_uvs[i] = uv;
 				}
@@ -267,7 +265,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 				}
 				if (num != DMCACHE_NOTFOUND) {
 					MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-					for (int j = 0; j < uv_layers; j++) {
+					for (int j = 0; j < num_uv_layers; j++) {
 						psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
 					}
 				}
@@ -283,7 +281,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 				GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
 				GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
 				if (psmd != NULL) {
-					for (int k = 0; k < uv_layers; k++) {
+					for (int k = 0; k < num_uv_layers; k++) {
 						GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
 					}
 				}
@@ -297,7 +295,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 			GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
 
 			if (psmd != NULL) {
-				for (int k = 0; k < uv_layers; k++) {
+				for (int k = 0; k < num_uv_layers; k++) {
 					GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
 				}
 				if (!simple) {
@@ -318,31 +316,31 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 		}
 		for (int i = 0, x = psys->totpart; i < child_count; i++, x++) {
 			ParticleCacheKey *path = psys->childcache[i];
-			float tangent[3];
 			if (path->segments <= 0) {
 				continue;
 			}
+			float tangent[3];
 			int from = psmd ? psmd->psys->part->from : 0;
 			float (*uv)[2] = NULL;
 			if (!simple) {
-				if (psmd) {
-					uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
+				if (psmd != NULL) {
+					uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
 				}
 				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 					ChildParticle *particle = &psys->child[i];
 					int num = particle->num;
 					if (num != DMCACHE_NOTFOUND) {
 						MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-						for (int j = 0; j < uv_layers; j++) {
+						for (int j = 0; j < num_uv_layers; j++) {
 							psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
 						}
 					}
 				}
 			}
 			else if (!parent_uvs[psys->child[i].parent]) {
-				if (psmd) {
-					parent_uvs[psys->child[i].parent] = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
-					}
+				if (psmd != NULL) {
+					parent_uvs[psys->child[i].parent] = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
+				}
 				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
 					ParticleData *particle = &psys->particles[psys->child[i].parent];
 					int num = particle->num_dmcache;
@@ -353,7 +351,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 					}
 					if (num != DMCACHE_NOTFOUND) {
 						MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-						for (int j = 0; j < uv_layers; j++) {
+						for (int j = 0; j < num_uv_layers; j++) {
 							psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, parent_uvs[psys->child[i].parent][j]);
 						}
 					}
@@ -370,7 +368,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 				GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
 				GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &x);
 				if (psmd != NULL) {
-					for (int k = 0; k < uv_layers; k++) {
+					for (int k = 0; k < num_uv_layers; k++) {
 						GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point,
 						                     simple ? parent_uvs[psys->child[i].parent][k] : uv[k]);
 					}
@@ -385,7 +383,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 			GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &x);
 
 			if (psmd != NULL) {
-				for (int k = 0; k < uv_layers; k++) {
+				for (int k = 0; k < num_uv_layers; k++) {
 					GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point,
 					                     simple ? parent_uvs[psys->child[i].parent][k] : uv[k]);
 				}
@@ -406,7 +404,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 		}
 		MEM_freeN(parent_uvs);
 	}
-	if (uv_layers) {
+	if (num_uv_layers) {
 		MEM_freeN(mtfaces);
 	}
 	if (psmd != NULL) {
