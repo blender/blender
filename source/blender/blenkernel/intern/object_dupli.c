@@ -147,8 +147,7 @@ static void copy_dupli_context(DupliContext *r_ctx, const DupliContext *ctx, Obj
  */
 static DupliObject *make_dupli(const DupliContext *ctx,
                                Object *ob, float mat[4][4], int index,
-                               bool animated, bool hide,
-                               IDProperty *collection_properties)
+                               bool animated, bool hide)
 {
 	DupliObject *dob;
 	int i;
@@ -201,10 +200,6 @@ static DupliObject *make_dupli(const DupliContext *ctx,
 
 	if (ctx->object != ob) {
 		dob->random_id ^= BLI_hash_int(BLI_hash_string(ctx->object->id.name + 2));
-	}
-
-	if (collection_properties) {
-		dob->collection_properties = IDP_CopyProperty(collection_properties);
 	}
 
 	return dob;
@@ -323,8 +318,7 @@ static void make_duplis_group(const DupliContext *ctx)
 			/* group dupli offset, should apply after everything else */
 			mul_m4_m4m4(mat, group_mat, base->object->obmat);
 
-			BLI_assert(base->collection_properties != NULL);
-			make_dupli(ctx, base->object, mat, id, animated, false, base->collection_properties);
+			make_dupli(ctx, base->object, mat, id, animated, false);
 
 			/* recursion */
 			make_recursive_duplis(ctx, base->object, group_mat, id, animated);
@@ -386,7 +380,7 @@ static void make_duplis_frames(const DupliContext *ctx)
 			BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, (float)scene->r.cfra, ADT_RECALC_ANIM); /* ob-eval will do drivers, so we don't need to do them */
 			BKE_object_where_is_calc_time(ctx->depsgraph, scene, ob, (float)scene->r.cfra);
 
-			make_dupli(ctx, ob, ob->obmat, scene->r.cfra, false, false, NULL);
+			make_dupli(ctx, ob, ob->obmat, scene->r.cfra, false, false);
 		}
 	}
 
@@ -471,7 +465,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 	 */
 	mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
 
-	dob = make_dupli(vdd->ctx, vdd->inst_ob, obmat, index, false, false, NULL);
+	dob = make_dupli(vdd->ctx, vdd->inst_ob, obmat, index, false, false);
 
 	if (vdd->orco)
 		copy_v3_v3(dob->orco, vdd->orco[index]);
@@ -656,7 +650,7 @@ static void make_duplis_font(const DupliContext *ctx)
 
 			copy_v3_v3(obmat[3], vec);
 
-			make_dupli(ctx, ob, obmat, a, false, false, NULL);
+			make_dupli(ctx, ob, obmat, a, false, false);
 		}
 	}
 
@@ -762,7 +756,7 @@ static void make_child_duplis_faces(const DupliContext *ctx, void *userdata, Obj
 		 */
 		mul_m4_m4m4(space_mat, obmat, inst_ob->imat);
 
-		dob = make_dupli(ctx, inst_ob, obmat, a, false, false, NULL);
+		dob = make_dupli(ctx, inst_ob, obmat, a, false, false);
 		if (use_texcoords) {
 			float w = 1.0f / (float)mp->totloop;
 
@@ -1073,7 +1067,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 					/* individual particle transform */
 					mul_m4_m4m4(mat, pamat, tmat);
 
-					dob = make_dupli(ctx, object, mat, a, false, false, NULL);
+					dob = make_dupli(ctx, object, mat, a, false, false);
 					dob->particle_system = psys;
 
 					if (use_texcoords) {
@@ -1127,7 +1121,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 				if (part->draw & PART_DRAW_GLOBAL_OB)
 					add_v3_v3v3(mat[3], mat[3], vec);
 
-				dob = make_dupli(ctx, ob, mat, a, false, false, NULL);
+				dob = make_dupli(ctx, ob, mat, a, false, false);
 				dob->particle_system = psys;
 				if (use_texcoords)
 					psys_get_dupli_texture(psys, part, sim.psmd, pa, cpa, dob->uv, dob->orco);
@@ -1240,14 +1234,6 @@ ListBase *object_duplilist(Depsgraph *depsgraph, Scene *sce, Object *ob)
 
 void free_object_duplilist(ListBase *lb)
 {
-
-	for (DupliObject *dob = lb->first; dob; dob = dob->next) {
-		if (dob->collection_properties) {
-			IDP_FreeProperty(dob->collection_properties);
-			MEM_freeN(dob->collection_properties);
-		}
-	}
-
 	BLI_freelistN(lb);
 	MEM_freeN(lb);
 }

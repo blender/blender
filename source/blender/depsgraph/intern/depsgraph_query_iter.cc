@@ -125,17 +125,6 @@ static bool deg_objects_dupli_iterator_next(BLI_Iterator *iter)
 
 		temp_dupli_object->transflag &= ~OB_DUPLI;
 
-		if (dob->collection_properties != NULL) {
-			temp_dupli_object->base_collection_properties = dob->collection_properties;
-			IDP_MergeGroup(temp_dupli_object->base_collection_properties,
-			               dupli_parent->base_collection_properties,
-			               false);
-		}
-		else {
-			temp_dupli_object->base_collection_properties =
-			        dupli_parent->base_collection_properties;
-		}
-
 		copy_m4_m4(data->temp_dupli_object.obmat, dob->mat);
 		iter->current = &data->temp_dupli_object;
 		BLI_assert(

@@ -94,7 +94,7 @@ static PointerRNA rna_SceneCollection_objects_get(CollectionPropertyIterator *it
 {
 	ListBaseIterator *internal = &iter->internal.listbase;
 
-	/* we are actually iterating a LinkData list, so override get */
+	/* we are actually iterating a LinkData list */
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((LinkData *)internal->link)->data);
 }
 
@@ -810,7 +810,7 @@ static PointerRNA rna_ViewLayer_objects_get(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal = &iter->internal.listbase;
 
-	/* we are actually iterating a ObjectBase list, so override get */
+	/* we are actually iterating a ObjectBase list */
 	Base *base = (Base *)internal->link;
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, base->object);
 }
@@ -995,22 +995,6 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	parm = RNA_def_pointer(func, "result", "SceneCollection", "", "Newly created collection");
 	RNA_def_function_return(func, parm);
 }
-
-static void rna_def_layer_collection_override(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "LayerCollectionOverride", NULL);
-	RNA_def_struct_sdna(srna, "CollectionOverride");
-	RNA_def_struct_ui_text(srna, "Collection Override", "Collection Override");
-
-	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "Collection name");
-	RNA_def_struct_name_property(srna, prop);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, NULL);
-}
-
 
 #ifdef WITH_CLAY_ENGINE
 static void rna_def_view_layer_engine_settings_clay(BlenderRNA *brna)
@@ -1786,17 +1770,6 @@ static void rna_def_layer_collection(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, NULL, NULL, NULL, "rna_LayerCollection_objects_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Objects", "All the objects directly or indirectly added to this collection (not including sub-collection objects)");
 
-	prop = RNA_def_property(srna, "overrides", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "overrides", NULL);
-	RNA_def_property_struct_type(prop, "LayerCollectionOverride");
-	RNA_def_property_ui_text(prop, "Collection Overrides", "");
-
-	/* Override settings */
-	prop = RNA_def_property(srna, "engine_overrides", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "properties->data.group", NULL);
-	RNA_def_property_struct_type(prop, "LayerCollectionSettings");
-	RNA_def_property_ui_text(prop, "Collection Settings", "Override of engine specific render settings");
-
 	/* Functions */
 	func = RNA_def_function(srna, "move_above", "rna_LayerCollection_move_above");
 	RNA_def_function_ui_description(func, "Move collection after another");
@@ -2002,12 +1975,6 @@ void RNA_def_view_layer(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "FreestyleSettings");
 	RNA_def_property_ui_text(prop, "Freestyle Settings", "");
 
-	/* Override settings */
-	prop = RNA_def_property(srna, "engine_overrides", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "properties->data.group", NULL);
-	RNA_def_property_struct_type(prop, "ViewLayerSettings");
-	RNA_def_property_ui_text(prop, "Layer Settings", "Override of engine specific render settings");
-
 	/* debug update routine */
 	func = RNA_def_function(srna, "update", "rna_ViewLayer_update_tagged");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
@@ -2025,7 +1992,6 @@ void RNA_def_view_layer(BlenderRNA *brna)
 	RNA_define_animate_sdna(false);
 	rna_def_scene_collection(brna);
 	rna_def_layer_collection(brna);
-	rna_def_layer_collection_override(brna);
 	rna_def_object_base(brna);
 	RNA_define_animate_sdna(true);
 	/* *** Animated *** */

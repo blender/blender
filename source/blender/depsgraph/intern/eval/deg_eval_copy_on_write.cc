@@ -632,7 +632,6 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
 	Mesh *mesh_evaluated = NULL;
-	IDProperty *base_collection_properties = NULL;
 	short base_flag = 0;
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
@@ -683,7 +682,6 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 					}
 				}
 				/* Make a backup of base flags. */
-				base_collection_properties = object->base_collection_properties;
 				base_flag = object->base_flag;
 				break;
 			}
@@ -718,10 +716,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				        ((Mesh *)mesh_evaluated->id.orig_id)->edit_btmesh;
 			}
 		}
-		if (base_collection_properties != NULL) {
-			object->base_collection_properties = base_collection_properties;
-			object->base_flag = base_flag;
-		}
+		object->base_flag = base_flag;
 	}
 	return id_cow;
 }

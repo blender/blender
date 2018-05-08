@@ -42,14 +42,7 @@ typedef struct Base {
 	struct Object *object;
 	unsigned int lay;
 	int flag_legacy;
-	struct IDProperty *collection_properties; /* used by depsgraph, flushed from collection-tree */
 } Base;
-
-typedef struct CollectionOverride {
-	struct CollectionOverride *next, *prev;
-	char name[64]; /* MAX_NAME */
-	/* TODO proper data */
-} CollectionOverride;
 
 typedef struct ViewLayerEngineData {
 	struct ViewLayerEngineData *next, *prev;
@@ -66,10 +59,7 @@ typedef struct LayerCollection {
 	short flag_evaluated;
 	short pad[2];
 	ListBase object_bases; /* (ObjectBase *)LinkData->data - synced with collection->objects */
-	ListBase overrides;
 	ListBase layer_collections; /* synced with collection->collections */
-	struct IDProperty *properties;  /* overrides */
-	struct IDProperty *properties_evaluated;
 } LayerCollection;
 
 typedef struct ViewLayer {
@@ -82,7 +72,6 @@ typedef struct ViewLayer {
 	struct SceneStats *stats;   /* default allocated now */
 	struct Base *basact;
 	ListBase layer_collections; /* LayerCollection */
-	struct IDProperty *properties;  /* overrides */
 	struct IDProperty *properties_evaluated;
 
 	/* Old SceneRenderLayer data. */

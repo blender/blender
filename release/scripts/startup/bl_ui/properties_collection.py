@@ -59,36 +59,8 @@ class COLLECTION_PT_context_collection(CollectionButtonsPanel, Panel):
             layout.prop(collection, "name", text="", icon='COLLAPSEMENU')
 
 
-class COLLECTION_PT_clay_settings(CollectionButtonsPanel, Panel):
-    bl_label = "Render Settings"
-    COMPAT_ENGINES = {'BLENDER_CLAY'}
-
-    @classmethod
-    def poll(cls, context):
-        return context.engine in cls.COMPAT_ENGINES
-
-    def draw(self, context):
-        layout = self.layout
-        scene_props = context.scene.collection_properties['BLENDER_CLAY']
-        collection = get_collection_from_context(context)
-        collection_props = collection.engine_overrides['BLENDER_CLAY']
-
-        col = layout.column()
-        col.template_override_property(collection_props, scene_props, "matcap_icon", custom_template="icon_view")
-        col.template_override_property(collection_props, scene_props, "matcap_rotation")
-        col.template_override_property(collection_props, scene_props, "matcap_hue")
-        col.template_override_property(collection_props, scene_props, "matcap_saturation")
-        col.template_override_property(collection_props, scene_props, "matcap_value")
-        col.template_override_property(collection_props, scene_props, "ssao_factor_cavity")
-        col.template_override_property(collection_props, scene_props, "ssao_factor_edge")
-        col.template_override_property(collection_props, scene_props, "ssao_distance")
-        col.template_override_property(collection_props, scene_props, "ssao_attenuation")
-        col.template_override_property(collection_props, scene_props, "hair_brightness_randomness")
-
-
 classes = (
     COLLECTION_PT_context_collection,
-    COLLECTION_PT_clay_settings,
 )
 
 if __name__ == "__main__":  # only for live edit.

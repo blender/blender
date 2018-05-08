@@ -459,18 +459,10 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 
 	DEG_debug_print_eval(depsgraph, __func__, object->id.name, object);
 
-	/* Make sure we have the base collection settings is already populated.
-	 * This will fail when BKE_layer_eval_layer_collection_pre hasn't run yet.
-	 *
-	 * Which usually means a missing call to DEG_id_tag_update(id, DEG_TAG_BASE_FLAGS_UPDATE).
-	 * Either of the entire scene, or of the newly added objects.*/
-	BLI_assert(!BLI_listbase_is_empty(&base->collection_properties->data.group));
-
 	/* Copy flags and settings from base. */
 	object->base_flag = base->flag;
 	if (is_from_set) {
 		object->base_flag |= BASE_FROM_SET;
 		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
 	}
-	object->base_collection_properties = base->collection_properties;
 }

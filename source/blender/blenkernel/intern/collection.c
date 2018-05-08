@@ -425,17 +425,6 @@ void BKE_collection_object_add_from(Scene *scene, Object *ob_src, Object *ob_dst
 		}
 	}
 	FOREACH_SCENE_COLLECTION_END;
-
-	for (ViewLayer *view_layer = scene->view_layers.first; view_layer; view_layer = view_layer->next) {
-		Base *base_src = BKE_view_layer_base_find(view_layer, ob_src);
-		if (base_src != NULL) {
-			if (base_src->collection_properties == NULL) {
-				continue;
-			}
-			Base *base_dst = BKE_view_layer_base_find(view_layer, ob_dst);
-			IDP_MergeGroup(base_dst->collection_properties, base_src->collection_properties, true);
-		}
-	}
 }
 
 /**
@@ -571,9 +560,6 @@ SceneCollection *BKE_collection_from_index(Scene *scene, const int index)
 static void layer_collection_sync(LayerCollection *lc_dst, LayerCollection *lc_src)
 {
 	lc_dst->flag = lc_src->flag;
-
-	/* Pending: sync overrides. */
-	IDP_MergeGroup(lc_dst->properties, lc_src->properties, true);
 
 	/* Continue recursively. */
 	LayerCollection *lc_dst_nested, *lc_src_nested;

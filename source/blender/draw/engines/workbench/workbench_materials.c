@@ -409,7 +409,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		}
 	}
 }
-static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedata, IDProperty *props, Object *ob, Material *mat, Image *ima, int drawtype)
+static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int drawtype)
 {
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PassList *psl = vedata->psl;
@@ -418,6 +418,9 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
 	        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_WORKBENCH);
 	const float hsv_saturation = BKE_collection_engine_property_value_get_float(props, "random_object_color_saturation");
 	const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
 
@@ -453,7 +456,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	return material;
 }
 
-static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, IDProperty *props, Object *ob)
+static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
@@ -475,7 +478,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, IDPropert
 
 					if (draw_as == PART_DRAW_PATH) {
 						struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
-						WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, props, ob, NULL, NULL, OB_SOLID);
+						WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
 						DRW_shgroup_call_add(material->shgrp, geom, mat);
 					}
 				}
@@ -492,9 +495,8 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 	if (!DRW_object_is_renderable(ob))
 		return;
 
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, RE_engine_id_BLENDER_WORKBENCH);
 	if (ob->type == OB_MESH) {
-		workbench_cache_populate_particles(vedata, props, ob);
+		workbench_cache_populate_particles(vedata, ob);
 	}
 
 	WORKBENCH_MaterialData *material;
@@ -520,7 +522,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 						if (image) {
 							mat_drawtype = OB_TEXTURE;
 						}
-						material = get_or_create_material_data(vedata, props, ob, mat, image, mat_drawtype);
+						material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
 						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}
 					is_drawn = true;
@@ -534,7 +536,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 				/* No material split needed */
 				struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
-					material = get_or_create_material_data(vedata, props, ob, NULL, NULL, OB_SOLID);
+					material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
 					if (is_sculpt_mode) {
 						DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 					}
@@ -554,7 +556,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 				if (mat_geom) {
 					for (int i = 0; i < materials_len; ++i) {
 						Material *mat = give_current_material(ob, i + 1);
-						material = get_or_create_material_data(vedata, props, ob, mat, NULL, OB_SOLID);
+						material = get_or_create_material_data(vedata, ob, mat, NULL, OB_SOLID);
 						DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
 					}
 				}

@@ -636,9 +636,11 @@ static int hair_mat_in_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *
 	return id;
 }
 
-static void ubo_mat_from_object(CLAY_Storage *storage, Object *ob, bool *r_needs_ao, int *r_id)
+static void ubo_mat_from_object(CLAY_Storage *storage, Object *UNUSED(ob), bool *r_needs_ao, int *r_id)
 {
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, RE_engine_id_BLENDER_CLAY);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_CLAY);
 
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
@@ -678,9 +680,11 @@ static void ubo_mat_from_object(CLAY_Storage *storage, Object *ob, bool *r_needs
 	*r_id = mat_in_ubo(storage, &r_ubo);
 }
 
-static void hair_ubo_mat_from_object(Object *ob, CLAY_HAIR_UBO_Material *r_ubo)
+static void hair_ubo_mat_from_object(Object *UNUSED(ob), CLAY_HAIR_UBO_Material *r_ubo)
 {
-	IDProperty *props = BKE_layer_collection_engine_evaluated_get(ob, RE_engine_id_BLENDER_CLAY);
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ViewLayer *view_layer = draw_ctx->view_layer;
+	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_CLAY);
 
 	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
 	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");

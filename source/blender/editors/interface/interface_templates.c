@@ -4346,66 +4346,6 @@ void uiTemplateKeymapItemProperties(uiLayout *layout, PointerRNA *ptr)
 	}
 }
 
-/********************************* Overrides *************************************/
-
-void uiTemplateOverrideProperty(
-        uiLayout *layout, PointerRNA *collection_props_ptr, PointerRNA *scene_props_ptr, const char *propname,
-        const char *name, const char *text_ctxt, int translate, int icon,
-        const char *custom_template)
-{
-	bool is_set = false;
-	uiLayout *row, *col;
-
-	PointerRNA *ptr;
-	PropertyRNA *prop;
-
-	IDProperty *collection_props = collection_props_ptr->data;
-
-	if (IDP_GetPropertyFromGroup(collection_props, propname)) {
-		prop = RNA_struct_find_property(collection_props_ptr, propname);
-		ptr = collection_props_ptr;
-		is_set = RNA_property_is_set(ptr, prop);
-	}
-	else {
-		/* property doesn't exist yet */
-		prop = RNA_struct_find_property(scene_props_ptr, propname);
-		ptr = scene_props_ptr;
-	}
-
-	/* Get translated name (label). */
-	name = RNA_translate_ui_text(name, text_ctxt, NULL, prop, translate);
-
-	row = uiLayoutRow(layout, false);
-	col = uiLayoutColumn(row, false);
-
-	uiLayoutSetEnabled(col, is_set);
-
-	if (custom_template && STREQ(custom_template, "icon_view")) {
-		uiTemplateIconView(col, ptr, propname, false, 5.0f);
-	}
-	else {
-		uiItemFullR(col, ptr, prop, -1, 0, 0, name, icon);
-	}
-
-	col = uiLayoutColumn(row, false);
-	uiBut *but;
-	uiBlock *block = uiLayoutGetBlock(col);
-	UI_block_emboss_set(block, UI_EMBOSS_NONE);
-
-	if (is_set) {
-		but = uiDefIconButO(block, UI_BTYPE_BUT, "UI_OT_unuse_property_button", WM_OP_EXEC_DEFAULT, ICON_X, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
-	}
-	else {
-		but = uiDefIconButO(block, UI_BTYPE_BUT, "UI_OT_use_property_button", WM_OP_EXEC_DEFAULT, ICON_ZOOMIN, 0, 0, UI_UNIT_X, UI_UNIT_Y, NULL);
-		/* XXX - Using existing data struct to pass another RNAPointer */
-		but->rnasearchpoin = *scene_props_ptr;
-	}
-
-	but->rnapoin = *collection_props_ptr;
-	but->rnaprop = prop;
-	UI_block_emboss_set(block, UI_EMBOSS);
-}
-
 /********************************* Color management *************************************/
 
 void uiTemplateColorspaceSettings(uiLayout *layout, PointerRNA *ptr, const char *propname)

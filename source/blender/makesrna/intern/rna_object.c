@@ -236,15 +236,6 @@ static int rna_Object_is_visible_get(PointerRNA *ptr)
 	return BKE_object_is_visible(ob, OB_VISIBILITY_CHECK_UNKNOWN_RENDER_MODE);
 }
 
-static void rna_Object_collection_properties_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
-{
-	Object *ob = ptr->data;
-
-	if (ob->base_collection_properties != NULL) {
-		rna_iterator_listbase_begin(iter, &ob->base_collection_properties->data.group, NULL);
-	}
-}
-
 static void rna_Object_matrix_local_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
@@ -2288,22 +2279,6 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Object_is_visible_get", NULL);
 	RNA_def_property_ui_text(prop, "Visible", "Visible to camera rays, set only on objects evaluated by depsgraph");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop = RNA_def_property(srna, "collection_properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "base_collection_properties->data.group", NULL);
-	RNA_def_property_collection_funcs(prop,
-	                                  "rna_Object_collection_properties_begin",
-	                                  NULL,
-	                                  NULL,
-	                                  NULL,
-	                                  NULL,
-	                                  NULL,
-	                                  NULL,
-	                                  NULL);
-	RNA_def_property_struct_type(prop, "LayerCollectionSettings");
-	RNA_def_property_flag(prop, PROP_NO_COMPARISON);  /* XXX see T53800. */
-	RNA_def_property_ui_text(prop, "Collection Settings",
-	                         "Engine specific render settings to be overridden by collections");
 
 	/* anim */
 	rna_def_animdata_common(srna);
