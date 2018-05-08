@@ -84,9 +84,11 @@ static void freeData(ModifierData *md)
 
 	if (smd->mCache) {
 		ccgSubSurf_free(smd->mCache);
+		smd->mCache = NULL;
 	}
 	if (smd->emCache) {
 		ccgSubSurf_free(smd->emCache);
+		smd->emCache = NULL;
 	}
 }
 

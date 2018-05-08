@@ -167,8 +167,6 @@ static void copyData(ModifierData *md, ModifierData *target)
 #endif
 	OceanModifierData *tomd = (OceanModifierData *) target;
 
-	freeData(target);
-
 	modifier_copyData_generic(md, target);
 
 	tomd->refresh = 0;
