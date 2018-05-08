@@ -34,6 +34,7 @@
 #include <math.h>
 #include <assert.h>
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
@@ -43,6 +44,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_mesh.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -1155,6 +1157,70 @@ BVHTree *bvhtree_from_mesh_get(
 			MEM_freeN((void*)looptri);
 		}
 
+		memset(data, 0, sizeof(*data));
+	}
+
+	return tree;
+}
+
+/* This is a Mesh-specific copy of bvhtree_from_mesh_looptri() */
+/**
+ * Builds a bvh tree where nodes are the looptri faces of the given mesh.
+ *
+ * \note for editmesh this is currently a duplicate of bvhtree_from_mesh_faces
+ */
+BVHTree *BKE_bvhtree_from_mesh_looptri(
+        BVHTreeFromMesh *data, Mesh *mesh,
+        float epsilon, int tree_type, int axis)
+{
+	BVHTree *tree;
+	MVert *mvert = NULL;
+	MLoop *mloop = NULL;
+	const MLoopTri *looptri = NULL;
+
+	BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_READ);
+	tree = bvhcache_find(mesh->runtime.bvh_cache, BVHTREE_FROM_LOOPTRI);
+	BLI_rw_mutex_unlock(&cache_rwlock);
+
+	mvert = mesh->mvert;
+	mloop = mesh->mloop;
+	looptri = BKE_mesh_get_looptri_array(mesh);
+
+	/* Not in cache */
+	if (tree == NULL) {
+		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
+		tree = bvhcache_find(mesh->runtime.bvh_cache, BVHTREE_FROM_LOOPTRI);
+		if (tree == NULL) {
+			int looptri_num = BKE_mesh_get_looptri_num(mesh);
+
+			/* this assert checks we have looptris,
+			 * if not caller should use DM_ensure_looptri() */
+			BLI_assert(!(looptri_num == 0 && mesh->totpoly != 0));
+
+			tree = bvhtree_from_mesh_looptri_create_tree(
+			        epsilon, tree_type, axis,
+			        mvert, mloop, looptri, looptri_num, NULL, -1);
+			if (tree) {
+				/* Save on cache for later use */
+				/* printf("BVHTree built and saved on cache\n"); */
+				bvhcache_insert(&mesh->runtime.bvh_cache, tree, BVHTREE_FROM_LOOPTRI);
+			}
+		}
+		BLI_rw_mutex_unlock(&cache_rwlock);
+	}
+	else {
+		/* printf("BVHTree is already build, using cached tree\n"); */
+	}
+
+	if (tree) {
+		/* Setup BVHTreeFromMesh */
+		bvhtree_from_mesh_looptri_setup_data(
+		        data, tree, true,
+		        mvert, false,
+		        mloop, false,
+		        looptri, false);
+	}
+	else {
 		memset(data, 0, sizeof(*data));
 	}
 

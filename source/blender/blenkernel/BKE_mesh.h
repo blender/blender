@@ -182,7 +182,11 @@ int  BKE_mesh_mselect_find(struct Mesh *me, int index, int type);
 int  BKE_mesh_mselect_active_get(struct Mesh *me, int type);
 void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
+/* *** mesh_runtime.c *** */
 
+void BKE_mesh_runtime_recalc_looptri(struct Mesh *mesh);
+int BKE_mesh_get_looptri_num(struct Mesh *mesh);
+const struct MLoopTri *BKE_mesh_get_looptri_array(struct Mesh *mesh);
 
 /* *** mesh_evaluate.c *** */
 

@@ -39,11 +39,13 @@
 struct AnimData;
 struct Ipo;
 struct Key;
+struct LinkNode;
 struct MCol;
 struct MEdge;
 struct MFace;
 struct MLoop;
 struct MLoopCol;
+struct MLoopTri;
 struct MLoopUV;
 struct MPoly;
 struct MTexPoly;
@@ -65,6 +67,18 @@ typedef struct EditMeshData {
 	const float (*polyCos)[3];
 } EditMeshData;
 
+
+/**
+ * \warning Typical access is done via #BKE_mesh_get_looptri_array, #BKE_mesh_get_looptri_num.
+ */
+struct LooptrisData {
+	/* WARNING! swapping between array (ready-to-be-used data) and array_wip (where data is actually computed)
+	 *          shall always be protected by same lock as one used for looptris computing. */
+	struct MLoopTri *array, *array_wip;
+	int num;
+	int num_alloc;
+};
+
 /* not saved in file! */
 typedef struct MeshRuntime {
 	struct EditMeshData *edit_data;
@@ -74,6 +88,11 @@ typedef struct MeshRuntime {
 	int64_t cd_dirty_edge;
 	int64_t cd_dirty_loop;
 	int64_t cd_dirty_poly;
+
+	struct LooptrisData looptris;
+
+	/** 'BVHCache', for 'BKE_bvhutil.c' */
+	struct LinkNode *bvh_cache;
 } MeshRuntime;
 
 typedef struct Mesh {

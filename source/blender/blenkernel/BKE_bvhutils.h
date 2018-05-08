@@ -40,6 +40,7 @@
 
 struct DerivedMesh;
 struct BMEditMesh;
+struct Mesh;
 struct MVert;
 struct MFace;
 
@@ -142,6 +143,8 @@ BVHTree *bvhtree_from_editmesh_looptri_ex(
         const BLI_bitmap *mask, int looptri_num_active,
         float epsilon, int tree_type, int axis, BVHCache **bvhCache);
 
+BVHTree *BKE_bvhtree_from_mesh_looptri(
+        struct BVHTreeFromMesh *data, struct Mesh *mesh, float epsilon, int tree_type, int axis);
 BVHTree *bvhtree_from_mesh_looptri_ex(
         struct BVHTreeFromMesh *data,
         const struct MVert *vert, const bool vert_allocated,
