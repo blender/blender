@@ -189,6 +189,23 @@ static float pe_brush_size_get(const Scene *UNUSED(scene), ParticleBrushData *br
 	return brush->size * U.pixelsize;
 }
 
+PTCacheEdit *PE_get_current_from_psys(ParticleSystem *psys)
+{
+	if (psys->part && psys->part->type == PART_HAIR) {
+		if ((psys->flag & PSYS_HAIR_DYNAMICS) != 0 &&
+		    (psys->pointcache->flag & PTCACHE_BAKED) != 0)
+		{
+			return psys->pointcache->edit;
+		}
+		else {
+			return psys->edit;
+		}
+	}
+	else if (psys->pointcache->flag & PTCACHE_BAKED) {
+		return psys->pointcache->edit;
+	}
+	return NULL;
+}
 
 /* always gets at least the first particlesystem even if PSYS_CURRENT flag is not set
  *

@@ -45,6 +45,8 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
+#include "ED_particle.h"
+
 #include "GPU_batch.h"
 
 #include "DEG_depsgraph_query.h"
@@ -171,13 +173,9 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 		cache->elems_count = 0;
 		cache->point_count = 0;
 
-		if (psys->edit != NULL && psys->edit->pathcache != NULL) {
-			count_cache_segment_keys(
-			        psys->edit->pathcache, psys->totpart, cache);
-		}
-		else if (psys->pointcache != NULL && psys->pointcache->edit != NULL) {
-			count_cache_segment_keys(
-			        psys->pointcache->edit->pathcache, psys->totpart, cache);
+		PTCacheEdit* edit = PE_get_current_from_psys(psys);
+		if (edit != NULL && edit->pathcache != NULL) {
+			count_cache_segment_keys(edit->pathcache, psys->totpart, cache);
 		} else {
 			if (psys->pathcache &&
 			    (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
@@ -438,19 +436,10 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 		}
 	}
 
-	if (psys->edit != NULL && psys->edit->pathcache != NULL) {
-		/* Edit mode strands for hair editing. */
+	PTCacheEdit* edit = PE_get_current_from_psys(psys);
+	if (edit != NULL && edit->pathcache != NULL) {
 		curr_point = particle_batch_cache_fill_segments(
-		        psys, psmd, psys->edit->pathcache, PARTICLE_SOURCE_PARENT,
-		        0, 0, psys->totpart,
-		        num_uv_layers, mtfaces, uv_id, &parent_uvs,
-		        &elb, &attr_id, cache);
-	}
-	else if (psys->pointcache != NULL && psys->pointcache->edit != NULL) {
-		/* Edit mode for particle paths. */
-		curr_point = particle_batch_cache_fill_segments(
-		        psys, psmd, psys->pointcache->edit->pathcache,
-		        PARTICLE_SOURCE_PARENT,
+		        psys, psmd, edit->pathcache, PARTICLE_SOURCE_PARENT,
 		        0, 0, psys->totpart,
 		        num_uv_layers, mtfaces, uv_id, &parent_uvs,
 		        &elb, &attr_id, cache);
