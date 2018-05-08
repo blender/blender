@@ -372,7 +372,7 @@ static bool manipulator_tweak_start_and_finish(
 			WM_operator_free_all_after(wm, op);
 			ED_undo_pop_op(C, op);
 		}
-		
+
 		/* XXX temporary workaround for modal manipulator operator
 		 * conflicting with modal operator attached to manipulator */
 		if (mpop->type->modal) {

@@ -22,7 +22,7 @@ void main()
 	vec3 spos = screenVecs[0].xyz * screenPos.x + screenVecs[1].xyz * screenPos.y;
 	/* Scale uniformly by axis length */
 	spos *= length(chosen_axis);
-	
+
 	gl_Position = ViewProjectionMatrix * vec4(wpos + spos, 1.0);
 
 	finalColor.rgb = mix(colorAxis, color.rgb, color.a);

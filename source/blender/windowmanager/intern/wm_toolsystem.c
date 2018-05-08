@@ -167,7 +167,7 @@ bool WM_toolsystem_active_tool_is_brush(const bContext *C)
 
 /* Follow wmMsgNotifyFn spec */
 void WM_toolsystem_do_msg_notify_tag_refresh(
-        bContext *C, wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *msg_val)
+        bContext *C, wmMsgSubscribeKey *UNUSED(msg_key), wmMsgSubscribeValue *UNUSED(msg_val))
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
 	WM_toolsystem_refresh(C, workspace);
