@@ -2294,12 +2294,21 @@ void MESH_OT_faces_shade_smooth(wmOperatorType *ot)
 
 static int edbm_faces_shade_flat_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	mesh_set_smooth_faces(em, 0);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
 
-	EDBM_update_generic(em, false, false);
+		mesh_set_smooth_faces(em, 0);
+		EDBM_update_generic(em, false, false);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
