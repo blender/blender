@@ -34,15 +34,17 @@
 
 #include <string.h>
 
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
-
-#include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
@@ -111,30 +113,39 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Curve Modifier");
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *derivedData,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md,
+        const ModifierEvalContext *ctx,
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
-	curve_deform_verts(cmd->object, ctx->object, derivedData, vertexCos, numVerts,
-	                   cmd->name, cmd->defaxis - 1);
+	curve_deform_verts(cmd->object, ctx->object, mesh, vertexCos, numVerts, cmd->name, cmd->defaxis - 1);
 }
 
 static void deformVertsEM(
-        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md,
+        const ModifierEvalContext *ctx,
+        struct BMEditMesh *em,
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
-	DerivedMesh *dm = derivedData;
+	Mesh *mesh_src = mesh;
 
-	if (!derivedData) dm = CDDM_from_editbmesh(em, false, false);
+	if (mesh_src == NULL) {
+		mesh_src = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+	}
 
-	deformVerts(md, ctx, dm, vertexCos, numVerts);
+	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
-	if (!derivedData) dm->release(dm);
+	if (!mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 
@@ -149,16 +160,16 @@ ModifierTypeInfo modifierType_Curve = {
 
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,

@@ -699,7 +699,7 @@ static bool calc_curve_deform(Object *par, float co[3],
 }
 
 void curve_deform_verts(
-        Object *cuOb, Object *target, DerivedMesh *dm, float (*vertexCos)[3],
+        Object *cuOb, Object *target, Mesh *mesh, float (*vertexCos)[3],
         int numVerts, const char *vgroup, short defaxis)
 {
 	Curve *cu;
@@ -735,8 +735,8 @@ void curve_deform_verts(
 
 		if (defgrp_index != -1) {
 			/* if there's derived data without deformverts, don't use vgroups */
-			if (dm) {
-				dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+			if (mesh) {
+				dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
 			}
 			else if (target->type == OB_LATTICE) {
 				dvert = ((Lattice *)target->data)->dvert;
