@@ -358,6 +358,7 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph,
 				/* TODO(sergey): This is kind of compatibility thing, so all render
 				 * engines can use object->data for mesh data for display. This is
 				 * something what we might want to change in the future.
+				 * XXX: This can sometimes cause modifiers to be applied twice!
 				 */
 				ob->data = new_mesh;
 				/* Special flags to help debugging. */
