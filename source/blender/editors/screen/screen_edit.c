@@ -1150,7 +1150,7 @@ static bScreen *screen_fullscreen_find_associated_normal_screen(const Main *bmai
 {
 	for (bScreen *screen_iter = bmain->screen.first; screen_iter; screen_iter = screen_iter->id.next) {
 		ScrArea *sa = screen_iter->areabase.first;
-		if (sa->full == screen) {
+		if (sa && sa->full == screen) {
 			return screen_iter;
 		}
 	}
