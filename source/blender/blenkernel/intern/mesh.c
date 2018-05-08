@@ -1498,7 +1498,7 @@ int BKE_mesh_nurbs_displist_to_mdata(
 	return 0;
 }
 
-Mesh *BKE_new_mesh_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
+Mesh *BKE_mesh_new_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
 {
 	Curve *cu = ob->data;
 	Mesh *mesh;
@@ -1540,7 +1540,7 @@ Mesh *BKE_new_mesh_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
 	return mesh;
 }
 
-Mesh *BKE_new_mesh_nomain_from_curve(Object *ob)
+Mesh *BKE_mesh_new_nomain_from_curve(Object *ob)
 {
 	ListBase disp = {NULL, NULL};
 
@@ -1548,7 +1548,7 @@ Mesh *BKE_new_mesh_nomain_from_curve(Object *ob)
 		disp = ob->curve_cache->disp;
 	}
 
-	return BKE_new_mesh_nomain_from_curve_displist(ob, &disp);
+	return BKE_mesh_new_nomain_from_curve_displist(ob, &disp);
 }
 
 /* this may fail replacing ob->data, be sure to check ob->type */

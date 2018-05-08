@@ -110,8 +110,8 @@ struct Mesh *BKE_mesh_new_nomain_from_template(
         int loops_len, int polys_len);
 
 /* These functions construct a new Mesh, contrary to BKE_mesh_from_nurbs which modifies ob itself. */
-struct Mesh *BKE_new_mesh_nomain_from_curve(struct Object *ob);
-struct Mesh *BKE_new_mesh_nomain_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
+struct Mesh *BKE_mesh_new_nomain_from_curve(struct Object *ob);
+struct Mesh *BKE_mesh_new_nomain_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
 
 bool BKE_mesh_ensure_edit_data(struct Mesh *me);
 bool BKE_mesh_clear_edit_data(struct Mesh *me);

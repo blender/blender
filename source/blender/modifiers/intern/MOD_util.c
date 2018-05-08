@@ -319,7 +319,7 @@ Mesh *get_mesh(Object *ob, struct BMEditMesh *em, Mesh *mesh,
 	}
 	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		/* TODO(sybren): get evaluated mesh from depsgraph once that's properly generated for curves. */
-		mesh = BKE_new_mesh_nomain_from_curve(ob);
+		mesh = BKE_mesh_new_nomain_from_curve(ob);
 	}
 
 	if (use_normals) {
