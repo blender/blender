@@ -1184,14 +1184,14 @@ BVHTree *BKE_bvhtree_from_mesh_looptri(
 
 	mvert = mesh->mvert;
 	mloop = mesh->mloop;
-	looptri = BKE_mesh_get_looptri_array(mesh);
+	looptri = BKE_mesh_runtime_looptri_ensure(mesh);
 
 	/* Not in cache */
 	if (tree == NULL) {
 		BLI_rw_mutex_lock(&cache_rwlock, THREAD_LOCK_WRITE);
 		tree = bvhcache_find(mesh->runtime.bvh_cache, BVHTREE_FROM_LOOPTRI);
 		if (tree == NULL) {
-			int looptri_num = BKE_mesh_get_looptri_num(mesh);
+			int looptri_num = BKE_mesh_runtime_looptri_len(mesh);
 
 			/* this assert checks we have looptris,
 			 * if not caller should use DM_ensure_looptri() */

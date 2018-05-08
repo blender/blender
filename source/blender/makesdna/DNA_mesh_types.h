@@ -69,7 +69,7 @@ typedef struct EditMeshData {
 
 
 /**
- * \warning Typical access is done via #BKE_mesh_get_looptri_array, #BKE_mesh_get_looptri_num.
+ * \warning Typical access is done via #BKE_mesh_runtime_looptri_ensure, #BKE_mesh_runtime_looptri_len.
  */
 struct LooptrisData {
 	/* WARNING! swapping between array (ready-to-be-used data) and array_wip (where data is actually computed)

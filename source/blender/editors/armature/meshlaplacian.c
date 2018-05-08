@@ -1463,7 +1463,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 		Mesh *me = mdb->cagemesh;
 		mdb->cagemesh_cache.mpoly = me->mpoly;
 		mdb->cagemesh_cache.mloop = me->mloop;
-		mdb->cagemesh_cache.looptri = BKE_mesh_get_looptri_array(me);
+		mdb->cagemesh_cache.looptri = BKE_mesh_runtime_looptri_ensure(me);
 		mdb->cagemesh_cache.poly_nors = CustomData_get_layer(&me->pdata, CD_NORMAL);  /* can be NULL */
 	}
 
