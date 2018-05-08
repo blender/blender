@@ -332,6 +332,15 @@ void BKE_mesh_calc_normals_poly(
 	MEM_freeN(lnors_weighted);
 }
 
+void BKE_mesh_ensure_normals(Mesh *mesh)
+{
+	if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
+		BKE_mesh_calc_normals(mesh);
+	}
+	BLI_assert((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) == 0);
+}
+
+/* Note that this does not update the CD_NORMAL layer, but does update the normals in the CD_MVERT layer. */
 void BKE_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef DEBUG_TIME
