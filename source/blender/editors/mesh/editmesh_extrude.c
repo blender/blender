@@ -404,11 +404,17 @@ static void manipulator_mesh_extrude_setup(const bContext *UNUSED(C), wmManipula
 	UI_GetThemeColor3fv(TH_MANIPULATOR_PRIMARY, man->axis_arrow->color);
 	UI_GetThemeColor3fv(TH_MANIPULATOR_SECONDARY, man->axis_redo->color);
 
+	man->axis_redo->color[3] = 0.3f;
+	man->axis_redo->color_hi[3] = 0.3f;
+
 	WM_manipulator_set_scale(man->axis_arrow, 2.0);
-	WM_manipulator_set_scale(man->axis_redo, 2.0);
+	WM_manipulator_set_scale(man->axis_redo, 1.0);
 
 	RNA_enum_set(man->axis_arrow->ptr, "draw_style", ED_MANIPULATOR_ARROW_STYLE_NORMAL);
 	RNA_enum_set(man->axis_redo->ptr, "draw_style", ED_MANIPULATOR_GRAB_STYLE_RING_2D);
+
+	RNA_enum_set(man->axis_redo->ptr, "draw_options",
+	             ED_MANIPULATOR_GRAB_DRAW_FLAG_FILL);
 
 	WM_manipulator_set_flag(man->axis_redo, WM_MANIPULATOR_DRAW_VALUE, true);
 
