@@ -2046,71 +2046,82 @@ void MESH_OT_normals_make_consistent(wmOperatorType *ot)
 
 static int edbm_do_smooth_vertex_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Mesh *me = obedit->data;
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	ModifierData *md;
-	bool mirrx = false, mirry = false, mirrz = false;
-	int i, repeat;
-	float clip_dist = 0.0f;
 	const float fac = RNA_float_get(op->ptr, "factor");
-	const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
 	const bool xaxis = RNA_boolean_get(op->ptr, "xaxis");
 	const bool yaxis = RNA_boolean_get(op->ptr, "yaxis");
 	const bool zaxis = RNA_boolean_get(op->ptr, "zaxis");
+	int repeat = RNA_int_get(op->ptr, "repeat");
 
-	/* mirror before smooth */
-	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
+	if (!repeat) {
+		repeat = 1;
 	}
 
-	/* if there is a mirror modifier with clipping, flag the verts that
-	 * are within tolerance of the plane(s) of reflection
-	 */
-	for (md = obedit->modifiers.first; md; md = md->next) {
-		if (md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
-			MirrorModifierData *mmd = (MirrorModifierData *)md;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Mesh *me = obedit->data;
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		ModifierData *md;
+		bool mirrx = false, mirry = false, mirrz = false;
+		int i;
+		float clip_dist = 0.0f;
+		const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
 
-			if (mmd->flag & MOD_MIR_CLIPPING) {
-				if (mmd->flag & MOD_MIR_AXIS_X)
-					mirrx = true;
-				if (mmd->flag & MOD_MIR_AXIS_Y)
-					mirry = true;
-				if (mmd->flag & MOD_MIR_AXIS_Z)
-					mirrz = true;
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
 
-				clip_dist = mmd->tolerance;
+		/* mirror before smooth */
+		if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+			EDBM_verts_mirror_cache_begin(em, 0, false, true, use_topology);
+		}
+
+		/* if there is a mirror modifier with clipping, flag the verts that
+		 * are within tolerance of the plane(s) of reflection
+		 */
+		for (md = obedit->modifiers.first; md; md = md->next) {
+			if (md->type == eModifierType_Mirror && (md->mode & eModifierMode_Realtime)) {
+				MirrorModifierData *mmd = (MirrorModifierData *)md;
+
+				if (mmd->flag & MOD_MIR_CLIPPING) {
+					if (mmd->flag & MOD_MIR_AXIS_X)
+						mirrx = true;
+					if (mmd->flag & MOD_MIR_AXIS_Y)
+						mirry = true;
+					if (mmd->flag & MOD_MIR_AXIS_Z)
+						mirrz = true;
+
+					clip_dist = mmd->tolerance;
+				}
 			}
 		}
-	}
 
-	repeat = RNA_int_get(op->ptr, "repeat");
-	if (!repeat)
-		repeat = 1;
-
-	for (i = 0; i < repeat; i++) {
-		if (!EDBM_op_callf(
-		            em, op,
-		            "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b "
-		            "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
-		            BM_ELEM_SELECT, fac, mirrx, mirry, mirrz, clip_dist, xaxis, yaxis, zaxis))
-		{
-			return OPERATOR_CANCELLED;
+		for (i = 0; i < repeat; i++) {
+			if (!EDBM_op_callf(
+			        em, op,
+			        "smooth_vert verts=%hv factor=%f mirror_clip_x=%b mirror_clip_y=%b mirror_clip_z=%b "
+			        "clip_dist=%f use_axis_x=%b use_axis_y=%b use_axis_z=%b",
+			        BM_ELEM_SELECT, fac, mirrx, mirry, mirrz, clip_dist, xaxis, yaxis, zaxis))
+			{
+				continue;
+			}
 		}
-	}
 
-	/* apply mirror */
-	if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
-		EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
-		EDBM_verts_mirror_cache_end(em);
-	}
+		/* apply mirror */
+		if (((Mesh *)obedit->data)->editflag & ME_EDIT_MIRROR_X) {
+			EDBM_verts_mirror_apply(em, BM_ELEM_SELECT, 0);
+			EDBM_verts_mirror_cache_end(em);
+		}
 
-	EDBM_update_generic(em, true, false);
+		EDBM_update_generic(em, true, false);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
-
 
 void MESH_OT_vertices_smooth(wmOperatorType *ot)
 {
