@@ -501,15 +501,15 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
+		const bool is_edit_mode = is_active && (draw_ctx->object_mode & OB_MODE_EDIT) != 0;
 		bool is_drawn = false;
-
-		if (!is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ob->type == OB_MESH)
+		if (!is_edit_mode && !is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ob->type == OB_MESH)
 		{
 			const Mesh *me = ob->data;
 			if (me->mloopuv) {
-				struct Gwn_Batch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
 				struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
+				struct Gwn_Batch **geom_array = me->totcol ? DRW_cache_mesh_surface_texpaint_get(ob) : NULL;
 				if (materials_len > 0 && geom_array) {
 					for (int i = 0; i < materials_len; i++) {
 						Material *mat = give_current_material(ob, i + 1);
@@ -521,7 +521,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 							mat_drawtype = OB_TEXTURE;
 						}
 						material = get_or_create_material_data(vedata, props, ob, mat, image, mat_drawtype);
-						DRW_shgroup_call_add(material->shgrp, geom_array[i], ob->obmat);
+						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}
 					is_drawn = true;
 				}
