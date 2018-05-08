@@ -74,16 +74,6 @@ static void initData(ModifierData *md)
 	tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
 }
 
-
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	TriangulateModifierData *smd = (TriangulateModifierData *) md;
-	TriangulateModifierData *tsmd = (TriangulateModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static DerivedMesh *applyModifier(ModifierData *md,
                                   const ModifierEvalContext *UNUSED(ctx),
                                   DerivedMesh *dm)
@@ -108,7 +98,7 @@ ModifierTypeInfo modifierType_Triangulate = {
 	                        eModifierTypeFlag_EnableInEditmode |
 	                        eModifierTypeFlag_AcceptsCVs,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

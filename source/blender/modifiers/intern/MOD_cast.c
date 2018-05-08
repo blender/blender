@@ -60,16 +60,6 @@ static void initData(ModifierData *md)
 	cmd->object = NULL;
 }
 
-
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	CastModifierData *cmd = (CastModifierData *) md;
-	CastModifierData *tcmd = (CastModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	CastModifierData *cmd = (CastModifierData *) md;
@@ -479,7 +469,7 @@ ModifierTypeInfo modifierType_Cast = {
 	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    deformVerts,
 	/* deformMatrices_DM */ NULL,

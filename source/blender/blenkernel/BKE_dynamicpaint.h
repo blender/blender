@@ -65,7 +65,7 @@ typedef struct PaintWavePoint {
 struct DerivedMesh *dynamicPaint_Modifier_do(struct DynamicPaintModifierData *pmd, struct Depsgraph *depsgraph, struct Scene *scene,
                                              struct Object *ob, struct DerivedMesh *dm);
 void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd);
-void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
+void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tsmd);
 
 bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, struct Scene *scene);
 struct DynamicPaintSurface *dynamicPaint_createNewSurface(struct DynamicPaintCanvasSettings *canvas, struct Scene *scene);

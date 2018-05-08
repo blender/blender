@@ -491,11 +491,6 @@ static void initData(ModifierData *md)
 	enmd->mix_limit = M_PI;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	NormalEditModifierData *enmd = (NormalEditModifierData *)md;
@@ -550,7 +545,8 @@ ModifierTypeInfo modifierType_NormalEdit = {
 	                        eModifierTypeFlag_SupportsMapping |
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
-	/* copyData */          copyData,
+
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

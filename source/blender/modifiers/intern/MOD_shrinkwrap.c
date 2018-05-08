@@ -61,15 +61,6 @@ static void initData(ModifierData *md)
 	smd->auxTarget  = NULL;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	ShrinkwrapModifierData *smd  = (ShrinkwrapModifierData *)md;
-	ShrinkwrapModifierData *tsmd = (ShrinkwrapModifierData *)target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	ShrinkwrapModifierData *smd = (ShrinkwrapModifierData *)md;
@@ -175,7 +166,7 @@ ModifierTypeInfo modifierType_Shrinkwrap = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    deformVerts,
 	/* deformMatrices_DM */ NULL,

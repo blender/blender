@@ -58,15 +58,6 @@ static void initData(ModifierData *md)
 	smd->defgrp_name[0] = '\0';
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	SmoothModifierData *smd = (SmoothModifierData *) md;
-	SmoothModifierData *tsmd = (SmoothModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	SmoothModifierData *smd = (SmoothModifierData *) md;
@@ -250,7 +241,7 @@ ModifierTypeInfo modifierType_Smooth = {
 	                        eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    deformVerts,
 	/* deformMatrices_DM */ NULL,

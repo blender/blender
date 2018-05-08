@@ -201,15 +201,6 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 #undef HIGH_POLY_WARNING
 #undef DT_TYPES_AFFECT_MESH
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	DataTransferModifierData *dtmd = (DecimateModifierData *) md;
-	DataTransferModifierData *tdtmd = (DecimateModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 ModifierTypeInfo modifierType_DataTransfer = {
 	/* name */              "DataTransfer",
 	/* structName */        "DataTransferModifierData",
@@ -220,7 +211,7 @@ ModifierTypeInfo modifierType_DataTransfer = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_UsesPreview,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

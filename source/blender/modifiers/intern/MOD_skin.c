@@ -1905,15 +1905,6 @@ static void initData(ModifierData *md)
 	smd->symmetry_axes = MOD_SKIN_SYMM_X;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	SkinModifierData *smd = (SkinModifierData *) md;
-	SkinModifierData *tsmd = (SkinModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static Mesh *applyModifier(ModifierData *md,
                            const ModifierEvalContext *UNUSED(ctx),
                            Mesh *mesh)
@@ -1938,7 +1929,7 @@ ModifierTypeInfo modifierType_Skin = {
 	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

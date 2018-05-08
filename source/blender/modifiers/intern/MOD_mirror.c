@@ -60,15 +60,6 @@ static void initData(ModifierData *md)
 	mmd->mirror_ob = NULL;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	MirrorModifierData *mmd = (MirrorModifierData *) md;
-	MirrorModifierData *tmmd = (MirrorModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static void foreachObjectLink(
         ModifierData *md, Object *ob,
         ObjectWalkFunc walk, void *userData)
@@ -357,7 +348,7 @@ ModifierTypeInfo modifierType_Mirror = {
 	                        /* this is only the case when 'MOD_MIR_VGROUP' is used */
 	                        eModifierTypeFlag_UsesPreview,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

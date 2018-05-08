@@ -69,9 +69,9 @@ static void initData(ModifierData *md)
 	smd->time = -1;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	SmokeModifierData *smd  = (SmokeModifierData *)md;
+	const SmokeModifierData *smd  = (const SmokeModifierData *)md;
 	SmokeModifierData *tsmd = (SmokeModifierData *)target;
 	
 	smokeModifier_copy(smd, tsmd);

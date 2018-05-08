@@ -296,16 +296,6 @@ static void initData(ModifierData *md)
 	wmd->max_dist             = 1.0f; /* vert arbitrary distance, but don't use 0 */
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	WeightVGProximityModifierData *wmd  = (WeightVGProximityModifierData *) md;
-	WeightVGProximityModifierData *twmd = (WeightVGProximityModifierData *) target;
-#endif
-
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
@@ -597,7 +587,7 @@ ModifierTypeInfo modifierType_WeightVGProximity = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_UsesPreview,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

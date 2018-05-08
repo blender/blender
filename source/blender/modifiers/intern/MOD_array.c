@@ -77,15 +77,6 @@ static void initData(ModifierData *md)
 	amd->flags = 0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	ArrayModifierData *amd = (ArrayModifierData *) md;
-	ArrayModifierData *tamd = (ArrayModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static void foreachObjectLink(
         ModifierData *md, Object *ob,
         ObjectWalkFunc walk, void *userData)
@@ -770,7 +761,7 @@ ModifierTypeInfo modifierType_Array = {
 	                        eModifierTypeFlag_EnableInEditmode |
 	                        eModifierTypeFlag_AcceptsCVs,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

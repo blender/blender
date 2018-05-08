@@ -81,7 +81,6 @@ static CustomDataMask required_data_mask(Object *ob, ModifierData *md);
 static bool is_disabled(ModifierData *md, int useRenderParams);
 static float compute_volume(const float center[3], float (*vertexCos)[3], const MPoly *mpoly, int numPolys, const MLoop *mloop);
 static LaplacianSystem *init_laplacian_system(int a_numEdges, int a_numPolys, int a_numLoops, int a_numVerts);
-static void copy_data(ModifierData *md, ModifierData *target);
 static void delete_laplacian_system(LaplacianSystem *sys);
 static void fill_laplacian_matrix(LaplacianSystem *sys);
 static void init_data(ModifierData *md);
@@ -472,16 +471,6 @@ static void init_data(ModifierData *md)
 	smd->defgrp_name[0] = '\0';
 }
 
-static void copy_data(ModifierData *md, ModifierData *target)
-{
-#if 0
-	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
-	LaplacianSmoothModifierData *tsmd = (LaplacianSmoothModifierData *) target;
-#endif
-
-	modifier_copyData_generic(md, target);
-}
-
 static bool is_disabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	LaplacianSmoothModifierData *smd = (LaplacianSmoothModifierData *) md;
@@ -550,7 +539,7 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copy_data */         copy_data,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    deformVerts,
 	/* deformMatrices_DM */ NULL,

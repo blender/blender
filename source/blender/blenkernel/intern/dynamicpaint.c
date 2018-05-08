@@ -1148,7 +1148,7 @@ bool dynamicPaint_createType(struct DynamicPaintModifierData *pmd, int type, str
 	return true;
 }
 
-void dynamicPaint_Modifier_copy(struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tpmd)
+void dynamicPaint_Modifier_copy(const struct DynamicPaintModifierData *pmd, struct DynamicPaintModifierData *tpmd)
 {
 	/* Init modifier	*/
 	tpmd->type = pmd->type;

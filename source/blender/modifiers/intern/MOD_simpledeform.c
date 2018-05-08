@@ -350,15 +350,6 @@ static void initData(ModifierData *md)
 	smd->limit[1] =  1.0f;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
-	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData *)target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	SimpleDeformModifierData *smd = (SimpleDeformModifierData *)md;
@@ -422,7 +413,7 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

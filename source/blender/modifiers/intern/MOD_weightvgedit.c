@@ -80,9 +80,9 @@ static void freeData(ModifierData *md)
 	curvemapping_free(wmd->cmap_curve);
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	WeightVGEditModifierData *wmd  = (WeightVGEditModifierData *) md;
+	const WeightVGEditModifierData *wmd  = (const WeightVGEditModifierData *) md;
 	WeightVGEditModifierData *twmd = (WeightVGEditModifierData *) target;
 
 	modifier_copyData_generic(md, target);

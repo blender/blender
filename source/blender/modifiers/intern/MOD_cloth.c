@@ -140,9 +140,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	ClothModifierData *clmd = (ClothModifierData *) md;
+	const ClothModifierData *clmd = (const ClothModifierData *) md;
 	ClothModifierData *tclmd = (ClothModifierData *) target;
 
 	if (tclmd->sim_parms) {

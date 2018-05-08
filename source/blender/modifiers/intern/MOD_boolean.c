@@ -70,15 +70,6 @@ static void initData(ModifierData *md)
 	bmd->double_threshold = 1e-6f;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	BooleanModifierData *bmd = (BooleanModifierData *) md;
-	BooleanModifierData *tbmd = (BooleanModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
@@ -351,7 +342,7 @@ ModifierTypeInfo modifierType_Boolean = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_UsesPointCache,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

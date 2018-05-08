@@ -132,9 +132,9 @@ static void freeData(ModifierData *md)
 	}
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
+	const SurfaceDeformModifierData *smd = (const SurfaceDeformModifierData *)md;
 	SurfaceDeformModifierData *tsmd = (SurfaceDeformModifierData *)target;
 
 	modifier_copyData_generic(md, target);

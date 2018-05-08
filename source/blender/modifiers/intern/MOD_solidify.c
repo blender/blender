@@ -176,15 +176,6 @@ static void initData(ModifierData *md)
 	smd->flag = MOD_SOLIDIFY_RIM;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	SolidifyModifierData *smd = (SolidifyModifierData *) md;
-	SolidifyModifierData *tsmd = (SolidifyModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -966,7 +957,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

@@ -56,16 +56,6 @@ static void initData(ModifierData *md)
 	lmd->strength = 1.0f;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	LatticeModifierData *lmd = (LatticeModifierData *) md;
-	LatticeModifierData *tlmd = (LatticeModifierData *) target;
-#endif
-
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	LatticeModifierData *lmd = (LatticeModifierData *)md;
@@ -143,7 +133,8 @@ ModifierTypeInfo modifierType_Lattice = {
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
-	/* copyData */          copyData,
+
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

@@ -606,7 +606,7 @@ void smokeModifier_createType(struct SmokeModifierData *smd)
 	}
 }
 
-void smokeModifier_copy(struct SmokeModifierData *smd, struct SmokeModifierData *tsmd)
+void smokeModifier_copy(const struct SmokeModifierData *smd, struct SmokeModifierData *tsmd)
 {
 	tsmd->type = smd->type;
 	tsmd->time = smd->time;

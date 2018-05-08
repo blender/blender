@@ -65,17 +65,16 @@ static void initData(ModifierData *md)
 	smd->flags |= eSubsurfModifierFlag_SubsurfUv;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
 #if 0
-	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	const SubsurfModifierData *smd = (const SubsurfModifierData *) md;
 #endif
 	SubsurfModifierData *tsmd = (SubsurfModifierData *) target;
 
 	modifier_copyData_generic(md, target);
 
 	tsmd->emCache = tsmd->mCache = NULL;
-
 }
 
 static void freeData(ModifierData *md)

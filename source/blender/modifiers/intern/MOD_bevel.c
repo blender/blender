@@ -65,15 +65,6 @@ static void initData(ModifierData *md)
 	bmd->defgrp_name[0] = '\0';
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	BevelModifierData *bmd = (BevelModifierData *) md;
-	BevelModifierData *tbmd = (BevelModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	BevelModifierData *bmd = (BevelModifierData *)md;
@@ -203,7 +194,7 @@ ModifierTypeInfo modifierType_Bevel = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

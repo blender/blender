@@ -64,15 +64,6 @@ static void initData(ModifierData *md)
 	dmd->defgrp_factor = 1.0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	DecimateModifierData *dmd = (DecimateModifierData *) md;
-	DecimateModifierData *tdmd = (DecimateModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
@@ -215,7 +206,8 @@ ModifierTypeInfo modifierType_Decimate = {
 	/* type */              eModifierTypeType_Nonconstructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_AcceptsCVs,
-	/* copyData */          copyData,
+
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

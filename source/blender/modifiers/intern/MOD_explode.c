@@ -68,10 +68,10 @@ static void freeData(ModifierData *md)
 	
 	MEM_SAFE_FREE(emd->facepa);
 }
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
 #if 0
-	ExplodeModifierData *emd = (ExplodeModifierData *) md;
+	const ExplodeModifierData *emd = (const ExplodeModifierData *) md;
 #endif
 	ExplodeModifierData *temd = (ExplodeModifierData *) target;
 

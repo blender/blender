@@ -175,15 +175,6 @@ static void initData(ModifierData *md)
 	ltmd->merge_dist = 0.01f;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	ScrewModifierData *sltmd = (ScrewModifierData *) md;
-	ScrewModifierData *tltmd = (ScrewModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
                                   DerivedMesh *derivedData)
 {
@@ -1144,7 +1135,7 @@ ModifierTypeInfo modifierType_Screw = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

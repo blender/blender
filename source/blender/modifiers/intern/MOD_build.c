@@ -66,15 +66,6 @@ static void initData(ModifierData *md)
 	bmd->length = 100.0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	BuildModifierData *bmd = (BuildModifierData *) md;
-	BuildModifierData *tbmd = (BuildModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static bool dependsOnTime(ModifierData *UNUSED(md))
 {
 	return true;
@@ -313,7 +304,8 @@ ModifierTypeInfo modifierType_Build = {
 	/* type */              eModifierTypeType_Nonconstructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_AcceptsCVs,
-	/* copyData */          copyData,
+
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,

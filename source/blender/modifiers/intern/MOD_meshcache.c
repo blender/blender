@@ -64,15 +64,6 @@ static void initData(ModifierData *md)
 	mcmd->up_axis      = 2;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
-	MeshCacheModifierData *tmcmd = (MeshCacheModifierData *)target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static bool dependsOnTime(ModifierData *md)
 {
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
@@ -301,7 +292,7 @@ ModifierTypeInfo modifierType_MeshCache = {
 	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 
 	/* deformVerts_DM */    deformVerts,
 	/* deformMatrices_DM */ NULL,
