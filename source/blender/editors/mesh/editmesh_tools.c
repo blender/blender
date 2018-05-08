@@ -4877,21 +4877,30 @@ void MESH_OT_dissolve_edges(wmOperatorType *ot)
 
 static int edbm_dissolve_faces_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	if (!EDBM_op_call_and_selectf(
-	        em, op,
-	        "region.out", true,
-	        "dissolve_faces faces=%hf use_verts=%b",
-	        BM_ELEM_SELECT, use_verts))
-	{
-		return OPERATOR_CANCELLED;
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		if (!EDBM_op_call_and_selectf(
+		        em, op,
+		        "region.out", true,
+		        "dissolve_faces faces=%hf use_verts=%b",
+		        BM_ELEM_SELECT, use_verts))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
