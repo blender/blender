@@ -1865,7 +1865,7 @@ static Mesh *base_skin(Mesh *origmesh,
 	if (!bm)
 		return NULL;
 
-	result = BKE_bmesh_to_mesh(bm, &(struct BMeshToMeshParams){0});
+	result = BKE_bmesh_to_mesh_nomain(bm, &(struct BMeshToMeshParams){0});
 	BM_mesh_free(bm);
 
 	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

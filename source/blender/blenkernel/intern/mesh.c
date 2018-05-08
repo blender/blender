@@ -738,7 +738,7 @@ BMesh *BKE_mesh_to_bmesh(
 	        });
 }
 
-Mesh *BKE_bmesh_to_mesh(BMesh *bm, const struct BMeshToMeshParams *params)
+Mesh *BKE_bmesh_to_mesh_nomain(BMesh *bm, const struct BMeshToMeshParams *params)
 {
 	Mesh *mesh = BKE_id_new_nomain(ID_ME, NULL);
 	BM_mesh_bm_to_me(bm, mesh, params);
