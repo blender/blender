@@ -119,6 +119,45 @@ int av_sample_fmt_is_planar(enum AVSampleFormat sample_fmt)
 
 #endif
 
+/* XXX TODO Probably fix to correct modern flags in code? Not sure how old FFMPEG we want to support though,
+ * so for now this will do. */
+
+#ifndef FF_MIN_BUFFER_SIZE
+#  ifdef AV_INPUT_BUFFER_MIN_SIZE
+#    define FF_MIN_BUFFER_SIZE AV_INPUT_BUFFER_MIN_SIZE
+#  endif
+#endif
+
+#ifndef FF_INPUT_BUFFER_PADDING_SIZE
+#  ifdef AV_INPUT_BUFFER_PADDING_SIZE
+#    define FF_INPUT_BUFFER_PADDING_SIZE AV_INPUT_BUFFER_PADDING_SIZE
+#  endif
+#endif
+
+#ifndef CODEC_FLAG_GLOBAL_HEADER
+#  ifdef AV_CODEC_FLAG_GLOBAL_HEADER
+#    define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#  endif
+#endif
+
+#ifndef CODEC_FLAG_GLOBAL_HEADER
+#  ifdef AV_CODEC_FLAG_GLOBAL_HEADER
+#    define CODEC_FLAG_GLOBAL_HEADER AV_CODEC_FLAG_GLOBAL_HEADER
+#  endif
+#endif
+
+#ifndef CODEC_FLAG_INTERLACED_DCT
+#  ifdef AV_CODEC_FLAG_INTERLACED_DCT
+#    define CODEC_FLAG_INTERLACED_DCT AV_CODEC_FLAG_INTERLACED_DCT
+#  endif
+#endif
+
+#ifndef CODEC_FLAG_INTERLACED_ME
+#  ifdef AV_CODEC_FLAG_INTERLACED_ME
+#    define CODEC_FLAG_INTERLACED_ME AV_CODEC_FLAG_INTERLACED_ME
+#  endif
+#endif
+
 /* FFmpeg upstream 1.0 is the first who added AV_ prefix. */
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(54, 59, 100)
 #  define AV_CODEC_ID_NONE CODEC_ID_NONE
