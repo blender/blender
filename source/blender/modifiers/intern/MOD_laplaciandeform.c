@@ -698,9 +698,9 @@ static void initData(ModifierData *md)
 	lmd->flag = 0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	LaplacianDeformModifierData *lmd = (LaplacianDeformModifierData *)md;
+	const LaplacianDeformModifierData *lmd = (const LaplacianDeformModifierData *)md;
 	LaplacianDeformModifierData *tlmd = (LaplacianDeformModifierData *)target;
 
 	modifier_copyData_generic(md, target);

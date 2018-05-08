@@ -126,16 +126,6 @@ static void initData(ModifierData *md)
 	wmd->mask_tex_mapping       = MOD_DISP_MAP_LOCAL;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	WeightVGMixModifierData *wmd  = (WeightVGMixModifierData *) md;
-	WeightVGMixModifierData *twmd = (WeightVGMixModifierData *) target;
-#endif
-
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
@@ -410,7 +400,7 @@ ModifierTypeInfo modifierType_WeightVGMix = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_UsesPreview,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

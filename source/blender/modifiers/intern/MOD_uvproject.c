@@ -67,10 +67,10 @@ static void initData(ModifierData *md)
 	umd->scalex = umd->scaley = 1.0f;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
 #if 0
-	UVProjectModifierData *umd = (UVProjectModifierData *) md;
+	const UVProjectModifierData *umd = (const UVProjectModifierData *) md;
 #endif
 	UVProjectModifierData *tumd = (UVProjectModifierData *) target;
 

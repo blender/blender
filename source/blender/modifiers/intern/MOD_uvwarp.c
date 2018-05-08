@@ -67,15 +67,6 @@ static void initData(ModifierData *md)
 	copy_v2_fl(umd->center, 0.5f);
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	UVWarpModifierData *umd  = (UVWarpModifierData *)md;
-	UVWarpModifierData *tumd = (UVWarpModifierData *)target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	UVWarpModifierData *umd = (UVWarpModifierData *)md;
@@ -283,7 +274,7 @@ ModifierTypeInfo modifierType_UVWarp = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

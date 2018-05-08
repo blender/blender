@@ -62,9 +62,9 @@ static void initData(ModifierData *md)
 	hmd->flag = 0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	HookModifierData *hmd = (HookModifierData *) md;
+	const HookModifierData *hmd = (const HookModifierData *) md;
 	HookModifierData *thmd = (HookModifierData *) target;
 
 	modifier_copyData_generic(md, target);

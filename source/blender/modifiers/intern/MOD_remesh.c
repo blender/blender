@@ -59,15 +59,6 @@ static void initData(ModifierData *md)
 	rmd->threshold = 1;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	RemeshModifierData *rmd = (RemeshModifierData *) md;
-	RemeshModifierData *trmd = (RemeshModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 #ifdef WITH_MOD_REMESH
 
 static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
@@ -220,7 +211,7 @@ ModifierTypeInfo modifierType_Remesh = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_SupportsEditmode,
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

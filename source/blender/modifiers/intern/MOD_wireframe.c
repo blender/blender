@@ -43,15 +43,6 @@ static void initData(ModifierData *md)
 	wmd->crease_weight = 1.0f;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	WireframeModifierData *wmd = (WireframeModifierData *)md;
-	WireframeModifierData *twmd = (WireframeModifierData *)target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	WireframeModifierData *wmd = (WireframeModifierData *)md;
@@ -116,7 +107,7 @@ ModifierTypeInfo modifierType_Wireframe = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

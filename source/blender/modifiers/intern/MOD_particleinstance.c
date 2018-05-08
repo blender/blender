@@ -71,14 +71,6 @@ static void initData(ModifierData *md)
 	STRNCPY(pimd->index_layer_name, "");
 	STRNCPY(pimd->value_layer_name, "");
 }
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
-	ParticleInstanceModifierData *tpimd = (ParticleInstanceModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
@@ -554,7 +546,7 @@ ModifierTypeInfo modifierType_ParticleInstance = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

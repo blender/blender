@@ -112,15 +112,6 @@ static void initData(ModifierData *md)
 	emd->flags = MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
-	EdgeSplitModifierData *temd = (EdgeSplitModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob), DerivedMesh *dm,
                                   ModifierApplyFlag UNUSED(flag))
 {
@@ -147,7 +138,7 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 	                        eModifierTypeFlag_SupportsEditmode |
 	                        eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

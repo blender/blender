@@ -71,16 +71,6 @@ static void initData(ModifierData *md)
 	dmd->space = MOD_DISP_SPACE_LOCAL;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
-	DisplaceModifierData *tdmd = (DisplaceModifierData *) target;
-#endif
-
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *)md;
@@ -427,7 +417,7 @@ ModifierTypeInfo modifierType_Displace = {
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,

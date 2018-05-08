@@ -56,15 +56,6 @@ static void initData(ModifierData *md)
 	cmd->defaxis = MOD_CURVE_POSX;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	CurveModifierData *cmd = (CurveModifierData *) md;
-	CurveModifierData *tcmd = (CurveModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	CurveModifierData *cmd = (CurveModifierData *)md;
@@ -160,7 +151,7 @@ ModifierTypeInfo modifierType_Curve = {
 	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,

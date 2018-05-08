@@ -58,15 +58,6 @@ static void initData(ModifierData *md)
 	mmd->totlvl = 0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	MultiresModifierData *mmd = (MultiresModifierData *) md;
-	MultiresModifierData *tmmd = (MultiresModifierData *) target;
-#endif
-	modifier_copyData_generic(md, target);
-}
-
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
                                   ModifierApplyFlag flag)
 {
@@ -152,7 +143,7 @@ ModifierTypeInfo modifierType_Multires = {
 	                        eModifierTypeFlag_SupportsMapping |
 	                        eModifierTypeFlag_RequiresOriginalData,
 
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,

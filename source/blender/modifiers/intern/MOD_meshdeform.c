@@ -78,9 +78,9 @@ static void freeData(ModifierData *md)
 	if (mmd->bindcos) MEM_freeN(mmd->bindcos);  /* deprecated */
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	MeshDeformModifierData *mmd = (MeshDeformModifierData *) md;
+	const MeshDeformModifierData *mmd = (const MeshDeformModifierData *) md;
 	MeshDeformModifierData *tmmd = (MeshDeformModifierData *) target;
 
 	modifier_copyData_generic(md, target);

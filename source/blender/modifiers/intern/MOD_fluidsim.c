@@ -65,9 +65,9 @@ static void freeData(ModifierData *md)
 	fluidsim_free(fluidmd);
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
+static void copyData(const ModifierData *md, ModifierData *target)
 {
-	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
+	const FluidsimModifierData *fluidmd = (const FluidsimModifierData *) md;
 	FluidsimModifierData *tfluidmd = (FluidsimModifierData *) target;
 	
 	if (fluidmd->fss) {

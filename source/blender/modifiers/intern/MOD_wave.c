@@ -78,16 +78,6 @@ static void initData(ModifierData *md)
 	wmd->defgrp_name[0] = 0;
 }
 
-static void copyData(ModifierData *md, ModifierData *target)
-{
-#if 0
-	WaveModifierData *wmd = (WaveModifierData *) md;
-	WaveModifierData *twmd = (WaveModifierData *) target;
-#endif
-
-	modifier_copyData_generic(md, target);
-}
-
 static bool dependsOnTime(ModifierData *UNUSED(md))
 {
 	return true;
@@ -366,7 +356,7 @@ ModifierTypeInfo modifierType_Wave = {
 	/* flags */             eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_AcceptsLattice |
 	                        eModifierTypeFlag_SupportsEditmode,
-	/* copyData */          copyData,
+	/* copyData */          modifier_copyData_generic,
 	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     deformVertsEM,
