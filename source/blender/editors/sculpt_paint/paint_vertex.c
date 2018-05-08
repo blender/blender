@@ -68,6 +68,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "ED_object.h"
 #include "ED_mesh.h"
@@ -1217,6 +1218,7 @@ void ED_object_wpaintmode_exit(struct bContext *C)
  */
 static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_WEIGHT_PAINT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
@@ -1247,6 +1249,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	DEG_id_tag_update(&me->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
+
+	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
 	return OPERATOR_FINISHED;
 }
@@ -2349,6 +2353,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
  */
 static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_VERTEX_PAINT;
 	const bool is_mode_set = (ob->mode & mode_flag) != 0;
@@ -2378,6 +2383,8 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	DEG_id_tag_update(&me->id, 0);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
+
+	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
 	return OPERATOR_FINISHED;
 }

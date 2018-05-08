@@ -108,8 +108,10 @@
 
 #include "UI_interface.h"
 #include "UI_resources.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "object_intern.h"  // own include
 
@@ -450,6 +452,7 @@ void ED_object_editmode_enter(bContext *C, int flag)
 
 static int editmode_toggle_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	const int mode_flag = OB_MODE_EDIT;
 	const bool is_mode_set = (CTX_data_edit_object(C) != NULL);
 	Scene *scene =  CTX_data_scene(C);
@@ -488,6 +491,8 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 	}
 	
 	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), scene);
+
+	WM_msg_publish_rna_prop(mbus, &obact->id, obact, Object, mode);
 
 	return OPERATOR_FINISHED;
 }
@@ -528,6 +533,7 @@ void OBJECT_OT_editmode_toggle(wmOperatorType *ot)
 
 static int posemode_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Base *base = CTX_data_active_base(C);
 	Object *obact = base->object;
 	const int mode_flag = OB_MODE_POSE;
@@ -539,51 +545,54 @@ static int posemode_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (obact->type == OB_ARMATURE) {
-		if (obact == CTX_data_edit_object(C)) {
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
-			is_mode_set = false;
-		}
-
-		if (is_mode_set) {
-			bool ok = ED_object_posemode_exit(C, obact);
-			if (ok) {
-				struct Main *bmain = CTX_data_main(C);
-				ViewLayer *view_layer = CTX_data_view_layer(C);
-				FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
-				{
-					if ((ob != obact) &&
-					    (ob->type == OB_ARMATURE) &&
-					    (ob->mode & mode_flag))
-					{
-						ED_object_posemode_exit_ex(bmain, ob);
-					}
-				}
-				FOREACH_SELECTED_OBJECT_END;
-			}
-		}
-		else {
-			bool ok = ED_object_posemode_enter(C, obact);
-			if (ok) {
-				struct Main *bmain = CTX_data_main(C);
-				ViewLayer *view_layer = CTX_data_view_layer(C);
-				FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
-				{
-					if ((ob != obact) &&
-					    (ob->type == OB_ARMATURE) &&
-					    (ob->mode == OB_MODE_OBJECT) &&
-					    (!ID_IS_LINKED(ob)))
-					{
-						ED_object_posemode_enter_ex(bmain, ob);
-					}
-				}
-				FOREACH_SELECTED_OBJECT_END;
-			}
-		}
-		return OPERATOR_FINISHED;
+	if (obact->type != OB_ARMATURE) {
+		return OPERATOR_PASS_THROUGH;
 	}
-	
-	return OPERATOR_PASS_THROUGH;
+
+	if (obact == CTX_data_edit_object(C)) {
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
+		is_mode_set = false;
+	}
+
+	if (is_mode_set) {
+		bool ok = ED_object_posemode_exit(C, obact);
+		if (ok) {
+			struct Main *bmain = CTX_data_main(C);
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
+			{
+				if ((ob != obact) &&
+				    (ob->type == OB_ARMATURE) &&
+				    (ob->mode & mode_flag))
+				{
+					ED_object_posemode_exit_ex(bmain, ob);
+				}
+			}
+			FOREACH_SELECTED_OBJECT_END;
+		}
+	}
+	else {
+		bool ok = ED_object_posemode_enter(C, obact);
+		if (ok) {
+			struct Main *bmain = CTX_data_main(C);
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+			FOREACH_SELECTED_OBJECT_BEGIN(view_layer, ob)
+			{
+				if ((ob != obact) &&
+				    (ob->type == OB_ARMATURE) &&
+				    (ob->mode == OB_MODE_OBJECT) &&
+				    (!ID_IS_LINKED(ob)))
+				{
+					ED_object_posemode_enter_ex(bmain, ob);
+				}
+			}
+			FOREACH_SELECTED_OBJECT_END;
+		}
+	}
+
+	WM_msg_publish_rna_prop(mbus, &obact->id, obact, Object, mode);
+
+	return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_posemode_toggle(wmOperatorType *ot) 

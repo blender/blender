@@ -73,6 +73,7 @@
 
 #include "WM_api.h"
 #include "WM_types.h"
+#include "WM_message.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -1057,6 +1058,7 @@ static int texture_paint_toggle_poll(bContext *C)
 
 static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 {
+	struct wmMsgBus *mbus = CTX_wm_message_bus(C);
 	Scene *scene = CTX_data_scene(C);
 	Object *ob = CTX_data_active_object(C);
 	const int mode_flag = OB_MODE_TEXTURE_PAINT;
@@ -1130,9 +1132,9 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 		toggle_paint_cursor(C, 1);
 	}
 
-	// ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
-
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
+
+	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
 	return OPERATOR_FINISHED;
 }
