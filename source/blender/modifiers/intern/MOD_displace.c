@@ -33,6 +33,7 @@
  */
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -40,7 +41,8 @@
 #include "BLI_math.h"
 #include "BLI_task.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_customdata.h"
+#include "BKE_editmesh.h"
 #include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_image.h"
@@ -277,7 +279,7 @@ static void displaceModifier_do_task(
 /* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
         DisplaceModifierData *dmd, Object *ob,
-        DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+        Mesh *mesh, float (*vertexCos)[3], const int numVerts)
 {
 	MVert *mvert;
 	MDeformVert *dvert;
@@ -292,13 +294,13 @@ static void displaceModifier_do(
 	if (!dmd->texture && dmd->direction == MOD_DISP_DIR_RGB_XYZ) return;
 	if (dmd->strength == 0.0f) return;
 
-	mvert = CDDM_get_verts(dm);
-	modifier_get_vgroup(ob, dm, dmd->defgrp_name, &dvert, &defgrp_index);
+	mvert = mesh->mvert;
+	modifier_get_vgroup_mesh(ob, mesh, dmd->defgrp_name, &dvert, &defgrp_index);
 
 	if (dmd->texture) {
 		tex_co = MEM_calloc_arrayN((size_t)numVerts, sizeof(*tex_co),
 		                     "displaceModifier_do tex_co");
-		get_texture_coords((MappingInfoModifierData *)dmd, ob, dm, vertexCos, tex_co, numVerts);
+		get_texture_coords_mesh((MappingInfoModifierData *)dmd, ob, mesh, vertexCos, tex_co);
 
 		modifier_init_texture(dmd->modifier.scene, dmd->texture);
 	}
@@ -307,18 +309,18 @@ static void displaceModifier_do(
 	}
 
 	if (direction == MOD_DISP_DIR_CLNOR) {
-		CustomData *ldata = dm->getLoopDataLayout(dm);
+		CustomData *ldata = &mesh->ldata;
 
 		if (CustomData_has_layer(ldata, CD_CUSTOMLOOPNORMAL)) {
 			float (*clnors)[3] = NULL;
 
-			if ((dm->dirty & DM_DIRTY_NORMALS) || !CustomData_has_layer(ldata, CD_NORMAL)) {
-				dm->calcLoopNormals(dm, true, (float)M_PI);
+			if ((mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) || !CustomData_has_layer(ldata, CD_NORMAL)) {
+				BKE_mesh_calc_normals_split(mesh);
 			}
 
 			clnors = CustomData_get_layer(ldata, CD_NORMAL);
 			vert_clnors = MEM_malloc_arrayN(numVerts, sizeof(*vert_clnors), __func__);
-			BKE_mesh_normals_loop_to_vertex(numVerts, dm->getLoopArray(dm), dm->getNumLoops(dm),
+			BKE_mesh_normals_loop_to_vertex(numVerts, mesh->mloop, mesh->totloop,
 			                                (const float (*)[3])clnors, vert_clnors);
 		}
 		else {
@@ -368,31 +370,42 @@ static void displaceModifier_do(
 	}
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *derivedData,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md,
+        const ModifierEvalContext *ctx,
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
-	DerivedMesh *dm = get_cddm(ctx->object, NULL, derivedData, vertexCos, dependsOnNormals(md));
+	Mesh *mesh_src = mesh;
 
-	displaceModifier_do((DisplaceModifierData *)md, ctx->object, dm,
+	if (mesh_src == NULL) {
+		mesh_src = ctx->object->data;
+	}
+
+	BLI_assert(mesh_src->totvert == numVerts);
+
+	displaceModifier_do((DisplaceModifierData *)md, ctx->object, mesh_src,
 	                    vertexCos, numVerts);
-
-	if (dm != derivedData)
-		dm->release(dm);
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_cddm(ctx->object, editData, derivedData, vertexCos, dependsOnNormals(md));
+	Mesh *mesh_src = mesh;
 
-	displaceModifier_do((DisplaceModifierData *)md, ctx->object, dm,
-	                    vertexCos, numVerts);
+	if (mesh_src == NULL) {
+		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
+	}
 
-	if (dm != derivedData)
-		dm->release(dm);
+	BLI_assert(mesh_src->totvert == numVerts);
+
+	displaceModifier_do((DisplaceModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+
+	if (!mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 
@@ -406,16 +419,16 @@ ModifierTypeInfo modifierType_Displace = {
 
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
