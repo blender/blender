@@ -295,36 +295,44 @@ static bool edbm_extrude_ex(
 
 static int edbm_extrude_repeat_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-
 	const int steps = RNA_int_get(op->ptr, "steps");
-
 	const float offs = RNA_float_get(op->ptr, "offset");
 	float dvec[3], tmat[3][3], bmat[3][3];
 	short a;
 
-	/* dvec */
-	normalize_v3_v3_length(dvec, rv3d->persinv[2], offs);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	/* base correction */
-	copy_m3_m4(bmat, obedit->obmat);
-	invert_m3_m3(tmat, bmat);
-	mul_m3_v3(tmat, dvec);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 
-	for (a = 0; a < steps; a++) {
-		edbm_extrude_ex(obedit, em, BM_ALL_NOLOOP, BM_ELEM_SELECT, false, false);
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		BMO_op_callf(
-		        em->bm, BMO_FLAG_DEFAULTS,
-		        "translate vec=%v verts=%hv",
-		        dvec, BM_ELEM_SELECT);
+		/* dvec */
+		normalize_v3_v3_length(dvec, rv3d->persinv[2], offs);
+
+		/* base correction */
+		copy_m3_m4(bmat, obedit->obmat);
+		invert_m3_m3(tmat, bmat);
+		mul_m3_v3(tmat, dvec);
+
+		for (a = 0; a < steps; a++) {
+			edbm_extrude_ex(obedit, em, BM_ALL_NOLOOP, BM_ELEM_SELECT, false, false);
+
+			BMO_op_callf(
+				em->bm, BMO_FLAG_DEFAULTS,
+				"translate vec=%v verts=%hv",
+				dvec, BM_ELEM_SELECT);
+		}
+
+		EDBM_mesh_normals_update(em);
+
+		EDBM_update_generic(em, true, true);
 	}
 
-	EDBM_mesh_normals_update(em);
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
