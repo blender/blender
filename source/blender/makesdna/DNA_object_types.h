@@ -297,7 +297,7 @@ typedef struct Object {
 	int pad6;
 	int select_color;
 
-	/* Mesh structure createrd during object evaluaiton.
+	/* Mesh structure created during object evaluation.
 	 * It has all modifiers applied.
 	 */
 	struct Mesh *mesh_evaluated;
