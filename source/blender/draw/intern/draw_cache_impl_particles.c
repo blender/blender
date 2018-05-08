@@ -171,7 +171,7 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 		cache->elems_count = 0;
 		cache->point_count = 0;
 
-		if (psys->edit != NULL) {
+		if (psys->edit != NULL && psys->edit->pathcache != NULL) {
 			count_cache_segment_keys(
 			        psys->edit->pathcache, psys->totpart, cache);
 		} else {
@@ -434,7 +434,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 		}
 	}
 
-	if (psys->edit != NULL) {
+	if (psys->edit != NULL && psys->edit->pathcache != NULL) {
 		curr_point = particle_batch_cache_fill_segments(
 		        psys, psmd, psys->edit->pathcache, PARTICLE_SOURCE_PARENT,
 		        0, 0, psys->totpart,
