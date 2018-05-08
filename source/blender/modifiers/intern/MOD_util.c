@@ -72,10 +72,12 @@ void modifier_init_texture(const Scene *scene, Tex *tex)
 }
 
 /* TODO to be renamed to get_texture_coords once we are done with moving modifiers to Mesh. */
+/** \param cos may be NULL, in which case we use directly mesh vertices' coordinates. */
 void get_texture_coords_mesh(
         MappingInfoModifierData *dmd,
         Object *ob,
         Mesh *mesh,
+        float (*cos)[3],
         float (*r_texco)[3])
 {
 	const int numVerts = mesh->totvert;
@@ -135,15 +137,18 @@ void get_texture_coords_mesh(
 	for (i = 0; i < numVerts; ++i, ++mv, ++r_texco) {
 		switch (texmapping) {
 			case MOD_DISP_MAP_LOCAL:
-				copy_v3_v3(*r_texco, mv->co);
+				copy_v3_v3(*r_texco, cos != NULL ? *cos : mv->co);
 				break;
 			case MOD_DISP_MAP_GLOBAL:
-				mul_v3_m4v3(*r_texco, ob->obmat, mv->co);
+				mul_v3_m4v3(*r_texco, ob->obmat, cos != NULL ? *cos : mv->co);
 				break;
 			case MOD_DISP_MAP_OBJECT:
-				mul_v3_m4v3(*r_texco, ob->obmat, mv->co);
+				mul_v3_m4v3(*r_texco, ob->obmat, cos != NULL ? *cos : mv->co);
 				mul_m4_v3(mapob_imat, *r_texco);
 				break;
+		}
+		if (cos != NULL) {
+			cos++;
 		}
 	}
 }

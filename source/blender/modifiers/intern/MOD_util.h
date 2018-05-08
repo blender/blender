@@ -48,6 +48,7 @@ void get_texture_coords_mesh(
         struct MappingInfoModifierData *dmd,
         struct Object *ob,
         struct Mesh *mesh,
+        float (*cos)[3],
         float (*r_texco)[3]);
 void modifier_vgroup_cache(struct ModifierData *md, float (*vertexCos)[3]);
 struct DerivedMesh *get_cddm(struct Object *ob, struct BMEditMesh *em, struct DerivedMesh *dm,

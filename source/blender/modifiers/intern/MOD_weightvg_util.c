@@ -145,7 +145,7 @@ void weightvg_do_mask(const int num, const int *indices, float *org_w, const flo
 		t_map.texmapping = tex_mapping;
 
 		tex_co = MEM_calloc_arrayN(numVerts, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
-		get_texture_coords_mesh(&t_map, ob, mesh, tex_co);
+		get_texture_coords_mesh(&t_map, ob, mesh, NULL, tex_co);
 
 		modifier_init_texture(scene, texture);
 
