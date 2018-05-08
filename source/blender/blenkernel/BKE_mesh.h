@@ -100,22 +100,6 @@ void   BKE_mesh_orco_verts_transform(struct Mesh *me, float (*orco)[3], int totv
 int test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *BKE_mesh_from_object(struct Object *ob);
 void BKE_mesh_assign_object(struct Object *ob, struct Mesh *me);
-void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
-int  BKE_mesh_nurbs_to_mdata(
-        struct Object *ob, struct MVert **r_allvert, int *r_totvert,
-        struct MEdge **r_alledge, int *r_totedge, struct MLoop **r_allloop, struct MPoly **r_allpoly,
-        int *r_totloop, int *r_totpoly);
-int BKE_mesh_nurbs_displist_to_mdata(
-        struct Object *ob, const struct ListBase *dispbase,
-        struct MVert **r_allvert, int *r_totvert,
-        struct MEdge **r_alledge, int *r_totedge,
-        struct MLoop **r_allloop, struct MPoly **r_allpoly,
-        struct MLoopUV **r_alluv, int *r_totloop, int *r_totpoly);
-void BKE_mesh_from_nurbs_displist(
-        struct Object *ob, struct ListBase *dispbase, const bool use_orco_uv, const char *obdata_name);
-void BKE_mesh_from_nurbs(struct Object *ob);
-void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
-void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
 void BKE_mesh_material_index_remove(struct Mesh *me, short index);
 void BKE_mesh_material_index_clear(struct Mesh *me);
 void BKE_mesh_material_remap(struct Mesh *me, const unsigned int *remap, unsigned int remap_len);
@@ -134,9 +118,6 @@ bool BKE_mesh_uv_cdlayer_rename(struct Mesh *me, const char *old_name, const cha
 float (*BKE_mesh_vertexCos_get(const struct Mesh *me, int *r_numVerts))[3];
 
 void BKE_mesh_split_faces(struct Mesh *mesh, bool free_loop_normals);
-
-struct Mesh *BKE_mesh_new_from_object(struct Main *bmain, struct Scene *sce, struct Object *ob,
-                                      int apply_modifiers, int settings, int calc_tessface, int calc_undeformed);
 
 /* vertex level transformations & checks (no derived mesh) */
 
@@ -159,7 +140,28 @@ int  BKE_mesh_mselect_find(struct Mesh *me, int index, int type);
 int  BKE_mesh_mselect_active_get(struct Mesh *me, int type);
 void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 
+/* *** mesh_convert.c *** */
 
+void BKE_mesh_from_metaball(struct ListBase *lb, struct Mesh *me);
+int  BKE_mesh_nurbs_to_mdata(
+        struct Object *ob, struct MVert **r_allvert, int *r_totvert,
+        struct MEdge **r_alledge, int *r_totedge, struct MLoop **r_allloop, struct MPoly **r_allpoly,
+        int *r_totloop, int *r_totpoly);
+int BKE_mesh_nurbs_displist_to_mdata(
+        struct Object *ob, const struct ListBase *dispbase,
+        struct MVert **r_allvert, int *r_totvert,
+        struct MEdge **r_alledge, int *r_totedge,
+        struct MLoop **r_allloop, struct MPoly **r_allpoly,
+        struct MLoopUV **r_alluv, int *r_totloop, int *r_totpoly);
+void BKE_mesh_from_nurbs_displist(
+        struct Object *ob, struct ListBase *dispbase, const bool use_orco_uv, const char *obdata_name);
+void BKE_mesh_from_nurbs(struct Object *ob);
+void BKE_mesh_to_curve_nurblist(struct DerivedMesh *dm, struct ListBase *nurblist, const int edge_users_test);
+void BKE_mesh_to_curve(struct Scene *scene, struct Object *ob);
+
+struct Mesh *BKE_mesh_new_from_object(
+        struct Main *bmain, struct Scene *sce, struct Object *ob,
+        int apply_modifiers, int settings, int calc_tessface, int calc_undeformed);
 
 /* *** mesh_evaluate.c *** */
 
