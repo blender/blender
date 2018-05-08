@@ -505,6 +505,9 @@ void BKE_mesh_free(Mesh *me)
 	MEM_SAFE_FREE(me->bb);
 	MEM_SAFE_FREE(me->mselect);
 	MEM_SAFE_FREE(me->edit_btmesh);
+
+	MEM_SAFE_FREE(me->runtime.looptris.array);
+	bvhcache_free(&me->runtime.bvh_cache);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
@@ -541,6 +544,8 @@ void BKE_mesh_init(Mesh *me)
 	CustomData_reset(&me->fdata);
 	CustomData_reset(&me->pdata);
 	CustomData_reset(&me->ldata);
+
+	me->runtime.bvh_cache = NULL;
 }
 
 Mesh *BKE_mesh_add(Main *bmain, const char *name)
@@ -583,6 +588,7 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 
 	me_dst->edit_btmesh = NULL;
 	me_dst->runtime.batch_cache = NULL;
+	me_dst->runtime.bvh_cache = NULL;
 
 	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
 	me_dst->bb = MEM_dupallocN(me_dst->bb);

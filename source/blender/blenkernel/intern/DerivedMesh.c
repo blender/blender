@@ -322,7 +322,7 @@ void DM_init_funcs(DerivedMesh *dm)
 	dm->getPolyDataArray = DM_get_poly_data_layer;
 	dm->getLoopDataArray = DM_get_loop_data_layer;
 
-	bvhcache_init(&dm->bvhCache);
+	dm->bvhCache = NULL;
 }
 
 /**
