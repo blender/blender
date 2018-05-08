@@ -66,7 +66,7 @@ static void freeData(ModifierData *md)
 {
 	ExplodeModifierData *emd = (ExplodeModifierData *) md;
 	
-	if (emd->facepa) MEM_freeN(emd->facepa);
+	MEM_SAFE_FREE(emd->facepa);
 }
 static void copyData(ModifierData *md, ModifierData *target)
 {

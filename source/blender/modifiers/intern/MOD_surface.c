@@ -63,20 +63,17 @@ static void freeData(ModifierData *md)
 	if (surmd) {
 		if (surmd->bvhtree) {
 			free_bvhtree_from_mesh(surmd->bvhtree);
-			MEM_freeN(surmd->bvhtree);
+			MEM_SAFE_FREE(surmd->bvhtree);
 		}
 
-		if (surmd->dm)
+		if (surmd->dm) {
 			surmd->dm->release(surmd->dm);
+			surmd->dm = NULL;
+		}
 
-		if (surmd->x)
-			MEM_freeN(surmd->x);
+		MEM_SAFE_FREE(surmd->x);
 		
-		if (surmd->v)
-			MEM_freeN(surmd->v);
-
-		surmd->bvhtree = NULL;
-		surmd->dm = NULL;
+		MEM_SAFE_FREE(surmd->v);
 	}
 }
 

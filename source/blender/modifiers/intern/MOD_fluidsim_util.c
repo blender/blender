@@ -155,6 +155,10 @@ void fluidsim_free(FluidsimModifierData *fluidmd)
 		}
 		MEM_SAFE_FREE(fluidmd->fss);
 	}
+
+	/* Seems to never be used, but for sqke of consistency... */
+	BLI_assert(fluidmd->point_cache == NULL);
+	fluidmd->point_cache = NULL;
 	
 	return;
 }
