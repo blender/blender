@@ -176,55 +176,64 @@ struct bPose;
 struct bSplineIKConstraint;
 
 struct bPoseChannel *BKE_armature_ik_solver_find_root(
-				struct bPoseChannel *pchan,
-				struct bKinematicConstraint *data);
+        struct bPoseChannel *pchan,
+        struct bKinematicConstraint *data);
 struct bPoseChannel *BKE_armature_splineik_solver_find_root(
-				struct bPoseChannel *pchan,
-				struct bSplineIKConstraint *data);
+        struct bPoseChannel *pchan,
+        struct bSplineIKConstraint *data);
 
 void BKE_pose_splineik_init_tree(struct Scene *scene, struct Object *ob, float ctime);
 void BKE_splineik_execute_tree(
-				struct Depsgraph *depsgraph, struct Scene *scene,
-				struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
+        struct Depsgraph *depsgraph, struct Scene *scene,
+        struct Object *ob, struct bPoseChannel *pchan_root, float ctime);
 
-void BKE_pose_eval_init(struct Depsgraph *depsgraph,
-												struct Scene *scene,
-												struct Object *ob);
+void BKE_pose_eval_init(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob);
 
-void BKE_pose_eval_init_ik(struct Depsgraph *depsgraph,
-													 struct Scene *scene,
-													 struct Object *ob);
+void BKE_pose_eval_init_ik(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob);
 
-void BKE_pose_eval_bone(struct Depsgraph *depsgraph,
-												struct Scene *scene,
-												struct Object *ob,
-												int pchan_index);
+void BKE_pose_eval_bone(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob,
+        int pchan_index);
 
-void BKE_pose_constraints_evaluate(struct Depsgraph *depsgraph,
-																	 struct Scene *scene,
-																	 struct Object *ob,
-																	 int pchan_index);
+void BKE_pose_constraints_evaluate(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob,
+        int pchan_index);
 
-void BKE_pose_bone_done(struct Depsgraph *depsgraph,
-												struct Object *ob,
-												int pchan_index);
+void BKE_pose_bone_done(
+        struct Depsgraph *depsgraph,
+        struct Object *ob,
+        int pchan_index);
 
-void BKE_pose_iktree_evaluate(struct Depsgraph *depsgraph,
-															struct Scene *scene,
-															struct Object *ob,
-															int rootchan_index);
+void BKE_pose_iktree_evaluate(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob,
+        int rootchan_index);
 
-void BKE_pose_splineik_evaluate(struct Depsgraph *depsgraph,
-																struct Scene *scene,
-																struct Object *ob,
-																int rootchan_index);
+void BKE_pose_splineik_evaluate(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob,
+        int rootchan_index);
 
-void BKE_pose_eval_flush(struct Depsgraph *depsgraph,
-												 struct Scene *scene,
-												 struct Object *ob);
+void BKE_pose_eval_flush(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        struct Object *ob);
 
-void BKE_pose_eval_proxy_copy(struct Depsgraph *depsgraph,
-															struct Object *ob);
+void BKE_pose_eval_proxy_copy(
+        struct Depsgraph *depsgraph,
+        struct Object *ob);
 
 #ifdef __cplusplus
 }

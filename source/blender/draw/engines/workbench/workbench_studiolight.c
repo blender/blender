@@ -19,10 +19,10 @@
  *
  */
 
-/** \file workbench_studiolight.h
+/** \file workbench_studiolight.c
  *  \ingroup draw_engine
  */
- #include "DRW_engine.h"
+#include "DRW_engine.h"
 #include "workbench_private.h"
 
 #include "BLI_math.h"
@@ -78,7 +78,8 @@ const float studiolights[][6][3] = {
 	},
 };
 
-void studiolight_update_world(int studio_light, WORKBENCH_UBO_World* wd) {
+void studiolight_update_world(int studio_light, WORKBENCH_UBO_World *wd)
+{
 	copy_v3_v3(wd->diffuse_light_x_pos, studiolights[studio_light][STUDIOLIGHT_X_POS]);
 	copy_v3_v3(wd->diffuse_light_x_neg, studiolights[studio_light][STUDIOLIGHT_X_NEG]);
 	copy_v3_v3(wd->diffuse_light_y_pos, studiolights[studio_light][STUDIOLIGHT_Y_POS]);
@@ -87,7 +88,8 @@ void studiolight_update_world(int studio_light, WORKBENCH_UBO_World* wd) {
 	copy_v3_v3(wd->diffuse_light_z_neg, studiolights[studio_light][STUDIOLIGHT_Z_NEG]);
 }
 
-unsigned int *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size) {
+uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size)
+{
 	unsigned int* rect = MEM_mallocN(icon_size * icon_size * sizeof(unsigned int), __func__);
 	int icon_center = icon_size / 2;
 	float sphere_radius = icon_center * 0.9;

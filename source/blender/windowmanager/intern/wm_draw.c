@@ -304,7 +304,7 @@ static void wm_draw_region_buffer_create(ARegion *ar, bool stereo, bool use_view
 			/* Free offscreen buffer on size changes. Viewport auto resizes. */
 			GPUOffScreen *offscreen = ar->draw_buffer->offscreen[0];
 			if (offscreen && (GPU_offscreen_width(offscreen) != ar->winx ||
-				              GPU_offscreen_height(offscreen) != ar->winy))
+			                  GPU_offscreen_height(offscreen) != ar->winy))
 			{
 				wm_draw_region_buffer_free(ar);
 			}

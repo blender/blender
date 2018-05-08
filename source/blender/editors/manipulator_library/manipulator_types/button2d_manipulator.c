@@ -193,7 +193,7 @@ static int manipulator_button2d_test_select(
 		}
 	}
 	else {
-		copy_v2_v2(point_local, (float [2]){UNPACK2(event->mval)});
+		copy_v2_v2(point_local, (float[2]){UNPACK2(event->mval)});
 		sub_v2_v2(point_local, mpr->matrix_basis[3]);
 		mul_v2_fl(point_local, 1.0f / (mpr->scale_basis * UI_DPI_FAC));
 	}

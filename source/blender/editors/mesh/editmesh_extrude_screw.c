@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mesh/editmesh_extrude_spin.c
+/** \file blender/editors/mesh/editmesh_extrude_screw.c
  *  \ingroup edmesh
  */
 

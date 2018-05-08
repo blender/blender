@@ -627,7 +627,7 @@ static int manipulator_cage3d_modal(
 
 		transform_pivot_set_m4(
 		        matrix_scale,
-		        (const float [3]){pivot[0] * dims[0], pivot[1] * dims[1], pivot[2] * dims[2]});
+		        (const float[3]){pivot[0] * dims[0], pivot[1] * dims[1], pivot[2] * dims[2]});
 		mul_m4_m4m4(mpr->matrix_offset, data->orig_matrix_offset, matrix_scale);
 	}
 

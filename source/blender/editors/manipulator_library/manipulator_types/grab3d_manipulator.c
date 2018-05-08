@@ -202,7 +202,7 @@ static void grab3d_draw_intern(
 		}
 
 		glEnable(GL_BLEND);
-		grab_geom_draw(mpr, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
+		grab_geom_draw(mpr, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f}, select, draw_options);
 		glDisable(GL_BLEND);
 		gpuPopMatrix();
 	}

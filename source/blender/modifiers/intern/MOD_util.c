@@ -38,7 +38,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_math_vector.h"
@@ -301,11 +300,12 @@ Mesh *get_mesh(Object *ob, struct BMEditMesh *em, Mesh *mesh,
 		struct BMeshToMeshParams bmtmp = {0};
 		if (em) mesh = BKE_bmesh_to_mesh_nomain(em->bm, &bmtmp);
 		else {
-			BKE_id_copy_ex(NULL, ob->data, (ID **)&mesh,
-			               LIB_ID_CREATE_NO_MAIN |
-			               LIB_ID_CREATE_NO_USER_REFCOUNT |
-                           LIB_ID_CREATE_NO_DEG_TAG,
-			               false);
+			BKE_id_copy_ex(
+			        NULL, ob->data, (ID **)&mesh,
+			        LIB_ID_CREATE_NO_MAIN |
+			        LIB_ID_CREATE_NO_USER_REFCOUNT |
+			        LIB_ID_CREATE_NO_DEG_TAG,
+			        false);
 		}
 
 		if (vertexCos) {

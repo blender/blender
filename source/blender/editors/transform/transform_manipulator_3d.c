@@ -18,7 +18,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/transform/transform_manipulator_2d.c
+/** \file blender/editors/transform/transform_manipulator_3d.c
  *  \ingroup edtransform
  *
  * \name 3D Transform Manipulator

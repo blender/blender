@@ -998,7 +998,7 @@ static bool region_is_overlap(ScrArea *sa, ARegion *ar)
 				if (ar->regiontype == RGN_TYPE_HEADER)
 					return 1;
 			}
-			else if(sa->spacetype == SPACE_SEQ) {
+			else if (sa->spacetype == SPACE_SEQ) {
 				if (ar->regiontype == RGN_TYPE_PREVIEW)
 					return 1;
 			}
@@ -1898,8 +1898,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 		if (pt->draw_header && !(pt->flag & PNL_NO_HEADER) && (open || vertical)) {
 			/* for enabled buttons */
 			panel->layout = UI_block_layout(
-					block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
-					triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
+			        block, UI_LAYOUT_HORIZONTAL, UI_LAYOUT_HEADER,
+			        triangle, (UI_UNIT_Y * 1.1f) + style->panelspace, UI_UNIT_Y, 1, 0, style);
 
 			pt->draw_header(C, panel);
 
@@ -1921,8 +1921,8 @@ void ED_region_panels(const bContext *C, ARegion *ar, const char *context, int c
 				panelContext = UI_LAYOUT_PANEL;
 
 			panel->layout = UI_block_layout(
-					block, UI_LAYOUT_VERTICAL, panelContext,
-					style->panelspace, 0, w - 2 * style->panelspace, em, 0, style);
+			        block, UI_LAYOUT_VERTICAL, panelContext,
+			        style->panelspace, 0, w - 2 * style->panelspace, em, 0, style);
 
 			pt->draw(C, panel);
 

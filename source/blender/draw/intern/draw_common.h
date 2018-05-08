@@ -131,7 +131,7 @@ int DRW_object_wire_theme_get(
 float *DRW_color_background_blend_get(int theme_id);
 
 /* draw_armature.c */
-typedef struct DRWArmaturePasses{
+typedef struct DRWArmaturePasses {
 	struct DRWPass *bone_solid;
 	struct DRWPass *bone_outline;
 	struct DRWPass *bone_wire;

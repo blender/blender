@@ -51,7 +51,6 @@
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
-#include "BKE_idcode.h"
 #include "BKE_mesh.h"
 #include "BKE_mesh_mapping.h"
 #include "BKE_displist.h"
@@ -615,13 +614,14 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	}
 }
 
-Mesh *BKE_mesh_new_nomain(int numVerts, int numEdges, int numTessFaces,int numLoops, int numPolys)
+Mesh *BKE_mesh_new_nomain(int numVerts, int numEdges, int numTessFaces, int numLoops, int numPolys)
 {
-	Mesh *mesh = BKE_libblock_alloc(NULL, ID_ME,
-	                                BKE_idcode_to_name(ID_ME),
-	                                LIB_ID_CREATE_NO_MAIN |
-	                                LIB_ID_CREATE_NO_USER_REFCOUNT |
-								    LIB_ID_CREATE_NO_DEG_TAG);
+	Mesh *mesh = BKE_libblock_alloc(
+	        NULL, ID_ME,
+	        BKE_idcode_to_name(ID_ME),
+	        LIB_ID_CREATE_NO_MAIN |
+	        LIB_ID_CREATE_NO_USER_REFCOUNT |
+	        LIB_ID_CREATE_NO_DEG_TAG);
 	BKE_libblock_init_empty(&mesh->id);
 
 	/* don't use CustomData_reset(...); because we dont want to touch customdata */

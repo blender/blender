@@ -406,12 +406,12 @@ static Mesh *normalEditModifier_do(NormalEditModifierData *enmd, Object *ob, Mes
 
 	Mesh *result;
 	BKE_id_copy_ex(
-	            NULL, &mesh->id, (ID **)&result,
-	            LIB_ID_CREATE_NO_MAIN |
-	            LIB_ID_CREATE_NO_USER_REFCOUNT |
-	            LIB_ID_CREATE_NO_DEG_TAG|
-	            LIB_ID_COPY_NO_PREVIEW,
-	            false);
+	        NULL, &mesh->id, (ID **)&result,
+	        LIB_ID_CREATE_NO_MAIN |
+	        LIB_ID_CREATE_NO_USER_REFCOUNT |
+	        LIB_ID_CREATE_NO_DEG_TAG |
+	        LIB_ID_COPY_NO_PREVIEW,
+	        false);
 
 	const int num_verts = result->totvert;
 	const int num_edges = result->totedge;

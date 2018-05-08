@@ -143,7 +143,7 @@ static void axis_geom_draw(
 				immUniformColor4fv(axis_black);
 				madd_v3_v3fl(
 				        center,
-				        (float [3]){
+				        (float[3]){
 				            mpr->matrix_offset[0][2],
 				            mpr->matrix_offset[1][2],
 				            mpr->matrix_offset[2][2],

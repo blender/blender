@@ -311,7 +311,7 @@ static void dial_draw_intern(
 		/* draw! */
 		for (int i = 0; i < 2; i++) {
 			glDisable(GL_POLYGON_SMOOTH);
-			dial_ghostarc_draw(mpr, angle_ofs, angle_delta, (const float [4]){0.8f, 0.8f, 0.8f, 0.4f});
+			dial_ghostarc_draw(mpr, angle_ofs, angle_delta, (const float[4]){0.8f, 0.8f, 0.8f, 0.4f});
 			glEnable(GL_POLYGON_SMOOTH);
 
 			dial_ghostarc_draw_helpline(angle_ofs, co_outer, color); /* starting position */

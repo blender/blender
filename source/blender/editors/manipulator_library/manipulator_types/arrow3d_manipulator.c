@@ -206,7 +206,7 @@ static void arrow_draw_intern(ArrowManipulator3D *arrow, const bool select, cons
 
 
 		glEnable(GL_BLEND);
-		arrow_draw_geom(arrow, select, (const float [4]){0.5f, 0.5f, 0.5f, 0.5f});
+		arrow_draw_geom(arrow, select, (const float[4]){0.5f, 0.5f, 0.5f, 0.5f});
 		glDisable(GL_BLEND);
 
 		gpuPopMatrix();

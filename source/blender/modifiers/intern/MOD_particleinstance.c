@@ -205,7 +205,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	MPoly *mpoly, *orig_mpoly;
 	MLoop *mloop, *orig_mloop;
 	MVert *mvert, *orig_mvert;
-	int totvert, totpoly, totloop , totedge;
+	int totvert, totpoly, totloop, totedge;
 	int maxvert, maxpoly, maxloop, maxedge, part_end = 0, part_start;
 	int k, p, p_skip;
 	short track = ctx->object->trackflag % 3, trackneg, axis = pimd->axis;

@@ -96,7 +96,7 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
 	}
-	switch(drawtype) {
+	switch (drawtype) {
 		case OB_SOLID:
 			BLI_dynstr_appendf(ds, "#define OB_SOLID\n");
 			break;
@@ -165,7 +165,8 @@ static int get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype)
 	return index;
 }
 
-static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype) {
+static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype)
+{
 	if (e_data.prepass_sh_cache[index] == NULL) {
 		char *defines = workbench_build_defines(wpd, drawtype);
 		char *composite_frag = workbench_build_composite_frag(wpd);
@@ -434,7 +435,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
 		material->object_id = engine_object_data->object_id;
 		copy_v3_v3(material->color, material_template.color);
-		switch(drawtype) {
+		switch (drawtype) {
 			case OB_SOLID:
 				DRW_shgroup_uniform_vec3(material->shgrp, "object_color", material->color, 1);
 				break;
@@ -503,8 +504,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
 		const bool is_edit_mode = is_active && (draw_ctx->object_mode & OB_MODE_EDIT) != 0;
 		bool is_drawn = false;
-		if (!is_edit_mode && !is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ob->type == OB_MESH)
-		{
+		if (!is_edit_mode && !is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ob->type == OB_MESH) {
 			const Mesh *me = ob->data;
 			if (me->mloopuv) {
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
