@@ -41,6 +41,7 @@
 #include "DNA_object_types.h"
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_deform.h"
 #include "BKE_library.h"
@@ -380,6 +381,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+	BLI_assert(mesh != NULL);
+
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
 	MDeformVert *dvert = NULL;
 	MDeformWeight **dw, **tdw;
@@ -519,7 +522,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 			Mesh *target_mesh = get_mesh_eval_for_modifier(obr, ctx->flag);
 
 			/* We must check that we do have a valid target_mesh! */
-			if (target_mesh) {
+			if (target_mesh != NULL) {
 				SpaceTransform loc2trgt;
 				float *dists_v = use_trgt_verts ? MEM_malloc_arrayN(numIdx, sizeof(float), "dists_v") : NULL;
 				float *dists_e = use_trgt_edges ? MEM_malloc_arrayN(numIdx, sizeof(float), "dists_e") : NULL;

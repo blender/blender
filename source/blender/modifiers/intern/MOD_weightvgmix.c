@@ -204,6 +204,8 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 
 static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
+	BLI_assert(mesh != NULL);
+
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 
 	MDeformVert *dvert = NULL;
