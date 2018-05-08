@@ -46,8 +46,10 @@
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
 #include "BKE_image.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 
 #include "BKE_modifier.h"
@@ -56,6 +58,8 @@
 #include "MOD_modifiertypes.h"
 
 #include "MEM_guardedalloc.h"
+
+#include "bmesh.h"
 
 void modifier_init_texture(const Scene *scene, Tex *tex)
 {
@@ -279,6 +283,47 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm,
 	}
 
 	return dm;
+}
+
+/* returns a mesh if mesh == NULL, for deforming modifiers that need it */
+Mesh *get_mesh(Object *ob, struct BMEditMesh *em, Mesh *mesh,
+               float (*vertexCos)[3], bool use_normals, bool use_orco)
+{
+	if (mesh) {
+		/* pass */
+	}
+	else if (ob->type == OB_MESH) {
+		struct BMeshToMeshParams bmtmp = {0};
+		if (em) mesh = BKE_bmesh_to_mesh_nomain(em->bm, &bmtmp);
+		else {
+			BKE_id_copy_ex(NULL, ob->data, (ID **)&mesh,
+			               LIB_ID_CREATE_NO_MAIN |
+			               LIB_ID_CREATE_NO_USER_REFCOUNT |
+                           LIB_ID_CREATE_NO_DEG_TAG,
+			               false);
+		}
+
+		if (vertexCos) {
+			BKE_mesh_apply_vert_coords(mesh, vertexCos);
+			mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+		}
+
+		if (use_orco) {
+			CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob), mesh->totvert);
+		}
+	}
+	else if (ELEM(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
+		/* TODO(sybren): get evaluated mesh from depsgraph once that's properly generated for curves. */
+		mesh = BKE_new_mesh_nomain_from_curve(ob);
+	}
+
+	if (use_normals) {
+		if (LIKELY(mesh)) {
+			BKE_mesh_ensure_normals(mesh);
+		}
+	}
+
+	return mesh;
 }
 
 /* Get derived mesh for other object, which is used as an operand for the modifier,

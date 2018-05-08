@@ -43,7 +43,7 @@ struct Depsgraph;
 struct IDProperty;
 struct ListBase;
 struct MeshDeformModifierData;
-struct DerivedMesh;
+struct Mesh;
 struct Object;
 struct ReportList;
 struct Scene;
@@ -230,7 +230,7 @@ struct Object *ED_pose_object_from_context(struct bContext *C);
 void ED_mesh_deform_bind_callback(
         struct Scene *scene,
         struct MeshDeformModifierData *mmd,
-        struct DerivedMesh *cagedm,
+        struct Mesh *cagemesh,
         float *vertexcos, int totvert, float cagemat[4][4]);
 
 #ifdef __cplusplus

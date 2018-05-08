@@ -833,7 +833,7 @@ typedef struct MeshDeformBind {
 	int size, size3;
 
 	/* meshes */
-	DerivedMesh *cagedm;
+	Mesh *cagemesh;
 	float (*cagecos)[3];
 	float (*vertexcos)[3];
 	int totvert, totcagevert;
@@ -863,7 +863,7 @@ typedef struct MeshDeformBind {
 		const MLoop *mloop;
 		const MLoopTri *looptri;
 		const float (*poly_nors)[3];
-	} cagedm_cache;
+	} cagemesh_cache;
 } MeshDeformBind;
 
 typedef struct MeshDeformIsect {
@@ -888,9 +888,9 @@ static void harmonic_ray_callback(void *userdata, int index, const BVHTreeRay *r
 {
 	struct MeshRayCallbackData *data = userdata;
 	MeshDeformBind *mdb = data->mdb;
-	const MLoop *mloop = mdb->cagedm_cache.mloop;
-	const MLoopTri *looptri = mdb->cagedm_cache.looptri, *lt;
-	const float (*poly_nors)[3] = mdb->cagedm_cache.poly_nors;
+	const MLoop *mloop = mdb->cagemesh_cache.mloop;
+	const MLoopTri *looptri = mdb->cagemesh_cache.looptri, *lt;
+	const float (*poly_nors)[3] = mdb->cagemesh_cache.poly_nors;
 	MeshDeformIsect *isec = data->isec;
 	float no[3], co[3], dist;
 	float *face[3];
@@ -954,9 +954,9 @@ static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, const 
 	if (BLI_bvhtree_ray_cast_ex(mdb->bvhtree, isect_mdef.start, vec_normal,
 	                            0.0, &hit, harmonic_ray_callback, &data, BVH_RAYCAST_WATERTIGHT) != -1)
 	{
-		const MLoop *mloop = mdb->cagedm_cache.mloop;
-		const MLoopTri *lt = &mdb->cagedm_cache.looptri[hit.index];
-		const MPoly *mp = &mdb->cagedm_cache.mpoly[lt->poly];
+		const MLoop *mloop = mdb->cagemesh_cache.mloop;
+		const MLoopTri *lt = &mdb->cagemesh_cache.looptri[hit.index];
+		const MPoly *mp = &mdb->cagemesh_cache.mpoly[lt->poly];
 		const float (*cagecos)[3] = mdb->cagecos;
 		const float len = isect_mdef.lambda;
 		MDefBoundIsect *isect;
@@ -1131,8 +1131,8 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
 
 static float meshdeform_boundary_phi(const MeshDeformBind *mdb, const MDefBoundIsect *isect, int cagevert)
 {
-	const MLoop *mloop = mdb->cagedm_cache.mloop;
-	const MPoly *mp = &mdb->cagedm_cache.mpoly[isect->poly_index];
+	const MLoop *mloop = mdb->cagemesh_cache.mloop;
+	const MPoly *mp = &mdb->cagemesh_cache.mpoly[isect->poly_index];
 	int i;
 
 	for (i = 0; i < mp->totloop; i++) {
@@ -1447,7 +1447,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	mdb->totalphi = MEM_callocN(sizeof(float) * mdb->size3, "MeshDeformBindTotalPhi");
 	mdb->boundisect = MEM_callocN(sizeof(*mdb->boundisect) * mdb->size3, "MDefBoundIsect");
 	mdb->semibound = MEM_callocN(sizeof(int) * mdb->size3, "MDefSemiBound");
-	mdb->bvhtree = bvhtree_from_mesh_get(&mdb->bvhdata, mdb->cagedm, BVHTREE_FROM_LOOPTRI, 4);
+	mdb->bvhtree = BKE_bvhtree_from_mesh_looptri(&mdb->bvhdata, mdb->cagemesh, FLT_EPSILON * 100, 4, 6);
 	mdb->inside = MEM_callocN(sizeof(int) * mdb->totvert, "MDefInside");
 
 	if (mmd->flag & MOD_MDEF_DYNAMIC_BIND)
@@ -1460,11 +1460,11 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 
 	/* initialize data from 'cagedm' for reuse */
 	{
-		DerivedMesh *dm = mdb->cagedm;
-		mdb->cagedm_cache.mpoly = dm->getPolyArray(dm);
-		mdb->cagedm_cache.mloop = dm->getLoopArray(dm);
-		mdb->cagedm_cache.looptri = dm->getLoopTriArray(dm);
-		mdb->cagedm_cache.poly_nors = dm->getPolyDataArray(dm, CD_NORMAL);  /* can be NULL */
+		Mesh *me = mdb->cagemesh;
+		mdb->cagemesh_cache.mpoly = me->mpoly;
+		mdb->cagemesh_cache.mloop = me->mloop;
+		mdb->cagemesh_cache.looptri = BKE_mesh_get_looptri_array(me);
+		mdb->cagemesh_cache.poly_nors = CustomData_get_layer(&me->pdata, CD_NORMAL);  /* can be NULL */
 	}
 
 	/* make bounding box equal size in all directions, add padding, and compute
@@ -1576,7 +1576,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 }
 
 void ED_mesh_deform_bind_callback(
-        Scene *scene, MeshDeformModifierData *mmd, DerivedMesh *cagedm,
+        Scene *scene, MeshDeformModifierData *mmd, Mesh *cagemesh,
         float *vertexcos, int totvert, float cagemat[4][4])
 {
 	MeshDeformBind mdb;
@@ -1592,12 +1592,12 @@ void ED_mesh_deform_bind_callback(
 	mdb.vertexcos = MEM_callocN(sizeof(float) * 3 * totvert, "MeshDeformCos");
 	mdb.totvert = totvert;
 	
-	mdb.cagedm = cagedm;
-	mdb.totcagevert = mdb.cagedm->getNumVerts(mdb.cagedm);
+	mdb.cagemesh = cagemesh;
+	mdb.totcagevert = mdb.cagemesh->totvert;
 	mdb.cagecos = MEM_callocN(sizeof(*mdb.cagecos) * mdb.totcagevert, "MeshDeformBindCos");
 	copy_m4_m4(mdb.cagemat, cagemat);
 
-	mvert = mdb.cagedm->getVertArray(mdb.cagedm);
+	mvert = mdb.cagemesh->mvert;
 	for (a = 0; a < mdb.totcagevert; a++)
 		copy_v3_v3(mdb.cagecos[a], mvert[a].co);
 	for (a = 0; a < mdb.totvert; a++)

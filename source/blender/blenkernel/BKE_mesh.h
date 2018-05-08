@@ -102,10 +102,14 @@ void BKE_mesh_update_customdata_pointers(struct Mesh *me, const bool do_ensure_t
 void BKE_mesh_ensure_skin_customdata(struct Mesh *me);
 
 struct Mesh *BKE_mesh_new_nomain(int numVerts, int numEdges, int numTessFaces,int numLoops, int numPolys);
-struct Mesh * BKE_mesh_from_template(
+struct Mesh *BKE_mesh_from_template(
         const struct Mesh *me_src,
         int numVerts, int numEdges, int numTessFaces,
         int numLoops, int numPolys);
+
+/* These functions construct a new Mesh, contrary to BKE_mesh_from_nurbs which modifies ob itself. */
+struct Mesh *BKE_new_mesh_nomain_from_curve(struct Object *ob);
+struct Mesh *BKE_new_mesh_nomain_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
 
 bool BKE_mesh_ensure_edit_data(struct Mesh *me);
 bool BKE_mesh_clear_edit_data(struct Mesh *me);
@@ -181,6 +185,8 @@ void BKE_mesh_mselect_validate(struct Mesh *me);
 int  BKE_mesh_mselect_find(struct Mesh *me, int index, int type);
 int  BKE_mesh_mselect_active_get(struct Mesh *me, int type);
 void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
+
+void BKE_mesh_apply_vert_coords(struct Mesh *mesh, float (*vertCoords)[3]);
 
 /* *** mesh_runtime.c *** */
 

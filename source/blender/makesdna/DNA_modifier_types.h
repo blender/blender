@@ -32,6 +32,8 @@
  * (ONLY ADD NEW ITEMS AT THE END)
  */
 
+struct Mesh;
+
 typedef enum ModifierType {
 	eModifierType_None              = 0,
 	eModifierType_Subsurf           = 1,
@@ -718,7 +720,7 @@ typedef struct MeshDeformModifierData {
 	float *bindcos;                 /* deprecated storage of cage coords */
 
 	/* runtime */
-	void (*bindfunc)(struct Scene *scene, struct MeshDeformModifierData *mmd, struct DerivedMesh *cagedm,
+	void (*bindfunc)(struct Scene *scene, struct MeshDeformModifierData *mmd, struct Mesh *cagemesh,
 	                 float *vertexcos, int totvert, float cagemat[4][4]);
 } MeshDeformModifierData;
 

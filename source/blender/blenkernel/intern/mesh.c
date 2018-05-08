@@ -1497,6 +1497,58 @@ int BKE_mesh_nurbs_displist_to_mdata(
 	return 0;
 }
 
+Mesh *BKE_new_mesh_nomain_from_curve_displist(Object *ob, ListBase *dispbase)
+{
+	Curve *cu = ob->data;
+	Mesh *mesh;
+	MVert *allvert;
+	MEdge *alledge;
+	MLoop *allloop;
+	MPoly *allpoly;
+	MLoopUV *alluv = NULL;
+	int totvert, totedge, totloop, totpoly;
+	bool use_orco_uv = (cu->flag & CU_UV_ORCO) != 0;
+
+	if (BKE_mesh_nurbs_displist_to_mdata(
+	        ob, dispbase, &allvert, &totvert, &alledge,
+	        &totedge, &allloop, &allpoly, (use_orco_uv) ? &alluv : NULL,
+	        &totloop, &totpoly) != 0)
+	{
+		/* Error initializing mdata. This often happens when curve is empty */
+		return BKE_mesh_new_nomain(0, 0, 0, 0, 0);
+	}
+
+	mesh = BKE_mesh_new_nomain(totvert, totedge, 0, totloop, totpoly);
+	mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+
+	memcpy(mesh->mvert, allvert, totvert * sizeof(MVert));
+	memcpy(mesh->medge, alledge, totedge * sizeof(MEdge));
+	memcpy(mesh->mloop, allloop, totloop * sizeof(MLoop));
+	memcpy(mesh->mpoly, allpoly, totpoly * sizeof(MPoly));
+
+	if (alluv) {
+		const char *uvname = "Orco";
+		CustomData_add_layer_named(&mesh->ldata, CD_MLOOPUV, CD_ASSIGN, alluv, totloop, uvname);
+	}
+
+	MEM_freeN(allvert);
+	MEM_freeN(alledge);
+	MEM_freeN(allloop);
+	MEM_freeN(allpoly);
+
+	return mesh;
+}
+
+Mesh *BKE_new_mesh_nomain_from_curve(Object *ob)
+{
+	ListBase disp = {NULL, NULL};
+
+	if (ob->curve_cache) {
+		disp = ob->curve_cache->disp;
+	}
+
+	return BKE_new_mesh_nomain_from_curve_displist(ob, &disp);
+}
 
 /* this may fail replacing ob->data, be sure to check ob->type */
 void BKE_mesh_from_nurbs_displist(Object *ob, ListBase *dispbase, const bool use_orco_uv, const char *obdata_name)
@@ -2226,6 +2278,22 @@ void BKE_mesh_mselect_active_set(Mesh *me, int index, int type)
 	           (me->mselect[me->totselect - 1].type  == type));
 }
 
+
+void BKE_mesh_apply_vert_coords(Mesh *mesh, float (*vertCoords)[3])
+{
+	MVert *vert;
+	int i;
+
+	/* this will just return the pointer if it wasn't a referenced layer */
+	vert = CustomData_duplicate_referenced_layer(&mesh->vdata, CD_MVERT, mesh->totvert);
+	mesh->mvert = vert;
+
+	for (i = 0; i < mesh->totvert; ++i, ++vert)
+		copy_v3_v3(vert->co, vertCoords[i]);
+
+	mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
+}
+
 /**
  * Compute 'split' (aka loop, or per face corner's) normals.
  *
@@ -2780,7 +2848,6 @@ Mesh *BKE_mesh_new_from_object(
 
 	return tmpmesh;
 }
-
 
 /* **** Depsgraph evaluation **** */
 
