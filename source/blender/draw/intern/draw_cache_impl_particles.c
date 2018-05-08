@@ -203,6 +203,26 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
 	}
 }
 
+/* Used by interpolated children. */
+static void particle_interpolate_children_uvs(ParticleSystem *psys,
+                                              ParticleSystemModifierData *psmd,
+                                              const int num_uv_layers,
+                                              const int child_index,
+                                              /*const*/ MTFace **mtfaces,
+                                              float (*r_uv)[2])
+{
+	ChildParticle *particle = &psys->child[child_index];
+	int num = particle->num;
+	if (num != DMCACHE_NOTFOUND) {
+		MFace *mface = psmd->dm_final->getTessFaceData(
+		        psmd->dm_final, num, CD_MFACE);
+		for (int j = 0; j < num_uv_layers; j++) {
+			psys_interpolate_uvs(
+			        mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
+		}
+	}
+}
+
 /* Gwn_Batch cache usage. */
 static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, ModifierData *md, ParticleBatchCache *cache)
 {
@@ -342,14 +362,8 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 					uv = MEM_callocN(sizeof(*uv) * num_uv_layers, "Particle UVs");
 				}
 				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-					ChildParticle *particle = &psys->child[i];
-					int num = particle->num;
-					if (num != DMCACHE_NOTFOUND) {
-						MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-						for (int j = 0; j < num_uv_layers; j++) {
-							psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
-						}
-					}
+					particle_interpolate_children_uvs(
+					        psys, psmd, num_uv_layers, i, mtfaces, uv);
 				}
 			}
 			else if (!parent_uvs[psys->child[i].parent]) {
