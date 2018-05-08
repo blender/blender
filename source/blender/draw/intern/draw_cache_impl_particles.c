@@ -243,214 +243,175 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 		if (simple) {
 			parent_uvs = MEM_callocN(sizeof(*parent_uvs) * psys->totpart, "Parent particle UVs");
 		}
-
 		for (int i = 0; i < psys->totpart; i++) {
 			ParticleCacheKey *path = psys->pathcache[i];
-
-			if (path->segments > 0) {
-				float tangent[3];
-				int from = psmd ? psmd->psys->part->from : 0;
-				float (*uv)[2] = NULL;
-
-				if (psmd) {
-					uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
-
-					if (simple) {
-						parent_uvs[i] = uv;
+			if (path->segments <= 0) {
+				continue;
+			}
+			float tangent[3];
+			int from = psmd ? psmd->psys->part->from : 0;
+			float (*uv)[2] = NULL;
+			if (psmd != NULL) {
+				uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
+				if (simple) {
+					parent_uvs[i] = uv;
+				}
+			}
+			if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+				ParticleData *particle = &psys->particles[i];
+				int num = particle->num_dmcache;
+				if (num == DMCACHE_NOTFOUND) {
+					if (particle->num < psmd->dm_final->getNumTessFaces(psmd->dm_final)) {
+						num = particle->num;
 					}
 				}
-
-				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-					ParticleData *particle = &psys->particles[i];
-					int num = particle->num_dmcache;
-
-					if (num == DMCACHE_NOTFOUND) {
-						if (particle->num < psmd->dm_final->getNumTessFaces(psmd->dm_final)) {
-							num = particle->num;
-						}
-					}
-
-					if (num != DMCACHE_NOTFOUND) {
-						MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-
-						for (int j = 0; j < uv_layers; j++) {
-							psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
-						}
+				if (num != DMCACHE_NOTFOUND) {
+					MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
+					for (int j = 0; j < uv_layers; j++) {
+						psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
 					}
 				}
-
-				for (int j = 0; j < path->segments; j++) {
-					if (j == 0) {
-						sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
-					}
-					else {
-						sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
-					}
-
-					GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[j].co);
-					GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
-					GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
-
-					if (psmd) {
-						for (int k = 0; k < uv_layers; k++) {
-							GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
-						}
-					}
-
-					GWN_indexbuf_add_generic_vert(&elb, curr_point);
-
-					curr_point++;
+			}
+			for (int j = 0; j < path->segments; j++) {
+				if (j == 0) {
+					sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
 				}
-
-				sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
-
-				GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[path->segments].co);
+				else {
+					sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
+				}
+				GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[j].co);
 				GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
 				GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
-
-				if (psmd) {
+				if (psmd != NULL) {
 					for (int k = 0; k < uv_layers; k++) {
 						GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
 					}
-
-					if (!simple) {
-						MEM_freeN(uv);
-					}
 				}
-
-				/* finish the segment and add restart primitive */
 				GWN_indexbuf_add_generic_vert(&elb, curr_point);
-				GWN_indexbuf_add_primitive_restart(&elb);
-
 				curr_point++;
 			}
+			sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
+
+			GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[path->segments].co);
+			GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
+			GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
+
+			if (psmd != NULL) {
+				for (int k = 0; k < uv_layers; k++) {
+					GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
+				}
+				if (!simple) {
+					MEM_freeN(uv);
+				}
+			}
+			/* Finish the segment and add restart primitive. */
+			GWN_indexbuf_add_generic_vert(&elb, curr_point);
+			GWN_indexbuf_add_primitive_restart(&elb);
+			curr_point++;
 		}
 	}
 
 	if (psys->childcache) {
 		int child_count = psys->totchild * psys->part->disp / 100;
-
-		if (simple && !parent_uvs) {
+		if (simple && parent_uvs == NULL) {
 			parent_uvs = MEM_callocN(sizeof(*parent_uvs) * psys->totpart, "Parent particle UVs");
 		}
-
 		for (int i = 0, x = psys->totpart; i < child_count; i++, x++) {
 			ParticleCacheKey *path = psys->childcache[i];
 			float tangent[3];
-
-			if (path->segments > 0) {
-				int from = psmd ? psmd->psys->part->from : 0;
-				float (*uv)[2] = NULL;
-
-				if (!simple) {
-					if (psmd) {
-						uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
-					}
-
-					if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-						ChildParticle *particle = &psys->child[i];
-						int num = particle->num;
-
-						if (num != DMCACHE_NOTFOUND) {
-							MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-
-							for (int j = 0; j < uv_layers; j++) {
-								psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
-							}
+			if (path->segments <= 0) {
+				continue;
+			}
+			int from = psmd ? psmd->psys->part->from : 0;
+			float (*uv)[2] = NULL;
+			if (!simple) {
+				if (psmd) {
+					uv = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
+				}
+				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+					ChildParticle *particle = &psys->child[i];
+					int num = particle->num;
+					if (num != DMCACHE_NOTFOUND) {
+						MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
+						for (int j = 0; j < uv_layers; j++) {
+							psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, uv[j]);
 						}
 					}
 				}
-				else if (!parent_uvs[psys->child[i].parent]) {
-					if (psmd) {
-						parent_uvs[psys->child[i].parent] = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
+			}
+			else if (!parent_uvs[psys->child[i].parent]) {
+				if (psmd) {
+					parent_uvs[psys->child[i].parent] = MEM_callocN(sizeof(*uv) * uv_layers, "Particle UVs");
 					}
-
-					if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
-						ParticleData *particle = &psys->particles[psys->child[i].parent];
-						int num = particle->num_dmcache;
-
-						if (num == DMCACHE_NOTFOUND) {
-							if (particle->num < psmd->dm_final->getNumTessFaces(psmd->dm_final)) {
-								num = particle->num;
-							}
+				if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {
+					ParticleData *particle = &psys->particles[psys->child[i].parent];
+					int num = particle->num_dmcache;
+					if (num == DMCACHE_NOTFOUND) {
+						if (particle->num < psmd->dm_final->getNumTessFaces(psmd->dm_final)) {
+							num = particle->num;
 						}
-
-						if (num != DMCACHE_NOTFOUND) {
-							MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
-
-							for (int j = 0; j < uv_layers; j++) {
-								psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, parent_uvs[psys->child[i].parent][j]);
-							}
+					}
+					if (num != DMCACHE_NOTFOUND) {
+						MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
+						for (int j = 0; j < uv_layers; j++) {
+							psys_interpolate_uvs(mtfaces[j] + num, mface->v4, particle->fuv, parent_uvs[psys->child[i].parent][j]);
 						}
 					}
 				}
-
-				for (int j = 0; j < path->segments; j++) {
-					if (j == 0) {
-						sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
-					}
-					else {
-						sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
-					}
-
-					GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[j].co);
-					GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
-					GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &x);
-
-					if (psmd) {
-						for (int k = 0; k < uv_layers; k++) {
-							GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point,
-							                     simple ? parent_uvs[psys->child[i].parent][k] : uv[k]);
-						}
-					}
-
-					GWN_indexbuf_add_generic_vert(&elb, curr_point);
-
-					curr_point++;
+			}
+			for (int j = 0; j < path->segments; j++) {
+				if (j == 0) {
+					sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
 				}
-
-				sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
-
-				GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[path->segments].co);
+				else {
+					sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
+				}
+				GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[j].co);
 				GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
 				GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &x);
-
-				if (psmd) {
+				if (psmd != NULL) {
 					for (int k = 0; k < uv_layers; k++) {
 						GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point,
 						                     simple ? parent_uvs[psys->child[i].parent][k] : uv[k]);
 					}
-
-					if (!simple) {
-						MEM_freeN(uv);
-					}
 				}
-
-				/* finish the segment and add restart primitive */
 				GWN_indexbuf_add_generic_vert(&elb, curr_point);
-				GWN_indexbuf_add_primitive_restart(&elb);
-
 				curr_point++;
 			}
+			sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
+
+			GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[path->segments].co);
+			GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
+			GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &x);
+
+			if (psmd != NULL) {
+				for (int k = 0; k < uv_layers; k++) {
+					GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point,
+					                     simple ? parent_uvs[psys->child[i].parent][k] : uv[k]);
+				}
+				if (!simple) {
+					MEM_freeN(uv);
+				}
+			}
+			/* Finish the segment and add restart primitive. */
+			GWN_indexbuf_add_generic_vert(&elb, curr_point);
+			GWN_indexbuf_add_primitive_restart(&elb);
+			curr_point++;
 		}
 	}
-
-	if (parent_uvs) {
+	/* Cleanup. */
+	if (parent_uvs != NULL) {
 		for (int i = 0; i < psys->totpart; i++) {
 			MEM_SAFE_FREE(parent_uvs[i]);
 		}
-
 		MEM_freeN(parent_uvs);
 	}
-
 	if (uv_layers) {
 		MEM_freeN(mtfaces);
 	}
-
-	if (psmd) {
+	if (psmd != NULL) {
 		MEM_freeN(uv_id);
 	}
-
 	cache->indices = GWN_indexbuf_build(&elb);
 }
 
