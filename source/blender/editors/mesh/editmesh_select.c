@@ -3986,53 +3986,66 @@ void MESH_OT_select_non_manifold(wmOperatorType *ot)
 
 static int edbm_select_random_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 	const float randfac =  RNA_float_get(op->ptr, "percent") / 100.0f;
 	const int seed = WM_operator_properties_select_random_seed_increment_get(op);
 
-	BMIter iter;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	RNG *rng = BLI_rng_new_srandom(seed);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMIter iter;
+		int seed_iter = seed;
 
-	if (em->selectmode & SCE_SELECT_VERTEX) {
-		BMVert *eve;
-		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
-				BM_vert_select_set(em->bm, eve, select);
+		/* This gives a consistent result regardless of object order. */
+		if (ob_index) {
+			seed_iter += BLI_ghashutil_strhash_p(obedit->id.name);
+		}
+
+		RNG *rng = BLI_rng_new_srandom(seed_iter);
+
+		if (em->selectmode & SCE_SELECT_VERTEX) {
+			BMVert *eve;
+			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+				if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
+					BM_vert_select_set(em->bm, eve, select);
+				}
 			}
 		}
-	}
-	else if (em->selectmode & SCE_SELECT_EDGE) {
-		BMEdge *eed;
-		BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
-				BM_edge_select_set(em->bm, eed, select);
+		else if (em->selectmode & SCE_SELECT_EDGE) {
+			BMEdge *eed;
+			BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(eed, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
+					BM_edge_select_set(em->bm, eed, select);
+				}
 			}
 		}
-	}
-	else {
-		BMFace *efa;
-		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-			if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
-				BM_face_select_set(em->bm, efa, select);
+		else {
+			BMFace *efa;
+			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+				if (!BM_elem_flag_test(efa, BM_ELEM_HIDDEN) && BLI_rng_get_float(rng) < randfac) {
+					BM_face_select_set(em->bm, efa, select);
+				}
 			}
 		}
+
+		BLI_rng_free(rng);
+
+		if (select) {
+			/* was EDBM_select_flush, but it over select in edge/face mode */
+			EDBM_selectmode_flush(em);
+		}
+		else {
+			EDBM_deselect_flush(em);
+		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
-	BLI_rng_free(rng);
-
-	if (select) {
-		/* was EDBM_select_flush, but it over select in edge/face mode */
-		EDBM_selectmode_flush(em);
-	}
-	else {
-		EDBM_deselect_flush(em);
-	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
