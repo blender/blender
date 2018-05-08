@@ -88,6 +88,7 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_bone_envelope_outline;
 	Gwn_Batch *drw_bone_point;
 	Gwn_Batch *drw_bone_point_wire;
+	Gwn_Batch *drw_bone_stick;
 	Gwn_Batch *drw_bone_arrows;
 	Gwn_Batch *drw_camera;
 	Gwn_Batch *drw_camera_frame;
@@ -2102,6 +2103,82 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 #endif
 	}
 	return SHC.drw_bone_point_wire;
+}
+
+/* keep in sync with armature_stick_vert.glsl */
+#define COL_WIRE (1 << 0)
+#define COL_HEAD (1 << 1)
+#define COL_TAIL (1 << 2)
+#define COL_BONE (1 << 3)
+
+#define POS_HEAD (1 << 4)
+#define POS_TAIL (1 << 5)
+#define POS_BONE (1 << 6)
+
+Gwn_Batch *DRW_cache_bone_stick_get(void)
+{
+	if (!SHC.drw_bone_stick) {
+#define CIRCLE_RESOL 12
+		unsigned int v = 0;
+		unsigned int flag;
+		const float radius = 2.0f; /* head/tail radius */
+		float pos[2];
+
+		/* Position Only 2D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos, flag; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos  = GWN_vertformat_attr_add(&format, "pos",  GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+			attr_id.flag = GWN_vertformat_attr_add(&format, "flag", GWN_COMP_U32, 1, GWN_FETCH_INT);
+		}
+
+		const unsigned int vcount = (CIRCLE_RESOL + 1) * 2 + 6;
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, vcount);
+
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRI_FAN, (CIRCLE_RESOL + 2) * 2 + 6 + 2, vcount, true);
+
+		/* head/tail points */
+		for (int i = 0; i < 2; ++i) {
+			/* center vertex */
+			copy_v2_fl(pos, 0.0f);
+			flag  = (i == 0) ? POS_HEAD : POS_TAIL;
+			flag |= (i == 0) ? COL_HEAD : COL_TAIL;
+			GWN_vertbuf_attr_set(vbo, attr_id.pos,  v, pos);
+			GWN_vertbuf_attr_set(vbo, attr_id.flag, v, &flag);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+			/* circle vertices */
+			flag |= COL_WIRE;
+			for (int a = 0; a < CIRCLE_RESOL; a++) {
+				pos[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				pos[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
+				GWN_vertbuf_attr_set(vbo, attr_id.pos,  v, pos);
+				GWN_vertbuf_attr_set(vbo, attr_id.flag, v, &flag);
+				GWN_indexbuf_add_generic_vert(&elb, v++);
+			}
+			/* Close the circle */
+			GWN_indexbuf_add_generic_vert(&elb, v - CIRCLE_RESOL);
+
+			GWN_indexbuf_add_primitive_restart(&elb);
+		}
+
+		/* Bone rectangle */
+		pos[0] = 0.0f;
+		for (int i = 0; i < 6; ++i) {
+			pos[1] = (i == 0 || i == 3) ? 0.0f : ((i < 3) ? 1.0f : -1.0f);
+			flag   = ((i <  2 || i >  4) ? POS_HEAD : POS_TAIL) |
+			         ((i == 0 || i == 3) ? 0 : COL_WIRE) | COL_BONE | POS_BONE;
+			GWN_vertbuf_attr_set(vbo, attr_id.pos,  v, pos);
+			GWN_vertbuf_attr_set(vbo, attr_id.flag, v, &flag);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+		}
+
+		SHC.drw_bone_stick = GWN_batch_create_ex(GWN_PRIM_TRI_FAN, vbo, GWN_indexbuf_build(&elb), GWN_BATCH_OWNS_VBO);
+#undef CIRCLE_RESOL
+	}
+	return SHC.drw_bone_stick;
 }
 
 static void set_bone_axis_vert(

@@ -165,6 +165,8 @@ extern char datatoc_armature_shape_solid_vert_glsl[];
 extern char datatoc_armature_shape_solid_frag_glsl[];
 extern char datatoc_armature_shape_outline_vert_glsl[];
 extern char datatoc_armature_shape_outline_geom_glsl[];
+extern char datatoc_armature_stick_vert_glsl[];
+extern char datatoc_armature_stick_frag_glsl[];
 extern char datatoc_gpu_shader_flat_color_frag_glsl[];
 
 extern char datatoc_object_mball_handles_vert_glsl[];
@@ -178,6 +180,7 @@ static struct {
 	struct GPUShader *bone_envelope_outline;
 	struct GPUShader *bone_sphere;
 	struct GPUShader *bone_sphere_outline;
+	struct GPUShader *bone_stick;
 
 	struct GPUShader *mball_handles;
 } g_shaders = {NULL};
@@ -194,6 +197,7 @@ static struct {
 	struct Gwn_VertFormat *instance_distance_lines;
 	struct Gwn_VertFormat *instance_spot;
 	struct Gwn_VertFormat *instance_bone;
+	struct Gwn_VertFormat *instance_bone_stick;
 	struct Gwn_VertFormat *instance_bone_outline;
 	struct Gwn_VertFormat *instance_bone_envelope;
 	struct Gwn_VertFormat *instance_bone_envelope_distance;
@@ -638,6 +642,30 @@ DRWShadingGroup *shgroup_instance_bone_sphere_outline(DRWPass *pass)
 	return grp;
 }
 
+DRWShadingGroup *shgroup_instance_bone_stick(DRWPass *pass)
+{
+	if (g_shaders.bone_stick == NULL) {
+		g_shaders.bone_stick = DRW_shader_create(
+		            datatoc_armature_stick_vert_glsl, NULL,
+		            datatoc_armature_stick_frag_glsl, NULL);
+	}
+
+	DRW_shgroup_instance_format(g_formats.instance_bone_stick, {
+		{"boneStart", DRW_ATTRIB_FLOAT, 3},
+		{"boneEnd"  , DRW_ATTRIB_FLOAT, 3},
+		{"wireColor", DRW_ATTRIB_FLOAT, 4}, /* TODO port theses to uchar color */
+		{"boneColor", DRW_ATTRIB_FLOAT, 4},
+		{"headColor", DRW_ATTRIB_FLOAT, 4},
+		{"tailColor", DRW_ATTRIB_FLOAT, 4}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_instance_create(g_shaders.bone_stick,
+	                                                   pass, DRW_cache_bone_stick_get(),
+	                                                   g_formats.instance_bone_stick);
+	DRW_shgroup_uniform_vec2(grp, "viewportSize", DRW_viewport_size_get(), 1);
+
+	return grp;
+}
 
 /* ******************************************** COLOR UTILS *********************************************** */
 
