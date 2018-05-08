@@ -70,6 +70,12 @@ typedef struct ParticleBatchCache {
 
 /* Gwn_Batch cache management. */
 
+typedef struct HairAttributeID {
+	uint pos;
+	uint tan;
+	uint ind;
+} HairAttributeID;
+
 static bool particle_batch_cache_valid(ParticleSystem *psys)
 {
 	ParticleBatchCache *cache = psys->batch_cache;
@@ -272,7 +278,75 @@ static void particle_calculate_uvs(ParticleSystem *psys,
 	}
 }
 
-/* Gwn_Batch cache usage. */
+/* Will return last filled index. */
+static int particle_batch_cache_fill_segments(ParticleSystem *psys,
+                                              ParticleSystemModifierData *psmd,
+                                              ParticleCacheKey **path_cache,
+                                              const int start_index,
+                                              const int num_path_keys,
+                                              const int num_uv_layers,
+                                              /*const*/ MTFace **mtfaces,
+                                              unsigned int *uv_id,
+                                              float (**r_parent_uvs)[2],
+                                              Gwn_IndexBufBuilder *elb,
+                                              HairAttributeID *attr_id,
+                                              ParticleBatchCache *cache)
+{
+	const bool is_simple = (psys->part->childtype == PART_CHILD_PARTICLES);
+	int curr_point = start_index;
+	for (int i = 0; i < num_path_keys; i++) {
+		ParticleCacheKey *path = path_cache[i];
+		if (path->segments <= 0) {
+			continue;
+		}
+		float tangent[3];
+		float (*uv)[2] = NULL;
+		particle_calculate_uvs(
+		        psys, psmd,
+		        is_simple, num_uv_layers,
+		        i, -1,
+		        mtfaces,
+		        r_parent_uvs, &uv);
+		for (int j = 0; j < path->segments; j++) {
+			if (j == 0) {
+				sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
+			}
+			else {
+				sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
+			}
+			GWN_vertbuf_attr_set(cache->pos, attr_id->pos, curr_point, path[j].co);
+			GWN_vertbuf_attr_set(cache->pos, attr_id->tan, curr_point, tangent);
+			GWN_vertbuf_attr_set(cache->pos, attr_id->ind, curr_point, &i);
+			if (psmd != NULL) {
+				for (int k = 0; k < num_uv_layers; k++) {
+					GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
+				}
+			}
+			GWN_indexbuf_add_generic_vert(elb, curr_point);
+			curr_point++;
+		}
+		sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
+
+		GWN_vertbuf_attr_set(cache->pos, attr_id->pos, curr_point, path[path->segments].co);
+		GWN_vertbuf_attr_set(cache->pos, attr_id->tan, curr_point, tangent);
+		GWN_vertbuf_attr_set(cache->pos, attr_id->ind, curr_point, &i);
+
+		if (psmd != NULL) {
+			for (int k = 0; k < num_uv_layers; k++) {
+				GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
+			}
+			if (!is_simple) {
+				MEM_freeN(uv);
+			}
+		}
+		/* Finish the segment and add restart primitive. */
+		GWN_indexbuf_add_generic_vert(elb, curr_point);
+		GWN_indexbuf_add_primitive_restart(elb);
+		curr_point++;
+	}
+	return curr_point;
+}
+
 static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, ModifierData *md, ParticleBatchCache *cache)
 {
 	if (cache->pos != NULL && cache->indices != NULL) {
@@ -286,7 +360,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 	GWN_INDEXBUF_DISCARD_SAFE(cache->indices);
 
 	static Gwn_VertFormat format = { 0 };
-	static struct { uint pos, tan, ind; } attr_id;
+	static HairAttributeID attr_id;
 	unsigned int *uv_id = NULL;
 	int num_uv_layers = 0;
 	MTFace **mtfaces = NULL;
@@ -336,56 +410,10 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys, Modifi
 		if (simple) {
 			parent_uvs = MEM_callocN(sizeof(*parent_uvs) * psys->totpart, "Parent particle UVs");
 		}
-		for (int i = 0; i < psys->totpart; i++) {
-			ParticleCacheKey *path = psys->pathcache[i];
-			if (path->segments <= 0) {
-				continue;
-			}
-			float tangent[3];
-			float (*uv)[2] = NULL;
-			particle_calculate_uvs(
-			        psys, psmd,
-			        simple, num_uv_layers,
-			        i, -1,
-			        mtfaces,
-			        parent_uvs, &uv);
-			for (int j = 0; j < path->segments; j++) {
-				if (j == 0) {
-					sub_v3_v3v3(tangent, path[j + 1].co, path[j].co);
-				}
-				else {
-					sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
-				}
-				GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[j].co);
-				GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
-				GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
-				if (psmd != NULL) {
-					for (int k = 0; k < num_uv_layers; k++) {
-						GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
-					}
-				}
-				GWN_indexbuf_add_generic_vert(&elb, curr_point);
-				curr_point++;
-			}
-			sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
-
-			GWN_vertbuf_attr_set(cache->pos, attr_id.pos, curr_point, path[path->segments].co);
-			GWN_vertbuf_attr_set(cache->pos, attr_id.tan, curr_point, tangent);
-			GWN_vertbuf_attr_set(cache->pos, attr_id.ind, curr_point, &i);
-
-			if (psmd != NULL) {
-				for (int k = 0; k < num_uv_layers; k++) {
-					GWN_vertbuf_attr_set(cache->pos, uv_id[k], curr_point, uv[k]);
-				}
-				if (!simple) {
-					MEM_freeN(uv);
-				}
-			}
-			/* Finish the segment and add restart primitive. */
-			GWN_indexbuf_add_generic_vert(&elb, curr_point);
-			GWN_indexbuf_add_primitive_restart(&elb);
-			curr_point++;
-		}
+		particle_batch_cache_fill_segments(
+		        psys, psmd, psys->pathcache, 0, psys->totpart,
+		        num_uv_layers, mtfaces, uv_id, parent_uvs,
+		        &elb, &attr_id, cache);
 	}
 
 	if (psys->childcache) {
