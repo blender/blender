@@ -2608,7 +2608,7 @@ static bool merge_target(
 	const float *vco = NULL;
 
 	if (use_cursor) {
-		vco = ED_view3d_cursor3d_get(scene, v3d);
+		vco = ED_view3d_cursor3d_get(scene, v3d)->location;
 		copy_v3_v3(co, vco);
 		invert_m4_m4(ob->imat, ob->obmat);
 		mul_m4_v3(ob->imat, co);
@@ -5469,9 +5469,9 @@ static void sort_bmelem_flag(
 		float fact = reverse ? -1.0 : 1.0;
 
 		if (v3d && v3d->localvd)
-			copy_v3_v3(cur, v3d->cursor);
+			copy_v3_v3(cur, v3d->cursor.location);
 		else
-			copy_v3_v3(cur, scene->cursor);
+			copy_v3_v3(cur, scene->cursor.location);
 		invert_m4_m4(mat, ob->obmat);
 		mul_m4_v3(mat, cur);
 

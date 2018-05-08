@@ -176,7 +176,7 @@ static void gp_strokepoint_convertcoords(
 		copy_v3_v3(p3d, &pt->x);
 	}
 	else {
-		const float *fp = ED_view3d_cursor3d_get(scene, v3d);
+		const float *fp = ED_view3d_cursor3d_get(scene, v3d)->location;
 		float mvalf[2];
 		
 		/* get screen coordinate */

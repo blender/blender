@@ -243,7 +243,7 @@ static int mesh_bisect_exec(bContext *C, wmOperator *op)
 		RNA_property_float_get_array(op->ptr, prop_plane_co, plane_co);
 	}
 	else {
-		copy_v3_v3(plane_co, ED_view3d_cursor3d_get(scene, v3d));
+		copy_v3_v3(plane_co, ED_view3d_cursor3d_get(scene, v3d)->location);
 		RNA_property_float_set_array(op->ptr, prop_plane_co, plane_co);
 	}
 

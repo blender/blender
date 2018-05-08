@@ -131,6 +131,12 @@ typedef struct RegionView3D {
 	float rot_axis[3];
 } RegionView3D;
 
+typedef struct View3DCursor {
+	float location[3];
+	float rotation[4];
+	char _pad[4];
+} View3DCursor;
+
 /* 3D Viewport Shading setings */
 typedef struct View3DShading {
 	short flag;
@@ -197,7 +203,10 @@ typedef struct View3D {
 	float lens, grid;
 	float near, far;
 	float ofs[3]  DNA_DEPRECATED;			/* XXX deprecated */
-	float cursor[3];
+
+	View3DCursor cursor;
+
+	char _pad[4];
 
 	short matcap_icon;			/* icon id */
 
@@ -401,7 +410,8 @@ enum {
 #define V3D_MANIP_NORMAL		2
 #define V3D_MANIP_VIEW			3
 #define V3D_MANIP_GIMBAL		4
-#define V3D_MANIP_CUSTOM		5
+#define V3D_MANIP_CURSOR		5
+#define V3D_MANIP_CUSTOM		1024
 
 /* View3d->twflag (also) */
 enum {

@@ -97,7 +97,7 @@ typedef struct ViewDepths {
 	bool damaged;
 } ViewDepths;
 
-float *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d);
+struct View3DCursor *ED_view3d_cursor3d_get(struct Scene *scene, struct View3D *v3d);
 void   ED_view3d_cursor3d_position(struct bContext *C, float fp[3], const int mval[2]);
 void   ED_view3d_cursor3d_update(struct bContext *C, const int mval[2]);
 

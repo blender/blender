@@ -689,6 +689,10 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("view"));
 			setConstraint(t, t->spacemtx, mode, text);
 			break;
+		case V3D_MANIP_CURSOR:
+			BLI_snprintf(text, sizeof(text), ftext, IFACE_("cursor"));
+			setConstraint(t, t->spacemtx, mode, text);
+			break;
 		case V3D_MANIP_GIMBAL:
 			BLI_snprintf(text, sizeof(text), ftext, IFACE_("gimbal"));
 			setConstraint(t, t->spacemtx, mode, text);

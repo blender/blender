@@ -50,6 +50,7 @@ extern "C" {
 #include "DNA_layer_types.h"
 #include "DNA_material_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_view3d_types.h"
 
 struct CurveMapping;
 struct Object;
@@ -1368,8 +1369,7 @@ typedef struct Scene {
 	struct Base  *basact DNA_DEPRECATED; /* active base */
 	void *_pad1;
 	
-	float cursor[3];			/* 3d cursor location */
-	char _pad[4];
+	View3DCursor cursor;			/* 3d cursor location */
 	
 	unsigned int lay;			/* bitflags for layer visibility */
 	int layact;		/* active layer */

@@ -236,7 +236,7 @@ static bool gpencil_project_check(tGPsdata *p)
 static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 {
 	View3D *v3d = p->sa->spacedata.first;
-	const float *fp = ED_view3d_cursor3d_get(p->scene, v3d);
+	const float *fp = ED_view3d_cursor3d_get(p->scene, v3d)->location;
 	
 	/* the reference point used depends on the owner... */
 #if 0 /* XXX: disabled for now, since we can't draw relative to the owner yet */

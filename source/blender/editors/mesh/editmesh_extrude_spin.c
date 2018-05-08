@@ -487,7 +487,7 @@ static int edbm_spin_invoke(bContext *C, wmOperator *op, const wmEvent *UNUSED(e
 	PropertyRNA *prop;
 	prop = RNA_struct_find_property(op->ptr, "center");
 	if (!RNA_property_is_set(op->ptr, prop)) {
-		RNA_property_float_set_array(op->ptr, prop, ED_view3d_cursor3d_get(scene, v3d));
+		RNA_property_float_set_array(op->ptr, prop, ED_view3d_cursor3d_get(scene, v3d)->location);
 	}
 	if (rv3d) {
 		prop = RNA_struct_find_property(op->ptr, "axis");

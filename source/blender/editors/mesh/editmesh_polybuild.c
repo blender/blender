@@ -89,7 +89,7 @@ static int edbm_polybuild_face_at_cursor_invoke(
 
 	if (ele_act == NULL || ele_act->head.htype == BM_FACE) {
 		/* Just add vert */
-		copy_v3_v3(center, ED_view3d_cursor3d_get(vc.scene, vc.v3d));
+		copy_v3_v3(center, ED_view3d_cursor3d_get(vc.scene, vc.v3d)->location);
 		mul_v3_m4v3(center, vc.obedit->obmat, center);
 		ED_view3d_win_to_3d_int(vc.v3d, vc.ar, center, event->mval, center);
 		mul_m4_v3(vc.obedit->imat, center);

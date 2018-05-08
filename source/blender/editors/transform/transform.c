@@ -2953,7 +2953,7 @@ static void initBend(TransInfo *t)
 
 	data = MEM_callocN(sizeof(*data), __func__);
 
-	curs = ED_view3d_cursor3d_get(t->scene, t->view);
+	curs = ED_view3d_cursor3d_get(t->scene, t->view)->location;
 	copy_v3_v3(data->warp_sta, curs);
 	ED_view3d_win_to_3d(t->sa->spacedata.first, t->ar, curs, mval_fl, data->warp_end);
 

@@ -7355,7 +7355,8 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 		BKE_workspace_active_set(win->workspace_hook, workspace);
 
 		/* keep cursor location through undo */
-		copy_v3_v3(win->scene->cursor, oldscene->cursor);
+		copy_v3_v3(win->scene->cursor.location, oldscene->cursor.location);
+		copy_qt_qt(win->scene->cursor.rotation, oldscene->cursor.rotation);
 		lib_link_workspace_scene_data_restore(win, win->scene);
 
 		BLI_assert(win->screen == NULL);
@@ -10039,7 +10040,7 @@ static void give_base_to_groups(
 			/* Assign the group. */
 			ob->dup_group = group;
 			ob->transflag |= OB_DUPLIGROUP;
-			copy_v3_v3(ob->loc, scene->cursor);
+			copy_v3_v3(ob->loc, scene->cursor.location);
 		}
 	}
 }

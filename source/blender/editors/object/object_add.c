@@ -165,7 +165,7 @@ void ED_object_location_from_view(bContext *C, float loc[3])
 	Scene *scene = CTX_data_scene(C);
 	const float *cursor;
 
-	cursor = ED_view3d_cursor3d_get(scene, v3d);
+	cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	copy_v3_v3(loc, cursor);
 }

@@ -973,7 +973,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, const w
 		              BM_ELEM_SELECT, ofs);
 	}
 	else {
-		const float *cursor = ED_view3d_cursor3d_get(vc.scene, vc.v3d);
+		const float *cursor = ED_view3d_cursor3d_get(vc.scene, vc.v3d)->location;
 		BMOperator bmop;
 		BMOIter oiter;
 

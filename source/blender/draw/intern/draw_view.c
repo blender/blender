@@ -659,20 +659,65 @@ void DRW_draw_cursor(void)
 
 	if (is_cursor_visible(draw_ctx, scene, view_layer)) {
 		int co[2];
-		if (ED_view3d_project_int_global(ar, ED_view3d_cursor3d_get(scene, v3d), co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-
-			ED_region_pixelspace(ar);
-			gpuTranslate2f(co[0] + 0.5f, co[1] + 0.5f);
-			gpuScale2f(U.widget_unit, U.widget_unit);
-
-			Gwn_Batch *cursor_batch = DRW_cache_cursor_get();
-			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
-			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
+		const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+		if (ED_view3d_project_int_global(
+		            ar, cursor->location, co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)
+		{
+			RegionView3D *rv3d = ar->regiondata;
 
 			/* Draw nice Anti Aliased cursor. */
 			glLineWidth(1.0f);
 			glEnable(GL_BLEND);
 			glEnable(GL_LINE_SMOOTH);
+
+			float eps = 1e-5f;
+			rv3d->viewquat[0] = -rv3d->viewquat[0];
+			const bool is_aligned = compare_v4v4(cursor->rotation, rv3d->viewquat, eps);
+			rv3d->viewquat[0] = -rv3d->viewquat[0];
+
+			/* Draw lines */
+			if  (is_aligned == false) {
+				uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+				immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+				immUniformThemeColor3(TH_VIEW_OVERLAY);
+				immBegin(GWN_PRIM_LINES, 12);
+
+				const float scale = ED_view3d_pixel_size(rv3d, cursor->location) * U.dpi_fac * 20;
+
+#define CURSOR_VERT(axis_vec, axis, fac) \
+				immVertex3f( \
+				        pos, \
+				        cursor->location[0] + axis_vec[0] * (fac), \
+				        cursor->location[1] + axis_vec[1] * (fac), \
+				        cursor->location[2] + axis_vec[2] * (fac))
+
+#define CURSOR_EDGE(axis_vec, axis, sign) { \
+					CURSOR_VERT(axis_vec, axis, sign 1.0f); \
+					CURSOR_VERT(axis_vec, axis, sign 0.3f); \
+				}
+
+				for (int axis = 0; axis < 3; axis++) {
+					float axis_vec[3] = {0};
+					axis_vec[axis] = scale;
+					mul_qt_v3(cursor->rotation, axis_vec);
+					CURSOR_EDGE(axis_vec, axis, +);
+					CURSOR_EDGE(axis_vec, axis, -);
+				}
+
+#undef CURSOR_VERT
+#undef CURSOR_EDGE
+
+				immEnd();
+				immUnbindProgram();
+			}
+
+			ED_region_pixelspace(ar);
+			gpuTranslate2f(co[0] + 0.5f, co[1] + 0.5f);
+			gpuScale2f(U.widget_unit, U.widget_unit);
+
+			Gwn_Batch *cursor_batch = DRW_cache_cursor_get(is_aligned);
+			GPUShader *shader = GPU_shader_get_builtin_shader(GPU_SHADER_2D_FLAT_COLOR);
+			GWN_batch_program_set(cursor_batch, GPU_shader_get_program(shader), GPU_shader_get_interface(shader));
 
 			GWN_batch_draw(cursor_batch);
 		}

@@ -550,7 +550,7 @@ static void group_instance_cb(
 {
 	Group *group = (Group *)tselem->id;
 
-	Object *ob = ED_object_add_type(C, OB_EMPTY, group->id.name + 2, scene->cursor, NULL, false, scene->layact);
+	Object *ob = ED_object_add_type(C, OB_EMPTY, group->id.name + 2, scene->cursor.location, NULL, false, scene->layact);
 	ob->dup_group = group;
 	ob->transflag |= OB_DUPLIGROUP;
 	id_lib_extern(&group->id);

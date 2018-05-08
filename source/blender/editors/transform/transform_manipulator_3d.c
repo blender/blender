@@ -669,6 +669,13 @@ int ED_transform_calc_manipulator_stats(
 				copy_m4_m3(rv3d->twmat, mat);
 				break;
 			}
+			case V3D_MANIP_CURSOR:
+			{
+				float mat[3][3];
+				quat_to_mat3(mat, ED_view3d_cursor3d_get(scene, v3d)->rotation);
+				copy_m4_m3(rv3d->twmat, mat);
+				break;
+			}
 			case V3D_MANIP_CUSTOM:
 			{
 				TransformOrientation *custom_orientation = BKE_scene_transform_orientation_find(
@@ -1083,7 +1090,7 @@ static void manipulator_prepare_mat(
 			copy_v3_v3(rv3d->twmat[3], tbounds->center);
 			break;
 		case V3D_AROUND_CURSOR:
-			copy_v3_v3(rv3d->twmat[3], ED_view3d_cursor3d_get(scene, v3d));
+			copy_v3_v3(rv3d->twmat[3], ED_view3d_cursor3d_get(scene, v3d)->location);
 			break;
 	}
 }

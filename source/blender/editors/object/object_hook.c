@@ -781,7 +781,7 @@ static int object_hook_recenter_exec(bContext *C, wmOperator *op)
 	copy_m3_m4(bmat, ob->obmat);
 	invert_m3_m3(imat, bmat);
 	
-	sub_v3_v3v3(hmd->cent, scene->cursor, ob->obmat[3]);
+	sub_v3_v3v3(hmd->cent, scene->cursor.location, ob->obmat[3]);
 	mul_m3_v3(imat, hmd->cent);
 	
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);

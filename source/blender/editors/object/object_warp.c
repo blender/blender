@@ -227,7 +227,7 @@ static int object_warp_verts_exec(bContext *C, wmOperator *op)
 			View3D *v3d = CTX_wm_view3d(C);
 			const float *cursor;
 
-			cursor = ED_view3d_cursor3d_get(scene, v3d);
+			cursor = ED_view3d_cursor3d_get(scene, v3d)->location;
 			copy_v3_v3(center, cursor);
 
 			RNA_property_float_set_array(op->ptr, prop_center, center);

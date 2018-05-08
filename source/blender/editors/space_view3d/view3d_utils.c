@@ -71,10 +71,14 @@
  *
  * \{ */
 
-float *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
+View3DCursor *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
 {
-	if (v3d && v3d->localvd) return v3d->cursor;
-	else return scene->cursor;
+	if (v3d && v3d->localvd) {
+		return &v3d->cursor;
+	}
+	else {
+		return &scene->cursor;
+	}
 }
 
 Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)

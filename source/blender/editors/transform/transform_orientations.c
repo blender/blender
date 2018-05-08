@@ -481,6 +481,13 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 				unit_m3(t->spacemtx);
 			}
 			break;
+		case V3D_MANIP_CURSOR:
+		{
+			const View3DCursor *cursor = ED_view3d_cursor3d_get(t->scene, CTX_wm_view3d(C));
+			BLI_strncpy(t->spacename, IFACE_("cursor"), sizeof(t->spacename));
+			quat_to_mat3(t->spacemtx, cursor->rotation);
+			break;
+		}
 		case V3D_MANIP_CUSTOM:
 			BLI_strncpy(t->spacename, t->custom_orientation->name, sizeof(t->spacename));
 

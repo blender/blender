@@ -1791,7 +1791,7 @@ void calculateCenterCursor(TransInfo *t, float r_center[3])
 {
 	const float *cursor;
 	
-	cursor = ED_view3d_cursor3d_get(t->scene, t->view);
+	cursor = ED_view3d_cursor3d_get(t->scene, t->view)->location;
 	copy_v3_v3(r_center, cursor);
 	
 	/* If edit or pose mode, move cursor in local space */

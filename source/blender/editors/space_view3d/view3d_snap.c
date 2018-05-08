@@ -407,7 +407,7 @@ static int snap_selected_to_cursor_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 
-	const float *snap_target_global = ED_view3d_cursor3d_get(scene, v3d);
+	const float *snap_target_global = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	return snap_selected_to_location(C, snap_target_global, use_offset);
 }
@@ -468,7 +468,7 @@ static int snap_curs_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	float gridf, *curs;
 
 	gridf = rv3d->gridview;
-	curs = ED_view3d_cursor3d_get(scene, v3d);
+	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	curs[0] = gridf * floorf(0.5f + curs[0] / gridf);
 	curs[1] = gridf * floorf(0.5f + curs[1] / gridf);
@@ -651,7 +651,7 @@ static int snap_curs_to_sel_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d = CTX_wm_view3d(C);
 	float *curs;
 
-	curs = ED_view3d_cursor3d_get(scene, v3d);
+	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	if (snap_curs_to_sel_ex(C, curs)) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
@@ -725,7 +725,7 @@ static int snap_curs_to_active_exec(bContext *C, wmOperator *UNUSED(op))
 	View3D *v3d = CTX_wm_view3d(C);
 	float *curs;
 	
-	curs = ED_view3d_cursor3d_get(scene, v3d);
+	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	if (snap_calc_active_center(C, false, curs)) {
 		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
@@ -758,7 +758,7 @@ static int snap_curs_to_center_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	float *curs;
-	curs = ED_view3d_cursor3d_get(scene, v3d);
+	curs = ED_view3d_cursor3d_get(scene, v3d)->location;
 
 	zero_v3(curs);
 	

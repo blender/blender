@@ -46,6 +46,7 @@
 static struct DRWShapeCache {
 	Gwn_Batch *drw_single_vertice;
 	Gwn_Batch *drw_cursor;
+	Gwn_Batch *drw_cursor_only_circle;
 	Gwn_Batch *drw_fullscreen_quad;
 	Gwn_Batch *drw_quad;
 	Gwn_Batch *drw_sphere;
@@ -3021,9 +3022,11 @@ Gwn_Batch *DRW_cache_particles_get_prim(int type)
 }
 
 /* 3D cursor */
-Gwn_Batch *DRW_cache_cursor_get(void)
+Gwn_Batch *DRW_cache_cursor_get(bool crosshair_lines)
 {
-	if (!SHC.drw_cursor) {
+	Gwn_Batch **drw_cursor = crosshair_lines ? &SHC.drw_cursor : &SHC.drw_cursor_only_circle;
+
+	if (*drw_cursor == NULL) {
 		const float f5 = 0.25f;
 		const float f10 = 0.5f;
 		const float f20 = 1.0f;
@@ -3034,8 +3037,6 @@ Gwn_Batch *DRW_cache_cursor_get(void)
 
 		unsigned char red[3] = {255, 0, 0};
 		unsigned char white[3] = {255, 255, 255};
-		unsigned char crosshair_color[3];
-		UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, color; } attr_id;
@@ -3065,45 +3066,51 @@ Gwn_Batch *DRW_cache_cursor_get(void)
 			GWN_indexbuf_add_generic_vert(&elb, v++);
 		}
 		GWN_indexbuf_add_generic_vert(&elb, 0);
-		GWN_indexbuf_add_primitive_restart(&elb);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){-f20, 0});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){-f5, 0});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
+		if (crosshair_lines) {
+			unsigned char crosshair_color[3];
+			UI_GetThemeColor3ubv(TH_VIEW_OVERLAY, crosshair_color);
 
-		GWN_indexbuf_add_primitive_restart(&elb);
+			GWN_indexbuf_add_primitive_restart(&elb);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){+f5, 0});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){+f20, 0});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){-f20, 0});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){-f5, 0});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
 
-		GWN_indexbuf_add_primitive_restart(&elb);
+			GWN_indexbuf_add_primitive_restart(&elb);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, -f20});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, -f5});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){+f5, 0});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){+f20, 0});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
 
-		GWN_indexbuf_add_primitive_restart(&elb);
+			GWN_indexbuf_add_primitive_restart(&elb);
 
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, +f5});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, +f20});
-		GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
-		GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, -f20});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, -f5});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+
+			GWN_indexbuf_add_primitive_restart(&elb);
+
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, +f5});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, v, (const float[2]){0, +f20});
+			GWN_vertbuf_attr_set(vbo, attr_id.color, v, crosshair_color);
+			GWN_indexbuf_add_generic_vert(&elb, v++);
+		}
 
 		Gwn_IndexBuf *ibo = GWN_indexbuf_build(&elb);
 
-		SHC.drw_cursor = GWN_batch_create_ex(GWN_PRIM_LINE_STRIP, vbo, ibo, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+		*drw_cursor = GWN_batch_create_ex(GWN_PRIM_LINE_STRIP, vbo, ibo, GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
 	}
-	return SHC.drw_cursor;
+	return *drw_cursor;
 }
