@@ -1138,7 +1138,7 @@ BVHTree *bvhtree_from_mesh_get(
 		data->looptri = looptri;
 		data->vert_allocated = vert_allocated;
 		data->edge_allocated = edge_allocated;
-		data->edge_allocated = edge_allocated;
+		data->face_allocated = face_allocated;
 		data->loop_allocated = loop_allocated;
 		data->looptri_allocated = looptri_allocated;
 
