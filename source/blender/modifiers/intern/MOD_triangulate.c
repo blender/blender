@@ -25,40 +25,45 @@
  *  \ingroup modifiers
  */
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_modifier.h"
+#include "BKE_mesh.h"
 
 #include "bmesh.h"
 #include "bmesh_tools.h"
 
 #include "MOD_modifiertypes.h"
 
-static DerivedMesh *triangulate_dm(DerivedMesh *dm, const int quad_method, const int ngon_method)
+static Mesh *triangulate_mesh(Mesh *mesh, const int quad_method, const int ngon_method)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	BMesh *bm;
 	int total_edges, i;
 	MEdge *me;
 
-	bm = DM_to_bmesh(dm, true);
+	bm = BKE_mesh_to_bmesh_ex(
+	         mesh,
+	         &((struct BMeshCreateParams){0}),
+	         &((struct BMeshFromMeshParams){.calc_face_normal = true,}));
 
 	BM_mesh_triangulate(bm, quad_method, ngon_method, false, NULL, NULL, NULL);
 
-	result = CDDM_from_bmesh(bm, false);
+	result = BKE_bmesh_to_mesh_nomain(bm, &((struct BMeshToMeshParams){0}));
 	BM_mesh_free(bm);
 
-	total_edges = result->getNumEdges(result);
-	me = CDDM_get_edges(result);
+	total_edges = result->totedge;
+	me = result->medge;
 
 	/* force drawing of all edges (seems to be omitted in CDDM_from_bmesh) */
 	for (i = 0; i < total_edges; i++, me++)
 		me->flag |= ME_EDGEDRAW | ME_EDGERENDER;
 
-	result->dirty |= DM_DIRTY_NORMALS;
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 	return result;
 }
@@ -74,14 +79,14 @@ static void initData(ModifierData *md)
 	tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md,
-                                  const ModifierEvalContext *UNUSED(ctx),
-                                  DerivedMesh *dm)
+static Mesh *applyModifier(ModifierData *md,
+                           const ModifierEvalContext *UNUSED(ctx),
+                           Mesh *mesh)
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
-	DerivedMesh *result;
-	if (!(result = triangulate_dm(dm, tmd->quad_method, tmd->ngon_method))) {
-		return dm;
+	Mesh *result;
+	if (!(result = triangulate_mesh(mesh, tmd->quad_method, tmd->ngon_method))) {
+		return mesh;
 	}
 
 	return result;
@@ -104,14 +109,14 @@ ModifierTypeInfo modifierType_Triangulate = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
