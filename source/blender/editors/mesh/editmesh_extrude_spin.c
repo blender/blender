@@ -36,6 +36,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -436,10 +437,7 @@ static void MESH_WGT_spin(struct wmManipulatorGroupType *wgt)
 
 static int edbm_spin_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMOperator spinop;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	float cent[3], axis[3];
 	float d[3] = {0.0f, 0.0f, 0.0f};
 	int steps, dupli;
@@ -458,21 +456,33 @@ static int edbm_spin_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	/* keep the values in worldspace since we're passing the obmat */
-	if (!EDBM_op_init(em, &spinop, op,
-	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
-	                  BM_ELEM_SELECT, cent, axis, d, steps, angle, obedit->obmat, dupli))
-	{
-		return OPERATOR_CANCELLED;
-	}
-	BMO_op_exec(bm, &spinop);
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
-	if (!EDBM_op_finish(em, &spinop, op, true)) {
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		BMOperator spinop;
+
+		/* keep the values in worldspace since we're passing the obmat */
+		if (!EDBM_op_init(em, &spinop, op,
+		                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
+		                  BM_ELEM_SELECT, cent, axis, d, steps, angle, obedit->obmat, dupli))
+		{
+			continue;
+		}
+		BMO_op_exec(bm, &spinop);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+		if (!EDBM_op_finish(em, &spinop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
 
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
