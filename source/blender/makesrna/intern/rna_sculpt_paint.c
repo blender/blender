@@ -171,6 +171,9 @@ static void rna_ParticleEdit_update(bContext *C, PointerRNA *UNUSED(ptr))
 	Object *ob = OBACT(view_layer);
 
 	if (ob) DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+
+	/* Sync tool setting changes from original to evaluated scenes. */
+	DEG_id_tag_update(&CTX_data_scene(C)->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
