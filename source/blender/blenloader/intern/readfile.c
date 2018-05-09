@@ -4685,8 +4685,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 
 	mesh->bb = NULL;
 	mesh->edit_btmesh = NULL;
-	mesh->runtime.batch_cache = NULL;
-	
+	BKE_mesh_runtime_reset(mesh);
+
 	/* happens with old files */
 	if (mesh->mselect == NULL) {
 		mesh->totselect = 0;

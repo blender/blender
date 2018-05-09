@@ -192,7 +192,7 @@ void BKE_mesh_mselect_active_set(struct Mesh *me, int index, int type);
 void BKE_mesh_apply_vert_coords(struct Mesh *mesh, float (*vertCoords)[3]);
 
 /* *** mesh_runtime.c *** */
-
+void                   BKE_mesh_runtime_reset(struct Mesh *mesh);
 int                    BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
 void                   BKE_mesh_runtime_looptri_recalc(struct Mesh *mesh);
 const struct MLoopTri *BKE_mesh_runtime_looptri_ensure(struct Mesh *mesh);

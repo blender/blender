@@ -44,6 +44,13 @@
 
 static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 
+/**
+ * Default values defined at read time.
+ */
+void BKE_mesh_runtime_reset(Mesh *mesh)
+{
+	memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+}
 
 /* This is a ported copy of DM_ensure_looptri_data(dm) */
 /**
