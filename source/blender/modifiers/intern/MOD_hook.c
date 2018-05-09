@@ -352,9 +352,13 @@ static void deformVerts(struct ModifierData *md, const struct ModifierEvalContex
                         float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
-	Mesh *mesh_src = mesh ? mesh : ctx->object->data;
+	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
 	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
+
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(struct ModifierData *md, const struct ModifierEvalContext *ctx,
@@ -362,10 +366,7 @@ static void deformVertsEM(struct ModifierData *md, const struct ModifierEvalCont
                           struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
-	Mesh *mesh_src = mesh;
-	if (!mesh) {
-		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
 
 	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 

@@ -42,6 +42,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_editmesh.h"
 #include "BKE_mesh.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
@@ -383,8 +384,13 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
                         float (*vertexCos)[3],
                         int numVerts)
 {
-	Mesh *mesh_src = mesh ? mesh : ctx->object->data;
+	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
+
 	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
@@ -393,11 +399,13 @@ static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
                           float (*vertexCos)[3],
                           int numVerts)
 {
-	Mesh *mesh_src = mesh;
-	if (!mesh) {
-		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
+
 	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 

@@ -367,33 +367,29 @@ static void deformVerts(
         float (*vertexCos)[3],
         int numVerts)
 {
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = ctx->object->data;
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
 	displaceModifier_do((DisplaceModifierData *)md, ctx->object, mesh_src,
 	                    vertexCos, numVerts);
+
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
 	displaceModifier_do((DisplaceModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (!mesh) {
+	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }

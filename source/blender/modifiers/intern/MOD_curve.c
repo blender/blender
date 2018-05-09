@@ -51,6 +51,7 @@
 #include "DEG_depsgraph_build.h"
 
 #include "MOD_modifiertypes.h"
+#include "MOD_util.h"
 
 static void initData(ModifierData *md)
 {
@@ -112,18 +113,17 @@ static void deformVerts(
         int numVerts)
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
-
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = ctx->object->data;
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
 	curve_deform_verts(cmd->object, ctx->object, mesh_src, vertexCos, numVerts, cmd->name, cmd->defaxis - 1);
+
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
 
 static void deformVertsEM(
@@ -134,17 +134,13 @@ static void deformVertsEM(
         float (*vertexCos)[3],
         int numVerts)
 {
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, em, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
 	deformVerts(md, ctx, mesh_src, vertexCos, numVerts);
 
-	if (!mesh) {
+	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }

@@ -300,6 +300,8 @@ Mesh *get_mesh(Object *ob, struct BMEditMesh *em, Mesh *mesh,
 		struct BMeshToMeshParams bmtmp = {0};
 		if (em) mesh = BKE_bmesh_to_mesh_nomain(em->bm, &bmtmp);
 		else {
+			/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
+			 * we really need a copy here. Maybe the CoW ob->data can be directly used. */
 			BKE_id_copy_ex(
 			        NULL, ob->data, (ID **)&mesh,
 			        LIB_ID_CREATE_NO_MAIN |
@@ -308,6 +310,8 @@ Mesh *get_mesh(Object *ob, struct BMEditMesh *em, Mesh *mesh,
 			        false);
 		}
 
+		/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
+		 * we really need vertexCos here. */
 		if (vertexCos) {
 			BKE_mesh_apply_vert_coords(mesh, vertexCos);
 			mesh->runtime.cd_dirty_vert |= CD_MASK_NORMAL;

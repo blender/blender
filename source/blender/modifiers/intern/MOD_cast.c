@@ -428,12 +428,7 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
                         int numVerts)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
-
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = ctx->object->data;
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
@@ -442,6 +437,10 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 	}
 	else { /* MOD_CAST_TYPE_SPHERE or MOD_CAST_TYPE_CYLINDER */
 		sphere_do(cmd, ctx->object, mesh_src, vertexCos, numVerts);
+	}
+
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
 	}
 }
 
@@ -451,12 +450,7 @@ static void deformVertsEM(
         Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
-
-	Mesh *mesh_src = mesh;
-
-	if (mesh_src == NULL) {
-		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
-	}
+	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
@@ -467,7 +461,7 @@ static void deformVertsEM(
 		sphere_do(cmd, ctx->object, mesh_src, vertexCos, numVerts);
 	}
 
-	if (!mesh) {
+	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
 	}
 }
