@@ -453,30 +453,28 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	if (ob == draw_ctx->object_edit) {
+		return;
+	}
 
-	if (ob != draw_ctx->object_edit) {
-		for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
-			if (md->type == eModifierType_ParticleSystem) {
-				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
+	for (ParticleSystem *psys = ob->particlesystem.first; psys != NULL; psys = psys->next) {
+		if (!psys_check_enabled(ob, psys, false)) {
+			continue;
+		}
+		ParticleSettings *part = psys->part;
+		int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
-				if (psys_check_enabled(ob, psys, false)) {
-					ParticleSettings *part = psys->part;
-					int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+		if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+			draw_as = PART_DRAW_DOT;
+		}
 
-					if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-						draw_as = PART_DRAW_DOT;
-					}
+		static float mat[4][4];
+		unit_m4(mat);
 
-					static float mat[4][4];
-					unit_m4(mat);
-
-					if (draw_as == PART_DRAW_PATH) {
-						struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
-						WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
-						DRW_shgroup_call_add(material->shgrp, geom, mat);
-					}
-				}
-			}
+		if (draw_as == PART_DRAW_PATH) {
+			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
+			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
+			DRW_shgroup_call_add(material->shgrp, geom, mat);
 		}
 	}
 }
