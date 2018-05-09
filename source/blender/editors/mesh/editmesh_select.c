@@ -3740,34 +3740,42 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 	 * check the angle between those faces, and if angle is
 	 * small enough, select the edge
 	 */
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMIter iter;
-	BMEdge *e;
-	BMLoop *l1, *l2;
 	const float angle_limit_cos = cosf(RNA_float_get(op->ptr, "sharpness"));
 
-	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false &&
-		    BM_edge_loop_pair(e, &l1, &l2))
-		{
-			/* edge has exactly two neighboring faces, check angle */
-			const float angle_cos = dot_v3v3(l1->f->no, l2->f->no);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-			if (angle_cos < angle_limit_cos) {
-				BM_edge_select_set(em->bm, e, true);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMIter iter;
+		BMEdge *e;
+		BMLoop *l1, *l2;
+
+		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false &&
+				BM_edge_loop_pair(e, &l1, &l2))
+			{
+				/* edge has exactly two neighboring faces, check angle */
+				const float angle_cos = dot_v3v3(l1->f->no, l2->f->no);
+
+				if (angle_cos < angle_limit_cos) {
+					BM_edge_select_set(em->bm, e, true);
+				}
 			}
 		}
-	}
 
-	if ((em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0) {
-		/* Since we can't select individual edges, select faces connected to them. */
-		EDBM_selectmode_convert(em, SCE_SELECT_EDGE, SCE_SELECT_FACE);
+		if ((em->bm->selectmode & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) == 0) {
+			/* Since we can't select individual edges, select faces connected to them. */
+			EDBM_selectmode_convert(em, SCE_SELECT_EDGE, SCE_SELECT_FACE);
+		}
+		else {
+			EDBM_selectmode_flush(em);
+		}
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
-	else {
-		EDBM_selectmode_flush(em);
-	}
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
