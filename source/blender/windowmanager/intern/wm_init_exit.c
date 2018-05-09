@@ -36,6 +36,8 @@
 
 #ifdef WIN32
 #  include <windows.h>
+#  undef near
+#  undef far
 #endif
 
 #include "MEM_guardedalloc.h"
