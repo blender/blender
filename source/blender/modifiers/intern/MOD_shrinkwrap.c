@@ -102,8 +102,6 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
                         float (*vertexCos)[3],
                         int numVerts)
 {
-	const bool forRender = (ctx->flag & MOD_APPLY_RENDER) != 0;
-
 	Mesh *mesh_src = mesh;
 
 	if (mesh_src == NULL) {
@@ -112,7 +110,7 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts, forRender);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts, ctx);
 }
 
 static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
@@ -127,7 +125,7 @@ static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts, false);
+	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts, ctx);
 
 	if (!mesh) {
 		BKE_id_free(NULL, mesh_src);

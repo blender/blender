@@ -50,6 +50,7 @@
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_lattice.h"
+#include "BKE_modifier.h"
 
 #include "BKE_deform.h"
 #include "BKE_editmesh.h"
@@ -155,11 +156,11 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
-	if (calc->target != NULL && calc->target->getNumVerts(calc->target) == 0) {
+	if (calc->target != NULL && calc->target->totvert == 0) {
 		return;
 	}
 
-	TIMEIT_BENCH(bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_VERTS, 2), bvhtree_verts);
+	TIMEIT_BENCH(BKE_bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_VERTS, 2), bvhtree_verts);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
@@ -366,7 +367,7 @@ static void shrinkwrap_calc_normal_projection_cb_ex(
 	}
 }
 
-static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for_render)
+static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, const ModifierEvalContext *ctx)
 {
 	/* Options about projection direction */
 	float proj_axis[3]      = {0.0f, 0.0f, 0.0f};
@@ -380,7 +381,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	void *treeData = NULL;
 
 	/* auxiliary target */
-	DerivedMesh *auxMesh    = NULL;
+	Mesh *auxMesh = NULL;
 	void *auxData = NULL;
 	SpaceTransform local2aux;
 
@@ -389,7 +390,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	if ((calc->smd->shrinkOpts & (MOD_SHRINKWRAP_PROJECT_ALLOW_POS_DIR | MOD_SHRINKWRAP_PROJECT_ALLOW_NEG_DIR)) == 0)
 		return;
 
-	if (calc->target != NULL && calc->target->getNumPolys(calc->target) == 0) {
+	if (calc->target != NULL && calc->target->totpoly == 0) {
 		return;
 	}
 
@@ -413,7 +414,7 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 	}
 
 	if (calc->smd->auxTarget) {
-		auxMesh = object_get_derived_final(calc->smd->auxTarget, for_render);
+		auxMesh = BKE_modifier_get_evaluated_mesh_from_object(calc->smd->auxTarget, ctx->flag);
 		if (!auxMesh)
 			return;
 		BLI_SPACE_TRANSFORM_SETUP(&local2aux, calc->ob, calc->smd->auxTarget);
@@ -428,44 +429,21 @@ static void shrinkwrap_calc_normal_projection(ShrinkwrapCalcData *calc, bool for
 
 	BVHTree *targ_tree;
 	void *targ_callback;
-	if (calc->smd->target && calc->target->type == DM_TYPE_EDITBMESH) {
-		emtarget = BKE_editmesh_from_object(calc->smd->target);
-		if ((targ_tree = bvhtree_from_editmesh_looptri(
-		         &treedata_stack.emtreedata, emtarget, 0.0, 4, 6, &calc->target->bvhCache)))
-		{
-			targ_callback = treedata_stack.emtreedata.raycast_callback;
-			treeData = &treedata_stack.emtreedata;
-		}
-	}
-	else {
-		if ((targ_tree = bvhtree_from_mesh_get(
-		             &treedata_stack.dmtreedata, calc->target, BVHTREE_FROM_LOOPTRI, 4)))
-		{
-			targ_callback = treedata_stack.dmtreedata.raycast_callback;
-			treeData = &treedata_stack.dmtreedata;
-		}
-	}
-	if (targ_tree) {
+	if ((targ_tree = BKE_bvhtree_from_mesh_get(
+	         &treedata_stack.dmtreedata, calc->target, BVHTREE_FROM_LOOPTRI, 4)))
+	{
+		targ_callback = treedata_stack.dmtreedata.raycast_callback;
+		treeData = &treedata_stack.dmtreedata;
+
 		BVHTree *aux_tree = NULL;
 		void *aux_callback = NULL;
-		if (auxMesh != NULL && auxMesh->getNumPolys(auxMesh) != 0) {
+		if (auxMesh != NULL && auxMesh->totpoly != 0) {
 			/* use editmesh to avoid array allocation */
-			if (calc->smd->auxTarget && auxMesh->type == DM_TYPE_EDITBMESH) {
-				emaux = BKE_editmesh_from_object(calc->smd->auxTarget);
-				if ((aux_tree = bvhtree_from_editmesh_looptri(
-				         &auxdata_stack.emtreedata, emaux, 0.0, 4, 6, &auxMesh->bvhCache)))
-				{
-					aux_callback = auxdata_stack.emtreedata.raycast_callback;
-					auxData = &auxdata_stack.emtreedata;
-				}
-			}
-			else {
-				if ((aux_tree = bvhtree_from_mesh_get(
-				        &auxdata_stack.dmtreedata, auxMesh, BVHTREE_FROM_LOOPTRI, 4)) != NULL)
-				{
-					aux_callback = auxdata_stack.dmtreedata.raycast_callback;
-					auxData = &auxdata_stack.dmtreedata;
-				}
+			if ((aux_tree = BKE_bvhtree_from_mesh_get(
+			         &auxdata_stack.dmtreedata, auxMesh, BVHTREE_FROM_LOOPTRI, 4)) != NULL)
+			{
+				aux_callback = auxdata_stack.dmtreedata.raycast_callback;
+				auxData = &auxdata_stack.dmtreedata;
 			}
 		}
 		/* After sucessufuly build the trees, start projection vertexs */
@@ -586,12 +564,12 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 	BVHTreeFromMesh treeData = NULL_BVHTreeFromMesh;
 	BVHTreeNearest nearest  = NULL_BVHTreeNearest;
 
-	if (calc->target->getNumPolys(calc->target) == 0) {
+	if (calc->target->totpoly == 0) {
 		return;
 	}
 
 	/* Create a bvh-tree of the given target */
-	bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_LOOPTRI, 2);
+	BKE_bvhtree_from_mesh_get(&treeData, calc->target, BVHTREE_FROM_LOOPTRI, 2);
 	if (treeData.tree == NULL) {
 		OUT_OF_MEMORY();
 		return;
@@ -618,7 +596,7 @@ static void shrinkwrap_calc_nearest_surface_point(ShrinkwrapCalcData *calc)
 
 /* Main shrinkwrap function */
 void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *mesh,
-                               float (*vertexCos)[3], int numVerts, bool for_render)
+                               float (*vertexCos)[3], int numVerts, const ModifierEvalContext *ctx)
 {
 
 	DerivedMesh *ss_mesh    = NULL;
@@ -647,7 +625,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *me
 
 
 	if (smd->target) {
-		calc.target = object_get_derived_final(smd->target, for_render);
+		calc.target = BKE_modifier_get_evaluated_mesh_from_object(smd->target, ctx->flag);
 
 		/* TODO there might be several "bugs" on non-uniform scales matrixs
 		 * because it will no longer be nearest surface, not sphere projection
@@ -703,7 +681,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, Mesh *me
 				break;
 
 			case MOD_SHRINKWRAP_PROJECT:
-				TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc, for_render), deform_project);
+				TIMEIT_BENCH(shrinkwrap_calc_normal_projection(&calc, ctx), deform_project);
 				break;
 
 			case MOD_SHRINKWRAP_NEAREST_VERTEX:
