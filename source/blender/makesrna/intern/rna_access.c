@@ -7825,7 +7825,7 @@ IDOverrideStaticPropertyOperation *RNA_property_override_property_operation_get(
 	return BKE_override_static_property_operation_get(op, operation, NULL, NULL, index, index, strict, r_strict, r_created);
 }
 
-eRNAOverrideStatus RNA_property_override_status(PointerRNA *ptr, PropertyRNA *prop, const int index)
+eRNAOverrideStatus RNA_property_static_override_status(PointerRNA *ptr, PropertyRNA *prop, const int index)
 {
 	int override_status = 0;
 
