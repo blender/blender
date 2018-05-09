@@ -93,6 +93,10 @@ bool manipulator_window_project_2d(
         bContext *C, const struct wmManipulator *mpr, const float mval[2], int axis, bool use_offset,
         float r_co[2]);
 
+bool manipulator_window_project_3d(
+        bContext *C, const struct wmManipulator *mpr, const float mval[2], bool use_offset,
+        float r_co[3]);
+
 /* -------------------------------------------------------------------- */
 /* Manipulator drawing */
 

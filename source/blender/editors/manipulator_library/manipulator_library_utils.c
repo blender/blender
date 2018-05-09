@@ -214,6 +214,41 @@ bool manipulator_window_project_2d(
 		float co[3] = {mval[0], mval[1], 0.0f};
 		float imat[4][4];
 		invert_m4_m4(imat, mat);
+		mul_mat3_m4_v3(imat, co);
+		copy_v2_v2(r_co, co);
+		return true;
+	}
+}
+
+bool manipulator_window_project_3d(
+        bContext *C, const struct wmManipulator *mpr, const float mval[2], bool use_offset,
+        float r_co[3])
+{
+	float mat[4][4];
+	{
+		float mat_identity[4][4];
+		struct WM_ManipulatorMatrixParams params = {NULL};
+		if (use_offset == false) {
+			unit_m4(mat_identity);
+			params.matrix_offset = mat_identity;
+		}
+		WM_manipulator_calc_matrix_final_params(mpr, &params, mat);
+	}
+
+	if (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) {
+		View3D *v3d = CTX_wm_view3d(C);
+		ARegion *ar = CTX_wm_region(C);
+		/* Note: we might want a custom reference point passed in,
+		 * instead of the manipulator center. */
+		ED_view3d_win_to_3d(v3d, ar, mat[3], mval, r_co);
+		invert_m4(mat);
+		mul_m4_v3(mat, r_co);
+		return true;
+	}
+	else {
+		float co[3] = {mval[0], mval[1], 0.0f};
+		float imat[4][4];
+		invert_m4_m4(imat, mat);
 		mul_m4_v3(imat, co);
 		copy_v2_v2(r_co, co);
 		return true;

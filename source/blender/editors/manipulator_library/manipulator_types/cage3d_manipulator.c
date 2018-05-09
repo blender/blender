@@ -37,7 +37,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_math.h"
-#include "BLI_dial_2d.h"
 #include "BLI_rect.h"
 
 #include "BKE_context.h"
@@ -133,9 +132,9 @@ static void manipulator_rect_pivot_from_scale_part(int part, float r_pt[3], bool
 		index    = index / 3;
 		range[0] = index % 3;
 
-		const float sign[3] = {-0.5f, 0.0f, 0.5f};
+		const float sign[3] = {0.5f, 0.0f, -0.5f};
 		for (int i = 0; i < 3; i++) {
-			r_pt[i] = 0.5 * sign[range[i]];
+			r_pt[i] = sign[range[i]];
 			r_constrain_axis[i] = (range[i] == 1);
 		}
 	}
@@ -443,10 +442,9 @@ static int manipulator_cage3d_get_cursor(wmManipulator *mpr)
 }
 
 typedef struct RectTransformInteraction {
-	float orig_mouse[2];
+	float orig_mouse[3];
 	float orig_matrix_offset[4][4];
 	float orig_matrix_final_no_offset[4][4];
-	Dial *dial;
 } RectTransformInteraction;
 
 static void manipulator_cage3d_setup(wmManipulator *mpr)
@@ -463,10 +461,10 @@ static int manipulator_cage3d_invoke(
 	copy_m4_m4(data->orig_matrix_offset, mpr->matrix_offset);
 	manipulator_calc_matrix_final_no_offset(mpr, data->orig_matrix_final_no_offset, true);
 
-	if (manipulator_window_project_2d(
-	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)
+	if (manipulator_window_project_3d(
+	        C, mpr, (const float[2]){UNPACK2(event->mval)}, false, data->orig_mouse) == 0)
 	{
-		zero_v2(data->orig_mouse);
+		zero_v3(data->orig_mouse);
 	}
 
 	mpr->interaction_data = data;
@@ -474,7 +472,6 @@ static int manipulator_cage3d_invoke(
 	return OPERATOR_RUNNING_MODAL;
 }
 
-/* XXX. this isn't working properly, for now rely on the modal operators. */
 static int manipulator_cage3d_modal(
         bContext *C, wmManipulator *mpr, const wmEvent *event,
         eWM_ManipulatorTweak UNUSED(tweak_flag))
@@ -487,7 +484,7 @@ static int manipulator_cage3d_modal(
 	 * - Matrix translation is also multiplied by 'dims'.
 	 */
 	RectTransformInteraction *data = mpr->interaction_data;
-	float point_local[2];
+	float point_local[3];
 
 	float dims[3];
 	RNA_float_get_array(mpr->ptr, "dimensions", dims);
@@ -497,8 +494,8 @@ static int manipulator_cage3d_modal(
 		copy_m4_m4(matrix_back, mpr->matrix_offset);
 		copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
 
-		bool ok = manipulator_window_project_2d(
-		        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, point_local);
+		bool ok = manipulator_window_project_3d(
+		        C, mpr, (const float[2]){UNPACK2(event->mval)}, false, point_local);
 		copy_m4_m4(mpr->matrix_offset, matrix_back);
 		if (!ok) {
 			return OPERATOR_RUNNING_MODAL;
@@ -518,46 +515,10 @@ static int manipulator_cage3d_modal(
 		copy_m4_m4(mpr->matrix_offset, data->orig_matrix_offset);
 		mpr->matrix_offset[3][0] = data->orig_matrix_offset[3][0] + (point_local[0] - data->orig_mouse[0]);
 		mpr->matrix_offset[3][1] = data->orig_matrix_offset[3][1] + (point_local[1] - data->orig_mouse[1]);
+		mpr->matrix_offset[3][2] = data->orig_matrix_offset[3][2] + (point_local[2] - data->orig_mouse[2]);
 	}
 	else if (mpr->highlight_part == ED_MANIPULATOR_CAGE3D_PART_ROTATE) {
-
-#define MUL_V2_V3_M4_FINAL(test_co, mouse_co) \
-		mul_v3_m4v3(test_co, data->orig_matrix_final_no_offset, ((const float[3]){UNPACK2(mouse_co), 0.0}))
-
-		float test_co[3];
-
-		if (data->dial == NULL) {
-			MUL_V2_V3_M4_FINAL(test_co, data->orig_matrix_offset[3]);
-
-			data->dial = BLI_dial_initialize(test_co, FLT_EPSILON);
-
-			MUL_V2_V3_M4_FINAL(test_co, data->orig_mouse);
-			BLI_dial_angle(data->dial, test_co);
-		}
-
-		/* rotate */
-		MUL_V2_V3_M4_FINAL(test_co, point_local);
-		const float angle =  BLI_dial_angle(data->dial, test_co);
-
-		float matrix_space_inv[4][4];
-		float matrix_rotate[4][4];
-		float pivot[3];
-
-		copy_v3_v3(pivot, data->orig_matrix_offset[3]);
-
-		invert_m4_m4(matrix_space_inv, mpr->matrix_space);
-
-		unit_m4(matrix_rotate);
-		mul_m4_m4m4(matrix_rotate, matrix_rotate, matrix_space_inv);
-		rotate_m4(matrix_rotate, 'Z', -angle);
-		mul_m4_m4m4(matrix_rotate, matrix_rotate, mpr->matrix_space);
-
-		zero_v3(matrix_rotate[3]);
-		transform_pivot_set_m4(matrix_rotate, pivot);
-
-		mul_m4_m4m4(mpr->matrix_offset, matrix_rotate, data->orig_matrix_offset);
-
-#undef MUL_V2_V3_M4_FINAL
+		/* TODO (if needed) */
 	}
 	else {
 		/* scale */
@@ -575,10 +536,7 @@ static int manipulator_cage3d_modal(
 		/* Cursor deltas scaled to (-0.5..0.5). */
 		float delta_orig[3], delta_curr[3];
 
-		delta_orig[2] = 0.0;
-		delta_curr[2] = 0.0;
-
-		for (int i = 0; i < 2; i++) {
+		for (int i = 0; i < 3; i++) {
 			delta_orig[i] = ((data->orig_mouse[i] - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
 			delta_curr[i] = ((point_local[i]      - data->orig_matrix_offset[3][i]) / dims[i]) - pivot[i];
 		}
@@ -660,8 +618,6 @@ static void manipulator_cage3d_property_update(wmManipulator *mpr, wmManipulator
 static void manipulator_cage3d_exit(bContext *C, wmManipulator *mpr, const bool cancel)
 {
 	RectTransformInteraction *data = mpr->interaction_data;
-
-	MEM_SAFE_FREE(data->dial);
 
 	if (!cancel)
 		return;
