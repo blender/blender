@@ -2665,43 +2665,59 @@ static int edbm_merge_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	const int type = RNA_enum_get(op->ptr, "type");
 	const bool uvs = RNA_boolean_get(op->ptr, "uvs");
-	bool ok = false;
 
-	switch (type) {
-		case MESH_MERGE_CENTER:
-			ok = merge_target(em, scene, v3d, obedit, false, uvs, op);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+
+		bool ok = false;
+		switch (type) {
+			case MESH_MERGE_CENTER:
+				ok = merge_target(em, scene, v3d, obedit, false, uvs, op);
+				break;
+			case MESH_MERGE_CURSOR:
+				ok = merge_target(em, scene, v3d, obedit, true, uvs, op);
+				break;
+			case MESH_MERGE_LAST:
+				ok = merge_firstlast(em, false, uvs, op);
+				break;
+			case MESH_MERGE_FIRST:
+				ok = merge_firstlast(em, true, uvs, op);
+				break;
+			case MESH_MERGE_COLLAPSE:
+				ok = EDBM_op_callf(em, op, "collapse edges=%he uvs=%b", BM_ELEM_SELECT, uvs);
+				break;
+			default:
+				BLI_assert(0);
+				break;
+		}
+
+		if (!ok) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
+
+		/* once collapsed, we can't have edge/face selection */
+		if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		}
+		/* Only active object supported, see comment below. */
+		if (ELEM(type, MESH_MERGE_FIRST, MESH_MERGE_LAST)) {
 			break;
-		case MESH_MERGE_CURSOR:
-			ok = merge_target(em, scene, v3d, obedit, true, uvs, op);
-			break;
-		case MESH_MERGE_LAST:
-			ok = merge_firstlast(em, false, uvs, op);
-			break;
-		case MESH_MERGE_FIRST:
-			ok = merge_firstlast(em, true, uvs, op);
-			break;
-		case MESH_MERGE_COLLAPSE:
-			ok = EDBM_op_callf(em, op, "collapse edges=%he uvs=%b", BM_ELEM_SELECT, uvs);
-			break;
-		default:
-			BLI_assert(0);
-			break;
+		}
 	}
 
-	if (!ok) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
-
-	/* once collapsed, we can't have edge/face selection */
-	if ((em->selectmode & SCE_SELECT_VERTEX) == 0) {
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -2728,6 +2744,10 @@ static const EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(
 	if (obedit && obedit->type == OB_MESH) {
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
+		/* Only active object supported:
+		 * In practice it doesn't make sense to run this operation on non-active meshes
+		 * since selecting will activate - we could have own code-path for these but it's a hassle
+		 * for now just apply to the active (first) object. */
 		if (em->selectmode & SCE_SELECT_VERTEX) {
 			if (em->bm->selected.first && em->bm->selected.last &&
 			    ((BMEditSelection *)em->bm->selected.first)->htype == BM_VERT &&
