@@ -20,7 +20,6 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "MOD_modifier_helpers.h"
 #include "MOD_util.h"
 
 typedef struct SDefAdjacency {

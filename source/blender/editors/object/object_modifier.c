@@ -90,8 +90,6 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "MOD_modifier_helpers.h"
-
 #include "object_intern.h"
 
 static void modifier_skin_customdata_delete(struct Object *ob);
