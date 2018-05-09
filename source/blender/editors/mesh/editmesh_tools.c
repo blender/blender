@@ -3786,38 +3786,47 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 	int retval = 0;
 
 	if (ED_operator_editmesh(C)) {
-		Base *base = CTX_data_active_base(C);
-		BMEditMesh *em = BKE_editmesh_from_object(base->object);
+		uint bases_len = 0;
+		uint empty_selection_len = 0;
+		Base **bases = BKE_view_layer_array_from_bases_in_edit_mode_unique_data(view_layer, &bases_len);
+		for (uint bs_index = 0; bs_index < bases_len; bs_index++) {
+			Base *base = bases[bs_index];
+			BMEditMesh *em = BKE_editmesh_from_object(base->object);
 
-		if (type == 0) {
-			if ((em->bm->totvertsel == 0) &&
-			    (em->bm->totedgesel == 0) &&
-			    (em->bm->totfacesel == 0))
-			{
-				BKE_report(op->reports, RPT_ERROR, "Nothing selected");
-				return OPERATOR_CANCELLED;
+			if (type == 0) {
+				if ((em->bm->totvertsel == 0) &&
+					(em->bm->totedgesel == 0) &&
+					(em->bm->totfacesel == 0))
+				{
+					/* when all objects has no selection */
+					if (++empty_selection_len == bases_len) {
+						BKE_report(op->reports, RPT_ERROR, "Nothing selected");
+					}
+					continue;
+				}
+			}
+
+			/* editmode separate */
+			switch (type) {
+				case MESH_SEPARATE_SELECTED:
+					retval = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
+					break;
+				case MESH_SEPARATE_MATERIAL:
+					retval = mesh_separate_material(bmain, scene, view_layer, base, em->bm);
+					break;
+				case MESH_SEPARATE_LOOSE:
+					retval = mesh_separate_loose(bmain, scene, view_layer, base, em->bm);
+					break;
+				default:
+					BLI_assert(0);
+					break;
+			}
+
+			if (retval) {
+				EDBM_update_generic(em, true, true);
 			}
 		}
-
-		/* editmode separate */
-		switch (type) {
-			case MESH_SEPARATE_SELECTED:
-				retval = mesh_separate_selected(bmain, scene, view_layer, base, em->bm);
-				break;
-			case MESH_SEPARATE_MATERIAL:
-				retval = mesh_separate_material(bmain, scene, view_layer, base, em->bm);
-				break;
-			case MESH_SEPARATE_LOOSE:
-				retval = mesh_separate_loose(bmain, scene, view_layer, base, em->bm);
-				break;
-			default:
-				BLI_assert(0);
-				break;
-		}
-
-		if (retval) {
-			EDBM_update_generic(em, true, true);
-		}
+		MEM_freeN(bases);
 	}
 	else {
 		if (type == MESH_SEPARATE_SELECTED) {
