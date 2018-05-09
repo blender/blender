@@ -41,17 +41,21 @@
 #include "BLI_utildefines.h"
 #include "BLI_math_matrix.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_library_query.h"
 #include "BKE_modifier.h"
 
 #include "MOD_util.h"
 
-
 #include "BLI_alloca.h"
 #include "BLI_math_geom.h"
 #include "BKE_material.h"
 #include "BKE_global.h"  /* only to check G.debug */
+#include "BKE_mesh.h"
+#include "BKE_library.h"
+
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
@@ -97,25 +101,25 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Boolean Modifier");
 }
 
-static DerivedMesh *get_quick_derivedMesh(
-        Object *ob_self,  DerivedMesh *dm_self,
-        Object *ob_other, DerivedMesh *dm_other,
+static Mesh *get_quick_mesh(
+        Object *ob_self,  Mesh *mesh_self,
+        Object *ob_other, Mesh *mesh_other,
         int operation)
 {
-	DerivedMesh *result = NULL;
+	Mesh *result = NULL;
 
-	if (dm_self->getNumPolys(dm_self) == 0 || dm_other->getNumPolys(dm_other) == 0) {
+	if (mesh_self->totpoly == 0 || mesh_other->totpoly == 0) {
 		switch (operation) {
 			case eBooleanModifierOp_Intersect:
-				result = CDDM_new(0, 0, 0, 0, 0);
+				result = BKE_mesh_new_nomain(0, 0, 0, 0, 0);
 				break;
 
 			case eBooleanModifierOp_Union:
-				if (dm_self->getNumPolys(dm_self) != 0) {
-					result = dm_self;
+				if (mesh_self->totpoly != 0) {
+					result = mesh_self;
 				}
 				else {
-					result = CDDM_copy(dm_other);
+					BKE_id_copy_ex(NULL, &mesh_other->id, (ID **)&result, LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
 
 					float imat[4][4];
 					float omat[4][4];
@@ -123,20 +127,20 @@ static DerivedMesh *get_quick_derivedMesh(
 					invert_m4_m4(imat, ob_self->obmat);
 					mul_m4_m4m4(omat, imat, ob_other->obmat);
 
-					const int mverts_len = result->getNumVerts(result);
-					MVert *mv = CDDM_get_verts(result);
+					const int mverts_len = result->totvert;
+					MVert *mv = result->mvert;
 
 					for (int i = 0; i < mverts_len; i++, mv++) {
 						mul_m4_v3(omat, mv->co);
 					}
 
-					result->dirty |= DM_DIRTY_NORMALS;
+					result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 				}
 
 				break;
 
 			case eBooleanModifierOp_Difference:
-				result = dm_self;
+				result = mesh_self;
 				break;
 		}
 	}
@@ -156,31 +160,29 @@ static int bm_face_isect_pair(BMFace *f, void *UNUSED(user_data))
 	return BM_elem_flag_test(f, BM_FACE_TAG) ? 1 : 0;
 }
 
-static DerivedMesh *applyModifier(
-        ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *dm)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh)
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
-	DerivedMesh *dm_other;
+	Mesh *mesh_other;
 
 	if (!bmd->object)
-		return dm;
+		return mesh;
 
-	dm_other = get_dm_for_modifier(bmd->object, ctx->flag);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(bmd->object, ctx->flag);
 
-	if (dm_other) {
-		DerivedMesh *result;
+	if (mesh_other) {
+		Mesh *result;
 
 		/* when one of objects is empty (has got no faces) we could speed up
 		 * calculation a bit returning one of objects' derived meshes (or empty one)
 		 * Returning mesh is depended on modifiers operation (sergey) */
-		result = get_quick_derivedMesh(ctx->object, dm, bmd->object, dm_other, bmd->operation);
+		result = get_quick_mesh(ctx->object, mesh, bmd->object, mesh_other, bmd->operation);
 
 		if (result == NULL) {
 			const bool is_flip = (is_negative_m4(ctx->object->obmat) != is_negative_m4(bmd->object->obmat));
 
 			BMesh *bm;
-			const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_DM(dm, dm_other);
+			const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_other);
 
 #ifdef DEBUG_TIME
 			TIMEIT_START(boolean_bmesh);
@@ -189,7 +191,7 @@ static DerivedMesh *applyModifier(
 			         &allocsize,
 			         &((struct BMeshCreateParams){.use_toolflags = false,}));
 
-			DM_to_bmesh_ex(dm_other, bm, true);
+			BM_mesh_bm_from_me(bm, mesh_other, &((struct BMeshFromMeshParams){.calc_face_normal = true,}));
 
 			if (UNLIKELY(is_flip)) {
 				const int cd_loop_mdisp_offset = CustomData_get_offset(&bm->ldata, CD_MDISPS);
@@ -200,7 +202,7 @@ static DerivedMesh *applyModifier(
 				}
 			}
 
-			DM_to_bmesh_ex(dm, bm, true);
+			BM_mesh_bm_from_me(bm, mesh, &((struct BMeshFromMeshParams){.calc_face_normal = true,}));
 
 			/* main bmesh intersection setup */
 			{
@@ -218,8 +220,8 @@ static DerivedMesh *applyModifier(
 				{
 					BMIter iter;
 					int i;
-					const int i_verts_end = dm_other->getNumVerts(dm_other);
-					const int i_faces_end = dm_other->getNumPolys(dm_other);
+					const int i_verts_end = mesh_other->totvert;
+					const int i_faces_end = mesh_other->totpoly;
 
 					float imat[4][4];
 					float omat[4][4];
@@ -301,11 +303,11 @@ static DerivedMesh *applyModifier(
 				MEM_freeN(looptris);
 			}
 
-			result = CDDM_from_bmesh(bm, true);
+			result = BKE_bmesh_to_mesh_nomain(bm, &((struct BMeshToMeshParams){0}));
 
 			BM_mesh_free(bm);
 
-			result->dirty |= DM_DIRTY_NORMALS;
+			result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 
 #ifdef DEBUG_TIME
 			TIMEIT_END(boolean_bmesh);
@@ -322,7 +324,7 @@ static DerivedMesh *applyModifier(
 			modifier_setError(md, "Cannot execute boolean operation");
 	}
 
-	return dm;
+	return mesh;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(md))
@@ -348,14 +350,14 @@ ModifierTypeInfo modifierType_Boolean = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
