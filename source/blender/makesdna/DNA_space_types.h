@@ -279,12 +279,12 @@ typedef enum eSpaceOutliner_Flag {
 /* SpaceOops->filter */
 typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_SEARCH           = (1 << 0),
-	SO_FILTER_ENABLE           = (1 << 1),
-	SO_FILTER_NO_OBJECT        = (1 << 2),
+	/* SO_FILTER_ENABLE           = (1 << 1), */ /* Deprecated */
+	/* SO_FILTER_NO_OBJECT        = (1 << 2), */ /* Deprecated */
 	SO_FILTER_NO_OB_CONTENT    = (1 << 3), /* Not only mesh, but modifiers, constraints, ... */
 	SO_FILTER_NO_CHILDREN      = (1 << 4),
 
-	SO_FILTER_OB_TYPE          = (1 << 5),
+	/* SO_FILTER_OB_TYPE          = (1 << 5), */ /* Deprecated */
 	SO_FILTER_NO_OB_MESH       = (1 << 6),
 	SO_FILTER_NO_OB_ARMATURE   = (1 << 7),
 	SO_FILTER_NO_OB_EMPTY      = (1 << 8),
@@ -292,22 +292,25 @@ typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_NO_OB_CAMERA     = (1 << 10),
 	SO_FILTER_NO_OB_OTHERS     = (1 << 11),
 
-	SO_FILTER_OB_STATE          = (1 << 12),
+	/* SO_FILTER_OB_STATE          = (1 << 12), */ /* Deprecated */
 	SO_FILTER_OB_STATE_VISIBLE  = (1 << 13), /* Not set via DNA. */
 	SO_FILTER_OB_STATE_SELECTED = (1 << 14), /* Not set via DNA. */
 	SO_FILTER_OB_STATE_ACTIVE   = (1 << 15), /* Not set via DNA. */
 	SO_FILTER_NO_COLLECTION     = (1 << 16),
 } eSpaceOutliner_Filter;
 
-#define SO_FILTER_NO_OB_ALL (SO_FILTER_NO_OB_MESH | \
-                             SO_FILTER_NO_OB_ARMATURE | \
-                             SO_FILTER_NO_OB_EMPTY | \
-                             SO_FILTER_NO_OB_LAMP | \
-                             SO_FILTER_NO_OB_CAMERA | \
-                             SO_FILTER_NO_OB_OTHERS)
+#define SO_FILTER_OB_TYPE (SO_FILTER_NO_OB_MESH | \
+                           SO_FILTER_NO_OB_ARMATURE | \
+                           SO_FILTER_NO_OB_EMPTY | \
+                           SO_FILTER_NO_OB_LAMP | \
+                           SO_FILTER_NO_OB_CAMERA | \
+                           SO_FILTER_NO_OB_OTHERS)
 
-#define SO_FILTER_ANY (SO_FILTER_NO_OBJECT | \
-                       SO_FILTER_NO_OB_CONTENT | \
+#define SO_FILTER_OB_STATE (SO_FILTER_OB_STATE_VISIBLE | \
+                            SO_FILTER_OB_STATE_SELECTED | \
+                            SO_FILTER_OB_STATE_ACTIVE)
+
+#define SO_FILTER_ANY (SO_FILTER_NO_OB_CONTENT | \
                        SO_FILTER_NO_CHILDREN | \
                        SO_FILTER_OB_TYPE | \
                        SO_FILTER_OB_STATE | \
@@ -315,9 +318,11 @@ typedef enum eSpaceOutliner_Filter {
 
 /* SpaceOops->filter_state */
 typedef enum eSpaceOutliner_StateFilter {
-	SO_FILTER_OB_VISIBLE       = 0,
-	SO_FILTER_OB_SELECTED      = 1,
-	SO_FILTER_OB_ACTIVE        = 2,
+	SO_FILTER_OB_ALL           = 0,
+	SO_FILTER_OB_VISIBLE       = 1,
+	SO_FILTER_OB_SELECTED      = 2,
+	SO_FILTER_OB_ACTIVE        = 3,
+	SO_FILTER_OB_NONE          = 4,
 } eSpaceOutliner_StateFilter;
 
 /* SpaceOops->outlinevis */

@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu
+from bpy.types import Header, Menu, Panel
 
 
 class OUTLINER_HT_header(Header):
@@ -65,46 +65,13 @@ class OUTLINER_HT_header(Header):
             row.prop(space, "use_filter_complete", text="")
             row.prop(space, "use_filter_case_sensitive", text="")
 
+        row = layout.row()
         if support_filters:
-            row.separator()
-
-            row.prop(space, "use_filters", text="")
-            if space.use_filters:
-                row.separator()
-                row.prop(space, "use_filter_collection", text="")
-                row.prop(space, "use_filter_object", text="")
-                sub = row.row(align=True)
-                sub.active = space.use_filter_object
-                sub.prop(space, "use_filter_object_content", text="")
-                sub.prop(space, "use_filter_children", text="")
-
-                sub.separator()
-                sub.prop(space, "use_filter_object_type", text="")
-
-                if space.use_filter_object_type:
-                    if bpy.data.meshes:
-                        sub.prop(space, "use_filter_object_mesh", text="")
-                    if bpy.data.armatures:
-                        sub.prop(space, "use_filter_object_armature", text="")
-                    if bpy.data.lamps:
-                        sub.prop(space, "use_filter_object_lamp", text="")
-                    if bpy.data.cameras:
-                        sub.prop(space, "use_filter_object_camera", text="")
-
-                    sub.prop(space, "use_filter_object_empty", text="")
-
-                    if bpy.data.curves or \
-                       bpy.data.metaballs or \
-                       bpy.data.lightprobes or \
-                       bpy.data.lattices or \
-                       bpy.data.fonts or bpy.data.speakers:
-                        sub.prop(space, "use_filter_object_others", text="")
-
-                sub.separator()
-                sub.prop(space, "use_filter_object_state", text="")
-
-                if space.use_filter_object_state:
-                    sub.prop(space, "filter_state", text="", expand=True)
+            row.popover(space_type='OUTLINER',
+                        region_type='HEADER',
+                        panel_type="OUTLINER_PT_filter",
+                        text="",
+                        icon='FILTER')
 
 
 class OUTLINER_MT_editor_menus(Menu):
@@ -247,6 +214,50 @@ class OUTLINER_MT_context_object(Menu):
         layout.operator("outliner.object_operation", text="Rename").type='RENAME'
 
 
+class OUTLINER_PT_filter(Panel):
+    bl_space_type = 'OUTLINER'
+    bl_region_type = 'HEADER'
+    bl_label = "Filter"
+
+    def draw(self, context):
+        layout = self.layout
+
+        space = context.space_data
+
+        col = layout.column()
+        col.prop(space, "filter_state", text="")
+        sub = col.column(align=True)
+        sub.active = space.filter_state != 'NONE'
+        sub.prop(space, "use_filter_object_content", text="Object Contents")
+        sub.prop(space, "use_filter_children", text="Object Children")
+
+        layout.separator()
+
+        col = layout.column_flow(align=True)
+        col.active = space.filter_state != 'NONE'
+
+        if bpy.data.meshes:
+            col.prop(space, "use_filter_object_mesh", text="Meshes")
+        if bpy.data.armatures:
+            col.prop(space, "use_filter_object_armature", text="Armatures")
+        if bpy.data.lamps:
+            col.prop(space, "use_filter_object_lamp", text="Lamps")
+        if bpy.data.cameras:
+            col.prop(space, "use_filter_object_camera", text="Cameras")
+
+        col.prop(space, "use_filter_object_empty", text="Empties")
+
+        if bpy.data.curves or \
+           bpy.data.metaballs or \
+           bpy.data.lightprobes or \
+           bpy.data.lattices or \
+           bpy.data.fonts or bpy.data.speakers:
+            col.prop(space, "use_filter_object_others", text="Others")
+
+        layout.separator()
+        layout.prop(space, "use_filter_collection", text="Collections")
+
+
 classes = (
     OUTLINER_HT_header,
     OUTLINER_MT_editor_menus,
@@ -259,6 +270,7 @@ classes = (
     OUTLINER_MT_context_object_delete,
     OUTLINER_MT_context_object_select,
     OUTLINER_MT_context_object_collection,
+    OUTLINER_PT_filter,
 )
 
 if __name__ == "__main__":  # only for live edit.

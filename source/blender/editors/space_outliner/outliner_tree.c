@@ -1833,9 +1833,7 @@ static void outliner_store_scrolling_position(SpaceOops *soops, ARegion *ar, Out
 
 static int outliner_exclude_filter_get(SpaceOops *soops)
 {
-	int exclude_filter = soops->filter & ~(SO_FILTER_OB_STATE_VISIBLE |
-	                                       SO_FILTER_OB_STATE_SELECTED |
-	                                       SO_FILTER_OB_STATE_ACTIVE);
+	int exclude_filter = soops->filter & ~SO_FILTER_OB_STATE;
 
 	if (soops->filter & SO_FILTER_SEARCH) {
 		if (soops->search_string[0] == 0) {
@@ -1848,26 +1846,19 @@ static int outliner_exclude_filter_get(SpaceOops *soops)
 		return (exclude_filter & SO_FILTER_SEARCH);
 	}
 
-	if ((exclude_filter & SO_FILTER_NO_OB_ALL) == 0) {
-		exclude_filter &= ~SO_FILTER_OB_TYPE;
-	}
-
-	if (exclude_filter & SO_FILTER_OB_STATE) {
-		switch (soops->filter_state) {
-			case SO_FILTER_OB_VISIBLE:
-				exclude_filter |= SO_FILTER_OB_STATE_VISIBLE;
-				break;
-			case SO_FILTER_OB_SELECTED:
-				exclude_filter |= SO_FILTER_OB_STATE_SELECTED;
-				break;
-			case SO_FILTER_OB_ACTIVE:
-				exclude_filter |= SO_FILTER_OB_STATE_ACTIVE;
-				break;
-		}
-	}
-
-	if ((exclude_filter & SO_FILTER_ANY) == 0) {
-		exclude_filter &= ~(SO_FILTER_OB_STATE);
+	switch (soops->filter_state) {
+		case SO_FILTER_OB_NONE:
+			exclude_filter |= SO_FILTER_OB_TYPE;
+			break;
+		case SO_FILTER_OB_VISIBLE:
+			exclude_filter |= SO_FILTER_OB_STATE_VISIBLE;
+			break;
+		case SO_FILTER_OB_SELECTED:
+			exclude_filter |= SO_FILTER_OB_STATE_SELECTED;
+			break;
+		case SO_FILTER_OB_ACTIVE:
+			exclude_filter |= SO_FILTER_OB_STATE_ACTIVE;
+			break;
 	}
 
 	return exclude_filter;
@@ -1875,13 +1866,13 @@ static int outliner_exclude_filter_get(SpaceOops *soops)
 
 static bool outliner_element_visible_get(ViewLayer *view_layer, TreeElement *te, const int exclude_filter)
 {
-	if ((exclude_filter & SO_FILTER_ENABLE) == 0) {
+	if ((exclude_filter & SO_FILTER_ANY) == 0) {
 		return true;
 	}
 
 	TreeStoreElem *tselem = TREESTORE(te);
 	if ((tselem->type == 0) && (te->idcode == ID_OB)) {
-		if ((exclude_filter & SO_FILTER_NO_OBJECT)) {
+		if ((exclude_filter & SO_FILTER_OB_TYPE) == SO_FILTER_OB_TYPE) {
 			return false;
 		}
 
@@ -2202,7 +2193,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 		tenlay->directdata = view_layer;
 		TREESTORE(tenlay)->flag &= ~TSE_CLOSED;
 
-		if ((soops->filter & SO_FILTER_ENABLE) && (soops->filter & SO_FILTER_NO_COLLECTION)) {
+		if (soops->filter & SO_FILTER_NO_COLLECTION) {
 			for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 				TreeElement *te_object = outliner_add_element(soops, &tenlay->subtree, base->object, NULL, 0, 0);
 				te_object->directdata = base;

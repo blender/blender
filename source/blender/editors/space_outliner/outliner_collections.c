@@ -95,10 +95,7 @@ static int outliner_objects_collection_poll(bContext *C)
 	}
 
 	/* Groups don't support filtering. */
-	if ((so->outlinevis != SO_GROUPS) &&
-	    ((so->filter & (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION)) ==
-	    (SO_FILTER_ENABLE | SO_FILTER_NO_COLLECTION)))
-	{
+	if ((so->outlinevis != SO_GROUPS) && (so->filter & SO_FILTER_NO_COLLECTION)) {
 		return 0;
 	}
 

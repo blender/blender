@@ -2089,8 +2089,7 @@ static int outliner_parenting_poll(bContext *C)
 		}
 
 		if (soops->outlinevis == SO_COLLECTIONS) {
-			return ((soops->filter & SO_FILTER_ENABLE) &&
-			        (soops->filter & SO_FILTER_NO_COLLECTION));
+			return (soops->filter & SO_FILTER_NO_COLLECTION);
 		}
 	}
 

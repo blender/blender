@@ -2036,9 +2036,11 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	};
 
 	static const EnumPropertyItem filter_state_items[] = {
-		{SO_FILTER_OB_VISIBLE, "VISIBLE", ICON_RESTRICT_VIEW_OFF, "Visible", "Show visible objects"},
-		{SO_FILTER_OB_SELECTED, "SELECTED", ICON_RESTRICT_SELECT_OFF, "Selected", "Show selected objects"},
-		{SO_FILTER_OB_ACTIVE, "ACTIVE", ICON_LAYER_ACTIVE, "Active", "Show only the active object"},
+		{SO_FILTER_OB_NONE, "NONE", 0, "No Objects", "Don't show objects"},
+		{SO_FILTER_OB_ALL, "ALL", 0, "All Objects", "Show visible objects"},
+		{SO_FILTER_OB_VISIBLE, "VISIBLE", 0, "Visible Objects", "Show visible objects"},
+		{SO_FILTER_OB_SELECTED, "SELECTED", 0, "Selected Objects", "Show selected objects"},
+		{SO_FILTER_OB_ACTIVE, "ACTIVE", 0, "Active Object", "Show only the active object"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2088,91 +2090,57 @@ static void rna_def_space_outliner(BlenderRNA *brna)
 	RNA_def_property_ui_icon(prop, ICON_VIEWZOOM, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
-	prop = RNA_def_property(srna, "use_filters", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_ENABLE);
-	RNA_def_property_ui_text(prop, "Use Filters", "Use filters");
-	RNA_def_property_ui_icon(prop, ICON_FILTER, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
-
-	prop = RNA_def_property(srna, "use_filter_object", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OBJECT);
-	RNA_def_property_ui_text(prop, "Filter Objects", "Show objects");
-	RNA_def_property_ui_icon(prop, ICON_OBJECT_DATA, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
-
 	prop = RNA_def_property(srna, "use_filter_object_content", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_CONTENT);
-	RNA_def_property_ui_text(prop, "Filter Objects Contents", "Show what is inside the objects elements");
-	RNA_def_property_ui_icon(prop, ICON_MODIFIER, 0);
+	RNA_def_property_ui_text(prop, "Show Object Contents", "Show what is inside the objects elements");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_children", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_CHILDREN);
-	RNA_def_property_ui_text(prop, "Filter Objects Children", "Show children");
-	RNA_def_property_ui_icon(prop, ICON_PLUS, 0);
+	RNA_def_property_ui_text(prop, "Show Object Children", "Show children");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_collection", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_COLLECTION);
-	RNA_def_property_ui_text(prop, "Filter Collections", "Show collections");
-	RNA_def_property_ui_icon(prop, ICON_COLLAPSEMENU, 0);
+	RNA_def_property_ui_text(prop, "Show Collections", "Show collections");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	/* Filters object state. */
-	prop = RNA_def_property(srna, "use_filter_object_state", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_OB_STATE);
-	RNA_def_property_ui_text(prop, "Filter Object State", "Filter objects based on their state (visible, ...)."
-	                                                      "This can be slow");
-	RNA_def_property_ui_icon(prop, ICON_LAYER_USED, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
-
 	prop = RNA_def_property(srna, "filter_state", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "filter_state");
 	RNA_def_property_enum_items(prop, filter_state_items);
-	RNA_def_property_ui_text(prop, "State Filter", "");
+	RNA_def_property_ui_text(prop, "Object State Filter", "");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	/* Filters object type. */
-	prop = RNA_def_property(srna, "use_filter_object_type", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "filter", SO_FILTER_OB_TYPE);
-	RNA_def_property_ui_text(prop, "Filter Object Type", "Show specific objects types");
-	RNA_def_property_ui_icon(prop, ICON_MESH_CUBE, 0);
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
-
 	prop = RNA_def_property(srna, "use_filter_object_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_MESH);
 	RNA_def_property_ui_text(prop, "Show Meshes", "Show mesh objects");
-	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_MESH, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_object_armature", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_ARMATURE);
 	RNA_def_property_ui_text(prop, "Show Armatures", "Show armature objects");
-	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_ARMATURE, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_object_empty", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_EMPTY);
 	RNA_def_property_ui_text(prop, "Show Empties", "Show empty objects");
-	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_EMPTY, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_object_lamp", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_LAMP);
 	RNA_def_property_ui_text(prop, "Show Lamps", "Show lamps objects");
-	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_LAMP, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_object_camera", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_CAMERA);
 	RNA_def_property_ui_text(prop, "Show Cameras", "Show camera objects");
-	RNA_def_property_ui_icon(prop, ICON_OUTLINER_OB_CAMERA, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 
 	prop = RNA_def_property(srna, "use_filter_object_others", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "filter", SO_FILTER_NO_OB_OTHERS);
 	RNA_def_property_ui_text(prop, "Show Other Objects", "Show curves, lattices, light probes, fonts, ...");
-	RNA_def_property_ui_icon(prop, ICON_ZOOMIN, 0);
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_OUTLINER, NULL);
 }
 
