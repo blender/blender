@@ -1096,81 +1096,96 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 
 static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMOperator bmop;
-	bool is_pair = (bm->totvertsel == 2);
-	int len = 0;
-	bool check_degenerate = true;
-	const int verts_len = bm->totvertsel;
-	BMVert **verts;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	uint failed_objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+		BMOperator bmop;
+		bool is_pair = (bm->totvertsel == 2);
+		int len = 0;
+		bool check_degenerate = true;
+		const int verts_len = bm->totvertsel;
+		BMVert **verts;
+		bool checks_succeded = true;
 
-	verts = MEM_mallocN(sizeof(*verts) * verts_len, __func__);
-	{
-		BMIter iter;
-		BMVert *v;
-		int i = 0;
-
-		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
-			if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
-				verts[i++] = v;
-			}
+		if (!is_pair) {
+			continue;
 		}
 
+		verts = MEM_mallocN(sizeof(*verts) * verts_len, __func__);
+		{
+			BMIter iter;
+			BMVert *v;
+			int i = 0;
+
+			BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+				if (BM_elem_flag_test(v, BM_ELEM_SELECT)) {
+					verts[i++] = v;
+				}
+			}
+
+			if (is_pair) {
+				if (BM_vert_pair_share_face_check_cb(
+					verts[0], verts[1],
+					BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
+				{
+					check_degenerate = false;
+					is_pair = false;
+				}
+			}
+		}
+		
 		if (is_pair) {
-			if (BM_vert_pair_share_face_check_cb(
-			        verts[0], verts[1],
-			        BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
+			if (!EDBM_op_init(
+				em, &bmop, op,
+				"connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
+				verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
 			{
-				check_degenerate = false;
-				is_pair = false;
+				checks_succeded = false;
 			}
 		}
-	}
-
-	if (is_pair) {
-		if (!EDBM_op_init(
-		            em, &bmop, op,
-		            "connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
-		            verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
+		else {
+			if (!EDBM_op_init(
+				em, &bmop, op,
+				"connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
+				verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
+			{
+				checks_succeded = false;
+			}
+		}
+		if (checks_succeded)
 		{
-			goto finally;
+			BMO_op_exec(bm, &bmop);
+			len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
+
+			if (len) {
+				if (is_pair) {
+					/* new verts have been added, we have to select the edges, not just flush */
+					BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+				}
+			}
+
+			if (!EDBM_op_finish(em, &bmop, op, true)) {
+				len = 0;
+			}
+			else {
+				EDBM_selectmode_flush(em);  /* so newly created edges get the selection state from the vertex */
+
+				EDBM_update_generic(em, true, true);
+			}
 		}
-	}
-	else {
-		if (!EDBM_op_init(
-		            em, &bmop, op,
-		            "connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
-		            verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
+		MEM_freeN(verts);
+		if (len == 0)
 		{
-			goto finally;
+			failed_objects_len++;
 		}
 	}
-
-	BMO_op_exec(bm, &bmop);
-	len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
-
-	if (len) {
-		if (is_pair) {
-			/* new verts have been added, we have to select the edges, not just flush */
-			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
-		}
-	}
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		len = 0;
-	}
-	else {
-		EDBM_selectmode_flush(em);  /* so newly created edges get the selection state from the vertex */
-
-		EDBM_update_generic(em, true, true);
-	}
-
-
-finally:
-	MEM_freeN(verts);
-	return len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	MEM_freeN(objects);
+	return failed_objects_len == objects_len ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
 
 void MESH_OT_vert_connect(wmOperatorType *ot)
