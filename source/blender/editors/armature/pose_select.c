@@ -455,37 +455,46 @@ void POSE_OT_select_all(wmOperatorType *ot)
 
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
-	bArmature *arm = (bArmature *)ob->data;
-	bPoseChannel *pchan, *parent;
+	/* only clear relevant transforms for selected bones */
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	FOREACH_OBJECT_IN_MODE_BEGIN (view_layer, OB_MODE_POSE, ob_iter)
+	{
+		Object *ob = ob_iter;
+		bArmature *arm = (bArmature *)ob->data;
+		bPoseChannel *pchan, *parent;
 
-	/* Determine if there is an active bone */
-	pchan = CTX_data_active_pose_bone(C);
-	if (pchan) {
-		parent = pchan->parent;
-		if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
-			parent->bone->flag |= BONE_SELECTED;
-			arm->act_bone = parent->bone;
-		}
-		else {
-			return OPERATOR_CANCELLED;
-		}
-	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
-	
-	/* updates */
-	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-	
-	if (arm->flag & ARM_HAS_VIZ_DEPS) {
-		/* mask modifier ('armature' mode), etc. */
-		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	}
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan)
+		{
+			if (pchan) {
+				parent = pchan->parent;
+				if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
+					parent->bone->flag |= BONE_SELECTED;
+					arm->act_bone = parent->bone;
+				}
+				else {
+					continue;
+				}
+			}
+			else {
+				continue;
+			}
 
-	/* tag armature for copy-on-write update (since act_bone is in armature not object) */
-	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
-	
+			/* updates */
+			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+
+			if (arm->flag & ARM_HAS_VIZ_DEPS) {
+				/* mask modifier ('armature' mode), etc. */
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
+
+			/* tag armature for copy-on-write update (since act_bone is in armature not object) */
+			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+
+		}
+		FOREACH_PCHAN_SELECTED_IN_OBJECT_END;
+	}
+	FOREACH_OBJECT_IN_MODE_END;
+
 	return OPERATOR_FINISHED;
 }
 
