@@ -34,6 +34,7 @@ struct Gwn_VertBuf;
 struct ListBase;
 struct ModifierData;
 struct ParticleSystem;
+struct PTCacheEdit;
 
 struct Curve;
 struct Lattice;
@@ -124,5 +125,6 @@ void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 /* Particles */
 struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_particles_batch_cache_get_dots(struct Object *object, struct ParticleSystem *psys);
+struct Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(struct PTCacheEdit* edit);
 
 #endif /* __DRAW_CACHE_IMPL_H__ */

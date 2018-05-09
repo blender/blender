@@ -577,3 +577,16 @@ Gwn_Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *ps
 
 	return cache->hairs;
 }
+
+Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(PTCacheEdit* edit)
+{
+	ParticleSystem *psys = edit->psys;
+	ParticleBatchCache *cache = particle_batch_cache_get(psys);
+	if (cache->hairs != NULL) {
+		return cache->hairs;
+	}
+	ensure_seg_pt_count(psys, cache);
+	particle_batch_cache_ensure_pos_and_seg(psys, NULL, cache);
+	cache->hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP, cache->pos, cache->indices);
+	return cache->hairs;
+}

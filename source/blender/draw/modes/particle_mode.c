@@ -52,7 +52,7 @@ extern char datatoc_particle_strand_frag_glsl[];
 /* *********** LISTS *********** */
 
 typedef struct PARTICLE_PassList {
-	struct DRWPass *hair_pass;
+	struct DRWPass *psys_edit_pass;
 } PARTICLE_PassList;
 
 typedef struct PARTICLE_FramebufferList {
@@ -83,7 +83,7 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 typedef struct PARTICLE_PrivateData {
-	DRWShadingGroup *hair_group;
+	DRWShadingGroup *psys_edit_group;
 } PARTICLE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -110,18 +110,25 @@ static void particle_cache_init(void *vedata)
 	}
 
 	/* Create a pass */
-	psl->hair_pass = DRW_pass_create("Hair Pass", (DRW_STATE_WRITE_COLOR |
-	                                               DRW_STATE_WRITE_DEPTH |
-	                                               DRW_STATE_DEPTH_LESS |
-	                                               DRW_STATE_WIRE));
+	psl->psys_edit_pass = DRW_pass_create("PSys Edit Pass",
+	                                      (DRW_STATE_WRITE_COLOR |
+	                                       DRW_STATE_WRITE_DEPTH |
+	                                       DRW_STATE_DEPTH_LESS |
+	                                       DRW_STATE_WIRE));
 
-	stl->g_data->hair_group = DRW_shgroup_create(e_data.hair_shader,
-	                                             psl->hair_pass);
+	stl->g_data->psys_edit_group = DRW_shgroup_create(
+	        e_data.hair_shader, psl->psys_edit_pass);
+}
+
+static void particle_edit_cache_populate(void *vedata, PTCacheEdit* edit)
+{
+	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
+	struct Gwn_Batch *edit_strands = DRW_cache_particles_get_edit_strands(edit);
+	DRW_shgroup_call_add(stl->g_data->psys_edit_group, edit_strands, NULL);
 }
 
 static void particle_cache_populate(void *vedata, Object *object)
 {
-	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
 	for (ParticleSystem *psys = object->particlesystem.first;
 	     psys != NULL;
 	     psys = psys->next)
@@ -129,12 +136,11 @@ static void particle_cache_populate(void *vedata, Object *object)
 		if (!psys_check_enabled(object, psys, false)) {
 			continue;
 		}
-		if (PE_get_current_from_psys(psys) == NULL) {
+		PTCacheEdit* edit = PE_get_current_from_psys(psys);
+		if (edit == NULL) {
 			continue;
 		}
-		/* NOTE: Particle edit mode visualizes particles as strands. */
-		struct Gwn_Batch *hair = DRW_cache_particles_get_hair(psys, NULL);
-		DRW_shgroup_call_add(stl->g_data->hair_group, hair, NULL);
+		particle_edit_cache_populate(vedata, edit);
 		break;
 	}
 }
@@ -150,7 +156,7 @@ static void particle_draw_scene(void *vedata)
 
 	PARTICLE_PassList *psl = ((PARTICLE_Data *)vedata)->psl;
 
-	DRW_draw_pass(psl->hair_pass);
+	DRW_draw_pass(psl->psys_edit_pass);
 }
 
 static void particle_engine_free(void)
