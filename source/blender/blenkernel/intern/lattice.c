@@ -853,45 +853,40 @@ void lattice_deform_verts(Object *laOb, Object *target, Mesh *mesh,
                           float (*vertexCos)[3], int numVerts, const char *vgroup, float fac)
 {
 	LatticeDeformData *lattice_deform_data;
+	MDeformVert *dvert = NULL;
+	int defgrp_index = -1;
 	int a;
-	bool use_vgroups;
 
 	if (laOb->type != OB_LATTICE)
 		return;
 
 	lattice_deform_data = init_latt_deform(laOb, target);
 
-	/* check whether to use vertex groups (only possible if target is a Mesh)
-	 * we want either a Mesh with no derived data, or derived data with
-	 * deformverts
+	/* Check whether to use vertex groups (only possible if target is a Mesh or Lattice).
+	 * We want either a Mesh/Lattice with no derived data, or derived data with deformverts.
 	 */
-	if (target && target->type == OB_MESH) {
-		/* if there's derived data without deformverts, don't use vgroups */
-		if (mesh) {
-			use_vgroups = (mesh->dvert != NULL);
-		}
-		else {
-			Mesh *me = target->data;
-			use_vgroups = (me->dvert != NULL);
+	if (vgroup && vgroup[0] && target && ELEM(target->type, OB_MESH, OB_LATTICE)) {
+		defgrp_index = defgroup_name_index(target, vgroup);
+
+		if (defgrp_index != -1) {
+			/* if there's derived data without deformverts, don't use vgroups */
+			if (mesh) {
+				dvert = CustomData_get_layer(&mesh->vdata, CD_MDEFORMVERT);
+			}
+			else if (target->type == OB_LATTICE) {
+				dvert = ((Lattice *)target->data)->dvert;
+			}
+			else {
+				dvert = ((Mesh *)target->data)->dvert;
+			}
 		}
 	}
-	else {
-		use_vgroups = false;
-	}
-	
-	if (vgroup && vgroup[0] && use_vgroups) {
-		Mesh *me = target->data;
-		const int defgrp_index = defgroup_name_index(target, vgroup);
-		float weight;
-
-		if (defgrp_index >= 0 && (me->dvert || mesh)) {
-			MDeformVert *dvert = mesh ? mesh->dvert : me->dvert;
-			
-			for (a = 0; a < numVerts; a++, dvert++) {
-				weight = defvert_find_weight(dvert, defgrp_index);
-
-				if (weight > 0.0f)
-					calc_latt_deform(lattice_deform_data, vertexCos[a], weight * fac);
+	if (dvert) {
+		MDeformVert *dvert_iter;
+		for (a = 0, dvert_iter = dvert; a < numVerts; a++, dvert_iter++) {
+			const float weight = defvert_find_weight(dvert_iter, defgrp_index);
+			if (weight > 0.0f) {
+				calc_latt_deform(lattice_deform_data, vertexCos[a], weight * fac);
 			}
 		}
 	}
