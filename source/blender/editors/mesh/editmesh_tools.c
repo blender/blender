@@ -4316,40 +4316,51 @@ void MESH_OT_fill_holes(wmOperatorType *ot)
 
 static int edbm_beautify_fill_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	const float angle_max = M_PI;
 	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
 	char hflag;
 
-	if (angle_limit >= angle_max) {
-		hflag = BM_ELEM_SELECT;
-	}
-	else {
-		BMIter iter;
-		BMEdge *e;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-			BM_elem_flag_set(
-			        e, BM_ELEM_TAG,
-			        (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
-			         BM_edge_calc_face_angle_ex(e, angle_max) < angle_limit));
-
+		if (em->bm->totfacesel == 0) {
+			continue;
 		}
 
-		hflag = BM_ELEM_TAG;
+		if (angle_limit >= angle_max) {
+			hflag = BM_ELEM_SELECT;
+		}
+		else {
+			BMIter iter;
+			BMEdge *e;
+
+			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+				BM_elem_flag_set(
+				        e, BM_ELEM_TAG,
+				        (BM_elem_flag_test(e, BM_ELEM_SELECT) &&
+				         BM_edge_calc_face_angle_ex(e, angle_max) < angle_limit));
+
+			}
+			hflag = BM_ELEM_TAG;
+		}
+
+		if (!EDBM_op_call_and_selectf(
+		        em, op, "geom.out", true,
+		        "beautify_fill faces=%hf edges=%he",
+		        BM_ELEM_SELECT, hflag))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
 
-	if (!EDBM_op_call_and_selectf(
-	        em, op, "geom.out", true,
-	        "beautify_fill faces=%hf edges=%he",
-	        BM_ELEM_SELECT, hflag))
-	{
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
