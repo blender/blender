@@ -1181,6 +1181,8 @@ static void PE_update_selection(Depsgraph *depsgraph, Scene *scene, Object *ob, 
 	/* disable update flag */
 	LOOP_POINTS
 		point->flag &= ~PEP_EDIT_RECALC;
+
+	DEG_id_tag_update(&ob->id, DEG_TAG_SELECT_UPDATE);
 }
 
 void update_world_cos(Object *ob, PTCacheEdit *edit)

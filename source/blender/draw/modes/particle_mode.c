@@ -46,7 +46,7 @@
 
 #include "draw_cache_impl.h"
 
-extern char datatoc_particle_vert_glsl[];
+extern char datatoc_particle_strand_vert_glsl[];
 extern char datatoc_particle_strand_frag_glsl[];
 
 /* *********** LISTS *********** */
@@ -79,23 +79,29 @@ typedef struct PARTICLE_Data {
 /* *********** STATIC *********** */
 
 static struct {
-	struct GPUShader *hair_shader;
+	struct GPUShader *strands_shader;
+	struct GPUShader *points_shader;
 } e_data = {NULL}; /* Engine data */
 
 typedef struct PARTICLE_PrivateData {
-	DRWShadingGroup *psys_edit_group;
+	DRWShadingGroup *strands_group;
+	DRWShadingGroup *points_group;
 } PARTICLE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
 
 static void particle_engine_init(void *UNUSED(vedata))
 {
-	if (!e_data.hair_shader) {
-		e_data.hair_shader = DRW_shader_create(
-		        datatoc_particle_vert_glsl,
+	if (!e_data.strands_shader) {
+		e_data.strands_shader = DRW_shader_create(
+		        datatoc_particle_strand_vert_glsl,
 		        NULL,
 		        datatoc_particle_strand_frag_glsl,
-		        "#define MAX_MATERIAL 1\n" );
+		        "");
+	}
+	if (!e_data.points_shader) {
+		e_data.points_shader = GPU_shader_get_builtin_shader(
+		        GPU_SHADER_3D_POINT_FIXED_SIZE_VARYING_COLOR);
 	}
 }
 
@@ -114,17 +120,31 @@ static void particle_cache_init(void *vedata)
 	                                      (DRW_STATE_WRITE_COLOR |
 	                                       DRW_STATE_WRITE_DEPTH |
 	                                       DRW_STATE_DEPTH_LESS |
-	                                       DRW_STATE_WIRE));
+	                                       DRW_STATE_WIRE |
+	                                       DRW_STATE_POINT));
 
-	stl->g_data->psys_edit_group = DRW_shgroup_create(
-	        e_data.hair_shader, psl->psys_edit_pass);
+	stl->g_data->strands_group = DRW_shgroup_create(
+	        e_data.strands_shader, psl->psys_edit_pass);
+	stl->g_data->points_group = DRW_shgroup_create(
+	        e_data.points_shader, psl->psys_edit_pass);
+
+	static float size = 5.0f;
+	DRW_shgroup_uniform_float(stl->g_data->points_group, "size", &size, 1);
+	static float outline_width = 1.0f;
+	DRW_shgroup_uniform_float(stl->g_data->points_group, "outlineWidth", &outline_width, 1);
 }
 
-static void particle_edit_cache_populate(void *vedata, PTCacheEdit* edit)
+static void particle_edit_cache_populate(void *vedata, PTCacheEdit *edit)
 {
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
-	struct Gwn_Batch *edit_strands = DRW_cache_particles_get_edit_strands(edit);
-	DRW_shgroup_call_add(stl->g_data->psys_edit_group, edit_strands, NULL);
+	{
+		struct Gwn_Batch *strands = DRW_cache_particles_get_edit_strands(edit);
+		DRW_shgroup_call_add(stl->g_data->strands_group, strands, NULL);
+	}
+	{
+		struct Gwn_Batch *points = DRW_cache_particles_get_edit_points(edit);
+		DRW_shgroup_call_add(stl->g_data->points_group, points, NULL);
+	}
 }
 
 static void particle_cache_populate(void *vedata, Object *object)
@@ -136,7 +156,7 @@ static void particle_cache_populate(void *vedata, Object *object)
 		if (!psys_check_enabled(object, psys, false)) {
 			continue;
 		}
-		PTCacheEdit* edit = PE_get_current_from_psys(psys);
+		PTCacheEdit *edit = PE_get_current_from_psys(psys);
 		if (edit == NULL) {
 			continue;
 		}
@@ -161,7 +181,7 @@ static void particle_draw_scene(void *vedata)
 
 static void particle_engine_free(void)
 {
-	DRW_SHADER_FREE_SAFE(e_data.hair_shader);
+	DRW_SHADER_FREE_SAFE(e_data.strands_shader);
 }
 
 static const DrawEngineDataSize particle_data_size =

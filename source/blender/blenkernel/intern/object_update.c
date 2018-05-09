@@ -465,4 +465,13 @@ void BKE_object_eval_flush_base_flags(Depsgraph *depsgraph,
 		object->base_flag |= BASE_FROM_SET;
 		object->base_flag &= ~(BASE_SELECTED | BASE_SELECTABLED);
 	}
+
+	if (object->mode == OB_MODE_PARTICLE_EDIT) {
+		for (ParticleSystem *psys = object->particlesystem.first;
+		     psys != NULL;
+		     psys = psys->next)
+		{
+			BKE_particle_batch_cache_dirty(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
+		}
+	}
 }
