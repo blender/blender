@@ -3889,61 +3889,70 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 
 static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMVert *v;
-	BMEdge *e;
-	BMIter iter;
-
+	const bool use_extend = RNA_boolean_get(op->ptr, "extend");
 	const bool use_wire = RNA_boolean_get(op->ptr, "use_wire");
 	const bool use_boundary = RNA_boolean_get(op->ptr, "use_boundary");
 	const bool use_multi_face = RNA_boolean_get(op->ptr, "use_multi_face");
 	const bool use_non_contiguous = RNA_boolean_get(op->ptr, "use_non_contiguous");
 	const bool use_verts = RNA_boolean_get(op->ptr, "use_verts");
 
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	if (!RNA_boolean_get(op->ptr, "extend"))
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMVert *v;
+		BMEdge *e;
+		BMIter iter;
 
-	/* Selects isolated verts, and edges that do not have 2 neighboring
-	 * faces
-	 */
+		if (!use_extend) {
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		}
 
-	if (em->selectmode == SCE_SELECT_FACE) {
-		BKE_report(op->reports, RPT_ERROR, "Does not work in face selection mode");
-		return OPERATOR_CANCELLED;
-	}
+		/* Selects isolated verts, and edges that do not have 2 neighboring
+		 * faces
+		 */
 
-	if (use_verts) {
-		BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
-			if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
-				if (!BM_vert_is_manifold(v)) {
-					BM_vert_select_set(em->bm, v, true);
+		if (em->selectmode == SCE_SELECT_FACE) {
+			BKE_report(op->reports, RPT_ERROR, "Does not work in face selection mode");
+			MEM_freeN(objects);
+			return OPERATOR_CANCELLED;
+		}
+
+		if (use_verts) {
+			BM_ITER_MESH (v, &iter, em->bm, BM_VERTS_OF_MESH) {
+				if (!BM_elem_flag_test(v, BM_ELEM_HIDDEN)) {
+					if (!BM_vert_is_manifold(v)) {
+						BM_vert_select_set(em->bm, v, true);
+					}
 				}
 			}
 		}
-	}
 
-	if (use_wire || use_boundary || use_multi_face || use_non_contiguous) {
-		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
-			if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
-				if ((use_wire && BM_edge_is_wire(e)) ||
-				    (use_boundary && BM_edge_is_boundary(e)) ||
-				    (use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
-				    (use_multi_face && (BM_edge_face_count_is_over(e, 2))))
-				{
-					/* check we never select perfect edge (in test above) */
-					BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));
+		if (use_wire || use_boundary || use_multi_face || use_non_contiguous) {
+			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
+				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
+					if ((use_wire && BM_edge_is_wire(e)) ||
+						(use_boundary && BM_edge_is_boundary(e)) ||
+						(use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
+						(use_multi_face && (BM_edge_face_count_is_over(e, 2))))
+					{
+						/* check we never select perfect edge (in test above) */
+						BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));
 
-					BM_edge_select_set(em->bm, e, true);
+						BM_edge_select_set(em->bm, e, true);
+					}
 				}
 			}
 		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+
+		EDBM_selectmode_flush(em);
 	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-	EDBM_selectmode_flush(em);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
