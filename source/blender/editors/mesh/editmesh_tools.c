@@ -4114,79 +4114,91 @@ static void edbm_fill_grid_prepare(BMesh *bm, int offset, int *r_span, bool span
 
 static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 {
-	BMOperator bmop;
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
-	const int totedge_orig = em->bm->totedge;
-	const int totface_orig = em->bm->totface;
-	const bool use_interp_simple = RNA_boolean_get(op->ptr, "use_interp_simple");
 	const bool use_prepare = true;
+	const bool use_interp_simple = RNA_boolean_get(op->ptr, "use_interp_simple");
 
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
 
-	if (use_prepare) {
-		/* use when we have a single loop selected */
-		PropertyRNA *prop_span = RNA_struct_find_property(op->ptr, "span");
-		PropertyRNA *prop_offset = RNA_struct_find_property(op->ptr, "offset");
-		bool calc_span;
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		const int clamp = em->bm->totvertsel;
-		int span;
-		int offset;
+		const bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+		const int totedge_orig = em->bm->totedge;
+		const int totface_orig = em->bm->totface;
 
-		if (RNA_property_is_set(op->ptr, prop_span)) {
-			span = RNA_property_int_get(op->ptr, prop_span);
-			span = min_ii(span, (clamp / 2) - 1);
-			calc_span = false;
-		}
-		else {
-			span = clamp / 4;
-			calc_span = true;
+		if (em->bm->totedgesel == 0) {
+			continue;
 		}
 
-		offset = RNA_property_int_get(op->ptr, prop_offset);
-		offset = clamp ? mod_i(offset, clamp) : 0;
+		if (use_prepare) {
+			/* use when we have a single loop selected */
+			PropertyRNA *prop_span = RNA_struct_find_property(op->ptr, "span");
+			PropertyRNA *prop_offset = RNA_struct_find_property(op->ptr, "offset");
+			bool calc_span;
 
-		/* in simple cases, move selection for tags, but also support more advanced cases */
-		edbm_fill_grid_prepare(em->bm, offset, &span, calc_span);
+			const int clamp = em->bm->totvertsel;
+			int span;
+			int offset;
 
-		RNA_property_int_set(op->ptr, prop_span, span);
+			if (RNA_property_is_set(op->ptr, prop_span)) {
+				span = RNA_property_int_get(op->ptr, prop_span);
+				span = min_ii(span, (clamp / 2) - 1);
+				calc_span = false;
+			}
+			else {
+				span = clamp / 4;
+				calc_span = true;
+			}
+
+			offset = RNA_property_int_get(op->ptr, prop_offset);
+			offset = clamp ? mod_i(offset, clamp) : 0;
+
+			/* in simple cases, move selection for tags, but also support more advanced cases */
+			edbm_fill_grid_prepare(em->bm, offset, &span, calc_span);
+
+			RNA_property_int_set(op->ptr, prop_span, span);
+		}
+		/* end tricky prepare code */
+
+		BMOperator bmop;
+		if (!EDBM_op_init(
+			em, &bmop, op,
+			"grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
+			use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
+			em->mat_nr, use_smooth, use_interp_simple))
+		{
+			continue;
+		}
+
+		BMO_op_exec(em->bm, &bmop);
+
+		/* NOTE: EDBM_op_finish() will change bmesh pointer inside of edit mesh,
+		 * so need to tell evaluated objects to sync new bmesh pointer to their
+		 * edit mesh structures.
+		 */
+		DEG_id_tag_update(&obedit->id, 0);
+
+		/* cancel if nothing was done */
+		if ((totedge_orig == em->bm->totedge) &&
+			(totface_orig == em->bm->totface))
+		{
+			EDBM_op_finish(em, &bmop, op, true);
+			continue;
+		}
+
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
-	/* end tricky prepare code */
 
-
-	if (!EDBM_op_init(
-	            em, &bmop, op,
-	            "grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
-	            use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
-	            em->mat_nr, use_smooth, use_interp_simple))
-	{
-		return OPERATOR_CANCELLED;
-	}
-
-	BMO_op_exec(em->bm, &bmop);
-
-	/* NOTE: EDBM_op_finish() will change bmesh pointer inside of edit mesh,
-	 * so need to tell evaluated objects to sync new bmesh pointer to their
-	 * edit mesh structures.
-	 */
-	DEG_id_tag_update(&obedit->id, 0);
-
-	/* cancel if nothing was done */
-	if ((totedge_orig == em->bm->totedge) &&
-	    (totface_orig == em->bm->totface))
-	{
-		EDBM_op_finish(em, &bmop, op, true);
-		return OPERATOR_CANCELLED;
-	}
-
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
