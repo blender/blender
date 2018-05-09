@@ -1484,7 +1484,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				}
 				ParticleSettings *part = psys->part;
 				int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-				if (draw_as != PART_DRAW_PATH || psys->pathcache == NULL || psys->childcache == NULL) {
+				if (draw_as != PART_DRAW_PATH || (psys->pathcache == NULL && psys->childcache == NULL)) {
 					continue;
 				}
 				struct Gwn_Batch *hair_geom = DRW_cache_particles_get_hair(psys, md);
