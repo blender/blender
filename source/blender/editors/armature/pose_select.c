@@ -461,12 +461,11 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		Object *ob = ob_iter;
 		bArmature *arm = (bArmature *)ob->data;
-		bPoseChannel *pchan, *parent;
 
 		FOREACH_PCHAN_SELECTED_IN_OBJECT_BEGIN (ob_iter, pchan)
 		{
 			if (pchan) {
-				parent = pchan->parent;
+				bPoseChannel *parent = pchan->parent;
 				if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
 					parent->bone->flag |= BONE_SELECTED;
 					arm->act_bone = parent->bone;
