@@ -33,6 +33,7 @@
  */
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -40,8 +41,10 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_action.h"
-#include "BKE_cdderivedmesh.h"
+#include "BKE_editmesh.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_deform.h"
 #include "BKE_colortools.h"
@@ -248,7 +251,7 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
 	}
 }
 
-static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
+static void deformVerts_do(HookModifierData *hmd, Object *ob, Mesh *mesh, 
                            float (*vertexCos)[3], int numVerts)
 {
 	bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
@@ -267,7 +270,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 
 	/* Generic data needed for applying per-vertex calculations (initialize all members) */
 	hd.vertexCos = vertexCos;
-	modifier_get_vgroup(ob, dm, hmd->name, &hd.dvert, &hd.defgrp_index);
+	modifier_get_vgroup_mesh(ob, mesh, hmd->name, &hd.dvert, &hd.defgrp_index);
 
 	hd.curfalloff = hmd->curfalloff;
 
@@ -304,7 +307,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 
 	/* Regarding index range checking below.
 	 *
-	 * This should always be true and I don't generally like 
+	 * This should always be true and I don't generally like
 	 * "paranoid" style code like this, but old files can have
 	 * indices that are out of range because old blender did
 	 * not correct them on exit editmode. - zr
@@ -315,13 +318,13 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	}
 	else if (hmd->indexar) { /* vertex indices? */
 		const int *origindex_ar;
-		
-		/* if DerivedMesh is present and has original index data, use it */
-		if (dm && (origindex_ar = dm->getVertDataArray(dm, CD_ORIGINDEX))) {
+
+		/* if mesh is present and has original index data, use it */
+		if (mesh && (origindex_ar = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))) {
 			for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
 				if (*index_pt < numVerts) {
 					int j;
-					
+
 					for (j = 0; j < numVerts; j++) {
 						if (origindex_ar[j] == *index_pt) {
 							hook_co_apply(&hd, j);
@@ -330,7 +333,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 				}
 			}
 		}
-		else { /* missing dm or ORIGINDEX */
+		else { /* missing mesh or ORIGINDEX */
 			for (i = 0, index_pt = hmd->indexar; i < hmd->totindex; i++, index_pt++) {
 				if (*index_pt < numVerts) {
 					hook_co_apply(&hd, *index_pt);
@@ -345,36 +348,31 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 	}
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+static void deformVerts(struct ModifierData *md, const struct ModifierEvalContext *ctx, struct Mesh *mesh, 
                         float (*vertexCos)[3], int numVerts)
 {
-	HookModifierData *hmd = (HookModifierData *) md;
-	DerivedMesh *dm = derivedData;
-	/* We need a valid dm for meshes when a vgroup is set... */
-	if (!dm && ctx->object->type == OB_MESH && hmd->name[0] != '\0')
-		dm = get_dm(ctx->object, NULL, dm, NULL, false, false);
+	HookModifierData *hmd = (HookModifierData *)md;
+	Mesh *mesh_src = mesh ? mesh : ctx->object->data;
 
-	deformVerts_do(hmd, ctx->object, dm, vertexCos, numVerts);
-
-	if (derivedData != dm)
-		dm->release(dm);
+	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 }
 
-static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
-                          DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(struct ModifierData *md, const struct ModifierEvalContext *ctx,
+                          struct BMEditMesh *editData,
+                          struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	HookModifierData *hmd = (HookModifierData *) md;
-	DerivedMesh *dm = derivedData;
-	/* We need a valid dm for meshes when a vgroup is set... */
-	if (!dm && ctx->object->type == OB_MESH && hmd->name[0] != '\0')
-		dm = get_dm(ctx->object, editData, dm, NULL, false, false);
+	HookModifierData *hmd = (HookModifierData *)md;
+	Mesh *mesh_src = mesh;
+	if (!mesh) {
+		mesh_src = BKE_bmesh_to_mesh_nomain(editData->bm, &(struct BMeshToMeshParams){0});
+	}
 
-	deformVerts_do(hmd, ctx->object, dm, vertexCos, numVerts);
+	deformVerts_do(hmd, ctx->object, mesh_src, vertexCos, numVerts);
 
-	if (derivedData != dm)
-		dm->release(dm);
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
+	}
 }
-
 
 ModifierTypeInfo modifierType_Hook = {
 	/* name */              "Hook",
@@ -386,16 +384,16 @@ ModifierTypeInfo modifierType_Hook = {
 	                        eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
