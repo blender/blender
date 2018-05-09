@@ -70,9 +70,13 @@ typedef struct ParticleBatchCache {
 	int point_count;
 
 	/* Control points when in edit mode. */
-	Gwn_VertBuf *edit_pos;
-	Gwn_Batch *edit_points;
-	int edit_point_count;
+	Gwn_VertBuf *edit_inner_pos;
+	Gwn_Batch *edit_inner_points;
+	int edit_inner_point_count;
+
+	Gwn_VertBuf *edit_tip_pos;
+	Gwn_Batch *edit_tip_points;
+	int edit_tip_point_count;
 
 	/* Settings to determine if cache is invalid. */
 	bool is_dirty;
@@ -153,8 +157,10 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
 	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
 	GWN_INDEXBUF_DISCARD_SAFE(cache->indices);
 
-	GWN_BATCH_DISCARD_SAFE(cache->edit_points);
-	GWN_VERTBUF_DISCARD_SAFE(cache->edit_pos);
+	GWN_BATCH_DISCARD_SAFE(cache->edit_inner_points);
+	GWN_VERTBUF_DISCARD_SAFE(cache->edit_inner_pos);
+	GWN_BATCH_DISCARD_SAFE(cache->edit_tip_points);
+	GWN_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
 }
 
 void DRW_particle_batch_cache_free(ParticleSystem *psys)
@@ -600,30 +606,42 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(PTCacheEdit *edit)
 	return cache->hairs;
 }
 
-static void ensure_edit_points_count(const PTCacheEdit *edit,
-                                     ParticleBatchCache *cache)
+static void ensure_edit_inner_points_count(const PTCacheEdit *edit,
+                                           ParticleBatchCache *cache)
 {
-	if (cache->edit_pos != NULL) {
+	if (cache->edit_inner_pos != NULL) {
 		return;
 	}
-	cache->edit_point_count = 0;
+	cache->edit_inner_point_count = 0;
 	for (int point_index = 0; point_index < edit->totpoint; point_index++) {
 		const PTCacheEditPoint *point = &edit->points[point_index];
-		cache->edit_point_count += point->totkey;
+		BLI_assert(point->totkey >= 1);
+		cache->edit_inner_point_count += (point->totkey - 1);
 	}
 }
 
-static void particle_batch_cache_ensure_edit_pos(PTCacheEdit *edit,
-                                                 ParticleBatchCache *cache)
+static void edit_colors_get(PTCacheEdit *edit,
+                            float selected_color[4],
+                            float normal_color[4])
 {
-	if (cache->edit_pos != NULL) {
+	rgb_uchar_to_float(selected_color, edit->sel_col);
+	rgb_uchar_to_float(normal_color, edit->nosel_col);
+	selected_color[3] = 1.0f;
+	normal_color[3] = 1.0f;
+}
+
+static void particle_batch_cache_ensure_edit_inner_pos(
+        PTCacheEdit *edit,
+        ParticleBatchCache *cache)
+{
+	if (cache->edit_inner_pos != NULL) {
 		return;
 	}
 
 	static Gwn_VertFormat format = { 0 };
 	static unsigned pos_id, color_id;
 
-	GWN_VERTBUF_DISCARD_SAFE(cache->edit_pos);
+	GWN_VERTBUF_DISCARD_SAFE(cache->edit_inner_pos);
 
 	if (format.attrib_ct == 0) {
 		/* initialize vertex format */
@@ -631,43 +649,102 @@ static void particle_batch_cache_ensure_edit_pos(PTCacheEdit *edit,
 		color_id = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
 	}
 
-	cache->edit_pos = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(cache->edit_pos, cache->edit_point_count);
+	cache->edit_inner_pos = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(cache->edit_inner_pos, cache->edit_inner_point_count);
 
-	/* Convert theme colors from uchar[3] to float[4]. */
-	float selected_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	float normal_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	rgb_uchar_to_float(selected_color, edit->sel_col);
-	rgb_uchar_to_float(normal_color, edit->nosel_col);
+	float selected_color[4], normal_color[4];
+	edit_colors_get(edit, selected_color, normal_color);
 
 	int global_key_index = 0;
 	for (int point_index = 0; point_index < edit->totpoint; point_index++) {
 		const PTCacheEditPoint *point = &edit->points[point_index];
-		for (int key_index = 0; key_index < point->totkey; key_index++) {
+		for (int key_index = 0; key_index < point->totkey - 1; key_index++) {
 			PTCacheEditKey *key = &point->keys[key_index];
-			GWN_vertbuf_attr_set(cache->edit_pos, pos_id, global_key_index, key->world_co);
+			GWN_vertbuf_attr_set(cache->edit_inner_pos, pos_id, global_key_index, key->world_co);
 			if (key->flag & PEK_SELECT) {
-				GWN_vertbuf_attr_set(cache->edit_pos, color_id, global_key_index, selected_color);
+				GWN_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, selected_color);
 			}
 			else {
-				GWN_vertbuf_attr_set(cache->edit_pos, color_id, global_key_index, normal_color);
+				GWN_vertbuf_attr_set(cache->edit_inner_pos, color_id, global_key_index, normal_color);
 			}
 			global_key_index++;
 		}
 	}
 }
 
-Gwn_Batch *DRW_particles_batch_cache_get_edit_points(PTCacheEdit *edit)
+Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(PTCacheEdit *edit)
 {
 	ParticleSystem *psys = edit->psys;
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
-	if (cache->edit_points != NULL) {
-		return cache->edit_points;
+	if (cache->edit_inner_points != NULL) {
+		return cache->edit_inner_points;
 	}
-	ensure_edit_points_count(edit, cache);
-	particle_batch_cache_ensure_edit_pos(edit, cache);
-	cache->edit_points = GWN_batch_create(GWN_PRIM_POINTS,
-	                                      cache->edit_pos,
-	                                      NULL);
-	return cache->edit_points;
+	ensure_edit_inner_points_count(edit, cache);
+	particle_batch_cache_ensure_edit_inner_pos(edit, cache);
+	cache->edit_inner_points = GWN_batch_create(GWN_PRIM_POINTS,
+	                                            cache->edit_inner_pos,
+	                                            NULL);
+	return cache->edit_inner_points;
+}
+
+static void ensure_edit_tip_points_count(const PTCacheEdit *edit,
+                                           ParticleBatchCache *cache)
+{
+	if (cache->edit_tip_pos != NULL) {
+		return;
+	}
+	cache->edit_tip_point_count = edit->totpoint;
+}
+
+static void particle_batch_cache_ensure_edit_tip_pos(
+        PTCacheEdit *edit,
+        ParticleBatchCache *cache)
+{
+	if (cache->edit_tip_pos != NULL) {
+		return;
+	}
+
+	static Gwn_VertFormat format = { 0 };
+	static unsigned pos_id, color_id;
+
+	GWN_VERTBUF_DISCARD_SAFE(cache->edit_tip_pos);
+
+	if (format.attrib_ct == 0) {
+		/* initialize vertex format */
+		pos_id = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		color_id = GWN_vertformat_attr_add(&format, "color", GWN_COMP_F32, 4, GWN_FETCH_FLOAT);
+	}
+
+	cache->edit_tip_pos = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(cache->edit_tip_pos, cache->edit_tip_point_count);
+
+	float selected_color[4], normal_color[4];
+	edit_colors_get(edit, selected_color, normal_color);
+
+	for (int point_index = 0; point_index < edit->totpoint; point_index++) {
+		const PTCacheEditPoint *point = &edit->points[point_index];
+		PTCacheEditKey *key = &point->keys[point->totkey - 1];
+		GWN_vertbuf_attr_set(cache->edit_tip_pos, pos_id, point_index, key->world_co);
+		if (key->flag & PEK_SELECT) {
+			GWN_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, selected_color);
+		}
+		else {
+			GWN_vertbuf_attr_set(cache->edit_tip_pos, color_id, point_index, normal_color);
+		}
+	}
+}
+
+Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(PTCacheEdit *edit)
+{
+	ParticleSystem *psys = edit->psys;
+	ParticleBatchCache *cache = particle_batch_cache_get(psys);
+	if (cache->edit_tip_points != NULL) {
+		return cache->edit_tip_points;
+	}
+	ensure_edit_tip_points_count(edit, cache);
+	particle_batch_cache_ensure_edit_tip_pos(edit, cache);
+	cache->edit_tip_points = GWN_batch_create(GWN_PRIM_POINTS,
+	                                          cache->edit_tip_pos,
+	                                          NULL);
+	return cache->edit_tip_points;
 }

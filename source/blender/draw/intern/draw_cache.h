@@ -170,7 +170,8 @@ struct Gwn_Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 struct Gwn_Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_cache_particles_get_dots(struct Object *object, struct ParticleSystem *psys);
 struct Gwn_Batch *DRW_cache_particles_get_edit_strands(struct PTCacheEdit *edit);
-struct Gwn_Batch *DRW_cache_particles_get_edit_points(struct PTCacheEdit *edit);
+struct Gwn_Batch *DRW_cache_particles_get_edit_inner_points(struct PTCacheEdit *edit);
+struct Gwn_Batch *DRW_cache_particles_get_edit_tip_points(struct PTCacheEdit *edit);
 struct Gwn_Batch *DRW_cache_particles_get_prim(int type);
 
 /* Metaball */

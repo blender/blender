@@ -85,7 +85,8 @@ static struct {
 
 typedef struct PARTICLE_PrivateData {
 	DRWShadingGroup *strands_group;
-	DRWShadingGroup *points_group;
+	DRWShadingGroup *inner_points_group;
+	DRWShadingGroup *tip_points_group;
 } PARTICLE_PrivateData; /* Transient data */
 
 /* *********** FUNCTIONS *********** */
@@ -125,25 +126,35 @@ static void particle_cache_init(void *vedata)
 
 	stl->g_data->strands_group = DRW_shgroup_create(
 	        e_data.strands_shader, psl->psys_edit_pass);
-	stl->g_data->points_group = DRW_shgroup_create(
+	stl->g_data->inner_points_group = DRW_shgroup_create(
+	        e_data.points_shader, psl->psys_edit_pass);
+	stl->g_data->tip_points_group = DRW_shgroup_create(
 	        e_data.points_shader, psl->psys_edit_pass);
 
 	static float size = 5.0f;
-	DRW_shgroup_uniform_float(stl->g_data->points_group, "size", &size, 1);
 	static float outline_width = 1.0f;
-	DRW_shgroup_uniform_float(stl->g_data->points_group, "outlineWidth", &outline_width, 1);
+	DRW_shgroup_uniform_float(stl->g_data->inner_points_group, "size", &size, 1);
+	DRW_shgroup_uniform_float(stl->g_data->inner_points_group, "outlineWidth", &outline_width, 1);
+	DRW_shgroup_uniform_float(stl->g_data->tip_points_group, "size", &size, 1);
+	DRW_shgroup_uniform_float(stl->g_data->tip_points_group, "outlineWidth", &outline_width, 1);
 }
 
 static void particle_edit_cache_populate(void *vedata, PTCacheEdit *edit)
 {
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	ParticleEditSettings *pset= PE_settings(draw_ctx->scene);
 	{
 		struct Gwn_Batch *strands = DRW_cache_particles_get_edit_strands(edit);
 		DRW_shgroup_call_add(stl->g_data->strands_group, strands, NULL);
 	}
-	{
-		struct Gwn_Batch *points = DRW_cache_particles_get_edit_points(edit);
-		DRW_shgroup_call_add(stl->g_data->points_group, points, NULL);
+	if (pset->selectmode == SCE_SELECT_POINT) {
+		struct Gwn_Batch *points = DRW_cache_particles_get_edit_inner_points(edit);
+		DRW_shgroup_call_add(stl->g_data->inner_points_group, points, NULL);
+	}
+	if (ELEM(pset->selectmode, SCE_SELECT_POINT, SCE_SELECT_END)) {
+		struct Gwn_Batch *points = DRW_cache_particles_get_edit_tip_points(edit);
+		DRW_shgroup_call_add(stl->g_data->tip_points_group, points, NULL);
 	}
 }
 

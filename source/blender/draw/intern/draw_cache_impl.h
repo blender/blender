@@ -126,6 +126,7 @@ void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_particles_batch_cache_get_dots(struct Object *object, struct ParticleSystem *psys);
 struct Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(struct PTCacheEdit *edit);
-struct Gwn_Batch *DRW_particles_batch_cache_get_edit_points(struct PTCacheEdit *edit);
+struct Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(struct PTCacheEdit *edit);
+struct Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(struct PTCacheEdit *edit);
 
 #endif /* __DRAW_CACHE_IMPL_H__ */
