@@ -302,12 +302,12 @@ static void meshdeformModifier_do(
 	 * We'll support this case once granular dependency graph is landed.
 	 */
 	if (mmd->object->mode & OB_MODE_EDIT) {
-		/* TODO(Sybren): do we need to check the modifier mode in this case? */
-		/* TODO(Sybren): should we get from BMEditMesh *em = BKE_editmesh_from_object(mmd->object) instead? */
-		cagemesh = get_mesh_eval_for_modifier(ob, md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		BMEditMesh *em = BKE_editmesh_from_object(mmd->object);
+		cagemesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+		free_cagemesh = true;
 	}
 	else {
-		cagemesh = get_mesh_eval_for_modifier(ob, md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		cagemesh = get_mesh_eval_for_modifier(mmd->object, md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
 	}
 
 	/* if we don't have one computed, use derivedmesh from data
