@@ -202,7 +202,6 @@ set(SRC
 	intern/workspace.c
 	intern/world.c
 	intern/writeavi.c
-	intern/writeframeserver.c
 
 	BKE_DerivedMesh.h
 	BKE_action.h
@@ -314,7 +313,6 @@ set(SRC
 	BKE_workspace.h
 	BKE_world.h
 	BKE_writeavi.h
-	BKE_writeframeserver.h
 
 	nla_private.h
 	tracking_private.h

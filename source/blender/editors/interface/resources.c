@@ -2475,9 +2475,6 @@ void init_userdef_do_versions(void)
 		if (U.memcachelimit <= 0) {
 			U.memcachelimit = 32;
 		}
-		if (U.frameserverport == 0) {
-			U.frameserverport = 8080;
-		}
 		if (U.dbl_click_time == 0) {
 			U.dbl_click_time = 350;
 		}

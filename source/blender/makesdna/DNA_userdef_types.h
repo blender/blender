@@ -527,7 +527,7 @@ typedef struct UserDef {
 	int memcachelimit;
 	int prefetchframes;
 	float pad_rot_angle; /* control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use */
-	short frameserverport;
+	short _pad0;
 	short obcenter_dia;
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */

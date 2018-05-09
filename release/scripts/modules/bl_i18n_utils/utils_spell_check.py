@@ -442,7 +442,6 @@ class SpellChecker:
         "fedge", "fedges",
         "filmic",
         "fluidsim",
-        "frameserver",
         "freestyle",
         "enum", "enums",
         "gpencil",

@@ -84,10 +84,6 @@ static void context_free_avi(void *context_v);
 #  include "BKE_writeffmpeg.h"
 #endif
 
-#ifdef WITH_FRAMESERVER
-#  include "BKE_writeframeserver.h"
-#endif
-
 bMovieHandle *BKE_movie_handle_get(const char imtype)
 {
 	static bMovieHandle mh = {NULL};
@@ -119,16 +115,6 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 		mh.get_movie_path = BKE_ffmpeg_filepath_get;
 		mh.context_create = BKE_ffmpeg_context_create;
 		mh.context_free = BKE_ffmpeg_context_free;
-	}
-#endif
-#ifdef WITH_FRAMESERVER
-	if (imtype == R_IMF_IMTYPE_FRAMESERVER) {
-		mh.start_movie = BKE_frameserver_start;
-		mh.append_movie = BKE_frameserver_append;
-		mh.end_movie = BKE_frameserver_end;
-		mh.get_next_frame = BKE_frameserver_loop;
-		mh.context_create = BKE_frameserver_context_create;
-		mh.context_free = BKE_frameserver_context_free;
 	}
 #endif
 

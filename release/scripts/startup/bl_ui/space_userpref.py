@@ -480,7 +480,6 @@ class USERPREF_PT_system(Panel):
         col = colsplit.column()
         col.label(text="General:")
 
-        col.prop(system, "frame_server_port")
         col.prop(system, "scrollback", text="Console Scrollback")
 
         col.separator()

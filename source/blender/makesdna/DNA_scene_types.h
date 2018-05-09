@@ -432,7 +432,7 @@ typedef struct ImageFormatData {
 #define R_IMF_IMTYPE_TIFF           22
 #define R_IMF_IMTYPE_OPENEXR        23
 #define R_IMF_IMTYPE_FFMPEG         24
-#define R_IMF_IMTYPE_FRAMESERVER    25
+/* #define R_IMF_IMTYPE_FRAMESERVER    25 */ /* frame server is nomore */
 #define R_IMF_IMTYPE_CINEON         26
 #define R_IMF_IMTYPE_DPX            27
 #define R_IMF_IMTYPE_MULTILAYER     28
