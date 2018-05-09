@@ -3908,7 +3908,7 @@ typedef struct tGPFtransdata {
 void flushTransIntFrameActionData(TransInfo *t)
 {
 	TransDataContainer *tc = TRANS_DATA_CONTAINER_FIRST_SINGLE(t);
-	tGPFtransdata *tfd = t->custom.type.data;
+	tGPFtransdata *tfd = tc->custom.type.data;
 
 	/* flush data! */
 	for (int i = 0; i < tc->data_len; i++, tfd++) {
