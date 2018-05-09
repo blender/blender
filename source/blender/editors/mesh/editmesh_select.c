@@ -1552,50 +1552,60 @@ static void walker_select(BMEditMesh *em, int walkercode, void *start, const boo
 
 static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMEdge *eed;
-	BMEdge **edarray;
-	int edindex;
 	const bool is_ring = RNA_boolean_get(op->ptr, "ring");
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	BMIter iter;
-	int totedgesel = 0;
-
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-			totedgesel++;
+		if (em->bm->totedgesel == 0) {
+			continue;
 		}
-	}
 
-	edarray = MEM_mallocN(sizeof(BMEdge *) * totedgesel, "edge array");
-	edindex = 0;
+		BMEdge *eed;
+		BMEdge **edarray;
+		int edindex;
+		BMIter iter;
+		int totedgesel = 0;
 
-	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-			edarray[edindex] = eed;
-			edindex++;
+		BM_ITER_MESH(eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				totedgesel++;
+			}
 		}
-	}
 
-	if (is_ring) {
-		for (edindex = 0; edindex < totedgesel; edindex += 1) {
-			eed = edarray[edindex];
-			walker_select(em, BMW_EDGERING, eed, true);
-		}
-		EDBM_selectmode_flush(em);
-	}
-	else {
-		for (edindex = 0; edindex < totedgesel; edindex += 1) {
-			eed = edarray[edindex];
-			walker_select(em, BMW_EDGELOOP, eed, true);
-		}
-		EDBM_selectmode_flush(em);
-	}
-	MEM_freeN(edarray);
-//	if (EM_texFaceCheck())
+		edarray = MEM_mallocN(sizeof(BMEdge *) * totedgesel, "edge array");
+		edindex = 0;
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		BM_ITER_MESH(eed, &iter, em->bm, BM_EDGES_OF_MESH) {
+			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+				edarray[edindex] = eed;
+				edindex++;
+			}
+		}
+
+		if (is_ring) {
+			for (edindex = 0; edindex < totedgesel; edindex += 1) {
+				eed = edarray[edindex];
+				walker_select(em, BMW_EDGERING, eed, true);
+			}
+			EDBM_selectmode_flush(em);
+		}
+		else {
+			for (edindex = 0; edindex < totedgesel; edindex += 1) {
+				eed = edarray[edindex];
+				walker_select(em, BMW_EDGELOOP, eed, true);
+			}
+			EDBM_selectmode_flush(em);
+		}
+		MEM_freeN(edarray);
+		//	if (EM_texFaceCheck())
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
