@@ -96,9 +96,6 @@
 
 #include "RE_shader_ext.h"
 
-/* FIXME: BAD LEVEL CALL. */
-#include "../../editors/include/ED_particle.h"
-
 /* fluid sim particle import */
 #ifdef WITH_MOD_FLUID
 #include "DNA_object_fluidsim_types.h"
@@ -4384,22 +4381,6 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 
 	/* save matrix for duplicators, at rendertime the actual dupliobject's matrix is used so don't update! */
 	invert_m4_m4(psys->imat, ob->obmat);
-
-	if (ob->mode & OB_MODE_PARTICLE_EDIT && ob == OBACT(DEG_get_evaluated_view_layer(depsgraph))) {
-		PTCacheEdit *edit = PE_create_current(depsgraph, scene, ob);
-
-		if (edit && edit->psys == psys) {
-			if (edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED) {
-				PE_update_object(depsgraph, scene, ob, 0);
-			}
-
-			/* create path and child path cache if it doesn't exist already */
-			if (edit->pathcache == NULL) {
-				psys_cache_edit_paths(depsgraph, scene, ob, edit, DEG_get_ctime(depsgraph), DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-
-			}
-		}
-	}
 
 	BKE_particle_batch_cache_dirty(psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 }
