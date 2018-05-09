@@ -4488,7 +4488,7 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 
 	// ED_workspace_object_mode_sync_from_object(wm, workspace, ob);
 
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	DEG_id_tag_update(&ob->id, OB_RECALC_DATA | DEG_TAG_COPY_ON_WRITE);
 
 	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
