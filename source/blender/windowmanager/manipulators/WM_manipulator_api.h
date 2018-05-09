@@ -76,6 +76,10 @@ bool WM_manipulator_select_unlink(struct wmManipulatorMap *mmap, struct wmManipu
 bool WM_manipulator_select_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr, bool select);
 void WM_manipulator_highlight_set(struct wmManipulatorMap *mmap, struct wmManipulator *mpr);
 
+void WM_manipulator_modal_set_from_setup(
+        struct wmManipulatorMap *mmap, struct bContext *C,
+        struct wmManipulator *mpr, int part_index, const struct wmEvent *event);
+
 struct wmManipulatorOpElem *WM_manipulator_operator_get(
         struct wmManipulator *mpr, int part_index);
 struct PointerRNA *WM_manipulator_operator_set(
