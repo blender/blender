@@ -54,8 +54,12 @@ struct GPUViewport;
 
 /* ******************************** */
 
-/* The near/far thing is a Win EXCEPTION. Thus, leave near/far in the
- * code, and patch for windows. */
+/* The near/far thing is a Win EXCEPTION, caused by indirect includes from <windows.h>.
+ * Thus, leave near/far in the code, and undef for windows. */
+#ifdef _WIN32
+#  undef near
+#  undef far
+#endif
 
 typedef struct RegionView3D {
 	
