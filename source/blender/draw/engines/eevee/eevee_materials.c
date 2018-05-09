@@ -1491,9 +1491,6 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				DRWShadingGroup *shgrp = NULL;
 				Material *ma = give_current_material(ob, part->omat);
 
-				static float mat[4][4];
-				unit_m4(mat);
-
 				if (ma == NULL) {
 					ma = &defmaterial;
 				}
@@ -1503,13 +1500,13 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				float *spec_p = &ma->spec;
 				float *rough_p = &ma->gloss_mir;
 
-				DRW_shgroup_call_add(stl->g_data->depth_shgrp, hair_geom, mat);
-				DRW_shgroup_call_add(stl->g_data->depth_shgrp_clip, hair_geom, mat);
+				DRW_shgroup_call_add(stl->g_data->depth_shgrp, hair_geom, NULL);
+				DRW_shgroup_call_add(stl->g_data->depth_shgrp_clip, hair_geom, NULL);
 
 				shgrp = BLI_ghash_lookup(material_hash, (const void *)ma);
 
 				if (shgrp) {
-					DRW_shgroup_call_add(shgrp, hair_geom, mat);
+					DRW_shgroup_call_add(shgrp, hair_geom, NULL);
 				}
 				else {
 					if (ma->use_nodes && ma->nodetree) {
