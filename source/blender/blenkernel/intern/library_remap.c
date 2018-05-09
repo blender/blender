@@ -898,7 +898,7 @@ void BKE_id_free_ex(Main *bmain, void *idv, int flag, const bool use_flag_from_i
 
 	if (use_flag_from_idtag) {
 		if ((id->tag & LIB_TAG_NO_MAIN) != 0) {
-			flag |= LIB_ID_FREE_NO_MAIN;
+			flag |= LIB_ID_FREE_NO_MAIN | LIB_ID_FREE_NO_UI_USER | LIB_ID_FREE_NO_DEG_TAG;
 		}
 		else {
 			flag &= ~LIB_ID_FREE_NO_MAIN;
