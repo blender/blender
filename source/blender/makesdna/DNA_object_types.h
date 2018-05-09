@@ -139,6 +139,10 @@ typedef struct LodLevel {
 	int obhysteresis;
 } LodLevel;
 
+typedef struct ObjectDisplay {
+	int flag;
+} ObjectDisplay;
+
 typedef struct Object {
 	ID id;
 	struct AnimData *adt;		/* animation data (must be immediately after id for utilities to use it) */ 
@@ -299,6 +303,10 @@ typedef struct Object {
 	 * It has all modifiers applied.
 	 */
 	struct Mesh *mesh_evaluated;
+
+	/* Object Display */
+	struct ObjectDisplay display;
+	int pad9;
 } Object;
 
 /* Warning, this is not used anymore because hooks are now modifiers */
@@ -364,6 +372,11 @@ enum {
 
 /* 23 and 24 are for life and sector (old file compat.) */
 	OB_ARMATURE   = 25,
+};
+
+/* ObjectDisplay.flag */
+enum {
+	OB_SHOW_SHADOW = (1 << 0),
 };
 
 /* check if the object type supports materials */

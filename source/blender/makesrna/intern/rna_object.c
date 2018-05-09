@@ -1817,6 +1817,22 @@ static void rna_def_object_face_maps(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Delete all vertex groups from object");
 }
 
+static void rna_def_object_display(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "ObjectDisplay", NULL);
+	RNA_def_struct_ui_text(srna, "Object Display", "Object display settings for 3d viewport");
+	RNA_def_struct_sdna(srna, "ObjectDisplay");
+
+	prop = RNA_def_property(srna, "show_shadows", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_SHOW_SHADOW);
+	RNA_def_property_boolean_default(prop, true);
+	RNA_def_property_ui_text(prop, "Shadow", "Object cast shadows in the 3d viewport");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, NULL);
+}
+
 static void rna_def_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -2488,6 +2504,12 @@ static void rna_def_object(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Base from Set", "Object comes from a background set");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
+	/* Object Display */
+	prop = RNA_def_property(srna, "display", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display");
+	RNA_def_property_struct_type(prop, "ObjectDisplay");
+	RNA_def_property_ui_text(prop, "Object Display", "Object display settings for 3d viewport");
+
 	RNA_api_object(srna);
 }
 
@@ -2558,6 +2580,7 @@ void RNA_def_object(BlenderRNA *brna)
 	rna_def_face_map(brna);
 	rna_def_material_slot(brna);
 	rna_def_dupli_object(brna);
+	rna_def_object_display(brna);
 	RNA_define_animate_sdna(true);
 }
 

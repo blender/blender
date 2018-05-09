@@ -442,6 +442,7 @@ extern StructRNA RNA_NoiseTexture;
 extern StructRNA RNA_NorController;
 extern StructRNA RNA_Object;
 extern StructRNA RNA_ObjectBase;
+extern StructRNA RNA_ObjectDisplay;
 extern StructRNA RNA_ObstacleFluidSettings;
 extern StructRNA RNA_OceanModifier;
 extern StructRNA RNA_OceanTexData;

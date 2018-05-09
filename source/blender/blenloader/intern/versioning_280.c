@@ -1086,5 +1086,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				copy_v3_v3(scene->display.light_direction, default_light_direction);
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "Object", "ObjectDisplay", "display")) {
+			/* Initialize new object.ObjectDisplay */
+			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
+				ob->display.flag = OB_SHOW_SHADOW;
+			}
+		}
 	}
 }

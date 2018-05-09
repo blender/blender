@@ -1090,6 +1090,7 @@ static void view3d_main_region_message_subscribe(
 #endif
 
 	WM_msg_subscribe_rna_anon_type(mbus, SceneDisplay, &msg_sub_value_region_tag_redraw);
+	WM_msg_subscribe_rna_anon_type(mbus, ObjectDisplay, &msg_sub_value_region_tag_redraw);
 
 	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obact = OBACT(view_layer);
