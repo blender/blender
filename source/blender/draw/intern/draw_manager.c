@@ -45,6 +45,7 @@
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
+#include "ED_particle.h"
 #include "ED_view3d.h"
 
 #include "GPU_draw.h"
@@ -216,6 +217,20 @@ int DRW_object_is_paint_mode(const Object *ob)
 		}
 	}
 	return false;
+}
+
+bool DRW_check_particles_visible_within_active_context(Object *object)
+{
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	if (object == draw_ctx->object_edit) {
+		return false;
+	}
+	return (object->mode != OB_MODE_PARTICLE_EDIT);
+}
+
+bool DRW_check_psys_visible_within_active_context(struct ParticleSystem *psys)
+{
+	return PE_get_current_from_psys(psys) == NULL;
 }
 
 /** \} */

@@ -1472,7 +1472,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 	}
 
 	if (ob->type == OB_MESH) {
-		if (ob != draw_ctx->object_edit) {
+		if (DRW_check_particles_visible_within_active_context(ob)) {
 			material_hash = stl->g_data->hair_material_hash;
 			for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 				if (md->type != eModifierType_ParticleSystem) {

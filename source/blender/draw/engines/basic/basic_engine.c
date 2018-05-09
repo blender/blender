@@ -143,6 +143,10 @@ static void basic_cache_populate(void *vedata, Object *ob)
 	if (!DRW_object_is_renderable(ob))
 		return;
 
+	if (!DRW_check_particles_visible_within_active_context(ob)) {
+		return;
+	}
+
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	if (ob != draw_ctx->object_edit) {

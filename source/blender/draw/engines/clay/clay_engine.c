@@ -833,6 +833,10 @@ static void clay_cache_populate_particles(void *vedata, Object *ob)
 		return;
 	}
 
+	if (!DRW_check_particles_visible_within_active_context(ob)) {
+		return;
+	}
+
 	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;

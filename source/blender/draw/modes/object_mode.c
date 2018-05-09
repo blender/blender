@@ -1914,7 +1914,7 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 static void OBJECT_cache_populate_particles(Object *ob,
                                             OBJECT_PassList *psl)
 {
-	if (ob->mode == OB_MODE_PARTICLE_EDIT) {
+	if (!DRW_check_particles_visible_within_active_context(ob)) {
 		return;
 	}
 	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
