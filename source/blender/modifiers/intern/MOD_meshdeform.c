@@ -307,7 +307,7 @@ static void meshdeformModifier_do(
 		free_cagemesh = true;
 	}
 	else {
-		cagemesh = get_mesh_eval_for_modifier(mmd->object, md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		cagemesh = BKE_modifier_get_evaluated_mesh_from_object(ob, md->mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
 	}
 
 	/* if we don't have one computed, use derivedmesh from data

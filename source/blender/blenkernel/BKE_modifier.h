@@ -548,5 +548,7 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(
         struct ModifierData *md, const struct ModifierEvalContext *ctx,
         struct BMEditMesh *editData, struct DerivedMesh *dm);
 
+struct Mesh *BKE_modifier_get_evaluated_mesh_from_object(struct Object *ob, const ModifierApplyFlag flag);
+
 #endif
 

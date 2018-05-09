@@ -1051,8 +1051,8 @@ static Mesh *surfacedeform_get_mesh(SurfaceDeformModifierData *smd, bool *r_need
 		*r_needsfree = true;
 	}
 	else {
-		mesh = get_mesh_eval_for_modifier(smd->target,
-		                                  smd->modifier.mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		mesh = BKE_modifier_get_evaluated_mesh_from_object(
+		           smd->target, smd->modifier.mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
 		*r_needsfree = false;
 	}
 
