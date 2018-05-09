@@ -90,6 +90,8 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
+#include "MOD_modifier_helpers.h"
+
 #include "object_intern.h"
 
 static void modifier_skin_customdata_delete(struct Object *ob);
@@ -2331,17 +2333,41 @@ static int surfacedeform_bind_poll(bContext *C)
 
 static int surfacedeform_bind_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob = ED_object_active_context(C);
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)edit_modifier_property_get(op, ob, eModifierType_SurfaceDeform);
 
 	if (!smd)
 		return OPERATOR_CANCELLED;
 
 	if (smd->flags & MOD_SDEF_BIND) {
+		/* Un-binding happens inside the modifier when it's evaluated. */
 		smd->flags &= ~MOD_SDEF_BIND;
 	}
 	else if (smd->target) {
+		DerivedMesh *dm;
+		int mode = smd->modifier.mode;
+
+		/* Force modifier to run, it will call binding routine. */
+		smd->modifier.mode |= eModifierMode_Realtime;
 		smd->flags |= MOD_SDEF_BIND;
+
+		if (ob->type == OB_MESH) {
+			dm = mesh_create_derived_view(depsgraph, scene, ob, 0);
+			dm->release(dm);
+		}
+		else if (ob->type == OB_LATTICE) {
+			BKE_lattice_modifiers_calc(depsgraph, scene, ob);
+		}
+		else if (ob->type == OB_MBALL) {
+			BKE_displist_make_mball(depsgraph, scene, ob);
+		}
+		else if (ELEM(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+			BKE_displist_make_curveTypes(depsgraph, scene, ob, 0);
+		}
+
+		smd->modifier.mode = mode;
 	}
 
 	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);

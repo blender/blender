@@ -1624,7 +1624,9 @@ typedef struct SurfaceDeformModifierData {
 
 /* Surface Deform modifier flags */
 enum {
+	/* This indicates "do bind on next modifier evaluation" as well as "is bound". */
 	MOD_SDEF_BIND = (1 << 0),
+
 	MOD_SDEF_USES_LOOPTRI = (1 << 1),
 	MOD_SDEF_HAS_CONCAVE = (1 << 2),
 };

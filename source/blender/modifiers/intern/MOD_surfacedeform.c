@@ -1,3 +1,5 @@
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
@@ -6,15 +8,19 @@
 #include "BLI_math_geom.h"
 #include "BLI_task.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_bvhutils.h"
+#include "BKE_mesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "DEG_depsgraph.h"
 
 #include "MEM_guardedalloc.h"
 
+#include "MOD_modifier_helpers.h"
 #include "MOD_util.h"
 
 typedef struct SDefAdjacency {
@@ -905,14 +911,14 @@ static void bindVert(
 }
 
 static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)[3],
-                              unsigned int numverts, unsigned int tnumpoly, unsigned int tnumverts, DerivedMesh *tdm)
+                              unsigned int numverts, unsigned int tnumpoly, unsigned int tnumverts, Mesh *target)
 {
 	BVHTreeFromMesh treeData = {NULL};
-	const MVert *mvert = tdm->getVertArray(tdm);
-	const MPoly *mpoly = tdm->getPolyArray(tdm);
-	const MEdge *medge = tdm->getEdgeArray(tdm);
-	const MLoop *mloop = tdm->getLoopArray(tdm);
-	unsigned int tnumedges = tdm->getNumEdges(tdm);
+	const MVert *mvert = target->mvert;
+	const MPoly *mpoly = target->mpoly;
+	const MEdge *medge = target->medge;
+	const MLoop *mloop = target->mloop;
+	unsigned int tnumedges = target->totedge;
 	int adj_result;
 	SDefAdjacencyArray *vert_edges;
 	SDefAdjacency *adj_array;
@@ -946,7 +952,7 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 		return false;
 	}
 
-	bvhtree_from_mesh_get(&treeData, tdm, BVHTREE_FROM_LOOPTRI, 2);
+	BKE_bvhtree_from_mesh_get(&treeData, target, BVHTREE_FROM_LOOPTRI, 2);
 	if (treeData.tree == NULL) {
 		modifier_setError((ModifierData *)smd, "Out of memory");
 		freeAdjacencyMap(vert_edges, adj_array, edge_polys);
@@ -975,7 +981,7 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 		                     .mpoly = mpoly,
 		                     .medge = medge,
 		                     .mloop = mloop,
-		                     .looptri = tdm->getLoopTriArray(tdm),
+		                     .looptri = BKE_mesh_runtime_looptri_ensure(target),
 		                     .targetCos = MEM_malloc_arrayN(tnumverts, sizeof(float[3]), "SDefTargetBindVertArray"),
 		                     .bind_verts = smd->verts,
 		                     .vertexCos = vertexCos,
@@ -1033,6 +1039,30 @@ static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)
 	free_bvhtree_from_mesh(&treeData);
 
 	return data.success == 1;
+}
+
+static Mesh *surfacedeform_get_mesh(SurfaceDeformModifierData *smd, bool *r_needsfree)
+{
+	Mesh *mesh;
+
+	/* Handle target mesh both in and out of edit mode */
+	if (smd->target->mode & OB_MODE_EDIT) {
+		BMEditMesh *em = BKE_editmesh_from_object(smd->target);
+		mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+		*r_needsfree = true;
+	}
+	else {
+		mesh = get_mesh_eval_for_modifier(smd->target,
+		                                  smd->modifier.mode & eModifierMode_Render ? MOD_APPLY_RENDER : 0);
+		*r_needsfree = false;
+	}
+
+	if (!mesh) {
+		mesh = get_mesh(smd->target, NULL, NULL, NULL, false, false);
+		*r_needsfree = true;
+	}
+
+	return mesh;
 }
 
 static void deformVert(
@@ -1097,7 +1127,8 @@ static void surfacedeformModifier_do(
         float (*vertexCos)[3], unsigned int numverts, Object *ob)
 {
 	SurfaceDeformModifierData *smd = (SurfaceDeformModifierData *)md;
-	DerivedMesh *tdm;
+	bool free_target;
+	Mesh *target;
 	unsigned int tnumverts, tnumpoly;
 
 	/* Exit function if bind flag is not set (free bind data if any) */
@@ -1106,22 +1137,14 @@ static void surfacedeformModifier_do(
 		return;
 	}
 
-	/* Handle target mesh both in and out of edit mode */
-	if (smd->target->mode & OB_MODE_EDIT) {
-		BMEditMesh *em = BKE_editmesh_from_object(smd->target);
-		tdm = em->derivedFinal;
-	}
-	else {
-		tdm = smd->target->derivedFinal;
-	}
-
-	if (!tdm) {
+	target = surfacedeform_get_mesh(smd, &free_target);
+	if (!target) {
 		modifier_setError(md, "No valid target mesh");
 		return;
 	}
 
-	tnumverts = tdm->getNumVerts(tdm);
-	tnumpoly = tdm->getNumPolys(tdm);
+	tnumverts = target->totvert;
+	tnumpoly = target->totpoly;
 
 	/* If not bound, execute bind */
 	if (!(smd->verts)) {
@@ -1130,7 +1153,7 @@ static void surfacedeformModifier_do(
 		invert_m4_m4(tmp_mat, ob->obmat);
 		mul_m4_m4m4(smd->mat, tmp_mat, smd->target->obmat);
 
-		if (!surfacedeformBind(smd, vertexCos, numverts, tnumpoly, tnumverts, tdm)) {
+		if (!surfacedeformBind(smd, vertexCos, numverts, tnumpoly, tnumverts, target)) {
 			smd->flags &= ~MOD_SDEF_BIND;
 			return;
 		}
@@ -1139,10 +1162,12 @@ static void surfacedeformModifier_do(
 	/* Poly count checks */
 	if (smd->numverts != numverts) {
 		modifier_setError(md, "Verts changed from %u to %u", smd->numverts, numverts);
+		if (free_target) BKE_id_free(NULL, target);
 		return;
 	}
 	else if (smd->numpoly != tnumpoly) {
 		modifier_setError(md, "Target polygons changed from %u to %u", smd->numpoly, tnumpoly);
+		if (free_target) BKE_id_free(NULL, target);
 		return;
 	}
 
@@ -1154,8 +1179,7 @@ static void surfacedeformModifier_do(
 	};
 
 	if (data.targetCos != NULL) {
-		bool tdm_vert_alloc;
-		const MVert * const mvert = DM_get_vert_array(tdm, &tdm_vert_alloc);
+		const MVert * const mvert = target->mvert;
 
 		for (int i = 0; i < tnumverts; i++) {
 			mul_v3_m4v3(data.targetCos[i], smd->mat, mvert[i].co);
@@ -1169,17 +1193,15 @@ static void surfacedeformModifier_do(
 		                        deformVert,
 		                        &settings);
 
-		if (tdm_vert_alloc) {
-			MEM_freeN((void *)mvert);
-		}
-
 		MEM_freeN(data.targetCos);
 	}
+
+	if (free_target) BKE_id_free(NULL, target);
 }
 
 static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *UNUSED(derivedData),
+        Mesh *UNUSED(mesh),
         float (*vertexCos)[3], int numVerts)
 {
 	surfacedeformModifier_do(md, vertexCos, numVerts, ctx->object);
@@ -1188,7 +1210,7 @@ static void deformVerts(
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx,
         struct BMEditMesh *UNUSED(editData),
-        DerivedMesh *UNUSED(derivedData),
+        Mesh *UNUSED(mesh),
         float (*vertexCos)[3], int numVerts)
 {
 	surfacedeformModifier_do(md, vertexCos, numVerts, ctx->object);
@@ -1211,16 +1233,16 @@ ModifierTypeInfo modifierType_SurfaceDeform = {
 
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,

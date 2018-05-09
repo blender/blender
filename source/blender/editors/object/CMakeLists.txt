@@ -30,6 +30,7 @@ set(INC
 	../../imbuf
 	../../makesdna
 	../../makesrna
+	../../modifiers
 	../../python
 	../../render/extern/include
 	../../windowmanager

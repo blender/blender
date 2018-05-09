@@ -106,6 +106,7 @@ set(SRC
 	intern/MOD_weightvgproximity.c
 	intern/MOD_wireframe.c
 
+	MOD_modifier_helpers
 	MOD_modifiertypes.h
 	intern/MOD_fluidsim_util.h
 	intern/MOD_meshcache_util.h
