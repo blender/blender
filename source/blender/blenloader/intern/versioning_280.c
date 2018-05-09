@@ -1077,4 +1077,14 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 	}
+
+	{
+		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "SceneDisplay", "display")) {
+			/* Initialize new scene.SceneDisplay */
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				static float default_light_direction[] = {-0.577350269, -0.577350269, 0.577350269};
+				copy_v3_v3(scene->display.light_direction, default_light_direction);
+			}
+		}
+	}
 }

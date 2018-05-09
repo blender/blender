@@ -28,47 +28,17 @@
 
 #include "DRW_render.h"
 
-#include "BKE_icons.h"
-#include "BKE_idprop.h"
-#include "BKE_main.h"
-
-#include "GPU_shader.h"
-
 #include "workbench_engine.h"
-#include "workbench_private.h"
 /* Shaders */
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 
 
-/* Functions */
-
-static void workbench_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
-{
-	BLI_assert(props &&
-	           props->type == IDP_GROUP &&
-	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-
-	BKE_collection_engine_property_add_float(props, "random_object_color_saturation", 0.5f);
-	BKE_collection_engine_property_add_float(props, "random_object_color_value", 0.9f);
-}
-
-static void workbench_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
-{
-	BLI_assert(props &&
-	           props->type == IDP_GROUP &&
-	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-
-	const float light_direction[3] = {-0.577350269, -0.577350269, 0.577350269};
-	BKE_collection_engine_property_add_float_array(props, "light_direction", light_direction, 3);	UNUSED_VARS_NDEBUG(props);
-}
-
 /* Note: currently unused, we may want to register so we can see this when debugging the view. */
-
 RenderEngineType DRW_engine_viewport_workbench_type = {
 	NULL, NULL,
 	WORKBENCH_ENGINE, N_("Workbench"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, &workbench_layer_collection_settings_create, &workbench_view_layer_settings_create,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	&draw_engine_workbench_solid,
 	{NULL, NULL, NULL}
 };

@@ -329,15 +329,12 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DRWShadingGroup *grp;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_WORKBENCH);
 	static float shadow_multiplier = 0.0f;
-
-	const DRWContextState *DCS = DRW_context_state_get();
 
 	wpd->material_hash = BLI_ghash_ptr_new(__func__);
 
-	View3D *v3d = DCS->v3d;
+	View3D *v3d = draw_ctx->v3d;
+	Scene *scene = draw_ctx->scene;
 	if (v3d) {
 		wpd->shading = v3d->shading;
 		wpd->drawtype = v3d->drawtype;
@@ -368,7 +365,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
 		DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
 
-		copy_v3_v3(e_data.light_direction, BKE_collection_engine_property_value_get_float_array(props, "light_direction"));
+		copy_v3_v3(e_data.light_direction, scene->display.light_direction);
 		negate_v3(e_data.light_direction);
 
 		if (SHADOW_ENABLED(wpd)) {
@@ -419,10 +416,9 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_WORKBENCH);
-	const float hsv_saturation = BKE_collection_engine_property_value_get_float(props, "random_object_color_saturation");
-	const float hsv_value = BKE_collection_engine_property_value_get_float(props, "random_object_color_value");
+	const Scene *scene = draw_ctx->scene;
+	const float hsv_saturation = 0.5;
+	const float hsv_value = 0.9;
 
 	/* Solid */
 	get_material_solid_color(wpd, ob, mat, material_template.color, hsv_saturation, hsv_value);

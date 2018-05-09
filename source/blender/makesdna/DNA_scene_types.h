@@ -1353,6 +1353,13 @@ typedef struct DisplaySafeAreas {
 	float action_center[2];
 } DisplaySafeAreas;
 
+/* ------------------------------------------- */
+/* Scene Display - used for store scene specific display settings for the 3d view */
+typedef struct SceneDisplay {
+	float light_direction[3];      /* light direction for shadows/highlight */
+	int pad;
+} SceneDisplay;
+
 /* *************************************************************** */
 /* Scene ID-Block */
 
@@ -1444,6 +1451,8 @@ typedef struct Scene {
 
 	IDProperty *collection_properties;  /* settings to be overriden by layer collections */
 	IDProperty *layer_properties;  /* settings to be override by workspaces */
+
+	struct SceneDisplay display;
 } Scene;
 
 /* **************** RENDERDATA ********************* */

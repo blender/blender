@@ -5643,6 +5643,25 @@ static void rna_def_display_safe_areas(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE | ND_DRAW_RENDER_VIEWPORT, NULL);
 }
 
+static void rna_def_scene_display(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static float default_light_direction[3] = {-0.577350269, -0.577350269, 0.577350269};
+
+	srna = RNA_def_struct(brna, "SceneDisplay", NULL);
+	RNA_def_struct_ui_text(srna, "Scene Display", "Scene display settings for 3d viewport");
+	RNA_def_struct_sdna(srna, "SceneDisplay");
+
+	prop = RNA_def_property(srna, "light_direction", PROP_FLOAT, PROP_DIRECTION);
+	RNA_def_property_float_sdna(prop, NULL, "light_direction");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_float_array_default(prop, default_light_direction);
+	RNA_def_property_ui_text(prop, "Light Direction", "Direction of the light for shadows and highlights");
+	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
+}
 
 void RNA_def_scene(BlenderRNA *brna)
 {
@@ -6102,6 +6121,12 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "SceneCollection");
 	RNA_def_property_ui_text(prop, "Master Collection", "Collection that contains all other collections");
 
+	/* Scene Display */
+	prop = RNA_def_property(srna, "display", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "display");
+	RNA_def_property_struct_type(prop, "SceneDisplay");
+	RNA_def_property_ui_text(prop, "Scene Display", "Scene display settings for 3d viewport");
+
 	/* Nestled Data  */
 	/* *** Non-Animated *** */
 	RNA_define_animate_sdna(false);
@@ -6116,6 +6141,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	rna_def_transform_orientation(brna);
 	rna_def_selected_uv_element(brna);
 	rna_def_display_safe_areas(brna);
+	rna_def_scene_display(brna);
 	RNA_define_animate_sdna(true);
 	/* *** Animated *** */
 	rna_def_scene_render_data(brna);

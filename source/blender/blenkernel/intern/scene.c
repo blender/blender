@@ -819,6 +819,10 @@ void BKE_scene_init(Scene *sce)
 	BKE_view_layer_engine_settings_create(sce->layer_properties);
 
 	BKE_view_layer_add(sce, "View Layer");
+
+	/* SceneDisplay */
+	static float default_light_direction[] = {-0.577350269, -0.577350269, 0.577350269};
+	copy_v3_v3(sce->display.light_direction, default_light_direction);
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)
