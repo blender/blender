@@ -415,8 +415,6 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
 	        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 	WORKBENCH_MaterialData material_template;
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	const Scene *scene = draw_ctx->scene;
 	const float hsv_saturation = 0.5;
 	const float hsv_value = 0.9;
 
