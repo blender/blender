@@ -984,7 +984,7 @@ BVHTree *bvhtree_from_mesh_looptri_ex(
 
 static BLI_bitmap *loose_verts_map_get(
         const MEdge *medge, int edges_num,
-        const MVert *mvert, int verts_num,
+        const MVert *UNUSED(mvert), int verts_num,
         int *r_loose_vert_num)
 {
 	BLI_bitmap *loose_verts_mask = BLI_BITMAP_NEW(verts_num, __func__);
@@ -1010,7 +1010,7 @@ static BLI_bitmap *loose_verts_map_get(
 
 static BLI_bitmap *loose_edges_map_get(
         const MEdge *medge, const int edges_len,
-        const MVert *mvert, int *r_loose_edge_len)
+        const MVert *UNUSED(mvert), int *r_loose_edge_len)
 {
 	BLI_bitmap *loose_edges_mask = BLI_BITMAP_NEW(edges_len, __func__);
 
