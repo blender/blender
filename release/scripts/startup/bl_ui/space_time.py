@@ -36,26 +36,17 @@ class TIME_HT_editor_buttons(Header):
         toolsettings = context.tool_settings
         screen = context.screen
 
-        row = layout.row(align=True)
-        row.prop(scene, "use_preview_range", text="", toggle=True)
-        row.prop(scene, "lock_frame_selection_to_range", text="", toggle=True)
-
-        row = layout.row(align=True)
-        if not scene.use_preview_range:
-            row.prop(scene, "frame_start", text="Start")
-            row.prop(scene, "frame_end", text="End")
-        else:
-            row.prop(scene, "frame_preview_start", text="Start")
-            row.prop(scene, "frame_preview_end", text="End")
-
-        if scene.show_subframe:
-            layout.prop(scene, "frame_float", text="")
-        else:
-            layout.prop(scene, "frame_current", text="")
-
+        layout.separator()   # XXX: This should be dynamic (e.g. layout.separator(stretch=1.0))
+        layout.separator()
+        layout.separator()
+        layout.separator()
+        layout.separator()
+        layout.separator()
         layout.separator()
 
         row = layout.row(align=True)
+        row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
+
         row.operator("screen.frame_jump", text="", icon='REW').end = False
         row.operator("screen.keyframe_jump", text="", icon='PREV_KEYFRAME').next = False
         if not screen.is_animation_playing:
@@ -76,10 +67,35 @@ class TIME_HT_editor_buttons(Header):
         row.operator("screen.keyframe_jump", text="", icon='NEXT_KEYFRAME').next = True
         row.operator("screen.frame_jump", text="", icon='FF').end = True
 
+        layout.separator()  # XXX: This should be dynamic (e.g. layout.separator(stretch=1.0))
+        layout.separator()
+        layout.separator()
+        layout.separator()
+        layout.separator()
+        layout.separator()
+        layout.separator()
+
+        row = layout.row()
+        row.scale_x = 0.95
+        if scene.show_subframe:
+            row.prop(scene, "frame_float", text="")
+        else:
+            row.prop(scene, "frame_current", text="")
+
+        layout.separator()
         layout.separator()
 
         row = layout.row(align=True)
-        row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
+        row.prop(scene, "use_preview_range", text="", toggle=True)
+        #row.prop(scene, "lock_frame_selection_to_range", text="", toggle=True)
+        sub = row.row(align=True)
+        sub.scale_x = 0.8
+        if not scene.use_preview_range:
+            sub.prop(scene, "frame_start", text="Start")
+            sub.prop(scene, "frame_end", text="End")
+        else:
+            sub.prop(scene, "frame_preview_start", text="Start")
+            sub.prop(scene, "frame_preview_end", text="End")
 
 
 class TIME_MT_editor_menus(Menu):
@@ -93,7 +109,6 @@ class TIME_MT_editor_menus(Menu):
     def draw_menus(layout, context):
         layout.menu("TIME_MT_view")
         layout.menu("TIME_MT_marker")
-        layout.menu("TIME_MT_frame")
         layout.menu("TIME_MT_playback")
 
 
