@@ -672,7 +672,7 @@ int ED_transform_calc_manipulator_stats(
 			case V3D_MANIP_CURSOR:
 			{
 				float mat[3][3];
-				quat_to_mat3(mat, ED_view3d_cursor3d_get(scene, v3d)->rotation);
+				ED_view3d_cursor3d_calc_mat3(scene, v3d, mat);
 				copy_m4_m3(rv3d->twmat, mat);
 				break;
 			}

@@ -81,6 +81,19 @@ View3DCursor *ED_view3d_cursor3d_get(Scene *scene, View3D *v3d)
 	}
 }
 
+void ED_view3d_cursor3d_calc_mat3(const Scene *scene, const View3D *v3d, float mat[3][3])
+{
+	const View3DCursor *cursor = ED_view3d_cursor3d_get((Scene *)scene, (View3D *)v3d);
+	quat_to_mat3(mat, cursor->rotation);
+}
+
+void ED_view3d_cursor3d_calc_mat4(const Scene *scene, const View3D *v3d, float mat[4][4])
+{
+	const View3DCursor *cursor = ED_view3d_cursor3d_get((Scene *)scene, (View3D *)v3d);
+	quat_to_mat4(mat, cursor->rotation);
+	copy_v3_v3(mat[3], cursor->location);
+}
+
 Camera *ED_view3d_camera_data_get(View3D *v3d, RegionView3D *rv3d)
 {
 	/* establish the camera object, so we can default to view mapping if anything is wrong with it */
