@@ -1010,7 +1010,7 @@ static BLI_bitmap *loose_verts_map_get(
 
 static BLI_bitmap *loose_edges_map_get(
         const MEdge *medge, const int edges_len,
-        const MVert *UNUSED(mvert), int *r_loose_edge_len)
+        int *r_loose_edge_len)
 {
 	BLI_bitmap *loose_edges_mask = BLI_BITMAP_NEW(edges_len, __func__);
 
