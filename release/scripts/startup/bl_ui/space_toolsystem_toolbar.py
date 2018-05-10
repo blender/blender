@@ -249,6 +249,19 @@ class _defs_edit_armature:
 
 class _defs_edit_mesh:
 
+
+    @ToolDef.from_fn
+    def cube_add():
+        return dict(
+            text="Add Cube",
+            icon="ops.mesh.primitive_cube_add_manipulator",
+            widget=None,
+            keymap=(
+                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
+                ("mesh.primitive_cube_add_manipulator", dict(), dict(type='EVT_TWEAK_A', value='ANY')),
+            ),
+        )
+
     @ToolDef.from_fn
     def rip_region():
         return dict(
@@ -742,6 +755,8 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             *_tools_select,
             None,
             *_tools_transform,
+            None,
+            _defs_edit_mesh.cube_add,
             None,
             (
                 _defs_edit_mesh.extrude,
