@@ -2526,7 +2526,9 @@ void BKE_library_filepath_set(Library *lib, const char *filepath)
 		 * outliner, and its not really supported but allow from here for now
 		 * since making local could cause this to be directly linked - campbell
 		 */
-		const char *basepath = lib->parent ? lib->parent->filepath : G.main->name;
+		/* Never make paths relative to parent lib - reading code (blenloader) always set *all* lib->name relative to
+		 * current G.main, not to their parent for indirectly linked ones. */
+		const char *basepath = G.main->name;
 		BLI_path_abs(lib->filepath, basepath);
 	}
 }
