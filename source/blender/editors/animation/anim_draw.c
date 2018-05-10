@@ -77,8 +77,6 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 	const bool show_time = (flag & DRAWCFRA_UNIT_SECONDS) != 0;
 	
 	const uiFontStyle *fstyle = UI_FSTYLE_WIDGET;
-	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned char col[4];
 	float color[4];
 	float xscale, x, y;
