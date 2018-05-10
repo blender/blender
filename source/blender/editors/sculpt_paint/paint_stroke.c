@@ -149,13 +149,18 @@ static void paint_draw_smooth_cursor(bContext *C, int x, int y, void *customdata
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 
+		ARegion *ar = stroke->vc.ar;
+
 		unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 		immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
 		immUniformColor4ubv(paint->paint_cursor_col);
 
 		immBegin(GWN_PRIM_LINES, 2);
 		immVertex2f(pos, x, y);
-		immVertex2f(pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
+		immVertex2f(pos,
+		            stroke->last_mouse_position[0] + ar->winrct.xmin,
+		            stroke->last_mouse_position[1] + ar->winrct.ymin);
+
 		immEnd();
 
 		immUnbindProgram();
@@ -187,12 +192,22 @@ static void paint_draw_line_cursor(bContext *C, int x, int y, void *customdata)
 
 	immBegin(GWN_PRIM_LINES, 2);
 
+	ARegion *ar = stroke->vc.ar;
+
 	if (stroke->constrain_line) {
-		immVertex2f(shdr_pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
-		immVertex2f(shdr_pos, stroke->constrained_pos[0], stroke->constrained_pos[1]);
+		immVertex2f(shdr_pos,
+		            stroke->last_mouse_position[0] + ar->winrct.xmin,
+		            stroke->last_mouse_position[1] + ar->winrct.ymin);
+
+		immVertex2f(shdr_pos,
+		            stroke->constrained_pos[0] + ar->winrct.xmin,
+		            stroke->constrained_pos[1] + ar->winrct.ymin);
 	}
 	else {
-		immVertex2f(shdr_pos, stroke->last_mouse_position[0], stroke->last_mouse_position[1]);
+		immVertex2f(shdr_pos,
+		            stroke->last_mouse_position[0] + ar->winrct.xmin,
+		            stroke->last_mouse_position[1] + ar->winrct.ymin);
+
 		immVertex2f(shdr_pos, x, y);
 	}
 
