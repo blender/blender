@@ -80,6 +80,7 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 	Gwn_VertFormat *format = immVertexFormat();
 	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 	unsigned char col[4];
+	float color[4];
 	float xscale, x, y;
 	char numstr[32] = "  t  ";  /* t is the character to start replacing from */
 	float hlen;
@@ -105,19 +106,20 @@ void ANIM_draw_cfra_number(const bContext *C, View2D *v2d, short flag)
 	
 	/* get starting coordinates for drawing */
 	x = cfra * xscale;
-	y = 0.02f * U.widget_unit;
-
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
+	y = -0.1f * U.widget_unit;
 
 	/* draw green box around/behind text */
-	immUniformThemeColorShade(TH_CFRAME, 0);
+	UI_GetThemeColor4fv(TH_CFRAME, color);
+	color[3] = 3.0f;
 
-	immRectf(pos,
-	         x - hlen - 0.20f * U.widget_unit,
-	         y,
-	         x + hlen + 0.2f * U.widget_unit,
-	         y        +        U.widget_unit);
-	immUnbindProgram();
+	UI_draw_roundbox_corner_set(UI_CNR_ALL);
+	UI_draw_roundbox_aa(true,
+	                    x - hlen - 0.1f * U.widget_unit,
+	                    y + 3.0f,
+	                    x + hlen + 0.1f * U.widget_unit,
+	                    y -3.0f + U.widget_unit,
+	                    0.1f * U.widget_unit,
+	                    color);
 
 	/* draw current frame number */
 	UI_GetThemeColor4ubv(TH_TEXT_HI, col);
