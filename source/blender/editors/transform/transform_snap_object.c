@@ -848,7 +848,6 @@ static void cb_bvert_no_copy(
 static void cb_medge_verts_get(
         const int index, int v_index[2], const BVHTreeFromMesh *data)
 {
-	const MVert *vert = data->vert;
 	const MEdge *edge = &data->edge[index];
 
 	v_index[0] = edge->v1;
@@ -1228,7 +1227,7 @@ static bool cb_walk_leaf_snap_vert(
 	struct Nearest2dUserData *data = userdata;
 	struct Nearest2dPrecalc *neasrest_precalc = &data->data_precalc;
 
-	float *co;
+	const float *co;
 	data->get_vert_co(index, &co, data->userdata);
 
 	if (test_projected_vert_dist(
@@ -1256,7 +1255,6 @@ static bool cb_walk_leaf_snap_edge(
 	data->get_edge_verts_index(index, vindex, data->userdata);
 
 	if (data->snap_to == SCE_SNAP_MODE_EDGE) {
-		bool vert_snapped = false;
 		const float *v_pair[2];
 		data->get_vert_co(vindex[0], &v_pair[0], data->userdata);
 		data->get_vert_co(vindex[1], &v_pair[1], data->userdata);
@@ -1746,8 +1744,8 @@ static bool snapMesh(
 
 	if (sod->has_looptris && treedata->tree == NULL) {
 		BKE_bvhtree_from_mesh_get(treedata, me, BVHTREE_FROM_LOOPTRI, 4);
-
-		if (sod->has_looptris = treedata->tree != NULL) {
+		sod->has_looptris = (treedata->tree != NULL);
+		if (sod->has_looptris) {
 			/* Make sure that the array of edges is referenced in the callbacks. */
 			treedata->edge = me->medge; /* CustomData_get_layer(&me->edata, CD_MEDGE);? */
 		}
