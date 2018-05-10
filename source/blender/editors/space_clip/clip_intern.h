@@ -143,7 +143,6 @@ void clip_delete_plane_track(struct bContext *C, struct MovieClip *clip, struct 
 
 void clip_view_center_to_point(SpaceClip *sc, float x, float y);
 
-void clip_draw_cfra(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
 /* tracking_ops.c */

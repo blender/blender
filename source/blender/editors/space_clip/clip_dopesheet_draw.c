@@ -281,9 +281,6 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 		glDisable(GL_BLEND);
 	}
-
-	/* current frame */
-	clip_draw_cfra(sc, ar, scene);
 }
 
 void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)

@@ -349,7 +349,4 @@ void clip_draw_graph(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	/* frame range */
 	clip_draw_sfra_efra(v2d, scene);
-
-	/* current frame */
-	clip_draw_cfra(sc, ar, scene);
 }

@@ -51,6 +51,7 @@
 
 #include "IMB_imbuf_types.h"
 
+#include "ED_anim_api.h" /* for timeline cursor drawing */
 #include "ED_mask.h"
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -1245,6 +1246,7 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	Scene *scene = CTX_data_scene(C);
 	short unitx, unity;
+	short cfra_flag = 0;
 
 	if (sc->flag & SC_LOCK_TIMECURSOR)
 		ED_clip_graph_center_current_frame(scene, ar);
@@ -1258,6 +1260,10 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	clip_draw_graph(sc, ar, scene);
 
+	/* current frame indicator line */
+	if (sc->flag & SC_SHOW_SECONDS) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	ANIM_draw_cfra(C, v2d, cfra_flag);
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 
@@ -1267,6 +1273,11 @@ static void graph_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unitx, V2D_GRID_NOCLAMP, unity, V2D_GRID_NOCLAMP);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+	
+	/* currnt frame indicator */
+	if (sc->flag & SC_SHOW_SECONDS) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	UI_view2d_view_orthoSpecial(ar, v2d, 1);
+	ANIM_draw_cfra_number(C, v2d, cfra_flag);
 }
 
 static void dopesheet_region_draw(const bContext *C, ARegion *ar)
@@ -1277,7 +1288,7 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
-	short unit = 0;
+	short unit = 0, cfra_flag = 0;
 
 	if (clip)
 		BKE_tracking_dopesheet_update(&clip->tracking);
@@ -1298,6 +1309,10 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
 	/* data... */
 	clip_draw_dopesheet_main(sc, ar, scene);
 
+	/* current frame indicator line */
+	if (sc->flag & SC_SHOW_SECONDS) cfra_flag |= DRAWCFRA_UNIT_SECONDS;
+	ANIM_draw_cfra(C, v2d, cfra_flag);
+
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 
@@ -1305,6 +1320,10 @@ static void dopesheet_region_draw(const bContext *C, ARegion *ar)
 	scrollers = UI_view2d_scrollers_calc(C, v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
+	
+	/* currnt frame number indicator */
+	UI_view2d_view_orthoSpecial(ar, v2d, 1);
+	ANIM_draw_cfra_number(C, v2d, cfra_flag);
 }
 
 static void clip_preview_region_draw(const bContext *C, ARegion *ar)

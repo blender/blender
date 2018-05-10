@@ -264,39 +264,6 @@ void clip_view_center_to_point(SpaceClip *sc, float x, float y)
 	sc->yof = (y - 0.5f) * height * aspy;
 }
 
-void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
-{
-	/* Draw a light green line to indicate current frame */
-	View2D *v2d = &ar->v2d;
-	float x = (float)(sc->user.framenr * scene->r.framelen);
-
-	unsigned int pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-
-	immBindBuiltinProgram(GPU_SHADER_2D_UNIFORM_COLOR);
-	immUniformThemeColor(TH_CFRAME);
-	glLineWidth(2.0f);
-
-	immBegin(GWN_PRIM_LINES, 2);
-	immVertex2f(pos, x, v2d->cur.ymin);
-	immVertex2f(pos, x, v2d->cur.ymax);
-	immEnd();
-
-	immUnbindProgram();
-
-	UI_view2d_view_orthoSpecial(ar, v2d, 1);
-
-	/* because the frame number text is subject to the same scaling as the contents of the view */
-	float xscale;
-	UI_view2d_scale_get(v2d, &xscale, NULL);
-	gpuPushMatrix();
-	gpuScale2f(1.0f / xscale, 1.0f);
-
-	ED_region_cache_draw_curfra_label(sc->user.framenr, (float)sc->user.framenr * xscale, 18);
-
-	/* restore view transform */
-	gpuPopMatrix();
-}
-
 void clip_draw_sfra_efra(View2D *v2d, Scene *scene)
 {
 	UI_view2d_view_ortho(v2d);
