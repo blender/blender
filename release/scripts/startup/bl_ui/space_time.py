@@ -18,7 +18,7 @@
 
 # <pep8 compliant>
 import bpy
-from bpy.types import Header, Menu
+from bpy.types import Header, Menu, Panel
 
 
 # Header buttons for timeline header (play, etc.)
@@ -35,7 +35,6 @@ class TIME_HT_editor_buttons(Header):
         scene = context.scene
         toolsettings = context.tool_settings
         screen = context.screen
-        userprefs = context.user_preferences
 
         row = layout.row(align=True)
         row.prop(scene, "use_preview_range", text="", toggle=True)
@@ -81,19 +80,6 @@ class TIME_HT_editor_buttons(Header):
 
         row = layout.row(align=True)
         row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
-        if toolsettings.use_keyframe_insert_auto:
-            row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
-
-            if screen.is_animation_playing and not userprefs.edit.use_keyframe_insert_available:
-                subsub = row.row(align=True)
-                subsub.prop(toolsettings, "use_record_with_nla", toggle=True)
-
-        layout.prop(toolsettings, "keyframe_type", text="", icon_only=True)
-
-        row = layout.row(align=True)
-        row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
-        row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
-        row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
 
 
 class TIME_MT_editor_menus(Menu):
@@ -267,6 +253,54 @@ def marker_menu_generic(layout):
     ts = context.tool_settings
     layout.prop(ts, "lock_markers")
 
+###################################
+
+class TimelinePanelButtons:
+    bl_space_type = 'DOPESHEET_EDITOR'
+    bl_region_type = 'UI'
+
+    @staticmethod
+    def has_timeline(context):
+        return context.space_data.mode == 'TIMELINE'
+
+
+class TIME_PT_keyframing_settings(TimelinePanelButtons, Panel):
+    bl_label = "Keyframing Settings"
+    bl_options = {'HIDE_HEADER'}
+
+    @classmethod
+    def poll(cls, context):
+        # only for timeline editor
+        return cls.has_timeline(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        toolsettings = context.tool_settings
+        userprefs = context.user_preferences
+
+        col = layout.column(align=True)
+        col.label("Active Keying Set:")
+        row = col.row(align=True)
+        row.prop_search(scene.keying_sets_all, "active", scene, "keying_sets_all", text="")
+        row.operator("anim.keyframe_insert", text="", icon='KEY_HLT')
+        row.operator("anim.keyframe_delete", text="", icon='KEY_DEHLT')
+
+        col = layout.column(align=True)
+        col.label("New Keyframe Type:")
+        col.prop(toolsettings, "keyframe_type", text="")
+        
+        col = layout.column(align=True)
+        col.label("Auto Keyframing:")
+        row = col.row()
+        row.prop(toolsettings, "auto_keying_mode", text="")
+        row.prop(toolsettings, "use_keyframe_insert_keyingset", text="")
+        if not userprefs.edit.use_keyframe_insert_available:
+            col.prop(toolsettings, "use_record_with_nla", text="Layered Recording")
+
+
+###################################
 
 classes = (
     TIME_HT_editor_buttons,
@@ -277,6 +311,7 @@ classes = (
     TIME_MT_frame,
     TIME_MT_playback,
     TIME_MT_autokey,
+    TIME_PT_keyframing_settings,
 )
 
 if __name__ == "__main__":  # only for live edit.
