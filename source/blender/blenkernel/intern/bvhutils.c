@@ -1128,7 +1128,7 @@ BVHTree *bvhtree_from_mesh_get(
 
 					if (type == BVHTREE_FROM_LOOSEEDGES) {
 						loose_edges_mask = loose_edges_map_get(
-						        medge, edges_num, mvert, &loose_edges_num);
+						        medge, edges_num, &loose_edges_num);
 					}
 
 					tree = bvhtree_from_mesh_edges_create_tree(
@@ -1407,7 +1407,7 @@ BVHTree *BKE_bvhtree_from_mesh_get(
 
 					if (type == BVHTREE_FROM_LOOSEEDGES) {
 						loose_edges_mask = loose_edges_map_get(
-						        medge, edges_len, mvert, &loose_edges_len);
+						        medge, edges_len, &loose_edges_len);
 					}
 
 					tree = bvhtree_from_mesh_edges_create_tree(
