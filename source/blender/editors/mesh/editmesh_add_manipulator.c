@@ -73,51 +73,54 @@ static void calc_initial_placement_point_from_view(
 
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
+	ARegion *ar = CTX_wm_region(C);
+	RegionView3D *rv3d = ar->regiondata;
+
 	bool use_mouse_project = true; /* TODO: make optional */
 
 	float cursor_matrix[4][4];
+	float orient_matrix[3][3];
 	ED_view3d_cursor3d_calc_mat4(scene, v3d, cursor_matrix);
 
+	float dots[3] = {
+		dot_v3v3(rv3d->viewinv[2], cursor_matrix[0]),
+		dot_v3v3(rv3d->viewinv[2], cursor_matrix[1]),
+		dot_v3v3(rv3d->viewinv[2], cursor_matrix[2]),
+	};
+	const int axis = axis_dominant_v3_single(dots);
+
+	copy_v3_v3(orient_matrix[0], cursor_matrix[(axis + 1) % 3]);
+	copy_v3_v3(orient_matrix[1], cursor_matrix[(axis + 2) % 3]);
+	copy_v3_v3(orient_matrix[2], cursor_matrix[axis]);
+
+	if (dot_v3v3(rv3d->viewinv[2], orient_matrix[2]) < 0.0f) {
+		negate_v3(orient_matrix[2]);
+	}
+	if (is_negative_m3(orient_matrix)) {
+		swap_v3_v3(orient_matrix[0], orient_matrix[1]);
+	}
+
 	if (use_mouse_project) {
-		ARegion *ar = CTX_wm_region(C);
 		float ray_co[3], ray_no[3];
-
-		float point_on_plane[3][3];
-
 		if (ED_view3d_win_to_ray(
 		            CTX_data_depsgraph(C),
 		            ar, v3d, mval,
 		            ray_co, ray_no, false))
 		{
-			/* Pick the plane which gives the least distant projection,
-			 * this avoids. */
-			float dist_best_sq = FLT_MAX;
-			int axis_best = -1;
-			for (int i = 0; i < 3; i++) {
-				float plane[4];
-				plane_from_point_normal_v3(plane, cursor_matrix[3], cursor_matrix[i]);
-				float lambda;
-				if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, true)) {
-					madd_v3_v3v3fl(point_on_plane[i], ray_co, ray_no, lambda);
-					float dist_test_sq = len_squared_v3v3(cursor_matrix[3], point_on_plane[i]);
-					if (dist_test_sq < dist_best_sq) {
-						dist_best_sq = dist_test_sq;
-						axis_best = i;
-					}
-				}
+			float plane[4];
+			plane_from_point_normal_v3(plane, cursor_matrix[3], orient_matrix[2]);
+			float lambda;
+			if (isect_ray_plane_v3(ray_co, ray_no, plane, &lambda, true)) {
+				madd_v3_v3v3fl(r_location, ray_co, ray_no, lambda);
+				copy_m3_m3(r_rotation, orient_matrix);
+				return;
 			}
-			if (axis_best != -1) {
-				copy_v3_v3(r_location, point_on_plane[axis_best]);
-				/* For now always use same orientation. */
-				copy_m3_m4(r_rotation, cursor_matrix);
-			}
-			return;
 		}
 	}
 
 	/* fallback */
 	copy_v3_v3(r_location, cursor_matrix[3]);
-	copy_m3_m4(r_rotation, cursor_matrix);
+	copy_m3_m3(r_rotation, orient_matrix);
 }
 
 /** \} */
