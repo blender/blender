@@ -10,12 +10,12 @@ uniform vec3 dofParams;
 #define dof_distance        dofParams.y
 #define dof_invsensorsize   dofParams.z
 
-uniform vec4 bokehParams;
+uniform vec4 bokehParams[2];
 
-#define bokeh_sides         bokehParams.x /* Polygon Bokeh shape number of sides */
-#define bokeh_rotation      bokehParams.y
-#define bokeh_ratio         bokehParams.z
-#define bokeh_maxsize       bokehParams.w
+#define bokeh_rotation      bokehParams[0].x
+#define bokeh_ratio         bokehParams[0].y
+#define bokeh_maxsize       bokehParams[0].z
+#define bokeh_sides         bokehParams[1] /* Polygon Bokeh shape number of sides (with precomputed vars) */
 
 uniform vec2 nearFar; /* Near & far view depths values */
 
@@ -130,6 +130,7 @@ void main(void)
 #elif defined(STEP_SCATTER)
 
 flat in vec4 color;
+flat in float smoothFac;
 /* coordinate used for calculating radius */
 in vec2 particlecoord;
 
@@ -139,28 +140,42 @@ out vec4 fragColor;
 void main(void)
 {
 	/* Early out */
-	float dist_sqrd = dot(particlecoord, particlecoord);
+	float dist_sqr = dot(particlecoord, particlecoord);
 
 	/* Circle Dof */
-	if (dist_sqrd > 1.0) {
+	if (dist_sqr > 1.0) {
 		discard;
 	}
 
+	float dist = sqrt(dist_sqr);
+
 	/* Regular Polygon Dof */
-	if (bokeh_sides > 0.0) {
+	if (bokeh_sides.x > 0.0) {
 		/* Circle parametrization */
 		float theta = atan(particlecoord.y, particlecoord.x) + bokeh_rotation;
-		float r;
 
-		r = cos(M_PI / bokeh_sides) /
-		    (cos(theta - (M_2PI / bokeh_sides) * floor((bokeh_sides * theta + M_PI) / M_2PI)));
+		/* Optimized version of :
+		 * float denom = theta - (M_2PI / bokeh_sides) * floor((bokeh_sides * theta + M_PI) / M_2PI);
+		 * float r = cos(M_PI / bokeh_sides) / cos(denom); */
+		float denom = theta - bokeh_sides.y * floor(bokeh_sides.z * theta + 0.5);
+		float r = bokeh_sides.w / max(1e-8, cos(denom));
 
-		if (dist_sqrd > r * r) {
+		/* Divide circle radial coord by the shape radius for angle theta.
+		 * Giving us the new linear radius to the shape edge. */
+		dist /= r;
+
+		if (dist > 1.0) {
 			discard;
 		}
 	}
 
 	fragColor = color;
+
+	/* Smooth the edges a bit. This effectively reduce the bokeh shape
+	 * but does fade out the undersampling artifacts. */
+	if (smoothFac < 1.0) {
+		fragColor *= smoothstep(1.0, smoothFac, dist);
+	}
 }
 
 #elif defined(STEP_RESOLVE)

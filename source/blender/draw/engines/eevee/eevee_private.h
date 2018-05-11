@@ -546,6 +546,7 @@ typedef struct EEVEE_EffectsInfo {
 	float dof_near_far[2];
 	float dof_params[3];
 	float dof_bokeh[4];
+	float dof_bokeh_sides[4];
 	float dof_layer_select[2];
 	int dof_target_size[2];
 	struct GPUTexture *dof_down_near; /* Textures from pool */

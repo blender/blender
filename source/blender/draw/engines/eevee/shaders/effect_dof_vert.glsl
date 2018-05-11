@@ -1,17 +1,17 @@
 
 uniform vec2 layerSelection;
 
-uniform vec4 bokehParams;
+uniform vec4 bokehParams[2];
 
-#define bokeh_sides         bokehParams.x /* Polygon Bokeh shape number of sides */
-#define bokeh_rotation      bokehParams.y
-#define bokeh_ratio         bokehParams.z
-#define bokeh_maxsize       bokehParams.w
+#define bokeh_rotation      bokehParams[0].x
+#define bokeh_ratio         bokehParams[0].y
+#define bokeh_maxsize       bokehParams[0].z
 
-uniform sampler2D colorBuffer;
 uniform sampler2D cocBuffer;
+uniform sampler2D colorBuffer;
 
 flat out vec4 color;
+flat out float smoothFac;
 out vec2 particlecoord;
 
 #define M_PI 3.1415926535897932384626433832795
@@ -78,4 +78,11 @@ void main()
 	gl_Position.xy -= 1.0 - 0.5 * texel_size; /* NDC Bottom left */
 	gl_Position.xy += (0.5 + vec2(texelco) * 2.0) * texel_size;
 
+	/* don't do smoothing for small sprites */
+	if (coc > 3.0) {
+		smoothFac = 1.0 - 1.5 / coc;
+	}
+	else {
+		smoothFac = 1.0;
+	}
 }

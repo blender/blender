@@ -162,10 +162,15 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			effects->dof_params[0] = aperture * fabsf(focal_len_scaled / (focus_dist - focal_len_scaled));
 			effects->dof_params[1] = -focus_dist;
 			effects->dof_params[2] = viewport_size[0] / sensor_scaled;
-			effects->dof_bokeh[0] = blades;
-			effects->dof_bokeh[1] = rotation;
-			effects->dof_bokeh[2] = ratio;
-			effects->dof_bokeh[3] = BKE_collection_engine_property_value_get_float(props, "bokeh_max_size");
+			effects->dof_bokeh[0] = rotation;
+			effects->dof_bokeh[1] = ratio;
+			effects->dof_bokeh[2] = BKE_collection_engine_property_value_get_float(props, "bokeh_max_size");
+
+			/* Precompute values to save instructions in fragment shader. */
+			effects->dof_bokeh_sides[0] = blades;
+			effects->dof_bokeh_sides[1] = 2.0f * M_PI / blades;
+			effects->dof_bokeh_sides[2] = blades / (2.0f * M_PI);
+			effects->dof_bokeh_sides[3] = cosf(M_PI / blades);
 
 			return EFFECT_DOF | EFFECT_POST_BUFFER;
 		}
@@ -219,7 +224,7 @@ void EEVEE_depth_of_field_cache_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_
 		DRW_shgroup_uniform_texture_ref(grp, "colorBuffer", &effects->unf_source_buffer);
 		DRW_shgroup_uniform_texture_ref(grp, "cocBuffer", &effects->dof_coc);
 		DRW_shgroup_uniform_vec2(grp, "layerSelection", effects->dof_layer_select, 1);
-		DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 1);
+		DRW_shgroup_uniform_vec4(grp, "bokehParams", effects->dof_bokeh, 2);
 
 		psl->dof_resolve = DRW_pass_create("DoF Resolve", DRW_STATE_WRITE_COLOR);
 
