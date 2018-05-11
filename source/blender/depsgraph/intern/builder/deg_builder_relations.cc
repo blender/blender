@@ -390,7 +390,8 @@ void DepsgraphRelationBuilder::begin_build()
 {
 }
 
-void DepsgraphRelationBuilder::build_id(ID* id) {
+void DepsgraphRelationBuilder::build_id(ID *id)
+{
 	if (id == NULL) {
 		return;
 	}
@@ -2060,7 +2061,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations()
  *
  * This is similar to what happens in ntree_hack_remap_pointers().
  */
-void DepsgraphRelationBuilder::build_nested_datablock(ID *owner, ID *id) {
+void DepsgraphRelationBuilder::build_nested_datablock(ID *owner, ID *id)
+{
 	if (!DEG_depsgraph_use_copy_on_write()) {
 		return;
 	}

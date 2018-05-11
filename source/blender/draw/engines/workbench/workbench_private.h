@@ -92,7 +92,7 @@ typedef struct WORKBENCH_MaterialData {
 	float color[3];
 	int object_id;
 	int drawtype;
-	Image* ima;
+	Image *ima;
 
 	/* Linked shgroup for drawing */
 	DRWShadingGroup *shgrp;
@@ -127,6 +127,6 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
 
 /* workbench_studiolight.c */
-void studiolight_update_world(int studio_light, WORKBENCH_UBO_World* wd);
+void studiolight_update_world(int studio_light, WORKBENCH_UBO_World *wd);
 
 #endif

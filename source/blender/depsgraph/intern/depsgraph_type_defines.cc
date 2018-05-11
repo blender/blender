@@ -73,7 +73,7 @@ DepsNodeFactory *deg_type_get_factory(const eDepsNode_Type type)
 
 /* Stringified node types ---------------------------------- */
 
-const char* nodeTypeAsString(eDepsNode_Type type)
+const char *nodeTypeAsString(eDepsNode_Type type)
 {
 	switch (type) {
 #define STRINGIFY_TYPE(name) case DEG_NODE_TYPE_##name: return #name
@@ -110,7 +110,7 @@ const char* nodeTypeAsString(eDepsNode_Type type)
 
 /* Stringified opcodes ------------------------------------- */
 
-const char* operationCodeAsString(eDepsOperation_Code opcode)
+const char *operationCodeAsString(eDepsOperation_Code opcode)
 {
 	switch (opcode) {
 #define STRINGIFY_OPCODE(name) case DEG_OPCODE_##name: return #name

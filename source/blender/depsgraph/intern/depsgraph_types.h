@@ -155,7 +155,7 @@ typedef enum eDepsNode_Type {
 	NUM_DEG_NODE_TYPES,
 } eDepsNode_Type;
 
-const char* nodeTypeAsString(eDepsNode_Type type);
+const char *nodeTypeAsString(eDepsNode_Type type);
 
 /* Identifiers for common operations (as an enum). */
 typedef enum eDepsOperation_Code {
@@ -270,6 +270,6 @@ typedef enum eDepsOperation_Code {
 	DEG_NUM_OPCODES,
 } eDepsOperation_Code;
 
-const char* operationCodeAsString(eDepsOperation_Code opcode);
+const char *operationCodeAsString(eDepsOperation_Code opcode);
 
 }  // namespace DEG
