@@ -3953,45 +3953,64 @@ void MESH_OT_separate(wmOperatorType *ot)
 
 static int edbm_fill_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	const bool use_beauty = RNA_boolean_get(op->ptr, "use_beauty");
-	BMOperator bmop;
-	const int totface_orig = em->bm->totface;
-	int ret;
 
-	if (em->bm->totedgesel == 0) {
-		BKE_report(op->reports, RPT_WARNING, "No edges selected");
-		return OPERATOR_CANCELLED;
-	}
+	bool has_selected_edges = false, has_faces_filled = false;
 
-	if (!EDBM_op_init(em, &bmop, op,
-	                  "triangle_fill edges=%he use_beauty=%b",
-	                  BM_ELEM_SELECT, use_beauty))
-	{
-		return OPERATOR_CANCELLED;
-	}
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	BMO_op_exec(em->bm, &bmop);
+		const int totface_orig = em->bm->totface;
 
-	if (totface_orig != em->bm->totface) {
+		if (em->bm->totedgesel == 0) {
+			continue;
+		}
+		has_selected_edges = true;
+
+		BMOperator bmop;
+		if (!EDBM_op_init(
+		            em, &bmop, op,
+		            "triangle_fill edges=%he use_beauty=%b",
+		            BM_ELEM_SELECT, use_beauty))
+		{
+			continue;
+		}
+
+		BMO_op_exec(em->bm, &bmop);
+
+		/* cancel if nothing was done */
+		if (totface_orig == em->bm->totface) {
+			EDBM_op_finish(em, &bmop, op, true);
+			continue;
+		}
+		has_faces_filled = true;
+
 		/* select new geometry */
 		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE | BM_EDGE, BM_ELEM_SELECT, true);
 
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
 		EDBM_update_generic(em, true, true);
-
-		ret = OPERATOR_FINISHED;
 	}
-	else {
+	MEM_freeN(objects);
+
+	if (!has_selected_edges) {
+		BKE_report(op->reports, RPT_ERROR, "No edges selected");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!has_faces_filled) {
 		BKE_report(op->reports, RPT_WARNING, "No faces filled");
-		ret = OPERATOR_CANCELLED;
+		return OPERATOR_CANCELLED;
 	}
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		ret = OPERATOR_CANCELLED;
-	}
-
-	return ret;
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_fill(wmOperatorType *ot)
