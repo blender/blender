@@ -35,6 +35,7 @@
 
 /* UV Project modifier: Generates UVs projected from an object */
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_object_types.h"
@@ -49,7 +50,6 @@
 #include "BKE_library_query.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-#include "BKE_DerivedMesh.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -115,8 +115,8 @@ typedef struct Projector {
 	void *uci;              /* optional uv-project info (panorama projection) */
 } Projector;
 
-static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
-                                         Object *ob, DerivedMesh *dm)
+static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
+                                  Object *ob, Mesh *mesh)
 {
 	float (*coords)[3], (*co)[3];
 	MLoopUV *mloop_uv;
@@ -136,14 +136,14 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		if (umd->projectors[i])
 			projectors[num_projectors++].ob = umd->projectors[i];
 
-	if (num_projectors == 0) return dm;
+	if (num_projectors == 0) return mesh;
 
 	/* make sure there are UV Maps available */
 
-	if (!CustomData_has_layer(&dm->loopData, CD_MLOOPUV)) return dm;
+	if (!CustomData_has_layer(&mesh->ldata, CD_MLOOPUV)) return mesh;
 
 	/* make sure we're using an existing layer */
-	CustomData_validate_layer_name(&dm->loopData, CD_MLOOPUV, umd->uvlayer_name, uvname);
+	CustomData_validate_layer_name(&mesh->ldata, CD_MLOOPUV, umd->uvlayer_name, uvname);
 
 	/* calculate a projection matrix and normal for each projector */
 	for (i = 0; i < num_projectors; ++i) {
@@ -200,18 +200,14 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		mul_mat3_m4_v3(projectors[i].ob->obmat, projectors[i].normal);
 	}
 
-	numPolys = dm->getNumPolys(dm);
-	numLoops = dm->getNumLoops(dm);
+	numPolys = mesh->totpoly;
+	numLoops = mesh->totloop;
 
 	/* make sure we are not modifying the original UV map */
-	mloop_uv = CustomData_duplicate_referenced_layer_named(&dm->loopData,
+	mloop_uv = CustomData_duplicate_referenced_layer_named(&mesh->ldata,
 	                                                       CD_MLOOPUV, uvname, numLoops);
 
-	numVerts = dm->getNumVerts(dm);
-
-	coords = MEM_malloc_arrayN(numVerts, sizeof(*coords),
-	                     "uvprojectModifier_do coords");
-	dm->getVertCos(dm, coords);
+	coords = BKE_mesh_vertexCos_get(mesh, &numVerts);
 
 	/* convert coords to world space */
 	for (i = 0, co = coords; i < numVerts; ++i, ++co)
@@ -222,8 +218,8 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 		for (i = 0, co = coords; i < numVerts; ++i, ++co)
 			mul_project_m4_v3(projectors[0].projmat, *co);
 
-	mpoly = dm->getPolyArray(dm);
-	mloop = dm->getLoopArray(dm);
+	mpoly = mesh->mpoly;
+	mloop = mesh->mloop;
 
 	/* apply coords as UVs */
 	for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
@@ -301,18 +297,18 @@ static DerivedMesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	}
 
 	/* Mark tessellated CD layers as dirty. */
-	dm->dirty |= DM_DIRTY_TESS_CDLAYERS;
+	mesh->runtime.cd_dirty_vert |= CD_MASK_TESSLOOPNORMAL;
 
-	return dm;
+	return mesh;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *derivedData)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                           Mesh *mesh)
 {
-	DerivedMesh *result;
+	Mesh *result;
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 
-	result = uvprojectModifier_do(umd, ctx->object, derivedData);
+	result = uvprojectModifier_do(umd, ctx->object, mesh);
 
 	return result;
 }
@@ -334,14 +330,14 @@ ModifierTypeInfo modifierType_UVProject = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
