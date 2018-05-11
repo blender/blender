@@ -186,6 +186,9 @@ static void particle_edit_cache_populate(void *vedata,
 
 static void particle_cache_populate(void *vedata, Object *object)
 {
+	if (object->mode != OB_MODE_PARTICLE_EDIT) {
+		return;
+	}
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	Object *object_orig = DEG_get_original_object(object);
 	PTCacheEdit *edit = PE_get_current(draw_ctx->scene, object_orig);
