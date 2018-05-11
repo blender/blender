@@ -143,7 +143,7 @@ static void particle_edit_cache_populate(void *vedata, PTCacheEdit *edit)
 {
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ParticleEditSettings *pset= PE_settings(draw_ctx->scene);
+	ParticleEditSettings *pset = PE_settings(draw_ctx->scene);
 	{
 		struct Gwn_Batch *strands = DRW_cache_particles_get_edit_strands(edit);
 		DRW_shgroup_call_add(stl->g_data->strands_group, strands, NULL);

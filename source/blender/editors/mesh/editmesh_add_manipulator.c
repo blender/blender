@@ -36,7 +36,6 @@
 
 #include "ED_manipulator_library.h"
 #include "ED_mesh.h"
-#include "ED_mesh.h"
 #include "ED_object.h"
 #include "ED_screen.h"
 #include "ED_undo.h"
@@ -44,10 +43,8 @@
 
 #include "RNA_access.h"
 #include "RNA_define.h"
-#include "RNA_define.h"
 
 #include "WM_api.h"
-#include "WM_types.h"
 #include "WM_types.h"
 
 #include "UI_resources.h"

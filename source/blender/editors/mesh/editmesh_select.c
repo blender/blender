@@ -3765,7 +3765,7 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 
 		BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) == false &&
-				BM_edge_loop_pair(e, &l1, &l2))
+			    BM_edge_loop_pair(e, &l1, &l2))
 			{
 				/* edge has exactly two neighboring faces, check angle */
 				const float angle_cos = dot_v3v3(l1->f->no, l2->f->no);
@@ -3953,9 +3953,9 @@ static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)
 			BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 				if (!BM_elem_flag_test(e, BM_ELEM_HIDDEN)) {
 					if ((use_wire && BM_edge_is_wire(e)) ||
-						(use_boundary && BM_edge_is_boundary(e)) ||
-						(use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
-						(use_multi_face && (BM_edge_face_count_is_over(e, 2))))
+					    (use_boundary && BM_edge_is_boundary(e)) ||
+					    (use_non_contiguous && (BM_edge_is_manifold(e) && !BM_edge_is_contiguous(e))) ||
+					    (use_multi_face && (BM_edge_face_count_is_over(e, 2))))
 					{
 						/* check we never select perfect edge (in test above) */
 						BLI_assert(!(BM_edge_is_manifold(e) && BM_edge_is_contiguous(e)));

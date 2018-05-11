@@ -135,7 +135,7 @@ static int edbm_rip_edge_invoke(bContext *C, wmOperator *UNUSED(op), const wmEve
 			float v_sco[2];
 
 			if (BM_elem_flag_test(v, BM_ELEM_SELECT) &&
-				BM_elem_flag_test(v, BM_ELEM_TAG) == false)
+			    BM_elem_flag_test(v, BM_ELEM_TAG) == false)
 			{
 				/* Rules for */
 				float angle_best = FLT_MAX;

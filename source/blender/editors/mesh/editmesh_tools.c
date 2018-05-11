@@ -1130,35 +1130,34 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 
 			if (is_pair) {
 				if (BM_vert_pair_share_face_check_cb(
-					verts[0], verts[1],
-					BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
+				            verts[0], verts[1],
+				            BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
 				{
 					check_degenerate = false;
 					is_pair = false;
 				}
 			}
 		}
-		
+
 		if (is_pair) {
 			if (!EDBM_op_init(
-				em, &bmop, op,
-				"connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
-				verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
+			            em, &bmop, op,
+			            "connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
+			            verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
 			{
 				checks_succeded = false;
 			}
 		}
 		else {
 			if (!EDBM_op_init(
-				em, &bmop, op,
-				"connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
-				verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
+			            em, &bmop, op,
+			            "connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
+			            verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
 			{
 				checks_succeded = false;
 			}
 		}
-		if (checks_succeded)
-		{
+		if (checks_succeded) {
 			BMO_op_exec(bm, &bmop);
 			len = BMO_slot_get(bmop.slots_out, "edges.out")->len;
 
@@ -1179,8 +1178,7 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 			}
 		}
 		MEM_freeN(verts);
-		if (len == 0)
-		{
+		if (len == 0) {
 			failed_objects_len++;
 		}
 	}
@@ -3815,8 +3813,8 @@ static int edbm_separate_exec(bContext *C, wmOperator *op)
 
 			if (type == 0) {
 				if ((em->bm->totvertsel == 0) &&
-					(em->bm->totedgesel == 0) &&
-					(em->bm->totfacesel == 0))
+				    (em->bm->totedgesel == 0) &&
+				    (em->bm->totfacesel == 0))
 				{
 					/* when all objects has no selection */
 					if (++empty_selection_len == bases_len) {
@@ -4209,10 +4207,10 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 
 		BMOperator bmop;
 		if (!EDBM_op_init(
-			em, &bmop, op,
-			"grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
-			use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
-			em->mat_nr, use_smooth, use_interp_simple))
+		            em, &bmop, op,
+		            "grid_fill edges=%he mat_nr=%i use_smooth=%b use_interp_simple=%b",
+		            use_prepare ? BM_ELEM_TAG : BM_ELEM_SELECT,
+		            em->mat_nr, use_smooth, use_interp_simple))
 		{
 			continue;
 		}
@@ -4227,7 +4225,7 @@ static int edbm_fill_grid_exec(bContext *C, wmOperator *op)
 
 		/* cancel if nothing was done */
 		if ((totedge_orig == em->bm->totedge) &&
-			(totface_orig == em->bm->totface))
+		    (totface_orig == em->bm->totface))
 		{
 			EDBM_op_finish(em, &bmop, op, true);
 			continue;

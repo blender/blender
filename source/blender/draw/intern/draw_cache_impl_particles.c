@@ -191,7 +191,8 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 		PTCacheEdit *edit = PE_get_current_from_psys(psys);
 		if (edit != NULL && edit->pathcache != NULL) {
 			count_cache_segment_keys(edit->pathcache, psys->totpart, cache);
-		} else {
+		}
+		else {
 			if (psys->pathcache &&
 			    (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
 			{
@@ -373,11 +374,11 @@ static int particle_batch_cache_fill_segments(
 
 		if (psmd != NULL) {
 			for (int k = 0; k < num_uv_layers; k++) {
-					GWN_vertbuf_attr_set(
-					        cache->pos, uv_id[k], curr_point,
-					        (is_simple && is_child)
-					                ? (*r_parent_uvs)[psys->child[i].parent][k]
-					                : uv[k]);
+				GWN_vertbuf_attr_set(
+				        cache->pos, uv_id[k], curr_point,
+				        (is_simple && is_child) ?
+				        (*r_parent_uvs)[psys->child[i].parent][k] :
+				        uv[k]);
 			}
 			if (!is_simple) {
 				MEM_freeN(uv);
