@@ -888,6 +888,7 @@ static int armature_layers_exec(bContext *C, wmOperator *op)
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
@@ -962,6 +963,7 @@ static int pose_bone_layers_exec(bContext *C, wmOperator *op)
 
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	DEG_id_tag_update((ID *)ob->data, DEG_TAG_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
