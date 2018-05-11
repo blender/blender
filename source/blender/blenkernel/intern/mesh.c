@@ -631,6 +631,11 @@ Mesh *BKE_mesh_new_nomain(int verts_len, int edges_len, int tessface_len, int lo
 	mesh->mloop = CustomData_get_layer(&mesh->ldata, CD_MLOOP);
 	mesh->mpoly = CustomData_get_layer(&mesh->pdata, CD_MPOLY);
 
+	mesh->totvert = verts_len;
+	mesh->totedge = edges_len;
+	mesh->totloop = loops_len;
+	mesh->totpoly = polys_len;
+
 	return mesh;
 }
 
