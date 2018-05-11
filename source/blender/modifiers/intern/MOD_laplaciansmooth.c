@@ -29,6 +29,7 @@
  */
 
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -37,8 +38,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
+#include "BKE_editmesh.h"
+#include "BKE_library.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "MOD_util.h"
@@ -356,7 +359,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 }
 
 static void laplaciansmoothModifier_do(
-        LaplacianSmoothModifierData *smd, Object *ob, DerivedMesh *dm,
+        LaplacianSmoothModifierData *smd, Object *ob, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
 	LaplacianSystem *sys;
@@ -366,17 +369,17 @@ static void laplaciansmoothModifier_do(
 	int i, iter;
 	int defgrp_index;
 
-	sys = init_laplacian_system(dm->getNumEdges(dm), dm->getNumPolys(dm), dm->getNumLoops(dm), numVerts);
+	sys = init_laplacian_system(mesh->totedge, mesh->totpoly, mesh->totloop, numVerts);
 	if (!sys) {
 		return;
 	}
 
-	sys->mpoly = dm->getPolyArray(dm);
-	sys->mloop = dm->getLoopArray(dm);
-	sys->medges = dm->getEdgeArray(dm);
+	sys->mpoly = mesh->mpoly;
+	sys->mloop = mesh->mloop;
+	sys->medges = mesh->medge;
 	sys->vertexCos = vertexCos;
 	sys->min_area = 0.00001f;
-	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
+	modifier_get_vgroup_mesh(ob, mesh, smd->defgrp_name, &dvert, &defgrp_index);
 
 	sys->vert_centroid[0] = 0.0f;
 	sys->vert_centroid[1] = 0.0f;
@@ -495,39 +498,39 @@ static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
                         float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
+	Mesh *mesh_src;
 
 	if (numVerts == 0)
 		return;
 
-	dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
+	mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
-	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, dm,
+	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
 
-	if (dm != derivedData)
-		dm->release(dm);
+	if (mesh_src != mesh)
+		BKE_id_free(NULL, mesh_src);
 }
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm;
+	Mesh *mesh_src;
 
 	if (numVerts == 0)
 		return;
 
-	dm = get_dm(ctx->object, editData, derivedData, NULL, false, false);
+	mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
 
-	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, dm,
+	laplaciansmoothModifier_do((LaplacianSmoothModifierData *)md, ctx->object, mesh_src,
 	                           vertexCos, numVerts);
 
-	if (dm != derivedData)
-		dm->release(dm);
+	if (mesh_src != mesh)
+		BKE_id_free(NULL, mesh_src);
 }
 
 
@@ -541,16 +544,16 @@ ModifierTypeInfo modifierType_LaplacianSmooth = {
 
 	/* copyData */          modifier_copyData_generic,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
