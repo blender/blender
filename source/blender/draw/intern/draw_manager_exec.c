@@ -42,7 +42,7 @@
 #endif
 
 #ifdef USE_GPU_SELECT
-void DRW_select_load_id(unsigned int id)
+void DRW_select_load_id(uint id)
 {
 	BLI_assert(G.f & G_PICKSEL);
 	DST.select_id = id;
@@ -326,7 +326,7 @@ void drw_state_set(DRWState state)
 	DST.state = state;
 }
 
-static void drw_stencil_set(unsigned int mask)
+static void drw_stencil_set(uint mask)
 {
 	if (DST.stencil_mask != mask) {
 		DST.stencil_mask = mask;
@@ -382,7 +382,7 @@ void DRW_state_invert_facing(void)
  * and if the shaders have support for it (see usage of gl_ClipDistance).
  * Be sure to call DRW_state_clip_planes_reset() after you finish drawing.
  **/
-void DRW_state_clip_planes_count_set(unsigned int plane_ct)
+void DRW_state_clip_planes_count_set(uint plane_ct)
 {
 	BLI_assert(plane_ct <= MAX_CLIP_PLANES);
 	DST.num_clip_planes = plane_ct;
@@ -775,7 +775,7 @@ static void draw_geometry_prepare(DRWShadingGroup *shgroup, DRWCallState *state)
 }
 
 static void draw_geometry_execute_ex(
-        DRWShadingGroup *shgroup, Gwn_Batch *geom, unsigned int start, unsigned int count, bool draw_instance)
+        DRWShadingGroup *shgroup, Gwn_Batch *geom, uint start, uint count, bool draw_instance)
 {
 	/* Special case: empty drawcall, placement is done via shader, don't bind anything. */
 	if (geom == NULL) {
@@ -1032,7 +1032,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			}
 			else {
 				if (shgroup->instance_count > 0) {
-					unsigned int count, start;
+					uint count, start;
 					draw_geometry_prepare(shgroup, NULL);
 					GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
 					{
@@ -1045,7 +1045,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		else { /* DRW_SHG_***_BATCH */
 			/* Some dynamic batch can have no geom (no call to aggregate) */
 			if (shgroup->instance_count > 0) {
-				unsigned int count, start;
+				uint count, start;
 				draw_geometry_prepare(shgroup, NULL);
 				GPU_SELECT_LOAD_IF_PICKSEL_LIST(shgroup, start, count)
 				{

@@ -316,7 +316,7 @@ static int particle_batch_cache_fill_segments(
         const int num_path_keys,
         const int num_uv_layers,
         /*const*/ MTFace **mtfaces,
-        unsigned int *uv_id,
+        uint *uv_id,
         float (***r_parent_uvs)[2],
         Gwn_IndexBufBuilder *elb,
         HairAttributeID *attr_id,
@@ -408,7 +408,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 
 	static Gwn_VertFormat format = { 0 };
 	static HairAttributeID attr_id;
-	unsigned int *uv_id = NULL;
+	uint *uv_id = NULL;
 	int num_uv_layers = 0;
 	MTFace **mtfaces = NULL;
 	float (**parent_uvs)[2] = NULL;

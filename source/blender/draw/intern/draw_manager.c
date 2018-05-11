@@ -232,8 +232,8 @@ void DRW_transform_to_display(GPUTexture *tex)
 	drw_state_set(DRW_STATE_WRITE_COLOR);
 
 	Gwn_VertFormat *vert_format = immVertexFormat();
-	unsigned int pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int texco = GWN_vertformat_attr_add(vert_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(vert_format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint texco = GWN_vertformat_attr_add(vert_format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	const float dither = 1.0f;
 
@@ -1097,9 +1097,9 @@ static void drw_engines_disable(void)
 	BLI_freelistN(&DST.enabled_engines);
 }
 
-static unsigned int DRW_engines_get_hash(void)
+static uint DRW_engines_get_hash(void)
 {
-	unsigned int hash = 0;
+	uint hash = 0;
 	/* The cache depends on enabled engines */
 	/* FIXME : if collision occurs ... segfault */
 	for (LinkData *link = DST.enabled_engines.first; link; link = link->next) {
@@ -1693,8 +1693,8 @@ static void draw_depth_texture_to_screen(GPUTexture *texture)
 	const float h = (float)GPU_texture_height(texture);
 
 	Gwn_VertFormat *format = immVertexFormat();
-	unsigned int texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
-	unsigned int pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint texcoord = GWN_vertformat_attr_add(format, "texCoord", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
+	uint pos = GWN_vertformat_attr_add(format, "pos", GWN_COMP_F32, 2, GWN_FETCH_FLOAT);
 
 	immBindBuiltinProgram(GPU_SHADER_3D_IMAGE_DEPTH_COPY);
 

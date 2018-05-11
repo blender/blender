@@ -436,8 +436,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 	}
 
 	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
-	unsigned int tot_sample = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
-	unsigned int render_samples = 0;
+	uint tot_sample = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+	uint render_samples = 0;
 
 	if (RE_engine_test_break(engine)) {
 		return;
@@ -446,8 +446,8 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 	while (render_samples < tot_sample && !RE_engine_test_break(engine)) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		float clear_depth = 1.0f;
-		unsigned int clear_stencil = 0xFF;
-		unsigned int primes[3] = {2, 3, 7};
+		uint clear_stencil = 0xFF;
+		uint primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
 

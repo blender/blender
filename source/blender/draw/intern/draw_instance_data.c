@@ -217,10 +217,10 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 	for (int i = 0; i < batching->alloc_size; i++, bbuf++) {
 		if (bbuf->shgroup != NULL) {
 			realloc_size = i + 1;
-			unsigned int vert_ct = DRW_shgroup_get_instance_count(bbuf->shgroup);
+			uint vert_ct = DRW_shgroup_get_instance_count(bbuf->shgroup);
 			vert_ct += (vert_ct == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
 			if (vert_ct + BUFFER_VERTS_CHUNK <= bbuf->vert->vertex_ct) {
-				unsigned int size = vert_ct + BUFFER_VERTS_CHUNK - 1;
+				uint size = vert_ct + BUFFER_VERTS_CHUNK - 1;
 				size = size - size % BUFFER_VERTS_CHUNK;
 				GWN_vertbuf_data_resize(bbuf->vert, size);
 			}
@@ -249,10 +249,10 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
 	for (int i = 0; i < instancing->alloc_size; i++, ibuf++) {
 		if (ibuf->shgroup != NULL) {
 			realloc_size = i + 1;
-			unsigned int vert_ct = DRW_shgroup_get_instance_count(ibuf->shgroup);
+			uint vert_ct = DRW_shgroup_get_instance_count(ibuf->shgroup);
 			vert_ct += (vert_ct == 0) ? 1 : 0; /* Do not realloc to 0 size buffer */
 			if (vert_ct + BUFFER_VERTS_CHUNK <= ibuf->vert->vertex_ct) {
-				unsigned int size = vert_ct + BUFFER_VERTS_CHUNK - 1;
+				uint size = vert_ct + BUFFER_VERTS_CHUNK - 1;
 				size = size - size % BUFFER_VERTS_CHUNK;
 				GWN_vertbuf_data_resize(ibuf->vert, size);
 			}
@@ -283,7 +283,7 @@ void DRW_instance_buffer_finish(DRWInstanceDataList *idatalist)
  * \{ */
 
 static DRWInstanceData *drw_instance_data_create(
-        DRWInstanceDataList *idatalist, unsigned int attrib_size, unsigned int instance_group)
+        DRWInstanceDataList *idatalist, uint attrib_size, uint instance_group)
 {
 	DRWInstanceData *idata = MEM_callocN(sizeof(DRWInstanceData), "DRWInstanceData");
 	idata->next = NULL;
@@ -338,7 +338,7 @@ void *DRW_instance_data_get(DRWInstanceData *idata)
 }
 
 DRWInstanceData *DRW_instance_data_request(
-        DRWInstanceDataList *idatalist, unsigned int attrib_size, unsigned int instance_group)
+        DRWInstanceDataList *idatalist, uint attrib_size, uint instance_group)
 {
 	BLI_assert(attrib_size > 0 && attrib_size <= MAX_INSTANCE_DATA_SIZE);
 

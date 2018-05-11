@@ -629,7 +629,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				}
 				else {
 					const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPCOL, i_src);
-					unsigned int hash = BLI_ghashutil_strhash_p(name);
+					uint hash = BLI_ghashutil_strhash_p(name);
 					BLI_snprintf(rdata->cd.uuid.vcol[i_dst], sizeof(*rdata->cd.uuid.vcol), "c%u", hash);
 					rdata->cd.layers.vcol[i_dst] = CustomData_get_layer_n(cd_ldata, CD_MLOOPCOL, i_src);
 					if (rdata->edit_bmesh) {
@@ -663,7 +663,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				}
 				else {
 					const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i_src);
-					unsigned int hash = BLI_ghashutil_strhash_p(name);
+					uint hash = BLI_ghashutil_strhash_p(name);
 
 					BLI_snprintf(rdata->cd.uuid.uv[i_dst], sizeof(*rdata->cd.uuid.uv), "u%u", hash);
 					rdata->cd.layers.uv[i_dst] = CustomData_get_layer_n(cd_ldata, CD_MLOOPUV, i_src);
@@ -768,7 +768,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 				}
 				else {
 					const char *name = CustomData_get_layer_name(cd_ldata, CD_MLOOPUV, i_src);
-					unsigned int hash = BLI_ghashutil_strhash_p(name);
+					uint hash = BLI_ghashutil_strhash_p(name);
 
 					BLI_snprintf(rdata->cd.uuid.tangent[i_dst], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
 
@@ -786,7 +786,7 @@ static MeshRenderData *mesh_render_data_create_ex(
 			}
 			if (cd_lused[CD_TANGENT] & DM_TANGENT_MASK_ORCO) {
 				const char *name = CustomData_get_layer_name(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
-				unsigned int hash = BLI_ghashutil_strhash_p(name);
+				uint hash = BLI_ghashutil_strhash_p(name);
 				BLI_snprintf(rdata->cd.uuid.tangent[i_dst], sizeof(*rdata->cd.uuid.tangent), "t%u", hash);
 
 				rdata->cd.layers.tangent[i_dst] = CustomData_get_layer_n(&rdata->cd.output.ldata, CD_TANGENT, i_dst);
@@ -1358,7 +1358,7 @@ static unsigned char mesh_render_data_vertex_flag(MeshRenderData *rdata, const B
 
 static void add_overlay_tri(
         MeshRenderData *rdata, Gwn_VertBuf *vbo_pos, Gwn_VertBuf *vbo_nor, Gwn_VertBuf *vbo_data,
-        const unsigned int pos_id, const unsigned int vnor_id, const unsigned int lnor_id, const unsigned int data_id,
+        const uint pos_id, const uint vnor_id, const uint lnor_id, const uint data_id,
         const BMLoop **bm_looptri, const int base_vert_idx)
 {
 	unsigned char fflag;
@@ -1411,7 +1411,7 @@ static void add_overlay_tri(
 
 static void add_overlay_loose_edge(
         MeshRenderData *rdata, Gwn_VertBuf *vbo_pos, Gwn_VertBuf *vbo_nor, Gwn_VertBuf *vbo_data,
-        const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
+        const uint pos_id, const uint vnor_id, const uint data_id,
         const BMEdge *eed, const int base_vert_idx)
 {
 	if (vbo_pos) {
@@ -1450,7 +1450,7 @@ static void add_overlay_loose_edge(
 
 static void add_overlay_loose_vert(
         MeshRenderData *rdata, Gwn_VertBuf *vbo_pos, Gwn_VertBuf *vbo_nor, Gwn_VertBuf *vbo_data,
-        const unsigned int pos_id, const unsigned int vnor_id, const unsigned int data_id,
+        const uint pos_id, const uint vnor_id, const uint data_id,
         const BMVert *eve, const int base_vert_idx)
 {
 	if (vbo_pos) {
@@ -2069,7 +2069,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
 	BLI_assert(rdata->edit_bmesh == NULL);
 
 	if (cache->tri_aligned_uv == NULL) {
-		unsigned int vidx = 0;
+		uint vidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint uv; } attr_id;
@@ -2556,7 +2556,7 @@ static Gwn_VertBuf *mesh_create_tri_weights(
 
 	Gwn_VertBuf *vbo;
 	{
-		unsigned int cidx = 0;
+		uint cidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
@@ -2616,7 +2616,7 @@ static Gwn_VertBuf *mesh_create_tri_vert_colors(
 
 	Gwn_VertBuf *vbo;
 	{
-		unsigned int cidx = 0;
+		uint cidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
@@ -2676,7 +2676,7 @@ static Gwn_VertBuf *mesh_create_tri_select_id(
 
 	Gwn_VertBuf *vbo;
 	{
-		unsigned int cidx = 0;
+		uint cidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint col; } attr_id;
@@ -2771,7 +2771,7 @@ static Gwn_VertBuf *mesh_batch_cache_get_vert_pos_and_nor_in_order(
 	return cache->pos_in_order;
 }
 
-static Gwn_VertFormat *edit_mesh_overlay_pos_format(unsigned int *r_pos_id)
+static Gwn_VertFormat *edit_mesh_overlay_pos_format(uint *r_pos_id)
 {
 	static Gwn_VertFormat format_pos = { 0 };
 	static unsigned pos_id;
@@ -2782,7 +2782,7 @@ static Gwn_VertFormat *edit_mesh_overlay_pos_format(unsigned int *r_pos_id)
 	return &format_pos;
 }
 
-static Gwn_VertFormat *edit_mesh_overlay_nor_format(unsigned int *r_vnor_id, unsigned int *r_lnor_id)
+static Gwn_VertFormat *edit_mesh_overlay_nor_format(uint *r_vnor_id, uint *r_lnor_id)
 {
 	static Gwn_VertFormat format_nor = { 0 };
 	static Gwn_VertFormat format_nor_loop = { 0 };
@@ -2803,7 +2803,7 @@ static Gwn_VertFormat *edit_mesh_overlay_nor_format(unsigned int *r_vnor_id, uns
 	}
 }
 
-static Gwn_VertFormat *edit_mesh_overlay_data_format(unsigned int *r_data_id)
+static Gwn_VertFormat *edit_mesh_overlay_data_format(uint *r_data_id)
 {
 	static Gwn_VertFormat format_flag = { 0 };
 	static unsigned data_id;
@@ -3268,7 +3268,7 @@ static Gwn_VertBuf *mesh_create_edge_pos_with_sel(
 
 	Gwn_VertBuf *vbo;
 	{
-		unsigned int vidx = 0, cidx = 0;
+		uint vidx = 0, cidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, sel; } attr_id;
@@ -3355,7 +3355,7 @@ static Gwn_VertBuf *mesh_create_vert_pos_with_overlay_data(
 
 	Gwn_VertBuf *vbo;
 	{
-		unsigned int cidx = 0;
+		uint cidx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint data; } attr_id;

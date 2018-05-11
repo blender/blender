@@ -117,8 +117,8 @@ void DRW_shape_cache_free(void)
  * \{ */
 
 static void add_fancy_edge(
-        Gwn_VertBuf *vbo, unsigned int pos_id, unsigned int n1_id, unsigned int n2_id,
-        unsigned int *v_idx, const float co1[3], const float co2[3],
+        Gwn_VertBuf *vbo, uint pos_id, uint n1_id, uint n2_id,
+        uint *v_idx, const float co1[3], const float co2[3],
 const float n1[3], const float n2[3])
 {
 	GWN_vertbuf_attr_set(vbo, n1_id, *v_idx, n1);
@@ -132,8 +132,8 @@ const float n1[3], const float n2[3])
 
 #if 0 /* UNUSED */
 static void add_lat_lon_vert(
-        Gwn_VertBuf *vbo, unsigned int pos_id, unsigned int nor_id,
-        unsigned int *v_idx, const float rad, const float lat, const float lon)
+        Gwn_VertBuf *vbo, uint pos_id, uint nor_id,
+        uint *v_idx, const float rad, const float lat, const float lon)
 {
 	float pos[3], nor[3];
 	nor[0] = sinf(lat) * cosf(lon);
@@ -873,7 +873,7 @@ Gwn_Batch *DRW_cache_field_vortex_get(void)
 #define SPIRAL_RESOL 32
 	if (!SHC.drw_field_vortex) {
 		float v[3] = {0.0f, 0.0f, 0.0f};
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		/* Position Only 3D format */
 		static Gwn_VertFormat format = { 0 };
@@ -910,7 +910,7 @@ Gwn_Batch *DRW_cache_field_tube_limit_get(void)
 #define CIRCLE_RESOL 32
 	if (!SHC.drw_field_tube_limit) {
 		float v[3] = {0.0f, 0.0f, 0.0f};
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		/* Position Only 3D format */
 		static Gwn_VertFormat format = { 0 };
@@ -959,7 +959,7 @@ Gwn_Batch *DRW_cache_field_cone_limit_get(void)
 #define CIRCLE_RESOL 32
 	if (!SHC.drw_field_cone_limit) {
 		float v[3] = {0.0f, 0.0f, 0.0f};
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		/* Position Only 3D format */
 		static Gwn_VertFormat format = { 0 };
@@ -1285,7 +1285,7 @@ Gwn_Batch *DRW_cache_lamp_spot_square_get(void)
 		                 {-1.0f, -1.0f, -1.0f},
 		                 {-1.0f,  1.0f, -1.0f}};
 
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		/* Position Only 3D format */
 		static Gwn_VertFormat format = { 0 };
@@ -1548,7 +1548,7 @@ static const float bone_octahedral_smooth_normals[6][3] = {
 	{ 0.0f,  1.0f,  0.0f}
 };
 
-static const unsigned int bone_octahedral_wire[24] = {
+static const uint bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
 	1, 2,  2, 3,  3, 4,  4, 1,
@@ -1556,13 +1556,13 @@ static const unsigned int bone_octahedral_wire[24] = {
 
 /* aligned with bone_octahedral_wire
  * Contains adjacent normal index */
-static const unsigned int bone_octahedral_wire_adjacent_face[24] = {
+static const uint bone_octahedral_wire_adjacent_face[24] = {
 	0, 3,  4, 7,  5, 6,  1, 2,
 	2, 3,  6, 7,  4, 5,  0, 1,
 	0, 4,  1, 5,  2, 6,  3, 7,
 };
 
-static const unsigned int bone_octahedral_solid_tris[8][3] = {
+static const uint bone_octahedral_solid_tris[8][3] = {
 	{2, 1, 0}, /* bottom */
 	{3, 2, 0},
 	{4, 3, 0},
@@ -1585,7 +1585,7 @@ static const unsigned int bone_octahedral_solid_tris[8][3] = {
  * the first vertex of the first face aka. vertex 2):
  * {0, 12, 1, 10, 2, 3}
  **/
-static const unsigned int bone_octahedral_solid_tris_adjacency[8][6] = {
+static const uint bone_octahedral_solid_tris_adjacency[8][6] = {
 	{ 0, 12,  1, 10,  2,  3},
 	{ 3, 15,  4,  1,  5,  6},
 	{ 6, 18,  7,  4,  8,  9},
@@ -1612,7 +1612,7 @@ static const float bone_octahedral_solid_normals[8][3] = {
 Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 {
 	if (!SHC.drw_bone_octahedral) {
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor, snor; } attr_id;
@@ -1653,7 +1653,7 @@ Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 Gwn_Batch *DRW_cache_bone_octahedral_wire_outline_get(void)
 {
 	if (!SHC.drw_bone_octahedral_wire) {
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, n1, n2; } attr_id;
@@ -1704,7 +1704,7 @@ static const float bone_box_smooth_normals[8][3] = {
 	{-M_SQRT3,  M_SQRT3,  M_SQRT3},
 };
 
-static const unsigned int bone_box_wire[24] = {
+static const uint bone_box_wire[24] = {
 	0, 1,  1, 2,  2, 3,  3, 0,
 	4, 5,  5, 6,  6, 7,  7, 4,
 	0, 4,  1, 5,  2, 6,  3, 7,
@@ -1712,13 +1712,13 @@ static const unsigned int bone_box_wire[24] = {
 
 /* aligned with bone_octahedral_wire
  * Contains adjacent normal index */
-static const unsigned int bone_box_wire_adjacent_face[24] = {
+static const uint bone_box_wire_adjacent_face[24] = {
 	0,  2,   0,  4,   1,  6,   1,  8,
 	3, 10,   5, 10,   7, 11,   9, 11,
 	3,  8,   2,  5,   4,  7,   6,  9,
 };
 
-static const unsigned int bone_box_solid_tris[12][3] = {
+static const uint bone_box_solid_tris[12][3] = {
 	{0, 2, 1}, /* bottom */
 	{0, 3, 2},
 
@@ -1742,7 +1742,7 @@ static const unsigned int bone_box_solid_tris[12][3] = {
  * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
  * See bone_octahedral_solid_tris for more infos.
  **/
-static const unsigned int bone_box_solid_tris_adjacency[12][6] = {
+static const uint bone_box_solid_tris_adjacency[12][6] = {
 	{ 0,  5,  1, 14,  2,  8},
 	{ 3, 26,  4, 20,  5,  1},
 
@@ -1786,7 +1786,7 @@ static const float bone_box_solid_normals[12][3] = {
 Gwn_Batch *DRW_cache_bone_box_get(void)
 {
 	if (!SHC.drw_bone_box) {
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor, snor; } attr_id;
@@ -1823,7 +1823,7 @@ Gwn_Batch *DRW_cache_bone_box_get(void)
 Gwn_Batch *DRW_cache_bone_box_wire_outline_get(void)
 {
 	if (!SHC.drw_bone_box_wire) {
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, n1, n2; } attr_id;
@@ -1854,7 +1854,7 @@ Gwn_Batch *DRW_cache_bone_box_wire_outline_get(void)
 Gwn_Batch *DRW_cache_bone_wire_wire_outline_get(void)
 {
 	if (!SHC.drw_bone_wire_wire) {
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, n1, n2; } attr_id;
@@ -1894,7 +1894,7 @@ Gwn_Batch *DRW_cache_bone_envelope_solid_get(void)
 		const int lat_res = 24;
 		const float lon_inc = 2.0f * M_PI / lon_res;
 		const float lat_inc = M_PI / lat_res;
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos; } attr_id;
@@ -1960,7 +1960,7 @@ Gwn_Batch *DRW_cache_bone_envelope_outline_get(void)
 		v1[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
 
 		/* Output 4 verts for each position. See shader for explanation. */
-		unsigned int v = 0;
+		uint v = 0;
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v2[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v2[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
@@ -1997,7 +1997,7 @@ Gwn_Batch *DRW_cache_bone_point_get(void)
 		const float rad = 0.05f;
 		const float lon_inc = 2 * M_PI / lon_res;
 		const float lat_inc = M_PI / lat_res;
-		unsigned int v_idx = 0;
+		uint v_idx = 0;
 
 		static Gwn_VertFormat format = { 0 };
 		static struct { uint pos, nor; } attr_id;
@@ -2082,7 +2082,7 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 		v0[0] = radius * sinf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
 		v0[1] = radius * cosf((2.0f * M_PI * -1) / ((float)CIRCLE_RESOL));
 
-		unsigned int v = 0;
+		uint v = 0;
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v1[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v1[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
@@ -2120,8 +2120,8 @@ Gwn_Batch *DRW_cache_bone_stick_get(void)
 {
 	if (!SHC.drw_bone_stick) {
 #define CIRCLE_RESOL 12
-		unsigned int v = 0;
-		unsigned int flag;
+		uint v = 0;
+		uint flag;
 		const float radius = 2.0f; /* head/tail radius */
 		float pos[2];
 
@@ -2133,7 +2133,7 @@ Gwn_Batch *DRW_cache_bone_stick_get(void)
 			attr_id.flag = GWN_vertformat_attr_add(&format, "flag", GWN_COMP_U32, 1, GWN_FETCH_INT);
 		}
 
-		const unsigned int vcount = (CIRCLE_RESOL + 1) * 2 + 6;
+		const uint vcount = (CIRCLE_RESOL + 1) * 2 + 6;
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, vcount);
@@ -2184,7 +2184,7 @@ Gwn_Batch *DRW_cache_bone_stick_get(void)
 
 static void set_bone_axis_vert(
         Gwn_VertBuf *vbo, uint axis, uint pos, uint col,
-        unsigned int *v, const float *a, const float *p, const float *c)
+        uint *v, const float *a, const float *p, const float *c)
 {
 	GWN_vertbuf_attr_set(vbo, axis, *v, a);
 	GWN_vertbuf_attr_set(vbo, pos,  *v, p);
@@ -2280,7 +2280,7 @@ Gwn_Batch *DRW_cache_bone_arrows_get(void)
 		GWN_vertbuf_data_alloc(vbo, (2 + MARKER_LEN * MARKER_FILL_LAYER) * 3 +
 		                            (X_LEN + Y_LEN + Z_LEN) * (1 + SHADOW_RES));
 
-		unsigned int v = 0;
+		uint v = 0;
 
 		for (int axis = 0; axis < 3; axis++) {
 			float pos[2] = {0.0f, 0.0f};

@@ -571,7 +571,7 @@ void EEVEE_lightprobes_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedat
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.probe_planar_downsample_sh, psl->probe_planar_downsample_ps);
 		DRW_shgroup_uniform_texture_ref(grp, "source", &txl->planar_pool);
 		DRW_shgroup_uniform_float(grp, "fireflyFactor", &sldata->common_data.ssr_firefly_fac, 1);
-		DRW_shgroup_call_instances_add(grp, DRW_cache_fullscreen_quad_get(), NULL, (unsigned int *)&pinfo->num_planar);
+		DRW_shgroup_call_instances_add(grp, DRW_cache_fullscreen_quad_get(), NULL, (uint *)&pinfo->num_planar);
 	}
 }
 
@@ -930,7 +930,7 @@ static void EEVEE_lightprobes_updates(EEVEE_ViewLayerData *sldata, EEVEE_PassLis
 			DRW_shgroup_uniform_vec3(grp, "increment_z", egrid->increment_z, 1);
 			DRW_shgroup_uniform_texture_ref(grp, "irradianceGrid", &sldata->irradiance_pool);
 			DRW_shgroup_uniform_float(grp, "sphere_size", &probe->data_draw_size, 1);
-			DRW_shgroup_call_instances_add(grp, DRW_cache_sphere_get(), NULL, (unsigned int *)&ped->num_cell);
+			DRW_shgroup_call_instances_add(grp, DRW_cache_sphere_get(), NULL, (uint *)&ped->num_cell);
 		}
 	}
 }

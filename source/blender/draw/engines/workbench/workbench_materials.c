@@ -423,7 +423,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	material_template.object_id = engine_object_data->object_id;
 	material_template.drawtype = drawtype;
 	material_template.ima = ima;
-	unsigned int hash = get_material_hash(&material_template);
+	uint hash = get_material_hash(&material_template);
 
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
@@ -575,7 +575,7 @@ void workbench_materials_draw_background(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	const float clear_depth = 1.0f;
 	const float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-	unsigned int clear_stencil = 0xFF;
+	uint clear_stencil = 0xFF;
 
 	GPU_framebuffer_bind(fbl->prepass_fb);
 	int clear_bits = GPU_DEPTH_BIT | GPU_COLOR_BIT;

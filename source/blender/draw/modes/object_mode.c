@@ -1664,7 +1664,7 @@ typedef struct OBJECT_LightProbeEngineData {
 	float increment_y[3];
 	float increment_z[3];
 	float corner[3];
-	unsigned int cell_count;
+	uint cell_count;
 } OBJECT_LightProbeEngineData;
 
 static void DRW_shgroup_lightprobe(OBJECT_StorageList *stl, OBJECT_PassList *psl, Object *ob, ViewLayer *view_layer)

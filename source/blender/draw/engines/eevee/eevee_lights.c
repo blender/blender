@@ -53,7 +53,7 @@ extern char datatoc_concentric_samples_lib_glsl[];
 static void eevee_light_setup(Object *ob, EEVEE_Light *evli);
 
 /* *********** LIGHT BITS *********** */
-static void lightbits_set_single(EEVEE_LightBits *bitf, unsigned int idx, bool val)
+static void lightbits_set_single(EEVEE_LightBits *bitf, uint idx, bool val)
 {
 	if (val) {
 		bitf->fields[idx / 8] |=  (1 << (idx % 8));
@@ -75,12 +75,12 @@ static void lightbits_or(EEVEE_LightBits *r, const EEVEE_LightBits *v)
 	}
 }
 
-static bool lightbits_get(const EEVEE_LightBits *r, unsigned int idx)
+static bool lightbits_get(const EEVEE_LightBits *r, uint idx)
 {
 	return r->fields[idx / 8] & (1 << (idx % 8));
 }
 
-static void lightbits_convert(EEVEE_LightBits *r, const EEVEE_LightBits *bitf, const int *light_bit_conv_table, unsigned int table_length)
+static void lightbits_convert(EEVEE_LightBits *r, const EEVEE_LightBits *bitf, const int *light_bit_conv_table, uint table_length)
 {
 	for (int i = 0; i < table_length; ++i) {
 		if (lightbits_get(bitf, i) != 0) {
@@ -95,7 +95,7 @@ static void lightbits_convert(EEVEE_LightBits *r, const EEVEE_LightBits *bitf, c
 
 void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 {
-	const unsigned int shadow_ubo_size = sizeof(EEVEE_Shadow) * MAX_SHADOW +
+	const uint shadow_ubo_size = sizeof(EEVEE_Shadow) * MAX_SHADOW +
 	                                     sizeof(EEVEE_ShadowCube) * MAX_SHADOW_CUBE +
 	                                     sizeof(EEVEE_ShadowCascade) * MAX_SHADOW_CASCADE;
 

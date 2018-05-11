@@ -61,7 +61,7 @@ static struct {
 	struct GPUTexture *util_tex;
 	struct GPUTexture *noise_tex;
 
-	unsigned int sss_count;
+	uint sss_count;
 
 	float alpha_hash_offset;
 	float noise_offsets[3];

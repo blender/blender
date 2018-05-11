@@ -199,8 +199,8 @@ static void eevee_draw_background(void *vedata)
 	while (loop_ct--) {
 		float clear_col[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 		float clear_depth = 1.0f;
-		unsigned int clear_stencil = 0xFF;
-		unsigned int primes[3] = {2, 3, 7};
+		uint clear_stencil = 0xFF;
+		uint primes[3] = {2, 3, 7};
 		double offset[3] = {0.0, 0.0, 0.0};
 		double r[3];
 

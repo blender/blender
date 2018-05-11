@@ -304,8 +304,8 @@ void DRW_stats_draw(rcti *rect)
 	/* ------------------------------------------ */
 
 	/* Memory Stats */
-	unsigned int tex_mem = GPU_texture_memory_usage_get();
-	unsigned int vbo_mem = GWN_vertbuf_get_memory_usage();
+	uint tex_mem = GPU_texture_memory_usage_get();
+	uint vbo_mem = GWN_vertbuf_get_memory_usage();
 
 	sprintf(stat_string, "GPU Memory");
 	draw_stat(rect, 0, v, stat_string, sizeof(stat_string));

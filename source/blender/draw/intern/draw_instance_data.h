@@ -41,7 +41,7 @@ struct DRWShadingGroup;
 void *DRW_instance_data_next(DRWInstanceData *idata);
 void *DRW_instance_data_get(DRWInstanceData *idata);
 DRWInstanceData *DRW_instance_data_request(
-        DRWInstanceDataList *idatalist, unsigned int attrib_size, unsigned int instance_group);
+        DRWInstanceDataList *idatalist, uint attrib_size, uint instance_group);
 
 void DRW_batching_buffer_request(
         DRWInstanceDataList *idatalist, Gwn_VertFormat *format, Gwn_PrimType type, struct DRWShadingGroup *shgroup,

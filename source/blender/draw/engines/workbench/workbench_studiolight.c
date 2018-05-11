@@ -90,7 +90,7 @@ void studiolight_update_world(int studio_light, WORKBENCH_UBO_World *wd)
 
 uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size)
 {
-	unsigned int *rect = MEM_mallocN(icon_size * icon_size * sizeof(unsigned int), __func__);
+	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
 	int icon_center = icon_size / 2;
 	float sphere_radius = icon_center * 0.9;
 
@@ -109,11 +109,11 @@ uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size)
 					}
 				}
 			}
-			unsigned int pixelresult = 0x0;
-			unsigned int alias_i = clamp_i(alias * 256, 0, 255);
+			uint pixelresult = 0x0;
+			uint alias_i = clamp_i(alias * 256, 0, 255);
 			if (alias_i != 0) {
 				/* calculate normal */
-				unsigned int alias_mask = alias_i << 24;
+				uint alias_mask = alias_i << 24;
 				float normal[3];
 				normal[0] = dx / sphere_radius;
 				normal[1] = dy / sphere_radius;

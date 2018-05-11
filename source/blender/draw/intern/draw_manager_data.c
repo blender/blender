@@ -378,7 +378,7 @@ void DRW_shgroup_call_object_add_with_callback(
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }
 
-void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obmat)[4], unsigned int *count)
+void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, float (*obmat)[4], uint *count)
 {
 	BLI_assert(geom != NULL);
 	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
@@ -396,7 +396,7 @@ void DRW_shgroup_call_instances_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, f
 }
 
 /* These calls can be culled and are optimized for redraw */
-void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob, unsigned int *count)
+void DRW_shgroup_call_object_instances_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob, uint *count)
 {
 	BLI_assert(geom != NULL);
 	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
@@ -453,7 +453,7 @@ void DRW_shgroup_call_sculpt_add(DRWShadingGroup *shgroup, Object *ob, float (*o
 	DRW_shgroup_call_generate_add(shgroup, sculpt_draw_cb, ob, obmat);
 }
 
-void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], unsigned int attr_len)
+void DRW_shgroup_call_dynamic_add_array(DRWShadingGroup *shgroup, const void *attr[], uint attr_len)
 {
 #ifdef USE_GPU_SELECT
 	if (G.f & G_PICKSEL) {
@@ -824,7 +824,7 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batc
 #endif
 }
 
-unsigned int DRW_shgroup_get_instance_count(const DRWShadingGroup *shgroup)
+uint DRW_shgroup_get_instance_count(const DRWShadingGroup *shgroup)
 {
 	return shgroup->instance_count;
 }
@@ -843,7 +843,7 @@ void DRW_shgroup_state_disable(DRWShadingGroup *shgroup, DRWState state)
 	shgroup->state_extra_disable &= ~state;
 }
 
-void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, unsigned int mask)
+void DRW_shgroup_stencil_mask(DRWShadingGroup *shgroup, uint mask)
 {
 	BLI_assert(mask <= 255);
 	shgroup->stencil_mask = mask;

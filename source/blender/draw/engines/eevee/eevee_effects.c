@@ -314,7 +314,7 @@ void EEVEE_effects_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 	{
 		static int zero = 0;
-		static unsigned int six = 6;
+		static uint six = 6;
 		psl->color_downsample_cube_ps = DRW_pass_create("Downsample Cube", DRW_STATE_WRITE_COLOR);
 		DRWShadingGroup *grp = DRW_shgroup_create(e_data.downsample_cube_sh, psl->color_downsample_cube_ps);
 		DRW_shgroup_uniform_texture_ref(grp, "source", &e_data.color_src);
