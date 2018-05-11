@@ -2886,19 +2886,19 @@ Gwn_Batch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys)
 	return DRW_particles_batch_cache_get_dots(object, psys);
 }
 
-Gwn_Batch *DRW_cache_particles_get_edit_strands(struct PTCacheEdit *edit)
+Gwn_Batch *DRW_cache_particles_get_edit_strands(Object *object, struct PTCacheEdit *edit)
 {
-	return DRW_particles_batch_cache_get_edit_strands(edit);
+	return DRW_particles_batch_cache_get_edit_strands(object, edit);
 }
 
-Gwn_Batch *DRW_cache_particles_get_edit_inner_points(struct PTCacheEdit *edit)
+Gwn_Batch *DRW_cache_particles_get_edit_inner_points(Object *object, struct PTCacheEdit *edit)
 {
-	return DRW_particles_batch_cache_get_edit_inner_points(edit);
+	return DRW_particles_batch_cache_get_edit_inner_points(object, edit);
 }
 
-Gwn_Batch *DRW_cache_particles_get_edit_tip_points(struct PTCacheEdit *edit)
+Gwn_Batch *DRW_cache_particles_get_edit_tip_points(Object *object, struct PTCacheEdit *edit)
 {
-	return DRW_particles_batch_cache_get_edit_tip_points(edit);
+	return DRW_particles_batch_cache_get_edit_tip_points(object, edit);
 }
 
 Gwn_Batch *DRW_cache_particles_get_prim(int type)
