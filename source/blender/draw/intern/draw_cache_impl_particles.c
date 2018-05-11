@@ -190,7 +190,7 @@ static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
 
 		PTCacheEdit *edit = PE_get_current_from_psys(psys);
 		if (edit != NULL && edit->pathcache != NULL) {
-			count_cache_segment_keys(edit->pathcache, psys->totpart, cache);
+			count_cache_segment_keys(edit->pathcache, edit->totcached, cache);
 		}
 		else {
 			if (psys->pathcache &&
@@ -325,6 +325,7 @@ static int particle_batch_cache_fill_segments(
 	const bool is_simple = (psys->part->childtype == PART_CHILD_PARTICLES);
 	const bool is_child = (particle_source == PARTICLE_SOURCE_CHILDREN);
 	if (is_simple && *r_parent_uvs == NULL) {
+		/* TODO(sergey): For edit mode it should be edit->totcached. */
 		*r_parent_uvs = MEM_callocN(sizeof(*r_parent_uvs) * psys->totpart,
 		                            "Parent particle UVs");
 	}
@@ -456,7 +457,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 	if (edit != NULL && edit->pathcache != NULL) {
 		curr_point = particle_batch_cache_fill_segments(
 		        psys, psmd, edit->pathcache, PARTICLE_SOURCE_PARENT,
-		        0, 0, psys->totpart,
+		        0, 0, edit->totcached,
 		        num_uv_layers, mtfaces, uv_id, &parent_uvs,
 		        &elb, &attr_id, cache);
 	}
@@ -481,6 +482,7 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 	}
 	/* Cleanup. */
 	if (parent_uvs != NULL) {
+		/* TODO(sergey): For edit mode it should be edit->totcached. */
 		for (int i = 0; i < psys->totpart; i++) {
 			MEM_SAFE_FREE(parent_uvs[i]);
 		}
