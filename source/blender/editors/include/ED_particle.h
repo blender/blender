@@ -47,6 +47,7 @@ void PE_free_ptcache_edit(struct PTCacheEdit *edit);
 int PE_start_edit(struct PTCacheEdit *edit);
 
 /* access */
+struct PTCacheEdit *PE_get_current_from_psys(struct ParticleSystem *psys);
 struct PTCacheEdit *PE_get_current(struct Scene *scene, struct Object *ob);
 struct PTCacheEdit *PE_create_current(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);
 void PE_current_changed(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob);

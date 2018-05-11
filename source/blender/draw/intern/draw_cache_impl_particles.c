@@ -597,25 +597,12 @@ Gwn_Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *ps
 	return cache->hairs;
 }
 
-/* TODO(sergey): Avoid linear lookup. */
-static ParticleBatchCache *particle_batch_cache_get_edit(Object *object, PTCacheEdit *edit)
+Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(
+        Object *UNUSED(object),
+        ParticleSystem *psys,
+        PTCacheEdit *edit)
 {
-	ParticleSystem *psys_orig = edit->psys;
-	for (ParticleSystem *psys_eval = object->particlesystem.first;
-	     psys_eval != NULL;
-	     psys_eval = psys_eval->next)
-	{
-		if (STREQ(psys_orig->name, psys_eval->name)) {
-			return particle_batch_cache_get(psys_eval);
-		}
-	}
-	return NULL;
-}
-
-Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(Object *object, PTCacheEdit *edit)
-{
-	ParticleSystem *psys = edit->psys;
-	ParticleBatchCache *cache = particle_batch_cache_get_edit(object, edit);
+	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 	if (cache->hairs != NULL) {
 		return cache->hairs;
 	}
@@ -691,9 +678,12 @@ static void particle_batch_cache_ensure_edit_inner_pos(
 	}
 }
 
-Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(Object *object, PTCacheEdit *edit)
+Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(
+        Object *UNUSED(object),
+        ParticleSystem *psys,
+        PTCacheEdit *edit)
 {
-	ParticleBatchCache *cache = particle_batch_cache_get_edit(object, edit);
+	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 	if (cache->edit_inner_points != NULL) {
 		return cache->edit_inner_points;
 	}
@@ -752,9 +742,12 @@ static void particle_batch_cache_ensure_edit_tip_pos(
 	}
 }
 
-Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(Object *object, PTCacheEdit *edit)
+Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(
+        Object *UNUSED(object),
+        ParticleSystem *psys,
+        PTCacheEdit *edit)
 {
-	ParticleBatchCache *cache = particle_batch_cache_get_edit(object, edit);
+	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 	if (cache->edit_tip_points != NULL) {
 		return cache->edit_tip_points;
 	}

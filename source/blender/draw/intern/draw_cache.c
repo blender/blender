@@ -2886,19 +2886,28 @@ Gwn_Batch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys)
 	return DRW_particles_batch_cache_get_dots(object, psys);
 }
 
-Gwn_Batch *DRW_cache_particles_get_edit_strands(Object *object, struct PTCacheEdit *edit)
+Gwn_Batch *DRW_cache_particles_get_edit_strands(
+        Object *object,
+        ParticleSystem *psys,
+        struct PTCacheEdit *edit)
 {
-	return DRW_particles_batch_cache_get_edit_strands(object, edit);
+	return DRW_particles_batch_cache_get_edit_strands(object, psys, edit);
 }
 
-Gwn_Batch *DRW_cache_particles_get_edit_inner_points(Object *object, struct PTCacheEdit *edit)
+Gwn_Batch *DRW_cache_particles_get_edit_inner_points(
+        Object *object,
+        ParticleSystem *psys,
+        struct PTCacheEdit *edit)
 {
-	return DRW_particles_batch_cache_get_edit_inner_points(object, edit);
+	return DRW_particles_batch_cache_get_edit_inner_points(object, psys, edit);
 }
 
-Gwn_Batch *DRW_cache_particles_get_edit_tip_points(Object *object, struct PTCacheEdit *edit)
+Gwn_Batch *DRW_cache_particles_get_edit_tip_points(
+        Object *object,
+        ParticleSystem *psys,
+        struct PTCacheEdit *edit)
 {
-	return DRW_particles_batch_cache_get_edit_tip_points(object, edit);
+	return DRW_particles_batch_cache_get_edit_tip_points(object, psys, edit);
 }
 
 Gwn_Batch *DRW_cache_particles_get_prim(int type)
