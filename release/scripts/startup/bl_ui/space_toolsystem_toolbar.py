@@ -364,6 +364,14 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def inset():
+        def draw_settings(context, layout):
+            wm = context.window_manager
+            props = wm.operator_properties_last("mesh.inset")
+            layout.prop(props, "use_outset")
+            layout.prop(props, "use_individual")
+            layout.prop(props, "use_even_offset")
+            layout.prop(props, "use_relative_offset")
+
         return dict(
             text="Inset Faces",
             icon="ops.mesh.inset",
@@ -372,6 +380,7 @@ class _defs_edit_mesh:
                 ("mesh.inset", dict(release_confirm=True),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
@@ -476,6 +485,11 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def shrink_fatten():
+        def draw_settings(context, layout):
+            wm = context.window_manager
+            props = wm.operator_properties_last("transform.shrink_fatten")
+            layout.prop(props, "use_even_offset")
+
         return dict(
             text="Shrink/Fatten",
             icon="ops.transform.shrink_fatten",
@@ -484,6 +498,7 @@ class _defs_edit_mesh:
                 ("transform.shrink_fatten", dict(release_confirm=True),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
