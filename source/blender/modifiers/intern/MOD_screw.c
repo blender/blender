@@ -36,6 +36,7 @@
 /* Screw modifier: revolves the edges about an axis */
 #include <limits.h>
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 
@@ -43,8 +44,9 @@
 #include "BLI_alloca.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
+#include "BKE_mesh.h"
 
 #include "DEG_depsgraph_build.h"
 
@@ -111,8 +113,8 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 	}
 }
 
-static DerivedMesh *dm_remove_doubles_on_axis(
-        DerivedMesh *result, MVert *mvert_new, const uint totvert, const uint step_tot,
+static Mesh *mesh_remove_doubles_on_axis(
+        Mesh *result, MVert *mvert_new, const uint totvert, const uint step_tot,
         const float axis_vec[3], const float axis_offset[3], const float merge_threshold)
 {
 	const float merge_threshold_sq = SQUARE(merge_threshold);
@@ -156,7 +158,7 @@ static DerivedMesh *dm_remove_doubles_on_axis(
 				}
 			}
 		}
-		result = CDDM_merge_verts(result, full_doubles_map, (int)(tot_doubles * (step_tot - 1)), CDDM_MERGE_VERTS_DUMP_IF_MAPPED);
+		result = BKE_mesh_merge_verts(result, full_doubles_map, (int)(tot_doubles * (step_tot - 1)), MESH_MERGE_VERTS_DUMP_IF_MAPPED);
 		MEM_freeN(full_doubles_map);
 	}
 	return result;
@@ -175,11 +177,11 @@ static void initData(ModifierData *md)
 	ltmd->merge_dist = 0.01f;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *derivedData)
+static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
+                           Mesh *meshData)
 {
-	DerivedMesh *dm = derivedData;
-	DerivedMesh *result;
+	Mesh *mesh = meshData;
+	Mesh *result;
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
 	const bool use_render_params = (ctx->flag & MOD_APPLY_RENDER) != 0;
 	
@@ -205,15 +207,15 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	};
 
 	unsigned int maxVerts = 0, maxEdges = 0, maxPolys = 0;
-	const unsigned int totvert = (unsigned int)dm->getNumVerts(dm);
-	const unsigned int totedge = (unsigned int)dm->getNumEdges(dm);
-	const unsigned int totpoly = (unsigned int)dm->getNumPolys(dm);
+	const unsigned int totvert = (unsigned int)mesh->totvert;
+	const unsigned int totedge = (unsigned int)mesh->totedge;
+	const unsigned int totpoly = (unsigned int)mesh->totpoly;
 
 	unsigned int *edge_poly_map = NULL;  /* orig edge to orig poly */
 	unsigned int *vert_loop_map = NULL;  /* orig vert to orig loop */
 
 	/* UV Coords */
-	const unsigned int mloopuv_layers_tot = (unsigned int)CustomData_number_of_layers(&dm->loopData, CD_MLOOPUV);
+	const unsigned int mloopuv_layers_tot = (unsigned int)CustomData_number_of_layers(&mesh->ldata, CD_MLOOPUV);
 	MLoopUV **mloopuv_layers = BLI_array_alloca(mloopuv_layers, mloopuv_layers_tot);
 	float uv_u_scale;
 	float uv_v_minmax[2] = {FLT_MAX, -FLT_MAX};
@@ -248,7 +250,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 
 	/* don't do anything? */
 	if (!totvert)
-		return CDDM_from_template(dm, 0, 0, 0, 0, 0);
+		return BKE_mesh_new_nomain_from_template(mesh, 0, 0, 0, 0, 0);
 
 	switch (ltmd->axis) {
 		case 0:
@@ -373,24 +375,24 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 		uv_u_scale = (uv_u_scale / (float)ltmd->iter) * (angle / ((float)M_PI * 2.0f));
 	}
 	
-	result = CDDM_from_template(dm, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
+	result = BKE_mesh_new_nomain_from_template(mesh, (int)maxVerts, (int)maxEdges, 0, (int)maxPolys * 4, (int)maxPolys);
 	
 	/* copy verts from mesh */
-	mvert_orig =    dm->getVertArray(dm);
-	medge_orig =    dm->getEdgeArray(dm);
-	
-	mvert_new =     result->getVertArray(result);
-	mpoly_new =     result->getPolyArray(result);
-	mloop_new =     result->getLoopArray(result);
-	medge_new =     result->getEdgeArray(result);
+	mvert_orig =    mesh->mvert;
+	medge_orig =    mesh->medge;
 
-	if (!CustomData_has_layer(&result->polyData, CD_ORIGINDEX)) {
-		CustomData_add_layer(&result->polyData, CD_ORIGINDEX, CD_CALLOC, NULL, (int)maxPolys);
+	mvert_new =     result->mvert;
+	mpoly_new =     result->mpoly;
+	mloop_new =     result->mloop;
+	medge_new =     result->medge;
+
+	if (!CustomData_has_layer(&result->pdata, CD_ORIGINDEX)) {
+		CustomData_add_layer(&result->pdata, CD_ORIGINDEX, CD_CALLOC, NULL, (int)maxPolys);
 	}
 
-	origindex = CustomData_get_layer(&result->polyData, CD_ORIGINDEX);
+	origindex = CustomData_get_layer(&result->pdata, CD_ORIGINDEX);
 
-	DM_copy_vert_data(dm, result, 0, 0, (int)totvert); /* copy first otherwise this overwrites our own vertex normals */
+	CustomData_copy_data(&mesh->vdata, &result->vdata, 0, 0, (int)totvert);
 
 	if (mloopuv_layers_tot) {
 		float zero_co[3] = {0};
@@ -400,7 +402,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	if (mloopuv_layers_tot) {
 		unsigned int uv_lay;
 		for (uv_lay = 0; uv_lay < mloopuv_layers_tot; uv_lay++) {
-			mloopuv_layers[uv_lay] = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, (int)uv_lay);
+			mloopuv_layers[uv_lay] = CustomData_get_layer_n(&result->ldata, CD_MLOOPUV, (int)uv_lay);
 		}
 
 		if (ltmd->flag & MOD_SCREW_UV_STRETCH_V) {
@@ -436,8 +438,8 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	if (totpoly) {
 		MPoly *mp_orig;
 
-		mpoly_orig = dm->getPolyArray(dm);
-		mloop_orig = dm->getLoopArray(dm);
+		mpoly_orig = mesh->mpoly;
+		mloop_orig = mesh->mloop;
 		edge_poly_map = MEM_malloc_arrayN(totedge, sizeof(*edge_poly_map), __func__);
 		memset(edge_poly_map, 0xff, sizeof(*edge_poly_map) * totedge);
 
@@ -848,8 +850,8 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 			madd_v3_v3fl(mat[3], axis_vec, screw_ofs * ((float)step / (float)(step_tot - 1)));
 
 		/* copy a slice */
-		DM_copy_vert_data(dm, result, 0, (int)varray_stride, (int)totvert);
-		
+		CustomData_copy_data(&mesh->vdata, &result->vdata, 0, (int)varray_stride, (int)totvert);
+
 		mv_new_base = mvert_new;
 		mv_new = &mvert_new[varray_stride]; /* advance to the next slice */
 		
@@ -951,7 +953,7 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 
 			/* Polygon */
 			if (has_mpoly_orig) {
-				DM_copy_poly_data(dm, result, (int)mpoly_index_orig, (int)mpoly_index, 1);
+				CustomData_copy_data(&mesh->pdata, &result->pdata, (int)mpoly_index_orig, (int)mpoly_index, 1);
 				origindex[mpoly_index] = (int)mpoly_index_orig;
 			}
 			else {
@@ -966,10 +968,11 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 			/* Loop-Custom-Data */
 			if (has_mloop_orig) {
 				int l_index = (int)(ml_new - mloop_new);
-				DM_copy_loop_data(dm, result, (int)mloop_index_orig[0], l_index + 0, 1);
-				DM_copy_loop_data(dm, result, (int)mloop_index_orig[1], l_index + 1, 1);
-				DM_copy_loop_data(dm, result, (int)mloop_index_orig[1], l_index + 2, 1);
-				DM_copy_loop_data(dm, result, (int)mloop_index_orig[0], l_index + 3, 1);
+
+				CustomData_copy_data(&mesh->ldata, &result->ldata, (int)mloop_index_orig[0], l_index + 0, 1);
+				CustomData_copy_data(&mesh->ldata, &result->ldata, (int)mloop_index_orig[1], l_index + 1, 1);
+				CustomData_copy_data(&mesh->ldata, &result->ldata, (int)mloop_index_orig[1], l_index + 2, 1);
+				CustomData_copy_data(&mesh->ldata, &result->ldata, (int)mloop_index_orig[0], l_index + 3, 1);
 
 				if (mloopuv_layers_tot) {
 					unsigned int uv_lay;
@@ -1091,17 +1094,17 @@ static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *c
 	}
 
 	if ((ltmd->flag & MOD_SCREW_MERGE) && (screw_ofs == 0.0f)) {
-		DerivedMesh *result_prev = result;
-		result = dm_remove_doubles_on_axis(
+		Mesh *result_prev = result;
+		result = mesh_remove_doubles_on_axis(
 		        result, mvert_new, totvert, step_tot,
 		        axis_vec, ltmd->ob_axis ? mtx_tx[3] : NULL, ltmd->merge_dist);
 		if (result != result_prev) {
-			result->dirty |= DM_DIRTY_NORMALS;
+			result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 		}
 	}
 
 	if ((ltmd->flag & MOD_SCREW_NORMAL_CALC) == 0) {
-		result->dirty |= DM_DIRTY_NORMALS;
+		result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	}
 
 	return result;
@@ -1141,14 +1144,14 @@ ModifierTypeInfo modifierType_Screw = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
