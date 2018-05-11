@@ -1570,6 +1570,15 @@ void DRW_draw_select_loop(
 			obedit_mode = CTX_MODE_EDIT_ARMATURE;
 		}
 	}
+	bool use_bone_selection_overlay = false;
+	if (v3d->overlay.flag &= V3D_OVERLAY_BONE_SELECTION) {
+		if (!(v3d->flag2 &= V3D_RENDER_OVERRIDE)) {
+			Object *obpose = OBPOSE_FROM_OBACT(obact);
+			if (obpose) {
+				use_bone_selection_overlay = true;
+			}
+		}
+	}
 
 	struct GPUViewport *viewport = GPU_viewport_create();
 	GPU_viewport_size_set(viewport, (const int[2]){BLI_rcti_size_x(rect), BLI_rcti_size_y(rect)});
@@ -1584,8 +1593,17 @@ void DRW_draw_select_loop(
 		drw_engines_enable_from_mode(obedit_mode);
 	}
 	else {
-		drw_engines_enable_basic();
-		drw_engines_enable_from_object_mode();
+		/* when in pose mode and overlays enable and bone selection overlay
+		   active, switch order as the bone selection must have more precedence
+		   than the rest of the scene */
+		if (use_bone_selection_overlay) {
+			drw_engines_enable_from_object_mode();
+			drw_engines_enable_basic();
+		}
+		else {
+			drw_engines_enable_basic();
+			drw_engines_enable_from_object_mode();
+		}
 	}
 
 	/* Setup viewport */

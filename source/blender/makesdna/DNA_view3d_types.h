@@ -346,6 +346,7 @@ enum {
 enum {
 	V3D_OVERLAY_FACE_ORIENTATION  = (1 << 0),
 	V3D_OVERLAY_HIDE_CURSOR       = (1 << 1),
+	V3D_OVERLAY_BONE_SELECTION    = (1 << 2),
 };
 
 /* View3DOverlay->edit_flag */

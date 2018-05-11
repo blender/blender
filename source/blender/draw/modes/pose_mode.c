@@ -22,10 +22,13 @@
 /** \file blender/draw/modes/pose_mode.c
  *  \ingroup draw
  */
+#include "BKE_modifier.h"
+
+#include "DNA_modifier_types.h"
+#include "DNA_view3d_types.h"
 
 #include "DRW_engine.h"
 #include "DRW_render.h"
-#include "DNA_view3d_types.h"
 
 /* If builtin shaders are needed */
 #include "GPU_shader.h"
@@ -50,6 +53,7 @@ typedef struct POSE_PassList {
 	struct DRWPass *bone_envelope;
 	struct DRWPass *bone_axes;
 	struct DRWPass *relationship;
+	struct DRWPass *bone_selection;
 } POSE_PassList;
 
 typedef struct POSE_StorageList {
@@ -67,10 +71,33 @@ typedef struct POSE_Data {
 /* *********** STATIC *********** */
 
 typedef struct POSE_PrivateData {
-	char pad; /* UNUSED */
+	DRWShadingGroup *bone_selection_shgrp;
 } POSE_PrivateData; /* Transient data */
 
+static struct {
+	struct GPUShader *bone_selection_sh;
+} e_data = {NULL};
+
+static float blend_color[4] = {0.0, 0.0, 0.0, 0.5};
+
 /* *********** FUNCTIONS *********** */
+static bool POSE_is_bone_selection_overlay_active(void)
+{
+	const DRWContextState *dcs = DRW_context_state_get();
+	const View3D *v3d = dcs->v3d;
+	return v3d && (v3d->overlay.flag & V3D_OVERLAY_BONE_SELECTION);
+}
+
+static void POSE_engine_init(void *UNUSED(vedata))
+{
+	if (!e_data.bone_selection_sh) {
+		e_data.bone_selection_sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_UNIFORM_COLOR);
+	}
+}
+
+static void POSE_engine_free(void)
+{
+}
 
 /* Here init all passes and shading groups
  * Assume that all Passes are NULL */
@@ -120,12 +147,42 @@ static void POSE_cache_init(void *vedata)
 		        DRW_STATE_BLEND | DRW_STATE_WIRE;
 		psl->relationship = DRW_pass_create("Bone Relationship Pass", state);
 	}
+
+	{
+		if (POSE_is_bone_selection_overlay_active()) {
+			DRWShadingGroup *grp;
+			psl->bone_selection = DRW_pass_create("Bone Selection", DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_EQUAL | DRW_STATE_BLEND);
+			grp = DRW_shgroup_create(e_data.bone_selection_sh, psl->bone_selection);
+			DRW_shgroup_uniform_vec4(grp, "color", blend_color, 1);
+			stl->g_data->bone_selection_shgrp = grp;
+		}
+	}
+}
+
+static bool POSE_is_driven_by_active_armature(Object *ob)
+{
+	Object *armature = modifiers_isDeformedByArmature(ob);
+	if (armature) {
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		bool is_active = DRW_pose_mode_armature(armature, draw_ctx->obact);
+		if (!is_active && armature->proxy_from) {
+			is_active = DRW_pose_mode_armature(armature->proxy_from, draw_ctx->obact);
+		}
+		return is_active;
+	} else {
+		Object *meshDeform = modifiers_isDeformedByMeshDeform(ob);
+		if (meshDeform) {
+			return POSE_is_driven_by_active_armature(meshDeform);
+		}
+	}
+	return false;
 }
 
 /* Add geometry to shading groups. Execute for each objects */
 static void POSE_cache_populate(void *vedata, Object *ob)
 {
 	POSE_PassList *psl = ((POSE_Data *)vedata)->psl;
+	POSE_StorageList *stl = ((POSE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 
 	/* In the future this will allow us to implement face manipulators,
@@ -142,6 +199,11 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 			    .relationship_lines = psl->relationship,
 			};
 			DRW_shgroup_armature_pose(ob, passes);
+		}
+	} else if (ob->type == OB_MESH && POSE_is_bone_selection_overlay_active() && POSE_is_driven_by_active_armature(ob)) {
+		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+		if (geom) {
+			DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);
 		}
 	}
 }
@@ -178,6 +240,14 @@ static void POSE_draw_scene(void *vedata)
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
+	const bool bone_selection_overlay = POSE_is_bone_selection_overlay_active();
+
+	if(bone_selection_overlay) {
+		GPU_framebuffer_bind(dfbl->default_fb);
+		DRW_draw_pass(psl->bone_selection);
+		GPU_framebuffer_clear_depth(dfbl->depth_only_fb, 1.0);
+		GPU_framebuffer_bind(dfbl->default_fb);
+	}
 
 	DRW_draw_pass(psl->bone_envelope);
 
@@ -228,8 +298,8 @@ DrawEngineType draw_engine_pose_type = {
 	NULL, NULL,
 	N_("PoseMode"),
 	&POSE_data_size,
-	NULL,
-	NULL,
+	&POSE_engine_init,
+	&POSE_engine_free,
 	&POSE_cache_init,
 	&POSE_cache_populate,
 	NULL,

@@ -1678,6 +1678,8 @@ extern const char *RE_engine_id_CYCLES;
 	(((workspace)->object_mode & OD_MODE_EDIT) ? OBACT(_view_layer) : NULL)
 #define OBEDIT_FROM_OBACT(ob) \
 	((ob) ? (((ob)->mode & OB_MODE_EDIT) ? ob : NULL) : NULL)
+#define OBPOSE_FROM_OBACT(ob) \
+	((ob) ? (((ob)->mode & OB_MODE_POSE) ? ob : NULL) : NULL)
 #define OBEDIT_FROM_VIEW_LAYER(view_layer) \
 	OBEDIT_FROM_OBACT(OBACT(view_layer))
 

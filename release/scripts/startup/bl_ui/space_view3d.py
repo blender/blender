@@ -3656,6 +3656,7 @@ class VIEW3D_PT_overlay(Panel):
             col = layout.column()
             col.active = display_all
             col.prop(overlay, "transparent_bones")
+            col.prop(overlay, "show_bone_selection")
 
         elif context.mode == 'EDIT_ARMATURE':
             col.separator()
