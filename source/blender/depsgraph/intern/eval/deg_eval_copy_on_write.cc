@@ -400,6 +400,54 @@ int foreach_libblock_remap_callback(void *user_data_v,
 	return IDWALK_RET_NOP;
 }
 
+void updata_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+                                        const ID *id_orig, ID *id_cow)
+{
+	const bArmature *armature_orig = (const bArmature *)id_orig;
+	bArmature *armature_cow = (bArmature *)id_cow;
+	armature_cow->edbo = armature_orig->edbo;
+}
+
+void updata_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
+                                    const ID *id_orig, ID *id_cow)
+{
+	/* For meshes we need to update edit_btmesh to make it to point
+	 * to the CoW version of object.
+	 *
+	 * This is kind of confusing, because actual bmesh is not owned by
+	 * the CoW object, so need to be accurate about using link from
+	 * edit_btmesh to object.
+	 */
+	const Mesh *mesh_orig = (const Mesh *)id_orig;
+	Mesh *mesh_cow = (Mesh *)id_cow;
+	if (mesh_orig->edit_btmesh == NULL) {
+		return;
+	}
+	mesh_cow->edit_btmesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_btmesh);
+	mesh_cow->edit_btmesh->ob =
+	    (Object *)depsgraph->get_cow_id(&mesh_orig->edit_btmesh->ob->id);
+	mesh_cow->edit_btmesh->derivedFinal = NULL;
+	mesh_cow->edit_btmesh->derivedCage = NULL;
+}
+
+/* Edit data is stored and owned by original datablocks, copied ones
+ * are simply referencing to them.
+ */
+void updata_edit_mode_pointers(const Depsgraph *depsgraph,
+                               const ID *id_orig, ID *id_cow)
+{
+	const ID_Type type = GS(id_orig->name);
+	switch (type) {
+		case ID_AR:
+			updata_armature_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_ME:
+			updata_mesh_edit_mode_pointers(depsgraph, id_orig, id_cow);
+		default:
+			break;
+	}
+}
+
 /* Do some special treatment of data transfer from original ID to it's
  * CoW complementary part.
  *
@@ -427,36 +475,10 @@ void update_special_pointers(const Depsgraph *depsgraph,
 			}
 			break;
 		}
-		case ID_AR:
-		{
-			const bArmature *armature_orig = (const bArmature *)id_orig;
-			bArmature *armature_cow = (bArmature *)id_cow;
-			armature_cow->edbo = armature_orig->edbo;
-			break;
-		}
-		case ID_ME:
-		{
-			/* For meshes we need to update edit_btmesh to make it to point
-			 * to the CoW version of object.
-			 *
-			 * This is kind of confusing, because actual bmesh is not owned by
-			 * the CoW object, so need to be accurate about using link from
-			 * edit_btmesh to object.
-			 */
-			const Mesh *mesh_orig = (const Mesh *)id_orig;
-			Mesh *mesh_cow = (Mesh *)id_cow;
-			if (mesh_orig->edit_btmesh != NULL) {
-				mesh_cow->edit_btmesh = (BMEditMesh *)MEM_dupallocN(mesh_orig->edit_btmesh);
-				mesh_cow->edit_btmesh->ob =
-				        (Object *)depsgraph->get_cow_id(&mesh_orig->edit_btmesh->ob->id);
-				mesh_cow->edit_btmesh->derivedFinal = NULL;
-				mesh_cow->edit_btmesh->derivedCage = NULL;
-			}
-			break;
-		}
 		default:
 			break;
 	}
+	updata_edit_mode_pointers(depsgraph, id_orig, id_cow);
 }
 
 /* This callback is used to validate that all nested ID datablocks are
@@ -730,6 +752,45 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	return deg_update_copy_on_write_datablock(depsgraph, id_node);
 }
 
+namespace {
+
+void discard_armature_edit_mode_pointers(ID *id_cow)
+{
+	bArmature *armature_cow = (bArmature *)id_cow;
+	armature_cow->edbo = NULL;
+}
+
+void discard_mesh_edit_mode_pointers(ID *id_cow)
+{
+	Mesh *mesh_cow = (Mesh *)id_cow;
+	if (mesh_cow->edit_btmesh == NULL) {
+		return;
+	}
+	BKE_editmesh_free_derivedmesh(mesh_cow->edit_btmesh);
+	MEM_freeN(mesh_cow->edit_btmesh);
+	mesh_cow->edit_btmesh = NULL;
+}
+
+/* NULL-ify all edit mode pointers which points to data from
+ * original object.
+ */
+void discard_edit_mode_pointers(ID *id_cow)
+{
+	const ID_Type type = GS(id_cow->name);
+	switch (type) {
+		case ID_AR:
+			discard_armature_edit_mode_pointers(id_cow);
+			break;
+		case ID_ME:
+			discard_mesh_edit_mode_pointers(id_cow);
+			break;
+		default:
+			break;
+	}
+}
+
+}  // namespace
+
 /* Free content of the CoW datablock
  * Notes:
  * - Does not recurs into nested ID datablocks.
@@ -758,22 +819,6 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			ob_cow->data = NULL;
 			break;
 		}
-		case ID_AR:
-		{
-			bArmature *armature_cow = (bArmature *)id_cow;
-			armature_cow->edbo = NULL;
-			break;
-		}
-		case ID_ME:
-		{
-			Mesh *mesh_cow = (Mesh *)id_cow;
-			if (mesh_cow->edit_btmesh != NULL) {
-				BKE_editmesh_free_derivedmesh(mesh_cow->edit_btmesh);
-				MEM_freeN(mesh_cow->edit_btmesh);
-				mesh_cow->edit_btmesh = NULL;
-			}
-			break;
-		}
 		case ID_SCE:
 		{
 			/* Special case for scene: we use explicit function call which
@@ -791,6 +836,7 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 		default:
 			break;
 	}
+	discard_edit_mode_pointers(id_cow);
 	BKE_libblock_free_datablock(id_cow, 0);
 	BKE_libblock_free_data(id_cow, false);
 	/* Signal datablock as not being expanded. */
