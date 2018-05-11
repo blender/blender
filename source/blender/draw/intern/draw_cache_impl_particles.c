@@ -182,13 +182,14 @@ static void count_cache_segment_keys(ParticleCacheKey **pathcache,
 	}
 }
 
-static void ensure_seg_pt_count(ParticleSystem *psys, ParticleBatchCache *cache)
+static void ensure_seg_pt_count(PTCacheEdit *edit,
+                                ParticleSystem *psys,
+                                ParticleBatchCache *cache)
 {
 	if (cache->pos == NULL || cache->indices == NULL) {
 		cache->elems_count = 0;
 		cache->point_count = 0;
 
-		PTCacheEdit *edit = PE_get_current_from_psys(psys);
 		if (edit != NULL && edit->pathcache != NULL) {
 			count_cache_segment_keys(edit->pathcache, edit->totcached, cache);
 		}
@@ -393,7 +394,8 @@ static int particle_batch_cache_fill_segments(
 	return curr_point;
 }
 
-static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
+static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
+                                                    ParticleSystem *psys,
                                                     ModifierData *md,
                                                     ParticleBatchCache *cache)
 {
@@ -453,7 +455,6 @@ static void particle_batch_cache_ensure_pos_and_seg(ParticleSystem *psys,
 		}
 	}
 
-	PTCacheEdit *edit = PE_get_current_from_psys(psys);
 	if (edit != NULL && edit->pathcache != NULL) {
 		curr_point = particle_batch_cache_fill_segments(
 		        psys, psmd, edit->pathcache, PARTICLE_SOURCE_PARENT,
@@ -576,8 +577,8 @@ Gwn_Batch *DRW_particles_batch_cache_get_hair(ParticleSystem *psys, ModifierData
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 
 	if (cache->hairs == NULL) {
-		ensure_seg_pt_count(psys, cache);
-		particle_batch_cache_ensure_pos_and_seg(psys, md, cache);
+		ensure_seg_pt_count(NULL, psys, cache);
+		particle_batch_cache_ensure_pos_and_seg(NULL, psys, md, cache);
 		cache->hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP, cache->pos, cache->indices);
 	}
 
@@ -603,8 +604,8 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(PTCacheEdit *edit)
 	if (cache->hairs != NULL) {
 		return cache->hairs;
 	}
-	ensure_seg_pt_count(psys, cache);
-	particle_batch_cache_ensure_pos_and_seg(psys, NULL, cache);
+	ensure_seg_pt_count(edit, psys, cache);
+	particle_batch_cache_ensure_pos_and_seg(edit, psys, NULL, cache);
 	cache->hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP, cache->pos, cache->indices);
 	return cache->hairs;
 }
