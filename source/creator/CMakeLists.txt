@@ -413,6 +413,7 @@ install(
 	DESTINATION ${TARGETDIR_VER}/datafiles
 )
 
+
 # helpful tip when using make
 if("${CMAKE_GENERATOR}" MATCHES ".*Makefiles.*")
 	# message after building.
@@ -979,6 +980,13 @@ unset(_icon_names)
 unset(_icon_files)
 unset(_f)
 
+# -----------------------------------------------------------------------------
+# Studio Lights
+install(
+	DIRECTORY
+		${CMAKE_SOURCE_DIR}/release/datafiles/studiolights
+	DESTINATION ${TARGETDIR_VER}/datafiles
+)
 
 # -----------------------------------------------------------------------------
 # Setup link libs

@@ -58,6 +58,7 @@
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_appdir.h"
+#include "BKE_studiolight.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -493,23 +494,6 @@ static void init_matcap_icons(void)
 
 }
 
-static void init_studio_light_icons(void)
-{
-	/* dynamic allocation now, tucking datatoc pointers in DrawInfo */
-#define INIT_STUDIOLIGHT_ICON(icon_id, studiolight_id)                                         \
-	{                                                                                          \
-		DrawInfo *di;                                                                          \
-		di = def_internal_icon(NULL, icon_id, 0, 0, 96, ICON_TYPE_BUFFER);                     \
-		di->data.buffer.image->rect = WORKBENCH_generate_studiolight_preview(studiolight_id, 96); \
-	} (void)0
-
-	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_01, 0);
-	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_02, 1);
-	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_03, 2);
-	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_04, 3);
-	INIT_STUDIOLIGHT_ICON(ICON_STUDIOLIGHT_05, 4);
-
-}
 static void init_internal_icons(void)
 {
 //	bTheme *btheme = UI_GetTheme();
@@ -779,8 +763,9 @@ void UI_icons_free_drawinfo(void *drawinfo)
 /**
  * #Icon.data_type and #Icon.obj
  */
-static DrawInfo *icon_create_drawinfo(int icon_data_type)
+static DrawInfo *icon_create_drawinfo(Icon *icon)
 {
+	int  icon_data_type = icon->obj_type;
 	DrawInfo *di = NULL;
 
 	di = MEM_callocN(sizeof(DrawInfo), "di_icon");
@@ -790,6 +775,16 @@ static DrawInfo *icon_create_drawinfo(int icon_data_type)
 	}
 	else if (icon_data_type == ICON_DATA_GEOM) {
 		di->type = ICON_TYPE_GEOM;
+	}
+	else if (icon_data_type == ICON_DATA_STUDIOLIGHT) {
+		const int STUDIOLIGHT_SIZE = 96;
+		StudioLight *sl = icon->obj;
+		di->type = ICON_TYPE_BUFFER;
+		IconImage *img = MEM_mallocN(sizeof(IconImage), __func__);
+		img->w = STUDIOLIGHT_SIZE;
+		img->h = STUDIOLIGHT_SIZE;
+		img->rect = BKE_studiolight_preview(sl, STUDIOLIGHT_SIZE);
+		di->data.buffer.image = img;
 	}
 	else {
 		BLI_assert(0);
@@ -803,7 +798,7 @@ static DrawInfo *icon_ensure_drawinfo(Icon *icon)
 	if (icon->drawinfo) {
 		return icon->drawinfo;
 	}
-	DrawInfo *di = icon_create_drawinfo(icon->obj_type);
+	DrawInfo *di = icon_create_drawinfo(icon);
 	icon->drawinfo = di;
 	icon->drawinfo_free = UI_icons_free_drawinfo;
 	return di;
@@ -856,7 +851,6 @@ void UI_icons_init(int first_dyn_id)
 	init_internal_icons();
 	init_brush_icons();
 	init_matcap_icons();
-	init_studio_light_icons();
 #endif
 }
 

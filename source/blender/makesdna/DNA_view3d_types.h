@@ -138,7 +138,8 @@ typedef struct View3DShading {
 	short color_type;
 
 	short light;
-	short studio_light;
+	char pad[2];
+	char studio_light[256]; /* FILE_MAXFILE */
 
 	float shadow_intensity;
 	float single_color[3];

@@ -27,6 +27,8 @@
 #define __WORKBENCH_PRIVATE_H__
 
 
+#include "BKE_studiolight.h"
+
 #include "DNA_image_types.h"
 #include "DNA_view3d_types.h"
 
@@ -81,6 +83,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUShader *prepass_texture_sh;
 	struct GPUShader *composite_sh;
 	View3DShading shading;
+	StudioLight *studio_light;
 	int drawtype;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
@@ -127,6 +130,6 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
 
 /* workbench_studiolight.c */
-void studiolight_update_world(int studio_light, WORKBENCH_UBO_World *wd);
+void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
 
 #endif

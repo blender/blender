@@ -135,5 +135,4 @@ void DRW_opengl_context_disable(void);
 
 void DRW_deferred_shader_remove(struct GPUMaterial *mat);
 
-uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size);
 #endif /* __DRW_ENGINE_H__ */

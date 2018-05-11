@@ -35,6 +35,7 @@
 #include "BKE_key.h"
 #include "BKE_movieclip.h"
 #include "BKE_node.h"
+#include "BKE_studiolight.h"
 
 #include "DNA_action_types.h"
 #include "DNA_key_types.h"
@@ -190,6 +191,31 @@ const EnumPropertyItem rna_enum_viewport_lighting_items[] = {
 	/* {V3D_LIGHTING_SCENE, "SCENE", 0, "Scene Lighting", "Display using scene lighting"}, */
 	{0, NULL, 0, NULL, NULL}
 };
+
+static const EnumPropertyItem rna_enum_studio_light_items[] = {
+	{0, "STUDIOLIGHT_01", 0, "", ""},
+	{1, "STUDIOLIGHT_02", 0, "", ""},
+	{2, "STUDIOLIGHT_03", 0, "", ""},
+	{3, "STUDIOLIGHT_04", 0, "", ""},
+	{4, "STUDIOLIGHT_05", 0, "", ""},
+	{5, "STUDIOLIGHT_06", 0, "", ""},
+	{6, "STUDIOLIGHT_07", 0, "", ""},
+	{7, "STUDIOLIGHT_08", 0, "", ""},
+	{8, "STUDIOLIGHT_09", 0, "", ""},
+	{9, "STUDIOLIGHT_10", 0, "", ""},
+	{10, "STUDIOLIGHT_11", 0, "", ""},
+	{11, "STUDIOLIGHT_12", 0, "", ""},
+	{12, "STUDIOLIGHT_13", 0, "", ""},
+	{13, "STUDIOLIGHT_14", 0, "", ""},
+	{14, "STUDIOLIGHT_15", 0, "", ""},
+	{15, "STUDIOLIGHT_16", 0, "", ""},
+	{16, "STUDIOLIGHT_17", 0, "", ""},
+	{17, "STUDIOLIGHT_18", 0, "", ""},
+	{18, "STUDIOLIGHT_19", 0, "", ""},
+	{19, "STUDIOLIGHT_20", 0, "", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+#define NUM_STUDIO_LIGHT_ITEMS 20
 
 const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
@@ -702,6 +728,42 @@ static const EnumPropertyItem *rna_3DViewShading_type_itemf(
 	RNA_enum_item_end(&item, &totitem);
 	*r_free = true;
 
+	return item;
+}
+
+static int rna_View3DShading_studio_light_get(PointerRNA *ptr)
+{
+	/* XXX: should be stored as string */
+	View3D *v3d = (View3D *)ptr->data;
+	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light);
+	return sl->index;
+}
+
+static void rna_View3DShading_studio_light_set(PointerRNA *ptr, int value)
+{
+	/* XXX: should be stored as string */
+	View3D *v3d = (View3D *)ptr->data;
+	StudioLight *sl = BKE_studiolight_findindex(value);
+	BLI_strncpy(v3d->shading.studio_light, sl->name, FILE_MAXFILE);
+}
+
+static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
+        bContext *UNUSED(C), PointerRNA *UNUSED(ptr),
+        PropertyRNA *UNUSED(prop), bool *r_free)
+{
+	EnumPropertyItem *item = NULL;
+	int totitem = 0;
+
+	/* XXX: add studio lights */
+	LISTBASE_FOREACH(StudioLight*, sl, BKE_studiolight_listbase()) {
+		if (totitem < NUM_STUDIO_LIGHT_ITEMS) {
+			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, totitem);
+			item[totitem-1].icon = sl->icon_id;
+		}
+	}
+
+	RNA_enum_item_end(&item, &totitem);
+	*r_free = true;
 	return item;
 }
 
@@ -2156,14 +2218,6 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 		{V3D_SHADING_RANDOM_COLOR,   "RANDOM",   0, "Random",   "Show random object color"},
 		{0, NULL, 0, NULL, NULL}
 	};
-	static const EnumPropertyItem studio_lighting_items[] = {
-		{0, "01", ICON_STUDIOLIGHT_01, "", ""},
-		{1, "02", ICON_STUDIOLIGHT_02, "", ""},
-		{2, "03", ICON_STUDIOLIGHT_03, "", ""},
-		{3, "04", ICON_STUDIOLIGHT_04, "", ""},
-		{4, "05", ICON_STUDIOLIGHT_05, "", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
 
 	srna = RNA_def_struct(brna, "View3DShading", NULL);
 	RNA_def_struct_sdna(srna, "View3D");
@@ -2192,8 +2246,9 @@ static void rna_def_space_view3d_shading(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 
 	prop = RNA_def_property(srna, "studio_light", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "shading.studio_light");
-	RNA_def_property_enum_items(prop, studio_lighting_items);
+	RNA_def_property_enum_items(prop, rna_enum_studio_light_items);
+	RNA_def_property_enum_default(prop, 0);
+	RNA_def_property_enum_funcs(prop, "rna_View3DShading_studio_light_get", "rna_View3DShading_studio_light_set", "rna_View3DShading_studio_light_itemf");
 	RNA_def_property_ui_text(prop, "Studiolight", "Studio lighting setup");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 

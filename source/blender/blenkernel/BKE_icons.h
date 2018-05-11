@@ -43,6 +43,7 @@ enum {
 	ICON_DATA_PREVIEW,
 	/** 2D triangles: obj is #Icon_Geom */
 	ICON_DATA_GEOM,
+	ICON_DATA_STUDIOLIGHT,
 };
 
 struct Icon {
@@ -77,6 +78,7 @@ typedef struct Icon Icon;
 struct ImBuf;
 struct PreviewImage;
 struct ID;
+struct StudioLight;
 
 enum eIconSizes;
 
@@ -157,6 +159,8 @@ struct Icon_Geom *BKE_icon_geom_from_file(const char *filename);
 struct ImBuf *BKE_icon_geom_rasterize(
         const struct Icon_Geom *geom,
         const unsigned int size_x, const unsigned int size_y);
+
+int BKE_icon_ensure_studio_light(struct StudioLight *sl);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
 

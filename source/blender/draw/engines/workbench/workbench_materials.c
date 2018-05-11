@@ -338,6 +338,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	if (v3d) {
 		wpd->shading = v3d->shading;
 		wpd->drawtype = v3d->drawtype;
+		wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light);
 	}
 	else {
 		/* XXX: We should get the default shading from the view layer, after we implemented the render callback */
@@ -346,7 +347,9 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		wpd->shading.shadow_intensity = 0.5;
 		copy_v3_fl(wpd->shading.single_color, 0.8f);
 		wpd->drawtype = OB_SOLID;
+		wpd->studio_light = BKE_studiolight_findindex(0);
 	}
+	BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
 	select_deferred_shaders(wpd);
 	/* Deferred Mix Pass */
@@ -360,7 +363,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
 		srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
 
-		studiolight_update_world(wpd->shading.studio_light, wd);
+		studiolight_update_world(wpd->studio_light, wd);
 
 		wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
 		DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
