@@ -765,6 +765,241 @@ float dist_squared_ray_to_aabb_v3_simple(
 /** \} */
 
 
+/* -------------------------------------------------------------------- */
+/** \name dist_squared_to_projected_aabb and helpers
+* \{ */
+
+/**
+ * \param projmat: Projection Matrix (usually perspective
+ * matrix multiplied by object matrix).
+ */
+void dist_squared_to_projected_aabb_precalc(
+        struct DistProjectedAABBPrecalc *neasrest_precalc,
+        const float projmat[4][4], const float winsize[2], const float mval[2])
+{
+	float relative_mval[2] = {
+		2 * mval[0] / winsize[0] - 1.0f,
+		2 * mval[1] / winsize[1] - 1.0f,
+	};
+
+	float px[4], py[4];
+	px[0] = projmat[0][0] - projmat[0][3] * relative_mval[0];
+	px[1] = projmat[1][0] - projmat[1][3] * relative_mval[0];
+	px[2] = projmat[2][0] - projmat[2][3] * relative_mval[0];
+	px[3] = projmat[3][0] - projmat[3][3] * relative_mval[0];
+
+	py[0] = projmat[0][1] - projmat[0][3] * relative_mval[1];
+	py[1] = projmat[1][1] - projmat[1][3] * relative_mval[1];
+	py[2] = projmat[2][1] - projmat[2][3] * relative_mval[1];
+	py[3] = projmat[3][1] - projmat[3][3] * relative_mval[1];
+
+#if 0
+	if (!isect_plane_plane_plane_v3(
+	        projmat[0], projmat[1], projmat[3], neasrest_precalc->ray_origin))
+	{
+		/* Orthographic projection. */
+		copy_v3_v3(neasrest_precalc->ray_direction, projmat[3]);
+	}
+	else {
+		/* Perspective projection. */
+		cross_v3_v3v3(neasrest_precalc->ray_direction, py, px);
+		//normalize_v3(neasrest_precalc->ray_direction);
+	}
+#else
+	isect_plane_plane_v3(
+	        px, py,
+	        neasrest_precalc->ray_origin,
+	        neasrest_precalc->ray_direction);
+#endif
+	float win_half[2];
+	mul_v2_v2fl(win_half, winsize, 0.5f);
+
+	copy_v2_v2(neasrest_precalc->mval, mval);
+	sub_v2_v2(neasrest_precalc->mval, win_half);
+
+	copy_m4_m4(neasrest_precalc->pmat, projmat);
+
+	neasrest_precalc->pmat[0][0] *= win_half[0];
+	neasrest_precalc->pmat[1][0] *= win_half[0];
+	neasrest_precalc->pmat[2][0] *= win_half[0];
+	neasrest_precalc->pmat[3][0] *= win_half[0];
+
+	neasrest_precalc->pmat[0][1] *= win_half[1];
+	neasrest_precalc->pmat[1][1] *= win_half[1];
+	neasrest_precalc->pmat[2][1] *= win_half[1];
+	neasrest_precalc->pmat[3][1] *= win_half[1];
+
+	for (int i = 0; i < 3; i++) {
+		neasrest_precalc->ray_inv_dir[i] =
+		        (neasrest_precalc->ray_direction[i] != 0.0f) ?
+		        (1.0f / neasrest_precalc->ray_direction[i]) : FLT_MAX;
+		neasrest_precalc->sign[i] = (neasrest_precalc->ray_inv_dir[i] < 0.0f);
+	}
+}
+
+/* Returns the distance from a 2d coordinate to a BoundBox (Projected) */
+float dist_squared_to_projected_aabb(
+        struct DistProjectedAABBPrecalc *data,
+        const float bbmin[3], const float bbmax[3],
+        bool r_axis_closest[3])
+{
+	float local_bvmin[3], local_bvmax[3];
+	if (data->sign[0]) {
+		local_bvmin[0] = bbmax[0];
+		local_bvmax[0] = bbmin[0];
+	}
+	else {
+		local_bvmin[0] = bbmin[0];
+		local_bvmax[0] = bbmax[0];
+	}
+	if (data->sign[1]) {
+		local_bvmin[1] = bbmax[1];
+		local_bvmax[1] = bbmin[1];
+	}
+	else {
+		local_bvmin[1] = bbmin[1];
+		local_bvmax[1] = bbmax[1];
+	}
+	if (data->sign[2]) {
+		local_bvmin[2] = bbmax[2];
+		local_bvmax[2] = bbmin[2];
+	}
+	else {
+		local_bvmin[2] = bbmin[2];
+		local_bvmax[2] = bbmax[2];
+	}
+
+	const float tmin[3] = {
+		(local_bvmin[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
+		(local_bvmin[1] - data->ray_origin[1]) * data->ray_inv_dir[1],
+		(local_bvmin[2] - data->ray_origin[2]) * data->ray_inv_dir[2],
+	};
+	const float tmax[3] = {
+		(local_bvmax[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
+		(local_bvmax[1] - data->ray_origin[1]) * data->ray_inv_dir[1],
+		(local_bvmax[2] - data->ray_origin[2]) * data->ray_inv_dir[2],
+	};
+	/* `va` and `vb` are the coordinates of the AABB edge closest to the ray */
+	float va[3], vb[3];
+	/* `rtmin` and `rtmax` are the minimum and maximum distances of the ray hits on the AABB */
+	float rtmin, rtmax;
+	int main_axis;
+
+	if ((tmax[0] <= tmax[1]) && (tmax[0] <= tmax[2])) {
+		rtmax = tmax[0];
+		va[0] = vb[0] = local_bvmax[0];
+		main_axis = 3;
+		r_axis_closest[0] = data->sign[0];
+	}
+	else if ((tmax[1] <= tmax[0]) && (tmax[1] <= tmax[2])) {
+		rtmax = tmax[1];
+		va[1] = vb[1] = local_bvmax[1];
+		main_axis = 2;
+		r_axis_closest[1] = data->sign[1];
+	}
+	else {
+		rtmax = tmax[2];
+		va[2] = vb[2] = local_bvmax[2];
+		main_axis = 1;
+		r_axis_closest[2] = data->sign[2];
+	}
+
+	if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
+		rtmin = tmin[0];
+		va[0] = vb[0] = local_bvmin[0];
+		main_axis -= 3;
+		r_axis_closest[0] = !data->sign[0];
+	}
+	else if ((tmin[1] >= tmin[0]) && (tmin[1] >= tmin[2])) {
+		rtmin = tmin[1];
+		va[1] = vb[1] = local_bvmin[1];
+		main_axis -= 1;
+		r_axis_closest[1] = !data->sign[1];
+	}
+	else {
+		rtmin = tmin[2];
+		va[2] = vb[2] = local_bvmin[2];
+		main_axis -= 2;
+		r_axis_closest[2] = !data->sign[2];
+	}
+	if (main_axis < 0) {
+		main_axis += 3;
+	}
+
+	/* if rtmin <= rtmax, ray intersect `AABB` */
+	if (rtmin <= rtmax) {
+		return 0;
+	}
+
+	if (data->sign[main_axis]) {
+		va[main_axis] = local_bvmax[main_axis];
+		vb[main_axis] = local_bvmin[main_axis];
+	}
+	else {
+		va[main_axis] = local_bvmin[main_axis];
+		vb[main_axis] = local_bvmax[main_axis];
+	}
+	float scale = fabsf(local_bvmax[main_axis] - local_bvmin[main_axis]);
+
+	float (*pmat)[4] = data->pmat;
+
+	float va2d[2] = {
+		(dot_m4_v3_row_x(pmat, va) + pmat[3][0]),
+		(dot_m4_v3_row_y(pmat, va) + pmat[3][1]),
+	};
+	float vb2d[2] = {
+		(va2d[0] + pmat[main_axis][0] * scale),
+		(va2d[1] + pmat[main_axis][1] * scale),
+	};
+
+	float w_a = mul_project_m4_v3_zfac(pmat, va);
+	float w_b = w_a + pmat[main_axis][3] * scale;
+	va2d[0] /= w_a;
+	va2d[1] /= w_a;
+	vb2d[0] /= w_b;
+	vb2d[1] /= w_b;
+
+	float dvec[2], edge[2], lambda, rdist_sq;
+	sub_v2_v2v2(dvec, data->mval, va2d);
+	sub_v2_v2v2(edge, vb2d, va2d);
+	lambda = dot_v2v2(dvec, edge);
+	if (lambda != 0.0f) {
+		lambda /= len_squared_v2(edge);
+		if (lambda <= 0.0f) {
+			rdist_sq = len_squared_v2v2(data->mval, va2d);
+			r_axis_closest[main_axis] = true;
+		}
+		else if (lambda >= 1.0f) {
+			rdist_sq = len_squared_v2v2(data->mval, vb2d);
+			r_axis_closest[main_axis] = false;
+		}
+		else {
+			va2d[0] += edge[0] * lambda;
+			va2d[1] += edge[1] * lambda;
+			rdist_sq = len_squared_v2v2(data->mval, va2d);
+			r_axis_closest[main_axis] = lambda < 0.5f;
+		}
+	}
+	else {
+		rdist_sq = len_squared_v2v2(data->mval, va2d);
+	}
+
+	return rdist_sq;
+}
+
+float dist_squared_to_projected_aabb_simple(
+        const float projmat[4][4], const float winsize[2], const float mval[2],
+        const float bbmin[3], const float bbmax[3])
+{
+	struct DistProjectedAABBPrecalc data;
+	dist_squared_to_projected_aabb_precalc(&data, projmat, winsize, mval);
+
+	bool dummy[3] = {true, true, true};
+	return dist_squared_to_projected_aabb(&data, bbmin, bbmax, dummy);
+}
+/** \} */
+
+
 /* Adapted from "Real-Time Collision Detection" by Christer Ericson,
  * published by Morgan Kaufmann Publishers, copyright 2005 Elsevier Inc.
  * 
