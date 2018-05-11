@@ -29,13 +29,16 @@
  *  \ingroup edmesh
  */
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_object_types.h"
 
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
+#include "BKE_report.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -56,84 +59,110 @@
 
 static int edbm_screw_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
 	BMEdge *eed;
 	BMVert *eve, *v1, *v2;
 	BMIter iter, eiter;
-	BMOperator spinop;
 	float dvec[3], nor[3], cent[3], axis[3], v1_co_global[3], v2_co_global[3];
 	int steps, turns;
 	int valence;
-
+	uint objects_empty_len = 0;
+	uint failed_axis_len = 0;
+	uint failed_vertices_len = 0;
 
 	turns = RNA_int_get(op->ptr, "turns");
 	steps = RNA_int_get(op->ptr, "steps");
 	RNA_float_get_array(op->ptr, "center", cent);
 	RNA_float_get_array(op->ptr, "axis", axis);
 
-	if (is_zero_v3(axis)) {
+	uint objects_len = 0;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++)	{
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
+
+		if (bm->totvertsel < 2) {
+			if (bm->totvertsel == 0) {
+				objects_empty_len++;
+			}
+			continue;
+		}
+
+		if (is_zero_v3(axis)) {
+			failed_axis_len++;
+			continue;
+		}
+
+		/* find two vertices with valence count == 1, more or less is wrong */
+		v1 = NULL;
+		v2 = NULL;
+
+		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+			valence = 0;
+			BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
+				if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+					valence++;
+				}
+			}
+
+			if (valence == 1) {
+				if (v1 == NULL) {
+					v1 = eve;
+				}
+				else if (v2 == NULL) {
+					v2 = eve;
+				}
+				else {
+					v1 = NULL;
+					break;
+				}
+			}
+		}
+
+		if (v1 == NULL || v2 == NULL) {
+			failed_vertices_len++;
+			continue;
+		}
+
+		copy_v3_v3(nor, obedit->obmat[2]);
+
+		/* calculate dvec */
+		mul_v3_m4v3(v1_co_global, obedit->obmat, v1->co);
+		mul_v3_m4v3(v2_co_global, obedit->obmat, v2->co);
+		sub_v3_v3v3(dvec, v1_co_global, v2_co_global);
+		mul_v3_fl(dvec, 1.0f / steps);
+
+		if (dot_v3v3(nor, dvec) > 0.0f)
+			negate_v3(dvec);
+
+		BMOperator spinop;
+		if (!EDBM_op_init(em, &spinop, op,
+		                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
+		                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, DEG2RADF(360.0f * turns), obedit->obmat, false))
+		{
+			continue;
+		}
+
+		BMO_op_exec(bm, &spinop);
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
+
+		if (!EDBM_op_finish(em, &spinop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
+	}
+	MEM_freeN(objects);
+
+	if (failed_axis_len == objects_len - objects_empty_len) {
 		BKE_report(op->reports, RPT_ERROR, "Invalid/unset axis");
-		return OPERATOR_CANCELLED;
 	}
-
-	/* find two vertices with valence count == 1, more or less is wrong */
-	v1 = NULL;
-	v2 = NULL;
-
-	BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-		valence = 0;
-		BM_ITER_ELEM (eed, &eiter, eve, BM_EDGES_OF_VERT) {
-			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-				valence++;
-			}
-		}
-
-		if (valence == 1) {
-			if (v1 == NULL) {
-				v1 = eve;
-			}
-			else if (v2 == NULL) {
-				v2 = eve;
-			}
-			else {
-				v1 = NULL;
-				break;
-			}
-		}
-	}
-
-	if (v1 == NULL || v2 == NULL) {
+	else if (failed_vertices_len == objects_len - objects_empty_len) {
 		BKE_report(op->reports, RPT_ERROR, "You have to select a string of connected vertices too");
-		return OPERATOR_CANCELLED;
 	}
-
-	copy_v3_v3(nor, obedit->obmat[2]);
-
-	/* calculate dvec */
-	mul_v3_m4v3(v1_co_global, obedit->obmat, v1->co);
-	mul_v3_m4v3(v2_co_global, obedit->obmat, v2->co);
-	sub_v3_v3v3(dvec, v1_co_global, v2_co_global);
-	mul_v3_fl(dvec, 1.0f / steps);
-
-	if (dot_v3v3(nor, dvec) > 0.0f)
-		negate_v3(dvec);
-
-	if (!EDBM_op_init(em, &spinop, op,
-	                  "spin geom=%hvef cent=%v axis=%v dvec=%v steps=%i angle=%f space=%m4 use_duplicate=%b",
-	                  BM_ELEM_SELECT, cent, axis, dvec, turns * steps, DEG2RADF(360.0f * turns), obedit->obmat, false))
-	{
-		return OPERATOR_CANCELLED;
-	}
-	BMO_op_exec(bm, &spinop);
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-	BMO_slot_buffer_hflag_enable(bm, spinop.slots_out, "geom_last.out", BM_ALL_NOLOOP, BM_ELEM_SELECT, true);
-	if (!EDBM_op_finish(em, &spinop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
 
 	return OPERATOR_FINISHED;
 }
