@@ -36,38 +36,38 @@
 
 static void workbench_solid_engine_init(void *vedata)
 {
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data *data = vedata;
 	workbench_materials_engine_init(data);
 }
 
 static void workbench_solid_cache_init(void *vedata)
 {
 
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data *data = vedata;
 	workbench_materials_cache_init(data);
 }
 
 static void workbench_solid_cache_populate(void *vedata, Object *ob)
 {
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data *data = vedata;
 	workbench_materials_solid_cache_populate(data, ob);
 }
 
 static void workbench_solid_cache_finish(void *vedata)
 {
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data *data = vedata;
 	workbench_materials_cache_finish(data);
 }
 
 static void workbench_solid_draw_background(void *vedata)
 {
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data *data = vedata;
 	workbench_materials_draw_background(data);
 }
 
 static void workbench_solid_draw_scene(void *vedata)
 {
-	WORKBENCH_Data * data = (WORKBENCH_Data *)vedata;
+	WORKBENCH_Data *data = vedata;
 	workbench_materials_draw_scene(data);
 }
 

@@ -223,7 +223,7 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color, float hsv_saturation, float hsv_value)
 {
 	/* When in OB_TEXTURE always uyse V3D_SHADING_MATERIAL_COLOR as fallback when no texture could be determined */
-	int color_type = wpd->drawtype == OB_SOLID? wpd->shading.color_type:V3D_SHADING_MATERIAL_COLOR;
+	int color_type = wpd->drawtype == OB_SOLID ? wpd->shading.color_type : V3D_SHADING_MATERIAL_COLOR;
 	static float default_color[] = {0.8f, 0.8f, 0.8f};
 	if (DRW_object_is_paint_mode(ob) || color_type == V3D_SHADING_SINGLE_COLOR) {
 		copy_v3_v3(color, wpd->shading.single_color);
@@ -304,7 +304,7 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 
 void workbench_materials_engine_free()
 {
-	for (int index = 0; index < MAX_SHADERS; index ++) {
+	for (int index = 0; index < MAX_SHADERS; index++) {
 		DRW_SHADER_FREE_SAFE(e_data.prepass_sh_cache[index]);
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
 	}
@@ -352,7 +352,7 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	/* Deferred Mix Pass */
 	{
 		WORKBENCH_UBO_World *wd = &wpd->world_data;
-		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD:TH_HIGH_GRAD, wd->background_color_low);
+		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
 		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
 
 		/* XXX: Really quick conversion to avoid washed out background.
@@ -428,7 +428,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 	material = BLI_ghash_lookup(wpd->material_hash, SET_UINT_IN_POINTER(hash));
 	if (material == NULL) {
 		material = MEM_mallocN(sizeof(WORKBENCH_MaterialData), __func__);
-		material->shgrp = DRW_shgroup_create(drawtype == OB_SOLID?wpd->prepass_solid_sh:wpd->prepass_texture_sh, psl->prepass_pass);
+		material->shgrp = DRW_shgroup_create(drawtype == OB_SOLID ? wpd->prepass_solid_sh : wpd->prepass_texture_sh, psl->prepass_pass);
 		DRW_shgroup_stencil_mask(material->shgrp, 0xFF);
 		material->object_id = engine_object_data->object_id;
 		copy_v3_v3(material->color, material_template.color);
@@ -540,7 +540,7 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 			else { /* MATERIAL colors */
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));
 				struct GPUMaterial **gpumat_array = BLI_array_alloca(gpumat_array, materials_len);
-				for (int i = 0; i < materials_len; i ++) {
+				for (int i = 0; i < materials_len; i++) {
 					gpumat_array[i] = NULL;
 				}
 

@@ -90,22 +90,22 @@ void studiolight_update_world(int studio_light, WORKBENCH_UBO_World *wd)
 
 uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size)
 {
-	unsigned int* rect = MEM_mallocN(icon_size * icon_size * sizeof(unsigned int), __func__);
+	unsigned int *rect = MEM_mallocN(icon_size * icon_size * sizeof(unsigned int), __func__);
 	int icon_center = icon_size / 2;
 	float sphere_radius = icon_center * 0.9;
 
 	int offset = 0;
-	for (int y = 0 ; y < icon_size ; y ++) {
+	for (int y = 0; y < icon_size; y++) {
 		float dy = y - icon_center;
-		for (int x = 0 ; x < icon_size ; x ++) {
+		for (int x = 0; x < icon_size; x++) {
 			float dx = x - icon_center;
 			/* calculate aliasing */
 			float alias = 0;
 			const float alias_step = 0.2;
-			for (float ay = dy - 0.5; ay < dy + 0.5 ; ay += alias_step) {
-				for (float ax = dx - 0.5; ax < dx + 0.5 ; ax += alias_step) {
-					if (sqrt(ay*ay + ax*ax) < sphere_radius) {
-						alias += alias_step*alias_step;
+			for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
+				for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
+					if (sqrt(ay * ay + ax * ax) < sphere_radius) {
+						alias += alias_step * alias_step;
 					}
 				}
 			}
@@ -117,7 +117,7 @@ uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size)
 				float normal[3];
 				normal[0] = dx / sphere_radius;
 				normal[1] = dy / sphere_radius;
-				normal[2] = sqrt(-(normal[0]*normal[0])-(normal[1]*normal[1]) + 1);
+				normal[2] = sqrt(-(normal[0] * normal[0]) - (normal[1] * normal[1]) + 1);
 				normalize_v3(normal);
 
 				float color[3];
@@ -128,10 +128,9 @@ uint *WORKBENCH_generate_studiolight_preview(int studiolight_id, int icon_size)
 				interp_v3_v3v3(color, color, studiolights[studiolight_id][STUDIOLIGHT_Z_POS], clamp_f(normal[2], 0.0, 1.0));
 
 				pixelresult = rgb_to_cpack(
-					linearrgb_to_srgb(color[0]),
-					linearrgb_to_srgb(color[1]),
-					linearrgb_to_srgb(color[2])
-				) | alias_mask;
+				        linearrgb_to_srgb(color[0]),
+				        linearrgb_to_srgb(color[1]),
+				        linearrgb_to_srgb(color[2])) | alias_mask;
 			}
 			rect[offset++] = pixelresult;
 		}
