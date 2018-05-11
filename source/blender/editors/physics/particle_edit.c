@@ -1312,8 +1312,6 @@ void PE_update_object(Depsgraph *depsgraph, Scene *scene, Object *ob, int usefla
 
 	if (edit->psys)
 		edit->psys->flag &= ~PSYS_HAIR_UPDATED;
-
-	DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 
 /************************************************/
