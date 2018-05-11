@@ -3894,7 +3894,6 @@ class VIEW3D_PT_view3d_curvedisplay(Panel):
         row = col.row()
         row.prop(curve, "show_handles", text="Handles")
         row.prop(curve, "show_normal_face", text="Normals")
-        col.prop(context.scene.tool_settings, "normal_size", text="Normal Size")
 
 
 class VIEW3D_PT_transform_orientations(Panel):
