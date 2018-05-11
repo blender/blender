@@ -244,16 +244,6 @@ void ED_operatormacros_mesh(void)
 	ot = WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", "Rip polygons and move the result",
 	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_rip");
-	RNA_boolean_set(otmacro->ptr, "use_fill", false);
-	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_enum_set(otmacro->ptr, "proportional", 0);
-	RNA_boolean_set(otmacro->ptr, "mirror", false);
-
-	/* annoying we can't pass 'use_fill' through the macro */
-	ot = WM_operatortype_append_macro("MESH_OT_rip_move_fill", "Rip Fill", "Rip-fill polygons and move the result",
-	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
-	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_rip");
-	RNA_boolean_set(otmacro->ptr, "use_fill", true);
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", false);
@@ -428,8 +418,16 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "MESH_OT_tris_convert_to_quads", JKEY, KM_PRESS, KM_ALT, 0);
 
-	WM_keymap_add_item(keymap, "MESH_OT_rip_move", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MESH_OT_rip_move_fill", VKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_rip_move", VKEY, KM_PRESS, 0, 0);
+	{
+		PointerRNA macro_ptr = RNA_pointer_get(kmi->ptr, "MESH_OT_rip");
+		RNA_boolean_set(&macro_ptr, "use_fill", false);
+	}
+	kmi = WM_keymap_add_item(keymap, "MESH_OT_rip_move", VKEY, KM_PRESS, KM_ALT, 0);
+	{
+		PointerRNA macro_ptr = RNA_pointer_get(kmi->ptr, "MESH_OT_rip");
+		RNA_boolean_set(&macro_ptr, "use_fill", true);
+	}
 
 	WM_keymap_add_item(keymap, "MESH_OT_rip_edge_move", DKEY, KM_PRESS, KM_ALT, 0);
 

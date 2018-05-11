@@ -1130,48 +1130,60 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 }
 
 #if 1 /* may want to disable operator remembering previous state for testing */
-bool WM_operator_last_properties_init(wmOperator *op)
+
+static bool operator_last_properties_init_impl(wmOperator *op, IDProperty *last_properties)
 {
 	bool changed = false;
+	IDPropertyTemplate val = {0};
+	IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+	PropertyRNA *iterprop;
 
-	if (op->type->last_properties) {
-		IDPropertyTemplate val = {0};
-		IDProperty *replaceprops = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
-		PropertyRNA *iterprop;
+	CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
 
-		CLOG_INFO(WM_LOG_OPERATORS, 1, "loading previous properties for '%s'", op->type->idname);
+	iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		iterprop = RNA_struct_iterator_property(op->type->srna);
+	RNA_PROP_BEGIN (op->ptr, itemptr, iterprop)
+	{
+		PropertyRNA *prop = itemptr.data;
+		if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
+			if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
+				const char *identifier = RNA_property_identifier(prop);
+				IDProperty *idp_src = IDP_GetPropertyFromGroup(last_properties, identifier);
+				if (idp_src) {
+					IDProperty *idp_dst = IDP_CopyProperty(idp_src);
 
-		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop)
-		{
-			PropertyRNA *prop = itemptr.data;
-			if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
-				if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
-					const char *identifier = RNA_property_identifier(prop);
-					IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, identifier);
-					if (idp_src) {
-						IDProperty *idp_dst = IDP_CopyProperty(idp_src);
+					/* note - in the future this may need to be done recursively,
+					 * but for now RNA doesn't access nested operators */
+					idp_dst->flag |= IDP_FLAG_GHOST;
 
-						/* note - in the future this may need to be done recursively,
-						 * but for now RNA doesn't access nested operators */
-						idp_dst->flag |= IDP_FLAG_GHOST;
-
-						/* add to temporary group instead of immediate replace,
-						 * because we are iterating over this group */
-						IDP_AddToGroup(replaceprops, idp_dst);
-						changed = true;
-					}
+					/* add to temporary group instead of immediate replace,
+					 * because we are iterating over this group */
+					IDP_AddToGroup(replaceprops, idp_dst);
+					changed = true;
 				}
 			}
 		}
-		RNA_PROP_END;
-
-		IDP_MergeGroup(op->properties, replaceprops, true);
-		IDP_FreeProperty(replaceprops);
-		MEM_freeN(replaceprops);
 	}
+	RNA_PROP_END;
 
+	IDP_MergeGroup(op->properties, replaceprops, true);
+	IDP_FreeProperty(replaceprops);
+	MEM_freeN(replaceprops);
+	return changed;
+}
+
+bool WM_operator_last_properties_init(wmOperator *op)
+{
+	bool changed = false;
+	if (op->type->last_properties) {
+		changed |= operator_last_properties_init_impl(op, op->type->last_properties);
+		for (wmOperator *opm = op->macro.first; opm; opm = opm->next) {
+			IDProperty *idp_src = IDP_GetPropertyFromGroup(op->type->last_properties, opm->idname);
+			if (idp_src) {
+				changed |= operator_last_properties_init_impl(opm, idp_src);
+			}
+		}
+	}
 	return changed;
 }
 
