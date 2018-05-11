@@ -36,7 +36,8 @@ void main()
 	if (!gl_FrontFacing) {
 		normalViewport = normal_encode(-normal_viewport);
 		diffuseColor.a = 1.0;
-	} else {
+	}
+	else {
 		normalViewport = normal_encode(normal_viewport);
 		diffuseColor.a = 0.0;
 	}

@@ -169,7 +169,8 @@ static bool POSE_is_driven_by_active_armature(Object *ob)
 			is_active = DRW_pose_mode_armature(armature->proxy_from, draw_ctx->obact);
 		}
 		return is_active;
-	} else {
+	}
+	else {
 		Object *meshDeform = modifiers_isDeformedByMeshDeform(ob);
 		if (meshDeform) {
 			return POSE_is_driven_by_active_armature(meshDeform);
@@ -200,7 +201,8 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 			};
 			DRW_shgroup_armature_pose(ob, passes);
 		}
-	} else if (ob->type == OB_MESH && POSE_is_bone_selection_overlay_active() && POSE_is_driven_by_active_armature(ob)) {
+	}
+	else if (ob->type == OB_MESH && POSE_is_bone_selection_overlay_active() && POSE_is_driven_by_active_armature(ob)) {
 		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);

@@ -30,7 +30,8 @@ void main()
 		vec3 background = background_color(world_data, uv_viewport.y);
 		if (object_overlap == 0.0) {
 			fragColor = vec4(background, 0.0);
-		} else {
+		}
+		else {
 			fragColor = vec4(mix(objectOverlapColor, background, object_overlap), 1.0-object_overlap);
 		}
 		return;
