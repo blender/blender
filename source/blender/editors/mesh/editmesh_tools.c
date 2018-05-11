@@ -2017,19 +2017,28 @@ void MESH_OT_reveal(wmOperatorType *ot)
 
 static int edbm_normals_make_consistent_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	/* doflip has to do with bmesh_rationalize_normals, it's an internal
-	 * thing */
-	if (!EDBM_op_callf(em, op, "recalc_face_normals faces=%hf", BM_ELEM_SELECT))
-		return OPERATOR_CANCELLED;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	if (RNA_boolean_get(op->ptr, "inside")) {
-		EDBM_op_callf(em, op, "reverse_faces faces=%hf flip_multires=%b", BM_ELEM_SELECT, true);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		if (!EDBM_op_callf(em, op, "recalc_face_normals faces=%hf", BM_ELEM_SELECT)) {
+			continue;
+		}
+		if (RNA_boolean_get(op->ptr, "inside")) {
+			EDBM_op_callf(em, op, "reverse_faces faces=%hf flip_multires=%b", BM_ELEM_SELECT, true);
+		}
+
+		EDBM_update_generic(em, true, false);
 	}
-
-	EDBM_update_generic(em, true, false);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
