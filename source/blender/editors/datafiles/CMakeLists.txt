@@ -585,6 +585,12 @@ set_property(GLOBAL PROPERTY ICON_GEOM_NAMES
 	ops.mesh.loopcut_slide
 	ops.mesh.offset_edge_loops_slide
 	ops.mesh.polybuild_hover
+	ops.mesh.primitive_cone_add_manipulator
+	ops.mesh.primitive_cube_add_manipulator
+	ops.mesh.primitive_cylinder_add_manipulator
+	ops.mesh.primitive_grid_add_manipulator
+	ops.mesh.primitive_sphere_add_manipulator
+	ops.mesh.primitive_torus_add_manipulator
 	ops.mesh.rip
 	ops.mesh.rip_edge
 	ops.mesh.spin

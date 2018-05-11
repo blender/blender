@@ -2981,10 +2981,10 @@ void init_userdef_do_versions(void)
 
 	if (((bTheme *)U.themes.first)->tui.wcol_toolbar_item.text[3] == 0) {
 		struct uiWidgetColors wcol_toolbar_item = {
-			.outline = {0x19, 0x19, 0x19, 0xff},
+			.outline = {0x0, 0x0, 0x0, 0xff},
 			.inner = {0x46, 0x46, 0x46, 0xff},
-			.inner_sel = {0xb4, 0xb4, 0xb4, 0xff},
-			.item = {0x19, 0x19, 0x19, 0xff},
+			.inner_sel = {0xcc, 0xcc, 0xcc, 0xff},
+			.item = {0x0, 0x0, 0x0, 0xff},
 
 			.text = {0xff, 0xff, 0xff, 0xff},
 			.text_sel = {0x33, 0x33, 0x33, 0xff},
@@ -2997,7 +2997,7 @@ void init_userdef_do_versions(void)
 		};
 		for (bTheme *btheme = U.themes.first; btheme; btheme = btheme->next) {
 			btheme->tui.wcol_toolbar_item = wcol_toolbar_item;
-			btheme->tui.icon_saturation = 0.4f;
+			btheme->tui.icon_saturation = 1.0f;
 		}
 	}
 
