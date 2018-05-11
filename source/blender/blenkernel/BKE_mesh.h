@@ -113,9 +113,6 @@ struct Mesh *BKE_mesh_new_nomain_from_template(
 struct Mesh *BKE_mesh_new_nomain_from_curve(struct Object *ob);
 struct Mesh *BKE_mesh_new_nomain_from_curve_displist(struct Object *ob, struct ListBase *dispbase);
 
-bool BKE_mesh_ensure_edit_data(struct Mesh *me);
-bool BKE_mesh_clear_edit_data(struct Mesh *me);
-
 bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me);
 bool BKE_mesh_clear_facemap_customdata(struct Mesh *me);
 
@@ -196,6 +193,10 @@ void                   BKE_mesh_runtime_reset(struct Mesh *mesh);
 int                    BKE_mesh_runtime_looptri_len(const struct Mesh *mesh);
 void                   BKE_mesh_runtime_looptri_recalc(struct Mesh *mesh);
 const struct MLoopTri *BKE_mesh_runtime_looptri_ensure(struct Mesh *mesh);
+bool                   BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
+bool                   BKE_mesh_runtime_clear_edit_data(struct Mesh *mesh);
+void                   BKE_mesh_runtime_clear_geometry(struct Mesh *mesh);
+void                   BKE_mesh_runtime_clear_cache(struct Mesh *mesh);
 
 /* *** mesh_evaluate.c *** */
 

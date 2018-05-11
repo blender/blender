@@ -39,6 +39,7 @@
 #include "BLI_math_geom.h"
 #include "BLI_threads.h"
 
+#include "BKE_bvhutils.h"
 #include "BKE_mesh.h"
 
 
@@ -50,6 +51,13 @@ static ThreadRWMutex loops_cache_lock = PTHREAD_RWLOCK_INITIALIZER;
 void BKE_mesh_runtime_reset(Mesh *mesh)
 {
 	memset(&mesh->runtime, 0, sizeof(mesh->runtime));
+}
+
+void BKE_mesh_runtime_clear_cache(Mesh *mesh)
+{
+	BKE_mesh_runtime_clear_geometry(mesh);
+	BKE_mesh_batch_cache_free(mesh);
+	BKE_mesh_runtime_clear_edit_data(mesh);
 }
 
 /* This is a ported copy of DM_ensure_looptri_data(dm) */
@@ -134,4 +142,56 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 		BLI_rw_mutex_unlock(&loops_cache_lock);
 	}
 	return looptri;
+}
+
+bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh)
+{
+	if (mesh->runtime.edit_data != NULL) {
+		return false;
+	}
+
+	mesh->runtime.edit_data = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
+	return true;
+}
+
+bool BKE_mesh_runtime_clear_edit_data(Mesh *mesh)
+{
+	if (mesh->runtime.edit_data == NULL) {
+		return false;
+	}
+
+	if (mesh->runtime.edit_data->polyCos != NULL)
+		MEM_freeN((void *)mesh->runtime.edit_data->polyCos);
+	if (mesh->runtime.edit_data->polyNos != NULL)
+		MEM_freeN((void *)mesh->runtime.edit_data->polyNos);
+	if (mesh->runtime.edit_data->vertexCos != NULL)
+		MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
+	if (mesh->runtime.edit_data->vertexNos != NULL)
+		MEM_freeN((void *)mesh->runtime.edit_data->vertexNos);
+
+	MEM_SAFE_FREE(mesh->runtime.edit_data);
+	return true;
+}
+
+void BKE_mesh_runtime_clear_geometry(Mesh *mesh)
+{
+	bvhcache_free(&mesh->runtime.bvh_cache);
+	MEM_SAFE_FREE(mesh->runtime.looptris.array);
+}
+
+/* Draw Engine */
+void (*BKE_mesh_batch_cache_dirty_cb)(Mesh *me, int mode) = NULL;
+void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
+
+void BKE_mesh_batch_cache_dirty(Mesh *me, int mode)
+{
+	if (me->runtime.batch_cache) {
+		BKE_mesh_batch_cache_dirty_cb(me, mode);
+	}
+}
+void BKE_mesh_batch_cache_free(Mesh *me)
+{
+	if (me->runtime.batch_cache) {
+		BKE_mesh_batch_cache_free_cb(me);
+	}
 }

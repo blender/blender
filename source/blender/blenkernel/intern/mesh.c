@@ -370,36 +370,6 @@ void BKE_mesh_ensure_skin_customdata(Mesh *me)
 	}
 }
 
-bool BKE_mesh_ensure_edit_data(struct Mesh *me)
-{
-	if (me->runtime.edit_data != NULL) {
-		return false;
-	}
-
-	me->runtime.edit_data = MEM_callocN(sizeof(EditMeshData), "EditMeshData");
-	return true;
-}
-
-bool BKE_mesh_clear_edit_data(struct Mesh *me)
-{
-	if (me->runtime.edit_data == NULL) {
-		return false;
-	}
-
-	if (me->runtime.edit_data->polyCos != NULL)
-		MEM_freeN((void *)me->runtime.edit_data->polyCos);
-	if (me->runtime.edit_data->polyNos != NULL)
-		MEM_freeN((void *)me->runtime.edit_data->polyNos);
-	if (me->runtime.edit_data->vertexCos != NULL)
-		MEM_freeN((void *)me->runtime.edit_data->vertexCos);
-	if (me->runtime.edit_data->vertexNos != NULL)
-		MEM_freeN((void *)me->runtime.edit_data->vertexNos);
-
-	MEM_SAFE_FREE(me->runtime.edit_data);
-	return true;
-}
-
-
 bool BKE_mesh_ensure_facemap_customdata(struct Mesh *me)
 {
 	BMesh *bm = me->edit_btmesh ? me->edit_btmesh->bm : NULL;
@@ -492,8 +462,7 @@ void BKE_mesh_free(Mesh *me)
 {
 	BKE_animdata_free(&me->id, false);
 
-	BKE_mesh_batch_cache_free(me);
-	BKE_mesh_clear_edit_data(me);
+	BKE_mesh_runtime_clear_cache(me);
 
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
@@ -505,9 +474,6 @@ void BKE_mesh_free(Mesh *me)
 	MEM_SAFE_FREE(me->bb);
 	MEM_SAFE_FREE(me->mselect);
 	MEM_SAFE_FREE(me->edit_btmesh);
-
-	MEM_SAFE_FREE(me->runtime.looptris.array);
-	bvhcache_free(&me->runtime.bvh_cache);
 }
 
 static void mesh_tessface_clear_intern(Mesh *mesh, int free_customdata)
@@ -1835,22 +1801,5 @@ void BKE_mesh_eval_geometry(Depsgraph *depsgraph,
 	DEG_debug_print_eval(depsgraph, __func__, mesh->id.name, mesh);
 	if (mesh->bb == NULL || (mesh->bb->flag & BOUNDBOX_DIRTY)) {
 		BKE_mesh_texspace_calc(mesh);
-	}
-}
-
-/* Draw Engine */
-void (*BKE_mesh_batch_cache_dirty_cb)(Mesh *me, int mode) = NULL;
-void (*BKE_mesh_batch_cache_free_cb)(Mesh *me) = NULL;
-
-void BKE_mesh_batch_cache_dirty(Mesh *me, int mode)
-{
-	if (me->runtime.batch_cache) {
-		BKE_mesh_batch_cache_dirty_cb(me, mode);
-	}
-}
-void BKE_mesh_batch_cache_free(Mesh *me)
-{
-	if (me->runtime.batch_cache) {
-		BKE_mesh_batch_cache_free_cb(me);
 	}
 }

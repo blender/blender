@@ -2487,7 +2487,7 @@ static void editbmesh_calc_modifiers(
 			else {
 				struct Mesh *mesh = ob->data;
 				if (mesh->id.tag & LIB_TAG_COPY_ON_WRITE) {
-					BKE_mesh_ensure_edit_data(mesh);
+					BKE_mesh_runtime_ensure_edit_data(mesh);
 					mesh->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
 				}
 				*r_cage = getEditDerivedBMesh(
@@ -2529,7 +2529,7 @@ static void editbmesh_calc_modifiers(
 		/* this is just a copy of the editmesh, no need to calc normals */
 		struct Mesh *mesh = ob->data;
 		if (mesh->id.tag & LIB_TAG_COPY_ON_WRITE) {
-			BKE_mesh_ensure_edit_data(mesh);
+			BKE_mesh_runtime_ensure_edit_data(mesh);
 			if (mesh->runtime.edit_data->vertexCos != NULL)
 				MEM_freeN((void *)mesh->runtime.edit_data->vertexCos);
 			mesh->runtime.edit_data->vertexCos = MEM_dupallocN(deformedVerts);
