@@ -819,20 +819,6 @@ void deg_free_copy_on_write_datablock(ID *id_cow)
 			ob_cow->data = NULL;
 			break;
 		}
-		case ID_SCE:
-		{
-			/* Special case for scene: we use explicit function call which
-			 * ensures no access to other datablocks is done.
-			 */
-			/* Not sure why this is needed? If id_cow scene has been correctly created outside of Main database,
-			 * then freeing it with regular BKE_id_free should properly *not* do any
-			 * children datablock user refcount manipulation... --mont29 */
-			Scene *scene = (Scene *)id_cow;
-			BKE_scene_free_ex(scene, false);
-			BKE_libblock_free_data(id_cow, false);
-			id_cow->name[0] = '\0';
-			return;
-		}
 		default:
 			break;
 	}

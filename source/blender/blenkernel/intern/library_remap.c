@@ -780,7 +780,7 @@ void BKE_libblock_free_datablock(ID *id, const int UNUSED(flag))
 	const short type = GS(id->name);
 	switch (type) {
 		case ID_SCE:
-			BKE_scene_free((Scene *)id);
+			BKE_scene_free_ex((Scene *)id, false);
 			break;
 		case ID_LI:
 			BKE_library_free((Library *)id);
