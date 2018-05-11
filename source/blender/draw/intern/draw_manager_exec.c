@@ -914,58 +914,61 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	drw_stencil_set(shgroup->stencil_mask);
 
 	/* Binding Uniform */
-	/* Don't check anything, Interface should already contain the least uniform as possible */
 	for (DRWUniform *uni = shgroup->uniforms; uni; uni = uni->next) {
 		switch (uni->type) {
 			case DRW_UNIFORM_SHORT_TO_INT:
-				val = (int)*((short *)uni->value);
-				GPU_shader_uniform_vector_int(
-				        shgroup->shader, uni->location, uni->length, uni->arraysize, &val);
-				break;
-			case DRW_UNIFORM_INT_COPY:
-				val = GET_INT_FROM_POINTER(uni->value);
+				val = (int)*((short *)uni->pvalue);
 				GPU_shader_uniform_vector_int(
 				        shgroup->shader, uni->location, uni->length, uni->arraysize, &val);
 				break;
 			case DRW_UNIFORM_SHORT_TO_FLOAT:
-				fval = (float)*((short *)uni->value);
+				fval = (float)*((short *)uni->pvalue);
 				GPU_shader_uniform_vector(
 				        shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)&fval);
+				break;
+			case DRW_UNIFORM_BOOL_COPY:
+			case DRW_UNIFORM_INT_COPY:
+				GPU_shader_uniform_vector_int(
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, &uni->ivalue);
 				break;
 			case DRW_UNIFORM_BOOL:
 			case DRW_UNIFORM_INT:
 				GPU_shader_uniform_vector_int(
-				        shgroup->shader, uni->location, uni->length, uni->arraysize, (int *)uni->value);
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, (int *)uni->pvalue);
+				break;
+			case DRW_UNIFORM_FLOAT_COPY:
+				GPU_shader_uniform_vector(
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, &uni->fvalue);
 				break;
 			case DRW_UNIFORM_FLOAT:
 				GPU_shader_uniform_vector(
-				        shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)uni->value);
+				        shgroup->shader, uni->location, uni->length, uni->arraysize, (float *)uni->pvalue);
 				break;
 			case DRW_UNIFORM_TEXTURE:
-				tex = (GPUTexture *)uni->value;
+				tex = (GPUTexture *)uni->pvalue;
 				BLI_assert(tex);
 				bind_texture(tex, BIND_TEMP);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_TEXTURE_PERSIST:
-				tex = (GPUTexture *)uni->value;
+				tex = (GPUTexture *)uni->pvalue;
 				BLI_assert(tex);
 				bind_texture(tex, BIND_PERSIST);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_TEXTURE_REF:
-				tex = *((GPUTexture **)uni->value);
+				tex = *((GPUTexture **)uni->pvalue);
 				BLI_assert(tex);
 				bind_texture(tex, BIND_TEMP);
 				GPU_shader_uniform_texture(shgroup->shader, uni->location, tex);
 				break;
 			case DRW_UNIFORM_BLOCK:
-				ubo = (GPUUniformBuffer *)uni->value;
+				ubo = (GPUUniformBuffer *)uni->pvalue;
 				bind_ubo(ubo, BIND_TEMP);
 				GPU_shader_uniform_buffer(shgroup->shader, uni->location, ubo);
 				break;
 			case DRW_UNIFORM_BLOCK_PERSIST:
-				ubo = (GPUUniformBuffer *)uni->value;
+				ubo = (GPUUniformBuffer *)uni->pvalue;
 				bind_ubo(ubo, BIND_PERSIST);
 				GPU_shader_uniform_buffer(shgroup->shader, uni->location, ubo);
 				break;

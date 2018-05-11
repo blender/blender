@@ -157,11 +157,13 @@ typedef struct DRWCall {
 /* Used by DRWUniform.type */
 typedef enum {
 	DRW_UNIFORM_BOOL,
+	DRW_UNIFORM_BOOL_COPY,
 	DRW_UNIFORM_SHORT_TO_INT,
 	DRW_UNIFORM_SHORT_TO_FLOAT,
 	DRW_UNIFORM_INT,
 	DRW_UNIFORM_INT_COPY,
 	DRW_UNIFORM_FLOAT,
+	DRW_UNIFORM_FLOAT_COPY,
 	DRW_UNIFORM_TEXTURE,
 	DRW_UNIFORM_TEXTURE_PERSIST,
 	DRW_UNIFORM_TEXTURE_REF,
@@ -171,7 +173,13 @@ typedef enum {
 
 struct DRWUniform {
 	DRWUniform *next; /* single-linked list */
-	const void *value;
+	union {
+		/* For reference or array/vector types. */
+		const void *pvalue;
+		/* Single values. */
+		float fvalue;
+		int ivalue;
+	};
 	int location;
 	char type; /* DRWUniformType */
 	char length; /* cannot be more than 16 */

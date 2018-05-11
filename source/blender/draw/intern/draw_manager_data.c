@@ -78,9 +78,23 @@ static void drw_shgroup_uniform_create_ex(DRWShadingGroup *shgroup, int loc,
 	DRWUniform *uni = BLI_mempool_alloc(DST.vmempool->uniforms);
 	uni->location = loc;
 	uni->type = type;
-	uni->value = value;
 	uni->length = length;
 	uni->arraysize = arraysize;
+
+	switch (type) {
+		case DRW_UNIFORM_INT_COPY:
+			uni->ivalue = *((int *)value);
+			break;
+		case DRW_UNIFORM_BOOL_COPY:
+			uni->ivalue = (int)*((bool *)value);
+			break;
+		case DRW_UNIFORM_FLOAT_COPY:
+			uni->fvalue = *((float *)value);
+			break;
+		default:
+			uni->pvalue = value;
+			break;
+	}
 
 	BLI_LINKS_PREPEND(shgroup->uniforms, uni);
 }
@@ -214,8 +228,19 @@ void DRW_shgroup_uniform_mat4(DRWShadingGroup *shgroup, const char *name, const 
 /* Stores the int instead of a pointer. */
 void DRW_shgroup_uniform_int_copy(DRWShadingGroup *shgroup, const char *name, const int value)
 {
-	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT_COPY, SET_INT_IN_POINTER(value), 1, 1);
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_INT_COPY, &value, 1, 1);
 }
+
+void DRW_shgroup_uniform_bool_copy(DRWShadingGroup *shgroup, const char *name, const bool value)
+{
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_BOOL_COPY, &value, 1, 1);
+}
+
+void DRW_shgroup_uniform_float_copy(DRWShadingGroup *shgroup, const char *name, const float value)
+{
+	drw_shgroup_uniform(shgroup, name, DRW_UNIFORM_FLOAT_COPY, &value, 1, 1);
+}
+
 
 /** \} */
 
