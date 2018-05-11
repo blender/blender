@@ -228,11 +228,6 @@ bool DRW_check_particles_visible_within_active_context(Object *object)
 	return (object->mode != OB_MODE_PARTICLE_EDIT);
 }
 
-bool DRW_check_psys_visible_within_active_context(struct ParticleSystem *psys)
-{
-	return PE_get_current_from_psys(psys) == NULL;
-}
-
 /** \} */
 
 
