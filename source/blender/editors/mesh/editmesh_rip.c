@@ -39,6 +39,7 @@
 #include "BKE_context.h"
 #include "BKE_report.h"
 #include "BKE_editmesh.h"
+#include "BKE_layer.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -523,11 +524,9 @@ static void edbm_tagged_loop_pairs_do_fill_faces(BMesh *bm, UnorderedLoopPair *u
 /**
  * This is the main vert ripping function (rip when one vertex is selected)
  */
-static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *event)
+static int edbm_rip_invoke__vert(bContext *C, const wmEvent *event, Object *obedit, bool do_fill)
 {
-	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
-	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -672,7 +671,6 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 			/* set selection back to avoid active-unselected vertex */
 			BM_vert_select_set(bm, v, true);
 			/* should never happen */
-			BKE_report(op->reports, RPT_ERROR, "Error ripping vertex from faces");
 			return OPERATOR_CANCELLED;
 		}
 		else {
@@ -759,7 +757,6 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 	}
 
 	if (!e_best) {
-		BKE_report(op->reports, RPT_ERROR, "Selected vertex has no edge/face pairs attached");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -875,7 +872,6 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 
 
 	if (totvert_orig == bm->totvert) {
-		BKE_report(op->reports, RPT_ERROR, "No vertices could be ripped");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -885,11 +881,9 @@ static int edbm_rip_invoke__vert(bContext *C, wmOperator *op, const wmEvent *eve
 /**
  * This is the main edge ripping function
  */
-static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *event)
+static int edbm_rip_invoke__edge(bContext *C, const wmEvent *event, Object *obedit, bool do_fill)
 {
-	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 	UnorderedLoopPair *fill_uloop_pairs = NULL;
-	Object *obedit = CTX_data_edit_object(C);
 	ARegion *ar = CTX_wm_region(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	BMEditMesh *em = BKE_editmesh_from_object(obedit);
@@ -1004,7 +998,6 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 	}
 
 	if (totedge_orig == bm->totedge) {
-		BKE_report(op->reports, RPT_ERROR, "No edges could be ripped");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1016,65 +1009,102 @@ static int edbm_rip_invoke__edge(bContext *C, wmOperator *op, const wmEvent *eve
 /* based on mouse cursor position, it defines how is being ripped */
 static int edbm_rip_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-	BMIter iter;
-	BMEdge *e;
-	const bool singlesel = (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0);
-	int ret;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	const bool do_fill = RNA_boolean_get(op->ptr, "use_fill");
 
-	/* running in face mode hardly makes sense, so convert to region loop and rip */
-	if (bm->totfacesel) {
-		/* highly nifty but hard to support since the operator can fail and we're left
-		 * with modified selection */
-		// WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
+	bool no_vertex_selected = true;
+	bool error_face_selected = true;
+	bool error_disconected_vertices = true;
+	bool error_rip_failed = true;
 
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		BMesh *bm = em->bm;
+		BMIter iter;
+		BMEdge *e;
+		const bool singlesel = (bm->totvertsel == 1 && bm->totedgesel == 0 && bm->totfacesel == 0);
+		int ret;
+
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+		no_vertex_selected = false;
+
+		/* running in face mode hardly makes sense, so convert to region loop and rip */
+		if (bm->totfacesel) {
+			/* highly nifty but hard to support since the operator can fail and we're left
+			* with modified selection */
+			// WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
+			continue;
+		}
+		error_face_selected = false;
+
+		/* we could support this, but not for now */
+		if ((bm->totvertsel > 1) && (bm->totedgesel == 0)) {
+			continue;
+		}
+		error_disconected_vertices = false;
+
+		/* note on selection:
+		* When calling edge split we operate on tagged edges rather then selected
+		* this is important because the edges to operate on are extended by one,
+		* but the selection is left alone.
+		*
+		* After calling edge split - the duplicated edges have the same selection state as the
+		* original, so all we do is de-select the far side from the mouse and we have a
+		* useful selection for grabbing.
+		*/
+
+		/* BM_ELEM_SELECT --> BM_ELEM_TAG */
+		BM_ITER_MESH(e, &iter, bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
+		}
+
+		/* split 2 main parts of this operator out into vertex and edge ripping */
+		if (singlesel) {
+			ret = edbm_rip_invoke__vert(C, event, obedit, do_fill);
+		}
+		else {
+			ret = edbm_rip_invoke__edge(C, event, obedit, do_fill);
+		}
+
+		if (ret != OPERATOR_FINISHED) {
+			continue;
+		}
+
+		BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
+
+		if (bm->totvertsel == 0) {
+			continue;
+		}
+		error_rip_failed = false;
+
+		EDBM_update_generic(em, true, true);
+	}
+
+	MEM_freeN(objects);
+
+	if (no_vertex_selected) {
+		/* Ignore it. */
+		return OPERATOR_CANCELLED;
+	}
+	else if (error_face_selected) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot rip selected faces");
 		return OPERATOR_CANCELLED;
 	}
-
-	/* we could support this, but not for now */
-	if ((bm->totvertsel > 1) && (bm->totedgesel == 0)) {
+	else if (error_disconected_vertices) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot rip multiple disconnected vertices");
 		return OPERATOR_CANCELLED;
 	}
-
-	/* note on selection:
-	 * When calling edge split we operate on tagged edges rather then selected
-	 * this is important because the edges to operate on are extended by one,
-	 * but the selection is left alone.
-	 *
-	 * After calling edge split - the duplicated edges have the same selection state as the
-	 * original, so all we do is de-select the far side from the mouse and we have a
-	 * useful selection for grabbing.
-	 */
-
-	/* BM_ELEM_SELECT --> BM_ELEM_TAG */
-	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		BM_elem_flag_set(e, BM_ELEM_TAG, BM_elem_flag_test(e, BM_ELEM_SELECT));
-	}
-
-	/* split 2 main parts of this operator out into vertex and edge ripping */
-	if (singlesel) {
-		ret = edbm_rip_invoke__vert(C, op, event);
-	}
-	else {
-		ret = edbm_rip_invoke__edge(C, op, event);
-	}
-
-	if (ret == OPERATOR_CANCELLED) {
+	else if (error_rip_failed) {
+		BKE_report(op->reports, RPT_ERROR, "Rip failed");
 		return OPERATOR_CANCELLED;
 	}
-
-	BLI_assert(singlesel ? (bm->totvertsel > 0) : (bm->totedgesel > 0));
-
-	if (bm->totvertsel == 0) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
-
+	/* No errors, everything went fine. */
 	return OPERATOR_FINISHED;
 }
 
