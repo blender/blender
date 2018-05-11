@@ -264,14 +264,22 @@ class _defs_edit_mesh:
 
     @ToolDef.from_fn
     def rip_region():
+        def draw_settings(context, layout):
+            wm = context.window_manager
+            props = wm.operator_properties_last("mesh.rip_move")
+            props_macro = props.MESH_OT_rip
+            layout.prop(props_macro, "use_fill")
+
         return dict(
             text="Rip Region",
             icon="ops.mesh.rip",
             widget=None,
             keymap=(
-                ("mesh.rip_move", dict(),
+                ("mesh.rip_move",
+                 dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
                  dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
