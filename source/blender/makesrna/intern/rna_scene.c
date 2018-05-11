@@ -5912,14 +5912,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "SequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 	
-	func = RNA_def_function(srna, "sequence_editor_create", "BKE_sequencer_editing_ensure");
-	RNA_def_function_ui_description(func, "Ensure sequence editor is valid in this scene");
-	parm = RNA_def_pointer(func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or NULL");
-	RNA_def_function_return(func, parm);
-
-	func = RNA_def_function(srna, "sequence_editor_clear", "BKE_sequencer_editing_free");
-	RNA_def_function_ui_description(func, "Clear sequence editor in this scene");
-
 	/* Keying Sets */
 	prop = RNA_def_property(srna, "keying_sets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "keyingsets", NULL);

@@ -427,7 +427,7 @@ Scene *BKE_scene_copy(Main *bmain, Scene *sce, int type)
 			/* Remove sequencer if not full copy */
 			/* XXX Why in Hell? :/ */
 			remove_sequencer_fcurves(sce_copy);
-			BKE_sequencer_editing_free(sce_copy);
+			BKE_sequencer_editing_free(sce_copy, true);
 		}
 
 		/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
@@ -463,7 +463,7 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	/* check all sequences */
 	BKE_sequencer_clear_scene_in_allseqs(G.main, sce);
 
-	BKE_sequencer_editing_free(sce);
+	BKE_sequencer_editing_free(sce, do_id_user);
 
 	BKE_keyingsets_free(&sce->keyingsets);
 

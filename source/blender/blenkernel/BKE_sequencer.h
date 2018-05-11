@@ -209,7 +209,7 @@ void BKE_sequencer_pixel_from_sequencer_space_v4(struct Scene *scene, float pixe
  * ********************************************************************** */
 struct Editing  *BKE_sequencer_editing_get(struct Scene *scene, bool alloc);
 struct Editing  *BKE_sequencer_editing_ensure(struct Scene *scene);
-void             BKE_sequencer_editing_free(struct Scene *scene);
+void             BKE_sequencer_editing_free(struct Scene *scene, const bool do_id_user);
 
 void             BKE_sequencer_sort(struct Scene *scene);
 
