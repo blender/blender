@@ -564,8 +564,12 @@ static int icon_id_ensure_create_icon(struct ID *id)
 
 int BKE_icon_id_ensure(struct ID *id)
 {
-	if (!id || G.background)
+	/* Never handle icons in non-main thread! */
+	BLI_assert(BLI_thread_is_main());
+
+	if (!id || G.background) {
 		return 0;
+	}
 
 	if (id->icon_id)
 		return id->icon_id;
