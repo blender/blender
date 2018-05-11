@@ -1956,18 +1956,23 @@ void MESH_OT_select_all(wmOperatorType *ot)
 
 static int edbm_faces_select_interior_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	if (EDBM_select_interior_faces(em)) {
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (!EDBM_select_interior_faces(em)) {
+			continue;
+		}
+
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-
-		return OPERATOR_FINISHED;
 	}
-	else {
-		return OPERATOR_CANCELLED;
-	}
+	MEM_freeN(objects);
 
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_select_interior_faces(wmOperatorType *ot)
