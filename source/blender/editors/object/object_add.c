@@ -148,7 +148,7 @@ static const EnumPropertyItem field_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-	{LIGHTPROBE_TYPE_CUBE, "SPHERE", ICON_MESH_UVSPHERE, "Reflection Cubemap",
+	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_MESH_UVSPHERE, "Reflection Cubemap",
      "Reflection probe with spherical or cubic attenuation"},
 	{LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_MESH_PLANE, "Reflection Plane",
      "Planar reflection probe"},
