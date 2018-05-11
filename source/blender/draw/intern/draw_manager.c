@@ -680,11 +680,11 @@ void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type)
 	return NULL;
 }
 
-void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage))
+void **DRW_view_layer_engine_data_ensure_ex(ViewLayer *view_layer, DrawEngineType *engine_type, void (*callback)(void *storage))
 {
 	ViewLayerEngineData *sled;
 
-	for (sled = DST.draw_ctx.view_layer->drawdata.first; sled; sled = sled->next) {
+	for (sled = view_layer->drawdata.first; sled; sled = sled->next) {
 		if (sled->engine_type == engine_type) {
 			return &sled->storage;
 		}
@@ -693,9 +693,14 @@ void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*cal
 	sled = MEM_callocN(sizeof(ViewLayerEngineData), "ViewLayerEngineData");
 	sled->engine_type = engine_type;
 	sled->free = callback;
-	BLI_addtail(&DST.draw_ctx.view_layer->drawdata, sled);
+	BLI_addtail(&view_layer->drawdata, sled);
 
 	return &sled->storage;
+}
+
+void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage))
+{
+	return DRW_view_layer_engine_data_ensure_ex(DST.draw_ctx.view_layer, engine_type, callback);
 }
 
 /** \} */

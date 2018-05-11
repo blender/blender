@@ -428,6 +428,7 @@ void DRW_render_instance_buffer_finish(void);
 
 /* ViewLayers */
 void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type);
+void **DRW_view_layer_engine_data_ensure_ex(struct ViewLayer *view_layer, DrawEngineType *engine_type, void (*callback)(void *storage));
 void **DRW_view_layer_engine_data_ensure(DrawEngineType *engine_type, void (*callback)(void *storage));
 
 /* Objects */
