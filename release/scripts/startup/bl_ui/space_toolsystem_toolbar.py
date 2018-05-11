@@ -551,6 +551,24 @@ class _defs_edit_curve:
 
     @ToolDef.from_fn
     def draw():
+        def draw_settings(context, layout):
+            # Tool settings initialize operator options.
+            tool_settings = context.tool_settings
+            cps = tool_settings.curve_paint_settings
+
+            col = layout.row()
+
+            col.prop(cps, "curve_type")
+
+            if cps.curve_type == 'BEZIER':
+                col.prop(cps, "error_threshold")
+                col.prop(cps, "fit_method")
+                col.prop(cps, "use_corners_detect")
+
+                col = layout.row()
+                col.active = cps.use_corners_detect
+                col.prop(cps, "corner_angle")
+
         return dict(
             text="Draw",
             icon=None,
@@ -558,6 +576,7 @@ class _defs_edit_curve:
             keymap=(
                 ("curve.draw", dict(wait_for_input=False), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
+            draw_settings=draw_settings,
         )
 
     @ToolDef.from_fn
