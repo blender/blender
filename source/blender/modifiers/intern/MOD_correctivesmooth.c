@@ -41,10 +41,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BKE_cdderivedmesh.h"
 #include "BKE_deform.h"
 #include "BKE_mesh.h"
 #include "BKE_editmesh.h"
+#include "BKE_library.h"
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
@@ -125,7 +125,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 
 /* check individual weights for changes and cache values */
-static void dm_get_weights(
+static void mesh_get_weights(
         MDeformVert *dvert, const int defgrp_index,
         const unsigned int numVerts, const bool use_invert_vgroup,
         float *smooth_weights)
@@ -145,16 +145,16 @@ static void dm_get_weights(
 }
 
 
-static void dm_get_boundaries(DerivedMesh *dm, float *smooth_weights)
+static void mesh_get_boundaries(Mesh *mesh, float *smooth_weights)
 {
-	const MPoly *mpoly = dm->getPolyArray(dm);
-	const MLoop *mloop = dm->getLoopArray(dm);
-	const MEdge *medge = dm->getEdgeArray(dm);
+	const MPoly *mpoly = mesh->mpoly;
+	const MLoop *mloop = mesh->mloop;
+	const MEdge *medge = mesh->medge;
 	unsigned int mpoly_num, medge_num, i;
 	unsigned short *boundaries;
 
-	mpoly_num = (unsigned int)dm->getNumPolys(dm);
-	medge_num = (unsigned int)dm->getNumEdges(dm);
+	mpoly_num = (unsigned int)mesh->totpoly;
+	medge_num = (unsigned int)mesh->totedge;
 
 	boundaries = MEM_calloc_arrayN(medge_num, sizeof(*boundaries), __func__);
 
@@ -185,7 +185,7 @@ static void dm_get_boundaries(DerivedMesh *dm, float *smooth_weights)
  * (average of surrounding verts)
  */
 static void smooth_iter__simple(
-        CorrectiveSmoothModifierData *csmd, DerivedMesh *dm,
+        CorrectiveSmoothModifierData *csmd, Mesh *mesh,
         float (*vertexCos)[3], unsigned int numVerts,
         const float *smooth_weights,
         unsigned int iterations)
@@ -193,8 +193,8 @@ static void smooth_iter__simple(
 	const float lambda = csmd->lambda;
 	unsigned int i;
 
-	const unsigned int numEdges = (unsigned int)dm->getNumEdges(dm);
-	const MEdge *edges = dm->getEdgeArray(dm);
+	const unsigned int numEdges = (unsigned int)mesh->totedge;
+	const MEdge *edges = mesh->medge;
 	float *vertex_edge_count_div;
 
 	struct SmoothingData_Simple {
@@ -260,17 +260,17 @@ static void smooth_iter__simple(
 /* Edge-Length Weighted Smoothing
  */
 static void smooth_iter__length_weight(
-        CorrectiveSmoothModifierData *csmd, DerivedMesh *dm,
+        CorrectiveSmoothModifierData *csmd, Mesh *mesh,
         float (*vertexCos)[3], unsigned int numVerts,
         const float *smooth_weights,
         unsigned int iterations)
 {
 	const float eps = FLT_EPSILON * 10.0f;
-	const unsigned int numEdges = (unsigned int)dm->getNumEdges(dm);
+	const unsigned int numEdges = (unsigned int)mesh->totedge;
 	/* note: the way this smoothing method works, its approx half as strong as the simple-smooth,
 	 * and 2.0 rarely spikes, double the value for consistent behavior. */
 	const float lambda = csmd->lambda * 2.0f;
-	const MEdge *edges = dm->getEdgeArray(dm);
+	const MEdge *edges = mesh->medge;
 	float *vertex_edge_count;
 	unsigned int i;
 
@@ -356,25 +356,25 @@ static void smooth_iter__length_weight(
 
 
 static void smooth_iter(
-        CorrectiveSmoothModifierData *csmd, DerivedMesh *dm,
+        CorrectiveSmoothModifierData *csmd, Mesh *mesh,
         float (*vertexCos)[3], unsigned int numVerts,
         const float *smooth_weights,
         unsigned int iterations)
 {
 	switch (csmd->smooth_type) {
 		case MOD_CORRECTIVESMOOTH_SMOOTH_LENGTH_WEIGHT:
-			smooth_iter__length_weight(csmd, dm, vertexCos, numVerts, smooth_weights, iterations);
+			smooth_iter__length_weight(csmd, mesh, vertexCos, numVerts, smooth_weights, iterations);
 			break;
 
 		/* case MOD_CORRECTIVESMOOTH_SMOOTH_SIMPLE: */
 		default:
-			smooth_iter__simple(csmd, dm, vertexCos, numVerts, smooth_weights, iterations);
+			smooth_iter__simple(csmd, mesh, vertexCos, numVerts, smooth_weights, iterations);
 			break;
 	}
 }
 
 static void smooth_verts(
-        CorrectiveSmoothModifierData *csmd, DerivedMesh *dm,
+        CorrectiveSmoothModifierData *csmd, Mesh *mesh,
         MDeformVert *dvert, const int defgrp_index,
         float (*vertexCos)[3], unsigned int numVerts)
 {
@@ -385,7 +385,7 @@ static void smooth_verts(
 		smooth_weights = MEM_malloc_arrayN(numVerts, sizeof(float), __func__);
 
 		if (dvert) {
-			dm_get_weights(
+			mesh_get_weights(
 			        dvert, defgrp_index,
 			        numVerts, (csmd->flag & MOD_CORRECTIVESMOOTH_INVERT_VGROUP) != 0,
 			        smooth_weights);
@@ -395,11 +395,11 @@ static void smooth_verts(
 		}
 
 		if (csmd->flag & MOD_CORRECTIVESMOOTH_PIN_BOUNDARY) {
-			dm_get_boundaries(dm, smooth_weights);
+			mesh_get_boundaries(mesh, smooth_weights);
 		}
 	}
 
-	smooth_iter(csmd, dm, vertexCos, numVerts, smooth_weights, (unsigned int)csmd->repeat);
+	smooth_iter(csmd, mesh, vertexCos, numVerts, smooth_weights, (unsigned int)csmd->repeat);
 
 	if (smooth_weights) {
 		MEM_freeN(smooth_weights);
@@ -463,15 +463,15 @@ static void calc_tangent_loop_accum(
 
 
 static void calc_tangent_spaces(
-        DerivedMesh *dm, float (*vertexCos)[3],
+        Mesh *mesh, float (*vertexCos)[3],
         float (*r_tangent_spaces)[3][3])
 {
-	const unsigned int mpoly_num = (unsigned int)dm->getNumPolys(dm);
+	const unsigned int mpoly_num = (unsigned int)mesh->totpoly;
 #ifndef USE_TANGENT_CALC_INLINE
 	const unsigned int mvert_num = (unsigned int)dm->getNumVerts(dm);
 #endif
-	const MPoly *mpoly = dm->getPolyArray(dm);
-	const MLoop *mloop = dm->getLoopArray(dm);
+	const MPoly *mpoly = mesh->mpoly;
+	const MLoop *mloop = mesh->mloop;
 	unsigned int i;
 
 	for (i = 0; i < mpoly_num; i++) {
@@ -522,7 +522,7 @@ static void calc_tangent_spaces(
  * It's not run on every update (during animation for example).
  */
 static void calc_deltas(
-        CorrectiveSmoothModifierData *csmd, DerivedMesh *dm,
+        CorrectiveSmoothModifierData *csmd, Mesh *mesh,
         MDeformVert *dvert, const int defgrp_index,
         const float (*rest_coords)[3], unsigned int numVerts)
 {
@@ -542,9 +542,9 @@ static void calc_deltas(
 		csmd->delta_cache = MEM_malloc_arrayN(numVerts, sizeof(float[3]), __func__);
 	}
 
-	smooth_verts(csmd, dm, dvert, defgrp_index, smooth_vertex_coords, numVerts);
+	smooth_verts(csmd, mesh, dvert, defgrp_index, smooth_vertex_coords, numVerts);
 
-	calc_tangent_spaces(dm, smooth_vertex_coords, tangent_spaces);
+	calc_tangent_spaces(mesh, smooth_vertex_coords, tangent_spaces);
 
 	for (i = 0; i < numVerts; i++) {
 		float imat[3][3], delta[3];
@@ -566,7 +566,7 @@ static void calc_deltas(
 
 
 static void correctivesmooth_modifier_do(
-        ModifierData *md, Object *ob, DerivedMesh *dm,
+        ModifierData *md, Object *ob, Mesh *mesh,
         float (*vertexCos)[3], unsigned int numVerts,
         struct BMEditMesh *em)
 {
@@ -581,7 +581,7 @@ static void correctivesmooth_modifier_do(
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
 
-	modifier_get_vgroup(ob, dm, csmd->defgrp_name, &dvert, &defgrp_index);
+	modifier_get_vgroup_mesh(ob, mesh, csmd->defgrp_name, &dvert, &defgrp_index);
 
 	/* if rest bind_coords not are defined, set them (only run during bind) */
 	if ((csmd->rest_source == MOD_CORRECTIVESMOOTH_RESTSOURCE_BIND) &&
@@ -595,7 +595,7 @@ static void correctivesmooth_modifier_do(
 	}
 
 	if (UNLIKELY(use_only_smooth)) {
-		smooth_verts(csmd, dm, dvert, defgrp_index, vertexCos, numVerts);
+		smooth_verts(csmd, mesh, dvert, defgrp_index, vertexCos, numVerts);
 		return;
 	}
 
@@ -651,7 +651,7 @@ static void correctivesmooth_modifier_do(
 	TIMEIT_START(corrective_smooth_deltas);
 #endif
 
-		calc_deltas(csmd, dm, dvert, defgrp_index, rest_coords, numVerts);
+		calc_deltas(csmd, mesh, dvert, defgrp_index, rest_coords, numVerts);
 
 #ifdef DEBUG_TIME
 	TIMEIT_END(corrective_smooth_deltas);
@@ -672,7 +672,7 @@ static void correctivesmooth_modifier_do(
 #endif
 
 	/* do the actual delta mush */
-	smooth_verts(csmd, dm, dvert, defgrp_index, vertexCos, numVerts);
+	smooth_verts(csmd, mesh, dvert, defgrp_index, vertexCos, numVerts);
 
 	{
 		unsigned int i;
@@ -682,7 +682,7 @@ static void correctivesmooth_modifier_do(
 		/* calloc, since values are accumulated */
 		tangent_spaces = MEM_calloc_arrayN(numVerts, sizeof(float[3][3]), __func__);
 
-		calc_tangent_spaces(dm, vertexCos, tangent_spaces);
+		calc_tangent_spaces(mesh, vertexCos, tangent_spaces);
 
 		for (i = 0; i < numVerts; i++) {
 			float delta[3];
@@ -713,29 +713,29 @@ error:
 
 
 static void deformVerts(
-        ModifierData *md, const ModifierEvalContext *ctx, DerivedMesh *derivedData,
+        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
         float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ctx->object, NULL, derivedData, NULL, false, false);
+	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
-	correctivesmooth_modifier_do(md, ctx->object, dm, vertexCos, (unsigned int)numVerts, NULL);
+	correctivesmooth_modifier_do(md, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, NULL);
 
-	if (dm != derivedData) {
-		dm->release(dm);
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
 	}
 }
 
 
 static void deformVertsEM(
         ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *editData,
-        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm = get_dm(ctx->object, editData, derivedData, NULL, false, false);
+	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
 
-	correctivesmooth_modifier_do(md, ctx->object, dm, vertexCos, (unsigned int)numVerts, editData);
+	correctivesmooth_modifier_do(md, ctx->object, mesh_src, vertexCos, (unsigned int)numVerts, editData);
 
-	if (dm != derivedData) {
-		dm->release(dm);
+	if (mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
 	}
 }
 
@@ -750,16 +750,16 @@ ModifierTypeInfo modifierType_CorrectiveSmooth = {
 
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformMatrices_DM */ NULL,
-	/* deformVertsEM_DM */  deformVertsEM,
+	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
+	/* deformVertsEM */     deformVertsEM,
 	/* deformMatricesEM */  NULL,
 	/* applyModifier */     NULL,
 	/* applyModifierEM */   NULL,
