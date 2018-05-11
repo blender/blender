@@ -948,7 +948,9 @@ void DepsgraphRelationBuilder::build_animdata_curves(ID *id)
 	TimeSourceKey time_src_key;
 	add_relation(time_src_key, adt_key, "TimeSrc -> Animation");
 	/* Relation from action itself. */
-	if (adt->action != NULL) {
+	if (adt->action != NULL &&
+	    !built_map_.checkIsBuiltAndTag(&adt->action->id))
+	{
 		ComponentKey action_key(&adt->action->id, DEG_NODE_TYPE_ANIMATION);
 		add_relation(action_key, adt_key, "Action -> Animation");
 	}

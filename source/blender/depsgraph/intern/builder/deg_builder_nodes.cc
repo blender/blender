@@ -682,7 +682,9 @@ void DepsgraphNodeBuilder::build_animdata(ID *id)
 		(void) add_id_node(id);
 		ID *id_cow = get_cow_id(id);
 
-		if (adt->action != NULL) {
+		if (adt->action != NULL &&
+		    !built_map_.checkIsBuiltAndTag(&adt->action->id))
+		{
 			add_operation_node(&adt->action->id, DEG_NODE_TYPE_ANIMATION,
 			                   NULL,
 			                   DEG_OPCODE_ANIMATION);
