@@ -277,7 +277,18 @@ static void particle_calculate_uvs(ParticleSystem *psys,
                                    float (**r_parent_uvs)[2],
                                    float (**r_uv)[2])
 {
-	if (psmd != NULL) {
+	if (psmd == NULL) {
+		return;
+	}
+	if (is_simple) {
+		if (r_parent_uvs[parent_index] != NULL) {
+			*r_uv = r_parent_uvs[parent_index];
+		}
+		else {
+			*r_uv = MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs");
+		}
+	}
+	else {
 		*r_uv = MEM_callocN(sizeof(**r_uv) * num_uv_layers, "Particle UVs");
 	}
 	if (child_index == -1) {
