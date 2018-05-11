@@ -4525,31 +4525,44 @@ static int loop_find_regions(BMEditMesh *em, const bool selbigger)
 
 static int edbm_loop_to_region_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMIter iter;
-	BMFace *f;
 	const bool select_bigger = RNA_boolean_get(op->ptr, "select_bigger");
 
-	/* find the set of regions with smallest number of total faces */
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
-	const int a = loop_find_regions(em, select_bigger);
-	const int b = loop_find_regions(em, !select_bigger);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
-	loop_find_regions(em, ((a <= b) != select_bigger) ? select_bigger : !select_bigger);
-
-	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-
-	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (BM_elem_flag_test(f, BM_ELEM_TAG) && !BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
-			BM_face_select_set(em->bm, f, true);
+		if (em->bm->totedgesel == 0) {
+			continue;
 		}
+
+		BMIter iter;
+		BMFace *f;
+
+		/* find the set of regions with smallest number of total faces */
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+		const int a = loop_find_regions(em, select_bigger);
+		const int b = loop_find_regions(em, !select_bigger);
+
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, false);
+		loop_find_regions(em, ((a <= b) != select_bigger) ? select_bigger : !select_bigger);
+
+		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+
+		BM_ITER_MESH(f, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (BM_elem_flag_test(f, BM_ELEM_TAG) && !BM_elem_flag_test(f, BM_ELEM_HIDDEN)) {
+				BM_face_select_set(em->bm, f, true);
+			}
+		}
+
+		EDBM_selectmode_flush(em);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
+	MEM_freeN(objects);
 
-	EDBM_selectmode_flush(em);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	return OPERATOR_FINISHED;
 }
 
