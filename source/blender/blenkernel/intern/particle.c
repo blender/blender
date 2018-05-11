@@ -2587,9 +2587,6 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 	ParticleSystemModifierData *psmd = psys_get_modifier(ob, psys);
 	ParticleSystemModifierData *psmd_eval = NULL;
 
-	BLI_assert((ob->id.tag & LIB_TAG_COPY_ON_WRITE) == 0);
-	BLI_assert(psmd != NULL);
-
 	if (psmd != NULL) {
 		psmd_eval = (ParticleSystemModifierData *)modifiers_findByName(ob_eval, psmd->modifier.name);
 		psys_eval = psmd_eval->psys;
