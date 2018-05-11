@@ -62,17 +62,17 @@ static struct {
 } e_data = {NULL}; /* Engine data */
 
 extern char datatoc_effect_dof_vert_glsl[];
-extern char datatoc_effect_dof_geom_glsl[];
 extern char datatoc_effect_dof_frag_glsl[];
 
 static void eevee_create_shader_depth_of_field(void)
 {
-	e_data.dof_downsample_sh = DRW_shader_create(datatoc_effect_dof_vert_glsl, NULL,
-	                                             datatoc_effect_dof_frag_glsl, "#define STEP_DOWNSAMPLE\n");
-	e_data.dof_scatter_sh = DRW_shader_create(datatoc_effect_dof_vert_glsl, NULL,
-	                                          datatoc_effect_dof_frag_glsl, "#define STEP_SCATTER\n");
-	e_data.dof_resolve_sh = DRW_shader_create(datatoc_effect_dof_vert_glsl, NULL,
-	                                          datatoc_effect_dof_frag_glsl, "#define STEP_RESOLVE\n");
+	e_data.dof_downsample_sh = DRW_shader_create_fullscreen(
+	        datatoc_effect_dof_frag_glsl, "#define STEP_DOWNSAMPLE\n");
+	e_data.dof_scatter_sh = DRW_shader_create(
+	        datatoc_effect_dof_vert_glsl, NULL,
+	        datatoc_effect_dof_frag_glsl, "#define STEP_SCATTER\n");
+	e_data.dof_resolve_sh = DRW_shader_create_fullscreen(
+	        datatoc_effect_dof_frag_glsl, "#define STEP_RESOLVE\n");
 }
 
 int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata, Object *camera)
@@ -143,8 +143,6 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 			float focus_dist = BKE_camera_object_dof_distance(camera);
 			float focal_len = cam->lens;
-
-			UNUSED_VARS(rotation, ratio);
 
 			/* this is factor that converts to the scene scale. focal length and sensor are expressed in mm
 			 * unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though

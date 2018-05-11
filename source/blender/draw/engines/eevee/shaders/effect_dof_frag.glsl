@@ -19,13 +19,6 @@ uniform vec4 bokehParams;
 
 uniform vec2 nearFar; /* Near & far view depths values */
 
-/* initial uv coordinate */
-in vec2 uvcoord;
-
-layout(location = 0) out vec4 fragData0;
-layout(location = 1) out vec4 fragData1;
-layout(location = 2) out vec4 fragData2;
-
 #define M_PI 3.1415926535897932384626433832795
 #define M_2PI 6.2831853071795864769252868
 
@@ -35,23 +28,16 @@ layout(location = 2) out vec4 fragData2;
 float calculate_coc(in float zdepth)
 {
 	float coc = dof_aperturesize * (dof_distance / zdepth - 1.0);
-
-	/* multiply by 1.0 / sensor size to get the normalized size */
-	return coc * dof_invsensorsize;
+	return coc * dof_invsensorsize; /* divide by sensor size to get the normalized size */
 }
 
 vec4 calculate_coc(in vec4 zdepth)
 {
 	vec4 coc = dof_aperturesize * (vec4(dof_distance) / zdepth - vec4(1.0));
-
-	/* multiply by 1.0 / sensor size to get the normalized size */
-	return coc * dof_invsensorsize;
+	return coc * dof_invsensorsize; /* divide by sensor size to get the normalized size */
 }
 
-float max4(vec4 x)
-{
-    return max(max(x.x, x.y), max(x.z, x.w));
-}
+float max4(vec4 x) { return max(max(x.x, x.y), max(x.z, x.w)); }
 
 float linear_depth(float z)
 {
@@ -77,12 +63,16 @@ vec4 linear_depth(vec4 z)
 
 #define THRESHOLD 0.0
 
-/* ----------- Steps ----------- */
+#ifdef STEP_DOWNSAMPLE
+
+layout(location = 0) out vec4 nearColor;
+layout(location = 1) out vec4 farColor;
+layout(location = 2) out vec2 cocData;
 
 /* Downsample the color buffer to half resolution.
  * Weight color samples by
  * Compute maximum CoC for near and far blur. */
-void step_downsample(void)
+void main(void)
 {
 	ivec4 uvs = ivec4(gl_FragCoord.xyxy) * 2 + ivec4(0, 0, 1, 1);
 
@@ -110,39 +100,43 @@ void step_downsample(void)
 	vec4 far_weights = step(THRESHOLD, coc_far);
 
 	/* now write output to weighted buffers. */
-	fragData0 = color1 * near_weights.x +
+	nearColor = color1 * near_weights.x +
 	            color2 * near_weights.y +
 	            color3 * near_weights.z +
 	            color4 * near_weights.w;
 
-	fragData1 = color1 * far_weights.x +
-	            color2 * far_weights.y +
-	            color3 * far_weights.z +
-	            color4 * far_weights.w;
+	farColor = color1 * far_weights.x +
+	           color2 * far_weights.y +
+	           color3 * far_weights.z +
+	           color4 * far_weights.w;
 
 	float norm_near = dot(near_weights, near_weights);
 	float norm_far = dot(far_weights, far_weights);
 
 	if (norm_near > 0.0) {
-		fragData0 /= norm_near;
+		nearColor /= norm_near;
 	}
 
 	if (norm_far > 0.0) {
-		fragData1 /= norm_far;
+		farColor /= norm_far;
 	}
 
 	float max_near_coc = max(max4(coc_near), 0.0);
 	float max_far_coc = max(max4(coc_far), 0.0);
 
-	fragData2 = vec4(max_near_coc, max_far_coc, 0.0, 1.0);
+	cocData = vec2(max_near_coc, max_far_coc);
 }
 
-/* coordinate used for calculating radius et al set in geometry shader */
-in vec2 particlecoord;
+#elif defined(STEP_SCATTER)
+
 flat in vec4 color;
+/* coordinate used for calculating radius */
+in vec2 particlecoord;
+
+out vec4 fragColor;
 
 /* accumulate color in the near/far blur buffers */
-void step_scatter(void)
+void main(void)
 {
 	/* Early out */
 	float dist_sqrd = dot(particlecoord, particlecoord);
@@ -166,17 +160,22 @@ void step_scatter(void)
 		}
 	}
 
-	fragData0 = color;
+	fragColor = color;
 }
+
+#elif defined(STEP_RESOLVE)
 
 #define MERGE_THRESHOLD 4.0
 
 uniform sampler2D farBuffer;
 uniform sampler2D nearBuffer;
 
-vec4 upsample_filter_high(sampler2D tex, vec2 uv, vec2 texelSize)
+in vec4 uvcoordsvar;
+out vec4 fragColor;
+
+vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
 {
-	/* 9-tap bilinear upsampler (tent filter) */
+#if 1 /* 9-tap bilinear upsampler (tent filter) */
 	vec4 d = texelSize.xyxy * vec4(1, 1, -1, 0);
 
 	vec4 s;
@@ -193,10 +192,7 @@ vec4 upsample_filter_high(sampler2D tex, vec2 uv, vec2 texelSize)
 	s += textureLod(tex, uv + d.xy, 0.0);
 
 	return s * (1.0 / 16.0);
-}
-
-vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
-{
+#else
 	/* 4-tap bilinear upsampler */
 	vec4 d = texelSize.xyxy * vec4(-1, -1, +1, +1) * 0.5;
 
@@ -207,55 +203,36 @@ vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
 	s += textureLod(tex, uv + d.zw, 0.0);
 
 	return s * (1.0 / 4.0);
+#endif
 }
 
 /* Combine the Far and Near color buffers */
-void step_resolve(void)
+void main(void)
 {
-	/* Recompute Near / Far CoC */
-	float depth = textureLod(depthBuffer, uvcoord, 0.0).r;
+	/* Recompute Near / Far CoC per pixel */
+	float depth = textureLod(depthBuffer, uvcoordsvar.xy, 0.0).r;
 	float zdepth = linear_depth(depth);
 	float coc_signed = calculate_coc(zdepth);
 	float coc_far = max(-coc_signed, 0.0);
 	float coc_near = max(coc_signed, 0.0);
 
-	/* Recompute Near / Far CoC */
 	vec2 texelSize = 1.0 / vec2(textureSize(farBuffer, 0));
-	vec4 srccolor = textureLod(colorBuffer, uvcoord, 0.0);
-	vec4 farcolor = upsample_filter_high(farBuffer, uvcoord, texelSize);
-	vec4 nearcolor = upsample_filter_high(nearBuffer, uvcoord, texelSize);
+	vec4 srccolor = textureLod(colorBuffer, uvcoordsvar.xy, 0.0);
+	vec4 farcolor = upsample_filter(farBuffer, uvcoordsvar.xy, texelSize);
+	vec4 nearcolor = upsample_filter(nearBuffer, uvcoordsvar.xy, texelSize);
 
 	float farweight = farcolor.a;
-	if (farweight > 0.0)
-		farcolor /= farweight;
-
-	float mixfac = smoothstep(1.0, MERGE_THRESHOLD, coc_far);
-
-	farweight = mix(1.0, farweight, mixfac);
-
 	float nearweight = nearcolor.a;
-	if (nearweight > 0.0) {
-		nearcolor /= nearweight;
-	}
 
-	if (coc_near > 1.0) {
-		mixfac = smoothstep(1.0, MERGE_THRESHOLD, coc_near);
-		fragData0 = mix(srccolor, nearcolor, mixfac);
-	}
-	else {
-		float totalweight = nearweight + farweight;
-		vec4 finalcolor = mix(srccolor, farcolor, mixfac);
-		fragData0 = mix(finalcolor, nearcolor, nearweight / totalweight);
-	}
+	if (farcolor.a > 0.0) farcolor /= farcolor.a;
+	if (nearcolor.a > 0.0) nearcolor /= nearcolor.a;
+
+	float mixfac = smoothstep(1.0, MERGE_THRESHOLD, abs(coc_signed));
+
+	float totalweight = nearweight + farweight;
+	farcolor = mix(srccolor, farcolor, mixfac);
+	nearcolor = mix(srccolor, nearcolor, mixfac);
+	fragColor = mix(farcolor, nearcolor, nearweight / max(1e-6, totalweight));
 }
 
-void main()
-{
-#ifdef STEP_DOWNSAMPLE
-	step_downsample();
-#elif defined(STEP_SCATTER)
-	step_scatter();
-#elif defined(STEP_RESOLVE)
-	step_resolve();
 #endif
-}
