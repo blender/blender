@@ -139,10 +139,25 @@ static void particle_cache_init(void *vedata)
 	DRW_shgroup_uniform_float(stl->g_data->tip_points_group, "outlineWidth", &outline_width, 1);
 }
 
-static void particle_edit_cache_populate(void *vedata, PTCacheEdit *edit)
+static void draw_update_ptcache_edit(Object *object, PTCacheEdit *edit)
+{
+	if (edit->psys && edit->psys->flag & PSYS_HAIR_UPDATED) {
+		const DRWContextState *draw_ctx = DRW_context_state_get();
+		Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
+		Object *object_orig = DEG_get_original_object(object);
+		PE_update_object(draw_ctx->depsgraph, scene_orig, object_orig, 0);
+	}
+	BLI_assert(edit->pathcache != NULL);
+}
+
+
+static void particle_edit_cache_populate(void *vedata,
+                                         Object *object,
+                                         PTCacheEdit *edit)
 {
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	draw_update_ptcache_edit(object, edit);
 	ParticleEditSettings *pset = PE_settings(draw_ctx->scene);
 	{
 		struct Gwn_Batch *strands = DRW_cache_particles_get_edit_strands(edit);
@@ -171,7 +186,7 @@ static void particle_cache_populate(void *vedata, Object *object)
 		if (edit == NULL) {
 			continue;
 		}
-		particle_edit_cache_populate(vedata, edit);
+		particle_edit_cache_populate(vedata, object, edit);
 		break;
 	}
 }
