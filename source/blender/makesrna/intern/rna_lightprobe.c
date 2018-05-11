@@ -61,9 +61,9 @@ static EnumPropertyItem parallax_type_items[] = {
 };
 
 static EnumPropertyItem lightprobe_type_items[] = {
-	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_NONE, "Reflection Cubemap", "Capture reflections"},
-	{LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_NONE, "Reflection Plane", ""},
-	{LIGHTPROBE_TYPE_GRID, "GRID", ICON_NONE, "Irradiance Volume", "Volume used for precomputing indirect lighting"},
+	{LIGHTPROBE_TYPE_CUBE, "CUBEMAP", ICON_LIGHTPROBE_CUBEMAP, "Reflection Cubemap", "Capture reflections"},
+	{LIGHTPROBE_TYPE_PLANAR, "PLANAR", ICON_LIGHTPROBE_PLANAR, "Reflection Plane", ""},
+	{LIGHTPROBE_TYPE_GRID, "GRID", ICON_LIGHTPROBE_GRID, "Irradiance Volume", "Volume used for precomputing indirect lighting"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -74,7 +74,7 @@ static void rna_def_lightprobe(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "LightProbe", "ID");
 	RNA_def_struct_ui_text(srna, "LightProbe", "Light Probe data-block for lighting capture objects");
-	RNA_def_struct_ui_icon(srna, ICON_RADIO);
+	RNA_def_struct_ui_icon(srna, ICON_LIGHTPROBE_CUBEMAP);
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, lightprobe_type_items);

@@ -34,6 +34,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_group_types.h"
 #include "DNA_lamp_types.h"
+#include "DNA_lightprobe_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
@@ -1127,6 +1128,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SURFACE); break;
 				case OB_SPEAKER:
 					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_SPEAKER); break;
+				case OB_LIGHTPROBE:
+					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_LIGHTPROBE); break;
 				case OB_EMPTY:
 					tselem_draw_icon_uibut(&arg, ICON_OUTLINER_OB_EMPTY); break;
 			}
@@ -1205,6 +1208,21 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					tselem_draw_icon_uibut(&arg, ICON_LINE_DATA); break;
 				case ID_GD:
 					tselem_draw_icon_uibut(&arg, ICON_GREASEPENCIL); break;
+				case ID_LP:
+				{
+					LightProbe * lp = (LightProbe *)tselem->id;
+					switch (lp->type) {
+						case LIGHTPROBE_TYPE_CUBE:
+							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_CUBEMAP); break;
+						case LIGHTPROBE_TYPE_PLANAR:
+							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_PLANAR); break;
+						case LIGHTPROBE_TYPE_GRID:
+							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_GRID); break;
+						default:
+							tselem_draw_icon_uibut(&arg, ICON_LIGHTPROBE_CUBEMAP); break;
+					}
+					break;
+				}
 				default:
 					break;
 			}
