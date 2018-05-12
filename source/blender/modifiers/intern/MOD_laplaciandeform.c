@@ -509,8 +509,9 @@ static bool isValidVertexGroup(LaplacianDeformModifierData *lmd, Object *ob, Der
 	return  (dvert != NULL);
 }
 
-static void initSystem(LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh *dm,
-                       float (*vertexCos)[3], int numVerts)
+static void initSystem(
+        LaplacianDeformModifierData *lmd, Object *ob, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	int i;
 	int defgrp_index;
@@ -724,8 +725,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-                        float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
+static void deformVerts(
+        ModifierData *md, Object *ob, DerivedMesh *derivedData,
+        float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, false, false);
 

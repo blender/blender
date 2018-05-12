@@ -58,8 +58,9 @@ static void initData(ModifierData *md)
 	mmd->totlvl = 0;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
-                                  ModifierApplyFlag flag)
+static DerivedMesh *applyModifier(
+        ModifierData *md, Object *ob, DerivedMesh *dm,
+        ModifierApplyFlag flag)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	DerivedMesh *result;

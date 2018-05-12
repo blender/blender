@@ -706,7 +706,8 @@ static void correctivesmooth_modifier_do(
 
 	/* when the modifier fails to execute */
 error:
-	MEM_SAFE_FREE(csmd->delta_cache);
+	MEM_SAFE_FREE(
+        csmd->delta_cache);
 	csmd->delta_cache_num = 0;
 
 }

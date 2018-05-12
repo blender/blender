@@ -74,10 +74,11 @@ static void initData(ModifierData *md)
 	tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md,
-                                  Object *UNUSED(ob),
-                                  DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(
+        ModifierData *md,
+        Object *UNUSED(ob),
+        DerivedMesh *dm,
+        ModifierApplyFlag UNUSED(flag))
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	DerivedMesh *result;

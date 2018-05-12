@@ -44,11 +44,12 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *UNUSED(md), Object *ob,
-                        DerivedMesh *UNUSED(derivedData),
-                        float (*vertexCos)[3],
-                        int numVerts,
-                        ModifierApplyFlag UNUSED(flag))
+static void deformVerts(
+        ModifierData *UNUSED(md), Object *ob,
+        DerivedMesh *UNUSED(derivedData),
+        float (*vertexCos)[3],
+        int numVerts,
+        ModifierApplyFlag UNUSED(flag))
 {
 	Key *key = BKE_key_from_object(ob);
 
@@ -61,8 +62,9 @@ static void deformVerts(ModifierData *UNUSED(md), Object *ob,
 	}
 }
 
-static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-                           float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
+static void deformMatrices(
+        ModifierData *md, Object *ob, DerivedMesh *derivedData,
+        float (*vertexCos)[3], float (*defMats)[3][3], int numVerts)
 {
 	Key *key = BKE_key_from_object(ob);
 	KeyBlock *kb = BKE_keyblock_from_object(ob);
@@ -83,11 +85,12 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 	deformVerts(md, ob, derivedData, vertexCos, numVerts, 0);
 }
 
-static void deformVertsEM(ModifierData *md, Object *ob,
-                          struct BMEditMesh *UNUSED(editData),
-                          DerivedMesh *derivedData,
-                          float (*vertexCos)[3],
-                          int numVerts)
+static void deformVertsEM(
+        ModifierData *md, Object *ob,
+        struct BMEditMesh *UNUSED(editData),
+        DerivedMesh *derivedData,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	Key *key = BKE_key_from_object(ob);
 
@@ -95,12 +98,13 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 		deformVerts(md, ob, derivedData, vertexCos, numVerts, 0);
 }
 
-static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,
-                             struct BMEditMesh *UNUSED(editData),
-                             DerivedMesh *UNUSED(derivedData),
-                             float (*vertexCos)[3],
-                             float (*defMats)[3][3],
-                             int numVerts)
+static void deformMatricesEM(
+        ModifierData *UNUSED(md), Object *ob,
+        struct BMEditMesh *UNUSED(editData),
+        DerivedMesh *UNUSED(derivedData),
+        float (*vertexCos)[3],
+        float (*defMats)[3][3],
+        int numVerts)
 {
 	Key *key = BKE_key_from_object(ob);
 	KeyBlock *kb = BKE_keyblock_from_object(ob);

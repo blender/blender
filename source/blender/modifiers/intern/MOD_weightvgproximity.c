@@ -136,9 +136,10 @@ static void vert2geom_task_cb_ex(
 /**
  * Find nearest vertex and/or edge and/or face, for each vertex (adapted from shrinkwrap.c).
  */
-static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
-                                   float *dist_v, float *dist_e, float *dist_f,
-                                   DerivedMesh *target, const SpaceTransform *loc2trgt)
+static void get_vert2geom_distance(
+        int numVerts, float (*v_cos)[3],
+        float *dist_v, float *dist_e, float *dist_f,
+        DerivedMesh *target, const SpaceTransform *loc2trgt)
 {
 	Vert2GeomData data = {0};
 	Vert2GeomDataChunk data_chunk = {{{0}}};
@@ -204,8 +205,9 @@ static void get_vert2geom_distance(int numVerts, float (*v_cos)[3],
  * Returns the real distance between a vertex and another reference object.
  * Note that it works in final world space (i.e. with constraints etc. applied).
  */
-static void get_vert2ob_distance(int numVerts, float (*v_cos)[3], float *dist,
-                                 Object *ob, Object *obr)
+static void get_vert2ob_distance(
+        int numVerts, float (*v_cos)[3], float *dist,
+        Object *ob, Object *obr)
 {
 	/* Vertex and ref object coordinates. */
 	float v_wco[3];
@@ -382,8 +384,9 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (wmd->proximity_ob_target == NULL);
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(
+        ModifierData *md, Object *ob, DerivedMesh *derivedData,
+        ModifierApplyFlag UNUSED(flag))
 {
 	WeightVGProximityModifierData *wmd = (WeightVGProximityModifierData *) md;
 	DerivedMesh *dm = derivedData;

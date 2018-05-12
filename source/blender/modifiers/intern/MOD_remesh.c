@@ -133,10 +133,11 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 	output->curface++;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md,
-                                  Object *UNUSED(ob),
-                                  DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(
+        ModifierData *md,
+        Object *UNUSED(ob),
+        DerivedMesh *dm,
+        ModifierApplyFlag UNUSED(flag))
 {
 	RemeshModifierData *rmd;
 	DualConOutput *output;
@@ -194,9 +195,10 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 #else /* !WITH_MOD_REMESH */
 
-static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
-                                  DerivedMesh *derivedData,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(
+        ModifierData *UNUSED(md), Object *UNUSED(ob),
+        DerivedMesh *derivedData,
+        ModifierApplyFlag UNUSED(flag))
 {
 	return derivedData;
 }
