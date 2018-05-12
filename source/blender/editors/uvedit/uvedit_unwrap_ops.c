@@ -1878,40 +1878,57 @@ static int cube_project_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
 	PropertyRNA *prop_cube_size = RNA_struct_find_property(op->ptr, "cube_size");
-	float cube_size = RNA_property_float_get(op->ptr, prop_cube_size);
-	float center[3];
-	float bounds[2][3];
-	float (*bounds_buf)[3] = NULL;
+	const float cube_size_init = RNA_property_float_get(op->ptr, prop_cube_size);
 
-	/* add uvs if they don't exist yet */
-	if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
-		return OPERATOR_CANCELLED;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		/* add uvs if they don't exist yet */
+		if (!ED_uvedit_ensure_uvs(C, scene, obedit)) {
+			continue;
+		}
+
+		float bounds[2][3];
+		float (*bounds_buf)[3] = NULL;
+
+		if (!RNA_property_is_set(op->ptr, prop_cube_size)) {
+			bounds_buf = bounds;
+		}
+
+		float center[3];
+		uv_map_transform_center(scene, v3d, obedit, em, center, bounds_buf);
+
+		/* calculate based on bounds */
+		float cube_size = cube_size_init;
+		if (bounds_buf) {
+			float dims[3];
+			sub_v3_v3v3(dims, bounds[1], bounds[0]);
+			cube_size = max_fff(UNPACK3(dims));
+			cube_size = cube_size ? 2.0f / cube_size : 1.0f;
+			if (ob_index == 0) {
+				/* This doesn't fit well with, multiple objects. */
+				RNA_property_float_set(op->ptr, prop_cube_size, cube_size);
+			}
+		}
+
+		ED_uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
+
+		uv_map_clip_correct(scene, obedit, em, op);
+
+		DEG_id_tag_update(obedit->data, 0);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
-
-	if (!RNA_property_is_set(op->ptr, prop_cube_size)) {
-		bounds_buf = bounds;
-	}
-
-	uv_map_transform_center(scene, v3d, obedit, em, center, bounds_buf);
-
-	/* calculate based on bounds */
-	if (bounds_buf) {
-		float dims[3];
-		sub_v3_v3v3(dims, bounds[1], bounds[0]);
-		cube_size = max_fff(UNPACK3(dims));
-		cube_size = cube_size ? 2.0f / cube_size : 1.0f;
-		RNA_property_float_set(op->ptr, prop_cube_size, cube_size);
-	}
-
-	ED_uvedit_unwrap_cube_project(em->bm, cube_size, true, center);
-
-	uv_map_clip_correct(scene, obedit, em, op);
-
-	DEG_id_tag_update(obedit->data, 0);
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
