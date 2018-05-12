@@ -47,6 +47,8 @@
 #include "DNA_view3d_types.h"
 
 #include "BKE_bvhutils.h"
+#include "BKE_armature.h"
+#include "BKE_curve.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"  /* for duplis */
 #include "BKE_editmesh.h"
@@ -1099,29 +1101,31 @@ static bool snapArmature(
 {
 	bool retval = false;
 
-	float ray_start_local[3], ray_normal_local[3]; /* Used only in the snap to edges */
-	if (snapdata->snap_to == SCE_SNAP_MODE_EDGE) {
-		float imat[4][4];
-		invert_m4_m4(imat, obmat);
-
-		copy_v3_v3(ray_start_local, snapdata->ray_origin);
-		copy_v3_v3(ray_normal_local, snapdata->ray_dir);
-		mul_m4_v3(imat, ray_start_local);
-		mul_mat3_m4_v3(imat, ray_normal_local);
-	}
-	else if (snapdata->snap_to != SCE_SNAP_MODE_VERTEX) { /* Currently only edge and vert */
+	if (snapdata->snap_to == SCE_SNAP_MODE_FACE) { /* Currently only edge and vert */
 		return retval;
 	}
 
-	float lpmat[4][4], dist_px_sq;
+	float lpmat[4][4], dist_px_sq = SQUARE(*dist_px);
 	mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 
 	struct DistProjectedAABBPrecalc neasrest_precalc;
 	dist_squared_to_projected_aabb_precalc(
 	        &neasrest_precalc, lpmat, snapdata->win_size, snapdata->mval);
 
+	/* Test BoundBox */
+	BoundBox *bb = BKE_armature_boundbox_get(ob);
+	if (bb) {
+		bool dummy[3];
+		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
+		float bb_dist_px_sq = dist_squared_to_projected_aabb(
+			&neasrest_precalc, bb->vec[0], bb->vec[6], dummy);
+
+		if (bb_dist_px_sq > dist_px_sq) {
+			return retval;
+		}
+	}
+
 	bool is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
-	dist_px_sq = SQUARE(*dist_px);
 
 	if (arm->edbo) {
 		for (EditBone *eBone = arm->edbo->first; eBone; eBone = eBone->next) {
@@ -1186,7 +1190,7 @@ static bool snapArmature(
 
 static bool snapCurve(
         SnapData *snapdata,
-        Curve *cu, float obmat[4][4], bool use_obedit,
+        Object *ob, float obmat[4][4], bool use_obedit,
         /* read/write args */
         float *ray_depth, float *dist_px,
         /* return args */
@@ -1199,14 +1203,30 @@ static bool snapCurve(
 		return retval;
 	}
 
-	bool is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
+	Curve *cu = ob->data;
 	float dist_px_sq = SQUARE(*dist_px);
+
 	float lpmat[4][4];
 	mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
 
 	struct DistProjectedAABBPrecalc neasrest_precalc;
 	dist_squared_to_projected_aabb_precalc(
 	        &neasrest_precalc, lpmat, snapdata->win_size, snapdata->mval);
+
+	/* Test BoundBox */
+	BoundBox *bb = BKE_curve_boundbox_get(ob);
+	if (bb) {
+		bool dummy[3];
+		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
+		float bb_dist_px_sq = dist_squared_to_projected_aabb(
+		        &neasrest_precalc, bb->vec[0], bb->vec[6], dummy);
+
+		if (bb_dist_px_sq > dist_px_sq) {
+			return retval;
+		}
+	}
+
+	bool is_persp = snapdata->view_proj == VIEW_PROJ_PERSP;
 
 	for (Nurb *nu = (use_obedit ? cu->editnurb->nurbs.first : cu->nurb.first); nu; nu = nu->next) {
 		for (int u = 0; u < nu->pntsu; u++) {
@@ -1451,15 +1471,19 @@ static bool snapMesh(
 	dist_squared_to_projected_aabb_precalc(
 	        &neasrest2d.data_precalc, lpmat, snapdata->win_size, snapdata->mval);
 
+	neasrest2d.r_axis_closest[0] = true;
+	neasrest2d.r_axis_closest[1] = true;
+	neasrest2d.r_axis_closest[2] = true;
+	neasrest2d.dist_px_sq = SQUARE(*dist_px);
+
 	/* Test BoundBox */
 	BoundBox *bb = BKE_mesh_boundbox_get(ob);
 	if (bb) {
-		bool dummy[3] = {true, true, true};
 		/* In vertex and edges you need to get the pixel distance from ray to BoundBox, see: T46099, T46816 */
 		float dist_px_sq = dist_squared_to_projected_aabb(
-		        &neasrest2d.data_precalc, bb->vec[0], bb->vec[6], dummy);
+		        &neasrest2d.data_precalc, bb->vec[0], bb->vec[6], neasrest2d.r_axis_closest);
 
-		if (dist_px_sq > SQUARE(*dist_px)) {
+		if (dist_px_sq > neasrest2d.dist_px_sq) {
 			return retval;
 		}
 	}
@@ -1560,10 +1584,6 @@ static bool snapMesh(
 	 * And more... ray_depth is being confused with Z-depth here... (varies only the precision) */
 	const float ray_depth_max_global = *ray_depth + snapdata->depth_range[0];
 
-	neasrest2d.r_axis_closest[0]    = true;
-	neasrest2d.r_axis_closest[1]    = true;
-	neasrest2d.r_axis_closest[2]    = true;
-
 	neasrest2d.is_persp             = snapdata->view_proj == VIEW_PROJ_PERSP;
 
 	neasrest2d.depth_range[0]       = snapdata->depth_range[0];
@@ -1576,7 +1596,6 @@ static bool snapMesh(
 	neasrest2d.get_tri_verts_index  = (Nearest2DGetTriVertsCallback)cb_mlooptri_verts_get;
 	neasrest2d.get_tri_edges_index  = (Nearest2DGetTriEdgesCallback)cb_mlooptri_edges_get;
 	neasrest2d.copy_vert_no         = (Nearest2DCopyVertNoCallback)cb_mvert_no_copy;
-	neasrest2d.dist_px_sq           = SQUARE(*dist_px);
 	neasrest2d.index                = -1;
 
 
@@ -1807,7 +1826,7 @@ static bool snapObject(
 		else if (ob->type == OB_CURVE) {
 			retval = snapCurve(
 			        snapdata,
-			        ob->data, obmat, use_obedit,
+			        ob, obmat, use_obedit,
 			        ray_depth, dist_px,
 			        r_loc, r_no);
 		}
