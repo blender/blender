@@ -1344,7 +1344,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 		}
 
 		if (v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
-		t->around = v3d->around;
+		t->around = t->scene->toolsettings->transform_pivot_point;
 		
 		/* bend always uses the cursor */
 		if (t->mode == TFM_BEND) {

@@ -694,7 +694,7 @@ typedef enum eUserpref_UI_Flag {
 	USER_MENUOPENAUTO		= (1 << 9),
 	USER_DEPTH_CURSOR		= (1 << 10),
 	USER_AUTOPERSP     		= (1 << 11),
-	USER_LOCKAROUND     	= (1 << 12),
+	/* USER_LOCKAROUND     	= (1 << 12), */  /* DEPRECATED */
 	USER_GLOBALUNDO     	= (1 << 13),
 	USER_ORBIT_SELECTION	= (1 << 14),
 	USER_DEPTH_NAVIGATE     = (1 << 15),

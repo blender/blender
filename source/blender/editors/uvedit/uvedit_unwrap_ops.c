@@ -1017,7 +1017,7 @@ static void uv_map_transform_center(
         float r_bounds[2][3])
 {
 	/* only operates on the edit object - this is all that's needed now */
-	const int around = (v3d) ? v3d->around : V3D_AROUND_CENTER_BOUNDS;
+	const int around = (v3d) ? scene->toolsettings->transform_pivot_point : V3D_AROUND_CENTER_BOUNDS;
 
 	float bounds[2][3];
 	INIT_MINMAX(bounds[0], bounds[1]);

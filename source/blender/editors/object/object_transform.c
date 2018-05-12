@@ -788,7 +788,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 		View3D *v3d = CTX_wm_view3d(C);
 		copy_v3_v3(cursor, ED_view3d_cursor3d_get(scene, v3d)->location);
 		if (v3d && !RNA_struct_property_is_set(op->ptr, "center"))
-			around = v3d->around;
+			around = scene->toolsettings->transform_pivot_point;
 	}
 
 	zero_v3(cent);

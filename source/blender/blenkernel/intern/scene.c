@@ -655,6 +655,8 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
 	sce->toolsettings->autokey_mode = U.autokey_mode;
 
+	
+	sce->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
 	sce->toolsettings->snap_node_mode = SCE_SNAP_MODE_GRID;
 
 	sce->toolsettings->curve_paint_settings.curve_type = CU_BEZIER;

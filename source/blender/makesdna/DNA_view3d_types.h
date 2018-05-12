@@ -193,7 +193,7 @@ typedef struct View3D {
 	int layact;
 	
 	short ob_centre_cursor;		/* optional bool for 3d cursor to define center */
-	short scenelock, around;
+	short scenelock, _pad0;
 	short flag, flag2, pad2;
 	
 	float lens, grid;

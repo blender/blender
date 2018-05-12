@@ -1270,9 +1270,12 @@ typedef struct ToolSettings {
 	char _pad1;
 
 	/* Transform */
+	char transform_pivot_point;
+	char transform_flag;
 	char snap_mode, snap_node_mode;
 	char snap_uv_mode;
-	short snap_flag, snap_target;
+	char snap_flag;
+	char snap_target;
 	short proportional, prop_mode;
 	char proportional_objects; /* proportional edit, object mode */
 	char proportional_mask; /* proportional edit, mask editing */
@@ -1698,6 +1701,11 @@ extern const char *RE_engine_id_CYCLES;
 #define FPS              (((double) scene->r.frs_sec) / (double)scene->r.frs_sec_base)
 
 /* Base.flag is in DNA_object_types.h */
+
+/* ToolSettings.transform_flag */
+enum {
+	SCE_XFORM_AXIS_ALIGN = (1 << 0),
+};
 
 /* ToolSettings.snap_flag */
 #define SCE_SNAP				1

@@ -328,7 +328,6 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	Object *obedit = CTX_data_edit_object(C);
 	bGPdata *gpd = CTX_data_gpencil_data(C);
 	uiBlock *block;
-	uiLayout *row;
 	bool is_paint = (
 	        ob && !(gpd && (gpd->flag & GP_DATA_STROKE_EDITMODE)) &&
 	        ELEM(ob->mode,
@@ -344,11 +343,14 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 	/* other buttons: */
 	UI_block_emboss_set(block, UI_EMBOSS);
 
-	row = uiLayoutRow(layout, true);
+	/* moved to topbar */
+#if 0
+	uiLayout *row = uiLayoutRow(layout, true);
 	uiItemR(row, &v3dptr, "pivot_point", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	if (!ob || ELEM(ob->mode, OB_MODE_OBJECT, OB_MODE_POSE, OB_MODE_WEIGHT_PAINT)) {
 		uiItemR(row, &v3dptr, "use_pivot_point_align", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 	}
+#endif
 
 	if (obedit == NULL && is_paint) {
 		/* Currently Python calls this directly. */

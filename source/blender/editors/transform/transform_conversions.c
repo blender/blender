@@ -5929,22 +5929,22 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, V
 				do_loc = true;
 			}
 			else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
-				if (v3d->around == V3D_AROUND_ACTIVE) {
+				if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
 					if (ob != OBACT(view_layer))
 						do_loc = true;
 				}
-				else if (v3d->around == V3D_AROUND_CURSOR)
+				else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR)
 					do_loc = true;
 				
 				if ((v3d->flag & V3D_ALIGN) == 0)
 					do_rot = true;
 			}
 			else if (tmode == TFM_RESIZE) {
-				if (v3d->around == V3D_AROUND_ACTIVE) {
+				if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
 					if (ob != OBACT(view_layer))
 						do_loc = true;
 				}
-				else if (v3d->around == V3D_AROUND_CURSOR)
+				else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR)
 					do_loc = true;
 				
 				if ((v3d->flag & V3D_ALIGN) == 0)
@@ -6074,14 +6074,14 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 							do_loc = true;
 					}
 					else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
-						if (ELEM(v3d->around, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
+						if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
 							do_loc = true;
 							
 						if ((v3d->flag & V3D_ALIGN) == 0)
 							do_rot = true;
 					}
 					else if (tmode == TFM_RESIZE) {
-						if (ELEM(v3d->around, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
+						if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
 							do_loc = true;
 							
 						if ((v3d->flag & V3D_ALIGN) == 0)

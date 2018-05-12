@@ -199,22 +199,29 @@ class TOPBAR_HT_lower_bar(Header):
         scene = context.scene
         obj = context.active_object
 
-        if obj:
-            # Set above:
-            # mode = obj.mode
+        object_mode = 'OBJECT' if obj is None else obj.mode
 
+        # Pivit & Orientation
+        row = layout.row(align=True)
+        row.prop(toolsettings, "transform_pivot_point", text="", icon_only=True)
+        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
+            row.prop(toolsettings, "use_transform_pivot_point_align", text="")
+
+        layout.prop(scene, "transform_orientation", text="")
+
+        if obj:
             # Proportional editing
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-            elif mode in {'EDIT', 'PARTICLE_EDIT'}:
+            elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
                 if toolsettings.proportional_edit != 'DISABLED':
                     row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-            elif mode == 'OBJECT':
+            elif object_mode == 'OBJECT':
                 row = layout.row(align=True)
                 row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
                 if toolsettings.use_proportional_edit_objects:
@@ -232,7 +239,7 @@ class TOPBAR_HT_lower_bar(Header):
         if obj is None:
             show_snap = True
         else:
-            if mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+            if object_mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
                 show_snap = True
             else:
                 paint_settings = UnifiedPaintPanel.paint_settings(context)
@@ -251,9 +258,9 @@ class TOPBAR_HT_lower_bar(Header):
             else:
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if mode == 'EDIT':
+                    if object_mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
-                    if mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
+                    if object_mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
 
             if snap_element == 'VOLUME':
@@ -263,13 +270,8 @@ class TOPBAR_HT_lower_bar(Header):
 
         # AutoMerge editing
         if obj:
-            if (mode == 'EDIT' and obj.type == 'MESH'):
+            if (object_mode == 'EDIT' and obj.type == 'MESH'):
                 layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
-
-
-        layout.prop(scene, "transform_orientation", text="")
-
-
 
         # Command Settings (redo)
         op = context.active_operator
