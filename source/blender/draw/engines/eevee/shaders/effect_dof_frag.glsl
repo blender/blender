@@ -91,6 +91,7 @@ void main(void)
 
 flat in vec4 color;
 flat in float smoothFac;
+flat in ivec2 edge;
 /* coordinate used for calculating radius */
 in vec2 particlecoord;
 
@@ -99,15 +100,16 @@ out vec4 fragColor;
 /* accumulate color in the near/far blur buffers */
 void main(void)
 {
-	/* Early out */
-	float dist_sqr = dot(particlecoord, particlecoord);
+	/* Discard to avoid bleeding onto the next layer */
+	if (int(gl_FragCoord.x) * edge.x + edge.y > 0)
+		discard;
 
 	/* Circle Dof */
-	if (dist_sqr > 1.0) {
-		discard;
-	}
+	float dist = length(particlecoord);
 
-	float dist = sqrt(dist_sqr);
+	/* Ouside of bokeh shape */
+	if (dist > 1.0)
+		discard;
 
 	/* Regular Polygon Dof */
 	if (bokeh_sides.x > 0.0) {
@@ -118,15 +120,15 @@ void main(void)
 		 * float denom = theta - (M_2PI / bokeh_sides) * floor((bokeh_sides * theta + M_PI) / M_2PI);
 		 * float r = cos(M_PI / bokeh_sides) / cos(denom); */
 		float denom = theta - bokeh_sides.y * floor(bokeh_sides.z * theta + 0.5);
-		float r = bokeh_sides.w / max(1e-8, cos(denom));
+		float r = bokeh_sides.w / cos(denom);
 
 		/* Divide circle radial coord by the shape radius for angle theta.
 		 * Giving us the new linear radius to the shape edge. */
 		dist /= r;
 
-		if (dist > 1.0) {
+		/* Ouside of bokeh shape */
+		if (dist > 1.0)
 			discard;
-		}
 	}
 
 	fragColor = color;
@@ -142,14 +144,17 @@ void main(void)
 
 #define MERGE_THRESHOLD 4.0
 
-uniform sampler2D farBuffer;
-uniform sampler2D nearBuffer;
+uniform sampler2D scatterBuffer;
 
 in vec4 uvcoordsvar;
 out vec4 fragColor;
 
 vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
 {
+	/* TODO FIXME: Clamp the sample position
+	 * depending on the layer to avoid bleeding.
+	 * This is not really noticeable so leaving it as is for now. */
+
 #if 1 /* 9-tap bilinear upsampler (tent filter) */
 	vec4 d = texelSize.xyxy * vec4(1, 1, -1, 0);
 
@@ -184,17 +189,21 @@ vec4 upsample_filter(sampler2D tex, vec2 uv, vec2 texelSize)
 /* Combine the Far and Near color buffers */
 void main(void)
 {
+	vec2 uv = uvcoordsvar.xy;
 	/* Recompute Near / Far CoC per pixel */
-	float depth = textureLod(depthBuffer, uvcoordsvar.xy, 0.0).r;
+	float depth = textureLod(depthBuffer, uv, 0.0).r;
 	float zdepth = linear_depth(depth);
 	float coc_signed = calculate_coc(zdepth);
 	float coc_far = max(-coc_signed, 0.0);
 	float coc_near = max(coc_signed, 0.0);
 
-	vec2 texelSize = 1.0 / vec2(textureSize(farBuffer, 0));
-	vec4 srccolor = textureLod(colorBuffer, uvcoordsvar.xy, 0.0);
-	vec4 farcolor = upsample_filter(farBuffer, uvcoordsvar.xy, texelSize);
-	vec4 nearcolor = upsample_filter(nearBuffer, uvcoordsvar.xy, texelSize);
+	vec2 texelSize = vec2(0.5, 1.0) / vec2(textureSize(scatterBuffer, 0));
+	vec4 srccolor = textureLod(colorBuffer, uv, 0.0);
+
+	vec2 near_uv = uv * vec2(0.5, 1.0);
+	vec2 far_uv = near_uv + vec2(0.5, 0.0);
+	vec4 farcolor = upsample_filter(scatterBuffer, far_uv, texelSize);
+	vec4 nearcolor = upsample_filter(scatterBuffer, near_uv, texelSize);
 
 	float farweight = farcolor.a;
 	float nearweight = nearcolor.a;

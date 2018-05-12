@@ -1,17 +1,17 @@
 
-uniform vec2 layerSelection;
-
 uniform vec4 bokehParams[2];
 
 #define bokeh_rotation      bokehParams[0].x
 #define bokeh_ratio         bokehParams[0].y
 #define bokeh_maxsize       bokehParams[0].z
 
+uniform sampler2D nearBuffer;
+uniform sampler2D farBuffer;
 uniform sampler2D cocBuffer;
-uniform sampler2D colorBuffer;
 
 flat out vec4 color;
 flat out float smoothFac;
+flat out ivec2 edge;
 out vec2 particlecoord;
 
 #define M_PI 3.1415926535897932384626433832795
@@ -20,7 +20,9 @@ out vec2 particlecoord;
 void main()
 {
 	ivec2 tex_size = textureSize(cocBuffer, 0);
-	vec2 texel_size = 1.0 / vec2(tex_size);
+	/* We render to a double width texture so compute
+	 * the target texel size accordingly */
+	vec2 texel_size = vec2(0.5, 1.0) / vec2(tex_size);
 
 	int t_id = gl_VertexID / 3; /* Triangle Id */
 
@@ -30,16 +32,22 @@ void main()
 	texelco.y = t_id / tex_size.x;
 
 	vec2 cocs = texelFetch(cocBuffer, texelco, 0).rg;
-	float coc = dot(layerSelection, cocs);
+
+	bool is_near = (cocs.x > cocs.y);
+	float coc = (is_near) ? cocs.x : cocs.y;
 
 	/* Clamp to max size for performance */
 	coc = min(coc, bokeh_maxsize);
 
 	if (coc >= 1.0) {
-		color = texelFetch(colorBuffer, texelco, 0);
+		color = texelFetch((is_near) ? nearBuffer : farBuffer, texelco, 0);
 		/* find the area the pixel will cover and divide the color by it */
 		color.a = 1.0 / (coc * coc * M_PI);
 		color.rgb *= color.a;
+
+		/* Compute edge to discard fragment that does not belong to the other layer. */
+		edge.x = (is_near) ? 1 : -1;
+		edge.y = (is_near) ? -tex_size.x + 1 : tex_size.x;
 	}
 	else {
 		/* Don't produce any fragments */
@@ -78,6 +86,9 @@ void main()
 	gl_Position.xy -= 1.0 - 0.5 * texel_size; /* NDC Bottom left */
 	gl_Position.xy += (0.5 + vec2(texelco) * 2.0) * texel_size;
 
+	/* Push far plane to left side. */
+	gl_Position.x  += (!is_near) ? 1.0 : 0.0;
+
 	/* don't do smoothing for small sprites */
 	if (coc > 3.0) {
 		smoothFac = 1.0 - 1.5 / coc;
@@ -85,4 +96,6 @@ void main()
 	else {
 		smoothFac = 1.0;
 	}
+
+	int tex_width = textureSize(cocBuffer, 0).x;
 }
