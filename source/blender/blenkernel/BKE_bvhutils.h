@@ -194,7 +194,7 @@ enum {
 };
 
 
-BVHTree *bvhcache_find(BVHCache *cache, int type);
+bool     bvhcache_find(const BVHCache *cache, int type, BVHTree **r_tree);
 bool     bvhcache_has_tree(const BVHCache *cache, const BVHTree *tree);
 void     bvhcache_insert(BVHCache **cache_p, BVHTree *tree, int type);
 void     bvhcache_free(BVHCache **cache_p);
