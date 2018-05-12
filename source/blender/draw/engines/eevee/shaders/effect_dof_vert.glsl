@@ -40,7 +40,12 @@ void main()
 	coc = min(coc, bokeh_maxsize);
 
 	if (coc >= 1.0) {
-		color = texelFetch((is_near) ? nearBuffer : farBuffer, texelco, 0);
+		if (is_near) {
+			color = texelFetch(nearBuffer, texelco, 0);
+		}
+		else {
+			color = texelFetch(farBuffer, texelco, 0);
+		}
 		/* find the area the pixel will cover and divide the color by it */
 		color.a = 1.0 / (coc * coc * M_PI);
 		color.rgb *= color.a;
