@@ -806,10 +806,21 @@ void dist_squared_to_projected_aabb_precalc(
 		//normalize_v3(neasrest_precalc->ray_direction);
 	}
 #else
-	isect_plane_plane_v3(
+	if (!isect_plane_plane_v3(
 	        px, py,
 	        neasrest_precalc->ray_origin,
-	        neasrest_precalc->ray_direction);
+	        neasrest_precalc->ray_direction))
+	{
+		if (projmat[3][3] == 0.0f) {
+			/* Perspective projection. */
+			cross_v3_v3v3(neasrest_precalc->ray_direction, py, px);
+		}
+		else {
+			/* Orthographic projection. */
+			cross_v3_v3v3(neasrest_precalc->ray_direction, py, px);
+			//normalize_v3(neasrest_precalc->ray_direction);
+		}
+	}
 #endif
 	float win_half[2];
 	mul_v2_v2fl(win_half, winsize, 0.5f);

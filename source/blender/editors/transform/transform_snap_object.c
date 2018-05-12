@@ -1432,6 +1432,8 @@ static bool snapMesh(
         /* return args */
         float r_loc[3], float r_no[3])
 {
+// #define USE_RAY_MIN
+
 	bool retval = false;
 
 	if (snapdata->snap_to == SCE_SNAP_MODE_EDGE) {
@@ -1448,7 +1450,7 @@ static bool snapMesh(
 	float imat[4][4];
 	float timat[3][3]; /* transpose inverse matrix for normals */
 	float ray_normal_local[3];
-	float local_scale;
+
 
 	invert_m4_m4(imat, obmat);
 	transpose_m3_m4(timat, imat);
@@ -1457,16 +1459,18 @@ static bool snapMesh(
 
 	mul_mat3_m4_v3(imat, ray_normal_local);
 
+#ifdef USE_RAY_MIN
 	/* local scale in normal direction */
-	local_scale = normalize_v3(ray_normal_local);
+	const float local_scale = normalize_v3(ray_normal_local);
+#endif
 
 	float lpmat[4][4];
 	float ray_org_local[3];
-	float ray_min_dist;
 
 	mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
-	ray_min_dist = snapdata->depth_range[0] * local_scale;
-
+#ifdef USE_RAY_MIN
+	const float ray_min_dist = snapdata->depth_range[0] * local_scale;
+#endif
 	copy_v3_v3(ray_org_local, snapdata->ray_origin);
 	mul_m4_v3(imat, ray_org_local);
 
