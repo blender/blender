@@ -77,8 +77,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *UNUSED(
 	return dataMask;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob,
-                              ObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(
+        ModifierData *md, Object *ob,
+        ObjectWalkFunc walk, void *userData)
 {
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
 	int i;
@@ -87,8 +88,9 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
 		walk(userData, ob, &umd->projectors[i], IDWALK_CB_NOP);
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob,
-                          IDWalkFunc walk, void *userData)
+static void foreachIDLink(
+        ModifierData *md, Object *ob,
+        IDWalkFunc walk, void *userData)
 {
 #if 0
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;
@@ -115,8 +117,9 @@ typedef struct Projector {
 	void *uci;              /* optional uv-project info (panorama projection) */
 } Projector;
 
-static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
-                                  Object *ob, Mesh *mesh)
+static Mesh *uvprojectModifier_do(
+        UVProjectModifierData *umd,
+        Object *ob, Mesh *mesh)
 {
 	float (*coords)[3], (*co)[3];
 	MLoopUV *mloop_uv;
@@ -302,8 +305,9 @@ static Mesh *uvprojectModifier_do(UVProjectModifierData *umd,
 	return mesh;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                           Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *mesh)
 {
 	Mesh *result;
 	UVProjectModifierData *umd = (UVProjectModifierData *) md;

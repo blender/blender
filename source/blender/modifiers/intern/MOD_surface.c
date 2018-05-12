@@ -82,10 +82,11 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *derivedData,
-                        float (*vertexCos)[3],
-                        int UNUSED(numVerts))
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *derivedData,
+        float (*vertexCos)[3],
+        int UNUSED(numVerts))
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	

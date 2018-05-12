@@ -69,9 +69,10 @@ static void initData(ModifierData *md)
 	cloth_init(clmd);
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *derivedData, float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *derivedData, float (*vertexCos)[3],
+        int numVerts)
 {
 	DerivedMesh *dm;
 	ClothModifierData *clmd = (ClothModifierData *) md;
@@ -202,8 +203,9 @@ static void freeData(ModifierData *md)
 	}
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob,
-                          IDWalkFunc walk, void *userData)
+static void foreachIDLink(
+        ModifierData *md, Object *ob,
+        IDWalkFunc walk, void *userData)
 {
 	ClothModifierData *clmd = (ClothModifierData *) md;
 

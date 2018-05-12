@@ -78,10 +78,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	DEG_add_object_relation(ctx->node, ctx->object, DEG_OB_COMP_TRANSFORM, "Mirror Modifier");
 }
 
-static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
-                            Object *ob,
-                            const Mesh *mesh,
-                            int axis)
+static Mesh *doMirrorOnAxis(
+        MirrorModifierData *mmd,
+        Object *ob,
+        const Mesh *mesh,
+        int axis)
 {
 	const float tolerance_sq = mmd->tolerance * mmd->tolerance;
 	const bool do_vtargetmap = (mmd->flag & MOD_MIR_NO_MERGE) == 0;
@@ -292,8 +293,9 @@ static Mesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	return result;
 }
 
-static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-                                      Object *ob, Mesh *mesh)
+static Mesh *mirrorModifier__doMirror(
+        MirrorModifierData *mmd,
+        Object *ob, Mesh *mesh)
 {
 	Mesh *result = mesh;
 
@@ -321,8 +323,9 @@ static Mesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	return result;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                           Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *mesh)
 {
 	Mesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData *) md;

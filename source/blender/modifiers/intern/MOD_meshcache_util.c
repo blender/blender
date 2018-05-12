@@ -31,9 +31,10 @@
 
 #include "MOD_meshcache_util.h"
 
-void MOD_meshcache_calc_range(const float frame, const char interp,
-                              const int frame_tot,
-                              int r_index_range[2], float *r_factor)
+void MOD_meshcache_calc_range(
+        const float frame, const char interp,
+        const int frame_tot,
+        int r_index_range[2], float *r_factor)
 {
 	if (interp == MOD_MESHCACHE_INTERP_NONE) {
 		r_index_range[0] = r_index_range[1] = max_ii(0, min_ii(frame_tot - 1, round_fl_to_int(frame)));

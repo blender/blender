@@ -52,9 +52,10 @@ typedef struct PC2Head {
 	int     frame_tot;
 } PC2Head;  /* frames, verts */
 
-static bool meshcache_read_pc2_head(FILE *fp, const int verts_tot,
-                                    PC2Head *pc2_head,
-                                    const char **err_str)
+static bool meshcache_read_pc2_head(
+        FILE *fp, const int verts_tot,
+        PC2Head *pc2_head,
+        const char **err_str)
 {
 	if (!fread(pc2_head, sizeof(*pc2_head), 1, fp)) {
 		*err_str = "Missing header";
@@ -90,11 +91,12 @@ static bool meshcache_read_pc2_head(FILE *fp, const int verts_tot,
  *
  * currently same as for MDD
  */
-static bool meshcache_read_pc2_range(FILE *fp,
-                                     const int verts_tot,
-                                     const float frame, const char interp,
-                                     int r_index_range[2], float *r_factor,
-                                     const char **err_str)
+static bool meshcache_read_pc2_range(
+        FILE *fp,
+        const int verts_tot,
+        const float frame, const char interp,
+        int r_index_range[2], float *r_factor,
+        const char **err_str)
 {
 	PC2Head pc2_head;
 
@@ -109,11 +111,12 @@ static bool meshcache_read_pc2_range(FILE *fp,
 	return true;
 }
 
-static bool meshcache_read_pc2_range_from_time(FILE *fp,
-                                               const int verts_tot,
-                                               const float time, const float fps,
-                                               float *r_frame,
-                                               const char **err_str)
+static bool meshcache_read_pc2_range_from_time(
+        FILE *fp,
+        const int verts_tot,
+        const float time, const float fps,
+        float *r_frame,
+        const char **err_str)
 {
 	PC2Head pc2_head;
 	float frame;
@@ -135,10 +138,11 @@ static bool meshcache_read_pc2_range_from_time(FILE *fp,
 	return true;
 }
 
-bool MOD_meshcache_read_pc2_index(FILE *fp,
-                                  float (*vertexCos)[3], const int verts_tot,
-                                  const int index, const float factor,
-                                  const char **err_str)
+bool MOD_meshcache_read_pc2_index(
+        FILE *fp,
+        float (*vertexCos)[3], const int verts_tot,
+        const int index, const float factor,
+        const char **err_str)
 {
 	PC2Head pc2_head;
 
@@ -188,10 +192,11 @@ bool MOD_meshcache_read_pc2_index(FILE *fp,
 }
 
 
-bool MOD_meshcache_read_pc2_frame(FILE *fp,
-                                  float (*vertexCos)[3], const int verts_tot, const char interp,
-                                  const float frame,
-                                  const char **err_str)
+bool MOD_meshcache_read_pc2_frame(
+        FILE *fp,
+        float (*vertexCos)[3], const int verts_tot, const char interp,
+        const float frame,
+        const char **err_str)
 {
 	int index_range[2];
 	float factor;
@@ -229,10 +234,11 @@ bool MOD_meshcache_read_pc2_frame(FILE *fp,
 	}
 }
 
-bool MOD_meshcache_read_pc2_times(const char *filepath,
-                                  float (*vertexCos)[3], const int verts_tot, const char interp,
-                                  const float time, const float fps, const char time_mode,
-                                  const char **err_str)
+bool MOD_meshcache_read_pc2_times(
+        const char *filepath,
+        float (*vertexCos)[3], const int verts_tot, const char interp,
+        const float time, const float fps, const char time_mode,
+        const char **err_str)
 {
 	float frame;
 

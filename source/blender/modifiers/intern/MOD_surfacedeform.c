@@ -188,8 +188,9 @@ static void freeAdjacencyMap(SDefAdjacencyArray * const vert_edges, SDefAdjacenc
 	MEM_freeN(vert_edges);
 }
 
-static int buildAdjacencyMap(const MPoly *poly, const MEdge *edge, const MLoop * const mloop, const unsigned int numpoly, const unsigned int numedges,
-                              SDefAdjacencyArray * const vert_edges, SDefAdjacency *adj, SDefEdgePolys * const edge_polys)
+static int buildAdjacencyMap(
+        const MPoly *poly, const MEdge *edge, const MLoop * const mloop, const unsigned int numpoly, const unsigned int numedges,
+        SDefAdjacencyArray * const vert_edges, SDefAdjacency *adj, SDefEdgePolys * const edge_polys)
 {
 	const MLoop *loop;
 
@@ -908,8 +909,9 @@ static void bindVert(
 	freeBindData(bwdata);
 }
 
-static bool surfacedeformBind(SurfaceDeformModifierData *smd, float (*vertexCos)[3],
-                              unsigned int numverts, unsigned int tnumpoly, unsigned int tnumverts, Mesh *target)
+static bool surfacedeformBind(
+        SurfaceDeformModifierData *smd, float (*vertexCos)[3],
+        unsigned int numverts, unsigned int tnumpoly, unsigned int tnumverts, Mesh *target)
 {
 	BVHTreeFromMesh treeData = {NULL};
 	const MVert *mvert = target->mvert;

@@ -49,10 +49,11 @@
 
 #include "MOD_modifiertypes.h"
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *UNUSED(derivedData),
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *UNUSED(derivedData),
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	sbObjectStep(ctx->depsgraph, md->scene, ctx->object, (float)md->scene->r.cfra, vertexCos, numVerts);
 }

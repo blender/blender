@@ -134,16 +134,18 @@ typedef struct {
 	int mat_nr;
 } SkinOutput;
 
-static void add_poly(SkinOutput *so,
-                     BMVert *v1,
-                     BMVert *v2,
-                     BMVert *v3,
-                     BMVert *v4);
+static void add_poly(
+        SkinOutput *so,
+        BMVert *v1,
+        BMVert *v2,
+        BMVert *v3,
+        BMVert *v4);
 
 /***************************** Convex Hull ****************************/
 
-static bool is_quad_symmetric(BMVert *quad[4],
-                              const SkinModifierData *smd)
+static bool is_quad_symmetric(
+        BMVert *quad[4],
+        const SkinModifierData *smd)
 {
 	const float threshold = 0.0001f;
 	const float threshold_squared = threshold * threshold;
@@ -175,8 +177,9 @@ static bool is_quad_symmetric(BMVert *quad[4],
 }
 
 /* Returns true if the quad crosses the plane of symmetry, false otherwise */
-static bool quad_crosses_symmetry_plane(BMVert *quad[4],
-                                        const SkinModifierData *smd)
+static bool quad_crosses_symmetry_plane(
+        BMVert *quad[4],
+        const SkinModifierData *smd)
 {
 	int axis;
 
@@ -202,8 +205,9 @@ static bool quad_crosses_symmetry_plane(BMVert *quad[4],
 
 /* Returns true if the frame is filled by precisely two faces (and
  * outputs those faces to fill_faces), otherwise returns false. */
-static bool skin_frame_find_contained_faces(const Frame *frame,
-                                            BMFace *fill_faces[2])
+static bool skin_frame_find_contained_faces(
+        const Frame *frame,
+        BMFace *fill_faces[2])
 {
 	BMEdge *diag;
 
@@ -410,9 +414,10 @@ static void merge_frame_corners(Frame **frames, int totframe)
 	}
 }
 
-static Frame **collect_hull_frames(int v, SkinNode *frames,
-                                   const MeshElemMap *emap, const MEdge *medge,
-                                   int *tothullframe)
+static Frame **collect_hull_frames(
+        int v, SkinNode *frames,
+        const MeshElemMap *emap, const MEdge *medge,
+        int *tothullframe)
 {
 	SkinNode *f;
 	Frame **hull_frames;
@@ -450,9 +455,10 @@ static void node_frames_init(SkinNode *nf, int totframe)
 		nf->seam_edges[i] = -1;
 }
 
-static void create_frame(Frame *frame, const float co[3],
-                         const float radius[2],
-                         float mat[3][3], float offset)
+static void create_frame(
+        Frame *frame, const float co[3],
+        const float radius[2],
+        float mat[3][3], float offset)
 {
 	float rx[3], ry[3], rz[3];
 	int i;
@@ -482,9 +488,10 @@ static float half_v2(const float v[2])
 	return (v[0] + v[1]) * 0.5f;
 }
 
-static void end_node_frames(int v, SkinNode *skin_nodes, const MVert *mvert,
-                            const MVertSkin *nodes, const MeshElemMap *emap,
-                            EMat *emat)
+static void end_node_frames(
+        int v, SkinNode *skin_nodes, const MVert *mvert,
+        const MVertSkin *nodes, const MeshElemMap *emap,
+        EMat *emat)
 {
 	const float *rad = nodes[v].radius;
 	float mat[3][3];
@@ -555,9 +562,10 @@ static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, 
 	return 0;
 }
 
-static void connection_node_frames(int v, SkinNode *skin_nodes, const MVert *mvert,
-                                   const MVertSkin *nodes, const MeshElemMap *emap,
-                                   EMat *emat)
+static void connection_node_frames(
+        int v, SkinNode *skin_nodes, const MVert *mvert,
+        const MVertSkin *nodes, const MeshElemMap *emap,
+        EMat *emat)
 {
 	const float *rad = nodes[v].radius;
 	float mat[3][3];
@@ -593,9 +601,10 @@ static void connection_node_frames(int v, SkinNode *skin_nodes, const MVert *mve
 	create_frame(&skin_nodes[v].frames[0], mvert[v].co, rad, mat, 0);
 }
 
-static SkinNode *build_frames(const MVert *mvert, int totvert,
-                              const MVertSkin *nodes, const MeshElemMap *emap,
-                              EMat *emat)
+static SkinNode *build_frames(
+        const MVert *mvert, int totvert,
+        const MVertSkin *nodes, const MeshElemMap *emap,
+        EMat *emat)
 {
 	SkinNode *skin_nodes;
 	int v;
@@ -652,9 +661,10 @@ typedef struct {
 	int e;
 } EdgeStackElem;
 
-static void build_emats_stack(BLI_Stack *stack, BLI_bitmap *visited_e, EMat *emat,
-                              const MeshElemMap *emap, const MEdge *medge,
-                              const MVertSkin *vs, const MVert *mvert)
+static void build_emats_stack(
+        BLI_Stack *stack, BLI_bitmap *visited_e, EMat *emat,
+        const MeshElemMap *emap, const MEdge *medge,
+        const MVertSkin *vs, const MVert *mvert)
 {
 	EdgeStackElem stack_elem;
 	float axis[3], angle;
@@ -705,13 +715,14 @@ static void build_emats_stack(BLI_Stack *stack, BLI_bitmap *visited_e, EMat *ema
 	}
 }
 
-static EMat *build_edge_mats(const MVertSkin *vs,
-                             const MVert *mvert,
-                             int totvert,
-                             const MEdge *medge,
-                             const MeshElemMap *emap,
-                             int totedge,
-                             bool *has_valid_root)
+static EMat *build_edge_mats(
+        const MVertSkin *vs,
+        const MVert *mvert,
+        int totvert,
+        const MEdge *medge,
+        const MeshElemMap *emap,
+        int totedge,
+        bool *has_valid_root)
 {
 	BLI_Stack *stack;
 	EMat *emat;
@@ -763,8 +774,9 @@ static EMat *build_edge_mats(const MVertSkin *vs,
  * nodes, at least two intermediate frames are required. (This avoids
  * having any special cases for dealing with sharing a frame between
  * two hulls.) */
-static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
-                                  const MEdge *e, const int *degree)
+static int calc_edge_subdivisions(
+        const MVert *mvert, const MVertSkin *nodes,
+        const MEdge *e, const int *degree)
 {
 	/* prevent memory errors [#38003] */
 #define NUM_SUBDIVISIONS_MAX 128
@@ -956,11 +968,12 @@ static Mesh *subdivide_base(Mesh *orig)
 /******************************* Output *******************************/
 
 /* Can be either quad or triangle */
-static void add_poly(SkinOutput *so,
-                     BMVert *v1,
-                     BMVert *v2,
-                     BMVert *v3,
-                     BMVert *v4)
+static void add_poly(
+        SkinOutput *so,
+        BMVert *v1,
+        BMVert *v2,
+        BMVert *v3,
+        BMVert *v4)
 {
 	BMVert *verts[4] = {v1, v2, v3, v4};
 	BMFace *f;
@@ -1031,9 +1044,10 @@ static void connect_frames(
 	}
 }
 
-static void output_frames(BMesh *bm,
-                          SkinNode *sn,
-                          const MDeformVert *input_dvert)
+static void output_frames(
+        BMesh *bm,
+        SkinNode *sn,
+        const MDeformVert *input_dvert)
 {
 	Frame *f;
 	int i, j;

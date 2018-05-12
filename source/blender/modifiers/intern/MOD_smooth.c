@@ -209,8 +209,9 @@ static void smoothModifier_do(
 	MEM_freeN(uctmp);
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
-                        float (*vertexCos)[3], int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	Mesh *mesh_src = mesh;
 

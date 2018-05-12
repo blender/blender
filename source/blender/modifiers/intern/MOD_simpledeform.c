@@ -186,8 +186,9 @@ static void simpleDeform_bend(const float factor, const int axis, const float dc
 
 
 /* simple deform modifier */
-static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct Mesh *mesh,
-                                    float (*vertexCos)[3], int numVerts)
+static void SimpleDeformModifier_do(
+        SimpleDeformModifierData *smd, struct Object *ob, struct Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	const float base_limit[2] = {0.0f, 0.0f};
 	int i;
@@ -379,10 +380,11 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        struct Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
@@ -393,11 +395,12 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 	}
 }
 
-static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
-                          struct Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int numVerts)
+static void deformVertsEM(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData,
+        struct Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);
 

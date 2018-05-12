@@ -148,8 +148,9 @@ static void updateDepsgraph(ModifierData *md, const ModifierUpdateDepsgraphConte
 	}
 }
 
-static void warpModifier_do(WarpModifierData *wmd, Object *ob,
-                            Mesh *mesh, float (*vertexCos)[3], int numVerts)
+static void warpModifier_do(
+        WarpModifierData *wmd, Object *ob,
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	float obinv[4][4];
 	float mat_from[4][4];
@@ -303,8 +304,9 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 	}
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
-                        float (*vertexCos)[3], int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	Mesh *mesh_src = mesh;
 
@@ -317,8 +319,9 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, Mesh *
 	warpModifier_do((WarpModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
 }
 
-static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
-                          Mesh *mesh, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(
+        ModifierData *md, const ModifierEvalContext *ctx, struct BMEditMesh *em,
+        Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	Mesh *mesh_src = mesh;
 

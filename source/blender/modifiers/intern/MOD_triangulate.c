@@ -79,9 +79,10 @@ static void initData(ModifierData *md)
 	tmd->ngon_method = MOD_TRIANGULATE_NGON_BEAUTY;
 }
 
-static Mesh *applyModifier(ModifierData *md,
-                           const ModifierEvalContext *UNUSED(ctx),
-                           Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md,
+        const ModifierEvalContext *UNUSED(ctx),
+        Mesh *mesh)
 {
 	TriangulateModifierData *tmd = (TriangulateModifierData *)md;
 	Mesh *result;

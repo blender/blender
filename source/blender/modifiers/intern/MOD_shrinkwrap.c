@@ -97,10 +97,11 @@ static void foreachObjectLink(ModifierData *md, Object *ob, ObjectWalkFunc walk,
 	walk(userData, ob, &smd->auxTarget, IDWALK_CB_NOP);
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	Mesh *mesh_src = mesh;
 
@@ -113,9 +114,10 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 	shrinkwrapModifier_deform((ShrinkwrapModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts, ctx);
 }
 
-static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData, Mesh *mesh,
-                          float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *editData, Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	Mesh *mesh_src = mesh;
 

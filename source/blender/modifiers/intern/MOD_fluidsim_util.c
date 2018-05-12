@@ -304,8 +304,9 @@ static DerivedMesh *fluidsim_read_obj(const char *filename, const MPoly *mp_exam
 }
 
 
-void fluid_get_bb(MVert *mvert, int totvert, float obmat[4][4],
-                  /*RET*/ float start[3], /*RET*/ float size[3])
+void fluid_get_bb(
+        MVert *mvert, int totvert, float obmat[4][4],
+        /*RET*/ float start[3], /*RET*/ float size[3])
 {
 	float bbsx = 0.0, bbsy = 0.0, bbsz = 0.0;
 	float bbex = 1.0, bbey = 1.0, bbez = 1.0;
@@ -425,8 +426,9 @@ static void fluidsim_read_vel_cache(FluidsimModifierData *fluidmd, DerivedMesh *
 	gzclose(gzf);
 }
 
-static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm,
-                                        FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
+static DerivedMesh *fluidsim_read_cache(
+        Object *ob, DerivedMesh *orgdm,
+        FluidsimModifierData *fluidmd, int framenr, int useRenderParams)
 {
 	int curFrame = framenr /* - 1 */ /*scene->r.sfra*/; /* start with 0 at start frame */ 
 	/*  why start with 0 as start frame?? Animations + time are frozen for frame 0 anyway. (See physics_fluid.c for that. - DG */
@@ -509,10 +511,11 @@ static DerivedMesh *fluidsim_read_cache(Object *ob, DerivedMesh *orgdm,
 }
 #endif // WITH_MOD_FLUID
 
-DerivedMesh *fluidsimModifier_do(FluidsimModifierData *fluidmd, Scene *scene,
-                                 Object *ob,
-                                 DerivedMesh *dm,
-                                 int useRenderParams, int UNUSED(isFinalCalc))
+DerivedMesh *fluidsimModifier_do(
+        FluidsimModifierData *fluidmd, Scene *scene,
+        Object *ob,
+        DerivedMesh *dm,
+        int useRenderParams, int UNUSED(isFinalCalc))
 {
 #ifdef WITH_MOD_FLUID
 	DerivedMesh *result = NULL;

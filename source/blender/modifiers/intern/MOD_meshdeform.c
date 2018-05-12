@@ -411,10 +411,11 @@ static void meshdeformModifier_do(
 	if (free_cagemesh) BKE_id_free(NULL, cagemesh);
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
@@ -427,11 +428,12 @@ static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
 	}
 }
 
-static void deformVertsEM(ModifierData *md, const ModifierEvalContext *ctx,
-                          struct BMEditMesh *UNUSED(editData),
-                          Mesh *mesh,
-                          float (*vertexCos)[3],
-                          int numVerts)
+static void deformVertsEM(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct BMEditMesh *UNUSED(editData),
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 

@@ -115,10 +115,11 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
  * vertex index (in case the weight tables do not cover the whole vertices...).
  * XXX The standard "factor" value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
-void weightvg_do_mask(const int num, const int *indices, float *org_w, const float *new_w,
-                      Object *ob, Mesh *mesh, const float fact, const char defgrp_name[MAX_VGROUP_NAME],
-                      Scene *scene, Tex *texture, const int tex_use_channel, const int tex_mapping,
-                      Object *tex_map_object, const char *tex_uvlayer_name)
+void weightvg_do_mask(
+        const int num, const int *indices, float *org_w, const float *new_w,
+        Object *ob, Mesh *mesh, const float fact, const char defgrp_name[MAX_VGROUP_NAME],
+        Scene *scene, Tex *texture, const int tex_use_channel, const int tex_mapping,
+        Object *tex_map_object, const char *tex_uvlayer_name)
 {
 	int ref_didx;
 	int i;
@@ -238,9 +239,10 @@ void weightvg_do_mask(const int num, const int *indices, float *org_w, const flo
  * If indices is not NULL, it must be an array of same length as weights, mapping to the real
  * vertex index (in case the weight array does not cover the whole vertices...).
  */
-void weightvg_update_vg(MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws, int num,
-                        const int *indices, const float *weights, const bool do_add,
-                        const float add_thresh, const bool do_rem, const float rem_thresh)
+void weightvg_update_vg(
+        MDeformVert *dvert, int defgrp_idx, MDeformWeight **dws, int num,
+        const int *indices, const float *weights, const bool do_add,
+        const float add_thresh, const bool do_rem, const float rem_thresh)
 {
 	int i;
 

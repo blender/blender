@@ -177,8 +177,9 @@ static void initData(ModifierData *md)
 	ltmd->merge_dist = 0.01f;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                           Mesh *meshData)
+static Mesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *meshData)
 {
 	Mesh *mesh = meshData;
 	Mesh *result;

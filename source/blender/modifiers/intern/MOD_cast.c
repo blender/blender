@@ -422,10 +422,11 @@ static void cuboid_do(
 	}
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        Mesh *mesh,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *mesh,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	CastModifierData *cmd = (CastModifierData *)md;
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);

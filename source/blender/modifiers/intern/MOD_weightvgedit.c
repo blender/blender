@@ -154,9 +154,10 @@ static bool isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 	return (wmd->defgrp_name[0] == '\0');
 }
 
-static Mesh *applyModifier(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md,
+        const ModifierEvalContext *ctx,
+        Mesh *mesh)
 {
 	BLI_assert(mesh != NULL);
 

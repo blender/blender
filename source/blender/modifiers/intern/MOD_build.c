@@ -65,8 +65,9 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                           struct Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        struct Mesh *mesh)
 {
 	Mesh *result;
 	BuildModifierData *bmd = (BuildModifierData *) md;

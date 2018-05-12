@@ -498,8 +498,9 @@ static CustomDataMask required_data_mask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
-                        float (*vertexCos)[3], int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx, Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	Mesh *mesh_src;
 

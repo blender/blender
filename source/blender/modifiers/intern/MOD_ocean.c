@@ -403,9 +403,10 @@ static DerivedMesh *generate_ocean_geometry(OceanModifierData *omd)
 	return result;
 }
 
-static DerivedMesh *doOcean(ModifierData *md, Object *ob,
-                            DerivedMesh *derivedData,
-                            int UNUSED(useRenderParams))
+static DerivedMesh *doOcean(
+        ModifierData *md, Object *ob,
+        DerivedMesh *derivedData,
+        int UNUSED(useRenderParams))
 {
 	OceanModifierData *omd = (OceanModifierData *) md;
 
@@ -543,9 +544,10 @@ static DerivedMesh *doOcean(ModifierData *md, Object *ob,
 	return dm;
 }
 #else  /* WITH_OCEANSIM */
-static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
-                            DerivedMesh *derivedData,
-                            int UNUSED(useRenderParams))
+static DerivedMesh *doOcean(
+        ModifierData *md, Object *UNUSED(ob),
+        DerivedMesh *derivedData,
+        int UNUSED(useRenderParams))
 {
 	/* unused */
 	(void)md;
@@ -553,8 +555,9 @@ static DerivedMesh *doOcean(ModifierData *md, Object *UNUSED(ob),
 }
 #endif /* WITH_OCEANSIM */
 
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *derivedData)
+static DerivedMesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *derivedData)
 {
 	DerivedMesh *result;
 

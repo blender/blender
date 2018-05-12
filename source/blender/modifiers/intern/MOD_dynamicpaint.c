@@ -99,8 +99,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                                  DerivedMesh *dm)
+static DerivedMesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *dm)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
 
@@ -137,8 +138,9 @@ static bool dependsOnTime(ModifierData *UNUSED(md))
 	return true;
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob,
-                          IDWalkFunc walk, void *userData)
+static void foreachIDLink(
+        ModifierData *md, Object *ob,
+        IDWalkFunc walk, void *userData)
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
 
@@ -155,8 +157,9 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	}
 }
 
-static void foreachTexLink(ModifierData *UNUSED(md), Object *UNUSED(ob),
-                           TexWalkFunc UNUSED(walk), void *UNUSED(userData))
+static void foreachTexLink(
+        ModifierData *UNUSED(md), Object *UNUSED(ob),
+        TexWalkFunc UNUSED(walk), void *UNUSED(userData))
 {
 	//walk(userData, ob, md, ""); /* re-enable when possible */
 }

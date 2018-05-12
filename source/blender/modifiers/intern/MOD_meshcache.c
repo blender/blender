@@ -263,10 +263,11 @@ static void meshcache_do(
 	}
 }
 
-static void deformVerts(ModifierData *md, const ModifierEvalContext *ctx,
-                        DerivedMesh *derivedData,
-                        float (*vertexCos)[3],
-                        int numVerts)
+static void deformVerts(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        DerivedMesh *derivedData,
+        float (*vertexCos)[3],
+        int numVerts)
 {
 	MeshCacheModifierData *mcmd = (MeshCacheModifierData *)md;
 

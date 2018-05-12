@@ -124,9 +124,10 @@ static void initData(ModifierData *md)
 	emd->flags = MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG;
 }
 
-static Mesh *applyModifier(ModifierData *md,
-                           const ModifierEvalContext *ctx,
-                           Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md,
+        const ModifierEvalContext *ctx,
+        Mesh *mesh)
 {
 	Mesh *result;
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;

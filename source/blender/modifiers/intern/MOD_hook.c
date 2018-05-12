@@ -251,8 +251,9 @@ static void hook_co_apply(struct HookData_cb *hd, const int j)
 	}
 }
 
-static void deformVerts_do(HookModifierData *hmd, Object *ob, Mesh *mesh, 
-                           float (*vertexCos)[3], int numVerts)
+static void deformVerts_do(
+        HookModifierData *hmd, Object *ob, Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
 	float dmat[4][4];
@@ -348,8 +349,9 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, Mesh *mesh,
 	}
 }
 
-static void deformVerts(struct ModifierData *md, const struct ModifierEvalContext *ctx, struct Mesh *mesh, 
-                        float (*vertexCos)[3], int numVerts)
+static void deformVerts(
+        struct ModifierData *md, const struct ModifierEvalContext *ctx, struct Mesh *mesh,
+        float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
@@ -361,9 +363,10 @@ static void deformVerts(struct ModifierData *md, const struct ModifierEvalContex
 	}
 }
 
-static void deformVertsEM(struct ModifierData *md, const struct ModifierEvalContext *ctx,
-                          struct BMEditMesh *editData,
-                          struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
+static void deformVertsEM(
+        struct ModifierData *md, const struct ModifierEvalContext *ctx,
+        struct BMEditMesh *editData,
+        struct Mesh *mesh, float (*vertexCos)[3], int numVerts)
 {
 	HookModifierData *hmd = (HookModifierData *)md;
 	Mesh *mesh_src = get_mesh(ctx->object, editData, mesh, NULL, false, false);

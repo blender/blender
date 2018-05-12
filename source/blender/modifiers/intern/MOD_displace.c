@@ -108,16 +108,18 @@ static bool dependsOnNormals(ModifierData *md)
 	return ELEM(dmd->direction, MOD_DISP_DIR_NOR, MOD_DISP_DIR_CLNOR);
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob,
-                              ObjectWalkFunc walk, void *userData)
+static void foreachObjectLink(
+        ModifierData *md, Object *ob,
+        ObjectWalkFunc walk, void *userData)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 
 	walk(userData, ob, &dmd->map_object, IDWALK_CB_NOP);
 }
 
-static void foreachIDLink(ModifierData *md, Object *ob,
-                          IDWalkFunc walk, void *userData)
+static void foreachIDLink(
+        ModifierData *md, Object *ob,
+        IDWalkFunc walk, void *userData)
 {
 	DisplaceModifierData *dmd = (DisplaceModifierData *) md;
 
@@ -126,8 +128,9 @@ static void foreachIDLink(ModifierData *md, Object *ob,
 	foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
-static void foreachTexLink(ModifierData *md, Object *ob,
-                           TexWalkFunc walk, void *userData)
+static void foreachTexLink(
+        ModifierData *md, Object *ob,
+        TexWalkFunc walk, void *userData)
 {
 	walk(userData, ob, md, "texture");
 }

@@ -79,8 +79,9 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                           Mesh *meshData)
+static Mesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *meshData)
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	Mesh *mesh = meshData, *result = NULL;

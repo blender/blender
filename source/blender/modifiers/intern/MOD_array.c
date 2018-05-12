@@ -742,8 +742,9 @@ static Mesh *arrayModifier_doArray(
 }
 
 
-static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx,
-                           Mesh *mesh)
+static Mesh *applyModifier(
+        ModifierData *md, const ModifierEvalContext *ctx,
+        Mesh *mesh)
 {
 	ArrayModifierData *amd = (ArrayModifierData *) md;
 	return arrayModifier_doArray(amd, ctx, mesh);
