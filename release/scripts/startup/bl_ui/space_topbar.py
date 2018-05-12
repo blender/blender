@@ -147,35 +147,52 @@ class TOPBAR_HT_lower_bar(Header):
         if draw_fn is not None:
             draw_fn(context, layout)
 
+        # Note: general mode options should be added to 'draw_right'.
         if mode == 'SCULPT':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".sculpt_mode", category="")
         elif mode == 'PAINT_VERTEX':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".vertexpaint", category="")
         elif mode == 'PAINT_WEIGHT':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".weightpaint", category="")
         elif mode == 'PAINT_TEXTURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".imagepaint", category="")
+        elif mode == 'EDIT_ARMATURE':
+            pass
+        elif mode == 'EDIT_CURVE':
+            pass
+        elif mode == 'EDIT_MESH':
+            pass
+        elif mode == 'POSE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
+        elif mode == 'PARTICLE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
 
+
+    def draw_right(self, context):
+        layout = self.layout
+
+        # General options, note, these _could_ display at the RHS of the draw_left callback.
+        # we just want them not to be confused with tool options.
+        mode = context.mode
+
+        if mode == 'SCULPT':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".sculpt_mode", category="")
+        elif mode == 'PAINT_VERTEX':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".vertexpaint", category="")
+        elif mode == 'PAINT_WEIGHT':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".weightpaint", category="")
+        elif mode == 'PAINT_TEXTURE':
+            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".imagepaint", category="")
         elif mode == 'EDIT_ARMATURE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".armature_edit", category="")
         elif mode == 'EDIT_CURVE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".curve_edit", category="")
         elif mode == 'EDIT_MESH':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".mesh_edit", category="")
-
         elif mode == 'POSE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".posemode", category="")
         elif mode == 'PARTICLE':
-            layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".paint_common", category="")
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".particlemode", category="")
-
-
-    def draw_right(self, context):
-        layout = self.layout
 
         # Command Settings (redo)
         op = context.active_operator
