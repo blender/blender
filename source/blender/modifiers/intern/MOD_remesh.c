@@ -30,14 +30,14 @@
 #include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
-#include "BKE_cdderivedmesh.h"
-#include "BKE_DerivedMesh.h"
-
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 
 #include "MOD_modifiertypes.h"
+
+#include "BKE_mesh.h"
 
 #include <assert.h>
 #include <stdlib.h>
@@ -61,28 +61,30 @@ static void initData(ModifierData *md)
 
 #ifdef WITH_MOD_REMESH
 
-static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
+static void init_dualcon_mesh(DualConInput *input, Mesh *mesh)
 {
-	memset(mesh, 0, sizeof(DualConInput));
+	memset(input, 0, sizeof(DualConInput));
 
-	mesh->co = (void *)dm->getVertArray(dm);
-	mesh->co_stride = sizeof(MVert);
-	mesh->totco = dm->getNumVerts(dm);
+	input->co = (void *)mesh->mvert;
+	input->co_stride = sizeof(MVert);
+	input->totco = mesh->totvert;
 
-	mesh->mloop = (void *)dm->getLoopArray(dm);
-	mesh->loop_stride = sizeof(MLoop);
-	mesh->looptri = (void *)dm->getLoopTriArray(dm);
-	mesh->tri_stride = sizeof(MLoopTri);
-	mesh->tottri = dm->getNumLoopTri(dm);
+	input->mloop = (void *)mesh->mloop;
+	input->loop_stride = sizeof(MLoop);
 
-	INIT_MINMAX(mesh->min, mesh->max);
-	dm->getMinMax(dm, mesh->min, mesh->max);
+	BKE_mesh_runtime_looptri_ensure(mesh);
+	input->looptri = (void *)mesh->runtime.looptris.array;
+	input->tri_stride = sizeof(MLoopTri);
+	input->tottri = mesh->runtime.looptris.len;
+
+	INIT_MINMAX(input->min, input->max);
+	BKE_mesh_minmax(mesh, input->min, input->max);
 }
 
 /* simple structure to hold the output: a CDDM and two counters to
  * keep track of the current elements */
 typedef struct {
-	DerivedMesh *dm;
+	Mesh *mesh;
 	int curvert, curface;
 } DualConOutput;
 
@@ -97,33 +99,33 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 		return NULL;
 	}
 	
-	output->dm = CDDM_new(totvert, 0, 0, 4 * totquad, totquad);
+	output->mesh = BKE_mesh_new_nomain(totvert, 0, 0, 4 * totquad, totquad);
 	return output;
 }
 
 static void dualcon_add_vert(void *output_v, const float co[3])
 {
 	DualConOutput *output = output_v;
-	DerivedMesh *dm = output->dm;
+	Mesh *mesh = output->mesh;
 	
-	assert(output->curvert < dm->getNumVerts(dm));
+	assert(output->curvert < mesh->totvert);
 	
-	copy_v3_v3(CDDM_get_verts(dm)[output->curvert].co, co);
+	copy_v3_v3(mesh->mvert[output->curvert].co, co);
 	output->curvert++;
 }
 
 static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 {
 	DualConOutput *output = output_v;
-	DerivedMesh *dm = output->dm;
+	Mesh *mesh = output->mesh;
 	MLoop *mloop;
 	MPoly *cur_poly;
 	int i;
 	
-	assert(output->curface < dm->getNumPolys(dm));
+	assert(output->curface < mesh->totpoly);
 
-	mloop = CDDM_get_loops(dm);
-	cur_poly = CDDM_get_poly(dm, output->curface);
+	mloop = mesh->mloop;
+	cur_poly = &mesh->mpoly[output->curface];
 	
 	cur_poly->loopstart = output->curface * 4;
 	cur_poly->totloop = 4;
@@ -133,21 +135,21 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 	output->curface++;
 }
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *md,
         const ModifierEvalContext *UNUSED(ctx),
-        DerivedMesh *dm)
+        Mesh *mesh)
 {
 	RemeshModifierData *rmd;
 	DualConOutput *output;
 	DualConInput input;
-	DerivedMesh *result;
+	Mesh *result;
 	DualConFlags flags = 0;
 	DualConMode mode = 0;
 
 	rmd = (RemeshModifierData *)md;
 
-	init_dualcon_mesh(&input, dm);
+	init_dualcon_mesh(&input, mesh);
 
 	if (rmd->flag & MOD_REMESH_FLOOD_FILL)
 		flags |= DUALCON_FLOOD_FILL;
@@ -174,12 +176,12 @@ static DerivedMesh *applyModifier(
 	                 rmd->hermite_num,
 	                 rmd->scale,
 	                 rmd->depth);
-	result = output->dm;
+	result = output->mesh;
 	MEM_freeN(output);
 
 	if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
-		MPoly *mpoly = CDDM_get_polys(result);
-		int i, totpoly = result->getNumPolys(result);
+		MPoly *mpoly = result->mpoly;
+		int i, totpoly = result->totpoly;
 		
 		/* Apply smooth shading to output faces */
 		for (i = 0; i < totpoly; i++) {
@@ -187,19 +189,19 @@ static DerivedMesh *applyModifier(
 		}
 	}
 
-	CDDM_calc_edges(result);
-	result->dirty |= DM_DIRTY_NORMALS;
+	BKE_mesh_calc_edges(result, true, false);
+	result->runtime.cd_dirty_vert |= CD_MASK_NORMAL;
 	return result;
 }
 
 #else /* !WITH_MOD_REMESH */
 
-static DerivedMesh *applyModifier(
+static Mesh *applyModifier(
         ModifierData *UNUSED(md),
         const ModifierEvalContext *UNUSED(ctx),
-        DerivedMesh *derivedData)
+        Mesh *mesh)
 {
-	return derivedData;
+	return mesh;
 }
 
 #endif /* !WITH_MOD_REMESH */
@@ -219,14 +221,14 @@ ModifierTypeInfo modifierType_Remesh = {
 	/* deformMatrices_DM */ NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatricesEM_DM*/NULL,
-	/* applyModifier_DM */  applyModifier,
+	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 
 	/* initData */          initData,
