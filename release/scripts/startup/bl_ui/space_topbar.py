@@ -196,7 +196,7 @@ class TOPBAR_HT_lower_bar(Header):
 
         # 3D View Options, tsk. maybe users aren't always using 3D view?
         scene = context.scene
-        layout.prop(scene, "transform_orientation", text="", icon='MANIPUL')
+        layout.prop(scene, "transform_orientation", text="")
 
         # Command Settings (redo)
         op = context.active_operator

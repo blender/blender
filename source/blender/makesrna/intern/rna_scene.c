@@ -438,15 +438,16 @@ static const EnumPropertyItem rna_enum_gpencil_interpolation_mode_items[] = {
 
 #endif
 
+/* Icons could be made a consistent set of images. */
 static const EnumPropertyItem transform_orientation_items[] = {
-	{V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", "Align the transformation axes to world space"},
-	{V3D_MANIP_LOCAL, "LOCAL", 0, "Local", "Align the transformation axes to the selected objects' local space"},
-	{V3D_MANIP_NORMAL, "NORMAL", 0, "Normal",
+	{V3D_MANIP_GLOBAL, "GLOBAL", ICON_SCENE_DATA, "Global", "Align the transformation axes to world space"},
+	{V3D_MANIP_LOCAL, "LOCAL", ICON_MANIPUL, "Local", "Align the transformation axes to the selected objects' local space"},
+	{V3D_MANIP_NORMAL, "NORMAL", ICON_SNAP_NORMAL, "Normal",
 	                   "Align the transformation axes to average normal of selected elements "
 	                   "(bone Y axis for pose mode)"},
-	{V3D_MANIP_GIMBAL, "GIMBAL", 0, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
-	{V3D_MANIP_VIEW, "VIEW", 0, "View", "Align the transformation axes to the window"},
-	{V3D_MANIP_CURSOR, "CURSOR", 0, "Cursor", "Align the transformation axes to the 3D cursor"},
+	{V3D_MANIP_GIMBAL, "GIMBAL", ICON_NDOF_DOM, "Gimbal", "Align each axis to the Euler rotation axis as used for input"},
+	{V3D_MANIP_VIEW, "VIEW", ICON_VISIBLE_IPO_ON, "View", "Align the transformation axes to the window"},
+	{V3D_MANIP_CURSOR, "CURSOR", ICON_CURSOR, "Cursor", "Align the transformation axes to the 3D cursor"},
 	// {V3D_MANIP_CUSTOM, "CUSTOM", 0, "Custom", "Use a custom transform orientation"},
 	{0, NULL, 0, NULL, NULL}
 };
