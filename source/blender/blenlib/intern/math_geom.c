@@ -774,77 +774,61 @@ float dist_squared_ray_to_aabb_v3_simple(
  * matrix multiplied by object matrix).
  */
 void dist_squared_to_projected_aabb_precalc(
-        struct DistProjectedAABBPrecalc *neasrest_precalc,
+        struct DistProjectedAABBPrecalc *precalc,
         const float projmat[4][4], const float winsize[2], const float mval[2])
 {
-	float relative_mval[2] = {
-		2 * mval[0] / winsize[0] - 1.0f,
-		2 * mval[1] / winsize[1] - 1.0f,
-	};
+	float win_half[2], relative_mval[2], px[4], py[4];
 
-	float px[4], py[4];
-	px[0] = projmat[0][0] - projmat[0][3] * relative_mval[0];
-	px[1] = projmat[1][0] - projmat[1][3] * relative_mval[0];
-	px[2] = projmat[2][0] - projmat[2][3] * relative_mval[0];
-	px[3] = projmat[3][0] - projmat[3][3] * relative_mval[0];
+	mul_v2_v2fl(win_half, winsize, 0.5f);
+	sub_v2_v2v2(precalc->mval, mval, win_half);
 
-	py[0] = projmat[0][1] - projmat[0][3] * relative_mval[1];
-	py[1] = projmat[1][1] - projmat[1][3] * relative_mval[1];
-	py[2] = projmat[2][1] - projmat[2][3] * relative_mval[1];
-	py[3] = projmat[3][1] - projmat[3][3] * relative_mval[1];
+	relative_mval[0] = precalc->mval[0] / win_half[0];
+	relative_mval[1] = precalc->mval[1] / win_half[1];
 
+	copy_m4_m4(precalc->pmat, projmat);
+	for (int i = 0; i < 4; i++) {
+		px[i] = precalc->pmat[i][0] - precalc->pmat[i][3] * relative_mval[0];
+		py[i] = precalc->pmat[i][1] - precalc->pmat[i][3] * relative_mval[1];
+
+		precalc->pmat[i][0] *= win_half[0];
+		precalc->pmat[i][1] *= win_half[1];
+	}
 #if 0
+	float projmat_trans[4][4];
+	transpose_m4_m4(projmat_trans, projmat);
 	if (!isect_plane_plane_plane_v3(
-	        projmat[0], projmat[1], projmat[3], neasrest_precalc->ray_origin))
+	        projmat_trans[0], projmat_trans[1], projmat_trans[3],
+	        precalc->ray_origin))
 	{
 		/* Orthographic projection. */
-		copy_v3_v3(neasrest_precalc->ray_direction, projmat[3]);
+		isect_plane_plane_v3(
+		        px, py,
+		        precalc->ray_origin,
+		        precalc->ray_direction);
 	}
 	else {
 		/* Perspective projection. */
-		cross_v3_v3v3(neasrest_precalc->ray_direction, py, px);
-		//normalize_v3(neasrest_precalc->ray_direction);
+		cross_v3_v3v3(precalc->ray_direction, py, px);
+		//normalize_v3(precalc->ray_direction);
 	}
 #else
 	if (!isect_plane_plane_v3(
 	        px, py,
-	        neasrest_precalc->ray_origin,
-	        neasrest_precalc->ray_direction))
+	        precalc->ray_origin,
+	        precalc->ray_direction))
 	{
-		if (projmat[3][3] == 0.0f) {
-			/* Perspective projection. */
-			cross_v3_v3v3(neasrest_precalc->ray_direction, py, px);
-		}
-		else {
-			/* Orthographic projection. */
-			cross_v3_v3v3(neasrest_precalc->ray_direction, py, px);
-			//normalize_v3(neasrest_precalc->ray_direction);
-		}
+		/* Matrix with weird coplanar planes. Undetermined origin.*/
+		zero_v3(precalc->ray_origin);
+		precalc->ray_direction[0] = precalc->pmat[0][3];
+		precalc->ray_direction[1] = precalc->pmat[1][3];
+		precalc->ray_direction[2] = precalc->pmat[2][3];
 	}
 #endif
-	float win_half[2];
-	mul_v2_v2fl(win_half, winsize, 0.5f);
-
-	copy_v2_v2(neasrest_precalc->mval, mval);
-	sub_v2_v2(neasrest_precalc->mval, win_half);
-
-	copy_m4_m4(neasrest_precalc->pmat, projmat);
-
-	neasrest_precalc->pmat[0][0] *= win_half[0];
-	neasrest_precalc->pmat[1][0] *= win_half[0];
-	neasrest_precalc->pmat[2][0] *= win_half[0];
-	neasrest_precalc->pmat[3][0] *= win_half[0];
-
-	neasrest_precalc->pmat[0][1] *= win_half[1];
-	neasrest_precalc->pmat[1][1] *= win_half[1];
-	neasrest_precalc->pmat[2][1] *= win_half[1];
-	neasrest_precalc->pmat[3][1] *= win_half[1];
 
 	for (int i = 0; i < 3; i++) {
-		neasrest_precalc->ray_inv_dir[i] =
-		        (neasrest_precalc->ray_direction[i] != 0.0f) ?
-		        (1.0f / neasrest_precalc->ray_direction[i]) : FLT_MAX;
-		neasrest_precalc->sign[i] = (neasrest_precalc->ray_inv_dir[i] < 0.0f);
+		precalc->ray_inv_dir[i] =
+		        (precalc->ray_direction[i] != 0.0f) ?
+		        (1.0f / precalc->ray_direction[i]) : FLT_MAX;
 	}
 }
 
@@ -855,29 +839,34 @@ float dist_squared_to_projected_aabb(
         bool r_axis_closest[3])
 {
 	float local_bvmin[3], local_bvmax[3];
-	if (data->sign[0]) {
-		local_bvmin[0] = bbmax[0];
-		local_bvmax[0] = bbmin[0];
-	}
-	else {
+	bool sign[3] = {
+		data->ray_inv_dir[0] >= 0.0f,
+		data->ray_inv_dir[1] >= 0.0f,
+		data->ray_inv_dir[2] >= 0.0f,
+	};
+	if (sign[0]) {
 		local_bvmin[0] = bbmin[0];
 		local_bvmax[0] = bbmax[0];
 	}
-	if (data->sign[1]) {
-		local_bvmin[1] = bbmax[1];
-		local_bvmax[1] = bbmin[1];
-	}
 	else {
+		local_bvmin[0] = bbmax[0];
+		local_bvmax[0] = bbmin[0];
+	}
+	if (sign[1]) {
 		local_bvmin[1] = bbmin[1];
 		local_bvmax[1] = bbmax[1];
 	}
-	if (data->sign[2]) {
-		local_bvmin[2] = bbmax[2];
-		local_bvmax[2] = bbmin[2];
-	}
 	else {
+		local_bvmin[1] = bbmax[1];
+		local_bvmax[1] = bbmin[1];
+	}
+	if (sign[2]) {
 		local_bvmin[2] = bbmin[2];
 		local_bvmax[2] = bbmax[2];
+	}
+	else {
+		local_bvmin[2] = bbmax[2];
+		local_bvmax[2] = bbmin[2];
 	}
 
 	const float tmin[3] = {
@@ -900,38 +889,38 @@ float dist_squared_to_projected_aabb(
 		rtmax = tmax[0];
 		va[0] = vb[0] = local_bvmax[0];
 		main_axis = 3;
-		r_axis_closest[0] = data->sign[0];
+		r_axis_closest[0] = !sign[0];
 	}
 	else if ((tmax[1] <= tmax[0]) && (tmax[1] <= tmax[2])) {
 		rtmax = tmax[1];
 		va[1] = vb[1] = local_bvmax[1];
 		main_axis = 2;
-		r_axis_closest[1] = data->sign[1];
+		r_axis_closest[1] = !sign[1];
 	}
 	else {
 		rtmax = tmax[2];
 		va[2] = vb[2] = local_bvmax[2];
 		main_axis = 1;
-		r_axis_closest[2] = data->sign[2];
+		r_axis_closest[2] = !sign[2];
 	}
 
 	if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
 		rtmin = tmin[0];
 		va[0] = vb[0] = local_bvmin[0];
 		main_axis -= 3;
-		r_axis_closest[0] = !data->sign[0];
+		r_axis_closest[0] = sign[0];
 	}
 	else if ((tmin[1] >= tmin[0]) && (tmin[1] >= tmin[2])) {
 		rtmin = tmin[1];
 		va[1] = vb[1] = local_bvmin[1];
 		main_axis -= 1;
-		r_axis_closest[1] = !data->sign[1];
+		r_axis_closest[1] = sign[1];
 	}
 	else {
 		rtmin = tmin[2];
 		va[2] = vb[2] = local_bvmin[2];
 		main_axis -= 2;
-		r_axis_closest[2] = !data->sign[2];
+		r_axis_closest[2] = sign[2];
 	}
 	if (main_axis < 0) {
 		main_axis += 3;
@@ -942,33 +931,34 @@ float dist_squared_to_projected_aabb(
 		return 0;
 	}
 
-	if (data->sign[main_axis]) {
-		va[main_axis] = local_bvmax[main_axis];
-		vb[main_axis] = local_bvmin[main_axis];
-	}
-	else {
+	if (sign[main_axis]) {
 		va[main_axis] = local_bvmin[main_axis];
 		vb[main_axis] = local_bvmax[main_axis];
 	}
+	else {
+		va[main_axis] = local_bvmax[main_axis];
+		vb[main_axis] = local_bvmin[main_axis];
+	}
 	float scale = fabsf(local_bvmax[main_axis] - local_bvmin[main_axis]);
 
-	float (*pmat)[4] = data->pmat;
-
 	float va2d[2] = {
-		(dot_m4_v3_row_x(pmat, va) + pmat[3][0]),
-		(dot_m4_v3_row_y(pmat, va) + pmat[3][1]),
+		(dot_m4_v3_row_x(data->pmat, va) + data->pmat[3][0]),
+		(dot_m4_v3_row_y(data->pmat, va) + data->pmat[3][1]),
 	};
 	float vb2d[2] = {
-		(va2d[0] + pmat[main_axis][0] * scale),
-		(va2d[1] + pmat[main_axis][1] * scale),
+		(va2d[0] + data->pmat[main_axis][0] * scale),
+		(va2d[1] + data->pmat[main_axis][1] * scale),
 	};
 
-	float w_a = mul_project_m4_v3_zfac(pmat, va);
-	float w_b = w_a + pmat[main_axis][3] * scale;
-	va2d[0] /= w_a;
-	va2d[1] /= w_a;
-	vb2d[0] /= w_b;
-	vb2d[1] /= w_b;
+	float w_a = mul_project_m4_v3_zfac(data->pmat, va);
+	if (w_a != 1.0f) {
+		/* Perspective Projection. */
+		float w_b = w_a + data->pmat[main_axis][3] * scale;
+		va2d[0] /= w_a;
+		va2d[1] /= w_a;
+		vb2d[0] /= w_b;
+		vb2d[1] /= w_b;
+	}
 
 	float dvec[2], edge[2], lambda, rdist_sq;
 	sub_v2_v2v2(dvec, data->mval, va2d);
@@ -985,8 +975,7 @@ float dist_squared_to_projected_aabb(
 			r_axis_closest[main_axis] = false;
 		}
 		else {
-			va2d[0] += edge[0] * lambda;
-			va2d[1] += edge[1] * lambda;
+			madd_v2_v2fl(va2d, edge, lambda);
 			rdist_sq = len_squared_v2v2(data->mval, va2d);
 			r_axis_closest[main_axis] = lambda < 0.5f;
 		}
