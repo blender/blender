@@ -136,11 +136,6 @@ class VIEW3D_HT_header(Header):
             if (mode == 'EDIT' and obj.type == 'MESH'):
                 layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
 
-        # OpenGL render
-        row = layout.row(align=True)
-        row.operator("render.opengl", text="", icon='RENDER_STILL')
-        row.operator("render.opengl", text="", icon='RENDER_ANIMATION').animation = True
-
         # Pose
         if obj and mode == 'POSE':
             row = layout.row(align=True)
@@ -488,6 +483,11 @@ class VIEW3D_MT_view(Menu):
         layout.separator()
 
         layout.operator("screen.animation_play", text="Playback Animation")
+
+        layout.separator()
+
+        layout.operator("render.opengl", icon='RENDER_STILL')
+        layout.operator("render.opengl", text="OpenGL Render (Animation)", icon='RENDER_ANIMATION').animation = True
 
         layout.separator()
 
