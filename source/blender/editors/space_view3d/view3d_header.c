@@ -358,10 +358,13 @@ void uiTemplateHeader3D(uiLayout *layout, struct bContext *C)
 
 	}
 	else {
+		/* Moved to popover and topbar. */
+#if 0
 		/* Transform widget / manipulators */
 		row = uiLayoutRow(layout, true);
 		uiItemR(row, &v3dptr, "show_manipulator", UI_ITEM_R_ICON_ONLY, "", ICON_NONE);
 		uiItemR(row, &sceneptr, "transform_orientation", 0, "", ICON_NONE);
+#endif
 	}
 
 	if (obedit == NULL && v3d->localvd == NULL) {

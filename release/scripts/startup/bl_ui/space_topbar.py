@@ -194,6 +194,10 @@ class TOPBAR_HT_lower_bar(Header):
         elif mode == 'PARTICLE':
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".particlemode", category="")
 
+        # 3D View Options, tsk. maybe users aren't always using 3D view?
+        scene = context.scene
+        layout.prop(scene, "transform_orientation", text="", icon='MANIPUL')
+
         # Command Settings (redo)
         op = context.active_operator
         row = layout.row()

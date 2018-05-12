@@ -3600,6 +3600,8 @@ class VIEW3D_PT_overlay(Panel):
         col.active = display_all
         col.prop(overlay, "show_cursor")
 
+        col.prop(view, "show_manipulator")
+
         col = layout.column()
         col.active = display_all
         col.prop(overlay, "show_outline_selected")
