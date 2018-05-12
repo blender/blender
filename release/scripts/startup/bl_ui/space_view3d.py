@@ -73,69 +73,6 @@ class VIEW3D_HT_header(Header):
                     (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
                 row.prop(view, "use_occlude_geometry", text="")
 
-            # Proportional editing
-            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-            elif mode in {'EDIT', 'PARTICLE_EDIT'}:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-            elif mode == 'OBJECT':
-                row = layout.row(align=True)
-                row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
-                if toolsettings.use_proportional_edit_objects:
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-        else:
-            # Proportional editing
-            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
-                row = layout.row(align=True)
-                row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
-
-        # Snap
-        show_snap = False
-        if obj is None:
-            show_snap = True
-        else:
-            if mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
-                show_snap = True
-            else:
-                paint_settings = UnifiedPaintPanel.paint_settings(context)
-                if paint_settings:
-                    brush = paint_settings.brush
-                    if brush and brush.stroke_method == 'CURVE':
-                        show_snap = True
-
-        if show_snap:
-            snap_element = toolsettings.snap_element
-            row = layout.row(align=True)
-            row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", icon_only=True)
-            if snap_element == 'INCREMENT':
-                row.prop(toolsettings, "use_snap_grid_absolute", text="")
-            else:
-                row.prop(toolsettings, "snap_target", text="")
-                if obj:
-                    if mode == 'EDIT':
-                        row.prop(toolsettings, "use_snap_self", text="")
-                    if mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
-                        row.prop(toolsettings, "use_snap_align_rotation", text="")
-
-            if snap_element == 'VOLUME':
-                row.prop(toolsettings, "use_snap_peel_object", text="")
-            elif snap_element == 'FACE':
-                row.prop(toolsettings, "use_snap_project", text="")
-
-        # AutoMerge editing
-        if obj:
-            if (mode == 'EDIT' and obj.type == 'MESH'):
-                layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
-
         # Pose
         if obj and mode == 'POSE':
             row = layout.row(align=True)

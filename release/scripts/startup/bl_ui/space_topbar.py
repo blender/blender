@@ -195,8 +195,81 @@ class TOPBAR_HT_lower_bar(Header):
             layout.popover_group(space_type='VIEW_3D', region_type='TOOLS', context=".particlemode", category="")
 
         # 3D View Options, tsk. maybe users aren't always using 3D view?
+        toolsettings = context.tool_settings
         scene = context.scene
+        obj = context.active_object
+
+        if obj:
+            # Set above:
+            # mode = obj.mode
+
+            # Proportional editing
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+                if toolsettings.proportional_edit != 'DISABLED':
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+            elif mode in {'EDIT', 'PARTICLE_EDIT'}:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+                if toolsettings.proportional_edit != 'DISABLED':
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+            elif mode == 'OBJECT':
+                row = layout.row(align=True)
+                row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
+                if toolsettings.use_proportional_edit_objects:
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+        else:
+            # Proportional editing
+            if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
+                row = layout.row(align=True)
+                row.prop(toolsettings, "proportional_edit", icon_only=True)
+                if toolsettings.proportional_edit != 'DISABLED':
+                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
+        # Snap
+        show_snap = False
+        if obj is None:
+            show_snap = True
+        else:
+            if mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
+                show_snap = True
+            else:
+                paint_settings = UnifiedPaintPanel.paint_settings(context)
+                if paint_settings:
+                    brush = paint_settings.brush
+                    if brush and brush.stroke_method == 'CURVE':
+                        show_snap = True
+
+        if show_snap:
+            snap_element = toolsettings.snap_element
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_snap", text="")
+            row.prop(toolsettings, "snap_element", icon_only=True)
+            if snap_element == 'INCREMENT':
+                row.prop(toolsettings, "use_snap_grid_absolute", text="")
+            else:
+                row.prop(toolsettings, "snap_target", text="")
+                if obj:
+                    if mode == 'EDIT':
+                        row.prop(toolsettings, "use_snap_self", text="")
+                    if mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
+                        row.prop(toolsettings, "use_snap_align_rotation", text="")
+
+            if snap_element == 'VOLUME':
+                row.prop(toolsettings, "use_snap_peel_object", text="")
+            elif snap_element == 'FACE':
+                row.prop(toolsettings, "use_snap_project", text="")
+
+        # AutoMerge editing
+        if obj:
+            if (mode == 'EDIT' and obj.type == 'MESH'):
+                layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
+
+
         layout.prop(scene, "transform_orientation", text="")
+
+
 
         # Command Settings (redo)
         op = context.active_operator
