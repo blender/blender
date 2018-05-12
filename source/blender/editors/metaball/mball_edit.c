@@ -49,6 +49,7 @@
 
 #include "BKE_context.h"
 #include "BKE_mball.h"
+#include "BKE_layer.h"
 
 #include "DEG_depsgraph.h"
 
@@ -367,31 +368,46 @@ void MBALL_OT_select_similar(wmOperatorType *ot)
 /* Random metaball selection */
 static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall *)obedit->data;
-	MetaElem *ml;
 	const bool select = (RNA_enum_get(op->ptr, "action") == SEL_SELECT);
 	const float randfac = RNA_float_get(op->ptr, "percent") / 100.0f;
 	const int seed = WM_operator_properties_select_random_seed_increment_get(op);
 	
-	RNG *rng = BLI_rng_new_srandom(seed);
-
-	for (ml = mb->editelems->first; ml; ml = ml->next) {
-		if (BLI_rng_get_float(rng) < randfac) {
-			if (select)
-				ml->flag |= SELECT;
-			else
-				ml->flag &= ~SELECT;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		MetaBall *mb = (MetaBall *)obedit->data;
+		if (!BKE_mball_is_any_unselected(mb)) {
+			continue;
 		}
+		int seed_iter = seed;
+
+		/* This gives a consistent result regardless of object order. */
+		if (ob_index) {
+			seed_iter += BLI_ghashutil_strhash_p(obedit->id.name);
+		}
+
+		RNG *rng = BLI_rng_new_srandom(seed_iter);
+
+		for (MetaElem *ml = mb->editelems->first; ml; ml = ml->next) {
+			if (BLI_rng_get_float(rng) < randfac) {
+				if (select) {
+					ml->flag |= SELECT;
+				}
+				else {
+					ml->flag &= ~SELECT;
+				}
+			}
+		}
+
+		BLI_rng_free(rng);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
-
-	BLI_rng_free(rng);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
-	
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
-
 
 void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 {

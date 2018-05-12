@@ -314,6 +314,26 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 	}
 }
 
+bool BKE_mball_is_any_selected(const MetaBall *mb)
+{
+	for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
+		if(ml->flag & SELECT) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool BKE_mball_is_any_unselected(const MetaBall *mb)
+{
+	for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
+		if((ml->flag & SELECT) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
 /* \brief copy some properties from object to other metaball object with same base name
  *
  * When some properties (wiresize, threshold, update flags) of metaball are changed, then this properties
