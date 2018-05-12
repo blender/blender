@@ -37,6 +37,7 @@
 #include "BKE_global.h"
 #include "BKE_editmesh.h"
 #include "BKE_unit.h"
+#include "BKE_layer.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -55,6 +56,10 @@
 
 #include "mesh_intern.h"  /* own include */
 
+typedef struct {
+	BMEditMesh *em;
+	BMBackup mesh_backup;
+} InsetObjectStore;
 
 typedef struct {
 	float old_thickness;
@@ -65,12 +70,13 @@ typedef struct {
 	bool is_modal;
 	bool shift;
 	float shift_amount;
-	BMEditMesh *em;
 	NumInput num_input;
+
+	InsetObjectStore *ob_store;
+	uint              ob_store_len;
 
 	/* modal only */
 	float mcenter[2];
-	BMBackup mesh_backup;
 	void *draw_handle_pixel;
 	short twflag;
 } InsetData;
@@ -115,12 +121,7 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 {
 	InsetData *opdata;
 	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
-	if (em->bm->totvertsel == 0) {
-		return false;
-	}
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
 	if (is_modal) {
 		RNA_float_set(op->ptr, "thickness", 0.01f);
@@ -129,13 +130,30 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 
 	op->customdata = opdata = MEM_mallocN(sizeof(InsetData), "inset_operator_data");
 
+	uint objects_used_len = 0;
+
+	{
+		uint ob_store_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &ob_store_len);
+		opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
+		for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
+			Object *obedit = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+			if (em->bm->totvertsel > 0) {
+				opdata->ob_store[objects_used_len].em = em;
+				objects_used_len++;
+			}
+		}
+		MEM_freeN(objects);
+		opdata->ob_store_len = objects_used_len;
+	}
+
 	opdata->old_thickness = 0.01;
 	opdata->old_depth = 0.0;
 	opdata->modify_depth = false;
 	opdata->shift = false;
 	opdata->shift_amount = 0.0f;
 	opdata->is_modal = is_modal;
-	opdata->em = em;
 
 	initNumInput(&opdata->num_input);
 	opdata->num_input.idx_max = 1; /* Two elements. */
@@ -147,7 +165,10 @@ static bool edbm_inset_init(bContext *C, wmOperator *op, const bool is_modal)
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 
-		opdata->mesh_backup = EDBM_redo_state_store(em);
+		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+			opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(opdata->ob_store[ob_index].em);
+		}
+
 		opdata->draw_handle_pixel = ED_region_draw_cb_activate(
 		        ar->type, ED_region_draw_mouse_line_cb, opdata->mcenter, REGION_DRAW_POST_PIXEL);
 		G.moving = G_TRANSFORM_EDIT;
@@ -170,7 +191,9 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 	if (opdata->is_modal) {
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
-		EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
+		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+			EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, NULL, false);
+		}
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
 		if (v3d) {
 			v3d->twflag = opdata->twflag;
@@ -181,7 +204,9 @@ static void edbm_inset_exit(bContext *C, wmOperator *op)
 	if (sa) {
 		ED_area_headerprint(sa, NULL);
 	}
-	MEM_freeN(op->customdata);
+
+	MEM_SAFE_FREE(opdata->ob_store);
+	MEM_SAFE_FREE(op->customdata);
 }
 
 static void edbm_inset_cancel(bContext *C, wmOperator *op)
@@ -190,8 +215,10 @@ static void edbm_inset_cancel(bContext *C, wmOperator *op)
 
 	opdata = op->customdata;
 	if (opdata->is_modal) {
-		EDBM_redo_state_free(&opdata->mesh_backup, opdata->em, true);
-		EDBM_update_generic(opdata->em, false, true);
+		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+			EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, opdata->ob_store[ob_index].em, true);
+			EDBM_update_generic(opdata->ob_store[ob_index].em, false, true);
+		}
 	}
 
 	edbm_inset_exit(C, op);
@@ -205,6 +232,7 @@ static bool edbm_inset_calc(wmOperator *op)
 	InsetData *opdata;
 	BMEditMesh *em;
 	BMOperator bmop;
+	bool changed = false;
 
 	const bool use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
 	const bool use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
@@ -218,49 +246,55 @@ static bool edbm_inset_calc(wmOperator *op)
 	const bool use_interpolate     = RNA_boolean_get(op->ptr, "use_interpolate");
 
 	opdata = op->customdata;
-	em = opdata->em;
 
-	if (opdata->is_modal) {
-		EDBM_redo_state_restore(opdata->mesh_backup, em, false);
-	}
+	for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+		em = opdata->ob_store[ob_index].em;
 
-	if (use_individual) {
-		EDBM_op_init(em, &bmop, op,
-		             "inset_individual faces=%hf use_even_offset=%b  use_relative_offset=%b "
-		             "use_interpolate=%b thickness=%f depth=%f",
-		             BM_ELEM_SELECT, use_even_offset, use_relative_offset, use_interpolate,
-		             thickness, depth);
-	}
-	else {
-		EDBM_op_init(em, &bmop, op,
-		             "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b "
-		             "use_interpolate=%b thickness=%f depth=%f use_outset=%b use_edge_rail=%b",
-		             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_interpolate,
-		             thickness, depth, use_outset, use_edge_rail);
+		if (opdata->is_modal) {
+			EDBM_redo_state_restore(opdata->ob_store[ob_index].mesh_backup, em, false);
+		}
 
-		if (use_outset) {
-			BMO_slot_buffer_from_enabled_hflag(em->bm, &bmop, bmop.slots_in, "faces_exclude", BM_FACE, BM_ELEM_HIDDEN);
+		if (use_individual) {
+			EDBM_op_init(
+			        em, &bmop, op,
+			        "inset_individual faces=%hf use_even_offset=%b  use_relative_offset=%b "
+			        "use_interpolate=%b thickness=%f depth=%f",
+			        BM_ELEM_SELECT, use_even_offset, use_relative_offset, use_interpolate,
+			        thickness, depth);
+		}
+		else {
+			EDBM_op_init(
+			        em, &bmop, op,
+			        "inset_region faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b "
+			        "use_interpolate=%b thickness=%f depth=%f use_outset=%b use_edge_rail=%b",
+			        BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_interpolate,
+			        thickness, depth, use_outset, use_edge_rail);
+
+			if (use_outset) {
+				BMO_slot_buffer_from_enabled_hflag(em->bm, &bmop, bmop.slots_in, "faces_exclude", BM_FACE, BM_ELEM_HIDDEN);
+			}
+		}
+		BMO_op_exec(em->bm, &bmop);
+
+		if (use_select_inset) {
+			/* deselect original faces/verts */
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+		}
+		else {
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_in, "faces", BM_FACE, BM_ELEM_SELECT, true);
+		}
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+		else {
+			EDBM_update_generic(em, true, true);
+			changed = true;
 		}
 	}
-	BMO_op_exec(em->bm, &bmop);
-
-	if (use_select_inset) {
-		/* deselect original faces/verts */
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-	}
-	else {
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_in, "faces", BM_FACE, BM_ELEM_SELECT, true);
-	}
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return false;
-	}
-	else {
-		EDBM_update_generic(em, true, true);
-		return true;
-	}
+	return changed;
 }
 
 static int edbm_inset_exec(bContext *C, wmOperator *op)
