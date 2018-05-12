@@ -24,42 +24,16 @@ uniform vec2 nearFar; /* Near & far view depths values */
 
 /* -------------- Utils ------------- */
 
-/* calculate 4 samples at once */
-float calculate_coc(in float zdepth)
-{
-	float coc = dof_aperturesize * (dof_distance / zdepth - 1.0);
-	return coc * dof_invsensorsize; /* divide by sensor size to get the normalized size */
-}
+/* divide by sensor size to get the normalized size */
+#define calculate_coc(zdepth) (dof_aperturesize * (dof_distance / zdepth - 1.0) * dof_invsensorsize)
 
-vec4 calculate_coc(in vec4 zdepth)
-{
-	vec4 coc = dof_aperturesize * (vec4(dof_distance) / zdepth - vec4(1.0));
-	return coc * dof_invsensorsize; /* divide by sensor size to get the normalized size */
-}
+#define linear_depth(z) ((ProjectionMatrix[3][3] == 0.0) \
+		? (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y) \
+		: (z * 2.0 - 1.0) * nearFar.y)
 
-float max4(vec4 x) { return max(max(x.x, x.y), max(x.z, x.w)); }
+#define weighted_sum(a, b, c, d, e) (a * e.x + b * e.y + c * e.z + d * e.w)
 
-float linear_depth(float z)
-{
-	/* if persp */
-	if (ProjectionMatrix[3][3] == 0.0) {
-		return (nearFar.x  * nearFar.y) / (z * (nearFar.x - nearFar.y) + nearFar.y);
-	}
-	else {
-		return (z * 2.0 - 1.0) * nearFar.y;
-	}
-}
-
-vec4 linear_depth(vec4 z)
-{
-	/* if persp */
-	if (ProjectionMatrix[3][3] == 0.0) {
-		return (nearFar.xxxx  * nearFar.yyyy) / (z * (nearFar.xxxx - nearFar.yyyy) + nearFar.yyyy);
-	}
-	else {
-		return (z * 2.0 - 1.0) * nearFar.yyyy;
-	}
-}
+float max_v4(vec4 v) { return max(max(v.x, v.y), max(v.z, v.w)); }
 
 #define THRESHOLD 0.0
 
@@ -100,29 +74,15 @@ void main(void)
 	vec4 far_weights = step(THRESHOLD, coc_far);
 
 	/* now write output to weighted buffers. */
-	nearColor = color1 * near_weights.x +
-	            color2 * near_weights.y +
-	            color3 * near_weights.z +
-	            color4 * near_weights.w;
+	nearColor = weighted_sum(color1, color2, color3, color4, near_weights);
+	farColor = weighted_sum(color1, color2, color3, color4, far_weights);
 
-	farColor = color1 * far_weights.x +
-	           color2 * far_weights.y +
-	           color3 * far_weights.z +
-	           color4 * far_weights.w;
+	/* Normalize the color (don't divide by 0.0) */
+	nearColor /= max(1e-6, dot(near_weights, near_weights));
+	farColor /= max(1e-6, dot(far_weights, far_weights));
 
-	float norm_near = dot(near_weights, near_weights);
-	float norm_far = dot(far_weights, far_weights);
-
-	if (norm_near > 0.0) {
-		nearColor /= norm_near;
-	}
-
-	if (norm_far > 0.0) {
-		farColor /= norm_far;
-	}
-
-	float max_near_coc = max(max4(coc_near), 0.0);
-	float max_far_coc = max(max4(coc_far), 0.0);
+	float max_near_coc = max(max_v4(coc_near), 0.0);
+	float max_far_coc = max(max_v4(coc_far), 0.0);
 
 	cocData = vec2(max_near_coc, max_far_coc);
 }
