@@ -331,6 +331,12 @@ static void WORKSPACE_OT_workspace_delete(wmOperatorType *ot)
 	ot->exec = workspace_delete_exec;
 }
 
+static int workspace_append_activate_poll(bContext *C)
+{
+	wmOperatorType *ot = WM_operatortype_find("WM_OT_append", false);
+	return WM_operator_poll(C, ot);
+}
+
 static int workspace_append(bContext *C, const char *directory, const char *idname)
 {
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_append", false);
@@ -384,6 +390,7 @@ static void WORKSPACE_OT_append_activate(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = workspace_append_activate_exec;
+	ot->poll = workspace_append_activate_poll;
 
 	RNA_def_string(ot->srna, "idname", NULL, MAX_ID_NAME - 2, "Identifier",
 	               "Name of the workspace to append and activate");
