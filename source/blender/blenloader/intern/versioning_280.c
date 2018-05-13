@@ -1082,8 +1082,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 		if (!DNA_struct_elem_find(fd->filesdna, "Scene", "SceneDisplay", "display")) {
 			/* Initialize new scene.SceneDisplay */
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-				static float default_light_direction[] = {-0.577350269, -0.577350269, 0.577350269};
-				copy_v3_v3(scene->display.light_direction, default_light_direction);
+				copy_v3_v3(scene->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
 			}
 		}
 
@@ -1091,6 +1090,12 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			/* Initialize new object.ObjectDisplay */
 			for (Object *ob = main->object.first; ob; ob = ob->id.next) {
 				ob->display.flag = OB_SHOW_SHADOW;
+			}
+		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "ToolSettings", "char", "transform_pivot_point")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
 			}
 		}
 	}
