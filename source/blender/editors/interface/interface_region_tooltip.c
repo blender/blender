@@ -896,7 +896,8 @@ ARegion *UI_tooltip_create_from_button(bContext *C, ARegion *butregion, uiBut *b
 
 	/* custom tips for pre-defined operators */
 	if (but->optype) {
-		if (STREQ(but->optype->idname, "WM_OT_tool_set")) {
+		/* TODO(campbell): we now use 'WM_OT_tool_set_by_name', this logic will be moved into the status bar. */
+		if (false && STREQ(but->optype->idname, "WM_OT_tool_set")) {
 			char keymap[64] = "";
 			RNA_string_get(but->opptr, "keymap", keymap);
 			if (keymap[0]) {

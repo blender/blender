@@ -10332,7 +10332,7 @@ bool UI_but_is_tool(const uiBut *but)
 	if (but->optype != NULL) {
 		static wmOperatorType *ot = NULL;
 		if (ot == NULL) {
-			ot = WM_operatortype_find("WM_OT_tool_set", false);
+			ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
 		}
 		if (but->optype == ot) {
 			return true;

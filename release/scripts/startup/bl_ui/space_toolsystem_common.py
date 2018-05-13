@@ -295,16 +295,8 @@ class ToolSelectPanelHelper:
         )
 
     @staticmethod
-    def _tool_vars_from_button_with_index(context):
-        props = context.button_operator
-        return (
-            (
-                props.keymap or None or None,
-                props.manipulator_group or None,
-                props.data_block or None,
-            ),
-            props.index,
-        )
+    def _tool_text_from_button(context):
+        return context.button_operator.name
 
     @classmethod
     def _km_action_simple(cls, kc, context_mode, text, keymap_fn):
@@ -500,24 +492,20 @@ class ToolSelectPanelHelper:
             sub = ui_gen.send(False)
 
             if use_menu:
-                props = sub.operator_menu_hold(
-                    "wm.tool_set",
+                sub.operator_menu_hold(
+                    "wm.tool_set_by_name",
                     text=item.text if show_text else "",
                     depress=is_active,
                     menu="WM_MT_toolsystem_submenu",
                     icon_value=icon_value,
-                )
+                ).name = item.text
             else:
-                props = sub.operator(
-                    "wm.tool_set",
+                sub.operator(
+                    "wm.tool_set_by_name",
                     text=item.text if show_text else "",
                     depress=is_active,
                     icon_value=icon_value,
-                )
-            props.keymap = tool_def[0] or ""
-            props.manipulator_group = tool_def[1] or ""
-            props.data_block = tool_def[2] or ""
-            props.index = index
+                ).name = item.text
         # Signal to finish any remaining layout edits.
         ui_gen.send(None)
 
@@ -544,29 +532,25 @@ class WM_MT_toolsystem_submenu(Menu):
         # Lookup the tool definitions based on the space-type.
         cls = ToolSelectPanelHelper._tool_class_from_space_type(context.space_data.type)
         if cls is not None:
-            tool_def_button, index_button = ToolSelectPanelHelper._tool_vars_from_button_with_index(context)
+            button_text = ToolSelectPanelHelper._tool_text_from_button(context)
             for item_group in cls.tools_from_context(context):
                 if type(item_group) is tuple:
-                    if index_button < len(item_group):
-                        item = item_group[index_button]
-                        tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
-                        is_active = (tool_def == tool_def_button)
-                        if is_active:
-                            return cls, item_group, index_button
-        return None, None, -1
+                    for sub_item in item_group:
+                        if sub_item.text == button_text:
+                            return cls, item_group
+        return None, None
 
     def draw(self, context):
         context_mode = context.mode
         layout = self.layout
         layout.scale_y = 2.0
 
-        cls, item_group, index_active = self._tool_group_from_button(context)
+        cls, item_group = self._tool_group_from_button(context)
         if item_group is None:
             # Should never happen, just in case
             layout.label("Unable to find toolbar group")
             return
 
-        index = 0
         for item in item_group:
             if item is None:
                 layout.separator()
@@ -574,15 +558,10 @@ class WM_MT_toolsystem_submenu(Menu):
             tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
             props = layout.operator(
-                "wm.tool_set",
+                "wm.tool_set_by_name",
                 text=item.text,
                 icon_value=icon_value,
-            )
-            props.keymap = tool_def[0] or ""
-            props.manipulator_group = tool_def[1] or ""
-            props.data_block = tool_def[2] or ""
-            props.index = index
-            index += 1
+            ).name = item.text
 
 
 def activate_by_name(context, text):
