@@ -404,7 +404,7 @@ void CLG_log_str(
 	clg_str_append(&cstr, "\n");
 
 	/* could be optional */
-	ssize_t bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
+	int bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
 	(void)bytes_written;
 
 	clg_str_free(&cstr);
@@ -436,7 +436,7 @@ void CLG_logf(
 	clg_str_append(&cstr, "\n");
 
 	/* could be optional */
-	ssize_t bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
+	int bytes_written = write(lg->ctx->output, cstr.data, cstr.len);
 	(void)bytes_written;
 
 	clg_str_free(&cstr);
