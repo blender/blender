@@ -173,8 +173,10 @@ void CLOSURE_NAME(
 	vec3 T = normalize(worldNormal); /* meh, TODO fix worldNormal misnaming. */
 	vec3 B = normalize(cross(V, T));
 	N = cross(T, B); /* Normal facing view */
-
-	N = N * abs(rand.z) + B * rand.y;
+	/* We want a cosine distribution. */
+	float cos_theta = rand.x * 2.0 - 1.0;
+	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
+	N = N * sin_theta + B * cos_theta;
 #endif
 
 	/* ---------------------------------------------------------------- */
