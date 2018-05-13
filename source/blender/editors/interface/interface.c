@@ -1096,7 +1096,7 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	uiBut *but;
 	char buf[128];
 
-	BLI_assert(block->flag & UI_BLOCK_LOOP);
+	BLI_assert(block->flag & (UI_BLOCK_LOOP | UI_BLOCK_SHOW_SHORTCUT_ALWAYS));
 
 	/* only do it before bounding */
 	if (block->rect.xmin != block->rect.xmax)
@@ -1112,7 +1112,13 @@ static void ui_menu_block_set_keymaps(const bContext *C, uiBlock *block)
 	}
 	else {
 		for (but = block->buttons.first; but; but = but->next) {
-			if (but->dt != UI_EMBOSS_PULLDOWN) {
+			if (block->flag & UI_BLOCK_SHOW_SHORTCUT_ALWAYS) {
+				/* Skip icon-only buttons (as used in the toolbar). */
+				if (but->drawstr[0] == '\0') {
+					continue;
+				}
+			}
+			else if (but->dt != UI_EMBOSS_PULLDOWN) {
 				continue;
 			}
 
@@ -1216,7 +1222,7 @@ void UI_block_end_ex(const bContext *C, uiBlock *block, const int xy[2], int r_x
 		ui_menu_block_set_keyaccels(block); /* could use a different flag to check */
 	}
 
-	if (block->flag & UI_BLOCK_LOOP) {
+	if (block->flag & (UI_BLOCK_LOOP | UI_BLOCK_SHOW_SHORTCUT_ALWAYS)) {
 		ui_menu_block_set_keymaps(C, block);
 	}
 	

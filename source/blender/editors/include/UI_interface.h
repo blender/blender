@@ -142,6 +142,8 @@ enum {
 #define UI_BLOCK_LIST_ITEM   (1 << 19)
 #define UI_BLOCK_RADIAL      (1 << 20)
 #define UI_BLOCK_POPOVER     (1 << 21)
+/** Always show keymaps, even for non-menus. */
+#define UI_BLOCK_SHOW_SHORTCUT_ALWAYS (1 << 22)
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL     (1 << 0)   /* cancel all menus cascading */
