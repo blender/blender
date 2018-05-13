@@ -140,7 +140,10 @@ void create_swapped_rotation_matrix(
 			rz = -euler[1];
 			break;
 		default:
+			ry = 0.0f;
+			rz = 0.0f;
 			BLI_assert(false);
+			break;
 	}
 
 	unit_m3(rot_x_mat);

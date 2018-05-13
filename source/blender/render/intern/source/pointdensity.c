@@ -634,9 +634,6 @@ static int pointdensity(PointDensity *pd,
 
 	texres->tin = 0.0f;
 
-	if ((!pd) || (!pd->point_tree))
-		return 0;
-
 	init_pointdensityrangedata(pd, &pdr, &density, vec, &age, col,
 	        (pd->flag & TEX_PD_FALLOFF_CURVE ? pd->falloff_curve : NULL),
 	        pd->falloff_speed_scale * 0.001f);
@@ -694,9 +691,9 @@ static int pointdensity(PointDensity *pd,
 	return retval;
 }
 
-static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, const float vec[3], const float col[3])
+static void pointdensity_color(PointDensity *pd, TexResult *texres, float age, const float vec[3], const float col[3])
 {
-	int retval = TEX_RGB;
+	texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
 
 	if (pd->source == TEX_PD_PSYS) {
 		float rgba[4];
@@ -733,8 +730,6 @@ static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, co
 				break;
 			case TEX_PD_COLOR_CONSTANT:
 			default:
-				texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
-				retval = TEX_INT;
 				break;
 		}
 	}
@@ -765,13 +760,9 @@ static int pointdensity_color(PointDensity *pd, TexResult *texres, float age, co
 				break;
 			case TEX_PD_COLOR_CONSTANT:
 			default:
-				texres->tr = texres->tg = texres->tb = texres->ta = 1.0f;
-				retval = TEX_INT;
 				break;
 		}
 	}
-	
-	return retval;
 }
 
 static void sample_dummy_point_density(int resolution, float *values)
@@ -919,6 +910,10 @@ static void point_density_sample_func(
 	const float *min = data->min, *dim = data->dim;
 	PointDensity *pd = data->pd;
 	float *values = data->values;
+
+	if (!pd || !pd->point_tree) {
+		return;
+	}
 
 	size_t z = (size_t)iter;
 	for (size_t y = 0; y < resolution; ++y) {

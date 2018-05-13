@@ -333,7 +333,7 @@ static void validate_solution(LaplacianSystem *sys, short flag, float lambda, fl
 {
 	int i;
 	float lam;
-	float vini, vend;
+	float vini = 0.0f, vend = 0.0f;
 
 	if (flag & MOD_LAPLACIANSMOOTH_PRESERVE_VOLUME) {
 		vini = compute_volume(sys->vert_centroid, sys->vertexCos, sys->mpoly, sys->numPolys, sys->mloop);

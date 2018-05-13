@@ -543,7 +543,7 @@ static void opensubdiv_evaluateQuadFaceGrids(CCGSubSurf *ss,
 	for (S = 0; S < face->numVerts; S++) {
 		int x, y, k;
 		CCGEdge *edge = NULL;
-		bool inverse_edge;
+		bool inverse_edge = false;
 
 		for (x = 0; x < gridSize; x++) {
 			for (y = 0; y < gridSize; y++) {

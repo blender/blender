@@ -846,8 +846,9 @@ static uiBut *uiItemFullO_ptr_ex(
 	w = ui_text_icon_width(layout, name, icon, 0);
 
 	int prev_emboss = layout->emboss;
-	if (flag & UI_ITEM_R_NO_BG)
+	if (flag & UI_ITEM_R_NO_BG) {
 		layout->emboss = UI_EMBOSS_NONE;
+	}
 
 	/* create the button */
 	if (icon) {
@@ -868,10 +869,9 @@ static uiBut *uiItemFullO_ptr_ex(
 	if ((layout->root->type == UI_LAYOUT_TOOLBAR) && !icon)
 		but->drawflag |= UI_BUT_TEXT_LEFT;
 
-	if (flag & UI_ITEM_R_NO_BG)
+	if (flag & UI_ITEM_R_NO_BG) {
 		layout->emboss = prev_emboss;
-
-	if (flag & UI_ITEM_R_NO_BG)
+	}
 
 	if (flag & UI_ITEM_O_DEPRESS) {
 		but->flag |= UI_SELECT_DRAW;
@@ -1501,8 +1501,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	ui_item_rna_size(layout, name, icon, ptr, prop, index, icon_only, compact, &w, &h);
 
 	int prev_emboss = layout->emboss;
-	if (flag & UI_ITEM_R_NO_BG)
+	if (no_bg) {
 		layout->emboss = UI_EMBOSS_NONE;
+	}
 	
 	/* array property */
 	if (index == RNA_NO_INDEX && is_array)
@@ -1548,8 +1549,9 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		UI_but_flag_enable(but, UI_BUT_LIST_ITEM);
 	}
 
-	if (flag & UI_ITEM_R_NO_BG)
+	if (no_bg) {
 		layout->emboss = prev_emboss;
+	}
 
 	/* ensure text isn't added to icon_only buttons */
 	if (but && icon_only) {

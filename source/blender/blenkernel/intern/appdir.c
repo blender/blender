@@ -790,7 +790,9 @@ static void where_is_temp(char *fullname, char *basename, const size_t maxlen, c
 				BLI_dir_create_recursive(tmp_name);
 			}
 #else
-			mkdtemp(tmp_name);
+			if (mkdtemp(tmp_name) == NULL) {
+				BLI_dir_create_recursive(tmp_name);
+			}
 #endif
 		}
 		if (BLI_is_dir(tmp_name)) {
