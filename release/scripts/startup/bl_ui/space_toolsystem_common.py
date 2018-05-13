@@ -39,6 +39,7 @@ if "_icon_cache" in locals():
 # (filename -> icon_value) map
 _icon_cache = {}
 
+
 def _keymap_fn_from_seq(keymap_data):
 
     # standalone
@@ -91,6 +92,7 @@ ToolDef = namedtuple(
 )
 del namedtuple
 
+
 def from_dict(kw_args):
     """
     Use so each tool can avoid defining all members of the named tuple.
@@ -115,6 +117,7 @@ def from_dict(kw_args):
         keymap = [keymap]
     kw["keymap"] = keymap
     return ToolDef(**kw)
+
 
 def from_fn(fn):
     """
@@ -186,19 +189,83 @@ class ToolSelectPanelHelper:
         Flattens, skips None and calls generators.
         """
         for item in tools:
-            if item is not None:
-                if type(item) is tuple:
-                    for sub_item in item:
-                        if sub_item is not None:
-                            if _item_is_fn(sub_item):
-                                yield from sub_item(context)
-                            else:
-                                yield sub_item
-                else:
-                    if _item_is_fn(item):
-                        yield from item(context)
+            if item is None:
+                yield None
+            elif type(item) is tuple:
+                for sub_item in item:
+                    if sub_item is None:
+                        yield None
+                    elif _item_is_fn(sub_item):
+                        yield from sub_item(context)
                     else:
-                        yield item
+                        yield sub_item
+            else:
+                if _item_is_fn(item):
+                    yield from item(context)
+                else:
+                    yield item
+
+    @staticmethod
+    def _tools_flatten_with_tool_index(tools):
+        for item in tools:
+            if item is None:
+                yield None, -1
+            elif type(item) is tuple:
+                i = 0
+                for sub_item in item:
+                    if sub_item is None:
+                        yield None
+                    elif _item_is_fn(sub_item):
+                        for item_dyn in sub_item(context):
+                            yield item_dyn, i
+                            i += 1
+                    else:
+                        yield sub_item, i
+                        i += 1
+            else:
+                if _item_is_fn(item):
+                    for item_dyn in item(context):
+                        yield item_dyn, -1
+                else:
+                    yield item, -1
+
+    @staticmethod
+    def _tool_get_active(context, with_icon=False):
+        """
+        Return the active Python tool definition and icon name.
+        """
+
+        workspace = context.workspace
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(workspace.tool_space_type)
+        if cls is not None:
+            tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
+
+            context_mode = context.mode
+            for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context)):
+                if item is not None:
+                    tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
+                    if (tool_def == tool_def_active):
+                        if with_icon:
+                            icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
+                        else:
+                            icon_value = 0
+                        return (item, icon_value)
+        return None, 0
+
+    @staticmethod
+    def _tool_get_by_name(context, text):
+        """
+        Return the active Python tool definition and index (if in sub-group, else -1).
+        """
+        workspace = context.workspace
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(workspace.tool_space_type)
+        if cls is not None:
+            context_mode = context.mode
+            for item, index in ToolSelectPanelHelper._tools_flatten_with_tool_index(cls.tools_from_context(context)):
+                if item is not None:
+                    if item.text == text:
+                        return (item, index)
+        return None, -1
 
     @staticmethod
     def _tool_vars_from_def(item, context_mode):
@@ -283,7 +350,6 @@ class ToolSelectPanelHelper:
                         text = item.text
                         icon_name = item.icon
                         cls._km_action_simple(kc, context_mode, text, keymap_data)
-
 
     # -------------------------------------------------------------------------
     # Layout Generators
@@ -456,30 +522,8 @@ class ToolSelectPanelHelper:
         ui_gen.send(None)
 
     @staticmethod
-    def _active_tool(context, with_icon=False):
-        """
-        Return the active Python tool definition and icon name.
-        """
-
-        workspace = context.workspace
-        cls = ToolSelectPanelHelper._tool_class_from_space_type(workspace.tool_space_type)
-        if cls is not None:
-            tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
-
-            context_mode = context.mode
-            for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context)):
-                tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
-                if (tool_def == tool_def_active):
-                    if with_icon:
-                        icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
-                    else:
-                        icon_value = 0
-                    return (item, icon_value)
-        return None, 0
-
-    @staticmethod
     def draw_active_tool_header(context, layout):
-        item, icon_value = ToolSelectPanelHelper._active_tool(context, with_icon=True)
+        item, icon_value = ToolSelectPanelHelper._tool_get_active(context, with_icon=True)
         if item is None:
             return
         # Note: we could show 'item.text' here but it makes the layout jitter when switcuing tools.
@@ -539,6 +583,21 @@ class WM_MT_toolsystem_submenu(Menu):
             props.data_block = tool_def[2] or ""
             props.index = index
             index += 1
+
+
+def activate_by_name(context, text):
+    item, index = ToolSelectPanelHelper._tool_get_by_name(context, text)
+    if item is not None:
+        context_mode = context.mode
+        tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
+        bpy.ops.wm.tool_set(
+            keymap=tool_def[0] or "",
+            manipulator_group=tool_def[1] or "",
+            data_block=tool_def[2] or "",
+            index=index,
+        )
+        return True
+    return False
 
 
 classes = (

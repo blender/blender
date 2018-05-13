@@ -2326,6 +2326,25 @@ class WM_OT_app_template_install(Operator):
         return {'RUNNING_MODAL'}
 
 
+class WM_OT_tool_set_by_name(Operator):
+    """Set the tool by name (for keymaps)"""
+    bl_idname = "wm.tool_set_by_name"
+    bl_label = "Set Tool By Name"
+
+    name = StringProperty(
+            name="Text",
+            description="Display name of the tool",
+            )
+
+    def execute(self, context):
+        from bl_ui.space_toolsystem_common import activate_by_name
+        if activate_by_name(context, self.name):
+            return {'FINISHED'}
+        else:
+            self.report({'WARNING'}, f"Tool {self.name!r} not found.")
+            return {'CANCELLED'}
+
+
 classes = (
     BRUSH_OT_active_index_set,
     WM_OT_addon_disable,
@@ -2380,4 +2399,5 @@ classes = (
     WM_OT_owner_disable,
     WM_OT_owner_enable,
     WM_OT_url_open,
+    WM_OT_tool_set_by_name,
 )
