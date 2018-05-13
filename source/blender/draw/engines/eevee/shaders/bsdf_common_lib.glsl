@@ -671,6 +671,7 @@ struct Closure {
 /* This is hacking ssr_id to tag transparent bsdf */
 #define TRANSPARENT_CLOSURE_FLAG -2
 #define REFRACT_CLOSURE_FLAG -3
+#define NO_SSR -999
 
 #  ifdef USE_SSS
 #    ifdef USE_SSS_ALBEDO

@@ -177,6 +177,13 @@ void CLOSURE_NAME(
 	float cos_theta = rand.x * 2.0 - 1.0;
 	float sin_theta = sqrt(max(0.0, 1.0f - cos_theta*cos_theta));;
 	N = N * sin_theta + B * cos_theta;
+
+#  ifdef CLOSURE_GLOSSY
+	/* Hair random normal does not work with SSR :(.
+	 * It just create self reflection feedback (which is beautifful btw)
+	 * but not correct. */
+	ssr_id = NO_SSR; /* Force bypass */
+#  endif
 #endif
 
 	/* ---------------------------------------------------------------- */
@@ -385,6 +392,12 @@ void CLOSURE_NAME(
 	}
 
 	out_spec += spec_accum.rgb * ssr_spec * spec_occlu * float(specToggle);
+
+#  ifdef HAIR_SHADER
+	/* Hack: Overide spec color so that ssr will not be computed
+	 * even if ssr_id match the active ssr. */
+	ssr_spec = vec3(0.0);
+#  endif
 #endif
 
 #ifdef CLOSURE_REFRACTION
