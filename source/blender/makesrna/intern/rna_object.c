@@ -1000,6 +1000,11 @@ static char *rna_MaterialSlot_path(PointerRNA *ptr)
  * logic from check_body_type()
  *  */
 
+static char *rna_ObjectDisplay_path(PointerRNA *UNUSED(ptr))
+{
+	return BLI_strdup("display");
+}
+
 static PointerRNA rna_Object_active_particle_system_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
@@ -1825,6 +1830,7 @@ static void rna_def_object_display(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "ObjectDisplay", NULL);
 	RNA_def_struct_ui_text(srna, "Object Display", "Object display settings for 3d viewport");
 	RNA_def_struct_sdna(srna, "ObjectDisplay");
+	RNA_def_struct_path_func(srna, "rna_ObjectDisplay_path");
 
 	prop = RNA_def_property(srna, "show_shadows", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", OB_SHOW_SHADOW);
