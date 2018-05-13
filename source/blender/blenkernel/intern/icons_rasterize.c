@@ -27,6 +27,7 @@
 #include "BLI_utildefines.h"
 #include "BLI_bitmap_draw_2d.h"
 #include "BLI_math_geom.h"
+#include "BLI_math_color_blend.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -57,6 +58,17 @@ static void tri_fill_flat(int x, int x_end, int y, void *user_data)
 	}
 }
 
+static void tri_fill_flat_blend(int x, int x_end, int y, void *user_data)
+{
+	struct UserRasterInfo *data = user_data;
+	uint *p = &data->rect[(y * data->rect_size[1]) + x];
+	uint col = data->color[0];
+	while (x++ != x_end) {
+		blend_color_mix_byte((uchar *)p, (const uchar *)p, (const uchar *)&col);
+		p++;
+	}
+}
+
 static void tri_fill_smooth(int x, int x_end, int y, void *user_data)
 {
 	struct UserRasterInfo *data = user_data;
@@ -81,6 +93,36 @@ static void tri_fill_smooth(int x, int x_end, int y, void *user_data)
 		col.as_bytes[2] = (uchar)(col_u[2] / 255);
 		col.as_bytes[3] = (uchar)(col_u[3] / 255);
 		*p++ = col.as_u32;
+
+		pt_step_fl[0] += 1.0f;
+	}
+}
+
+static void tri_fill_smooth_blend(int x, int x_end, int y, void *user_data)
+{
+	struct UserRasterInfo *data = user_data;
+	uint *p = &data->rect[(y * data->rect_size[1]) + x];
+	float pt_step_fl[2] = {(float)x, (float)y};
+	while (x++ != x_end) {
+		float w[3];
+		barycentric_weights_v2_clamped(UNPACK3(data->smooth.pt_fl), pt_step_fl, w);
+
+		uint col_u[4] = {0, 0, 0, 0};
+		for (uint corner = 0; corner < 3; corner++) {
+			for (uint chan = 0; chan < 4; chan++) {
+				col_u[chan] += data->smooth.color_u[corner][chan] * (uint)(w[corner] * 255.0f);
+			}
+		}
+		union {
+			uint  as_u32;
+			uchar as_bytes[4];
+		} col;
+		col.as_bytes[0] = (uchar)(col_u[0] / 255);
+		col.as_bytes[1] = (uchar)(col_u[1] / 255);
+		col.as_bytes[2] = (uchar)(col_u[2] / 255);
+		col.as_bytes[3] = (uchar)(col_u[3] / 255);
+		blend_color_mix_byte((uchar *)p, (const uchar *)p, col.as_bytes);
+		p++;
 
 		pt_step_fl[0] += 1.0f;
 	}
@@ -129,7 +171,8 @@ ImBuf *BKE_icon_geom_rasterize(
 		}
 		data.color = col;
 		if ((col[0] == col[1]) && (col[0] == col[2])) {
-			BLI_bitmap_draw_2d_tri_v2i(UNPACK3(data.pt), tri_fill_flat, &data);
+			bool no_alpha = ((uchar *)col)[3] == 0xff;
+			BLI_bitmap_draw_2d_tri_v2i(UNPACK3(data.pt), no_alpha ? tri_fill_flat : tri_fill_flat_blend, &data);
 		}
 		else {
 			ARRAY_SET_ITEMS(data.smooth.pt_fl[0], UNPACK2_EX((float), data.pt[0], ));
@@ -138,7 +181,11 @@ ImBuf *BKE_icon_geom_rasterize(
 			ARRAY_SET_ITEMS(data.smooth.color_u[0], UNPACK4_EX((uint), ((uchar *)(col + 0)), ));
 			ARRAY_SET_ITEMS(data.smooth.color_u[1], UNPACK4_EX((uint), ((uchar *)(col + 1)), ));
 			ARRAY_SET_ITEMS(data.smooth.color_u[2], UNPACK4_EX((uint), ((uchar *)(col + 2)), ));
-			BLI_bitmap_draw_2d_tri_v2i(UNPACK3(data.pt), tri_fill_smooth, &data);
+			bool no_alpha = (
+			        (((uchar *)(col + 0))[3] == 0xff) &&
+			        (((uchar *)(col + 1))[3] == 0xff) &&
+			        (((uchar *)(col + 2))[3] == 0xff));
+			BLI_bitmap_draw_2d_tri_v2i(UNPACK3(data.pt), no_alpha ? tri_fill_smooth : tri_fill_smooth_blend, &data);
 		}
 	}
 	IMB_scaleImBuf(ibuf, size_x, size_y);
