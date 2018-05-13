@@ -1873,8 +1873,7 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
 	int total = 0;
 
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		int i;
-		for (i = 0; i < tc->data_len; i++) {
+		for (int i = 0; i < tc->data_len; i++) {
 			if (tc->data[i].flag & TD_SELECTED) {
 				if (!(tc->data[i].flag & TD_NOCENTER)) {
 					if (tc->use_local_mat) {
@@ -1898,34 +1897,29 @@ void calculateCenterMedian(TransInfo *t, float r_center[3])
 
 void calculateCenterBound(TransInfo *t, float r_center[3])
 {
-	float max[3];
-	float min[3];
-	int i;
-	bool is_first = true;
+	float max[3], min[3];
+	bool changed = false;
+	INIT_MINMAX(min, max);
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
-		for (i = 0; i < tc->data_len; i++) {
-			if (is_first == false) {
-				if (tc->data[i].flag & TD_SELECTED) {
-					if (!(tc->data[i].flag & TD_NOCENTER)) {
-						if (tc->use_local_mat) {
-							float v[3];
-							mul_v3_m4v3(v, tc->mat, tc->data[i].center);
-							minmax_v3v3_v3(min, max, v);
-						}
-						else {
-							minmax_v3v3_v3(min, max, tc->data[i].center);
-						}
+		for (int i = 0; i < tc->data_len; i++) {
+			if (tc->data[i].flag & TD_SELECTED) {
+				if (!(tc->data[i].flag & TD_NOCENTER)) {
+					if (tc->use_local_mat) {
+						float v[3];
+						mul_v3_m4v3(v, tc->mat, tc->data[i].center);
+						minmax_v3v3_v3(min, max, v);
 					}
+					else {
+						minmax_v3v3_v3(min, max, tc->data[i].center);
+					}
+					changed = true;
 				}
-			}
-			else {
-				copy_v3_v3(max, tc->data[i].center);
-				copy_v3_v3(min, tc->data[i].center);
-				is_first = false;
 			}
 		}
 	}
-	mid_v3_v3v3(r_center, min, max);
+	if (changed) {
+		mid_v3_v3v3(r_center, min, max);
+	}
 }
 
 /**
