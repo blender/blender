@@ -74,6 +74,24 @@ class TriMesh:
         return me
 
 
+def object_material_colors(ob):
+    material_colors = []
+    color_default = (1.0, 1.0, 1.0, 1.0)
+    for slot in ob.material_slots:
+        material = slot.material
+        color = color_default
+        if material is not None and material.use_nodes:
+            node_tree = material.node_tree
+            if node_tree is not None:
+                color = next((
+                    node.outputs[0].default_value[:]
+                    for node in node_tree.nodes
+                    if node.type == 'RGB'
+                ), color_default)
+        material_colors.append(color)
+    return material_colors
+
+
 def object_child_map(objects):
     objects_children = {}
     for ob in objects:
@@ -89,7 +107,7 @@ def object_child_map(objects):
     return objects_children
 
 
-def mesh_data_lists_from_mesh(me):
+def mesh_data_lists_from_mesh(me, material_colors):
     me_loops = me.loops[:]
     me_loops_color = me.vertex_colors.active.data[:]
     me_verts = me.vertices[:]
@@ -102,10 +120,15 @@ def mesh_data_lists_from_mesh(me):
     tris_colors = []
 
     for p in me_polys:
-
         # Backface culling (allows using spheres without tedious manual deleting).
         if p.normal.z <= 0.0:
             continue
+
+        material_index = p.material_index
+        if material_index < len(material_colors):
+            base_color = material_colors[p.material_index]
+        else:
+            base_color = (1.0, 1.0, 1.0, 1.0)
 
         l_sta = p.loop_start
         l_len = p.loop_total
@@ -137,7 +160,7 @@ def mesh_data_lists_from_mesh(me):
             ))
             # Color as RGBA for each tri
             tris_colors.append(
-                [[int(c * 255) for c in cn.color] for cn in (c0, c1, c2)]
+                [[int(c * b * 255) for c, b in zip(cn.color, base_color)] for cn in (c0, c1, c2)]
             )
             i1 = i2
     return (tris_coords, tris_colors)
@@ -156,7 +179,10 @@ def mesh_data_lists_from_objects(ob_parent, ob_children):
         with TriMesh(ob) as me:
             if has_parent:
                 me.transform(parent_matrix_inverted * ob.matrix_world)
-            tris_coords_iter, tris_colors_iter = mesh_data_lists_from_mesh(me)
+            tris_coords_iter, tris_colors_iter = mesh_data_lists_from_mesh(
+                me,
+                object_material_colors(ob),
+            )
             tris_coords.extend(tris_coords_iter)
             tris_colors.extend(tris_colors_iter)
         has_parent = True
