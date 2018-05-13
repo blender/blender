@@ -144,6 +144,14 @@ class ToolSelectPanelHelper:
     """
 
     @staticmethod
+    def _tool_class_from_space_type(space_type):
+        return next(
+            (cls for cls in ToolSelectPanelHelper.__subclasses__()
+             if cls.bl_space_type == space_type),
+            None
+        )
+
+    @staticmethod
     def _icon_value_from_icon_handle(icon_name):
         import os
         if icon_name is not None:
@@ -454,12 +462,7 @@ class ToolSelectPanelHelper:
         """
 
         workspace = context.workspace
-        space_type = workspace.tool_space_type
-        cls = next(
-            (cls for cls in ToolSelectPanelHelper.__subclasses__()
-             if cls.bl_space_type == space_type),
-            None
-        )
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(workspace.tool_space_type)
         if cls is not None:
             tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
 
@@ -495,12 +498,7 @@ class WM_MT_toolsystem_submenu(Menu):
     def _tool_group_from_button(context):
         context_mode = context.mode
         # Lookup the tool definitions based on the space-type.
-        space_type = context.space_data.type
-        cls = next(
-            (cls for cls in ToolSelectPanelHelper.__subclasses__()
-             if cls.bl_space_type == space_type),
-            None
-        )
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(context.space_data.type)
         if cls is not None:
             tool_def_button, index_button = ToolSelectPanelHelper._tool_vars_from_button_with_index(context)
             for item_group in cls.tools_from_context(context):
