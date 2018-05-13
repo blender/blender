@@ -611,7 +611,7 @@ static int calc_manipulator_stats(const bContext *C, struct TransformBounds *tbo
 	if (ob && totsel && !is_gp_edit) {
 
 		switch (v3d->twmode) {
-		
+
 			case V3D_MANIP_GLOBAL:
 			{
 				break; /* nothing to do */
@@ -1035,7 +1035,7 @@ static void draw_manipulator_rotate(
 
 
 	ortho = is_orthogonal_m4(rv3d->twmat);
-	
+
 	/* apply the transform delta */
 	if (is_moving) {
 		copy_m4_m4(matt, rv3d->twmat); // to copy the parts outside of [3][3]
