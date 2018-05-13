@@ -2938,22 +2938,29 @@ static void ui_litem_layout_overlap(uiLayout *litem)
 	litem->y = y - litem->h;
 }
 
+static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int align)
+{
+	litem->root = layout->root;
+	litem->align = align;
+	litem->active = true;
+	litem->enabled = true;
+	litem->context = layout->context;
+	litem->redalert = layout->redalert;
+	litem->w = layout->w;
+	litem->emboss = layout->root->block->dt;
+	BLI_addtail(&layout->items, litem);
+}
+
 /* layout create functions */
 uiLayout *uiLayoutRow(uiLayout *layout, int align)
 {
 	uiLayout *litem;
 
 	litem = MEM_callocN(sizeof(uiLayout), "uiLayoutRow");
+	ui_litem_init_from_parent(litem, layout, align);
+
 	litem->item.type = ITEM_LAYOUT_ROW;
-	litem->root = layout->root;
-	litem->align = align;
-	litem->active = true;
-	litem->enabled = true;
-	litem->context = layout->context;
 	litem->space = (align) ? 0 : layout->root->style->buttonspacex;
-	litem->redalert = layout->redalert;
-	litem->w = layout->w;
-	BLI_addtail(&layout->items, litem);
 
 	UI_block_layout_set_current(layout->root->block, litem);
 
@@ -2965,16 +2972,10 @@ uiLayout *uiLayoutColumn(uiLayout *layout, int align)
 	uiLayout *litem;
 
 	litem = MEM_callocN(sizeof(uiLayout), "uiLayoutColumn");
+	ui_litem_init_from_parent(litem, layout, align);
+
 	litem->item.type = ITEM_LAYOUT_COLUMN;
-	litem->root = layout->root;
-	litem->align = align;
-	litem->active = true;
-	litem->enabled = true;
-	litem->context = layout->context;
-	litem->space = (litem->align) ? 0 : layout->root->style->buttonspacey;
-	litem->redalert = layout->redalert;
-	litem->w = layout->w;
-	BLI_addtail(&layout->items, litem);
+	litem->space = (align) ? 0 : layout->root->style->buttonspacey;
 
 	UI_block_layout_set_current(layout->root->block, litem);
 
@@ -2986,17 +2987,11 @@ uiLayout *uiLayoutColumnFlow(uiLayout *layout, int number, int align)
 	uiLayoutItemFlow *flow;
 
 	flow = MEM_callocN(sizeof(uiLayoutItemFlow), "uiLayoutItemFlow");
+	ui_litem_init_from_parent(&flow->litem, layout, align);
+
 	flow->litem.item.type = ITEM_LAYOUT_COLUMN_FLOW;
-	flow->litem.root = layout->root;
-	flow->litem.align = align;
-	flow->litem.active = true;
-	flow->litem.enabled = true;
-	flow->litem.context = layout->context;
 	flow->litem.space = (flow->litem.align) ? 0 : layout->root->style->columnspace;
-	flow->litem.redalert = layout->redalert;
-	flow->litem.w = layout->w;
 	flow->number = number;
-	BLI_addtail(&layout->items, flow);
 
 	UI_block_layout_set_current(layout->root->block, &flow->litem);
 
@@ -3008,15 +3003,10 @@ static uiLayoutItemBx *ui_layout_box(uiLayout *layout, int type)
 	uiLayoutItemBx *box;
 
 	box = MEM_callocN(sizeof(uiLayoutItemBx), "uiLayoutItemBx");
+	ui_litem_init_from_parent(&box->litem, layout, false);
+
 	box->litem.item.type = ITEM_LAYOUT_BOX;
-	box->litem.root = layout->root;
-	box->litem.active = 1;
-	box->litem.enabled = 1;
-	box->litem.context = layout->context;
 	box->litem.space = layout->root->style->columnspace;
-	box->litem.redalert = layout->redalert;
-	box->litem.w = layout->w;
-	BLI_addtail(&layout->items, box);
 
 	UI_block_layout_set_current(layout->root->block, &box->litem);
 
@@ -3044,14 +3034,9 @@ uiLayout *uiLayoutRadial(uiLayout *layout)
 	}
 
 	litem = MEM_callocN(sizeof(uiLayout), "uiLayoutRadial");
+	ui_litem_init_from_parent(litem, layout, false);
+
 	litem->item.type = ITEM_LAYOUT_RADIAL;
-	litem->root = layout->root;
-	litem->active = true;
-	litem->enabled = true;
-	litem->context = layout->context;
-	litem->redalert = layout->redalert;
-	litem->w = layout->w;
-	BLI_addtail(&layout->root->layout->items, litem);
 
 	UI_block_layout_set_current(layout->root->block, litem);
 
@@ -3108,14 +3093,9 @@ uiLayout *uiLayoutAbsolute(uiLayout *layout, int align)
 	uiLayout *litem;
 
 	litem = MEM_callocN(sizeof(uiLayout), "uiLayoutAbsolute");
+	ui_litem_init_from_parent(litem, layout, align);
+
 	litem->item.type = ITEM_LAYOUT_ABSOLUTE;
-	litem->root = layout->root;
-	litem->align = align;
-	litem->active = 1;
-	litem->enabled = 1;
-	litem->context = layout->context;
-	litem->redalert = layout->redalert;
-	BLI_addtail(&layout->items, litem);
 
 	UI_block_layout_set_current(layout->root->block, litem);
 
@@ -3137,13 +3117,9 @@ uiLayout *uiLayoutOverlap(uiLayout *layout)
 	uiLayout *litem;
 
 	litem = MEM_callocN(sizeof(uiLayout), "uiLayoutOverlap");
+	ui_litem_init_from_parent(litem, layout, false);
+
 	litem->item.type = ITEM_LAYOUT_OVERLAP;
-	litem->root = layout->root;
-	litem->active = true;
-	litem->enabled = true;
-	litem->context = layout->context;
-	litem->redalert = layout->redalert;
-	BLI_addtail(&layout->items, litem);
 
 	UI_block_layout_set_current(layout->root->block, litem);
 
@@ -3155,17 +3131,11 @@ uiLayout *uiLayoutSplit(uiLayout *layout, float percentage, int align)
 	uiLayoutItemSplit *split;
 
 	split = MEM_callocN(sizeof(uiLayoutItemSplit), "uiLayoutItemSplit");
+	ui_litem_init_from_parent(&split->litem, layout, align);
+
 	split->litem.item.type = ITEM_LAYOUT_SPLIT;
-	split->litem.root = layout->root;
-	split->litem.align = align;
-	split->litem.active = true;
-	split->litem.enabled = true;
-	split->litem.context = layout->context;
 	split->litem.space = layout->root->style->columnspace;
-	split->litem.redalert = layout->redalert;
-	split->litem.w = layout->w;
 	split->percentage = percentage;
-	BLI_addtail(&layout->items, split);
 
 	UI_block_layout_set_current(layout->root->block, &split->litem);
 
