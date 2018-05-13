@@ -653,7 +653,7 @@ void NODE_OT_select_circle(wmOperatorType *ot)
 
 /* ****** Lasso Select ****** */
 
-static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves, short select)
+static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves, bool select, bool extend)
 {
 	SpaceNode *snode = CTX_wm_space_node(C);
 	bNode *node;
@@ -668,6 +668,11 @@ static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves
 
 	/* do actual selection */
 	for (node = snode->edittree->nodes.first; node; node = node->next) {
+
+		if (node->flag & NODE_SELECT && select && extend) {
+			continue;
+		}
+
 		int screen_co[2];
 		const float cent[2] = {BLI_rctf_cent_x(&node->totr),
 		                       BLI_rctf_cent_y(&node->totr)};
@@ -678,6 +683,10 @@ static bool do_lasso_select_node(bContext *C, const int mcords[][2], short moves
 		    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], INT_MAX))
 		{
 			nodeSetSelected(node, select);
+			changed = true;
+		}
+		else if (select && !extend) {
+			nodeSetSelected(node, false);
 			changed = true;
 		}
 	}
@@ -695,10 +704,9 @@ static int node_lasso_select_exec(bContext *C, wmOperator *op)
 	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
-		short select;
-
-		select = !RNA_boolean_get(op->ptr, "deselect");
-		do_lasso_select_node(C, mcords, mcords_tot, select);
+		const bool select = !RNA_boolean_get(op->ptr, "deselect");
+		const bool extend = RNA_boolean_get(op->ptr, "extend");
+		do_lasso_select_node(C, mcords, mcords_tot, select, extend);
 
 		MEM_freeN((void *)mcords);
 
