@@ -39,6 +39,7 @@ extern "C" {
 struct Image;
 struct ImageUser;
 struct PreviewImage;
+struct Gwn_VertBuf;
 	
 struct GPUFrameBuffer;
 typedef struct GPUTexture GPUTexture;
@@ -62,38 +63,36 @@ typedef struct GPUTexture GPUTexture;
  * specification. */
 typedef enum GPUTextureFormat {
 	/* Formats texture & renderbuffer */
-	GPU_RGBA32F,
-	GPU_RGBA16F,
-	GPU_RGBA8,
-	GPU_RG32F,
-	GPU_RG16F,
-	GPU_RG16I,
-	GPU_RG16,
-	GPU_R32F,
-	GPU_R32UI,
-	GPU_R16F,
-	GPU_R16I,
-	GPU_R16UI,
-	GPU_RG8,
-	GPU_R8,
-#if 0
-	GPU_RGBA32I,
-	GPU_RGBA32UI,
-	GPU_RGBA16,
-	GPU_RGBA16I,
-	GPU_RGBA16UI,
-	GPU_RGBA8I,
 	GPU_RGBA8UI,
-	GPU_RG32I,
-	GPU_RG32UI,
-	GPU_RG16UI,
-	GPU_RG8I,
+	GPU_RGBA8I,
+	GPU_RGBA8,
+	GPU_RGBA32UI,
+	GPU_RGBA32I,
+	GPU_RGBA32F,
+	GPU_RGBA16UI,
+	GPU_RGBA16I,
+	GPU_RGBA16F,
+	GPU_RGBA16,
 	GPU_RG8UI,
-	GPU_R32I,
-	GPU_R16,
-	GPU_R8I,
+	GPU_RG8I,
+	GPU_RG8,
+	GPU_RG32UI,
+	GPU_RG32I,
+	GPU_RG32F,
+	GPU_RG16UI,
+	GPU_RG16I,
+	GPU_RG16F,
+	GPU_RG16,
 	GPU_R8UI,
-#endif
+	GPU_R8I,
+	GPU_R8,
+	GPU_R32UI,
+	GPU_R32I,
+	GPU_R32F,
+	GPU_R16UI,
+	GPU_R16I,
+	GPU_R16F,
+	GPU_R16, /* Max texture buffer format. */
 
 	/* Special formats texture & renderbuffer */
 #if 0
@@ -157,6 +156,7 @@ GPUTexture *GPU_texture_create_3D(
         int w, int h, int d, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
 GPUTexture *GPU_texture_create_cube(
         int w, GPUTextureFormat data_type, const float *pixels, char err_out[256]);
+GPUTexture *GPU_texture_create_from_vertbuf(struct Gwn_VertBuf *vert);
 
 GPUTexture *GPU_texture_from_blender(
         struct Image *ima, struct ImageUser *iuser, int textarget, bool is_data, double time, int mipmap);

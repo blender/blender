@@ -35,6 +35,7 @@
 
 #include "BKE_global.h"
 
+#include "GPU_batch.h"
 #include "GPU_debug.h"
 #include "GPU_draw.h"
 #include "GPU_extensions.h"
@@ -608,6 +609,57 @@ static GPUTexture *GPU_texture_cube_create(
 	return tex;
 }
 
+/* Special buffer textures. data_type must be compatible with the buffer content. */
+static GPUTexture *GPU_texture_create_buffer(GPUTextureFormat data_type, const GLuint buffer)
+{
+	GPUTexture *tex = MEM_callocN(sizeof(GPUTexture), "GPUTexture");
+	tex->number = -1;
+	tex->refcount = 1;
+	tex->format = data_type;
+	tex->components = gpu_texture_get_component_count(data_type);
+	tex->format_flag = 0;
+	tex->target_base = tex->target = GL_TEXTURE_BUFFER;
+
+	GLenum format, internalformat, data_format;
+	internalformat = gpu_texture_get_format(tex->components, data_type, &format, &data_format,
+	                                        &tex->format_flag, &tex->bytesize);
+
+	if (!(ELEM(data_type, GPU_R8, GPU_R16) ||
+	      ELEM(data_type, GPU_R16F, GPU_R32F) ||
+	      ELEM(data_type, GPU_R8I, GPU_R16I, GPU_R32I) ||
+	      ELEM(data_type, GPU_R8UI, GPU_R16UI, GPU_R32UI) ||
+	      ELEM(data_type, GPU_RG8, GPU_RG16) ||
+	      ELEM(data_type, GPU_RG16F, GPU_RG32F) ||
+	      ELEM(data_type, GPU_RG8I, GPU_RG16I, GPU_RG32I) ||
+	      ELEM(data_type, GPU_RG8UI, GPU_RG16UI, GPU_RG32UI) ||
+	      //ELEM(data_type, GPU_RGB32F, GPU_RGB32I, GPU_RGB32UI) || /* Not available until gl 4.0 */
+	      ELEM(data_type, GPU_RGBA8, GPU_RGBA16) ||
+	      ELEM(data_type, GPU_RGBA16F, GPU_RGBA32F) ||
+	      ELEM(data_type, GPU_RGBA8I, GPU_RGBA16I, GPU_RGBA32I) ||
+	      ELEM(data_type, GPU_RGBA8UI, GPU_RGBA16UI, GPU_RGBA32UI)))
+	{
+		fprintf(stderr, "GPUTexture: invalid format for texture buffer");
+		GPU_texture_free(tex);
+		return NULL;
+	}
+
+	/* Generate Texture object */
+	glGenTextures(1, &tex->bindcode);
+
+	if (!tex->bindcode) {
+		fprintf(stderr, "GPUTexture: texture create failed");
+		GPU_texture_free(tex);
+		BLI_assert(0 && "glGenTextures failled: Are you sure a valid OGL context is active on this thread?");
+		return NULL;
+	}
+
+	glBindTexture(tex->target, tex->bindcode);
+	glTexBuffer(tex->target, internalformat, buffer);
+	glBindTexture(tex->target, 0);
+
+	return tex;
+}
+
 GPUTexture *GPU_texture_from_blender(Image *ima, ImageUser *iuser, int textarget, bool is_data, double UNUSED(time), int mipmap)
 {
 	int gputt;
@@ -766,6 +818,74 @@ GPUTexture *GPU_texture_create_cube(
 
 	return GPU_texture_cube_create(w, 0, fpixels_px, fpixels_py, fpixels_pz, fpixels_nx, fpixels_ny, fpixels_nz,
 	                               data_type, err_out);
+}
+
+GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
+{
+	Gwn_VertFormat *format = &vert->format;
+	Gwn_VertAttr *attr = &format->attribs[0];
+
+	/* Detect incompatible cases (not supported by texture buffers) */
+	BLI_assert(format->attrib_ct == 1 && vert->vbo_id != 0);
+	BLI_assert(attr->comp_ct != 3); /* Not until OGL 4.0 */
+	BLI_assert(attr->comp_type != GWN_COMP_I10);
+	BLI_assert(attr->fetch_mode != GWN_FETCH_INT_TO_FLOAT);
+
+	unsigned int byte_per_comp = attr->sz / attr->comp_ct;
+	bool is_uint = ELEM(attr->comp_type, GWN_COMP_U8, GWN_COMP_U16, GWN_COMP_U32);
+
+	/* Cannot fetch signed int or 32bit ints as normalized float. */
+	if (attr->fetch_mode == GWN_FETCH_INT_TO_FLOAT_UNIT) {
+		BLI_assert(is_uint || byte_per_comp <= 2);
+	}
+
+	GPUTextureFormat data_type;
+	switch (attr->fetch_mode) {
+		case GWN_FETCH_FLOAT:
+			switch (attr->comp_ct) {
+				case 1: data_type = GPU_R32F; break;
+				case 2: data_type = GPU_RG32F; break;
+				// case 3: data_type = GPU_RGB32F; break; /* Not supported */
+				default: data_type = GPU_RGBA32F; break;
+			}
+			break;
+		case GWN_FETCH_INT:
+			switch (attr->comp_ct) {
+				case 1:
+					switch (byte_per_comp) {
+						case 1: data_type = (is_uint) ? GPU_R8UI : GPU_R8I; break;
+						case 2: data_type = (is_uint) ? GPU_R16UI : GPU_R16I; break;
+						default: data_type = (is_uint) ? GPU_R32UI : GPU_R32I; break;
+					}
+					break;
+				case 2:
+					switch (byte_per_comp) {
+						case 1: data_type = (is_uint) ? GPU_RG8UI : GPU_RG8I; break;
+						case 2: data_type = (is_uint) ? GPU_RG16UI : GPU_RG16I; break;
+						default: data_type = (is_uint) ? GPU_RG32UI : GPU_RG32I; break;
+					}
+					break;
+				default:
+					switch (byte_per_comp) {
+						case 1: data_type = (is_uint) ? GPU_RGBA8UI : GPU_RGBA8I; break;
+						case 2: data_type = (is_uint) ? GPU_RGBA16UI : GPU_RGBA16I; break;
+						default: data_type = (is_uint) ? GPU_RGBA32UI : GPU_RGBA32I; break;
+					}
+					break;
+			}
+			break;
+		case GWN_FETCH_INT_TO_FLOAT_UNIT:
+			switch (attr->comp_ct) {
+				case 1: data_type = (byte_per_comp == 1) ? GPU_R8 : GPU_R16; break;
+				case 2: data_type = (byte_per_comp == 1) ? GPU_RG8 : GPU_RG16; break;
+				default: data_type = (byte_per_comp == 1) ? GPU_RGBA8 : GPU_RGBA16; break;
+			}
+			break;
+		default:
+			BLI_assert(0);
+	}
+
+	return GPU_texture_create_buffer(data_type, vert->vbo_id);
 }
 
 void GPU_texture_update(GPUTexture *tex, const float *pixels)
