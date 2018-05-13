@@ -403,7 +403,7 @@ class _defs_edit_mesh:
             widget="MESH_WGT_extrude",
             keymap=(
                 ("mesh.extrude_context_move", dict(TRANSFORM_OT_translate=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 
@@ -415,7 +415,7 @@ class _defs_edit_mesh:
             widget=None,
             keymap=(
                 ("mesh.extrude_faces_move", dict(TRANSFORM_OT_shrink_fatten=dict(release_confirm=True)),
-                 dict(type='ACTIONMOUSE', value='PRESS')),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
             ),
         )
 
