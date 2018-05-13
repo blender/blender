@@ -80,7 +80,6 @@ enum eViewProj {
 typedef struct SnapData {
 	short snap_to;
 	float mval[2];
-	float ray_origin[3];
 	float ray_start[3];
 	float ray_dir[3];
 	float pmat[4][4]; /* perspective matrix */
@@ -212,15 +211,14 @@ static void iter_snap_objects(
 static void snap_data_set(
         SnapData *snapdata,
         const ARegion *ar, const unsigned short snap_to, const enum eViewProj view_proj,
-        const float mval[2], const float ray_origin[3], const float ray_start[3],
-        const float ray_direction[3], const float depth_range[2])
+        const float mval[2], const float ray_start[3], const float ray_direction[3],
+        const float depth_range[2])
 {
 	copy_m4_m4(snapdata->pmat, ((RegionView3D *)ar->regiondata)->persmat);
 	snapdata->win_size[0] = ar->winx;
 	snapdata->win_size[1] = ar->winy;
 	copy_v2_v2(snapdata->mval, mval);
 	snapdata->snap_to = snap_to;
-	copy_v3_v3(snapdata->ray_origin, ray_origin);
 	copy_v3_v3(snapdata->ray_start, ray_start);
 	copy_v3_v3(snapdata->ray_dir, ray_direction);
 	snapdata->view_proj = view_proj;
@@ -2217,10 +2215,10 @@ bool ED_transform_snap_object_project_view3d_ex(
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
-	float ray_origin[3], ray_start[3], ray_normal[3], depth_range[2], ray_end[3];
-
 	const ARegion *ar = sctx->v3d_data.ar;
 	const RegionView3D *rv3d = ar->regiondata;
+
+	float ray_origin[3], ray_end[3], ray_start[3], ray_normal[3], depth_range[2];
 
 	ED_view3d_win_to_origin(ar, mval, ray_origin);
 	ED_view3d_win_to_vector(ar, mval, ray_normal);
@@ -2252,9 +2250,12 @@ bool ED_transform_snap_object_project_view3d_ex(
 	}
 	else {
 		SnapData snapdata;
-		const enum eViewProj view_proj = ((RegionView3D *)ar->regiondata)->is_persp ? VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO;
-		snap_data_set(&snapdata, ar, snap_to, view_proj, mval,
-		        ray_origin, ray_start, ray_normal, depth_range);
+		const enum eViewProj view_proj = rv3d->is_persp ?
+		                                 VIEW_PROJ_PERSP : VIEW_PROJ_ORTHO;
+
+		snap_data_set(
+		        &snapdata, ar, snap_to, view_proj, mval,
+		        ray_start, ray_normal, depth_range);
 
 		return snapObjectsRay(
 		        sctx, &snapdata,
