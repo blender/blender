@@ -168,14 +168,18 @@ void CLOSURE_NAME(
 
 	vec4 rand = texelFetch(utilTex, ivec3(ivec2(gl_FragCoord.xy) % LUT_SIZE, 2.0), 0);
 
+#ifdef HAIR_SHADER
+	/* Random normal distribution on the hair surface. */
+	vec3 T = normalize(worldNormal); /* meh, TODO fix worldNormal misnaming. */
+	vec3 B = normalize(cross(V, T));
+	N = cross(T, B); /* Normal facing view */
+
+	N = N * abs(rand.z) + B * rand.y;
+#endif
+
 	/* ---------------------------------------------------------------- */
 	/* -------------------- SCENE LAMPS LIGHTING ---------------------- */
 	/* ---------------------------------------------------------------- */
-
-#ifdef HAIR_SHADER
-	vec3 norm_view = cross(V, N);
-	norm_view = normalize(cross(norm_view, N)); /* Normal facing view */
-#endif
 
 	for (int i = 0; i < MAX_LIGHT && i < laNumLight; ++i) {
 		LightData ld = lights_data[i];
@@ -185,29 +189,6 @@ void CLOSURE_NAME(
 		l_vector.w = length(l_vector.xyz);
 
 		vec3 l_color_vis = ld.l_color * light_visibility(ld, worldPosition, viewPosition, viewNormal, l_vector);
-
-#ifdef HAIR_SHADER
-		vec3 norm_lamp, view_vec;
-		float occlu_trans, occlu;
-		light_hair_common(ld, N, V, l_vector, norm_view, occlu_trans, occlu, norm_lamp, view_vec);
-
-	#ifdef CLOSURE_DIFFUSE
-		out_diff += l_color_vis * light_diffuse(ld, -norm_lamp, V, l_vector) * occlu_trans;
-	#endif
-
-	#ifdef CLOSURE_SUBSURFACE
-		out_trans += ld.l_color * light_translucent(ld, worldPosition, -norm_lamp, l_vector, sss_scale) * occlu_trans;
-	#endif
-
-	#ifdef CLOSURE_GLOSSY
-		out_spec += l_color_vis * light_specular(ld, N, view_vec, l_vector, roughnessSquared, f0) * occlu * ld.l_spec;
-	#endif
-
-	#ifdef CLOSURE_CLEARCOAT
-		out_spec += l_color_vis * light_specular(ld, C_N, view_vec, l_vector, C_roughnessSquared, f0) * C_intensity * occlu * ld.l_spec;
-	#endif
-
-#else /* HAIR_SHADER */
 
 	#ifdef CLOSURE_DIFFUSE
 		out_diff += l_color_vis * light_diffuse(ld, N, V, l_vector);
@@ -224,14 +205,7 @@ void CLOSURE_NAME(
 	#ifdef CLOSURE_CLEARCOAT
 		out_spec += l_color_vis * light_specular(ld, C_N, V, l_vector, C_roughnessSquared, f0) * C_intensity * ld.l_spec;
 	#endif
-
-#endif /* HAIR_SHADER */
 	}
-
-#ifdef HAIR_SHADER
-	N = -norm_view;
-#endif
-
 
 
 	/* ---------------------------------------------------------------- */

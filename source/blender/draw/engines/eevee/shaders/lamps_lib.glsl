@@ -423,31 +423,3 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 	return vis;
 #endif
 }
-
-#ifdef HAIR_SHADER
-void light_hair_common(
-        LightData ld, vec3 N, vec3 V, vec4 l_vector, vec3 norm_view,
-        out float occlu_trans, out float occlu,
-        out vec3 norm_lamp, out vec3 view_vec)
-{
-	const float transmission = 0.3; /* Uniform internal scattering factor */
-
-	vec3 lamp_vec;
-
-	if (ld.l_type == SUN || ld.l_type == AREA) {
-		lamp_vec = ld.l_forward;
-	}
-	else {
-		lamp_vec = -l_vector.xyz;
-	}
-
-	norm_lamp = cross(lamp_vec, N);
-	norm_lamp = normalize(cross(N, norm_lamp)); /* Normal facing lamp */
-
-	/* Rotate view vector onto the cross(tangent, light) plane */
-	view_vec = normalize(norm_lamp * dot(norm_view, V) + N * dot(N, V));
-
-	occlu = (dot(norm_view, norm_lamp) * 0.5 + 0.5);
-	occlu_trans = transmission + (occlu * (1.0 - transmission)); /* Includes transmission component */
-}
-#endif
