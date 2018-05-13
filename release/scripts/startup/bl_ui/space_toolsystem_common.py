@@ -257,8 +257,7 @@ class ToolSelectPanelHelper:
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
         """
-        workspace = context.workspace
-        cls = ToolSelectPanelHelper._tool_class_from_space_type(workspace.tool_space_type)
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(context.space_data.type)
         if cls is not None:
             context_mode = context.mode
             for item, index in ToolSelectPanelHelper._tools_flatten_with_tool_index(cls.tools_from_context(context)):
