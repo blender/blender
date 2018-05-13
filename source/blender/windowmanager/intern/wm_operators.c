@@ -1839,8 +1839,21 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 
 	bToolDef tool_def = {{0}};
 
+	{
+		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "space_type");
+		if (RNA_property_is_set(op->ptr, prop)) {
+			tool_def.spacetype = RNA_property_enum_get(op->ptr, prop);
+		}
+		else {
+			if (sa == NULL) {
+				BKE_report(op->reports, RPT_ERROR, "Space type not set");
+				return OPERATOR_CANCELLED;
+			}
+			tool_def.spacetype = sa->spacetype;
+		}
+	}
+
 	tool_def.index = RNA_int_get(op->ptr, "index");
-	tool_def.spacetype = sa->spacetype;
 	RNA_string_get(op->ptr, "keymap", tool_def.keymap);
 	RNA_string_get(op->ptr, "manipulator_group", tool_def.manipulator_group);
 	RNA_string_get(op->ptr, "data_block", tool_def.data_block);
@@ -1848,7 +1861,12 @@ static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
 	WM_toolsystem_set(C, &tool_def);
 
 	/* For some reason redraw fails with menus (even though 'ar' isn't the menu's region). */
-	ED_area_tag_redraw(sa);
+	if (sa) {
+		ED_area_tag_redraw(sa);
+	}
+	else {
+		WM_event_add_notifier(C, NC_WINDOW, NULL);
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -1863,6 +1881,7 @@ static void WM_OT_tool_set(wmOperatorType *ot)
 
 	ot->flag = OPTYPE_INTERNAL;
 
+	RNA_def_enum(ot->srna, "space_type", rna_enum_space_type_items + 1, SPACE_EMPTY, "Space Type", "");
 	RNA_def_string(ot->srna, "keymap", NULL, KMAP_MAX_NAME, "Key Map", "");
 	RNA_def_string(ot->srna, "manipulator_group", NULL, MAX_NAME, "Manipulator Group", "");
 	RNA_def_string(ot->srna, "data_block", NULL, MAX_NAME, "Data Block", "");
