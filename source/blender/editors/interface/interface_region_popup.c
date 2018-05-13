@@ -560,7 +560,7 @@ uiBlock *ui_popup_block_refresh(
 			block->pie_data.pie_center_spawned[0] += x_offset;
 			block->pie_data.pie_center_spawned[1] += y_offset;
 
-			ui_block_translate(block, x_offset, y_offset);
+			UI_block_translate(block, x_offset, y_offset);
 
 			if (U.pie_initial_timeout > 0)
 				block->pie_data.flags |= UI_PIE_INITIAL_DIRECTION;
@@ -590,7 +590,7 @@ uiBlock *ui_popup_block_refresh(
 		 * the same height. */
 		if (handle->refresh && handle->prev_block_rect.ymax > block->rect.ymax) {
 			float offset = handle->prev_block_rect.ymax - block->rect.ymax;
-			ui_block_translate(block, 0, offset);
+			UI_block_translate(block, 0, offset);
 			block->rect.ymin = handle->prev_block_rect.ymin;
 		}
 
@@ -604,7 +604,15 @@ uiBlock *ui_popup_block_refresh(
 		ar->winrct.ymin = block->rect.ymin - margin;
 		ar->winrct.ymax = block->rect.ymax + UI_POPUP_MENU_TOP;
 
-		ui_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
+		UI_block_translate(block, -ar->winrct.xmin, -ar->winrct.ymin);
+
+		/* apply scroll offset */
+		if (handle->scrolloffset != 0.0f) {
+			for (uiBut *bt = block->buttons.first; bt; bt = bt->next) {
+				bt->rect.ymin += handle->scrolloffset;
+				bt->rect.ymax += handle->scrolloffset;
+			}
+		}
 	}
 
 	if (block_old) {

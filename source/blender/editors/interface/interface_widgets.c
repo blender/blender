@@ -4621,16 +4621,8 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	}
 }
 
-void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+static void ui_draw_clip_tri(uiBlock *block, rcti *rect, uiWidgetType *wt)
 {
-	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
-	
-	wt->state(wt, 0);
-	if (block)
-		wt->draw(&wt->wcol, rect, block->flag, block->direction);
-	else
-		wt->draw(&wt->wcol, rect, 0, 0);
-
 	if (block) {
 		float draw_color[4];
 		unsigned char *color = (unsigned char *)wt->wcol.text;
@@ -4649,6 +4641,19 @@ void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 			UI_draw_icon_tri(BLI_rcti_cent_x(rect), rect->ymin + 10, 'v', draw_color);
 		}
 	}
+}
+
+void ui_draw_menu_back(uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
+{
+	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
+
+	wt->state(wt, 0);
+	if (block)
+		wt->draw(&wt->wcol, rect, block->flag, block->direction);
+	else
+		wt->draw(&wt->wcol, rect, 0, 0);
+
+	ui_draw_clip_tri(block, rect, wt);
 }
 
 /**
@@ -4708,17 +4713,19 @@ static void ui_draw_popover_back_impl(
 
 void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, rcti *rect)
 {
+	uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
+
 	if (block) {
 		float mval_origin[2] = {block->mx, block->my};
 		ui_window_to_block_fl(ar, block, &mval_origin[0], &mval_origin[1]);
 		ui_draw_popover_back_impl(&wcol_menu_back, rect, block->direction, mval_origin);
 	}
 	else {
-		uiWidgetType *wt = widget_type(UI_WTYPE_MENU_BACK);
-
 		wt->state(wt, 0);
 		wt->draw(&wt->wcol, rect, 0, 0);
 	}
+
+	ui_draw_clip_tri(block, rect, wt);
 }
 
 static void draw_disk_shaded(

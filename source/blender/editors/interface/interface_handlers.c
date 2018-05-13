@@ -8927,6 +8927,9 @@ static int ui_menu_scroll(ARegion *ar, uiBlock *block, int my, uiBut *to_bt)
 				dy = block->rect.ymin - ymin + UI_MENU_SCROLL_PAD;
 		}
 
+		/* remember scroll offset for refreshes */
+		block->handle->scrolloffset += dy;
+
 		/* apply scroll offset */
 		for (bt = block->buttons.first; bt; bt = bt->next) {
 			bt->rect.ymin += dy;
