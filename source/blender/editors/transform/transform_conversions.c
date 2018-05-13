@@ -5881,7 +5881,7 @@ static void clear_trans_object_base_flags(TransInfo *t)
  *  tmode: should be a transform mode
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
-void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, View3D *v3d, Object *ob, int tmode)
+void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, Object *ob, int tmode)
 {
 	ID *id = &ob->id;
 	FCurve *fcu;
@@ -5933,24 +5933,28 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, V
 					if (ob != OBACT(view_layer))
 						do_loc = true;
 				}
-				else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR)
+				else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
 					do_loc = true;
+				}
 				
-				if ((v3d->flag & V3D_ALIGN) == 0)
+				if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
 					do_rot = true;
+				}
 			}
 			else if (tmode == TFM_RESIZE) {
 				if (scene->toolsettings->transform_pivot_point == V3D_AROUND_ACTIVE) {
 					if (ob != OBACT(view_layer))
 						do_loc = true;
 				}
-				else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR)
+				else if (scene->toolsettings->transform_pivot_point == V3D_AROUND_CURSOR) {
 					do_loc = true;
-				
-				if ((v3d->flag & V3D_ALIGN) == 0)
+				}
+
+				if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
 					do_scale = true;
+				}
 			}
-			
+
 			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
 			if (do_loc) {
 				KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
@@ -5997,7 +6001,7 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, ViewLayer *view_layer, V
  *	targetless_ik: has targetless ik been done on any channels?
  */
 // NOTE: context may not always be available, so must check before using it as it's a luxury for a few cases
-void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob, int tmode, short targetless_ik)
+void autokeyframe_pose_cb_func(bContext *C, Scene *scene, Object *ob, int tmode, short targetless_ik)
 {
 	ID *id = &ob->id;
 	AnimData *adt = ob->adt;
@@ -6074,20 +6078,24 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 							do_loc = true;
 					}
 					else if (ELEM(tmode, TFM_ROTATION, TFM_TRACKBALL)) {
-						if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
+						if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
 							do_loc = true;
-							
-						if ((v3d->flag & V3D_ALIGN) == 0)
+						}
+
+						if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
 							do_rot = true;
+						}
 					}
 					else if (tmode == TFM_RESIZE) {
-						if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE))
+						if (ELEM(scene->toolsettings->transform_pivot_point, V3D_AROUND_CURSOR, V3D_AROUND_ACTIVE)) {
 							do_loc = true;
-							
-						if ((v3d->flag & V3D_ALIGN) == 0)
+						}
+
+						if ((scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) == 0) {
 							do_scale = true;
+						}
 					}
-					
+
 					if (do_loc) {
 						KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
@@ -6653,7 +6661,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* automatic inserting of keys and unkeyed tagging - only if transform wasn't canceled (or TFM_DUMMY) */
 			if (!canceled && (t->mode != TFM_DUMMY)) {
-				autokeyframe_pose_cb_func(C, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+				autokeyframe_pose_cb_func(C, t->scene, ob, t->mode, targetless_ik);
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else if (arm->flag & ARM_DELAYDEFORM) {
@@ -6718,7 +6726,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* Set autokey if necessary */
 			if (!canceled) {
-				autokeyframe_ob_cb_func(C, t->scene, t->view_layer, (View3D *)t->view, ob, t->mode);
+				autokeyframe_ob_cb_func(C, t->scene, t->view_layer, ob, t->mode);
 			}
 			
 			/* restore rigid body transform */

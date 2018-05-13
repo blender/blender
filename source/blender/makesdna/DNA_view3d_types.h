@@ -255,12 +255,12 @@ typedef struct View3D {
 #define V3D_S3D_DISPVOLUME		(1 << 2)
 
 /* View3D->flag (short) */
-/*#define V3D_DISPIMAGE		1*/ /*UNUSED*/
-/*#define V3D_DISPBGPICS		2*/ /* UNUSED */
+/*#define V3D_FLAG_DEPRECATED_1 (1 << 0) */ /*UNUSED */
+/*#define V3D_FLAG_DEPRECATED_2 (1 << 1) */ /* UNUSED */
 #define V3D_HIDE_HELPLINES	4
 #define V3D_INVALID_BACKBUF	8
 
-#define V3D_ALIGN			1024
+/* #define V3D_FLAG_DEPRECATED_10 (1 << 10) */ /* UNUSED */
 #define V3D_SELECT_OUTLINE	2048
 #define V3D_ZBUF_SELECT		4096
 #define V3D_GLOBAL_STATS	8192

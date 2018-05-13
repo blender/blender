@@ -944,7 +944,7 @@ static void recalcData_objects(TransInfo *t)
 				int targetless_ik = (t->flag & T_AUTOIK); // XXX this currently doesn't work, since flags aren't set yet!
 
 				animrecord_check_state(t->scene, &ob->id, t->animtimer);
-				autokeyframe_pose_cb_func(t->context, t->scene, (View3D *)t->view, ob, t->mode, targetless_ik);
+				autokeyframe_pose_cb_func(t->context, t->scene, ob, t->mode, targetless_ik);
 			}
 
 			/* old optimize trick... this enforces to bypass the depgraph */
@@ -992,7 +992,7 @@ static void recalcData_objects(TransInfo *t)
 				// TODO: autokeyframe calls need some setting to specify to add samples (FPoints) instead of keyframes?
 				if ((t->animtimer) && IS_AUTOKEY_ON(t->scene)) {
 					animrecord_check_state(t->scene, &ob->id, t->animtimer);
-					autokeyframe_ob_cb_func(t->context, t->scene, t->view_layer, (View3D *)t->view, ob, t->mode);
+					autokeyframe_ob_cb_func(t->context, t->scene, t->view_layer, ob, t->mode);
 				}
 
 				/* sets recalc flags fully, instead of flushing existing ones
@@ -1343,9 +1343,11 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			v3d->twflag = 0;
 		}
 
-		if (v3d->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
+		if (t->scene->toolsettings->transform_flag & SCE_XFORM_AXIS_ALIGN) {
+			t->flag |= T_V3D_ALIGN;
+		}
 		t->around = t->scene->toolsettings->transform_pivot_point;
-		
+
 		/* bend always uses the cursor */
 		if (t->mode == TFM_BEND) {
 			t->around = V3D_AROUND_CURSOR;
