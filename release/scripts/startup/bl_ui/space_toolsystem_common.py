@@ -192,8 +192,8 @@ class ToolSelectPanelHelper:
                     else:
                         yield item
 
-    @classmethod
-    def _tool_vars_from_def(cls, item, context_mode):
+    @staticmethod
+    def _tool_vars_from_def(item, context_mode):
         # For now be strict about whats in this dict
         # prevent accidental adding unknown keys.
         text = item.text
@@ -381,7 +381,7 @@ class ToolSelectPanelHelper:
         # - ability to click and hold to expose sub-tools.
 
         context_mode = context.mode
-        tool_def_active, index_active = self._tool_vars_from_active_with_index(context)
+        tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
 
         ui_gen, show_text = self._layout_generator_detect_from_region(self.layout, context.region)
 
@@ -399,7 +399,7 @@ class ToolSelectPanelHelper:
                     for i, sub_item in enumerate(item):
                         if sub_item is None:
                             continue
-                        tool_def, icon_name = self._tool_vars_from_def(sub_item, context_mode)
+                        tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(sub_item, context_mode)
                         is_active = (tool_def == tool_def_active)
                         if is_active:
                             index = i
@@ -418,7 +418,7 @@ class ToolSelectPanelHelper:
                     index = -1
                     use_menu = False
 
-                tool_def, icon_name = self._tool_vars_from_def(item, context_mode)
+                tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
                 is_active = (tool_def == tool_def_active)
 
                 icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
@@ -464,8 +464,8 @@ class ToolSelectPanelHelper:
             tool_def_active, index_active = ToolSelectPanelHelper._tool_vars_from_active_with_index(context)
 
             context_mode = context.mode
-            for item in cls._tools_flatten(cls.tools_from_context(context)):
-                tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
+            for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context)):
+                tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
                 if (tool_def == tool_def_active):
                     if with_icon:
                         icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
@@ -502,12 +502,12 @@ class WM_MT_toolsystem_submenu(Menu):
             None
         )
         if cls is not None:
-            tool_def_button, index_button = cls._tool_vars_from_button_with_index(context)
+            tool_def_button, index_button = ToolSelectPanelHelper._tool_vars_from_button_with_index(context)
             for item_group in cls.tools_from_context(context):
                 if type(item_group) is tuple:
                     if index_button < len(item_group):
                         item = item_group[index_button]
-                        tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
+                        tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
                         is_active = (tool_def == tool_def_button)
                         if is_active:
                             return cls, item_group, index_button
@@ -529,7 +529,7 @@ class WM_MT_toolsystem_submenu(Menu):
             if item is None:
                 layout.separator()
                 continue
-            tool_def, icon_name = cls._tool_vars_from_def(item, context_mode)
+            tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
             props = layout.operator(
                 "wm.tool_set",
