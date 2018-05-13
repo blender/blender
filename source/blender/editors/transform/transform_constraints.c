@@ -208,7 +208,7 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 
 	/* checks for center being too close to the view center */
 	viewAxisCorrectCenter(t, t_con_center);
-	
+
 	angle = fabsf(angle_v3v3(axis, t->viewinv[2]));
 	if (angle > (float)M_PI_2) {
 		angle = (float)M_PI - angle;
@@ -239,7 +239,7 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 
 		project_v3_v3v3(vec, in, plane);
 		sub_v3_v3v3(vec, in, vec);
-		
+
 		add_v3_v3v3(v, vec, t_con_center);
 		getViewVector(t, v, norm);
 
@@ -257,11 +257,11 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 		else {
 			add_v3_v3v3(v2, t_con_center, axis);
 			add_v3_v3v3(v4, v, norm);
-			
+
 			isect_line_line_v3(t_con_center, v2, v, v4, i1, i2);
-			
+
 			sub_v3_v3v3(v, i2, v);
-	
+
 			sub_v3_v3v3(out, i1, t_con_center);
 
 			/* possible some values become nan when
