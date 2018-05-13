@@ -113,11 +113,7 @@ def mesh_data_lists_from_mesh(me, material_colors):
     me_verts = me.vertices[:]
     me_polys = me.polygons[:]
 
-    # 100 layers of depth
-    me_polys.sort(key=lambda p: int(p.center.z * 100))
-
-    tris_coords = []
-    tris_colors = []
+    tris_data = []
 
     for p in me_polys:
         # Backface culling (allows using spheres without tedious manual deleting).
@@ -153,22 +149,27 @@ def mesh_data_lists_from_mesh(me, material_colors):
             v1 = me_verts[l1.vertex_index]
             v2 = me_verts[l2.vertex_index]
 
-            tris_coords.append((
-                v0.co.xy[:],
-                v1.co.xy[:],
-                v2.co.xy[:],
+            tris_data.append((
+                # float depth
+                p.center.z,
+                # XY coords.
+                (
+                    v0.co.xy[:],
+                    v1.co.xy[:],
+                    v2.co.xy[:],
+                ),
+                # RGBA color.
+                tuple((
+                    [int(c * b * 255) for c, b in zip(cn.color, base_color)]
+                    for cn in (c0, c1, c2)
+                )),
             ))
-            # Color as RGBA for each tri
-            tris_colors.append(
-                [[int(c * b * 255) for c, b in zip(cn.color, base_color)] for cn in (c0, c1, c2)]
-            )
             i1 = i2
-    return (tris_coords, tris_colors)
+    return tris_data
 
 
 def mesh_data_lists_from_objects(ob_parent, ob_children):
-    tris_coords = []
-    tris_colors = []
+    tris_data = []
 
     has_parent = False
     if ob_children:
@@ -179,14 +180,15 @@ def mesh_data_lists_from_objects(ob_parent, ob_children):
         with TriMesh(ob) as me:
             if has_parent:
                 me.transform(parent_matrix_inverted * ob.matrix_world)
-            tris_coords_iter, tris_colors_iter = mesh_data_lists_from_mesh(
-                me,
-                object_material_colors(ob),
+
+            tris_data.extend(
+                mesh_data_lists_from_mesh(
+                    me,
+                    object_material_colors(ob),
+                )
             )
-            tris_coords.extend(tris_coords_iter)
-            tris_colors.extend(tris_colors_iter)
         has_parent = True
-    return tris_coords, tris_colors
+    return tris_data
 
 
 def write_mesh_to_py(fh, ob, ob_children):
@@ -204,7 +206,11 @@ def write_mesh_to_py(fh, ob, ob_children):
             float_as_byte(v[1], coords_range_align[1]),
         )
 
-    tris_coords, tris_colors = mesh_data_lists_from_objects(ob, ob_children)
+    tris_data = mesh_data_lists_from_objects(ob, ob_children)
+
+    # 100 levels of Z depth, round to avoid differences from precision error
+    # causing different computers to write triangles in more or less random order.
+    tris_data.sort(key=lambda data: int(data[0] * 100))
 
     if 0:
         # make as large as we can, keeping alignment
@@ -237,10 +243,10 @@ def write_mesh_to_py(fh, ob, ob_children):
     # X, Y
     fw(bytes((0, 0)))
 
-    for tri_coords in tris_coords:
+    for (_, tri_coords, _) in tris_data:
         for vert in tri_coords:
             fw(bytes(vert_as_byte_pair(vert)))
-    for tri_color in tris_colors:
+    for (_, _, tri_color) in tris_data:
         for color in tri_color:
             fw(bytes(color))
 
