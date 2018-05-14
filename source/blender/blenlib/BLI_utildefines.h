@@ -385,7 +385,7 @@ extern "C" {
  */
 #define ARRAY_DELETE(arr, index, delete_len, arr_len) \
 	{ \
-		BLI_assert(((index) >= 0) && ((index) + delete_len <= arr_len));  \
+		BLI_assert((&arr[index] >= arr) && ((index) + delete_len <= arr_len));  \
 		memmove(&(arr)[index], \
 		        &(arr)[(index) + (delete_len)], \
 		         (((arr_len) - (index)) - (delete_len)) * sizeof(*(arr))); \
@@ -400,7 +400,7 @@ extern "C" {
  */
 #define ARRAY_DELETE_REORDER_LAST(arr, index, delete_len, arr_len) \
 	{ \
-		BLI_assert(((index) >= 0) && ((index) + delete_len <= arr_len));  \
+		BLI_assert((&arr[index] >= arr) && ((index) + delete_len <= arr_len));  \
 		if ((index) + (delete_len) != (arr_len)) { \
 			if (((delete_len) == 1) || ((delete_len) <= ((arr_len) - ((index) + (delete_len))))) { \
 				memcpy(&(arr)[index], \
