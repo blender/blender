@@ -140,6 +140,7 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 			ob->pose->proxy_layer = arm->layer;
 	}
 
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	WM_main_add_notifier(NC_GEOM | ND_DATA, arm);
 }
 
