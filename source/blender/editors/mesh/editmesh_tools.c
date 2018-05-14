@@ -857,70 +857,82 @@ static void edbm_add_edge_face_exec__tricky_finalize_sel(BMesh *bm, BMElem *ele_
 
 static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 {
-	BMOperator bmop;
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	const bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
-	const int totedge_orig = em->bm->totedge;
-	const int totface_orig = em->bm->totface;
 	/* when this is used to dissolve we could avoid this, but checking isnt too slow */
 
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if ((em->bm->totvertsel == 0) &&
+		    (em->bm->totedgesel == 0))
+		{
+			continue;
+		}
+
+		bool use_smooth = edbm_add_edge_face__smooth_get(em->bm);
+		int totedge_orig = em->bm->totedge;
+		int totface_orig = em->bm->totface;
+
+		BMOperator bmop;
 #ifdef USE_FACE_CREATE_SEL_EXTEND
-	BMElem *ele_desel;
-	BMFace *ele_desel_face;
+		BMElem *ele_desel;
+		BMFace *ele_desel_face;
 
-	/* be extra clever, figure out if a partial selection should be extended so we can create geometry
-	 * with single vert or single edge selection */
-	ele_desel = edbm_add_edge_face_exec__tricky_extend_sel(em->bm);
+		/* be extra clever, figure out if a partial selection should be extended so we can create geometry
+		* with single vert or single edge selection */
+		ele_desel = edbm_add_edge_face_exec__tricky_extend_sel(em->bm);
 #endif
+		if (!EDBM_op_init(
+		            em, &bmop, op,
+		            "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
+		            BM_ELEM_SELECT, em->mat_nr, use_smooth))
+		{
+			continue;
+		}
 
-	if (!EDBM_op_init(
-	            em, &bmop, op,
-	            "contextual_create geom=%hfev mat_nr=%i use_smooth=%b",
-	            BM_ELEM_SELECT, em->mat_nr, use_smooth))
-	{
-		return OPERATOR_CANCELLED;
-	}
+		BMO_op_exec(em->bm, &bmop);
 
-	BMO_op_exec(em->bm, &bmop);
-
-	/* cancel if nothing was done */
-	if ((totedge_orig == em->bm->totedge) &&
-	    (totface_orig == em->bm->totface))
-	{
-		EDBM_op_finish(em, &bmop, op, true);
-		return OPERATOR_CANCELLED;
-	}
-
+		/* cancel if nothing was done */
+		if ((totedge_orig == em->bm->totedge) &&
+			(totface_orig == em->bm->totface))
+		{
+			EDBM_op_finish(em, &bmop, op, true);
+			continue;
+		}
 #ifdef USE_FACE_CREATE_SEL_EXTEND
-	/* normally we would want to leave the new geometry selected,
-	 * but being able to press F many times to add geometry is too useful! */
-	if (ele_desel &&
-	    (BMO_slot_buffer_count(bmop.slots_out, "faces.out") == 1) &&
-	    (ele_desel_face = BMO_slot_buffer_get_first(bmop.slots_out, "faces.out")))
-	{
-		edbm_add_edge_face_exec__tricky_finalize_sel(em->bm, ele_desel, ele_desel_face);
-	}
-	else
+		/* normally we would want to leave the new geometry selected,
+		* but being able to press F many times to add geometry is too useful! */
+		if (ele_desel &&
+			(BMO_slot_buffer_count(bmop.slots_out, "faces.out") == 1) &&
+			(ele_desel_face = BMO_slot_buffer_get_first(bmop.slots_out, "faces.out")))
+		{
+			edbm_add_edge_face_exec__tricky_finalize_sel(em->bm, ele_desel, ele_desel_face);
+		}
+		else
 #endif
-	{
-		/* Newly created faces may include existing hidden edges,
-		 * copying face data from surrounding, may have copied hidden face flag too.
-		 *
-		 * Important that faces use flushing since 'edges.out' wont include hidden edges that already existed.
-		 */
-		BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_HIDDEN, true);
-		BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_HIDDEN, false);
+		{
+			/* Newly created faces may include existing hidden edges,
+			* copying face data from surrounding, may have copied hidden face flag too.
+			*
+			* Important that faces use flushing since 'edges.out' wont include hidden edges that already existed.
+			*/
+			BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_HIDDEN, true);
+			BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_HIDDEN, false);
 
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_SELECT, true);
+		}
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
-
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-
-	EDBM_update_generic(em, true, true);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
