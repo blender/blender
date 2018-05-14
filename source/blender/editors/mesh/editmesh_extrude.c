@@ -373,8 +373,32 @@ typedef struct ManipulatorExtrudeGroup {
 
 	struct wmManipulator *axis_xyz[3];
 
+	struct {
+		float normal_mat3[3][3];  /* use Z axis for normal. */
+		int orientation_type;
+	} data;
+
 	wmOperatorType *ot_extrude;
 } ManipulatorExtrudeGroup;
+
+static void manipulator_mesh_extrude_orientation_matrix_set(
+        struct ManipulatorExtrudeGroup *man, const float mat[3][3])
+{
+	for (int i = 0; i < 3; i++) {
+		/* Set orientation without location. */
+		for (int j = 0; j < 3; j++) {
+			copy_v3_v3(man->axis_xyz[i]->matrix_basis[j], mat[j]);
+		}
+		/* nop when (i == 2). */
+		swap_v3_v3(man->axis_xyz[i]->matrix_basis[i], man->axis_xyz[i]->matrix_basis[2]);
+		/* Orient to normal gives generally less awkward results. */
+		if (man->data.orientation_type != V3D_MANIP_NORMAL) {
+			if (dot_v3v3(man->axis_xyz[i]->matrix_basis[2], man->data.normal_mat3[2]) < 0.0f) {
+				negate_v3(man->axis_xyz[i]->matrix_basis[2]);
+			}
+		}
+	}
+}
 
 static bool manipulator_mesh_extrude_poll(const bContext *C, wmManipulatorGroupType *wgt)
 {
@@ -482,13 +506,13 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	}
 
 	Scene *scene = CTX_data_scene(C);
-	int orientation_type = scene->orientation_type;
-	bool use_normal = (orientation_type != V3D_MANIP_NORMAL);
+	man->data.orientation_type = scene->orientation_type;
+	bool use_normal = (man->data.orientation_type != V3D_MANIP_NORMAL);
 
 	struct TransformBounds tbounds;
-	struct TransformBounds tbounds_normal;
 
 	if (use_normal) {
+		struct TransformBounds tbounds_normal;
 		if (!ED_transform_calc_manipulator_stats(
 		            C, &(struct TransformCalcParams){
 		                .orientation_type = V3D_MANIP_NORMAL + 1,
@@ -496,31 +520,27 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 		{
 			unit_m3(tbounds_normal.axis);
 		}
+		copy_m3_m3(man->data.normal_mat3, tbounds_normal.axis);
 	}
 
+	/* TODO(campbell): run second since this modifies the 3D view, it should not. */
 	if (!ED_transform_calc_manipulator_stats(
 	            C, &(struct TransformCalcParams){
-	                .orientation_type = orientation_type + 1,
+	                .orientation_type = man->data.orientation_type + 1,
 	            }, &tbounds))
 	{
 		return;
 	}
 
-	/* Needed for normal orientation. */
-	for (int i = 0; i < 3; i++) {
-		copy_m4_m3(man->axis_xyz[i]->matrix_basis, tbounds.axis);
-		if (i != 2) {
-			swap_v3_v3(man->axis_xyz[i]->matrix_basis[i], man->axis_xyz[i]->matrix_basis[2]);
-		}
-		/* Orient to normal gives generally less awkward results. */
-		if (use_normal) {
-			if (dot_v3v3(man->axis_xyz[i]->matrix_basis[2], tbounds_normal.axis[2]) < 0.0f) {
-				negate_v3(man->axis_xyz[i]->matrix_basis[2]);
-			}
-		}
+	/* Main axis is normal. */
+	if (!use_normal) {
+		copy_m3_m3(man->data.normal_mat3, tbounds.axis);
 	}
+
+	/* Needed for normal orientation. */
+	manipulator_mesh_extrude_orientation_matrix_set(man, tbounds.axis);
 	if (use_normal) {
-		copy_m4_m3(man->axis_normal->matrix_basis, tbounds_normal.axis);
+		copy_m4_m3(man->axis_normal->matrix_basis, man->data.normal_mat3);
 	}
 	copy_m4_m3(man->axis_redo->matrix_basis, tbounds.axis);
 
@@ -574,6 +594,22 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 	}
 }
 
+static void manipulator_mesh_extrude_draw_prepare(const bContext *C, wmManipulatorGroup *mgroup)
+{
+	ManipulatorExtrudeGroup *man = mgroup->customdata;
+	switch (man->data.orientation_type) {
+		case V3D_MANIP_VIEW:
+		{
+			RegionView3D *rv3d = CTX_wm_region_view3d(C);
+			float mat[3][3];
+			copy_m3_m4(mat, rv3d->viewinv);
+			normalize_m3(mat);
+			manipulator_mesh_extrude_orientation_matrix_set(man, mat);
+			break;
+		}
+	}
+}
+
 static void manipulator_mesh_extrude_message_subscribe(
         const bContext *C, wmManipulatorGroup *mgroup, struct wmMsgBus *mbus)
 {
@@ -605,6 +641,7 @@ static void MESH_WGT_extrude(struct wmManipulatorGroupType *wgt)
 	wgt->poll = manipulator_mesh_extrude_poll;
 	wgt->setup = manipulator_mesh_extrude_setup;
 	wgt->refresh = manipulator_mesh_extrude_refresh;
+	wgt->draw_prepare = manipulator_mesh_extrude_draw_prepare;
 	wgt->message_subscribe = manipulator_mesh_extrude_message_subscribe;
 }
 
