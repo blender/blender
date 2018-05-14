@@ -192,6 +192,18 @@ enum {
 	ED_MANIPULATOR_GRAB_STYLE_CROSS_2D = 1,
 };
 
+/* -------------------------------------------------------------------- */
+/* Button Manipulator */
+
+enum {
+	ED_MANIPULATOR_BUTTON_SHOW_OUTLINE = (1 << 0),
+	/**
+	 * Draw a line from the origin to the offset (similar to an arrow)
+	 * sometimes needed to show what the button edits.
+	 */
+	ED_MANIPULATOR_BUTTON_SHOW_HELPLINE = (1 << 1),
+};
+
 
 /* -------------------------------------------------------------------- */
 /* Primitive Manipulator */

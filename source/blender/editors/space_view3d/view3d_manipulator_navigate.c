@@ -211,6 +211,7 @@ static void WIDGETGROUP_navigate_setup(const bContext *UNUSED(C), wmManipulatorG
 			RNA_property_string_set_bytes(
 			        mpr->ptr, prop,
 			        (const char *)info->shape, info->shape_size);
+			RNA_enum_set(mpr->ptr, "draw_options", ED_MANIPULATOR_BUTTON_SHOW_OUTLINE);
 		}
 
 		wmOperatorType *ot = WM_operatortype_find(info->opname, true);

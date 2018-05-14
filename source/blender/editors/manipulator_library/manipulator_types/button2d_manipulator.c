@@ -103,6 +103,7 @@ static void button2d_draw_intern(
 {
 	ButtonManipulator2D *button = (ButtonManipulator2D *)mpr;
 
+	const int draw_options = RNA_enum_get(mpr->ptr, "draw_options");
 	if (button->is_init == false) {
 		button->is_init = true;
 		PropertyRNA *prop = RNA_struct_find_property(mpr->ptr, "icon");
@@ -115,8 +116,8 @@ static void button2d_draw_intern(
 			/* We shouldn't need the +1, but a NULL char is set. */
 			char *polys = MEM_mallocN(polys_len + 1, __func__);
 			RNA_property_string_get(mpr->ptr, prop, polys);
-			button->shape_batch[0] = GPU_batch_wire_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
-			button->shape_batch[1] = GPU_batch_tris_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
+			button->shape_batch[0] = GPU_batch_tris_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
+			button->shape_batch[1] = GPU_batch_wire_from_poly_2d_encoded((uchar *)polys, polys_len, NULL);
 			MEM_freeN(polys);
 		}
 	}
@@ -127,11 +128,29 @@ static void button2d_draw_intern(
 	manipulator_color_get(mpr, highlight, color);
 	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
+
+	bool is_3d = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) != 0;
+
+
+	if (draw_options & ED_MANIPULATOR_BUTTON_SHOW_HELPLINE) {
+		float matrix_final_no_offset[4][4];
+		WM_manipulator_calc_matrix_final_no_offset(mpr, matrix_final_no_offset);
+		uint pos = GWN_vertformat_attr_add(immVertexFormat(), "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		immBindBuiltinProgram(GPU_SHADER_3D_UNIFORM_COLOR);
+		immUniformColor4fv(color);
+		glLineWidth(mpr->line_width);
+		immUniformColor4fv(color);
+		immBegin(GWN_PRIM_LINE_STRIP, 2);
+		immVertex3fv(pos, matrix_final[3]);
+		immVertex3fv(pos, matrix_final_no_offset[3]);
+		immEnd();
+		immUnbindProgram();
+	}
+
 	bool need_to_pop = true;
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
 
-	bool is_3d = (mpr->parent_mgroup->type->flag & WM_MANIPULATORGROUPTYPE_3D) != 0;
 	if (is_3d) {
 		RegionView3D *rv3d = CTX_wm_region_view3d(C);
 		float matrix_align[4][4];
@@ -148,21 +167,26 @@ static void button2d_draw_intern(
 		button2d_geom_draw_backdrop(mpr, color, select);
 	}
 	else {
+
 		glEnable(GL_BLEND);
 		if (button->shape_batch[0] != NULL) {
 			glEnable(GL_LINE_SMOOTH);
+			glDisable(GL_POLYGON_SMOOTH);
 			glLineWidth(1.0f);
 			for (uint i = 0; i < ARRAY_SIZE(button->shape_batch) && button->shape_batch[i]; i++) {
 				/* Invert line color for wire. */
-				color[0] = 1.0f - color[0];
-				color[1] = 1.0f - color[1];
-				color[2] = 1.0f - color[2];
-
 				GWN_batch_program_set_builtin(button->shape_batch[i], GPU_SHADER_2D_UNIFORM_COLOR);
 				GWN_batch_uniform_4f(button->shape_batch[i], "color", UNPACK4(color));
 				GWN_batch_draw(button->shape_batch[i]);
+
+				if (draw_options & ED_MANIPULATOR_BUTTON_SHOW_OUTLINE) {
+					color[0] = 1.0f - color[0];
+					color[1] = 1.0f - color[1];
+					color[2] = 1.0f - color[2];
+				}
 			}
 			glDisable(GL_LINE_SMOOTH);
+			glEnable(GL_POLYGON_SMOOTH);
 		}
 		else if (button->icon != ICON_NONE) {
 			button2d_geom_draw_backdrop(mpr, color, select);
@@ -270,7 +294,15 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 	wt->struct_size = sizeof(ButtonManipulator2D);
 
 	/* rna */
+	static EnumPropertyItem rna_enum_draw_options[] = {
+		{ED_MANIPULATOR_BUTTON_SHOW_OUTLINE, "OUTLINE", 0, "Outline", ""},
+		{ED_MANIPULATOR_BUTTON_SHOW_HELPLINE, "HELPLINE", 0, "Help Line", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 	PropertyRNA *prop;
+
+	RNA_def_enum_flag(wt->srna, "draw_options", rna_enum_draw_options, 0, "Draw Options", "");
+
 	prop = RNA_def_property(wt->srna, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_icon_items);
 
