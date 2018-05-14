@@ -101,6 +101,11 @@ typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b
 /* callback to range search query */
 typedef void (*BVHTree_RangeQuery)(void *userdata, int index, const float co[3], float dist_sq);
 
+/* callback to find nearest projected */
+typedef void (*BVHTree_NearestProjectedCallback)(void *userdata, int index,
+                                                 struct DistProjectedAABBPrecalc *precalc,
+                                                 BVHTreeNearest *nearest);
+
 
 /* callbacks to BLI_bvhtree_walk_dfs */
 /* return true to traverse into this nodes children, else skip. */
@@ -161,6 +166,12 @@ float BLI_bvhtree_bb_raycast(const float bv[6], const float light_start[3], cons
 int BLI_bvhtree_range_query(
         BVHTree *tree, const float co[3], float radius,
         BVHTree_RangeQuery callback, void *userdata);
+
+int BLI_bvhtree_find_nearest_projected(
+        BVHTree *tree, float projmat[4][4], float winsize[2], float mval[2],
+        float clip_planes[6][4], int clip_num,
+        BVHTreeNearest *nearest,
+        BVHTree_NearestProjectedCallback callback, void *userdata);
 
 void BLI_bvhtree_walk_dfs(
         BVHTree *tree,

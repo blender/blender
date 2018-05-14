@@ -167,6 +167,18 @@ typedef struct BVHRayCastData {
 	BVHTreeRayHit hit;
 } BVHRayCastData;
 
+typedef struct BVHNearestProjectedData {
+	const BVHTree *tree;
+	struct DistProjectedAABBPrecalc precalc;
+	bool closest_axis[3];
+	float clip_plane[6][4];
+	int clip_plane_len;
+	BVHTree_NearestProjectedCallback callback;
+	void *userdata;
+	BVHTreeNearest nearest;
+
+} BVHNearestProjectedData;
+
 /** \} */
 
 
@@ -2013,6 +2025,192 @@ int BLI_bvhtree_range_query(
 	}
 
 	return data.hits;
+}
+
+/** \} */
+
+
+/* -------------------------------------------------------------------- */
+
+/** \name BLI_bvhtree_nearest_projected
+* \{ */
+
+static void bvhtree_nearest_projected_dfs_recursive(
+        BVHNearestProjectedData *__restrict data, const BVHNode *node)
+{
+	if (node->totnode == 0) {
+		if (data->callback) {
+			data->callback(data->userdata, node->index, &data->precalc, &data->nearest);
+		}
+		else {
+			data->nearest.index = node->index;
+			data->nearest.dist_sq = dist_squared_to_projected_aabb(
+			        &data->precalc,
+			        (float[3]) {node->bv[0], node->bv[2], node->bv[4]},
+			        (float[3]) {node->bv[1], node->bv[3], node->bv[5]},
+			        data->closest_axis);
+		}
+	}
+	else {
+		/* First pick the closest node to recurse into */
+		if (data->closest_axis[node->main_axis]) {
+			for (int i = 0; i != node->totnode; i++) {
+				const float *bv = node->children[i]->bv;
+
+				if (dist_squared_to_projected_aabb(
+				        &data->precalc,
+				        (float[3]) {bv[0], bv[2], bv[4]},
+				        (float[3]) {bv[1], bv[3], bv[5]},
+				        data->closest_axis) <= data->nearest.dist_sq)
+				{
+					bvhtree_nearest_projected_dfs_recursive(data, node->children[i]);
+				}
+			}
+		}
+		else {
+			for (int i = node->totnode; i--;) {
+				const float *bv = node->children[i]->bv;
+
+				if (dist_squared_to_projected_aabb(
+				        &data->precalc,
+				        (float[3]) {bv[0], bv[2], bv[4]},
+				        (float[3]) {bv[1], bv[3], bv[5]},
+				        data->closest_axis) <= data->nearest.dist_sq)
+				{
+					bvhtree_nearest_projected_dfs_recursive(data, node->children[i]);
+				}
+			}
+		}
+	}
+}
+
+static void bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(
+        BVHNearestProjectedData *__restrict data, const BVHNode *node)
+{
+	if (node->totnode == 0) {
+		if (data->callback) {
+			data->callback(data->userdata, node->index, &data->precalc, &data->nearest);
+		}
+		else {
+			data->nearest.index = node->index;
+			data->nearest.dist_sq = dist_squared_to_projected_aabb(
+			        &data->precalc,
+			        (float[3]) {node->bv[0], node->bv[2], node->bv[4]},
+			        (float[3]) {node->bv[1], node->bv[3], node->bv[5]},
+			        data->closest_axis);
+		}
+	}
+	else {
+		/* First pick the closest node to recurse into */
+		if (data->closest_axis[node->main_axis]) {
+			for (int i = 0; i != node->totnode; i++) {
+				const float *bv = node->children[i]->bv;
+				const float bb_min[3] = {bv[0], bv[2], bv[4]};
+				const float bb_max[3] = {bv[1], bv[3], bv[5]};
+
+				int isect_type = isect_aabb_planes_v3(data->clip_plane, data->clip_plane_len, bb_min, bb_max);
+
+				if ((isect_type != ISECT_AABB_PLANE_BEHIND_ANY) && dist_squared_to_projected_aabb(
+				        &data->precalc, bb_min, bb_max,
+				        data->closest_axis) <= data->nearest.dist_sq)
+				{
+					if (isect_type == ISECT_AABB_PLANE_CROSS_ANY) {
+						bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(data, node->children[i]);
+					}
+					else {
+						/* ISECT_AABB_PLANE_IN_FRONT_ALL */
+						bvhtree_nearest_projected_dfs_recursive(data, node->children[i]);
+					}
+				}
+			}
+		}
+		else {
+			for (int i = node->totnode; i--;) {
+				const float *bv = node->children[i]->bv;
+				const float bb_min[3] = {bv[0], bv[2], bv[4]};
+				const float bb_max[3] = {bv[1], bv[3], bv[5]};
+
+				int isect_type = isect_aabb_planes_v3(data->clip_plane, data->clip_plane_len, bb_min, bb_max);
+
+				if (isect_type != ISECT_AABB_PLANE_BEHIND_ANY && dist_squared_to_projected_aabb(
+				        &data->precalc, bb_min, bb_max,
+				        data->closest_axis) <= data->nearest.dist_sq)
+				{
+					if (isect_type == ISECT_AABB_PLANE_CROSS_ANY) {
+						bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(data, node->children[i]);
+					}
+					else {
+						/* ISECT_AABB_PLANE_IN_FRONT_ALL */
+						bvhtree_nearest_projected_dfs_recursive(data, node->children[i]);
+					}
+				}
+			}
+		}
+	}
+}
+
+int BLI_bvhtree_find_nearest_projected(
+        BVHTree *tree, float projmat[4][4], float winsize[2], float mval[2],
+        float clip_plane[6][4], int clip_plane_len,
+        BVHTreeNearest *nearest,
+        BVHTree_NearestProjectedCallback callback, void *userdata)
+{
+	BVHNode *root = tree->nodes[tree->totleaf];
+	if (root != NULL) {
+		BVHNearestProjectedData data;
+		dist_squared_to_projected_aabb_precalc(
+		        &data.precalc, projmat, winsize, mval);
+
+		data.callback = callback;
+		data.userdata = userdata;
+
+		if (clip_plane) {
+			data.clip_plane_len = clip_plane_len;
+			for (int i = 0; i < data.clip_plane_len; i++) {
+				copy_v4_v4(data.clip_plane[i], clip_plane[i]);
+			}
+		}
+		else {
+			data.clip_plane_len = 1;
+			planes_from_projmat(
+			        projmat,
+			        NULL, NULL, NULL, NULL,
+			        data.clip_plane[0], NULL);
+		}
+
+		if (nearest) {
+			memcpy(&data.nearest, nearest, sizeof(*nearest));
+		}
+		else {
+			data.nearest.index = -1;
+			data.nearest.dist_sq = FLT_MAX;
+		}
+		{
+			const float bb_min[3] = {root->bv[0], root->bv[2], root->bv[4]};
+			const float bb_max[3] = {root->bv[1], root->bv[3], root->bv[5]};
+
+			int isect_type = isect_aabb_planes_v3(data.clip_plane, data.clip_plane_len, bb_min, bb_max);
+
+			if (isect_type != 0 && dist_squared_to_projected_aabb(
+			        &data.precalc, bb_min, bb_max,
+			        data.closest_axis) <= data.nearest.dist_sq)
+			{
+				if (isect_type == 1) {
+					bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(&data, root);
+				}
+				else {
+					bvhtree_nearest_projected_dfs_recursive(&data, root);
+				}
+			}
+		}
+
+		if (nearest) {
+			memcpy(nearest, &data.nearest, sizeof(*nearest));
+		}
+
+		return data.nearest.index;
+	}
+	return -1;
 }
 
 /** \} */

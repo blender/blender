@@ -619,6 +619,38 @@ float dist_squared_ray_to_seg_v3(
 	return len_squared_v3(t) - SQUARE(*r_depth);
 }
 
+/* Returns the coordinates of the nearest vertex and
+ * the farthest vertex from a plane (or normal). */
+void aabb_get_near_far_from_plane(
+        const float plane_no[3], const float bbmin[3], const float bbmax[3],
+        float bb_near[3], float bb_afar[3])
+{
+	if (plane_no[0] < 0.0f) {
+		bb_near[0] = bbmax[0];
+		bb_afar[0] = bbmin[0];
+	}
+	else {
+		bb_near[0] = bbmin[0];
+		bb_afar[0] = bbmax[0];
+	}
+	if (plane_no[1] < 0.0f) {
+		bb_near[1] = bbmax[1];
+		bb_afar[1] = bbmin[1];
+	}
+	else {
+		bb_near[1] = bbmin[1];
+		bb_afar[1] = bbmax[1];
+	}
+	if (plane_no[2] < 0.0f) {
+		bb_near[2] = bbmax[2];
+		bb_afar[2] = bbmin[2];
+	}
+	else {
+		bb_near[2] = bbmin[2];
+		bb_afar[2] = bbmax[2];
+	}
+}
+
 /* -------------------------------------------------------------------- */
 /** \name dist_squared_to_ray_to_aabb and helpers
  * \{ */
@@ -634,7 +666,6 @@ void dist_squared_ray_to_aabb_v3_precalc(
 		neasrest_precalc->ray_inv_dir[i] =
 		        (neasrest_precalc->ray_direction[i] != 0.0f) ?
 		        (1.0f / neasrest_precalc->ray_direction[i]) : FLT_MAX;
-		neasrest_precalc->sign[i] = (neasrest_precalc->ray_inv_dir[i] < 0.0f);
 	}
 }
 
@@ -648,30 +679,8 @@ float dist_squared_ray_to_aabb_v3(
 {
 	// bool r_axis_closest[3];
 	float local_bvmin[3], local_bvmax[3];
-	if (data->sign[0]) {
-		local_bvmin[0] = bb_max[0];
-		local_bvmax[0] = bb_min[0];
-	}
-	else {
-		local_bvmin[0] = bb_min[0];
-		local_bvmax[0] = bb_max[0];
-	}
-	if (data->sign[1]) {
-		local_bvmin[1] = bb_max[1];
-		local_bvmax[1] = bb_min[1];
-	}
-	else {
-		local_bvmin[1] = bb_min[1];
-		local_bvmax[1] = bb_max[1];
-	}
-	if (data->sign[2]) {
-		local_bvmin[2] = bb_max[2];
-		local_bvmax[2] = bb_min[2];
-	}
-	else {
-		local_bvmin[2] = bb_min[2];
-		local_bvmax[2] = bb_max[2];
-	}
+	aabb_get_near_far_from_plane(
+	        data->ray_direction, bb_min, bb_max, local_bvmin, local_bvmax);
 
 	const float tmin[3] = {
 		(local_bvmin[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
@@ -693,38 +702,38 @@ float dist_squared_ray_to_aabb_v3(
 		rtmax = tmax[0];
 		va[0] = vb[0] = local_bvmax[0];
 		main_axis = 3;
-		// r_axis_closest[0] = data->sign[0];
+		// r_axis_closest[0] = neasrest_precalc->ray_direction[0] < 0.0f;
 	}
 	else if ((tmax[1] <= tmax[0]) && (tmax[1] <= tmax[2])) {
 		rtmax = tmax[1];
 		va[1] = vb[1] = local_bvmax[1];
 		main_axis = 2;
-		// r_axis_closest[1] = data->sign[1];
+		// r_axis_closest[1] = neasrest_precalc->ray_direction[1] < 0.0f;
 	}
 	else {
 		rtmax = tmax[2];
 		va[2] = vb[2] = local_bvmax[2];
 		main_axis = 1;
-		// r_axis_closest[2] = data->sign[2];
+		// r_axis_closest[2] = neasrest_precalc->ray_direction[2] < 0.0f;
 	}
 
 	if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
 		rtmin = tmin[0];
 		va[0] = vb[0] = local_bvmin[0];
 		main_axis -= 3;
-		// r_axis_closest[0] = !data->sign[0];
+		// r_axis_closest[0] = neasrest_precalc->ray_direction[0] >= 0.0f;
 	}
 	else if ((tmin[1] >= tmin[0]) && (tmin[1] >= tmin[2])) {
 		rtmin = tmin[1];
 		va[1] = vb[1] = local_bvmin[1];
 		main_axis -= 1;
-		// r_axis_closest[1] = !data->sign[1];
+		// r_axis_closest[1] = neasrest_precalc->ray_direction[1] >= 0.0f;
 	}
 	else {
 		rtmin = tmin[2];
 		va[2] = vb[2] = local_bvmin[2];
 		main_axis -= 2;
-		// r_axis_closest[2] = !data->sign[2];
+		// r_axis_closest[2] = neasrest_precalc->ray_direction[2] >= 0.0f;
 	}
 	if (main_axis < 0) {
 		main_axis += 3;
@@ -739,13 +748,13 @@ float dist_squared_ray_to_aabb_v3(
 		return 0.0f;
 	}
 
-	if (data->sign[main_axis]) {
-		va[main_axis] = local_bvmax[main_axis];
-		vb[main_axis] = local_bvmin[main_axis];
-	}
-	else {
+	if (data->ray_direction[main_axis] >= 0.0f) {
 		va[main_axis] = local_bvmin[main_axis];
 		vb[main_axis] = local_bvmax[main_axis];
+	}
+	else {
+		va[main_axis] = local_bvmax[main_axis];
+		vb[main_axis] = local_bvmin[main_axis];
 	}
 
 	return dist_squared_ray_to_seg_v3(
@@ -839,35 +848,8 @@ float dist_squared_to_projected_aabb(
         bool r_axis_closest[3])
 {
 	float local_bvmin[3], local_bvmax[3];
-	bool sign[3] = {
-		data->ray_inv_dir[0] >= 0.0f,
-		data->ray_inv_dir[1] >= 0.0f,
-		data->ray_inv_dir[2] >= 0.0f,
-	};
-	if (sign[0]) {
-		local_bvmin[0] = bbmin[0];
-		local_bvmax[0] = bbmax[0];
-	}
-	else {
-		local_bvmin[0] = bbmax[0];
-		local_bvmax[0] = bbmin[0];
-	}
-	if (sign[1]) {
-		local_bvmin[1] = bbmin[1];
-		local_bvmax[1] = bbmax[1];
-	}
-	else {
-		local_bvmin[1] = bbmax[1];
-		local_bvmax[1] = bbmin[1];
-	}
-	if (sign[2]) {
-		local_bvmin[2] = bbmin[2];
-		local_bvmax[2] = bbmax[2];
-	}
-	else {
-		local_bvmin[2] = bbmax[2];
-		local_bvmax[2] = bbmin[2];
-	}
+	aabb_get_near_far_from_plane(
+	        data->ray_direction, bbmin, bbmax, local_bvmin, local_bvmax);
 
 	const float tmin[3] = {
 		(local_bvmin[0] - data->ray_origin[0]) * data->ray_inv_dir[0],
@@ -889,38 +871,38 @@ float dist_squared_to_projected_aabb(
 		rtmax = tmax[0];
 		va[0] = vb[0] = local_bvmax[0];
 		main_axis = 3;
-		r_axis_closest[0] = !sign[0];
+		r_axis_closest[0] = data->ray_direction[0] < 0.0f;
 	}
 	else if ((tmax[1] <= tmax[0]) && (tmax[1] <= tmax[2])) {
 		rtmax = tmax[1];
 		va[1] = vb[1] = local_bvmax[1];
 		main_axis = 2;
-		r_axis_closest[1] = !sign[1];
+		r_axis_closest[1] = data->ray_direction[1] < 0.0f;
 	}
 	else {
 		rtmax = tmax[2];
 		va[2] = vb[2] = local_bvmax[2];
 		main_axis = 1;
-		r_axis_closest[2] = !sign[2];
+		r_axis_closest[2] = data->ray_direction[2] < 0.0f;
 	}
 
 	if ((tmin[0] >= tmin[1]) && (tmin[0] >= tmin[2])) {
 		rtmin = tmin[0];
 		va[0] = vb[0] = local_bvmin[0];
 		main_axis -= 3;
-		r_axis_closest[0] = sign[0];
+		r_axis_closest[0] = data->ray_direction[0] >= 0.0f;
 	}
 	else if ((tmin[1] >= tmin[0]) && (tmin[1] >= tmin[2])) {
 		rtmin = tmin[1];
 		va[1] = vb[1] = local_bvmin[1];
 		main_axis -= 1;
-		r_axis_closest[1] = sign[1];
+		r_axis_closest[1] = data->ray_direction[1] >= 0.0f;
 	}
 	else {
 		rtmin = tmin[2];
 		va[2] = vb[2] = local_bvmin[2];
 		main_axis -= 2;
-		r_axis_closest[2] = sign[2];
+		r_axis_closest[2] = data->ray_direction[2] >= 0.0f;
 	}
 	if (main_axis < 0) {
 		main_axis += 3;
@@ -931,7 +913,7 @@ float dist_squared_to_projected_aabb(
 		return 0;
 	}
 
-	if (sign[main_axis]) {
+	if (data->ray_direction[main_axis] >= 0.0f) {
 		va[main_axis] = local_bvmin[main_axis];
 		vb[main_axis] = local_bvmax[main_axis];
 	}
@@ -2276,6 +2258,38 @@ static bool getLowestRoot(const float a, const float b, const float c, const flo
 	}
 	/* No (valid) solutions */
 	return false;
+}
+
+
+/**
+ * Checks status of an AABB in relation to a list of planes.
+ *
+ * \returns intersection type:
+ * - ISECT_AABB_PLANE_BEHIND_ONE   (0): AABB is completely behind at least 1 plane;
+ * - ISECT_AABB_PLANE_CROSS_ANY    (1): AABB intersects at least 1 plane;
+ * - ISECT_AABB_PLANE_IN_FRONT_ALL (2): AABB is completely in front of all planes;
+ */
+int isect_aabb_planes_v3(
+        const float (*planes)[4], const int totplane,
+        const float bbmin[3], const float bbmax[3])
+{
+	int ret = ISECT_AABB_PLANE_IN_FRONT_ALL;
+
+	float bb_near[3], bb_far[3];
+	for (int i = 0; i < totplane; i++) {
+		aabb_get_near_far_from_plane(planes[i], bbmin, bbmax, bb_near, bb_far);
+
+		if (plane_point_side_v3(planes[i], bb_far) < 0.0f) {
+			return ISECT_AABB_PLANE_BEHIND_ANY;
+		}
+		else if ((ret != ISECT_AABB_PLANE_CROSS_ANY) &&
+		        (plane_point_side_v3(planes[i], bb_near) < 0.0f))
+		{
+			ret = ISECT_AABB_PLANE_CROSS_ANY;
+		}
+	}
+
+	return ret;
 }
 
 bool isect_sweeping_sphere_tri_v3(const float p1[3], const float p2[3], const float radius,
