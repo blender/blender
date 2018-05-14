@@ -578,10 +578,12 @@ void workbench_materials_draw_background(WORKBENCH_Data *vedata)
 	const float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	uint clear_stencil = 0xFF;
 
+	DRW_stats_group_start("Clear Background");
 	GPU_framebuffer_bind(fbl->prepass_fb);
 	int clear_bits = GPU_DEPTH_BIT | GPU_COLOR_BIT;
 	SET_FLAG_FROM_TEST(clear_bits, SHADOW_ENABLED(wpd), GPU_STENCIL_BIT);
 	GPU_framebuffer_clear(fbl->prepass_fb, clear_bits, clear_color, clear_depth, clear_stencil);
+	DRW_stats_group_end();
 }
 
 void workbench_materials_draw_scene(WORKBENCH_Data *vedata)
