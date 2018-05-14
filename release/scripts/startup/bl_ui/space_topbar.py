@@ -238,7 +238,10 @@ class TOPBAR_HT_lower_bar(Header):
             if object_mode not in {'SCULPT', 'VERTEX_PAINT', 'WEIGHT_PAINT', 'TEXTURE_PAINT'}:
                 show_snap = True
             else:
+
+                from .properties_paint_common import UnifiedPaintPanel
                 paint_settings = UnifiedPaintPanel.paint_settings(context)
+
                 if paint_settings:
                     brush = paint_settings.brush
                     if brush and brush.stroke_method == 'CURVE':
