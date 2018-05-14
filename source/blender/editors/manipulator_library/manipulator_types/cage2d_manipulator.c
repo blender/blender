@@ -66,16 +66,6 @@
 #define MANIPULATOR_RESIZER_SIZE 10.0f
 #define MANIPULATOR_MARGIN_OFFSET_SCALE 1.5f
 
-static void manipulator_calc_matrix_final_no_offset(
-        const wmManipulator *mpr, float orig_matrix_final_no_offset[4][4])
-{
-	float mat_identity[4][4];
-	struct WM_ManipulatorMatrixParams params = {NULL};
-	unit_m4(mat_identity);
-	params.matrix_offset = mat_identity;
-	WM_manipulator_calc_matrix_final_params(mpr, &params, orig_matrix_final_no_offset);
-}
-
 static void manipulator_calc_rect_view_scale(
         const wmManipulator *mpr, const float dims[2], float scale[2])
 {
@@ -88,7 +78,7 @@ static void manipulator_calc_rect_view_scale(
 		asp[1] = dims[0] / dims[1];
 	}
 	float x_axis[3], y_axis[3];
-	manipulator_calc_matrix_final_no_offset(mpr, matrix_final_no_offset);
+	WM_manipulator_calc_matrix_final_no_offset(mpr, matrix_final_no_offset);
 	mul_v3_mat3_m4v3(x_axis, matrix_final_no_offset, mpr->matrix_offset[0]);
 	mul_v3_mat3_m4v3(y_axis, matrix_final_no_offset, mpr->matrix_offset[1]);
 
@@ -841,7 +831,7 @@ static int manipulator_cage2d_invoke(
 	RectTransformInteraction *data = MEM_callocN(sizeof(RectTransformInteraction), "cage_interaction");
 
 	copy_m4_m4(data->orig_matrix_offset, mpr->matrix_offset);
-	manipulator_calc_matrix_final_no_offset(mpr, data->orig_matrix_final_no_offset);
+	WM_manipulator_calc_matrix_final_no_offset(mpr, data->orig_matrix_final_no_offset);
 
 	if (manipulator_window_project_2d(
 	        C, mpr, (const float[2]){UNPACK2(event->mval)}, 2, false, data->orig_mouse) == 0)

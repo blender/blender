@@ -125,8 +125,11 @@ struct WM_ManipulatorMatrixParams {
 void WM_manipulator_calc_matrix_final_params(
         const struct wmManipulator *mpr, const struct WM_ManipulatorMatrixParams *params,
         float r_mat[4][4]);
+void WM_manipulator_calc_matrix_final_no_offset(
+        const struct wmManipulator *mpr, float r_mat[4][4]);
 
-void WM_manipulator_calc_matrix_final(const struct wmManipulator *mpr, float r_mat[4][4]);
+void WM_manipulator_calc_matrix_final(
+        const struct wmManipulator *mpr, float r_mat[4][4]);
 
 /* properties */
 void WM_manipulator_properties_create_ptr(struct PointerRNA *ptr, struct wmManipulatorType *wt);

@@ -598,6 +598,22 @@ void WM_manipulator_calc_matrix_final_params(
 	mul_m4_m4m4(r_mat, matrix_space, final_matrix);
 }
 
+void WM_manipulator_calc_matrix_final_no_offset(const wmManipulator *mpr, float r_mat[4][4])
+{
+	float mat_identity[4][4];
+	unit_m4(mat_identity);
+
+	WM_manipulator_calc_matrix_final_params(
+	        mpr,
+	        &((struct WM_ManipulatorMatrixParams) {
+	            .matrix_space = NULL,
+	            .matrix_basis = NULL,
+	            .matrix_offset = mat_identity,
+	            .scale_final = NULL,
+	        }), r_mat
+	);
+}
+
 void WM_manipulator_calc_matrix_final(const wmManipulator *mpr, float r_mat[4][4])
 {
 	WM_manipulator_calc_matrix_final_params(
