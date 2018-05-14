@@ -6361,73 +6361,89 @@ void MESH_OT_offset_edge_loops(wmOperatorType *ot)
 #ifdef WITH_BULLET
 static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMOperator bmop;
+	const bool use_existing_faces = RNA_boolean_get(op->ptr, "use_existing_faces");
+	const bool delete_unused = RNA_boolean_get(op->ptr, "delete_unused");
+	const bool make_holes = RNA_boolean_get(op->ptr, "make_holes");
+	const bool join_triangles = RNA_boolean_get(op->ptr, "join_triangles");
 
-	EDBM_op_init(
-	        em, &bmop, op, "convex_hull input=%hvef "
-	        "use_existing_faces=%b",
-	        BM_ELEM_SELECT,
-	        RNA_boolean_get(op->ptr, "use_existing_faces"));
-	BMO_op_exec(em->bm, &bmop);
+	float angle_face_threshold = RNA_float_get(op->ptr, "face_threshold");
+	float angle_shape_threshold = RNA_float_get(op->ptr, "shape_threshold");
 
-	/* Hull fails if input is coplanar */
-	if (BMO_error_occurred(em->bm)) {
-		EDBM_op_finish(em, &bmop, op, true);
-		return OPERATOR_CANCELLED;
-	}
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
-
-	/* Delete unused vertices, edges, and faces */
-	if (RNA_boolean_get(op->ptr, "delete_unused")) {
-		if (!EDBM_op_callf(
-		            em, op, "delete geom=%S context=%i",
-		            &bmop, "geom_unused.out", DEL_ONLYTAGGED))
-		{
-			EDBM_op_finish(em, &bmop, op, true);
-			return OPERATOR_CANCELLED;
+		if (em->bm->totvertsel == 0) {
+			continue;
 		}
-	}
 
-	/* Delete hole edges/faces */
-	if (RNA_boolean_get(op->ptr, "make_holes")) {
-		if (!EDBM_op_callf(
-		            em, op, "delete geom=%S context=%i",
-		            &bmop, "geom_holes.out", DEL_ONLYTAGGED))
-		{
+		BMOperator bmop;
+
+		EDBM_op_init(
+		        em, &bmop, op, "convex_hull input=%hvef "
+		        "use_existing_faces=%b",
+		        BM_ELEM_SELECT,
+		        use_existing_faces);
+		BMO_op_exec(em->bm, &bmop);
+
+		/* Hull fails if input is coplanar */
+		if (BMO_error_occurred(em->bm)) {
 			EDBM_op_finish(em, &bmop, op, true);
-			return OPERATOR_CANCELLED;
+			continue;
 		}
-	}
 
-	/* Merge adjacent triangles */
-	if (RNA_boolean_get(op->ptr, "join_triangles")) {
-		float angle_face_threshold = RNA_float_get(op->ptr, "face_threshold");
-		float angle_shape_threshold = RNA_float_get(op->ptr, "shape_threshold");
+		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "geom.out", BM_FACE, BM_ELEM_SELECT, true);
 
-		if (!EDBM_op_call_and_selectf(
-		        em, op,
-		        "faces.out", true,
-		        "join_triangles faces=%S "
-		        "angle_face_threshold=%f angle_shape_threshold=%f",
-		        &bmop, "geom.out",
-		        angle_face_threshold, angle_shape_threshold))
-		{
-			EDBM_op_finish(em, &bmop, op, true);
-			return OPERATOR_CANCELLED;
+		/* Delete unused vertices, edges, and faces */
+		if (delete_unused) {
+			if (!EDBM_op_callf(
+			            em, op, "delete geom=%S context=%i",
+			            &bmop, "geom_unused.out", DEL_ONLYTAGGED))
+			{
+				EDBM_op_finish(em, &bmop, op, true);
+				continue;
+			}
 		}
-	}
 
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return OPERATOR_CANCELLED;
-	}
-	else {
+		/* Delete hole edges/faces */
+		if (make_holes) {
+			if (!EDBM_op_callf(
+			            em, op, "delete geom=%S context=%i",
+			            &bmop, "geom_holes.out", DEL_ONLYTAGGED))
+			{
+				EDBM_op_finish(em, &bmop, op, true);
+				continue;
+			}
+		}
+
+		/* Merge adjacent triangles */
+		if (join_triangles) {
+			if (!EDBM_op_call_and_selectf(
+			        em, op,
+			        "faces.out", true,
+			        "join_triangles faces=%S "
+			        "angle_face_threshold=%f angle_shape_threshold=%f",
+			        &bmop, "geom.out",
+			        angle_face_threshold, angle_shape_threshold))
+			{
+				EDBM_op_finish(em, &bmop, op, true);
+				continue;
+			}
+		}
+
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
 		EDBM_update_generic(em, true, true);
 		EDBM_selectmode_flush(em);
-		return OPERATOR_FINISHED;
 	}
+
+	MEM_freeN(objects);
+	return OPERATOR_FINISHED;
 }
 
 void MESH_OT_convex_hull(wmOperatorType *ot)
