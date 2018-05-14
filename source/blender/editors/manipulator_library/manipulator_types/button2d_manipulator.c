@@ -127,12 +127,12 @@ static void button2d_draw_intern(
 	manipulator_color_get(mpr, highlight, color);
 	WM_manipulator_calc_matrix_final(mpr, matrix_final);
 
+	bool need_to_pop = true;
 	gpuPushMatrix();
 	gpuMultMatrix(matrix_final);
 
-	glEnable(GL_BLEND);
-
 	if (select == false) {
+		glEnable(GL_BLEND);
 		if (button->shape_batch[0] != NULL) {
 			glEnable(GL_LINE_SMOOTH);
 			glLineWidth(1.0f);
@@ -147,21 +147,22 @@ static void button2d_draw_intern(
 				GWN_batch_draw(button->shape_batch[i]);
 			}
 			glDisable(GL_LINE_SMOOTH);
-			gpuPopMatrix();
 		}
 		else if (button->icon != ICON_NONE) {
 			button2d_geom_draw_backdrop(mpr, color, select);
 			gpuPopMatrix();
+			need_to_pop = false;
 			UI_icon_draw(
 			        mpr->matrix_basis[3][0] - (ICON_DEFAULT_WIDTH / 2.0) * UI_DPI_FAC,
 			        mpr->matrix_basis[3][1] - (ICON_DEFAULT_HEIGHT / 2.0) * UI_DPI_FAC,
 			        button->icon);
 		}
-		else {
-			gpuPopMatrix();
-		}
+		glDisable(GL_BLEND);
 	}
-	glDisable(GL_BLEND);
+
+	if (need_to_pop) {
+		gpuPopMatrix();
+	}
 }
 
 static void manipulator_button2d_draw_select(const bContext *C, wmManipulator *mpr, int select_id)
