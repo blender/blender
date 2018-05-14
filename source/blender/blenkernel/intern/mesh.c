@@ -558,7 +558,7 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	me_dst->bb = MEM_dupallocN(me_dst->bb);
 
 	/* TODO Do we want to add flag to prevent this? */
-	if (me_src->key) {
+	if (me_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
 		BKE_id_copy_ex(bmain, &me_src->key->id, (ID **)&me_dst->key, flag, false);
 	}
 }
@@ -661,7 +661,7 @@ Mesh * BKE_mesh_new_nomain_from_template(
 Mesh *BKE_mesh_copy(Main *bmain, const Mesh *me)
 {
 	Mesh *me_copy;
-	BKE_id_copy_ex(bmain, &me->id, (ID **)&me_copy, 0, false);
+	BKE_id_copy_ex(bmain, &me->id, (ID **)&me_copy, LIB_ID_COPY_SHAPEKEY, false);
 	return me_copy;
 }
 

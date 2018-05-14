@@ -691,7 +691,7 @@ bool BKE_id_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int flag, con
  */
 bool id_copy(Main *bmain, const ID *id, ID **newid, bool test)
 {
-	return BKE_id_copy_ex(bmain, id, newid, 0, test);
+	return BKE_id_copy_ex(bmain, id, newid, LIB_ID_COPY_SHAPEKEY, test);
 }
 
 /** Does a mere memory swap over the whole IDs data (including type-specific memory).
@@ -1427,6 +1427,8 @@ void BKE_libblock_copy_ex(Main *bmain, const ID *id, ID **r_newid, const int fla
 	BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || bmain != NULL);
 	BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) != 0 || (flag & LIB_ID_CREATE_NO_ALLOCATE) == 0);
 	BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 || (flag & LIB_ID_CREATE_NO_USER_REFCOUNT) != 0);
+	/* Never implicitely copy shapekeys when generating temp data outside of Main database. */
+	BLI_assert((flag & LIB_ID_CREATE_NO_MAIN) == 0 || (flag & LIB_ID_COPY_SHAPEKEY) == 0);
 
 	if ((flag & LIB_ID_CREATE_NO_ALLOCATE) != 0) {
 		/* r_newid already contains pointer to allocated memory. */

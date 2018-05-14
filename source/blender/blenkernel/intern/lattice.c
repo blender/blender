@@ -282,7 +282,7 @@ void BKE_lattice_copy_data(Main *bmain, Lattice *lt_dst, const Lattice *lt_src, 
 {
 	lt_dst->def = MEM_dupallocN(lt_src->def);
 
-	if (lt_src->key) {
+	if (lt_src->key && (flag & LIB_ID_COPY_SHAPEKEY)) {
 		BKE_id_copy_ex(bmain, &lt_src->key->id, (ID **)&lt_dst->key, flag, false);
 	}
 
@@ -298,7 +298,7 @@ void BKE_lattice_copy_data(Main *bmain, Lattice *lt_dst, const Lattice *lt_src, 
 Lattice *BKE_lattice_copy(Main *bmain, const Lattice *lt)
 {
 	Lattice *lt_copy;
-	BKE_id_copy_ex(bmain, &lt->id, (ID **)&lt_copy, 0, false);
+	BKE_id_copy_ex(bmain, &lt->id, (ID **)&lt_copy, LIB_ID_COPY_SHAPEKEY, false);
 	return lt_copy;
 }
 
