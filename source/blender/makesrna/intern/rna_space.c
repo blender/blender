@@ -714,13 +714,15 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
         PropertyRNA *UNUSED(prop), bool *r_free)
 {
 	EnumPropertyItem *item = NULL;
+	EnumPropertyItem *lastitem;
 	int totitem = 0;
 
-	/* XXX: add studio lights */
 	LISTBASE_FOREACH(StudioLight*, sl, BKE_studiolight_listbase()) {
 		if (totitem < NUM_STUDIO_LIGHT_ITEMS) {
 			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, totitem);
-			item[totitem-1].icon = sl->icon_id;
+			lastitem = &item[totitem-1];
+			lastitem->icon = sl->icon_id;
+			lastitem->name = sl->name;
 		}
 	}
 
