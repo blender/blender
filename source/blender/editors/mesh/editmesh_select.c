@@ -3728,18 +3728,39 @@ static bool edbm_deselect_nth(BMEditMesh *em, const struct CheckerIntervalParams
 
 static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	struct CheckerIntervalParams op_params;
-
 	WM_operator_properties_checker_interval_from_op(op, &op_params);
+	bool found_active_elt = false;
 
-	if (edbm_deselect_nth(em, &op_params) == false) {
-		BKE_report(op->reports, RPT_ERROR, "Mesh has no active vert/edge/face");
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if ((em->bm->totvertsel == 0) &&
+		    (em->bm->totedgesel == 0) &&
+		    (em->bm->totfacesel == 0))
+		{
+			continue;
+		}
+
+		if (edbm_deselect_nth(em, &op_params) == true) {
+			found_active_elt = true;
+			EDBM_update_generic(em, false, false);
+		}
+	}
+	MEM_SAFE_FREE(objects);
+
+	if (!found_active_elt) {
+		BKE_report(op->reports, RPT_ERROR,
+		           (objects_len == 1 ?
+		            "Mesh has no active vert/edge/face" :
+		            "Meshes have no active vert/edge/face"));
 		return OPERATOR_CANCELLED;
 	}
-
-	EDBM_update_generic(em, false, false);
 
 	return OPERATOR_FINISHED;
 }
