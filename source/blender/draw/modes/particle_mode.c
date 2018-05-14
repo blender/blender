@@ -190,12 +190,19 @@ static void particle_cache_populate(void *vedata, Object *object)
 		return;
 	}
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
+	/* Usually the edit structure is created by Particle Edit Mode Toggle
+	 * operator, but sometimes it's invoked after tagging hair as outdated
+	 * (for example, when toggling edit mode). That makes it impossible to
+	 * create edit structure for until after next dependency graph evaluation.
+	 *
+	 * Ideally, the edit structure will be created here already via some
+	 * dependency graph callback or so, but currently trying to make it nicer
+	 * only causes bad level calls and breaks design from the past.
+	 */
 	Object *object_orig = DEG_get_original_object(object);
-	PTCacheEdit *edit = PE_get_current(draw_ctx->scene, object_orig);
-	if (edit == NULL) {
-		printf("Particle edit struct is NULL, not supposed to happen.\n");
-		return;
-	}
+	PTCacheEdit *edit = PE_create_current(
+	        draw_ctx->depsgraph, scene_orig, object_orig);
 	ParticleSystem *psys = object->particlesystem.first;
 	ParticleSystem *psys_orig = object_orig->particlesystem.first;
 	while (psys_orig != NULL) {
