@@ -3220,30 +3220,30 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 		BMFace *efa;
 		BMIter iter;
 
-		if (!extend)
+		if (!extend) {
 			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+		}
 
 		BM_ITER_MESH(efa, &iter, em->bm, BM_FACES_OF_MESH) {
-
 			bool select;
 
 			switch (type) {
-			case 0:
-				select = (efa->len < numverts);
-				break;
-			case 1:
-				select = (efa->len == numverts);
-				break;
-			case 2:
-				select = (efa->len > numverts);
-				break;
-			case 3:
-				select = (efa->len != numverts);
-				break;
-			default:
-				BLI_assert(0);
-				select = false;
-				break;
+				case 0:
+					select = (efa->len < numverts);
+					break;
+				case 1:
+					select = (efa->len == numverts);
+					break;
+				case 2:
+					select = (efa->len > numverts);
+					break;
+				case 3:
+					select = (efa->len != numverts);
+					break;
+				default:
+					BLI_assert(0);
+					select = false;
+					break;
 			}
 
 			if (select) {

@@ -867,7 +867,8 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
 		if ((em->bm->totvertsel == 0) &&
-		    (em->bm->totedgesel == 0))
+		    (em->bm->totedgesel == 0) &&
+		    (em->bm->totvertsel == 0))
 		{
 			continue;
 		}
@@ -882,7 +883,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 		BMFace *ele_desel_face;
 
 		/* be extra clever, figure out if a partial selection should be extended so we can create geometry
-		* with single vert or single edge selection */
+		 * with single vert or single edge selection */
 		ele_desel = edbm_add_edge_face_exec__tricky_extend_sel(em->bm);
 #endif
 		if (!EDBM_op_init(
@@ -904,7 +905,7 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 		}
 #ifdef USE_FACE_CREATE_SEL_EXTEND
 		/* normally we would want to leave the new geometry selected,
-		* but being able to press F many times to add geometry is too useful! */
+		 * but being able to press F many times to add geometry is too useful! */
 		if (ele_desel &&
 			(BMO_slot_buffer_count(bmop.slots_out, "faces.out") == 1) &&
 			(ele_desel_face = BMO_slot_buffer_get_first(bmop.slots_out, "faces.out")))
@@ -915,10 +916,10 @@ static int edbm_add_edge_face_exec(bContext *C, wmOperator *op)
 #endif
 		{
 			/* Newly created faces may include existing hidden edges,
-			* copying face data from surrounding, may have copied hidden face flag too.
-			*
-			* Important that faces use flushing since 'edges.out' wont include hidden edges that already existed.
-			*/
+			 * copying face data from surrounding, may have copied hidden face flag too.
+			 *
+			 * Important that faces use flushing since 'edges.out' wont include hidden edges that already existed.
+			 */
 			BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_HIDDEN, true);
 			BMO_slot_buffer_hflag_disable(em->bm, bmop.slots_out, "edges.out", BM_EDGE, BM_ELEM_HIDDEN, false);
 
@@ -1106,7 +1107,7 @@ void MESH_OT_mark_sharp(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static bool bm_connect_vert_pair(BMEditMesh *em, wmOperator *op)
+static bool edbm_connect_vert_pair(BMEditMesh *em, wmOperator *op)
 {
 	BMesh *bm = em->bm;
 	BMOperator bmop;
@@ -1136,8 +1137,8 @@ static bool bm_connect_vert_pair(BMEditMesh *em, wmOperator *op)
 		}
 
 		if (BM_vert_pair_share_face_check_cb(
-			verts[0], verts[1],
-			BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
+		            verts[0], verts[1],
+		            BM_elem_cb_check_hflag_disabled_simple(BMFace *, BM_ELEM_HIDDEN)))
 		{
 			check_degenerate = false;
 			is_pair = false;
@@ -1146,18 +1147,18 @@ static bool bm_connect_vert_pair(BMEditMesh *em, wmOperator *op)
 
 	if (is_pair) {
 		if (!EDBM_op_init(
-			em, &bmop, op,
-			"connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
-			verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
+		            em, &bmop, op,
+		            "connect_vert_pair verts=%eb verts_exclude=%hv faces_exclude=%hf",
+		            verts, verts_len, BM_ELEM_HIDDEN, BM_ELEM_HIDDEN))
 		{
 			checks_succeded = false;
 		}
 	}
 	else {
 		if (!EDBM_op_init(
-			em, &bmop, op,
-			"connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
-			verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
+		            em, &bmop, op,
+		            "connect_verts verts=%eb faces_exclude=%hf check_degenerate=%b",
+		            verts, verts_len, BM_ELEM_HIDDEN, check_degenerate))
 		{
 			checks_succeded = false;
 		}
@@ -1196,7 +1197,7 @@ static int edbm_vert_connect_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		if (!bm_connect_vert_pair(em, op)) {
+		if (!edbm_connect_vert_pair(em, op)) {
 			failed_objects_len++;
 		}
 	}
@@ -1459,7 +1460,7 @@ static int edbm_vert_connect_path_exec(bContext *C, wmOperator *op)
 
 		/* when there is only 2 vertices, we can ignore selection order */
 		if (is_pair) {
-			if(!bm_connect_vert_pair(em, op)) {
+			if(!edbm_connect_vert_pair(em, op)) {
 				failed_connect_len++;
 			}
 			continue;
