@@ -37,28 +37,40 @@ class VIEW3D_HT_header(Header):
         shading = view.shading
         # mode_string = context.mode
         obj = context.active_object
+        overlay = view.overlay
         toolsettings = context.tool_settings
 
         row = layout.row(align=True)
         row.template_header()
 
         mode = 'OBJECT' if obj is None else obj.mode
+
+        # Testing move mode to topbar.
+        '''
         act_mode_item = bpy.types.Object.bl_rna.properties['mode'].enum_items[mode]
         layout.operator_menu_enum("object.mode_set", "mode", text=act_mode_item.name, icon=act_mode_item.icon)
         del act_mode_item
 
         layout.template_header_3D_mode()
-
-        VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
+        '''
 
         # Contains buttons like Mode, Pivot, Manipulator, Layer, Mesh Select Mode...
-        row = layout
         shading_type = view.shading.type
         shading_item = bpy.types.View3DShading.bl_rna.properties['type'].enum_items[shading_type]
-        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading", text=shading_item.name, icon=shading_item.icon)
-        row.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay", text="Overlays", icon='WIRE')
 
-        layout.template_header_3D()
+        row = layout.row(align=True)
+        row.prop(shading, "type", text="", expand=True)
+
+        sub = row.row(align=True)
+        sub.enabled = shading.type != 'RENDERED'
+        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_shading")
+
+        row = layout.row(align=True)
+        row.prop(overlay, "show_overlays", icon="WIRE", text="")
+
+        sub = row.row(align=True)
+        sub.active = overlay.show_overlays
+        sub.popover(space_type='VIEW_3D', region_type='HEADER', panel_type="VIEW3D_PT_overlay")
 
         if obj:
             # Set above:
@@ -66,11 +78,13 @@ class VIEW3D_HT_header(Header):
 
             # Particle edit
             if mode == 'PARTICLE_EDIT':
+                row = layout.row()
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
             if ((shading.type not in {'BOUNDBOX', 'WIREFRAME'} and (mode == 'PARTICLE_EDIT' or (mode == 'EDIT' and obj.type == 'MESH'))) or
                     (mode in {'WEIGHT_PAINT', 'VERTEX_PAINT'})):
+                row = layout.row()
                 row.prop(view, "use_occlude_geometry", text="")
 
         # Pose
@@ -92,6 +106,8 @@ class VIEW3D_HT_header(Header):
             row = layout.row(align=True)
             row.prop(context.tool_settings.gpencil_sculpt, "use_select_mask")
             row.prop(context.tool_settings.gpencil_sculpt, "selection_alpha", slider=True)
+
+        VIEW3D_MT_editor_menus.draw_collapsible(context, layout)
 
 
 class VIEW3D_MT_editor_menus(Menu):
@@ -3483,18 +3499,14 @@ class VIEW3D_PT_shading(Panel):
         shading = view.shading
 
         col = layout.column()
-        col.prop(shading, "type", expand=True)
 
         if shading.type == 'SOLID':
-            col.separator()
             col.row().prop(shading, "color_type", expand=True)
 
             if shading.color_type == 'SINGLE':
-                col.separator()
                 col.row().prop(shading, "single_color", text="")
 
         if shading.type in ('SOLID', 'TEXTURED'):
-            col.separator()
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
                 col.row().template_icon_view(shading, "studio_light")
@@ -3513,7 +3525,7 @@ class VIEW3D_PT_shading(Panel):
 class VIEW3D_PT_overlay(Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'HEADER'
-    bl_label = "Overlay"
+    bl_label = "Overlays"
 
     @classmethod
     def poll(cls, context):
@@ -3529,15 +3541,13 @@ class VIEW3D_PT_overlay(Panel):
         display_all = overlay.show_overlays
 
         col = layout.column()
-        col.prop(overlay, "show_overlays")
-        col.separator()
         col.prop(view, "show_world")
 
         col = layout.column()
         col.active = display_all
-        col.prop(overlay, "show_cursor")
+        col.prop(overlay, "show_cursor", text="3D Cursor")
 
-        col.prop(view, "show_manipulator")
+        col.prop(view, "show_manipulator", text="Manipulators")
 
         col = layout.column()
         col.active = display_all
