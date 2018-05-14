@@ -546,6 +546,8 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 										/* mask modifier ('armature' mode), etc. */
 										DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 									}
+									/* tag armature for copy on write, since selection status is armature data */
+									DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 									ob_prev = ob;
 								}
 							}
