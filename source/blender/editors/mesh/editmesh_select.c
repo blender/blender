@@ -3207,21 +3207,27 @@ void MESH_OT_select_linked_pick(wmOperatorType *ot)
 
 static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMFace *efa;
-	BMIter iter;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	const bool extend = RNA_boolean_get(op->ptr, "extend");
 	const int numverts = RNA_int_get(op->ptr, "number");
 	const int type = RNA_enum_get(op->ptr, "type");
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	if (!RNA_boolean_get(op->ptr, "extend"))
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMFace *efa;
+		BMIter iter;
 
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+		if (!extend)
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-		bool select;
+		BM_ITER_MESH(efa, &iter, em->bm, BM_FACES_OF_MESH) {
 
-		switch (type) {
+			bool select;
+
+			switch (type) {
 			case 0:
 				select = (efa->len < numverts);
 				break;
@@ -3238,16 +3244,19 @@ static int edbm_select_face_by_sides_exec(bContext *C, wmOperator *op)
 				BLI_assert(0);
 				select = false;
 				break;
+			}
+
+			if (select) {
+				BM_face_select_set(em->bm, efa, true);
+			}
 		}
 
-		if (select) {
-			BM_face_select_set(em->bm, efa, true);
-		}
+		EDBM_selectmode_flush(em);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
-	EDBM_selectmode_flush(em);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
