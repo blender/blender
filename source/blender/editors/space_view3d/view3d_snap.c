@@ -30,6 +30,8 @@
  */
 
 
+#include "MEM_guardedalloc.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_object_types.h"
 
@@ -40,6 +42,8 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_context.h"
+#include "BKE_editmesh.h"
+#include "BKE_layer.h"
 #include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_object.h"
@@ -81,30 +85,49 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	gridf = rv3d->gridview;
 
 	if (obedit) {
-		if (ED_transverts_check_obedit(obedit))
-			ED_transverts_create_from_obedit(&tvs, obedit, 0);
-		if (tvs.transverts_tot == 0)
-			return OPERATOR_CANCELLED;
+		ViewLayer *view_layer = CTX_data_view_layer(C);
+		uint objects_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			obedit = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		copy_m3_m4(bmat, obedit->obmat);
-		invert_m3_m3(imat, bmat);
-		
-		tv = tvs.transverts;
-		for (a = 0; a < tvs.transverts_tot; a++, tv++) {
-			copy_v3_v3(vec, tv->loc);
-			mul_m3_v3(bmat, vec);
-			add_v3_v3(vec, obedit->obmat[3]);
-			vec[0] = gridf * floorf(0.5f + vec[0] / gridf);
-			vec[1] = gridf * floorf(0.5f + vec[1] / gridf);
-			vec[2] = gridf * floorf(0.5f + vec[2] / gridf);
-			sub_v3_v3(vec, obedit->obmat[3]);
-			
-			mul_m3_v3(imat, vec);
-			copy_v3_v3(tv->loc, vec);
+			if ((em->bm->totvertsel == 0) &&
+			    (em->bm->totedgesel == 0) &&
+			    (em->bm->totfacesel == 0))
+			{
+				continue;
+			}
+
+			if (ED_transverts_check_obedit(obedit)) {
+				ED_transverts_create_from_obedit(&tvs, obedit, 0);
+			}
+
+			if (tvs.transverts_tot == 0) {
+				continue;
+			}
+
+			copy_m3_m4(bmat, obedit->obmat);
+			invert_m3_m3(imat, bmat);
+
+			tv = tvs.transverts;
+			for (a = 0; a < tvs.transverts_tot; a++, tv++) {
+				copy_v3_v3(vec, tv->loc);
+				mul_m3_v3(bmat, vec);
+				add_v3_v3(vec, obedit->obmat[3]);
+				vec[0] = gridf * floorf(0.5f + vec[0] / gridf);
+				vec[1] = gridf * floorf(0.5f + vec[1] / gridf);
+				vec[2] = gridf * floorf(0.5f + vec[2] / gridf);
+				sub_v3_v3(vec, obedit->obmat[3]);
+
+				mul_m3_v3(imat, vec);
+				copy_v3_v3(tv->loc, vec);
+			}
+
+			ED_transverts_update_obedit(&tvs, obedit);
+			ED_transverts_free(&tvs);
 		}
-		
-		ED_transverts_update_obedit(&tvs, obedit);
-		ED_transverts_free(&tvs);
+		MEM_freeN(objects);
 	}
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
