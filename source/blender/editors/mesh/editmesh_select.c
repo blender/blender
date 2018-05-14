@@ -3375,28 +3375,44 @@ void MESH_OT_select_loose(wmOperatorType *ot)
 
 static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const int axis_flag = RNA_enum_get(op->ptr, "axis");
 	const bool extend = RNA_boolean_get(op->ptr, "extend");
+	Object *obedit_active = CTX_data_edit_object(C);
+	BMEditMesh *em_active = BKE_editmesh_from_object(obedit_active);
+	const int select_mode = em_active->bm->selectmode;
+	int tot_mirr = 0, tot_fail = 0;
 
-	if (em->bm->totvert && em->bm->totvertsel) {
-		int totmirr, totfail;
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totvertsel == 0) {
+			continue;
+		}
+
+		int tot_mirr_iter = 0, tot_fail_iter = 0;
 
 		for (int axis = 0; axis < 3; axis++) {
 			if ((1 << axis) & axis_flag) {
-				EDBM_select_mirrored(em, axis, extend, &totmirr, &totfail);
+				EDBM_select_mirrored(em, axis, extend, &tot_mirr_iter, &tot_fail_iter);
 			}
 		}
 
-		if (totmirr) {
+		if (tot_mirr_iter) {
 			EDBM_selectmode_flush(em);
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 
-		ED_mesh_report_mirror_ex(op, totmirr, totfail, em->bm->selectmode);
+		tot_fail += tot_fail_iter;
+		tot_mirr += tot_mirr_iter;
 	}
+	MEM_freeN(objects);
 
+	ED_mesh_report_mirror_ex(op, tot_mirr, tot_fail, select_mode);
 	return OPERATOR_FINISHED;
 }
 
