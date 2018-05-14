@@ -591,6 +591,9 @@ static void manipulator_mesh_extrude_refresh(const bContext *C, wmManipulatorGro
 		int constraint_axis[3];
 		RNA_boolean_get_array(op_transform->ptr, "constraint_axis", constraint_axis);
 		RNA_boolean_set_array(&macroptr, "constraint_axis", constraint_axis);
+
+		int orientation_type = RNA_enum_get(op_transform->ptr, "constraint_orientation");
+		RNA_enum_set(&macroptr, "constraint_orientation", orientation_type);
 	}
 }
 
