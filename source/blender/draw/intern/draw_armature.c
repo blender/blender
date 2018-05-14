@@ -1577,11 +1577,8 @@ static void draw_armature_pose(Object *ob, const float const_color[4])
 	const bool show_relations = true; /* TODO get value from overlays settings. */
 
 	/* being set below */
-	arm->layer_used = 0;
-
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		bone = pchan->bone;
-		arm->layer_used |= bone->layer;
 
 		/* bone must be visible */
 		if ((bone->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)) == 0) {

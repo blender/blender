@@ -240,6 +240,18 @@ static IDProperty *rna_EditBone_idprops(PointerRNA *ptr, bool create)
 	return ebone->prop;
 }
 
+/* Update the layers_used variable after bones are moved between layer
+ * NOTE: Used to be done in drawing code in 2.7, but that won't work with
+ *       Copy-on-Write, as drawing uses evaluated copies.
+ */
+static void rna_Armature_layer_used_refresh(bArmature *arm, ListBase *bones)
+{
+	for (Bone *bone = bones->first; bone; bone = bone->next) {
+		arm->layer_used |= bone->layer;
+		rna_Armature_layer_used_refresh(arm, &bone->childbase);
+	}
+}
+
 static void rna_bone_layer_set(int *layer, const int *values)
 {
 	int i, tot = 0;
@@ -260,8 +272,13 @@ static void rna_bone_layer_set(int *layer, const int *values)
 
 static void rna_Bone_layer_set(PointerRNA *ptr, const int *values)
 {
+	bArmature *arm = (bArmature *)ptr->id.data;
 	Bone *bone = (Bone *)ptr->data;
+	
 	rna_bone_layer_set(&bone->layer, values);
+	
+	arm->layer_used = 0;
+	rna_Armature_layer_used_refresh(arm, &arm->bonebase);
 }
 
 static void rna_Armature_layer_set(PointerRNA *ptr, const int *values)
