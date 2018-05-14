@@ -119,7 +119,12 @@ static Mesh *get_quick_mesh(
 					result = mesh_self;
 				}
 				else {
-					BKE_id_copy_ex(NULL, &mesh_other->id, (ID **)&result, LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
+					BKE_id_copy_ex(NULL, &mesh_other->id, (ID **)&result,
+					               LIB_ID_CREATE_NO_MAIN |
+					               LIB_ID_CREATE_NO_USER_REFCOUNT |
+					               LIB_ID_CREATE_NO_DEG_TAG |
+					               LIB_ID_COPY_NO_PREVIEW,
+					               false);
 
 					float imat[4][4];
 					float omat[4][4];

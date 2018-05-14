@@ -300,8 +300,9 @@ Mesh *get_mesh(
 		/* pass */
 	}
 	else if (ob->type == OB_MESH) {
-		struct BMeshToMeshParams bmtmp = {0};
-		if (em) mesh = BKE_bmesh_to_mesh_nomain(em->bm, &bmtmp);
+		if (em) {
+			mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
+		}
 		else {
 			/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether
 			 * we really need a copy here. Maybe the CoW ob->data can be directly used. */
@@ -309,7 +310,8 @@ Mesh *get_mesh(
 			        NULL, ob->data, (ID **)&mesh,
 			        LIB_ID_CREATE_NO_MAIN |
 			        LIB_ID_CREATE_NO_USER_REFCOUNT |
-			        LIB_ID_CREATE_NO_DEG_TAG,
+			        LIB_ID_CREATE_NO_DEG_TAG |
+			        LIB_ID_COPY_NO_PREVIEW,
 			        false);
 		}
 
