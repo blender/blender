@@ -896,7 +896,7 @@ static void cb_mlooptri_verts_get(
 }
 
 static bool test_projected_vert_dist(
-        struct DistProjectedAABBPrecalc *neasrest_precalc,
+        const struct DistProjectedAABBPrecalc *neasrest_precalc,
         const float depth_range[2],
         const bool is_persp, const float co[3],
         float *dist_px_sq, float r_co[3])
@@ -928,7 +928,7 @@ static bool test_projected_vert_dist(
 }
 
 static bool test_projected_edge_dist(
-        struct DistProjectedAABBPrecalc *neasrest_precalc,
+        const struct DistProjectedAABBPrecalc *neasrest_precalc,
         const float depth_range[2], const bool is_persp,
         const float va[3], const float vb[3],
         float *dist_px_sq, float r_co[3])
@@ -974,7 +974,7 @@ typedef struct Nearest2dUserData {
 
 static void cb_walk_leaf_snap_vert(
         void *userdata, int index,
-        struct DistProjectedAABBPrecalc *precalc,
+        const struct DistProjectedAABBPrecalc *precalc,
         BVHTreeNearest *nearest)
 {
 	struct Nearest2dUserData *data = userdata;
@@ -997,7 +997,7 @@ static void cb_walk_leaf_snap_vert(
 
 static void cb_walk_leaf_snap_edge(
         void *userdata, int index,
-        struct DistProjectedAABBPrecalc *precalc,
+        const struct DistProjectedAABBPrecalc *precalc,
         BVHTreeNearest *nearest)
 {
 	struct Nearest2dUserData *data = userdata;
@@ -1034,7 +1034,7 @@ static void cb_walk_leaf_snap_edge(
 
 static void cb_walk_leaf_snap_tri(
         void *userdata, int index,
-        struct DistProjectedAABBPrecalc *precalc,
+        const struct DistProjectedAABBPrecalc *precalc,
         BVHTreeNearest *nearest)
 {
 	struct Nearest2dUserData *data = userdata;

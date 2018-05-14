@@ -40,6 +40,8 @@ extern "C" {
 #endif
 
 struct BVHTree;
+struct DistProjectedAABBPrecalc;
+
 typedef struct BVHTree BVHTree;
 #define USE_KDOPBVH_WATERTIGHT
 
@@ -102,9 +104,10 @@ typedef bool (*BVHTree_OverlapCallback)(void *userdata, int index_a, int index_b
 typedef void (*BVHTree_RangeQuery)(void *userdata, int index, const float co[3], float dist_sq);
 
 /* callback to find nearest projected */
-typedef void (*BVHTree_NearestProjectedCallback)(void *userdata, int index,
-                                                 struct DistProjectedAABBPrecalc *precalc,
-                                                 BVHTreeNearest *nearest);
+typedef void (*BVHTree_NearestProjectedCallback)(
+        void *userdata, int index,
+        const struct DistProjectedAABBPrecalc *precalc,
+        BVHTreeNearest *nearest);
 
 
 /* callbacks to BLI_bvhtree_walk_dfs */
