@@ -285,7 +285,7 @@ Gwn_Batch **DRW_displist_batch_calc_tri_pos_normals_and_uv_split_by_material(Lis
 					displist_vertbuf_attr_set_tri_pos_normals_and_uv(
 					        &pos_step[col], &nor_step[col], &uv_step[col],
 					        verts[idx[0]], verts[idx[2]], verts[idx[1]],
-					        nors[idx[0]], nors[idx[2]], nors[idx[1]],
+					        dl->nors, dl->nors, dl->nors,
 					        uv[0], uv[1], uv[2]);
 				}
 			}
