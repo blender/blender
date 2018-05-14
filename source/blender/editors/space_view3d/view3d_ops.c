@@ -506,30 +506,31 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	
 	/* context ops */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.transform_pivot_point");
 	RNA_string_set(kmi->ptr, "value", "BOUNDING_BOX_CENTER");
 
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0); /* 2.4x allowed Comma+Shift too, rather not use both */
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	/* 2.4x allowed Comma+Shift too, rather not use both */
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", COMMAKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.transform_pivot_point");
 	RNA_string_set(kmi->ptr, "value", "MEDIAN_POINT");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", COMMAKEY, KM_PRESS, KM_ALT, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "data_path", "space_data.use_pivot_point_align");
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
-	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_transform_pivot_point_align");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, 0, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.transform_pivot_point");
 	RNA_string_set(kmi->ptr, "value", "CURSOR");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_CTRL, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.transform_pivot_point");
 	RNA_string_set(kmi->ptr, "value", "INDIVIDUAL_ORIGINS");
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", PERIODKEY, KM_PRESS, KM_ALT, 0);
-	RNA_string_set(kmi->ptr, "data_path", "space_data.pivot_point");
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.transform_pivot_point");
 	RNA_string_set(kmi->ptr, "value", "ACTIVE_ELEMENT");
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", SPACEKEY, KM_PRESS, KM_CTRL, 0); /* new in 2.5 */
+	RNA_string_set(kmi->ptr, "data_path", "space_data.show_manipulator");
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_VIEW3D);
 
