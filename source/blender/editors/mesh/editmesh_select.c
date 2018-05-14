@@ -3421,7 +3421,9 @@ static int edbm_select_mirror_exec(bContext *C, wmOperator *op)
 	}
 	MEM_freeN(objects);
 
-	ED_mesh_report_mirror_ex(op, tot_mirr, tot_fail, select_mode);
+	if (tot_mirr || tot_fail) {
+		ED_mesh_report_mirror_ex(op, tot_mirr, tot_fail, select_mode);
+	}
 	return OPERATOR_FINISHED;
 }
 
