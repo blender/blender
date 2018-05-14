@@ -52,6 +52,7 @@
 
 /* Statics */
 static ListBase studiolights;
+#define STUDIO_LIGHT_EXTENSIONS ".jpg", ".hdr"
 static const char *STUDIO_LIGHT_FOLDER = "studiolights/";
 
 /* FUNCTIONS */
@@ -178,23 +179,25 @@ void BKE_studiolight_init(void)
 
 	struct direntry *dir;
 	const char *folder = BKE_appdir_folder_id(BLENDER_DATAFILES, STUDIO_LIGHT_FOLDER);
-	unsigned int totfile = BLI_filelist_dir_contents(folder, &dir);
-	int i;
-	for (i = 0; i < totfile; i++) {
-		if ((dir[i].type & S_IFREG)) {
-			const char *filename = dir[i].relname;
-			const char *path = dir[i].path;
-			if (BLI_testextensie(filename, ".jpg")) {
-				sl = studiolight_create();
-				sl->flag = STUDIOLIGHT_EXTERNAL_FILE;
-				BLI_strncpy(sl->name, filename, FILE_MAXFILE);
-				BLI_strncpy(sl->path, path, FILE_MAXFILE);
-				BLI_addtail(&studiolights, sl);
+	if (folder) {
+		unsigned int totfile = BLI_filelist_dir_contents(folder, &dir);
+		int i;
+		for (i = 0; i < totfile; i++) {
+			if ((dir[i].type & S_IFREG)) {
+				const char *filename = dir[i].relname;
+				const char *path = dir[i].path;
+				if (BLI_testextensie_n(filename, STUDIO_LIGHT_EXTENSIONS, NULL)) {
+					sl = studiolight_create();
+					sl->flag = STUDIOLIGHT_EXTERNAL_FILE;
+					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
+					BLI_strncpy(sl->path, path, FILE_MAXFILE);
+					BLI_addtail(&studiolights, sl);
+				}
 			}
 		}
+		BLI_filelist_free(dir, totfile);
+		dir = NULL;
 	}
-	BLI_filelist_free(dir, totfile);
-	dir = NULL;
 }
 
 void BKE_studiolight_free(void)
