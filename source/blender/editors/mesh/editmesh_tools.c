@@ -1518,22 +1518,32 @@ void MESH_OT_vert_connect_concave(wmOperatorType *ot)
 
 static int edbm_vert_connect_nonplaner_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	const float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
-	if (!EDBM_op_call_and_selectf(
-	             em, op,
-	             "faces.out", true,
-	             "connect_verts_nonplanar faces=%hf angle_limit=%f",
-	             BM_ELEM_SELECT, angle_limit))
-	{
-		return OPERATOR_CANCELLED;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		if (!EDBM_op_call_and_selectf(
+		            em, op,
+		            "faces.out", true,
+		            "connect_verts_nonplanar faces=%hf angle_limit=%f",
+		            BM_ELEM_SELECT, angle_limit))
+		{
+			continue;
+		}
+
+		EDBM_update_generic(em, true, true);
 	}
+	MEM_freeN(objects);
 
-
-	EDBM_update_generic(em, true, true);
 	return OPERATOR_FINISHED;
 }
 
