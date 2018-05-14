@@ -53,6 +53,7 @@
 /* Statics */
 static ListBase studiolights;
 #define STUDIO_LIGHT_EXTENSIONS ".jpg", ".hdr"
+#define STUDIO_LIGHT_DIFFUSE_SAMPLE_STEP 64
 static const char *STUDIO_LIGHT_FOLDER = "studiolights/";
 
 /* FUNCTIONS */
@@ -78,8 +79,9 @@ static void direction_to_equirectangular(float r[2], const float dir[3])
 	r[1] = (acosf(dir[2] / 1.0) - M_PI) / -M_PI;
 }
 
-static void studiolight_calculate_directional_diffuse_light(ImBuf *ibuf, float color[4], const float start[3], const float v1[3], const float v2[3], int steps)
+static void studiolight_calculate_directional_diffuse_light(ImBuf *ibuf, float color[4], const float start[3], const float v1[3], const float v2[3])
 {
+	const int steps = STUDIO_LIGHT_DIFFUSE_SAMPLE_STEP;
 	float uv[2];
 	float dir[3];
 	float col[4];
@@ -111,7 +113,6 @@ static void studiolight_calculate_directional_diffuse_light(ImBuf *ibuf, float c
 
 static void studiolight_calculate_diffuse_light(StudioLight *sl)
 {
-	const int steps = 16;
 	float start[3];
 	float v1[3];
 	float v2[3];
@@ -133,23 +134,23 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
 			copy_v3_fl3(v1, 0.0f, 2.0f, 0.0f);
 			copy_v3_fl3(v2, 0.0f, 0.0f, 2.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_NEG], start, v1, v2, steps);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_NEG], start, v1, v2);
 			copy_v3_fl3(start, 1.0f, -1.0f, -1.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_POS], start, v1, v2, steps);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_POS], start, v1, v2);
 
 			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
 			copy_v3_fl3(v1, 2.0f, 0.0f, 0.0f);
 			copy_v3_fl3(v2, 0.0f, 0.0f, 2.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_X_POS], start, v1, v2, steps);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_X_POS], start, v1, v2);
 			copy_v3_fl3(start, -1.0f, 1.0f, -1.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_X_NEG], start, v1, v2, steps);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_X_NEG], start, v1, v2);
 
 			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
 			copy_v3_fl3(v1, 2.0f, 0.0f, 0.0f);
 			copy_v3_fl3(v2, 0.0f, 2.0f, 0.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_NEG], start, v1, v2, steps);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_NEG], start, v1, v2);
 			copy_v3_fl3(start, -1.0f, -1.0f, 1.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_POS], start, v1, v2, steps);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_POS], start, v1, v2);
 
 			IMB_freeImBuf(ibuf);
 		}
