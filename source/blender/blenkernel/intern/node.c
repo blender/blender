@@ -3473,6 +3473,7 @@ static void registerShaderNodes(void)
 	register_node_type_sh_mix_rgb();
 	register_node_type_sh_valtorgb();
 	register_node_type_sh_rgbtobw();
+	register_node_type_sh_shadertorgb();
 	register_node_type_sh_normal();
 	register_node_type_sh_mapping();
 	register_node_type_sh_curve_vec();

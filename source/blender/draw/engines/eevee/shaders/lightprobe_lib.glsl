@@ -72,6 +72,12 @@ struct GridData {
 #define MAX_PLANAR 1
 #endif
 
+#ifndef UTIL_TEX
+#define UTIL_TEX
+uniform sampler2DArray utilTex;
+#define texelfetch_noise_tex(coord) texelFetch(utilTex, ivec3(ivec2(coord) % LUT_SIZE, 2.0), 0)
+#endif /* UTIL_TEX */
+
 layout(std140) uniform probe_block {
 	CubeData probes_data[MAX_PROBE];
 };
@@ -194,6 +200,40 @@ vec3 probe_evaluate_planar(
 	vec3 sample = textureLod(probePlanars, vec3(refco.xy * 0.5 + 0.5, id), 0.0).rgb;
 
 	return sample;
+}
+
+void fallback_cubemap(
+        vec3 N, vec3 V, vec3 W, vec3 viewPosition, float roughness, float roughnessSquared, inout vec4 spec_accum)
+{
+	/* Specular probes */
+	vec3 spec_dir = get_specular_reflection_dominant_dir(N, V, roughnessSquared);
+
+	vec4 rand = texelfetch_noise_tex(gl_FragCoord.xy);
+	vec3 bent_normal;
+#ifdef SSR_AO
+	float final_ao = occlusion_compute(N, viewPosition, 1.0, rand, bent_normal);
+	final_ao = specular_occlusion(dot(N, V), final_ao, roughness);
+#else
+	const float final_ao = 1.0;
+#endif
+
+	/* Starts at 1 because 0 is world probe */
+	for (int i = 1; i < MAX_PROBE && i < prbNumRenderCube && spec_accum.a < 0.999; ++i) {
+		CubeData cd = probes_data[i];
+
+		float fade = probe_attenuation_cube(cd, W);
+
+		if (fade > 0.0) {
+			vec3 spec = final_ao * probe_evaluate_cube(float(i), cd, W, spec_dir, roughness);
+			accumulate_light(spec, fade, spec_accum);
+		}
+	}
+
+	/* World Specular */
+	if (spec_accum.a < 0.999) {
+		vec3 spec = final_ao * probe_evaluate_world_spec(spec_dir, roughness);
+		accumulate_light(spec, 1.0, spec_accum);
+	}
 }
 
 #ifdef IRRADIANCE_LIB

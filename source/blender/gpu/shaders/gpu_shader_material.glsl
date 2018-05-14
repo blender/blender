@@ -2544,4 +2544,28 @@ void node_eevee_specular(
 	result.ssr_id = int(ssr_id);
 }
 
+void node_shadertorgb(Closure cl, out vec4 outcol, out float outalpha)
+{
+	vec4 spec_accum = vec4(0.0);
+	if (ssrToggle && cl.ssr_id == outputSsrId) {
+		vec3 V = cameraVec;
+		vec3 vN = normal_decode(cl.ssr_normal, viewCameraVec);
+		vec3 N = transform_direction(ViewMatrixInverse, vN);
+		float roughness = cl.ssr_data.a;
+		float roughnessSquared = max(1e-3, roughness * roughness);
+		fallback_cubemap(N, V, worldPosition, viewPosition, roughness, roughnessSquared, spec_accum);
+	}
+
+	outalpha = cl.opacity;
+	outcol = vec4((spec_accum.rgb * cl.ssr_data.rgb) + cl.radiance, 1.0);
+
+#   ifdef USE_SSS
+#		ifdef USE_SSS_ALBEDO
+	outcol += (cl.sss_data * cl.sss_albedo);
+#   	else
+	outcol += cl.sss_data;
+#		endif
+#	endif
+}
+
 #endif /* VOLUMETRICS */

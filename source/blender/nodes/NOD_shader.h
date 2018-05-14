@@ -50,6 +50,7 @@ void register_node_type_sh_rgb(void);
 void register_node_type_sh_mix_rgb(void);
 void register_node_type_sh_valtorgb(void);
 void register_node_type_sh_rgbtobw(void);
+void register_node_type_sh_shadertorgb(void);
 void register_node_type_sh_normal(void);
 void register_node_type_sh_gamma(void);
 void register_node_type_sh_brightcontrast(void);

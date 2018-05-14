@@ -253,6 +253,7 @@ shader_node_categories = [
         NodeItem("ShaderNodeMath"),
         NodeItem("ShaderNodeValToRGB"),
         NodeItem("ShaderNodeRGBToBW"),
+        NodeItem("ShaderNodeShaderToRGB", poll=object_eevee_shader_nodes_poll),
         NodeItem("ShaderNodeVectorMath"),
         NodeItem("ShaderNodeSeparateRGB"),
         NodeItem("ShaderNodeCombineRGB"),

@@ -714,6 +714,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 #define SH_NODE_MIX_RGB		103
 #define SH_NODE_VALTORGB	104
 #define SH_NODE_RGBTOBW		105
+#define SH_NODE_SHADERTORGB	106
 //#define SH_NODE_TEXTURE		106
 #define SH_NODE_NORMAL		107
 //#define SH_NODE_GEOMETRY	108

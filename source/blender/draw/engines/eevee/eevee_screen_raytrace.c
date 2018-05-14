@@ -68,9 +68,9 @@ static struct GPUShader *eevee_effects_screen_raytrace_shader_get(int options)
 		        datatoc_common_uniforms_lib_glsl,
 		        datatoc_bsdf_common_lib_glsl,
 		        datatoc_bsdf_sampling_lib_glsl,
+		        datatoc_ambient_occlusion_lib_glsl,
 		        datatoc_octahedron_lib_glsl,
 		        datatoc_lightprobe_lib_glsl,
-		        datatoc_ambient_occlusion_lib_glsl,
 		        datatoc_raytrace_lib_glsl,
 		        datatoc_effect_ssr_frag_glsl);
 
