@@ -278,6 +278,16 @@ static void restrictbutton_id_user_toggle(bContext *UNUSED(C), void *poin, void 
 	}
 }
 
+static void hidebutton_base_flag_cb(bContext *C, void *poin, void *poin2)
+{
+	Scene *scene = poin;
+	ViewLayer *view_layer = poin2;
+
+	BKE_layer_collection_sync(scene, view_layer);
+	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+}
+
 static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
 	Main *bmain = CTX_data_main(C);
@@ -435,7 +445,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 }
 
 static void outliner_draw_restrictbuts(
-        uiBlock *block, Scene *scene, ARegion *ar, SpaceOops *soops, ListBase *lb)
+        uiBlock *block, Scene *scene, ViewLayer *view_layer, ARegion *ar, SpaceOops *soops, ListBase *lb)
 {
 	uiBut *bt;
 
@@ -455,14 +465,27 @@ static void outliner_draw_restrictbuts(
 		if (te->ys + 2 * UI_UNIT_Y >= ar->v2d.cur.ymin && te->ys <= ar->v2d.cur.ymax) {
 			if (tselem->type == TSE_R_LAYER && (soops->outlinevis == SO_SCENES)) {
 				/* View layer render toggle. */
-				ViewLayer *view_layer = te->directdata;
+				ViewLayer *layer = te->directdata;
 
 				bt = uiDefIconButBitS(
 				        block, UI_BTYPE_ICON_TOGGLE_N, VIEW_LAYER_RENDER, 0, ICON_RESTRICT_RENDER_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX), te->ys, UI_UNIT_X,
-				        UI_UNIT_Y, &view_layer->flag, 0, 0, 0, 0, TIP_("Use view layer for rendering"));
+				        UI_UNIT_Y, &layer->flag, 0, 0, 0, 0, TIP_("Use view layer for rendering"));
 				UI_but_func_set(bt, restrictbutton_r_lay_cb, tselem->id, NULL);
 				UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+			}
+			else if (tselem->type == 0 && te->idcode == ID_OB) {
+				ob = (Object *)tselem->id;
+				Base *base = BKE_view_layer_base_find(view_layer, ob);
+
+				if (base) {
+					bt = uiDefIconButBitS(block, UI_BTYPE_ICON_TOGGLE, BASE_HIDE, 0, ICON_HIDE_OFF,
+					        (int)(ar->v2d.cur.xmax - OL_TOG_HIDEX), te->ys, UI_UNIT_X,
+					        UI_UNIT_Y, &base->flag, 0, 0, 0, 0,
+					        TIP_("Hide object in viewport"));
+					UI_but_func_set(bt, hidebutton_base_flag_cb, scene, view_layer);
+					UI_but_flag_enable(bt, UI_BUT_DRAG_LOCK);
+				}
 			}
 			else if (tselem->type == TSE_MODIFIER) {
 				ModifierData *md = (ModifierData *)te->directdata;
@@ -489,7 +512,7 @@ static void outliner_draw_restrictbuts(
 				Object *ob = (Object *)tselem->id;
 
 				bt = uiDefIconButBitI(
-				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_RESTRICT_VIEW_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, BONE_HIDDEN_P, 0, ICON_HIDE_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &(bone->flag), 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
@@ -527,7 +550,7 @@ static void outliner_draw_restrictbuts(
 				bGPDlayer *gpl = (bGPDlayer *)te->directdata;
 
 				bt = uiDefIconButBitS(
-				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_RESTRICT_VIEW_OFF,
+				        block, UI_BTYPE_ICON_TOGGLE, GP_LAYER_HIDE, 0, ICON_HIDE_OFF,
 				        (int)(ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX), te->ys, UI_UNIT_X,
 				        UI_UNIT_Y, &gpl->flag, 0, 0, 0, 0,
 				        TIP_("Restrict/Allow visibility in the 3D View"));
@@ -576,7 +599,7 @@ static void outliner_draw_restrictbuts(
 		}
 
 		if (TSELEM_OPEN(tselem, soops)) {
-			outliner_draw_restrictbuts(block, scene, ar, soops, &te->subtree);
+			outliner_draw_restrictbuts(block, scene, view_layer, ar, soops, &te->subtree);
 		}
 	}
 }
@@ -1999,7 +2022,7 @@ void draw_outliner(const bContext *C)
 		/* draw restriction columns */
 		outliner_draw_restrictcols(ar);
 
-		outliner_draw_restrictbuts(block, scene, ar, soops, &soops->tree);
+		outliner_draw_restrictbuts(block, scene, view_layer, ar, soops, &soops->tree);
 	}
 
 	/* draw edit buttons if nessecery */

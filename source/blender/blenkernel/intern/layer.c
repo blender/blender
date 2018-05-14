@@ -608,6 +608,8 @@ static void layer_collection_sync(
 			lc->flag = parent_exclude;
 		}
 
+		lc->runtime_flag = 0;
+
 		/* Collection restrict is inherited. */
 		int child_restrict = parent_restrict;
 		if (!(collection->flag & COLLECTION_IS_MASTER)) {
@@ -655,6 +657,17 @@ static void layer_collection_sync(
 			if ((child_restrict & COLLECTION_RESTRICT_RENDER) == 0) {
 				base->flag |= BASE_VISIBLE_RENDER;
 			}
+
+			/* Update runtime flags used for faster display. */
+			if (base->flag & BASE_HIDE) {
+				view_layer->runtime_flag |= VIEW_LAYER_HAS_HIDE;
+			}
+			else if (base->flag & BASE_VISIBLED) {
+				lc->runtime_flag |= LAYER_COLLECTION_HAS_VISIBLE_OBJECTS;
+				if (base->flag & BASE_SELECTED) {
+					lc->runtime_flag |= LAYER_COLLECTION_HAS_SELECTED_OBJECTS;
+				}
+			}
 		}
 	}
 
@@ -687,6 +700,8 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
 		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED | BASE_VISIBLE_VIEWPORT | BASE_VISIBLE_RENDER);
 	}
+
+	view_layer->runtime_flag = 0;
 
 	/* Generate new layer connections and object bases when collections changed. */
 	CollectionChild child = {NULL, NULL, scene->master_collection};
@@ -1229,7 +1244,8 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 static bool base_is_visible(Base *base, eEvaluationMode mode)
 {
 	if (mode == DAG_EVAL_VIEWPORT) {
-		return ((base->flag & BASE_VISIBLE_VIEWPORT) != 0);
+		return ((base->flag & BASE_VISIBLE_VIEWPORT) != 0) &&
+		       ((base->flag & BASE_HIDE) == 0);
 	}
 	else {
 		return ((base->flag & BASE_VISIBLE_RENDER) != 0);

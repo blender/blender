@@ -146,6 +146,119 @@ Object *ED_object_active_context(bContext *C)
 	return ob;
 }
 
+/* ********************** object hiding *************************** */
+
+static int object_hide_poll(bContext *C)
+{
+	if (CTX_wm_space_outliner(C) != NULL) {
+		return ED_outliner_collections_editor_poll(C);
+	}
+	else {
+		return ED_operator_view3d_active(C);
+	}
+}
+
+static int object_hide_view_clear_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const bool select = RNA_boolean_get(op->ptr, "select");
+	bool changed = false;
+
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		if (base->flag & BASE_HIDE) {
+			base->flag &= ~BASE_HIDE;
+			changed = true;
+
+			if (select) {
+				ED_object_base_select(base, BA_SELECT);
+			}
+		}
+	}
+
+	if (!changed) {
+		return OPERATOR_CANCELLED;
+	}
+
+	BKE_layer_collection_sync(scene, view_layer);
+	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hide_view_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Show Hidden Objects";
+	ot->description = "Reveal temporarily hidden objects";
+	ot->idname = "OBJECT_OT_hide_view_clear";
+
+	/* api callbacks */
+	ot->exec = object_hide_view_clear_exec;
+	ot->poll = object_hide_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "select", false, "Select", "");
+}
+
+static int object_hide_view_set_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	const bool unselected = RNA_boolean_get(op->ptr, "unselected");
+	bool changed = false;
+
+	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
+		if (!(base->flag & BASE_VISIBLED)) {
+			continue;
+		}
+
+		if (!unselected) {
+			if (base->flag & BASE_SELECTED) {
+				ED_object_base_select(base, BA_DESELECT);
+				base->flag |= BASE_HIDE;
+				changed = true;
+			}
+		}
+		else {
+			if (!(base->flag & BASE_SELECTED)) {
+				ED_object_base_select(base, BA_DESELECT);
+				base->flag |= BASE_HIDE;
+				changed = true;
+			}
+		}
+	}
+
+	if (!changed) {
+		return OPERATOR_CANCELLED;
+	}
+
+	BKE_layer_collection_sync(scene, view_layer);
+	DEG_id_tag_update(&scene->id, DEG_TAG_BASE_FLAGS_UPDATE);
+	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_hide_view_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Hide Objects";
+	ot->description = "Temporarily hide objects from the viewport";
+	ot->idname = "OBJECT_OT_hide_view_set";
+
+	/* api callbacks */
+	ot->exec = object_hide_view_set_exec;
+	ot->poll = object_hide_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+}
 
 /* ******************* toggle editmode operator  ***************** */
 

@@ -411,7 +411,7 @@ static const EnumPropertyItem *rna_undo_itemf(bContext *C, int *totitem)
 			item_tmp.identifier = us->name;
 			item_tmp.name = IFACE_(us->name);
 			if (us == wm->undo_stack->step_active) {
-				item_tmp.icon = ICON_RESTRICT_VIEW_OFF;
+				item_tmp.icon = ICON_HIDE_OFF;
 			}
 			else {
 				item_tmp.icon = ICON_NONE;
