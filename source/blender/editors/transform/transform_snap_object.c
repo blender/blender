@@ -514,7 +514,7 @@ static bool raycastMesh(
 				retval = true;
 
 				if (r_index) {
-					*r_index = hit.index;
+					*r_index = treedata->looptri[hit.index].poly;
 				}
 			}
 		}
@@ -663,7 +663,7 @@ static bool raycastEditMesh(
 				retval = true;
 
 				if (r_index) {
-					*r_index = hit.index;
+					*r_index = BM_elem_index_get(em->looptris[hit.index][0]->f);
 				}
 			}
 		}
