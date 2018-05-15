@@ -2003,6 +2003,23 @@ bool isect_point_planes_v3(float (*planes)[4], int totplane, const float p[3])
 }
 
 /**
+ * Check if a point is in front all planes.
+ * Same as isect_point_planes_v3 but with planes facing the opposite direction.
+ */
+bool isect_point_planes_v3_negated(
+	const float(*planes)[4], const int totplane, const float p[3])
+{
+	for (int i = 0; i < totplane; i++) {
+		if (plane_point_side_v3(planes[i], p) <= 0.0f) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+/**
  * Intersect line/plane.
  *
  * \param r_isect_co The intersection point.
