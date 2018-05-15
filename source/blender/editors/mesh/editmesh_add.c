@@ -77,7 +77,7 @@ static Object *make_prim_init(
 		obedit = ED_object_add_type(C, OB_MESH, idname, loc, rot, false, layer);
 
 		/* create editmode */
-		ED_object_editmode_enter(C, EM_DO_UNDO | EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
+		ED_object_editmode_enter(C, EM_IGNORE_LAYER); /* rare cases the active layer is messed up */
 		r_creation_data->was_editmode = true;
 	}
 
@@ -100,7 +100,7 @@ static void make_prim_finish(bContext *C, Object *obedit, const MakePrimitiveDat
 
 	/* userdef */
 	if (exit_editmode) {
-		ED_object_editmode_exit(C, EM_FREEDATA); /* adding EM_DO_UNDO messes up operator redo */
+		ED_object_editmode_exit(C, EM_FREEDATA);
 	}
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, obedit);
 }

@@ -197,10 +197,10 @@ static eOLDrawState tree_element_set_active_object(
 			WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
 		}
 	}
-	
-	if (ob != OBEDIT_FROM_VIEW_LAYER(view_layer))
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
-		
+
+	if (ob != OBEDIT_FROM_VIEW_LAYER(view_layer)) {
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+	}
 	return OL_DRAWSEL_NORMAL;
 }
 
@@ -585,9 +585,9 @@ static eOLDrawState tree_element_active_pose(
 
 	if (set != OL_SETSEL_NONE) {
 		if (OBEDIT_FROM_VIEW_LAYER(view_layer)) {
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR | EM_DO_UNDO);
+			ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
 		}
-		
+
 		if (ob->mode & OB_MODE_POSE) {
 			ED_object_posemode_exit(C, ob);
 		}

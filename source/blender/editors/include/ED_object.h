@@ -122,12 +122,11 @@ void ED_object_parent(struct Object *ob, struct Object *parent, const int type, 
 enum {
 	EM_FREEDATA         = (1 << 0),
 	EM_WAITCURSOR       = (1 << 1),
-	EM_DO_UNDO          = (1 << 2),
 	EM_IGNORE_LAYER     = (1 << 3),
 	EM_NO_CONTEXT       = (1 << 4),
 };
 void ED_object_editmode_exit_ex(
-        struct bContext *C, struct Scene *scene, struct Object *obedit, int flag);
+        struct Scene *scene, struct Object *obedit, int flag);
 void ED_object_editmode_exit(struct bContext *C, int flag);
 
 void ED_object_editmode_enter_ex(struct Scene *scene, struct Object *ob, int flag);
