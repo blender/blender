@@ -74,7 +74,7 @@ void PE_create_particle_edit(
         struct Depsgraph *depsgraph, struct Scene *scene,
         struct Object *ob, struct PointCache *cache, struct ParticleSystem *psys);
 void recalc_lengths(struct PTCacheEdit *edit);
-void recalc_emitter_field(struct Object *ob, struct ParticleSystem *psys);
+void recalc_emitter_field(struct Depsgraph *depsgraph, struct Object *ob, struct ParticleSystem *psys);
 void update_world_cos(struct Depsgraph *depsgraph, struct Object *ob, struct PTCacheEdit *edit);
 
 /* particle_object.c */

@@ -952,7 +952,7 @@ static void copy_particle_edit(
 	UI_GetThemeColor3ubv(TH_WIRE, edit->nosel_col);
 	
 	recalc_lengths(edit);
-	recalc_emitter_field(ob, psys);
+	recalc_emitter_field(depsgraph, ob, psys);
 	PE_update_object(depsgraph, scene, ob, true);
 }
 
