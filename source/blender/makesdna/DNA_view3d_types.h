@@ -331,7 +331,7 @@ enum {
 
 /* View3DShading->flag */
 enum {
-	V3D_SHADING_OBJECT_OVERLAP = (1 << 0),
+	V3D_SHADING_OBJECT_OUTLINE = (1 << 0),
 	V3D_SHADING_SHADOW         = (1 << 2),
 };
 

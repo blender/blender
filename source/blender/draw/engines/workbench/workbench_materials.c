@@ -82,7 +82,7 @@ extern char datatoc_workbench_world_light_lib_glsl[];
 
 extern DrawEngineType draw_engine_workbench_solid;
 
-#define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OVERLAP)
+#define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || wpd->shading.flag & V3D_SHADING_SHADOW)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 #define NORMAL_ENCODING_ENABLED() (true)
@@ -95,8 +95,8 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 
 	DynStr *ds = BLI_dynstr_new();
 
-	if (wpd->shading.flag & V3D_SHADING_OBJECT_OVERLAP) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_OBJECT_OVERLAP\n");
+	if (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE) {
+		BLI_dynstr_appendf(ds, "#define V3D_SHADING_OBJECT_OUTLINE\n");
 	}
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
@@ -138,7 +138,7 @@ static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
 		BLI_dynstr_append(ds, datatoc_workbench_world_light_lib_glsl);
 	}
-	if (wpd->shading.flag & V3D_SHADING_OBJECT_OVERLAP) {
+	if (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE) {
 		BLI_dynstr_append(ds, datatoc_workbench_object_overlap_lib_glsl);
 	}
 
@@ -165,7 +165,7 @@ static char *workbench_build_prepass_frag(void)
 
 static int get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype)
 {
-	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OVERLAP | V3D_SHADING_SHADOW;
+	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OUTLINE | V3D_SHADING_SHADOW;
 	int index = (wpd->shading.flag & DRAWOPTIONS_MASK);
 	index = (index << 2) + wpd->shading.light;
 	/* set the drawtype flag

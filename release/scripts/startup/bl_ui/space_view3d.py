@@ -3519,7 +3519,7 @@ class VIEW3D_PT_shading(Panel):
             sub.active = shading.show_shadows
             sub.prop(shading, "shadow_intensity", text="")
 
-            col.prop(shading, "show_object_overlap")
+            col.prop(shading, "show_object_outline")
 
 
 class VIEW3D_PT_overlay(Panel):

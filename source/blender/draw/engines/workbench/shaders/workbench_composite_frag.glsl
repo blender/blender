@@ -22,12 +22,12 @@ void main()
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 	uint object_id = texelFetch(objectId, texel, 0).r;
 
-#ifndef V3D_SHADING_OBJECT_OVERLAP
+#ifndef V3D_SHADING_OBJECT_OUTLINE
 	if (object_id == NO_OBJECT_ID) {
 		fragColor = vec4(background_color(world_data, uv_viewport.y), 0.0);
 		return;
 	}
-#else /* !V3D_SHADING_OBJECT_OVERLAP */
+#else /* !V3D_SHADING_OBJECT_OUTLINE */
 	float object_overlap = calculate_object_overlap(objectId, texel, object_id);
 
 	if (object_id == NO_OBJECT_ID) {
@@ -40,7 +40,7 @@ void main()
 		}
 		return;
 	}
-#endif /* !V3D_SHADING_OBJECT_OVERLAP */
+#endif /* !V3D_SHADING_OBJECT_OUTLINE */
 
 	vec4 diffuse_color = texelFetch(colorBuffer, texel, 0);
 /* Do we need normals */
@@ -76,8 +76,8 @@ void main()
 
 	shaded_color *= light_multiplier;
 
-#ifdef V3D_SHADING_OBJECT_OVERLAP
+#ifdef V3D_SHADING_OBJECT_OUTLINE
 	shaded_color = mix(objectOverlapColor, shaded_color, object_overlap);
-#endif /* V3D_SHADING_OBJECT_OVERLAP */
+#endif /* V3D_SHADING_OBJECT_OUTLINE */
 	fragColor = vec4(shaded_color, 1.0);
 }

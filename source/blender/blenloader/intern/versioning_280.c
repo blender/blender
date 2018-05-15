@@ -928,7 +928,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 					if (sl->spacetype == SPACE_VIEW3D) {
 						View3D *v3d = (View3D *)sl;
 						v3d->shading.light = V3D_LIGHTING_STUDIO;
-						v3d->shading.flag |= V3D_SHADING_OBJECT_OVERLAP;
+						v3d->shading.flag |= V3D_SHADING_OBJECT_OUTLINE;
 
 						/* Assume (demo) files written with 2.8 want to show
 						 * Eevee renders in the viewport. */
