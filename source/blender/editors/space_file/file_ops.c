@@ -1843,9 +1843,9 @@ static void file_expand_directory(bContext *C)
 	SpaceFile *sfile = CTX_wm_space_file(C);
 	
 	if (sfile->params) {
-		/* TODO, what about // when relbase isn't valid? */
-		if (G.relbase_valid && BLI_path_is_rel(sfile->params->dir)) {
-			BLI_path_abs(sfile->params->dir, G.main->name);
+		if (BLI_path_is_rel(sfile->params->dir)) {
+			/* Use of 'default' folder here is just to avoid an error message on '//' prefix. */
+			BLI_path_abs(sfile->params->dir, G.relbase_valid ? G.main->name : BKE_appdir_folder_default());
 		}
 		else if (sfile->params->dir[0] == '~') {
 			char tmpstr[sizeof(sfile->params->dir) - 1];
