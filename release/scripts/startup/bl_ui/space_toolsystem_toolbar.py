@@ -228,7 +228,7 @@ class _defs_edit_armature:
     def bone_envelope():
         return dict(
             text="Bone Envelope",
-            icon=None,
+            icon="ops.transform.bone_envelope",
             widget=None,
             keymap=(
                 ("transform.transform",
@@ -241,7 +241,7 @@ class _defs_edit_armature:
     def bone_size():
         return dict(
             text="Bone Size",
-            icon=None,
+            icon="ops.transform.bone_size",
             widget=None,
             keymap=(
                 ("transform.transform",
@@ -616,7 +616,7 @@ class _defs_pose:
     def breakdown():
         return dict(
             text="Breakdowner",
-            icon=None,
+            icon="ops.pose.breakdowner",
             widget=None,
             keymap=(
                 ("pose.breakdown", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
@@ -627,7 +627,7 @@ class _defs_pose:
     def push():
         return dict(
             text="Push",
-            icon=None,
+            icon="ops.pose.push",
             widget=None,
             keymap=(
                 ("pose.push", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
@@ -638,7 +638,7 @@ class _defs_pose:
     def relax():
         return dict(
             text="Relax",
-            icon=None,
+            icon="ops.pose.relax",
             widget=None,
             keymap=(
                 ("pose.relax", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
