@@ -297,6 +297,14 @@ ParticleSystem *psys_original_get(ParticleSystem *psys)
 	return psys->orig_psys;
 }
 
+static PTCacheEdit *psys_original_edit_get(ParticleSystem *psys)
+{
+	if (psys->orig_psys == NULL) {
+		return psys->edit;
+	}
+	return psys->orig_psys->edit;
+}
+
 bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 {
 	const ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -1899,7 +1907,7 @@ static bool psys_thread_context_init_path(
 	if (psys_in_edit_mode(sim->depsgraph, psys)) {
 		ParticleEditSettings *pset = &scene->toolsettings->particle;
 
-		if ((use_render_params == 0) && (psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
+		if ((use_render_params == 0) && (psys_original_edit_get(psys) == NULL || pset->flag & PE_DRAW_PART) == 0)
 			totchild = 0;
 
 		segments = 1 << pset->draw_step;
@@ -1993,7 +2001,8 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey **cache = psys->childcache;
-	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.depsgraph, psys) && psys->edit ? psys->edit->pathcache : psys->pathcache;
+	PTCacheEdit *edit = psys_original_edit_get(psys);
+	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.depsgraph, psys) && edit ? edit->pathcache : psys->pathcache;
 	ParticleCacheKey *child, *key[4];
 	ParticleTexture ptex;
 	float *cpa_fuv = 0, *par_rot = 0, rot[4];
@@ -2019,7 +2028,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 			needupdate = 0;
 			w = 0;
 			while (w < 4 && cpa->pa[w] >= 0) {
-				if (psys->edit->points[cpa->pa[w]].flag & PEP_EDIT_RECALC) {
+				if (edit->points[cpa->pa[w]].flag & PEP_EDIT_RECALC) {
 					needupdate = 1;
 					break;
 				}
@@ -2106,7 +2115,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 		ParticleData *pa = psys->particles + cpa->parent;
 		float co[3];
 		if (ctx->editupdate) {
-			if (!(psys->edit->points[cpa->parent].flag & PEP_EDIT_RECALC))
+			if (!(edit->points[cpa->parent].flag & PEP_EDIT_RECALC))
 				return;
 
 			memset(child_keys, 0, sizeof(*child_keys) * (ctx->segments + 1));
