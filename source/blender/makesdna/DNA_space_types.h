@@ -1292,7 +1292,6 @@ typedef struct SpaceClip {
 	MaskSpaceInfo mask_info;
 } SpaceClip;
 
-
 /* SpaceClip->flag */
 typedef enum eSpaceClip_Flag {
 	SC_SHOW_MARKER_PATTERN      = (1 << 0),
@@ -1388,7 +1387,7 @@ typedef enum eSpace_Type {
 	SPACE_CLIP     = 20,
 	SPACE_TOPBAR   = 21,
 
-	SPACEICONMAX = SPACE_TOPBAR
+	SPACE_TYPE_LAST = SPACE_TOPBAR
 } eSpace_Type;
 
 /* use for function args */
