@@ -137,6 +137,7 @@ void            BKE_undosys_stack_destroy(UndoStack *ustack);
 void            BKE_undosys_stack_clear(UndoStack *ustack);
 bool            BKE_undosys_stack_has_undo(UndoStack *ustack, const char *name);
 void            BKE_undosys_stack_init_from_main(UndoStack *ustack, struct Main *bmain);
+void            BKE_undosys_stack_init_from_context(UndoStack *ustack, struct bContext *C);
 UndoStep       *BKE_undosys_stack_active_with_type(UndoStack *ustack, const UndoType *ut);
 UndoStep       *BKE_undosys_stack_init_or_active_with_type(UndoStack *ustack, const UndoType *ut);
 void            BKE_undosys_stack_limit_steps_and_memory(UndoStack *ustack, int steps, size_t memory_limit);

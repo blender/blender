@@ -516,14 +516,7 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 	if (addons_loaded) {
 		wm_file_read_report(C);
 	}
-
-	if (!G.background) {
-		/* in background mode this makes it hard to load
-		 * a blend file and do anything since the screen
-		 * won't be set to a valid value again */
-		CTX_wm_window_set(C, NULL); /* exits queues */
-	}
-
+	
 	if (!G.background) {
 		if (wm->undo_stack == NULL) {
 			wm->undo_stack = BKE_undosys_stack_create();
@@ -532,6 +525,14 @@ static void wm_file_read_post(bContext *C, const bool is_startup_file, const boo
 			BKE_undosys_stack_clear(wm->undo_stack);
 		}
 		BKE_undosys_stack_init_from_main(wm->undo_stack, CTX_data_main(C));
+		BKE_undosys_stack_init_from_context(wm->undo_stack, C);
+	}
+
+	if (!G.background) {
+		/* in background mode this makes it hard to load
+		 * a blend file and do anything since the screen
+		 * won't be set to a valid value again */
+		CTX_wm_window_set(C, NULL); /* exits queues */
 	}
 }
 
