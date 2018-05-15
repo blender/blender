@@ -65,6 +65,8 @@
 
 #include "BKE_deform.h"
 
+#include "DEG_depsgraph_query.h"
+
 int BKE_lattice_index_from_uvw(Lattice *lt,
                                const int u, const int v, const int w)
 {
@@ -1022,6 +1024,8 @@ void BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3])
 void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Object *ob)
 {
 	Lattice *lt = ob->data;
+	/* Get vertex coordinates from the original copy; otherwise we get already-modified coordinates. */
+	Object *orig_ob = DEG_get_original_object(ob);
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	float (*vertexCos)[3] = NULL;
@@ -1046,14 +1050,20 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
-		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
+		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(orig_ob, &numVerts);
 		modifier_deformVerts_DM_deprecated(md, &mectx, NULL, vertexCos, numVerts);
 	}
 
-	/* always displist to make this work like derivedmesh */
-	if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
-	
-	{
+	if (ob->id.tag & LIB_TAG_COPY_ON_WRITE) {
+		if (vertexCos) {
+			BKE_lattice_vertexcos_apply(ob, vertexCos);
+			MEM_freeN(vertexCos);
+		}
+	}
+	else {
+		/* Displist won't do anything; this is just for posterity's sake until we remove it. */
+		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(orig_ob, &numVerts);
+
 		DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
 		dl->type = DL_VERTS;
 		dl->parts = 1;

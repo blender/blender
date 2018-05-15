@@ -315,8 +315,8 @@ static bool lattice_batch_cache_valid(Lattice *lt)
 		return false;
 	}
 
-	if (cache->is_dirty == false) {
-		return true;
+	if (cache->is_dirty) {
+		return false;
 	}
 	else {
 		if (cache->is_editmode) {
