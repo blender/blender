@@ -2122,7 +2122,6 @@ static bool transform_snap_context_project_view3d_mixed_impl(
         const unsigned short snap_to_flag,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
-        bool use_depth,
         float r_co[3], float r_no[3])
 {
 	float ray_depth = BVH_RAYCAST_DIST_MAX;
@@ -2133,7 +2132,7 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 	BLI_assert(snap_to_flag != 0);
 	BLI_assert((snap_to_flag & ~(1 | 2 | 4)) == 0);
 
-	if (use_depth) {
+	if (params->use_occlusion_test) {
 		const float dist_px_orig = dist_px ? *dist_px : 0;
 		for (int i = 2; i >= 0; i--) {
 			if (snap_to_flag & (1 << i)) {
@@ -2182,7 +2181,6 @@ static bool transform_snap_context_project_view3d_mixed_impl(
  * \param sctx: Snap context.
  * \param mval_fl: Screenspace coordinate.
  * \param dist_px: Maximum distance to snap (in pixels).
- * \param use_depth: Snap to the closest element, use when using more than one snap type.
  * \param r_co: hit location.
  * \param r_no: hit normal (optional).
  * \return Snap success
@@ -2192,13 +2190,12 @@ bool ED_transform_snap_object_project_view3d_mixed(
         const unsigned short snap_to_flag,
         const struct SnapObjectParams *params,
         const float mval_fl[2], float *dist_px,
-        bool use_depth,
         float r_co[3], float r_no[3])
 {
 	return transform_snap_context_project_view3d_mixed_impl(
 	        sctx,
 	        snap_to_flag, params,
-	        mval_fl, dist_px, use_depth,
+	        mval_fl, dist_px,
 	        r_co, r_no);
 }
 

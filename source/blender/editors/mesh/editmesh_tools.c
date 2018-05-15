@@ -379,8 +379,9 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 				        &(const struct SnapObjectParams){
 				            .snap_select = SNAP_NOT_ACTIVE,
 				            .use_object_edit_cage = false,
+				            .use_occlusion_test = true,
 				        },
-				        mval, NULL, true,
+				        mval, NULL,
 				        co_proj, NULL))
 				{
 					mul_v3_m4v3(eve->co, obedit->imat, co_proj);

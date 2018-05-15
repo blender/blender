@@ -72,6 +72,9 @@ struct SnapObjectParams {
 	char snap_select;
 	/* use editmode cage */
 	unsigned int use_object_edit_cage : 1;
+	/* snap to the closest element, use when using more than one snap type */
+	unsigned int use_occlusion_test   : 1;
+
 };
 
 typedef struct SnapObjectContext SnapObjectContext;
@@ -132,7 +135,6 @@ bool ED_transform_snap_object_project_view3d_mixed(
         const unsigned short snap_to_flag,
         const struct SnapObjectParams *params,
         const float mval_fl[2], float *dist_px,
-        bool use_depth,
         float r_co[3], float r_no[3]);
 
 bool ED_transform_snap_object_project_all_view3d_ex(

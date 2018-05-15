@@ -326,8 +326,9 @@ static bool view3d_ruler_item_mousemove(
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_ALL,
 			            .use_object_edit_cage = true,
+			            .use_occlusion_test = true,
 			        },
-			        mval_fl, &dist_px, true,
+			        mval_fl, &dist_px,
 			        co, ray_normal))
 			{
 				negate_v3(ray_normal);
@@ -355,8 +356,9 @@ static bool view3d_ruler_item_mousemove(
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_ALL,
 			            .use_object_edit_cage = true,
+			            .use_occlusion_test = use_depth,
 			        },
-			        mval_fl, &dist_px, use_depth,
+			        mval_fl, &dist_px,
 			        co, NULL))
 			{
 				ruler_info->snap_flag |= RULER_SNAP_OK;
