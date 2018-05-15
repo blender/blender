@@ -1103,8 +1103,8 @@ static int pose_hide_exec(bContext *C, wmOperator *op)
 		bool changed = bone_looper(ob_iter, arm->bonebase.first, hide_select_p, hide_pose_bone_fn) != 0;
 		if (changed) {
 			changed_multi = true;
-			/* note, notifier might evolve */
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
+			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 		}
 	}
 	MEM_freeN(objects);
@@ -1166,8 +1166,8 @@ static int pose_reveal_exec(bContext *C, wmOperator *op)
 		bool changed = bone_looper(ob_iter, arm->bonebase.first, select_p, show_pose_bone_cb);
 		if (changed) {
 			changed_multi = true;
-			/* note, notifier might evolve */
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob_iter);
+			DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 		}
 	}
 	MEM_freeN(objects);
