@@ -95,8 +95,8 @@ static void blender_camera_init(BlenderCamera *bcam,
 	bcam->type = CAMERA_PERSPECTIVE;
 	bcam->zoom = 1.0f;
 	bcam->pixelaspect = make_float2(1.0f, 1.0f);
-	bcam->sensor_width = 32.0f;
-	bcam->sensor_height = 18.0f;
+	bcam->sensor_width = 36.0f;
+	bcam->sensor_height = 24.0f;
 	bcam->sensor_fit = BlenderCamera::AUTO;
 	bcam->shuttertime = 1.0f;
 	bcam->motion_position = Camera::MOTION_POSITION_CENTER;
