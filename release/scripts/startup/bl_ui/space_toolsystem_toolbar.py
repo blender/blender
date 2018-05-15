@@ -225,6 +225,32 @@ class _defs_edit_armature:
         )
 
     @ToolDef.from_fn
+    def bone_envelope():
+        return dict(
+            text="Bone Envelope",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("transform.transform",
+                 dict(release_confirm=True, mode='BONE_ENVELOPE'),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def bone_size():
+        return dict(
+            text="Bone Size",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("transform.transform",
+                 dict(release_confirm=True, mode='BONE_SIZE'),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def extrude():
         return dict(
             text="Extrude",
@@ -780,6 +806,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             *_tools_transform,
             _defs_edit_armature.roll,
+            (
+                _defs_edit_armature.bone_size,
+                _defs_edit_armature.bone_envelope,
+            ),
             None,
             (
                 _defs_edit_armature.extrude,
