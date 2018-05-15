@@ -551,6 +551,7 @@ typedef struct TransInfo {
 
 /* transinfo->flag */
 #define T_OBJECT		(1 << 0)
+/** \note We could remove 'T_EDIT' and use 'obedit_type', for now ensure they're in sync. */
 #define T_EDIT			(1 << 1)
 #define T_POSE			(1 << 2)
 #define T_TEXTURE		(1 << 3)

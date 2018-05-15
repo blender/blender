@@ -8504,6 +8504,7 @@ void createTransData(bContext *C, TransInfo *t)
 		if (t->mode == TFM_BONESIZE) {
 			t->flag &= ~(T_EDIT | T_POINTS);
 			t->flag |= T_POSE;
+			t->obedit_type = -1;
 
 			FOREACH_TRANS_DATA_CONTAINER (t, tc) {
 				tc->poseobj = tc->obedit;
@@ -8582,4 +8583,6 @@ void createTransData(bContext *C, TransInfo *t)
 
 	/* Check that 'countAndCleanTransDataContainer' ran. */
 	BLI_assert(t->data_len_all != -1);
+
+	BLI_assert((!(t->flag & T_EDIT)) == (!(t->obedit_type != -1)));
 }
