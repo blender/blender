@@ -615,14 +615,55 @@ static void particle_batch_cache_ensure_pos(Object *object,
 	}
 }
 
+static void drw_particle_update_ptcache_edit(Object *object_eval,
+                                             PTCacheEdit *edit)
+{
+	if (edit->psys == NULL) {
+		return;
+	}
+	/* NOTE: Get flag from particle system coming from drawing object.
+	 * this is where depsgraph will be setting flags to.
+	 */
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
+	Object *object_orig = DEG_get_original_object(object_eval);
+	if (edit->psys->flag & PSYS_HAIR_UPDATED) {
+		PE_update_object(draw_ctx->depsgraph, scene_orig, object_orig, 0);
+	}
+	if (edit->pathcache == NULL) {
+		Depsgraph *depsgraph = draw_ctx->depsgraph;
+		psys_cache_edit_paths(depsgraph,
+		                      scene_orig, object_orig,
+		                      edit,
+		                      DEG_get_ctime(depsgraph),
+		                      DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+	}
+}
+
+static void drw_particle_update_ptcache(Object *object_eval)
+{
+	if ((object_eval->mode & OB_MODE_PARTICLE_EDIT) == 0) {
+		return;
+	}
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
+	Object *object_orig = DEG_get_original_object(object_eval);
+	PTCacheEdit *edit = PE_create_current(
+	        draw_ctx->depsgraph, scene_orig, object_orig);
+	if (edit != NULL) {
+		drw_particle_update_ptcache_edit(object_eval, edit);
+	}
+}
+
 Gwn_Batch *DRW_particles_batch_cache_get_hair(
-        Object *UNUSED(object),
+        Object *object,
         ParticleSystem *psys,
         ModifierData *md)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 
 	if (cache->hair.hairs == NULL) {
+		drw_particle_update_ptcache(object);
 		ensure_seg_pt_count(NULL, psys, &cache->hair);
 		particle_batch_cache_ensure_pos_and_seg(NULL, psys, md, &cache->hair);
 		cache->hair.hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP,
@@ -646,7 +687,7 @@ Gwn_Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *ps
 }
 
 Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(
-        Object *UNUSED(object),
+        Object *object,
         ParticleSystem *psys,
         PTCacheEdit *edit)
 {
@@ -654,6 +695,7 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(
 	if (cache->edit_hair.hairs != NULL) {
 		return cache->edit_hair.hairs;
 	}
+	drw_particle_update_ptcache_edit(object, edit);
 	ensure_seg_pt_count(edit, psys, &cache->edit_hair);
 	particle_batch_cache_ensure_pos_and_seg(edit, psys, NULL, &cache->edit_hair);
 	cache->edit_hair.hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP,
@@ -729,7 +771,7 @@ static void particle_batch_cache_ensure_edit_inner_pos(
 }
 
 Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(
-        Object *UNUSED(object),
+        Object *object,
         ParticleSystem *psys,
         PTCacheEdit *edit)
 {
@@ -737,6 +779,7 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(
 	if (cache->edit_inner_points != NULL) {
 		return cache->edit_inner_points;
 	}
+	drw_particle_update_ptcache_edit(object, edit);
 	ensure_edit_inner_points_count(edit, cache);
 	particle_batch_cache_ensure_edit_inner_pos(edit, cache);
 	cache->edit_inner_points = GWN_batch_create(GWN_PRIM_POINTS,
@@ -793,7 +836,7 @@ static void particle_batch_cache_ensure_edit_tip_pos(
 }
 
 Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(
-        Object *UNUSED(object),
+        Object *object,
         ParticleSystem *psys,
         PTCacheEdit *edit)
 {
@@ -801,6 +844,7 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_tip_points(
 	if (cache->edit_tip_points != NULL) {
 		return cache->edit_tip_points;
 	}
+	drw_particle_update_ptcache_edit(object, edit);
 	ensure_edit_tip_points_count(edit, cache);
 	particle_batch_cache_ensure_edit_tip_pos(edit, cache);
 	cache->edit_tip_points = GWN_batch_create(GWN_PRIM_POINTS,

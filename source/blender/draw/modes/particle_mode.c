@@ -139,32 +139,6 @@ static void particle_cache_init(void *vedata)
 	DRW_shgroup_uniform_float(stl->g_data->tip_points_group, "outlineWidth", &outline_width, 1);
 }
 
-static void draw_update_ptcache_edit(Object *object_eval,
-                                     ParticleSystem *psys,
-                                     PTCacheEdit *edit)
-{
-	if (edit->psys == NULL) {
-		return;
-	}
-	/* NOTE: Get flag from particle system coming from drawing object.
-	 * this is where depsgraph will be setting flags to.
-	 */
-	const DRWContextState *draw_ctx = DRW_context_state_get();
-	Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
-	Object *object_orig = DEG_get_original_object(object_eval);
-	if (psys->flag & PSYS_HAIR_UPDATED) {
-		PE_update_object(draw_ctx->depsgraph, scene_orig, object_orig, 0);
-	}
-	if (edit->pathcache == NULL) {
-		Depsgraph *depsgraph = draw_ctx->depsgraph;
-		psys_cache_edit_paths(depsgraph,
-		                      scene_orig, object_orig,
-		                      edit,
-		                      DEG_get_ctime(depsgraph),
-		                      DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
-	}
-}
-
 static void particle_edit_cache_populate(void *vedata,
                                          Object *object,
                                          ParticleSystem *psys,
@@ -172,7 +146,6 @@ static void particle_edit_cache_populate(void *vedata,
 {
 	PARTICLE_StorageList *stl = ((PARTICLE_Data *)vedata)->stl;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	draw_update_ptcache_edit(object, psys, edit);
 	ParticleEditSettings *pset = PE_settings(draw_ctx->scene);
 	{
 		struct Gwn_Batch *strands =
