@@ -3342,6 +3342,9 @@ static int clear_render_border_exec(bContext *C, wmOperator *UNUSED(op))
 	border->xmax = 1.0f;
 	border->ymax = 1.0f;
 
+	if (rv3d->persp == RV3D_CAMOB) {
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	}
 	return OPERATOR_FINISHED;
 }
 
