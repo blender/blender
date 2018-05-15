@@ -395,6 +395,8 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, const int mcords[]
 			/* mask modifier ('armature' mode), etc. */
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 		}
+		/* bone selection status is on armature not object */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 
