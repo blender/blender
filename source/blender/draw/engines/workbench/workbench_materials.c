@@ -497,9 +497,8 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
-		const bool is_edit_mode = is_active && (draw_ctx->object_mode & OB_MODE_EDIT) != 0;
 		bool is_drawn = false;
-		if (!is_edit_mode && !is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ob->type == OB_MESH) {
+		if (!is_sculpt_mode && wpd->drawtype == OB_TEXTURE && ob->type == OB_MESH) {
 			const Mesh *me = ob->data;
 			if (me->mloopuv) {
 				const int materials_len = MAX2(1, (is_sculpt_mode ? 1 : ob->totcol));

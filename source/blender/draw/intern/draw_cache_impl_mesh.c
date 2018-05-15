@@ -394,17 +394,26 @@ static MeshRenderData *mesh_render_data_create_ex(
 		rdata->edit_data = me->runtime.edit_data;
 
 		int bm_ensure_types = 0;
-		if (types & (MR_DATATYPE_VERT)) {
+		if (types & MR_DATATYPE_VERT) {
 			rdata->vert_len = bm->totvert;
 			bm_ensure_types |= BM_VERT;
 		}
-		if (types & (MR_DATATYPE_EDGE)) {
+		if (types & MR_DATATYPE_EDGE) {
 			rdata->edge_len = bm->totedge;
 			bm_ensure_types |= BM_EDGE;
 		}
 		if (types & MR_DATATYPE_LOOPTRI) {
 			BKE_editmesh_tessface_calc(embm);
-			rdata->tri_len = embm->tottri;
+			int tottri = embm->tottri;
+			rdata->mlooptri = MEM_mallocN(sizeof(*rdata->mlooptri) * embm->tottri, __func__);
+			for (int index = 0; index < tottri ; index ++ ) {
+				BMLoop **bmtri = embm->looptris[index];
+				MLoopTri *mtri = &rdata->mlooptri[index];
+				mtri->tri[0] = BM_elem_index_get(bmtri[0]);
+				mtri->tri[1] = BM_elem_index_get(bmtri[1]);
+				mtri->tri[2] = BM_elem_index_get(bmtri[2]);
+			}
+			rdata->tri_len = tottri;
 		}
 		if (types & MR_DATATYPE_LOOP) {
 			int totloop = bm->totloop;
@@ -2066,7 +2075,6 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
         MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPUV));
-	BLI_assert(rdata->edit_bmesh == NULL);
 
 	if (cache->tri_aligned_uv == NULL) {
 		uint vidx = 0;
@@ -2087,12 +2095,38 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_uv_active(
 
 		const MLoopUV *mloopuv = rdata->mloopuv;
 
-		for (int i = 0; i < tri_len; i++) {
-			const MLoopTri *mlt = &rdata->mlooptri[i];
-			GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[0]].uv);
-			GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[1]].uv);
-			GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[2]].uv);
+		BMEditMesh *embm = rdata->edit_bmesh;
+		/* get uv's from active UVMap */
+		if (rdata->edit_bmesh) {
+			/* edit mode */
+			BMesh *bm = embm->bm;
+
+			const int layer_offset = CustomData_get_offset(&bm->ldata, CD_MLOOPUV);
+			for (uint i = 0; i < tri_len; i++) {
+				const BMLoop **bm_looptri = (const BMLoop **)embm->looptris[i];
+				if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
+					continue;
+				}
+				for (uint t = 0; t < 3; t++) {
+					const BMLoop *loop = bm_looptri[t];
+					const int index = BM_elem_index_get(loop);
+					if (index != -1) {
+						const float *elem = ((MLoopUV *)BM_ELEM_CD_GET_VOID_P(loop, layer_offset))->uv;
+						GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, elem);
+					}
+				}
+			}
 		}
+		else {
+			/* object mode */
+			for (int i = 0; i < tri_len; i++) {
+				const MLoopTri *mlt = &rdata->mlooptri[i];
+				GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[0]].uv);
+				GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[1]].uv);
+				GWN_vertbuf_attr_set(vbo, attr_id.uv, vidx++, mloopuv[mlt->tri[2]].uv);
+			}
+		}
+
 		vbo_len_used = vidx;
 
 		BLI_assert(vbo_len_capacity == vbo_len_used);
