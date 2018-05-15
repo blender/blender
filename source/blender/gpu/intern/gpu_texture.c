@@ -149,8 +149,8 @@ static GLenum gpu_texture_get_format(
 	}
 	else {
 		/* Integer formats */
-		if (ELEM(data_type, GPU_RG16I, GPU_R16I, GPU_R16UI, GPU_R32UI)) {
-			if (ELEM(data_type, GPU_R16UI, GPU_R32UI)) {
+		if (ELEM(data_type, GPU_RG16I, GPU_R16I, GPU_RG16UI, GPU_R16UI, GPU_R32UI)) {
+			if (ELEM(data_type, GPU_R16UI, GPU_RG16UI, GPU_R32UI)) {
 				*data_format = GL_UNSIGNED_INT;
 			}
 			else {
@@ -194,6 +194,7 @@ static GLenum gpu_texture_get_format(
 			break;
 		case GPU_RG16F:
 		case GPU_RG16I:
+		case GPU_RG16UI:
 		case GPU_RG16:
 		case GPU_DEPTH24_STENCIL8:
 		case GPU_DEPTH_COMPONENT32F:
@@ -238,6 +239,7 @@ static GLenum gpu_texture_get_format(
 		case GPU_R16I: return GL_R16I;
 		case GPU_R16UI: return GL_R16UI;
 		case GPU_RG8: return GL_RG8;
+		case GPU_RG16UI: return GL_RG16UI;
 		case GPU_R8: return GL_R8;
 		/* Special formats texture & renderbuffer */
 		case GPU_R11F_G11F_B10F: return GL_R11F_G11F_B10F;
@@ -270,6 +272,7 @@ static int gpu_texture_get_component_count(GPUTextureFormat format)
 		case GPU_RG16:
 		case GPU_RG16F:
 		case GPU_RG16I:
+		case GPU_RG16UI:
 		case GPU_RG32F:
 			return 2;
 		default:

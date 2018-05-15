@@ -1360,7 +1360,7 @@ typedef struct DisplaySafeAreas {
 /* Scene Display - used for store scene specific display settings for the 3d view */
 typedef struct SceneDisplay {
 	float light_direction[3];      /* light direction for shadows/highlight */
-	int pad;
+	float shadow_shift;
 } SceneDisplay;
 
 /* *************************************************************** */

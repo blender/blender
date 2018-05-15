@@ -824,6 +824,7 @@ void BKE_scene_init(Scene *sce)
 
 	/* SceneDisplay */
 	copy_v3_v3(sce->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
+	sce->display.shadow_shift = 0.1;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

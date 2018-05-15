@@ -441,6 +441,7 @@ class SCENE_PT_viewport_display(SceneButtonsPanel, Panel):
         layout = self.layout
         scene = context.scene
         layout.prop(scene.display, "light_direction", text="")
+        layout.prop(scene.display, "shadow_shift")
 
 
 class SCENE_PT_custom_props(SceneButtonsPanel, PropertyPanel, Panel):

@@ -61,7 +61,8 @@ static struct {
 	struct GPUTexture *normal_buffer_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 
-	float light_direction[3]; /* world light direction for shadows */
+	SceneDisplay display; /* world light direction for shadows */
+	float light_direction_vs[3];
 	int next_object_id;
 } e_data = {{NULL}};
 
@@ -82,8 +83,12 @@ extern char datatoc_workbench_world_light_lib_glsl[];
 extern DrawEngineType draw_engine_workbench_solid;
 
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OVERLAP)
-#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO)
+#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || wpd->shading.flag & V3D_SHADING_SHADOW)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
+#define NORMAL_ENCODING_ENABLED() (true)
+//(!SHADOW_ENABLED(wpd))
+
+
 static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 {
 	char *str = NULL;
@@ -93,8 +98,14 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 	if (wpd->shading.flag & V3D_SHADING_OBJECT_OVERLAP) {
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_OBJECT_OVERLAP\n");
 	}
+	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
+		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
+	}
 	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
+	}
+	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
+		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
 	}
 	switch (drawtype) {
 		case OB_SOLID:
@@ -105,9 +116,9 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 			break;
 	}
 
-#ifdef WORKBENCH_ENCODE_NORMALS
-	BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
-#endif
+	if (NORMAL_ENCODING_ENABLED()) {
+		BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
+	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -154,7 +165,7 @@ static char *workbench_build_prepass_frag(void)
 
 static int get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype)
 {
-	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OVERLAP;
+	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OVERLAP | V3D_SHADING_SHADOW;
 	int index = (wpd->shading.flag & DRAWOPTIONS_MASK);
 	index = (index << 2) + wpd->shading.light;
 	/* set the drawtype flag
@@ -251,7 +262,41 @@ static void get_material_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Mat
 		}
 	}
 }
+static void workbench_private_data_init(WORKBENCH_Data *vedata)
+{
+	WORKBENCH_StorageList *stl = vedata->stl;
+	WORKBENCH_PrivateData *wpd = stl->g_data;
+	const DRWContextState *draw_ctx = DRW_context_state_get();
 
+	View3D *v3d = draw_ctx->v3d;
+	if (v3d) {
+		wpd->shading = v3d->shading;
+		wpd->drawtype = v3d->drawtype;
+		wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light);
+	}
+	else {
+		/* XXX: We should get the default shading from the view layer, after we implemented the render callback */
+		memset(&wpd->shading, 0, sizeof(wpd->shading));
+		wpd->shading.light = V3D_LIGHTING_STUDIO;
+		wpd->shading.shadow_intensity = 0.5;
+		copy_v3_fl(wpd->shading.single_color, 0.8f);
+		wpd->drawtype = OB_SOLID;
+		wpd->studio_light = BKE_studiolight_findindex(0);
+	}
+	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
+
+	WORKBENCH_UBO_World *wd = &wpd->world_data;
+	UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
+	UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
+
+	/* XXX: Really quick conversion to avoid washed out background.
+	 * Needs to be adressed properly (color managed using ocio). */
+	srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
+	srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
+
+	studiolight_update_world(wpd->studio_light, wd);
+
+}
 void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 {
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
@@ -271,17 +316,20 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 		stl->g_data = MEM_mallocN(sizeof(*stl->g_data), __func__);
 	}
 
+	workbench_private_data_init(vedata);
+
 	{
 		const float *viewport_size = DRW_viewport_size_get();
 		const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 		e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_solid);
 		e_data.color_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA8, &draw_engine_workbench_solid);
 		e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_solid);
-#ifdef WORKBENCH_ENCODE_NORMALS
-		e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG8, &draw_engine_workbench_solid);
-#else
-		e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F, &draw_engine_workbench_solid);
-#endif
+
+		if (NORMAL_ENCODING_ENABLED()) {
+			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
+		} else {
+			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F, &draw_engine_workbench_solid);
+		}
 
 		GPU_framebuffer_ensure_config(&fbl->prepass_fb, {
 			GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -329,66 +377,49 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 	DRWShadingGroup *grp;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	static float shadow_multiplier = 0.0f;
+	static float light_multiplier = 1.0f;
 
 	wpd->material_hash = BLI_ghash_ptr_new(__func__);
 
-	View3D *v3d = draw_ctx->v3d;
 	Scene *scene = draw_ctx->scene;
-	if (v3d) {
-		wpd->shading = v3d->shading;
-		wpd->drawtype = v3d->drawtype;
-		wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light);
-	}
-	else {
-		/* XXX: We should get the default shading from the view layer, after we implemented the render callback */
-		memset(&wpd->shading, 0, sizeof(wpd->shading));
-		wpd->shading.light = V3D_LIGHTING_STUDIO;
-		wpd->shading.shadow_intensity = 0.5;
-		copy_v3_fl(wpd->shading.single_color, 0.8f);
-		wpd->drawtype = OB_SOLID;
-		wpd->studio_light = BKE_studiolight_findindex(0);
-	}
-	BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
 	select_deferred_shaders(wpd);
 	/* Deferred Mix Pass */
 	{
-		WORKBENCH_UBO_World *wd = &wpd->world_data;
-		UI_GetThemeColor3fv(UI_GetThemeValue(TH_SHOW_BACK_GRAD) ? TH_LOW_GRAD : TH_HIGH_GRAD, wd->background_color_low);
-		UI_GetThemeColor3fv(TH_HIGH_GRAD, wd->background_color_high);
-
-		/* XXX: Really quick conversion to avoid washed out background.
-		 * Needs to be adressed properly (color managed using ocio). */
-		srgb_to_linearrgb_v3_v3(wd->background_color_high, wd->background_color_high);
-		srgb_to_linearrgb_v3_v3(wd->background_color_low, wd->background_color_low);
-
-		studiolight_update_world(wpd->studio_light, wd);
 
 		wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
 		DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
 
-		copy_v3_v3(e_data.light_direction, scene->display.light_direction);
-		negate_v3(e_data.light_direction);
+		copy_v3_v3(e_data.display.light_direction, scene->display.light_direction);
+		negate_v3(e_data.display.light_direction);
+		e_data.display.shadow_shift = scene->display.shadow_shift;
+		float view_matrix[4][4];
+		DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
+		mul_v3_mat3_m4v3(e_data.light_direction_vs, view_matrix, e_data.display.light_direction);
+		
+		e_data.display.shadow_shift = scene->display.shadow_shift;
 
 		if (SHADOW_ENABLED(wpd)) {
 			psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_EQUAL);
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
 			DRW_shgroup_stencil_mask(grp, 0x00);
-			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &shadow_multiplier, 1);
+			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.light_direction_vs, 1);
+			DRW_shgroup_uniform_float(grp, "lightMultiplier", &light_multiplier, 1);
+			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
+			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 
 #ifdef DEBUG_SHADOW_VOLUME
 			psl->shadow_pass = DRW_pass_create("Shadow", DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK | DRW_STATE_WRITE_COLOR);
 			grp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
-			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.light_direction, 1);
+			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.display.light_direction, 1);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
 			wpd->shadow_shgrp = grp;
 #else
 			psl->shadow_pass = DRW_pass_create("Shadow", DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_STENCIL_SHADOW);
 			grp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
-			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.light_direction, 1);
+			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.display.light_direction, 1);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
 			wpd->shadow_shgrp = grp;
 
@@ -396,7 +427,10 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_shadow_pass);
 			DRW_shgroup_stencil_mask(grp, 0x00);
 			workbench_composite_uniforms(wpd, grp);
-			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shading.shadow_intensity, 1);
+			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.light_direction_vs, 1);
+			DRW_shgroup_uniform_float(grp, "lightMultiplier", &wpd->shadow_multiplier, 1);
+			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &wpd->shadow_multiplier, 1);
+			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
 		}
@@ -404,7 +438,6 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 			psl->composite_pass = DRW_pass_create("Composite", DRW_STATE_WRITE_COLOR);
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 			workbench_composite_uniforms(wpd, grp);
-			DRW_shgroup_uniform_float(grp, "shadowMultiplier", &shadow_multiplier, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 		}
 	}

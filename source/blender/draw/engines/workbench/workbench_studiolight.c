@@ -31,6 +31,8 @@
 
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd)
 {
+	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
+
 	copy_v3_v3(wd->diffuse_light_x_pos, sl->diffuse_light[STUDIOLIGHT_X_POS]);
 	copy_v3_v3(wd->diffuse_light_x_neg, sl->diffuse_light[STUDIOLIGHT_X_NEG]);
 	copy_v3_v3(wd->diffuse_light_y_pos, sl->diffuse_light[STUDIOLIGHT_Y_POS]);

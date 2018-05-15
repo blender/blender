@@ -1,4 +1,4 @@
-#define EPSILON 0.000001
+#define EPSILON 0.0001
 #define INFINITE 100.0
 
 uniform mat4 ModelMatrixInverse;

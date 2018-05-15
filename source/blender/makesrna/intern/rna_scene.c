@@ -5687,6 +5687,16 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	RNA_def_property_float_array_default(prop, default_light_direction);
 	RNA_def_property_ui_text(prop, "Light Direction", "Direction of the light for shadows and highlights");
 	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
+
+	prop = RNA_def_property(srna, "shadow_shift", PROP_FLOAT, PROP_ANGLE);
+	RNA_def_property_float_sdna(prop, NULL, "shadow_shift");
+	RNA_def_property_float_default(prop, 0.1);
+	RNA_def_property_ui_text(prop, "Shadow Shift", "Shadow termination angle");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 2);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
 }
 
 void RNA_def_scene(BlenderRNA *brna)

@@ -1085,6 +1085,11 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				copy_v3_v3(scene->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
 			}
 		}
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "float", "shadow_shift")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				scene->display.shadow_shift = 0.1;
+			}
+		}
 
 		if (!DNA_struct_elem_find(fd->filesdna, "Object", "ObjectDisplay", "display")) {
 			/* Initialize new object.ObjectDisplay */
