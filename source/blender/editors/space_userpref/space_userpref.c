@@ -64,7 +64,7 @@ static SpaceLink *userpref_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 
 	BLI_addtail(&spref->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for userpref");

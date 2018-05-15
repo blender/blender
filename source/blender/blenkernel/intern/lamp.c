@@ -59,7 +59,8 @@ void BKE_lamp_init(Lamp *la)
 	BLI_assert(MEMCMP_STRUCT_OFS_IS_ZERO(la, id));
 
 	la->r = la->g = la->b = la->k = 1.0f;
-	la->haint = la->energy = 1.0f;
+	la->haint = 1.0f;
+	la->energy = 10.0f;
 	la->dist = 25.0f;
 	la->spotsize = DEG2RADF(45.0f);
 	la->spotblend = 0.15f;

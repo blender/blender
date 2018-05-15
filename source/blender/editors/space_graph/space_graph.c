@@ -119,7 +119,7 @@ static SpaceLink *graph_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	
 	BLI_addtail(&sipo->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 	
 	/* channels */
 	ar = MEM_callocN(sizeof(ARegion), "channels region for graphedit");

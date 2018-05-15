@@ -61,6 +61,8 @@ static SpaceLink *buttons_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 	sbuts->spacetype = SPACE_BUTS;
 	sbuts->align = BUT_VERTICAL;
 
+	sbuts->mainb = sbuts->mainbuser = BCONTEXT_OBJECT;
+
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for buts");
 	

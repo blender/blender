@@ -317,7 +317,7 @@ static SpaceLink *node_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 
 	BLI_addtail(&snode->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 
 	/* buttons/list view */
 	ar = MEM_callocN(sizeof(ARegion), "buttons for node");

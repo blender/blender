@@ -67,7 +67,7 @@ static SpaceLink *console_new(const ScrArea *UNUSED(area), const Scene *UNUSED(s
 	
 	BLI_addtail(&sconsole->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 	
 	
 	/* main region */

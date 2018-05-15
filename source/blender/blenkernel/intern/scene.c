@@ -563,7 +563,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.yasp = 1;
 	sce->r.tilex = 256;
 	sce->r.tiley = 256;
-	sce->r.size = 50;
+	sce->r.size = 100;
 
 	sce->r.im_format.planes = R_IMF_PLANES_RGBA;
 	sce->r.im_format.imtype = R_IMF_IMTYPE_PNG;
@@ -571,7 +571,7 @@ void BKE_scene_init(Scene *sce)
 	sce->r.im_format.quality = 90;
 	sce->r.im_format.compress = 15;
 
-	sce->r.displaymode = R_OUTPUT_AREA;
+	sce->r.displaymode = R_OUTPUT_WINDOW;
 	sce->r.framapto = 100;
 	sce->r.images = 100;
 	sce->r.framelen = 1.0;
@@ -687,6 +687,7 @@ void BKE_scene_init(Scene *sce)
 	sce->physics_settings.gravity[2] = -9.81f;
 	sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
 
+	sce->unit.system = USER_UNIT_METRIC;
 	sce->unit.scale_length = 1.0f;
 
 	pset = &sce->toolsettings->particle;

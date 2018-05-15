@@ -331,7 +331,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->flag = V3D_SELECT_OUTLINE;
 	v3d->flag2 = V3D_SHOW_RECONSTRUCTION | V3D_SHOW_GPENCIL;
 	
-	v3d->lens = 35.0f;
+	v3d->lens = 50.0f;
 	v3d->near = 0.01f;
 	v3d->far = 1000.0f;
 
@@ -351,7 +351,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	
 	BLI_addtail(&v3d->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 	
 	/* tool shelf */
 	ar = MEM_callocN(sizeof(ARegion), "toolshelf for view3d");

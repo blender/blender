@@ -163,8 +163,8 @@ enum {
 	CAMERA_SENSOR_FIT_VERT  = 2,
 };
 
-#define DEFAULT_SENSOR_WIDTH	32.0f
-#define DEFAULT_SENSOR_HEIGHT	18.0f
+#define DEFAULT_SENSOR_WIDTH	36.0f
+#define DEFAULT_SENSOR_HEIGHT	24.0f
 
 /* stereo->convergence_mode */
 enum {

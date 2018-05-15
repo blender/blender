@@ -78,7 +78,7 @@ static SpaceLink *info_new(const ScrArea *UNUSED(area), const Scene *UNUSED(scen
 	
 	BLI_addtail(&sinfo->regionbase, ar);
 	ar->regiontype = RGN_TYPE_HEADER;
-	ar->alignment = RGN_ALIGN_BOTTOM;
+	ar->alignment = RGN_ALIGN_TOP;
 	
 	/* main region */
 	ar = MEM_callocN(sizeof(ARegion), "main region for info");
