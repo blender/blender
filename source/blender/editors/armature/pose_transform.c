@@ -75,10 +75,11 @@
 static void applyarmature_fix_boneparents(const bContext *C, Scene *scene, Object *armob)
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	Main *bmain = CTX_data_main(C);
 	Object workob, *ob;
 	
 	/* go through all objects in database */
-	for (ob = G.main->object.first; ob; ob = ob->id.next) {
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		/* if parent is bone in this armature, apply corrections */
 		if ((ob->parent == armob) && (ob->partype == PARBONE)) {
 			/* apply current transform from parent (not yet destroyed), 
