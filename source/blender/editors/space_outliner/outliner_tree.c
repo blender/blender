@@ -2068,7 +2068,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 		BKE_outliner_treehash_rebuild_from_treestore(soops->treehash, soops->treestore);
 	}
 
-	if (ar->flag & RGN_DRAW_NO_REBUILD) {
+	if (ar->do_draw & RGN_DRAW_NO_REBUILD) {
 		return;
 	}
 
