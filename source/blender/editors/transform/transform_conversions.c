@@ -303,32 +303,28 @@ static void createTransTexspace(TransInfo *t)
 	ob = OBACT(view_layer);
 
 	if (ob == NULL) { // Shouldn't logically happen, but still...
-		t->data_len_all = 0;
 		return;
 	}
 
 	id = ob->data;
 	if (id == NULL || !ELEM(GS(id->name), ID_ME, ID_CU, ID_MB)) {
 		BKE_report(t->reports, RPT_ERROR, "Unsupported object type for text-space transform");
-		t->data_len_all = 0;
 		return;
 	}
 
 	if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
-		t->data_len_all = 0;
 		return;
 	}
 
 
 	{
-		TransDataContainer *tc = t->data_container = MEM_callocN(sizeof(*t->data_container), __func__);
+		BLI_assert(t->data_container_len == 1);
+		TransDataContainer *tc = t->data_container;
 		tc->data_len = 1;
 		td = tc->data = MEM_callocN(sizeof(TransData), "TransTexspace");
 		td->ext = tc->data_ext = MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
 	}
-
-	t->data_len_all = 1;
 
 	td->flag = TD_SELECTED;
 	copy_v3_v3(td->center, ob->obmat[3]);
@@ -8321,6 +8317,7 @@ void createTransData(bContext *C, TransInfo *t)
 	/* if tests must match recalcData for correct updates */
 	if (t->options & CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
+		t->obedit_type = -1;
 
 		createTransTexspace(t);
 		countAndCleanTransDataContainer(t);
