@@ -1377,8 +1377,8 @@ typedef enum eSpace_Type {
 	SPACE_CONSOLE  = 18,
 	SPACE_USERPREF = 19,
 	SPACE_CLIP     = 20,
-	
-	SPACEICONMAX = SPACE_CLIP
+
+	SPACE_TYPE_LAST = SPACE_CLIP
 } eSpace_Type;
 
 /* use for function args */
