@@ -1670,7 +1670,8 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 	                       DEG_NODE_TYPE_PARAMETERS,
 	                       DEG_OPCODE_PLACEHOLDER,
 	                       "Scene Eval");
-	add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
+	DepsRelation *rel = add_relation(scene_key, obdata_ubereval_key, "CoW Relation");
+	rel->flag |= DEPSREL_FLAG_NO_FLUSH;
 
 	/* Modifiers */
 	if (object->modifiers.first != NULL) {
