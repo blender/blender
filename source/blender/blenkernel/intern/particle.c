@@ -289,7 +289,7 @@ void psys_enable_all(Object *ob)
 		psys->flag &= ~PSYS_DISABLED;
 }
 
-ParticleSystem *psys_original_get(ParticleSystem *psys)
+ParticleSystem *psys_orig_get(ParticleSystem *psys)
 {
 	if (psys->orig_psys == NULL) {
 		return psys;
@@ -297,7 +297,22 @@ ParticleSystem *psys_original_get(ParticleSystem *psys)
 	return psys->orig_psys;
 }
 
-static PTCacheEdit *psys_original_edit_get(ParticleSystem *psys)
+struct ParticleSystem *psys_eval_get(Depsgraph *depsgraph,
+                                     Object *object,
+                                     ParticleSystem *psys)
+{
+	Object *object_eval = DEG_get_evaluated_object(depsgraph, object);
+	ParticleSystem *psys_eval = object_eval->particlesystem.first;
+	while (psys_eval != NULL) {
+		if (psys_eval->orig_psys == psys) {
+			return psys_eval;
+		}
+		psys_eval = psys_eval->next;
+	}
+	return psys_eval;
+}
+
+static PTCacheEdit *psys_orig_edit_get(ParticleSystem *psys)
 {
 	if (psys->orig_psys == NULL) {
 		return psys->edit;
@@ -317,7 +332,7 @@ bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 	if (object->mode != OB_MODE_PARTICLE_EDIT) {
 		return false;
 	}
-	ParticleSystem *psys_orig = psys_original_get(psys);
+	ParticleSystem *psys_orig = psys_orig_get(psys);
 	return (psys_orig->edit || psys->pointcache->edit) &&
 	       (use_render_params == false);
 }
@@ -1907,7 +1922,7 @@ static bool psys_thread_context_init_path(
 	if (psys_in_edit_mode(sim->depsgraph, psys)) {
 		ParticleEditSettings *pset = &scene->toolsettings->particle;
 
-		if ((use_render_params == 0) && (psys_original_edit_get(psys) == NULL || pset->flag & PE_DRAW_PART) == 0)
+		if ((use_render_params == 0) && (psys_orig_edit_get(psys) == NULL || pset->flag & PE_DRAW_PART) == 0)
 			totchild = 0;
 
 		segments = 1 << pset->draw_step;
@@ -2001,7 +2016,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey **cache = psys->childcache;
-	PTCacheEdit *edit = psys_original_edit_get(psys);
+	PTCacheEdit *edit = psys_orig_edit_get(psys);
 	ParticleCacheKey **pcache = psys_in_edit_mode(ctx->sim.depsgraph, psys) && edit ? edit->pathcache : psys->pathcache;
 	ParticleCacheKey *child, *key[4];
 	ParticleTexture ptex;

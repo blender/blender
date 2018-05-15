@@ -257,8 +257,12 @@ static PTCacheEdit *pe_get_current(
 						edit = pid->cache->edit;
 					}
 					else {
-						if (create && !psys->edit && psys->flag & PSYS_HAIR_DONE)
-							PE_create_particle_edit(depsgraph, scene, ob, NULL, psys);
+						if (create && !psys->edit) {
+							ParticleSystem *psys_eval = psys_eval_get(depsgraph, ob, psys);
+							if (psys_eval->flag & PSYS_HAIR_DONE) {
+								PE_create_particle_edit(depsgraph, scene, ob, NULL, psys);
+							}
+						}
 						edit = psys->edit;
 					}
 				}

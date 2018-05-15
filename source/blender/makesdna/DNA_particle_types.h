@@ -332,7 +332,7 @@ typedef struct ParticleSystem {
 	 *
 	 * Original system will have this set to NULL.
 	 *
-	 * Use psys_original_get() function to access,
+	 * Use psys_orig_get() function to access,
 	 */
 	struct ParticleSystem *orig_psys;
 } ParticleSystem;
