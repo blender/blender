@@ -1914,74 +1914,76 @@ static void DRW_shgroup_object_center(OBJECT_StorageList *stl, Object *ob, ViewL
 static void OBJECT_cache_populate_particles(Object *ob,
                                             OBJECT_PassList *psl)
 {
-	if (!DRW_check_particles_visible_within_active_context(ob)) {
-		return;
-	}
 	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
-		if (psys_check_enabled(ob, psys, false)) {
-			ParticleSettings *part = psys->part;
-			int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+		if (!psys_check_enabled(ob, psys, false)) {
+			continue;
+		}
+		if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+			return;
+		}
 
-			if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-				draw_as = PART_DRAW_DOT;
+		ParticleSettings *part = psys->part;
+		int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+
+		if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
+			draw_as = PART_DRAW_DOT;
+		}
+
+		static float mat[4][4];
+		unit_m4(mat);
+
+		if (draw_as != PART_DRAW_PATH) {
+			struct Gwn_Batch *geom = DRW_cache_particles_get_dots(ob, psys);
+			DRWShadingGroup *shgrp = NULL;
+			static int screen_space[2] = {0, 1};
+			static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
+			static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
+
+			/* Dummy particle format for instancing to work. */
+			DRW_shgroup_instance_format(e_data.particle_format, {{"dummy", DRW_ATTRIB_FLOAT, 1}});
+
+			Material *ma = give_current_material(ob, part->omat);
+
+			switch (draw_as) {
+				case PART_DRAW_DOT:
+					shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
+					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
+					DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
+					DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
+					DRW_shgroup_uniform_float(shgrp, "size", &part->draw_size, 1);
+					DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+					DRW_shgroup_call_add(shgrp, geom, mat);
+					break;
+				case PART_DRAW_CROSS:
+					shgrp = DRW_shgroup_instance_create(
+					        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS),
+					        e_data.particle_format);
+					DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
+					DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
+					break;
+				case PART_DRAW_CIRC:
+					shgrp = DRW_shgroup_instance_create(
+					        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC),
+					        e_data.particle_format);
+					DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
+					DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
+					DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
+					break;
+				case PART_DRAW_AXIS:
+					shgrp = DRW_shgroup_instance_create(
+					        e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS),
+					        e_data.particle_format);
+					DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
+					break;
+				default:
+					break;
 			}
 
-			static float mat[4][4];
-			unit_m4(mat);
-
-			if (draw_as != PART_DRAW_PATH) {
-				struct Gwn_Batch *geom = DRW_cache_particles_get_dots(ob, psys);
-				DRWShadingGroup *shgrp = NULL;
-				static int screen_space[2] = {0, 1};
-				static float def_prim_col[3] = {0.5f, 0.5f, 0.5f};
-				static float def_sec_col[3] = {1.0f, 1.0f, 1.0f};
-
-				/* Dummy particle format for instancing to work. */
-				DRW_shgroup_instance_format(e_data.particle_format, {{"dummy", DRW_ATTRIB_FLOAT, 1}});
-
-				Material *ma = give_current_material(ob, part->omat);
-
-				switch (draw_as) {
-					case PART_DRAW_DOT:
-						shgrp = DRW_shgroup_create(e_data.part_dot_sh, psl->particle);
-						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
-						DRW_shgroup_uniform_vec3(shgrp, "outlineColor", ma ? &ma->specr : def_sec_col, 1);
-						DRW_shgroup_uniform_float(shgrp, "pixel_size", DRW_viewport_pixelsize_get(), 1);
-						DRW_shgroup_uniform_float(shgrp, "size", &part->draw_size, 1);
-						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-						DRW_shgroup_call_add(shgrp, geom, mat);
-						break;
-					case PART_DRAW_CROSS:
-						shgrp = DRW_shgroup_instance_create(
-						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CROSS),
-						        e_data.particle_format);
-						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
-						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
-						break;
-					case PART_DRAW_CIRC:
-						shgrp = DRW_shgroup_instance_create(
-						        e_data.part_prim_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_CIRC),
-						        e_data.particle_format);
-						DRW_shgroup_uniform_texture(shgrp, "ramp", globals_ramp);
-						DRW_shgroup_uniform_vec3(shgrp, "color", ma ? &ma->r : def_prim_col, 1);
-						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[1], 1);
-						break;
-					case PART_DRAW_AXIS:
-						shgrp = DRW_shgroup_instance_create(
-						        e_data.part_axis_sh, psl->particle, DRW_cache_particles_get_prim(PART_DRAW_AXIS),
-						        e_data.particle_format);
-						DRW_shgroup_uniform_int(shgrp, "screen_space", &screen_space[0], 1);
-						break;
-					default:
-						break;
-				}
-
-				if (shgrp) {
-					if (draw_as != PART_DRAW_DOT) {
-						DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
-						DRW_shgroup_instance_batch(shgrp, geom);
-					}
+			if (shgrp) {
+				if (draw_as != PART_DRAW_DOT) {
+					DRW_shgroup_uniform_float(shgrp, "draw_size", &part->draw_size, 1);
+					DRW_shgroup_instance_batch(shgrp, geom);
 				}
 			}
 		}

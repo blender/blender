@@ -833,21 +833,15 @@ static void clay_cache_populate_particles(void *vedata, Object *ob)
 		return;
 	}
 
-	if (!DRW_check_particles_visible_within_active_context(ob)) {
-		return;
-	}
-
 	for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;
 		}
-		ParticleSettings *part = psys->part;
-		int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-
-		if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-			draw_as = PART_DRAW_DOT;
+		if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+			return;
 		}
-
+		ParticleSettings *part = psys->part;
+		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 		if (draw_as == PART_DRAW_PATH) {
 			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
 			DRWShadingGroup *hair_shgrp = CLAY_hair_shgrp_get(vedata, ob, stl, psl);

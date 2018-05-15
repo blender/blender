@@ -1472,7 +1472,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 	}
 
 	if (ob->type == OB_MESH) {
-		if (DRW_check_particles_visible_within_active_context(ob)) {
+		if (ob != draw_ctx->object_edit) {
 			material_hash = stl->g_data->hair_material_hash;
 			for (ModifierData *md = ob->modifiers.first; md; md = md->next) {
 				if (md->type != eModifierType_ParticleSystem) {
@@ -1482,9 +1482,12 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				if (!psys_check_enabled(ob, psys, false)) {
 					continue;
 				}
+				if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+					continue;
+				}
 				ParticleSettings *part = psys->part;
-				int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-				if (draw_as != PART_DRAW_PATH || (psys->pathcache == NULL && psys->childcache == NULL)) {
+				const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
+				if (draw_as != PART_DRAW_PATH) {
 					continue;
 				}
 				struct Gwn_Batch *hair_geom = DRW_cache_particles_get_hair(psys, md);

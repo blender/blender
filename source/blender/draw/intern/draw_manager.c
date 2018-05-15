@@ -36,6 +36,8 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_workspace.h"
 
 #include "draw_manager.h"
@@ -219,13 +221,20 @@ int DRW_object_is_paint_mode(const Object *ob)
 	return false;
 }
 
-bool DRW_check_particles_visible_within_active_context(Object *object)
+bool DRW_check_psys_visible_within_active_context(
+        Object *object,
+        struct ParticleSystem *psys)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	if (object == draw_ctx->object_edit) {
 		return false;
 	}
-	return (object->mode != OB_MODE_PARTICLE_EDIT);
+	if (object->mode == OB_MODE_PARTICLE_EDIT) {
+		if (psys_in_edit_mode(draw_ctx->depsgraph, psys)) {
+			return false;
+		}
+	}
+	return true;
 }
 
 /** \} */

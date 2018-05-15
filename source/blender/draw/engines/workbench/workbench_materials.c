@@ -488,19 +488,19 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 
 static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
-	if (!DRW_check_particles_visible_within_active_context(ob)) {
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	if (ob == draw_ctx->object_edit) {
 		return;
 	}
 	for (ParticleSystem *psys = ob->particlesystem.first; psys != NULL; psys = psys->next) {
 		if (!psys_check_enabled(ob, psys, false)) {
 			continue;
 		}
-		ParticleSettings *part = psys->part;
-		int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
-
-		if (draw_as == PART_DRAW_PATH && !psys->pathcache && !psys->childcache) {
-			draw_as = PART_DRAW_DOT;
+		if (!DRW_check_psys_visible_within_active_context(ob, psys)) {
+			return;
 		}
+		ParticleSettings *part = psys->part;
+		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 
 		static float mat[4][4];
 		unit_m4(mat);
