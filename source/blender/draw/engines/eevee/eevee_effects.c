@@ -221,7 +221,7 @@ void EEVEE_effects_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata, Object 
 	 * Normal buffer for deferred passes.
 	 */
 	if ((effects->enabled_effects & EFFECT_NORMAL_BUFFER) != 0)	{
-		effects->ssr_normal_input = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], GPU_RG16F,
+		effects->ssr_normal_input = DRW_texture_pool_query_2D(size_fs[0], size_fs[1], GPU_RG16,
 		                                                      &draw_engine_eevee_type);
 
 		GPU_framebuffer_texture_attach(fbl->main_fb, effects->ssr_normal_input, 1, 0);
