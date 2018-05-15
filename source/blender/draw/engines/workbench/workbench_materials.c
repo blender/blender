@@ -558,7 +558,12 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 		if (SHADOW_ENABLED(wpd) && (ob->display.flag & OB_SHOW_SHADOW) > 0) {
 			struct Gwn_Batch *geom_shadow = DRW_cache_object_surface_get(ob);
 			if (geom_shadow) {
-				DRW_shgroup_call_object_add(wpd->shadow_shgrp, geom_shadow, ob);
+				if (is_sculpt_mode) {
+					DRW_shgroup_call_sculpt_add(wpd->shadow_shgrp, ob, ob->obmat);
+				}
+				else {
+					DRW_shgroup_call_object_add(wpd->shadow_shgrp, geom_shadow, ob);
+				}
 			}
 		}
 	}
