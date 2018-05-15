@@ -10330,16 +10330,17 @@ static void library_link_end(Main *mainl, FileData **fd, const short flag, Scene
 
 	/* Yep, second splitting... but this is a very cheap operation, so no big deal. */
 	blo_split_main((*fd)->mainlist, mainvar);
-	Main main_newid = {0};
+	Main *main_newid = BKE_main_new();
 	for (mainvar = ((Main *)(*fd)->mainlist->first)->next; mainvar; mainvar = mainvar->next) {
 		BLI_assert(mainvar->versionfile != 0);
 		/* We need to split out IDs already existing, or they will go again through do_versions - bad, very bad! */
-		split_main_newid(mainvar, &main_newid);
+		split_main_newid(mainvar, main_newid);
 
-		do_versions_after_linking(&main_newid);
+		do_versions_after_linking(main_newid);
 
-		add_main_to_main(mainvar, &main_newid);
+		add_main_to_main(mainvar, main_newid);
 	}
+	BKE_main_free(main_newid);
 	blo_join_main((*fd)->mainlist);
 	mainvar = (*fd)->mainlist->first;
 	MEM_freeN((*fd)->mainlist);
@@ -10605,19 +10606,19 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	}
 	
 	/* do versions, link, and free */
-	Main main_newid = {0};
+	Main *main_newid = BKE_main_new();
 	for (mainptr = mainl->next; mainptr; mainptr = mainptr->next) {
 		/* some mains still have to be read, then versionfile is still zero! */
 		if (mainptr->versionfile) {
 			/* We need to split out IDs already existing, or they will go again through do_versions - bad, very bad! */
-			split_main_newid(mainptr, &main_newid);
+			split_main_newid(mainptr, main_newid);
 
 			if (mainptr->curlib->filedata) // can be zero... with shift+f1 append
-				do_versions(mainptr->curlib->filedata, mainptr->curlib, &main_newid);
+				do_versions(mainptr->curlib->filedata, mainptr->curlib, main_newid);
 			else
-				do_versions(basefd, NULL, &main_newid);
+				do_versions(basefd, NULL, main_newid);
 
-			add_main_to_main(mainptr, &main_newid);
+			add_main_to_main(mainptr, main_newid);
 		}
 		
 		if (mainptr->curlib->filedata)
@@ -10626,6 +10627,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		if (mainptr->curlib->filedata) blo_freefiledata(mainptr->curlib->filedata);
 		mainptr->curlib->filedata = NULL;
 	}
+	BKE_main_free(main_newid);
 }
 
 
