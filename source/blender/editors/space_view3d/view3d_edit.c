@@ -3276,6 +3276,9 @@ static int render_border_exec(bContext *C, wmOperator *op)
 			v3d->flag2 |= V3D_RENDER_BORDER;
 	}
 
+	if (rv3d->persp == RV3D_CAMOB) {
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	}
 	return OPERATOR_FINISHED;
 }
 
