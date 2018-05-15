@@ -1245,6 +1245,11 @@ void ED_object_constraint_tag_update(Object *ob, bConstraint *con)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	else
 		DEG_id_tag_update(&ob->id, OB_RECALC_OB);
+
+	/* Do Copy-on-Write tag here too, otherwise constraint
+	 * influence/mute buttons in UI have no effect
+	 */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 void ED_object_constraint_dependency_tag_update(Main *bmain, Object *ob, bConstraint *con)
