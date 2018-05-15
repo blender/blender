@@ -610,6 +610,42 @@ class _defs_edit_curve:
         )
 
 
+class _defs_pose:
+
+    @ToolDef.from_fn
+    def breakdown():
+        return dict(
+            text="Breakdowner",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("pose.breakdown", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def push():
+        return dict(
+            text="Push",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("pose.push", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def relax():
+        return dict(
+            text="Relax",
+            icon=None,
+            widget=None,
+            keymap=(
+                ("pose.relax", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
+            ),
+        )
+
+
 class _defs_sculpt:
 
     @staticmethod
@@ -800,6 +836,12 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
         'POSE': [
             *_tools_select,
             *_tools_transform,
+            None,
+            (
+                _defs_pose.breakdown,
+                _defs_pose.push,
+                _defs_pose.relax,
+            )
         ],
         'EDIT_ARMATURE': [
             *_tools_select,
