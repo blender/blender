@@ -460,6 +460,9 @@ void BM_mesh_bisect_plane(
 		bm_face_bisect_verts(bm, f, plane, oflag_center, oflag_new);
 	}
 
+	/* Caused by access macros: BM_VERT_DIR, BM_VERT_SKIP. */
+	bm->elem_index_dirty |= BM_VERT;
+
 	/* now we have all faces to split in the stack */
 	BLI_LINKSTACK_FREE(face_stack);
 }
