@@ -93,6 +93,9 @@ typedef struct MeshRuntime {
 
 	/** 'BVHCache', for 'BKE_bvhutil.c' */
 	struct LinkNode *bvh_cache;
+
+	int deformed_only; /* set by modifier stack if only deformed from original */
+	char padding[4];
 } MeshRuntime;
 
 typedef struct Mesh {

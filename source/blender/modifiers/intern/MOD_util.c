@@ -313,6 +313,7 @@ Mesh *get_mesh(
 			        LIB_ID_CREATE_NO_DEG_TAG |
 			        LIB_ID_COPY_NO_PREVIEW,
 			        false);
+			mesh->runtime.deformed_only = 1;
 		}
 
 		/* TODO(sybren): after modifier conversion of DM to Mesh is done, check whether

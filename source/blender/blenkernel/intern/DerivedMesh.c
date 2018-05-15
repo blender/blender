@@ -749,6 +749,7 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me, Object *ob, CustomDataMask mask, bool
 	CustomData_copy(&dm->loopData, &tmp.ldata, mask, alloctype, totloop);
 	CustomData_copy(&dm->polyData, &tmp.pdata, mask, alloctype, totpoly);
 	tmp.cd_flag = dm->cd_flag;
+	tmp.runtime.deformed_only = dm->deformedOnly;
 
 	if (CustomData_has_layer(&dm->vertData, CD_SHAPEKEY)) {
 		KeyBlock *kb;
@@ -2397,7 +2398,7 @@ static void mesh_calc_modifiers(
 				append_mask |= CD_MASK_PREVIEW_MLOOPCOL;
 			}
 
-			// dm->deformedOnly = false; // XXX: Does Mesh need this? Looks to be used only by particle system
+			mesh->runtime.deformed_only = false;
 		}
 
 		isPrevDeform = (mti->type == eModifierTypeType_OnlyDeform);
