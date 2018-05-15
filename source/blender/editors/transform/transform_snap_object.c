@@ -1726,9 +1726,15 @@ static bool snapEditMesh(
 		.dist_sq = SQUARE(*dist_px),
 	};
 
-	BVHTree_NearestProjectedCallback cb_walk_leaf =
-	        (snapdata->snap_to == SCE_SNAP_MODE_VERTEX) ?
-	        cb_walk_leaf_snap_vert : cb_walk_leaf_snap_edge;
+	BVHTree_NearestProjectedCallback cb_walk_leaf;
+	if (snapdata->snap_to == SCE_SNAP_MODE_VERTEX) {
+		cb_walk_leaf = cb_walk_leaf_snap_vert;
+		BM_mesh_elem_table_ensure(em->bm, BM_VERT);
+	}
+	else {
+		cb_walk_leaf = cb_walk_leaf_snap_edge;
+		BM_mesh_elem_table_ensure(em->bm, BM_EDGE | BM_VERT);
+	}
 
 	float lpmat[4][4];
 	mul_m4_m4m4(lpmat, snapdata->pmat, obmat);
