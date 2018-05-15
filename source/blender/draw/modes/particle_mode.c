@@ -149,13 +149,20 @@ static void draw_update_ptcache_edit(Object *object_eval,
 	/* NOTE: Get flag from particle system coming from drawing object.
 	 * this is where depsgraph will be setting flags to.
 	 */
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
+	Object *object_orig = DEG_get_original_object(object_eval);
 	if (psys->flag & PSYS_HAIR_UPDATED) {
-		const DRWContextState *draw_ctx = DRW_context_state_get();
-		Scene *scene_orig = (Scene *)DEG_get_original_id(&draw_ctx->scene->id);
-		Object *object_orig = DEG_get_original_object(object_eval);
 		PE_update_object(draw_ctx->depsgraph, scene_orig, object_orig, 0);
 	}
-	BLI_assert(edit->pathcache != NULL);
+	if (edit->pathcache == NULL) {
+		Depsgraph *depsgraph = draw_ctx->depsgraph;
+		psys_cache_edit_paths(depsgraph,
+		                      scene_orig, object_orig,
+		                      edit,
+		                      DEG_get_ctime(depsgraph),
+		                      DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
+	}
 }
 
 static void particle_edit_cache_populate(void *vedata,
