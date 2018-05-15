@@ -1009,7 +1009,7 @@ static DerivedMesh *applyModifier(
 
 		if (psys == NULL || psys->totpart == 0) return derivedData;
 		if (psys->part == NULL || psys->particles == NULL) return derivedData;
-		if (psmd->dm_final == NULL) return derivedData;
+		if (psmd->mesh_final == NULL) return derivedData;
 
 		DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 

@@ -284,7 +284,7 @@ typedef struct ParticleSystem {
 	ListBase pathcachebufs, childcachebufs;	/* buffers for the above */
 
 	struct ClothModifierData *clmd;					/* cloth simulation for hair */
-	struct DerivedMesh *hair_in_dm, *hair_out_dm;	/* input/output for cloth simulation */
+	struct Mesh *hair_in_mesh, *hair_out_mesh;	/* input/output for cloth simulation */
 
 	struct Object *target_ob;
 

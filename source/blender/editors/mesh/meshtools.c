@@ -707,6 +707,30 @@ int ED_mesh_mirror_topo_table(
 	return 0;
 }
 
+/* mode is 's' start, or 'e' end, or 'u' use */
+/* if end, ob can be NULL */
+/* note, is supposed return -1 on error, which callers are currently checking for, but is not used so far */
+int ED_mesh_mirror_topo_table__real_mesh(
+        Object *ob, Mesh *mesh, char mode)
+{
+	if (mode == 'u') {        /* use table */
+		if (ED_mesh_mirrtopo_recalc_check__real_mesh(ob->data, mesh, &mesh_topo_store)) {
+			ED_mesh_mirror_topo_table__real_mesh(ob, mesh, 's');
+		}
+	}
+	else if (mode == 's') { /* start table */
+		ED_mesh_mirrtopo_init__real_mesh(ob->data, mesh, &mesh_topo_store, false);
+	}
+	else if (mode == 'e') { /* end table */
+		ED_mesh_mirrtopo_free(&mesh_topo_store);
+	}
+	else {
+		BLI_assert(0);
+	}
+
+	return 0;
+}
+
 /** \} */
 
 
@@ -739,6 +763,38 @@ int mesh_get_x_mirror_vert(Object *ob, DerivedMesh *dm, int index, const bool us
 	}
 	else {
 		return mesh_get_x_mirror_vert_spatial(ob, dm, index);
+	}
+}
+
+static int mesh_get_x_mirror_vert_spatial__real_mesh(Object *ob, Mesh *mesh, int index)
+{
+	Mesh *me = ob->data;
+	MVert *mvert = mesh ? mesh->mvert : me->mvert;
+	float vec[3];
+
+	mvert = &mvert[index];
+	vec[0] = -mvert->co[0];
+	vec[1] = mvert->co[1];
+	vec[2] = mvert->co[2];
+
+	return ED_mesh_mirror_spatial_table__real_mesh(ob, NULL, mesh, vec, 'u');
+}
+
+static int mesh_get_x_mirror_vert_topo__real_mesh(Object *ob, Mesh *mesh, int index)
+{
+	if (ED_mesh_mirror_topo_table__real_mesh(ob, mesh, 'u') == -1)
+		return -1;
+
+	return mesh_topo_store.index_lookup[index];
+}
+
+int mesh_get_x_mirror_vert__real_mesh(Object *ob, Mesh *mesh, int index, const bool use_topology)
+{
+	if (use_topology) {
+		return mesh_get_x_mirror_vert_topo__real_mesh(ob, mesh, index);
+	}
+	else {
+		return mesh_get_x_mirror_vert_spatial__real_mesh(ob, mesh, index);
 	}
 }
 
@@ -991,7 +1047,67 @@ int *mesh_get_x_mirror_faces(Object *ob, BMEditMesh *em, DerivedMesh *dm)
 
 	BLI_ghash_free(fhash, NULL, NULL);
 	MEM_freeN(mirrorverts);
-	
+
+	return mirrorfaces;
+}
+
+/* This is a Mesh-based copy of mesh_get_x_mirror_faces() */
+int *mesh_get_x_mirror_faces__real_mesh(Object *ob, BMEditMesh *em, Mesh *mesh)
+{
+	Mesh *me = ob->data;
+	MVert *mv, *mvert;
+	MFace mirrormf, *mf, *hashmf, *mface;
+	GHash *fhash;
+	int *mirrorverts, *mirrorfaces;
+
+	BLI_assert(em == NULL);  /* Does not work otherwise, currently... */
+
+	const bool use_topology = (me->editflag & ME_EDIT_MIRROR_TOPO) != 0;
+	const int totvert = mesh ? mesh->totvert : me->totvert;
+	const int totface = mesh ? mesh->totface : me->totface;
+	int a;
+
+	mirrorverts = MEM_callocN(sizeof(int) * totvert, "MirrorVerts");
+	mirrorfaces = MEM_callocN(sizeof(int) * 2 * totface, "MirrorFaces");
+
+	mvert = mesh ? mesh->mvert : me->mvert;
+	mface = mesh ? mesh->mface : me->mface;
+
+	ED_mesh_mirror_spatial_table__real_mesh(ob, em, mesh, NULL, 's');
+
+	for (a = 0, mv = mvert; a < totvert; a++, mv++)
+		mirrorverts[a] = mesh_get_x_mirror_vert__real_mesh(ob, mesh, a, use_topology);
+
+	ED_mesh_mirror_spatial_table__real_mesh(ob, em, mesh, NULL, 'e');
+
+	fhash = BLI_ghash_new_ex(mirror_facehash, mirror_facecmp, "mirror_facehash gh", me->totface);
+	for (a = 0, mf = mface; a < totface; a++, mf++)
+		BLI_ghash_insert(fhash, mf, mf);
+
+	for (a = 0, mf = mface; a < totface; a++, mf++) {
+		mirrormf.v1 = mirrorverts[mf->v3];
+		mirrormf.v2 = mirrorverts[mf->v2];
+		mirrormf.v3 = mirrorverts[mf->v1];
+		mirrormf.v4 = (mf->v4) ? mirrorverts[mf->v4] : 0;
+
+		/* make sure v4 is not 0 if a quad */
+		if (mf->v4 && mirrormf.v4 == 0) {
+			SWAP(unsigned int, mirrormf.v1, mirrormf.v3);
+			SWAP(unsigned int, mirrormf.v2, mirrormf.v4);
+		}
+
+		hashmf = BLI_ghash_lookup(fhash, &mirrormf);
+		if (hashmf) {
+			mirrorfaces[a * 2] = hashmf - mface;
+			mirrorfaces[a * 2 + 1] = mirror_facerotation(&mirrormf, hashmf);
+		}
+		else
+			mirrorfaces[a * 2] = -1;
+	}
+
+	BLI_ghash_free(fhash, NULL, NULL);
+	MEM_freeN(mirrorverts);
+
 	return mirrorfaces;
 }
 

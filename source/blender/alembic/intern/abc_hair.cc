@@ -73,7 +73,7 @@ void AbcHairWriter::do_write()
 
 	ParticleSystemModifierData *psmd = psys_get_modifier(m_object, m_psys);
 
-	if (!psmd->dm_final) {
+	if (!psmd->mesh_final) {
 		return;
 	}
 

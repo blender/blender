@@ -33,6 +33,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_scene_types.h"
@@ -48,6 +49,7 @@
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -574,7 +576,7 @@ static void disconnect_hair(
 			point++;
 		}
 
-		psys_mat_hair_to_global(ob, psmd->dm_final, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(ob, psmd->mesh_final, psys->part->from, pa, hairmat);
 
 		for (k=0, key=pa->hair; k<pa->totkey; k++, key++) {
 			mul_m4_v3(hairmat, key->co);
@@ -653,13 +655,13 @@ static bool remap_hair_emitter(
 	MFace *mface = NULL, *mf;
 	MEdge *medge = NULL, *me;
 	MVert *mvert;
-	DerivedMesh *dm, *target_dm;
+	Mesh *mesh, *target_mesh;
 	int numverts;
 	int i, k;
 	float from_ob_imat[4][4], to_ob_imat[4][4];
 	float from_imat[4][4], to_imat[4][4];
 
-	if (!target_psmd->dm_final)
+	if (!target_psmd->mesh_final)
 		return false;
 	if (!psys->part || psys->part->type != PART_HAIR)
 		return false;
@@ -673,40 +675,46 @@ static bool remap_hair_emitter(
 	invert_m4_m4(from_imat, from_mat);
 	invert_m4_m4(to_imat, to_mat);
 	
-	if (target_psmd->dm_final->deformedOnly) {
+	if (target_psmd->mesh_final->runtime.deformed_only) {
 		/* we don't want to mess up target_psmd->dm when converting to global coordinates below */
-		dm = target_psmd->dm_final;
+		mesh = target_psmd->mesh_final;
 	}
 	else {
-		dm = target_psmd->dm_deformed;
+		mesh = target_psmd->mesh_deformed;
 	}
-	target_dm = target_psmd->dm_final;
-	if (dm == NULL) {
+	target_mesh = target_psmd->mesh_final;
+	if (mesh == NULL) {
 		return false;
 	}
 	/* don't modify the original vertices */
-	dm = CDDM_copy(dm);
+	BKE_id_copy_ex(
+	            NULL, &mesh->id, (ID **)&mesh,
+	            LIB_ID_CREATE_NO_MAIN |
+	            LIB_ID_CREATE_NO_USER_REFCOUNT |
+	            LIB_ID_CREATE_NO_DEG_TAG |
+	            LIB_ID_COPY_NO_PREVIEW,
+	            false);
 
 	/* BMESH_ONLY, deform dm may not have tessface */
-	DM_ensure_tessface(dm);
+	BKE_mesh_tessface_ensure(mesh);
 
-	numverts = dm->getNumVerts(dm);
-	mvert = dm->getVertArray(dm);
+	numverts = mesh->totvert;
+	mvert = mesh->mvert;
 
 	/* convert to global coordinates */
 	for (i=0; i<numverts; i++)
 		mul_m4_v3(to_mat, mvert[i].co);
 
-	if (dm->getNumTessFaces(dm) != 0) {
-		mface = dm->getTessFaceArray(dm);
-		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_FACES, 2);
+	if (mesh->totface != 0) {
+		mface = mesh->mface;
+		BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_FACES, 2);
 	}
-	else if (dm->getNumEdges(dm) != 0) {
-		medge = dm->getEdgeArray(dm);
-		bvhtree_from_mesh_get(&bvhtree, dm, BVHTREE_FROM_EDGES, 2);
+	else if (mesh->totedge != 0) {
+		medge = mesh->medge;
+		BKE_bvhtree_from_mesh_get(&bvhtree, mesh, BVHTREE_FROM_EDGES, 2);
 	}
 	else {
-		dm->release(dm);
+		BKE_id_free(NULL, mesh);
 		return false;
 	}
 
@@ -751,7 +759,7 @@ static bool remap_hair_emitter(
 			tpa->foffset = 0.0f;
 
 			tpa->num = nearest.index;
-			tpa->num_dmcache = psys_particle_dm_face_lookup(target_dm, dm, tpa->num, tpa->fuv, NULL);
+			tpa->num_dmcache = psys_particle_dm_face_lookup(target_mesh, mesh, tpa->num, tpa->fuv, NULL);
 		}
 		else {
 			me = &medge[nearest.index];
@@ -777,7 +785,7 @@ static bool remap_hair_emitter(
 				copy_m4_m4(imat, target_ob->obmat);
 			else {
 				/* note: using target_dm here, which is in target_ob object space and has full modifiers */
-				psys_mat_hair_to_object(target_ob, target_dm, target_psys->part->from, tpa, hairmat);
+				psys_mat_hair_to_object(target_ob, target_mesh, target_psys->part->from, tpa, hairmat);
 				invert_m4_m4(imat, hairmat);
 			}
 			mul_m4_m4m4(imat, imat, to_imat);
@@ -823,7 +831,7 @@ static bool remap_hair_emitter(
 	}
 
 	free_bvhtree_from_mesh(&bvhtree);
-	dm->release(dm);
+	BKE_id_free(NULL, mesh);
 
 	psys_free_path_cache(target_psys, target_edit);
 
@@ -994,7 +1002,7 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	ModifierData *md;
 	ParticleSystem *psys_start = NULL, *psys, *psys_from;
 	ParticleSystem **tmp_psys;
-	DerivedMesh *final_dm;
+	Mesh *final_mesh;
 	CustomDataMask cdmask;
 	int i, totpsys;
 
@@ -1036,8 +1044,11 @@ static bool copy_particle_systems_to_object(const bContext *C,
 	psys_start = totpsys > 0 ? tmp_psys[0] : NULL;
 	
 	/* get the DM (psys and their modifiers have not been appended yet) */
-	final_dm = mesh_get_derived_final(depsgraph, scene, ob_to, cdmask);
-	
+	/* TODO(Sybren): use mesh_evaluated instead */
+	DerivedMesh *final_dm = mesh_get_derived_final(depsgraph, scene, ob_to, cdmask);
+	final_mesh = BKE_id_new_nomain(ID_ME, NULL);
+	DM_to_mesh(final_dm, final_mesh, ob_to, CD_MASK_EVERYTHING, false);
+
 	/* now append psys to the object and make modifiers */
 	for (i = 0, psys_from = PSYS_FROM_FIRST;
 	     i < totpsys;
@@ -1060,10 +1071,17 @@ static bool copy_particle_systems_to_object(const bContext *C,
 		modifier_unique_name(&ob_to->modifiers, (ModifierData *)psmd);
 		
 		psmd->psys = psys;
-		psmd->dm_final = CDDM_copy(final_dm);
-		CDDM_calc_normals(psmd->dm_final);
-		DM_ensure_tessface(psmd->dm_final);
-		
+		BKE_id_copy_ex(
+		            NULL, &final_mesh->id, (ID **)&psmd->mesh_final,
+		            LIB_ID_CREATE_NO_MAIN |
+		            LIB_ID_CREATE_NO_USER_REFCOUNT |
+		            LIB_ID_CREATE_NO_DEG_TAG |
+		            LIB_ID_COPY_NO_PREVIEW,
+		            false);
+
+		BKE_mesh_calc_normals(psmd->mesh_final);
+		BKE_mesh_tessface_ensure(psmd->mesh_final);
+
 		if (psys_from->edit) {
 			copy_particle_edit(depsgraph, scene, ob_to, psys, psys_from);
 		}

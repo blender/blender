@@ -38,10 +38,12 @@
 #include "BLI_string.h"
 #include "BLI_ghash.h"
 
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_particle_types.h"
 
-#include "BKE_DerivedMesh.h"
+#include "BKE_mesh.h"
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
@@ -253,12 +255,12 @@ static void particle_calculate_parent_uvs(ParticleSystem *psys,
 	ParticleData *particle = &psys->particles[parent_index];
 	int num = particle->num_dmcache;
 	if (num == DMCACHE_NOTFOUND) {
-		if (particle->num < psmd->dm_final->getNumTessFaces(psmd->dm_final)) {
+		if (particle->num < psmd->mesh_final->totface) {
 			num = particle->num;
 		}
 	}
 	if (num != DMCACHE_NOTFOUND) {
-		MFace *mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
+		MFace *mface = &psmd->mesh_final->mface[num];
 		for (int j = 0; j < num_uv_layers; j++) {
 			psys_interpolate_uvs(mtfaces[j] + num,
 			                     mface->v4,
@@ -286,8 +288,7 @@ static void particle_interpolate_children_uvs(ParticleSystem *psys,
 	ChildParticle *particle = &psys->child[child_index];
 	int num = particle->num;
 	if (num != DMCACHE_NOTFOUND) {
-		MFace *mface = psmd->dm_final->getTessFaceData(
-		        psmd->dm_final, num, CD_MFACE);
+		MFace *mface = &psmd->mesh_final->mface[num];
 		for (int j = 0; j < num_uv_layers; j++) {
 			psys_interpolate_uvs(
 			        mtfaces[j] + num, mface->v4, particle->fuv, r_uv[j]);
@@ -456,8 +457,8 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 	float (**parent_uvs)[2] = NULL;
 
 	if (psmd != NULL) {
-		if (CustomData_has_layer(&psmd->dm_final->loopData, CD_MLOOPUV)) {
-			num_uv_layers = CustomData_number_of_layers(&psmd->dm_final->loopData, CD_MLOOPUV);
+		if (CustomData_has_layer(&psmd->mesh_final->ldata, CD_MLOOPUV)) {
+			num_uv_layers = CustomData_number_of_layers(&psmd->mesh_final->ldata, CD_MLOOPUV);
 		}
 	}
 
@@ -472,7 +473,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 		uv_id = MEM_mallocN(sizeof(*uv_id) * num_uv_layers, "UV attrib format");
 
 		for (int i = 0; i < num_uv_layers; i++) {
-			const char *name = CustomData_get_layer_name(&psmd->dm_final->loopData, CD_MLOOPUV, i);
+			const char *name = CustomData_get_layer_name(&psmd->mesh_final->ldata, CD_MLOOPUV, i);
 			char uuid[32];
 
 			BLI_snprintf(uuid, sizeof(uuid), "u%u", BLI_ghashutil_strhash_p(name));
@@ -490,10 +491,10 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 	                     true);
 
 	if (num_uv_layers) {
-		DM_ensure_tessface(psmd->dm_final);
+		BKE_mesh_tessface_ensure(psmd->mesh_final);
 		mtfaces = MEM_mallocN(sizeof(*mtfaces) * num_uv_layers, "Faces UV layers");
 		for (int i = 0; i < num_uv_layers; i++) {
-			mtfaces[i] = (MTFace *)CustomData_get_layer_n(&psmd->dm_final->faceData, CD_MTFACE, i);
+			mtfaces[i] = (MTFace *)CustomData_get_layer_n(&psmd->mesh_final->fdata, CD_MTFACE, i);
 		}
 	}
 

@@ -4464,7 +4464,7 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 					psys->clmd->sim_parms->presets = 0;
 			}
 			
-			psys->hair_in_dm = psys->hair_out_dm = NULL;
+			psys->hair_in_mesh = psys->hair_out_mesh = NULL;
 			psys->clmd->solver_result = NULL;
 		}
 
@@ -5221,8 +5221,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type == eModifierType_ParticleSystem) {
 			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 			
-			psmd->dm_final = NULL;
-			psmd->dm_deformed = NULL;
+			psmd->mesh_final = NULL;
+			psmd->mesh_deformed = NULL;
 			psmd->psys= newdataadr(fd, psmd->psys);
 			psmd->flag &= ~eParticleSystemFlag_psys_updated;
 			psmd->flag |= eParticleSystemFlag_file_loaded;

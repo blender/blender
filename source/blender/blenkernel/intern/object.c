@@ -375,14 +375,12 @@ void BKE_object_free_caches(Object *object)
 	for (md = object->modifiers.first; md != NULL; md = md->next) {
 		if (md->type == eModifierType_ParticleSystem) {
 			ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
-			if (psmd->dm_final != NULL) {
-				psmd->dm_final->needsFree = 1;
-				psmd->dm_final->release(psmd->dm_final);
-				psmd->dm_final = NULL;
-				if (psmd->dm_deformed != NULL) {
-					psmd->dm_deformed->needsFree = 1;
-					psmd->dm_deformed->release(psmd->dm_deformed);
-					psmd->dm_deformed = NULL;
+			if (psmd->mesh_final) {
+				BKE_id_free(NULL, psmd->mesh_final);
+				psmd->mesh_final = NULL;
+				if (psmd->mesh_deformed) {
+					BKE_id_free(NULL, psmd->mesh_deformed);
+					psmd->mesh_deformed = NULL;
 				}
 				psmd->flag |= eParticleSystemFlag_file_loaded;
 				update_flag |= OB_RECALC_DATA;
@@ -875,7 +873,7 @@ ParticleSystem *BKE_object_copy_particlesystem(ParticleSystem *psys, const int f
 	if (psys->clmd) {
 		psysn->clmd = (ClothModifierData *)modifier_new(eModifierType_Cloth);
 		modifier_copyData_ex((ModifierData *)psys->clmd, (ModifierData *)psysn->clmd, flag);
-		psys->hair_in_dm = psys->hair_out_dm = NULL;
+		psys->hair_in_mesh = psys->hair_out_mesh = NULL;
 	}
 
 	BLI_duplicatelist(&psysn->targets, &psys->targets);

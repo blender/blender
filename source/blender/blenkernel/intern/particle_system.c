@@ -74,6 +74,7 @@
 #include "BKE_collision.h"
 #include "BKE_colortools.h"
 #include "BKE_effect.h"
+#include "BKE_library.h"
 #include "BKE_library_query.h"
 #include "BKE_particle.h"
 
@@ -310,7 +311,7 @@ int psys_get_tot_child(Scene *scene, ParticleSystem *psys, const bool use_render
 /*			Distribution						*/
 /************************************************/
 
-void psys_calc_dmcache(Object *ob, DerivedMesh *dm_final, DerivedMesh *dm_deformed, ParticleSystem *psys)
+void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_deformed, ParticleSystem *psys)
 {
 	/* use for building derived mesh mapping info:
 	 *
@@ -323,13 +324,13 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm_final, DerivedMesh *dm_deform
 	PARTICLE_P;
 	
 	/* CACHE LOCATIONS */
-	if (!dm_final->deformedOnly) {
+	if (!mesh_final->runtime.deformed_only) {
 		/* Will use later to speed up subsurf/derivedmesh */
 		LinkNode *node, *nodedmelem, **nodearray;
 		int totdmelem, totelem, i, *origindex, *origindex_poly = NULL;
 
 		if (psys->part->from == PART_FROM_VERT) {
-			totdmelem= dm_final->getNumVerts(dm_final);
+			totdmelem = mesh_final->totvert;
 
 			if (use_modifier_stack) {
 				totelem= totdmelem;
@@ -337,11 +338,11 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm_final, DerivedMesh *dm_deform
 			}
 			else {
 				totelem= me->totvert;
-				origindex= dm_final->getVertDataArray(dm_final, CD_ORIGINDEX);
+				origindex = CustomData_get_layer(&mesh_final->vdata, CD_ORIGINDEX);
 			}
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
-			totdmelem= dm_final->getNumTessFaces(dm_final);
+			totdmelem= mesh_final->totface;
 
 			if (use_modifier_stack) {
 				totelem= totdmelem;
@@ -349,11 +350,11 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm_final, DerivedMesh *dm_deform
 				origindex_poly= NULL;
 			}
 			else {
-				totelem = dm_deformed->getNumTessFaces(dm_deformed);
-				origindex = dm_final->getTessFaceDataArray(dm_final, CD_ORIGINDEX);
+				totelem = mesh_deformed->totface;
+				origindex = CustomData_get_layer(&mesh_final->fdata, CD_ORIGINDEX);
 
 				/* for face lookups we need the poly origindex too */
-				origindex_poly= dm_final->getPolyDataArray(dm_final, CD_ORIGINDEX);
+				origindex_poly = CustomData_get_layer(&mesh_final->pdata, CD_ORIGINDEX);
 				if (origindex_poly == NULL) {
 					origindex= NULL;
 				}
@@ -413,7 +414,7 @@ void psys_calc_dmcache(Object *ob, DerivedMesh *dm_final, DerivedMesh *dm_deform
 						pa->num_dmcache = DMCACHE_NOTFOUND;
 				}
 				else { /* FROM_FACE/FROM_VOLUME */
-					pa->num_dmcache = psys_particle_dm_face_lookup(dm_final, dm_deformed, pa->num, pa->fuv, nodearray);
+					pa->num_dmcache = psys_particle_dm_face_lookup(mesh_final, mesh_deformed, pa->num, pa->fuv, nodearray);
 				}
 			}
 		}
@@ -437,7 +438,7 @@ void psys_thread_context_init(ParticleThreadContext *ctx, ParticleSimulationData
 {
 	memset(ctx, 0, sizeof(ParticleThreadContext));
 	ctx->sim = *sim;
-	ctx->dm = ctx->sim.psmd->dm_final;
+	ctx->mesh = ctx->sim.psmd->mesh_final;
 	ctx->ma = give_current_material(sim->ob, sim->psys->part->omat);
 }
 
@@ -3022,11 +3023,11 @@ static MDeformVert *hair_set_pinning(MDeformVert *dvert, float weight)
 	return dvert;
 }
 
-static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int totedge, DerivedMesh **r_dm, ClothHairData **r_hairdata)
+static void hair_create_input_mesh(ParticleSimulationData *sim, int totpoint, int totedge, Mesh **r_mesh, ClothHairData **r_hairdata)
 {
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
-	DerivedMesh *dm;
+	Mesh *mesh;
 	ClothHairData *hairdata;
 	MVert *mvert;
 	MEdge *medge;
@@ -3038,14 +3039,14 @@ static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int 
 	float max_length;
 	float hair_radius;
 	
-	dm = *r_dm;
-	if (!dm) {
-		*r_dm = dm = CDDM_new(totpoint, totedge, 0, 0, 0);
-		DM_add_vert_layer(dm, CD_MDEFORMVERT, CD_CALLOC, NULL);
+	mesh = *r_mesh;
+	if (!mesh) {
+		*r_mesh = mesh = BKE_mesh_new_nomain(totpoint, totedge, 0, 0, 0);
+		CustomData_add_layer(&mesh->vdata, CD_MDEFORMVERT, CD_CALLOC, NULL, mesh->totvert);
 	}
-	mvert = CDDM_get_verts(dm);
-	medge = CDDM_get_edges(dm);
-	dvert = DM_get_vert_data_layer(dm, CD_MDEFORMVERT);
+	mvert = mesh->mvert;
+	medge = mesh->medge;
+	dvert = mesh->dvert;
 	
 	hairdata = *r_hairdata;
 	if (!hairdata) {
@@ -3080,7 +3081,7 @@ static void hair_create_input_dm(ParticleSimulationData *sim, int totpoint, int 
 			pa->hair_index = hair_index;
 			use_hair = psys_hair_use_simulation(pa, max_length);
 
-			psys_mat_hair_to_object(sim->ob, sim->psmd->dm_final, psys->part->from, pa, hairmat);
+			psys_mat_hair_to_object(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
 			mul_m4_m4m4(root_mat, sim->ob->obmat, hairmat);
 			normalize_m4(root_mat);
 
@@ -3177,26 +3178,26 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	}
 	
 	realloc_roots = false; /* whether hair root info array has to be reallocated */
-	if (psys->hair_in_dm) {
-		DerivedMesh *dm = psys->hair_in_dm;
-		if (totpoint != dm->getNumVerts(dm) || totedge != dm->getNumEdges(dm)) {
-			dm->release(dm);
-			psys->hair_in_dm = NULL;
+	if (psys->hair_in_mesh) {
+		Mesh *mesh = psys->hair_in_mesh;
+		if (totpoint != mesh->totvert || totedge != mesh->totedge) {
+			BKE_id_free(NULL, mesh);
+			psys->hair_in_mesh = NULL;
 			realloc_roots = true;
 		}
 	}
 	
-	if (!psys->hair_in_dm || !psys->clmd->hairdata || realloc_roots) {
+	if (!psys->hair_in_mesh || !psys->clmd->hairdata || realloc_roots) {
 		if (psys->clmd->hairdata) {
 			MEM_freeN(psys->clmd->hairdata);
 			psys->clmd->hairdata = NULL;
 		}
 	}
 	
-	hair_create_input_dm(sim, totpoint, totedge, &psys->hair_in_dm, &psys->clmd->hairdata);
+	hair_create_input_mesh(sim, totpoint, totedge, &psys->hair_in_mesh, &psys->clmd->hairdata);
 	
-	if (psys->hair_out_dm)
-		psys->hair_out_dm->release(psys->hair_out_dm);
+	if (psys->hair_out_mesh)
+		BKE_id_free(NULL, psys->hair_out_mesh);
 	
 	psys->clmd->point_cache = psys->pointcache;
 	/* for hair sim we replace the internal cloth effector weights temporarily
@@ -3205,13 +3206,22 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	clmd_effweights = psys->clmd->sim_parms->effector_weights;
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 	
-	deformedVerts = MEM_mallocN(sizeof(*deformedVerts) * psys->hair_in_dm->getNumVerts(psys->hair_in_dm), "do_hair_dynamics vertexCos");
-	psys->hair_out_dm = CDDM_copy(psys->hair_in_dm);
-	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
-	
-	clothModifier_do(psys->clmd, sim->depsgraph, sim->scene, sim->ob, psys->hair_in_dm, deformedVerts);
-	
-	CDDM_apply_vert_coords(psys->hair_out_dm, deformedVerts);
+	BKE_id_copy_ex(
+	            NULL, &psys->hair_in_mesh->id, (ID **)&psys->hair_out_mesh,
+	            LIB_ID_CREATE_NO_MAIN |
+	            LIB_ID_CREATE_NO_USER_REFCOUNT |
+	            LIB_ID_CREATE_NO_DEG_TAG |
+	            LIB_ID_COPY_NO_PREVIEW,
+	            false);
+	deformedVerts = BKE_mesh_vertexCos_get(psys->hair_out_mesh, NULL);
+
+	/* TODO(Sybren): after porting Cloth modifier, remove this conversion */
+	DerivedMesh *hair_in_dm = CDDM_from_mesh(psys->hair_in_mesh);
+	clothModifier_do(psys->clmd, sim->depsgraph, sim->scene, sim->ob, hair_in_dm, deformedVerts);
+	hair_in_dm->needsFree = 1;
+	hair_in_dm->release(hair_in_dm);
+
+	BKE_mesh_apply_vert_coords(psys->hair_out_mesh, deformedVerts);
 	
 	MEM_freeN(deformedVerts);
 	
@@ -3238,7 +3248,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_re
 
 	if (psys->recalc & PSYS_RECALC_RESET) {
 		/* need this for changing subsurf levels */
-		psys_calc_dmcache(sim->ob, sim->psmd->dm_final, sim->psmd->dm_deformed, psys);
+		psys_calc_dmcache(sim->ob, sim->psmd->mesh_final, sim->psmd->mesh_deformed, psys);
 
 		if (psys->clmd)
 			cloth_free_modifier(psys->clmd);
@@ -3285,7 +3295,7 @@ static void save_hair(ParticleSimulationData *sim, float UNUSED(cfra))
 
 		if (pa->totkey) {
 			sub_v3_v3(key->co, root->co);
-			psys_vec_rot_to_face(sim->psmd->dm_final, pa, key->co);
+			psys_vec_rot_to_face(sim->psmd->mesh_final, pa, key->co);
 		}
 
 		key->time = pa->state.time;
@@ -4237,11 +4247,11 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 			return;
 	}
 
-	if (!sim.psmd->dm_final)
+	if (!sim.psmd->mesh_final)
 		return;
 
 	if (part->from != PART_FROM_VERT) {
-		DM_ensure_tessface(sim.psmd->dm_final);
+		BKE_mesh_tessface_ensure(sim.psmd->mesh_final);
 	}
 
 	/* execute drivers only, as animation has already been done */

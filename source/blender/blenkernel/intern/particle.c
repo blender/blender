@@ -51,6 +51,7 @@
 #include "BLI_noise.h"
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
+#include "BLI_kdopbvh.h"
 #include "BLI_kdtree.h"
 #include "BLI_rand.h"
 #include "BLI_task.h"
@@ -80,7 +81,7 @@
 #include "BKE_library_remap.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
-#include "BKE_cdderivedmesh.h"
+#include "BKE_cdderivedmesh.h"  /* for weight_to_rgb() */
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_deform.h"
@@ -110,7 +111,7 @@ void psys_init_rng(void)
 
 static void get_child_modifier_parameters(ParticleSettings *part, ParticleThreadContext *ctx,
                                           ChildParticle *cpa, short cpa_from, int cpa_num, float *cpa_fuv, float *orco, ParticleTexture *ptex);
-static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par,
+static void get_cpa_texture(Mesh *mesh, ParticleSystem *psys, ParticleSettings *part, ParticleData *par,
 							int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra);
 
 /* few helpers for countall etc. */
@@ -497,13 +498,13 @@ void free_hair(Object *UNUSED(ob), ParticleSystem *psys, int dynamics)
 		}
 	}
 
-	if (psys->hair_in_dm)
-		psys->hair_in_dm->release(psys->hair_in_dm);
-	psys->hair_in_dm = NULL;
+	if (psys->hair_in_mesh)
+		BKE_id_free(NULL, psys->hair_in_mesh);
+	psys->hair_in_mesh = NULL;
 
-	if (psys->hair_out_dm)
-		psys->hair_out_dm->release(psys->hair_out_dm);
-	psys->hair_out_dm = NULL;
+	if (psys->hair_out_mesh)
+		BKE_id_free(NULL, psys->hair_out_mesh);
+	psys->hair_out_mesh = NULL;
 }
 void free_keyed_keys(ParticleSystem *psys)
 {
@@ -713,7 +714,7 @@ void psys_interpolate_particle(short type, ParticleKey keys[4], float dt, Partic
 typedef struct ParticleInterpolationData {
 	HairKey *hkey[2];
 
-	DerivedMesh *dm;
+	Mesh *mesh;
 	MVert *mvert[2];
 
 	int keyed;
@@ -847,8 +848,8 @@ static void init_particle_interpolation(Object *ob, ParticleSystem *psys, Partic
 		pind->birthtime = key->time;
 		pind->dietime = (key + pa->totkey - 1)->time;
 
-		if (pind->dm) {
-			pind->mvert[0] = CDDM_get_vert(pind->dm, pa->hair_index);
+		if (pind->mesh) {
+			pind->mvert[0] = &pind->mesh->mvert[pa->hair_index];
 			pind->mvert[1] = pind->mvert[0] + 1;
 		}
 	}
@@ -957,7 +958,7 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 		edit_to_particle(keys + 1, pind->ekey[0]);
 		edit_to_particle(keys + 2, pind->ekey[1]);
 	}
-	else if (pind->dm) {
+	else if (pind->mesh) {
 		pind->mvert[0] = pind->mvert[1] - 1;
 		mvert_to_particle(keys + 1, pind->mvert[0], pind->hkey[0]);
 		mvert_to_particle(keys + 2, pind->mvert[1], pind->hkey[1]);
@@ -982,7 +983,7 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 			else
 				edit_to_particle(keys, pind->ekey[0]);
 		}
-		else if (pind->dm) {
+		else if (pind->mesh) {
 			if (pind->hkey[0] != pa->hair)
 				mvert_to_particle(keys, pind->mvert[0] - 1, pind->hkey[0] - 1);
 			else
@@ -1001,7 +1002,7 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 			else
 				edit_to_particle(keys + 3, pind->ekey[1]);
 		}
-		else if (pind->dm) {
+		else if (pind->mesh) {
 			if (pind->hkey[1] != pa->hair + pa->totkey - 1)
 				mvert_to_particle(keys + 3, pind->mvert[1] + 1, pind->hkey[1] + 1);
 			else
@@ -1227,7 +1228,7 @@ void psys_interpolate_mcol(const MCol *mcol, int quad, const float w[4], MCol *m
 	}
 }
 
-static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int index, const float fw[4], const float *values)
+static float psys_interpolate_value_from_verts(Mesh *mesh, short from, int index, const float fw[4], const float *values)
 {
 	if (values == 0 || index == -1)
 		return 0.0;
@@ -1238,7 +1239,7 @@ static float psys_interpolate_value_from_verts(DerivedMesh *dm, short from, int 
 		case PART_FROM_FACE:
 		case PART_FROM_VOLUME:
 		{
-			MFace *mf = dm->getTessFaceData(dm, index, CD_MFACE);
+			MFace *mf = &mesh->mface[index];
 			return interpolate_particle_value(values[mf->v1], values[mf->v2], values[mf->v3], values[mf->v4], fw, mf->v4);
 		}
 			
@@ -1288,7 +1289,7 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4
  * \return the DM tessface index.
  */
 int psys_particle_dm_face_lookup(
-        DerivedMesh *dm_final, DerivedMesh *dm_deformed,
+        Mesh *mesh_final, Mesh *mesh_deformed,
         int findex_orig, const float fw[4], struct LinkNode **poly_nodes)
 {
 	MFace *mtessface_final;
@@ -1300,36 +1301,36 @@ int psys_particle_dm_face_lookup(
 	const int *index_mf_to_mpoly = NULL;
 	const int *index_mp_to_orig = NULL;
 
-	const int totface_final = dm_final->getNumTessFaces(dm_final);
-	const int totface_deformed = dm_deformed ? dm_deformed->getNumTessFaces(dm_deformed) : totface_final;
+	const int totface_final = mesh_final->totface;
+	const int totface_deformed = mesh_deformed ? mesh_deformed->totface : totface_final;
 
 	if (ELEM(0, totface_final, totface_deformed)) {
 		return DMCACHE_NOTFOUND;
 	}
 
-	index_mf_to_mpoly = dm_final->getTessFaceDataArray(dm_final, CD_ORIGINDEX);
-	index_mp_to_orig = dm_final->getPolyDataArray(dm_final, CD_ORIGINDEX);
+	index_mf_to_mpoly = CustomData_get_layer(&mesh_final->fdata, CD_ORIGINDEX);
+	index_mp_to_orig = CustomData_get_layer(&mesh_final->pdata, CD_ORIGINDEX);
 	BLI_assert(index_mf_to_mpoly);
 
-	if (dm_deformed) {
-		index_mf_to_mpoly_deformed = dm_deformed->getTessFaceDataArray(dm_deformed, CD_ORIGINDEX);
+	if (mesh_deformed) {
+		index_mf_to_mpoly_deformed = CustomData_get_layer(&mesh_deformed->fdata, CD_ORIGINDEX);
 	}
 	else {
-		BLI_assert(dm_final->deformedOnly);
+		BLI_assert(mesh_final->runtime.deformed_only);
 		index_mf_to_mpoly_deformed = index_mf_to_mpoly;
 	}
 	BLI_assert(index_mf_to_mpoly_deformed);
 
 	pindex_orig = index_mf_to_mpoly_deformed[findex_orig];
 
-	if (dm_deformed == NULL) {
-		dm_deformed = dm_final;
+	if (mesh_deformed == NULL) {
+		mesh_deformed = mesh_final;
 	}
 
 	index_mf_to_mpoly_deformed = NULL;
 
-	mtessface_final = dm_final->getTessFaceArray(dm_final);
-	osface_final = dm_final->getTessFaceDataArray(dm_final, CD_ORIGSPACE);
+	mtessface_final = mesh_final->mface;
+	osface_final = CustomData_get_layer(&mesh_final->fdata, CD_ORIGSPACE);
 
 	if (osface_final == NULL) {
 		/* Assume we don't need osface_final data, and we get a direct 1-1 mapping... */
@@ -1342,7 +1343,7 @@ int psys_particle_dm_face_lookup(
 			return DMCACHE_NOTFOUND;
 		}
 	}
-	else if (findex_orig >= dm_deformed->getNumTessFaces(dm_deformed)) {
+	else if (findex_orig >= mesh_deformed->totface) {
 		return DMCACHE_NOTFOUND;  /* index not in the original mesh */
 	}
 
@@ -1371,7 +1372,7 @@ int psys_particle_dm_face_lookup(
 	else { /* if we have no node, try every face */
 		for (int findex_dst = 0; findex_dst < totface_final; findex_dst++) {
 			/* If current tessface from 'final' DM and orig tessface (given by index) map to the same orig poly... */
-			if (DM_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, findex_dst) == pindex_orig) {
+			if (BKE_mesh_origindex_mface_mpoly(index_mf_to_mpoly, index_mp_to_orig, findex_dst) == pindex_orig) {
 				faceuv = osface_final[findex_dst].uv;
 
 				/* check that this intersects - Its possible this misses :/ -
@@ -1391,22 +1392,22 @@ int psys_particle_dm_face_lookup(
 	return DMCACHE_NOTFOUND;
 }
 
-static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_dmcache, const float fw[4], float UNUSED(foffset), int *mapindex, float mapfw[4])
+static int psys_map_index_on_dm(Mesh *mesh, int from, int index, int index_dmcache, const float fw[4], float UNUSED(foffset), int *mapindex, float mapfw[4])
 {
 	if (index < 0)
 		return 0;
 
-	if (dm->deformedOnly || index_dmcache == DMCACHE_ISCHILD) {
+	if (mesh->runtime.deformed_only || index_dmcache == DMCACHE_ISCHILD) {
 		/* for meshes that are either only deformed or for child particles, the
 		 * index and fw do not require any mapping, so we can directly use it */
 		if (from == PART_FROM_VERT) {
-			if (index >= dm->getNumVerts(dm))
+			if (index >= mesh->totvert)
 				return 0;
 
 			*mapindex = index;
 		}
 		else { /* FROM_FACE/FROM_VOLUME */
-			if (index >= dm->getNumTessFaces(dm))
+			if (index >= mesh->totface)
 				return 0;
 
 			*mapindex = index;
@@ -1418,7 +1419,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 		 * to their new location, which means a different index, and for faces
 		 * also a new face interpolation weights */
 		if (from == PART_FROM_VERT) {
-			if (index_dmcache == DMCACHE_NOTFOUND || index_dmcache > dm->getNumVerts(dm))
+			if (index_dmcache == DMCACHE_NOTFOUND || index_dmcache > mesh->totvert)
 				return 0;
 
 			*mapindex = index_dmcache;
@@ -1431,15 +1432,15 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 
 			i = index_dmcache;
 
-			if (i == DMCACHE_NOTFOUND || i >= dm->getNumTessFaces(dm))
+			if (i == DMCACHE_NOTFOUND || i >= mesh->totface)
 				return 0;
 
 			*mapindex = i;
 
 			/* modify the original weights to become
 			 * weights for the derived mesh face */
-			osface = dm->getTessFaceDataArray(dm, CD_ORIGSPACE);
-			mface = dm->getTessFaceData(dm, i, CD_MFACE);
+			osface = CustomData_get_layer(&mesh->fdata, CD_ORIGSPACE);
+			mface = &mesh->mface[i];
 
 			if (osface == NULL)
 				mapfw[0] = mapfw[1] = mapfw[2] = mapfw[3] = 0.0f;
@@ -1452,7 +1453,7 @@ static int psys_map_index_on_dm(DerivedMesh *dm, int from, int index, int index_
 }
 
 /* interprets particle data to get a point on a mesh in object space */
-void psys_particle_on_dm(DerivedMesh *dm_final, int from, int index, int index_dmcache,
+void psys_particle_on_dm(Mesh *mesh_final, int from, int index, int index_dmcache,
                          const float fw[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
                          float orco[3])
 {
@@ -1460,7 +1461,7 @@ void psys_particle_on_dm(DerivedMesh *dm_final, int from, int index, int index_d
 	float (*orcodata)[3];
 	int mapindex;
 
-	if (!psys_map_index_on_dm(dm_final, from, index, index_dmcache, fw, foffset, &mapindex, mapfw)) {
+	if (!psys_map_index_on_dm(mesh_final, from, index, index_dmcache, fw, foffset, &mapindex, mapfw)) {
 		if (vec) { vec[0] = vec[1] = vec[2] = 0.0; }
 		if (nor) { nor[0] = nor[1] = 0.0; nor[2] = 1.0; }
 		if (orco) { orco[0] = orco[1] = orco[2] = 0.0; }
@@ -1470,13 +1471,13 @@ void psys_particle_on_dm(DerivedMesh *dm_final, int from, int index, int index_d
 		return;
 	}
 
-	orcodata = dm_final->getVertDataArray(dm_final, CD_ORCO);
+	orcodata = CustomData_get_layer(&mesh_final->vdata, CD_ORCO);
 
 	if (from == PART_FROM_VERT) {
-		dm_final->getVertCo(dm_final, mapindex, vec);
+		copy_v3_v3(vec, mesh_final->mvert[mapindex].co);
 
 		if (nor) {
-			dm_final->getVertNo(dm_final, mapindex, nor);
+			normal_short_to_float_v3(nor, mesh_final->mvert[mapindex].no);
 			normalize_v3(nor);
 		}
 
@@ -1499,9 +1500,9 @@ void psys_particle_on_dm(DerivedMesh *dm_final, int from, int index, int index_d
 		MTFace *mtface;
 		MVert *mvert;
 
-		mface = dm_final->getTessFaceData(dm_final, mapindex, CD_MFACE);
-		mvert = dm_final->getVertDataArray(dm_final, CD_MVERT);
-		mtface = CustomData_get_layer(&dm_final->faceData, CD_MTFACE);
+		mface = &mesh_final->mface[mapindex];
+		mvert = mesh_final->mvert;
+		mtface = mesh_final->mtface;
 
 		if (mtface)
 			mtface += mapindex;
@@ -1520,15 +1521,15 @@ void psys_particle_on_dm(DerivedMesh *dm_final, int from, int index, int index_d
 	}
 }
 
-float psys_particle_value_from_verts(DerivedMesh *dm, short from, ParticleData *pa, float *values)
+float psys_particle_value_from_verts(Mesh *mesh, short from, ParticleData *pa, float *values)
 {
 	float mapfw[4];
 	int mapindex;
 
-	if (!psys_map_index_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, &mapindex, mapfw))
+	if (!psys_map_index_on_dm(mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, &mapindex, mapfw))
 		return 0.0f;
 	
-	return psys_interpolate_value_from_verts(dm, from, mapindex, mapfw, values);
+	return psys_interpolate_value_from_verts(mesh, from, mapindex, mapfw, values);
 }
 
 ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
@@ -1615,7 +1616,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
                               float fuv[4], float foffset, float vec[3], float nor[3], float utan[3], float vtan[3],
                               float orco[3])
 {
-	if (psmd && psmd->dm_final) {
+	if (psmd && psmd->mesh_final) {
 		if (psmd->psys->part->distr == PART_DISTR_GRID && psmd->psys->part->from != PART_FROM_VERT) {
 			if (vec)
 				copy_v3_v3(vec, fuv);
@@ -1625,7 +1626,7 @@ void psys_particle_on_emitter(ParticleSystemModifierData *psmd, int from, int in
 			return;
 		}
 		/* we cant use the num_dmcache */
-		psys_particle_on_dm(psmd->dm_final, from, index, index_dmcache, fuv, foffset, vec, nor, utan, vtan, orco);
+		psys_particle_on_dm(psmd->mesh_final, from, index, index_dmcache, fuv, foffset, vec, nor, utan, vtan, orco);
 	}
 	else
 		psys_particle_on_shape(from, index, fuv, vec, nor, utan, vtan, orco);
@@ -1841,7 +1842,7 @@ static void offset_child(ChildParticle *cpa, ParticleKey *par, float *par_rot, P
 
 	add_v3_v3(child->co, par->co);
 }
-float *psys_cache_vgroup(DerivedMesh *dm, ParticleSystem *psys, int vgroup)
+float *psys_cache_vgroup(Mesh *mesh, ParticleSystem *psys, int vgroup)
 {
 	float *vg = 0;
 
@@ -1850,9 +1851,9 @@ float *psys_cache_vgroup(DerivedMesh *dm, ParticleSystem *psys, int vgroup)
 
 	}
 	else if (psys->vgroup[vgroup]) {
-		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		MDeformVert *dvert = mesh->dvert;
 		if (dvert) {
-			int totvert = dm->getNumVerts(dm), i;
+			int totvert = mesh->totvert, i;
 			vg = MEM_callocN(sizeof(float) * totvert, "vg_cache");
 			if (psys->vg_neg & (1 << vgroup)) {
 				for (i = 0; i < totvert; i++)
@@ -1892,7 +1893,7 @@ void psys_find_parents(ParticleSimulationData *sim, const bool use_render_params
 		psys_particle_on_emitter(sim->psmd, from, cpa->num, DMCACHE_ISCHILD, cpa->fuv, cpa->foffset, co, 0, 0, 0, orco);
 
 		/* Check if particle doesn't exist because of texture influence. Insert only existing particles into kdtree. */
-		get_cpa_texture(sim->psmd->dm_final, psys, part, psys->particles + cpa->pa[0], p, cpa->num, cpa->fuv, orco, &ptex, PAMAP_DENS | PAMAP_CHILD, psys->cfra);
+		get_cpa_texture(sim->psmd->mesh_final, psys, part, psys->particles + cpa->pa[0], p, cpa->num, cpa->fuv, orco, &ptex, PAMAP_DENS | PAMAP_CHILD, psys->cfra);
 
 		if (ptex.exist >= psys_frand(psys, p + 24)) {
 			BLI_kdtree_insert(tree, p, orco);
@@ -1967,15 +1968,15 @@ static bool psys_thread_context_init_path(
 	psys->lattice_deform_data = psys_create_lattice_deform_data(&ctx->sim);
 
 	/* cache all relevant vertex groups if they exist */
-	ctx->vg_length = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_LENGTH);
-	ctx->vg_clump = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_CLUMP);
-	ctx->vg_kink = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_KINK);
-	ctx->vg_rough1 = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGH1);
-	ctx->vg_rough2 = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGH2);
-	ctx->vg_roughe = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_ROUGHE);
-	ctx->vg_twist = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_TWIST);
+	ctx->vg_length = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_LENGTH);
+	ctx->vg_clump = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_CLUMP);
+	ctx->vg_kink = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_KINK);
+	ctx->vg_rough1 = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_ROUGH1);
+	ctx->vg_rough2 = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_ROUGH2);
+	ctx->vg_roughe = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_ROUGHE);
+	ctx->vg_twist = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_TWIST);
 	if (psys->part->flag & PART_CHILD_EFFECT)
-		ctx->vg_effector = psys_cache_vgroup(ctx->dm, psys, PSYS_VG_EFFECTOR);
+		ctx->vg_effector = psys_cache_vgroup(ctx->mesh, psys, PSYS_VG_EFFECTOR);
 
 	/* prepare curvemapping tables */
 	if ((part->child_flag & PART_CHILD_USE_CLUMP_CURVE) && part->clumpcurve) {
@@ -2127,7 +2128,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 		for (w = 0; w < 4; w++)
 			sub_v3_v3v3(off1[w], co, key[w]->co);
 
-		psys_mat_hair_to_global(ob, ctx->sim.psmd->dm_final, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(ob, ctx->sim.psmd->mesh_final, psys->part->from, pa, hairmat);
 	}
 	else {
 		ParticleData *pa = psys->particles + cpa->parent;
@@ -2158,13 +2159,13 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 		        : pa->num_dmcache;
 
 		/* XXX hack to avoid messed up particle num and subsequent crash (#40733) */
-		if (cpa_num > ctx->sim.psmd->dm_final->getNumTessFaces(ctx->sim.psmd->dm_final))
+		if (cpa_num > ctx->sim.psmd->mesh_final->totface)
 			cpa_num = 0;
 		cpa_fuv = pa->fuv;
 
 		psys_particle_on_emitter(ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa_fuv, pa->foffset, co, 0, 0, 0, orco);
 
-		psys_mat_hair_to_global(ob, ctx->sim.psmd->dm_final, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(ob, ctx->sim.psmd->mesh_final, psys->part->from, pa, hairmat);
 	}
 
 	child_keys->segments = ctx->segments;
@@ -2414,7 +2415,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey *ca, **cache;
 
-	DerivedMesh *hair_dm = (psys->part->type == PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_dm : NULL;
+	Mesh *hair_mesh = (psys->part->type == PART_HAIR && psys->flag & PSYS_HAIR_DYNAMICS) ? psys->hair_out_mesh : NULL;
 	
 	ParticleKey result;
 	
@@ -2459,15 +2460,15 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 
 	if ((psys->flag & PSYS_GLOBAL_HAIR) == 0) {
 		if ((psys->part->flag & PART_CHILD_EFFECT) == 0)
-			vg_effector = psys_cache_vgroup(psmd->dm_final, psys, PSYS_VG_EFFECTOR);
+			vg_effector = psys_cache_vgroup(psmd->mesh_final, psys, PSYS_VG_EFFECTOR);
 		
 		if (!psys->totchild)
-			vg_length = psys_cache_vgroup(psmd->dm_final, psys, PSYS_VG_LENGTH);
+			vg_length = psys_cache_vgroup(psmd->mesh_final, psys, PSYS_VG_LENGTH);
 	}
 
 	/* ensure we have tessfaces to be used for mapping */
 	if (part->from != PART_FROM_VERT) {
-		DM_ensure_tessface(psmd->dm_final);
+		BKE_mesh_tessface_ensure(psmd->mesh_final);
 	}
 
 	/*---first main loop: create all actual particles' paths---*/
@@ -2476,14 +2477,14 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 			psys_get_texture(sim, pa, &ptex, PAMAP_LENGTH, 0.f);
 			pa_length = ptex.length * (1.0f - part->randlength * psys_frand(psys, psys->seed + p));
 			if (vg_length)
-				pa_length *= psys_particle_value_from_verts(psmd->dm_final, part->from, pa, vg_length);
+				pa_length *= psys_particle_value_from_verts(psmd->mesh_final, part->from, pa, vg_length);
 		}
 
 		pind.keyed = keyed;
 		pind.cache = baked ? psys->pointcache : NULL;
 		pind.epoint = NULL;
 		pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
-		pind.dm = hair_dm;
+		pind.mesh = hair_mesh;
 
 		memset(cache[p], 0, sizeof(*cache[p]) * (segments + 1));
 
@@ -2493,7 +2494,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 		init_particle_interpolation(sim->ob, sim->psys, pa, &pind);
 
 		/* hairmat is needed for for non-hair particle too so we get proper rotations */
-		psys_mat_hair_to_global(sim->ob, psmd->dm_final, psys->part->from, pa, hairmat);
+		psys_mat_hair_to_global(sim->ob, psmd->mesh_final, psys->part->from, pa, hairmat);
 		copy_v3_v3(rotmat[0], hairmat[2]);
 		copy_v3_v3(rotmat[1], hairmat[1]);
 		copy_v3_v3(rotmat[2], hairmat[0]);
@@ -2525,7 +2526,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 
 			/* dynamic hair is in object space */
 			/* keyed and baked are already in global space */
-			if (hair_dm)
+			if (hair_mesh)
 				mul_m4_v3(sim->ob->obmat, ca->co);
 			else if (!keyed && !baked && !(psys->flag & PSYS_GLOBAL_HAIR))
 				mul_m4_v3(hairmat, ca->co);
@@ -2548,7 +2549,7 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 			if ((psys->part->flag & PART_CHILD_EFFECT) == 0) {
 				float effector = 1.0f;
 				if (vg_effector)
-					effector *= psys_particle_value_from_verts(psmd->dm_final, psys->part->from, pa, vg_effector);
+					effector *= psys_particle_value_from_verts(psmd->mesh_final, psys->part->from, pa, vg_effector);
 
 				sub_v3_v3v3(vec, (cache[p] + 1)->co, cache[p]->co);
 				length = len_v3(vec);
@@ -2685,7 +2686,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 		pind.cache = NULL;
 		pind.epoint = point;
 		pind.bspline = psys ? (psys->part->flag & PART_HAIR_BSPLINE) : 0;
-		pind.dm = NULL;
+		pind.mesh = NULL;
 
 
 		/* should init_particle_interpolation set this ? */
@@ -2705,7 +2706,7 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 		init_particle_interpolation(ob_eval, psys_eval, pa, &pind);
 
 		if (psys_eval) {
-			psys_mat_hair_to_global(ob_eval, psmd_eval->dm_final, psys->part->from, pa, hairmat);
+			psys_mat_hair_to_global(ob_eval, psmd_eval->mesh_final, psys->part->from, pa, hairmat);
 			copy_v3_v3(rotmat[0], hairmat[2]);
 			copy_v3_v3(rotmat[1], hairmat[1]);
 			copy_v3_v3(rotmat[2], hairmat[0]);
@@ -2913,7 +2914,7 @@ static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat
 	cross_v3_v3v3(mat[0], mat[1], mat[2]);
 }
 
-static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float mat[4][4], int orco)
+static void psys_face_mat(Object *ob, Mesh *mesh, ParticleData *pa, float mat[4][4], int orco)
 {
 	float v[3][3];
 	MFace *mface;
@@ -2921,72 +2922,72 @@ static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float m
 	float (*orcodata)[3];
 
 	int i = (ELEM(pa->num_dmcache, DMCACHE_ISCHILD, DMCACHE_NOTFOUND)) ? pa->num : pa->num_dmcache;
-	if (i == -1 || i >= dm->getNumTessFaces(dm)) { unit_m4(mat); return; }
+	if (i == -1 || i >= mesh->totface) { unit_m4(mat); return; }
 
-	mface = dm->getTessFaceData(dm, i, CD_MFACE);
-	osface = dm->getTessFaceData(dm, i, CD_ORIGSPACE);
+	mface = &mesh->mface[i];
+	osface = CustomData_get(&mesh->fdata, i, CD_ORIGSPACE);
 	
-	if (orco && (orcodata = dm->getVertDataArray(dm, CD_ORCO))) {
+	if (orco && (orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO))) {
 		copy_v3_v3(v[0], orcodata[mface->v1]);
 		copy_v3_v3(v[1], orcodata[mface->v2]);
 		copy_v3_v3(v[2], orcodata[mface->v3]);
 
 		/* ugly hack to use non-transformed orcos, since only those
 		 * give symmetric results for mirroring in particle mode */
-		if (DM_get_vert_data_layer(dm, CD_ORIGINDEX))
+		if (CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))
 			BKE_mesh_orco_verts_transform(ob->data, v, 3, 1);
 	}
 	else {
-		dm->getVertCo(dm, mface->v1, v[0]);
-		dm->getVertCo(dm, mface->v2, v[1]);
-		dm->getVertCo(dm, mface->v3, v[2]);
+		copy_v3_v3(v[0], mesh->mvert[mface->v1].co);
+		copy_v3_v3(v[1], mesh->mvert[mface->v2].co);
+		copy_v3_v3(v[2], mesh->mvert[mface->v3].co);
 	}
 
 	triatomat(v[0], v[1], v[2], (osface) ? osface->uv : NULL, mat);
 }
 
-void psys_mat_hair_to_object(Object *UNUSED(ob), DerivedMesh *dm, short from, ParticleData *pa, float hairmat[4][4])
+void psys_mat_hair_to_object(Object *UNUSED(ob), Mesh *mesh, short from, ParticleData *pa, float hairmat[4][4])
 {
 	float vec[3];
 
 	/* can happen when called from a different object's modifier */
-	if (!dm) {
+	if (!mesh) {
 		unit_m4(hairmat);
 		return;
 	}
 	
-	psys_face_mat(0, dm, pa, hairmat, 0);
-	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0);
+	psys_face_mat(0, mesh, pa, hairmat, 0);
+	psys_particle_on_dm(mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0);
 	copy_v3_v3(hairmat[3], vec);
 }
 
-void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[4][4])
+void psys_mat_hair_to_orco(Object *ob, Mesh *mesh, short from, ParticleData *pa, float hairmat[4][4])
 {
 	float vec[3], orco[3];
 
-	psys_face_mat(ob, dm, pa, hairmat, 1);
-	psys_particle_on_dm(dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco);
+	psys_face_mat(ob, mesh, pa, hairmat, 1);
+	psys_particle_on_dm(mesh, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco);
 
 	/* see psys_face_mat for why this function is called */
-	if (DM_get_vert_data_layer(dm, CD_ORIGINDEX))
+	if (CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX))
 		BKE_mesh_orco_verts_transform(ob->data, &orco, 1, 1);
 	copy_v3_v3(hairmat[3], orco);
 }
 
-void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float vec[3])
+void psys_vec_rot_to_face(Mesh *mesh, ParticleData *pa, float vec[3])
 {
 	float mat[4][4];
 
-	psys_face_mat(0, dm, pa, mat, 0);
+	psys_face_mat(0, mesh, pa, mat, 0);
 	transpose_m4(mat); /* cheap inverse for rotation matrix */
 	mul_mat3_m4_v3(mat, vec);
 }
 
-void psys_mat_hair_to_global(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[4][4])
+void psys_mat_hair_to_global(Object *ob, Mesh *mesh, short from, ParticleData *pa, float hairmat[4][4])
 {
 	float facemat[4][4];
 
-	psys_mat_hair_to_object(ob, dm, from, pa, facemat);
+	psys_mat_hair_to_object(ob, mesh, from, pa, facemat);
 
 	mul_m4_m4m4(hairmat, ob->obmat, facemat);
 }
@@ -3268,25 +3269,25 @@ void BKE_particlesettings_make_local(Main *bmain, ParticleSettings *part, const 
 /*			Textures							*/
 /************************************************/
 
-static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int index, const float fuv[4],
+static int get_particle_uv(Mesh *mesh, ParticleData *pa, int index, const float fuv[4],
                            char *name, float *texco, bool from_vert)
 {
 	MFace *mf;
 	MTFace *tf;
 	int i;
 	
-	tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE, name);
+	tf = CustomData_get_layer_named(&mesh->fdata, CD_MTFACE, name);
 
 	if (tf == NULL)
-		tf = CustomData_get_layer(&dm->faceData, CD_MTFACE);
+		tf = mesh->mtface;
 
 	if (tf == NULL)
 		return 0;
 
 	if (pa) {
 		i = ELEM(pa->num_dmcache, DMCACHE_NOTFOUND, DMCACHE_ISCHILD) ? pa->num : pa->num_dmcache;
-		if ((!from_vert && i >= dm->getNumTessFaces(dm)) ||
-		    (from_vert && i >= dm->getNumVerts(dm)))
+		if ((!from_vert && i >= mesh->totface) ||
+		    (from_vert && i >= mesh->totvert))
 		{
 			i = -1;
 		}
@@ -3302,12 +3303,12 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int index, const f
 	}
 	else {
 		if (from_vert) {
-			mf = dm->getTessFaceDataArray(dm, CD_MFACE);
+			mf = mesh->mface;
 
 			/* This finds the first face to contain the emitting vertex,
 			 * this is not ideal, but is mostly fine as UV seams generally
 			 * map to equal-colored parts of a texture */
-			for (int j = 0; j < dm->getNumTessFaces(dm); j++, mf++) {
+			for (int j = 0; j < mesh->totface; j++, mf++) {
 				if (ELEM(i, mf->v1, mf->v2, mf->v3, mf->v4)) {
 					i = j;
 					break;
@@ -3315,7 +3316,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int index, const f
 			}
 		}
 		else {
-			mf = dm->getTessFaceData(dm, i, CD_MFACE);
+			mf = &mesh->mface[i];
 		}
 
 		psys_interpolate_uvs(&tf[i], mf->v4, fuv, texco);
@@ -3350,7 +3351,7 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int index, const f
 		CLAMP(pvalue, -1.0f, 1.0f);                                           \
 	} (void)0
 
-static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra)
+static void get_cpa_texture(Mesh *mesh, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra)
 {
 	MTex *mtex, **mtexp = part->mtex;
 	int m;
@@ -3384,7 +3385,7 @@ static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSetti
 						mul_m4_v3(mtex->object->imat, texvec);
 					break;
 				case TEXCO_UV:
-					if (fw && get_particle_uv(dm, NULL, face_index, fw, mtex->uvname,
+					if (fw && get_particle_uv(mesh, NULL, face_index, fw, mtex->uvname,
 					                          texvec, (part->from == PART_FROM_VERT)))
 					{
 						break;
@@ -3462,7 +3463,7 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 						mul_m4_v3(mtex->object->imat, texvec);
 					break;
 				case TEXCO_UV:
-					if (get_particle_uv(sim->psmd->dm_final, pa, 0, pa->fuv, mtex->uvname,
+					if (get_particle_uv(sim->psmd->mesh_final, pa, 0, pa->fuv, mtex->uvname,
 					                    texvec, (part->from == PART_FROM_VERT)))
 					{
 						break;
@@ -3592,28 +3593,28 @@ static void get_child_modifier_parameters(ParticleSettings *part, ParticleThread
 	ParticleSystem *psys = ctx->sim.psys;
 	int i = cpa - psys->child;
 
-	get_cpa_texture(ctx->dm, psys, part, psys->particles + cpa->pa[0], i, cpa_num, cpa_fuv, orco, ptex, PAMAP_DENS | PAMAP_CHILD, psys->cfra);
+	get_cpa_texture(ctx->mesh, psys, part, psys->particles + cpa->pa[0], i, cpa_num, cpa_fuv, orco, ptex, PAMAP_DENS | PAMAP_CHILD, psys->cfra);
 
 
 	if (ptex->exist < psys_frand(psys, i + 24))
 		return;
 
 	if (ctx->vg_length)
-		ptex->length *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_length);
+		ptex->length *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_length);
 	if (ctx->vg_clump)
-		ptex->clump *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_clump);
+		ptex->clump *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_clump);
 	if (ctx->vg_kink)
-		ptex->kink_freq *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_kink);
+		ptex->kink_freq *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_kink);
 	if (ctx->vg_rough1)
-		ptex->rough1 *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_rough1);
+		ptex->rough1 *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_rough1);
 	if (ctx->vg_rough2)
-		ptex->rough2 *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_rough2);
+		ptex->rough2 *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_rough2);
 	if (ctx->vg_roughe)
-		ptex->roughe *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_roughe);
+		ptex->roughe *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_roughe);
 	if (ctx->vg_effector)
-		ptex->effector *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_effector);
+		ptex->effector *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_effector);
 	if (ctx->vg_twist)
-		ptex->twist *= psys_interpolate_value_from_verts(ctx->dm, cpa_from, cpa_num, cpa_fuv, ctx->vg_twist);
+		ptex->twist *= psys_interpolate_value_from_verts(ctx->mesh, cpa_from, cpa_num, cpa_fuv, ctx->vg_twist);
 }
 /* get's hair (or keyed) particles state at the "path time" specified in state->time */
 void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *state, const bool vel)
@@ -3666,17 +3667,17 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			pind.bspline = (psys->part->flag & PART_HAIR_BSPLINE);
 			/* pind.dm disabled in editmode means we don't get effectors taken into
 			 * account when subdividing for instance */
-			pind.dm = psys_in_edit_mode(sim->depsgraph, psys) ? NULL : psys->hair_out_dm;
+			pind.mesh = psys_in_edit_mode(sim->depsgraph, psys) ? NULL : psys->hair_out_mesh; /* XXX Sybren EEK */
 			init_particle_interpolation(sim->ob, psys, pa, &pind);
 			do_particle_interpolation(psys, p, pa, t, &pind, state);
 
-			if (pind.dm) {
+			if (pind.mesh) {
 				mul_m4_v3(sim->ob->obmat, state->co);
 				mul_mat3_m4_v3(sim->ob->obmat, state->vel);
 			}
 			else if (!keyed && !cached && !(psys->flag & PSYS_GLOBAL_HAIR)) {
 				if ((pa->flag & PARS_REKEY) == 0) {
-					psys_mat_hair_to_global(sim->ob, sim->psmd->dm_final, part->from, pa, hairmat);
+					psys_mat_hair_to_global(sim->ob, sim->psmd->mesh_final, part->from, pa, hairmat);
 					mul_m4_v3(hairmat, state->co);
 					mul_mat3_m4_v3(hairmat, state->vel);
 
@@ -3743,7 +3744,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 
 				psys_particle_on_emitter(psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, par_co, 0, 0, 0, par_orco);
 				if (part->type == PART_HAIR)
-					psys_mat_hair_to_global(sim->ob, sim->psmd->dm_final, psys->part->from, pa, hairmat);
+					psys_mat_hair_to_global(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
 				else
 					unit_m4(hairmat);
 
@@ -3764,7 +3765,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 				psys_particle_on_emitter(psmd, part->from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, par_co, 0, 0, 0, par_orco);
 				if (part->type == PART_HAIR) {
 					psys_particle_on_emitter(psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa_fuv, pa->foffset, co, 0, 0, 0, orco);
-					psys_mat_hair_to_global(sim->ob, sim->psmd->dm_final, psys->part->from, pa, hairmat);
+					psys_mat_hair_to_global(sim->ob, sim->psmd->mesh_final, psys->part->from, pa, hairmat);
 				}
 				else {
 					copy_v3_v3(orco, cpa->fuv);
@@ -3783,7 +3784,7 @@ void psys_get_particle_on_path(ParticleSimulationData *sim, int p, ParticleKey *
 			/* get different child parameters from textures & vgroups */
 			memset(&ctx, 0, sizeof(ParticleThreadContext));
 			ctx.sim = *sim;
-			ctx.dm = psmd->dm_final;
+			ctx.mesh = psmd->mesh_final;
 			ctx.ma = ma;
 			/* TODO: assign vertex groups */
 			get_child_modifier_parameters(part, &ctx, cpa, cpa_from, cpa_num, cpa_fuv, orco, &ptex);
@@ -4037,13 +4038,13 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 	bool is_grid = (part->distr == PART_DISTR_GRID && part->from != PART_FROM_VERT);
 
 	if (cpa) {
-		if ((part->childtype == PART_CHILD_FACES) && (psmd->dm_final != NULL)) {
-			CustomData *mtf_data = psmd->dm_final->getTessFaceDataLayout(psmd->dm_final);
+		if ((part->childtype == PART_CHILD_FACES) && (psmd->mesh_final != NULL)) {
+			CustomData *mtf_data = &psmd->mesh_final->fdata;
 			const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 			mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
 
 			if (mtface && !is_grid) {
-				mface = psmd->dm_final->getTessFaceData(psmd->dm_final, cpa->num, CD_MFACE);
+				mface = CustomData_get(&psmd->mesh_final->fdata, cpa->num, CD_MFACE);
 				mtface += cpa->num;
 				psys_interpolate_uvs(mtface, mface->v4, cpa->fuv, uv);
 			}
@@ -4056,8 +4057,8 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 		}
 	}
 
-	if ((part->from == PART_FROM_FACE) && (psmd->dm_final != NULL) && !is_grid) {
-		CustomData *mtf_data = psmd->dm_final->getTessFaceDataLayout(psmd->dm_final);
+	if ((part->from == PART_FROM_FACE) && (psmd->mesh_final != NULL) && !is_grid) {
+		CustomData *mtf_data = &psmd->mesh_final->fdata;
 		const int uv_idx = CustomData_get_render_layer(mtf_data, CD_MTFACE);
 		mtface = CustomData_get_layer_n(mtf_data, CD_MTFACE, uv_idx);
 
@@ -4066,14 +4067,14 @@ void psys_get_dupli_texture(ParticleSystem *psys, ParticleSettings *part,
 		if (num == DMCACHE_NOTFOUND)
 			num = pa->num;
 
-		if (num >= psmd->dm_final->getNumTessFaces(psmd->dm_final)) {
+		if (num >= psmd->mesh_final->totface) {
 			/* happens when simplify is enabled
 			 * gives invalid coords but would crash otherwise */
 			num = DMCACHE_NOTFOUND;
 		}
 
 		if (mtface && !ELEM(num, DMCACHE_NOTFOUND, DMCACHE_ISCHILD)) {
-			mface = psmd->dm_final->getTessFaceData(psmd->dm_final, num, CD_MFACE);
+			mface = CustomData_get(&psmd->mesh_final->fdata, num, CD_MFACE);
 			mtface += num;
 			psys_interpolate_uvs(mtface, mface->v4, pa->fuv, uv);
 		}
@@ -4249,7 +4250,7 @@ void psys_apply_hair_lattice(Depsgraph *depsgraph, Scene *scene, Object *ob, Par
 		float hairmat[4][4], imat[4][4];
 
 		for (p = 0; p < psys->totpart; p++, pa++) {
-			psys_mat_hair_to_global(sim.ob, sim.psmd->dm_final, psys->part->from, pa, hairmat);
+			psys_mat_hair_to_global(sim.ob, sim.psmd->mesh_final, psys->part->from, pa, hairmat);
 			invert_m4_m4(imat, hairmat);
 
 			hkey = pa->hair;

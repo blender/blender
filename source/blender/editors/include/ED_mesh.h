@@ -226,8 +226,13 @@ typedef struct MirrTopoStore_t {
 
 bool ED_mesh_mirrtopo_recalc_check(
         struct Mesh *me, struct DerivedMesh *dm, MirrTopoStore_t *mesh_topo_store);
+bool ED_mesh_mirrtopo_recalc_check__real_mesh(
+        struct Mesh *me, struct Mesh *dm, MirrTopoStore_t *mesh_topo_store);
 void ED_mesh_mirrtopo_init(
         struct Mesh *me, struct DerivedMesh *dm, MirrTopoStore_t *mesh_topo_store,
+        const bool skip_em_vert_array_init);
+void ED_mesh_mirrtopo_init__real_mesh(
+        struct Mesh *me, struct Mesh *dm, MirrTopoStore_t *mesh_topo_store,
         const bool skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
@@ -318,16 +323,21 @@ int         join_mesh_shapes_exec(struct bContext *C, struct wmOperator *op);
 /* mirror lookup api */
 int ED_mesh_mirror_spatial_table(
         struct Object *ob, struct BMEditMesh *em, struct DerivedMesh *dm, const float co[3], char mode);
+int ED_mesh_mirror_spatial_table__real_mesh(
+        struct Object *ob, struct BMEditMesh *em, struct Mesh *mesh, const float co[3], char mode);
 int  ED_mesh_mirror_topo_table(struct Object *ob, struct DerivedMesh *dm, char mode);
+int ED_mesh_mirror_topo_table__real_mesh(struct Object *ob, struct Mesh *mesh, char mode);
 
 /* retrieves mirrored cache vert, or NULL if there isn't one.
  * note: calling this without ensuring the mirror cache state
  * is bad.*/
 int            mesh_get_x_mirror_vert(struct Object *ob, struct DerivedMesh *dm, int index, const bool use_topology);
+int mesh_get_x_mirror_vert__real_mesh(struct Object *ob, struct Mesh *mesh, int index, const bool use_topology);
 struct BMVert *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em,
                                            struct BMVert *eve, const float co[3],
                                            int index, const bool use_topology);
 int           *mesh_get_x_mirror_faces(struct Object *ob, struct BMEditMesh *em, struct DerivedMesh *dm);
+int *mesh_get_x_mirror_faces__real_mesh(struct Object *ob, struct BMEditMesh *em, struct Mesh *mesh);
 
 int ED_mesh_mirror_get_vert(struct Object *ob, int index);
 

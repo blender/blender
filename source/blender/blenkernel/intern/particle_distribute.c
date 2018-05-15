@@ -50,9 +50,8 @@
 #include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 
-#include "BKE_cdderivedmesh.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
+#include "BKE_library.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -80,7 +79,7 @@ static void alloc_child_particles(ParticleSystem *psys, int tot)
 	}
 }
 
-static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *finaldm, DerivedMesh *deformdm, ParticleSystem *psys, const bool use_render_params)
+static void distribute_simple_children(Scene *scene, Object *ob, Mesh *final_mesh, Mesh *deform_mesh, ParticleSystem *psys, const bool use_render_params)
 {
 	ChildParticle *cpa = NULL;
 	int i, p;
@@ -107,14 +106,14 @@ static void distribute_simple_children(Scene *scene, Object *ob, DerivedMesh *fi
 		}
 	}
 	/* dmcache must be updated for parent particles if children from faces is used */
-	psys_calc_dmcache(ob, finaldm, deformdm, psys);
+	psys_calc_dmcache(ob, final_mesh, deform_mesh, psys);
 }
-static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
+static void distribute_grid(Mesh *mesh, ParticleSystem *psys)
 {
 	ParticleData *pa=NULL;
 	float min[3], max[3], delta[3], d;
-	MVert *mv, *mvert = dm->getVertDataArray(dm,0);
-	int totvert=dm->getNumVerts(dm), from=psys->part->from;
+	MVert *mv, *mvert = mesh->mvert;
+	int totvert=mesh->totvert, from=psys->part->from;
 	int i, j, k, p, res=psys->part->grid_res, size[3], axis;
 
 	/* find bounding box of dm */
@@ -196,8 +195,8 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 		int a, a1, a2, a0mul, a1mul, a2mul, totface;
 		int amax= from==PART_FROM_FACE ? 3 : 1;
 
-		totface=dm->getNumTessFaces(dm);
-		mface=mface_array=dm->getTessFaceDataArray(dm,CD_MFACE);
+		totface = mesh->totface;
+		mface = mface_array = mesh->mface;
 		
 		for (a=0; a<amax; a++) {
 			if (a==0) { a0mul=res*res; a1mul=res; a2mul=1; }
@@ -440,7 +439,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 	ParticleThreadContext *ctx= thread->ctx;
 	MFace *mface;
 
-	mface = ctx->dm->getTessFaceDataArray(ctx->dm, CD_MFACE);
+	mface = ctx->mesh->mface;
 
 	int rng_skip_tot = PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
 
@@ -449,12 +448,12 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 
 	zero_v4(pa->fuv);
 
-	if (pa->num != DMCACHE_NOTFOUND && pa->num < ctx->dm->getNumVerts(ctx->dm)) {
+	if (pa->num != DMCACHE_NOTFOUND && pa->num < ctx->mesh->totvert) {
 
 		/* This finds the first face to contain the emitting vertex,
 		 * this is not ideal, but is mostly fine as UV seams generally
 		 * map to equal-colored parts of a texture */
-		for (int i = 0; i < ctx->dm->getNumTessFaces(ctx->dm); i++, mface++) {
+		for (int i = 0; i < ctx->mesh->totface; i++, mface++) {
 			if (ELEM(pa->num, mface->v1, mface->v2, mface->v3, mface->v4)) {
 				unsigned int *vert = &mface->v1;
 
@@ -475,7 +474,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 		KDTreeNearest ptn[3];
 		int w, maxw;
 		
-		psys_particle_on_dm(ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
+		psys_particle_on_dm(ctx->mesh,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
 		BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
 		maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 		
@@ -491,7 +490,7 @@ static void distribute_from_verts_exec(ParticleTask *thread, ParticleData *pa, i
 
 static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, int p) {
 	ParticleThreadContext *ctx= thread->ctx;
-	DerivedMesh *dm= ctx->dm;
+	Mesh *mesh = ctx->mesh;
 	float randu, randv;
 	int distr= ctx->distr;
 	int i;
@@ -500,7 +499,7 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
 	MFace *mface;
 	
 	pa->num = i = ctx->index[p];
-	mface = dm->getTessFaceData(dm,i,CD_MFACE);
+	mface = &mesh->mface[i];
 	
 	switch (distr) {
 		case PART_DISTR_JIT:
@@ -533,7 +532,7 @@ static void distribute_from_faces_exec(ParticleTask *thread, ParticleData *pa, i
 
 static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, int p) {
 	ParticleThreadContext *ctx= thread->ctx;
-	DerivedMesh *dm= ctx->dm;
+	Mesh *mesh = ctx->mesh;
 	float *v1, *v2, *v3, *v4, nor[3], co[3];
 	float cur_d, min_d, randu, randv;
 	int distr= ctx->distr;
@@ -541,10 +540,10 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 	int rng_skip_tot= PSYS_RND_DIST_SKIP; /* count how many rng_* calls wont need skipping */
 	
 	MFace *mface;
-	MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
+	MVert *mvert = mesh->mvert;
 	
 	pa->num = i = ctx->index[p];
-	mface = dm->getTessFaceData(dm,i,CD_MFACE);
+	mface = &mesh->mface[i];
 	
 	switch (distr) {
 		case PART_DISTR_JIT:
@@ -572,7 +571,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 	pa->foffset= 0.0f;
 	
 	/* experimental */
-	tot=dm->getNumTessFaces(dm);
+	tot = mesh->totface;
 	
 	psys_interpolate_face(mvert,mface,0,0,pa->fuv,co,nor,0,0,0);
 	
@@ -582,7 +581,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 	min_d=FLT_MAX;
 	intersect=0;
 	
-	for (i=0,mface=dm->getTessFaceDataArray(dm,CD_MFACE); i<tot; i++,mface++) {
+	for (i=0, mface=mesh->mface; i<tot; i++,mface++) {
 		if (i==pa->num) continue;
 		
 		v1=mvert[mface->v1].co;
@@ -628,7 +627,7 @@ static void distribute_from_volume_exec(ParticleTask *thread, ParticleData *pa, 
 static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, int p) {
 	ParticleThreadContext *ctx= thread->ctx;
 	Object *ob= ctx->sim.ob;
-	DerivedMesh *dm= ctx->dm;
+	Mesh *mesh = ctx->mesh;
 	float orco1[3], co1[3], nor1[3];
 	float randu, randv;
 	int cfrom= ctx->cfrom;
@@ -644,7 +643,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
 		return;
 	}
 	
-	mf= dm->getTessFaceData(dm, ctx->index[p], CD_MFACE);
+	mf = &mesh->mface[ctx->index[p]];
 	
 	randu= BLI_rng_get_float(thread->rng);
 	randv= BLI_rng_get_float(thread->rng);
@@ -661,7 +660,7 @@ static void distribute_children_exec(ParticleTask *thread, ChildParticle *cpa, i
 		int parent[10];
 		float pweight[10];
 		
-		psys_particle_on_dm(dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1);
+		psys_particle_on_dm(mesh,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,NULL,NULL,orco1);
 		BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco1, 1, 1);
 		maxw = BLI_kdtree_find_nearest_n(ctx->tree,orco1,ptn,3);
 		
@@ -800,19 +799,18 @@ static void distribute_invalid(ParticleSimulationData *sim, int from)
 	}
 }
 
-/* Creates a distribution of coordinates on a DerivedMesh */
-/* This is to denote functionality that does not yet work with mesh - only derived mesh */
+/* Creates a distribution of coordinates on a Mesh */
 static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, ParticleSimulationData *sim, int from)
 {
 	Scene *scene = sim->scene;
-	DerivedMesh *finaldm = sim->psmd->dm_final;
+	Mesh *final_mesh = sim->psmd->mesh_final;
 	Object *ob = sim->ob;
 	ParticleSystem *psys= sim->psys;
 	ParticleData *pa=0, *tpars= 0;
 	ParticleSettings *part;
 	ParticleSeam *seams= 0;
 	KDTree *tree=0;
-	DerivedMesh *dm= NULL;
+	Mesh *mesh = NULL;
 	float *jit= NULL;
 	int i, p=0;
 	int cfrom=0;
@@ -829,7 +827,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	if (totpart==0)
 		return 0;
 	
-	if (!finaldm->deformedOnly && !finaldm->getTessFaceDataArray(finaldm, CD_ORIGINDEX)) {
+	if (!final_mesh->runtime.deformed_only && !CustomData_get_layer(&final_mesh->fdata, CD_ORIGINDEX)) {
 		printf("Can't create particles with the current modifier stack, disable destructive modifiers\n");
 // XXX		error("Can't paint with the current modifier stack, disable destructive modifiers");
 		return 0;
@@ -849,7 +847,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		/* Simple children */
 		if (part->childtype != PART_CHILD_FACES) {
 			BLI_srandom(31415926 + psys->seed + psys->child_seed);
-			distribute_simple_children(scene, ob, finaldm, sim->psmd->dm_deformed, psys, use_render_params);
+			distribute_simple_children(scene, ob, final_mesh, sim->psmd->mesh_deformed, psys, use_render_params);
 			return 0;
 		}
 	}
@@ -859,17 +857,23 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 			BLI_srandom(31415926 + psys->seed);
 
 			if (psys->part->use_modifier_stack) {
-				dm = finaldm;
+				mesh = final_mesh;
 			}
 			else {
-				dm = CDDM_from_mesh((Mesh*)ob->data);
+				BKE_id_copy_ex(
+				        NULL, ob->data, (ID **)&mesh,
+				        LIB_ID_CREATE_NO_MAIN |
+				        LIB_ID_CREATE_NO_USER_REFCOUNT |
+				        LIB_ID_CREATE_NO_DEG_TAG |
+				        LIB_ID_COPY_NO_PREVIEW,
+				        false);
 			}
-			DM_ensure_tessface(dm);
+			BKE_mesh_tessface_ensure(mesh);
 
-			distribute_grid(dm,psys);
+			distribute_grid(mesh,psys);
 
-			if (dm != finaldm) {
-				dm->release(dm);
+			if (mesh != final_mesh) {
+				BKE_id_free(NULL, mesh);
 			}
 
 			return 0;
@@ -880,17 +884,17 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	if (from == PART_FROM_CHILD) {
 		distr=PART_DISTR_RAND;
 		BLI_srandom(31415926 + psys->seed + psys->child_seed);
-		dm= finaldm;
+		mesh= final_mesh;
 
 		/* BMESH ONLY */
-		DM_ensure_tessface(dm);
+		BKE_mesh_tessface_ensure(mesh);
 
 		children=1;
 
 		tree=BLI_kdtree_new(totpart);
 
 		for (p=0,pa=psys->particles; p<totpart; p++,pa++) {
-			psys_particle_on_dm(dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco);
+			psys_particle_on_dm(mesh,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco);
 			BKE_mesh_orco_verts_transform((Mesh*)ob->data, &orco, 1, 1);
 			BLI_kdtree_insert(tree, p, orco);
 		}
@@ -905,20 +909,26 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		BLI_srandom(31415926 + psys->seed);
 		
 		if (psys->part->use_modifier_stack)
-			dm = finaldm;
+			mesh = final_mesh;
 		else
-			dm= CDDM_from_mesh((Mesh*)ob->data);
+			BKE_id_copy_ex(
+			            NULL, ob->data, (ID **)&mesh,
+			            LIB_ID_CREATE_NO_MAIN |
+			            LIB_ID_CREATE_NO_USER_REFCOUNT |
+			            LIB_ID_CREATE_NO_DEG_TAG |
+			            LIB_ID_COPY_NO_PREVIEW,
+			            false);
 
-		DM_ensure_tessface(dm);
+		BKE_mesh_tessface_ensure(mesh);
 
 		/* we need orco for consistent distributions */
-		if (!CustomData_has_layer(&dm->vertData, CD_ORCO))
-			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
+		if (!CustomData_has_layer(&mesh->vdata, CD_ORCO))
+			CustomData_add_layer(&mesh->vdata, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob), mesh->totvert);
 
 		if (from == PART_FROM_VERT) {
-			MVert *mv= dm->getVertDataArray(dm, CD_MVERT);
-			float (*orcodata)[3] = dm->getVertDataArray(dm, CD_ORCO);
-			int totvert = dm->getNumVerts(dm);
+			MVert *mv = mesh->mvert;
+			float (*orcodata)[3] = CustomData_get_layer(&mesh->vdata, CD_ORCO);
+			int totvert = mesh->totvert;
 
 			tree=BLI_kdtree_new(totvert);
 
@@ -937,7 +947,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	}
 
 	/* Get total number of emission elements and allocate needed arrays */
-	totelem = (from == PART_FROM_VERT) ? dm->getNumVerts(dm) : dm->getNumTessFaces(dm);
+	totelem = (from == PART_FROM_VERT) ? mesh->totvert : mesh->totface;
 
 	if (totelem == 0) {
 		distribute_invalid(sim, children ? PART_FROM_CHILD : 0);
@@ -945,7 +955,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		if (G.debug & G_DEBUG)
 			fprintf(stderr,"Particle distribution error: Nothing to emit from!\n");
 
-		if (dm != finaldm) dm->release(dm);
+		if (mesh != final_mesh) BKE_id_free(NULL, mesh);
 
 		BLI_kdtree_free(tree);
 
@@ -962,10 +972,10 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		float totarea=0.f, co1[3], co2[3], co3[3], co4[3];
 		float (*orcodata)[3];
 		
-		orcodata= dm->getVertDataArray(dm, CD_ORCO);
+		orcodata = CustomData_get_layer(&mesh->vdata, CD_ORCO);
 
 		for (i=0; i<totelem; i++) {
-			MFace *mf=dm->getTessFaceData(dm,i,CD_MFACE);
+			MFace *mf = &mesh->mface[i];
 
 			if (orcodata) {
 				copy_v3_v3(co1, orcodata[mf->v1]);
@@ -980,14 +990,14 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 				}
 			}
 			else {
-				v1= (MVert*)dm->getVertData(dm,mf->v1,CD_MVERT);
-				v2= (MVert*)dm->getVertData(dm,mf->v2,CD_MVERT);
-				v3= (MVert*)dm->getVertData(dm,mf->v3,CD_MVERT);
+				v1 = &mesh->mvert[mf->v1];
+				v2 = &mesh->mvert[mf->v2];
+				v3 = &mesh->mvert[mf->v3];
 				copy_v3_v3(co1, v1->co);
 				copy_v3_v3(co2, v2->co);
 				copy_v3_v3(co3, v3->co);
 				if (mf->v4) {
-					v4= (MVert*)dm->getVertData(dm,mf->v4,CD_MVERT);
+					v4 = &mesh->mvert[mf->v4];
 					copy_v3_v3(co4, v4->co);
 				}
 			}
@@ -1014,7 +1024,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	}
 
 	/* Calculate weights from vgroup */
-	vweight = psys_cache_vgroup(dm,psys,PSYS_VG_DENSITY);
+	vweight = psys_cache_vgroup(mesh,psys,PSYS_VG_DENSITY);
 
 	if (vweight) {
 		if (from==PART_FROM_VERT) {
@@ -1023,7 +1033,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		}
 		else { /* PART_FROM_FACE / PART_FROM_VOLUME */
 			for (i=0;i<totelem; i++) {
-				MFace *mf=dm->getTessFaceData(dm,i,CD_MFACE);
+				MFace *mf = &mesh->mface[i];
 				tweight = vweight[mf->v1] + vweight[mf->v2] + vweight[mf->v3];
 				
 				if (mf->v4) {
@@ -1126,12 +1136,12 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		int *orig_index = NULL;
 
 		if (from == PART_FROM_VERT) {
-			if (dm->numVertData)
-				orig_index = dm->getVertDataArray(dm, CD_ORIGINDEX);
+			if (mesh->totvert)
+				orig_index = CustomData_get_layer(&mesh->vdata, CD_ORIGINDEX);
 		}
 		else {
-			if (dm->numTessFaceData)
-				orig_index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
+			if (mesh->totface)
+				orig_index = CustomData_get_layer(&mesh->fdata, CD_ORIGINDEX);
 		}
 
 		if (orig_index) {
@@ -1174,7 +1184,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 	ctx->maxweight= maxweight;
 	ctx->cfrom= cfrom;
 	ctx->distr= distr;
-	ctx->dm= dm;
+	ctx->mesh= mesh;
 	ctx->tpars= tpars;
 
 	if (children) {
@@ -1198,7 +1208,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 	TaskPool *task_pool;
 	ParticleThreadContext ctx;
 	ParticleTask *tasks;
-	DerivedMesh *finaldm = sim->psmd->dm_final;
+	Mesh *final_mesh = sim->psmd->mesh_final;
 	int i, totpart, numtasks;
 	
 	/* create a task pool for distribution tasks */
@@ -1223,10 +1233,10 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 	
 	BLI_task_pool_free(task_pool);
 	
-	psys_calc_dmcache(sim->ob, finaldm, sim->psmd->dm_deformed, sim->psys);
+	psys_calc_dmcache(sim->ob, final_mesh, sim->psmd->mesh_deformed, sim->psys);
 	
-	if (ctx.dm != finaldm)
-		ctx.dm->release(ctx.dm);
+	if (ctx.mesh != final_mesh)
+		BKE_id_free(NULL, ctx.mesh);
 	
 	psys_tasks_free(tasks, numtasks);
 	
@@ -1247,7 +1257,7 @@ void distribute_particles(ParticleSimulationData *sim, int from)
 	int distr_error=0;
 
 	if (psmd) {
-		if (psmd->dm_final)
+		if (psmd->mesh_final)
 			distribute_particles_on_dm(sim, from);
 		else
 			distr_error=1;

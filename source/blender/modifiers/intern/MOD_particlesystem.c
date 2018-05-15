@@ -42,6 +42,8 @@
 
 
 #include "BKE_cdderivedmesh.h"
+#include "BKE_mesh.h"
+#include "BKE_library.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 
@@ -52,22 +54,20 @@ static void initData(ModifierData *md)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	psmd->psys = NULL;
-	psmd->dm_final = NULL;
-	psmd->dm_deformed = NULL;
+	psmd->mesh_final = NULL;
+	psmd->mesh_deformed = NULL;
 	psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
 }
 static void freeData(ModifierData *md)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 
-	if (psmd->dm_final) {
-		psmd->dm_final->needsFree = true;
-		psmd->dm_final->release(psmd->dm_final);
-		psmd->dm_final = NULL;
-		if (psmd->dm_deformed) {
-			psmd->dm_deformed->needsFree = true;
-			psmd->dm_deformed->release(psmd->dm_deformed);
-			psmd->dm_deformed = NULL;
+	if (psmd->mesh_final) {
+		BKE_id_free(NULL, psmd->mesh_final);
+		psmd->mesh_final = NULL;
+		if (psmd->mesh_deformed) {
+			BKE_id_free(NULL, psmd->mesh_deformed);
+			psmd->mesh_deformed = NULL;
 		}
 	}
 	psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
@@ -87,8 +87,8 @@ static void copyData(const ModifierData *md, ModifierData *target)
 
 	modifier_copyData_generic(md, target);
 
-	tpsmd->dm_final = NULL;
-	tpsmd->dm_deformed = NULL;
+	tpsmd->mesh_final = NULL;
+	tpsmd->mesh_deformed = NULL;
 	tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
 }
 
@@ -101,14 +101,13 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 /* saves the current emitter state for a particle system and calculates particles */
 static void deformVerts(
         ModifierData *md, const ModifierEvalContext *ctx,
-        DerivedMesh *derivedData,
+        Mesh *mesh,
         float (*vertexCos)[3],
         int UNUSED(numVerts))
 {
-	DerivedMesh *dm = derivedData;
+	Mesh *mesh_src = mesh;
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	ParticleSystem *psys = NULL;
-	bool needsFree = false;
 	/* float cfra = BKE_scene_frame_get(md->scene); */  /* UNUSED */
 
 	if (ctx->object->particlesystem.first)
@@ -119,27 +118,24 @@ static void deformVerts(
 	if (!psys_check_enabled(ctx->object, psys, (ctx->flag & MOD_APPLY_RENDER) != 0))
 		return;
 
-	if (dm == NULL) {
-		dm = get_dm(ctx->object, NULL, NULL, vertexCos, false, true);
-
-		if (!dm)
+	if (mesh_src == NULL) {
+		mesh_src = get_mesh(ctx->object, NULL, NULL, vertexCos, false, true);
+		if (mesh_src == NULL) {
 			return;
-
-		needsFree = true;
+		}
 	}
 
 	/* clear old dm */
-	if (psmd->dm_final) {
-		psmd->dm_final->needsFree = true;
-		psmd->dm_final->release(psmd->dm_final);
-		if (psmd->dm_deformed) {
-			psmd->dm_deformed->needsFree = 1;
-			psmd->dm_deformed->release(psmd->dm_deformed);
-			psmd->dm_deformed = NULL;
+	if (psmd->mesh_final) {
+		BKE_id_free(NULL, psmd->mesh_final);
+		psmd->mesh_final = NULL;
+		if (psmd->mesh_deformed) {
+			BKE_id_free(NULL, psmd->mesh_deformed);
+			psmd->mesh_deformed = NULL;
 		}
 	}
 	else if (psmd->flag & eParticleSystemFlag_file_loaded) {
-		/* in file read dm just wasn't saved in file so no need to reset everything */
+		/* in file read mesh just wasn't saved in file so no need to reset everything */
 		psmd->flag &= ~eParticleSystemFlag_file_loaded;
 	}
 	else {
@@ -147,43 +143,49 @@ static void deformVerts(
 		psys->recalc |= PSYS_RECALC_RESET;
 	}
 
-	/* make new dm */
-	psmd->dm_final = CDDM_copy(dm);
-	CDDM_apply_vert_coords(psmd->dm_final, vertexCos);
-	CDDM_calc_normals(psmd->dm_final);
+	/* make new mesh */
+	BKE_id_copy_ex(NULL, &mesh_src->id, (ID **)&psmd->mesh_final,
+	               LIB_ID_CREATE_NO_MAIN |
+	               LIB_ID_CREATE_NO_USER_REFCOUNT |
+	               LIB_ID_CREATE_NO_DEG_TAG |
+	               LIB_ID_COPY_NO_PREVIEW,
+	               false);
+	BKE_mesh_apply_vert_coords(psmd->mesh_final, vertexCos);
+	BKE_mesh_calc_normals(psmd->mesh_final);
 
-	if (needsFree) {
-		dm->needsFree = true;
-		dm->release(dm);
-	}
+	BKE_mesh_tessface_ensure(psmd->mesh_final);
 
-	/* protect dm */
-	psmd->dm_final->needsFree = false;
-
-	DM_ensure_tessface(psmd->dm_final);
-
-	if (!psmd->dm_final->deformedOnly) {
+	if (!psmd->mesh_final->runtime.deformed_only) {
 		/* XXX Think we can assume here that if current DM is not only-deformed, ob->deformedOnly has been set.
 		 *     This is awfully weak though. :| */
 		if (ctx->object->derivedDeform) {
-			psmd->dm_deformed = CDDM_copy(ctx->object->derivedDeform);
+			DM_to_mesh(ctx->object->derivedDeform, psmd->mesh_deformed, ctx->object, CD_MASK_EVERYTHING, false);
 		}
 		else {  /* Can happen in some cases, e.g. when rendering from Edit mode... */
-			psmd->dm_deformed = CDDM_from_mesh((Mesh *)ctx->object->data);
+			BKE_id_copy_ex(NULL, &mesh_src->id, (ID **)&psmd->mesh_deformed,
+			               LIB_ID_CREATE_NO_MAIN |
+			               LIB_ID_CREATE_NO_USER_REFCOUNT |
+			               LIB_ID_CREATE_NO_DEG_TAG |
+			               LIB_ID_COPY_NO_PREVIEW,
+			               false);
 		}
-		DM_ensure_tessface(psmd->dm_deformed);
+		BKE_mesh_tessface_ensure(psmd->mesh_deformed);
+	}
+
+	if (mesh_src != psmd->mesh_final && mesh_src != mesh) {
+		BKE_id_free(NULL, mesh_src);
 	}
 
 	/* report change in mesh structure */
-	if (psmd->dm_final->getNumVerts(psmd->dm_final) != psmd->totdmvert ||
-	    psmd->dm_final->getNumEdges(psmd->dm_final) != psmd->totdmedge ||
-	    psmd->dm_final->getNumTessFaces(psmd->dm_final) != psmd->totdmface)
+	if (psmd->mesh_final->totvert != psmd->totdmvert ||
+	    psmd->mesh_final->totedge != psmd->totdmedge ||
+	    psmd->mesh_final->totface != psmd->totdmface)
 	{
 		psys->recalc |= PSYS_RECALC_RESET;
 
-		psmd->totdmvert = psmd->dm_final->getNumVerts(psmd->dm_final);
-		psmd->totdmedge = psmd->dm_final->getNumEdges(psmd->dm_final);
-		psmd->totdmface = psmd->dm_final->getNumTessFaces(psmd->dm_final);
+		psmd->totdmvert = psmd->mesh_final->totvert;
+		psmd->totdmedge = psmd->mesh_final->totedge;
+		psmd->totdmface = psmd->mesh_final->totface;
 	}
 
 	if (!(ctx->object->transflag & OB_NO_PSYS_UPDATE)) {
@@ -224,14 +226,14 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 
 	/* copyData */          copyData,
 
-	/* deformVerts_DM */    deformVerts,
+	/* deformVerts_DM */    NULL,
 	/* deformVertsEM_DM */  NULL,
 	/* deformMatrices_DM */ NULL,
 	/* deformMatricesEM_DM*/NULL,
 	/* applyModifier_DM */  NULL,
 	/* applyModifierEM_DM */NULL,
 
-	/* deformVerts */       NULL,
+	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
