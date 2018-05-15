@@ -2369,9 +2369,7 @@ static void cache_key_incremental_rotation(ParticleCacheKey *key0, ParticleCache
 void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_render_params)
 {
 	PARTICLE_PSMD;
-#if 0
 	ParticleEditSettings *pset = &sim->scene->toolsettings->particle;
-#endif
 	ParticleSystem *psys = sim->psys;
 	ParticleSettings *part = psys->part;
 	ParticleCacheKey *ca, **cache;
@@ -2403,11 +2401,9 @@ void psys_cache_paths(ParticleSimulationData *sim, float cfra, const bool use_re
 	if ((psys->flag & PSYS_HAIR_DONE || psys->flag & PSYS_KEYED || psys->pointcache) == 0)
 		return;
 
-#if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
 	if (psys_in_edit_mode(sim->depsgraph, psys))
 		if ((psys->edit == NULL || pset->flag & PE_DRAW_PART) == 0)
 			return;
-#endif
 
 	keyed = psys->flag & PSYS_KEYED;
 	baked = psys->pointcache->mem_cache.first && psys->part->type != PART_HAIR;

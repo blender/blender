@@ -2945,10 +2945,8 @@ static void psys_update_path_cache(ParticleSimulationData *sim, float cfra, cons
 		else if (psys_in_edit_mode(sim->depsgraph, psys)) {
 			if ((pset->flag & PE_DRAW_PART)==0)
 				skip = 1;
-#if 0 /* TODO(mai): something is very wrong with these conditionals, they dont make sense and the cache isnt updating */
 			else if (part->childtype==0 && (psys->flag & PSYS_HAIR_DYNAMICS && psys->pointcache->flag & PTCACHE_BAKED)==0)
 				skip = 1; /* in edit mode paths are needed for child particles and dynamic hair */
-#endif
 		}
 	}
 
