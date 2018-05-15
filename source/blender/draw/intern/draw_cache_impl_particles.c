@@ -58,18 +58,31 @@ static void particle_batch_cache_clear(ParticleSystem *psys);
 /* ---------------------------------------------------------------------- */
 /* Particle Gwn_Batch Cache */
 
+typedef struct ParticlePointCache {
+	Gwn_VertBuf *pos;
+	Gwn_Batch *points;
+	int elems_count;
+	int point_count;
+} ParticlePointCache;
+
+typedef struct ParticleHairCache {
+	Gwn_VertBuf *pos;
+	Gwn_IndexBuf *indices;
+	Gwn_Batch *hairs;
+	int elems_count;
+	int point_count;
+} ParticleHairCache;
+
 typedef struct ParticleBatchCache {
 	/* Object mode strands for hair and points for particle,
 	 * strands for paths when in edit mode.
 	 */
-	Gwn_VertBuf *pos;
-	Gwn_IndexBuf *indices;
-	Gwn_Batch *hairs;
-
-	int elems_count;
-	int point_count;
+	ParticleHairCache hair;    /* Used for hair strands */
+	ParticlePointCache point;  /* Used for particle points. */
 
 	/* Control points when in edit mode. */
+	ParticleHairCache edit_hair;
+
 	Gwn_VertBuf *edit_inner_pos;
 	Gwn_Batch *edit_inner_points;
 	int edit_inner_point_count;
@@ -146,6 +159,19 @@ void DRW_particle_batch_cache_dirty(ParticleSystem *psys, int mode)
 	}
 }
 
+static void particle_batch_cache_clear_point(ParticlePointCache *point_cache)
+{
+	GWN_BATCH_DISCARD_SAFE(point_cache->points);
+	GWN_VERTBUF_DISCARD_SAFE(point_cache->pos);
+}
+
+static void particle_batch_cache_clear_hair(ParticleHairCache *hair_cache)
+{
+	GWN_BATCH_DISCARD_SAFE(hair_cache->hairs);
+	GWN_VERTBUF_DISCARD_SAFE(hair_cache->pos);
+	GWN_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
+}
+
 static void particle_batch_cache_clear(ParticleSystem *psys)
 {
 	ParticleBatchCache *cache = psys->batch_cache;
@@ -153,10 +179,10 @@ static void particle_batch_cache_clear(ParticleSystem *psys)
 		return;
 	}
 
-	GWN_BATCH_DISCARD_SAFE(cache->hairs);
-	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
-	GWN_INDEXBUF_DISCARD_SAFE(cache->indices);
+	particle_batch_cache_clear_point(&cache->point);
+	particle_batch_cache_clear_hair(&cache->hair);
 
+	particle_batch_cache_clear_hair(&cache->edit_hair);
 	GWN_BATCH_DISCARD_SAFE(cache->edit_inner_points);
 	GWN_VERTBUF_DISCARD_SAFE(cache->edit_inner_pos);
 	GWN_BATCH_DISCARD_SAFE(cache->edit_tip_points);
@@ -171,38 +197,40 @@ void DRW_particle_batch_cache_free(ParticleSystem *psys)
 
 static void count_cache_segment_keys(ParticleCacheKey **pathcache,
                                      const int num_path_cache_keys,
-                                     ParticleBatchCache *cache)
+                                     ParticleHairCache *hair_cache)
 {
 	for (int i = 0; i < num_path_cache_keys; i++) {
 		ParticleCacheKey *path = pathcache[i];
 		if (path->segments > 0) {
-			cache->elems_count += path->segments + 2;
-			cache->point_count += path->segments + 1;
+			hair_cache->elems_count += path->segments + 2;
+			hair_cache->point_count += path->segments + 1;
 		}
 	}
 }
 
 static void ensure_seg_pt_count(PTCacheEdit *edit,
                                 ParticleSystem *psys,
-                                ParticleBatchCache *cache)
+                                ParticleHairCache *hair_cache)
 {
-	if (cache->pos == NULL || cache->indices == NULL) {
-		cache->elems_count = 0;
-		cache->point_count = 0;
+	if (hair_cache->pos != NULL && hair_cache->indices != NULL) {
+		return;
+	}
 
-		if (edit != NULL && edit->pathcache != NULL) {
-			count_cache_segment_keys(edit->pathcache, edit->totcached, cache);
+	hair_cache->elems_count = 0;
+	hair_cache->point_count = 0;
+
+	if (edit != NULL && edit->pathcache != NULL) {
+		count_cache_segment_keys(edit->pathcache, edit->totcached, hair_cache);
+	}
+	else {
+		if (psys->pathcache &&
+		    (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
+		{
+			count_cache_segment_keys(psys->pathcache, psys->totpart, hair_cache);
 		}
-		else {
-			if (psys->pathcache &&
-			    (!psys->childcache || (psys->part->draw & PART_DRAW_PARENT)))
-			{
-				count_cache_segment_keys(psys->pathcache, psys->totpart, cache);
-			}
-			if (psys->childcache) {
-				const int child_count = psys->totchild * psys->part->disp / 100;
-				count_cache_segment_keys(psys->childcache, child_count, cache);
-			}
+		if (psys->childcache) {
+			const int child_count = psys->totchild * psys->part->disp / 100;
+			count_cache_segment_keys(psys->childcache, child_count, hair_cache);
 		}
 	}
 }
@@ -332,7 +360,7 @@ static int particle_batch_cache_fill_segments(
         float (***r_parent_uvs)[2],
         Gwn_IndexBufBuilder *elb,
         HairAttributeID *attr_id,
-        ParticleBatchCache *cache)
+        ParticleHairCache *hair_cache)
 {
 	const bool is_simple = (psys->part->childtype == PART_CHILD_PARTICLES);
 	const bool is_child = (particle_source == PARTICLE_SOURCE_CHILDREN);
@@ -363,13 +391,13 @@ static int particle_batch_cache_fill_segments(
 			else {
 				sub_v3_v3v3(tangent, path[j + 1].co, path[j - 1].co);
 			}
-			GWN_vertbuf_attr_set(cache->pos, attr_id->pos, curr_point, path[j].co);
-			GWN_vertbuf_attr_set(cache->pos, attr_id->tan, curr_point, tangent);
-			GWN_vertbuf_attr_set(cache->pos, attr_id->ind, curr_point, &i);
+			GWN_vertbuf_attr_set(hair_cache->pos, attr_id->pos, curr_point, path[j].co);
+			GWN_vertbuf_attr_set(hair_cache->pos, attr_id->tan, curr_point, tangent);
+			GWN_vertbuf_attr_set(hair_cache->pos, attr_id->ind, curr_point, &i);
 			if (psmd != NULL) {
 				for (int k = 0; k < num_uv_layers; k++) {
 					GWN_vertbuf_attr_set(
-					        cache->pos, uv_id[k], curr_point,
+					        hair_cache->pos, uv_id[k], curr_point,
 					        (is_simple && is_child)
 					                ? (*r_parent_uvs)[psys->child[i].parent][k]
 					                : uv[k]);
@@ -381,14 +409,14 @@ static int particle_batch_cache_fill_segments(
 		sub_v3_v3v3(tangent, path[path->segments].co, path[path->segments - 1].co);
 
 		int global_index = i + global_offset;
-		GWN_vertbuf_attr_set(cache->pos, attr_id->pos, curr_point, path[path->segments].co);
-		GWN_vertbuf_attr_set(cache->pos, attr_id->tan, curr_point, tangent);
-		GWN_vertbuf_attr_set(cache->pos, attr_id->ind, curr_point, &global_index);
+		GWN_vertbuf_attr_set(hair_cache->pos, attr_id->pos, curr_point, path[path->segments].co);
+		GWN_vertbuf_attr_set(hair_cache->pos, attr_id->tan, curr_point, tangent);
+		GWN_vertbuf_attr_set(hair_cache->pos, attr_id->ind, curr_point, &global_index);
 
 		if (psmd != NULL) {
 			for (int k = 0; k < num_uv_layers; k++) {
 				GWN_vertbuf_attr_set(
-				        cache->pos, uv_id[k], curr_point,
+				        hair_cache->pos, uv_id[k], curr_point,
 				        (is_simple && is_child) ?
 				        (*r_parent_uvs)[psys->child[i].parent][k] :
 				        uv[k]);
@@ -408,17 +436,17 @@ static int particle_batch_cache_fill_segments(
 static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
                                                     ParticleSystem *psys,
                                                     ModifierData *md,
-                                                    ParticleBatchCache *cache)
+                                                    ParticleHairCache *hair_cache)
 {
-	if (cache->pos != NULL && cache->indices != NULL) {
+	if (hair_cache->pos != NULL && hair_cache->indices != NULL) {
 		return;
 	}
 
 	int curr_point = 0;
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *)md;
 
-	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
-	GWN_INDEXBUF_DISCARD_SAFE(cache->indices);
+	GWN_VERTBUF_DISCARD_SAFE(hair_cache->pos);
+	GWN_INDEXBUF_DISCARD_SAFE(hair_cache->indices);
 
 	static Gwn_VertFormat format = { 0 };
 	static HairAttributeID attr_id;
@@ -452,11 +480,14 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 		}
 	}
 
-	cache->pos = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(cache->pos, cache->point_count);
+	hair_cache->pos = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(hair_cache->pos, hair_cache->point_count);
 
 	Gwn_IndexBufBuilder elb;
-	GWN_indexbuf_init_ex(&elb, GWN_PRIM_LINE_STRIP, cache->elems_count, cache->point_count, true);
+	GWN_indexbuf_init_ex(&elb,
+	                     GWN_PRIM_LINE_STRIP,
+	                     hair_cache->elems_count, hair_cache->point_count,
+	                     true);
 
 	if (num_uv_layers) {
 		DM_ensure_tessface(psmd->dm_final);
@@ -471,7 +502,7 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 		        psys, psmd, edit->pathcache, PARTICLE_SOURCE_PARENT,
 		        0, 0, edit->totcached,
 		        num_uv_layers, mtfaces, uv_id, &parent_uvs,
-		        &elb, &attr_id, cache);
+		        &elb, &attr_id, hair_cache);
 	}
 	else {
 		if ((psys->pathcache != NULL) &&
@@ -481,15 +512,15 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 			        psys, psmd, psys->pathcache, PARTICLE_SOURCE_PARENT,
 			        0, 0, psys->totpart,
 			        num_uv_layers, mtfaces, uv_id, &parent_uvs,
-			        &elb, &attr_id, cache);
+			        &elb, &attr_id, hair_cache);
 		}
-		if (psys->childcache) {
+		if (psys->childcache != NULL) {
 			const int child_count = psys->totchild * psys->part->disp / 100;
 			curr_point = particle_batch_cache_fill_segments(
 			        psys, psmd, psys->childcache, PARTICLE_SOURCE_CHILDREN,
 			        psys->totpart, curr_point, child_count,
 			        num_uv_layers, mtfaces, uv_id, &parent_uvs,
-			        &elb, &attr_id, cache);
+			        &elb, &attr_id, hair_cache);
 		}
 	}
 	/* Cleanup. */
@@ -506,12 +537,14 @@ static void particle_batch_cache_ensure_pos_and_seg(PTCacheEdit *edit,
 	if (psmd != NULL) {
 		MEM_freeN(uv_id);
 	}
-	cache->indices = GWN_indexbuf_build(&elb);
+	hair_cache->indices = GWN_indexbuf_build(&elb);
 }
 
-static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys, ParticleBatchCache *cache)
+static void particle_batch_cache_ensure_pos(Object *object,
+                                            ParticleSystem *psys,
+                                            ParticlePointCache *point_cache)
 {
-	if (cache->pos != NULL) {
+	if (point_cache->pos != NULL) {
 		return;
 	}
 
@@ -537,8 +570,7 @@ static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys
 		}
 	}
 
-	GWN_VERTBUF_DISCARD_SAFE(cache->pos);
-	GWN_INDEXBUF_DISCARD_SAFE(cache->indices);
+	GWN_VERTBUF_DISCARD_SAFE(point_cache->pos);
 
 	if (format.attrib_ct == 0) {
 		/* initialize vertex format */
@@ -547,8 +579,8 @@ static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys
 		val_id = GWN_vertformat_attr_add(&format, "val", GWN_COMP_F32, 1, GWN_FETCH_FLOAT);
 	}
 
-	cache->pos = GWN_vertbuf_create_with_format(&format);
-	GWN_vertbuf_data_alloc(cache->pos, psys->totpart);
+	point_cache->pos = GWN_vertbuf_create_with_format(&format);
+	GWN_vertbuf_data_alloc(point_cache->pos, psys->totpart);
 
 	for (curr_point = 0, i = 0, pa = psys->particles; i < psys->totpart; i++, pa++) {
 		state.time = DEG_get_ctime(draw_ctx->depsgraph);
@@ -558,8 +590,8 @@ static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys
 
 		float val;
 
-		GWN_vertbuf_attr_set(cache->pos, pos_id, curr_point, pa->state.co);
-		GWN_vertbuf_attr_set(cache->pos, rot_id, curr_point, pa->state.rot);
+		GWN_vertbuf_attr_set(point_cache->pos, pos_id, curr_point, pa->state.co);
+		GWN_vertbuf_attr_set(point_cache->pos, rot_id, curr_point, pa->state.rot);
 
 		switch (psys->part->draw_col) {
 			case PART_DRAW_COL_VEL:
@@ -573,13 +605,13 @@ static void particle_batch_cache_ensure_pos(Object *object, ParticleSystem *psys
 				break;
 		}
 
-		GWN_vertbuf_attr_set(cache->pos, val_id, curr_point, &val);
+		GWN_vertbuf_attr_set(point_cache->pos, val_id, curr_point, &val);
 
 		curr_point++;
 	}
 
 	if (curr_point != psys->totpart) {
-		GWN_vertbuf_data_resize(cache->pos, curr_point);
+		GWN_vertbuf_data_resize(point_cache->pos, curr_point);
 	}
 }
 
@@ -587,25 +619,27 @@ Gwn_Batch *DRW_particles_batch_cache_get_hair(ParticleSystem *psys, ModifierData
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 
-	if (cache->hairs == NULL) {
-		ensure_seg_pt_count(NULL, psys, cache);
-		particle_batch_cache_ensure_pos_and_seg(NULL, psys, md, cache);
-		cache->hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP, cache->pos, cache->indices);
+	if (cache->hair.hairs == NULL) {
+		ensure_seg_pt_count(NULL, psys, &cache->hair);
+		particle_batch_cache_ensure_pos_and_seg(NULL, psys, md, &cache->hair);
+		cache->hair.hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP,
+		                                     cache->hair.pos,
+		                                     cache->hair.indices);
 	}
 
-	return cache->hairs;
+	return cache->hair.hairs;
 }
 
 Gwn_Batch *DRW_particles_batch_cache_get_dots(Object *object, ParticleSystem *psys)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 
-	if (cache->hairs == NULL) {
-		particle_batch_cache_ensure_pos(object, psys, cache);
-		cache->hairs = GWN_batch_create(GWN_PRIM_POINTS, cache->pos, NULL);
+	if (cache->point.points == NULL) {
+		particle_batch_cache_ensure_pos(object, psys, &cache->point);
+		cache->point.points = GWN_batch_create(GWN_PRIM_POINTS, cache->point.pos, NULL);
 	}
 
-	return cache->hairs;
+	return cache->point.points;
 }
 
 Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(
@@ -614,13 +648,15 @@ Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(
         PTCacheEdit *edit)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
-	if (cache->hairs != NULL) {
-		return cache->hairs;
+	if (cache->edit_hair.hairs != NULL) {
+		return cache->edit_hair.hairs;
 	}
-	ensure_seg_pt_count(edit, psys, cache);
-	particle_batch_cache_ensure_pos_and_seg(edit, psys, NULL, cache);
-	cache->hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP, cache->pos, cache->indices);
-	return cache->hairs;
+	ensure_seg_pt_count(edit, psys, &cache->edit_hair);
+	particle_batch_cache_ensure_pos_and_seg(edit, psys, NULL, &cache->edit_hair);
+	cache->edit_hair.hairs = GWN_batch_create(GWN_PRIM_LINE_STRIP,
+	                                          cache->edit_hair.pos,
+	                                          cache->edit_hair.indices);
+	return cache->edit_hair.hairs;
 }
 
 static void ensure_edit_inner_points_count(const PTCacheEdit *edit,
