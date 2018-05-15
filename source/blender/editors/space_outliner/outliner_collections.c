@@ -782,7 +782,6 @@ static int collection_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DEG_id_tag_update(&scene->id, 0);
 
-	soops->storeflag |= SO_TREESTORE_REDRAW;
 	WM_main_add_notifier(NC_SCENE | ND_LAYER, NULL);
 
 	return OPERATOR_FINISHED;

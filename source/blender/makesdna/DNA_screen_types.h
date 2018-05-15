@@ -468,5 +468,6 @@ enum {
 #define RGN_DRAW_PARTIAL	2
 #define RGN_DRAWING			4
 #define RGN_DRAW_REFRESH_UI	8  /* re-create uiBlock's where possible */
+#define RGN_DRAW_NO_REBUILD	16
 #endif
 

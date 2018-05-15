@@ -172,8 +172,7 @@ static int outliner_highlight_update(bContext *C, wmOperator *UNUSED(op), const 
 	}
 
 	if (changed) {
-		soops->storeflag |= SO_TREESTORE_REDRAW; /* only needs to redraw, no rebuild */
-		ED_region_tag_redraw(ar);
+		ED_region_tag_redraw_no_rebuild(ar);
 	}
 
 	return (OPERATOR_FINISHED | OPERATOR_PASS_THROUGH);
@@ -903,10 +902,8 @@ static int outliner_toggle_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	else 
 		outliner_set_flag(&soops->tree, TSE_SELECTED, 1);
 	
-	soops->storeflag |= SO_TREESTORE_REDRAW;
-	
 	WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, scene);
-	ED_region_tag_redraw(ar);
+	ED_region_tag_redraw_no_rebuild(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1027,11 +1024,9 @@ static int outliner_show_active_exec(bContext *C, wmOperator *UNUSED(op))
 		xdelta = (int)(te->xs - v2d->cur.xmin);
 		v2d->cur.xmin += xdelta;
 		v2d->cur.xmax += xdelta;
-		
-		so->storeflag |= SO_TREESTORE_REDRAW;
 	}
 	
-	ED_region_tag_redraw(ar);
+	ED_region_tag_redraw_no_rebuild(ar);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1187,7 +1182,7 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 			soops->search_flags = flags;
 			
 			/* redraw */
-			soops->storeflag |= SO_TREESTORE_REDRAW;
+			ED_region_tag_redraw_no_rebuild(ar);
 		}
 	}
 	else {

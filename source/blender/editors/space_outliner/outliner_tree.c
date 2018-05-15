@@ -1705,8 +1705,6 @@ static void outliner_restore_scrolling_position(SpaceOops *soops, ARegion *ar, O
 		else {
 			return;
 		}
-
-		soops->storeflag |= SO_TREESTORE_REDRAW;
 	}
 }
 
@@ -2070,8 +2068,9 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 		BKE_outliner_treehash_rebuild_from_treestore(soops->treehash, soops->treestore);
 	}
 
-	if (soops->tree.first && (soops->storeflag & SO_TREESTORE_REDRAW))
+	if (ar->flag & RGN_DRAW_NO_REBUILD) {
 		return;
+	}
 
 	OutlinerTreeElementFocus focus;
 	outliner_store_scrolling_position(soops, ar, &focus);

@@ -995,12 +995,13 @@ int outliner_item_do_activate_from_cursor(
 	}
 
 	if (changed) {
-		if (!rebuild_tree) {
-			/* only needs to redraw, no rebuild */
-			soops->storeflag |= SO_TREESTORE_REDRAW;
+		if (rebuild_tree) {
+			ED_region_tag_redraw(ar);
+		}
+		else {
+			ED_region_tag_redraw_no_rebuild(ar);
 		}
 		ED_undo_push(C, "Outliner selection change");
-		ED_region_tag_redraw(ar);
 	}
 
 	return OPERATOR_FINISHED;

@@ -2034,9 +2034,10 @@ static int do_outliner_operation_event(bContext *C, ARegion *ar, SpaceOops *soop
 				outliner_set_flag(&soops->tree, TSE_SELECTED, 0);
 			
 			tselem->flag |= TSE_SELECTED;
-			/* redraw, same as outliner_select function */
-			soops->storeflag |= SO_TREESTORE_REDRAW;
-			ED_region_tag_redraw(ar);
+
+			/* Only redraw, don't rebuild here because TreeElement pointers will
+			 * become invalid and operations will crash. */
+			ED_region_tag_redraw_no_rebuild(ar);
 		}
 		
 		set_operation_types(soops, &soops->tree, &scenelevel, &objectlevel, &idlevel, &datalevel);

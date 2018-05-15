@@ -271,11 +271,13 @@ static int outliner_item_drag_drop_modal(bContext *C, wmOperator *op, const wmEv
 			break;
 	}
 
-	if (skip_rebuild) {
-		soops->storeflag |= SO_TREESTORE_REDRAW; /* only needs to redraw, no rebuild */
-	}
 	if (redraw) {
-		ED_region_tag_redraw(ar);
+		if (skip_rebuild) {
+			ED_region_tag_redraw_no_rebuild(ar);
+		}
+		else {
+			ED_region_tag_redraw(ar);
+		}
 	}
 
 	return retval;
@@ -389,8 +391,7 @@ static int outliner_item_drag_drop_invoke(bContext *C, wmOperator *op, const wmE
 	/* unset highlighted tree element, dragged one will be highlighted instead */
 	outliner_set_flag(&soops->tree, TSE_HIGHLIGHTED, false);
 
-	soops->storeflag |= SO_TREESTORE_REDRAW; /* only needs to redraw, no rebuild */
-	ED_region_tag_redraw(ar);
+	ED_region_tag_redraw_no_rebuild(ar);
 
 	WM_event_add_modal_handler(C, op);
 

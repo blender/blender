@@ -169,18 +169,19 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
 	
-	/* request updates to be done... */
-	ED_region_tag_redraw(vpd->ar);
-	WM_event_add_mousemove(C);
-	
-	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
-	
 	/* exceptions */
 	if (vpd->sa->spacetype == SPACE_OUTLINER) {
 		/* don't rebuild full tree, since we're just changing our view */
-		SpaceOops *soops = vpd->sa->spacedata.first;
-		soops->storeflag |= SO_TREESTORE_REDRAW;
+		ED_region_tag_redraw_no_rebuild(vpd->ar);
 	}
+	else {
+		ED_region_tag_redraw(vpd->ar);
+	}
+
+	/* request updates to be done... */
+	WM_event_add_mousemove(C);
+
+	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
 }
 
 static void view_pan_apply(bContext *C, wmOperator *op)

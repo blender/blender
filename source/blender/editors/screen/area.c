@@ -550,7 +550,7 @@ void ED_region_tag_redraw(ARegion *ar)
 	 * but python scripts can cause this to happen indirectly */
 	if (ar && !(ar->do_draw & RGN_DRAWING)) {
 		/* zero region means full region redraw */
-		ar->do_draw &= ~RGN_DRAW_PARTIAL;
+		ar->do_draw &= ~(RGN_DRAW_PARTIAL | RGN_DRAW_NO_REBUILD);
 		ar->do_draw |= RGN_DRAW;
 		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	}
@@ -560,6 +560,15 @@ void ED_region_tag_redraw_overlay(ARegion *ar)
 {
 	if (ar)
 		ar->do_draw_overlay = RGN_DRAW;
+}
+
+void ED_region_tag_redraw_no_rebuild(ARegion *ar)
+{
+	if (ar && !(ar->do_draw & (RGN_DRAWING | RGN_DRAW))) {
+		ar->do_draw &= ~RGN_DRAW_PARTIAL;
+		ar->do_draw |= RGN_DRAW_NO_REBUILD;
+		memset(&ar->drawrct, 0, sizeof(ar->drawrct));
+	}
 }
 
 void ED_region_tag_refresh_ui(ARegion *ar)
@@ -572,7 +581,7 @@ void ED_region_tag_refresh_ui(ARegion *ar)
 void ED_region_tag_redraw_partial(ARegion *ar, const rcti *rct)
 {
 	if (ar && !(ar->do_draw & RGN_DRAWING)) {
-		if (!(ar->do_draw & (RGN_DRAW | RGN_DRAW_PARTIAL))) {
+		if (!(ar->do_draw & (RGN_DRAW | RGN_DRAW_NO_REBUILD | RGN_DRAW_PARTIAL))) {
 			/* no redraw set yet, set partial region */
 			ar->do_draw |= RGN_DRAW_PARTIAL;
 			ar->drawrct = *rct;
@@ -583,7 +592,7 @@ void ED_region_tag_redraw_partial(ARegion *ar, const rcti *rct)
 			BLI_rcti_union(&ar->drawrct, rct);
 		}
 		else {
-			BLI_assert((ar->do_draw & RGN_DRAW) != 0);
+			BLI_assert((ar->do_draw & (RGN_DRAW | RGN_DRAW_NO_REBUILD)) != 0);
 			/* Else, full redraw is already requested, nothing to do here. */
 		}
 	}
