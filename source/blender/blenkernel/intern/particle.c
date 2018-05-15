@@ -2117,7 +2117,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 		cpa_fuv = cpa->fuv;
 		cpa_from = PART_FROM_FACE;
 
-		psys_particle_on_emitter(ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa->fuv, foffset, co, 0, 0, orco, 0);
+		psys_particle_on_emitter(ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa->fuv, foffset, co, 0, 0, 0, orco);
 
 		mul_m4_v3(ob->obmat, co);
 
@@ -2159,7 +2159,7 @@ static void psys_thread_create_path(ParticleTask *task, struct ChildParticle *cp
 			cpa_num = 0;
 		cpa_fuv = pa->fuv;
 
-		psys_particle_on_emitter(ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa_fuv, pa->foffset, co, 0, 0, orco, 0);
+		psys_particle_on_emitter(ctx->sim.psmd, cpa_from, cpa_num, DMCACHE_ISCHILD, cpa_fuv, pa->foffset, co, 0, 0, 0, orco);
 
 		psys_mat_hair_to_global(ob, ctx->sim.psmd->dm_final, psys->part->from, pa, hairmat);
 	}
