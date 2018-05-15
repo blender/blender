@@ -226,12 +226,23 @@ bool DRW_check_psys_visible_within_active_context(
         struct ParticleSystem *psys)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const Scene *scene = draw_ctx->scene;
 	if (object == draw_ctx->object_edit) {
 		return false;
 	}
+	const ParticleSettings *part = psys->part;
+	const ParticleEditSettings *pset = &scene->toolsettings->particle;
 	if (object->mode == OB_MODE_PARTICLE_EDIT) {
 		if (psys_in_edit_mode(draw_ctx->depsgraph, psys)) {
-			return false;
+			if ((pset->flag & PE_DRAW_PART) == 0) {
+				return false;
+			}
+			if ((part->childtype == 0) &&
+			    (psys->flag & PSYS_HAIR_DYNAMICS &&
+			     psys->pointcache->flag & PTCACHE_BAKED)==0)
+			{
+				return false;
+			}
 		}
 	}
 	return true;
