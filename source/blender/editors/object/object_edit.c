@@ -444,14 +444,11 @@ bool ED_object_editmode_load(Object *obedit)
 }
 
 /**
- * \param C: Can be NULL, only if #EM_DO_UNDO isn't set.
  * \param flag:
- * - Only in exceptional cases should #EM_DO_UNDO NOT be in the flag.
  * - If #EM_FREEDATA isn't in the flag, use ED_object_editmode_load directly.
  */
-void ED_object_editmode_exit_ex(bContext *C, Scene *scene, Object *obedit, int flag)
+void ED_object_editmode_exit_ex(Scene *scene, Object *obedit, int flag)
 {
-	BLI_assert(C || !(flag & EM_DO_UNDO));
 	const bool freedata = (flag & EM_FREEDATA) != 0;
 
 	if (flag & EM_WAITCURSOR) waitcursor(1);
@@ -486,16 +483,8 @@ void ED_object_editmode_exit_ex(bContext *C, Scene *scene, Object *obedit, int f
 
 		/* also flush ob recalc, doesn't take much overhead, but used for particles */
 		DAG_id_tag_update(&obedit->id, OB_RECALC_OB | OB_RECALC_DATA);
-	
-		if (flag & EM_DO_UNDO)
-			ED_undo_push(C, "Editmode");
 
-		if (C != NULL) {
-			WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
-		}
-		else {
-			WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
-		}
+		WM_main_add_notifier(NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 
 		obedit->mode &= ~OB_MODE_EDIT;
 	}
@@ -507,7 +496,7 @@ void ED_object_editmode_exit(bContext *C, int flag)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
-	ED_object_editmode_exit_ex(C, scene, obedit, flag);
+	ED_object_editmode_exit_ex(scene, obedit, flag);
 }
 
 void ED_object_editmode_enter(bContext *C, int flag)
@@ -638,7 +627,6 @@ void ED_object_editmode_enter(bContext *C, int flag)
 		WM_event_add_notifier(C, NC_SCENE | ND_MODE | NS_MODE_OBJECT, scene);
 	}
 
-	if (flag & EM_DO_UNDO) ED_undo_push(C, "Enter Editmode");
 	if (flag & EM_WAITCURSOR) waitcursor(0);
 }
 
@@ -655,11 +643,12 @@ static int editmode_toggle_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	if (!is_mode_set)
+	if (!is_mode_set) {
 		ED_object_editmode_enter(C, EM_WAITCURSOR);
-	else
-		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);  /* had EM_DO_UNDO but op flag calls undo too [#24685] */
-	
+	}
+	else {
+		ED_object_editmode_exit(C, EM_FREEDATA | EM_WAITCURSOR);
+	}
 	ED_space_image_uv_sculpt_update(CTX_wm_manager(C), scene);
 
 	return OPERATOR_FINISHED;
@@ -713,7 +702,7 @@ static int posemode_exec(bContext *C, wmOperator *op)
 
 	if (ob->type == OB_ARMATURE) {
 		if (ob == CTX_data_edit_object(C)) {
-			ED_object_editmode_exit(C, EM_FREEDATA | EM_DO_UNDO);
+			ED_object_editmode_exit(C, EM_FREEDATA);
 			is_mode_set = false;
 		}
 

@@ -516,10 +516,6 @@ static int curvesurf_prim_add(bContext *C, wmOperator *op, int type, int isSurf)
 		}
 	}
 
-	/* ED_object_add_type doesnt do an undo, is needed for redo operator on primitive */
-	if (newob && enter_editmode)
-		ED_undo_push(C, "Enter Editmode");
-
 	ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 	dia = RNA_float_get(op->ptr, "radius");
 	mul_mat3_m4_fl(mat, dia);

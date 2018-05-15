@@ -358,7 +358,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 		copy_v3_v3(obedit->rot, rot);
 	}
 
-	ED_object_editmode_enter(C, EM_DO_UNDO | EM_IGNORE_LAYER);
+	ED_object_editmode_enter(C, EM_IGNORE_LAYER);
 	em = BKE_editmesh_from_object(obedit);
 
 	if (!createob) {
