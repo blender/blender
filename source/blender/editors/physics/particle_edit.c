@@ -4002,7 +4002,7 @@ static void brush_edit_apply(bContext *C, wmOperator *op, PointerRNA *itemptr)
 
 		if (edit->psys) {
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
-			BKE_particle_batch_cache_dirty(edit->psys, BKE_MESH_BATCH_DIRTY_ALL);
+			BKE_particle_batch_cache_dirty(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 			DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 		}
 		else {
@@ -4267,6 +4267,7 @@ static int shape_cut_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		if (edit->psys) {
 			WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_EDITED, ob);
+			BKE_particle_batch_cache_dirty(edit->psys, BKE_PARTICLE_BATCH_DIRTY_ALL);
 		}
 		else {
 			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
