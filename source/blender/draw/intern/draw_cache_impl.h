@@ -123,7 +123,7 @@ struct Gwn_Batch *DRW_mesh_batch_cache_get_verts_with_select_id(struct Mesh *me,
 void DRW_mesh_cache_sculpt_coords_ensure(struct Mesh *me);
 
 /* Particles */
-struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
+struct Gwn_Batch *DRW_particles_batch_cache_get_hair(struct Object *object, struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_particles_batch_cache_get_dots(struct Object *object, struct ParticleSystem *psys);
 struct Gwn_Batch *DRW_particles_batch_cache_get_edit_strands(struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
 struct Gwn_Batch *DRW_particles_batch_cache_get_edit_inner_points(struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);

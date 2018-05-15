@@ -167,7 +167,7 @@ struct Gwn_Batch *DRW_cache_lattice_wire_get(struct Object *ob, bool use_weight)
 struct Gwn_Batch *DRW_cache_lattice_vert_overlay_get(struct Object *ob);
 
 /* Particles */
-struct Gwn_Batch *DRW_cache_particles_get_hair(struct ParticleSystem *psys, struct ModifierData *md);
+struct Gwn_Batch *DRW_cache_particles_get_hair(struct Object *object, struct ParticleSystem *psys, struct ModifierData *md);
 struct Gwn_Batch *DRW_cache_particles_get_dots(struct Object *object, struct ParticleSystem *psys);
 struct Gwn_Batch *DRW_cache_particles_get_edit_strands(struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);
 struct Gwn_Batch *DRW_cache_particles_get_edit_inner_points(struct Object *object, struct ParticleSystem *psys, struct PTCacheEdit *edit);

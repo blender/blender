@@ -506,7 +506,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 		unit_m4(mat);
 
 		if (draw_as == PART_DRAW_PATH) {
-			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
+			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(ob, psys, NULL);
 			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
 			DRW_shgroup_call_add(material->shgrp, geom, mat);
 		}

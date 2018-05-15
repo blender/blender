@@ -2876,9 +2876,9 @@ Gwn_Batch *DRW_cache_lattice_vert_overlay_get(Object *ob)
 /** \name Particles
  * \{ */
 
-Gwn_Batch *DRW_cache_particles_get_hair(ParticleSystem *psys, ModifierData *md)
+Gwn_Batch *DRW_cache_particles_get_hair(Object *object, ParticleSystem *psys, ModifierData *md)
 {
-	return DRW_particles_batch_cache_get_hair(psys, md);
+	return DRW_particles_batch_cache_get_hair(object, psys, md);
 }
 
 Gwn_Batch *DRW_cache_particles_get_dots(Object *object, ParticleSystem *psys)

@@ -1490,7 +1490,7 @@ void EEVEE_materials_cache_populate(EEVEE_Data *vedata, EEVEE_ViewLayerData *sld
 				if (draw_as != PART_DRAW_PATH) {
 					continue;
 				}
-				struct Gwn_Batch *hair_geom = DRW_cache_particles_get_hair(psys, md);
+				struct Gwn_Batch *hair_geom = DRW_cache_particles_get_hair(ob, psys, md);
 				DRWShadingGroup *shgrp = NULL;
 				Material *ma = give_current_material(ob, part->omat);
 

@@ -615,7 +615,10 @@ static void particle_batch_cache_ensure_pos(Object *object,
 	}
 }
 
-Gwn_Batch *DRW_particles_batch_cache_get_hair(ParticleSystem *psys, ModifierData *md)
+Gwn_Batch *DRW_particles_batch_cache_get_hair(
+        Object *UNUSED(object),
+        ParticleSystem *psys,
+        ModifierData *md)
 {
 	ParticleBatchCache *cache = particle_batch_cache_get(psys);
 

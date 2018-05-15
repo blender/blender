@@ -159,7 +159,7 @@ static void basic_cache_populate(void *vedata, Object *ob)
 		ParticleSettings *part = psys->part;
 		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 		if (draw_as == PART_DRAW_PATH) {
-			struct Gwn_Batch *hairs = DRW_cache_particles_get_hair(psys, NULL);
+			struct Gwn_Batch *hairs = DRW_cache_particles_get_hair(ob, psys, NULL);
 			DRW_shgroup_call_add(stl->g_data->depth_shgrp, hairs, NULL);
 		}
 	}

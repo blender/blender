@@ -843,7 +843,7 @@ static void clay_cache_populate_particles(void *vedata, Object *ob)
 		ParticleSettings *part = psys->part;
 		const int draw_as = (part->draw_as == PART_DRAW_REND) ? part->ren_as : part->draw_as;
 		if (draw_as == PART_DRAW_PATH) {
-			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(psys, NULL);
+			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(ob, psys, NULL);
 			DRWShadingGroup *hair_shgrp = CLAY_hair_shgrp_get(vedata, ob, stl, psl);
 			DRW_shgroup_call_add(hair_shgrp, geom, NULL);
 		}
