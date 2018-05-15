@@ -67,6 +67,7 @@ extern "C" {
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 
 #ifdef NESTED_ID_NASTY_WORKAROUND
 #  include "DNA_curve_types.h"
@@ -443,8 +444,23 @@ void updata_edit_mode_pointers(const Depsgraph *depsgraph,
 			break;
 		case ID_ME:
 			updata_mesh_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
 		default:
 			break;
+	}
+}
+
+void update_particle_system_orig_pointers(const Object *object_orig,
+                                          Object *object_cow)
+{
+	ParticleSystem *psys_cow =
+	        (ParticleSystem *) object_cow->particlesystem.first;
+	ParticleSystem *psys_orig =
+	        (ParticleSystem *) object_orig->particlesystem.first;
+	while (psys_orig != NULL) {
+		psys_cow->orig_psys = psys_orig;
+		psys_cow = psys_cow->next;
+		psys_orig = psys_orig->next;
 	}
 }
 
@@ -473,6 +489,7 @@ void update_special_pointers(const Depsgraph *depsgraph,
 				BKE_pose_remap_bone_pointers((bArmature *)object_cow->data,
 				                             object_cow->pose);
 			}
+			update_particle_system_orig_pointers(object_orig, object_cow);
 			break;
 		}
 		default:

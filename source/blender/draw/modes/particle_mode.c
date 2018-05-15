@@ -183,6 +183,9 @@ static void particle_cache_populate(void *vedata, Object *object)
 	Object *object_orig = DEG_get_original_object(object);
 	PTCacheEdit *edit = PE_create_current(
 	        draw_ctx->depsgraph, scene_orig, object_orig);
+	/* NOTE: We need to pass evaluated particle system, which we need
+	 * to find first.
+	 */
 	ParticleSystem *psys = object->particlesystem.first;
 	ParticleSystem *psys_orig = object_orig->particlesystem.first;
 	while (psys_orig != NULL) {

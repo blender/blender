@@ -326,6 +326,15 @@ typedef struct ParticleSystem {
 	float lattice_strength;					/* influence of the lattice modifier */
 
 	void *batch_cache;
+
+	/* Set by dependency graph's copy-on-write, allows to quickly go
+	 * from evaluated particle system to original one.
+	 *
+	 * Original system will have this set to NULL.
+	 *
+	 * Use psys_original_get() function to access,
+	 */
+	struct ParticleSystem *orig_psys;
 } ParticleSystem;
 
 typedef enum eParticleDrawFlag {

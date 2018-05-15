@@ -289,6 +289,14 @@ void psys_enable_all(Object *ob)
 		psys->flag &= ~PSYS_DISABLED;
 }
 
+ParticleSystem *psys_original_get(ParticleSystem *psys)
+{
+	if (psys->orig_psys == NULL) {
+		return psys;
+	}
+	return psys->orig_psys;
+}
+
 bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 {
 	const ViewLayer *view_layer = DEG_get_input_view_layer(depsgraph);
@@ -301,19 +309,7 @@ bool psys_in_edit_mode(Depsgraph *depsgraph, ParticleSystem *psys)
 	if (object->mode != OB_MODE_PARTICLE_EDIT) {
 		return false;
 	}
-	/* TODO(sergey): Find a faster way to switch to an original psys. */
-	/*const*/ Object *object_orig = DEG_get_original_object(view_layer->basact->object);
-	ParticleSystem *psys_orig = object_orig->particlesystem.first;
-	while (psys_orig != NULL) {
-		if (STREQ(psys_orig->name, psys->name)) {
-			break;
-		}
-		psys = psys->next;
-		psys_orig = psys_orig->next;
-	}
-	if (psys_orig != psys_get_current(object_orig)) {
-		return false;
-	}
+	ParticleSystem *psys_orig = psys_original_get(psys);
 	return (psys_orig->edit || psys->pointcache->edit) &&
 	       (use_render_params == false);
 }
