@@ -41,6 +41,8 @@
 
 #include "ED_screen.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_private.h"
 #include "GPU_draw.h"
 #include "GPU_texture.h"
@@ -155,28 +157,27 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
 	const float *viewport_size = DRW_viewport_size_get();
 
 	BLI_listbase_clear(&e_data.smoke_domains);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "volumetric_enable")) {
+	if (scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_ENABLED) {
 
 		/* Shaders */
 		if (!e_data.volumetric_scatter_sh) {
 			eevee_create_shader_volumes();
 		}
 
-		int tile_size = BKE_collection_engine_property_value_get_int(props, "volumetric_tile_size");
+		const int tile_size = scene_eval->eevee.volumetric_tile_size;
 
 		/* Find Froxel Texture resolution. */
 		int tex_size[3];
 
 		tex_size[0] = (int)ceilf(fmaxf(1.0f, viewport_size[0] / (float)tile_size));
 		tex_size[1] = (int)ceilf(fmaxf(1.0f, viewport_size[1] / (float)tile_size));
-		tex_size[2] = max_ii(BKE_collection_engine_property_value_get_int(props, "volumetric_samples"), 1);
+		tex_size[2] = max_ii(scene_eval->eevee.volumetric_samples, 1);
 
 		common_data->vol_coord_scale[0] = viewport_size[0] / (float)(tile_size * tex_size[0]);
 		common_data->vol_coord_scale[1] = viewport_size[1] / (float)(tile_size * tex_size[1]);
@@ -286,19 +287,16 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			GPU_ATTACHMENT_TEXTURE(txl->volume_transmittance_history)
 		});
 
-		float integration_start = BKE_collection_engine_property_value_get_float(props, "volumetric_start");
-		float integration_end = BKE_collection_engine_property_value_get_float(props, "volumetric_end");
-		common_data->vol_light_clamp = BKE_collection_engine_property_value_get_float(props, "volumetric_light_clamp");
-
-		common_data->vol_shadow_steps = (float)BKE_collection_engine_property_value_get_int(props, "volumetric_shadow_samples");
-		if (BKE_collection_engine_property_value_get_bool(props, "volumetric_shadows")) {
-		}
-		else {
+		float integration_start = scene_eval->eevee.volumetric_start;
+		float integration_end = scene_eval->eevee.volumetric_end;
+		common_data->vol_light_clamp = scene_eval->eevee.volumetric_light_clamp;
+		common_data->vol_shadow_steps = (float)scene_eval->eevee.volumetric_shadow_samples;
+		if ((scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_SHADOWS) == 0) {
 			common_data->vol_shadow_steps = 0;
 		}
 
 		if (DRW_viewport_is_persp_get()) {
-			float sample_distribution = BKE_collection_engine_property_value_get_float(props, "volumetric_sample_distribution");
+			float sample_distribution = scene_eval->eevee.volumetric_sample_distribution;
 			sample_distribution = 4.0f * (1.00001f - sample_distribution);
 
 			const float clip_start = common_data->view_vecs[0][2];
@@ -326,7 +324,7 @@ int EEVEE_volumes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			common_data->vol_light_clamp = FLT_MAX;
 		}
 
-		common_data->vol_use_lights = BKE_collection_engine_property_value_get_bool(props, "volumetric_lights");
+		common_data->vol_use_lights = (scene_eval->eevee.flag & SCE_EEVEE_VOLUMETRIC_LIGHTS) != 0;
 
 		return EFFECT_VOLUMETRIC | EFFECT_POST_BUFFER;
 	}

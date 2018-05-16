@@ -400,6 +400,7 @@ static void eevee_render_draw_background(EEVEE_Data *vedata)
 void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl, const rcti *rect)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 	ViewLayer *view_layer = draw_ctx->view_layer;
 	const char *viewname = RE_GetActiveRenderView(engine->re);
 	EEVEE_PassList *psl = vedata->psl;
@@ -435,8 +436,7 @@ void EEVEE_render_draw(EEVEE_Data *vedata, RenderEngine *engine, RenderLayer *rl
 		EEVEE_occlusion_output_init(sldata, vedata);
 	}
 
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
-	uint tot_sample = BKE_collection_engine_property_value_get_int(props, "taa_render_samples");
+	uint tot_sample = scene_eval->eevee.taa_render_samples;
 	uint render_samples = 0;
 
 	if (RE_engine_test_break(engine)) {

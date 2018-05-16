@@ -32,6 +32,8 @@
 #include "BLI_rand.h"
 #include "BLI_string_utils.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_private.h"
 #include "GPU_texture.h"
 
@@ -192,10 +194,9 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 	effects->taa_render_sample = 1;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if ((BKE_collection_engine_property_value_get_int(props, "taa_samples") != 1 &&
+	if (((scene_eval->eevee.taa_samples != 1) &&
 	    /* FIXME the motion blur camera evaluation is tagging view_updated
 	     * thus making the TAA always reset and never stopping rendering. */
 	    (effects->enabled_effects & EFFECT_MOTION_BLUR) == 0) ||
@@ -204,7 +205,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 		float persmat[4][4], viewmat[4][4];
 
 		if (!DRW_state_is_image_render() &&
-		    BKE_collection_engine_property_value_get_bool(props, "taa_reprojection"))
+		    (scene_eval->eevee.flag & SCE_EEVEE_TAA_REPROJECTION))
 		{
 			repro_flag = EFFECT_TAA_REPROJECT | EFFECT_VELOCITY_BUFFER | EFFECT_DEPTH_DOUBLE_BUFFER | EFFECT_DOUBLE_BUFFER | EFFECT_POST_BUFFER;
 			effects->taa_reproject_sample = ((effects->taa_reproject_sample + 1) % 16);
@@ -221,7 +222,7 @@ int EEVEE_temporal_sampling_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data
 			view_is_valid = view_is_valid && (ED_screen_animation_no_scrub(wm) == NULL);
 		}
 
-		effects->taa_total_sample = BKE_collection_engine_property_value_get_int(props, "taa_samples");
+		effects->taa_total_sample = scene_eval->eevee.taa_samples;
 		MAX2(effects->taa_total_sample, 0);
 
 		DRW_viewport_matrix_get(persmat, DRW_MAT_PERS);

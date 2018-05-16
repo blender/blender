@@ -31,9 +31,12 @@
 
 #include "BKE_global.h" /* for G.debug_value */
 
-#include "eevee_private.h"
 #include "GPU_extensions.h"
 #include "GPU_texture.h"
+
+#include "DEG_depsgraph_query.h"
+
+#include "eevee_private.h"
 
 static struct {
 	/* Bloom */
@@ -87,10 +90,9 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "bloom_enable")) {
+	if (scene_eval->flag & SCE_EEVEE_BLOOM_ENABLED) {
 		const float *viewport_size = DRW_viewport_size_get();
 
 		/* Shaders */
@@ -120,12 +122,12 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 		});
 
 		/* Parameters */
-		float threshold = BKE_collection_engine_property_value_get_float(props, "bloom_threshold");
-		float knee = BKE_collection_engine_property_value_get_float(props, "bloom_knee");
-		float intensity = BKE_collection_engine_property_value_get_float(props, "bloom_intensity");
-		const float *color = BKE_collection_engine_property_value_get_float_array(props, "bloom_color");
-		float radius = BKE_collection_engine_property_value_get_float(props, "bloom_radius");
-		effects->bloom_clamp = BKE_collection_engine_property_value_get_float(props, "bloom_clamp");
+		const float threshold = scene_eval->eevee.bloom_threshold;
+		const float knee = scene_eval->eevee.bloom_knee;
+		const float intensity = scene_eval->eevee.bloom_intensity;
+		const float *color = scene_eval->eevee.bloom_color;
+		const float radius = scene_eval->eevee.bloom_radius;
+		effects->bloom_clamp = scene_eval->eevee.bloom_clamp;
 
 		/* determine the iteration count */
 		const float minDim = (float)MIN2(blitsize[0], blitsize[1]);

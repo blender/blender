@@ -31,6 +31,8 @@
 
 #include "DNA_anim_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "BKE_global.h" /* for G.debug_value */
 
 #include "eevee_private.h"
@@ -73,11 +75,9 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer,
-	                                                        RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "gtao_enable")) {
+	if (scene_eval->flag & SCE_EEVEE_GTAO_ENABLED) {
 		const float *viewport_size = DRW_viewport_size_get();
 		const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
@@ -86,19 +86,19 @@ int EEVEE_occlusion_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			eevee_create_shader_occlusion();
 		}
 
-		common_data->ao_dist = BKE_collection_engine_property_value_get_float(props, "gtao_distance");
-		common_data->ao_factor = BKE_collection_engine_property_value_get_float(props, "gtao_factor");
-		common_data->ao_quality = 1.0f - BKE_collection_engine_property_value_get_float(props, "gtao_quality");
+		common_data->ao_dist = scene_eval->eevee.gtao_distance;
+		common_data->ao_factor = scene_eval->eevee.gtao_factor;
+		common_data->ao_quality = 1.0f - scene_eval->eevee.gtao_quality;
 
-		common_data->ao_settings = 1.0; /* USE_AO */
-		if (BKE_collection_engine_property_value_get_bool(props, "gtao_use_bent_normals")) {
-			common_data->ao_settings += 2.0; /* USE_BENT_NORMAL */
+		common_data->ao_settings = 1.0f; /* USE_AO */
+		if (scene_eval->flag & SCE_EEVEE_GTAO_BENT_NORMALS) {
+			common_data->ao_settings += 2.0f; /* USE_BENT_NORMAL */
 		}
-		if (BKE_collection_engine_property_value_get_bool(props, "gtao_denoise")) {
-			common_data->ao_settings += 4.0; /* USE_DENOISE */
+		if (scene_eval->flag & SCE_EEVEE_GTAO_BOUNCE) {
+			common_data->ao_settings += 4.0f; /* USE_DENOISE */
 		}
 
-		common_data->ao_bounce_fac = (float)BKE_collection_engine_property_value_get_bool(props, "gtao_bounce");
+		common_data->ao_bounce_fac = (scene_eval->flag & SCE_EEVEE_GTAO_BOUNCE) ? 1.0f : 0.0f;
 
 		effects->gtao_horizons = DRW_texture_pool_query_2D(fs_size[0], fs_size[1], GPU_RGBA8,
 		                                                   &draw_engine_eevee_type);
@@ -139,10 +139,9 @@ void EEVEE_occlusion_output_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "gtao_enable")) {
+	if (scene_eval->flag & SCE_EEVEE_GTAO_ENABLED) {
 		DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 		float clear[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 

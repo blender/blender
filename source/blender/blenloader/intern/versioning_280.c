@@ -1104,5 +1104,187 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				scene->toolsettings->transform_pivot_point = V3D_AROUND_CENTER_MEAN;
 			}
 		}
+
+		if (!DNA_struct_find(fd->filesdna, "SceneEEVEE")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+					/* First set the default for all the properties. */
+
+					scene->eevee.gi_diffuse_bounces = 3;
+					scene->eevee.gi_cubemap_resolution = 512;
+					scene->eevee.gi_visibility_resolution = 32;
+
+					scene->eevee.taa_samples = 16;
+					scene->eevee.taa_render_samples = 64;
+
+					scene->eevee.sss_samples = 7;
+					scene->eevee.sss_jitter_threshold = 0.3f;
+
+					scene->eevee.ssr_quality = 0.25f;
+					scene->eevee.ssr_max_roughness = 0.5f;
+					scene->eevee.ssr_thickness = 0.2f;
+					scene->eevee.ssr_border_fade = 0.075f;
+					scene->eevee.ssr_firefly_fac = 10.0f;
+
+					scene->eevee.volumetric_start = 0.1f;
+					scene->eevee.volumetric_end = 100.0f;
+					scene->eevee.volumetric_tile_size = 8;
+					scene->eevee.volumetric_samples = 64;
+					scene->eevee.volumetric_sample_distribution = 0.8f;
+					scene->eevee.volumetric_light_clamp = 0.0f;
+					scene->eevee.volumetric_shadow_samples = 16;
+
+					scene->eevee.gtao_distance = 0.2f;
+					scene->eevee.gtao_factor = 1.0f;
+					scene->eevee.gtao_quality = 0.25f;
+
+					scene->eevee.bokeh_max_size = 100.0f;
+					scene->eevee.bokeh_threshold = 1.0f;
+
+					copy_v3_fl(scene->eevee.bloom_color, 1.0f);
+					scene->eevee.bloom_threshold = 0.8f;
+					scene->eevee.bloom_knee = 0.5f;
+					scene->eevee.bloom_intensity = 0.8f;
+					scene->eevee.bloom_radius = 6.5f;
+					scene->eevee.bloom_clamp = 1.0f;
+
+					scene->eevee.motion_blur_samples = 8;
+					scene->eevee.motion_blur_shutter = 1.0f;
+
+					scene->eevee.shadow_method = SHADOW_ESM;
+					scene->eevee.shadow_cube_size = 512;
+					scene->eevee.shadow_cascade_size = 1024;
+
+					scene->eevee.flag =
+					        SCE_EEVEE_VOLUMETRIC_LIGHTS |
+					        SCE_EEVEE_VOLUMETRIC_COLORED |
+					        SCE_EEVEE_GTAO_BENT_NORMALS |
+					        SCE_EEVEE_GTAO_BOUNCE |
+					        SCE_EEVEE_TAA_REPROJECTION |
+					        SCE_EEVEE_SSR_HALF_RESOLUTION;
+
+
+				/* If the file is pre-2.80 move on. */
+				if (scene->layer_properties == NULL) {
+					continue;
+				}
+
+				/* Now we handle eventual properties that may be set in the file. */
+#define EEVEE_GET_BOOL(_props, _name, _flag) \
+				{ \
+					IDProperty *_idprop = IDP_GetPropertyFromGroup(_props, #_name); \
+					if (_idprop != NULL) { \
+						const int _value = IDP_Int(_idprop); \
+						if (_value) { \
+							scene->eevee.flag |= _flag; \
+						} \
+						else { \
+							scene->eevee.flag &= ~_flag; \
+						} \
+					} \
+				}
+
+#define EEVEE_GET_INT(_props, _name) \
+				{ \
+					IDProperty *_idprop = IDP_GetPropertyFromGroup(_props, #_name); \
+					if (_idprop != NULL) { \
+						scene->eevee._name = IDP_Int(_idprop); \
+					} \
+				}
+
+#define EEVEE_GET_FLOAT(_props, _name) \
+				{ \
+					IDProperty *_idprop = IDP_GetPropertyFromGroup(_props, #_name); \
+					if (_idprop != NULL) { \
+						scene->eevee._name = IDP_Float(_idprop); \
+					} \
+				}
+
+#define EEVEE_GET_FLOAT_ARRAY(_props, _name, _length) \
+				{ \
+					IDProperty *_idprop = IDP_GetPropertyFromGroup(_props, #_name); \
+					if (_idprop != NULL) { \
+						const float *_values = IDP_Array(_idprop); \
+						for (int _i = 0; _i < _length; _i++) { \
+							scene->eevee._name [_i] = _values[_i]; \
+						} \
+					} \
+				}
+
+				IDProperty *props = IDP_GetPropertyFromGroup(scene->layer_properties, RE_engine_id_BLENDER_EEVEE);
+				EEVEE_GET_BOOL(props, volumetric_enable, SCE_EEVEE_VOLUMETRIC_ENABLED);
+				EEVEE_GET_BOOL(props, volumetric_lights, SCE_EEVEE_VOLUMETRIC_LIGHTS);
+				EEVEE_GET_BOOL(props, volumetric_shadows, SCE_EEVEE_VOLUMETRIC_SHADOWS);
+				EEVEE_GET_BOOL(props, volumetric_colored_transmittance, SCE_EEVEE_VOLUMETRIC_COLORED);
+				EEVEE_GET_BOOL(props, gtao_enable, SCE_EEVEE_GTAO_ENABLED);
+				EEVEE_GET_BOOL(props, gtao_use_bent_normals, SCE_EEVEE_GTAO_BENT_NORMALS);
+				EEVEE_GET_BOOL(props, gtao_bounce, SCE_EEVEE_GTAO_BOUNCE);
+				EEVEE_GET_BOOL(props, dof_enable, SCE_EEVEE_DOF_ENABLED);
+				EEVEE_GET_BOOL(props, bloom_enable, SCE_EEVEE_BLOOM_ENABLED);
+				EEVEE_GET_BOOL(props, motion_blur_enable, SCE_EEVEE_MOTION_BLUR_ENABLED);
+				EEVEE_GET_BOOL(props, shadow_high_bitdepth, SCE_EEVEE_SHADOW_HIGH_BITDEPTH);
+				EEVEE_GET_BOOL(props, taa_reprojection, SCE_EEVEE_TAA_REPROJECTION);
+				EEVEE_GET_BOOL(props, sss_enable, SCE_EEVEE_SSS_ENABLED);
+				EEVEE_GET_BOOL(props, sss_separate_albedo, SCE_EEVEE_SSS_SEPARATE_ALBEDO);
+				EEVEE_GET_BOOL(props, ssr_enable, SCE_EEVEE_SSR_ENABLED);
+				EEVEE_GET_BOOL(props, ssr_refraction, SCE_EEVEE_SSR_REFRACTION);
+				EEVEE_GET_BOOL(props, ssr_halfres, SCE_EEVEE_SSR_HALF_RESOLUTION);
+
+				EEVEE_GET_INT(props, gi_diffuse_bounces);
+				EEVEE_GET_INT(props, gi_diffuse_bounces);
+				EEVEE_GET_INT(props, gi_cubemap_resolution);
+				EEVEE_GET_INT(props, gi_visibility_resolution);
+
+				EEVEE_GET_INT(props, taa_samples);
+				EEVEE_GET_INT(props, taa_render_samples);
+
+				EEVEE_GET_INT(props, sss_samples);
+				EEVEE_GET_FLOAT(props, sss_jitter_threshold);
+
+				EEVEE_GET_FLOAT(props, ssr_quality);
+				EEVEE_GET_FLOAT(props, ssr_max_roughness);
+				EEVEE_GET_FLOAT(props, ssr_thickness);
+				EEVEE_GET_FLOAT(props, ssr_border_fade);
+				EEVEE_GET_FLOAT(props, ssr_firefly_fac);
+
+				EEVEE_GET_FLOAT(props, volumetric_start);
+				EEVEE_GET_FLOAT(props, volumetric_end);
+				EEVEE_GET_INT(props, volumetric_tile_size);
+				EEVEE_GET_INT(props, volumetric_samples);
+				EEVEE_GET_FLOAT(props, volumetric_sample_distribution);
+				EEVEE_GET_FLOAT(props, volumetric_light_clamp);
+				EEVEE_GET_INT(props, volumetric_shadow_samples);
+
+				EEVEE_GET_FLOAT(props, gtao_distance);
+				EEVEE_GET_FLOAT(props, gtao_factor);
+				EEVEE_GET_FLOAT(props, gtao_quality);
+
+				EEVEE_GET_FLOAT(props, bokeh_max_size);
+				EEVEE_GET_FLOAT(props, bokeh_threshold);
+
+				EEVEE_GET_FLOAT_ARRAY(props, bloom_color, 3);
+				EEVEE_GET_FLOAT(props, bloom_threshold);
+				EEVEE_GET_FLOAT(props, bloom_knee);
+				EEVEE_GET_FLOAT(props, bloom_intensity);
+				EEVEE_GET_FLOAT(props, bloom_radius);
+				EEVEE_GET_FLOAT(props, bloom_clamp);
+
+				EEVEE_GET_INT(props, motion_blur_samples);
+				EEVEE_GET_FLOAT(props, motion_blur_shutter);
+
+				EEVEE_GET_INT(props, shadow_method);
+				EEVEE_GET_INT(props, shadow_cube_size);
+				EEVEE_GET_INT(props, shadow_cascade_size);
+
+				/* Cleanup. */
+				IDP_FreeProperty(scene->layer_properties);
+				MEM_freeN(scene->layer_properties);
+				scene->layer_properties = NULL;
+
+#undef EEVEE_GET_FLOAT_ARRAY
+#undef EEVEE_GET_FLOAT
+#undef EEVEE_GET_INT
+#undef EEVEE_GET_BOOL
+			}
+		}
 	}
 }

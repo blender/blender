@@ -428,7 +428,6 @@ static void eevee_layer_collection_settings_create(RenderEngine *UNUSED(engine),
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-	// BKE_collection_engine_property_add_int(props, "high_quality_sphere_lamps", false);
 	UNUSED_VARS_NDEBUG(props);
 }
 
@@ -437,69 +436,7 @@ static void eevee_view_layer_settings_create(RenderEngine *UNUSED(engine), IDPro
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-
-	BKE_collection_engine_property_add_int(props, "gi_diffuse_bounces", 3);
-	BKE_collection_engine_property_add_int(props, "gi_cubemap_resolution", 512);
-	BKE_collection_engine_property_add_int(props, "gi_visibility_resolution", 32);
-
-	BKE_collection_engine_property_add_int(props, "taa_samples", 16);
-	BKE_collection_engine_property_add_int(props, "taa_render_samples", 64);
-	BKE_collection_engine_property_add_bool(props, "taa_reprojection", true);
-
-	BKE_collection_engine_property_add_bool(props, "sss_enable", false);
-	BKE_collection_engine_property_add_int(props, "sss_samples", 7);
-	BKE_collection_engine_property_add_float(props, "sss_jitter_threshold", 0.3f);
-	BKE_collection_engine_property_add_bool(props, "sss_separate_albedo", false);
-
-	BKE_collection_engine_property_add_bool(props, "ssr_enable", false);
-	BKE_collection_engine_property_add_bool(props, "ssr_refraction", false);
-	BKE_collection_engine_property_add_bool(props, "ssr_halfres", true);
-	BKE_collection_engine_property_add_float(props, "ssr_quality", 0.25f);
-	BKE_collection_engine_property_add_float(props, "ssr_max_roughness", 0.5f);
-	BKE_collection_engine_property_add_float(props, "ssr_thickness", 0.2f);
-	BKE_collection_engine_property_add_float(props, "ssr_border_fade", 0.075f);
-	BKE_collection_engine_property_add_float(props, "ssr_firefly_fac", 10.0f);
-
-	BKE_collection_engine_property_add_bool(props, "volumetric_enable", false);
-	BKE_collection_engine_property_add_float(props, "volumetric_start", 0.1f);
-	BKE_collection_engine_property_add_float(props, "volumetric_end", 100.0f);
-	BKE_collection_engine_property_add_int(props, "volumetric_tile_size", 8);
-	BKE_collection_engine_property_add_int(props, "volumetric_samples", 64);
-	BKE_collection_engine_property_add_float(props, "volumetric_sample_distribution", 0.8f);
-	BKE_collection_engine_property_add_bool(props, "volumetric_lights", true);
-	BKE_collection_engine_property_add_float(props, "volumetric_light_clamp", 0.0f);
-	BKE_collection_engine_property_add_bool(props, "volumetric_shadows", false);
-	BKE_collection_engine_property_add_int(props, "volumetric_shadow_samples", 16);
-	BKE_collection_engine_property_add_bool(props, "volumetric_colored_transmittance", true);
-
-	BKE_collection_engine_property_add_bool(props, "gtao_enable", false);
-	BKE_collection_engine_property_add_bool(props, "gtao_use_bent_normals", true);
-	BKE_collection_engine_property_add_bool(props, "gtao_bounce", true);
-	BKE_collection_engine_property_add_float(props, "gtao_distance", 0.2f);
-	BKE_collection_engine_property_add_float(props, "gtao_factor", 1.0f);
-	BKE_collection_engine_property_add_float(props, "gtao_quality", 0.25f);
-
-	BKE_collection_engine_property_add_bool(props, "dof_enable", false);
-	BKE_collection_engine_property_add_float(props, "bokeh_max_size", 100.0f);
-	BKE_collection_engine_property_add_float(props, "bokeh_threshold", 1.0f);
-
-	float default_bloom_color[3] = {1.0f, 1.0f, 1.0f};
-	BKE_collection_engine_property_add_bool(props, "bloom_enable", false);
-	BKE_collection_engine_property_add_float_array(props, "bloom_color", default_bloom_color, 3);
-	BKE_collection_engine_property_add_float(props, "bloom_threshold", 0.8f);
-	BKE_collection_engine_property_add_float(props, "bloom_knee", 0.5f);
-	BKE_collection_engine_property_add_float(props, "bloom_intensity", 0.8f);
-	BKE_collection_engine_property_add_float(props, "bloom_radius", 6.5f);
-	BKE_collection_engine_property_add_float(props, "bloom_clamp", 1.0f);
-
-	BKE_collection_engine_property_add_bool(props, "motion_blur_enable", false);
-	BKE_collection_engine_property_add_int(props, "motion_blur_samples", 8);
-	BKE_collection_engine_property_add_float(props, "motion_blur_shutter", 1.0f);
-
-	BKE_collection_engine_property_add_int(props, "shadow_method", SHADOW_ESM);
-	BKE_collection_engine_property_add_int(props, "shadow_cube_size", 512);
-	BKE_collection_engine_property_add_int(props, "shadow_cascade_size", 1024);
-	BKE_collection_engine_property_add_bool(props, "shadow_high_bitdepth", false);
+	UNUSED_VARS_NDEBUG(props);
 }
 
 static const DrawEngineDataSize eevee_data_size = DRW_VIEWPORT_DATA_SIZE(EEVEE_Data);

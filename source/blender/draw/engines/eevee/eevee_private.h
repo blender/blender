@@ -125,13 +125,6 @@ enum {
 	VAR_MAT_SSSALBED = (1 << 16),
 };
 
-/* Shadow Technique */
-enum {
-	SHADOW_ESM = 1,
-	SHADOW_VSM = 2,
-	SHADOW_METHOD_MAX = 3,
-};
-
 typedef struct EEVEE_BoundSphere {
 	float center[3], radius;
 } EEVEE_BoundSphere;

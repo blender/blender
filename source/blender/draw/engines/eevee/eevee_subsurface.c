@@ -29,6 +29,8 @@
 
 #include "BLI_string_utils.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_private.h"
 #include "GPU_texture.h"
 
@@ -69,13 +71,12 @@ int EEVEE_subsurface_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	const int fs_size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "sss_enable")) {
-		effects->sss_sample_count = 1 + BKE_collection_engine_property_value_get_int(props, "sss_samples") * 2;
-		effects->sss_separate_albedo = BKE_collection_engine_property_value_get_bool(props, "sss_separate_albedo");
-		common_data->sss_jitter_threshold = BKE_collection_engine_property_value_get_float(props, "sss_jitter_threshold");
+	if (scene_eval->eevee.flag & SCE_EEVEE_SSS_ENABLED) {
+		effects->sss_sample_count = 1 + scene_eval->eevee.sss_samples * 2;
+		effects->sss_separate_albedo = (scene_eval->eevee.flag & SCE_EEVEE_SSS_SEPARATE_ALBEDO) != 0;
+		common_data->sss_jitter_threshold = scene_eval->eevee.sss_jitter_threshold;
 
 		/* Force separate albedo for final render */
 		if (DRW_state_is_image_render()) {
@@ -147,10 +148,9 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "sss_enable")) {
+	if (scene_eval->flag & SCE_EEVEE_SSS_ENABLED) {
 		DRW_texture_ensure_fullscreen_2D(&txl->sss_dir_accum, GPU_RGBA16F, 0);
 		DRW_texture_ensure_fullscreen_2D(&txl->sss_col_accum, GPU_RGBA16F, 0);
 

@@ -82,11 +82,9 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 	EEVEE_EffectsInfo *effects = stl->effects;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "dof_enable")) {
-		Scene *scene = draw_ctx->scene;
+	if (scene_eval->flag & SCE_EEVEE_DOF_ENABLED) {
 		RegionView3D *rv3d = draw_ctx->rv3d;
 
 		if (!e_data.dof_downsample_sh) {
@@ -141,7 +139,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			 * unit.scale_length is how many meters per blender unit we have. We want to convert to blender units though
 			 * because the shader reads coordinates in world space, which is in blender units.
 			 * Note however that focus_distance is already in blender units and shall not be scaled here (see T48157). */
-			float scale = (scene->unit.system) ? scene->unit.scale_length : 1.0f;
+			float scale = (scene_eval->unit.system) ? scene_eval->unit.scale_length : 1.0f;
 			float scale_camera = 0.001f / scale;
 			/* we want radius here for the aperture number  */
 			float aperture = 0.5f * scale_camera * focal_len / fstop;
@@ -157,7 +155,7 @@ int EEVEE_depth_of_field_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *v
 			effects->dof_params[2] = viewport_size[0] / sensor_scaled;
 			effects->dof_bokeh[0] = rotation;
 			effects->dof_bokeh[1] = ratio;
-			effects->dof_bokeh[2] = BKE_collection_engine_property_value_get_float(props, "bokeh_max_size");
+			effects->dof_bokeh[2] = scene_eval->eevee.bokeh_max_size;
 
 			/* Precompute values to save instructions in fragment shader. */
 			effects->dof_bokeh_sides[0] = blades;

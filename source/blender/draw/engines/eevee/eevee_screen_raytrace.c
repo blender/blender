@@ -30,6 +30,8 @@
 #include "BLI_dynstr.h"
 #include "BLI_string_utils.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_private.h"
 #include "GPU_texture.h"
 
@@ -111,16 +113,14 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer,
-	                                                        RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
 	/* Compute pixel size, (shared with contact shadows) */
 	copy_v2_v2(common_data->ssr_pixelsize, viewport_size);
 	invert_v2(common_data->ssr_pixelsize);
 
-	if (BKE_collection_engine_property_value_get_bool(props, "ssr_enable")) {
-		const bool use_refraction = BKE_collection_engine_property_value_get_bool(props, "ssr_refraction");
+	if (scene_eval->eevee.flag & SCE_EEVEE_SSR_ENABLED) {
+		const bool use_refraction = (scene_eval->eevee.flag & SCE_EEVEE_SSR_REFRACTION) != 0;
 
 		if (use_refraction) {
 			/* TODO: Opti: Could be shared. */
@@ -132,12 +132,12 @@ int EEVEE_screen_raytrace_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 			});
 		}
 
-		effects->reflection_trace_full = !BKE_collection_engine_property_value_get_bool(props, "ssr_halfres");
-		common_data->ssr_thickness = BKE_collection_engine_property_value_get_float(props, "ssr_thickness");
-		common_data->ssr_border_fac = BKE_collection_engine_property_value_get_float(props, "ssr_border_fade");
-		common_data->ssr_firefly_fac = BKE_collection_engine_property_value_get_float(props, "ssr_firefly_fac");
-		common_data->ssr_max_roughness = BKE_collection_engine_property_value_get_float(props, "ssr_max_roughness");
-		common_data->ssr_quality = 1.0f - 0.95f * BKE_collection_engine_property_value_get_float(props, "ssr_quality");
+		effects->reflection_trace_full = (scene_eval->eevee.flag & SCE_EEVEE_SSR_HALF_RESOLUTION) == 0;
+		common_data->ssr_thickness = scene_eval->eevee.ssr_thickness;
+		common_data->ssr_border_fac = scene_eval->eevee.ssr_border_fade;
+		common_data->ssr_firefly_fac = scene_eval->eevee.ssr_firefly_fac;
+		common_data->ssr_max_roughness = scene_eval->eevee.ssr_max_roughness;
+		common_data->ssr_quality = 1.0f - 0.95f * scene_eval->eevee.ssr_quality;
 		common_data->ssr_brdf_bias = 0.1f + common_data->ssr_quality * 0.6f; /* Range [0.1, 0.7]. */
 
 		if (common_data->ssr_firefly_fac < 1e-8f) {

@@ -1017,7 +1017,7 @@ static void view3d_main_region_listener(
 
 static void view3d_main_region_message_subscribe(
         const struct bContext *C,
-        struct WorkSpace *workspace, struct Scene *scene,
+        struct WorkSpace *workspace, struct Scene *UNUSED(scene),
         struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
@@ -1075,19 +1075,7 @@ static void view3d_main_region_message_subscribe(
 		WM_msg_subscribe_rna_anon_prop(mbus, RenderSettings, use_border, &msg_sub_value_region_tag_redraw);
 	}
 
-	/* Each engine could be responsible for its own engine data types.
-	 * For now this is simplest. */
-	if (STREQ(scene->r.engine, RE_engine_id_BLENDER_EEVEE)) {
-		extern StructRNA RNA_ViewLayerEngineSettingsEevee;
-		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsEevee, &msg_sub_value_region_tag_redraw);
-	}
-#ifdef WITH_CLAY_ENGINE
-	else if (STREQ(scene->r.engine, RE_engine_id_BLENDER_CLAY)) {
-		extern StructRNA RNA_ViewLayerEngineSettingsClay;
-		WM_msg_subscribe_rna_anon_type(mbus, ViewLayerEngineSettingsClay, &msg_sub_value_region_tag_redraw);
-	}
-#endif
-
+	WM_msg_subscribe_rna_anon_type(mbus, SceneEEVEE, &msg_sub_value_region_tag_redraw);
 	WM_msg_subscribe_rna_anon_type(mbus, SceneDisplay, &msg_sub_value_region_tag_redraw);
 	WM_msg_subscribe_rna_anon_type(mbus, ObjectDisplay, &msg_sub_value_region_tag_redraw);
 

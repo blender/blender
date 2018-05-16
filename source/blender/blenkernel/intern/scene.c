@@ -826,6 +826,60 @@ void BKE_scene_init(Scene *sce)
 	/* SceneDisplay */
 	copy_v3_v3(sce->display.light_direction, (float[3]){-M_SQRT1_3, -M_SQRT1_3, M_SQRT1_3});
 	sce->display.shadow_shift = 0.1;
+
+	/* SceneEEVEE */
+	sce->eevee.gi_diffuse_bounces = 3;
+	sce->eevee.gi_cubemap_resolution = 512;
+	sce->eevee.gi_visibility_resolution = 32;
+
+	sce->eevee.taa_samples = 16;
+	sce->eevee.taa_render_samples = 64;
+
+	sce->eevee.sss_samples = 7;
+	sce->eevee.sss_jitter_threshold = 0.3f;
+
+	sce->eevee.ssr_quality = 0.25f;
+	sce->eevee.ssr_max_roughness = 0.5f;
+	sce->eevee.ssr_thickness = 0.2f;
+	sce->eevee.ssr_border_fade = 0.075f;
+	sce->eevee.ssr_firefly_fac = 10.0f;
+
+	sce->eevee.volumetric_start = 0.1f;
+	sce->eevee.volumetric_end = 100.0f;
+	sce->eevee.volumetric_tile_size = 8;
+	sce->eevee.volumetric_samples = 64;
+	sce->eevee.volumetric_sample_distribution = 0.8f;
+	sce->eevee.volumetric_light_clamp = 0.0f;
+	sce->eevee.volumetric_shadow_samples = 16;
+
+	sce->eevee.gtao_distance = 0.2f;
+	sce->eevee.gtao_factor = 1.0f;
+	sce->eevee.gtao_quality = 0.25f;
+
+	sce->eevee.bokeh_max_size = 100.0f;
+	sce->eevee.bokeh_threshold = 1.0f;
+
+	copy_v3_fl(sce->eevee.bloom_color, 1.0f);
+	sce->eevee.bloom_threshold = 0.8f;
+	sce->eevee.bloom_knee = 0.5f;
+	sce->eevee.bloom_intensity = 0.8f;
+	sce->eevee.bloom_radius = 6.5f;
+	sce->eevee.bloom_clamp = 1.0f;
+
+	sce->eevee.motion_blur_samples = 8;
+	sce->eevee.motion_blur_shutter = 1.0f;
+
+	sce->eevee.shadow_method = SHADOW_ESM;
+	sce->eevee.shadow_cube_size = 512;
+	sce->eevee.shadow_cascade_size = 1024;
+
+	sce->eevee.flag =
+	        SCE_EEVEE_VOLUMETRIC_LIGHTS |
+	        SCE_EEVEE_VOLUMETRIC_COLORED |
+	        SCE_EEVEE_GTAO_BENT_NORMALS |
+	        SCE_EEVEE_GTAO_BOUNCE |
+	        SCE_EEVEE_TAA_REPROJECTION |
+	        SCE_EEVEE_SSR_HALF_RESOLUTION;
 }
 
 Scene *BKE_scene_add(Main *bmain, const char *name)

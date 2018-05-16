@@ -43,6 +43,8 @@
 #include "GPU_texture.h"
 #include "GPU_glew.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_engine.h"
 #include "eevee_private.h"
 
@@ -301,8 +303,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 	EEVEE_CommonUniformBuffer *common_data = &sldata->common_data;
 	bool update_all = false;
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
 	/* Shaders */
 	if (!e_data.probe_filter_glossy_sh) {
@@ -324,13 +325,13 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 	common_data->ssr_toggle = true;
 	common_data->sss_toggle = true;
 
-	int prop_bounce_num = BKE_collection_engine_property_value_get_int(props, "gi_diffuse_bounces");
+	int prop_bounce_num = scene_eval->eevee.gi_diffuse_bounces;
 	if (sldata->probes->num_bounce != prop_bounce_num) {
 		sldata->probes->num_bounce = prop_bounce_num;
 		update_all = true;
 	}
 
-	int prop_cubemap_res = BKE_collection_engine_property_value_get_int(props, "gi_cubemap_resolution");
+	int prop_cubemap_res = scene_eval->eevee.gi_cubemap_resolution;
 	if (sldata->probes->cubemap_res != prop_cubemap_res) {
 		sldata->probes->cubemap_res = prop_cubemap_res;
 		update_all = true;
@@ -342,7 +343,7 @@ void EEVEE_lightprobes_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *UNUSED(veda
 		DRW_TEXTURE_FREE_SAFE(sldata->probe_pool);
 	}
 
-	int visibility_res = BKE_collection_engine_property_value_get_int(props, "gi_visibility_resolution");
+	const int visibility_res = scene_eval->eevee.gi_visibility_resolution;
 	if (common_data->prb_irradiance_vis_size != visibility_res) {
 		common_data->prb_irradiance_vis_size = visibility_res;
 		update_all = true;

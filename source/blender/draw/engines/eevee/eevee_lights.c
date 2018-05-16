@@ -30,6 +30,8 @@
 
 #include "BKE_object.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "eevee_engine.h"
 #include "eevee_private.h"
 
@@ -100,8 +102,7 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 	                                     sizeof(EEVEE_ShadowCascade) * MAX_SHADOW_CASCADE;
 
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_EEVEE);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
 	if (!e_data.shadow_sh) {
 		e_data.shadow_sh = DRW_shader_create(
@@ -128,10 +129,10 @@ void EEVEE_lights_init(EEVEE_ViewLayerData *sldata)
 	/* Flip buffers */
 	SWAP(EEVEE_ShadowCasterBuffer *, sldata->lamps->shcaster_frontbuffer, sldata->lamps->shcaster_backbuffer);
 
-	int sh_method = BKE_collection_engine_property_value_get_int(props, "shadow_method");
-	int sh_cube_size = BKE_collection_engine_property_value_get_int(props, "shadow_cube_size");
-	int sh_cascade_size = BKE_collection_engine_property_value_get_int(props, "shadow_cascade_size");
-	int sh_high_bitdepth = BKE_collection_engine_property_value_get_int(props, "shadow_high_bitdepth");
+	const int sh_method = scene_eval->eevee.shadow_method;
+	int sh_cube_size = scene_eval->eevee.shadow_cube_size;
+	int sh_cascade_size = scene_eval->eevee.shadow_cascade_size;
+	const bool sh_high_bitdepth = (scene_eval->eevee.flag & SCE_EEVEE_SHADOW_HIGH_BITDEPTH) != 0;
 
 	EEVEE_LampsInfo *linfo = sldata->lamps;
 	if ((linfo->shadow_cube_size != sh_cube_size) ||
