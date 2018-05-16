@@ -147,9 +147,6 @@ enum {
 
 static int edbm_intersect_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
 	const int mode = RNA_enum_get(op->ptr, "mode");
 	int (*test_fn)(BMFace *, void *);
 	bool use_separate_all = false;
@@ -187,29 +184,45 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 		default:  /* ISECT_SEPARATE_NONE */
 			break;
 	}
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	uint isect_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	has_isect = BM_mesh_intersect(
-	        bm,
-	        em->looptris, em->tottri,
-	        test_fn, NULL,
-	        use_self, use_separate_all, true, true, true,
-	        -1,
-	        eps);
+		if (em->bm->totvert == 0) {
+			continue;
+		}
 
-	if (use_separate_cut) {
-		/* detach selected/un-selected faces */
-		BM_mesh_separate_faces(
-		        bm,
-		        BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
+		has_isect = BM_mesh_intersect(
+			em->bm,
+			em->looptris, em->tottri,
+			test_fn, NULL,
+			use_self, use_separate_all, true, true, true,
+			-1,
+			eps);
+
+		if (use_separate_cut) {
+			/* detach selected/un-selected faces */
+			BM_mesh_separate_faces(
+				em->bm,
+				BM_elem_cb_check_hflag_enabled_simple(const BMFace *, BM_ELEM_SELECT));
+		}
+
+		if (has_isect) {
+			edbm_intersect_select(em);
+		}
+		else {
+			isect_len++;
+		}
 	}
+	MEM_freeN(objects);
 
-	if (has_isect) {
-		edbm_intersect_select(em);
-	}
-	else {
+	if (isect_len == objects_len) {
 		BKE_report(op->reports, RPT_WARNING, "No intersections found");
 	}
-
 	return OPERATOR_FINISHED;
 }
 
