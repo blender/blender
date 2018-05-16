@@ -107,6 +107,7 @@ typedef void (*BVHTree_RangeQuery)(void *userdata, int index, const float co[3],
 typedef void (*BVHTree_NearestProjectedCallback)(
         void *userdata, int index,
         const struct DistProjectedAABBPrecalc *precalc,
+        const float (*clip_plane)[4], const int clip_plane_len,
         BVHTreeNearest *nearest);
 
 

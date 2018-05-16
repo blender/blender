@@ -2040,7 +2040,10 @@ static void bvhtree_nearest_projected_dfs_recursive(
 {
 	if (node->totnode == 0) {
 		if (data->callback) {
-			data->callback(data->userdata, node->index, &data->precalc, &data->nearest);
+			data->callback(
+			        data->userdata, node->index, &data->precalc,
+			        NULL, 0,
+			        &data->nearest);
 		}
 		else {
 			data->nearest.index = node->index;
@@ -2089,7 +2092,10 @@ static void bvhtree_nearest_projected_with_clipplane_test_dfs_recursive(
 {
 	if (node->totnode == 0) {
 		if (data->callback) {
-			data->callback(data->userdata, node->index, &data->precalc, &data->nearest);
+			data->callback(
+			        data->userdata, node->index, &data->precalc,
+			        data->clip_plane, data->clip_plane_len,
+			        &data->nearest);
 		}
 		else {
 			data->nearest.index = node->index;

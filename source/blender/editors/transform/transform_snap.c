@@ -1201,6 +1201,7 @@ bool snapObjectsTransform(
 	        &(const struct SnapObjectParams){
 	            .snap_select = t->tsnap.modeSelect,
 	            .use_object_edit_cage = (t->flag & T_EDIT) != 0,
+	            .use_occlusion_test = t->scene->toolsettings->snap_mode != SCE_SNAP_MODE_FACE,
 	        },
 	        mval, dist_px, NULL,
 	        r_loc, r_no, NULL,
