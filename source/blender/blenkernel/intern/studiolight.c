@@ -40,6 +40,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_path_util.h"
+#include "BLI_rand.h"
 #include "BLI_string.h"
 
 #include "DNA_listBase.h"
@@ -54,7 +55,8 @@
 static ListBase studiolights;
 #define STUDIO_LIGHT_EXTENSIONS ".jpg", ".hdr"
 #define STUDIO_LIGHT_DIFFUSE_SAMPLE_STEP 64
-static const char *STUDIO_LIGHT_FOLDER = "studiolights/";
+static const char *STUDIO_LIGHT_CAMERA_FOLDER = "studiolights/camera/";
+static const char *STUDIO_LIGHT_WORLD_FOLDER = "studiolights/world/";
 
 /* FUNCTIONS */
 static void studiolight_free(struct StudioLight *sl)
@@ -77,6 +79,16 @@ static void direction_to_equirectangular(float r[2], const float dir[3])
 {
 	r[0] = (atan2f(dir[1], dir[0]) - M_PI) / -(M_PI * 2);
 	r[1] = (acosf(dir[2] / 1.0) - M_PI) / -M_PI;
+}
+
+static void equirectangular_to_direction(float r[3], float u, float v)
+{
+	float phi = (-(M_PI * 2))*u + M_PI;
+	float theta = -M_PI*v + M_PI;
+	float sin_theta = sinf(theta);
+	r[0] = sin_theta*cosf(phi);
+	r[1] = sin_theta*sinf(phi);
+	r[2] = cosf(theta);
 }
 
 static void studiolight_calculate_directional_diffuse_light(ImBuf *ibuf, float color[4], const float start[3], const float v1[3], const float v2[3])
@@ -125,18 +137,18 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
 
-	if (sl->flag &= STUDIOLIGHT_EXTERNAL_FILE) {
+	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		ImBuf* ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path, 0, NULL);
 		if (ibuf) {
 			IMB_float_from_rect(ibuf);
-
+			/* XXX: should calculate the same, only rendering should be different */
 			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
 			copy_v3_fl3(v1, 0.0f, 2.0f, 0.0f);
 			copy_v3_fl3(v2, 0.0f, 0.0f, 2.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_NEG], start, v1, v2);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_POS], start, v1, v2);
 			copy_v3_fl3(start, 1.0f, -1.0f, -1.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_POS], start, v1, v2);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_NEG], start, v1, v2);
 
 			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
 			copy_v3_fl3(v1, 2.0f, 0.0f, 0.0f);
@@ -145,17 +157,51 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 			copy_v3_fl3(start, -1.0f, 1.0f, -1.0f);
 			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_X_NEG], start, v1, v2);
 
-			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
+			copy_v3_fl3(start, -1.0f, -1.0f, 1.0f);
 			copy_v3_fl3(v1, 2.0f, 0.0f, 0.0f);
 			copy_v3_fl3(v2, 0.0f, 2.0f, 0.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_NEG], start, v1, v2);
-			copy_v3_fl3(start, -1.0f, -1.0f, 1.0f);
-			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Y_POS], start, v1, v2);
-
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_POS], start, v1, v2);
+			copy_v3_fl3(start, -1.0f, -1.0f, -1.0f);
+			studiolight_calculate_directional_diffuse_light(ibuf, sl->diffuse_light[STUDIOLIGHT_Z_NEG], start, v1, v2);
 			IMB_freeImBuf(ibuf);
 		}
 	}
 	sl->flag |= STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED;
+}
+
+static void studiolight_calculate_light_direction(StudioLight *sl)
+{
+	float best_light = 0.0;
+	sl->light_direction[0] = 0.0f;
+	sl->light_direction[1] = 0.0f;
+	sl->light_direction[2] = -1.0f;
+
+	if ((sl->flag & STUDIOLIGHT_EXTERNAL_FILE) && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
+		ImBuf* ibuf = NULL;
+		ibuf = IMB_loadiffname(sl->path, 0, NULL);
+		if (ibuf) {
+			IMB_float_from_rect(ibuf);
+			/* go over every pixel, determine light, if higher calc direction off the light */
+			float col[4];
+			float direction[3];
+			float new_light;
+			for (int y = 0; y < ibuf->y; y ++) {
+				for (int x = 0; x < ibuf->x; x ++) {
+					nearest_interpolation_color_wrap(ibuf, NULL, col, x, y);
+					new_light = col[0] + col[1] + col[2];
+					if (new_light > best_light) {
+						equirectangular_to_direction(direction, x, y);
+						sl->light_direction[0] = direction[1];
+						sl->light_direction[1] = direction[2];
+						sl->light_direction[2] = direction[0];
+						best_light = new_light;
+					}
+				}
+			}
+			IMB_freeImBuf(ibuf);
+		}
+	}
+	sl->flag |= STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED;
 }
 
 static void studiolight_add_files_from_datafolder(const int folder_id, const char* subfolder, int flag)
@@ -185,6 +231,34 @@ static void studiolight_add_files_from_datafolder(const int folder_id, const cha
 
 }
 
+static int studiolight_flag_cmp_order(const StudioLight *sl)
+{
+	/* Internal studiolights before external studio lights */
+	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
+		return 1;
+	}
+	return 0;
+}
+
+static int studiolight_cmp(const void *a, const void *b)
+{
+	const StudioLight *sl1 = a;
+	const StudioLight *sl2 = b;
+
+	const int flagorder1 = studiolight_flag_cmp_order(sl1);
+	const int flagorder2 = studiolight_flag_cmp_order(sl2);
+
+	if (flagorder1 < flagorder2){
+		return -1;
+	}
+	else if (flagorder1 > flagorder2)
+	{
+		return 1;
+	}
+	else {
+		return BLI_strcasecmp(sl1->name, sl2->name);
+	}
+}
 /* API */
 void BKE_studiolight_init(void)
 {
@@ -194,18 +268,23 @@ void BKE_studiolight_init(void)
 	/* Also reserve icon space for it. */
 	/* Add default studio light */
 	sl = studiolight_create();
-	BLI_strncpy(sl->name, "INTERNAL_01\0", FILE_MAXFILE);
-	sl->flag = STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED;
+	BLI_strncpy(sl->name, "INTERNAL_01", FILE_MAXFILE);
+	sl->flag = STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA;
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 1.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 1.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.0f);
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
 	BLI_addtail(&studiolights, sl);
 
-	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIO_LIGHT_FOLDER, 0);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIO_LIGHT_FOLDER, 0);
+	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIO_LIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIO_LIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
+	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIO_LIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIO_LIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
+
+	/* sort studio lights on filename. */
+	BLI_listbase_sort(&studiolights, studiolight_cmp);
 }
 
 void BKE_studiolight_free(void)
@@ -281,9 +360,9 @@ unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size)
 				float color[3];
 				mul_v3_v3fl(color, sl->diffuse_light[STUDIOLIGHT_X_POS], clamp_f(normal[0], 0.0, 1.0));
 				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_X_NEG], clamp_f(-normal[0], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Y_POS], clamp_f(normal[1], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Y_NEG], clamp_f(-normal[1], 0.0, 1.0));
-				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_POS], clamp_f(normal[2], 0.0, 1.0));
+				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_POS], clamp_f(normal[1], 0.0, 1.0));
+				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Z_NEG], clamp_f(-normal[1], 0.0, 1.0));
+				interp_v3_v3v3(color, color, sl->diffuse_light[STUDIOLIGHT_Y_POS], clamp_f(normal[2], 0.0, 1.0));
 
 				pixelresult = rgb_to_cpack(
 				        linearrgb_to_srgb(color[0]),
@@ -298,11 +377,14 @@ unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size)
 
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 {
-	if (sl->flag & flag){
+	if ((sl->flag & flag) == flag){
 		return;
 	}
 
 	if ((flag & STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED)) {
 		studiolight_calculate_diffuse_light(sl);
+	}
+	if ((flag & STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED)) {
+		studiolight_calculate_light_direction(sl);
 	}
 }

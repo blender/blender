@@ -38,6 +38,11 @@
 
 #include "DNA_space_types.h"
 
+/*
+ * These defines are the indexes in the StudioLight.diffuse_light
+ * X_POS means the light that is traveling towards the positive X
+ * So Light direction.
+ */
 #define STUDIOLIGHT_X_POS 0
 #define STUDIOLIGHT_X_NEG 1
 #define STUDIOLIGHT_Y_POS 2
@@ -47,8 +52,11 @@
 
 enum StudioLightFlag
 {
-	STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED = (1 << 0),
-	STUDIOLIGHT_EXTERNAL_FILE            = (1 << 1),
+	STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED   = (1 << 0),
+	STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED = (1 << 1),
+	STUDIOLIGHT_EXTERNAL_FILE              = (1 << 2),
+	STUDIOLIGHT_ORIENTATION_CAMERA         = (1 << 3),
+	STUDIOLIGHT_ORIENTATION_WORLD          = (1 << 4),
 } StudioLightFlag;
 
 typedef struct StudioLight
@@ -60,6 +68,7 @@ typedef struct StudioLight
 	int icon_id;
 	int index;
 	float diffuse_light[6][3];
+	float light_direction[3];
 } StudioLight;
 
 void BKE_studiolight_init(void);

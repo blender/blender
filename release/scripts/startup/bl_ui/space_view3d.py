@@ -3510,14 +3510,17 @@ class VIEW3D_PT_shading(Panel):
             col.row().prop(shading, "light", expand=True)
             if shading.light == 'STUDIO':
                 col.row().template_icon_view(shading, "studio_light")
+                if shading.studio_light_orientation == 'WORLD':
+                    col.row().prop(shading, "studiolight_rot_z")
 
             col.separator()
 
-            row = col.row()
-            row.prop(shading, "show_shadows")
-            sub = row.row()
-            sub.active = shading.show_shadows
-            sub.prop(shading, "shadow_intensity", text="")
+            if not(shading.light == 'STUDIO' and shading.studio_light_orientation == 'WORLD'):
+                row = col.row()
+                row.prop(shading, "show_shadows")
+                sub = row.row()
+                sub.active = shading.show_shadows
+                sub.prop(shading, "shadow_intensity", text="")
 
             col.prop(shading, "show_object_outline")
 

@@ -64,6 +64,7 @@ static struct {
 	SceneDisplay display; /* world light direction for shadows */
 	float light_direction_vs[3];
 	int next_object_id;
+	float normal_world_matrix[3][3];
 } e_data = {{NULL}};
 
 /* Shaders */
@@ -86,7 +87,7 @@ extern DrawEngineType draw_engine_workbench_solid;
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || wpd->shading.flag & V3D_SHADING_SHADOW)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 #define NORMAL_ENCODING_ENABLED() (true)
-//(!SHADOW_ENABLED(wpd))
+#define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
 
 
 static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
@@ -99,10 +100,18 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_OBJECT_OUTLINE\n");
 	}
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
-		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
+		if (!STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
+			BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
+		}
 	}
 	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
+		if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
+			BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_WORLD\n");
+		}
+		else {
+			BLI_dynstr_appendf(ds, "#define STUDIOLIGHT_ORIENTATION_CAMERA\n");
+		}
 	}
 	if (NORMAL_VIEWPORT_PASS_ENABLED(wpd)) {
 		BLI_dynstr_appendf(ds, "#define NORMAL_VIEWPORT_PASS_ENABLED\n");
@@ -168,10 +177,13 @@ static int get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype)
 	const int DRAWOPTIONS_MASK = V3D_SHADING_OBJECT_OUTLINE | V3D_SHADING_SHADOW;
 	int index = (wpd->shading.flag & DRAWOPTIONS_MASK);
 	index = (index << 2) + wpd->shading.light;
+	index = (index << 2);
 	/* set the drawtype flag
-	   0 = OB_SOLID,
-	   1 = OB_TEXTURE */
-	index = index << 1;
+	0 = OB_SOLID,
+	1 = OB_TEXTURE
+	2 = STUDIOLIGHT_ORIENTATION_WORLD
+	*/
+	SET_FLAG_FROM_TEST(index, wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD, 2);
 	SET_FLAG_FROM_TEST(index, drawtype == OB_TEXTURE, 1);
 	return index;
 }
@@ -368,6 +380,17 @@ static void workbench_composite_uniforms(WORKBENCH_PrivateData *wpd, DRWShadingG
 	}
 	DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
 	DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
+
+	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
+		float view_matrix_inverse[4][4];
+		float rot_matrix[4][4];
+		float matrix[4][4];
+		axis_angle_to_mat4_single(rot_matrix, 'Z', -wpd->shading.studiolight_rot_z);
+		DRW_viewport_matrix_get(view_matrix_inverse, DRW_MAT_VIEWINV);
+		mul_m4_m4m4(matrix, rot_matrix, view_matrix_inverse);
+		copy_m3_m4(e_data.normal_world_matrix, matrix);
+		DRW_shgroup_uniform_mat3(grp, "normalWorldMatrix", e_data.normal_world_matrix);
+	}
 }
 
 void workbench_materials_cache_init(WORKBENCH_Data *vedata)
@@ -386,17 +409,24 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 	select_deferred_shaders(wpd);
 	/* Deferred Mix Pass */
 	{
-
 		wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
 		DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
 
-		copy_v3_v3(e_data.display.light_direction, scene->display.light_direction);
-		negate_v3(e_data.display.light_direction);
-		e_data.display.shadow_shift = scene->display.shadow_shift;
+		if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
+			BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED);
+			float rot_matrix[3][3];
+			// float dir[3] = {0.57, 0.57, -0.57};
+			axis_angle_to_mat3_single(rot_matrix, 'Z', wpd->shading.studiolight_rot_z);
+			mul_v3_m3v3(e_data.display.light_direction, rot_matrix, wpd->studio_light->light_direction);
+		}
+		else {
+			copy_v3_v3(e_data.display.light_direction, scene->display.light_direction);
+			negate_v3(e_data.display.light_direction);
+		}
 		float view_matrix[4][4];
 		DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
 		mul_v3_mat3_m4v3(e_data.light_direction_vs, view_matrix, e_data.display.light_direction);
-		
+
 		e_data.display.shadow_shift = scene->display.shadow_shift;
 
 		if (SHADOW_ENABLED(wpd)) {

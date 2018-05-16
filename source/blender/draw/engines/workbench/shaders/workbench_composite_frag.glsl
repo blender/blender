@@ -9,6 +9,7 @@ uniform vec3 objectOverlapColor = vec3(0.0);
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
+uniform mat3 normalWorldMatrix;
 
 uniform vec3 lightDirection; /* light direction in view space */
 
@@ -57,7 +58,13 @@ void main()
 
 
 #ifdef V3D_LIGHTING_STUDIO
-	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_viewport);
+#ifdef STUDIOLIGHT_ORIENTATION_CAMERA
+	vec3 diffuse_light = get_camera_diffuse_light(world_data, normal_viewport);
+#endif
+#ifdef STUDIOLIGHT_ORIENTATION_WORLD
+	vec3 normal_world = normalWorldMatrix * normal_viewport;
+	vec3 diffuse_light = get_world_diffuse_light(world_data, normal_world);
+#endif
 	vec3 shaded_color = diffuse_light * diffuse_color.rgb;
 
 #else /* V3D_LIGHTING_STUDIO */
