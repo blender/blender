@@ -36,6 +36,8 @@ struct GPUShader {
 	GLuint fragment; /* handle for fragment shader */
 
 	Gwn_ShaderInterface *interface; /* cached uniform & attrib interface for shader */
+
+	int feedback_transform_type;
 };
 
 #endif  /* __GPU_SHADER_PRIVATE_H__ */

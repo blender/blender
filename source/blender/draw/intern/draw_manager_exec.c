@@ -102,6 +102,21 @@ void drw_state_set(DRWState state)
 		}
 	}
 
+	/* Raster Discard */
+	{
+		if (CHANGED_ANY(DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
+		                DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW))
+		{
+			if ((state & (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
+			              DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW)) != 0) {
+				glDisable(GL_RASTERIZER_DISCARD);
+			}
+			else {
+				glEnable(GL_RASTERIZER_DISCARD);
+			}
+		}
+	}
+
 	/* Cull */
 	{
 		DRWState test;
@@ -900,11 +915,19 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 	int val;
 	float fval;
 	const bool shader_changed = (DST.shader != shgroup->shader);
+	bool use_tfeedback = false;
 
 	if (shader_changed) {
 		if (DST.shader) GPU_shader_unbind();
 		GPU_shader_bind(shgroup->shader);
 		DST.shader = shgroup->shader;
+	}
+
+	if ((pass_state & DRW_STATE_TRANS_FEEDBACK) != 0 &&
+	    (shgroup->type == DRW_SHG_FEEDBACK_TRANSFORM))
+	{
+		use_tfeedback = GPU_shader_transform_feedback_enable(shgroup->shader,
+		                                                     shgroup->tfeedback_target->vbo_id);
 	}
 
 	release_ubo_slots(shader_changed);
@@ -1023,7 +1046,7 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 #endif
 
 	/* Rendering Calls */
-	if (!ELEM(shgroup->type, DRW_SHG_NORMAL)) {
+	if (!ELEM(shgroup->type, DRW_SHG_NORMAL, DRW_SHG_FEEDBACK_TRANSFORM)) {
 		/* Replacing multiple calls with only one */
 		if (ELEM(shgroup->type, DRW_SHG_INSTANCE, DRW_SHG_INSTANCE_EXTERNAL)) {
 			if (shgroup->type == DRW_SHG_INSTANCE_EXTERNAL) {
@@ -1102,6 +1125,10 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 		}
 		/* Reset state */
 		glFrontFace(DST.frontface);
+	}
+
+	if (use_tfeedback) {
+		GPU_shader_transform_feedback_disable(shgroup->shader);
 	}
 
 	/* TODO: remove, (currently causes alpha issue with sculpt, need to investigate) */

@@ -193,6 +193,7 @@ typedef enum {
 	DRW_SHG_TRIANGLE_BATCH,
 	DRW_SHG_INSTANCE,
 	DRW_SHG_INSTANCE_EXTERNAL,
+	DRW_SHG_FEEDBACK_TRANSFORM,
 } DRWShadingGroupType;
 
 struct DRWShadingGroup {
@@ -206,6 +207,10 @@ struct DRWShadingGroup {
 		struct { /* DRW_SHG_NORMAL */
 			DRWCall *first, *last; /* Linked list of DRWCall or DRWCallDynamic depending of type */
 		} calls;
+		struct { /* DRW_SHG_FEEDBACK_TRANSFORM */
+			DRWCall *first, *last; /* Linked list of DRWCall or DRWCallDynamic depending of type */
+			struct Gwn_VertBuf *tfeedback_target; /* Transform Feedback target. */
+		};
 		struct { /* DRW_SHG_***_BATCH */
 			struct Gwn_Batch *batch_geom;     /* Result of call batching */
 			struct Gwn_VertBuf *batch_vbo;

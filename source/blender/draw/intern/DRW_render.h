@@ -47,6 +47,7 @@
 
 #include "GPU_framebuffer.h"
 #include "GPU_texture.h"
+#include "GPU_shader.h"
 
 #include "draw_common.h"
 #include "draw_cache.h"
@@ -229,6 +230,9 @@ struct GPUShader *DRW_shader_create(
         const char *vert, const char *geom, const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_with_lib(
         const char *vert, const char *geom, const char *frag, const char *lib, const char *defines);
+struct GPUShader *DRW_shader_create_with_transform_feedback(
+        const char *vert, const char *geom, const char *defines,
+        const GPUShaderTFBType prim_type, const char **varying_names, const int varying_count);
 struct GPUShader *DRW_shader_create_2D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_3D(const char *frag, const char *defines);
 struct GPUShader *DRW_shader_create_fullscreen(const char *frag, const char *defines);
@@ -274,6 +278,7 @@ typedef enum {
 	DRW_STATE_ADDITIVE_FULL = (1 << 19), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
 	DRW_STATE_BLEND_PREMUL  = (1 << 20), /* Use that if color is already premult by alpha. */
 	DRW_STATE_WIRE_SMOOTH   = (1 << 21),
+	DRW_STATE_TRANS_FEEDBACK = (1 << 22),
 
 	DRW_STATE_WRITE_STENCIL          = (1 << 27),
 	DRW_STATE_WRITE_STENCIL_SHADOW   = (1 << 28),
@@ -312,6 +317,7 @@ DRWShadingGroup *DRW_shgroup_instance_create(
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int size);
+DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);
 
 typedef void (DRWCallGenerateFn)(
         DRWShadingGroup *shgroup,

@@ -295,6 +295,14 @@ GPUShader *DRW_shader_create_with_lib(
 	return sh;
 }
 
+GPUShader *DRW_shader_create_with_transform_feedback(
+        const char *vert, const char *geom, const char *defines,
+        const GPUShaderTFBType prim_type, const char **varying_names, const int varying_count)
+{
+	return GPU_shader_create_ex(vert, NULL, geom, NULL, defines, GPU_SHADER_FLAGS_NONE,
+	                            prim_type, varying_names, varying_count);
+}
+
 GPUShader *DRW_shader_create_2D(const char *frag, const char *defines)
 {
 	return GPU_shader_create(datatoc_gpu_shader_2D_vert_glsl, frag, NULL, NULL, defines);

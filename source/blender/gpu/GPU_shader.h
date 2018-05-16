@@ -50,6 +50,13 @@ enum {
 	GPU_SHADER_FLAGS_NEW_SHADING        = (1 << 1),
 };
 
+typedef enum GPUShaderTFBType {
+	GPU_SHADER_TFB_NONE         = 0, /* Transform feedback unsupported. */
+	GPU_SHADER_TFB_POINTS       = 1,
+	GPU_SHADER_TFB_LINES        = 2,
+	GPU_SHADER_TFB_TRIANGLES    = 3,
+} GPUShaderTFBType;
+
 GPUShader *GPU_shader_create(
         const char *vertexcode,
         const char *fragcode,
@@ -62,11 +69,18 @@ GPUShader *GPU_shader_create_ex(
         const char *geocode,
         const char *libcode,
         const char *defines,
-        const int flags);
+        const int flags,
+        const GPUShaderTFBType tf_type,
+        const char **tf_names,
+        const int tf_count);
 void GPU_shader_free(GPUShader *shader);
 
 void GPU_shader_bind(GPUShader *shader);
 void GPU_shader_unbind(void);
+
+/* Returns true if transform feedback was succesfully enabled. */
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, unsigned int vbo_id);
+void GPU_shader_transform_feedback_disable(GPUShader *shader);
 
 int GPU_shader_get_program(GPUShader *shader);
 

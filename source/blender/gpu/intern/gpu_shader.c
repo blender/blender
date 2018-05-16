@@ -268,7 +268,10 @@ GPUShader *GPU_shader_create(const char *vertexcode,
 	                            geocode,
 	                            libcode,
 	                            defines,
-	                            GPU_SHADER_FLAGS_NONE);
+	                            GPU_SHADER_FLAGS_NONE,
+	                            GPU_SHADER_TFB_NONE,
+	                            NULL,
+	                            0);
 }
 
 #define DEBUG_SHADER_NONE ""
@@ -323,7 +326,10 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
                                 const char *geocode,
                                 const char *libcode,
                                 const char *defines,
-                                const int flags)
+                                const int flags,
+                                const GPUShaderTFBType tf_type,
+                                const char **tf_names,
+                                const int tf_count)
 {
 #ifdef WITH_OPENSUBDIV
 	bool use_opensubdiv = (flags & GPU_SHADER_FLAGS_SPECIAL_OPENSUBDIV) != 0;
@@ -469,6 +475,13 @@ GPUShader *GPU_shader_create_ex(const char *vertexcode,
 	}
 #endif
 
+	if (tf_names != NULL) {
+		glTransformFeedbackVaryings(shader->program, tf_count, tf_names, GL_INTERLEAVED_ATTRIBS);
+		/* Primitive type must be setup */
+		BLI_assert(tf_type != GPU_SHADER_TFB_NONE);
+		shader->feedback_transform_type = tf_type;
+	}
+
 	glLinkProgram(shader->program);
 	glGetProgramiv(shader->program, GL_LINK_STATUS, &status);
 	if (!status) {
@@ -525,6 +538,27 @@ void GPU_shader_bind(GPUShader *shader)
 void GPU_shader_unbind(void)
 {
 	glUseProgram(0);
+}
+
+bool GPU_shader_transform_feedback_enable(GPUShader *shader, unsigned int vbo_id)
+{
+	if (shader->feedback_transform_type == GPU_SHADER_TFB_NONE) {
+		return false;
+	}
+
+	glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, vbo_id);
+
+	switch (shader->feedback_transform_type) {
+		case GPU_SHADER_TFB_POINTS:    glBeginTransformFeedback(GL_POINTS);    return true;
+		case GPU_SHADER_TFB_LINES:     glBeginTransformFeedback(GL_LINES);     return true;
+		case GPU_SHADER_TFB_TRIANGLES: glBeginTransformFeedback(GL_TRIANGLES); return true;
+		default: return false;
+	}
+}
+
+void GPU_shader_transform_feedback_disable(GPUShader *UNUSED(shader))
+{
+	glEndTransformFeedback();
 }
 
 void GPU_shader_free(GPUShader *shader)
