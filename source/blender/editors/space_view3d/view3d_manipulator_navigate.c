@@ -166,9 +166,7 @@ struct NavigateWidgetGroup {
 	wmManipulator *mpr_array[MPR_TOTAL];
 	/* Store the view state to check for changes. */
 	struct {
-		struct {
-			short winx, winy;
-		} ar;
+		rcti rect_visible;
 		struct {
 			char is_persp;
 			char viewlock;
@@ -277,25 +275,25 @@ static void WIDGETGROUP_navigate_draw_prepare(const bContext *C, wmManipulatorGr
 		copy_v3_v3(navgroup->mpr_array[MPR_ROTATE]->matrix_offset[i], rv3d->viewmat[i]);
 	}
 
-	if ((navgroup->state.ar.winx == ar->winx) &&
-	    (navgroup->state.ar.winy == ar->winy) &&
+	rcti rect_visible;
+	ED_region_visible_rect(ar, &rect_visible);
+
+	if ((navgroup->state.rect_visible.xmax == rect_visible.xmax) &&
+	    (navgroup->state.rect_visible.ymax == rect_visible.ymax) &&
 	    (navgroup->state.rv3d.is_persp == rv3d->is_persp) &&
 	    (navgroup->state.rv3d.viewlock == rv3d->viewlock))
 	{
 		return;
 	}
 
-
-	navgroup->state.ar.winx = ar->winx;
-	navgroup->state.ar.winy = ar->winy;
+	navgroup->state.rect_visible = rect_visible;
 	navgroup->state.rv3d.is_persp = rv3d->is_persp;
 	navgroup->state.rv3d.viewlock = rv3d->viewlock;
-
 
 	const float icon_size = MANIPULATOR_SIZE;
 	const float icon_offset = (icon_size / 2.0) * MANIPULATOR_OFFSET_FAC * UI_DPI_FAC;
 	const float icon_offset_mini = icon_size * MANIPULATOR_MINI_OFFSET_FAC * UI_DPI_FAC;
-	const float co[2] = {ar->winx - icon_offset, ar->winy - icon_offset};
+	const float co[2] = {rect_visible.xmax - icon_offset, rect_visible.ymax - icon_offset};
 
 	wmManipulator *mpr;
 
