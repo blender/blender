@@ -5761,7 +5761,7 @@ void PAINT_OT_add_texture_paint_slot(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = texture_paint_add_texture_paint_slot_invoke;
 	ot->exec = texture_paint_add_texture_paint_slot_exec;
-	ot->poll = ED_operator_region_view3d_active;
+	ot->poll = ED_operator_object_active;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
