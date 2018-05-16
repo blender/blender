@@ -421,7 +421,7 @@ static void deformVerts(
 
 	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
 
-	meshdeformModifier_do(md, ctx->object, mesh, vertexCos, numVerts);
+	meshdeformModifier_do(md, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src && mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
@@ -437,7 +437,7 @@ static void deformVertsEM(
 {
 	Mesh *mesh_src = get_mesh(ctx->object, NULL, mesh, NULL, false, false);
 
-	meshdeformModifier_do(md, ctx->object, mesh, vertexCos, numVerts);
+	meshdeformModifier_do(md, ctx->object, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src && mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
