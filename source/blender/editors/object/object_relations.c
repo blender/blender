@@ -2311,6 +2311,19 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		}
 		FOREACH_GROUP_OBJECT_END;
 
+		/* Then, we make static override of the whole set of objects in the group. */
+		FOREACH_GROUP_OBJECT_BEGIN(group, ob)
+		{
+			if (ob->type == OB_ARMATURE && ob->pose != NULL) {
+				for (bPoseChannel *pchan = ob->pose->chanbase.first; pchan != NULL; pchan = pchan->next) {
+					if (pchan->custom != NULL) {
+						pchan->custom->id.tag &= ~ LIB_TAG_DOIT;
+					}
+				}
+			}
+		}
+		FOREACH_GROUP_OBJECT_END;
+
 		success = BKE_override_static_create_from_tag(bmain);
 
 		/* Intantiate our newly overridden objects in scene, if not yet done. */
@@ -2319,7 +2332,10 @@ static int make_override_static_exec(bContext *C, wmOperator *op)
 		Group *new_group = (Group *)group->id.newid;
 		FOREACH_GROUP_OBJECT_BEGIN(new_group, new_ob)
 		{
-			if (new_ob != NULL && (base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL) {
+			if (new_ob != NULL &&
+			    new_ob->id.override_static != NULL &&
+			    (base = BKE_view_layer_base_find(view_layer, new_ob)) == NULL)
+			{
 				BKE_collection_object_add_from(scene, obgroup, new_ob);
 				DEG_id_tag_update_ex(bmain, &new_ob->id, OB_RECALC_OB | DEG_TAG_BASE_FLAGS_UPDATE);
 				/* parent to 'group' empty */
