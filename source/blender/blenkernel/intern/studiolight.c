@@ -158,6 +158,32 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 	sl->flag |= STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED;
 }
 
+static void studiolight_add_files_from_datafolder(const int folder_id, const char* subfolder, int flag)
+{
+	StudioLight *sl;
+	struct direntry *dir;
+	const char *folder = BKE_appdir_folder_id(folder_id, subfolder);
+	if (folder) {
+		unsigned int totfile = BLI_filelist_dir_contents(folder, &dir);
+		int i;
+		for (i = 0; i < totfile; i++) {
+			if ((dir[i].type & S_IFREG)) {
+				const char *filename = dir[i].relname;
+				const char *path = dir[i].path;
+				if (BLI_testextensie_n(filename, STUDIO_LIGHT_EXTENSIONS, NULL)) {
+					sl = studiolight_create();
+					sl->flag = STUDIOLIGHT_EXTERNAL_FILE | flag;
+					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
+					BLI_strncpy(sl->path, path, FILE_MAXFILE);
+					BLI_addtail(&studiolights, sl);
+				}
+			}
+		}
+		BLI_filelist_free(dir, totfile);
+		dir = NULL;
+	}
+
+}
 
 /* API */
 void BKE_studiolight_init(void)
@@ -178,27 +204,8 @@ void BKE_studiolight_init(void)
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
 	BLI_addtail(&studiolights, sl);
 
-	struct direntry *dir;
-	const char *folder = BKE_appdir_folder_id(BLENDER_DATAFILES, STUDIO_LIGHT_FOLDER);
-	if (folder) {
-		unsigned int totfile = BLI_filelist_dir_contents(folder, &dir);
-		int i;
-		for (i = 0; i < totfile; i++) {
-			if ((dir[i].type & S_IFREG)) {
-				const char *filename = dir[i].relname;
-				const char *path = dir[i].path;
-				if (BLI_testextensie_n(filename, STUDIO_LIGHT_EXTENSIONS, NULL)) {
-					sl = studiolight_create();
-					sl->flag = STUDIOLIGHT_EXTERNAL_FILE;
-					BLI_strncpy(sl->name, filename, FILE_MAXFILE);
-					BLI_strncpy(sl->path, path, FILE_MAXFILE);
-					BLI_addtail(&studiolights, sl);
-				}
-			}
-		}
-		BLI_filelist_free(dir, totfile);
-		dir = NULL;
-	}
+	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIO_LIGHT_FOLDER, 0);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIO_LIGHT_FOLDER, 0);
 }
 
 void BKE_studiolight_free(void)
