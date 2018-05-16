@@ -2822,9 +2822,9 @@ void psys_cache_edit_paths(Depsgraph *depsgraph, Scene *scene, Object *ob, PTCac
 		ParticleSimulationData sim = {0};
 		sim.depsgraph = depsgraph;
 		sim.scene = scene;
-		sim.ob = ob;
-		sim.psys = psys;
-		sim.psmd = psys_get_modifier(ob, psys);
+		sim.ob = ob_eval;
+		sim.psys = psys_eval;
+		sim.psmd = psys_get_modifier(ob_eval, psys_eval);
 
 		psys_cache_child_paths(&sim, cfra, true, use_render_params);
 	}
