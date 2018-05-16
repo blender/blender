@@ -197,11 +197,18 @@ class TOPBAR_HT_lower_bar(Header):
 
         object_mode = 'OBJECT' if obj is None else obj.mode
 
-        # Pivit & Orientation
+        # Pivot & Orientation
+        pivot_point = context.tool_settings.transform_pivot_point
+        act_pivot_point = bpy.types.ToolSettings.bl_rna.properties['transform_pivot_point'].enum_items[pivot_point]
+
         row = layout.row(align=True)
-        row.prop(toolsettings, "transform_pivot_point", text="", icon_only=True)
-        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
-            row.prop(toolsettings, "use_transform_pivot_point_align", text="")
+        row.popover(
+            space_type='TOPBAR',
+            region_type='HEADER',
+            panel_type="TOPBAR_PT_pivot_point",
+            icon=act_pivot_point.icon,
+            text=""
+        )
 
         layout.prop(scene, "transform_orientation", text="")
 
@@ -329,6 +336,30 @@ class _draw_left_context_mode:
         UnifiedPaintPanel.prop_unified_weight(layout, context, brush, "weight", slider=True, text="Weight")
         UnifiedPaintPanel.prop_unified_size(layout, context, brush, "size", slider=True, text="Radius")
         UnifiedPaintPanel.prop_unified_strength(layout, context, brush, "strength", slider=True, text="Strength")
+
+
+class TOPBAR_PT_pivot_point(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Pivot Point"
+
+    def draw(self, context):
+        toolsettings = context.tool_settings
+        obj = context.active_object
+        mode = context.mode
+
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Pivot Point")
+        col.prop(toolsettings, "transform_pivot_point", expand=True)
+
+        layout.separator()
+
+        if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
+            layout.prop(
+                    toolsettings,
+                    "use_transform_pivot_point_align",
+                    text="Center Points Only")
 
 
 class INFO_MT_editor_menus(Menu):
@@ -597,6 +628,7 @@ class INFO_MT_help(Menu):
 classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
+    TOPBAR_PT_pivot_point,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,
