@@ -171,6 +171,14 @@ void BKE_workspace_free(WorkSpace *workspace)
 
 	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
+
+	for (bToolRef *tref = workspace->tools.first, *tref_next; tref; tref = tref_next) {
+		tref_next = tref->next;
+		if (tref->runtime) {
+			MEM_freeN(tref->runtime);
+		}
+	}
+	BLI_freelistN(&workspace->tools);
 }
 
 /**

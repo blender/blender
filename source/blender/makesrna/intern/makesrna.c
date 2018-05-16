@@ -2831,6 +2831,10 @@ static void rna_generate_struct_prototypes(FILE *f)
 					if (dp->prop->type == PROP_POINTER) {
 						int a, found = 0;
 						const char *struct_name = rna_parameter_type_name(dp->prop);
+						if (struct_name == NULL) {
+							printf("No struct found for property '%s'\n", dp->prop->identifier);
+							exit(1);
+						}
 
 						for (a = 0; a < all_structures; a++) {
 							if (STREQ(struct_name, structures[a])) {
@@ -3404,7 +3408,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_vfont.c", "rna_vfont_api.c", RNA_def_vfont},
 	{"rna_wm.c", "rna_wm_api.c", RNA_def_wm},
 	{"rna_wm_manipulator.c", "rna_wm_manipulator_api.c", RNA_def_wm_manipulator},
-	{"rna_workspace.c", NULL, RNA_def_workspace},
+	{"rna_workspace.c", "rna_workspace_api.c", RNA_def_workspace},
 	{"rna_world.c", NULL, RNA_def_world},
 	{"rna_movieclip.c", NULL, RNA_def_movieclip},
 	{"rna_tracking.c", NULL, RNA_def_tracking},

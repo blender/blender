@@ -122,6 +122,7 @@ set(APISRC
 	rna_vfont_api.c
 	rna_wm_api.c
 	rna_wm_manipulator_api.c
+	rna_workspace_api.c
 )
 
 string(REGEX REPLACE "rna_([a-zA-Z0-9_-]*).c" "${CMAKE_CURRENT_BINARY_DIR}/rna_\\1_gen.c" GENSRC "${DEFSRC}")

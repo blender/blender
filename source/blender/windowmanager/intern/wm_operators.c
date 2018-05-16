@@ -1826,69 +1826,6 @@ static void WM_OT_operator_defaults(wmOperatorType *ot)
 	ot->flag = OPTYPE_INTERNAL;
 }
 
-#ifdef USE_WORKSPACE_TOOL
-/* ***************** Set Active Tool ************************* */
-
-/* Developers note: in it's current form this doesn't need to be an operator,
- * keep this as-is for now since it may end up setting an active key-map.
- */
-
-static int wm_operator_tool_set_exec(bContext *C, wmOperator *op)
-{
-	ScrArea *sa = CTX_wm_area(C);
-
-	bToolDef tool_def = {{0}};
-
-	{
-		PropertyRNA *prop = RNA_struct_find_property(op->ptr, "space_type");
-		if (RNA_property_is_set(op->ptr, prop)) {
-			tool_def.spacetype = RNA_property_enum_get(op->ptr, prop);
-		}
-		else {
-			if (sa == NULL) {
-				BKE_report(op->reports, RPT_ERROR, "Space type not set");
-				return OPERATOR_CANCELLED;
-			}
-			tool_def.spacetype = sa->spacetype;
-		}
-	}
-
-	tool_def.index = RNA_int_get(op->ptr, "index");
-	RNA_string_get(op->ptr, "keymap", tool_def.keymap);
-	RNA_string_get(op->ptr, "manipulator_group", tool_def.manipulator_group);
-	RNA_string_get(op->ptr, "data_block", tool_def.data_block);
-
-	WM_toolsystem_set(C, &tool_def);
-
-	/* For some reason redraw fails with menus (even though 'ar' isn't the menu's region). */
-	if (sa) {
-		ED_area_tag_redraw(sa);
-	}
-	else {
-		WM_event_add_notifier(C, NC_WINDOW, NULL);
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-static void WM_OT_tool_set(wmOperatorType *ot)
-{
-	ot->name = "Set Active Tool";
-	ot->idname = "WM_OT_tool_set";
-	ot->description = "Set the active tool";
-
-	ot->exec = wm_operator_tool_set_exec;
-
-	ot->flag = OPTYPE_INTERNAL;
-
-	RNA_def_enum(ot->srna, "space_type", rna_enum_space_type_items + 1, SPACE_EMPTY, "Space Type", "");
-	RNA_def_string(ot->srna, "keymap", NULL, KMAP_MAX_NAME, "Key Map", "");
-	RNA_def_string(ot->srna, "manipulator_group", NULL, MAX_NAME, "Manipulator Group", "");
-	RNA_def_string(ot->srna, "data_block", NULL, MAX_NAME, "Data Block", "");
-	RNA_def_int(ot->srna, "index", 0, INT_MIN, INT_MAX, "Index", "", INT_MIN, INT_MAX);
-}
-#endif /* USE_WORKSPACE_TOOL */
-
 /* ***************** Splash Screen ************************* */
 
 static void wm_block_splash_close(bContext *C, void *arg_block, void *UNUSED(arg))
@@ -3765,9 +3702,6 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_memory_statistics);
 	WM_operatortype_append(WM_OT_debug_menu);
 	WM_operatortype_append(WM_OT_operator_defaults);
-#ifdef USE_WORKSPACE_TOOL
-	WM_operatortype_append(WM_OT_tool_set);
-#endif
 	WM_operatortype_append(WM_OT_splash);
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);

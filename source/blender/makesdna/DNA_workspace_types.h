@@ -53,16 +53,35 @@
 /* Currently testing, allow to disable. */
 #define USE_WORKSPACE_TOOL
 
-typedef struct bToolDef {
+#
+#
+typedef struct bToolRef_Runtime {
 	/* One of these must be defined. */
 	char keymap[64];
 	char manipulator_group[64];
 	char data_block[64];
-
-	int  spacetype;
 	/* index when a tool is a member of a group */
-	int  index;
-} bToolDef;
+	int index;
+} bToolRef_Runtime;
+
+
+/* Stored per mode. */
+typedef struct bToolRef {
+	struct bToolRef *next, *prev;
+	char idname[64];
+
+	/** bToolKey (spacetype, mode), used in 'WM_api.h' */
+	int space_type;
+	/**
+	 * Value depends ont the 'space_type', object mode for 3D view, image editor has own mode too.
+	 * RNA needs to handle using item function.
+	 */
+	int mode;
+
+	/** Variables needed to operate the tool. */
+	bToolRef_Runtime *runtime;
+} bToolRef;
+
 
 /**
  * \brief Wrapper for bScreen.
@@ -97,13 +116,22 @@ typedef struct WorkSpace {
 	/* Feature tagging (use for addons) */
 	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */
 
-	int pad;
-	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
+	struct ViewLayer *view_layer DNA_DEPRECATED;
 
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
-	bToolDef tool;
 
-	struct ViewLayer *view_layer DNA_DEPRECATED;
+	/** List of #bToolRef */
+	ListBase tools;
+
+	/**
+	 * BAD DESIGN WARNING:
+	 * This is a workaround for the topbar not knowing which tools spac */
+	char tools_space_type;
+	/** Type is different for each space-type. */
+	char tools_mode;
+
+	char _pad[2];
+	int flags DNA_PRIVATE_WORKSPACE; /* enum eWorkSpaceFlags */
 } WorkSpace;
 
 /* internal struct, but exported for read/write */

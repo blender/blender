@@ -3598,6 +3598,7 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->scene_viewlayer_relations);
 	writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
+	writelist(wd, DATA, bToolRef, &workspace->tools);
 }
 
 /* Keep it last of write_foodata functions. */

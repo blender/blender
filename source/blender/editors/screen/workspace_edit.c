@@ -201,8 +201,8 @@ bool ED_workspace_change(
 		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
-		WM_toolsystem_unlink(C, workspace_old);
-		WM_toolsystem_link(C, workspace_new);
+		WM_toolsystem_unlink_all(C, workspace_old);
+		WM_toolsystem_link_all(C, workspace_new);
 
 		return true;
 	}
@@ -224,7 +224,7 @@ WorkSpace *ED_workspace_duplicate(
 	        bmain, workspace_old->id.name + 2, scene,
 	        BKE_workspace_view_layer_get(workspace_old, scene));
 
-	workspace_new->tool = workspace_old->tool;
+	/* TODO(campbell): tools */
 
 	for (WorkSpaceLayout *layout_old = layouts_old->first; layout_old; layout_old = layout_old->next) {
 		WorkSpaceLayout *layout_new = ED_workspace_layout_duplicate(workspace_new, layout_old, win);

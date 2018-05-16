@@ -777,6 +777,108 @@ class _defs_weight_paint:
         )
 
 
+class _defs_uv_select:
+
+    @ToolDef.from_fn
+    def border():
+        return dict(
+            text="Select Border",
+            icon="ops.generic.select_border",
+            widget=None,
+            keymap=(
+                ("uv.select_border",
+                 dict(deselect=False),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+                # ("uv.select_border",
+                #  dict(deselect=True),
+                #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def circle():
+        return dict(
+            text="Select Circle",
+            icon="ops.generic.select_circle",
+            widget=None,
+            keymap=(
+                ("uv.select_circle",
+                 dict(),  # dict(deselect=False),
+                 dict(type='ACTIONMOUSE', value='PRESS')),
+                # ("uv.select_circle",
+                #  dict(deselect=True),
+                #  dict(type='ACTIONMOUSE', value='PRESS', ctrl=True)),
+            ),
+        )
+
+    @ToolDef.from_fn
+    def lasso():
+        return dict(
+            text="Select Lasso",
+            icon="ops.generic.select_lasso",
+            widget=None,
+            keymap=(
+                ("uv.select_lasso",
+                 dict(deselect=False),
+                 dict(type='EVT_TWEAK_A', value='ANY')),
+                # ("uv.select_lasso",
+                #  dict(deselect=True),
+                #  dict(type='EVT_TWEAK_A', value='ANY', ctrl=True)),
+            ),
+        )
+
+
+class IMAGE_PT_tools_active(ToolSelectPanelHelper, Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'TOOLS'
+    bl_category = "Tools"
+    bl_label = "Tools"  # not visible
+    bl_options = {'HIDE_HEADER'}
+
+    # Satisfy the 'ToolSelectPanelHelper' API.
+    keymap_prefix = "Image Editor Tool: "
+
+    @classmethod
+    def tools_from_context(cls, context, mode=None):
+        if mode is None:
+            mode = context.space_data.mode
+        for tools in (cls._tools[None], cls._tools.get(mode, ())):
+            for item in tools:
+                if not (type(item) is ToolDef) and callable(item):
+                    yield from item(context)
+                else:
+                    yield item
+
+    @classmethod
+    def tools_all(cls):
+        yield from cls._tools.items()
+
+    # for reuse
+    _tools_select = (
+        (
+            _defs_uv_select.border,
+            _defs_uv_select.circle,
+            _defs_uv_select.lasso,
+        ),
+    )
+
+    _tools = {
+        None: [
+            # for all modes
+        ],
+        'VIEW': [
+            *_tools_select,
+
+        ],
+        'MASK': [
+            None,
+        ],
+        'PAINT': [
+            _defs_texture_paint.generate_from_brushes,
+        ],
+    }
+
+
 class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'TOOLS'
@@ -788,8 +890,10 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
     keymap_prefix = "3D View Tool: "
 
     @classmethod
-    def tools_from_context(cls, context):
-        for tools in (cls._tools[None], cls._tools.get(context.mode, ())):
+    def tools_from_context(cls, context, mode=None):
+        if mode is None:
+            mode = context.mode
+        for tools in (cls._tools[None], cls._tools.get(mode, ())):
             for item in tools:
                 if not (type(item) is ToolDef) and callable(item):
                     yield from item(context)
@@ -934,6 +1038,7 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
 
 
 classes = (
+    IMAGE_PT_tools_active,
     VIEW3D_PT_tools_active,
 )
 

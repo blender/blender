@@ -1252,6 +1252,8 @@ static int wpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 
 	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
+	WM_toolsystem_update_from_context_view3d(C);
+
 	return OPERATOR_FINISHED;
 }
 
@@ -2385,6 +2387,8 @@ static int vpaint_mode_toggle_exec(bContext *C, wmOperator *op)
 	WM_event_add_notifier(C, NC_SCENE | ND_MODE, scene);
 
 	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
+
+	WM_toolsystem_update_from_context_view3d(C);
 
 	return OPERATOR_FINISHED;
 }

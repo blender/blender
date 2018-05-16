@@ -1283,8 +1283,14 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 		/* TODO: support mixing modes again? - it's supported but tool system makes it unobvious. */
 		man->twtype = 0;
 		WorkSpace *workspace = CTX_wm_workspace(C);
+		Scene *scene = CTX_data_scene(C);
 		ScrArea *sa = CTX_wm_area(C);
-		wmKeyMap *km = WM_keymap_find_all(C, workspace->tool.keymap, sa->spacetype, RGN_TYPE_WINDOW);
+		const bToolKey tkey = {
+			.space_type = sa->spacetype,
+			.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, NULL, sa->spacetype),
+		};
+		bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_find(workspace, &tkey);
+		wmKeyMap *km = WM_keymap_find_all(C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW);
 		/* Weak, check first event */
 		wmKeyMapItem *kmi = km ? km->items.first : NULL;
 
@@ -1552,8 +1558,10 @@ static bool WIDGETGROUP_manipulator_poll(const struct bContext *C, struct wmMani
 		return false;
 	}
 
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	if (!STREQ(workspace->tool.manipulator_group, "TRANSFORM_WGT_manipulator")) {
+	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+	if ((tref_rt == NULL) ||
+	    !STREQ(wgt->idname, tref_rt->manipulator_group))
+	{
 		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}
@@ -1596,8 +1604,8 @@ static bool WIDGETGROUP_xform_cage_poll(const bContext *C, wmManipulatorGroupTyp
 		return false;
 	}
 
-	WorkSpace *workspace = CTX_wm_workspace(C);
-	if (!STREQ(wgt->idname, workspace->tool.manipulator_group)) {
+	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_from_context((bContext *)C);
+	if (!STREQ(wgt->idname, tref_rt->manipulator_group)) {
 		WM_manipulator_group_type_unlink_delayed_ptr(wgt);
 		return false;
 	}

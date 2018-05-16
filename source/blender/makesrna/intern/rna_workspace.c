@@ -49,6 +49,7 @@
 
 #include "DNA_object_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "RNA_access.h"
 
@@ -107,6 +108,42 @@ static void rna_WorkSpace_owner_ids_clear(
 	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER | NA_REMOVED, workspace);
 }
 
+static bToolRef *rna_WorkSpace_tools_from_tkey(WorkSpace *workspace, const bToolKey *tkey, bool create)
+{
+	if (create) {
+		bToolRef *tref;
+		WM_toolsystem_ref_ensure(workspace, tkey, &tref);
+		return tref;
+	}
+	return WM_toolsystem_ref_find(workspace, tkey);
+}
+
+static bToolRef *rna_WorkSpace_tools_from_space_view3d_mode(
+        WorkSpace *workspace, int mode, int create)
+{
+	return rna_WorkSpace_tools_from_tkey(workspace, &(bToolKey){ .space_type = SPACE_VIEW3D, .mode = mode}, create);
+}
+
+static bToolRef *rna_WorkSpace_tools_from_space_image_mode(
+        WorkSpace *workspace, int mode, int create)
+{
+	return rna_WorkSpace_tools_from_tkey(workspace, &(bToolKey){ .space_type = SPACE_IMAGE, .mode = mode}, create);
+}
+
+const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(
+        bContext *UNUSED(C), PointerRNA *ptr, PropertyRNA *UNUSED(prop), bool *UNUSED(r_free))
+{
+	WorkSpace *workspace = ptr->id.data;
+
+	switch (workspace->tools_space_type) {
+		case SPACE_VIEW3D:
+			return rna_enum_object_mode_items;
+		case SPACE_IMAGE:
+			return rna_enum_space_image_mode_items;
+	}
+	return DummyRNA_NULL_items;
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_workspace_owner(BlenderRNA *brna)
@@ -159,6 +196,56 @@ static void rna_def_workspace_owner_ids(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Remove all tags");
 }
 
+static void rna_def_workspace_tool(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "WorkspaceTool", NULL);
+	RNA_def_struct_sdna(srna, "bToolRef");
+	RNA_def_struct_clear_flag(srna, STRUCT_UNDO);
+	RNA_def_struct_ui_text(srna, "Work Space Tool", "");
+
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "idname");
+	RNA_def_property_ui_text(prop, "Name", "");
+	RNA_def_struct_name_property(srna, prop);
+
+	RNA_api_workspace_tool(srna);
+}
+
+static void rna_def_workspace_tools(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "wmTools");
+	srna = RNA_def_struct(brna, "wmTools", NULL);
+	RNA_def_struct_sdna(srna, "WorkSpace");
+	RNA_def_struct_ui_text(srna, "WorkSpace UI Tags", "");
+
+	/* add owner_id */
+	func = RNA_def_function(srna, "from_space_view3d_mode", "rna_WorkSpace_tools_from_space_view3d_mode");
+	RNA_def_function_ui_description(func, "");
+	parm = RNA_def_enum(func, "mode", rna_enum_object_mode_items, 0, "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_boolean(func, "create", false, "Create", "");
+	/* return type */
+	parm = RNA_def_pointer(func, "result", "WorkspaceTool", "", "");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "from_space_image_mode", "rna_WorkSpace_tools_from_space_image_mode");
+	RNA_def_function_ui_description(func, "");
+	parm = RNA_def_enum(func, "mode", rna_enum_space_image_mode_items, 0, "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	RNA_def_boolean(func, "create", false, "Create", "");
+	/* return type */
+	parm = RNA_def_pointer(func, "result", "WorkspaceTool", "", "");
+	RNA_def_function_return(func, parm);
+}
+
 static void rna_def_workspace(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -177,36 +264,29 @@ static void rna_def_workspace(BlenderRNA *brna)
 	                                  "rna_workspace_screens_item_get", NULL, NULL, NULL, NULL);
 	RNA_def_property_ui_text(prop, "Screens", "Screen layouts of a workspace");
 
-	prop = RNA_def_property(srna, "tool_keymap", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "tool.keymap");
-	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool keymap");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop = RNA_def_property(srna, "tool_manipulator_group", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "tool.manipulator_group");
-	RNA_def_property_ui_text(prop, "Active Tool", "Currently active tool manipulator");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop = RNA_def_property(srna, "tool_data_block", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "tool.data_block");
-	RNA_def_property_ui_text(prop, "Active Tool", "Currently active data-block");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop = RNA_def_property(srna, "tool_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "tool.index");
-	RNA_def_property_ui_text(prop, "Active Tool Index", "Tool group index");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop = RNA_def_property(srna, "tool_space_type", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "tool.spacetype");
-	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
-	RNA_def_property_ui_text(prop, "Active Tool Space", "Tool space type");
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
 	prop = RNA_def_property(srna, "owner_ids", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_struct_type(prop, "wmOwnerID");
 	RNA_def_property_ui_text(prop, "UI Tags", "");
 	rna_def_workspace_owner_ids(brna, prop);
+
+	prop = RNA_def_property(srna, "tools", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_sdna(prop, NULL, "tools", NULL);
+	RNA_def_property_struct_type(prop, "WorkspaceTool");
+	RNA_def_property_ui_text(prop, "Tools", "");
+	rna_def_workspace_tools(brna, prop);
+
+	prop = RNA_def_property(srna, "tools_space_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tools_space_type");
+	RNA_def_property_enum_items(prop, rna_enum_space_type_items);
+	RNA_def_property_ui_text(prop, "Active Tool Space", "Tool space type");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+
+	prop = RNA_def_property(srna, "tools_mode", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "tools_mode");
+	RNA_def_property_enum_items(prop, rna_enum_object_mode_items);  /* value is placeholder, itemf is used. */
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_WorkSpace_tools_mode_itemf");
+	RNA_def_property_ui_text(prop, "Active Tool Space", "Tool mode");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 #if 0
 	prop = RNA_def_property(srna, "object_mode", PROP_ENUM, PROP_NONE);
@@ -221,11 +301,15 @@ static void rna_def_workspace(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Use UI Tags",
 	                         "Filter the UI by tags");
 	RNA_def_property_update(prop, 0, "rna_window_update_all");
+
+	RNA_api_workspace(srna);
 }
 
 void RNA_def_workspace(BlenderRNA *brna)
 {
 	rna_def_workspace_owner(brna);
+	rna_def_workspace_tool(brna);
+
 	rna_def_workspace(brna);
 }
 

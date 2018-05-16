@@ -1017,8 +1017,8 @@ static void view3d_main_region_listener(
 
 static void view3d_main_region_message_subscribe(
         const struct bContext *C,
-        struct WorkSpace *workspace, struct Scene *UNUSED(scene),
-        struct bScreen *UNUSED(screen), struct ScrArea *UNUSED(sa), struct ARegion *ar,
+        struct WorkSpace *UNUSED(workspace), struct Scene *UNUSED(scene),
+        struct bScreen *UNUSED(screen), struct ScrArea *sa, struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
 	/* Developer note: there are many properties that impact 3D view drawing,
@@ -1091,10 +1091,10 @@ static void view3d_main_region_message_subscribe(
 		}
 	}
 
-	if (workspace->tool.spacetype == SPACE_VIEW3D) {
+	{
 		wmMsgSubscribeValue msg_sub_value_region_tag_refresh = {
 			.owner = ar,
-			.user_data = ar,
+			.user_data = sa,
 			.notify = WM_toolsystem_do_msg_notify_tag_refresh,
 		};
 		WM_msg_subscribe_rna_anon_prop(

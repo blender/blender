@@ -201,9 +201,10 @@ static void topbar_header_region_message_subscribe(
 		.user_data = ar,
 		.notify = ED_region_do_msg_notify_tag_redraw,
 	};
+
 	WM_msg_subscribe_rna_prop(
 	        mbus, &workspace->id, workspace,
-	        WorkSpace, tool_keymap, &msg_sub_value_region_tag_redraw);
+	        WorkSpace, tools, &msg_sub_value_region_tag_redraw);
 }
 
 static void recent_files_menu_draw(const bContext *UNUSED(C), Menu *menu)

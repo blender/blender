@@ -4527,6 +4527,8 @@ static int particle_edit_toggle_exec(bContext *C, wmOperator *op)
 
 	WM_msg_publish_rna_prop(mbus, &ob->id, ob, Object, mode);
 
+	WM_toolsystem_update_from_context_view3d(C);
+
 	return OPERATOR_FINISHED;
 }
 
