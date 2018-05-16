@@ -896,7 +896,7 @@ void DM_set_only_copy(DerivedMesh *dm, CustomDataMask mask)
 #endif
 }
 
-void mesh_set_only_copy(Mesh *mesh, CustomDataMask mask)
+static void mesh_set_only_copy(Mesh *mesh, CustomDataMask mask)
 {
 	CustomData_set_only_copy(&mesh->vdata, mask);
 	CustomData_set_only_copy(&mesh->edata, mask);
@@ -1780,7 +1780,7 @@ void DM_update_weight_mcol(
 	}
 }
 
-void mesh_update_weight_mcol(
+static void mesh_update_weight_mcol(
         Object *ob, Mesh *mesh, int const draw_flag,
         float *weights, int num, const int *indices)
 {
