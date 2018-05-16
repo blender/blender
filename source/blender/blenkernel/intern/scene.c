@@ -252,22 +252,12 @@ void BKE_scene_copy_data(Main *bmain, Scene *sce_dst, const Scene *sce_src, cons
 	/* Recursively creates a new SceneCollection tree. */
 	BKE_collection_copy_data(mc_dst, mc_src, flag_subdata);
 
-	IDPropertyTemplate val = {0};
 	BLI_duplicatelist(&sce_dst->view_layers, &sce_src->view_layers);
 	for (ViewLayer *view_layer_src = sce_src->view_layers.first, *view_layer_dst = sce_dst->view_layers.first;
 	     view_layer_src;
 	     view_layer_src = view_layer_src->next, view_layer_dst = view_layer_dst->next)
 	{
 		BKE_view_layer_copy_data(view_layer_dst, view_layer_src, mc_dst, mc_src, flag_subdata);
-	}
-
-	sce_dst->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	if (sce_src->collection_properties) {
-		IDP_MergeGroup_ex(sce_dst->collection_properties, sce_src->collection_properties, true, flag_subdata);
-	}
-	sce_dst->layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	if (sce_src->layer_properties) {
-		IDP_MergeGroup_ex(sce_dst->layer_properties, sce_src->layer_properties, true, flag_subdata);
 	}
 
 	BLI_duplicatelist(&(sce_dst->markers), &(sce_src->markers));
@@ -520,19 +510,8 @@ void BKE_scene_free_ex(Scene *sce, const bool do_id_user)
 	MEM_freeN(sce->collection);
 	sce->collection = NULL;
 
-	/* LayerCollection engine settings. */
-	if (sce->collection_properties) {
-		IDP_FreeProperty(sce->collection_properties);
-		MEM_freeN(sce->collection_properties);
-		sce->collection_properties = NULL;
-	}
-
-	/* Render engine setting. */
-	if (sce->layer_properties) {
-		IDP_FreeProperty(sce->layer_properties);
-		MEM_freeN(sce->layer_properties);
-		sce->layer_properties = NULL;
-	}
+	/* These are freed on doversion. */
+	BLI_assert(sce->layer_properties == NULL);
 }
 
 void BKE_scene_free(Scene *sce)
@@ -812,14 +791,6 @@ void BKE_scene_init(Scene *sce)
 	/* Master Collection */
 	sce->collection = MEM_callocN(sizeof(SceneCollection), "Master Collection");
 	BLI_strncpy(sce->collection->name, "Master Collection", sizeof(sce->collection->name));
-
-	/* Engine settings */
-	IDPropertyTemplate val = {0};
-	sce->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	BKE_layer_collection_engine_settings_create(sce->collection_properties);
-
-	sce->layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-	BKE_view_layer_engine_settings_create(sce->layer_properties);
 
 	BKE_view_layer_add(sce, "View Layer");
 

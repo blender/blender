@@ -264,23 +264,6 @@ static void engine_update_script_node(RenderEngine *engine, struct bNodeTree *nt
 	RNA_parameter_list_free(&list);
 }
 
-static void engine_collection_settings_create(RenderEngine *engine, struct IDProperty *props)
-{
-	extern FunctionRNA rna_RenderEngine_collection_settings_create_func;
-	PointerRNA ptr;
-	ParameterList list;
-	FunctionRNA *func;
-
-	RNA_pointer_create(NULL, engine->type->ext.srna, engine, &ptr);
-	func = &rna_RenderEngine_collection_settings_create_func;
-
-	RNA_parameter_list_create(&list, &ptr, func);
-	RNA_parameter_set_lookup(&list, "props", &props);
-	engine->type->ext.call(NULL, &ptr, func, &list);
-
-	RNA_parameter_list_free(&list);
-}
-
 static void engine_update_render_passes(RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer)
 {
 	extern FunctionRNA rna_RenderEngine_update_render_passes_func;
@@ -366,9 +349,8 @@ static StructRNA *rna_RenderEngine_register(
 	et->render_to_view = (have_function[4]) ? engine_render_to_view : NULL;
 	et->update_script_node = (have_function[5]) ? engine_update_script_node : NULL;
 	et->update_render_passes = (have_function[6]) ? engine_update_render_passes : NULL;
-	et->collection_settings_create = (have_function[7]) ? engine_collection_settings_create : NULL;
 
-	RE_engines_register(bmain, et);
+	RE_engines_register(et);
 
 	return et->ext.srna;
 }
@@ -559,13 +541,6 @@ static void rna_def_render_engine(BlenderRNA *brna)
 	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
 	parm = RNA_def_pointer(func, "renderlayer", "ViewLayer", "", "");
-
-	/* per-collection engine settings initialization */
-	func = RNA_def_function(srna, "collection_settings_create", NULL);
-	RNA_def_function_ui_description(func, "Create the per collection settings for the engine");
-	RNA_def_function_flag(func, FUNC_REGISTER_OPTIONAL | FUNC_ALLOW_WRITE);
-	parm = RNA_def_pointer(func, "collection_settings", "LayerCollectionSettings", "", "");
-	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 
 	/* tag for redraw */
 	func = RNA_def_function(srna, "tag_redraw", "engine_tag_redraw");

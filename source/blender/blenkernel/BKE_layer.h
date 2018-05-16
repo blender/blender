@@ -56,8 +56,6 @@ struct SceneCollection;
 struct ViewLayer;
 struct WorkSpace;
 
-void BKE_layer_exit(void);
-
 struct ViewLayer *BKE_view_layer_default_view(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_default_render(const struct Scene *scene);
 struct ViewLayer *BKE_view_layer_from_workspace_get(const struct Scene *scene, const struct WorkSpace *workspace);
@@ -132,36 +130,10 @@ void BKE_override_view_layer_int_add(struct ViewLayer *view_layer, int id_type, 
 
 void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value);
 
-/* engine settings */
-typedef void (*EngineSettingsCB)(struct RenderEngine *engine, struct IDProperty *props);
-
-struct IDProperty *BKE_layer_collection_engine_scene_get(struct Scene *scene, const char *engine_name);
-void BKE_layer_collection_engine_settings_callback_register(struct Main *bmain, const char *engine_name, EngineSettingsCB func);
-void BKE_layer_collection_engine_settings_callback_free(void);
-void BKE_layer_collection_engine_settings_create(struct IDProperty *root);
-void BKE_layer_collection_engine_settings_validate_scene(struct Scene *scene);
-
-struct IDProperty *BKE_view_layer_engine_evaluated_get(struct ViewLayer *view_layer, const char *engine_name);
-struct IDProperty *BKE_view_layer_engine_scene_get(struct Scene *scene, const char *engine_name);
-void BKE_view_layer_engine_settings_callback_register(struct Main *bmain, const char *engine_name, EngineSettingsCB func);
-void BKE_view_layer_engine_settings_callback_free(void);
-void BKE_view_layer_engine_settings_validate_scene(struct Scene *scene);
-void BKE_view_layer_engine_settings_create(struct IDProperty *root);
-
-void BKE_collection_engine_property_add_float(struct IDProperty *props, const char *name, float value);
-void BKE_collection_engine_property_add_float_array(
-        struct IDProperty *props, const char *name, const float *values, const int array_length);
-void BKE_collection_engine_property_add_int(struct IDProperty *props, const char *name, int value);
-void BKE_collection_engine_property_add_bool(struct IDProperty *props, const char *name, bool value);
-
 int BKE_collection_engine_property_value_get_int(struct IDProperty *props, const char *name);
 float BKE_collection_engine_property_value_get_float(struct IDProperty *props, const char *name);
 const float *BKE_collection_engine_property_value_get_float_array(struct IDProperty *props, const char *name);
 bool BKE_collection_engine_property_value_get_bool(struct IDProperty *props, const char *name);
-void BKE_collection_engine_property_value_set_int(struct IDProperty *props, const char *name, int value);
-void BKE_collection_engine_property_value_set_float(struct IDProperty *props, const char *name, float value);
-void BKE_collection_engine_property_value_set_float_array(struct IDProperty *props, const char *name, const float *values);
-void BKE_collection_engine_property_value_set_bool(struct IDProperty *props, const char *name, bool value);
 
 /* evaluation */
 

@@ -2026,10 +2026,10 @@ void DRW_engine_register(DrawEngineType *draw_engine_type)
 void DRW_engines_register(void)
 {
 #ifdef WITH_CLAY_ENGINE
-	RE_engines_register(NULL, &DRW_engine_viewport_clay_type);
+	RE_engines_register(&DRW_engine_viewport_clay_type);
 #endif
-	RE_engines_register(NULL, &DRW_engine_viewport_eevee_type);
-	RE_engines_register(NULL, &DRW_engine_viewport_workbench_type);
+	RE_engines_register(&DRW_engine_viewport_eevee_type);
+	RE_engines_register(&DRW_engine_viewport_workbench_type);
 
 	DRW_engine_register(&draw_engine_workbench_solid);
 

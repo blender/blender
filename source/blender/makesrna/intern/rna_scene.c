@@ -6429,19 +6429,6 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "RenderSettings");
 	RNA_def_property_ui_text(prop, "Render Data", "");
 
-	/* Render Engine Data */
-	prop = RNA_def_property(srna, "layer_properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "layer_properties->data.group", NULL);
-	RNA_def_property_struct_type(prop, "ViewLayerSettings");
-	RNA_def_property_ui_text(prop, "Layer Settings",
-	                         "Engine specific render settings to be overridden by layers");
-
-	prop = RNA_def_property(srna, "collection_properties", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_sdna(prop, NULL, "collection_properties->data.group", NULL);
-	RNA_def_property_struct_type(prop, "LayerCollectionSettings");
-	RNA_def_property_ui_text(prop, "Collection Settings",
-	                         "Engine specific render settings to be overridden by collections");
-
 	/* Safe Areas */
 	prop = RNA_def_property(srna, "safe_areas", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "safe_areas");

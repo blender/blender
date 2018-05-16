@@ -938,22 +938,6 @@ static void clay_draw_scene(void *vedata)
 	}
 }
 
-static void clay_layer_collection_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
-{
-	BLI_assert(props &&
-	           props->type == IDP_GROUP &&
-	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-	UNUSED_VARS_NDEBUG(props);
-}
-
-static void clay_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
-{
-	BLI_assert(props &&
-	           props->type == IDP_GROUP &&
-	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-	UNUSED_VARS_NDEBUG(props);
-}
-
 static void clay_engine_free(void)
 {
 	DRW_SHADER_FREE_SAFE(e_data.clay_sh);
@@ -989,8 +973,6 @@ RenderEngineType DRW_engine_viewport_clay_type = {
 	NULL, NULL,
 	CLAY_ENGINE, N_("Clay"), RE_INTERNAL,
 	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-	&clay_layer_collection_settings_create,
-	&clay_view_layer_settings_create,
 	&draw_engine_clay_type,
 	{NULL, NULL, NULL}
 };

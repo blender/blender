@@ -68,10 +68,6 @@ static void layer_collection_free(ViewLayer *view_layer, LayerCollection *lc);
 static void layer_collection_objects_populate(ViewLayer *view_layer, LayerCollection *lc, ListBase *objects);
 static LayerCollection *layer_collection_add(ViewLayer *view_layer, LayerCollection *parent, SceneCollection *sc);
 static LayerCollection *find_layer_collection_by_scene_collection(LayerCollection *lc, const SceneCollection *sc);
-static IDProperty *collection_engine_settings_create(struct EngineSettingsCB_Type *ces_type, const bool populate);
-static IDProperty *collection_engine_get(IDProperty *root, const char *engine_name);
-static void collection_engine_settings_init(IDProperty *root, const bool populate);
-static void layer_engine_settings_init(IDProperty *root, const bool populate);
 static void object_bases_iterator_next(BLI_Iterator *iter, const int flag);
 
 /* RenderLayer */
@@ -199,11 +195,6 @@ void BKE_view_layer_free_ex(ViewLayer *view_layer, const bool do_id_user)
 		layer_collection_free(NULL, lc);
 	}
 	BLI_freelistN(&view_layer->layer_collections);
-
-	if (view_layer->properties_evaluated) {
-		IDP_FreeProperty(view_layer->properties_evaluated);
-		MEM_freeN(view_layer->properties_evaluated);
-	}
 
 	for (ViewLayerEngineData *sled = view_layer->drawdata.first; sled; sled = sled->next) {
 		if (sled->storage) {
@@ -475,7 +466,6 @@ void BKE_view_layer_copy_data(
 	BKE_freestyle_config_copy(&view_layer_dst->freestyle_config, &view_layer_src->freestyle_config, flag);
 
 	view_layer_dst->stats = NULL;
-	view_layer_dst->properties_evaluated = NULL;
 
 	/* we start fresh with no overrides and no visibility flags set
 	 * instead of syncing both trees we simply unlink and relink the scene collection */
@@ -1392,216 +1382,8 @@ void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_col
 }
 
 /* ---------------------------------------------------------------------- */
-/* Engine Settings */
-
-ListBase R_layer_collection_engines_settings_callbacks = {NULL, NULL};
-ListBase R_view_layer_engines_settings_callbacks = {NULL, NULL};
-
-typedef struct EngineSettingsCB_Type {
-	struct EngineSettingsCB_Type *next, *prev;
-
-	char name[MAX_NAME]; /* engine name */
-
-	EngineSettingsCB callback;
-
-} EngineSettingsCB_Type;
-
-static void create_engine_settings_scene(IDProperty *root, EngineSettingsCB_Type *es_type)
-{
-	if (collection_engine_get(root, es_type->name)) {
-		return;
-	}
-
-	IDProperty *props = collection_engine_settings_create(es_type, true);
-	IDP_AddToGroup(root, props);
-}
-
-static void create_layer_collection_engine_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
-{
-	create_engine_settings_scene(scene->collection_properties, es_type);
-}
-
-static void create_view_layer_engine_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
-{
-	create_engine_settings_scene(scene->layer_properties, es_type);
-}
-
-static void create_layer_collection_engines_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
-{
-	/* Populate the scene with the new settings. */
-	create_layer_collection_engine_settings_scene(scene, es_type);
-}
-
-static void create_view_layer_engines_settings_scene(Scene *scene, EngineSettingsCB_Type *es_type)
-{
-	/* Populate the scene with the new settings. */
-	create_view_layer_engine_settings_scene(scene, es_type);
-}
-
-static EngineSettingsCB_Type *engine_settings_callback_register(const char *engine_name, EngineSettingsCB func, ListBase *lb)
-{
-	EngineSettingsCB_Type *es_type;
-
-	/* Cleanup in case it existed. */
-	es_type = BLI_findstring(lb, engine_name, offsetof(EngineSettingsCB_Type, name));
-
-	if (es_type) {
-		BLI_remlink(lb, es_type);
-		MEM_freeN(es_type);
-	}
-
-	es_type = MEM_callocN(sizeof(EngineSettingsCB_Type), __func__);
-	BLI_strncpy_utf8(es_type->name, engine_name, sizeof(es_type->name));
-	es_type->callback = func;
-	BLI_addtail(lb, es_type);
-
-	return es_type;
-}
-
-void BKE_layer_collection_engine_settings_callback_register(
-        Main *bmain, const char *engine_name, EngineSettingsCB func)
-{
-	EngineSettingsCB_Type *es_type =
-	        engine_settings_callback_register(engine_name, func, &R_layer_collection_engines_settings_callbacks);
-
-	if (bmain) {
-		/* Populate all of the collections of the scene with those settings. */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-			create_layer_collection_engines_settings_scene(scene, es_type);
-		}
-	}
-}
-
-void BKE_view_layer_engine_settings_callback_register(
-        Main *bmain, const char *engine_name, EngineSettingsCB func)
-{
-	EngineSettingsCB_Type *es_type =
-	        engine_settings_callback_register(engine_name, func, &R_view_layer_engines_settings_callbacks);
-
-	if (bmain) {
-		/* Populate all of the collections of the scene with those settings. */
-		for (Scene *scene = bmain->scene.first; scene; scene = scene->id.next) {
-			create_view_layer_engines_settings_scene(scene, es_type);
-		}
-	}
-}
-
-void BKE_layer_collection_engine_settings_callback_free(void)
-{
-	BLI_freelistN(&R_layer_collection_engines_settings_callbacks);
-}
-
-void BKE_view_layer_engine_settings_callback_free(void)
-{
-	BLI_freelistN(&R_view_layer_engines_settings_callbacks);
-}
-
-/**
- * Create a root IDProperty for this engine
- *
- * \param populate whether we want to pre-fill the collection with the default properties
- */
-static IDProperty *collection_engine_settings_create(EngineSettingsCB_Type *es_type, const bool populate)
-{
-	IDProperty *props;
-	IDPropertyTemplate val = {0};
-
-	props = IDP_New(IDP_GROUP, &val, es_type->name);
-	props->subtype = IDP_GROUP_SUB_ENGINE_RENDER;
-
-	/* properties */
-	if (populate) {
-		es_type->callback(NULL, props);
-	}
-
-	return props;
-}
-
-static void layer_collection_create_render_settings(IDProperty *root, const bool populate)
-{
-	EngineSettingsCB_Type *es_type;
-	for (es_type = R_layer_collection_engines_settings_callbacks.first; es_type; es_type = es_type->next) {
-		IDProperty *props = collection_engine_settings_create(es_type, populate);
-		IDP_AddToGroup(root, props);
-	}
-}
-
-static void view_layer_create_render_settings(IDProperty *root, const bool populate)
-{
-	EngineSettingsCB_Type *es_type;
-	for (es_type = R_view_layer_engines_settings_callbacks.first; es_type; es_type = es_type->next) {
-		IDProperty *props = collection_engine_settings_create(es_type, populate);
-		IDP_AddToGroup(root, props);
-	}
-}
-
-/**
- * Return collection enginne settings for either Object s of LayerCollection s
- */
-static IDProperty *collection_engine_get(IDProperty *root, const char *engine_name)
-{
-	return IDP_GetPropertyFromGroup(root, engine_name);
-}
-
-/**
- * Return layer collection engine settings for specified engine in the scene
- */
-IDProperty *BKE_layer_collection_engine_scene_get(Scene *scene, const char *engine_name)
-{
-	return collection_engine_get(scene->collection_properties, engine_name);
-}
-
-/**
- * Return scene layer engine settings for specified engine in the scene
- */
-IDProperty *BKE_view_layer_engine_scene_get(Scene *scene, const char *engine_name)
-{
-	return collection_engine_get(scene->layer_properties, engine_name);
-}
-
-/**
- * Return scene layer evaluated engine settings for specified engine
- */
-IDProperty *BKE_view_layer_engine_evaluated_get(ViewLayer *view_layer, const char *engine_name)
-{
-	return collection_engine_get(view_layer->properties_evaluated, engine_name);
-}
-
-/* ---------------------------------------------------------------------- */
 /* Engine Settings Properties */
 
-void BKE_collection_engine_property_add_float(IDProperty *props, const char *name, float value)
-{
-	IDPropertyTemplate val = {0};
-	val.f = value;
-	IDP_AddToGroup(props, IDP_New(IDP_FLOAT, &val, name));
-}
-
-void BKE_collection_engine_property_add_float_array(
-        IDProperty *props, const char *name, const float *values, const int array_length)
-{
-	IDPropertyTemplate val = {0};
-	val.array.len = array_length;
-	val.array.type = IDP_FLOAT;
-
-	IDProperty *idprop = IDP_New(IDP_ARRAY, &val, name);
-	memcpy(IDP_Array(idprop), values, sizeof(float) * idprop->len);
-	IDP_AddToGroup(props, idprop);
-}
-
-void BKE_collection_engine_property_add_int(IDProperty *props, const char *name, int value)
-{
-	IDPropertyTemplate val = {0};
-	val.i = value;
-	IDP_AddToGroup(props, IDP_New(IDP_INT, &val, name));
-}
-
-void BKE_collection_engine_property_add_bool(IDProperty *props, const char *name, bool value)
-{
-	IDPropertyTemplate val = {0};
-	val.i = value;
-	IDP_AddToGroup(props, IDP_New(IDP_INT, &val, name));
-}
 
 int BKE_collection_engine_property_value_get_int(IDProperty *props, const char *name)
 {
@@ -1625,173 +1407,6 @@ bool BKE_collection_engine_property_value_get_bool(IDProperty *props, const char
 {
 	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
 	return idprop ? IDP_Int(idprop) : 0;
-}
-
-void BKE_collection_engine_property_value_set_int(IDProperty *props, const char *name, int value)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	IDP_Int(idprop) = value;
-}
-
-void BKE_collection_engine_property_value_set_float(IDProperty *props, const char *name, float value)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	IDP_Float(idprop) = value;
-}
-
-void BKE_collection_engine_property_value_set_float_array(IDProperty *props, const char *name, const float *values)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	memcpy(IDP_Array(idprop), values, sizeof(float) * idprop->len);
-}
-
-void BKE_collection_engine_property_value_set_bool(IDProperty *props, const char *name, bool value)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	IDP_Int(idprop) = value;
-}
-
-/* Engine Settings recalculate  */
-
-/* get all the default settings defined in scene and merge them here */
-static void collection_engine_settings_init(IDProperty *root, const bool populate)
-{
-	/* render engines */
-	layer_collection_create_render_settings(root, populate);
-}
-
-/* get all the default settings defined in scene and merge them here */
-static void layer_engine_settings_init(IDProperty *root, const bool populate)
-{
-	/* render engines */
-	view_layer_create_render_settings(root, populate);
-}
-
-/**
- * Initialize the layer collection render setings
- * It's used mainly for scenes
- */
-void BKE_layer_collection_engine_settings_create(IDProperty *root)
-{
-	collection_engine_settings_init(root, true);
-}
-
-/**
- * Initialize the render setings
- * It's used mainly for scenes
- */
-void BKE_view_layer_engine_settings_create(IDProperty *root)
-{
-	layer_engine_settings_init(root, true);
-}
-
-/**
- * Reference of IDProperty group scene collection settings
- * Used when reading blendfiles, to see if there is any missing settings.
- */
-static struct {
-	struct {
-		IDProperty *collection_properties;
-		IDProperty *render_settings;
-	} scene;
-	IDProperty *view_layer;
-	IDProperty *layer_collection;
-} root_reference = {
-	.scene = {NULL, NULL},
-	.view_layer = NULL,
-	.layer_collection = NULL,
-};
-
-/**
- * Free the reference scene collection settings IDProperty group.
- */
-static void engine_settings_validate_init(void)
-{
-	IDPropertyTemplate val = {0};
-
-	/* LayerCollection engine settings. */
-	if (root_reference.scene.collection_properties == NULL) {
-		root_reference.scene.collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		collection_engine_settings_init(root_reference.scene.collection_properties, true);
-	}
-
-	if (root_reference.layer_collection == NULL) {
-		root_reference.layer_collection = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		collection_engine_settings_init(root_reference.layer_collection, false);
-	}
-
-	/* Render engine setting. */
-	if (root_reference.scene.render_settings == NULL) {
-		root_reference.scene.render_settings = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		layer_engine_settings_init(root_reference.scene.render_settings, true);
-	}
-
-	if (root_reference.view_layer == NULL) {
-		root_reference.view_layer = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		layer_engine_settings_init(root_reference.view_layer, false);
-	}
-}
-
-/**
- * Free the reference scene collection settings IDProperty group.
- */
-static void layer_collection_engine_settings_validate_free(void)
-{
-	IDProperty *idprops[] = {
-	    root_reference.scene.render_settings,
-	    root_reference.scene.collection_properties,
-	    root_reference.view_layer,
-	    root_reference.layer_collection,
-	    NULL,
-	};
-
-	IDProperty **idprop = &idprops[0];
-	while (*idprop) {
-		if (*idprop) {
-			IDP_FreeProperty(*idprop);
-			MEM_freeN(*idprop);
-			*idprop = NULL;
-			idprop++;
-		}
-	}
-}
-
-/**
- * Make sure Scene has all required collection settings.
- */
-void BKE_layer_collection_engine_settings_validate_scene(Scene *scene)
-{
-	if (root_reference.scene.collection_properties == NULL) {
-		engine_settings_validate_init();
-	}
-
-	if (scene->collection_properties == NULL) {
-		IDPropertyTemplate val = {0};
-		scene->collection_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		BKE_layer_collection_engine_settings_create(scene->collection_properties);
-	}
-	else {
-		IDP_MergeGroup(scene->collection_properties, root_reference.scene.collection_properties, false);
-	}
-}
-
-/**
- * Make sure Scene has all required collection settings.
- */
-void BKE_view_layer_engine_settings_validate_scene(Scene *scene)
-{
-	if (root_reference.scene.render_settings == NULL) {
-		engine_settings_validate_init();
-	}
-
-	if (scene->layer_properties == NULL) {
-		IDPropertyTemplate val = {0};
-		scene->layer_properties = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-		BKE_view_layer_engine_settings_create(scene->layer_properties);
-	}
-	else {
-		IDP_MergeGroup(scene->layer_properties, root_reference.scene.render_settings, false);
-	}
 }
 
 /** \} */
@@ -2090,42 +1705,13 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /* Evaluation  */
 
-/**
- * Reset props
- *
- * If props_ref is pasted, copy props from it
- */
-static void idproperty_reset(IDProperty **props, IDProperty *props_ref)
-{
-	IDPropertyTemplate val = {0};
-
-	if (*props) {
-		IDP_FreeProperty(*props);
-		MEM_freeN(*props);
-	}
-	*props = IDP_New(IDP_GROUP, &val, ROOT_PROP);
-
-	if (props_ref) {
-		IDP_MergeGroup(*props, props_ref, true);
-	}
-}
-
-static void layer_eval_layer_collection_pre(Depsgraph *depsgraph, ID *owner_id, ViewLayer *view_layer)
+static void layer_eval_layer_collection_pre(Depsgraph *depsgraph, ID *UNUSED(owner_id), ViewLayer *view_layer)
 {
 	DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
-	Scene *scene = (GS(owner_id->name) == ID_SCE) ? (Scene *)owner_id : NULL;
+	//Scene *scene = (GS(owner_id->name) == ID_SCE) ? (Scene *)owner_id : NULL;
 
 	for (Base *base = view_layer->object_bases.first; base != NULL; base = base->next) {
 		base->flag &= ~(BASE_VISIBLED | BASE_SELECTABLED);
-	}
-
-	/* Sync properties from scene to scene layer. */
-	if (scene) {
-		idproperty_reset(&view_layer->properties_evaluated, scene->layer_properties);
-		IDP_MergeGroup(view_layer->properties_evaluated, scene->collection_properties, true);
-	}
-	else {
-		idproperty_reset(&view_layer->properties_evaluated, NULL);
 	}
 
 	/* TODO(sergey): Is it always required? */
@@ -2260,12 +1846,4 @@ void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
 	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);
 	BLI_assert(view_layer != NULL);
 	BKE_layer_eval_view_layer(depsgraph, owner_id, view_layer);
-}
-
-/**
- * Free any static allocated memory.
- */
-void BKE_layer_exit(void)
-{
-	layer_collection_engine_settings_validate_free();
 }

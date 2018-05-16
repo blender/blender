@@ -165,14 +165,6 @@ static void EDIT_ARMATURE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->bone_axes);
 }
 
-#if 0
-void EDIT_ARMATURE_collection_settings_create(CollectionEngineSettings *ces)
-{
-	BLI_assert(ces);
-	//BKE_collection_engine_property_add_int(ces, "show_occlude_wire", false);
-}
-#endif
-
 static const DrawEngineDataSize EDIT_ARMATURE_data_size = DRW_VIEWPORT_DATA_SIZE(EDIT_ARMATURE_Data);
 
 DrawEngineType draw_engine_edit_armature_type = {

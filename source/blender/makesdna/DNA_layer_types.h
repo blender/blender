@@ -72,7 +72,6 @@ typedef struct ViewLayer {
 	struct SceneStats *stats;   /* default allocated now */
 	struct Base *basact;
 	ListBase layer_collections; /* LayerCollection */
-	struct IDProperty *properties_evaluated;
 
 	/* Old SceneRenderLayer data. */
 	int layflag;

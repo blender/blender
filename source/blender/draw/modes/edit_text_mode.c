@@ -272,27 +272,6 @@ static void EDIT_TEXT_engine_free(void)
 	// DRW_SHADER_FREE_SAFE(custom_shader);
 }
 
-/* Create collection settings here.
- *
- * Be sure to add this function there :
- * source/blender/draw/DRW_engine.h
- * source/blender/blenkernel/intern/layer.c
- * source/blenderplayer/bad_level_call_stubs/stubs.c
- *
- * And relevant collection settings to :
- * source/blender/makesrna/intern/rna_scene.c
- * source/blender/blenkernel/intern/layer.c
- */
-#if 0
-void EDIT_TEXT_collection_settings_create(CollectionEngineSettings *ces)
-{
-	BLI_assert(ces);
-	// BKE_collection_engine_property_add_int(ces, "my_bool_prop", false);
-	// BKE_collection_engine_property_add_int(ces, "my_int_prop", 0);
-	// BKE_collection_engine_property_add_float(ces, "my_float_prop", 0.0f);
-}
-#endif
-
 static const DrawEngineDataSize EDIT_TEXT_data_size = DRW_VIEWPORT_DATA_SIZE(EDIT_TEXT_Data);
 
 DrawEngineType draw_engine_edit_text_type = {

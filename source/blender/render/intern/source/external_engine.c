@@ -87,9 +87,6 @@ void RE_engines_exit(void)
 
 	DRW_engines_free();
 
-	BKE_layer_collection_engine_settings_callback_free();
-	BKE_view_layer_engine_settings_callback_free();
-
 	for (type = R_engines.first; type; type = next) {
 		next = type->next;
 
@@ -104,18 +101,10 @@ void RE_engines_exit(void)
 	}
 }
 
-void RE_engines_register(Main *bmain, RenderEngineType *render_type)
+void RE_engines_register(RenderEngineType *render_type)
 {
 	if (render_type->draw_engine) {
 		DRW_engine_register(render_type->draw_engine);
-	}
-	if (render_type->collection_settings_create) {
-		BKE_layer_collection_engine_settings_callback_register(
-		            bmain, render_type->idname, render_type->collection_settings_create);
-	}
-	if (render_type->render_settings_create) {
-		BKE_view_layer_engine_settings_callback_register(
-		            bmain, render_type->idname, render_type->render_settings_create);
 	}
 	BLI_addtail(&R_engines, render_type);
 }

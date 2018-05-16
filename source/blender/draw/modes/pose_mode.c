@@ -276,25 +276,6 @@ static void POSE_draw_scene(void *vedata)
 	DRW_draw_pass(psl->bone_axes);
 }
 
-/* Create collection settings here.
- *
- * Be sure to add this function there :
- * source/blender/draw/DRW_engine.h
- * source/blender/blenkernel/intern/layer.c
- * source/blenderplayer/bad_level_call_stubs/stubs.c
- *
- * And relevant collection settings to :
- * source/blender/makesrna/intern/rna_scene.c
- * source/blender/blenkernel/intern/layer.c
- */
-#if 0
-void POSE_collection_settings_create(CollectionEngineSettings *ces)
-{
-	BLI_assert(ces);
-	// BKE_collection_engine_property_add_int(ces, "foo", 37);
-}
-#endif
-
 static const DrawEngineDataSize POSE_data_size = DRW_VIEWPORT_DATA_SIZE(POSE_Data);
 
 DrawEngineType draw_engine_pose_type = {

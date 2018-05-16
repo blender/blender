@@ -107,9 +107,6 @@ typedef struct RenderEngineType {
 	void (*update_script_node)(struct RenderEngine *engine, struct bNodeTree *ntree, struct bNode *node);
 	void (*update_render_passes)(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer);
 
-	void (*collection_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
-	void (*render_settings_create)(struct RenderEngine *engine, struct IDProperty *props);
-
 	struct DrawEngineType *draw_engine;
 
 	/* RNA integration */
@@ -187,7 +184,7 @@ void RE_engine_register_pass(struct RenderEngine *engine, struct Scene *scene, s
 
 void RE_engines_init(void);
 void RE_engines_exit(void);
-void RE_engines_register(struct Main *bmain, RenderEngineType *render_type);
+void RE_engines_register(RenderEngineType *render_type);
 
 bool RE_engine_is_opengl(RenderEngineType *render_type);
 

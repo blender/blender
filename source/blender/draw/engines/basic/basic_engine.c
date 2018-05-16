@@ -245,7 +245,7 @@ DrawEngineType draw_engine_basic_type = {
 RenderEngineType DRW_engine_viewport_basic_type = {
 	NULL, NULL,
 	BASIC_ENGINE, N_("Basic"), RE_INTERNAL,
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+	NULL, NULL, NULL, NULL, NULL, NULL, NULL,
 	&draw_engine_basic_type,
 	{NULL, NULL, NULL}
 };

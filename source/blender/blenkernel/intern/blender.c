@@ -104,8 +104,6 @@ void BKE_blender_free(void)
 	BKE_sequencer_cache_destruct();
 	IMB_moviecache_destruct();
 
-	BKE_layer_exit();
-	
 	free_nodesystem();
 }
 
