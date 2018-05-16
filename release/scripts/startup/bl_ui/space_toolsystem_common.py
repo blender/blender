@@ -253,11 +253,11 @@ class ToolSelectPanelHelper:
         return None, 0
 
     @staticmethod
-    def _tool_get_by_name(context, text):
+    def _tool_get_by_name(context, space_type, text):
         """
         Return the active Python tool definition and index (if in sub-group, else -1).
         """
-        cls = ToolSelectPanelHelper._tool_class_from_space_type(context.space_data.type)
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is not None:
             context_mode = context.mode
             for item, index in ToolSelectPanelHelper._tools_flatten_with_tool_index(cls.tools_from_context(context)):
@@ -556,15 +556,15 @@ class WM_MT_toolsystem_submenu(Menu):
                 continue
             tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)
             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(icon_name)
-            props = layout.operator(
+            layout.operator(
                 "wm.tool_set_by_name",
                 text=item.text,
                 icon_value=icon_value,
             ).name = item.text
 
 
-def activate_by_name(context, text):
-    item, index = ToolSelectPanelHelper._tool_get_by_name(context, text)
+def activate_by_name(context, space_type, text):
+    item, index = ToolSelectPanelHelper._tool_get_by_name(context, space_type, text)
     if item is not None:
         context_mode = context.mode
         tool_def, icon_name = ToolSelectPanelHelper._tool_vars_from_def(item, context_mode)

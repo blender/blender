@@ -2338,7 +2338,7 @@ class WM_OT_tool_set_by_name(Operator):
 
     def execute(self, context):
         from bl_ui.space_toolsystem_common import activate_by_name
-        if activate_by_name(context, self.name):
+        if activate_by_name(context, context.space_data.type, self.name):
             return {'FINISHED'}
         else:
             self.report({'WARNING'}, f"Tool {self.name!r} not found.")
