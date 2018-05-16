@@ -608,7 +608,10 @@ DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, int alloctype)
 	DM_init(dm, DM_TYPE_CDDM, mesh->totvert, mesh->totedge, 0 /* mesh->totface */,
 	        mesh->totloop, mesh->totpoly);
 
-	dm->deformedOnly = mesh->runtime.deformed_only;
+	/* This should actually be dm->deformedOnly = mesh->runtime.deformed_only,
+	 * but only if the original mesh had its deformed_only flag correctly set
+	 * (which isn't generally the case). */
+	dm->deformedOnly = 1;
 	dm->cd_flag = mesh->cd_flag;
 
 	if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL) {
