@@ -642,9 +642,11 @@ static void foreach_mouse_hit_point(PEData *data, ForPointFunc func, int selecte
 
 static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected)
 {
+	Object *ob_eval = DEG_get_evaluated_object(data->depsgraph, data->ob);
 	PTCacheEdit *edit = data->edit;
 	ParticleSystem *psys = edit->psys;
 	ParticleSystemModifierData *psmd = NULL;
+	ParticleSystemModifierData *psmd_eval = NULL;
 	ParticleEditSettings *pset= PE_settings(data->scene);
 	POINT_P; KEY_K;
 	float mat[4][4], imat[4][4];
@@ -654,6 +656,10 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 
 	if (edit->psys)
 		psmd= psys_get_modifier(data->ob, edit->psys);
+
+	if (psmd != NULL) {
+		psmd_eval = (ParticleSystemModifierData *)modifiers_findByName(ob_eval, psmd->modifier.name);
+	}
 
 	/* all is selected in path mode */
 	if (pset->selectmode==SCE_SELECT_PATH)
@@ -668,7 +674,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 				if (selected==0 || key->flag & PEK_SELECT) {
 					if (key_inside_circle(data, data->rad, KEY_WCO, &data->dist)) {
 						if (edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
-							psys_mat_hair_to_global(data->ob, psmd->mesh_final, psys->part->from, psys->particles + p, mat);
+							psys_mat_hair_to_global(data->ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
 							invert_m4_m4(imat, mat);
 						}
 
@@ -683,7 +689,7 @@ static void foreach_mouse_hit_key(PEData *data, ForKeyMatFunc func, int selected
 				if (selected==0 || key->flag & PEK_SELECT) {
 					if (key_inside_circle(data, data->rad, KEY_WCO, &data->dist)) {
 						if (edit->psys && !(edit->psys->flag & PSYS_GLOBAL_HAIR)) {
-							psys_mat_hair_to_global(data->ob, psmd->mesh_final, psys->part->from, psys->particles + p, mat);
+							psys_mat_hair_to_global(data->ob, psmd_eval->mesh_final, psys->part->from, psys->particles + p, mat);
 							invert_m4_m4(imat, mat);
 						}
 
