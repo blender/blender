@@ -280,9 +280,6 @@ void MESH_OT_intersect(struct wmOperatorType *ot)
 
 static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
 	const int boolean_operation = RNA_enum_get(op->ptr, "operation");
 	bool use_swap = RNA_boolean_get(op->ptr, "use_swap");
 	const float eps = RNA_float_get(op->ptr, "threshold");
@@ -290,23 +287,39 @@ static int edbm_intersect_boolean_exec(bContext *C, wmOperator *op)
 	bool has_isect;
 
 	test_fn = use_swap ? bm_face_isect_pair_swap : bm_face_isect_pair;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	uint isect_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-	has_isect = BM_mesh_intersect(
-	        bm,
-	        em->looptris, em->tottri,
-	        test_fn, NULL,
-	        false, false, true, true, true,
-	        boolean_operation,
-	        eps);
+		if (em->bm->totfacesel == 0) {
+			continue;
+		}
+
+		has_isect = BM_mesh_intersect(
+			em->bm,
+			em->looptris, em->tottri,
+			test_fn, NULL,
+			false, false, true, true, true,
+			boolean_operation,
+			eps);
 
 
-	if (has_isect) {
-		edbm_intersect_select(em);
+		if (has_isect) {
+			edbm_intersect_select(em);
+		}
+		else {
+			isect_len++;
+		}
 	}
-	else {
+	MEM_freeN(objects);
+
+	if (isect_len == objects_len) {
 		BKE_report(op->reports, RPT_WARNING, "No intersections found");
 	}
-
 	return OPERATOR_FINISHED;
 }
 
