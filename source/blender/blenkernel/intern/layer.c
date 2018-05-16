@@ -1381,34 +1381,6 @@ void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_col
 	TODO_LAYER_OVERRIDE;
 }
 
-/* ---------------------------------------------------------------------- */
-/* Engine Settings Properties */
-
-
-int BKE_collection_engine_property_value_get_int(IDProperty *props, const char *name)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? IDP_Int(idprop) : 0;
-}
-
-float BKE_collection_engine_property_value_get_float(IDProperty *props, const char *name)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? IDP_Float(idprop) : 0.0f;
-}
-
-const float *BKE_collection_engine_property_value_get_float_array(IDProperty *props, const char *name)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? IDP_Array(idprop) : NULL;
-}
-
-bool BKE_collection_engine_property_value_get_bool(IDProperty *props, const char *name)
-{
-	IDProperty *idprop = IDP_GetPropertyFromGroup(props, name);
-	return idprop ? IDP_Int(idprop) : 0;
-}
-
 /** \} */
 
 /* Iterators */

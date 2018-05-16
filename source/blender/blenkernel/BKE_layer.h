@@ -130,11 +130,6 @@ void BKE_override_view_layer_int_add(struct ViewLayer *view_layer, int id_type, 
 
 void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value);
 
-int BKE_collection_engine_property_value_get_int(struct IDProperty *props, const char *name);
-float BKE_collection_engine_property_value_get_float(struct IDProperty *props, const char *name);
-const float *BKE_collection_engine_property_value_get_float_array(struct IDProperty *props, const char *name);
-bool BKE_collection_engine_property_value_get_bool(struct IDProperty *props, const char *name);
-
 /* evaluation */
 
 void BKE_layer_eval_view_layer(
