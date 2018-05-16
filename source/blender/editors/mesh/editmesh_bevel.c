@@ -37,6 +37,7 @@
 #include "BKE_global.h"
 #include "BKE_editmesh.h"
 #include "BKE_unit.h"
+#include "BKE_layer.h"
 
 #include "RNA_define.h"
 #include "RNA_access.h"
@@ -77,15 +78,22 @@ static const float value_scale_per_inch[NUM_VALUE_KINDS] = { 0.0f, 100.0f, 1.0f,
 
 typedef struct {
 	BMEditMesh *em;
+	BMBackup mesh_backup;
+} BevelObjectStore;
+
+
+typedef struct {
 	float initial_length[NUM_VALUE_KINDS];
 	float scale[NUM_VALUE_KINDS];
 	NumInput num_input[NUM_VALUE_KINDS]; 
 	float shift_value[NUM_VALUE_KINDS]; /* The current value when shift is pressed. Negative when shift not active. */
 	bool is_modal;
 
+	BevelObjectStore *ob_store;
+	uint ob_store_len;
+
 	/* modal only */
 	float mcenter[2];
-	BMBackup mesh_backup;
 	void *draw_handle_pixel;
 	short twflag;
 	short value_mode;  /* Which value does mouse movement and numeric input affect? */
@@ -128,24 +136,35 @@ static void edbm_bevel_update_header(bContext *C, wmOperator *op)
 
 static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 {
-	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
 	BevelData *opdata;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 	float pixels_per_inch;
 	int i;
-
-	if (em->bm->totvertsel == 0) {
-		return false;
-	}
 
 	if (is_modal) {
 		RNA_float_set(op->ptr, "offset", 0.0f);
 	}
 
 	op->customdata = opdata = MEM_mallocN(sizeof(BevelData), "beveldata_mesh_operator");
+	uint objects_used_len = 0;
 
-	opdata->em = em;
+	{
+		uint ob_store_len = 0;
+		Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &ob_store_len);
+		opdata->ob_store = MEM_malloc_arrayN(ob_store_len, sizeof(*opdata->ob_store), __func__);
+		for (uint ob_index = 0; ob_index < ob_store_len; ob_index++) {
+			Object *obedit = objects[ob_index];
+			BMEditMesh *em = BKE_editmesh_from_object(obedit);
+			if (em->bm->totvertsel > 0) {
+				opdata->ob_store[objects_used_len].em = em;
+				objects_used_len++;
+			}
+		}
+		MEM_freeN(objects);
+		opdata->ob_store_len = objects_used_len;
+	}
+
 	opdata->is_modal = is_modal;
 	opdata->value_mode = OFFSET_VALUE;
 	opdata->segments = (float) RNA_int_get(op->ptr, "segments");
@@ -174,7 +193,9 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
 
-		opdata->mesh_backup = EDBM_redo_state_store(em);
+		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+			opdata->ob_store[ob_index].mesh_backup = EDBM_redo_state_store(opdata->ob_store[ob_index].em);
+		}
 		opdata->draw_handle_pixel = ED_region_draw_cb_activate(ar->type, ED_region_draw_mouse_line_cb,
 			opdata->mcenter, REGION_DRAW_POST_PIXEL);
 		G.moving = G_TRANSFORM_EDIT;
@@ -191,8 +212,10 @@ static bool edbm_bevel_init(bContext *C, wmOperator *op, const bool is_modal)
 static bool edbm_bevel_calc(wmOperator *op)
 {
 	BevelData *opdata = op->customdata;
-	BMEditMesh *em = opdata->em;
+	BMEditMesh *em;
 	BMOperator bmop;
+	bool changed = false;
+
 	const float offset = RNA_float_get(op->ptr, "offset");
 	const int offset_type = RNA_enum_get(op->ptr, "offset_type");
 	const int segments = RNA_int_get(op->ptr, "segments");
@@ -202,40 +225,45 @@ static bool edbm_bevel_calc(wmOperator *op)
 	int material = RNA_int_get(op->ptr, "material");
 	const bool loop_slide = RNA_boolean_get(op->ptr, "loop_slide");
 
-	/* revert to original mesh */
-	if (opdata->is_modal) {
-		EDBM_redo_state_restore(opdata->mesh_backup, em, false);
+
+	for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+		em = opdata->ob_store[ob_index].em;
+
+		/* revert to original mesh */
+		if (opdata->is_modal) {
+			EDBM_redo_state_restore(opdata->ob_store[ob_index].mesh_backup, em, false);
+		}
+
+		if (em->ob) {
+			material = CLAMPIS(material, -1, em->ob->totcol - 1);
+		}
+
+		EDBM_op_init(em, &bmop, op,
+			"bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
+			"material=%i loop_slide=%b",
+			BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
+			clamp_overlap, material, loop_slide);
+
+		BMO_op_exec(em->bm, &bmop);
+
+		if (offset != 0.0f) {
+			/* not essential, but we may have some loose geometry that
+			 * won't get bevel'd and better not leave it selected */
+			EDBM_flag_disable_all(em, BM_ELEM_SELECT);
+			BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
+		}
+
+		/* no need to de-select existing geometry */
+		if (!EDBM_op_finish(em, &bmop, op, true)) {
+			continue;
+		}
+
+		EDBM_mesh_normals_update(em);
+
+		EDBM_update_generic(em, true, true);
+		changed = true;
 	}
-
-	if (em->ob) {
-		material = CLAMPIS(material, -1, em->ob->totcol - 1);
-	}
-
-	EDBM_op_init(em, &bmop, op,
-	             "bevel geom=%hev offset=%f segments=%i vertex_only=%b offset_type=%i profile=%f clamp_overlap=%b "
-	             "material=%i loop_slide=%b",
-	             BM_ELEM_SELECT, offset, segments, vertex_only, offset_type, profile,
-	             clamp_overlap, material, loop_slide);
-
-	BMO_op_exec(em->bm, &bmop);
-
-	if (offset != 0.0f) {
-		/* not essential, but we may have some loose geometry that
-		 * won't get bevel'd and better not leave it selected */
-		EDBM_flag_disable_all(em, BM_ELEM_SELECT);
-		BMO_slot_buffer_hflag_enable(em->bm, bmop.slots_out, "faces.out", BM_FACE, BM_ELEM_SELECT, true);
-	}
-
-	/* no need to de-select existing geometry */
-	if (!EDBM_op_finish(em, &bmop, op, true)) {
-		return false;
-	}
-
-	EDBM_mesh_normals_update(opdata->em);
-
-	EDBM_update_generic(opdata->em, true, true);
-
-	return true;
+	return changed;
 }
 
 static void edbm_bevel_exit(bContext *C, wmOperator *op)
@@ -251,14 +279,17 @@ static void edbm_bevel_exit(bContext *C, wmOperator *op)
 	if (opdata->is_modal) {
 		View3D *v3d = CTX_wm_view3d(C);
 		ARegion *ar = CTX_wm_region(C);
-		EDBM_redo_state_free(&opdata->mesh_backup, NULL, false);
+		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+			EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, NULL, false);
+		}
 		ED_region_draw_cb_exit(ar->type, opdata->draw_handle_pixel);
 		if (v3d) {
 			v3d->twflag = opdata->twflag;
 		}
 		G.moving = 0;
 	}
-	MEM_freeN(opdata);
+	MEM_SAFE_FREE(opdata->ob_store);
+	MEM_SAFE_FREE(op->customdata);
 	op->customdata = NULL;
 }
 
@@ -266,8 +297,10 @@ static void edbm_bevel_cancel(bContext *C, wmOperator *op)
 {
 	BevelData *opdata = op->customdata;
 	if (opdata->is_modal) {
-		EDBM_redo_state_free(&opdata->mesh_backup, opdata->em, true);
-		EDBM_update_generic(opdata->em, false, true);
+		for (uint ob_index = 0; ob_index < opdata->ob_store_len; ob_index++) {
+			EDBM_redo_state_free(&opdata->ob_store[ob_index].mesh_backup, opdata->ob_store[ob_index].em, true);
+			EDBM_update_generic(opdata->ob_store[ob_index].em, false, true);
+		}
 	}
 
 	edbm_bevel_exit(C, op);
