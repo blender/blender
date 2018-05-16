@@ -192,7 +192,7 @@ static int edbm_intersect_exec(bContext *C, wmOperator *op)
 		Object *obedit = objects[ob_index];
 		BMEditMesh *em = BKE_editmesh_from_object(obedit);
 
-		if (em->bm->totvert == 0) {
+		if (em->bm->totfacesel == 0) {
 			continue;
 		}
 
