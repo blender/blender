@@ -331,9 +331,11 @@ static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float
 	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
 	if (geom) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
-		float final_bonemat[4][4];
+		float final_bonemat[4][4], final_color[4];
 		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
-		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, color);
+		copy_v3_v3(final_color, color);
+		final_color[3] = 1.0f; /* hack */
+		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, final_color);
 	}
 }
 
