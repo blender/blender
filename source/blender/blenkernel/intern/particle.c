@@ -3867,7 +3867,7 @@ int psys_get_particle_state(ParticleSimulationData *sim, int p, ParticleKey *sta
 	float timestep = psys_get_timestep(sim);
 
 	/* negative time means "use current time" */
-	cfra = state->time > 0 ? state->time : BKE_scene_frame_get(sim->scene);
+	cfra = state->time > 0 ? state->time : DEG_get_ctime(sim->depsgraph);
 
 	if (p >= totpart) {
 		if (!psys->totchild)
