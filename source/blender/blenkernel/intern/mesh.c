@@ -553,7 +553,14 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	me_dst->edit_btmesh = NULL;
 	me_dst->runtime.batch_cache = NULL;
 	me_dst->runtime.bvh_cache = NULL;
-	me_dst->runtime.deformed_only = me_src->runtime.deformed_only;
+
+	if (me_src->id.tag & LIB_TAG_NO_MAIN) {
+		me_dst->runtime.deformed_only = me_src->runtime.deformed_only;
+	}
+	else {
+		/* This is a direct copy of a main mesh, so for now it has the same topology. */
+		me_dst->runtime.deformed_only = 1;
+	}
 
 	me_dst->mselect = MEM_dupallocN(me_dst->mselect);
 	me_dst->bb = MEM_dupallocN(me_dst->bb);
