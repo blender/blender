@@ -1286,5 +1286,20 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 #undef EEVEE_GET_BOOL
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SceneDisplay", "int", "matcap_icon")) {
+			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
+				scene->display.matcap_icon = 1;
+				scene->display.matcap_type = CLAY_MATCAP_NONE;
+				scene->display.matcap_hue = 0.5f;
+				scene->display.matcap_saturation = 0.5f;
+				scene->display.matcap_value = 0.5f;
+				scene->display.matcap_ssao_distance = 0.2f;
+				scene->display.matcap_ssao_attenuation = 1.0f;
+				scene->display.matcap_ssao_factor_cavity = 1.0f;
+				scene->display.matcap_ssao_factor_edge = 1.0f;
+				scene->display.matcap_ssao_samples = 16;
+			}
+		}
 	}
 }

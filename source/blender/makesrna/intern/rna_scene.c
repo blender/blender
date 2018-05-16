@@ -5678,6 +5678,34 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
+	static const EnumPropertyItem clay_matcap_items[] = {
+	    {1, "01", ICON_MATCAP_01, "", ""},
+	    {2, "02", ICON_MATCAP_02, "", ""},
+	    {3, "03", ICON_MATCAP_03, "", ""},
+	    {4, "04", ICON_MATCAP_04, "", ""},
+	    {5, "05", ICON_MATCAP_05, "", ""},
+	    {6, "06", ICON_MATCAP_06, "", ""},
+	    {7, "07", ICON_MATCAP_07, "", ""},
+	    {8, "08", ICON_MATCAP_08, "", ""},
+	    {9, "09", ICON_MATCAP_09, "", ""},
+	    {10, "10", ICON_MATCAP_10, "", ""},
+	    {11, "11", ICON_MATCAP_11, "", ""},
+	    {12, "12", ICON_MATCAP_12, "", ""},
+	    {13, "13", ICON_MATCAP_13, "", ""},
+	    {14, "14", ICON_MATCAP_14, "", ""},
+	    {15, "15", ICON_MATCAP_15, "", ""},
+	    {16, "16", ICON_MATCAP_16, "", ""},
+	    {17, "17", ICON_MATCAP_17, "", ""},
+	    {19, "18", ICON_MATCAP_18, "", ""},
+	    {19, "19", ICON_MATCAP_19, "", ""},
+	    {20, "20", ICON_MATCAP_20, "", ""},
+	    {21, "21", ICON_MATCAP_21, "", ""},
+	    {22, "22", ICON_MATCAP_22, "", ""},
+	    {23, "23", ICON_MATCAP_23, "", ""},
+	    {24, "24", ICON_MATCAP_24, "", ""},
+	    {0, NULL, 0, NULL, NULL}
+	};
+
 	static float default_light_direction[3] = {-0.577350269, -0.577350269, 0.577350269};
 
 	srna = RNA_def_struct(brna, "SceneDisplay", NULL);
@@ -5700,6 +5728,66 @@ static void rna_def_scene_display(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.00f, 1.0f, 1, 2);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_set_update");
+
+#ifdef WITH_CLAY_ENGINE
+	/* Matcap. */
+	prop = RNA_def_property(srna, "matcap_icon", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(prop, clay_matcap_items);
+	RNA_def_property_enum_default(prop, 1);
+	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture by this material");
+
+	prop = RNA_def_property(srna, "matcap_rotation", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_default(prop, 0.0f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Matcap Rotation", "Orientation of the matcap on the model");
+
+	prop = RNA_def_property(srna, "matcap_hue", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Matcap Hue Shift", "Hue correction of the matcap");
+
+	prop = RNA_def_property(srna, "matcap_saturation", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Matcap Saturation", "Saturation correction of the matcap");
+
+	prop = RNA_def_property(srna, "matcap_value", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_default(prop, 0.5f);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Matcap Value", "Value correction of the matcap");
+
+	prop = RNA_def_property(srna, "matcap_ssao_factor_cavity", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Cavity Strength", "Strength of the Cavity effect");
+	RNA_def_property_range(prop, 0.0f, 250.0f);
+
+	prop = RNA_def_property(srna, "matcap_ssao_factor_edge", PROP_FLOAT, PROP_NONE);
+		RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Edge Strength", "Strength of the Edge effect");
+	RNA_def_property_range(prop, 0.0f, 250.0f);
+
+	prop = RNA_def_property(srna, "matcap_ssao_distance", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 0.2f);
+	RNA_def_property_ui_text(prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
+	RNA_def_property_range(prop, 0.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
+
+	prop = RNA_def_property(srna, "matcap_ssao_attenuation", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 1.0f);
+	RNA_def_property_ui_text(prop, "Attenuation", "Attenuation constant");
+	RNA_def_property_range(prop, 1.0f, 100000.0f);
+	RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
+
+	prop = RNA_def_property(srna, "matcap_ssao_samples", PROP_INT, PROP_NONE);
+	RNA_def_property_int_default(prop, 16);
+	RNA_def_property_ui_text(prop, "Samples", "Number of samples");
+	RNA_def_property_range(prop, 1, 500);
+
+	prop = RNA_def_property(srna, "matcap_hair_brightness_randomness", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_default(prop, 0.0f);
+	RNA_def_property_ui_text(prop, "Hair Brightness Randomness", "Brightness randomness for hair");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+#endif
 }
 
 static void rna_def_scene_eevee(BlenderRNA *brna)

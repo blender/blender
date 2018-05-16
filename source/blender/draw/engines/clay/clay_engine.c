@@ -41,6 +41,8 @@
 
 #include "DRW_render.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "clay_engine.h"
 
 #ifdef WITH_CLAY_ENGINE
@@ -273,7 +275,7 @@ static struct GPUTexture *load_matcaps(PreviewImage *prv[24], int nbr)
 
 static int matcap_to_index(int matcap)
 {
-	return (int)matcap - (int)ICON_MATCAP_01;
+	return matcap - 1;
 }
 
 /* Using Hammersley distribution */
@@ -437,10 +439,8 @@ static void clay_engine_init(void *vedata)
 	/* SSAO setup */
 	{
 		const DRWContextState *draw_ctx = DRW_context_state_get();
-		ViewLayer *view_layer = draw_ctx->view_layer;
-		IDProperty *props = BKE_view_layer_engine_evaluated_get(
-		        view_layer, RE_engine_id_BLENDER_CLAY);
-		int ssao_samples = BKE_collection_engine_property_value_get_int(props, "ssao_samples");
+		Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
+		const int ssao_samples = scene_eval->display.matcap_ssao_samples;
 
 		float invproj[4][4];
 		float dfdyfacs[2];
@@ -639,18 +639,17 @@ static int hair_mat_in_ubo(CLAY_Storage *storage, const CLAY_HAIR_UBO_Material *
 static void ubo_mat_from_object(CLAY_Storage *storage, Object *UNUSED(ob), bool *r_needs_ao, int *r_id)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_CLAY);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
-	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
-	float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
-	float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
-	float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
-	float ssao_distance = BKE_collection_engine_property_value_get_float(props, "ssao_distance");
-	float ssao_factor_cavity = BKE_collection_engine_property_value_get_float(props, "ssao_factor_cavity");
-	float ssao_factor_edge = BKE_collection_engine_property_value_get_float(props, "ssao_factor_edge");
-	float ssao_attenuation = BKE_collection_engine_property_value_get_float(props, "ssao_attenuation");
+	const int matcap_icon = scene_eval->display.matcap_icon;
+	const float matcap_rot = scene_eval->display.matcap_rotation;
+	const float matcap_hue = scene_eval->display.matcap_hue;
+	const float matcap_sat = scene_eval->display.matcap_saturation;
+	const float matcap_val = scene_eval->display.matcap_value;
+	const float ssao_distance = scene_eval->display.matcap_ssao_distance;
+	const float ssao_factor_cavity = scene_eval->display.matcap_ssao_factor_cavity;
+	const float ssao_factor_edge = scene_eval->display.matcap_ssao_factor_edge;
+	const float ssao_attenuation = scene_eval->display.matcap_ssao_attenuation;
 
 	CLAY_UBO_Material r_ubo = {{0.0f}};
 
@@ -683,15 +682,14 @@ static void ubo_mat_from_object(CLAY_Storage *storage, Object *UNUSED(ob), bool 
 static void hair_ubo_mat_from_object(Object *UNUSED(ob), CLAY_HAIR_UBO_Material *r_ubo)
 {
 	const DRWContextState *draw_ctx = DRW_context_state_get();
-	ViewLayer *view_layer = draw_ctx->view_layer;
-	IDProperty *props = BKE_view_layer_engine_evaluated_get(view_layer, RE_engine_id_BLENDER_CLAY);
+	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	int matcap_icon = BKE_collection_engine_property_value_get_int(props, "matcap_icon");
-	float matcap_rot = BKE_collection_engine_property_value_get_float(props, "matcap_rotation");
-	float matcap_hue = BKE_collection_engine_property_value_get_float(props, "matcap_hue");
-	float matcap_sat = BKE_collection_engine_property_value_get_float(props, "matcap_saturation");
-	float matcap_val = BKE_collection_engine_property_value_get_float(props, "matcap_value");
-	float hair_randomness = BKE_collection_engine_property_value_get_float(props, "hair_brightness_randomness");
+	const int matcap_icon = scene_eval->display.matcap_icon;
+	const float matcap_rot = scene_eval->display.matcap_rotation;
+	const float matcap_hue = scene_eval->display.matcap_hue;
+	const float matcap_sat = scene_eval->display.matcap_saturation;
+	const float matcap_val = scene_eval->display.matcap_value;
+	const float hair_randomness = scene_eval->display.matcap_hair_brightness_randomness;
 
 	memset(r_ubo, 0x0, sizeof(*r_ubo));
 
@@ -945,18 +943,7 @@ static void clay_layer_collection_settings_create(RenderEngine *UNUSED(engine), 
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-
-	BKE_collection_engine_property_add_int(props, "matcap_icon", ICON_MATCAP_01);
-	BKE_collection_engine_property_add_int(props, "type", CLAY_MATCAP_NONE);
-	BKE_collection_engine_property_add_float(props, "matcap_rotation", 0.0f);
-	BKE_collection_engine_property_add_float(props, "matcap_hue", 0.5f);
-	BKE_collection_engine_property_add_float(props, "matcap_saturation", 0.5f);
-	BKE_collection_engine_property_add_float(props, "matcap_value", 0.5f);
-	BKE_collection_engine_property_add_float(props, "ssao_distance", 0.2f);
-	BKE_collection_engine_property_add_float(props, "ssao_attenuation", 1.0f);
-	BKE_collection_engine_property_add_float(props, "ssao_factor_cavity", 1.0f);
-	BKE_collection_engine_property_add_float(props, "ssao_factor_edge", 1.0f);
-	BKE_collection_engine_property_add_float(props, "hair_brightness_randomness", 0.0f);
+	UNUSED_VARS_NDEBUG(props);
 }
 
 static void clay_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProperty *props)
@@ -964,8 +951,7 @@ static void clay_view_layer_settings_create(RenderEngine *UNUSED(engine), IDProp
 	BLI_assert(props &&
 	           props->type == IDP_GROUP &&
 	           props->subtype == IDP_GROUP_SUB_ENGINE_RENDER);
-
-	BKE_collection_engine_property_add_int(props, "ssao_samples", 16);
+	UNUSED_VARS_NDEBUG(props);
 }
 
 static void clay_engine_free(void)

@@ -278,46 +278,16 @@ static void rna_LayerEngineSettings_##_ENGINE_##_##_NAME_##_set(PointerRNA *ptr,
 	BKE_collection_engine_property_value_set_##_TYPE_##_array(props, #_NAME_, values); \
 }
 
-#define RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(_NAME_) \
-	RNA_LAYER_ENGINE_GET_SET(float, Clay, _NAME_)
-
-#define RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT_ARRAY(_NAME_, _LEN_) \
-	RNA_LAYER_ENGINE_GET_SET_ARRAY(float, Clay, _NAME_, _LEN_)
-
-#define RNA_LAYER_ENGINE_CLAY_GET_SET_INT(_NAME_) \
-	RNA_LAYER_ENGINE_GET_SET(int, Clay, _NAME_)
-
-#define RNA_LAYER_ENGINE_CLAY_GET_SET_BOOL(_NAME_) \
-	RNA_LAYER_ENGINE_GET_SET(bool, Clay, _NAME_)
-
-/* clay engine */
-#ifdef WITH_CLAY_ENGINE
-/* ViewLayer settings. */
-RNA_LAYER_ENGINE_CLAY_GET_SET_INT(ssao_samples)
-
-/* LayerCollection settings. */
-RNA_LAYER_ENGINE_CLAY_GET_SET_INT(matcap_icon)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_rotation)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_hue)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_saturation)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(matcap_value)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_cavity)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_factor_edge)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_distance)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(ssao_attenuation)
-RNA_LAYER_ENGINE_CLAY_GET_SET_FLOAT(hair_brightness_randomness)
-#endif /* WITH_CLAY_ENGINE */
-
 #undef RNA_LAYER_ENGINE_GET_SET
 
-static void rna_ViewLayerEngineSettings_update(bContext *C, PointerRNA *UNUSED(ptr))
+static void UNUSED_FUNCTION(rna_ViewLayerEngineSettings_update)(bContext *C, PointerRNA *UNUSED(ptr))
 {
 	Scene *scene = CTX_data_scene(C);
 	/* TODO(sergey): Use proper flag for tagging here. */
 	DEG_id_tag_update(&scene->id, 0);
 }
 
-static void rna_LayerCollectionEngineSettings_update(bContext *UNUSED(C), PointerRNA *ptr)
+static void UNUSED_FUNCTION(rna_LayerCollectionEngineSettings_update)(bContext *UNUSED(C), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
 	/* TODO(sergey): Use proper flag for tagging here. */
@@ -376,11 +346,6 @@ static StructRNA *rna_ViewLayerSettings_refine(PointerRNA *ptr)
 
 	switch (props->subtype) {
 		case IDP_GROUP_SUB_ENGINE_RENDER:
-#ifdef WITH_CLAY_ENGINE
-			if (STREQ(props->name, RE_engine_id_BLENDER_CLAY)) {
-				return &RNA_ViewLayerEngineSettingsClay;
-			}
-#endif
 			break;
 		default:
 			BLI_assert(!"Mode not fully implemented");
@@ -433,11 +398,6 @@ static StructRNA *rna_LayerCollectionSettings_refine(PointerRNA *ptr)
 
 	switch (props->subtype) {
 		case IDP_GROUP_SUB_ENGINE_RENDER:
-#ifdef WITH_CLAY_ENGINE
-			if (STREQ(props->name, RE_engine_id_BLENDER_CLAY)) {
-				return &RNA_LayerCollectionEngineSettingsClay;
-			}
-#endif
 			break;
 		default:
 			BLI_assert(!"Mode not fully implemented");
@@ -897,146 +857,6 @@ static void rna_def_scene_collection(BlenderRNA *brna)
 	RNA_def_function_return(func, parm);
 }
 
-#ifdef WITH_CLAY_ENGINE
-static void rna_def_view_layer_engine_settings_clay(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	srna = RNA_def_struct(brna, "ViewLayerEngineSettingsClay", "ViewLayerSettings");
-	RNA_def_struct_ui_text(srna, "Clay Scene Layer Settings", "Clay Engine settings");
-
-	RNA_define_verify_sdna(0); /* not in sdna */
-
-	/* see RNA_LAYER_ENGINE_GET_SET macro */
-	prop = RNA_def_property(srna, "ssao_samples", PROP_INT, PROP_NONE);
-	RNA_def_property_int_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_samples_get",
-	                           "rna_LayerEngineSettings_Clay_ssao_samples_set", NULL);
-	RNA_def_property_ui_text(prop, "Samples", "Number of samples");
-	RNA_def_property_range(prop, 1, 500);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, NC_SCENE | ND_LAYER_CONTENT, "rna_ViewLayerEngineSettings_update");
-
-	RNA_define_verify_sdna(1); /* not in sdna */
-}
-#endif /* WITH_CLAY_ENGINE */
-
-#ifdef WITH_CLAY_ENGINE
-static void rna_def_layer_collection_engine_settings_clay(BlenderRNA *brna)
-{
-	StructRNA *srna;
-	PropertyRNA *prop;
-
-	static const EnumPropertyItem clay_matcap_items[] = {
-	    {ICON_MATCAP_01, "01", ICON_MATCAP_01, "", ""},
-	    {ICON_MATCAP_02, "02", ICON_MATCAP_02, "", ""},
-	    {ICON_MATCAP_03, "03", ICON_MATCAP_03, "", ""},
-	    {ICON_MATCAP_04, "04", ICON_MATCAP_04, "", ""},
-	    {ICON_MATCAP_05, "05", ICON_MATCAP_05, "", ""},
-	    {ICON_MATCAP_06, "06", ICON_MATCAP_06, "", ""},
-	    {ICON_MATCAP_07, "07", ICON_MATCAP_07, "", ""},
-	    {ICON_MATCAP_08, "08", ICON_MATCAP_08, "", ""},
-	    {ICON_MATCAP_09, "09", ICON_MATCAP_09, "", ""},
-	    {ICON_MATCAP_10, "10", ICON_MATCAP_10, "", ""},
-	    {ICON_MATCAP_11, "11", ICON_MATCAP_11, "", ""},
-	    {ICON_MATCAP_12, "12", ICON_MATCAP_12, "", ""},
-	    {ICON_MATCAP_13, "13", ICON_MATCAP_13, "", ""},
-	    {ICON_MATCAP_14, "14", ICON_MATCAP_14, "", ""},
-	    {ICON_MATCAP_15, "15", ICON_MATCAP_15, "", ""},
-	    {ICON_MATCAP_16, "16", ICON_MATCAP_16, "", ""},
-	    {ICON_MATCAP_17, "17", ICON_MATCAP_17, "", ""},
-	    {ICON_MATCAP_18, "18", ICON_MATCAP_18, "", ""},
-	    {ICON_MATCAP_19, "19", ICON_MATCAP_19, "", ""},
-	    {ICON_MATCAP_20, "20", ICON_MATCAP_20, "", ""},
-	    {ICON_MATCAP_21, "21", ICON_MATCAP_21, "", ""},
-	    {ICON_MATCAP_22, "22", ICON_MATCAP_22, "", ""},
-	    {ICON_MATCAP_23, "23", ICON_MATCAP_23, "", ""},
-	    {ICON_MATCAP_24, "24", ICON_MATCAP_24, "", ""},
-	    {0, NULL, 0, NULL, NULL}
-	};
-
-	srna = RNA_def_struct(brna, "LayerCollectionEngineSettingsClay", "LayerCollectionSettings");
-	RNA_def_struct_ui_text(srna, "Collections Clay Engine Settings", "Engine specific settings for this collection");
-
-	RNA_define_verify_sdna(0); /* not in sdna */
-
-	/* see RNA_LAYER_ENGINE_GET_SET macro */
-	prop = RNA_def_property(srna, "matcap_icon", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_icon_get", "rna_LayerEngineSettings_Clay_matcap_icon_set", NULL);
-	RNA_def_property_enum_items(prop, clay_matcap_items);
-	RNA_def_property_ui_text(prop, "Matcap", "Image to use for Material Capture by this material");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "matcap_rotation", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_rotation_get", "rna_LayerEngineSettings_Clay_matcap_rotation_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Rotation", "Orientation of the matcap on the model");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "matcap_hue", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_hue_get", "rna_LayerEngineSettings_Clay_matcap_hue_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Hue Shift", "Hue correction of the matcap");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "matcap_saturation", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_saturation_get", "rna_LayerEngineSettings_Clay_matcap_saturation_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Saturation", "Saturation correction of the matcap");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "matcap_value", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_matcap_value_get", "rna_LayerEngineSettings_Clay_matcap_value_set", NULL);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Matcap Value", "Value correction of the matcap");
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "ssao_factor_cavity", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_factor_cavity_get", "rna_LayerEngineSettings_Clay_ssao_factor_cavity_set", NULL);
-	RNA_def_property_ui_text(prop, "Cavity Strength", "Strength of the Cavity effect");
-	RNA_def_property_range(prop, 0.0f, 250.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "ssao_factor_edge", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_factor_edge_get", "rna_LayerEngineSettings_Clay_ssao_factor_edge_set", NULL);
-	RNA_def_property_ui_text(prop, "Edge Strength", "Strength of the Edge effect");
-	RNA_def_property_range(prop, 0.0f, 250.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "ssao_distance", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_distance_get", "rna_LayerEngineSettings_Clay_ssao_distance_set", NULL);
-	RNA_def_property_ui_text(prop, "Distance", "Distance of object that contribute to the Cavity/Edge effect");
-	RNA_def_property_range(prop, 0.0f, 100000.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 100.0f, 1, 3);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "ssao_attenuation", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_ssao_attenuation_get", "rna_LayerEngineSettings_Clay_ssao_attenuation_set", NULL);
-	RNA_def_property_ui_text(prop, "Attenuation", "Attenuation constant");
-	RNA_def_property_range(prop, 1.0f, 100000.0f);
-	RNA_def_property_ui_range(prop, 1.0f, 100.0f, 1, 3);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	prop = RNA_def_property(srna, "hair_brightness_randomness", PROP_FLOAT, PROP_NONE);
-	RNA_def_property_float_funcs(prop, "rna_LayerEngineSettings_Clay_hair_brightness_randomness_get", "rna_LayerEngineSettings_Clay_hair_brightness_randomness_set", NULL);
-	RNA_def_property_ui_text(prop, "Hair Brightness Randomness", "Brightness randomness for hair");
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
-	RNA_def_property_update(prop, 0, "rna_LayerCollectionEngineSettings_update");
-
-	RNA_define_verify_sdna(1); /* not in sdna */
-}
-#endif /* WITH_CLAY_ENGINE */
-
 static void rna_def_view_layer_settings(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1069,10 +889,6 @@ static void rna_def_view_layer_settings(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Remove the property");
 	parm = RNA_def_string(func, "identifier", NULL, 0, "Property Name", "Name of the property to unset");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-
-#ifdef WITH_CLAY_ENGINE
-	rna_def_view_layer_engine_settings_clay(brna);
-#endif
 
 	RNA_define_verify_sdna(1);
 }
@@ -1109,10 +925,6 @@ static void rna_def_layer_collection_settings(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Remove the property");
 	parm = RNA_def_string(func, "identifier", NULL, 0, "Property Name", "Name of the property to unset");
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
-
-#ifdef WITH_CLAY_ENGINE
-	rna_def_layer_collection_engine_settings_clay(brna);
-#endif
 
 	RNA_define_verify_sdna(1);
 }
