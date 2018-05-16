@@ -370,8 +370,11 @@ static void drw_shgroup_bone_relationship_lines(const float start[3], const floa
 		g_data.lines_relationship = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, g_theme.wire_color);
 	}
 	/* reverse order to have less stipple overlap */
-	DRW_shgroup_call_dynamic_add(g_data.lines_relationship, end);
-	DRW_shgroup_call_dynamic_add(g_data.lines_relationship, start);
+	float v[3];
+	mul_v3_m4v3(v, g_data.ob->obmat, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_relationship, v);
+	mul_v3_m4v3(v, g_data.ob->obmat, start);
+	DRW_shgroup_call_dynamic_add(g_data.lines_relationship, v);
 }
 
 static void drw_shgroup_bone_ik_lines(const float start[3], const float end[3])
@@ -381,8 +384,11 @@ static void drw_shgroup_bone_ik_lines(const float start[3], const float end[3])
 		g_data.lines_ik = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, fcolor);
 	}
 	/* reverse order to have less stipple overlap */
-	DRW_shgroup_call_dynamic_add(g_data.lines_ik, end);
-	DRW_shgroup_call_dynamic_add(g_data.lines_ik, start);
+	float v[3];
+	mul_v3_m4v3(v, g_data.ob->obmat, end);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik, v);
+	mul_v3_m4v3(v, g_data.ob->obmat, start);
+	DRW_shgroup_call_dynamic_add(g_data.lines_ik, v);
 }
 
 static void drw_shgroup_bone_ik_no_target_lines(const float start[3], const float end[3])
