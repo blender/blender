@@ -666,7 +666,7 @@ static bool raycastObj(
 		    !(sctx->v3d_data.v3d->flag & V3D_ZBUF_SELECT))
 		{
 			/* Use of occlude geometry in editing mode disabled. */
-			return;
+			return false;
 		}
 	}
 
