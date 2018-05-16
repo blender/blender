@@ -116,10 +116,10 @@ void DRW_shape_cache_free(void)
 /** \name Helper functions
  * \{ */
 
-static void add_fancy_edge(
+static void UNUSED_FUNCTION(add_fancy_edge)(
         Gwn_VertBuf *vbo, uint pos_id, uint n1_id, uint n2_id,
         uint *v_idx, const float co1[3], const float co2[3],
-const float n1[3], const float n2[3])
+        const float n1[3], const float n2[3])
 {
 	GWN_vertbuf_attr_set(vbo, n1_id, *v_idx, n1);
 	GWN_vertbuf_attr_set(vbo, n2_id, *v_idx, n2);
@@ -1548,6 +1548,7 @@ static const float bone_octahedral_smooth_normals[6][3] = {
 	{ 0.0f,  1.0f,  0.0f}
 };
 
+#if 0  /* UNUSED */
 static const uint bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
@@ -1561,6 +1562,7 @@ static const uint bone_octahedral_wire_adjacent_face[24] = {
 	2, 3,  6, 7,  4, 5,  0, 1,
 	0, 4,  1, 5,  2, 6,  3, 7,
 };
+#endif
 
 static const uint bone_octahedral_solid_tris[8][3] = {
 	{2, 1, 0}, /* bottom */
@@ -1673,6 +1675,7 @@ static const float bone_box_smooth_normals[8][3] = {
 	{-M_SQRT3,  M_SQRT3,  M_SQRT3},
 };
 
+#if 0 /* UNUSED */
 static const uint bone_box_wire[24] = {
 	0, 1,  1, 2,  2, 3,  3, 0,
 	4, 5,  5, 6,  6, 7,  7, 4,
@@ -1686,6 +1689,7 @@ static const uint bone_box_wire_adjacent_face[24] = {
 	3, 10,   5, 10,   7, 11,   9, 11,
 	3,  8,   2,  5,   4,  7,   6,  9,
 };
+#endif
 
 static const uint bone_box_solid_tris[12][3] = {
 	{0, 2, 1}, /* bottom */
