@@ -1991,7 +1991,9 @@ void BKE_pose_rebuild(Object *ob, bArmature *arm)
 	/* printf("rebuild pose %s, %d bones\n", ob->id.name, counter); */
 
 	/* synchronize protected layers with proxy */
-	if (ob->proxy) {
+	/* HACK! To preserve 2.7x behavior that you always can pose even locked bones,
+	 * do not do any restauration if this is a COW temp copy! */
+	if (ob->proxy != NULL && (ob->id.tag & LIB_TAG_COPY_ON_WRITE) == 0) {
 		BKE_object_copy_proxy_drivers(ob, ob->proxy);
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	}
