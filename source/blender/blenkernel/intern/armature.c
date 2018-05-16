@@ -1993,7 +1993,8 @@ void BKE_pose_rebuild(Object *ob, bArmature *arm)
 	/* synchronize protected layers with proxy */
 	/* HACK! To preserve 2.7x behavior that you always can pose even locked bones,
 	 * do not do any restauration if this is a COW temp copy! */
-	if (ob->proxy != NULL && (ob->id.tag & LIB_TAG_COPY_ON_WRITE) == 0) {
+	/* Switched back to just NO_MAIN tag, for some reasons (c) using COW tag was working this morning, but not anymore... */
+	if (ob->proxy != NULL && (ob->id.tag & LIB_TAG_NO_MAIN) == 0) {
 		BKE_object_copy_proxy_drivers(ob, ob->proxy);
 		pose_proxy_synchronize(ob, ob->proxy, arm->layer_protected);
 	}
