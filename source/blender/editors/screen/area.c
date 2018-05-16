@@ -2604,14 +2604,29 @@ void ED_region_visible_rect(ARegion *ar, rcti *rect)
 	for (; arn; arn = arn->next) {
 		if (ar != arn && arn->overlap) {
 			if (BLI_rcti_isect(rect, &arn->winrct, NULL)) {
-				
-				/* overlap left, also check 1 pixel offset (2 regions on one side) */
-				if (ABS(rect->xmin - arn->winrct.xmin) < 2)
-					rect->xmin = arn->winrct.xmax;
+				if (ELEM(arn->alignment, RGN_ALIGN_LEFT, RGN_ALIGN_RIGHT)) {
+					/* Overlap left, also check 1 pixel offset (2 regions on one side). */
+					if (ABS(rect->xmin - arn->winrct.xmin) < 2) {
+						rect->xmin = arn->winrct.xmax;
+					}
 
-				/* overlap right */
-				if (ABS(rect->xmax - arn->winrct.xmax) < 2)
-					rect->xmax = arn->winrct.xmin;
+					/* Overlap right. */
+					if (ABS(rect->xmax - arn->winrct.xmax) < 2) {
+						rect->xmax = arn->winrct.xmin;
+					}
+				}
+				else if (ELEM(arn->alignment, RGN_ALIGN_TOP, RGN_ALIGN_BOTTOM)) {
+					/* Same logic as above for vertical regions. */
+					if (ABS(rect->ymin - arn->winrct.ymin) < 2) {
+						rect->ymin = arn->winrct.ymax;
+					}
+					if (ABS(rect->ymax - arn->winrct.ymax) < 2) {
+						rect->ymax = arn->winrct.ymin;
+					}
+				}
+				else {
+					BLI_assert(!"Region overlap with unknown alignment");
+				}
 			}
 		}
 	}
