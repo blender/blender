@@ -4221,7 +4221,7 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 	if (!psys_check_enabled(ob, psys, use_render_params))
 		return;
 
-	cfra= BKE_scene_frame_get(scene);
+	cfra = DEG_get_ctime(depsgraph);
 
 	sim.depsgraph = depsgraph;
 	sim.scene = scene;
