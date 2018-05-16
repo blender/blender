@@ -315,6 +315,7 @@ DRWShadingGroup *DRW_shgroup_material_empty_tri_batch_create(struct GPUMaterial 
 DRWShadingGroup *DRW_shgroup_instance_create(
         struct GPUShader *shader, DRWPass *pass, struct Gwn_Batch *geom, struct Gwn_VertFormat *format);
 DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPass *pass);
+DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(struct GPUShader *shader, DRWPass *pass, struct Gwn_VertFormat *format);
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass);
 DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(struct GPUShader *shader, DRWPass *pass, int size);
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);

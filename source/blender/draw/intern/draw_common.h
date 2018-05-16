@@ -99,6 +99,7 @@ typedef struct GlobalsUboStorage {
 void DRW_globals_update(void);
 void DRW_globals_free(void);
 
+struct DRWShadingGroup *shgroup_dynlines_flat_color(struct DRWPass *pass);
 struct DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(struct DRWPass *pass, float color[4]);
 struct DRWShadingGroup *shgroup_dynpoints_uniform_color(struct DRWPass *pass, float color[4], float *size);
 struct DRWShadingGroup *shgroup_groundlines_uniform_color(struct DRWPass *pass, float color[4]);

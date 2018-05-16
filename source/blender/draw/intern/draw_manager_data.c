@@ -797,16 +797,21 @@ DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPas
 	return shgroup;
 }
 
+DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(struct GPUShader *shader, DRWPass *pass, Gwn_VertFormat *format)
+{
+	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
+	shgroup->type = DRW_SHG_LINE_BATCH;
+
+	drw_shgroup_batching_init(shgroup, shader, format);
+
+	return shgroup;
+}
+
 DRWShadingGroup *DRW_shgroup_line_batch_create(struct GPUShader *shader, DRWPass *pass)
 {
 	DRW_shgroup_instance_format(g_pos_format, {{"pos", DRW_ATTRIB_FLOAT, 3}});
 
-	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
-	shgroup->type = DRW_SHG_LINE_BATCH;
-
-	drw_shgroup_batching_init(shgroup, shader, g_pos_format);
-
-	return shgroup;
+	return DRW_shgroup_line_batch_create_with_format(shader, pass, g_pos_format);
 }
 
 /* Very special batch. Use this if you position

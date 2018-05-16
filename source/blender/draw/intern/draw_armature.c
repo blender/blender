@@ -81,7 +81,7 @@ static struct {
 	DRWShadingGroup *bone_box_solid;
 	DRWShadingGroup *bone_box_wire;
 	DRWShadingGroup *bone_box_outline;
-	DRWShadingGroup *bone_wire_wire;
+	DRWShadingGroup *bone_wire;
 	DRWShadingGroup *bone_stick;
 	DRWShadingGroup *bone_envelope_solid;
 	DRWShadingGroup *bone_envelope_distance;
@@ -171,17 +171,21 @@ static void drw_shgroup_bone_box(
 }
 
 /* Wire */
-static void drw_shgroup_bone_wire_wire(const float (*bone_mat)[4], const float color[4])
+static void drw_shgroup_bone_wire(const float (*bone_mat)[4], const float color[4])
 {
-	if (g_data.bone_wire_wire == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_wire_wire_outline_get();
-		g_data.bone_wire_wire = shgroup_instance_wire(g_data.passes.bone_wire, geom);
+	if (g_data.bone_wire == NULL) {
+		g_data.bone_wire = shgroup_dynlines_flat_color(g_data.passes.bone_wire);
 	}
-	float final_bonemat[4][4];
-	mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
-	DRW_shgroup_call_dynamic_add(g_data.bone_wire_wire, final_bonemat, color);
+	float head[3], tail[3];
+	mul_v3_m4v3(head, g_data.ob->obmat, bone_mat[3]);
+	DRW_shgroup_call_dynamic_add(g_data.bone_wire, head, color);
+
+	add_v3_v3v3(tail, bone_mat[3], bone_mat[1]);
+	mul_m4_v3(g_data.ob->obmat, tail);
+	DRW_shgroup_call_dynamic_add(g_data.bone_wire, tail, color);
 }
 
+/* Stick */
 static void drw_shgroup_bone_stick(
         const float (*bone_mat)[4],
         const float col_wire[4], const float col_bone[4], const float col_head[4], const float col_tail[4])
@@ -1287,12 +1291,12 @@ static void draw_bone_wire(
 		BLI_assert(bbones_mat != NULL);
 
 		for (int i = pchan->bone->segments; i--; bbones_mat++) {
-			drw_shgroup_bone_wire_wire(bbones_mat->mat, col_wire);
+			drw_shgroup_bone_wire(bbones_mat->mat, col_wire);
 		}
 	}
 	else if (eBone) {
 		for (int i = 0; i < eBone->segments; i++) {
-			drw_shgroup_bone_wire_wire(eBone->disp_bbone_mat[i], col_wire);
+			drw_shgroup_bone_wire(eBone->disp_bbone_mat[i], col_wire);
 		}
 	}
 

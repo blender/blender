@@ -97,10 +97,7 @@ struct Gwn_Batch *DRW_cache_lightprobe_planar_get(void);
 
 /* Bones */
 struct Gwn_Batch *DRW_cache_bone_octahedral_get(void);
-struct Gwn_Batch *DRW_cache_bone_octahedral_wire_outline_get(void);
 struct Gwn_Batch *DRW_cache_bone_box_get(void);
-struct Gwn_Batch *DRW_cache_bone_box_wire_outline_get(void);
-struct Gwn_Batch *DRW_cache_bone_wire_wire_outline_get(void);
 struct Gwn_Batch *DRW_cache_bone_envelope_solid_get(void);
 struct Gwn_Batch *DRW_cache_bone_envelope_outline_get(void);
 struct Gwn_Batch *DRW_cache_bone_envelope_head_wire_outline_get(void);

@@ -203,6 +203,7 @@ static struct {
 	struct Gwn_VertFormat *instance_bone_envelope_distance;
 	struct Gwn_VertFormat *instance_bone_envelope_outline;
 	struct Gwn_VertFormat *instance_mball_handles;
+	struct Gwn_VertFormat *dynlines_color;
 } g_formats = {NULL};
 
 void DRW_globals_free(void)
@@ -216,6 +217,20 @@ void DRW_globals_free(void)
 	for (int i = 0; i < sizeof(g_shaders) / sizeof(void *); ++i, ++shader) {
 		DRW_SHADER_FREE_SAFE(*shader);
 	}
+}
+
+DRWShadingGroup *shgroup_dynlines_flat_color(DRWPass *pass)
+{
+	GPUShader *sh = GPU_shader_get_builtin_shader(GPU_SHADER_3D_FLAT_COLOR);
+
+	DRW_shgroup_instance_format(g_formats.dynlines_color, {
+		{"pos"      , DRW_ATTRIB_FLOAT, 3},
+		{"color"    , DRW_ATTRIB_FLOAT, 4}
+	});
+
+	DRWShadingGroup *grp = DRW_shgroup_line_batch_create_with_format(sh, pass, g_formats.dynlines_color);
+
+	return grp;
 }
 
 DRWShadingGroup *shgroup_dynlines_dashed_uniform_color(DRWPass *pass, float color[4])
