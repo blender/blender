@@ -3885,59 +3885,70 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 
 static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMesh *bm = em->bm;
-
-	BLI_LINKSTACK_DECLARE(stack, BMFace *);
-
-	BMIter iter, liter, liter2;
-	BMFace *f;
-	BMLoop *l, *l2;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 	const float angle_limit_cos = cosf(RNA_float_get(op->ptr, "sharpness"));
 
-	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMesh *bm = em->bm;
 
-	BLI_LINKSTACK_INIT(stack);
-
-	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
-		if ((BM_elem_flag_test(f, BM_ELEM_HIDDEN) != 0) ||
-		    (BM_elem_flag_test(f, BM_ELEM_TAG)    != 0) ||
-		    (BM_elem_flag_test(f, BM_ELEM_SELECT) == 0))
-		{
+		if (bm->totfacesel == 0) {
 			continue;
 		}
 
-		BLI_assert(BLI_LINKSTACK_SIZE(stack) == 0);
+		BLI_LINKSTACK_DECLARE(stack, BMFace *);
 
-		do {
-			BM_face_select_set(bm, f, true);
+		BMIter iter, liter, liter2;
+		BMFace *f;
+		BMLoop *l, *l2;
 
-			BM_elem_flag_enable(f, BM_ELEM_TAG);
+		BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, false);
 
-			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
-				BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
-					float angle_cos;
+		BLI_LINKSTACK_INIT(stack);
 
-					if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) ||
-					    BM_elem_flag_test(l2->f, BM_ELEM_HIDDEN))
-					{
-						continue;
-					}
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if ((BM_elem_flag_test(f, BM_ELEM_HIDDEN) != 0) ||
+			    (BM_elem_flag_test(f, BM_ELEM_TAG)    != 0) ||
+			    (BM_elem_flag_test(f, BM_ELEM_SELECT) == 0))
+			{
+				continue;
+			}
 
-					angle_cos = dot_v3v3(f->no, l2->f->no);
+			BLI_assert(BLI_LINKSTACK_SIZE(stack) == 0);
 
-					if (angle_cos > angle_limit_cos) {
-						BLI_LINKSTACK_PUSH(stack, l2->f);
+			do {
+				BM_face_select_set(bm, f, true);
+
+				BM_elem_flag_enable(f, BM_ELEM_TAG);
+
+				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+					BM_ITER_ELEM (l2, &liter2, l, BM_LOOPS_OF_LOOP) {
+						float angle_cos;
+
+						if (BM_elem_flag_test(l2->f, BM_ELEM_TAG) ||
+						    BM_elem_flag_test(l2->f, BM_ELEM_HIDDEN))
+						{
+							continue;
+						}
+
+						angle_cos = dot_v3v3(f->no, l2->f->no);
+
+						if (angle_cos > angle_limit_cos) {
+							BLI_LINKSTACK_PUSH(stack, l2->f);
+						}
 					}
 				}
-			}
-		} while ((f = BLI_LINKSTACK_POP(stack)));
+			} while ((f = BLI_LINKSTACK_POP(stack)));
+		}
+
+		BLI_LINKSTACK_FREE(stack);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
-
-	BLI_LINKSTACK_FREE(stack);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
