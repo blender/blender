@@ -2329,8 +2329,8 @@ static void mesh_calc_modifiers(
 			if (new_mesh) {
 				/* if the modifier returned a new mesh, release the old one */
 				if (mesh && mesh != new_mesh) {
-					BKE_mesh_free(mesh);
-					MEM_freeN(mesh);
+					BLI_assert(mesh != me);
+					BKE_id_free(NULL, mesh);
 				}
 
 				mesh = new_mesh;
@@ -2360,6 +2360,7 @@ static void mesh_calc_modifiers(
 				if (new_mesh) {
 					/* if the modifier returned a new mesh, release the old one */
 					if (orco_mesh && orco_mesh != new_mesh) {
+						BLI_assert(orco_mesh != me);
 						BKE_id_free(NULL, orco_mesh);
 					}
 
@@ -2369,8 +2370,9 @@ static void mesh_calc_modifiers(
 
 			/* create cloth orco mesh in parallel */
 			if (nextmask & CD_MASK_CLOTH_ORCO) {
-				if (!cloth_orco_mesh)
+				if (!cloth_orco_mesh) {
 					cloth_orco_mesh = create_orco_mesh(ob, me, NULL, CD_CLOTH_ORCO);
+				}
 
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				mesh_set_only_copy(cloth_orco_mesh, nextmask | CD_MASK_ORIGINDEX);
@@ -2381,6 +2383,7 @@ static void mesh_calc_modifiers(
 				if (new_mesh) {
 					/* if the modifier returned a new mesh, release the old one */
 					if (cloth_orco_mesh && cloth_orco_mesh != new_mesh) {
+						BLI_assert(orco_mesh != me);
 						BKE_id_free(NULL, cloth_orco_mesh);
 					}
 
