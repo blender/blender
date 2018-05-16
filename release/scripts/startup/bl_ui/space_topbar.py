@@ -210,32 +210,37 @@ class TOPBAR_HT_lower_bar(Header):
             text=""
         )
 
-        layout.prop(scene, "transform_orientation", text="")
-
         if obj:
             # Proportional editing
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
+                sub = row.row(align=True)
+                sub.enabled = toolsettings.proportional_edit != 'DISABLED'
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
             elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                sub = row.row(align=True)
+                sub.enabled = toolsettings.proportional_edit != 'DISABLED'
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+
             elif object_mode == 'OBJECT':
                 row = layout.row(align=True)
                 row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
-                if toolsettings.use_proportional_edit_objects:
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                sub = row.row(align=True)
+                sub.enabled = toolsettings.use_proportional_edit_objects
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
         else:
             # Proportional editing
             if context.gpencil_data and context.gpencil_data.use_stroke_edit_mode:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
-                if toolsettings.proportional_edit != 'DISABLED':
-                    row.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
+                sub = row.row(align=True)
+                sub.enabled = toolsettings.proportional_edit != 'DISABLED'
+                sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
         show_snap = False
@@ -256,28 +261,22 @@ class TOPBAR_HT_lower_bar(Header):
 
         if show_snap:
             snap_element = toolsettings.snap_element
+            act_snap_element = bpy.types.ToolSettings.bl_rna.properties['snap_element'].enum_items[snap_element]
+
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
-            row.prop(toolsettings, "snap_element", icon_only=True)
-            if snap_element == 'INCREMENT':
-                row.prop(toolsettings, "use_snap_grid_absolute", text="")
-            else:
-                row.prop(toolsettings, "snap_target", text="")
-                if obj:
-                    if object_mode == 'EDIT':
-                        row.prop(toolsettings, "use_snap_self", text="")
-                    if object_mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
-                        row.prop(toolsettings, "use_snap_align_rotation", text="")
 
-            if snap_element == 'VOLUME':
-                row.prop(toolsettings, "use_snap_peel_object", text="")
-            elif snap_element == 'FACE':
-                row.prop(toolsettings, "use_snap_project", text="")
+            sub = row.row(align=True)
+            sub.enabled = toolsettings.use_snap
+            sub.popover(
+                space_type='TOPBAR',
+                region_type='HEADER',
+                panel_type="TOPBAR_PT_snapping",
+                icon=act_snap_element.icon,
+                text=""
+            )
 
-        # AutoMerge editing
-        if obj:
-            if (object_mode == 'EDIT' and obj.type == 'MESH'):
-                layout.prop(toolsettings, "use_mesh_automerge", text="", icon='AUTOMERGE_ON')
+        layout.prop(scene, "transform_orientation", text="")
 
         # Command Settings (redo)
         op = context.active_operator
@@ -353,13 +352,56 @@ class TOPBAR_PT_pivot_point(Panel):
         col.label(text="Pivot Point")
         col.prop(toolsettings, "transform_pivot_point", expand=True)
 
-        layout.separator()
+        col.separator()
 
         if (obj is None) or (mode in {'OBJECT', 'POSE', 'WEIGHT_PAINT'}):
-            layout.prop(
+            col.prop(
                     toolsettings,
                     "use_transform_pivot_point_align",
                     text="Center Points Only")
+
+
+class TOPBAR_PT_snapping(Panel):
+    bl_space_type = 'TOPBAR'
+    bl_region_type = 'HEADER'
+    bl_label = "Snapping"
+
+    def draw(self, context):
+        toolsettings = context.tool_settings
+        snap_element = toolsettings.snap_element
+        obj = context.active_object
+        mode = context.mode
+        object_mode = 'OBJECT' if obj is None else obj.mode
+
+        layout = self.layout
+        col = layout.column()
+        col.label(text="Snapping")
+        col.prop(toolsettings, "snap_element", expand=True)
+
+        col.separator()
+
+        if snap_element == 'INCREMENT':
+            col.prop(toolsettings, "use_snap_grid_absolute")
+        else:
+            col.label(text="Target")
+            row = col.row(align=True)
+            row.prop(toolsettings, "snap_target", expand=True)
+
+            if obj:
+                if object_mode == 'EDIT':
+                    col.prop(toolsettings, "use_snap_self")
+                if object_mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
+                    col.prop(toolsettings, "use_snap_align_rotation", text="Align Rotation")
+
+        if snap_element == 'VOLUME':
+            col.prop(toolsettings, "use_snap_peel_object")
+        elif snap_element == 'FACE':
+            col.prop(toolsettings, "use_snap_project", text="Project Elements")
+
+        # Auto-Merge Editing
+        if obj:
+            if (object_mode == 'EDIT' and obj.type == 'MESH'):
+                col.prop(toolsettings, "use_mesh_automerge", icon='AUTOMERGE_ON')
 
 
 class INFO_MT_editor_menus(Menu):
@@ -629,6 +671,7 @@ classes = (
     TOPBAR_HT_upper_bar,
     TOPBAR_HT_lower_bar,
     TOPBAR_PT_pivot_point,
+    TOPBAR_PT_snapping,
     INFO_MT_editor_menus,
     INFO_MT_file,
     INFO_MT_file_import,
