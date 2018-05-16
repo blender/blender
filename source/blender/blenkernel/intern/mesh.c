@@ -551,7 +551,10 @@ void BKE_mesh_copy_data(Main *bmain, Mesh *me_dst, const Mesh *me_src, const int
 	BKE_mesh_update_customdata_pointers(me_dst, do_tessface);
 
 	me_dst->edit_btmesh = NULL;
+
+	/* Call BKE_mesh_runtime_reset? */
 	me_dst->runtime.batch_cache = NULL;
+	me_dst->runtime.looptris.array = NULL;
 	me_dst->runtime.bvh_cache = NULL;
 
 	if (me_src->id.tag & LIB_TAG_NO_MAIN) {
