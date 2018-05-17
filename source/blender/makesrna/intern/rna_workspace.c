@@ -141,7 +141,7 @@ const EnumPropertyItem *rna_WorkSpace_tools_mode_itemf(
 		case SPACE_IMAGE:
 			return rna_enum_space_image_mode_items;
 	}
-	return DummyRNA_NULL_items;
+	return DummyRNA_DEFAULT_items;
 }
 
 #else /* RNA_RUNTIME */
@@ -283,7 +283,7 @@ static void rna_def_workspace(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "tools_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "tools_mode");
-	RNA_def_property_enum_items(prop, rna_enum_object_mode_items);  /* value is placeholder, itemf is used. */
+	RNA_def_property_enum_items(prop, DummyRNA_DEFAULT_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_WorkSpace_tools_mode_itemf");
 	RNA_def_property_ui_text(prop, "Active Tool Space", "Tool mode");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
