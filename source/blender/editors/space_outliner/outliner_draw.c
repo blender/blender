@@ -1223,6 +1223,11 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					}
 					break;
 				}
+				case ID_BR:
+					tselem_draw_icon_uibut(&arg, ICON_BRUSH_DATA); break;
+				case ID_SCR:
+				case ID_WS:
+					tselem_draw_icon_uibut(&arg, ICON_SPLITSCREEN); break;
 				default:
 					break;
 			}
@@ -1294,10 +1299,11 @@ static void outliner_draw_iconrow(
 		}
 		
 		/* this tree element always has same amount of branches, so don't draw */
-		if (tselem->type != TSE_R_LAYER)
+		if (tselem->type != TSE_R_LAYER) {
 			outliner_draw_iconrow(
 			        C, block, scene, view_layer, obedit, soops,
 			        &te->subtree, level + 1, xmax, offsx, ys, alpha_fac);
+		}
 	}
 	
 }
@@ -1435,7 +1441,7 @@ static void outliner_draw_tree_element(
 		
 		/* datatype icon */
 		
-		if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM))) {
+		if (!(ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM, TSE_ID_BASE))) {
 			tselem_draw_icon(block, xmax, (float)startx + offsx, (float)*starty, tselem, te, alpha_fac);
 			offsx += UI_UNIT_X + 2 * ufac;
 		}

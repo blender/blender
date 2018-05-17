@@ -1256,6 +1256,12 @@ static void outliner_add_seq_dup(SpaceOops *soops, Sequence *seq, TreeElement *t
 
 /* ----------------------------------------------- */
 
+static const char *outliner_idcode_to_plural(short idcode)
+{
+	const char *propname = BKE_idcode_to_name_plural(idcode);
+	PropertyRNA *prop = RNA_struct_type_find_property(&RNA_BlendData, propname);
+	return RNA_property_ui_name(prop);
+}
 
 static void outliner_add_library_contents(Main *mainvar, SpaceOops *soops, TreeElement *te, Library *lib)
 {
@@ -1277,7 +1283,7 @@ static void outliner_add_library_contents(Main *mainvar, SpaceOops *soops, TreeE
 				ten = outliner_add_element(soops, &te->subtree, lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
-				ten->name = BKE_idcode_to_name_plural(GS(id->name));
+				ten->name = outliner_idcode_to_plural(GS(id->name));
 				if (ten->name == NULL)
 					ten->name = "UNKNOWN";
 				
@@ -1317,7 +1323,7 @@ static void outliner_add_orphaned_datablocks(Main *mainvar, SpaceOops *soops)
 				ten = outliner_add_element(soops, &soops->tree, lbarray[a], NULL, TSE_ID_BASE, 0);
 				ten->directdata = lbarray[a];
 				
-				ten->name = BKE_idcode_to_name_plural(GS(id->name));
+				ten->name = outliner_idcode_to_plural(GS(id->name));
 				if (ten->name == NULL)
 					ten->name = "UNKNOWN";
 				
