@@ -72,6 +72,8 @@
 
 #include "BIK_api.h"
 
+#include "DEG_depsgraph.h"
+
 #ifdef WITH_BULLET
 #  include "RBI_api.h"
 #endif
@@ -3373,6 +3375,7 @@ int  BKE_ptcache_object_reset(Scene *scene, Object *ob, int mode)
 	if (ob->type == OB_ARMATURE)
 		BIK_clear_cache(ob->pose);
 
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE);
 	return reset;
 }
 

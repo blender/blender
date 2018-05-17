@@ -80,6 +80,8 @@
 
 #include "BLI_threads.h"
 
+#include "DEG_depsgraph.h"
+
 #ifdef WITH_OPENEXR
 const EnumPropertyItem rna_enum_exr_codec_items[] = {
 	{R_IMF_EXR_CODEC_NONE, "NONE", 0, "None", ""},
@@ -1546,6 +1548,8 @@ static void rna_Physics_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Pointe
 		BKE_ptcache_object_reset(scene, ob, PTCACHE_RESET_DEPSGRAPH);
 	}
 	FOREACH_SCENE_OBJECT_END;
+
+	DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 }
 
 static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value)
