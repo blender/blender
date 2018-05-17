@@ -284,8 +284,7 @@ class ToolSelectPanelHelper:
     def _tool_active_from_context(context, space_type, mode=None, create=False):
         if space_type == 'VIEW_3D':
             if mode is None:
-                obj = context.active_object
-                mode = obj.mode if obj is not None else 'OBJECT'
+                mode = context.mode
             tool = context.workspace.tools.from_space_view3d_mode(mode, create)
             if tool is not None:
                 return tool

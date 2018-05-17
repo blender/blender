@@ -420,7 +420,7 @@ static void manipulator_mesh_extrude_orientation_matrix_set(
 static bool manipulator_mesh_extrude_poll(const bContext *C, wmManipulatorGroupType *wgt)
 {
 	WorkSpace *workspace = CTX_wm_workspace(C);
-	const bToolKey tkey = { .space_type = SPACE_VIEW3D, .mode = OB_MODE_EDIT};
+	const bToolKey tkey = { .space_type = SPACE_VIEW3D, .mode = CTX_MODE_EDIT_MESH, };
 	bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_find(workspace, &tkey);
 	if ((tref_rt == NULL) ||
 	    !STREQ(wgt->idname, tref_rt->manipulator_group) ||

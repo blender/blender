@@ -293,7 +293,13 @@ int WM_toolsystem_mode_from_spacetype(
 			/* 'sa' may be NULL in this case. */
 			ViewLayer *view_layer = BKE_workspace_view_layer_get(workspace, scene);
 			Object *obact = OBACT(view_layer);
-			mode = obact ? obact->mode : OB_MODE_OBJECT;
+			if (obact != NULL) {
+				Object *obedit = OBEDIT_FROM_OBACT(obact);
+				mode = CTX_data_mode_enum_ex(obedit, obact, obact->mode);
+			}
+			else {
+				mode = CTX_MODE_OBJECT;
+			}
 			break;
 		}
 		case SPACE_IMAGE:
