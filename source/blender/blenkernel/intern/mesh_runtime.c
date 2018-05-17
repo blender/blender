@@ -144,6 +144,19 @@ const MLoopTri *BKE_mesh_runtime_looptri_ensure(Mesh *mesh)
 	return looptri;
 }
 
+/* This is a copy of DM_verttri_from_looptri(). */
+void BKE_mesh_runtime_verttri_from_looptri(MVertTri *r_verttri, const MLoop *mloop,
+                                           const MLoopTri *looptri, int looptri_num)
+{
+	int i;
+	for (i = 0; i < looptri_num; i++) {
+		r_verttri[i].tri[0] = mloop[looptri[i].tri[0]].v;
+		r_verttri[i].tri[1] = mloop[looptri[i].tri[1]].v;
+		r_verttri[i].tri[2] = mloop[looptri[i].tri[2]].v;
+	}
+}
+
+
 bool BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh)
 {
 	if (mesh->runtime.edit_data != NULL) {

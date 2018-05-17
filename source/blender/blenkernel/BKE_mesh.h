@@ -54,6 +54,7 @@ struct MLoop;
 struct MFace;
 struct MEdge;
 struct MVert;
+struct MVertTri;
 struct MDeformVert;
 struct MDisps;
 struct Object;
@@ -200,6 +201,11 @@ bool                   BKE_mesh_runtime_ensure_edit_data(struct Mesh *mesh);
 bool                   BKE_mesh_runtime_clear_edit_data(struct Mesh *mesh);
 void                   BKE_mesh_runtime_clear_geometry(struct Mesh *mesh);
 void                   BKE_mesh_runtime_clear_cache(struct Mesh *mesh);
+
+void BKE_mesh_runtime_verttri_from_looptri(
+        struct MVertTri *r_verttri,
+        const struct MLoop *mloop, const struct MLoopTri *looptri, int looptri_num);
+
 
 /* *** mesh_evaluate.c *** */
 
