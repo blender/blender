@@ -1195,7 +1195,7 @@ bool snapObjectsTransform(
         float *dist_px,
         float r_loc[3], float r_no[3])
 {
-	return ED_transform_snap_object_project_view3d_ex(
+	return ED_transform_snap_object_project_view3d(
 	        t->tsnap.object_context,
 	        t->scene->toolsettings->snap_mode,
 	        &(const struct SnapObjectParams){
@@ -1203,9 +1203,7 @@ bool snapObjectsTransform(
 	            .use_object_edit_cage = (t->flag & T_EDIT) != 0,
 	            .use_occlusion_test = t->scene->toolsettings->snap_mode != SCE_SNAP_MODE_FACE,
 	        },
-	        mval, dist_px, NULL,
-	        r_loc, r_no, NULL,
-	        NULL, NULL);
+	        mval, dist_px, r_loc, r_no);
 }
 
 

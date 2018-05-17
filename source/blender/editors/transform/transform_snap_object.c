@@ -2310,7 +2310,7 @@ static bool transform_snap_context_project_view3d_mixed_impl(
 			if (ED_transform_snap_object_project_view3d(
 			        sctx,
 			        elem_type[i], params,
-			        mval, dist_px, NULL,
+			        mval, dist_px,
 			        r_co, r_no))
 			{
 				return true;
@@ -2352,7 +2352,6 @@ bool ED_transform_snap_object_project_view3d_ex(
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
-        float *ray_depth,
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
@@ -2369,33 +2368,22 @@ bool ED_transform_snap_object_project_view3d_ex(
 	const RegionView3D *rv3d = ar->regiondata;
 
 	if (snap_to == SCE_SNAP_MODE_FACE || params->use_occlusion_test) {
-		float ray_origin[3], ray_end[3], ray_start[3], ray_normal[3], depth_range[2];
+		float ray_start[3], ray_normal[3];
 
-		ED_view3d_win_to_origin(ar, mval, ray_origin);
-		ED_view3d_win_to_vector(ar, mval, ray_normal);
-
-		ED_view3d_clip_range_get(
+		if (!ED_view3d_win_to_ray_ex(
 		        sctx->depsgraph,
-		        sctx->v3d_data.v3d, sctx->v3d_data.ar->regiondata,
-		        &depth_range[0], &depth_range[1], false);
-
-		madd_v3_v3v3fl(ray_start, ray_origin, ray_normal, depth_range[0]);
-		madd_v3_v3v3fl(ray_end, ray_origin, ray_normal, depth_range[1]);
-
-		if (!ED_view3d_clip_segment(rv3d, ray_start, ray_end)) {
+		        sctx->v3d_data.ar, sctx->v3d_data.v3d,
+		        mval, NULL, ray_normal, ray_start, true))
+		{
 			return false;
 		}
 
-		float ray_depth_fallback;
-		if (ray_depth == NULL) {
-			ray_depth_fallback = BVH_RAYCAST_DIST_MAX;
-			ray_depth = &ray_depth_fallback;
-		}
+		float dummy_ray_depth = BVH_RAYCAST_DIST_MAX;
 
 		has_hit = raycastObjects(
 		        sctx, params,
 		        ray_start, ray_normal,
-		        ray_depth, loc, no,
+		        &dummy_ray_depth, loc, no,
 		        r_index, &ob, obmat, NULL);
 
 		retval = has_hit && (snap_to == SCE_SNAP_MODE_FACE);
@@ -2463,7 +2451,6 @@ bool ED_transform_snap_object_project_view3d(
         const unsigned short snap_to,
         const struct SnapObjectParams *params,
         const float mval[2], float *dist_px,
-        float *ray_depth,
         float r_loc[3], float r_no[3])
 {
 	return ED_transform_snap_object_project_view3d_ex(
@@ -2471,7 +2458,6 @@ bool ED_transform_snap_object_project_view3d(
 	        snap_to,
 	        params,
 	        mval, dist_px,
-	        ray_depth,
 	        r_loc, r_no, NULL,
 	        NULL, NULL);
 }

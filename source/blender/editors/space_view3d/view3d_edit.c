@@ -4607,7 +4607,7 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 		            .snap_select = SNAP_ALL,
 		            .use_object_edit_cage = false,
 		        },
-		        mval_fl, &dist_px, NULL,
+		        mval_fl, &dist_px,
 		        cursor_curr->location, ray_no, NULL,
 		        &ob_dummy, obmat))
 		{
