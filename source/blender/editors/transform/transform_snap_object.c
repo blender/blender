@@ -197,14 +197,6 @@ static void iter_snap_objects(
 }
 
 
-MINLINE float depth_get(const float co[3], const float ray_start[3], const float ray_dir[3])
-{
-	float dvec[3];
-	sub_v3_v3v3(dvec, co, ray_start);
-	return dot_v3v3(dvec, ray_dir);
-}
-
-
 static bool walk_parent_bvhroot_cb(const BVHTreeAxisRange *bounds, void *userdata)
 {
 	BVHTreeRay *ray = userdata;
