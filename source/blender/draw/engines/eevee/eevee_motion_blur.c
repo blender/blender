@@ -119,7 +119,7 @@ int EEVEE_motion_blur_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *veda
 		/* Update Motion Blur Matrices */
 		if (camera) {
 			float persmat[4][4];
-			float ctime = BKE_scene_frame_get(scene_eval);
+			float ctime = DEG_get_ctime(draw_ctx->depsgraph);
 			float delta = scene_eval->eevee.motion_blur_shutter;
 			Object *camera_object = DEG_get_evaluated_object(draw_ctx->depsgraph, camera);
 
