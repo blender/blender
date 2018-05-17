@@ -487,6 +487,7 @@ static SpaceLink *outliner_new(const ScrArea *UNUSED(area), const Scene *UNUSED(
 
 	soutliner = MEM_callocN(sizeof(SpaceOops), "initoutliner");
 	soutliner->spacetype = SPACE_OUTLINER;
+	soutliner->filter_id_type = ID_GR;
 	
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for outliner");

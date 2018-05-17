@@ -260,7 +260,8 @@ typedef struct SpaceOops {
 	short flag, outlinevis, storeflag, search_flags;
 	int filter;
 	char filter_state;
-	char pad[3];
+	char pad;
+	short filter_id_type;
 	
 	/* pointers to treestore elements, grouped by (id, type, nr) in hashtable for faster searching */
 	void *treehash;
@@ -297,6 +298,8 @@ typedef enum eSpaceOutliner_Filter {
 	SO_FILTER_OB_STATE_SELECTED = (1 << 14), /* Not set via DNA. */
 	SO_FILTER_OB_STATE_ACTIVE   = (1 << 15), /* Not set via DNA. */
 	SO_FILTER_NO_COLLECTION     = (1 << 16),
+
+	SO_FILTER_ID_TYPE           = (1 << 17),
 } eSpaceOutliner_Filter;
 
 #define SO_FILTER_OB_TYPE (SO_FILTER_NO_OB_MESH | \

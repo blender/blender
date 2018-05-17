@@ -75,16 +75,15 @@ const EnumPropertyItem rna_enum_id_type_items[] = {
 	{ID_PC, "PAINTCURVE", ICON_CURVE_BEZCURVE, "Paint Curve", ""},
 	{ID_PAL, "PALETTE", ICON_COLOR, "Palette", ""},
 	{ID_PA, "PARTICLE", ICON_PARTICLE_DATA, "Particle", ""},
-	{ID_LT, "LIGHT_PROBE", ICON_LIGHTPROBE_CUBEMAP, "Light Probe", ""},
+	{ID_LP, "LIGHT_PROBE", ICON_LIGHTPROBE_CUBEMAP, "Light Probe", ""},
 	{ID_SCE, "SCENE", ICON_SCENE_DATA, "Scene", ""},
-	{ID_SCR, "SCREEN", ICON_SPLITSCREEN, "Screen", ""},
-	{ID_SO, "SOUND", ICON_PLAY_AUDIO, "Sound", ""},
+	{ID_SO, "SOUND", ICON_SOUND, "Sound", ""},
 	{ID_SPK, "SPEAKER", ICON_SPEAKER, "Speaker", ""},
 	{ID_TXT, "TEXT", ICON_TEXT, "Text", ""},
 	{ID_TE, "TEXTURE", ICON_TEXTURE_DATA, "Texture", ""},
 	{ID_WM, "WINDOWMANAGER", ICON_FULLSCREEN, "Window Manager", ""},
 	{ID_WO, "WORLD", ICON_WORLD_DATA, "World", ""},
-	{ID_WS, "WORKSPACE", ICON_NONE, "Workspace", ""},
+	{ID_WS, "WORKSPACE", ICON_SPLITSCREEN, "Workspace", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 

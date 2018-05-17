@@ -37,13 +37,18 @@ class OUTLINER_HT_header(Header):
 
         layout.prop(space, "display_mode", text="")
 
-        row = layout.row()
+        row = layout.row(align=True)
         if display_mode == 'COLLECTIONS':
             row.popover(space_type='OUTLINER',
                         region_type='HEADER',
                         panel_type="OUTLINER_PT_filter",
                         text="",
                         icon='FILTER')
+        elif display_mode in {'LIBRARIES', 'ORPHAN_DATA'}:
+            row.prop(space, "use_filter_id_type", text="", icon='FILTER')
+            sub = row.row(align=True)
+            sub.active = space.use_filter_id_type
+            sub.prop(space, "filter_id_type", text="", icon_only=True)
 
         OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
 

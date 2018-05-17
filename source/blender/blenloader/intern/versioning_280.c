@@ -1301,5 +1301,18 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 				scene->display.matcap_ssao_samples = 16;
 			}
 		}
+
+		if (!DNA_struct_elem_find(fd->filesdna, "SpaceOops", "short", "filter_id_type")) {
+			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_OUTLINER) {
+							SpaceOops *soops = (SpaceOops *)sl;
+							soops->filter_id_type = ID_GR;
+						}
+					}
+				}
+			}
+		}
 	}
 }
