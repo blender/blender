@@ -315,6 +315,11 @@ bool isect_ray_seg_v2(
         const float v0[2], const float v1[2],
         float *r_lambda, float *r_u);
 
+bool isect_ray_seg_v3(
+        const float ray_origin[3], const float ray_direction[3],
+        const float v0[3], const float v1[3],
+        float *r_lambda);
+
 /* point in polygon */
 bool isect_point_poly_v2(const float pt[2], const float verts[][2], const unsigned int nr, const bool use_holes);
 bool isect_point_poly_v2_int(const int pt[2], const int verts[][2], const unsigned int nr, const bool use_holes);
