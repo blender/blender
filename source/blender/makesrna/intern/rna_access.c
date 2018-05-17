@@ -1408,17 +1408,6 @@ int RNA_property_pointer_poll(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *va
 	return 0;
 }
 
-/* Reuse for dynamic types  */
-const EnumPropertyItem DummyRNA_NULL_items[] = {
-	{0, NULL, 0, NULL, NULL}
-};
-
-/* Reuse for dynamic types with default value */
-const EnumPropertyItem DummyRNA_DEFAULT_items[] = {
-	{0, "DEFAULT", 0, "Default", ""},
-	{0, NULL, 0, NULL, NULL}
-};
-
 void RNA_property_enum_items_ex(
         bContext *C, PointerRNA *ptr, PropertyRNA *prop, const bool use_static,
         const EnumPropertyItem **r_item, int *r_totitem, bool *r_free)
