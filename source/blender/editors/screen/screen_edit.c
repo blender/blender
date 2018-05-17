@@ -848,6 +848,7 @@ void ED_screens_initialize(wmWindowManager *wm)
 			ED_screen_global_areas_create(win);
 		}
 		ED_screen_refresh(wm, win);
+		ED_screen_set_active_region(NULL, win, &win->eventstate->x);
 	}
 }
 
@@ -992,9 +993,8 @@ static void screen_cursor_set(wmWindow *win, const int xy[2])
 
 /* called in wm_event_system.c. sets state vars in screen, cursors */
 /* event type is mouse move */
-void ED_screen_set_active_region(bContext *C, const int xy[2])
+void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 {
-	wmWindow *win = CTX_wm_window(C);
 	bScreen *scr = WM_window_get_active_screen(win);
 
 	if (scr) {
@@ -1058,7 +1058,9 @@ void ED_screen_set_active_region(bContext *C, const int xy[2])
 				/* this used to be a notifier, but needs to be done immediate
 				 * because it can undo setting the right button as active due
 				 * to delayed notifier handling */
-				UI_screen_free_active_but(C, scr);
+				if (C) {
+					UI_screen_free_active_but(C, scr);
+				}
 			}
 			else
 				region_cursor_set(win, false);

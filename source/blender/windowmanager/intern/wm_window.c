@@ -608,6 +608,16 @@ void WM_window_set_dpi(wmWindow *win)
 	BLF_default_dpi(U.pixelsize * U.dpi);
 }
 
+static void wm_window_ensure_eventstate(wmWindow *win)
+{
+	if (win->eventstate) {
+		return;
+	}
+
+	win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
+	wm_get_cursor_position(win, &win->eventstate->x, &win->eventstate->y);
+}
+
 /* belongs to below */
 static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wmWindow *win)
 {
@@ -651,8 +661,7 @@ static void wm_window_ghostwindow_add(wmWindowManager *wm, const char *title, wm
 		win->ghostwin = ghostwin;
 		GHOST_SetWindowUserData(ghostwin, win); /* pointer back */
 		
-		if (win->eventstate == NULL)
-			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
+		wm_window_ensure_eventstate(win);
 
 		/* store actual window size in blender window */
 		bounds = GHOST_GetClientBounds(win->ghostwin);
@@ -758,8 +767,7 @@ void wm_window_ghostwindows_ensure(wmWindowManager *wm)
 			wm_window_ghostwindow_add(wm, "Blender", win);
 		}
 		/* happens after fileread */
-		if (win->eventstate == NULL)
-			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
+		wm_window_ensure_eventstate(win);
 
 		/* add keymap handlers (1 handler for all keys in map!) */
 		keymap = WM_keymap_find(wm->defaultconf, "Window", 0, 0);
