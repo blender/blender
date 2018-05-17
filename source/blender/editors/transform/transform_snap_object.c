@@ -916,11 +916,25 @@ static bool test_projected_edge_dist(
         const bool is_persp, const float va[3], const float vb[3],
         float *dist_px_sq, float r_co[3])
 {
-	float near_co[3], dummy_depth;
-	dist_squared_ray_to_seg_v3(
+	float near_co[3], lambda;
+	if (!isect_ray_seg_v3(
 	        precalc->ray_origin,
 	        precalc->ray_direction,
-	        va, vb, near_co, &dummy_depth);
+	        va, vb, &lambda))
+	{
+		copy_v3_v3(near_co, va);
+	}
+	else {
+		if (lambda <= 0.0f) {
+			copy_v3_v3(near_co, va);
+		}
+		else if (lambda >= 1.0f) {
+			copy_v3_v3(near_co, vb);
+		}
+		else {
+			interp_v3_v3v3(near_co, va, vb, lambda);
+		}
+	}
 
 	return test_projected_vert_dist(
 	        precalc, clip_plane, clip_plane_len,
