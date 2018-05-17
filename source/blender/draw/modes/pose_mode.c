@@ -202,7 +202,7 @@ static void POSE_cache_populate(void *vedata, Object *ob)
 			DRW_shgroup_armature_pose(ob, passes);
 		}
 	}
-	else if (ob->type == OB_MESH && POSE_is_bone_selection_overlay_active() && POSE_is_driven_by_active_armature(ob)) {
+	else if (ob->type == OB_MESH && !DRW_state_is_select() && POSE_is_bone_selection_overlay_active() && POSE_is_driven_by_active_armature(ob)) {
 		struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 		if (geom) {
 			DRW_shgroup_call_object_add(stl->g_data->bone_selection_shgrp, geom, ob);
@@ -243,6 +243,12 @@ static void POSE_draw_scene(void *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const bool transparent_bones = (draw_ctx->v3d->overlay.arm_flag & V3D_OVERLAY_ARM_TRANSP_BONES) != 0;
 	const bool bone_selection_overlay = POSE_is_bone_selection_overlay_active();
+
+	if (DRW_state_is_select()) {
+		DRW_draw_pass(psl->bone_solid);
+		DRW_draw_pass(psl->bone_wire);
+		return;
+	}
 
 	if(bone_selection_overlay) {
 		GPU_framebuffer_bind(dfbl->default_fb);
