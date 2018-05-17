@@ -868,7 +868,7 @@ static void make_duplis_particle_system(const DupliContext *ctx, ParticleSystem 
 	if (!for_render)
 		no_draw_flag |= PARS_NO_DISP;
 
-	ctime = BKE_scene_frame_get(scene); /* NOTE: in old animsys, used parent object's timeoffset... */
+	ctime = DEG_get_ctime(ctx->depsgraph); /* NOTE: in old animsys, used parent object's timeoffset... */
 
 	totpart = psys->totpart;
 	totchild = psys->totchild;
