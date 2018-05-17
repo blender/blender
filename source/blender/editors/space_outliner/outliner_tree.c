@@ -2058,7 +2058,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 	/* Are we looking for something - we want to tag parents to filter child matches
 	 * - NOT in datablocks view - searching all datablocks takes way too long to be useful
 	 * - this variable is only set once per tree build */
-	if (soops->search_string[0] != 0 && soops->outlinevis != SO_DATABLOCKS)
+	if (soops->search_string[0] != 0 && soops->outlinevis != SO_DATA_API)
 		soops->search_flags |= SO_SEARCH_RECURSIVE;
 	else
 		soops->search_flags &= ~SO_SEARCH_RECURSIVE;
@@ -2171,7 +2171,7 @@ void outliner_build_tree(Main *mainvar, Scene *scene, ViewLayer *view_layer, Spa
 			seq = seq->next;
 		}
 	}
-	else if (soops->outlinevis == SO_DATABLOCKS) {
+	else if (soops->outlinevis == SO_DATA_API) {
 		PointerRNA mainptr;
 
 		RNA_main_pointer_create(mainvar, &mainptr);

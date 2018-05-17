@@ -40,7 +40,7 @@ class OUTLINER_HT_header(Header):
 
         OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
 
-        if space.display_mode == 'DATABLOCKS':
+        if space.display_mode == 'DATA_API':
             layout.separator()
 
             row = layout.row(align=True)
@@ -87,7 +87,7 @@ class OUTLINER_MT_editor_menus(Menu):
 
         layout.menu("OUTLINER_MT_view")
 
-        if space.display_mode == 'DATABLOCKS':
+        if space.display_mode == 'DATA_API':
             layout.menu("OUTLINER_MT_edit_datablocks")
 
         elif space.display_mode == 'ORPHAN_DATA':
@@ -105,7 +105,7 @@ class OUTLINER_MT_view(Menu):
 
         space = context.space_data
 
-        if space.display_mode != 'DATABLOCKS':
+        if space.display_mode != 'DATA_API':
             layout.prop(space, "use_sort_alpha")
             layout.prop(space, "show_restrict_columns")
             layout.separator()

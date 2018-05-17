@@ -338,7 +338,7 @@ typedef enum eSpaceOutliner_Mode {
 	/* SO_VERSE_SESSION  = 8, */  /* deprecated! */
 	/* SO_VERSE_MS       = 9, */  /* deprecated! */
 	SO_SEQUENCE       = 10,
-	SO_DATABLOCKS     = 11,
+	SO_DATA_API       = 11,
 	/* SO_USERDEF        = 12, */  /* deprecated! */
 	/* SO_KEYMAP      = 13, */    /* deprecated! */
 	SO_ID_ORPHANS     = 14,

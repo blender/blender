@@ -1720,7 +1720,7 @@ static void outliner_draw_highlights_recursive(
         int start_x, int *io_start_y)
 {
 	const bool is_searching = SEARCHING_OUTLINER(soops) ||
-	                          (soops->outlinevis == SO_DATABLOCKS &&
+	                          (soops->outlinevis == SO_DATA_API &&
 	                           (soops->filter & SO_FILTER_SEARCH) &&
 	                           soops->search_string[0] != 0);
 
@@ -1788,7 +1788,7 @@ static void outliner_draw_tree(
 
 	glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA); // only once
 
-	if (soops->outlinevis == SO_DATABLOCKS) {
+	if (soops->outlinevis == SO_DATA_API) {
 		/* struct marks */
 		starty = (int)ar->v2d.tot.ymax - UI_UNIT_Y - OL_Y_OFFSET;
 		outliner_draw_struct_marks(ar, soops, &soops->tree, &starty);
@@ -1914,7 +1914,7 @@ void draw_outliner(const bContext *C)
 	/* get extents of data */
 	outliner_height(soops, &soops->tree, &sizey);
 
-	if (soops->outlinevis == SO_DATABLOCKS) {
+	if (soops->outlinevis == SO_DATA_API) {
 		/* RNA has two columns:
 		 *  - column 1 is (max_width + OL_RNA_COL_SPACEX) or
 		 *				 (OL_RNA_COL_X), whichever is wider...
@@ -1964,7 +1964,7 @@ void draw_outliner(const bContext *C)
 	        (bContext *)C, block, scene, view_layer, obedit,
 	        ar, soops, has_restrict_icons, &te_edit);
 
-	if (soops->outlinevis == SO_DATABLOCKS) {
+	if (soops->outlinevis == SO_DATA_API) {
 		/* draw rna buttons */
 		outliner_draw_rnacols(ar, sizex_rna);
 		outliner_draw_rnabuts(block, ar, soops, sizex_rna, &soops->tree);

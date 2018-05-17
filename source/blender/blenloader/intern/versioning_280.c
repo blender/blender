@@ -884,7 +884,7 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 							          SO_GROUPS,
 							          SO_LIBRARIES,
 							          SO_SEQUENCE,
-							          SO_DATABLOCKS,
+							          SO_DATA_API,
 							          SO_ID_ORPHANS,
 							          SO_COLLECTIONS))
 							{

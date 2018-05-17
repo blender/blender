@@ -1340,7 +1340,7 @@ static int ed_operator_outliner_datablocks_active(bContext *C)
 	ScrArea *sa = CTX_wm_area(C);
 	if ((sa) && (sa->spacetype == SPACE_OUTLINER)) {
 		SpaceOops *so = CTX_wm_space_outliner(C);
-		return (so->outlinevis == SO_DATABLOCKS);
+		return (so->outlinevis == SO_DATA_API);
 	}
 	return 0;
 }
