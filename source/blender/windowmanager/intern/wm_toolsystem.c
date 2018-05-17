@@ -53,6 +53,10 @@
 #include "WM_types.h"
 #include "WM_message.h"
 
+static void toolsystem_reinit_with_toolref(
+        bContext *C, WorkSpace *UNUSED(workspace), const bToolRef *tref);
+static void toolsystem_reinit_ensure_toolref(
+        bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *default_tool);
 
 /* -------------------------------------------------------------------- */
 /** \name Tool Reference API
@@ -202,6 +206,9 @@ void WM_toolsystem_link(bContext *C, WorkSpace *workspace, const bToolKey *tkey)
 
 static void toolsystem_refresh_ref(bContext *C, WorkSpace *workspace, bToolRef *tref)
 {
+	if (tref->runtime == NULL) {
+		return;
+	}
 	/* currently same operation. */
 	toolsystem_ref_link(C, workspace, tref);
 }
@@ -210,6 +217,18 @@ void WM_toolsystem_refresh(bContext *C, WorkSpace *workspace, const bToolKey *tk
 	bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
 	if (tref) {
 		toolsystem_refresh_ref(C, workspace, tref);
+	}
+}
+
+static void toolsystem_reinit_ref(bContext *C, WorkSpace *workspace, bToolRef *tref)
+{
+	toolsystem_reinit_with_toolref(C, workspace, tref);
+}
+void WM_toolsystem_reinit(bContext *C, WorkSpace *workspace, const bToolKey *tkey)
+{
+	bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
+	if (tref) {
+		toolsystem_reinit_ref(C, workspace, tref);
 	}
 }
 
@@ -233,8 +252,14 @@ void WM_toolsystem_link_all(struct bContext *C, struct WorkSpace *workspace)
 void WM_toolsystem_refresh_all(struct bContext *C, struct WorkSpace *workspace)
 {
 	LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+		toolsystem_refresh_ref(C, workspace, tref);
+	}
+}
+void WM_toolsystem_reinit_all(struct bContext *C, struct WorkSpace *workspace)
+{
+	LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
 		if (tref->runtime) {
-			toolsystem_refresh_ref(C, workspace, tref);
+			toolsystem_reinit_ref(C, workspace, tref);
 		}
 	}
 }
@@ -278,7 +303,7 @@ void WM_toolsystem_init(bContext *C)
 
 	for (wmWindow *win = wm->windows.first; win; win = win->next) {
 		WorkSpace *workspace = WM_window_get_active_workspace(win);
-		WM_toolsystem_link_all(C, workspace);
+		WM_toolsystem_refresh_all(C, workspace);
 	}
 }
 
@@ -335,7 +360,23 @@ bool WM_toolsystem_key_from_context(
 /**
  * Run after changing modes.
  */
-static void toolsystem_update_with_toolref(
+static void toolsystem_reinit_with_toolref(
+        bContext *C, WorkSpace *UNUSED(workspace), const bToolRef *tref)
+{
+	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
+	/* On startup, Python operatores are not yet loaded. */
+	if (ot == NULL) {
+		return;
+	}
+	PointerRNA op_props;
+	WM_operator_properties_create_ptr(&op_props, ot);
+	RNA_string_set(&op_props, "name", tref->idname);
+	RNA_enum_set(&op_props, "space_type", tref->space_type);
+	WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
+	WM_operator_properties_free(&op_props);
+}
+
+static void toolsystem_reinit_ensure_toolref(
         bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *default_tool)
 {
 	bToolRef *tref;
@@ -343,13 +384,7 @@ static void toolsystem_update_with_toolref(
 		STRNCPY(tref->idname, default_tool);
 	}
 
-	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
-	PointerRNA op_props;
-	WM_operator_properties_create_ptr(&op_props, ot);
-	RNA_string_set(&op_props, "name", tref->idname);
-	RNA_enum_set(&op_props, "space_type", tkey->space_type);
-	WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
-	WM_operator_properties_free(&op_props);
+	toolsystem_reinit_with_toolref(C, workspace, tref);
 }
 
 void WM_toolsystem_update_from_context_view3d(bContext *C)
@@ -361,7 +396,7 @@ void WM_toolsystem_update_from_context_view3d(bContext *C)
 		.space_type = space_type,
 		.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, NULL, space_type),
 	};
-	toolsystem_update_with_toolref(C, workspace, &tkey, "Cursor");
+	toolsystem_reinit_ensure_toolref(C, workspace, &tkey, "Cursor");
 }
 
 /**

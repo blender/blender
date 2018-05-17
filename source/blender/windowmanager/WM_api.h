@@ -612,10 +612,12 @@ struct bToolRef_Runtime *WM_toolsystem_runtime_find(struct WorkSpace *workspace,
 void WM_toolsystem_unlink(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
 void WM_toolsystem_link(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
 void WM_toolsystem_refresh(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
+void WM_toolsystem_reinit(struct bContext *C, struct WorkSpace *workspace, const bToolKey *tkey);
 
 void WM_toolsystem_unlink_all(struct bContext *C, struct WorkSpace *workspace);
 void WM_toolsystem_link_all(struct bContext *C, struct WorkSpace *workspace);
 void WM_toolsystem_refresh_all(struct bContext *C, struct WorkSpace *workspace);
+void WM_toolsystem_reinit_all(struct bContext *C, struct WorkSpace *workspace);
 
 void WM_toolsystem_ref_set_from_runtime(
         struct bContext *C, struct WorkSpace *workspace, struct bToolRef *tref,
