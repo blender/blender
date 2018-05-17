@@ -1169,7 +1169,9 @@ static void draw_bone_custom_shape(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	drw_shgroup_bone_custom_solid(disp_mat, col_solid, pchan->custom);
+	if ((boneflag & BONE_DRAWWIRE) == 0) {
+		drw_shgroup_bone_custom_solid(disp_mat, col_solid, pchan->custom);
+	}
 	drw_shgroup_bone_custom_wire(disp_mat, col_wire, pchan->custom);
 
 	if (select_id != -1) {
