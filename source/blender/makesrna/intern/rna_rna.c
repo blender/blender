@@ -36,6 +36,28 @@
 
 #include "rna_internal.h"
 
+/* -------------------------------------------------------------------- */
+/** \name Generic Enum's
+ * \{ */
+
+/* Reuse for dynamic types  */
+const EnumPropertyItem DummyRNA_NULL_items[] = {
+	{0, NULL, 0, NULL, NULL}
+};
+
+/* Reuse for dynamic types with default value */
+const EnumPropertyItem DummyRNA_DEFAULT_items[] = {
+	{0, "DEFAULT", 0, "Default", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name RNA Enum's
+ * \{ */
+
+
 const EnumPropertyItem rna_enum_property_type_items[] = {
 	{PROP_BOOLEAN, "BOOLEAN", 0, "Boolean", ""},
 	{PROP_INT, "INT", 0, "Integer", ""},
@@ -102,6 +124,8 @@ const EnumPropertyItem rna_enum_property_unit_items[] = {
 	{PROP_UNIT_CAMERA, "CAMERA", 0, "Camera", ""},
 	{0, NULL, 0, NULL, NULL}
 };
+
+/** \} */
 
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
