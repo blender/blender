@@ -113,6 +113,17 @@ void ED_file_change_dir(struct bContext *C);
 
 /* File menu stuff */
 
+/* FSMenuEntry's without paths indicate separators */
+typedef struct FSMenuEntry {
+	struct FSMenuEntry *next;
+
+	char *path;
+	char name[256];  /* FILE_MAXFILE */
+	short save;
+	short valid;
+	short pad[2];
+} FSMenuEntry;
+
 typedef enum FSMenuCategory {
 	FS_CATEGORY_SYSTEM,
 	FS_CATEGORY_SYSTEM_BOOKMARKS,

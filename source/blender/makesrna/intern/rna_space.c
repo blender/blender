@@ -1661,6 +1661,18 @@ static int rna_FileBrowser_FSMenuEntry_name_get_editable(PointerRNA *ptr, const 
 	return fsm->save ? PROP_EDITABLE : 0;
 }
 
+static int rna_FileBrowser_FSMenuEntry_use_save_get(PointerRNA *ptr)
+{
+	FSMenuEntry *fsm = ptr->data;
+	return fsm->save;
+}
+
+static int rna_FileBrowser_FSMenuEntry_is_valid_get(PointerRNA *ptr)
+{
+	FSMenuEntry *fsm = ptr->data;
+	return fsm->valid;
+}
+
 static void rna_FileBrowser_FSMenu_next(CollectionPropertyIterator *iter)
 {
 	ListBaseIterator *internal = &iter->internal.listbase;
@@ -4039,14 +4051,12 @@ static void rna_def_filemenu_entry(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "File Select Parameters", "File Select Parameters");
 
 	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_FILEPATH);
-	RNA_def_property_string_sdna(prop, NULL, "path");
 	RNA_def_property_string_funcs(prop, "rna_FileBrowser_FSMenuEntry_path_get",
 	                                    "rna_FileBrowser_FSMenuEntry_path_length",
 	                                    "rna_FileBrowser_FSMenuEntry_path_set");
 	RNA_def_property_ui_text(prop, "Path", "");
 
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "name");
 	RNA_def_property_string_funcs(prop, "rna_FileBrowser_FSMenuEntry_name_get",
 	                                    "rna_FileBrowser_FSMenuEntry_name_length",
 	                                    "rna_FileBrowser_FSMenuEntry_name_set");
@@ -4055,12 +4065,12 @@ static void rna_def_filemenu_entry(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 
 	prop = RNA_def_property(srna, "use_save", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "save", 1);
+	RNA_def_property_boolean_funcs(prop, "rna_FileBrowser_FSMenuEntry_use_save_get", NULL);
 	RNA_def_property_ui_text(prop, "Save", "Whether this path is saved in bookmarks, or generated from OS");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "is_valid", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "valid", 1);
+	RNA_def_property_boolean_funcs(prop, "rna_FileBrowser_FSMenuEntry_is_valid_get", NULL);
 	RNA_def_property_ui_text(prop, "Valid", "Whether this path is currently reachable");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 }

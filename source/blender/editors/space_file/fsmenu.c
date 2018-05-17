@@ -42,8 +42,6 @@
 
 #include "BKE_appdir.h"
 
-#include "DNA_space_types.h"
-
 #include "ED_fileselect.h"
 
 #ifdef WIN32
