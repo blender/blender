@@ -415,10 +415,6 @@ static void draw_uvs_lineloop_bmfaces(BMesh *bm, const int cd_loop_uv_offset, co
 	}
 	GWN_batch_program_use_end(loop_batch);
 	GWN_batch_discard(loop_batch);
-
-	immUnbindProgram();
-
-	immEnd();
 }
 
 static void draw_uvs_lineloop_mpoly(Mesh *me, MPoly *mpoly, unsigned int pos)
