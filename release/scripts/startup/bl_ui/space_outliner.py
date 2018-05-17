@@ -31,12 +31,19 @@ class OUTLINER_HT_header(Header):
         display_mode = space.display_mode
         scene = context.scene
         ks = context.scene.keying_sets.active
-        support_filters = display_mode in {'COLLECTIONS', 'VIEW_LAYER'}
 
         row = layout.row(align=True)
         row.template_header()
 
         layout.prop(space, "display_mode", text="")
+
+        row = layout.row()
+        if display_mode == 'COLLECTIONS':
+            row.popover(space_type='OUTLINER',
+                        region_type='HEADER',
+                        panel_type="OUTLINER_PT_filter",
+                        text="",
+                        icon='FILTER')
 
         OUTLINER_MT_editor_menus.draw_collapsible(context, layout)
 
@@ -64,14 +71,6 @@ class OUTLINER_HT_header(Header):
             row.prop(space, "filter_text", text="")
             row.prop(space, "use_filter_complete", text="")
             row.prop(space, "use_filter_case_sensitive", text="")
-
-        row = layout.row()
-        if support_filters:
-            row.popover(space_type='OUTLINER',
-                        region_type='HEADER',
-                        panel_type="OUTLINER_PT_filter",
-                        text="",
-                        icon='FILTER')
 
 
 class OUTLINER_MT_editor_menus(Menu):
