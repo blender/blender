@@ -2831,6 +2831,10 @@ static void rna_generate_struct_prototypes(FILE *f)
 					if (dp->prop->type == PROP_POINTER) {
 						int a, found = 0;
 						const char *struct_name = rna_parameter_type_name(dp->prop);
+						if (struct_name == NULL) {
+							printf("No struct found for property '%s'\n", dp->prop->identifier);
+							exit(1);
+						}
 
 						for (a = 0; a < all_structures; a++) {
 							if (STREQ(struct_name, structures[a])) {
