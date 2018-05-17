@@ -42,6 +42,7 @@
 #include "BKE_context.h"
 #include "BKE_curve.h"
 #include "BKE_fcurve.h"
+#include "BKE_layer.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -452,32 +453,46 @@ void CURVE_OT_de_select_last(wmOperatorType *ot)
 
 static int de_select_all_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = obedit->data;
 	int action = RNA_enum_get(op->ptr, "action");
+
+	ViewLayer *view_layer = CTX_data_view_layer(C);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	if (action == SEL_TOGGLE) {
 		action = SEL_SELECT;
-		if (ED_curve_select_check(cu, cu->editnurb)) {
-			action = SEL_DESELECT;
+		for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+			Object *obedit = objects[ob_index];
+			Curve *cu = obedit->data;
+
+			if (ED_curve_select_check(cu, cu->editnurb)) {
+				action = SEL_DESELECT;
+				break;
+			}
 		}
 	}
 
-	switch (action) {
-		case SEL_SELECT:
-			ED_curve_select_all(cu->editnurb);
-			break;
-		case SEL_DESELECT:
-			ED_curve_deselect_all(cu->editnurb);
-			break;
-		case SEL_INVERT:
-			ED_curve_select_swap(cu->editnurb, (cu->drawflag & CU_HIDE_HANDLES) != 0);
-			break;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+
+		switch (action) {
+			case SEL_SELECT:
+				ED_curve_select_all(cu->editnurb);
+				break;
+			case SEL_DESELECT:
+				ED_curve_deselect_all(cu->editnurb);
+				break;
+			case SEL_INVERT:
+				ED_curve_select_swap(cu->editnurb, (cu->drawflag & CU_HIDE_HANDLES) != 0);
+				break;
+		}
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+		BKE_curve_nurb_vert_active_validate(cu);
 	}
 
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
-	BKE_curve_nurb_vert_active_validate(cu);
-
+	MEM_freeN(objects);
 	return OPERATOR_FINISHED;
 }
 
