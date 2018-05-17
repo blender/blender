@@ -66,8 +66,8 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter, const Comp
 		
 		ConvertRGBToYCCOperation *operationYCCImage = new ConvertRGBToYCCOperation();
 		ConvertRGBToYCCOperation *operationYCCMatte = new ConvertRGBToYCCOperation();
-		operationYCCImage->setMode(0);  /* BLI_YCC_ITU_BT601 */
-		operationYCCMatte->setMode(0);  /* BLI_YCC_ITU_BT601 */
+		operationYCCImage->setMode(BLI_YCC_ITU_BT709);
+		operationYCCMatte->setMode(BLI_YCC_ITU_BT709);
 		converter.addOperation(operationYCCImage);
 		converter.addOperation(operationYCCMatte);
 		
@@ -86,7 +86,7 @@ void DistanceMatteNode::convertToOperations(NodeConverter &converter, const Comp
 	
 	if (storage->channel != 1) {
 		ConvertYCCToRGBOperation *inv_convert = new ConvertYCCToRGBOperation();
-		inv_convert->setMode(0); /* BLI_YCC_ITU_BT601 */
+		inv_convert->setMode(BLI_YCC_ITU_BT709);
 
 		converter.addOperation(inv_convert);
 		converter.addLink(operationAlpha->getOutputSocket(0), inv_convert->getInputSocket(0));

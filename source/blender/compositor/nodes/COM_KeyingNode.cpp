@@ -50,7 +50,7 @@ KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter, NodeInput *inputImage, int size) const
 {
 	ConvertRGBToYCCOperation *convertRGBToYCCOperation = new ConvertRGBToYCCOperation();
-	convertRGBToYCCOperation->setMode(0);  /* ITU 601 */
+	convertRGBToYCCOperation->setMode(BLI_YCC_ITU_BT709);
 	converter.addOperation(convertRGBToYCCOperation);
 	
 	converter.mapInputSocket(inputImage, convertRGBToYCCOperation->getInputSocket(0));
@@ -86,7 +86,7 @@ NodeOperationOutput *KeyingNode::setupPreBlur(NodeConverter &converter, NodeInpu
 	}
 	
 	ConvertYCCToRGBOperation *convertYCCToRGBOperation = new ConvertYCCToRGBOperation();
-	convertYCCToRGBOperation->setMode(0);  /* ITU 601 */
+	convertYCCToRGBOperation->setMode(BLI_YCC_ITU_BT709);
 	converter.addOperation(convertYCCToRGBOperation);
 	
 	converter.addLink(combineOperation->getOutputSocket(0), convertYCCToRGBOperation->getInputSocket(0));
