@@ -224,7 +224,7 @@ static const EnumPropertyItem rna_enum_studio_light_items[] = {
 	{29, "STUDIOLIGHT_29", 0, "", ""},
 	{0, NULL, 0, NULL, NULL}
 };
-#define NUM_STUDIO_LIGHT_ITEMS 30
+#define NUM_STUDIOLIGHT_ITEMS 30
 
 const EnumPropertyItem rna_enum_clip_editor_mode_items[] = {
 	{SC_MODE_TRACKING, "TRACKING", ICON_ANIM_DATA, "Tracking", "Show tracking and solving tools"},
@@ -738,7 +738,7 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 	int totitem = 0;
 
 	LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
-		if (totitem < NUM_STUDIO_LIGHT_ITEMS) {
+		if (totitem < NUM_STUDIOLIGHT_ITEMS) {
 			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, totitem);
 			lastitem = &item[totitem - 1];
 			lastitem->value = sl->index;

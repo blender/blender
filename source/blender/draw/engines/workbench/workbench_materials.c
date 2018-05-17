@@ -88,8 +88,8 @@ extern char datatoc_workbench_world_light_lib_glsl[];
 extern DrawEngineType draw_engine_workbench_solid;
 
 #define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
-#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || wpd->shading.flag & V3D_SHADING_SHADOW)
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
+#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || SHADOW_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
 #define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
 
@@ -104,9 +104,7 @@ static char *workbench_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 		BLI_dynstr_appendf(ds, "#define V3D_SHADING_OBJECT_OUTLINE\n");
 	}
 	if (wpd->shading.flag & V3D_SHADING_SHADOW) {
-		if (!STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
-			BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
-		}
+		BLI_dynstr_appendf(ds, "#define V3D_SHADING_SHADOW\n");
 	}
 	if (wpd->shading.light & V3D_LIGHTING_STUDIO) {
 		BLI_dynstr_appendf(ds, "#define V3D_LIGHTING_STUDIO\n");
@@ -438,17 +436,17 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 		wpd->world_ubo = DRW_uniformbuffer_create(sizeof(WORKBENCH_UBO_World), NULL);
 		DRW_uniformbuffer_update(wpd->world_ubo, &wpd->world_data);
 
-		if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
-			BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED);
-			float rot_matrix[3][3];
-			// float dir[3] = {0.57, 0.57, -0.57};
-			axis_angle_to_mat3_single(rot_matrix, 'Z', wpd->shading.studiolight_rot_z);
-			mul_v3_m3v3(e_data.display.light_direction, rot_matrix, wpd->studio_light->light_direction);
-		}
-		else {
-			copy_v3_v3(e_data.display.light_direction, scene->display.light_direction);
-			negate_v3(e_data.display.light_direction);
-		}
+		copy_v3_v3(e_data.display.light_direction, scene->display.light_direction);
+		negate_v3(e_data.display.light_direction);
+#if 0
+	if (STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd)) {
+		BKE_studiolight_ensure_flag(wpd->studio_light, STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED);
+		float rot_matrix[3][3];
+		// float dir[3] = {0.57, 0.57, -0.57};
+		axis_angle_to_mat3_single(rot_matrix, 'Z', wpd->shading.studiolight_rot_z);
+		mul_v3_m3v3(e_data.display.light_direction, rot_matrix, wpd->studio_light->light_direction);
+	}
+#endif
 		float view_matrix[4][4];
 		DRW_viewport_matrix_get(view_matrix, DRW_MAT_VIEW);
 		mul_v3_mat3_m4v3(e_data.light_direction_vs, view_matrix, e_data.display.light_direction);
