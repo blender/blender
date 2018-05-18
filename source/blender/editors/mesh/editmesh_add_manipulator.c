@@ -189,9 +189,7 @@ static void manipulator_placement_prop_matrix_set(
 	mul_m4_m4m4(mat, man->cage->matrix_basis, value);
 
 	if (is_negative_m4(mat)) {
-		negate_v3(mat[0]);
-		negate_v3(mat[1]);
-		negate_v3(mat[2]);
+		negate_mat3_m4(mat);
 	}
 
 	RNA_property_float_set_array(op->ptr, man->data.prop_matrix, &mat[0][0]);

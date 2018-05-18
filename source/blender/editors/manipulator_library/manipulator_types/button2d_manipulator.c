@@ -306,7 +306,7 @@ static void MANIPULATOR_WT_button_2d(wmManipulatorType *wt)
 	prop = RNA_def_property(wt->srna, "icon", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, rna_enum_icon_items);
 
-	/* Passed to 'GPU_batch_from_poly_2d_encoded' */
+	/* Passed to 'GPU_batch_tris_from_poly_2d_encoded' */
 	RNA_def_property(wt->srna, "shape", PROP_STRING, PROP_BYTESTRING);
 
 	/* Currently only used for cursor display. */

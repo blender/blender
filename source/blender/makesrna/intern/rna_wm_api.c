@@ -572,7 +572,7 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 
 
-	/* wrap UI_popover_panel_begin */
+	/* wrap UI_popover_begin */
 	func = RNA_def_function(srna, "popover_begin__internal", "rna_PopoverBegin");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	/* return */
@@ -580,7 +580,7 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
 
-	/* wrap UI_popover_panel_end */
+	/* wrap UI_popover_end */
 	func = RNA_def_function(srna, "popover_end__internal", "rna_PopoverEnd");
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
