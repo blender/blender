@@ -66,21 +66,12 @@ endif()
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
 # global compile definitions since add_definitions() adds for all.
-
-if(NOT (${CMAKE_VERSION} VERSION_LESS 3.0))
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-		$<$<CONFIG:Debug>:DEBUG;_DEBUG>
-		$<$<CONFIG:Release>:NDEBUG>
-		$<$<CONFIG:MinSizeRel>:NDEBUG>
-		$<$<CONFIG:RelWithDebInfo>:NDEBUG>
-	)
-else()
-	# keep until CMake-3.0 is min requirement
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG           DEBUG _DEBUG)
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE         NDEBUG)
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_MINSIZEREL      NDEBUG)
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBUG)
-endif()
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+	$<$<CONFIG:Debug>:DEBUG;_DEBUG>
+	$<$<CONFIG:Release>:NDEBUG>
+	$<$<CONFIG:MinSizeRel>:NDEBUG>
+	$<$<CONFIG:RelWithDebInfo>:NDEBUG>
+)
 
 #-----------------------------------------------------------------------------
 # Set policy
