@@ -72,6 +72,8 @@ ToolDef = namedtuple(
         "text",
         # The name of the icon to use (found in ``release/datafiles/icons``) or None for no icon.
         "icon",
+        # An optional cursor to use when this tool is active.
+        "cursor",
         # An optional manipulator group to activate when the tool is set or None for no widget.
         "widget",
         # Optional keymap for tool, either:
@@ -101,6 +103,7 @@ def from_dict(kw_args):
     """
     kw = {
         "icon": None,
+        "cursor": None,
         "widget": None,
         "keymap": None,
         "data_block": None,
@@ -560,6 +563,7 @@ def activate_by_name(context, space_type, text):
         tool.setup(
             name=text,
             keymap=item.keymap[0].name if item.keymap is not None else "",
+            cursor=item.cursor or 'DEFAULT',
             manipulator_group=item.widget or "",
             data_block=item.data_block or "",
             index=index,

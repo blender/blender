@@ -35,6 +35,8 @@
 #include "DNA_object_types.h"
 #include "DNA_windowmanager_types.h"
 
+#include "RNA_enum_types.h"  /* own include */
+
 #include "rna_internal.h"  /* own include */
 
 #ifdef RNA_RUNTIME
@@ -45,6 +47,7 @@ static void rna_WorkspaceTool_setup(
         bContext *C,
         const char *name,
         /* Args for: 'bToolRef_Runtime'. */
+        int cursor,
         const char *keymap,
         const char *manipulator_group,
         const char *data_block,
@@ -52,6 +55,7 @@ static void rna_WorkspaceTool_setup(
 {
 	bToolRef_Runtime tref_rt = {0};
 
+	tref_rt.cursor = cursor;
 	STRNCPY(tref_rt.keymap, keymap);
 	STRNCPY(tref_rt.manipulator_group, manipulator_group);
 	STRNCPY(tref_rt.data_block, data_block);
@@ -81,6 +85,8 @@ void RNA_api_workspace_tool(StructRNA *srna)
 	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
 
 	/* 'bToolRef_Runtime' */
+	parm = RNA_def_property(func, "cursor", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(parm, rna_enum_window_cursor_items);
 	RNA_def_string(func, "keymap", NULL, KMAP_MAX_NAME, "Key Map", "");
 	RNA_def_string(func, "manipulator_group", NULL, MAX_NAME, "Manipulator Group", "");
 	RNA_def_string(func, "data_block", NULL, MAX_NAME, "Data Block", "");

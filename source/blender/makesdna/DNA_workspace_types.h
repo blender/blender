@@ -57,6 +57,7 @@
 #
 typedef struct bToolRef_Runtime {
 	/* One of these must be defined. */
+	int cursor;
 	char keymap[64];
 	char manipulator_group[64];
 	char data_block[64];
