@@ -51,8 +51,8 @@ struct MTex;
 typedef struct World {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
-	
-	short colormodel, totex;
+
+	char _pad0[4];
 	short texact, mistype;
 
 	float horr, horg, horb;
