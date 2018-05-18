@@ -66,21 +66,12 @@ endif()
 # set_property(GLOBAL PROPERTY RULE_MESSAGES OFF)
 
 # global compile definitions since add_definitions() adds for all.
-
-if(NOT (${CMAKE_VERSION} VERSION_LESS 3.0))
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-		$<$<CONFIG:Debug>:DEBUG;_DEBUG>
-		$<$<CONFIG:Release>:NDEBUG>
-		$<$<CONFIG:MinSizeRel>:NDEBUG>
-		$<$<CONFIG:RelWithDebInfo>:NDEBUG>
-	)
-else()
-	# keep until CMake-3.0 is min requirement
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_DEBUG           DEBUG _DEBUG)
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE         NDEBUG)
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_MINSIZEREL      NDEBUG)
-	set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS_RELWITHDEBINFO  NDEBUG)
-endif()
+set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
+	$<$<CONFIG:Debug>:DEBUG;_DEBUG>
+	$<$<CONFIG:Release>:NDEBUG>
+	$<$<CONFIG:MinSizeRel>:NDEBUG>
+	$<$<CONFIG:RelWithDebInfo>:NDEBUG>
+)
 
 #-----------------------------------------------------------------------------
 # Set policy
@@ -520,6 +511,45 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	mark_as_advanced(WITH_LINKER_GOLD)
 endif()
 
+if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
+	option(WITH_COMPILER_ASAN "Build and link against address sanitizer (only for Debug & RelWithDebInfo targets)." OFF)
+	mark_as_advanced(WITH_COMPILER_ASAN)
+
+	if(WITH_COMPILER_ASAN)
+		set(_asan_defaults "\
+-fsanitize=address \
+-fsanitize=bool \
+-fsanitize=bounds \
+-fsanitize=enum \
+-fsanitize=float-cast-overflow \
+-fsanitize=float-divide-by-zero \
+-fsanitize=leak \
+-fsanitize=nonnull-attribute \
+-fsanitize=object-size \
+-fsanitize=returns-nonnull-attribute \
+-fsanitize=signed-integer-overflow \
+-fsanitize=undefined \
+-fsanitize=vla-bound \
+-fno-sanitize=alignment \
+")
+
+		set(COMPILER_ASAN_CFLAGS "${_asan_defaults}" CACHE STRING "C flags for address sanitizer")
+		mark_as_advanced(COMPILER_ASAN_CFLAGS)
+		set(COMPILER_ASAN_CXXFLAGS "${_asan_defaults}" CACHE STRING "C++ flags for address sanitizer")
+		mark_as_advanced(COMPILER_ASAN_CXXFLAGS)
+
+		unset(_asan_defaults)
+
+		find_library(COMPILER_ASAN_LIBRARY asan ${CMAKE_C_IMPLICIT_LINK_DIRECTORIES})
+		mark_as_advanced(COMPILER_ASAN_LIBRARY)
+
+	endif()
+endif()
+
+# Dependency graph
+option(WITH_LEGACY_DEPSGRAPH "Build Blender with legacy dependency graph" ON)
+mark_as_advanced(WITH_LEGACY_DEPSGRAPH)
+
 if(WIN32)
 	# Use hardcoded paths or find_package to find externals
 	option(WITH_WINDOWS_FIND_MODULES "Use find_package to locate libraries" OFF)
@@ -780,6 +810,15 @@ set(PLATFORM_LINKLIBS "")
 set(PLATFORM_LINKFLAGS "")
 set(PLATFORM_LINKFLAGS_DEBUG "")
 
+if(WITH_COMPILER_ASAN)
+	set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} ${COMPILER_ASAN_CFLAGS}")
+	set(CMAKE_C_FLAGS_RELWITHDEBINFO "${CMAKE_C_FLAGS_RELWITHDEBINFO} ${COMPILER_ASAN_CFLAGS}")
+
+	set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${COMPILER_ASAN_CXXFLAGS}")
+	set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} ${COMPILER_ASAN_CXXFLAGS}")
+
+	set(PLATFORM_LINKFLAGS_DEBUG "${COMPILER_ASAN_LIBRARY}")
+endif()
 
 #-----------------------------------------------------------------------------
 #Platform specifics
