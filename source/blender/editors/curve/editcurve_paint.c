@@ -1007,9 +1007,16 @@ static int curve_draw_exec(bContext *C, wmOperator *op)
 		const struct StrokeElem *selem;
 
 		nu->pntsu = stroke_len;
+		nu->pntsv = 1;
 		nu->type = CU_POLY;
 		nu->bp = MEM_callocN(nu->pntsu * sizeof(BPoint), __func__);
 
+		/* Misc settings. */
+		nu->resolu = cu->resolu;
+		nu->resolv = 1;
+		nu->orderu = 4;
+		nu->orderv = 1;
+		
 		BPoint *bp = nu->bp;
 
 		BLI_mempool_iternew(cdd->stroke_elem_pool, &iter);
