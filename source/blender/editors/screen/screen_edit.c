@@ -848,7 +848,9 @@ void ED_screens_initialize(wmWindowManager *wm)
 			ED_screen_global_areas_create(win);
 		}
 		ED_screen_refresh(wm, win);
-		ED_screen_set_active_region(NULL, win, &win->eventstate->x);
+		if (win->eventstate) {
+			ED_screen_set_active_region(NULL, win, &win->eventstate->x);
+		}
 	}
 }
 
