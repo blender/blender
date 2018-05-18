@@ -54,7 +54,7 @@
 #include "WM_message.h"
 
 static void toolsystem_reinit_with_toolref(
-        bContext *C, WorkSpace *UNUSED(workspace), const bToolRef *tref);
+        bContext *C, WorkSpace *UNUSED(workspace), bToolRef *tref);
 static void toolsystem_reinit_ensure_toolref(
         bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *default_tool);
 
@@ -71,7 +71,12 @@ struct bToolRef *WM_toolsystem_ref_from_context(struct bContext *C)
 		.space_type = sa->spacetype,
 		.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype),
 	};
-	return WM_toolsystem_ref_find(workspace, &tkey);
+	bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
+	/* We could return 'sa->runtime.tool' in this case. */
+	if (sa->runtime.is_tool_set) {
+		BLI_assert(tref == sa->runtime.tool);
+	}
+	return tref;
 }
 
 struct bToolRef_Runtime *WM_toolsystem_runtime_from_context(struct bContext *C)
@@ -357,12 +362,71 @@ bool WM_toolsystem_key_from_context(
 	return false;
 }
 
-/**
- * Run after changing modes.
- */
-static void toolsystem_reinit_with_toolref(
-        bContext *C, WorkSpace *UNUSED(workspace), const bToolRef *tref)
+void WM_toolsystem_refresh_screen_area(WorkSpace *workspace, Scene *scene, ScrArea *sa)
 {
+	sa->runtime.tool = NULL;
+	sa->runtime.is_tool_set = true;
+	const int mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype);
+	for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+		if ((tref->space_type == sa->spacetype)) {
+			if (tref->mode == mode) {
+				sa->runtime.tool = tref;
+				break;
+			}
+		}
+	}
+}
+
+void WM_toolsystem_refresh_screen_all(Main *bmain)
+{
+	/* Update all ScrArea's tools */
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
+			bool space_type_has_tools[SPACE_TYPE_LAST + 1] = {0};
+			for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+				space_type_has_tools[tref->space_type] = true;
+			}
+			bScreen *screen = WM_window_get_active_screen(win);
+			Scene *scene = WM_window_get_active_scene(win);
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				sa->runtime.tool = NULL;
+				sa->runtime.is_tool_set = true;
+				if (space_type_has_tools[sa->spacetype]) {
+					WM_toolsystem_refresh_screen_area(workspace, scene, sa);
+				}
+			}
+		}
+	}
+}
+
+static void toolsystem_refresh_screen_from_active_tool(
+        Main *bmain, WorkSpace *workspace, bToolRef *tref)
+{
+	/* Update all ScrArea's tools */
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			if (workspace == WM_window_get_active_workspace(win)) {
+				bScreen *screen = WM_window_get_active_screen(win);
+				Scene *scene = WM_window_get_active_scene(win);
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					if (sa->spacetype == tref->space_type) {
+						int mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype);
+						if (mode == tref->mode) {
+							sa->runtime.tool = tref;
+							sa->runtime.is_tool_set = true;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+static void toolsystem_reinit_with_toolref(
+        bContext *C, WorkSpace *workspace, bToolRef *tref)
+{
+
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
 	/* On startup, Python operatores are not yet loaded. */
 	if (ot == NULL) {
@@ -374,8 +438,14 @@ static void toolsystem_reinit_with_toolref(
 	RNA_enum_set(&op_props, "space_type", tref->space_type);
 	WM_operator_name_call_ptr(C, ot, WM_OP_EXEC_DEFAULT, &op_props);
 	WM_operator_properties_free(&op_props);
+
+	Main *bmain = CTX_data_main(C);
+	toolsystem_refresh_screen_from_active_tool(bmain, workspace, tref);
 }
 
+/**
+ * Run after changing modes.
+ */
 static void toolsystem_reinit_ensure_toolref(
         bContext *C, WorkSpace *workspace, const bToolKey *tkey, const char *default_tool)
 {

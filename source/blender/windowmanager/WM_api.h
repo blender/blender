@@ -653,6 +653,9 @@ void WM_tooltip_clear(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_init(struct bContext *C, struct wmWindow *win);
 void WM_tooltip_refresh(struct bContext *C, struct wmWindow *win);
 
+void WM_toolsystem_refresh_screen_area(struct WorkSpace *workspace, struct Scene *scene, struct ScrArea *sa);
+void WM_toolsystem_refresh_screen_all(struct Main *bmain);
+
 #ifdef __cplusplus
 }
 #endif

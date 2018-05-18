@@ -1282,15 +1282,9 @@ static void WIDGETGROUP_manipulator_setup(const bContext *C, wmManipulatorGroup 
 	{
 		/* TODO: support mixing modes again? - it's supported but tool system makes it unobvious. */
 		man->twtype = 0;
-		WorkSpace *workspace = CTX_wm_workspace(C);
-		Scene *scene = CTX_data_scene(C);
 		ScrArea *sa = CTX_wm_area(C);
-		const bToolKey tkey = {
-			.space_type = sa->spacetype,
-			.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, NULL, sa->spacetype),
-		};
-		bToolRef_Runtime *tref_rt = WM_toolsystem_runtime_find(workspace, &tkey);
-		wmKeyMap *km = WM_keymap_find_all(C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW);
+		bToolRef_Runtime *tref_rt = sa->runtime.tool ? sa->runtime.tool->runtime : NULL;
+		wmKeyMap *km = tref_rt ? WM_keymap_find_all(C, tref_rt->keymap, sa->spacetype, RGN_TYPE_WINDOW) : NULL;
 		/* Weak, check first event */
 		wmKeyMapItem *kmi = km ? km->items.first : NULL;
 

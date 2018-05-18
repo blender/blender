@@ -1393,7 +1393,10 @@ void ED_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, ScrArea *ar
 /* called in screen_refresh, or screens_init, also area size changes */
 void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 {
-	const bScreen *screen = WM_window_get_active_screen(win);
+	WorkSpace *workspace = WM_window_get_active_workspace(win);
+	const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+	Scene *scene = WM_window_get_active_scene(win);
+
 	const int window_size_x = WM_window_pixels_x(win);
 	const int window_size_y = WM_window_pixels_y(win);
 	ARegion *ar;
@@ -1452,6 +1455,8 @@ void ED_area_initialize(wmWindowManager *wm, wmWindow *win, ScrArea *sa)
 		/* Some AZones use View2D data which is only updated in region init, so call that first! */
 		region_azones_add(screen, sa, ar, ar->alignment & ~RGN_SPLIT_PREV);
 	}
+
+	WM_toolsystem_refresh_screen_area(workspace, scene, sa);
 }
 
 static void region_update_rect(ARegion *ar)

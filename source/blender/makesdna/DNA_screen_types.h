@@ -248,6 +248,12 @@ enum GlobalAreaFlag {
 	GLOBAL_AREA_IS_HIDDEN = (1 << 0),
 };
 
+typedef struct ScrArea_Runtime {
+	struct bToolRef *tool;
+	char          is_tool_set;
+	char _pad0[7];
+} ScrArea_Runtime;
+
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
 	
@@ -288,6 +294,8 @@ typedef struct ScrArea {
 	ListBase handlers;   /* wmEventHandler */
 
 	ListBase actionzones;	/* AZone */
+
+	ScrArea_Runtime runtime;
 } ScrArea;
 
 typedef struct ARegion {

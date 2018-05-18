@@ -6603,6 +6603,8 @@ static void lib_link_area(FileData *fd, ID *parent_id, ScrArea *area)
 {
 	area->full = newlibadr(fd, parent_id->lib, area->full);
 
+	memset(&area->runtime, 0x0, sizeof(area->runtime));
+
 	for (SpaceLink *sl = area->spacedata.first; sl; sl= sl->next) {
 		switch (sl->spacetype) {
 			case SPACE_VIEW3D:
