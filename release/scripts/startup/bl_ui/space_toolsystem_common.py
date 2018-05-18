@@ -430,7 +430,11 @@ class ToolSelectPanelHelper:
 
         return ui_gen, show_text
 
-    def draw(self, context):
+
+    @classmethod
+    def draw_cls(cls, layout, context):
+        # Use a classmethod so it can be called outside of a panel context.
+
         # XXX, this UI isn't very nice.
         # We might need to create new button types for this.
         # Since we probably want:
@@ -443,12 +447,12 @@ class ToolSelectPanelHelper:
             "name", None,
         )
 
-        ui_gen, show_text = self._layout_generator_detect_from_region(self.layout, context.region)
+        ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region)
 
         # Start iteration
         ui_gen.send(None)
 
-        for item in self.tools_from_context(context):
+        for item in cls.tools_from_context(context):
             if item is None:
                 ui_gen.send(True)
                 continue
@@ -467,9 +471,9 @@ class ToolSelectPanelHelper:
 
                 if is_active:
                     # not ideal, write this every time :S
-                    self._tool_group_active[item[0].text] = index
+                    cls._tool_group_active[item[0].text] = index
                 else:
-                    index = self._tool_group_active.get(item[0].text, 0)
+                    index = cls._tool_group_active.get(item[0].text, 0)
 
                 item = item[index]
                 use_menu = True
@@ -499,6 +503,9 @@ class ToolSelectPanelHelper:
                 ).name = item.text
         # Signal to finish any remaining layout edits.
         ui_gen.send(None)
+
+    def draw(self, context):
+        self.draw_cls(self.layout, context)
 
     @staticmethod
     def draw_active_tool_header(context, layout):
