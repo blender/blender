@@ -286,20 +286,27 @@ static void rna_SmokeModifier_color_grid_get(PointerRNA *ptr, float *values)
 {
 #ifdef WITH_SMOKE
 	SmokeDomainSettings *sds = (SmokeDomainSettings *)ptr->data;
+	int length[RNA_MAX_ARRAY_DIMENSION];
+	int size = rna_SmokeModifier_grid_get_length(ptr, length);
 
 	BLI_rw_mutex_lock(sds->fluid_mutex, THREAD_LOCK_READ);
 
-	if (sds->flags & MOD_SMOKE_HIGHRES) {
-		if (smoke_turbulence_has_colors(sds->wt))
-			smoke_turbulence_get_rgba(sds->wt, values, 0);
-		else
-			smoke_turbulence_get_rgba_from_density(sds->wt, sds->active_color, values, 0);
+	if (!sds->fluid) {
+		memset(values, 0, size * sizeof(float));
 	}
 	else {
-		if (smoke_has_colors(sds->fluid))
-			smoke_get_rgba(sds->fluid, values, 0);
-		else
-			smoke_get_rgba_from_density(sds->fluid, sds->active_color, values, 0);
+		if (sds->flags & MOD_SMOKE_HIGHRES) {
+			if (smoke_turbulence_has_colors(sds->wt))
+				smoke_turbulence_get_rgba(sds->wt, values, 0);
+			else
+				smoke_turbulence_get_rgba_from_density(sds->wt, sds->active_color, values, 0);
+		}
+		else {
+			if (smoke_has_colors(sds->fluid))
+				smoke_get_rgba(sds->fluid, values, 0);
+			else
+				smoke_get_rgba_from_density(sds->fluid, sds->active_color, values, 0);
+		}
 	}
 
 	BLI_rw_mutex_unlock(sds->fluid_mutex);
