@@ -1491,6 +1491,9 @@ void ED_region_cursor_set(wmWindow *win, ScrArea *sa, ARegion *ar)
 		ar->type->cursor(win, sa, ar);
 	}
 	else {
+		if (WM_cursor_set_from_tool(win, sa, ar)) {
+			return;
+		}
 		WM_cursor_set(win, CURSOR_STD);
 	}
 }

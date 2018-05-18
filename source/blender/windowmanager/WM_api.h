@@ -157,6 +157,7 @@ void        WM_lib_reload(struct Library *lib, struct bContext *C, struct Report
 
 			/* mouse cursors */
 void		WM_cursor_set(struct wmWindow *win, int curs);
+bool		WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const ARegion *ar);
 void		WM_cursor_modal_set(struct wmWindow *win, int curs);
 void		WM_cursor_modal_restore(struct wmWindow *win);
 void		WM_cursor_wait		(bool val);

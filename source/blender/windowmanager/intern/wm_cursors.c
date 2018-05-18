@@ -42,6 +42,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h" 
+#include "DNA_workspace_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -154,6 +155,23 @@ void WM_cursor_set(wmWindow *win, int curs)
 			window_set_custom_cursor_ex(win, BlenderCursor[curs], 1);
 		}
 	}
+}
+
+bool WM_cursor_set_from_tool(struct wmWindow *win, const ScrArea *sa, const ARegion *ar)
+{
+	if (ar && (ar->regiontype != RGN_TYPE_WINDOW)) {
+		return false;
+	}
+
+	bToolRef_Runtime *tref_rt = (sa && sa->runtime.tool) ? sa->runtime.tool->runtime : NULL;
+	if (tref_rt && tref_rt->cursor != CURSOR_STD) {
+		if (win->modalcursor == 0) {
+			WM_cursor_set(win, tref_rt->cursor);
+			win->cursor = tref_rt->cursor;
+			return true;
+		}
+	}
+	return false;
 }
 
 void WM_cursor_modal_set(wmWindow *win, int val)
