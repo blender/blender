@@ -81,6 +81,7 @@ typedef struct CLogContext {
 
 	struct {
 		void (*fatal_fn)(void *file_handle);
+		void (*backtrace_fn)(void *file_handle);
 	} callbacks;
 } CLogContext;
 
@@ -328,13 +329,21 @@ static CLG_LogType *clg_ctx_type_register(CLogContext *ctx, const char *identifi
 	return ty;
 }
 
-static void clg_ctx_fatal_action(CLogContext *ctx, FILE *file_handle)
+static void clg_ctx_fatal_action(CLogContext *ctx)
 {
 	if (ctx->callbacks.fatal_fn != NULL) {
-		ctx->callbacks.fatal_fn(file_handle);
+		ctx->callbacks.fatal_fn(ctx->output_file);
 	}
-	fflush(file_handle);
+	fflush(ctx->output_file);
 	abort();
+}
+
+static void clg_ctx_backtrace(CLogContext *ctx)
+{
+	/* Note: we avoid writing fo 'FILE', for backtrace we make an exception,
+	 * if necessary we could have a version of the callback that writes to file descriptor all at once. */
+	ctx->callbacks.backtrace_fn(ctx->output_file);
+	fflush(ctx->output_file);
 }
 
 /** \} */
@@ -409,8 +418,12 @@ void CLG_log_str(
 
 	clg_str_free(&cstr);
 
+	if (lg->ctx->callbacks.backtrace_fn) {
+		clg_ctx_backtrace(lg->ctx);
+	}
+
 	if (severity == CLG_SEVERITY_FATAL) {
-		clg_ctx_fatal_action(lg->ctx, lg->ctx->output_file);
+		clg_ctx_fatal_action(lg->ctx);
 	}
 }
 
@@ -441,8 +454,12 @@ void CLG_logf(
 
 	clg_str_free(&cstr);
 
+	if (lg->ctx->callbacks.backtrace_fn) {
+		clg_ctx_backtrace(lg->ctx);
+	}
+
 	if (severity == CLG_SEVERITY_FATAL) {
-		clg_ctx_fatal_action(lg->ctx, lg->ctx->output_file);
+		clg_ctx_fatal_action(lg->ctx);
 	}
 }
 
@@ -470,6 +487,11 @@ static void CLG_ctx_output_use_basename_set(CLogContext *ctx, int value)
 static void CLG_ctx_fatal_fn_set(CLogContext *ctx, void (*fatal_fn)(void *file_handle))
 {
 	ctx->callbacks.fatal_fn = fatal_fn;
+}
+
+static void CLG_ctx_backtrace_fn_set(CLogContext *ctx, void (*backtrace_fn)(void *file_handle))
+{
+	ctx->callbacks.backtrace_fn = backtrace_fn;
 }
 
 static void clg_ctx_type_filter_append(CLG_IDFilter **flt_list, const char *type_match, int type_match_len)
@@ -567,6 +589,11 @@ void CLG_output_use_basename_set(int value)
 void CLG_fatal_fn_set(void (*fatal_fn)(void *file_handle))
 {
 	CLG_ctx_fatal_fn_set(g_ctx, fatal_fn);
+}
+
+void CLG_backtrace_fn_set(void (*fatal_fn)(void *file_handle))
+{
+	CLG_ctx_backtrace_fn_set(g_ctx, fatal_fn);
 }
 
 void CLG_type_filter_exclude(const char *type_match, int type_match_len)

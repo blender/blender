@@ -41,8 +41,8 @@ void ChromaMatteNode::convertToOperations(NodeConverter &converter, const Compos
 	
 	ConvertRGBToYCCOperation *operationRGBToYCC_Image = new ConvertRGBToYCCOperation();
 	ConvertRGBToYCCOperation *operationRGBToYCC_Key = new ConvertRGBToYCCOperation();
-	operationRGBToYCC_Image->setMode(0); /* BLI_YCC_ITU_BT601 */
-	operationRGBToYCC_Key->setMode(0); /* BLI_YCC_ITU_BT601 */
+	operationRGBToYCC_Image->setMode(BLI_YCC_ITU_BT709);
+	operationRGBToYCC_Key->setMode(BLI_YCC_ITU_BT709);
 	converter.addOperation(operationRGBToYCC_Image);
 	converter.addOperation(operationRGBToYCC_Key);
 	
