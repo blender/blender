@@ -2452,6 +2452,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 	BLI_assert((snap_to_flag & ~(1 | 2 | 4)) == 0);
 
 	short retval = 0;
+	bool has_hit = false;
 	int index = -1;
 
 	float loc[3], no[3], obmat[4][4];
@@ -2473,11 +2474,15 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
 		float dummy_ray_depth = BVH_RAYCAST_DIST_MAX;
 
-		retval = raycastObjects(
+		has_hit = raycastObjects(
 		        sctx, params,
 		        ray_start, ray_normal,
 		        &dummy_ray_depth, loc, no,
-		        &index, &ob, obmat, NULL) ? SCE_SELECT_FACE : 0;
+		        &index, &ob, obmat, NULL);
+
+		if (has_hit && (snap_to_flag & SCE_SELECT_FACE)) {
+			retval = SCE_SELECT_FACE;
+		}
 	}
 
 	if (snap_to_flag & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
@@ -2499,7 +2504,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
 		snapdata.clip_plane_len = 2;
 
-		if (retval == SCE_SELECT_FACE) {
+		if (has_hit) {
 			/* Compute the new clip_pane but do not add it yet. */
 			float new_clipplane[4];
 			plane_from_point_normal_v3(new_clipplane, loc, no);
