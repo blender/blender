@@ -2242,8 +2242,6 @@ static short snapObjectsRay(
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
-	float original_dist_px = *dist_px;
-
 	struct SnapObjUserData data = {
 		.snapdata = snapdata,
 		.dist_px = dist_px,
@@ -2256,15 +2254,6 @@ static short snapObjectsRay(
 	};
 
 	iter_snap_objects(sctx, params, sanp_obj_cb, &data);
-
-	if ((data.ret == SCE_SELECT_EDGE) &&
-	    (snapdata->snap_to_flag & SCE_SELECT_VERTEX))
-	{
-		data.ret = snap_mesh_edge_verts_mixed(
-		        sctx, snapdata,
-		        *r_ob, r_obmat, original_dist_px,
-		        dist_px, r_loc, r_no, r_index);
-	}
 
 	return data.ret;
 }
@@ -2459,18 +2448,14 @@ static short transform_snap_context_project_view3d_mixed_impl(
         float r_loc[3], float r_no[3], int *r_index,
         Object **r_ob, float r_obmat[4][4])
 {
-	short retval = 0;
-
 	BLI_assert(snap_to_flag != 0);
 	BLI_assert((snap_to_flag & ~(1 | 2 | 4)) == 0);
 
+	short retval = 0;
+	int index = -1;
+
 	float loc[3], no[3], obmat[4][4];
 	Object *ob = NULL;
-
-	int index_fallback;
-	if (r_index == NULL) {
-		r_index = &index_fallback;
-	}
 
 	const ARegion *ar = sctx->v3d_data.ar;
 	const RegionView3D *rv3d = ar->regiondata;
@@ -2492,7 +2477,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 		        sctx, params,
 		        ray_start, ray_normal,
 		        &dummy_ray_depth, loc, no,
-		        r_index, &ob, obmat, NULL) ? SCE_SELECT_FACE : 0;
+		        &index, &ob, obmat, NULL) ? SCE_SELECT_FACE : 0;
 	}
 
 	if (snap_to_flag & (SCE_SELECT_VERTEX | SCE_SELECT_EDGE)) {
@@ -2522,7 +2507,7 @@ static short transform_snap_context_project_view3d_mixed_impl(
 			/* Try to snap only to the polygon. */
 			elem = snap_mesh_polygon(
 			        sctx, &snapdata, ob, obmat,
-			        &dist_px_tmp, loc, no, r_index);
+			        &dist_px_tmp, loc, no, &index);
 
 			if (elem) {
 				retval = elem;
@@ -2538,10 +2523,19 @@ static short transform_snap_context_project_view3d_mixed_impl(
 
 		elem = snapObjectsRay(
 		        sctx, &snapdata, params,
-		        &dist_px_tmp, loc, no, r_index, &ob, obmat);
+		        &dist_px_tmp, loc, no, &index, &ob, obmat);
 
 		if (elem) {
 			retval = elem;
+		}
+
+		if ((retval == SCE_SELECT_EDGE) &&
+		    (snapdata.snap_to_flag & SCE_SELECT_VERTEX))
+		{
+			retval = snap_mesh_edge_verts_mixed(
+			        sctx, &snapdata,
+			        ob, obmat, *dist_px,
+			        &dist_px_tmp, loc, no, &index);
 		}
 
 		*dist_px = dist_px_tmp;
@@ -2557,6 +2551,9 @@ static short transform_snap_context_project_view3d_mixed_impl(
 		}
 		if (r_obmat) {
 			copy_m4_m4(r_obmat, obmat);
+		}
+		if (r_index) {
+			*r_index = index;
 		}
 		return retval;
 	}
