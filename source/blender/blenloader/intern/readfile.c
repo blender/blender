@@ -5686,7 +5686,9 @@ static void direct_link_collection(FileData *fd, Collection *collection)
 
 	if (collection->view_layer != NULL) {
 		collection->view_layer = newdataadr(fd, collection->view_layer);
-		direct_link_view_layer(fd, collection->view_layer);
+		if (collection->view_layer != NULL) {
+			direct_link_view_layer(fd, collection->view_layer);
+		}
 	}
 #endif
 }
