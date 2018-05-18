@@ -2361,14 +2361,14 @@ class WM_OT_toolbar(Operator):
     bl_label = "Toolbar"
 
     def execute(self, context):
+        space_type = context.space_data.type
+        from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
+        cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+        if cls is None:
+            self.report({'WARNING'}, "Toolbar not found for {space_type!r}")
+            return {'CANCELLED'}
 
         def draw_menu(popover, context):
-            from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
-            space_type = context.space_data.type
-            cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
-            if cls is None:
-                self.report({'WARNING'}, "Toolbar not found for {space_type!r}")
-                return {'CANCELLED'}
             cls.draw_cls(popover.layout, context, detect_layout=False)
 
         wm = context.window_manager
