@@ -42,7 +42,7 @@ static bNodeSocketTemplate sh_node_shadertorgb_out[] = {
 
 static int node_shader_gpu_shadertorgb(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(execdata), GPUNodeStack *in, GPUNodeStack *out)
 {
-	return GPU_stack_link(mat, node, "node_shadertorgb", in, out);
+	return GPU_stack_link(mat, node, "node_shader_to_rgba", in, out);
 }
 
 /* node type definition */
