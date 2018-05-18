@@ -2571,9 +2571,9 @@ void node_shadertorgb(Closure cl, out vec4 outcol, out float outalpha)
 
 #   ifdef USE_SSS
 #		ifdef USE_SSS_ALBEDO
-	outcol += (cl.sss_data * cl.sss_albedo);
+	outcol.rgb += cl.sss_data.rgb * cl.sss_albedo;
 #   	else
-	outcol += cl.sss_data;
+	outcol.rgb += cl.sss_data.rgb;
 #		endif
 #	endif
 }
