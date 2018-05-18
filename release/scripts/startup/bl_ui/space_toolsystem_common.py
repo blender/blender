@@ -432,7 +432,7 @@ class ToolSelectPanelHelper:
 
 
     @classmethod
-    def draw_cls(cls, layout, context):
+    def draw_cls(cls, layout, context, detect_layout=True):
         # Use a classmethod so it can be called outside of a panel context.
 
         # XXX, this UI isn't very nice.
@@ -447,7 +447,11 @@ class ToolSelectPanelHelper:
             "name", None,
         )
 
-        ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region)
+        if detect_layout:
+            ui_gen, show_text = cls._layout_generator_detect_from_region(layout, context.region)
+        else:
+            ui_gen = ToolSelectPanelHelper._layout_generator_single_column(layout)
+            show_text = True
 
         # Start iteration
         ui_gen.send(None)
