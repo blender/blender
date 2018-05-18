@@ -109,6 +109,7 @@ class _defs_transform:
     def translate():
         return dict(
             text="Move",
+            cursor='SCROLL_XY',
             icon="ops.transform.translate",
             widget="TRANSFORM_WGT_manipulator",
             keymap=(
@@ -120,6 +121,7 @@ class _defs_transform:
     def rotate():
         return dict(
             text="Rotate",
+            cursor='SCROLL_XY',
             icon="ops.transform.rotate",
             widget="TRANSFORM_WGT_manipulator",
             keymap=(
@@ -131,6 +133,7 @@ class _defs_transform:
     def scale():
         return dict(
             text="Scale",
+            cursor='SCROLL_XY',
             icon="ops.transform.resize",
             widget="TRANSFORM_WGT_manipulator",
             keymap=(
@@ -590,6 +593,7 @@ class _defs_edit_curve:
 
         return dict(
             text="Draw",
+            cursor='PAINT_BRUSH',
             icon=None,
             widget=None,
             keymap=(
