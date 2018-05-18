@@ -532,13 +532,13 @@ function(add_python_test testname testscript)
 endfunction()
 
 if(WITH_CYCLES)
-	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/cycles/ctests/shader")
+	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/ctests/shader")
 		macro(add_cycles_render_test subject)
 			add_python_test(
 				cycles_${subject}_test
 				${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
 				-blender "$<TARGET_FILE:blender>"
-				-testdir "${TEST_SRC_DIR}/cycles/ctests/${subject}"
+				-testdir "${TEST_SRC_DIR}/render/ctests/${subject}"
 				-idiff "${OPENIMAGEIO_IDIFF}"
 				-outdir "${TEST_OUT_DIR}/cycles"
 			)
