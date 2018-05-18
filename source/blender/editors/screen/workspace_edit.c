@@ -202,7 +202,7 @@ bool ED_workspace_change(
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
 		WM_toolsystem_unlink_all(C, workspace_old);
-		WM_toolsystem_link_all(C, workspace_new);
+		WM_toolsystem_reinit_all(C, win);
 
 		return true;
 	}

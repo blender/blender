@@ -71,8 +71,11 @@ typedef struct bToolRef {
 	struct bToolRef *next, *prev;
 	char idname[64];
 
+	/** Use to avoid initializing the same tool multiple times. */
+	short tag;
+
 	/** bToolKey (spacetype, mode), used in 'WM_api.h' */
-	int space_type;
+	short space_type;
 	/**
 	 * Value depends ont the 'space_type', object mode for 3D view, image editor has own mode too.
 	 * RNA needs to handle using item function.

@@ -201,13 +201,6 @@ static void toolsystem_ref_link(bContext *C, WorkSpace *workspace, bToolRef *tre
 		}
 	}
 }
-void WM_toolsystem_link(bContext *C, WorkSpace *workspace, const bToolKey *tkey)
-{
-	bToolRef *tref = WM_toolsystem_ref_find(workspace, tkey);
-	if (tref) {
-		toolsystem_ref_link(C, workspace, tref);
-	}
-}
 
 static void toolsystem_refresh_ref(bContext *C, WorkSpace *workspace, bToolRef *tref)
 {
@@ -241,30 +234,42 @@ void WM_toolsystem_reinit(bContext *C, WorkSpace *workspace, const bToolKey *tke
 void WM_toolsystem_unlink_all(struct bContext *C, struct WorkSpace *workspace)
 {
 	LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-		if (tref->runtime) {
-			toolsystem_unlink_ref(C, workspace, tref);
-		}
+		tref->tag = 0;
 	}
-}
-void WM_toolsystem_link_all(struct bContext *C, struct WorkSpace *workspace)
-{
+
 	LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
 		if (tref->runtime) {
-			toolsystem_ref_link(C, workspace, tref);
+			if (tref->tag == 0) {
+				toolsystem_unlink_ref(C, workspace, tref);
+				tref->tag = 1;
+			}
 		}
 	}
 }
+
 void WM_toolsystem_refresh_all(struct bContext *C, struct WorkSpace *workspace)
 {
+	BLI_assert(0);
 	LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
 		toolsystem_refresh_ref(C, workspace, tref);
 	}
 }
-void WM_toolsystem_reinit_all(struct bContext *C, struct WorkSpace *workspace)
+void WM_toolsystem_reinit_all(struct bContext *C, wmWindow *win)
 {
-	LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
-		if (tref->runtime) {
-			toolsystem_reinit_ref(C, workspace, tref);
+	bScreen *screen = WM_window_get_active_screen(win);
+	Scene *scene = WM_window_get_active_scene(win);
+	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+		WorkSpace *workspace = WM_window_get_active_workspace(win);
+		const bToolKey tkey = {
+			.space_type = sa->spacetype,
+			.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype),
+		};
+		bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
+		if (tref) {
+			if (tref->tag == 0) {
+				toolsystem_reinit_ref(C, workspace, tref);
+				tref->tag = 1;
+			}
 		}
 	}
 }
@@ -304,11 +309,37 @@ void WM_toolsystem_ref_set_from_runtime(
 void WM_toolsystem_init(bContext *C)
 {
 	Main *bmain = CTX_data_main(C);
-	wmWindowManager *wm = bmain->wm.first;
 
-	for (wmWindow *win = wm->windows.first; win; win = win->next) {
-		WorkSpace *workspace = WM_window_get_active_workspace(win);
-		WM_toolsystem_refresh_all(C, workspace);
+	BLI_assert(CTX_wm_window(C) == NULL);
+
+	LISTBASE_FOREACH (WorkSpace *, workspace, &bmain->workspaces) {
+		LISTBASE_FOREACH (bToolRef *, tref, &workspace->tools) {
+			MEM_SAFE_FREE(tref->runtime);
+			tref->tag = 0;
+		}
+	}
+
+	for (wmWindowManager *wm = bmain->wm.first; wm; wm = wm->id.next) {
+		for (wmWindow *win = wm->windows.first; win; win = win->next) {
+			CTX_wm_window_set(C, win);
+			WorkSpace *workspace = WM_window_get_active_workspace(win);
+			bScreen *screen = WM_window_get_active_screen(win);
+			Scene *scene = WM_window_get_active_scene(win);
+			for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+				const bToolKey tkey = {
+					.space_type = sa->spacetype,
+					.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype),
+				};
+				bToolRef *tref = WM_toolsystem_ref_find(workspace, &tkey);
+				if (tref) {
+					if (tref->tag == 0) {
+						toolsystem_reinit_ref(C, workspace, tref);
+						tref->tag = 1;
+					}
+				}
+			}
+			CTX_wm_window_set(C, NULL);
+		}
 	}
 }
 
@@ -426,7 +457,6 @@ static void toolsystem_refresh_screen_from_active_tool(
 static void toolsystem_reinit_with_toolref(
         bContext *C, WorkSpace *workspace, bToolRef *tref)
 {
-
 	wmOperatorType *ot = WM_operatortype_find("WM_OT_tool_set_by_name", false);
 	/* On startup, Python operatores are not yet loaded. */
 	if (ot == NULL) {
