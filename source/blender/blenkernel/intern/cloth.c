@@ -33,6 +33,7 @@
 #include "DNA_cloth_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "BLI_utildefines.h"
@@ -43,10 +44,11 @@
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
 
-#include "BKE_cdderivedmesh.h"
+#include "BKE_bvhutils.h"
 #include "BKE_cloth.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_pointcache.h"
 
@@ -58,13 +60,13 @@
 /* Prototypes for internal functions.
  */
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3]);
-static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
-static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
+static void cloth_from_mesh ( ClothModifierData *clmd, Mesh *mesh );
+static int cloth_from_object(Object *ob, ClothModifierData *clmd, Mesh *mesh, float framenr, int first);
 static void cloth_update_springs( ClothModifierData *clmd );
-static void cloth_update_verts( Object *ob, ClothModifierData *clmd, DerivedMesh *dm );
-static void cloth_update_spring_lengths( ClothModifierData *clmd, DerivedMesh *dm );
-static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
-static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
+static void cloth_update_verts( Object *ob, ClothModifierData *clmd, Mesh *mesh );
+static void cloth_update_spring_lengths( ClothModifierData *clmd, Mesh *mesh );
+static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh );
+static void cloth_apply_vgroup ( ClothModifierData *clmd, Mesh *mesh );
 
 /******************************************************************************
  *
@@ -320,7 +322,7 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	BKE_ptcache_id_clear(&pid, PTCACHE_CLEAR_AFTER, framenr);
 }
 
-static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+static int do_init_cloth(Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
 	PointCache *cache;
 
@@ -348,7 +350,7 @@ static int do_init_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	return 1;
 }
 
-static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, DerivedMesh *result, int framenr)
+static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierData *clmd, Mesh *result, int framenr)
 {
 	ClothVertex *verts = NULL;
 	Cloth *cloth;
@@ -360,7 +362,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 	/* simulate 1 frame forward */
 	cloth = clmd->clothObject;
 	verts = cloth->verts;
-	mvert = result->getVertArray(result);
+	mvert = result->mvert;
 
 	/* force any pinned verts to their constrained location. */
 	for (i = 0; i < clmd->clothObject->mvert_num; i++, verts++) {
@@ -403,7 +405,7 @@ static int do_step_cloth(struct Depsgraph *depsgraph, Object *ob, ClothModifierD
 /************************************************
  * clothModifier_do - main simulation function
  ************************************************/
-void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
+void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scene *scene, Object *ob, Mesh *mesh, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;
@@ -419,7 +421,7 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	BKE_ptcache_id_time(&pid, scene, framenr, &startframe, &endframe, &timescale);
 	clmd->sim_parms->timescale= timescale * clmd->sim_parms->time_scale;
 
-	if (clmd->sim_parms->reset || (clmd->clothObject && dm->getNumVerts(dm) != clmd->clothObject->mvert_num)) {
+	if (clmd->sim_parms->reset || (clmd->clothObject && mesh->totvert != clmd->clothObject->mvert_num)) {
 		clmd->sim_parms->reset = 0;
 		cache->flag |= PTCACHE_OUTDATED;
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
@@ -441,12 +443,12 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	}
 
 	/* initialize simulation data if it didn't exist already */
-	if (!do_init_cloth(ob, clmd, dm, framenr))
+	if (!do_init_cloth(ob, clmd, mesh, framenr))
 		return;
 
 	if (framenr == startframe) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
-		do_init_cloth(ob, clmd, dm, framenr);
+		do_init_cloth(ob, clmd, mesh, framenr);
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		clmd->clothObject->last_frame= framenr;
@@ -491,7 +493,7 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	/* do simulation */
 	BKE_ptcache_validate(cache, framenr);
 
-	if (!do_step_cloth(depsgraph, ob, clmd, dm, framenr)) {
+	if (!do_step_cloth(depsgraph, ob, clmd, mesh, framenr)) {
 		BKE_ptcache_invalidate(cache);
 	}
 	else
@@ -674,7 +676,7 @@ int cloth_uses_vgroup(ClothModifierData *clmd)
  *
  **/
 /* can be optimized to do all groups in one loop */
-static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
+static void cloth_apply_vgroup ( ClothModifierData *clmd, Mesh *mesh )
 {
 	int i = 0;
 	int j = 0;
@@ -684,11 +686,11 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 	/* float goalfac = 0; */ /* UNUSED */
 	ClothVertex *verts = NULL;
 
-	if (!clmd || !dm) return;
+	if (!clmd || !mesh) return;
 
 	clothObj = clmd->clothObject;
 
-	mvert_num = dm->getNumVerts(dm);
+	mvert_num = mesh->totvert;
 
 	verts = clothObj->verts;
 	
@@ -708,7 +710,7 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 			verts->flags &= ~CLOTH_VERT_FLAG_PINNED;
 			verts->flags &= ~CLOTH_VERT_FLAG_NOSELFCOLL;
 
-			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
+			dvert = CustomData_get(&mesh->vdata, i, CD_MDEFORMVERT);
 			if ( dvert ) {
 				for ( j = 0; j < dvert->totweight; j++ ) {
 					if (( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_mass-1)) && (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) {
@@ -774,7 +776,7 @@ static float cloth_shrink_factor(ClothModifierData *clmd, ClothVertex *verts, in
 		return 1.0f;
 }
 
-static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float UNUSED(framenr), int first)
+static int cloth_from_object(Object *ob, ClothModifierData *clmd, Mesh *mesh, float UNUSED(framenr), int first)
 {
 	int i = 0;
 	MVert *mvert = NULL;
@@ -804,25 +806,25 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return 0;
 	}
 
-	// mesh input objects need DerivedMesh
-	if ( !dm )
+	// mesh input objects need Mesh
+	if ( !mesh )
 		return 0;
 
-	cloth_from_mesh ( clmd, dm );
+	cloth_from_mesh ( clmd, mesh );
 
 	// create springs
 	clmd->clothObject->springs = NULL;
 	clmd->clothObject->numsprings = -1;
 
 	if ( clmd->sim_parms->shapekey_rest && !(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_DYNAMIC_BASEMESH ) )
-		shapekey_rest = dm->getVertDataArray ( dm, CD_CLOTH_ORCO );
+		shapekey_rest = CustomData_get_layer(&mesh->vdata, CD_CLOTH_ORCO);
 
-	mvert = dm->getVertArray (dm);
+	mvert = mesh->mvert;
 
 	verts = clmd->clothObject->verts;
 
 	// set initial values
-	for ( i = 0; i < dm->getNumVerts(dm); i++, verts++ ) {
+	for ( i = 0; i < mesh->totvert; i++, verts++ ) {
 		if (first) {
 			copy_v3_v3(verts->x, mvert[i].co);
 
@@ -860,9 +862,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	
 	// apply / set vertex groups
 	// has to be happen before springs are build!
-	cloth_apply_vgroup (clmd, dm);
+	cloth_apply_vgroup (clmd, mesh);
 
-	if ( !cloth_build_springs ( clmd, dm ) ) {
+	if ( !cloth_build_springs ( clmd, mesh ) ) {
 		cloth_free_modifier ( clmd );
 		modifier_setError(&(clmd->modifier), "Cannot build springs");
 		printf("cloth_free_modifier cloth_build_springs\n");
@@ -877,7 +879,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 	clmd->clothObject->bvhtree = bvhtree_build_from_cloth ( clmd, MAX2(clmd->coll_parms->epsilon, clmd->coll_parms->distance_repel) );
 	
-	for (i = 0; i < dm->getNumVerts(dm); i++) {
+	for (i = 0; i < mesh->totvert; i++) {
 		maxdist = MAX2(maxdist, clmd->coll_parms->selfepsilon* ( cloth->verts[i].avg_spring_len*2.0f));
 	}
 	
@@ -886,12 +888,12 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	return 1;
 }
 
-static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
+static void cloth_from_mesh ( ClothModifierData *clmd, Mesh *mesh )
 {
-	const MLoop *mloop = dm->getLoopArray(dm);
-	const MLoopTri *looptri = dm->getLoopTriArray(dm);
-	const unsigned int mvert_num = dm->getNumVerts(dm);
-	const unsigned int looptri_num = dm->getNumLoopTri(dm);
+	const MLoop *mloop = mesh->mloop;
+	const MLoopTri *looptri = BKE_mesh_runtime_looptri_ensure(mesh);
+	const unsigned int mvert_num = mesh->totvert;
+	const unsigned int looptri_num = mesh->runtime.looptris.len;
 
 	/* Allocate our vertices. */
 	clmd->clothObject->mvert_num = mvert_num;
@@ -912,7 +914,7 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 		printf("cloth_free_modifier clmd->clothObject->looptri\n");
 		return;
 	}
-	DM_verttri_from_looptri(clmd->clothObject->tri, mloop, looptri, looptri_num);
+	BKE_mesh_runtime_verttri_from_looptri(clmd->clothObject->tri, mloop, looptri, looptri_num);
 
 	/* Free the springs since they can't be correct if the vertices
 	 * changed.
@@ -1154,27 +1156,27 @@ static void cloth_update_springs( ClothModifierData *clmd )
 }
 
 /* Update rest verts, for dynamically deformable cloth */
-static void cloth_update_verts( Object *ob, ClothModifierData *clmd, DerivedMesh *dm )
+static void cloth_update_verts( Object *ob, ClothModifierData *clmd, Mesh *mesh )
 {
 	unsigned int i = 0;
-	MVert *mvert = dm->getVertArray (dm);
+	MVert *mvert = mesh->mvert;
 	ClothVertex *verts = clmd->clothObject->verts;
 
 	/* vertex count is already ensured to match */
-	for ( i = 0; i < dm->getNumVerts(dm); i++, verts++ ) {
+	for ( i = 0; i < mesh->totvert; i++, verts++ ) {
 		copy_v3_v3(verts->xrest, mvert[i].co);
 		mul_m4_v3(ob->obmat, verts->xrest);
 	}
 }
 
 /* Update spring rest lenght, for dynamically deformable cloth */
-static void cloth_update_spring_lengths( ClothModifierData *clmd, DerivedMesh *dm )
+static void cloth_update_spring_lengths( ClothModifierData *clmd, Mesh *mesh )
 {
 	Cloth *cloth = clmd->clothObject;
 	LinkNode *search = cloth->springs;
 	unsigned int struct_springs = 0;
 	unsigned int i = 0;
-	unsigned int mvert_num = (unsigned int)dm->getNumVerts(dm);
+	unsigned int mvert_num = (unsigned int)mesh->totvert;
 	float shrink_factor;
 
 	clmd->sim_parms->avg_spring_len = 0.0f;
@@ -1249,19 +1251,19 @@ void cloth_parallel_transport_hair_frame(float mat[3][3], const float dir_old[3]
 	mul_m3_m3m3(mat, rot, mat);
 }
 
-static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
+static int cloth_build_springs ( ClothModifierData *clmd, Mesh *mesh )
 {
 	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0, struct_springs_real = 0;
 	unsigned int i = 0;
-	unsigned int mvert_num = (unsigned int)dm->getNumVerts(dm);
-	unsigned int numedges = (unsigned int)dm->getNumEdges (dm);
-	unsigned int numpolys = (unsigned int)dm->getNumPolys(dm);
+	unsigned int mvert_num = (unsigned int)mesh->totvert;
+	unsigned int numedges = (unsigned int)mesh->totedge;
+	unsigned int numpolys = (unsigned int)mesh->totpoly;
 	float shrink_factor;
-	const MEdge *medge = dm->getEdgeArray(dm);
-	const MPoly *mpoly = dm->getPolyArray(dm);
-	const MLoop *mloop = dm->getLoopArray(dm);
+	const MEdge *medge = mesh->medge;
+	const MPoly *mpoly = mesh->mpoly;
+	const MLoop *mloop = mesh->mloop;
 	int index2 = 0; // our second vertex index
 	LinkNodePair *edgelist;
 	EdgeSet *edgeset = NULL;
