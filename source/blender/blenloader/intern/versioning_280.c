@@ -297,6 +297,7 @@ static void do_version_group_collection_to_collection(Main *bmain, Collection *g
 	}
 
 	group->collection = NULL;
+	group->view_layer = NULL;
 	id_fake_user_set(&group->id);
 }
 

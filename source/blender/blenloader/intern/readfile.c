@@ -5679,16 +5679,14 @@ static void direct_link_collection(FileData *fd, Collection *collection)
 
 #ifdef USE_COLLECTION_COMPAT_28
 	/* This runs before the very first doversion. */
+	collection->collection = newdataadr(fd, collection->collection);
 	if (collection->collection != NULL) {
-		collection->collection = newdataadr(fd, collection->collection);
 		direct_link_scene_collection(fd, collection->collection);
 	}
 
+	collection->view_layer = newdataadr(fd, collection->view_layer);
 	if (collection->view_layer != NULL) {
-		collection->view_layer = newdataadr(fd, collection->view_layer);
-		if (collection->view_layer != NULL) {
-			direct_link_view_layer(fd, collection->view_layer);
-		}
+		direct_link_view_layer(fd, collection->view_layer);
 	}
 #endif
 }
