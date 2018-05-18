@@ -80,7 +80,7 @@ struct MLoopTri_Store {
 };
 
 /* not saved in file! */
-typedef struct MeshRuntime {
+typedef struct Mesh_Runtime {
 	struct EditMeshData *edit_data;
 	void *batch_cache;
 
@@ -96,7 +96,7 @@ typedef struct MeshRuntime {
 
 	int deformed_only; /* set by modifier stack if only deformed from original */
 	char padding[4];
-} MeshRuntime;
+} Mesh_Runtime;
 
 typedef struct Mesh {
 	ID id;
@@ -173,7 +173,7 @@ typedef struct Mesh {
 
 	struct Multires *mr DNA_DEPRECATED; /* deprecated multiresolution modeling data, only keep for loading old files */
 
-	MeshRuntime runtime;
+	Mesh_Runtime runtime;
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */
