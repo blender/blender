@@ -123,6 +123,7 @@ def main():
     report = render_report.Report("Eevee Test Report", output_dir, idiff)
     report.set_pixelated(True)
     report.set_reference_dir("eevee_renders")
+    report.set_compare_engines('eevee', 'cycles')
     ok = report.run(test_dir, render_file)
 
     sys.exit(not ok)
