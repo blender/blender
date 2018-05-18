@@ -50,6 +50,8 @@ struct bPoseChannel;
 struct bContext;
 struct ReportList;
 
+struct Depsgraph;
+
 struct PointerRNA;
 struct PropertyRNA;
 struct EnumPropertyItem;
@@ -107,7 +109,7 @@ int insert_vert_fcurve(struct FCurve *fcu, float x, float y, eBezTriple_Keyframe
  *	Use this to insert a keyframe using the current value being keyframed, in the 
  *	nominated F-Curve (no creation of animation data performed). Returns success.
  */
-bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
+bool insert_keyframe_direct(struct Depsgraph *depsgraph,struct ReportList *reports, struct PointerRNA ptr, struct PropertyRNA *prop, struct FCurve *fcu, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
 /* -------- */
 
@@ -115,7 +117,7 @@ bool insert_keyframe_direct(struct ReportList *reports, struct PointerRNA ptr, s
  *	Use this to create any necessary animation data, and then insert a keyframe
  *	using the current value being keyframed, in the relevant place. Returns success.
  */
-short insert_keyframe(struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
+short insert_keyframe(struct Depsgraph *depsgraph, struct ReportList *reports, struct ID *id, struct bAction *act, const char group[], const char rna_path[], int array_index, float cfra, eBezTriple_KeyframeType keytype, eInsertKeyFlags flag);
 
 /* Main Keyframing API call: 
  *  Use this to delete keyframe on current frame for relevant channel. Will perform checks just in case.

@@ -81,6 +81,7 @@ typedef struct bAnimContext {
 	
 	struct bDopeSheet *ads; /* dopesheet data for editor (or which is being used) */
 	
+	struct Depsgraph *depsgraph; /* active dependency graph */
 	struct Scene *scene;    /* active scene */
 	struct ViewLayer *view_layer; /* active scene layer */
 	struct Object *obact;   /* active object */

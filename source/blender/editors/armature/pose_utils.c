@@ -195,7 +195,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 	else
 		BKE_pose_where_is(depsgraph, scene, ob);
 	
-	/* note, notifier might evolve */
+	DEG_id_tag_update(&ob->id, DEG_TAG_COPY_ON_WRITE); /* otherwise animation doesn't get updated */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
 }
 

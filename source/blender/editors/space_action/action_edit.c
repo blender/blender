@@ -673,6 +673,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 	bAnimListElem *ale;
 	int filter;
 	
+	struct Depsgraph *depsgraph = ac->depsgraph;
 	ReportList *reports = ac->reports;
 	Scene *scene = ac->scene;
 	ToolSettings *ts = scene->toolsettings;
@@ -707,7 +708,7 @@ static void insert_action_keys(bAnimContext *ac, short mode)
 		 *                       (TODO: add the full-blown PointerRNA relative parsing case here...)
 		 */
 		if (ale->id && !ale->owner) {
-			insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
+			insert_keyframe(depsgraph, reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
 		}
 		else {
 			const float curval = evaluate_fcurve(fcu, cfra);

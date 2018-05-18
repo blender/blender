@@ -373,7 +373,7 @@ static void gp_stroke_path_animation_preprocess_gaps(tGpTimingData *gtd, RNG *rn
 	}
 }
 
-static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu,
+static void gp_stroke_path_animation_add_keyframes(Depsgraph *depsgraph, ReportList *reports, PointerRNA ptr, PropertyRNA *prop, FCurve *fcu,
                                                    Curve *cu, tGpTimingData *gtd, RNG *rng, const float time_range,
                                                    const int nbr_gaps, const float tot_gaps_time)
 {
@@ -422,7 +422,7 @@ static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerR
 				if ((cfra - last_valid_time) < MIN_TIME_DELTA) {
 					cfra = last_valid_time + MIN_TIME_DELTA;
 				}
-				insert_keyframe_direct(reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+				insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
 				last_valid_time = cfra;
 			}
 			else if (G.debug & G_DEBUG) {
@@ -434,7 +434,7 @@ static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerR
 			if ((cfra - last_valid_time) < MIN_TIME_DELTA) {
 				cfra = last_valid_time + MIN_TIME_DELTA;
 			}
-			insert_keyframe_direct(reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+			insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
 			last_valid_time = cfra;
 		}
 		else {
@@ -442,7 +442,7 @@ static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerR
 			 * and also far enough from (not yet added!) end_stroke keyframe!
 			 */
 			if ((cfra - last_valid_time) > MIN_TIME_DELTA && (end_stroke_time - cfra) > MIN_TIME_DELTA) {
-				insert_keyframe_direct(reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_BREAKDOWN, INSERTKEY_FAST);
+				insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_BREAKDOWN, INSERTKEY_FAST);
 				last_valid_time = cfra;
 			}
 			else if (G.debug & G_DEBUG) {
@@ -455,6 +455,7 @@ static void gp_stroke_path_animation_add_keyframes(ReportList *reports, PointerR
 
 static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu, tGpTimingData *gtd)
 {
+	Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	Scene *scene = CTX_data_scene(C);
 	bAction *act;
 	FCurve *fcu;
@@ -496,7 +497,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 		
 		cu->ctime = 0.0f;
 		cfra = (float)gtd->start_frame;
-		insert_keyframe_direct(reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+		insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
 		
 		cu->ctime = cu->pathlen;
 		if (gtd->realtime) {
@@ -505,7 +506,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 		else {
 			cfra = (float)gtd->end_frame;
 		}
-		insert_keyframe_direct(reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
+		insert_keyframe_direct(depsgraph, reports, ptr, prop, fcu, cfra, BEZT_KEYTYPE_KEYFRAME, INSERTKEY_FAST);
 	}
 	else {
 		/* Use actual recorded timing! */
@@ -531,7 +532,7 @@ static void gp_stroke_path_animation(bContext *C, ReportList *reports, Curve *cu
 			printf("GP Stroke Path Conversion: Starting keying!\n");
 		}
 		
-		gp_stroke_path_animation_add_keyframes(reports, ptr, prop, fcu, cu, gtd, rng, time_range,
+		gp_stroke_path_animation_add_keyframes(depsgraph, reports, ptr, prop, fcu, cu, gtd, rng, time_range,
 		                                       nbr_gaps, tot_gaps_time);
 		
 		BLI_rng_free(rng);

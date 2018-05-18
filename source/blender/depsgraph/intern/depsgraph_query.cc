@@ -33,14 +33,20 @@
 #include "MEM_guardedalloc.h"
 
 extern "C" {
+#include <string.h> // XXX: memcpy
+
 #include "BLI_utildefines.h"
 #include "BKE_idcode.h"
 #include "BKE_main.h"
 #include "BLI_listbase.h"
+
+#include "BKE_action.h" // XXX: BKE_pose_channel_from_name
 } /* extern "C" */
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+
+#include "RNA_access.h"
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_query.h"
@@ -150,6 +156,39 @@ ID *DEG_get_evaluated_id(const Depsgraph *depsgraph, ID *id)
 		return id;
 	}
 	return id_node->id_cow;
+}
+
+/* Get evaluated version of data pointed to by RNA pointer */
+void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph, const PointerRNA *ptr, PointerRNA *r_ptr_eval)
+{
+	if ((ptr == NULL) || (r_ptr_eval == NULL)) {
+		return;
+	}
+	if ((ptr->id.data == ptr->data)) {
+		ID *orig_id = (ID *)ptr->id.data;
+		ID *cow_id = DEG_get_evaluated_id(depsgraph, orig_id);
+		/* For ID pointers, it's easy... */
+		r_ptr_eval->id.data = (void *)cow_id;
+		r_ptr_eval->data = (void *)cow_id;
+		r_ptr_eval->type = ptr->type;
+	}
+	else {
+		/* XXX: Hack for common cases... Proper fix needs to be made still... A very tricky problem though! */
+		if (ptr->type == &RNA_PoseBone) {
+			const Object *ob_eval = (Object *)DEG_get_evaluated_id(depsgraph, (ID *)ptr->id.data);
+			bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+			const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
+			/* XXX: Hack - This is just temporary... but this case must be supported. */
+			r_ptr_eval->id.data = (void *)&ob_eval->id;
+			r_ptr_eval->data = (void *)pchan_eval;
+			r_ptr_eval->type = ptr->type;
+		}
+		else {
+			/* FIXME: Maybe we should try resolving paths, or using some kind of depsgraph lookup? */
+			// XXX: For now, just use dirty hack, and hope it doesn't cause nasty issues.
+			*r_ptr_eval = *ptr;
+		}
+	}
 }
 
 Object *DEG_get_original_object(Object *object)

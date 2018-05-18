@@ -526,6 +526,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 	
 	ReportList *reports = ac->reports;
 	SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+	struct Depsgraph *depsgraph = ac->depsgraph;
 	Scene *scene = ac->scene;
 	ToolSettings *ts = scene->toolsettings;
 	short flag = 0;
@@ -608,7 +609,7 @@ static void insert_graph_keys(bAnimContext *ac, eGraphKeys_InsertKey_Types mode)
 			 *                        up adding the keyframes on a new F-Curve in the action data instead.
 			 */
 			if (ale->id && !ale->owner && !fcu->driver) {
-				insert_keyframe(reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
+				insert_keyframe(depsgraph, reports, ale->id, NULL, ((fcu->grp) ? (fcu->grp->name) : (NULL)), fcu->rna_path, fcu->array_index, cfra, ts->keyframe_type, flag);
 			}
 			else {
 				const float curval = evaluate_fcurve(fcu, cfra);
