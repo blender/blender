@@ -41,6 +41,7 @@
 #include "BLI_linklist.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "BKE_cdderivedmesh.h"
 #include "BKE_cloth.h"
@@ -411,7 +412,7 @@ void clothModifier_do(ClothModifierData *clmd, struct Depsgraph *depsgraph, Scen
 	int cache_result;
 
 	clmd->scene= scene;	/* nice to pass on later :) */
-	framenr= (int)scene->r.cfra;
+	framenr = DEG_get_ctime(depsgraph);
 	cache= clmd->point_cache;
 
 	BKE_ptcache_id_from_cloth(&pid, ob, clmd);

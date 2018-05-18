@@ -261,7 +261,8 @@ void pdEndEffectors(ListBase **effectors)
 
 static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *eff)
 {
-	unsigned int cfra = (unsigned int)(eff->scene->r.cfra >= 0 ? eff->scene->r.cfra : -eff->scene->r.cfra);
+	float ctime = DEG_get_ctime(depsgraph);
+	unsigned int cfra = (unsigned int)(ctime >= 0 ? ctime : -ctime);
 	if (!eff->pd->rng)
 		eff->pd->rng = BLI_rng_new(eff->pd->seed + cfra);
 	else
@@ -286,7 +287,7 @@ static void precalculate_effector(struct Depsgraph *depsgraph, EffectorCache *ef
 			eff->flag |= PE_USE_NORMAL_DATA;
 	}
 	else if (eff->psys)
-		psys_update_particle_tree(eff->psys, eff->scene->r.cfra);
+		psys_update_particle_tree(eff->psys, ctime);
 
 	/* Store object velocity */
 	if (eff->ob) {
@@ -556,7 +557,7 @@ int closest_point_on_surface(SurfaceModifierData *surmd, const float co[3], floa
 }
 int get_effector_data(EffectorCache *eff, EffectorData *efd, EffectedPoint *point, int real_velocity)
 {
-	float cfra = eff->scene->r.cfra;
+	float cfra = DEG_get_ctime(eff->depsgraph);
 	int ret = 0;
 
 	/* In case surface object is in Edit mode when loading the .blend, surface modifier is never executed
