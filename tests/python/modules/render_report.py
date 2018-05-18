@@ -59,11 +59,11 @@ def test_get_name(filepath):
     filename = os.path.basename(filepath)
     return os.path.splitext(filename)[0]
 
-def test_get_images(output_dir, filepath):
+def test_get_images(output_dir, filepath, reference_dir):
     testname = test_get_name(filepath)
     dirpath = os.path.dirname(filepath)
 
-    old_dirpath = os.path.join(dirpath, "reference_renders")
+    old_dirpath = os.path.join(dirpath, reference_dir)
     old_img = os.path.join(old_dirpath, testname + ".png")
 
     ref_dirpath = os.path.join(output_dir, os.path.basename(dirpath), "ref")
@@ -90,6 +90,7 @@ class Report:
     __slots__ = (
         'title',
         'output_dir',
+        'reference_dir',
         'idiff',
         'pixelated',
         'verbose',
@@ -101,6 +102,7 @@ class Report:
     def __init__(self, title, output_dir, idiff):
         self.title = title
         self.output_dir = output_dir
+        self.reference_dir = 'reference_renders'
         self.idiff = idiff
 
         self.pixelated = False
@@ -119,6 +121,9 @@ class Report:
 
     def set_pixelated(self, pixelated):
         self.pixelated = pixelated
+
+    def set_reference_dir(self, reference_dir):
+        self.reference_dir = reference_dir
 
     def run(self, dirpath, render_cb):
         # Run tests and output report.
@@ -229,7 +234,7 @@ class Report:
         name = test_get_name(filepath)
         name = name.replace('_', ' ')
 
-        old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath)
+        old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath, self.reference_dir)
 
         status = error if error else ""
         tr_style = """ style="background-color: #f99;" """ if error else ""
@@ -259,7 +264,7 @@ class Report:
 
 
     def _diff_output(self, filepath, tmp_filepath):
-        old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath)
+        old_img, ref_img, new_img, diff_img = test_get_images(self.output_dir, filepath, self.reference_dir)
 
         # Create reference render directory.
         old_dirpath = os.path.dirname(old_img)

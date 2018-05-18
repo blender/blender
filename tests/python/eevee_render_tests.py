@@ -8,67 +8,62 @@ import shutil
 import subprocess
 import sys
 
+def setup():
+    import bpy
+
+    # Enable Eevee features
+    scene = bpy.context.scene
+    eevee = scene.eevee
+
+    eevee.sss_enable = True
+    eevee.ssr_enable = True
+    eevee.ssr_refraction = True
+    eevee.gtao_enable = True
+    eevee.dof_enable = True
+
+    eevee.volumetric_enable = True
+    eevee.volumetric_shadows = True
+    eevee.volumetric_tile_size = '2'
+
+    for mat in bpy.data.materials:
+        mat.use_screen_refraction = True
+        mat.use_screen_subsurface = True
+
+# When run from inside Blender, render and exit.
+try:
+    import bpy
+    inside_blender = True
+except ImportError:
+    inside_blender = False
+
+if inside_blender:
+    try:
+        setup()
+    except Exception as e:
+        print(e)
+        sys.exit(1)
+
 
 def render_file(filepath, output_filepath):
     dirname = os.path.dirname(filepath)
     basedir = os.path.dirname(dirname)
     subject = os.path.basename(dirname)
 
-    custom_args = os.getenv('CYCLESTEST_ARGS')
-    custom_args = shlex.split(custom_args) if custom_args else []
-
-    # OSL and GPU examples
-    # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.shading_system = True"]
-    # custom_args += ["--python-expr", "import bpy; bpy.context.scene.cycles.device = 'GPU'"]
-
     frame_filepath = output_filepath + '0001.png'
 
-    if subject == 'opengl':
-        command = [
-            BLENDER,
-            "--window-geometry", "0", "0", "1", "1",
-            "-noaudio",
-            "--factory-startup",
-            "--enable-autoexec",
-            filepath,
-            "-E", "CYCLES"]
-        command += custom_args
-        command += [
-            "-o", output_filepath,
-            "-F", "PNG",
-            '--python', os.path.join(basedir,
-                                     "util",
-                                     "render_opengl.py")]
-    elif subject == 'bake':
-        command = [
-            BLENDER,
-            "-b",
-            "-noaudio",
-            "--factory-startup",
-            "--enable-autoexec",
-            filepath,
-            "-E", "CYCLES"]
-        command += custom_args
-        command += [
-            "-o", output_filepath,
-            "-F", "PNG",
-            '--python', os.path.join(basedir,
-                                     "util",
-                                     "render_bake.py")]
-    else:
-        command = [
-            BLENDER,
-            "--background",
-            "-noaudio",
-            "--factory-startup",
-            "--enable-autoexec",
-            filepath,
-            "-E", "CYCLES"]
-        command += custom_args
-        command += [
-            "-o", output_filepath,
-            "-F", "PNG",
-            "-f", "1"]
+    command = [
+        BLENDER,
+        "--background",
+        "-noaudio",
+        "--factory-startup",
+        "--enable-autoexec",
+        filepath,
+        "-E", "BLENDER_EEVEE",
+        "-P",
+        os.path.realpath(__file__),
+        "-o", output_filepath,
+        "-F", "PNG",
+        "-f", "1"]
 
     try:
         # Success
@@ -125,12 +120,13 @@ def main():
     output_dir = args.outdir[0]
 
     from modules import render_report
-    report = render_report.Report("Cycles Test Report", output_dir, idiff)
+    report = render_report.Report("Eevee Test Report", output_dir, idiff)
     report.set_pixelated(True)
+    report.set_reference_dir("eevee_renders")
     ok = report.run(test_dir, render_file)
 
     sys.exit(not ok)
 
 
-if __name__ == "__main__":
+if not inside_blender and __name__ == "__main__":
     main()

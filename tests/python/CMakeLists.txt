@@ -531,9 +531,9 @@ function(add_python_test testname testscript)
 	endif()
 endfunction()
 
-if(WITH_CYCLES)
-	if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/ctests/shader")
-		macro(add_cycles_render_test subject)
+if(OPENIMAGEIO_IDIFF AND EXISTS "${TEST_SRC_DIR}/render/ctests/shader")
+	macro(add_cycles_render_test subject)
+		if(WITH_CYCLES)
 			add_python_test(
 				cycles_${subject}_test
 				${CMAKE_CURRENT_LIST_DIR}/cycles_render_tests.py
@@ -542,31 +542,39 @@ if(WITH_CYCLES)
 				-idiff "${OPENIMAGEIO_IDIFF}"
 				-outdir "${TEST_OUT_DIR}/cycles"
 			)
-		endmacro()
-		if(WITH_OPENGL_RENDER_TESTS)
-			add_cycles_render_test(opengl)
 		endif()
-		add_cycles_render_test(bake)
-		add_cycles_render_test(bsdf)
-		add_cycles_render_test(denoise)
-		add_cycles_render_test(displacement)
-		add_cycles_render_test(hair)
-		add_cycles_render_test(image_data_types)
-		add_cycles_render_test(image_mapping)
-		add_cycles_render_test(image_texture_limit)
-		add_cycles_render_test(integrator)
-		add_cycles_render_test(light)
-		add_cycles_render_test(mesh)
-		add_cycles_render_test(motion_blur)
-		add_cycles_render_test(render_layer)
-		add_cycles_render_test(reports)
-		add_cycles_render_test(shader)
-		add_cycles_render_test(shadow_catcher)
-		add_cycles_render_test(sss)
-		add_cycles_render_test(volume)
-	else()
-		MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
-	endif()
+
+		if(WITH_OPENGL_RENDER_TESTS AND (NOT ${subject} MATCHES "bake"))
+			add_python_test(
+				eevee_${subject}_test
+				${CMAKE_CURRENT_LIST_DIR}/eevee_render_tests.py
+				-blender "$<TARGET_FILE:blender>"
+				-testdir "${TEST_SRC_DIR}/render/ctests/${subject}"
+				-idiff "${OPENIMAGEIO_IDIFF}"
+				-outdir "${TEST_OUT_DIR}/eevee"
+			)
+		endif()
+	endmacro()
+	add_cycles_render_test(bake)
+	add_cycles_render_test(bsdf)
+	add_cycles_render_test(denoise)
+	add_cycles_render_test(displacement)
+	add_cycles_render_test(hair)
+	add_cycles_render_test(image_data_types)
+	add_cycles_render_test(image_mapping)
+	add_cycles_render_test(image_texture_limit)
+	add_cycles_render_test(integrator)
+	add_cycles_render_test(light)
+	add_cycles_render_test(mesh)
+	add_cycles_render_test(motion_blur)
+	add_cycles_render_test(render_layer)
+	add_cycles_render_test(reports)
+	add_cycles_render_test(shader)
+	add_cycles_render_test(shadow_catcher)
+	add_cycles_render_test(sss)
+	add_cycles_render_test(volume)
+elseif(WITH_CYCLES)
+	MESSAGE(STATUS "Disabling Cycles tests because tests folder does not exist")
 endif()
 
 if(WITH_OPENGL_DRAW_TESTS)
