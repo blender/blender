@@ -217,21 +217,21 @@ class TOPBAR_HT_lower_bar(Header):
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
 
                 sub = row.row(align=True)
-                sub.enabled = toolsettings.proportional_edit != 'DISABLED'
+                sub.active = toolsettings.proportional_edit != 'DISABLED'
                 sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
             elif object_mode in {'EDIT', 'PARTICLE_EDIT'}:
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
                 sub = row.row(align=True)
-                sub.enabled = toolsettings.proportional_edit != 'DISABLED'
+                sub.active = toolsettings.proportional_edit != 'DISABLED'
                 sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
             elif object_mode == 'OBJECT':
                 row = layout.row(align=True)
                 row.prop(toolsettings, "use_proportional_edit_objects", icon_only=True)
                 sub = row.row(align=True)
-                sub.enabled = toolsettings.use_proportional_edit_objects
+                sub.active = toolsettings.use_proportional_edit_objects
                 sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
         else:
             # Proportional editing
@@ -239,7 +239,7 @@ class TOPBAR_HT_lower_bar(Header):
                 row = layout.row(align=True)
                 row.prop(toolsettings, "proportional_edit", icon_only=True)
                 sub = row.row(align=True)
-                sub.enabled = toolsettings.proportional_edit != 'DISABLED'
+                sub.active = toolsettings.proportional_edit != 'DISABLED'
                 sub.prop(toolsettings, "proportional_edit_falloff", icon_only=True)
 
         # Snap
@@ -267,7 +267,6 @@ class TOPBAR_HT_lower_bar(Header):
             row.prop(toolsettings, "use_snap", text="")
 
             sub = row.row(align=True)
-            sub.enabled = toolsettings.use_snap
             sub.popover(
                 space_type='TOPBAR',
                 region_type='HEADER',
