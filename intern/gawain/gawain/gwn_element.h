@@ -61,6 +61,7 @@ void GWN_indexbuf_add_primitive_restart(Gwn_IndexBufBuilder*);
 void GWN_indexbuf_add_point_vert(Gwn_IndexBufBuilder*, unsigned v);
 void GWN_indexbuf_add_line_verts(Gwn_IndexBufBuilder*, unsigned v1, unsigned v2);
 void GWN_indexbuf_add_tri_verts(Gwn_IndexBufBuilder*, unsigned v1, unsigned v2, unsigned v3);
+void GWN_indexbuf_add_line_adj_verts(Gwn_IndexBufBuilder*, unsigned v1, unsigned v2, unsigned v3, unsigned v4);
 
 Gwn_IndexBuf* GWN_indexbuf_build(Gwn_IndexBufBuilder*);
 void GWN_indexbuf_build_in_place(Gwn_IndexBufBuilder*, Gwn_IndexBuf*);

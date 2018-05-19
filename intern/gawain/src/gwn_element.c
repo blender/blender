@@ -63,6 +63,9 @@ void GWN_indexbuf_init(Gwn_IndexBufBuilder* builder, Gwn_PrimType prim_type, uns
 		case GWN_PRIM_TRIS:
 			verts_per_prim = 3;
 			break;
+		case GWN_PRIM_LINES_ADJ:
+			verts_per_prim = 4;
+			break;
 		default:
 #if TRUST_NO_ONE
 			assert(false);
@@ -125,6 +128,19 @@ void GWN_indexbuf_add_tri_verts(Gwn_IndexBufBuilder* builder, unsigned v1, unsig
 	GWN_indexbuf_add_generic_vert(builder, v1);
 	GWN_indexbuf_add_generic_vert(builder, v2);
 	GWN_indexbuf_add_generic_vert(builder, v3);
+	}
+
+void GWN_indexbuf_add_line_adj_verts(Gwn_IndexBufBuilder* builder, unsigned v1, unsigned v2, unsigned v3, unsigned v4)
+	{
+#if TRUST_NO_ONE
+	assert(builder->prim_type == GWN_PRIM_LINES_ADJ);
+	assert(v2 != v3); /* only the line need diff indices */
+#endif
+
+	GWN_indexbuf_add_generic_vert(builder, v1);
+	GWN_indexbuf_add_generic_vert(builder, v2);
+	GWN_indexbuf_add_generic_vert(builder, v3);
+	GWN_indexbuf_add_generic_vert(builder, v4);
 	}
 
 #if GWN_TRACK_INDEX_RANGE
