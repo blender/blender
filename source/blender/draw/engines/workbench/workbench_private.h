@@ -108,6 +108,8 @@ typedef struct WORKBENCH_ObjectData {
 	ObjectEngineDataFreeCb free;
 	/* Accumulated recalc flags, which corresponds to ID->recalc flags. */
 	int recalc;
+	/* Shadow direction in local object space. */
+	float shadow_dir[3];
 
 	int object_id;
 } WORKBENCH_ObjectData;

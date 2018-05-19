@@ -449,10 +449,6 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 			wpd->shadow_shgrp = grp;
 #else
 			psl->shadow_pass = DRW_pass_create("Shadow", DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_STENCIL_SHADOW);
-			grp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
-			DRW_shgroup_uniform_vec3(grp, "lightDirection", e_data.display.light_direction, 1);
-			DRW_shgroup_stencil_mask(grp, 0xFF);
-			wpd->shadow_shgrp = grp;
 
 			psl->composite_shadow_pass = DRW_pass_create("Composite Shadow", DRW_STATE_WRITE_COLOR | DRW_STATE_STENCIL_NEQUAL);
 			grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_shadow_pass);
@@ -546,6 +542,7 @@ static void workbench_cache_populate_particles(WORKBENCH_Data *vedata, Object *o
 
 void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 {
+	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 
@@ -629,7 +626,16 @@ void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob
 					// DRW_shgroup_call_sculpt_add(wpd->shadow_shgrp, ob, ob->obmat);
 				}
 				else {
-					DRW_shgroup_call_object_add(wpd->shadow_shgrp, geom_shadow, ob);
+					WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
+					        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
+
+					invert_m4_m4(ob->imat, ob->obmat);
+					mul_v3_mat3_m4v3(engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
+
+					DRWShadingGroup *grp = DRW_shgroup_create(e_data.shadow_sh, psl->shadow_pass);
+					DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
+					DRW_shgroup_stencil_mask(grp, 0xFF);
+					DRW_shgroup_call_object_add(grp, geom_shadow, ob);
 				}
 			}
 		}
