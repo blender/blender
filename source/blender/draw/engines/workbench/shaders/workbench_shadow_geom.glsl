@@ -1,5 +1,12 @@
+#extension GL_ARB_gpu_shader5 : enable
+
+#ifdef GL_ARB_gpu_shader5
+layout(lines_adjacency, invocations = 2) in;
+layout(triangle_strip, max_vertices = 4) out;
+#else
 layout(lines_adjacency) in;
 layout(triangle_strip, max_vertices = 8) out;
+#endif
 
 uniform mat4 ModelMatrixInverse;
 
@@ -14,6 +21,16 @@ in VertexData {
 #define DEGENERATE_THRESHOLD 1e-12
 
 #define len_sqr(a) dot(a, a)
+
+void extrude_edge(bool invert)
+{
+	ivec2 idx = (invert) ? ivec2(2, 1) : ivec2(1, 2);
+	gl_Position = vData[idx.x].frontPosition; EmitVertex();
+	gl_Position = vData[idx.y].frontPosition; EmitVertex();
+	gl_Position = vData[idx.x].backPosition; EmitVertex();
+	gl_Position = vData[idx.y].backPosition; EmitVertex();
+	EndPrimitive();
+}
 
 void main()
 {
@@ -61,18 +78,19 @@ void main()
 	ivec2 idx = ivec2(1, 2);
 	idx = (backface.x) ? idx.yx : idx.xy;
 
-	gl_Position = vData[idx.x].frontPosition; EmitVertex();
-	gl_Position = vData[idx.y].frontPosition; EmitVertex();
-	gl_Position = vData[idx.x].backPosition; EmitVertex();
-	gl_Position = vData[idx.y].backPosition; EmitVertex();
-	EndPrimitive();
-
+#ifdef GL_ARB_gpu_shader5
+	if (gl_InvocationID == 0) {
+		extrude_edge(backface.x);
+	}
+	else if (is_manifold) {
+		/* Increment/Decrement twice for manifold edges. */
+		extrude_edge(backface.x);
+	}
+#else
+	extrude_edge(backface.x);
 	/* Increment/Decrement twice for manifold edges. */
 	if (is_manifold) {
-		gl_Position = vData[idx.x].frontPosition; EmitVertex();
-		gl_Position = vData[idx.y].frontPosition; EmitVertex();
-		gl_Position = vData[idx.x].backPosition; EmitVertex();
-		gl_Position = vData[idx.y].backPosition; EmitVertex();
-		EndPrimitive();
+		extrude_edge(backface.x);
 	}
+#endif
 }
