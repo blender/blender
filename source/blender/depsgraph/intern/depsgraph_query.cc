@@ -164,55 +164,36 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph, PointerRNA *ptr, 
 	if ((ptr == NULL) || (r_ptr_eval == NULL)) {
 		return;
 	}
-	if ((ptr->id.data == ptr->data)) {
-		ID *orig_id = (ID *)ptr->id.data;
-		ID *cow_id = DEG_get_evaluated_id(depsgraph, orig_id);
+	ID *orig_id = (ID *)ptr->id.data;
+	ID *cow_id = DEG_get_evaluated_id(depsgraph, orig_id);
+	if (ptr->id.data == ptr->data) {
 		/* For ID pointers, it's easy... */
 		r_ptr_eval->id.data = (void *)cow_id;
 		r_ptr_eval->data = (void *)cow_id;
 		r_ptr_eval->type = ptr->type;
 	}
 	else {
-		/* XXX: Hack for common cases... Proper fix needs to be made still... A very tricky problem though! */
-		printf("DEG get evaluated ptr ----------------------\n");
-		if (ptr->type == &RNA_PoseBone) {
-			const Object *ob_eval = (Object *)DEG_get_evaluated_id(depsgraph, (ID *)ptr->id.data);
-			bPoseChannel *pchan = (bPoseChannel *)ptr->data;
-			const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
-			/* XXX: Hack - This is just temporary... but this case must be supported. */
-			// r_ptr_eval->id.data = (void *)&ob_eval->id;
-			// r_ptr_eval->data = (void *)pchan_eval;
-			// r_ptr_eval->type = ptr->type;
-			printf("  orig id = %p, pchan = %p   ||  eval id = %p, pchan = %p\n",
-			       ptr->id.data, (void*)pchan, (void*)ob_eval, (void*)pchan_eval);
-		}
-		else {
-			/* FIXME: Maybe we should try resolving paths, or using some kind of depsgraph lookup? */
-			// XXX: For now, just use dirty hack, and hope it doesn't cause nasty issues.
-			*r_ptr_eval = *ptr;
-		}
-		
 		/* For everything else, try to get RNA Path of the BMain-pointer,
 		 * then use that to look up what the COW-domain one should be
 		 * given the COW ID pointer as the new lookup point
 		 */
 		char *path = RNA_path_from_ID_to_struct(ptr);
-		printf("  path  = '%s' (%p)\n", path, path);
 		if (path) {
-			ID *orig_id = (ID *)ptr->id.data;
-			ID *cow_id = DEG_get_evaluated_id(depsgraph, orig_id);
 			PointerRNA cow_id_ptr;
 			RNA_id_pointer_create(cow_id, &cow_id_ptr);
-			if (RNA_path_resolve(&cow_id_ptr, path, r_ptr_eval, NULL)) {
-				printf("  new pointer set - eval id = %p, ptr = %p\n",
-				       r_ptr_eval->id.data, r_ptr_eval->data);
-			}
-			else {
-				printf("  resolve failed\n");
+			if (!RNA_path_resolve(&cow_id_ptr, path, r_ptr_eval, NULL)) {
+				/* Couldn't find COW copy of data */
+				fprintf(stderr,
+				        "%s: Couldn't resolve RNA path ('%s') relative to COW ID (%p) for '%s'\n",
+				        __func__, path, (void *)cow_id, orig_id->name);
 			}
 		}
-		
-		printf("----------------------------------------------\n");
+		else {
+			/* Path resolution failed - XXX: Hide this behind a debug flag */
+			fprintf(stderr,
+			        "%s: Couldn't get RNA path for %s relative to %s\n",
+			        __func__, RNA_struct_identifier(ptr->type), orig_id->name);
+		}
 	}
 }
 
