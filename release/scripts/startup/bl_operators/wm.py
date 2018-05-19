@@ -2365,14 +2365,15 @@ class WM_OT_toolbar(Operator):
         from bl_ui.space_toolsystem_common import ToolSelectPanelHelper
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is None:
-            self.report({'WARNING'}, "Toolbar not found for {space_type!r}")
+            self.report({'WARNING'}, f"Toolbar not found for {space_type!r}")
             return {'CANCELLED'}
 
         def draw_menu(popover, context):
             cls.draw_cls(popover.layout, context, detect_layout=False)
 
         wm = context.window_manager
-        wm.popup_menu(draw_menu)
+        # wm.popup_menu(draw_menu) # this also works
+        wm.popover(draw_menu)
         return {'FINISHED'}
 
 

@@ -250,6 +250,11 @@ void UI_popover_end(bContext *C, uiPopover *pup)
 	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
 	WM_event_add_mousemove(C);
 	handle->popup = true;
+
+	/* TODO(campbell): we may want to make this configurable.
+	 * The begin/end stype of calling popups doesn't allow to 'can_refresh' to be set.
+	 * For now close this style of popvers when accessed. */
+	UI_block_flag_disable(pup->block, UI_BLOCK_KEEP_OPEN);
 }
 
 uiLayout *UI_popover_layout(uiPopover *pup)

@@ -704,6 +704,21 @@ uiPopupBlockHandle *ui_popup_block_create(
 
 void ui_popup_block_free(bContext *C, uiPopupBlockHandle *handle)
 {
+	/* If this popup is created from a popover which does NOT have keep-open flag set,
+	 * then close the popover too. We could extend this to other popup types too. */
+	ARegion *ar = handle->popup_create_vars.butregion;
+	if (ar != NULL) {
+		for (uiBlock *block = ar->uiblocks.first; block; block = block->next) {
+			if (block->handle &&
+			    (block->flag & UI_BLOCK_POPOVER) &&
+			    (block->flag & UI_BLOCK_KEEP_OPEN) == 0)
+			{
+				uiPopupBlockHandle *menu = block->handle;
+				menu->menuretval = UI_RETURN_OK;
+			}
+		}
+	}
+
 	if (handle->popup_create_vars.free_func) {
 		handle->popup_create_vars.free_func(handle, handle->popup_create_vars.arg);
 	}
