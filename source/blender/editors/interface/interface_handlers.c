@@ -491,6 +491,31 @@ bool ui_but_is_editable_as_text(const uiBut *but)
 
 }
 
+bool ui_but_is_toggle(const uiBut *but)
+{
+	return ELEM(
+	        but->type,
+	        UI_BTYPE_BUT_TOGGLE,
+	        UI_BTYPE_TOGGLE,
+	        UI_BTYPE_ICON_TOGGLE,
+	        UI_BTYPE_ICON_TOGGLE_N,
+	        UI_BTYPE_TOGGLE_N,
+	        UI_BTYPE_CHECKBOX,
+	        UI_BTYPE_CHECKBOX_N,
+	        UI_BTYPE_ROW
+	);
+}
+
+#ifdef USE_POPOVER_ONCE
+bool ui_but_is_popover_once_compat(const uiBut *but)
+{
+	return (
+	        (but->type == UI_BTYPE_BUT) ||
+	        ui_but_is_toggle(but)
+	);
+}
+#endif
+
 static uiBut *ui_but_prev(uiBut *but)
 {
 	while (but->prev) {
@@ -8323,6 +8348,28 @@ static int ui_handle_button_event(bContext *C, const wmEvent *event, uiBut *but)
 				data->cancel = true;
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
 				break;
+#ifdef USE_POPOVER_ONCE
+			case LEFTMOUSE:
+			{
+				if (event->val == KM_RELEASE) {
+					if (block->flag & UI_BLOCK_POPOVER_ONCE) {
+						if (!(but->flag & UI_BUT_DISABLED)) {
+							if (ui_but_is_popover_once_compat(but)) {
+								data->cancel = false;
+								button_activate_state(C, but, BUTTON_STATE_EXIT);
+								retval = WM_UI_HANDLER_BREAK;
+								block->handle->menuretval = UI_RETURN_OK;
+							}
+							else if (ui_but_is_editable_as_text(but)) {
+								ui_handle_button_activate(C, ar, but, BUTTON_ACTIVATE_TEXT_EDITING);
+								retval = WM_UI_HANDLER_BREAK;
+							}
+						}
+					}
+				}
+				break;
+			}
+#endif
 			case MOUSEMOVE:
 			{
 				uiBut *but_other = ui_but_find_mouse_over(ar, event);
@@ -9465,6 +9512,15 @@ static int ui_handle_menu_event(
 	{
 		retval = ui_handle_menu_button(C, event, menu);
 	}
+
+#ifdef USE_POPOVER_ONCE
+	if (block->flag & UI_BLOCK_POPOVER_ONCE) {
+		if ((event->type == LEFTMOUSE) && (event->val == KM_RELEASE)) {
+			UI_popover_once_clear(menu->popup_create_vars.arg);
+			block->flag &= ~UI_BLOCK_POPOVER_ONCE;
+		}
+	}
+#endif
 
 	/* if we set a menu return value, ensure we continue passing this on to
 	 * lower menus and buttons, so always set continue then, and if we are

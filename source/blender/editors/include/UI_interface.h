@@ -144,8 +144,9 @@ enum {
 #define UI_BLOCK_LIST_ITEM   (1 << 19)
 #define UI_BLOCK_RADIAL      (1 << 20)
 #define UI_BLOCK_POPOVER     (1 << 21)
+#define UI_BLOCK_POPOVER_ONCE (1 << 22)
 /** Always show keymaps, even for non-menus. */
-#define UI_BLOCK_SHOW_SHORTCUT_ALWAYS (1 << 22)
+#define UI_BLOCK_SHOW_SHORTCUT_ALWAYS (1 << 23)
 
 /* uiPopupBlockHandle->menuretval */
 #define UI_RETURN_CANCEL     (1 << 0)   /* cancel all menus cascading */
@@ -429,6 +430,7 @@ typedef struct uiPopover uiPopover;
 uiPopover *UI_popover_begin(struct bContext *C) ATTR_NONNULL();
 void UI_popover_end(struct bContext *C, struct uiPopover *head);
 struct uiLayout *UI_popover_layout(uiPopover *head);
+void UI_popover_once_clear(uiPopover *pup);
 
 /* interface_region_menu_pie.c */
 /* Pie menus */
@@ -1233,6 +1235,9 @@ void UI_widgetbase_draw_cache_end(void);
 
 /* Special drawing for toolbar, mainly workarounds for inflexible icon sizing. */
 #define USE_TOOLBAR_HACK
+
+/* Support click-drag motion which presses the button and closes a popover (like a menu). */
+#define USE_POPOVER_ONCE
 
 bool UI_but_is_tool(const uiBut *but);
 

@@ -3204,6 +3204,20 @@ static void ui_draw_but_HSV_v(uiBut *but, const rcti *rect)
 	ui_hsv_cursor(x, y);
 }
 
+/* Generic round-box drawing. */
+static void ui_draw_roundbox(const rcti *rect, const float rad, const uiWidgetColors *wcol)
+{
+	uiWidgetBase wtb;
+	widget_init(&wtb);
+	round_box_edges(&wtb, UI_CNR_ALL, rect, rad);
+	widgetbase_draw(&wtb, wcol);
+
+	/* We are drawing on top of widget bases. Flush cache. */
+	glEnable(GL_BLEND);
+	UI_widgetbase_draw_cache_flush();
+	glDisable(GL_BLEND);
+}
+
 
 /* ************ separator, for menus etc ***************** */
 static void ui_draw_separator(const rcti *rect,  uiWidgetColors *wcol)
@@ -4336,6 +4350,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 	uiFontStyle *fstyle = &style->widget;
 	uiWidgetType *wt = NULL;
 
+#ifdef USE_POPOVER_ONCE
+	const rcti rect_orig = *rect;
+#endif
+
 	/* handle menus separately */
 	if (but->dt == UI_EMBOSS_PULLDOWN) {
 		switch (but->type) {
@@ -4611,6 +4629,25 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 		if (disabled)
 			glEnable(GL_BLEND);
+
+#ifdef USE_POPOVER_ONCE
+		if (but->block->flag & UI_BLOCK_POPOVER_ONCE) {
+			if ((state & UI_ACTIVE) && ui_but_is_popover_once_compat(but)) {
+				uiWidgetType wt_back = *wt;
+				uiWidgetType *wt_temp = widget_type(UI_WTYPE_MENU_ITEM);
+				wt_temp->state(wt_temp, state);
+				copy_v4_v4_char(wt->wcol.inner, wt->wcol.inner_sel);
+				wt->wcol.inner[3] = 128;
+				wt->wcol.roundness = 0.5f;
+				ui_draw_roundbox(
+				        &rect_orig,
+				        0.25f * min_ff(BLI_rcti_size_x(&rect_orig), BLI_rcti_size_y(&rect_orig)),
+				        &wt_temp->wcol);
+				*wt = wt_back;
+			}
+		}
+#endif
+
 		wt->text(fstyle, &wt->wcol, but, rect);
 		if (disabled)
 			glDisable(GL_BLEND);
