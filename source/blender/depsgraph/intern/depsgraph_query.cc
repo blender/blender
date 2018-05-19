@@ -172,10 +172,25 @@ void DEG_get_evaluated_rna_pointer(const Depsgraph *depsgraph, PointerRNA *ptr, 
 		r_ptr_eval->data = (void *)cow_id;
 		r_ptr_eval->type = ptr->type;
 	}
+	else if (ptr->type == &RNA_PoseBone) {
+		/* HACK: Since bone keyframing is quite commonly used,
+		 * speed things up for this case by doing a special lookup
+		 * for bones
+		 */
+		const Object *ob_eval = (Object *)cow_id;
+		bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+		const bPoseChannel *pchan_eval = BKE_pose_channel_find_name(ob_eval->pose, pchan->name);
+		r_ptr_eval->id.data = (void *)cow_id;
+		r_ptr_eval->data = (void *)pchan_eval;
+		r_ptr_eval->type = ptr->type;
+	}
 	else {
 		/* For everything else, try to get RNA Path of the BMain-pointer,
 		 * then use that to look up what the COW-domain one should be
 		 * given the COW ID pointer as the new lookup point
+		 */
+		/* TODO: Find a faster alternative, or implement support for other
+		 * common types too above (e.g. modifiers)
 		 */
 		char *path = RNA_path_from_ID_to_struct(ptr);
 		if (path) {
