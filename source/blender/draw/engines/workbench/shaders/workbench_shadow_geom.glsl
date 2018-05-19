@@ -1,51 +1,53 @@
-layout(triangles) in;
-layout(triangle_strip, max_vertices=9) out;
+layout(lines_adjacency) in;
+layout(triangle_strip, max_vertices = 8) out;
 
-uniform mat4 ModelMatrix;
-uniform mat4 ModelViewProjectionMatrix;
+uniform mat4 ModelMatrixInverse;
 
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
 
 in VertexData {
-	flat vec4 lightDirectionMS;
-	vec4 frontPosition;
+	vec3 pos;           /* local position */
+	vec4 frontPosition; /* final ndc position */
 	vec4 backPosition;
-} vertexData[];
+} vData[];
 
-vec3 face_normal(vec3 v1, vec3 v2, vec3 v3) {
-	return normalize(cross(v2 - v1, v3 - v1));
-}
 void main()
 {
-	vec4 light_direction = vertexData[0].lightDirectionMS;
-	vec4 v1 = gl_in[0].gl_Position;
-	vec4 v2 = gl_in[1].gl_Position;
-	vec4 v3 = gl_in[2].gl_Position;
-	bool backface = dot(face_normal(v1.xyz, v2.xyz, v3.xyz), light_direction.xyz) > 0.0;
+	/* TODO precompute light_direction */
+	vec3 light_dir = mat3(ModelMatrixInverse) * lightDirection;
 
-	int index0 = backface?0:2;
-	int index2 = backface?2:0;
+	vec3 v10 = vData[0].pos - vData[1].pos;
+	vec3 v12 = vData[2].pos - vData[1].pos;
+	vec3 v13 = vData[3].pos - vData[1].pos;
+	vec3 n1 = cross(v12, v10);
+	vec3 n2 = cross(v13, v12);
+	vec2 facing = vec2(dot(n1, light_dir),
+	                   dot(n2, light_dir));
+	bvec2 backface = greaterThan(facing, vec2(0.0));
 
-	/* back cap */
-	gl_Position = vertexData[index0].backPosition;
-	EmitVertex();
-	gl_Position = vertexData[1].backPosition;
-	EmitVertex();
-	gl_Position = vertexData[index2].backPosition;
-	EmitVertex();
+	if (backface.x == backface.y) {
+		/* Both faces face the same direction. Not an outline edge. */
+		return;
+	}
 
-	/* sides */
-	gl_Position = vertexData[index2].frontPosition;
-	EmitVertex();
-	gl_Position = vertexData[index0].backPosition;
-	EmitVertex();
-	gl_Position = vertexData[index0].frontPosition;
-	EmitVertex();
-	gl_Position = vertexData[1].backPosition;
-	EmitVertex();
-	gl_Position = vertexData[1].frontPosition;
-	EmitVertex();
-	gl_Position = vertexData[index2].frontPosition;
-	EmitVertex();
+	/* Reverse order if backfacing the light. */
+	ivec2 idx = ivec2(1, 2);
+	idx = (backface.x) ? idx.yx : idx.xy;
+
+	/* WATCH: maybe unpredictable in some cases. */
+	bool is_manifold = any(notEqual(vData[0].pos, vData[3].pos));
+
+	gl_Position = vData[idx.x].frontPosition; EmitVertex();
+	gl_Position = vData[idx.y].frontPosition; EmitVertex();
+	gl_Position = vData[idx.x].backPosition; EmitVertex();
+	gl_Position = vData[idx.y].backPosition; EmitVertex();
 	EndPrimitive();
+
+	if (is_manifold) {
+		gl_Position = vData[idx.x].frontPosition; EmitVertex();
+		gl_Position = vData[idx.y].frontPosition; EmitVertex();
+		gl_Position = vData[idx.x].backPosition; EmitVertex();
+		gl_Position = vData[idx.y].backPosition; EmitVertex();
+		EndPrimitive();
+	}
 }

@@ -36,6 +36,7 @@
 #include "BLI_math_bits.h"
 #include "BLI_string.h"
 #include "BLI_alloca.h"
+#include "BLI_edgehash.h"
 
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -55,6 +56,9 @@
 #include "GPU_batch.h"
 #include "GPU_draw.h"
 #include "GPU_material.h"
+#include "GPU_texture.h"
+
+#include "DRW_render.h"
 
 #include "draw_cache_impl.h"  /* own include */
 
@@ -1229,6 +1233,8 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 			*r_is_manifold = true;
 		}
 		else {
+			*r_pnor1 = eed->l->f->no;
+			*r_pnor2 = eed->l->f->no;
 			*r_is_manifold = false;
 		}
 	}
@@ -1268,12 +1274,27 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 
 		*r_vco1 = mvert[medge[edge_index].v1].co;
 		*r_vco2 = mvert[medge[edge_index].v2].co;
+		*r_pnor1 = pnors[eap[edge_index].face_index[0]];
+
+		float nor[3], v1[3], v2[3], r_center[3];
+		const MPoly *mpoly = rdata->mpoly + eap[edge_index].face_index[0];
+		const MLoop *mloop = rdata->mloop + mpoly->loopstart;
+
+		BKE_mesh_calc_poly_center(mpoly, mloop, mvert, r_center);
+		sub_v3_v3v3(v1, *r_vco2, *r_vco1);
+		sub_v3_v3v3(v2, r_center, *r_vco1);
+		cross_v3_v3v3(nor, v1, v2);
+
+		if (dot_v3v3(nor, *r_pnor1) < 0.0) {
+			SWAP(float *, *r_vco1, *r_vco2);
+		}
+
 		if (eap[edge_index].count == 2) {
-			*r_pnor1 = pnors[eap[edge_index].face_index[0]];
 			*r_pnor2 = pnors[eap[edge_index].face_index[1]];
 			*r_is_manifold = true;
 		}
 		else {
+			*r_pnor2 = pnors[eap[edge_index].face_index[0]];
 			*r_is_manifold = false;
 		}
 	}
@@ -1499,6 +1520,7 @@ typedef struct MeshBatchCache {
 	Gwn_VertBuf *pos_in_order;
 	Gwn_VertBuf *nor_in_order;
 	Gwn_IndexBuf *edges_in_order;
+	Gwn_IndexBuf *edges_adjacency; /* Store edges with adjacent vertices. */
 	Gwn_IndexBuf *triangles_in_order;
 
 	Gwn_Batch *all_verts;
@@ -1536,6 +1558,8 @@ typedef struct MeshBatchCache {
 
 	Gwn_Batch *points_with_normals;
 	Gwn_Batch *fancy_edges; /* owns its vertex buffer (not shared) */
+
+	Gwn_Batch *edge_detection;
 
 	/* Maybe have shaded_triangles_data split into pos_nor and uv_tangent
 	 * to minimise data transfer for skinned mesh. */
@@ -1805,6 +1829,9 @@ static void mesh_batch_cache_clear(Mesh *me)
 	GWN_BATCH_DISCARD_SAFE(cache->verts_with_select_id);
 
 	GWN_BATCH_DISCARD_SAFE(cache->fancy_edges);
+
+	GWN_INDEXBUF_DISCARD_SAFE(cache->edges_adjacency);
+	GWN_BATCH_DISCARD_SAFE(cache->edge_detection);
 
 	GWN_VERTBUF_DISCARD_SAFE(cache->shaded_triangles_data);
 	if (cache->shaded_triangles_in_order) {
@@ -3178,6 +3205,96 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_in_order(MeshRenderData *rdata, 
 	return cache->edges_in_order;
 }
 
+#define NO_EDGE INT_MAX
+static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata, MeshBatchCache *cache)
+{
+	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI));
+
+	if (cache->edges_adjacency == NULL) {
+		const int vert_len = mesh_render_data_verts_len_get(rdata);
+		const int tri_len = mesh_render_data_looptri_len_get(rdata);
+
+		/* Allocate max but only used indices are sent to GPU. */
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES_ADJ, tri_len * 3, vert_len);
+
+		EdgeHash *eh = BLI_edgehash_new_ex(__func__, tri_len * 3);
+		/* Create edges for each pair of triangles sharing an edge. */
+		for (int i = 0; i < tri_len; i++) {
+			for (int e = 0; e < 3; ++e) {
+				unsigned int v0, v1, v2;
+				if (rdata->edit_bmesh) {
+					const BMLoop **bm_looptri = (const BMLoop **)rdata->edit_bmesh->looptris[i];
+					if (BM_elem_flag_test(bm_looptri[0]->f, BM_ELEM_HIDDEN)) {
+						break;
+					}
+					v0 = BM_elem_index_get(bm_looptri[e]->v);
+					v1 = BM_elem_index_get(bm_looptri[(e+1)%3]->v);
+					v2 = BM_elem_index_get(bm_looptri[(e+2)%3]->v);
+				}
+				else {
+					MLoop *mloop = rdata->mloop;
+					MLoopTri *mlt = rdata->mlooptri + i;
+					v0 = mloop[mlt->tri[e]].v;
+					v1 = mloop[mlt->tri[(e+1)%3]].v;
+					v2 = mloop[mlt->tri[(e+2)%3]].v;
+				}
+				bool inv_indices = (v1 > v2);
+				void **pval;
+				bool value_is_init = BLI_edgehash_ensure_p(eh, v1, v2, &pval);
+				int v_data = GET_INT_FROM_POINTER(*pval);
+				if (!value_is_init || v_data == NO_EDGE) {
+					/* Save the winding order inside the sign bit. Because the
+					 * edgehash sort the keys and we need to compare winding later. */
+					int value = (int)v0 + 1; /* Int 0 cannot be signed */
+					*pval = SET_INT_IN_POINTER((inv_indices) ? -value : value);
+				}
+				else {
+					/* HACK Tag as not used. Prevent overhead of BLI_edgehash_remove. */
+					*pval = SET_INT_IN_POINTER(NO_EDGE);
+					bool inv_opposite = (v_data < 0);
+					unsigned int v_opposite = (unsigned int)abs(v_data) - 1;
+
+					if (inv_opposite == inv_indices) {
+						/* Don't share edge if triangles have non matching winding. */
+						GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
+						GWN_indexbuf_add_line_adj_verts(&elb, v_opposite, v1, v2, v_opposite);
+					}
+					else {
+						GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v_opposite);
+					}
+				} 
+			}
+		}
+		/* Create edges for remaning non manifold edges. */
+		EdgeHashIterator *ehi;
+		for (ehi = BLI_edgehashIterator_new(eh);
+		     BLI_edgehashIterator_isDone(ehi) == false;
+		     BLI_edgehashIterator_step(ehi))
+		{
+			unsigned int v1, v2;
+			int v_data = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
+			if (v_data == NO_EDGE) {
+				continue;
+			}
+			BLI_edgehashIterator_getKey(ehi, &v1, &v2);
+			unsigned int v0 = (unsigned int)abs(v_data) - 1;
+			if (v_data < 0) { /* inv_opposite  */
+				SWAP(unsigned int, v1, v2);
+			}
+			GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
+		}
+		BLI_edgehashIterator_free(ehi);
+		BLI_edgehash_free(eh, NULL);
+
+		cache->edges_adjacency = GWN_indexbuf_build(&elb);
+	}
+
+	return cache->edges_adjacency;
+
+}
+#undef NO_EDGE
+
 static Gwn_IndexBuf *mesh_batch_cache_get_triangles_in_order(MeshRenderData *rdata, MeshBatchCache *cache)
 {
 	BLI_assert(rdata->types & (MR_DATATYPE_VERT | MR_DATATYPE_LOOPTRI));
@@ -3683,6 +3800,24 @@ Gwn_Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 	}
 
 	return cache->fancy_edges;
+}
+
+Gwn_Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me)
+{
+	MeshBatchCache *cache = mesh_batch_cache_get(me);
+
+	if (cache->edge_detection == NULL) {
+		const int options = MR_DATATYPE_VERT | MR_DATATYPE_LOOP | MR_DATATYPE_LOOPTRI;
+
+		MeshRenderData *rdata = mesh_render_data_create(me, options);
+
+		cache->edge_detection = GWN_batch_create_ex(GWN_PRIM_LINES_ADJ, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
+		                                                                mesh_batch_cache_get_edges_adjacency(rdata, cache), 0);
+
+		mesh_render_data_free(rdata);
+	}
+
+	return cache->edge_detection;
 }
 
 static void mesh_batch_cache_create_overlay_batches(Mesh *me)
