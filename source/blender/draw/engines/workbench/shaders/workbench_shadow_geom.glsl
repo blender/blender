@@ -11,6 +11,10 @@ in VertexData {
 	vec4 backPosition;
 } vData[];
 
+#define DEGENERATE_THRESHOLD 1e-12
+
+#define len_sqr(a) dot(a, a)
+
 void main()
 {
 	/* TODO precompute light_direction */
@@ -19,23 +23,43 @@ void main()
 	vec3 v10 = vData[0].pos - vData[1].pos;
 	vec3 v12 = vData[2].pos - vData[1].pos;
 	vec3 v13 = vData[3].pos - vData[1].pos;
+
+#ifdef DEGENERATE_THRESHOLD
+	vec3 v20 = vData[0].pos - vData[2].pos;
+	vec3 v23 = vData[3].pos - vData[2].pos;
+
+	vec4 edges_lensqr = vec4(len_sqr(v10), len_sqr(v13), len_sqr(v20), len_sqr(v23));
+	bvec4 degen_edges = lessThan(edges_lensqr, vec4(DEGENERATE_THRESHOLD));
+
+	/* Both triangles are degenerate, abort. */
+	if (any(degen_edges.xz) && any(degen_edges.yw))
+		return;
+#endif
+
 	vec3 n1 = cross(v12, v10);
 	vec3 n2 = cross(v13, v12);
 	vec2 facing = vec2(dot(n1, light_dir),
 	                   dot(n2, light_dir));
+
+	/* WATCH: maybe unpredictable in some cases. */
+	bool is_manifold = any(notEqual(vData[0].pos, vData[3].pos));
+
 	bvec2 backface = greaterThan(facing, vec2(0.0));
 
-	if (backface.x == backface.y) {
-		/* Both faces face the same direction. Not an outline edge. */
+#ifdef DEGENERATE_THRESHOLD
+	/* If one of the 2 triangles is degenerate, replace edge by a non-manifold one. */
+	backface.x = (any(degen_edges.xz)) ? !backface.y : backface.x;
+	backface.y = (any(degen_edges.yw)) ? !backface.x : backface.y;
+	is_manifold = (any(degen_edges)) ? false : is_manifold;
+#endif
+
+	/* If both faces face the same direction it's not an outline edge. */
+	if (backface.x == backface.y)
 		return;
-	}
 
 	/* Reverse order if backfacing the light. */
 	ivec2 idx = ivec2(1, 2);
 	idx = (backface.x) ? idx.yx : idx.xy;
-
-	/* WATCH: maybe unpredictable in some cases. */
-	bool is_manifold = any(notEqual(vData[0].pos, vData[3].pos));
 
 	gl_Position = vData[idx.x].frontPosition; EmitVertex();
 	gl_Position = vData[idx.y].frontPosition; EmitVertex();
@@ -43,6 +67,7 @@ void main()
 	gl_Position = vData[idx.y].backPosition; EmitVertex();
 	EndPrimitive();
 
+	/* Increment/Decrement twice for manifold edges. */
 	if (is_manifold) {
 		gl_Position = vData[idx.x].frontPosition; EmitVertex();
 		gl_Position = vData[idx.y].frontPosition; EmitVertex();
