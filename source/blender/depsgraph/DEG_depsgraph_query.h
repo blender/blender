@@ -87,7 +87,7 @@ struct ID *DEG_get_evaluated_id(const struct Depsgraph *depsgraph,
 
 /* Get evaluated version of data pointed to by RNA pointer */
 void DEG_get_evaluated_rna_pointer(const struct Depsgraph *depsgraph,
-                                   const struct PointerRNA *ptr,
+                                   struct PointerRNA *ptr,
                                    struct PointerRNA *r_ptr_eval);
 
 /* Get original version of object for given evaluated one. */
