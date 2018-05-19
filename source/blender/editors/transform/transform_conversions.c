@@ -564,10 +564,10 @@ static void add_pose_transdata(
 	td->protectflag = pchan->protectflag;
 
 	td->loc = pchan->loc;
-	copy_v3_v3(td->iloc, pchan->loc);
+	copy_v3_v3(td->iloc, pchan_eval->loc);
 
 	td->ext->size = pchan->size;
-	copy_v3_v3(td->ext->isize, pchan->size);
+	copy_v3_v3(td->ext->isize, pchan_eval->size);
 
 	if (pchan->rotmode > 0) {
 		td->ext->rot = pchan->eul;
@@ -575,7 +575,7 @@ static void add_pose_transdata(
 		td->ext->rotAngle = NULL;
 		td->ext->quat = NULL;
 
-		copy_v3_v3(td->ext->irot, pchan->eul);
+		copy_v3_v3(td->ext->irot, pchan_eval->eul);
 	}
 	else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 		td->ext->rot = NULL;
@@ -583,8 +583,8 @@ static void add_pose_transdata(
 		td->ext->rotAngle = &pchan->rotAngle;
 		td->ext->quat = NULL;
 
-		td->ext->irotAngle = pchan->rotAngle;
-		copy_v3_v3(td->ext->irotAxis, pchan->rotAxis);
+		td->ext->irotAngle = pchan_eval->rotAngle;
+		copy_v3_v3(td->ext->irotAxis, pchan_eval->rotAxis);
 	}
 	else {
 		td->ext->rot = NULL;
@@ -592,7 +592,7 @@ static void add_pose_transdata(
 		td->ext->rotAngle = NULL;
 		td->ext->quat = pchan->quat;
 
-		copy_qt_qt(td->ext->iquat, pchan->quat);
+		copy_qt_qt(td->ext->iquat, pchan_eval->quat);
 	}
 	td->ext->rotOrder = pchan->rotmode;
 
