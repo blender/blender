@@ -172,7 +172,7 @@ static void EDIT_LATTICE_cache_init(void *vedata)
 	{
 		psl->wire_pass = DRW_pass_create(
 		        "Lattice Wire",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 		stl->g_data->wire_shgrp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
 
 		psl->vert_pass = DRW_pass_create(

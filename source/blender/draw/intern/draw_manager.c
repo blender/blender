@@ -330,7 +330,7 @@ void DRW_transform_to_display(GPUTexture *tex)
 void DRW_multisamples_resolve(GPUTexture *src_depth, GPUTexture *src_color)
 {
 	drw_state_set(DRW_STATE_WRITE_COLOR | DRW_STATE_BLEND_PREMUL |
-	              DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+	              DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
 
 	int samples = GPU_texture_samples(src_depth);
 
@@ -1695,7 +1695,7 @@ void DRW_draw_select_loop(
 	DRW_state_lock(
 	        DRW_STATE_WRITE_DEPTH |
 	        DRW_STATE_DEPTH_ALWAYS |
-	        DRW_STATE_DEPTH_LESS |
+	        DRW_STATE_DEPTH_LESS_EQUAL |
 	        DRW_STATE_DEPTH_EQUAL |
 	        DRW_STATE_DEPTH_GREATER |
 	        DRW_STATE_DEPTH_ALWAYS);

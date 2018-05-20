@@ -341,7 +341,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 	{
 		psl->vcolor_faces = DRW_pass_create(
 		        "Vert Color Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
 
 		stl->g_data->fvcolor_shgrp = DRW_shgroup_create(e_data.vcolor_face_shader, psl->vcolor_faces);
 
@@ -357,7 +357,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		/* Complementary Depth Pass */
 		psl->depth_hidden_wire = DRW_pass_create(
 		        "Depth Pass Hidden Wire",
-		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_CULL_BACK);
+		        DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_CULL_BACK);
 		stl->g_data->depth_shgrp_hidden_wire = DRW_shgroup_create(e_data.depth_sh, psl->depth_hidden_wire);
 	}
 
@@ -365,7 +365,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		/* Normals */
 		psl->normals = DRW_pass_create(
 		        "Edit Mesh Normals Pass",
-		        DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS);
+		        DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL);
 
 		stl->g_data->fnormals_shgrp = DRW_shgroup_create(e_data.normals_face_sh, psl->normals);
 		DRW_shgroup_uniform_float(stl->g_data->fnormals_shgrp, "normalSize", &size_normal, 1);
@@ -382,14 +382,14 @@ static void EDIT_MESH_cache_init(void *vedata)
 
 	if (!do_zbufclip) {
 		psl->edit_face_overlay = edit_mesh_create_overlay_pass(
-		        &face_mod, DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND,
+		        &face_mod, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH | DRW_STATE_BLEND,
 		        &stl->g_data->face_overlay_shgrp, &stl->g_data->ledges_overlay_shgrp,
 		        &stl->g_data->lverts_overlay_shgrp, &stl->g_data->facedot_overlay_shgrp);
 	}
 	else {
 		/* We render all wires with depth and opaque to a new fbo and blend the result based on depth values */
 		psl->edit_face_occluded = edit_mesh_create_overlay_pass(
-		        &zero, DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_DEPTH,
+		        &zero, DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WRITE_DEPTH,
 		        &stl->g_data->face_occluded_shgrp, &stl->g_data->ledges_occluded_shgrp,
 		        &stl->g_data->lverts_occluded_shgrp, &stl->g_data->facedot_occluded_shgrp);
 
@@ -397,7 +397,7 @@ static void EDIT_MESH_cache_init(void *vedata)
 		 * faces are alpha blended ) so we recover them in a new pass. */
 		psl->facefill_occlude = DRW_pass_create(
 		        "Front Face Color",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 		stl->g_data->facefill_occluded_shgrp = DRW_shgroup_create(e_data.overlay_facefill_sh, psl->facefill_occlude);
 		DRW_shgroup_uniform_block(stl->g_data->facefill_occluded_shgrp, "globalsBlock", globals_ubo);
 

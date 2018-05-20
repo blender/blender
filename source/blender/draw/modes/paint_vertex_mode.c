@@ -111,7 +111,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 		/* Create a pass */
 		psl->vcolor_faces = DRW_pass_create(
 		        "Vert Color Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_MULTIPLY);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_MULTIPLY);
 
 		stl->g_data->fvcolor_shgrp = DRW_shgroup_create(e_data.vcolor_face_shader, psl->vcolor_faces);
 	}
@@ -119,7 +119,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 	{
 		psl->wire_overlay = DRW_pass_create(
 		        "Wire Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL);
 
 		stl->g_data->lwire_shgrp = DRW_shgroup_create(e_data.wire_overlay_shader, psl->wire_overlay);
 	}
@@ -127,7 +127,7 @@ static void PAINT_VERTEX_cache_init(void *vedata)
 	{
 		psl->face_overlay = DRW_pass_create(
 		        "Face Mask Pass",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_BLEND);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_BLEND);
 
 		stl->g_data->face_shgrp = DRW_shgroup_create(e_data.face_overlay_shader, psl->face_overlay);
 

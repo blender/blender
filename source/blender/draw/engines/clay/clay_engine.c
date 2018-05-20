@@ -782,13 +782,13 @@ static void clay_cache_init(void *vedata)
 
 	/* Solid Passes */
 	{
-		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->clay_ps =           DRW_pass_create("Clay", state);
 		psl->clay_cull_ps =      DRW_pass_create("Clay Culled", state | DRW_STATE_CULL_BACK);
 		psl->clay_flat_ps =      DRW_pass_create("Clay Flat", state);
 		psl->clay_flat_cull_ps = DRW_pass_create("Clay Flat Culled", state | DRW_STATE_CULL_BACK);
 
-		DRWState prepass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		DRWState prepass_state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		DRWState prepass_cull_state = prepass_state | DRW_STATE_CULL_BACK;
 		psl->clay_pre_ps =           DRW_pass_create("Clay Deferred Pre", prepass_state);
 		psl->clay_pre_cull_ps =      DRW_pass_create("Clay Deferred Pre Culled", prepass_cull_state);
@@ -804,7 +804,7 @@ static void clay_cache_init(void *vedata)
 	{
 		psl->hair_pass = DRW_pass_create(
 		                     "Hair Pass",
-		                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
+		                     DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 	}
 
 	{

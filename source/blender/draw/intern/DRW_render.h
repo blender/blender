@@ -258,34 +258,36 @@ void DRW_shader_free(struct GPUShader *shader);
 typedef enum {
 	DRW_STATE_WRITE_DEPTH   = (1 << 0),
 	DRW_STATE_WRITE_COLOR   = (1 << 1),
-	DRW_STATE_DEPTH_LESS    = (1 << 2),
-	DRW_STATE_DEPTH_EQUAL   = (1 << 3),
-	DRW_STATE_DEPTH_GREATER = (1 << 4),
-	DRW_STATE_DEPTH_ALWAYS  = (1 << 5),
-	DRW_STATE_CULL_BACK     = (1 << 6),
-	DRW_STATE_CULL_FRONT    = (1 << 7),
-	DRW_STATE_WIRE          = (1 << 8),
-//	DRW_STATE_WIRE_LARGE    = (1 << 9), /* Removed from ogl in 3.0 */
-	DRW_STATE_POINT         = (1 << 10),
-	DRW_STATE_STIPPLE_2     = (1 << 11),
-	DRW_STATE_STIPPLE_3     = (1 << 12),
-	DRW_STATE_STIPPLE_4     = (1 << 13),
-	DRW_STATE_BLEND         = (1 << 14),
-	DRW_STATE_ADDITIVE      = (1 << 15),
-	DRW_STATE_MULTIPLY      = (1 << 16),
-	DRW_STATE_TRANSMISSION  = (1 << 17),
-	DRW_STATE_CLIP_PLANES   = (1 << 18),
-	DRW_STATE_ADDITIVE_FULL = (1 << 19), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
-	DRW_STATE_BLEND_PREMUL  = (1 << 20), /* Use that if color is already premult by alpha. */
-	DRW_STATE_WIRE_SMOOTH   = (1 << 21),
-	DRW_STATE_TRANS_FEEDBACK = (1 << 22),
+	DRW_STATE_DEPTH_ALWAYS  = (1 << 2),
+	DRW_STATE_DEPTH_LESS    = (1 << 3),
+	DRW_STATE_DEPTH_LESS_EQUAL = (1 << 4),
+	DRW_STATE_DEPTH_EQUAL   = (1 << 5),
+	DRW_STATE_DEPTH_GREATER = (1 << 6),
+	DRW_STATE_DEPTH_GREATER_EQUAL = (1 << 7),
+	DRW_STATE_CULL_BACK     = (1 << 8),
+	DRW_STATE_CULL_FRONT    = (1 << 9),
+	DRW_STATE_WIRE          = (1 << 10),
+	DRW_STATE_POINT         = (1 << 11),
+	DRW_STATE_STIPPLE_2     = (1 << 12),
+	DRW_STATE_STIPPLE_3     = (1 << 13),
+	DRW_STATE_STIPPLE_4     = (1 << 14),
+	DRW_STATE_BLEND         = (1 << 15),
+	DRW_STATE_ADDITIVE      = (1 << 16),
+	DRW_STATE_MULTIPLY      = (1 << 17),
+	DRW_STATE_TRANSMISSION  = (1 << 18),
+	DRW_STATE_CLIP_PLANES   = (1 << 19),
+	DRW_STATE_ADDITIVE_FULL = (1 << 20), /* Same as DRW_STATE_ADDITIVE but let alpha accumulate without premult. */
+	DRW_STATE_BLEND_PREMUL  = (1 << 21), /* Use that if color is already premult by alpha. */
+	DRW_STATE_WIRE_SMOOTH   = (1 << 22),
+	DRW_STATE_TRANS_FEEDBACK = (1 << 23),
 
 	DRW_STATE_WRITE_STENCIL          = (1 << 27),
-	DRW_STATE_WRITE_STENCIL_SHADOW   = (1 << 28),
-	DRW_STATE_STENCIL_EQUAL          = (1 << 29),
-	DRW_STATE_STENCIL_NEQUAL         = (1 << 30),
+	DRW_STATE_WRITE_STENCIL_SHADOW_PASS   = (1 << 28),
+	DRW_STATE_WRITE_STENCIL_SHADOW_FAIL   = (1 << 29),
+	DRW_STATE_STENCIL_EQUAL          = (1 << 30),
+	DRW_STATE_STENCIL_NEQUAL         = (1 << 31),
 } DRWState;
-#define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS)
+#define DRW_STATE_DEFAULT (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR | DRW_STATE_DEPTH_LESS_EQUAL)
 
 typedef enum {
 	DRW_ATTRIB_INT,

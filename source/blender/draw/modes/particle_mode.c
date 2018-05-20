@@ -120,7 +120,7 @@ static void particle_cache_init(void *vedata)
 	psl->psys_edit_pass = DRW_pass_create("PSys Edit Pass",
 	                                      (DRW_STATE_WRITE_COLOR |
 	                                       DRW_STATE_WRITE_DEPTH |
-	                                       DRW_STATE_DEPTH_LESS |
+	                                       DRW_STATE_DEPTH_LESS_EQUAL |
 	                                       DRW_STATE_WIRE |
 	                                       DRW_STATE_POINT));
 

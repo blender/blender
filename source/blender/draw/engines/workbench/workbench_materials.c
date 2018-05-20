@@ -381,7 +381,7 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 
 	/* Prepass */
 	{
-		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL;
 		psl->prepass_pass = DRW_pass_create("Prepass", state);
 	}
 }
@@ -469,18 +469,18 @@ void workbench_materials_cache_init(WORKBENCH_Data *vedata)
 #ifdef DEBUG_SHADOW_VOLUME
 			psl->shadow_depth_pass_pass = DRW_pass_create("Shadow Debug Pass", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
 			grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
-			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Debug Fail", DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
+			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Debug Fail", DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
 			grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
-			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Depth Fail Caps", DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
+			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Depth Fail Caps", DRW_STATE_DEPTH_GREATER_EQUAL | DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE);
 			grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
 #else
-			psl->shadow_depth_pass_pass = DRW_pass_create("Shadow Depth Pass", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW);
+			psl->shadow_depth_pass_pass = DRW_pass_create("Shadow Depth Pass", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_PASS);
 			grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
-			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Depth Fail", DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_STENCIL_SHADOW);
+			psl->shadow_depth_fail_pass = DRW_pass_create("Shadow Depth Fail", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL);
 			grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
-			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Depth Fail Caps", DRW_STATE_DEPTH_GREATER | DRW_STATE_WRITE_STENCIL_SHADOW);
+			psl->shadow_depth_fail_caps_pass = DRW_pass_create("Shadow Depth Fail Caps", DRW_STATE_DEPTH_LESS | DRW_STATE_WRITE_STENCIL_SHADOW_FAIL);
 			grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
 			DRW_shgroup_stencil_mask(grp, 0xFF);
 

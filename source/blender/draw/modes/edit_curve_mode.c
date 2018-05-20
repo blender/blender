@@ -196,7 +196,7 @@ static void EDIT_CURVE_cache_init(void *vedata)
 		/* Center-Line (wire) */
 		psl->wire_pass = DRW_pass_create(
 		        "Curve Wire",
-		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS | DRW_STATE_WIRE);
+		        DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 
 		grp = DRW_shgroup_create(e_data.wire_sh, psl->wire_pass);
 		DRW_shgroup_uniform_vec4(grp, "color", ts.colorWireEdit, 1);
