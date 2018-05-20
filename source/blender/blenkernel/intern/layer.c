@@ -528,12 +528,10 @@ int BKE_layer_collection_findindex(ViewLayer *view_layer, const LayerCollection 
  * in at least one layer collection. That list is also synchronized here, and
  * stores state like selection. */
 
-static void layer_collection_sync(ViewLayer *view_layer,
-                                  const ListBase *lb_scene,
-                                  ListBase *lb_layer,
-                                  ListBase *new_object_bases,
-                                  int parent_exclude,
-                                  int parent_restrict)
+static void layer_collection_sync(
+        ViewLayer *view_layer, const ListBase *lb_scene,
+        ListBase *lb_layer, ListBase *new_object_bases,
+        int parent_exclude, int parent_restrict)
 {
 	/* TODO: support recovery after removal of intermediate collections, reordering, ..
 	 * For local edits we can make editing operating do the appropriate thing, but for
@@ -543,7 +541,8 @@ static void layer_collection_sync(ViewLayer *view_layer,
 	for (LayerCollection *lc = lb_layer->first; lc;) {
 		/* Note ID remap can set lc->collection to NULL when deleting collections. */
 		LayerCollection *lc_next = lc->next;
-		Collection *collection = (lc->collection) ? BLI_findptr(lb_scene, lc->collection, offsetof(CollectionChild, collection)) : NULL;
+		Collection *collection = (lc->collection) ?
+			BLI_findptr(lb_scene, lc->collection, offsetof(CollectionChild, collection)) : NULL;
 
 		if (!collection) {
 			/* Free recursively. */
@@ -577,7 +576,10 @@ static void layer_collection_sync(ViewLayer *view_layer,
 		}
 
 		/* Sync child collections. */
-		layer_collection_sync(view_layer, &collection->children, &lc->layer_collections, new_object_bases, lc->flag, child_restrict);
+		layer_collection_sync(
+		        view_layer, &collection->children,
+		        &lc->layer_collections, new_object_bases,
+		        lc->flag, child_restrict);
 
 		/* Layer collection exclude is not inherited. */
 		if (lc->flag & LAYER_COLLECTION_EXCLUDE) {
@@ -653,7 +655,10 @@ void BKE_layer_collection_sync(const Scene *scene, ViewLayer *view_layer)
 	ListBase new_object_bases = {NULL, NULL};
 
 	const int parent_exclude = 0, parent_restrict = 0;
-	layer_collection_sync(view_layer, &collections, &view_layer->layer_collections, &new_object_bases, parent_exclude, parent_restrict);
+	layer_collection_sync(
+	        view_layer, &collections,
+	        &view_layer->layer_collections, &new_object_bases,
+	        parent_exclude, parent_restrict);
 
 	/* Any remaning object bases are to be removed. */
 	for (Base *base = view_layer->object_bases.first; base; base = base->next) {
@@ -827,7 +832,8 @@ bool BKE_scene_has_object(Scene *scene, Object *ob)
 /**
  * Add a new datablock override
  */
-void BKE_override_view_layer_datablock_add(ViewLayer *view_layer, int id_type, const char *data_path, const ID *owner_id)
+void BKE_override_view_layer_datablock_add(
+        ViewLayer *view_layer, int id_type, const char *data_path, const ID *owner_id)
 {
 	UNUSED_VARS(view_layer, id_type, data_path, owner_id);
 	TODO_LAYER_OVERRIDE;
@@ -836,7 +842,8 @@ void BKE_override_view_layer_datablock_add(ViewLayer *view_layer, int id_type, c
 /**
  * Add a new int override
  */
-void BKE_override_view_layer_int_add(ViewLayer *view_layer, int id_type, const char *data_path, const int value)
+void BKE_override_view_layer_int_add(
+        ViewLayer *view_layer, int id_type, const char *data_path, const int value)
 {
 	UNUSED_VARS(view_layer, id_type, data_path, value);
 	TODO_LAYER_OVERRIDE;
@@ -845,7 +852,8 @@ void BKE_override_view_layer_int_add(ViewLayer *view_layer, int id_type, const c
 /**
  * Add a new boolean override
  */
-void BKE_override_layer_collection_boolean_add(struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value)
+void BKE_override_layer_collection_boolean_add(
+        struct LayerCollection *layer_collection, int id_type, const char *data_path, const bool value)
 {
 	UNUSED_VARS(layer_collection, id_type, data_path, value);
 	TODO_LAYER_OVERRIDE;
@@ -1147,9 +1155,10 @@ void BKE_view_layer_bases_in_mode_iterator_end(BLI_Iterator *UNUSED(iter))
 
 /* Evaluation  */
 
-void BKE_layer_eval_view_layer(struct Depsgraph *depsgraph,
-                               struct Scene *UNUSED(scene),
-                               ViewLayer *view_layer)
+void BKE_layer_eval_view_layer(
+        struct Depsgraph *depsgraph,
+        struct Scene *UNUSED(scene),
+        ViewLayer *view_layer)
 {
 	DEG_debug_print_eval(depsgraph, __func__, view_layer->name, view_layer);
 
@@ -1185,9 +1194,10 @@ void BKE_layer_eval_view_layer(struct Depsgraph *depsgraph,
 	}
 }
 
-void BKE_layer_eval_view_layer_indexed(struct Depsgraph *depsgraph,
-                                       struct Scene *scene,
-                                       int view_layer_index)
+void BKE_layer_eval_view_layer_indexed(
+        struct Depsgraph *depsgraph,
+        struct Scene *scene,
+        int view_layer_index)
 {
 	BLI_assert(view_layer_index >= 0);
 	ViewLayer *view_layer = BLI_findlink(&scene->view_layers, view_layer_index);

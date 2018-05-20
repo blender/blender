@@ -189,7 +189,8 @@ bool BKE_collection_delete(Main *bmain, Collection *collection, bool hierarchy)
  *
  * \param flag  Copying options (see BKE_library.h's LIB_ID_COPY_... flags for more).
  */
-void BKE_collection_copy_data(Main *UNUSED(bmain), Collection *collection_dst, const Collection *collection_src, const int flag)
+void BKE_collection_copy_data(
+        Main *UNUSED(bmain), Collection *collection_dst, const Collection *collection_src, const int flag)
 {
 	/* Do not copy collection's preview (same behavior as for objects). */
 	if ((flag & LIB_ID_COPY_NO_PREVIEW) == 0 && false) {  /* XXX TODO temp hack */
@@ -287,7 +288,8 @@ void BKE_collection_new_name_get(Collection *collection_parent, char *rname)
 	else {
 		const int number = BLI_listbase_count(&collection_parent->children) + 1;
 		const int digits = integer_digits_i(number);
-		const int max_len = sizeof(collection_parent->id.name) - 1 /* NULL terminator */ - (1 + digits) /* " %d" */ - 2 /* ID */;
+		const int max_len =
+			sizeof(collection_parent->id.name) - 1 /* NULL terminator */ - (1 + digits) /* " %d" */ - 2 /* ID */;
 		name = BLI_sprintfN("%.*s %d", max_len, collection_parent->id.name + 2, number);
 	}
 
@@ -723,7 +725,8 @@ void BKE_collections_child_remove_nulls(Main *bmain, Collection *old_collection)
  *
  * If source collection is NULL move it from all the existing collections.
  */
-void BKE_collection_object_move(Main *bmain, Scene *scene, Collection *collection_dst, Collection *collection_src, Object *ob)
+void BKE_collection_object_move(
+        Main *bmain, Scene *scene, Collection *collection_dst, Collection *collection_src, Object *ob)
 {
 	/* In both cases we first add the object, then remove it from the other collections.
 	 * Otherwise we lose the original base and whether it was active and selected. */

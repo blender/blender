@@ -144,11 +144,11 @@ static void do_version_area_change_space_to_space_action(ScrArea *area, const Sc
 /**
  * \brief After lib-link versioning for new workspace design.
  *
- *  *  Adds a workspace for (almost) each screen of the old file
- *     and adds the needed workspace-layout to wrap the screen.
- *  *  Active screen isn't stored directly in window anymore, but in the active workspace.
- *  *  Active scene isn't stored in screen anymore, but in window.
- *  *  Create workspace instance hook for each window.
+ * - Adds a workspace for (almost) each screen of the old file
+ *   and adds the needed workspace-layout to wrap the screen.
+ * - Active screen isn't stored directly in window anymore, but in the active workspace.
+ * - Active scene isn't stored in screen anymore, but in window.
+ * - Create workspace instance hook for each window.
  *
  * \note Some of the created workspaces might be deleted again in case of reading the default startup.blend.
  */
@@ -212,10 +212,11 @@ static void do_version_view_layer_visibility(ViewLayer *view_layer)
 	}
 }
 
-static void do_version_layer_collection_pre(ViewLayer *view_layer,
-                                            ListBase *lb,
-                                            GSet *enabled_set,
-                                            GSet *selectable_set)
+static void do_version_layer_collection_pre(
+        ViewLayer *view_layer,
+        ListBase *lb,
+        GSet *enabled_set,
+        GSet *selectable_set)
 {
 	/* Convert from deprecated DISABLED to new layer collection and collection flags */
 	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
@@ -232,11 +233,12 @@ static void do_version_layer_collection_pre(ViewLayer *view_layer,
 	}
 }
 
-static void do_version_layer_collection_post(ViewLayer *view_layer,
-                                             ListBase *lb,
-                                             GSet *enabled_set,
-                                             GSet *selectable_set,
-                                             GHash *collection_map)
+static void do_version_layer_collection_post(
+        ViewLayer *view_layer,
+        ListBase *lb,
+        GSet *enabled_set,
+        GSet *selectable_set,
+        GHash *collection_map)
 {
 	/* Apply layer collection exclude flags. */
 	for (LayerCollection *lc = lb->first; lc; lc = lc->next) {
@@ -253,14 +255,16 @@ static void do_version_layer_collection_post(ViewLayer *view_layer,
 			}
 		}
 
-		do_version_layer_collection_post(view_layer, &lc->layer_collections, enabled_set, selectable_set, collection_map);
+		do_version_layer_collection_post(
+		        view_layer, &lc->layer_collections, enabled_set, selectable_set, collection_map);
 	}
 }
 
-static void do_version_scene_collection_convert(Main *bmain,
-                                                SceneCollection *sc,
-                                                Collection *collection,
-                                                GHash *collection_map)
+static void do_version_scene_collection_convert(
+        Main *bmain,
+        SceneCollection *sc,
+        Collection *collection,
+        GHash *collection_map)
 {
 	if (collection_map) {
 		BLI_ghash_insert(collection_map, collection, sc);
@@ -324,9 +328,13 @@ static void do_version_scene_collection_to_collection(Main *bmain, Scene *scene)
 		GSet *enabled_set = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 		GSet *selectable_set = BLI_gset_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
 
-		do_version_layer_collection_pre(view_layer, &view_layer->layer_collections, enabled_set, selectable_set);
+		do_version_layer_collection_pre(
+		        view_layer, &view_layer->layer_collections, enabled_set, selectable_set);
+
 		BKE_layer_collection_sync(scene, view_layer);
-		do_version_layer_collection_post(view_layer, &view_layer->layer_collections, enabled_set, selectable_set, collection_map);
+
+		do_version_layer_collection_post(
+		        view_layer, &view_layer->layer_collections, enabled_set, selectable_set, collection_map);
 
 		BLI_gset_free(enabled_set, NULL);
 		BLI_gset_free(selectable_set, NULL);
@@ -476,7 +484,10 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 	for (int layer = 0; layer < 20; layer++) {
 		if (collections[DO_VERSION_COLLECTION_VISIBLE].created & (1 << layer)) {
-			CollectionChild *hide_child = BLI_findptr(&collection_parent->children, collections[DO_VERSION_COLLECTION_HIDE].collections[layer], offsetof(CollectionChild, collection));
+			CollectionChild *hide_child = BLI_findptr(
+			        &collection_parent->children,
+			        collections[DO_VERSION_COLLECTION_HIDE].collections[layer],
+			        offsetof(CollectionChild, collection));
 
 			if ((collections[DO_VERSION_COLLECTION_HIDE].created & (1 << layer)) &&
 			    (hide_child != collection_parent->children.first))
@@ -487,7 +498,10 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 				        collection_parent->children.first);
 			}
 
-			CollectionChild *hide_all_child = BLI_findptr(&collection_parent->children, collections[DO_VERSION_COLLECTION_HIDE_ALL].collections[layer], offsetof(CollectionChild, collection));
+			CollectionChild *hide_all_child = BLI_findptr(
+			        &collection_parent->children,
+			        collections[DO_VERSION_COLLECTION_HIDE_ALL].collections[layer],
+			        offsetof(CollectionChild, collection));
 
 			if ((collections[DO_VERSION_COLLECTION_HIDE_ALL].created & (1 << layer)) &&
 			    (hide_all_child != collection_parent->children.last))
