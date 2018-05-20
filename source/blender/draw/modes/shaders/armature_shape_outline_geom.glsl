@@ -57,12 +57,19 @@ void main(void)
 	vec3 v12 = vPos[2] - vPos[1];
 	vec3 v13 = vPos[3] - vPos[1];
 
-	float fac1 = dot(view_vec, cross(v10, v12));
-	float fac2 = dot(view_vec, cross(v12, v13));
+	vec3 n0 = cross(v12, v10);
+	vec3 n3 = cross(v13, v12);
+
+	float fac0 = dot(view_vec, n0);
+	float fac3 = dot(view_vec, n3);
 
 	/* If both adjacent verts are facing the camera the same way,
 	 * then it isn't an outline edge. */
-	if (sign(fac1) == sign(fac2))
+	if (sign(fac0) == sign(fac3))
+		return;
+
+	/* Don't outline if concave edge. */
+	if (dot(n0, v13) > 0.0)
 		return;
 
 	vec2 thick = vColSize[0].w * (lineThickness / viewportSize);

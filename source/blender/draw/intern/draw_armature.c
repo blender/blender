@@ -313,19 +313,32 @@ static void drw_shgroup_bone_envelope(
 
 /* Custom (geometry) */
 
-static void drw_shgroup_bone_custom_solid(const float (*bone_mat)[4], const float color[4], Object *custom)
+static void drw_shgroup_bone_custom_solid(
+        const float (*bone_mat)[4],
+        const float bone_color[4], const float hint_color[4], const float outline_color[4],
+        Object *custom)
 {
 	/* grr, not re-using instances! */
 	struct Gwn_Batch *geom = DRW_cache_object_surface_get(custom);
 	if (geom) {
-		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_solid(g_data.passes.bone_solid, geom);
+		DRWShadingGroup *shgrp_geom_solid = shgroup_instance_bone_shape_solid(g_data.passes.bone_solid, geom);
 		float final_bonemat[4][4];
 		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
-		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, color);
+		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, bone_color, hint_color);
+	}
+
+	geom = DRW_cache_object_edge_detection_get(custom);
+	if (geom && outline_color[3] > 0.0f) {
+		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
+		float final_bonemat[4][4], final_color[4];
+		mul_m4_m4m4(final_bonemat, g_data.ob->obmat, bone_mat);
+		DRW_shgroup_call_dynamic_add(shgrp_geom_wire, final_bonemat, outline_color);
 	}
 }
 
-static void drw_shgroup_bone_custom_wire(const float (*bone_mat)[4], const float color[4], Object *custom)
+static void drw_shgroup_bone_custom_wire(
+        const float (*bone_mat)[4],
+        const float color[4], Object *custom)
 {
 	/* grr, not re-using instances! */
 	struct Gwn_Batch *geom = DRW_cache_object_wire_outline_get(custom);
@@ -1169,6 +1182,7 @@ static void draw_bone_custom_shape(
 {
 	const float *col_solid = get_bone_solid_color(eBone, pchan, arm, boneflag, constflag);
 	const float *col_wire = get_bone_wire_color(eBone, pchan, arm, boneflag, constflag);
+	const float *col_hint = get_bone_hint_color(eBone, pchan, arm, boneflag, constflag);
 	const float (*disp_mat)[4] = pchan->disp_mat;
 
 	if (select_id != -1) {
@@ -1176,9 +1190,11 @@ static void draw_bone_custom_shape(
 	}
 
 	if ((boneflag & BONE_DRAWWIRE) == 0) {
-		drw_shgroup_bone_custom_solid(disp_mat, col_solid, pchan->custom);
+		drw_shgroup_bone_custom_solid(disp_mat, col_solid, col_hint, col_wire, pchan->custom);
 	}
-	drw_shgroup_bone_custom_wire(disp_mat, col_wire, pchan->custom);
+	else {
+		drw_shgroup_bone_custom_wire(disp_mat, col_wire, pchan->custom);
+	}
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);
