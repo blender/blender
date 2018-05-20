@@ -2262,6 +2262,9 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							if (action & WM_HANDLER_BREAK) {
 								/* not always_pass here, it denotes removed handler */
 								CLOG_INFO(WM_LOG_HANDLERS, 2, "handled! '%s'", kmi->idname);
+								if (handler->keymap_callback != NULL) {
+									handler->keymap_callback(keymap, kmi, handler->keymap_callback_user_data);
+								}
 								break;
 							}
 							else {
@@ -3164,6 +3167,15 @@ void WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap)
 			break;
 		}
 	}
+}
+
+void WM_event_set_keymap_handler_callback(
+        wmEventHandler *handler,
+        void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
+        void *user_data)
+{
+	handler->keymap_callback = keymap_tag;
+	handler->keymap_callback_user_data = user_data;
 }
 
 wmEventHandler *WM_event_add_ui_handler(

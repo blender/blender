@@ -1214,8 +1214,12 @@ static wmKeyMapItem *wm_keymap_item_find_props(
 	wmKeyMapItem *found = NULL;
 
 	/* look into multiple handler lists to find the item */
-	if (win)
-		found = wm_keymap_item_find_handlers(C, &win->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+	if (win) {
+		found = wm_keymap_item_find_handlers(C, &win->modalhandlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+		if (found == NULL) {
+			found = wm_keymap_item_find_handlers(C, &win->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);
+		}
+	}
 
 	if (sa && found == NULL)
 		found = wm_keymap_item_find_handlers(C, &sa->handlers, opname, opcontext, properties, is_strict, is_hotkey, r_keymap);

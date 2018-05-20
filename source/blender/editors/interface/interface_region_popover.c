@@ -77,6 +77,11 @@ struct uiPopover {
 	uiLayout *layout;
 	uiBut *but;
 
+	/* Needed for keymap removal. */
+	wmWindow *window;
+	wmKeyMap *keymap;
+	struct wmEventHandler *keymap_handler;
+
 	uiMenuCreateFunc menu_func;
 	void *menu_arg;
 
@@ -204,6 +209,10 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 static void ui_block_free_func_POPOVER(uiPopupBlockHandle *UNUSED(handle), void *arg_pup)
 {
 	uiPopover *pup = arg_pup;
+	if (pup->keymap != NULL) {
+		wmWindow *window = pup->window;
+		WM_event_remove_keymap_handler(&window->modalhandlers, pup->keymap);
+	}
 	MEM_freeN(pup);
 }
 
@@ -261,21 +270,43 @@ uiPopover *UI_popover_begin(bContext *C)
 	return pup;
 }
 
-/* set the whole structure to work */
-void UI_popover_end(bContext *C, uiPopover *pup)
+static void popover_keymap_fn(wmKeyMap *UNUSED(keymap), wmKeyMapItem *UNUSEDF(kmi), void *user_data)
 {
+	uiPopover *pup = user_data;
+	pup->block->handle->menuretval = UI_RETURN_OK;
+}
+
+/* set the whole structure to work */
+void UI_popover_end(bContext *C, uiPopover *pup, wmKeyMap *keymap)
+{
+	wmWindow *window = CTX_wm_window(C);
 	/* Create popup block. No refresh support since the buttons were created
 	 * between begin/end and we have no callback to recreate them. */
 	uiPopupBlockHandle *handle;
+
+	if (keymap) {
+		/* Add so we get keymaps shown in the buttons. */
+		UI_block_flag_enable(pup->block, UI_BLOCK_SHOW_SHORTCUT_ALWAYS);
+		pup->keymap = keymap;
+		pup->keymap_handler = WM_event_add_keymap_handler_priority(&window->modalhandlers, keymap, 0);
+		WM_event_set_keymap_handler_callback(pup->keymap_handler, popover_keymap_fn, pup);
+	}
 
 	handle = ui_popup_block_create(C, NULL, NULL, NULL, ui_block_func_POPOVER, pup);
 	handle->popup_create_vars.free_func = ui_block_free_func_POPOVER;
 
 	/* Add handlers. */
-	wmWindow *window = CTX_wm_window(C);
 	UI_popup_handlers_add(C, &window->modalhandlers, handle, 0);
 	WM_event_add_mousemove(C);
 	handle->popup = true;
+
+	/* Re-add so it gets priority. */
+	if (keymap) {
+		BLI_remlink(&window->modalhandlers, pup->keymap_handler);
+		BLI_addhead(&window->modalhandlers, pup->keymap_handler);
+	}
+
+	pup->window = window;
 
 	/* TODO(campbell): we may want to make this configurable.
 	 * The begin/end stype of calling popups doesn't allow to 'can_refresh' to be set.

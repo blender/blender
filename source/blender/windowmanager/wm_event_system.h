@@ -51,6 +51,9 @@ typedef struct wmEventHandler {
 	/* keymap handler */
 	wmKeyMap *keymap;                   /* pointer to builtin/custom keymaps */
 	const rcti *bblocal, *bbwin;              /* optional local and windowspace bb */
+	/* Run after the keymap item runs. */
+	void (*keymap_callback)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);
+	void  *keymap_callback_user_data;
 
 	/* modal operator handler */
 	wmOperator *op;                     /* for derived/modal handlers */

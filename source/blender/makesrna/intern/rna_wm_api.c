@@ -361,9 +361,9 @@ static PointerRNA rna_PopoverBegin(bContext *C)
 	return r_ptr;
 }
 
-static void rna_PopoverEnd(bContext *C, PointerRNA *handle)
+static void rna_PopoverEnd(bContext *C, PointerRNA *handle, wmKeyMap *keymap)
 {
-	UI_popover_end(C, handle->data);
+	UI_popover_end(C, handle->data, keymap);
 }
 
 /* pie menu wrapper */
@@ -585,6 +585,7 @@ void RNA_api_wm(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "menu", "UIPopover", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
+	RNA_def_pointer(func, "keymap", "KeyMap", "Key Map", "Active key map");
 
 
 	/* wrap uiPieMenuBegin */

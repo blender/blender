@@ -191,6 +191,11 @@ struct wmEventHandler *WM_event_add_keymap_handler_priority(ListBase *handlers, 
 
 void		WM_event_remove_keymap_handler(ListBase *handlers, wmKeyMap *keymap);
 
+void WM_event_set_keymap_handler_callback(
+        struct wmEventHandler *handler,
+        void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
+        void *user_data);
+
 typedef int (*wmUIHandlerFunc)(struct bContext *C, const struct wmEvent *event, void *userdata);
 typedef void (*wmUIHandlerRemoveFunc)(struct bContext *C, void *userdata);
 

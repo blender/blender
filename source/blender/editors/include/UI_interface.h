@@ -74,6 +74,7 @@ struct wmDrag;
 struct wmEvent;
 struct wmManipulator;
 struct wmMsgBus;
+struct wmKeyMap;
 
 typedef struct uiBut uiBut;
 typedef struct uiBlock uiBlock;
@@ -427,8 +428,8 @@ void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *b
 
 typedef struct uiPopover uiPopover;
 
-uiPopover *UI_popover_begin(struct bContext *C) ATTR_NONNULL();
-void UI_popover_end(struct bContext *C, struct uiPopover *head);
+uiPopover *UI_popover_begin(struct bContext *C) ATTR_NONNULL(1);
+void UI_popover_end(struct bContext *C, struct uiPopover *head, struct wmKeyMap *keymap);
 struct uiLayout *UI_popover_layout(uiPopover *head);
 void UI_popover_once_clear(uiPopover *pup);
 
