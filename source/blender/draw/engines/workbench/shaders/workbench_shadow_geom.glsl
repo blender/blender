@@ -80,6 +80,14 @@ void main()
 	bvec2 backface = greaterThan(facing, vec2(0.0));
 
 #ifdef DEGENERATE_THRESHOLD
+#  ifndef DOUBLE_MANIFOLD
+	/* If the mesh is known to be manifold and we don't use double count,
+	 * only create an quad if the we encounter a facing geom. */
+	if ((any(degen_edges.xz) && backface.y) ||
+		(any(degen_edges.yw) && backface.x))
+		return;
+#  endif
+
 	/* If one of the 2 triangles is degenerate, replace edge by a non-manifold one. */
 	backface.x = (any(degen_edges.xz)) ? !backface.y : backface.x;
 	backface.y = (any(degen_edges.yw)) ? !backface.x : backface.y;
