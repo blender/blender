@@ -775,15 +775,15 @@ void view3d_viewmatrix_set(
 		quat_to_mat4(rv3d->viewmat, rv3d->viewquat);
 		if (rv3d->persp == RV3D_PERSP) rv3d->viewmat[3][2] -= rv3d->dist;
 		if (v3d->ob_centre) {
-			Object *ob = v3d->ob_centre;
+			Object *ob_eval = DEG_get_evaluated_object(depsgraph, v3d->ob_centre);
 			float vec[3];
 			
-			copy_v3_v3(vec, ob->obmat[3]);
-			if (ob->type == OB_ARMATURE && v3d->ob_centre_bone[0]) {
-				bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, v3d->ob_centre_bone);
+			copy_v3_v3(vec, ob_eval->obmat[3]);
+			if (ob_eval->type == OB_ARMATURE && v3d->ob_centre_bone[0]) {
+				bPoseChannel *pchan = BKE_pose_channel_find_name(ob_eval->pose, v3d->ob_centre_bone);
 				if (pchan) {
 					copy_v3_v3(vec, pchan->pose_mat[3]);
-					mul_m4_v3(ob->obmat, vec);
+					mul_m4_v3(ob_eval->obmat, vec);
 				}
 			}
 			translate_m4(rv3d->viewmat, -vec[0], -vec[1], -vec[2]);
