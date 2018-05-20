@@ -1593,13 +1593,13 @@ static const float bone_octahedral_smooth_normals[6][3] = {
 	{ 0.0f,  1.0f,  0.0f}
 };
 
-#if 0  /* UNUSED */
 static const uint bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
 	1, 2,  2, 3,  3, 4,  4, 1,
 };
 
+#if 0  /* UNUSED */
 /* aligned with bone_octahedral_wire
  * Contains adjacent normal index */
 static const uint bone_octahedral_wire_adjacent_face[24] = {
@@ -1632,6 +1632,13 @@ static const uint bone_octahedral_solid_tris[8][3] = {
  * the first vertex of the first face aka. vertex 2):
  * {0, 12, 1, 10, 2, 3}
  **/
+static const uint bone_octahedral_wire_lines_adjacency[12][4] = {
+	{ 0, 2, 1, 6}, { 0, 1, 12, 6}, { 6, 12, 3, 0}, { 6, 3, 2, 0},
+	{ 1, 2, 6, 3}, { 1, 6, 12, 3}, { 3, 12, 0, 1}, { 3, 0, 2, 1},
+	{ 2, 1, 0, 12}, { 2, 0, 3, 12}, { 2, 3, 6, 12}, { 2, 6, 1, 12},
+};
+
+#if 0 /* UNUSED */
 static const uint bone_octahedral_solid_tris_adjacency[8][6] = {
 	{ 0, 12,  1, 10,  2,  3},
 	{ 3, 15,  4,  1,  5,  6},
@@ -1643,6 +1650,7 @@ static const uint bone_octahedral_solid_tris_adjacency[8][6] = {
 	{18, 16, 19,  8, 20, 23},
 	{21, 19, 22, 11, 23, 14},
 };
+#endif
 
 /* aligned with bone_octahedral_solid_tris */
 static const float bone_octahedral_solid_normals[8][3] = {
@@ -1673,9 +1681,6 @@ Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 24);
 
-		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 8, 24, false);
-
 		for (int i = 0; i < 8; i++) {
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
 			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][0]]);
@@ -1686,15 +1691,35 @@ Gwn_Batch *DRW_cache_bone_octahedral_get(void)
 			GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_octahedral_solid_normals[i]);
 			GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_octahedral_smooth_normals[bone_octahedral_solid_tris[i][2]]);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_octahedral_verts[bone_octahedral_solid_tris[i][2]]);
-			for (int j = 0; j < 6; ++j) {
-				GWN_indexbuf_add_generic_vert(&elb, bone_octahedral_solid_tris_adjacency[i][j]);
-			}
 		}
 
-		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
-		                                              GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+		SHC.drw_bone_octahedral = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, NULL,
+		                                              GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_octahedral;
+}
+
+Gwn_Batch *DRW_cache_bone_octahedral_wire_get(void)
+{
+	if (!SHC.drw_bone_octahedral_wire) {
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES_ADJ, 12, 24);
+
+		for (int i = 0; i < 12; i++) {
+			GWN_indexbuf_add_line_adj_verts(&elb,
+			                                bone_octahedral_wire_lines_adjacency[i][0],
+			                                bone_octahedral_wire_lines_adjacency[i][1],
+			                                bone_octahedral_wire_lines_adjacency[i][2],
+			                                bone_octahedral_wire_lines_adjacency[i][3]);
+		}
+
+		/* HACK Reuse vertex buffer. */
+		Gwn_Batch *pos_nor_batch = DRW_cache_bone_octahedral_get();
+
+		SHC.drw_bone_octahedral_wire = GWN_batch_create_ex(GWN_PRIM_LINES_ADJ, pos_nor_batch->verts[0], GWN_indexbuf_build(&elb),
+		                                                   GWN_BATCH_OWNS_INDEX);
+	}
+	return SHC.drw_bone_octahedral_wire;
 }
 
 /* XXX TODO move that 1 unit cube to more common/generic place? */
@@ -1760,6 +1785,13 @@ static const uint bone_box_solid_tris[12][3] = {
  * Store indices of generated verts from bone_box_solid_tris to define adjacency infos.
  * See bone_octahedral_solid_tris for more infos.
  **/
+static const uint bone_box_wire_lines_adjacency[12][4] = {
+	{ 4,  0, 2, 11}, { 0, 2,  1,  8}, { 2, 1,  4,  14}, {  1,  4, 0, 20}, /* bottom */
+	{ 0, 11, 8, 14}, { 2, 8, 14, 20}, { 1, 14, 20, 11}, {  4, 20, 11, 8}, /* top */
+	{ 20, 0, 11, 2}, { 11, 2, 8,  1}, { 8, 1,  14,  4}, { 14, 4, 20, 0}, /* sides */
+};
+
+#if 0 /* UNUSED */
 static const uint bone_box_solid_tris_adjacency[12][6] = {
 	{ 0,  5,  1, 14,  2,  8},
 	{ 3, 26,  4, 20,  5,  1},
@@ -1779,6 +1811,7 @@ static const uint bone_box_solid_tris_adjacency[12][6] = {
 	{30,  9, 31, 15, 32, 35},
 	{33, 31, 34, 21, 35, 27},
 };
+#endif
 
 /* aligned with bone_box_solid_tris */
 static const float bone_box_solid_normals[12][3] = {
@@ -1818,24 +1851,41 @@ Gwn_Batch *DRW_cache_bone_box_get(void)
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
 		GWN_vertbuf_data_alloc(vbo, 36);
 
-		Gwn_IndexBufBuilder elb;
-		GWN_indexbuf_init_ex(&elb, GWN_PRIM_TRIS_ADJ, 6 * 12, 36, false);
-
 		for (int i = 0; i < 12; i++) {
 			for (int j = 0; j < 3; j++) {
 				GWN_vertbuf_attr_set(vbo, attr_id.nor, v_idx, bone_box_solid_normals[i]);
 				GWN_vertbuf_attr_set(vbo, attr_id.snor, v_idx, bone_box_smooth_normals[bone_box_solid_tris[i][j]]);
 				GWN_vertbuf_attr_set(vbo, attr_id.pos, v_idx++, bone_box_verts[bone_box_solid_tris[i][j]]);
 			}
-			for (int j = 0; j < 6; ++j) {
-				GWN_indexbuf_add_generic_vert(&elb, bone_box_solid_tris_adjacency[i][j]);
-			}
 		}
 
-		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, GWN_indexbuf_build(&elb),
-		                                       GWN_BATCH_OWNS_VBO | GWN_BATCH_OWNS_INDEX);
+		SHC.drw_bone_box = GWN_batch_create_ex(GWN_PRIM_TRIS_ADJ, vbo, NULL,
+		                                       GWN_BATCH_OWNS_VBO);
 	}
 	return SHC.drw_bone_box;
+}
+
+Gwn_Batch *DRW_cache_bone_box_wire_get(void)
+{
+	if (!SHC.drw_bone_box_wire) {
+		Gwn_IndexBufBuilder elb;
+		GWN_indexbuf_init(&elb, GWN_PRIM_LINES_ADJ, 12, 36);
+
+		for (int i = 0; i < 12; i++) {
+			GWN_indexbuf_add_line_adj_verts(&elb,
+			                                bone_box_wire_lines_adjacency[i][0],
+			                                bone_box_wire_lines_adjacency[i][1],
+			                                bone_box_wire_lines_adjacency[i][2],
+			                                bone_box_wire_lines_adjacency[i][3]);
+		}
+
+		/* HACK Reuse vertex buffer. */
+		Gwn_Batch *pos_nor_batch = DRW_cache_bone_box_get();
+
+		SHC.drw_bone_box_wire = GWN_batch_create_ex(GWN_PRIM_LINES_ADJ, pos_nor_batch->verts[0], GWN_indexbuf_build(&elb),
+		                                                   GWN_BATCH_OWNS_INDEX);
+	}
+	return SHC.drw_bone_box_wire;
 }
 
 /* Helpers for envelope bone's solid sphere-with-hidden-equatorial-cylinder.

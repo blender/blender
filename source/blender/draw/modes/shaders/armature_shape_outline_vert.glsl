@@ -15,8 +15,7 @@ in mat4 InstanceModelMatrix;
 in vec4 outlineColorSize;
 
 out vec4 pPos;
-out float vZ;
-out float vFacing;
+out vec3 vPos;
 out vec2 ssPos;
 out vec2 ssNor;
 out vec4 vColSize;
@@ -34,24 +33,14 @@ void main()
 	mat3 NormalMatrix = transpose(inverse(mat3(ViewMatrix * InstanceModelMatrix)));
 
 	vec4 viewpos = ViewMatrix * (InstanceModelMatrix * vec4(pos, 1.0));
-	pPos = ProjectionMatrix * viewpos;
-	vZ = abs(viewpos.z);
 
-	/* if perspective */
-	vec3 V = (ProjectionMatrix[3][3] == 0.0) ? normalize(-viewpos.xyz) : vec3(0.0, 0.0, 1.0);
+	vPos = viewpos.xyz;
+	pPos = ProjectionMatrix * viewpos;
 
 	/* TODO FIX: there is still a problem with this vector
 	 * when the bone is scaled or in persp mode. But it's
 	 * barelly visible at the outline corners. */
 	ssNor = normalize((NormalMatrix * snor).xy);
-
-	vec3 normal = normalize(NormalMatrix * nor);
-	/* Add a small bias to avoid loosing outline
-	 * on faces orthogonal to the view.
-	 * (test case: octahedral bone without rotation in front view.) */
-	normal.z += 1e-6;
-
-	vFacing = dot(V, normal);
 
 	ssPos = proj(pPos);
 

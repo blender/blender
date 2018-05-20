@@ -134,7 +134,7 @@ static void drw_shgroup_bone_octahedral(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_octahedral_outline == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_octahedral_wire_get();
 		g_data.bone_octahedral_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_octahedral_solid == NULL) {
@@ -155,7 +155,7 @@ static void drw_shgroup_bone_box(
         const float bone_color[4], const float hint_color[4], const float outline_color[4])
 {
 	if (g_data.bone_box_wire == NULL) {
-		struct Gwn_Batch *geom = DRW_cache_bone_box_get();
+		struct Gwn_Batch *geom = DRW_cache_bone_box_wire_get();
 		g_data.bone_box_outline = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 	}
 	if (g_data.bone_box_solid == NULL) {
