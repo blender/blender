@@ -50,7 +50,9 @@ typedef struct WORKBENCH_StorageList {
 
 typedef struct WORKBENCH_PassList {
 	struct DRWPass *prepass_pass;
-	struct DRWPass *shadow_pass;
+	struct DRWPass *shadow_depth_pass_pass;
+	struct DRWPass *shadow_depth_fail_pass;
+	struct DRWPass *shadow_depth_fail_caps_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
 	struct DRWPass *composite_light_pass;

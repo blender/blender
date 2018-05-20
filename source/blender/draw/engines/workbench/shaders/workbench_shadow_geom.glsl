@@ -1,11 +1,31 @@
 #extension GL_ARB_gpu_shader5 : enable
 
 #ifdef GL_ARB_gpu_shader5
-layout(lines_adjacency, invocations = 2) in;
+#define USE_INVOC_EXT
+#endif
+
+#define DOUBLE_MANIFOLD
+
+#ifdef DOUBLE_MANIFOLD
+#  ifdef USE_INVOC_EXT
+#    define invoc_ct 2
+#  else
+#    define vert_ct 8
+#  endif
+#else
+#  ifdef USE_INVOC_EXT
+#    define invoc_ct 1
+#  else
+#    define vert_ct 4
+#  endif
+#endif
+
+#ifdef USE_INVOC_EXT
+layout(lines_adjacency, invocations = invoc_ct) in;
 layout(triangle_strip, max_vertices = 4) out;
 #else
 layout(lines_adjacency) in;
-layout(triangle_strip, max_vertices = 8) out;
+layout(triangle_strip, max_vertices = vert_ct) out;
 #endif
 
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
@@ -22,7 +42,8 @@ in VertexData {
 
 void extrude_edge(bool invert)
 {
-	ivec2 idx = (invert) ? ivec2(2, 1) : ivec2(1, 2);
+	/* Reverse order if backfacing the light. */
+	ivec2 idx = (invert) ? ivec2(1, 2) : ivec2(2, 1);
 	gl_Position = vData[idx.x].frontPosition; EmitVertex();
 	gl_Position = vData[idx.y].frontPosition; EmitVertex();
 	gl_Position = vData[idx.x].backPosition; EmitVertex();
@@ -69,23 +90,23 @@ void main()
 	if (backface.x == backface.y)
 		return;
 
-	/* Reverse order if backfacing the light. */
-	ivec2 idx = ivec2(1, 2);
-	idx = (backface.x) ? idx.yx : idx.xy;
-
-#ifdef GL_ARB_gpu_shader5
+#ifdef USE_INVOC_EXT
 	if (gl_InvocationID == 0) {
 		extrude_edge(backface.x);
 	}
 	else if (is_manifold) {
+#  ifdef DOUBLE_MANIFOLD
 		/* Increment/Decrement twice for manifold edges. */
 		extrude_edge(backface.x);
+#  endif
 	}
 #else
 	extrude_edge(backface.x);
-	/* Increment/Decrement twice for manifold edges. */
 	if (is_manifold) {
+#  ifdef DOUBLE_MANIFOLD
+		/* Increment/Decrement twice for manifold edges. */
 		extrude_edge(backface.x);
+#  endif
 	}
 #endif
 }

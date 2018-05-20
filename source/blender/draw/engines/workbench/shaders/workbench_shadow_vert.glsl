@@ -1,8 +1,7 @@
-#define EPSILON 0.0001
-#define INFINITE 1000000.0
+#define INFINITE 1000.0
 
 uniform mat4 ModelViewProjectionMatrix;
-uniform mat4 ViewProjectionMatrix;
+
 uniform vec3 lightDirection = vec3(0.57, 0.57, -0.57);
 
 in vec3 pos;

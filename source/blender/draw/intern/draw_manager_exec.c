@@ -161,7 +161,7 @@ void drw_state_set(DRWState state)
 					glDepthFunc(GL_EQUAL);
 				}
 				else if (state & DRW_STATE_DEPTH_GREATER) {
-					glDepthFunc(GL_GREATER);
+					glDepthFunc(GL_GEQUAL);
 				}
 				else if (state & DRW_STATE_DEPTH_ALWAYS) {
 					glDepthFunc(GL_ALWAYS);
@@ -313,8 +313,8 @@ void drw_state_set(DRWState state)
 				}
 				else if ((state & DRW_STATE_WRITE_STENCIL_SHADOW) != 0) {
 					glStencilMask(0xFF);
-					glStencilOpSeparate(GL_BACK,  GL_KEEP, GL_INCR_WRAP, GL_KEEP);
-					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_DECR_WRAP, GL_KEEP);
+					glStencilOpSeparate(GL_BACK,  GL_KEEP, GL_KEEP, GL_INCR_WRAP);
+					glStencilOpSeparate(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP);
 				}
 				/* Stencil Test */
 				else if ((state & (DRW_STATE_STENCIL_EQUAL | DRW_STATE_STENCIL_NEQUAL)) != 0) {
