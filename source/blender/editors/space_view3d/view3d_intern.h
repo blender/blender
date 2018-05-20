@@ -182,6 +182,7 @@ typedef struct V3D_SmoothParams {
 } V3D_SmoothParams;
 
 void ED_view3d_smooth_view_ex(
+        const struct Depsgraph *depsgraph,
         struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa,
         struct View3D *v3d, struct ARegion *ar, const int smooth_viewtx,
         const V3D_SmoothParams *sview);

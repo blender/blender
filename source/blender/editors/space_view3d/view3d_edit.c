@@ -62,7 +62,7 @@
 #include "BKE_action.h"
 
 #include "DEG_depsgraph.h"
-
+#include "DEG_depsgraph_query.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -2705,8 +2705,9 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
-	Base *base;
+	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
+	Base *base_eval;
 	const bool use_all_regions = RNA_boolean_get(op->ptr, "use_all_regions");
 	const bool skip_camera = (ED_view3d_camera_lock_check(v3d, ar->regiondata) ||
 	                          /* any one of the regions may be locked */
@@ -2729,15 +2730,16 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 		INIT_MINMAX(min, max);
 	}
 
-	for (base = view_layer->object_bases.first; base; base = base->next) {
-		if (BASE_VISIBLE(base)) {
+	for (base_eval = view_layer_eval->object_bases.first; base_eval; base_eval = base_eval->next) {
+		if (BASE_VISIBLE(base_eval)) {
 			changed = true;
 
-			if (skip_camera && base->object == v3d->camera) {
+			Object *ob = DEG_get_original_object(base_eval->object);
+			if (skip_camera && ob == v3d->camera) {
 				continue;
 			}
 
-			BKE_object_minmax(base->object, min, max, false);
+			BKE_object_minmax(base_eval->object, min, max, false);
 		}
 	}
 	if (!changed) {
@@ -3702,8 +3704,6 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	View3D *v3d;
 	ARegion *ar;
 	RegionView3D *rv3d;
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	static int perspo = RV3D_PERSP;
 	int viewnum, nextperspo;
 	bool align_active;
@@ -3736,6 +3736,9 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 	else if (viewnum == RV3D_VIEW_CAMERA) {
 		if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
 			/* lastview -  */
+
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+			Scene *scene = CTX_data_scene(C);
 
 			if (rv3d->persp != RV3D_CAMOB) {
 				Object *ob = OBACT(view_layer);
