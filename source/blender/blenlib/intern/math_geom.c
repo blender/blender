@@ -2322,7 +2322,7 @@ int isect_aabb_planes_v3(
 			return ISECT_AABB_PLANE_BEHIND_ANY;
 		}
 		else if ((ret != ISECT_AABB_PLANE_CROSS_ANY) &&
-		        (plane_point_side_v3(planes[i], bb_near) < 0.0f))
+		         (plane_point_side_v3(planes[i], bb_near) < 0.0f))
 		{
 			ret = ISECT_AABB_PLANE_CROSS_ANY;
 		}

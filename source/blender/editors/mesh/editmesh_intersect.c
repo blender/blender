@@ -788,7 +788,7 @@ static int edbm_face_split_by_edges_exec(bContext *C, wmOperator *UNUSED(op))
 
 								/* check we're in the correct corner (works with convex loops too) */
 								if (angle_signed_on_axis_v3v3v3_v3(l->prev->v->co, l->v->co, v_other->co, l->f->no) <
-									angle_signed_on_axis_v3v3v3_v3(l->prev->v->co, l->v->co, l->next->v->co, l->f->no))
+								    angle_signed_on_axis_v3v3v3_v3(l->prev->v->co, l->v->co, l->next->v->co, l->f->no))
 								{
 									dot_best = dot_test;
 									l_best = l;

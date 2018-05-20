@@ -276,8 +276,6 @@ const EnumPropertyItem rna_enum_file_sort_items[] = {
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BLI_math.h"
-
 #include "BKE_animsys.h"
 #include "BKE_brush.h"
 #include "BKE_colortools.h"
@@ -711,7 +709,7 @@ static int rna_View3DShading_studio_light_orientation_get(PointerRNA *ptr)
 {
 	View3D *v3d = (View3D *)ptr->data;
 	StudioLight *sl = BKE_studiolight_find(v3d->shading.studio_light);
-	return sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD|STUDIOLIGHT_ORIENTATION_CAMERA);
+	return sl->flag & (STUDIOLIGHT_ORIENTATION_WORLD | STUDIOLIGHT_ORIENTATION_CAMERA);
 }
 static void rna_View3DShading_studio_light_orientation_set(PointerRNA *UNUSED(ptr), int UNUSED(value))
 {
@@ -739,10 +737,10 @@ static const EnumPropertyItem *rna_View3DShading_studio_light_itemf(
 	EnumPropertyItem *lastitem;
 	int totitem = 0;
 
-	LISTBASE_FOREACH(StudioLight*, sl, BKE_studiolight_listbase()) {
+	LISTBASE_FOREACH(StudioLight *, sl, BKE_studiolight_listbase()) {
 		if (totitem < NUM_STUDIO_LIGHT_ITEMS) {
 			RNA_enum_items_add_value(&item, &totitem, rna_enum_studio_light_items, totitem);
-			lastitem = &item[totitem-1];
+			lastitem = &item[totitem - 1];
 			lastitem->value = sl->index;
 			lastitem->icon = sl->icon_id;
 			lastitem->name = sl->name;

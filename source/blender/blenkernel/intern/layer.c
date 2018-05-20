@@ -349,8 +349,9 @@ static void layer_collections_copy_data(ListBase *layer_collections_dst, const L
 	const LayerCollection *layer_collection_src = layer_collections_src->first;
 
 	while (layer_collection_dst != NULL) {
-		layer_collections_copy_data(&layer_collection_dst->layer_collections,
-									 &layer_collection_src->layer_collections);
+		layer_collections_copy_data(
+		        &layer_collection_dst->layer_collections,
+		        &layer_collection_src->layer_collections);
 
 		layer_collection_dst = layer_collection_dst->next;
 		layer_collection_src = layer_collection_src->next;

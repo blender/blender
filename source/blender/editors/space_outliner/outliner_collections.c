@@ -88,11 +88,11 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 		return lc->collection;
 	}
 	else if (ELEM(tselem->type, TSE_SCENE_COLLECTION_BASE, TSE_VIEW_COLLECTION_BASE)) {
-		Scene *scene = (Scene*)tselem->id;
+		Scene *scene = (Scene *)tselem->id;
 		return BKE_collection_master(scene);
 	}
 	else if (tselem->type == 0 && te->idcode == ID_GR) {
-		return (Collection*)tselem->id;
+		return (Collection *)tselem->id;
 	}
 
 	return NULL;

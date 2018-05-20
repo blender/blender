@@ -108,7 +108,8 @@ void drw_state_set(DRWState state)
 		                DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW))
 		{
 			if ((state & (DRW_STATE_WRITE_DEPTH | DRW_STATE_WRITE_COLOR |
-			              DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW)) != 0) {
+			              DRW_STATE_WRITE_STENCIL | DRW_STATE_WRITE_STENCIL_SHADOW)) != 0)
+			{
 				glDisable(GL_RASTERIZER_DISCARD);
 			}
 			else {

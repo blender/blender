@@ -239,7 +239,7 @@ bool DRW_check_psys_visible_within_active_context(
 			}
 			if ((part->childtype == 0) &&
 			    (psys->flag & PSYS_HAIR_DYNAMICS &&
-			     psys->pointcache->flag & PTCACHE_BAKED)==0)
+			     psys->pointcache->flag & PTCACHE_BAKED) == 0)
 			{
 				return false;
 			}

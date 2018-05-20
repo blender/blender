@@ -191,7 +191,7 @@ static void rna_ObjectBase_select_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 static void rna_LayerCollection_use_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *scene = (Scene *)ptr->id.data;
-	LayerCollection *lc = (LayerCollection*)ptr->data;
+	LayerCollection *lc = (LayerCollection *)ptr->data;
 	ViewLayer *view_layer = BKE_view_layer_find_from_collection(scene, lc);
 
 	BKE_layer_collection_sync(scene, view_layer);

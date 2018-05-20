@@ -456,8 +456,9 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 
 				/* Note usually this would do slow collection syncing for view layers,
 				 * but since no view layers exists yet at this point it's fast. */
-				BKE_collection_object_add(bmain,
-						collections[collection_index].collections[layer], base->object);
+				BKE_collection_object_add(
+				        bmain,
+				        collections[collection_index].collections[layer], base->object);
 			}
 
 			if (base->flag & SELECT) {
@@ -478,23 +479,23 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 			CollectionChild *hide_child = BLI_findptr(&collection_parent->children, collections[DO_VERSION_COLLECTION_HIDE].collections[layer], offsetof(CollectionChild, collection));
 
 			if ((collections[DO_VERSION_COLLECTION_HIDE].created & (1 << layer)) &&
-				(hide_child != collection_parent->children.first))
+			    (hide_child != collection_parent->children.first))
 			{
 				BLI_listbase_swaplinks(
-						&collection_parent->children,
-						hide_child,
-						collection_parent->children.first);
+				        &collection_parent->children,
+				        hide_child,
+				        collection_parent->children.first);
 			}
 
 			CollectionChild *hide_all_child = BLI_findptr(&collection_parent->children, collections[DO_VERSION_COLLECTION_HIDE_ALL].collections[layer], offsetof(CollectionChild, collection));
 
 			if ((collections[DO_VERSION_COLLECTION_HIDE_ALL].created & (1 << layer)) &&
-				(hide_all_child != collection_parent->children.last))
+			    (hide_all_child != collection_parent->children.last))
 			{
 				BLI_listbase_swaplinks(
-						&collection_parent->children,
-						hide_all_child,
-						collection_parent->children.last);
+				        &collection_parent->children,
+				        hide_all_child,
+				        collection_parent->children.last);
 			}
 
 			child_parent = child_parent->next;
@@ -515,20 +516,20 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 			/* It is up to the external engine to handle
 			 * its own doversion in this case. */
 			BKE_override_view_layer_int_add(
-					view_layer,
-					ID_SCE,
-					"samples",
-					srl->samples);
+			        view_layer,
+			        ID_SCE,
+			        "samples",
+			        srl->samples);
 		}
 
 		if (srl->mat_override) {
 			have_override = true;
 
 			BKE_override_view_layer_datablock_add(
-					view_layer,
-					ID_MA,
-					"self",
-					(ID *)srl->mat_override);
+			        view_layer,
+			        ID_MA,
+			        "self",
+			        (ID *)srl->mat_override);
 		}
 
 		if (srl->layflag & SCE_LAY_DISABLE) {
@@ -565,26 +566,26 @@ static void do_version_layers_to_collections(Main *bmain, Scene *scene)
 					}
 				}
 				else if ((scene->lay & srl->lay & ~(srl->lay_exclude) & (1 << layer)) ||
-					(srl->lay_zmask & (scene->lay | srl->lay_exclude) & (1 << layer)))
+				         (srl->lay_zmask & (scene->lay | srl->lay_exclude) & (1 << layer)))
 				{
 					if (srl->lay_zmask & (1 << layer)) {
 						have_override = true;
 
 						BKE_override_layer_collection_boolean_add(
-								lc,
-								ID_OB,
-								"cycles.is_holdout",
-								true);
+						        lc,
+						        ID_OB,
+						        "cycles.is_holdout",
+						        true);
 					}
 
 					if ((srl->lay & (1 << layer)) == 0) {
 						have_override = true;
 
 						BKE_override_layer_collection_boolean_add(
-								lc,
-								ID_OB,
-								"cycles_visibility.camera",
-								false);
+						        lc,
+						        ID_OB,
+						        "cycles_visibility.camera",
+						        false);
 					}
 				}
 
@@ -1254,60 +1255,60 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 
 		if (!DNA_struct_find(fd->filesdna, "SceneEEVEE")) {
 			for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-					/* First set the default for all the properties. */
+				/* First set the default for all the properties. */
 
-					scene->eevee.gi_diffuse_bounces = 3;
-					scene->eevee.gi_cubemap_resolution = 512;
-					scene->eevee.gi_visibility_resolution = 32;
+				scene->eevee.gi_diffuse_bounces = 3;
+				scene->eevee.gi_cubemap_resolution = 512;
+				scene->eevee.gi_visibility_resolution = 32;
 
-					scene->eevee.taa_samples = 16;
-					scene->eevee.taa_render_samples = 64;
+				scene->eevee.taa_samples = 16;
+				scene->eevee.taa_render_samples = 64;
 
-					scene->eevee.sss_samples = 7;
-					scene->eevee.sss_jitter_threshold = 0.3f;
+				scene->eevee.sss_samples = 7;
+				scene->eevee.sss_jitter_threshold = 0.3f;
 
-					scene->eevee.ssr_quality = 0.25f;
-					scene->eevee.ssr_max_roughness = 0.5f;
-					scene->eevee.ssr_thickness = 0.2f;
-					scene->eevee.ssr_border_fade = 0.075f;
-					scene->eevee.ssr_firefly_fac = 10.0f;
+				scene->eevee.ssr_quality = 0.25f;
+				scene->eevee.ssr_max_roughness = 0.5f;
+				scene->eevee.ssr_thickness = 0.2f;
+				scene->eevee.ssr_border_fade = 0.075f;
+				scene->eevee.ssr_firefly_fac = 10.0f;
 
-					scene->eevee.volumetric_start = 0.1f;
-					scene->eevee.volumetric_end = 100.0f;
-					scene->eevee.volumetric_tile_size = 8;
-					scene->eevee.volumetric_samples = 64;
-					scene->eevee.volumetric_sample_distribution = 0.8f;
-					scene->eevee.volumetric_light_clamp = 0.0f;
-					scene->eevee.volumetric_shadow_samples = 16;
+				scene->eevee.volumetric_start = 0.1f;
+				scene->eevee.volumetric_end = 100.0f;
+				scene->eevee.volumetric_tile_size = 8;
+				scene->eevee.volumetric_samples = 64;
+				scene->eevee.volumetric_sample_distribution = 0.8f;
+				scene->eevee.volumetric_light_clamp = 0.0f;
+				scene->eevee.volumetric_shadow_samples = 16;
 
-					scene->eevee.gtao_distance = 0.2f;
-					scene->eevee.gtao_factor = 1.0f;
-					scene->eevee.gtao_quality = 0.25f;
+				scene->eevee.gtao_distance = 0.2f;
+				scene->eevee.gtao_factor = 1.0f;
+				scene->eevee.gtao_quality = 0.25f;
 
-					scene->eevee.bokeh_max_size = 100.0f;
-					scene->eevee.bokeh_threshold = 1.0f;
+				scene->eevee.bokeh_max_size = 100.0f;
+				scene->eevee.bokeh_threshold = 1.0f;
 
-					copy_v3_fl(scene->eevee.bloom_color, 1.0f);
-					scene->eevee.bloom_threshold = 0.8f;
-					scene->eevee.bloom_knee = 0.5f;
-					scene->eevee.bloom_intensity = 0.8f;
-					scene->eevee.bloom_radius = 6.5f;
-					scene->eevee.bloom_clamp = 1.0f;
+				copy_v3_fl(scene->eevee.bloom_color, 1.0f);
+				scene->eevee.bloom_threshold = 0.8f;
+				scene->eevee.bloom_knee = 0.5f;
+				scene->eevee.bloom_intensity = 0.8f;
+				scene->eevee.bloom_radius = 6.5f;
+				scene->eevee.bloom_clamp = 1.0f;
 
-					scene->eevee.motion_blur_samples = 8;
-					scene->eevee.motion_blur_shutter = 1.0f;
+				scene->eevee.motion_blur_samples = 8;
+				scene->eevee.motion_blur_shutter = 1.0f;
 
-					scene->eevee.shadow_method = SHADOW_ESM;
-					scene->eevee.shadow_cube_size = 512;
-					scene->eevee.shadow_cascade_size = 1024;
+				scene->eevee.shadow_method = SHADOW_ESM;
+				scene->eevee.shadow_cube_size = 512;
+				scene->eevee.shadow_cascade_size = 1024;
 
-					scene->eevee.flag =
-					        SCE_EEVEE_VOLUMETRIC_LIGHTS |
-					        SCE_EEVEE_VOLUMETRIC_COLORED |
-					        SCE_EEVEE_GTAO_BENT_NORMALS |
-					        SCE_EEVEE_GTAO_BOUNCE |
-					        SCE_EEVEE_TAA_REPROJECTION |
-					        SCE_EEVEE_SSR_HALF_RESOLUTION;
+				scene->eevee.flag =
+					SCE_EEVEE_VOLUMETRIC_LIGHTS |
+					SCE_EEVEE_VOLUMETRIC_COLORED |
+					SCE_EEVEE_GTAO_BENT_NORMALS |
+					SCE_EEVEE_GTAO_BOUNCE |
+					SCE_EEVEE_TAA_REPROJECTION |
+					SCE_EEVEE_SSR_HALF_RESOLUTION;
 
 
 				/* If the file is pre-2.80 move on. */

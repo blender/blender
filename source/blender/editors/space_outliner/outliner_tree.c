@@ -1525,7 +1525,7 @@ BLI_INLINE void outliner_add_collection_objects(
 }
 
 static TreeElement *outliner_add_collection_recursive(
-		SpaceOops *soops, Collection *collection, TreeElement *ten)
+        SpaceOops *soops, Collection *collection, TreeElement *ten)
 {
 	outliner_add_collection_init(ten, collection);
 
@@ -1805,7 +1805,8 @@ static TreeElement *outliner_find_first_desired_element_at_y(
 
 	bool (*callback_test)(TreeElement *);
 	if ((soops->outlinevis == SO_VIEW_LAYER) &&
-	     (soops->filter & SO_FILTER_NO_COLLECTION)) {
+	     (soops->filter & SO_FILTER_NO_COLLECTION))
+	{
 		callback_test = test_object_callback;
 	}
 	else {

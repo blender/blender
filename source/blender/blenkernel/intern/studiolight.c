@@ -83,11 +83,11 @@ static void direction_to_equirectangular(float r[2], const float dir[3])
 
 static void equirectangular_to_direction(float r[3], float u, float v)
 {
-	float phi = (-(M_PI * 2))*u + M_PI;
-	float theta = -M_PI*v + M_PI;
+	float phi = (-(M_PI * 2)) * u + M_PI;
+	float theta = -M_PI * v + M_PI;
 	float sin_theta = sinf(theta);
-	r[0] = sin_theta*cosf(phi);
-	r[1] = sin_theta*sinf(phi);
+	r[0] = sin_theta * cosf(phi);
+	r[1] = sin_theta * sinf(phi);
 	r[2] = cosf(theta);
 }
 
@@ -120,7 +120,7 @@ static void studiolight_calculate_directional_diffuse_light(ImBuf *ibuf, float c
 			add_v3_v3(totcol, col);
 		}
 	}
-	mul_v3_v3fl(color, totcol, 1.0/(steps*steps));
+	mul_v3_v3fl(color, totcol, 1.0 / (steps * steps));
 }
 
 static void studiolight_calculate_diffuse_light(StudioLight *sl)
@@ -138,7 +138,7 @@ static void studiolight_calculate_diffuse_light(StudioLight *sl)
 	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
 
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-		ImBuf* ibuf = NULL;
+		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path, 0, NULL);
 		if (ibuf) {
 			IMB_float_from_rect(ibuf);
@@ -177,7 +177,7 @@ static void studiolight_calculate_light_direction(StudioLight *sl)
 	sl->light_direction[2] = -1.0f;
 
 	if ((sl->flag & STUDIOLIGHT_EXTERNAL_FILE) && (sl->flag & STUDIOLIGHT_ORIENTATION_WORLD)) {
-		ImBuf* ibuf = NULL;
+		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path, 0, NULL);
 		if (ibuf) {
 			IMB_float_from_rect(ibuf);
@@ -204,7 +204,7 @@ static void studiolight_calculate_light_direction(StudioLight *sl)
 	sl->flag |= STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED;
 }
 
-static void studiolight_add_files_from_datafolder(const int folder_id, const char* subfolder, int flag)
+static void studiolight_add_files_from_datafolder(const int folder_id, const char *subfolder, int flag)
 {
 	StudioLight *sl;
 	struct direntry *dir;
@@ -248,11 +248,10 @@ static int studiolight_cmp(const void *a, const void *b)
 	const int flagorder1 = studiolight_flag_cmp_order(sl1);
 	const int flagorder2 = studiolight_flag_cmp_order(sl2);
 
-	if (flagorder1 < flagorder2){
+	if (flagorder1 < flagorder2) {
 		return -1;
 	}
-	else if (flagorder1 > flagorder2)
-	{
+	else if (flagorder1 > flagorder2) {
 		return 1;
 	}
 	else {
@@ -290,13 +289,12 @@ void BKE_studiolight_init(void)
 void BKE_studiolight_free(void)
 {
 	struct StudioLight *sl;
-	while((sl = (StudioLight*)BLI_pophead(&studiolights)))
-	{
+	while ((sl = BLI_pophead(&studiolights))) {
 		studiolight_free(sl);
 	}
 }
 
-struct StudioLight *BKE_studiolight_find(const char* name)
+struct StudioLight *BKE_studiolight_find(const char *name)
 {
 	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
 		if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
@@ -304,7 +302,7 @@ struct StudioLight *BKE_studiolight_find(const char* name)
 		}
 	}
 	/* When not found, use the default studio light */
-	return (StudioLight*)studiolights.first;
+	return studiolights.first;
 }
 
 struct StudioLight *BKE_studiolight_findindex(int index)
@@ -315,7 +313,7 @@ struct StudioLight *BKE_studiolight_findindex(int index)
 		}
 	}
 	/* When not found, use the default studio light */
-	return (StudioLight*)studiolights.first;
+	return studiolights.first;
 }
 
 const struct ListBase *BKE_studiolight_listbase(void)
@@ -377,7 +375,7 @@ unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size)
 
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 {
-	if ((sl->flag & flag) == flag){
+	if ((sl->flag & flag) == flag) {
 		return;
 	}
 

@@ -313,7 +313,8 @@ bool BKE_collection_is_animated(Collection *collection, Object *UNUSED(parent))
  * you can draw everything, leaves tags in objects to signal it needs further updating */
 
 /* note: does not work for derivedmesh and render... it recreates all again in convertblender.c */
-void BKE_collection_handle_recalc_and_update(struct Depsgraph *depsgraph, Scene *scene, Object *UNUSED(parent), Collection *collection)
+void BKE_collection_handle_recalc_and_update(
+        struct Depsgraph *depsgraph, Scene *scene, Object *UNUSED(parent), Collection *collection)
 {
 	/* only do existing tags, as set by regular depsgraph */
 	FOREACH_COLLECTION_OBJECT_RECURSIVE_BEGIN(collection, object)
@@ -323,7 +324,7 @@ void BKE_collection_handle_recalc_and_update(struct Depsgraph *depsgraph, Scene 
 		}
 	}
 	FOREACH_COLLECTION_OBJECT_RECURSIVE_END;
-	}
+}
 
 /* **************** Object List Cache *******************/
 
@@ -508,7 +509,7 @@ Collection *BKE_collection_object_find(Main *bmain, Collection *collection, Obje
 		collection = collection->id.next;
 	else
 		collection = bmain->collection.first;
-	
+
 	while (collection) {
 		if (BKE_collection_has_object(collection, ob))
 			return collection;

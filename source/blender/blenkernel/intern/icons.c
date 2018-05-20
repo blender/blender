@@ -806,7 +806,8 @@ struct Icon_Geom *BKE_icon_geom_from_file(const char *filename)
 
 /** \name Studio Light Icon
  * \{ */
-int BKE_icon_ensure_studio_light(struct StudioLight *sl) {
+int BKE_icon_ensure_studio_light(struct StudioLight *sl)
+{
 	int icon_id = get_next_free_id();
 	icon_create(icon_id, ICON_DATA_STUDIOLIGHT, sl);
 	return icon_id;

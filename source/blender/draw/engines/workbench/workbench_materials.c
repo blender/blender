@@ -339,7 +339,8 @@ void workbench_materials_engine_init(WORKBENCH_Data *vedata)
 
 		if (NORMAL_ENCODING_ENABLED()) {
 			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
-		} else {
+		}
+		else {
 			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F, &draw_engine_workbench_solid);
 		}
 

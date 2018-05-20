@@ -73,7 +73,7 @@ typedef struct StudioLight
 
 void BKE_studiolight_init(void);
 void BKE_studiolight_free(void);
-struct StudioLight *BKE_studiolight_find(const char* name);
+struct StudioLight *BKE_studiolight_find(const char *name);
 struct StudioLight *BKE_studiolight_findindex(int index);
 unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size);
 const struct ListBase *BKE_studiolight_listbase(void);

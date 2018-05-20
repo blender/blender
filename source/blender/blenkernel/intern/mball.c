@@ -317,7 +317,7 @@ bool BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 bool BKE_mball_is_any_selected(const MetaBall *mb)
 {
 	for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
-		if(ml->flag & SELECT) {
+		if (ml->flag & SELECT) {
 			return true;
 		}
 	}
@@ -327,7 +327,7 @@ bool BKE_mball_is_any_selected(const MetaBall *mb)
 bool BKE_mball_is_any_unselected(const MetaBall *mb)
 {
 	for (const MetaElem *ml = mb->editelems->first; ml != NULL; ml = ml->next) {
-		if((ml->flag & SELECT) == 0) {
+		if ((ml->flag & SELECT) == 0) {
 			return true;
 		}
 	}

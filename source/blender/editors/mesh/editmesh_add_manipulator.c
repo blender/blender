@@ -154,7 +154,7 @@ static void manipulator_mesh_placement_update_from_op(ManipulatorPlacementGroup 
 	UNUSED_VARS(op);
 	/* For now don't read back from the operator. */
 #if 0
-	RNA_property_float_get_array(op->ptr, man->data.prop_matrix, &man->cage->matrix_offset[0][0]); 
+	RNA_property_float_get_array(op->ptr, man->data.prop_matrix, &man->cage->matrix_offset[0][0]);
 #endif
 }
 

@@ -250,7 +250,7 @@ static void POSE_draw_scene(void *vedata)
 		return;
 	}
 
-	if(bone_selection_overlay) {
+	if (bone_selection_overlay) {
 		GPU_framebuffer_bind(dfbl->default_fb);
 		DRW_draw_pass(psl->bone_selection);
 		GPU_framebuffer_bind(dfbl->depth_only_fb);

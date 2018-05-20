@@ -1645,7 +1645,7 @@ static void move_to_collection_menu_create(bContext *UNUSED(C), uiLayout *layout
 	uiItemIntO(layout,
 	           name,
 	           ICON_NONE,
-		       menu->ot->idname,
+	           menu->ot->idname,
 	           "collection_index",
 	           menu->index);
 	uiItemS(layout);

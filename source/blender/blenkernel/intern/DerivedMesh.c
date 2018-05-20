@@ -1295,8 +1295,9 @@ static Mesh *create_orco_mesh(Object *ob, Mesh *me, BMEditMesh *em, int layer)
 		mesh = BKE_bmesh_to_mesh_nomain(em->bm, &(struct BMeshToMeshParams){0});
 	}
 	else {
-		BKE_id_copy_ex(NULL, &me->id, (ID**)&mesh,
-			LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
+		BKE_id_copy_ex(
+		        NULL, &me->id, (ID **)&mesh,
+		        LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
 	}
 
 	orco = get_orco_coords_dm(ob, em, layer, &free);
@@ -1984,7 +1985,7 @@ static void mesh_ensure_display_normals(Mesh *mesh)
 	 */
 	/* BLI_assert((CustomData_has_layer(&mesh->pdata, CD_NORMAL) == false)); */
 
-	if(mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL || !CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
+	if (mesh->runtime.cd_dirty_vert & CD_MASK_NORMAL || !CustomData_has_layer(&mesh->pdata, CD_NORMAL)) {
 		float (*face_nors)[3] = NULL;
 		face_nors = MEM_malloc_arrayN(mesh->totpoly, sizeof(*face_nors), "face_nors");
 
@@ -1993,9 +1994,9 @@ static void mesh_ensure_display_normals(Mesh *mesh)
 
 		/* calculate face normals */
 		BKE_mesh_calc_normals_poly(
-				mesh->mvert, NULL, mesh->totvert, mesh->mloop, mesh->mpoly,
-				mesh->totloop, mesh->totpoly, face_nors,
-				only_face_normals);
+		        mesh->mvert, NULL, mesh->totvert, mesh->mloop, mesh->mpoly,
+		        mesh->totloop, mesh->totpoly, face_nors,
+		        only_face_normals);
 
 		CustomData_add_layer(&mesh->pdata, CD_NORMAL, CD_ASSIGN, face_nors, mesh->totpoly);
 
@@ -2127,8 +2128,9 @@ static void mesh_calc_modifiers(
 		 * coordinates (vpaint, etc.)
 		 */
 		if (r_deform_mesh) {
-			BKE_id_copy_ex(NULL, &me->id, (ID**)r_deform_mesh,
-				LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
+			BKE_id_copy_ex(
+			        NULL, &me->id, (ID **)r_deform_mesh,
+			        LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
 
 			/* XXX: Is build_shapekey_layers ever even true? This should have crashed long ago... */
 			BLI_assert(!build_shapekey_layers);
@@ -2269,8 +2271,9 @@ static void mesh_calc_modifiers(
 				}
 			}
 			else {
-				BKE_id_copy_ex(NULL, &me->id, (ID**)&mesh,
-					LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
+				BKE_id_copy_ex(
+				        NULL, &me->id, (ID **)&mesh,
+				        LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
 				ASSERT_IS_VALID_MESH(mesh);
 
 				// XXX: port to Mesh if build_shapekey_layers can ever be true
@@ -2439,8 +2442,9 @@ static void mesh_calc_modifiers(
 #endif
 	}
 	else {
-		BKE_id_copy_ex(NULL, &me->id, (ID**)&final_mesh,
-			LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
+		BKE_id_copy_ex(
+		        NULL, &me->id, (ID **)&final_mesh,
+		        LIB_ID_CREATE_NO_MAIN | LIB_ID_CREATE_NO_USER_REFCOUNT | LIB_ID_CREATE_NO_DEG_TAG, false);
 
 		//if (build_shapekey_layers) {
 		//	add_shapekey_layers(final_mesh, me, ob);
@@ -2521,11 +2525,12 @@ static void mesh_calc_modifiers_dm(
 {
 	Mesh *deform_mesh = NULL, *final_mesh = NULL;
 
-	mesh_calc_modifiers(depsgraph, scene, ob, inputVertexCos, useRenderParams, useDeform,
-			need_mapping, dataMask, index, useCache, build_shapekey_layers, allow_gpu,
-			(r_deformdm ? &deform_mesh : NULL), &final_mesh);
+	mesh_calc_modifiers(
+	        depsgraph, scene, ob, inputVertexCos, useRenderParams, useDeform,
+	        need_mapping, dataMask, index, useCache, build_shapekey_layers, allow_gpu,
+	        (r_deformdm ? &deform_mesh : NULL), &final_mesh);
 
-	if(deform_mesh) {
+	if (deform_mesh) {
 		*r_deformdm = CDDM_from_mesh_ex(deform_mesh, CD_DUPLICATE);
 		BKE_id_free(NULL, deform_mesh);
 	}
