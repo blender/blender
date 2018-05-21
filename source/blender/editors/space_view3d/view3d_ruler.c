@@ -785,8 +785,6 @@ static bool view3d_ruler_item_mousemove(
 			}
 		}
 		else if (do_snap) {
-			// Scene *scene = CTX_data_scene(C);
-			View3D *v3d = ruler_info->sa->spacedata.first;
 			const float mval_fl[2] = {UNPACK2(mval)};
 
 			if (ED_transform_snap_object_project_view3d_mixed(
