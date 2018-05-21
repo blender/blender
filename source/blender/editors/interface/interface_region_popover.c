@@ -270,7 +270,7 @@ uiPopover *UI_popover_begin(bContext *C)
 	return pup;
 }
 
-static void popover_keymap_fn(wmKeyMap *UNUSED(keymap), wmKeyMapItem *UNUSEDF(kmi), void *user_data)
+static void popover_keymap_fn(wmKeyMap *UNUSED(keymap), wmKeyMapItem *UNUSED(kmi), void *user_data)
 {
 	uiPopover *pup = user_data;
 	pup->block->handle->menuretval = UI_RETURN_OK;
