@@ -3954,12 +3954,16 @@ void wm_window_keymap(wmKeyConfig *keyconf)
 	WM_keymap_verify_item(keymap, "WM_OT_debug_menu", DKEY, KM_PRESS, KM_ALT | KM_CTRL, 0);
 
 	/* menus that can be accessed anywhere in blender */
+
+#if 0  /* Now double-tap via toolbar. */
 	WM_keymap_verify_item(keymap, "WM_OT_search_menu", SPACEKEY, KM_PRESS, 0, 0);
+#endif
+
 #ifdef WITH_INPUT_NDOF
 	WM_keymap_add_menu(keymap, "USERPREF_MT_ndof_settings", NDOF_BUTTON_MENU, KM_PRESS, 0, 0);
 #endif
 
-	WM_keymap_add_item(keymap, "WM_OT_toolbar", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
+	WM_keymap_add_item(keymap, "WM_OT_toolbar", SPACEKEY, KM_PRESS, 0, 0);
 
 	/* Space switching */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_set_enum", F3KEY, KM_PRESS, KM_SHIFT, 0);
