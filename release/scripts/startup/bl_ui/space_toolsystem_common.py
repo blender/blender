@@ -583,6 +583,59 @@ def activate_by_name(context, space_type, text):
     return False
 
 
+def keymap_from_context(context, space_type):
+    """
+    Keymap for popup toolbar, currently generated each time.
+    """
+    use_simple_keymap = False
+    km_name = "Toolbar Popup"
+    wm = context.window_manager
+    keyconf = wm.keyconfigs.active
+    keymap = keyconf.keymaps.get(km_name)
+    if keymap is None:
+        keymap = keyconf.keymaps.new(km_name, space_type='EMPTY', region_type='TEMPORARY')
+    for kmi in keymap.keymap_items:
+        keymap.keymap_items.remove(kmi)
+
+
+    items = []
+    cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
+    for i, item in enumerate(
+            ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context))
+    ):
+        if item is not None:
+            if use_simple_keymap:
+                # Simply assign a key from A-Z
+                items.append(((chr(ord('A') + i)), item.text))
+                kmi = keymap.keymap_items.new("wm.tool_set_by_name", key, 'PRESS')
+                kmi.properties.name = item.text
+                continue
+
+            if item.keymap:
+                kmi_first = item.keymap[0].keymap_items[0]
+            keymap_found, kmi_found = wm.keyconfigs.find_item_from_operator(
+                idname=kmi_first.idname,
+                # properties=kmi_first.properties,  # prevents matches, don't use.
+            )
+            if kmi_found is not None:
+                kmi_found_type = kmi_found.type
+                # Only for single keys.
+                if len(kmi_found_type) == 1:
+                    kmi = keymap.keymap_items.new(
+                        idname="wm.tool_set_by_name",
+                        type=kmi_found_type,
+                        value='PRESS',
+                        any=kmi_found.any,
+                        shift=kmi_found.shift,
+                        ctrl=kmi_found.ctrl,
+                        alt=kmi_found.alt,
+                        oskey=kmi_found.oskey,
+                        key_modifier=kmi_found.key_modifier,
+                    )
+                    kmi.properties.name = item.text
+    wm.keyconfigs.update()
+    return keymap
+
 classes = (
     WM_MT_toolsystem_submenu,
 )
