@@ -767,7 +767,6 @@ static bool view3d_ruler_item_mousemove(
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_ALL,
 			            .use_object_edit_cage = true,
-			            .use_occlusion_test = true,
 			        },
 			        mval_fl, &dist_px,
 			        co, ray_normal))
@@ -789,15 +788,14 @@ static bool view3d_ruler_item_mousemove(
 			// Scene *scene = CTX_data_scene(C);
 			View3D *v3d = ruler_info->sa->spacedata.first;
 			const float mval_fl[2] = {UNPACK2(mval)};
-			bool use_depth = (v3d->drawtype >= OB_SOLID);
 
 			if (ED_transform_snap_object_project_view3d_mixed(
 			        ruler_info->snap_context,
-			        (SCE_SELECT_VERTEX | SCE_SELECT_EDGE) | (use_depth ? SCE_SELECT_FACE : 0),
+			        (SCE_SELECT_VERTEX | SCE_SELECT_EDGE | SCE_SELECT_FACE),
 			        &(const struct SnapObjectParams){
 			            .snap_select = SNAP_ALL,
 			            .use_object_edit_cage = true,
-			            .use_occlusion_test = use_depth,
+			            .use_occlusion_test = true,
 			        },
 			        mval_fl, &dist_px,
 			        co, NULL))
