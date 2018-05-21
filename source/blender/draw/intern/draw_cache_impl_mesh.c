@@ -1232,9 +1232,14 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 			*r_pnor2 = eed->l->radial_next->f->no;
 			*r_is_manifold = true;
 		}
-		else {
+		else if (eed->l != NULL) {
 			*r_pnor1 = eed->l->f->no;
 			*r_pnor2 = eed->l->f->no;
+			*r_is_manifold = false;
+		}
+		else {
+			*r_pnor1 = eed->v1->no;
+			*r_pnor2 = eed->v1->no;
 			*r_is_manifold = false;
 		}
 	}
@@ -1248,9 +1253,14 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 			const MLoop *mloop = rdata->mloop;
 			const MPoly *mpoly = rdata->mpoly;
 			const int poly_len = rdata->poly_len;
-			const bool do_pnors = (pnors == NULL);
+			const bool do_pnors = (poly_len != 0 && pnors == NULL);
 
-			eap = rdata->edges_adjacent_polys = MEM_callocN(sizeof(*eap) * rdata->edge_len, __func__);
+			eap = rdata->edges_adjacent_polys = MEM_mallocN(sizeof(*eap) * rdata->edge_len, __func__);
+			for (int i = 0; i < rdata->edge_len; i++) {
+				eap[i].count = 0;
+				eap[i].face_index[0] = -1;
+				eap[i].face_index[1] = -1;
+			}
 			if (do_pnors) {
 				pnors = rdata->poly_normals = MEM_mallocN(sizeof(*pnors) * poly_len, __func__);
 			}
@@ -1270,32 +1280,40 @@ static bool mesh_render_data_edge_vcos_manifold_pnors(
 				}
 			}
 		}
-		BLI_assert(eap && pnors);
+		BLI_assert(eap && (rdata->poly_len == 0 || pnors != NULL));
 
 		*r_vco1 = mvert[medge[edge_index].v1].co;
 		*r_vco2 = mvert[medge[edge_index].v2].co;
-		*r_pnor1 = pnors[eap[edge_index].face_index[0]];
-
-		float nor[3], v1[3], v2[3], r_center[3];
-		const MPoly *mpoly = rdata->mpoly + eap[edge_index].face_index[0];
-		const MLoop *mloop = rdata->mloop + mpoly->loopstart;
-
-		BKE_mesh_calc_poly_center(mpoly, mloop, mvert, r_center);
-		sub_v3_v3v3(v1, *r_vco2, *r_vco1);
-		sub_v3_v3v3(v2, r_center, *r_vco1);
-		cross_v3_v3v3(nor, v1, v2);
-
-		if (dot_v3v3(nor, *r_pnor1) < 0.0) {
-			SWAP(float *, *r_vco1, *r_vco2);
-		}
-
-		if (eap[edge_index].count == 2) {
-			*r_pnor2 = pnors[eap[edge_index].face_index[1]];
-			*r_is_manifold = true;
+		if (eap[edge_index].face_index[0] == -1) {
+			/* Edge has no poly... */
+			*r_pnor1 = *r_pnor2 = mvert[medge[edge_index].v1].co; /* XXX mvert.no are shorts... :( */
+			*r_is_manifold = false;
 		}
 		else {
-			*r_pnor2 = pnors[eap[edge_index].face_index[0]];
-			*r_is_manifold = false;
+			*r_pnor1 = pnors[eap[edge_index].face_index[0]];
+
+			float nor[3], v1[3], v2[3], r_center[3];
+			const MPoly *mpoly = rdata->mpoly + eap[edge_index].face_index[0];
+			const MLoop *mloop = rdata->mloop + mpoly->loopstart;
+
+			BKE_mesh_calc_poly_center(mpoly, mloop, mvert, r_center);
+			sub_v3_v3v3(v1, *r_vco2, *r_vco1);
+			sub_v3_v3v3(v2, r_center, *r_vco1);
+			cross_v3_v3v3(nor, v1, v2);
+
+			if (dot_v3v3(nor, *r_pnor1) < 0.0) {
+				SWAP(float *, *r_vco1, *r_vco2);
+			}
+
+			if (eap[edge_index].count == 2) {
+				BLI_assert(eap[edge_index].face_index[1] >= 0);
+				*r_pnor2 = pnors[eap[edge_index].face_index[1]];
+				*r_is_manifold = true;
+			}
+			else {
+				*r_pnor2 = pnors[eap[edge_index].face_index[0]];
+				*r_is_manifold = false;
+			}
 		}
 	}
 
