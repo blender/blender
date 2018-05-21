@@ -1307,7 +1307,7 @@ void MeshManager::update_svm_attributes(Device *, DeviceScene *dscene, Scene *sc
 		return;
 
 	/* create attribute map */
-	uint4 *attr_map = dscene->attributes_map.alloc(attr_map_size*scene->meshes.size());
+	uint4 *attr_map = dscene->attributes_map.alloc(attr_map_size);
 	memset(attr_map, 0, dscene->attributes_map.size()*sizeof(uint));
 
 	for(size_t i = 0; i < scene->meshes.size(); i++) {
