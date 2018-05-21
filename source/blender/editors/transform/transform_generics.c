@@ -109,7 +109,7 @@
 
 /* ************************** Functions *************************** */
 
-void getViewVector(TransInfo *t, float coord[3], float vec[3])
+void getViewVector(const TransInfo *t, const float coord[3], float vec[3])
 {
 	if (t->persp != RV3D_ORTHO) {
 		sub_v3_v3v3(vec, coord, t->viewinv[3]);

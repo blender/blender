@@ -169,7 +169,7 @@ static void postConstraintChecks(TransInfo *t, float vec[3], float pvec[3])
 	mul_m3_v3(t->con.mtx, vec);
 }
 
-static void viewAxisCorrectCenter(TransInfo *t, float t_con_center[3])
+static void viewAxisCorrectCenter(const TransInfo *t, float t_con_center[3])
 {
 	if (t->spacetype == SPACE_VIEW3D) {
 		// View3D *v3d = t->sa->spacedata.first;
@@ -193,7 +193,10 @@ static void viewAxisCorrectCenter(TransInfo *t, float t_con_center[3])
 	}
 }
 
-static void axisProjection(TransInfo *t, const float axis[3], const float in[3], float out[3])
+/**
+ * Axis calculation taking the view into account, correcting view-aligned axis.
+ */
+static void axisProjection(const TransInfo *t, const float axis[3], const float in[3], float out[3])
 {
 	float norm[3], vec[3], factor, angle;
 	float t_con_center[3];
@@ -211,12 +214,11 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
 	if (angle > (float)M_PI_2) {
 		angle = (float)M_PI - angle;
 	}
-	angle = RAD2DEGF(angle);
 
 	/* For when view is parallel to constraint... will cause NaNs otherwise
 	 * So we take vertical motion in 3D space and apply it to the
 	 * constraint axis. Nice for camera grab + MMB */
-	if (angle < 5.0f) {
+	if (angle < DEG2RADF(5.0f)) {
 		project_v3_v3v3(vec, in, t->viewinv[1]);
 		factor = dot_v3v3(t->viewinv[1], vec) * 2.0f;
 		/* since camera distance is quite relative, use quadratic relationship. holding shift can compensate */
@@ -275,7 +277,7 @@ static void axisProjection(TransInfo *t, const float axis[3], const float in[3],
  * Return true if the 2x axis are both aligned when projected into the view.
  * In this case, we can't usefully project the cursor onto the plane.
  */
-static bool isPlaneProjectionViewAligned(TransInfo *t)
+static bool isPlaneProjectionViewAligned(const TransInfo *t)
 {
 	const float eps = 0.001f;
 	const float *constraint_vector[2];
@@ -301,7 +303,7 @@ static bool isPlaneProjectionViewAligned(TransInfo *t)
 	return fabsf(factor) < eps;
 }
 
-static void planeProjection(TransInfo *t, const float in[3], float out[3])
+static void planeProjection(const TransInfo *t, const float in[3], float out[3])
 {
 	float vec[3], factor, norm[3];
 
