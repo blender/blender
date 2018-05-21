@@ -502,7 +502,8 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		}
 
 		if (SHADOW_ENABLED(wpd) && (ob->display.flag & OB_SHOW_SHADOW) > 0) {
-			struct Gwn_Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob);
+			bool is_manifold;
+			struct Gwn_Batch *geom_shadow = DRW_cache_object_edge_detection_get(ob, &is_manifold);
 			if (geom_shadow) {
 				if (is_sculpt_mode) {
 					/* Currently unsupported in sculpt mode. We could revert to the slow
@@ -518,7 +519,7 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					mul_v3_mat3_m4v3(engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
 
 					DRWShadingGroup *grp;
-					if (true) {
+					if (!is_manifold) {
 						grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
 						DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
 						DRW_shgroup_call_object_add(grp, geom_shadow, ob);

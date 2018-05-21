@@ -1633,6 +1633,9 @@ typedef struct MeshBatchCache {
 
 	/* XXX, only keep for as long as sculpt mode uses shaded drawing. */
 	bool is_sculpt_points_tag;
+
+	/* Valid only if edges_adjacency is up to date. */
+	bool is_manifold;
 } MeshBatchCache;
 
 /* Gwn_Batch cache management. */
@@ -3234,6 +3237,8 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 		const int vert_len = mesh_render_data_verts_len_get(rdata);
 		const int tri_len = mesh_render_data_looptri_len_get(rdata);
 
+		cache->is_manifold = true;
+
 		/* Allocate max but only used indices are sent to GPU. */
 		Gwn_IndexBufBuilder elb;
 		GWN_indexbuf_init(&elb, GWN_PRIM_LINES_ADJ, tri_len * 3, vert_len);
@@ -3279,6 +3284,7 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 						/* Don't share edge if triangles have non matching winding. */
 						GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
 						GWN_indexbuf_add_line_adj_verts(&elb, v_opposite, v1, v2, v_opposite);
+						cache->is_manifold = false;
 					}
 					else {
 						GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v_opposite);
@@ -3303,6 +3309,7 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 				SWAP(unsigned int, v1, v2);
 			}
 			GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v0);
+			cache->is_manifold = false;
 		}
 		BLI_edgehashIterator_free(ehi);
 		BLI_edgehash_free(eh, NULL);
@@ -3822,7 +3829,7 @@ Gwn_Batch *DRW_mesh_batch_cache_get_fancy_edges(Mesh *me)
 	return cache->fancy_edges;
 }
 
-Gwn_Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me)
+Gwn_Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me, bool *r_is_manifold)
 {
 	MeshBatchCache *cache = mesh_batch_cache_get(me);
 
@@ -3836,6 +3843,10 @@ Gwn_Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me)
 		        mesh_batch_cache_get_edges_adjacency(rdata, cache), 0);
 
 		mesh_render_data_free(rdata);
+	}
+
+	if (r_is_manifold) {
+		*r_is_manifold = cache->is_manifold;
 	}
 
 	return cache->edge_detection;

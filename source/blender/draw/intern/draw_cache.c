@@ -503,11 +503,11 @@ Gwn_Batch *DRW_cache_object_wire_outline_get(Object *ob)
 }
 
 /* Returns a buffer texture. */
-Gwn_Batch *DRW_cache_object_edge_detection_get(Object *ob)
+Gwn_Batch *DRW_cache_object_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
 	switch (ob->type) {
 		case OB_MESH:
-			return DRW_cache_mesh_edge_detection_get(ob);
+			return DRW_cache_mesh_edge_detection_get(ob, r_is_manifold);
 
 		/* TODO, should match 'DRW_cache_object_surface_get' */
 		default:
@@ -2584,12 +2584,12 @@ Gwn_Batch *DRW_cache_mesh_wire_outline_get(Object *ob)
 	return DRW_mesh_batch_cache_get_fancy_edges(me);
 }
 
-Gwn_Batch *DRW_cache_mesh_edge_detection_get(Object *ob)
+Gwn_Batch *DRW_cache_mesh_edge_detection_get(Object *ob, bool *r_is_manifold)
 {
 	BLI_assert(ob->type == OB_MESH);
 
 	Mesh *me = ob->data;
-	return DRW_mesh_batch_cache_get_edge_detection(me);
+	return DRW_mesh_batch_cache_get_edge_detection(me, r_is_manifold);
 }
 
 Gwn_Batch *DRW_cache_mesh_surface_get(Object *ob)

@@ -327,7 +327,7 @@ static void drw_shgroup_bone_custom_solid(
 		DRW_shgroup_call_dynamic_add(shgrp_geom_solid, final_bonemat, bone_color, hint_color);
 	}
 
-	geom = DRW_cache_object_edge_detection_get(custom);
+	geom = DRW_cache_object_edge_detection_get(custom, NULL);
 	if (geom && outline_color[3] > 0.0f) {
 		DRWShadingGroup *shgrp_geom_wire = shgroup_instance_bone_shape_outline(g_data.passes.bone_outline, geom);
 		float final_bonemat[4][4], final_color[4];
