@@ -330,6 +330,31 @@ static void rna_KeyConfig_remove(wmWindowManager *wm, ReportList *reports, Point
 	RNA_POINTER_INVALIDATE(keyconf_ptr);
 }
 
+static PointerRNA rna_KeyConfig_find_item_from_operator(
+        wmWindowManager *wm,
+        bContext *C,
+        const char *idname,
+        int opcontext,
+        PointerRNA *properties,
+        int is_hotkey,
+        PointerRNA *kmi_ptr)
+{
+	char idname_bl[OP_MAX_TYPENAME];
+	WM_operator_bl_idname(idname_bl, idname);
+
+	wmKeyMap *km = NULL;
+	wmKeyMapItem *kmi = WM_key_event_operator(C, idname_bl, opcontext, properties->data, (bool)is_hotkey, &km);
+	PointerRNA km_ptr;
+	RNA_pointer_create(&wm->id, &RNA_KeyMap, km, kmi_ptr);
+	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &km_ptr);
+	return km_ptr;
+}
+
+static void rna_KeyConfig_update(wmWindowManager *wm)
+{
+	WM_keyconfig_update(wm);
+}
+
 /* popup menu wrapper */
 static PointerRNA rna_PopMenuBegin(bContext *C, const char *title, int icon)
 {
@@ -885,6 +910,26 @@ void RNA_api_keyconfigs(StructRNA *srna)
 	parm = RNA_def_pointer(func, "keyconfig", "KeyConfig", "Key Configuration", "Removed key configuration");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED | PARM_RNAPTR);
 	RNA_def_parameter_clear_flags(parm, PROP_THICK_WRAP, 0);
+
+	/* Helper functions */
+
+	/* Keymap introspection */
+	func = RNA_def_function(srna, "find_item_from_operator", "rna_KeyConfig_find_item_from_operator");
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
+	parm = RNA_def_string(func, "idname", NULL, 0, "Operator Identifier", "");
+	RNA_def_parameter_flags(parm, 0, PARM_REQUIRED);
+	parm = RNA_def_property(func, "context", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_items(parm, rna_enum_operator_context_items);
+	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
+	RNA_def_boolean(func, "is_hotkey", 0, "Hotkey", "Event is not a modifier");
+	parm = RNA_def_pointer(func, "keymap", "KeyMap", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_OUTPUT);
+	parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
+	RNA_def_function_return(func, parm);
+
+	RNA_def_function(srna, "update", "rna_KeyConfig_update"); /* WM_keyconfig_update */
 }
 
 #endif
