@@ -1114,7 +1114,6 @@ static void view3d_ndof_orbit(
         /* optional, can be NULL*/
         ViewOpsData *vod)
 {
-	const Depsgraph *depsgraph = CTX_data_depsgraph(C);
 	View3D *v3d = sa->spacedata.first;
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -1122,7 +1121,7 @@ static void view3d_ndof_orbit(
 
 	BLI_assert((rv3d->viewlock & RV3D_LOCKED) == 0);
 
-	ED_view3d_persp_ensure(depsgraph, v3d, ar);
+	ED_view3d_persp_ensure(vod->depsgraph, v3d, ar);
 
 	rv3d->view = RV3D_VIEW_USER;
 
