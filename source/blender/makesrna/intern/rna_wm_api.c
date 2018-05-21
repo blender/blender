@@ -820,10 +820,10 @@ void RNA_api_keyconfigs(StructRNA *srna)
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
 	RNA_def_boolean(func, "is_hotkey", 0, "Hotkey", "Event is not a modifier");
-	parm = RNA_def_pointer(func, "keymap", "KeyMap", "", "");
-	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_OUTPUT);
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
 	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR);
+	parm = RNA_def_pointer(func, "keymap", "KeyMap", "", "");
+	RNA_def_parameter_flags(parm, 0, PARM_RNAPTR | PARM_OUTPUT);
 	RNA_def_function_return(func, parm);
 
 	RNA_def_function(srna, "update", "rna_KeyConfig_update"); /* WM_keyconfig_update */
