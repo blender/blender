@@ -86,8 +86,6 @@ extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_world_light_lib_glsl[];
 
-
-
 static char *workbench_build_composite_frag(WORKBENCH_PrivateData *wpd)
 {
 	char *str = NULL;
@@ -125,8 +123,6 @@ static char *workbench_build_prepass_frag(void)
 	BLI_dynstr_free(ds);
 	return str;
 }
-
-
 
 static void ensure_deferred_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype)
 {
@@ -383,6 +379,7 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 		}
 	}
 }
+
 static WORKBENCH_MaterialData *get_or_create_material_data(
         WORKBENCH_Data *vedata, Object *ob, Material *mat, Image *ima, int drawtype)
 {
