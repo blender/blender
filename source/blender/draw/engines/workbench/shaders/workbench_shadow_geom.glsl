@@ -4,8 +4,6 @@
 #define USE_INVOC_EXT
 #endif
 
-#define DOUBLE_MANIFOLD
-
 #ifdef DOUBLE_MANIFOLD
 #  ifdef USE_INVOC_EXT
 #    define invoc_ct 2

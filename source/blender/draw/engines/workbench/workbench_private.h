@@ -70,8 +70,11 @@ typedef struct WORKBENCH_PassList {
 	/* deferred rendering */
 	struct DRWPass *prepass_pass;
 	struct DRWPass *shadow_depth_pass_pass;
+	struct DRWPass *shadow_depth_pass_mani_pass;
 	struct DRWPass *shadow_depth_fail_pass;
+	struct DRWPass *shadow_depth_fail_mani_pass;
 	struct DRWPass *shadow_depth_fail_caps_pass;
+	struct DRWPass *shadow_depth_fail_caps_mani_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
 
