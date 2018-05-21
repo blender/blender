@@ -395,14 +395,15 @@ void ED_view3d_lock_clear(View3D *v3d)
  * sets the ``ofs`` and ``dist`` values of the viewport so it matches the camera,
  * otherwise switching out of camera view may jump to a different part of the scene.
  */
-void ED_view3d_persp_switch_from_camera(View3D *v3d, RegionView3D *rv3d, const char persp)
+void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d, const char persp)
 {
 	BLI_assert(rv3d->persp == RV3D_CAMOB);
 	BLI_assert(persp != RV3D_CAMOB);
 
 	if (v3d->camera) {
-		rv3d->dist = ED_view3d_offset_distance(v3d->camera->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
-		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+		Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+		rv3d->dist = ED_view3d_offset_distance(camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+		ED_view3d_from_object(camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 
 	if (!ED_view3d_camera_lock_check(v3d, rv3d)) {
@@ -415,7 +416,7 @@ void ED_view3d_persp_switch_from_camera(View3D *v3d, RegionView3D *rv3d, const c
  *
  * shared with NDOF.
  */
-bool ED_view3d_persp_ensure(struct View3D *v3d, ARegion *ar)
+bool ED_view3d_persp_ensure(const Depsgraph *depsgraph, View3D *v3d, ARegion *ar)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	const bool autopersp = (U.uiflag & USER_AUTOPERSP) != 0;
@@ -429,7 +430,7 @@ bool ED_view3d_persp_ensure(struct View3D *v3d, ARegion *ar)
 		if (rv3d->persp == RV3D_CAMOB) {
 			/* If autopersp and previous view was an axis one, switch back to PERSP mode, else reuse previous mode. */
 			char persp = (autopersp && RV3D_VIEW_IS_AXIS(rv3d->lview)) ? RV3D_PERSP : rv3d->lpersp;
-			ED_view3d_persp_switch_from_camera(v3d, rv3d, persp);
+			ED_view3d_persp_switch_from_camera(depsgraph, v3d, rv3d, persp);
 		}
 		else if (autopersp && RV3D_VIEW_IS_AXIS(rv3d->view)) {
 			rv3d->persp = RV3D_PERSP;
@@ -463,20 +464,21 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
  * Apply the camera object transformation to the view-port.
  * (needed so we can use regular view-port manipulation operators, that sync back to the camera).
  */
-void ED_view3d_camera_lock_init_ex(View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
+void ED_view3d_camera_lock_init_ex(const Depsgraph* depsgraph, View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
+		Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
 		if (calc_dist) {
 			/* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
-			rv3d->dist = ED_view3d_offset_distance(v3d->camera->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+			rv3d->dist = ED_view3d_offset_distance(camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
 		}
-		ED_view3d_from_object(v3d->camera, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+		ED_view3d_from_object(camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 }
 
-void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
+void ED_view3d_camera_lock_init(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d)
 {
-	ED_view3d_camera_lock_init_ex(v3d, rv3d, true);
+	ED_view3d_camera_lock_init_ex(depsgraph, v3d, rv3d, true);
 }
 
 /**
@@ -484,7 +486,7 @@ void ED_view3d_camera_lock_init(View3D *v3d, RegionView3D *rv3d)
  *
  * \return true if the camera is moved.
  */
-bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
+bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
 		ObjectTfmProtectedChannels obtfm;
@@ -501,15 +503,17 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			while (root_parent->parent) {
 				root_parent = root_parent->parent;
 			}
+			Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+			Object *root_parent_eval = DEG_get_evaluated_object(depsgraph, root_parent);
 
 			ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
-			normalize_m4_m4(tmat, v3d->camera->obmat);
+			normalize_m4_m4(tmat, camera_eval->obmat);
 
 			invert_m4_m4(imat, tmat);
 			mul_m4_m4m4(diff_mat, view_mat, imat);
 
-			mul_m4_m4m4(parent_mat, diff_mat, root_parent->obmat);
+			mul_m4_m4m4(parent_mat, diff_mat, root_parent_eval->obmat);
 
 			BKE_object_tfm_protected_backup(root_parent, &obtfm);
 			BKE_object_apply_mat4(root_parent, parent_mat, true, false);
@@ -526,7 +530,7 @@ bool ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			/* always maintain the same scale */
 			const short protect_scale_all = (OB_LOCK_SCALEX | OB_LOCK_SCALEY | OB_LOCK_SCALEZ);
 			BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
-			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
+			ED_view3d_to_object(depsgraph, v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag | protect_scale_all);
 
 			DEG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
@@ -1344,11 +1348,13 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
  * \param quat The view rotation, quaternion normally from RegionView3D.viewquat.
  * \param dist The view distance from ofs, normally from RegionView3D.dist.
  */
-void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], const float dist)
+void ED_view3d_to_object(const Depsgraph *depsgraph, Object *ob, const float ofs[3], const float quat[4], const float dist)
 {
 	float mat[4][4];
 	ED_view3d_to_m4(mat, ofs, quat, dist);
-	BKE_object_apply_mat4(ob, mat, true, true);
+
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+	BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv , true);
 }
 
 /** \} */

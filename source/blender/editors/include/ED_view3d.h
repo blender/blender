@@ -109,7 +109,8 @@ void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], c
 void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist);
 
 void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
-void ED_view3d_to_object(struct Object *ob, const float ofs[3], const float quat[4], const float dist);
+void ED_view3d_to_object(
+        const struct Depsgraph *depsgraph, struct Object *ob, const float ofs[3], const float quat[4], const float dist);
 
 void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 
@@ -436,17 +437,21 @@ uint64_t ED_view3d_datamask(const struct Scene *scene, const struct View3D *v3d)
 uint64_t ED_view3d_screen_datamask(const struct Scene *scene, const struct bScreen *screen);
 
 bool ED_view3d_offset_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
-void ED_view3d_persp_switch_from_camera(struct View3D *v3d, struct RegionView3D *rv3d, const char persp);
-bool ED_view3d_persp_ensure(struct View3D *v3d, struct ARegion *ar);
+void ED_view3d_persp_switch_from_camera(const struct Depsgraph *depsgraph,
+        struct View3D *v3d, struct RegionView3D *rv3d, const char persp);
+bool ED_view3d_persp_ensure(const struct Depsgraph *depsgraph,
+        struct View3D *v3d, struct ARegion *ar);
 
 
 /* camera lock functions */
 bool ED_view3d_camera_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
 /* copy the camera to the view before starting a view transformation */
-void ED_view3d_camera_lock_init_ex(struct View3D *v3d, struct RegionView3D *rv3d, const bool calc_dist);
-void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
+void ED_view3d_camera_lock_init_ex(const struct Depsgraph *depsgraph,
+        struct View3D *v3d, struct RegionView3D *rv3d, const bool calc_dist);
+void ED_view3d_camera_lock_init(const struct Depsgraph *depsgraph, struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera, return true if */
-bool ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
+bool ED_view3d_camera_lock_sync(const struct Depsgraph *depsgraph,
+        struct View3D *v3d, struct RegionView3D *rv3d);
 
 bool ED_view3d_camera_autokey(
         struct Scene *scene, struct ID *id_key,
