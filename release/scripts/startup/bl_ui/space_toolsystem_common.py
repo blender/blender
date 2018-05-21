@@ -614,8 +614,11 @@ def keymap_from_context(context, space_type):
                 kmi.properties.name = item.text
                 continue
 
-            if item.keymap:
-                kmi_first = item.keymap[0].keymap_items[0]
+            if not item.keymap:
+                continue
+
+            # Only check the first item in the tools key-map (a little arbitrary).
+            kmi_first = item.keymap[0].keymap_items[0]
             kmi_found = wm.keyconfigs.find_item_from_operator(
                 idname=kmi_first.idname,
                 # properties=kmi_first.properties,  # prevents matches, don't use.
