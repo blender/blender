@@ -1195,7 +1195,7 @@ static short snap_mesh_polygon(
 			invert_m4_m4(imat, obmat);
 
 			copy_v3_v3(r_no, nearest.no);
-			mul_transposed_mat3_m4_v3(obmat, r_no);
+			mul_transposed_mat3_m4_v3(imat, r_no);
 			normalize_v3(r_no);
 		}
 
@@ -1297,7 +1297,7 @@ static short snap_mesh_edge_verts_mixed(
 			invert_m4_m4(imat, obmat);
 
 			copy_v3_v3(r_no, nearest.no);
-			mul_transposed_mat3_m4_v3(obmat, r_no);
+			mul_transposed_mat3_m4_v3(imat, r_no);
 			normalize_v3(r_no);
 		}
 
@@ -1940,7 +1940,7 @@ static short snapMesh(
 			invert_m4_m4(imat, obmat);
 
 			copy_v3_v3(r_no, nearest.no);
-			mul_transposed_mat3_m4_v3(obmat, r_no);
+			mul_transposed_mat3_m4_v3(imat, r_no);
 			normalize_v3(r_no);
 		}
 		if (r_index) {
@@ -2082,7 +2082,7 @@ static short snapEditMesh(
 			invert_m4_m4(imat, obmat);
 
 			copy_v3_v3(r_no, nearest.no);
-			mul_transposed_mat3_m4_v3(obmat, r_no);
+			mul_transposed_mat3_m4_v3(imat, r_no);
 			normalize_v3(r_no);
 		}
 		if (r_index) {
