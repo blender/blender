@@ -304,17 +304,17 @@ static PointerRNA rna_KeyConfig_find_item_from_operator(
         int opcontext,
         PointerRNA *properties,
         int is_hotkey,
-        PointerRNA *kmi_ptr)
+        PointerRNA *km_ptr)
 {
 	char idname_bl[OP_MAX_TYPENAME];
 	WM_operator_bl_idname(idname_bl, idname);
 
 	wmKeyMap *km = NULL;
 	wmKeyMapItem *kmi = WM_key_event_operator(C, idname_bl, opcontext, properties->data, (bool)is_hotkey, &km);
-	PointerRNA km_ptr;
-	RNA_pointer_create(&wm->id, &RNA_KeyMap, km, kmi_ptr);
-	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &km_ptr);
-	return km_ptr;
+	PointerRNA kmi_ptr;
+	RNA_pointer_create(&wm->id, &RNA_KeyMap, km, km_ptr);
+	RNA_pointer_create(&wm->id, &RNA_KeyMapItem, kmi, &kmi_ptr);
+	return kmi_ptr;
 }
 
 static void rna_KeyConfig_update(wmWindowManager *wm)
