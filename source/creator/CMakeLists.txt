@@ -265,14 +265,29 @@ endif()
 set(BLENDER_TEXT_FILES
 	${CMAKE_SOURCE_DIR}/release/text/GPL-license.txt
 	${CMAKE_SOURCE_DIR}/release/text/GPL3-license.txt
-	${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
 	${CMAKE_SOURCE_DIR}/release/text/copyright.txt
-	${CMAKE_SOURCE_DIR}/release/text/jemalloc-license.txt
-	${CMAKE_SOURCE_DIR}/release/text/ocio-license.txt
 	# generate this file
 	# ${CMAKE_SOURCE_DIR}/release/text/readme.html
 	${CMAKE_SOURCE_DIR}/release/datafiles/LICENSE-bfont.ttf.txt
 )
+
+if(WITH_PYTHON)
+	list(APPEND BLENDER_TEXT_FILES
+		${CMAKE_SOURCE_DIR}/release/text/Python-license.txt
+	)
+endif()
+
+if(WITH_OPENCOLORIO)
+	list(APPEND BLENDER_TEXT_FILES
+		${CMAKE_SOURCE_DIR}/release/text/ocio-license.txt
+	)
+endif()
+
+if(WITH_MEM_JEMALLOC)
+	list(APPEND BLENDER_TEXT_FILES
+		${CMAKE_SOURCE_DIR}/release/text/jemalloc-license.txt
+	)
+endif()
 
 if(WITH_INTERNATIONAL)
 	list(APPEND BLENDER_TEXT_FILES
