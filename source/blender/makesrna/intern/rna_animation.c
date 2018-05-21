@@ -1085,6 +1085,7 @@ static void rna_def_animdata(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "drivers", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "drivers", NULL);
 	RNA_def_property_struct_type(prop, "FCurve");
+	RNA_def_property_flag(prop, PROP_OVERRIDABLE_STATIC);
 	RNA_def_property_ui_text(prop, "Drivers", "The Drivers/Expressions for this data-block");
 	
 	rna_api_animdata_drivers(brna, prop);
