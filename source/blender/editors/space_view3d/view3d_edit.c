@@ -86,8 +86,6 @@
 
 #include "view3d_intern.h"  /* own include */
 
-#include "DEG_depsgraph_query.h"
-
 /* -------------------------------------------------------------------- */
 /** \name Generic View Operator Properties
  * \{ */

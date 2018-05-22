@@ -464,7 +464,7 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
  * Apply the camera object transformation to the view-port.
  * (needed so we can use regular view-port manipulation operators, that sync back to the camera).
  */
-void ED_view3d_camera_lock_init_ex(const Depsgraph* depsgraph, View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
+void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
 		Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
@@ -1354,7 +1354,7 @@ void ED_view3d_to_object(const Depsgraph *depsgraph, Object *ob, const float ofs
 	ED_view3d_to_m4(mat, ofs, quat, dist);
 
 	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv , true);
+	BKE_object_apply_mat4_ex(ob, mat, ob_eval->parent, ob_eval->parentinv, true);
 }
 
 /** \} */

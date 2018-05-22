@@ -3247,15 +3247,15 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 						break;
 					}
 					v0 = BM_elem_index_get(bm_looptri[e]->v);
-					v1 = BM_elem_index_get(bm_looptri[(e+1)%3]->v);
-					v2 = BM_elem_index_get(bm_looptri[(e+2)%3]->v);
+					v1 = BM_elem_index_get(bm_looptri[(e + 1) % 3]->v);
+					v2 = BM_elem_index_get(bm_looptri[(e + 2) % 3]->v);
 				}
 				else {
 					MLoop *mloop = rdata->mloop;
 					MLoopTri *mlt = rdata->mlooptri + i;
 					v0 = mloop[mlt->tri[e]].v;
-					v1 = mloop[mlt->tri[(e+1)%3]].v;
-					v2 = mloop[mlt->tri[(e+2)%3]].v;
+					v1 = mloop[mlt->tri[(e + 1) % 3]].v;
+					v2 = mloop[mlt->tri[(e + 2) % 3]].v;
 				}
 				bool inv_indices = (v1 > v2);
 				void **pval;

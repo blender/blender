@@ -110,7 +110,8 @@ void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist
 
 void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
 void ED_view3d_to_object(
-        const struct Depsgraph *depsgraph, struct Object *ob, const float ofs[3], const float quat[4], const float dist);
+        const struct Depsgraph *depsgraph, struct Object *ob,
+        const float ofs[3], const float quat[4], const float dist);
 
 void ED_view3d_lastview_store(struct RegionView3D *rv3d);
 
@@ -380,7 +381,8 @@ int ED_view3d_view_layer_set(int lay, const int *values, int *active);
 struct RV3DMatrixStore *ED_view3d_mats_rv3d_backup(struct RegionView3D *rv3d);
 void                    ED_view3d_mats_rv3d_restore(struct RegionView3D *rv3d, struct RV3DMatrixStore *rv3dmat);
 
-void  ED_draw_object_facemap(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, const float col[4], const int facemap);
+void  ED_draw_object_facemap(
+        struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, const float col[4], const int facemap);
 
 struct RenderEngineType *ED_view3d_engine_type(struct Scene *scene, int drawtype);
 
@@ -437,20 +439,24 @@ uint64_t ED_view3d_datamask(const struct Scene *scene, const struct View3D *v3d)
 uint64_t ED_view3d_screen_datamask(const struct Scene *scene, const struct bScreen *screen);
 
 bool ED_view3d_offset_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
-void ED_view3d_persp_switch_from_camera(const struct Depsgraph *depsgraph,
+void ED_view3d_persp_switch_from_camera(
+        const struct Depsgraph *depsgraph,
         struct View3D *v3d, struct RegionView3D *rv3d, const char persp);
-bool ED_view3d_persp_ensure(const struct Depsgraph *depsgraph,
+bool ED_view3d_persp_ensure(
+        const struct Depsgraph *depsgraph,
         struct View3D *v3d, struct ARegion *ar);
 
 
 /* camera lock functions */
 bool ED_view3d_camera_lock_check(const struct View3D *v3d, const struct RegionView3D *rv3d);
 /* copy the camera to the view before starting a view transformation */
-void ED_view3d_camera_lock_init_ex(const struct Depsgraph *depsgraph,
+void ED_view3d_camera_lock_init_ex(
+        const struct Depsgraph *depsgraph,
         struct View3D *v3d, struct RegionView3D *rv3d, const bool calc_dist);
 void ED_view3d_camera_lock_init(const struct Depsgraph *depsgraph, struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera, return true if */
-bool ED_view3d_camera_lock_sync(const struct Depsgraph *depsgraph,
+bool ED_view3d_camera_lock_sync(
+        const struct Depsgraph *depsgraph,
         struct View3D *v3d, struct RegionView3D *rv3d);
 
 bool ED_view3d_camera_autokey(

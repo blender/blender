@@ -1892,22 +1892,22 @@ Gwn_Batch *DRW_cache_bone_envelope_outline_get(void)
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v2[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v2[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v,   v1);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v,   v1);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
 			copy_v2_v2(v0, v1);
 			copy_v2_v2(v1, v2);
 		}
 		v2[0] = 0.0f;
 		v2[1] = radius;
-		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v,   v1);
 		GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v  , v1);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v,   v1);
 		GWN_vertbuf_attr_set(vbo, attr_id.pos2, v++, v2);
 
 		SHC.drw_bone_envelope_outline = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);
@@ -2022,9 +2022,9 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 		}
 		v1[0] = 0.0f;
 		v1[1] = radius;
-		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
 		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
 		GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
 
 		SHC.drw_bone_point_wire = GWN_batch_create_ex(GWN_PRIM_TRI_STRIP, vbo, NULL, GWN_BATCH_OWNS_VBO);

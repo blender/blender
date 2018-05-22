@@ -1025,7 +1025,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 {
 	Lattice *lt = ob->data;
 	/* Get vertex coordinates from the original copy; otherwise we get already-modified coordinates. */
-	Object *orig_ob = DEG_get_original_object(ob);
+	Object *ob_orig = DEG_get_original_object(ob);
 	VirtualModifierData virtualModifierData;
 	ModifierData *md = modifiers_getVirtualModifierList(ob, &virtualModifierData);
 	float (*vertexCos)[3] = NULL;
@@ -1050,7 +1050,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 		if (mti->isDisabled && mti->isDisabled(md, 0)) continue;
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
-		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(orig_ob, &numVerts);
+		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob_orig, &numVerts);
 		modifier_deformVerts_DM_deprecated(md, &mectx, NULL, vertexCos, numVerts);
 	}
 
@@ -1062,7 +1062,7 @@ void BKE_lattice_modifiers_calc(struct Depsgraph *depsgraph, Scene *scene, Objec
 	}
 	else {
 		/* Displist won't do anything; this is just for posterity's sake until we remove it. */
-		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(orig_ob, &numVerts);
+		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob_orig, &numVerts);
 
 		DispList *dl = MEM_callocN(sizeof(*dl), "lt_dl");
 		dl->type = DL_VERTS;
