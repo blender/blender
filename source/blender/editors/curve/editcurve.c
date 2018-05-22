@@ -5015,9 +5015,9 @@ static int add_vertex_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 			struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
 			        CTX_data_main(C), vc.scene, CTX_data_depsgraph(C), 0, vc.ar, vc.v3d);
 
-			ED_transform_snap_object_project_view3d_mixed(
+			ED_transform_snap_object_project_view3d(
 			        snap_context,
-			        SCE_SELECT_FACE,
+			        SCE_SNAP_MODE_FACE,
 			        &(const struct SnapObjectParams){
 			            .snap_select = (vc.obedit != NULL) ? SNAP_NOT_ACTIVE : SNAP_ALL,
 			            .use_object_edit_cage = false,

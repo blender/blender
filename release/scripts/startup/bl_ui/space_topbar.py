@@ -259,8 +259,14 @@ class TOPBAR_HT_lower_bar(Header):
                         show_snap = True
 
         if show_snap:
-            snap_element = toolsettings.snap_element
-            act_snap_element = bpy.types.ToolSettings.bl_rna.properties['snap_element'].enum_items[snap_element]
+            snap_items = bpy.types.ToolSettings.bl_rna.properties['snap_elements'].enum_items
+            for elem in toolsettings.snap_elements:
+                # TODO: Display multiple icons.
+                # (Currently only one of the enabled modes icons is displayed)
+                icon = snap_items[elem].icon
+                break
+            else:
+                icon = 'NONE'
 
             row = layout.row(align=True)
             row.prop(toolsettings, "use_snap", text="")
@@ -270,7 +276,7 @@ class TOPBAR_HT_lower_bar(Header):
                 space_type='TOPBAR',
                 region_type='HEADER',
                 panel_type="TOPBAR_PT_snapping",
-                icon=act_snap_element.icon,
+                icon=icon,
                 text=""
             )
 
@@ -367,7 +373,7 @@ class TOPBAR_PT_snapping(Panel):
 
     def draw(self, context):
         toolsettings = context.tool_settings
-        snap_element = toolsettings.snap_element
+        snap_elements = toolsettings.snap_elements
         obj = context.active_object
         mode = context.mode
         object_mode = 'OBJECT' if obj is None else obj.mode
@@ -375,13 +381,13 @@ class TOPBAR_PT_snapping(Panel):
         layout = self.layout
         col = layout.column()
         col.label("Snapping")
-        col.prop(toolsettings, "snap_element", expand=True)
+        col.prop(toolsettings, "snap_elements", expand=True)
 
         col.separator()
-
-        if snap_element == 'INCREMENT':
+        if 'INCREMENT' in snap_elements:
             col.prop(toolsettings, "use_snap_grid_absolute")
-        else:
+
+        if snap_elements != {'INCREMENT'}:
             col.label("Target")
             row = col.row(align=True)
             row.prop(toolsettings, "snap_target", expand=True)
@@ -389,13 +395,14 @@ class TOPBAR_PT_snapping(Panel):
             if obj:
                 if object_mode == 'EDIT':
                     col.prop(toolsettings, "use_snap_self")
-                if object_mode in {'OBJECT', 'POSE', 'EDIT'} and snap_element != 'VOLUME':
+                if object_mode in {'OBJECT', 'POSE', 'EDIT'}:
                     col.prop(toolsettings, "use_snap_align_rotation", text="Align Rotation")
 
-        if snap_element == 'VOLUME':
-            col.prop(toolsettings, "use_snap_peel_object")
-        elif snap_element == 'FACE':
-            col.prop(toolsettings, "use_snap_project", text="Project Elements")
+            if 'FACE' in snap_elements:
+                col.prop(toolsettings, "use_snap_project", text="Project Elements")
+
+            if 'VOLUME' in snap_elements:
+                col.prop(toolsettings, "use_snap_peel_object")
 
         # Auto-Merge Editing
         if obj:

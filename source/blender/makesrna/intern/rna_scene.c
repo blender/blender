@@ -175,10 +175,11 @@ const EnumPropertyItem rna_enum_snap_element_items[] = {
 };
 
 const EnumPropertyItem rna_enum_snap_node_element_items[] = {
-	{SCE_SNAP_MODE_GRID, "GRID", ICON_SNAP_GRID, "Grid", "Snap to grid"},
-	{SCE_SNAP_MODE_NODE_X, "NODE_X", ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
-	{SCE_SNAP_MODE_NODE_Y, "NODE_Y", ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
-	{SCE_SNAP_MODE_NODE_XY, "NODE_XY", ICON_SNAP_EDGE, "Node X / Y", "Snap to any node border"},
+	{SCE_SNAP_MODE_GRID  , "GRID"   , ICON_SNAP_GRID, "Grid", "Snap to grid"},
+	{SCE_SNAP_MODE_NODE_X, "NODE_X" , ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
+	{SCE_SNAP_MODE_NODE_Y, "NODE_Y" , ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
+	{SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y,
+	                       "NODE_XY", ICON_SNAP_EDGE, "Node X / Y", "Snap to any node border"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -2644,22 +2645,23 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_SNAP_GRID, 0);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
-	prop = RNA_def_property(srna, "snap_element", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "snap_mode");
+	prop = RNA_def_property(srna, "snap_elements", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "snap_mode");
 	RNA_def_property_enum_items(prop, rna_enum_snap_element_items);
+	RNA_def_property_flag(prop, PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Snap Element", "Type of element to snap to");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 	
 	/* node editor uses own set of snap modes */
 	prop = RNA_def_property(srna, "snap_node_element", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "snap_node_mode");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "snap_node_mode");
 	RNA_def_property_enum_items(prop, rna_enum_snap_node_element_items);
 	RNA_def_property_ui_text(prop, "Snap Node Element", "Type of element to snap to");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 	
 	/* image editor uses own set of snap modes */
 	prop = RNA_def_property(srna, "snap_uv_element", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "snap_uv_mode");
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "snap_uv_mode");
 	RNA_def_property_enum_items(prop, snap_uv_element_items);
 	RNA_def_property_ui_text(prop, "Snap UV Element", "Type of element to snap to");
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */

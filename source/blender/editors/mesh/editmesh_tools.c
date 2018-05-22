@@ -373,9 +373,9 @@ void EMBM_project_snap_verts(bContext *C, ARegion *ar, BMEditMesh *em)
 		if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 			float mval[2], co_proj[3];
 			if (ED_view3d_project_float_object(ar, eve->co, mval, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK) {
-				if (ED_transform_snap_object_project_view3d_mixed(
+				if (ED_transform_snap_object_project_view3d(
 				        snap_context,
-				        SCE_SELECT_FACE,
+				        SCE_SNAP_MODE_FACE,
 				        &(const struct SnapObjectParams){
 				            .snap_select = SNAP_NOT_ACTIVE,
 				            .use_object_edit_cage = false,

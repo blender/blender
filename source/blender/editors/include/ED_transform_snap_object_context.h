@@ -128,12 +128,6 @@ bool ED_transform_snap_object_project_view3d(
         const float mval[2], float *dist_px,
         /* return args */
         float r_loc[3], float r_no[3]);
-bool ED_transform_snap_object_project_view3d_mixed(
-        SnapObjectContext *sctx,
-        const unsigned short snap_to_flag,
-        const struct SnapObjectParams *params,
-        const float mval_fl[2], float *dist_px,
-        float r_co[3], float r_no[3]);
 
 bool ED_transform_snap_object_project_all_view3d_ex(
         SnapObjectContext *sctx,

@@ -881,7 +881,6 @@ void projectVertSlideData(TransInfo *t, bool is_final);
 /* TODO. transform_queries.c */
 bool checkUseAxisMatrix(TransInfo *t);
 
-#define TRANSFORM_DIST_MAX_PX 1000.0f
 #define TRANSFORM_SNAP_MAX_PX 100.0f
 #define TRANSFORM_DIST_INVALID -FLT_MAX
 

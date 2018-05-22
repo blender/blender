@@ -343,8 +343,7 @@ static void applyAxisConstraintVec(
 		mul_m3_v3(t->con.pmtx, out);
 
 		// With snap, a projection is alright, no need to correct for view alignment
-		if (!(!ELEM(t->tsnap.mode, SCE_SNAP_MODE_INCREMENT, SCE_SNAP_MODE_GRID) && activeSnap(t))) {
-
+		if (!validSnap(t)) {
 			const int dims = getConstraintSpaceDimension(t);
 			if (dims == 2) {
 				if (!is_zero_v3(out)) {
