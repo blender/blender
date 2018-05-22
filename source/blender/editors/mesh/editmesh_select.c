@@ -1926,7 +1926,7 @@ static int edbm_select_all_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -2028,7 +2028,7 @@ bool EDBM_select_pick(bContext *C, const int mval[2], bool extend, bool deselect
 					WM_event_add_notifier(C, NC_GEOM | ND_SELECT, ob_iter->data);
 				}
 			}
-			MEM_SAFE_FREE(objects);
+			MEM_freeN(objects);
 		}
 
 		if (efa) {
@@ -2429,7 +2429,7 @@ bool EDBM_selectmode_toggle(
 	}
 
 	if (only_update) {
-		MEM_SAFE_FREE(objects);
+		MEM_freeN(objects);
 		return false;
 	}
 
@@ -2482,7 +2482,7 @@ bool EDBM_selectmode_toggle(
 		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 	return ret;
 }
 
@@ -2929,7 +2929,7 @@ static int edbm_select_linked_exec(bContext *C, wmOperator *op)
 
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -3101,7 +3101,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, const wmE
 				has_edges = true;
 			}
 		}
-		MEM_SAFE_FREE(objects);
+		MEM_freeN(objects);
 		if (has_edges == false) {
 			return OPERATOR_CANCELLED;
 		}
@@ -3763,7 +3763,7 @@ static int edbm_select_nth_exec(bContext *C, wmOperator *op)
 			EDBM_update_generic(em, false, false);
 		}
 	}
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	if (!found_active_elt) {
 		BKE_report(op->reports, RPT_ERROR,

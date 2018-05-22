@@ -839,7 +839,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(view_layer, &objects_len);
 
 	if (!uvedit_have_selection_multi(scene, objects, objects_len, true)) {
-		MEM_SAFE_FREE(objects);
+		MEM_freeN(objects);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -856,7 +856,7 @@ static int pack_islands_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -1357,7 +1357,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
 
 	if (!uvedit_have_selection_multi(scene, objects, objects_len, implicit)) {
-		MEM_SAFE_FREE(objects);
+		MEM_freeN(objects);
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1418,7 +1418,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 
 	ED_uvedit_pack_islands_multi(scene, objects, objects_len, true, true, true);
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }

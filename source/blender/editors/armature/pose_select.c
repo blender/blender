@@ -176,7 +176,7 @@ bool ED_armature_pose_select_pick_with_buffer(
 				uint objects_len = 0;
 				Object **objects = BKE_object_pose_array_get_unique(view_layer, &objects_len);
 				ED_pose_deselect_all_multi(objects, objects_len, SEL_DESELECT, true);
-				MEM_SAFE_FREE(objects);
+				MEM_freeN(objects);
 			}
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;

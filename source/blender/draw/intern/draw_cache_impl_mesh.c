@@ -3281,7 +3281,7 @@ static Gwn_IndexBuf *mesh_batch_cache_get_edges_adjacency(MeshRenderData *rdata,
 					else {
 						GWN_indexbuf_add_line_adj_verts(&elb, v0, v1, v2, v_opposite);
 					}
-				} 
+				}
 			}
 		}
 		/* Create edges for remaning non manifold edges. */

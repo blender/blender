@@ -131,7 +131,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 		EDBM_update_generic(em, true, true);
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -478,7 +478,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 		EDBM_update_generic(em, true, true);
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }
@@ -603,7 +603,7 @@ static int edbm_delete_loose_exec(bContext *C, wmOperator *op)
 
 	edbm_report_delete_info(op->reports, totelem_old, totelem_new);
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }

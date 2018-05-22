@@ -2036,7 +2036,7 @@ static int uv_select_all_exec(bContext *C, wmOperator *op)
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -2500,7 +2500,7 @@ static int uv_select_linked_internal(bContext *C, wmOperator *op, const wmEvent 
 		}
 
 		if (!uv_find_nearest_edge_multi(scene, ima, objects, objects_len, co, &hit)) {
-			MEM_SAFE_FREE(objects);
+			MEM_freeN(objects);
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -3032,7 +3032,7 @@ static int uv_border_select_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	MEM_SAFE_FREE(objects);
+	MEM_freeN(objects);
 
 	return changed_multi ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 }

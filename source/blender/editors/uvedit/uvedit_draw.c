@@ -1061,7 +1061,7 @@ void ED_uvedit_draw_main(
 				Object *ob_iter = objects[ob_index];
 				draw_uvs(sima, scene, view_layer, ob_iter, depsgraph);
 			}
-			MEM_SAFE_FREE(objects);
+			MEM_freeN(objects);
 		}
 		else {
 			draw_uvs_texpaint(sima, scene, view_layer, obact);
