@@ -620,14 +620,14 @@ static void draw_uvs(SpaceImage *sima, Scene *scene, ViewLayer *view_layer, Obje
 	/* 1. draw shadow mesh */
 	
 	if (sima->flag & SI_DRAWSHADOW) {
-		Object *ob_cage = DEG_get_evaluated_object(depsgraph, obedit);
+		Object *ob_cage_eval = DEG_get_evaluated_object(depsgraph, obedit);
 		/* XXX TODO: Need to check if shadow mesh is different than original mesh. */
-		bool is_cage_like_final_meshes = (ob_cage == obedit);
+		bool is_cage_like_final_meshes = (ob_cage_eval == obedit);
 
 		/* When sync selection is enabled, all faces are drawn (except for hidden)
 		 * so if cage is the same as the final, there is no point in drawing this. */
 		if (((ts->uv_flag & UV_SYNC_SELECTION) == 0) || is_cage_like_final_meshes) {
-			draw_uvs_shadow(ob_cage);
+			draw_uvs_shadow(ob_cage_eval);
 		}
 	}
 

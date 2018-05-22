@@ -177,9 +177,9 @@ void ED_view3d_smooth_view_ex(
 	}
 
 	if (sview->camera) {
-		Object *camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
-		sms.dst.dist = ED_view3d_offset_distance(camera_eval->obmat, sview->ofs, VIEW3D_DIST_FALLBACK);
-		ED_view3d_from_object(camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, &sms.dst.lens);
+		Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
+		sms.dst.dist = ED_view3d_offset_distance(ob_camera_eval->obmat, sview->ofs, VIEW3D_DIST_FALLBACK);
+		ED_view3d_from_object(ob_camera_eval, sms.dst.ofs, sms.dst.quat, &sms.dst.dist, &sms.dst.lens);
 		sms.to_camera = true; /* restore view3d values in end */
 	}
 	
@@ -203,10 +203,10 @@ void ED_view3d_smooth_view_ex(
 		if (changed) {
 			/* original values */
 			if (sview->camera_old) {
-				Object *camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
-				sms.src.dist = ED_view3d_offset_distance(camera_old_eval->obmat, rv3d->ofs, 0.0f);
+				Object *ob_camera_old_eval = DEG_get_evaluated_object(depsgraph, sview->camera_old);
+				sms.src.dist = ED_view3d_offset_distance(ob_camera_old_eval->obmat, rv3d->ofs, 0.0f);
 				/* this */
-				ED_view3d_from_object(camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);
+				ED_view3d_from_object(ob_camera_old_eval, sms.src.ofs, sms.src.quat, &sms.src.dist, &sms.src.lens);
 			}
 			/* grid draw as floor */
 			if ((rv3d->viewlock & RV3D_LOCKED) == 0) {
@@ -228,10 +228,10 @@ void ED_view3d_smooth_view_ex(
 			/* ensure it shows correct */
 			if (sms.to_camera) {
 				/* use ortho if we move from an ortho view to an ortho camera */
-				Object *camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
+				Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, sview->camera);
 				rv3d->persp = (((rv3d->is_persp == false) &&
-				                (camera_eval->type == OB_CAMERA) &&
-				                (((Camera *)camera_eval->data)->type == CAM_ORTHO)) ?
+				                (ob_camera_eval->type == OB_CAMERA) &&
+				                (((Camera *)ob_camera_eval->data)->type == CAM_ORTHO)) ?
 				                RV3D_ORTHO : RV3D_PERSP);
 			}
 
@@ -762,9 +762,9 @@ void view3d_viewmatrix_set(
 {
 	if (rv3d->persp == RV3D_CAMOB) {      /* obs/camera */
 		if (v3d->camera) {
-			Object *camera_object = DEG_get_evaluated_object(depsgraph, v3d->camera);
-			BKE_object_where_is_calc(depsgraph, scene, camera_object);
-			obmat_to_viewmat(rv3d, camera_object);
+			Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+			BKE_object_where_is_calc(depsgraph, scene, ob_camera_eval);
+			obmat_to_viewmat(rv3d, ob_camera_eval);
 		}
 		else {
 			quat_to_mat4(rv3d->viewmat, rv3d->viewquat);

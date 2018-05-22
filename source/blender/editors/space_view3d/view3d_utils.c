@@ -401,9 +401,9 @@ void ED_view3d_persp_switch_from_camera(const Depsgraph *depsgraph, View3D *v3d,
 	BLI_assert(persp != RV3D_CAMOB);
 
 	if (v3d->camera) {
-		Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
-		rv3d->dist = ED_view3d_offset_distance(camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
-		ED_view3d_from_object(camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+		Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+		rv3d->dist = ED_view3d_offset_distance(ob_camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+		ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 
 	if (!ED_view3d_camera_lock_check(v3d, rv3d)) {
@@ -467,12 +467,12 @@ bool ED_view3d_camera_lock_check(const View3D *v3d, const RegionView3D *rv3d)
 void ED_view3d_camera_lock_init_ex(const Depsgraph *depsgraph, View3D *v3d, RegionView3D *rv3d, const bool calc_dist)
 {
 	if (ED_view3d_camera_lock_check(v3d, rv3d)) {
-		Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+		Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
 		if (calc_dist) {
 			/* using a fallback dist is OK here since ED_view3d_from_object() compensates for it */
-			rv3d->dist = ED_view3d_offset_distance(camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
+			rv3d->dist = ED_view3d_offset_distance(ob_camera_eval->obmat, rv3d->ofs, VIEW3D_DIST_FALLBACK);
 		}
-		ED_view3d_from_object(camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
+		ED_view3d_from_object(ob_camera_eval, rv3d->ofs, rv3d->viewquat, &rv3d->dist, NULL);
 	}
 }
 
@@ -503,12 +503,12 @@ bool ED_view3d_camera_lock_sync(const Depsgraph *depsgraph, View3D *v3d, RegionV
 			while (root_parent->parent) {
 				root_parent = root_parent->parent;
 			}
-			Object *camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+			Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
 			Object *root_parent_eval = DEG_get_evaluated_object(depsgraph, root_parent);
 
 			ED_view3d_to_m4(view_mat, rv3d->ofs, rv3d->viewquat, rv3d->dist);
 
-			normalize_m4_m4(tmat, camera_eval->obmat);
+			normalize_m4_m4(tmat, ob_camera_eval->obmat);
 
 			invert_m4_m4(imat, tmat);
 			mul_m4_m4m4(diff_mat, view_mat, imat);

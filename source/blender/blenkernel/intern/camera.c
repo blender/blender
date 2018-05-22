@@ -268,8 +268,8 @@ void BKE_camera_params_from_view3d(CameraParams *params, Depsgraph *depsgraph, c
 
 	if (rv3d->persp == RV3D_CAMOB) {
 		/* camera view */
-		Object *camera_object = DEG_get_evaluated_object(depsgraph, v3d->camera);
-		BKE_camera_params_from_object(params, camera_object);
+		Object *ob_camera_eval = DEG_get_evaluated_object(depsgraph, v3d->camera);
+		BKE_camera_params_from_object(params, ob_camera_eval);
 
 		params->zoom = BKE_screen_view3d_zoom_to_fac(rv3d->camzoom);
 
