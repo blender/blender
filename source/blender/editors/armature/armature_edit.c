@@ -1373,6 +1373,7 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, obedit);
 		}
 	}
+	MEM_freeN(objects);
 
 	if (!changed_multi) {
 		return OPERATOR_CANCELLED;
