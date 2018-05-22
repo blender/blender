@@ -6774,6 +6774,9 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 				uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
 				        ICON_NONE, "ANIM_OT_paste_driver_button");
 			}
+			
+			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
+			        ICON_DRIVER, "SCREEN_OT_drivers_editor_show");
 		}
 		else if (but->flag & (UI_BUT_ANIMATED_KEY | UI_BUT_ANIMATED)) {
 			/* pass */
@@ -6796,6 +6799,9 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 				uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
 				        ICON_NONE, "ANIM_OT_paste_driver_button");
 			}
+			
+			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
+			        ICON_NONE, "SCREEN_OT_drivers_editor_show");
 		}
 		
 		/* Keying Sets */

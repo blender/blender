@@ -136,6 +136,7 @@ void WM_opengl_context_release(void *context);
 enum {
 	WM_WINDOW_RENDER = 1,
 	WM_WINDOW_USERPREFS,
+	WM_WINDOW_DRIVERS,
 	// WM_WINDOW_FILESEL // UNUSED
 };
 

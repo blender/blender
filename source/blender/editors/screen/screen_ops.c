@@ -39,6 +39,7 @@
 
 #include "BLT_translation.h"
 
+#include "DNA_anim_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
@@ -53,6 +54,7 @@
 
 #include "BKE_context.h"
 #include "BKE_customdata.h"
+#include "BKE_fcurve.h"
 #include "BKE_global.h"
 #include "BKE_icons.h"
 #include "BKE_main.h"
@@ -70,6 +72,7 @@
 
 #include "DEG_depsgraph.h"
 
+#include "ED_anim_api.h"
 #include "ED_armature.h"
 #include "ED_clip.h"
 #include "ED_image.h"
@@ -4190,6 +4193,74 @@ static void SCREEN_OT_userpref_show(struct wmOperatorType *ot)
 /** \} */
 
 /* -------------------------------------------------------------------- */
+/** \name Show Drivers Editor Operator
+ * \{ */
+
+static int drivers_editor_show_invoke(bContext *C, wmOperator *op, const wmEvent *event)
+{
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	int index = -1;
+	uiBut *but = NULL;
+	
+	int sizex = 900 * UI_DPI_FAC;
+	int sizey = 580 * UI_DPI_FAC;
+	
+	/* Get active property to show driver for
+	 * - Need to grab it first, or else this info disappears
+	 *   after we've created the window
+	 */
+	but = UI_context_active_but_prop_get(C, &ptr, &prop, &index);
+	
+	/* changes context! */
+	if (WM_window_open_temp(C, event->x, event->y, sizex, sizey, WM_WINDOW_DRIVERS) != NULL) {
+		/* activate driver F-Curve for the property under the cursor */
+		if (but) {
+			FCurve *fcu;
+			bool driven, special;
+			
+			fcu = rna_get_fcurve_context_ui(C,
+			                                &ptr, prop, index,
+			                                NULL, NULL, &driven, &special);
+			if (fcu) {
+				/* Isolate this F-Curve... */
+				bAnimContext ac;
+				if (ANIM_animdata_get_context(C, &ac)) {
+					int filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_NODUPLIS;
+					ANIM_deselect_anim_channels(&ac, ac.data, ac.datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+					ANIM_set_active_channel(&ac, ac.data, ac.datatype, filter, fcu, ANIMTYPE_FCURVE);
+				}
+				else {
+					/* Just blindly isolate... This isn't the best, and shouldn't happen, but may be enough... */
+					fcu->flag |= (FCURVE_ACTIVE | FCURVE_SELECTED);
+				}
+			}
+		}
+		
+		return OPERATOR_FINISHED;
+	}
+	else {
+		BKE_report(op->reports, RPT_ERROR, "Failed to open window!");
+		return OPERATOR_CANCELLED;
+	}
+}
+
+
+static void SCREEN_OT_drivers_editor_show(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Show Drivers Editor";
+	ot->description = "Show drivers editor in a separate window";
+	ot->idname = "SCREEN_OT_drivers_editor_show";
+	
+	/* api callbacks */
+	ot->invoke = drivers_editor_show_invoke;
+	ot->poll = ED_operator_screenactive;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
 /** \name New Screen Operator
  * \{ */
 
@@ -4514,6 +4585,7 @@ void ED_operatortypes_screen(void)
 	WM_operatortype_append(SCREEN_OT_screenshot);
 	WM_operatortype_append(SCREEN_OT_screencast);
 	WM_operatortype_append(SCREEN_OT_userpref_show);
+	WM_operatortype_append(SCREEN_OT_drivers_editor_show);
 	WM_operatortype_append(SCREEN_OT_region_blend);
 	WM_operatortype_append(SCREEN_OT_space_context_cycle);
 	
