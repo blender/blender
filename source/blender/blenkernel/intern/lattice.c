@@ -1229,6 +1229,22 @@ void BKE_lattice_translate(Lattice *lt, float offset[3], bool do_keys)
 	}
 }
 
+bool BKE_lattice_is_any_selected(const Lattice *lt)
+{
+	/* Intentionally don't handle 'lt->editlatt' (caller must do this). */
+	const BPoint *bp = lt->def;
+	int a = lt->pntsu * lt->pntsv * lt->pntsw;
+	while (a--) {
+		if (bp->hide == 0) {
+			if (bp->f1 & SELECT) {
+				return true;
+			}
+		}
+		bp++;
+	}
+	return false;
+}
+
 /* **** Depsgraph evaluation **** */
 
 void BKE_lattice_eval_geometry(struct Depsgraph *UNUSED(depsgraph),
