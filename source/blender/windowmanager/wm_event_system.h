@@ -42,6 +42,11 @@ struct ARegion;
 
 /* wmKeyMap is in DNA_windowmanager.h, it's savable */
 
+struct wmEventHandler_KeymapFn {
+	void (*handle_post_fn)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);
+	void  *user_data;
+};
+
 typedef struct wmEventHandler {
 	struct wmEventHandler *next, *prev;
 
@@ -52,8 +57,8 @@ typedef struct wmEventHandler {
 	wmKeyMap *keymap;                   /* pointer to builtin/custom keymaps */
 	const rcti *bblocal, *bbwin;              /* optional local and windowspace bb */
 	/* Run after the keymap item runs. */
-	void (*keymap_callback)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);
-	void  *keymap_callback_user_data;
+	struct wmEventHandler_KeymapFn keymap_callback;
+
 	struct bToolRef *keymap_tool;
 
 	/* modal operator handler */

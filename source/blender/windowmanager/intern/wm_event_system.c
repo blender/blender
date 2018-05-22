@@ -1979,7 +1979,9 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 		if (ot && wm_operator_check_locked_interface(C, ot)) {
 			bool use_last_properties = true;
 			PointerRNA tool_properties = {0};
-			if (handler->keymap_tool) {
+			bool use_tool_properties = (handler->keymap_tool != NULL);
+			
+			if (use_tool_properties) {
 				WM_toolsystem_ref_properties_init_for_keymap(handler->keymap_tool, &tool_properties, properties, ot);
 				properties = &tool_properties;
 				use_last_properties = false;
@@ -1987,7 +1989,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 			retval = wm_operator_invoke(C, ot, event, properties, NULL, false, use_last_properties);
 
-			if (handler->keymap_tool) {
+			if (use_tool_properties) {
 				WM_operator_properties_free(&tool_properties);
 			}
 		}
@@ -2263,6 +2265,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 
 					for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 						if (wm_eventmatch(event, kmi)) {
+							struct wmEventHandler_KeymapFn keymap_callback = handler->keymap_callback;
 
 							PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
 
@@ -2270,11 +2273,12 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							event->keymap_idname = kmi->idname;
 
 							action |= wm_handler_operator_call(C, handlers, handler, event, kmi->ptr);
+							
 							if (action & WM_HANDLER_BREAK) {
 								/* not always_pass here, it denotes removed handler */
 								CLOG_INFO(WM_LOG_HANDLERS, 2, "handled! '%s'", kmi->idname);
-								if (handler->keymap_callback != NULL) {
-									handler->keymap_callback(keymap, kmi, handler->keymap_callback_user_data);
+								if (keymap_callback.handle_post_fn != NULL) {
+									keymap_callback.handle_post_fn(keymap, kmi, keymap_callback.user_data);
 								}
 								break;
 							}
@@ -2411,6 +2415,7 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							PRINT("pass\n");
 							for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 								if (wm_eventmatch(event, kmi)) {
+									struct wmEventHandler_KeymapFn keymap_callback = handler->keymap_callback;
 									wmOperator *op = handler->op;
 
 									PRINT("%s:     item matched '%s'\n", __func__, kmi->idname);
@@ -2428,8 +2433,8 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 									CTX_wm_manipulator_group_set(C, NULL);
 
 									if (action & WM_HANDLER_BREAK) {
-										if (handler->keymap_callback != NULL) {
-											handler->keymap_callback(keymap, kmi, handler->keymap_callback_user_data);
+										if (keymap_callback.handle_post_fn != NULL) {
+											keymap_callback.handle_post_fn(keymap, kmi, keymap_callback.user_data);
 										}
 
 										if (G.debug & (G_DEBUG_EVENTS | G_DEBUG_HANDLERS)) {
@@ -3191,8 +3196,8 @@ void WM_event_set_keymap_handler_callback(
         void (keymap_tag)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data),
         void *user_data)
 {
-	handler->keymap_callback = keymap_tag;
-	handler->keymap_callback_user_data = user_data;
+	handler->keymap_callback.handle_post_fn = keymap_tag;
+	handler->keymap_callback.user_data = user_data;
 }
 
 wmEventHandler *WM_event_add_ui_handler(
