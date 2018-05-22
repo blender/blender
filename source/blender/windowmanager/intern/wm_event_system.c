@@ -2391,12 +2391,12 @@ static int wm_handlers_do_intern(bContext *C, wmEvent *event, ListBase *handlers
 							continue;
 						}
 
-						const wmKeyMap *keymap = WM_keymap_active(wm, mgroup->type->keymap);
+						wmKeyMap *keymap = WM_keymap_active(wm, mgroup->type->keymap);
 						wmKeyMapItem *kmi;
 
 						PRINT("%s:   checking '%s' ...", __func__, keymap->idname);
 
-						if (!keymap->poll || keymap->poll(C)) {
+						if (WM_keymap_poll(C, keymap)) {
 							PRINT("pass\n");
 							for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
 								if (wm_eventmatch(event, kmi)) {
