@@ -348,6 +348,12 @@ void                WM_uilisttype_freelink(struct uiListType *ult) RET_NONE
 void                WM_uilisttype_free(void) RET_NONE
 
 struct wmKeyMapItem *WM_keymap_item_find_id(struct wmKeyMap *keymap, int id) RET_NULL
+struct wmKeyMapItem *WM_key_event_operator(
+        const struct bContext *C, const char *opname, int opcontext,
+        struct IDProperty *properties, const bool is_hotkey,
+        struct wmKeyMap **r_keymap) RET_NULL
+void WM_keyconfig_update(struct wmWindowManager *wm) RET_NONE
+
 int WM_enum_search_invoke(struct bContext *C, struct wmOperator *op, const struct wmEvent *event) RET_ZERO
 void WM_event_add_notifier(const struct bContext *C, unsigned int type, void *reference) RET_NONE
 void WM_main_add_notifier(unsigned int type, void *reference) RET_NONE
