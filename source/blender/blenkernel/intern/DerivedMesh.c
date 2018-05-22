@@ -1183,10 +1183,7 @@ DerivedMesh *mesh_create_derived_for_modifier(
 	
 	if (mti->type == eModifierTypeType_OnlyDeform) {
 		int numVerts;
-		/* Always get the vertex coordinates from the original mesh. Otherwise
-		 * there is the risk of deforming already-deformed coordinates. */
-		Mesh *mesh_orig_id = (Mesh *)DEG_get_original_id(&me->id);
-		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(mesh_orig_id, &numVerts);
+		float (*deformedVerts)[3] = BKE_mesh_vertexCos_get(me, &numVerts);
 
 		modwrap_deformVerts(md, &mectx, NULL, deformedVerts, numVerts);
 		dm = mesh_create_derived(me, deformedVerts);
@@ -2014,9 +2011,6 @@ static void mesh_calc_modifiers(
         Mesh **r_deform_mesh, Mesh **r_final_mesh)
 {
 	Mesh *me = ob->data;
-	/* Always get the vertex coordinates from the original mesh. Otherwise
-	 * there is the risk of deforming already-deformed coordinates. */
-	Mesh *mesh_orig_id = (Mesh *)DEG_get_original_id(&me->id);
 	ModifierData *firstmd, *md, *previewmd = NULL;
 	CDMaskLink *datamasks, *curr;
 	/* XXX Always copying POLYINDEX, else tessellated data are no more valid! */
@@ -2110,7 +2104,7 @@ static void mesh_calc_modifiers(
 
 			if (mti->type == eModifierTypeType_OnlyDeform && !sculpt_dyntopo) {
 				if (!deformedVerts)
-					deformedVerts = BKE_mesh_vertexCos_get(mesh_orig_id, &numVerts);
+					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 
 				modifier_deformVerts_ensure_normals(md, &mectx_deform, NULL, deformedVerts, numVerts);
 			}
@@ -2147,7 +2141,7 @@ static void mesh_calc_modifiers(
 		if (inputVertexCos)
 			deformedVerts = inputVertexCos;
 		else
-			deformedVerts = BKE_mesh_vertexCos_get(mesh_orig_id, &numVerts);
+			deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 	}
 
 
@@ -2242,7 +2236,7 @@ static void mesh_calc_modifiers(
 					deformedVerts = BKE_mesh_vertexCos_get(mesh, &numVerts);
 				}
 				else {
-					deformedVerts = BKE_mesh_vertexCos_get(mesh_orig_id, &numVerts);
+					deformedVerts = BKE_mesh_vertexCos_get(me, &numVerts);
 				}
 			}
 
