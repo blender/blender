@@ -945,7 +945,7 @@ void BKE_view_layer_selected_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 /** \} */
 
 /* -------------------------------------------------------------------- */
-/** \name BKE_view_layer_selected_objects_iterator
+/** \name BKE_view_layer_visible_objects_iterator
  * \{ */
 
 void BKE_view_layer_visible_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
@@ -959,6 +959,40 @@ void BKE_view_layer_visible_objects_iterator_next(BLI_Iterator *iter)
 }
 
 void BKE_view_layer_visible_objects_iterator_end(BLI_Iterator *UNUSED(iter))
+{
+	/* do nothing */
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name BKE_view_layer_selected_editable_objects_iterator
+ * \{ */
+
+void BKE_view_layer_selected_editable_objects_iterator_begin(BLI_Iterator *iter, void *data_in)
+{
+	objects_iterator_begin(iter, data_in, BASE_SELECTED);
+	if (iter->valid) {
+		if (BKE_object_is_libdata((Object *)iter->current) == false) {
+			// First object is valid (selectable and not libdata) -> all good.
+			return;
+		}
+		else {
+			// Object is selectable but not editable -> search for another one.
+			BKE_view_layer_selected_editable_objects_iterator_next(iter);
+		}
+	}
+}
+
+void BKE_view_layer_selected_editable_objects_iterator_next(BLI_Iterator *iter)
+{
+	// Search while there are objects and the one we have is not editable (editable = not libdata).
+	do {
+		objects_iterator_next(iter, BASE_SELECTED);
+	} while (iter->valid && BKE_object_is_libdata((Object *)iter->current) != false);
+}
+
+void BKE_view_layer_selected_editable_objects_iterator_end(BLI_Iterator *UNUSED(iter))
 {
 	/* do nothing */
 }

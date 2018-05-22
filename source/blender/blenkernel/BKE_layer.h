@@ -137,6 +137,10 @@ void BKE_view_layer_visible_objects_iterator_begin(BLI_Iterator *iter, void *dat
 void BKE_view_layer_visible_objects_iterator_next(BLI_Iterator *iter);
 void BKE_view_layer_visible_objects_iterator_end(BLI_Iterator *iter);
 
+void BKE_view_layer_selected_editable_objects_iterator_begin(BLI_Iterator *iter, void *data_in);
+void BKE_view_layer_selected_editable_objects_iterator_next(BLI_Iterator *iter);
+void BKE_view_layer_selected_editable_objects_iterator_end(BLI_Iterator *iter);
+
 struct ObjectsInModeIteratorData {
 	int object_mode;
 	struct ViewLayer *view_layer;
@@ -166,6 +170,15 @@ void BKE_view_layer_visible_bases_iterator_end(BLI_Iterator *iter);
 	           view_layer, Object *, _instance)
 
 #define FOREACH_SELECTED_OBJECT_END                                           \
+	ITER_END
+
+#define FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN(view_layer, _instance)         \
+	ITER_BEGIN(BKE_view_layer_selected_editable_objects_iterator_begin,       \
+	           BKE_view_layer_selected_editable_objects_iterator_next,        \
+	           BKE_view_layer_selected_editable_objects_iterator_end,         \
+	           view_layer, Object *, _instance)
+
+#define FOREACH_SELECTED_EDITABLE_OBJECT_END                                  \
 	ITER_END
 
 #define FOREACH_VISIBLE_OBJECT_BEGIN(view_layer, _instance)                   \

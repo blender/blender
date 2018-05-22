@@ -75,6 +75,7 @@ static bool snap_calc_active_center(bContext *C, const bool select_only, float r
 static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Depsgraph *depsgraph = CTX_data_depsgraph(C);
+	ViewLayer *view_layer_eval = DEG_get_evaluated_view_layer(depsgraph);
 	Object *obedit = CTX_data_edit_object(C);
 	Scene *scene = CTX_data_scene(C);
 	RegionView3D *rv3d = CTX_wm_region_data(C);
@@ -133,34 +134,36 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+		FOREACH_SELECTED_EDITABLE_OBJECT_BEGIN(view_layer_eval, ob_eval)
 		{
+			Object *ob = DEG_get_original_object(ob_eval);
 			if (ob->mode & OB_MODE_POSE) {
-				bPoseChannel *pchan;
-				bArmature *arm = ob->data;
+				bPoseChannel *pchan_eval;
+				bArmature *arm_eval = ob_eval->data;
 				
-				invert_m4_m4(ob->imat, ob->obmat);
+				invert_m4_m4(ob_eval->imat, ob_eval->obmat);
 				
-				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-					if (pchan->bone->flag & BONE_SELECTED) {
-						if (pchan->bone->layer & arm->layer) {
-							if ((pchan->bone->flag & BONE_CONNECTED) == 0) {
+				for (pchan_eval = ob_eval->pose->chanbase.first; pchan_eval; pchan_eval = pchan_eval->next) {
+					if (pchan_eval->bone->flag & BONE_SELECTED) {
+						if (pchan_eval->bone->layer & arm_eval->layer) {
+							if ((pchan_eval->bone->flag & BONE_CONNECTED) == 0) {
 								float nLoc[3];
 								
 								/* get nearest grid point to snap to */
-								copy_v3_v3(nLoc, pchan->pose_mat[3]);
+								copy_v3_v3(nLoc, pchan_eval->pose_mat[3]);
 								/* We must operate in world space! */
-								mul_m4_v3(ob->obmat, nLoc);
+								mul_m4_v3(ob_eval->obmat, nLoc);
 								vec[0] = gridf * floorf(0.5f + nLoc[0] / gridf);
 								vec[1] = gridf * floorf(0.5f + nLoc[1] / gridf);
 								vec[2] = gridf * floorf(0.5f + nLoc[2] / gridf);
 								/* Back in object space... */
-								mul_m4_v3(ob->imat, vec);
+								mul_m4_v3(ob_eval->imat, vec);
 								
 								/* Get location of grid point in pose space. */
-								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
+								BKE_armature_loc_pose_to_bone(pchan_eval, vec, vec);
 								
-								/* adjust location */
+								/* adjust location on the original pchan*/
+								bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, pchan_eval->name);
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
 									pchan->loc[0] = vec[0];
 								if ((pchan->protectflag & OB_LOCK_LOCY) == 0)
@@ -182,9 +185,9 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			}
 			else {
-				vec[0] = -ob->obmat[3][0] + gridf * floorf(0.5f + ob->obmat[3][0] / gridf);
-				vec[1] = -ob->obmat[3][1] + gridf * floorf(0.5f + ob->obmat[3][1] / gridf);
-				vec[2] = -ob->obmat[3][2] + gridf * floorf(0.5f + ob->obmat[3][2] / gridf);
+				vec[0] = -ob_eval->obmat[3][0] + gridf * floorf(0.5f + ob_eval->obmat[3][0] / gridf);
+				vec[1] = -ob_eval->obmat[3][1] + gridf * floorf(0.5f + ob_eval->obmat[3][1] / gridf);
+				vec[2] = -ob_eval->obmat[3][2] + gridf * floorf(0.5f + ob_eval->obmat[3][2] / gridf);
 				
 				if (ob->parent) {
 					float originmat[3][3];
@@ -194,11 +197,11 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 					mul_m3_v3(imat, vec);
 				}
 				if ((ob->protectflag & OB_LOCK_LOCX) == 0)
-					ob->loc[0] += vec[0];
+					ob->loc[0] = ob_eval->loc[0] + vec[0];
 				if ((ob->protectflag & OB_LOCK_LOCY) == 0)
-					ob->loc[1] += vec[1];
+					ob->loc[1] = ob_eval->loc[1] + vec[1];
 				if ((ob->protectflag & OB_LOCK_LOCZ) == 0)
-					ob->loc[2] += vec[2];
+					ob->loc[2] = ob_eval->loc[2] + vec[2];
 				
 				/* auto-keyframing */
 				ED_autokeyframe_object(C, scene, ob, ks);
@@ -206,7 +209,7 @@ static int snap_sel_to_grid_exec(bContext *C, wmOperator *UNUSED(op))
 				DEG_id_tag_update(&ob->id, OB_RECALC_OB);
 			}
 		}
-		CTX_DATA_END;
+		FOREACH_SELECTED_EDITABLE_OBJECT_END;
 	}
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
