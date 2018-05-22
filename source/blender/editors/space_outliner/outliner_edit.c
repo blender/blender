@@ -1057,7 +1057,7 @@ static int outliner_scroll_page_exec(bContext *C, wmOperator *op)
 	ar->v2d.cur.ymin += dy;
 	ar->v2d.cur.ymax += dy;
 	
-	ED_region_tag_redraw(ar);
+	ED_region_tag_redraw_no_rebuild(ar);
 	
 	return OPERATOR_FINISHED;
 }

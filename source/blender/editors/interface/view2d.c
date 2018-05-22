@@ -819,7 +819,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 					}
 					
 					/* region possibly changed, so refresh */
-					ED_region_tag_redraw(ar);
+					ED_region_tag_redraw_no_rebuild(ar);
 				}
 			}
 		}
@@ -845,7 +845,7 @@ void UI_view2d_sync(bScreen *screen, ScrArea *area, View2D *v2dcur, int flag)
 						}
 						
 						/* region possibly changed, so refresh */
-						ED_region_tag_redraw(ar);
+						ED_region_tag_redraw_no_rebuild(ar);
 					}
 				}
 			}

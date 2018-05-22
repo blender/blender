@@ -1041,7 +1041,7 @@ void ED_screen_set_active_region(bContext *C, wmWindow *win, const int xy[2])
 				if (do_draw) {
 					for (ar = area_iter->regionbase.first; ar; ar = ar->next) {
 						if (ar->regiontype == RGN_TYPE_HEADER) {
-							ED_region_tag_redraw(ar);
+							ED_region_tag_redraw_no_rebuild(ar);
 						}
 					}
 				}

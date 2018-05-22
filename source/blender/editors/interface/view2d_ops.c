@@ -169,14 +169,8 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
 	
-	/* exceptions */
-	if (vpd->sa->spacetype == SPACE_OUTLINER) {
-		/* don't rebuild full tree, since we're just changing our view */
-		ED_region_tag_redraw_no_rebuild(vpd->ar);
-	}
-	else {
-		ED_region_tag_redraw(vpd->ar);
-	}
+	/* don't rebuild full tree in outliner, since we're just changing our view */
+	ED_region_tag_redraw_no_rebuild(vpd->ar);
 
 	/* request updates to be done... */
 	WM_event_add_mousemove(C);
@@ -734,7 +728,7 @@ static void view_zoomstep_apply_ex(
 	}
 
 	/* request updates to be done... */
-	ED_region_tag_redraw(vzd->ar);
+	ED_region_tag_redraw_no_rebuild(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 }
 
@@ -978,7 +972,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	}
 
 	/* request updates to be done... */
-	ED_region_tag_redraw(vzd->ar);
+	ED_region_tag_redraw_no_rebuild(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 }
 
@@ -1493,7 +1487,7 @@ void UI_view2d_smooth_view(
 		v2d->cur = sms.new_cur;
 
 		UI_view2d_curRect_validate(v2d);
-		ED_region_tag_redraw(ar);
+		ED_region_tag_redraw_no_rebuild(ar);
 		UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 	}
 }
@@ -1537,7 +1531,7 @@ static int view2d_smoothview_invoke(bContext *C, wmOperator *UNUSED(op), const w
 
 	UI_view2d_curRect_validate(v2d);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	ED_region_tag_redraw(ar);
+	ED_region_tag_redraw_no_rebuild(ar);
 
 	if (v2d->sms == NULL) {
 		UI_view2d_zoom_cache_reset();
@@ -1749,7 +1743,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 	}
 	
 	UI_view2d_scrollers_free(scrollers);
-	ED_region_tag_redraw(ar);
+	ED_region_tag_redraw_no_rebuild(ar);
 }
 
 /* cleanup temp customdata  */
@@ -1763,7 +1757,7 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 		
-		ED_region_tag_redraw(CTX_wm_region(C));
+		ED_region_tag_redraw_no_rebuild(CTX_wm_region(C));
 	}
 }
 
@@ -1825,7 +1819,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	UI_view2d_curRect_validate(v2d);
 	
 	/* request updates to be done... */
-	ED_region_tag_redraw(vsm->ar);
+	ED_region_tag_redraw_no_rebuild(vsm->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
 }
 

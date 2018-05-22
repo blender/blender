@@ -127,6 +127,7 @@ void    ED_screen_global_areas_create(
 void    ED_area_do_listen(struct bScreen *sc, ScrArea *sa, struct wmNotifier *note, Scene *scene,
                           struct WorkSpace *workspace);
 void    ED_area_tag_redraw(ScrArea *sa);
+void    ED_area_tag_redraw_no_rebuild(ScrArea *sa);
 void    ED_area_tag_redraw_regiontype(ScrArea *sa, int type);
 void    ED_area_tag_refresh(ScrArea *sa);
 void    ED_area_do_refresh(struct bContext *C, ScrArea *sa);

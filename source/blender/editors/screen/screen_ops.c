@@ -707,7 +707,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 				}
 
 				/* XXX force redraw to show/hide the action zone */
-				ED_area_tag_redraw(sa);
+				ED_area_tag_redraw_no_rebuild(sa);
 				break;
 			}
 			else if (az->type == AZONE_REGION_SCROLL) {
@@ -759,7 +759,7 @@ AZone *is_in_area_actionzone(ScrArea *sa, const int xy[2])
 				}
 
 				if (redraw) {
-					ED_area_tag_redraw(sa);
+					ED_area_tag_redraw_no_rebuild(sa);
 				}
 				/* Don't return! */
 			}
