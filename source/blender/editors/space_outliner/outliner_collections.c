@@ -104,7 +104,7 @@ Collection *outliner_collection_from_tree_element(const TreeElement *te)
 static int collections_editor_poll(bContext *C)
 {
 	SpaceOops *so = CTX_wm_space_outliner(C);
-	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES);
+	return (so != NULL) && ELEM(so->outlinevis, SO_VIEW_LAYER, SO_SCENES, SO_LIBRARIES);
 }
 
 
