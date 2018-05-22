@@ -188,6 +188,9 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 
 	/* back */
 	radiance_buffer = sl->radiance_buffers[STUDIOLIGHT_Y_POS];
+	if (radiance_buffer == NULL) {
+		goto fail;
+	}
 	radiance_color = radiance_buffer->rect_float;
 	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
 		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
@@ -206,6 +209,9 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 
 	/* front */
 	radiance_buffer = sl->radiance_buffers[STUDIOLIGHT_Y_NEG];
+	if (radiance_buffer == NULL) {
+		goto fail;
+	}
 	radiance_color = radiance_buffer->rect_float;
 	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
 		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
@@ -224,6 +230,9 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 
 	/* left */
 	radiance_buffer = sl->radiance_buffers[STUDIOLIGHT_X_POS];
+	if (radiance_buffer == NULL) {
+		goto fail;
+	}
 	radiance_color = radiance_buffer->rect_float;
 	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
 		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
@@ -242,6 +251,9 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 
 	/* right */
 	radiance_buffer = sl->radiance_buffers[STUDIOLIGHT_X_NEG];
+	if (radiance_buffer == NULL) {
+		goto fail;
+	}
 	radiance_color = radiance_buffer->rect_float;
 	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
 		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
@@ -260,6 +272,9 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 
 	/* top */
 	radiance_buffer = sl->radiance_buffers[STUDIOLIGHT_Z_POS];
+	if (radiance_buffer == NULL) {
+		goto fail;
+	}
 	radiance_color = radiance_buffer->rect_float;
 	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
 		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
@@ -278,6 +293,9 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 
 	/* bottom */
 	radiance_buffer = sl->radiance_buffers[STUDIOLIGHT_Z_NEG];
+	if (radiance_buffer == NULL) {
+		goto fail;
+	}
 	radiance_color = radiance_buffer->rect_float;
 	for (int y = 0; y < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; y ++) {
 		for (int x = 0; x < STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE; x ++) {
@@ -295,6 +313,10 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 	}
 
 	mul_v3_fl(color, 1.25 / (STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE * STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE));
+
+fail:
+	/* Pink color of failure. */
+	ARRAY_SET_ITEMS(color, 1.0f, 0.0f, 1.0f);
 }
 
 static void studiolight_calculate_diffuse_light(StudioLight *sl)
