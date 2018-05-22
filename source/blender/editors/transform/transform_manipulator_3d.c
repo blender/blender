@@ -1131,7 +1131,7 @@ static void manipulator_line_range(const int twtype, const short axis_type, floa
 
 static void manipulator_xform_message_subscribe(
         wmManipulatorGroup *mgroup, struct wmMsgBus *mbus,
-        Scene *scene, bScreen *screen, ScrArea *sa, ARegion *ar, const void *type_fn)
+        Scene *scene, bScreen *UNUSED(screen), ScrArea *sa, ARegion *ar, const void *type_fn)
 {
 	/* Subscribe to view properties */
 	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {
@@ -1157,8 +1157,8 @@ static void manipulator_xform_message_subscribe(
 		}
 	}
 
-	PointerRNA space_ptr;
-	RNA_pointer_create(&screen->id, &RNA_SpaceView3D, sa->spacedata.first, &space_ptr);
+	PointerRNA toolsettings_ptr;
+	RNA_pointer_create(&scene->id, &RNA_ToolSettings, scene->toolsettings, &toolsettings_ptr);
 
 	if (type_fn == TRANSFORM_WGT_manipulator) {
 		extern PropertyRNA rna_ToolSettings_transform_pivot_point;
@@ -1166,7 +1166,7 @@ static void manipulator_xform_message_subscribe(
 			&rna_ToolSettings_transform_pivot_point
 		};
 		for (int i = 0; i < ARRAY_SIZE(props); i++) {
-			WM_msg_subscribe_rna(mbus, &space_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
+			WM_msg_subscribe_rna(mbus, &toolsettings_ptr, props[i], &msg_sub_value_mpr_tag_refresh, __func__);
 		}
 	}
 	else if (type_fn == VIEW3D_WGT_xform_cage) {
