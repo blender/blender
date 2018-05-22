@@ -1459,8 +1459,13 @@ static void draw_bone_relations(
 			}
 		}
 		else if (pchan && pchan->parent) {
-			if ((boneflag & BONE_CONNECTED) == 0) {
-				drw_shgroup_bone_relationship_lines(pchan->pose_head, pchan->parent->pose_tail);
+			/* Only draw if bone or its parent is selected - reduces viewport complexity with complex rigs */
+			if ((boneflag & BONE_SELECTED) ||
+			    (pchan->parent->bone && (pchan->parent->bone->flag & BONE_SELECTED)))
+			{
+				if ((boneflag & BONE_CONNECTED) == 0) {
+					drw_shgroup_bone_relationship_lines(pchan->pose_head, pchan->parent->pose_tail);
+				}
 			}
 
 			/* Draw a line to IK root bone if bone is selected. */
