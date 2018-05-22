@@ -176,12 +176,10 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 
 static void ensure_forward_shaders(WORKBENCH_PrivateData *wpd, int index, int drawtype)
 {
-	if (e_data.composite_sh_cache[index] == NULL) {
+	if (e_data.composite_sh_cache[index] == NULL && drawtype == OB_SOLID) {
 		char *defines = workbench_material_build_defines(wpd, drawtype);
 		char *composite_frag = workbench_build_forward_composite_frag();
-		if (drawtype == OB_SOLID) {
-			e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
-		}
+		e_data.composite_sh_cache[index] = DRW_shader_create_fullscreen(composite_frag, defines);
 		MEM_freeN(composite_frag);
 		MEM_freeN(defines);
 	}

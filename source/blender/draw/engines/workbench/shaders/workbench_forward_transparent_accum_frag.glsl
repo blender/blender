@@ -48,7 +48,16 @@ void main()
 #endif /* V3D_LIGHTING_STUDIO */
 
 	float alpha = world_data.see_through_transparency;
+#ifdef NORMAL_VIEWPORT_PASS_ENABLED
+	vec3 normal = normalize(normal_viewport);
+	float kr;
+	fresnel(vec3(0.0, 0.0, -1.0), normal, 1.22, kr);
+	alpha = mix(alpha, alpha+alpha, kr);
+#endif
+
 	vec4 premultiplied = vec4(shaded_color.rgb * alpha, alpha);
+
 	transparentAccum = calculate_transparent_accum(premultiplied);
+
 }
 

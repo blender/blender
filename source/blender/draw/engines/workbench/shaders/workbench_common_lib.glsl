@@ -35,3 +35,30 @@ vec2 normal_encode(vec3 n)
 	float p = sqrt(n.z * 8.0 + 8.0);
 	return vec2(n.xy / p + 0.5);
 }
+
+void fresnel(vec3 I, vec3 N, float ior, out float kr)
+{
+	float cosi = clamp(dot(I, N), -1.0, 1.0);
+	float etai = 1.0;
+	float etat = ior;
+	if (cosi > 0) {
+		etat = 1.0;
+		etai = ior;
+	}
+
+	// Compute sini using Snell's law
+	float sint = etai / etat * sqrt(max(0.0, 1.0 - cosi * cosi));
+	// Total internal reflection
+	if (sint >= 1) {
+		kr = 1;
+	}
+	else {
+		float cost = sqrt(max(0.0, 1.0 - sint * sint));
+		cosi = abs(cosi);
+		float Rs = ((etat * cosi) - (etai * cost)) / ((etat * cosi) + (etai * cost));
+		float Rp = ((etai * cosi) - (etat * cost)) / ((etai * cosi) + (etat * cost));
+		kr = (Rs * Rs + Rp * Rp) / 2;
+	}
+	// As a consequence of the conservation of energy, transmittance is given by:
+	// kt = 1 - kr;
+}
