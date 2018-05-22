@@ -1622,12 +1622,13 @@ static void object_simplify_update(Object *ob)
 	}
 }
 
-static void rna_Scene_use_simplify_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+static void rna_Scene_use_simplify_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	Scene *sce = ptr->id.data;
 	Scene *sce_iter;
 	Base *base;
 
+	BKE_main_id_tag_listbase(&bmain->object, LIB_TAG_DOIT, true);
 	FOREACH_SCENE_OBJECT_BEGIN(sce, ob)
 	{
 		object_simplify_update(ob);
