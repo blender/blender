@@ -404,7 +404,7 @@ void WM_toolsystem_refresh_screen_area(WorkSpace *workspace, Scene *scene, ScrAr
 	sa->runtime.is_tool_set = true;
 	const int mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype);
 	for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
-		if ((tref->space_type == sa->spacetype)) {
+		if (tref->space_type == sa->spacetype) {
 			if (tref->mode == mode) {
 				sa->runtime.tool = tref;
 				break;

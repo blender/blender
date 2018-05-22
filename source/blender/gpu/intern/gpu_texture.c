@@ -886,6 +886,7 @@ GPUTexture *GPU_texture_create_from_vertbuf(Gwn_VertBuf *vert)
 			break;
 		default:
 			BLI_assert(0);
+			return NULL;
 	}
 
 	return GPU_texture_create_buffer(data_type, vert->vbo_id);
