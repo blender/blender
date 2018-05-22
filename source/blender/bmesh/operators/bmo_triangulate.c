@@ -252,7 +252,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH_MUTABLE (e, e_next, &iter, bm, BM_EDGES_OF_MESH) {
 			if (BMO_edge_flag_test(bm, e, ELE_NEW)) {
 				/* in rare cases the edges face will have already been removed from the edge */
-				if (LIKELY(e->l)) {
+				if (LIKELY(BM_edge_is_manifold(e))) {
 					BMFace *f_new = BM_faces_join_pair(bm, e->l, e->l->radial_next, false);
 					if (f_new) {
 						BMO_face_flag_enable(bm, f_new, ELE_NEW);
@@ -262,8 +262,12 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 						BMO_error_clear(bm);
 					}
 				}
-				else {
+				else if (e->l == NULL) {
 					BM_edge_kill(bm, e);
+				}
+				else {
+					/* Edges with 1 or 3+ faces attached,
+					 * most likely caused by a degeneratge mesh. */
 				}
 			}
 		}
