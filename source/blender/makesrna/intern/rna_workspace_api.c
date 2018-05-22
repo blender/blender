@@ -114,7 +114,7 @@ void RNA_api_workspace_tool(StructRNA *srna)
 	parm = RNA_def_pointer(func, "result", "OperatorProperties", "", "");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_RNAPTR);
 	RNA_def_function_return(func, parm);
-	
+
 }
 
 #endif

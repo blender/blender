@@ -1131,7 +1131,7 @@ static void manipulator_line_range(const int twtype, const short axis_type, floa
 
 static void manipulator_xform_message_subscribe(
         wmManipulatorGroup *mgroup, struct wmMsgBus *mbus,
-        Scene *scene, bScreen *UNUSED(screen), ScrArea *sa, ARegion *ar, const void *type_fn)
+        Scene *scene, bScreen *UNUSED(screen), ScrArea *UNUSED(sa), ARegion *ar, const void *type_fn)
 {
 	/* Subscribe to view properties */
 	wmMsgSubscribeValue msg_sub_value_mpr_tag_refresh = {

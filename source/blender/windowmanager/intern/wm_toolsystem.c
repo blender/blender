@@ -282,7 +282,7 @@ void WM_toolsystem_ref_set_from_runtime(
         const bToolRef_Runtime *tref_rt, const char *idname)
 {
 	Main *bmain = CTX_data_main(C);
-	
+
 	if (tref->runtime) {
 		toolsystem_unlink_ref(C, workspace, tref);
 	}
