@@ -1365,16 +1365,21 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 		ui_id_icon_render(C, id, true);
 	}
 	else {
+		WorkSpace *workspace = CTX_wm_workspace(C);
 		Object *ob = CTX_data_active_object(C);
-		SpaceImage *sima;
 		const EnumPropertyItem *items = NULL;
 		int tool = PAINT_TOOL_DRAW, mode = 0;
+		ScrArea *sa = CTX_wm_area(C);
+		char space_type = sa->spacetype;
+		if (space_type == SPACE_TOPBAR) {
+			space_type = workspace->tools_space_type;
+		}
 
 		/* XXX: this is not nice, should probably make brushes
 		 * be strictly in one paint mode only to avoid
 		 * checking various context stuff here */
 
-		if (CTX_wm_view3d(C) && ob) {
+		if ((space_type == SPACE_VIEW3D) && ob) {
 			if (ob->mode & OB_MODE_SCULPT)
 				mode = OB_MODE_SCULPT;
 			else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
@@ -1382,10 +1387,19 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 			else if (ob->mode & OB_MODE_TEXTURE_PAINT)
 				mode = OB_MODE_TEXTURE_PAINT;
 		}
-		else if ((sima = CTX_wm_space_image(C)) &&
-		         (sima->mode == SI_MODE_PAINT))
-		{
-			mode = OB_MODE_TEXTURE_PAINT;
+		else if (space_type == SPACE_IMAGE) {
+			int sima_mode;
+			if (sa->spacetype == space_type) {
+				SpaceImage *sima = sa->spacedata.first;
+				sima_mode = sima->mode;
+			}
+			else {
+				sima_mode = workspace->tools_mode;
+			}
+
+			if (sima_mode == SI_MODE_PAINT) {
+				mode = OB_MODE_TEXTURE_PAINT;
+			}
 		}
 
 		/* reset the icon */
