@@ -5,7 +5,6 @@ uniform sampler2D colorBuffer;
 uniform sampler2D normalBuffer;
 /* normalBuffer contains viewport normals */
 uniform vec2 invertedViewportSize;
-uniform vec3 objectOverlapColor = vec3(0.0);
 uniform float shadowMultiplier;
 uniform float lightMultiplier;
 uniform float shadowShift = 0.1;
@@ -29,15 +28,15 @@ void main()
 		return;
 	}
 #else /* !V3D_SHADING_OBJECT_OUTLINE */
-	float object_overlap = calculate_object_overlap(objectId, texel, object_id);
+	float object_outline = calculate_object_outline(objectId, texel, object_id);
 
 	if (object_id == NO_OBJECT_ID) {
 		vec3 background = background_color(world_data, uv_viewport.y);
-		if (object_overlap == 0.0) {
+		if (object_outline == 0.0) {
 			fragColor = vec4(background, 0.0);
 		}
 		else {
-			fragColor = vec4(mix(objectOverlapColor, background, object_overlap), 1.0-object_overlap);
+			fragColor = vec4(mix(world_data.object_outline_color.rgb, background, object_outline), 1.0-object_outline);
 		}
 		return;
 	}
@@ -84,7 +83,7 @@ void main()
 	shaded_color *= light_multiplier;
 
 #ifdef V3D_SHADING_OBJECT_OUTLINE
-	shaded_color = mix(objectOverlapColor, shaded_color, object_overlap);
+	shaded_color = mix(world_data.object_outline_color.rgb, shaded_color, object_outline);
 #endif /* V3D_SHADING_OBJECT_OUTLINE */
 	fragColor = vec4(shaded_color, 1.0);
 }

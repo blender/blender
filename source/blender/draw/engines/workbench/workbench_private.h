@@ -37,11 +37,24 @@
 
 #define WORKBENCH_ENGINE "BLENDER_WORKBENCH"
 #define M_GOLDEN_RATION_CONJUGATE 0.618033988749895
+#define MAX_SHADERS 255
+
+
+#define OBJECT_ID_PASS_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_OBJECT_OUTLINE)
+#define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
+#define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || SHADOW_ENABLED(wpd))
+#define NORMAL_ENCODING_ENABLED() (true)
+#define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
 
 
 typedef struct WORKBENCH_FramebufferList {
+	/* Deferred render buffers */
 	struct GPUFrameBuffer *prepass_fb;
 	struct GPUFrameBuffer *composite_fb;
+
+	/* Forward render buffers */
+	struct GPUFrameBuffer *depth_fb;
+	struct GPUFrameBuffer *transparent_accum_fb;
 } WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_StorageList {
@@ -49,13 +62,17 @@ typedef struct WORKBENCH_StorageList {
 } WORKBENCH_StorageList;
 
 typedef struct WORKBENCH_PassList {
+	/* deferred rendering */
 	struct DRWPass *prepass_pass;
 	struct DRWPass *shadow_depth_pass_pass;
 	struct DRWPass *shadow_depth_fail_pass;
 	struct DRWPass *shadow_depth_fail_caps_pass;
 	struct DRWPass *composite_pass;
 	struct DRWPass *composite_shadow_pass;
-	struct DRWPass *composite_light_pass;
+
+	/* forward rendering */
+	struct DRWPass *transparent_accum_pass;
+	struct DRWPass *depth_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_Data {
@@ -75,6 +92,9 @@ typedef struct WORKBENCH_UBO_World {
 	float diffuse_light_z_neg[4];
 	float background_color_low[4];
 	float background_color_high[4];
+	float object_outline_color[4];
+	float see_through_transparency;
+	float pad[3];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 
@@ -83,6 +103,8 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUShader *prepass_solid_sh;
 	struct GPUShader *prepass_texture_sh;
 	struct GPUShader *composite_sh;
+	struct GPUShader *transparent_accum_sh;
+	struct GPUShader *transparent_accum_texture_sh;
 	View3DShading shading;
 	StudioLight *studio_light;
 	int drawtype;
@@ -94,13 +116,15 @@ typedef struct WORKBENCH_PrivateData {
 
 typedef struct WORKBENCH_MaterialData {
 	/* Solid color */
-	float color[3];
+	float color[4];
 	int object_id;
 	int drawtype;
 	Image *ima;
 
 	/* Linked shgroup for drawing */
 	DRWShadingGroup *shgrp;
+	/* forward rendering */
+	DRWShadingGroup *shgrp_depth;
 } WORKBENCH_MaterialData;
 
 typedef struct WORKBENCH_ObjectData {
@@ -124,16 +148,39 @@ void workbench_solid_materials_cache_finish(WORKBENCH_Data *vedata);
 void workbench_solid_materials_draw_scene(WORKBENCH_Data *vedata);
 void workbench_solid_materials_free(void);
 
+/* workbench_deferred.c */
+void workbench_deferred_engine_init(WORKBENCH_Data *vedata);
+void workbench_deferred_engine_free(void);
+void workbench_deferred_draw_background(WORKBENCH_Data *vedata);
+void workbench_deferred_draw_scene(WORKBENCH_Data *vedata);
+void workbench_deferred_cache_init(WORKBENCH_Data *vedata);
+void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);
+void workbench_deferred_cache_finish(WORKBENCH_Data *vedata);
+
+/* workbench_forward.c */
+void workbench_forward_engine_init(WORKBENCH_Data *vedata);
+void workbench_forward_engine_free(void);
+void workbench_forward_draw_background(WORKBENCH_Data *vedata);
+void workbench_forward_draw_scene(WORKBENCH_Data *vedata);
+void workbench_forward_cache_init(WORKBENCH_Data *vedata);
+void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob);
+void workbench_forward_cache_finish(WORKBENCH_Data *vedata);
+
 /* workbench_materials.c */
-void workbench_materials_engine_init(WORKBENCH_Data *vedata);
-void workbench_materials_engine_free(void);
-void workbench_materials_draw_background(WORKBENCH_Data *vedata);
-void workbench_materials_draw_scene(WORKBENCH_Data *vedata);
-void workbench_materials_cache_init(WORKBENCH_Data *vedata);
-void workbench_materials_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob);
-void workbench_materials_cache_finish(WORKBENCH_Data *vedata);
+char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype);
+void workbench_material_get_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color);
+uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
+int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype);
+void workbench_material_set_normal_world_matrix(DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
 
 /* workbench_studiolight.c */
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
+
+/* workbench_data.c */
+void workbench_private_data_init(WORKBENCH_PrivateData *wpd);
+void workbench_private_data_free(WORKBENCH_PrivateData *wpd);
+
+extern DrawEngineType draw_engine_workbench_solid;
+extern DrawEngineType draw_engine_workbench_transparent;
 
 #endif

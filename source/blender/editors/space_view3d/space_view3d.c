@@ -324,6 +324,7 @@ static SpaceLink *view3d_new(const ScrArea *UNUSED(sa), const Scene *scene)
 	v3d->drawtype = OB_SOLID;
 	v3d->shading.light = V3D_LIGHTING_STUDIO;
 	v3d->shading.shadow_intensity = 0.5;
+	v3d->shading.see_through_transparency = 0.3f;
 	copy_v3_fl(v3d->shading.single_color, 0.8f);
 
 	v3d->gridflag = V3D_SHOW_X | V3D_SHOW_Y | V3D_SHOW_FLOOR;

@@ -1015,7 +1015,7 @@ static void drw_engines_enable_external(void)
 /* TODO revisit this when proper layering is implemented */
 /* Gather all draw engines needed and store them in DST.enabled_engines
  * That also define the rendering order of engines */
-static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype)
+static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int drawtype, int shading_flags)
 {
 	switch (drawtype) {
 		case OB_WIRE:
@@ -1023,7 +1023,12 @@ static void drw_engines_enable_from_engine(RenderEngineType *engine_type, int dr
 
 		case OB_SOLID:
 		case OB_TEXTURE:
-			use_drw_engine(&draw_engine_workbench_solid);
+			if (shading_flags & V3D_SHADING_SEE_THROUGH) {
+				use_drw_engine(&draw_engine_workbench_transparent);
+			}
+			else {
+				use_drw_engine(&draw_engine_workbench_solid);
+			}
 			break;
 
 		case OB_MATERIAL:
@@ -1118,7 +1123,7 @@ static void drw_engines_enable(ViewLayer *view_layer, RenderEngineType *engine_t
 	View3D * v3d = DST.draw_ctx.v3d;
 	const int drawtype = v3d->drawtype;
 
-	drw_engines_enable_from_engine(engine_type, drawtype);
+	drw_engines_enable_from_engine(engine_type, drawtype, v3d->shading.flag);
 
 	if (DRW_state_draw_support()) {
 		drw_engines_enable_from_overlays(v3d->overlay.flag);

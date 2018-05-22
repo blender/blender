@@ -19,7 +19,7 @@
  *
  */
 
-/** \file solid_mode.c
+/** \file transparent_mode.c
  *  \ingroup draw_engine
  *
  * Simple engine for drawing color and/or depth.
@@ -34,61 +34,61 @@
 
 /* Functions */
 
-static void workbench_solid_engine_init(void *vedata)
+static void workbench_transparent_engine_init(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
-	workbench_deferred_engine_init(data);
+	workbench_forward_engine_init(data);
 }
 
-static void workbench_solid_cache_init(void *vedata)
+static void workbench_transparent_cache_init(void *vedata)
 {
 
 	WORKBENCH_Data *data = vedata;
-	workbench_deferred_cache_init(data);
+	workbench_forward_cache_init(data);
 }
 
-static void workbench_solid_cache_populate(void *vedata, Object *ob)
+static void workbench_transparent_cache_populate(void *vedata, Object *ob)
 {
 	WORKBENCH_Data *data = vedata;
-	workbench_deferred_solid_cache_populate(data, ob);
+	workbench_forward_cache_populate(data, ob);
 }
 
-static void workbench_solid_cache_finish(void *vedata)
+static void workbench_transparent_cache_finish(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
-	workbench_deferred_cache_finish(data);
+	workbench_forward_cache_finish(data);
 }
 
-static void workbench_solid_draw_background(void *vedata)
+static void workbench_transparent_draw_background(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
-	workbench_deferred_draw_background(data);
+	workbench_forward_draw_background(data);
 }
 
-static void workbench_solid_draw_scene(void *vedata)
+static void workbench_transparent_draw_scene(void *vedata)
 {
 	WORKBENCH_Data *data = vedata;
-	workbench_deferred_draw_scene(data);
+	workbench_forward_draw_scene(data);
 }
 
-static void workbench_solid_engine_free(void)
+static void workbench_transparent_engine_free(void)
 {
-	workbench_deferred_engine_free();
+	workbench_forward_engine_free();
 }
 
 static const DrawEngineDataSize workbench_data_size = DRW_VIEWPORT_DATA_SIZE(WORKBENCH_Data);
 
-DrawEngineType draw_engine_workbench_solid = {
+DrawEngineType draw_engine_workbench_transparent = {
 	NULL, NULL,
 	N_("Workbench"),
 	&workbench_data_size,
-	&workbench_solid_engine_init,
-	&workbench_solid_engine_free,
-	&workbench_solid_cache_init,
-	&workbench_solid_cache_populate,
-	&workbench_solid_cache_finish,
-	&workbench_solid_draw_background,
-	&workbench_solid_draw_scene,
+	&workbench_transparent_engine_init,
+	&workbench_transparent_engine_free,
+	&workbench_transparent_cache_init,
+	&workbench_transparent_cache_populate,
+	&workbench_transparent_cache_finish,
+	&workbench_transparent_draw_background,
+	&workbench_transparent_draw_scene,
 	NULL,
 	NULL,
 	NULL,

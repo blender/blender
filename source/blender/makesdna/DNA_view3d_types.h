@@ -145,6 +145,9 @@ typedef struct View3DShading {
 	float single_color[3];
 
 	float studiolight_rot_z;
+	float see_through_transparency;
+
+	float object_outline_color[3];
 	float pad2;
 } View3DShading;
 
@@ -335,6 +338,7 @@ enum {
 /* View3DShading->flag */
 enum {
 	V3D_SHADING_OBJECT_OUTLINE = (1 << 0),
+	V3D_SHADING_SEE_THROUGH   = (1 << 1),
 	V3D_SHADING_SHADOW         = (1 << 2),
 };
 

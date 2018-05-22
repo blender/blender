@@ -1479,6 +1479,19 @@ void blo_do_versions_280(FileData *fd, Library *UNUSED(lib), Main *main)
 			}
 		}
 
+		if (!DNA_struct_elem_find(fd->filesdna, "View3DShading", "float", "see_through_transparency")) {
+			for (bScreen *screen = main->screen.first; screen; screen = screen->id.next) {
+				for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
+					for (SpaceLink *sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_VIEW3D) {
+							View3D *v3d = (View3D *)sl;
+							v3d->shading.see_through_transparency = 0.3f;
+						}
+					}
+				}
+			}
+		}
+
 		for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
 			switch (scene->toolsettings->snap_mode) {
 				case 0: scene->toolsettings->snap_mode = SCE_SNAP_MODE_INCREMENT; break;

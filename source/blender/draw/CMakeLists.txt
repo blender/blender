@@ -105,10 +105,14 @@ set(SRC
 	engines/eevee/eevee_subsurface.c
 	engines/eevee/eevee_temporal_sampling.c
 	engines/eevee/eevee_volumes.c
+	engines/workbench/workbench_data.c
 	engines/workbench/workbench_engine.c
+	engines/workbench/workbench_deferred.c
+	engines/workbench/workbench_forward.c
 	engines/workbench/workbench_materials.c
 	engines/workbench/workbench_studiolight.c
 	engines/workbench/solid_mode.c
+	engines/workbench/transparent_mode.c
 	engines/external/external_engine.c
 
 	DRW_engine.h
@@ -208,17 +212,20 @@ data_to_c_simple(engines/eevee/shaders/volumetric_resolve_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_scatter_frag.glsl SRC)
 data_to_c_simple(engines/eevee/shaders/volumetric_integration_frag.glsl SRC)
 
+data_to_c_simple(engines/workbench/shaders/workbench_background_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_common_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_deferred_composite_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_forward_composite_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_forward_depth_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_forward_transparent_accum_frag.glsl SRC)
+data_to_c_simple(engines/workbench/shaders/workbench_object_outline_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_prepass_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_composite_frag.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_vert.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_geom.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_caps_geom.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_shadow_debug_frag.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_background_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_common_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_data_lib.glsl SRC)
-data_to_c_simple(engines/workbench/shaders/workbench_object_overlap_lib.glsl SRC)
 data_to_c_simple(engines/workbench/shaders/workbench_world_light_lib.glsl SRC)
 
 data_to_c_simple(modes/shaders/common_globals_lib.glsl SRC)
