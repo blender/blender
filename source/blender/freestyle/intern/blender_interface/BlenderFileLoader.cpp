@@ -105,7 +105,7 @@ NodeGroup *BlenderFileLoader::Load()
 			break;
 		}
 
-		bool apply_modifiers = true;
+		bool apply_modifiers = false;
 		bool calc_undeformed = false;
 		bool calc_tessface = false;
 		Mesh *mesh = BKE_mesh_new_from_object(depsgraph,

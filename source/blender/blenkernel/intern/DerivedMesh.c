@@ -2003,7 +2003,7 @@ static void mesh_ensure_display_normals(Mesh *mesh)
 
 static void mesh_calc_modifiers(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, float (*inputVertexCos)[3],
-        const bool useRenderParams, int useDeform,
+        int useDeform,
         const bool need_mapping, CustomDataMask dataMask,
         const int index, const bool useCache, const bool build_shapekey_layers,
         const bool allow_gpu,
@@ -2017,6 +2017,7 @@ static void mesh_calc_modifiers(
 	CustomDataMask mask, nextmask, previewmask = 0, append_mask = CD_MASK_ORIGINDEX;
 	float (*deformedVerts)[3] = NULL;
 	int numVerts = me->totvert;
+	const bool useRenderParams = (DEG_get_mode(depsgraph) == DAG_EVAL_RENDER);
 	const int required_mode = useRenderParams ? eModifierMode_Render : eModifierMode_Realtime;
 	bool isPrevDeform = false;
 	MultiresModifierData *mmd = get_multires_modifier(scene, ob, 0);
@@ -2510,7 +2511,7 @@ static void mesh_calc_modifiers(
 
 static void mesh_calc_modifiers_dm(
         struct Depsgraph *depsgraph, Scene *scene, Object *ob, float (*inputVertexCos)[3],
-        const bool useRenderParams, int useDeform,
+        int useDeform,
         const bool need_mapping, CustomDataMask dataMask,
         const int index, const bool useCache, const bool build_shapekey_layers,
         const bool allow_gpu,
@@ -2520,7 +2521,7 @@ static void mesh_calc_modifiers_dm(
 	Mesh *deform_mesh = NULL, *final_mesh = NULL;
 
 	mesh_calc_modifiers(
-	        depsgraph, scene, ob, inputVertexCos, useRenderParams, useDeform,
+	        depsgraph, scene, ob, inputVertexCos, useDeform,
 	        need_mapping, dataMask, index, useCache, build_shapekey_layers, allow_gpu,
 	        (r_deformdm ? &deform_mesh : NULL), &final_mesh);
 
@@ -2931,7 +2932,7 @@ static void mesh_build_data(
 #endif
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, false, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
+	        depsgraph, scene, ob, NULL, 1, need_mapping, dataMask, -1, true, build_shapekey_layers,
 	        true,
 	        &ob->derivedDeform, &ob->derivedFinal);
 
@@ -3080,7 +3081,7 @@ DerivedMesh *mesh_create_derived_render(struct Depsgraph *depsgraph, Scene *scen
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, true, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3091,7 +3092,7 @@ DerivedMesh *mesh_create_derived_index_render(struct Depsgraph *depsgraph, Scene
 	DerivedMesh *final;
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, true, 1, false, dataMask, index, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, index, false, false, false,
 	        NULL, &final);
 
 	return final;
@@ -3110,7 +3111,7 @@ DerivedMesh *mesh_create_derived_view(
 	ob->transflag |= OB_NO_PSYS_UPDATE;
 
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, NULL, false, 1, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, NULL, 1, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	ob->transflag &= ~OB_NO_PSYS_UPDATE;
@@ -3125,21 +3126,7 @@ DerivedMesh *mesh_create_derived_no_deform(
 	DerivedMesh *final;
 	
 	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, vertCos, false, 0, false, dataMask, -1, false, false, false,
-	        NULL, &final);
-
-	return final;
-}
-
-DerivedMesh *mesh_create_derived_no_deform_render(
-        struct Depsgraph *depsgraph, Scene *scene,
-        Object *ob, float (*vertCos)[3],
-        CustomDataMask dataMask)
-{
-	DerivedMesh *final;
-
-	mesh_calc_modifiers_dm(
-	        depsgraph, scene, ob, vertCos, true, 0, false, dataMask, -1, false, false, false,
+	        depsgraph, scene, ob, vertCos, 0, false, dataMask, -1, false, false, false,
 	        NULL, &final);
 
 	return final;

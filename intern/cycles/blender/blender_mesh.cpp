@@ -1189,7 +1189,7 @@ Mesh *BlenderSync::sync_mesh(BL::Depsgraph& b_depsgraph,
 		BL::Mesh b_mesh = object_to_mesh(b_data,
 		                                 b_ob,
 		                                 b_depsgraph,
-		                                 true,
+		                                 false,
 		                                 need_undeformed,
 		                                 mesh->subdivision_type);
 
@@ -1277,7 +1277,7 @@ void BlenderSync::sync_mesh_motion(BL::Depsgraph& b_depsgraph,
 		b_mesh = object_to_mesh(b_data,
 		                        b_ob,
 		                        b_depsgraph,
-		                        true,
+		                        false,
 		                        false,
 		                        Mesh::SUBDIVISION_NONE);
 	}
