@@ -2134,9 +2134,12 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 					}
 					else {
 						bArmature *arm = base->object->data;
-						bone->flag &= ~BONE_SELECTED;
-						if (arm->act_bone == bone)
-							arm->act_bone = NULL;
+						if ((bone->flag & BONE_UNSELECTABLE) == 0) {
+							bone->flag &= ~BONE_SELECTED;
+							bone_selected = true;
+							if (arm->act_bone == bone)
+								arm->act_bone = NULL;
+						}
 					}
 				}
 				else if (!bone_only) {
@@ -2170,6 +2173,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, b
 						/* mask modifier ('armature' mode), etc. */
 						DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
 					}
+					
 				}
 			}
 		}
