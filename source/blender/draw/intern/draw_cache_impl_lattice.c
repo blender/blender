@@ -319,10 +319,7 @@ static bool lattice_batch_cache_valid(Lattice *lt)
 		return false;
 	}
 	else {
-		if (cache->is_editmode) {
-			return false;
-		}
-		else if ((cache->dims.u_len != lt->pntsu) ||
+		if ((cache->dims.u_len != lt->pntsu) ||
 		         (cache->dims.v_len != lt->pntsv) ||
 		         (cache->dims.w_len != lt->pntsw) ||
 		         ((cache->show_only_outside != ((lt->flag & LT_OUTSIDE) != 0))))
