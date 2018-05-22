@@ -64,7 +64,7 @@ static void studiolight_free(struct StudioLight *sl)
 {
 	for (int index = 0 ; index < 6 ; index ++) {
 		if (sl->radiance_buffers[index] != NULL) {
-			MEM_freeN(sl->radiance_buffers[index]);
+			IMB_freeImBuf(sl->radiance_buffers[index]);
 			sl->radiance_buffers[index] = NULL;
 		}
 	}
