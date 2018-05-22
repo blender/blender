@@ -661,7 +661,7 @@ void DRW_draw_cursor(void)
 		int co[2];
 		const View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
 		if (ED_view3d_project_int_global(
-		            ar, cursor->location, co, V3D_PROJ_TEST_NOP) == V3D_PROJ_RET_OK)
+		            ar, cursor->location, co, V3D_PROJ_TEST_NOP | V3D_PROJ_TEST_CLIP_NEAR) == V3D_PROJ_RET_OK)
 		{
 			RegionView3D *rv3d = ar->regiondata;
 
