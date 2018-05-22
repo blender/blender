@@ -594,14 +594,15 @@ DerivedMesh *CDDM_new(int numVerts, int numEdges, int numTessFaces, int numLoops
 
 DerivedMesh *CDDM_from_mesh(Mesh *mesh)
 {
-	return CDDM_from_mesh_ex(mesh, CD_REFERENCE);
+	return CDDM_from_mesh_ex(mesh, CD_REFERENCE, CD_MASK_MESH);
 }
 
-DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, int alloctype)
+DerivedMesh *CDDM_from_mesh_ex(Mesh *mesh, int alloctype, CustomDataMask mask)
 {
 	CDDerivedMesh *cddm = cdDM_create(__func__);
 	DerivedMesh *dm = &cddm->dm;
-	CustomDataMask mask = CD_MASK_MESH & (~CD_MASK_MDISPS);
+
+	mask &= ~CD_MASK_MDISPS;
 
 	/* this does a referenced copy, with an exception for fluidsim */
 
