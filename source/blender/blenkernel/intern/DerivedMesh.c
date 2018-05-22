@@ -2464,7 +2464,7 @@ static void mesh_calc_modifiers(
 	if (do_loop_normals) {
 		/* Compute loop normals (note: will compute poly and vert normals as well, if needed!) */
 		BKE_mesh_calc_normals_split(final_mesh);
-		BKE_mesh_tessface_clear(mesh);
+		BKE_mesh_tessface_clear(final_mesh);
 	}
 
 	if (sculpt_dyntopo == false) {
