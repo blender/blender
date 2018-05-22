@@ -416,9 +416,8 @@ void applySnapping(TransInfo *t, float *vec)
 
 		t->tsnap.applySnap(t, vec);
 	}
-	else if ((t->tsnap.mode &
-	        ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID) != 0) &&
-	        activeSnap(t))
+	else if (((t->tsnap.mode & ~(SCE_SNAP_MODE_INCREMENT | SCE_SNAP_MODE_GRID)) != 0) &&
+	         activeSnap(t))
 	{
 		double current = PIL_check_seconds_timer();
 
