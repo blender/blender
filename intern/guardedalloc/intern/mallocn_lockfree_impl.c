@@ -171,7 +171,7 @@ void *MEM_lockfree_dupallocN(const void *vmemh)
 	void *newp = NULL;
 	if (vmemh) {
 		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
-		const size_t prev_size = MEM_allocN_len(vmemh);
+		const size_t prev_size = MEM_lockfree_allocN_len(vmemh);
 		if (UNLIKELY(MEMHEAD_IS_MMAP(memh))) {
 			newp = MEM_lockfree_mapallocN(prev_size, "dupli_mapalloc");
 		}
@@ -196,7 +196,7 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
 
 	if (vmemh) {
 		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
-		size_t old_len = MEM_allocN_len(vmemh);
+		size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
 		if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
 			newp = MEM_lockfree_mallocN(len, "realloc");
@@ -235,7 +235,7 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
 
 	if (vmemh) {
 		MemHead *memh = MEMHEAD_FROM_PTR(vmemh);
-		size_t old_len = MEM_allocN_len(vmemh);
+		size_t old_len = MEM_lockfree_allocN_len(vmemh);
 
 		if (LIKELY(!MEMHEAD_IS_ALIGNED(memh))) {
 			newp = MEM_lockfree_mallocN(len, "recalloc");
