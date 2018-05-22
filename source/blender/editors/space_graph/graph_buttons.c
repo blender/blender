@@ -728,6 +728,50 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 	uiItemR(sub, &dtar_ptr, "transform_space", 0, IFACE_("Space"), ICON_NONE);
 }
 
+
+/* property driven by the driver - duplicates Active FCurve, but useful for clarity */
+static void graph_panel_driven_property(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+	PointerRNA fcu_ptr;
+	uiLayout *layout = pa->layout;
+	char name[256];
+	int icon = 0;
+
+	if (!graph_panel_context(C, &ale, &fcu))
+		return;
+	
+	/* F-Curve pointer */
+	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
+	
+	/* user-friendly 'name' for F-Curve */
+	if (ale->type == ANIMTYPE_FCURVE) {
+		/* get user-friendly name for F-Curve */
+		icon = getname_anim_fcurve(name, ale->id, fcu);
+	}
+	else {
+		/* NLA Control Curve, etc. */
+		const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
+		
+		/* get name */
+		if (acf && acf->name) {
+			acf->name(ale, name);
+		}
+		else {
+			strcpy(name, IFACE_("<invalid>"));
+			icon = ICON_ERROR;
+		}
+		
+		/* icon */
+		if (ale->type == ANIMTYPE_NLACURVE)
+			icon = ICON_NLA;
+	}
+	uiItemL(layout, name, icon);
+	
+	MEM_freeN(ale);
+}
+
 /* driver settings for active F-Curve (only for 'Drivers' mode) */
 static void graph_panel_drivers(const bContext *C, Panel *pa)
 {
@@ -1035,10 +1079,18 @@ void graph_buttons_register(ARegionType *art)
 	pt->poll = graph_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
+	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers driven");
+	strcpy(pt->idname, "GRAPH_PT_driven_property");
+	strcpy(pt->label, N_("Driven Property"));
+	strcpy(pt->category, "Drivers");
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->draw = graph_panel_driven_property;
+	pt->poll = graph_panel_drivers_poll;
+	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers");
 	strcpy(pt->idname, "GRAPH_PT_drivers");
-	strcpy(pt->label, N_("Drivers"));
+	strcpy(pt->label, N_("Driver"));
 	strcpy(pt->category, "Drivers");
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = graph_panel_drivers;
