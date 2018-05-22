@@ -237,14 +237,11 @@ class ToolSelectPanelHelper:
         """
         Return the active Python tool definition and icon name.
         """
-
         workspace = context.workspace
         cls = ToolSelectPanelHelper._tool_class_from_space_type(space_type)
         if cls is not None:
-            tool_active_text = getattr(
-                ToolSelectPanelHelper._tool_active_from_context(context, space_type, mode),
-                "name", None)
-
+            tool_active = ToolSelectPanelHelper._tool_active_from_context(context, space_type, mode)
+            tool_active_text = getattr(tool_active, "name", None)
             for item in ToolSelectPanelHelper._tools_flatten(cls.tools_from_context(context, mode)):
                 if item is not None:
                     if item.text == tool_active_text:
@@ -252,8 +249,8 @@ class ToolSelectPanelHelper:
                             icon_value = ToolSelectPanelHelper._icon_value_from_icon_handle(item.icon)
                         else:
                             icon_value = 0
-                        return (item, icon_value)
-        return None, 0
+                        return (item, tool_active, icon_value)
+        return None, None, 0
 
     @staticmethod
     def _tool_get_by_name(context, space_type, text):
@@ -517,14 +514,14 @@ class ToolSelectPanelHelper:
         workspace = context.workspace
         space_type = workspace.tools_space_type
         mode = workspace.tools_mode
-        item, icon_value = ToolSelectPanelHelper._tool_get_active(context, space_type, mode, with_icon=True)
+        item, tool, icon_value = ToolSelectPanelHelper._tool_get_active(context, space_type, mode, with_icon=True)
         if item is None:
             return
         # Note: we could show 'item.text' here but it makes the layout jitter when switcuing tools.
         layout.label(" ", icon_value=icon_value)
         draw_settings = item.draw_settings
         if draw_settings is not None:
-            draw_settings(context, layout)
+            draw_settings(context, layout, tool)
 
 
 # The purpose of this menu is to be a generic popup to select between tools

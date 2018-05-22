@@ -45,6 +45,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_paint.h"
+#include "BKE_idprop.h"
 #include "BKE_workspace.h"
 
 #include "RNA_access.h"
@@ -526,4 +527,49 @@ void WM_toolsystem_do_msg_notify_tag_refresh(
 		.mode = WM_toolsystem_mode_from_spacetype(workspace, scene, sa, sa->spacetype),
 	};
 	WM_toolsystem_refresh(C, workspace, &tkey);
+}
+
+IDProperty *WM_toolsystem_ref_properties_ensure_idprops(bToolRef *tref)
+{
+	if (tref->properties == NULL) {
+		IDPropertyTemplate val = {0};
+		tref->properties = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+	}
+	return tref->properties;
+}
+
+void WM_toolsystem_ref_properties_ensure(bToolRef *tref, wmOperatorType *ot, PointerRNA *ptr)
+{
+	IDProperty *group = WM_toolsystem_ref_properties_ensure_idprops(tref);
+	IDProperty *prop = IDP_GetPropertyFromGroup(group, ot->idname);
+	if (prop == NULL) {
+		IDPropertyTemplate val = {0};
+		prop = IDP_New(IDP_GROUP, &val, "wmOperatorProperties");
+		STRNCPY(prop->name, ot->idname);
+		IDP_ReplaceInGroup_ex(group, prop, NULL);
+	}
+	else {
+		BLI_assert(prop->type == IDP_GROUP);
+	}
+
+	RNA_pointer_create(NULL, ot->srna, prop, ptr);
+}
+
+void WM_toolsystem_ref_properties_init_for_keymap(
+        bToolRef *tref, PointerRNA *dst_ptr, PointerRNA *src_ptr, wmOperatorType *ot)
+{
+	*dst_ptr = *src_ptr;
+	if (dst_ptr->data) {
+		dst_ptr->data = IDP_CopyProperty(dst_ptr->data);
+	}
+	else {
+		IDPropertyTemplate val = {0};
+		dst_ptr->data = IDP_New(IDP_GROUP, &val, "wmOpItemProp");
+	}
+	if (tref->properties != NULL) {
+		IDProperty *prop = IDP_GetPropertyFromGroup(tref->properties, ot->idname);
+		if (prop) {
+			IDP_MergeGroup(dst_ptr->data, prop, true);
+		}
+	}
 }

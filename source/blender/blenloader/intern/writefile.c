@@ -3602,6 +3602,11 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->scene_viewlayer_relations);
 	writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
 	writelist(wd, DATA, bToolRef, &workspace->tools);
+	for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {
+		if (tref->properties) {
+			IDP_WriteProperty(tref->properties, wd);
+		}
+	}
 }
 
 /* Keep it last of write_foodata functions. */

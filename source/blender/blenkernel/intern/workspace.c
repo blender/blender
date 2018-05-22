@@ -34,6 +34,7 @@
 #include "BLI_listbase.h"
 
 #include "BKE_global.h"
+#include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_scene.h"
@@ -176,6 +177,10 @@ void BKE_workspace_free(WorkSpace *workspace)
 		tref_next = tref->next;
 		if (tref->runtime) {
 			MEM_freeN(tref->runtime);
+			if (tref->properties) {
+				IDP_FreeProperty(tref->properties);
+				MEM_freeN(tref->properties);
+			}
 		}
 	}
 	BLI_freelistN(&workspace->tools);

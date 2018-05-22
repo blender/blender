@@ -54,6 +54,7 @@ typedef struct wmEventHandler {
 	/* Run after the keymap item runs. */
 	void (*keymap_callback)(wmKeyMap *keymap, wmKeyMapItem *kmi, void *user_data);
 	void  *keymap_callback_user_data;
+	struct bToolRef *keymap_tool;
 
 	/* modal operator handler */
 	wmOperator *op;                     /* for derived/modal handlers */
