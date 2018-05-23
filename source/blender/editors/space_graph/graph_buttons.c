@@ -760,12 +760,10 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
 	MEM_freeN(ale);
 }
 
-/* driver settings for active F-Curve (only for 'Drivers' mode) */
-static void graph_panel_drivers(const bContext *C, Panel *pa)
+/* UI properties panel layout for driver settings - shared for Drivers Editor and for */
+static void graph_draw_driver_settings_panel(ID *id, FCurve *fcu, uiLayout *layout)
 {
-	bAnimListElem *ale;
-	FCurve *fcu;
-	ChannelDriver *driver;
+	ChannelDriver *driver = fcu->driver;
 	DriverVar *dvar;
 	
 	PointerRNA driver_ptr;
@@ -773,28 +771,14 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	uiBlock *block;
 	uiBut *but;
 	
-	/* Get settings from context */
-	if (!graph_panel_context(C, &ale, &fcu))
-		return;
-	driver = fcu->driver;
-	
 	/* set event handler for panel */
-	block = uiLayoutGetBlock(pa->layout);
+	block = uiLayoutGetBlock(layout);
 	UI_block_func_handle_set(block, do_graph_region_driver_buttons, NULL);
 	
-	/* general actions - management */
-	row = uiLayoutRow(pa->layout, true);
-	block = uiLayoutGetBlock(row);
-	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_FILE_REFRESH, IFACE_("Update Dependencies"),
-	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
-	               NULL, 0.0, 0.0, 0, 0,
-	               TIP_("Force updates of dependencies"));
-	UI_but_func_set(but, driver_update_flags_cb, fcu, NULL);
-
 	/* driver-level settings - type, expressions, and errors */
-	RNA_pointer_create(ale->id, &RNA_Driver, driver, &driver_ptr);
+	RNA_pointer_create(id, &RNA_Driver, driver, &driver_ptr);
 	
-	col = uiLayoutColumn(pa->layout, true);
+	col = uiLayoutColumn(layout, true);
 	block = uiLayoutGetBlock(col);
 	uiItemR(col, &driver_ptr, "type", 0, NULL, ICON_NONE);
 	
@@ -807,7 +791,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", driver->curval);
 		uiItemL(row, valBuf, ICON_NONE);
 	}
-
+	
 	/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 	if (driver->type == DRIVER_TYPE_PYTHON) {
 		bool bpy_data_expr_error = (strstr(driver->expression, "bpy.data.") != NULL);
@@ -815,7 +799,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		
 		/* expression */
 		/* TODO: "Show syntax hints" button */
-		col = uiLayoutColumn(pa->layout, true);
+		col = uiLayoutColumn(layout, true);
 		block = uiLayoutGetBlock(col);
 		
 		uiItemL(col, IFACE_("Expression:"), ICON_NONE);
@@ -823,7 +807,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiItemR(col, &driver_ptr, "use_self", 0, NULL, ICON_NONE);
 		
 		/* errors? */
-		col = uiLayoutColumn(pa->layout, true);
+		col = uiLayoutColumn(layout, true);
 		block = uiLayoutGetBlock(col);
 		
 		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
@@ -849,7 +833,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	}
 	else {
 		/* errors? */
-		col = uiLayoutColumn(pa->layout, true);
+		col = uiLayoutColumn(layout, true);
 		block = uiLayoutGetBlock(col);
 		
 		if (driver->flag & DRIVER_FLAG_INVALID)
@@ -874,7 +858,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* add/copy/paste driver variables */
 	{
 		/* add driver variable */
-		row = uiLayoutRow(pa->layout, false);
+		row = uiLayoutRow(layout, false);
 		block = uiLayoutGetBlock(row);
 		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Input Variable"),
 	                           0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
@@ -897,11 +881,11 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		uiLayout *subrow, *sub;
 		
 		/* sub-layout column for this variable's settings */
-		col = uiLayoutColumn(pa->layout, true);
+		col = uiLayoutColumn(layout, true);
 		
 		/* 1) header panel */
 		box = uiLayoutBox(col);
-		RNA_pointer_create(ale->id, &RNA_DriverVariable, dvar, &dvar_ptr);
+		RNA_pointer_create(id, &RNA_DriverVariable, dvar, &dvar_ptr);
 		
 		row = uiLayoutRow(box, false);
 		block = uiLayoutGetBlock(row);
@@ -942,16 +926,16 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		/* controls to draw depends on the type of variable */
 		switch (dvar->type) {
 			case DVAR_TYPE_SINGLE_PROP:     /* single property */
-				graph_panel_driverVar__singleProp(box, ale->id, dvar);
+				graph_panel_driverVar__singleProp(box, id, dvar);
 				break;
 			case DVAR_TYPE_ROT_DIFF:     /* rotational difference */
-				graph_panel_driverVar__rotDiff(box, ale->id, dvar);
+				graph_panel_driverVar__rotDiff(box, id, dvar);
 				break;
 			case DVAR_TYPE_LOC_DIFF:     /* location difference */
-				graph_panel_driverVar__locDiff(box, ale->id, dvar);
+				graph_panel_driverVar__locDiff(box, id, dvar);
 				break;
 			case DVAR_TYPE_TRANSFORM_CHAN:     /* transform channel */
-				graph_panel_driverVar__transChan(box, ale->id, dvar);
+				graph_panel_driverVar__transChan(box, id, dvar);
 				break;
 		}
 		
@@ -977,6 +961,29 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			uiItemL(row, valBuf, ICON_NONE);
 		}
 	}
+	
+	/* XXX: This should become redundant. But sometimes the flushing fails, so keep this around for a while longer as a "last resort" */
+	row = uiLayoutRow(layout, true);
+	block = uiLayoutGetBlock(row);
+	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_FILE_REFRESH, IFACE_("Update Dependencies"),
+	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+	               NULL, 0.0, 0.0, 0, 0,
+	               TIP_("Force updates of dependencies - Only use this if drivers are not updating correctly"));
+	UI_but_func_set(but, driver_update_flags_cb, fcu, NULL);
+}
+
+
+/* driver settings for active F-Curve (only for 'Drivers' mode in Graph Editor, i.e. the full "Drivers Editor") */
+static void graph_panel_drivers(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+	
+	/* Get settings from context */
+	if (!graph_panel_context(C, &ale, &fcu))
+		return;
+	
+	graph_draw_driver_settings_panel(ale->id, fcu, pa->layout);
 	
 	/* cleanup */
 	MEM_freeN(ale);
