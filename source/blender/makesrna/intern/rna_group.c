@@ -42,6 +42,7 @@
 #include "DNA_object_types.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_build.h"
 
 #include "BKE_collection.h"
 #include "BKE_layer.h"
@@ -86,6 +87,7 @@ static void rna_Collection_objects_link(Collection *collection, Main *bmain, Rep
 		return;
 	}
 
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
 
@@ -96,6 +98,7 @@ static void rna_Collection_objects_unlink(Collection *collection, Main *bmain, R
 		return;
 	}
 
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
 
@@ -121,6 +124,7 @@ static void rna_Collection_children_link(Collection *collection, Main *bmain, Re
 		return;
 	}
 
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &child->id);
 }
 
@@ -131,6 +135,7 @@ static void rna_Collection_children_unlink(Collection *collection, Main *bmain, 
 		return;
 	}
 
+	DEG_relations_tag_update(bmain);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &child->id);
 }
 
@@ -139,6 +144,9 @@ static void rna_Collection_flag_update(Main *bmain, Scene *scene, PointerRNA *pt
 	Collection *collection = (Collection *)ptr->data;
 	BKE_collection_object_cache_free(collection);
 	BKE_main_collection_sync(bmain);
+
+	DEG_relations_tag_update(bmain);
+	DEG_id_tag_update(&collection->id, 0);
 	WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
 }
 
