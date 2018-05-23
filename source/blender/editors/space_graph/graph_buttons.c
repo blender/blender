@@ -485,23 +485,6 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene); // XXX could use better notifier
 }
 
-/* callback to remove the active driver */
-static void driver_remove_cb(bContext *C, void *ale_v, void *UNUSED(arg))
-{
-	bAnimListElem *ale = (bAnimListElem *)ale_v;
-	ID *id = ale->id;
-	FCurve *fcu = ale->data;
-	ReportList *reports = CTX_wm_reports(C);
-	
-	/* try to get F-Curve that driver lives on, and ID block which has this AnimData */
-	if (ELEM(NULL, id, fcu))
-		return;
-	
-	/* call API method to remove this driver  */
-	ANIM_remove_driver(reports, id, fcu->rna_path, fcu->array_index, 0);
-	ED_undo_push(C, "Remove Driver");
-}
-
 /* callback to add a target variable to the active driver */
 static void driver_add_var_cb(bContext *C, void *driver_v, void *UNUSED(arg))
 {
@@ -798,12 +781,6 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	               TIP_("Force updates of dependencies"));
 	UI_but_func_set(but, driver_update_flags_cb, fcu, NULL);
 
-	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_X, "",
-	               0, 0, UI_UNIT_X, UI_UNIT_Y,
-	               NULL, 0.0, 0.0, 0, 0,
-	               TIP_("Remove this driver"));
-	UI_but_funcN_set(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
-		
 	/* driver-level settings - type, expressions, and errors */
 	RNA_pointer_create(ale->id, &RNA_Driver, driver, &driver_ptr);
 	
