@@ -1636,6 +1636,7 @@ static Object *single_object_users_object(Main *bmain, Scene *scene, Object *ob)
 		}
 	}
 
+	id_us_plus(&obn->id);
 	id_us_min(&ob->id);
 	return obn;
 }
