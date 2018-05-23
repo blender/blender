@@ -520,19 +520,30 @@ void CURVE_OT_select_all(wmOperatorType *ot)
 
 static int select_linked_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit = CTX_data_edit_object(C);
-	Curve *cu = (Curve *)obedit->data;
-	EditNurb *editnurb = cu->editnurb;
-	ListBase *nurbs = &editnurb->nurbs;
-	Nurb *nu;
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	for (nu = nurbs->first; nu; nu = nu->next) {
-		if (ED_curve_nurb_select_check(cu, nu)) {
-			ED_curve_nurb_select_all(nu);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
+		EditNurb *editnurb = cu->editnurb;
+		ListBase *nurbs = &editnurb->nurbs;
+		Nurb *nu;
+		bool changed = false;
+
+		for (nu = nurbs->first; nu; nu = nu->next) {
+			if (ED_curve_nurb_select_check(cu, nu)) {
+				ED_curve_nurb_select_all(nu);
+				changed = true;
+			}
+		}
+
+		if (changed) {
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
@@ -547,7 +558,7 @@ void CURVE_OT_select_linked(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Linked All";
 	ot->idname = "CURVE_OT_select_linked";
-	ot->description = "Select all control points linked to active one";
+	ot->description = "Select all control points linked to the current selection";
 
 	/* api callbacks */
 	ot->exec = select_linked_exec;
