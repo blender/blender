@@ -131,8 +131,6 @@ typedef struct WorkSpace {
 	/* Feature tagging (use for addons) */
 	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */
 
-	struct ViewLayer *view_layer DNA_DEPRECATED;
-
 	/* should be: '#ifdef USE_WORKSPACE_TOOL'. */
 
 	/** List of #bToolRef */

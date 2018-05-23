@@ -6073,14 +6073,6 @@ static void direct_link_workspace_link_scene_data(
 				relation->value = layer;
 			}
 		}
-
-		if (workspace->view_layer) { /* this was temporariliy used during 2.8 project. Keep files compatible */
-			ViewLayer *layer = newdataadr(fd, workspace->view_layer);
-			/* only set when layer is from the scene we read */
-			if (layer && (BLI_findindex(&scene->view_layers, layer) != -1)) {
-				workspace->view_layer = layer;
-			}
-		}
 	}
 }
 

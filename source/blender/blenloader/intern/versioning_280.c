@@ -774,24 +774,6 @@ void do_versions_after_linking_280(Main *main)
 	}
 
 	if (!MAIN_VERSION_ATLEAST(main, 280, 4)) {
-		for (WorkSpace *workspace = main->workspaces.first; workspace; workspace = workspace->id.next) {
-			if (workspace->view_layer) {
-				/* During 2.8 work we temporarly stored view-layer in the
-				 * workspace directly, but should be stored there per-scene. */
-				for (Scene *scene = main->scene.first; scene; scene = scene->id.next) {
-					if (BLI_findindex(&scene->view_layers, workspace->view_layer) != -1) {
-						BKE_workspace_view_layer_set(workspace, workspace->view_layer, scene);
-						workspace->view_layer = NULL;
-					}
-				}
-			}
-			/* While this should apply to most cases, it fails when reading workspaces.blend
-			 * to get its list of workspaces without actually appending any of them. */
-//			BLI_assert(workspace->view_layer == NULL);
-		}
-	}
-
-	if (!MAIN_VERSION_ATLEAST(main, 280, 4)) {
 		for (Object *object = main->object.first; object; object = object->id.next) {
 #ifndef VERSION_280_SUBVERSION_4
 			/* If any object already has an initialized value for
