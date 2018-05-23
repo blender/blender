@@ -2134,7 +2134,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 		 */
 		OperationDepsNode *op_entry = comp_node->get_entry_operation();
 		if (op_entry != NULL) {
-			graph_->add_new_relation(op_cow, op_entry, "CoW Dependency");
+			DepsRelation *rel = graph_->add_new_relation(op_cow, op_entry, "CoW Dependency");
+			rel->flag |= DEPSREL_FLAG_NO_FLUSH;
 		}
 		/* All dangling operations should also be executed after copy-on-write. */
 		GHASH_FOREACH_BEGIN(OperationDepsNode *, op_node, comp_node->operations_map)
@@ -2158,7 +2159,8 @@ void DepsgraphRelationBuilder::build_copy_on_write_relations(IDDepsNode *id_node
 					}
 				}
 				if (!has_same_comp_dependency) {
-					graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
+					DepsRelation *rel_sub = graph_->add_new_relation(op_cow, op_node, "CoW Dependency");
+					rel_sub->flag |= DEPSREL_FLAG_NO_FLUSH;
 				}
 			}
 		}
