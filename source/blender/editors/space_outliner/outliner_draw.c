@@ -266,8 +266,6 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 {
 	Main *bmain = CTX_data_main(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
-	Scene *scene = CTX_data_scene(C);
-	ViewLayer *view_layer = CTX_data_view_layer(C);
 	Object *obedit = CTX_data_edit_object(C);
 	BLI_mempool *ts = soops->treestore;
 	TreeStoreElem *tselem = tsep;
@@ -322,6 +320,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				{
 					bArmature *arm = (bArmature *)tselem->id;
 					if (arm->edbo) {
+						ViewLayer *view_layer = CTX_data_view_layer(C);
 						EditBone *ebone = te->directdata;
 						char newname[sizeof(ebone->name)];
 
@@ -336,6 +335,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 
 				case TSE_BONE:
 				{
+					ViewLayer *view_layer = CTX_data_view_layer(C);
+					Scene *scene = CTX_data_scene(C);
 					Bone *bone = te->directdata;
 					Object *ob;
 					char newname[sizeof(bone->name)];
@@ -353,6 +354,9 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				}
 				case TSE_POSE_CHANNEL:
 				{
+					Scene *scene = CTX_data_scene(C);
+					ViewLayer *view_layer = CTX_data_view_layer(C);
+
 					bPoseChannel *pchan = te->directdata;
 					Object *ob;
 					char newname[sizeof(pchan->name)];
