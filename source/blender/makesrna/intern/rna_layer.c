@@ -305,7 +305,7 @@ void RNA_def_view_layer(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "ViewLayer", NULL);
-	RNA_def_struct_ui_text(srna, "Render Layer", "Render layer");
+	RNA_def_struct_ui_text(srna, "View Layer", "View layer");
 	RNA_def_struct_ui_icon(srna, ICON_RENDER_RESULT);
 	RNA_def_struct_path_func(srna, "rna_ViewLayer_path");
 	RNA_def_struct_idprops_func(srna, "rna_ViewLayer_idprops");

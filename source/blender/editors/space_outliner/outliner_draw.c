@@ -391,10 +391,25 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					WM_event_add_notifier(C, NC_GPENCIL | ND_DATA, gpd);
 					break;
 				}
+				case TSE_R_LAYER:
+				{
+					Scene *scene = (Scene *)tselem->id;
+					ViewLayer *view_layer = te->directdata;
+
+					/* Restore old name. */
+					char newname[sizeof(view_layer->name)];
+					BLI_strncpy(newname, view_layer->name, sizeof(view_layer->name));
+					BLI_strncpy(view_layer->name, oldname, sizeof(view_layer->name));
+
+					/* Rename, preserving animation and compositing data. */
+					BKE_view_layer_rename(scene, view_layer, newname);
+					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL);
+					break;
+				}
 				case TSE_LAYER_COLLECTION:
 				{
 					BLI_libblock_ensure_unique_name(bmain, tselem->id->name);
-					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL); break;
+					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL);
 					break;
 				}
 			}

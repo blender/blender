@@ -31,23 +31,22 @@
  *  \author Joshua Leung
  */
 
+struct AnimData;
+struct AnimMapper;
+struct FCurve;
 struct ID;
+struct KS_Path;
+struct KeyingSet;
 struct ListBase;
 struct Main;
-struct AnimData;
-struct FCurve;
-struct KeyingSet;
-struct KS_Path;
 struct PathResolvedRNA;
-struct bContext;
-
 struct PointerRNA;
 struct PropertyRNA;
 struct ReportList;
+struct Scene;
 struct bAction;
 struct bActionGroup;
-struct AnimMapper;
-struct FCurve;
+struct bContext;
 
 /* ************************************* */
 /* AnimData API */
@@ -119,7 +118,7 @@ void BKE_keyingsets_free(struct ListBase *list);
 /* Path Fixing API */
 
 /* Get a "fixed" version of the given path (oldPath) */
-char *BKE_animsys_fix_rna_path_rename(ID *owner_id, char *old_path, const char *prefix, const char *oldName,
+char *BKE_animsys_fix_rna_path_rename(struct ID *owner_id, char *old_path, const char *prefix, const char *oldName,
                                       const char *newName, int oldSubscript, int newSubscript, bool verify_paths);
 
 /* Fix all the paths for the given ID + Action */
@@ -132,7 +131,7 @@ void BKE_animdata_fix_paths_rename(struct ID *owner_id, struct AnimData *adt, st
                                    bool verify_paths);
 
 /* Fix all the paths for the entire database... */
-void BKE_animdata_fix_paths_rename_all(ID *ref_id, const char *prefix, const char *oldName, const char *newName);
+void BKE_animdata_fix_paths_rename_all(struct ID *ref_id, const char *prefix, const char *oldName, const char *newName);
 
 /* Fix the path after removing elements that are not ID (e.g., node) */
 void BKE_animdata_fix_paths_remove(struct ID *id, const char *path);

@@ -1486,27 +1486,7 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	char oldname[sizeof(view_layer->name)];
-
-	BLI_strncpy(oldname, view_layer->name, sizeof(view_layer->name));
-
-	BLI_strncpy_utf8(view_layer->name, value, sizeof(view_layer->name));
-	BLI_uniquename(&scene->view_layers, view_layer, DATA_("ViewLayer"), '.', offsetof(ViewLayer, name), sizeof(view_layer->name));
-
-	if (scene->nodetree) {
-		bNode *node;
-		int index = BLI_findindex(&scene->view_layers, view_layer);
-
-		for (node = scene->nodetree->nodes.first; node; node = node->next) {
-			if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
-				if (node->custom1 == index)
-					BLI_strncpy(node->name, view_layer->name, NODE_MAXSTR);
-			}
-		}
-	}
-
-	/* fix all the animation data which may link to this */
-	BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
+	BKE_view_layer_rename(scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
@@ -3224,7 +3204,7 @@ void rna_def_view_layer_common(StructRNA *srna, int scene)
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	if (scene) RNA_def_property_string_funcs(prop, NULL, NULL, "rna_ViewLayer_name_set");
 	else RNA_def_property_string_sdna(prop, NULL, "name");
-	RNA_def_property_ui_text(prop, "Name", "Render layer name");
+	RNA_def_property_ui_text(prop, "Name", "View layer name");
 	RNA_def_struct_name_property(srna, prop);
 	if (scene) RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);

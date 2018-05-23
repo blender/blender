@@ -34,6 +34,7 @@
 #include "BLI_threads.h"
 #include "BLT_translation.h"
 
+#include "BKE_animsys.h"
 #include "BKE_collection.h"
 #include "BKE_freestyle.h"
 #include "BKE_global.h"
@@ -385,6 +386,34 @@ void BKE_view_layer_copy_data(
 	layer_collections_copy_data(&view_layer_dst->layer_collections, &view_layer_src->layer_collections);
 
 	// TODO: not always safe to free BKE_layer_collection_sync(scene_dst, view_layer_dst);
+}
+
+void BKE_view_layer_rename(Scene *scene, ViewLayer *view_layer, const char *newname)
+{
+	char oldname[sizeof(view_layer->name)];
+
+	BLI_strncpy(oldname, view_layer->name, sizeof(view_layer->name));
+
+	BLI_strncpy_utf8(view_layer->name, newname, sizeof(view_layer->name));
+	BLI_uniquename(&scene->view_layers, view_layer, DATA_("ViewLayer"), '.', offsetof(ViewLayer, name), sizeof(view_layer->name));
+
+	if (scene->nodetree) {
+		bNode *node;
+		int index = BLI_findindex(&scene->view_layers, view_layer);
+
+		for (node = scene->nodetree->nodes.first; node; node = node->next) {
+			if (node->type == CMP_NODE_R_LAYERS && node->id == NULL) {
+				if (node->custom1 == index)
+					BLI_strncpy(node->name, view_layer->name, NODE_MAXSTR);
+			}
+		}
+	}
+
+	/* fix all the animation data which may link to this */
+	BKE_animdata_fix_paths_rename_all(NULL, "view_layers", oldname, view_layer->name);
+
+	/* Dependency graph uses view layer name based lookups. */
+	DEG_id_tag_update(&scene->id, 0);
 }
 
 /* LayerCollection */
