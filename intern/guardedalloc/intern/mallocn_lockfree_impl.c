@@ -204,9 +204,9 @@ void *MEM_lockfree_reallocN_id(void *vmemh, size_t len, const char *str)
 		else {
 			MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
 			newp = MEM_lockfree_mallocN_aligned(
-				old_len,
-				(size_t)memh_aligned->alignment,
-				"realloc");
+			        len,
+			        (size_t)memh_aligned->alignment,
+			        "realloc");
 		}
 
 		if (newp) {
@@ -242,9 +242,10 @@ void *MEM_lockfree_recallocN_id(void *vmemh, size_t len, const char *str)
 		}
 		else {
 			MemHeadAligned *memh_aligned = MEMHEAD_ALIGNED_FROM_PTR(vmemh);
-			newp = MEM_lockfree_mallocN_aligned(old_len,
-			                                    (size_t)memh_aligned->alignment,
-			                                    "recalloc");
+			newp = MEM_lockfree_mallocN_aligned(
+			        len,
+			        (size_t)memh_aligned->alignment,
+			        "recalloc");
 		}
 
 		if (newp) {
