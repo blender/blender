@@ -2241,6 +2241,32 @@ static void WM_OT_call_menu_pie(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the pie menu");
 }
 
+static int wm_call_panel_exec(bContext *C, wmOperator *op)
+{
+	char idname[BKE_ST_MAXNAME];
+	RNA_string_get(op->ptr, "name", idname);
+	const int space_type = RNA_enum_get(op->ptr, "space_type");
+	const int region_type = RNA_enum_get(op->ptr, "region_type");
+
+	return UI_popover_panel_invoke(C, space_type, region_type, idname, op->reports);
+}
+
+static void WM_OT_call_panel(wmOperatorType *ot)
+{
+	ot->name = "Call Panel";
+	ot->idname = "WM_OT_call_panel";
+	ot->description = "Call (draw) a pre-defined panel";
+
+	ot->exec = wm_call_panel_exec;
+	ot->poll = WM_operator_winactive;
+
+	ot->flag = OPTYPE_INTERNAL;
+
+	RNA_def_string(ot->srna, "name", NULL, BKE_ST_MAXNAME, "Name", "Name of the menu");
+	RNA_def_enum(ot->srna, "space_type", rna_enum_space_type_items, SPACE_EMPTY, "Space Type", "");
+	RNA_def_enum(ot->srna, "region_type", rna_enum_region_type_items, RGN_TYPE_WINDOW, "Region Type", "");
+}
+
 /* ************ window / screen operator definitions ************** */
 
 /* this poll functions is needed in place of WM_operator_winactive
@@ -3706,6 +3732,7 @@ void wm_operatortype_init(void)
 	WM_operatortype_append(WM_OT_search_menu);
 	WM_operatortype_append(WM_OT_call_menu);
 	WM_operatortype_append(WM_OT_call_menu_pie);
+	WM_operatortype_append(WM_OT_call_panel);
 	WM_operatortype_append(WM_OT_radial_control);
 	WM_operatortype_append(WM_OT_stereo3d_set);
 #if defined(WIN32)

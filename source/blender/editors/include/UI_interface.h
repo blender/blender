@@ -42,6 +42,7 @@ struct ID;
 struct IDProperty;
 struct ListBase;
 struct ARegion;
+struct ARegionType;
 struct ScrArea;
 struct bScreen;
 struct wmEvent;
@@ -427,6 +428,12 @@ void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *b
 /* interface_region_popover.c */
 
 typedef struct uiPopover uiPopover;
+
+void UI_popover_panel_from_type(
+        struct bContext *C, struct uiLayout *layout, struct PanelType *pt);
+int UI_popover_panel_invoke(
+        struct bContext *C, int space_id, int region_id, const char *idname,
+        struct ReportList *reports);
 
 uiPopover *UI_popover_begin(struct bContext *C) ATTR_NONNULL(1);
 void UI_popover_end(struct bContext *C, struct uiPopover *head, struct wmKeyMap *keymap);
@@ -835,6 +842,8 @@ struct PanelCategoryDyn   *UI_panel_category_find_mouse_over_ex(struct ARegion *
 struct PanelCategoryDyn   *UI_panel_category_find_mouse_over(struct ARegion *ar, const struct wmEvent *event);
 void                       UI_panel_category_clear_all(struct ARegion *ar);
 void                       UI_panel_category_draw_all(struct ARegion *ar, const char *category_id_active);
+
+struct PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname);
 
 /* Handlers
  *

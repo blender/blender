@@ -1848,33 +1848,19 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 	layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
-static void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_mt)
+static void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt)
 {
-	PanelType *pt = (PanelType *)arg_mt;
-
-	/* TODO: move into UI_paneltype_draw */
-	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
-	panel->type = pt;
+	PanelType *pt = (PanelType *)arg_pt;
 
 	if (layout->context) {
 		CTX_store_set(C, layout->context);
 	}
 
-	if (pt->draw_header) {
-		panel->layout = uiLayoutRow(layout, false);
-		pt->draw_header(C, panel);
-		panel->layout = NULL;
-	}
-
-	panel->layout = layout;
-	pt->draw(C, panel);
-	panel->layout = NULL;
+	UI_popover_panel_from_type(C, layout, pt);
 
 	if (layout->context) {
 		CTX_store_set(C, NULL);
 	}
-
-	MEM_freeN(panel);
 }
 
 static uiBut *ui_item_menu(

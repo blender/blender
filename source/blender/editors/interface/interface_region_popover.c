@@ -56,6 +56,8 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
+#include "BKE_screen.h"
+#include "BKE_report.h"
 
 #include "ED_screen.h"
 
@@ -246,6 +248,63 @@ uiPopupBlockHandle *ui_popover_panel_create(
 	}
 
 	return handle;
+}
+
+/** \} */
+
+/* -------------------------------------------------------------------- */
+/** \name Standard Popover Panels
+ * \{ */
+
+
+void UI_popover_panel_from_type(bContext *C, uiLayout *layout, PanelType *pt)
+{
+	/* TODO: move into UI_paneltype_draw */
+	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
+	panel->type = pt;
+
+
+	if (pt->draw_header) {
+		panel->layout = uiLayoutRow(layout, false);
+		pt->draw_header(C, panel);
+		panel->layout = NULL;
+	}
+
+	panel->layout = layout;
+	pt->draw(C, panel);
+	panel->layout = NULL;
+
+	MEM_freeN(panel);
+}
+
+int UI_popover_panel_invoke(
+        bContext *C, int space_id, int region_id, const char *idname,
+        ReportList *reports)
+{
+	uiLayout *layout;
+	PanelType *pt = UI_paneltype_find(space_id, region_id, idname);
+	if (pt == NULL) {
+		BKE_reportf(
+		        reports, RPT_ERROR,
+		        "Panel \"%s\" not found (space %d, region %d)",
+		        idname, space_id, region_id);
+		return OPERATOR_CANCELLED;
+	}
+
+	if (pt->poll && (pt->poll(C, pt) == false)) {
+		/* cancel but allow event to pass through, just like operators do */
+		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
+	}
+
+	uiPopover *pup = UI_popover_begin(C);
+
+	layout = UI_popover_layout(pup);
+
+	UI_popover_panel_from_type(C, layout, pt);
+
+	UI_popover_end(C, pup, NULL);
+
+	return OPERATOR_INTERFACE;
 }
 
 /** \} */

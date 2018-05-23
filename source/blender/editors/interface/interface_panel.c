@@ -2272,3 +2272,14 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 	ED_region_tag_redraw(ar);
 }
 
+PanelType *UI_paneltype_find(int space_id, int region_id, const char *idname)
+{
+	SpaceType *st = BKE_spacetype_from_id(space_id);
+	if (st) {
+		ARegionType *art = BKE_regiontype_from_id(st, region_id);
+		if (art) {
+			return BLI_findstring(&art->paneltypes, idname, offsetof(PanelType, idname));
+		}
+	}
+	return NULL;
+}
