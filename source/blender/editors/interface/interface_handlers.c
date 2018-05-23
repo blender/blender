@@ -6801,7 +6801,7 @@ static bool ui_but_menu(bContext *C, uiBut *but)
 			}
 
 			uiItemO(layout, CTX_IFACE_(BLT_I18NCONTEXT_OPERATOR_DEFAULT, "Open Drivers Editor"),
-			        ICON_NONE, "SCREEN_OT_drivers_editor_show");
+			        ICON_DRIVER, "SCREEN_OT_drivers_editor_show");
 		}
 
 		/* Keying Sets */

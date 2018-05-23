@@ -724,6 +724,7 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
 	FCurve *fcu;
 	PointerRNA fcu_ptr;
 	uiLayout *layout = pa->layout;
+	uiLayout *row;
 	char name[256];
 	int icon = 0;
 
@@ -733,7 +734,7 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
 	/* F-Curve pointer */
 	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
 	
-	/* user-friendly 'name' for F-Curve */
+	/* get user-friendly 'name' for F-Curve */
 	if (ale->type == ANIMTYPE_FCURVE) {
 		/* get user-friendly name for F-Curve */
 		icon = getname_anim_fcurve(name, ale->id, fcu);
@@ -755,7 +756,18 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
 		if (ale->type == ANIMTYPE_NLACURVE)
 			icon = ICON_NLA;
 	}
-	uiItemL(layout, name, icon);
+	
+	/* panel layout... */
+	row = uiLayoutRow(layout, true);
+	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
+	
+	/* -> user friendly 'name' for datablock that owns F-Curve */
+	/* XXX: Actually, we may need the datablock icons only... (e.g. right now will show bone for bone props) */
+	uiItemL(row, ale->id->name + 2, icon);
+	
+	/* -> user friendly 'name' for F-Curve/driver target */
+	uiItemL(row, "", VICO_SMALL_TRI_RIGHT_VEC);
+	uiItemL(row, name, ICON_RNA);
 	
 	MEM_freeN(ale);
 }
