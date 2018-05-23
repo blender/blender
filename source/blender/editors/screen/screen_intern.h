@@ -48,7 +48,7 @@ void        screen_area_update_region_sizes(wmWindowManager *wm, wmWindow *win, 
 void        region_toggle_hidden(struct bContext *C, ARegion *ar, const bool do_fade);
 
 /* screen_edit.c */
-bScreen    *screen_add(const char *name, const int winsize_x, const int winsize_y);
+bScreen    *screen_add(const char *name, const rcti *rect);
 void        screen_data_copy(bScreen *to, bScreen *from);
 void        screen_new_activate_prepare(const wmWindow *win, bScreen *screen_new);
 void        screen_change_update(struct bContext *C, wmWindow *win, bScreen *sc);
@@ -61,7 +61,7 @@ void        select_connected_scredge(const wmWindow *win, ScrEdge *edge);
 bool        scredge_is_horizontal(ScrEdge *se);
 ScrEdge     *screen_area_map_find_active_scredge(
         const struct ScrAreaMap *area_map,
-        const int winsize_x, const int winsize_y,
+        const rcti *bounds_rect,
         const int mx, const int my);
 ScrEdge    *screen_find_active_scredge(
         const wmWindow *win, const bScreen *screen,

@@ -102,8 +102,8 @@ void		WM_check			(struct bContext *C);
 
 int WM_window_pixels_x(const struct wmWindow *win);
 int WM_window_pixels_y(const struct wmWindow *win);
-int WM_window_screen_pixels_x(const struct wmWindow *win);
-int WM_window_screen_pixels_y(const struct wmWindow *win);
+void WM_window_rect_calc(const struct wmWindow *win, struct rcti *r_rect);
+void WM_window_screen_rect_calc(const struct wmWindow *win, struct rcti *r_rect);
 bool WM_window_is_fullscreen(struct wmWindow *win);
 
 void WM_windows_scene_data_sync(const ListBase *win_lb, struct Scene *scene) ATTR_NONNULL();

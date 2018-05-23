@@ -97,9 +97,10 @@ void ED_spacetypes_init(void)
 	ED_spacetype_console();
 	ED_spacetype_userpref();
 	ED_spacetype_clip();
+	ED_spacetype_statusbar();
 	ED_spacetype_topbar();
 //	...
-	
+
 	/* register operator types for screen and all spaces */
 	ED_operatortypes_workspace();
 	ED_operatortypes_scene();

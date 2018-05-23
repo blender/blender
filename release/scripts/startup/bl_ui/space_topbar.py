@@ -57,26 +57,6 @@ class TOPBAR_HT_upper_bar(Header):
                 text="Back to Previous",
             )
 
-        layout.separator()
-
-        layout.template_running_jobs()
-
-        layout.template_reports_banner()
-
-        row = layout.row(align=True)
-
-        if bpy.app.autoexec_fail is True and bpy.app.autoexec_fail_quiet is False:
-            row.label("Auto-run disabled", icon='ERROR')
-            if bpy.data.is_saved:
-                props = row.operator("wm.revert_mainfile", icon='SCREEN_BACK', text="Reload Trusted")
-                props.use_scripts = True
-
-            row.operator("script.autoexec_warn_clear", text="Ignore")
-
-            # include last so text doesn't push buttons out of the header
-            row.label(bpy.app.autoexec_fail_message)
-            return
-
     def draw_right(self, context):
         layout = self.layout
 

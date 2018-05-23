@@ -581,6 +581,7 @@ function(SETUP_BLENDER_SORTED_LIBS)
 		bf_editor_space_outliner
 		bf_editor_space_script
 		bf_editor_space_sequencer
+		bf_editor_space_statusbar
 		bf_editor_space_text
 		bf_editor_space_time
 		bf_editor_space_topbar

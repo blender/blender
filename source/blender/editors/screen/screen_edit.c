@@ -111,10 +111,12 @@ bool scredge_is_horizontal(ScrEdge *se)
 	return (se->v1->vec.y == se->v2->vec.y);
 }
 
-/* need win size to make sure not to include edges along screen edge */
+/**
+ * \param bounds_rect: Either window or screen bounds. Used to exclude edges along window/screen edges.
+ */
 ScrEdge *screen_area_map_find_active_scredge(
         const ScrAreaMap *area_map,
-        const int winsize_x, const int winsize_y,
+        const rcti *bounds_rect,
         const int mx, const int my)
 {
 	int safety = U.widget_unit / 10;
@@ -123,7 +125,7 @@ ScrEdge *screen_area_map_find_active_scredge(
 
 	for (ScrEdge *se = area_map->edgebase.first; se; se = se->next) {
 		if (scredge_is_horizontal(se)) {
-			if (se->v1->vec.y > 0 && se->v1->vec.y < winsize_y - 1) {
+			if ((se->v1->vec.y > bounds_rect->ymin) && (se->v1->vec.y < (bounds_rect->ymax - 1))) {
 				short min, max;
 				min = MIN2(se->v1->vec.x, se->v2->vec.x);
 				max = MAX2(se->v1->vec.x, se->v2->vec.x);
@@ -133,7 +135,7 @@ ScrEdge *screen_area_map_find_active_scredge(
 			}
 		}
 		else {
-			if (se->v1->vec.x > 0 && se->v1->vec.x < winsize_x - 1) {
+			if ((se->v1->vec.x > bounds_rect->xmin) && (se->v1->vec.x < (bounds_rect->xmax - 1))) {
 				short min, max;
 				min = MIN2(se->v1->vec.y, se->v2->vec.y);
 				max = MAX2(se->v1->vec.y, se->v2->vec.y);
@@ -153,13 +155,17 @@ ScrEdge *screen_find_active_scredge(
         const int mx, const int my)
 {
 	/* Use layout size (screen excluding global areas) for screen-layout area edges */
-	const int screen_x = WM_window_screen_pixels_x(win), screen_y = WM_window_screen_pixels_y(win);
-	ScrEdge *se = screen_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(screen), screen_x, screen_y, mx, my);
+	rcti screen_rect;
+	ScrEdge *se;
+
+	WM_window_screen_rect_calc(win, &screen_rect);
+	se = screen_area_map_find_active_scredge(AREAMAP_FROM_SCREEN(screen), &screen_rect, mx, my);
 
 	if (!se) {
 		/* Use entire window size (screen including global areas) for global area edges */
-		const int win_x = WM_window_pixels_x(win), win_y = WM_window_pixels_y(win);
-		se = screen_area_map_find_active_scredge(&win->global_areas, win_x, win_y, mx, my);
+		rcti win_rect;
+		WM_window_rect_calc(win, &win_rect);
+		se = screen_area_map_find_active_scredge(&win->global_areas, &win_rect, mx, my);
 	}
 	return se;
 }
@@ -334,7 +340,7 @@ ScrArea *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge)
 /**
  * Empty screen, with 1 dummy area without spacedata. Uses window size.
  */
-bScreen *screen_add(const char *name, const int winsize_x, const int winsize_y)
+bScreen *screen_add(const char *name, const rcti *rect)
 {
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
@@ -343,10 +349,10 @@ bScreen *screen_add(const char *name, const int winsize_x, const int winsize_y)
 	sc->do_refresh = true;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 
-	sv1 = screen_addvert(sc, 0, 0);
-	sv2 = screen_addvert(sc, 0, winsize_y - 1);
-	sv3 = screen_addvert(sc, winsize_x - 1, winsize_y - 1);
-	sv4 = screen_addvert(sc, winsize_x - 1, 0);
+	sv1 = screen_addvert(sc, rect->xmin,     rect->ymin);
+	sv2 = screen_addvert(sc, rect->xmin,     rect->ymax - 1);
+	sv3 = screen_addvert(sc, rect->xmax - 1, rect->ymax - 1);
+	sv4 = screen_addvert(sc, rect->xmax - 1, rect->ymin);
 	
 	screen_addedge(sc, sv1, sv2);
 	screen_addedge(sc, sv2, sv3);
@@ -546,34 +552,29 @@ void select_connected_scredge(const wmWindow *win, ScrEdge *edge)
  */
 static void screen_vertices_scale(
         const wmWindow *win, bScreen *sc,
-        int window_size_x, int window_size_y,
-        int screen_size_x, int screen_size_y)
+        const rcti *window_rect, const rcti *screen_rect)
 {
 	/* clamp Y size of header sized areas when expanding windows
 	 * avoids annoying empty space around file menu */
 #define USE_HEADER_SIZE_CLAMP
 
 	const int headery_init = ED_area_headersize();
+	const int screen_size_x = BLI_rcti_size_x(screen_rect);
+	const int screen_size_y = BLI_rcti_size_y(screen_rect);
 	ScrVert *sv = NULL;
 	ScrArea *sa;
 	int screen_size_x_prev, screen_size_y_prev;
-	float facx, facy, tempf, min[2], max[2];
-	
+	float min[2], max[2];
+
 	/* calculate size */
 	min[0] = min[1] = 20000.0f;
 	max[0] = max[1] = 0.0f;
-	
+
 	for (sv = sc->vertbase.first; sv; sv = sv->next) {
 		const float fv[2] = {(float)sv->vec.x, (float)sv->vec.y};
 		minmax_v2v2_v2(min, max, fv);
 	}
-	
-	/* always make 0.0 left under */
-	for (sv = sc->vertbase.first; sv; sv = sv->next) {
-		sv->vec.x -= min[0];
-		sv->vec.y -= min[1];
-	}
-	
+
 	screen_size_x_prev = (max[0] - min[0]) + 1;
 	screen_size_y_prev = (max[1] - min[1]) + 1;
 
@@ -590,12 +591,12 @@ static void screen_vertices_scale(
 			sa->temp = 0;
 
 			if (ar && !(ar->flag & RGN_FLAG_HIDDEN)) {
-				if (sa->v2->vec.y == screen_size_y_prev) {
+				if (sa->v2->vec.y == max[1]) {
 					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_margin_max) {
 						sa->temp = TEMP_TOP;
 					}
 				}
-				else if (sa->v1->vec.y == 0) {
+				else if (sa->v1->vec.y == min[1]) {
 					if ((sa->v2->vec.y - sa->v1->vec.y) < headery_margin_max) {
 						sa->temp = TEMP_BOTTOM;
 					}
@@ -607,26 +608,16 @@ static void screen_vertices_scale(
 
 
 	if (screen_size_x_prev != screen_size_x || screen_size_y_prev != screen_size_y) {
-		facx = ((float)screen_size_x - 1) / ((float)screen_size_x_prev - 1);
-		facy = ((float)screen_size_y) / ((float)screen_size_y_prev);
-		
+		const float facx = ((float)screen_size_x - 1) / ((float)screen_size_x_prev - 1);
+		const float facy = ((float)screen_size_y) / ((float)screen_size_y_prev);
+
 		/* make sure it fits! */
 		for (sv = sc->vertbase.first; sv; sv = sv->next) {
-			/* FIXME, this re-sizing logic is no good when re-sizing the window + redrawing [#24428]
-			 * need some way to store these as floats internally and re-apply from there. */
-			tempf = ((float)sv->vec.x) * facx;
-			sv->vec.x = (short)(tempf + 0.5f);
-			//sv->vec.x += AREAGRID - 1;
-			//sv->vec.x -=  (sv->vec.x % AREAGRID);
+			sv->vec.x = screen_rect->xmin + round_fl_to_short((sv->vec.x - min[0]) * facx);
+			CLAMP(sv->vec.x, screen_rect->xmin, screen_rect->xmax - 1);
 
-			CLAMP(sv->vec.x, 0, screen_size_x - 1);
-			
-			tempf = ((float)sv->vec.y) * facy;
-			sv->vec.y = (short)(tempf + 0.5f);
-			//sv->vec.y += AREAGRID - 1;
-			//sv->vec.y -=  (sv->vec.y % AREAGRID);
-
-			CLAMP(sv->vec.y, 0, screen_size_y);
+			sv->vec.y = screen_rect->ymin + round_fl_to_short((sv->vec.y - min[1]) * facy);
+			CLAMP(sv->vec.y, screen_rect->ymin, screen_rect->ymax);
 		}
 	}
 
@@ -688,23 +679,22 @@ static void screen_vertices_scale(
 	/* make each window at least ED_area_headersize() high */
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
 		int headery = headery_init;
-		
+
 		/* adjust headery if verts are along the edge of window */
-		if (sa->v1->vec.y > 0)
+		if (sa->v1->vec.y > window_rect->ymin)
 			headery += U.pixelsize;
-		if (sa->v2->vec.y < screen_size_y)
+		if (sa->v2->vec.y < window_rect->ymax)
 			headery += U.pixelsize;
-		
+
 		if (sa->v2->vec.y - sa->v1->vec.y + 1 < headery) {
 			/* lower edge */
 			ScrEdge *se = BKE_screen_find_edge(sc, sa->v4, sa->v1);
 			if (se && sa->v1 != sa->v2) {
-				int yval;
-				
+				const int yval = sa->v2->vec.y - headery + 1;
+
 				select_connected_scredge(win, se);
-				
+
 				/* all selected vertices get the right offset */
-				yval = sa->v2->vec.y - headery + 1;
 				for (sv = sc->vertbase.first; sv; sv = sv->next) {
 					/* if is a collapsed area */
 					if (sv != sa->v2 && sv != sa->v3) {
@@ -717,18 +707,25 @@ static void screen_vertices_scale(
 		}
 	}
 
-	/* Global areas have a fixed size that only changes with the DPI. Here we ensure that exactly this size is set.
-	 * TODO Assumes global area to be top-aligned. Should be made more generic */
+	/* Global areas have a fixed size that only changes with the DPI. Here we ensure that exactly this size is set. */
 	for (ScrArea *area = win->global_areas.areabase.first; area; area = area->next) {
 		if (area->global->flag & GLOBAL_AREA_IS_HIDDEN) {
 			continue;
 		}
 		/* width */
-		area->v1->vec.x = area->v2->vec.x = 0;
-		area->v3->vec.x = area->v4->vec.x = window_size_x - 1;
+		area->v1->vec.x = area->v2->vec.x = window_rect->xmin;
+		area->v3->vec.x = area->v4->vec.x = window_rect->xmax - 1;
 		/* height */
-		area->v2->vec.y = area->v3->vec.y = window_size_y - 1;
-		area->v1->vec.y = area->v4->vec.y = area->v2->vec.y - ED_area_global_size_y(area);
+		area->v1->vec.y = area->v4->vec.y = window_rect->ymin;
+		area->v2->vec.y = area->v3->vec.y = window_rect->ymax - 1;
+		switch (area->global->align) {
+			case GLOBAL_AREA_ALIGN_TOP:
+				area->v1->vec.y = area->v4->vec.y = area->v2->vec.y - ED_area_global_size_y(area);
+				break;
+			case GLOBAL_AREA_ALIGN_BOTTOM:
+				area->v2->vec.y = area->v3->vec.y = area->v1->vec.y + ED_area_global_size_y(area);
+				break;
+		}
 	}
 }
 
@@ -802,18 +799,16 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 
 	/* exception for bg mode, we only need the screen context */
 	if (!G.background) {
-		WM_window_set_dpi(win);
-
-		/* Get window pixels __after__ updating window DPI! */
-		const int window_size_x = WM_window_pixels_x(win);
-		const int window_size_y = WM_window_pixels_y(win);
-		const int screen_size_x = WM_window_screen_pixels_x(win);
-		const int screen_size_y = WM_window_screen_pixels_y(win);
+		rcti window_rect, screen_rect;
 
 		/* header size depends on DPI, let's verify */
+		WM_window_set_dpi(win);
 		screen_refresh_headersizes();
 
-		screen_vertices_scale(win, screen, window_size_x, window_size_y, screen_size_x, screen_size_y);
+		WM_window_rect_calc(win, &window_rect);
+		WM_window_screen_rect_calc(win, &screen_rect); /* Get screen bounds __after__ updating window DPI! */
+
+		screen_vertices_scale(win, screen, &window_rect, &screen_rect);
 
 		ED_screen_areas_iter(win, screen, area) {
 			/* set spacetype and region callbacks, calls init() */
@@ -921,8 +916,6 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 {
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *prevwin = CTX_wm_window(C);
-	ScrArea *sa;
-	ARegion *ar;
 
 	CTX_wm_window_set(C, window);
 	
@@ -933,13 +926,14 @@ void ED_screen_exit(bContext *C, wmWindow *window, bScreen *screen)
 
 	screen->active_region = NULL;
 	
-	for (ar = screen->regionbase.first; ar; ar = ar->next) {
+	for (ARegion *ar = screen->regionbase.first; ar; ar = ar->next) {
 		ED_region_exit(C, ar);
 	}
-	for (sa = screen->areabase.first; sa; sa = sa->next) {
+	for (ScrArea *sa = screen->areabase.first; sa; sa = sa->next) {
 		ED_area_exit(C, sa);
 	}
-	for (sa = window->global_areas.areabase.first; sa; sa = sa->next) {
+	/* Don't use ED_screen_areas_iter here, it skips hidden areas. */
+	for (ScrArea *sa = window->global_areas.areabase.first; sa; sa = sa->next) {
 		ED_area_exit(C, sa);
 	}
 
@@ -1113,39 +1107,56 @@ static ScrArea *screen_area_create_with_geometry(
 	return screen_addarea_ex(area_map, bottom_left, top_left, top_right, bottom_right, spacetype);
 }
 
-void ED_screen_global_topbar_area_create(wmWindow *win, const bScreen *screen)
+static void screen_global_area_create(
+        wmWindow *win, eSpace_Type space_type, GlobalAreaAlign align, const rcti *rect,
+        const short height_cur, const short height_min, const short height_max)
 {
-	if (screen->temp == 0) {
-		const short size_y = 2.25 * HEADERY;
-		SpaceType *st;
-		SpaceLink *sl;
-		ScrArea *sa;
-		rcti rect;
+	ScrArea *area = screen_area_create_with_geometry(&win->global_areas, rect, space_type);
+	SpaceType *stype = BKE_spacetype_from_id(space_type);
+	SpaceLink *slink = stype->new(area, WM_window_get_active_scene(win));
 
-		BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
-		rect.ymin = rect.ymax - size_y;
+	area->regionbase = slink->regionbase;
 
-		sa = screen_area_create_with_geometry(&win->global_areas, &rect, SPACE_TOPBAR);
-		st = BKE_spacetype_from_id(SPACE_TOPBAR);
-		sl = st->new(sa, WM_window_get_active_scene(win));
-		sa->regionbase = sl->regionbase;
+	/* Data specific to global areas. */
+	area->global = MEM_callocN(sizeof(*area->global), __func__);
+	area->global->cur_fixed_height = height_cur;
+	area->global->size_max = height_max;
+	area->global->size_min = height_min;
+	area->global->align = align;
 
-		/* Data specific to global areas. */
-		sa->global = MEM_callocN(sizeof(*sa->global), __func__);
-		sa->global->cur_fixed_height = size_y;
-		sa->global->size_max = size_y;
-		sa->global->size_min = HEADERY;
+	BLI_addhead(&area->spacedata, slink);
+	BLI_listbase_clear(&slink->regionbase);
+}
 
-		BLI_addhead(&sa->spacedata, sl);
-		BLI_listbase_clear(&sl->regionbase);
-	}
-	/* Do not create more area types here! Function is called on file load (wm_window_ghostwindows_ensure). TODO */
+static void screen_global_topbar_area_create(wmWindow *win)
+{
+	const short size_y = 2.25 * HEADERY;
+	rcti rect;
+
+	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
+	rect.ymin = rect.ymax - size_y;
+
+	screen_global_area_create(win, SPACE_TOPBAR, GLOBAL_AREA_ALIGN_TOP, &rect, size_y, HEADERY, size_y);
+}
+
+static void screen_global_statusbar_area_create(wmWindow *win)
+{
+	const short size_y = HEADERY;
+	rcti rect;
+
+	BLI_rcti_init(&rect, 0, WM_window_pixels_x(win) - 1, 0, WM_window_pixels_y(win) - 1);
+	rect.ymax = rect.ymin + size_y;
+
+	screen_global_area_create(win, SPACE_STATUSBAR, GLOBAL_AREA_ALIGN_BOTTOM, &rect, size_y, size_y, size_y);
 }
 
 void ED_screen_global_areas_create(wmWindow *win)
 {
-	const bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
-	ED_screen_global_topbar_area_create(win, screen);
+	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
+	if (screen->temp == 0) {
+		screen_global_topbar_area_create(win);
+		screen_global_statusbar_area_create(win);
+	}
 }
 
 

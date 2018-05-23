@@ -50,13 +50,13 @@ WorkSpaceLayout *ED_workspace_layout_add(
         wmWindow *win,
         const char *name)
 {
-	const int screen_size_x = WM_window_screen_pixels_x(win);
-	const int screen_size_y = WM_window_screen_pixels_y(win);
+	bScreen *screen;
+	rcti screen_rect;
 
-	bScreen *screen = screen_add(name, screen_size_x, screen_size_y);
-	WorkSpaceLayout *layout = BKE_workspace_layout_add(workspace, screen, name);
+	WM_window_screen_rect_calc(win, &screen_rect);
+	screen = screen_add(name, &screen_rect);
 
-	return layout;
+	return BKE_workspace_layout_add(workspace, screen, name);
 }
 
 WorkSpaceLayout *ED_workspace_layout_duplicate(
