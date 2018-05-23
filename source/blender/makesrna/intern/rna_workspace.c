@@ -53,6 +53,8 @@
 
 #include "RNA_access.h"
 
+#include "WM_toolsystem.h"
+
 static void rna_window_update_all(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
 	WM_main_add_notifier(NC_WINDOW, NULL);

@@ -69,6 +69,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_message.h"
+#include "WM_toolsystem.h"
 
 #include "ED_object.h"
 #include "ED_mesh.h"

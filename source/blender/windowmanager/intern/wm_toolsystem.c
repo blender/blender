@@ -53,6 +53,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 #include "WM_message.h"
+#include "WM_toolsystem.h"  /* own include */
 
 static void toolsystem_reinit_with_toolref(
         bContext *C, WorkSpace *UNUSED(workspace), bToolRef *tref);

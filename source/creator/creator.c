@@ -78,6 +78,7 @@
 #include "ED_datafiles.h"
 
 #include "WM_api.h"
+#include "WM_toolsystem.h"
 
 #include "RNA_define.h"
 
