@@ -2877,19 +2877,29 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		IDP_LibLinkProperty(id->properties, fd);
 		id_us_ensure_real(id);
 
-		for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first;
+		for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first,
+		     *relation_next = NULL;
 		     relation != NULL;
-		     relation = relation->next)
+		     relation = relation_next)
 		{
+			relation_next = relation->next;
+
 			relation->parent = newlibadr(fd, id->lib, relation->parent);
 			/* relation->value is set in direct_link_workspace_link_scene_data,
 			 * except when loading linked data. */
 			Scene *scene = relation->parent;
-			if (scene->id.lib != NULL) {
-				relation->value = BLI_findstring(&scene->view_layers, relation->value_name, offsetof(ViewLayer, name));
+
+			if (scene) {
+				if (scene->id.lib != NULL) {
+					relation->value = BLI_findstring(&scene->view_layers, relation->value_name, offsetof(ViewLayer, name));
+				}
+				if (relation->value == NULL) {
+					relation->value = scene->view_layers.first;
+				}
 			}
-			if (relation->value == NULL) {
-				relation->value = scene->view_layers.first;
+			else {
+				/* Remove empty relation if scene got lost. */
+				BLI_freelinkN(&workspace->scene_viewlayer_relations, relation);
 			}
 		}
 
