@@ -716,46 +716,22 @@ static void graph_panel_driverVar__transChan(uiLayout *layout, ID *id, DriverVar
 	uiItemR(sub, &dtar_ptr, "transform_space", 0, IFACE_("Space"), ICON_NONE);
 }
 
+/* ----------------------------------------------------------------- */
+
 
 /* property driven by the driver - duplicates Active FCurve, but useful for clarity */
-static void graph_panel_driven_property(const bContext *C, Panel *pa)
+static void graph_draw_driven_property_panel(uiLayout *layout, ID *id, FCurve *fcu)
 {
-	bAnimListElem *ale;
-	FCurve *fcu;
 	PointerRNA fcu_ptr;
-	uiLayout *layout = pa->layout;
 	uiLayout *row;
 	char name[256];
 	int icon = 0;
-
-	if (!graph_panel_context(C, &ale, &fcu))
-		return;
 	
 	/* F-Curve pointer */
-	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
+	RNA_pointer_create(id, &RNA_FCurve, fcu, &fcu_ptr);
 	
 	/* get user-friendly 'name' for F-Curve */
-	if (ale->type == ANIMTYPE_FCURVE) {
-		/* get user-friendly name for F-Curve */
-		icon = getname_anim_fcurve(name, ale->id, fcu);
-	}
-	else {
-		/* NLA Control Curve, etc. */
-		const bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-		
-		/* get name */
-		if (acf && acf->name) {
-			acf->name(ale, name);
-		}
-		else {
-			strcpy(name, IFACE_("<invalid>"));
-			icon = ICON_ERROR;
-		}
-		
-		/* icon */
-		if (ale->type == ANIMTYPE_NLACURVE)
-			icon = ICON_NLA;
-	}
+	icon = getname_anim_fcurve(name, id, fcu);
 	
 	/* panel layout... */
 	row = uiLayoutRow(layout, true);
@@ -763,17 +739,15 @@ static void graph_panel_driven_property(const bContext *C, Panel *pa)
 	
 	/* -> user friendly 'name' for datablock that owns F-Curve */
 	/* XXX: Actually, we may need the datablock icons only... (e.g. right now will show bone for bone props) */
-	uiItemL(row, ale->id->name + 2, icon);
+	uiItemL(row, id->name + 2, icon);
 	
 	/* -> user friendly 'name' for F-Curve/driver target */
 	uiItemL(row, "", VICO_SMALL_TRI_RIGHT_VEC);
 	uiItemL(row, name, ICON_RNA);
-	
-	MEM_freeN(ale);
 }
 
 /* UI properties panel layout for driver settings - shared for Drivers Editor and for */
-static void graph_draw_driver_settings_panel(ID *id, FCurve *fcu, uiLayout *layout)
+static void graph_draw_driver_settings_panel(uiLayout *layout, ID *id, FCurve *fcu)
 {
 	ChannelDriver *driver = fcu->driver;
 	DriverVar *dvar;
@@ -984,6 +958,22 @@ static void graph_draw_driver_settings_panel(ID *id, FCurve *fcu, uiLayout *layo
 	UI_but_func_set(but, driver_update_flags_cb, fcu, NULL);
 }
 
+/* ----------------------------------------------------------------- */
+
+
+/* panel to show property driven by the driver (in Drivers Editor) - duplicates Active FCurve, but useful for clarity */
+static void graph_panel_driven_property(const bContext *C, Panel *pa)
+{
+	bAnimListElem *ale;
+	FCurve *fcu;
+
+	if (!graph_panel_context(C, &ale, &fcu))
+		return;
+	
+	graph_draw_driven_property_panel(pa->layout, ale->id, fcu);
+	
+	MEM_freeN(ale);
+}
 
 /* driver settings for active F-Curve (only for 'Drivers' mode in Graph Editor, i.e. the full "Drivers Editor") */
 static void graph_panel_drivers(const bContext *C, Panel *pa)
@@ -995,10 +985,60 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	if (!graph_panel_context(C, &ale, &fcu))
 		return;
 	
-	graph_draw_driver_settings_panel(ale->id, fcu, pa->layout);
+	graph_draw_driver_settings_panel(pa->layout, ale->id, fcu);
 	
 	/* cleanup */
 	MEM_freeN(ale);
+}
+
+/* ----------------------------------------------------------------- */
+
+/* poll to make this not show up in the graph editor, as this is only to be used as a popup elsewhere */
+static int graph_panel_drivers_popover_poll(bContext *C, PanelType *UNUSED(pt))
+{
+	return ED_operator_graphedit_active(C) == false;
+}
+
+/* popover panel for driver editing anywhere in ui */
+static void graph_panel_drivers_popover(const bContext *C, Panel *pa)
+{
+	uiLayout *layout = pa->layout;
+	
+	PointerRNA ptr = {{NULL}};
+	PropertyRNA *prop = NULL;
+	int index = -1;
+	uiBut *but = NULL;
+	
+	/* Get active property to show driver properties for */
+	but = UI_context_active_but_prop_get((bContext *)C, &ptr, &prop, &index);
+	if (but) {
+		FCurve *fcu;
+		bool driven, special;
+		
+		fcu = rna_get_fcurve_context_ui((bContext *)C,
+		                                &ptr, prop, index,
+		                                NULL, NULL, &driven, &special);
+		
+		/* Populate Panel - With a combination of the contents of the Driven and Driver panels */
+		if (fcu) {
+			ID *id = ptr.id.data;
+			
+			/* Driven Property Settings */
+			uiItemL(layout, IFACE_("Driven Property:"), ICON_NONE);
+			graph_draw_driven_property_panel(pa->layout, id, fcu);
+			/* TODO: All vs Single */
+			
+			uiItemS(layout);
+			uiItemS(layout);
+			
+			/* Drivers Settings */
+			uiItemL(layout, IFACE_("Driver Settings:"), ICON_NONE);
+			graph_draw_driver_settings_panel(pa->layout, id, fcu);
+		}
+	}
+	
+	/* Show drivers editor is always visible */
+	uiItemO(layout, IFACE_("Show in Drivers Editor"), ICON_DRIVER, "SCREEN_OT_drivers_editor_show");
 }
 
 /* ******************* F-Modifiers ******************************** */
@@ -1097,6 +1137,15 @@ void graph_buttons_register(ARegionType *art)
 	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
 	pt->draw = graph_panel_drivers;
 	pt->poll = graph_panel_drivers_poll;
+	BLI_addtail(&art->paneltypes, pt);
+	
+	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel drivers pover");
+	strcpy(pt->idname, "GRAPH_PT_drivers_popover");
+	strcpy(pt->label, N_("Add/Edit Driver"));
+	strcpy(pt->category, "Drivers");
+	strcpy(pt->translation_context, BLT_I18NCONTEXT_DEFAULT_BPYRNA);
+	pt->draw = graph_panel_drivers_popover;
+	pt->poll = graph_panel_drivers_popover_poll;
 	BLI_addtail(&art->paneltypes, pt);
 
 	pt = MEM_callocN(sizeof(PanelType), "spacetype graph panel modifiers");
