@@ -585,11 +585,12 @@ static void rna_ParticleSystem_mcol_on_emitter(ParticleSystem *particlesystem, R
 static void particle_recalc(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr, short flag)
 {
 	if (ptr->type == &RNA_ParticleSystem) {
+		Object *ob = ptr->id.data;
 		ParticleSystem *psys = (ParticleSystem *)ptr->data;
-		
+
 		psys->recalc = flag;
 
-		DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
+		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	else
 		DEG_id_tag_update(ptr->id.data, OB_RECALC_DATA | flag);
@@ -618,9 +619,22 @@ static void rna_Particle_reset_dependency(Main *bmain, Scene *scene, PointerRNA 
 	rna_Particle_reset(bmain, scene, ptr);
 }
 
-static void rna_Particle_change_type(Main *bmain, Scene *scene, PointerRNA *ptr)
+static void rna_Particle_change_type(Main *bmain, Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	particle_recalc(bmain, scene, ptr, PSYS_RECALC_RESET | PSYS_RECALC_TYPE);
+	ParticleSettings *part = ptr->id.data;
+
+	/* Iterating over all object is slow, but no better solution exists at the moment. */
+	for (Object *ob = bmain->object.first; ob; ob = ob->id.next) {
+		for (ParticleSystem *psys = ob->particlesystem.first; psys; psys = psys->next) {
+			if (psys->part == part) {
+				psys_changed_type(ob, psys);
+				psys->recalc |= PSYS_RECALC_RESET;
+				DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			}
+		}
+	}
+
+	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 	DEG_relations_tag_update(bmain);
 }
 
@@ -734,6 +748,7 @@ static PointerRNA rna_particle_settings_get(PointerRNA *ptr)
 
 static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 {
+	Object *ob = ptr->id.data;
 	ParticleSystem *psys = (ParticleSystem *)ptr->data;
 	int old_type = 0;
 
@@ -748,8 +763,9 @@ static void rna_particle_settings_set(PointerRNA *ptr, PointerRNA value)
 	if (psys->part) {
 		id_us_plus(&psys->part->id);
 		psys_check_boid_data(psys);
-		if (old_type != psys->part->type)
-			psys->recalc |= PSYS_RECALC_TYPE;
+		if (old_type != psys->part->type) {
+			psys_changed_type(ob, psys);
+		}
 	}
 }
 static void rna_Particle_abspathtime_update(Main *bmain, Scene *scene, PointerRNA *ptr)

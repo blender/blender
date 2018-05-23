@@ -4254,9 +4254,6 @@ void particle_system_update(struct Depsgraph *depsgraph, Scene *scene, Object *o
 	/* to verify if we need to restore object afterwards */
 	psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 
-	if (psys->recalc & PSYS_RECALC_TYPE)
-		psys_changed_type(sim.ob, sim.psys);
-
 	if (psys->recalc & PSYS_RECALC_RESET)
 		psys->totunexist = 0;
 
