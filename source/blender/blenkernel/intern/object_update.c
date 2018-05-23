@@ -372,6 +372,9 @@ void BKE_object_eval_uber_data(Depsgraph *depsgraph,
 				 * evaluated mesh.
 				 */
 				new_mesh->id.orig_id = &mesh->id;
+				/* Copy autosmooth settings from original mesh. */
+				new_mesh->flag |= (mesh->flag & ME_AUTOSMOOTH);
+				new_mesh->smoothresh = mesh->smoothresh;
 			}
 #if 0
 			if (ob->derivedFinal != NULL) {
