@@ -1792,9 +1792,12 @@ void DepsgraphRelationBuilder::build_obdata_geom(Object *object)
 			/* curve's dependencies */
 			// XXX: these needs geom data, but where is geom stored?
 			if (cu->bevobj) {
-				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
+				ComponentKey bevob_geom_key(&cu->bevobj->id, DEG_NODE_TYPE_GEOMETRY);
+				add_relation(bevob_geom_key, obdata_geom_key, "Curve Bevel Geometry");
+				/* We only need scale, but we can't tag individual TRANSFORM components. */
+				ComponentKey bevob_key(&cu->bevobj->id, DEG_NODE_TYPE_TRANSFORM);
+				add_relation(bevob_key, obdata_geom_key, "Curve Bevel Scale");
 				build_object(NULL, cu->bevobj);
-				add_relation(bevob_key, geom_key, "Curve Bevel");
 			}
 			if (cu->taperobj) {
 				ComponentKey taperob_key(&cu->taperobj->id, DEG_NODE_TYPE_GEOMETRY);
