@@ -3371,16 +3371,29 @@ static void subdividenurb(Object *obedit, int number_cuts)
 
 static int subdivide_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit = CTX_data_edit_object(C);
-	int number_cuts = RNA_int_get(op->ptr, "number_cuts");
+	const int number_cuts = RNA_int_get(op->ptr, "number_cuts");
 
-	subdividenurb(obedit, number_cuts);
+	ViewLayer *view_layer = CTX_data_view_layer(C);
 
-	if (ED_curve_updateAnimPaths(obedit->data))
-		WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+	uint objects_len = 0;
+	Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data(view_layer, &objects_len);
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects[ob_index];
+		Curve *cu = obedit->data;
 
-	WM_event_add_notifier(C, NC_GEOM | ND_DATA, obedit->data);
-	DEG_id_tag_update(obedit->data, 0);
+		if (!ED_curve_select_check(cu, cu->editnurb)) {
+			continue;
+		}
+
+		subdividenurb(obedit, number_cuts);
+
+		if (ED_curve_updateAnimPaths(cu))
+			WM_event_add_notifier(C, NC_OBJECT | ND_KEYS, obedit);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, cu);
+		DEG_id_tag_update(obedit->data, 0);
+	}
+	MEM_freeN(objects);
 
 	return OPERATOR_FINISHED;
 }
