@@ -1980,7 +1980,7 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 
 		if (ot && wm_operator_check_locked_interface(C, ot)) {
 			bool use_last_properties = true;
-			PointerRNA tool_properties = {0};
+			PointerRNA tool_properties = {{0}};
 			bool use_tool_properties = (handler->keymap_tool != NULL);
 			
 			if (use_tool_properties) {

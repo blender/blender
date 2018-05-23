@@ -320,7 +320,6 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				{
 					bArmature *arm = (bArmature *)tselem->id;
 					if (arm->edbo) {
-						ViewLayer *view_layer = CTX_data_view_layer(C);
 						EditBone *ebone = te->directdata;
 						char newname[sizeof(ebone->name)];
 
