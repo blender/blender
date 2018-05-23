@@ -154,16 +154,11 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 	PointerRNA fcu_ptr;
 	uiLayout *layout = pa->layout;
 	uiLayout *col, *row, *sub;
-	// uiBlock *block;  // UNUSED
 	char name[256];
 	int icon = 0;
 
 	if (!graph_panel_context(C, &ale, &fcu))
 		return;
-	
-	// UNUSED
-	// block = uiLayoutGetBlock(layout);
-	// UI_block_func_handle_set(block, do_graph_region_buttons, NULL);
 	
 	/* F-Curve pointer */
 	RNA_pointer_create(ale->id, &RNA_FCurve, fcu, &fcu_ptr);
@@ -192,7 +187,7 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 			icon = ICON_NLA;
 	}
 	uiItemL(col, name, icon);
-		
+	
 	/* RNA-Path Editing - only really should be enabled when things aren't working */
 	col = uiLayoutColumn(layout, true);
 	uiLayoutSetEnabled(col, (fcu->flag & FCURVE_DISABLED) != 0);
@@ -205,16 +200,16 @@ static void graph_panel_properties(const bContext *C, Panel *pa)
 		
 	row = uiLayoutRow(col, true);
 	uiItemR(row, &fcu_ptr, "color_mode", 0, "", ICON_NONE);
-			
+	
 	sub = uiLayoutRow(row, true);
 	uiLayoutSetEnabled(sub, (fcu->color_mode == FCURVE_COLOR_CUSTOM));
 	uiItemR(sub, &fcu_ptr, "color", 0, "", ICON_NONE);
-
+	
 	/* smoothing setting */
 	col = uiLayoutColumn(layout, true);
 	uiItemL(col, IFACE_("Auto Handle Smoothing:"), ICON_NONE);
 	uiItemR(col, &fcu_ptr, "auto_smoothing", 0, "", ICON_NONE);
-
+	
 	MEM_freeN(ale);
 }
 
