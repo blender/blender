@@ -52,6 +52,8 @@
 #include "BKE_deform.h"
 #include "BKE_object.h"
 
+#include "DEG_depsgraph.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "MOD_util.h"
@@ -271,9 +273,11 @@ static void displaceModifier_do_task(
 
 /* dm must be a CDDerivedMesh */
 static void displaceModifier_do(
-        DisplaceModifierData *dmd, Object *ob,
+        DisplaceModifierData *dmd, const ModifierEvalContext *ctx,
         Mesh *mesh, float (*vertexCos)[3], const int numVerts)
 {
+	Object *ob = ctx->object;
+	Depsgraph *depsgraph = ctx->depsgraph;
 	MVert *mvert;
 	MDeformVert *dvert;
 	int direction = dmd->direction;
@@ -295,7 +299,7 @@ static void displaceModifier_do(
 		                     "displaceModifier_do tex_co");
 		get_texture_coords_mesh((MappingInfoModifierData *)dmd, ob, mesh, vertexCos, tex_co);
 
-		modifier_init_texture(dmd->modifier.scene, dmd->texture);
+		modifier_init_texture(depsgraph, dmd->texture);
 	}
 	else {
 		tex_co = NULL;
@@ -374,8 +378,7 @@ static void deformVerts(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	displaceModifier_do((DisplaceModifierData *)md, ctx->object, mesh_src,
-	                    vertexCos, numVerts);
+	displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);
@@ -390,7 +393,7 @@ static void deformVertsEM(
 
 	BLI_assert(mesh_src->totvert == numVerts);
 
-	displaceModifier_do((DisplaceModifierData *)md, ctx->object, mesh_src, vertexCos, numVerts);
+	displaceModifier_do((DisplaceModifierData *)md, ctx, mesh_src, vertexCos, numVerts);
 
 	if (mesh_src != mesh) {
 		BKE_id_free(NULL, mesh_src);

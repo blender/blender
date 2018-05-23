@@ -46,6 +46,8 @@
 #include "BKE_modifier.h"
 #include "BKE_texture.h"          /* Texture masking. */
 
+#include "DEG_depsgraph.h"
+
 #include "MEM_guardedalloc.h"
 #include "MOD_util.h"
 #include "MOD_weightvg_util.h"
@@ -116,11 +118,13 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
  * XXX The standard "factor" value is assumed in [0.0, 1.0] range. Else, weird results might appear.
  */
 void weightvg_do_mask(
+        const ModifierEvalContext *ctx,
         const int num, const int *indices, float *org_w, const float *new_w,
         Object *ob, Mesh *mesh, const float fact, const char defgrp_name[MAX_VGROUP_NAME],
         Scene *scene, Tex *texture, const int tex_use_channel, const int tex_mapping,
         Object *tex_map_object, const char *tex_uvlayer_name)
 {
+	Depsgraph *depsgraph = ctx->depsgraph;
 	int ref_didx;
 	int i;
 
@@ -148,7 +152,7 @@ void weightvg_do_mask(
 		tex_co = MEM_calloc_arrayN(numVerts, sizeof(*tex_co), "WeightVG Modifier, TEX mode, tex_co");
 		get_texture_coords_mesh(&t_map, ob, mesh, NULL, tex_co);
 
-		modifier_init_texture(scene, texture);
+		modifier_init_texture(depsgraph, texture);
 
 		/* For each weight (vertex), make the mix between org and new weights. */
 		for (i = 0; i < num; ++i) {

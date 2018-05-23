@@ -366,7 +366,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	}
 
 	/* Do masking. */
-	weightvg_do_mask(numIdx, indices, org_w, new_w, ctx->object, result, wmd->mask_constant,
+	weightvg_do_mask(ctx, numIdx, indices, org_w, new_w, ctx->object, result, wmd->mask_constant,
 	                 wmd->mask_defgrp_name, wmd->modifier.scene, wmd->mask_texture,
 	                 wmd->mask_tex_use_channel, wmd->mask_tex_mapping,
 	                 wmd->mask_tex_map_obj, wmd->mask_tex_uvlayer_name);

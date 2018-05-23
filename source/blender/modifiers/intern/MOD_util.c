@@ -53,6 +53,9 @@
 
 #include "BKE_modifier.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_util.h"
 #include "MOD_modifiertypes.h"
 
@@ -60,13 +63,13 @@
 
 #include "bmesh.h"
 
-void modifier_init_texture(const Scene *scene, Tex *tex)
+void modifier_init_texture(const Depsgraph *depsgraph, Tex *tex)
 {
 	if (!tex)
 		return;
 
 	if (tex->ima && BKE_image_is_animated(tex->ima)) {
-		BKE_image_user_frame_calc(&tex->iuser, scene->r.cfra, 0);
+		BKE_image_user_frame_calc(&tex->iuser, DEG_get_ctime(depsgraph), 0);
 	}
 }
 

@@ -194,7 +194,7 @@ static void waveModifier_do(
 		                     "waveModifier_do tex_co");
 		get_texture_coords_mesh((MappingInfoModifierData *)wmd, ob, mesh, vertexCos, tex_co);
 
-		modifier_init_texture(wmd->modifier.scene, wmd->texture);
+		modifier_init_texture(depsgraph, wmd->texture);
 	}
 
 	if (lifefac != 0.0f) {
