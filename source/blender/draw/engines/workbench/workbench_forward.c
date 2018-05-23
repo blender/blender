@@ -263,10 +263,9 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	GPU_framebuffer_clear_color(fbl->depth_fb, clear_color);
 	DRW_stats_group_end();
 
-
 	/* Treansparecy Accum */
 	{
-		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE;// | DRW_STATE_CULL_BACK;
+		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL;
 		psl->transparent_accum_pass = DRW_pass_create("Transparent Accum", state);
 	}
 	/* Depth */

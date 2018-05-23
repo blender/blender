@@ -27,7 +27,7 @@ void main()
 	if (object_id == NO_OBJECT_ID) {
 		color = vec4(background_color(world_data, uv_viewport.y), 0.0);
 	} else {
-		color = transparent_accum;
+		color = transparent_accum / transparent_accum.a;
 	}
 
 	fragColor = vec4(mix(world_data.object_outline_color.rgb, color.xyz, outline), 1.0);

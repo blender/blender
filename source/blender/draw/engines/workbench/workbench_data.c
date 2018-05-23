@@ -20,7 +20,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 		copy_v3_fl(wpd->shading.single_color, 0.8f);
 		wpd->drawtype = OB_SOLID;
 		wpd->studio_light = BKE_studiolight_findindex(0);
-		wpd->shading.see_through_transparency = 0.3f;
 	}
 	wpd->shadow_multiplier = 1.0 - wpd->shading.shadow_intensity;
 
@@ -35,7 +34,6 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 
 	studiolight_update_world(wpd->studio_light, wd);
 
-	wd->see_through_transparency = wpd->shading.see_through_transparency;
 	copy_v3_v3(wd->object_outline_color, wpd->shading.object_outline_color);
 	wd->object_outline_color[3] = 1.0f;
 

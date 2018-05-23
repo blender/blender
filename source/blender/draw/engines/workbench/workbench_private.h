@@ -93,8 +93,6 @@ typedef struct WORKBENCH_UBO_World {
 	float background_color_low[4];
 	float background_color_high[4];
 	float object_outline_color[4];
-	float see_through_transparency;
-	float pad[3];
 } WORKBENCH_UBO_World;
 BLI_STATIC_ASSERT_ALIGN(WORKBENCH_UBO_World, 16)
 

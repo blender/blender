@@ -8,5 +8,4 @@ struct WorldData {
 	vec4 background_color_low;
 	vec4 background_color_high;
 	vec4 object_outline_color;
-	float see_through_transparency;
 };

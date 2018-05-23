@@ -3517,9 +3517,6 @@ class VIEW3D_PT_shading(Panel):
 
             row = col.row()
             row.prop(shading, "show_see_through")
-            sub = row.row()
-            sub.active = shading.show_see_through
-            sub.prop(shading, "see_through_transparency", text="")
 
             row = col.row()
             row.active = not shading.show_see_through

@@ -145,10 +145,10 @@ typedef struct View3DShading {
 	float single_color[3];
 
 	float studiolight_rot_z;
-	float see_through_transparency;
+	float pad2;
 
 	float object_outline_color[3];
-	float pad2;
+	float pad3;
 } View3DShading;
 
 /* 3D Viewport Overlay setings */
