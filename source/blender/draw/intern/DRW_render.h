@@ -280,6 +280,7 @@ typedef enum {
 	DRW_STATE_BLEND_PREMUL  = (1 << 21), /* Use that if color is already premult by alpha. */
 	DRW_STATE_WIRE_SMOOTH   = (1 << 22),
 	DRW_STATE_TRANS_FEEDBACK = (1 << 23),
+	DRW_STATE_TRANSPARENT_REVEALAGE = (1 << 24),
 
 	DRW_STATE_WRITE_STENCIL          = (1 << 27),
 	DRW_STATE_WRITE_STENCIL_SHADOW_PASS   = (1 << 28),

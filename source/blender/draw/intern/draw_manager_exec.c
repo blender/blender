@@ -221,7 +221,8 @@ void drw_state_set(DRWState state)
 		int test;
 		if (CHANGED_ANY_STORE_VAR(
 		        DRW_STATE_BLEND | DRW_STATE_BLEND_PREMUL | DRW_STATE_ADDITIVE |
-		        DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION | DRW_STATE_ADDITIVE_FULL,
+		        DRW_STATE_MULTIPLY | DRW_STATE_TRANSMISSION | DRW_STATE_ADDITIVE_FULL |
+		        DRW_STATE_TRANSPARENT_REVEALAGE,
 		        test))
 		{
 			if (test) {
@@ -239,6 +240,9 @@ void drw_state_set(DRWState state)
 				}
 				else if ((state & DRW_STATE_TRANSMISSION) != 0) {
 					glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+				}
+				else if ((state & DRW_STATE_TRANSPARENT_REVEALAGE) != 0) {
+					glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 				}
 				else if ((state & DRW_STATE_ADDITIVE) != 0) {
 					/* Do not let alpha accumulate but premult the source RGB by it. */

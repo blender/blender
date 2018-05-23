@@ -15,6 +15,7 @@ void main()
 	vec2 uv_viewport = gl_FragCoord.xy * invertedViewportSize;
 	uint object_id = texelFetch(objectId, texel, 0).r;
 	vec4 transparent_accum = texelFetch(transparentAccum, texel, 0);
+	float transparent_revealage = texelFetch(transparentRevealage, texel, 0).r;
 	float revealage = texelFetch(transparentRevealage, texel, 0).r;
 	vec4 color;
 
@@ -27,7 +28,8 @@ void main()
 	if (object_id == NO_OBJECT_ID) {
 		color = vec4(background_color(world_data, uv_viewport.y), 0.0);
 	} else {
-		color = transparent_accum / transparent_accum.a;
+		color = vec4((transparent_accum.xyz / max(transparent_accum.a, EPSILON)) * (1.0 - transparent_revealage), 1.0);
+		// color = vec4(transparent_revealage);
 	}
 
 	fragColor = vec4(mix(world_data.object_outline_color.rgb, color.xyz, outline), 1.0);
