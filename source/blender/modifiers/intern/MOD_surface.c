@@ -42,6 +42,9 @@
 #include "BKE_library.h"
 #include "BKE_mesh.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
@@ -91,6 +94,7 @@ static void deformVerts(
         int UNUSED(numVerts))
 {
 	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
+	const int cfra = (int)DEG_get_ctime(ctx->depsgraph);
 	
 	if (surmd->mesh) {
 		BKE_id_free(NULL, surmd->mesh);
@@ -128,7 +132,7 @@ static void deformVerts(
 		if (numverts != surmd->numverts ||
 		    surmd->x == NULL ||
 		    surmd->v == NULL ||
-		    md->scene->r.cfra != surmd->cfra + 1)
+		    cfra != surmd->cfra + 1)
 		{
 			if (surmd->x) {
 				MEM_freeN(surmd->x);
@@ -160,7 +164,7 @@ static void deformVerts(
 			copy_v3_v3(x->co, vec);
 		}
 
-		surmd->cfra = md->scene->r.cfra;
+		surmd->cfra = cfra;
 
 		if (surmd->bvhtree)
 			free_bvhtree_from_mesh(surmd->bvhtree);

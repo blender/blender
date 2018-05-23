@@ -52,6 +52,9 @@
 #  include "BKE_global.h"
 #endif
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #include "MOD_fluidsim_util.h"
 #include "MOD_modifiertypes.h"
 
@@ -512,17 +515,20 @@ static DerivedMesh *fluidsim_read_cache(
 #endif // WITH_MOD_FLUID
 
 DerivedMesh *fluidsimModifier_do(
-        FluidsimModifierData *fluidmd, Scene *scene,
-        Object *ob,
-        DerivedMesh *dm,
-        int useRenderParams, int UNUSED(isFinalCalc))
+        FluidsimModifierData *fluidmd,
+        const ModifierEvalContext *ctx,
+        DerivedMesh *dm)
 {
 #ifdef WITH_MOD_FLUID
+	Object *ob = ctx->object;
+	Depsgraph *depsgraph = ctx->depsgraph;
+	const bool useRenderParams = (ctx->flag & MOD_APPLY_RENDER) != 0;
+//	const bool isFinalCalc = (ctx->flag & MOD_APPLY_USECACHE) != 0;
 	DerivedMesh *result = NULL;
 	int framenr;
 	FluidsimSettings *fss = NULL;
 
-	framenr = (int)scene->r.cfra;
+	framenr = (int)DEG_get_ctime(depsgraph);
 	
 	/* only handle fluidsim domains */
 	if (fluidmd && fluidmd->fss && (fluidmd->fss->type != OB_FLUIDSIM_DOMAIN))
@@ -552,10 +558,8 @@ DerivedMesh *fluidsimModifier_do(
 #else
 	/* unused */
 	(void)fluidmd;
-	(void)scene;
-	(void)ob;
+	(void)ctx;
 	(void)dm;
-	(void)useRenderParams;
 	return NULL;
 #endif
 }

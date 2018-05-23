@@ -46,6 +46,7 @@
 
 #include "DEG_depsgraph.h"
 #include "DEG_depsgraph_build.h"
+#include "DEG_depsgraph_query.h".h"
 
 #include "MOD_modifiertypes.h"
 
@@ -55,7 +56,7 @@ static void deformVerts(
         float (*vertexCos)[3],
         int numVerts)
 {
-	sbObjectStep(ctx->depsgraph, md->scene, ctx->object, (float)md->scene->r.cfra, vertexCos, numVerts);
+	sbObjectStep(ctx->depsgraph, md->scene, ctx->object, DEG_get_ctime(ctx->depsgraph), vertexCos, numVerts);
 }
 
 static bool dependsOnTime(ModifierData *UNUSED(md))

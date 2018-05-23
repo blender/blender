@@ -101,8 +101,7 @@ static DerivedMesh *applyModifier(
 		}
 	}
 
-	result = fluidsimModifier_do(fluidmd, md->scene, ctx->object, dm,
-	                             ctx->flag & MOD_APPLY_RENDER, ctx->flag & MOD_APPLY_USECACHE);
+	result = fluidsimModifier_do(fluidmd, ctx, dm);
 
 	return result ? result : dm;
 }
