@@ -1202,18 +1202,12 @@ class INFO_MT_surface_add(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("curve.primitive_bezier_curve_add", text="Bezier", icon='CURVE_BEZCURVE')
-        layout.operator("curve.primitive_bezier_circle_add", text="Circle", icon='CURVE_BEZCIRCLE')
-
-        layout.separator()
-
-        layout.operator("curve.primitive_nurbs_curve_add", text="Nurbs Curve", icon='CURVE_NCURVE')
-        layout.operator("curve.primitive_nurbs_circle_add", text="Nurbs Circle", icon='CURVE_NCIRCLE')
-        layout.operator("curve.primitive_nurbs_path_add", text="Path", icon='CURVE_PATH')
-
-        layout.separator()
-
-        layout.operator("curve.draw", icon='LINE_DATA')
+        layout.operator("surface.primitive_nurbs_surface_curve_add", text="Nurbs Curve", icon='SURFACE_NCURVE')
+        layout.operator("surface.primitive_nurbs_surface_circle_add", text="Nurbs Circle", icon='SURFACE_NCIRCLE')
+        layout.operator("surface.primitive_nurbs_surface_surface_add", text="Nurbs Surface", icon='SURFACE_NSURFACE')
+        layout.operator("surface.primitive_nurbs_surface_cylinder_add", text="Nurbs Cylinder", icon='SURFACE_NCYLINDER')
+        layout.operator("surface.primitive_nurbs_surface_sphere_add", text="Nurbs Sphere", icon='SURFACE_NSPHERE')
+        layout.operator("surface.primitive_nurbs_surface_torus_add", text="Nurbs Torus", icon='SURFACE_NTORUS')
 
 
 class INFO_MT_metaball_add(Menu):
