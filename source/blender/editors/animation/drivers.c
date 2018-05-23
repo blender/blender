@@ -117,7 +117,6 @@ FCurve *verify_driver_fcurve(ID *id, const char rna_path[], const int array_inde
 			
 			/* add some new driver data */
 			fcu->driver = MEM_callocN(sizeof(ChannelDriver), "ChannelDriver");
-			fcu->driver->flag |= DRIVER_FLAG_SHOWDEBUG;
 			
 			/* F-Modifier or Keyframes? */
 			// FIXME: replace these magic numbers with defines

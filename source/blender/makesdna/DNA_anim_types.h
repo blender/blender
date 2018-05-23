@@ -438,6 +438,7 @@ typedef enum eDriver_Types {
 } eDriver_Types;
 
 /* driver flags */
+/* note: (1<<5) is deprecated; was "DRIVER_FLAG_SHOWDEBUG" */
 typedef enum eDriver_Flags {
 		/* driver has invalid settings (internal flag)  */
 	DRIVER_FLAG_INVALID		= (1<<0),
@@ -450,8 +451,6 @@ typedef enum eDriver_Flags {
 	DRIVER_FLAG_RECOMPILE	= (1<<3),
 		/* the names are cached so they don't need have python unicode versions created each time */
 	DRIVER_FLAG_RENAMEVAR	= (1<<4),
-		/* intermediate values of driver should be shown in the UI for debugging purposes */
-	DRIVER_FLAG_SHOWDEBUG	= (1<<5),
 		/* include 'self' in the drivers namespace. */
 	DRIVER_FLAG_USE_SELF	= (1<<6),
 } eDriver_Flags;

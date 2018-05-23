@@ -776,7 +776,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	DriverVar *dvar;
 	
 	PointerRNA driver_ptr;
-	uiLayout *col;
+	uiLayout *col, *row;
 	uiBlock *block;
 	uiBut *but;
 	
@@ -786,20 +786,20 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	driver = fcu->driver;
 	
 	/* set event handler for panel */
-	block = uiLayoutGetBlock(pa->layout); // xxx?
+	block = uiLayoutGetBlock(pa->layout);
 	UI_block_func_handle_set(block, do_graph_region_driver_buttons, NULL);
 	
 	/* general actions - management */
-	col = uiLayoutColumn(pa->layout, false);
-	block = uiLayoutGetBlock(col);
+	row = uiLayoutRow(pa->layout, true);
+	block = uiLayoutGetBlock(row);
 	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_FILE_REFRESH, IFACE_("Update Dependencies"),
 	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
 	               NULL, 0.0, 0.0, 0, 0,
 	               TIP_("Force updates of dependencies"));
 	UI_but_func_set(but, driver_update_flags_cb, fcu, NULL);
 
-	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMOUT, IFACE_("Remove Driver"),
-	               0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
+	but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_X, "",
+	               0, 0, UI_UNIT_X, UI_UNIT_Y,
 	               NULL, 0.0, 0.0, 0, 0,
 	               TIP_("Remove this driver"));
 	UI_but_funcN_set(but, driver_remove_cb, MEM_dupallocN(ale), NULL);
@@ -810,6 +810,16 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	col = uiLayoutColumn(pa->layout, true);
 	block = uiLayoutGetBlock(col);
 	uiItemR(col, &driver_ptr, "type", 0, NULL, ICON_NONE);
+	
+	{
+		char valBuf[32];
+		
+		/* value of driver */
+		row = uiLayoutRow(col, true);
+		uiItemL(row, IFACE_("Driver Value:"), ICON_NONE);
+		BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", driver->curval);
+		uiItemL(row, valBuf, ICON_NONE);
+	}
 
 	/* show expression box if doing scripted drivers, and/or error messages when invalid drivers exist */
 	if (driver->type == DRIVER_TYPE_PYTHON) {
@@ -817,10 +827,20 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		bool bpy_ctx_expr_error  = (strstr(driver->expression, "bpy.context.") != NULL);
 		
 		/* expression */
-		uiItemR(col, &driver_ptr, "expression", 0, IFACE_("Expr"), ICON_NONE);
+		/* TODO: "Show syntax hints" button */
+		col = uiLayoutColumn(pa->layout, true);
+		block = uiLayoutGetBlock(col);
+		
+		uiItemL(col, IFACE_("Expression:"), ICON_NONE);
+		uiItemR(col, &driver_ptr, "expression", 0, "", ICON_NONE);
+		uiItemR(col, &driver_ptr, "use_self", 0, NULL, ICON_NONE);
 		
 		/* errors? */
+		col = uiLayoutColumn(pa->layout, true);
+		block = uiLayoutGetBlock(col);
+		
 		if ((G.f & G_SCRIPT_AUTOEXEC) == 0) {
+			/* TODO: Add button to enable? */
 			uiItemL(col, IFACE_("ERROR: Python auto-execution disabled"), ICON_CANCEL);
 		}
 		else if (driver->flag & DRIVER_FLAG_INVALID) {
@@ -842,6 +862,9 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	}
 	else {
 		/* errors? */
+		col = uiLayoutColumn(pa->layout, true);
+		block = uiLayoutGetBlock(col);
+		
 		if (driver->flag & DRIVER_FLAG_INVALID)
 			uiItemL(col, IFACE_("ERROR: Invalid target channel(s)"), ICON_ERROR);
 			
@@ -860,38 +883,16 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 			}
 		}
 	}
-		
-	col = uiLayoutColumn(pa->layout, true);
-
-	if (driver->type == DRIVER_TYPE_PYTHON) {
-		uiItemR(col, &driver_ptr, "use_self", 0, NULL, ICON_NONE);
-	}
-
-	/* debug setting */
-	uiItemR(col, &driver_ptr, "show_debug_info", 0, NULL, ICON_NONE);
-		
-	/* value of driver */
-	if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
-		uiLayout *row = uiLayoutRow(col, true);
-		char valBuf[32];
-			
-		uiItemL(row, IFACE_("Driver Value:"), ICON_NONE);
-			
-		BLI_snprintf(valBuf, sizeof(valBuf), "%.3f", driver->curval);
-		uiItemL(row, valBuf, ICON_NONE);
-	}
 	
 	/* add/copy/paste driver variables */
 	{
-		uiLayout *row;
-		
 		/* add driver variable */
 		row = uiLayoutRow(pa->layout, false);
 		block = uiLayoutGetBlock(row);
-		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Variable"),
+		but = uiDefIconTextBut(block, UI_BTYPE_BUT, B_IPO_DEPCHANGE, ICON_ZOOMIN, IFACE_("Add Input Variable"),
 	                           0, 0, 10 * UI_UNIT_X, UI_UNIT_Y,
 	                           NULL, 0.0, 0.0, 0, 0,
-	                           TIP_("Driver variables ensure that all dependencies will be accounted for and that drivers will update correctly"));
+	                           TIP_("Driver variables ensure that all dependencies will be accounted for, eusuring that drivers will update correctly"));
 		UI_but_func_set(but, driver_add_var_cb, driver, NULL);
 		
 		/* copy/paste (as sub-row) */
@@ -905,7 +906,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 	/* loop over targets, drawing them */
 	for (dvar = driver->variables.first; dvar; dvar = dvar->next) {
 		PointerRNA dvar_ptr;
-		uiLayout *box, *row;
+		uiLayout *box;
 		uiLayout *subrow, *sub;
 		
 		/* sub-layout column for this variable's settings */
@@ -968,7 +969,7 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 		}
 		
 		/* 3) value of variable */
-		if (driver->flag & DRIVER_FLAG_SHOWDEBUG) {
+		{
 			char valBuf[32];
 			
 			box = uiLayoutBox(col);
