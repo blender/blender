@@ -2886,7 +2886,7 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 			 * except when loading linked data. */
 			Scene *scene = relation->parent;
 			if (scene->id.lib != NULL) {
-				relation->value = BLI_findstring(&scene->view_layers, relation->value_idname, offsetof(ViewLayer, name));
+				relation->value = BLI_findstring(&scene->view_layers, relation->value_name, offsetof(ViewLayer, name));
 			}
 			if (relation->value == NULL) {
 				relation->value = scene->view_layers.first;

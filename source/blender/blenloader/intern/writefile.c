@@ -3601,7 +3601,7 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
 	     relation;
 	     relation = relation->next)
 	{
-		STRNCPY(relation->value_idname, ((ViewLayer *)relation->value)->name);
+		STRNCPY(relation->value_name, ((ViewLayer *)relation->value)->name);
 	}
 
 	writestruct(wd, ID_WS, WorkSpace, 1, workspace);
