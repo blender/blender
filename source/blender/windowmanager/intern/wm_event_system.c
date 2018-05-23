@@ -1961,7 +1961,11 @@ static int wm_handler_operator_call(bContext *C, ListBase *handlers, wmEventHand
 					/* set cursor back to the default for the region */
 					wmWindow *win = CTX_wm_window(C);
 					WM_cursor_grab_disable(win, NULL);
+					/* Causes crash when joining areas: T55166, seems this is not even needed. */
+#if 0
 					ED_region_cursor_set(win, area, region);
+#endif
+
 
 					BLI_remlink(handlers, handler);
 					wm_event_free_handler(handler);
