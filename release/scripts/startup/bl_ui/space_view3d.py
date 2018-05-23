@@ -157,6 +157,12 @@ class VIEW3D_MT_editor_menus(Menu):
             layout.menu("VIEW3D_MT_edit_gpencil")
         elif edit_object:
             layout.menu("VIEW3D_MT_edit_%s" % edit_object.type.lower())
+
+            if mode_string == 'EDIT_MESH':
+                layout.menu("VIEW3D_MT_edit_mesh_vertices")
+                layout.menu("VIEW3D_MT_edit_mesh_edges")
+                layout.menu("VIEW3D_MT_edit_mesh_faces")
+
         elif obj:
             if mode_string != 'PAINT_TEXTURE':
                 layout.menu("VIEW3D_MT_%s" % mode_string.lower())
@@ -2464,13 +2470,6 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("mesh.duplicate_move")
         layout.menu("VIEW3D_MT_edit_mesh_extrude")
-
-        layout.separator()
-
-        layout.menu("VIEW3D_MT_edit_mesh_vertices")
-        layout.menu("VIEW3D_MT_edit_mesh_edges")
-        layout.menu("VIEW3D_MT_edit_mesh_faces")
-
         layout.separator()
 
         layout.menu("VIEW3D_MT_edit_mesh_normals")
@@ -2597,7 +2596,7 @@ class VIEW3D_MT_edit_mesh_extrude(Menu):
 
 
 class VIEW3D_MT_edit_mesh_vertices(Menu):
-    bl_label = "Vertices"
+    bl_label = "Vertex"
 
     def draw(self, context):
         layout = self.layout
@@ -2679,7 +2678,7 @@ class VIEW3D_MT_edit_mesh_edges_data(Menu):
 
 
 class VIEW3D_MT_edit_mesh_edges(Menu):
-    bl_label = "Edges"
+    bl_label = "Edge"
 
     def draw(self, context):
         layout = self.layout
@@ -2716,7 +2715,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
 
 class VIEW3D_MT_edit_mesh_faces(Menu):
-    bl_label = "Faces"
+    bl_label = "Face"
     bl_idname = "VIEW3D_MT_edit_mesh_faces"
 
     def draw(self, context):
