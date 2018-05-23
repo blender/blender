@@ -2028,6 +2028,7 @@ void DRW_engines_register(void)
 	RE_engines_register(&DRW_engine_viewport_workbench_type);
 
 	DRW_engine_register(&draw_engine_workbench_solid);
+	DRW_engine_register(&draw_engine_workbench_transparent);
 
 	DRW_engine_register(&draw_engine_object_type);
 	DRW_engine_register(&draw_engine_edit_armature_type);
