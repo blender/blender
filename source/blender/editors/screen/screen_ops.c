@@ -4709,10 +4709,7 @@ void ED_keymap_screen(wmKeyConfig *keyconf)
 	RNA_int_set(WM_keymap_add_item(keymap, "SCREEN_OT_screen_set", LEFTARROWKEY, KM_PRESS, KM_CTRL, 0)->ptr, "delta", -1);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", UPARROWKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", DOWNARROWKEY, KM_PRESS, KM_CTRL, 0);
-	/* we already have two keys for this. */
-#if 0
 	WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", SPACEKEY, KM_PRESS, KM_SHIFT, 0);
-#endif
 	kmi = WM_keymap_add_item(keymap, "SCREEN_OT_screen_full_area", F10KEY, KM_PRESS, KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "use_hide_panels", true);
 
