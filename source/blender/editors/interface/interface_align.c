@@ -524,7 +524,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 {
 	uiBut *prev, *but = NULL, *next;
 	int flag = 0, cols = 0, rows = 0;
-	
+
 	/* auto align */
 
 	for (but = first; but && but->alignnr == nr; but = but->next) {
@@ -535,7 +535,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 	}
 
 	/* rows == 0: 1 row, cols == 0: 1 column */
-	
+
 	/* note;  how it uses 'flag' in loop below (either set it, or OR it) is confusing */
 	for (but = first, prev = NULL; but && but->alignnr == nr; prev = but, but = but->next) {
 		next = but->next;
@@ -544,13 +544,13 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 
 		/* clear old flag */
 		but->drawflag &= ~UI_BUT_ALIGN;
-			
+
 		if (flag == 0) {  /* first case */
 			if (next) {
 				if (buts_are_horiz(but, next)) {
 					if (rows == 0)
 						flag = UI_BUT_ALIGN_RIGHT;
-					else 
+					else
 						flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_RIGHT;
 				}
 				else {
@@ -597,14 +597,14 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 				flag |= UI_BUT_ALIGN_TOP;
 			}
 			else {  /* next button switches to new row */
-				
+
 				if (prev && buts_are_horiz(prev, but))
 					flag |= UI_BUT_ALIGN_LEFT;
 				else {
 					flag &= ~UI_BUT_ALIGN_LEFT;
 					flag |= UI_BUT_ALIGN_TOP;
 				}
-				
+
 				if ((flag & UI_BUT_ALIGN_TOP) == 0) {  /* still top row */
 					if (prev) {
 						if (next && buts_are_horiz(but, next))
@@ -614,16 +614,16 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 							flag = UI_BUT_ALIGN_DOWN | UI_BUT_ALIGN_LEFT;
 						}
 					}
-					else 
+					else
 						flag |= UI_BUT_ALIGN_DOWN;
 				}
-				else 
+				else
 					flag |= UI_BUT_ALIGN_TOP;
 			}
 		}
-		
+
 		but->drawflag |= flag;
-		
+
 		/* merge coordinates */
 		if (prev) {
 			/* simple cases */
@@ -646,7 +646,7 @@ static void ui_block_align_calc_but(uiBut *first, short nr)
 					/* the previous button is a single one in its row */
 					but->rect.ymax = (prev->rect.ymin + but->rect.ymax) / 2.0f;
 					prev->rect.ymin = but->rect.ymax;
-					
+
 					but->rect.xmin = prev->rect.xmin;
 					if (next && buts_are_horiz(but, next) == 0)
 						but->rect.xmax = prev->rect.xmax;

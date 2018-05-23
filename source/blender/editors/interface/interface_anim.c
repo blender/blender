@@ -73,26 +73,26 @@ void ui_but_anim_flag(uiBut *but, float cfra)
 	FCurve *fcu;
 	bool driven;
 	bool special;
-	
+
 	but->flag &= ~(UI_BUT_ANIMATED | UI_BUT_ANIMATED_KEY | UI_BUT_DRIVEN);
-	
+
 	/* NOTE: "special" is reserved for special F-Curves stored on the animation data
 	 *        itself (which are used to animate properties of the animation data).
 	 *        We count those as "animated" too for now
 	 */
 	fcu = ui_but_get_fcurve(but, &adt, &act, &driven, &special);
-	
+
 	if (fcu) {
 		if (!driven) {
 			but->flag |= UI_BUT_ANIMATED;
-			
-			/* T41525 - When the active action is a NLA strip being edited, 
+
+			/* T41525 - When the active action is a NLA strip being edited,
 			 * we need to correct the frame number to "look inside" the
 			 * remapped action
 			 */
 			if (adt)
 				cfra = BKE_nla_tweakedit_remap(adt, cfra, NLATIME_CONVERT_UNMAP);
-			
+
 			if (fcurve_frame_has_keyframe(fcu, cfra, 0))
 				but->flag |= UI_BUT_ANIMATED_KEY;
 		}
@@ -111,9 +111,9 @@ bool ui_but_anim_expression_get(uiBut *but, char *str, size_t maxlen)
 	FCurve *fcu;
 	ChannelDriver *driver;
 	bool driven, special;
-	
+
 	fcu = ui_but_get_fcurve(but, NULL, NULL, &driven, &special);
-	
+
 	if (fcu && driven) {
 		driver = fcu->driver;
 
@@ -138,20 +138,20 @@ bool ui_but_anim_expression_set(uiBut *but, const char *str)
 
 	if (fcu && driven) {
 		driver = fcu->driver;
-		
+
 		if (driver && (driver->type == DRIVER_TYPE_PYTHON)) {
 			BLI_strncpy_utf8(driver->expression, str, sizeof(driver->expression));
-			
+
 			/* tag driver as needing to be recompiled */
 			driver->flag |= DRIVER_FLAG_RECOMPILE;
-			
+
 			/* clear invalid flags which may prevent this from working */
 			driver->flag &= ~DRIVER_FLAG_INVALID;
 			fcu->flag &= ~FCURVE_DISABLED;
-			
+
 			/* this notifier should update the Graph Editor and trigger depsgraph refresh? */
 			WM_event_add_notifier(but->block->evil_C, NC_ANIMATION | ND_KEYFRAME, NULL);
-			
+
 			return true;
 		}
 	}
@@ -167,14 +167,14 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 	FCurve *fcu;
 	char *path;
 	bool ok = false;
-	
+
 	/* button must have RNA-pointer to a numeric-capable property */
 	if (ELEM(NULL, but->rnapoin.data, but->rnaprop)) {
 		if (G.debug & G_DEBUG)
 			printf("ERROR: create expression failed - button has no RNA info attached\n");
 		return false;
 	}
-	
+
 	if (RNA_property_array_check(but->rnaprop) != 0) {
 		if (but->rnaindex == -1) {
 			if (G.debug & G_DEBUG)
@@ -182,7 +182,7 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 			return false;
 		}
 	}
-	
+
 	/* make sure we have animdata for this */
 	/* FIXME: until materials can be handled by depsgraph, don't allow drivers to be created for them */
 	id = (ID *)but->rnapoin.id.data;
@@ -191,18 +191,18 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 			printf("ERROR: create expression failed - invalid data-block for adding drivers (%p)\n", id);
 		return false;
 	}
-	
+
 	/* get path */
 	path = RNA_path_from_ID_to_property(&but->rnapoin, but->rnaprop);
 	if (path == NULL) {
 		return false;
 	}
-	
+
 	/* create driver */
 	fcu = verify_driver_fcurve(id, path, but->rnaindex, 1);
 	if (fcu) {
 		ChannelDriver *driver = fcu->driver;
-		
+
 		if (driver) {
 			/* set type of driver */
 			driver->type = DRIVER_TYPE_PYTHON;
@@ -218,9 +218,9 @@ bool ui_but_anim_expression_create(uiBut *but, const char *str)
 			ok = true;
 		}
 	}
-	
+
 	MEM_freeN(path);
-	
+
 	return ok;
 }
 
@@ -233,17 +233,17 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 	bool special;
 
 	fcu = ui_but_get_fcurve(but, NULL, &action, &driven, &special);
-	
+
 	if (fcu == NULL)
 		return;
-	
+
 	if (special) {
 		/* NLA Strip property */
 		if (IS_AUTOKEY_ON(scene)) {
 			Depsgraph *depsgraph = CTX_data_depsgraph(C);
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
-			
+
 			insert_keyframe_direct(depsgraph, reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, 0);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
@@ -256,23 +256,23 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			Depsgraph *depsgraph = CTX_data_depsgraph(C);
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
-			
+
 			insert_keyframe_direct(depsgraph, reports, but->rnapoin, but->rnaprop, fcu, cfra, ts->keyframe_type, INSERTKEY_DRIVER);
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
 	else {
 		id = but->rnapoin.id.data;
-		
+
 		/* TODO: this should probably respect the keyingset only option for anim */
 		if (autokeyframe_cfra_can_key(scene, id)) {
 			Depsgraph *depsgraph = CTX_data_depsgraph(C);
 			ReportList *reports = CTX_wm_reports(C);
 			ToolSettings *ts = scene->toolsettings;
 			short flag = ANIM_get_keyframing_flags(scene, 1);
-			
+
 			fcu->flag &= ~FCURVE_SELECTED;
-			
+
 			/* Note: We use but->rnaindex instead of fcu->array_index,
 			 *       because a button may control all items of an array at once.
 			 *       E.g., color wheels (see T42567). */
@@ -280,7 +280,7 @@ void ui_but_anim_autokey(bContext *C, uiBut *but, Scene *scene, float cfra)
 			insert_keyframe(depsgraph, reports, id, action,
 			                ((fcu->grp) ? (fcu->grp->name) : (NULL)),
 			                fcu->rna_path, but->rnaindex, cfra, ts->keyframe_type, flag);
-			
+
 			WM_event_add_notifier(C, NC_ANIMATION | ND_KEYFRAME | NA_EDITED, NULL);
 		}
 	}
