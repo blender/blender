@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +17,7 @@
  *
  * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
- * 
+ *
  * Contributor(s): Blender Foundation, Joshua Leung
  *
  * ***** END GPL LICENSE BLOCK *****
@@ -73,7 +73,7 @@ static int view2d_poll(bContext *C)
  */
 
 /* ------------------ Shared 'core' stuff ---------------------- */
- 
+
 /* temp customdata for operator */
 typedef struct v2dViewPanData {
 	bScreen *sc;            /* screen where view pan was initiated */
@@ -87,10 +87,10 @@ typedef struct v2dViewPanData {
 	int startx, starty;     /* mouse x/y values in window when operator was initiated */
 	int lastx, lasty;       /* previous x/y values of mouse in window */
 	int invoke_event;       /* event starting pan, for modal exit */
-	
+
 	short in_scroller;      /* for MMB in scrollers (old feature in past, but now not that useful) */
 } v2dViewPanData;
- 
+
 /* initialize panning customdata */
 static int view_pan_init(bContext *C, wmOperator *op)
 {
@@ -98,32 +98,32 @@ static int view_pan_init(bContext *C, wmOperator *op)
 	v2dViewPanData *vpd;
 	View2D *v2d;
 	float winx, winy;
-	
+
 	/* regions now have v2d-data by default, so check for region */
 	if (ar == NULL)
 		return 0;
-		
+
 	/* check if panning is allowed at all */
 	v2d = &ar->v2d;
 	if ((v2d->keepofs & V2D_LOCKOFS_X) && (v2d->keepofs & V2D_LOCKOFS_Y))
 		return 0;
-	
+
 	/* set custom-data for operator */
 	vpd = MEM_callocN(sizeof(v2dViewPanData), "v2dViewPanData");
 	op->customdata = vpd;
-	
+
 	/* set pointers to owners */
 	vpd->sc = CTX_wm_screen(C);
 	vpd->sa = CTX_wm_area(C);
 	vpd->v2d = v2d;
 	vpd->ar = ar;
-	
+
 	/* calculate translation factor - based on size of view */
 	winx = (float)(BLI_rcti_size_x(&ar->winrct) + 1);
 	winy = (float)(BLI_rcti_size_y(&ar->winrct) + 1);
 	vpd->facx = (BLI_rctf_size_x(&v2d->cur)) / winx;
 	vpd->facy = (BLI_rctf_size_y(&v2d->cur)) / winy;
-	
+
 	return 1;
 }
 
@@ -151,11 +151,11 @@ static int view_pan_poll(bContext *C)
 static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float dy)
 {
 	View2D *v2d = vpd->v2d;
-	
+
 	/* calculate amount to move view by */
 	dx *= vpd->facx;
 	dy *= vpd->facy;
-	
+
 	/* only move view on an axis if change is allowed */
 	if ((v2d->keepofs & V2D_LOCKOFS_X) == 0) {
 		v2d->cur.xmin += dx;
@@ -165,16 +165,16 @@ static void view_pan_apply_ex(bContext *C, v2dViewPanData *vpd, float dx, float 
 		v2d->cur.ymin += dy;
 		v2d->cur.ymax += dy;
 	}
-	
+
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
 	/* request updates to be done... */
 	ED_region_tag_redraw(vpd->ar);
 	WM_event_add_mousemove(C);
-	
+
 	UI_view2d_sync(vpd->sc, vpd->sa, v2d, V2D_LOCK_COPY);
-	
+
 	/* exceptions */
 	if (vpd->sa->spacetype == SPACE_OUTLINER) {
 		/* don't rebuild full tree, since we're just changing our view */
@@ -200,8 +200,8 @@ static void view_pan_exit(wmOperator *op)
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
-} 
- 
+}
+
 /* ------------------ Modal Drag Version (1) ---------------------- */
 
 /* for 'redo' only, with no user input */
@@ -209,7 +209,7 @@ static int view_pan_exec(bContext *C, wmOperator *op)
 {
 	if (!view_pan_init(C, op))
 		return OPERATOR_CANCELLED;
-	
+
 	view_pan_apply(C, op);
 	view_pan_exit(op);
 	return OPERATOR_FINISHED;
@@ -221,38 +221,38 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 	wmWindow *window = CTX_wm_window(C);
 	v2dViewPanData *vpd;
 	View2D *v2d;
-	
+
 	/* set up customdata */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-	
+
 	vpd = op->customdata;
 	v2d = vpd->v2d;
-	
+
 	/* set initial settings */
 	vpd->startx = vpd->lastx = event->x;
 	vpd->starty = vpd->lasty = event->y;
 	vpd->invoke_event = event->type;
-	
+
 	if (event->type == MOUSEPAN) {
 		RNA_int_set(op->ptr, "deltax", event->prevx - event->x);
 		RNA_int_set(op->ptr, "deltay", event->prevy - event->y);
-		
+
 		view_pan_apply(C, op);
 		view_pan_exit(op);
 		return OPERATOR_FINISHED;
 	}
-	
+
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 0);
-	
+
 	if (v2d->keepofs & V2D_LOCKOFS_X)
 		WM_cursor_modal_set(window, BC_NS_SCROLLCURSOR);
 	else if (v2d->keepofs & V2D_LOCKOFS_Y)
 		WM_cursor_modal_set(window, BC_EW_SCROLLCURSOR);
 	else
 		WM_cursor_modal_set(window, BC_NSEW_SCROLLCURSOR);
-	
+
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
 
@@ -263,7 +263,7 @@ static int view_pan_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	v2dViewPanData *vpd = op->customdata;
-	
+
 	/* execute the events */
 	switch (event->type) {
 		case MOUSEMOVE:
@@ -271,10 +271,10 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 			/* calculate new delta transform, then store mouse-coordinates for next-time */
 			RNA_int_set(op->ptr, "deltax", (vpd->lastx - event->x));
 			RNA_int_set(op->ptr, "deltay", (vpd->lasty - event->y));
-			
+
 			vpd->lastx = event->x;
 			vpd->lasty = event->y;
-			
+
 			view_pan_apply(C, op);
 			break;
 		}
@@ -286,7 +286,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 				/* calculate overall delta mouse-movement for redo */
 				RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 				RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
-				
+
 				view_pan_exit(op);
 				WM_cursor_modal_restore(CTX_wm_window(C));
 				WM_operator_name_call(C, "VIEW2D_OT_zoom", WM_OP_INVOKE_DEFAULT, NULL);
@@ -299,10 +299,10 @@ static int view_pan_modal(bContext *C, wmOperator *op, const wmEvent *event)
 					/* calculate overall delta mouse-movement for redo */
 					RNA_int_set(op->ptr, "deltax", (vpd->startx - vpd->lastx));
 					RNA_int_set(op->ptr, "deltay", (vpd->starty - vpd->lasty));
-					
+
 					view_pan_exit(op);
 					WM_cursor_modal_restore(CTX_wm_window(C));
-					
+
 					return OPERATOR_FINISHED;
 				}
 			}
@@ -323,16 +323,16 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
 	ot->name = "Pan View";
 	ot->description = "Pan the view";
 	ot->idname = "VIEW2D_OT_pan";
-	
+
 	/* api callbacks */
 	ot->exec = view_pan_exec;
 	ot->invoke = view_pan_invoke;
 	ot->modal = view_pan_modal;
 	ot->cancel = view_pan_cancel;
-	
+
 	/* operator is modal */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
@@ -344,26 +344,26 @@ static void VIEW2D_OT_pan(wmOperatorType *ot)
 static int view_scrollright_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
-	
+
 	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-		
+
 	/* also, check if can pan in horizontal axis */
 	vpd = op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
 		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
-	
+
 	/* set RNA-Props - only movement in positive x-direction */
 	RNA_int_set(op->ptr, "deltax", 20);
 	RNA_int_set(op->ptr, "deltay", 0);
-	
+
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
 	view_pan_exit(op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -373,10 +373,10 @@ static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 	ot->name = "Scroll Right";
 	ot->description = "Scroll the view right";
 	ot->idname = "VIEW2D_OT_scroll_right";
-	
+
 	/* api callbacks */
 	ot->exec = view_scrollright_exec;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
@@ -388,26 +388,26 @@ static void VIEW2D_OT_scroll_right(wmOperatorType *ot)
 static int view_scrollleft_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
-	
+
 	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-		
+
 	/* also, check if can pan in horizontal axis */
 	vpd = op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_X) {
 		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
-	
+
 	/* set RNA-Props - only movement in negative x-direction */
 	RNA_int_set(op->ptr, "deltax", -20);
 	RNA_int_set(op->ptr, "deltay", 0);
-	
+
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
 	view_pan_exit(op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -417,10 +417,10 @@ static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 	ot->name = "Scroll Left";
 	ot->description = "Scroll the view left";
 	ot->idname = "VIEW2D_OT_scroll_left";
-	
+
 	/* api callbacks */
 	ot->exec = view_scrollleft_exec;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
@@ -431,32 +431,32 @@ static void VIEW2D_OT_scroll_left(wmOperatorType *ot)
 static int view_scrolldown_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
-	
+
 	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-		
+
 	/* also, check if can pan in vertical axis */
 	vpd = op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
 		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
-	
+
 	/* set RNA-Props */
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", -40);
-	
+
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
 	if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
 		ARegion *ar = CTX_wm_region(C);
 		RNA_int_set(op->ptr, "deltay", ar->v2d.mask.ymin - ar->v2d.mask.ymax);
 	}
-	
+
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
 	view_pan_exit(op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -466,10 +466,10 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 	ot->name = "Scroll Down";
 	ot->description = "Scroll the view down";
 	ot->idname = "VIEW2D_OT_scroll_down";
-	
+
 	/* api callbacks */
 	ot->exec = view_scrolldown_exec;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
@@ -482,32 +482,32 @@ static void VIEW2D_OT_scroll_down(wmOperatorType *ot)
 static int view_scrollup_exec(bContext *C, wmOperator *op)
 {
 	v2dViewPanData *vpd;
-	
+
 	/* initialize default settings (and validate if ok to run) */
 	if (!view_pan_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-		
+
 	/* also, check if can pan in vertical axis */
 	vpd = op->customdata;
 	if (vpd->v2d->keepofs & V2D_LOCKOFS_Y) {
 		view_pan_exit(op);
 		return OPERATOR_PASS_THROUGH;
 	}
-	
+
 	/* set RNA-Props */
 	RNA_int_set(op->ptr, "deltax", 0);
 	RNA_int_set(op->ptr, "deltay", 40);
-	
+
 	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "page");
 	if (RNA_property_is_set(op->ptr, prop) && RNA_property_boolean_get(op->ptr, prop)) {
 		ARegion *ar = CTX_wm_region(C);
 		RNA_int_set(op->ptr, "deltay", BLI_rcti_size_y(&ar->v2d.mask));
 	}
-	
+
 	/* apply movement, then we're done */
 	view_pan_apply(C, op);
 	view_pan_exit(op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
@@ -517,10 +517,10 @@ static void VIEW2D_OT_scroll_up(wmOperatorType *ot)
 	ot->name = "Scroll Up";
 	ot->description = "Scroll the view up";
 	ot->idname = "VIEW2D_OT_scroll_up";
-	
+
 	/* api callbacks */
 	ot->exec = view_scrollup_exec;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	RNA_def_int(ot->srna, "deltax", 0, INT_MIN, INT_MAX, "Delta X", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "deltay", 0, INT_MIN, INT_MAX, "Delta Y", "", INT_MIN, INT_MAX);
@@ -587,24 +587,24 @@ static int view_zoomdrag_init(bContext *C, wmOperator *op)
 	ARegion *ar = CTX_wm_region(C);
 	v2dViewZoomData *vzd;
 	View2D *v2d;
-	
+
 	/* regions now have v2d-data by default, so check for region */
 	if (ar == NULL)
 		return 0;
 	v2d = &ar->v2d;
-	
+
 	/* check that 2d-view is zoomable */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
 		return 0;
-	
+
 	/* set custom-data for operator */
 	vzd = MEM_callocN(sizeof(v2dViewZoomData), "v2dViewZoomData");
 	op->customdata = vzd;
-	
+
 	/* set pointers to owners */
 	vzd->v2d = v2d;
 	vzd->ar = ar;
-	
+
 	return 1;
 }
 
@@ -613,7 +613,7 @@ static int view_zoom_poll(bContext *C)
 {
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d;
-	
+
 	/* check if there's a region in context to work with */
 	if (ar == NULL)
 		return false;
@@ -623,15 +623,15 @@ static int view_zoom_poll(bContext *C)
 		return false;
 
 	v2d = &ar->v2d;
-	
+
 	/* check that 2d-view is zoomable */
 	if ((v2d->keepzoom & V2D_LOCKZOOM_X) && (v2d->keepzoom & V2D_LOCKZOOM_Y))
 		return false;
-		
+
 	/* view is zoomable */
 	return true;
 }
- 
+
 /* apply transform to view (i.e. adjust 'cur' rect) */
 static void view_zoomstep_apply_ex(
         bContext *C, v2dViewZoomData *vzd, const bool use_mousepos,
@@ -643,7 +643,7 @@ static void view_zoomstep_apply_ex(
 	float dx, dy;
 
 	/* calculate amount to move view by, ensuring symmetry so the
-	 * old zoom level is restored after zooming back the same amount 
+	 * old zoom level is restored after zooming back the same amount
 	 */
 	if (facx >= 0.0f) {
 		dx = BLI_rctf_size_x(&v2d->cur) * facx;
@@ -759,40 +759,40 @@ static int view_zoomin_exec(bContext *C, wmOperator *op)
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
 		return OPERATOR_PASS_THROUGH;
-	
+
 
 	view_zoom_axis_lock_defaults(C, do_zoom_xy);
 
 	/* set RNA-Props - zooming in by uniform factor */
 	RNA_float_set(op->ptr, "zoomfacx", do_zoom_xy[0] ? 0.0375f : 0.0f);
 	RNA_float_set(op->ptr, "zoomfacy", do_zoom_xy[1] ? 0.0375f : 0.0f);
-	
+
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
-	
+
 	view_zoomstep_exit(op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
 static int view_zoomin_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	v2dViewZoomData *vzd;
-	
+
 	if (!view_zoomdrag_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-	
+
 	vzd = op->customdata;
-	
+
 	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 		ARegion *ar = CTX_wm_region(C);
-		
+
 		/* store initial mouse position (in view space) */
 		UI_view2d_region_to_view(&ar->v2d,
 		                         event->mval[0], event->mval[1],
 		                         &vzd->mx_2d, &vzd->my_2d);
 	}
-	
+
 	return view_zoomin_exec(C, op);
 }
 
@@ -804,12 +804,12 @@ static void VIEW2D_OT_zoom_in(wmOperatorType *ot)
 	ot->name = "Zoom In";
 	ot->description = "Zoom in the view";
 	ot->idname = "VIEW2D_OT_zoom_in";
-	
+
 	/* api callbacks */
 	ot->invoke = view_zoomin_invoke;
 	ot->exec = view_zoomin_exec;  // XXX, needs view_zoomdrag_init called first.
 	ot->poll = view_zoom_poll;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	prop = RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -825,39 +825,39 @@ static int view_zoomout_exec(bContext *C, wmOperator *op)
 	/* check that there's an active region, as View2D data resides there */
 	if (!view_zoom_poll(C))
 		return OPERATOR_PASS_THROUGH;
-	
+
 	view_zoom_axis_lock_defaults(C, do_zoom_xy);
 
 	/* set RNA-Props - zooming in by uniform factor */
 	RNA_float_set(op->ptr, "zoomfacx", do_zoom_xy[0] ? -0.0375f : 0.0f);
 	RNA_float_set(op->ptr, "zoomfacy", do_zoom_xy[1] ? -0.0375f : 0.0f);
-	
+
 	/* apply movement, then we're done */
 	view_zoomstep_apply(C, op);
 
 	view_zoomstep_exit(op);
-	
+
 	return OPERATOR_FINISHED;
 }
 
 static int view_zoomout_invoke(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	v2dViewZoomData *vzd;
-	
+
 	if (!view_zoomdrag_init(C, op))
 		return OPERATOR_PASS_THROUGH;
 
 	vzd = op->customdata;
-	
+
 	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 		ARegion *ar = CTX_wm_region(C);
-		
+
 		/* store initial mouse position (in view space) */
-		UI_view2d_region_to_view(&ar->v2d, 
+		UI_view2d_region_to_view(&ar->v2d,
 		                         event->mval[0], event->mval[1],
 		                         &vzd->mx_2d, &vzd->my_2d);
 	}
-	
+
 	return view_zoomout_exec(C, op);
 }
 
@@ -869,12 +869,12 @@ static void VIEW2D_OT_zoom_out(wmOperatorType *ot)
 	ot->name = "Zoom Out";
 	ot->description = "Zoom out the view";
 	ot->idname = "VIEW2D_OT_zoom_out";
-	
+
 	/* api callbacks */
 	ot->invoke = view_zoomout_invoke;
 //	ot->exec = view_zoomout_exec; // XXX, needs view_zoomdrag_init called first.
 	ot->poll = view_zoom_poll;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	prop = RNA_def_float(ot->srna, "zoomfacx", 0, -FLT_MAX, FLT_MAX, "Zoom Factor X", "", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -898,7 +898,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 	v2dViewZoomData *vzd = op->customdata;
 	View2D *v2d = vzd->v2d;
 	float dx, dy;
-	
+
 	/* get amount to move view by */
 	dx = RNA_float_get(op->ptr, "deltax");
 	dy = RNA_float_get(op->ptr, "deltay");
@@ -907,7 +907,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 		dx *= -1;
 		dy *= -1;
 	}
-	
+
 	/* continuous zoom shouldn't move that fast... */
 	if (U.viewzoom == USER_ZOOM_CONT) { // XXX store this setting as RNA prop?
 		double time = PIL_check_seconds_timer();
@@ -915,7 +915,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 
 		dx *= time_step * 0.5f;
 		dy *= time_step * 0.5f;
-		
+
 		vzd->timer_lastdraw = time;
 	}
 
@@ -929,7 +929,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 				float mval_fac = (vzd->mx_2d - v2d->cur.xmin) / BLI_rctf_size_x(&v2d->cur);
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dx) - (mval_faci * dx);
-				
+
 				v2d->cur.xmin += ofs + dx;
 				v2d->cur.xmax += ofs - dx;
 			}
@@ -948,7 +948,7 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 				float mval_fac = (vzd->my_2d - v2d->cur.ymin) / BLI_rctf_size_y(&v2d->cur);
 				float mval_faci = 1.0f - mval_fac;
 				float ofs = (mval_fac * dy) - (mval_faci * dy);
-				
+
 				v2d->cur.ymin += ofs + dy;
 				v2d->cur.ymax += ofs - dy;
 			}
@@ -958,10 +958,10 @@ static void view_zoomdrag_apply(bContext *C, wmOperator *op)
 			}
 		}
 	}
-	
+
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
 	/* request updates to be done... */
 	ED_region_tag_redraw(vzd->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
@@ -974,14 +974,14 @@ static void view_zoomdrag_exit(bContext *C, wmOperator *op)
 
 	if (op->customdata) {
 		v2dViewZoomData *vzd = op->customdata;
-		
+
 		if (vzd->timer)
 			WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), vzd->timer);
-		
+
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
 	}
-} 
+}
 
 static void view_zoomdrag_cancel(bContext *C, wmOperator *op)
 {
@@ -993,7 +993,7 @@ static int view_zoomdrag_exec(bContext *C, wmOperator *op)
 {
 	if (!view_zoomdrag_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-	
+
 	view_zoomdrag_apply(C, op);
 	view_zoomdrag_exit(C, op);
 	return OPERATOR_FINISHED;
@@ -1005,22 +1005,22 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 	wmWindow *window = CTX_wm_window(C);
 	v2dViewZoomData *vzd;
 	View2D *v2d;
-	
+
 	/* set up customdata */
 	if (!view_zoomdrag_init(C, op))
 		return OPERATOR_PASS_THROUGH;
-	
+
 	vzd = op->customdata;
 	v2d = vzd->v2d;
-	
+
 	if (event->type == MOUSEZOOM || event->type == MOUSEPAN) {
 		float dx, dy, fac;
-		
+
 		vzd->lastx = event->prevx;
 		vzd->lasty = event->prevy;
-		
+
 		/* As we have only 1D information (magnify value), feed both axes
-		 * with magnify information that is stored in x axis 
+		 * with magnify information that is stored in x axis
 		 */
 		fac = 0.01f * (event->prevx - event->x);
 		dx = fac * BLI_rctf_size_x(&v2d->cur) / 10.0f;
@@ -1037,26 +1037,26 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		}
 		RNA_float_set(op->ptr, "deltax", dx);
 		RNA_float_set(op->ptr, "deltay", dy);
-		
+
 		view_zoomdrag_apply(C, op);
 		view_zoomdrag_exit(C, op);
 		return OPERATOR_FINISHED;
 	}
-	
+
 	/* set initial settings */
 	vzd->lastx = event->x;
 	vzd->lasty = event->y;
 	RNA_float_set(op->ptr, "deltax", 0);
 	RNA_float_set(op->ptr, "deltay", 0);
-	
+
 	/* for modal exit test */
 	vzd->invoke_event = event->type;
-	
+
 	if (U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
 		ARegion *ar = CTX_wm_region(C);
-		
+
 		/* store initial mouse position (in view space) */
-		UI_view2d_region_to_view(&ar->v2d, 
+		UI_view2d_region_to_view(&ar->v2d,
 		                         event->mval[0], event->mval[1],
 		                         &vzd->mx_2d, &vzd->my_2d);
 	}
@@ -1067,7 +1067,7 @@ static int view_zoomdrag_invoke(bContext *C, wmOperator *op, const wmEvent *even
 		WM_cursor_modal_set(window, BC_EW_SCROLLCURSOR);
 	else
 		WM_cursor_modal_set(window, BC_NSEW_SCROLLCURSOR);
-	
+
 	/* add temp handler */
 	WM_event_add_modal_handler(C, op);
 
@@ -1085,24 +1085,24 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 {
 	v2dViewZoomData *vzd = op->customdata;
 	View2D *v2d = vzd->v2d;
-	
+
 	/* execute the events */
 	if (event->type == TIMER && event->customdata == vzd->timer) {
 		view_zoomdrag_apply(C, op);
 	}
 	else if (event->type == MOUSEMOVE) {
 		float dx, dy;
-		
+
 		/* calculate new delta transform, based on zooming mode */
 		if (U.viewzoom == USER_ZOOM_SCALE) {
 			/* 'scale' zooming */
 			float dist;
-			
+
 			/* x-axis transform */
 			dist = BLI_rcti_size_x(&v2d->mask) / 2.0f;
 			dx = 1.0f - (fabsf(vzd->lastx - vzd->ar->winrct.xmin - dist) + 2.0f) / (fabsf(event->mval[0] - dist) + 2.0f);
 			dx *= 0.5f * BLI_rctf_size_x(&v2d->cur);
-			
+
 			/* y-axis transform */
 			dist = BLI_rcti_size_y(&v2d->mask) / 2.0f;
 			dy = 1.0f - (fabsf(vzd->lasty - vzd->ar->winrct.ymin - dist) + 2.0f) / (fabsf(event->mval[1] - dist) + 2.0f);
@@ -1111,21 +1111,21 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 		else {
 			/* 'continuous' or 'dolly' */
 			float fac, zoomfac = 0.01f;
-			
+
 			/* some view2d's (graph) don't have min/max zoom, or extreme ones */
 			if (v2d->maxzoom > 0.0f)
 				zoomfac = CLAMPIS(0.001f * v2d->maxzoom, 0.001f, 0.01f);
-			
+
 			/* x-axis transform */
 			fac = zoomfac * (event->x - vzd->lastx);
 			dx = fac * BLI_rctf_size_x(&v2d->cur);
-			
+
 			/* y-axis transform */
 			fac = zoomfac * (event->y - vzd->lasty);
 			dy = fac * BLI_rctf_size_y(&v2d->cur);
-			
+
 		}
-		
+
 		/* support zoom to always zoom entirely - the v2d code uses portrait or landscape exceptions */
 		if (v2d->keepzoom & V2D_KEEPASPECT) {
 			if (fabsf(dx) > fabsf(dy))
@@ -1133,14 +1133,14 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 			else
 				dx = dy;
 		}
-		
+
 		/* set transform amount, and add current deltas to stored total delta (for redo) */
 		RNA_float_set(op->ptr, "deltax", dx);
 		RNA_float_set(op->ptr, "deltay", dy);
 
 		vzd->dx += dx;
 		vzd->dy += dy;
-		
+
 		/* store mouse coordinates for next time, if not doing continuous zoom
 		 *	- continuous zoom only depends on distance of mouse to starting point to determine rate of change
 		 */
@@ -1148,28 +1148,28 @@ static int view_zoomdrag_modal(bContext *C, wmOperator *op, const wmEvent *event
 			vzd->lastx = event->x;
 			vzd->lasty = event->y;
 		}
-		
+
 		/* apply zooming */
 		view_zoomdrag_apply(C, op);
 	}
 	else if (event->type == vzd->invoke_event || event->type == ESCKEY) {
 		if (event->val == KM_RELEASE) {
-			
+
 			/* for redo, store the overall deltas - need to respect zoom-locks here... */
 			if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0)
 				RNA_float_set(op->ptr, "deltax", vzd->dx);
 			else
 				RNA_float_set(op->ptr, "deltax", 0);
-				
+
 			if ((v2d->keepzoom & V2D_LOCKZOOM_Y) == 0)
 				RNA_float_set(op->ptr, "deltay", vzd->dy);
 			else
 				RNA_float_set(op->ptr, "deltay", 0);
-			
+
 			/* free customdata */
 			view_zoomdrag_exit(C, op);
 			WM_cursor_modal_restore(CTX_wm_window(C));
-			
+
 			return OPERATOR_FINISHED;
 		}
 	}
@@ -1184,18 +1184,18 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
 	ot->name = "Zoom 2D View";
 	ot->description = "Zoom in/out the view";
 	ot->idname = "VIEW2D_OT_zoom";
-	
+
 	/* api callbacks */
 	ot->exec = view_zoomdrag_exec;
 	ot->invoke = view_zoomdrag_invoke;
 	ot->modal = view_zoomdrag_modal;
 	ot->cancel = view_zoomdrag_cancel;
-	
+
 	ot->poll = view_zoom_poll;
-	
+
 	/* operator is repeatable */
 	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_CURSOR;
-	
+
 	/* rna - must keep these in sync with the other operators */
 	prop = RNA_def_float(ot->srna, "deltax", 0, -FLT_MAX, FLT_MAX, "Delta X", "", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(prop, PROP_HIDDEN);
@@ -1216,7 +1216,7 @@ static void VIEW2D_OT_zoom(wmOperatorType *ot)
  * Currently, these key mappings are hardcoded, but it shouldn't be too important to
  * have custom keymappings for this...
  */
- 
+
 static int view_borderzoom_exec(bContext *C, wmOperator *op)
 {
 	ARegion *ar = CTX_wm_region(C);
@@ -1224,17 +1224,17 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 	rctf rect;
 	rctf cur_new = v2d->cur;
 	const int smooth_viewtx = WM_operator_smooth_viewtx_get(op);
-	
+
 	/* convert coordinates of rect to 'tot' rect coordinates */
 	WM_operator_properties_border_to_rctf(op, &rect);
 	UI_view2d_region_to_view_rctf(v2d, &rect, &rect);
-	
+
 	/* check if zooming in/out view */
 	const bool zoom_in = !RNA_boolean_get(op->ptr, "zoom_out");
-	
+
 	if (zoom_in) {
-		/* zoom in: 
-		 *	- 'cur' rect will be defined by the coordinates of the border region 
+		/* zoom in:
+		 *	- 'cur' rect will be defined by the coordinates of the border region
 		 *	- just set the 'cur' rect to have the same coordinates as the border region
 		 *	  if zoom is allowed to be changed
 		 */
@@ -1254,13 +1254,13 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 		 *	- calculate zoom factor, and adjust using center-point
 		 */
 		float zoom, center, size;
-		
+
 		/* TODO: is this zoom factor calculation valid? It seems to produce same results every time... */
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) == 0) {
 			size = BLI_rctf_size_x(&cur_new);
 			zoom = size / BLI_rctf_size_x(&rect);
 			center = BLI_rctf_cent_x(&cur_new);
-			
+
 			cur_new.xmin = center - (size * zoom);
 			cur_new.xmax = center + (size * zoom);
 		}
@@ -1268,16 +1268,16 @@ static int view_borderzoom_exec(bContext *C, wmOperator *op)
 			size = BLI_rctf_size_y(&cur_new);
 			zoom = size / BLI_rctf_size_y(&rect);
 			center = BLI_rctf_cent_y(&cur_new);
-			
+
 			cur_new.ymin = center - (size * zoom);
 			cur_new.ymax = center + (size * zoom);
 		}
 	}
-	
+
 	UI_view2d_smooth_view(C, ar, &cur_new, smooth_viewtx);
-	
+
 	return OPERATOR_FINISHED;
-} 
+}
 
 static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 {
@@ -1285,15 +1285,15 @@ static void VIEW2D_OT_zoom_border(wmOperatorType *ot)
 	ot->name = "Zoom to Border";
 	ot->description = "Zoom in the view to the nearest item contained in the border";
 	ot->idname = "VIEW2D_OT_zoom_border";
-	
+
 	/* api callbacks */
 	ot->invoke = WM_gesture_border_invoke;
 	ot->exec = view_borderzoom_exec;
 	ot->modal = WM_gesture_border_modal;
 	ot->cancel = WM_gesture_border_cancel;
-	
+
 	ot->poll = view_zoom_poll;
-	
+
 	/* rna */
 	WM_operator_properties_gesture_border_zoom(ot);
 }
@@ -1566,17 +1566,17 @@ static void VIEW2D_OT_smoothview(wmOperatorType *ot)
 typedef struct v2dScrollerMove {
 	View2D *v2d;            /* View2D data that this operation affects */
 	ARegion *ar;            /* region that the scroller is in */
-	
+
 	short scroller;         /* scroller that mouse is in ('h' or 'v') */
 	short zone; /* -1 is min zoomer, 0 is bar, 1 is max zoomer */             // XXX find some way to provide visual feedback of this (active color?)
-	
+
 	float fac;              /* view adjustment factor, based on size of region */
 	float fac_round;        /* for pixel rounding (avoid visible UI jitter) */
 	float delta;            /* amount moved by mouse on axis of interest */
-	
+
 	float scrollbarwidth;   /* width of the scrollbar itself, used for page up/down clicks */
 	int scrollbar_orig;      /* initial location of scrollbar x/y, mouse relative */
-	
+
 	int lastx, lasty;       /* previous mouse coordinates (in screen coordinates) for determining movement */
 } v2dScrollerMove;
 
@@ -1588,7 +1588,7 @@ typedef struct v2dScrollerMove {
  * \warning: The start of this struct must not change, so that it stays in sync with the 'real' version
  * For now, we don't need to have a separate (internal) header for structs like this...
  */
-struct View2DScrollers {	
+struct View2DScrollers {
 	/* focus bubbles */
 	int vert_min, vert_max; /* vertical scrollbar */
 	int hor_min, hor_max;   /* horizontal scrollbar */
@@ -1615,10 +1615,10 @@ enum {
 static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_min, int sh_max)
 {
 	bool in_min, in_max, in_bar, out_min, out_max, in_view = 1;
-	
-	/* firstly, check if 
-	 *	- 'bubble' fills entire scroller 
-	 *	- 'bubble' completely out of view on either side 
+
+	/* firstly, check if
+	 *	- 'bubble' fills entire scroller
+	 *	- 'bubble' completely out of view on either side
 	 */
 	if ((sh_min <= sc_min) && (sh_max >= sc_max)) in_view = 0;
 	if (sh_min == sh_max) {
@@ -1629,12 +1629,12 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 		if (sh_max <= sc_min) in_view = 0;
 		if (sh_min >= sc_max) in_view = 0;
 	}
-	
-	
+
+
 	if (in_view == 0) {
 		return SCROLLHANDLE_BAR;
 	}
-	
+
 	/* check if mouse is in or past either handle */
 	/* TODO: check if these extents are still valid or not */
 	in_max = ((mouse >= (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse <= (sh_max + V2D_SCROLLER_HANDLE_SIZE)));
@@ -1642,7 +1642,7 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 	in_bar = ((mouse < (sh_max - V2D_SCROLLER_HANDLE_SIZE)) && (mouse > (sh_min + V2D_SCROLLER_HANDLE_SIZE)));
 	out_min = mouse < (sh_min - V2D_SCROLLER_HANDLE_SIZE);
 	out_max = mouse > (sh_max + V2D_SCROLLER_HANDLE_SIZE);
-	
+
 	if (in_bar)
 		return SCROLLHANDLE_BAR;
 	else if (in_max)
@@ -1653,10 +1653,10 @@ static short mouse_in_scroller_handle(int mouse, int sc_min, int sc_max, int sh_
 		return SCROLLHANDLE_MIN_OUTSIDE;
 	else if (out_max)
 		return SCROLLHANDLE_MAX_OUTSIDE;
-	
+
 	/* unlikely to happen, though we just cover it in case */
 	return SCROLLHANDLE_BAR;
-} 
+}
 
 /* initialize customdata for scroller manipulation operator */
 static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *event, short in_scroller)
@@ -1667,11 +1667,11 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 	View2D *v2d = &ar->v2d;
 	rctf tot_cur_union;
 	float mask_size;
-	
+
 	/* set custom-data for operator */
 	vsm = MEM_callocN(sizeof(v2dScrollerMove), "v2dScrollerMove");
 	op->customdata = vsm;
-	
+
 	/* set general data */
 	vsm->v2d = v2d;
 	vsm->ar = ar;
@@ -1680,7 +1680,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 	/* store mouse-coordinates, and convert mouse/screen coordinates to region coordinates */
 	vsm->lastx = event->x;
 	vsm->lasty = event->y;
-	/* 'zone' depends on where mouse is relative to bubble 
+	/* 'zone' depends on where mouse is relative to bubble
 	 *	- zooming must be allowed on this axis, otherwise, default to pan
 	 */
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
@@ -1702,7 +1702,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 		vsm->zone = mouse_in_scroller_handle(event->mval[0],
 		                                     v2d->hor.xmin, v2d->hor.xmax,
 		                                     scrollers->hor_min, scrollers->hor_max);
-		
+
 		if ((v2d->keepzoom & V2D_LOCKZOOM_X) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
 			vsm->zone = SCROLLHANDLE_BAR;
@@ -1715,7 +1715,7 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 		/* vertical scroller - calculate adjustment factor first */
 		mask_size = (float)BLI_rcti_size_y(&v2d->vert);
 		vsm->fac = BLI_rctf_size_y(&tot_cur_union) / mask_size;
-		
+
 		/* pixel rounding */
 		vsm->fac_round = (BLI_rctf_size_y(&v2d->cur)) / (float)(BLI_rcti_size_y(&ar->winrct) + 1);
 
@@ -1723,16 +1723,16 @@ static void scroller_activate_init(bContext *C, wmOperator *op, const wmEvent *e
 		vsm->zone = mouse_in_scroller_handle(event->mval[1],
 		                                     v2d->vert.ymin, v2d->vert.ymax,
 		                                     scrollers->vert_min, scrollers->vert_max);
-			
+
 		if ((v2d->keepzoom & V2D_LOCKZOOM_Y) && ELEM(vsm->zone, SCROLLHANDLE_MIN, SCROLLHANDLE_MAX)) {
 			/* default to scroll, as handles not usable */
 			vsm->zone = SCROLLHANDLE_BAR;
 		}
-		
+
 		vsm->scrollbarwidth = scrollers->vert_max - scrollers->vert_min;
 		vsm->scrollbar_orig = ((scrollers->vert_max + scrollers->vert_min) / 2) + ar->winrct.ymin;
 	}
-	
+
 	UI_view2d_scrollers_free(scrollers);
 	ED_region_tag_redraw(ar);
 }
@@ -1744,10 +1744,10 @@ static void scroller_activate_exit(bContext *C, wmOperator *op)
 		v2dScrollerMove *vsm = op->customdata;
 
 		vsm->v2d->scroll_ui &= ~(V2D_SCROLL_H_ACTIVE | V2D_SCROLL_V_ACTIVE);
-		
+
 		MEM_freeN(op->customdata);
 		op->customdata = NULL;
-		
+
 		ED_region_tag_redraw(CTX_wm_region(C));
 	}
 }
@@ -1763,13 +1763,13 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 	v2dScrollerMove *vsm = op->customdata;
 	View2D *v2d = vsm->v2d;
 	float temp;
-	
+
 	/* calculate amount to move view by */
 	temp = vsm->fac * vsm->delta;
 
 	/* round to pixel */
 	temp = roundf(temp / vsm->fac_round) * vsm->fac_round;
-	
+
 	/* type of movement */
 	switch (vsm->zone) {
 		case SCROLLHANDLE_MIN:
@@ -1779,16 +1779,16 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 			if ((vsm->scroller == 'v') && !(v2d->keepzoom & V2D_LOCKZOOM_Y))
 				v2d->cur.ymin -= temp;
 			break;
-			
+
 		case SCROLLHANDLE_MAX:
-			
+
 			/* only expand view on axis if zoom is allowed */
 			if ((vsm->scroller == 'h') && !(v2d->keepzoom & V2D_LOCKZOOM_X))
 				v2d->cur.xmax += temp;
 			if ((vsm->scroller == 'v') && !(v2d->keepzoom & V2D_LOCKZOOM_Y))
 				v2d->cur.ymax += temp;
 			break;
-			
+
 		case SCROLLHANDLE_MIN_OUTSIDE:
 		case SCROLLHANDLE_MAX_OUTSIDE:
 		case SCROLLHANDLE_BAR:
@@ -1803,12 +1803,12 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 				v2d->cur.ymax += temp;
 			}
 			break;
-			
+
 	}
-	
+
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
 	/* request updates to be done... */
 	ED_region_tag_redraw(vsm->ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
@@ -1821,7 +1821,7 @@ static void scroller_activate_apply(bContext *C, wmOperator *op)
 static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *event)
 {
 	v2dScrollerMove *vsm = op->customdata;
-	
+
 	/* execute the events */
 	switch (event->type) {
 		case MOUSEMOVE:
@@ -1849,11 +1849,11 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
 						break;
 				}
 			}
-			
+
 			/* store previous coordinates */
 			vsm->lastx = event->x;
 			vsm->lasty = event->y;
-			
+
 			scroller_activate_apply(C, op);
 			break;
 		}
@@ -1866,12 +1866,12 @@ static int scroller_activate_modal(bContext *C, wmOperator *op, const wmEvent *e
 						vsm->delta = -vsm->scrollbarwidth * 0.8f;
 					else if (vsm->zone == SCROLLHANDLE_MAX_OUTSIDE)
 						vsm->delta = vsm->scrollbarwidth * 0.8f;
-					
+
 					scroller_activate_apply(C, op);
 					scroller_activate_exit(C, op);
 					return OPERATOR_FINISHED;
 				}
-				
+
 				/* otherwise, end the drag action  */
 				if (vsm->lastx || vsm->lasty) {
 					scroller_activate_exit(C, op);
@@ -1892,18 +1892,18 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 	ARegion *ar = CTX_wm_region(C);
 	View2D *v2d = &ar->v2d;
 	short in_scroller = 0;
-		
+
 	/* check if mouse in scrollbars, if they're enabled */
 	in_scroller = UI_view2d_mouse_in_scrollers(C, v2d, event->x, event->y);
-	
+
 	/* if in a scroller, init customdata then set modal handler which will catch mousedown to start doing useful stuff */
 	if (in_scroller) {
 		v2dScrollerMove *vsm;
-		
+
 		/* initialize customdata */
 		scroller_activate_init(C, op, event, in_scroller);
 		vsm = (v2dScrollerMove *)op->customdata;
-		
+
 		/* support for quick jump to location - gtk and qt do this on linux */
 		if (event->type == MIDDLEMOUSE) {
 			switch (vsm->scroller) {
@@ -1930,7 +1930,7 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 				vsm->zone = SCROLLHANDLE_BAR;
 			}
 		}
-		
+
 		/* check if zone is inappropriate (i.e. 'bar' but panning is banned), so cannot continue */
 		if (vsm->zone == SCROLLHANDLE_BAR) {
 			if (((vsm->scroller == 'h') && (v2d->keepofs & V2D_LOCKOFS_X)) ||
@@ -1938,30 +1938,30 @@ static int scroller_activate_invoke(bContext *C, wmOperator *op, const wmEvent *
 			{
 				/* free customdata initialized */
 				scroller_activate_exit(C, op);
-				
+
 				/* can't catch this event for ourselves, so let it go to someone else? */
 				return OPERATOR_PASS_THROUGH;
 			}
 		}
-		
+
 		/* zone is also inappropriate if scroller is not visible... */
 		if (((vsm->scroller == 'h') && (v2d->scroll & (V2D_SCROLL_HORIZONTAL_FULLR))) ||
 		    ((vsm->scroller == 'v') && (v2d->scroll & (V2D_SCROLL_VERTICAL_FULLR))) )
 		{
 			/* free customdata initialized */
 			scroller_activate_exit(C, op);
-				
+
 			/* can't catch this event for ourselves, so let it go to someone else? */
 			/* XXX note: if handlers use mask rect to clip input, input will fail for this case */
 			return OPERATOR_PASS_THROUGH;
 		}
-		
+
 		/* activate the scroller */
 		if (vsm->scroller == 'h')
 			v2d->scroll_ui |= V2D_SCROLL_H_ACTIVE;
 		else
 			v2d->scroll_ui |= V2D_SCROLL_V_ACTIVE;
-		
+
 		/* still ok, so can add */
 		WM_event_add_modal_handler(C, op);
 		return OPERATOR_RUNNING_MODAL;
@@ -1982,7 +1982,7 @@ static void VIEW2D_OT_scroller_activate(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_BLOCKING;
-	
+
 	/* api callbacks */
 	ot->invoke = scroller_activate_invoke;
 	ot->modal = scroller_activate_modal;
@@ -2007,7 +2007,7 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 
 	v2d->cur.xmax = v2d->cur.xmin + winx;
 	v2d->cur.ymax = v2d->cur.ymin + winy;
-	
+
 	/* align */
 	if (v2d->align) {
 		/* posx and negx flags are mutually exclusive, so watch out */
@@ -2033,11 +2033,11 @@ static int reset_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* validate that view is in valid configuration after this operation */
 	UI_view2d_curRect_validate(v2d);
-	
+
 	/* request updates to be done... */
 	ED_region_tag_redraw(ar);
 	UI_view2d_sync(CTX_wm_screen(C), CTX_wm_area(C), v2d, V2D_LOCK_COPY);
-	
+
 	UI_view2d_zoom_cache_reset();
 
 	return OPERATOR_FINISHED;
@@ -2049,27 +2049,27 @@ static void VIEW2D_OT_reset(wmOperatorType *ot)
 	ot->name = "Reset View";
 	ot->description = "Reset the view";
 	ot->idname = "VIEW2D_OT_reset";
-	
+
 	/* api callbacks */
 	ot->exec = reset_exec;
 	ot->poll = view2d_poll;
 }
- 
+
 /* ********************************************************* */
 /* Registration */
 
 void ED_operatortypes_view2d(void)
 {
 	WM_operatortype_append(VIEW2D_OT_pan);
-	
+
 	WM_operatortype_append(VIEW2D_OT_scroll_left);
 	WM_operatortype_append(VIEW2D_OT_scroll_right);
 	WM_operatortype_append(VIEW2D_OT_scroll_up);
 	WM_operatortype_append(VIEW2D_OT_scroll_down);
-	
+
 	WM_operatortype_append(VIEW2D_OT_zoom_in);
 	WM_operatortype_append(VIEW2D_OT_zoom_out);
-	
+
 	WM_operatortype_append(VIEW2D_OT_zoom);
 	WM_operatortype_append(VIEW2D_OT_zoom_border);
 
@@ -2078,7 +2078,7 @@ void ED_operatortypes_view2d(void)
 #endif
 
 	WM_operatortype_append(VIEW2D_OT_smoothview);
-	
+
 	WM_operatortype_append(VIEW2D_OT_scroller_activate);
 
 	WM_operatortype_append(VIEW2D_OT_reset);
@@ -2096,15 +2096,15 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	/* pan/scroll */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MIDDLEMOUSE, KM_PRESS, KM_SHIFT, 0);
-	
+
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
-	
+
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", WHEELDOWNMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", WHEELUPMOUSE, KM_PRESS, KM_CTRL, 0);
-	
+
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, KM_SHIFT, 0);
-	
+
 #ifdef WITH_INPUT_NDOF
 	WM_keymap_add_item(keymap, "VIEW2D_OT_ndof", NDOF_MOTION, 0, 0, 0);
 #endif
@@ -2115,7 +2115,7 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_out", PADMINUS, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_in", PADPLUSKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEPAN, 0, KM_CTRL, 0);
-	
+
 	WM_keymap_verify_item(keymap, "VIEW2D_OT_smoothview", TIMER1, KM_ANY, KM_ANY, 0);
 
 	/* scroll up/down - no modifiers, only when zoom fails */
@@ -2125,7 +2125,7 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	/* these may be necessary if vertical scroll is disallowed */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", WHEELUPMOUSE, KM_PRESS, 0, 0);
-	
+
 	/* alternatives for page up/down to scroll */
 #if 0 // XXX disabled, since this causes conflicts with hotkeys in animation editors
 	/* scroll up/down may fall through to left/right */
@@ -2137,11 +2137,11 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_right", PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_left", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0);
 #endif
-	
+
 	/* zoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
-	
+
 	/* borderzoom - drag */
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom_border", BKEY, KM_PRESS, KM_SHIFT, 0);
 
@@ -2155,12 +2155,12 @@ void ED_keymap_view2d(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "VIEW2D_OT_pan", MOUSEPAN, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", WHEELDOWNMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", WHEELUPMOUSE, KM_PRESS, 0, 0);
-	
+
 	kmi = WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_down", PAGEDOWNKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "page", true);
 	kmi = WM_keymap_add_item(keymap, "VIEW2D_OT_scroll_up", PAGEUPKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "page", true);
-	
+
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MIDDLEMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEZOOM, 0, 0, 0);
 	WM_keymap_add_item(keymap, "VIEW2D_OT_zoom", MOUSEPAN, 0, KM_CTRL, 0);

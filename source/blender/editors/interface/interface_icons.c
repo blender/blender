@@ -121,7 +121,7 @@ typedef struct IconTexture {
 } IconTexture;
 
 /* ******************* STATIC LOCAL VARS ******************* */
-/* static here to cache results of icon directory scan, so it's not 
+/* static here to cache results of icon directory scan, so it's not
  * scanning the filesystem each time the menu is drawn */
 static struct ListBase iconfilelist = {NULL, NULL};
 static IconTexture icongltex = {0, 0, 0, 0.0f, 0.0f};
@@ -158,9 +158,9 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 		/* icon buffers can get initialized runtime now, via datatoc */
 		if (bbuf) {
 			int y, imgsize;
-			
+
 			iimg->rect = MEM_mallocN(size * size * sizeof(unsigned int), "icon_rect");
-			
+
 			/* Here we store the rect in the icon - same as before */
 			if (size == bbuf->x && size == bbuf->y && xofs == 0 && yofs == 0)
 				memcpy(iimg->rect, bbuf->rect, size * size * sizeof(int));
@@ -179,7 +179,7 @@ static DrawInfo *def_internal_icon(ImBuf *bbuf, int icon_id, int xofs, int yofs,
 	new_icon->drawinfo = di;
 
 	BKE_icon_set(icon_id, new_icon);
-	
+
 	return di;
 }
 
@@ -240,24 +240,24 @@ static void vicon_keytype_draw_wrapper(int x, int y, int w, int h, float alpha, 
 	 */
 	struct bThemeState theme_state;
 	int xco, yco;
-	
+
 	UI_Theme_Store(&theme_state);
 	UI_SetTheme(SPACE_ACTION, RGN_TYPE_WINDOW);
-	
+
 	/* the "x" and "y" given are the bottom-left coordinates of the icon,
 	 * while the draw_keyframe_shape() function needs the midpoint for
 	 * the keyframe
 	 */
 	xco = x + w / 2;
 	yco = y + h / 2;
-	
+
 	/* draw keyframe
 	 * - xscale: 1.0 (since there's no timeline scaling to compensate for)
 	 * - yscale: 0.3 * h (found out experimentally... dunno why!)
 	 * - sel: true (so that "keyframe" state shows the iconic yellow icon)
 	 */
 	draw_keyframe_shape(xco, yco, 1.0f, 0.3f * h, true, key_type, KEYFRAME_SHAPE_BOTH, alpha);
-	
+
 	UI_Theme_Restore(&theme_state);
 }
 
@@ -290,7 +290,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 {
 	bTheme *btheme = UI_GetTheme();
 	ThemeWireColor *cs = &btheme->tarm[index];
-	
+
 	/* Draw three bands of color: One per color
 	 *    x-----a-----b-----c
 	 *    |  N  |  S  |  A  |
@@ -299,16 +299,16 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	const int a = x + w / 3;
 	const int b = x + w / 3 * 2;
 	const int c = x + w;
-	
+
 	/* XXX: Include alpha into this... */
 	/* normal */
 	glColor3ubv((unsigned char *)cs->solid);
 	glRecti(x, y, a, y + h);
-	
+
 	/* selected */
 	glColor3ubv((unsigned char *)cs->select);
 	glRecti(a, y, b, y + h);
-	
+
 	/* active */
 	glColor3ubv((unsigned char *)cs->active);
 	glRecti(b, y, c, y + h);
@@ -319,7 +319,7 @@ static void vicon_colorset_draw(int index, int x, int y, int w, int h, float UNU
 	{                                                                                 \
 		vicon_colorset_draw(index, x, y, w, h, alpha);                                \
 	}
-	
+
 DEF_VICON_COLORSET_DRAW_NTH(01, 0)
 DEF_VICON_COLORSET_DRAW_NTH(02, 1)
 DEF_VICON_COLORSET_DRAW_NTH(03, 2)
@@ -403,14 +403,14 @@ static void icon_verify_datatoc(IconImage *iimg)
 	/* if it has own rect, things are all OK */
 	if (iimg->rect)
 		return;
-	
+
 	if (iimg->datatoc_rect) {
 		ImBuf *bbuf = IMB_ibImageFromMemory(iimg->datatoc_rect,
 		                                    iimg->datatoc_size, IB_rect, NULL, "<matcap icon>");
 		/* w and h were set on initialize */
 		if (bbuf->x != iimg->h && bbuf->y != iimg->w)
 			IMB_scaleImBuf(bbuf, iimg->w, iimg->h);
-		
+
 		iimg->rect = bbuf->rect;
 		bbuf->rect = NULL;
 		IMB_freeImBuf(bbuf);
@@ -470,7 +470,7 @@ static void init_internal_icons(void)
 	if ((btheme != NULL) && btheme->tui.iconfile[0]) {
 		char *icondir = BKE_appdir_folder_id(BLENDER_DATAFILES, "icons");
 		char iconfilestr[FILE_MAX];
-		
+
 		if (icondir) {
 			BLI_join_dirfile(iconfilestr, sizeof(iconfilestr), icondir, btheme->tui.iconfile);
 			bbuf = IMB_loadiffname(iconfilestr, IB_rect, NULL); /* if the image is missing bbuf will just be NULL */
@@ -496,7 +496,7 @@ static void init_internal_icons(void)
 		                               datatoc_blender_icons32_png_size, IB_rect, NULL, "<blender icons>");
 	if (b32buf)
 		IMB_premultiply_alpha(b32buf);
-	
+
 	if (b16buf && b32buf) {
 		/* free existing texture if any */
 		if (icongltex.id) {
@@ -510,17 +510,17 @@ static void init_internal_icons(void)
 
 			if (icongltex.id) {
 				int level = 2;
-				
+
 				icongltex.w = b32buf->x;
 				icongltex.h = b32buf->y;
 				icongltex.invw = 1.0f / b32buf->x;
 				icongltex.invh = 1.0f / b32buf->y;
 
 				glBindTexture(GL_TEXTURE_2D, icongltex.id);
-				
+
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, b32buf->x, b32buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b32buf->rect);
 				glTexImage2D(GL_TEXTURE_2D, 1, GL_RGBA8, b16buf->x, b16buf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, b16buf->rect);
-				
+
 				while (b16buf->x > 1) {
 					ImBuf *nbuf = IMB_onehalf(b16buf);
 					glTexImage2D(GL_TEXTURE_2D, level, GL_RGBA8, nbuf->x, nbuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, nbuf->rect);
@@ -528,12 +528,12 @@ static void init_internal_icons(void)
 					IMB_freeImBuf(b16buf);
 					b16buf = nbuf;
 				}
-				
+
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				
+
 				glBindTexture(GL_TEXTURE_2D, 0);
-				
+
 				if (glGetError() == GL_OUT_OF_MEMORY) {
 					glDeleteTextures(1, &icongltex.id);
 					icongltex.id = 0;
@@ -546,7 +546,7 @@ static void init_internal_icons(void)
 		icontype = ICON_TYPE_TEXTURE;
 	else
 		icontype = ICON_TYPE_BUFFER;
-	
+
 	if (b32buf) {
 		for (y = 0; y < ICON_GRID_ROWS; y++) {
 			for (x = 0; x < ICON_GRID_COLS; x++) {
@@ -559,13 +559,13 @@ static void init_internal_icons(void)
 	}
 
 	def_internal_vicon(VICO_SMALL_TRI_RIGHT_VEC, vicon_small_tri_right_draw);
-	
+
 	def_internal_vicon(VICO_KEYTYPE_KEYFRAME_VEC, vicon_keytype_keyframe_draw);
 	def_internal_vicon(VICO_KEYTYPE_BREAKDOWN_VEC, vicon_keytype_breakdown_draw);
 	def_internal_vicon(VICO_KEYTYPE_EXTREME_VEC, vicon_keytype_extreme_draw);
 	def_internal_vicon(VICO_KEYTYPE_JITTER_VEC, vicon_keytype_jitter_draw);
 	def_internal_vicon(VICO_KEYTYPE_MOVING_HOLD_VEC, vicon_keytype_moving_hold_draw);
-	
+
 	def_internal_vicon(VICO_COLORSET_01_VEC, vicon_colorset_draw_01);
 	def_internal_vicon(VICO_COLORSET_02_VEC, vicon_colorset_draw_02);
 	def_internal_vicon(VICO_COLORSET_03_VEC, vicon_colorset_draw_03);
@@ -589,7 +589,7 @@ static void init_internal_icons(void)
 
 	IMB_freeImBuf(b16buf);
 	IMB_freeImBuf(b32buf);
-	
+
 }
 #endif  /* WITH_HEADLESS */
 
@@ -605,13 +605,13 @@ static void init_iconfile_list(struct ListBase *list)
 
 	if (icondir == NULL)
 		return;
-	
+
 	totfile = BLI_filelist_dir_contents(icondir, &dir);
 
 	for (i = 0; i < totfile; i++) {
 		if ((dir[i].type & S_IFREG)) {
 			const char *filename = dir[i].relname;
-			
+
 			if (BLI_testextensie(filename, ".png")) {
 				/* loading all icons on file start is overkill & slows startup
 				 * its possible they change size after blender load anyway. */
@@ -633,7 +633,7 @@ static void init_iconfile_list(struct ListBase *list)
 				else {
 					ifilex = ifiley = 0;
 				}
-				
+
 				/* bad size or failed to load */
 				if ((ifilex != ICON_IMAGE_W) || (ifiley != ICON_IMAGE_H)) {
 					printf("icon '%s' is wrong size %dx%d\n", iconfilestr, ifilex, ifiley);
@@ -643,12 +643,12 @@ static void init_iconfile_list(struct ListBase *list)
 
 				/* found a potential icon file, so make an entry for it in the cache list */
 				ifile = MEM_callocN(sizeof(IconFile), "IconFile");
-				
+
 				BLI_strncpy(ifile->filename, filename, sizeof(ifile->filename));
 				ifile->index = index;
 
 				BLI_addtail(list, ifile);
-				
+
 				index++;
 			}
 		}
@@ -661,7 +661,7 @@ static void init_iconfile_list(struct ListBase *list)
 static void free_iconfile_list(struct ListBase *list)
 {
 	IconFile *ifile = NULL, *next_ifile = NULL;
-	
+
 	for (ifile = list->first; ifile; ifile = next_ifile) {
 		next_ifile = ifile->next;
 		BLI_freelinkN(list, ifile);
@@ -674,20 +674,20 @@ int UI_iconfile_get_index(const char *filename)
 {
 	IconFile *ifile;
 	ListBase *list = &(iconfilelist);
-	
+
 	for (ifile = list->first; ifile; ifile = ifile->next) {
 		if (BLI_path_cmp(filename, ifile->filename) == 0) {
 			return ifile->index;
 		}
 	}
-	
+
 	return 0;
 }
 
 ListBase *UI_iconfile_list(void)
 {
 	ListBase *list = &(iconfilelist);
-	
+
 	return list;
 }
 
@@ -739,13 +739,13 @@ int UI_icon_get_width(int icon_id)
 	DrawInfo *di = NULL;
 
 	icon = BKE_icon_get(icon_id);
-	
+
 	if (icon == NULL) {
 		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
-	
+
 	di = (DrawInfo *)icon->drawinfo;
 	if (!di) {
 		di = icon_create_drawinfo();
@@ -764,20 +764,20 @@ int UI_icon_get_height(int icon_id)
 	DrawInfo *di = NULL;
 
 	icon = BKE_icon_get(icon_id);
-	
+
 	if (icon == NULL) {
 		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
 		return 0;
 	}
-	
+
 	di = (DrawInfo *)icon->drawinfo;
 
 	if (!di) {
 		di = icon_create_drawinfo();
 		icon->drawinfo = di;
 	}
-	
+
 	if (di)
 		return ICON_DEFAULT_HEIGHT;
 
@@ -900,7 +900,7 @@ static void icon_set_image(
 PreviewImage *UI_icon_to_preview(int icon_id)
 {
 	Icon *icon = BKE_icon_get(icon_id);
-	
+
 	if (icon) {
 		DrawInfo *di = (DrawInfo *)icon->drawinfo;
 		if (di) {
@@ -1003,7 +1003,7 @@ static void icon_draw_rect(float x, float y, int w, int h, float UNUSED(aspect),
 	/* restore color */
 	if (alpha != 0.0f)
 		glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
-	
+
 	if (rgb) {
 		glPixelTransferf(GL_RED_SCALE, 1.0f);
 		glPixelTransferf(GL_GREEN_SCALE, 1.0f);
@@ -1076,10 +1076,10 @@ static void icon_draw_size(
 	IconImage *iimg;
 	const float fdraw_size = (float)draw_size;
 	int w, h;
-	
+
 	icon = BKE_icon_get(icon_id);
 	alpha *= btheme->tui.icon_alpha;
-	
+
 	if (icon == NULL) {
 		if (G.debug & G_DEBUG)
 			printf("%s: Internal error, no icon for icon ID: %d\n", __func__, icon_id);
@@ -1087,18 +1087,18 @@ static void icon_draw_size(
 	}
 
 	di = (DrawInfo *)icon->drawinfo;
-	
+
 	if (!di) {
 		di = icon_create_drawinfo();
-	
+
 		icon->drawinfo = di;
 		icon->drawinfo_free = UI_icons_free_drawinfo;
 	}
-	
+
 	/* scale width and height according to aspect */
 	w = (int)(fdraw_size / aspect + 0.5f);
 	h = (int)(fdraw_size / aspect + 0.5f);
-	
+
 	if (di->type == ICON_TYPE_VECTOR) {
 		/* vector icons use the uiBlock transformation, they are not drawn
 		 * with untransformed coordinates like the other icons */
@@ -1129,7 +1129,7 @@ static void icon_draw_size(
 		if (pi) {
 			/* no create icon on this level in code */
 			if (!pi->rect[size]) return;  /* something has gone wrong! */
-			
+
 			/* preview images use premul alpha ... */
 			glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1166,10 +1166,10 @@ static void ui_id_brush_render(const bContext *C, ID *id)
 {
 	PreviewImage *pi = BKE_previewimg_id_ensure(id);
 	enum eIconSizes i;
-	
+
 	if (!pi)
 		return;
-	
+
 	for (i = 0; i < NUM_ICON_SIZES; i++) {
 		/* check if rect needs to be created; changed
 		 * only set by dynamic icons */
@@ -1237,7 +1237,7 @@ static int ui_id_brush_get_icon(const bContext *C, ID *id)
 int ui_id_icon_get(const bContext *C, ID *id, const bool big)
 {
 	int iconid = 0;
-	
+
 	/* icon */
 	switch (GS(id->name)) {
 		case ID_BR:
