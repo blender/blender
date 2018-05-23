@@ -467,7 +467,7 @@ static void graph_panel_key_properties(const bContext *C, Panel *pa)
 
 #define B_IPO_DEPCHANGE     10
 
-static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int event)
+static void do_graph_region_driver_buttons(bContext *C, void *fcu_v, int event)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -475,6 +475,16 @@ static void do_graph_region_driver_buttons(bContext *C, void *UNUSED(arg), int e
 	switch (event) {
 		case B_IPO_DEPCHANGE:
 		{
+			/* force F-Curve & Driver to get re-evaluated (same as the old Update Dependencies) */
+			FCurve *fcu = (FCurve *)fcu_v;
+			ChannelDriver *driver = (fcu) ? fcu->driver : NULL;
+			
+			/* clear invalid flags */
+			if (fcu) {
+				fcu->flag &= ~FCURVE_DISABLED;
+				driver->flag &= ~DRIVER_FLAG_INVALID;
+			}
+			
 			/* rebuild depsgraph for the new deps */
 			DEG_relations_tag_update(bmain);
 			break;
