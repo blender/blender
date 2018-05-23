@@ -2882,7 +2882,15 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		     relation = relation->next)
 		{
 			relation->parent = newlibadr(fd, id->lib, relation->parent);
-			/* relation->value is set in direct_link_workspace_link_scene_data */
+			/* relation->value is set in direct_link_workspace_link_scene_data,
+			 * except when loading linked data. */
+			Scene *scene = relation->parent;
+			if (scene->id.lib != NULL) {
+				relation->value = BLI_findstring(&scene->view_layers, relation->value_idname, offsetof(ViewLayer, name));
+			}
+			if (relation->value == NULL) {
+				relation->value = scene->view_layers.first;
+			}
 		}
 
 		for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
@@ -6066,12 +6074,15 @@ static void direct_link_workspace_link_scene_data(
 		     relation != NULL;
 		     relation = relation->next)
 		{
-			ViewLayer *layer = newdataadr(fd, relation->value);
-			if (layer) {
-				BLI_assert(BLI_findindex(&scene->view_layers, layer) != -1);
+			ViewLayer *view_layer = newdataadr(fd, relation->value);
+			if (view_layer != NULL) {
+				BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
 				/* relation->parent is set in lib_link_workspaces */
-				relation->value = layer;
 			}
+			if (UNLIKELY(view_layer == NULL)) {
+				view_layer = scene->view_layers.first;
+			}
+			relation->value = view_layer;
 		}
 	}
 }

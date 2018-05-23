@@ -180,6 +180,9 @@ typedef struct WorkSpaceDataRelation {
 	void *parent;
 	/* The value for this parent-data/workspace relation */
 	void *value;
+
+	/** Use when we reference non-ID data, this allows use to look it up when linking in a workspace. */
+	char value_idname[64];  /* MAX_NAME. */
 } WorkSpaceDataRelation;
 
 #endif /* DNA_PRIVATE_WORKSPACE_READ_WRITE */
