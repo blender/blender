@@ -313,6 +313,7 @@ static void studiolight_calculate_irradiance(StudioLight *sl, float color[3], co
 	}
 
 	mul_v3_fl(color, 1.25 / (STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE * STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE));
+	return;
 
 fail:
 	/* Pink color of failure. */
