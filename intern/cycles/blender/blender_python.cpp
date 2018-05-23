@@ -203,10 +203,10 @@ static PyObject *exit_func(PyObject * /*self*/, PyObject * /*args*/)
 
 static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 {
-	PyObject *pyengine, *pyuserpref, *pydata, *pyscene, *pyregion, *pyv3d, *pyrv3d;
+	PyObject *pyengine, *pyuserpref, *pydata, *pyregion, *pyv3d, *pyrv3d;
 	int preview_osl;
 
-	if(!PyArg_ParseTuple(args, "OOOOOOOi", &pyengine, &pyuserpref, &pydata, &pyscene,
+	if(!PyArg_ParseTuple(args, "OOOOOOi", &pyengine, &pyuserpref, &pydata,
 	                     &pyregion, &pyv3d, &pyrv3d, &preview_osl))
 	{
 		return NULL;
@@ -224,10 +224,6 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 	PointerRNA dataptr;
 	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);
 	BL::BlendData data(dataptr);
-
-	PointerRNA sceneptr;
-	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
-	BL::Scene scene(sceneptr);
 
 	PointerRNA regionptr;
 	RNA_pointer_create(NULL, &RNA_Region, pylong_as_voidptr_typesafe(pyregion), &regionptr);
@@ -249,26 +245,12 @@ static PyObject *create_func(PyObject * /*self*/, PyObject *args)
 		int width = region.width();
 		int height = region.height();
 
-		session = new BlenderSession(engine, userpref, data, scene, v3d, rv3d, width, height);
+		session = new BlenderSession(engine, userpref, data, v3d, rv3d, width, height);
 	}
 	else {
-		/* override some settings for preview */
-		if(engine.is_preview()) {
-			PointerRNA cscene = RNA_pointer_get(&sceneptr, "cycles");
-
-			RNA_boolean_set(&cscene, "shading_system", preview_osl);
-			RNA_boolean_set(&cscene, "use_progressive_refine", true);
-		}
-
 		/* offline session or preview render */
-		session = new BlenderSession(engine, userpref, data, scene);
+		session = new BlenderSession(engine, userpref, data, preview_osl);
 	}
-
-	python_thread_state_save(&session->python_thread_state);
-
-	session->create();
-
-	python_thread_state_restore(&session->python_thread_state);
 
 	return PyLong_FromVoidPtr(session);
 }
@@ -316,7 +298,7 @@ static PyObject *bake_func(PyObject * /*self*/, PyObject *args)
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
 	PointerRNA depsgraphptr;
-	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydepsgraph), &depsgraphptr);
+	RNA_pointer_create(NULL, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph), &depsgraphptr);
 	BL::Depsgraph b_depsgraph(depsgraphptr);
 
 	PointerRNA objectptr;
@@ -360,9 +342,9 @@ static PyObject *draw_func(PyObject * /*self*/, PyObject *args)
 
 static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 {
-	PyObject *pysession, *pydata, *pyscene;
+	PyObject *pysession, *pydata, *pydepsgraph;
 
-	if(!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pyscene))
+	if(!PyArg_ParseTuple(args, "OOO", &pysession, &pydata, &pydepsgraph))
 		return NULL;
 
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
@@ -371,13 +353,13 @@ static PyObject *reset_func(PyObject * /*self*/, PyObject *args)
 	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);
 	BL::BlendData b_data(dataptr);
 
-	PointerRNA sceneptr;
-	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pyscene), &sceneptr);
-	BL::Scene b_scene(sceneptr);
+	PointerRNA depsgraphptr;
+	RNA_pointer_create(NULL, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph), &depsgraphptr);
+	BL::Depsgraph b_depsgraph(depsgraphptr);
 
 	python_thread_state_save(&session->python_thread_state);
 
-	session->reset_session(b_data, b_scene);
+	session->reset_session(b_data, b_depsgraph);
 
 	python_thread_state_restore(&session->python_thread_state);
 
@@ -394,7 +376,7 @@ static PyObject *sync_func(PyObject * /*self*/, PyObject *args)
 	BlenderSession *session = (BlenderSession*)PyLong_AsVoidPtr(pysession);
 
 	PointerRNA depsgraphptr;
-	RNA_id_pointer_create((ID*)PyLong_AsVoidPtr(pydepsgraph), &depsgraphptr);
+	RNA_pointer_create(NULL, &RNA_Depsgraph, PyLong_AsVoidPtr(pydepsgraph), &depsgraphptr);
 	BL::Depsgraph b_depsgraph(depsgraphptr);
 
 	python_thread_state_save(&session->python_thread_state);

@@ -546,7 +546,7 @@ bool RE_bake_has_engine(Render *re)
 }
 
 bool RE_bake_engine(
-        Render *re, ViewLayer *view_layer, Object *object,
+        Render *re, Depsgraph *depsgraph, Object *object,
         const int object_id, const BakePixel pixel_array[],
         const size_t num_pixels, const int depth,
         const eScenePassType pass_type, const int pass_filter,
@@ -581,16 +581,15 @@ bool RE_bake_engine(
 	engine->tile_x = re->r.tilex;
 	engine->tile_y = re->r.tiley;
 
-	/* update is only called so we create the engine.session */
-	if (type->update)
-		type->update(engine, re->main, re->scene);
-
 	if (type->bake) {
-		engine_depsgraph_init(engine, view_layer);
+		engine->depsgraph = depsgraph;
+
+		/* update is only called so we create the engine.session */
+		if (type->update)
+			type->update(engine, re->main, engine->depsgraph);
 
 		type->bake(engine,
 		           engine->depsgraph,
-		           re->scene,
 		           object,
 		           pass_type,
 		           pass_filter,
@@ -600,7 +599,7 @@ bool RE_bake_engine(
 		           depth,
 		           result);
 
-		engine_depsgraph_free(engine);
+		engine->depsgraph = NULL;
 	}
 
 	engine->tile_x = 0;
@@ -715,10 +714,6 @@ int RE_engine_render(Render *re, int do_all)
 	if (re->result->do_exr_tile)
 		render_result_exr_file_begin(re);
 
-	if (type->update) {
-		type->update(engine, re->main, re->scene);
-	}
-
 	/* Clear UI drawing locks. */
 	if (re->draw_lock) {
 		re->draw_lock(re->dlh, 0);
@@ -727,8 +722,20 @@ int RE_engine_render(Render *re, int do_all)
 	if (type->render_to_image) {
 		FOREACH_VIEW_LAYER_TO_RENDER_BEGIN(re, view_layer_iter)
 		{
+			if (re->draw_lock) {
+				re->draw_lock(re->dlh, 1);
+			}
+
 			ViewLayer *view_layer = BLI_findstring(&re->scene->view_layers, view_layer_iter->name, offsetof(ViewLayer, name));
 			engine_depsgraph_init(engine, view_layer);
+
+			if (type->update) {
+				type->update(engine, re->main, engine->depsgraph);
+			}
+
+			if (re->draw_lock) {
+				re->draw_lock(re->dlh, 0);
+			}
 
 			type->render_to_image(engine, engine->depsgraph);
 

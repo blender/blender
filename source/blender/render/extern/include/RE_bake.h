@@ -35,7 +35,7 @@
 struct ImBuf;
 struct Render;
 struct Mesh;
-struct ViewLayer;
+struct Depsgraph;
 
 typedef struct BakeImage {
 	struct Image *image;
@@ -72,7 +72,7 @@ typedef struct BakeHighPolyData {
 bool RE_bake_has_engine(struct Render *re);
 
 bool RE_bake_engine(
-        struct Render *re, struct ViewLayer *view_layer, struct Object *object, const int object_id, const BakePixel pixel_array[],
+        struct Render *re, struct Depsgraph *depsgraph, struct Object *object, const int object_id, const BakePixel pixel_array[],
         const size_t num_pixels, const int depth, const eScenePassType pass_type, const int pass_filter, float result[]);
 
 /* bake.c */

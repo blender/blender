@@ -52,22 +52,22 @@ int BlenderSession::end_resumable_chunk = 0;
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::UserPreferences& b_userpref,
                                BL::BlendData& b_data,
-                               BL::Scene& b_scene)
-: b_engine(b_engine),
+                               bool preview_osl)
+: session(NULL),
+  b_engine(b_engine),
   b_userpref(b_userpref),
   b_data(b_data),
   b_render(b_engine.render()),
   b_depsgraph(PointerRNA_NULL),
-  b_scene(b_scene),
+  b_scene(PointerRNA_NULL),
   b_v3d(PointerRNA_NULL),
   b_rv3d(PointerRNA_NULL),
+  width(0),
+  height(0),
+  preview_osl(preview_osl),
   python_thread_state(NULL)
 {
 	/* offline render */
-
-	width = render_resolution_x(b_render);
-	height = render_resolution_y(b_render);
-
 	background = true;
 	last_redraw_time = 0.0;
 	start_resize_time = 0.0;
@@ -77,24 +77,24 @@ BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
 BlenderSession::BlenderSession(BL::RenderEngine& b_engine,
                                BL::UserPreferences& b_userpref,
                                BL::BlendData& b_data,
-                               BL::Scene& b_scene,
                                BL::SpaceView3D& b_v3d,
                                BL::RegionView3D& b_rv3d,
                                int width, int height)
-: b_engine(b_engine),
+: session(NULL),
+  b_engine(b_engine),
   b_userpref(b_userpref),
   b_data(b_data),
-  b_render(b_scene.render()),
+  b_render(b_engine.render()),
   b_depsgraph(PointerRNA_NULL),
-  b_scene(b_scene),
+  b_scene(PointerRNA_NULL),
   b_v3d(b_v3d),
   b_rv3d(b_rv3d),
   width(width),
   height(height),
+  preview_osl(false),
   python_thread_state(NULL)
 {
 	/* 3d view render */
-
 	background = false;
 	last_redraw_time = 0.0;
 	start_resize_time = 0.0;
@@ -168,17 +168,39 @@ void BlenderSession::create_session()
 	update_resumable_tile_manager(session_params.samples);
 }
 
-void BlenderSession::reset_session(BL::BlendData& b_data_, BL::Scene& b_scene_)
+void BlenderSession::reset_session(BL::BlendData& b_data, BL::Depsgraph& b_depsgraph)
 {
-	b_data = b_data_;
-	b_render = b_engine.render();
-	b_scene = b_scene_;
+	this->b_data = b_data;
+	this->b_depsgraph = b_depsgraph;
+	this->b_scene = b_depsgraph.scene_eval();
+
+	if (preview_osl) {
+		PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
+		RNA_boolean_set(&cscene, "shading_system", preview_osl);
+	}
+
+	if (b_v3d) {
+		this->b_render = b_scene.render();
+	}
+	else {
+		this->b_render = b_engine.render();
+		width = render_resolution_x(b_render);
+		height = render_resolution_y(b_render);
+	}
+
+	if (session == NULL) {
+		create();
+	}
+
+	if (b_v3d) {
+		/* NOTE: We need to create session, but all the code from below
+		 * will make viewport render to stuck on initialization.
+		 */
+		return;
+	}
 
 	SessionParams session_params = BlenderSync::get_session_params(b_engine, b_userpref, b_scene, background);
 	SceneParams scene_params = BlenderSync::get_scene_params(b_scene, background);
-
-	width = render_resolution_x(b_render);
-	height = render_resolution_y(b_render);
 
 	if(scene->params.modified(scene_params) ||
 	   session->params.modified(session_params) ||

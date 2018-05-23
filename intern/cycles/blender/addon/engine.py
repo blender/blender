@@ -123,13 +123,12 @@ def exit():
     _cycles.exit()
 
 
-def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=False):
-    import bpy
+def create(engine, data, region=None, v3d=None, rv3d=None, preview_osl=False):
     import _cycles
+    import bpy
 
     data = data.as_pointer()
     userpref = bpy.context.user_preferences.as_pointer()
-    scene = scene.as_pointer()
     if region:
         region = region.as_pointer()
     if v3d:
@@ -137,13 +136,8 @@ def create(engine, data, scene, region=None, v3d=None, rv3d=None, preview_osl=Fa
     if rv3d:
         rv3d = rv3d.as_pointer()
 
-    if bpy.app.debug_value == 256:
-        _cycles.debug_flags_update(scene)
-    else:
-        _cycles.debug_flags_reset()
-
     engine.session = _cycles.create(
-            engine.as_pointer(), userpref, data, scene, region, v3d, rv3d, preview_osl)
+            engine.as_pointer(), userpref, data, region, v3d, rv3d, preview_osl)
 
 
 def free(engine):
@@ -167,14 +161,21 @@ def bake(engine, depsgraph, obj, pass_type, pass_filter, object_id, pixel_array,
         _cycles.bake(engine.session, depsgraph.as_pointer(), obj.as_pointer(), pass_type, pass_filter, object_id, pixel_array.as_pointer(), num_pixels, depth, result.as_pointer())
 
 
-def reset(engine, data, scene):
+def reset(engine, data, depsgraph):
     import _cycles
+    import bpy
+
+    if bpy.app.debug_value == 256:
+        _cycles.debug_flags_update(depsgraph.scene)
+    else:
+        _cycles.debug_flags_reset()
+
     data = data.as_pointer()
-    scene = scene.as_pointer()
-    _cycles.reset(engine.session, data, scene)
+    depsgraph = depsgraph.as_pointer()
+    _cycles.reset(engine.session, data, depsgraph)
 
 
-def update(engine, depsgraph, data, scene):
+def sync(engine, depsgraph, data):
     import _cycles
     _cycles.sync(engine.session, depsgraph.as_pointer())
 

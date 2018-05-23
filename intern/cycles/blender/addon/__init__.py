@@ -66,31 +66,32 @@ class CyclesRender(bpy.types.RenderEngine):
         engine.free(self)
 
     # final render
-    def update(self, data, scene):
+    def update(self, data, depsgraph):
         if not self.session:
             if self.is_preview:
                 cscene = bpy.context.scene.cycles
                 use_osl = cscene.shading_system and cscene.device == 'CPU'
 
-                engine.create(self, data, scene,
-                              None, None, None, use_osl)
+                engine.create(self, data, preview_osl=use_osl)
             else:
-                engine.create(self, data, scene)
-        else:
-            engine.reset(self, data, scene)
+                engine.create(self, data)
+
+        engine.reset(self, data, depsgraph)
 
     def render_to_image(self, depsgraph):
         engine.render(self, depsgraph)
 
-    def bake(self, depsgraph, scene, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result):
+    def bake(self, depsgraph, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result):
         engine.bake(self, depsgraph, obj, pass_type, pass_filter, object_id, pixel_array, num_pixels, depth, result)
 
     # viewport render
     def view_update(self, context):
         if not self.session:
-            engine.create(self, context.blend_data, context.scene,
+            engine.create(self, context.blend_data,
                           context.region, context.space_data, context.region_data)
-        engine.update(self, context.depsgraph, context.blend_data, context.scene)
+
+        engine.reset(self, context.blend_data, context.depsgraph)
+        engine.sync(self, context.depsgraph, context.blend_data)
 
     def render_to_view(self, context):
         engine.draw(self, context.depsgraph, context.region, context.space_data, context.region_data)
