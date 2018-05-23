@@ -994,9 +994,9 @@ static void graph_panel_drivers(const bContext *C, Panel *pa)
 /* ----------------------------------------------------------------- */
 
 /* poll to make this not show up in the graph editor, as this is only to be used as a popup elsewhere */
-static int graph_panel_drivers_popover_poll(bContext *C, PanelType *UNUSED(pt))
+static int graph_panel_drivers_popover_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	return ED_operator_graphedit_active(C) == false;
+	return ED_operator_graphedit_active((bContext *)C) == false;
 }
 
 /* popover panel for driver editing anywhere in ui */
