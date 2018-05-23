@@ -74,6 +74,7 @@ typedef struct WORKBENCH_PassList {
 	struct DRWPass *transparent_accum_pass;
 	struct DRWPass *object_outline_pass;
 	struct DRWPass *depth_pass;
+	struct DRWPass *checker_depth_pass;
 } WORKBENCH_PassList;
 
 typedef struct WORKBENCH_Data {
@@ -124,7 +125,7 @@ typedef struct WORKBENCH_MaterialData {
 	/* Linked shgroup for drawing */
 	DRWShadingGroup *shgrp;
 	/* forward rendering */
-	DRWShadingGroup *shgrp_depth;
+	DRWShadingGroup *shgrp_object_outline;
 } WORKBENCH_MaterialData;
 
 typedef struct WORKBENCH_ObjectData {

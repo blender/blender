@@ -52,8 +52,8 @@ static struct {
 	struct GPUShader *transparent_accum_sh_cache[MAX_SHADERS];
 	struct GPUShader *object_outline_sh;
 	struct GPUShader *depth_sh;
+	struct GPUShader *checker_depth_sh;
 
-	struct GPUTexture *depth_tx; /* ref only, not alloced */
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *transparent_accum_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
@@ -67,6 +67,7 @@ extern char datatoc_workbench_forward_depth_frag_glsl[];
 extern char datatoc_workbench_forward_transparent_accum_frag_glsl[];
 extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_background_lib_glsl[];
+extern char datatoc_workbench_checkerboard_depth_frag_glsl[];
 extern char datatoc_workbench_object_outline_lib_glsl[];
 extern char datatoc_workbench_prepass_vert_glsl[];
 extern char datatoc_workbench_common_lib_glsl[];
@@ -168,9 +169,9 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 		material->shgrp = grp;
 
 		/* Depth */
-		material->shgrp_depth = DRW_shgroup_create(e_data.object_outline_sh, psl->object_outline_pass);
+		material->shgrp_object_outline = DRW_shgroup_create(e_data.object_outline_sh, psl->object_outline_pass);
 		material->object_id = engine_object_data->object_id;
-		DRW_shgroup_uniform_int(material->shgrp_depth, "object_id", &material->object_id, 1);
+		DRW_shgroup_uniform_int(material->shgrp_object_outline, "object_id", &material->object_id, 1);
 		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
 	}
 	return material;
@@ -215,6 +216,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_StorageList *stl = vedata->stl;
+	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DRWShadingGroup *grp;
 
 	if (!stl->g_data) {
@@ -234,6 +236,7 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		char *forward_depth_frag = workbench_build_forward_depth_frag();
 		e_data.object_outline_sh = DRW_shader_create(datatoc_workbench_prepass_vert_glsl, NULL, forward_depth_frag, defines);
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
+		e_data.checker_depth_sh = DRW_shader_create_fullscreen(datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
 		MEM_freeN(forward_depth_frag);
 		MEM_freeN(defines);
 	}
@@ -242,12 +245,11 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
-	e_data.depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_workbench_transparent);
 	e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_transparent);
 	e_data.transparent_accum_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
 	e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
 	GPU_framebuffer_ensure_config(&fbl->object_outline_fb, {
-		GPU_ATTACHMENT_TEXTURE(e_data.depth_tx),
+		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
 		GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 	});
 	GPU_framebuffer_ensure_config(&fbl->transparent_accum_fb, {
@@ -276,12 +278,6 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
 		psl->object_outline_pass = DRW_pass_create("Object Outline Pass", state);
 	}
-	/* Depth Active */
-	{
-		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-		psl->depth_pass = DRW_pass_create("Depth Active", state);
-		wpd->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
-	}
 	/* Composite */
 	{
 		int state = DRW_STATE_WRITE_COLOR;
@@ -294,6 +290,13 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 	}
+	/* Checker Depth */
+	{
+		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS;
+		psl->checker_depth_pass = DRW_pass_create("Checker Depth", state);
+		grp = DRW_shgroup_create(e_data.checker_depth_sh, psl->checker_depth_pass);
+		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
+	}
 }
 
 void workbench_forward_engine_free()
@@ -303,6 +306,7 @@ void workbench_forward_engine_free()
 		DRW_SHADER_FREE_SAFE(e_data.transparent_accum_sh_cache[index]);
 	}
 	DRW_SHADER_FREE_SAFE(e_data.object_outline_sh);
+	DRW_SHADER_FREE_SAFE(e_data.checker_depth_sh);
 }
 
 void workbench_forward_cache_init(WORKBENCH_Data *UNUSED(vedata))
@@ -331,6 +335,7 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 		if (draw_as == PART_DRAW_PATH) {
 			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(ob, psys, NULL);
 			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
+			DRW_shgroup_call_add(material->shgrp_object_outline, geom, mat);
 			DRW_shgroup_call_add(material->shgrp, geom, mat);
 		}
 	}
@@ -351,7 +356,6 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
-		const bool is_edit_mode = is_active && (draw_ctx->object_mode & OB_MODE_EDIT) != 0;
 		bool is_drawn = false;
 
 		WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
@@ -372,7 +376,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 							mat_drawtype = OB_TEXTURE;
 						}
 						material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
-						DRW_shgroup_call_object_add(material->shgrp_depth, geom_array[i], ob);
+						DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
 						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}
 					is_drawn = true;
@@ -387,11 +391,11 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
 					if (is_sculpt_mode) {
-						DRW_shgroup_call_sculpt_add(material->shgrp_depth, ob, ob->obmat);
+						DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 						DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 					}
 					else {
-						DRW_shgroup_call_object_add(material->shgrp_depth, geom, ob);
+						DRW_shgroup_call_object_add(material->shgrp_object_outline, geom, ob);
 						DRW_shgroup_call_object_add(material->shgrp, geom, ob);
 					}
 				}
@@ -408,21 +412,12 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					for (int i = 0; i < materials_len; ++i) {
 						Material *mat = give_current_material(ob, i + 1);
 						material = get_or_create_material_data(vedata, ob, mat, NULL, OB_SOLID);
-						DRW_shgroup_call_object_add(material->shgrp_depth, mat_geom[i], ob);
+						DRW_shgroup_call_object_add(material->shgrp_object_outline, mat_geom[i], ob);
 						DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
 					}
 				}
 			}
 		}
-
-		/* Is edit mode and active the update the Depth buffer */
-		if (is_edit_mode) {
-			struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
-			if (geom) {
-				DRW_shgroup_call_object_add(wpd->depth_shgrp, geom, ob);
-			}
-		}
-		
 	}
 }
 
@@ -464,9 +459,8 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	GPU_framebuffer_bind(dfbl->color_only_fb);
 	DRW_transform_to_display(e_data.composite_buffer_tx);
 
-	/* Active Object Depth */
 	GPU_framebuffer_bind(dfbl->depth_only_fb);
-	DRW_draw_pass(psl->depth_pass);
+	DRW_draw_pass(psl->checker_depth_pass);
 
 	workbench_private_data_free(wpd);
 }
