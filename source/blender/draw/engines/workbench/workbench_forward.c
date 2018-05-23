@@ -50,8 +50,10 @@
 static struct {
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
 	struct GPUShader *transparent_accum_sh_cache[MAX_SHADERS];
+	struct GPUShader *object_outline_sh;
 	struct GPUShader *depth_sh;
 
+	struct GPUTexture *depth_tx; /* ref only, not alloced */
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *transparent_accum_tx; /* ref only, not alloced */
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
@@ -166,7 +168,7 @@ static WORKBENCH_MaterialData *get_or_create_material_data(WORKBENCH_Data *vedat
 		material->shgrp = grp;
 
 		/* Depth */
-		material->shgrp_depth = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
+		material->shgrp_depth = DRW_shgroup_create(e_data.object_outline_sh, psl->object_outline_pass);
 		material->object_id = engine_object_data->object_id;
 		DRW_shgroup_uniform_int(material->shgrp_depth, "object_id", &material->object_id, 1);
 		BLI_ghash_insert(wpd->material_hash, SET_UINT_IN_POINTER(hash), material);
@@ -213,7 +215,6 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	WORKBENCH_FramebufferList *fbl = vedata->fbl;
 	WORKBENCH_PassList *psl = vedata->psl;
 	WORKBENCH_StorageList *stl = vedata->stl;
-	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DRWShadingGroup *grp;
 
 	if (!stl->g_data) {
@@ -231,7 +232,8 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		/* XXX: forward depth does not use any defines ATM. */
 		char *defines = workbench_material_build_defines(wpd, OB_SOLID);
 		char *forward_depth_frag = workbench_build_forward_depth_frag();
-		e_data.depth_sh = DRW_shader_create(datatoc_workbench_prepass_vert_glsl, NULL, forward_depth_frag, defines);
+		e_data.object_outline_sh = DRW_shader_create(datatoc_workbench_prepass_vert_glsl, NULL, forward_depth_frag, defines);
+		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 		MEM_freeN(forward_depth_frag);
 		MEM_freeN(defines);
 	}
@@ -240,11 +242,12 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	const float *viewport_size = DRW_viewport_size_get();
 	const int size[2] = {(int)viewport_size[0], (int)viewport_size[1]};
 
+	e_data.depth_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_DEPTH_COMPONENT24, &draw_engine_workbench_transparent);
 	e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_transparent);
 	e_data.transparent_accum_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
 	e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
-	GPU_framebuffer_ensure_config(&fbl->depth_fb, {
-		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
+	GPU_framebuffer_ensure_config(&fbl->object_outline_fb, {
+		GPU_ATTACHMENT_TEXTURE(e_data.depth_tx),
 		GPU_ATTACHMENT_TEXTURE(e_data.object_id_tx),
 	});
 	GPU_framebuffer_ensure_config(&fbl->transparent_accum_fb, {
@@ -259,8 +262,8 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	DRW_stats_group_start("Clear Buffers");
 	GPU_framebuffer_bind(fbl->transparent_accum_fb);
 	GPU_framebuffer_clear_color(fbl->transparent_accum_fb, clear_color);
-	GPU_framebuffer_bind(fbl->depth_fb);
-	GPU_framebuffer_clear_color(fbl->depth_fb, clear_color);
+	GPU_framebuffer_bind(fbl->object_outline_fb);
+	GPU_framebuffer_clear_color_depth(fbl->object_outline_fb, clear_color, 1.0f);
 	DRW_stats_group_end();
 
 	/* Treansparecy Accum */
@@ -271,7 +274,13 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	/* Depth */
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
-		psl->depth_pass = DRW_pass_create("Depth", state);
+		psl->object_outline_pass = DRW_pass_create("Object Outline Pass", state);
+	}
+	/* Depth Active */
+	{
+		int state = DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
+		psl->depth_pass = DRW_pass_create("Depth Active", state);
+		wpd->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 	}
 	/* Composite */
 	{
@@ -293,7 +302,7 @@ void workbench_forward_engine_free()
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
 		DRW_SHADER_FREE_SAFE(e_data.transparent_accum_sh_cache[index]);
 	}
-	DRW_SHADER_FREE_SAFE(e_data.depth_sh);
+	DRW_SHADER_FREE_SAFE(e_data.object_outline_sh);
 }
 
 void workbench_forward_cache_init(WORKBENCH_Data *UNUSED(vedata))
@@ -342,6 +351,7 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 		const DRWContextState *draw_ctx = DRW_context_state_get();
 		const bool is_active = (ob == draw_ctx->obact);
 		const bool is_sculpt_mode = is_active && (draw_ctx->object_mode & OB_MODE_SCULPT) != 0;
+		const bool is_edit_mode = is_active && (draw_ctx->object_mode & OB_MODE_EDIT) != 0;
 		bool is_drawn = false;
 
 		WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
@@ -404,6 +414,15 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				}
 			}
 		}
+
+		/* Is edit mode and active the update the Depth buffer */
+		if (is_edit_mode) {
+			struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
+			if (geom) {
+				DRW_shgroup_call_object_add(wpd->depth_shgrp, geom, ob);
+			}
+		}
+		
 	}
 }
 
@@ -414,14 +433,10 @@ void workbench_forward_cache_finish(WORKBENCH_Data *UNUSED(vedata))
 void workbench_forward_draw_background(WORKBENCH_Data *UNUSED(vedata))
 {
 	const float clear_depth = 1.0f;
-	uint clear_stencil = 0xFF;
-
-	const float clear_color[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 	DRW_stats_group_start("Clear Background");
 	GPU_framebuffer_bind(dfbl->default_fb);
-	int clear_bits = GPU_DEPTH_BIT | GPU_COLOR_BIT;
-	GPU_framebuffer_clear(dfbl->default_fb, clear_bits, clear_color, clear_depth, clear_stencil);
+	GPU_framebuffer_clear_depth(dfbl->default_fb, clear_depth);
 	DRW_stats_group_end();
 }
 
@@ -434,8 +449,8 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
 
 	/* Write Depth + Object ID */
-	GPU_framebuffer_bind(fbl->depth_fb);
-	DRW_draw_pass(psl->depth_pass);
+	GPU_framebuffer_bind(fbl->object_outline_fb);
+	DRW_draw_pass(psl->object_outline_pass);
 
 	/* Shade */
 	GPU_framebuffer_bind(fbl->transparent_accum_fb);
@@ -448,6 +463,10 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	/* Color correct */
 	GPU_framebuffer_bind(dfbl->color_only_fb);
 	DRW_transform_to_display(e_data.composite_buffer_tx);
+
+	/* Active Object Depth */
+	GPU_framebuffer_bind(dfbl->depth_only_fb);
+	DRW_draw_pass(psl->depth_pass);
 
 	workbench_private_data_free(wpd);
 }

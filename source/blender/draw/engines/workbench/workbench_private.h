@@ -53,7 +53,7 @@ typedef struct WORKBENCH_FramebufferList {
 	struct GPUFrameBuffer *composite_fb;
 
 	/* Forward render buffers */
-	struct GPUFrameBuffer *depth_fb;
+	struct GPUFrameBuffer *object_outline_fb;
 	struct GPUFrameBuffer *transparent_accum_fb;
 } WORKBENCH_FramebufferList;
 
@@ -72,6 +72,7 @@ typedef struct WORKBENCH_PassList {
 
 	/* forward rendering */
 	struct DRWPass *transparent_accum_pass;
+	struct DRWPass *object_outline_pass;
 	struct DRWPass *depth_pass;
 } WORKBENCH_PassList;
 
@@ -108,6 +109,7 @@ typedef struct WORKBENCH_PrivateData {
 	int drawtype;
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
+	struct DRWShadingGroup *depth_shgrp;
 	WORKBENCH_UBO_World world_data;
 	float shadow_multiplier;
 } WORKBENCH_PrivateData; /* Transient data */
