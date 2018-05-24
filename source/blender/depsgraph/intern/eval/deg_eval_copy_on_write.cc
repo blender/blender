@@ -419,6 +419,14 @@ void updata_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 	armature_cow->edbo = armature_orig->edbo;
 }
 
+void updata_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+	const ID *id_orig, ID *id_cow)
+{
+	const Curve *curve_orig = (const Curve *)id_orig;
+	Curve *curve_cow = (Curve *)id_cow;
+	curve_cow->editnurb = curve_orig->editnurb;
+}
+
 void updata_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
@@ -454,6 +462,9 @@ void updata_edit_mode_pointers(const Depsgraph *depsgraph,
 			break;
 		case ID_ME:
 			updata_mesh_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_CU:
+			updata_curve_edit_mode_pointers(depsgraph, id_orig, id_cow);
 			break;
 		default:
 			break;
@@ -795,6 +806,12 @@ void discard_armature_edit_mode_pointers(ID *id_cow)
 	armature_cow->edbo = NULL;
 }
 
+void discard_curve_edit_mode_pointers(ID *id_cow)
+{
+	Curve *curve_cow = (Curve *)id_cow;
+	curve_cow->editnurb = NULL;
+}
+
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
 	Mesh *mesh_cow = (Mesh *)id_cow;
@@ -818,6 +835,9 @@ void discard_edit_mode_pointers(ID *id_cow)
 			break;
 		case ID_ME:
 			discard_mesh_edit_mode_pointers(id_cow);
+			break;
+		case ID_CU:
+			discard_curve_edit_mode_pointers(id_cow);
 			break;
 		default:
 			break;
