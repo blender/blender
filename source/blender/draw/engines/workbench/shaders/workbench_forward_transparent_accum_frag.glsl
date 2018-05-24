@@ -42,7 +42,7 @@ void main()
 	vec3 shaded_color = diffuse_color.rgb;
 #endif /* V3D_LIGHTING_STUDIO */
 
-	float alpha = 1.0;
+	float alpha = 0.5	;
 	vec4 premultiplied = vec4(shaded_color.rgb * alpha, alpha);
 	transparentAccum = calculate_transparent_accum(premultiplied);
 }

@@ -77,6 +77,10 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 		BLI_dynstr_appendf(ds, "#define WORKBENCH_ENCODE_NORMALS\n");
 	}
 
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+	BLI_dynstr_appendf(ds, "#define WORKBENCH_REVEALAGE_ENABLED\n");
+#endif
+
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 	return str;

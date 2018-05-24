@@ -2,6 +2,6 @@ layout(location=0) out float transparentRevealage;
 
 void main()
 {
-	transparentRevealage = 1.0;
+	transparentRevealage = 0.5;
 }
 

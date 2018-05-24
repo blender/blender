@@ -44,6 +44,7 @@
 #define SHADOW_ENABLED(wpd) (wpd->shading.flag & V3D_SHADING_SHADOW)
 #define NORMAL_VIEWPORT_PASS_ENABLED(wpd) (wpd->shading.light & V3D_LIGHTING_STUDIO || SHADOW_ENABLED(wpd))
 #define NORMAL_ENCODING_ENABLED() (true)
+#define WORKBENCH_REVEALAGE_ENABLED
 #define STUDIOLIGHT_ORIENTATION_WORLD_ENABLED(wpd) (wpd->studio_light->flag & STUDIOLIGHT_ORIENTATION_WORLD)
 
 
@@ -55,7 +56,10 @@ typedef struct WORKBENCH_FramebufferList {
 	/* Forward render buffers */
 	struct GPUFrameBuffer *object_outline_fb;
 	struct GPUFrameBuffer *transparent_accum_fb;
+
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	struct GPUFrameBuffer *transparent_revealage_fb;
+#endif
 } WORKBENCH_FramebufferList;
 
 typedef struct WORKBENCH_StorageList {
@@ -73,7 +77,9 @@ typedef struct WORKBENCH_PassList {
 
 	/* forward rendering */
 	struct DRWPass *transparent_accum_pass;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	struct DRWPass *transparent_revealage_pass;
+#endif
 	struct DRWPass *object_outline_pass;
 	struct DRWPass *depth_pass;
 	struct DRWPass *checker_depth_pass;
@@ -113,7 +119,9 @@ typedef struct WORKBENCH_PrivateData {
 	struct GPUUniformBuffer *world_ubo;
 	struct DRWShadingGroup *shadow_shgrp;
 	struct DRWShadingGroup *depth_shgrp;
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	struct DRWShadingGroup *transparent_revealage_shgrp;
+#endif	
 	WORKBENCH_UBO_World world_data;
 	float shadow_multiplier;
 } WORKBENCH_PrivateData; /* Transient data */

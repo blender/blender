@@ -57,7 +57,9 @@ static struct {
 
 	struct GPUTexture *object_id_tx; /* ref only, not alloced */
 	struct GPUTexture *transparent_accum_tx; /* ref only, not alloced */
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	struct GPUTexture *transparent_revealage_tx; /* ref only, not alloced */
+#endif
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 	int next_object_id;
 	float normal_world_matrix[3][3];
@@ -67,7 +69,9 @@ static struct {
 extern char datatoc_workbench_forward_composite_frag_glsl[];
 extern char datatoc_workbench_forward_depth_frag_glsl[];
 extern char datatoc_workbench_forward_transparent_accum_frag_glsl[];
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 extern char datatoc_workbench_forward_transparent_revealage_frag_glsl[];
+#endif
 extern char datatoc_workbench_data_lib_glsl[];
 extern char datatoc_workbench_background_lib_glsl[];
 extern char datatoc_workbench_checkerboard_depth_frag_glsl[];
@@ -107,6 +111,7 @@ static char *workbench_build_forward_transparent_accum_frag(void)
 	return str;
 }
 
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 static char *workbench_build_forward_transparent_revealage_frag(void)
 {
 	char *str = NULL;
@@ -120,6 +125,7 @@ static char *workbench_build_forward_transparent_revealage_frag(void)
 	BLI_dynstr_free(ds);
 	return str;
 }
+#endif
 
 static char *workbench_build_forward_composite_frag(void)
 {
@@ -248,15 +254,18 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		memset(e_data.composite_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		memset(e_data.transparent_accum_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 
-		/* XXX: forward depth does not use any defines ATM. */
 		char *defines = workbench_material_build_defines(wpd, OB_SOLID);
 		char *forward_depth_frag = workbench_build_forward_depth_frag();
-		char *forward_transparent_revealage_frag = workbench_build_forward_transparent_revealage_frag();
 		e_data.object_outline_sh = DRW_shader_create(datatoc_workbench_prepass_vert_glsl, NULL, forward_depth_frag, defines);
+
+#ifdef WORKBENCH_REVEALAGE_ENABLED
+		char *forward_transparent_revealage_frag = workbench_build_forward_transparent_revealage_frag();
 		e_data.transparent_revealage_sh = DRW_shader_create(datatoc_workbench_prepass_vert_glsl, NULL, forward_transparent_revealage_frag, defines);
+		MEM_freeN(forward_transparent_revealage_frag);
+#endif
+
 		e_data.depth_sh = DRW_shader_create_3D_depth_only();
 		e_data.checker_depth_sh = DRW_shader_create_fullscreen(datatoc_workbench_checkerboard_depth_frag_glsl, NULL);
-		MEM_freeN(forward_transparent_revealage_frag);
 		MEM_freeN(forward_depth_frag);
 		MEM_freeN(defines);
 	}
@@ -267,7 +276,9 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 
 	e_data.object_id_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R32UI, &draw_engine_workbench_transparent);
 	e_data.transparent_accum_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	e_data.transparent_revealage_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_R16F, &draw_engine_workbench_transparent);
+#endif
 	e_data.composite_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA16F, &draw_engine_workbench_transparent);
 	GPU_framebuffer_ensure_config(&fbl->object_outline_fb, {
 		GPU_ATTACHMENT_TEXTURE(dtxl->depth),
@@ -277,10 +288,14 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(e_data.transparent_accum_tx),
 	});
+
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	GPU_framebuffer_ensure_config(&fbl->transparent_revealage_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(e_data.transparent_revealage_tx),
 	});
+#endif
+
 	GPU_framebuffer_ensure_config(&fbl->composite_fb, {
 		GPU_ATTACHMENT_NONE,
 		GPU_ATTACHMENT_TEXTURE(e_data.composite_buffer_tx),
@@ -289,9 +304,12 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 	DRW_stats_group_start("Clear Buffers");
 	GPU_framebuffer_bind(fbl->transparent_accum_fb);
 	GPU_framebuffer_clear_color(fbl->transparent_accum_fb, clear_color);
+
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	const float clear_color1[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 	GPU_framebuffer_bind(fbl->transparent_revealage_fb);
 	GPU_framebuffer_clear_color(fbl->transparent_revealage_fb, clear_color1);
+#endif
 	GPU_framebuffer_bind(fbl->object_outline_fb);
 	GPU_framebuffer_clear_color_depth(fbl->object_outline_fb, clear_color, 1.0f);
 	DRW_stats_group_end();
@@ -301,14 +319,17 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_ADDITIVE_FULL;
 		psl->transparent_accum_pass = DRW_pass_create("Transparent Accum", state);
 	}
+
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	/* Treansparecy Revealage */
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_TRANSPARENT_REVEALAGE;
 		psl->transparent_revealage_pass = DRW_pass_create("Transparent Revealage", state);
 		grp = DRW_shgroup_create(e_data.transparent_revealage_sh, psl->transparent_revealage_pass);
 		wpd->transparent_revealage_shgrp = grp;
-
 	}
+#endif
+
 	/* Depth */
 	{
 		int state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS;
@@ -322,7 +343,9 @@ void workbench_forward_engine_init(WORKBENCH_Data *vedata)
 		grp = DRW_shgroup_create(wpd->composite_sh, psl->composite_pass);
 		DRW_shgroup_uniform_texture_ref(grp, "objectId", &e_data.object_id_tx);
 		DRW_shgroup_uniform_texture_ref(grp, "transparentAccum", &e_data.transparent_accum_tx);
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 		DRW_shgroup_uniform_texture_ref(grp, "transparentRevealage", &e_data.transparent_revealage_tx);
+#endif
 		DRW_shgroup_uniform_block(grp, "world_block", wpd->world_ubo);
 		DRW_shgroup_uniform_vec2(grp, "invertedViewportSize", DRW_viewport_invert_size_get(), 1);
 		DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
@@ -342,7 +365,9 @@ void workbench_forward_engine_free()
 		DRW_SHADER_FREE_SAFE(e_data.composite_sh_cache[index]);
 		DRW_SHADER_FREE_SAFE(e_data.transparent_accum_sh_cache[index]);
 	}
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	DRW_SHADER_FREE_SAFE(e_data.transparent_revealage_sh);
+#endif
 	DRW_SHADER_FREE_SAFE(e_data.object_outline_sh);
 	DRW_SHADER_FREE_SAFE(e_data.checker_depth_sh);
 }
@@ -353,8 +378,10 @@ void workbench_forward_cache_init(WORKBENCH_Data *UNUSED(vedata))
 
 static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
+	#ifdef WORKBENCH_REVEALAGE_ENABLED
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
+#endif
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	if (ob == draw_ctx->object_edit) {
 		return;
@@ -375,7 +402,9 @@ static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, O
 		if (draw_as == PART_DRAW_PATH) {
 			struct Gwn_Batch *geom = DRW_cache_particles_get_hair(ob, psys, NULL);
 			WORKBENCH_MaterialData *material = get_or_create_material_data(vedata, ob, NULL, NULL, OB_SOLID);
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 			DRW_shgroup_call_add(wpd->transparent_revealage_shgrp, geom, mat);
+#endif
 			DRW_shgroup_call_add(material->shgrp_object_outline, geom, mat);
 			DRW_shgroup_call_add(material->shgrp, geom, mat);
 		}
@@ -417,7 +446,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 							mat_drawtype = OB_TEXTURE;
 						}
 						material = get_or_create_material_data(vedata, ob, mat, image, mat_drawtype);
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 						DRW_shgroup_call_object_add(wpd->transparent_revealage_shgrp, geom_array[i], ob);
+#endif
 						DRW_shgroup_call_object_add(material->shgrp_object_outline, geom_array[i], ob);
 						DRW_shgroup_call_object_add(material->shgrp, geom_array[i], ob);
 					}
@@ -433,12 +464,16 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 				struct Gwn_Batch *geom = DRW_cache_object_surface_get(ob);
 				if (geom) {
 					if (is_sculpt_mode) {
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 						DRW_shgroup_call_sculpt_add(wpd->transparent_revealage_shgrp, ob, ob->obmat);
+#endif
 						DRW_shgroup_call_sculpt_add(material->shgrp_object_outline, ob, ob->obmat);
 						DRW_shgroup_call_sculpt_add(material->shgrp, ob, ob->obmat);
 					}
 					else {
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 						DRW_shgroup_call_object_add(wpd->transparent_revealage_shgrp, geom, ob);
+#endif
 						DRW_shgroup_call_object_add(material->shgrp_object_outline, geom, ob);
 						DRW_shgroup_call_object_add(material->shgrp, geom, ob);
 					}
@@ -456,7 +491,9 @@ void workbench_forward_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					for (int i = 0; i < materials_len; ++i) {
 						Material *mat = give_current_material(ob, i + 1);
 						material = get_or_create_material_data(vedata, ob, mat, NULL, OB_SOLID);
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 						DRW_shgroup_call_object_add(wpd->transparent_revealage_shgrp, mat_geom[i], ob);
+#endif
 						DRW_shgroup_call_object_add(material->shgrp_object_outline, mat_geom[i], ob);
 						DRW_shgroup_call_object_add(material->shgrp, mat_geom[i], ob);
 					}
@@ -495,9 +532,10 @@ void workbench_forward_draw_scene(WORKBENCH_Data *vedata)
 	/* Shade */
 	GPU_framebuffer_bind(fbl->transparent_accum_fb);
 	DRW_draw_pass(psl->transparent_accum_pass);
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	GPU_framebuffer_bind(fbl->transparent_revealage_fb);
 	DRW_draw_pass(psl->transparent_revealage_pass);
-
+#endif
 	/* Composite */
 	GPU_framebuffer_bind(fbl->composite_fb);
 	DRW_draw_pass(psl->composite_pass);
