@@ -56,6 +56,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 
+#include "DEG_depsgraph_query.h"
+
 #include "MEM_guardedalloc.h"
 
 #include "bmesh.h"
@@ -173,7 +175,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	if (!bmd->object)
 		return mesh;
 
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(bmd->object, ctx->flag);
+	Object *other_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(other_eval, ctx->flag);
 
 	if (mesh_other) {
 		Mesh *result;
