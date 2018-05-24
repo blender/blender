@@ -438,7 +438,7 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 				break;
 			case MESH_DELETE_EDGE: /* Erase Edges */
 				if (!(em->bm->totedgesel &&
-				      EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_FACES)))
+				      EDBM_op_callf(em, op, "delete geom=%he context=%i", BM_ELEM_SELECT, DEL_EDGES)))
 				{
 					continue;
 				}
