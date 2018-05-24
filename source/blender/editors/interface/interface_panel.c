@@ -753,12 +753,12 @@ void ui_draw_aligned_panel(uiStyle *style, uiBlock *block, const rcti *rect, con
 	/* draw collapse icon */
 
 	/* itemrect smaller */
-	itemrect.xmin = headrect.xmin + 5.0f / block->aspect;
+	itemrect.xmin = headrect.xmin + 3.0f / block->aspect;
 	itemrect.xmax = itemrect.xmin + BLI_rcti_size_y(&headrect);
 	itemrect.ymin = headrect.ymin;
 	itemrect.ymax = headrect.ymax;
 
-	BLI_rctf_scale(&itemrect, 0.35f);
+	BLI_rctf_scale(&itemrect, 0.25f);
 
 	if (is_closed_y)
 		ui_draw_tria_rect(&itemrect, 'h');
