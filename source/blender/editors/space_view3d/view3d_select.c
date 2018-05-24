@@ -2751,6 +2751,9 @@ static void pose_circle_select(ViewContext *vc, const bool select, const int mva
 			/* mask modifier ('armature' mode), etc. */
 			DEG_id_tag_update(&vc->obact->id, OB_RECALC_DATA);
 		}
+		
+		/* copy on write tag is needed (for the armature), or else no refresh happens */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 }
 
