@@ -172,7 +172,7 @@ static void rna_Scene_ray_cast(
 
 	Depsgraph *depsgraph = BKE_scene_get_depsgraph(scene, view_layer, true);
 	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
-	        G.main, scene, depsgraph, 0);
+	        scene, depsgraph, 0);
 
 	bool ret = ED_transform_snap_object_project_ray_ex(
 	        sctx,

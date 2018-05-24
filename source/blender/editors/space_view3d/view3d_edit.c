@@ -4599,12 +4599,11 @@ void ED_view3d_cursor3d_update(bContext *C, const int mval[2])
 	cursor_curr->rotation[0] *= -1.0f;
 
 	{
-		struct Main *bmain = CTX_data_main(C);
 		const float mval_fl[2] = {UNPACK2(mval)};
 		float ray_no[3];
 
 		struct SnapObjectContext *snap_context = ED_transform_snap_object_context_create_view3d(
-		        bmain, scene, CTX_data_depsgraph(C), 0, ar, v3d);
+		        scene, CTX_data_depsgraph(C), 0, ar, v3d);
 
 		float obmat[4][4];
 		Object *ob_dummy = NULL;
