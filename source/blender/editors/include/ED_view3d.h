@@ -310,6 +310,7 @@ float ED_view3d_radius_to_dist(
 void imm_drawcircball(const float cent[3], float rad, const float tmat[4][4], unsigned pos);
 
 /* backbuffer select and draw support */
+void          ED_view3d_backbuf_validate_with_select_mode(struct ViewContext *vc, short select_mode);
 void          ED_view3d_backbuf_validate(struct ViewContext *vc);
 struct ImBuf *ED_view3d_backbuf_read(
         struct ViewContext *vc, int xmin, int ymin, int xmax, int ymax);

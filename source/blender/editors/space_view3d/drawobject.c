@@ -610,9 +610,13 @@ static void bbs_mesh_solid_faces(Scene *UNUSED(scene), Object *ob)
 }
 
 void draw_object_backbufsel(
-        Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
+        Depsgraph *depsgraph, Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob,
+        short select_mode)
 {
 	ToolSettings *ts = scene->toolsettings;
+	if (select_mode == -1) {
+		select_mode = ts->selectmode;
+	}
 
 	gpuMultMatrix(ob->obmat);
 
@@ -631,8 +635,8 @@ void draw_object_backbufsel(
 
 				DM_update_materials(dm, ob);
 
-				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, (ts->selectmode & SCE_SELECT_FACE) != 0);
-				if (ts->selectmode & SCE_SELECT_FACE)
+				bbs_mesh_solid_EM(em, scene, v3d, ob, dm, (select_mode & SCE_SELECT_FACE) != 0);
+				if (select_mode & SCE_SELECT_FACE)
 					bm_solidoffs = 1 + em->bm->totface;
 				else {
 					bm_solidoffs = 1;
@@ -641,7 +645,7 @@ void draw_object_backbufsel(
 				ED_view3d_polygon_offset(rv3d, 1.0);
 
 				/* we draw edges if edge select mode */
-				if (ts->selectmode & SCE_SELECT_EDGE) {
+				if (select_mode & SCE_SELECT_EDGE) {
 					bbs_mesh_wire(em, dm, bm_solidoffs);
 					bm_wireoffs = bm_solidoffs + em->bm->totedge;
 				}
@@ -651,7 +655,7 @@ void draw_object_backbufsel(
 				}
 
 				/* we draw verts if vert select mode. */
-				if (ts->selectmode & SCE_SELECT_VERTEX) {
+				if (select_mode & SCE_SELECT_VERTEX) {
 					bbs_mesh_verts(em, dm, bm_wireoffs);
 					bm_vertoffs = bm_wireoffs + em->bm->totvert;
 				}

@@ -163,7 +163,8 @@ bool ED_view3d_clipping_test(const RegionView3D *rv3d, const float co[3], const 
 static void backdrawview3d(
         struct Depsgraph *depsgraph, Scene *scene,
         ARegion *ar, View3D *v3d,
-        Object *obact, Object *obedit)
+        Object *obact, Object *obedit,
+        short select_mode)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Scene *scene_eval = (Scene *)DEG_get_evaluated_id(depsgraph, &scene->id);
@@ -263,7 +264,7 @@ static void backdrawview3d(
 	G.f |= G_BACKBUFSEL;
 
 	if (obact_eval && ((obact_eval->base_flag & BASE_VISIBLED) != 0)) {
-		draw_object_backbufsel(depsgraph, scene_eval, v3d, rv3d, obact_eval);
+		draw_object_backbufsel(depsgraph, scene_eval, v3d, rv3d, obact_eval, select_mode);
 	}
 
 	if (rv3d->gpuoffscreen)
@@ -301,11 +302,16 @@ static void view3d_opengl_read_Z_pixels(ARegion *ar, int x, int y, int w, int h,
 	glReadPixels(ar->winrct.xmin + x, ar->winrct.ymin + y, w, h, format, type, data);
 }
 
-void ED_view3d_backbuf_validate(ViewContext *vc)
+void ED_view3d_backbuf_validate_with_select_mode(ViewContext *vc, short select_mode)
 {
 	if (vc->v3d->flag & V3D_INVALID_BACKBUF) {
-		backdrawview3d(vc->depsgraph, vc->scene, vc->ar, vc->v3d, vc->obact, vc->obedit);
+		backdrawview3d(vc->depsgraph, vc->scene, vc->ar, vc->v3d, vc->obact, vc->obedit, select_mode);
 	}
+}
+
+void ED_view3d_backbuf_validate(ViewContext *vc)
+{
+	ED_view3d_backbuf_validate_with_select_mode(vc, -1);
 }
 
 /**
