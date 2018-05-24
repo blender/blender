@@ -109,7 +109,7 @@ static void VIEW3D_OT_copybuffer(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = view3d_copybuffer_exec;
-	ot->poll = ED_operator_view3d_active;
+	ot->poll = ED_operator_scene;
 }
 
 static int view3d_pastebuffer_exec(bContext *C, wmOperator *op)
@@ -146,7 +146,7 @@ static void VIEW3D_OT_pastebuffer(wmOperatorType *ot)
 	
 	/* api callbacks */
 	ot->exec = view3d_pastebuffer_exec;
-	ot->poll = ED_operator_view3d_active;
+	ot->poll = ED_operator_scene_editable;
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

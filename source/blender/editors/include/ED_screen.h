@@ -140,6 +140,7 @@ int     ED_operator_screen_mainwinactive(struct bContext *C);
 int     ED_operator_areaactive(struct bContext *C);
 int     ED_operator_regionactive(struct bContext *C);
 
+int     ED_operator_scene(struct bContext *C);
 int     ED_operator_scene_editable(struct bContext *C);
 int     ED_operator_objectmode(struct bContext *C);
 
