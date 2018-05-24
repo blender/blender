@@ -1596,6 +1596,7 @@ static void ui_selectcontext_apply(
 			bool  b;
 			int   i;
 			float f;
+			PointerRNA p;
 		} delta, min, max;
 
 		const bool is_array = RNA_property_array_check(prop);
@@ -1619,6 +1620,9 @@ static void ui_selectcontext_apply(
 			else {
 				delta.b = RNA_property_boolean_get(&but->rnapoin, prop);  /* not a delta infact */
 			}
+		}
+		else if (rna_type == PROP_POINTER) {
+			delta.p = RNA_property_pointer_get(&but->rnapoin, prop);  /* not a delta infact */
 		}
 
 #ifdef USE_ALLSELECT_LAYER_HACK
@@ -1691,6 +1695,10 @@ static void ui_selectcontext_apply(
 				const int other_value = delta.i;
 				BLI_assert(!is_array);
 				RNA_property_enum_set(&lptr, lprop, other_value);
+			}
+			else if (rna_type == PROP_POINTER) {
+				const PointerRNA other_value = delta.p;
+				RNA_property_pointer_set(&lptr, lprop, other_value);
 			}
 
 			RNA_property_update(C, &lptr, prop);
