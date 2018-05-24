@@ -86,11 +86,8 @@ class RENDER_PT_render(RenderButtonsPanel, Panel):
 
         row = layout.row(align=True)
         row.operator("render.render", text="Render", icon='RENDER_STILL')
-        row.operator("sound.mixdown", text="Audio", icon='PLAY_AUDIO')
-
-        row = layout.row(align=True)
         row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
-        row.operator("render.play_rendered_anim", text="Play Animation", icon='PLAY')
+        row.operator("sound.mixdown", text="Audio", icon='PLAY_AUDIO')
 
         split = layout.split(percentage=0.33)
 
