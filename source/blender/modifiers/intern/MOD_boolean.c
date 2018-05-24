@@ -180,14 +180,15 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 
 	if (mesh_other) {
 		Mesh *result;
+		Object *object_eval = DEG_get_evaluated_object(ctx->depsgraph, ctx->object);
 
 		/* when one of objects is empty (has got no faces) we could speed up
 		 * calculation a bit returning one of objects' derived meshes (or empty one)
 		 * Returning mesh is depended on modifiers operation (sergey) */
-		result = get_quick_mesh(ctx->object, mesh, bmd->object, mesh_other, bmd->operation);
+		result = get_quick_mesh(object_eval, mesh, other_eval, mesh_other, bmd->operation);
 
 		if (result == NULL) {
-			const bool is_flip = (is_negative_m4(ctx->object->obmat) != is_negative_m4(bmd->object->obmat));
+			const bool is_flip = (is_negative_m4(object_eval->obmat) != is_negative_m4(other_eval->obmat));
 
 			BMesh *bm;
 			const BMAllocTemplate allocsize = BMALLOC_TEMPLATE_FROM_ME(mesh, mesh_other);
@@ -234,8 +235,8 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 					float imat[4][4];
 					float omat[4][4];
 
-					invert_m4_m4(imat, ctx->object->obmat);
-					mul_m4_m4m4(omat, imat, bmd->object->obmat);
+					invert_m4_m4(imat, object_eval->obmat);
+					mul_m4_m4m4(omat, imat, other_eval->obmat);
 
 					BMVert *eve;
 					i = 0;
@@ -257,10 +258,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 							negate_m3(nmat);
 						}
 
-						const short ob_src_totcol = bmd->object->totcol;
+						const short ob_src_totcol = other_eval->totcol;
 						short *material_remap = BLI_array_alloca(material_remap, ob_src_totcol ? ob_src_totcol : 1);
 
-						BKE_material_remap_object_calc(ctx->object, bmd->object, material_remap);
+						/* Using original (not evaluated) object here since we are writing to it. */
+						BKE_material_remap_object_calc(ctx->object, other_eval, material_remap);
 
 						BMFace *efa;
 						i = 0;
