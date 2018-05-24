@@ -142,13 +142,11 @@ TreeElement *outliner_find_id(SpaceOops *soops, ListBase *lb, const ID *id)
 			if (tselem->id == id) {
 				return te;
 			}
-			/* only deeper on scene collection or object */
-			if (ELEM(te->idcode, ID_OB, ID_SCE, ID_GR)) {
-				TreeElement *tes = outliner_find_id(soops, &te->subtree, id);
-				if (tes) {
-					return tes;
-				}
-			}
+		}
+
+		TreeElement *tes = outliner_find_id(soops, &te->subtree, id);
+		if (tes) {
+			return tes;
 		}
 	}
 	return NULL;
