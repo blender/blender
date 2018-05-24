@@ -563,17 +563,17 @@ class INFO_MT_render(Menu):
 
         layout.separator()
 
-        layout.prop_menu_enum(rd, "display_mode", text="Display Mode")
+        layout.prop_menu_enum(rd, "display_mode", text="Display Mode", icon='IMAGE_COL')
         layout.prop(rd, "use_lock_interface", text="Lock Interface")
 
         layout.separator()
 
-        props = layout.operator("render.opengl", text="OpenGL Render Image")
+        props = layout.operator("render.opengl", text="OpenGL Render Image", icon='RENDER_STILL')
         props.view_context = False
-        props = layout.operator("render.opengl", text="OpenGL Render Animation")
+        props = layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION')
         props.view_context = False
         props.animation = True
-        layout.menu("INFO_MT_opengl_render")
+        layout.menu("INFO_MT_opengl_render", icon='SETTINGS')
 
         layout.separator()
 
