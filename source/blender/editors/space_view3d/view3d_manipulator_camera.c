@@ -132,7 +132,7 @@ static void WIDGETGROUP_camera_refresh(const bContext *C, wmManipulatorGroup *mg
 	struct CameraWidgetGroup *camgroup = mgroup->customdata;
 	Object *ob = CTX_data_active_object(C);
 	const Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
-	Camera *ca = ob->data;
+	Camera *ca = ob_eval->data;
 	PointerRNA camera_ptr;
 	float dir[3];
 
@@ -252,6 +252,7 @@ static void WIDGETGROUP_camera_message_subscribe(
 		extern PropertyRNA rna_Camera_shift_x;
 		extern PropertyRNA rna_Camera_shift_y;
 		extern PropertyRNA rna_Camera_type;
+		extern PropertyRNA rna_Camera_lens;
 		const PropertyRNA *props[] = {
 			&rna_Camera_dof_distance,
 			&rna_Camera_draw_size,
@@ -261,6 +262,7 @@ static void WIDGETGROUP_camera_message_subscribe(
 			&rna_Camera_shift_x,
 			&rna_Camera_shift_y,
 			&rna_Camera_type,
+			&rna_Camera_lens,
 		};
 
 		PointerRNA idptr;
