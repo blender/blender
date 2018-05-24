@@ -1706,15 +1706,23 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	/* Make sure that the edges are also considered for selection.
 	 * TODO: cleanup: add `selectmode` as a parameter */
 	const short ts_selectmode = vc.scene->toolsettings->selectmode;
-	vc.scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
-
-	/* no afterqueue (yet), so we check it now, otherwise the bm_xxxofs indices are bad */
-	ED_view3d_backbuf_validate(&vc);
-
-	/* restore `selectmode` */
-	vc.scene->toolsettings->selectmode = ts_selectmode;
+	bool use_fake_edge_mode = false;
+	if (ts_selectmode & SCE_SELECT_EDGE) {
+		vc.v3d->flag |= V3D_INVALID_BACKBUF;
+		vc.scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
+		em->selectmode = vc.scene->toolsettings->selectmode;
+		use_fake_edge_mode = true;
+	}
 
 	eed = EDBM_edge_find_nearest_ex(&vc, &dist, NULL, true, true, NULL);
+	
+	/* restore `selectmode` */
+	if (use_fake_edge_mode) {
+		vc.v3d->flag |= V3D_INVALID_BACKBUF;
+		vc.scene->toolsettings->selectmode = ts_selectmode;
+		em->selectmode = ts_selectmode;
+	}
+	
 	if (eed == NULL) {
 		return false;
 	}
