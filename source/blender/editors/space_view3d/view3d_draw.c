@@ -1172,7 +1172,7 @@ static void draw_selected_name(Scene *scene, Object *ob, rcti *rect)
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		offset = U.widget_unit + (U.rvisize * 2) + rect->xmin;
 
-	BLF_draw_default(offset, 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
+	BLF_draw_default(offset, rect->ymin + 0.5f * U.widget_unit, 0.0f, info, sizeof(info));
 }
 
 /* ******************** view loop ***************** */
