@@ -382,7 +382,15 @@ void BKE_view_layer_copy_data(
 	view_layer_dst->object_bases_hash = NULL;
 
 	/* Copy layer collections and object bases. */
-	BLI_duplicatelist(&view_layer_dst->object_bases, &view_layer_src->object_bases);
+	/* Inline 'BLI_duplicatelist' and update the active base. */
+	for (Base *base_src = view_layer_src->object_bases.first; base_src; base_src = base_src->next) {
+		Base *base_dst = MEM_dupallocN(base_src);
+		BLI_addtail(&view_layer_dst->object_bases, base_dst);
+		if (view_layer_src->basact == base_src) {
+			view_layer_dst->basact = base_dst;
+		}
+	}
+
 	layer_collections_copy_data(&view_layer_dst->layer_collections, &view_layer_src->layer_collections);
 
 	// TODO: not always safe to free BKE_layer_collection_sync(scene_dst, view_layer_dst);
