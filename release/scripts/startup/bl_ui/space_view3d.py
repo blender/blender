@@ -446,6 +446,7 @@ class VIEW3D_MT_view(Menu):
 
         layout.operator("render.opengl", icon='RENDER_STILL')
         layout.operator("render.opengl", text="OpenGL Render Animation", icon='RENDER_ANIMATION').animation = True
+        layout.menu("INFO_MT_opengl_render")
 
         layout.separator()
 

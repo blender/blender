@@ -401,8 +401,6 @@ class INFO_MT_editor_menus(Menu):
     def draw_menus(layout, context):
         layout.menu("INFO_MT_file")
 
-        layout.menu("INFO_MT_render")
-
         layout.menu("INFO_MT_window")
         layout.menu("INFO_MT_help")
 
@@ -548,29 +546,6 @@ class INFO_MT_game(Menu):
         layout.prop(gs, "use_auto_start")
 
 
-class INFO_MT_render(Menu):
-    bl_label = "Render"
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("render.render", text="Render Image", icon='RENDER_STILL').use_viewport = True
-        props = layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION')
-        props.animation = True
-        props.use_viewport = True
-
-        layout.separator()
-
-        layout.operator("render.opengl", text="OpenGL Render Image")
-        layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
-        layout.menu("INFO_MT_opengl_render")
-
-        layout.separator()
-
-        layout.operator("render.view_show")
-        layout.operator("render.play_rendered_anim", icon='PLAY')
-
-
 class INFO_MT_opengl_render(Menu):
     bl_label = "OpenGL Render Options"
 
@@ -594,6 +569,7 @@ class INFO_MT_window(Menu):
         layout = self.layout
 
         layout.operator("wm.window_new")
+        layout.operator("render.view_show")
         layout.operator("wm.window_fullscreen_toggle", icon='FULLSCREEN_ENTER')
 
         layout.separator()
@@ -665,7 +641,6 @@ classes = (
     INFO_MT_file_external_data,
     INFO_MT_file_previews,
     INFO_MT_game,
-    INFO_MT_render,
     INFO_MT_opengl_render,
     INFO_MT_window,
     INFO_MT_help,
