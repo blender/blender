@@ -2865,6 +2865,19 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 
 /* ************ READ WORKSPACES *************** */
 
+static void lib_link_workspace_scene_data(FileData *fd, WorkSpace *workspace)
+{
+	for (WorkSpaceSceneRelation *relation = workspace->scene_relations.first;
+		 relation != NULL;
+		 relation = relation->next)
+	{
+		relation->scene = newlibadr(fd, workspace->id.lib, relation->scene);
+	}
+
+	/* Free any relations that got lost due to missing datablocks. */
+	BKE_workspace_scene_relations_free_invalid(workspace);
+}
+
 static void lib_link_workspaces(FileData *fd, Main *bmain)
 {
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
@@ -2877,31 +2890,7 @@ static void lib_link_workspaces(FileData *fd, Main *bmain)
 		IDP_LibLinkProperty(id->properties, fd);
 		id_us_ensure_real(id);
 
-		for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first,
-		     *relation_next = NULL;
-		     relation != NULL;
-		     relation = relation_next)
-		{
-			relation_next = relation->next;
-
-			relation->parent = newlibadr(fd, id->lib, relation->parent);
-			/* relation->value is set in direct_link_workspace_link_scene_data,
-			 * except when loading linked data. */
-			Scene *scene = relation->parent;
-
-			if (scene) {
-				if (scene->id.lib != NULL) {
-					relation->value = BLI_findstring(&scene->view_layers, relation->value_name, offsetof(ViewLayer, name));
-				}
-				if (relation->value == NULL) {
-					relation->value = scene->view_layers.first;
-				}
-			}
-			else {
-				/* Remove empty relation if scene got lost. */
-				BLI_freelinkN(&workspace->scene_viewlayer_relations, relation);
-			}
-		}
+		lib_link_workspace_scene_data(fd, workspace);
 
 		for (WorkSpaceLayout *layout = layouts->first, *layout_next; layout; layout = layout_next) {
 			bScreen *screen = newlibadr(fd, id->lib, BKE_workspace_layout_screen_get(layout));
@@ -2928,7 +2917,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 {
 	link_list(fd, BKE_workspace_layouts_get(workspace));
 	link_list(fd, &workspace->hook_layout_relations);
-	link_list(fd, &workspace->scene_viewlayer_relations);
+	link_list(fd, &workspace->scene_relations);
 	link_list(fd, &workspace->owner_ids);
 	link_list(fd, &workspace->tools);
 
@@ -2938,12 +2927,6 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 	{
 		relation->parent = newglobadr(fd, relation->parent); /* data from window - need to access through global oldnew-map */
 		relation->value = newdataadr(fd, relation->value);
-	}
-
-	if (ID_IS_LINKED(&workspace->id)) {
-		/* Appending workspace so render layer is likely from a different scene. Unset
-		 * now, when activating workspace later we set a valid one from current scene. */
-		BKE_workspace_relations_free(&workspace->scene_viewlayer_relations);
 	}
 
 	/* Same issue/fix as in direct_link_workspace_link_scene_data: Can't read workspace data
@@ -6071,31 +6054,7 @@ static void direct_link_sequence_modifiers(FileData *fd, ListBase *lb)
 	}
 }
 
-/**
- * Workspaces store a render layer pointer which can only be read after scene is read.
- */
-static void direct_link_workspace_link_scene_data(
-        FileData *fd, Scene *scene, const ListBase *workspaces)
-{
-	for (WorkSpace *workspace = workspaces->first; workspace; workspace = workspace->id.next) {
-		for (WorkSpaceDataRelation *relation = workspace->scene_viewlayer_relations.first;
-		     relation != NULL;
-		     relation = relation->next)
-		{
-			ViewLayer *view_layer = newdataadr(fd, relation->value);
-			if (view_layer != NULL) {
-				BLI_assert(BLI_findindex(&scene->view_layers, view_layer) != -1);
-				/* relation->parent is set in lib_link_workspaces */
-			}
-			if (UNLIKELY(view_layer == NULL)) {
-				view_layer = scene->view_layers.first;
-			}
-			relation->value = view_layer;
-		}
-	}
-}
-
-static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
+static void direct_link_scene(FileData *fd, Scene *sce)
 {
 	Editing *ed;
 	Sequence *seq;
@@ -6361,8 +6320,6 @@ static void direct_link_scene(FileData *fd, Scene *sce, Main *bmain)
 
 	sce->layer_properties = newdataadr(fd, sce->layer_properties);
 	IDP_DirectLinkGroup_OrFree(&sce->layer_properties, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
-
-	direct_link_workspace_link_scene_data(fd, sce, &bmain->workspaces);
 }
 
 /* ****************** READ GREASE PENCIL ***************** */
@@ -7174,7 +7131,20 @@ static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 	BKE_sequencer_base_recursive_apply(&seqbase_clipboard, lib_link_seq_clipboard_cb, id_map);
 }
 
-static void lib_link_workspace_scene_data_restore(wmWindow *win, Scene *scene)
+static void lib_link_workspace_scene_data_restore(struct IDNameLib_Map *id_map, WorkSpace *workspace)
+{
+	for (WorkSpaceSceneRelation *relation = workspace->scene_relations.first;
+		 relation != NULL;
+		 relation = relation->next)
+	{
+		relation->scene = restore_pointer_by_name(id_map, &relation->scene->id, USER_IGNORE);
+	}
+
+	/* Free any relations that got lost due to missing datablocks or view layers. */
+	BKE_workspace_scene_relations_free_invalid(workspace);
+}
+
+static void lib_link_window_scene_data_restore(wmWindow *win, Scene *scene)
 {
 	bScreen *screen = BKE_workspace_active_screen_get(win->workspace_hook);
 
@@ -7435,12 +7405,14 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 	struct IDNameLib_Map *id_map = BKE_main_idmap_create(newmain);
 
 	for (WorkSpace *workspace = newmain->workspaces.first; workspace; workspace = workspace->id.next) {
+		lib_link_workspace_scene_data_restore(id_map, workspace);
+		BKE_workspace_view_layer_set(workspace, cur_view_layer, curscene);
+
 		ListBase *layouts = BKE_workspace_layouts_get(workspace);
 
 		for (WorkSpaceLayout *layout = layouts->first; layout; layout = layout->next) {
 			lib_link_workspace_layout_restore(id_map, newmain, layout);
 		}
-		BKE_workspace_view_layer_set(workspace, cur_view_layer, curscene);
 	}
 
 	for (wmWindow *win = curwm->windows.first; win; win = win->next) {
@@ -7459,7 +7431,7 @@ void blo_lib_link_restore(Main *newmain, wmWindowManager *curwm, Scene *curscene
 		/* keep cursor location through undo */
 		copy_v3_v3(win->scene->cursor.location, oldscene->cursor.location);
 		copy_qt_qt(win->scene->cursor.rotation, oldscene->cursor.rotation);
-		lib_link_workspace_scene_data_restore(win, win->scene);
+		lib_link_window_scene_data_restore(win, win->scene);
 
 		BLI_assert(win->screen == NULL);
 	}
@@ -8371,7 +8343,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, const short 
 			wrong_id = direct_link_screen(fd, (bScreen *)id);
 			break;
 		case ID_SCE:
-			direct_link_scene(fd, (Scene *)id, main);
+			direct_link_scene(fd, (Scene *)id);
 			break;
 		case ID_OB:
 			direct_link_object(fd, (Object *)id);

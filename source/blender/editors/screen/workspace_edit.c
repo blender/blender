@@ -110,7 +110,7 @@ static void workspace_change_update_view_layer(
         WorkSpace *workspace_new, const WorkSpace *workspace_old,
         Scene *scene)
 {
-	if (!BKE_workspace_view_layer_get(workspace_new, scene)) {
+	if (!BKE_workspace_view_layer_exists(workspace_new, scene)) {
 		BKE_workspace_view_layer_set(workspace_new, BKE_workspace_view_layer_get(workspace_old, scene), scene);
 	}
 }
@@ -199,7 +199,7 @@ bool ED_workspace_change(
 		screen_change_update(C, win, screen_new);
 		workspace_change_update(workspace_new, workspace_old, C, wm);
 
-		BLI_assert(BKE_workspace_view_layer_get(workspace_new, CTX_data_scene(C)) != NULL);
+		BLI_assert(BKE_workspace_view_layer_exists(workspace_new, CTX_data_scene(C)) != NULL);
 		BLI_assert(CTX_wm_workspace(C) == workspace_new);
 
 		WM_toolsystem_unlink_all(C, workspace_old);

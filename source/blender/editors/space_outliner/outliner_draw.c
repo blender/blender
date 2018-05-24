@@ -402,7 +402,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 					BLI_strncpy(view_layer->name, oldname, sizeof(view_layer->name));
 
 					/* Rename, preserving animation and compositing data. */
-					BKE_view_layer_rename(scene, view_layer, newname);
+					BKE_view_layer_rename(bmain, scene, view_layer, newname);
 					WM_event_add_notifier(C, NC_ID | NA_RENAME, NULL);
 					break;
 				}

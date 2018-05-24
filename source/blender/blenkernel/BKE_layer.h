@@ -80,7 +80,7 @@ void BKE_view_layer_copy_data(
         struct ViewLayer *view_layer_dst, const struct ViewLayer *view_layer_src,
         const int flag);
 
-void BKE_view_layer_rename(struct Scene *scene, struct ViewLayer *view_layer, const char *name);
+void BKE_view_layer_rename(struct Main *bmain, struct Scene *scene, struct ViewLayer *view_layer, const char *name);
 
 struct LayerCollection *BKE_layer_collection_get_active(struct ViewLayer *view_layer);
 bool BKE_layer_collection_activate(struct ViewLayer *view_layer, struct LayerCollection *lc);

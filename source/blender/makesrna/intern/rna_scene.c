@@ -1485,7 +1485,7 @@ void rna_ViewLayer_name_set(PointerRNA *ptr, const char *value)
 {
 	Scene *scene = (Scene *)ptr->id.data;
 	ViewLayer *view_layer = (ViewLayer *)ptr->data;
-	BKE_view_layer_rename(scene, view_layer, value);
+	BKE_view_layer_rename(G.main, scene, view_layer, value);
 }
 
 static void rna_SceneRenderView_name_set(PointerRNA *ptr, const char *value)
