@@ -631,6 +631,10 @@ static int apply_objects_internal(
 				la->area_shape = LA_AREA_RECT;
 				la->area_sizey = la->area_size;
 			}
+			else if ((la->area_shape == LA_AREA_DISK) && !keeps_aspect_ratio) {
+				la->area_shape = LA_AREA_ELLIPSE;
+				la->area_sizey = la->area_size;
+			}
 
 			la->area_size *= rsmat[0][0];
 			la->area_sizey *= rsmat[1][1];

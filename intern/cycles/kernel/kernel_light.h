@@ -44,7 +44,7 @@ typedef struct LightSample {
  *
  * Note: light_p is modified when sample_coord is true.
  */
-ccl_device_inline float area_light_sample(float3 P,
+ccl_device_inline float rect_light_sample(float3 P,
                                           float3 *light_p,
                                           float3 axisu, float3 axisv,
                                           float randu, float randv,
@@ -123,6 +123,60 @@ ccl_device_inline float area_light_sample(float3 P,
 		return 1.0f / S;
 	else
 		return 0.0f;
+}
+
+ccl_device_inline float3 ellipse_sample(float3 ru, float3 rv, float randu, float randv)
+{
+	to_unit_disk(&randu, &randv);
+	return ru*randu + rv*randv;
+}
+
+ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
+{
+	float3 ru, rv;
+
+	make_orthonormals(v, &ru, &rv);
+
+	return ellipse_sample(ru, rv, randu, randv);
+}
+
+ccl_device float3 distant_light_sample(float3 D, float radius, float randu, float randv)
+{
+	return normalize(D + disk_light_sample(D, randu, randv)*radius);
+}
+
+ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, float randu, float randv)
+{
+	return disk_light_sample(normalize(P - center), randu, randv)*radius;
+}
+
+ccl_device float spot_light_attenuation(float3 dir, float spot_angle, float spot_smooth, LightSample *ls)
+{
+	float3 I = ls->Ng;
+
+	float attenuation = dot(dir, I);
+
+	if(attenuation <= spot_angle) {
+		attenuation = 0.0f;
+	}
+	else {
+		float t = attenuation - spot_angle;
+
+		if(t < spot_smooth && spot_smooth != 0.0f)
+			attenuation *= smoothstepf(t/spot_smooth);
+	}
+
+	return attenuation;
+}
+
+ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3 I, float t)
+{
+	float cos_pi = dot(Ng, I);
+
+	if(cos_pi <= 0.0f)
+		return 0.0f;
+
+	return t*t/cos_pi;
 }
 
 /* Background Light */
@@ -295,11 +349,19 @@ ccl_device_inline float background_portal_pdf(KernelGlobals *kg,
 		const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, portal);
 		float3 axisu = make_float3(klight->area.axisu[0], klight->area.axisu[1], klight->area.axisu[2]);
 		float3 axisv = make_float3(klight->area.axisv[0], klight->area.axisv[1], klight->area.axisv[2]);
+		bool is_round = (klight->area.invarea < 0.0f);
 
-		if(!ray_quad_intersect(P, direction, 1e-4f, FLT_MAX, lightpos, axisu, axisv, dir, NULL, NULL, NULL, NULL))
+		if(!ray_quad_intersect(P, direction, 1e-4f, FLT_MAX, lightpos, axisu, axisv, dir, NULL, NULL, NULL, NULL, is_round))
 			continue;
 
-		portal_pdf += area_light_sample(P, &lightpos, axisu, axisv, 0.0f, 0.0f, false);
+		if(is_round) {
+			float t;
+			float3 D = normalize_len(lightpos - P, &t);
+			portal_pdf += fabsf(klight->area.invarea) * lamp_light_pdf(kg, dir, -D, t);
+		}
+		else {
+			portal_pdf += rect_light_sample(P, &lightpos, axisu, axisv, 0.0f, 0.0f, false);
+		}
 	}
 
 	if(ignore_portal >= 0) {
@@ -349,15 +411,26 @@ ccl_device float3 background_portal_sample(KernelGlobals *kg,
 			const ccl_global KernelLight *klight = &kernel_tex_fetch(__lights, portal);
 			float3 axisu = make_float3(klight->area.axisu[0], klight->area.axisu[1], klight->area.axisu[2]);
 			float3 axisv = make_float3(klight->area.axisv[0], klight->area.axisv[1], klight->area.axisv[2]);
+			bool is_round = (klight->area.invarea < 0.0f);
 
-			*pdf = area_light_sample(P, &lightpos,
-			                         axisu, axisv,
-			                         randu, randv,
-			                         true);
+			float3 D;
+			if(is_round) {
+				lightpos += ellipse_sample(axisu*0.5f, axisv*0.5f, randu, randv);
+				float t;
+				D = normalize_len(lightpos - P, &t);
+				*pdf = fabsf(klight->area.invarea) * lamp_light_pdf(kg, dir, -D, t);
+			}
+			else {
+				*pdf = rect_light_sample(P, &lightpos,
+				                         axisu, axisv,
+				                         randu, randv,
+				                         true);
+				D = normalize(lightpos - P);
+			}
 
 			*pdf /= num_possible;
 			*sampled_portal = p;
-			return normalize(lightpos - P);
+			return D;
 		}
 
 		portal--;
@@ -458,55 +531,6 @@ ccl_device float background_light_pdf(KernelGlobals *kg, float3 P, float3 direct
 
 /* Regular Light */
 
-ccl_device float3 disk_light_sample(float3 v, float randu, float randv)
-{
-	float3 ru, rv;
-
-	make_orthonormals(v, &ru, &rv);
-	to_unit_disk(&randu, &randv);
-
-	return ru*randu + rv*randv;
-}
-
-ccl_device float3 distant_light_sample(float3 D, float radius, float randu, float randv)
-{
-	return normalize(D + disk_light_sample(D, randu, randv)*radius);
-}
-
-ccl_device float3 sphere_light_sample(float3 P, float3 center, float radius, float randu, float randv)
-{
-	return disk_light_sample(normalize(P - center), randu, randv)*radius;
-}
-
-ccl_device float spot_light_attenuation(float3 dir, float spot_angle, float spot_smooth, LightSample *ls)
-{
-	float3 I = ls->Ng;
-
-	float attenuation = dot(dir, I);
-
-	if(attenuation <= spot_angle) {
-		attenuation = 0.0f;
-	}
-	else {
-		float t = attenuation - spot_angle;
-
-		if(t < spot_smooth && spot_smooth != 0.0f)
-			attenuation *= smoothstepf(t/spot_smooth);
-	}
-
-	return attenuation;
-}
-
-ccl_device float lamp_light_pdf(KernelGlobals *kg, const float3 Ng, const float3 I, float t)
-{
-	float cos_pi = dot(Ng, I);
-
-	if(cos_pi <= 0.0f)
-		return 0.0f;
-	
-	return t*t/cos_pi;
-}
-
 ccl_device_inline bool lamp_light_sample(KernelGlobals *kg,
                                          int lamp,
                                          float randu, float randv,
@@ -601,26 +625,39 @@ ccl_device_inline bool lamp_light_sample(KernelGlobals *kg,
 			float3 D = make_float3(klight->area.dir[0],
 			                       klight->area.dir[1],
 			                       klight->area.dir[2]);
+			float invarea = fabsf(klight->area.invarea);
+			bool is_round = (klight->area.invarea < 0.0f);
 
 			if(dot(ls->P - P, D) > 0.0f) {
 				return false;
 			}
 
-			float3 inplane = ls->P;
-			ls->pdf = area_light_sample(P, &ls->P,
-			                          axisu, axisv,
-			                          randu, randv,
-			                          true);
+			float3 inplane;
 
-			inplane = ls->P - inplane;
+			if(is_round) {
+				inplane = ellipse_sample(axisu*0.5f, axisv*0.5f, randu, randv);
+				ls->P += inplane;
+				ls->pdf = invarea;
+			}
+			else {
+				inplane = ls->P;
+				ls->pdf = rect_light_sample(P, &ls->P,
+				                            axisu, axisv,
+				                            randu, randv,
+				                            true);
+				inplane = ls->P - inplane;
+			}
+
 			ls->u = dot(inplane, axisu) * (1.0f / dot(axisu, axisu)) + 0.5f;
 			ls->v = dot(inplane, axisv) * (1.0f / dot(axisv, axisv)) + 0.5f;
 
 			ls->Ng = D;
 			ls->D = normalize_len(ls->P - P, &ls->t);
 
-			float invarea = klight->area.invarea;
 			ls->eval_fac = 0.25f*invarea;
+			if(is_round) {
+				ls->pdf *= lamp_light_pdf(kg, D, -ls->D, ls->t);
+			}
 		}
 	}
 
@@ -731,7 +768,8 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 	}
 	else if(type == LIGHT_AREA) {
 		/* area light */
-		float invarea = klight->area.invarea;
+		float invarea = fabsf(klight->area.invarea);
+		bool is_round = (klight->area.invarea < 0.0f);
 		if(invarea == 0.0f)
 			return false;
 
@@ -754,14 +792,20 @@ ccl_device bool lamp_light_eval(KernelGlobals *kg, int lamp, float3 P, float3 D,
 		if(!ray_quad_intersect(P, D, 0.0f, t, light_P,
 		                       axisu, axisv, Ng,
 		                       &ls->P, &ls->t,
-		                       &ls->u, &ls->v))
+		                       &ls->u, &ls->v,
+		                       is_round))
 		{
 			return false;
 		}
 
 		ls->D = D;
 		ls->Ng = Ng;
-		ls->pdf = area_light_sample(P, &light_P, axisu, axisv, 0, 0, false);
+		if(is_round) {
+			ls->pdf = invarea * lamp_light_pdf(kg, Ng, -D, ls->t);
+		}
+		else {
+			ls->pdf = rect_light_sample(P, &light_P, axisu, axisv, 0, 0, false);
+		}
 		ls->eval_fac = 0.25f*invarea;
 	}
 	else {

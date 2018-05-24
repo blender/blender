@@ -129,7 +129,7 @@ static void manipulator_area_lamp_prop_matrix_get(
 	const Lamp *la = mpr_prop->custom_func.user_data;
 
 	matrix[0][0] = la->area_size;
-	matrix[1][1] = (la->area_shape == LA_AREA_RECT) ? la->area_sizey : la->area_size;
+	matrix[1][1] = ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE) ? la->area_sizey : la->area_size;
 }
 
 static void manipulator_area_lamp_prop_matrix_set(
@@ -140,7 +140,7 @@ static void manipulator_area_lamp_prop_matrix_set(
 	BLI_assert(mpr_prop->type->array_length == 16);
 	Lamp *la = mpr_prop->custom_func.user_data;
 
-	if (la->area_shape == LA_AREA_RECT) {
+	if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
 		la->area_size = len_v3(matrix[0]);
 		la->area_sizey = len_v3(matrix[1]);
 	}
@@ -185,9 +185,11 @@ static void WIDGETGROUP_lamp_area_refresh(const bContext *C, wmManipulatorGroup 
 
 	copy_m4_m4(mpr->matrix_basis, ob->obmat);
 
-	RNA_enum_set(mpr->ptr, "transform",
-	             ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE |
-	             ((la->area_shape == LA_AREA_SQUARE) ? ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM : 0));
+	int flag = ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE;
+	if (ELEM(la->area_shape, LA_AREA_SQUARE, LA_AREA_DISK)) {
+		flag |= ED_MANIPULATOR_CAGE2D_XFORM_FLAG_SCALE_UNIFORM;
+	}
+	RNA_enum_set(mpr->ptr, "transform", flag);
 
 	/* need to set property here for undo. TODO would prefer to do this in _init */
 	WM_manipulator_target_property_def_func(

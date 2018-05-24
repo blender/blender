@@ -66,8 +66,11 @@ vec3 light_volume(LightData ld, vec4 l_vector)
 	/* XXX : Removing Area Power. */
 	/* TODO : put this out of the shader. */
 	/* See eevee_light_setup(). */
-	if (ld.l_type == AREA) {
+	if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
 		power = (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
+		if (ld.l_type == AREA_ELLIPSE) {
+			power *= M_PI * 0.25;
+		}
 		power *= 20.0 * max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
 	}
 	else if (ld.l_type == SUN) {

@@ -72,7 +72,8 @@ static struct DRWShapeCache {
 	Gwn_Batch *drw_lamp;
 	Gwn_Batch *drw_lamp_shadows;
 	Gwn_Batch *drw_lamp_sunrays;
-	Gwn_Batch *drw_lamp_area;
+	Gwn_Batch *drw_lamp_area_square;
+	Gwn_Batch *drw_lamp_area_disk;
 	Gwn_Batch *drw_lamp_hemi;
 	Gwn_Batch *drw_lamp_spot;
 	Gwn_Batch *drw_lamp_spot_square;
@@ -1122,9 +1123,9 @@ Gwn_Batch *DRW_cache_lamp_sunrays_get(void)
 	return SHC.drw_lamp_sunrays;
 }
 
-Gwn_Batch *DRW_cache_lamp_area_get(void)
+Gwn_Batch *DRW_cache_lamp_area_square_get(void)
 {
-	if (!SHC.drw_lamp_area) {
+	if (!SHC.drw_lamp_area_square) {
 		float v1[3] = {0.0f, 0.0f, 0.0f};
 
 		/* Position Only 3D format */
@@ -1151,9 +1152,40 @@ Gwn_Batch *DRW_cache_lamp_area_get(void)
 		v1[1] = 0.5f;
 		GWN_vertbuf_attr_set(vbo, attr_id.pos, 7, v1);
 
-		SHC.drw_lamp_area = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+		SHC.drw_lamp_area_square = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}
-	return SHC.drw_lamp_area;
+	return SHC.drw_lamp_area_square;
+}
+
+Gwn_Batch *DRW_cache_lamp_area_disk_get(void)
+{
+#define NSEGMENTS 32
+	if (!SHC.drw_lamp_area_disk) {
+		/* Position Only 3D format */
+		static Gwn_VertFormat format = { 0 };
+		static struct { uint pos; } attr_id;
+		if (format.attrib_ct == 0) {
+			attr_id.pos = GWN_vertformat_attr_add(&format, "pos", GWN_COMP_F32, 3, GWN_FETCH_FLOAT);
+		}
+
+		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
+		GWN_vertbuf_data_alloc(vbo, 2*NSEGMENTS);
+
+		float v[3] = {0.0f, 0.5f, 0.0f};
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, 0, v);
+		for (int a = 1; a < NSEGMENTS; a++) {
+			v[0] = 0.5f*sinf(2.f * (float)M_PI * a / NSEGMENTS);
+			v[1] = 0.5f*cosf(2.f * (float)M_PI * a / NSEGMENTS);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2*a-1, v);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2*a, v);
+		}
+		copy_v3_fl3(v, 0.0f, 0.5f, 0.0f);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, 2*NSEGMENTS-1, v);
+
+		SHC.drw_lamp_area_disk = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
+	}
+	return SHC.drw_lamp_area_disk;
+#undef NSEGMENTS
 }
 
 Gwn_Batch *DRW_cache_lamp_hemi_get(void)

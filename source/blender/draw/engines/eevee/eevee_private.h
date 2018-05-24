@@ -289,6 +289,9 @@ typedef struct EEVEE_Light {
 	float forwardvec[3], lamptype;
 } EEVEE_Light;
 
+/* Special type for elliptic area lamps, matches lamps_lib.glsl */
+#define LAMPTYPE_AREA_ELLIPSE 100.0f
+
 typedef struct EEVEE_Shadow {
 	float near, far, bias, exp;
 	float shadow_start, data_start, multi_shadow_count, shadow_blur;

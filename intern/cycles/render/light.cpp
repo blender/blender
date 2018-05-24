@@ -117,6 +117,7 @@ NODE_DEFINE(Light)
 	SOCKET_FLOAT(sizeu, "Size U", 1.0f);
 	SOCKET_VECTOR(axisv, "Axis V", make_float3(0.0f, 0.0f, 0.0f));
 	SOCKET_FLOAT(sizev, "Size V", 1.0f);
+	SOCKET_BOOLEAN(round, "Round", false);
 
 	SOCKET_INT(map_resolution, "Map Resolution", 512);
 
@@ -730,12 +731,15 @@ void LightManager::device_update_points(Device *,
 			float3 axisu = light->axisu*(light->sizeu*light->size);
 			float3 axisv = light->axisv*(light->sizev*light->size);
 			float area = len(axisu)*len(axisv);
-			float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
+			if(light->round) {
+				area *= -M_PI_4_F;
+			}
+			float invarea = (area != 0.0f)? 1.0f/area: 1.0f;
 			float3 dir = light->dir;
 			
 			dir = safe_normalize(dir);
 
-			if(light->use_mis && area > 0.0f)
+			if(light->use_mis && area != 0.0f)
 				shader_id |= SHADER_USE_MIS;
 
 			klights[light_index].co[0] = co.x;
@@ -803,7 +807,10 @@ void LightManager::device_update_points(Device *,
 		float3 axisu = light->axisu*(light->sizeu*light->size);
 		float3 axisv = light->axisv*(light->sizev*light->size);
 		float area = len(axisu)*len(axisv);
-		float invarea = (area > 0.0f)? 1.0f/area: 1.0f;
+		if(light->round) {
+			area *= -M_PI_4_F;
+		}
+		float invarea = (area != 0.0f)? 1.0f/area: 1.0f;
 		float3 dir = light->dir;
 
 		dir = safe_normalize(dir);

@@ -15,11 +15,13 @@ layout(std140) uniform light_block {
 };
 
 /* type */
-#define POINT    0.0
-#define SUN      1.0
-#define SPOT     2.0
-#define HEMI     3.0
-#define AREA     4.0
+#define POINT          0.0
+#define SUN            1.0
+#define SPOT           2.0
+#define HEMI           3.0
+#define AREA_RECT      4.0
+/* Used to define the area lamp shape, doesn't directly correspond to a Blender lamp type. */
+#define AREA_ELLIPSE 100.0
 
 #if defined(SHADOW_VSM)
 #define ShadowSample vec2
@@ -174,7 +176,7 @@ float light_visibility(LightData ld, vec3 W,
 		vis *= spotmask;
 		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 	}
-	else if (ld.l_type == AREA) {
+	else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
 		vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 	}
 
@@ -253,8 +255,11 @@ float light_diffuse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 	if (ld.l_type == SUN) {
 		return direct_diffuse_unit_disc(ld, N, V);
 	}
-	else if (ld.l_type == AREA) {
+	else if (ld.l_type == AREA_RECT) {
 		return direct_diffuse_rectangle(ld, N, V, l_vector);
+	}
+	else if (ld.l_type == AREA_ELLIPSE) {
+		return direct_diffuse_ellipse(ld, N, V, l_vector);
 	}
 	else {
 		return direct_diffuse_sphere(ld, N, l_vector);
@@ -275,8 +280,11 @@ vec3 light_specular(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness
 	if (ld.l_type == SUN) {
 		return direct_ggx_unit_disc(ld, N, V, roughness, f0);
 	}
-	else if (ld.l_type == AREA) {
+	else if (ld.l_type == AREA_RECT) {
 		return direct_ggx_rectangle(ld, N, V, l_vector, roughness, f0);
+	}
+	else if (ld.l_type == AREA_ELLIPSE) {
+		return direct_ggx_ellipse(ld, N, V, l_vector, roughness, f0);
 	}
 	else {
 		return direct_ggx_sphere(ld, N, V, l_vector, roughness, f0);
@@ -373,8 +381,11 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 		/* XXX : Removing Area Power. */
 		/* TODO : put this out of the shader. */
 		float falloff;
-		if (ld.l_type == AREA) {
+		if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
 			vis *= (ld.l_sizex * ld.l_sizey * 4.0 * M_PI) * (1.0 / 80.0);
+			if (ld.l_type == AREA_ELLIPSE) {
+				vis *= M_PI * 0.25;
+			}
 			vis *= 0.3 * 20.0 * max(0.0, dot(-ld.l_forward, l_vector.xyz / l_vector.w)); /* XXX ad hoc, empirical */
 			vis /= (l_vector.w * l_vector.w);
 			falloff = dot(N, l_vector.xyz / l_vector.w);
@@ -412,7 +423,7 @@ vec3 light_translucent(LightData ld, vec3 W, vec3 N, vec4 l_vector, float scale)
 			vis *= spotmask;
 			vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 		}
-		else if (ld.l_type == AREA) {
+		else if (ld.l_type == AREA_RECT || ld.l_type == AREA_ELLIPSE) {
 			vis *= step(0.0, -dot(l_vector.xyz, ld.l_forward));
 		}
 	}

@@ -1591,7 +1591,7 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_item = "data.size"
                 props.header_text = "Lamp Size X: %.3f"
 
-                if lamp.shape == 'RECTANGLE':
+                if lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
                     props = layout.operator("wm.context_modal_mouse", text="Size Y")
                     props.data_path_iter = "selected_editable_objects"
                     props.data_path_item = "data.size_y"

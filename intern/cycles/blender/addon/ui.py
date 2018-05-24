@@ -909,9 +909,9 @@ class CYCLES_LAMP_PT_lamp(CyclesButtonsPanel, Panel):
             col.prop(lamp, "shape", text="")
             sub = col.column(align=True)
 
-            if lamp.shape == 'SQUARE':
+            if lamp.shape in {'SQUARE', 'DISK'}:
                 sub.prop(lamp, "size")
-            elif lamp.shape == 'RECTANGLE':
+            elif lamp.shape in {'RECTANGLE', 'ELLIPSE'}:
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
 

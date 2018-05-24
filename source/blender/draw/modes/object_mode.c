@@ -175,7 +175,8 @@ typedef struct OBJECT_PrivateData {
 	DRWShadingGroup *lamp_distance;
 	DRWShadingGroup *lamp_buflimit;
 	DRWShadingGroup *lamp_buflimit_points;
-	DRWShadingGroup *lamp_area;
+	DRWShadingGroup *lamp_area_square;
+	DRWShadingGroup *lamp_area_disk;
 	DRWShadingGroup *lamp_hemi;
 	DRWShadingGroup *lamp_spot_cone;
 	DRWShadingGroup *lamp_spot_blend;
@@ -1164,8 +1165,11 @@ static void OBJECT_cache_init(void *vedata)
 		stl->g_data->lamp_groundline = shgroup_groundlines_uniform_color(psl->non_meshes, ts.colorLamp);
 		stl->g_data->lamp_groundpoint = shgroup_groundpoints_uniform_color(psl->non_meshes, ts.colorLamp);
 
-		geom = DRW_cache_lamp_area_get();
-		stl->g_data->lamp_area = shgroup_instance(psl->non_meshes, geom);
+		geom = DRW_cache_lamp_area_square_get();
+		stl->g_data->lamp_area_square = shgroup_instance(psl->non_meshes, geom);
+
+		geom = DRW_cache_lamp_area_disk_get();
+		stl->g_data->lamp_area_disk = shgroup_instance(psl->non_meshes, geom);
 
 		geom = DRW_cache_lamp_hemi_get();
 		stl->g_data->lamp_hemi = shgroup_instance(psl->non_meshes, geom);
@@ -1398,13 +1402,18 @@ static void DRW_shgroup_lamp(OBJECT_StorageList *stl, Object *ob, ViewLayer *vie
 	else if (la->type == LA_AREA) {
 		float size[3] = {1.0f, 1.0f, 1.0f}, sizemat[4][4];
 
-		if (la->area_shape == LA_AREA_RECT) {
+		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_ELLIPSE)) {
 			size[1] = la->area_sizey / la->area_size;
 			size_to_mat4(sizemat, size);
 			mul_m4_m4m4(shapemat, shapemat, sizemat);
 		}
 
-		DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area, color, &la->area_size, shapemat);
+		if (ELEM(la->area_shape, LA_AREA_DISK, LA_AREA_ELLIPSE)) {
+			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area_disk, color, &la->area_size, shapemat);
+		}
+		else {
+			DRW_shgroup_call_dynamic_add(stl->g_data->lamp_area_square, color, &la->area_size, shapemat);
+		}
 	}
 
 	/* Line and point going to the ground */

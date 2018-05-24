@@ -47,6 +47,16 @@ float direct_diffuse_rectangle(LightData ld, vec3 N, vec3 V, vec4 l_vector)
 	return ltc_evaluate_quad(corners, N);
 }
 
+float direct_diffuse_ellipse(LightData ld, vec3 N, vec3 V, vec4 l_vector)
+{
+	vec3 points[3];
+	points[0] = l_vector.xyz + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey;
+	points[1] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
+	points[2] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
+
+	return ltc_evaluate_disk(N, V, mat3(1), points);
+}
+
 float direct_diffuse_unit_disc(LightData ld, vec3 N, vec3 V)
 {
 	float NL = dot(N, -ld.l_forward);
@@ -98,6 +108,26 @@ vec3 direct_ggx_sphere(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughn
 	points[0] = l_vector.xyz - Px - Py;
 	points[1] = l_vector.xyz + Px - Py;
 	points[2] = l_vector.xyz + Px + Py;
+
+	float bsdf = ltc_evaluate_disk(N, V, ltc_mat, points);
+	bsdf *= brdf_lut.b; /* Bsdf intensity */
+
+	vec3 spec = F_area(f0, brdf_lut.xy) * bsdf;
+
+	return spec;
+}
+
+vec3 direct_ggx_ellipse(LightData ld, vec3 N, vec3 V, vec4 l_vector, float roughness, vec3 f0)
+{
+	vec3 points[3];
+	points[0] = l_vector.xyz + ld.l_right * -ld.l_sizex + ld.l_up * -ld.l_sizey;
+	points[1] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up * -ld.l_sizey;
+	points[2] = l_vector.xyz + ld.l_right *  ld.l_sizex + ld.l_up *  ld.l_sizey;
+
+	vec2 uv = lut_coords(dot(N, V), sqrt(roughness));
+	vec3 brdf_lut = texture(utilTex, vec3(uv, 1.0)).rgb;
+	vec4 ltc_lut = texture(utilTex, vec3(uv, 0.0)).rgba;
+	mat3 ltc_mat = ltc_matrix(ltc_lut);
 
 	float bsdf = ltc_evaluate_disk(N, V, ltc_mat, points);
 	bsdf *= brdf_lut.b; /* Bsdf intensity */
