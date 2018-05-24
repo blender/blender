@@ -2808,7 +2808,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	const bool is_gp_edit = ((gpd) && (gpd->flag & GP_DATA_STROKE_EDITMODE));
 	const bool is_face_map = ((is_gp_edit == false) && ar->manipulator_map &&
 	                          WM_manipulatormap_is_any_selected(ar->manipulator_map));
-	Object *ob_eval = DEG_get_evaluated_object(depsgraph, OBACT(view_layer_eval));
+	Object *ob_eval = OBACT(view_layer_eval);
 	Object *obedit = CTX_data_edit_object(C);
 	float min[3], max[3];
 	bool ok = false, ok_dist = true;
@@ -2863,7 +2863,7 @@ static int viewselected_exec(bContext *C, wmOperator *op)
 	}
 	else if (ob_eval && (ob_eval->mode & OB_MODE_POSE)) {
 		FOREACH_OBJECT_IN_MODE_BEGIN (view_layer_eval, ob_eval->mode, ob_eval_iter) {
-			ok |= BKE_pose_minmax(DEG_get_evaluated_object(depsgraph, ob_eval_iter), min, max, true, true);
+			ok |= BKE_pose_minmax(ob_eval_iter, min, max, true, true);
 		}
 		FOREACH_OBJECT_IN_MODE_END;
 	}
