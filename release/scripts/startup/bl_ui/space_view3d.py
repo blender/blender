@@ -2584,9 +2584,9 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         props = layout.operator("mesh.rip_move", text="Rip Vertices")
         props.MESH_OT_rip.use_fill = False
-        props = layout.operator("mesh.rip_move", text="Rip Vetices and Fill")
+        props = layout.operator("mesh.rip_move", text="Rip Vertices and Fill")
         props.MESH_OT_rip.use_fill = True
-        layout.operator("mesh.rip_edge_move", text="Rip Vetices and Extend")
+        layout.operator("mesh.rip_edge_move", text="Rip Vertices and Extend")
 
         layout.separator()
 
@@ -2596,7 +2596,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
         layout.separator()
 
         layout.operator("mesh.blend_from_shape")
-        layout.operator("mesh.shape_propagate_to_all", text="Propogate to Shapes")
+        layout.operator("mesh.shape_propagate_to_all", text="Propagate to Shapes")
 
         layout.separator()
 
@@ -2690,6 +2690,8 @@ class VIEW3D_MT_edit_mesh_faces_data(Menu):
     def draw(self, context):
         layout = self.layout
 
+        with_freestyle = bpy.app.build_options.freestyle
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
         layout.operator("mesh.colors_rotate")
@@ -2699,6 +2701,12 @@ class VIEW3D_MT_edit_mesh_faces_data(Menu):
 
         layout.operator("mesh.uvs_rotate")
         layout.operator("mesh.uvs_reverse")
+
+        layout.separator()
+
+        if with_freestyle:
+            layout.operator("mesh.mark_freestyle_face").clear = False
+            layout.operator("mesh.mark_freestyle_face", text="Clear Freestyle Face").clear = True
 
 
 class VIEW3D_MT_edit_mesh_faces(Menu):
