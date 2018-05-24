@@ -506,7 +506,7 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 		const bool use_trgt_faces = (wmd->proximity_flags & MOD_WVG_PROXIMITY_GEOM_FACES) != 0;
 
 		if (use_trgt_verts || use_trgt_edges || use_trgt_faces) {
-			Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_object(obr, ctx->flag);
+			Mesh *target_mesh = BKE_modifier_get_evaluated_mesh_from_object(ctx, obr);
 
 			/* We must check that we do have a valid target_mesh! */
 			if (target_mesh != NULL) {

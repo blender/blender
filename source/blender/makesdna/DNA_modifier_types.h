@@ -1614,6 +1614,7 @@ typedef struct SDefVert {
 typedef struct SurfaceDeformModifierData {
 	ModifierData modifier;
 
+	struct Depsgraph *depsgraph;
 	struct Object *target;	/* bind target object */
 	SDefVert *verts;		/* vertex bind data */
 	float falloff;

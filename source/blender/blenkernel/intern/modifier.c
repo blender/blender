@@ -74,6 +74,7 @@
 /* end */
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "MOD_modifiertypes.h"
 
@@ -1213,13 +1214,16 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
 /** Get evaluated mesh for other object, which is used as an operand for the modifier,
  * i.e. second operand for boolean modifier.
  */
-Mesh *BKE_modifier_get_evaluated_mesh_from_object(Object *ob, const ModifierApplyFlag flag)
+Mesh *BKE_modifier_get_evaluated_mesh_from_object(const ModifierEvalContext *ctx, Object *ob)
 {
+	const ModifierApplyFlag flag = ctx->flag;
+	Object *ob_eval = DEG_get_evaluated_object(ctx->depsgraph, ob);
+
 	if (flag & MOD_APPLY_RENDER) {
 		/* TODO(sergey): Use proper derived render in the future. */
-		return ob->mesh_evaluated;
+		return ob_eval->mesh_evaluated;
 	}
 	else {
-		return ob->mesh_evaluated;
+		return ob_eval->mesh_evaluated;
 	}
 }

@@ -175,12 +175,11 @@ static Mesh *applyModifier(ModifierData *md, const ModifierEvalContext *ctx, Mes
 	if (!bmd->object)
 		return mesh;
 
-	Object *other_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
-	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(other_eval, ctx->flag);
-
+	mesh_other = BKE_modifier_get_evaluated_mesh_from_object(ctx, bmd->object);
 	if (mesh_other) {
 		Mesh *result;
 		Object *object_eval = DEG_get_evaluated_object(ctx->depsgraph, ctx->object);
+		Object *other_eval = DEG_get_evaluated_object(ctx->depsgraph, bmd->object);
 
 		/* when one of objects is empty (has got no faces) we could speed up
 		 * calculation a bit returning one of objects' derived meshes (or empty one)
