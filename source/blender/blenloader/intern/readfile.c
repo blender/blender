@@ -9094,6 +9094,14 @@ static void expand_constraint_channels(FileData *fd, Main *mainvar, ListBase *ch
 	}
 }
 
+static void expand_id(FileData *fd, Main *mainvar, ID *id)
+{
+	if (id->override_static) {
+		expand_doit(fd, mainvar, id->override_static->reference);
+		expand_doit(fd, mainvar, id->override_static->storage);
+	}
+}
+
 static void expand_idprops(FileData *fd, Main *mainvar, IDProperty *prop)
 {
 	if (!prop)
@@ -9868,6 +9876,7 @@ void BLO_expand_main(void *fdhandle, Main *mainvar)
 			id = lbarray[a]->first;
 			while (id) {
 				if (id->tag & LIB_TAG_NEED_EXPAND) {
+					expand_id(fd, mainvar, id);
 					expand_idprops(fd, mainvar, id->properties);
 
 					switch (GS(id->name)) {
