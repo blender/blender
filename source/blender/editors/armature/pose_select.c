@@ -310,7 +310,7 @@ void ED_pose_deselect_all_multi(Object **objects, uint objects_len, int select_m
 			/* NOTE: ob not ob_act here is intentional - it's the source of the
 			 *       bones being selected  [T37247]
 			 */
-			DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
+			DEG_id_tag_update(&ob_iter->id, OB_RECALC_DATA);
 		}
 		
 		/* need to tag armature for cow updates, or else selection doesn't update */
