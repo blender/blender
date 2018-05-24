@@ -368,6 +368,9 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, const wmEve
 		/* mask modifier ('armature' mode), etc. */
 		DEG_id_tag_update(&base->object->id, OB_RECALC_DATA);
 	}
+	
+	/* need to tag armature for cow updates, or else selection doesn't update */
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 
 	return OPERATOR_FINISHED;
 }
@@ -907,6 +910,9 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 		DEG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 	
+	/* need to tag armature for cow updates, or else selection doesn't update */
+	DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
+	
 	/* report done status */
 	if (changed)
 		return OPERATOR_FINISHED;
@@ -1001,6 +1007,9 @@ static int pose_select_mirror_exec(bContext *C, wmOperator *op)
 		}
 
 		WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+		
+		/* need to tag armature for cow updates, or else selection doesn't update */
+		DEG_id_tag_update(&arm->id, DEG_TAG_COPY_ON_WRITE);
 	}
 	FOREACH_OBJECT_IN_MODE_END;
 
