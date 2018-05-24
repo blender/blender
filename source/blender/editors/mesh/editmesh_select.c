@@ -1707,9 +1707,9 @@ static bool mouse_mesh_loop(bContext *C, const int mval[2], bool extend, bool de
 	 * TODO: cleanup: add `selectmode` as a parameter */
 	const short ts_selectmode = vc.scene->toolsettings->selectmode;
 	bool use_fake_edge_mode = false;
-	if (ts_selectmode & SCE_SELECT_EDGE) {
+	if ((ts_selectmode & SCE_SELECT_EDGE) == 0) {
 		vc.v3d->flag |= V3D_INVALID_BACKBUF;
-		vc.scene->toolsettings->selectmode |= SCE_SELECT_EDGE;
+		vc.scene->toolsettings->selectmode = SCE_SELECT_EDGE;
 		em->selectmode = vc.scene->toolsettings->selectmode;
 		use_fake_edge_mode = true;
 	}
