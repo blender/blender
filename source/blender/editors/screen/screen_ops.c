@@ -146,6 +146,14 @@ int ED_operator_screen_mainwinactive(bContext *C)
 	return 1;
 }
 
+int ED_operator_scene(bContext *C)
+{
+	Scene *scene = CTX_data_scene(C);
+	if (scene)
+		return 1;
+	return 0;
+}
+
 int ED_operator_scene_editable(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
