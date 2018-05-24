@@ -225,7 +225,7 @@ void VIEW3D_OT_layers(wmOperatorType *ot)
 /** \name Toggle Bone selection Overlay Operator
  * \{ */
 
-static int toggle_show_see_through(bContext *C, wmOperator *UNUSED(op))
+static int toggle_show_xray(bContext *C, wmOperator *UNUSED(op))
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	v3d->shading.flag ^= V3D_SHADING_XRAY;
@@ -234,9 +234,9 @@ static int toggle_show_see_through(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static int toggle_show_see_through_poll(bContext *C)
+static int toggle_show_xray_poll(bContext *C)
 {
-	bool result = (ED_operator_view3d_active(C) && !ED_operator_posemode(C));
+	bool result = (ED_operator_view3d_active(C) && !ED_operator_posemode(C) && !ED_operator_editmesh(C));
 	if (result) {
 		// Additional test for SOLID or TEXTURE mode
 		View3D *v3d = CTX_wm_view3d(C);
@@ -245,16 +245,16 @@ static int toggle_show_see_through_poll(bContext *C)
 	return result;
 }
 
-void VIEW3D_OT_toggle_see_through_draw_option(wmOperatorType *ot)
+void VIEW3D_OT_toggle_xray_draw_option(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Toggle Show See Though";
-	ot->description = "Toggle show see through";
-	ot->idname = "VIEW3D_OT_toggle_see_through_draw_option";
+	ot->name = "Toggle Show X-Ray";
+	ot->description = "Toggle show X-Ray";
+	ot->idname = "VIEW3D_OT_toggle_xray_draw_option";
 
 	/* api callbacks */
-	ot->exec = toggle_show_see_through;
-	ot->poll = toggle_show_see_through_poll;
+	ot->exec = toggle_show_xray;
+	ot->poll = toggle_show_xray_poll;
 }
 
 /** \} */

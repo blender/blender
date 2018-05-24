@@ -222,7 +222,7 @@ void view3d_operatortypes(void)
 	WM_operatortype_append(VIEW3D_OT_snap_cursor_to_active);
 
 	WM_operatortype_append(VIEW3D_OT_toggle_render);
-	WM_operatortype_append(VIEW3D_OT_toggle_see_through_draw_option);
+	WM_operatortype_append(VIEW3D_OT_toggle_xray_draw_option);
 
 	WM_operatortype_append(VIEW3D_OT_ruler_add);
 
@@ -409,7 +409,7 @@ void view3d_keymap(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "value_2", "TEXTURED");
 
 	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_render", ZKEY, KM_PRESS, KM_SHIFT, 0);
-	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_see_through_draw_option", ZKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "VIEW3D_OT_toggle_xray_draw_option", ZKEY, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", ZKEY, KM_PRESS, 0, 0);
 	RNA_string_set(kmi->ptr, "data_path", "space_data.use_occlude_geometry");
