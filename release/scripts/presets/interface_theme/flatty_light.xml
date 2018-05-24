@@ -2,20 +2,20 @@
   <Theme>
     <user_interface>
       <ThemeUserInterface menu_shadow_fac="0.3"
-                          menu_shadow_width="2"
+                          menu_shadow_width="4"
                           icon_file=""
                           icon_alpha="1"
                           icon_saturation="0.3"
                           widget_emboss="#00000005"
                           editor_outline="#313338"
-                          axis_x="#dc2c2c"
-                          axis_y="#2cdc2c"
-                          axis_z="#2c2cdc"
+                          axis_x="#ff3352"
+                          axis_y="#8bdc00"
+                          axis_z="#046bdc"
                           manipulator_hi="#ffffff"
-                          manipulator_primary="#deff0d"
-                          manipulator_secondary="#00ffff"
-                          manipulator_a="#177f17"
-                          manipulator_b="#7f1717">
+                          manipulator_primary="#ffd842"
+                          manipulator_secondary="#43c2ff"
+                          manipulator_a="#2b9757"
+                          manipulator_b="#c43164">
         <wcol_regular>
           <ThemeWidgetColors outline="#9d9d9d"
                              inner="#b3b3b3ff"
@@ -270,8 +270,8 @@
                                   inner_key_sel="#d7d34b"
                                   inner_driven="#b400ff"
                                   inner_driven_sel="#9900e6"
-                                  inner_overridden="#000000"
-                                  inner_overridden_sel="#000000"
+                                  inner_overridden="#6bf3cc"
+                                  inner_overridden_sel="#5fd9b6"
                                   blend="0.5">
           </ThemeWidgetStateColors>
         </wcol_state>
@@ -302,10 +302,10 @@
                    object_selected="#f15800"
                    object_active="#ffaa40"
                    text_keyframe="#ddd700"
-                   camera="#000000"
-                   empty="#000000"
-                   lamp="#00000028"
-                   speaker="#000000"
+                   camera="#b3b3b3"
+                   empty="#b3b3b3"
+                   lamp="#cccccc33"
+                   speaker="#b3b3b3"
                    vertex="#000000"
                    vertex_select="#ff8500"
                    vertex_size="3"
@@ -1058,6 +1058,35 @@
         </space>
       </ThemeTopBar>
     </topbar>
+    <statusbar>
+      <ThemeStatusBar>
+        <space>
+          <ThemeSpaceGeneric back="#393939"
+                             title="#ffffff"
+                             text="#ffffff"
+                             text_hi="#ffffff"
+                             header="#adadadff"
+                             header_text="#1a1a1a"
+                             header_text_hi="#ffffff"
+                             button="#2f303500"
+                             button_title="#ffffff"
+                             button_text="#ffffff"
+                             button_text_hi="#ffffff"
+                             tab_active="#446499"
+                             tab_inactive="#28292d"
+                             tab_back="#28292dff"
+                             tab_outline="#28292d">
+            <panelcolors>
+              <ThemePanelColors header="#29282eff"
+                                back="#3e3f46ff"
+                                show_header="TRUE"
+                                show_back="TRUE">
+              </ThemePanelColors>
+            </panelcolors>
+          </ThemeSpaceGeneric>
+        </space>
+      </ThemeStatusBar>
+    </statusbar>
     <bone_color_sets>
       <ThemeBoneColorSet normal="#9a0000"
                          select="#bd1111"
