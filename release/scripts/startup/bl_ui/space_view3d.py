@@ -449,10 +449,7 @@ class VIEW3D_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.region_quadview")
-        layout.operator("screen.screen_full_area")
-        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+        layout.menu("INFO_MT_area")
 
 
 class VIEW3D_MT_view_cameras(Menu):

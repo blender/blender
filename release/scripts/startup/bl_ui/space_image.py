@@ -126,9 +126,7 @@ class IMAGE_MT_view(Menu):
             layout.operator("image.cycle_render_slot", text="Render Slot Cycle Previous").reverse = True
             layout.separator()
 
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+        layout.menu("INFO_MT_area")
 
 
 class IMAGE_MT_select(Menu):

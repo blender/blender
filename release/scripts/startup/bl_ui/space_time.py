@@ -152,9 +152,7 @@ class TIME_MT_view(Menu):
 
         layout.separator()
 
-        layout.operator("screen.area_dupli")
-        layout.operator("screen.screen_full_area")
-        layout.operator("screen.screen_full_area", text="Toggle Fullscreen Area").use_hide_panels = True
+        layout.menu("INFO_MT_area")
 
 
 class TIME_MT_cache(Menu):
