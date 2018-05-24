@@ -1604,7 +1604,7 @@ classes = (
 def register():
     from bpy.utils import register_class
 
-    bpy.types.RENDER_PT_render.append(draw_device)
+    bpy.types.RENDER_PT_context.append(draw_device)
     bpy.types.VIEW3D_HT_header.append(draw_pause)
 
     for panel in get_panels():
@@ -1617,7 +1617,7 @@ def register():
 def unregister():
     from bpy.utils import unregister_class
 
-    bpy.types.RENDER_PT_render.remove(draw_device)
+    bpy.types.RENDER_PT_context.remove(draw_device)
     bpy.types.VIEW3D_HT_header.remove(draw_pause)
 
     for panel in get_panels():

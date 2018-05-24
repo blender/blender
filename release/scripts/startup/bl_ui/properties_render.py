@@ -75,28 +75,6 @@ class RENDER_PT_context(Panel):
             layout.prop(rd, "engine", text="")
 
 
-class RENDER_PT_render(RenderButtonsPanel, Panel):
-    bl_label = "Render"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
-
-    def draw(self, context):
-        layout = self.layout
-
-        rd = context.scene.render
-
-        row = layout.row(align=True)
-        row.operator("render.render", text="Render", icon='RENDER_STILL')
-        row.operator("render.render", text="Animation", icon='RENDER_ANIMATION').animation = True
-        row.operator("sound.mixdown", text="Audio", icon='PLAY_AUDIO')
-
-        split = layout.split(percentage=0.33)
-
-        split.label(text="Display:")
-        row = split.row(align=True)
-        row.prop(rd, "display_mode", text="")
-        row.prop(rd, "use_lock_interface", icon_only=True)
-
-
 class RENDER_PT_dimensions(RenderButtonsPanel, Panel):
     bl_label = "Dimensions"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_EEVEE'}
@@ -737,7 +715,6 @@ classes = (
     RENDER_MT_ffmpeg_presets,
     RENDER_MT_framerate_presets,
     RENDER_PT_context,
-    RENDER_PT_render,
     RENDER_PT_dimensions,
     RENDER_PT_post_processing,
     RENDER_PT_stamp,

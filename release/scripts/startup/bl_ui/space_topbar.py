@@ -553,14 +553,23 @@ class INFO_MT_render(Menu):
     def draw(self, context):
         layout = self.layout
 
+        rd = context.scene.render
+
         layout.operator("render.render", text="Render Image", icon='RENDER_STILL').use_viewport = True
         props = layout.operator("render.render", text="Render Animation", icon='RENDER_ANIMATION')
         props.animation = True
         props.use_viewport = True
+        layout.operator("sound.mixdown", text="Render Audio", icon='PLAY_AUDIO')
 
         layout.separator()
 
-        layout.operator("render.opengl", text="OpenGL Render Image")
+        layout.prop_menu_enum(rd, "display_mode", text="Display Mode")
+        layout.prop(rd, "use_lock_interface", text="Lock Interface")
+
+        layout.separator()
+
+        props = layout.operator("render.opengl", text="OpenGL Render Image")
+        props.view_context = False
         layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
         layout.menu("INFO_MT_opengl_render")
 
