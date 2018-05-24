@@ -49,6 +49,7 @@
 #include "BLI_threads.h"
 #include "BLI_string.h"
 
+#include "BKE_curve.h"
 #include "BKE_global.h"
 #include "BKE_idprop.h"
 #include "BKE_layer.h"
@@ -680,6 +681,7 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 	ListBase gpumaterial_backup;
 	ListBase *gpumaterial_ptr = NULL;
 	Mesh *mesh_evaluated = NULL;
+	CurveCache *curve_cache = NULL;
 	short base_flag = 0;
 	if (check_datablock_expanded(id_cow)) {
 		switch (id_type) {
@@ -729,6 +731,10 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 						object->data = mesh_evaluated->id.orig_id;
 					}
 				}
+				/* Store curve cache and make sure we don't free it. */
+				curve_cache = object->curve_cache;
+				object->curve_cache = NULL;
+
 				/* Make a backup of base flags. */
 				base_flag = object->base_flag;
 				break;
@@ -763,6 +769,9 @@ ID *deg_update_copy_on_write_datablock(const Depsgraph *depsgraph,
 				mesh_evaluated->edit_btmesh =
 				        ((Mesh *)mesh_evaluated->id.orig_id)->edit_btmesh;
 			}
+		}
+		if (curve_cache != NULL) {
+			object->curve_cache = curve_cache;
 		}
 		object->base_flag = base_flag;
 	}
