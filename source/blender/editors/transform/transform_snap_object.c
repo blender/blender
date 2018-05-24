@@ -535,6 +535,10 @@ static bool raycastEditMesh(
 			return retval;
 		}
 	}
+	else {
+		/* COW hack: Update pointers */
+		treedata->em = em;
+	}
 
 	float imat[4][4];
 	float timat[3][3]; /* transpose inverse matrix for normals */
