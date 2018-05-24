@@ -727,10 +727,10 @@ int DRW_object_wire_theme_get(Object *ob, ViewLayer *view_layer, float **r_color
 			case TH_ACTIVE:       *r_color = ts.colorActive; break;
 			case TH_SELECT:       *r_color = ts.colorSelect; break;
 			case TH_TRANSFORM:    *r_color = ts.colorTransform; break;
-			case OB_SPEAKER:      *r_color = ts.colorSpeaker; break;
-			case OB_CAMERA:       *r_color = ts.colorCamera; break;
-			case OB_EMPTY:        *r_color = ts.colorEmpty; break;
-			case OB_LAMP:         *r_color = ts.colorLamp; break;
+			case TH_SPEAKER:      *r_color = ts.colorSpeaker; break;
+			case TH_CAMERA:       *r_color = ts.colorCamera; break;
+			case TH_EMPTY:        *r_color = ts.colorEmpty; break;
+			case TH_LAMP:         *r_color = ts.colorLamp; break;
 			default:              *r_color = ts.colorWire; break;
 		}
 	}
@@ -749,10 +749,10 @@ float *DRW_color_background_blend_get(int theme_id)
 		case TH_ACTIVE:       ret = colors[1]; break;
 		case TH_SELECT:       ret = colors[2]; break;
 		case TH_TRANSFORM:    ret = colors[5]; break;
-		case OB_SPEAKER:      ret = colors[6]; break;
-		case OB_CAMERA:       ret = colors[7]; break;
-		case OB_EMPTY:        ret = colors[8]; break;
-		case OB_LAMP:         ret = colors[9]; break;
+		case TH_SPEAKER:      ret = colors[6]; break;
+		case TH_CAMERA:       ret = colors[7]; break;
+		case TH_EMPTY:        ret = colors[8]; break;
+		case TH_LAMP:         ret = colors[9]; break;
 		default:              ret = colors[10]; break;
 	}
 
