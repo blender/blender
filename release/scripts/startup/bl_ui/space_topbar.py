@@ -570,7 +570,9 @@ class INFO_MT_render(Menu):
 
         props = layout.operator("render.opengl", text="OpenGL Render Image")
         props.view_context = False
-        layout.operator("render.opengl", text="OpenGL Render Animation").animation = True
+        props = layout.operator("render.opengl", text="OpenGL Render Animation")
+        props.view_context = False
+        props.animation = True
         layout.menu("INFO_MT_opengl_render")
 
         layout.separator()
