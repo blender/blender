@@ -1323,9 +1323,7 @@ void initTransInfo(bContext *C, TransInfo *t, wmOperator *op, const wmEvent *eve
 			prop_id = "use_even_offset";
 		}
 
-		if (prop_id && (prop = RNA_struct_find_property(op->ptr, prop_id)) &&
-		    RNA_property_is_set(op->ptr, prop))
-		{
+		if (prop_id && (prop = RNA_struct_find_property(op->ptr, prop_id))) {
 			SET_FLAG_FROM_TEST(t->flag, RNA_property_boolean_get(op->ptr, prop), T_ALT_TRANSFORM);
 		}
 	}

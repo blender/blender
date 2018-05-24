@@ -306,6 +306,7 @@ static void node_composit_init_image(bNodeTree *ntree, bNode *node)
 	iuser->sfra = 1;
 	iuser->fie_ima = 2;
 	iuser->ok = 1;
+	iuser->flag |= IMA_ANIM_ALWAYS;
 	
 	/* setup initial outputs */
 	cmp_node_image_verify_outputs(ntree, node, false);

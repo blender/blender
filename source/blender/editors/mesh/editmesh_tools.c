@@ -2312,7 +2312,7 @@ void MESH_OT_vertices_smooth_laplacian(wmOperatorType *ot)
 
 	RNA_def_int(ot->srna, "repeat", 1, 1, 1000,
 	            "Number of iterations to smooth the mesh", "", 1, 200);
-	RNA_def_float(ot->srna, "lambda_factor", 5e-5f, 1e-7f, 1000.0f,
+	RNA_def_float(ot->srna, "lambda_factor", 1.0f, 1e-7f, 1000.0f,
 	              "Lambda factor", "", 1e-7f, 1000.0f);
 	RNA_def_float(ot->srna, "lambda_border", 5e-5f, 1e-7f, 1000.0f,
 	              "Lambda factor in border", "", 1e-7f, 1000.0f);

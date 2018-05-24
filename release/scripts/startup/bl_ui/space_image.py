@@ -643,11 +643,11 @@ class IMAGE_PT_view_properties(Panel):
             col.label(text="Coordinates:")
             col.prop(sima, "show_repeat", text="Repeat")
             if show_uvedit:
-                col.prop(uvedit, "show_normalized_coords", text="Normalized")
+                col.prop(uvedit, "show_pixel_coords", text="Pixel")
 
         elif show_uvedit:
             col.label(text="Coordinates:")
-            col.prop(uvedit, "show_normalized_coords", text="Normalized")
+            col.prop(uvedit, "show_pixel_coords", text="Pixel")
 
         if show_uvedit or show_maskedit:
             col = layout.column()

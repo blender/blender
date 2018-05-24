@@ -571,6 +571,8 @@ void BKE_scene_init(Scene *sce)
 	 */
 	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
 
+	sce->r.dither_intensity = 1.0f;
+
 	sce->r.bake_mode = 0;
 	sce->r.bake_filter = 16;
 	sce->r.bake_flag = R_BAKE_CLEAR;
@@ -633,6 +635,7 @@ void BKE_scene_init(Scene *sce)
 	sce->toolsettings->doublimit = 0.001;
 	sce->toolsettings->vgroup_weight = 1.0f;
 	sce->toolsettings->uvcalc_margin = 0.001f;
+	sce->toolsettings->uvcalc_flag = UVCALC_TRANSFORM_CORRECT;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh = 0.01f;
 

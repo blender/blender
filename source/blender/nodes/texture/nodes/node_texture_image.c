@@ -95,6 +95,7 @@ static void init(bNodeTree *UNUSED(ntree), bNode *node)
 	iuser->sfra = 1;
 	iuser->fie_ima = 2;
 	iuser->ok = 1;
+	iuser->flag |= IMA_ANIM_ALWAYS;
 }
 
 void register_node_type_tex_image(void)

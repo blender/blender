@@ -570,7 +570,7 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 	}
 
 	if (flags & P_CORRECT_UV) {
-		RNA_def_boolean(ot->srna, "correct_uv", 0, "Correct UVs", "Correct UV coordinates when transforming");
+		RNA_def_boolean(ot->srna, "correct_uv", true, "Correct UVs", "Correct UV coordinates when transforming");
 	}
 
 	if (flags & P_CENTER) {
