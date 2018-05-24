@@ -189,6 +189,12 @@ static void valuefn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 			break;
 		}
 
+		case NODE_MATH_ATAN2:
+		{
+			*out = atan2(in0, in1);
+			break;
+		}
+
 		default:
 		{
 			BLI_assert(0);

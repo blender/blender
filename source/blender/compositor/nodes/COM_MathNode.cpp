@@ -86,6 +86,9 @@ void MathNode::convertToOperations(NodeConverter &converter, const CompositorCon
 		case NODE_MATH_ABS:
 			operation = new MathAbsoluteOperation();
 			break;
+		case NODE_MATH_ATAN2:
+			operation = new MathArcTan2Operation();
+			break;
 	}
 	
 	if (operation) {

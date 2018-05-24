@@ -116,6 +116,7 @@
 #define asinf(x) asin(((float)(x)))
 #define acosf(x) acos(((float)(x)))
 #define atanf(x) atan(((float)(x)))
+#define atan2f(x, y) atan2(((float)(x)), ((float)(y)))
 #define floorf(x) floor(((float)(x)))
 #define ceilf(x) ceil(((float)(x)))
 #define hypotf(x, y) hypot(((float)(x)), ((float)(y)))
