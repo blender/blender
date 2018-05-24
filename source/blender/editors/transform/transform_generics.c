@@ -1629,6 +1629,10 @@ void postTrans(bContext *C, TransInfo *t)
 	if (t->draw_handle_cursor)
 		WM_paint_cursor_end(CTX_wm_manager(C), t->draw_handle_cursor);
 
+	if (t->flag & T_MODAL_CURSOR_SET) {
+		WM_cursor_modal_restore(CTX_wm_window(C));
+	}
+
 	/* Free all custom-data */
 	freeTransCustomDataContainer(t, NULL, &t->custom);
 	FOREACH_TRANS_DATA_CONTAINER (t, tc) {
