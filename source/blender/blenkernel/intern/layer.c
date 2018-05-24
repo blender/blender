@@ -383,6 +383,7 @@ void BKE_view_layer_copy_data(
 
 	/* Copy layer collections and object bases. */
 	/* Inline 'BLI_duplicatelist' and update the active base. */
+	BLI_listbase_clear(&view_layer_dst->object_bases);
 	for (Base *base_src = view_layer_src->object_bases.first; base_src; base_src = base_src->next) {
 		Base *base_dst = MEM_dupallocN(base_src);
 		BLI_addtail(&view_layer_dst->object_bases, base_dst);
