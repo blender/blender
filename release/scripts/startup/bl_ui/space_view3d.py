@@ -1348,24 +1348,6 @@ class INFO_MT_add(Menu):
             )
 
 
-# Currently unused
-'''
-class VIEW3D_MT_undo_redo(Menu):
-    bl_label = "Undo/Redo"
-    _operator_name = ""
-
-    def draw(self, context):
-        layout = self.layout
-
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-
-        layout.separator()
-
-        layout.operator("ed.undo_history")
-'''
-
-
 class VIEW3D_MT_object_relations(Menu):
     bl_label = "Relations"
 
@@ -3914,7 +3896,6 @@ classes = (
     INFO_MT_lightprobe_add,
     INFO_MT_camera_add,
     INFO_MT_add,
-    # VIEW3D_MT_undo_redo,
     VIEW3D_MT_object_relations,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,

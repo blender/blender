@@ -431,10 +431,6 @@ class SEQUENCER_MT_strip(Menu):
 
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("ed.undo")
-        layout.operator("ed.redo")
-        layout.operator("ed.undo_history")
-
         layout.separator()
         layout.menu("SEQUENCER_MT_strip_transform")
         layout.operator("sequencer.snap")

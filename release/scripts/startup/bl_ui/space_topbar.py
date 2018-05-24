@@ -400,6 +400,7 @@ class INFO_MT_editor_menus(Menu):
     @staticmethod
     def draw_menus(layout, context):
         layout.menu("INFO_MT_file")
+        layout.menu("INFO_MT_edit")
 
         layout.menu("INFO_MT_window")
         layout.menu("INFO_MT_help")
@@ -430,8 +431,6 @@ class INFO_MT_file(Menu):
         layout.operator("wm.save_as_mainfile", text="Save Copy...", icon='SAVE_COPY').copy = True
 
         layout.separator()
-
-        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
 
         layout.operator_context = 'INVOKE_AREA'
         layout.operator("wm.save_homefile", icon='SAVE_PREFS')
@@ -560,6 +559,29 @@ class INFO_MT_opengl_render(Menu):
         layout.prop_menu_enum(rd, "alpha_mode")
 
 
+class INFO_MT_edit(Menu):
+    bl_label = "Edit"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("ed.undo")
+        layout.operator("ed.redo")
+
+        layout.separator()
+
+        layout.operator("ed.undo_history")
+
+        layout.separator()
+
+        layout.operator("view3d.copybuffer", text="Copy Objects", icon='COPYDOWN')
+        layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
+
+        layout.separator()
+
+        layout.operator("screen.userpref_show", text="User Preferences...", icon='PREFERENCES')
+
+
 class INFO_MT_window(Menu):
     bl_label = "Window"
 
@@ -640,6 +662,7 @@ classes = (
     INFO_MT_file_export,
     INFO_MT_file_external_data,
     INFO_MT_file_previews,
+    INFO_MT_edit,
     INFO_MT_game,
     INFO_MT_opengl_render,
     INFO_MT_window,
