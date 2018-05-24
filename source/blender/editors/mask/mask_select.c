@@ -481,7 +481,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	WM_operator_properties_gesture_border_select(ot);
 }
 
-static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, short select)
+static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves, bool select, bool extend)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -514,6 +514,10 @@ static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves
 				/* TODO: handles? */
 				/* TODO: uw? */
 
+				if (MASKPOINT_ISSEL_ANY(point) && select && extend) {
+					continue;
+				}
+
 				float screen_co[2];
 
 				/* point in screen coords */
@@ -526,9 +530,13 @@ static bool do_lasso_select_mask(bContext *C, const int mcords[][2], short moves
 				{
 					BKE_mask_point_select_set(point, select);
 					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, select);
+					changed = true;
 				}
-
-				changed = true;
+				else if (select && !extend) {
+					BKE_mask_point_select_set(point, false);
+					BKE_mask_point_select_set_handle(point, MASK_WHICH_HANDLE_BOTH, false);
+					changed = true;
+				}
 			}
 		}
 	}
@@ -548,10 +556,9 @@ static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 	const int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
 	if (mcords) {
-		short select;
-
-		select = !RNA_boolean_get(op->ptr, "deselect");
-		do_lasso_select_mask(C, mcords, mcords_tot, select);
+		const bool select = !RNA_boolean_get(op->ptr, "deselect");
+		const bool extend = RNA_boolean_get(op->ptr, "extend");
+		do_lasso_select_mask(C, mcords, mcords_tot, select, extend);
 
 		MEM_freeN((void *)mcords);
 
