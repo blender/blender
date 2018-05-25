@@ -2867,7 +2867,7 @@ static void direct_link_cachefile(FileData *fd, CacheFile *cache_file)
 
 static void lib_link_workspace_scene_data(FileData *fd, WorkSpace *workspace)
 {
-	for (WorkSpaceSceneRelation *relation = workspace->scene_relations.first;
+	for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first;
 		 relation != NULL;
 		 relation = relation->next)
 	{
@@ -2917,7 +2917,7 @@ static void direct_link_workspace(FileData *fd, WorkSpace *workspace, const Main
 {
 	link_list(fd, BKE_workspace_layouts_get(workspace));
 	link_list(fd, &workspace->hook_layout_relations);
-	link_list(fd, &workspace->scene_relations);
+	link_list(fd, &workspace->scene_layer_relations);
 	link_list(fd, &workspace->owner_ids);
 	link_list(fd, &workspace->tools);
 
@@ -7133,7 +7133,7 @@ static void lib_link_clipboard_restore(struct IDNameLib_Map *id_map)
 
 static void lib_link_workspace_scene_data_restore(struct IDNameLib_Map *id_map, WorkSpace *workspace)
 {
-	for (WorkSpaceSceneRelation *relation = workspace->scene_relations.first;
+	for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first;
 		 relation != NULL;
 		 relation = relation->next)
 	{

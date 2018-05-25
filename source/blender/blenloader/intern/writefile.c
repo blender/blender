@@ -3602,7 +3602,7 @@ static void write_workspace(WriteData *wd, WorkSpace *workspace)
 	writestruct(wd, ID_WS, WorkSpace, 1, workspace);
 	writelist(wd, DATA, WorkSpaceLayout, layouts);
 	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->hook_layout_relations);
-	writelist(wd, DATA, WorkSpaceDataRelation, &workspace->scene_relations);
+	writelist(wd, DATA, WorkSpaceSceneRelation, &workspace->scene_layer_relations);
 	writelist(wd, DATA, wmOwnerID, &workspace->owner_ids);
 	writelist(wd, DATA, bToolRef, &workspace->tools);
 	for (bToolRef *tref = workspace->tools.first; tref; tref = tref->next) {

@@ -126,7 +126,7 @@ typedef struct WorkSpace {
 	/* Store for each hook (so for each window) which layout has
 	 * been activated the last time this workspace was visible. */
 	ListBase hook_layout_relations DNA_PRIVATE_WORKSPACE_READ_WRITE; /* WorkSpaceDataRelation */
-	ListBase scene_relations; /* WorkSpaceSceneRelation */
+	ListBase scene_layer_relations; /* WorkSpaceSceneRelation */
 
 	/* Feature tagging (use for addons) */
 	ListBase owner_ids DNA_PRIVATE_WORKSPACE_READ_WRITE; /* wmOwnerID */

@@ -157,7 +157,7 @@ WorkSpace *BKE_workspace_add(Main *bmain, const char *name)
 void BKE_workspace_free(WorkSpace *workspace)
 {
 	BKE_workspace_relations_free(&workspace->hook_layout_relations);
-	BLI_freelistN(&workspace->scene_relations);
+	BLI_freelistN(&workspace->scene_layer_relations);
 
 	BLI_freelistN(&workspace->owner_ids);
 	BLI_freelistN(&workspace->layouts);
@@ -261,14 +261,14 @@ void BKE_workspace_relations_free(
 void BKE_workspace_scene_relations_free_invalid(
         WorkSpace *workspace)
 {
-	for (WorkSpaceSceneRelation *relation = workspace->scene_relations.first, *relation_next; relation; relation = relation_next) {
+	for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first, *relation_next; relation; relation = relation_next) {
 		relation_next = relation->next;
 
 		if (relation->scene == NULL) {
-			BLI_freelinkN(&workspace->scene_relations, relation);
+			BLI_freelinkN(&workspace->scene_layer_relations, relation);
 		}
 		else if (!BLI_findstring(&relation->scene->view_layers, relation->view_layer, offsetof(ViewLayer, name))) {
-			BLI_freelinkN(&workspace->scene_relations, relation);
+			BLI_freelinkN(&workspace->scene_layer_relations, relation);
 		}
 	}
 }
@@ -283,7 +283,7 @@ void BKE_workspace_view_layer_rename(
         const char *new_name)
 {
 	for (WorkSpace *workspace = bmain->workspaces.first; workspace; workspace = workspace->id.next) {
-		for (WorkSpaceSceneRelation *relation = workspace->scene_relations.first; relation; relation = relation->next) {
+		for (WorkSpaceSceneRelation *relation = workspace->scene_layer_relations.first; relation; relation = relation->next) {
 			if (relation->scene == scene && STREQ(relation->view_layer, old_name)) {
 				STRNCPY(relation->view_layer, new_name);
 			}
@@ -428,7 +428,7 @@ Base *BKE_workspace_active_base_get(const WorkSpace *workspace, const Scene *sce
 
 ViewLayer *BKE_workspace_view_layer_exists(const WorkSpace *workspace, const Scene *scene)
 {
-	WorkSpaceSceneRelation *relation = BLI_findptr(&workspace->scene_relations, scene, offsetof(WorkSpaceSceneRelation, scene));
+	WorkSpaceSceneRelation *relation = BLI_findptr(&workspace->scene_layer_relations, scene, offsetof(WorkSpaceSceneRelation, scene));
 	return (relation) ? BLI_findstring(&scene->view_layers, relation->view_layer, offsetof(ViewLayer, name)) : NULL;
 }
 
@@ -446,18 +446,18 @@ ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace, const Scene 
 
 void BKE_workspace_view_layer_set(WorkSpace *workspace, ViewLayer *layer, Scene *scene)
 {
-	WorkSpaceSceneRelation *relation = BLI_findptr(&workspace->scene_relations, scene, offsetof(WorkSpaceSceneRelation, scene));
+	WorkSpaceSceneRelation *relation = BLI_findptr(&workspace->scene_layer_relations, scene, offsetof(WorkSpaceSceneRelation, scene));
 	if (relation == NULL) {
 		relation = MEM_callocN(sizeof(*relation), __func__);
 	}
 	else {
-		BLI_remlink(&workspace->scene_relations, relation);
+		BLI_remlink(&workspace->scene_layer_relations, relation);
 	}
 
 	/* (Re)insert at the head of the list, for faster lookups. */
 	relation->scene = scene;
 	STRNCPY(relation->view_layer, layer->name);
-	BLI_addhead(&workspace->scene_relations, relation);
+	BLI_addhead(&workspace->scene_layer_relations, relation);
 }
 
 ListBase *BKE_workspace_layouts_get(WorkSpace *workspace)
