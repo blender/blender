@@ -257,25 +257,6 @@ uiPopupBlockHandle *ui_popover_panel_create(
  * \{ */
 
 
-void UI_popover_panel_from_type(bContext *C, uiLayout *layout, PanelType *pt)
-{
-	/* TODO: move into UI_paneltype_draw */
-	Panel *panel = MEM_callocN(sizeof(Panel), "popover panel");
-	panel->type = pt;
-
-
-	if (pt->draw_header) {
-		panel->layout = uiLayoutRow(layout, false);
-		pt->draw_header(C, panel);
-		panel->layout = NULL;
-	}
-
-	panel->layout = layout;
-	pt->draw(C, panel);
-	panel->layout = NULL;
-
-	MEM_freeN(panel);
-}
 
 int UI_popover_panel_invoke(
         bContext *C, int space_id, int region_id, const char *idname,
@@ -296,13 +277,12 @@ int UI_popover_panel_invoke(
 		return (OPERATOR_CANCELLED | OPERATOR_PASS_THROUGH);
 	}
 
-	uiPopover *pup = UI_popover_begin(C);
-
-	layout = UI_popover_layout(pup);
-
-	UI_popover_panel_from_type(C, layout, pt);
-
-	UI_popover_end(C, pup, NULL);
+	{
+		uiPopover *pup = UI_popover_begin(C);
+		layout = UI_popover_layout(pup);
+		UI_paneltype_draw(C, pt, layout);
+		UI_popover_end(C, pup, NULL);
+	}
 
 	return OPERATOR_INTERFACE;
 }

@@ -429,8 +429,6 @@ void UI_popup_menu_but_set(uiPopupMenu *pup, struct ARegion *butregion, uiBut *b
 
 typedef struct uiPopover uiPopover;
 
-void UI_popover_panel_from_type(
-        struct bContext *C, struct uiLayout *layout, struct PanelType *pt);
 int UI_popover_panel_invoke(
         struct bContext *C, int space_id, int region_id, const char *idname,
         struct ReportList *reports);
@@ -949,6 +947,7 @@ const char *uiLayoutIntrospect(uiLayout *layout); // XXX - testing
 struct MenuType *UI_but_menutype_get(uiBut *but);
 struct PanelType *UI_but_paneltype_get(uiBut *but);
 void UI_menutype_draw(struct bContext *C, struct MenuType *mt, struct uiLayout *layout);
+void UI_paneltype_draw(struct bContext *C, struct PanelType *pt, struct uiLayout *layout);
 
 /* Only for convenience. */
 void uiLayoutSetContextFromBut(uiLayout *layout, uiBut *but);
