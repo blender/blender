@@ -976,17 +976,17 @@ static int edit_driver_button_exec(bContext *C, wmOperator *op)
 	PropertyRNA *prop = NULL;
 	int index;
 	const bool all = 0; // RNA_boolean_get(op->ptr, "all");
-	
+
 	/* try to find driver using property retrieved from UI */
 	UI_context_active_but_prop_get(C, &ptr, &prop, &index);
-	
+
 	if (all)
 		index = -1;
-	
+
 	if (ptr.id.data && ptr.data && prop) {
-		UI_popover_panel_invoke(C, SPACE_IPO, RGN_TYPE_UI, "GRAPH_PT_drivers_popover", op->reports);
+		UI_popover_panel_invoke(C, SPACE_IPO, RGN_TYPE_UI, "GRAPH_PT_drivers_popover", true, op->reports);
 	}
-	
+
 	return OPERATOR_INTERFACE;
 }
 

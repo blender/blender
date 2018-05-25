@@ -431,7 +431,7 @@ typedef struct uiPopover uiPopover;
 
 int UI_popover_panel_invoke(
         struct bContext *C, int space_id, int region_id, const char *idname,
-        struct ReportList *reports);
+        bool keep_open, struct ReportList *reports);
 
 uiPopover *UI_popover_begin(struct bContext *C) ATTR_NONNULL(1);
 void UI_popover_end(struct bContext *C, struct uiPopover *head, struct wmKeyMap *keymap);
