@@ -3919,7 +3919,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	                         depsgraph,
 	                         data->camera ? data->camera : scene->camera);
 
-	float ctime = BKE_scene_frame_get(scene);
+	float ctime = DEG_get_ctime(depsgraph);;
 	float framenr;
 
 	if (data->flag & FOLLOWTRACK_ACTIVECLIP)
@@ -4156,6 +4156,7 @@ static void camerasolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 
 static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
+	Depsgraph *depsgraph = cob->depsgraph;
 	Scene *scene = cob->scene;
 	bCameraSolverConstraint *data = con->data;
 	MovieClip *clip = data->clip;
@@ -4167,7 +4168,7 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 		float mat[4][4], obmat[4][4];
 		MovieTracking *tracking = &clip->tracking;
 		MovieTrackingObject *object = BKE_tracking_object_get_camera(tracking);
-		float ctime = BKE_scene_frame_get(scene);
+		float ctime = DEG_get_ctime(depsgraph);
 		float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
 		BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
@@ -4214,6 +4215,7 @@ static void objectsolver_id_looper(bConstraint *con, ConstraintIDFunc func, void
 
 static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
+	Depsgraph *depsgraph = cob->depsgraph;
 	Scene *scene = cob->scene;
 	bObjectSolverConstraint *data = con->data;
 	MovieClip *clip = data->clip;
@@ -4233,7 +4235,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
-			float ctime = BKE_scene_frame_get(scene);
+			float ctime = DEG_get_ctime(depsgraph);
 			float framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, ctime);
 
 			BKE_object_where_is_calc_mat4(scene, camob, cammat);
@@ -4288,7 +4290,7 @@ static void transformcache_evaluate(bConstraint *con, bConstraintOb *cob, ListBa
 		return;
 	}
 
-	const float frame = BKE_scene_frame_get(scene);
+	const float frame = DEG_get_ctime(cob->depsgraph);
 	const float time = BKE_cachefile_time_offset(cache_file, frame, FPS);
 
 	BKE_cachefile_ensure_handle(G.main, cache_file);
