@@ -525,6 +525,25 @@ static void graph_region_message_subscribe(
 			WM_msg_subscribe_rna(mbus, &idptr, props[i], &msg_sub_value_region_tag_redraw, __func__);
 		}
 	}
+	
+	/* All dopesheet filter settings, etc. affect the drawing of this editor,
+	 * so just whitelist the entire struct for updates
+	 */
+	{
+		wmMsgParams_RNA msg_key_params = {{{0}}};
+		StructRNA *type_array[] = {
+			&RNA_DopeSheet,
+		};
+
+		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
+			msg_key_params.ptr.type = type_array[i];
+			WM_msg_subscribe_rna_params(
+			        mbus,
+			        &msg_key_params,
+			        &msg_sub_value_region_tag_redraw,
+			        __func__);
+		}
+	}
 }
 
 /* editor level listener */
@@ -810,6 +829,7 @@ void ED_spacetype_ipo(void)
 	art->prefsizex = 200 + V2D_SCROLL_WIDTH; /* 200 is the 'standard', but due to scrollers, we want a bit more to fit the lock icons in */
 	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES;
 	art->listener = graph_region_listener;
+	art->message_subscribe = graph_region_message_subscribe;
 	art->init = graph_channel_region_init;
 	art->draw = graph_channel_region_draw;
 	
