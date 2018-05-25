@@ -10,6 +10,9 @@ if not "%BLENDER_DIR%"=="%BLENDER_DIR_NOSPACES%" (
 	echo There are spaces detected in the build path "%BLENDER_DIR%", this is currently not supported, exiting....
 	goto EOF
 )
+REM Locate the 32 bit program files folder, %ProgramFiles(x86)% doesn't exist on x86
+set ProgramFilesX86=%ProgramFiles(x86)%
+if not exist "%ProgramFilesX86%" set ProgramFilesX86=%ProgramFiles%
 set BUILD_DIR=%BLENDER_DIR%..\build_windows
 set BUILD_TYPE=Release
 rem reset all variables so they do not get accidentally get carried over from previous builds
@@ -29,6 +32,7 @@ set NOBUILD=
 set TARGET=
 set WINDOWS_ARCH=
 set TESTS_CMAKE_ARGS=
+set VSWHERE_ARGS=
 :argv_loop
 if NOT "%1" == "" (
 
@@ -79,6 +83,11 @@ if NOT "%1" == "" (
 		set BUILD_VS_VER=15
 		set BUILD_VS_YEAR=2017
 		set BUILD_VS_LIBDIRPOST=vc14
+	) else if "%1" == "2017pre" (
+		set BUILD_VS_VER=15
+		set BUILD_VS_YEAR=2017
+		set BUILD_VS_LIBDIRPOST=vc14
+		set VSWHERE_ARGS=-prerelease
 	) else if "%1" == "2015" (
 		set BUILD_VS_VER=14
 		set BUILD_VS_YEAR=2015
@@ -157,6 +166,7 @@ if "%target%"=="Release" (
 	-C"%BLENDER_DIR%\build_files\cmake\config\blender_release.cmake"
 )
 
+if "%BUILD_VS_VER%"=="15" goto DetectMSVC2017
 :DetectMSVC
 REM Detect MSVC Installation for 2013-2015
 if DEFINED VisualStudioVersion goto msvc_detect_finally
@@ -169,37 +179,61 @@ REM Check 32 bits
 set KEY_NAME="HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\%BUILD_VS_VER%.0\Setup\VC"
 for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY %KEY_NAME% /v %VALUE_NAME% 2^>nul`) DO set MSVC_VC_DIR=%%C
 if DEFINED MSVC_VC_DIR goto msvc_detect_finally
+goto sanity_checks
 :msvc_detect_finally
 if DEFINED MSVC_VC_DIR call "%MSVC_VC_DIR%\vcvarsall.bat"
 if DEFINED MSVC_VC_DIR goto sanity_checks
-
+:DetectMSVC2017
 rem MSVC Build environment 2017 and up.
-for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SXS\VS7" /v %BUILD_VS_VER%.0 2^>nul`) DO set MSVC_VS_DIR=%%C
-if DEFINED MSVC_VS_DIR goto msvc_detect_finally_2017
-REM Check 32 bits
-for /F "usebackq skip=2 tokens=1-2*" %%A IN (`REG QUERY "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\VisualStudio\sxs\vs7" /v %BUILD_VS_VER%.0 2^>nul`) DO set MSVC_VS_DIR=%%C
-if DEFINED MSVC_VS_DIR goto msvc_detect_finally_2017
-:msvc_detect_finally_2017
-if DEFINED MSVC_VS_DIR call "%MSVC_VS_DIR%\Common7\Tools\VsDevCmd.bat"
+set vs_where=%ProgramFilesX86%\Microsoft Visual Studio\Installer\vswhere.exe
+if not exist "%vs_where%" (
+	echo Visual Studio 2017 ^(15.2 or newer^) is not detected
+	echo Exiting..
+	goto eof
+)
+for /f "usebackq tokens=1* delims=: " %%i in (`"%vs_where%" -latest %VSWHERE_ARGS% -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64`) do (
+	if /i "%%i"=="installationPath" set VS_InstallDir=%%j
+)
+
+if "%VS_InstallDir%"=="" (
+	echo Visual Studio is detected but the "Desktop development with C++" workload has not been instlled
+	echo exiting..
+	goto eof
+)
+
+set vcvars=%VS_InstallDir%\VC\Auxiliary\Build\vcvarsall.bat
+if exist "%vcvars%" call "%vcvars%" %BUILD_ARCH%
 
 :sanity_checks
 REM Sanity Checks
 where /Q msbuild
-if %ERRORLEVEL% NEQ 0 (
-	if "%BUILD_VS_VER%"=="12" (
-		rem vs12 not found, try vs14
-		echo Visual Studio 2013 not found, trying Visual Studio 2015.
-		set BUILD_VS_VER=14
-		set BUILD_VS_YEAR=2015
+if %ERRORLEVEL% EQU 0 goto DetectionComplete
+if "%BUILD_VS_VER%"=="12" (
+	rem vs12 not found, try vs14
+	echo Visual Studio 2013 not found, trying Visual Studio 2015.
+	set BUILD_VS_VER=14
+	set BUILD_VS_YEAR=2015
+	set BUILD_VS_LIBDIRPOST=vc14
+	goto DetectMSVC
+)
+else
+(
+	if "%BUILD_VS_VER%"=="14" (
+		rem vs14 not found, try vs15
+		echo Visual Studio 2015 not found, trying Visual Studio 2017.
+		set BUILD_VS_VER=15
+		set BUILD_VS_YEAR=2017
 		set BUILD_VS_LIBDIRPOST=vc14
-		goto DetectMSVC
-	) else (
+		goto DetectMSVC2017
+	) else 
+	(
 		echo Error: "MSBuild" command not in the PATH.
 		echo You must have MSVC installed and run this from the "Developer Command Prompt"
 		echo ^(available from Visual Studio's Start menu entry^), aborting!
 		goto EOF
 	)
 )
+:DetectionComplete
 
 
 set BUILD_DIR=%BUILD_DIR%_%TARGET%%BUILD_NGE%_%BUILD_ARCH%_vc%BUILD_VS_VER%_%BUILD_TYPE%
@@ -357,6 +391,7 @@ goto EOF
 	echo - 2013 ^(build with visual studio 2013^)
 	echo - 2015 ^(build with visual studio 2015^) [EXPERIMENTAL]
 	echo - 2017 ^(build with visual studio 2017^) [EXPERIMENTAL]
+	echo - 2017pre ^(build with visual studio 2017 pre-release^) [EXPERIMENTAL]
 	echo.
 
 :EOF
