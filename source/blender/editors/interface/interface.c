@@ -4626,6 +4626,9 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 				PointerRNA *opptr = UI_but_operator_ptr_get(but);
 				wmOperatorType *ot = but->optype;
 
+				/* so the context is passed to itemf functions */
+				WM_operator_properties_sanitize(opptr, false);
+
 				/* if the default property of the operator is enum and it is set,
 				 * fetch the tooltip of the selected value so that "Snap" and "Mirror"
 				 * operator menus in the Anim Editors will show tooltips for the different
@@ -4644,9 +4647,6 @@ void UI_but_string_info_get(bContext *C, uiBut *but, ...)
 			if (ptr && prop) {
 				if (!item) {
 					int i;
-
-					/* so the context is passed to itemf functions */
-					WM_operator_properties_sanitize(ptr, false);
 
 					RNA_property_enum_items_gettexted(C, ptr, prop, &items, &totitems, &free_items);
 					for (i = 0, item = items; i < totitems; i++, item++) {
