@@ -2924,7 +2924,7 @@ void ui_but_update_ex(uiBut *but, const bool validate)
 	switch (but->type) {
 
 		case UI_BTYPE_MENU:
-			if (BLI_rctf_size_x(&but->rect) > 24.0f) {
+			if (BLI_rctf_size_x(&but->rect) >= (UI_UNIT_X * 2)) {
 				/* only needed for menus in popup blocks that don't recreate buttons on redraw */
 				if (but->block->flag & UI_BLOCK_LOOP) {
 					if (but->rnaprop && (RNA_property_type(but->rnaprop) == PROP_ENUM)) {
