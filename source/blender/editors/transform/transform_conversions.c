@@ -345,6 +345,43 @@ static void createTransTexspace(TransInfo *t)
 	copy_v3_v3(td->ext->isize, td->ext->size);
 }
 
+static void createTransCursor3D(TransInfo *t)
+{
+	TransData *td;
+
+	Scene *scene = t->scene;
+	View3D *v3d = ((t->spacetype == SPACE_VIEW3D) && (t->ar->regiontype == RGN_TYPE_WINDOW)) ? t->view : NULL;
+	View3DCursor *cursor = ED_view3d_cursor3d_get(scene, v3d);
+
+	if ((cursor == &scene->cursor) && ID_IS_LINKED(scene)) {
+		BKE_report(t->reports, RPT_ERROR, "Linked data can't text-space transform");
+		return;
+	}
+
+	{
+		BLI_assert(t->data_container_len == 1);
+		TransDataContainer *tc = t->data_container;
+		tc->data_len = 1;
+		td = tc->data = MEM_callocN(sizeof(TransData), "TransTexspace");
+		td->ext = tc->data_ext = MEM_callocN(sizeof(TransDataExtension), "TransTexspace");
+	}
+
+	td->flag = TD_SELECTED;
+	copy_v3_v3(td->center, cursor->location);
+	td->ob = NULL;
+
+	unit_m3(td->mtx);
+	quat_to_mat3(td->axismtx, cursor->rotation);
+	normalize_m3(td->axismtx);
+	pseudoinverse_m3_m3(td->smtx, td->mtx, PSEUDOINVERSE_EPSILON);
+
+	td->loc = cursor->location;
+	copy_v3_v3(td->iloc, cursor->location);
+
+	td->ext->quat = cursor->rotation;
+	copy_qt_qt(td->ext->iquat, cursor->rotation);
+}
+
 /* ********************* edge (for crease) ***** */
 
 static void createTransEdge(TransInfo *t)
@@ -6696,6 +6733,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	{
 		/* do nothing */
 	}
+	else if (t->flag & T_CURSOR) {
+		/* do nothing */
+	}
 	else { /* Objects */
 		int i;
 
@@ -8328,7 +8368,14 @@ void createTransData(bContext *C, TransInfo *t)
 	t->data_len_all = -1;
 
 	/* if tests must match recalcData for correct updates */
-	if (t->options & CTX_TEXTURE) {
+	if (t->options & CTX_CURSOR) {
+		t->flag |= T_CURSOR;
+		t->obedit_type = -1;
+
+		createTransCursor3D(t);
+		countAndCleanTransDataContainer(t);
+	}
+	else if (t->options & CTX_TEXTURE) {
 		t->flag |= T_TEXTURE;
 		t->obedit_type = -1;
 

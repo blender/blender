@@ -557,6 +557,8 @@ typedef struct TransInfo {
 #define T_TEXTURE		(1 << 3)
 	/* transforming the camera while in camera view */
 #define T_CAMERA		(1 << 4)
+	/* transforming the 3D cursor. */
+#define T_CURSOR		(1 << 5)
 		 // trans on points, having no rotation/scale
 #define T_POINTS		(1 << 6)
 /**

@@ -550,7 +550,9 @@ static void initSnappingMode(TransInfo *t)
 		{
 			/* In "Edit Strokes" mode, Snap tool can perform snap to selected or active objects (see T49632)
 			 * TODO: perform self snap in gpencil_strokes */
-			t->tsnap.modeSelect = ((t->options & CTX_GPENCIL_STROKES) != 0) ? SNAP_ALL : SNAP_NOT_SELECTED;
+			t->tsnap.modeSelect = (
+			        ((t->options & (CTX_GPENCIL_STROKES | CTX_CURSOR)) != 0) ?
+			        SNAP_ALL : SNAP_NOT_SELECTED);
 		}
 		else {
 			/* Grid if snap is not possible */

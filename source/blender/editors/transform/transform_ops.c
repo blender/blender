@@ -563,6 +563,10 @@ void Transform_Properties(struct wmOperatorType *ot, int flags)
 		RNA_def_boolean(ot->srna, "gpencil_strokes", 0, "Edit Grease Pencil", "Edit selected Grease Pencil strokes");
 	}
 
+	if (flags & P_CURSOR_EDIT) {
+		RNA_def_boolean(ot->srna, "cursor_transform", 0, "Transform Cursor", "");
+	}
+
 	if ((flags & P_OPTIONS) && !(flags & P_NO_TEXSPACE)) {
 		RNA_def_boolean(ot->srna, "texture_space", 0, "Edit Texture Space", "Edit Object data texture space");
 		prop = RNA_def_boolean(ot->srna, "remove_on_cancel", 0, "Remove on Cancel", "Remove elements on cancel");
@@ -609,7 +613,10 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot)
 
 	WM_operatortype_props_advanced_begin(ot);
 
-	Transform_Properties(ot, P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_OPTIONS | P_GPENCIL_EDIT);
+	Transform_Properties(
+	        ot,
+	        P_CONSTRAINT | P_PROPORTIONAL | P_MIRROR | P_ALIGN_SNAP | P_OPTIONS |
+	        P_GPENCIL_EDIT | P_CURSOR_EDIT);
 }
 
 static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
