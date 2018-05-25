@@ -299,7 +299,7 @@ static int image_paint_poll(bContext *C)
 	return image_paint_poll_ex(C, true);
 }
 
-static int image_paint_poll_ignore_tool(bContext *C)
+static int image_paint_ignore_tool_poll(bContext *C)
 {
 	return image_paint_poll_ex(C, false);
 }
@@ -1011,11 +1011,6 @@ static int sample_color_modal(bContext *C, wmOperator *op, const wmEvent *event)
 	return OPERATOR_RUNNING_MODAL;
 }
 
-static int sample_color_poll(bContext *C)
-{
-	return (image_paint_poll_ignore_tool(C) || image_paint_poll_ignore_tool(C));
-}
-
 void PAINT_OT_sample_color(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -1027,7 +1022,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	ot->exec = sample_color_exec;
 	ot->invoke = sample_color_invoke;
 	ot->modal = sample_color_modal;
-	ot->poll = sample_color_poll;
+	ot->poll = image_paint_ignore_tool_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
