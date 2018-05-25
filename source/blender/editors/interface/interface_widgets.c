@@ -4755,7 +4755,7 @@ void ui_draw_popover_back(ARegion *ar, uiStyle *UNUSED(style), uiBlock *block, r
 	if (block) {
 		float mval_origin[2] = {block->mx, block->my};
 		ui_window_to_block_fl(ar, block, &mval_origin[0], &mval_origin[1]);
-		ui_draw_popover_back_impl(&wcol_menu_back, rect, block->direction, mval_origin);
+		ui_draw_popover_back_impl(wt->wcol_theme, rect, block->direction, mval_origin);
 	}
 	else {
 		wt->state(wt, 0);
