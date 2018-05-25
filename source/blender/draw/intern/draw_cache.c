@@ -1169,18 +1169,18 @@ Gwn_Batch *DRW_cache_lamp_area_disk_get(void)
 		}
 
 		Gwn_VertBuf *vbo = GWN_vertbuf_create_with_format(&format);
-		GWN_vertbuf_data_alloc(vbo, 2*NSEGMENTS);
+		GWN_vertbuf_data_alloc(vbo, 2 * NSEGMENTS);
 
 		float v[3] = {0.0f, 0.5f, 0.0f};
 		GWN_vertbuf_attr_set(vbo, attr_id.pos, 0, v);
 		for (int a = 1; a < NSEGMENTS; a++) {
-			v[0] = 0.5f*sinf(2.f * (float)M_PI * a / NSEGMENTS);
-			v[1] = 0.5f*cosf(2.f * (float)M_PI * a / NSEGMENTS);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2*a-1, v);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2*a, v);
+			v[0] = 0.5f * sinf(2.0f * (float)M_PI * a / NSEGMENTS);
+			v[1] = 0.5f * cosf(2.0f * (float)M_PI * a / NSEGMENTS);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * a - 1, v);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos, 2 * a, v);
 		}
 		copy_v3_fl3(v, 0.0f, 0.5f, 0.0f);
-		GWN_vertbuf_attr_set(vbo, attr_id.pos, 2*NSEGMENTS-1, v);
+		GWN_vertbuf_attr_set(vbo, attr_id.pos, (2 * NSEGMENTS) - 1, v);
 
 		SHC.drw_lamp_area_disk = GWN_batch_create_ex(GWN_PRIM_LINES, vbo, NULL, GWN_BATCH_OWNS_VBO);
 	}

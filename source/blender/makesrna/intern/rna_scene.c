@@ -175,11 +175,10 @@ const EnumPropertyItem rna_enum_snap_element_items[] = {
 };
 
 const EnumPropertyItem rna_enum_snap_node_element_items[] = {
-	{SCE_SNAP_MODE_GRID  , "GRID"   , ICON_SNAP_GRID, "Grid", "Snap to grid"},
-	{SCE_SNAP_MODE_NODE_X, "NODE_X" , ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
-	{SCE_SNAP_MODE_NODE_Y, "NODE_Y" , ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
-	{SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y,
-	                       "NODE_XY", ICON_SNAP_EDGE, "Node X / Y", "Snap to any node border"},
+	{SCE_SNAP_MODE_GRID,   "GRID",    ICON_SNAP_GRID, "Grid", "Snap to grid"},
+	{SCE_SNAP_MODE_NODE_X, "NODE_X",  ICON_SNAP_EDGE, "Node X", "Snap to left/right node border"},
+	{SCE_SNAP_MODE_NODE_Y, "NODE_Y",  ICON_SNAP_EDGE, "Node Y", "Snap to top/bottom node border"},
+	{SCE_SNAP_MODE_NODE_X | SCE_SNAP_MODE_NODE_Y, "NODE_XY", ICON_SNAP_EDGE, "Node X / Y", "Snap to any node border"},
 	{0, NULL, 0, NULL, NULL}
 };
 

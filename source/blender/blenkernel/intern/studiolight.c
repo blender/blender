@@ -109,7 +109,11 @@ static void studiolight_calculate_radiance(ImBuf *ibuf, float color[4], const fl
 	nearest_interpolation_color_wrap(ibuf, NULL, color, uv[0] * ibuf->x, uv[1] * ibuf->y);
 }
 
-static void studiolight_calculate_radiance_buffer(ImBuf *ibuf, float *colbuf, const float start_x, const float add_x, const float start_y, const float add_y, const float z, const int index_x, const int index_y, const int index_z)
+static void studiolight_calculate_radiance_buffer(
+        ImBuf *ibuf, float *colbuf,
+        const float start_x, const float add_x,
+        const float start_y, const float add_y, const float z,
+        const int index_x, const int index_y, const int index_z)
 {
 	float direction[3];
 	float yf = start_y;
@@ -132,37 +136,43 @@ static void studiolight_calculate_radiance_buffer(ImBuf *ibuf, float *colbuf, co
 static void studiolight_calculate_radiance_buffers(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
-		ImBuf* ibuf = NULL;
+		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path, 0, NULL);
 		if (ibuf) {
 			IMB_float_from_rect(ibuf);
-			float *colbuf = MEM_mallocN(4*STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE*STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE*sizeof(float), __func__);
+			float *colbuf = MEM_mallocN(SQUARE(STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) * sizeof(float[4]), __func__);
 			const float add = 1.0f / (STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE + 1);
 			const float start = ((1.0f / STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) * 0.5f) - 0.5f;
 
 			/* front */
 			studiolight_calculate_radiance_buffer(ibuf, colbuf, start, add, start, add, 0.5f, 0, 2, 1);
-			sl->radiance_buffers[STUDIOLIGHT_Y_POS] = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+			sl->radiance_buffers[STUDIOLIGHT_Y_POS] = IMB_allocFromBuffer(
+			        NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 			/* back */
 			studiolight_calculate_radiance_buffer(ibuf, colbuf, -start, -add, start, add, -0.5f, 0, 2, 1);
-			sl->radiance_buffers[STUDIOLIGHT_Y_NEG] = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+			sl->radiance_buffers[STUDIOLIGHT_Y_NEG] = IMB_allocFromBuffer(
+			        NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 			/* left */
 			studiolight_calculate_radiance_buffer(ibuf, colbuf, -start, -add, start, add, 0.5f, 1, 2, 0);
-			sl->radiance_buffers[STUDIOLIGHT_X_POS] = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+			sl->radiance_buffers[STUDIOLIGHT_X_POS] = IMB_allocFromBuffer(
+			        NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 			/* right */
 			studiolight_calculate_radiance_buffer(ibuf, colbuf, start, add, start, add, -0.5f, 1, 2, 0);
-			sl->radiance_buffers[STUDIOLIGHT_X_NEG] = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+			sl->radiance_buffers[STUDIOLIGHT_X_NEG] = IMB_allocFromBuffer(
+			        NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 			/* top */
 			studiolight_calculate_radiance_buffer(ibuf, colbuf, start, add, start, add, -0.5f, 0, 1, 2);
-			sl->radiance_buffers[STUDIOLIGHT_Z_NEG] = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+			sl->radiance_buffers[STUDIOLIGHT_Z_NEG] = IMB_allocFromBuffer(
+			        NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 			/* bottom */
 			studiolight_calculate_radiance_buffer(ibuf, colbuf, start, add, -start, -add, 0.5f, 0, 1, 2);
-			sl->radiance_buffers[STUDIOLIGHT_Z_POS] = IMB_allocFromBuffer(NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
+			sl->radiance_buffers[STUDIOLIGHT_Z_POS] = IMB_allocFromBuffer(
+			        NULL, colbuf, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE, STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE);
 
 #if 0
 			IMB_saveiff(sl->radiance_buffers[STUDIOLIGHT_X_POS], "/tmp/studiolight_radiance_left.png", IB_rectfloat);

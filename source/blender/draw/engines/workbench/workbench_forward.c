@@ -378,7 +378,7 @@ void workbench_forward_cache_init(WORKBENCH_Data *UNUSED(vedata))
 
 static void workbench_forward_cache_populate_particles(WORKBENCH_Data *vedata, Object *ob)
 {
-	#ifdef WORKBENCH_REVEALAGE_ENABLED
+#ifdef WORKBENCH_REVEALAGE_ENABLED
 	WORKBENCH_StorageList *stl = vedata->stl;
 	WORKBENCH_PrivateData *wpd = stl->g_data;
 #endif

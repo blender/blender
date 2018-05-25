@@ -174,26 +174,26 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 		memset(e_data.prepass_sh_cache,   0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		memset(e_data.composite_sh_cache, 0x00, sizeof(struct GPUShader *) * MAX_SHADERS);
 		e_data.next_object_id = 1;
-		#ifdef DEBUG_SHADOW_VOLUME
-				const char *shadow_frag = datatoc_workbench_shadow_debug_frag_glsl;
-		#else
-				const char *shadow_frag = NULL;
-		#endif
-				e_data.shadow_pass_sh = DRW_shader_create(
-				        datatoc_workbench_shadow_vert_glsl,
-				        datatoc_workbench_shadow_geom_glsl,
-				        shadow_frag,
-				        "#define SHADOW_PASS\n");
-				e_data.shadow_fail_sh = DRW_shader_create(
-				        datatoc_workbench_shadow_vert_glsl,
-				        datatoc_workbench_shadow_geom_glsl,
-				        shadow_frag,
-				        "#define SHADOW_FAIL\n");
-				e_data.shadow_caps_sh = DRW_shader_create(
-				        datatoc_workbench_shadow_vert_glsl,
-				        datatoc_workbench_shadow_caps_geom_glsl,
-				        shadow_frag,
-				        NULL);
+#ifdef DEBUG_SHADOW_VOLUME
+		const char *shadow_frag = datatoc_workbench_shadow_debug_frag_glsl;
+#else
+		const char *shadow_frag = NULL;
+#endif
+		e_data.shadow_pass_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_PASS\n");
+		e_data.shadow_fail_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_geom_glsl,
+		        shadow_frag,
+		        "#define SHADOW_FAIL\n");
+		e_data.shadow_caps_sh = DRW_shader_create(
+		        datatoc_workbench_shadow_vert_glsl,
+		        datatoc_workbench_shadow_caps_geom_glsl,
+		        shadow_frag,
+		        NULL);
 	}
 
 	if (!stl->g_data) {
@@ -212,7 +212,8 @@ void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
 
 		if (NORMAL_ENCODING_ENABLED()) {
 			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RG16, &draw_engine_workbench_solid);
-		} else {
+		}
+		else {
 			e_data.normal_buffer_tx = DRW_texture_pool_query_2D(size[0], size[1], GPU_RGBA32F, &draw_engine_workbench_solid);
 		}
 
