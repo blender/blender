@@ -598,6 +598,8 @@ static void undomesh_to_editmesh(UndoMesh *um, BMEditMesh *em, Mesh *obmesh)
 	bm->selectmode = um->selectmode;
 	em->ob = ob;
 
+	bm->spacearr_dirty = BM_SPACEARR_DIRTY_ALL;
+
 	/* T35170: Restore the active key on the RealMesh. Otherwise 'fake' offset propagation happens
 	 *         if the active is a basis for any other. */
 	if (key && (key->type == KEY_RELATIVE)) {

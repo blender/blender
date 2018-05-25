@@ -89,6 +89,7 @@ enum TfmMode {
 	TFM_VERT_SLIDE,
 	TFM_SEQ_SLIDE,
 	TFM_BONE_ENVELOPE_DIST,
+	TFM_NORMAL_ROTATION,
 };
 
 /* TRANSFORM CONTEXTS */
@@ -152,6 +153,7 @@ int BIF_countTransformOrientation(const struct bContext *C);
 #define P_NO_TEXSPACE   (1 << 11)
 #define P_CENTER        (1 << 12)
 #define P_GPENCIL_EDIT  (1 << 13)
+#define P_CLNOR_INVALIDATE (1 << 14)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 

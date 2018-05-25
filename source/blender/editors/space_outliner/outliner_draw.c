@@ -1006,6 +1006,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						ICON_DRAW(ICON_MOD_DATA_TRANSFER);
 						break;
 					case eModifierType_NormalEdit:
+					case eModifierType_WeightedNormal:
 						ICON_DRAW(ICON_MOD_NORMALEDIT);
 						break;
 					/* Default */

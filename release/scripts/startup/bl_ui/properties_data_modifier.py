@@ -1557,6 +1557,22 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if md.rest_source == 'BIND':
             layout.operator("object.correctivesmooth_bind", text="Unbind" if is_bind else "Bind")
 
+    def WEIGHTED_NORMAL(self, layout, ob, md):
+        layout.label("Weighting Mode:")
+        split = layout.split(align=True)
+        col = split.column(align=True)
+        col.prop(md, "mode", text="")
+        col.prop(md, "weight", text="Weight")
+        col.prop(md, "keep_sharp")
+
+        col = split.column(align=True)
+        row = col.row(align=True)
+        row.prop_search(md, "vertex_group", ob, "vertex_groups", text="")
+        row.active = bool(md.vertex_group)
+        row.prop(md, "invert_vertex_group", text="", icon='ARROW_LEFTRIGHT')
+        col.prop(md, "thresh", text="Threshold")
+        col.prop(md, "face_influence")
+
 
 classes = (
     DATA_PT_modifiers,

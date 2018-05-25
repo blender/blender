@@ -1297,6 +1297,26 @@ class VIEW3D_PT_tools_particlemode(View3DPanel, Panel):
             sub.prop(pe, "fade_frames", slider=True)
 
 
+class VIEW3D_PT_tools_normal(View3DPanel, Panel):
+    bl_category = ""
+    bl_context = ".mesh_edit"
+    bl_label = "Normal Tools"
+
+    def draw(self, context):
+        layout = self.layout
+        toolsettings = context.tool_settings
+
+        col = layout.column(align=True)
+        col.label(text="Normal Vector")
+        col.prop(toolsettings, "normal_vector", text="")
+
+        layout.separator()
+        layout.label(text="Face Strength")
+        layout.prop(toolsettings, "face_strength", text="")
+
+        col = layout.column(align=True)
+
+
 # Grease Pencil drawing tools
 class VIEW3D_PT_tools_grease_pencil_draw(GreasePencilDrawingToolsPanel, Panel):
     bl_space_type = 'VIEW_3D'
@@ -1361,6 +1381,7 @@ classes = (
     VIEW3D_PT_tools_grease_pencil_sculpt,
     VIEW3D_PT_tools_grease_pencil_brush,
     VIEW3D_PT_tools_grease_pencil_brushcurves,
+    VIEW3D_PT_tools_normal,
 )
 
 if __name__ == "__main__":  # only for live edit.

@@ -244,6 +244,7 @@ typedef enum {
 	BMO_OPTYPE_FLAG_NORMALS_CALC        = (1 << 1),
 	BMO_OPTYPE_FLAG_SELECT_FLUSH        = (1 << 2),
 	BMO_OPTYPE_FLAG_SELECT_VALIDATE     = (1 << 3),
+	BMO_OPTYPE_FLAG_INVALIDATE_CLNOR_ALL = (1 << 4),
 } BMOpTypeFlag;
 
 typedef struct BMOperator {

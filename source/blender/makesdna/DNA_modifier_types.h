@@ -89,6 +89,7 @@ typedef enum ModifierType {
 	eModifierType_CorrectiveSmooth  = 51,
 	eModifierType_MeshSequenceCache = 52,
 	eModifierType_SurfaceDeform     = 53,
+	eModifierType_WeightedNormal	= 54,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1636,6 +1637,32 @@ enum {
 	MOD_SDEF_MODE_LOOPTRI = 0,
 	MOD_SDEF_MODE_NGON = 1,
 	MOD_SDEF_MODE_CENTROID = 2,
+};
+
+typedef struct WeightedNormalModifierData {
+	ModifierData modifier;
+
+	char defgrp_name[64];  /* MAX_VGROUP_NAME */
+	char mode, flag;
+	short weight;
+	float thresh;
+} WeightedNormalModifierData;
+
+/* Name/id of the generic PROP_INT cdlayer storing face weights. */
+#define MOD_WEIGHTEDNORMALS_FACEWEIGHT_CDLAYER_ID "__mod_weightednormals_faceweight"
+
+/* WeightedNormalModifierData.mode */
+enum {
+	MOD_WEIGHTEDNORMAL_MODE_FACE = 0,
+	MOD_WEIGHTEDNORMAL_MODE_ANGLE = 1,
+	MOD_WEIGHTEDNORMAL_MODE_FACE_ANGLE = 2,
+};
+
+/* WeightedNormalModifierData.flag */
+enum {
+	MOD_WEIGHTEDNORMAL_KEEP_SHARP = (1 << 0),
+	MOD_WEIGHTEDNORMAL_INVERT_VGROUP = (1 << 1),
+	MOD_WEIGHTEDNORMAL_FACE_INFLUENCE = (1 << 2),
 };
 
 #define MOD_MESHSEQ_READ_ALL \
