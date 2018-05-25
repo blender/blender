@@ -49,6 +49,7 @@ extern "C" {
 
 /* special struct for use in constraint evaluation */
 typedef struct bConstraintOb {
+	struct Depsgraph *depsgraph;/* to get evaluated armature. */
 	struct Scene *scene;        /* for system time, part of deglobalization, code nicer later with local time (ton) */
 	struct Object *ob;          /* if pchan, then armature that it comes from, otherwise constraint owner */
 	struct bPoseChannel *pchan; /* pose channel that owns the constraints being evaluated */
@@ -144,7 +145,7 @@ void BKE_constraints_proxylocal_extract(struct ListBase *dst, struct ListBase *s
 bool BKE_constraints_proxylocked_owner(struct Object *ob, struct bPoseChannel *pchan);
 
 /* Constraint Evaluation function prototypes */
-struct bConstraintOb *BKE_constraints_make_evalob(struct Scene *scene, struct Object *ob, void *subdata, short datatype);
+struct bConstraintOb *BKE_constraints_make_evalob(struct Depsgraph *depsgraph, struct Scene *scene, struct Object *ob, void *subdata, short datatype);
 void                  BKE_constraints_clear_evalob(struct bConstraintOb *cob);
 
 void BKE_constraint_mat_convertspace(

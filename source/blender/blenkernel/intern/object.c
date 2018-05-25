@@ -2132,7 +2132,7 @@ void BKE_object_where_is_calc_time_ex(
 	/* solve constraints */
 	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
 		bConstraintOb *cob;
-		cob = BKE_constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		cob = BKE_constraints_make_evalob(depsgraph, scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 		BKE_constraints_solve(depsgraph, &ob->constraints, cob, ctime);
 		BKE_constraints_clear_evalob(cob);
 	}

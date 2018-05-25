@@ -2654,7 +2654,7 @@ static void view3d_from_minmax(
 		}
 
 		if (ok_dist) {
-			new_dist = ED_view3d_radius_to_dist(v3d, ar, persp, true, (size / 2) * VIEW3D_MARGIN);
+			new_dist = ED_view3d_radius_to_dist(v3d, ar, CTX_data_depsgraph(C), persp, true, (size / 2) * VIEW3D_MARGIN);
 			if (rv3d->is_persp) {
 				/* don't zoom closer than the near clipping plane */
 				new_dist = max_ff(new_dist, v3d->near * 1.5f);
@@ -3678,7 +3678,8 @@ static void axis_set_view(
 		dist = rv3d->dist;
 
 		/* so we animate _from_ the camera location */
-		ED_view3d_from_object(v3d->camera, rv3d->ofs, NULL, &rv3d->dist, NULL);
+		Object *camera_eval = DEG_get_evaluated_object(CTX_data_depsgraph(C), v3d->camera);
+		ED_view3d_from_object(camera_eval, rv3d->ofs, NULL, &rv3d->dist, NULL);
 
 		ED_view3d_smooth_view(
 		        C, v3d, ar, smooth_viewtx,

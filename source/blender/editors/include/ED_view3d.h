@@ -106,9 +106,11 @@ void   ED_view3d_cursor3d_update(struct bContext *C, const int mval[2]);
 struct Camera *ED_view3d_camera_data_get(struct View3D *v3d, struct RegionView3D *rv3d);
 
 void ED_view3d_to_m4(float mat[4][4], const float ofs[3], const float quat[4], const float dist);
-void ED_view3d_from_m4(float mat[4][4], float ofs[3], float quat[4], float *dist);
+void ED_view3d_from_m4(const float mat[4][4], float ofs[3], float quat[4], float *dist);
 
-void ED_view3d_from_object(struct Object *ob, float ofs[3], float quat[4], float *dist, float *lens);
+void ED_view3d_from_object(
+        const struct Object *ob,
+        float ofs[3], float quat[4], float *dist, float *lens);
 void ED_view3d_to_object(
         const struct Depsgraph *depsgraph, struct Object *ob,
         const float ofs[3], const float quat[4], const float dist);
@@ -305,6 +307,7 @@ float ED_view3d_radius_to_dist_persp(const float angle, const float radius);
 float ED_view3d_radius_to_dist_ortho(const float lens, const float radius);
 float ED_view3d_radius_to_dist(
         const struct View3D *v3d, const struct ARegion *ar,
+        const struct Depsgraph *depsgraph,
         const char persp, const bool use_aspect,
         const float radius);
 

@@ -81,6 +81,7 @@
 #include "BKE_texture.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "UI_interface.h"
 
@@ -3083,7 +3084,7 @@ static void proj_paint_state_non_cddm_init(ProjPaintState *ps)
 }
 
 static void proj_paint_state_viewport_init(
-        ProjPaintState *ps, const char symmetry_flag)
+        ProjPaintState *ps, const Depsgraph *depsgraph, const char symmetry_flag)
 {
 	float mat[3][3];
 	float viewmat[4][4];
@@ -3144,17 +3145,17 @@ static void proj_paint_state_viewport_init(
 			invert_m4_m4(viewinv, viewmat);
 		}
 		else if (ps->source == PROJ_SRC_IMAGE_CAM) {
-			Object *cam_ob = ps->scene->camera;
+			Object *cam_ob_eval = DEG_get_evaluated_object(depsgraph, ps->scene->camera);
 			CameraParams params;
 
 			/* viewmat & viewinv */
-			copy_m4_m4(viewinv, cam_ob->obmat);
+			copy_m4_m4(viewinv, cam_ob_eval->obmat);
 			normalize_m4(viewinv);
 			invert_m4_m4(viewmat, viewinv);
 
 			/* window matrix, clipping and ortho */
 			BKE_camera_params_init(&params);
-			BKE_camera_params_from_object(&params, cam_ob);
+			BKE_camera_params_from_object(&params, cam_ob_eval);
 			BKE_camera_params_compute_viewplane(&params, ps->winx, ps->winy, 1.0f, 1.0f);
 			BKE_camera_params_compute_matrix(&params);
 
@@ -3858,7 +3859,7 @@ static void project_paint_begin(
 		proj_paint_state_cavity_init(ps);
 	}
 
-	proj_paint_state_viewport_init(ps, symmetry_flag);
+	proj_paint_state_viewport_init(ps, CTX_data_depsgraph(C), symmetry_flag);
 
 	/* calculate vert screen coords
 	 * run this early so we can calculate the x/y resolution of our bucket rect */

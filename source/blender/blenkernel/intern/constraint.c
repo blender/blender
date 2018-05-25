@@ -84,6 +84,9 @@
 
 #include "BIK_api.h"
 
+#include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
+
 #ifdef WITH_PYTHON
 #  include "BPY_extern.h"
 #endif
@@ -116,7 +119,7 @@ void BKE_constraint_unique_name(bConstraint *con, ListBase *list)
 
 /* package an object/bone for use in constraint evaluation */
 /* This function MEM_calloc's a bConstraintOb struct, that will need to be freed after evaluation */
-bConstraintOb *BKE_constraints_make_evalob(Scene *scene, Object *ob, void *subdata, short datatype)
+bConstraintOb *BKE_constraints_make_evalob(Depsgraph *depsgraph, Scene *scene, Object *ob, void *subdata, short datatype)
 {
 	bConstraintOb *cob;
 	
@@ -125,6 +128,7 @@ bConstraintOb *BKE_constraints_make_evalob(Scene *scene, Object *ob, void *subda
 	
 	/* for system time, part of deglobalization, code nicer later with local time (ton) */
 	cob->scene = scene;
+	cob->depsgraph = depsgraph;
 	
 	/* based on type of available data */
 	switch (datatype) {
@@ -3903,20 +3907,25 @@ static void followtrack_id_looper(bConstraint *con, ConstraintIDFunc func, void 
 
 static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
 {
+	Depsgraph *depsgraph = cob->depsgraph;
 	Scene *scene = cob->scene;
 	bFollowTrackConstraint *data = con->data;
 	MovieClip *clip = data->clip;
 	MovieTracking *tracking;
 	MovieTrackingTrack *track;
 	MovieTrackingObject *tracking_object;
-	Object *camob = data->camera ? data->camera : scene->camera;
+
+	Object *camob_eval = DEG_get_evaluated_object(
+	                         depsgraph,
+	                         data->camera ? data->camera : scene->camera);
+
 	float ctime = BKE_scene_frame_get(scene);
 	float framenr;
 
 	if (data->flag & FOLLOWTRACK_ACTIVECLIP)
 		clip = scene->clip;
 
-	if (!clip || !data->track[0] || !camob)
+	if (!clip || !data->track[0] || !camob_eval)
 		return;
 
 	tracking = &clip->tracking;
@@ -3945,7 +3954,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			if ((tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0) {
 				float imat[4][4];
 
-				copy_m4_m4(mat, camob->obmat);
+				copy_m4_m4(mat, camob_eval->obmat);
 
 				BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, imat);
 				invert_m4(imat);
@@ -3954,7 +3963,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 			else {
-				BKE_tracking_get_camera_object_matrix(cob->scene, camob, mat);
+				BKE_tracking_get_camera_object_matrix(cob->scene, camob_eval, mat);
 
 				mul_m4_m4m4(cob->matrix, obmat, mat);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -3966,7 +3975,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 		float aspect = (scene->r.xsch * scene->r.xasp) / (scene->r.ysch * scene->r.yasp);
 		float len, d;
 
-		BKE_object_where_is_calc_mat4(scene, camob, mat);
+		BKE_object_where_is_calc_mat4(scene, camob_eval, mat);
 
 		/* camera axis */
 		vec[0] = 0.0f;
@@ -4034,7 +4043,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			}
 
 			BKE_camera_params_init(&params);
-			BKE_camera_params_from_object(&params, camob);
+			BKE_camera_params_from_object(&params, camob_eval);
 
 			if (params.is_ortho) {
 				vec[0] = params.ortho_scale * (pos[0] - 0.5f + params.shiftx);
@@ -4046,9 +4055,9 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				else
 					vec[0] *= aspect;
 
-				mul_v3_m4v3(disp, camob->obmat, vec);
+				mul_v3_m4v3(disp, camob_eval->obmat, vec);
 
-				copy_m4_m4(rmat, camob->obmat);
+				copy_m4_m4(rmat, camob_eval->obmat);
 				zero_v3(rmat[3]);
 				mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
@@ -4066,10 +4075,10 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 				else
 					vec[0] *= aspect;
 
-				mul_v3_m4v3(disp, camob->obmat, vec);
+				mul_v3_m4v3(disp, camob_eval->obmat, vec);
 
 				/* apply camera rotation so Z-axis would be co-linear */
-				copy_m4_m4(rmat, camob->obmat);
+				copy_m4_m4(rmat, camob_eval->obmat);
 				zero_v3(rmat[3]);
 				mul_m4_m4m4(cob->matrix, cob->matrix, rmat);
 
@@ -4088,7 +4097,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 					invert_m4_m4(imat, depth_ob->obmat);
 
-					mul_v3_m4v3(ray_start, imat, camob->obmat[3]);
+					mul_v3_m4v3(ray_start, imat, camob_eval->obmat[3]);
 					mul_v3_m4v3(ray_end, imat, cob->matrix[3]);
 
 					sub_v3_v3v3(ray_nor, ray_end, ray_start);
@@ -4811,6 +4820,7 @@ void BKE_constraint_target_matrix_get(struct Depsgraph *depsgraph, Scene *scene,
 		cob = MEM_callocN(sizeof(bConstraintOb), "tempConstraintOb");
 		cob->type = ownertype;
 		cob->scene = scene;
+		cob->depsgraph = depsgraph;
 		switch (ownertype) {
 			case CONSTRAINT_OBTYPE_OBJECT: /* it is usually this case */
 			{
