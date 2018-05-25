@@ -338,8 +338,8 @@ void BKE_paint_palette_set(Paint *p, Palette *palette)
 {
 	if (p) {
 		id_us_min((ID *)p->palette);
-		id_us_plus((ID *)palette);
 		p->palette = palette;
+		id_us_plus((ID *)p->palette);
 	}
 }
 
@@ -347,8 +347,8 @@ void BKE_paint_curve_set(Brush *br, PaintCurve *pc)
 {
 	if (br) {
 		id_us_min((ID *)br->paint_curve);
-		id_us_plus((ID *)pc);
 		br->paint_curve = pc;
+		id_us_plus((ID *)br->paint_curve);
 	}
 }
 
@@ -381,9 +381,7 @@ void BKE_palette_clear(Palette *palette)
 
 Palette *BKE_palette_add(Main *bmain, const char *name)
 {
-	Palette *palette;
-
-	palette = BKE_libblock_alloc(bmain, ID_PAL, name, 0);
+	Palette *palette = BKE_id_new(bmain, ID_PAL, name);
 
 	/* enable fake user by default */
 	id_fake_user_set(&palette->id);
@@ -424,7 +422,7 @@ void BKE_palette_free(Palette *palette)
 
 PaletteColor *BKE_palette_color_add(Palette *palette)
 {
-	PaletteColor *color = MEM_callocN(sizeof(*color), "Pallete Color");
+	PaletteColor *color = MEM_callocN(sizeof(*color), "Palette Color");
 	BLI_addtail(&palette->colors, color);
 	return color;
 }
