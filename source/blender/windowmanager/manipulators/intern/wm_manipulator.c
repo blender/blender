@@ -509,7 +509,7 @@ void wm_manipulator_calculate_scale(wmManipulator *mpr, const bContext *C)
 			}
 
 			/* Exclude matrix_offset from scale. */
-			scale *= ED_view3d_pixel_size(rv3d, matrix_world[3]) / U.pixelsize;
+			scale *= ED_view3d_pixel_size_no_ui_scale(rv3d, matrix_world[3]);
 		}
 		else {
 			scale *= 0.02f;

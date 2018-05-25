@@ -682,7 +682,7 @@ void DRW_draw_cursor(void)
 				immUniformThemeColor3(TH_VIEW_OVERLAY);
 				immBegin(GWN_PRIM_LINES, 12);
 
-				const float scale = ED_view3d_pixel_size(rv3d, cursor->location) * 20;
+				const float scale = ED_view3d_pixel_size_no_ui_scale(rv3d, cursor->location) * U.widget_unit;
 
 #define CURSOR_VERT(axis_vec, axis, fac) \
 				immVertex3f( \
