@@ -567,33 +567,43 @@ void uv_poly_copy_aspect(float uv_orig[][2], float uv[][2], float aspx, float as
 	}
 }
 
-bool ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], float r_max[2])
+bool ED_uvedit_minmax_multi(
+        Scene *scene, Image *ima, Object **objects_edit, uint objects_len,
+        float r_min[2], float r_max[2])
 {
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MLoopUV *luv;
 	bool changed = false;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
 	INIT_MINMAX2(r_min, r_max);
 
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-			continue;
-		
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-				minmax_v2v2_v2(r_min, r_max, luv->uv);
-				changed = true;
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects_edit[ob_index];
+
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMFace *efa;
+		BMLoop *l;
+		BMIter iter, liter;
+		MLoopUV *luv;
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+				continue;
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+					minmax_v2v2_v2(r_min, r_max, luv->uv);
+					changed = true;
+				}
 			}
 		}
 	}
-
 	return changed;
+}
+
+bool ED_uvedit_minmax(Scene *scene, Image *ima, Object *obedit, float r_min[2], float r_max[2])
+{
+	return ED_uvedit_minmax_multi(scene, ima, &obedit, 1, r_min, r_max);
 }
 
 /* Be careful when using this, it bypasses all synchronization options */
@@ -614,27 +624,32 @@ void ED_uvedit_select_all(BMesh *bm)
 	}
 }
 
-static bool ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[2])
+static bool ED_uvedit_median_multi(Scene *scene, Image *ima, Object **objects_edit, uint objects_len, float co[2])
 {
-	BMEditMesh *em = BKE_editmesh_from_object(obedit);
-	BMFace *efa;
-	BMLoop *l;
-	BMIter iter, liter;
-	MLoopUV *luv;
 	unsigned int sel = 0;
-
-	const int cd_loop_uv_offset  = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
-
 	zero_v2(co);
-	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		if (!uvedit_face_visible_test(scene, obedit, ima, efa))
-			continue;
-		
-		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
-			if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
-				add_v2_v2(co, luv->uv);
-				sel++;
+
+	for (uint ob_index = 0; ob_index < objects_len; ob_index++) {
+		Object *obedit = objects_edit[ob_index];
+
+		BMEditMesh *em = BKE_editmesh_from_object(obedit);
+		BMFace *efa;
+		BMLoop *l;
+		BMIter iter, liter;
+		MLoopUV *luv;
+
+		const int cd_loop_uv_offset = CustomData_get_offset(&em->bm->ldata, CD_MLOOPUV);
+
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			if (!uvedit_face_visible_test(scene, obedit, ima, efa))
+				continue;
+
+			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
+				luv = BM_ELEM_CD_GET_VOID_P(l, cd_loop_uv_offset);
+				if (uvedit_uv_select_test(scene, l, cd_loop_uv_offset)) {
+					add_v2_v2(co, luv->uv);
+					sel++;
+				}
 			}
 		}
 	}
@@ -644,24 +659,34 @@ static bool ED_uvedit_median(Scene *scene, Image *ima, Object *obedit, float co[
 	return (sel != 0);
 }
 
-bool ED_uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
+static bool UNUSED_FUNCTION(ED_uvedit_median)(Scene *scene, Image *ima, Object *obedit, float co[2])
+{
+	return ED_uvedit_median_multi(scene, ima, &obedit, 1, co);
+}
+
+bool ED_uvedit_center_multi(Scene *scene, Image *ima, Object **objects_edit, uint objects_len, float cent[2], char mode)
 {
 	bool changed = false;
 	
 	if (mode == V3D_AROUND_CENTER_BOUNDS) {  /* bounding box */
 		float min[2], max[2];
-		if (ED_uvedit_minmax(scene, ima, obedit, min, max)) {
+		if (ED_uvedit_minmax_multi(scene, ima, objects_edit, objects_len, min, max)) {
 			mid_v2_v2v2(cent, min, max);
 			changed = true;
 		}
 	}
 	else {
-		if (ED_uvedit_median(scene, ima, obedit, cent)) {
+		if (ED_uvedit_median_multi(scene, ima, objects_edit, objects_len, cent)) {
 			changed = true;
 		}
 	}
 
 	return changed;
+}
+
+bool ED_uvedit_center(Scene *scene, Image *ima, Object *obedit, float cent[2], char mode)
+{
+	return ED_uvedit_center_multi(scene, ima, &obedit, 1, cent, mode);
 }
 
 /** \} */
@@ -3357,17 +3382,16 @@ static void uv_snap_cursor_to_pixels(SpaceImage *sima)
 	uv_snap_to_pixel(sima->cursor, width, height);
 }
 
-static bool uv_snap_cursor_to_selection(Scene *scene, Image *ima, Object *obedit, SpaceImage *sima)
+static bool uv_snap_cursor_to_selection(
+        Scene *scene, Image *ima, Object **objects_edit, uint objects_len, SpaceImage *sima)
 {
-	return ED_uvedit_center(scene, ima, obedit, sima->cursor, sima->around);
+	return ED_uvedit_center_multi(scene, ima, objects_edit, objects_len, sima->cursor, sima->around);
 }
 
 static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	Scene *scene = CTX_data_scene(C);
-	Object *obedit = CTX_data_edit_object(C);
-	Image *ima = CTX_data_edit_image(C);
+
 	bool changed = false;
 
 	switch (RNA_enum_get(op->ptr, "target")) {
@@ -3376,8 +3400,18 @@ static int uv_snap_cursor_exec(bContext *C, wmOperator *op)
 			changed = true;
 			break;
 		case 1:
-			changed = uv_snap_cursor_to_selection(scene, ima, obedit, sima);
+		{
+			Scene *scene = CTX_data_scene(C);
+			Image *ima = CTX_data_edit_image(C);
+			ViewLayer *view_layer = CTX_data_view_layer(C);
+
+			uint objects_len = 0;
+			Object **objects = BKE_view_layer_array_from_objects_in_edit_mode_unique_data_with_uvs(
+			        view_layer, &objects_len);
+			changed = uv_snap_cursor_to_selection(scene, ima, objects, objects_len, sima);
+			MEM_freeN(objects);
 			break;
+		}
 	}
 
 	if (!changed)

@@ -54,6 +54,11 @@ bool ED_uvedit_minmax(struct Scene *scene, struct Image *ima, struct Object *obe
 bool ED_uvedit_center(Scene *scene, Image *ima, struct Object *obedit, float cent[2], char mode);
 void ED_uvedit_select_all(struct BMesh *bm);
 
+bool ED_uvedit_minmax_multi(
+        struct Scene *scene, struct Image *ima, struct Object **objects_edit, uint objects_len, float r_min[2], float r_max[2]);
+bool ED_uvedit_center_multi(
+        Scene *scene, Image *ima, struct Object **objects_edit, uint objects_len, float r_cent[2], char mode);
+
 bool ED_object_get_active_image(
         struct Object *ob, int mat_nr,
         struct Image **r_ima, struct ImageUser **r_iuser, struct bNode **r_node, struct bNodeTree **r_ntree);
