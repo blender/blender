@@ -420,7 +420,7 @@ void updata_armature_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 }
 
 void updata_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
-	const ID *id_orig, ID *id_cow)
+                                     const ID *id_orig, ID *id_cow)
 {
 	const Curve *curve_orig = (const Curve *)id_orig;
 	Curve *curve_cow = (Curve *)id_cow;
