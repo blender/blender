@@ -150,7 +150,7 @@ void EEVEE_subsurface_output_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Dat
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (scene_eval->flag & SCE_EEVEE_SSS_ENABLED) {
+	if (scene_eval->eevee.flag & SCE_EEVEE_SSS_ENABLED) {
 		DRW_texture_ensure_fullscreen_2D(&txl->sss_dir_accum, GPU_RGBA16F, 0);
 		DRW_texture_ensure_fullscreen_2D(&txl->sss_col_accum, GPU_RGBA16F, 0);
 

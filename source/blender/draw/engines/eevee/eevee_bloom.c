@@ -92,7 +92,7 @@ int EEVEE_bloom_init(EEVEE_ViewLayerData *UNUSED(sldata), EEVEE_Data *vedata)
 	const DRWContextState *draw_ctx = DRW_context_state_get();
 	const Scene *scene_eval = DEG_get_evaluated_scene(draw_ctx->depsgraph);
 
-	if (scene_eval->flag & SCE_EEVEE_BLOOM_ENABLED) {
+	if (scene_eval->eevee.flag & SCE_EEVEE_BLOOM_ENABLED) {
 		const float *viewport_size = DRW_viewport_size_get();
 
 		/* Shaders */
