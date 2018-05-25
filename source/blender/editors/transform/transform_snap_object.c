@@ -2513,6 +2513,10 @@ static short transform_snap_context_project_view3d_mixed_impl(
 			/* Compute the new clip_pane but do not add it yet. */
 			float new_clipplane[4];
 			plane_from_point_normal_v3(new_clipplane, loc, no);
+			if (dot_v3v3(snapdata.clip_plane[0], new_clipplane) > 0.0f) {
+				/* The plane is facing the wrong direction. */
+				negate_v4(new_clipplane);
+			}
 
 			/* Try to snap only to the polygon. */
 			elem = snap_mesh_polygon(
