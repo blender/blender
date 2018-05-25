@@ -41,6 +41,7 @@
 
 typedef struct TseGroup {
 	TreeStoreElem **elems;
+	int lastused;
 	int size;
 	int allocated;
 } TseGroup;
@@ -54,6 +55,7 @@ static TseGroup *tse_group_create(void)
 	tse_group->elems = MEM_mallocN(sizeof(TreeStoreElem *), "TseGroupElems");
 	tse_group->size = 0;
 	tse_group->allocated = 1;
+	tse_group->lastused = 0;
 	return tse_group;
 }
 
@@ -198,10 +200,19 @@ TreeStoreElem *BKE_outliner_treehash_lookup_unused(void *treehash, short type, s
 
 	group = BKE_outliner_treehash_lookup_group(treehash, type, nr, id);
 	if (group) {
-		int i;
-		for (i = 0; i < group->size; i++) {
-			if (!group->elems[i]->used) {
-				return group->elems[i];
+		/* Find unused element, with optimization to start from previously
+		 * found element assuming we do repeated lookups. */
+		int size = group->size;
+		int offset = group->lastused;
+
+		for (int i = 0; i < size; i++, offset++) {
+			if (offset >= size) {
+				offset = 0;
+			}
+
+			if (!group->elems[offset]->used) {
+				group->lastused = offset;
+				return group->elems[offset];
 			}
 		}
 	}
