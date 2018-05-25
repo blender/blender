@@ -87,7 +87,7 @@ class _defs_view3d_generic:
             text="Cursor",
             icon="ops.generic.cursor",
             keymap=(
-                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
+                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='PRESS')),
             ),
         )
 
