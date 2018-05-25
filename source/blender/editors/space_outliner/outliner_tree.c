@@ -813,8 +813,11 @@ static void outliner_add_id_contents(SpaceOops *soops, TreeElement *te, TreeStor
 		}
 		case ID_GR:
 		{
-			Collection *collection = (Collection *)id;
-			outliner_add_collection_recursive(soops, collection, te);
+			/* Don't expand for instances, creates too many elements. */
+			if (!(te->parent && te->parent->idcode == ID_OB)) {
+				Collection *collection = (Collection *)id;
+				outliner_add_collection_recursive(soops, collection, te);
+			}
 		}
 		default:
 			break;
