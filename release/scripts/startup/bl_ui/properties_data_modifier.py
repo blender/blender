@@ -328,7 +328,8 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
             row.prop(md, "delimit")
             layout_info = layout
 
-        layout_info.label(text=iface_("Faces: %d") % md.face_count, translate=False)
+        layout_info.label(text=iface_("Face Count: {:,}".format(md.face_count)),
+                     translate=False)
 
     def DISPLACE(self, layout, ob, md):
         has_texture = (md.texture is not None)

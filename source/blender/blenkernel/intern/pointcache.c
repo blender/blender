@@ -49,6 +49,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_threads.h"
 #include "BLI_math.h"
+#include "BLI_string.h"
 #include "BLI_utildefines.h"
 
 #include "BLT_translation.h"
@@ -4047,9 +4048,11 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 	}
 	else {
 		PTCacheMem *pm = cache->mem_cache.first;
-		float bytes = 0.0f;
-		int i, mb;
-		
+		char formatted_tot[16];
+		char formatted_mem[15];
+		long long int bytes = 0.0f;
+		int i;
+
 		for (; pm; pm=pm->next) {
 			for (i=0; i<BPHYS_TOT_DATA; i++)
 				bytes += MEM_allocN_len(pm->data[i]);
@@ -4064,12 +4067,10 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 			totframes++;
 		}
 
-		mb = (bytes > 1024.0f * 1024.0f);
+		BLI_str_format_int_grouped(formatted_tot, totframes);
+		BLI_str_format_byte_unit(formatted_mem, bytes, true);
 
-		BLI_snprintf(mem_info, sizeof(mem_info), IFACE_("%i frames in memory (%.1f %s)"),
-		             totframes,
-		             bytes / (mb ? 1024.0f * 1024.0f : 1024.0f),
-		             mb ? IFACE_("Mb") : IFACE_("kb"));
+		BLI_snprintf(mem_info, sizeof(mem_info), IFACE_("%s frames in memory (%s)"), formatted_tot, formatted_mem);
 	}
 
 	if (cache->flag & PTCACHE_OUTDATED) {

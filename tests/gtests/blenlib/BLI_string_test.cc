@@ -364,6 +364,72 @@ TEST(string, StrFormatIntGrouped)
 	EXPECT_STREQ("-999", num_str);
 }
 
+/* BLI_str_format_byte_unit */
+TEST(string, StrFormatByteUnits)
+{
+	char size_str[15];
+	long long int size;
+
+	/* Base 10 */
+	BLI_str_format_byte_unit(size_str, size = 0, true);
+	EXPECT_STREQ("0 B", size_str);
+	BLI_str_format_byte_unit(size_str, size = -0, true);
+	EXPECT_STREQ("0 B", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 1, true);
+	EXPECT_STREQ("1 B", size_str);
+	BLI_str_format_byte_unit(size_str, size = -1, true);
+	EXPECT_STREQ("-1 B", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 1000, true);
+	EXPECT_STREQ("1 KB", size_str);
+	BLI_str_format_byte_unit(size_str, size = -1000, true);
+	EXPECT_STREQ("-1 KB", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 1024, true);
+	EXPECT_STREQ("1 KB", size_str);
+	BLI_str_format_byte_unit(size_str, size = -1024, true);
+	EXPECT_STREQ("-1 KB", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 9223372036854775807, true); /* LLONG_MAX - largest possible value */
+	EXPECT_STREQ("9223.372 PB", size_str);
+	BLI_str_format_byte_unit(size_str, size = -9223372036854775807, true);
+	EXPECT_STREQ("-9223.372 PB", size_str);
+
+
+	/* Base 2 */
+	BLI_str_format_byte_unit(size_str, size = 0, false);
+	EXPECT_STREQ("0 B", size_str);
+	BLI_str_format_byte_unit(size_str, size = -0, false);
+	EXPECT_STREQ("0 B", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 1, false);
+	EXPECT_STREQ("1 B", size_str);
+	BLI_str_format_byte_unit(size_str, size = -1, false);
+	EXPECT_STREQ("-1 B", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 1000, false);
+	EXPECT_STREQ("1000 B", size_str);
+	BLI_str_format_byte_unit(size_str, size = -1000, false);
+	EXPECT_STREQ("-1000 B", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 1024, false);
+	EXPECT_STREQ("1 KiB", size_str);
+	BLI_str_format_byte_unit(size_str, size = -1024, false);
+	EXPECT_STREQ("-1 KiB", size_str);
+
+	BLI_str_format_byte_unit(size_str, size = 9223372036854775807, false); /* LLONG_MAX - largest possible value */
+	EXPECT_STREQ("8192.0 PiB", size_str);
+	BLI_str_format_byte_unit(size_str, size = -9223372036854775807, false);
+	EXPECT_STREQ("-8192.0 PiB", size_str);
+
+	/* Test maximum string length. */
+	BLI_str_format_byte_unit(size_str, size = -9223200000000000000, false);
+	EXPECT_STREQ("-8191.8472 PiB", size_str);
+}
+
+
+
 #define STRING_FIND_SPLIT_WORDS_EX(word_str_src, word_str_src_len, limit_words, ...) \
 { \
 	int word_info[][2] = \

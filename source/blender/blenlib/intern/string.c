@@ -995,6 +995,41 @@ size_t BLI_str_format_int_grouped(char dst[16], int num)
 }
 
 /**
+ * Format a size in bytes using binary units.
+ * 1000 -> 1 KB
+ * Number of decimal places grows with the used unit (e.g. 1.5 MB, 1.55 GB, 1.545 TB).
+ *
+ * \param dst The resulting string. Dimension of 14 to support largest possible value for \a bytes (LLONG_MAX).
+ * \param bytes Number to format
+ * \param base_10 Calculate using base 10 (GB, MB, ...) or 2 (GiB, MiB, ...)
+ */
+void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base_10)
+{
+	double bytes_converted = bytes;
+	int order = 0;
+	int decimals;
+	const int base = base_10 ? 1000 : 1024;
+	const char *units_base_10[] = {"B", "KB", "MB", "GB", "TB", "PB"};
+	const char *units_base_2[] = {"B", "KiB", "MiB", "GiB", "TiB", "PiB"};
+	const int tot_units = ARRAY_SIZE(units_base_2);
+
+	BLI_STATIC_ASSERT(ARRAY_SIZE(units_base_2) == ARRAY_SIZE(units_base_10), "array size mismatch");
+
+	while ((ABS(bytes_converted) >= base) && ((order + 1) < tot_units)) {
+		bytes_converted /= base;
+		order++;
+	}
+	decimals = MAX2(order - 1, 0);
+
+	/* Format value first, stripping away floating zeroes. */
+	sprintf(dst, "%.*f", decimals, bytes_converted);
+	BLI_str_rstrip_float_zero(dst, '\0');
+	/* Append unit. */
+	sprintf(dst, "%s %s", dst, base_10 ? units_base_10[order] : units_base_2[order]);
+}
+
+
+/**
  * Find the ranges needed to split \a str into its individual words.
  *
  * \param str: The string to search for words.
