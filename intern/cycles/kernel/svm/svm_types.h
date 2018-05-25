@@ -259,6 +259,7 @@ typedef enum NodeMath {
 	NODE_MATH_GREATER_THAN,
 	NODE_MATH_MODULO,
 	NODE_MATH_ABSOLUTE,
+	NODE_MATH_ARCTAN2,
 	NODE_MATH_CLAMP /* used for the clamp UI option */
 } NodeMath;
 

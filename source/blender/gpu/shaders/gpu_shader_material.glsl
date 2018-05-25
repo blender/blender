@@ -396,6 +396,11 @@ void math_abs(float val1, out float outval)
 	outval = abs(val1);
 }
 
+void math_atan2(float val1, float val2, out float outval)
+{
+	outval = atan(val1, val2);
+}
+
 void squeeze(float val, float width, float center, out float outval)
 {
 	outval = 1.0 / (1.0 + pow(2.71828183, -((val - center) * width)));

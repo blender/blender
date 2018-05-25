@@ -221,6 +221,11 @@ static void node_shader_exec_math(void *UNUSED(data), int UNUSED(thread), bNode 
 			r = fabsf(a);
 			break;
 		}
+		case NODE_MATH_ATAN2:
+		{
+			r = atan2(a, b);
+			break;
+		}
 	}
 	if (node->custom2 & SHD_MATH_CLAMP) {
 		CLAMP(r, 0.0f, 1.0f);
@@ -235,6 +240,7 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 	    "math_divide", "math_sine", "math_cosine", "math_tangent", "math_asin",
 	    "math_acos", "math_atan", "math_pow", "math_log", "math_min", "math_max",
 	    "math_round", "math_less_than", "math_greater_than", "math_modulo", "math_abs",
+	    "math_atan2"
 	};
 
 	switch (node->custom1) {
@@ -249,6 +255,7 @@ static int gpu_shader_math(GPUMaterial *mat, bNode *node, bNodeExecData *UNUSED(
 		case NODE_MATH_LESS:
 		case NODE_MATH_GREATER:
 		case NODE_MATH_MOD:
+		case NODE_MATH_ATAN2:
 			GPU_stack_link(mat, node, names[node->custom1], in, out);
 			break;
 		case NODE_MATH_SIN:

@@ -144,6 +144,18 @@ ccl_device_inline void math_trimatrix_add_gramian_strided(ccl_global float *A,
 	}
 }
 
+ccl_device_inline void math_trimatrix_add_gramian(ccl_global float *A,
+                                                  int n,
+                                                  const float *ccl_restrict v,
+                                                  float weight)
+{
+	for(int row = 0; row < n; row++) {
+		for(int col = 0; col <= row; col++) {
+			MATHS(A, row, col, 1) += v[row]*v[col]*weight;
+		}
+	}
+}
+
 /* Transpose matrix A inplace. */
 ccl_device_inline void math_matrix_transpose(ccl_global float *A, int n, int stride)
 {

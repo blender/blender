@@ -95,6 +95,8 @@ shader node_math(
 		Value = safe_modulo(Value1, Value2);
 	else if (type == "absolute")
 		Value = fabs(Value1);
+	else if (type == "arctan2")
+		Value = atan2(Value1, Value2);
 
 	if (use_clamp)
 		Value = clamp(Value, 0.0, 1.0);
