@@ -794,6 +794,8 @@ void ui_resources_free(void);
 void ui_layout_add_but(uiLayout *layout, uiBut *but);
 void ui_but_add_search(uiBut *but, PointerRNA *ptr, PropertyRNA *prop, PointerRNA *searchptr, PropertyRNA *searchprop);
 void ui_layout_list_set_labels_active(uiLayout *layout);
+/* menu callback */
+void ui_item_paneltype_func(struct bContext *C, struct uiLayout *layout, void *arg_pt);
 
 /* interface_align.c */
 bool ui_but_can_align(const uiBut *but) ATTR_WARN_UNUSED_RESULT;

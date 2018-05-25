@@ -1848,10 +1848,13 @@ static void ui_item_menutype_func(bContext *C, uiLayout *layout, void *arg_mt)
 	layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
-static void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt)
+void ui_item_paneltype_func(bContext *C, uiLayout *layout, void *arg_pt)
 {
 	PanelType *pt = (PanelType *)arg_pt;
 	UI_paneltype_draw(C, pt, layout);
+
+	/* panels are created flipped (from event handling pov) */
+	layout->root->block->flag ^= UI_BLOCK_IS_FLIP;
 }
 
 static uiBut *ui_item_menu(
