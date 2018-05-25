@@ -189,14 +189,8 @@ static uiBlock *ui_block_func_POPOVER(bContext *C, uiPopupBlockHandle *handle, v
 		UI_block_flag_enable(block, UI_BLOCK_LOOP);
 		UI_block_direction_set(block, block->direction);
 		block->minbounds = UI_MENU_WIDTH_MIN;
-		bool use_place_under_active = false;
+		bool use_place_under_active = !handle->refresh;
 
-#ifdef USE_POPOVER_ONCE
-		if (pup->is_once) {
-			/* Weak, toolbars act like menus, so position with the cursor under the active button. */
-			use_place_under_active = true;
-		}
-#endif
 		if (use_place_under_active) {
 			uiBut *but = NULL;
 			for (but = block->buttons.first; but; but = but->next) {
