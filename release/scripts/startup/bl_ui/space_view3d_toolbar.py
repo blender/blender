@@ -182,6 +182,7 @@ class VIEW3D_PT_tools_posemode_options(View3DPanel, Panel):
         arm = context.active_object.data
 
         self.layout.prop(arm, "use_auto_ik")
+        self.layout.prop(arm, "use_mirror_x")
 
 # ********** default tools for paint modes ****************
 
