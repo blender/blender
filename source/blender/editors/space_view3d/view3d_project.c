@@ -283,6 +283,11 @@ float ED_view3d_pixel_size(const RegionView3D *rv3d, const float co[3])
 	return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize * U.pixelsize;
 }
 
+float ED_view3d_pixel_size_no_ui_scale(const RegionView3D *rv3d, const float co[3])
+{
+	return mul_project_m4_v3_zfac((float(*)[4])rv3d->persmat, co) * rv3d->pixsize;
+}
+
 /**
  * Calculate a depth value from \a co, use with #ED_view3d_win_to_delta
  */
