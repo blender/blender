@@ -2465,6 +2465,7 @@ class VIEW3D_MT_edit_mesh(Menu):
 
         layout.operator("mesh.duplicate_move", text="Duplicate")
         layout.menu("VIEW3D_MT_edit_mesh_extrude")
+        layout.operator("mesh.split")
         layout.operator("mesh.bisect")
 
         if with_bullet:
@@ -2816,7 +2817,6 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
 
         layout.separator()
 
-        layout.operator("mesh.split", text="Split Off Faces")
         layout.operator("mesh.face_split_by_edges")
 
         layout.separator()
