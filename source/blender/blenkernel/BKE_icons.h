@@ -160,7 +160,7 @@ struct ImBuf *BKE_icon_geom_rasterize(
         const struct Icon_Geom *geom,
         const unsigned int size_x, const unsigned int size_y);
 
-int BKE_icon_ensure_studio_light(struct StudioLight *sl);
+int BKE_icon_ensure_studio_light(struct StudioLight *sl, int id_type);
 
 #define ICON_RENDER_DEFAULT_HEIGHT 32
 

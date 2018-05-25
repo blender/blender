@@ -34,6 +34,7 @@
 #include "BKE_particle.h"
 #include "BKE_paint.h"
 #include "BKE_pbvh.h"
+#include "BKE_studiolight.h"
 
 #include "DNA_world_types.h"
 #include "DNA_modifier_types.h"
@@ -54,6 +55,7 @@ static struct {
 	struct GPUShader *default_prepass_clip_sh;
 	struct GPUShader *default_lit[VAR_MAT_MAX];
 	struct GPUShader *default_background;
+	struct GPUShader *default_studiolight_background;
 	struct GPUShader *update_noise_sh;
 
 	/* 64*64 array texture containing all LUTs and other utilitarian arrays.
@@ -320,6 +322,9 @@ static char *eevee_get_defines(int options)
 	if (((options & VAR_MAT_VOLUME) != 0) && ((options & VAR_MAT_BLEND) != 0)) {
 		BLI_dynstr_appendf(ds, "#define USE_ALPHA_BLEND_VOLUMETRICS\n");
 	}
+	if ((options & VAR_MAT_LOOKDEV) != 0) {
+		BLI_dynstr_appendf(ds, "#define LOOKDEV\n");
+	}
 
 	str = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
@@ -577,6 +582,10 @@ void EEVEE_materials_init(EEVEE_ViewLayerData *sldata, EEVEE_StorageList *stl, E
 		e_data.default_background = DRW_shader_create(
 		        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl,
 		        NULL);
+
+		e_data.default_studiolight_background = DRW_shader_create(
+		        datatoc_background_vert_glsl, NULL, datatoc_default_world_frag_glsl,
+		        "#define LOOKDEV\n");
 
 		e_data.default_prepass_sh = DRW_shader_create(
 		        datatoc_prepass_vert_glsl, NULL, datatoc_prepass_frag_glsl,
@@ -861,6 +870,35 @@ static struct DRWShadingGroup *EEVEE_default_shading_group_get(
 	return DRW_shgroup_create(e_data.default_lit[options], vedata->psl->default_pass[options]);
 }
 
+/**
+ * Create a default shading group inside the lookdev pass without standard uniforms.
+ **/
+static struct DRWShadingGroup *EEVEE_lookdev_shading_group_get(
+        EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata,
+        bool use_ssr, int shadow_method)
+{
+	static int ssr_id;
+	ssr_id = (use_ssr) ? 1 : -1;
+	int options = VAR_MAT_MESH | VAR_MAT_LOOKDEV;
+
+	options |= eevee_material_shadow_option(shadow_method);
+
+	if (e_data.default_lit[options] == NULL) {
+		create_default_shader(options);
+	}
+
+	if (vedata->psl->lookdev_pass == NULL) {
+		DRWState state = DRW_STATE_WRITE_COLOR | DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_ALWAYS | DRW_STATE_CULL_BACK;
+		vedata->psl->lookdev_pass = DRW_pass_create("LookDev Pass", state);
+
+		DRWShadingGroup *shgrp = DRW_shgroup_create(e_data.default_lit[options], vedata->psl->lookdev_pass);
+		/* XXX / WATCH: This creates non persistent binds for the ubos and textures.
+		 * But it's currently OK because the following shgroups does not add any bind. */
+		add_standard_uniforms(shgrp, sldata, vedata, &ssr_id, NULL, false, false);
+	}
+
+	return DRW_shgroup_create(e_data.default_lit[options], vedata->psl->lookdev_pass);
+}
 void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 {
 	EEVEE_PassList *psl = ((EEVEE_Data *)vedata)->psl;
@@ -884,7 +922,11 @@ void EEVEE_materials_cache_init(EEVEE_ViewLayerData *sldata, EEVEE_Data *vedata)
 
 		float *col = ts.colorBackground;
 
-		if (wo) {
+		/* LookDev */
+		EEVEE_lookdev_cache_init(vedata, &grp, e_data.default_studiolight_background, psl->background_pass, NULL);
+		/* END */
+
+		if (!grp && wo) {
 			col = &wo->horr;
 
 			if (wo->use_nodes && wo->nodetree) {
@@ -1588,6 +1630,43 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 {
 	EEVEE_StorageList *stl = ((EEVEE_Data *)vedata)->stl;
 
+	/* Look-Dev */
+	const DRWContextState *draw_ctx = DRW_context_state_get();
+	const View3D *v3d = draw_ctx->v3d;
+	if (v3d && v3d->drawtype == OB_MATERIAL) {
+		EEVEE_ViewLayerData *sldata = EEVEE_view_layer_data_ensure();
+		EEVEE_LampsInfo *linfo = sldata->lamps;
+		struct Gwn_Batch *sphere = DRW_cache_sphere_get();
+		static float mat1[4][4];
+		static float color[3] = {1.0, 1.0, 1.0};
+		static float metallic_on = 1.0f;
+		static float metallic_off = 0.00f;
+		static float specular = 1.0f;
+		static float roughness = 0.05f;
+
+		float view_mat[4][4];
+		DRW_viewport_matrix_get(view_mat, DRW_MAT_VIEWINV);
+
+		DRWShadingGroup *shgrp = EEVEE_lookdev_shading_group_get(sldata, vedata, false, linfo->shadow_method);
+		DRW_shgroup_uniform_vec3(shgrp, "basecol", color, 1);
+		DRW_shgroup_uniform_float(shgrp, "metallic", &metallic_on, 1);
+		DRW_shgroup_uniform_float(shgrp, "specular", &specular, 1);
+		DRW_shgroup_uniform_float(shgrp, "roughness", &roughness, 1);
+		unit_m4(mat1);
+		mul_m4_m4m4(mat1, mat1, view_mat);
+		translate_m4(mat1, -1.5f, 0.0f, -5.0f);
+		DRW_shgroup_call_add(shgrp, sphere, mat1);
+
+		shgrp = EEVEE_lookdev_shading_group_get(sldata, vedata, false, linfo->shadow_method);
+		DRW_shgroup_uniform_vec3(shgrp, "basecol", color, 1);
+		DRW_shgroup_uniform_float(shgrp, "metallic", &metallic_off, 1);
+		DRW_shgroup_uniform_float(shgrp, "specular", &specular, 1);
+		DRW_shgroup_uniform_float(shgrp, "roughness", &roughness, 1);
+		translate_m4(mat1, 3.0f, 0.0f, 0.0f);
+		DRW_shgroup_call_add(shgrp, sphere, mat1);
+	}
+	/* END */
+
 	BLI_ghash_free(stl->g_data->material_hash, NULL, MEM_freeN);
 	BLI_ghash_free(stl->g_data->hair_material_hash, NULL, NULL);
 }
@@ -1603,6 +1682,7 @@ void EEVEE_materials_free(void)
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_prepass_clip_sh);
 	DRW_SHADER_FREE_SAFE(e_data.default_background);
+	DRW_SHADER_FREE_SAFE(e_data.default_studiolight_background);
 	DRW_SHADER_FREE_SAFE(e_data.update_noise_sh);
 	DRW_TEXTURE_FREE_SAFE(e_data.util_tex);
 	DRW_TEXTURE_FREE_SAFE(e_data.noise_tex);

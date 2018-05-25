@@ -11,7 +11,7 @@ void workbench_private_data_init(WORKBENCH_PrivateData *wpd)
 	if (v3d) {
 		wpd->shading = v3d->shading;
 		wpd->drawtype = v3d->drawtype;
-		wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light);
+		wpd->studio_light = BKE_studiolight_find(wpd->shading.studio_light, 0);
 	}
 	else {
 		memset(&wpd->shading, 0, sizeof(wpd->shading));

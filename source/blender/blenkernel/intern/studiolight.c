@@ -48,6 +48,8 @@
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
+#include "GPU_texture.h"
+
 #include "MEM_guardedalloc.h"
 
 
@@ -67,6 +69,16 @@ static void studiolight_free(struct StudioLight *sl)
 			IMB_freeImBuf(sl->radiance_buffers[index]);
 			sl->radiance_buffers[index] = NULL;
 		}
+
+		if (sl->equirectangular_gputexture) {
+			GPU_texture_free(sl->equirectangular_gputexture);
+			sl->equirectangular_gputexture = NULL;
+		}
+
+		if (sl->equirectangular_buffer) {
+			IMB_freeImBuf(sl->equirectangular_buffer);
+			sl->equirectangular_buffer = NULL;
+		}
 	}
 	MEM_freeN(sl);
 }
@@ -78,7 +90,8 @@ static struct StudioLight *studiolight_create(void)
 	sl->name[0] = 0x00;
 	sl->flag = 0;
 	sl->index = BLI_listbase_count(&studiolights);
-	sl->icon_id = BKE_icon_ensure_studio_light(sl);
+	sl->radiance_icon_id = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_RADIANCE);
+	sl->irradiance_icon_id = BKE_icon_ensure_studio_light(sl, STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE);
 
 	for (int index = 0 ; index < 6 ; index ++) {
 		sl->radiance_buffers[index] = NULL;
@@ -133,13 +146,38 @@ static void studiolight_calculate_radiance_buffer(
 	}
 }
 
-static void studiolight_calculate_radiance_buffers(StudioLight *sl)
+static void studiolight_load_equierectangular_image(StudioLight *sl)
 {
 	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
 		ImBuf *ibuf = NULL;
 		ibuf = IMB_loadiffname(sl->path, 0, NULL);
 		if (ibuf) {
 			IMB_float_from_rect(ibuf);
+			sl->equirectangular_buffer = ibuf;
+		}
+	}
+	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED;
+}
+
+static void studiolight_create_equierectangular_gputexture(StudioLight *sl)
+{
+	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
+		char error[256];
+		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED);
+		ImBuf *ibuf = sl->equirectangular_buffer;
+		sl->equirectangular_gputexture = GPU_texture_create_2D(ibuf->x, ibuf->y, GPU_RGBA16F, ibuf->rect_float, error);
+	}
+	sl->flag |= STUDIOLIGHT_EQUIRECTANGULAR_GPUTEXTURE;
+}
+
+
+
+static void studiolight_calculate_radiance_buffers(StudioLight *sl)
+{
+	if (sl->flag & STUDIOLIGHT_EXTERNAL_FILE) {
+		BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED);
+		ImBuf* ibuf = sl->equirectangular_buffer;
+		if (ibuf) {
 			float *colbuf = MEM_mallocN(SQUARE(STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) * sizeof(float[4]), __func__);
 			const float add = 1.0f / (STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE + 1);
 			const float start = ((1.0f / STUDIOLIGHT_RADIANCE_CUBEMAP_SIZE) * 0.5f) - 0.5f;
@@ -183,7 +221,6 @@ static void studiolight_calculate_radiance_buffers(StudioLight *sl)
 			IMB_saveiff(sl->radiance_buffers[STUDIOLIGHT_Z_NEG], "/tmp/studiolight_radiance_top.png", IB_rectfloat);
 #endif
 			MEM_freeN(colbuf);
-			IMB_freeImBuf(ibuf);
 		}
 	}
 	sl->flag |= STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED;
@@ -451,70 +488,63 @@ static int studiolight_cmp(const void *a, const void *b)
 		return BLI_strcasecmp(sl1->name, sl2->name);
 	}
 }
-/* API */
-void BKE_studiolight_init(void)
+
+/* icons */
+static unsigned int* studiolight_radiance_preview(StudioLight *sl, int icon_size)
 {
-	StudioLight *sl;
-	/* go over the preset folder and add a studiolight for every image with its path */
-	/* order studio lights by name */
-	/* Also reserve icon space for it. */
-	/* Add default studio light */
-	sl = studiolight_create();
-	BLI_strncpy(sl->name, "INTERNAL_01", FILE_MAXFILE);
-	sl->flag = STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA;
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 1.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.0f);
-	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
-	BLI_addtail(&studiolights, sl);
+	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED);
 
-	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
-	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
-	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
+	uint *rect = MEM_mallocN(icon_size * icon_size * sizeof(uint), __func__);
+	int icon_center = icon_size / 2;
+	float sphere_radius = icon_center * 0.9;
 
-	/* sort studio lights on filename. */
-	BLI_listbase_sort(&studiolights, studiolight_cmp);
-}
+	int offset = 0;
+	for (int y = 0; y < icon_size; y++) {
+		float dy = y - icon_center;
+		for (int x = 0; x < icon_size; x++) {
+			float dx = x - icon_center;
+			/* calculate aliasing */
+			float alias = 0;
+			const float alias_step = 0.333;
+			for (float ay = dy - 0.5; ay < dy + 0.5; ay += alias_step) {
+				for (float ax = dx - 0.5; ax < dx + 0.5; ax += alias_step) {
+					if (sqrt(ay * ay + ax * ax) < sphere_radius) {
+						alias += alias_step * alias_step;
+					}
+				}
+			}
+			uint pixelresult = 0x0;
+			uint alias_i = clamp_i(alias * 256, 0, 255);
+			if (alias_i != 0) {
+				/* calculate normal */
+				uint alias_mask = alias_i << 24;
+				float incoming[3];
+				copy_v3_fl3(incoming, 0.0, 1.0, 0.0);
 
-void BKE_studiolight_free(void)
-{
-	struct StudioLight *sl;
-	while ((sl = BLI_pophead(&studiolights))) {
-		studiolight_free(sl);
-	}
-}
+				float normal[3];
+				normal[0] = dx / sphere_radius;
+				normal[2] = dy / sphere_radius;
+				normal[1] = -sqrt(-(normal[0] * normal[0]) - (normal[2] * normal[2]) + 1);
+				normalize_v3(normal);
 
-struct StudioLight *BKE_studiolight_find(const char *name)
-{
-	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
-			return sl;
+				float direction[3];
+				reflect_v3_v3v3(direction, incoming, normal);
+
+				float color[4];
+				studiolight_calculate_radiance(sl->equirectangular_buffer, color, direction);
+
+				pixelresult = rgb_to_cpack(
+				        linearrgb_to_srgb(color[0]),
+				        linearrgb_to_srgb(color[1]),
+				        linearrgb_to_srgb(color[2])) | alias_mask;
+			}
+			rect[offset++] = pixelresult;
 		}
 	}
-	/* When not found, use the default studio light */
-	return studiolights.first;
+	return rect;
 }
 
-struct StudioLight *BKE_studiolight_findindex(int index)
-{
-	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
-		if (sl->index == index) {
-			return sl;
-		}
-	}
-	/* When not found, use the default studio light */
-	return studiolights.first;
-}
-
-const struct ListBase *BKE_studiolight_listbase(void)
-{
-	return &studiolights;
-}
-
-unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size)
+static unsigned int* studiolight_irradiance_preview(StudioLight *sl, int icon_size)
 {
 	BKE_studiolight_ensure_flag(sl, STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED);
 
@@ -566,17 +596,100 @@ unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size)
 	return rect;
 }
 
+/* API */
+void BKE_studiolight_init(void)
+{
+	StudioLight *sl;
+	/* go over the preset folder and add a studiolight for every image with its path */
+	/* order studio lights by name */
+	/* Also reserve icon space for it. */
+	/* Add default studio light */
+	sl = studiolight_create();
+	BLI_strncpy(sl->name, "INTERNAL_01", FILE_MAXFILE);
+	sl->flag = STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED | STUDIOLIGHT_ORIENTATION_CAMERA;
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_POS], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_X_NEG], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_POS], 1.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Y_NEG], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_POS], 0.0f);
+	copy_v3_fl(sl->diffuse_light[STUDIOLIGHT_Z_NEG], 0.0f);
+	BLI_addtail(&studiolights, sl);
+
+	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_CAMERA_FOLDER, STUDIOLIGHT_ORIENTATION_CAMERA);
+	studiolight_add_files_from_datafolder(BLENDER_SYSTEM_DATAFILES, STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
+	studiolight_add_files_from_datafolder(BLENDER_USER_DATAFILES,   STUDIOLIGHT_WORLD_FOLDER,  STUDIOLIGHT_ORIENTATION_WORLD);
+
+	/* sort studio lights on filename. */
+	BLI_listbase_sort(&studiolights, studiolight_cmp);
+}
+
+void BKE_studiolight_free(void)
+{
+	struct StudioLight *sl;
+	while ((sl = BLI_pophead(&studiolights))) {
+		studiolight_free(sl);
+	}
+}
+
+struct StudioLight *BKE_studiolight_find(const char *name, int flag)
+{
+	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
+		if (STREQLEN(sl->name, name, FILE_MAXFILE)) {
+			if ((sl->flag & flag) == flag) {
+				return sl;
+			} else {
+				/* flags do not match, so use default */
+				return studiolights.first;
+			}
+		}
+	}
+	/* When not found, use the default studio light */
+	return studiolights.first;
+}
+
+struct StudioLight *BKE_studiolight_findindex(int index)
+{
+	LISTBASE_FOREACH(StudioLight *, sl, &studiolights) {
+		if (sl->index == index) {
+			return sl;
+		}
+	}
+	/* When not found, use the default studio light */
+	return studiolights.first;
+}
+
+const struct ListBase *BKE_studiolight_listbase(void)
+{
+	return &studiolights;
+}
+
+unsigned int *BKE_studiolight_preview(StudioLight *sl, int icon_size, int icon_id_type)
+{
+	if (icon_id_type == STUDIOLIGHT_ICON_ID_TYPE_IRRADIANCE) {
+		return studiolight_irradiance_preview(sl, icon_size);
+	} else {
+		return studiolight_radiance_preview(sl, icon_size);
+	}
+}
+
 void BKE_studiolight_ensure_flag(StudioLight *sl, int flag)
 {
 	if ((sl->flag & flag) == flag) {
 		return;
 	}
 
+	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_IMAGE_LOADED)) {
+		studiolight_load_equierectangular_image(sl);
+	}
 	if ((flag & STUDIOLIGHT_RADIANCE_BUFFERS_CALCULATED)) {
 		studiolight_calculate_radiance_buffers(sl);
 	}
 	if ((flag & STUDIOLIGHT_DIFFUSE_LIGHT_CALCULATED)) {
 		studiolight_calculate_diffuse_light(sl);
+	}
+	if ((flag & STUDIOLIGHT_EQUIRECTANGULAR_GPUTEXTURE)) {
+		studiolight_create_equierectangular_gputexture(sl);
 	}
 	if ((flag & STUDIOLIGHT_LIGHT_DIRECTION_CALCULATED)) {
 		studiolight_calculate_light_direction(sl);

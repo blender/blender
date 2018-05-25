@@ -101,28 +101,29 @@ enum {
 
 /* Material shader variations */
 enum {
-	VAR_MAT_MESH     = (1 << 0),
-	VAR_MAT_PROBE    = (1 << 1),
-	VAR_MAT_HAIR     = (1 << 2),
-	VAR_MAT_FLAT     = (1 << 3),
-	VAR_MAT_BLEND    = (1 << 4),
-	VAR_MAT_VSM      = (1 << 5),
-	VAR_MAT_ESM      = (1 << 6),
-	VAR_MAT_VOLUME   = (1 << 7),
+	VAR_MAT_MESH        = (1 << 0),
+	VAR_MAT_PROBE       = (1 << 1),
+	VAR_MAT_HAIR        = (1 << 2),
+	VAR_MAT_FLAT        = (1 << 3),
+	VAR_MAT_BLEND       = (1 << 4),
+	VAR_MAT_VSM         = (1 << 5),
+	VAR_MAT_ESM         = (1 << 6),
+	VAR_MAT_VOLUME      = (1 << 7),
+	VAR_MAT_LOOKDEV = (1 << 8),
 	/* Max number of variation */
 	/* IMPORTANT : Leave it last and set
 	 * it's value accordingly. */
-	VAR_MAT_MAX      = (1 << 8),
+	VAR_MAT_MAX         = (1 << 9),
 	/* These are options that are not counted in VAR_MAT_MAX
 	 * because they are not cumulative with the others above. */
-	VAR_MAT_CLIP     = (1 << 9),
-	VAR_MAT_HASH     = (1 << 10),
-	VAR_MAT_MULT     = (1 << 11),
-	VAR_MAT_SHADOW   = (1 << 12),
-	VAR_MAT_REFRACT  = (1 << 13),
-	VAR_MAT_SSS      = (1 << 14),
-	VAR_MAT_TRANSLUC = (1 << 15),
-	VAR_MAT_SSSALBED = (1 << 16),
+	VAR_MAT_CLIP        = (1 << 10),
+	VAR_MAT_HASH        = (1 << 11),
+	VAR_MAT_MULT        = (1 << 12),
+	VAR_MAT_SHADOW      = (1 << 13),
+	VAR_MAT_REFRACT     = (1 << 14),
+	VAR_MAT_SSS         = (1 << 15),
+	VAR_MAT_TRANSLUC    = (1 << 16),
+	VAR_MAT_SSSALBED    = (1 << 17),
 };
 
 typedef struct EEVEE_BoundSphere {
@@ -205,6 +206,7 @@ typedef struct EEVEE_PassList {
 	struct DRWPass *transparent_pass;
 	struct DRWPass *background_pass;
 	struct DRWPass *update_noise_pass;
+	struct DRWPass *lookdev_pass;
 } EEVEE_PassList;
 
 typedef struct EEVEE_FramebufferList {
@@ -277,6 +279,8 @@ typedef struct EEVEE_StorageList {
 	struct EEVEE_EffectsInfo *effects;
 
 	struct EEVEE_PrivateData *g_data;
+	/* XXX: move to better place */
+	float studiolight_matrix[3][3];
 } EEVEE_StorageList;
 
 /* ************ LIGHT UBO ************* */
@@ -452,6 +456,8 @@ typedef struct EEVEE_LightProbesInfo {
 	float visibility_blur;
 	float intensity_fac;
 	int shres;
+	int studiolight_index;
+	float studiolight_rot_z;
 	/* List of probes in the scene. */
 	/* XXX This is fragile, can get out of sync quickly. */
 	struct Object *probes_cube_ref[MAX_PROBE];
@@ -928,6 +934,10 @@ void EEVEE_render_init(EEVEE_Data *vedata, struct RenderEngine *engine, struct D
 void EEVEE_render_cache(void *vedata, struct Object *ob, struct RenderEngine *engine, struct Depsgraph *depsgraph);
 void EEVEE_render_draw(EEVEE_Data *vedata, struct RenderEngine *engine, struct RenderLayer *render_layer, const struct rcti *rect);
 void EEVEE_render_update_passes(struct RenderEngine *engine, struct Scene *scene, struct ViewLayer *view_layer);
+
+/** eevee_lookdev.c */
+void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShader *shader, DRWPass *pass, EEVEE_LightProbesInfo *pinfo);
+void EEVEE_lookdev_draw_background(EEVEE_Data *vedata);
 
 /* Shadow Matrix */
 static const float texcomat[4][4] = { /* From NDC to TexCo */

@@ -15,5 +15,9 @@ Closure nodetree_exec(void)
 
 	Closure result = Closure(out_spec + out_diff * albedo, 1.0, vec4(ssr_spec, roughness), normal_encode(normalize(viewNormal), viewCameraVec), 0);
 
+#ifdef LOOKDEV
+	gl_FragDepth = 0.0;
+#endif
+
 	return result;
 }

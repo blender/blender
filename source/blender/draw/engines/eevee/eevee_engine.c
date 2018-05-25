@@ -187,7 +187,6 @@ static void eevee_draw_background(void *vedata)
 	/* Default framebuffer and texture */
 	DefaultTextureList *dtxl = DRW_viewport_texture_list_get();
 	DefaultFramebufferList *dfbl = DRW_viewport_framebuffer_list_get();
-
 	/* Sort transparents before the loop. */
 	DRW_pass_sort_shgroup_z(psl->transparent_pass);
 
@@ -309,6 +308,11 @@ static void eevee_draw_background(void *vedata)
 			DRW_viewport_matrix_override_unset_all();
 		}
 	}
+
+	/* LookDev */
+	EEVEE_lookdev_draw_background(vedata);
+	/* END */
+	
 
 	/* Tonemapping and transfer result to default framebuffer. */
 	GPU_framebuffer_bind(dfbl->default_fb);

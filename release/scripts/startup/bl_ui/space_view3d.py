@@ -3545,6 +3545,11 @@ class VIEW3D_PT_shading(Panel):
             sub.active = shading.show_object_outline
             sub.prop(shading, "object_outline_color", text="")
 
+        elif shading.type in ('MATERIAL'):
+            col.row().template_icon_view(shading, "studio_light")
+            if shading.studio_light_orientation == 'WORLD':
+                col.row().prop(shading, "studiolight_rot_z")
+
 
 class VIEW3D_PT_overlay(Panel):
     bl_space_type = 'VIEW_3D'
