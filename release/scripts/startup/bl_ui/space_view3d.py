@@ -1473,7 +1473,7 @@ class VIEW3D_MT_object_clear(Menu):
 
 
 class VIEW3D_MT_object_specials(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     @classmethod
     def poll(cls, context):
@@ -1485,6 +1485,42 @@ class VIEW3D_MT_object_specials(Menu):
 
         scene = context.scene
         obj = context.object
+
+        layout.operator("view3d.copybuffer", text="Copy Objects", icon='COPYDOWN')
+        layout.operator("view3d.pastebuffer", text="Paste Objects", icon='PASTEDOWN')
+
+        layout.separator()
+
+        layout.operator("object.duplicate_move")
+        layout.operator("object.duplicate_move_linked")
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_snap")
+        layout.menu("VIEW3D_MT_object_parent")
+        layout.operator_context = 'INVOKE_REGION_WIN'
+        layout.operator("object.move_to_collection")
+
+        layout.separator()
+
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
+
+        layout.separator()
+
+        layout.operator("object.delete", text="Delete...").use_global = False
+
+        if obj.type == 'MESH':
+
+            layout.separator()
+
+            layout.operator("object.shade_smooth", text="Smooth Shading")
+            layout.operator("object.shade_flat", text="Flat Shading")
+
+            layout.separator()
+
+            layout.operator("object.origin_set")
+            layout.operator("object.join")
+            layout.operator_menu_enum("object.convert", "target")
 
         if obj.type == 'CAMERA':
             layout.operator_context = 'INVOKE_REGION_WIN'
@@ -1594,11 +1630,6 @@ class VIEW3D_MT_object_specials(Menu):
                 props.data_path_item = "data.spot_blend"
                 props.input_scale = -0.01
                 props.header_text = "Spot Blend: %.2f"
-
-        layout.separator()
-
-        props = layout.operator("object.isolate_type_render")
-        props = layout.operator("object.hide_render_clear_all")
 
 
 class VIEW3D_MT_object_shading(Menu):
@@ -2072,7 +2103,7 @@ class VIEW3D_MT_particle(Menu):
 
 
 class VIEW3D_MT_particle_specials(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -2322,30 +2353,41 @@ class VIEW3D_MT_pose_apply(Menu):
 
 
 class VIEW3D_MT_pose_specials(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("paint.weight_from_bones", text="Assign Automatic from Bones").type = 'AUTOMATIC'
-        layout.operator("paint.weight_from_bones", text="Assign from Bone Envelopes").type = 'ENVELOPES'
+        layout.operator("anim.keyframe_insert_menu", text="Insert Keyframe...")
+
+        layout.separator()
+
+        layout.operator("pose.copy")
+        layout.operator("pose.paste").flipped = False
+        layout.operator("pose.paste", text="Paste X-Flipped Pose").flipped = True
 
         layout.separator()
 
         layout.operator("pose.select_constraint_target")
-        layout.operator("pose.flip_names")
+
+        layout.separator()
+
+        layout.operator("pose.paths_calculate", text="Calculate")
+        layout.operator("pose.paths_clear", text="Clear")
 
         layout.separator()
 
         layout.operator("pose.paths_calculate")
         layout.operator("pose.paths_clear")
-        layout.operator("pose.user_transforms_clear")
-        layout.operator("pose.user_transforms_clear", text="Clear User Transforms (All)").only_selected = False
-        layout.operator("pose.relax")
 
         layout.separator()
 
-        layout.operator_menu_enum("pose.autoside_names", "axis")
+        layout.operator("pose.hide").unselected = False
+        layout.operator("pose.reveal")
+
+        layout.separator()
+
+        layout.operator("pose.user_transforms_clear")
 
 
 class BoneOptions:
@@ -2443,52 +2485,94 @@ class VIEW3D_MT_edit_mesh(Menu):
 
 
 class VIEW3D_MT_edit_mesh_specials(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     def draw(self, context):
         layout = self.layout
 
+        select_mode = context.tool_settings.mesh_select_mode
+
         layout.operator_context = 'INVOKE_REGION_WIN'
 
-        layout.operator("mesh.subdivide", text="Subdivide").smoothness = 0.0
-        layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
+        layout.operator("mesh.subdivide", text="Subdivide")
 
         layout.separator()
 
-        layout.operator("mesh.merge", text="Merge...")
-        layout.operator("mesh.remove_doubles")
+        layout.operator("mesh.duplicate_move", text="Duplicate")
+
+        # Vertex Select Commands
+        if select_mode[0]:
+            layout.separator()
+
+            layout.operator("mesh.edge_face_add", text="New Edge/Face from Vertices")
+            layout.operator("mesh.vert_connect_path", text="Connect Vertex Path")
+            layout.operator("mesh.vert_connect", text="Connect Vertex Pairs")
+
+            layout.separator()
+
+            layout.operator("mesh.vertices_smooth", text="Smooth")
+            layout.operator("mesh.vertices_smooth_laplacian", text="Smooth Laplacian")
+
+            layout.separator()
+            layout.operator("mesh.merge", text="Merge Vertices...")
+            layout.operator("mesh.remove_doubles", text="Remove Double Vertices")
+            layout.operator("mesh.dissolve_verts")
+            layout.operator("mesh.delete", text="Delete Vertices").type = "VERT"
+
+        # Edge Select Commands
+        if select_mode[1]:
+            layout.separator()
+
+            layout.operator("mesh.bridge_edge_loops", text="Bridge Edge Loops")
+
+            layout.separator()
+
+            layout.operator("mesh.dissolve_edges")
+            layout.operator("mesh.delete", text="Delete Edges").type = "EDGE"
+
+        # Face Select Commands
+        if select_mode[2]:
+            layout.separator()
+
+            layout.operator("mesh.faces_shade_smooth")
+            layout.operator("mesh.faces_shade_flat")
+
+            layout.separator()
+
+            layout.operator("mesh.bridge_edge_loops", text="Bridge Faces")
+
+            layout.separator()
+
+            layout.operator("mesh.poke")
+
+            layout.separator()
+
+            props = layout.operator("mesh.quads_convert_to_tris")
+            props.quad_method = props.ngon_method = 'BEAUTY'
+            layout.operator("mesh.tris_convert_to_quads")
+
+            layout.separator()
+
+            layout.menu("VIEW3D_MT_uv_map", text="UV Unwrap Faces...")
+
+            layout.separator()
+
+            layout.operator("mesh.dissolve_faces")
+            layout.operator("mesh.delete", text="Delete Faces").type = "FACE"
+
+        # General Mesh Commands
+
+        layout.separator()
+
+        layout.menu("VIEW3D_MT_snap", text="Snap...")
+        layout.operator("transform.mirror", text="Mirror")
+        layout.operator("mesh.symmetrize")
+        layout.operator("mesh.symmetry_snap")
 
         layout.separator()
 
         layout.operator("mesh.hide", text="Hide").unselected = False
         layout.operator("mesh.reveal", text="Reveal")
-        layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
-
-        layout.separator()
-
-        layout.operator("mesh.flip_normals")
-        layout.operator("mesh.vertices_smooth", text="Smooth")
-        layout.operator("mesh.vertices_smooth_laplacian", text="Laplacian Smooth")
-
-        layout.separator()
-
-        layout.operator("mesh.inset")
-        layout.operator("mesh.bevel", text="Bevel")
-        layout.operator("mesh.bridge_edge_loops")
-
-        layout.separator()
-
-        layout.operator("mesh.faces_shade_smooth")
-        layout.operator("mesh.faces_shade_flat")
-
-        layout.separator()
-
-        layout.operator("mesh.blend_from_shape")
-        layout.operator("mesh.shape_propagate_to_all")
-        layout.operator("mesh.shortest_path_select")
-        layout.operator("mesh.sort_elements")
-        layout.operator("mesh.symmetrize")
-        layout.operator("mesh.symmetry_snap")
 
 
 class VIEW3D_MT_edit_mesh_select_mode(Menu):
@@ -2936,7 +3020,7 @@ class VIEW3D_MT_edit_curve_clean(Menu):
 
 
 class VIEW3D_MT_edit_curve_specials(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -3150,7 +3234,7 @@ class VIEW3D_MT_edit_armature(Menu):
 
 
 class VIEW3D_MT_armature_specials(Menu):
-    bl_label = "Specials"
+    bl_label = "Context Menu"
 
     def draw(self, context):
         layout = self.layout
@@ -3892,7 +3976,6 @@ classes = (
     INFO_MT_lightprobe_add,
     INFO_MT_camera_add,
     INFO_MT_add,
-    VIEW3D_MT_object_relations,
     VIEW3D_MT_object,
     VIEW3D_MT_object_animation,
     VIEW3D_MT_object_rigid_body,
@@ -3900,6 +3983,7 @@ classes = (
     VIEW3D_MT_object_specials,
     VIEW3D_MT_object_shading,
     VIEW3D_MT_object_apply,
+    VIEW3D_MT_object_relations,
     VIEW3D_MT_object_parent,
     VIEW3D_MT_object_track,
     VIEW3D_MT_object_collection,
