@@ -59,4 +59,3 @@ call "%BLENDER_DIR%\build_files\windows\build_msbuild.cmd"
 if errorlevel 1 goto EOF
 
 :EOF
-echo make2 done
