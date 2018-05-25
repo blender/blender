@@ -1380,22 +1380,28 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.operator("object.shade_smooth", text="Smooth Shading")
-        layout.operator("object.shade_flat", text="Flat Shading")
-
-        layout.separator()
-
         layout.operator("object.duplicate_move")
         layout.operator("object.duplicate_move_linked")
         layout.operator("object.join")
 
         layout.separator()
+
+        layout.operator("view3d.copybuffer", text="Copy Objects")
+        layout.operator("view3d.pastebuffer", text="Paste Objects")
+
+        layout.separator()
+
         layout.menu("VIEW3D_MT_object_parent")
         layout.menu("VIEW3D_MT_object_collection")
         layout.menu("VIEW3D_MT_object_relations")
         layout.menu("VIEW3D_MT_object_constraints")
         layout.menu("VIEW3D_MT_object_track")
         layout.menu("VIEW3D_MT_make_links", text="Make Links...")
+
+        layout.separator()
+
+        layout.operator("object.shade_smooth", text="Smooth Shading")
+        layout.operator("object.shade_flat", text="Flat Shading")
 
         layout.separator()
 
