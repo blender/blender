@@ -66,6 +66,7 @@
 #include "BKE_library_query.h"
 #include "BKE_mesh.h"
 #include "BKE_multires.h"
+#include "BKE_object.h"
 #include "BKE_DerivedMesh.h"
 
 /* may move these, only for modifier_path_relbase */
@@ -1216,14 +1217,8 @@ struct DerivedMesh *modifier_applyModifierEM_DM_deprecated(struct ModifierData *
  */
 Mesh *BKE_modifier_get_evaluated_mesh_from_object(const ModifierEvalContext *ctx, Object *ob)
 {
-	const ModifierApplyFlag flag = ctx->flag;
-	Object *ob_eval = DEG_get_evaluated_object(ctx->depsgraph, ob);
-
-	if (flag & MOD_APPLY_RENDER) {
-		/* TODO(sergey): Use proper derived render in the future. */
-		return ob_eval->mesh_evaluated;
-	}
-	else {
-		return ob_eval->mesh_evaluated;
-	}
+	/* Note: we do not care about RENDER setting here, since we get data from despgraph
+	 * (and render depsgraph shall be different from realtime one)
+	 */
+	return BKE_object_get_evaluated_mesh(ctx->depsgraph, ob);
 }

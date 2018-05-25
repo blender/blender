@@ -118,6 +118,7 @@
 #include "BKE_image.h"
 
 #include "DEG_depsgraph.h"
+#include "DEG_depsgraph_query.h"
 
 #include "DRW_engine.h"
 
@@ -2801,6 +2802,15 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 	}
 	return 1;
 }
+
+/** Get evaluated mesh for given (main, original) object and depsgraph. */
+Mesh *BKE_object_get_evaluated_mesh(const Depsgraph *depsgraph, Object *ob)
+{
+	Object *ob_eval = DEG_get_evaluated_object(depsgraph, ob);
+
+	return ob_eval->mesh_evaluated;
+}
+
 
 static int pc_cmp(const void *a, const void *b)
 {
