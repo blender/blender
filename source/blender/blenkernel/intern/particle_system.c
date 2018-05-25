@@ -311,7 +311,7 @@ int psys_get_tot_child(Scene *scene, ParticleSystem *psys, const bool use_render
 /*			Distribution						*/
 /************************************************/
 
-void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_deformed, ParticleSystem *psys)
+void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_original, ParticleSystem *psys)
 {
 	/* use for building derived mesh mapping info:
 	 *
@@ -350,7 +350,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_deformed, Partic
 				origindex_poly= NULL;
 			}
 			else {
-				totelem = mesh_deformed->totface;
+				totelem = mesh_original->totface;
 				origindex = CustomData_get_layer(&mesh_final->fdata, CD_ORIGINDEX);
 
 				/* for face lookups we need the poly origindex too */
@@ -414,7 +414,7 @@ void psys_calc_dmcache(Object *ob, Mesh *mesh_final, Mesh *mesh_deformed, Partic
 						pa->num_dmcache = DMCACHE_NOTFOUND;
 				}
 				else { /* FROM_FACE/FROM_VOLUME */
-					pa->num_dmcache = psys_particle_dm_face_lookup(mesh_final, mesh_deformed, pa->num, pa->fuv, nodearray);
+					pa->num_dmcache = psys_particle_dm_face_lookup(mesh_final, mesh_original, pa->num, pa->fuv, nodearray);
 				}
 			}
 		}
@@ -3242,7 +3242,7 @@ static void hair_step(ParticleSimulationData *sim, float cfra, const bool use_re
 
 	if (psys->recalc & PSYS_RECALC_RESET) {
 		/* need this for changing subsurf levels */
-		psys_calc_dmcache(sim->ob, sim->psmd->mesh_final, sim->psmd->mesh_deformed, psys);
+		psys_calc_dmcache(sim->ob, sim->psmd->mesh_final, sim->psmd->mesh_original, psys);
 
 		if (psys->clmd)
 			cloth_free_modifier(psys->clmd);

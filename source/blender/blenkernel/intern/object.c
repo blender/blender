@@ -379,9 +379,9 @@ void BKE_object_free_caches(Object *object)
 			if (psmd->mesh_final) {
 				BKE_id_free(NULL, psmd->mesh_final);
 				psmd->mesh_final = NULL;
-				if (psmd->mesh_deformed) {
-					BKE_id_free(NULL, psmd->mesh_deformed);
-					psmd->mesh_deformed = NULL;
+				if (psmd->mesh_original) {
+					BKE_id_free(NULL, psmd->mesh_original);
+					psmd->mesh_original = NULL;
 				}
 				psmd->flag |= eParticleSystemFlag_file_loaded;
 				update_flag |= OB_RECALC_DATA;

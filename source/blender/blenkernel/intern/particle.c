@@ -1295,7 +1295,7 @@ static void psys_origspace_to_w(OrigSpaceFace *osface, int quad, const float w[4
  * \return the DM tessface index.
  */
 int psys_particle_dm_face_lookup(
-        Mesh *mesh_final, Mesh *mesh_deformed,
+        Mesh *mesh_final, Mesh *mesh_original,
         int findex_orig, const float fw[4], struct LinkNode **poly_nodes)
 {
 	MFace *mtessface_final;
@@ -1308,7 +1308,7 @@ int psys_particle_dm_face_lookup(
 	const int *index_mp_to_orig = NULL;
 
 	const int totface_final = mesh_final->totface;
-	const int totface_deformed = mesh_deformed ? mesh_deformed->totface : totface_final;
+	const int totface_deformed = mesh_original ? mesh_original->totface : totface_final;
 
 	if (ELEM(0, totface_final, totface_deformed)) {
 		return DMCACHE_NOTFOUND;
@@ -1318,8 +1318,8 @@ int psys_particle_dm_face_lookup(
 	index_mp_to_orig = CustomData_get_layer(&mesh_final->pdata, CD_ORIGINDEX);
 	BLI_assert(index_mf_to_mpoly);
 
-	if (mesh_deformed) {
-		index_mf_to_mpoly_deformed = CustomData_get_layer(&mesh_deformed->fdata, CD_ORIGINDEX);
+	if (mesh_original) {
+		index_mf_to_mpoly_deformed = CustomData_get_layer(&mesh_original->fdata, CD_ORIGINDEX);
 	}
 	else {
 		BLI_assert(mesh_final->runtime.deformed_only);
@@ -1329,8 +1329,8 @@ int psys_particle_dm_face_lookup(
 
 	pindex_orig = index_mf_to_mpoly_deformed[findex_orig];
 
-	if (mesh_deformed == NULL) {
-		mesh_deformed = mesh_final;
+	if (mesh_original == NULL) {
+		mesh_original = mesh_final;
 	}
 
 	index_mf_to_mpoly_deformed = NULL;
@@ -1349,7 +1349,7 @@ int psys_particle_dm_face_lookup(
 			return DMCACHE_NOTFOUND;
 		}
 	}
-	else if (findex_orig >= mesh_deformed->totface) {
+	else if (findex_orig >= mesh_original->totface) {
 		return DMCACHE_NOTFOUND;  /* index not in the original mesh */
 	}
 

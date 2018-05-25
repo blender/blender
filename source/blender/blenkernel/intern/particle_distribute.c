@@ -847,7 +847,7 @@ static int psys_thread_context_init_distribute(ParticleThreadContext *ctx, Parti
 		/* Simple children */
 		if (part->childtype != PART_CHILD_FACES) {
 			BLI_srandom(31415926 + psys->seed + psys->child_seed);
-			distribute_simple_children(scene, ob, final_mesh, sim->psmd->mesh_deformed, psys, use_render_params);
+			distribute_simple_children(scene, ob, final_mesh, sim->psmd->mesh_original, psys, use_render_params);
 			return 0;
 		}
 	}
@@ -1233,7 +1233,7 @@ static void distribute_particles_on_dm(ParticleSimulationData *sim, int from)
 	
 	BLI_task_pool_free(task_pool);
 	
-	psys_calc_dmcache(sim->ob, final_mesh, sim->psmd->mesh_deformed, sim->psys);
+	psys_calc_dmcache(sim->ob, final_mesh, sim->psmd->mesh_original, sim->psys);
 	
 	if (ctx.mesh != final_mesh)
 		BKE_id_free(NULL, ctx.mesh);

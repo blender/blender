@@ -680,7 +680,7 @@ static bool remap_hair_emitter(
 		mesh = target_psmd->mesh_final;
 	}
 	else {
-		mesh = target_psmd->mesh_deformed;
+		mesh = target_psmd->mesh_original;
 	}
 	target_mesh = target_psmd->mesh_final;
 	if (mesh == NULL) {
