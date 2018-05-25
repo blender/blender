@@ -127,6 +127,7 @@ typedef enum {
 	DRW_CALL_SINGLE,                 /* A single batch */
 	DRW_CALL_INSTANCES,              /* Draw instances without any instancing attribs. */
 	DRW_CALL_GENERATE,               /* Uses a callback to draw with any number of batches. */
+	DRW_CALL_PROCEDURAL,             /* Generate a drawcall without any Gwn_Batch. */
 } DRWCallType;
 
 typedef struct DRWCall {
@@ -146,6 +147,10 @@ typedef struct DRWCall {
 			DRWCallGenerateFn *geometry_fn;
 			void *user_data;
 		} generate;
+		struct { /* type == DRW_CALL_PROCEDURAL */
+			unsigned int prim_count;
+			Gwn_PrimType prim_type;
+		} procedural;
 	};
 
 	DRWCallType type;

@@ -329,6 +329,7 @@ DRWShadingGroup *DRW_shgroup_empty_tri_batch_create(
 DRWShadingGroup *DRW_shgroup_transform_feedback_create(
         struct GPUShader *shader, DRWPass *pass, struct Gwn_VertBuf *tf_target);
 
+
 typedef void (DRWCallGenerateFn)(
         DRWShadingGroup *shgroup,
         void (*draw_fn)(DRWShadingGroup *shgroup, struct Gwn_Batch *geom),
@@ -344,6 +345,9 @@ void DRW_shgroup_instance_batch(DRWShadingGroup *shgroup, struct Gwn_Batch *batc
 void DRW_shgroup_free(struct DRWShadingGroup *shgroup);
 void DRW_shgroup_call_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, float (*obmat)[4]);
 void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob);
+void DRW_shgroup_call_procedural_points_add(DRWShadingGroup *shgroup, unsigned int point_count, float (*obmat)[4]);
+void DRW_shgroup_call_procedural_lines_add(DRWShadingGroup *shgroup, unsigned int line_count, float (*obmat)[4]);
+void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, unsigned int tria_count, float (*obmat)[4]);
 void DRW_shgroup_call_object_add_with_callback(
         DRWShadingGroup *shgroup, struct Gwn_Batch *geom, struct Object *ob,
         DRWCallVisibilityFn *callback, void *user_data);

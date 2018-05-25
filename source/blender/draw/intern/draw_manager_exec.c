@@ -820,6 +820,7 @@ static void draw_geometry_execute_ex(
         DRWShadingGroup *shgroup, Gwn_Batch *geom, uint start, uint count, bool draw_instance)
 {
 	/* Special case: empty drawcall, placement is done via shader, don't bind anything. */
+	/* TODO use DRW_CALL_PROCEDURAL instead */
 	if (geom == NULL) {
 		BLI_assert(shgroup->type == DRW_SHG_TRIANGLE_BATCH); /* Add other type if needed. */
 		/* Shader is already bound. */
@@ -1146,6 +1147,9 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 					break;
 				case DRW_CALL_GENERATE:
 					call->generate.geometry_fn(shgroup, draw_geometry_execute, call->generate.user_data);
+					break;
+				case DRW_CALL_PROCEDURAL:
+					GWN_draw_primitive(call->procedural.prim_type, call->procedural.prim_count);
 					break;
 				default:
 					BLI_assert(0);
