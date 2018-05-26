@@ -570,7 +570,7 @@ class VIEW3D_PT_slots_projectpaint(View3DPanel, Panel):
                 else:
                     slot = None
 
-                if slot and slot.valid:
+                if slot and slot.is_valid:
                     col.label("UV Map:")
                     col.prop_search(slot, "uv_layer", ob.data, "uv_layers", text="")
 

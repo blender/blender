@@ -15,14 +15,14 @@ def setup():
     scene = bpy.context.scene
     eevee = scene.eevee
 
-    eevee.sss_enable = True
-    eevee.ssr_enable = True
-    eevee.ssr_refraction = True
-    eevee.gtao_enable = True
-    eevee.dof_enable = True
+    eevee.use_sss = True
+    eevee.use_ssr = True
+    eevee.use_ssr_refraction = True
+    eevee.use_gtao = True
+    eevee.use_dof = True
 
-    eevee.volumetric_enable = True
-    eevee.volumetric_shadows = True
+    eevee.use_volumetric = True
+    eevee.use_volumetric_shadows = True
     eevee.volumetric_tile_size = '2'
 
     for mat in bpy.data.materials:

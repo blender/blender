@@ -3628,7 +3628,7 @@ class VIEW3D_PT_overlay(Panel):
 
             col = layout.column()
             col.active = display_all
-            col.prop(overlay, "transparent_bones")
+            col.prop(overlay, "show_transparent_bones")
             col.prop(overlay, "show_bone_selection")
 
         elif context.mode == 'EDIT_ARMATURE':
@@ -3637,7 +3637,7 @@ class VIEW3D_PT_overlay(Panel):
 
             col = layout.column()
             col.active = display_all
-            col.prop(overlay, "transparent_bones")
+            col.prop(overlay, "show_transparent_bones")
 
         elif context.mode in {'PAINT_WEIGHT', 'PAINT_VERTEX', 'PAINT_TEXTURE'}:
             col.separator()
