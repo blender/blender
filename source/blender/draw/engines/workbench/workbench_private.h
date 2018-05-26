@@ -131,8 +131,8 @@ typedef struct WORKBENCH_PrivateData {
 	float shadow_mat[4][4];
 	float shadow_inv[4][4];
 	float shadow_near_corners[4][3]; /* Near plane corners in shadow space. */
-	float shadow_near_min[2]; /* min and max of shadow_near_corners. allow fast test */
-	float shadow_near_max[2];
+	float shadow_near_min[3]; /* min and max of shadow_near_corners. allow fast test */
+	float shadow_near_max[3];
 	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
 	bool shadow_changed;
 } WORKBENCH_PrivateData; /* Transient data */

@@ -87,9 +87,9 @@ void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_dire
 	mul_v3_mat3_m4v3(wpd->shadow_near_corners[2], wpd->shadow_inv, frustum_corners.vec[7]);
 	mul_v3_mat3_m4v3(wpd->shadow_near_corners[3], wpd->shadow_inv, frustum_corners.vec[4]);
 
-	INIT_MINMAX2(wpd->shadow_near_min, wpd->shadow_near_max);
+	INIT_MINMAX(wpd->shadow_near_min, wpd->shadow_near_max);
 	for (int i = 0; i < 4; ++i) {
-		minmax_v2v2_v2(wpd->shadow_near_min, wpd->shadow_near_max, wpd->shadow_near_corners[i]);
+		minmax_v3v3_v3(wpd->shadow_near_min, wpd->shadow_near_max, wpd->shadow_near_corners[i]);
 	}
 
 	compute_parallel_lines_nor_and_dist(wpd->shadow_near_corners[0], wpd->shadow_near_corners[1], wpd->shadow_near_corners[2], wpd->shadow_near_sides[0]);
@@ -135,6 +135,11 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 {
 	/* Just to be sure the min, max are updated. */
 	studiolight_object_shadow_bbox_get(wpd, ob, oed);
+
+	/* Test if near plane is in front of the shadow. */
+	if (oed->shadow_min[2] > wpd->shadow_near_max[2]) {
+		return false;
+	}
 
 	/* Separation Axis Theorem test */
 
