@@ -49,6 +49,10 @@
 
 // #define DEBUG_SHADOW_VOLUME
 
+#ifdef DEBUG_SHADOW_VOLUME
+#  include "draw_debug.h"
+#endif
+
 static struct {
 	struct GPUShader *prepass_sh_cache[MAX_SHADERS];
 	struct GPUShader *composite_sh_cache[MAX_SHADERS];
@@ -161,6 +165,7 @@ static void workbench_init_object_data(ObjectEngineData *engine_data)
 {
 	WORKBENCH_ObjectData *data = (WORKBENCH_ObjectData *)engine_data;
 	data->object_id = e_data.next_object_id++;
+	data->shadow_bbox_dirty = true;
 }
 
 void workbench_deferred_engine_init(WORKBENCH_Data *vedata)
@@ -369,6 +374,8 @@ void workbench_deferred_cache_init(WORKBENCH_Data *vedata)
 			DRW_shgroup_uniform_float(grp, "shadowShift", &scene->display.shadow_shift, 1);
 			DRW_shgroup_call_add(grp, DRW_cache_fullscreen_quad_get(), NULL);
 #endif
+
+			studiolight_update_light(wpd, e_data.display.light_direction);
 		}
 		else {
 			psl->composite_pass = DRW_pass_create(
@@ -542,44 +549,60 @@ void workbench_deferred_solid_cache_populate(WORKBENCH_Data *vedata, Object *ob)
 					WORKBENCH_ObjectData *engine_object_data = (WORKBENCH_ObjectData *)DRW_object_engine_data_ensure(
 					        ob, &draw_engine_workbench_solid, sizeof(WORKBENCH_ObjectData), &workbench_init_object_data, NULL);
 
-					invert_m4_m4(ob->imat, ob->obmat);
-					mul_v3_mat3_m4v3(engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
+					if (studiolight_object_cast_visible_shadow(wpd, ob, engine_object_data)) {
 
-					DRWShadingGroup *grp;
-					/* TODO(fclem): only use shadow pass technique if camera is not in shadow. */
-					const bool use_shadow_pass_technique = true;
-					if (use_shadow_pass_technique) {
-						if (is_manifold) {
-							grp = DRW_shgroup_create(e_data.shadow_pass_manifold_sh, psl->shadow_depth_pass_mani_pass);
+						invert_m4_m4(ob->imat, ob->obmat);
+						mul_v3_mat3_m4v3(engine_object_data->shadow_dir, ob->imat, e_data.display.light_direction);
+
+						DRWShadingGroup *grp;
+						bool use_shadow_pass_technique = !studiolight_camera_in_object_shadow(wpd, ob, engine_object_data);
+
+						/* Unless we expose a parameter to the user, it's better to use the depth pass technique if the object is
+						 * non manifold. Exposing a switch to the user to force depth fail in this case can be beneficial for
+						 * planes and non-closed terrains. */
+						if (!is_manifold) {
+							use_shadow_pass_technique = true;
 						}
-						else {
-							grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
-						}
-						DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
-						DRW_shgroup_call_object_add(grp, geom_shadow, ob);
-					}
-					else {
-						/* TODO(fclem): only use caps if they are in the view frustum. */
-						const bool need_caps = true;
-						if (need_caps) {
+
+						if (use_shadow_pass_technique) {
 							if (is_manifold) {
-								grp = DRW_shgroup_create(e_data.shadow_caps_manifold_sh, psl->shadow_depth_fail_caps_mani_pass);
+								grp = DRW_shgroup_create(e_data.shadow_pass_manifold_sh, psl->shadow_depth_pass_mani_pass);
 							}
 							else {
-								grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
+								grp = DRW_shgroup_create(e_data.shadow_pass_sh, psl->shadow_depth_pass_pass);
 							}
 							DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
-							DRW_shgroup_call_object_add(grp, DRW_cache_object_surface_get(ob), ob);
-						}
-
-						if (is_manifold) {
-							grp = DRW_shgroup_create(e_data.shadow_fail_manifold_sh, psl->shadow_depth_fail_mani_pass);
+							DRW_shgroup_call_add(grp, geom_shadow, ob->obmat);
+#ifdef DEBUG_SHADOW_VOLUME
+							DRW_debug_bbox(&engine_object_data->shadow_bbox, (float[4]){1.0f, 0.0f, 0.0f, 1.0f});
+#endif
 						}
 						else {
-							grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
+							/* TODO(fclem): only use caps if they are in the view frustum. */
+							const bool need_caps = true;
+							if (need_caps) {
+								if (is_manifold) {
+									grp = DRW_shgroup_create(e_data.shadow_caps_manifold_sh, psl->shadow_depth_fail_caps_mani_pass);
+								}
+								else {
+									grp = DRW_shgroup_create(e_data.shadow_caps_sh, psl->shadow_depth_fail_caps_pass);
+								}
+								DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
+								DRW_shgroup_call_add(grp, DRW_cache_object_surface_get(ob), ob->obmat);
+							}
+
+							if (is_manifold) {
+								grp = DRW_shgroup_create(e_data.shadow_fail_manifold_sh, psl->shadow_depth_fail_mani_pass);
+							}
+							else {
+								grp = DRW_shgroup_create(e_data.shadow_fail_sh, psl->shadow_depth_fail_pass);
+							}
+							DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
+							DRW_shgroup_call_add(grp, geom_shadow, ob->obmat);
+#ifdef DEBUG_SHADOW_VOLUME
+							DRW_debug_bbox(&engine_object_data->shadow_bbox, (float[4]){0.0f, 1.0f, 0.0f, 1.0f});
+#endif
 						}
-						DRW_shgroup_uniform_vec3(grp, "lightDirection", engine_object_data->shadow_dir, 1);
-						DRW_shgroup_call_object_add(grp, geom_shadow, ob);
 					}
 				}
 			}

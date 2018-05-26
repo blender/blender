@@ -127,6 +127,14 @@ typedef struct WORKBENCH_PrivateData {
 #endif
 	WORKBENCH_UBO_World world_data;
 	float shadow_multiplier;
+	float cached_shadow_direction[3];
+	float shadow_mat[4][4];
+	float shadow_inv[4][4];
+	float shadow_near_corners[4][3]; /* Near plane corners in shadow space. */
+	float shadow_near_min[2]; /* min and max of shadow_near_corners. allow fast test */
+	float shadow_near_max[2];
+	float shadow_near_sides[2][4]; /* This is a parallelogram, so only 2 normal and distance to the edges. */
+	bool shadow_changed;
 } WORKBENCH_PrivateData; /* Transient data */
 
 typedef struct WORKBENCH_MaterialData {
@@ -151,6 +159,9 @@ typedef struct WORKBENCH_ObjectData {
 	int recalc;
 	/* Shadow direction in local object space. */
 	float shadow_dir[3];
+	float shadow_min[3], shadow_max[3]; /* Min, max in shadow space */
+	BoundBox shadow_bbox;
+	bool shadow_bbox_dirty;
 
 	int object_id;
 } WORKBENCH_ObjectData;
@@ -191,6 +202,9 @@ void workbench_material_set_normal_world_matrix(
 
 /* workbench_studiolight.c */
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
+void studiolight_update_light(WORKBENCH_PrivateData *wpd, const float light_direction[3]);
+bool studiolight_object_cast_visible_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
+bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob, WORKBENCH_ObjectData *oed);
 
 /* workbench_data.c */
 void workbench_private_data_init(WORKBENCH_PrivateData *wpd);

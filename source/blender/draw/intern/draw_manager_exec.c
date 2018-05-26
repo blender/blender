@@ -707,6 +707,12 @@ bool DRW_culling_plane_test(float plane[4])
 	return false;
 }
 
+void DRW_culling_frustum_corners_get(BoundBox *corners)
+{
+	draw_clipping_setup_from_view();
+	memcpy(corners, &DST.clipping.frustum_corners, sizeof(BoundBox));
+}
+
 /** \} */
 
 /* -------------------------------------------------------------------- */
