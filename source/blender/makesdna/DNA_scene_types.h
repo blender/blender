@@ -2053,16 +2053,6 @@ typedef enum eGPencil_Placement_Flags {
 #define PE_TYPE_SOFTBODY	1
 #define PE_TYPE_CLOTH		2
 
-/* ToolSettings.bone_sketching */
-#define BONE_SKETCHING			1
-#define BONE_SKETCHING_QUICK	2
-#define BONE_SKETCHING_ADJUST	4
-
-/* ToolSettings.skgen_retarget_roll */
-#define	SK_RETARGET_ROLL_NONE			0
-#define	SK_RETARGET_ROLL_VIEW			1
-#define	SK_RETARGET_ROLL_JOINT			2
-
 /* PhysicsSettings.flag */
 #define PHYS_GLOBAL_GRAVITY		1
 
