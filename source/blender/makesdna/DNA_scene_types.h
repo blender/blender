@@ -2053,33 +2053,6 @@ typedef enum eGPencil_Placement_Flags {
 #define PE_TYPE_SOFTBODY	1
 #define PE_TYPE_CLOTH		2
 
-/* ToolSettings.skgen_options */
-#define SKGEN_FILTER_INTERNAL	(1 << 0)
-#define SKGEN_FILTER_EXTERNAL	(1 << 1)
-#define	SKGEN_SYMMETRY			(1 << 2)
-#define	SKGEN_CUT_LENGTH		(1 << 3)
-#define	SKGEN_CUT_ANGLE			(1 << 4)
-#define	SKGEN_CUT_CORRELATION	(1 << 5)
-#define	SKGEN_HARMONIC			(1 << 6)
-#define	SKGEN_STICK_TO_EMBEDDING	(1 << 7)
-#define	SKGEN_ADAPTIVE_DISTANCE		(1 << 8)
-#define SKGEN_FILTER_SMART		(1 << 9)
-#define SKGEN_DISP_LENGTH		(1 << 10)
-#define SKGEN_DISP_WEIGHT		(1 << 11)
-#define SKGEN_DISP_ORIG			(1 << 12)
-#define SKGEN_DISP_EMBED		(1 << 13)
-#define SKGEN_DISP_INDEX		(1 << 14)
-
-#define	SKGEN_SUB_LENGTH		0
-#define	SKGEN_SUB_ANGLE			1
-#define	SKGEN_SUB_CORRELATION	2
-#define	SKGEN_SUB_TOTAL			3
-
-/* ToolSettings.skgen_postpro */
-#define SKGEN_SMOOTH			0
-#define SKGEN_AVERAGE			1
-#define SKGEN_SHARPEN			2
-
 /* ToolSettings.bone_sketching */
 #define BONE_SKETCHING			1
 #define BONE_SKETCHING_QUICK	2
