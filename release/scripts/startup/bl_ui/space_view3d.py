@@ -3530,13 +3530,13 @@ class VIEW3D_PT_shading(Panel):
             col.separator()
 
             row = col.row()
-            row.prop(shading, "show_see_through")
+            row.prop(shading, "show_xray")
 
             row = col.row()
-            row.active = not shading.show_see_through
+            row.active = not shading.show_xray
             row.prop(shading, "show_shadows")
             sub = row.row()
-            sub.active = shading.show_shadows and not shading.show_see_through
+            sub.active = shading.show_shadows and not shading.show_xray
             sub.prop(shading, "shadow_intensity", text="")
 
             row = col.row()
