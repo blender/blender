@@ -373,7 +373,8 @@ static void drw_shgroup_bone_axes(const float (*bone_mat)[4], const float color[
 static void drw_shgroup_bone_relationship_lines(const float start[3], const float end[3])
 {
 	if (g_data.lines_relationship == NULL) {
-		g_data.lines_relationship = shgroup_dynlines_dashed_uniform_color(g_data.passes.relationship_lines, g_theme.wire_color);
+		g_data.lines_relationship = shgroup_dynlines_dashed_uniform_color(
+		        g_data.passes.relationship_lines, g_theme.wire_color);
 	}
 	/* reverse order to have less stipple overlap */
 	float v[3];
@@ -956,7 +957,8 @@ static void ebone_spline_preview(EditBone *ebone, float result_array[MAX_BBONE_S
 
 			size_to_mat4(bscalemat, bscale);
 
-			/* Note: don't multiply by inverse scale mat here, as it causes problems with scaling shearing and breaking segment chains */
+			/* Note: don't multiply by inverse scale mat here,
+			 * as it causes problems with scaling shearing and breaking segment chains */
 			mul_m4_series(result_array[a], result_array[a], bscalemat);
 		}
 	}
@@ -1055,7 +1057,8 @@ static void draw_axes(EditBone *eBone, bPoseChannel *pchan)
 	const float *col = (g_theme.const_color) ? g_theme.const_color :
 	                   (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? g_theme.text_hi_color : g_theme.text_color;
 	copy_v4_v4(final_col, col);
-	final_col[3] = (g_theme.const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.3 : 0.8; /* Mix with axes color. */
+	/* Mix with axes color. */
+	final_col[3] = (g_theme.const_color) ? 1.0 : (BONE_FLAG(eBone, pchan) & BONE_SELECTED) ? 0.3 : 0.8;
 	drw_shgroup_bone_axes(BONE_VAR(eBone, pchan, disp_mat), final_col);
 }
 
@@ -1107,8 +1110,9 @@ static void draw_points(
 		if (eBone) {
 			if (!((eBone->parent) && !EBONE_VISIBLE(arm, eBone->parent))) {
 				if (is_envelope_draw) {
-					drw_shgroup_bone_envelope(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-					                          &eBone->rad_head, &envelope_ignore);
+					drw_shgroup_bone_envelope(
+					        eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root,
+					        &eBone->rad_head, &envelope_ignore);
 				}
 				else {
 					drw_shgroup_bone_point(eBone->disp_mat, col_solid_root, col_hint_root, col_wire_root);
@@ -1119,8 +1123,9 @@ static void draw_points(
 			Bone *bone = pchan->bone;
 			if (!((bone->parent) && (bone->parent->flag & (BONE_HIDDEN_P | BONE_HIDDEN_PG)))) {
 				if (is_envelope_draw) {
-					drw_shgroup_bone_envelope(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
-					                          &bone->rad_head, &envelope_ignore);
+					drw_shgroup_bone_envelope(
+					        pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root,
+					        &bone->rad_head, &envelope_ignore);
 				}
 				else {
 					drw_shgroup_bone_point(pchan->disp_mat, col_solid_root, col_hint_root, col_wire_root);
@@ -1137,7 +1142,8 @@ static void draw_points(
 	if (is_envelope_draw) {
 		const float *rad_tail = eBone ? &eBone->rad_tail : &pchan->bone->rad_tail;
 		drw_shgroup_bone_envelope(
-		            BONE_VAR(eBone, pchan, disp_mat), col_solid_tail, col_hint_tail, col_wire_tail, &envelope_ignore, rad_tail);
+		        BONE_VAR(eBone, pchan, disp_mat), col_solid_tail, col_hint_tail, col_wire_tail,
+		        &envelope_ignore, rad_tail);
 	}
 	else {
 		drw_shgroup_bone_point(BONE_VAR(eBone, pchan, disp_tail_mat), col_solid_tail, col_hint_tail, col_wire_tail);
@@ -1211,7 +1217,9 @@ static void draw_bone_envelope(
 		DRW_select_load_id(select_id | BONESEL_BONE);
 	}
 
-	drw_shgroup_bone_envelope(BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire, rad_head, rad_tail);
+	drw_shgroup_bone_envelope(
+	        BONE_VAR(eBone, pchan, disp_mat), col_solid, col_hint, col_wire,
+	        rad_head, rad_tail);
 
 	if (select_id != -1) {
 		DRW_select_load_id(-1);

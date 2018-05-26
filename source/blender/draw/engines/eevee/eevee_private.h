@@ -809,8 +809,10 @@ struct GPUMaterial *EEVEE_material_world_volume_get(struct Scene *scene, struct 
 struct GPUMaterial *EEVEE_material_mesh_get(
         struct Scene *scene, Material *ma, EEVEE_Data *vedata,
         bool use_blend, bool use_multiply, bool use_refract, bool use_sss, bool use_translucency, int shadow_method);
-struct GPUMaterial *EEVEE_material_mesh_volume_get(struct Scene *scene, Material *ma);
-struct GPUMaterial *EEVEE_material_mesh_depth_get(struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);
+struct GPUMaterial *EEVEE_material_mesh_volume_get(
+        struct Scene *scene, Material *ma);
+struct GPUMaterial *EEVEE_material_mesh_depth_get(
+        struct Scene *scene, Material *ma, bool use_hashed_alpha, bool is_shadow);
 struct GPUMaterial *EEVEE_material_hair_get(struct Scene *scene, Material *ma, int shadow_method);
 void EEVEE_materials_free(void);
 void EEVEE_draw_default_passes(EEVEE_PassList *psl);

@@ -599,7 +599,9 @@ static void particle_batch_cache_ensure_pos(Object *object,
 				val = len_v3(pa->state.vel) / psys->part->color_vec_max;
 				break;
 			case PART_DRAW_COL_ACC:
-				val = len_v3v3(pa->state.vel, pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * psys->part->color_vec_max);
+				val = len_v3v3(
+				        pa->state.vel,
+				        pa->prev_state.vel) / ((pa->state.time - pa->prev_state.time) * psys->part->color_vec_max);
 				break;
 			default:
 				val = -1.0f;

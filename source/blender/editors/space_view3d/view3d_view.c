@@ -63,8 +63,6 @@
 
 #include "DRW_engine.h"
 
-#include "DEG_depsgraph_query.h"
-
 #include "view3d_intern.h"  /* own include */
 
 /* -------------------------------------------------------------------- */

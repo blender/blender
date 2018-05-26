@@ -587,7 +587,8 @@ static void drw_viewport_var_init(void)
 void DRW_viewport_matrix_get(float mat[4][4], DRWViewportMatrixType type)
 {
 	BLI_assert(type >= 0 && type < DRW_MAT_COUNT);
-	BLI_assert(((DST.override_mat & (1 << type)) != 0) || DST.draw_ctx.rv3d != NULL); /* Can't use this in render mode. */
+	/* Can't use this in render mode. */
+	BLI_assert(((DST.override_mat & (1 << type)) != 0) || DST.draw_ctx.rv3d != NULL);
 
 	copy_m4_m4(mat, DST.view_data.matstate.mat[type]);
 }
@@ -700,7 +701,8 @@ void *DRW_view_layer_engine_data_get(DrawEngineType *engine_type)
 	return NULL;
 }
 
-void **DRW_view_layer_engine_data_ensure_ex(ViewLayer *view_layer, DrawEngineType *engine_type, void (*callback)(void *storage))
+void **DRW_view_layer_engine_data_ensure_ex(
+        ViewLayer *view_layer, DrawEngineType *engine_type, void (*callback)(void *storage))
 {
 	ViewLayerEngineData *sled;
 
@@ -1558,7 +1560,8 @@ static void draw_select_framebuffer_setup(const rcti *rect)
 	}
 
 	if (g_select_buffer.texture_depth == NULL) {
-		g_select_buffer.texture_depth = GPU_texture_create_2D(BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), GPU_DEPTH_COMPONENT24, NULL, NULL);
+		g_select_buffer.texture_depth = GPU_texture_create_2D(
+		        BLI_rcti_size_x(rect), BLI_rcti_size_y(rect), GPU_DEPTH_COMPONENT24, NULL, NULL);
 
 		GPU_framebuffer_texture_attach(g_select_buffer.framebuffer, g_select_buffer.texture_depth, 0, 0);
 

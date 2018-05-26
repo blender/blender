@@ -822,7 +822,8 @@ static void draw_geometry_execute_ex(
 	}
 
 	/* step 2 : bind vertex array & draw */
-	GWN_batch_program_set_no_use(geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
+	GWN_batch_program_set_no_use(
+	        geom, GPU_shader_get_program(shgroup->shader), GPU_shader_get_interface(shgroup->shader));
 	/* XXX hacking gawain. we don't want to call glUseProgram! (huge performance loss) */
 	geom->program_in_use = true;
 

@@ -2046,9 +2046,9 @@ Gwn_Batch *DRW_cache_bone_point_wire_outline_get(void)
 		for (int a = 0; a < CIRCLE_RESOL; a++) {
 			v1[0] = radius * sinf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
 			v1[1] = radius * cosf((2.0f * M_PI * a) / ((float)CIRCLE_RESOL));
-			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
-			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v  , v0);
+			GWN_vertbuf_attr_set(vbo, attr_id.pos0, v,   v0);
 			GWN_vertbuf_attr_set(vbo, attr_id.pos1, v++, v1);
 			copy_v2_v2(v0, v1);
 		}

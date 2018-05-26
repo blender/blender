@@ -82,7 +82,8 @@ static bool lightbits_get(const EEVEE_LightBits *r, uint idx)
 	return r->fields[idx / 8] & (1 << (idx % 8));
 }
 
-static void lightbits_convert(EEVEE_LightBits *r, const EEVEE_LightBits *bitf, const int *light_bit_conv_table, uint table_length)
+static void lightbits_convert(
+        EEVEE_LightBits *r, const EEVEE_LightBits *bitf, const int *light_bit_conv_table, uint table_length)
 {
 	for (int i = 0; i < table_length; ++i) {
 		if (lightbits_get(bitf, i) != 0) {

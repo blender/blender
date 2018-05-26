@@ -797,7 +797,8 @@ DRWShadingGroup *DRW_shgroup_point_batch_create(struct GPUShader *shader, DRWPas
 	return shgroup;
 }
 
-DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(struct GPUShader *shader, DRWPass *pass, Gwn_VertFormat *format)
+DRWShadingGroup *DRW_shgroup_line_batch_create_with_format(
+        struct GPUShader *shader, DRWPass *pass, Gwn_VertFormat *format)
 {
 	DRWShadingGroup *shgroup = drw_shgroup_create_ex(shader, pass);
 	shgroup->type = DRW_SHG_LINE_BATCH;

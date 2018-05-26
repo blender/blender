@@ -120,7 +120,8 @@ float probe_attenuation_planar(PlanarData pd, vec3 W, vec3 N, float roughness)
 	vec2 dist_to_clip;
 	dist_to_clip.x = dot(pd.pl_clip_pos_x, W);
 	dist_to_clip.y = dot(pd.pl_clip_pos_y, W);
-	fac *= step(2.0, dot(step(pd.pl_clip_edges, dist_to_clip.xxyy), vec2(-1.0, 1.0).xyxy)); /* compare and add all tests */
+	/* compare and add all tests */
+	fac *= step(2.0, dot(step(pd.pl_clip_edges, dist_to_clip.xxyy), vec2(-1.0, 1.0).xyxy));
 
 	/* Decrease influence for high roughness */
 	fac *= saturate(1.0 - roughness * 10.0);

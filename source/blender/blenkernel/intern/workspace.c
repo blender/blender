@@ -437,7 +437,7 @@ ViewLayer *BKE_workspace_view_layer_get(const WorkSpace *workspace, const Scene 
 	ViewLayer *layer = BKE_workspace_view_layer_exists(workspace, scene);
 
 	if (layer == NULL) {
-		BKE_workspace_view_layer_set((WorkSpace*)workspace, scene->view_layers.first, (Scene *)scene);
+		BKE_workspace_view_layer_set((WorkSpace *)workspace, scene->view_layers.first, (Scene *)scene);
 		layer = scene->view_layers.first;
 	}
 

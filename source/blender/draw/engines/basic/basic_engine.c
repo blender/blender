@@ -119,7 +119,8 @@ static void basic_cache_init(void *vedata)
 #ifdef USE_DEPTH
 	/* Depth Pass */
 	{
-		psl->depth_pass = DRW_pass_create("Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
+		psl->depth_pass = DRW_pass_create(
+		        "Depth Pass", DRW_STATE_WRITE_DEPTH | DRW_STATE_DEPTH_LESS_EQUAL | DRW_STATE_WIRE);
 		stl->g_data->depth_shgrp = DRW_shgroup_create(e_data.depth_sh, psl->depth_pass);
 
 		psl->depth_pass_cull = DRW_pass_create(

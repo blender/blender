@@ -1953,7 +1953,8 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 			GWN_vertformat_alias_add(format, attrib_name);
 
 			/* +1 include null terminator. */
-			auto_ofs += 1 + BLI_snprintf_rlen(cache->auto_layer_names + auto_ofs, auto_names_len - auto_ofs, "b%s", attrib_name);
+			auto_ofs += 1 + BLI_snprintf_rlen(
+			        cache->auto_layer_names + auto_ofs, auto_names_len - auto_ofs, "b%s", attrib_name);
 			cache->auto_layer_is_srgb[auto_id++] = 0; /* tag as not srgb */
 
 			if (i == rdata->cd.layers.uv_active) {
@@ -1988,7 +1989,8 @@ static Gwn_VertBuf *mesh_batch_cache_get_tri_shading_data(MeshRenderData *rdata,
 				GWN_vertformat_alias_add(format, attrib_name);
 
 				/* +1 include null terminator. */
-				auto_ofs += 1 + BLI_snprintf_rlen(cache->auto_layer_names + auto_ofs, auto_names_len - auto_ofs, "b%s", attrib_name);
+				auto_ofs += 1 + BLI_snprintf_rlen(
+				        cache->auto_layer_names + auto_ofs, auto_names_len - auto_ofs, "b%s", attrib_name);
 				cache->auto_layer_is_srgb[auto_id++] = 1; /* tag as srgb */
 			}
 
@@ -3829,8 +3831,9 @@ Gwn_Batch *DRW_mesh_batch_cache_get_edge_detection(Mesh *me)
 
 		MeshRenderData *rdata = mesh_render_data_create(me, options);
 
-		cache->edge_detection = GWN_batch_create_ex(GWN_PRIM_LINES_ADJ, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
-		                                                                mesh_batch_cache_get_edges_adjacency(rdata, cache), 0);
+		cache->edge_detection = GWN_batch_create_ex(
+		        GWN_PRIM_LINES_ADJ, mesh_batch_cache_get_vert_pos_and_nor_in_order(rdata, cache),
+		        mesh_batch_cache_get_edges_adjacency(rdata, cache), 0);
 
 		mesh_render_data_free(rdata);
 	}

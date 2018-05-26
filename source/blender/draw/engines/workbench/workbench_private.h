@@ -121,7 +121,7 @@ typedef struct WORKBENCH_PrivateData {
 	struct DRWShadingGroup *depth_shgrp;
 #ifdef WORKBENCH_REVEALAGE_ENABLED
 	struct DRWShadingGroup *transparent_revealage_shgrp;
-#endif	
+#endif
 	WORKBENCH_UBO_World world_data;
 	float shadow_multiplier;
 } WORKBENCH_PrivateData; /* Transient data */
@@ -183,7 +183,8 @@ char *workbench_material_build_defines(WORKBENCH_PrivateData *wpd, int drawtype)
 void workbench_material_get_solid_color(WORKBENCH_PrivateData *wpd, Object *ob, Material *mat, float *color);
 uint workbench_material_get_hash(WORKBENCH_MaterialData *material_template);
 int workbench_material_get_shader_index(WORKBENCH_PrivateData *wpd, int drawtype);
-void workbench_material_set_normal_world_matrix(DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
+void workbench_material_set_normal_world_matrix(
+        DRWShadingGroup *grp, WORKBENCH_PrivateData *wpd, float persistent_matrix[3][3]);
 
 /* workbench_studiolight.c */
 void studiolight_update_world(StudioLight *sl, WORKBENCH_UBO_World *wd);
