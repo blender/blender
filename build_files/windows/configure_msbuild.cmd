@@ -42,6 +42,7 @@ if "%MUST_CONFIGURE%"=="1" (
 
 echo call "%VCVARS%" %BUILD_ARCH% > %BUILD_DIR%\rebuild.cmd
 echo "%CMAKE%" . >> %BUILD_DIR%\rebuild.cmd
+echo echo %%TIME%% ^> buildtime.txt >> %BUILD_DIR%\rebuild.cmd
 echo msbuild ^
 	%BUILD_DIR%\Blender.sln ^
 	/target:build ^
@@ -55,3 +56,4 @@ echo msbuild ^
 	/property:Configuration=%BUILD_TYPE% ^
 	/verbosity:minimal ^
 	/p:platform=%MSBUILD_PLATFORM% >> %BUILD_DIR%\rebuild.cmd
+echo echo %%TIME%% ^>^> buildtime.txt >> %BUILD_DIR%\rebuild.cmd

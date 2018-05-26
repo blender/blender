@@ -119,6 +119,8 @@ set(CMAKE_INSTALL_OPENMP_LIBRARIES ${WITH_OPENMP})
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION .)
 include(InstallRequiredSystemLibraries)
 
+remove_cc_flag("/MDd" "/MD")
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /nologo /J /Gd /MP /EHsc")
 set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP")
 

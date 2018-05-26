@@ -1,5 +1,5 @@
 if "%NOBUILD%"=="1" goto EOF
-
+echo %TIME% > buildtime.txt
 msbuild ^
 	%BUILD_DIR%\Blender.sln ^
 	/target:build ^
@@ -22,5 +22,5 @@ msbuild ^
 		echo Error during install phase
 		exit /b 1
 	)
-
+echo %TIME% >>buildtime.txt
 :EOF
