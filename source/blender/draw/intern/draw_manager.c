@@ -1275,6 +1275,8 @@ void DRW_draw_render_loop_ex(
 	/* Update ubos */
 	DRW_globals_update();
 
+	drw_debug_init();
+
 	/* No framebuffer allowed before drawing. */
 	BLI_assert(GPU_framebuffer_current_get() == 0);
 
@@ -1341,6 +1343,8 @@ void DRW_draw_render_loop_ex(
 	}
 
 	DRW_state_reset();
+
+	drw_debug_draw();
 
 	drw_engines_draw_text();
 
