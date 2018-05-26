@@ -170,7 +170,7 @@ float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float 
 	float2 cdf_last_v = kernel_tex_fetch(__light_background_marginal_cdf, res);
 
 	/* importance-sampled V direction */
-	float dv = (randv - cdf_v.y) / (cdf_next_v.y - cdf_v.y);
+	float dv = inverse_lerp(cdf_v.y, cdf_next_v.y, randv);
 	float v = (index_v + dv) / res;
 
 	/* this is basically std::lower_bound as used by pbrt */
@@ -196,7 +196,7 @@ float3 background_map_sample(KernelGlobals *kg, float randu, float randv, float 
 	float2 cdf_last_u = kernel_tex_fetch(__light_background_conditional_cdf, index_v * cdf_count + res);
 
 	/* importance-sampled U direction */
-	float du = (randu - cdf_u.y) / (cdf_next_u.y - cdf_u.y);
+	float du = inverse_lerp(cdf_u.y, cdf_next_u.y, randu);
 	float u = (index_u + du) / res;
 
 	/* compute pdf */

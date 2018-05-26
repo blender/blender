@@ -25,6 +25,8 @@
 #include "render/shader.h"
 
 #include "util/util_foreach.h"
+#include "util/util_hash.h"
+#include "util/util_path.h"
 #include "util/util_progress.h"
 #include "util/util_logging.h"
 
@@ -175,6 +177,9 @@ LightManager::LightManager()
 
 LightManager::~LightManager()
 {
+	foreach(IESSlot *slot, ies_slots) {
+		delete slot;
+	}
 }
 
 bool LightManager::has_background_light(Scene *scene)
@@ -858,6 +863,9 @@ void LightManager::device_update(Device *device, DeviceScene *dscene, Scene *sce
 	device_update_background(device, dscene, scene, progress);
 	if(progress.get_cancel()) return;
 
+	device_update_ies(dscene);
+	if(progress.get_cancel()) return;
+
 	if(use_light_visibility != scene->film->use_light_visibility) {
 		scene->film->use_light_visibility = use_light_visibility;
 		scene->film->tag_update(scene);
@@ -872,11 +880,125 @@ void LightManager::device_free(Device *, DeviceScene *dscene)
 	dscene->lights.free();
 	dscene->light_background_marginal_cdf.free();
 	dscene->light_background_conditional_cdf.free();
+	dscene->ies_lights.free();
 }
 
 void LightManager::tag_update(Scene * /*scene*/)
 {
 	need_update = true;
+}
+
+int LightManager::add_ies_from_file(ustring filename)
+{
+	string content;
+	/* If the file can't be opened, call with an empty string */
+	path_read_text(filename.c_str(), content);
+
+	return add_ies(ustring(content));
+}
+
+int LightManager::add_ies(ustring content)
+{
+	uint hash = hash_string(content.c_str());
+
+	thread_scoped_lock ies_lock(ies_mutex);
+
+	/* Check whether this IES already has a slot. */
+	size_t slot;
+	for(slot = 0; slot < ies_slots.size(); slot++) {
+		if(ies_slots[slot]->hash == hash) {
+			ies_slots[slot]->users++;
+			return slot;
+		}
+	}
+
+	/* Try to find an empty slot for the new IES. */
+	for(slot = 0; slot < ies_slots.size(); slot++) {
+		if(ies_slots[slot]->users == 0 && ies_slots[slot]->hash == 0) {
+			break;
+		}
+	}
+
+	/* If there's no free slot, add one. */
+	if(slot == ies_slots.size()) {
+		ies_slots.push_back(new IESSlot());
+	}
+
+	ies_slots[slot]->ies.load(content);
+	ies_slots[slot]->users = 1;
+	ies_slots[slot]->hash = hash;
+
+	need_update = true;
+
+	return slot;
+}
+
+void LightManager::remove_ies(int slot)
+{
+	thread_scoped_lock ies_lock(ies_mutex);
+
+	if(slot < 0 || slot >= ies_slots.size()) {
+		assert(false);
+		return;
+	}
+
+	assert(ies_slots[slot]->users > 0);
+	ies_slots[slot]->users--;
+
+	/* If the slot has no more users, update the device to remove it. */
+	need_update |= (ies_slots[slot]->users == 0);
+}
+
+void LightManager::device_update_ies(DeviceScene *dscene)
+{
+	/* Clear empty slots. */
+	foreach(IESSlot *slot, ies_slots) {
+		if(slot->users == 0) {
+			slot->hash = 0;
+			slot->ies.clear();
+		}
+	}
+
+	/* Shrink the slot table by removing empty slots at the end. */
+	int slot_end;
+	for(slot_end = ies_slots.size(); slot_end; slot_end--) {
+		if(ies_slots[slot_end-1]->users > 0) {
+			/* If the preceding slot has users, we found the new end of the table. */
+			break;
+		}
+		else {
+			/* The slot will be past the new end of the table, so free it. */
+			delete ies_slots[slot_end-1];
+		}
+	}
+	ies_slots.resize(slot_end);
+
+	if(ies_slots.size() > 0) {
+		int packed_size = 0;
+		foreach(IESSlot *slot, ies_slots) {
+			packed_size += slot->ies.packed_size();
+		}
+
+		/* ies_lights starts with an offset table that contains the offset of every slot,
+		 * or -1 if the slot is invalid.
+		 * Following that table, the packed valid IES lights are stored. */
+		float *data = dscene->ies_lights.alloc(ies_slots.size() + packed_size);
+
+		int offset = ies_slots.size();
+		for(int i = 0; i < ies_slots.size(); i++) {
+			int size = ies_slots[i]->ies.packed_size();
+			if(size > 0) {
+				data[i] = __int_as_float(offset);
+				ies_slots[i]->ies.pack(data + offset);
+				offset += size;
+			}
+			else {
+				data[i] = __int_as_float(-1);
+			}
+		}
+
+		dscene->ies_lights.copy_to_device();
+	}
 }
 
 CCL_NAMESPACE_END

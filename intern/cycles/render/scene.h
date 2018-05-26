@@ -119,6 +119,9 @@ public:
 	/* integrator */
 	device_vector<uint> sobol_directions;
 
+	/* ies lights */
+	device_vector<float> ies_lights;
+
 	KernelData data;
 
 	DeviceScene(Device *device);

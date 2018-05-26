@@ -1109,6 +1109,21 @@ static void node_shader_buts_hair(uiLayout *layout, bContext *UNUSED(C), Pointer
 	uiItemR(layout, ptr, "component", 0, "", ICON_NONE);
 }
 
+static void node_shader_buts_ies(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *row;
+
+	row = uiLayoutRow(layout, false);
+	uiItemR(row, ptr, "mode", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, true);
+
+	if (RNA_enum_get(ptr, "mode") == NODE_IES_INTERNAL)
+		uiItemR(row, ptr, "ies", 0, "", ICON_NONE);
+	else
+		uiItemR(row, ptr, "filepath", 0, "", ICON_NONE);
+}
+
 static void node_shader_buts_script(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiLayout *row;
@@ -1289,6 +1304,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			break;
 		case SH_NODE_OUTPUT_LINESTYLE:
 			ntype->draw_buttons = node_buts_output_linestyle;
+			break;
+		case SH_NODE_TEX_IES:
+			ntype->draw_buttons = node_shader_buts_ies;
 			break;
 		case SH_NODE_BEVEL:
 			ntype->draw_buttons = node_shader_buts_bevel;

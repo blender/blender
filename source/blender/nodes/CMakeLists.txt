@@ -177,6 +177,7 @@ set(SRC
 	shader/nodes/node_shader_fresnel.c
 	shader/nodes/node_shader_geometry.c
 	shader/nodes/node_shader_holdout.c
+	shader/nodes/node_shader_ies_light.c
 	shader/nodes/node_shader_layer_weight.c
 	shader/nodes/node_shader_light_falloff.c
 	shader/nodes/node_shader_light_path.c
