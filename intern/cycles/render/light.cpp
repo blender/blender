@@ -898,8 +898,10 @@ void LightManager::tag_update(Scene * /*scene*/)
 int LightManager::add_ies_from_file(ustring filename)
 {
 	string content;
-	/* If the file can't be opened, call with an empty string */
-	path_read_text(filename.c_str(), content);
+	/* If the file can't be opened, call with an empty line */
+	if(filename.empty() || !path_read_text(filename.c_str(), content)) {
+		content == "\n";
+	}
 
 	return add_ies(ustring(content));
 }

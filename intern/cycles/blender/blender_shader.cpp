@@ -820,6 +820,9 @@ static ShaderNode *add_node(Scene *scene,
 				break;
 			case BL::ShaderNodeTexIES::mode_INTERNAL:
 				ies->ies = get_text_datablock_content(b_ies_node.ies().ptr);
+				if(ies->ies.empty()) {
+					ies->ies = "\n";
+				}
 				break;
 		}
 		node = ies;
