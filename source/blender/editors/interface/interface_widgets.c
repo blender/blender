@@ -1881,7 +1881,9 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	}
 
 #ifdef USE_NUMBUTS_LR_ALIGN
-	if (!drawstr_right && ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
+	if (!drawstr_right &&
+	    (but->drawflag & UI_BUT_TEXT_LEFT) &&
+	    ELEM(but->type, UI_BTYPE_NUM, UI_BTYPE_NUM_SLIDER) &&
 	    /* if we're editing or multi-drag (fake editing), then use left alignment */
 	    (but->editstr == NULL) && (drawstr == but->drawstr))
 	{
