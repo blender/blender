@@ -181,7 +181,7 @@ static const char *ui_item_name_add_colon(const char *name, char namestr[UI_MAX_
 	int len = strlen(name);
 
 	if (len != 0 && len + 1 < UI_MAX_NAME_STR) {
-		BLI_strncpy(namestr, name, UI_MAX_NAME_STR);
+		memcpy(namestr, name, len);
 		namestr[len] = ':';
 		namestr[len + 1] = '\0';
 		return namestr;
