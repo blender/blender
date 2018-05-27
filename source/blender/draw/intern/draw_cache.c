@@ -1593,13 +1593,14 @@ static const float bone_octahedral_smooth_normals[6][3] = {
 	{ 0.0f,  1.0f,  0.0f}
 };
 
+#if 0  /* UNUSED */
+
 static const uint bone_octahedral_wire[24] = {
 	0, 1,  1, 5,  5, 3,  3, 0,
 	0, 4,  4, 5,  5, 2,  2, 0,
 	1, 2,  2, 3,  3, 4,  4, 1,
 };
 
-#if 0  /* UNUSED */
 /* aligned with bone_octahedral_wire
  * Contains adjacent normal index */
 static const uint bone_octahedral_wire_adjacent_face[24] = {
