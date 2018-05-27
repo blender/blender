@@ -406,13 +406,17 @@ static PyObject *available_devices_func(PyObject * /*self*/, PyObject * /*args*/
 
 static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 {
-	PyObject *pynodegroup, *pynode;
+	PyObject *pydata, *pynodegroup, *pynode;
 	const char *filepath = NULL;
 
-	if(!PyArg_ParseTuple(args, "OOs", &pynodegroup, &pynode, &filepath))
+	if(!PyArg_ParseTuple(args, "OOOs", &pydata, &pynodegroup, &pynode, &filepath))
 		return NULL;
 
 	/* RNA */
+	PointerRNA dataptr;
+	RNA_main_pointer_create((Main*)PyLong_AsVoidPtr(pydata), &dataptr);
+	BL::BlendData b_data(dataptr);
+
 	PointerRNA nodeptr;
 	RNA_pointer_create((ID*)PyLong_AsVoidPtr(pynodegroup), &RNA_ShaderNodeScript, (void*)PyLong_AsVoidPtr(pynode), &nodeptr);
 	BL::ShaderNodeScript b_node(nodeptr);
@@ -510,7 +514,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 			b_sock = b_node.outputs[param->name.string()];
 			/* remove if type no longer matches */
 			if(b_sock && b_sock.bl_idname() != socket_type) {
-				b_node.outputs.remove(b_sock);
+				b_node.outputs.remove(b_data, b_sock);
 				b_sock = BL::NodeSocket(PointerRNA_NULL);
 			}
 		}
@@ -518,7 +522,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 			b_sock = b_node.inputs[param->name.string()];
 			/* remove if type no longer matches */
 			if(b_sock && b_sock.bl_idname() != socket_type) {
-				b_node.inputs.remove(b_sock);
+				b_node.inputs.remove(b_data, b_sock);
 				b_sock = BL::NodeSocket(PointerRNA_NULL);
 			}
 		}
@@ -526,9 +530,9 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 		if(!b_sock) {
 			/* create new socket */
 			if(param->isoutput)
-				b_sock = b_node.outputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
+				b_sock = b_node.outputs.create(b_data, socket_type.c_str(), param->name.c_str(), param->name.c_str());
 			else
-				b_sock = b_node.inputs.create(socket_type.c_str(), param->name.c_str(), param->name.c_str());
+				b_sock = b_node.inputs.create(b_data, socket_type.c_str(), param->name.c_str(), param->name.c_str());
 
 			/* set default value */
 			if(data_type == BL::NodeSocket::type_VALUE) {
@@ -562,7 +566,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
 		for(b_node.inputs.begin(b_input); b_input != b_node.inputs.end(); ++b_input) {
 			if(used_sockets.find(b_input->ptr.data) == used_sockets.end()) {
-				b_node.inputs.remove(*b_input);
+				b_node.inputs.remove(b_data, *b_input);
 				removed = true;
 				break;
 			}
@@ -570,7 +574,7 @@ static PyObject *osl_update_node_func(PyObject * /*self*/, PyObject *args)
 
 		for(b_node.outputs.begin(b_output); b_output != b_node.outputs.end(); ++b_output) {
 			if(used_sockets.find(b_output->ptr.data) == used_sockets.end()) {
-				b_node.outputs.remove(*b_output);
+				b_node.outputs.remove(b_data, *b_output);
 				removed = true;
 				break;
 			}
