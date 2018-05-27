@@ -468,7 +468,7 @@ static inline string blender_absolute_path(BL::BlendData& b_data,
 	return path;
 }
 
-static inline string get_text_datablock_content(const PointerRNA&& ptr)
+static inline string get_text_datablock_content(const PointerRNA& ptr)
 {
 	if(ptr.data == NULL) {
 		return "";

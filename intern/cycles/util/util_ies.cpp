@@ -109,6 +109,10 @@ public:
 
 bool IESFile::parse(ustring ies)
 {
+	if(ies.empty()) {
+		return false;
+	}
+
 	IESTextParser parser(ies);
 	if(parser.eof()) {
 		return false;
