@@ -144,7 +144,8 @@ static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 #endif
 }
 
-static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int preview, const char *view, char *name)
+static void rna_SceneRender_get_frame_path(
+        RenderData *rd, Main *bmain, int frame, int preview, const char *view, char *name)
 {
 	const char *suffix = BKE_scene_multiview_view_suffix_get(rd, view);
 
@@ -157,7 +158,7 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int previe
 	}
 	else {
 		BKE_image_path_from_imformat(
-		        name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame,
+		        name, rd->pic, bmain->name, (frame == INT_MIN) ? rd->cfra : frame,
 		        &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true, suffix);
 	}
 }
@@ -390,6 +391,7 @@ void RNA_api_scene_render(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func = RNA_def_function(srna, "frame_path", "rna_SceneRender_get_frame_path");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame");
 	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "",
 	            "Frame number to use, if unset the current frame will be used", MINAFRAME, MAXFRAME);

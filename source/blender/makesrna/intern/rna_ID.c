@@ -500,9 +500,9 @@ static Material *rna_IDMaterials_pop_id(ID *id, Main *bmain, ReportList *reports
 	return ma;
 }
 
-static void rna_IDMaterials_clear_id(ID *id, int remove_material_slot)
+static void rna_IDMaterials_clear_id(ID *id, Main *bmain, int remove_material_slot)
 {
-	BKE_material_clear_id(G.main, id, remove_material_slot);
+	BKE_material_clear_id(bmain, id, remove_material_slot);
 
 	DEG_id_tag_update(id, OB_RECALC_DATA);
 	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
@@ -945,6 +945,7 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "clear", "rna_IDMaterials_clear_id");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Remove all materials from the data-block");
 	RNA_def_boolean(func, "update_data", 0, "", "Update data by re-adjusting the material slots assigned");
 }
