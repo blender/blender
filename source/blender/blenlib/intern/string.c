@@ -799,6 +799,7 @@ int BLI_str_rstrip_float_zero(char *str, const char pad)
 			while (end_p != p && *end_p == '0') {
 				*end_p = pad;
 				end_p--;
+				totstrip++;
 			}
 		}
 	}
@@ -1022,12 +1023,12 @@ void BLI_str_format_byte_unit(char dst[15], long long int bytes, const bool base
 	decimals = MAX2(order - 1, 0);
 
 	/* Format value first, stripping away floating zeroes. */
-	sprintf(dst, "%.*f", decimals, bytes_converted);
-	BLI_str_rstrip_float_zero(dst, '\0');
-	/* Append unit. */
-	sprintf(dst, "%s %s", dst, base_10 ? units_base_10[order] : units_base_2[order]);
+	const size_t dst_len = 15;
+	size_t len = BLI_snprintf_rlen(dst, dst_len, "%.*f", decimals, bytes_converted);
+	len -= (size_t)BLI_str_rstrip_float_zero(dst, '\0');
+	dst[len++] = ' ';
+	BLI_strncpy(dst + len, base_10 ? units_base_10[order] : units_base_2[order], dst_len - len);
 }
-
 
 /**
  * Find the ranges needed to split \a str into its individual words.
