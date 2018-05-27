@@ -29,6 +29,7 @@ uniform int gridFlag;
 #define PLANE_XY  (1 << 4)
 #define PLANE_XZ  (1 << 5)
 #define PLANE_YZ  (1 << 6)
+#define GRID_BACK (1 << 9) /* grid is behind objects */
 
 #define GRID_LINE_SMOOTH 1.15
 
@@ -137,18 +138,6 @@ void main()
 		}
 	}
 
-	/* Manual, non hard, depth test:
-	 * Progressively fade the grid below occluders
-	 * (avoids poping visuals due to depth buffer precision) */
-	float scene_depth = texture(depthBuffer, sPos).r;
-	/* Add a small bias so the grid will always
-	 * be on top of a mesh with the same depth. */
-	float grid_depth = gl_FragCoord.z - 1e-8;
-	/* Harder settings tend to flicker more,
-	 * but have less "see through" appearance. */
-	const float test_hardness = 1e4;
-	fade *= 1.0 - clamp((grid_depth - scene_depth) * test_hardness, 0.0, 1.0);
-
 	if ((gridFlag & GRID) > 0) {
 		float grid_res = log(dist * gridResolution) * gridOneOverLogSubdiv;
 
@@ -215,6 +204,23 @@ void main()
 		if ((gridFlag & AXIS_Z) > 0) {
 			FragColor = mix(FragColor, colorGridAxisZ, axes.z);
 		}
+	}
+
+	float scene_depth = texture(depthBuffer, sPos).r;
+	if ((gridFlag & GRID_BACK) > 0) {
+		fade *= (scene_depth == 1.0) ? 1.0 : 0.0;
+	}
+	else {
+		/* Manual, non hard, depth test:
+		 * Progressively fade the grid below occluders
+		 * (avoids poping visuals due to depth buffer precision) */
+		/* Add a small bias so the grid will always
+		 * be on top of a mesh with the same depth. */
+		float grid_depth = gl_FragCoord.z - 1e-8;
+		/* Harder settings tend to flicker more,
+		 * but have less "see through" appearance. */
+		const float test_hardness = 1e4;
+		fade *= 1.0 - clamp((grid_depth - scene_depth) * test_hardness, 0.0, 1.0);
 	}
 
 	FragColor.a *= fade;
