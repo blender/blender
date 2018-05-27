@@ -796,6 +796,7 @@ void BKE_nodetree_remove_layer_n(struct bNodeTree *ntree, struct Scene *scene, c
 #define SH_NODE_UVALONGSTROKE			191
 #define SH_NODE_TEX_POINTDENSITY		192
 #define SH_NODE_BSDF_PRINCIPLED         193
+#define SH_NODE_TEX_IES                 194
 #define SH_NODE_EEVEE_SPECULAR			195
 #define SH_NODE_BEVEL                   197
 #define SH_NODE_DISPLACEMENT            198

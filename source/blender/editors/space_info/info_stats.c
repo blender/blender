@@ -410,6 +410,7 @@ static void stats_string(ViewLayer *view_layer)
 	uintptr_t mem_in_use, mmap_in_use;
 	char memstr[MAX_INFO_MEM_LEN];
 	char gpumemstr[MAX_INFO_MEM_LEN] = "";
+	char formatted_mem[15];
 	char *s;
 	size_t ofs = 0;
 
@@ -445,20 +446,25 @@ static void stats_string(ViewLayer *view_layer)
 
 
 	/* get memory statistics */
-	ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, IFACE_(" | Mem:%.2fM"),
-	                    (double)((mem_in_use - mmap_in_use) >> 10) / 1024.0);
-	if (mmap_in_use)
-		BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" (%.2fM)"), (double)((mmap_in_use) >> 10) / 1024.0);
+	BLI_str_format_byte_unit(formatted_mem, mem_in_use - mmap_in_use, true);
+	ofs = BLI_snprintf(memstr, MAX_INFO_MEM_LEN, IFACE_(" | Mem: %s"), formatted_mem);
+
+	if (mmap_in_use) {
+		BLI_str_format_byte_unit(formatted_mem, mmap_in_use, true);
+		BLI_snprintf(memstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_(" (%s)"), formatted_mem);
+	}
 
 	if (GPU_mem_stats_supported()) {
 		int gpu_free_mem, gpu_tot_memory;
 
 		GPU_mem_stats_get(&gpu_tot_memory, &gpu_free_mem);
 
-		ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, IFACE_(" | Free GPU Mem:%.2fM"), (double)((gpu_free_mem)) / 1024.0);
+		BLI_str_format_byte_unit(formatted_mem, gpu_free_mem, true);
+		ofs = BLI_snprintf(gpumemstr, MAX_INFO_MEM_LEN, IFACE_(" | Free GPU Mem: %s"), formatted_mem);
 
 		if (gpu_tot_memory) {
-			BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_("/%.2fM"), (double)((gpu_tot_memory)) / 1024.0);
+			BLI_str_format_byte_unit(formatted_mem, gpu_tot_memory, true);
+			BLI_snprintf(gpumemstr + ofs, MAX_INFO_MEM_LEN - ofs, IFACE_("/%s"), formatted_mem);
 		}
 	}
 

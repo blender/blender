@@ -560,6 +560,10 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 						NodeShaderScript *nss = (NodeShaderScript *)node->storage;
 						rewrite_path_fixed(nss->filepath, visit_cb, absbase, bpath_user_data);
 					}
+					else if (node->type == SH_NODE_TEX_IES) {
+						NodeShaderTexIES *ies = (NodeShaderTexIES *)node->storage;
+						rewrite_path_fixed(ies->filepath, visit_cb, absbase, bpath_user_data);
+					}
 				}
 			}
 			break;
@@ -575,6 +579,10 @@ void BKE_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 					if (node->type == SH_NODE_SCRIPT) {
 						NodeShaderScript *nss = (NodeShaderScript *)node->storage;
 						rewrite_path_fixed(nss->filepath, visit_cb, absbase, bpath_user_data);
+					}
+					else if (node->type == SH_NODE_TEX_IES) {
+						NodeShaderTexIES *ies = (NodeShaderTexIES *)node->storage;
+						rewrite_path_fixed(ies->filepath, visit_cb, absbase, bpath_user_data);
 					}
 				}
 			}

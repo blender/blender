@@ -178,6 +178,7 @@ set(SRC_SVM_HEADERS
 	svm/svm_geometry.h
 	svm/svm_gradient.h
 	svm/svm_hsv.h
+	svm/svm_ies.h
 	svm/svm_image.h
 	svm/svm_invert.h
 	svm/svm_light_path.h

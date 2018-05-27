@@ -956,9 +956,15 @@ bool OSLRenderServices::texture(ustring filename,
 				status = true;
 			}
 		}
+		else if(filename[1] == 'l') {
+			/* IES light. */
+			int slot = atoi(filename.c_str() + 2);
+			result[0] = kernel_ies_interp(kg, slot, s, t);
+			status = true;
+		}
 		else {
 			/* Packed texture. */
-			int slot = atoi(filename.c_str() + 1);
+			int slot = atoi(filename.c_str() + 2);
 			float4 rgba = kernel_tex_image_interp(kg, slot, s, 1.0f - t);
 
 			result[0] = rgba[0];
