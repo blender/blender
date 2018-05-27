@@ -134,7 +134,8 @@ static void rna_Scene_update_tagged(Scene *scene, Main *bmain)
 #endif
 }
 
-static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int preview, const char *view, char *name)
+static void rna_SceneRender_get_frame_path(
+        RenderData *rd, Main *bmain, int frame, int preview, const char *view, char *name)
 {
 	const char *suffix = BKE_scene_multiview_view_suffix_get(rd, view);
 
@@ -147,20 +148,20 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, int previe
 	}
 	else {
 		BKE_image_path_from_imformat(
-		        name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame,
+		        name, rd->pic, bmain->name, (frame == INT_MIN) ? rd->cfra : frame,
 		        &rd->im_format, (rd->scemode & R_EXTENSION) != 0, true, suffix);
 	}
 }
 
 static void rna_Scene_ray_cast(
-        Scene *scene, float origin[3], float direction[3], float ray_dist,
+        Scene *scene, Main *bmain,
+        float origin[3], float direction[3], float ray_dist,
         int *r_success, float r_location[3], float r_normal[3], int *r_index,
         Object **r_ob, float r_obmat[16])
 {
 	normalize_v3(direction);
 
-	SnapObjectContext *sctx = ED_transform_snap_object_context_create(
-	        G.main, scene, 0);
+	SnapObjectContext *sctx = ED_transform_snap_object_context_create(bmain, scene, 0);
 
 	bool ret = ED_transform_snap_object_project_ray_ex(
 	        sctx,
@@ -296,6 +297,7 @@ void RNA_api_scene(StructRNA *srna)
 	
 	/* Ray Cast */
 	func = RNA_def_function(srna, "ray_cast", "rna_Scene_ray_cast");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Cast a ray onto in object space");
 	/* ray start and end */
 	parm = RNA_def_float_vector(func, "origin", 3, NULL, -FLT_MAX, FLT_MAX, "", "", -1e4, 1e4);
@@ -377,6 +379,7 @@ void RNA_api_scene_render(StructRNA *srna)
 	PropertyRNA *parm;
 
 	func = RNA_def_function(srna, "frame_path", "rna_SceneRender_get_frame_path");
+	RNA_def_function_flag(func, FUNC_USE_MAIN);
 	RNA_def_function_ui_description(func, "Return the absolute path to the filename to be written for a given frame");
 	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "",
 	            "Frame number to use, if unset the current frame will be used", MINAFRAME, MAXFRAME);

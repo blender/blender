@@ -628,7 +628,7 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((Base *)internal->link)->object);
 }
 
-static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *reports, Object *ob)
+static Base *rna_Scene_object_link(Scene *scene, Main *UNUSED(bmain), bContext *C, ReportList *reports, Object *ob)
 {
 	Scene *scene_act = CTX_data_scene(C);
 	Base *base;
@@ -653,14 +653,14 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 
 	/* slows down importers too much, run scene.update() */
-	/* DAG_srelations_tag_update(G.main); */
+	/* DAG_srelations_tag_update(bmain); */
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 
 	return base;
 }
 
-static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *ob)
+static void rna_Scene_object_unlink(Scene *scene, Main *bmain, ReportList *reports, Object *ob)
 {
 	Base *base = BKE_scene_base_find(scene, ob);
 	if (!base) {
@@ -681,7 +681,7 @@ static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *o
 	id_us_min(&ob->id);
 
 	/* needed otherwise the depgraph will contain freed objects which can crash, see [#20958] */
-	DAG_relations_tag_update(G.main);
+	DAG_relations_tag_update(bmain);
 
 	WM_main_add_notifier(NC_SCENE | ND_OB_ACTIVE, scene);
 }
@@ -6649,7 +6649,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "link", "rna_Scene_object_link");
 	RNA_def_function_ui_description(func, "Link object to scene, run scene.update() after");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to add to scene");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_pointer(func, "base", "ObjectBase", "", "The newly created base");
@@ -6657,7 +6657,7 @@ static void rna_def_scene_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "unlink", "rna_Scene_object_unlink");
 	RNA_def_function_ui_description(func, "Unlink object from scene");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to remove from scene");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 

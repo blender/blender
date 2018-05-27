@@ -140,10 +140,10 @@ static void rna_Object_camera_fit_coords(
 /* copied from Mesh_getFromObject and adapted to RNA interface */
 /* settings: 0 - preview, 1 - render */
 static Mesh *rna_Object_to_mesh(
-        Object *ob, ReportList *reports, Scene *sce,
+        Object *ob, Main *bmain, ReportList *reports, Scene *sce,
         int apply_modifiers, int settings, int calc_tessface, int calc_undeformed)
 {
-	return rna_Main_meshes_new_from_object(G.main, reports, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
+	return rna_Main_meshes_new_from_object(bmain, reports, sce, ob, apply_modifiers, settings, calc_tessface, calc_undeformed);
 }
 
 /* mostly a copy from convertblender.c */
@@ -558,7 +558,7 @@ void RNA_api_object(StructRNA *srna)
 	/* mesh */
 	func = RNA_def_function(srna, "to_mesh", "rna_Object_to_mesh");
 	RNA_def_function_ui_description(func, "Create a Mesh data-block with modifiers applied");
-	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_MAIN | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
 	RNA_def_parameter_flags(parm, PROP_NEVER_NULL, PARM_REQUIRED);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
