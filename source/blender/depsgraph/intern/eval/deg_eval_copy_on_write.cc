@@ -438,6 +438,14 @@ void update_mball_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 	mball_cow->editelems = mball_orig->editelems;
 }
 
+void update_lattice_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+                                     const ID *id_orig, ID *id_cow)
+{
+	const Lattice *lt_orig = (const Lattice *)id_orig;
+	Lattice *lt_cow = (Lattice *)id_cow;
+	lt_cow->editlatt = lt_orig->editlatt;
+}
+
 void update_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
@@ -479,6 +487,9 @@ void update_edit_mode_pointers(const Depsgraph *depsgraph,
 			break;
 		case ID_MB:
 			update_mball_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_LT:
+			update_lattice_edit_mode_pointers(depsgraph, id_orig, id_cow);
 			break;
 		default:
 			break;
@@ -833,6 +844,12 @@ void discard_mball_edit_mode_pointers(ID *id_cow)
 	mball_cow->editelems = NULL;
 }
 
+void discard_lattice_edit_mode_pointers(ID *id_cow)
+{
+	Lattice *lt_cow = (Lattice *)id_cow;
+	lt_cow->editlatt = NULL;
+}
+
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
 	Mesh *mesh_cow = (Mesh *)id_cow;
@@ -862,6 +879,9 @@ void discard_edit_mode_pointers(ID *id_cow)
 			break;
 		case ID_MB:
 			discard_mball_edit_mode_pointers(id_cow);
+			break;
+		case ID_LT:
+			discard_lattice_edit_mode_pointers(id_cow);
 			break;
 		default:
 			break;
