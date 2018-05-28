@@ -400,7 +400,7 @@ void DRW_shgroup_call_procedural_triangles_add(DRWShadingGroup *shgroup, unsigne
 
 
 /* These calls can be culled and are optimized for redraw */
-void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob)
+void DRW_shgroup_call_object_add_ex(DRWShadingGroup *shgroup, Gwn_Batch *geom, Object *ob, bool bypass_culling)
 {
 	BLI_assert(geom != NULL);
 	BLI_assert(shgroup->type == DRW_SHG_NORMAL);
@@ -412,6 +412,8 @@ void DRW_shgroup_call_object_add(DRWShadingGroup *shgroup, Gwn_Batch *geom, Obje
 #ifdef USE_GPU_SELECT
 	call->select_id = DST.select_id;
 #endif
+
+	SET_FLAG_FROM_TEST(call->state->flag, bypass_culling, DRW_CALL_BYPASS_CULLING);
 
 	BLI_LINKS_APPEND(&shgroup->calls, call);
 }

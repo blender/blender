@@ -87,6 +87,7 @@
 enum {
 	DRW_CALL_CULLED                 = (1 << 0),
 	DRW_CALL_NEGSCALE               = (1 << 1),
+	DRW_CALL_BYPASS_CULLING         = (1 << 2),
 };
 
 /* Used by DRWCallState.matflag */

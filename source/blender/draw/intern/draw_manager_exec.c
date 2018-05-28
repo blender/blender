@@ -747,7 +747,8 @@ static void draw_matrices_model_prepare(DRWCallState *st)
 	}
 
 	/* No need to go further the call will not be used. */
-	if (st->flag & DRW_CALL_CULLED)
+	if ((st->flag & DRW_CALL_CULLED) != 0 &&
+	    (st->flag & DRW_CALL_BYPASS_CULLING) == 0)
 		return;
 
 	/* Order matters */
@@ -1119,8 +1120,11 @@ static void draw_shgroup(DRWShadingGroup *shgroup, DRWState pass_state)
 			draw_visibility_eval(call->state);
 			draw_matrices_model_prepare(call->state);
 
-			if ((call->state->flag & DRW_CALL_CULLED) != 0)
+			if ((call->state->flag & DRW_CALL_CULLED) != 0 &&
+			    (call->state->flag & DRW_CALL_BYPASS_CULLING) == 0)
+			{
 				continue;
+			}
 
 			/* XXX small exception/optimisation for outline rendering. */
 			if (shgroup->callid != -1) {
