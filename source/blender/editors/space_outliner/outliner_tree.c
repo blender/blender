@@ -153,6 +153,9 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 				}
 			}
 		}
+		else if (soops->treehash) {
+			BKE_outliner_treehash_clear_used(soops->treehash);
+		}
 	}
 }
 
@@ -1183,15 +1186,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 	}
 
 	return te;
-}
-
-/**
- * \note Really only removes \a tselem, not it's TreeElement instance or any children.
- */
-void outliner_remove_treestore_element(SpaceOops *soops, TreeStoreElem *tselem)
-{
-	BKE_outliner_treehash_remove_element(soops->treehash, tselem);
-	BLI_mempool_free(soops->treestore, tselem);
 }
 
 /* ======================================================= */

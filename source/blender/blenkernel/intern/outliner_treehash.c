@@ -145,6 +145,16 @@ static void free_treehash_group(void *key)
 	tse_group_free(key);
 }
 
+void BKE_outliner_treehash_clear_used(void *treehash)
+{
+	GHashIterator gh_iter;
+
+	GHASH_ITER(gh_iter, treehash) {
+		TseGroup *group = BLI_ghashIterator_getValue(&gh_iter);
+		group->lastused = 0;
+	}
+}
+
 void *BKE_outliner_treehash_rebuild_from_treestore(void *treehash, BLI_mempool *treestore)
 {
 	BLI_assert(treehash);
@@ -163,6 +173,7 @@ void BKE_outliner_treehash_add_element(void *treehash, TreeStoreElem *elem)
 		*val_p = tse_group_create();
 	}
 	group = *val_p;
+	group->lastused = 0;
 	tse_group_add_element(group, elem);
 }
 

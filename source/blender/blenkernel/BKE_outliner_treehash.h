@@ -36,6 +36,9 @@ void *BKE_outliner_treehash_create_from_treestore(struct BLI_mempool *treestore)
 /* full rebuild for already allocated hashtable */
 void *BKE_outliner_treehash_rebuild_from_treestore(void *treehash, struct BLI_mempool *treestore);
 
+/* clear element usage flags */
+void BKE_outliner_treehash_clear_used(void *treehash);
+
 /* Add/remove hashtable elements */
 void BKE_outliner_treehash_add_element(void *treehash, struct TreeStoreElem *elem);
 void BKE_outliner_treehash_remove_element(void *treehash, struct TreeStoreElem *elem);
