@@ -77,6 +77,7 @@ extern "C" {
 #  include "DNA_lattice_types.h"
 #  include "DNA_linestyle_types.h"
 #  include "DNA_material_types.h"
+#  include "DNA_meta_types.h"
 #  include "DNA_node_types.h"
 #  include "DNA_texture_types.h"
 #  include "DNA_world_types.h"
@@ -429,6 +430,14 @@ void updata_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 	curve_cow->editfont = curve_orig->editfont;
 }
 
+void update_mball_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
+                                     const ID *id_orig, ID *id_cow)
+{
+	const MetaBall *mball_orig = (const MetaBall *)id_orig;
+	MetaBall *mball_cow = (MetaBall *)id_cow;
+	mball_cow->editelems = mball_orig->editelems;
+}
+
 void updata_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
                                     const ID *id_orig, ID *id_cow)
 {
@@ -467,6 +476,9 @@ void updata_edit_mode_pointers(const Depsgraph *depsgraph,
 			break;
 		case ID_CU:
 			updata_curve_edit_mode_pointers(depsgraph, id_orig, id_cow);
+			break;
+		case ID_MB:
+			update_mball_edit_mode_pointers(depsgraph, id_orig, id_cow);
 			break;
 		default:
 			break;
@@ -815,6 +827,12 @@ void discard_curve_edit_mode_pointers(ID *id_cow)
 	curve_cow->editfont = NULL;
 }
 
+void discard_mball_edit_mode_pointers(ID *id_cow)
+{
+	MetaBall *mball_cow = (MetaBall *)id_cow;
+	mball_cow->editelems = NULL;
+}
+
 void discard_mesh_edit_mode_pointers(ID *id_cow)
 {
 	Mesh *mesh_cow = (Mesh *)id_cow;
@@ -841,6 +859,9 @@ void discard_edit_mode_pointers(ID *id_cow)
 			break;
 		case ID_CU:
 			discard_curve_edit_mode_pointers(id_cow);
+			break;
+		case ID_MB:
+			discard_mball_edit_mode_pointers(id_cow);
 			break;
 		default:
 			break;
