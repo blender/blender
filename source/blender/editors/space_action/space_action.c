@@ -395,12 +395,23 @@ static void saction_channel_region_message_subscribe(
 	};
 	
 	/* All dopesheet filter settings, etc. affect the drawing of this editor,
-	 * so just whitelist the entire struct for updates
+	 * also same applies for all animation-related datatypes that may appear here,
+	 * so just whitelist the entire structs for updates
 	 */
 	{
 		wmMsgParams_RNA msg_key_params = {{{0}}};
 		StructRNA *type_array[] = {
-			&RNA_DopeSheet,
+			&RNA_DopeSheet,    /* dopesheet filters */
+			
+			&RNA_ActionGroup,  /* channel groups */
+			
+			&RNA_FCurve,       /* F-Curve */
+			&RNA_Keyframe,
+			&RNA_FCurveSample,
+			
+			&RNA_GreasePencil, /* Grease Pencil */
+			&RNA_GPencilLayer,
+			&RNA_GPencilFrame,
 		};
 
 		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
@@ -470,8 +481,8 @@ static void action_main_region_listener(
 }
 
 static void saction_main_region_message_subscribe(
-        const struct bContext *UNUSED(C),
-        struct WorkSpace *UNUSED(workspace), struct Scene *scene,
+        const struct bContext *C,
+        struct WorkSpace *workspace, struct Scene *scene,
         struct bScreen *screen, struct ScrArea *sa, struct ARegion *ar,
         struct wmMsgBus *mbus)
 {
@@ -508,24 +519,8 @@ static void saction_main_region_message_subscribe(
 		}
 	}
 	
-	/* All dopesheet filter settings, etc. affect the drawing of this editor,
-	 * so just whitelist the entire struct for updates
-	 */
-	{
-		wmMsgParams_RNA msg_key_params = {{{0}}};
-		StructRNA *type_array[] = {
-			&RNA_DopeSheet,
-		};
-
-		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
-			msg_key_params.ptr.type = type_array[i];
-			WM_msg_subscribe_rna_params(
-			        mbus,
-			        &msg_key_params,
-			        &msg_sub_value_region_tag_redraw,
-			        __func__);
-		}
-	}
+	/* Now run the general "channels region" one - since channels and main should be in sync */
+	saction_channel_region_message_subscribe(C, workspace, scene, screen, sa, ar, mbus);
 }
 
 /* editor level listener */

@@ -527,12 +527,29 @@ static void graph_region_message_subscribe(
 	}
 	
 	/* All dopesheet filter settings, etc. affect the drawing of this editor,
-	 * so just whitelist the entire struct for updates
+	 * also same applies for all animation-related datatypes that may appear here,
+	 * so just whitelist the entire structs for updates
 	 */
 	{
 		wmMsgParams_RNA msg_key_params = {{{0}}};
 		StructRNA *type_array[] = {
-			&RNA_DopeSheet,
+			&RNA_DopeSheet,   /* dopesheet filters */
+			
+			&RNA_ActionGroup, /* channel groups */
+			&RNA_FCurve,      /* F-Curve */
+			&RNA_Keyframe,
+			&RNA_FCurveSample,
+			
+			&RNA_FModifier,   /* F-Modifiers (XXX: Why can't we just do all subclasses too?) */
+			&RNA_FModifierCycles,
+			&RNA_FModifierEnvelope,
+			&RNA_FModifierEnvelopeControlPoint,
+			&RNA_FModifierFunctionGenerator,
+			&RNA_FModifierGenerator,
+			&RNA_FModifierLimits,
+			&RNA_FModifierNoise,
+			&RNA_FModifierPython,
+			&RNA_FModifierStepped,
 		};
 
 		for (int i = 0; i < ARRAY_SIZE(type_array); i++) {
