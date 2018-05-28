@@ -96,6 +96,16 @@ class _defs_view3d_generic:
         )
 
     @ToolDef.from_fn
+    def cursor_click():
+        return dict(
+            text="Cursor Click",
+            icon="ops.generic.cursor",
+            keymap=(
+                ("view3d.cursor3d", dict(), dict(type='ACTIONMOUSE', value='CLICK')),
+            ),
+        )
+
+    @ToolDef.from_fn
     def ruler():
         return dict(
             text="Ruler/Protractor",
@@ -1021,6 +1031,11 @@ class VIEW3D_PT_tools_active(ToolSelectPanelHelper, Panel):
             None,
             _defs_edit_curve.draw,
             _defs_edit_curve.extrude_cursor,
+        ],
+        'PARTICLE': [
+            # TODO(campbell): use cursor click tool to allow paint tools to run,
+            # we need to integrate particle system tools properly.
+            _defs_view3d_generic.cursor_click,
         ],
         'SCULPT': [
             _defs_sculpt.generate_from_brushes,
