@@ -2765,6 +2765,10 @@ static int view3d_all_exec(bContext *C, wmOperator *op)
 		view3d_from_minmax(C, v3d, ar, min, max, true, smooth_viewtx);
 	}
 
+	if (center) {
+		DEG_id_tag_update(&scene->id, DEG_TAG_COPY_ON_WRITE);
+	}
+
 	return OPERATOR_FINISHED;
 }
 
