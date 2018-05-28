@@ -29,7 +29,10 @@ if(NOT MSVC)
 	message(FATAL_ERROR "Compiler is unsupported")
 endif()
 
-# Libraries configuration for Windows when compiling with MSVC.
+if(CMAKE_C_COMPILER_ID MATCHES "Clang")
+	set(MSVC_CLANG On)
+	file(TO_CMAKE_PATH $ENV{VCToolsRedistDir} MSVC_REDIST_DIR)
+endif()
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ${WINDOWS_USE_VISUAL_STUDIO_FOLDERS})
 
@@ -121,8 +124,16 @@ include(InstallRequiredSystemLibraries)
 
 remove_cc_flag("/MDd" "/MD")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /nologo /J /Gd /MP /EHsc")
-set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP")
+if(MSVC_CLANG) # Clangs version of cl doesn't support all flags 
+	if(NOT WITH_CXX11) # C++11 is on by default in clang-cl and can't be turned off, if c++11 is not enabled in blender repress some c++11 related warnings. 
+		set(CXX_WARN_FLAGS "-Wno-inconsistent-missing-override")
+	endif()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CXX_WARN_FLAGS} /nologo /J /Gd /EHsc -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference ")
+	set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd -Wno-unused-command-line-argument -Wno-microsoft-enum-forward-reference")
+else()
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /nologo /J /Gd /MP /EHsc")
+	set(CMAKE_C_FLAGS     "${CMAKE_C_FLAGS} /nologo /J /Gd /MP")
+endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} /MTd")

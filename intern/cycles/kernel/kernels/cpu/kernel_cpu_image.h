@@ -349,7 +349,7 @@ template<typename T> struct TextureInterpolator  {
 	 * Only happens for AVX2 kernel and global __KERNEL_SSE__ vectorization
 	 * enabled.
 	 */
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 	static ccl_always_inline
 #else
 	static ccl_never_inline

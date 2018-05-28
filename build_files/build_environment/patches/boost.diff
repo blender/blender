@@ -13,3 +13,25 @@
 -#     pragma message("Unknown compiler version - please run the configure tests and report the results")
 -#  endif
 -#endif
+--- a/boost/type_traits/has_nothrow_assign.hpp	2015-12-13 05:49:42 -0700
++++ b/boost/type_traits/has_nothrow_assign.hpp	2018-05-27 11:11:02 -0600
+@@ -24,7 +24,7 @@
+ #include <boost/type_traits/remove_reference.hpp>
+ #endif
+ #endif
+-#if defined(__GNUC__) || defined(__SUNPRO_CC)
++#if defined(__GNUC__) || defined(__SUNPRO_CC) || defined(__clang__)
+ #include <boost/type_traits/is_const.hpp>
+ #include <boost/type_traits/is_volatile.hpp>
+ #include <boost/type_traits/is_assignable.hpp>
+--- a/boost/type_traits/has_nothrow_constructor.hpp	2015-12-13 05:49:42 -0700
++++ b/boost/type_traits/has_nothrow_constructor.hpp	2018-05-27 11:11:02 -0600
+@@ -17,7 +17,7 @@
+ #if defined(BOOST_MSVC) || defined(BOOST_INTEL)
+ #include <boost/type_traits/has_trivial_constructor.hpp>
+ #endif
+-#if defined(__GNUC__ ) || defined(__SUNPRO_CC)
++#if defined(__GNUC__ ) || defined(__SUNPRO_CC) || defined(__clang__)
+ #include <boost/type_traits/is_default_constructible.hpp>
+ #endif
+ 

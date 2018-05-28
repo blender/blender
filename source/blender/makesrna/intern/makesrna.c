@@ -3445,7 +3445,7 @@ static void rna_generate(BlenderRNA *brna, FILE *f, const char *filename, const 
 
 	/* we want the included C files to have warnings enabled but for the generated code
 	 * ignore unused-parameter warnings which are hard to prevent */
-#ifdef __GNUC__
+#if defined( __GNUC__) || defined(__clang__)
 	fprintf(f, "#pragma GCC diagnostic ignored \"-Wunused-parameter\"\n\n");
 #endif
 

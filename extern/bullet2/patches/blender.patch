@@ -1,3 +1,34 @@
+diff --git a/extern/bullet2/src/LinearMath/btScalar.h b/extern/bullet2/src/LinearMath/btScalar.h
+--- a/extern/bullet2/src/LinearMath/btScalar.h
++++ b/extern/bullet2/src/LinearMath/btScalar.h
+@@ -16,6 +16,9 @@
+ 
+ #ifndef BT_SCALAR_H
+ #define BT_SCALAR_H
++#if defined(_MSC_VER) && defined(__clang__) /* clang supplies it's own overloads already */
++#define BT_NO_SIMD_OPERATOR_OVERLOADS
++#endif
+ 
+ #ifdef BT_MANAGED_CODE
+ //Aligned data types not supported in managed code
+@@ -83,7 +86,7 @@
+ 			#ifdef BT_USE_SSE
+ 
+ #if (_MSC_FULL_VER >= 170050727)//Visual Studio 2012 can compile SSE4/FMA3 (but SSE4/FMA3 is not enabled by default)
+-			#define BT_ALLOW_SSE4
++			//#define BT_ALLOW_SSE4 //disable this cause blender targets sse2 
+ #endif //(_MSC_FULL_VER >= 160040219)
+ 
+ 			//BT_USE_SSE_IN_API is disabled under Windows by default, because 
+@@ -102,7 +105,7 @@
+ 		#endif //__MINGW32__
+ 
+ #ifdef BT_DEBUG
+-	#ifdef _MSC_VER
++	#if defined(_MSC_VER) && !defined(__clang__)
+ 		#include <stdio.h>
+ 		#define btAssert(x) { if(!(x)){printf("Assert "__FILE__ ":%u ("#x")\n", __LINE__);__debugbreak();	}}
+ 	#else//_MSC_VER
 diff --git a/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h b/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h
 index be9eca6..ec40c96 100644
 --- a/extern/bullet2/src/BulletCollision/CollisionDispatch/btCollisionWorld.h

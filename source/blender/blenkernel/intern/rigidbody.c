@@ -1658,7 +1658,7 @@ void BKE_rigidbody_do_simulation(Scene *scene, float ctime)
 #else  /* WITH_BULLET */
 
 /* stubs */
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic push
 #  pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
@@ -1684,7 +1684,7 @@ void BKE_rigidbody_cache_reset(RigidBodyWorld *rbw) {}
 void BKE_rigidbody_rebuild_world(Scene *scene, float ctime) {}
 void BKE_rigidbody_do_simulation(Scene *scene, float ctime) {}
 
-#ifdef __GNUC__
+#if defined(__GNUC__) || defined(__clang__)
 #  pragma GCC diagnostic pop
 #endif
 
