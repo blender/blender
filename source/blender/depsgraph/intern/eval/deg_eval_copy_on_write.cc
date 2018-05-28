@@ -426,6 +426,7 @@ void updata_curve_edit_mode_pointers(const Depsgraph * /*depsgraph*/,
 	const Curve *curve_orig = (const Curve *)id_orig;
 	Curve *curve_cow = (Curve *)id_cow;
 	curve_cow->editnurb = curve_orig->editnurb;
+	curve_cow->editfont = curve_orig->editfont;
 }
 
 void updata_mesh_edit_mode_pointers(const Depsgraph *depsgraph,
@@ -811,6 +812,7 @@ void discard_curve_edit_mode_pointers(ID *id_cow)
 {
 	Curve *curve_cow = (Curve *)id_cow;
 	curve_cow->editnurb = NULL;
+	curve_cow->editfont = NULL;
 }
 
 void discard_mesh_edit_mode_pointers(ID *id_cow)
