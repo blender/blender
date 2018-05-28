@@ -112,7 +112,8 @@ def update_script_node(node, report):
 
     if ok:
         # now update node with new sockets
-        ok = _cycles.osl_update_node(node.id_data.as_pointer(), node.as_pointer(), oso_path)
+        data = bpy.data.as_pointer()
+        ok = _cycles.osl_update_node(data, node.id_data.as_pointer(), node.as_pointer(), oso_path)
 
         if not ok:
             report({'ERROR'}, "OSL query failed to open " + oso_path)
