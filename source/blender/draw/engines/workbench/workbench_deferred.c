@@ -72,7 +72,7 @@ static struct {
 	float light_direction_vs[3];
 	int next_object_id;
 	float normal_world_matrix[3][3];
-} e_data = {NULL};
+} e_data = {{NULL}};
 
 /* Shaders */
 extern char datatoc_workbench_prepass_vert_glsl[];

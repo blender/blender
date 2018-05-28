@@ -63,7 +63,7 @@ static struct {
 	struct GPUTexture *composite_buffer_tx; /* ref only, not alloced */
 	int next_object_id;
 	float normal_world_matrix[3][3];
-} e_data = {NULL};
+} e_data = {{NULL}};
 
 /* Shaders */
 extern char datatoc_workbench_forward_composite_frag_glsl[];
