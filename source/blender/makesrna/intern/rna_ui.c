@@ -914,6 +914,16 @@ static void rna_UILayout_emboss_set(PointerRNA *ptr, int value)
 	uiLayoutSetEmboss(ptr->data, value);
 }
 
+static int rna_UILayout_property_split_get(PointerRNA *ptr)
+{
+	return uiLayoutGetPropSep(ptr->data);
+}
+
+static void rna_UILayout_property_split_set(PointerRNA *ptr, int value)
+{
+	uiLayoutSetPropSep(ptr->data, value);
+}
+
 #else /* RNA_RUNTIME */
 
 static void rna_def_ui_layout(BlenderRNA *brna)
@@ -978,6 +988,9 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "emboss", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, emboss_items);
 	RNA_def_property_enum_funcs(prop, "rna_UILayout_emboss_get", "rna_UILayout_emboss_set", NULL);
+	
+	prop = RNA_def_property(srna, "use_property_split", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_funcs(prop, "rna_UILayout_property_split_get", "rna_UILayout_property_split_set");
 }
 
 static void rna_def_panel(BlenderRNA *brna)

@@ -71,6 +71,7 @@
 		return_statement;                                                     \
 	} (void)0                                                                 \
 
+#define UI_ITEM_PROP_SEP_DIVIDE 0.5f
 
 /* uiLayoutRoot */
 
@@ -128,6 +129,7 @@ enum {
 	UI_ITEM_MIN       = 1 << 1,
 
 	UI_ITEM_BOX_ITEM  = 1 << 2, /* The item is "inside" a box item */
+	UI_ITEM_PROP_SEP  = 1 << 3,
 };
 
 typedef struct uiButtonItem {
@@ -394,7 +396,7 @@ static void ui_layer_but_cb(bContext *C, void *arg_but, void *arg_index)
 static void ui_item_array(
         uiLayout *layout, uiBlock *block, const char *name, int icon,
         PointerRNA *ptr, PropertyRNA *prop, int len, int x, int y, int w, int UNUSED(h),
-        bool expand, bool slider, bool toggle, bool icon_only, bool compact)
+        bool expand, bool slider, bool toggle, bool icon_only, bool compact, bool show_text)
 {
 	uiStyle *style = layout->root->style;
 	uiBut *but;
@@ -411,8 +413,9 @@ static void ui_item_array(
 	UI_block_layout_set_current(block, sub);
 
 	/* create label */
-	if (name[0])
+	if (name[0] && show_text) {
 		uiDefBut(block, UI_BTYPE_LABEL, 0, name, 0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+	}
 
 	/* create buttons */
 	if (type == PROP_BOOLEAN && ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER)) {
@@ -530,7 +533,7 @@ static void ui_item_array(
 			/* layout for known array subtypes */
 			char str[3] = {'\0'};
 
-			if (!icon_only) {
+			if (!icon_only && show_text) {
 				if (type != PROP_BOOLEAN) {
 					str[1] = ':';
 				}
@@ -542,19 +545,21 @@ static void ui_item_array(
 				RNA_property_boolean_get_array(ptr, prop, boolarr);
 			}
 
+			const char *str_buf = show_text ? str: "";
 			for (a = 0; a < len; a++) {
 				int width_item;
 
-				if (!icon_only) {
+				if (!icon_only && show_text) {
 					str[0] = RNA_property_array_item_char(prop, a);
 				}
 				if (boolarr) {
 					icon = boolarr[a] ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT;
 				}
-				width_item = (compact && type == PROP_BOOLEAN) ?
-				                 min_ii(w, ui_text_icon_width(layout, str, icon, false)) : w;
 
-				but = uiDefAutoButR(block, ptr, prop, a, str, icon, 0, 0, width_item, UI_UNIT_Y);
+				width_item = (compact && type == PROP_BOOLEAN) ?
+				                 min_ii(w, ui_text_icon_width(layout, str_buf, icon, false)) : w;
+
+				but = uiDefAutoButR(block, ptr, prop, a, str_buf, icon, 0, 0, width_item, UI_UNIT_Y);
 				if (slider && but->type == UI_BTYPE_NUM)
 					but->type = UI_BTYPE_NUM_SLIDER;
 				if (toggle && but->type == UI_BTYPE_CHECKBOX)
@@ -1401,7 +1406,8 @@ static void ui_item_rna_size(
 	if (index == RNA_NO_INDEX && len > 0) {
 		if (!name[0] && icon == ICON_NONE)
 			h = 0;
-
+		if (layout->item.flag & UI_ITEM_PROP_SEP)
+			h = 0;
 		if (ELEM(subtype, PROP_LAYER, PROP_LAYER_MEMBER))
 			h += 2 * UI_UNIT_Y;
 		else if (subtype == PROP_MATRIX)
@@ -1431,6 +1437,7 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 	int len, w, h;
 	bool slider, toggle, expand, icon_only, no_bg, compact;
 	bool is_array;
+	const bool use_prop_sep = ((layout->item.flag & UI_ITEM_PROP_SEP) != 0);
 
 	UI_block_layout_set_current(block, layout);
 
@@ -1456,17 +1463,23 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		/* pass */
 	}
 	else if (ELEM(type, PROP_INT, PROP_FLOAT, PROP_STRING, PROP_POINTER)) {
-		name = ui_item_name_add_colon(name, namestr);
+		if (use_prop_sep == false) {
+			name = ui_item_name_add_colon(name, namestr);
+		}
 	}
 	else if (type == PROP_BOOLEAN && is_array && index == RNA_NO_INDEX) {
-		name = ui_item_name_add_colon(name, namestr);
+		if (use_prop_sep == false) {
+			name = ui_item_name_add_colon(name, namestr);
+		}
 	}
 	else if (type == PROP_ENUM && index != RNA_ENUM_VALUE) {
 		if (flag & UI_ITEM_R_COMPACT) {
 			name = "";
 		}
 		else {
-			name = ui_item_name_add_colon(name, namestr);
+			if (use_prop_sep == false) {
+				name = ui_item_name_add_colon(name, namestr);
+			}
 		}
 	}
 
@@ -1505,11 +1518,56 @@ void uiItemFullR(uiLayout *layout, PointerRNA *ptr, PropertyRNA *prop, int index
 		layout->emboss = UI_EMBOSS_NONE;
 	}
 
+	/* Split the label / property. */
+	if (use_prop_sep) {
+		uiLayout *layout_split = uiLayoutSplit(layout, UI_ITEM_PROP_SEP_DIVIDE, true);
+		layout_split->space = 0;
+		uiLayout *layout_sub = uiLayoutColumn(layout_split, true);
+		layout_sub->space = 0;
+
+		if (index == RNA_NO_INDEX && is_array) {
+			char name_with_suffix[UI_MAX_DRAW_STR + 2];
+			char str[2] = {'\0'};
+			for (int a = 0; a < len; a++) {
+				str[0] = RNA_property_array_item_char(prop, a);
+				const bool use_prefix = (a == 0 && name && name[0]);
+				if (use_prefix) {
+					char *s = name_with_suffix;
+					s += STRNCPY_RLEN(name_with_suffix, name);
+					*s++ = ' ';
+					*s++ = str[0];
+					*s++ = '\0';
+				}
+				but = uiDefBut(
+				        block, UI_BTYPE_LABEL, 0, use_prefix ? name_with_suffix : str,
+				        0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+				but->drawflag |= UI_BUT_TEXT_RIGHT;
+				but->drawflag &= ~UI_BUT_TEXT_LEFT;
+			}
+		}
+		else {
+			if (name) {
+				but = uiDefBut(
+				        block, UI_BTYPE_LABEL, 0, name,
+				        0, 0, w, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
+				but->drawflag |= UI_BUT_TEXT_RIGHT;
+				but->drawflag &= ~UI_BUT_TEXT_LEFT;
+			}
+		}
+
+		/* Watch out! We can only write into the new column now. */
+		layout = uiLayoutColumn(layout_split, true);
+		layout->space = 0;
+		name = "";
+	}
+	/* End split. */
+
 	/* array property */
-	if (index == RNA_NO_INDEX && is_array)
+	if (index == RNA_NO_INDEX && is_array) {
 		ui_item_array(
-		            layout, block, name, icon, ptr, prop, len, 0, 0, w, h,
-		            expand, slider, toggle, icon_only, compact);
+		        layout, block, name, icon, ptr, prop, len, 0, 0, w, h,
+		        expand, slider, toggle, icon_only, compact, !use_prop_sep);
+	}
 	/* enum item */
 	else if (type == PROP_ENUM && index == RNA_ENUM_VALUE) {
 		if (icon && name[0] && !icon_only)
@@ -2929,6 +2987,7 @@ static void ui_litem_init_from_parent(uiLayout *litem, uiLayout *layout, int ali
 	litem->redalert = layout->redalert;
 	litem->w = layout->w;
 	litem->emboss = layout->emboss;
+	litem->item.flag = (layout->item.flag & UI_ITEM_PROP_SEP);
 	BLI_addtail(&layout->items, litem);
 }
 
@@ -3161,6 +3220,16 @@ void uiLayoutSetScaleY(uiLayout *layout, float scale)
 void uiLayoutSetEmboss(uiLayout *layout, char emboss)
 {
 	layout->emboss = emboss;
+}
+
+bool uiLayoutGetPropSep(uiLayout *layout)
+{
+	return (layout->item.flag & UI_ITEM_PROP_SEP) != 0;
+}
+
+void uiLayoutSetPropSep(uiLayout *layout, bool is_sep)
+{
+	SET_FLAG_FROM_TEST(layout->item.flag, is_sep, UI_ITEM_PROP_SEP);
 }
 
 bool uiLayoutGetActive(uiLayout *layout)
