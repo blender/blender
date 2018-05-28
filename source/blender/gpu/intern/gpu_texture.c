@@ -187,6 +187,7 @@ static GLenum gpu_texture_get_format(
 			break;
 		case GPU_RG32F:
 		case GPU_RGBA16F:
+		case GPU_RGBA16:
 			*bytesize = 16;
 			break;
 		case GPU_RGB16F:
@@ -227,6 +228,7 @@ static GLenum gpu_texture_get_format(
 		/* Formats texture & renderbuffer */
 		case GPU_RGBA32F: return GL_RGBA32F;
 		case GPU_RGBA16F: return GL_RGBA16F;
+		case GPU_RGBA16: return GL_RGBA16;
 		case GPU_RG32F: return GL_RG32F;
 		case GPU_RGB16F: return GL_RGB16F;
 		case GPU_RG16F: return GL_RG16F;
@@ -263,6 +265,7 @@ static int gpu_texture_get_component_count(GPUTextureFormat format)
 	switch (format) {
 		case GPU_RGBA8:
 		case GPU_RGBA16F:
+		case GPU_RGBA16:
 		case GPU_RGBA32F:
 			return 4;
 		case GPU_RGB16F:
