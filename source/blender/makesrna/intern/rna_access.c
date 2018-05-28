@@ -2064,10 +2064,15 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 			else
 				prop->update(bmain, scene, ptr);
 		}
-#if 0
-		if (prop->noteflag)
+
+#if 1
+		/* TODO(campbell): Should eventually be replaced entirely by message bus (below)
+		 * for now keep since COW, bugs are hard to track when we have other missing updates. */
+		if (prop->noteflag) {
 			WM_main_add_notifier(prop->noteflag, ptr->id.data);
-#else
+		}
+#endif
+
 		/* if C is NULL, we're updating from animation.
 		 * avoid slow-down from f-curves by not publishing (for now). */
 		if (C != NULL) {
@@ -2081,9 +2086,9 @@ static void rna_property_update(bContext *C, Main *bmain, Scene *scene, PointerR
 				DEG_id_tag_update(ptr->id.data, DEG_TAG_COPY_ON_WRITE);
 			}
 		}
-#endif
+		/* End message bus. */
 	}
-	
+
 	if (!is_rna || (prop->flag & PROP_IDPROPERTY)) {
 		/* WARNING! This is so property drivers update the display!
 		 * not especially nice  */
