@@ -279,8 +279,7 @@ typedef struct EEVEE_StorageList {
 	struct EEVEE_EffectsInfo *effects;
 
 	struct EEVEE_PrivateData *g_data;
-	/* XXX: move to better place */
-	float studiolight_matrix[3][3];
+
 } EEVEE_StorageList;
 
 /* ************ LIGHT UBO ************* */
@@ -789,6 +788,8 @@ typedef struct EEVEE_PrivateData {
 	float persmat[4][4], persinv[4][4];
 	float viewmat[4][4], viewinv[4][4];
 	float winmat[4][4], wininv[4][4];
+	float studiolight_matrix[3][3];
+
 	/* Mist Settings */
 	float mist_start, mist_inv_dist, mist_falloff;
 } EEVEE_PrivateData; /* Transient data */

@@ -47,8 +47,8 @@ void EEVEE_lookdev_cache_init(EEVEE_Data *vedata, DRWShadingGroup **grp, GPUShad
 			GPUTexture *tex = sl->equirectangular_gputexture;
 			DRW_shgroup_uniform_texture(*grp, "image", tex);
 
-			axis_angle_to_mat3_single(stl->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
-			DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->studiolight_matrix);
+			axis_angle_to_mat3_single(stl->g_data->studiolight_matrix, 'Z', v3d->shading.studiolight_rot_z);
+			DRW_shgroup_uniform_mat3(*grp, "StudioLightMatrix", stl->g_data->studiolight_matrix);
 
 			DRW_shgroup_uniform_float(*grp, "backgroundAlpha", &stl->g_data->background_alpha, 1);
 			DRW_shgroup_call_add(*grp, geom, NULL);
