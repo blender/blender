@@ -161,7 +161,7 @@ bool studiolight_camera_in_object_shadow(WORKBENCH_PrivateData *wpd, Object *ob,
 	};
 
 	for (int i = 0; i < 2; ++i) {
-		float min_dst, max_dst;
+		float min_dst = FLT_MAX, max_dst = -FLT_MAX;
 		for (int j = 0; j < 4; ++j) {
 			float dst = dot_v2v2(wpd->shadow_near_sides[i], pts[j]);
 			/* Do min max */
