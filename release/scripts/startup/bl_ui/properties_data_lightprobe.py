@@ -111,10 +111,10 @@ class DATA_PT_lightprobe(DataButtonsPanel, Panel):
 
         col.separator()
 
-        col.label("Visibility Group:")
+        col.label("Visibility Collection:")
         row = col.row(align=True)
-        row.prop(probe, "visibility_group", text="")
-        row.prop(probe, "invert_visibility_group", text="", icon='ARROW_LEFTRIGHT')
+        row.prop(probe, "visibility_collection", text="")
+        row.prop(probe, "invert_visibility_collection", text="", icon='ARROW_LEFTRIGHT')
 
 
 class DATA_PT_lightprobe_parallax(DataButtonsPanel, Panel):

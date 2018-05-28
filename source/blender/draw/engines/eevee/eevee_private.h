@@ -466,7 +466,7 @@ typedef struct EEVEE_LightProbesInfo {
 	struct EEVEE_LightProbe probe_data[MAX_PROBE];
 	struct EEVEE_LightGrid grid_data[MAX_GRID];
 	struct EEVEE_PlanarReflection planar_data[MAX_PLANAR];
-	/* Probe Visibility Group */
+	/* Probe Visibility Collection */
 	EEVEE_LightProbeVisTest vis_data;
 } EEVEE_LightProbesInfo;
 
