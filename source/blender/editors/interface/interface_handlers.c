@@ -1780,21 +1780,18 @@ static bool ui_but_drag_init(
 
 			/* TODO support more button pointer types */
 			if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR_GAMMA) {
-				RNA_property_float_get_array(&but->rnapoin, but->rnaprop, drag_info->color);
+				ui_but_v3_get(but, drag_info->color);
 				drag_info->gamma_corrected = true;
 				valid = true;
 			}
 			else if (but->rnaprop && RNA_property_subtype(but->rnaprop) == PROP_COLOR) {
-				RNA_property_float_get_array(&but->rnapoin, but->rnaprop, drag_info->color);
+				ui_but_v3_get(but, drag_info->color);
 				drag_info->gamma_corrected = false;
 				valid = true;
 			}
-			else if (but->pointype == UI_BUT_POIN_FLOAT) {
+			else if (ELEM(but->pointype, UI_BUT_POIN_FLOAT, UI_BUT_POIN_CHAR)) {
+				ui_but_v3_get(but, drag_info->color);
 				copy_v3_v3(drag_info->color, (float *)but->poin);
-				valid = true;
-			}
-			else if (but->pointype == UI_BUT_POIN_CHAR) {
-				rgb_uchar_to_float(drag_info->color, (unsigned char *)but->poin);
 				valid = true;
 			}
 
