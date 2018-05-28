@@ -31,7 +31,7 @@
 
 #include "GPU_batch.h"
 
-#define MAX_INSTANCE_DATA_SIZE 42 /* Can be adjusted for more */
+#define MAX_INSTANCE_DATA_SIZE 48 /* Can be adjusted for more */
 
 typedef struct DRWInstanceData DRWInstanceData;
 typedef struct DRWInstanceDataList DRWInstanceDataList;
