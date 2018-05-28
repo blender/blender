@@ -1,4 +1,10 @@
 set BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% -G "Ninja" %TESTS_CMAKE_ARGS% -DCMAKE_BUILD_TYPE=%BUILD_TYPE%
+
+if "%WITH_CLANG%" == "1" (
+	echo Building with ninja and clang not supported yet.
+	exit /b 1
+)
+
 :DetectionComplete
 if NOT "%verbose%" == "" (
 	echo BUILD_CMAKE_ARGS=%BUILD_CMAKE_ARGS% 

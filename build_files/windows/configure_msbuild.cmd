@@ -4,6 +4,10 @@ if "%BUILD_ARCH%"=="x64" (
 	set MSBUILD_PLATFORM=x64
 ) else if "%BUILD_ARCH%"=="x86" (
 	set MSBUILD_PLATFORM=win32
+	if "%WITH_CLANG%"=="1" (
+		echo Clang not supported for X86
+		exit /b 1
+	)
 )
 
 if NOT EXIST %BUILD_DIR%\nul (

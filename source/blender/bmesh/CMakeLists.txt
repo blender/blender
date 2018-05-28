@@ -169,7 +169,7 @@ set(SRC
 	bmesh_tools.h
 )
 
-if(MSVC)
+if(MSVC AND NOT MSVC_CLANG)
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /WX /wd4101")
 endif()
 

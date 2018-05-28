@@ -1548,7 +1548,12 @@ else()
 endif()
 
 # Visual Studio has all standards it supports available by default
-if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID MATCHES "Intel")
+# Clang on windows copies this behavior and does not support these switches
+if(
+	CMAKE_COMPILER_IS_GNUCC OR
+	(CMAKE_C_COMPILER_ID MATCHES "Clang" AND (NOT MSVC)) OR
+	(CMAKE_C_COMPILER_ID MATCHES "Intel")
+)
 	# Use C99 + GNU extensions, works with GCC, Clang, ICC
 	if(WITH_C11)
 		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu11")

@@ -40,7 +40,11 @@
 #include <windows.h>
 #include <intrin.h>
 
-/******************************************************************************/
+#if defined (__clang__)
+#  pragma GCC diagnostic push
+#  pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+#endif
+
 /* 64-bit operations. */
 #if (LG_SIZEOF_PTR == 8 || LG_SIZEOF_INT == 8)
 /* Unsigned */
@@ -204,5 +208,10 @@ ATOMIC_INLINE int8_t atomic_fetch_and_or_int8(int8_t *p, int8_t b)
 	return _InterlockedOr8((char *)p, (char)b);
 #endif
 }
+
+
+#if defined (__clang__)
+#  pragma GCC diagnostic pop
+#endif
 
 #endif /* __ATOMIC_OPS_MSVC_H__ */
