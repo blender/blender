@@ -1638,11 +1638,13 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 		EEVEE_LampsInfo *linfo = sldata->lamps;
 		struct Gwn_Batch *sphere = DRW_cache_sphere_get();
 		static float mat1[4][4];
-		static float color[3] = {1.0, 1.0, 1.0};
+		static float color[3] = {0.8f, 0.8f, 0.8f};
 		static float metallic_on = 1.0f;
 		static float metallic_off = 0.00f;
-		static float specular = 1.0f;
-		static float roughness = 0.05f;
+		static float specular_off = 0.5f;
+		static float specular_on = 1.0f;
+		static float roughness_off = 0.05f;
+		static float roughness_on = 1.00f;
 
 		float view_mat[4][4];
 		DRW_viewport_matrix_get(view_mat, DRW_MAT_VIEWINV);
@@ -1650,8 +1652,8 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 		DRWShadingGroup *shgrp = EEVEE_lookdev_shading_group_get(sldata, vedata, false, linfo->shadow_method);
 		DRW_shgroup_uniform_vec3(shgrp, "basecol", color, 1);
 		DRW_shgroup_uniform_float(shgrp, "metallic", &metallic_on, 1);
-		DRW_shgroup_uniform_float(shgrp, "specular", &specular, 1);
-		DRW_shgroup_uniform_float(shgrp, "roughness", &roughness, 1);
+		DRW_shgroup_uniform_float(shgrp, "specular", &specular_on, 1);
+		DRW_shgroup_uniform_float(shgrp, "roughness", &roughness_off, 1);
 		unit_m4(mat1);
 		mul_m4_m4m4(mat1, mat1, view_mat);
 		translate_m4(mat1, -1.5f, 0.0f, -5.0f);
@@ -1660,8 +1662,8 @@ void EEVEE_materials_cache_finish(EEVEE_Data *vedata)
 		shgrp = EEVEE_lookdev_shading_group_get(sldata, vedata, false, linfo->shadow_method);
 		DRW_shgroup_uniform_vec3(shgrp, "basecol", color, 1);
 		DRW_shgroup_uniform_float(shgrp, "metallic", &metallic_off, 1);
-		DRW_shgroup_uniform_float(shgrp, "specular", &specular, 1);
-		DRW_shgroup_uniform_float(shgrp, "roughness", &roughness, 1);
+		DRW_shgroup_uniform_float(shgrp, "specular", &specular_off, 1);
+		DRW_shgroup_uniform_float(shgrp, "roughness", &roughness_on, 1);
 		translate_m4(mat1, 3.0f, 0.0f, 0.0f);
 		DRW_shgroup_call_add(shgrp, sphere, mat1);
 	}
